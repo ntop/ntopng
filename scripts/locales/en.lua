@@ -2456,6 +2456,7 @@ local lang = {
     ["note_ases_traffic"] = "Traffic shown is sent and received by the autonomous system.",
     ["note_chart_zoom"] = "Click and drag on the chart to zoom in, double click to zoom out.",
     ["note_protocols_shown"] = "Applications not seen in the selected timeframe are not listed in the dropdown.",
+    ["num_blacklisted_flows"] = "Flows with Blacklisted Hosts",
     ["num_calls"] = "Num calls",
     ["num_ms_rtt"] = "RTT Time ms",
     ["num_nfq_drops"] = "Dropped Packets",

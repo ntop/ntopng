@@ -256,7 +256,8 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 	    false /* asListElement possibly handled later */);
 
   /* *** */
-  
+
+  Host::lua_blacklisted_flows(vm);
   lua_contacts_stats(vm);
 
   /* *** */
@@ -329,6 +330,8 @@ void LocalHost::lua_get_timeseries(lua_State* vm) {
   lua_newtable(vm);
   ((LocalHostStats*)stats)->lua_get_timeseries(vm);
 
+  Host::lua_blacklisted_flows(vm);
+  
   /* NOTE: the following data is *not* exported for the initial_point */
   lua_push_uint64_table_entry(vm, "active_flows.as_client", getNumOutgoingFlows());
   lua_push_uint64_table_entry(vm, "active_flows.as_server", getNumIncomingFlows());

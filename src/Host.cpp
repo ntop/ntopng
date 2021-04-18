@@ -610,8 +610,10 @@ void Host::lua_get_num_flows(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", getTotalNumHostUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", getTotalNumHostUnreachableOutgoingFlows());
 
+  lua_blacklisted_flows(vm);
+  
   if(stats)
-    stats->luaHostBehaviour(vm);
+    stats->luaHostBehaviour(vm); 
 }
 
 /* ***************************************************** */
@@ -632,6 +634,20 @@ void Host::lua_get_num_http_hosts(lua_State* vm) {
 void Host::lua_get_fingerprints(lua_State* vm) {
   fingerprints.ja3.lua("ja3_fingerprint", vm);
   fingerprints.hassh.lua("hassh_fingerprint", vm);
+}
+
+/* ***************************************************** */
+
+void Host::lua_blacklisted_flows(lua_State* vm) const {
+  /* Flow exchanged with blacklists hosts */
+  lua_newtable(vm);
+
+  lua_push_uint32_table_entry(vm, "as_client", num_blacklisted_flows.as_client);
+  lua_push_uint32_table_entry(vm, "as_server", num_blacklisted_flows.as_server);
+
+  lua_pushstring(vm, "num_blacklisted_flows");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* ***************************************************** */
@@ -681,17 +697,11 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   luaDNS(vm, verbose);
   luaTCP(vm);
   luaICMP(vm, get_ip()->isIPv4(), false);
-
+ 
   if(host_details) {
     lua_get_score_breakdown(vm);
-
-    lua_newtable(vm);
-    lua_push_uint64_table_entry(vm, "as_client", num_blacklisted_flows.as_client);
-    lua_push_uint64_table_entry(vm, "as_server", num_blacklisted_flows.as_server);
-    lua_pushstring(vm, "num_blacklisted_flows");
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-
+    lua_blacklisted_flows(vm);
+    
     /*
       This has been disabled as in case of an attack, most hosts do not have a name and we will waste
       a lot of time doing activities that are not necessary

@@ -298,6 +298,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void lua_get_os(lua_State* vm);
   void lua_get_fingerprints(lua_State *vm);
   void lua_get_geoloc(lua_State *vm);
+  void lua_blacklisted_flows(lua_State* vm) const;
   
   void resolveHostName();
   char *get_host_label(char * const buf, ssize_t buf_size);

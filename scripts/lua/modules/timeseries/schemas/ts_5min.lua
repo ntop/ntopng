@@ -287,6 +287,14 @@ schema:addMetric("flows_as_server")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("host:num_blacklisted_flows", {step=300, rrd_fname="num_blacklisted_flows"})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("flows_as_client")
+schema:addMetric("flows_as_server")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("host:total_flows", {step=300, rrd_fname="total_flows"})
 schema:addTag("ifid")
 schema:addTag("host")

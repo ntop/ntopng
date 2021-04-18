@@ -364,6 +364,14 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   if enable_debug then
      io.write(hostname.. "\n")
   end
+
+  if(host.num_blacklisted_flows ~= nil) then
+     ts_utils.append("host:num_blacklisted_flows", {ifid=ifstats.id, host=hostname,
+						    flows_as_client = host.num_blacklisted_flows.as_client,
+						    flows_as_server = host.num_blacklisted_flows.as_server},
+		     when)
+  end
+  
   -- Contacted Hosts Behaviour
   if host["contacted_hosts_behaviour"] then
      if(host.contacted_hosts_behaviour.value > 0) then
