@@ -33,7 +33,6 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
 
   nextPeriodicUpdate = 0;
-  nextHourlyPeriodicUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = 0;
   current_cycle = 0;
   
@@ -70,7 +69,6 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   http = NULL;
   icmp = NULL;
   nextPeriodicUpdate = 0;
-  nextHourlyPeriodicUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = 0;
 #if defined(NTOPNG_PRO)
   traffic_stats.ntp_traffic_sent = traffic_stats.dns_traffic_sent = traffic_stats.ntp_traffic_rcvd = traffic_stats.dns_traffic_rcvd = 0;
@@ -161,16 +159,12 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
         old_sites = top_sites->json();
     }
 
-    nextPeriodicUpdate = tv->tv_sec + HOST_SITES_REFRESH;
-  }
-
-  /* Hourly Update */
-  if(tv->tv_sec >= nextHourlyPeriodicUpdate) {
+    /* Updates Traffic Map, enabled by Excessive Traffic alert */
 #if defined(NTOPNG_PRO)
     iface->updateCheckTrafficMap(host->get_ip(), host->getMac(), host->get_vlan_id(), traffic_stats);
     resetTrafficStats();
 #endif
-    nextHourlyPeriodicUpdate = tv->tv_sec + HOST_TRAFFIC_REFRESH;    
+    nextPeriodicUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
 }
 

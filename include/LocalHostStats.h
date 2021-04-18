@@ -34,8 +34,6 @@ class LocalHostStats: public HostStats {
 #endif
   /* nextPeriodicUpdate done every 5 min */
   time_t nextPeriodicUpdate;
-  /* nextHourlyPeriodicUpdate done every 60 min */
-  time_t nextHourlyPeriodicUpdate;
   u_int32_t num_contacts_as_cli, num_contacts_as_srv;
 
   /* Estimate of the number of critical servers used by this host */
