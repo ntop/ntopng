@@ -244,6 +244,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId) {
   setEntityValue(get_hostkey(buf, sizeof(buf), true));
 
   is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
+
+  memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
 }
 
 /* *************************************** */
@@ -682,6 +684,13 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   if(host_details) {
     lua_get_score_breakdown(vm);
+
+    lua_newtable(vm);
+    lua_push_uint64_table_entry(vm, "as_client", num_blacklisted_flows.as_client);
+    lua_push_uint64_table_entry(vm, "as_server", num_blacklisted_flows.as_server);
+    lua_pushstring(vm, "num_blacklisted_flows");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
 
     /*
       This has been disabled as in case of an attack, most hosts do not have a name and we will waste

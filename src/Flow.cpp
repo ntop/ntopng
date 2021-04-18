@@ -223,6 +223,12 @@ Flow::Flow(NetworkInterface *_iface,
     setDetectedProtocol(ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol, 0, 0, 0, 0));
     break;
   }
+
+  if(isBlacklistedClient()) {
+    if(srv_host) srv_host->inc_num_blacklisted_flows(false);
+  } else if(isBlacklistedServer()) {
+    if(cli_host) cli_host->inc_num_blacklisted_flows(true);
+  }    
 }
 
 /* *************************************** */

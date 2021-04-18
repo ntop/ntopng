@@ -1179,6 +1179,7 @@ local lang = {
     ["arp_requests"] = "ARP Requests",
     ["as_client"] = "As Client",
     ["as_server"] = "As Server",
+    ["contacts_blacklisted"] = "Total Flows with Blacklisted Hosts",
     ["details"] = "Details",
     ["device_id"] = "Device ID",
     ["device_port"] = "Device Port",

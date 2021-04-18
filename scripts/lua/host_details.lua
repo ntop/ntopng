@@ -806,6 +806,11 @@ end
    print(" / <span id=unreachable_flows_as_server>" .. formatValue(host["unreachable_flows.as_server"]) .. "</span> <span id=trend_unreachable_flows_as_server></span>")
    print("</td></tr>")
 
+   print("<tr><th>"..i18n("details.contacts_blacklisted").."</th>")
+   print("<td><span id=num_blacklisted_flows_as_client>" .. formatValue(host.num_blacklisted_flows.as_client) .. "</span> <span id=trend_num_blacklisted_flows_as_client></span> \n")
+   print("<td><span id=num_blacklisted_flows_as_server>" .. formatValue(host.num_blacklisted_flows.as_server) .. "</span>  <span id=trend_num_blacklisted_flows_as_server></span> \n")
+   print("</tr>")
+
    print("<tr><th>"..i18n("details.peers").."</th>")
    print("<td><span id=active_peers_as_client>" .. formatValue(host["contacts.as_client"]) .. "</span> <span id=peers_trend_as_active_client></span> \n")
    print("<td><span id=active_peers_as_server>" .. formatValue(host["contacts.as_server"]) .. "</span>  <span id=peers_trend_as_active_server></span> \n")
@@ -2214,6 +2219,8 @@ if(not only_historical) and (host ~= nil) then
    print("var last_flows_as_client = " .. host["flows.as_client"] .. ";\n")
    print("var last_active_peers_as_server = " .. host["contacts.as_server"] .. ";\n")
    print("var last_active_peers_as_client = " .. host["contacts.as_client"] .. ";\n")
+   print("var last_num_blacklisted_flows_as_server = " .. host.num_blacklisted_flows.as_server .. ";\n")
+   print("var last_num_blacklisted_flows_as_client = " .. host.num_blacklisted_flows.as_client .. ";\n")
    print("var last_alerted_flows_as_server = " .. host["alerted_flows.as_server"] .. ";\n")
    print("var last_alerted_flows_as_client = " .. host["alerted_flows.as_client"] .. ";\n")
    print("var last_unreachable_flows_as_server = " .. host["unreachable_flows.as_server"] .. ";\n")
@@ -2330,6 +2337,8 @@ if(not only_historical) and (host ~= nil) then
    			$('#active_flows_as_server').html(NtopUtils.addCommas(host["active_flows.as_server"]));
    			$('#active_peers_as_client').html(NtopUtils.addCommas(host["contacts.as_client"]));
    			$('#active_peers_as_server').html(NtopUtils.addCommas(host["contacts.as_server"]));
+   			$('#num_blacklisted_flows_as_client').html(NtopUtils.addCommas(host.num_blacklisted_flows.as_client));
+   			$('#num_blacklisted_flows_as_server').html(NtopUtils.addCommas(host.num_blacklisted_flows.as_server));
    			$('#flows_as_client').html(NtopUtils.addCommas(host["flows.as_client"]));
                         $('#alerted_flows_as_client').html(NtopUtils.addCommas(host["alerted_flows.as_client"]));
                         $('#unreachable_flows_as_client').html(NtopUtils.addCommas(host["unreachable_flows.as_client"]));
@@ -2454,6 +2463,8 @@ print [[
 			$('#trend_as_active_server').html(NtopUtils.drawTrend(host["active_flows.as_server"], last_active_flows_as_server, ""));
 			$('#peers_trend_as_active_client').html(NtopUtils.drawTrend(host["contacts.as_client"], last_active_peers_as_client, ""));
 			$('#peers_trend_as_active_server').html(NtopUtils.drawTrend(host["contacts.as_server"], last_active_peers_as_server, ""));
+			$('#trend_num_blacklisted_flows_as_client').html(NtopUtils.drawTrend(host.num_blacklisted_flows.as_client, last_num_blacklisted_flows_as_client, ""));
+			$('#trend_num_blacklisted_flows_as_server').html(NtopUtils.drawTrend(host.num_blacklisted_flows.as_server, last_num_blacklisted_flows_as_server, ""));
 			$('#trend_as_client').html(NtopUtils.drawTrend(host["flows.as_client"], last_flows_as_client, ""));
 			$('#trend_as_server').html(NtopUtils.drawTrend(host["flows.as_server"], last_flows_as_server, ""));
 			$('#trend_alerted_flows_as_server').html(NtopUtils.drawTrend(host["alerted_flows.as_server"], last_alerted_flows_as_server, " style=\"color: #B94A48;\""));

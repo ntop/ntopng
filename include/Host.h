@@ -71,9 +71,12 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   struct {
     u_int32_t current /* computing */, last /* in the last interval */;
   } max_score;
-
+  
   std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server; /* Need atomic as inc/dec done on different threads */
   u_int32_t asn;
+  struct {
+    u_int32_t as_client/* this host contacted a blacklisted host */, as_server /* a blacklisted host contacted me */;
+  } num_blacklisted_flows;
   AutonomousSystem *as;
   Country *country;
   VLAN *vlan;
@@ -466,6 +469,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t value_score_anomaly(bool as_client) { return(stats->value_score_anomaly(as_client)); }
   inline u_int32_t lower_bound_score_anomaly(bool as_client) { return(stats->lower_bound_score_anomaly(as_client)); }
   inline u_int32_t upper_bound_score_anomaly(bool as_client) { return(stats->upper_bound_score_anomaly(as_client)); }
+
+  inline void inc_num_blacklisted_flows(bool as_client) { if(as_client) num_blacklisted_flows.as_client++; else num_blacklisted_flows.as_server++; }
 };
 
 #endif /* _HOST_H_ */
