@@ -76,6 +76,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   u_int32_t asn;
   struct {
     u_int32_t as_client/* this host contacted a blacklisted host */, as_server /* a blacklisted host contacted me */;
+    u_int32_t checkpoint_as_client, checkpoint_as_server;
   } num_blacklisted_flows;
   AutonomousSystem *as;
   Country *country;
@@ -130,6 +131,14 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline  bool isDhcpHost()            const { return(is_dhcp_host); };
   inline  void setBroadcastDomainHost()      { is_in_broadcast_domain = true;  };
   inline  void setSystemHost()               { /* TODO: remove */              };
+
+  void blacklistedStatsResetRequested();
+  inline u_int32_t getCheckpointBlacklistedAsCli() const { return(num_blacklisted_flows.checkpoint_as_client); }
+  inline u_int32_t getCheckpointBlacklistedAsSrv() const { return(num_blacklisted_flows.checkpoint_as_server); }
+  inline u_int32_t getNumBlacklistedAsCli() const { return(num_blacklisted_flows.as_client); }
+  inline u_int32_t getNumBlacklistedAsSrv() const { return(num_blacklisted_flows.as_server); }
+  inline u_int32_t getNumBlacklistedAsCliReset() const { return getNumBlacklistedAsCli() - getCheckpointBlacklistedAsCli(); }
+  inline u_int32_t getNumBlacklistedAsSrvReset() const { return getNumBlacklistedAsSrv() - getCheckpointBlacklistedAsSrv(); }
 
   inline  bool isDhcpServer()          const { return(host_services_bitmap & (1 << HOST_IS_DHCP_SERVER)); }
   inline  void setDhcpServer()               { host_services_bitmap |= 1 << HOST_IS_DHCP_SERVER;          }
@@ -341,6 +350,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void decNumFlows(time_t t, bool as_client);
   inline void incNumAlertedFlows(bool as_client) { active_alerted_flows++; if(stats) stats->incNumAlertedFlows(as_client); }
   inline void decNumAlertedFlows(bool as_client) { active_alerted_flows--; }
+
   inline u_int32_t getNumAlertedFlows() const { return(active_alerted_flows); }
   inline void incNumUnreachableFlows(bool as_server) { if(stats) stats->incNumUnreachableFlows(as_server); }
   inline void incNumHostUnreachableFlows(bool as_server) { if(stats) stats->incNumHostUnreachableFlows(as_server); };

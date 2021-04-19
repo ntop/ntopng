@@ -552,7 +552,7 @@ local function validatePrintFormat(mode)
 end
 
 local function validateResetStatsMode(mode)
-   local modes = {"reset_drops", "reset_all"}
+   local modes = {"reset_drops", "reset_all", "reset_blacklisted"}
 
    return validateChoice(modes, mode)
 end
@@ -1387,7 +1387,7 @@ local known_parameters = {
    ["l7proto"]                 = validateFilters(validateProtocolIdOrName),      -- An nDPI application protocol ID, layer 7
    ["filtered_query"]          = validateBool,            -- Parameter used to download nindex flows
    ["l7cat"]                   = validateFilters(validateCategory),      -- An nDPI category, layer 7
-   ["flow_risk"]               = validateFilters(validateNumber),        -- Flow risk   
+   ["flow_risk"]               = validateFilters(validateUnquoted),        -- Flow risk   
    ["visible_columns"]         = validateSingleWord,        -- String containing the visible columns used by nindex raw flows   
    ["protocol"]                = validateProtocolIdOrName,      -- An nDPI application protocol ID or name
    ["ndpi"]                    = validateApplicationsList,      -- a list applications

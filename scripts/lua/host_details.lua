@@ -259,7 +259,9 @@ else
    print('\n<script>var refresh = 3000 /* ms */;</script>\n')
 
    if _POST["action"] == "reset_stats" and isAdministrator() then
-      if interface.resetHostStats(hostkey) then
+      if _POST["resetstats_mode"] == "reset_blacklisted" then
+	 interface.resetHostStats(hostkey, true)
+      elseif interface.resetHostStats(hostkey) then
          print("<div class=\"alert alert alert-success\">")
          print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
          print(i18n("host_details.reset_stats_in_progress"))
@@ -862,12 +864,33 @@ end
        }
      })
    )
+   
+   -- Stats reset
+   print(
+     template.gen("modal_confirm_dialog.html", {
+       dialog={
+         id      = "reset_blacklisted_stats_dialog",
+         action  = "$('#reset_blacklisted_stats_form').submit();",
+         title   = i18n("host_details.reset_blacklisted_stats"),
+         message = i18n("host_details.reset_blacklisted_stats_confirm", {host=host_label}) .. "<br><br>" .. i18n("host_details.reset_blacklisted_stats_note"),
+         confirm = i18n("reset"),
+       }
+     })
+   )
    print[[<tr><th width=30% >]] print(i18n("host_details.reset_host_stats"))
    print[[</th><td colspan=2><form id='reset_host_stats_form' method="POST">
       <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
       <input name="action" type="hidden" value="reset_stats" />
+      <input name="resetstats_mode" type="hidden" value="reset_all" />
+   </form>
+   <form id='reset_blacklisted_stats_form' method="POST">
+      <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+      <input name="action" type="hidden" value="reset_stats" />
+      <input name="resetstats_mode" type="hidden" value="reset_blacklisted" />
    </form>
    <button class="btn btn-secondary" onclick="$('#reset_host_stats_dialog').modal('show')">]] print(i18n("host_details.reset_host_stats")) print[[</button>
+   <button class="btn btn-secondary" onclick="$('#reset_blacklisted_stats_dialog').modal('show')">]] print(i18n("host_details.reset_blacklisted_stats")) print[[</button>
+   
    </td></tr>]]
 
    local num_extra_names = 0

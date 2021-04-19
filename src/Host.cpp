@@ -642,8 +642,8 @@ void Host::lua_blacklisted_flows(lua_State* vm) const {
   /* Flow exchanged with blacklists hosts */
   lua_newtable(vm);
 
-  lua_push_uint32_table_entry(vm, "as_client", num_blacklisted_flows.as_client);
-  lua_push_uint32_table_entry(vm, "as_server", num_blacklisted_flows.as_server);
+  lua_push_uint32_table_entry(vm, "as_client", getNumBlacklistedAsCliReset());
+  lua_push_uint32_table_entry(vm, "as_server", getNumBlacklistedAsSrvReset());
 
   lua_pushstring(vm, "num_blacklisted_flows");
   lua_insert(vm, -2);
@@ -1447,6 +1447,13 @@ bool Host::statsResetRequested() {
 
 /* *************************************** */
 
+void Host::blacklistedStatsResetRequested() {
+  num_blacklisted_flows.checkpoint_as_client = num_blacklisted_flows.as_client;
+  num_blacklisted_flows.checkpoint_as_server = num_blacklisted_flows.as_server;
+}
+
+/* *************************************** */
+
 void Host::checkStatsReset() {
   if(stats_shadow) {
     delete stats_shadow;
@@ -1458,7 +1465,8 @@ void Host::checkStatsReset() {
     stats_shadow = stats;
     stats = new_stats;
     stats_shadow->resetTopSitesData();
-
+    blacklistedStatsResetRequested();
+    
     /* Reset internal state */
 #ifdef NTOPNG_PRO
     has_blocking_quota = false;
