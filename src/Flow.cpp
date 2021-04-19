@@ -1778,10 +1778,11 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
     }
   } /* Closes if(cli_host && srv_host) */
 
+
+#ifndef HAVE_NEDGE
   /* Non-Packet interfaces (e.g., ZMQ) have flow throughput stats updated as soon as the flow is received.
      This makes throughput more precise as it is averaged on a timespan which is last-first switched. */
-  if(iface->isPacketInterface()
-     && (diff_sent_bytes || diff_rcvd_bytes)) {
+  if(iface->isPacketInterface()) {
     if (last_update_time.tv_sec > 0) {
       float tdiff_msec = Utils::msTimevalDiff(tv, &last_update_time);
       updateThroughputStats(tdiff_msec,
@@ -1790,6 +1791,7 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
     }
     memcpy(&last_update_time, tv, sizeof(struct timeval));
   }
+#endif
 
   /* 
      Check (and possibly enqueue) the flow for processing by a view interface
@@ -4337,6 +4339,17 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 		       || get_packets_srv2cli() > d2s_pkts || get_bytes_srv2cli() > d2s_bytes);
 
   updateSeen();
+
+  if (last_conntrack_update > 0) {
+    float tdiff_msec = (now - last_conntrack_update)*1000;
+    updateThroughputStats(tdiff_msec,
+      nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
+      nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
+      0,
+      nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts,
+      nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes,
+      0);
+  }
 
   /*
     We need to set last_conntrack_update even with 0 packtes/bytes
