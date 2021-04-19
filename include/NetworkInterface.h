@@ -183,7 +183,7 @@ class NetworkInterface : public AlertableEntity {
   bool flow_dump_disabled;
   u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
   /* Those will hold counters at checkpoints */
-  u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount;
+  u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount, checkpointDroppedAlertsCount;
   u_int64_t checkpointDiscardedProbingPktCount, checkpointDiscardedProbingBytesCount;
   u_int16_t ifMTU;
   int cpu_affinity; /**< Index of physical core where the network interface works. */
@@ -439,6 +439,7 @@ class NetworkInterface : public AlertableEntity {
 
   /* Overridden in ViewInterface.cpp */
   virtual u_int64_t getCheckPointNumPackets();
+  virtual u_int64_t getCheckPointDroppedAlerts();
   virtual u_int64_t getCheckPointNumBytes();
   virtual u_int32_t getCheckPointNumPacketDrops();
   virtual u_int64_t getCheckPointNumDiscardedProbingPackets() const;
@@ -644,6 +645,7 @@ class NetworkInterface : public AlertableEntity {
   /* Overridden in ViewInterface.cpp */
   virtual u_int64_t getNumPackets();
   virtual u_int64_t getNumBytes();
+  virtual u_int64_t getNumDroppedAlerts();
   virtual void      updatePacketsStats() { };
   virtual u_int32_t getNumDroppedPackets() { return 0; };
   virtual u_int32_t getNumDroppedFlowScriptsCalls() { return num_dropped_flow_scripts_calls; };
@@ -661,6 +663,7 @@ class NetworkInterface : public AlertableEntity {
   inline u_int64_t  getNumPacketsSinceReset()     { return getNumPackets() - getCheckPointNumPackets(); }
   inline u_int64_t  getNumBytesSinceReset()       { return getNumBytes() - getCheckPointNumBytes(); }
   inline u_int64_t  getNumPacketDropsSinceReset() { return getNumPacketDrops() - getCheckPointNumPacketDrops(); }
+  inline u_int64_t  getNumDroppedAlertsSinceReset() { return getNumDroppedAlerts() - getCheckPointDroppedAlerts(); }
   inline u_int64_t  getNumDiscProbingPktsSinceReset() const {
     return getNumDiscardedProbingPackets() - getCheckPointNumDiscardedProbingPackets();
   };
@@ -898,7 +901,6 @@ class NetworkInterface : public AlertableEntity {
   inline void incNumDroppedAlerts(u_int32_t num_dropped)  { num_dropped_alerts += num_dropped; }
   inline void incNumWrittenAlerts()			  { num_written_alerts++; }
   inline void incNumAlertsQueries()			  { num_alerts_queries++; }
-  inline u_int64_t getNumDroppedAlerts()		  { return(num_dropped_alerts); }
   inline u_int64_t getNumWrittenAlerts()		  { return(num_written_alerts); }
   inline u_int64_t getNumAlertsQueries()		  { return(num_alerts_queries); }
   void walkAlertables(int entity_type, const char *entity_value,

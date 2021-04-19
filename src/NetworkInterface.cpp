@@ -266,7 +266,7 @@ void NetworkInterface::init() {
     numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     arp_requests = arp_replies = 0,
     has_mac_addresses = false,
-    checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
+    checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = checkpointDroppedAlertsCount = 0,
     checkpointDiscardedProbingPktCount = checkpointDiscardedProbingBytesCount = 0,
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
@@ -5197,6 +5197,12 @@ u_int64_t NetworkInterface::getNumBytes() {
 
 /* **************************************************** */
 
+u_int64_t NetworkInterface::getNumDroppedAlerts() {
+  return((u_int64_t)num_dropped_alerts);
+}
+
+/* **************************************************** */
+
 u_int32_t NetworkInterface::getNumPacketDrops() {
   return(!isSubInterface() ? getNumDroppedPackets() : 0);
 };
@@ -5476,7 +5482,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_alerts", hasAlerts());
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
   luaAlertedFlows(vm);
-  lua_push_int32_table_entry(vm, "num_dropped_alerts", num_dropped_alerts);
+  lua_push_int32_table_entry(vm, "num_dropped_alerts", getNumDroppedAlertsSinceReset());
   lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs", periodicStatsUpdateFrequency());
 
   /* .stats */
@@ -6251,6 +6257,7 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
     checkpointPktCount = getNumPackets(),
       checkpointBytesCount = getNumBytes();
   }
+  checkpointDroppedAlertsCount = getNumDroppedAlerts();
   checkpointPktDropCount = getNumPacketDrops();
   checkpointDiscardedProbingPktCount = getNumDiscardedProbingPackets();
   checkpointDiscardedProbingBytesCount = getNumDiscardedProbingBytes();
@@ -6262,6 +6269,12 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
 
 u_int64_t NetworkInterface::getCheckPointNumPackets() {
   return(checkpointPktCount);
+};
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::getCheckPointDroppedAlerts() {
+  return(checkpointDroppedAlertsCount);
 };
 
 /* **************************************************** */

@@ -206,6 +206,17 @@ u_int64_t ViewInterface::getNumPackets() {
 
 /* **************************************************** */
 
+u_int64_t ViewInterface::getNumDroppedAlerts() {  
+  u_int64_t tot = 0;
+
+  for(u_int8_t s = 0; s<num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getNumDroppedAlerts();
+
+  return(tot);
+};
+
+/* **************************************************** */
+
 u_int32_t ViewInterface::getNumPacketDrops() {
   u_int32_t tot = 0;
 
@@ -293,6 +304,17 @@ u_int64_t ViewInterface::getNumBytes() {
 
   return(tot);
 }
+
+/* **************************************************** */
+
+u_int64_t ViewInterface::getCheckPointDroppedAlerts() {
+  u_int64_t tot = 0;
+
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getCheckPointDroppedAlerts();
+
+  return(tot);
+};
 
 /* **************************************************** */
 

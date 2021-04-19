@@ -64,6 +64,7 @@ class ViewInterface : public NetworkInterface {
   AlertsQueue* getAlertsQueue()     const { return alertsQueue;   };
 
   virtual u_int64_t getNumPackets();
+  virtual u_int64_t getNumDroppedAlerts();
   virtual u_int64_t getNumBytes();
   virtual u_int     getNumPacketDrops();
   virtual u_int64_t getNumDiscardedProbingPackets() const;
@@ -74,6 +75,7 @@ class ViewInterface : public NetworkInterface {
   virtual u_int64_t getNumActiveAlertedFlows() const;
 
   virtual u_int64_t getCheckPointNumPackets();
+  virtual u_int64_t getCheckPointDroppedAlerts();
   virtual u_int64_t getCheckPointNumBytes();
   virtual u_int32_t getCheckPointNumPacketDrops();
   virtual u_int64_t getCheckPointNumDiscardedProbingPackets() const;
