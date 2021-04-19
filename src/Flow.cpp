@@ -2045,7 +2045,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
 #ifdef HAVE_NEDGE
     if(iface->is_bridge_interface())
-      lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict() ? (json_bool)1 : (json_bool)0);
+      lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict() ? 1 : 0);
+#else
+    if(!passVerdict) lua_push_bool_table_entry(vm, "verdict.pass", 0);
 #endif
 
     if(get_protocol() == IPPROTO_TCP)
@@ -2616,6 +2618,8 @@ json_object* Flow::flow2JSON() {
   if(iface && iface->is_bridge_interface())
     json_object_object_add(my_object, "verdict.pass",
 			   json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
+#else
+  if(!passVerdict) json_object_object_add(my_object, "verdict.pass", json_object_new_boolean((json_bool)0));
 #endif
 
   if(cli_ebpf) cli_ebpf->getJSONObject(my_object, true);

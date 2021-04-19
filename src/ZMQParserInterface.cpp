@@ -120,6 +120,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("CLIENT_NW_LATENCY_MS", CLIENT_NW_LATENCY_MS, NTOP_PEN);
   addMapping("SERVER_NW_LATENCY_MS", SERVER_NW_LATENCY_MS, NTOP_PEN);
   addMapping("L7_PROTO_RISK", L7_PROTO_RISK, NTOP_PEN);
+  addMapping("FLOW_VERDICT", FLOW_VERDICT, NTOP_PEN);
 }
 
 /* **************************************************** */
@@ -724,6 +725,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
 
   case L7_PROTO_RISK:
     flow->ndpi_flow_risk_bitmap = value->int_num;
+    break;
+
+  case FLOW_VERDICT:
+    flow->flow_verdict = value->int_num;
     break;
 
   case BITTORRENT_HASH:

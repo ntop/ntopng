@@ -37,7 +37,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   char *tls_server_name, *bittorrent_hash;
   char *ja3c_hash, *ja3s_hash;
   char *external_alert;
-  u_int8_t tls_unsafe_cipher;
+  u_int8_t tls_unsafe_cipher, flow_verdict;
   u_int16_t tls_cipher;
   u_int16_t http_ret_code;
   u_int16_t dns_query_type, dns_ret_code;

@@ -35,7 +35,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   tls_cipher = tls_unsafe_cipher = http_ret_code = 0;
   dns_query_type = dns_ret_code = 0;
   ndpi_flow_risk_bitmap = 0;
-  
+  flow_verdict = 0; /* Unknown */
   bittorrent_hash = NULL;
   memset(&custom_app, 0, sizeof(custom_app));
 

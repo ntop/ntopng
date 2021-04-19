@@ -238,6 +238,7 @@
 #define L7_PROTO_RISK         NTOP_BASE_ID+509
 #define HASSHC_HASH           NTOP_BASE_ID+525
 #define HASSHS_HASH           NTOP_BASE_ID+526
+#define FLOW_VERDICT          NTOP_BASE_ID+522
 
 /* SIP */
 #define SIP_CALL_ID NTOP_BASE_ID+130
