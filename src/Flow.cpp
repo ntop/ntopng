@@ -1645,7 +1645,7 @@ void Flow::updateThroughputStats(float tdiff_msec,
     else if(goodput_bytes_thpt > goodput_bytes_msec) goodput_bytes_thpt_trend = trend_down;
     else                                             goodput_bytes_thpt_trend = trend_stable;
 
-#if DEBUG_TREND
+#ifdef DEBUG_TREND
     u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][bytes: %lu][bits_thpt: %.4f Mbps]",
 				 bytes_msec, diff_bytes, (bytes_thpt*8)/((float)(1024*1024)));
@@ -1697,7 +1697,7 @@ void Flow::updateThroughputStats(float tdiff_msec,
     pkts_thpt = pkts_msec;
     if(top_pkts_thpt < pkts_thpt) top_pkts_thpt = pkts_thpt;
 
-#if DEBUG_TREND
+#ifdef DEBUG_TREND
     u_int64_t diff_pkts = diff_sent_packets + diff_rcvd_packets;
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][tdiff: %f][pkts: %lu][pkts_thpt: %.2f pps]",
 				 pkts_msec, tdiff_msec, diff_pkts, pkts_thpt);
@@ -1780,12 +1780,15 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 
   /* Non-Packet interfaces (e.g., ZMQ) have flow throughput stats updated as soon as the flow is received.
      This makes throughput more precise as it is averaged on a timespan which is last-first switched. */
-  if(iface->isPacketInterface() && last_update_time.tv_sec > 0) {
-    float tdiff_msec = Utils::msTimevalDiff(tv, &last_update_time);
-    updateThroughputStats(tdiff_msec,
-			  diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
-			  diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
-
+  if(iface->isPacketInterface()
+     && (diff_sent_bytes || diff_rcvd_bytes)) {
+    if (last_update_time.tv_sec > 0) {
+      float tdiff_msec = Utils::msTimevalDiff(tv, &last_update_time);
+      updateThroughputStats(tdiff_msec,
+			    diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
+			    diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
+    }
+    memcpy(&last_update_time, tv, sizeof(struct timeval));
   }
 
   /* 
@@ -1793,7 +1796,6 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
    */
   getInterface()->viewEnqueue(tv->tv_sec, this);
 
-  memcpy(&last_update_time, tv, sizeof(struct timeval));
   GenericHashEntry::periodic_stats_update(tv);
 }
 

@@ -22,15 +22,15 @@
 #include "ntop_includes.h"
 
 HostPoolStats::HostPoolStats(NetworkInterface *iface) : GenericTrafficElement() {
-    ndpiStats = new nDPIStats();
-    totalStats = new nDPIStats();
-    mustReset = false;
+  ndpiStats = new nDPIStats();
+  totalStats = new nDPIStats();
+  mustReset = false;
 
-    if(iface && iface->getTimeLastPktRcvd() > 0)
-      first_seen = last_seen = iface->getTimeLastPktRcvd();
-    else
-      first_seen = last_seen = time(NULL);
- };
+  if(iface && iface->getTimeLastPktRcvd() > 0)
+    first_seen = last_seen = iface->getTimeLastPktRcvd();
+  else
+    first_seen = last_seen = time(NULL);
+};
 
 /* ***************************************** */
 
