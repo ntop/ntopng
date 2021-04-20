@@ -3679,8 +3679,10 @@ local lang = {
       ["l4proto"] = "L4 Proto",
       ["l7cat"] = "L7 Cat",
       ["l7proto"] = "L7 Proto",
+      ["src2dst_dscp"] = "Client DSCP",
       ["srv_ip"] = "Server IP",
       ["srv_port"] = "Server Port",
+      ["status"] = "Status",
     },
   },
   ["os_details"] = {
