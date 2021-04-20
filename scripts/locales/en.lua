@@ -1909,6 +1909,7 @@ local lang = {
     ["flow_start_milliseconds"] = "Msec (epoch) of the first flow packet",
     ["flow_start_sec"] = "Seconds (epoch) of the first flow packet",
     ["flow_user_name"] = "Flow username of the tunnel (if known)",
+    ["flow_verdict"] = "Flow verdict",
     ["frame_length"] = "Original L2 frame length",
     ["ftp_command"] = "FTP client command",
     ["ftp_command_ret_code"] = "FTP client command return code",

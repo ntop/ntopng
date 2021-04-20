@@ -233,6 +233,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if(zflow->tcp.in_window)  flow->setFlowTcpWindow(zflow->tcp.in_window, src2dst_direction);
   if(zflow->tcp.out_window) flow->setFlowTcpWindow(zflow->tcp.out_window, !src2dst_direction);
 
+  if(zflow->flow_verdict == 2 /* DROP */) flow->setDropVerdict();
+
   flow->setRisk(zflow->ndpi_flow_risk_bitmap);
   flow->setTOS(zflow->src_tos, true), flow->setTOS(zflow->dst_tos, false);
   flow->setRtt();
