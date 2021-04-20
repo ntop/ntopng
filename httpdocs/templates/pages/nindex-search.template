@@ -148,11 +148,9 @@
             // add the tag filters inside the search params object
             for (const tag of tags) {
 
-                const key = tag.getAttribute('key');
-                const selectedOperator = tag.getAttribute('selectedoperator');
-                const value = tag.getAttribute('value');
-
-                searchParams.set(key, `${value},${selectedOperator}`);
+                const tagData = tagify.tagData(tag);
+                const {key, selectedOperator, realValue, value} = tagData;
+                searchParams.set(key, `${realValue || value},${selectedOperator}`);
             }
 
             url.search = searchParams.toString();
@@ -263,15 +261,27 @@
         tagify.on('add', async function(e) {
 
             const detail = e.detail;
-
-            if (detail.data === undefined) {
-                return;
-            }
+            if (detail.data === undefined) { return; }
 
             const tag = detail.data;
+            // add/update datasource params, default operator `=`
+            datasourceParams[tag.key] = `${tag.realValue || tag.value},eq`;
+            // trigger request
+            await onRangePickerChange(true);
+        });
+
+        tagify.on('edit:updated', async function(e) {
+
+            const detail = e.detail;
+            if (detail.data === undefined) { return; }
+
+            const tag = detail.data;
+            const prevTag = detail.previousData;
+
+            tag.realValue = tag.value;
 
             // add/update datasource params, default operator `=`
-            datasourceParams[tag.key] = `${tag.value},eq`;
+            datasourceParams[tag.key] = `${tag.value},${prevTag.selectedOperator}`;
 
             // trigger request
             await onRangePickerChange(true);
@@ -281,10 +291,13 @@
             
             // update the tag and the operator
             const $tag = $(this).parents('tag');
+            const tagData = tagify.tagData($tag[0]);
             const selectedOperator = $(this).val();
 
             $tag.attr("selectedoperator", selectedOperator);
-            datasourceParams[$tag.attr('key')] = `${$tag.attr('value')},${selectedOperator}`;
+
+            datasourceParams[$tag.attr('key')] = `${tagData.realValue || tagData.value},${selectedOperator}`;
+            tagData.selectedOperator = selectedOperator;
 
             // trigger request
             await onRangePickerChange(true);
@@ -312,10 +325,11 @@
             // the tag key is contained inside the column's name
             const colIndex = $table.cell($(this).parent()).index().column;
             const data = $table.cell($(this).parent()).data();
+
             const key = $table.column(colIndex).name();
             const label = i18n.tags[key];
 
-            const tag = { label: label, key: key, value: (data.label) ? data.label : data };
+            const tag = { label: label, key: key, value: (data.label) ? data.label : data, realValue: (data.value) ? data.value : data };
 
             // does the tag exist?
             const existingTag = tagify.getTagElms().find(htmlTag => htmlTag.getAttribute('key') === tag.key);
@@ -324,7 +338,7 @@
                 // replace the tag!
                 tagify.replaceTag(existingTag, tag);
                 // update the datasource params
-                datasourceParams[tag.key] = `${tag.value},${selectedOperator}`;
+                datasourceParams[tag.key] = `${tag.realValue},${selectedOperator}`;
                 await onRangePickerChange(true);
 
                 return;
