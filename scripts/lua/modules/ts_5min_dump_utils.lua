@@ -366,9 +366,10 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   end
 
   if(host.num_blacklisted_flows ~= nil) then
+     -- Note: tot_as_* are never resetted, instead the other counters can be resetted
      ts_utils.append("host:num_blacklisted_flows", {ifid=ifstats.id, host=hostname,
-						    flows_as_client = host.num_blacklisted_flows.as_client,
-						    flows_as_server = host.num_blacklisted_flows.as_server},
+						    flows_as_client = host.num_blacklisted_flows.tot_as_client,
+						    flows_as_server = host.num_blacklisted_flows.tot_as_server},
 		     when)
   end
   

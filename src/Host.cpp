@@ -642,9 +642,13 @@ void Host::lua_blacklisted_flows(lua_State* vm) const {
   /* Flow exchanged with blacklists hosts */
   lua_newtable(vm);
 
+  /* Considering the datas from the last reset */
   lua_push_uint32_table_entry(vm, "as_client", getNumBlacklistedAsCliReset());
   lua_push_uint32_table_entry(vm, "as_server", getNumBlacklistedAsSrvReset());
-
+  /* All data, without considering the reset. This is done for rrd. */
+  lua_push_uint32_table_entry(vm, "tot_as_client", num_blacklisted_flows.as_client);
+  lua_push_uint32_table_entry(vm, "tot_as_server", num_blacklisted_flows.as_server); 
+  
   lua_pushstring(vm, "num_blacklisted_flows");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
