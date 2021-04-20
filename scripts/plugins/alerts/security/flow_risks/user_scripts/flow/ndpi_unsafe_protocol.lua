@@ -17,7 +17,7 @@ local script = {
    default_enabled = true,
 
    default_value = {
-      severity = alert_severities.error,
+      severity = alert_severities.warning,
    },
 
 
