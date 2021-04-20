@@ -9,6 +9,7 @@ local tag_utils = {}
 
 tag_utils.tag_operators = {
     ["eq"] = "=",
+    ["neq"] = "!=",
     ["lt"] = "<",
     ["gt"] = ">",
     ["gte"] = ">=",
