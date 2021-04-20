@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # bin paths
-LSB_RELEASE="/usr/bin/lsb_release -i"
+LSB_RELEASE="/usr/bin/lsb_release"
 APT_GET="/usr/bin/apt-get -qq"
 YUM="/usr/bin/yum"
 NTOPNG_CONFIG_TOOL="/usr/bin/ntopng-utils-manage-config"
@@ -53,9 +53,15 @@ fi
 
 # Detect OS
 OS="DEBIAN"
-REDHAT=$(${LSB_RELEASE} | grep -i "CentOS\|RedHat")
-if [ ! -z "${REDHAT}" ]; then
-	OS="REDHAT"
+if [ -x ${LSB_RELEASE} ]; then
+	REDHAT=$(${LSB_RELEASE} -i | grep -i "CentOS\|RedHat\|Oracle")
+	if [ ! -z "${REDHAT}" ]; then
+		OS="REDHAT"
+	fi
+else
+	if [ -f /etc/oracle-release ]; then
+		OS="REDHAT"
+	fi
 fi
 
 if [ "${OS}" == "DEBIAN" ]; then
