@@ -19,29 +19,22 @@
  *
  */
 
-#ifndef _FLOW_RISK_NDPI_UNSAFE_PROTOCOL_H_
-#define _FLOW_RISK_NDPI_UNSAFE_PROTOCOL_H_
-
 #include "ntop_includes.h"
+#include "flow_callbacks_includes.h"
 
-class FlowRiskUnsafeProtocol : public FlowRisk {
- private:
-  ndpi_risk_enum handledRisk()       { return NDPI_UNSAFE_PROTOCOL;       }
-  FlowAlertType getAlertType() const { return FlowRiskUnsafeProtocolAlert::getClassType(); }
+/* ***************************************************** */
 
-  /* Uncomment to override the default scores:
-  u_int8_t getClientScore() { return 50; }
-  u_int8_t getServerScore() { return 50; }
-  */
+void FlowRiskUnsafeProtocol::protocolDetected(Flow *f) {
+  if (f->hasRisk(handledRisk())) {
+    u_int8_t c_score = 50;
+    u_int8_t s_score = 50;
 
- public:
-  FlowRiskUnsafeProtocol() : FlowRisk() {};
-  ~FlowRiskUnsafeProtocol() {};
+    if(f->get_cli_ip_addr()->isBroadMulticastAddress()
+       || f->get_srv_ip_addr()->isBroadMulticastAddress())
+      f->triggerAlertAsync(getAlertType(), alert_level_notice, c_score, s_score);
+    else
+      f->triggerAlertAsync(getAlertType(), getSeverity(), c_score, s_score);
+  }
+}
 
-  void protocolDetected(Flow *f);
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskUnsafeProtocolAlert(this, f); }
-
-  std::string getName()        const { return(std::string("ndpi_unsafe_protocol")); }
-};
-
-#endif
+/* ***************************************************** */
