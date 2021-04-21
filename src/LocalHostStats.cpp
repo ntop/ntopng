@@ -32,7 +32,7 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   icmp = new (std::nothrow) ICMPstats();
   peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
 
-  nextPeriodicUpdate = 0;
+  nextPeriodicUpdate = nextPeriodicTrafficMapUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = 0;
   current_cycle = 0;
   
@@ -68,7 +68,7 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   dns = s.getDNSstats() ? new (std::nothrow) DnsStats(*s.getDNSstats()) : NULL;
   http = NULL;
   icmp = NULL;
-  nextPeriodicUpdate = 0;
+  nextPeriodicUpdate = nextPeriodicTrafficMapUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = 0;
 #if defined(NTOPNG_PRO)
   traffic_stats.ntp_traffic_sent = traffic_stats.dns_traffic_sent = traffic_stats.ntp_traffic_rcvd = traffic_stats.dns_traffic_rcvd = 0;
@@ -140,6 +140,16 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
   if(icmp) icmp->updateStats(tv);
   if(http) http->updateStats(tv);
 
+  /* 30 Sec Update */
+  if(tv->tv_sec >= nextPeriodicTrafficMapUpdate) {
+    /* Updates Traffic Map, enabled by Excessive Traffic alert */
+#if defined(NTOPNG_PRO)
+    iface->updateCheckTrafficMap(host->get_ip(), host->getMac(), host->get_vlan_id(), traffic_stats);
+    resetTrafficStats();
+#endif
+    nextPeriodicTrafficMapUpdate = tv->tv_sec + TRAFFIC_MAP_REFRESH;
+  }
+
   /* 5 Min Update */
   if(tv->tv_sec >= nextPeriodicUpdate) {
     /* hll visited sites update */
@@ -159,11 +169,6 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
         old_sites = top_sites->json();
     }
 
-    /* Updates Traffic Map, enabled by Excessive Traffic alert */
-#if defined(NTOPNG_PRO)
-    iface->updateCheckTrafficMap(host->get_ip(), host->getMac(), host->get_vlan_id(), traffic_stats);
-    resetTrafficStats();
-#endif
     nextPeriodicUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
 }
