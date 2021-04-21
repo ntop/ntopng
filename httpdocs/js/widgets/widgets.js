@@ -128,7 +128,7 @@ class ChartWidget extends Widget {
         
         this._chartType = type;
         this._chart = {};
-        this._$htmlChart = document.querySelector(`#canvas-widget-${name}`);
+        this._$htmlChart = $(`#chart-widget-${name}`)[0];
     }
 
     _generateConfig() {
@@ -178,7 +178,7 @@ class ChartWidget extends Widget {
                 tooltip: {
                     enabled: false
                 }
-            }
+            },
         };
         return config;
     }
@@ -240,10 +240,20 @@ class ChartWidget extends Widget {
         this._chart = new ApexCharts(this._$htmlChart, config);
         this._chart.render();
     }
-
+    
     async init() {
+    
+        const $spinner = $(`<div class='d-flex text-primary justify-content-center w-100'>
+            <div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>`);
+        $(this._$htmlChart).append($spinner);
+
         await super.init();
-        this._initializeChart();
+
+        // remove the spinner when the parent init function has completed
+        $spinner.fadeOut(1000, () => {
+            this._initializeChart();
+            $spinner.remove();
+        });
     }
 
     async destroy() {
