@@ -482,9 +482,9 @@ rest_utils.answer(rc, {
         }
     },
     dataLabels = {
-        enabled = false
+       enabled = false
     },
     tooltip = {
-      -- widget_tooltips_formatter = "showXY"
+       widget_tooltips_formatter = "showXY"
     }
 })
