@@ -177,27 +177,16 @@ if table.len(page_params) > 0 then
                <div class="up">
                   <i class="fas fa-arrow-up" data-original-title="" title=""></i>
                   <span id="upload-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                  <span id="upload-filter-traffic-value"></span>
+                  <span id="upload-filter-traffic-value">0 kbit/s</span>
+                  <span id="filtered-flows-tot-bytes">]] print(i18n("flows_page.tot_bytes")) print[[</span>
+                  <span id="filtered-flows-tot-bytes-value">0 B</span>
                </div>
                <div class="down">
                   <i class="fas fa-arrow-down" data-original-title="" title=""></i>
                   <span id="download-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                  <span id="download-filter-traffic-value"></span>
-               </div>
-            </a>
-         </div>
-      </div>
-
-      <div class="col-12 p-1">
-         <div class="info-stats">
-            <a href="#">
-               <div>
-                  <span id="filtered-flows-tot-bytes">]] print(i18n("flows_page.tot_bytes")) print[[</span>
-                  <span id="filtered-flows-tot-bytes-value">0</span>
-               </div>
-               <div>
+                  <span id="download-filter-traffic-value">0 kbit/s</span>
                   <span id="filtered-flows-tot-throughput">]] print(i18n("flows_page.tot_throughput")) print[[</span>
-                  <span id="filtered-flows-tot-throughput-value">0</span>
+                  <span id="filtered-flows-tot-throughput-value">0 kbit/s</span>
                </div>
             </a>
          </div>
@@ -379,9 +368,9 @@ if table.len(page_params) > 0 then
 
                const request = $.get("]] .. getPageUrl(ntop.getHttpPrefix() .. "/lua/rest/v1/get/flow/traffic_stats.lua", page_params) .. "&ifid=" .. interface.getId() .. [[");
                request.then((data) => {
-                  let throughput_bps_sent = (8 * (data.rsp.flows.totBytesSent - old_totBytesSent)) / refresh_rate;
-                  let throughput_bps_rcvd = (8 * (data.rsp.flows.totBytesRcvd - old_totBytesRcvd)) / refresh_rate;
-                  let tot_throughput = (8 * ((data.rsp.flows.totBytesSent - old_totBytesSent) + (data.rsp.flows.totBytesRcvd - old_totBytesRcvd))) / refresh_rate;
+                  let throughput_bps_sent = (8 * (data.rsp.totBytesSent - old_totBytesSent)) / refresh_rate;
+                  let throughput_bps_rcvd = (8 * (data.rsp.totBytesRcvd - old_totBytesRcvd)) / refresh_rate;
+                  let tot_throughput = (8 * ((data.rsp.totBytesSent - old_totBytesSent) + (data.rsp.totBytesRcvd - old_totBytesRcvd))) / refresh_rate;
 
                   if (tot_throughput < 0)      tot_throughput = 0;
                   if (throughput_bps_sent < 0) throughput_bps_sent = 0;
@@ -397,8 +386,8 @@ if table.len(page_params) > 0 then
                   }
 
                   /* Keep the old value for computing the differnce at the next round */
-                  old_totBytesSent = data.rsp.flows.totBytesSent;
-                  old_totBytesRcvd = data.rsp.flows.totBytesRcvd;
+                  old_totBytesSent = data.rsp.totBytesSent;
+                  old_totBytesRcvd = data.rsp.totBytesRcvd;
                   $('#filtered-flows-tot-bytes-value').html(NtopUtils.bytesToSize(old_totBytesSent + old_totBytesRcvd));
                })
             }
