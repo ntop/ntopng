@@ -2515,10 +2515,24 @@ json_object* Flow::flow2JSON() {
 			   json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
   }
 
-  if(protocol == IPPROTO_TCP)
+  if(protocol == IPPROTO_TCP) {
     json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
-
+    
+    json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "IN_RETRASMISSIONS", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int64(stats.get_cli2srv_tcp_retr()));
+    json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "OUT_RETRASMISSIONS", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int64(stats.get_srv2cli_tcp_retr()));
+    json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "IN_OUT_OF_ORDER", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int64(stats.get_cli2srv_tcp_ooo()));
+    json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "OUT_OUT_OF_ORDER", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int64(stats.get_srv2cli_tcp_ooo()));
+    json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "IN_LOST", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int64(stats.get_cli2srv_tcp_lost()));
+    json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "OUT_LOST", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int64(stats.get_srv2cli_tcp_lost()));
+  }
+    
   json_object_object_add(my_object, Utils::jsonLabel(IN_PKTS, "IN_PKTS", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int64(get_partial_packets_cli2srv()));
   json_object_object_add(my_object, Utils::jsonLabel(IN_BYTES, "IN_BYTES", jsonbuf, sizeof(jsonbuf)),
