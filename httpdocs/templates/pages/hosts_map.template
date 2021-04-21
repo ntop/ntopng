@@ -23,14 +23,12 @@
                         <div class="dropdown-menu dropdown-menu-right">
                             {* hosts_map.select_options *}
                         </div>
+			<button class="btn btn-link btn-reload-graph" id="btn-reload-map">
+                            <i class='fas fa-sync'></i>
+                        </button>
                     </div>
                 </div>
                 {* widget_gui_utils.render_chart(hosts_map.widget_name, { css_styles = { height = "60vh"}, displaying_label = ''}) *}
-            </div>
-            <div class="card-footer">
-                <button class="btn btn-secondary" id="btn-reload-map">
-                    <i class='fas fa-sync'></i> {{ i18n("reload_map") }}
-                </button>
             </div>
         </div>
     </div>
