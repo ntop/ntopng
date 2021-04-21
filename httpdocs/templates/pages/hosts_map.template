@@ -1,7 +1,6 @@
 {#
     (C) 2021 - ntop.org
 #}
-<script type="text/javascript" src="/js/Chart.bundle.min.js"></script>
 <script type='text/javascript' src='/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
 
 <link rel="stylesheet" href='{{ ntop.getHttpPrefix() }}/css/apexcharts.css'/>

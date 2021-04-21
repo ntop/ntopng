@@ -484,4 +484,7 @@ rest_utils.answer(rc, {
     dataLabels = {
         enabled = false
     },
+    tooltip = {
+      -- widget_tooltips_formatter = "showXY"
+    }
 })
