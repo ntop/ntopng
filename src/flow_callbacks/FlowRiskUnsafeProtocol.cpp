@@ -29,9 +29,8 @@ void FlowRiskUnsafeProtocol::protocolDetected(Flow *f) {
     u_int8_t c_score = 50;
     u_int8_t s_score = 50;
 
-    if(f->get_cli_ip_addr()->isBroadMulticastAddress()
-       || f->get_srv_ip_addr()->isBroadMulticastAddress())
-      f->triggerAlertAsync(getAlertType(), alert_level_notice, c_score, s_score);
+    if(f->isUnicast())
+      f->triggerAlertAsync(getAlertType(), alert_level_info, c_score, s_score);
     else
       f->triggerAlertAsync(getAlertType(), getSeverity(), c_score, s_score);
   }
