@@ -2202,44 +2202,6 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_traffic_info(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char buf[64];
-  char *host_ip = NULL;
-  u_int16_t vlan_id = 0;
-  Host *host = NULL;
-  Paginator *p = NULL;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  if((p = new(std::nothrow) Paginator()) == NULL)
-    return(CONST_LUA_ERROR);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(lua_type(vm, 1) == LUA_TSTRING) {
-    get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-    host = ntop_interface->getHost(host_ip, vlan_id, false /* Not an inline call */);
-  }
-
-  if(lua_type(vm, 2) == LUA_TTABLE)
-    p->readOptions(vm, 2);
- 
-  if(ntop_interface
-     && (!host_ip || host))
-    ntop_interface->getFlowsTraffic(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, p);
-  else
-    lua_pushnil(vm);
-
-  if(p) delete p;
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_get_batched_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   Paginator *p = NULL;
@@ -3713,11 +3675,7 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
     p->readOptions(vm, 2);
 
   if(ntop_interface) {
-    ntop_interface->getActiveFlowsStats(&ndpi_stats, &stats, get_allowed_nets(vm), host, p);
-
-    lua_newtable(vm);
-    ndpi_stats.lua(ntop_interface, vm);
-    stats.lua(vm);
+    ntop_interface->getActiveFlowsStats(&ndpi_stats, &stats, get_allowed_nets(vm), host, p, vm);
   } else
     lua_pushnil(vm);
 
@@ -4607,7 +4565,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getFlowsInfo",             ntop_get_interface_flows_info           },
   { "getGroupedFlows",          ntop_get_interface_get_grouped_flows    },
   { "getFlowsStats",            ntop_get_interface_flows_stats          },
-  { "getFlowsTrafficStats",     ntop_get_interface_traffic_info         },
   { "getFlowKey",               ntop_get_interface_flow_key             },
   { "getScore",                 ntop_get_interface_score                },
   { "findFlowByKeyAndHashId",   ntop_get_interface_find_flow_by_key_and_hash_id  },

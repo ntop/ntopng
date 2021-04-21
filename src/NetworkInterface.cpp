@@ -4028,27 +4028,6 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   return(false);
 }
 
-/* ****************************** */
-
-static bool flow_traffic_stats_walker(GenericHashEntry *h, void *user_data, bool *matched) {
-  struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
-  Flow *f = (Flow*)h;
-
-  if(retriever->actNumEntries >= retriever->maxNumEntries)
-    return(true); /* Limit reached - stop iterating */
-
-  if(flow_matches(f, retriever)) {
-    retriever->totBytesSent += f->get_bytes_cli2srv();
-    retriever->totBytesRcvd += f->get_bytes_srv2cli();
-
-    *matched = true;
-  }
-
-  retriever->actNumEntries++;
-  
-  return(false); /* false = keep on walking */
-}
-
 /* **************************************************** */
 
 static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *matched) {
@@ -4632,6 +4611,9 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matche
   Flow *f = (Flow*)flow;
 
   if(flow_matches(f, retriever)) {
+    retriever->totBytesSent += f->get_bytes_cli2srv();
+    retriever->totBytesRcvd += f->get_bytes_srv2cli();
+
     f->sumStats(ndpi_stats, stats);
     *matched = true;
   }
@@ -4643,7 +4625,8 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matche
 
 void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *stats,
 					   AddressTree *allowed_hosts,
-					   Host *h, Paginator *p) {
+					   Host *h, Paginator *p,
+					   lua_State *vm) {
   flowHostRetriever retriever;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
@@ -4657,43 +4640,19 @@ void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *sta
   retriever.allowed_hosts = allowed_hosts;
   retriever.ndpi_stats = ndpi_stats;
   retriever.stats = stats;
+  retriever.totBytesSent = 0, retriever.totBytesRcvd = 0;
 
   walker(&begin_slot, walk_all, walker_flows, flow_sum_stats, &retriever);
-}
-
-/* **************************************************** */
-
-int NetworkInterface::getFlowsTraffic(lua_State* vm,
-				      u_int32_t *begin_slot,
-				      bool walk_all,
-				      AddressTree *allowed_hosts,
-				      Host *host,
-				      Paginator *p) {
-  struct flowHostRetriever retriever;
-
-  if(p == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to return results with a NULL paginator");
-    return(-1);
-  }
-
-  retriever.pag = p;
-  retriever.host = host, retriever.location = location_all;
-  retriever.ndpi_proto = -1;
-  retriever.actNumEntries = 0, retriever.maxNumEntries = getFlowsHashSize(), retriever.allowed_hosts = allowed_hosts, retriever.totBytesSent = 0, retriever.totBytesRcvd = 0;
-
-  walker(begin_slot, walk_all, walker_flows, flow_traffic_stats_walker, (void*)&retriever);
 
   lua_newtable(vm);
-  lua_newtable(vm);
+  /* Overview stats */
   lua_push_uint64_table_entry(vm, "numFlows", retriever.actNumEntries);
   lua_push_uint64_table_entry(vm, "totBytesSent", retriever.totBytesSent);
   lua_push_uint64_table_entry(vm, "totBytesRcvd", retriever.totBytesRcvd);
 
-  lua_pushstring(vm, "flows");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-
-  return(retriever.actNumEntries);
+  /* DPI stats */
+  ndpi_stats->lua(this, vm);
+  stats->lua(vm);
 }
 
 /* **************************************************** */

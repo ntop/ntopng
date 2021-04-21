@@ -33,13 +33,11 @@ local throughput_type = getThroughputType()
 local flows_filter = getFlowsFilter()
 local flows_stats
 local total = 0
-local filtered_traffic_stats
 
 if not flows_to_update then
    flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter)
    total = flows_stats["numFlows"]
    flows_stats = flows_stats["flows"]
-
 else
    flows_stats = {}
    
@@ -56,9 +54,6 @@ else
       end
    end
 end
-
--- This is used to get the current bytes rcvd and sent by these specific filters
-filtered_traffic_stats = interface.getFlowsTrafficStats(flows_filter["hostFilter"], flows_filter, true)
 
 -- Prepare host
 local host_list = {}
