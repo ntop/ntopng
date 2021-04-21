@@ -83,7 +83,6 @@ void FlowCallbacksLoader::registerCallbacks() {
   if((fcb = new RemoteToRemote()))                              registerCallback(fcb);
   if((fcb = new TCPZeroWindow()))                               registerCallback(fcb);
   if((fcb = new TCPNoDataExchanged()))                          registerCallback(fcb);
-  if((fcb = new TCPIssues()))                                   registerCallback(fcb);
   if((fcb = new UDPUnidirectional()))                           registerCallback(fcb);
   if((fcb = new UnexpectedDNSServer()))                         registerCallback(fcb);
   if((fcb = new UnexpectedDHCPServer()))                        registerCallback(fcb);
@@ -108,7 +107,9 @@ void FlowCallbacksLoader::registerCallbacks() {
   if((fcb = new FlowRiskTLSUnsafeCiphers()))                    registerCallback(fcb);
   if((fcb = new FlowRiskTLSCertificateSelfSigned()))            registerCallback(fcb);
   if((fcb = new TLSMaliciousSignature()))                       registerCallback(fcb);
+#ifdef HAVE_NEDGE
   if((fcb = new NedgeBlockedFlow()))                            registerCallback(fcb);
+#endif
 #endif
 
 #if 0
@@ -182,7 +183,7 @@ void FlowCallbacksLoader::loadConfiguration() {
 	else
 	  enabled = false;
 
-	if(enabled) {
+	if(enabled && cb->isCallbackCompatibleWithEdition()) {
 	  /* Script enabled */
 	  if(json_object_object_get_ex(json_hook_all, "script_conf", &json_script_conf)) {
 	    if(cb_all.find(callback_key) != cb_all.end()) {
@@ -203,16 +204,6 @@ void FlowCallbacksLoader::loadConfiguration() {
 	  /* Script disabled */
 	  cb->scriptDisable(); 
 	}
-      } else {
-	if(strcmp(callback_key, "new_flow_api_demo") == 0
-	   || strcmp(callback_key, "flow_risks") == 0
-	   || strcmp(callback_key, "flow_logger") == 0
-	   || strcmp(callback_key, "tcp_probing") == 0
-	   || strcmp(callback_key, "tls_old_version") == 0
-           || strcmp(callback_key, "iec60870_5_104") == 0)
-	  ; /* No noise for demos */
-	else
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find flow callback %s", callback_key);
       }
     }
 

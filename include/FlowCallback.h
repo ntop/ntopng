@@ -28,7 +28,7 @@ class FlowCallback {
  private:
   NtopngEdition callback_edition;
   u_int8_t has_protocol_detected:1, has_periodic_update:1, has_flow_end:1, packet_interface_only:1, nedge_exclude:1, nedge_only:1, enabled:1/* , _unused:1 */;
- 
+
   bool isCallbackCompatibleWithInterface(NetworkInterface *iface);
 
  protected:
@@ -38,6 +38,9 @@ class FlowCallback {
   FlowCallback(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only,
 	       bool _has_protocok_detected, bool _has_periodic_update, bool _has_flow_end);
   virtual ~FlowCallback();
+
+  /* Compatibility */
+  bool isCallbackCompatibleWithEdition() const;
 
   /* Enable/Disable hooks */
   virtual void scriptEnable()            {};

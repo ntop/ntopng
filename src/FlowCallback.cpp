@@ -46,7 +46,7 @@ FlowCallback::~FlowCallback() {
 
 /* **************************************************** */
 
-bool FlowCallback::isCallbackCompatibleWithInterface(NetworkInterface *iface) {
+bool FlowCallback::isCallbackCompatibleWithEdition() const {
   /* Check first if the license allows plugin to be enabled */
   switch(callback_edition) {
   case ntopng_edition_community:
@@ -68,7 +68,16 @@ bool FlowCallback::isCallbackCompatibleWithInterface(NetworkInterface *iface) {
       return(false);
     break;     
   }
-  
+
+  return(true);
+}
+
+/* **************************************************** */
+
+bool FlowCallback::isCallbackCompatibleWithInterface(NetworkInterface *iface) {
+  /* Version check, done at runtime as versions can change */
+  if(!isCallbackCompatibleWithEdition())                     return(false);  
+
   if(packet_interface_only && (!iface->isPacketInterface())) return(false);
   if(nedge_only && (!ntop->getPrefs()->is_nedge_edition()))  return(false);
   if(nedge_exclude && ntop->getPrefs()->is_nedge_edition())  return(false);
