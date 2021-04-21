@@ -104,7 +104,7 @@ void HostStats::updateStats(const struct timeval *tv) {
       num_anomalies++;
       client_score_anomaly = 1;
     } else
-      server_flows_anomaly = 0;
+      server_score_anomaly = 0;
 
     if(score_srv.addObservation(host->getScoreAsServer())) {
       char buf[64];
@@ -116,7 +116,7 @@ void HostStats::updateStats(const struct timeval *tv) {
       num_anomalies++;
       server_score_anomaly = 1;
     } else
-      server_flows_anomaly = 0;
+      server_score_anomaly = 0;
 
     if(num_anomalies > 0) {
       if(host->isLocalHost())

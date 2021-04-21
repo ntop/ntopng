@@ -40,9 +40,7 @@ void ScoreAnomaly::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     value = h->value_score_anomaly(true);
     lower_bound = h->lower_bound_score_anomaly(true);
     upper_bound = h->upper_bound_score_anomaly(true);
-  }
-  
-  if(h->has_score_anomaly(false)) {
+  } else if(h->has_score_anomaly(false)) {
     srv_score = score_value;
     value = h->value_score_anomaly(false);
     lower_bound = h->lower_bound_score_anomaly(false);
@@ -52,7 +50,7 @@ void ScoreAnomaly::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   if(cli_score || srv_score) {
     bool is_client_alert = (cli_score > 0) ? true : false;
     
-    if (!alert) alert = allocAlert(this, h, alert_level_warning, cli_score, srv_score, is_client_alert, value, lower_bound, upper_bound);
+    if (!alert) alert = allocAlert(this, h, getSeverity(), cli_score, srv_score, is_client_alert, value, lower_bound, upper_bound);
     if (alert) h->triggerAlert(alert);
   }
 }
