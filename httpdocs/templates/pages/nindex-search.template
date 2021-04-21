@@ -332,13 +332,18 @@
             const tag = { label: label, key: key, value: (data.label) ? data.label : data, realValue: (data.value) ? data.value : data };
 
             // does the tag exist?
-            const existingTag = tagify.getTagElms().find(htmlTag => htmlTag.getAttribute('key') === tag.key);
-            if (existingTag !== undefined && existingTag.getAttribute('value') !== tag.value) {
+            const existingTagElement = tagify.getTagElms().find(htmlTag => htmlTag.getAttribute('key') === tag.key);
+            const existingTag = tagify.tagData(existingTagElement);
+
+            if (existingTag !== undefined && existingTag.realValue !== tag.realValue) {
                 
                 // replace the tag!
-                tagify.replaceTag(existingTag, tag);
+                existingTag.value = tag.value;
+                existingTag.realValue = tag.realValue;
+
+                tagify.replaceTag(existingTagElement, existingTag);
                 // update the datasource params
-                datasourceParams[tag.key] = `${tag.realValue},${selectedOperator}`;
+                datasourceParams[tag.key] = `${tag.realValue},${existingTag.selectedOperator}`;
                 await onRangePickerChange(true);
 
                 return;
