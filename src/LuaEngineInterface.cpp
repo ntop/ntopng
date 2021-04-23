@@ -3657,6 +3657,7 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
   char *host_ip = NULL;
   u_int16_t vlan_id = 0;
   char buf[64];
+  bool only_traffic_stats = false;
   Host *host = NULL;
   Paginator *p = NULL;
 
@@ -3674,8 +3675,11 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
   if(lua_type(vm, 2) == LUA_TTABLE)
     p->readOptions(vm, 2);
 
+  if(lua_type(vm, 3) == LUA_TBOOLEAN)
+    only_traffic_stats = (bool)lua_toboolean(vm, 3);
+  
   if(ntop_interface) {
-    ntop_interface->getActiveFlowsStats(&ndpi_stats, &stats, get_allowed_nets(vm), host, p, vm);
+    ntop_interface->getActiveFlowsStats(&ndpi_stats, &stats, get_allowed_nets(vm), host, p, vm, only_traffic_stats);
   } else
     lua_pushnil(vm);
 

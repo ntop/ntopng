@@ -374,7 +374,7 @@ if table.len(page_params) > 0 then
                request.then((data) => {
                   let throughput_bps_sent = (8 * (data.rsp.totBytesSent - old_totBytesSent)) / refresh_rate;
                   let throughput_bps_rcvd = (8 * (data.rsp.totBytesRcvd - old_totBytesRcvd)) / refresh_rate;
-                  let tot_throughput = (8 * ((data.rsp.totBytesSent - old_totBytesSent) + (data.rsp.totBytesRcvd - old_totBytesRcvd))) / refresh_rate;
+                  let tot_throughput = (8 * data.rsp.totThpt);
 
                   if (tot_throughput < 0)      tot_throughput = 0;
                   if (throughput_bps_sent < 0) throughput_bps_sent = 0;
@@ -386,13 +386,13 @@ if table.len(page_params) > 0 then
                     pushNewValue(uploadChart, throughput_bps_sent);
                     $('#download-filter-traffic-value').html(NtopUtils.bitsToSize(throughput_bps_rcvd, 1000));                  
                     $('#upload-filter-traffic-value').html(NtopUtils.bitsToSize(throughput_bps_sent, 1000));
-                    $('#filtered-flows-tot-throughput-value').html(NtopUtils.bitsToSize(tot_throughput, 1000));
                   }
 
                   /* Keep the old value for computing the differnce at the next round */
                   old_totBytesSent = data.rsp.totBytesSent;
                   old_totBytesRcvd = data.rsp.totBytesRcvd;
                   $('#filtered-flows-tot-bytes-value').html(NtopUtils.bytesToSize(old_totBytesSent + old_totBytesRcvd));
+                  $('#filtered-flows-tot-throughput-value').html(NtopUtils.bitsToSize(tot_throughput, 1000));
                })
             }
 

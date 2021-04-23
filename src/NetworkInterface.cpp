@@ -3735,9 +3735,10 @@ struct flowHostRetriever {
 
   /* Return values */
   u_int32_t maxNumEntries, actNumEntries;
-  u_int64_t totBytesSent, totBytesRcvd;
+  u_int64_t totBytesSent, totBytesRcvd, totThpt;
   struct flowHostRetrieveList *elems;
 
+  bool only_traffic_stats;
   /* Used by getActiveFlowsStats */
   nDPIStats *ndpi_stats;
   FlowStats *stats;
@@ -4613,8 +4614,11 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matche
   if(flow_matches(f, retriever)) {
     retriever->totBytesSent += f->get_bytes_cli2srv();
     retriever->totBytesRcvd += f->get_bytes_srv2cli();
+    retriever->totThpt      += f->get_bytes_thpt();
 
-    f->sumStats(ndpi_stats, stats);
+    if(!retriever->only_traffic_stats)
+      f->sumStats(ndpi_stats, stats);
+    
     *matched = true;
   }
 
@@ -4626,7 +4630,8 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matche
 void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *stats,
 					   AddressTree *allowed_hosts,
 					   Host *h, Paginator *p,
-					   lua_State *vm) {
+					   lua_State *vm,
+					   bool only_traffic_stats) {
   flowHostRetriever retriever;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
@@ -4640,8 +4645,9 @@ void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *sta
   retriever.allowed_hosts = allowed_hosts;
   retriever.ndpi_stats = ndpi_stats;
   retriever.stats = stats;
-  retriever.totBytesSent = 0, retriever.totBytesRcvd = 0;
-
+  retriever.totBytesSent = 0, retriever.totBytesRcvd = 0, retriever.totThpt = 0;
+  retriever.only_traffic_stats = only_traffic_stats;
+  
   walker(&begin_slot, walk_all, walker_flows, flow_sum_stats, &retriever);
 
   lua_newtable(vm);
@@ -4649,10 +4655,13 @@ void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *sta
   lua_push_uint64_table_entry(vm, "numFlows", retriever.actNumEntries);
   lua_push_uint64_table_entry(vm, "totBytesSent", retriever.totBytesSent);
   lua_push_uint64_table_entry(vm, "totBytesRcvd", retriever.totBytesRcvd);
+  lua_push_uint64_table_entry(vm, "totThpt", retriever.totThpt);
 
-  /* DPI stats */
-  ndpi_stats->lua(this, vm);
-  stats->lua(vm);
+  if(!only_traffic_stats) {
+    /* DPI stats */
+    ndpi_stats->lua(this, vm);
+    stats->lua(vm);
+  }
 }
 
 /* **************************************************** */

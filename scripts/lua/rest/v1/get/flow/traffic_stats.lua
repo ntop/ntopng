@@ -30,6 +30,6 @@ end
 interface.select(ifid)
 
 -- This is used to get the current bytes rcvd and sent by these specific filters
-res = interface.getActiveFlowsStats(flows_filter["hostFilter"], flows_filter)
+res = interface.getActiveFlowsStats(flows_filter["hostFilter"], flows_filter, true)
 
 rest_utils.answer(rc, res)
