@@ -549,7 +549,7 @@ local lang = {
     ["proto_time_quotas"] = "%{proto} time",
     ["remote_to_local_insecure_proto"] = "[Category: %{ndpi_category}][Breed: %{ndpi_breed}]",
     ["remote_to_remote"] = "Remote %{entity}%{host_category} contacted a remote host",
-    ["score_number_anomaly"] = "Detected %{role} score anomaly for host %{host} [Score: %{value}][Lower Bound: %{lower_bound}][Upper Bound: %{upper_bound}]",
+    ["score_number_anomaly"] = "Detected %{role} score anomaly for host %{host} [Score: %{score}][Lower Bound: %{lower_bound}][Upper Bound: %{upper_bound}]",
     ["shell_script_executed"] = "Shell script '%{script_exec_comm}' executed in response of an alert: '%{alert_type}'",
     ["slow_periodic_activity"] = "Periodic activity \"%{script}\" running for too long [more than %{max_duration}] or executed too late (blocked in queue).",
     ["slow_purge"] = "<a href=\"%{url}\">Hash table idle entries</a> purging on %{iface} is too slow. This could lead to high memory utilization, data accuracy loss and missing alerts. [%{idle}%% &gt %{max_idle}%%]",
