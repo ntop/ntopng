@@ -15,6 +15,8 @@ local sortColumn      = _GET["sortColumn"]
 local sortOrder       = _GET["sortOrder"]
 local captivePortal   = _GET["captive_portal_users"]
 
+local logged_user = _SESSION["user"]
+
 local host_pools_nedge = nil
 local pool_names = nil
 if captivePortal then
@@ -111,8 +113,10 @@ end
 
 	 print ("  \"column_group\"     : \"" .. group_label .. "\", ")
 	 print ("  \"column_edit\"      : \"<a href='#password_dialog' class='btn btn-sm btn-info' data-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. js_key.."\\\"));'><i class='fas fa-edit'></i></a> ")
+   
+    local can_be_deleted = (key ~= "admin" and key ~= logged_user)
 
-   print ("<a href='#delete_user_dialog' role='button' class='add-on btn btn-sm btn-danger ".. (key == 'admin' and 'disabled' or '') .."' data-toggle='modal' id='delete_btn_" .. key .. "'><i class='fas fa-trash'></i></a><script> $('#delete_btn_" .. js_key .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
+    print ("<a href='#delete_user_dialog' role='button' class='add-on btn btn-sm btn-danger ".. (not can_be_deleted and 'disabled' or '') .."' data-toggle='modal' id='delete_btn_" .. key .. "'><i class='fas fa-trash'></i></a><script> $('#delete_btn_" .. js_key .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
 
 	 print ("\"}")
 	 num = num + 1
