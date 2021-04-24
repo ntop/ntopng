@@ -714,16 +714,14 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
   ndpi_protocol proto_id;
 
   /* Exits if the flow isn't DNS or it the interface is not a packet-interface */
-  if(!isDNS() || !getInterface()->isPacketInterface())
+  if((!isDNS()) || (!getInterface()->isPacketInterface()) || (ndpiFlow == NULL))
     return;
 
   /* Instruct nDPI to continue the dissection
      See https://github.com/ntop/ntopng/commit/30f52179d9f7a1eb774534def93d55c77d6070bc#diff-20b1df29540b6de59ceb6c6d2f3afdb5R387
   */
-  // ndpiFlow->protos.dns.num_answers = 0;
-  // ndpiFlow->host_server_name[0] = '\0';
   ndpiFlow->check_extra_packets = 1, ndpiFlow->max_extra_packets_to_check = 10;
-
+  
   proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
 					   ip_packet, ip_len, packet_time,
 					   (struct ndpi_id_struct*) cli_id, (struct ndpi_id_struct*) srv_id);
