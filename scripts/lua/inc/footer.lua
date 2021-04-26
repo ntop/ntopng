@@ -372,7 +372,7 @@ print[[
 
 			if (!systemInterfaceEnabled) {
 					if(rsp.engaged_alerts > 0) {
-						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/show_alerts.lua\">"
+						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/alert_stats.lua\">"
 						msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.engaged_alerts)+"</span></a>";
 					}
 			}

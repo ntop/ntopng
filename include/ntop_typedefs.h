@@ -202,17 +202,14 @@ typedef enum {
   alert_entity_flow                =  4,
   alert_entity_mac                 =  5,
   alert_entity_host_pool           =  6,
-  alert_entity_process             =  7,
-  alert_entity_user                =  8,
-  alert_entity_influx_db           =  9,
+  alert_entity_user                =  7,
+  alert_entity_am_host             =  8,
+  alert_entity_system              =  9,
   alert_entity_test                = 10,
-  alert_entity_category_lists      = 11,
-  alert_entity_am_host             = 12,
-  alert_entity_periodic_activity   = 13,
 
   /* Add new entities above ^ and do not exceed alert_entity_other */
-  alert_entity_other               = 64,
-  ALERT_ENTITY_MAX_NUM_ENTITIES
+  alert_entity_other               = 15,
+  ALERT_ENTITY_MAX_NUM_ENTITIES    = 16
 } AlertEntity;
 
 typedef enum {

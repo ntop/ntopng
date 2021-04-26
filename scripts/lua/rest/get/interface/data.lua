@@ -94,11 +94,6 @@ function dumpInterfaceStats(ifid)
          res["dropped_alerts"]     = ifstats["num_dropped_alerts"] or 0
 	 res["alerted_flows"]      = ifstats["num_alerted_flows"] or 0
          res["has_alerts"]         = ifstats["has_alerts"]
-         res["ts_alerts"] = {}
-
-         if ts_utils.getDriverName() == "influxdb" and plugins_utils.hasAlerts(getSystemInterfaceId(), {entity = alert_consts.alertEntity("influx_db")}) then
-            res["ts_alerts"]["influxdb"] = true
-         end
       end
 
       if periodic_activities_utils.have_degraded_performance() then

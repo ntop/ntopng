@@ -58,7 +58,7 @@ function alert_attack_mitigation_via_snmp.format(ifid, alert, alert_type_params)
    local alert_consts = require("alert_consts")
    local snmp_consts = require "snmp_consts"
 
-   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["entity_id"]), alert["entity_val"])
    local engine_label = alert_consts.alertEngineLabel(alert_consts.alertEngine(alert_consts.sec2granularity(alert["alert_granularity"])))
 
    local i18n_k = "alert_messages.attack_mitigation_via_snmp_success"

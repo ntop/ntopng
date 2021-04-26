@@ -9,6 +9,7 @@ require "lua_utils"
 local json = require("dkjson")
 local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
+local alert_exclusions = require "alert_exclusions"
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -79,34 +80,33 @@ if (script.is_alert) then
 end
 
 -- Getting filter configurations
-local filter_conf = config_set["filters"]
-if not filter_conf then
-   goto try_filter_default_conf
+
+if script.alert_id and (subdir == "flow" or subdir == "host") then
+   result.filters = { current_filters = {}}
+   local current_filters
+   if subdir == "flow" then
+      current_filters = alert_exclusions.flow_alerts_get_excluded_hosts(script.alert_id)
+   else
+      current_filters = alert_exclusions.host_alerts_get_excluded_hosts(script.alert_id)
+   end
+
+   for current_ip, _ in pairs(current_filters or {}) do
+      result.filters.current_filters[#result.filters.current_filters + 1] = {ip = current_ip}
+   end
+else
+   local filter_conf = config_set["filters"]
+   if filter_conf and filter_conf[subdir] and filter_conf[subdir][script_key] and filter_conf[subdir][script_key]["filter"] then
+      result.filters = filter_conf[subdir][script_key]["filter"]
+   end
+
+   if not result.filters or table.len(result.filters) == 0 then
+      -- No configuration found, trying to check if there is a default filter configured
+      result.filters = user_scripts.getDefaultFilters(interface.getId(), subdir, script_key)
+   end
 end
 
-if not filter_conf[subdir] then
-   goto try_filter_default_conf
-end
-
-if not filter_conf[subdir][script_key] then
-   goto try_filter_default_conf
-end
-
-if not filter_conf[subdir][script_key]["filter"] then
-   goto try_filter_default_conf
-end
-result.filters = filter_conf[subdir][script_key]["filter"]
-
-if table.len(result.filters) > 0 then
-   goto skip_filter_conf
-end
 -------------------------------
-::try_filter_default_conf::
--- No configuration found, trying to check if there is a default filter configured
-result.filters = user_scripts.getDefaultFilters(interface.getId(), subdir, script_key)
 
-::skip_filter_conf:: 
--------------------------------
 local hooks_config = user_scripts.getScriptConfig(config_set, script, subdir)
 
 -- script.template:render(hooks_config)

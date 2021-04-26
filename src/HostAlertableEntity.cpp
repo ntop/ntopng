@@ -91,11 +91,11 @@ bool HostAlertableEntity::hasCallbackEngagedAlert(HostCallbackID callback_id) {
 
 /* *************************************** */
 
-HostAlert *HostAlertableEntity::findEngagedAlert(HostAlertType alert_type, HostCallbackID callback_id) {
+HostAlert *HostAlertableEntity::findEngagedAlert(HostAlertType alert_id, HostCallbackID callback_id) {
 
-  if (isEngagedAlert(alert_type)
+  if (isEngagedAlert(alert_id)
       && engaged_alerts[callback_id]
-      && engaged_alerts[callback_id]->getAlertType().id == alert_type.id)
+      && engaged_alerts[callback_id]->getAlertType().id == alert_id.id)
     return engaged_alerts[callback_id];
 
   return NULL;
@@ -125,22 +125,23 @@ void HostAlertableEntity::luaAlert(lua_State* vm, HostAlert *alert) {
   u_int32_t alert_json_len;
 
   /* NOTE: must conform to the AlertsManager format */
-  lua_push_int32_table_entry(vm,  "alert_type", alert->getAlertType().id);
-  lua_push_str_table_entry(vm,    "alert_subtype", "" /* No subtype for hosts */);
-  lua_push_int32_table_entry(vm,  "alert_severity", alert->getSeverity());
-  lua_push_int32_table_entry(vm,  "alert_entity", alert_entity_host);
-  lua_push_str_table_entry(vm,    "alert_entity_val", alert->getHost()->getEntityValue().c_str());
-  lua_push_uint64_table_entry(vm, "alert_tstamp", alert->getEngageTime());
-  lua_push_uint64_table_entry(vm, "alert_tstamp_end", alert->getReleaseTime());
+  lua_push_int32_table_entry(vm,  "alert_id", alert->getAlertType().id);
+  lua_push_str_table_entry(vm,    "subtype", "" /* No subtype for hosts */);
+  lua_push_int32_table_entry(vm,  "severity", alert->getSeverity());
+  lua_push_int32_table_entry(vm,  "entity_id", alert_entity_host);
+  lua_push_str_table_entry(vm,    "entity_val", alert->getHost()->getEntityValue().c_str());
+  lua_push_uint64_table_entry(vm, "tstamp", alert->getEngageTime());
+  lua_push_uint64_table_entry(vm, "tstamp_end", alert->getReleaseTime());
+  lua_push_str_table_entry(vm,    "ip", alert->getHost()->getEntityValue().c_str());
 
   HostCallback *cb = getAlertInterface()->getCallback(alert->getCallbackType());
-  lua_push_int32_table_entry(vm,  "alert_granularity", cb ? cb->getPeriod() : 0);
+  lua_push_int32_table_entry(vm,  "granularity", cb ? cb->getPeriod() : 0);
 
   alert_json_serializer = alert->getSerializedAlert();
   if(alert_json_serializer)
     alert_json = ndpi_serializer_get_buffer(alert_json_serializer, &alert_json_len);
 
-  lua_push_str_table_entry(vm,    "alert_json", alert_json ? alert_json : "");
+  lua_push_str_table_entry(vm,    "json", alert_json ? alert_json : "");
  
   if(alert_json_serializer) {
     ndpi_term_serializer(alert_json_serializer);

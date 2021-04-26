@@ -25,7 +25,7 @@
 /* ***************************************************** */
 
 void RemoteAccess::protocolDetected(Flow *f) {
-  Host *cli = f->get_cli_host(), *srv = f->get_srv_host();
+  Host *cli = f->get_cli_host();
 
   switch(f->get_protocol_category()) {
   case NDPI_PROTOCOL_CATEGORY_REMOTE_ACCESS:
@@ -42,7 +42,7 @@ void RemoteAccess::protocolDetected(Flow *f) {
 /* ***************************************************** */
 
 void RemoteAccess::flowEnd(Flow *f) {
-  Host *cli = f->get_cli_host(), *srv = f->get_srv_host();
+  Host *cli = f->get_cli_host();
   u_int8_t c_score = 5, s_score = 5;
   
   switch(f->get_protocol_category()) {

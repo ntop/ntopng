@@ -44,10 +44,10 @@ class HostAlertableEntity : public AlertableEntity {
 
   bool addEngagedAlert(HostAlert *a);
   bool removeEngagedAlert(HostAlert *a);
-  inline bool isEngagedAlert(HostAlertType alert_type) { return engaged_alerts_map.isSetBit(alert_type.id); }
+  inline bool isEngagedAlert(HostAlertType alert_id) { return engaged_alerts_map.isSetBit(alert_id.id); }
   bool hasCallbackEngagedAlert(HostCallbackID callback_id);
   inline HostAlert *getCallbackEngagedAlert(HostCallbackID t) { return engaged_alerts[t]; }
-  HostAlert *findEngagedAlert(HostAlertType alert_type, HostCallbackID callback_id);
+  HostAlert *findEngagedAlert(HostAlertType alert_id, HostCallbackID callback_id);
 
   void countAlerts(grouped_alerts_counters *counters);
   void getAlerts(lua_State* vm, ScriptPeriodicity p,

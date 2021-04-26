@@ -1,5 +1,6 @@
 <div id="{{dialog.id}}" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="{{dialog.id}}_label" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+  <form>  
+  <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ i18n('current_filter') }}: <span class="alert_label"></span></h5>
@@ -27,21 +28,21 @@
 	  <div class="message {{dialog.custom_alert_class or "alert alert-danger"}} -1" id="flow_alerts_danger_msg">
             {*dialog.delete_message*}
           </div>
+        <hr class="separator">
 
 	  <div class="form-group">
             <div class="custom-control custom-switch">
-	      <input type="checkbox" class="custom-control-input" id="delete_flow_alerts_switch" checked="checked">
-	      <label class="custom-control-label" for="delete_flow_alerts_switch">{*dialog.delete_alerts*}</label>
+	      <input type="checkbox" class="custom-control-input" id="delete_alerts_switch" checked="checked">
+	      <label class="custom-control-label" for="delete_alerts_switch">{*dialog.delete_alerts*}</label>
 	    </div>
 	  </div>
+    <div id="script-description" class="alert alert-light border" role="alert">
+      {*dialog.message*}
+</div>
 	</div>
         {% if dialog.no_footer then %}
           {# empty #}
         {% else %}
-
-	<div id="script-description" class="alert alert-light" role="alert">
-          {*dialog.message*}
-	</div>
 
         <div class="modal-footer">
 	  <span class="invalid-feedback" id="{{dialog.id}}_error"></span>
@@ -54,11 +55,12 @@
         {% end %}
       </div>
     </div>
+  </form>
 </div>
 
 <script>
 $(document).ready(function() {
-   $('#delete_flow_alerts_switch').on('change', function() {
+   $('#delete_alerts_switch').on('change', function() {
       const checked = this.checked;
       if(checked) {
          $('#flow_alerts_danger_msg').show();

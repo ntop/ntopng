@@ -48,12 +48,10 @@ end
 -- @return A human-readable string
 function host_alert_flow_anomaly.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
-  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
-  local value = alert_type_params.value
-  local alert_json = json.decode(alert.alert_json)
-  local is_client_alert = alert_json.is_client_alert
+  local json = json.decode(alert.json)
+  local is_client_alert = json.is_client_alert
   local role
-  local host = alert.alert_entity_val
+  local host = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
   
   if(is_client_alert) then
      role = "client"

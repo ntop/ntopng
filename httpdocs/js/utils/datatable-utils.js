@@ -23,7 +23,7 @@ jQuery.fn.dataTableExt.sortBytes = (byte, type, row) => {
     return byte;
 };
 jQuery.fn.dataTableExt.hideIfZero = (value, type, row) => {
-    if (type === "display" && value === 0) return "";
+    if (type === "display" && parseInt(value) === 0) return "";
     return value;
 };
 jQuery.fn.dataTableExt.showProgress = (percentage, type, row) => {
@@ -620,6 +620,29 @@ class DataTableUtils {
     static async _loadColumnsVisibility(tableAPI) {
         const tableID = tableAPI.table().node().id;
         return $.get(`${http_prefix}/lua/datatable_columns.lua?table=${tableID}&action=load`);
+    }
+
+}
+
+class DataTableRenders {
+
+    static hideIfZero(value, type, row) {
+        if (type === "display" && parseInt(value) === 0) return "";
+        return value;
+    }
+
+    static secondsToTime(seconds, type, row) {
+        if (type === "display") return NtopUtils.secondsToTime(seconds);
+        return seconds;
+    }
+
+    static filterize(value, label) {
+        return `<a class='tag-filter' data-tag-value='${value}' href='#'>${label || value}</a>`;
+    }
+
+    static formatValueLabel(obj, type, row) {
+        if (type !== "display") return obj.value;
+        return obj.label;
     }
 
 }

@@ -66,6 +66,7 @@ page_utils.print_navbar(title, nav_url,
 			      hidden = interface.isPcapDumpInterface() or not areAlertsEnabled(),
 			      active = page == "alerts",
 			      page_name = "alerts",
+            url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=network&network_name=" .. network_name .. ",eq",
 			      label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
 			   },
 			   {

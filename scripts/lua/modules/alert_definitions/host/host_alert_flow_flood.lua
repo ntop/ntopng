@@ -50,7 +50,7 @@ end
 -- @return A human-readable string
 function host_alert_flow_flood.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
-  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+  local entity = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
   local value = alert_type_params.value
   local i18n_key
 
@@ -61,8 +61,8 @@ function host_alert_flow_flood.format(ifid, alert, alert_type_params)
   end
 
   return i18n(i18n_key, {
-    entity = firstToUpper(entity),
-    host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
+    entity = entity,
+    host_category = format_utils.formatAddressCategory((json.decode(alert.json)).alert_generation.host_info),
     value = string.format("%u", math.ceil(value)),
     threshold = alert_type_params.threshold,
   })

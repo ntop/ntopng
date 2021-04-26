@@ -46,7 +46,7 @@ end
 function alert_misconfigured_app.format(ifid, alert, alert_type_params)
   local alert_severities = require "alert_severities"
   local alert_consts = require("alert_consts")
-  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["entity_id"]), alert["entity_val"])
 
   if alert.alert_subtype == "too_many_flows" then
     return(i18n("alert_messages.too_many_flows", {iface=entity, option="--max-num-flows/-X"}))

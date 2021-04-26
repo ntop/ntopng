@@ -56,7 +56,7 @@ function script.hooks.min(params)
   local victim = nil
 
   if value ~= 0 then
-    victim = params.alert_entity.alert_entity_val
+    victim = params.alert_entity.entity_val
   end
   
   -- Check if the configured threshold is crossed by the value and possibly trigger an alert

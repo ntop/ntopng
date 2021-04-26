@@ -49,12 +49,6 @@ page_utils.print_navbar(title, url,
 			      page_name = "historical",
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
-			   {
-			      hidden = interface.isPcapDumpInterface() or not isAdministrator() or not areAlertsEnabled() or not plugins_utils.hasAlerts(getSystemInterfaceId(), {entity = alert_consts.alertEntity("influx_db")}),
-			      active = page == "alerts",
-			      page_name = "alerts",
-			      label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
-			   },
 			}
 )
 
@@ -196,19 +190,6 @@ elseif(page == "historical" and charts_available) then
       },
       {schema="influxdb:rtt",                               label=i18n("graphs.num_ms_rtt")},
    }})
-elseif((page == "alerts") and isAdministrator()) then
-   local old_ifname = ifname
-   local influxdb = ts_utils.getQueryDriver()
-   interface.select(getSystemInterfaceId())
-
-   _GET["ifid"] = getSystemInterfaceId()
-   _GET["entity"] = alert_consts.alertEntity("influx_db")
-
-   alert_utils.drawAlerts({
-    is_standalone = true
-   })
-
-   interface.select(old_ifname)
 end
 
 -- #######################################################

@@ -29,6 +29,7 @@ class FlowAlert {
   Flow *flow;
   AlertLevel severity_id;
   std::string callback_name;
+  bool cli_attacker, srv_attacker;
 
   /* 
      Adds to the passed `serializer` (generated with `getAlertSerializer`) information specific to this alert
@@ -41,6 +42,12 @@ class FlowAlert {
 
   bool loadConfiguration(json_object *config);
   inline void setSeverity(AlertLevel alert_severity) { severity_id = alert_severity; };
+
+  inline void setCliAttacker() { cli_attacker = true; }
+  inline void setSrvAttacker() { srv_attacker = true; }
+
+  inline bool isCliAttacker() { return cli_attacker; }
+  inline bool isSrvAttacker() { return srv_attacker; }
 
   virtual FlowAlertType getAlertType() const = 0;
   virtual std::string   getName()      const = 0;

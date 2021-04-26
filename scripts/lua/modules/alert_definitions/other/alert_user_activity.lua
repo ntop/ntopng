@@ -49,13 +49,12 @@ end
 -- #######################################################
 
 function alert_user_activity.format(ifid, alert, alert_type_params)
-	local decoded = alert_type_params
-	local user = alert.alert_entity_val
+   local decoded = alert_type_params
+   local user = alert.user or alert.entity_val
  
-	if decoded.scope ~= nil then
+   if decoded.scope ~= nil then
  
-	   if decoded.scope == 'login' and decoded.status ~= nil then
- 
+      if decoded.scope == 'login' and decoded.status ~= nil then
 	  if decoded.status == 'authorized' then
 		 return i18n('user_activity.login_successful', {user=user})
 	  else

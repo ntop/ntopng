@@ -9,4 +9,4 @@ pre: |
   curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "script_subdir": "flow", "script_key": "unexpected_dns"}' http://localhost:3333/lua/rest/v1/disable/user_script.lua
 
 post: |
-  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "status": "historical-flows"}' http://localhost:3333/lua/rest/v1/get/alert/data.lua
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0}' http://localhost:3333/lua/rest/v1/get/flow/alert/list.lua

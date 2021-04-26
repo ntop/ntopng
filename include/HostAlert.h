@@ -38,6 +38,8 @@ class HostAlert {
   time_t release_time;
   u_int8_t score_as_cli;
   u_int8_t score_as_srv;
+  u_int8_t is_attacker;
+  u_int8_t is_victim;
 
   /* 
      Adds to the passed `serializer` (generated with `getAlertSerializer`) information specific to this alert
@@ -53,6 +55,12 @@ class HostAlert {
 
   inline u_int8_t getCliScore() { return score_as_cli; }
   inline u_int8_t getSrvScore() { return score_as_srv; }
+
+  inline void setAttacker() { is_attacker = true; }
+  inline void setVictim()   { is_victim = true;   }
+
+  inline bool isAttacker() { return is_attacker; }
+  inline bool isVictim()   { return is_victim;   }
 
   virtual HostAlertType getAlertType() const = 0;
 

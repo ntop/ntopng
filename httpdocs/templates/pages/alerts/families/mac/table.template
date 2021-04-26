@@ -1,0 +1,10 @@
+<tr>
+    <th>{{ i18n("show_alerts.alert_datetime") }}</th>
+    <th>{{ i18n("show_alerts.alert_severity") }}</th>
+    <th>{{ i18n("show_alerts.alert_counts") }}</th>
+    <th>{{ i18n("mac_address") }}</th>
+    <th>{{ i18n("details.device_type") }}</th>
+    <th>{{ i18n("name") }}</th>
+    <th>{{ i18n("description") }}</th>
+    <th>{{ i18n("actions") }}</th>
+</tr>

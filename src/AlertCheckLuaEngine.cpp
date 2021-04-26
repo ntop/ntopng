@@ -45,7 +45,7 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
   case alert_entity_snmp_device:
     lua_file = "snmp_device.lua";
     break;
-  case alert_entity_process:
+  case alert_entity_system:
     lua_file = "system.lua";
     break;
   case alert_entity_flow:

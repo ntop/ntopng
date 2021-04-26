@@ -51,14 +51,14 @@ end
 -- @return A human-readable string
 function alert_threshold_cross.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
-  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
-  local engine_label = alert_consts.alertEngineLabel(alert_consts.alertEngine(alert_consts.sec2granularity(alert["alert_granularity"])))
+  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["entity_id"]), alert["name"])
+  local engine_label = alert_consts.alertEngineLabel(alert_consts.alertEngine(alert_consts.sec2granularity(alert["granularity"])))
 
   return i18n("alert_messages.threshold_crossed", {
     granularity = engine_label,
     metric = alert_type_params.metric,
     entity = entity,
-    host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
+    host_category = format_utils.formatAddressCategory((json.decode(alert.json)).alert_generation.host_info),
     value = string.format("%u", math.ceil(alert_type_params.value)),
     op = "&".. (alert_type_params.operator or "gt") ..";",
     threshold = alert_type_params.threshold,

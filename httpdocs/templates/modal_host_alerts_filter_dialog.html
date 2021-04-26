@@ -5,35 +5,38 @@
           <h5 class="modal-title">{{ i18n('current_filter') }}: <span class="alert_label"></span></h5>
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         </div>
+        <form>
         <div class="modal-body {{dialog.custom_dialog_class}}">
 	  <div class="form-group">
 	    <label>{{ i18n('current_filter') }} "<b><span class="alert_label"></b>".</label>
 	  </div>
 
 	  <div class="form-group">
-	    <label>{{ i18n('current_filter_for') }}: <span id="alert_addr"></span>.</label>
+	    <label>{{ i18n('current_filter_for') }}: <span class="alert_addr"></span>.</label>
 	  </div>
 
 	  <hr class="separator">
 
-	  <div class="message {{dialog.custom_alert_class or "alert alert-danger"}} -1" id="host_alerts_danger_msg">
+	  <div class="message {{dialog.custom_alert_class or "alert alert-danger"}}" id="host_alerts_danger_msg">
             {*dialog.delete_message*}
           </div>
+        <hr class="separator">
 
 	  <div class="form-group">
             <div class="custom-control custom-switch">
-	      <input type="checkbox" class="custom-control-input" id="delete_host_alerts_switch" checked="checked">
-	      <label class="custom-control-label" for="delete_host_alerts_switch">{*dialog.delete_alerts*}</label>
+	      <input type="checkbox" class="custom-control-input" id="delete_alerts_switch" checked="checked">
+	      <label class="custom-control-label" for="delete_alerts_switch">{*dialog.delete_alerts*}</label>
 	    </div>
 	  </div>
+    <div id="script-description" class="alert alert-light border" role="alert">
+      {*dialog.message*}
+  </div>
+
 	</div>
         {% if dialog.no_footer then %}
           {# empty #}
         {% else %}
 
-	<div id="script-description" class="alert alert-light" role="alert">
-          {*dialog.message*}
-	</div>
 
         <div class="modal-footer">
 	  <span class="invalid-feedback" id="{{dialog.id}}_error"></span>
@@ -44,6 +47,7 @@
           {% end %}
         </div>
         {% end %}
+      </form>
       </div>
     </div>
 </div>

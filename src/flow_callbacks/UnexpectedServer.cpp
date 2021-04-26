@@ -52,7 +52,9 @@ bool UnexpectedServer::isAllowedHost(const IpAddress *p) {
 
 bool UnexpectedServer::loadConfiguration(json_object *config) {
   FlowCallback::loadConfiguration(config); /* Parse parameters in common */
-  json_object *countries_json, *ip_json;
+  json_object *whitelist_json, *whitelisted_ip_json;
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() %s", __FUNCTION__, json_object_to_json_string(config));
 
   /*
     Format:
@@ -60,14 +62,14 @@ bool UnexpectedServer::loadConfiguration(json_object *config) {
     { "items": [ "192.168.0.1", "172.16.0.1" ], "severity": ...
   */
 
-  if(json_object_object_get_ex(config, "items", &countries_json)) {
-    for(u_int i = 0; i < json_object_array_length(countries_json); i++) {
+  if(json_object_object_get_ex(config, "items", &whitelist_json)) {
+    for(u_int i = 0; i < json_object_array_length(whitelist_json); i++) {
       IpAddress ip;
       u_int64_t naddr = 1;
       
-      ip_json = json_object_array_get_idx(countries_json, i);
+      whitelisted_ip_json = json_object_array_get_idx(whitelist_json, i);
 
-      ip.set(json_object_get_string(ip_json));
+      ip.set(json_object_get_string(whitelisted_ip_json));
 
       if(!ip.isEmpty()) {
 	ndpi_ip_addr_t a;

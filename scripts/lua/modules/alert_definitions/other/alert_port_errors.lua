@@ -26,15 +26,17 @@ alert_port_errors.meta = {
 
 -- @brief Prepare an alert table used to generate the alert
 -- @param device_ip A string with the ip address of the snmp device
+-- @param device_name The name of the snmp device
 -- @param if_index The index of the port that changed
 -- @param interface_name The string with the name of the port that changed
 -- @return A table with the alert built
-function alert_port_errors:init(device_ip, if_index, interface_name)
+function alert_port_errors:init(device_ip, device_name, if_index, interface_name)
    -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {
       device = device_ip,
+      device_name = device_name,
       interface = if_index,
       interface_name = interface_name,
    }

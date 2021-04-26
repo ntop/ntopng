@@ -48,7 +48,7 @@ function alert_process_notification.format(ifid, alert, alert_type_params)
   elseif alert_type_params.event_type == "update" then
     return string.format("%s %s", i18n("alert_messages.update"), alert_type_params.msg_details)
   elseif alert_type_params.event_type == "anomalous_termination" then
-    return string.format("%s %s", i18n("alert_messages.anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), alert_type_params.msg_details)
+     return string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), alert_type_params.msg_details)
   end
 
   return "Unknown Process Event: " .. (alert_type_params.event_type or "")

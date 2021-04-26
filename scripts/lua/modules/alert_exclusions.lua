@@ -166,6 +166,20 @@ end
 
 -- ##############################################
 
+-- @brief Returns all excluded hosts for the given `alert_key` or nil if no excluded host exists
+function _get_excluded_hosts(alert_entity, alert_key)
+   local exclusions = _get_configured_alert_exclusions()
+
+   alert_key = tostring(alert_key)
+   local entity_id = tostring(alert_entity.entity_id)
+
+   return exclusions[entity_id]
+      and exclusions[entity_id][alert_key]
+      and exclusions[entity_id][alert_key]["excluded_hosts"]
+end
+
+-- ##############################################
+
 --@brief Marks a flow alert as disabled for a given `host_ip`, considered either as client or server
 --@return True, if alert is disabled with success, false otherwise
 function alert_exclusions.disable_flow_alert(host_ip, alert_key)
@@ -208,6 +222,20 @@ end
 -- @brief Returns true if `host_ip` has the host alert identified with `alert_key` disabled
 function alert_exclusions.has_disabled_host_alert(host_ip, alert_key)
    return _has_disabled_alert(alert_entities.host, host_ip, alert_key)
+end
+
+-- ##############################################
+
+-- @brief Returns all the excluded hosts for the host alert identified with `alert_key`
+function alert_exclusions.host_alerts_get_excluded_hosts(alert_key)
+   return _get_excluded_hosts(alert_entities.host, alert_key) or {}
+end
+
+-- ##############################################
+
+-- @brief Returns all the excluded hosts for the flowt alert identified with `alert_key`
+function alert_exclusions.flow_alerts_get_excluded_hosts(alert_key)
+   return _get_excluded_hosts(alert_entities.flow, alert_key) or {}
 end
 
 -- ##############################################

@@ -29,48 +29,24 @@ function Alert:_build_type_info()
    local type_info =  {
       -- Keys necessary for the engine
       alert_type = self.meta,
-      alert_subtype = self.alert_subtype,
-      alert_granularity = self.alert_granularity,
-      alert_severity = self.alert_severity,
+      subtype = self.subtype,
+      granularity = self.granularity,
+      severity = self.severity,
       -- Stuff added in subclasses :init
       alert_type_params = self.alert_type_params or {}
    }
 
    -- Add the attacker to the alert params (if present)
-   if self.alert_attacker then
-      type_info.alert_type_params.alert_attacker = self.alert_attacker
+   if self.attacker then
+      type_info.alert_type_params.attacker = self.attacker
    end
 
    -- Add the victim to the alert params (if present)
-   if self.alert_victim then
-      type_info.alert_type_params.alert_victim = self.alert_victim
+   if self.victim then
+      type_info.alert_type_params.victim = self.victim
    end
 
    return type_info
-end
-
--- ##############################################
-
--- TODO: remove when alerts triggered from C++
-function Alert:_build_alert_type_info()
-   local alert_type_info = {
-      status_type = {
-	 alert_type = self.meta,
-      },
-      alert_severity = self.alert_severity,
-      -- Stuff added in subclasses :init
-      alert_type_params = self.alert_type_params or {}
-   }
-
-   if self.alert_attacker ~= nil then
-      alert_type_info.alert_type_params.alert_attacker = self.alert_attacker
-   end
-
-   if self.alert_victim ~= nil then
-      alert_type_info.alert_type_params.alert_victim = self.alert_victim
-   end
-
-   return alert_type_info
 end
 
 -- ##############################################
@@ -80,12 +56,12 @@ function Alert:_check_alert_data()
       return true
    end
 
-   if self.meta.has_victim and not self.alert_victim then
+   if self.meta.has_victim and not self.victim then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "alert.alert_error.configuration.no_victim")
       return false
    end
 
-   if self.meta.has_attacker and not self.alert_attacker then
+   if self.meta.has_attacker and not self.attacker then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "alert.alert_error.configuration.no_attacker")
       return false
    end
@@ -132,26 +108,26 @@ end
 -- ##############################################
 
 function Alert:set_severity(severity)
-   self.alert_severity = severity
+   self.severity = severity
 end
 
 -- ##############################################
 
 function Alert:set_subtype(subtype)
-   self.alert_subtype = subtype
+   self.subtype = subtype
 end
 
 -- ##############################################
 
 function Alert:set_granularity(granularity)
    local alert_consts = require "alert_consts"
-   self.alert_granularity = alert_consts.alerts_granularities[granularity]
+   self.granularity = alert_consts.alerts_granularities[granularity]
 end
 
 -- ##############################################
 
-function Alert:set_attacker(attacker) self.alert_attacker = attacker end
-function Alert:set_victim(victim) self.alert_victim = victim end
+function Alert:set_attacker(attacker) self.attacker = attacker end
+function Alert:set_victim(victim) self.victim = victim end
 function Alert:set_origin(origin) self.origin = origin end
 function Alert:set_target(target) self.target = target end
 

@@ -33,7 +33,7 @@ class StoreManager {
   sqlite3 *db;
 
   int init(const char *db_file_full_path);
-  int exec_query(char *db_query,
+  int exec_query(const char * const db_query,
 		 int (*callback)(void *, int, char **, char **),
 		 void *payload);
   int exec_statement(sqlite3_stmt *stmt);

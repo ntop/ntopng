@@ -1,0 +1,565 @@
+{#
+    (C) 2021 - ntop.org    
+    Base template for the alert tables.
+#}
+
+<link rel="stylesheet" href='{{ ntop.getHttpPrefix() }}/css/apexcharts.css'/>
+
+<script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/apexchart/apexcharts.min.js?{{ ntop.getStaticFileEpoch() }}'></script>
+<script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
+
+<div class='row'>
+    <div class='col-12'>
+        <div class="d-flex p-2 mb-2 navbar-shadow border-radius navbar-light bg-light align-items-center">
+            {* ui_utils.render_datetime_range_picker(range_picker) *}
+        </div>
+    </div>
+    <div class='col-12'>
+        <div class="card card-shadow">
+	        <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                          <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-header">
+
+                {%
+                    local engaged_disabled = ternary((alert_stats.entity == "flow"), "disabled", "")
+                    local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'}) 
+                %}
+
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                      <a class="nav-link {{ (alert_stats.status == 'historical' and 'active' or '') }}" href="{{ base_url }}&status=historical&page={{ alert_stats.entity }}">{{ i18n("show_alerts.past_alerts") }}</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link {{ (alert_stats.status == 'engaged' and 'active' or '') }} {{ engaged_disabled }}" href="{{ base_url }}&status=engaged&page={{ alert_stats.entity }}">{{ i18n("show_alerts.engaged_alerts") }}</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+
+                {% if (alert_stats.status == "historical") then %}
+                <div>
+                    {* widget_gui_utils.render_chart(chart.name, {
+                        displaying_label = ""
+                    }) *}
+                </div>
+                <hr>
+                {% end %}
+
+                <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'> 
+                    <thead>
+                       {* datatable.table *}
+                    </thead>
+                </table>
+            </div>
+            <div class="card-footer">
+                <button id="btn-get-permalink" class="btn btn-secondary">
+                    <i class="fas fa-link"></i> {{ i18n('graphs.get_permanent_link') }}
+                </button>
+                <a id="btn-download-records" download="nindex_query.json" class="btn btn-secondary" href="/">
+                    <i class="fas fa-file-download"></i> {{ i18n('graphs.download_records') }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# add modals if defined #}
+{% if datatable.modals then %}
+<div class="modals">
+    {% for _, modal in pairs(datatable.modals) do %}
+        {* modal *}
+    {% end %}
+</div>
+{% end %}
+
+<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<script type="text/javascript">
+    i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+</script>
+<script type='text/javascript'>
+    $(document).ready(function(){
+
+        const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
+        const FAMILY = "{{ alert_stats.entity }}"
+        const PAGE_CSRF = "{{ ntop.getRandomCSRFValue() }}";
+        
+        const datasourceParams = {* json.encode(datatable.datasource.params) *};
+
+        const $inputBeginEpoch = $(`#begin-epoch`);
+        const $inputEndEpoch = $(`#end-epoch`);
+        const $btnGetPermaLink = $(`#btn-get-permalink`);
+
+	    /* Show an overlay to hide loading */
+        function toggleOverlays(time = 500) {
+            $(`.overlay`).toggle(time);
+        }
+
+        function showOverlays(time = 500) {
+            $(`.overlay`).fadeIn(time);
+        }
+
+        function hideOverlays(time = 500) {
+            $(`.overlay`).fadeOut(time);
+        }
+
+        function copyDatasourceParams() {
+
+            const [begin, end] = getTimestampRange();
+            if (begin == null && end == null) return {};
+
+            const copyParams = Object.assign(datasourceParams, {});
+
+            // override the existing timestamps 
+            if (copyParams.epoch_begin) copyParams.epoch_begin = begin.unix();
+            if (copyParams.epoch_end) copyParams.epoch_end = end.unix();
+
+            return copyParams;
+        }
+
+        async function reloadTable($table, ) {
+
+            const copyParams = copyDatasourceParams();
+            const searchParams = new URLSearchParams(Object.entries(copyParams));
+	        toggleOverlays();
+	    
+            // reload the table
+            $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
+
+            WidgetUtils.getWidgetByName("{{ chart.name }}").update(copyParams);
+        }
+
+        function printQueryTime($table) {
+            const response = $table.ajax.json();
+            // if the response contains the query time period
+            if (response.rsp.stats !== undefined) {
+                const msec = response.rsp.stats.query_duration_msec / 1000.0;
+                $(`#{{ datatable.name }}-query`).show();
+                $(`#{{ datatable.name }}-query .seconds`).text((msec < 0.001) ? '< 0.001' : msec); // The time is in msec
+            }
+        }
+
+        function getTimestampRange() {
+            const begin = $(`#begin-epoch`).datetimepicker('date').utc();
+            const end = $(`#end-epoch`).datetimepicker('date').utc();
+            return [begin, end];
+        }
+
+        function pushNewHistoryState(begin, end, len) {
+            
+            const url = new URL(location);
+            const searchParams = new URLSearchParams();
+
+            searchParams.set('begin_epoch', begin.unix());
+            searchParams.set('end_epoch', end.unix());
+
+            // get all filters tags
+            const tags = tagify.getTagElms();
+
+            // add the tag filters inside the search params object
+            for (const tag of tags) {
+
+                const tagData = tagify.tagData(tag);
+                const {key, selectedOperator, realValue, value} = tagData;
+                searchParams.set(key, `${realValue || value},${selectedOperator}`);
+            }
+
+            url.search = searchParams.toString();
+            window.history.pushState({begin_epoch: begin.unix(), end_epoch: end.unix()}, '', url);
+        }
+
+        async function onRangePickerChange(pushHistroy = false) {
+            
+            const [begin, end] = getTimestampRange();
+            await reloadTable($table);
+
+            // update the link of the download button
+            const href = $(`#btn-download-records`).attr('href');
+            const newDownloadURL = new URL(href, location.origin);
+            newDownloadURL.search = new URLSearchParams(datasourceParams); 
+            $(`#btn-download-records`).attr('href', newDownloadURL.toString());
+
+            if (pushHistroy) {
+                pushNewHistoryState(begin, end);
+            }
+
+        }
+
+        function loadColumns() {
+
+            let columns = [];
+            {% if datatable.js_columns then %}
+                columns = {* datatable.js_columns *};
+            {% end %}
+
+            /* Actions Column */
+            columns.push({width: '5%', targets: -1, className: 'text-center', orderable: false, data: null, render: (type) => {
+
+                return DataTableUtils.createActionButtons([
+                    /* Disable */
+                    {icon: 'fa-bell-slash', label: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning {{ ((alert_stats.entity == 'host' or alert_stats.entity == 'flow') and '' or 'disabled') }}"},
+                    /* Release */
+                    // {icon: 'fas fa-unlock', label: "{{ i18n('show_alerts.release_alert_action') }}", modal: '#release_single_alert', class: 'btn-info'},
+                    /* Delete */
+                    {icon: 'fa fa-trash', label: "{{ i18n('remove') }}", modal: '#delete_alert_dialog', class: 'btn-danger'},
+                ]);
+            }});
+
+            return columns;
+        }
+
+        const datatableButton = {* (datatable.buttons or '[]') *};
+        datatableButton.push({
+            text: '<i class="fas fa-sync"></i>',
+            action: async function (e, dt, node, config) {
+                await onRangePickerChange();
+            }
+        });
+
+        let config = DataTableUtils.getStdDatatableConfig(datatableButton);
+        config = DataTableUtils.extendConfig(config, {
+	        serverSide: true,
+            searching: false,
+            ajax: {
+                method: 'get',
+                url: '{* datatable.datasource.endpoint *}',
+                dataSrc: 'rsp.records',
+                data: (data, settings) => {
+
+                    const tableApi = settings.oInstance.api();
+                    const orderColumnIndex = data.order[0].column;
+                    const orderColumnName = tableApi.column(orderColumnIndex).name() || undefined;
+                    
+                    if (data.order) {
+                        data.order = data.order[0].dir;
+                        data.sort = orderColumnName;
+                    }
+
+                    delete data.columns;
+                    delete data.search;
+                   
+                    // create visibleColumns field
+                    const visibleColumns = [];
+                    tableApi.columns().every(function(idx) {
+                        
+                        const $column = tableApi.column(idx);
+                        if ($column.visible() && $column.name() !== '') {
+                            visibleColumns.push($column.name());
+                        } 
+                    });
+
+                    data.visible_columns = visibleColumns.join(',');
+
+                    return data;
+                }
+            },
+            lengthMenu: [[INITIAL_ROWS_LENGTH, 50, 100, 250], [INITIAL_ROWS_LENGTH, 50, 100, 250]],
+            columns: loadColumns()
+        });
+
+        const $table = $(`#{{ datatable.name }}`).DataTable(config);
+        DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
+            $table.ajax.reload();
+        });
+
+        // on ajax request complete then print the query time
+        $table.on('xhr', function() {
+            printQueryTime($table);
+            hideOverlays();
+	    });
+
+        // on apply button click
+        $(`#btn-apply`).on('click', async function() {
+            await onRangePickerChange(true);
+        });
+
+        // when an user remove the tag
+        tagify.on('remove', async function(e) {
+
+            const key = e.detail.data.key;
+
+            if (datasourceParams[key] !== undefined) {
+                delete datasourceParams[key];
+            }
+
+            await onRangePickerChange(true);
+        });
+
+        tagify.on('add', async function(e) {
+
+            const detail = e.detail;
+            if (detail.data === undefined) { return; }
+
+            const tag = detail.data;
+            // add/update datasource params, default operator `=`
+            datasourceParams[tag.key] = `${tag.realValue || tag.value},eq`;
+            // trigger request
+            await onRangePickerChange(true);
+        });
+
+        tagify.on('edit:updated', async function(e) {
+
+            const detail = e.detail;
+            if (detail.data === undefined) { return; }
+
+            const tag = detail.data;
+            const prevTag = detail.previousData;
+
+            tag.realValue = tag.value;
+
+            // add/update datasource params, default operator `=`
+            datasourceParams[tag.key] = `${tag.value},${prevTag.selectedOperator}`;
+
+            // trigger request
+            await onRangePickerChange(true);
+        });
+
+        $(`tags`).on('change', 'select.operator', async function(e) {
+            
+            // update the tag and the operator
+            const $tag = $(this).parents('tag');
+            const tagData = tagify.tagData($tag[0]);
+            const selectedOperator = $(this).val();
+
+            $tag.attr("selectedoperator", selectedOperator);
+
+            datasourceParams[$tag.attr('key')] = `${tagData.realValue || tagData.value},${selectedOperator}`;
+            tagData.selectedOperator = selectedOperator;
+
+            // trigger request
+            await onRangePickerChange(true);
+        });
+
+	    // clear all the filters on click
+        $(".btn-remove-tags").on('click', async function() {
+
+            const tags = tagify.getTagElms();
+            for (const tag of tags) {
+                const key = tag.getAttribute('key');
+                if (datasourceParams[key]) {
+                    delete datasourceParams[key];
+                }
+            }
+
+            tagify.removeAllTags();
+
+            await onRangePickerChange(true);
+        });
+
+        $table.on('click', `a.tag-filter`, async function (e) {
+            e.preventDefault();
+
+            // the tag key is contained inside the column's name
+            const colIndex = $table.cell($(this).parent()).index().column;
+            const data = $table.cell($(this).parent()).data();
+
+            const key = $table.column(colIndex).name();
+            const label = i18n.tags[key];
+
+            const tag = { label: label, key: key, value: (data.label) ? data.label : data, realValue: (data.value) ? data.value : data };
+
+            // does the tag exist?
+            const existingTagElement = tagify.getTagElms().find(htmlTag => htmlTag.getAttribute('key') === tag.key);
+            const existingTag = tagify.tagData(existingTagElement);
+
+            if (existingTag !== undefined && existingTag.realValue !== tag.realValue) {
+                
+                // replace the tag!
+                existingTag.value = tag.value;
+                existingTag.realValue = tag.realValue;
+
+                tagify.replaceTag(existingTagElement, existingTag);
+                // update the datasource params
+                datasourceParams[tag.key] = `${tag.realValue},${existingTag.selectedOperator}`;
+                await onRangePickerChange(true);
+
+                return;
+            } 
+
+            // has the tag an operator object?
+            if (!Array.isArray(DEFINED_TAGS[key])) {
+                tag.operators = DEFINED_TAGS[key].operators;
+            }
+
+            tag.selectedOperator = 'eq';
+
+            // add filter!
+            tagify.addTags([tag]);
+        });
+    
+        // when the user navigates using the browser's arrows
+        // set the input boxes with their respective values
+        $(window).on('popstate', function(e) {
+            const {state} = e.originalEvent;
+            const {epoch_begin, epoch_end} = state;    
+            $inputBeginEpoch.datetimepicker('date', moment(epoch_begin, 'X'));
+            $inputEndEpoch.datetimepicker('date', moment(epoch_end, 'X'));
+        });
+
+        $btnGetPermaLink.on('click', function() {
+
+            const $this = $(this);
+            
+            const dummyInput = document.createElement('input');
+            dummyInput.value = location.href;
+            document.body.appendChild(dummyInput);
+            dummyInput.select();
+
+            // copy the url to the clipboard from the dummy input
+            document.execCommand("copy");
+            document.body.removeChild(dummyInput);
+
+            $this.attr("title", "Copied!")
+                .tooltip("dispose")
+                .tooltip()
+                .tooltip("show");
+        });
+
+        ChartWidget.registerEventCallback("{{ chart.name }}", 'zoomed', async (chartContext, { xaxis, yaxis }) => {
+           
+            // the timestamps are in milliseconds, convert them into seconds
+            const begin = moment(xaxis.min);
+            const end = moment(xaxis.max);
+            
+            $inputBeginEpoch.datetimepicker('date', begin);
+            $inputEndEpoch.datetimepicker('date', end);
+
+            await onRangePickerChange(true);
+        });
+
+        $table.on('click', `a[href='#delete_alert_dialog']`, function (e) {
+            const alert = $table.row($(this).parent().parent()).data();
+            $deleteAlertModal.invokeModalInit(alert);
+        });
+
+        const $deleteAlertModal = $('#delete_alert_dialog form').modalHandler({
+            method: 'post',
+            csrf: PAGE_CSRF,
+            endpoint: `${http_prefix}/lua/rest/v1/delete/{{ alert_stats.entity }}/alerts.lua`,
+            beforeSumbit: function (alert) {
+                return { ifid: "{{ ifid }}", row_id: alert.row_id };
+            },
+            onModalInit: function (alert) {
+                $(`#delete_alert_dialog button[type='submit']`).removeAttr("disabled");
+            },
+            onSubmitSuccess: function (response) {
+
+                if (response.rc < 0) {
+                    $('#delete_alert_dialog .invalid-feedback').html(i18n.rest[response.rc_str]).show();
+                }
+                else {
+                    onRangePickerChange(false);
+                }
+
+                return (response.rc == 0);
+            }
+        });
+
+        $table.on('click', `a[href='#alerts_filter_dialog']`, function (e) {
+            const alert = $table.row($(this).parent().parent()).data();
+            $disableAlert.invokeModalInit(alert);
+        });
+
+        const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
+            method: 'post',
+            csrf: PAGE_CSRF,
+            endpoint: `${http_prefix}/lua/rest/v1/edit/user_script/filter.lua`,
+            beforeSumbit: function (alert) {
+                
+                const data = {
+                    alert_key: alert.alert_id.value,
+                    subdir: FAMILY,
+                    delete_alerts: $(`#delete_alerts_switch`).is(":checked")
+                };
+
+                if (FAMILY === "host") {
+                    data["alert_addr"] = alert.ip;
+                }
+                else if (FAMILY === "flow") {
+                    data["alert_addr"] = $(`[name='alert_addr']:checked`).val();
+                }
+                
+                return data;
+            },
+            onModalInit: function (alert) {
+
+                const $type = $(`<span>${alert.alert_id.label}</span>`);
+                $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
+
+                if (FAMILY === "host") {
+                    const label = (alert.hostname) ? `${alert.hostname} (${alert.ip})` : alert.ip; 
+                    $(`.alert_addr`).text(label);
+                }
+                else if (FAMILY === "flow") {
+
+                    const cliLabel = (alert.cli_name) ? `${alert.cli_name} (${alert.cli_ip})` : alert.cli_ip;
+                    const srvLabel = (alert.srv_name) ? `${alert.srv_name} (${alert.srv_ip})` : alert.srv_ip;
+
+                    $(`#cli_addr`).text(cliLabel);
+                    $(`#cli_radio`).val(alert.cli_ip);
+                    $(`#srv_addr`).text(srvLabel);
+                    $(`#srv_radio`).val(alert.srv_ip);
+                }
+                else {
+                    $(`.alert_entity_val`).text("Ah boh")
+                }
+
+            },
+            onSubmitSuccess: function (response, dataSent) {
+
+                if (response.rc < 0) {
+                    $('#alerts_filter_dialog .invalid-feedback').html(i18n.rest[response.rc_str] || response.rc_str).show();
+                }
+                else {
+
+                    if (dataSent.delete_alerts) {
+                        location.reload();
+                    }
+                    else {
+                        onRangePickerChange(false);
+                    }
+                }
+
+                return (response.rc == 0);
+            }
+        });
+
+        /**
+         * Release Button Handler
+        $table.on('click', `a[href='#release_single_alert']`, function (e) {
+            const alert = $table.row($(this).parent().parent()).data();
+        });
+
+        const $releaseAlertModal = $('#release_single_alert form').modalHandler({
+            method: 'post',
+            csrf: PAGE_CSRF,
+            endpoint: `${http_prefix}/lua/rest/v1/release/{{ alert_stats.entity }}/alerts.lua`,
+            beforeSumbit: function (alert) {
+                return {
+                    ifid: "{{ ifid }}",
+                    row_id: alert.row_id
+                };
+            },
+            onModalInit: function (alert) {
+                $(`#release_single_alert button[type='submit']`).removeAttr("disabled");
+            },
+            onSubmitSuccess: function (response) {
+
+                if (response.rc < 0) {
+                    $('#release_single_alert .invalid-feedback').html(i18n.rest[response.rc_str]).show();
+                }
+                else {
+                    onRangePickerChange(false);
+                }
+
+                return (response.rc == 0);
+            }
+        });
+         */
+
+    });
+</script>

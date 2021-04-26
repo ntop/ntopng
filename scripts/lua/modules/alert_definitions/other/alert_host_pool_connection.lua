@@ -18,9 +18,9 @@ local alert_host_pool_connection = classes.class(alert)
 -- ##############################################
 
 alert_host_pool_connection.meta = {
-  alert_key = other_alert_keys.alert_host_pool_connection,
-  i18n_title = "alerts_dashboard.host_pool_connection",
-  icon = "fas fa-sign-in",
+   alert_key = other_alert_keys.alert_host_pool_connection,
+   i18n_title = "alerts_dashboard.host_pool_connection",
+   icon = "fas fa-sign-in",
 }
 
 -- ##############################################
@@ -37,7 +37,7 @@ end
 function alert_host_pool_connection.format(ifid, alert, alert_type_params)
   return(i18n("alert_messages.host_pool_has_connected", {
     pool = alert_type_params.pool,
-    url = getHostPoolUrl(alert.alert_entity_val),
+    url = getHostPoolUrl(alert.entity_val),
   }))
 end
 

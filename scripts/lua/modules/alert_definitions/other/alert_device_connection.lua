@@ -47,7 +47,7 @@ end
 function alert_device_connection.format(ifid, alert, alert_type_params)
   return(i18n("alert_messages.device_has_connected", {
     device = info.device,
-    url = getMacUrl(alert.alert_entity_val),
+    url = getMacUrl(alert.entity_val),
   }))
 end
 

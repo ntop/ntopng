@@ -4,12 +4,14 @@
 
 local user_scripts = require("user_scripts")
 local alert_severities = require "alert_severities"
+local host_alert_keys = require "host_alert_keys"
 
 local syn_scan = {
    -- Script category
    category = user_scripts.script_categories.network,
 
    default_enabled = false,
+   alert_id = host_alert_keys.host_alert_syn_scan,
 
    -- The default threshold value. The format is specific of the
    -- "threshold_cross" input builder

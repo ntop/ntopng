@@ -184,7 +184,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   loadScalingFactorPrefs();
 
-  statsManager = NULL, alertsManager = NULL, alertsQueue = NULL;
+  statsManager = NULL, alertsManager = NULL, alertStore = NULL, alertsQueue = NULL;
   ndpiStats = NULL;
   dscpStats = NULL;
 
@@ -313,7 +313,7 @@ void NetworkInterface::init() {
 #endif
   ndpiStats = NULL;
   dscpStats = NULL;
-  statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
+  statsManager = NULL, alertsManager = NULL, alertStore = NULL, ifSpeed = 0;
   host_pools = NULL;
   bcast_domains = NULL;
   checkIdle();
@@ -571,6 +571,7 @@ NetworkInterface::~NetworkInterface() {
   if(discovery)      delete discovery;
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
+  if(alertStore)     delete alertStore;
   if(alertsQueue)    delete alertsQueue;
   if(ndpiStats)      delete ndpiStats;
   if(dscpStats)      delete dscpStats;
@@ -1550,7 +1551,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  if(dhcpp->msgType == 0x01) /* Request */
 	    ;//mac->setDhcpHost();
 	  else if(dhcpp->msgType == 0x02) { /* Reply */
-	    checkMacIPAssociation(false, dhcpp->chaddr, dhcpp->yiaddr);
+	    checkMacIPAssociation(false, dhcpp->chaddr, dhcpp->yiaddr, mac);
 	    checkDhcpIPRange(mac, dhcpp, vlan_id);
 	    setDHCPAddressesSeen();
 	  }
@@ -2337,8 +2338,8 @@ datalink_check:
 	  srcMac->incSentArpReplies();
 	  dstMac->incRcvdArpReplies();
 
-	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa);
-	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa);
+	  checkMacIPAssociation(true, arpp->arp_sha, arpp->arp_spa, srcMac);
+	  checkMacIPAssociation(true, arpp->arp_tha, arpp->arp_tpa, dstMac);
 	}
       }
     }
@@ -6405,6 +6406,15 @@ static bool virtual_http_hosts_walker(GenericHashEntry *node, void *data, bool *
 
 /* **************************************** */
 
+bool NetworkInterface::alert_store_query(lua_State *vm, const char * const sql) {
+  if(!alertStore)
+    return false;
+
+  return alertStore->alert_store_query(vm, sql);
+}
+
+/* **************************************** */
+
 void NetworkInterface::listHTTPHosts(lua_State *vm, char *key) {
   struct virtual_host_valk_info info;
   u_int32_t begin_slot = 0;
@@ -6524,6 +6534,7 @@ void NetworkInterface::allocateStructures() {
 
     if(!isViewed()) {
       alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
+      alertStore    = new AlertStore(id, ALERTS_STORE_DB_FILE_NAME);
       alertsQueue   = new AlertsQueue(this);
     }
 
@@ -7347,8 +7358,8 @@ TimeseriesExporter* NetworkInterface::getRRDTSExporter() {
 
 /* *************************************** */
 
-void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4) {
-  if(are_ip_reassignment_alerts_enabled())
+void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4, Mac *host_mac) {
+  if(!are_ip_reassignment_alerts_enabled())
     return;
 
   u_int64_t mac = Utils::mac2int(_mac);
@@ -7365,7 +7376,7 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
 	  u_char tmp[16];
 	  Utils::int2mac(it->second, tmp);
 
-	  getAlertsQueue()->pushMacIpAssociationChangedAlert(ntohl(ipv4), tmp, _mac);
+	  getAlertsQueue()->pushMacIpAssociationChangedAlert(ntohl(ipv4), tmp, _mac, host_mac);
 
 	  ip_mac[ipv4] = mac;
 	}

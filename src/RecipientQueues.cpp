@@ -70,16 +70,19 @@ bool RecipientQueues::dequeue(RecipientNotificationPriority prio, AlertFifoItem 
 bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const AlertFifoItem* const notification) {
   bool res = false;
 
-  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES
-     || !notification
+  if(!notification
      || !notification->alert
      || notification->alert_severity < minimum_severity              /* Severity too low for this recipient     */
      || !(enabled_categories & (1 << notification->alert_category))  /* Category not enabled for this recipient */
-     || (!queues_by_prio[prio] &&
-	 !(queues_by_prio[prio] = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
+     )
+    return true; /* Nothing to enqueue */
+
+  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES
+      || (!queues_by_prio[prio] &&
+	  !(queues_by_prio[prio] = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
     /* Queue not available */
     drops_by_prio[prio]++;
-    return false;
+    return false; /* Enqueue failed */
   }
 
   /* Enqueue the notification (allocate memory for the alert string) */

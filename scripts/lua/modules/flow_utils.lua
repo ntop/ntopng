@@ -527,6 +527,7 @@ function getAlertTimeBounds(alert, engaged)
       epoch_end = alert.last_switched + half_interval
     else
       local tend = ternary(engaged, os.time(), alert.alert_tstamp_end) or alert_tstamp
+      -- tprint(debug.traceback()) 
       half_interval = math.max(half_interval, (tend - alert_tstamp) / 2) -- at least 1 hour interval
       local middle_time = (tend + alert_tstamp) / 2
 

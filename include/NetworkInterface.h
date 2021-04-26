@@ -256,6 +256,7 @@ class NetworkInterface : public OtherAlertableEntity {
   DB *db;
   StatsManager  *statsManager;
   AlertsManager *alertsManager;
+  AlertStore *alertStore;
   HostPools *host_pools;
   VLANAddressTree *hide_from_top, *hide_from_top_shadow;
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp_addresses;
@@ -336,7 +337,7 @@ class NetworkInterface : public OtherAlertableEntity {
   bool checkIdle();
   bool checkPeriodicStatsUpdateTime(const struct timeval *tv);
   void topItemsCommit(const struct timeval *when);
-  void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
+  void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4, Mac *host_mac);
   void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id);
   void pollQueuedeCompanionEvents();
   bool getInterfaceBooleanPref(const char *pref_key, bool default_pref_value) const;
@@ -747,6 +748,7 @@ class NetworkInterface : public OtherAlertableEntity {
   inline StatsManager  *getStatsManager()          { return statsManager;  };
   AlertsManager *getAlertsManager() const;
   AlertsQueue* getAlertsQueue() const;
+  bool alert_store_query(lua_State *vm, const char * const sql);
 
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO

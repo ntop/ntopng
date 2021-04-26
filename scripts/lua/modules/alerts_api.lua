@@ -34,8 +34,8 @@ local current_configset -- The configset used for the generation of this alert
 -- Returns a string which identifies an alert
 function alerts_api.getAlertId(alert)
   return(string.format("%s_%s_%s_%s_%s", alert.alert_type,
-    alert.alert_subtype or "", alert.alert_granularity or "",
-    alert.alert_entity, alert.alert_entity_val))
+    alert.subtype or "", alert.granularity or "",
+    alert.entity_id, alert.entity_val))
 end
 
 -- ##############################################
@@ -88,18 +88,18 @@ end
 
 -- ##############################################
 
-local function get_alert_triggered_key(alert_key, alert_subtype)
-   if not alert_key or not alert_subtype then
-      if not alert_subtype then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, "alert_subtype is nil")
+local function get_alert_triggered_key(alert_id, subtype)
+   if not alert_id or not subtype then
+      if not subtype then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, "subtype is nil")
       end
-      if not alert_key then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, "alert_key is nil")
+      if not alert_id then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, "alert_id is nil")
       end
       traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
    end
 
-   local res = string.format("%d@%s", alert_key, alert_subtype)
+   local res = string.format("%d@%s", alert_id, subtype)
 
    return res
 end
@@ -139,22 +139,6 @@ end
 
 -- ##############################################
 
---! @brief Adds host information to the alert (only works for host alerts)
---! @param alert_json Host info will be placed in key `host_info` of table `alert_json`
-local function addAlertHostInfo(triggered)
-   if triggered then
-      alert = json.decode(triggered.alert_json)
-      -- Add only minimal information to keep the final result as small as possible
-      -- only if the alert_generation is not nil
-      if alert.alert_generation then 
-        alert.alert_generation.host_info = host.getMinInfo()
-        triggered.alert_json = json.encode(alert)
-      end
-   end
-end
-
--- ##############################################
-
 --@brief Check if the `alert` belongs to an exclusion list
 --! @param entity_info data returned by one of the entity_info building functions
 --! @param type_info data returned by one of the type_info building functions
@@ -170,12 +154,12 @@ local function matchExcludeFilter(entity_info, type_info)
 
    -- Prepare the context with alert data
    local context = {
-      alert_type = type_info.alert_type.alert_key,
-      alert_subtype = type_info.alert_subtype,
-      alert_entity = entity_info.alert_entity.entity_id,
-      alert_entity_val = entity_info.alert_entity_val,
-      alert_severity = type_info.alert_severity.severity_id,
-      alert_json = type_info.alert_type_params,
+      alert_id = type_info.alert_type.alert_key,
+      subtype = type_info.subtype,
+      entity_id = entity_info.alert_entity.entity_id,
+      entity_val = entity_info.entity_val,
+      severity = type_info.severity.severity_id,
+      json = type_info.alert_type_params,
    }
 
    if current_script and current_script.key and cur_filters then
@@ -201,14 +185,14 @@ function alerts_api.store(entity_info, type_info, when)
 
   local force = false
   local ifid = interface.getId()
-  local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
-  local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or -1
+  local granularity_sec = type_info.granularity and type_info.granularity.granularity_seconds or 0
+  local granularity_id = type_info.granularity and type_info.granularity.granularity_id or -1
 
   type_info.alert_type_params = type_info.alert_type_params or {}
   addAlertGenerationInfo(type_info.alert_type_params)
 
   local alert_json = json.encode(type_info.alert_type_params)
-  local subtype = type_info.alert_subtype or ""
+  local subtype = type_info.subtype or ""
   when = when or os.time()
 
   -- Here the alert is considered stored. The actual store will be performed
@@ -218,15 +202,15 @@ function alerts_api.store(entity_info, type_info, when)
   local alert_to_store = {
     ifid = ifid,
     action = "store",
-    alert_type = type_info.alert_type.alert_key,
-    alert_subtype = subtype,
-    alert_granularity = granularity_sec,
-    alert_entity = entity_info.alert_entity.entity_id,
-    alert_entity_val = entity_info.alert_entity_val,
-    alert_severity = type_info.alert_severity.severity_id,
-    alert_tstamp = when,
-    alert_tstamp_end = when,
-    alert_json = alert_json,
+    alert_id = type_info.alert_type.alert_key,
+    subtype = subtype,
+    granularity = granularity_sec,
+    entity_id = entity_info.alert_entity.entity_id,
+    entity_val = entity_info.entity_val,
+    severity = type_info.severity.severity_id,
+    tstamp = when,
+    tstamp_end = when,
+    json = alert_json,
   }
 
   addAlertPoolInfo(entity_info, alert_to_store)
@@ -234,18 +218,6 @@ function alerts_api.store(entity_info, type_info, when)
   if matchExcludeFilter(entity_info, type_info) then
      -- This alert is matching an exclusion filter. return, and do anything
      return false
-  end
-
-  if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
-    -- NOTE: for engaged alerts this operation is performed during trigger in C
-    
-    -- Note: this is not required as there is no state (required for engage/release only)
-    -- and this has been removed as it creates issues with external alerts (e.g. syslog)
-    -- as there is no active host matching the alert.
-    -- host.checkContext(entity_info.alert_entity_val)
-
-    addAlertHostInfo(alert_to_store)
-    interface.incTotalHostAlerts(entity_info.alert_entity_val, type_info.alert_type.alert_key)
   end
 
   recipients.dispatch_notification(alert_to_store, current_script)
@@ -268,7 +240,7 @@ end
 -- cur_alerts.1 table
 -- cur_alerts.1.alert_type number 2
 -- cur_alerts.1.alert_subtype string min_bytes
--- cur_alerts.1.alert_entity_val string 192.168.2.222@0
+-- cur_alerts.1.entity_val string 192.168.2.222@0
 -- cur_alerts.1.alert_granularity number 60
 -- cur_alerts.1.alert_severity number 2
 -- cur_alerts.1.alert_json string {"metric":"bytes","threshold":1,"value":13727070,"operator":"gt"}
@@ -280,10 +252,10 @@ local function already_triggered(cur_alerts, candidate_severity, candidate_type,
    for i = #cur_alerts, 1, -1 do
       local cur_alert = cur_alerts[i]
 
-      if candidate_severity == cur_alert.alert_severity
-	 and candidate_type == cur_alert.alert_type
-	 and candidate_granularity == cur_alert.alert_granularity
-         and candidate_alert_subtype == cur_alert.alert_subtype then
+      if candidate_severity == cur_alert.severity
+	 and candidate_type == cur_alert.alert_id
+	 and candidate_granularity == cur_alert.granularity
+         and candidate_alert_subtype == cur_alert.subtype then
 	    if remove_from_cur_alerts then
 	       -- Remove from cur_alerts, this will save cycles for
 	       -- subsequent calls of this method.
@@ -346,15 +318,15 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
 
   local ifid = interface.getId()
 
-  if(type_info.alert_granularity == nil) then
-    alertErrorTraceback("Missing mandatory 'alert_granularity'")
+  if(type_info.granularity == nil) then
+    alertErrorTraceback("Missing mandatory 'granularity'")
     return(false)
   end
 
   -- Apply defaults
-  local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
-  local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
-  local subtype = type_info.alert_subtype or ""
+  local granularity_sec = type_info.granularity and type_info.granularity.granularity_seconds or 0
+  local granularity_id = type_info.granularity and type_info.granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
+  local subtype = type_info.subtype or ""
 
   when = when or os.time()
 
@@ -364,7 +336,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   -- Check whether this alert is matching an exclusion filter
   local match_exclude_filter = matchExcludeFilter(entity_info, type_info)
 
-  if(cur_alerts and already_triggered(cur_alerts, type_info.alert_severity.severity_id,
+  if(cur_alerts and already_triggered(cur_alerts, type_info.severity.severity_id,
 				      type_info.alert_type.alert_key, granularity_sec, subtype, true) == true) then
      -- If there, the alert was already engaged at the time this function was called. Hence, if the alert
      -- is matching the exclusion filter, the alert must actually be RELEASED.
@@ -388,31 +360,27 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
 
   local params = {
     alert_key_name, granularity_id,
-    type_info.alert_severity.severity_id, type_info.alert_type.alert_key,
+    type_info.severity.severity_id, type_info.alert_type.alert_key,
     subtype, alert_json,
   }
 
-  if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
-    host.checkContext(entity_info.alert_entity_val)
-    triggered = host.storeTriggeredAlert(table.unpack(params))
-    addAlertHostInfo(triggered)
-  elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
-    interface.checkContext(entity_info.alert_entity_val)
+  if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
+    interface.checkContext(entity_info.entity_val)
     triggered = interface.storeTriggeredAlert(table.unpack(params))
   elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("network")) then
-    network.checkContext(entity_info.alert_entity_val)
+    network.checkContext(entity_info.entity_val)
     triggered = network.storeTriggeredAlert(table.unpack(params))
   else
-    triggered = interface.triggerExternalAlert(entity_info.alert_entity.entity_id, entity_info.alert_entity_val, table.unpack(params))
+    triggered = interface.triggerExternalAlert(entity_info.alert_entity.entity_id, entity_info.entity_val, table.unpack(params))
   end
 
   if(triggered == nil) then
     if(do_trace) then print("[Don't Trigger alert (already triggered?) @ "..granularity_sec.."] "..
-        entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
+        entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
     return(false)
   else
     if(do_trace) then print("[TRIGGER alert @ "..granularity_sec.."] "..
-        entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
+        entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
   end
 
   triggered.ifid = ifid
@@ -448,11 +416,11 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   end
 
   -- Apply defaults
-  local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
-  local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
-  local subtype = type_info.alert_subtype or ""
+  local granularity_sec = type_info.granularity and type_info.granularity.granularity_seconds or 0
+  local granularity_id = type_info.granularity and type_info.granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
+  local subtype = type_info.subtype or ""
 
-  if(cur_alerts and (not already_triggered(cur_alerts, type_info.alert_severity.severity_id,
+  if(cur_alerts and (not already_triggered(cur_alerts, type_info.severity.severity_id,
 	  type_info.alert_type.alert_key, granularity_sec, subtype, true))) then
      return(true)
   end
@@ -463,32 +431,28 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   local params = {alert_key_name, granularity_id, when}
   local released = nil
 
-  if(type_info.alert_severity == nil) then
+  if(type_info.severity == nil) then
     alertErrorTraceback(string.format("Missing alert_severity [type=%s]", type_info.alert_type and type_info.alert_type.alert_key or ""))
     return(false)
   end
 
-  if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
-    host.checkContext(entity_info.alert_entity_val)
-    released = host.releaseTriggeredAlert(table.unpack(params))
-    addAlertHostInfo(released)
-  elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
-    interface.checkContext(entity_info.alert_entity_val)
+  if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
+    interface.checkContext(entity_info.entity_val)
     released = interface.releaseTriggeredAlert(table.unpack(params))
   elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("network")) then
-    network.checkContext(entity_info.alert_entity_val)
+    network.checkContext(entity_info.entity_val)
     released = network.releaseTriggeredAlert(table.unpack(params))
   else
-    released = interface.releaseExternalAlert(entity_info.alert_entity.entity_id, entity_info.alert_entity_val, table.unpack(params))
+    released = interface.releaseExternalAlert(entity_info.alert_entity.entity_id, entity_info.entity_val, table.unpack(params))
   end
 
   if(released == nil) then
     if(do_trace) then tprint("[Dont't Release alert (not triggered?) @ "..granularity_sec.."] "..
-      entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
+      entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
     return(false)
   else
     if(do_trace) then tprint("[RELEASE alert @ "..granularity_sec.."] "..
-        entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
+        entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
   end
 
   released.ifid = ifid
@@ -517,23 +481,23 @@ end
 -- Convenient method to release multiple alerts on an entity
 function alerts_api.releaseEntityAlerts(entity_info, alerts)
   if(alerts == nil) then
-    alerts = interface.getEngagedAlerts(entity_info.alert_entity.entity_id, entity_info.alert_entity_val)
+    alerts = interface.getEngagedAlerts(entity_info.alert_entity.entity_id, entity_info.entity_val)
   end
 
   for _, cur_alert in pairs(alerts) do
      -- NOTE: do not pass alerts here as a parameters as deleting items while
      -- does not work in lua
 
-     local cur_alert_type = alert_consts.alert_types[alert_consts.getAlertType(cur_alert.alert_type)]
+     local cur_alert_type = alert_consts.alert_types[alert_consts.getAlertType(cur_alert.alert_id)]
      -- Instantiate the alert.
      -- NOTE: No parameter is passed to :new() as parameters are NOT used when releasing alerts
      -- This may change in the future.
      local cur_alert_instance = cur_alert_type:new(--[[ empty, no parameters for the release --]])
 
      -- Set alert params.
-     cur_alert_instance:set_severity(alert_severities[alert_consts.alertSeverityRaw(cur_alert.alert_severity)])
-     cur_alert_instance:set_subtype(cur_alert.alert_subtype)
-     cur_alert_instance:set_granularity(alert_consts.sec2granularity(cur_alert.alert_granularity))
+     cur_alert_instance:set_severity(alert_severities[alert_consts.alertSeverityRaw(cur_alert.severity)])
+     cur_alert_instance:set_subtype(cur_alert.subtype)
+     cur_alert_instance:set_granularity(alert_consts.sec2granularity(cur_alert.granularity))
 
      cur_alert_instance:release(entity_info)
   end
@@ -547,7 +511,7 @@ function alerts_api.hostAlertEntity(hostip, hostvlan)
   return {
     alert_entity = alert_consts.alert_entities.host,
     -- NOTE: keep in sync with C (Alertable::setEntityValue)
-    alert_entity_val = hostinfo2hostkey({ip = hostip, vlan = hostvlan}, nil, true)
+    entity_val = hostinfo2hostkey({ip = hostip, vlan = hostvlan}, nil, true)
   }
 end
 
@@ -557,7 +521,7 @@ function alerts_api.interfaceAlertEntity(ifid)
   return {
     alert_entity = alert_consts.alert_entities.interface,
     -- NOTE: keep in sync with C (Alertable::setEntityValue)
-    alert_entity_val = string.format("%d", ifid)
+    entity_val = string.format("%d", ifid)
   }
 end
 
@@ -567,7 +531,7 @@ function alerts_api.networkAlertEntity(network_cidr)
   return {
     alert_entity = alert_consts.alert_entities.network,
     -- NOTE: keep in sync with C (Alertable::setEntityValue)
-    alert_entity_val = network_cidr
+    entity_val = network_cidr
   }
 end
 
@@ -576,7 +540,7 @@ end
 function alerts_api.snmpInterfaceEntity(snmp_device, snmp_interface)
   return {
     alert_entity = alert_consts.alert_entities.snmp_device,
-    alert_entity_val = string.format("%s_ifidx%s", snmp_device, ""..snmp_interface)
+    entity_val = string.format("%s_ifidx%s", snmp_device, ""..snmp_interface)
   }
 end
 
@@ -585,7 +549,7 @@ end
 function alerts_api.snmpDeviceEntity(snmp_device)
   return {
     alert_entity = alert_consts.alert_entities.snmp_device,
-    alert_entity_val = snmp_device
+    entity_val = snmp_device
   }
 end
 
@@ -594,7 +558,7 @@ end
 function alerts_api.macEntity(mac)
   return {
     alert_entity = alert_consts.alert_entities.mac,
-    alert_entity_val = mac
+    entity_val = mac
   }
 end
 
@@ -603,16 +567,7 @@ end
 function alerts_api.userEntity(user)
   return {
     alert_entity = alert_consts.alert_entities.user,
-    alert_entity_val = user
-  }
-end
-
--- ##############################################
-
-function alerts_api.processEntity(process)
-  return {
-    alert_entity = alert_consts.alert_entities.process,
-    alert_entity_val = process
+    entity_val = user
   }
 end
 
@@ -621,43 +576,25 @@ end
 function alerts_api.hostPoolEntity(pool_id)
   return {
     alert_entity = alert_consts.alert_entities.host_pool,
-    alert_entity_val = tostring(pool_id)
+    entity_val = tostring(pool_id)
   }
 end
-
--- ##############################################
-
-function alerts_api.periodicActivityEntity(activity_path)
-  return {
-    alert_entity = alert_consts.alert_entities.periodic_activity,
-    alert_entity_val = activity_path
-  }
-end
-
+ 
 -- ##############################################
 
 function alerts_api.amThresholdCrossEntity(host)
   return {
     alert_entity = alert_consts.alert_entities.am_host,
-    alert_entity_val = host
+    entity_val = host
   }
 end
 
 -- ##############################################
 
-function alerts_api.categoryListsEntity(list_name)
+function alerts_api.systemEntity(system_entity_name)
   return {
-    alert_entity = alert_consts.alert_entities.category_lists,
-    alert_entity_val = list_name
-  }
-end
-
--- ##############################################
-
-function alerts_api.influxdbEntity(dburl)
-  return {
-    alert_entity = alert_consts.alert_entities.influx_db,
-    alert_entity_val = dburl
+    alert_entity = alert_consts.alert_entities.system,
+    entity_val = system_entity_name or "system"
   }
 end
 
@@ -666,7 +603,7 @@ end
 function alerts_api.iec104Entity(flow)
   return {
     alert_entity = alert_consts.alert_entities.flow,
-    alert_entity_val = "flow"
+    entity_val = "flow"
   }
 end
 
@@ -676,9 +613,9 @@ end
 
 function alerts_api.tooManyDropsType(drops, drop_perc, threshold)
   return({
-    alert_type = alert_consts.alert_types.alert_too_many_drops,
-    alert_severity = alert_severities.error,
-    alert_granularity = alert_consts.alerts_granularities.min,
+    alert_id = alert_consts.alert_types.alert_too_many_drops,
+    severity = alert_severities.error,
+    granularity = alert_consts.alerts_granularities.min,
     alert_type_params = {
       drops = drops, drop_perc = drop_perc, edge = threshold,
     },

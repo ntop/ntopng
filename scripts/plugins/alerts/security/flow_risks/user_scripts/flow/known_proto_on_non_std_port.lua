@@ -4,6 +4,7 @@
 
 local user_scripts = require("user_scripts")
 local alert_severities = require "alert_severities"
+local flow_alert_keys = require "flow_alert_keys"
 
 -- #################################################################
 
@@ -12,7 +13,7 @@ local script = {
    category = user_scripts.script_categories.security, 
 
    -- This script is only for alerts generation
-   is_alert = true,
+   alert_id = flow_alert_keys.flow_alert_known_proto_on_non_std_port,
 
    default_enabled = true,
 

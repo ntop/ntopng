@@ -50,14 +50,14 @@ end
 -- @return A human-readable string
 function host_alert_smtp_server_contacts.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
-  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+  local entity = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
   local value = alert_type_params.value
 
   if(value == nil) then value = 0 end
   
   return i18n("alert_messages.host_alert_smtp_server_contacts", {
     entity = firstToUpper(entity),
-    host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
+    host_category = format_utils.formatAddressCategory((json.decode(alert.json)).alert_generation.host_info),
     value = string.format("%u", math.ceil(value or 0)),
     threshold = alert_type_params.threshold or 0,
   })

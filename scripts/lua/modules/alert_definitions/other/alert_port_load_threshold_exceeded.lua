@@ -26,18 +26,20 @@ alert_port_load_threshold_exceeded.meta = {
 
 -- @brief Prepare an alert table used to generate the alert
 -- @param device_ip A string with the ip address of the snmp device
+-- @param device_name The device name
 -- @param if_index The index of the port that changed
 -- @param interface_name The string with the name of the port that changed
 -- @param in_load The ingress load in percentage
 -- @param out_load The egress load in percentage
 -- @param load_threshold The threshold configured for the load
 -- @return A table with the alert built
-function alert_port_load_threshold_exceeded:init(device_ip, if_index, interface_name, in_load, out_load, load_threshold)
+function alert_port_load_threshold_exceeded:init(device_ip, device_name, if_index, interface_name, in_load, out_load, load_threshold)
    -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {
       device = device_ip,
+      device_name = device_name,
       interface = if_index,
       interface_name = interface_name,
       in_load = in_load,

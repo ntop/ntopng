@@ -2681,13 +2681,15 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_int32(s, "score", getScore());
 
   ndpi_serialize_string_boolean(s, "is_flow_alert", true);
-  ndpi_serialize_string_int64(s, "alert_tstamp", now);
-  ndpi_serialize_string_int64(s, "alert_type", alert->getAlertType().id);
-  ndpi_serialize_string_int32(s, "alert_severity", alert->getSeverity());
+  ndpi_serialize_string_int64(s, "tstamp", now);
+  ndpi_serialize_string_int64(s, "alert_id", alert->getAlertType().id);
+  ndpi_serialize_string_int32(s, "severity", alert->getSeverity());
+  ndpi_serialize_string_boolean(s, "is_cli_attacker", alert->isCliAttacker());
+  ndpi_serialize_string_boolean(s, "is_srv_attacker", alert->isSrvAttacker());
 
   // alert_entity MUST be in sync with alert_consts.lua flow alert entity
-  ndpi_serialize_string_int32(s, "alert_entity", alert_entity_flow);
-  ndpi_serialize_string_string(s, "alert_entity_val", "flow");
+  ndpi_serialize_string_int32(s, "entity_id", alert_entity_flow);
+  ndpi_serialize_string_string(s, "entity_val", "flow");
   // flows don't have any pool for now
   ndpi_serialize_string_int32(s, "pool_id", NO_HOST_POOL_ID);
 
