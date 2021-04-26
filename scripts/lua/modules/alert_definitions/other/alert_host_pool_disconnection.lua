@@ -37,7 +37,7 @@ end
 function alert_host_pool_disconnection.format(ifid, alert, alert_type_params)
   return(i18n("alert_messages.host_pool_has_disconnected", {
     pool = alert_type_params.pool,
-    url = getHostPoolUrl(alert.alert_entity_val),
+    url = getHostPoolUrl(alert.entity_val),
   }))
 end
 

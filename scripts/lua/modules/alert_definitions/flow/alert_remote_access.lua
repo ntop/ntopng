@@ -35,7 +35,7 @@ end
 -- #######################################################
 
 function alert_remote_access.format(ifid, alert, alert_type_params)
-   local time = alert_type_params["last_seen"] - alert_type_params["first_seen"]
+   local time = alert["tstamp_end"] - alert["tstamp"]
 
    if time == 0 then
       time = "< 1"

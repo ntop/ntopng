@@ -64,7 +64,7 @@ StoreManager::~StoreManager() {
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StoreManager::exec_query(char *db_query,
+int StoreManager::exec_query(const char * const db_query,
                              int (*callback)(void *, int, char **, char **),
                              void *payload) {
   char *zErrMsg = 0;

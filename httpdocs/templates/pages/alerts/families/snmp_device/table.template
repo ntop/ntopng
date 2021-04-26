@@ -1,0 +1,12 @@
+<tr>
+    <th>{{ i18n("show_alerts.alert_datetime") }}</th>
+    <th>{{ i18n("duration") }}</th>
+    <th>{{ i18n("show_alerts.alert_severity") }}</th>
+    <th>{{ i18n("show_alerts.alert_counts") }}</th>
+    <th>{{ i18n("show_alerts.alert_type") }}</th>
+    <th>{{ i18n("snmp.device_ip") }}</th>
+    <th>{{ i18n("port") }}</th>
+    <th>{{ i18n("flow_devices.snmp_devname") }}</th>
+    <th>{{ i18n("description") }}</th>
+    <th>{{ i18n("actions") }}</th>
+</tr>

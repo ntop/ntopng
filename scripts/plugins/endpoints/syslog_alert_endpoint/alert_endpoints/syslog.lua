@@ -165,7 +165,7 @@ function syslog.dequeueRecipientAlerts(recipient, budget, high_priority)
 
    -- Most recent notifications first
    for _, notification in ipairs(notifications) do
-      syslog.sendMessage(settings, notification.alert, notification.alert_severity)
+      syslog.sendMessage(settings, notification.alert, notification.severity)
    end
 
    return {success = true,  more_available = true}
@@ -178,9 +178,9 @@ function syslog.runTest(recipient)
 
    local now = os.time()
    local notif = {
-      alert_tstamp = now,
-      alert_entity = alert_consts.alert_entities.test.entity_id,
-      alert_severity = alert_severities.info.severity_id
+      tstamp = now,
+      entity_id = alert_consts.alert_entities.test.entity_id,
+      severity = alert_severities.info.severity_id
    }
 
    local success = syslog.sendMessage(settings, json.encode(notif), alert_severities.info.severity_id)

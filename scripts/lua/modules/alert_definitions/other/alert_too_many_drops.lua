@@ -51,7 +51,7 @@ end
 -- @return A human-readable string
 function alert_too_many_drops.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
-  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["entity_id"]), alert["entity_val"])
   local max_drop_perc = alert_type_params.edge or 0
   local perc_drops = string.format("%.1f", alert_type_params.drop_perc)
   

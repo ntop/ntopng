@@ -24,12 +24,12 @@
 
 class Alert {
  public:
-  time_t alert_tstamp_start;
+  time_t tstamp;
   time_t last_update;
-  AlertLevel alert_severity;
-  AlertType alert_type;
-  std::string alert_subtype;
-  std::string alert_json;
+  AlertLevel severity;
+  AlertType alert_id;
+  std::string subtype;
+  std::string json;
 };
 
 #endif

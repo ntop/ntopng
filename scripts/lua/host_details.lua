@@ -188,7 +188,7 @@ if (host ~= nil) then
    end
 end
 
-local only_historical = (host == nil) and ((page == "historical") or (page == "config") or (page == "alerts"))
+local only_historical = (host == nil) and ((page == "historical") or (page == "config"))
 local host_label
 
 if(host == nil) and (not only_historical) then
@@ -196,13 +196,7 @@ if(host == nil) and (not only_historical) then
       sendHTTPContentTypeHeader('text/html')
 
       page_utils.set_active_menu_entry(page_utils.menu_entries.hosts)
-      if page == "alerts" then
-	 print('<script>window.location.href = "')
-	 print(ntop.getHttpPrefix())
-	 print('/lua/show_alerts.lua?entity='..alert_consts.alertEntity("host")..'&entity_val=')
-	 print(hostkey)
-	 print('";</script>')
-      elseif restoreInProgress then
+      if restoreInProgress then
 	 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 	 print('<div class=\"alert alert-info\"> '.. i18n("host_details.host_restore_in_progress",{host=hostinfo2hostkey(host_info)}) .. " ")
 	 print('<i class="fas fa-spinner fa-spin"></i>')
@@ -442,12 +436,6 @@ else
 				 active = page == "geomap",
 				 page_name = "geomap",
 				 label = "<i class='fas fa-lg fa-globe'></i>",
-			      },
-			      {
-				 hidden = not areAlertsEnabled(),
-				 active = page == "alerts",
-				 page_name = "alerts",
-				 label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
 			      },
 			      {
 				 hidden = not charts_available and not interfaceHasNindexSupport(),
@@ -2022,12 +2010,6 @@ print("</table>\n")
 else
    print(i18n("contacts_page.no_contacts_message"))
 end
-
-elseif(page == "alerts") then
-   alert_utils.printAlertTables("host", hostkey,
-      "host_details.lua", {ifid=ifId, host=hostkey},
-      host_label, {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"]),
-		   enable_label = i18n("show_alerts.trigger_host_alert_descr", {host = hostinfo2hostkey(host)})})
 
 elseif (page == "quotas" and ntop.isnEdge() and ntop.isEnterpriseM() and host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID and ifstats.inline) then
    local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}

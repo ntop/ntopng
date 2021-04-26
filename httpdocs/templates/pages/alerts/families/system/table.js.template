@@ -1,0 +1,12 @@
+[
+    /* Date */
+    {className: 'text-center', data: 'tstamp', name: 'tstamp'},
+    /* Counts */
+    {name: 'count', className: 'text-center', data: 'count'},
+    /* Severity */
+    {name: 'severity', className: 'text-center', data: 'severity', render: DataTableRenders.formatValueLabel},
+    /* Alert Type */
+    {name: 'type', className: 'text-center', data: 'alert_type', render: DataTableRenders.formatValueLabel},
+    /* Description */
+    {name: 'description', data: 'msg'},
+]

@@ -985,7 +985,7 @@ local alert_consts = require "alert_consts"
       alert:set_severity(alert_severities.error)
       alert:set_granularity(alert_consts.alerts_granularities.min)
 
-      alert:store(alerts_api.influxdbEntity(self.url))
+      alert:store(alerts_api.systemEntity())
       
       -- Just to avoid doing :trigger too often
       ntop.setCache(k, "1", alert_periodicity / 2)

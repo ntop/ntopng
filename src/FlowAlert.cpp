@@ -26,6 +26,7 @@
 FlowAlert::FlowAlert(FlowCallback *c, Flow *f) {
   flow = f;
   severity_id = alert_level_notice;
+  cli_attacker = srv_attacker = false;
   if (c) callback_name = c->getName();
 }
 

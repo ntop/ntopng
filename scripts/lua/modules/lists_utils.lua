@@ -377,7 +377,7 @@ local function checkListsUpdate(timeout)
 
 	    alert:set_severity(alert_severities.notice)
 
-	    alert:store(alerts_api.categoryListsEntity(list_name))
+	    alert:store(alerts_api.systemEntity(list_name))
 
 	    msg = msg .. "OK"
 	 else
@@ -411,7 +411,7 @@ local function checkListsUpdate(timeout)
 
 	    alert:set_severity(alert_severities.error)
 
-	    alert:store(alerts_api.categoryListsEntity(list_name))
+	    alert:store(alerts_api.systemEntity(list_name))
 
 	    msg = msg .. "ERROR ["..last_error.."]"
 	 end

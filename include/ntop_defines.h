@@ -877,6 +877,9 @@
 #define ALERTS_MANAGER_SEVERITY_FIELD        "alert_severity"
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
+#define ALERTS_STORE_SCHEMA_FILE_NAME        "alert_store_schema.sql"
+#define ALERTS_STORE_DB_FILE_NAME            "alert_store_v01.db"
+
 #define NTOPNG_DATASOURCE_KEY                "ntopng.datasources"
 #define NTOPNG_DATASOURCE_URL                "/datasources/"
 #define NTOPNG_WIDGET_KEY                    "ntopng.widgets"

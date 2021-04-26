@@ -725,7 +725,7 @@ end
 -- ##############################################
 
 local function amThresholdCrossType(value, threshold, ip, granularity, entity_info)
-  local host = am_utils.key2host(entity_info.alert_entity_val)
+  local host = am_utils.key2host(entity_info.entity_val)
   local m_info = am_utils.getMeasurementInfo(host.measurement)
 
   local alert_type = alert_consts.alert_types.alert_am_threshold_cross.new(
@@ -789,7 +789,7 @@ function am_utils.hasAlerts(am_host)
 
    local num_engaged_alerts = alert_utils.getNumAlerts("engaged", {
 							  entity = entity_info.alert_entity.entity_id,
-							  entity_val = entity_info.alert_entity_val })
+							  entity_val = entity_info.entity_val })
 
    interface.select(tostring(old_ifid))
 

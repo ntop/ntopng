@@ -49,7 +49,7 @@ function alert_tls_old_protocol_version.format(ifid, alert, alert_type_params)
 	 ver_str = string.format("%u", alert_type_params.tls_version)
       end
 
-      msg = msg .. " (" .. ver_str .. ")"
+      msg = i18n("alerts_dashboard.tls_protocol_version", {version = ver_str})
    end
 
    return(msg)

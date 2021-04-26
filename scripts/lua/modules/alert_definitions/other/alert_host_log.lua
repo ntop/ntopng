@@ -46,7 +46,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_host_log.format(ifid, alert, alert_type_params)
-  local hostinfo = hostkey2hostinfo(alert.alert_entity_val)
+  local hostinfo = hostkey2hostinfo(alert.entity_val)
 
   return(i18n("alert_messages.host_log", {
     host = alert_type_params.host,

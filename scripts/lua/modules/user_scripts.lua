@@ -27,6 +27,7 @@ local alert_consts = require "alert_consts"
 local http_lint = require("http_lint")
 local ipv4_utils = require "ipv4_utils"
 local pools_lua_utils = require "pools_lua_utils"
+local alert_exclusions = require "alert_exclusions"
 
 local info = ntop.getInfo()
 
@@ -80,26 +81,12 @@ local available_subdirs = {
       label = "hosts",
       pools = "host_pools",
       filter = {
-	 default_fields = { "alert_entity_val" },
+	 -- Default fields populated automatically when creating filters
+	 default_fields   = { "ip", },
+	 -- All possible filter fields
 	 available_fields = {
-	    alert_entity_val = {
-	       lint = http_lint.validateNetworkWithVLAN, -- .e.g., 192.168.2.1@3, 192.168.2.0/24@0
-	       match = function(context, val)
-		  -- TODO: Add CIDR
-		  -- Do the comparison
-		  if not context or context.alert_entity ~= alert_consts.alertEntity("host") then
-		     return false
-		  end
-
-		  return table.compare(hostkey2hostinfo(val), hostkey2hostinfo(context.alert_entity_val))
-	       end,
-	       sqlite = function(val)
-		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
-		  return string.format("(alert_entity = %u AND alert_entity_val = '%s')", alert_consts.alertEntity("host"), val)
-	       end,
-	       find = function(alert, alert_json, filter, val)
-		  return (alert[filter] and (alert[filter] == val))
-	       end,
+	    ip = {
+	       lint = http_lint.validateIpAddress,
 	    },
 	 },
       },
@@ -193,34 +180,11 @@ local available_subdirs = {
       -- User script execution filters (field names are those that arrive from the C Flow.cpp)
       filter = {
 	 -- Default fields populated automatically when creating filters
-	 default_fields   = { "srv_addr", },
+	 default_fields   = { "ip", },
 	 -- All possible filter fields
 	 available_fields = {
-	    cli_addr = {
-	       lint = http_lint.validateNetwork,
-	       match = function(context, val)
-		  -- NO match, match is done in C++
-	       end,
-	       sqlite = function(val)
-		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
- 		  return string.format("cli_addr = '%s'", val)
-	       end,
-	       find = function(alert, alert_json, filter, val)
-		  return (alert[filter] and (alert[filter] == val))
-	       end,
-	    },
-	    srv_addr = {
-	       lint = http_lint.validateNetwork,
-	       match = function(context, val)
-		  -- NO match, match is done in C++
-	       end,
-	       sqlite = function(val)
-		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
-		  return string.format("srv_addr = '%s'", val)
-	       end,
-	       find = function(alert, alert_json, filter, val)
-		  return (alert[filter] and (alert[filter] == val))
-	       end,
+	    ip = {
+	       lint = http_lint.validateIpAddress,
 	    },
 	 },
       },
@@ -644,6 +608,8 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
    user_script.script_type = script_type
    user_script.edition = plugin and plugin.edition
    user_script.category = checkCategory(user_script.category)
+   -- A user script is assumed to be able to generate alerts if it has a flag or an alert id specified
+   user_script.is_alert = (user_script.is_alert == true or user_script.alert_id ~= nil)
    user_script.num_filtered = tonumber(ntop.getCache(string.format(NUM_FILTERED_KEY, subdir, mod_fname))) or 0 -- math.random(1000,2000)
 
    if subdir == "host" then
@@ -1171,7 +1137,50 @@ function user_scripts.updateScriptConfig(script_key, subdir, new_config, additio
    end
 
    -- Updating the filters
-   if additional_filters then
+   if script.alert_id and additional_filters and (subdir == "host" or subdir == "flow") then
+      if subdir == "host" then
+	 local current_filters = alert_exclusions.host_alerts_get_excluded_hosts(script.alert_id)
+
+	 -- Add new filters
+	 for _, new_filter in pairs(additional_filters["new_filters"] or {}) do
+	    local new_ip = new_filter["ip"]
+
+	    if not current_filters[new_ip] then
+	       -- Not an already-added filter
+	       alert_exclusions.disable_host_alert(new_ip, script.alert_id)
+	    else
+	       -- Filter was already added, nothing to do
+	       current_filters[new_ip] = nil
+	    end
+	 end
+
+	 -- Here we have leftovers, that is, previously added filters that should
+	 -- be removed as they don't appear in the new filters
+	 for current_ip, _ in pairs(current_filters or {}) do
+	    alert_exclusions.enable_host_alert(current_ip, script.alert_id)
+	 end
+      elseif subdir == "flow" then
+	 local current_filters = alert_exclusions.flow_alerts_get_excluded_hosts(script.alert_id)
+
+	 -- Add new filters (see above for hosts)
+	 for _, new_filter in pairs(additional_filters["new_filters"] or {}) do
+	    local new_ip = new_filter["ip"]
+
+	    if not current_filters[new_ip] then
+	       -- Not an already-added filter
+	       alert_exclusions.disable_flow_alert(new_ip, script.alert_id)
+	    else
+	       -- Filter was already added, nothing to do
+	       current_filters[new_ip] = nil
+	    end
+	 end
+
+	 -- See above for flows
+	 for current_ip, _ in pairs(current_filters or {}) do
+	    alert_exclusions.enable_flow_alert(current_ip, script.alert_id)
+	 end
+      end
+   elseif additional_filters then
       local new_filter_conf = filter_conf
       
       if not new_filter_conf["filter"] then

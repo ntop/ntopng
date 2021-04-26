@@ -4,6 +4,7 @@
 
 local user_scripts = require("user_scripts")
 local alert_severities = require "alert_severities"
+local host_alert_keys = require "host_alert_keys"
 
 -- #################################################################
 
@@ -12,6 +13,7 @@ local flow_flood = {
    category = user_scripts.script_categories.security,
 
    default_enabled = false,
+   alert_id = host_alert_keys.host_alert_flow_flood,
 
    default_value = {
       -- "> 50"

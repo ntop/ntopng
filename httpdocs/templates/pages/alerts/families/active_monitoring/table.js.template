@@ -1,0 +1,16 @@
+[
+    /* Date */
+    {name: 'tstamp', className: 'text-center', data: 'tstamp'},
+    /* Counts */
+    {name: 'count', className: 'text-center', data: 'count'},
+    /* Severity */
+    {name: 'severity', className: 'text-center', data: 'severity'},
+    /* Alert Type */
+    {name: 'type', className: 'text-center', data: 'name'},
+    /* Threshold */
+    {name: 'measure_threshold', className: 'text-center'},
+    /* Value */
+    {name: 'measure_value', className: 'text-center'},
+    /* Description */
+    {name: 'description', data: 'msg'},
+]

@@ -1,0 +1,31 @@
+[
+    /* Date */
+    {name: 'tstamp', data: 'tstamp', className: 'text-center',},
+    /* Counts */
+    {name: 'count', className: 'text-center', data: 'count', visible: false},
+    /* Severity */
+    {name: 'severity', className: 'text-center', data: 'severity', render: DataTableRenders.formatValueLabel},
+    /* Alert Type */
+    {name: 'alert_id', data: 'alert_id', orderable: false, className: 'text-center nowrap', render: DataTableRenders.formatValueLabel},
+    /* Score */
+    {name: 'score', data: 'score', className: 'text-center'},
+    /* Application */
+    {name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center', render: (proto, type, row) => {
+        if (type !== "display") return proto.value;
+        return DataTableRenders.filterize(proto.value, proto.label);
+    }},
+    /* Client */
+    {name: 'cli_ip', data: 'cli_ip', orderable: false, render: (cliIp, type, row) => {
+        return DataTableRenders.filterize(cliIp, `${cliIp} ${row.is_attacker_to_victim ? "<i class='fas fa-skull-crossbones'></i>" : ""}`);
+    }},
+    /* Client Name */
+    {name: 'cli_name', data: 'cli_name'},
+    /* Server */
+    {name: 'srv_ip', data: 'srv_ip', orderable: false, render: (srvIp, type, row) => {
+        return DataTableRenders.filterize(srvIp, `${srvIp} ${row.is_victim_to_attacker ? "<i class='fas fa-skull-crossbones'></i>" : ""}`);
+    }},
+    /* Server Name */
+    {name: 'srv_name', data: 'srv_name'},
+    /* Description */
+    {name: 'description', data: 'msg', orderable: false,},
+]

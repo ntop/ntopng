@@ -6,6 +6,7 @@ local user_scripts = require("user_scripts")
 local alerts_api = require "alerts_api"
 local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
+local flow_alert_keys = require "flow_alert_keys"
 
 local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.user_scripts.unexpected_plugins_enabled"
 
@@ -15,14 +16,8 @@ local script = {
    -- Script category
    category = user_scripts.script_categories.security,
 
-   -- Priority
-   prio = -20, -- Lower priority (executed after) than default 0 priority
-
    -- This module is disabled by default
-   default_enabled = false,
-
-   -- use this plugin only with this protocol
-   l7_proto_id = 3, -- 3 == SMTP
+   alert_id = flow_alert_keys.flow_alert_unexpected_smtp_server,
 
    -- This script is only for alerts generation
    is_alert = true,
@@ -39,8 +34,8 @@ local script = {
 
       input_builder     = "items_list",
       item_list_type    = "ip_address",
-      input_title       = i18n("unexpected_smtp.title"),
-      input_description = i18n("unexpected_smtp.description"),
+      input_title       = "unexpected_smtp.title",
+      input_description = "unexpected_smtp.description",
    }
 }
 

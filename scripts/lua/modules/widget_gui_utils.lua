@@ -47,13 +47,15 @@ end
 ---@param additional_params any
 function widget_gui_utils.register_chart_widget(name, type, update_time, datasources, additional_params)
 
+    additional_params = additional_params or {}
+
     check_widget_existance(registered_widgets.charts, name)
 
     registered_widgets.charts[name] = {
         type = type,
         update_time = update_time,
         datasources = datasources,
-        params = additional_params
+        additional_params = additional_params
     }
 
 end
@@ -66,6 +68,75 @@ end
 
 function widget_gui_utils.register_bar_chart(name, update_time, datasources, additional_params)
     widget_gui_utils.register_chart_widget(name, 'bar', update_time, datasources, additional_params)
+end
+
+function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datasources)
+    widget_gui_utils.register_chart_widget(name, 'bar', update_time, datasources, {
+        apex = {
+            chart = {
+                type = "bar",
+                height = "100%",
+                foreColor = "#999",
+                stacked = true,
+                toolbar = {
+                    tools = {
+                        selection = false,
+                        zoomin = false,
+                        zoomout = false,
+                        reset = false,
+                        pan = false,
+                        -- set the zoom field to a space to hide the len icon
+                        zoom = " " 
+                    }
+                }
+            },
+            dataLabels = {
+                enabled = false
+            },
+            xaxis = {
+                type = "datetime",
+                labels = {
+                    datetimeUTC = false
+                },
+                axisBorder = {
+                    show = false
+                },
+                axisTicks = {
+                    show = false
+                }
+            },
+            yaxis = {
+                labels = {
+                    offsetX = 14,
+                    offsetY = -5
+                },
+                tooltip = {
+                    enabled = true
+                }
+            },
+            grid = {
+                padding = {
+                    left = -5,
+                    right = 5
+                }
+            },
+            tooltip = {
+                x = {
+                    format = "dd MMM yyyy"
+                },
+            },
+            fill = {
+                type = "gradient",
+                fillOpacity = 0.9,
+                gradient = {
+                    type = 'vertical',
+                    shade = 'light',
+                    opacityFrom = 1,
+                    opacityTo = 0.9
+                }
+            }
+        }
+    })
 end
 
 function widget_gui_utils.register_pie_chart(name, update_time, datasources, additional_params)

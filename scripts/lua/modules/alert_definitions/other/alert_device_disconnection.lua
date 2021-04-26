@@ -48,12 +48,12 @@ function alert_device_disconnection.format(ifid, alert, alert_type_params)
   local device = info.device
 
   if not device or device == "" then
-    device = alert.alert_entity_val
+    device = alert.entity_val
   end
 
   return(i18n("alert_messages.device_has_disconnected", {
     device = device,
-    url = getMacUrl(alert.alert_entity_val),
+    url = getMacUrl(alert.entity_val),
   }))
 end
 

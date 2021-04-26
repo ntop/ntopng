@@ -1,4 +1,4 @@
-<nav class="navbar navbar-shadow navbar-expand-lg navbar-light bg-light mb-4">
+<nav class="navbar navbar-shadow navbar-expand-lg navbar-light bg-light mb-2">
     {% if (navbar.label_url == nil) then %}
         <span class="mr-1">{* navbar.title *}</span>
     {% else %}

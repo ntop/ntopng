@@ -1,0 +1,16 @@
+[
+    /* Date */
+    {name: 'tstamp', data: 'tstamp', className: 'text-center'},
+    /* Counts */
+    {name: 'count', className: 'text-center', data: 'count', visible: false},
+    /* Severity */
+    {name: 'severity', className: 'text-center', data: 'severity', render: DataTableRenders.formatValueLabel},
+    /* Mac Address */
+    {name: 'address', className: 'text-center', data: 'address'},
+    /* Device Type */
+    {name: 'device_type', className: 'text-center', data: 'device_type', render: DataTableRenders.formatValueLabel},
+    /* Name */
+    {name: 'name', className: 'text-center', data: 'name'},
+    /* Description */
+    {data: 'msg'},
+]

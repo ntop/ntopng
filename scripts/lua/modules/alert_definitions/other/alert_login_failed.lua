@@ -42,7 +42,7 @@ end
 -- @return A human-readable string
 function alert_login_failed.format(ifid, alert, alert_type_params)
   return(i18n("user_activity.login_not_authorized", {
-    user = alert.alert_entity_val,
+    user = alert.entity_val,
   }))
 end
 

@@ -395,7 +395,11 @@
                 if (self.options.resetAfterSubmit) self.cleanForm();
                 $feedbackLabel.hide();
 
-                self.options.onSubmitSuccess(response, dataToSend, self);
+                const success = self.options.onSubmitSuccess(response, dataToSend, self);
+                // if the submit return a true boolean then close the modal
+                if (success) {
+                    self.dialog.modal('hide');
+                }
 
                 /* unbind the old closure on submit event and bind a new one */
                 $(self.element).off('submit', self.submitHandler);

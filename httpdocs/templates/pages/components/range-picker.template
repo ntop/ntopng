@@ -5,14 +5,18 @@
 {%
     -- if there are set the _GET["begin_epoch"] && _GET["end_epoch"]
     -- then select the `Custom` Label 
-    local presetSelected = (isEmptyString(_GET['begin_epoch']) and isEmptyString(_GET['end_epoch']))   
+    local presetSelected = not (isEmptyString(_GET['begin_epoch']) or isEmptyString(_GET['epoch_begin'])) 
+        and (isEmptyString(_GET['epoch_end']) or isEmptyString(_GET['end_epoch']))   
+
 %}
 
 <div class="d-flex flex-wrap flex-sm-column flex-md-row w-100">
     <div class="btn-group btn-group-toggle" role="group">
+        {% if (presets.five_mins) or (presets.five_mins ~= false) then %}
         <label class="btn {{ (presetSelected and 'btn-primary' or 'btn-light') }}">
             <input type="radio" name="presets" id="preset-5min" checked value="5,minutes"> 5m
         </label>
+        {% end %}
         <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-30m" value="30,minutes"> 30m
         </label>
@@ -41,7 +45,7 @@
         {% end %}
         <label id="btn-custom-preset" class="btn {{ (not presetSelected and 'btn-primary' or 'btn-light disabled') }}">{{ i18n("graphs.custom") }}</label>
     </div>
-    <div class="input-group my-sm-2 my-md-0 flex-shrink-1 mx-sm-0 mx-md-2" style="width: fit-content;">
+    <div class="input-group my-sm-2 my-md-0 flex-shrink-1 mx-sm-0 mx-md-2 fit-content">
         <div class="input-group-prepend">
             <span class="input-group-text">
                 <i class="fas fa-calendar-alt"></i>
@@ -75,7 +79,7 @@
     {% if tags.enabled then %}
     <div class="w-100 mt-2">
         <div class="d-flex">
-            <input class="form-control w-100" name="tags" placeholder="Filters"> 
+            <input class="form-control w-100" name="tags" placeholder="Filters" > 
             <button data-toggle="tooltip" data-placement="bottom" title="Remove filters." class="btn btn-danger ml-1 btn-remove-tags">
                 <i class="fas fa-times"></i>
             </button>
@@ -159,8 +163,8 @@ $(document).ready(function() {
 </script>
 {% end %}
 <script type="text/javascript">
-const beginEpoch = {{ (_GET['begin_epoch'] or 'undefined') }};
-const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
+const beginEpoch = {{ (_GET['begin_epoch'] or _GET['epoch_begin'] or 'undefined') }};
+const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
 </script>
 <script type='text/javascript'>
     $(document).ready(function() {
@@ -169,7 +173,7 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
         const MAX_ZOOM_OUT = {{ (max_delta_out) }}; // 12 hours
 
         const now = (endEpoch === undefined) ? moment() : moment(endEpoch, 'X');
-        const prev = (beginEpoch === undefined) ? moment().subtract(5, 'minutes') : moment(beginEpoch, 'X');
+        const prev = (beginEpoch === undefined) ? moment().subtract({{ (presets.five_mins and '5' or '30') }}, 'minutes') : moment(beginEpoch, 'X');
 
         const $inputBeginEpoch = $(`#begin-epoch`);
         const $inputEndEpoch = $(`#end-epoch`);

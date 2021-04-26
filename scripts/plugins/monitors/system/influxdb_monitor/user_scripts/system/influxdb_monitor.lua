@@ -52,7 +52,7 @@ end
 
 -- Defines an hook which is executed every minute
 script.hooks["min"] = function(params)
-  local last_error = ntop.getCache("ntopng.cache.influxdb.last_error")
+   local last_error = ntop.getCache("ntopng.cache.influxdb.last_error")
 
    -- Note: last_error is automatically cleared once the error is gone
    if(not isEmptyString(last_error)) then
@@ -65,7 +65,7 @@ script.hooks["min"] = function(params)
       alert_type:set_severity(alert_severities.error)
       alert_type:set_granularity(alert_consts.alerts_granularities.min)
 
-      alert_type:store(alert_type.influxdbEntity(influxdb.url), params.when)
+      alert_type:store(alerts_api.systemEntity())
    end
 end
 

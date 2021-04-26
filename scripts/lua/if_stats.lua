@@ -359,6 +359,7 @@ page_utils.print_navbar(title, url,
 				 hidden = not isAdministrator() or not areAlertsEnabled(),
 				 active = page == "alerts",
 				 page_name = "alerts",
+             url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=interface",
 				 label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
 			      },
 			      {
@@ -659,7 +660,7 @@ print[[
       local warning = "<i class='fas fa-exclamation-triangle fa-lg' style='color: #B94A48;'></i> "
 
       print("<th>".. ternary(ifstats.num_alerts_engaged > 0, warning, "") ..i18n("show_alerts.engaged_alerts")..
-	       ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:alerts_stats'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td colspan=2  nowrap><a href='".. ntop.getHttpPrefix() .."/lua/show_alerts.lua?ifid="..ifstats.id.."'>".. formatValue(ifstats.num_alerts_engaged) .."</a> <span id=engaged_alerts_trend></span></td>\n")
+	       ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:alerts_stats'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td colspan=2  nowrap><a href='".. ntop.getHttpPrefix() .."/lua/alert_stats.lua?ifid="..ifstats.id.."'>".. formatValue(ifstats.num_alerts_engaged) .."</a> <span id=engaged_alerts_trend></span></td>\n")
       print("<th width=250>".. ternary(ifstats.num_dropped_alerts > 0, warning, "")..i18n("show_alerts.dropped_alerts")..
 	       " <i class='fas fa-sm fa-question-circle ' title='".. i18n("if_stats_overview.dropped_alerts_info") .."'></i>"..
 	       ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:alerts_stats'><i class='fas fa-chart-area fa-sm'></i></A>", "")

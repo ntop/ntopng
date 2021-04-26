@@ -71,7 +71,7 @@ function alert_quota_exceeded.format(ifid, alert, alert_type_params)
 
   return(i18n("alert_messages.subject_quota_exceeded", {
     pool = alert_type_params.pool,
-    url = getHostPoolUrl(alert.alert_entity_val),
+    url = getHostPoolUrl(alert.entity_val),
     subject = subject_str,
     quota = quota_str,
     value = value_str

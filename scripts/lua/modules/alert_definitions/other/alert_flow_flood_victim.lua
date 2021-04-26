@@ -50,14 +50,14 @@ end
 -- @return A human-readable string
 function alert_flow_flood_victim.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
-  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+  local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["entity_id"]), alert["name"])
   local value = alert_type_params.value
 
   if(value == nil) then value = 0 end
   
   return i18n("alert_messages.flow_flood_victim", {
     entity = firstToUpper(entity),
-    host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
+    host_category = format_utils.formatAddressCategory((json.decode(alert.json)).alert_generation.host_info),
     value = string.format("%u", math.ceil(value)),
     threshold = alert_type_params.threshold,
   })

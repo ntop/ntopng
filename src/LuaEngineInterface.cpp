@@ -1130,6 +1130,25 @@ static char *getAllowedNetworksFlowsSqlFilter(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_alert_store_query(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  char *query;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!iface
+     || lua_type(vm, 1) != LUA_TSTRING
+     || !(query = (char*)lua_tostring(vm, 1))
+     || !iface->alert_store_query(vm, query)) {
+    lua_pushnil(vm);
+    return(CONST_LUA_ERROR);
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_query_alerts_raw(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   AlertsManager *am;
@@ -4724,6 +4743,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "stopRunningCapture",     ntop_stop_running_capture               },
 
   /* Alerts */
+  { "alert_store_query",      ntop_interface_alert_store_query        },
   { "optimizeAlerts",         ntop_interface_optimize_alerts },
   { "queryAlertsRaw",         ntop_interface_query_alerts_raw         },
   { "queryFlowAlertsRaw",     ntop_interface_query_flow_alerts_raw    },

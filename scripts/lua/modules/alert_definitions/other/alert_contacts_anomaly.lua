@@ -52,7 +52,7 @@ function alert_contacts_anomaly.format(ifid, alert, alert_type_params)
    
    return(i18n("alerts_dashboard.unexpected_host_behavior_description",
 		{
-		   host = firstToUpper(alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])),
+		   host = firstToUpper(alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["entity_id"]), alert["entity_val"])),
 		   type_of_behaviour = i18n("alert.anomalies.contacts") or "",
 		   value = alert_type_params.value,
 		   prediction = alert_type_params.prediction or 0,

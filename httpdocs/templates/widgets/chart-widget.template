@@ -7,15 +7,18 @@
     <div class="widget-error text-center text-danger" style="display: none; height: 100%; margin-top: 2rem">
         Something went wrong when loading this chart.
     </div>
-    <h3 class="widget-name">{{ displaying_label }}</h3>
-    <div id="chart-widget-{{widget_name}}" class="d-flex"></div>
+    {% if not isEmptyString(displaying_label) then %}
+        <h3 class="widget-name">{{ displaying_label }}</h3>
+    {% end %}
+    <div id="canvas-widget-{{widget_name}}"></div>
 </div>
 <script type="text/javascript">
 $(document).ready(async function() {
     const datasource = {* json.encode(widget.datasources) *};
+    const additionalParams = {* json.encode(widget.additional_params) *};
     const $error = $(`#widget-{{ widget_name }} .widget-error`);
     try {
-        await new ChartWidget("{{ widget_name }}", "{{ widget.type }}", datasource[0], {{ widget.update_time }}).init();
+        await new ChartWidget("{{ widget_name }}", "{{ widget.type }}", datasource[0], {{ widget.update_time }}, additionalParams).init();
     }
     catch (e) {
         console.error("Something went wrong when loading the chart!", e);

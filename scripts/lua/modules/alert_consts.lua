@@ -126,6 +126,12 @@ end
 
 -- ##############################################
 
+function alert_consts.formatHostAlert(ifid, host, vlan)
+   return hostinfo2label({host = host, vlan = vlan})
+end
+
+-- ##############################################
+
 function alert_consts.formatAlertEntity(ifid, entity_type, entity_value)
    require "flow_utils"
    local value
@@ -180,6 +186,11 @@ end
 -- ##############################################
 
 function getMacUrl(mac)
+   if not mac then
+      tprint("getMacUrl(nil)")
+      tprint(debug.traceback()) 
+      return "" 
+   end
    return ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. mac
 end
 
@@ -192,6 +203,11 @@ end
 -- ##############################################
 
 function getHostPoolUrl(pool_id)
+   if not pool_id then
+      tprint("getHostPoolUrl(nil)")
+      tprint(debug.traceback())
+      return ""
+   end
    return ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?pool=" .. pool_id
 end
 

@@ -142,17 +142,6 @@ for k,v in ipairs(alerts) do
       column_ndpi = "<A HREF='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. v["l7_proto"] .."'>"..app.." " .. formatBreed(breed) .."</A>"
    end
 
-   if ntop.isPro() then
-      local graph_utils = require "graph_utils"
-
-      if graph_utils.getAlertGraphLink then
-	 local chart_link = graph_utils.getAlertGraphLink(getInterfaceId(ifname), v, alert_info, engaged)
-	 if not isEmptyString(chart_link) then
-      column_drilldown = chart_link
-	 end
-      end
-   end
-
    if alert_entity == "flow" then
       -- Checking PCAP data availability
       local traffic_extraction_available = recording_utils.isActive(ifid) and recording_utils.isExtractionActive(ifid)

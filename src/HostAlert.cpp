@@ -33,6 +33,7 @@ HostAlert::HostAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli
   release_time = 0;
   score_as_cli = cli_score;
   score_as_srv = srv_score;
+  is_attacker = is_victim = false;
 }
 
 /* **************************************************** */

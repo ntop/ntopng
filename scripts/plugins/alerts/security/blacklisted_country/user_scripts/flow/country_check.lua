@@ -6,19 +6,17 @@ local user_scripts = require("user_scripts")
 local alerts_api = require "alerts_api"
 local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
+local flow_alert_keys = require "flow_alert_keys"
 
 local script = {
   -- Script category
   category = user_scripts.script_categories.security, 
 
-  -- Priodity
-  prio = 20, -- Higher priority (executed sooner) than default 0 priority
-
   -- This module is disabled by default
   default_enabled = false,
 
   -- This script is only for alerts generation
-  is_alert = true,
+  alert_id = flow_alert_keys.flow_alert_blacklisted_country,
 
   -- The default configuration of this script
   default_value = {

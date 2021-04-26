@@ -1002,7 +1002,7 @@ void Ntop::setCustomnDPIProtos(char *path) {
 /* *************************************** */
 
 void Ntop::checkSystemScripts(ScriptPeriodicity p, lua_State *vm) {
-  AlertCheckLuaEngine acle(alert_entity_process, p, NULL, vm);
+  AlertCheckLuaEngine acle(alert_entity_system, p, NULL, vm);
   lua_State *L = acle.getState();
 
   lua_getglobal(L, USER_SCRIPTS_RUN_CALLBACK); /* Called function */

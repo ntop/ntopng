@@ -34,7 +34,7 @@ if ntop.getPrefs().are_alerts_enabled == false then
 elseif not has_engaged_alerts and not has_past_alerts and not has_flow_alerts then
    print("<div class=\"alert alert alert-info\"><i class=\"fas fa-info-circle fa-lg\" aria-hidden=\"true\"></i>" .. " " .. i18n("show_alerts.no_recorded_alerts_message").."</div>")
 else
-   -- Alerts Table
+   -- Alerts Tablei
    alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, false, _GET, nil, nil, {
       is_standalone = true
    })

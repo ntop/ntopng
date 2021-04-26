@@ -206,26 +206,7 @@ else
       {
 	 section = page_utils.menu_sections.alerts,
 	 hidden = not ntop.getPrefs().are_alerts_enabled or is_system_interface,
-	 entries = {
-	    {
-	       entry = page_utils.menu_entries.detected_alerts,
-	       url = '/lua/show_alerts.lua',
-	    },
-	    {
-	       entry = page_utils.menu_entries.alerts_dashboard,
-	       hidden = not ntop.isEnterpriseM(),
-	       url = '/lua/pro/enterprise/alerts_dashboard.lua',
-	    },
-	    {
-	       entry = page_utils.menu_entries.divider,
-	       hidden = not ntop.isEnterpriseM(),
-	    },
-	    {
-	       entry = page_utils.menu_entries.flow_alerts_explorer,
-	       hidden = not ntop.isEnterpriseM(),
-	       url = '/lua/pro/enterprise/flow_alerts_explorer.lua',
-	    },
-	 },
+         url = '/lua/alert_stats.lua?page=flow',
       }
    )
 

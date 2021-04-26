@@ -623,7 +623,7 @@ end
 local function is_notification_high_priority(notification)
    local res = true
 
-   if notification.alert_entity == alert_consts.alertEntity("flow") then
+   if notification.entity_id == alert_consts.alertEntity("flow") then
       -- Flow alerts are low-priority
       res = false
    end
@@ -640,14 +640,14 @@ end
 function recipients.dispatch_notification(notification, current_script)
    if(notification) then
       local pools_alert_utils = require "pools_alert_utils"
-      local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.alert_entity, notification.pool_id, notification.alert_severity, current_script)
+      local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.entity_id, notification.pool_id, notification.severity, current_script)
 
       if #recipients > 0 then
 	 local json_notification = json.encode(notification)
 	 local is_high_priority = is_notification_high_priority(notification)
 
 	 for _, recipient_id in pairs(recipients) do
-	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification, notification.alert_severity, current_script and current_script.category and current_script.category.id)
+	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification, notification.severity, current_script and current_script.category and current_script.category.id)
 	 end
       end
    else

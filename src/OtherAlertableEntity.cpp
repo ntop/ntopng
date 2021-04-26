@@ -81,15 +81,16 @@ void OtherAlertableEntity::unlock(ScriptPeriodicity p, const char *filename, int
 
 void OtherAlertableEntity::luaAlert(lua_State* vm, const Alert *alert, ScriptPeriodicity p) const {
   /* NOTE: must conform to the AlertsManager format */
-  lua_push_int32_table_entry(vm,  "alert_type", alert->alert_type);
-  lua_push_str_table_entry(vm,    "alert_subtype", alert->alert_subtype.c_str());
-  lua_push_int32_table_entry(vm,  "alert_severity", alert->alert_severity);
-  lua_push_int32_table_entry(vm,  "alert_entity", getEntityType());
-  lua_push_str_table_entry(vm,    "alert_entity_val", getEntityValue().c_str());
-  lua_push_uint64_table_entry(vm, "alert_tstamp", alert->alert_tstamp_start);
-  lua_push_uint64_table_entry(vm, "alert_tstamp_end", alert->last_update);
-  lua_push_int32_table_entry(vm,  "alert_granularity", Utils::periodicityToSeconds((ScriptPeriodicity)p));
-  lua_push_str_table_entry(vm,    "alert_json", alert->alert_json.c_str());
+  lua_push_int32_table_entry(vm,  "alert_id", alert->alert_id);
+  lua_push_str_table_entry(vm,    "subtype", alert->subtype.c_str());
+  lua_push_int32_table_entry(vm,  "severity", alert->severity);
+  lua_push_int32_table_entry(vm,  "entity_id", getEntityType());
+  lua_push_str_table_entry(vm,    "entity_val", getEntityValue().c_str());
+  lua_push_str_table_entry(vm,    "name", getEntityValue().c_str());
+  lua_push_uint64_table_entry(vm, "tstamp", alert->tstamp);
+  lua_push_uint64_table_entry(vm, "tstamp_end", alert->last_update);
+  lua_push_int32_table_entry(vm,  "granularity", Utils::periodicityToSeconds((ScriptPeriodicity)p));
+  lua_push_str_table_entry(vm,    "json", alert->json.c_str());
 }
 
 /* ****************************************** */
@@ -99,9 +100,9 @@ void OtherAlertableEntity::luaAlert(lua_State* vm, const Alert *alert, ScriptPer
    a triggerAlert. */
 bool OtherAlertableEntity::triggerAlert(lua_State* vm, std::string key,
 				   ScriptPeriodicity p, time_t now,
-				   AlertLevel alert_severity, AlertType alert_type,
-				   const char *alert_subtype,
-				   const char *alert_json) {
+				   AlertLevel severity, AlertType alert_id,
+				   const char *subtype,
+				   const char *json) {
   bool rv = false;
   std::map<std::string, Alert>::iterator it;
 
@@ -115,11 +116,11 @@ bool OtherAlertableEntity::triggerAlert(lua_State* vm, std::string key,
     if(it == engaged_alerts[(u_int)p].end()) {
       Alert alert;
 
-      alert.alert_tstamp_start = alert.last_update = now;
-      alert.alert_severity = alert_severity;
-      alert.alert_type = alert_type;
-      alert.alert_subtype = alert_subtype;
-      alert.alert_json = alert_json;
+      alert.tstamp = alert.last_update = now;
+      alert.severity = severity;
+      alert.alert_id = alert_id;
+      alert.subtype = subtype;
+      alert.json = json;
 
       incNumAlertsEngaged();
 
@@ -193,8 +194,8 @@ void OtherAlertableEntity::countAlerts(grouped_alerts_counters *counters) {
       for(it = engaged_alerts[p].begin(); it != engaged_alerts[p].end(); ++it) {
 	const Alert *alert = &it->second;
 	
-	counters->severities[std::make_pair(getEntityType(), alert->alert_severity)]++;
-	counters->types[std::make_pair(getEntityType(), alert->alert_type)]++;
+	counters->severities[std::make_pair(getEntityType(), alert->severity)]++;
+	counters->types[std::make_pair(getEntityType(), alert->alert_id)]++;
       }
 
       unlock(p, __FILE__, __LINE__);
@@ -215,9 +216,9 @@ void OtherAlertableEntity::getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity
       const Alert *alert = &it->second;
 
       if(((type_filter == alert_none)
-	  || (type_filter == alert->alert_type))
+	  || (type_filter == alert->alert_id))
 	 && ((severity_filter == alert_level_none)
-	     || (severity_filter == alert->alert_severity))) {
+	     || (severity_filter == alert->severity))) {
 	lua_newtable(vm);
 	luaAlert(vm, alert, (ScriptPeriodicity)p);
 

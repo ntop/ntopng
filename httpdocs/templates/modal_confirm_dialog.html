@@ -5,6 +5,7 @@
         <h5 class="modal-title">{*dialog.title*}</h5>
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
       </div>
+      <form>
       <div class="modal-body {{dialog.custom_dialog_class}}">
         <div class="message {{dialog.custom_alert_class or "alert alert-warning"}}">
           {*dialog.message*}
@@ -14,16 +15,17 @@
         {# empty #}
       {% else %}
       <div class="modal-footer">
-	<span class="invalid-feedback" id="{{dialog.id}}_more_content" style="display: none;">
-	  {*dialog.err_msg*}
-	</span>
+        <span class="invalid-feedback" id="{{dialog.id}}_more_content" style="display: none;">
+          {*dialog.err_msg*}
+        </span>
         {% if dialog.action ~= nil then %}
           <button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</button>
         {% else %}
-          <button id="btn-confirm-action" type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</button>
+          <button {% if not dialog.no_confirm_id then %} id="btn-confirm-action" {% end %} type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</button>
         {% end %}
       </div>
       {% end %}
+      </form>
     </div>
   </div>
 </div>
