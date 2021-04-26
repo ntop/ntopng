@@ -9,5 +9,5 @@ return {
 -- ####################### Alert strings
 
    alert_tcp_no_data_exchanged_title = "No Data Exchanged",
-   alert_tcp_no_data_exchanged_description = "TCP Flow Ended and no Data were Exchanged",
+   alert_tcp_no_data_exchanged_description = "TCP flow ended with no data exchanged",
 }
