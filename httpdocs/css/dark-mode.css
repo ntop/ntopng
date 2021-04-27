@@ -350,3 +350,10 @@ text, g text.tick {
 .tagify__input {
   color: #eee !important;
 }
+
+.apexcharts-tooltip .apexcharts-tooltip-title{
+  background-color: #414141!important;
+}
+.apexcharts-tooltip.apexcharts-theme-light {
+  background-color: rgb(32, 32, 32) !important;
+}
