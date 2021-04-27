@@ -309,5 +309,9 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
             $inputEndEpoch.datetimepicker('minDate', e.date);
         });
 
+        $inputEndEpoch.on("change.datetimepicker", function (e) {
+            $inputBeginEpoch.datetimepicker('maxDate', e.date);
+        });
+
     });
 </script>
