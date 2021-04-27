@@ -120,11 +120,14 @@ void HostAlertableEntity::countAlerts(grouped_alerts_counters *counters) {
 /* ****************************************** */
 
 void HostAlertableEntity::luaAlert(lua_State* vm, HostAlert *alert) {
+  char ip_buf[128];
   ndpi_serializer *alert_json_serializer = NULL;
   char *alert_json = NULL;
   u_int32_t alert_json_len;
 
-  /* NOTE: must conform to the AlertsManager format */
+  /*
+    NOTE: Keep in sync with Host::alert2JSON
+  */
   lua_push_int32_table_entry(vm,  "alert_id", alert->getAlertType().id);
   lua_push_str_table_entry(vm,    "subtype", "" /* No subtype for hosts */);
   lua_push_int32_table_entry(vm,  "severity", alert->getSeverity());
@@ -132,7 +135,11 @@ void HostAlertableEntity::luaAlert(lua_State* vm, HostAlert *alert) {
   lua_push_str_table_entry(vm,    "entity_val", alert->getHost()->getEntityValue().c_str());
   lua_push_uint64_table_entry(vm, "tstamp", alert->getEngageTime());
   lua_push_uint64_table_entry(vm, "tstamp_end", alert->getReleaseTime());
-  lua_push_str_table_entry(vm,    "ip", alert->getHost()->getEntityValue().c_str());
+
+  lua_push_str_table_entry(vm, "ip", alert->getHost()->get_ip()->print(ip_buf, sizeof(ip_buf)));
+  lua_push_uint64_table_entry(vm, "vlan_id", alert->getHost()->get_vlan_id());
+  lua_push_bool_table_entry(vm, "is_attacker", alert->isAttacker());
+  lua_push_bool_table_entry(vm, "is_victim", alert->isVictim());
 
   HostCallback *cb = getAlertInterface()->getCallback(alert->getCallbackType());
   lua_push_int32_table_entry(vm,  "granularity", cb ? cb->getPeriod() : 0);
