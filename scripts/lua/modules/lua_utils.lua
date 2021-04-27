@@ -2065,7 +2065,8 @@ function hostinfo2hostkey(host_info, host_type, show_vlan)
       end
    end
 
-   local vlan_id = host_info["vlan"] or host_info["vlan_id"] or 0
+   local vlan_id = tonumber(host_info["vlan"] or host_info["vlan_id"] or 0)
+
 
    if vlan_id ~= 0 or show_vlan then
       rsp = rsp..'@'..tostring(vlan_id)
