@@ -15,16 +15,37 @@ local graph_utils = require "graph_utils"
 local ts_utils = require("ts_utils")
 local page_utils = require("page_utils")
 
-local asn         = tonumber(_GET["asn"])
-local page        = _GET["page"]
+local asn            = tonumber(_GET["asn"])
+local page           = _GET["page"]
 
-local application = _GET["application"]
+local application    = _GET["application"]
+local version     = _GET["version"]
+local flowhosts_type = _GET["flowhosts_type"]
 
 interface.select(ifname)
 
 local as_info = interface.getASInfo(asn) or {}
 local ifId = getInterfaceId(ifname)
 local asname = as_info["asname"]
+local base_url = ntop.getHttpPrefix() .. "/lua/as_details.lua"
+
+local page_params = {}
+
+if asn then
+   page_params["asn"] = asn
+end
+
+if asn then
+   page_params["application"] = application
+end
+
+if page then
+   page_params["page"] = page
+end
+
+if flowhosts_type then
+   page_params["flowhosts_type"] = flowhosts_type
+end
 
 local label = (asn or '')..''
 if not isEmptyString(asname) then
@@ -33,6 +54,49 @@ end
 
 sendHTTPContentTypeHeader('text/html')
 
+-- #######################
+
+local function formatDropdownEntries(entries, base_url, param_arr, param_filter, curr_filter)
+   local dropdownString = "" 
+
+   for _, htype in ipairs(entries) do
+      if type(htype) == "string" then
+        -- plain html
+        dropdownString = htype
+        goto continue
+      end
+
+      param_arr[param_filter] = htype[1]
+      
+      dropdownString = dropdownString .. '<li><a class="dropdown-item' .. (htype[1] == curr_filter and 'active' or '') .. '" href="' .. getPageUrl(base_url, param_arr) .. '">' .. htype[2] .. '</a></li>'
+      ::continue::
+   end
+
+   return dropdownString
+end
+
+-- #######################
+
+local function addDropdownEntries(entries, base_url, param_arr, param_filter, curr_filter)
+   local dropdownString = "" 
+
+   for _, htype in ipairs(entries) do
+      if type(htype) == "string" then
+        -- plain html
+        dropdownString = htype
+        goto continue
+      end
+
+      param_arr[param_filter] = htype[1]
+      
+      dropdownString = dropdownString .. '<li><a class="dropdown-item' .. (htype[1] == curr_filter and 'active' or '') .. '" href="' .. getPageUrl(base_url, param_arr) .. '">' .. htype[2] .. '</a></li>'
+      ::continue::
+   end
+
+   return dropdownString
+end
+
+-- #######################
 
 page_utils.print_header()
 page_utils.set_active_menu_entry(page_utils.menu_entries.autonomous_systems)
@@ -121,10 +185,20 @@ print [[
 print (ntop.getHttpPrefix())
 print [[/lua/get_flows_data.lua?ifid=]]
 print(ifId.."&")
+
 if not isEmptyString(application) then
-   print("application="..application)
+   print("application="..application.."&")
 end
-print("&asn="..asn..'";')
+
+if not isEmptyString(flowhosts_type) then
+   print("flowhosts_type="..flowhosts_type.."&")
+end
+
+if not isEmptyString(version) then
+   print("version="..version.."&")
+end
+
+print("asn="..asn..'";')
 
 local active_flows_msg = i18n("flows_page.active_flows",{filter = ""})
 if not interface.isPacketInterface() then
@@ -137,6 +211,7 @@ local application_filter = ''
 if(application ~= nil) then
    application_filter = '<span class="fas fa-filter"></span>'
 end
+
 local dt_buttons = "['<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
 dt_buttons = dt_buttons..'<li><a class="dropdown-item" href="'..nav_url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'
 
@@ -150,7 +225,37 @@ for key, value in pairsByKeys(ndpi_stats["ndpi"], asc) do
    dt_buttons = dt_buttons..'<li><a class="dropdown-item '..class_active..'" href="'..nav_url..'&page=flows&application='..key..'">'..key..'</a></li>'
 end
 
-dt_buttons = dt_buttons .. "</ul></div>']"
+dt_buttons = dt_buttons .. "</ul>"
+
+-- Hosts type dropdown
+dt_buttons = dt_buttons .. '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">' .. i18n("flows_page.hosts") .. '<span class="caret"></span></button><ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">'
+
+local flowhosts_type_params = table.clone(page_params)
+flowhosts_type_params["flowhosts_type"] = nil
+
+dt_buttons = dt_buttons .. formatDropdownEntries({
+      {"all_hosts", i18n("flows_page.all_hosts")},
+      {"local_only", i18n("flows_page.local_only")},
+      {"remote_only", i18n("flows_page.remote_only")},
+      {"local_origin_remote_target", i18n("flows_page.local_cli_remote_srv")},
+      {"remote_origin_local_target", i18n("flows_page.local_srv_remote_cli")}
+						 }, base_url, flowhosts_type_params, "flowhosts_type", page_params.flowhosts_type)
+
+dt_buttons = dt_buttons .. "</ul>"
+
+-- IP version dropdown
+dt_buttons = dt_buttons .. '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">' .. i18n("flows_page.ip_version") .. '<span class="caret"></span></button><ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">'
+
+local flowhosts_type_params = table.clone(page_params)
+flowhosts_type_params["ipversion"] = nil
+
+dt_buttons = dt_buttons .. formatDropdownEntries({
+      {"", i18n("flows_page.all_ip_versions")},
+      {"4", i18n("flows_page.ipv4_only")},
+      {"6", i18n("flows_page.ipv6_only")},
+						 }, base_url, flowhosts_type_params, "version", page_params.ipversion)
+
+dt_buttons = dt_buttons .. "</div>']"
 
 print [[
 	 $("#table-flows").datatable({
