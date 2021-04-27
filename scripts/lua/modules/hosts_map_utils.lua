@@ -79,7 +79,9 @@ hosts_map_utils.MODES = {
         mode = hosts_map_utils.HostsMapMode.TCP_PKTS_SENT_VS_RCVD,
         label   = i18n("hosts_map_page.tcp_pkts_sent_vs_rcvd"),
         x_label = i18n("hosts_map_page.labels.tcp_p_s"),
-        y_label = i18n("hosts_map_page.labels.tcp_p_r")
+        y_label = i18n("hosts_map_page.labels.tcp_p_r"),
+        x_formatter = "fint",
+        y_formatter = "fint",
     }, {
         mode = hosts_map_utils.HostsMapMode.TCP_BYTES_SENT_VS_RCVD,
         label   = i18n("hosts_map_page.tcp_bytes_sent_vs_rcvd"),

@@ -5,14 +5,24 @@
 const DEFINED_WIDGETS = {};
 
 class WidgetTooltips {
-    static showXY({seriesIndex, dataPointIndex, w}) {
-        
+    static showXY({ seriesIndex, dataPointIndex, w }) {
+
+        const defaultFormatter = (x) => x;
+
         const config = w.config;
-        const xLabel = config.xaxis.title.text ||"x";
-        const yLabel = config.yaxis[0].title.text ||"y";
+        const xLabel = config.xaxis.title.text || "x";
+        const yLabel = config.yaxis[0].title.text || "y";
         const serie = config.series[seriesIndex].data[dataPointIndex];
-        const {x, y} = serie;
+        const { x, y } = serie;
         const title = serie.meta.label || serie.x;
+
+        let xFormatter = defaultFormatter, yFormatter = defaultFormatter;
+        if (config.xaxis.labels && config.xaxis.labels.ntop_utils_formatter) {
+            xFormatter = NtopUtils[config.xaxis.labels.ntop_utils_formatter];
+        }
+        if (config.yaxis[0].labels && config.yaxis[0].labels.ntop_utils_formatter) {
+            yFormatter = NtopUtils[config.yaxis[0].labels.ntop_utils_formatter];
+        }
 
         return (`
             <div class='apexcharts-theme-light apexcharts-active'>
@@ -21,10 +31,10 @@ class WidgetTooltips {
                 </div>
                 <div class='apexcharts-tooltip-series-group apexcharts-active d-block'>
                     <div class='apexcharts-tooltip-text text-left'>
-                        <b>${xLabel}</b>: ${x}
+                        <b>${xLabel}</b>: ${xFormatter(x)}
                     </div>
                     <div class='apexcharts-tooltip-text text-left'>
-                        <b>${yLabel}</b>: ${y}
+                        <b>${yLabel}</b>: ${yFormatter(y)}
                     </div>
                 </div>
             </div>
@@ -88,7 +98,7 @@ class Widget {
     /**
      * Destroy the widget freeing the resources used.
      */
-    async destroy() {}
+    async destroy() { }
 
     /**
      * Force the widget to reload it's data.

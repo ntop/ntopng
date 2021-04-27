@@ -467,7 +467,7 @@ rest_utils.answer(rc, {
             text = MODES[bubble_mode + 1].x_label,
         },
         labels = {
-            ntop_utils_formatter = MODES[bubble_mode + 1].x_formatter or 'none',
+            ntop_utils_formatter = MODES[bubble_mode + 1].x_formatter or 'fnone',
         }
     },
     yaxis = {
@@ -478,7 +478,7 @@ rest_utils.answer(rc, {
             offsetX = 6
         },
         labels = {
-            ntop_utils_formatter = MODES[bubble_mode + 1].y_formatter or 'none',           
+            ntop_utils_formatter = MODES[bubble_mode + 1].y_formatter or 'fnone',           
         }
     },
     dataLabels = {
