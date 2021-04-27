@@ -1780,7 +1780,7 @@ function hostinfo2detailsurl(host_info, href_params, href_check)
 
       if href_params and href_params.page == "alerts" then
          -- Alerts page for the host is under the Alerts menu
-         res = string.format("%s/lua/alert_stats.lua?page=host&status=engaged&ip=%s",
+         res = string.format("%s/lua/alert_stats.lua?page=host&status=engaged&ip=%s,eq",
 			  ntop.getHttpPrefix(),
 			  hostinfo2hostkey(host_info))
 
