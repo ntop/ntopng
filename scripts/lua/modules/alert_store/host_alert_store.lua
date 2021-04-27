@@ -66,7 +66,6 @@ function host_alert_store:add_ip_filter(ip)
    if not self._ip then
       self._ip = ip
       self._where[#self._where + 1] = string.format("ip = '%s'", self._ip)
-      self._entity_value = ip
       return true
    end
 
@@ -103,6 +102,8 @@ function host_alert_store:_add_additional_request_filters()
    if not isEmptyString(ip) then
       local ip, op = self:strip_filter_operator(ip)
       local host = hostkey2hostinfo(ip)
+      self._entity_value = hostinfo2hostkey(host)
+
       if not isEmptyString(host["host"]) then
          self:add_ip_filter(host["host"])
       end
