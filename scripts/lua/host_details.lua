@@ -438,6 +438,13 @@ else
 				 label = "<i class='fas fa-lg fa-globe'></i>",
 			      },
 			      {
+				 hidden = not areAlertsEnabled(),
+				 active = page == "alerts",
+				 page_name = "alerts",
+				 label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
+				 url = hostinfo2detailsurl(host, {page = "alerts"})
+			      },
+			      {
 				 hidden = not charts_available and not interfaceHasNindexSupport(),
 				 active = page == "historical",
 				 page_name = "historical",
@@ -608,7 +615,7 @@ if((page == "overview") or (page == nil)) then
    end
 
 if(host["num_alerts"] > 0) then
-   print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").." <span id=alerts_trend></span></td></tr>\n")
+   print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "engaged-alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").." <span id=alerts_trend></span></td></tr>\n")
 end
 
 if isScoreEnabled() then
