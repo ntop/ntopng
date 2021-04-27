@@ -198,15 +198,19 @@
 
             /* Actions Column */
             columns.push({width: '5%', targets: -1, className: 'text-center', orderable: false, data: null, render: (type) => {
+	        const buttons = [
+		    /* Bell button to disable alerts is only supported for hosts and flows */
+		    {% if alert_stats.entity == 'host' or alert_stats.entity == 'flow' then %}
+		    {icon: 'fa-bell-slash', label: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning {{ ((alert_stats.entity == 'host' or alert_stats.entity == 'flow') and '' or 'disabled') }}"},
+		    {% end %}
 
-                return DataTableUtils.createActionButtons([
-                    /* Disable */
-                    {icon: 'fa-bell-slash', label: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning {{ ((alert_stats.entity == 'host' or alert_stats.entity == 'flow') and '' or 'disabled') }}"},
-                    /* Release */
-                    // {icon: 'fas fa-unlock', label: "{{ i18n('show_alerts.release_alert_action') }}", modal: '#release_single_alert', class: 'btn-info'},
                     /* Delete */
+		    {% if alert_stats.status ~= "engaged" then %}
                     {icon: 'fa fa-trash', label: "{{ i18n('remove') }}", modal: '#delete_alert_dialog', class: 'btn-danger'},
-                ]);
+		    {% end %}
+		];
+
+                return DataTableUtils.createActionButtons(buttons);
             }});
 
             return columns;
