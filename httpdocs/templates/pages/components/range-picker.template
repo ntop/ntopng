@@ -211,7 +211,7 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
 
         // initialize timepickers
         $inputBeginEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', maxDate: moment(), useCurrent: false});
-        $inputEndEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', maxDate: moment(), useCurrent: false});
+        $inputEndEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', maxDate: moment(), minDate: prev, useCurrent: false});
 
         $inputBeginEpoch.datetimepicker('date', prev);
         $inputEndEpoch.datetimepicker('date', now);
