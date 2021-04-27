@@ -1,7 +1,39 @@
 /**
  * (C) 2013-21 - ntop.org
  */
+
 const DEFINED_WIDGETS = {};
+
+class WidgetTooltips {
+    static showXY({seriesIndex, dataPointIndex, w}) {
+        
+        const config = w.config;
+        const xLabel = config.xaxis.title.text ||"x";
+        const yLabel = config.yaxis[0].title.text ||"y";
+        const serie = config.series[seriesIndex].data[dataPointIndex];
+        const {x, y} = serie;
+        const title = serie.meta.label || serie.x;
+
+        return (`
+            <div class='apexcharts-theme-light apexcharts-active'>
+                <div class='apexcharts-tooltip-title' style='font-family: Helvetica, Arial, sans-serif; font-size: 12px;'>
+                    ${title}
+                </div>
+                <div class='apexcharts-tooltip-series-group apexcharts-active d-block'>
+                    <div class='apexcharts-tooltip-text text-left'>
+                        <b>${xLabel}</b>: ${x}
+                    </div>
+                    <div class='apexcharts-tooltip-text text-left'>
+                        <b>${yLabel}</b>: ${y}
+                    </div>
+                </div>
+            </div>
+        `)
+    }
+    static unknown() {
+        return `<div>Unknown</div>`;
+    }
+}
 
 class WidgetUtils {
 
@@ -56,7 +88,7 @@ class Widget {
     /**
      * Destroy the widget freeing the resources used.
      */
-    async destroy() { }
+    async destroy() {}
 
     /**
      * Force the widget to reload it's data.
@@ -192,13 +224,21 @@ class ChartWidget extends Widget {
         }
     }
 
+    _buildTooltipFormatter(config) {
+        // do we need a custom tooltip?
+        if (config.tooltip && config.tooltip.widget_tooltips_formatter) {
+            const formatterName = config.tooltip.widget_tooltips_formatter;
+            config.tooltip.custom = WidgetTooltips[formatterName] || WidgetTooltips.unknown;
+        }
+    }
+
     _buildConfig() {
 
         const config = this._generateConfig();
         const rsp = this._fetchedData.rsp;
 
         // add additional params fetched from the datasource
-        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'dataLabels'];
+        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'dataLabels', 'tooltip'];
         for (const additional of additionals) {
 
             if (rsp[additional] === undefined) continue;
@@ -211,6 +251,7 @@ class ChartWidget extends Widget {
             }
         }
 
+        this._buildTooltipFormatter(config);
         this._buildAxisFormatter(config, 'xaxis');
         this._buildAxisFormatter(config, 'yaxis');
 
@@ -220,7 +261,7 @@ class ChartWidget extends Widget {
     _initializeChart() {
         const config = this._buildConfig();
         this._chartConfig = config;
-        this._chart = new ApexCharts(this._$htmlChart, this._chartConfig);
+        this._chart = new ApexCharts(this._$htmlChart, config);
         this._chart.render();
     }
 
