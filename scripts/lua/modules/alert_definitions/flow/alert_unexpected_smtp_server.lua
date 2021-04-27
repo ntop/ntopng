@@ -34,7 +34,7 @@ end
 -- #######################################################
 
 function alert_unexpected_smtp_server.format(ifid, alert, alert_type_params)
-    return(i18n("unexpected_smtp.status_unexpected_smtp_description", { server=alert_type_params.server_ip} ))
+    return(i18n("unexpected_smtp.status_unexpected_smtp_description", { server=alert.srv_ip} ))
 end
 
 -- #######################################################

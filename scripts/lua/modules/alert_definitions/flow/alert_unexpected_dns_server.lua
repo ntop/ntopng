@@ -43,7 +43,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_unexpected_dns_server.format(ifid, alert, alert_type_params)
-    return(i18n("unexpected_dns.status_unexpected_dns_description", { server=alert_type_params.server_ip} ))
+    return(i18n("unexpected_dns.status_unexpected_dns_description", { server=alert.srv_ip} ))
 end
 
 -- #######################################################
