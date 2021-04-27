@@ -3,6 +3,7 @@ input: invalid_dns_query.pcap
 ignore:
   - date
   - duration
+  - tstamp
 
 pre: |
   # Enable all user scripts
