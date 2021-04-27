@@ -218,8 +218,8 @@ function flow_alert_store:format_record(value)
    record["msg"] = msg
    record["cli_name"] = value["cli_name"]
    record["srv_name"] = value["srv_name"]
-   record["cli_ip"] = value["cli_ip"]
-   record["srv_ip"] = value["srv_ip"]
+   record["cli_ip"] = hostinfo2hostkey(value, "cli")
+   record["srv_ip"] = hostinfo2hostkey(value, "srv")
    record["cli_port"] = value["cli_port"]
    record["srv_port"] = value["srv_port"]
    record["vlan_id"] = value["vlan_id"]

@@ -1780,7 +1780,7 @@ function hostinfo2detailsurl(host_info, href_params, href_check)
 
       if href_params and href_params.page == "alerts" then
          -- Alerts page for the host is under the Alerts menu
-         res = string.format("%s/lua/alert_stats.lua?page=host&status=engaged&ip=%s,eq",
+         res = string.format("%s/lua/alert_stats.lua?page=host&status=engaged&ip=%s,eqC",
 			  ntop.getHttpPrefix(),
 			  hostinfo2hostkey(host_info))
 
@@ -2033,38 +2033,42 @@ end
 --    key = hostinfo2hostkey(host_info)
 --
 function hostinfo2hostkey(host_info, host_type, show_vlan)
-  local rsp = ""
+   local rsp = ""
 
-  if(host_type == "cli") then
+   if(host_type == "cli") then
+      local cli_ip = host_info["cli.ip"] or host_info["cli_ip"]
 
-    if(host_info["cli.ip"] ~= nil) then
-      rsp = rsp..host_info["cli.ip"]
-    end
+      if cli_ip then
+	 rsp = rsp..cli_ip
+      end
 
-  elseif(host_type == "srv") then
+   elseif(host_type == "srv") then
+      local srv_ip = host_info["srv.ip"] or host_info["srv_ip"]
 
-    if(host_info["srv.ip"] ~= nil) then
-      rsp = rsp..host_info["srv.ip"]
-    end
-  else
+      if srv_ip then
+	 rsp = rsp..srv_ip
+      end
+   else
 
-   if(host_info["ip"] ~= nil) then
-     rsp = rsp..host_info["ip"]
-   elseif(host_info["mac"] ~= nil) then
-     rsp = rsp..host_info["mac"]
-   elseif(host_info["host"] ~= nil) then
-     rsp = rsp..host_info["host"]
-   elseif(host_info["name"] ~= nil) then
-     rsp = rsp..host_info["name"]
+      if(host_info["ip"] ~= nil) then
+	 rsp = rsp..host_info["ip"]
+      elseif(host_info["mac"] ~= nil) then
+	 rsp = rsp..host_info["mac"]
+      elseif(host_info["host"] ~= nil) then
+	 rsp = rsp..host_info["host"]
+      elseif(host_info["name"] ~= nil) then
+	 rsp = rsp..host_info["name"]
+      end
    end
-  end
 
-  if((host_info["vlan"] ~= nil and host_info["vlan"] ~= 0) or show_vlan)  then
-    rsp = rsp..'@'..tostring(host_info["vlan"] or 0)
-  end
+   local vlan_id = host_info["vlan"] or host_info["vlan_id"] or 0
 
-  if(debug_host) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"HOST2URL => ".. rsp .. "\n") end
-  return rsp
+   if vlan_id ~= 0 or show_vlan then
+      rsp = rsp..'@'..tostring(vlan_id)
+   end
+
+   if(debug_host) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"HOST2URL => ".. rsp .. "\n") end
+   return rsp
 end
 
 function member2visual(member)

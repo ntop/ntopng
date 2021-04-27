@@ -124,10 +124,7 @@ function host_alert_store:format_record(value)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
 
    record["alert_name"] = alert_name
-   record["ip"] = value["ip"] 
-   if value["vlan_id"] and tonumber(value["vlan_id"]) > 0 then
-      record["ip"] = record["ip"] .. "@" .. value["vlan_id"]
-   end
+   record["ip"] = hostinfo2hostkey(value)
    record["hostname"] = value["name"]
    record["is_attacker"] = value["is_attacker"] == "1"
    record["is_victim"] = value["is_victim"] == "1"
