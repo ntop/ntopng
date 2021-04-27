@@ -13,7 +13,7 @@ local widget_gui_utils = require "widget_gui_utils"
 local tag_utils = require "tag_utils"
 local Datasource = widget_gui_utils.datasource
 
-local IFID = interface.getId()
+local ifid = interface.getId()
 local CHART_NAME = "alert-timeseries"
 
 -- select the default page
@@ -135,7 +135,7 @@ page_utils.print_navbar(i18n("alerts_dashboard.alerts"), url, pages)
 
 widget_gui_utils.register_timeseries_bar_chart(CHART_NAME, 0, {
     Datasource(endpoint_ts, {
-        ifid = IFID,
+        ifid = ifid,
         epoch_begin = epoch_begin,
         epoch_end = epoch_end,
         status = status,
@@ -228,7 +228,7 @@ local context = {
     json = json,
     ui_utils = ui_utils,
     widget_gui_utils = widget_gui_utils,
-    ifid = IFID,
+    ifid = ifid,
     range_picker = {
         tags = {
             tag_operators = {tag_utils.tag_operators.eq},
@@ -257,7 +257,7 @@ local context = {
         table = template_utils.gen(string.format("pages/alerts/families/%s/table.template", page), {}),
         js_columns = template_utils.gen(string.format("pages/alerts/families/%s/table.js.template", page), {}),
         datasource = Datasource(endpoint_list, {
-            ifid = IFID,
+            ifid = ifid,
             epoch_begin = epoch_begin,
             epoch_end = epoch_end,
             status = status,

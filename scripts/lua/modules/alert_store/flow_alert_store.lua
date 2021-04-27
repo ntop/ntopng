@@ -230,6 +230,8 @@ function flow_alert_store:format_record(value)
       value = value["l7_proto"],
       label = application
    }
+   record["cli_url"] = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, value["cli_ip"], "", true)
+   record["srv_url"] = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, value["srv_ip"], "", true)
 
    return record
 end

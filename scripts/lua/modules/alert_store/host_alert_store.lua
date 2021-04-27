@@ -130,6 +130,7 @@ function host_alert_store:format_record(value)
    record["is_victim"] = value["is_victim"] == "1"
    record["vlan_id"] = value["vlan_id"] or 0
    record["msg"] = msg
+   record["ip_url"] = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, value["ip"], "", true)
 
    return record
 end

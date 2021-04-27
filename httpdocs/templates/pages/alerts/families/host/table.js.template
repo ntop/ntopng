@@ -10,7 +10,7 @@
     /* Alert Type */
     {name: 'alert_id', data: 'alert_id', orderable: false, className: 'text-center', render: DataTableRenders.formatValueLabel},
     /* IP Address */
-    {name: 'ip', data: 'ip', render: (ipAddress, type, row) => {
+    {name: 'ip', data: 'ip', orderable: false, render: (ipAddress, type, row) => {
         if (type !== "display") return ipAddress;
         const label = `${ipAddress} ${row.is_attacker ? '<i class="fas fa-skull-crossbones"></i>' : ''} ${row.is_victim ? '<i class="fas fa-sad-tear"></i>' : ''}`;
         return DataTableRenders.filterize(ipAddress, label);
