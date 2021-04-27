@@ -1,3 +1,3 @@
 {"success":true}
 {"rc":0,"rc_str":"OK","rc_str_hr":"Success","rsp":{"success":true}}
-{"rc":0,"rc_str":"OK","rc_str_hr":"Success","recordsFiltered":0,"recordsTotal":0,"rsp":{"records":[]}}
+{"rc":0,"rc_str":"OK","rc_str_hr":"Success","recordsFiltered":1,"recordsTotal":1,"rsp":{"records":[{"alert_id":{"label":"<i class=\"fas fa-exclamation\"></i> Susp. DGA Domain","value":"47"},"alert_name":"<i class=\"fas fa-exclamation\"></i> Susp. DGA Domain","cli_ip":"192.168.2.222","cli_name":"","cli_port":"59610","count":1,"duration":0,"is_attacker_to_victim":false,"is_victim_to_attacker":false,"l7_proto":{"label":"DNS","value":"5"},"msg":"","proto":"17","row_id":"1","score":155,"severity":{"label":"<span class=\"badge badge-danger\">Error</span>","value":"5"},"srv_ip":"9.9.9.9","srv_name":"","srv_port":"53","tstamp":"09:44:16","vlan_id":"0"}]}}
