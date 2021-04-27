@@ -1536,25 +1536,26 @@ function appendExclusionList(data) {
       }
    }
 
-   let $container;
-   let $textarea = $($(`#exclusion-list-template`).html());
-   
-   const label = i18n.scripts_list.exclusion_list_title;
-   if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder)) {
-      $container = $(`<tr></tr>`);
-      $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(
-         $(`<label class='col-3 col-form-label'>${label}</label>`),
-         $(`<div class='col-12'></div>`).append($textarea))
-      ));
-   }
-   else {
-      $container = $(`<tr><td></td></tr>`);
-      $container.append($(`<td class='align-middle'>${label}</td>`));
-      $container.append($(`<td></td>`).append($textarea));
-   }
+    if($(`#exclusion-list-template`).length) {
+	/* Only show exclusion lists configuration textarea for those entities that support it */
+	let $container;
+	const $textarea = $($(`#exclusion-list-template`).html());
+	const label = i18n.scripts_list.exclusion_list_title;
 
-   $(`#script-config-editor`).append($container);
-   $(`#script-config-editor Textarea[name='exclusion-list']`).val(ex_list_str);
+	if(["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder)) {
+	    $container = $(`<tr></tr>`);
+	    $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(
+		$(`<label class='col-3 col-form-label'>${label}</label>`),
+		$(`<div class='col-12'></div>`).append($textarea))));
+	} else {
+	    $container = $(`<tr><td></td></tr>`);
+	    $container.append($(`<td class='align-middle'>${label}</td>`));
+	    $container.append($(`<td></td>`).append($textarea));
+	}
+
+	$(`#script-config-editor`).append($container);
+	$(`#script-config-editor Textarea[name='exclusion-list']`).val(ex_list_str);
+    }
 }
 
 function delegateActionButton(gui) {

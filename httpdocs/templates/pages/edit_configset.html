@@ -72,7 +72,8 @@
 
 {# include modals for edit_configset.lua #}
 {* script_list.template_utils.gen("pages/modals/edit_configset/edit_config_modal.html", {
-  alert_severities = script_list.alert_severities
+  alert_severities = script_list.alert_severities,
+  subdir = script_list.script_subdir,
 }) *}
 {# add css, js files #}
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
