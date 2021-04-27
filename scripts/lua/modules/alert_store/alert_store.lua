@@ -305,7 +305,7 @@ function alert_store:select_engaged(filter)
       i = i + 1
    end
 
-   return res, total_row
+   return res, total_rows
 end
 
 -- ##############################################
@@ -381,14 +381,12 @@ function alert_store:select_request(filter, select_fields)
    self:add_request_filters()
 
    if self._engaged then -- Engaged
-
-      local total_row = self:count()
-
       -- Add limits and sort criteria
       self:add_request_ranges()
 
-      return self:select_engaged(filter), total_row
+      local alerts, total_rows =  self:select_engaged(filter)
 
+      return alerts, total_rows
    else -- Historical
       
       -- Count
