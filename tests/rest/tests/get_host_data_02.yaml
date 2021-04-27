@@ -7,6 +7,8 @@ ignore: # duration and last seen depend on the current system time, whereas firs
   - seen.last
   - throughput_trend_bps
   - throughput_trend_pps
+  - throughput_bps
+  - throughput_pps
 
 pre: |
 
