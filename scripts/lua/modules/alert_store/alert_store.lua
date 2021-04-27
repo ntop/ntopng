@@ -275,14 +275,10 @@ function alert_store:select_engaged(filter)
 
    -- Sort
    for idx, alert in pairs(alerts) do
-      if sortColumn == "alert_id" then
-	 sort_2_col[idx] = alert.alert_id
-      elseif sortColumn == "severity" then
-	 sort_2_col[idx] = alert.severity
-      elseif sortColumn == "column_duration" then
-	 sort_2_col[idx] = os.time() - alert.tstamp
-      else -- column_date
-	 sort_2_col[idx] = alert.tstamp
+      if self._order_by and self._order_by.sort_column and alert[self._order_by.sort_column] then
+	 sort_2_col[#sort_2_col + 1] = {idx = idx, val = tonumber(alert[self._order_by.sort_column]) or alert[self._order_by.sort_column]}
+      else
+	 sort_2_col[#sort_2_col + 1] = {idx = idx, val = tonumber(alert.tstamp)}
       end
    end
 
@@ -293,13 +289,13 @@ function alert_store:select_engaged(filter)
    local res = {}
    local i = 0
 
-   for idx in pairsByValues(sort_2_col, asc --[[ TODO --]]) do
+   for _, val in pairsByField(sort_2_col, "val", ternary(self._order_by and self._order_by.sort_order and self._order_by.sort_order == "asc", asc, rev)) do
       if i >= offset + limit then
 	 break
       end
 
       if i >= offset then
-	 res[#res + 1] = alerts[idx]
+	 res[#res + 1] = alerts[val.idx]
       end
 
       i = i + 1
