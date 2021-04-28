@@ -560,6 +560,10 @@ path.link {
   color: #ff7500;
 }
 
+.bg-ntop {
+  background-color: #ff7500;
+}
+
 /* increase switches size */
 .custom-control-label-lg {
   transform: scale(1.5);
@@ -971,8 +975,11 @@ footer {
 .percentage-widget .percentage.negative {
   color: #e93d3d;
 }
-
 .fit-content {
   width: fit-content;
   width: -moz-fit-content;
+}
+.time-input {
+  width: 18ch;
+  text-align: center;
 }

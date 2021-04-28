@@ -1,6 +1,6 @@
 <nav class="navbar navbar-shadow navbar-expand-lg navbar-light bg-light mb-2">
     {% if (navbar.label_url == nil) then %}
-        <span class="mr-1">{* navbar.title *}</span>
+        <span class="mr-1" style="font-size: 1.1rem;">{* navbar.title *}</span><span class="text-muted ml-1 d-none d-md-inline">|</span>
     {% else %}
         <a class="navbar-brand" href="{* (navbar.label_url and navbar.label_url or '#') *}">
             <small>{* navbar.title *}</small>
