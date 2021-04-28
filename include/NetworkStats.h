@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class NetworkStats : public OtherAlertableEntity, public GenericTrafficElement, public Score {
+class NetworkStats : public NetworkStatsAlertableEntity, public GenericTrafficElement, public Score {
  private:
   u_int8_t network_id;
   u_int32_t numHosts;

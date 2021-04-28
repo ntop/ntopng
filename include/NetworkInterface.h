@@ -68,7 +68,7 @@ class NIndexFlowDB;
  *  @ingroup NetworkInterface
  *
  */
-class NetworkInterface : public OtherAlertableEntity {
+class NetworkInterface : public NetworkInterfaceAlertableEntity {
  protected:
   char *ifname, *ifDescription;
   u_int8_t ifMac[6];

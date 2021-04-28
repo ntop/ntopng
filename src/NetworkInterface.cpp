@@ -38,14 +38,14 @@ static bool help_printed = false;
 /* **************************************************** */
 
 /* Method used for collateral activities */
-NetworkInterface::NetworkInterface() : OtherAlertableEntity(this, alert_entity_interface) {
+NetworkInterface::NetworkInterface() : NetworkInterfaceAlertableEntity(this, alert_entity_interface) {
   init();
 }
 
 /* **************************************************** */
 
 NetworkInterface::NetworkInterface(const char *name,
-				   const char *custom_interface_type) : OtherAlertableEntity(this, alert_entity_interface) {
+				   const char *custom_interface_type) : NetworkInterfaceAlertableEntity(this, alert_entity_interface) {
   char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
@@ -8449,7 +8449,7 @@ AlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, con
       return(NULL);
     }
 
-    alertable = new (std::nothrow) OtherAlertableEntity(this, entity);
+    alertable = new (std::nothrow) ExternalAlertableEntity(this, entity);
     alertable->setEntityValue(entity_val);
     external_alerts[key] = alertable;
   } else
