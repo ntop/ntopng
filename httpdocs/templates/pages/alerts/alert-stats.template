@@ -129,8 +129,10 @@
 	    
             // reload the table
             $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
-
-            WidgetUtils.getWidgetByName("{{ chart.name }}").update(copyParams);
+            try {
+                WidgetUtils.getWidgetByName("{{ chart.name }}").update(copyParams);
+            }
+            catch(e) {}
         }
 
         function printQueryTime($table) {
@@ -277,7 +279,7 @@
 	    });
 
         // on apply button click
-        $(`#btn-apply`).on('click', async function() {
+        $(`.range-picker`).on('change', async function(e) {
             await onRangePickerChange(true);
         });
 

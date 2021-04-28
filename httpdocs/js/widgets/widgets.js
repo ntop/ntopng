@@ -143,15 +143,20 @@ class ChartWidget extends Widget {
 
     static registerEventCallback(widgetName, eventName, callback) {
         setTimeout(async () => {
-            const widget = WidgetUtils.getWidgetByName(widgetName);
-            const updatedOptions = {
-                chart: {
-                    events: {
-                        [eventName]: callback
+            try {
+                const widget = WidgetUtils.getWidgetByName(widgetName);
+                const updatedOptions = {
+                    chart: {
+                        events: {
+                            [eventName]: callback
+                        }
                     }
-                }
-            };
-            await widget._chart.updateOptions(updatedOptions);
+                };
+                await widget._chart.updateOptions(updatedOptions);
+            }
+            catch (e) {
+
+            }
         }, 1000);
     }
 
