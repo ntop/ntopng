@@ -1,8 +1,7 @@
 <tr>
     <th>{{ i18n("show_alerts.alert_datetime") }}</th>
     <th>{{ i18n("show_alerts.alert_counts") }}</th>
-    <th>{{ i18n("show_alerts.alert_severity") }}</th>
-    <th>{{ i18n("show_alerts.alert_type") }}</th>
+    <th>{{ i18n("show_alerts.alert_severity_and_type") }}</th>
     <th>{{ i18n("score") }}</th>
     <th>{{ i18n("application") }}</th>
     <th>{{ i18n("client") }}</th>

@@ -3,8 +3,8 @@
     {name: 'tstamp', data: 'tstamp', className: 'text-center'},
     /* Counts */
     {name: 'count', className: 'text-center', data: 'count', visible: false},
-    /* Severity */
-    {name: 'severity', className: 'text-center', data: 'severity', render: DataTableRenders.formatValueLabel},
+    /* Alert Type + Severity */
+    {name: 'severity', className: 'text-center text-nowrap', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* Mac Address */
     {name: 'address', className: 'text-center', data: 'address'},
     /* Device Type */
@@ -12,5 +12,5 @@
     /* Name */
     {name: 'name', className: 'text-center', data: 'name'},
     /* Description */
-    {data: 'msg'},
+    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
 ]

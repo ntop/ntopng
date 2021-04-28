@@ -4521,6 +4521,7 @@ local lang = {
     ["alert_description"] = "Description",
     ["alert_duration"] = "Duration",
     ["alert_severity"] = "Severity",
+    ["alert_severity_and_type"] = "Severity and Type",
     ["alert_type"] = "Alert Type",
     ["alerts"] = "Alerts",
     ["alerts_are_disabled_message"] = "Alerts are disabled. Please check the preferences page to enable them.",

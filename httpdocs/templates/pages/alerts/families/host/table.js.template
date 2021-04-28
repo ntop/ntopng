@@ -5,10 +5,8 @@
     {name: 'duration', data: 'duration', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
     /* Counts */
     {name: 'count', className: 'text-center', data: 'count', visible: false},
-    /* Severity */
-    {name: 'severity', className: 'text-center', data: 'severity', render: DataTableRenders.formatValueLabel},
-    /* Alert Type */
-    {name: 'alert_id', data: 'alert_id', orderable: false, className: 'text-center', render: DataTableRenders.formatValueLabel},
+    /* Alert Type + Severity */
+    {name: 'severity', className: 'text-center text-nowrap', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* IP Address */
     {name: 'ip', data: 'ip', orderable: false, render: (ipAddress, type, row) => {
         if (type !== "display") return ipAddress;
@@ -18,5 +16,5 @@
     /* IP Address */
     {name: 'hostname', data: 'hostname'},
     /* Description */
-    {name: 'description', data: 'msg', orderable: false,},
+    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
 ]

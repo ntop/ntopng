@@ -505,13 +505,13 @@ function alert_consts.alertSeverityLabel(v, nohtml, emoji)
       local title = i18n(severity_info.i18n_title) or severity_info.i18n_title
 
       if(emoji) then
-	 title = (severity_info.emoji or "").. " " .. title
+	      title = (severity_info.emoji or "").. " " .. title
       end
       
       if(nohtml) then
         return(title)
       else
-        return(string.format('<span class="badge %s">%s</span>', severity_info.label, title))
+        return(string.format('<span class="badge %s" title="%s">%s</span>', severity_info.label, title, title:sub(1, 1)))
       end
    end
 

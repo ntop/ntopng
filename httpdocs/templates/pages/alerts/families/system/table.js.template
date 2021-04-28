@@ -2,11 +2,9 @@
     /* Date */
     {className: 'text-center', data: 'tstamp', name: 'tstamp'},
     /* Counts */
-    {name: 'count', className: 'text-center', data: 'count'},
-    /* Severity */
-    {name: 'severity', className: 'text-center', data: 'severity', render: DataTableRenders.formatValueLabel},
-    /* Alert Type */
-    {name: 'type', className: 'text-center', data: 'alert_type', render: DataTableRenders.formatValueLabel},
+    {name: 'count', className: 'text-center', data: 'count', visible: false},
+    /* Alert Type + Severity */
+    {name: 'severity', className: 'text-center text-nowrap', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* Description */
-    {name: 'description', data: 'msg'},
+    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
 ]

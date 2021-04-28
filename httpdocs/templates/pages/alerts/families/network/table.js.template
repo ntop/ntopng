@@ -3,15 +3,13 @@
     {name: 'tstamp', data: 'tstamp', className: 'text-center',},
     /* Duration */
     {name: 'duration', data: 'duration', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
-    /* Severity */
-    {name: 'severity', className: 'text-center', data: 'severity', render: DataTableRenders.formatValueLabel},
-    /* Alert Type */
-    {name: 'alert_id', data: 'alert_id', orderable: false, className: 'text-center nowrap', render: DataTableRenders.formatValueLabel},
+    /* Alert Type + Severity */
+    {name: 'severity', className: 'text-center text-nowrap', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* Network */
     {name: 'network_name', data: 'network', orderable: false, render: (network, type) => {
         if (type === "display") return DataTableRenders.filterize(network, network);
         return network;
     }},
     /* Description */
-    {name: 'description', data: 'msg', orderable: false,},
+    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
 ]

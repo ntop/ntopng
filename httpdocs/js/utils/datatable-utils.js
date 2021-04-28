@@ -626,6 +626,31 @@ class DataTableUtils {
 
 class DataTableRenders {
 
+    static alertSeverityAndType(severity, type, alert) {
+        return DataTableRenders.formatValueLabel(severity, type, alert) + '<span class="mx-1"></span>' + DataTableRenders.formatValueLabel(alert.alert_id, type, alert);
+    }
+
+    static colorizeScore(min, max) {
+        return (score, type, row) => {
+            
+            if (type !== "display") return score;
+            
+            let cssClass;
+            
+            if (score < min) {
+                cssClass = "text-success";
+            }
+            else if (score >= min && score <= max) {
+                cssClass = "text-warning font-weight-bold";
+            }
+            else {
+                cssClass = "text-danger font-weight-bolder";
+            }
+            
+            return `<span class='${cssClass}'>${score}</span>`;
+        }
+    }
+
     static hideIfZero(value, type, row) {
         if (type === "display" && parseInt(value) === 0) return "";
         return value;

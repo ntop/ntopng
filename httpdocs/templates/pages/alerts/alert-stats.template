@@ -26,7 +26,6 @@
             <div class="card-header">
 
                 {%
-                    local engaged_disabled = ternary(not (alert_stats.entity == "host" or alert_stats.entity == "interface" or alert_stats.entity == "network" or network == "am_host"), "disabled", "")
                     local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'}) 
                 %}
 
@@ -34,9 +33,11 @@
                     <li class="nav-item">
                       <a class="nav-link {{ (alert_stats.status == 'historical' and 'active' or '') }}" href="{{ base_url }}&status=historical&page={{ alert_stats.entity }}">{{ i18n("show_alerts.past_alerts") }}</a>
                     </li>
+                    {% if alert_stats.entity ~= "flow" then %}
                     <li class="nav-item">
-                      <a class="nav-link {{ (alert_stats.status == 'engaged' and 'active' or '') }} {{ engaged_disabled }}" href="{{ base_url }}&status=engaged&page={{ alert_stats.entity }}">{{ i18n("show_alerts.engaged_alerts") }}</a>
+                      <a class="nav-link {{ (alert_stats.status == 'engaged' and 'active' or '') }}" href="{{ base_url }}&status=engaged&page={{ alert_stats.entity }}">{{ i18n("show_alerts.engaged_alerts") }}</a>
                     </li>
+                    {% end %}
                 </ul>
             </div>
             <div class="card-body">
@@ -158,6 +159,13 @@
 
             searchParams.set('begin_epoch', begin.unix());
             searchParams.set('end_epoch', end.unix());
+            
+            if (url.searchParams.has('page')) {
+                searchParams.set('page', url.searchParams.get('page'));
+            }
+            if (url.searchParams.has('status')) {
+                searchParams.set('status', url.searchParams.get('status'));
+            }
 
             // get all filters tags
             const tags = tagify.getTagElms();
@@ -199,7 +207,7 @@
             {% end %}
 
             /* Actions Column */
-            columns.push({width: '5%', targets: -1, className: 'text-center', orderable: false, data: null, render: (type) => {
+            columns.push({width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (type) => {
 	        const buttons = [
 		    /* Bell button to disable alerts is only supported for hosts and flows */
 		    {% if alert_stats.entity == 'host' or alert_stats.entity == 'flow' then %}
@@ -230,6 +238,7 @@
         config = DataTableUtils.extendConfig(config, {
 	        serverSide: true,
             searching: false,
+            autoWidth: true,
             ajax: {
                 method: 'get',
                 url: '{* datatable.datasource.endpoint *}',

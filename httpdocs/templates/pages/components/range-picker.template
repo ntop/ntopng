@@ -52,14 +52,14 @@
                 </span>
             </div>
             <input id='begin-epoch' type="text" aria-label="Begin" data-toggle="datetimepicker"
-                class="form-control datetimepicker-input border-right-0" data-target="#begin-epoch">
+                class="form-control time-input datetimepicker-input border-right-0" data-target="#begin-epoch">
             <div class="input-group-append">
                 <span class="input-group-text bg-transparent border-left-0 border-right-0">
                     <i class="fas fa-long-arrow-alt-right"></i>
                 </span>
             </div>
             <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker"
-                class="form-control datetimepicker-input border-left-0" data-target="#end-epoch">
+                class="form-control time-input datetimepicker-input border-left-0" data-target="#end-epoch">
         </div>
         <button id="btn-apply" class="btn btn-primary">{{ i18n("apply") }}</button>
         <div class="btn-group my-sm-2 my-md-0 mx-sm-0 mx-md-2 btn-group-sm">
