@@ -312,7 +312,6 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
         });
 
         $inputBeginEpoch.on("change.datetimepicker", function (e) {
-            $inputEndEpoch.datetimepicker('date', e.date);
             $inputEndEpoch.datetimepicker('minDate', e.date);
         });
 
