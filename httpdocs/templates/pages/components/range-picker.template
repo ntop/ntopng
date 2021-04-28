@@ -5,7 +5,7 @@
 {%
     -- if there are set the _GET["begin_epoch"] && _GET["end_epoch"]
     -- then select the `Custom` Label 
-    local presetSelected = (isEmptyString(_GET["begin_epoch"]) and isEmptyString(_GET["end_epoch"])) or 
+    local presetSelected = (isEmptyString(_GET["begin_epoch"]) and isEmptyString(_GET["end_epoch"])) and 
         (isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["end_epoch"]))
 %}
 

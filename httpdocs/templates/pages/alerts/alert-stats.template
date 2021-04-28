@@ -157,8 +157,8 @@
             const url = new URL(location);
             const searchParams = new URLSearchParams();
 
-            searchParams.set('begin_epoch', begin.unix());
-            searchParams.set('end_epoch', end.unix());
+            searchParams.set('epoch_begin', begin.unix());
+            searchParams.set('epoch_end', end.unix());
             
             if (url.searchParams.has('page')) {
                 searchParams.set('page', url.searchParams.get('page'));
@@ -179,7 +179,7 @@
             }
 
             url.search = searchParams.toString();
-            window.history.pushState({begin_epoch: begin.unix(), end_epoch: end.unix()}, '', url);
+            window.history.pushState({epoch_begin: begin.unix(), epoch_end: end.unix()}, '', url);
         }
 
         async function onRangePickerChange(pushHistroy = false) {
