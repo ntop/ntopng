@@ -125,13 +125,14 @@ local pages = {
 
 -- Iterate back to front to remove items if necessary
 for i = #pages, 1, -1 do
-   local page = pages[i]
+   local cur_page = pages[i]
 
-   if page.hidden then
+   if cur_page.hidden then
       table.remove(pages, i)
-   elseif page.page_name == page then
-      endpoint_list = page.endpoint_list
-      endpoint_ts = page.endpoint_ts
+   elseif cur_page.page_name == page then
+      tprint("H")
+      endpoint_list = cur_page.endpoint_list
+      endpoint_ts = cur_page.endpoint_ts
    end
 end
 
