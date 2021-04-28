@@ -78,7 +78,6 @@ function ui_utils.render_datetime_range_picker(options)
 
     local presets = { day = true, week = true, month = true, year = true }
     local buttons = { permalink = false, download = false }
-    local records = { 10, 25, 50, 100 }
     local tags = { enabled = true, values = {}}
     local tags_localization = {}
 
@@ -86,9 +85,10 @@ function ui_utils.render_datetime_range_picker(options)
 
     options.json = json
 
+    options.default = options.default or "5min"
+
     options.presets = ternary(options.presets ~= nil, table.merge(presets, options.presets), presets)
     options.buttons = ternary(options.buttons ~= nil, table.merge(buttons, options.buttons), buttons)
-    options.records = ternary(options.records ~= nil, options.records, records)
     options.max_delta_in = ternary(options.max_delta_in ~= nil, options.max_delta_in, 300)
     options.max_delta_out = ternary(options.max_delta_in ~= nil, options.max_delta_in, 43200)
     options.tags = ternary(options.tags ~= nil, table.merge(tags, options.tags), tags)

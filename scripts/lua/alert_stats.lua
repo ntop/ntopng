@@ -230,6 +230,7 @@ local context = {
     widget_gui_utils = widget_gui_utils,
     ifid = ifid,
     range_picker = {
+        default = "30min",
         tags = {
             tag_operators = {tag_utils.tag_operators.eq},
             defined_tags = defined_tags[page],

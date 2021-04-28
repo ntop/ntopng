@@ -248,7 +248,7 @@
 	    });
 
         // on apply button click
-        $(`#btn-apply`).on('click', async function() {
+        $(`.range-picker`).on('change', async function(e) {
             await onRangePickerChange(true);
         });
 
