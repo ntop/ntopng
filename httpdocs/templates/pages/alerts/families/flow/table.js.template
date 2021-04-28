@@ -16,14 +16,14 @@
     {name: 'cli_ip', data: 'cli_ip', orderable: false, className: 'text-nowrap', render: (cliIp, type, row) => {
     	let html_ref = '';
 	if (cliIp.reference !== undefined)
-	   html_ref = `<a class='' href='${cliIp.reference}' title=''><i class='fas fa-link'></i></a>`
+	   html_ref = cliIp.reference
         return DataTableRenders.filterize(cliIp.value, `${cliIp.label} ${row.is_attacker_to_victim ? ("<i class='fas fa-skull-crossbones'></i> " + html_ref) : ("" + html_ref)}`);
     }},
     /* Server */
     {name: 'srv_ip', data: 'srv_ip', orderable: false, className: 'text-nowrap', render: (srvIp, type, row) => {
     	let html_ref = '';
 	if (srvIp.reference !== undefined)
-	   html_ref = `<a class='' href='${srvIp.reference}' title=''><i class='fas fa-link'></i></a>`
+	   html_ref = srvIp.reference
         return DataTableRenders.filterize(srvIp.value, `${srvIp.label} ${row.is_victim_to_attacker ? ("<i class='fas fa-skull-crossbones'></i> " + html_ref) : ("" + html_ref) }`);
     }},
     /* Description */

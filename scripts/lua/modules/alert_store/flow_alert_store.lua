@@ -214,12 +214,8 @@ function flow_alert_store:format_record(value)
    local application =  interface.getnDPIProtoName(tonumber(value["l7_proto"]))
 
    -- Host reference
-   local reference = nil
    local cli_ip = hostinfo2hostkey(value, "cli")
    local srv_ip = hostinfo2hostkey(value, "srv")
-   if (interface.getHostMinInfo(cli_ip)).name then
-      reference = "/lua/host_details.lua?host=" .. cli_ip
-   end
 
    record["alert_name"] = alert_name
    record["score"] = score
@@ -228,7 +224,7 @@ function flow_alert_store:format_record(value)
    record["cli_ip"] = {
       value = cli_ip,
       label = cli_ip,
-      reference = reference
+      reference = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
    }
 
    -- Checking that the name of the host is not empty
@@ -236,15 +232,10 @@ function flow_alert_store:format_record(value)
       record["cli_ip"]["label"] = value["cli_name"]
    end
 
-   reference = nil
-   if (interface.getHostMinInfo(srv_ip)).name then
-      reference = "/lua/host_details.lua?host=" .. srv_ip
-   end
-
    record["srv_ip"] = {
       value = srv_ip,
       label = srv_ip,
-      reference = reference
+      reference = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
    }
 
    -- Checking that the name of the host is not empty
@@ -262,8 +253,6 @@ function flow_alert_store:format_record(value)
       value = value["l7_proto"],
       label = application
    }
-   record["cli_url"] = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, value["cli_ip"], "", true)
-   record["srv_url"] = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, value["srv_ip"], "", true)
 
    return record
 end
