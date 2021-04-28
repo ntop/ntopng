@@ -35,7 +35,7 @@ page_utils.menu_sections = {
    admin         = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
    dev           = {key = "dev", i18n_title = "developer", icon = "fas fa-code"},
    about         = {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
-   health        = {key = "system_health", i18n_title = "health", icon = "fas fa-laptop-medical"},
+   health        = {key = "health", i18n_title = "health", icon = "fas fa-laptop-medical"},
    pollers       = {key = "pollers", i18n_title = "pollers", icon = "fas fa-heartbeat"},
    tools         = {key = "tools", i18n_title = "tools", icon = "fas fa-cogs"},
    pools         = {key = "pools", i18n_title = "pools.pools", icon = "fas fa-users"},
@@ -95,9 +95,9 @@ page_utils.menu_entries = {
     infrastructure_dashboard = {key = "infrastructure_dashboard", i18n_title = "infrastructure_dashboard.infrastructure_dashboard", section = "pollers", visible_iface = false, visible_system = true},
 
     -- Status (Health)
-    system_status         = {key = "system_status", i18n_title = "system_status", section = "system_health", visible_system = true},
-    interfaces_status     = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "system_health", visible_system = true},
-    alerts_status         = {key = "alerts_status", i18n_title = "system_alerts_status", section = "system_health", visible_system = true},
+    system_status         = {key = "system_status", i18n_title = "system_status", section = "health", visible_system = true},
+    interfaces_status     = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "health", visible_system = true},
+    alerts_status         = {key = "alerts_status", i18n_title = "system_alerts_status", section = "health", visible_system = true},
 
     -- Exporters
     event_exporters       = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "exporters"},
@@ -393,10 +393,11 @@ end
 function page_utils.print_navbar(title, base_url, items_table, label_url)
 
    local help_link = page_utils.menu_entries[active_entry].help_link or nil
+   local icon = page_utils.menu_sections[active_section].icon or ""
 
    local context = {
       navbar = {
-         title = title,
+         title = "<i class='".. icon .. "'></i>" .. " " .. title,
          base_url = base_url,
          items_table = items_table,
          label_url = label_url,

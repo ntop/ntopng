@@ -137,7 +137,7 @@ for key, sub_menu in pairsByField(sub_menu_entries, 'order', asc) do
   }
 end
 
-page_utils.print_navbar('<i class="fab fa-superpowers"></i> ' .. i18n("internals.user_scripts"), '#', navbar_menu)
+page_utils.print_navbar(i18n("internals.user_scripts"), '#', navbar_menu)
 
 local context = {
    script_list = {
