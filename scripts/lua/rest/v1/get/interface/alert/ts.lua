@@ -32,9 +32,6 @@ end
 
 interface.select(ifid)
 
--- Add filters
-interface_alert_store:add_request_filters()
-
 local count_by_time = interface_alert_store:count_by_time()
 
 rest_utils.answer(rc, {series = {{ data = count_by_time, name = i18n("alerts_dashboard.alerts") }}})

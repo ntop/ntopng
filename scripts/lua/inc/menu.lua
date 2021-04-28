@@ -27,7 +27,6 @@ local info = ntop.getInfo()
 local updates_supported = (is_admin and ntop.isPackage() and not ntop.isWindows())
 local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
 
--- this is a global variable
 local is_system_interface = page_utils.is_system_view()
 
 blog_utils.fetchLatestPosts()
@@ -205,7 +204,7 @@ else
    page_utils.add_menubar_section(
       {
 	 section = page_utils.menu_sections.alerts,
-	 hidden = not ntop.getPrefs().are_alerts_enabled or is_system_interface,
+	 hidden = not ntop.getPrefs().are_alerts_enabled,
          url = '/lua/alert_stats.lua?page=flow',
       }
    )

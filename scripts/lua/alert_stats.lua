@@ -46,6 +46,7 @@ elseif (page == "host") then
     disable_modal = "modal_host_alerts_filter_dialog.html"
 end
 
+local is_system_interface = page_utils.is_system_view()
 
 -- default endpoints (host)
 local endpoint_list = "/lua/rest/v1/get/host/alert/list.lua"
@@ -57,28 +58,31 @@ local pages = {
         page_name = "host",
         label = i18n("hosts"),
         endpoint_list = "/lua/rest/v1/get/host/alert/list.lua",
-        endpoint_ts = "/lua/rest/v1/get/host/alert/ts.lua"
+        endpoint_ts = "/lua/rest/v1/get/host/alert/ts.lua",
+	hidden = is_system_interface,
     },
     {
         active = page == "mac",
         page_name = "mac",
         label = i18n("discover.device"),
         endpoint_list = "/lua/rest/v1/get/mac/alert/list.lua",
-        endpoint_ts = "/lua/rest/v1/get/mac/alert/ts.lua"
+        endpoint_ts = "/lua/rest/v1/get/mac/alert/ts.lua",
+	hidden = is_system_interface,
     },
     {
         active = page == "snmp_device",
         page_name = "snmp_device",
         label = i18n("snmp.snmp_devices"),
         endpoint_list = "/lua/pro/rest/v1/get/snmp/device/alert/list.lua",
-        endpoint_ts = "/lua/pro/rest/v1/get/snmp/device/alert/ts.lua"
+        endpoint_ts = "/lua/pro/rest/v1/get/snmp/device/alert/ts.lua",
     },
     {
         active = page == "flow",
         page_name = "flow",
         label = i18n("flows"),
         endpoint_list = "/lua/rest/v1/get/flow/alert/list.lua",
-        endpoint_ts = "/lua/rest/v1/get/flow/alert/ts.lua"
+        endpoint_ts = "/lua/rest/v1/get/flow/alert/ts.lua",
+	hidden = is_system_interface,
     },
     {
         active = page == "system",
@@ -100,6 +104,7 @@ local pages = {
         label = i18n("interface"),
         endpoint_list = "/lua/rest/v1/get/interface/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/interface/alert/ts.lua",
+	hidden = is_system_interface,
     },
     {
         active = page == "network",
@@ -107,6 +112,7 @@ local pages = {
         label = i18n("network_details.network"),
         endpoint_list = "/lua/rest/v1/get/network/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/network/alert/ts.lua",
+	hidden = is_system_interface,
     },
     {
         active = page == "user",
@@ -117,10 +123,15 @@ local pages = {
     }
 }
 
-for k, t in ipairs(pages) do
-   if t.page_name == page then
-      endpoint_list = t.endpoint_list
-      endpoint_ts = t.endpoint_ts
+-- Iterate back to front to remove items if necessary
+for i = #pages, 1, -1 do
+   local page = pages[i]
+
+   if page.hidden then
+      table.remove(pages, i)
+   elseif page.page_name == page then
+      endpoint_list = page.endpoint_list
+      endpoint_ts = page.endpoint_ts
    end
 end
 

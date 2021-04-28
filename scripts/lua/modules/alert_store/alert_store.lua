@@ -19,6 +19,11 @@ local alert_store = classes.class()
 
 -- ##############################################
 
+-- 5-minute slots to perform aggregated queries
+local time_slot_width = 300 
+
+-- ##############################################
+
 function alert_store:init(args)
    self._where = { "1 = 1" }
    self._group_by = nil
@@ -270,16 +275,25 @@ function alert_store:select_engaged(filter)
    -- tprint(string.format("id=%s sev=%s entity=%s val=%s", alert_id_filter, severity_filter, entity_id_filter, entity_value_filter))
    local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter)
 
-   local total_rows = #alerts
+   local total_rows = 0
    local sort_2_col = {}
 
-   -- Sort
+   -- Sort and filtering
    for idx, alert in pairs(alerts) do
+      -- Exclude alerts falling outside requested time ranges
+      local tstamp = tonumber(alert.tstamp)
+      if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
+      if self._epoch_end and tstamp > self._epoch_end then goto continue end
+
       if self._order_by and self._order_by.sort_column and alert[self._order_by.sort_column] then
 	 sort_2_col[#sort_2_col + 1] = {idx = idx, val = tonumber(alert[self._order_by.sort_column]) or alert[self._order_by.sort_column]}
       else
-	 sort_2_col[#sort_2_col + 1] = {idx = idx, val = tonumber(alert.tstamp)}
+	 sort_2_col[#sort_2_col + 1] = {idx = idx, val = tstamp}
       end
+
+      total_rows = total_rows + 1
+
+      ::continue::
    end
 
    -- Pagination
@@ -316,9 +330,66 @@ end
 
 -- ##############################################
 
+--@brief Counts the number of engaged alerts in multiple time slots
+function alert_store:count_by_time_engaged(filter)
+   local alert_id_filter = tonumber(self._alert_id)
+   local severity_filter = tonumber(self._alert_severity)
+   local entity_id_filter = tonumber(self._alert_entity and self._alert_entity.entity_id) -- Possibly set in subclasses constructor
+   local entity_value_filter = filter or self._entity_value
+   local all_slots = {}
+
+   -- tprint(string.format("id=%s sev=%s entity=%s val=%s", alert_id_filter, severity_filter, entity_id_filter, entity_value_filter))
+   local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter)
+
+   -- Calculate minimum and maximum slots to make sure the response always returns consecutive time slots, possibly filled with zeroes
+   local min_slot, max_slot
+   for _, alert in ipairs(alerts) do
+      local tstamp = tonumber(alert.tstamp)
+      local slot = tstamp - (tstamp % time_slot_width)
+
+      -- Exclude alerts falling outside requested time ranges
+      if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
+      if self._epoch_end and tstamp > self._epoch_end then goto continue end
+
+      if not min_slot or tstamp < min_slot then min_slot = tstamp end
+      if not max_slot or tstamp > max_slot then max_slot = tstamp end
+      all_slots[slot] = (all_slots[slot] or 0) + 1
+
+      ::continue::
+   end
+
+   local now = os.time()
+
+   -- Minimum slot is, in order, the specified begin epoch, or the oldest time read in the query, or one hour ago as fallback
+   min_slot = self._epoch_begin or min_slot or now - 3600
+
+   -- Minimum slot is, in order, the specified begin epoch, or the oldest time read in the query, or the current time as fallback
+   max_slot = self._epoch_end or max_slot or now
+
+   -- Align the range using the width of the time slot to always return aligned data
+   min_slot = min_slot - (min_slot % time_slot_width)
+   max_slot = max_slot - (max_slot % time_slot_width)
+
+   -- Pad missing points with zeroes
+   for slot = min_slot, max_slot + 1, time_slot_width do
+      if not all_slots[slot] then
+	 all_slots[slot] = 0
+      end
+   end
+
+   -- Prepare the result as a Lua array ordered by time slot
+   local res = {}
+   for slot, count in pairsByKeys(all_slots, asc) do
+      res[#res + 1] = {slot * 1000 --[[ In milliseconds --]], count}
+   end
+
+   return res
+end
+
+-- ##############################################
+
 --@brief Performs a query and counts the number of records in multiple time slots
-function alert_store:count_by_time()
-   local time_slot_width = 300 -- 5-minute slots
+function alert_store:count_by_time_historical()
    -- Preserve all the filters currently set
    local where_clause = table.concat(self._where, " AND ")
 
@@ -365,6 +436,23 @@ end
 
 -- ##############################################
 -- REST API Utility Functions
+-- ##############################################
+
+--@brief Handle count requests (GET) from memory (engaged) or database (historical)
+--@return Alert counters divided into time slots
+function alert_store:count_by_time()
+   -- Add filters
+   self:add_request_filters()
+   -- Add limits and sort criteria
+   self:add_request_ranges()
+
+   if self._engaged then -- Engaged
+      return self:count_by_time_engaged()
+   else -- Historical
+      return self:count_by_time_historical()
+   end
+end
+
 -- ##############################################
 
 --@brief Handle alerts select request (GET) from memory (engaged) or database (historical)

@@ -41,15 +41,12 @@
                 </ul>
             </div>
             <div class="card-body">
-
-                {% if (alert_stats.status == "historical") then %}
                 <div>
                     {* widget_gui_utils.render_chart(chart.name, {
                         displaying_label = ""
                     }) *}
                 </div>
                 <hr>
-                {% end %}
 
                 <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'> 
                     <thead>
