@@ -109,10 +109,6 @@ function print_usage() {
 	echo ""
 }
 
-# Uncomment to enable logging
-#logsetup $ACTION
-#log Requested $ACTION
-
 POSITIONAL=()
 while [[ $# -gt 0 ]]
 do
@@ -140,6 +136,10 @@ if [[ ( $ACTION != "check-updates" && $ACTION != "check-updates-on-demand" && $A
 	print_usage
 	exit 1
 fi
+
+# Uncomment to enable logging (moved to the single functions to reduce verbosity)
+#logsetup $ACTION
+#log Requested $ACTION
 
 function set_failure() {
 	STATUS=$1
@@ -210,6 +210,9 @@ function run_upgrade() {
 	# Set "in progress" flag
 	${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_IN_PROGRESS_KEY} "1" EX 3600 >/dev/null 2>&1 
 
+	logsetup $ACTION
+	log Requested $ACTION
+
 	if [ "${OS}" == "DEBIAN" ]; then
 		# Debian or Ubuntu
 
@@ -263,6 +266,10 @@ function check_updates() {
 	CRON_UPDATES=$1
 	NTOPNG_VERSION=""
 	RESULT=1
+
+	logsetup $ACTION
+	log Requested $ACTION
+
 	if [ "${OS}" == "DEBIAN" ]; then
 		# Debian or Ubuntu
 
