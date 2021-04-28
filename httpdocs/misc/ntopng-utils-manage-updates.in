@@ -214,7 +214,10 @@ function run_upgrade() {
 		# Debian or Ubuntu
 
 		# Update repo index
-		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/${APT_SOURCE}" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+		#${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/${APT_SOURCE}" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+		# Note: we are updating all the repos as ntopng may depend on old
+		# packages no longer available in other repos, leading to an upgrade failure.
+		${APT_GET} update
 
 		# Install
 		${APT_GET} upgrade --assume-yes --fix-broken --allow-unauthenticated --with-new-pkgs ${PRODUCT}
