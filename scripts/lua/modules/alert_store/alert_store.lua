@@ -440,6 +440,13 @@ end
 function alert_store:format_record_common(value, entity_id)
    local record = {}
 
+   local severity = alert_consts.alertSeverityById(tonumber(value["severity"]))
+   local severity_label = ""
+   
+   if severity then
+      severity_label = "<i class='"..severity.icon.."' title='"..i18n(severity.i18n_title).."'></i> "
+   end
+   
    -- Note: this record is rendered by 
    -- httpdocs/templates/pages/alerts/families/{host,..}/table[.js].template 
 
@@ -454,7 +461,7 @@ function alert_store:format_record_common(value, entity_id)
 
    record["severity"] = {
       value = value["severity"],
-      label = alert_consts.alertSeverityLabel(tonumber(value["severity"])),
+      label = severity_label
    }
 
    if tonumber(value["tstamp_end"]) and tonumber(value["tstamp"]) then

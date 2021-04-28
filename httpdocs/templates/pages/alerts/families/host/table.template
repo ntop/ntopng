@@ -4,7 +4,6 @@
     <th>{{ i18n("show_alerts.alert_counts") }}</th>
     <th>{{ i18n("show_alerts.alert_severity_and_type") }}</th>
     <th>{{ i18n("host_details.host") }}</th>
-    <th>{{ i18n("nedge.hostname") }}</th>
     <th>{{ i18n("description") }}</th>
     <th>{{ i18n("actions") }}</th>
 </tr>

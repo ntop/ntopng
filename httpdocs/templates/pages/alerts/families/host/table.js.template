@@ -10,11 +10,12 @@
     /* IP Address */
     {name: 'ip', data: 'ip', orderable: false, render: (ipAddress, type, row) => {
         if (type !== "display") return ipAddress;
-        const label = `${ipAddress} ${row.is_attacker ? '<i class="fas fa-skull-crossbones"></i>' : ''} ${row.is_victim ? '<i class="fas fa-sad-tear"></i>' : ''}`;
-        return DataTableRenders.filterize(ipAddress, label);
+    	let html_ref = '';
+	if (ipAddress.reference !== undefined)
+	   html_ref = `<a class='' href='${ipAddress.reference}' title=''><i class='fas fa-link'></i></a>`
+	const label = `${ipAddress.label} ${row.is_attacker ? '<i class="fas fa-skull-crossbones"></i>' : ''} ${row.is_victim ? ('<i class="fas fa-sad-tear"></i>' + html_ref): ('' + html_ref)}`;
+        return DataTableRenders.filterize(ipAddress.value, label);
     }},
-    /* IP Address */
-    {name: 'hostname', data: 'hostname'},
     /* Description */
     {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
 ]

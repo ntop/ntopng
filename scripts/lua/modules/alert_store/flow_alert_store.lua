@@ -213,13 +213,45 @@ function flow_alert_store:format_record(value)
    local msg = alert_utils.formatFlowAlertMessage(ifid, value, alert_info)
    local application =  interface.getnDPIProtoName(tonumber(value["l7_proto"]))
 
+   -- Host reference
+   local reference = nil
+   local cli_ip = hostinfo2hostkey(value, "cli")
+   local srv_ip = hostinfo2hostkey(value, "srv")
+   if (interface.getHostMinInfo(cli_ip)).name then
+      reference = "/lua/host_details.lua?host=" .. cli_ip
+   end
+
    record["alert_name"] = alert_name
    record["score"] = score
    record["msg"] = msg
-   record["cli_name"] = value["cli_name"]
    record["srv_name"] = value["srv_name"]
-   record["cli_ip"] = hostinfo2hostkey(value, "cli")
-   record["srv_ip"] = hostinfo2hostkey(value, "srv")
+   record["cli_ip"] = {
+      value = cli_ip,
+      label = cli_ip,
+      reference = reference
+   }
+
+   -- Checking that the name of the host is not empty
+   if value["cli_name"] and (not isEmptyString(value["cli_name"])) then
+      record["cli_ip"]["label"] = value["cli_name"]
+   end
+
+   reference = nil
+   if (interface.getHostMinInfo(srv_ip)).name then
+      reference = "/lua/host_details.lua?host=" .. srv_ip
+   end
+
+   record["srv_ip"] = {
+      value = srv_ip,
+      label = srv_ip,
+      reference = reference
+   }
+
+   -- Checking that the name of the host is not empty
+   if value["srv_name"] and (not isEmptyString(value["srv_name"])) then
+      record["srv_ip"]["label"] = value["srv_name"]
+   end
+
    record["cli_port"] = value["cli_port"]
    record["srv_port"] = value["srv_port"]
    record["vlan_id"] = value["vlan_id"]

@@ -122,10 +122,24 @@ function host_alert_store:format_record(value)
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), false, alert_entities.host.entity_id)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
+   local host = hostinfo2hostkey(value)
+   local reference = nil
+   
+   if (interface.getHostMinInfo(host)).name then
+      reference = "/lua/host_details.lua?host=" .. host
+   end
+   record["ip"] = {
+      value = host,
+      label = host,
+      reference = reference
+   }
+
+   -- Checking that the name of the host is not empty
+   if value["name"] and (not isEmptyString(value["name"])) then
+      record["host"]["label"] = value["name"]
+   end
 
    record["alert_name"] = alert_name
-   record["ip"] = hostinfo2hostkey(value)
-   record["hostname"] = value["name"]
    record["is_attacker"] = value["is_attacker"] == "1"
    record["is_victim"] = value["is_victim"] == "1"
    record["vlan_id"] = value["vlan_id"] or 0

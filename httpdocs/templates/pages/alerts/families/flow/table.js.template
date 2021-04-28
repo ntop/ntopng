@@ -13,17 +13,19 @@
         return DataTableRenders.filterize(proto.value, proto.label);
     }},
     /* Client */
-    {name: 'cli_ip', data: 'cli_ip', orderable: false, render: (cliIp, type, row) => {
-        return DataTableRenders.filterize(cliIp, `${cliIp} ${row.is_attacker_to_victim ? "<i class='fas fa-skull-crossbones'></i>" : ""}`);
+    {name: 'cli_ip', data: 'cli_ip', orderable: false, className: 'text-nowrap', render: (cliIp, type, row) => {
+    	let html_ref = '';
+	if (cliIp.reference !== undefined)
+	   html_ref = `<a class='' href='${cliIp.reference}' title=''><i class='fas fa-link'></i></a>`
+        return DataTableRenders.filterize(cliIp.value, `${cliIp.label} ${row.is_attacker_to_victim ? ("<i class='fas fa-skull-crossbones'></i> " + html_ref) : ("" + html_ref)}`);
     }},
-    /* Client Name */
-    {name: 'cli_name', data: 'cli_name'},
     /* Server */
-    {name: 'srv_ip', data: 'srv_ip', orderable: false, render: (srvIp, type, row) => {
-        return DataTableRenders.filterize(srvIp, `${srvIp} ${row.is_victim_to_attacker ? "<i class='fas fa-skull-crossbones'></i>" : ""}`);
+    {name: 'srv_ip', data: 'srv_ip', orderable: false, className: 'text-nowrap', render: (srvIp, type, row) => {
+    	let html_ref = '';
+	if (srvIp.reference !== undefined)
+	   html_ref = `<a class='' href='${srvIp.reference}' title=''><i class='fas fa-link'></i></a>`
+        return DataTableRenders.filterize(srvIp.value, `${srvIp.label} ${row.is_victim_to_attacker ? ("<i class='fas fa-skull-crossbones'></i> " + html_ref) : ("" + html_ref) }`);
     }},
-    /* Server Name */
-    {name: 'srv_name', data: 'srv_name'},
     /* Description */
     {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
 ]
