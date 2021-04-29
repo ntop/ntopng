@@ -1707,7 +1707,6 @@ local known_parameters = {
    ["max_num_days_before_delete_alert"]            = validateNumber,
    ["elephant_flow_remote_to_local_bytes"]         = validateNumber,
    ["elephant_flow_local_to_remote_bytes"]         = validateNumber,
-   ["max_num_flow_alerts"]                         = validateNumber,
    ["max_num_packets_per_tiny_flow"]               = validateNumber,
    ["max_num_bytes_per_tiny_flow"]                 = validateNumber,
    ["google_apis_browser_key"]                     = validateSingleWord,

@@ -590,7 +590,6 @@
 #define CONST_SECONDARY_DNS                 NTOPNG_PREFS_PREFIX".secondary_dns"
 #define CONST_MAX_NUM_DAYS_ALERTS_BEFORE_DEL NTOPNG_PREFS_PREFIX".max_num_days_before_delete_alert"
 #define CONST_MAX_NUM_ALERTS_PER_ENTITY     NTOPNG_PREFS_PREFIX".max_num_alerts_per_entity"
-#define CONST_MAX_NUM_FLOW_ALERTS           NTOPNG_PREFS_PREFIX".max_num_flow_alerts"
 #define CONST_PROFILES_PREFS                NTOPNG_PREFS_PREFIX".profiles"
 #define CONST_PROFILES_COUNTERS             "ntopng.profiles_counters.ifid_%i"
 #define CONST_PREFS_CAPTIVE_PORTAL          NTOPNG_PREFS_PREFIX".enable_captive_portal"
@@ -864,9 +863,9 @@
    <prefix>.ifid_<ifid>.alerts.aggregation_cache.<alert_type>_<alert_subtype>_<granularity>_<entity>_<entity_val>_<severity> */
 #define ALERTS_MANAGER_AGGR_CACHE_KEY        NTOPNG_CACHE_PREFIX ".ifid_%d.alerts.aggregation_cache.%i_%s_%i_%i_%s_%i"
 
-#define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1024
+#define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1000000
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
-#define ALERTS_MAX_DAYS_BEFORE_PURGE         365
+#define ALERTS_MAX_DAYS_BEFORE_PURGE         (365*24*60*60) /* This is seconds! */
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_TABLE_NAME            "alerts"
 #define ALERTS_MANAGER_STORE_NAME            "alerts_v30.db"

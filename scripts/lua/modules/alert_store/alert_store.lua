@@ -567,4 +567,30 @@ end
 
 -- ##############################################
 
+--@brief Deletes old data according to the configuration or up to a safe limit
+function alert_store:housekeeping()
+   local prefs = ntop.getPrefs()
+
+   -- By Number of records
+   
+   local max_num_alerts_per_entity = prefs.max_num_alerts_per_entity
+   local limit = (max_num_alerts_per_entity * 0.8) -- deletes 20% more alerts than the maximum number
+   limit = round(limit, 0)
+
+   local q = string.format("DELETE FROM `%s` WHERE rowid IN (SELECT rowid FROM `%s` ORDER BY rowid DESC LIMIT -1 OFFSET %u)",
+      self._table_name, self._table_name, limit)
+   interface.alert_store_query(q)
+
+   -- By Time
+   
+   local now = os.time()
+   local max_time_sec = prefs.max_num_days_before_delete_alert
+   local expiration_epoch = now - max_time_sec
+
+   q = string.format("DELETE FROM `%s` WHERE tstamp < %u", self._table_name, expiration_epoch)
+   interface.alert_store_query(q)
+end
+
+-- ##############################################
+
 return alert_store

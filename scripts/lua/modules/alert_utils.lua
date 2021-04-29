@@ -848,56 +848,6 @@ end
 
 -- #################################
 
-function alert_utils.housekeepingAlertsMakeRoom(ifId)
-   local prefs = ntop.getPrefs()
-   local max_num_alerts_per_entity = prefs.max_num_alerts_per_entity
-   local max_num_flow_alerts = prefs.max_num_flow_alerts
-
-   local k = get_make_room_keys(ifId)
-
-   if ntop.getCache(k["entities"]) == "1" then
-      ntop.delCache(k["entities"])
-      local res = interface.queryAlertsRaw(
-					   "SELECT alert_entity, alert_entity_val, count(*) count", "",
-					   "GROUP BY alert_entity, alert_entity_val HAVING COUNT >= "..max_num_alerts_per_entity) or {}
-
-      for _, e in pairs(res) do
-	 local to_keep = (max_num_alerts_per_entity * 0.8) -- deletes 20% more alerts than the maximum number
-	 to_keep = round(to_keep, 0)
-	 -- tprint({e=e, total=e.count, to_keep=to_keep, to_delete=to_delete, to_delete_not_discounted=(e.count - max_num_alerts_per_entity)})
-	 local cleanup = interface.queryAlertsRaw(
-						  "DELETE",
-						  "alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
-						     .." AND rowid NOT IN (SELECT rowid FROM alerts WHERE alert_entity="..e.alert_entity.." AND alert_entity_val=\""..e.alert_entity_val.."\" "
-						     ,"ORDER BY alert_tstamp DESC LIMIT "..to_keep..")", false)
-      end
-   end
-
-   if ntop.getCache(k["flows"]) == "1" then
-      ntop.delCache(k["flows"])
-      local res = interface.queryFlowAlertsRaw("SELECT count(*) count") or {}
-      local count = nil
-
-      -- res can be an empty table, so a check is needed
-      if table.len(res) >= 2 then
-	 count = tonumber(res[1].count)
-      end
-
-      if count ~= nil and count >= max_num_flow_alerts then
-	 local to_keep = (max_num_flow_alerts * 0.8)
-	 to_keep = round(to_keep, 0)
-	 local cleanup = interface.queryFlowAlertsRaw("DELETE",
-						      "rowid NOT IN (SELECT rowid FROM flows_alerts ORDER BY alert_tstamp DESC LIMIT "..to_keep..")")
-	 -- tprint({total=count, to_delete=to_delete, cleanup=cleanup})
-	 -- tprint(cleanup)
-	 -- TODO: possibly raise a too many flow alerts
-      end
-   end
-
-end
-
--- #################################
-
 function alert_utils.drawAlertPCAPDownloadDialog(ifid)
    local modalID = "pcapDownloadModal"
 
