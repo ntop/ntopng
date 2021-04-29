@@ -552,8 +552,11 @@ function alert_store:format_record_common(value, entity_id)
       label = severity_label
    }
 
-   if tonumber(value["tstamp_end"]) and tonumber(value["tstamp"]) then
+   if tonumber(value["tstamp_end"]) > 0 and tonumber(value["tstamp"]) > 0 then
       record["duration"] = tonumber(value["tstamp_end"]) - tonumber(value["tstamp"]) 
+   elseif tonumber(value["tstamp"]) > 0 then
+      local now = os.time()
+      record["duration"] = now - tonumber(value["tstamp"])
    end
 
    local count = 1 -- TODO (not yet supported)
