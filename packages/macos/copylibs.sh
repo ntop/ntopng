@@ -31,14 +31,17 @@ sort -u $TMPFILEALL > $TMPFILE
 # One more try for nested dependencies
 #
 
-/bin/rm -f $TMPFILEALL
-
-while read p; do
-    # echo "** Processing $p"
-    findlibs $p $TMPFILEALL
-done <$TMPFILE
-
-sort -u $TMPFILEALL > $TMPFILE
+for LOOP in 1 2 3
+do
+    /bin/rm -f $TMPFILEALL
+    
+    while read p; do
+	# echo "** Processing $p"
+	findlibs $p $TMPFILEALL
+    done <$TMPFILE
+    
+    sort -u $TMPFILEALL > $TMPFILE
+done
 
 # Now copy the libraries to the target directory
 

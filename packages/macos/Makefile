@@ -15,14 +15,15 @@ ntopng-build:
 	cp ./uninstall.sh ${NTOPNG_BUILD}/usr/local/bin/ntopng-uninstall.sh
 	cp ./ntopng-macos.conf ${NTOPNG_BUILD}/usr/local/etc/ntopng/ntopng.conf
 	@echo "Copying library dependencies..."
-	@./copylibs.sh ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	./copylibs.sh ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/bin/redis-server ${NTOPNG_BUILD}/usr/local/bin/ntopng-redis-server
 
 	cp ../../httpdocs/geoip/dbip-asn-*.mmdb ../../httpdocs/geoip/dbip-country-*.mmdb ${NTOPNG_BUILD}/usr/local/share/ntopng/httpdocs/geoip
 
 	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/local/share/man/man8
 	cp -RL $(NTOPNG_HOME)/httpdocs ${NTOPNG_BUILD}/usr/local/share/ntopng
-	cp -RL $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/local/share/ntopng
+#	cp -RL $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/local/share/ntopng
+	cp -a $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/local/share/ntopng
 	mv ${NTOPNG_BUILD}/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy ${NTOPNG_BUILD}/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 	if test -d "$(NTOPNG_HOME)/pro"; then \
 		mkdir ${NTOPNG_BUILD}/usr/local/share/ntopng/pro; \
