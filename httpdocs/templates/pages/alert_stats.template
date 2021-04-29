@@ -17,7 +17,7 @@
                         <th>{{ i18n("score") }}</th>
                         <th>{{ i18n("application") }}</th>
                         <th>{{ i18n("show_alerts.alert_description") }}</th>
-                        <th>{{ i18n("show_alerts.alert_actions") }}</th>
+                        <th class="text-nowrap">{{ i18n("show_alerts.alert_actions") }}</th>
                     </thead>
                     <tbody></tbody>
                 </table>
