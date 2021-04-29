@@ -130,7 +130,6 @@ for i = #pages, 1, -1 do
    if cur_page.hidden then
       table.remove(pages, i)
    elseif cur_page.page_name == page then
-      tprint("H")
       endpoint_list = cur_page.endpoint_list
       endpoint_ts = cur_page.endpoint_ts
    end
