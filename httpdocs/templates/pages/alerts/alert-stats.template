@@ -58,7 +58,7 @@
                 <button id="btn-get-permalink" class="btn btn-secondary">
                     <i class="fas fa-link"></i> {{ i18n('graphs.get_permanent_link') }}
                 </button>
-                <a id="btn-download-records" download="nindex_query.json" class="btn btn-secondary" href="/">
+                <a id="btn-download-records" download="nindex_query.json" class="btn btn-secondary" href="{{ ntop.getHttpPrefix() }}/lua/rest/v1/get/{{ alert_stats.entity }}/alert/list.lua{{ build_query_params(datatable.datasource.params) }}">
                     <i class="fas fa-file-download"></i> {{ i18n('graphs.download_records') }}
                 </a>
             </div>
