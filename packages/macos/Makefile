@@ -22,23 +22,21 @@ ntopng-build:
 
 	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/local/share/man/man8
 	cp -RL $(NTOPNG_HOME)/httpdocs ${NTOPNG_BUILD}/usr/local/share/ntopng
-#	cp -RL $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/local/share/ntopng
-	cp -a $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/local/share/ntopng
+	mv $(NTOPNG_HOME)/scripts/lua/pro /tmp	
+	cp -RL $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/local/share/ntopng
+	/bin/rm -f ${NTOPNG_BUILD}/usr/local/share/ntopng/scripts/lua/pro
+#	cp -R $(NTOPNG_HOME)/pro/scripts/lua ${NTOPNG_BUILD}/usr/local/share/ntopng/scripts/lua/pro
+	mv /tmp/pro $(NTOPNG_HOME)/scripts/lua/pro
 	mv ${NTOPNG_BUILD}/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy ${NTOPNG_BUILD}/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem
-	if test -d "$(NTOPNG_HOME)/pro"; then \
-		mkdir ${NTOPNG_BUILD}/usr/local/share/ntopng/pro; \
-		cp -r $(NTOPNG_HOME)/pro/httpdocs ${NTOPNG_BUILD}/usr/local/share/ntopng/pro; \
-		cp -r $(NTOPNG_HOME)/pro/scripts ${NTOPNG_BUILD}/usr/local/share/ntopng/pro; \
-		rm -rf ${NTOPNG_BUILD}/usr/local/share/ntopng/pro/scripts/lua/nedge; \
-		cd ${NTOPNG_BUILD}/usr/local/share/ntopng/scripts/lua; rm -rf pro; ln -s ../../pro/scripts/lua pro; \
-		find ${NTOPNG_BUILD}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec $(NTOPNG_HOME)/pro/utils/snzip -c -i {} -o {}r \;; \
-		find ${NTOPNG_BUILD}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'; \
-		find ${NTOPNG_BUILD}/usr/local/share/ntopng/pro/scripts -name "*.luar" | xargs rename 's/\.luar/.lua/'; \
-	fi
-	if hash systemctl 2>/dev/null; then \
-		rm -rf ${NTOPNG_BUILD}/etc/init.d; \
-	fi
+	mkdir ${NTOPNG_BUILD}/usr/local/share/ntopng/pro
+	cp -r $(NTOPNG_HOME)/pro/httpdocs ${NTOPNG_BUILD}/usr/local/share/ntopng/pro
+	cp -r $(NTOPNG_HOME)/pro/scripts ${NTOPNG_BUILD}/usr/local/share/ntopng/pro
+	rm -rf ${NTOPNG_BUILD}/usr/local/share/ntopng/pro/scripts/lua/nedge
+	cd ${NTOPNG_BUILD}/usr/local/share/ntopng/scripts/lua; ln -s ../../pro/scripts/lua pro; cd -
 
+	find ${NTOPNG_BUILD}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec ./compresslua.sh {} ';'
+
+	rm -rf ${NTOPNG_BUILD}/etc/init.d
 	find ${NTOPNG_BUILD}/usr/local/share/ntopng -name "*~"   | xargs /bin/rm -f
 	find ${NTOPNG_BUILD}/usr/local/share/ntopng -name ".svn" | xargs /bin/rm -rf
 	find ${NTOPNG_BUILD}/usr/local/share/ntopng -name ".git" | xargs /bin/rm -rf
@@ -47,3 +45,5 @@ ntopng-build:
 
 clean:
 	rm -rf *~ install
+
+#cd ${NTOPNG_BUILD}/usr/local/share/ntopng/scripts/lua; rm -rf pro; ln -s ../../pro/scripts/lua pro
