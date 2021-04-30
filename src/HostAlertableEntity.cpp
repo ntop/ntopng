@@ -120,7 +120,7 @@ void HostAlertableEntity::countAlerts(grouped_alerts_counters *counters) {
 /* ****************************************** */
 
 void HostAlertableEntity::luaAlert(lua_State* vm, HostAlert *alert) {
-  char ip_buf[128];
+  char ip_buf[128], buf[128];
   ndpi_serializer *alert_json_serializer = NULL;
   char *alert_json = NULL;
   u_int32_t alert_json_len;
@@ -137,6 +137,8 @@ void HostAlertableEntity::luaAlert(lua_State* vm, HostAlert *alert) {
   lua_push_uint64_table_entry(vm, "tstamp_end", alert->getReleaseTime());
 
   lua_push_str_table_entry(vm, "ip", alert->getHost()->get_ip()->print(ip_buf, sizeof(ip_buf)));
+  alert->getHost()->get_name(buf, sizeof(buf), false);
+  lua_push_str_table_entry(vm, "name", buf);
   lua_push_uint64_table_entry(vm, "vlan_id", alert->getHost()->get_vlan_id());
   lua_push_bool_table_entry(vm, "is_attacker", alert->isAttacker());
   lua_push_bool_table_entry(vm, "is_victim", alert->isVictim());

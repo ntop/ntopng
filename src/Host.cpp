@@ -1628,7 +1628,7 @@ bool Host::isFlowAlertDisabled(FlowAlertType alert_type) {
 
 /* Create a JSON in the alerts format */
 void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
-  char ip_buf[128];
+  char ip_buf[128], buf[128];
   ndpi_serializer *alert_json_serializer = NULL;
   char *alert_json = NULL;
   u_int32_t alert_json_len;
@@ -1642,6 +1642,8 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
   ndpi_serialize_string_string(s, "subtype", "" /* No subtype for hosts */);
   ndpi_serialize_string_int32(s, "severity", alert->getSeverity());
   ndpi_serialize_string_string(s, "ip", ip.print(ip_buf, sizeof(ip_buf)));
+  get_name(buf, sizeof(buf), false);
+  ndpi_serialize_string_string(s, "name", buf);
   ndpi_serialize_string_int32(s, "vlan_id", get_vlan_id());
   ndpi_serialize_string_int32(s, "entity_id", alert_entity_host);
   ndpi_serialize_string_string(s, "entity_val", getEntityValue().c_str());
