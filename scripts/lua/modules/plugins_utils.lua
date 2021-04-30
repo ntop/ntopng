@@ -121,7 +121,7 @@ local function recursivePluginsSearch(edition, source_dir, max_recursion, plugin
 	    recursivePluginsSearch(edition, plugin_dir, max_recursion - 1, plugins, plugins_with_deps)
 	 else
 	    -- Maximum recursion hit. must stop
-	    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Unable to load '%s'. Missing 'manifest.lua'", plugin_dir))
+	    traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Unable to load '%s'. Missing 'manifest.lua'", plugin_dir))
 	    return
 	 end
       end
