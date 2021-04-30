@@ -226,8 +226,10 @@ function flow_alert_store:format_record(value, no_html)
       end
    end
 
+   local protocol = l4_proto_to_string(value["proto"])
+   
    local reference_html = nil
-	 
+
    -- Host reference
    local cli_ip = hostinfo2hostkey(value, "cli")
    local srv_ip = hostinfo2hostkey(value, "srv")
@@ -245,6 +247,9 @@ function flow_alert_store:format_record(value, no_html)
       label = cli_ip,
       reference = reference_html
    }
+
+   record["cli_port"] = value["cli_port"]
+   record["srv_port"] = value["srv_port"]
 
    -- Checking that the name of the host is not empty
    if value["cli_name"] and (not isEmptyString(value["cli_name"])) then
@@ -269,14 +274,17 @@ function flow_alert_store:format_record(value, no_html)
    record["cli_port"] = value["cli_port"]
    record["srv_port"] = value["srv_port"]
    record["vlan_id"] = value["vlan_id"]
-   record["proto"] = value["proto"]
+   record["proto"] = {
+      value = value["proto"],
+      label = protocol
+   }
    record["is_attacker_to_victim"] = value["is_attacker_to_victim"] == "1"
    record["is_victim_to_attacker"] = value["is_victim_to_attacker"] == "1"
    record["l7_proto"] = {
       value = value["l7_proto"],
       label = application
    }
-
+   
    return record
 end
 

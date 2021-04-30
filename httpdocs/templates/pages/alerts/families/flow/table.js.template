@@ -1,33 +1,46 @@
 [
     /* Date */
-    {name: 'tstamp', data: 'tstamp', className: 'text-center',},
+    {name: 'tstamp', data: 'tstamp', width: '5%', className: 'text-center',},
     /* Counts */
-    {name: 'count', className: 'text-center', data: 'count', visible: false},
+    {name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
     /* Alert Type + Severity */
-    {name: 'severity', className: 'text-center text-nowrap', data: 'severity', render: DataTableRenders.alertSeverityAndType},
+    {name: 'severity', className: 'text-center text-nowrap', width: '10%', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* Score */
-    {name: 'score', data: 'score', className: 'text-center', render: DataTableRenders.colorizeScore(100, 300)},
+    {name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.colorizeScore(100, 300)},
+    /* Protocol */
+    {name: 'proto', data: 'proto.label', orderable: false, className: 'text-center', width: '3%'/*, render: (proto, type, row) => {
+        if (type !== "display") return proto.value;
+        return DataTableRenders.filterize(proto.value, proto.label);
+    }*/},
     /* Application */
-    {name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center', render: (proto, type, row) => {
+    {name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center', width: '5%', render: (proto, type, row) => {
         if (type !== "display") return proto.value;
         return DataTableRenders.filterize(proto.value, proto.label);
     }},
     /* Client */
-    {name: 'cli_ip', data: 'cli_ip', orderable: false, className: 'text-nowrap', render: (cliIp, type, row) => {
+    {name: 'cli_ip', data: 'cli_ip', orderable: false, className: 'text-nowrap', width: '12%', render: (cliIp, type, row) => {
     	let htmlRef = '';
 	    if (cliIp.reference !== undefined) {
             htmlRef = cliIp.reference;
         }
         return DataTableRenders.filterize(cliIp.value, `${cliIp.label} ${row.is_attacker_to_victim ? ("<i class='fas fa-skull-crossbones'></i>") : ("")}`) + htmlRef;
     }},
+    /* Client Port */
+    {name: 'cli_port', data: 'cli_port', orderable: false, width: '3%', className: 'text-nowrap'/*, render: (cli_port, type, row) => {
+        return DataTableRenders.filterize(cli_port, cli_port);
+    }*/},
     /* Server */
-    {name: 'srv_ip', data: 'srv_ip', orderable: false, className: 'text-nowrap', render: (srvIp, type, row) => {
+    {name: 'srv_ip', data: 'srv_ip', orderable: false, className: 'text-nowrap', width: '12%', render: (srvIp, type, row) => {
     	let htmlRef = '';
 	    if (srvIp.reference !== undefined) {
             htmlRef = srvIp.reference;
         }
         return DataTableRenders.filterize(srvIp.value, `${srvIp.label} ${row.is_victim_to_attacker ? ("<i class='fas fa-skull-crossbones'></i>") : ("")}`) + htmlRef;
     }},
+    /* Server Port */
+    {name: 'srv_port', data: 'srv_port', orderable: false, className: 'text-nowrap', width: '3%'/*, render: (srv_port, type, row) => {
+        return DataTableRenders.filterize(srv_port, srv_port);
+    }*/},
     /* Description */
     {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
 ]
