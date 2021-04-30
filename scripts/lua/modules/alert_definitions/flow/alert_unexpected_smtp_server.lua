@@ -18,7 +18,7 @@ local alert_unexpected_smtp_server = classes.class(alert)
 
 alert_unexpected_smtp_server.meta = {
    alert_key = flow_alert_keys.flow_alert_unexpected_smtp_server,
-   i18n_title = "unexpected_smtp.alert_unexpected_smtp_title",
+   i18n_title = "flow_alerts_explorer.alert_unexpected_smtp_title",
    icon = "fas fa-exclamation",
    has_victim = true,
    has_attacker = true,
@@ -34,7 +34,7 @@ end
 -- #######################################################
 
 function alert_unexpected_smtp_server.format(ifid, alert, alert_type_params)
-    return(i18n("unexpected_smtp.status_unexpected_smtp_description", { server=alert.srv_ip} ))
+    return(i18n("flow_alerts_explorer.status_unexpected_smtp_description", { server=alert.srv_ip} ))
 end
 
 -- #######################################################

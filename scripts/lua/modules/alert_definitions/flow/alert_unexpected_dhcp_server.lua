@@ -18,7 +18,7 @@ local alert_unexpected_dhcp_server = classes.class(alert)
 
 alert_unexpected_dhcp_server.meta = {
    alert_key = flow_alert_keys.flow_alert_unexpected_dhcp_server,
-   i18n_title = "unexpected_dhcp.alert_unexpected_dhcp_title",
+   i18n_title = "flow_alerts_explorer.alert_unexpected_dhcp_title",
    icon = "fas fa-exclamation",
    has_victim = true,
    has_attacker = true,
@@ -43,7 +43,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_unexpected_dhcp_server.format(ifid, alert, alert_type_params)
-    return(i18n("unexpected_dhcp.status_unexpected_dhcp_description", { server=alert.srv_ip} ))
+    return(i18n("flow_alerts_explorer.status_unexpected_dhcp_description", { server=alert.srv_ip} ))
 end
 
 -- #######################################################

@@ -347,7 +347,8 @@ function user_scripts.getSubdirectoryPath(script_type, subdir)
    local prefix = plugins_utils.getRuntimePath() .. "/callbacks"
    local path
 
-   if subdir == "host" then
+   if subdir == "host" or subdir == "flow" then
+      -- host and flow have their callbacks defined under modules/ and implemented in C++
       path = string.format("%s/scripts/lua/modules/callback_definitions/%s", dirs.installdir, subdir)
    elseif not isEmptyString(subdir) and subdir ~= "." then
       path = string.format("%s/%s/%s", prefix, script_type.parent_dir, subdir)
@@ -782,7 +783,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
 	    local full_path = os_utils.fixPath(checks_dir .. "/" .. fname)
 	    local plugin = plugins_utils.getUserScriptPlugin(full_path)
 
-	    if(plugin == nil) and subdir ~= "host" --[[ TODO: remove check when migration done --]] then
+	    if(plugin == nil) and subdir ~= "host" and subdir ~= "flow" --[[ host and flow don't have plugins, they are implemented in C++ --]] then
 	       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Skipping unknown user script '%s'", mod_fname))
 	       goto next_module
 	    end

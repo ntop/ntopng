@@ -18,7 +18,7 @@ local alert_tcp_no_data_exchanged = classes.class(alert)
 
 alert_tcp_no_data_exchanged.meta = {
    alert_key = flow_alert_keys.flow_alert_tcp_no_data_exchanged,
-   i18n_title = "tcp_no_data_exchanged.alert_tcp_no_data_exchanged_title",
+   i18n_title = "flow_alerts_explorer.alert_tcp_no_data_exchanged_title",
    icon = "fas fa-arrow-circle-up",
 }
 
@@ -39,7 +39,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_tcp_no_data_exchanged.format(ifid, alert, alert_type_params)
-   return i18n("tcp_no_data_exchanged.alert_tcp_no_data_exchanged_description")
+   return i18n("flow_alerts_explorer.alert_tcp_no_data_exchanged_description")
 end
 
 -- #######################################################
