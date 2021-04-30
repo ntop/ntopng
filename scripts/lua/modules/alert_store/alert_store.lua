@@ -331,9 +331,9 @@ end
 -- ##############################################
 
 --@brief Counts the number of engaged alerts in multiple time slots
-function alert_store:count_by_time_engaged(filter)
+function alert_store:count_by_time_engaged(filter, severity)
    local alert_id_filter = tonumber(self._alert_id)
-   local severity_filter = tonumber(self._alert_severity)
+   local severity_filter = tonumber(severity) or tonumber(self._alert_severity)
    local entity_id_filter = tonumber(self._alert_entity and self._alert_entity.entity_id) -- Possibly set in subclasses constructor
    local entity_value_filter = filter or self._entity_value
    local all_slots = {}
@@ -389,9 +389,13 @@ end
 -- ##############################################
 
 --@brief Performs a query and counts the number of records in multiple time slots
-function alert_store:count_by_time_historical()
+function alert_store:count_by_time_historical(severity)
    -- Preserve all the filters currently set
    local where_clause = table.concat(self._where, " AND ")
+
+   if severity then
+      where_clause = string.format("severity = %u", severity) .. " AND " .. where_clause
+   end
 
    -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
    local q = string.format("SELECT (tstamp - tstamp %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY slot ORDER BY slot ASC",
@@ -440,16 +444,16 @@ end
 
 --@brief Handle count requests (GET) from memory (engaged) or database (historical)
 --@return Alert counters divided into time slots
-function alert_store:count_by_time()
+function alert_store:count_by_time(severity)
    -- Add filters
    self:add_request_filters()
    -- Add limits and sort criteria
    self:add_request_ranges()
 
    if self._engaged then -- Engaged
-      return self:count_by_time_engaged()
+      return self:count_by_time_engaged(nil, severity)
    else -- Historical
-      return self:count_by_time_historical()
+      return self:count_by_time_historical(severity)
    end
 end
 

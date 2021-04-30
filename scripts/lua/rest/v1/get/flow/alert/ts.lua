@@ -11,6 +11,7 @@ local alert_consts = require "alert_consts"
 local alert_entities = require "alert_entities"
 local rest_utils = require("rest_utils")
 local flow_alert_store = require "flow_alert_store".new()
+local alert_severities = require "alert_severities"
 
 --
 -- Read alerts data
@@ -20,7 +21,6 @@ local flow_alert_store = require "flow_alert_store".new()
 --
 
 local rc = rest_utils.consts.success.ok
-local res = {}
 
 local ifid = _GET["ifid"]
 
@@ -32,6 +32,12 @@ end
 
 interface.select(ifid)
 
-local count_by_time = flow_alert_store:count_by_time()
+local res = {}
+res.series = {} 
 
-rest_utils.answer(rc, {series = {{ data = count_by_time, name = i18n("alerts_dashboard.alerts") }}})
+for _, severity in pairs(alert_severities) do
+   local count_by_time = flow_alert_store:count_by_time(severity.severity_id)
+   res.series[#res.series + 1] = { data = count_by_time, name = i18n(severity.i18n_title) }
+end
+
+rest_utils.answer(rc, res)
