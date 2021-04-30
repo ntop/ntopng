@@ -159,7 +159,7 @@ widget_gui_utils.register_timeseries_bar_chart(CHART_NAME, 0, {
 })
 
 local modals = {
-    ["delete_alert_dialog"] = template_utils.gen("modal_confirm_dialog.html", {
+    ["delete_alert_dialog"] = template_utils.gen("modal_confirm_dialog_form.template", {
         dialog = {
             id      = "delete_alert_dialog",
             title   = i18n("show_alerts.delete_alert"),
@@ -184,7 +184,7 @@ local modals = {
             entity = page
         }
     }),
-    ["release_single_alert"] = template_utils.gen("modal_confirm_dialog.html", {
+    ["release_single_alert"] = template_utils.gen("modal_confirm_dialog_form.template", {
         dialog = {
             id      = "release_single_alert",
             title   = i18n("show_alerts.release_alert"),
