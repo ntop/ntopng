@@ -3762,7 +3762,6 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   IpAddress *cli_ip = (IpAddress *) f->get_srv_ip_addr();
   IpAddress *srv_ip = (IpAddress *) f->get_cli_ip_addr();
   u_int16_t alert_type_filter;
-  AlertLevelGroup alert_type_severity_filter = alert_level_group_none;
   u_int8_t ip_version;
   u_int8_t l4_protocol;
   u_int8_t *mac_filter;
@@ -3967,7 +3966,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     /* Flow Status severity filter */
     if(retriever->pag
-       && retriever->pag->flowStatusFilter(&alert_type_severity_filter)) {
+       && retriever->pag->flowStatusFilter(&flow_status_severity_filter)) {
       if(!f->isFlowAlerted()
 	 || f->getAlertedSeverity() == alert_level_none
 	 || (flow_status_severity_filter == alert_level_group_notice_or_lower  && f->getAlertedSeverity() > alert_level_notice)
