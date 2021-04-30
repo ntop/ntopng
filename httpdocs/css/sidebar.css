@@ -8,7 +8,7 @@
     flex-direction: column;
     color: white;
     transition: width .5s;
-    z-index: 1050;
+    z-index: 1040;
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
@@ -254,7 +254,7 @@
     animation: none;
     transition: none;
     left: var(--sidebar-width);
-    z-index: 1050;
+    z-index: 1040;
     width: 16rem;
     top: 0;
     position: absolute;

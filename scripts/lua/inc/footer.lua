@@ -45,19 +45,19 @@ print ([[
 <footer id="n-footer">
 	<div class="container-fluid">
 		<div class="row mt-2">
-			<div class="col-4 pl-md-0 text-left">
+			<div class="col-12 col-md-4 pl-md-0 text-center text-md-left">
 				<small>
 					<a href="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">
 				  		]] .. getNtopngRelease(info) ..[[
 					</a>
 				</small>
 			</div>
-			<div class="col-4 text-center">
+			<div class="col-12 col-md-4 text-center">
 				<small>]].. ntop.getInfo()["copyright"] ..[[</small>
 ]])
 print [[
 			</div>
-			<div class="col-4 text-right pr-md-0">
+			<div class="col-12 col-md-4 text-center text-md-right pr-md-0">
 				<small>
 						<i class="fas fa-clock" title="]] print(i18n("about.server_time")) print[["></i> <div class="d-inline-block" id='network-clock'></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
 				</small>
