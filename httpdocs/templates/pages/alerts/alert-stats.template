@@ -61,7 +61,6 @@
                 <a id="btn-download-records" download="alerts.json" class="btn btn-secondary" href="{{ ntop.getHttpPrefix() }}/lua/rest/v1/get/{{ alert_stats.entity }}/alert/list.lua{{ build_query_params(datatable.datasource.params) }}">
                     <i class="fas fa-file-download"></i> {{ i18n('graphs.download_records') }}
                 </a>
-                {% end %}
             </div>
         </div>
     </div>
