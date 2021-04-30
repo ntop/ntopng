@@ -503,13 +503,13 @@
                 $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
 
                 if (FAMILY === "host") {
-                    const label = (alert.hostname) ? `${alert.hostname} (${alert.ip})` : alert.ip; 
+                    const label = (alert.ip.label) ? `${alert.ip.label} (${alert.ip.value})` : alert.ip.value; 
                     $(`.alert_addr`).text(label);
                 }
                 else if (FAMILY === "flow") {
 
-                    const cliLabel = (alert.cli_name) ? `${alert.cli_name} (${alert.cli_ip})` : alert.cli_ip;
-                    const srvLabel = (alert.srv_name) ? `${alert.srv_name} (${alert.srv_ip})` : alert.srv_ip;
+                    const cliLabel = (alert.cli_ip.label) ? `${alert.cli_ip.label} (${alert.cli_ip.value})` : alert.cli_ip.value;
+                    const srvLabel = (alert.srv_ip.label) ? `${alert.srv_ip.label} (${alert.srv_ip.value})` : alert.srv_ip.value;
 
                     $(`#cli_addr`).text(cliLabel);
                     $(`#cli_radio`).val(alert.cli_ip);
