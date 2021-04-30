@@ -64,11 +64,11 @@ end
 -- ##############################################
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
-function network_alert_store:format_record(alert)
-   local record = self:format_record_common(alert, alert_entities.network.entity_id)
+function network_alert_store:format_record(alert, no_html)
+   local record = self:format_record_common(alert, alert_entities.network.entity_id, no_html)
 
-   local alert_id_label = alert_consts.alertTypeLabel(tonumber(alert["alert_id"]), false)
-   local alert_name = alert_consts.alertTypeLabel(tonumber(alert["alert_id"]), false, alert_entities.network.entity_id)
+   local alert_id_label = alert_consts.alertTypeLabel(tonumber(alert["alert_id"]), no_html)
+   local alert_name = alert_consts.alertTypeLabel(tonumber(alert["alert_id"]), no_html, alert_entities.network.entity_id)
    local alert_info = alert_utils.getAlertInfo(alert)
    local msg = alert_utils.formatAlertMessage(ifid, alert, alert_info)
 

@@ -525,14 +525,16 @@ end
 -- ##############################################
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
-function alert_store:format_record_common(value, entity_id)
+function alert_store:format_record_common(value, entity_id, no_html)
    local record = {}
 
    local severity = alert_consts.alertSeverityById(tonumber(value["severity"]))
    local severity_label = ""
    
-   if severity then
+   if severity and not no_html then
       severity_label = "<i class='"..severity.icon.."' title='"..i18n(severity.i18n_title).."'></i> "
+   elseif severity and no_html then
+      severity_label = severity.i18n_title
    end
    
    -- Note: this record is rendered by 
@@ -544,7 +546,7 @@ function alert_store:format_record_common(value, entity_id)
 
    record["alert_id"] = {
       value = value["alert_id"],
-      label = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), false, entity_id),
+      label = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, entity_id),
    }
 
    record["severity"] = {

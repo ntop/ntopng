@@ -204,19 +204,25 @@ end
 -- ##############################################
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
-function flow_alert_store:format_record(value)
-   local record = self:format_record_common(value, alert_entities.flow.entity_id)
+function flow_alert_store:format_record(value, no_html)
+   local record = self:format_record_common(value, alert_entities.flow.entity_id, no_html)
 
    local score = tonumber(value["score"])
    local alert_info = alert_utils.getAlertInfo(value)
-   local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), false, alert_entities.flow.entity_id)
+   local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.flow.entity_id)
    local msg = alert_utils.formatFlowAlertMessage(ifid, value, alert_info)
    local application =  interface.getnDPIProtoName(tonumber(value["l7_proto"]))
 
+   local reference_html = nil
+	 
    -- Host reference
    local cli_ip = hostinfo2hostkey(value, "cli")
    local srv_ip = hostinfo2hostkey(value, "srv")
 
+   if not no_html then
+      reference_html = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
+   end
+   
    record["alert_name"] = alert_name
    record["score"] = score
    record["msg"] = msg
@@ -224,18 +230,22 @@ function flow_alert_store:format_record(value)
    record["cli_ip"] = {
       value = cli_ip,
       label = cli_ip,
-      reference = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
+      reference = reference_html
    }
 
    -- Checking that the name of the host is not empty
    if value["cli_name"] and (not isEmptyString(value["cli_name"])) then
       record["cli_ip"]["label"] = value["cli_name"]
    end
+   
+   if not no_html then
+      reference_html = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
+   end
 
    record["srv_ip"] = {
       value = srv_ip,
       label = srv_ip,
-      reference = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
+      reference = reference_html
    }
 
    -- Checking that the name of the host is not empty

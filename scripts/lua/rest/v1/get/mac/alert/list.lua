@@ -20,6 +20,8 @@ local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
+local format = _GET["format"] or "json"
+local no_html = (format == "txt")
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts.err.invalid_interface
@@ -33,7 +35,7 @@ interface.select(ifid)
 local alerts, recordsFiltered = mac_alert_store:select_request()
 
 for _key,_value in ipairs(alerts or {}) do
-   local record = mac_alert_store:format_record(_value)
+   local record = mac_alert_store:format_record(_value, no_html)
    res[#res + 1] = record
 end -- for
 
@@ -41,4 +43,4 @@ rest_utils.extended_answer(rc, {records = res}, {
 			      ["draw"] = tonumber(_GET["draw"]),
 			      ["recordsFiltered"] = #res,
 			      ["recordsTotal"] = recordsFiltered
-})
+}, format)

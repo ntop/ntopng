@@ -116,18 +116,24 @@ end
 -- ##############################################
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
-function host_alert_store:format_record(value)
-   local record = self:format_record_common(value, alert_entities.host.entity_id)
+function host_alert_store:format_record(value, no_html)
+   local record = self:format_record_common(value, alert_entities.host.entity_id, no_html)
 
    local alert_info = alert_utils.getAlertInfo(value)
-   local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), false, alert_entities.host.entity_id)
+   local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.host.entity_id)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
    local host = hostinfo2hostkey(value)
+
+   local reference_html = nil
+   
+   if not no_html then
+      reference_html = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
+   end
 
    record["ip"] = {
       value = host,
       label = host,
-      reference = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
+      reference = reference_html 
    }
 
    -- Checking that the name of the host is not empty

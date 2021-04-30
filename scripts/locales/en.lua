@@ -4542,6 +4542,7 @@ local lang = {
     ["disable_alerts_message"] = "Do you really want to disable \"%{type}\" alerts on %{entity_value}?",
     ["disable_alerts_title"] = "Disable Alerts",
     ["disabled_alerts"] = "Disabled Alerts",
+    ["download_alerts"] = "Download Alerts",
     ["dropped_alerts"] = "Dropped Alerts",
     ["enable_alerts"] = "Enable",
     ["enable_alerts_message"] = "Do you really want to enable \"%{type}\" alerts on %{entity_value}?",
