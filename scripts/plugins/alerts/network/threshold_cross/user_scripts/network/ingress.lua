@@ -35,7 +35,7 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.all(params)
+function script.hooks.min(params)
   local value = alerts_api.network_delta_val(script.key, params.granularity, params.entity_info["ingress"])
 
   -- Check if the configured threshold is crossed by the value and possibly trigger an alert
