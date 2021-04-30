@@ -132,7 +132,7 @@ function host_alert_store:format_record(value)
 
    -- Checking that the name of the host is not empty
    if value["name"] and (not isEmptyString(value["name"])) then
-      record["host"]["label"] = value["name"]
+      record["ip"]["label"] = value["name"]
    end
 
    record["alert_name"] = alert_name
