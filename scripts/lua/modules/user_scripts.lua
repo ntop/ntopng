@@ -342,21 +342,30 @@ local benchmarks = {}
 
 -- ##############################################
 
-function user_scripts.getSubdirectoryPath(script_type, subdir, is_pro)
-  local prefix = plugins_utils.getRuntimePath() .. "/callbacks"
-  local path
+function user_scripts.getSubdirectoryPath(script_type, subdir)
+   local res = { }
+   local prefix = plugins_utils.getRuntimePath() .. "/callbacks"
+   local path
 
-  if subdir == "host" then
-     path = string.format("%s/scripts/lua/modules/callback_definitions/%s", dirs.installdir, subdir)
-  elseif not isEmptyString(subdir) and subdir ~= "." then
-    path = string.format("%s/%s/%s", prefix, script_type.parent_dir, subdir)
-  else
-    path = string.format("%s/%s", prefix, script_type.parent_dir)
-  end
+   if subdir == "host" then
+      path = string.format("%s/scripts/lua/modules/callback_definitions/%s", dirs.installdir, subdir)
+   elseif not isEmptyString(subdir) and subdir ~= "." then
+      path = string.format("%s/%s/%s", prefix, script_type.parent_dir, subdir)
+   else
+      path = string.format("%s/%s", prefix, script_type.parent_dir)
+   end
 
-  local res = os_utils.fixPath(path)
+   res[#res + 1] = os_utils.fixPath(path)
 
-  return res
+   -- Add pro callback_definitions if necessary
+   if ntop.isPro() then
+      if subdir == "flow" then
+	 local pro_path = string.format("%s/pro/scripts/lua/modules/callback_definitions/%s", dirs.installdir, subdir)
+	 res[#res + 1] = os_utils.fixPath(pro_path)
+      end
+   end
+
+   return res
 end
 
 -- ##############################################
@@ -514,22 +523,12 @@ end
 
 -- ##############################################
 
-local function getScriptsDirectories(script_type, subdir)
-   local check_dirs = {
-      user_scripts.getSubdirectoryPath(script_type, subdir),
-   }
-
-   return(check_dirs)
-end
-
--- ##############################################
-
 -- @brief Lists available user scripts.
 -- @params script_type one of user_scripts.script_types
 -- @params subdir the modules subdir
 -- @return a list of available module names
 function user_scripts.listScripts(script_type, subdir)
-   local check_dirs = getScriptsDirectories(script_type, subdir)
+   local check_dirs = user_scripts.getSubdirectoryPath(script_type, subdir)
    local rv = {}
 
    for _, checks_dir in pairs(check_dirs) do
@@ -774,7 +773,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
       rv.hooks[hook] = {}
    end
 
-   local check_dirs = getScriptsDirectories(script_type, subdir)
+   local check_dirs = user_scripts.getSubdirectoryPath(script_type, subdir)
 
    for _, checks_dir in pairs(check_dirs) do
       for fname in pairs(ntop.readdir(checks_dir)) do
@@ -834,7 +833,7 @@ end
 
 -- @brief Convenient method to only load a specific script
 function user_scripts.loadModule(ifid, script_type, subdir, mod_fname)
-   local check_dirs = getScriptsDirectories(script_type, subdir)
+   local check_dirs = user_scripts.getSubdirectoryPath(script_type, subdir)
 
    for _, checks_dir in pairs(check_dirs) do
       local full_path = os_utils.fixPath(checks_dir .. "/" .. mod_fname .. ".lua")

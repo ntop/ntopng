@@ -37,10 +37,10 @@ print("<table class=\"table table-bordered table-striped\">\n")
 print("<tr><th nowrap rowspan=2>"..i18n("about.directories").."</th><td>"..i18n("about.data_directory").."</td><td>"..dirs.workingdir.."</td></tr>\n")
 print("<td>"..i18n("about.scripts_directory").."</td><td>"..dirs.scriptdir.."</td></tr>\n")
 
-print("<tr><th nowrap rowspan=4>"..i18n("about.callback_directories").."</th><td>"..i18n("about.flow_callbacks_directory").."</td><td>".. user_scripts.getSubdirectoryPath(user_scripts.script_types.flow, "flow") .."</td></tr>\n")
-print("<td>"..i18n("about.host_callbacks_directory").."</td><td>".. user_scripts.getSubdirectoryPath(user_scripts.script_types.traffic_element, "host") .."</td></tr>\n")
-print("<td>"..i18n("about.network_callbacks_directory").."</td><td>".. user_scripts.getSubdirectoryPath(user_scripts.script_types.traffic_element, "network") .."</td></tr>\n")
-print("<td>"..i18n("about.interface_callbacks_directory").."</td><td>".. user_scripts.getSubdirectoryPath(user_scripts.script_types.traffic_element, "interface") .."</td></tr>\n")
+print("<tr><th nowrap rowspan=4>"..i18n("about.callback_directories").."</th><td>"..i18n("about.flow_callbacks_directory").."</td><td>".. table.concat(user_scripts.getSubdirectoryPath(user_scripts.script_types.flow, "flow"), " ") .."</td></tr>\n")
+print("<td>"..i18n("about.host_callbacks_directory").."</td><td>".. table.concat(user_scripts.getSubdirectoryPath(user_scripts.script_types.traffic_element, "host"), " ") .."</td></tr>\n")
+print("<td>"..i18n("about.network_callbacks_directory").."</td><td>".. table.concat(user_scripts.getSubdirectoryPath(user_scripts.script_types.traffic_element, "network"), " ") .."</td></tr>\n")
+print("<td>"..i18n("about.interface_callbacks_directory").."</td><td>".. table.concat(user_scripts.getSubdirectoryPath(user_scripts.script_types.traffic_element, "interface"), " ") .."</td></tr>\n")
 
 print("<tr><th nowrap rowspan=2>"..i18n("about.defs_directories").."</th><td>"..i18n("show_alerts.alerts").."</td><td>".. table.concat(alert_consts.getDefinititionDirs(), "\n") .."</td></tr>\n")
 
