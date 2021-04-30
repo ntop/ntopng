@@ -73,8 +73,6 @@
 #include "flow_callbacks/InvalidDNSQuery.h"
 #include "flow_callbacks/LongLivedFlow.h"
 #include "flow_callbacks/PotentiallyDangerous.h"
-#include "flow_callbacks/SuspiciousTCPProbing.h"
-#include "flow_callbacks/SuspiciousTCPSYNProbing.h"
 #include "flow_callbacks/TCPConnectionRefused.h"
 #include "flow_callbacks/FlowRiskTLSCertificateExpired.h"
 #include "flow_callbacks/FlowRiskTLSCertificateSelfSigned.h"

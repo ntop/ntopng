@@ -98,8 +98,6 @@ void FlowCallbacksLoader::registerCallbacks() {
   if((fcb = new ExternalAlertCheckPro()))                       registerCallback(fcb);
   if((fcb = new InvalidDNSQuery()))                             registerCallback(fcb);
   if((fcb = new LongLivedFlow()))                               registerCallback(fcb);
-  if((fcb = new SuspiciousTCPProbing()))                        registerCallback(fcb);
-  if((fcb = new SuspiciousTCPSYNProbing()))                     registerCallback(fcb);
   if((fcb = new TCPConnectionRefused()))                        registerCallback(fcb);
   if((fcb = new FlowRiskTLSCertificateExpired()))               registerCallback(fcb);
   if((fcb = new FlowRiskTLSCertificateMismatch()))              registerCallback(fcb);
