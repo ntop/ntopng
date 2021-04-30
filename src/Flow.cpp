@@ -2797,7 +2797,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   if(alert_json_serializer)
     alert_json = ndpi_serializer_get_buffer(alert_json_serializer, &alert_json_len);
 
-  ndpi_serialize_string_string(s, "alert_json", alert_json ? alert_json : "");
+  ndpi_serialize_string_string(s, "json", alert_json ? alert_json : "");
 
   if (alert_json_serializer) {
     ndpi_term_serializer(alert_json_serializer);
