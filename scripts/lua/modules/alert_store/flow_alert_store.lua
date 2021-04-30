@@ -210,8 +210,21 @@ function flow_alert_store:format_record(value, no_html)
    local score = tonumber(value["score"])
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.flow.entity_id)
-   local msg = alert_utils.formatFlowAlertMessage(ifid, value, alert_info)
    local application =  interface.getnDPIProtoName(tonumber(value["l7_proto"]))
+
+   local msg = alert_utils.formatFlowAlertMessage(ifid, value, alert_info)
+
+   local alert_json = json.decode(value.json)
+   if alert_json then
+      local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
+      if active_flow and active_flow["seen.first"] < tonumber(value["tstamp"]) then
+	 local href = string.format("<a class='btn-sx' href='%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u'><i class='fas fa-search-plus'></i></a>",
+            ntop.getHttpPrefix(), active_flow["ntopng.key"], active_flow["hash_entry_id"])
+         msg = href .. " ".. msg
+      else
+         -- TODO add link to historical flow (nIndex)
+      end
+   end
 
    local reference_html = nil
 	 
