@@ -230,7 +230,7 @@
 
                 updateDownloadButton();
             },
-            lengthMenu: [[INITIAL_ROWS_LENGTH, 50, 100, 250], [INITIAL_ROWS_LENGTH, 50, 100, 250]],
+            lengthMenu: [[INITIAL_ROWS_LENGTH, 50, 250, 500, 1000], [INITIAL_ROWS_LENGTH, 50, 250, 500, 1000]],
             {% if datatable.js_columns then %}
                 columns: {* datatable.js_columns *}
             {% end %}
