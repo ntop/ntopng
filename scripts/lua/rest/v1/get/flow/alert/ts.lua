@@ -41,7 +41,7 @@ local res = {
 
 local count_data = flow_alert_store:count_by_severity_and_time()
 
-for _, severity in pairs(alert_severities) do
+for _, severity in pairsByField(alert_severities, "severity_id", rev) do
    res.series[#res.series + 1] = {
       name = i18n(severity.i18n_title),
       data = count_data[severity.severity_id],
