@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .
 
 require "lua_utils"
 local json = require("dkjson")
-local syslog_utils = require("syslog_utils")
 local syslog_utils = require "syslog_utils"
 
 sendHTTPContentTypeHeader('application/json')
