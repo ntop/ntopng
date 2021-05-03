@@ -123,12 +123,14 @@ function host_alert_store:format_record(value, no_html)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.host.entity_id)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
    local host = hostinfo2hostkey(value)
-
    local reference_html = nil
    local extra_info_host = ""
+
    if not no_html then
       extra_info_host = format_utils.formatAddressCategory(interface.getHostMinInfo(host)) 
       reference_html = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
+   else
+      msg = remove_html_string(msg)
    end
 
    record["ip"] = {

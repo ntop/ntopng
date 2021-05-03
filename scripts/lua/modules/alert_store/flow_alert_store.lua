@@ -216,8 +216,8 @@ function flow_alert_store:format_record(value, no_html)
    local msg = alert_utils.formatFlowAlertMessage(ifid, value, alert_info)
 
    -- Add link to historical flow
-   if interfaceHasNindexSupport() then
-      local href = string.format("%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s,eq&srv_ip=%s,eq&cli_port=%u,eq&srv_port=%u,eq&l4proto=%s,eq",
+   if interfaceHasNindexSupport() and not no_html then
+      local href = string.format("<a class='btn-sx' href='%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s,eq&srv_ip=%s,eq&cli_port=%u,eq&srv_port=%u,eq&l4proto=%s,eq'><i class='fas fa-search-plus'></i></a>",
          ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
          value["cli_ip"], value["srv_ip"], value["cli_port"], value["srv_port"], protocol)
       record["historical_url"] = href
@@ -225,7 +225,7 @@ function flow_alert_store:format_record(value, no_html)
 
    -- Add link to active flow
    local alert_json = json.decode(value.json)
-   if alert_json then
+   if not no_html and alert_json then
       local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
       if active_flow and active_flow["seen.first"] < tonumber(value["tstamp"]) then
 	 local href = string.format("%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u",
@@ -246,6 +246,8 @@ function flow_alert_store:format_record(value, no_html)
       reference_html = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
       extra_info_srv = format_utils.formatAddressCategory(interface.getHostMinInfo(srv_ip))   
       extra_info_cli = format_utils.formatAddressCategory(interface.getHostMinInfo(cli_ip))
+   else
+      msg = remove_html_string(msg)
    end
    
    record["alert_name"] = alert_name
