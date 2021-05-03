@@ -35,14 +35,22 @@ end
 function host_alert_store:insert(alert)
    local is_attacker = ternary(alert.is_attacker, 1, 0)
    local is_victim = ternary(alert.is_victim, 1, 0)
+   local ip = alert.ip
+   local vlan_id = alert.vlan_id
+
+   if not ip then -- Compatibility with Lua alerts
+      local host_info = hostkey2hostinfo(alert.entity_val)
+      ip = host_info.host
+      vlan_id = host_info.vlan
+   end
 
    local insert_stmt = string.format("INSERT INTO %s "..
       "(alert_id, ip, vlan_id, name, is_attacker, is_victim, tstamp, tstamp_end, severity, granularity, json) "..
       "VALUES (%u, '%s', %u, '%s', %u, %u, %u, %u, %u, %u, '%s'); ",
       self._table_name, 
       alert.alert_id,
-      alert.ip,
-      alert.vlan_id or 0,
+      ip,
+      vlan_id or 0,
       self:_escape(alert.name),
       is_attacker,
       is_victim,

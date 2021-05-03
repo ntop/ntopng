@@ -471,6 +471,7 @@ typedef enum {
   host_alert_flows_anomaly               = 10,
   host_alert_score_anomaly               = 11,
   host_alert_remote_connection           = 12,
+  host_alert_host_log                    = 13,
 
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */ 
   MAX_HOST_ALERT_TYPE = 16 /* Constrained by Bitmap16 engaged_alerts_map inside HostAlertableEntity */

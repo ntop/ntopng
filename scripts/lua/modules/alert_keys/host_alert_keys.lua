@@ -18,6 +18,7 @@ local host_alert_keys = {
   host_alert_flows_anomaly               = 10,
   host_alert_score_anomaly               = 11,
   host_alert_remote_connection           = 12,
+  host_alert_host_log                    = 13,
    
    -- NOTE: Keep in sync with HostAlertTypeEnum in ntop_typedefs.h
 }

@@ -69,6 +69,8 @@ function syslog_utils.handle_event(message, host, priority, level_threshold)
 
    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "[host="..host.."][facility="..facility_name.."][level="..level_name.."][message="..message.."]")
 
+   traceError(TRACE_NORMAL, TRACE_CONSOLE, "[host="..host.."]")
+
    -- Discard info messages
    if level <= level_threshold then
 
@@ -81,7 +83,7 @@ function syslog_utils.handle_event(message, host, priority, level_threshold)
          severity = alert_severities.warning
       end
 
-      local type_info = alert_consts.alert_types.alert_host_log.new(
+      local type_info = alert_consts.alert_types.host_alert_host_log.new(
          host,
          level_name,
          facility_name,

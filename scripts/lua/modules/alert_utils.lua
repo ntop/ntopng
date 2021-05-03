@@ -46,8 +46,9 @@ end
 
 -- ##############################################
 
-local function alertTypeDescription(v, entity_id)
-   local alert_id = alert_consts.getAlertType(v, entity_id)
+local function alertTypeDescription(alert_key, entity_id)
+
+   local alert_id = alert_consts.getAlertType(alert_key, entity_id)
 
    if(alert_id) then
       if alert_consts.alert_types[alert_id].format then
