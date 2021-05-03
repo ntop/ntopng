@@ -72,7 +72,7 @@ function syslog_utils.handle_event(message, host, priority, level_threshold)
    traceError(TRACE_NORMAL, TRACE_CONSOLE, "[host="..host.."]")
 
    -- Discard info messages
-   if level <= level_threshold then
+   if level_threshold and level <= level_threshold then
 
       local entity = alerts_api.hostAlertEntity(host, 0)
 
