@@ -4290,18 +4290,6 @@ function builMapHREF(ip_address, vlan_id, map, default_page)
    end
 end
 
-function remove_html_string(msg)
-   if (not msg) or (isEmptyString(msg)) then
-      return ""
-   end
-   
-   local end_num = msg:find(">[^>]*$")
-   local begin_num = msg:find("<")
-   msg = msg:sub(1, begin_num - 1) .. msg:sub(end_num + 1, -1)
-
-   return msg
-end
-
 -- #####################
 
 local iec104_typeids = {

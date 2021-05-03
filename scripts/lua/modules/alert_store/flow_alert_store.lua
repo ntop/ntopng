@@ -247,7 +247,7 @@ function flow_alert_store:format_record(value, no_html)
       extra_info_srv = format_utils.formatAddressCategory(interface.getHostMinInfo(srv_ip))   
       extra_info_cli = format_utils.formatAddressCategory(interface.getHostMinInfo(cli_ip))
    else
-      msg = remove_html_string(msg)
+      msg = noHtml(msg)
    end
    
    record["alert_name"] = alert_name

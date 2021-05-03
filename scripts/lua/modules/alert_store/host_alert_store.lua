@@ -138,7 +138,7 @@ function host_alert_store:format_record(value, no_html)
       extra_info_host = format_utils.formatAddressCategory(interface.getHostMinInfo(host)) 
       reference_html = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
    else
-      msg = remove_html_string(msg)
+      msg = noHtml(msg)
    end
 
    record["ip"] = {
