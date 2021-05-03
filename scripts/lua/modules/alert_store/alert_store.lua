@@ -21,7 +21,9 @@ local alert_store = classes.class()
 -- ##############################################
 
 -- 5-minute slots to perform aggregated queries
-local time_slot_width = 300 
+local TIME_SLOT_WIDTH = 300
+-- Default number of time slots to be returned when aggregating by time
+local NUM_TIME_SLOTS = 32
 
 -- ##############################################
 
@@ -331,6 +333,23 @@ end
 
 -- ##############################################
 
+function alert_store:_count_by_time_slot_width()
+   local now = os.time()
+   local epoch_begin = self._epoch_begin or (now - 3600)
+   local epoch_end = self._epoch_end or now
+   local epoch_span = epoch_end - epoch_begin
+
+   if span < 0 or span < NUM_TIME_SLOTS then
+      -- Slot width is 1 second, can't be smaller than this
+      return 1
+   end
+
+   -- Result is the floor to return an integer number
+   return math.floor(span / NUM_TIME_SLOTS)
+end
+
+-- ##############################################
+
 --@brief Counts the number of engaged alerts in multiple time slots
 -- Note: this is no longer used
 function alert_store:count_by_time_engaged(filter, severity)
@@ -347,7 +366,7 @@ function alert_store:count_by_time_engaged(filter, severity)
    local min_slot, max_slot
    for _, alert in ipairs(alerts) do
       local tstamp = tonumber(alert.tstamp)
-      local slot = tstamp - (tstamp % time_slot_width)
+      local slot = tstamp - (tstamp % TIME_SLOT_WIDTH)
 
       -- Exclude alerts falling outside requested time ranges
       if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
@@ -369,11 +388,11 @@ function alert_store:count_by_time_engaged(filter, severity)
    max_slot = self._epoch_end or max_slot or now
 
    -- Align the range using the width of the time slot to always return aligned data
-   min_slot = min_slot - (min_slot % time_slot_width)
-   max_slot = max_slot - (max_slot % time_slot_width)
+   min_slot = min_slot - (min_slot % TIME_SLOT_WIDTH)
+   max_slot = max_slot - (max_slot % TIME_SLOT_WIDTH)
 
    -- Pad missing points with zeroes
-   for slot = min_slot, max_slot + 1, time_slot_width do
+   for slot = min_slot, max_slot + 1, TIME_SLOT_WIDTH do
       if not all_slots[slot] then
 	 all_slots[slot] = 0
       end
@@ -407,7 +426,7 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
    local min_slot, max_slot
    for _, alert in ipairs(alerts) do
       local tstamp = tonumber(alert.tstamp)
-      local slot = tstamp - (tstamp % time_slot_width)
+      local slot = tstamp - (tstamp % TIME_SLOT_WIDTH)
 
       -- Exclude alerts falling outside requested time ranges
       if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
@@ -434,8 +453,8 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
    max_slot = self._epoch_end or max_slot or now
 
    -- Align the range using the width of the time slot to always return aligned data
-   min_slot = min_slot - (min_slot % time_slot_width)
-   max_slot = max_slot - (max_slot % time_slot_width)
+   min_slot = min_slot - (min_slot % TIME_SLOT_WIDTH)
+   max_slot = max_slot - (max_slot % TIME_SLOT_WIDTH)
 
    -- Pad missing points with zeroes
    for _, severity in pairs(alert_severities) do
@@ -443,7 +462,7 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
       if not all_severities[severity_id] then all_severities[severity_id] = {} end
       if not all_severities[severity_id].all_slots then all_severities[severity_id].all_slots = {} end
 
-      for slot = min_slot, max_slot + 1, time_slot_width do
+      for slot = min_slot, max_slot + 1, TIME_SLOT_WIDTH do
          if not all_severities[severity_id].all_slots[slot] then
             all_severities[severity_id].all_slots[slot] = 0
          end
@@ -479,7 +498,7 @@ function alert_store:count_by_time_historical(severity)
 
    -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
    local q = string.format("SELECT (tstamp - tstamp %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY slot ORDER BY slot ASC",
-			   time_slot_width, self._table_name, where_clause)
+			   TIME_SLOT_WIDTH, self._table_name, where_clause)
 
    local q_res = interface.alert_store_query(q)
 
@@ -493,8 +512,8 @@ function alert_store:count_by_time_historical(severity)
    local max_slot = self._epoch_end or tonumber(q_res and q_res[#q_res] and q_res[#q_res]["slot"]) or now
 
    -- Align the range using the width of the time slot to always return aligned data
-   min_slot = min_slot - (min_slot % time_slot_width)
-   max_slot = max_slot - (max_slot % time_slot_width)
+   min_slot = min_slot - (min_slot % TIME_SLOT_WIDTH)
+   max_slot = max_slot - (max_slot % TIME_SLOT_WIDTH)
 
    local all_slots = {}
    -- Read points from the query
@@ -503,7 +522,7 @@ function alert_store:count_by_time_historical(severity)
    end
 
    -- Pad missing points with zeroes
-   for slot = min_slot, max_slot + 1, time_slot_width do
+   for slot = min_slot, max_slot + 1, TIME_SLOT_WIDTH do
       if not all_slots[slot] then
 	 all_slots[slot] = 0
       end
@@ -531,7 +550,7 @@ function alert_store:count_by_severity_and_time_historical()
 
    -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
    local q = string.format("SELECT severity, (tstamp - tstamp %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY severity, slot ORDER BY severity, slot ASC",
-			   time_slot_width, self._table_name, where_clause)
+			   TIME_SLOT_WIDTH, self._table_name, where_clause)
 
    local q_res = interface.alert_store_query(q)
 
@@ -545,8 +564,8 @@ function alert_store:count_by_severity_and_time_historical()
    local max_slot = self._epoch_end or tonumber(q_res and q_res[#q_res] and q_res[#q_res]["slot"]) or now
 
    -- Align the range using the width of the time slot to always return aligned data
-   min_slot = min_slot - (min_slot % time_slot_width)
-   max_slot = max_slot - (max_slot % time_slot_width)
+   min_slot = min_slot - (min_slot % TIME_SLOT_WIDTH)
+   max_slot = max_slot - (max_slot % TIME_SLOT_WIDTH)
 
    local all_severities = {}
 
@@ -564,7 +583,7 @@ function alert_store:count_by_severity_and_time_historical()
       if not all_severities[severity_id] then all_severities[severity_id] = {} end
       if not all_severities[severity_id].all_slots then all_severities[severity_id].all_slots = {} end
 
-      for slot = min_slot, max_slot + 1, time_slot_width do
+      for slot = min_slot, max_slot + 1, TIME_SLOT_WIDTH do
          if not all_severities[severity_id].all_slots[slot] then
             all_severities[severity_id].all_slots[slot] = 0
          end

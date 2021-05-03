@@ -24,6 +24,6 @@ local res = {}
 
 interface.select(getSystemInterfaceId())
 
-local count_by_time = am_alert_store:count_by_time()
+local count_by_severity_and_time = am_alert_store:count_by_severity_and_time()
 
-rest_utils.answer(rc, {series = {{ data = count_by_time, name = i18n("alerts_dashboard.alerts") }}})
+rest_utils.answer(rc, {series = {{ data = count_by_severity_and_time, name = i18n("alerts_dashboard.alerts") }}})
