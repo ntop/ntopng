@@ -306,7 +306,6 @@ function flow_alert_store:format_record(value, no_html)
       label = application
    }
 
-   tprint(record["msg"])
    return record
 end
 
