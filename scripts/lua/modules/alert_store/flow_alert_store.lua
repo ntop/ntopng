@@ -239,9 +239,13 @@ function flow_alert_store:format_record(value, no_html)
    -- Host reference
    local cli_ip = hostinfo2hostkey(value, "cli")
    local srv_ip = hostinfo2hostkey(value, "srv")
+   local extra_info_cli = ""
+   local extra_info_srv = ""   
 
    if not no_html then
       reference_html = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
+      extra_info_srv = format_utils.formatAddressCategory(interface.getHostMinInfo(srv_ip))   
+      extra_info_cli = format_utils.formatAddressCategory(interface.getHostMinInfo(cli_ip))
    end
    
    record["alert_name"] = alert_name
@@ -251,12 +255,12 @@ function flow_alert_store:format_record(value, no_html)
    record["cli_ip"] = {
       value = cli_ip,
       label = cli_ip,
+      shown_label = cli_ip,
       reference = reference_html
    }
 
    record["cli_port"] = value["cli_port"]
    record["srv_port"] = value["srv_port"]
-
    -- Checking that the name of the host is not empty
    if value["cli_name"] and (not isEmptyString(value["cli_name"])) then
       record["cli_ip"]["label"] = value["cli_name"]
@@ -269,6 +273,7 @@ function flow_alert_store:format_record(value, no_html)
    record["srv_ip"] = {
       value = srv_ip,
       label = srv_ip,
+      shown_label = srv_ip,
       reference = reference_html
    }
 
@@ -277,8 +282,16 @@ function flow_alert_store:format_record(value, no_html)
       record["srv_ip"]["label"] = value["srv_name"]
    end
 
-   record["cli_port"] = value["cli_port"]
-   record["srv_port"] = value["srv_port"]
+   record["srv_ip"]["shown_label"] = record["srv_ip"]["label"] .. extra_info_srv
+   record["cli_ip"]["shown_label"] = record["cli_ip"]["label"] .. extra_info_cli
+   
+   record["srv_ip"]["shown_label"] = string.format("%s%s%s", record["srv_ip"]["shown_label"],
+			   ternary(value["srv_port"] ~= '', ':', ''),
+			   value["srv_port"])
+   record["cli_ip"]["shown_label"] = string.format("%s%s%s", record["cli_ip"]["shown_label"],
+			   ternary(value["cli_port"] ~= '', ':', ''),
+			   value["cli_port"])
+
    record["vlan_id"] = value["vlan_id"]
    record["proto"] = {
       value = value["proto"],

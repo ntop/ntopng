@@ -125,14 +125,16 @@ function host_alert_store:format_record(value, no_html)
    local host = hostinfo2hostkey(value)
 
    local reference_html = nil
-   
+   local extra_info_host = ""
    if not no_html then
+      extra_info_host = format_utils.formatAddressCategory(interface.getHostMinInfo(host)) 
       reference_html = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
    end
 
    record["ip"] = {
       value = host,
       label = host,
+      shown_label = host,
       reference = reference_html 
    }
 
@@ -141,6 +143,7 @@ function host_alert_store:format_record(value, no_html)
       record["ip"]["label"] = value["name"]
    end
 
+   record["ip"]["shown_label"] = record["ip"]["label"] .. extra_info_host
    record["alert_name"] = alert_name
    record["is_attacker"] = value["is_attacker"] == "1"
    record["is_victim"] = value["is_victim"] == "1"

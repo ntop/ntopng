@@ -13,7 +13,7 @@
     	let html_ref = '';
 	if (ipAddress.reference !== undefined)
 	   html_ref = ipAddress.reference
-	const label = `${ipAddress.label} ${row.is_attacker ? '<i class="fas fa-skull-crossbones"></i>' : ''} ${row.is_victim ? ('<i class="fas fa-sad-tear"></i>' + html_ref): ('' + html_ref)}`;
+	const label = `${ipAddress.shown_label || ipAddress.label} ${row.is_attacker ? '<i class="fas fa-skull-crossbones"></i>' : ''} ${row.is_victim ? ('<i class="fas fa-sad-tear"></i>' + html_ref): ('' + html_ref)}`;
         return DataTableRenders.filterize(ipAddress.value, label);
     }},
     /* Description */
