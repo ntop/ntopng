@@ -186,7 +186,6 @@
 
         async function onRangePickerChange(pushHistroy = false) {
             
-            debugger;
             const [begin, end] = getTimestampRange();
             await reloadTable($table);
 
