@@ -1703,8 +1703,8 @@ local known_parameters = {
    -- Input fields
    ["companion_interface"]                         = validateEmptyOr(validateInterface),
    ["data_retention_days"]                         = validateNumber,
-   ["max_num_alerts_per_entity"]                   = validateNumber,
-   ["max_num_days_before_delete_alert"]            = validateNumber,
+   ["max_entity_alerts"]                           = validateNumber,
+   ["max_num_secs_before_delete_alert"]            = validateNumber,
    ["elephant_flow_remote_to_local_bytes"]         = validateNumber,
    ["elephant_flow_local_to_remote_bytes"]         = validateNumber,
    ["max_num_packets_per_tiny_flow"]               = validateNumber,

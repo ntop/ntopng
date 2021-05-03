@@ -228,7 +228,7 @@ function printAlerts()
       showElements = false
   end
 
- local elementToSwitch = { "dont_emit_flow_alerts", "max_num_alerts_per_entity", 
+ local elementToSwitch = { "dont_emit_flow_alerts", "max_entity_alerts", 
 			   "row_alerts_retention_header", "row_alerts_settings_header", "row_alerts_security_header",
 			   "row_alerts_informative_header",
 			   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert",
@@ -279,11 +279,11 @@ function printAlerts()
     off_value = "0",    -- Off NO alerts are generated
   })
 
-  prefsInputFieldPrefs(subpage_active.entries["max_num_alerts_per_entity"].title, subpage_active.entries["max_num_alerts_per_entity"].description,
-		       "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
+  prefsInputFieldPrefs(subpage_active.entries["max_entity_alerts"].title, subpage_active.entries["max_entity_alerts"].description,
+		       "ntopng.prefs.", "max_entity_alerts", prefs.max_entity_alerts, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
   
-  prefsInputFieldPrefs(subpage_active.entries["max_num_days_before_delete_alert"].title, subpage_active.entries["max_num_days_before_delete_alert"].description,
-        "ntopng.prefs.", "max_num_days_before_delete_alert", prefs.max_num_days_before_delete_alert, "number", showElements, false, nil, {min=1, tformat="d"--[[ TODO check min/max ]]})
+  prefsInputFieldPrefs(subpage_active.entries["max_num_secs_before_delete_alert"].title, subpage_active.entries["max_num_secs_before_delete_alert"].description,
+        "ntopng.prefs.", "max_num_secs_before_delete_alert", prefs.max_num_secs_before_delete_alert, "number", showElements, false, nil, {min=1, tformat="d"--[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 style="text-align:right;">')
   print('<button class="btn btn-secondary" type="button" onclick="$(\'#flushAlertsData\').modal(\'show\');" style="width:230px; float:left;">'..i18n("show_alerts.reset_alert_database")..'</button>')

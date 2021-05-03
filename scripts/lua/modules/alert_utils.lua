@@ -2339,19 +2339,4 @@ function alert_utils.notify_ntopng_stop()
    return(notify_ntopng_status(false))
 end
 
--- A redis set with mac addresses as keys
-function alert_utils.deleteOldData(interface_id, epoch_end)
-   local opts = {}
-
-   opts["ifid"] = interface_id
-   opts["epoch_end"] = tostring(epoch_end)
-   opts["status"] = "historical"
-
-   deleteAlerts("historical", opts)
-
-   opts["status"] = "historical-flows"
-   deleteAlerts("historical-flows", opts)
-end
-
-
 return alert_utils

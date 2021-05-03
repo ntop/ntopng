@@ -132,13 +132,6 @@ local function cleanupIfname(ifname, ifid)
    local alerts_status_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/json/")
    ntop.rmdir(alerts_status_path)
 
-   if ifid then
-      local num_seconds = ntop.getPref("ntopng.prefs.max_num_days_before_delete_alert") or 0
-      
-      -- Remove the alerts older then the time selected
-      alert_utils.deleteOldData(tonumber(ifid), os.time() - num_seconds)
-   end
-   
    -- Remove the active devices and pools keys
    alert_utils.deleteActiveDevicesKey(ifid)
    alert_utils.deleteActivePoolsKey(ifid)
