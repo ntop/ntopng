@@ -204,8 +204,18 @@
             {% end %}
 
             /* Actions Column */
-            columns.push({width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (type) => {
+            columns.push({width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
 	        const buttons = [
+		    /* Link to the flow details (active flows only) */
+		    {% if alert_stats.entity == 'flow' then %}
+		    {icon: 'fa-stream', label: "{{ i18n('disable') }}", href: dataRow.active_url, class: "btn-primary " + (dataRow.active_url ? "" : "disabled")},
+		    {% end %}
+
+		    /* Link to the historical flow */
+		    {% if alert_stats.entity == 'flow' then %}
+		    {icon: 'fa-search-plus', label: "{{ i18n('disable') }}", href: dataRow.historical_url, class: "btn-primary"},
+		    {% end %}
+
 		    /* Bell button to disable alerts is only supported for hosts and flows */
 		    {% if alert_stats.entity == 'host' or alert_stats.entity == 'flow' then %}
 		    {icon: 'fa-bell-slash', label: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning {{ ((alert_stats.entity == 'host' or alert_stats.entity == 'flow') and '' or 'disabled') }}"},

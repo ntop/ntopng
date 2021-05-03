@@ -217,10 +217,10 @@ function flow_alert_store:format_record(value, no_html)
 
    -- Add link to historical flow
    if interfaceHasNindexSupport() then
-      local href = string.format("<a class='btn-sx' href='%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s,eq&srv_ip=%s,eq&cli_port=%u,eq&srv_port=%u,eq&l4proto=%s,eq'><i class='fas fa-search-plus'></i></a>",
+      local href = string.format("%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s,eq&srv_ip=%s,eq&cli_port=%u,eq&srv_port=%u,eq&l4proto=%s,eq",
          ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
          value["cli_ip"], value["srv_ip"], value["cli_port"], value["srv_port"], protocol)
-      msg = href .. " ".. msg
+      record["historical_url"] = href
    end
 
    -- Add link to active flow
@@ -228,9 +228,9 @@ function flow_alert_store:format_record(value, no_html)
    if alert_json then
       local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
       if active_flow and active_flow["seen.first"] < tonumber(value["tstamp"]) then
-	 local href = string.format("<a class='btn-sx' href='%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u'><i class='fas fa-stream'></i></a>",
+	 local href = string.format("%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u",
             ntop.getHttpPrefix(), active_flow["ntopng.key"], active_flow["hash_entry_id"])
-         msg = href .. " ".. msg
+         record["active_url"] = href
       end
    end
    
