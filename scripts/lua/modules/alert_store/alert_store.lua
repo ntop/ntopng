@@ -20,10 +20,8 @@ local alert_store = classes.class()
 
 -- ##############################################
 
--- 5-minute slots to perform aggregated queries
-local TIME_SLOT_WIDTH = 300
 -- Default number of time slots to be returned when aggregating by time
-local NUM_TIME_SLOTS = 32
+local NUM_TIME_SLOTS = 31
 
 -- ##############################################
 
@@ -333,84 +331,37 @@ end
 
 -- ##############################################
 
-function alert_store:_count_by_time_slot_width()
+--@brief Returns minimum and maximum timestamps and the time slot width to
+-- be used for queries performing group-by-time operations
+function alert_store:_count_by_time_get_bounds()
    local now = os.time()
-   local epoch_begin = self._epoch_begin or (now - 3600)
-   local epoch_end = self._epoch_end or now
-   local epoch_span = epoch_end - epoch_begin
+   local min_slot = self._epoch_begin or (now - 3600)
+   local max_slot = self._epoch_end or now
+   local slot_width
 
-   if span < 0 or span < NUM_TIME_SLOTS then
+   -- Compute the width to obtain a fixed number of points
+   local slot_span = max_slot - min_slot
+
+   if slot_span < 0 or slot_span < NUM_TIME_SLOTS then
       -- Slot width is 1 second, can't be smaller than this
-      return 1
+      slot_width = 1
+   else
+      -- Result is the floor to return an integer number
+      slot_width = math.floor(slot_span / NUM_TIME_SLOTS)
    end
-
-   -- Result is the floor to return an integer number
-   return math.floor(span / NUM_TIME_SLOTS)
-end
-
--- ##############################################
-
---@brief Counts the number of engaged alerts in multiple time slots
--- Note: this is no longer used
-function alert_store:count_by_time_engaged(filter, severity)
-   local alert_id_filter = tonumber(self._alert_id)
-   local severity_filter = tonumber(severity) or tonumber(self._alert_severity)
-   local entity_id_filter = tonumber(self._alert_entity and self._alert_entity.entity_id) -- Possibly set in subclasses constructor
-   local entity_value_filter = filter or self._entity_value
-   local all_slots = {}
-
-   -- tprint(string.format("id=%s sev=%s entity=%s val=%s", alert_id_filter, severity_filter, entity_id_filter, entity_value_filter))
-   local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter)
-
-   -- Calculate minimum and maximum slots to make sure the response always returns consecutive time slots, possibly filled with zeroes
-   local min_slot, max_slot
-   for _, alert in ipairs(alerts) do
-      local tstamp = tonumber(alert.tstamp)
-      local slot = tstamp - (tstamp % TIME_SLOT_WIDTH)
-
-      -- Exclude alerts falling outside requested time ranges
-      if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
-      if self._epoch_end and tstamp > self._epoch_end then goto continue end
-
-      if not min_slot or tstamp < min_slot then min_slot = tstamp end
-      if not max_slot or tstamp > max_slot then max_slot = tstamp end
-      all_slots[slot] = (all_slots[slot] or 0) + 1
-
-      ::continue::
-   end
-
-   local now = os.time()
-
-   -- Minimum slot is, in order, the specified begin epoch, or the oldest time read in the query, or one hour ago as fallback
-   min_slot = self._epoch_begin or min_slot or now - 3600
-
-   -- Minimum slot is, in order, the specified begin epoch, or the oldest time read in the query, or the current time as fallback
-   max_slot = self._epoch_end or max_slot or now
 
    -- Align the range using the width of the time slot to always return aligned data
-   min_slot = min_slot - (min_slot % TIME_SLOT_WIDTH)
-   max_slot = max_slot - (max_slot % TIME_SLOT_WIDTH)
+   min_slot = min_slot - (min_slot % slot_width)
+   max_slot = min_slot + slot_width * NUM_TIME_SLOTS
 
-   -- Pad missing points with zeroes
-   for slot = min_slot, max_slot + 1, TIME_SLOT_WIDTH do
-      if not all_slots[slot] then
-	 all_slots[slot] = 0
-      end
-   end
-
-   -- Prepare the result as a Lua array ordered by time slot
-   local res = {}
-   for slot, count in pairsByKeys(all_slots, asc) do
-      res[#res + 1] = {slot * 1000 --[[ In milliseconds --]], count}
-   end
-
-   return res
+   return min_slot, max_slot, slot_width
 end
 
 -- ##############################################
 
 --@brief Counts the number of engaged alerts in multiple time slots
 function alert_store:count_by_severity_and_time_engaged(filter, severity)
+   local min_slot, max_slot, time_slot_width = self:_count_by_time_get_bounds()
    local alert_id_filter = tonumber(self._alert_id)
    local severity_filter = tonumber(severity) or tonumber(self._alert_severity)
    local entity_id_filter = tonumber(self._alert_entity and self._alert_entity.entity_id) -- Possibly set in subclasses constructor
@@ -423,38 +374,22 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
    local all_slots = {}
 
    -- Calculate minimum and maximum slots to make sure the response always returns consecutive time slots, possibly filled with zeroes
-   local min_slot, max_slot
    for _, alert in ipairs(alerts) do
       local tstamp = tonumber(alert.tstamp)
-      local slot = tstamp - (tstamp % TIME_SLOT_WIDTH)
+      local cur_slot = tstamp - (tstamp % time_slot_width)
 
       -- Exclude alerts falling outside requested time ranges
       if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
       if self._epoch_end and tstamp > self._epoch_end then goto continue end
 
-      if not min_slot or tstamp < min_slot then min_slot = tstamp end
-      if not max_slot or tstamp > max_slot then max_slot = tstamp end
-
       local severity_id = alert.severity
       if not all_severities[severity_id] then all_severities[severity_id] = {} end
       if not all_severities[severity_id].all_slots then all_severities[severity_id].all_slots = {} end
-    
-      all_severities[severity_id].all_slots[slot] = (all_severities[severity_id].all_slots[slot] or 0) + 1
+
+      all_severities[severity_id].all_slots[cur_slot] = (all_severities[severity_id].all_slots[cur_slot] or 0) + 1
 
       ::continue::
    end
-
-   local now = os.time()
-
-   -- Minimum slot is, in order, the specified begin epoch, or the oldest time read in the query, or one hour ago as fallback
-   min_slot = self._epoch_begin or min_slot or now - 3600
-
-   -- Minimum slot is, in order, the specified begin epoch, or the oldest time read in the query, or the current time as fallback
-   max_slot = self._epoch_end or max_slot or now
-
-   -- Align the range using the width of the time slot to always return aligned data
-   min_slot = min_slot - (min_slot % TIME_SLOT_WIDTH)
-   max_slot = max_slot - (max_slot % TIME_SLOT_WIDTH)
 
    -- Pad missing points with zeroes
    for _, severity in pairs(alert_severities) do
@@ -462,10 +397,10 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
       if not all_severities[severity_id] then all_severities[severity_id] = {} end
       if not all_severities[severity_id].all_slots then all_severities[severity_id].all_slots = {} end
 
-      for slot = min_slot, max_slot + 1, TIME_SLOT_WIDTH do
-         if not all_severities[severity_id].all_slots[slot] then
-            all_severities[severity_id].all_slots[slot] = 0
-         end
+      for slot = min_slot, max_slot + 1, time_slot_width do
+	 if not all_severities[severity_id].all_slots[slot] then
+	    all_severities[severity_id].all_slots[slot] = 0
+	 end
       end
    end
 
@@ -475,7 +410,7 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
       local severity_id = tonumber(severity.severity_id)
       local severity_res = {}
       for slot, count in pairsByKeys(all_severities[severity_id].all_slots, asc) do
-         severity_res[#severity_res + 1] = {slot * 1000 --[[ In milliseconds --]], count}
+	 severity_res[#severity_res + 1] = {slot * 1000 --[[ In milliseconds --]], count}
       end
 
       res[severity_id] = severity_res
@@ -487,61 +422,9 @@ end
 -- ##############################################
 
 --@brief Performs a query and counts the number of records in multiple time slots
--- Note: this is no longer used
-function alert_store:count_by_time_historical(severity)
-   -- Preserve all the filters currently set
-   local where_clause = table.concat(self._where, " AND ")
-
-   if severity then
-      where_clause = string.format("severity = %u", severity) .. " AND " .. where_clause
-   end
-
-   -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
-   local q = string.format("SELECT (tstamp - tstamp %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY slot ORDER BY slot ASC",
-			   TIME_SLOT_WIDTH, self._table_name, where_clause)
-
-   local q_res = interface.alert_store_query(q)
-
-   -- Calculate minimum and maximum slots to make sure the response always returns consecutive time slots, possibly filled with zeroes
-   local now = os.time()
-
-   -- Minimum slot is, in order, the specified begin epoch, or the oldest time read in the query, or one hour ago as fallback
-   local min_slot = self._epoch_begin or tonumber(q_res and q_res[1] and q_res[1]["slot"]) or now - 3600
-
-   -- Minimum slot is, in order, the specified begin epoch, or the oldest time read in the query, or the current time as fallback
-   local max_slot = self._epoch_end or tonumber(q_res and q_res[#q_res] and q_res[#q_res]["slot"]) or now
-
-   -- Align the range using the width of the time slot to always return aligned data
-   min_slot = min_slot - (min_slot % TIME_SLOT_WIDTH)
-   max_slot = max_slot - (max_slot % TIME_SLOT_WIDTH)
-
-   local all_slots = {}
-   -- Read points from the query
-   for _, p in ipairs(q_res) do
-      all_slots[tonumber(p.slot)] = tonumber(p.count)
-   end
-
-   -- Pad missing points with zeroes
-   for slot = min_slot, max_slot + 1, TIME_SLOT_WIDTH do
-      if not all_slots[slot] then
-	 all_slots[slot] = 0
-      end
-   end
-
-   -- Prepare the result as a Lua array ordered by time slot
-   local res = {}
-   for slot, count in pairsByKeys(all_slots, asc) do
-      res[#res + 1] = {slot * 1000 --[[ In milliseconds --]], count}
-   end
-   
-   return res
-end
-
--- ##############################################
-
---@brief Performs a query and counts the number of records in multiple time slots
 function alert_store:count_by_severity_and_time_historical()
    -- Preserve all the filters currently set
+   local min_slot, max_slot, time_slot_width = self:_count_by_time_get_bounds()
    local where_clause = table.concat(self._where, " AND ")
 
    if severity then
@@ -550,31 +433,25 @@ function alert_store:count_by_severity_and_time_historical()
 
    -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
    local q = string.format("SELECT severity, (tstamp - tstamp %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY severity, slot ORDER BY severity, slot ASC",
-			   TIME_SLOT_WIDTH, self._table_name, where_clause)
+			   time_slot_width, self._table_name, where_clause)
 
    local q_res = interface.alert_store_query(q)
-
-   -- Calculate minimum and maximum slots to make sure the response always returns consecutive time slots, possibly filled with zeroes
-   local now = os.time()
-
-   -- Minimum slot is, in order, the specified begin epoch, or the oldest time read in the query, or one hour ago as fallback
-   local min_slot = self._epoch_begin or tonumber(q_res and q_res[1] and q_res[1]["slot"]) or now - 3600
-
-   -- Minimum slot is, in order, the specified begin epoch, or the oldest time read in the query, or the current time as fallback
-   local max_slot = self._epoch_end or tonumber(q_res and q_res[#q_res] and q_res[#q_res]["slot"]) or now
-
-   -- Align the range using the width of the time slot to always return aligned data
-   min_slot = min_slot - (min_slot % TIME_SLOT_WIDTH)
-   max_slot = max_slot - (max_slot % TIME_SLOT_WIDTH)
 
    local all_severities = {}
 
    -- Read points from the query
    for _, p in ipairs(q_res) do
       local severity_id = tonumber(p.severity)
+      local cur_slot = tonumber(p.slot)
+      local cur_count = tonumber(p.count)
+
       if not all_severities[severity_id] then all_severities[severity_id] = {} end
       if not all_severities[severity_id].all_slots then all_severities[severity_id].all_slots = {} end
-      all_severities[severity_id].all_slots[tonumber(p.slot)] = tonumber(p.count)
+
+      -- Make sure slots are within the requested bounds
+      if cur_slot >= min_slot and cur_slot <= max_slot then
+	 all_severities[severity_id].all_slots[cur_slot] = cur_count
+      end
    end
 
    -- Pad missing points with zeroes
@@ -583,10 +460,10 @@ function alert_store:count_by_severity_and_time_historical()
       if not all_severities[severity_id] then all_severities[severity_id] = {} end
       if not all_severities[severity_id].all_slots then all_severities[severity_id].all_slots = {} end
 
-      for slot = min_slot, max_slot + 1, TIME_SLOT_WIDTH do
-         if not all_severities[severity_id].all_slots[slot] then
-            all_severities[severity_id].all_slots[slot] = 0
-         end
+      for slot = min_slot, max_slot + 1, time_slot_width do
+	 if not all_severities[severity_id].all_slots[slot] then
+	    all_severities[severity_id].all_slots[slot] = 0
+	 end
       end
    end
 
@@ -596,34 +473,17 @@ function alert_store:count_by_severity_and_time_historical()
       local severity_id = tonumber(severity.severity_id)
       local severity_res = {}
       for slot, count in pairsByKeys(all_severities[severity_id].all_slots, asc) do
-         severity_res[#severity_res + 1] = {slot * 1000 --[[ In milliseconds --]], count}
+	 severity_res[#severity_res + 1] = {slot * 1000 --[[ In milliseconds --]], count}
       end
 
       res[severity_id] = severity_res
    end
-   
+
    return res
 end
 
 -- ##############################################
 -- REST API Utility Functions
--- ##############################################
-
---@brief Handle count requests (GET) from memory (engaged) or database (historical)
---@return Alert counters divided into time slots
-function alert_store:count_by_time(severity)
-   -- Add filters
-   self:add_request_filters()
-   -- Add limits and sort criteria
-   self:add_request_ranges()
-
-   if self._engaged then -- Engaged
-      return self:count_by_time_engaged(nil, severity)
-   else -- Historical
-      return self:count_by_time_historical(severity)
-   end
-end
-
 -- ##############################################
 
 --@brief Handle count requests (GET) from memory (engaged) or database (historical)
