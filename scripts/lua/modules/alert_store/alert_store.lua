@@ -424,7 +424,6 @@ end
 --@brief Performs a query and counts the number of records in multiple time slots
 function alert_store:count_by_severity_and_time_historical()
    -- Preserve all the filters currently set
-   self:housekeeping()
    local min_slot, max_slot, time_slot_width = self:_count_by_time_get_bounds()
    local where_clause = table.concat(self._where, " AND ")
 
@@ -641,6 +640,12 @@ function alert_store:housekeeping()
    q = string.format("DELETE FROM `%s` WHERE tstamp < %u", self._table_name, expiration_epoch)
 
    deleted = interface.alert_store_query(q)
+
+   -- Reclaims unused disk space and defragments tables and indices.
+   -- Should be called as disk space and defragmentation are not run
+   -- automatically by sqlite.
+   q = string.format("VACUUM")
+   local vacuum = interface.alert_store_query(q)
 end
 
 -- ##############################################
