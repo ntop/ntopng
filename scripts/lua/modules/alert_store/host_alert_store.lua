@@ -42,7 +42,7 @@ function host_alert_store:insert(alert)
       self._table_name, 
       alert.alert_id,
       alert.ip,
-      alert.vlan_id,
+      alert.vlan_id or 0,
       self:_escape(alert.name),
       is_attacker,
       is_victim,
