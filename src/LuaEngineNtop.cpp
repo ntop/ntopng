@@ -1391,20 +1391,6 @@ static int ntop_check_snmp_device_alerts_5min(lua_State* vm)  { return(ntop_chec
 
 /* ****************************************** */
 
-static int ntop_temporary_disable_alerts(lua_State* vm) {
-  bool to_disable;
-  if(!ntop->isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  to_disable = lua_toboolean(vm, 1);
-
-  ntop->getPrefs()->set_alerts_status(!to_disable);
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_set_default_file_permissions(lua_State* vm) {
   char *fpath;
 
@@ -6061,7 +6047,6 @@ static luaL_Reg _ntop_reg[] = {
   { "reloadPreferences",   ntop_reload_preferences },
   { "reloadPlugins",       ntop_reload_plugins        },
   { "hasPluginsReloaded",  ntop_has_plugins_reloaded  },
-  { "setAlertsTemporaryDisabled", ntop_temporary_disable_alerts },
   { "setDefaultFilePermissions",  ntop_set_default_file_permissions },
 
 #ifdef NTOPNG_PRO

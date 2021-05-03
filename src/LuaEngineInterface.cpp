@@ -749,101 +749,6 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
 
 /* ****************************************** */
 
-/* NOTE: do not call directly, use alerts_api instead */
-static int ntop_interface_store_alert(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *entity_value;
-  AlertLevel alert_severity;
-  AlertType alert_type;
-  AlertEntity alert_entity;
-  char *alert_json;
-  AlertsManager *am;
-  int ret, granularity;
-  char *alert_subtype;
-  bool ignore_disabled = false, check_maximum = true, is_new_alert;
-  time_t tstart, tend;
-  u_int64_t rowid;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if((!ntop_interface)
-     || ((am = ntop_interface->getAlertsManager()) == NULL))
-    return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  tstart = (time_t)lua_tonumber(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  tend = (time_t)lua_tonumber(vm, 2);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  granularity = (int)lua_tonumber(vm, 3);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_type = (AlertType)((int)lua_tonumber(vm, 4));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_subtype = (char*)lua_tostring(vm, 5);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_severity = (AlertLevel)((int)lua_tonumber(vm, 6));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 7, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_entity = (AlertEntity)((int)lua_tonumber(vm, 7));
-
-  if(ntop_lua_check(vm, __FUNCTION__, 8, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  entity_value = (char*)lua_tostring(vm, 8);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 9, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_json = (char*)lua_tostring(vm, 9);
-
-  ret = am->storeAlert(tstart, tend, granularity, alert_type, alert_subtype, alert_severity,
-    alert_entity, entity_value, alert_json, &is_new_alert, &rowid, ignore_disabled, check_maximum);
-
-  if(ret != 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "triggerAlert failed with code %d", ret);
-
-  if(ret == 0) {
-    lua_newtable(vm);
-    lua_push_uint64_table_entry(vm, "rowid", rowid);
-  } else
-    lua_pushnil(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_interface_store_flow_alert(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  AlertsManager *am;
-  u_int64_t rowid = 0;
-  int ret;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if((!ntop_interface)
-     || ((am = ntop_interface->getAlertsManager()) == NULL))
-    return(CONST_LUA_ERROR);
-
-  if(lua_type(vm, 1) != LUA_TTABLE)
-    return(CONST_LUA_ERROR);
-
-  ret = am->storeFlowAlert(vm, 1,  &rowid);
-
-  if(ret == 0) {
-    lua_newtable(vm);
-    lua_push_uint64_table_entry(vm, "rowid", rowid);
-  } else {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "storeFlowAlert failed (%d)", ret);
-    lua_pushnil(vm);
-  }
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_interface_set_has_alerts(lua_State* vm) {
   bool has_alerts;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -1045,22 +950,6 @@ static int ntop_interface_get_engaged_alerts(lua_State* vm) {
 
   iface->getEngagedAlerts(vm, entity_type, entity_value, alert_type, alert_severity, allowed_nets);
 
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_interface_optimize_alerts(lua_State* vm) {
-  NetworkInterface *iface = getCurrentInterface(vm);
-  AlertsManager *am;
-
-  if(!iface || !(am = iface->getAlertsManager()))
-    return(CONST_LUA_ERROR);
-
-  if(am->optimizeStore())
-    return(CONST_LUA_ERROR);
-
-  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
@@ -4744,11 +4633,8 @@ static luaL_Reg _ntop_interface_reg[] = {
 
   /* Alerts */
   { "alert_store_query",      ntop_interface_alert_store_query        },
-  { "optimizeAlerts",         ntop_interface_optimize_alerts },
   { "queryAlertsRaw",         ntop_interface_query_alerts_raw         },
   { "queryFlowAlertsRaw",     ntop_interface_query_flow_alerts_raw    },
-  { "storeAlert",             ntop_interface_store_alert              },
-  { "storeFlowAlert",         ntop_interface_store_flow_alert         },
   { "setInterfaceHasAlerts",  ntop_interface_set_has_alerts           },
   { "getCachedAlertValue",    ntop_interface_get_cached_alert_value   },
   { "setCachedAlertValue",    ntop_interface_set_cached_alert_value   },

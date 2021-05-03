@@ -75,34 +75,7 @@ function alert_rest_utils.exclude_alert()
       return _exclude_flow_alert(additional_filters, delete_alerts, subdir)
    end
    
-   -- Checking that all parameters where given to the POST
-   if not additional_filters or not subdir or not script_key then
-      rest_utils.answer(rest_utils.consts.err.invalid_args)
-      return
-   end
-
-   -- Getting the parameters
-   success, new_filter = user_scripts.parseFilterParams(additional_filters, subdir, false)
-      
-   if success then
-      success, update_err = user_scripts.updateScriptConfig(script_key, subdir, nil, nil, new_filter)
-   else
-      -- Error while parsing the params, error is printed
-      update_err = new_filter
-   end
-
-   if success then
-      if delete_alerts == "true" then
-	 alert_utils.deleteAlertsMatchingUserScriptFilter(subdir, script_key, new_filter.new_filters[1])                                                                            
-      end
-      
-      rc = rest_utils.consts.success.ok
-      rest_utils.answer(rc)
-   else
-      rc = rest_utils.consts.err.invalid_args
-      res = update_err
-      rest_utils.answer(rc, res)
-   end
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
 end
 
 -- #################################

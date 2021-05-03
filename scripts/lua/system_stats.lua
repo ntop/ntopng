@@ -46,12 +46,6 @@ page_utils.print_navbar(title, url,
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
 			   {
-			      hidden = interface.isPcapDumpInterface() or not isAdministrator() or not areAlertsEnabled(),
-			      active = page == "alerts",
-			      page_name = "alerts",
-			      label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
-			   },
-			   {
 			      active = page == "internals",
 			      page_name = "internals",
 			      label = "<i class=\"fas fa-lg fa-wrench\"></i>",
@@ -208,17 +202,6 @@ elseif(page == "historical" and ts_creation) then
 	 },
       }
    })
-elseif((page == "alerts") and isAdministrator()) then
-   local cur_id = interface.getId()
-   interface.select(getSystemInterfaceId())
-
-   _GET["ifid"] = getSystemInterfaceId()
-
-   alert_utils.drawAlerts({
-      is_standalone = true
-   })
-
-   interface.select(tostring(cur_id))
 elseif page == "internals" then
    internals_utils.printInternals(getSystemInterfaceId(), false --[[ hash tables ]], true --[[ periodic activities ]], true --[[ user scripts]], true --[[ queues --]])
 end

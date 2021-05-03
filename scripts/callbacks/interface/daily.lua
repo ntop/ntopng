@@ -5,7 +5,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local alert_utils      = require "alert_utils"
 local scripts_triggers = require "scripts_triggers"
 local ts_utils         = require "ts_utils"
 local data_retention_utils = require "data_retention_utils"
@@ -46,4 +45,3 @@ end
 
 ntop.deleteMinuteStatsOlderThan(interface_id, data_retention)
 ts_utils.deleteOldData(interface_id)
-alert_utils.optimizeAlerts()

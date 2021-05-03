@@ -193,18 +193,6 @@ elseif(page == "historical" and charts_available) then
        top_redis_hits = "top:redis:hits",
 		 timeseries = timeseries,
    })
-elseif((page == "alerts") and isAdministrator()) then
-   local old_ifname = ifname
-   interface.select(getSystemInterfaceId())
-
-   _GET["ifid"] = getSystemInterfaceId()
-   -- _GET["entity"] = alert_consts.alertEntity("redis")
-
-   alert_utils.drawAlerts({
-      is_standalone = true
-   })
-
-   interface.select(old_ifname)
 end
 
 -- #######################################################

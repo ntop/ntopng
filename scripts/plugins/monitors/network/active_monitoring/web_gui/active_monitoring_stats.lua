@@ -97,13 +97,11 @@ page_utils.print_navbar(navbar_title, url, {
         page_name = "historical",
         label = "<i class='fas fa-lg fa-chart-area'></i>"
     }, {
-        hidden = (host ~= nil) or not auth.has_capability(auth.capabilities.active_monitoring) or
-            not plugins_utils.hasAlerts(getSystemInterfaceId(), {
-                entity = alert_consts.alertEntity("am_host")
-            }),
+        hidden = not areAlertsEnabled(),
         active = page == "alerts",
         page_name = "alerts",
-        label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>"
+        label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
+	url = ntop.getHttpPrefix().."/lua/alert_stats.lua?&status=engaged&page=active_monitoring"
     }
 })
 
@@ -213,27 +211,6 @@ elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) 
     graph_utils.drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"],
                            url, selected_epoch,
                            {timeseries = timeseries, notes = notes})
-
-elseif ((page == "alerts") and
-    auth.has_capability(auth.capabilities.active_monitoring)) then
-    local old_ifname = ifname
-    local ts_utils = require("ts_utils")
-    local influxdb = ts_utils.getQueryDriver()
-
-    -- NOTE: system interface must be manually sected and then unselected
-    interface.select(getSystemInterfaceId())
-
-    _GET["ifid"] = getSystemInterfaceId()
-    _GET["entity"] = alert_consts.alertEntity("am_host")
-
-    if host then
-        _GET["entity_val"] = active_monitoring_utils.getAmHostKey(host.host,
-                                                                  host.measurement)
-    end
-
-    alert_utils.drawAlerts({is_standalone = true})
-
-    interface.select(old_ifname)
 end
 
 -- #######################################################

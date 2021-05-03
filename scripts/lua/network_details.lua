@@ -170,11 +170,6 @@ elseif (page == "config") then
     </div>
   ]])
 
-elseif(page == "alerts") then
-    alert_utils.printAlertTables("network", network_name,
-      "network_details.lua", {network=network}, network_name,
-      {enable_label = i18n("show_alerts.trigger_network_alert_descr", {network = network_name})})
-
 elseif page == "traffic_report" then
     dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 end

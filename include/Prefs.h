@@ -346,7 +346,6 @@ class Prefs {
   inline u_int32_t get_local_host_cache_duration()      { return(local_host_cache_duration);   };
   inline u_int32_t get_pkt_ifaces_flow_max_idle()       { return(pkt_ifaces_flow_max_idle);    };
   inline bool  are_alerts_disabled()                    { return(disable_alerts);              };
-  inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };
   inline bool  are_top_talkers_enabled()                { return(enable_top_talkers);     };
   inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };
   inline bool  is_active_local_host_cache_enabled()     { return(enable_active_local_hosts_cache);  };

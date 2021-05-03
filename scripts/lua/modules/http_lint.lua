@@ -1779,7 +1779,6 @@ local known_parameters = {
    ["telemetry_email"]                             = validateSingleWord,
 
    -- Other
-   ["flush_alerts_data"]                           = validateEmpty,
    ["send_test_email"]                             = validateEmpty,
    ["send_test_slack"]                             = validateEmpty,
    ["send_test_webhook"]                           = validateEmpty,
