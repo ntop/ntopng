@@ -1,10 +1,10 @@
 [
     /* Date */
-    {className: 'text-center', data: 'tstamp', name: 'tstamp'},
+    {className: 'text-center', data: 'tstamp', name: 'tstamp', width: '12%'},
     /* Counts */
-    {name: 'count', className: 'text-center', data: 'count', visible: false},
+    {name: 'count', className: 'text-center', data: 'count', width: '5%', visible: false},
     /* Alert Type + Severity */
-    {name: 'severity', className: 'text-center text-nowrap', data: 'severity', render: DataTableRenders.alertSeverityAndType},
+    {name: 'severity', className: 'text-center text-nowrap', data: 'severity', width: '7%', render: DataTableRenders.alertSeverityAndType},
     /* Description */
     {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
 ]

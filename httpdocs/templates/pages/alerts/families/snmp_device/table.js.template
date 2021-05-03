@@ -1,20 +1,18 @@
 [
     /* Date */
-    {name: 'tstamp', className: 'text-center', data: 'tstamp'},
+    {name: 'tstamp', className: 'text-center', width: '12%', data: 'tstamp'},
     /* Duration */
-    {name: 'duration', data: 'duration', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
+    {name: 'duration', data: 'duration', width: '5%', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
     /* Counts */
-    {name: 'count', className: 'text-center', data: 'count', visible: false},
-    /* Severity */
-    {name: 'severity', className: 'text-center', data: 'severity', render: DataTableRenders.formatValueLabel},
-    /* Alert Type */
-    {name: 'alert_id', data: 'alert_id', orderable: false, className: 'text-center nowrap', render: DataTableRenders.formatValueLabel},
+    {name: 'count', className: 'text-center', width: '5%', data: 'count', visible: false},   
+    /* Alert Type + Severity */
+    {name: 'severity', className: 'text-center text-nowrap', width: '7%', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* IP Address */
-    {name: 'ip', data: 'ip', className: 'text-center'},
+    {name: 'ip', data: 'ip', className: 'text-center', width: '12%'},
     /* Port */
-    {name: 'port', className: 'text-center', data: 'port', render: DataTableRenders.formatValueLabel},
+    {name: 'port', className: 'text-center', data: 'port', width: '5%', render: DataTableRenders.formatValueLabel},
     /* Device Name */
-    {name: 'name', className: 'text-center', data: 'name'},
+    {name: 'name', className: 'text-center', data: 'name', width: '12%'},
     /* Description */
     {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
 ]

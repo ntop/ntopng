@@ -1,16 +1,16 @@
 [
     /* Date */
-    {name: 'tstamp', data: 'tstamp', className: 'text-center'},
+    {name: 'tstamp', data: 'tstamp', className: 'text-center', width: '12%'},
     /* Counts */
-    {name: 'count', className: 'text-center', data: 'count', visible: false},
+    {name: 'count', className: 'text-center', data: 'count', width: '5%', visible: false},
     /* Alert Type + Severity */
-    {name: 'severity', className: 'text-center text-nowrap', data: 'severity', render: DataTableRenders.alertSeverityAndType},
+    {name: 'severity', className: 'text-center text-nowrap', data: 'severity', width: '7%', render: DataTableRenders.alertSeverityAndType},
     /* Mac Address */
-    {name: 'address', className: 'text-center', data: 'address'},
+    {name: 'address', width: '12%', className: 'text-center', data: 'address'},
     /* Device Type */
-    {name: 'device_type', className: 'text-center', data: 'device_type', render: DataTableRenders.formatValueLabel},
+    {name: 'device_type', className: 'text-center', width: '12%', data: 'device_type', render: DataTableRenders.formatValueLabel},
     /* Name */
-    {name: 'name', className: 'text-center', data: 'name'},
+    {name: 'name', className: 'text-center', data: 'name', width: '12%'},
     /* Description */
     {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
 ]

@@ -1,6 +1,6 @@
 [
     /* Date */
-    {name: 'tstamp', data: 'tstamp', width: '5%', className: 'text-center',},
+    {name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center',},
     /* Counts */
     {name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
     /* Alert Type + Severity */

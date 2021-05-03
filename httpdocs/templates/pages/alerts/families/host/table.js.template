@@ -1,14 +1,14 @@
 [
     /* Date */
-    {name: 'tstamp', data: 'tstamp', className: 'text-center',},
+    {name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center',},
     /* Duration */
-    {name: 'duration', data: 'duration', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
+    {name: 'duration', data: 'duration', width: '5%', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
     /* Counts */
-    {name: 'count', className: 'text-center', data: 'count', visible: false},
+    {name: 'count', className: 'text-center', width: '5%', data: 'count', visible: false},
     /* Alert Type + Severity */
-    {name: 'severity', className: 'text-center text-nowrap', data: 'severity', render: DataTableRenders.alertSeverityAndType},
+    {name: 'severity', className: 'text-center text-nowrap', width: '7%', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* IP Address */
-    {name: 'ip', data: 'ip', orderable: false, render: (ipAddress, type, row) => {
+    {name: 'ip', data: 'ip', orderable: false, width: '12%', render: (ipAddress, type, row) => {
         if (type !== "display") return ipAddress;
     	let html_ref = '';
 	if (ipAddress.reference !== undefined)
