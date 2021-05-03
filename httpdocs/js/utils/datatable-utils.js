@@ -627,7 +627,6 @@ class DataTableUtils {
 class DataTableRenders {
 
     static alertSeverityAndType(severity, type, alert) {
-        
         return `${DataTableRenders.formatValueLabel(severity, type, alert)} ${DataTableRenders.formatValueLabel(alert.alert_id, type, alert)}`;
     }
 
@@ -662,8 +661,8 @@ class DataTableRenders {
         return seconds;
     }
 
-    static filterize(key, value, label) {
-        return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${value}' href='#'>${label || value}</a>`;
+    static filterize(value, label) {
+        return `<a class='tag-filter' data-tag-value='${value}' href='#'>${label || value}</a>`;
     }
 
     static formatValueLabel(obj, type, row) {

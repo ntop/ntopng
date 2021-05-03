@@ -234,6 +234,17 @@ for tag_key, tag in pairs(defined_tags[page] or {}) do
     tag_utils.add_tag_if_valid(initial_tags, tag_key, tag, {})
 end
 
+local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'}) 
+
+local toggle_engaged_alert = ([[
+    <div class='d-flex align-items-center ml-auto mr-1'>
+        <div class="btn-group" role="group">
+            <a href=']] .. base_url .. [[&status=historical&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "historical", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.past") .. [[</a>
+            <a href=']] .. base_url .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status ~= "historical", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. [[</a>
+        </div> 
+    </div>
+]])
+    
 local context = {
     template_utils = template_utils,
     json = json,
@@ -258,7 +269,8 @@ local context = {
             five_mins = false,
             month = false,
             year = false
-        }
+        },
+        extra_html = toggle_engaged_alert
     },
     chart = {
         name = CHART_NAME
