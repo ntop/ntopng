@@ -9,86 +9,6 @@
         (isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["end_epoch"]))
 %}
 
-<div class="d-flex flex-wrap flex-sm-column flex-md-row w-100">
-    <div class="range-picker d-flex flex-wrap flex-sm-column flex-md-row w-100">
-        <div class="btn-group btn-group-toggle presets-container" role="group">
-            {% if (presets.five_mins) or (presets.five_mins ~= false) then %}
-            <label class="btn {{ ((presetSelected and default == '5min') and 'btn-primary' or 'btn-light') }}">
-                <input type="radio" name="presets" id="preset-5min" checked value="5,minutes"> 5m
-            </label>
-            {% end %}
-            <label class="btn {{ ((presetSelected and default == '30min') and 'btn-primary' or 'btn-light') }}">
-                <input type="radio" name="presets" id="preset-30m" value="30,minutes"> 30m
-            </label>
-            <label class="btn {{ ((presetSelected and default == 'hour') and 'btn-primary' or 'btn-light') }}">
-                <input type="radio" name="presets" id="preset-1h" value="1,hours"> 1h
-            </label>
-            {% if (presets.day == nil) or presets.day then %}
-            <label class="btn {{ ((presetSelected and default == 'day') and 'btn-primary' or 'btn-light') }}">
-                <input type="radio" name="presets" id="preset-1d" value="1,days"> 1d
-            </label>
-            {% end %}
-            {% if (presets.week == nil) or presets.week then %}
-            <label class="btn {{ ((presetSelected and default == 'week') and 'btn-primary' or 'btn-light') }}">
-                <input type="radio" name="presets" id="preset-1w" value="1,weeks"> 1w
-            </label>
-            {% end %}
-            {% if (presets.month == nil) or presets.month then %}
-            <label class="btn {{ ((presetSelected and default == 'month') and 'btn-primary' or 'btn-light') }}">
-                <input type="radio" name="presets" id="preset-1M" value="1,months"> 1M
-            </label>
-            {% end %}
-            {% if (presets.year == nil) or presets.year then %}
-            <label class="btn {{ ((presetSelected and default == 'year') and 'btn-primary' or 'btn-light') }}">
-                <input type="radio" name="presets" id="preset-1Y" value="1,years"> 1Y
-            </label>
-            {% end %}
-            <label id="btn-custom-preset" class="btn {{ (not presetSelected and 'btn-primary' or 'btn-light disabled') }}">{{ i18n("graphs.custom") }}</label>
-        </div>
-        <div class="input-group my-sm-2 my-md-0 flex-shrink-1 mx-sm-0 mx-md-2 fit-content">
-            <div class="input-group-prepend">
-                <span class="input-group-text">
-                    <i class="fas fa-calendar-alt"></i>
-                </span>
-            </div>
-            <input id='begin-epoch' type="text" aria-label="Begin" data-toggle="datetimepicker"
-                class="form-control time-input datetimepicker-input border-right-0" data-target="#begin-epoch">
-            <div class="input-group-append">
-                <span class="input-group-text bg-transparent border-left-0 border-right-0">
-                    <i class="fas fa-long-arrow-alt-right"></i>
-                </span>
-            </div>
-            <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker"
-                class="form-control time-input datetimepicker-input border-left-0" data-target="#end-epoch">
-        </div>
-        <button id="btn-apply" class="btn btn-primary">{{ i18n("apply") }}</button>
-        <div class="btn-group my-sm-2 my-md-0 mx-sm-0 mx-md-2 btn-group-sm">
-            <button class="btn btn-link" id="btn-jump-time-back">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-            <button class="btn btn-link mr-2" disabled id="btn-jump-time-ahead">
-                <i class="fas fa-arrow-right"></i>
-            </button>
-            <button class="btn btn-link" id="btn-zoom-in">
-                <i class="fas fa-search-plus"></i>
-            </button>
-            <button class="btn btn-link" id="btn-zoom-out">
-                <i class="fas fa-search-minus"></i>
-            </button>
-        </div>
-    </div>
-    {% if tags.enabled then %}
-    <div class="w-100 mt-2">
-        <div class="d-flex">
-            <input class="form-control w-100" name="tags" placeholder="Filters" > 
-            <button data-toggle="tooltip" data-placement="bottom" title="Remove filters." class="btn btn-danger ml-1 btn-remove-tags">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
-    {% end %}
-</div>
-
 {% if tags.enabled then %}
 <link rel="stylesheet" href="{{ ntop.getHttpPrefix }}/css/tagify.css" />
 <style>
@@ -117,6 +37,103 @@
   align-items: center;
 }
 </style>
+{% end %}
+
+<div class="w-100">
+
+    <div class="range-container">
+        <div class="range-picker">
+            <div class="form-group">
+                <label for="select-presets">{{ i18n('show_alerts.presets.presets') }}</label>
+                <select class="form-control" id="select-presets">
+                    {% if (presets.five_mins) or (presets.five_mins ~= false) then %}
+                        <option {{ ((presetSelected and default == '5min') and 'selected' or '') }} value="5,minutes">{{ i18n('show_alerts.presets.5_min') }}</option>
+                    {% end  %}
+    
+                    <option {{ ((presetSelected and default == '30min') and 'selected' or '') }} value="30,minutes">{{ i18n('show_alerts.presets.30_min') }}</option>
+    
+                    <option value="1,hours">{{ i18n('show_alerts.presets.hour') }}</option>
+    
+                    {% if (presets.day == nil) or presets.day then %}
+                    <option value="1,days">{{ i18n('show_alerts.presets.day') }}</option>
+                    {% end  %}
+    
+                    {% if (presets.week == nil) or presets.week then %}
+                    <option value="1,weeks">{{ i18n('show_alerts.presets.week') }}</option>
+                    {% end  %}
+    
+                    {% if (presets.month == nil) or presets.month then %}
+                    <option value="1,months">{{ i18n('show_alerts.presets.month') }}</option>
+                    {% end  %}
+    
+                    {% if (presets.year == nil) or presets.year then %}
+                    <option value="1,years">{{ i18n('show_alerts.presets.year') }}</option>
+                    {% end  %}
+    
+                    <option disabled>{{ i18n("graphs.custom") }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Begin Date:</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">
+                            <i class="fas fa-calendar-alt"></i>
+                        </span>
+                    </div>
+                    <input id='begin-epoch' type="text" aria-label="Begin" data-toggle="datetimepicker" class="form-control datetimepicker-input" data-target="#begin-epoch">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>End Date:</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">
+                            <i class="fas fa-calendar-alt"></i>
+                        </span>
+                    </div>
+                    <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker" class="form-control datetimepicker-input" data-target="#end-epoch">
+                </div>
+            </div>
+            <div class="controls d-flex flex-wrap">
+                <div class="btn-group mr-auto btn-group-sm">
+                    <button class="btn btn-link" id="btn-jump-time-back">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <button class="btn btn-link mr-2" disabled id="btn-jump-time-ahead">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button class="btn btn-link" id="btn-zoom-in">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button class="btn btn-link" id="btn-zoom-out">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                </div>
+                <button id="btn-apply" class="btn btn-primary">{{ i18n("apply") }}</button>
+            </div>
+        </div>
+
+        {% if tags.enabled then %}
+        <hr>
+        <div class="form-group">
+            <div class="d-flex">
+                <label>{{ i18n("show_alerts.filters") }}</label>
+                <button data-toggle="tooltip" data-placement="bottom" title="{{ i18n('show_alerts.remove_filters') }}" class="btn btn-danger ml-auto btn-sm btn-remove-tags">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <input class="w-100 form-control h-auto mt-1" name="tags" placeholder="{{ i18n('show_alerts.filters') }}">
+        </div>
+        {% end %}
+      
+
+    </div>
+
+  
+</div>
+
+{% if tags.enabled then %}
 <script type="text/javascript" src="{{ ntop.getHttpPrefix }}/js/tagify.min.js"></script>
 <script type="text/javascript">
 
@@ -163,6 +180,10 @@ $(document).ready(function() {
 });
 </script>
 {% end %}
+
+
+
+
 <script type="text/javascript">
 const beginEpoch = {{ (_GET['begin_epoch'] or _GET['epoch_begin'] or 'undefined') }};
 const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
@@ -188,7 +209,7 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
         const $btnZoomIn = $(`#btn-zoom-in`);
         const $btnZoomOut = $(`#btn-zoom-out`);
 
-        const $btnCustomPreset = $(`#btn-custom-preset`);
+        const $selectPresets = $(`#select-presets`);
 
         function calculateHalfZoomIn() {
             const begin = $inputBeginEpoch.datetimepicker('date');
@@ -201,20 +222,19 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
         }
 
         function highlightCustomPresetButton() {
-            $('.presets-container').find('.btn').removeClass('btn-primary').addClass('btn-light');
-            // highlight the preset button
-            $btnCustomPreset.parents('.btn-group').find('.btn').removeClass('btn-primary');
-            $btnCustomPreset.addClass('btn-primary').removeClass('btn-light').removeClass('disabled');
+            $selectPresets.val('');
+            $(`#select-presets option:last`).attr('selected', 'true');
         }
 
         function updateRangePicker(operation, maxDate) {
 
-            const [subtract, measure] = ($(`[name='presets']:checked`).val() || $(`[name='presets']`).first().val()).split(',');
+            // get the selected preset or the first prest available
+            const [delta, measure] = ($selectPresets.val() || $(`#select-presets option:first`).val()).split(',');
             const begin = $inputBeginEpoch.datetimepicker('date');
             const end = $inputEndEpoch.datetimepicker('date');
 
-            $inputBeginEpoch.datetimepicker('date', begin[operation](parseInt(subtract), measure));
-            $inputEndEpoch.datetimepicker('date', end[operation](parseInt(subtract), measure));
+            $inputEndEpoch.datetimepicker('date', end[operation](parseInt(delta), measure));
+            $inputBeginEpoch.datetimepicker('date', begin[operation](parseInt(delta), measure));
 
             // if the new end time is less than the max current date then
             // enable the jump time ahead button, otherwise disable it
@@ -237,14 +257,9 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
         $inputBeginEpoch.datetimepicker('date', prev);
         $inputEndEpoch.datetimepicker('date', now);
 
-        $(`[name='presets']`).on('click', function(e) {
+        $selectPresets.on('change', function(e) {
 
             // remove the active class
-            $('.presets-container').find('.btn').removeClass('btn-primary').addClass('btn-light');
-            $btnCustomPreset.addClass('disabled');
-
-            $(this).parents('.btn').addClass('btn-primary').removeClass('btn-light');
-            
             const [subtract, measure] = $(this).val().split(',');
 
             const now = moment();
@@ -259,14 +274,9 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
         });
 
         // travel back in the past by the selected preset
-        $btnJumpTimeBack.on('click', function() {
-            updateRangePicker('subtract', now);
-        });
-
+        $btnJumpTimeBack.on('click', () => {updateRangePicker('subtract', now)});
         // travel ahead in the future by the selected preset
-        $btnJumpTimeAhead.on('click', function() {
-            updateRangePicker('add', now);
-        });
+        $btnJumpTimeAhead.on('click', () => {updateRangePicker('add', now)});
 
         $btnZoomIn.on('click', function() {
 

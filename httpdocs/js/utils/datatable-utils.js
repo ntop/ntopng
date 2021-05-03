@@ -627,7 +627,8 @@ class DataTableUtils {
 class DataTableRenders {
 
     static alertSeverityAndType(severity, type, alert) {
-        return DataTableRenders.formatValueLabel(severity, type, alert) + '<span class="mx-1"></span>' + DataTableRenders.formatValueLabel(alert.alert_id, type, alert);
+        
+        return `${DataTableRenders.formatValueLabel(severity, type, alert)} ${DataTableRenders.formatValueLabel(alert.alert_id, type, alert)}`;
     }
 
     static colorizeScore(min, max) {

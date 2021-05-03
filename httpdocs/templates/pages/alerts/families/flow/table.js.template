@@ -4,7 +4,7 @@
     /* Counts */
     {name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
     /* Alert Type + Severity */
-    {name: 'severity', className: 'text-center text-nowrap', width: '10%', data: 'severity', render: DataTableRenders.alertSeverityAndType},
+    {name: 'severity', className: 'text-center position-relative text-nowrap', width: '10%', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* Score */
     {name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.colorizeScore(100, 300)},
     /* Protocol */
@@ -42,5 +42,5 @@
         return DataTableRenders.filterize(srv_port, srv_port);
     }*/},
     /* Description */
-    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
+    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap',},
 ]

@@ -983,3 +983,6 @@ footer {
   width: 18ch;
   text-align: center;
 }
+.h-auto {
+  height: auto;
+}

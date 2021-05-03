@@ -73,9 +73,13 @@ end
 function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datasources)
     widget_gui_utils.register_chart_widget(name, 'bar', update_time, datasources, {
         apex = {
+            legend = {
+                show = false,
+            },
             chart = {
                 type = "bar",
-                height = "100%",
+                width = "100%",
+                height = "80%",
                 foreColor = "#999",
                 stacked = true,
                 toolbar = {
@@ -86,7 +90,8 @@ function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datas
                         reset = false,
                         pan = false,
                         -- set the zoom field to a space to hide the len icon
-                        zoom = " " 
+                        zoom = " ",
+                        download = false
                     }
                 }
             },
@@ -96,7 +101,8 @@ function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datas
             xaxis = {
                 type = "datetime",
                 labels = {
-                    datetimeUTC = false
+                    datetimeUTC = false,
+                    show = false,
                 },
                 axisBorder = {
                     show = false
@@ -106,35 +112,16 @@ function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datas
                 }
             },
             yaxis = {
-                labels = {
-                    offsetX = 14,
-                    offsetY = -5
-                },
-                tooltip = {
-                    enabled = true
-                }
+                show = false,
             },
             grid = {
-                padding = {
-                    left = -5,
-                    right = 5
-                }
+               show = false,
             },
             tooltip = {
                 x = {
                     format = "dd MMM yyyy"
                 },
             },
-            fill = {
-                type = "gradient",
-                fillOpacity = 0.9,
-                gradient = {
-                    type = 'vertical',
-                    shade = 'light',
-                    opacityFrom = 1,
-                    opacityTo = 0.9
-                }
-            }
         }
     })
 end
