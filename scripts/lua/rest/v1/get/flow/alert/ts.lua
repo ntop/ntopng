@@ -32,12 +32,21 @@ end
 
 interface.select(ifid)
 
-local res = {}
-res.series = {} 
+local res = {
+   series = {},
+   fill = {
+      colors = {}
+   }
+}
+
+local count_data = flow_alert_store:count_by_severity_and_time()
 
 for _, severity in pairs(alert_severities) do
-   local count_by_time = flow_alert_store:count_by_time(severity.severity_id)
-   res.series[#res.series + 1] = { data = count_by_time, name = i18n(severity.i18n_title) }
+   res.series[#res.series + 1] = {
+      name = i18n(severity.i18n_title),
+      data = count_data[severity.severity_id],
+   }
+   res.fill.colors[#res.fill.colors + 1] = severity.color
 end
 
 rest_utils.answer(rc, res)
