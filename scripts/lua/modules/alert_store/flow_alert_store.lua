@@ -217,7 +217,7 @@ function flow_alert_store:format_record(value, no_html)
 
    -- Add link to historical flow
    if interfaceHasNindexSupport() and not no_html then
-      local href = string.format("<a class='btn-sx' href='%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s,eq&srv_ip=%s,eq&cli_port=%u,eq&srv_port=%u,eq&l4proto=%s,eq'><i class='fas fa-search-plus'></i></a>",
+      local href = string.format("'%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s,eq&srv_ip=%s,eq&cli_port=%u,eq&srv_port=%u,eq&l4proto=%s,eq",
          ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
          value["cli_ip"], value["srv_ip"], value["cli_port"], value["srv_port"], protocol)
       record["historical_url"] = href
@@ -305,7 +305,8 @@ function flow_alert_store:format_record(value, no_html)
       value = value["l7_proto"],
       label = application
    }
-   
+
+   tprint(record["msg"])
    return record
 end
 
