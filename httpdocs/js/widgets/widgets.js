@@ -253,7 +253,7 @@ class ChartWidget extends Widget {
         const rsp = this._fetchedData.rsp;
 
         // add additional params fetched from the datasource
-        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'dataLabels', 'tooltip'];
+        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'dataLabels', 'tooltip', 'fill'];
         for (const additional of additionals) {
 
             if (rsp[additional] === undefined) continue;
