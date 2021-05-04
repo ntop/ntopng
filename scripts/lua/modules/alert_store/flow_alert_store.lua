@@ -244,8 +244,6 @@ function flow_alert_store:format_record(value, no_html)
 
    if not no_html then
       reference_html = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
-      extra_info_srv = format_utils.formatAddressCategory(interface.getHostMinInfo(srv_ip))   
-      extra_info_cli = format_utils.formatAddressCategory(interface.getHostMinInfo(cli_ip))
    else
       msg = noHtml(msg)
    end
@@ -283,14 +281,11 @@ function flow_alert_store:format_record(value, no_html)
    if value["srv_name"] and (not isEmptyString(value["srv_name"])) then
       record["srv_ip"]["label"] = value["srv_name"]
    end
-
-   record["srv_ip"]["shown_label"] = record["srv_ip"]["label"] .. extra_info_srv
-   record["cli_ip"]["shown_label"] = record["cli_ip"]["label"] .. extra_info_cli
    
-   record["srv_ip"]["shown_label"] = string.format("%s%s%s", record["srv_ip"]["shown_label"],
+   record["srv_ip"]["shown_label"] = string.format("%s%s%s", record["srv_ip"]["label"],
 			   ternary(value["srv_port"] ~= '', ':', ''),
 			   value["srv_port"])
-   record["cli_ip"]["shown_label"] = string.format("%s%s%s", record["cli_ip"]["shown_label"],
+   record["cli_ip"]["shown_label"] = string.format("%s%s%s", record["cli_ip"]["label"],
 			   ternary(value["cli_port"] ~= '', ':', ''),
 			   value["cli_port"])
 
