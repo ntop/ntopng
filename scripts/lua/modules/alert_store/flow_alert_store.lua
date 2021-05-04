@@ -213,8 +213,8 @@ function flow_alert_store:format_record(value, no_html)
    local protocol = l4_proto_to_string(value["proto"])
    local application =  interface.getnDPIProtoName(tonumber(value["l7_proto"]))
    local msg = alert_utils.formatFlowAlertMessage(ifid, value, alert_info)
-   local show_cli_port = (value["cli_port"] ~= '' and value["cli_port"] ~= 0)
-   local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= 0)   
+   local show_cli_port = (value["cli_port"] ~= '' and value["cli_port"] ~= '0')
+   local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= '0')   
 
    -- Add link to historical flow
    if interfaceHasNindexSupport() and not no_html then

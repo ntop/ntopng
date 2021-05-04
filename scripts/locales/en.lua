@@ -4568,6 +4568,7 @@ local lang = {
     ["cli_country"] = "Client Country",
     ["confirm_delete_alert"] = "Do you really want to delete the specified alert",
     ["confirm_delete_filtered_alerts"] = "Stored alerts matching the specified disable criteria be deleted.",
+    ["confirm_delete_alerts"] = "Stored alerts matching the specified criteria will be deleted. Continue?",
     ["confirm_filter_alert"] = "Triggering of alerts matching the specified disable criteria will be prevented.",
     ["confirm_release_alert"] = "Do you really want to release the specified alert?",
     ["daily"] = "Daily",
@@ -4976,6 +4977,8 @@ local lang = {
     },
   },
   ["tags"] = {
+    ["begin_time"] = "Begin Time",
+    ["end_time"] = "End; Time",
     ["cli_ip"] = "Client",
     ["cli_port"] = "Client Port",
     ["flow_risk"] = "Flow Risk",

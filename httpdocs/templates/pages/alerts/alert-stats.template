@@ -42,6 +42,10 @@
                 <a id="btn-download-alerts" download="alerts.txt" class="btn btn-secondary" href="{{ ntop.getHttpPrefix() }}/lua/rest/v1/get/{{ alert_stats.entity }}/alert/list.lua{{ build_query_params(datatable.datasource.params) }}&format=txt">
                     <i class="fas fa-file-download"></i> {{ i18n('show_alerts.download_alerts') }}
                 </a>
+		<button id="btn-delete-alerts" data-target='#delete-alert-modal' data-toggle="modal" class="btn btn-danger">
+                    <i class="fas fa fa-trash"></i> {{ i18n("delete_alerts")}}
+                </button>
+
             </div>
         </div>
     </div>
@@ -51,6 +55,22 @@
         padding: 0.55rem;
     }
 </style>
+
+{*
+    template_utils.gen("pages/modals/alerts/delete_alerts.html", {
+        dialog={
+            id      = "delete-alert-modal",
+            title   = i18n("delete_alerts"),
+            label   = "",
+            message = i18n("show_alerts.confirm_delete_alerts"),
+            cancel  = i18n("cancel"),
+	    apply   = i18n("delete"),
+	    entity  = alert_stats.entity,
+	    params  = build_query_params(datatable.datasource.params),
+	    filters = datatable.datasource.params
+	 }
+      })
+*}
 
 {# add modals if defined #}
 {% if datatable.modals then %}
@@ -67,7 +87,6 @@
 </script>
 <script type='text/javascript'>
     $(document).ready(function(){
-
         const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
         const FAMILY = "{{ alert_stats.entity }}"
         const PAGE_CSRF = "{{ ntop.getRandomCSRFValue() }}";
@@ -279,8 +298,7 @@
             hideOverlays();
 	    });
 
-        // on apply button click
-        $(`.range-picker`).on('change', async function(e) {
+	$(`.range-picker`).on('change', async function(e) {
             await onRangePickerChange(true);
         });
 
@@ -368,6 +386,80 @@
 
             await onRangePickerChange(true);
         });
+
+	$('#delete-alert-modal').on('shown.bs.modal', function (e) {
+	    const tags = tagify.getTagElms();
+
+	    const datasourceParams = {* json.encode(datatable.datasource.params) *};
+	    let begin_epoch = new Date(parseInt(datasourceParams["epoch_end"])*1000)
+	    let end_epoch = new Date(parseInt(datasourceParams["epoch_begin"])*1000)
+	    // adjust 0 before single digit date
+	    let date = ("0" + begin_epoch.getDate()).slice(-2);
+
+	    // current month
+	    let month = ("0" + (begin_epoch.getMonth() + 1)).slice(-2);
+
+	    // current year
+	    let year = begin_epoch.getFullYear();
+
+	    // current hours
+	    let hours = begin_epoch.getHours();
+
+	    // current minutes
+	    let minutes = begin_epoch.getMinutes();
+
+	    // current seconds
+	    let seconds = begin_epoch.getSeconds();
+	    
+	    begin_epoch = date + "/" + month + "/" + year + " " + hours + ":" + minutes + ":" + seconds
+	    // adjust 0 before single digit date
+	    date = ("0" + end_epoch.getDate()).slice(-2);
+
+	    // current month
+	    month = ("0" + (end_epoch.getMonth() + 1)).slice(-2);
+
+	    // current year
+	    year = end_epoch.getFullYear();
+
+	    // current hours
+	    hours = end_epoch.getHours();
+
+	    // current minutes
+	    minutes = end_epoch.getMinutes();
+
+	    // current seconds
+	    seconds = end_epoch.getSeconds();
+	    
+	    end_epoch = date + "/" + month + "/" + year + " " + hours + ":" + minutes + ":" + seconds
+	    filter_string = end_epoch + " <i class='fas fa-long-arrow-alt-right' data-original-title='' title=''></i> " + begin_epoch + "<br>"
+	    for (const tag of tags) {
+	    	const {key, selectedOperator, realValue, value} = tagify.tagData(tag);
+                const label = i18n.tags[key]
+		
+            	filter_string += (label + ' = ' + value + '<br>');	
+            }
+	    
+	    $('#alert-filters').html(`${filter_string}`)
+	});
+
+	$('#delete-alert-modal #btn-delete-alerts').on('click', async function (e) {
+	try {
+	    let params = "{{ build_query_params(datatable.datasource.params) }}";
+	    params = params.split("&amp;").join("&");
+	    const request = await fetch(`{{ ntop.getHttpPrefix() }}/lua/rest/v1/delete/{{ alert_stats.entity }}/alerts.lua${params}`);
+            const response = await request.json();
+
+            // check if the request failed
+            if (response.rc < 0) {
+                return;
+            }
+        }
+        catch (exception) {
+        }
+        finally {
+            location.reload();
+        }
+	});
 
         $table.on('click', `a.tag-filter`, async function (e) {
             e.preventDefault();
