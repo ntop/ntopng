@@ -25,7 +25,6 @@ sendHTTPContentTypeHeader('application/json')
 
 local subdir = _POST["script_subdir"]
 local script_key = _POST["script_key"]
-local alert_severity = _POST['alert_severity']
 local alert_exclusion_list = _POST['script_exclusion_list']
 
 -- ################################################
@@ -65,11 +64,6 @@ local result = {}
 local success = false
 local err = ""
 
-local additional_params = {}
-if alert_severity ~= nil then
-  additional_params.severity = alert_consts.alertSeverityById(alert_severity)
-end
-
 local additional_filters = {}
 if alert_exclusion_list ~= nil then
   success, additional_filters = user_scripts.parseFilterParams(alert_exclusion_list, subdir, true)
@@ -80,7 +74,7 @@ if alert_exclusion_list ~= nil then
   end
 end
 
-success, err = user_scripts.updateScriptConfig(script_key, subdir, data, additional_params, additional_filters)
+success, err = user_scripts.updateScriptConfig(script_key, subdir, data, additional_filters)
 
 ::response::
 

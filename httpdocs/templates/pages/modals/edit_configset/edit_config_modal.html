@@ -34,13 +34,6 @@
         </div>
     </div>
 </div>
-<template id="severity-template">
-<select class="form-control" style='width: 14rem' name="severity">
-    {% for key, severity in pairsByField(alert_severities, 'severity_id', asc) do %}
-        <option value='{{ severity.severity_id }}'>{{ i18n(severity.i18n_title) }}</option>
-    {% end %}
-</select>
-</template>
 
 {% if subdir == "host" or subdir == "flow" then %}
 

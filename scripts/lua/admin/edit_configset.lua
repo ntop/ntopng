@@ -18,7 +18,6 @@ local json = require "dkjson"
 local discover = require "discover_utils"
 local rest_utils = require "rest_utils"
 local auth = require "auth"
-local alert_severities = require("alert_severities")
 local user_scripts_utils = require("user_scripts_utils")
 
 if not auth.has_capability(auth.capabilities.user_scripts) then
@@ -148,7 +147,6 @@ local context = {
       confset_name = confset_name,
       script_filter = script_filter,
       search_filter = search_filter,
-      alert_severities = alert_severities,
       page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?subdir=%s", script_subdir),
       apps_and_categories = json.encode(apps_and_categories),
       device_types = json.encode(device_types_list),

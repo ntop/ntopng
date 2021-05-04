@@ -1048,11 +1048,9 @@ end
 -- ##############################################
 
 -- @brief Update the configuration of a specific script in a configset
-function user_scripts.updateScriptConfig(script_key, subdir, new_config, additional_params, additional_filters)
+function user_scripts.updateScriptConfig(script_key, subdir, new_config, additional_filters)
    local configset = user_scripts.getConfigset()
    local script_type = user_scripts.getScriptType("flow")
-   -- additional_params contains additional params for script conf such as the severity
-   additional_params = additional_params or {}
    new_config = new_config or {}
    local applied_config = {}
 
@@ -1064,10 +1062,6 @@ function user_scripts.updateScriptConfig(script_key, subdir, new_config, additio
       for hook, conf in pairs(new_config) do
 	 local valid = true
          local rv_or_err = ""
-
-	 for key, value in pairs(additional_params) do
-	    conf.script_conf[key] = value
-	 end
 
 	 if(conf.enabled == nil) then
 	    return false, "Missing 'enabled' item"

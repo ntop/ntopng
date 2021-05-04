@@ -321,9 +321,6 @@ function getSanitizedScriptExList(script_exclusion_list) {
 /* ******************************************************* */
 
 const apply_edits_script = (template_data, script_subdir, script_key) => {
-
-   const severitySelected = $(`#script-config-editor select[name='severity']`).val();
-   const alert_severity = severitySelected || undefined;
    const exclusionList = $(`#script-config-editor textarea[name='exclusion-list']`).val();
    var script_exclusion_list = exclusionList || undefined;
 
@@ -342,7 +339,6 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
       script_subdir: script_subdir,
       script_key: script_key,
       csrf: pageCsrf,
-      alert_severity: alert_severity,
       script_exclusion_list: script_exclusion_list,
       JSON: JSON.stringify(template_data)
    })
@@ -387,7 +383,6 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
          if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
 
          const { metadata } = reset_data;
-         const hasSeverity = metadata.is_alert || false;
          const exclusionList = $(`#script-config-editor textarea[name='exclusion-list']`).val();
          const script_exclusion_list = exclusionList || undefined;
 
@@ -418,14 +413,7 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
             }
          }
 
-         if (hasSeverity) {
-            const defaultSeverity = metadata.default_value.severity;
-            if (defaultSeverity !== undefined) {
-               $(`#script-config-editor select[name='severity']`).val(defaultSeverity.severity_id);
-            }
-         }
-
-         // call callback function to reset fields
+          // call callback function to reset fields
          callback_reset(reset_data);
 
          // add dirty class to form
@@ -1246,7 +1234,7 @@ const MultiSelect = (gui, hooks, script_subdir, script_key) => {
 
 /* ******************************************************* */
 
-const AlertSeverity = (gui, hooks, script_subdir, script_key) => {
+const DefaultTemplate = (gui, hooks, script_subdir, script_key) => {
 
    const $tableEditor = $("#script-config-editor");
 
@@ -1299,7 +1287,6 @@ const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_ke
 
 // get script key and script name
 const initScriptConfModal = (script_key, script_title, script_desc, is_alert) => {
-
    // change title to modal
    $("#script-name").html(script_title);
    $('#script-description').html(script_desc);
@@ -1331,9 +1318,6 @@ const initScriptConfModal = (script_key, script_title, script_desc, is_alert) =>
 
          // render template
          template.render();
-
-         // get alert severity if present
-         appendSeveritySelect(data);
 
 	 // append the exclusion list 
 	 appendExclusionList(data);
@@ -1389,7 +1373,7 @@ const TemplateBuilder = ({ gui, hooks, metadata }, script_subdir, script_key, is
       console.warn("The chosen template doesn't exist yet. See the avaible templates.")
    }
    else if (!template_chosen && (is_alert || isSubdirFlow)) {
-      template_chosen = AlertSeverity(gui, hooks, script_subdir, script_key);
+      template_chosen = DefaultTemplate(gui, hooks, script_subdir, script_key);
    }
 
    // check if the script has an action button
@@ -1467,51 +1451,6 @@ const createScriptStatusButton = (row_data) => {
 
    return $button;
 };
-
-function appendSeveritySelect(data) {
-
-   const hasSeverity = data.metadata.is_alert || false;
-
-   if (data.metadata.default_value === undefined) return;
-
-   if (hasSeverity && data.metadata.default_value.severity !== undefined) {
-
-      let severity = data.metadata.default_value.severity.severity_id;
-
-      const hooksKeys = Object.keys(data.hooks);
-      var index;
-      if (hooksKeys[0] === "filter") {
-         index = hooksKeys[1];
-      } else {
-         index = hooksKeys[0];
-      }
-      const scriptConfSeverity = data.hooks[index].script_conf.severity;
-
-      if (scriptConfSeverity) {
-         severity = scriptConfSeverity.severity_id;
-      }
-
-      let $container;
-      let $select = $($(`#severity-template`).html());
-      const label = i18n.scripts_list.alert_severity;
-      if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder)) {
-         $container = $(`<tr></tr>`);
-         $select.addClass('d-inline');
-         $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(
-            $(`<label class='col-3 col-form-label'>${label}</label>`),
-            $(`<div class='col-4'></div>`).append($select))
-         ));
-      }
-      else {
-         $container = $(`<tr><td></td></tr>`);
-         $container.append($(`<td class='align-middle'>${label}</td>`));
-         $container.append($(`<td></td>`).append($select));
-      }
-
-      $(`#script-config-editor`).append($container);
-      $(`#script-config-editor select[name='severity']`).val(severity);
-   }
-}
 
 function appendExclusionList(data) {
    let ex_list_str = ""
