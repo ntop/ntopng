@@ -20,7 +20,7 @@ local alert_host_pool_disconnection = classes.class(alert)
 alert_host_pool_disconnection.meta = {
   alert_key = other_alert_keys.alert_host_pool_disconnection,
   i18n_title = "alerts_dashboard.host_pool_disconnection",
-  icon = "fas fa-sign-out",
+  icon = "fas fa-fw fa-sign-out",
 }
 
 -- ##############################################

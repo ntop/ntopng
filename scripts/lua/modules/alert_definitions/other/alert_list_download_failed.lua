@@ -19,7 +19,7 @@ local alert_list_download_failed = classes.class(alert)
 alert_list_download_failed.meta = {
    alert_key = other_alert_keys.alert_list_download_failed,
    i18n_title = "alerts_dashboard.list_download_failed",
-   icon = "fas fa-sticky-note",
+   icon = "fas fa-fw fa-sticky-note",
 }
 
 -- ##############################################

@@ -19,7 +19,7 @@ local alert_tls_certificate_mismatch = classes.class(alert)
 alert_tls_certificate_mismatch.meta = {
    alert_key = flow_alert_keys.flow_alert_tls_certificate_mismatch,
    i18n_title = "flow_details.tls_certificate_mismatch",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

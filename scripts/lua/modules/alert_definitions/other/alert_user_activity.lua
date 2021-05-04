@@ -21,7 +21,7 @@ local alert_user_activity = classes.class(alert)
 alert_user_activity.meta = {
 	alert_key = other_alert_keys.alert_user_activity,
 	i18n_title = "alerts_dashboard.user_activity",
-	icon = "fas fa-user",
+	icon = "fas fa-fw fa-user",
 }
 
 -- ##############################################

@@ -19,7 +19,7 @@ local alert_ip_outsite_dhcp_range = classes.class(alert)
 alert_ip_outsite_dhcp_range.meta = {
   alert_key = other_alert_keys.alert_ip_outsite_dhcp_range,
   i18n_title = "alerts_dashboard.misconfigured_dhcp_range",
-  icon = "fas fa-exclamation",
+  icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

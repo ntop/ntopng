@@ -22,7 +22,7 @@ local alert_periodic_activity_not_executed = classes.class(alert)
 alert_periodic_activity_not_executed.meta = {
   alert_key = other_alert_keys.alert_periodic_activity_not_executed,
   i18n_title = "alerts_dashboard.periodic_activity_not_executed",
-  icon = "fas fa-undo",
+  icon = "fas fa-fw fa-undo",
 }
 
 -- ##############################################

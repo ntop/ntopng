@@ -19,7 +19,7 @@ local alert_longlived = classes.class(alert)
 alert_longlived.meta = {
    alert_key = flow_alert_keys.flow_alert_longlived,
    i18n_title = "flow_details.longlived_flow",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################
@@ -51,7 +51,7 @@ function alert_longlived.format(ifid, alert, alert_type_params)
       threshold = alert_type_params["longlived.threshold"]
    end
 
-   res = string.format("%s<sup><i class='fas fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.longlived_flow_descr").."'></i></sup>", res)
+   res = string.format("%s<sup><i class='fas fa-fw fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.longlived_flow_descr").."'></i></sup>", res)
 
    if threshold ~= "" then
       res = string.format("%s [%s]", res, i18n("flow_details.longlived_exceeded", {amount = secondsToTime(threshold)}))

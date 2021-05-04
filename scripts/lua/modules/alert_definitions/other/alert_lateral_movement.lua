@@ -19,7 +19,7 @@ local alert_lateral_movement = classes.class(alert)
 alert_lateral_movement.meta = {
    alert_key = other_alert_keys.alert_lateral_movement,
    i18n_title = "alerts_dashboard.lateral_movement",
-   icon = "fas fa-arrows-alt-h",
+   icon = "fas fa-fw fa-arrows-alt-h",
 }
 
 -- ##############################################
@@ -51,7 +51,7 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
    local server = {host = msg.dhost, vlan = vlan_id}
 
    local rsp = hostinfo2detailshref(client, nil, hostinfo2label(client))..
-      " <i class=\"fas fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i> " ..
+      " <i class=\"fas fa-fw fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i> " ..
       hostinfo2detailshref(server, nil, hostinfo2label(server))
 
    rsp = rsp .. " ["..interface.getnDPIProtoName(msg.l7).."]"

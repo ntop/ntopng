@@ -20,7 +20,7 @@ local alert_device_connection = classes.class(alert)
 alert_device_connection.meta = {
   alert_key = other_alert_keys.alert_device_connection,
   i18n_title = "alerts_dashboard.device_connection",
-  icon = "fas fa-sign-in",
+  icon = "fas fa-fw fa-sign-in",
 }
 
 -- ##############################################

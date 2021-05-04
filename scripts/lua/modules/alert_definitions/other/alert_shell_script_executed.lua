@@ -19,7 +19,7 @@ local alert_shell_script_executed = classes.class(alert)
 alert_shell_script_executed.meta = {
   alert_key = other_alert_keys.alert_shell_script_executed,
   i18n_title = "alerts_dashboard.shell_script",
-  icon = "fas fa-info-circle",
+  icon = "fas fa-fw fa-info-circle",
 }
 
 -- ##############################################

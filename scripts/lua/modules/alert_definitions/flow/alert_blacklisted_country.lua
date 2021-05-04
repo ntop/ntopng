@@ -23,7 +23,7 @@ local alert_blacklisted_country = classes.class(alert)
 alert_blacklisted_country.meta = {
    alert_key = flow_alert_keys.flow_alert_blacklisted_country,
    i18n_title = "alerts_dashboard.blacklisted_country",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
    has_victim = true,
    has_attacker = true,
 

@@ -20,7 +20,7 @@ local alert_remote_access = classes.class(alert)
 alert_remote_access.meta = {
    alert_key  = flow_alert_keys.flow_alert_remote_access,
    i18n_title = "alerts_dashboard.remote_access_title",
-   icon = "fas fa-info",
+   icon = "fas fa-fw fa-info",
 }
 
 -- ##############################################

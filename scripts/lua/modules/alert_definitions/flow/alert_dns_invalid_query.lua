@@ -19,7 +19,7 @@ local alert_dns_invalid_query = classes.class(alert)
 alert_dns_invalid_query.meta = {
    alert_key = flow_alert_keys.flow_alert_dns_invalid_query,
    i18n_title = "flow_details.dns_invalid_query",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

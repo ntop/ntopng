@@ -19,7 +19,7 @@ local alert_tls_old_protocol_version = classes.class(alert)
 alert_tls_old_protocol_version.meta = {
    alert_key = flow_alert_keys.flow_alert_tls_old_protocol_version,
    i18n_title = "flow_details.tls_old_protocol_version",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

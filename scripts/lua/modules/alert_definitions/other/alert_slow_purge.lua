@@ -22,7 +22,7 @@ local alert_slow_purge = classes.class(alert)
 alert_slow_purge.meta = {
   alert_key = other_alert_keys.alert_slow_purge,
   i18n_title = "alerts_dashboard.slow_purge",
-  icon = "fas fa-exclamation",
+  icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

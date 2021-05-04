@@ -20,7 +20,7 @@ local alert_misconfigured_app = classes.class(alert)
 alert_misconfigured_app.meta = {
   alert_key = other_alert_keys.alert_misconfigured_app,
   i18n_title = "alerts_dashboard.misconfigured_app",
-  icon = "fas fa-cog",
+  icon = "fas fa-fw fa-cog",
 }
 
 -- ##############################################

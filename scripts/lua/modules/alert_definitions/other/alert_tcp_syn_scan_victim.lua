@@ -24,7 +24,7 @@ local alert_tcp_syn_scan_victim = classes.class(alert)
 alert_tcp_syn_scan_victim.meta = {
   alert_key = other_alert_keys.alert_tcp_syn_scan_victim,
   i18n_title = "alerts_dashboard.tcp_syn_scan_victim",
-  icon = "fas fa-life-ring",
+  icon = "fas fa-fw fa-life-ring",
   has_victim = true,
 }
 

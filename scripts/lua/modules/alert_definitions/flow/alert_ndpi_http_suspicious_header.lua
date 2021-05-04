@@ -20,7 +20,7 @@ local alert_ndpi_http_suspicious_header = classes.class(alert)
 alert_ndpi_http_suspicious_header.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_http_suspicious_header,
    i18n_title = "alerts_dashboard.ndpi_http_suspicious_header_title",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

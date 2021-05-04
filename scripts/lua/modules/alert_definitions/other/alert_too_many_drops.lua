@@ -21,7 +21,7 @@ local alert_too_many_drops = classes.class(alert)
 alert_too_many_drops.meta = {
   alert_key = other_alert_keys.alert_too_many_drops,
   i18n_title = "alerts_dashboard.too_many_drops",
-  icon = "fas fa-tint",
+  icon = "fas fa-fw fa-tint",
 }
 
 -- ##############################################

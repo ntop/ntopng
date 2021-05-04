@@ -20,7 +20,7 @@ local alert_ngi_trust_event = classes.class(alert)
 alert_ngi_trust_event.meta = {
   alert_key = other_alert_keys.alert_ngi_trust_event,
   i18n_title = "alerts_dashboard.ngi_trust_event",
-  icon = "fas fa-home",
+  icon = "fas fa-fw fa-home",
 }
 
 -- ##############################################

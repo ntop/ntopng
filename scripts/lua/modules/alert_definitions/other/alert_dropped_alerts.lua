@@ -19,7 +19,7 @@ local alert_dropped_alerts = classes.class(alert)
 alert_dropped_alerts.meta = {
   alert_key = other_alert_keys.alert_dropped_alerts,
   i18n_title = i18n("show_alerts.dropped_alerts"),
-  icon = "fas fa-exclamation-triangle",
+  icon = "fas fa-fw fa-exclamation-triangle",
 }
 
 -- ##############################################

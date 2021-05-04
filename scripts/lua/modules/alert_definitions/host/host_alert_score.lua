@@ -24,7 +24,7 @@ local host_alert_score = classes.class(alert)
 host_alert_score.meta = {
   alert_key = host_alert_keys.host_alert_score,
   i18n_title = "alerts_dashboard.threashold_cross",
-  icon = "fas fa-arrow-circle-up",
+  icon = "fas fa-fw fa-arrow-circle-up",
 }
 
 -- ##############################################

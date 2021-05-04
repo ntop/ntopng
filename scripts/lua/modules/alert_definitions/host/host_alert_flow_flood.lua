@@ -24,7 +24,7 @@ local host_alert_flow_flood = classes.class(alert)
 host_alert_flow_flood.meta = {
   alert_key = host_alert_keys.host_alert_flow_flood,
   i18n_title = "alerts_dashboard.flow_flood",
-  icon = "fas fa-life-ring",
+  icon = "fas fa-fw fa-life-ring",
   has_attacker = true,
 }
 

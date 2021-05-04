@@ -19,7 +19,7 @@ local alert_broadcast_domain_too_large = classes.class(alert)
 alert_broadcast_domain_too_large.meta = {
    alert_key = other_alert_keys.alert_broadcast_domain_too_large,
    i18n_title = "alerts_dashboard.broadcast_domain_too_large",
-   icon = "fas fa-sitemap",
+   icon = "fas fa-fw fa-sitemap",
 }
 
 -- ##############################################

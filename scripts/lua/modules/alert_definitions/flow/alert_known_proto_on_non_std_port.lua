@@ -21,7 +21,7 @@ local alert_known_proto_on_non_std_port = classes.class(alert)
 alert_known_proto_on_non_std_port.meta = {   
    alert_key = flow_alert_keys.flow_alert_known_proto_on_non_std_port,
    i18n_title = "alerts_dashboard.known_proto_on_non_std_port",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

@@ -21,7 +21,7 @@ local alert_udp_unidirectional = classes.class(alert)
 alert_udp_unidirectional.meta = {
   alert_key = flow_alert_keys.flow_alert_udp_unidirectional,
   i18n_title = "flow_details.udp_unidirectional",
-  icon = "fas fa-info-circle",
+  icon = "fas fa-fw fa-info-circle",
 }
 
 -- ##############################################

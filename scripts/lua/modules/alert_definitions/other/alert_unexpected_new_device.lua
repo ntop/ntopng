@@ -21,7 +21,7 @@ local alert_unexpected_new_device = classes.class(alert)
 alert_unexpected_new_device.meta = {
   alert_key = other_alert_keys.alert_unexpected_new_device,
   i18n_title = "unexpected_new_device.alert_unexpected_new_device_title",
-  icon = "fas fa-exclamation",
+  icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

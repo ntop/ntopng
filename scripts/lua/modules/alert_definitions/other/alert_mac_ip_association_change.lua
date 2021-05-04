@@ -19,7 +19,7 @@ local alert_mac_ip_association_change = classes.class(alert)
 alert_mac_ip_association_change.meta = {
   alert_key = other_alert_keys.alert_mac_ip_association_change,
   i18n_title = "alerts_dashboard.mac_ip_association_change",
-  icon = "fas fa-exchange-alt",
+  icon = "fas fa-fw fa-exchange-alt",
 }
 
 -- ##############################################

@@ -20,7 +20,7 @@ local alert_device_disconnection = classes.class(alert)
 alert_device_disconnection.meta = {
   alert_key = other_alert_keys.alert_device_disconnection,
   i18n_title = "alerts_dashboard.device_disconnection",
-  icon = "fas fa-sign-out",
+  icon = "fas fa-fw fa-sign-out",
 }
 
 -- ##############################################

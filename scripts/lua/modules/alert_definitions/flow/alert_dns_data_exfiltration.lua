@@ -19,7 +19,7 @@ local alert_dns_data_exfiltration = classes.class(alert)
 alert_dns_data_exfiltration.meta = {
    alert_key = flow_alert_keys.flow_alert_dns_data_exfiltration,
    i18n_title = "flow_details.dns_data_exfiltration",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

@@ -21,7 +21,7 @@ local alert_snmp_topology_changed = classes.class(alert)
 alert_snmp_topology_changed.meta = {  
   alert_key = other_alert_keys.alert_snmp_topology_changed,
   i18n_title = i18n("snmp.lldp_topology_changed"),
-  icon = "fas fa-topology-alt",
+  icon = "fas fa-fw fa-topology-alt",
 }
 
 -- ##############################################

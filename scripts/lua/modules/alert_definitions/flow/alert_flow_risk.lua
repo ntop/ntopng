@@ -22,7 +22,7 @@ local alert_flow_risk = classes.class(alert)
 alert_flow_risk.meta = {
    alert_key = flow_alert_keys.flow_alert_flow_risk,
    i18n_title = "alerts_dashboard.flow_risk",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

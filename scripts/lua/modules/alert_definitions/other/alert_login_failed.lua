@@ -19,7 +19,7 @@ local alert_login_failed = classes.class(alert)
 alert_login_failed.meta = {
   alert_key = other_alert_keys.alert_login_failed,
   i18n_title = "alerts_dashboard.login_failed",
-  icon = "fas fa-sign-in",
+  icon = "fas fa-fw fa-sign-in",
 }
 
 -- ##############################################

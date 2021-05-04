@@ -20,7 +20,7 @@ local alert_ndpi_tls_suspicious_esni_usage = classes.class(alert)
 alert_ndpi_tls_suspicious_esni_usage.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_tls_suspicious_esni_usage,
    i18n_title = "alerts_dashboard.ndpi_tls_suspicious_esni_usage_title",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

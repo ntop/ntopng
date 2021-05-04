@@ -21,7 +21,7 @@ local alert_suspicious_file_transfer = classes.class(alert)
 alert_suspicious_file_transfer.meta = {
    alert_key = flow_alert_keys.flow_alert_suspicious_file_transfer,
    i18n_title = "alerts_dashboard.suspicious_file_transfer",
-   icon = "fas fa-file-download",
+   icon = "fas fa-fw fa-file-download",
 }
 
 -- ##############################################
@@ -51,9 +51,9 @@ function alert_suspicious_file_transfer.format(ifid, alert, alert_type_params)
       local extn = alert_type_params["protos.http.last_url"]:sub(-4):lower()
 
       if extn == ".php" or extn == ".js" or extn == ".html" or extn == ".xml" or extn == ".cgi" then
-	 type_icon = '<i class="fas fa-file-code"></i>'
+	 type_icon = '<i class="fas fa-fw fa-file-code"></i>'
       elseif extn == ".png" or extn == ".jpg" then
-	 type_icon = '<i class="fas fa-file-image"></i>'
+	 type_icon = '<i class="fas fa-fw fa-file-image"></i>'
       end
 
       res = i18n("alerts_dashboard.suspicious_file_transfer_url",

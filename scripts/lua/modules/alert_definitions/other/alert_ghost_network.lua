@@ -20,7 +20,7 @@ local alert_ghost_network = classes.class(alert)
 alert_ghost_network.meta = {
   alert_key = other_alert_keys.alert_ghost_network,
   i18n_title = "alerts_dashboard.ghost_network_detected",
-  icon = "fas fa-ghost",
+  icon = "fas fa-fw fa-ghost",
 }
 
 -- ##############################################

@@ -19,7 +19,7 @@ local alert_zero_tcp_window = classes.class(alert)
 alert_zero_tcp_window.meta = {
    alert_key = flow_alert_keys.flow_alert_zero_tcp_window,
    i18n_title = "flow_alerts_explorer.zero_tcp_window_title",
-   icon = "fas fa-arrow-circle-up",
+   icon = "fas fa-fw fa-arrow-circle-up",
 }
 
 -- ##############################################

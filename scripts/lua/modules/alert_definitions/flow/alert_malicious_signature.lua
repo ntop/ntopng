@@ -19,7 +19,7 @@ local alert_malicious_signature = classes.class(alert)
 alert_malicious_signature.meta = {
    alert_key = flow_alert_keys.flow_alert_malicious_signature,
    i18n_title = "flow_risk.malicious_signature_detected",
-   icon = "fas fa-ban",
+   icon = "fas fa-fw fa-ban",
 }
 
 -- ##############################################

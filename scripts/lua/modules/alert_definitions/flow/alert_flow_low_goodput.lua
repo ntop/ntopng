@@ -22,7 +22,7 @@ local alert_flow_low_goodput = classes.class(alert)
 alert_flow_low_goodput.meta = {
    alert_key = flow_alert_keys.flow_alert_low_goodput,
    i18n_title = "alerts_dashboard.flow_low_goodput",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

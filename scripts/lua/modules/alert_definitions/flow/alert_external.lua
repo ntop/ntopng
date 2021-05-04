@@ -17,7 +17,7 @@ local external_alert = classes.class(alert)
 external_alert.meta = {
    alert_key = flow_alert_keys.flow_alert_external,
    i18n_title = "alerts_dashboard.external_alert",
-   icon = "fas fa-eye",
+   icon = "fas fa-fw fa-eye",
    status_keep_increasing_scores = true, -- Every time an external alert is set, scores are increased accordingly
 }
 

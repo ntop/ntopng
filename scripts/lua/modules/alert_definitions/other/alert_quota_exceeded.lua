@@ -21,7 +21,7 @@ local alert_quota_exceeded = classes.class(alert)
 alert_quota_exceeded.meta = {
   alert_key = other_alert_keys.alert_quota_exceeded,
   i18n_title = "alerts_dashboard.quota_exceeded",
-  icon = "fas fa-thermometer-full",
+  icon = "fas fa-fw fa-thermometer-full",
 }
 
 -- ##############################################

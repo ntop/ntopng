@@ -21,7 +21,7 @@ local alert_periodicity_update = classes.class(alert)
 alert_periodicity_update.meta = {
    alert_key = other_alert_keys.alert_periodicity_update,
    i18n_title = "alerts_dashboard.alert_periodicity_update",
-   icon = "fas fa-arrows-alt-h",
+   icon = "fas fa-fw fa-arrows-alt-h",
 }
 
 -- ##############################################

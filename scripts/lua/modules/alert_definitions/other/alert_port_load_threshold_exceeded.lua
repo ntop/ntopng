@@ -19,7 +19,7 @@ local alert_port_load_threshold_exceeded = classes.class(alert)
 alert_port_load_threshold_exceeded.meta = {
    alert_key = other_alert_keys.alert_port_load_threshold_exceeded,
    i18n_title = "alerts_dashboard.snmp_port_load_threshold_exceeded",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

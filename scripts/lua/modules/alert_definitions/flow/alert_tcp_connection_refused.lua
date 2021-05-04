@@ -19,7 +19,7 @@ local alert_tcp_connection_refused = classes.class(alert)
 alert_tcp_connection_refused.meta = {
    alert_key = flow_alert_keys.flow_alert_tcp_connection_refused,
    i18n_title = "flow_callbacks_config.tcp_connection_refused",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

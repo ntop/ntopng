@@ -20,7 +20,7 @@ local alert_ndpi_dns_suspicious_traffic = classes.class(alert)
 alert_ndpi_dns_suspicious_traffic.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_dns_suspicious_traffic,
    i18n_title = "alerts_dashboard.ndpi_dns_suspicious_traffic_title",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

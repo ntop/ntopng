@@ -20,7 +20,7 @@ local alert_ndpi_unsafe_protocol = classes.class(alert)
 alert_ndpi_unsafe_protocol.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_unsafe_protocol,
    i18n_title = "alerts_dashboard.ndpi_unsafe_protocol_title",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

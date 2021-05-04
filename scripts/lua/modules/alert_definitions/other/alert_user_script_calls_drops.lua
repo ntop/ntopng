@@ -21,7 +21,7 @@ local alert_user_script_calls_drops = classes.class(alert)
 alert_user_script_calls_drops.meta = {
   alert_key = other_alert_keys.alert_user_script_calls_drops,
   i18n_title = "alerts_dashboard.user_scripts_calls_drops",
-  icon = "fas fa-tint",
+  icon = "fas fa-fw fa-tint",
 }
 
 -- ##############################################

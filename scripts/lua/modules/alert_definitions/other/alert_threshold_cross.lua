@@ -24,7 +24,7 @@ local alert_threshold_cross = classes.class(alert)
 alert_threshold_cross.meta = {
   alert_key = other_alert_keys.alert_threshold_cross,
   i18n_title = "alerts_dashboard.threashold_cross",
-  icon = "fas fa-arrow-circle-up",
+  icon = "fas fa-fw fa-arrow-circle-up",
 }
 
 -- ##############################################

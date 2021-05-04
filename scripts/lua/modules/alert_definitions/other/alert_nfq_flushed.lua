@@ -19,7 +19,7 @@ local alert_nfq_flushed = classes.class(alert)
 alert_nfq_flushed.meta = {
   alert_key = other_alert_keys.alert_nfq_flushed,
   i18n_title = "alerts_dashboard.nfq_flushed",
-  icon = "fas fa-angle-double-down",
+  icon = "fas fa-fw fa-angle-double-down",
 }
 
 -- ##############################################

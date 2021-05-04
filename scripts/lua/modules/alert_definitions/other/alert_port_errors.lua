@@ -19,7 +19,7 @@ local alert_port_errors = classes.class(alert)
 alert_port_errors.meta = {
    alert_key = other_alert_keys.alert_port_errors,
    i18n_title = "alerts_dashboard.snmp_port_errors",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

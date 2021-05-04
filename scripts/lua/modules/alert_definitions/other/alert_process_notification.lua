@@ -19,7 +19,7 @@ local alert_process_notification = classes.class(alert)
 alert_process_notification.meta = {
   alert_key = other_alert_keys.alert_process_notification,
   i18n_title = "alerts_dashboard.process",
-  icon = "fas fa-truck",
+  icon = "fas fa-fw fa-truck",
 }
 
 -- ##############################################

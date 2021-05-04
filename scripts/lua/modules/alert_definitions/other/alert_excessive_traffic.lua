@@ -24,7 +24,7 @@ local alert_excessive_traffic = classes.class(alert)
 alert_excessive_traffic.meta = {
   alert_key = other_alert_keys.alert_excessive_traffic,
   i18n_title = "excessive_traffic.title",
-  icon = "fas fa-arrow-circle-up",
+  icon = "fas fa-fw fa-arrow-circle-up",
 }
 
 -- ##############################################

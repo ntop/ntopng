@@ -24,7 +24,7 @@ local alert_slow_periodic_activity = classes.class(alert)
 alert_slow_periodic_activity.meta = {
   alert_key = other_alert_keys.alert_slow_periodic_activity,
   i18n_title = "alerts_dashboard.slow_periodic_activity",
-  icon = "fas fa-undo",
+  icon = "fas fa-fw fa-undo",
 }
 
 -- ##############################################

@@ -19,7 +19,7 @@ local alert_influxdb_export_failure = classes.class(alert)
 alert_influxdb_export_failure.meta = {
    alert_key = other_alert_keys.alert_influxdb_export_failure,
    i18n_title = "alerts_dashboard.influxdb_export_failure",
-   icon = "fas fa-database",
+   icon = "fas fa-fw fa-database",
 }
 
 -- ##############################################

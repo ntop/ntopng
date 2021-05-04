@@ -24,7 +24,7 @@ local alert_flow_flood_victim = classes.class(alert)
 alert_flow_flood_victim.meta = {
   alert_key = other_alert_keys.alert_flow_flood_victim,
   i18n_title = "alerts_dashboard.flow_flood_victim",
-  icon = "fas fa-life-ring",
+  icon = "fas fa-fw fa-life-ring",
   has_victim = true,
 }
 

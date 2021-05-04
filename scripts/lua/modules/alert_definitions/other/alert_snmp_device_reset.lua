@@ -19,7 +19,7 @@ local alert_snmp_device_reset = classes.class(alert)
 alert_snmp_device_reset.meta = {
    alert_key = other_alert_keys.alert_snmp_device_reset,
    i18n_title = "alerts_dashboard.alert_snmp_device_reset_title",
-   icon = "fas fa-power-off",
+   icon = "fas fa-fw fa-power-off",
 }
 
 -- ##############################################

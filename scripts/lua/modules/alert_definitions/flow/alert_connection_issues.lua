@@ -22,7 +22,7 @@ local alert_connection_issues = classes.class(alert)
 alert_connection_issues.meta = {
    alert_key = flow_alert_keys.flow_alert_tcp_connection_issues,
    i18n_title = "alerts_dashboard.connection_issues",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

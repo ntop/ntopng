@@ -20,7 +20,7 @@ local alert_host_pool_connection = classes.class(alert)
 alert_host_pool_connection.meta = {
    alert_key = other_alert_keys.alert_host_pool_connection,
    i18n_title = "alerts_dashboard.host_pool_connection",
-   icon = "fas fa-sign-in",
+   icon = "fas fa-fw fa-sign-in",
 }
 
 -- ##############################################

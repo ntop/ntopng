@@ -24,7 +24,7 @@ local host_alert_tcp_syn_scan = classes.class(alert)
 host_alert_tcp_syn_scan.meta = {
   alert_key = host_alert_keys.host_alert_syn_scan,
   i18n_title = "alerts_dashboard.tcp_syn_scan",
-  icon = "fas fa-life-ring",
+  icon = "fas fa-fw fa-life-ring",
   has_attacker = true,
 }
 

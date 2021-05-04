@@ -24,7 +24,7 @@ local host_alert_score_anomaly = classes.class(alert)
 host_alert_score_anomaly.meta = {
   alert_key = host_alert_keys.host_alert_score_anomaly,
   i18n_title = "alerts_dashboard.score_anomaly",
-  icon = "fas fa-life-ring",
+  icon = "fas fa-fw fa-life-ring",
   has_attacker = true,
 }
 

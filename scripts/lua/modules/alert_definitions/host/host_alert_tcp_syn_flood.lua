@@ -25,7 +25,7 @@ local alert_tcp_syn_flood = classes.class(alert)
 alert_tcp_syn_flood.meta = {
   alert_key = host_alert_keys.host_alert_syn_flood,
   i18n_title = "alerts_dashboard.tcp_syn_flood",
-  icon = "fas fa-life-ring",
+  icon = "fas fa-fw fa-life-ring",
   has_attacker = true,
 }
 

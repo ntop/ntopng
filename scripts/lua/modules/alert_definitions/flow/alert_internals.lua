@@ -20,7 +20,7 @@ local alert_internals = classes.class(alert)
 alert_internals.meta = {
   alert_key = flow_alert_keys.flow_alert_internals,
   i18n_title = "flow_details.not_purged",
-  icon = "fas fa-exclamation",
+  icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

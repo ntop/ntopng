@@ -20,7 +20,7 @@ local alert_am_threshold_cross = classes.class(alert)
 alert_am_threshold_cross.meta = {
    alert_key = other_alert_keys.alert_am_threshold_cross,
    i18n_title = "graphs.active_monitoring",
-   icon = "fas fa-exclamation",
+   icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################

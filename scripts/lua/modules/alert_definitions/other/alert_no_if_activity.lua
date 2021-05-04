@@ -19,7 +19,7 @@ local alert_no_if_activity = classes.class(alert)
 alert_no_if_activity.meta = {  
 alert_key = other_alert_keys.alert_no_if_activity,
 i18n_title = "no_if_activity.alert_no_activity_title",
-icon = "fas fa-arrow-circle-up",
+icon = "fas fa-fw fa-arrow-circle-up",
 }
 
 -- ##############################################
