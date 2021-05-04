@@ -46,6 +46,11 @@
         </div>
     </div>
 </div>
+<style>
+    table.dataTable td, table.dataTable th {
+        padding: 0.55rem;
+    }
+</style>
 
 {# add modals if defined #}
 {% if datatable.modals then %}
@@ -185,7 +190,7 @@
             {% end %}
 
             /* Actions Column */
-            columns.push({width: '5%', responsivePriority: 1, targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
+            columns.push({width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
 	        const buttons = [
 		    /* Link to the flow details (active flows only) */
 		    {% if alert_stats.entity == 'flow' then %}
@@ -226,7 +231,6 @@
         config = DataTableUtils.extendConfig(config, {
 	        serverSide: true,
             searching: false,
-            autoWidth: true,
             ajax: {
                 method: 'get',
                 url: '{* datatable.datasource.endpoint *}',

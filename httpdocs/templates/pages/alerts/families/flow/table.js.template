@@ -1,10 +1,10 @@
 [
     /* Date */
-    {name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center',},
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center',},
     /* Counts */
     {name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
     /* Alert Type + Severity */
-    {name: 'severity', className: 'text-center position-relative text-nowrap', width: '10%', data: 'severity', render: DataTableRenders.alertSeverityAndType},
+    {responsivePriority: 1, name: 'severity', className: 'text-nowrap f-1', width: '10%', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* Score */
     {name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.colorizeScore(100, 300)},
     /* Protocol */
@@ -18,23 +18,23 @@
         return DataTableRenders.filterize(proto.value, proto.label);
     }},
     /* Client */
-    {name: 'cli_ip', data: 'cli_ip', orderable: false, className: 'text-nowrap', width: '10%', render: (cliIp, type, row) => {
+    {responsivePriority: 1, name: 'cli_ip', data: 'cli_ip', orderable: false, className: 'text-nowrap', width: '12%', render: (cliIp, type, row) => {
     	let htmlRef = '';
-	let label = cliIp.shown_label || cliIp.label;
-	if (cliIp.reference !== undefined) {
-            htmlRef = cliIp.reference;
-	}
+        let label = cliIp.shown_label || cliIp.label;
+        if (cliIp.reference !== undefined) {
+                htmlRef = cliIp.reference;
+        }
         return DataTableRenders.filterize(cliIp.value, `${label} ${row.is_attacker_to_victim ? ("<i class='fas fa-skull-crossbones'></i>") : ("")}`) + htmlRef;
     }},
     /* Server */
-    {name: 'srv_ip', data: 'srv_ip', orderable: false, className: 'text-nowrap', width: '10%', render: (srvIp, type, row) => {
+    {responsivePriority: 1, name: 'srv_ip', data: 'srv_ip', orderable: false, className: 'text-nowrap', width: '12%', render: (srvIp, type, row) => {
     	let htmlRef = '';
-	let label = srvIp.shown_label || srvIp.label;
-	if (srvIp.reference !== undefined) {
-            htmlRef = srvIp.reference;
+        let label = srvIp.shown_label || srvIp.label;
+        if (srvIp.reference !== undefined) {
+                htmlRef = srvIp.reference;
         }
         return DataTableRenders.filterize(srvIp.value, `${label} ${row.is_victim_to_attacker ? ("<i class='fas fa-skull-crossbones'></i>") : ("")}`) + htmlRef;
     }},
     /* Description */
-    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap',},
+    {responsivePriority: 1, name: 'description', data: 'msg', orderable: false, className: 'text-nowrap',},
 ]

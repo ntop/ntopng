@@ -39,97 +39,100 @@
 </style>
 {% end %}
 
+<div class="w-100">
 
-<div class="range-container d-flex flex-wrap">
+    <div class="range-container d-flex flex-wrap">
+    
+        {% if not isEmptyString(extra_html) then %}
+            {* extra_html *}
+        {% end %}
+    
+        <div class="range-picker flex-wrap d-flex my-auto">
+    
+            <div style="width: 30rem;" class="input-group">
+                <div class="input-group-prepend">
+    
+                    <button class="btn input-group-text dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-calendar-alt"></i>
+                    </button>
+    
+                    <div class="dropdown-menu">
+                        <div class="p-2">
+                            <div class="form-group">
+                                <label for="select-presets">
+                                    <small><b>{{ i18n('show_alerts.presets.presets') }}</b></small>
+                                </label>
+                                <select class="form-control" id="select-presets">
+                                    {% if (presets.five_mins) or (presets.five_mins ~= false) then %}
+                                        <option {{ ((presetSelected and default == '5min') and 'selected' or '') }} value="5,minutes">{{ i18n('show_alerts.presets.5_min') }}</option>
+                                    {% end  %}
+                    
+                                    <option {{ ((presetSelected and default == '30min') and 'selected' or '') }} value="30,minutes">{{ i18n('show_alerts.presets.30_min') }}</option>
+                    
+                                    <option value="1,hours">{{ i18n('show_alerts.presets.hour') }}</option>
+                    
+                                    {% if (presets.day == nil) or presets.day then %}
+                                    <option value="1,days">{{ i18n('show_alerts.presets.day') }}</option>
+                                    {% end  %}
+                    
+                                    {% if (presets.week == nil) or presets.week then %}
+                                    <option value="1,weeks">{{ i18n('show_alerts.presets.week') }}</option>
+                                    {% end  %}
+                    
+                                    {% if (presets.month == nil) or presets.month then %}
+                                    <option value="1,months">{{ i18n('show_alerts.presets.month') }}</option>
+                                    {% end  %}
+                    
+                                    {% if (presets.year == nil) or presets.year then %}
+                                    <option value="1,years">{{ i18n('show_alerts.presets.year') }}</option>
+                                    {% end  %}
+                    
+                                    <option disabled>{{ i18n("graphs.custom") }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+    
+                </div>
+                <input id='begin-epoch' type="text" aria-label="Begin" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-right-0" data-target="#begin-epoch">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class="fas fa-long-arrow-alt-right"></i>
+                    </span>
+                </div>
+                <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-left-0" data-target="#end-epoch">
+            </div>
+    
+            <div class="controls d-flex flex-wrap">
+                <div class="btn-group mr-auto btn-group-sm">
+                    <button class="btn btn-link" id="btn-jump-time-back">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <button class="btn btn-link mr-2" disabled id="btn-jump-time-ahead">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button class="btn btn-link" id="btn-zoom-in">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button class="btn btn-link" id="btn-zoom-out">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                </div>
+                <button id="btn-apply" class="btn btn-sm btn-primary m-auto">{{ i18n("apply") }}</button>
+            </div>
+        </div>
+    
+    </div>
+    
 
     {% if tags.enabled then %}
-    <div class="d-flex" style="width: 40%;">
-        <input class="w-100 form-control" name="tags" placeholder="{{ i18n('show_alerts.filters') }}">
+    <div class="d-flex mt-1">
+        <input class="w-100 form-control h-auto" name="tags" placeholder="{{ i18n('show_alerts.filters') }}">
         <button data-toggle="tooltip" data-placement="bottom" title="{{ i18n('show_alerts.remove_filters') }}" class="btn ml-1 my-auto btn-sm btn-remove-tags">
             <i class="fas fa-times"></i>
         </button>
     </div>
     {% end %}
-    
-    {% if not isEmptyString(extra_html) then %}
-        {* extra_html *}
-    {% end %}
-
-    <div class="range-picker flex-wrap d-flex {{ (isEmptyString(extra_html) and 'ml-auto' or '') }}">
-
-        <div style="width: 30rem;" class="input-group">
-            <div class="input-group-prepend">
-
-                <button class="btn input-group-text dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fas fa-calendar-alt"></i>
-                </button>
-
-                <div class="dropdown-menu">
-                    <div class="p-2">
-                        <div class="form-group">
-                            <label for="select-presets">
-                                <small><b>{{ i18n('show_alerts.presets.presets') }}</b></small>
-                            </label>
-                            <select class="form-control" id="select-presets">
-                                {% if (presets.five_mins) or (presets.five_mins ~= false) then %}
-                                    <option {{ ((presetSelected and default == '5min') and 'selected' or '') }} value="5,minutes">{{ i18n('show_alerts.presets.5_min') }}</option>
-                                {% end  %}
-                
-                                <option {{ ((presetSelected and default == '30min') and 'selected' or '') }} value="30,minutes">{{ i18n('show_alerts.presets.30_min') }}</option>
-                
-                                <option value="1,hours">{{ i18n('show_alerts.presets.hour') }}</option>
-                
-                                {% if (presets.day == nil) or presets.day then %}
-                                <option value="1,days">{{ i18n('show_alerts.presets.day') }}</option>
-                                {% end  %}
-                
-                                {% if (presets.week == nil) or presets.week then %}
-                                <option value="1,weeks">{{ i18n('show_alerts.presets.week') }}</option>
-                                {% end  %}
-                
-                                {% if (presets.month == nil) or presets.month then %}
-                                <option value="1,months">{{ i18n('show_alerts.presets.month') }}</option>
-                                {% end  %}
-                
-                                {% if (presets.year == nil) or presets.year then %}
-                                <option value="1,years">{{ i18n('show_alerts.presets.year') }}</option>
-                                {% end  %}
-                
-                                <option disabled>{{ i18n("graphs.custom") }}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-            <input id='begin-epoch' type="text" aria-label="Begin" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-right-0" data-target="#begin-epoch">
-            <div class="input-group-prepend">
-                <span class="input-group-text">
-                    <i class="fas fa-long-arrow-alt-right"></i>
-                </span>
-            </div>
-            <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-left-0" data-target="#end-epoch">
-        </div>
-
-        <div class="controls d-flex flex-wrap">
-            <div class="btn-group mr-auto btn-group-sm">
-                <button class="btn btn-link" id="btn-jump-time-back">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
-                <button class="btn btn-link mr-2" disabled id="btn-jump-time-ahead">
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-                <button class="btn btn-link" id="btn-zoom-in">
-                    <i class="fas fa-search-plus"></i>
-                </button>
-                <button class="btn btn-link" id="btn-zoom-out">
-                    <i class="fas fa-search-minus"></i>
-                </button>
-            </div>
-            <button id="btn-apply" class="btn btn-primary">{{ i18n("apply") }}</button>
-        </div>
-    </div>
-
 </div>
 
   
