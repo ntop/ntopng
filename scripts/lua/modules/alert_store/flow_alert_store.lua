@@ -212,14 +212,15 @@ function flow_alert_store:format_record(value, no_html)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.flow.entity_id)
    local protocol = l4_proto_to_string(value["proto"])
    local application =  interface.getnDPIProtoName(tonumber(value["l7_proto"]))
-
    local msg = alert_utils.formatFlowAlertMessage(ifid, value, alert_info)
+   local show_cli_port = (value["cli_port"] ~= '' and value["cli_port"] ~= 0)
+   local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= 0)   
 
    -- Add link to historical flow
    if interfaceHasNindexSupport() and not no_html then
-      local href = string.format('%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s,eq&srv_ip=%s,eq&cli_port=%u,eq&srv_port=%u,eq&l4proto=%s,eq',
+      local href = string.format('%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s,eq&srv_ip=%s,eq&cli_port=%s,eq&srv_port=%s,eq&l4proto=%s,eq',
          ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
-         value["cli_ip"], value["srv_ip"], value["cli_port"], value["srv_port"], protocol)
+         value["cli_ip"], value["srv_ip"], ternary(show_cli_port, tostring(value["cli_port"]), ''), ternary(show_srv_port, tostring(value["srv_port"]), ''), protocol)
       record["historical_url"] = href
    end
 
@@ -239,8 +240,6 @@ function flow_alert_store:format_record(value, no_html)
    -- Host reference
    local cli_ip = hostinfo2hostkey(value, "cli")
    local srv_ip = hostinfo2hostkey(value, "srv")
-   local extra_info_cli = ""
-   local extra_info_srv = ""   
 
    if not no_html then
       reference_html = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
@@ -283,11 +282,11 @@ function flow_alert_store:format_record(value, no_html)
    end
    
    record["srv_ip"]["shown_label"] = string.format("%s%s%s", record["srv_ip"]["label"],
-			   ternary(value["srv_port"] ~= '', ':', ''),
-			   value["srv_port"])
+			   ternary(show_srv_port, ':', ''),
+			   ternary(show_srv_port, value["srv_port"], ''))
    record["cli_ip"]["shown_label"] = string.format("%s%s%s", record["cli_ip"]["label"],
-			   ternary(value["cli_port"] ~= '', ':', ''),
-			   value["cli_port"])
+			   ternary(show_cli_port, ':', ''),
+			   ternary(show_cli_port, value["cli_port"], ''))
 
    record["vlan_id"] = value["vlan_id"]
    record["proto"] = {
