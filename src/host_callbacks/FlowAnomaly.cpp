@@ -52,7 +52,7 @@ void FlowAnomaly::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   if(cli_score || srv_score) {
     bool is_client_alert = (cli_score > 0) ? true : false;
     
-    if (!alert) alert = allocAlert(this, h, alert_level_warning, cli_score, srv_score, is_client_alert, value, lower_bound, upper_bound);
+    if (!alert) alert = allocAlert(this, h, cli_score, srv_score, is_client_alert, value, lower_bound, upper_bound);
     if (alert) h->triggerAlert(alert);
   }
 }

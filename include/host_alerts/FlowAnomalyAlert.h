@@ -42,8 +42,8 @@ class FlowAnomalyAlert : public HostAlert {
   }
 
  public:
-  FlowAnomalyAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, bool _is_client_alert, u_int32_t _value, u_int32_t _lower_bound, u_int32_t _upper_bound)
-    : HostAlert(c, h, severity, cli_score, srv_score) {
+  FlowAnomalyAlert(HostCallback *c, Host *h, u_int8_t cli_score, u_int8_t srv_score, bool _is_client_alert, u_int32_t _value, u_int32_t _lower_bound, u_int32_t _upper_bound)
+    : HostAlert(c, h, cli_score, srv_score) {
     is_client_alert = _is_client_alert;
     value = _value;
     lower_bound = _lower_bound;

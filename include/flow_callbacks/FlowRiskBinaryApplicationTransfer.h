@@ -33,9 +33,6 @@ class FlowRiskBinaryApplicationTransfer : public FlowRisk {
   u_int8_t getClientScore() { return SCORE_MAX_VALUE; }
   u_int8_t getServerScore() { return SCORE_MAX_VALUE; }
 
-  /* Overriding the default severity */
-  AlertLevel getSeverity() { return alert_level_error; }
-  
  public:
   FlowRiskBinaryApplicationTransfer() : FlowRisk() {};
   ~FlowRiskBinaryApplicationTransfer() {};

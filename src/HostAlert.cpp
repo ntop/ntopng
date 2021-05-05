@@ -23,9 +23,8 @@
 
 /* **************************************************** */
 
-HostAlert::HostAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score) {
+HostAlert::HostAlert(HostCallback *c, Host *h, u_int8_t cli_score, u_int8_t srv_score) {
   host = h;
-  severity_id = severity;
   expiring = released = false;
   callback_id = c->getID();
   callback_name = c->getName();

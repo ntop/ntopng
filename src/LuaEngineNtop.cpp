@@ -424,7 +424,7 @@ int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *a, int idx) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *key, *alert_subtype, *alert_json;
   ScriptPeriodicity periodicity;
-  AlertLevel alert_severity;
+  u_int32_t score;
   AlertType alert_type;
   Host *host;
   bool triggered;
@@ -439,7 +439,7 @@ int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *a, int idx) {
   if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, idx++)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_severity = (AlertLevel)lua_tointeger(vm, idx++);
+  score = lua_tointeger(vm, idx++);
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_type = (AlertType)lua_tonumber(vm, idx++);
@@ -451,7 +451,7 @@ int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *a, int idx) {
   if((alert_json = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   triggered = alertable->triggerAlert(vm, std::string(key), periodicity, time(NULL),
-    alert_severity, alert_type, alert_subtype, alert_json);
+    score, alert_type, alert_subtype, alert_json);
 
   if(triggered && (host = dynamic_cast<Host*>(alertable)))
     host->incTotalAlerts();
@@ -1043,13 +1043,14 @@ static int ntop_getticks(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
-
 /* ****************************************** */
 
 static int ntop_gettickspersec(lua_State* vm) {
   lua_pushnumber(vm, Utils::gettickspersec());
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 /**
  * @brief Refreshes the timezone after a change

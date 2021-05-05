@@ -64,18 +64,16 @@ end
 -- #################################################################
 
 local function parseAlertMetadata(event_alert, flow)
-   local severity = alert_severities.error
 
-   -- Alert severity is 1..255, however it is usually 1..4
+   -- Alert severity in Suricata is 1..255, however it is usually 1..4
    -- where 1 is highest priority
 
-   if event_alert.severity ~= nil and event_alert.severity > 1 then
-      severity = alert_severities.warning
+   if event_alert.severity ~= nil then
+      -- Severity is currently not used
    end
 
    local external_alert = {
       source = "suricata",
-      severity_id = severity.severity_id,
       alert = event_alert,
    }
 

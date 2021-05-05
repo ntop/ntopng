@@ -33,9 +33,6 @@ class FlowRiskTLSNotCarryingHTTPS : public FlowRiskTLS {
   u_int8_t getClientScore() { return 10; }
   u_int8_t getServerScore() { return 10; }
 
-  /* Overriding the default severity */
-  AlertLevel getSeverity() { return alert_level_info; }
-
  public:
   FlowRiskTLSNotCarryingHTTPS() : FlowRiskTLS() {};
   ~FlowRiskTLSNotCarryingHTTPS() {};

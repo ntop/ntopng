@@ -50,14 +50,15 @@ function am_alert_store:insert(alert)
    end
 
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, tstamp, tstamp_end, severity, interface_id, resolved_ip, resolved_name, "..
+      "(alert_id, tstamp, tstamp_end, severity, score, interface_id, resolved_ip, resolved_name, "..
       "measure_threshold, measure_value, json) "..
-      "VALUES (%u, %u, %u, %u, %d, '%s', '%s', %u, %f, '%s'); ",
+      "VALUES (%u, %u, %u, %u, %u, %d, '%s', '%s', %u, %f, '%s'); ",
       self._table_name, 
       alert.alert_id,
       alert.tstamp,
       alert.tstamp_end,
-      alert.severity,
+      alert_utils.mapScoreToSeverity(alert.score).severity_id,
+      alert.score,
       getSystemInterfaceId(),
       self:_escape(resolved_ip),
       self:_escape(resolved_name),

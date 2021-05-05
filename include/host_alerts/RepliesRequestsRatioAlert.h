@@ -36,7 +36,7 @@ class RepliesRequestsRatioAlert : public HostAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
   
  public:
-  RepliesRequestsRatioAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, bool _is_sent_rcvd);
+  RepliesRequestsRatioAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, bool _is_sent_rcvd);
   ~RepliesRequestsRatioAlert() {};
   
   inline void setRepliesRequestsRatios(u_int8_t _ratio_threshold, u_int8_t _ratio, u_int32_t _requests, u_int32_t _replies) {

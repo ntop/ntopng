@@ -28,12 +28,10 @@ ndpi_serializer* ExternalAlertCheckAlert::getAlertJSON(ndpi_serializer* serializ
   if (serializer != NULL && json != NULL) {
     json_object *alert, *sign, *cat;
     const char *source, *category, *signature; 
-    int severity_id;
 
     /*
      * JSON Content:
      * source
-     * severity_id
      * alert {
      *  category
      *  signature
@@ -43,9 +41,6 @@ ndpi_serializer* ExternalAlertCheckAlert::getAlertJSON(ndpi_serializer* serializ
     source = f->getExternalSource();
     if (source)
       ndpi_serialize_string_string(serializer, "source", source);
-
-    severity_id = f->getExternalSeverity();
-    ndpi_serialize_string_uint32(serializer, "severity_id", severity_id);
 
     ndpi_serialize_start_of_block(serializer, "alert");
 

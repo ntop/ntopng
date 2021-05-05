@@ -31,7 +31,7 @@ function Alert:_build_type_info()
       alert_type = self.meta,
       subtype = self.subtype,
       granularity = self.granularity,
-      severity = self.severity,
+      score = self.score,
       -- Stuff added in subclasses :init
       alert_type_params = self.alert_type_params or {}
    }
@@ -107,8 +107,8 @@ end
 
 -- ##############################################
 
-function Alert:set_severity(severity)
-   self.severity = severity
+function Alert:set_score(score)
+   self.score = score
 end
 
 -- ##############################################

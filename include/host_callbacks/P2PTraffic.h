@@ -28,9 +28,9 @@ class P2PTraffic : public HostCallback {
 private:
   u_int64_t p2p_bytes_threshold;  
 
-  HostAlert *allocAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score,
+  HostAlert *allocAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score,
 			u_int64_t _p2p_bytes, u_int64_t _p2p_bytes_threshold) {
-    return new P2PTrafficAlert(c, f, severity, cli_score, srv_score, _p2p_bytes, _p2p_bytes_threshold);
+    return new P2PTrafficAlert(c, f, cli_score, srv_score, _p2p_bytes, _p2p_bytes_threshold);
   };
   
 public:

@@ -44,7 +44,7 @@ function flow_alert_store:insert(alert)
       alert.alert_id,
       alert.tstamp,
       alert.tstamp,
-      alert.severity,
+      alert_utils.mapScoreToSeverity(alert.score).severity_id,
       alert.cli_addr,
       alert.srv_addr,
       alert.cli_port,

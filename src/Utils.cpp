@@ -4766,6 +4766,20 @@ ScoreCategory Utils::mapAlertToScoreCategory(AlertCategory alert_category) {
 
 /* ****************************************************** */
 
+/* Keep in sync with alert_utils.mapScoreToSeverity (Lua) */
+AlertLevel Utils::mapScoreToSeverity(u_int32_t score) {
+  if (score < SCORE_LEVEL_NOTICE)
+    return alert_level_info;
+  else if (score < SCORE_LEVEL_WARNING)
+    return alert_level_notice;
+  else if (score < SCORE_LEVEL_ERROR)
+    return alert_level_warning;
+  else
+    return alert_level_error;
+}
+
+/* ****************************************************** */
+
 AlertLevelGroup Utils::mapAlertLevelToGroup(AlertLevel alert_level) {
   switch(alert_level) {
   case alert_level_debug:

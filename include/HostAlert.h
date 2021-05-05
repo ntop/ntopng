@@ -29,7 +29,6 @@ class HostCallback;
 class HostAlert {
  private:
   Host *host;
-  AlertLevel severity_id;
   bool released; /* to be released */
   bool expiring; /* engaged, under re-evaluation */
   HostCallbackID callback_id;
@@ -47,14 +46,13 @@ class HostAlert {
   virtual ndpi_serializer* getAlertJSON(ndpi_serializer* serializer)  { return serializer; }  
 
  public:
-  HostAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score);
+  HostAlert(HostCallback *c, Host *h, u_int8_t cli_score, u_int8_t srv_score);
   virtual ~HostAlert();
-
-  inline void setSeverity(AlertLevel alert_severity) { severity_id = alert_severity; }
-  inline AlertLevel getSeverity() const              { return(severity_id);          }  
 
   inline u_int8_t getCliScore() { return score_as_cli; }
   inline u_int8_t getSrvScore() { return score_as_srv; }
+
+  inline u_int8_t getScore()   { return max_val(score_as_cli, score_as_srv); }
 
   inline void setAttacker() { is_attacker = true; }
   inline void setVictim()   { is_victim = true;   }

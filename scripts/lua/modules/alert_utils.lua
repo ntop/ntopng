@@ -46,6 +46,21 @@ end
 
 -- ##############################################
 
+-- Keep in sync with Utils::mapScoreToSeverity (C) */
+function alert_utils.mapScoreToSeverity(score)
+  if (not score or score < prefs.score_level_notice) then
+    return alert_severities.info
+  elseif score < prefs.score_level_warning then
+    return alert_severities.notice
+  elseif score < prefs.score_level_error then
+    return alert_severities.warning
+  else 
+    return alert_severities.error
+  end
+end
+
+-- ##############################################
+
 local function alertTypeDescription(alert_key, entity_id)
 
    local alert_id = alert_consts.getAlertType(alert_key, entity_id)

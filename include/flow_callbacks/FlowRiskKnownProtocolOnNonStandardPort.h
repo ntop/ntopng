@@ -33,9 +33,6 @@ class FlowRiskKnownProtocolOnNonStandardPort : public FlowRisk {
   u_int8_t getClientScore() { return 100; }
   u_int8_t getServerScore() { return 100; }
 
-  /* Overriding the default severity */
-  AlertLevel getSeverity() { return alert_level_info; }
-
  public:
   FlowRiskKnownProtocolOnNonStandardPort() : FlowRisk() {};
   ~FlowRiskKnownProtocolOnNonStandardPort() {};

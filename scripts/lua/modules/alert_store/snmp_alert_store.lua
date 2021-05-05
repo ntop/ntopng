@@ -49,13 +49,14 @@ function snmp_alert_store:insert(alert)
    end
 
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, tstamp, tstamp_end, severity, ip, name, port, port_name, json) "..
-      "VALUES (%u, %u, %u, %u, '%s', '%s', %u, '%s', '%s'); ",
+      "(alert_id, tstamp, tstamp_end, severity, score, ip, name, port, port_name, json) "..
+      "VALUES (%u, %u, %u, %u, %u, '%s', '%s', %u, '%s', '%s'); ",
       self._table_name, 
       alert.alert_id,
       alert.tstamp,
       alert.tstamp_end,
-      alert.severity,
+      alert_utils.mapScoreToSeverity(alert.score).severity_id,
+      alert.score,
       self:_escape(device_ip or alert.entity_val),
       self:_escape(device_name),
       port or 0,

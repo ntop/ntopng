@@ -58,7 +58,6 @@ class Flow : public GenericHashEntry {
   Bitmap128 alerts_map;
   FlowAlertType predominant_alert;          /* This is the predominant alert */
   u_int16_t  predominant_alert_score;       /* The score associated to the predominant alert */
-  AlertLevel predominant_alert_level;
 
   /*
     Data set by FlowCallback subclasses to preserve a status on the flow. Status is accessed later by
@@ -107,7 +106,6 @@ class Flow : public GenericHashEntry {
   u_int32_t marker;
 #endif
   struct {
-    AlertLevel severity_id;
     char *source;
     json_object *json;
   } external_alert;
@@ -280,7 +278,7 @@ class Flow : public GenericHashEntry {
     - Synchronous:  The alerts bitmap is updated and the predominant alert is possibly updated.
                     Immediate alert JSON generation and enqueue to the recipients are performed as well.
    */
-  bool setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, u_int8_t cli_inc, u_int8_t srv_inc, bool async);
+  bool setAlertsBitmap(FlowAlertType alert_type, u_int8_t cli_inc, u_int8_t srv_inc, bool async);
   void setNormalToAlertedCounters();
   /* Decreases scores on both client and server hosts when the flow is being destructed */
   void decAllFlowScores();
@@ -313,25 +311,25 @@ class Flow : public GenericHashEntry {
     cause the alert JSON to be generated after the call.
     The FlowCallback should implement the buildAlert() method which is called in the predominant callback to actually build the FlowAlert object.
    */
-  bool triggerAlertAsync(FlowAlertType alert_type, AlertLevel alert_severity, u_int8_t cli_score_inc, u_int8_t srv_score_inc);
+  bool triggerAlertAsync(FlowAlertType alert_type, u_int8_t cli_score_inc, u_int8_t srv_score_inc);
 
   /* 
      Called by FlowCallback subclasses to trigger a flow alert. This is a syncrhonous call, more expensive, but
      causes the alert (FlowAlert) to be immediately enqueued to all recipients.
    */
-  bool triggerAlertSync(FlowAlert *alert, AlertLevel alert_severity, u_int8_t cli_score_inc, u_int8_t srv_score_inc);
+  bool triggerAlertSync(FlowAlert *alert, u_int8_t cli_score_inc, u_int8_t srv_score_inc);
 
   /*
     Enqueues the predominant alert of the flow to all available flow recipients.
    */
   void enqueuePredominantAlert();
 
-  inline void setPredominantAlert(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t score);
+  inline void setPredominantAlert(FlowAlertType alert_type, u_int16_t score);
   inline FlowAlertType getPredominantAlert() const { return predominant_alert; };
   inline u_int16_t getPredominantAlertScore() const { return predominant_alert_score; };
+  inline AlertLevel getPredominantAlertSeverity() const { return Utils::mapScoreToSeverity(predominant_alert_score); };
   inline bool isFlowAlerted()    const { return(predominant_alert.id != flow_alert_normal); };
-  inline AlertLevel getAlertedSeverity()     const { return predominant_alert_level; };
-  
+ 
   inline char* getJa3CliHash() { return(protos.tls.ja3.client_hash); }
   
   bool isBlacklistedFlow()   const;
@@ -690,7 +688,6 @@ class Flow : public GenericHashEntry {
   inline bool hasExternalAlert() const { return external_alert.json != NULL; };
   inline json_object *getExternalAlert() { return external_alert.json; };
   inline char *getExternalSource() { return external_alert.source; };
-  inline AlertLevel getExternalSeverity() { return external_alert.severity_id; };
   void luaRetrieveExternalAlert(lua_State *vm);
 
   u_int32_t getSrvTcpIssues();

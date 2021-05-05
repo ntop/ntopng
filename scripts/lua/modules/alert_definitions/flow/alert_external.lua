@@ -59,7 +59,6 @@ function external_alert.format(ifid, alert, alert_type_params)
 
    -- Available fields:
    -- alert_type_params.source (e.g. suricata)
-   -- alert_type_params.severity_id (custom severity)
    -- alert_type_params.alert (alert metadata)
 
    if alert_type_params.source == "suricata" then

@@ -37,7 +37,7 @@ class FlowHits : public HostCallback {
   FlowHits();
   ~FlowHits() {};
 
-  virtual FlowHitsAlert *allocAlert(Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, u_int16_t hits, u_int64_t threshold, bool attacker) = 0;
+  virtual FlowHitsAlert *allocAlert(Host *h, u_int8_t cli_score, u_int8_t srv_score, u_int16_t hits, u_int64_t threshold, bool attacker) = 0;
 
   bool loadConfiguration(json_object *config);  
 };

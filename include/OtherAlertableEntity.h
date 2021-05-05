@@ -74,7 +74,7 @@ public:
   
   bool triggerAlert(lua_State* vm, std::string key,
 		    ScriptPeriodicity p, time_t now,
-		    AlertLevel severity, AlertType alert_id,
+		    u_int32_t score, AlertType alert_id,
 		    const char *subtype,
 		    const char *json);
   bool releaseAlert(lua_State* vm, std::string key,

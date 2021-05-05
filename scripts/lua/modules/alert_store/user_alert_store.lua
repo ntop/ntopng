@@ -33,13 +33,14 @@ end
 
 function user_alert_store:insert(alert)
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, tstamp, tstamp_end, severity, user, granularity, json) "..
-      "VALUES (%u, %u, %u, %u, '%s', %u, '%s'); ",
+      "(alert_id, tstamp, tstamp_end, severity, score, user, granularity, json) "..
+      "VALUES (%u, %u, %u, %u, %u, '%s', %u, '%s'); ",
       self._table_name, 
       alert.alert_id,
       alert.tstamp,
       alert.tstamp_end,
-      alert.severity,
+      alert_utils.mapScoreToSeverity(alert.score).severity_id,
+      alert.score,
       self:_escape(alert.entity_val),
       alert.granularity,
       self:_escape(alert.json))

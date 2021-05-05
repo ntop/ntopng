@@ -32,7 +32,7 @@ class FlowFloodAlert : public FlowHitsAlert {
  public:
   static HostAlertType getClassType() { return { host_alert_flow_flood, alert_category_security }; }
 
-  FlowFloodAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, u_int16_t hits, u_int64_t threshold, bool is_attacker) : FlowHitsAlert(c, h, severity, cli_score, srv_score, hits, threshold, is_attacker) {};
+  FlowFloodAlert(HostCallback *c, Host *h, u_int8_t cli_score, u_int8_t srv_score, u_int16_t hits, u_int64_t threshold, bool is_attacker) : FlowHitsAlert(c, h, cli_score, srv_score, hits, threshold, is_attacker) {};
   ~FlowFloodAlert() {};
 
   HostAlertType getAlertType() const { return getClassType(); }

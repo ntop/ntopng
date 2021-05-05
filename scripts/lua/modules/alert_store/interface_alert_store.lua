@@ -36,13 +36,14 @@ function interface_alert_store:insert(alert)
    local alias = getHumanReadableInterfaceName(name)
 
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, tstamp, tstamp_end, severity, ifid, name, alias, granularity, json) "..
-      "VALUES (%u, %u, %u, %u, %u, '%s', '%s', %u, '%s'); ",
+      "(alert_id, tstamp, tstamp_end, severity, score, ifid, name, alias, granularity, json) "..
+      "VALUES (%u, %u, %u, %u, %u, %d, '%s', '%s', %u, '%s'); ",
       self._table_name, 
       alert.alert_id,
       alert.tstamp,
       alert.tstamp_end,
-      alert.severity,
+      alert_utils.mapScoreToSeverity(alert.score).severity_id,
+      alert.score,
       alert.ifid,
       self:_escape(name),
       self:_escape(alias),

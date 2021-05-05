@@ -158,7 +158,6 @@ local function matchExcludeFilter(entity_info, type_info)
       subtype = type_info.subtype,
       entity_id = entity_info.alert_entity.entity_id,
       entity_val = entity_info.entity_val,
-      severity = type_info.severity.severity_id,
       json = type_info.alert_type_params,
    }
 
@@ -207,7 +206,7 @@ function alerts_api.store(entity_info, type_info, when)
     granularity = granularity_sec,
     entity_id = entity_info.alert_entity.entity_id,
     entity_val = entity_info.entity_val,
-    severity = type_info.severity.severity_id,
+    score = type_info.score,
     tstamp = when,
     tstamp_end = when,
     json = alert_json,
@@ -228,7 +227,6 @@ end
 -- ##############################################
 
 -- @brief Determine whether the alert has already been triggered
--- @param candidate_severity the candidate alert severity
 -- @param candidate_type the candidate alert type
 -- @param candidate_granularity the candidate alert granularity
 -- @param candidate_alert_subtype the candidate alert subtype
@@ -242,18 +240,16 @@ end
 -- cur_alerts.1.alert_subtype string min_bytes
 -- cur_alerts.1.entity_val string 192.168.2.222@0
 -- cur_alerts.1.alert_granularity number 60
--- cur_alerts.1.alert_severity number 2
 -- cur_alerts.1.alert_json string {"metric":"bytes","threshold":1,"value":13727070,"operator":"gt"}
 -- cur_alerts.1.alert_tstamp_end number 1571328097
 -- cur_alerts.1.alert_tstamp number 1571327460
 -- cur_alerts.1.alert_entity number 1
-local function already_triggered(cur_alerts, candidate_severity, candidate_type,
+local function already_triggered(cur_alerts, candidate_type,
 				 candidate_granularity, candidate_alert_subtype, remove_from_cur_alerts)
    for i = #cur_alerts, 1, -1 do
       local cur_alert = cur_alerts[i]
 
-      if candidate_severity == cur_alert.severity
-	 and candidate_type == cur_alert.alert_id
+      if candidate_type == cur_alert.alert_id
 	 and candidate_granularity == cur_alert.granularity
          and candidate_alert_subtype == cur_alert.subtype then
 	    if remove_from_cur_alerts then
@@ -276,28 +272,26 @@ end
 
 --! @brief Checks if a stateful alert should be triggered/released or if has already been triggered/released and there is nothing to do
 --! @param cur_alerts a table containing triggered alerts for the current entity
---! @param candidate_severity the candidate alert severity
 --! @param candidate_type the candidate alert type
 --! @param candidate_granularity the candidate alert granularity
 --! @param candidate_alert_subtype the candidate alert subtype
 --! @param trigger The intention of the caller to trigger this alert (true) or to release this alert (false)
 --! @return True if the alert should be processed, or false if there is nothing to do
-function alerts_api.do_stateful_alert(cur_alerts, candidate_severity, candidate_type, candidate_granularity, candidate_alert_subtype, trigger)
+function alerts_api.do_stateful_alert(cur_alerts, candidate_type, candidate_granularity, candidate_alert_subtype, trigger)
    if not cur_alerts then
       return false
    end
 
-   local severity_id = candidate_severity.severity_id
    local alert_key = candidate_type.meta.alert_key
    local granularity = alert_consts.alerts_granularities[candidate_granularity]
    local granularity_sec = granularity and granularity.granularity_seconds or 0
 
    if trigger then
       -- True if the alert has not been already triggered
-      return not already_triggered(cur_alerts, severity_id, alert_key, granularity_sec, candidate_alert_subtype)
+      return not already_triggered(cur_alerts, alert_key, granularity_sec, candidate_alert_subtype)
    else --[[ release --]]
       -- True if the alert was triggered
-      return already_triggered(cur_alerts, severity_id, alert_key, granularity_sec, candidate_alert_subtype)
+      return already_triggered(cur_alerts, alert_key, granularity_sec, candidate_alert_subtype)
    end
 end
 
@@ -336,8 +330,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   -- Check whether this alert is matching an exclusion filter
   local match_exclude_filter = matchExcludeFilter(entity_info, type_info)
 
-  if(cur_alerts and already_triggered(cur_alerts, type_info.severity.severity_id,
-				      type_info.alert_type.alert_key, granularity_sec, subtype, true) == true) then
+  if(cur_alerts and already_triggered(cur_alerts, type_info.alert_type.alert_key, granularity_sec, subtype, true) == true) then
      -- If there, the alert was already engaged at the time this function was called. Hence, if the alert
      -- is matching the exclusion filter, the alert must actually be RELEASED.
      -- NOTE: release is called without `cur_alerts` as there is no need to use this cache. Release MUST be done.
@@ -358,9 +351,14 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   local triggered
   local alert_key_name = get_alert_triggered_key(type_info.alert_type.alert_key, subtype)
 
+  if not type_info.score then
+     traceError(TRACE_ERROR, TRACE_CONSOLE, "Alert score is not set")
+     type_info.score = 0
+  end
+
   local params = {
     alert_key_name, granularity_id,
-    type_info.severity.severity_id, type_info.alert_type.alert_key,
+    type_info.score, type_info.alert_type.alert_key,
     subtype, alert_json,
   }
 
@@ -420,8 +418,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   local granularity_id = type_info.granularity and type_info.granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
   local subtype = type_info.subtype or ""
 
-  if(cur_alerts and (not already_triggered(cur_alerts, type_info.severity.severity_id,
-	  type_info.alert_type.alert_key, granularity_sec, subtype, true))) then
+  if(cur_alerts and (not already_triggered(cur_alerts, type_info.alert_type.alert_key, granularity_sec, subtype, true))) then
      return(true)
   end
 
@@ -430,11 +427,6 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   local ifid = interface.getId()
   local params = {alert_key_name, granularity_id, when}
   local released = nil
-
-  if(type_info.severity == nil) then
-    alertErrorTraceback(string.format("Missing alert_severity [type=%s]", type_info.alert_type and type_info.alert_type.alert_key or ""))
-    return(false)
-  end
 
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
     interface.checkContext(entity_info.entity_val)
@@ -495,7 +487,7 @@ function alerts_api.releaseEntityAlerts(entity_info, alerts)
      local cur_alert_instance = cur_alert_type:new(--[[ empty, no parameters for the release --]])
 
      -- Set alert params.
-     cur_alert_instance:set_severity(alert_severities[alert_consts.alertSeverityRaw(cur_alert.severity)])
+     cur_alert_instance:set_score(cur_alert.score)
      cur_alert_instance:set_subtype(cur_alert.subtype)
      cur_alert_instance:set_granularity(alert_consts.sec2granularity(cur_alert.granularity))
 
@@ -614,7 +606,6 @@ end
 function alerts_api.tooManyDropsType(drops, drop_perc, threshold)
   return({
     alert_id = alert_consts.alert_types.alert_too_many_drops,
-    severity = alert_severities.error,
     granularity = alert_consts.alerts_granularities.min,
     alert_type_params = {
       drops = drops, drop_perc = drop_perc, edge = threshold,
@@ -639,10 +630,10 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
   local op_fn = user_scripts.operator_functions[threshold_config.operator] or user_scripts.operator_functions.gt
   if op_fn and op_fn(value, threshold) then alarmed = true end
 
-  -- tprint({params.cur_alerts, threshold_config.severity, alert_type.meta, params.granularity, script.key --[[ the subtype--]], alarmed})
+  -- tprint({params.cur_alerts, alert_type.meta, params.granularity, script.key --[[ the subtype--]], alarmed})
 
   -- Check if there is work to do before creating an instance of the alert and doing the actual trigger release
-  if not alerts_api.do_stateful_alert(params.cur_alerts, threshold_config.severity,
+  if not alerts_api.do_stateful_alert(params.cur_alerts,
 				      alert_type, params.granularity, script.key --[[ the subtype --]], alarmed) then
      -- Nothing to do. Alert either already triggered or already released
      return
@@ -655,7 +646,7 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
     threshold
   )
 
-  alert:set_severity(threshold_config.severity)
+  alert:set_score(threshold_config.score)
   alert:set_granularity(params.granularity)
   alert:set_subtype(script.key)
 
@@ -690,10 +681,11 @@ function alerts_api.handlerPeerBehaviour(params, stats, tot_anomalies, host_ip, 
       lower_bound
    )
 
+   -- Setting score (TODO check the score value)
    if threshold and tot_anomalies and tot_anomalies > threshold then
-      alert_unexpected_behaviour:set_severity(alert_severities.error)
+      alert_unexpected_behaviour:set_score(100)
    else
-      alert_unexpected_behaviour:set_severity(alert_severities.warning)
+      alert_unexpected_behaviour:set_score(50)
    end
       
    alert_unexpected_behaviour:set_granularity(params.granularity)
@@ -719,7 +711,7 @@ function alerts_api.anomaly_check_function(params)
   local anomal_key = params.user_script.key
   local type_info = params.user_script.anomaly_type_builder()
 
-  type_info:set_severity(alert_severities.error)
+  type_info:set_score(100) -- TODO check the score value
   type_info:set_granularity(params.granularity)
   type_info:set_subtype(anomal_key)
 

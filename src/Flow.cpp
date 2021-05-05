@@ -45,7 +45,6 @@ Flow::Flow(NetworkInterface *_iface,
   cli_ip_addr = srv_ip_addr = NULL;
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
   srcAS = dstAS  = prevAdjacentAS = nextAdjacentAS = 0;
-  predominant_alert_level = alert_level_none;
   predominant_alert.id = flow_alert_normal, predominant_alert.category = alert_category_other;
   predominant_alert_score = 0;
   ndpi_flow_risk_bitmap = 0;
@@ -80,7 +79,6 @@ Flow::Flow(NetworkInterface *_iface,
   top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
   external_alert.json = NULL;
   external_alert.source = NULL;
-  external_alert.severity_id = alert_level_none;
   trigger_immediate_periodic_update = false;
   next_call_periodic_update = 0;
 
@@ -2359,7 +2357,7 @@ void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
     ndpi_stats->incFlowsStats(detected_protocol.master_protocol);
   }
 
-  status_stats->incStats(getAlertsBitmap(), protocol, predominant_alert_level, getCli2SrvDSCP(), getSrv2CliDSCP(), this);
+  status_stats->incStats(getAlertsBitmap(), protocol, Utils::mapScoreToSeverity(getPredominantAlertScore()), getCli2SrvDSCP(), getSrv2CliDSCP(), this);
 }
 
 /* *************************************** */
@@ -2725,7 +2723,6 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_boolean(s, "is_flow_alert", true);
   ndpi_serialize_string_int64(s, "tstamp", now);
   ndpi_serialize_string_int64(s, "alert_id", alert->getAlertType().id);
-  ndpi_serialize_string_int32(s, "severity", alert->getSeverity());
   ndpi_serialize_string_boolean(s, "is_cli_attacker", alert->isCliAttacker());
   ndpi_serialize_string_boolean(s, "is_srv_attacker", alert->isSrvAttacker());
 
@@ -2868,7 +2865,7 @@ void Flow::decAllFlowScores() {
    */
 
   if(isFlowAlerted()) {
-    iface->decNumAlertedFlows(this, predominant_alert_level);
+    iface->decNumAlertedFlows(this, Utils::mapScoreToSeverity(getPredominantAlertScore()));
     if(cli_u) cli_u->decNumAlertedFlows(true /* As client */);
     if(srv_u) srv_u->decNumAlertedFlows(false /* As server */);
 
@@ -3097,7 +3094,7 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
   /* Currenty, we forcefully enqueue only to the builtin sqlite */
     
   notification.alert = (char*)flow_str;
-  notification.alert_severity = alert->getSeverity();
+  notification.alert_severity = Utils::mapScoreToSeverity(getPredominantAlertScore());
   notification.alert_category = alert->getAlertType().category;
 
   rv = ntop->recipients_enqueue(notification.alert_severity >= alert_level_error ? recipient_notification_priority_high : recipient_notification_priority_low,
@@ -4693,7 +4690,6 @@ void Flow::lua_get_status(lua_State* vm) const {
     lua_push_bool_table_entry(vm, "flow.alerted", true);
     lua_push_uint64_table_entry(vm, "predominant_alert", getPredominantAlert().id);
     lua_push_uint64_table_entry(vm, "predominant_alert_score", getPredominantAlertScore());
-    lua_push_uint64_table_entry(vm, "alerted_severity", getAlertedSeverity());
   }
 }
 
@@ -5329,23 +5325,19 @@ void Flow::setNormalToAlertedCounters() {
 
 /* ***************************************************** */
 
-void Flow::setPredominantAlert(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t score) {
-  if(predominant_alert_level != alert_severity) {
-    /* The predominant alert severity that is being set is different from the current predominant alert severity */
+void Flow::setPredominantAlert(FlowAlertType alert_type, u_int16_t score) {
 
-    /* Increase the value for the newly set level (if not normal) */
-    if(alert_severity != alert_level_none)
-      iface->incNumAlertedFlows(this, alert_severity);
-
+  if (predominant_alert_score) {
     /* Decrease the value previously increased for the previous alert (if not normal) */
-    if(predominant_alert_level != alert_level_none)
-      iface->decNumAlertedFlows(this, predominant_alert_level);
+    iface->decNumAlertedFlows(this, Utils::mapScoreToSeverity(predominant_alert_score));
   }
-  
-  /* Update the current predominant alert, severity, and score */
-  predominant_alert = alert_type,
-    predominant_alert_level = alert_severity,
-    predominant_alert_score = score;
+
+  /* Increase the value for the newly set level (if not normal) */
+  iface->incNumAlertedFlows(this, Utils::mapScoreToSeverity(score));
+ 
+  /* Update the current predominant alert and score */
+  predominant_alert = alert_type;
+  predominant_alert_score = score;
 }
 
 /* ***************************************************** */
@@ -5355,7 +5347,7 @@ void Flow::setPredominantAlert(FlowAlertType alert_type, AlertLevel alert_severi
 
   Return true if the activities are completed successfully, of false otherwise
 */
-bool Flow::setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, u_int8_t cli_inc, u_int8_t srv_inc, bool async) {
+bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int8_t cli_inc, u_int8_t srv_inc, bool async) {
   ScoreCategory score_category = Utils::mapAlertToScoreCategory(alert_type.category);
   u_int16_t flow_inc;
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
@@ -5416,7 +5408,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, 
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting predominant with score: %u", flow_inc);
 #endif
-    setPredominantAlert(alert_type, alert_severity, flow_inc);
+    setPredominantAlert(alert_type, flow_inc);
 #ifdef DEBUG_SCORE
   } else {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (score <= %u)", getPredominantAlertScore());
@@ -5428,25 +5420,23 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, 
 
 /* *************************************** */
 
-bool Flow::triggerAlertAsync(FlowAlertType alert_type, AlertLevel alert_severity, u_int8_t cli_inc, u_int8_t srv_inc) {
+bool Flow::triggerAlertAsync(FlowAlertType alert_type, u_int8_t cli_inc, u_int8_t srv_inc) {
   bool res;
 
-  res = setAlertsBitmap(alert_type, alert_severity, cli_inc, srv_inc, true);
+  res = setAlertsBitmap(alert_type, cli_inc, srv_inc, true);
 
   return res;
 }
 
 /* *************************************** */
 
-bool Flow::triggerAlertSync(FlowAlert *alert, AlertLevel alert_severity, u_int8_t cli_inc, u_int8_t srv_inc) {
+bool Flow::triggerAlertSync(FlowAlert *alert, u_int8_t cli_inc, u_int8_t srv_inc) {
   bool res;
 
-  res = setAlertsBitmap(alert->getAlertType(), alert_severity, cli_inc, srv_inc, false);
+  res = setAlertsBitmap(alert->getAlertType(), cli_inc, srv_inc, false);
 
   /* Synchronous, this alert must be sent straight to the recipients now. Let's put it into the recipient queues. */
   if(alert) {
-    alert->setSeverity(alert_severity);
-
     if(ntop->getPrefs()->dontEmitFlowAlerts())
       /* Nothing to enqueue, can dispose the memory */
       delete alert;
@@ -5472,11 +5462,6 @@ void Flow::setExternalAlert(json_object *a) {
  
     if(json_object_object_get_ex(a, "source", &val))
       external_alert.source = strdup(json_object_get_string(val));
- 
-    if(json_object_object_get_ex(a, "severity_id", &val))
-      external_alert.severity_id = (AlertLevel) json_object_get_int(val);
-    else
-      external_alert.severity_id = alert_level_warning;
  
     external_alert.json = a;
 

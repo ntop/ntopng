@@ -35,7 +35,7 @@ void DNSTraffic::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   u_int64_t delta;
 
   if((delta = h->cb_status_delta_dns_bytes(h->get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_DNS))) > dns_bytes_threshold) {
-    if (!alert) alert = allocAlert(this, h, getSeverity(), 50, 0, delta, dns_bytes_threshold);
+    if (!alert) alert = allocAlert(this, h, 50, 0, delta, dns_bytes_threshold);
     if (alert) h->triggerAlert(alert);
   }
 }

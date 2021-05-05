@@ -51,7 +51,7 @@ void RemoteAccess::flowEnd(Flow *f) {
   case NDPI_PROTOCOL_CATEGORY_FILE_SHARING:
     if(cli) cli->decrRemoteAccess();
 
-    f->triggerAlertAsync(RemoteAccessAlert::getClassType(), getSeverity(), c_score, s_score);
+    f->triggerAlertAsync(RemoteAccessAlert::getClassType(), c_score, s_score);
     break;
   default:
     break;

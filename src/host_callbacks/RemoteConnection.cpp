@@ -35,7 +35,7 @@ void RemoteConnection::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   if(h) num_remote_access = h->getRemoteAccess();
 
   if(num_remote_access > 0) {
-    if (!alert) alert = allocAlert(this, h, alert_level_notice, cli_score, srv_score, num_remote_access);
+    if (!alert) alert = allocAlert(this, h, cli_score, srv_score, num_remote_access);
     if (alert) h->triggerAlert(alert);
   }
 }

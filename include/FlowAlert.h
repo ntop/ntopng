@@ -27,7 +27,6 @@
 class FlowAlert {
  private:
   Flow *flow;
-  AlertLevel severity_id;
   std::string callback_name;
   bool cli_attacker, srv_attacker;
 
@@ -41,7 +40,6 @@ class FlowAlert {
   virtual ~FlowAlert();
 
   bool loadConfiguration(json_object *config);
-  inline void setSeverity(AlertLevel alert_severity) { severity_id = alert_severity; };
 
   inline void setCliAttacker() { cli_attacker = true; }
   inline void setSrvAttacker() { srv_attacker = true; }
@@ -52,7 +50,6 @@ class FlowAlert {
   virtual FlowAlertType getAlertType() const = 0;
   virtual std::string   getName()      const = 0;
 
-  inline AlertLevel    getSeverity()  const { return(severity_id); }  
   inline Flow *getFlow() const { return(flow); }
   inline std::string getCallbackName() const { return(callback_name); }
 

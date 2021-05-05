@@ -179,8 +179,7 @@ typedef enum {
 } AlertLevel;
 
 /*
-  Used to group fine-grained AlertLevel into coarser-grained
-  groups. Each group contains one or multiple AlertLevel.
+  Used to group alert score into coarser-grained groups.
  */
 typedef enum {
   alert_level_group_none = 0,

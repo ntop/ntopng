@@ -83,7 +83,6 @@ void OtherAlertableEntity::luaAlert(lua_State* vm, const Alert *alert, ScriptPer
   /* NOTE: must conform to the AlertsManager format */
   lua_push_int32_table_entry(vm,  "alert_id", alert->alert_id);
   lua_push_str_table_entry(vm,    "subtype", alert->subtype.c_str());
-  lua_push_int32_table_entry(vm,  "severity", alert->severity);
   lua_push_int32_table_entry(vm,  "entity_id", getEntityType());
   lua_push_str_table_entry(vm,    "entity_val", getEntityValue().c_str());
   lua_push_str_table_entry(vm,    "name", getEntityValue().c_str());
@@ -100,7 +99,7 @@ void OtherAlertableEntity::luaAlert(lua_State* vm, const Alert *alert, ScriptPer
    a triggerAlert. */
 bool OtherAlertableEntity::triggerAlert(lua_State* vm, std::string key,
 				   ScriptPeriodicity p, time_t now,
-				   AlertLevel severity, AlertType alert_id,
+				   u_int32_t score, AlertType alert_id,
 				   const char *subtype,
 				   const char *json) {
   bool rv = false;
@@ -117,7 +116,7 @@ bool OtherAlertableEntity::triggerAlert(lua_State* vm, std::string key,
       Alert alert;
 
       alert.tstamp = alert.last_update = now;
-      alert.severity = severity;
+      alert.score = score;
       alert.alert_id = alert_id;
       alert.subtype = subtype;
       alert.json = json;
@@ -194,7 +193,7 @@ void OtherAlertableEntity::countAlerts(grouped_alerts_counters *counters) {
       for(it = engaged_alerts[p].begin(); it != engaged_alerts[p].end(); ++it) {
 	const Alert *alert = &it->second;
 	
-	counters->severities[std::make_pair(getEntityType(), alert->severity)]++;
+	counters->severities[std::make_pair(getEntityType(), Utils::mapScoreToSeverity(alert->score))]++;
 	counters->types[std::make_pair(getEntityType(), alert->alert_id)]++;
       }
 
@@ -218,7 +217,7 @@ void OtherAlertableEntity::getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity
       if(((type_filter == alert_none)
 	  || (type_filter == alert->alert_id))
 	 && ((severity_filter == alert_level_none)
-	     || (severity_filter == alert->severity))) {
+	     || (severity_filter == Utils::mapScoreToSeverity(alert->score)))) {
 	lua_newtable(vm);
 	luaAlert(vm, alert, (ScriptPeriodicity)p);
 

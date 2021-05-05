@@ -243,6 +243,8 @@ public:
   static bool isNumber(const char *s, unsigned int s_len, bool *is_float);
   static bool isPingSupported();
   static ScoreCategory mapAlertToScoreCategory(AlertCategory script_category);
+  /* Map alert score to AlertLevel */
+  static AlertLevel mapScoreToSeverity(u_int32_t score);
   /*
     Maps an AlertLevel into the corresponding AlertLevelGroup. Alert level groups
     are used to 'compress' alert levels into a reduced number of (grouped) levels.

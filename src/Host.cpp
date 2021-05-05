@@ -1639,8 +1639,8 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
   /* See AlertableEntity::luaAlert */
   ndpi_serialize_string_string(s, "action", released ? "release" : "engage");
   ndpi_serialize_string_int32(s, "alert_id", alert->getAlertType().id);
+  ndpi_serialize_string_int32(s, "score", alert->getScore());
   ndpi_serialize_string_string(s, "subtype", "" /* No subtype for hosts */);
-  ndpi_serialize_string_int32(s, "severity", alert->getSeverity());
   ndpi_serialize_string_string(s, "ip", ip.print(ip_buf, sizeof(ip_buf)));
   get_name(buf, sizeof(buf), false);
   ndpi_serialize_string_string(s, "name", buf);
@@ -1689,7 +1689,7 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
   /* Currenty, we forcefully enqueue only to the builtin sqlite */
     
   notification.alert = (char*)host_str;
-  notification.alert_severity = alert->getSeverity();
+  notification.alert_severity = Utils::mapScoreToSeverity(alert->getScore());
   notification.alert_category = alert->getAlertType().category;
 
   rv = ntop->recipients_enqueue(notification.alert_severity >= alert_level_error ? recipient_notification_priority_high : recipient_notification_priority_low,

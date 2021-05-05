@@ -1886,6 +1886,10 @@ void Prefs::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
   lua_push_uint64_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
 
+  lua_push_uint64_table_entry(vm, "score_level_notice", SCORE_LEVEL_NOTICE);
+  lua_push_uint64_table_entry(vm, "score_level_warning", SCORE_LEVEL_WARNING);
+  lua_push_uint64_table_entry(vm, "score_level_error", SCORE_LEVEL_ERROR);
+
   lua_push_bool_table_entry(vm, "are_top_talkers_enabled", enable_top_talkers);
   lua_push_bool_table_entry(vm, "is_active_local_hosts_cache_enabled", enable_active_local_hosts_cache);
 

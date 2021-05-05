@@ -23,7 +23,7 @@
 
 /* ***************************************************** */
 
-ScoreAlert::ScoreAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int64_t _threshold) : HostAlert(c, f, severity, cli_score, srv_score) {
+ScoreAlert::ScoreAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int64_t _threshold) : HostAlert(c, f, cli_score, srv_score) {
   score = _score;
   score_threshold = _threshold;
 };

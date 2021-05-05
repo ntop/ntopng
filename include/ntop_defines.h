@@ -877,7 +877,7 @@
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
 #define ALERTS_STORE_SCHEMA_FILE_NAME        "alert_store_schema.sql"
-#define ALERTS_STORE_DB_FILE_NAME            "alert_store_v01.db"
+#define ALERTS_STORE_DB_FILE_NAME            "alert_store_v02.db"
 
 #define NTOPNG_DATASOURCE_KEY                "ntopng.datasources"
 #define NTOPNG_DATASOURCE_URL                "/datasources/"
@@ -1099,6 +1099,11 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define ALERT_ACTION_STORE            "store"
 
 #define SCORE_MAX_VALUE               128    /* Maximum client/server score. Flow score is 2 * SCORE_MAX_VALUE. */
+
+#define SCORE_LEVEL_INFO                0 /*  0-19 info */
+#define SCORE_LEVEL_NOTICE             20 /* 20-49 notice */
+#define SCORE_LEVEL_WARNING            50 /* 50-99 warning */
+#define SCORE_LEVEL_ERROR             100 /*  100+ error */
 
 #ifndef WIN32
 #define CONST_DEFAULT_DUMP_SYSLOG_FACILITY LOG_DAEMON

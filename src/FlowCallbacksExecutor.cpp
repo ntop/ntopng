@@ -95,10 +95,6 @@ FlowAlert *FlowCallbacksExecutor::execCallbacks(Flow *f, FlowCallbacks c) {
   /* Allocate the alert */
   alert = predominant_callback ? predominant_callback->buildAlert(f) : NULL;
 
-  /* If the alert has been allocated successfully, set its severity */
-  if(alert)
-    alert->setSeverity(predominant_callback->getSeverity());
-  
   return alert;
 }
 

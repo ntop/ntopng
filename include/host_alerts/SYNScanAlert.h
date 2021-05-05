@@ -30,7 +30,7 @@ class SYNScanAlert : public FlowHitsAlert {
  public:
   static HostAlertType getClassType() { return { host_alert_syn_scan, alert_category_security }; }
 
-  SYNScanAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, u_int16_t hits, u_int64_t threshold, bool is_attacker) : FlowHitsAlert(c, h, severity, cli_score, srv_score, hits, threshold, is_attacker) {};
+  SYNScanAlert(HostCallback *c, Host *h, u_int8_t cli_score, u_int8_t srv_score, u_int16_t hits, u_int64_t threshold, bool is_attacker) : FlowHitsAlert(c, h, cli_score, srv_score, hits, threshold, is_attacker) {};
   ~SYNScanAlert() {};
 
   HostAlertType getAlertType() const { return getClassType(); }
