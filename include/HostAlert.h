@@ -52,7 +52,7 @@ class HostAlert {
   inline u_int8_t getCliScore() { return score_as_cli; }
   inline u_int8_t getSrvScore() { return score_as_srv; }
 
-  inline u_int8_t getScore()   { return max_val(score_as_cli, score_as_srv); }
+  inline u_int16_t getScore()   { return score_as_cli + score_as_srv; }
 
   inline void setAttacker() { is_attacker = true; }
   inline void setVictim()   { is_victim = true;   }
