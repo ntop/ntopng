@@ -104,6 +104,7 @@ function slack.dequeueRecipientAlerts(recipient, budget, high_priority)
 
   for _, json_message in ipairs(notifications) do
     local notif = json.decode(json_message)
+    notif.severity = ntop.mapScoreToSeverity(notif.score)
     if notif.entity_id then
       if not alerts_by_types[notif.entity_id] then
         alerts_by_types[notif.entity_id] = {}

@@ -2818,6 +2818,18 @@ static int ntop_bitmap_clear(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_map_score_to_severity(lua_State *vm) {
+  u_int64_t score;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  score = lua_tointeger(vm, 1);
+
+  lua_pushinteger(vm, (u_int32_t) Utils::mapScoreToSeverity(score));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_reset_stats(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -6266,6 +6278,9 @@ static luaL_Reg _ntop_reg[] = {
   { "bitmapIsSet",           ntop_bitmap_is_set         },
   { "bitmapSet",             ntop_bitmap_set            },
   { "bitmapClear",           ntop_bitmap_clear          },
+
+  /* Score */
+  { "mapScoreToSeverity",    ntop_map_score_to_severity },
 
   /* Alerts queues */
   { "popInternalAlerts",     ntop_pop_internal_alerts         },

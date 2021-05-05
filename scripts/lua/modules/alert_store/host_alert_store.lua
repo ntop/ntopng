@@ -56,7 +56,7 @@ function host_alert_store:insert(alert)
       is_victim,
       alert.tstamp,
       alert.tstamp_end,
-      alert_utils.mapScoreToSeverity(alert.score).severity_id,
+      ntop.mapScoreToSeverity(alert.score),
       alert.score,
       alert.granularity,
       self:_escape(alert.json))

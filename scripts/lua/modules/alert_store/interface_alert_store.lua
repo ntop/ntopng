@@ -42,7 +42,7 @@ function interface_alert_store:insert(alert)
       alert.alert_id,
       alert.tstamp,
       alert.tstamp_end,
-      alert_utils.mapScoreToSeverity(alert.score).severity_id,
+      ntop.mapScoreToSeverity(alert.score),
       alert.score,
       alert.ifid,
       self:_escape(name),

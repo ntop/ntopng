@@ -39,7 +39,7 @@ function user_alert_store:insert(alert)
       alert.alert_id,
       alert.tstamp,
       alert.tstamp_end,
-      alert_utils.mapScoreToSeverity(alert.score).severity_id,
+      ntop.mapScoreToSeverity(alert.score),
       alert.score,
       self:_escape(alert.entity_val),
       alert.granularity,
