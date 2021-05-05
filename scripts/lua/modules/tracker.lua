@@ -13,8 +13,7 @@ local tracker = {}
 function tracker.log(f_name, f_args)
   local alert_utils = require("alert_utils")
   local alerts_api = require("alerts_api")
-  local alert_severities = require "alert_severities"
-local alert_consts = require "alert_consts"
+  local alert_consts = require "alert_consts"
   local stats = interface.getStats()
 
   if stats == nil then
@@ -46,7 +45,7 @@ local alert_consts = require "alert_consts"
     remote_addr
   )
 
-  alert:set_severity(alert_severities.notice)
+  alert:set_score(10)
   alert:set_subtype('function'.."/"..(f_name or '').."/"..(remote_addr or ''))
 
   alert:store(alerts_api.userEntity(entity_value))

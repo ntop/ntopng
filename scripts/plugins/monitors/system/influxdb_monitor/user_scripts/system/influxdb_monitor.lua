@@ -5,7 +5,6 @@
 local user_scripts = require("user_scripts")
 local ts_utils = require("ts_utils_core")
 local alerts_api = require("alerts_api")
-local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 
 local script = {
@@ -62,7 +61,7 @@ script.hooks["min"] = function(params)
 	 last_error
       )
 
-      alert_type:set_severity(alert_severities.error)
+      alert_type:set_score(100)
       alert_type:set_granularity(alert_consts.alerts_granularities.min)
 
       alert_type:store(alerts_api.systemEntity())

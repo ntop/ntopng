@@ -3,7 +3,6 @@
 --
 
 local alerts_api = require("alerts_api")
-local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
 local script
@@ -18,7 +17,7 @@ local function check_ghost_networks(params)
 
       local alert = alert_consts.alert_types.alert_ghost_network.new()
 
-      alert:set_severity(params.user_script_config.severity)
+      alert:set_score(50)
       alert:set_granularity(params.granularity)
       alert:set_subtype(domain)
 
@@ -41,10 +40,6 @@ script = {
 
   -- This script is only for alerts generation
   is_alert = true,
-
-  default_value = {
-    severity = alert_severities.warning,
-  },
 
   hooks = {
     min = check_ghost_networks,

@@ -108,7 +108,7 @@ end
 -- ##############################################
 
 function Alert:set_score(score)
-   self.score = score
+   self.score = tonumber(score)
 end
 
 -- ##############################################

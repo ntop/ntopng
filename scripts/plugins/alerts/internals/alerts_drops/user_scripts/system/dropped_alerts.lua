@@ -4,7 +4,6 @@
 
 local user_scripts = require("user_scripts")
 local alerts_api = require("alerts_api")
-local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 
 local script = {
@@ -13,10 +12,6 @@ local script = {
 
   -- This script is only for alerts generation
   is_alert = true,
-
-  default_value = {
-   severity = alert_severities.error,
-  },
 
   -- See below
   hooks = {},
@@ -46,7 +41,7 @@ local function dropped_alerts_check(params)
       delta_drops
       )
 
-   alert:set_severity(params.user_script_config.severity)
+   alert:set_score(100)
    alert:set_granularity(params.granularity)
 
    if(delta_drops > 0) then

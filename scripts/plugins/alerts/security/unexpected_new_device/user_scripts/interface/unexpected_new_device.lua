@@ -2,7 +2,6 @@
 -- (C) 2019-21 - ntop.org
 --
 
-local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 local alerts_api = require "alerts_api"
 local alert_utils = require "alert_utils"
@@ -75,7 +74,7 @@ local function check_allowed_mac(params)
                   mac
                )
 
-               alert:set_severity(params.user_script_config.severity)
+               alert:set_score(50)
 
                alert:store(alerts_api.macEntity(mac))
             end
@@ -97,8 +96,7 @@ script = {
 
    -- Specify the default value whe clicking on the "Reset Default" button
    default_value = {
-     severity = alert_severities.warning,
-	  items = {},
+      items = {},
    },
 
    hooks = {

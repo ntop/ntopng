@@ -5,7 +5,6 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local alerts_api = require "alerts_api"
 local companion_interface_utils = require "companion_interface_utils"
@@ -76,11 +75,11 @@ function syslog_utils.handle_event(message, host, priority, level_threshold)
 
       local entity = alerts_api.hostAlertEntity(host, 0)
 
-      local severity = alert_severities.notice
+      local score = 10
       if level <= 3 then
-         severity = alert_severities.error
+         score = 100
       elseif level <= 4 then
-         severity = alert_severities.warning
+         score = 50
       end
 
       local type_info = alert_consts.alert_types.host_alert_host_log.new(
@@ -90,7 +89,7 @@ function syslog_utils.handle_event(message, host, priority, level_threshold)
          message)
          
       type_info:set_subtype(getLogSubtype(message))
-      type_info:set_severity(severity)
+      type_info:set_score(score)
 
       -- Deliver alert
       type_info:store(entity)

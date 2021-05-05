@@ -977,12 +977,10 @@ function driver:_droppedPointsAlert()
 local alert_consts = require "alert_consts"
 
       local alert = alert_consts.alert_types.alert_influxdb_export_failure.new(
-        alert_severities.error,
-        alert_consts.alerts_granularities.min,
         self.url
       )
 
-      alert:set_severity(alert_severities.error)
+      alert:set_score(100)
       alert:set_granularity(alert_consts.alerts_granularities.min)
 
       alert:store(alerts_api.systemEntity())

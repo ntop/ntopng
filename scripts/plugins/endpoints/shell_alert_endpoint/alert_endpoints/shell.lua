@@ -6,7 +6,6 @@ require "lua_utils"
 local sys_utils = require "sys_utils"
 local json = require "dkjson"
 local alerts_api = require "alerts_api"
-local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 
 local endpoint_key = "shell_alert_endpoint"
@@ -16,7 +15,6 @@ local shell = {
     name = "Shell Script",
     endpoint_params = {
       { param_name = "shell_script" },
-      -- TODO: configure severity (Errors, Errors and Warnings, All)
     },
     endpoint_template = {
       plugin_key = endpoint_key,
@@ -103,7 +101,7 @@ function shell.runScript(alerts, settings)
       alert_consts.alertTypeLabel(alert["alert_id"], true)
     )
   
-    type_info:set_severity(alert_severities.notice)
+    type_info:set_score(10)
 
     type_info:store(entity_info)
   end -- for

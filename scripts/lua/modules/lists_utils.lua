@@ -375,7 +375,7 @@ local function checkListsUpdate(timeout)
 	       list_name
 	    )
 
-	    alert:set_severity(alert_severities.notice)
+	    alert:set_score(10)
 
 	    alert:store(alerts_api.systemEntity(list_name))
 
@@ -409,7 +409,7 @@ local function checkListsUpdate(timeout)
 	       last_error
 	    )
 
-	    alert:set_severity(alert_severities.error)
+	    alert:set_score(100)
 
 	    alert:store(alerts_api.systemEntity(list_name))
 

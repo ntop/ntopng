@@ -5,7 +5,6 @@
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
-local alert_severities = require "alert_severities"
 
 local script
 
@@ -24,7 +23,7 @@ local function check_interface_drops(params)
     threshold
     )
 
-  alert:set_severity(params.user_script_config.severity)
+  alert:set_score(100)
   alert:set_granularity(params.granularity)
 
   if((stats.packets > 100) and (drop_perc > threshold)) then
@@ -45,7 +44,6 @@ script = {
     -- "> 5%"
     operator = "gt",
     threshold = 5,
-    severity = alert_severities.error,
   },
 
   -- This script is only for alerts generation

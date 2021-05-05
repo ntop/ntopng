@@ -4,7 +4,6 @@
 
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
-local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local json = require("dkjson")
 
@@ -43,7 +42,7 @@ local function storeTopologyChangedAlert(info, arc, nodes, subtype)
          nodes[parts[2]] -- ip2
       )
 
-      alert:set_severity(alert_severities.warning)
+      alert:set_score(50)
       alert:set_granularity(info.granularity)
       alert:set_subtype(subtype)
 

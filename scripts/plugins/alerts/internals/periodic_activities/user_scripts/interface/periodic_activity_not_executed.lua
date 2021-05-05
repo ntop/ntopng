@@ -2,7 +2,6 @@
 -- (C) 2019-21 - ntop.org
 --
 
-local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
@@ -21,7 +20,7 @@ local function check_periodic_activity_not_executed(params)
          ps_stats["last_queued_time"] or 0
          )
    
-      alert:set_severity(params.user_script_config.severity)
+      alert:set_score(50)
       alert:set_granularity(params.granularity)
       alert:set_subtype(ps_name)
 
@@ -46,10 +45,6 @@ script = {
 
   hooks = {
     min = check_periodic_activity_not_executed,
-  },
-
-  default_value = {
-   severity = alert_severities.warning,
   },
 
   gui = {

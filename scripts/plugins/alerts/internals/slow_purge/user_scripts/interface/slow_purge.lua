@@ -3,7 +3,6 @@
 --
 
 local alerts_api = require("alerts_api")
-local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
 
@@ -34,7 +33,7 @@ local function check_interface_idle(params)
     threshold
       )
 
-  alert:set_severity(params.user_script_config.severity)
+  alert:set_score(50)
   alert:set_granularity(params.granularity)
   
   if max_idle_perc > threshold then
@@ -55,7 +54,6 @@ local script = {
     -- "> 50%"
     operator = "gt",
     threshold = 50,
-    severity = alert_severities.warning,
   },
 
   -- This script is only for alerts generation
