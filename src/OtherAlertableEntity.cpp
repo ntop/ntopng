@@ -85,6 +85,7 @@ void OtherAlertableEntity::luaAlert(lua_State* vm, const Alert *alert, ScriptPer
   lua_push_str_table_entry(vm,    "subtype", alert->subtype.c_str());
   lua_push_int32_table_entry(vm,  "entity_id", getEntityType());
   lua_push_str_table_entry(vm,    "entity_val", getEntityValue().c_str());
+  lua_push_int32_table_entry(vm,  "score", alert->score);
   lua_push_str_table_entry(vm,    "name", getEntityValue().c_str());
   lua_push_uint64_table_entry(vm, "tstamp", alert->tstamp);
   lua_push_uint64_table_entry(vm, "tstamp_end", alert->last_update);
