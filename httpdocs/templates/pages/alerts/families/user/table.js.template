@@ -1,6 +1,6 @@
 [
     /* Date */
-    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Duration */
     {name: 'duration', data: 'duration', className: 'text-center', orderable: false, width: '5%', render: DataTableRenders.secondsToTime},
     /* Counts */
