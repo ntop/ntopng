@@ -23,7 +23,7 @@
 #include "flow_callbacks_includes.h"
 
 void TCPNoDataExchanged::checkTCPNoDataExchanged(Flow *f) {
-  if(f->isTCP() && (f->get_goodput_bytes() == 0)) {
+  if(f->isTCP() && (f->get_goodput_bytes() == 0) && f->isUnicast()) {
     u_int8_t c_score = 50, s_score = 30;
 
     f->triggerAlertAsync(TCPNoDataExchangedAlert::getClassType(), c_score, s_score);
