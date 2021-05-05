@@ -2907,12 +2907,12 @@ function formatElephantAlertType(flowalert_info)
 
    local l2r_bytes = bytesToSize(flowalert_info["l2r_bytes"])
 
-   if flowalert_info["l2r_bytes"] > flowalert_info["l2r_threshold"] then
+   if flowalert_info["l2r_bytes"] > flowalert_info["l2r_threshold"] and flowalert_info["l2r_threshold"] > 0 then
       l2r_bytes = l2r_bytes .." > "..bytesToSize(flowalert_info["l2r_threshold"])
    end
 
    local r2l_bytes = bytesToSize(flowalert_info["r2l_bytes"])
-   if flowalert_info["r2l_bytes"] > flowalert_info["r2l_threshold"] then
+   if flowalert_info["r2l_bytes"] > flowalert_info["r2l_threshold"] and flowalert_info["r2l_threshold"] > 0 then
       r2l_bytes = r2l_bytes .. " > "..bytesToSize(flowalert_info["r2l_threshold"])
    end
 
