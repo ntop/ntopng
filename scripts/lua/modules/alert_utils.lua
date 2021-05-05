@@ -344,7 +344,10 @@ end
 -- @return nil
 function alert_utils.deleteFlowAlertsMatching(host_ip, alert_id)
    local flow_alert_store = require("flow_alert_store").new()
-   flow_alert_store:add_ip_filter(hostkey2hostinfo(host_ip)["host"])
+
+   if not isEmptyString(host_ip) then
+      flow_alert_store:add_ip_filter(hostkey2hostinfo(host_ip)["host"])
+   end
    flow_alert_store:add_alert_id_filter(alert_id)
 
    -- Perform the actual deletion
@@ -357,7 +360,10 @@ end
 -- @return nil
 function alert_utils.deleteHostAlertsMatching(host_ip, alert_id)
    local host_alert_store = require("host_alert_store").new()
-   host_alert_store:add_ip_filter(hostkey2hostinfo(host_ip)["host"])
+
+   if not isEmptyString(host_ip) then
+      host_alert_store:add_ip_filter(hostkey2hostinfo(host_ip)["host"])
+   end
    host_alert_store:add_alert_id_filter(alert_id)
 
    -- Perform the actual deletion

@@ -582,20 +582,15 @@
             csrf: PAGE_CSRF,
             endpoint: `${http_prefix}/lua/rest/v1/edit/user_script/filter.lua`,
             beforeSumbit: function (alert) {
-                
+
                 const data = {
                     alert_key: alert.alert_id.value,
                     subdir: FAMILY,
-                    delete_alerts: $(`#delete_alerts_switch`).is(":checked")
+		    script_key: alert.script_key,
+                    delete_alerts: $(`#delete_alerts_switch`).is(":checked"),
+		    alert_addr: $(`[name='alert_addr']:checked`).val(),
                 };
 
-                if (FAMILY === "host") {
-                    data["alert_addr"] = alert.ip;
-                }
-                else if (FAMILY === "flow") {
-                    data["alert_addr"] = $(`[name='alert_addr']:checked`).val();
-                }
-                
                 return data;
             },
             onModalInit: function (alert) {
@@ -605,7 +600,9 @@
 
                 if (FAMILY === "host") {
                     const label = (alert.ip.label) ? `${alert.ip.label} (${alert.ip.value})` : alert.ip.value; 
-                    $(`.alert_addr`).text(label);
+		    $(`#srv_addr`).text(label);
+                    $(`#srv_radio`).val(alert.ip.value);
+		    $(`#cli_radio`).parent().hide();
                 }
                 else if (FAMILY === "flow") {
 

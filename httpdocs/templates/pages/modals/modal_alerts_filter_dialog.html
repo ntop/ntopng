@@ -10,7 +10,13 @@
 	  <div class="form-group">
 	    <label>{{ i18n('current_filter') }} "<b><span class="alert_label"></b>". {{ i18n('current_filter_for') }}:</span></label>
 	    <div class="form-check">
-	      <input class="form-check-input" type="radio" name="alert_addr" id="srv_radio" value="" checked>
+	      <input class="form-check-input" type="radio" name="alert_addr" id="all_radio" value="" checked>
+	      <label class="form-check-label" for="all_radio">
+		<span id="all_addr"> {{ i18n('all') }} </span>
+	      </label>
+	    </div>
+	    <div class="form-check">
+	      <input class="form-check-input" type="radio" name="alert_addr" id="srv_radio" value="">
 	      <label class="form-check-label" for="srv_radio">
 		<span id="srv_addr"></span>
 	      </label>

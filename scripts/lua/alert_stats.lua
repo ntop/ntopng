@@ -38,13 +38,7 @@ local host_ip = _GET["ip"]
 
 sendHTTPContentTypeHeader('text/html')
 
-local disable_modal = "modal_alerts_filter_dialog.html"
-
-if (page == "flow") then
-    disable_modal = "modal_flow_alerts_filter_dialog.html"
-elseif (page == "host") then
-    disable_modal = "modal_host_alerts_filter_dialog.html"
-end
+local disable_modal = "pages/modals/modal_alerts_filter_dialog.html"
 
 local is_system_interface = page_utils.is_system_view()
 

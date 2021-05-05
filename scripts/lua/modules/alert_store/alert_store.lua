@@ -621,6 +621,9 @@ function alert_store:format_record_common(value, entity_id, no_html)
    local count = 1 -- TODO (not yet supported)
    record["count"] = count -- historical only
 
+   local alert_json = json.decode(value["json"]) or {}
+   record["script_key"] = alert_json["alert_generation"] and alert_json["alert_generation"]["script_key"]
+
    return record
 end
 

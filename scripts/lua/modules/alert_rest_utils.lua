@@ -18,7 +18,7 @@ local alert_rest_utils = {}
 -- @brief exclude an alert using the parameters that the POST has
 function _exclude_flow_alert(additional_filters, delete_alerts, subdir)
    local success = false
-
+   local script_key = _POST["script_key"]
    local alert_key = tonumber(_POST["alert_key"])
    local alert_addr = _POST["alert_addr"]
 
@@ -27,12 +27,20 @@ function _exclude_flow_alert(additional_filters, delete_alerts, subdir)
    end
 
    if success then
+
       if alert_addr then
-	 if subdir == "flow" then
+	 if alert_addr == "" then
+	    -- Disable for "All", so toggle the user script to OFF
+	    user_scripts.toggleScript(script_key, subdir, false --[[ turn it off --]])
+	 elseif subdir == "flow" then
+	    -- Disable for a specific address, need to just turn off the alert
 	    alert_exclusions.disable_flow_alert(alert_addr, alert_key)
 	 elseif subdir == "host" then
+	    -- Disable for a specific address, need to just turn off the alert
 	    alert_exclusions.disable_host_alert(alert_addr, alert_key)
 	 end
+
+	 -- Check to see if old alerts need to be deleted as well
 	 if delete_alerts == "true" then
 	    if subdir == "flow" then
 	       alert_utils.deleteFlowAlertsMatching(alert_addr, alert_key)
@@ -59,7 +67,6 @@ function alert_rest_utils.exclude_alert()
    -- POST parameters
    local additional_filters = _POST["filters"]
    local subdir = _POST["subdir"]
-   local script_key = _POST["script_key"]
    local delete_alerts = _POST["delete_alerts"] or "false"
    
    -- Parameters used by the various functions
