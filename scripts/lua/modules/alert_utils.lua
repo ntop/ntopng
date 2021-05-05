@@ -949,6 +949,10 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json, skip_live_data)
     end
   end
 
+  if isEmptyString(msg) then
+    msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]], alert.entity_id)
+  end
+
   return(msg or "")
 end
 
@@ -969,6 +973,10 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, skip_live_d
      msg = i18n(description, msg)
   elseif(type(description) == "function") then
      msg = description(ifid, alert, msg)
+  end
+
+  if isEmptyString(msg) then
+    msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]], alert_entities.flow.entity_id)
   end
 
   return msg or ""

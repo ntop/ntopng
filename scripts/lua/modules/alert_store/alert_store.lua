@@ -600,7 +600,7 @@ function alert_store:format_record_common(value, entity_id, no_html)
 
    local severity_label = ""
    if severity and not no_html then
-      severity_label = "<i class='"..severity.icon.."' title='"..i18n(severity.i18n_title).."'></i> "
+      severity_label = "<i class='"..severity.icon.."' style='color: "..severity.color.."!important' title='"..i18n(severity.i18n_title).."'></i> "
    elseif severity and no_html then
       severity_label = severity.i18n_title
    end

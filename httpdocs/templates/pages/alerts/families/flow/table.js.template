@@ -1,22 +1,16 @@
 [
     /* Date */
     {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center',},
-    /* Counts */
-    {name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
-    /* Alert Type + Severity */
-    {responsivePriority: 1, name: 'severity', className: 'text-nowrap f-1', width: '10%', data: 'severity', render: DataTableRenders.alertSeverityAndType},
-    /* Score */
-    {name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.formatValueLabel},
-    /* Protocol */
-    {name: 'proto', data: 'proto.label', orderable: false, className: 'text-center', width: '3%'/*, render: (proto, type, row) => {
-        if (type !== "display") return proto.value;
-        return DataTableRenders.filterize(proto.value, proto.label);
-    }*/},
     /* Application */
     {name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center', width: '5%', render: (proto, type, row) => {
         if (type !== "display") return proto.value;
         return DataTableRenders.filterize(proto.value, proto.label);
     }},
+    /* Protocol */
+    {name: 'proto', data: 'proto.label', orderable: false, className: 'text-center', width: '3%'/*, render: (proto, type, row) => {
+        if (type !== "display") return proto.value;
+        return DataTableRenders.filterize(proto.value, proto.label);
+    }*/},
     /* Client */
     {responsivePriority: 1, name: 'cli_ip', data: 'cli_ip', orderable: false, className: 'text-nowrap', width: '12%', render: (cliIp, type, row) => {
     	let htmlRef = '';
@@ -37,4 +31,8 @@
     }},
     /* Description */
     {responsivePriority: 1, name: 'description', data: 'msg', orderable: false, className: 'text-nowrap',},
+    /* Score */
+    {name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.formatValueLabel},
+    /* Counts */
+    {name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
 ]
