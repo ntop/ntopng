@@ -50,11 +50,11 @@ function alert_flow_blacklisted.format(ifid, alert, alert_type_params)
       return i18n("flow_details.blacklisted_flow")
    end
 
-   if alert_type_params["blacklisted.cli"] then
+   if alert_type_params["cli_blacklisted"] then
       who[#who + 1] = i18n("client")
    end
 
-   if alert_type_params["blacklisted.srv"] then
+   if alert_type_params["srv_blacklisted"] then
       who[#who + 1] = i18n("server")
    end
 
@@ -62,7 +62,7 @@ function alert_flow_blacklisted.format(ifid, alert, alert_type_params)
    -- then also the category is blacklisted so there's no need
    -- to check it.
    -- Domain is basically the union of DNS names, SSL CNs and HTTP hosts.
-   if #who == 0 and alert_type_params["blacklisted.cat"] then
+   if #who == 0 and alert_type_params["cat_blacklisted"] then
       who[#who + 1] = i18n("domain")
    end
 

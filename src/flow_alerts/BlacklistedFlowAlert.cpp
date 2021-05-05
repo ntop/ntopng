@@ -19,23 +19,18 @@
  *
  */
 
-#ifndef _BLACKLISTED_FLOW_ALERT_H_
-#define _BLACKLISTED_FLOW_ALERT_H_
+#include "flow_callbacks_includes.h"
 
-#include "ntop_includes.h"
+ndpi_serializer* BlacklistedFlowAlert::getAlertJSON(ndpi_serializer* serializer) {
+  Flow *f = getFlow();
 
-class BlacklistedFlowAlert : public FlowAlert {
- private:
-  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
+  if(serializer == NULL)
+    return NULL;
 
- public:
-  static FlowAlertType getClassType() { return { flow_alert_blacklisted, alert_category_security}; }
+  ndpi_serialize_string_boolean(serializer, "cli_blacklisted", f->isBlacklistedClient());
+  ndpi_serialize_string_boolean(serializer, "srv_blacklisted", f->isBlacklistedServer());
+  ndpi_serialize_string_boolean(serializer, "cat_blacklisted", f->get_protocol_category() == CUSTOM_CATEGORY_MALWARE);
 
-  BlacklistedFlowAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
-  ~BlacklistedFlowAlert() { };
+  return serializer;
+}
 
-  FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_blacklisted"); }
-};
-
-#endif /* _BLACKLISTED_FLOW_ALERT_H_ */
