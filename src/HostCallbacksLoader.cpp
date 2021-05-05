@@ -62,10 +62,6 @@ void HostCallbacksLoader::registerCallbacks() {
   if((fcb = new ScoreAnomaly()))               registerCallback(fcb);
   if((fcb = new RemoteConnection()))           registerCallback(fcb);
 
-#ifdef NTOPNG_PRO
-  if((fcb = new ScoreHostCallback()))          registerCallback(fcb);
-#endif
-  
   // printCallbacks();
 }
 

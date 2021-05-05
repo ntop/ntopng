@@ -1765,6 +1765,9 @@ bool Host::triggerAlert(HostAlert *alert) {
 
   score_category = Utils::mapAlertToScoreCategory(alert_type.category);
 
+ntop->getTrace()->traceEvent(TRACE_WARNING, "Host Alert Score Cli/Src: %u/%u (%u)",
+  alert->getCliScore(), alert->getSrvScore(), alert->getAlertType().id);
+
   incScoreValue(alert->getCliScore(), score_category, true /* as client */);
   incScoreValue(alert->getSrvScore(), score_category, false /* as server */);
 

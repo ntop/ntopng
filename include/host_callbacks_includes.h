@@ -42,8 +42,4 @@
 #include "host_callbacks/RemoteConnection.h"
 #include "host_callbacks/ScoreAnomaly.h"
 
-#ifdef NTOPNG_PRO
-#include "host_callbacks/ScoreHostCallback.h"
-#endif
-
 #endif /* _HOST_CALLBACKS_INCLUDES_H_ */

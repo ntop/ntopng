@@ -32,7 +32,6 @@
 #include "host_alerts/NTPServerContactsAlert.h"
 #include "host_alerts/P2PTrafficAlert.h"
 #include "host_alerts/DNSTrafficAlert.h"
-#include "host_alerts/ScoreAlert.h"
 
 #include "host_alerts/FlowAnomalyAlert.h"
 #include "host_alerts/RemoteConnectionAlert.h"
