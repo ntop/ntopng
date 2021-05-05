@@ -53,7 +53,7 @@ function alert_tls_certificate_mismatch.format(ifid, alert, alert_type_params)
       crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.tls_server_names"), alert_type_params["tls_crt.srv"]:gsub(",", ", "))
    end
 
-   return string.format("%s", table.concat(crts, " "))
+   return string.format("%s %s", i18n("flow_risk.ndpi_tls_certificate_mismatch"), table.concat(crts, ""))
 end
 
 -- #######################################################
