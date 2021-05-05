@@ -646,8 +646,10 @@ class DataTableRenders {
 
     static formatValueLabel(obj, type, row) {
         if (type !== "display") return obj.value;
-        if (obj.color) return `<span class='font-weight-bold' style='color: ${obj.color}'>${obj.label}</span>`;
-        return obj.label;
+        let cell = obj.label;
+        if (obj.color) cell = `<span class='font-weight-bold' style='color: ${obj.color}'>${cell}</span>`;
+        if (obj.highlight) cell = `<div style='border-left: 5px solid ${obj.highlight};'>${cell}</div>`;
+        return cell;
     }
 
 }

@@ -1,6 +1,6 @@
 [
     /* Date */
-    {name: 'tstamp', className: 'text-center', width: '12%', data: 'tstamp'},
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel},
     /* Counts */
     {name: 'count', className: 'text-center', width: '8%', data: 'count', visible: false},
     /* Alert Type + Severity */

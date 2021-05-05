@@ -1,6 +1,6 @@
 [
     /* Date */
-    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center',},
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel},
     /* Application */
     {name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center', width: '5%', render: (proto, type, row) => {
         if (type !== "display") return proto.value;

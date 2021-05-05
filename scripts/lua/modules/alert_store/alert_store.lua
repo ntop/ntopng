@@ -581,16 +581,21 @@ function alert_store:format_record_common(value, entity_id, no_html)
 
    record["row_id"] = value["rowid"]
 
-   record["tstamp"] = format_utils.formatPastEpochShort(tonumber(value["alert_tstamp"] or value["tstamp"]))
+   local score = tonumber(value["score"])
+   local severity_id = ntop.mapScoreToSeverity(score)
+   local severity = alert_consts.alertSeverityById(severity_id)
+
+   local tstamp = tonumber(value["alert_tstamp"] or value["tstamp"])
+   record["tstamp"] = {
+      value = tstamp,
+      label = format_utils.formatPastEpochShort(tstamp),
+      highlight = severity.color,
+   }
 
    record["alert_id"] = {
       value = value["alert_id"],
       label = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, entity_id),
    }
-
-   local score = tonumber(value["score"])
-   local severity_id = ntop.mapScoreToSeverity(score)
-   local severity = alert_consts.alertSeverityById(severity_id)
 
    record["score"] = {
       value = score,
