@@ -648,8 +648,12 @@ class DataTableRenders {
         if (type !== "display") return obj.value;
         let cell = obj.label;
         if (obj.color) cell = `<span class='font-weight-bold' style='color: ${obj.color}'>${cell}</span>`;
-        if (obj.highlight) cell = `<div style='border-left: 5px solid ${obj.highlight};'>${cell}</div>`;
         return cell;
     }
 
+   static applyCellStyle(cell, cellData, rowData, rowIndex, colIndex) {
+      if (cellData.highlight) {
+         $(cell).css("border-left", "5px solid "+cellData.highlight);
+      }
+   }
 }
