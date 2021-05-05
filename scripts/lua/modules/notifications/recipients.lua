@@ -647,7 +647,7 @@ function recipients.dispatch_notification(notification, current_script)
 	 local is_high_priority = is_notification_high_priority(notification)
 
 	 for _, recipient_id in pairs(recipients) do
-	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification, notification.severity, current_script and current_script.category and current_script.category.id)
+	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification, notification.score, current_script and current_script.category and current_script.category.id)
 	 end
       end
    else

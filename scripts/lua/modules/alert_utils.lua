@@ -794,30 +794,30 @@ function alert_utils.check_host_pools_alerts(params, ifid, alert_pool_connection
 	       local prev_exceeded = pool_exceeded_quotas[proto] or {false,false}
 
 	       if alerts_on_quota_exceeded then
-        if info.bytes_exceeded and not prev_exceeded[1] then
-         local alert = alert_consts.alert_types.alert_quota_exceeded.new(
-            "traffic_quota",
-			   pool,
-			   proto,
-			   info.bytes_value,
-			   info.bytes_quota
-         )
+		  if info.bytes_exceeded and not prev_exceeded[1] then
+		     local alert = alert_consts.alert_types.alert_quota_exceeded.new(
+			"traffic_quota",
+			pool,
+			proto,
+			info.bytes_value,
+			info.bytes_quota
+		     )
 
-         alert:set_severity(params.user_script_config.severity)
-         alert:store(alerts_api.hostPoolEntity(pool))
+		     alert:set_score(50)
+		     alert:store(alerts_api.hostPoolEntity(pool))
 		  end
 
 		  if info.time_exceeded and not prev_exceeded[2] then           
-         local alert = alert_consts.alert_types.alert_quota_exceeded.new(
-            "time_quota",
-			   pool,
-			   proto,
-			   info.time_value,
-			   info.time_quota
-         )
+		     local alert = alert_consts.alert_types.alert_quota_exceeded.new(
+			"time_quota",
+			pool,
+			proto,
+			info.time_value,
+			info.time_quota
+		     )
 
-         alert:set_severity(alert_severities.warning)
-         alert:store(alerts_api.hostPoolEntity(pool))
+		     alert:set_score(50)
+		     alert:store(alerts_api.hostPoolEntity(pool))
 		  end
 	       end
 
@@ -850,14 +850,14 @@ function alert_utils.check_host_pools_alerts(params, ifid, alert_pool_connection
 	       -- Pool connection
 	       ntop.setMembersCache(active_pools_set, pool)
 
-         if alert_pool_connection_enabled then
-            local alert = alert_consts.alert_types.alert_host_pool_connection.new(
-               pool
-            )
+	       if alert_pool_connection_enabled then
+		  local alert = alert_consts.alert_types.alert_host_pool_connection.new(
+		     pool
+		  )
 
-            alert:set_severity(alert_severities.notice)
-            alert:store(alerts_api.hostPoolEntity(pool))
-         end
+		  alert:set_score(10)
+		  alert:store(alerts_api.hostPoolEntity(pool))
+	       end
 	    end
 	 end
       end
@@ -874,7 +874,7 @@ function alert_utils.check_host_pools_alerts(params, ifid, alert_pool_connection
                pool
             )
 
-            alert:set_severity(alert_severities.notice)
+            alert:set_score(10)
             alert:store(alerts_api.hostPoolEntity(pool))
          end
       end
@@ -1027,7 +1027,7 @@ function alert_utils.formatAlertNotification(notif, options)
    if(options.show_severity == false) then
       severity = ""
    else
-      severity =  " [" .. alert_consts.alertSeverityLabel(notif.severity, options.nohtml, options.emoji) .. "]"
+      severity =  " [" .. alert_consts.alertSeverityLabel(notif.score, options.nohtml, options.emoji) .. "]"
    end
 
    if(options.nodate == true) then
@@ -1098,7 +1098,7 @@ local function processStoreAlertFromQueue(alert)
 	 alert.client_mac,
 	 alert.sender_mac
       )
-      type_info:set_severity(alert_severities.warning)
+      type_info:set_score(50)
       type_info:set_subtype(string.format("%s_%s_%s", hostinfo2hostkey(router_info), alert.client_mac, alert.sender_mac))
    elseif(alert.alert_id == "mac_ip_association_change") then
       local name = getDeviceName(alert.new_mac)
@@ -1109,16 +1109,16 @@ local function processStoreAlertFromQueue(alert)
 	 alert.old_mac,
 	 alert.new_mac
       )
-      type_info:set_severity(alert_severities.warning)
+      type_info:set_score(50)
       type_info:set_subtype(string.format("%s_%s_%s", alert.ip, alert.old_mac, alert.new_mac))
    elseif(alert.alert_id == "login_failed") then
       entity_info = alerts_api.userEntity(alert.user)
       type_info = alert_consts.alert_types.alert_login_failed.new()
-      type_info:set_severity(alert_severities.warning)
+      type_info:set_score(50)
    elseif(alert.alert_id == "broadcast_domain_too_large") then
       entity_info = alerts_api.macEntity(alert.src_mac)
       type_info = alert_consts.alert_types.alert_broadcast_domain_too_large.new(alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
-      type_info:set_severity(alert_severities.warning)
+      type_info:set_score(50)
       type_info:set_subtype(string.format("%u_%s_%s_%s_%s", alert.vlan_id, alert.src_mac, alert.spa, alert.dst_mac, alert.tpa))
    elseif((alert.alert_id == "user_activity") and (alert.scope == "login")) then
       entity_info = alerts_api.userEntity(alert.user)
@@ -1129,7 +1129,7 @@ local function processStoreAlertFromQueue(alert)
          nil,
          "authorized"
       )
-      type_info:set_severity(alert_severities.notice)
+      type_info:set_score(10)
       type_info:set_subtype("login//")
    elseif(alert.alert_id == "nfq_flushed") then
       entity_info = alerts_api.interfaceAlertEntity(alert.ifid)
@@ -1140,7 +1140,7 @@ local function processStoreAlertFromQueue(alert)
          alert.dropped
       )
 
-      type_info:set_severity(alert_severities.error)
+      type_info:set_score(100)
    else
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown alert type " .. (alert.alert_id or ""))
    end
@@ -1183,7 +1183,7 @@ end
 
 local function notify_ntopng_status(started)
    local info = ntop.getInfo()
-   local severity = alert_consts.alertSeverity("info")
+   local score = 10
    local msg
    local msg_details = string.format("%s v.%s (%s) [OS: %s][pid: %s][options: %s]", info.product, info.version, info.revision, info.OS, info.pid, info.command_line)
    local anomalous = false
@@ -1202,7 +1202,7 @@ local function notify_ntopng_status(started)
       if not recovery_utils.check_clean_shutdown() then
         -- anomalous termination
         msg = string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), msg_details)
-        severity = alert_consts.alertSeverity("error")
+        score = 100
         anomalous = true
         event = "anomalous_termination"
       elseif not isEmptyString(last_version) and last_version ~= curr_version then
@@ -1224,7 +1224,7 @@ local function notify_ntopng_status(started)
    obj = {
       entity_id = alerts_api.systemEntity(entity_value), entity_val = entity_value,
       type = alert_consts.alertType("alert_process_notification"),
-      severity = severity,
+      score = score,
       message = msg,
       when = os.time() }
 
@@ -1238,7 +1238,7 @@ local function notify_ntopng_status(started)
       msg_details
    )
 
-   type_info:set_severity(alert_severities[alert_consts.alertSeverityRaw(severity)])
+   type_info:set_score(score)
 
    return(type_info:store(entity_info))
 end

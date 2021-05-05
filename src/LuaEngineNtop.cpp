@@ -5645,7 +5645,7 @@ static int ntop_recipient_enqueue(lua_State* vm) {
   const char *alert;
   bool rv = false;
   AlertFifoItem notification;
-  AlertLevel alert_severity;
+  u_int32_t score;
   AlertCategory alert_category = alert_category_other;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
@@ -5658,13 +5658,13 @@ static int ntop_recipient_enqueue(lua_State* vm) {
   alert = lua_tostring(vm, 3);
 
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_severity = (AlertLevel)lua_tonumber(vm, 4);
+  score = lua_tonumber(vm, 4);
 
   if(lua_type(vm, 5) == LUA_TNUMBER)
     alert_category = (AlertCategory)lua_tonumber(vm, 5);
 
   notification.alert = (char*)alert;
-  notification.alert_severity = alert_severity;
+  notification.alert_severity = Utils::mapScoreToSeverity(score);
   notification.alert_category = alert_category;
 
   rv = ntop->recipient_enqueue(recipient_id,

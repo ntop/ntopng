@@ -497,8 +497,8 @@ end
 
  -- ################################################################################
 
-function alert_consts.alertSeverityLabel(v, nohtml, emoji)
-   local severity_id = alert_consts.alertSeverityRaw(v)
+function alert_consts.alertSeverityLabel(score, nohtml, emoji)
+   local severity_id = alert_consts.alertSeverityRaw(ntop.mapScoreToSeverity(score))
 
    if(severity_id) then
       local severity_info = alert_severities[severity_id]

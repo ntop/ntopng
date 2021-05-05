@@ -646,7 +646,7 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
     threshold
   )
 
-  alert:set_score(threshold_config.score)
+  alert:set_score(100)
   alert:set_granularity(params.granularity)
   alert:set_subtype(script.key)
 
