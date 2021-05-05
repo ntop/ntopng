@@ -42,7 +42,7 @@
                 <a id="btn-download-alerts" download="alerts.txt" class="btn btn-secondary" href="{{ ntop.getHttpPrefix() }}/lua/rest/v1/get/{{ alert_stats.entity }}/alert/list.lua{{ build_query_params(datatable.datasource.params) }}&format=txt">
                     <i class="fas fa-file-download"></i> {{ i18n('show_alerts.download_alerts') }}
                 </a>
-		<button id="btn-delete-alerts" data-target='#delete-alert-modal' data-toggle="modal" class="btn btn-danger">
+		<button id="btn-delete-alerts" data-target='#delete-alerts-modal' data-toggle="modal" class="btn btn-danger">
                     <i class="fas fa fa-trash"></i> {{ i18n("delete_alerts")}}
                 </button>
 
@@ -55,22 +55,6 @@
         padding: 0.55rem;
     }
 </style>
-
-{*
-    template_utils.gen("pages/modals/alerts/delete_alerts.html", {
-        dialog={
-            id      = "delete-alert-modal",
-            title   = i18n("delete_alerts"),
-            label   = "",
-            message = i18n("show_alerts.confirm_delete_alerts"),
-            cancel  = i18n("cancel"),
-	    apply   = i18n("delete"),
-	    entity  = alert_stats.entity,
-	    params  = build_query_params(datatable.datasource.params),
-	    filters = datatable.datasource.params
-	 }
-      })
-*}
 
 {# add modals if defined #}
 {% if datatable.modals then %}
@@ -110,24 +94,21 @@
             $(`.overlay`).fadeOut(time);
         }
 
-        function copyDatasourceParams() {
+        function updateDatasourceParams() {
 
             const [begin, end] = getTimestampRange();
-            if (begin == null && end == null) return {};
-
-            const copyParams = Object.assign(datasourceParams, {});
+            if (begin == null && end == null) return datasourceParams;
 
             // override the existing timestamps 
-            if (copyParams.epoch_begin) copyParams.epoch_begin = begin.unix();
-            if (copyParams.epoch_end) copyParams.epoch_end = end.unix();
+            if (datasourceParams.epoch_begin) datasourceParams.epoch_begin = begin.unix();
+            if (datasourceParams.epoch_end) datasourceParams.epoch_end = end.unix();
 
-            return copyParams;
+            return datasourceParams;
         }
 
         async function reloadTable($table, ) {
 
-            const copyParams = copyDatasourceParams();
-            const searchParams = new URLSearchParams(Object.entries(copyParams));
+            const searchParams = new URLSearchParams(Object.entries(datasourceParams));
 	        toggleOverlays();
 	    
             // reload the table
@@ -187,6 +168,7 @@
         async function onRangePickerChange(pushHistroy = false) {
             
             const [begin, end] = getTimestampRange();
+	    updateDatasourceParams();
             await reloadTable($table);
 
             // update the link of the download button
@@ -387,80 +369,6 @@
             await onRangePickerChange(true);
         });
 
-	$('#delete-alert-modal').on('shown.bs.modal', function (e) {
-	    const tags = tagify.getTagElms();
-
-	    const datasourceParams = {* json.encode(datatable.datasource.params) *};
-	    let begin_epoch = new Date(parseInt(datasourceParams["epoch_end"])*1000)
-	    let end_epoch = new Date(parseInt(datasourceParams["epoch_begin"])*1000)
-	    // adjust 0 before single digit date
-	    let date = ("0" + begin_epoch.getDate()).slice(-2);
-
-	    // current month
-	    let month = ("0" + (begin_epoch.getMonth() + 1)).slice(-2);
-
-	    // current year
-	    let year = begin_epoch.getFullYear();
-
-	    // current hours
-	    let hours = begin_epoch.getHours();
-
-	    // current minutes
-	    let minutes = begin_epoch.getMinutes();
-
-	    // current seconds
-	    let seconds = begin_epoch.getSeconds();
-	    
-	    begin_epoch = date + "/" + month + "/" + year + " " + hours + ":" + minutes + ":" + seconds
-	    // adjust 0 before single digit date
-	    date = ("0" + end_epoch.getDate()).slice(-2);
-
-	    // current month
-	    month = ("0" + (end_epoch.getMonth() + 1)).slice(-2);
-
-	    // current year
-	    year = end_epoch.getFullYear();
-
-	    // current hours
-	    hours = end_epoch.getHours();
-
-	    // current minutes
-	    minutes = end_epoch.getMinutes();
-
-	    // current seconds
-	    seconds = end_epoch.getSeconds();
-	    
-	    end_epoch = date + "/" + month + "/" + year + " " + hours + ":" + minutes + ":" + seconds
-	    filter_string = end_epoch + " <i class='fas fa-long-arrow-alt-right' data-original-title='' title=''></i> " + begin_epoch + "<br>"
-	    for (const tag of tags) {
-	    	const {key, selectedOperator, realValue, value} = tagify.tagData(tag);
-                const label = i18n.tags[key]
-		
-            	filter_string += (label + ' = ' + value + '<br>');	
-            }
-	    
-	    $('#alert-filters').html(`${filter_string}`)
-	});
-
-	$('#delete-alert-modal #btn-delete-alerts').on('click', async function (e) {
-	try {
-	    let params = "{{ build_query_params(datatable.datasource.params) }}";
-	    params = params.split("&amp;").join("&");
-	    const request = await fetch(`{{ ntop.getHttpPrefix() }}/lua/rest/v1/delete/{{ alert_stats.entity }}/alerts.lua${params}`);
-            const response = await request.json();
-
-            // check if the request failed
-            if (response.rc < 0) {
-                return;
-            }
-        }
-        catch (exception) {
-        }
-        finally {
-            location.reload();
-        }
-	});
-
         $table.on('click', `a.tag-filter`, async function (e) {
             e.preventDefault();
 
@@ -544,7 +452,7 @@
             await onRangePickerChange(true);
         });
 
-        $table.on('click', `a[href='#delete_alert_dialog']`, function (e) {
+	$table.on('click', `a[href='#delete_alert_dialog']`, function (e) {
             const alert = $table.row($(this).parent().parent()).data();
             $deleteAlertModal.invokeModalInit(alert);
         });
@@ -571,6 +479,42 @@
                 return (response.rc == 0);
             }
         });
+
+	$(`#btn-delete-alerts`).on('click', function (e) {
+            $deleteFilteredAlerts.invokeModalInit();
+        });
+	
+	const $deleteFilteredAlerts = $('#delete-alerts-modal form').modalHandler({
+            method: 'post',
+            csrf: PAGE_CSRF,
+            endpoint: `${http_prefix}/lua/rest/v1/delete/{{ alert_stats.entity }}/alerts.lua`,
+            beforeSumbit: function (alert) {
+                return { ifid: "{{ ifid }}" };
+            },
+            onModalInit: function () {
+            	$('#delete-alerts-modal .filters-list').empty();
+	    	const tags = tagify.getTagElms();
+	    
+		const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
+	    	const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
+
+		$('#delete-alerts-modal #end-epoch-delete').val(endEpoch);
+		$('#delete-alerts-modal #begin-epoch-delete').val(beginEpoch);
+		for (const tag of tags.sort((a,b) => {
+		    return i18n.tags[tagify.tagData(a).key].localeCompare(i18n.tags[tagify.tagData(b).key])
+		})) {
+		    const {key, selectedOperator, realValue, value} = tagify.tagData(tag);
+                    const label = i18n.tags[key]
+		    const child = $('<li>' + (label + ' = ' + value) + '</li>');
+		    $('#delete-alerts-modal .filters-list').append(child)
+            	}
+            },
+            onSubmitSuccess: function (response) {
+	    	location.reload();
+                return (response.rc == 0);
+            }
+        });
+
 
         $table.on('click', `a[href='#alerts_filter_dialog']`, function (e) {
             const alert = $table.row($(this).parent().parent()).data();
