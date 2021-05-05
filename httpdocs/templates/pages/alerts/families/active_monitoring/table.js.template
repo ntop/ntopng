@@ -3,8 +3,6 @@
     {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Counts */
     {name: 'count', className: 'text-center', width: '8%', data: 'count', visible: false},
-    /* Alert Type + Severity */
-    {name: 'severity', className: 'text-center text-nowrap', width: '7%', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* Threshold */
     {name: 'measure_threshold', className: 'text-center', width: '8%'},
     /* Value */

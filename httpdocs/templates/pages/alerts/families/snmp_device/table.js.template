@@ -5,8 +5,6 @@
     {name: 'duration', data: 'duration', width: '5%', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
     /* Counts */
     {name: 'count', className: 'text-center', width: '5%', data: 'count', visible: false},   
-    /* Alert Type + Severity */
-    {name: 'severity', className: 'text-center text-nowrap', width: '7%', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* IP Address */
     {name: 'ip', data: 'ip', className: 'text-center', width: '12%'},
     /* Port */

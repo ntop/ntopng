@@ -3,8 +3,6 @@
     {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Counts */
     {name: 'count', className: 'text-center', data: 'count', width: '5%', visible: false},
-    /* Alert Type + Severity */
-    {name: 'severity', className: 'text-center text-nowrap', data: 'severity', width: '7%', render: DataTableRenders.alertSeverityAndType},
     /* Mac Address */
     {name: 'address', width: '12%', className: 'text-center', data: 'address'},
     /* Device Type */

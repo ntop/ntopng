@@ -3,8 +3,6 @@
     {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Duration */
     {name: 'duration', data: 'duration', width: '5%', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
-    /* Alert Type + Severity */
-    {name: 'severity', className: 'text-center text-nowrap', width: '7%', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* Network */
     {name: 'network_name', data: 'network', width: '12%', orderable: false, render: (network, type) => {
         if (type === "display") return DataTableRenders.filterize(network, network);
