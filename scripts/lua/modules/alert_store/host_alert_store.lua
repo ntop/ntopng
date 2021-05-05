@@ -126,6 +126,7 @@ end
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function host_alert_store:format_record(value, no_html)
+   local href_icon = "<i class='fas fa-laptop'></i>"
    local record = self:format_record_common(value, alert_entities.host.entity_id, no_html)
 
    local alert_info = alert_utils.getAlertInfo(value)
@@ -133,11 +134,12 @@ function host_alert_store:format_record(value, no_html)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
    local host = hostinfo2hostkey(value)
    local reference_html = nil
-   local extra_info_host = ""
 
    if not no_html then
-      extra_info_host = format_utils.formatAddressCategory(interface.getHostMinInfo(host)) 
-      reference_html = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
+      reference_html = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
+      if reference_html == href_icon then
+	 reference_html = nil
+      end
    else
       msg = noHtml(msg)
    end
@@ -154,7 +156,7 @@ function host_alert_store:format_record(value, no_html)
       record["ip"]["label"] = value["name"]
    end
 
-   record["ip"]["shown_label"] = record["ip"]["label"] .. extra_info_host
+   record["ip"]["shown_label"] = record["ip"]["label"]
    record["alert_name"] = alert_name
    record["is_attacker"] = value["is_attacker"] == "1"
    record["is_victim"] = value["is_victim"] == "1"

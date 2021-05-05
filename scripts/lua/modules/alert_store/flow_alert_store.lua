@@ -205,7 +205,9 @@ end
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function flow_alert_store:format_record(value, no_html)
+   local href_icon = "<i class='fas fa-laptop'></i>"
    local record = self:format_record_common(value, alert_entities.flow.entity_id, no_html)
+
 
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.flow.entity_id)
@@ -241,7 +243,10 @@ function flow_alert_store:format_record(value, no_html)
    local srv_ip = hostinfo2hostkey(value, "srv")
 
    if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
+      reference_html = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
+      if reference_html == href_icon then
+	 reference_html = nil
+      end
    else
       msg = noHtml(msg)
    end
@@ -264,7 +269,10 @@ function flow_alert_store:format_record(value, no_html)
    end
    
    if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, "<i class='fas fa-link'></i>", "", true)
+      reference_html = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
+      if reference_html == href_icon then
+	 reference_html = nil
+      end
    end
 
    record["srv_ip"] = {
