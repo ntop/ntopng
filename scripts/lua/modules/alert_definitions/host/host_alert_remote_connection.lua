@@ -8,7 +8,6 @@ local host_alert_keys = require "host_alert_keys"
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local alert_creators = require "alert_creators"
-local format_utils = require "format_utils"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!

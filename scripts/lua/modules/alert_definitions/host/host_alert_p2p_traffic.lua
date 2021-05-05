@@ -9,7 +9,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local json = require("dkjson")
 local alert_creators = require "alert_creators"
-local format_utils = require "format_utils"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -55,7 +54,6 @@ function host_alert_p2p_traffic.format(ifid, alert, alert_type_params)
 
   return i18n("alert_messages.host_alert_p2p_traffic", {
     entity = entity,
-    host_category = format_utils.formatAddressCategory((json.decode(alert.json)).alert_generation.host_info),
     value = string.format("%u", math.ceil(alert_type_params.value)),
     op = "&".. (alert_type_params.operator or "gt") ..";",
     threshold = alert_type_params.threshold,

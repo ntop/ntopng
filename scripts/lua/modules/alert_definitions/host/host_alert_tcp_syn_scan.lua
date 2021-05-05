@@ -9,7 +9,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local json = require("dkjson")
 local alert_creators = require "alert_creators"
-local format_utils = require "format_utils"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -52,7 +51,6 @@ function host_alert_tcp_syn_scan.format(ifid, alert, alert_type_params)
 
   return i18n(i18n_key, {
     entity = entity,
-    host_category = format_utils.formatAddressCategory((json.decode(alert.json)).alert_generation.host_info),
     value = string.format("%u", math.ceil(alert_type_params.value or 0)),
     threshold = alert_type_params.threshold or 0,
   })

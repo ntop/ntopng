@@ -8,7 +8,6 @@ local host_alert_keys = require "host_alert_keys"
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local alert_creators = require "alert_creators"
-local format_utils = require "format_utils"
 local json = require("dkjson")
 -- Import the classes library.
 local classes = require "classes"
@@ -57,7 +56,6 @@ function host_alert_ntp_server_contacts.format(ifid, alert, alert_type_params)
   
   return i18n("alert_messages.host_alert_ntp_server_contacts", {
     entity = entity,
-    host_category = format_utils.formatAddressCategory((json.decode(alert.json)).alert_generation.host_info),
     value = string.format("%u", math.ceil(value or 0)),
     threshold = alert_type_params.threshold or 0,
   })
