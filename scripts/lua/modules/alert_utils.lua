@@ -176,10 +176,6 @@ local function performAlertsQuery(statement, what, opts, force_query, group_by)
       wargs[#wargs+1] = "AND alert_id = "..(opts.alert_id)
    end
 
-   if tonumber(opts.severity) ~= nil then
-      wargs[#wargs+1] = "AND severity = "..(opts.severity)
-   end
-
    if what == "historical-flows" then
       if tonumber(opts.alert_l7_proto) ~= nil then
          wargs[#wargs+1] = "AND l7_proto = "..(opts.alert_l7_proto)
@@ -193,8 +189,6 @@ local function performAlertsQuery(statement, what, opts, force_query, group_by)
          order_by = "tstamp"
       elseif opts.sortColumn == "column_key" then
          order_by = "rowid"
-      elseif opts.sortColumn == "column_severity" then
-         order_by = "severity"
       elseif opts.sortColumn == "column_type" then
          order_by = "alert_id"
       elseif opts.sortColumn == "column_count" and what ~= "engaged" then
@@ -311,7 +305,6 @@ end
 
 local function engagedAlertsQuery(params)
   local type_filter = tonumber(params.alert_id)
-  local severity_filter = tonumber(params.severity)
   local entity_type_filter = tonumber(params.entity)
   local entity_value_filter = params.entity_val
 
@@ -323,15 +316,13 @@ local function engagedAlertsQuery(params)
   local totalRows = 0
 
   -- tprint(string.format("type=%s sev=%s entity=%s val=%s", type_filter, severity_filter, entity_type_filter, entity_value_filter))
-  local alerts = interface.getEngagedAlerts(entity_type_filter, entity_value_filter, type_filter, severity_filter)
+  local alerts = interface.getEngagedAlerts(entity_type_filter, entity_value_filter, type_filter)
   local sort_2_col = {}
 
   -- Sort
   for idx, alert in pairs(alerts) do
     if sortColumn == "column_type" then
       sort_2_col[idx] = alert.alert_id
-    elseif sortColumn == "column_severity" then
-      sort_2_col[idx] = alert.severity
     elseif sortColumn == "column_duration" then
       sort_2_col[idx] = os.time() - alert.tstamp
     else -- column_date
@@ -398,7 +389,6 @@ function alert_utils.getTabParameters(_get, what)
    -- these options are contextual to the current tab (status)
    if _get.status ~= what then
       opts.alert_id = nil
-      opts.severity = nil
    end
    if not isEmptyString(what) then opts.status = what end
    opts.ifid = interface.getId()
@@ -522,7 +512,6 @@ local function getMenuEntries(status, selection_name, get_params)
    local params = table.clone(get_params)
 
    -- Remove previous filters
-   params.alert_severity = nil
    params.alert_type = nil
    params.l7_proto = nil
 
@@ -538,10 +527,7 @@ local function getMenuEntries(status, selection_name, get_params)
       group_by_clause[#group_by_clause + 1] = "alert_entity"
    end
 
-   if selection_name == "severity" then
-      select_clause[#select_clause + 1] = "severity id"
-      group_by_clause[#group_by_clause + 1] = "severity"
-   elseif selection_name == "type" then
+   if selection_name == "type" then
       select_clause[#select_clause + 1] = "alert_id id"
       group_by_clause[#group_by_clause + 1] = "alert_id"
    elseif selection_name == "l7_proto" then
@@ -568,7 +554,7 @@ local function dropdownUrlParams(get_params)
 
   for param, val in pairs(get_params) do
     -- NOTE: exclude the ifid parameter to avoid interface selection issues with system interface alerts
-    if((param ~= "alert_severity") and (param ~= "alert_type") and (param ~= "status") and (param ~= "ifid")) then
+    if((param ~= "alert_type") and (param ~= "status") and (param ~= "ifid")) then
       buttons = buttons.."&"..param.."="..val
     end
   end
@@ -579,11 +565,8 @@ end
 -- #################################
 
 local function drawDropdown(status, selection_name, active_entry, button_label, get_params, actual_entries)
-   -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
    local id_to_label
-   if selection_name == "severity" then
-      id_to_label = alert_consts.alertSeverityLabel
-   elseif selection_name == "type" then
+   if selection_name == "type" then
       id_to_label = alert_consts.alertTypeLabel
    elseif selection_name == "l7_proto" then
       id_to_label = interface.getnDPIProtoName
