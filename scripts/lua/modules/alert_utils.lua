@@ -979,6 +979,8 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, skip_live_d
     msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]], alert_entities.flow.entity_id)
   end
 
+  msg = msg .. alert_utils.getConfigsetAlertLink(alert_json)
+
   return msg or ""
 end
 
