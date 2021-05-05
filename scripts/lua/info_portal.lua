@@ -55,13 +55,13 @@ print [[
 
 <div class="container">
 
-	 <form id="form_add_user" role="form" data-toggle="validator" class="form-signin" action="]] print(ntop.getHttpPrefix()) print[[/lua/authorize_captive.lua" method="GET">
+	 <form id="form_add_user" role="form" data-bs-toggle="validator" class="form-signin" action="]] print(ntop.getHttpPrefix()) print[[/lua/authorize_captive.lua" method="GET">
 	 <h2 class="form-signin-heading" style="font-weight: bold; text-align: center;">]] print(info["product"]) print [[<br>Access Portal</h2>
 
 <br>
 <br>
 
-<div class="form-group">
+<div class="form-group mb-3">
   <div class="form-check">
     <label class="form-check-label" style="font-weight: normal;">]]
 

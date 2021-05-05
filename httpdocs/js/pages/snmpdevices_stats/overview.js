@@ -3,7 +3,7 @@
  *
  * This script implements the logic for the overview tab inside snmpdevice_stats.lua page.
  */
-$(document).ready(function () {
+$(function () {
 
     // constant for filtering table
     const RESPONSIVE_COLUMN_INDEX = 0;
@@ -247,7 +247,7 @@ $(document).ready(function () {
 
                     if (type == "display" && row.column_device_status == "unreachable") {
                         return (`
-                            <span class='badge badge-warning' title='${i18n.snmp.snmp_device_does_not_respond}'>
+                            <span class='badge bg-warning' title='${i18n.snmp.snmp_device_does_not_respond}'>
                                 <i class="fas fa-exclamation-triangle"></i>
                             </span>
                             ${data}

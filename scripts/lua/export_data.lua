@@ -40,19 +40,19 @@ print [[
        <b>]] print(i18n("export_data.hosts")) print[[:</b>
        <br>
 
-       <div class="form-group form-inline">
-         <div class="btn-group btn-group-toggle" data-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
+       <div class="form-group mb-3 form-inline">
+         <div class="btn-group btn-group-toggle" data-bs-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
            <label class="btn btn-secondary active">
-             <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off" data-toggle="toggle"  checked="checked">]] print(i18n("export_data.all_hosts")) print[[
+             <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off" data-bs-toggle="toggle"  checked="checked">]] print(i18n("export_data.all_hosts")) print[[
            </label>
            <label class="btn btn-secondary">
-             <input type="radio" id="local_hosts" name="mode" value="local" autocomplete="off" data-toggle=" toggle">]] print(i18n("export_data.local_hosts")) print[[
+             <input type="radio" id="local_hosts" name="mode" value="local" autocomplete="off" data-bs-toggle=" toggle">]] print(i18n("export_data.local_hosts")) print[[
            </label>
            <label class="btn btn-secondary">
-             <input type="radio" id="remote_hosts" name="mode" value="remote" autocomplete="off" data-toggle=" toggle">]] print(i18n("export_data.remote_hosts")) print[[
+             <input type="radio" id="remote_hosts" name="mode" value="remote" autocomplete="off" data-bs-toggle=" toggle">]] print(i18n("export_data.remote_hosts")) print[[
            </label>
            <label class="btn btn-secondary">
-             <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-toggle=" toggle">]] print(i18n("export_data.single")) print[[
+             <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off" data-bs-toggle=" toggle">]] print(i18n("export_data.single")) print[[
            </label>
          </div>
 

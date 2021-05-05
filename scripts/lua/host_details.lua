@@ -136,7 +136,7 @@ local function scoreBreakdown(what)
       score_category_network  = (score_category_network*100)/tot
       score_category_security = 100 - score_category_network
 
-      print('<span class="progress w-100 ml-1"><span class="progress-bar bg-warning" style="width: '..score_category_network..'%;">'.. i18n("flow_details.score_category_network"))
+      print('<span class="progress w-100 ms-1"><span class="progress-bar bg-warning" style="width: '..score_category_network..'%;">'.. i18n("flow_details.score_category_network"))
       print('</span><span class="progress-bar bg-info" style="width: ' .. score_category_security .. '%;">' .. i18n("flow_details.score_category_security") .. '</span></span>\n')
    else
       print("&nbsp;")
@@ -257,8 +257,8 @@ else
 	 interface.resetHostStats(hostkey, true)
       elseif interface.resetHostStats(hostkey) then
          print("<div class=\"alert alert alert-success\">")
-         print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
          print(i18n("host_details.reset_stats_in_progress"))
+         print[[<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>]]
          print("</div>")
       end
    end
@@ -467,7 +467,7 @@ else
 				 active = page == "periodicity_map",
 				 page_name = "periodicity_map",
 				 url = periodicity_map_link,
-				 label = "<i class=\"fas fa-lg fa-clock\"></i> <span style='position: absolute; top: 0' class=\"badge badge-pill badge-secondary\">"..num_periodicity.."</span>",
+				 label = "<i class=\"fas fa-lg fa-clock\"></i> <span style='position: absolute; top: 0' class=\"badge bg-pill bg-secondary\">"..num_periodicity.."</span>",
 			      },
 			      {
 				 hidden = not service_map_available,
@@ -597,15 +597,15 @@ if((page == "overview") or (page == nil)) then
       print(format_utils.formatFullAddressCategory(host))
 
       if(host.services) then
-	 if(host.services.dhcp) then print(' <span class="badge badge-info">'..i18n("details.label_dhcp_server")..'</span>') end
-	 if(host.services.dns)  then print(' <span class="badge badge-info">'..i18n("details.label_dns_server")..'</span>') end
-	 if(host.services.smtp) then print(' <span class="badge badge-info">'..i18n("details.label_smtp_server")..'</span>') end
-	 if(host.services.ntp)  then print(' <span class="badge badge-info">'..i18n("details.label_ntp_server")..'</span>') end
+	 if(host.services.dhcp) then print(' <span class="badge bg-info">'..i18n("details.label_dhcp_server")..'</span>') end
+	 if(host.services.dns)  then print(' <span class="badge bg-info">'..i18n("details.label_dns_server")..'</span>') end
+	 if(host.services.smtp) then print(' <span class="badge bg-info">'..i18n("details.label_smtp_server")..'</span>') end
+	 if(host.services.ntp)  then print(' <span class="badge bg-info">'..i18n("details.label_ntp_server")..'</span>') end
       end
 
-      if(host["dhcp_server"] == true) then print(' <span class="badge badge-info">'..i18n("details.label_dhcp_server")..'</span>') end
-      if(host["systemhost"] == true) then print(' <span class="badge badge-info"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
-      if(host["is_blacklisted"] == true) then print(' <span class="badge badge-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
+      if(host["dhcp_server"] == true) then print(' <span class="badge bg-info">'..i18n("details.label_dhcp_server")..'</span>') end
+      if(host["systemhost"] == true) then print(' <span class="badge bg-info"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
+      if(host["is_blacklisted"] == true) then print(' <span class="badge bg-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
       if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
 	 print(' <A HREF="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'
 		  ..ntop.getHttpPrefix()..'/img/virustotal.svg\"></A> <i class=\"fas fa-external-link-alt\"></i>')
@@ -634,7 +634,7 @@ if isScoreEnabled() then
    print("<tr>")
    print("<td>")
    print("<div class='d-flex align-items-center'>")
-   print("<span id='score_as_client'>".. (host["score.as_client"] or 0) .."</span> <span class='ml-1' id='client_score_trend'></span>")
+   print("<span id='score_as_client'>".. (host["score.as_client"] or 0) .."</span> <span class='ms-1' id='client_score_trend'></span>")
    if c then
       scoreBreakdown(c)
    end
@@ -643,7 +643,7 @@ if isScoreEnabled() then
 
    print("<td>")
    print("<div class='d-flex align-items-center'>")
-   print("<span id='score_as_server'>".. (host["score.as_server"] or 0).."</span><span class='ml-1' id='server_score_trend'></span>")
+   print("<span id='score_as_server'>".. (host["score.as_server"] or 0).."</span><span class='ms-1' id='server_score_trend'></span>")
    if s then
       scoreBreakdown(s)
    end
@@ -948,7 +948,7 @@ end
       local totr = 0 for key, value in pairs(host["pktStats.recv"]["size"]) do totr = totr + value end
 
    if((tots > 0) or (totr > 0)) then
-     print('<tr><th class="text-left">'..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
+     print('<tr><th class="text-start">'..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
      if(tots > 0) then
        print('<td colspan=1><div class="pie-chart" id="sizeSentDistro"></div></td>')
      else
@@ -967,14 +967,14 @@ end
    local has_arp_distro = (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00")
 
 if(has_tcp_distro and has_arp_distro) then
-print('<tr><th class="text-left">'..i18n("packets_page.tcp_flags_vs_arp_distribution")..'</th><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td><td colspan=1><div class="pie-chart" id="arpDistro"></div></td></tr>')
+print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_vs_arp_distribution")..'</th><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td><td colspan=1><div class="pie-chart" id="arpDistro"></div></td></tr>')
 else
       if (has_tcp_distro) then
-	 print('<tr><th class="text-left">'..i18n("packets_page.tcp_flags_distribution")..'</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
+	 print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_distribution")..'</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
       end
       if (has_arp_distro) then
          if (macinfo ~= nil) and (macinfo["arp_requests.sent"] + macinfo["arp_requests.rcvd"] + macinfo["arp_replies.sent"] + macinfo["arp_replies.rcvd"] > 0) then
-            print('<tr><th class="text-left">'..i18n("packets_page.arp_distribution")..'</th><td colspan=5><div class="pie-chart" id="arpDistro"></div></td></tr>')
+            print('<tr><th class="text-start">'..i18n("packets_page.arp_distribution")..'</th><td colspan=5><div class="pie-chart" id="arpDistro"></div></td></tr>')
          end
       end
 end
@@ -1015,8 +1015,8 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
 
    elseif((page == "DSCP")) then
       print('<table class="table table-bordered table-striped">\n')
-      print('<tr><th class="text-left">'..i18n("dscp_page.statistics_sent")..'</th><td colspan=5><div class="pie-chart" id="dscpPrecedenceSent"></div></td></tr>')
-      print('<tr><th class="text-left">'..i18n("dscp_page.statistics_received")..'</th><td colspan=5><div class="pie-chart" id="dscpPrecedenceReceived"></div></td></tr>')
+      print('<tr><th class="text-start">'..i18n("dscp_page.statistics_sent")..'</th><td colspan=5><div class="pie-chart" id="dscpPrecedenceSent"></div></td></tr>')
+      print('<tr><th class="text-start">'..i18n("dscp_page.statistics_received")..'</th><td colspan=5><div class="pie-chart" id="dscpPrecedenceReceived"></div></td></tr>')
 
       print [[
       </table>
@@ -1034,13 +1034,13 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
    elseif((page == "ports")) then
       print('<table class="table table-bordered table-striped">\n')
       if(host.cardinality) then
-	 print('<tr><th class="text-left">'..i18n("ports_page.num_contacted_ports")..'</th>')
-	 print('<th class="text-left">'..i18n("ports_page.num_contacted_ports_as_client")..'</th><td><span id="num_contacted_ports_as_client">'.. formatValue(host.cardinality.num_contacted_ports_as_client) ..'</span> <span id="num_contacted_ports_as_client_trend"></span></td>')
-	 print('<th class="text-left">'..i18n("ports_page.num_host_contacted_ports_as_server")..'</th><td><span id="num_host_contacted_ports_as_server">'.. formatValue(host.cardinality.num_host_contacted_ports_as_server) ..'</span> <span id="num_host_contacted_ports_as_server_trend"></span></td>')
+	 print('<tr><th class="text-start">'..i18n("ports_page.num_contacted_ports")..'</th>')
+	 print('<th class="text-start">'..i18n("ports_page.num_contacted_ports_as_client")..'</th><td><span id="num_contacted_ports_as_client">'.. formatValue(host.cardinality.num_contacted_ports_as_client) ..'</span> <span id="num_contacted_ports_as_client_trend"></span></td>')
+	 print('<th class="text-start">'..i18n("ports_page.num_host_contacted_ports_as_server")..'</th><td><span id="num_host_contacted_ports_as_server">'.. formatValue(host.cardinality.num_host_contacted_ports_as_server) ..'</span> <span id="num_host_contacted_ports_as_server_trend"></span></td>')
 	 print('</tr>')
       end
-      print('<tr><th class="text-left">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
-      print('<tr><th class="text-left">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
+      print('<tr><th class="text-start">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
+      print('<tr><th class="text-start">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
 
       print [[
       </table>
@@ -1211,16 +1211,16 @@ end
       <table class="table table-bordered table-striped">]]
 
       if(host.cardinality) then
-	 print('<tr><th colspan="2" class="text-left">'..i18n("traffic_page.hosts_contacts_cardinality")..'</th>')
-	 print('<th class="text-left">'..i18n("traffic_page.num_contacted_hosts_as_client")..'</th><td><span id="num_contacted_hosts_as_client">'
+	 print('<tr><th colspan="2" class="text-start">'..i18n("traffic_page.hosts_contacts_cardinality")..'</th>')
+	 print('<th class="text-start">'..i18n("traffic_page.num_contacted_hosts_as_client")..'</th><td><span id="num_contacted_hosts_as_client">'
 		  .. formatValue(host.cardinality.num_contacted_hosts_as_client) ..'</span> <span id="num_contacted_hosts_as_client_trend"></span></td>')
-	 print('<th class="text-left">'..i18n("traffic_page.num_host_contacts_as_server")..'</th><td><span id="num_host_contacts_as_server">'..
+	 print('<th class="text-start">'..i18n("traffic_page.num_host_contacts_as_server")..'</th><td><span id="num_host_contacts_as_server">'..
 		  formatValue(host.cardinality.num_host_contacts_as_server) ..'</span> <span id="num_host_contacts_as_server_trend"></span></td>')
 	 print('</tr>')
       end
 
       print [[
-      	<tr><th colspan="2" class="text-left">]] print(i18n("traffic_page.l4_proto_overview"))
+      	<tr><th colspan="2" class="text-start">]] print(i18n("traffic_page.l4_proto_overview"))
         print[[</th><td colspan=4><div class="pie-chart" id="topApplicationProtocols"></div></td></tr>
 
 	</div>
@@ -1256,9 +1256,9 @@ print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostin
 	    end
 	    t = sent+rcvd
 	    historicalProtoHostHref(ifId, host, l4_keys[id][3], nil, nil)
-	    print("</th><td class=\"text-right\">" .. bytesToSize(sent) .. "</td><td class=\"text-right\">" .. bytesToSize(rcvd) .. "</td><td>")
+	    print("</th><td class=\"text-end\">" .. bytesToSize(sent) .. "</td><td class=\"text-end\">" .. bytesToSize(rcvd) .. "</td><td>")
 	    graph_utils.breakdownBar(sent, i18n("sent"), rcvd, i18n("traffic_page.rcvd"), 0, 100)
-	    print("</td><td class=\"text-right\">" .. bytesToSize(t).. "</td><td class=\"text-right\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
+	    print("</td><td class=\"text-end\">" .. bytesToSize(t).. "</td><td class=\"text-end\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
 	 end
       end
       print("</table></tr>\n")
@@ -1305,8 +1305,8 @@ elseif((page == "ndpi")) then
       <div class='card card-shadow'>
       <div class='card-header'>
          <ul id="ndpiNav" class="nav nav-tabs card-header-tabs" role="tablist">
-            <li class="nav-item active"><a class="nav-link active" data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
-            <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
+            <li class="nav-item active"><a class="nav-link active" data-bs-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
          </ul>
       </div>
   <div class="tab-content card-body">
@@ -1315,7 +1315,7 @@ elseif((page == "ndpi")) then
       <table class="table table-bordered mt-1 table-striped">]]
 
       if(host.cardinality) then
-	 print('<tr><th class="text-left" colspan=2>'..i18n("ndpi_page.num_contacted_services_as_client")..'</th>')
+	 print('<tr><th class="text-start" colspan=2>'..i18n("ndpi_page.num_contacted_services_as_client")..'</th>')
 	 print('<td align=right><span id="num_contacted_services_as_client">'.. formatValue(host.cardinality.num_contacted_services_as_client))
 	 print('</span> <span id="num_contacted_services_as_client_trend"></span></td><td>'..i18n("ndpi_page.num_contacted_services_as_client_descr")..'</td></tr>')
       end
@@ -1324,7 +1324,7 @@ elseif((page == "ndpi")) then
       if ntop.isPro() and host["custom_apps"] then
 	 print[[
     <tr>
-      <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.custom_applications")})) print [[</th>
+      <th class="text-start">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.custom_applications")})) print [[</th>
       <td colspan=5><div class="pie-chart" id="topCustomApps"></div></td>
     </tr>
 ]]
@@ -1332,7 +1332,7 @@ elseif((page == "ndpi")) then
 
       print[[
     <tr>
-      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("applications")})) print[[</th>
+      <th class="text-start" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("applications")})) print[[</th>
       <td><div class="pie-chart" id="topApplicationProtocols"></div></td>
       <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></div></td>
     </tr>
@@ -1345,7 +1345,7 @@ elseif((page == "ndpi")) then
       end
 
       print('<div class="dt-toolbar btn-toolbar float-right">')
-      print('<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="direction_dropdown">')
+      print('<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="direction_dropdown">')
       print('<li>'..hostinfo2detailshref(host, {page = "ndpi"}, i18n("all"))..'</li>')
       print('<li>'..hostinfo2detailshref(host, {page = "ndpi", direction = "sent"}, i18n("ndpi_page.sent_only"))..'</li>')
       print('<li>'..hostinfo2detailshref(host, {page = "ndpi", direction = "recv"}, i18n("ndpi_page.received_only"))..'</li>')
@@ -1370,7 +1370,7 @@ elseif((page == "ndpi")) then
       <div class='table-sm-responsive'>
       <table class="table table-bordered table-striped">
         <tr>
-        <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("categories")})) print[[</th>
+        <th class="text-start" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("categories")})) print[[</th>
         <td colspan=2><div class="pie-chart" id="topApplicationCategories"></div></td>
       </tr>
       </table>
@@ -1492,16 +1492,16 @@ elseif(page == "dns") then
       
       if(host["dns"] ~= nil) then
 	 print("<tr><th>"..i18n("dns_page.dns_breakdown").."</th><th>"..i18n("dns_page.queries").."</th><th>"..i18n("dns_page.positive_replies").."</th><th>"..i18n("dns_page.error_replies").."</th><th colspan=2>"..i18n("dns_page.reply_breakdown").."</th></tr>")
-	 print("<tr><th>"..i18n("sent").."</th><td class=\"text-right\"><span id=dns_sent_num_queries>".. formatValue(host["dns"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
+	 print("<tr><th>"..i18n("sent").."</th><td class=\"text-end\"><span id=dns_sent_num_queries>".. formatValue(host["dns"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
 	 
-	 print("<td class=\"text-right\"><span id=dns_sent_num_replies_ok>".. formatValue(host["dns"]["sent"]["num_replies_ok"]) .."</span> <span id=trend_sent_num_replies_ok></span></td>")
-	 print("<td class=\"text-right\"><span id=dns_sent_num_replies_error>".. formatValue(host["dns"]["sent"]["num_replies_error"]) .."</span> <span id=trend_sent_num_replies_error></span></td><td colspan=2>")
+	 print("<td class=\"text-end\"><span id=dns_sent_num_replies_ok>".. formatValue(host["dns"]["sent"]["num_replies_ok"]) .."</span> <span id=trend_sent_num_replies_ok></span></td>")
+	 print("<td class=\"text-end\"><span id=dns_sent_num_replies_error>".. formatValue(host["dns"]["sent"]["num_replies_error"]) .."</span> <span id=trend_sent_num_replies_error></span></td><td colspan=2>")
 	 graph_utils.breakdownBar(host["dns"]["sent"]["num_replies_ok"], "OK", host["dns"]["sent"]["num_replies_error"], "Error", 0, 100)
 	 print("</td></tr>")
 
-	 print("<tr><th>"..i18n("dns_page.rcvd").."</th><td class=\"text-right\"><span id=dns_rcvd_num_queries>".. formatValue(host["dns"]["rcvd"]["num_queries"]) .."</span> <span id=trend_rcvd_num_queries></span></td>")
-	 print("<td class=\"text-right\"><span id=dns_rcvd_num_replies_ok>".. formatValue(host["dns"]["rcvd"]["num_replies_ok"]) .."</span> <span id=trend_rcvd_num_replies_ok></span></td>")
-	 print("<td class=\"text-right\"><span id=dns_rcvd_num_replies_error>".. formatValue(host["dns"]["rcvd"]["num_replies_error"]) .."</span> <span id=trend_rcvd_num_replies_error></span></td><td colspan=2>")
+	 print("<tr><th>"..i18n("dns_page.rcvd").."</th><td class=\"text-end\"><span id=dns_rcvd_num_queries>".. formatValue(host["dns"]["rcvd"]["num_queries"]) .."</span> <span id=trend_rcvd_num_queries></span></td>")
+	 print("<td class=\"text-end\"><span id=dns_rcvd_num_replies_ok>".. formatValue(host["dns"]["rcvd"]["num_replies_ok"]) .."</span> <span id=trend_rcvd_num_replies_ok></span></td>")
+	 print("<td class=\"text-end\"><span id=dns_rcvd_num_replies_error>".. formatValue(host["dns"]["rcvd"]["num_replies_error"]) .."</span> <span id=trend_rcvd_num_replies_error></span></td><td colspan=2>")
 	 graph_utils.breakdownBar(host["dns"]["rcvd"]["num_replies_ok"], "OK", host["dns"]["rcvd"]["num_replies_error"], "Error", 50, 100)
 	 print("</td></tr>")
 
@@ -1889,11 +1889,9 @@ elseif page == "geomap" then
    print ([[
         <div class="row">
           <div class='col-md-12 col-lg-12 col-xs-12 mb-4'>
-            <div id='geomap-alert' style="display: none" role="alert" class='alert alert-danger'>
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+            <div id='geomap-alert' style="display: none" role="alert" class='alert alert-danger alert-dismissible'>
               <span id='error-message'></span>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <div class="d-flex justify-content-center align-items-center" style="height: 720px" id="map-canvas">
                <div class="spinner-border text-primary" role="status">
@@ -1978,7 +1976,7 @@ if(num > 0) then
       url = url .. getFlag(info["country"]).." "
    end
    -- print(v.."<br>")
-	 print("<tr><th>"..url.."</th><td class=\"text-right\">" .. formatValue(v) .. "</td></tr>\n")
+	 print("<tr><th>"..url.."</th><td class=\"text-end\">" .. formatValue(v) .. "</td></tr>\n")
       end
       print("</table></td>\n")
    end
@@ -2006,7 +2004,7 @@ if(num > 0) then
 	 if(info ~= nil) then
 	    url = url ..getFlag(info["country"]).." "
 	 end
-	 print("<tr><th>"..url.."</th><td class=\"text-right\">" .. formatValue(v) .. "</td></tr>\n")
+	 print("<tr><th>"..url.."</th><td class=\"text-end\">" .. formatValue(v) .. "</td></tr>\n")
       end
       print("</table></td>\n")
    end

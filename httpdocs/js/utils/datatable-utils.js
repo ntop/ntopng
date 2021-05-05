@@ -165,7 +165,7 @@ class DataTableFiltersMenu {
     _render(filters) {
 
         const $dropdownContainer = $(`<div id='${this.filterMenuKey}-filters' class='dropdown d-inline'></div>`);
-        const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-toggle='dropdown' type='button'></button>`);
+        const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-bs-toggle="dropdown" type='button'></button>`);
         const $dropdownTitle = $(`<span class='filter-title'>${this.filterTitle}</span>`);
         $dropdownButton.append($dropdownTitle);
 
@@ -177,7 +177,7 @@ class DataTableFiltersMenu {
             button: $dropdownButton
         };
 
-        const $menuContainer = $(`<ul class='dropdown-menu scrollable-dropdown' id='${this.filterMenuKey}-filter-menu'></ul>`);
+        const $menuContainer = $(`<ul class='dropdown-menu dropdown-menu-lg-end scrollable-dropdown' id='${this.filterMenuKey}-filter-menu'></ul>`);
         for (const [_, filter] of Object.entries(this.filters)) {
             $menuContainer.append(filter.$node);
         }
@@ -308,7 +308,7 @@ class DataTableUtils {
     /**
      * Return a standard config for the Sprymedia (c) DataTables
      */
-    static getStdDatatableConfig(dtButtons = [], dom = "<'d-flex flex-wrap'<'mr-auto'l><'dt-search'f>B>rtip") {
+    static getStdDatatableConfig(dtButtons = [], dom = "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 text-end'<'dt-search'f>B>rtip>") {
 
         // hide the buttons section if there aren't buttons inside the array
         if (dtButtons.length == 0) {
@@ -339,7 +339,7 @@ class DataTableUtils {
                         className: 'btn btn-link'
                     },
                     container: {
-                        className: 'border-left ml-1 d-flex flex-md-row'
+                        className: 'd-inline-block'
                     }
                 }
             }
@@ -368,7 +368,7 @@ class DataTableUtils {
                     ${(action.href || action.modal) ? `href='${action.href || action.modal}'` : ``}
                     ${(action.onclick) ? `onclick='${action.onclick}'` : ``}
                     data-placement='bottom'
-                    ${action.modal ? "data-toggle='modal'" : ``}
+                    ${action.modal ? "data-bs-toggle='modal'" : ``}
                     class='btn btn-sm ${action.class}'
                     ${action.hidden ? "style='display: none'" : ``}
                     ${action.external ? "target='_about'" : ``}
@@ -542,7 +542,7 @@ class DataTableUtils {
 
             const $btnGroup = $(`
                 <div class="btn-group">
-                    <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button type="button" class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
@@ -566,10 +566,10 @@ class DataTableUtils {
                     col.visible(false);
                 }
 
-                const $checkbox = $(`<input class="custom-control-input" ${(toggled ? 'checked' : '')} type="checkbox" id="${id}">`)
+                const $checkbox = $(`<input class="form-check-input" ${(toggled ? 'checked' : '')} type="checkbox" id="${id}">`)
                 const $wrapper = $(`
-                    <div class="custom-control custom-switch">
-                        <label class="custom-control-label" for="${id}">
+                    <div class="form-check form-switch">
+                        <label class="form-check-label" for="${id}">
                             ${column.name}
                         </label>
                     </div>

@@ -4,7 +4,7 @@ print [[
     <div class="modal-content">
       <div class="modal-header">
         <h5 class='modal-title' id="delete_user_dialog_label">]] print(i18n("users.delete_user")) print[[ <span class="password_dialog_title"></span></h5>
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
 <div class="modal-body">
@@ -13,9 +13,9 @@ print [[
 
 <script>
   delete_user_alert = function() {}
-  delete_user_alert.error =   function(message) { $('#delete_user_alert_placeholder').html('<div class="alert alert-danger"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>');
+  delete_user_alert.error =   function(message) { $('#delete_user_alert_placeholder').html('<div class="alert alert-dismissable alert-danger">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
  }
-  delete_user_alert.success = function(message) { $('#delete_user_alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>'); }
+  delete_user_alert.success = function(message) { $('#delete_user_alert_placeholder').html('<div class="alert alert-dismissable alert-success">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'); }
   delete_user_alert.warning = function(message) { $('#delete_user_alert_placeholder').html('<div class="alert alert-warning">' + message + '</div>'); }
 </script>
 

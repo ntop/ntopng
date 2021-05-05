@@ -205,7 +205,7 @@ function ebpf_utils.draw_ndpi_piecharts(ifstats, url, host_info, username, pid_n
 
   <table class="table table-bordered table-striped">
     <tr>
-      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("protocol")})) print[[</th>
+      <th class="text-start" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("protocol")})) print[[</th>
       <td>
 	<div class="pie-chart" id="topApplicationProtocols"></div>
       </td>
@@ -214,7 +214,7 @@ function ebpf_utils.draw_ndpi_piecharts(ifstats, url, host_info, username, pid_n
       </td>
     </tr>
     <tr>
-      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("category")})) print[[</th>
+      <th class="text-start" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("category")})) print[[</th>
       <td colspan=2>
 	<div class="pie-chart" id="topApplicationCategories"></div>
       </td>

@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(function() {
 
     const MAX_RECIPIENTS = 3;
     const DEFAULT_MEASUREMENT = "cicmp";

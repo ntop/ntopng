@@ -34,7 +34,7 @@ for k, v in pairs(host["ndpi_categories"]) do
    total = total + v["bytes"]
 end
 
-print("<tr><td colspan=2>Total</td><td class=\"text-right\">".. secondsToTime(host["total_activity_time"]) .."</td><td colspan=2 class=\"text-right\">" ..  bytesToSize(total).. "</td></tr>\n")
+print("<tr><td colspan=2>Total</td><td class=\"text-end\">".. secondsToTime(host["total_activity_time"]) .."</td><td colspan=2 class=\"text-end\">" ..  bytesToSize(total).. "</td></tr>\n")
 
 for k, v in pairsByKeys(host["ndpi_categories"], desc) do
    print("<tr><td>")
@@ -55,8 +55,8 @@ for k, v in pairsByKeys(host["ndpi_categories"], desc) do
    print(categories_utils.get_category_protocols_list(v.category))
    print("</td>")
 
-   print("<td class=\"text-right\">" .. secondsToTime(v["duration"]) .. "</td>")
+   print("<td class=\"text-end\">" .. secondsToTime(v["duration"]) .. "</td>")
 
-   print("<td class=\"text-right\">" .. bytesToSize(t).. "</td><td class=\"text-right\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
+   print("<td class=\"text-end\">" .. bytesToSize(t).. "</td><td class=\"text-end\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
 
 end

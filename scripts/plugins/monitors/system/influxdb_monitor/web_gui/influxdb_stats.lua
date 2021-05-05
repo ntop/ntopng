@@ -98,9 +98,9 @@ if(page == "overview") then
  var last_exports;
  var health_descr = {
 ]]
-    print('"green" : {"status" : "<span class=\'badge badge-success\'>'..i18n("system_stats.influxdb_health_green")..'</span>", "descr" : "<small>'..i18n("system_stats.influxdb_health_green_descr")..'</small>"},')
-    print('"yellow" : {"status" : "<span class=\'badge badge-warning\'>'..i18n("system_stats.influxdb_health_yellow")..'</span>", "descr" : "<small>'..i18n("system_stats.influxdb_health_yellow_descr")..'</small>"},')
-    print('"red" : {"status" : "<span class=\'badge badge-danger\'>'..i18n("system_stats.influxdb_health_red")..'</span>", "descr" : "<small>'..i18n("system_stats.influxdb_health_red_descr")..'</small>"},')
+    print('"green" : {"status" : "<span class=\'badge bg-success\'>'..i18n("system_stats.influxdb_health_green")..'</span>", "descr" : "<small>'..i18n("system_stats.influxdb_health_green_descr")..'</small>"},')
+    print('"yellow" : {"status" : "<span class=\'badge bg-warning\'>'..i18n("system_stats.influxdb_health_yellow")..'</span>", "descr" : "<small>'..i18n("system_stats.influxdb_health_yellow_descr")..'</small>"},')
+    print('"red" : {"status" : "<span class=\'badge bg-danger\'>'..i18n("system_stats.influxdb_health_red")..'</span>", "descr" : "<small>'..i18n("system_stats.influxdb_health_red_descr")..'</small>"},')
        print[[
  };
 

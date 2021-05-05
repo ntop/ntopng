@@ -34,9 +34,9 @@ print(
 print[[
 <H3>]] print(i18n("dhcp.dhcp")) print[[</H3>
 
-<form id="table-dhcp-form" method="post" data-toggle="validator">
+<form id="table-dhcp-form" method="post" data-bs-toggle="validator">
   <div id="table-dhcp"></div>
-  <div class='text-right'>
+  <div class='text-end'>
     <button id="dhcp-save" class="btn btn-primary mb-1" onclick="if($(this).hasClass('disabled')) return false;" type="submit">]] print(i18n("save_settings")) print[[</button>
   </div>
 </form>
@@ -51,7 +51,7 @@ print[[
       title: "",
       forceTable: true,
       buttons: [
-         '<a id="addRangeBtn" onclick="addDhcpRow()" role="button" class="add-on btn" data-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>'
+         '<a id="addRangeBtn" onclick="addDhcpRow()" role="button" class="add-on btn" data-bs-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
             title: "]] print(i18n("nedge.dhcp_first_ip")) print[[",
@@ -102,7 +102,7 @@ print[[
     var name = "input_id_" + input_id;
     input_id++;
 
-    var container = $("<div class='form-group has-feedback' style='margin-bottom:0'></div>");
+    var container = $("<div class='form-group mb-3 has-feedback' style='margin-bottom:0'></div>");
 
     var input = $("<input class='form-control' data-ipaddress='ipaddress' required>")
       .attr("name", name)

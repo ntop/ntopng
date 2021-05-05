@@ -207,7 +207,7 @@ function stabilizeNetwork(network) {
     $(`.resizable-y-container`).height(oldScale.height);
 })();
 
-$(document).ready(function() {
+$(function() {
 
     $(`.resizable-y-container`).on('mouseup', function() {
         const scale = {width: $(this).width(), height: $(this).height()};

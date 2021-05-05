@@ -20,34 +20,32 @@
                             <button data-dismiss="modal" class="btn btn-danger confirm" type="button">{{ i18n("abort") }}</button>
                         </div>
                     </div>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
             <form role="form">
                 <div class="modal-body">
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-4" >
                             <b>{{ i18n("host_pools.member_type") }}</b>
                         </label>
                         <div class="col-sm-6">
                             <div class="btn-group btn-group-toggle" data-toggle="buttons">
                                 <label class="btn btn-secondary active">
-                                  <input id="ip-radio" type="radio" name="member_type" value="ip" checked> {{ i18n("host_pools.ip_address") }}
+                                  <input id="ip-radio" class="btn-check" type="radio" name="member_type" value="ip" checked> {{ i18n("host_pools.ip_address") }}
                                 </label>
                                 <label class="btn btn-secondary">
-                                  <input id="network-radio" type="radio" name="member_type" value="network"> {{ i18n("host_pools.network") }}
+                                  <input id="network-radio" class="btn-check"  type="radio" name="member_type" value="network"> {{ i18n("host_pools.network") }}
                                 </label>
                                 <label class="btn btn-secondary">
-                                  <input id="mac-radio" type="radio" name="member_type" value="mac"> {{ i18n("host_pools.mac_address") }}
+                                  <input id="mac-radio" class="btn-check"  type="radio" name="member_type" value="mac"> {{ i18n("host_pools.mac_address") }}
                                 </label>
                             </div>
                         </div>
                     </div>
                     <hr>
                     <div class="ip-fields">
-                        <div class="form-group row">
+                        <div class="mb-3 row">
                             <label class="col-form-label col-sm-4" >
                                 <b>{{ i18n("host_pools.ip_address") }}</b>
                             </label>
@@ -55,7 +53,7 @@
                                 <input data-pattern="ipv4|ipv6" placeholder="192.168.1.1" required name="ip_address" class="form-control"  />
                             </div>
                         </div>
-                        <div class="form-group row">
+                        <div class="mb-3 row">
                             <label class="col-form-label col-sm-4" >
                                 {{ i18n("vlan") }}
                             </label>
@@ -65,7 +63,7 @@
                         </div>
                     </div>
                     <div class="network-fields">
-                        <div class="form-group row">
+                        <div class="mb-3 row">
                             <label class="col-form-label col-sm-4" >
                                 <b>{{ i18n("host_pools.network") }}</b>
                             </label>
@@ -73,11 +71,11 @@
                                 <input disabled required style="width: calc(100% - 15px);" name="network" class="form-control d-inline" placeholder="172.16.0.0" data-pattern="ipv4|ipv6" />
                             </div>
                             <div class="col-sm-2 pl-0">
-                                <span class="mr-2">/</span>
+                                <span class="me-2">/</span>
                                 <input disabled placeholder='24' required class="form-control d-inline w-75" min="1" max="127" type="number" name="cidr">
                             </div>
                         </div>
-                        <div class="form-group row">
+                        <div class="mb-3 row">
                             <label class="col-form-label col-sm-4" >
                                 {{ i18n("vlan") }}
                             </label>
@@ -87,7 +85,7 @@
                         </div>
                     </div>
                     <div class="mac-fields">
-                        <div class="form-group row">
+                        <div class="mb-3 row">
                             <label class="col-form-label col-sm-4">
                                 <b>{{ i18n("host_pools.mac_address") }}</b>
                             </label>

@@ -23,8 +23,8 @@ print [[
   <br>
   
     <ul class="nav nav-tabs">
-      <li class="nav-item active"><a class="nav-link active" href="#Overview" data-toggle="tab">]] print(i18n("overview")) print[[</a></li>
-      <li class="nav-item"><a class="nav-link" href="#Timeline" data-toggle="tab">]] print(i18n("processes_stats.timeline")) print[[</a></li>
+      <li class="nav-item active"><a class="nav-link active" href="#Overview" data-bs-toggle="tab">]] print(i18n("overview")) print[[</a></li>
+      <li class="nav-item"><a class="nav-link" href="#Timeline" data-bs-toggle="tab">]] print(i18n("processes_stats.timeline")) print[[</a></li>
     </ul>
 
     <!-- Tab content-->
@@ -145,7 +145,7 @@ print [[
   <table class="table table-bordered">
     <tr>
       
-      <th class="text-left span3">
+      <th class="text-start span3">
         <legend>]] print(i18n("processes_stats.legend")) print[[</legend>
         <div id="legend"></div>
         <br/><br/>

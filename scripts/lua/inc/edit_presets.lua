@@ -123,7 +123,7 @@ local function printDeviceProtocolsPage()
        <td style="white-space:nowrap; padding-right:1em;">]]
 
    -- Device type selector
-   print(i18n("details.device_type")) print(': <select id="device_type_selector" class="form-control device-type-selector" style="display:inline; width: 200px" onchange="document.location.href=\'?page=device_protocols&l7proto=') print(proto_filter) print('&device_type=\' + $(this).val()">')
+   print(i18n("details.device_type")) print(': <select id="device_type_selector" class="form-select device-type-selector" style="display:inline; width: 200px" onchange="document.location.href=\'?page=device_protocols&l7proto=') print(proto_filter) print('&device_type=\' + $(this).val()">')
    discover.printDeviceTypeSelectorOptions(device_type, false)
    print[[</select></td><td style="width:100%"></td>]]
 
@@ -192,12 +192,11 @@ local function printDeviceProtocolsPage()
       if is_nedge and (ntop.getPref("ntopng.prefs.device_protocols_policing") ~= "1") then
         print([[
   <div class="alert alert-warning alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
-    <button type="button" class="close" data-dismiss="alert" aria-label="]]..i18n("close")..[[">
-      <span aria-hidden="true">&times;</span>
-    </button><b>]]..i18n("warning")..[[</b>: ]].. i18n("nedge.device_protocols_blocked_warning", {
+    <b>]]..i18n("warning")..[[</b>: ]].. i18n("nedge.device_protocols_blocked_warning", {
       device_protocols_policies = '<a href="'.. ntop.getHttpPrefix() ..
          '/lua/pro/nedge/admin/nf_edit_user.lua?page=settings">'.. i18n("nedge.enable_device_protocols_policies") .. '</a>',
     }) ..[[
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div><br>]])
    end
 
@@ -303,7 +302,7 @@ local function printDeviceProtocolsPage()
       buttons: []]
 
    -- 'Filter Policies' button
-   print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+   print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..
          i18n("nedge.filter_policies") .. ternary(not isEmptyString(policy_filter), '<span class="fas fa-filter"></span>', '') ..
          '<span class="caret"></span></div> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
 

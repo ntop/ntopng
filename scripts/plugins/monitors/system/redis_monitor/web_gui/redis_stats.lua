@@ -79,8 +79,8 @@ if(page == "overview") then
  var last_keys, last_memory
  var health_descr = {
 ]]
-   print('"green" : {"status" : "<span class=\'badge badge-success\'>'..i18n("system_stats.redis.redis_health_green")..'</span>", "descr" : "<small>'..i18n("system_stats.redis.redis_health_green_descr")..'</small>"},')
-   print('"red" : {"status" : "<span class=\'badge badge-danger\'>'..i18n("system_stats.redis.redis_health_red")..'</span>", "descr" : "<small>'..i18n("system_stats.redis.redis_health_red_descr", {product = ntop.getInfo()["product"]})..'</small>"},')
+   print('"green" : {"status" : "<span class=\'badge bg-success\'>'..i18n("system_stats.redis.redis_health_green")..'</span>", "descr" : "<small>'..i18n("system_stats.redis.redis_health_green_descr")..'</small>"},')
+   print('"red" : {"status" : "<span class=\'badge bg-danger\'>'..i18n("system_stats.redis.redis_health_red")..'</span>", "descr" : "<small>'..i18n("system_stats.redis.redis_health_red_descr", {product = ntop.getInfo()["product"]})..'</small>"},')
       print[[
  };
 

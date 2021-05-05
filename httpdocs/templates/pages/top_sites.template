@@ -17,7 +17,7 @@
             <div class="card-footer">
                 <div class="d-flex align-items-center">
                     <label class="mb-0">{{ i18n("sites_page.time_range") }}</label>
-                    <select class="form-control ml-2" id="select-granularity" style="width: 16rem">
+                    <select class="form-select ms-2" id="select-granularity" style="width: 16rem">
                         {% for key, value in pairsByField(sites.granularities, 'order', rev) do %}
                             <option {{ (sites.default_granularity == key and 'selected' or '') }} value="{{ key }}">{{ value.label }}</option>
                         {% end %}
@@ -36,7 +36,7 @@
         <li>{* i18n('top_host_sites.note_yesterday_data') *}</li>
     </ul>
 </div>
-<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 <script type="text/javascript">
     i18n.warning ="{{ i18n('warning', {}) }}";
     i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";

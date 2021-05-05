@@ -143,9 +143,9 @@ function system_setup_ui_utils.printConfigChange(sys_config, warnings)
 ]]
 
       if sys_config:needsReboot() then
-         print[[<button type="button" data-toggle="modal" data-target="#config_apply_dialog_reboot" class="btn btn-primary">]] print(i18n("nedge.setup_apply")) print[[</button>]]
+         print[[<button type="button" data-bs-toggle="modal" data-target="#config_apply_dialog_reboot" class="btn btn-primary">]] print(i18n("nedge.setup_apply")) print[[</button>]]
       elseif sys_config:needsSelfRestart() then
-         print[[<button type="button" data-toggle="modal" data-target="#config_apply_dialog_restart_self" class="btn btn-primary">]] print(i18n("nedge.setup_apply")) print[[</button>]]
+         print[[<button type="button" data-bs-toggle="modal" data-target="#config_apply_dialog_restart_self" class="btn btn-primary">]] print(i18n("nedge.setup_apply")) print[[</button>]]
       else
          print[[<button type="submit" class="btn btn-primary">]] print(i18n("nedge.setup_apply")) print[[</button>]]
       end
@@ -279,12 +279,12 @@ function system_setup_ui_utils.printPrivateAddressSelector(label, comment, ip_ke
    print('<tr id="'..field_id..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
  print [[
     <td align=right>
-      <table class="form-group" style="margin-bottom: 0; min-width:22em;">
+      <table class="form-group mb-3" style="margin-bottom: 0; min-width:22em;">
         <tr class='border-0'>
           ]]
 
       print[[
-          <td class="local-ip-selector border-0 text-right" style="vertical-align:top; padding-left: 2em;">]]
+          <td class="local-ip-selector border-0 text-end" style="vertical-align:top; padding-left: 2em;">]]
 
    -- Find initial netmask
    for _, preset in pairs(networks_presets) do
@@ -294,7 +294,7 @@ function system_setup_ui_utils.printPrivateAddressSelector(label, comment, ip_ke
    end
 
    if extra.net_select ~= false then
-      print[[<select name="]] print(field_id) print[[_net" class="form-control d-inline-block" style="width: 9.6rem">]]
+      print[[<select name="]] print(field_id) print[[_net" class="form-select d-inline-block" style="width: 9.6rem">]]
 
       for _, preset in pairs(networks_presets) do
          print[[<option value="]] print(preset.prefix) print[["]]
@@ -338,7 +338,7 @@ function system_setup_ui_utils.printPrivateAddressSelector(label, comment, ip_ke
         </tr>
         <tr>
           <td colspan="3" style="padding:0;">
-            <div class="help-block with-errors text-right" style="height:1em;"></div>
+            <div class="help-block with-errors text-end" style="height:1em;"></div>
           </td>
         </tr>
       </table>
@@ -416,7 +416,7 @@ function system_setup_ui_utils.prefsDateTimeFieldPrefs(label, comment, key, defa
 
   print [[
     <td align=right>
-      <table class="form-group" style="margin-bottom: 0; min-width:22em;">
+      <table class="form-group mb-3" style="margin-bottom: 0; min-width:22em;">
         <tr>
           <td width="100%;"></td>]]
 
@@ -439,7 +439,7 @@ function system_setup_ui_utils.prefsDateTimeFieldPrefs(label, comment, key, defa
             <input type="hidden" id="]] print(orig_name) print[[" name="]] print(orig_name) print[[" value="" />
             <div class='input-group date' id=']] print(picker_name) print[[' style="width: 20em;" data-target-input="nearest">
                <input id="]] print(key) print[[" name="]] print(key) print[[" type="text" class="form-control datetimepicker-input" data_target="#]] print(picker_name) print[["/>
-            <div class="input-group-append" data-target="#]] print(picker_name) print[[" data-toggle="datetimepicker">
+            <div class="input-group-append" data-target="#]] print(picker_name) print[[" data-bs-toggle="datetimepicker">
                <div class="input-group-text"><i class="fas fa-calendar"></i></div>
             </div>
         <script type="text/javascript">
@@ -464,7 +464,7 @@ function system_setup_ui_utils.prefsDateTimeFieldPrefs(label, comment, key, defa
         </tr>
         <tr>
           <td colspan="3" style="padding:0;">
-            <div class="help-block with-errors text-right" style="height:1em;"></div>
+            <div class="help-block with-errors text-end" style="height:1em;"></div>
           </td>
         </tr>
       </table>

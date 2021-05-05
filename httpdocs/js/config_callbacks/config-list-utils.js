@@ -22,7 +22,7 @@ const resetConfig = () => {
     form.appendTo('body').submit();
 }
 
-$(document).ready(function() {
+$(function() {
 
     const add_columns = () => {
 

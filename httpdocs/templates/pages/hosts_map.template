@@ -11,18 +11,17 @@
         <div class="card">
             <div class="card-body">
                 <div class='d-flex align-items-center justify-content-end mb-3'>
-                    <label class="my-auto mr-1">
+                    <label class="my-auto me-1">
                         {{ i18n("filter_by") }}:
                     </label>
-                   
                     <div class="btn-group">
-                        <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button type="button" class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                           {{ hosts_map.label_bubble_mode }}
                         </button>
                         <div class="dropdown-menu dropdown-menu-right">
                             {* hosts_map.select_options *}
                         </div>
-			<button class="btn btn-link btn-reload-graph" id="btn-reload-map">
+			            <button class="btn btn-link btn-reload-graph" id="btn-reload-map">
                             <i class='fas fa-sync'></i>
                         </button>
                     </div>

@@ -74,7 +74,7 @@ else
    if(page == "username_processes") then
       print [[
     <table class="table table-bordered table-striped">
-      <tr><th class="text-left">
+      <tr><th class="text-start">
       ]] print(i18n("user_info.processes_overview")) print[[
 	<td><div class="pie-chart" id="topProcesses"></div></td>
 

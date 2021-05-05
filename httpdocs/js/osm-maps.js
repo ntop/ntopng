@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function () {
 
     const red_marker = L.icon({
         iconUrl: `${http_prefix}/leaflet/images/marker-icon-red.png`,

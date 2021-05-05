@@ -52,10 +52,10 @@ else
             delete_data_utils.request_delete_active_interface_data(_POST["ifid"])
 
             print(
-                '<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>' ..
+                '<div class="alert alert-success alert-dismissable">' ..
                     i18n('delete_data.delete_active_interface_data_ok',
                         {ifname = ifname, product = ntop.getInfo().product}) ..
-                    '</div>')
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
 
         else -- we're deleting an host
 
@@ -82,15 +82,15 @@ else
 
             if #err_msgs == 0 then
                 print(
-                    '<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>' ..
+                    '<div class="alert alert-success alert-dismissable">' ..
                         i18n('delete_data.delete_ok',
-                            {host = hostinfo2hostkey(host_info)}) .. '</div>')
+                            {host = hostinfo2hostkey(host_info)}) .. '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
             else
                 print(
-                    '<div class="alert alert-danger alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>' ..
+                    '<div class="alert alert-danger alert-dismissable">' ..
                         i18n('delete_data.delete_failed',
                             {host = hostinfo2hostkey(host_info)}) .. ' ' ..
-                        table.concat(err_msgs, ' ') .. '</div>')
+                        table.concat(err_msgs, ' ') .. '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
             end
 
         end

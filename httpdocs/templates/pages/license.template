@@ -36,7 +36,7 @@
                     {% if license.is_admin then %}
                         {% if (info["pro.use_redis_license"] or (info["pro.license_encoded"] == "")) then %}
                             <form class="form" method="post" id="license-form" onsubmit="return trimLicenceSpaces();">
-                                <div class="form-group w-100">
+                                <div class="mb-3 w-100">
                                     <input type="hidden" name="csrf" value="{{ ntop.getRandomCSRFValue() }}">
                                     <textarea style="resize: none;" pattern="{* getLicensePattern() *}" class="form-control w-50" rows="7" id="ntopng_license" name="ntopng_license" placeholder="{{ i18n("about.specify_licence") }}">{{ info["ntopng.license"] }}</textarea>
                                 </div>

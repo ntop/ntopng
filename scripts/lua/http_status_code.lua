@@ -48,7 +48,7 @@ print([[</p>
                <i class='fas fa-arrow-left'></i> ]].. i18n("error_page.go_back").. [[
             </a>
         </div>
-        <div class='col p-2 text-left d-flex justify-content-center align-items-center'>
+        <div class='col p-2 text-start d-flex justify-content-center align-items-center'>
             <i class="fas fa-exclamation-triangle bigger-icon"></i>
         </div>
     </div>

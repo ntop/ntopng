@@ -141,7 +141,7 @@ print [[
 <div class="control-group text-center">
 <span class='mx-1'>]] print(i18n("index_page.refresh_frequency"))
 print[[:</span><div class="btn-group btn-small">
-  <button class="btn btn-secondary btn-xs dropdown-toggle" data-toggle="dropdown">
+  <button class="btn btn-secondary btn-xs dropdown-toggle" data-bs-toggle="dropdown">
 ]]
 if (refresh ~= '0') then
   if (refresh == '60000') then
@@ -156,26 +156,26 @@ end
 print [[</button>
   <ul class="dropdown-menu ">
 ]]
-print('<li class="nav-item text-left"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=5000" >5 '..i18n("index_page.seconds")..'</a></li>\n')
-print('<li class="nav-item text-left"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=10000" >10 '..i18n("index_page.seconds")..'</a></li>\n')
-print('<li class="nav-item text-left"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=30000" >30 '..i18n("index_page.seconds")..'</a></li>\n')
-print('<li class="nav-item text-left"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=60000" >1 '..i18n("index_page.minute")..'</a></li>\n')
-print('<li class="nav-item text-left"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=0" >'..i18n("index_page.never")..'</a></li>\n')
+print('<li class="nav-item text-start"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=5000" >5 '..i18n("index_page.seconds")..'</a></li>\n')
+print('<li class="nav-item text-start"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=10000" >10 '..i18n("index_page.seconds")..'</a></li>\n')
+print('<li class="nav-item text-start"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=30000" >30 '..i18n("index_page.seconds")..'</a></li>\n')
+print('<li class="nav-item text-start"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=60000" >1 '..i18n("index_page.minute")..'</a></li>\n')
+print('<li class="nav-item text-start"> <a class="dropdown-item" href="'..ntop.getHttpPrefix()..'?refresh=0" >'..i18n("index_page.never")..'</a></li>\n')
 print [[
   </ul>
 </div><!-- /btn-group -->
 ]]
 
 if (refresh ~= '0') then
-  print [[<span class='mx-1'>]] print(i18n("index_page.live_update")) print [[:</span>]] print[[<div class="btn-group btn-group-toggle btn-group-xs" data-toggle="buttons" data-toggle-name="topflow_graph_state">
-            <button id="topflow_graph_state_play" value="1" type="button" class="btn btn-secondary btn-xs active" data-toggle="button" disabled><i class="fas fa-pause"></i></button>
-            <button id="topflow_graph_state_stop" value="0" type="button" class="btn btn-secondary btn-xs" data-toggle="button" ><i class="fas fa-stop"></i></button>
+  print [[<span class='mx-1'>]] print(i18n("index_page.live_update")) print [[:</span>]] print[[<div class="btn-group btn-group-toggle btn-group-xs" data-bs-toggle="buttons" data-bs-toggle-name="topflow_graph_state">
+            <button id="topflow_graph_state_play" value="1" type="button" class="btn btn-secondary btn-xs active" data-bs-toggle="button" disabled><i class="fas fa-pause"></i></button>
+            <button id="topflow_graph_state_stop" value="0" type="button" class="btn btn-secondary btn-xs" data-bs-toggle="button" ><i class="fas fa-stop"></i></button>
           </div>
   ]]
 else
   print [[<span class='mx-1'>]] print(i18n("index_page.refresh")) print [[:</span>]] print[[<div class="btn-group btn-small">
           <button id="topflow_graph_refresh" class="btn btn-secondary btn-xs">
-            <i rel="tooltip" data-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print [[" class="fas fa-sync"></i></button>
+            <i rel="tooltip" data-bs-toggle="tooltip" data-placement="top" data-original-title="]] print(i18n("index_page.refresh_graph_popup_msg")) print [[" class="fas fa-sync"></i></button>
           </div>
   ]]
   end

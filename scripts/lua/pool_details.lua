@@ -111,7 +111,7 @@ if (ntop.isEnterpriseM() or ntop.isnEdge()) and pool_id ~= host_pools_instance.D
   host_pools_nedge.printQuotas(pool_id, nil, page_params)
 
   print[[
-  <button class="btn btn-secondary" data-toggle="modal" data-target="#reset_quotas_dialog" style="float:right;">]] print(i18n("host_pools.reset_quotas")) print[[</button>]]
+  <button class="btn btn-secondary" data-bs-toggle="modal" data-target="#reset_quotas_dialog" style="float:right;">]] print(i18n("host_pools.reset_quotas")) print[[</button>]]
   if ntop.isnEdge() then
     local username = host_pools_nedge.poolIdToUsername(pool_id)
     print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/pro/nedge/admin/nf_edit_user.lua?page=categories&username=]] print(username)
