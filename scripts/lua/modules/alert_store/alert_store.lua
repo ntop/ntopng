@@ -575,15 +575,6 @@ end
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function alert_store:format_record_common(value, entity_id, no_html)
    local record = {}
-
-   local severity = alert_consts.alertSeverityById(tonumber(value["severity"]))
-   local severity_label = ""
-   
-   if severity and not no_html then
-      severity_label = "<i class='"..severity.icon.."' title='"..i18n(severity.i18n_title).."'></i> "
-   elseif severity and no_html then
-      severity_label = severity.i18n_title
-   end
    
    -- Note: this record is rendered by 
    -- httpdocs/templates/pages/alerts/families/{host,..}/table[.js].template 
@@ -597,9 +588,27 @@ function alert_store:format_record_common(value, entity_id, no_html)
       label = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, entity_id),
    }
 
+   local score = tonumber(value["score"])
+   local severity_id = ntop.mapScoreToSeverity(score)
+   local severity = alert_consts.alertSeverityById(severity_id)
+
+   record["score"] = {
+      value = score,
+      label = score,
+      color = severity.color,
+   }
+
+   local severity_label = ""
+   if severity and not no_html then
+      severity_label = "<i class='"..severity.icon.."' title='"..i18n(severity.i18n_title).."'></i> "
+   elseif severity and no_html then
+      severity_label = severity.i18n_title
+   end
+
    record["severity"] = {
-      value = value["severity"],
-      label = severity_label
+      value = severity_id,
+      label = severity_label,
+      color = severity.color,
    }
 
    if tonumber(value["tstamp_end"]) > 0 and tonumber(value["tstamp"]) > 0 then

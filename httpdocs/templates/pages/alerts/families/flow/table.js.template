@@ -6,7 +6,7 @@
     /* Alert Type + Severity */
     {responsivePriority: 1, name: 'severity', className: 'text-nowrap f-1', width: '10%', data: 'severity', render: DataTableRenders.alertSeverityAndType},
     /* Score */
-    {name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.colorizeScore(100, 300)},
+    {name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.formatValueLabel},
     /* Protocol */
     {name: 'proto', data: 'proto.label', orderable: false, className: 'text-center', width: '3%'/*, render: (proto, type, row) => {
         if (type !== "display") return proto.value;

@@ -630,27 +630,6 @@ class DataTableRenders {
         return `${DataTableRenders.formatValueLabel(severity, type, alert)} ${DataTableRenders.formatValueLabel(alert.alert_id, type, alert)}`;
     }
 
-    static colorizeScore(min, max) {
-        return (score, type, row) => {
-            
-            if (type !== "display") return score;
-            
-            let cssClass;
-            
-            if (score < min) {
-                cssClass = "text-success";
-            }
-            else if (score >= min && score <= max) {
-                cssClass = "text-warning font-weight-bold";
-            }
-            else {
-                cssClass = "text-danger font-weight-bolder";
-            }
-            
-            return `<span class='${cssClass}'>${score}</span>`;
-        }
-    }
-
     static hideIfZero(value, type, row) {
         if (type === "display" && parseInt(value) === 0) return "";
         return value;
@@ -667,6 +646,7 @@ class DataTableRenders {
 
     static formatValueLabel(obj, type, row) {
         if (type !== "display") return obj.value;
+        if (obj.color) return `<span class='font-weight-bold' style='color: ${obj.color}'>${obj.label}</span>`;
         return obj.label;
     }
 

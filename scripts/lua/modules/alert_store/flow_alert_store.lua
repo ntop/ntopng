@@ -207,7 +207,6 @@ end
 function flow_alert_store:format_record(value, no_html)
    local record = self:format_record_common(value, alert_entities.flow.entity_id, no_html)
 
-   local score = tonumber(value["score"])
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.flow.entity_id)
    local protocol = l4_proto_to_string(value["proto"])
@@ -248,7 +247,6 @@ function flow_alert_store:format_record(value, no_html)
    end
    
    record["alert_name"] = alert_name
-   record["score"] = score
    record["msg"] = msg
    record["srv_name"] = value["srv_name"]
    record["cli_ip"] = {
