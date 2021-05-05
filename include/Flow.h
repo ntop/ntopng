@@ -59,14 +59,6 @@ class Flow : public GenericHashEntry {
   FlowAlertType predominant_alert;          /* This is the predominant alert */
   u_int16_t  predominant_alert_score;       /* The score associated to the predominant alert */
 
-  /*
-    Data set by FlowCallback subclasses to preserve a status on the flow. Status is accessed later by
-    FlowAlert subclasses to generate alert JSONs.
-   */
-  struct {
-    u_int64_t longlived_th, elephant_th_l2r, elephant_th_r2l;
-  } fcb_status;
-
   char *custom_flow_info;
   struct {
     struct ndpi_analyze_struct *c2s, *s2c;
@@ -293,15 +285,6 @@ class Flow : public GenericHashEntry {
   ~Flow();
 
   inline Bitmap128 getAlertsBitmap() const { return(alerts_map); }
-
-  /* Flow callbacks have these methods to set/get certain statuses on the flow. */
-  /* Setters */
-  inline void fcb_set_longlived_th(u_int64_t th_secs) { fcb_status.longlived_th = th_secs; };
-  inline void fcb_set_elephant_th(u_int64_t th_bytes, bool l2r) { if(l2r) fcb_status.elephant_th_l2r = th_bytes; else fcb_status.elephant_th_r2l = th_bytes; };
-
-  /* Getters */
-  inline void fcb_get_longlived_th(u_int64_t *th_secs) { *th_secs = fcb_status.longlived_th; };
-  inline void fcb_get_elephant_th(u_int64_t *l2r, u_int64_t *r2l) { *l2r = fcb_status.elephant_th_l2r, *r2l = fcb_status.elephant_th_r2l; };
 
   /* Enqueues an alert to all available flow recipients. */
   bool enqueueAlertToRecipients(FlowAlert *alert);

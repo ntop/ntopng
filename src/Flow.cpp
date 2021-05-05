@@ -89,9 +89,6 @@ Flow::Flow(NetworkInterface *_iface,
 
   flow_score = 0;
 
-  /* Set the flow callbacks status to zero */
-  memset(&fcb_status, 0, sizeof(fcb_status));
-
   PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   PROFILING_SUB_SECTION_EXIT(iface, 7);
