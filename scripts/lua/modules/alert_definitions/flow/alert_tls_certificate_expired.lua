@@ -45,10 +45,12 @@ function alert_tls_certificate_expired.format(ifid, alert, alert_type_params)
    end
 
    local crts = {}
-   if alert_type_params["protos.tls.notBefore"] and alert_type_params["protos.tls.notAfter"] then
-      crts[#crts + 1] = formatEpoch(alert_type_params["protos.tls.notBefore"])
-      crts[#crts + 1] = formatEpoch(alert_type_params["protos.tls.notAfter"])
-      return string.format("%s [%s]",  i18n("flow_risk.ndpi_tls_certificate_expired"), table.concat(crts, " - "))
+   if alert_type_params["protos.tls.notBefore"] and alert_type_params["protos.tls.notAfter"] and alert_type_params["protos.tls.server_names"] then 
+      return i18n("flow_risk.ndpi_tls_certificate_expired", {
+		     sni = alert_type_params["protos.tls.server_names"],
+		     notBefore = formatEpoch(alert_type_params["protos.tls.notBefore"]),
+		     notAfter = formatEpoch(alert_type_params["protos.tls.notAfter"])    
+      })
    else
       return ""
    end
