@@ -483,10 +483,8 @@ function alert_store:count_by_severity_and_time_historical()
 end
 
 -- ##############################################
--- REST API Utility Functions
--- ##############################################
 
---@brief Handle count requests (GET) from memory (engaged) or database (historical)
+--@brief Count from memory (engaged) or database (historical)
 --@return Alert counters divided into severity and time slots
 function alert_store:count_by_severity_and_time()
    -- Add filters
@@ -499,6 +497,34 @@ function alert_store:count_by_severity_and_time()
    else -- Historical
       return self:count_by_severity_and_time_historical()
    end
+end
+
+
+-- ##############################################
+-- REST API Utility Functions
+-- ##############################################
+
+--@brief Handle count requests (GET) from memory (engaged) or database (historical)
+--@return Alert counters divided into severity and time slots
+function alert_store:count_by_severity_and_time_request()
+   local res = {
+      series = {},
+      fill = {
+         colors = {}
+      }
+   }
+
+   local count_data = self:count_by_severity_and_time()
+
+   for _, severity in pairsByField(alert_severities, "severity_id", rev) do
+      res.series[#res.series + 1] = {
+         name = i18n(severity.i18n_title),
+         data = count_data[severity.severity_id],
+      }
+      res.fill.colors[#res.fill.colors + 1] = severity.color
+   end
+
+   return res
 end
 
 -- ##############################################

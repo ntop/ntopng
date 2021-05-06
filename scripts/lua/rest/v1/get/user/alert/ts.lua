@@ -20,10 +20,9 @@ local user_alert_store = require "user_alert_store".new()
 --
 
 local rc = rest_utils.consts.success.ok
-local res = {}
 
 interface.select(getSystemInterfaceId())
 
-local count_by_severity_and_time = user_alert_store:count_by_severity_and_time()
+local res = user_alert_store:count_by_severity_and_time_request()
 
-rest_utils.answer(rc, {series = {{ data = count_by_severity_and_time, name = i18n("alerts_dashboard.alerts") }}})
+rest_utils.answer(rc, res)

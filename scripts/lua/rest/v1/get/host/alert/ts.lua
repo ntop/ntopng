@@ -32,21 +32,6 @@ end
 
 interface.select(ifid)
 
-local res = {
-   series = {},
-   fill = {
-      colors = {}
-   }
-}
-
-local count_data = host_alert_store:count_by_severity_and_time()
-
-for _, severity in pairsByField(alert_severities, "severity_id", rev) do
-   res.series[#res.series + 1] = {
-      name = i18n(severity.i18n_title),
-      data = count_data[severity.severity_id],
-   }
-   res.fill.colors[#res.fill.colors + 1] = severity.color
-end
+local res = host_alert_store:count_by_severity_and_time_request()
 
 rest_utils.answer(rc, res)

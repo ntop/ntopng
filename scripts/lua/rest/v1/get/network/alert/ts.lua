@@ -20,7 +20,6 @@ local network_alert_store = require "network_alert_store".new()
 --
 
 local rc = rest_utils.consts.success.ok
-local res = {}
 
 local ifid = _GET["ifid"]
 
@@ -32,6 +31,6 @@ end
 
 interface.select(ifid)
 
-local count_by_severity_and_time = network_alert_store:count_by_severity_and_time()
+local res = network_alert_store:count_by_severity_and_time_request()
 
-rest_utils.answer(rc, {series = {{ data = count_by_severity_and_time, name = i18n("alerts_dashboard.alerts") }}})
+rest_utils.answer(rc, res)
