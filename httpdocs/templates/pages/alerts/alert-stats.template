@@ -489,7 +489,11 @@
             csrf: PAGE_CSRF,
             endpoint: `${http_prefix}/lua/rest/v1/delete/{{ alert_stats.entity }}/alerts.lua`,
             beforeSumbit: function (alert) {
-                return { ifid: "{{ ifid }}" };
+	    	let post_params = {};
+		for (let key in datasourceParams) {
+		    post_params[key] = (datasourceParams[key]);
+		}
+	    	return post_params;
             },
             onModalInit: function () {
 
@@ -514,8 +518,8 @@
                 }
             },
             onSubmitSuccess: function (response) {
-                location.reload();
-                return (response.rc == 0);
+                reloadTable($table);
+		return (response.rc == 0);
             }
         });
 
