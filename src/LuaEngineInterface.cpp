@@ -1311,6 +1311,29 @@ static int ntop_get_ndpi_protocol_name(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_ndpi_full_protocol_name(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  ndpi_protocol proto;
+  char buf[64];
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  proto.master_protocol = (u_int32_t)lua_tonumber(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  proto.app_protocol = (u_int32_t)lua_tonumber(vm, 2);
+
+  if(ntop_interface)
+    lua_pushstring(vm, ntop_interface->get_ndpi_full_proto_name(proto, buf, sizeof(buf)));
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_ndpi_protocol_id(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
@@ -4447,6 +4470,7 @@ static luaL_Reg _ntop_interface_reg[] = {
 
   { "getActiveFlowsStats",      ntop_get_active_flows_stats },
   { "getnDPIProtoName",         ntop_get_ndpi_protocol_name },
+  { "getnDPIFullProtoName",     ntop_get_ndpi_full_protocol_name },
   { "getnDPIProtoId",           ntop_get_ndpi_protocol_id },
   { "getnDPICategoryId",        ntop_get_ndpi_category_id },
   { "getnDPICategoryName",      ntop_get_ndpi_category_name },

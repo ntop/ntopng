@@ -453,8 +453,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(get_ndpi_struct(), id));   };
   inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(get_ndpi_struct(), proto));   };
   inline int   get_ndpi_category_id(char *cat) { return(ndpi_get_category_id(get_ndpi_struct(), cat));     };
-  inline char* get_ndpi_proto_breed_name(u_int id) {
-    return(ndpi_get_proto_breed_name(get_ndpi_struct(), ndpi_get_proto_breed(get_ndpi_struct(), id))); };
+  inline char* get_ndpi_proto_breed_name(u_int id) { return(ndpi_get_proto_breed_name(get_ndpi_struct(), ndpi_get_proto_breed(get_ndpi_struct(), id))); };
+  inline char* get_ndpi_full_proto_name(ndpi_protocol protocol, char *buf, u_int buf_len) const { return(ndpi_protocol2name(get_ndpi_struct(), protocol, buf, buf_len)); }
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };
   inline u_int get_size_id()                   { return(ndpi_detection_get_sizeof_ndpi_id_struct());   };
   inline char* get_name() const                { return(ifname);                                       };

@@ -512,9 +512,7 @@ class Flow : public GenericHashEntry {
   inline ndpi_protocol_breed_t get_protocol_breed() const {
     return(ndpi_get_proto_breed(iface->get_ndpi_struct(), isDetectionCompleted() ? ndpiDetectedProtocol.app_protocol : NDPI_PROTOCOL_UNKNOWN));
   };
-  inline const char * const get_protocol_breed_name() const {
-    return(ndpi_get_proto_breed_name(iface->get_ndpi_struct(), get_protocol_breed()));
-  };
+  inline const char * const get_protocol_breed_name() const { return(iface->get_ndpi_proto_breed_name(get_protocol_breed())); };
   inline ndpi_protocol_category_t get_protocol_category() const {
     return(ndpi_get_proto_category(iface->get_ndpi_struct(),
 				   isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol));
@@ -523,9 +521,7 @@ class Flow : public GenericHashEntry {
     return(ndpi_category_get_name(iface->get_ndpi_struct(), get_protocol_category()));
   };
   char* get_detected_protocol_name(char *buf, u_int buf_len) const {
-    return(ndpi_protocol2name(iface->get_ndpi_struct(),
-			      isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol,
-			      buf, buf_len));
+    return(iface->get_ndpi_full_proto_name(isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol, buf, buf_len));
   }
   static inline ndpi_protocol get_ndpi_unknown_protocol() { return ndpiUnknownProtocol; };
 
