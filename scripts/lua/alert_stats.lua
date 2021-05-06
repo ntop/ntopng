@@ -64,11 +64,19 @@ local pages = {
 	hidden = is_system_interface,
     },
     {
-        active = page == "mac",
-        page_name = "mac",
-        label = alert_entities.mac.label,
-        endpoint_list = "/lua/rest/v1/get/mac/alert/list.lua",
-        endpoint_ts = "/lua/rest/v1/get/mac/alert/ts.lua",
+        active = page == "interface",
+        page_name = "interface",
+        label = alert_entities.interface.label,
+        endpoint_list = "/lua/rest/v1/get/interface/alert/list.lua",
+        endpoint_ts = "/lua/rest/v1/get/interface/alert/ts.lua",
+	hidden = is_system_interface,
+    },
+    {
+        active = page == "network",
+        page_name = "network",
+        label = alert_entities.network.label,
+        endpoint_list = "/lua/rest/v1/get/network/alert/list.lua",
+        endpoint_ts = "/lua/rest/v1/get/network/alert/ts.lua",
 	hidden = is_system_interface,
     },
     {
@@ -87,6 +95,14 @@ local pages = {
 	hidden = is_system_interface,
     },
     {
+        active = page == "mac",
+        page_name = "mac",
+        label = alert_entities.mac.label,
+        endpoint_list = "/lua/rest/v1/get/mac/alert/list.lua",
+        endpoint_ts = "/lua/rest/v1/get/mac/alert/ts.lua",
+	hidden = is_system_interface,
+    },
+    {
         active = page == "system",
         page_name = "system",
         label = alert_entities.system.label,
@@ -101,27 +117,12 @@ local pages = {
         endpoint_ts = "/lua/rest/v1/get/active_monitoring/alert/ts.lua"
     },
     {
-        active = page == "interface",
-        page_name = "interface",
-        label = alert_entities.interface.label,
-        endpoint_list = "/lua/rest/v1/get/interface/alert/list.lua",
-        endpoint_ts = "/lua/rest/v1/get/interface/alert/ts.lua",
-	hidden = is_system_interface,
-    },
-    {
-        active = page == "network",
-        page_name = "network",
-        label = alert_entities.network.label,
-        endpoint_list = "/lua/rest/v1/get/network/alert/list.lua",
-        endpoint_ts = "/lua/rest/v1/get/network/alert/ts.lua",
-	hidden = is_system_interface,
-    },
-    {
         active = page == "user",
         page_name = "user",
         label = alert_entities.user.label,
         endpoint_list = "/lua/rest/v1/get/user/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/user/alert/ts.lua",
+	hidden = is_system_interface,
     }
 }
 
