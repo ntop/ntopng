@@ -1812,37 +1812,6 @@ function toggle_mirrored_traffic_function_off(){
 	</tr>]])
    end
 
-   -- Flows-Only Interface
-   if not ntop.isnEdge() and not interface.isView() and not interface.isViewed() then
-      local flows_only_interface = false
-      local flows_only_interface_pref = string.format("ntopng.prefs.ifid_%d.flows_only_interface", interface.getId())
-
-      if _SERVER["REQUEST_METHOD"] == "POST" then
-	 if _POST["flows_only_interface"] == "1" then
-	    flows_only_interface = true
-	 end
-
-	 ntop.setPref(flows_only_interface_pref,
-		      ternary(flows_only_interface == true, '1', '0'))
-	 interface.updateDiscardProbingTraffic()
-      else
-	 flows_only_interface = ternary(ntop.getPref(flows_only_interface_pref) == '1', true, false)
-      end
-
-      print [[<tr>
-	 <th>]] print(i18n("if_stats_config.flows_only_interface")) print[[</th>
-    <td>]]
-
-    print(template.gen("on_off_switch.html", {
-	 id = "flows_only_interface",
-	 checked = flows_only_interface,
-    }))
-
-    print[[
-         </td>
-      </tr>]]
-   end
-
    -- Discard Probing Traffic
    if not ntop.isnEdge() and not is_packet_interface then
       local discard_probing_traffic = false

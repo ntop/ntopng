@@ -2866,7 +2866,6 @@ local lang = {
     ["custom_name_popup_msg"] = "Specify an alias for the interface",
     ["discard_probing_traffic"] = "Discard Probing Traffic",
     ["dump_flows_to_database"] = "Dump Flows to Database",
-    ["flows_only_interface"] = "Flows-Only Interface (requires restart)",
     ["gw_macs"] = "MAC Address Based Traffic Directions",
     ["gw_macs_description"] = "This is used to compute traffic direction (ingress or egress) based on the provided MAC address(es) (comma-separated list) as in some case (when capturing traffic from a traffic mirror or pcap) it is not possible to know the traffic direction. Traffic directed to the configured MAC address(es) is considered as egress traffic.",
     ["gw_macs_example"] = "e.g. %{example}",
