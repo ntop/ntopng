@@ -241,9 +241,12 @@ local defined_tags = {
 }
 
 local initial_tags = {}
+local formatters = {
+    l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end
+}
 
 for tag_key, tag in pairs(defined_tags[page] or {}) do
-    tag_utils.add_tag_if_valid(initial_tags, tag_key, tag, {})
+    tag_utils.add_tag_if_valid(initial_tags, tag_key, tag, formatters)
 end
 
 local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'}) 
