@@ -5676,6 +5676,7 @@ static int ntop_recipient_enqueue(lua_State* vm) {
     alert_category = (AlertCategory)lua_tonumber(vm, 5);
 
   notification.alert = (char*)alert;
+  notification.score = score;
   notification.alert_severity = Utils::mapScoreToSeverity(score);
   notification.alert_category = alert_category;
 
@@ -5719,6 +5720,7 @@ static int ntop_recipient_dequeue(lua_State* vm) {
     lua_newtable(vm);
 
     lua_push_str_table_entry(vm, "alert", notification.alert);
+    lua_push_uint64_table_entry(vm, "score", notification.score);
     lua_push_uint64_table_entry(vm, "alert_severity", notification.alert_severity);
 
     free(notification.alert);

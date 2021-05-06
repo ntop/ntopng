@@ -1689,7 +1689,8 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
   /* Currenty, we forcefully enqueue only to the builtin sqlite */
     
   notification.alert = (char*)host_str;
-  notification.alert_severity = Utils::mapScoreToSeverity(alert->getScore());
+  notification.score = alert->getScore();
+  notification.alert_severity = Utils::mapScoreToSeverity(notification.score);
   notification.alert_category = alert->getAlertType().category;
 
   rv = ntop->recipients_enqueue(notification.alert_severity >= alert_level_error ? recipient_notification_priority_high : recipient_notification_priority_low,

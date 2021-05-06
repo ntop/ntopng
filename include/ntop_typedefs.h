@@ -220,6 +220,7 @@ typedef enum {
 typedef struct {
   AlertLevel alert_severity;
   AlertCategory alert_category;
+  u_int32_t score;
   char *alert;
 } AlertFifoItem;
 
