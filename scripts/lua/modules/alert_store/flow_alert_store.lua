@@ -217,12 +217,15 @@ function flow_alert_store:format_record(value, no_html)
    local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= '0')   
    local msg = alert_utils.formatFlowAlertMessage(ifid, value, alert_info)
 
+   local active_url = ""
+   local historical_url = ""
+
    -- Add link to historical flow
    if interfaceHasNindexSupport() and not no_html then
       local href = string.format('%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s,eq&srv_ip=%s,eq&cli_port=%s,eq&srv_port=%s,eq&l4proto=%s,eq',
          ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
          value["cli_ip"], value["srv_ip"], ternary(show_cli_port, tostring(value["cli_port"]), ''), ternary(show_srv_port, tostring(value["srv_port"]), ''), l4_protocol)
-      record["historical_url"] = href
+      historical_url = href
    end
 
    -- Add link to active flow
@@ -232,67 +235,72 @@ function flow_alert_store:format_record(value, no_html)
       if active_flow and active_flow["seen.first"] < tonumber(value["tstamp"]) then
 	 local href = string.format("%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u",
             ntop.getHttpPrefix(), active_flow["ntopng.key"], active_flow["hash_entry_id"])
-         record["active_url"] = href
+         active_url = href
       end
    end
    
-   local reference_html = nil
-
    -- Host reference
    local cli_ip = hostinfo2hostkey(value, "cli")
    local srv_ip = hostinfo2hostkey(value, "srv")
 
-   if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
-      if reference_html == href_icon then
-	 reference_html = nil
-      end
-   else
+   if no_html then
       msg = noHtml(msg)
    end
    
    record["alert_name"] = alert_name
    record["msg"] = msg
-   record["srv_name"] = value["srv_name"]
-   record["cli_ip"] = {
+
+   -- Format Client  
+ 
+   local reference_html = "" 
+   if not no_html then
+      reference_html = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
+      if reference_html == href_icon then
+	 reference_html = ""
+      end
+   end
+  
+   local flow_cli_ip = {
       value = cli_ip,
       label = cli_ip,
-      shown_label = cli_ip,
       reference = reference_html
    }
 
-   record["cli_port"] = value["cli_port"]
-   record["srv_port"] = value["srv_port"]
-   -- Checking that the name of the host is not empty
-   if value["cli_name"] and (not isEmptyString(value["cli_name"])) then
-      record["cli_ip"]["label"] = value["cli_name"]
+   if not isEmptyString(value["cli_name"]) then
+      flow_cli_ip["label"] = value["cli_name"]
    end
-   
+
+   -- Format Server
+ 
+   reference_html = "" 
    if not no_html then
       reference_html = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
       if reference_html == href_icon then
-	 reference_html = nil
+	 reference_html = ""
       end
    end
 
-   record["srv_ip"] = {
+   local flow_srv_ip = {
       value = srv_ip,
       label = srv_ip,
-      shown_label = srv_ip,
       reference = reference_html
    }
 
-   -- Checking that the name of the host is not empty
-   if value["srv_name"] and (not isEmptyString(value["srv_name"])) then
-      record["srv_ip"]["label"] = value["srv_name"]
+   if not isEmptyString(value["srv_name"]) then
+      flow_srv_ip["label"] = value["srv_name"]
    end
    
-   record["srv_ip"]["shown_label"] = string.format("%s%s%s", record["srv_ip"]["label"],
-			   ternary(show_srv_port, ':', ''),
-			   ternary(show_srv_port, value["srv_port"], ''))
-   record["cli_ip"]["shown_label"] = string.format("%s%s%s", record["cli_ip"]["label"],
-			   ternary(show_cli_port, ':', ''),
-			   ternary(show_cli_port, value["cli_port"], ''))
+   local flow_cli_port = value["cli_port"]
+   local flow_srv_port = value["srv_port"]
+
+   record["flow"] = {
+      cli_ip = flow_cli_ip,
+      srv_ip = flow_srv_ip,
+      cli_port = flow_cli_port,
+      srv_port = flow_srv_port,
+      historical_url = historical_url,
+      active_url = active_url,
+   }
 
    record["vlan_id"] = value["vlan_id"]
    record["proto"] = {

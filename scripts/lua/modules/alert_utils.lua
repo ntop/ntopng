@@ -418,78 +418,22 @@ end
 -- #################################
 
 -- This function formats flows in alerts
-local function formatRawFlow(ifid, alert, alert_json)
+function alert_utils.formatRawFlow(alert)
    require "flow_utils"
    local time_bounds
-   local add_links = (not skip_add_links)
-
-   if interfaceHasNindexSupport() and not skip_add_links then
-      -- only add links if nindex is present
-      add_links = true
-      time_bounds = {getAlertTimeBounds(alert)}
-   end
-
-   -- TODO: adapter just to be compatible with old alerts, can be removed at some point
-   if alert_json["alert_info"] then
-      alert_json = json.decode(alert_json["alert_info"])
-   end
-
-   -- active flow lookup
-   if not interface.isView() and alert_json and alert_json["ntopng.key"] and alert_json["hash_entry_id"] and alert["alert_tstamp"] then
-      -- attempt a lookup on the active flows
-      local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
-
-      if active_flow and active_flow["seen.first"] < tonumber(alert["alert_tstamp"]) then
-	 return string.format("<i class=\"fas fa-stream\"></i> %s <A class='btn-sx' HREF='%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u'><i class='fas fa-search-plus'></i></A> %s",
-			      '',
-			      ntop.getHttpPrefix(), active_flow["ntopng.key"], active_flow["hash_entry_id"],
-			      getFlowLabel(active_flow, true, true))
-      end
-   end
+   local add_links = false
 
    -- pretend alert is a flow to reuse getFlowLabel
    local flow = {
-      ["cli.ip"] = alert["cli_addr"], ["cli.port"] = tonumber(alert["cli_port"]),
+      ["cli.ip"] = alert["cli_ip"], ["cli.port"] = tonumber(alert["cli_port"]),
       ["cli.blacklisted"] = tostring(alert["cli_blacklisted"]) == "1",
       ["cli.localhost"] = tostring(alert["cli_localhost"]) == "1",
-      ["srv.ip"] = alert["srv_addr"], ["srv.port"] = tonumber(alert["srv_port"]),
+      ["srv.ip"] = alert["srv_ip"], ["srv.port"] = tonumber(alert["srv_port"]),
       ["srv.blacklisted"] = tostring(alert["srv_blacklisted"]) == "1",
       ["srv.localhost"] = tostring(alert["srv_localhost"]) == "1",
       ["vlan"] = alert["vlan_id"]}
 
-   flow = "[ <i class=\"fas fa-stream\"></i> "..(getFlowLabel(flow, false, add_links, time_bounds, {page = "alerts"}) or "").."] "
-   local l4_proto_label = l4_proto_to_string(alert["proto"] or 0) or ""
-
-   if not isEmptyString(l4_proto_label) then
-      flow = flow.."[" .. l4_proto_label .. "] "
-   end
-
-   if alert_json ~= nil then
-      -- render the json
-      local msg = ""
-
-      if not isEmptyString(flow) then
-         msg = msg..flow.." "
-      end
-
-      if not isEmptyString(alert_json["info"]) then
-         local lb = ""
-	 local info
-
-	 if string.len(alert_json["info"]) > 24 then
-	    info = "<abbr title=\"".. alert_json["info"] .."\">".. shortenString(alert_json["info"], 24)
-	 else
-	    info = alert_json["info"]
-	 end
-         msg = msg.."[" .. info ..lb.."] "
-      end
-
-      flow = msg
-   end
-
-   if alert_json then
-      flow = flow..getAlertTypeInfo(alert, alert_json)
-   end
+   flow = "<i class=\"fas fa-stream\"></i> "..(getFlowLabel(flow, false, add_links, time_bounds, {page = "alerts"}) or "")
 
    return flow
 end

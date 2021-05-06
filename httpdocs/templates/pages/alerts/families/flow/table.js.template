@@ -6,23 +6,21 @@
         if (type !== "display") return proto.value;
         return DataTableRenders.filterize(proto.value, proto.label);
     }},
-    /* Client */
-    {responsivePriority: 1, name: 'cli_ip', data: 'cli_ip', orderable: false, className: 'text-nowrap', width: '12%', render: (cliIp, type, row) => {
-    	let htmlRef = '';
-        let label = cliIp.shown_label || cliIp.label;
-        if (cliIp.reference !== undefined) {
-                htmlRef = cliIp.reference;
-        }
-        return DataTableRenders.filterize(cliIp.value, `${label} ${row.is_attacker_to_victim ? ("<i class='fas fa-skull-crossbones'></i>") : ("")}`) + htmlRef;
-    }},
-    /* Server */
-    {responsivePriority: 1, name: 'srv_ip', data: 'srv_ip', orderable: false, className: 'text-nowrap', width: '12%', render: (srvIp, type, row) => {
-    	let htmlRef = '';
-        let label = srvIp.shown_label || srvIp.label;
-        if (srvIp.reference !== undefined) {
-                htmlRef = srvIp.reference;
-        }
-        return DataTableRenders.filterize(srvIp.value, `${label} ${row.is_victim_to_attacker ? ("<i class='fas fa-skull-crossbones'></i>") : ("")}`) + htmlRef;
+    /* Flow */
+    {responsivePriority: 1, name: 'flow', data: 'flow', orderable: false, className: 'text-nowrap', width: '12%', render: (flow, type, row) => {
+
+        let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
+        let historical_ref = (flow.historical_url ? `<a href="${flow.historical_url}"><i class="fas fa-search-plus"></i></a>` : "");
+
+        let cliLabel = DataTableRenders.filterize(flow.cli_ip.value, flow.cli_ip.label); 
+        let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize(flow.cli_port, flow.cli_port) : "");
+        let cliIcons = (row.is_attacker_to_victim ? "<i class='fas fa-skull-crossbones'></i>" : "");
+
+        let srvLabel = DataTableRenders.filterize(flow.srv_ip.value, flow.srv_ip.label);
+        let srvPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize(flow.cli_port, flow.cli_port) : "");
+        let srvIcons = (row.is_victim_to_attacker ? "<i class='fas fa-skull-crossbones'></i>" : "");
+
+        return `${active_ref} ${historical_ref} ${cliLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
     }},
     /* Description */
     {responsivePriority: 1, name: 'description', data: 'msg', orderable: false, className: 'text-nowrap',},

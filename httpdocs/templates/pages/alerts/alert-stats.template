@@ -195,16 +195,6 @@
             /* Actions Column */
             columns.push({width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
 	        const buttons = [
-		    /* Link to the flow details (active flows only) */
-		    {% if alert_stats.entity == 'flow' then %}
-		    {icon: 'fa-stream', title: "{{ i18n('flow_details.flow_details') }}", label: "{{ i18n('flow_details.flow_details') }}", href: dataRow.active_url, class: "btn-primary " + (dataRow.active_url ? "" : "disabled")},
-		    {% end %}
-
-		    /* Link to the historical flow */
-		    {% if alert_stats.entity == 'flow' and interfaceHasNindexSupport() then %}
-		    {icon: 'fa-search-plus', title: "{{ i18n('db_explorer.historical_data_explorer') }}", label: "{{ i18n('db_explorer.historical_data_explorer') }}", href: dataRow.historical_url, class: "btn-primary " + (dataRow.historical_url ? "" : "disabled")},
-		    {% end %}
-
 		    /* Bell button to disable alerts is only supported for hosts and flows */
 		    {% if alert_stats.entity == 'host' or alert_stats.entity == 'flow' then %}
 		    {icon: 'fa-bell-slash', label: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning {{ ((alert_stats.entity == 'host' or alert_stats.entity == 'flow') and '' or 'disabled') }}"},

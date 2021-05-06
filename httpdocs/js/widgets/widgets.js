@@ -187,7 +187,6 @@ class ChartWidget extends Widget {
                 type: this._chartType,
                 events: {
                     click: function (event, chartContext, config) {
-
                         const { seriesIndex, dataPointIndex } = config;
                         const { series } = config.config;
 
