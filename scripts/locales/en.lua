@@ -339,6 +339,7 @@ local lang = {
   ["week"] = "Week",
   ["welcome"] = "Welcome",
   ["welcome_to"] = "Welcome to %{product}",
+  ["wrong_date_range"] = "Invalid range date, please change it.",
   ["yes"] = "Yes",
   ["about"] = {
     ["about"] = "About",

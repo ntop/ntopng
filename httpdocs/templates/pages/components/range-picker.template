@@ -47,7 +47,7 @@
             {* extra_html *}
         {% end %}
     
-        <div class="range-picker flex-wrap d-flex my-auto">
+        <div class="range-picker d-flex my-auto flex-wrap">
     
             <div style="width: 30rem;" class="input-group">
                 <div class="input-group-prepend">
@@ -102,13 +102,17 @@
                 </div>
                 <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-left-0" data-target="#end-epoch">
             </div>
+
+            <span class="wrong-ranger invalid-feedback mx-1 my-auto" data-toggle="tooltip" data-placement="bottom" title="{{ i18n('wrong_date_range') }}" style="width: 1rem; display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+            </span>
     
             <div class="controls d-flex flex-wrap">
                 <div class="btn-group mr-auto btn-group-sm">
                     <button class="btn btn-link" id="btn-jump-time-back">
                         <i class="fas fa-arrow-left"></i>
                     </button>
-                    <button class="btn btn-link mr-2" disabled id="btn-jump-time-ahead">
+                    <button class="btn btn-link mr-2 disabled" id="btn-jump-time-ahead">
                         <i class="fas fa-arrow-right"></i>
                     </button>
                     <button class="btn btn-link" id="btn-zoom-in">
@@ -186,8 +190,6 @@ $(document).ready(function() {
 {% end %}
 
 
-
-
 <script type="text/javascript">
 const beginEpoch = {{ (_GET['begin_epoch'] or _GET['epoch_begin'] or 'undefined') }};
 const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
@@ -201,7 +203,7 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
         const MAX_ZOOM_OUT = {{ (max_delta_out) }}; // 12 hours
 
         const now = (endEpoch === undefined) ? moment() : moment(endEpoch, 'X');
-        const prev = (beginEpoch === undefined) ? moment().subtract({{ (presets.five_mins and '5' or '30') }}, 'minutes') : moment(beginEpoch, 'X');
+        const prev = (beginEpoch === undefined && beginEpoch <= endEpoch) ? moment().subtract({{ (presets.five_mins and '5' or '30') }}, 'minutes') : moment(beginEpoch, 'X');
 
         const $rangePicker = $(`.range-picker`)[0];
         const $inputBeginEpoch = $(`#begin-epoch`);
@@ -230,6 +232,24 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
             $(`#select-presets option:last`).attr('selected', 'true');
         }
 
+        function disableRangePickerButtons() {
+            $('.controls button').attr('disabled', 'disabled');
+        }
+
+        function enableRangePickerButtons() {
+            $('.controls button').removeAttr('disabled');
+        }
+
+        function highlightWrongDate() {
+            $(`.range-picker .input-group`).addClass('border').addClass('rounded').addClass('border-danger');
+            $(`.wrong-ranger`).show();
+        }
+
+        function disableWrongDate() {
+            $(`.range-picker .input-group`).removeClass('border').removeClass('rounded').removeClass('border-danger');
+            $(`.wrong-ranger`).hide();
+        }
+
         function updateRangePicker(operation, maxDate) {
 
             // get the selected preset or the first prest available
@@ -243,10 +263,10 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
             // if the new end time is less than the max current date then
             // enable the jump time ahead button, otherwise disable it
             if (end < maxDate) {
-                $btnJumpTimeAhead.removeAttr('disabled');
+                $btnJumpTimeAhead.removeClass('disabled');
             }
             else {
-                $btnJumpTimeAhead.attr('disabled', 'disabled');
+                $btnJumpTimeAhead.addClass('disabled');
             }
 
             $rangePicker.dispatchEvent(rangepickerEvent);
@@ -255,9 +275,8 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
         $('[data-toggle="tooltip"]').tooltip();
 
         // initialize timepickers
-        $inputBeginEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', maxDate: moment(), useCurrent: false});
-        $inputEndEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', maxDate: moment(), useCurrent: false});
-
+        $inputBeginEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', useCurrent: false});
+        $inputEndEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', useCurrent: false});
         $inputBeginEpoch.datetimepicker('date', prev);
         $inputEndEpoch.datetimepicker('date', now);
 
@@ -326,11 +345,35 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
         });
 
         $inputBeginEpoch.on("change.datetimepicker", function (e) {
-            $inputEndEpoch.datetimepicker('minDate', e.date);
+            
+            const newBegin = e.date;
+            const currentEnd = $inputEndEpoch.datetimepicker('date');
+            
+            // if the begin date is wrong disable the range picker buttons 
+            if (newBegin.isAfter(currentEnd)) {
+                disableRangePickerButtons();
+                highlightWrongDate();
+            }
+            else {
+                enableRangePickerButtons();
+                disableWrongDate();
+            }
         });
 
         $inputEndEpoch.on("change.datetimepicker", function (e) {
-            $inputBeginEpoch.datetimepicker('maxDate', e.date);
+            
+            const newEnd = e.date;
+            const currentBegin = $inputBeginEpoch.datetimepicker('date');
+            
+            // if the end date is wrong disable the range picker buttons 
+            if (newEnd.isBefore(currentBegin)) {
+                disableRangePickerButtons();
+                highlightWrongDate();
+            }
+            else {
+                enableRangePickerButtons();
+                disableWrongDate();
+            }
         });
 
     });
