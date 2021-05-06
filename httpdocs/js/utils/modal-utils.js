@@ -40,7 +40,7 @@
                 throw new Error("ModalHandler::The submit button was not found inside the form!");
             }
 
-            submitButton.attr("disabled", "disabled");
+            this.toggleFormSubmission();
 
         }
 

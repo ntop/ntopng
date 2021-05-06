@@ -480,11 +480,11 @@
             }
         });
 
-	$(`#btn-delete-alerts`).on('click', function (e) {
+	    $(`#btn-delete-alerts`).on('click', function (e) {
             $deleteFilteredAlerts.invokeModalInit();
         });
 	
-	const $deleteFilteredAlerts = $('#delete-alerts-modal form').modalHandler({
+	    const $deleteFilteredAlerts = $('#delete-alerts-modal form').modalHandler({
             method: 'post',
             csrf: PAGE_CSRF,
             endpoint: `${http_prefix}/lua/rest/v1/delete/{{ alert_stats.entity }}/alerts.lua`,
@@ -492,25 +492,29 @@
                 return { ifid: "{{ ifid }}" };
             },
             onModalInit: function () {
-            	$('#delete-alerts-modal .filters-list').empty();
-	    	const tags = tagify.getTagElms();
-	    
-		const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
-	    	const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
 
-		$('#delete-alerts-modal #end-epoch-delete').val(endEpoch);
-		$('#delete-alerts-modal #begin-epoch-delete').val(beginEpoch);
-		for (const tag of tags.sort((a,b) => {
-		    return i18n.tags[tagify.tagData(a).key].localeCompare(i18n.tags[tagify.tagData(b).key])
-		})) {
-		    const {key, selectedOperator, realValue, value} = tagify.tagData(tag);
+                $('#delete-alerts-modal .filters-list').empty();
+                const tags = tagify.getTagElms();
+
+                const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
+                const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
+
+                const sortedTags = tags.sort((a, b) => {
+                    return i18n.tags[tagify.tagData(a).key].localeCompare(i18n.tags[tagify.tagData(b).key])
+                });
+
+                $('#delete-alerts-modal #end-epoch-delete').val(endEpoch);
+                $('#delete-alerts-modal #begin-epoch-delete').val(beginEpoch);
+
+                for (const tag of sortedTags) {
+                    const { key, selectedOperator, realValue, value } = tagify.tagData(tag);
                     const label = i18n.tags[key]
-		    const child = $('<li>' + (label + ' = ' + value) + '</li>');
-		    $('#delete-alerts-modal .filters-list').append(child)
-            	}
+                    const child = $('<li>' + (label + ' = ' + value) + '</li>');
+                    $('#delete-alerts-modal .filters-list').append(child)
+                }
             },
             onSubmitSuccess: function (response) {
-	    	location.reload();
+                location.reload();
                 return (response.rc == 0);
             }
         });

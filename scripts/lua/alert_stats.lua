@@ -190,14 +190,14 @@ local modals = {
         }
     }),
     ["delete-alerts-modal"] = template_utils.gen("pages/modals/alerts/delete_alerts.template", {
-	dialog={
+	    dialog={
             id      = "delete-alerts-modal",
             title   = i18n("delete_alerts"),
             label   = "",
             message = i18n("show_alerts.confirm_delete_alerts"),
             cancel  = i18n("cancel"),
-	    apply   = i18n("delete")
-	}
+	        apply   = i18n("delete")
+	    }
     })
 }
 

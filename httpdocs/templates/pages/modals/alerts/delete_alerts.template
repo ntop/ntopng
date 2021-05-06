@@ -8,26 +8,29 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-	    <form>
-	    <div class="modal-body">
-	    <div class="input-group">
-		<input id='begin-epoch-delete' type="text" aria-label="Begin" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-right-0" data-target="#begin-epoch" readonly>
-		    <span class="input-group-text">
-                    	  <i class="fas fa-long-arrow-alt-right"></i>
-                    </span>
-                <input id='end-epoch-delete' type="text" aria-label="End" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-left-0" data-target="#end-epoch" readonly>
-	    </div>
-	    <div class='form-group'>
-		<ul class='filters-list my-1'></ul>
-	    </div>
-	    <div class='alert alert-danger'>{* dialog.message *}</div>
-              <span class="invalid-feedback"></span>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">{* dialog.cancel *}</button>
-              <button type="submit" class="btn btn-danger" id="btn-delete-alerts">{* dialog.apply *}</button>
-            </div>
-	    </form>
+            <form>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <input id='begin-epoch-delete' type="text" aria-label="Begin" data-toggle="datetimepicker"
+                            class="form-control time-input datetimepicker-input border-right-0"
+                            data-target="#begin-epoch" readonly>
+                        <span class="input-group-text">
+                            <i class="fas fa-long-arrow-alt-right"></i>
+                        </span>
+                        <input id='end-epoch-delete' type="text" aria-label="End" data-toggle="datetimepicker"
+                            class="form-control time-input datetimepicker-input border-left-0" data-target="#end-epoch"
+                            readonly>
+                    </div>
+                    <div class='form-group'>
+                        <ul class='filters-list my-1'></ul>
+                    </div>
+                    <div class='alert alert-danger'>{* dialog.message *}</div>
+                    <span class="invalid-feedback"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger" id="btn-delete-alerts">{* dialog.apply *}</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
