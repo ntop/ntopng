@@ -5,5 +5,4 @@
     <th>{{ i18n("severity_groups.group_error_or_higher") }}</th>
     <th>{{ i18n("total_alerts") }}</th>
     <th>{{ i18n("total_score") }}</th>
-    <th>{{ i18n("actions") }}</th>
 </tr>
