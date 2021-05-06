@@ -274,17 +274,6 @@ u_int ViewInterface::getNumFlows() {
 
 /* **************************************************** */
 
-u_int ViewInterface::getNumDroppedFlowScriptsCalls() {
-  u_int tot = 0;
-
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    tot += viewed_interfaces[s]->getNumDroppedFlowScriptsCalls();
-
-  return(tot);
-};
-
-/* **************************************************** */
-
 u_int64_t ViewInterface::getNumActiveAlertedFlows() const {
   u_int64_t tot = 0;
 

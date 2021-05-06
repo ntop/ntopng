@@ -71,7 +71,6 @@ class ViewInterface : public NetworkInterface {
   virtual u_int64_t getNumDiscardedProbingBytes()   const;
   virtual u_int64_t getNumNewFlows();
   virtual u_int     getNumFlows();
-  virtual u_int32_t getNumDroppedFlowScriptsCalls();
   virtual u_int64_t getNumActiveAlertedFlows() const;
 
   virtual u_int64_t getCheckPointNumPackets();

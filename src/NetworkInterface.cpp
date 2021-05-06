@@ -264,7 +264,6 @@ void NetworkInterface::init() {
     pollLoopCreated = false, bridge_interface = false,
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
-    num_dropped_flow_scripts_calls = 0,
       num_new_flows = 0;
 
   flows_hash = NULL, hosts_hash = NULL;
@@ -5742,7 +5741,6 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "http_hosts",  getNumHTTPHosts());
   lua_push_uint64_table_entry(vm, "drops",       getNumPacketDrops());
   lua_push_uint64_table_entry(vm, "new_flows",   getNumNewFlows());
-  lua_push_uint64_table_entry(vm, "num_dropped_flow_scripts_calls", getNumDroppedFlowScriptsCalls());
   lua_push_uint64_table_entry(vm, "devices",     getNumL2Devices());
   lua_push_uint64_table_entry(vm, "current_macs",  getNumMacs());
   lua_push_uint64_table_entry(vm, "num_live_captures", num_live_captures);

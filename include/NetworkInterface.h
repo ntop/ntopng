@@ -81,7 +81,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   std::atomic<u_int64_t> num_active_alerted_flows_notice;  /* Counts all flow alerts with severity <= notice  */
   std::atomic<u_int64_t> num_active_alerted_flows_warning; /* Counts all flow alerts with severity == warning */
   std::atomic<u_int64_t> num_active_alerted_flows_error;   /* Counts all flow alerts with severity >= error   */
-  u_int32_t num_dropped_alerts, prev_dropped_alerts, checked_dropped_alerts, num_dropped_flow_scripts_calls;
+  u_int32_t num_dropped_alerts, prev_dropped_alerts, checked_dropped_alerts;
   u_int64_t num_written_alerts, num_alerts_queries, score_as_cli, score_as_srv;
   u_int64_t num_new_flows;
   struct {
@@ -723,7 +723,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   virtual u_int64_t getNumDroppedAlerts();
   virtual void      updatePacketsStats() { };
   virtual u_int32_t getNumDroppedPackets() { return 0; };
-  virtual u_int32_t getNumDroppedFlowScriptsCalls() { return num_dropped_flow_scripts_calls; };
   virtual u_int     getNumPacketDrops();
   virtual u_int64_t getNumNewFlows();
   virtual u_int64_t getNumDiscardedProbingPackets() const;
@@ -993,7 +992,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void getEngagedAlertsCount(lua_State *vm, AlertEntity alert_entity, const char *entity_value, AddressTree *allowed_nets);
   void getEngagedAlerts(lua_State *vm, AlertEntity alert_entity, const char *entity_value, AlertType alert_type,
 			AlertLevel alert_severity, AddressTree *allowed_nets);
-  inline void incNumDroppedFlowScriptsCalls()             { num_dropped_flow_scripts_calls++; }
 
   /* unlockExternalAlertable must be called after use whenever a non-null reference is returned */
   AlertableEntity* lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing);
