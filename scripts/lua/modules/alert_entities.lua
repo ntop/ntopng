@@ -4,7 +4,7 @@
 
 -- ##############################################
 
--- Keep in sync with ntop_typedefs.h:AlertEntity
+-- Keep in sync with ntop_typedefs.h:AlertEntity and alert_store_schema.sql
 local alert_entities = {
    interface = {
       entity_id = 0,
@@ -48,7 +48,7 @@ local alert_entities = {
       alert_store_name = "user",
    }, am_host = {
       entity_id = 8,
-      label = "Active Monitoring Host",
+      label = "Active Monitoring",
       pools = "active_monitoring_pools", -- modules/pools/active_monitoring_pools.lua
       alert_store_name = "am",
    }, system = {

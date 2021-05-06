@@ -232,3 +232,29 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 CREATE INDEX IF NOT EXISTS `system_alerts_i_id` ON `system_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `system_alerts_i_severity` ON `system_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `system_alerts_i_tstamp` ON `system_alerts`(tstamp);
+
+
+-- -----------------------------------------------------
+-- View that merges all tables together
+-- NOTE: integer entity_id MUST BE KEPT IN SYNC WITH IDS in alert_entities.lua
+-- -----------------------------------------------------
+DROP VIEW IF EXISTS `all_alerts`;
+CREATE VIEW IF NOT EXISTS `all_alerts` AS
+       SELECT 8 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `active_monitoring_alerts`
+       UNION ALL
+       SELECT 4 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `flow_alerts`
+       UNION ALL
+       SELECT 1 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `host_alerts`
+       UNION ALL
+       SELECT 5 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `mac_alerts`
+       UNION ALL
+       SELECT 3 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `snmp_alerts`
+       UNION ALL
+       SELECT 2 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `network_alerts`
+       UNION ALL
+       SELECT 0 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `interface_alerts`
+       UNION ALL
+       SELECT 7 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `user_alerts`
+       UNION ALL
+       SELECT 9 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `system_alerts`
+;

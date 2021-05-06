@@ -205,7 +205,7 @@ else
       {
 	 section = page_utils.menu_sections.alerts,
 	 hidden = not ntop.getPrefs().are_alerts_enabled,
-         url = '/lua/alert_stats.lua?page=flow',
+         url = '/lua/alert_stats.lua',
       }
    )
 

@@ -625,7 +625,7 @@ function alert_store:format_record_common(value, entity_id, no_html)
 
    record["score"] = {
       value = score,
-      label = score,
+      label = format_utils.formatValue(score),
       color = severity.color,
    }
 
@@ -649,8 +649,7 @@ function alert_store:format_record_common(value, entity_id, no_html)
       record["duration"] = now - tonumber(value["tstamp"])
    end
 
-   local count = 1 -- TODO (not yet supported)
-   record["count"] = count -- historical only
+   record["count"] = tonumber(value["count"]) or 1
 
    local alert_json = json.decode(value["json"]) or {}
    record["script_key"] = alert_json["alert_generation"] and alert_json["alert_generation"]["script_key"]
@@ -683,12 +682,6 @@ function alert_store:housekeeping()
    q = string.format("DELETE FROM `%s` WHERE tstamp < %u", self._table_name, expiration_epoch)
 
    deleted = interface.alert_store_query(q)
-
-   -- Reclaims unused disk space and defragments tables and indices.
-   -- Should be called as disk space and defragmentation are not run
-   -- automatically by sqlite.
-   q = string.format("VACUUM")
-   local vacuum = interface.alert_store_query(q)
 end
 
 -- ##############################################

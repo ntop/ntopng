@@ -632,7 +632,7 @@ class DataTableRenders {
 
     static hideIfZero(value, type, row) {
         if (type === "display" && parseInt(value) === 0) return "";
-        return value;
+        return NtopUtils.fint(value);
     }
 
     static secondsToTime(seconds, type, row) {
