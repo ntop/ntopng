@@ -126,6 +126,7 @@ void IpAddress::checkIP() {
        || ((a & 0xFFF00000) == 0xAC100000 /* 172.16.0.0/12 */)
        || ((a & 0xFFFF0000) == 0xC0A80000 /* 192.168.0.0/16 */)
        || ((a & 0xFF000000) == 0x7F000000 /* 127.0.0.0/8 */)
+       || ((a & 0xFFFF0000) == 0xA9FE0000 /* 169.254.0.0/16 Link-Local communication rfc3927 */)
        )
       addr.privateIP = true;
 
