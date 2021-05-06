@@ -118,7 +118,7 @@ function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datas
             },
             tooltip = {
                 x = {
-                    format = "dd MMM yyyy"
+                    format = "dd MMM yyyy hh:mm:ss"
                 },
             },
         }
