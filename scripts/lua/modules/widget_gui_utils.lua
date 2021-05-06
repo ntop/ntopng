@@ -82,6 +82,14 @@ function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datas
                 height = "80%",
                 foreColor = "#999",
                 stacked = true,
+                animations = {
+                    animateGradually = false,
+                    easing = "easeout",
+                    speed = 500,
+                    dynamicAnimation = {
+                        enabled = false
+                    }
+                },
                 toolbar = {
                     tools = {
                         selection = false,
@@ -107,7 +115,6 @@ function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datas
                     show = false
                 },
                 axisTicks = {
-                    show = true
                 },
             },
             yaxis = {
@@ -118,7 +125,7 @@ function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datas
             },
             tooltip = {
                 x = {
-                    format = "dd MMM yyyy hh:mm:ss"
+                    format = "dd MMM yyyy HH:mm:ss"
                 },
             },
         }
