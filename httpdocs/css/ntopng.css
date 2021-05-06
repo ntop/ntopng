@@ -988,4 +988,8 @@ footer {
 .f-1 {
   font-size: 1rem;
 }
-
+td.dashboard-counter {
+  font-size: 2rem;
+  padding-top: 0!important;
+  padding-bottom: 0!important;
+}

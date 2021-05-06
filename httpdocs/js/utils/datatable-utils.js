@@ -630,9 +630,10 @@ class DataTableRenders {
         return `${DataTableRenders.formatValueLabel(severity, type, alert)} ${DataTableRenders.formatValueLabel(alert.alert_id, type, alert)}`;
     }
 
-    static hideIfZero(value, type, row) {
-        if (type === "display" && parseInt(value) === 0) return "";
-        return NtopUtils.fint(value);
+    static hideIfZero(obj, type, row) {
+        let color = (obj.color ? obj.color : "#aaa");
+        if (type === "display" && parseInt(obj.value) === 0) color = "#aaa";
+        return `<span style='color: ${color}'>${NtopUtils.fint(obj.value)}</span>`;
     }
 
     static secondsToTime(seconds, type, row) {

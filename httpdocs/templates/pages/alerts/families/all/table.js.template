@@ -1,13 +1,13 @@
 [
     /* Description */
-    {name: 'entity_id', data: 'entity', orderable: false, className: 'text-nowrap'},
+    {name: 'entity_id', data: 'entity', orderable: false, className: 'text-nowrap font-weight-bold'},
     /* Counts */
-    {name: 'count_group_notice_or_lower', data: 'count_group_notice_or_lower', className: 'text-right', width: '10%', render: DataTableRenders.hideIfZero},
-    {name: 'count_group_warning', data: 'count_group_warning', className: 'text-right', width: '10%', render: DataTableRenders.hideIfZero},
-    {name: 'count_group_error_or_higher', data: 'count_group_error_or_higher', className: 'text-right', width: '10%', render: DataTableRenders.hideIfZero},
+    {name: 'count_group_notice_or_lower', data: 'count_group_notice_or_lower', className: 'text-right font-weight-bold', width: '14%', render: DataTableRenders.hideIfZero},
+    {name: 'count_group_warning', data: 'count_group_warning', className: 'text-right font-weight-bold', width: '14%', render: DataTableRenders.hideIfZero},
+    {name: 'count_group_error_or_higher', data: 'count_group_error_or_higher', className: 'text-right font-weight-bold', width: '14%', render: DataTableRenders.hideIfZero},
     /* Total Counts */
-    {name: 'count', data: 'count', className: 'text-right', width: '10%', render: DataTableRenders.hideIfZero},
+    {name: 'count', data: 'count', className: 'text-right font-weight-bold', width: '14%', render: DataTableRenders.hideIfZero},
     /* Score */
-    {name: 'score', data: 'score', className: 'text-right', width: '10%', render: DataTableRenders.formatValueLabel},
+    {name: 'score', data: 'score', className: 'text-right font-weight-bold', width: '14%', render: DataTableRenders.hideIfZero},
 
 ]
