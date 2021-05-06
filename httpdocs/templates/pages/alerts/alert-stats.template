@@ -114,9 +114,11 @@
             // reload the table
             $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
             try {
-                WidgetUtils.getWidgetByName("{{ chart.name }}").update(copyParams);
+                WidgetUtils.getWidgetByName("{{ chart.name }}").update(datasourceParams);
             }
-            catch(e) {}
+            catch(e) {
+                console.warn(e);
+            }
         }
 
         function printQueryTime($table) {
@@ -168,7 +170,7 @@
         async function onRangePickerChange(pushHistroy = false) {
             
             const [begin, end] = getTimestampRange();
-	    updateDatasourceParams();
+	        updateDatasourceParams();
             await reloadTable($table);
 
             // update the link of the download button
