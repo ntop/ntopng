@@ -94,8 +94,8 @@ local pages = {
         endpoint_ts = "/lua/rest/v1/get/system/alert/ts.lua"
     },
     {
-        active = page == "active_monitoring",
-        page_name = "active_monitoring",
+        active = page == "am_host",
+        page_name = "am_host",
         label = alert_entities.am_host.label,
         endpoint_list = "/lua/rest/v1/get/active_monitoring/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/active_monitoring/alert/ts.lua"

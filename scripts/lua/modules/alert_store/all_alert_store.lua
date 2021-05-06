@@ -132,7 +132,12 @@ function all_alert_store:format_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"
    local record = self:format_record_common(value, alert_entities.host.entity_id, no_html)
 
-   record["entity"] = alert_consts.alertEntityById(value["entity_id"]).label
+   record["entity"] = string.format('<a href="%s/lua/alert_stats.lua?page=%s&epoch_begin=%u&epoch_end=%u">%s</a>',
+				    ntop.getHttpPrefix(),
+				    alert_consts.alertEntityRaw(value["entity_id"]),
+				    _GET["epoch_begin"],
+				    _GET["epoch_end"],
+				    alert_consts.alertEntityById(value["entity_id"]).label)
 
    local score = tonumber(value["score"])
    record["score"] = {
