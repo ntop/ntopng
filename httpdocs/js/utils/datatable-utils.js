@@ -632,8 +632,9 @@ class DataTableRenders {
 
     static hideIfZero(obj, type, row) {
         let color = (obj.color ? obj.color : "#aaa");
-        if (type === "display" && parseInt(obj.value) === 0) color = "#aaa";
-        return `<span style='color: ${color}'>${NtopUtils.fint(obj.value)}</span>`;
+        let value = (obj.value ? obj.value : obj);
+        if (type === "display" && parseInt(value) === 0) color = "#aaa";
+        return `<span style='color: ${color}'>${NtopUtils.fint(value)}</span>`;
     }
 
     static secondsToTime(seconds, type, row) {
