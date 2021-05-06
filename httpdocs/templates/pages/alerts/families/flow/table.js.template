@@ -6,11 +6,6 @@
         if (type !== "display") return proto.value;
         return DataTableRenders.filterize(proto.value, proto.label);
     }},
-    /* Protocol */
-    {name: 'proto', data: 'proto.label', orderable: false, className: 'text-center', width: '3%'/*, render: (proto, type, row) => {
-        if (type !== "display") return proto.value;
-        return DataTableRenders.filterize(proto.value, proto.label);
-    }*/},
     /* Client */
     {responsivePriority: 1, name: 'cli_ip', data: 'cli_ip', orderable: false, className: 'text-nowrap', width: '12%', render: (cliIp, type, row) => {
     	let htmlRef = '';

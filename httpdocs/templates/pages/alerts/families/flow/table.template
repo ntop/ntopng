@@ -1,6 +1,5 @@
 <tr>
     <th>{{ i18n("show_alerts.alert_datetime") }}</th>
-    <th>{{ i18n("application") }}</th>
     <th>{{ i18n("protocol") }}</th>
     <th>{{ i18n("client") }}</th>
     <th>{{ i18n("server") }}</th>

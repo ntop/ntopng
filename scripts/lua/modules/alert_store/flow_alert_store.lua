@@ -211,8 +211,8 @@ function flow_alert_store:format_record(value, no_html)
 
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.flow.entity_id)
-   local protocol = l4_proto_to_string(value["proto"])
-   local application =  interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]), tonumber(value["l7_proto"]))
+   local l4_protocol = l4_proto_to_string(value["proto"])
+   local l7_protocol =  interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]), tonumber(value["l7_proto"]))
    local show_cli_port = (value["cli_port"] ~= '' and value["cli_port"] ~= '0')
    local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= '0')   
    local msg = alert_utils.formatFlowAlertMessage(ifid, value, alert_info)
@@ -221,7 +221,7 @@ function flow_alert_store:format_record(value, no_html)
    if interfaceHasNindexSupport() and not no_html then
       local href = string.format('%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s,eq&srv_ip=%s,eq&cli_port=%s,eq&srv_port=%s,eq&l4proto=%s,eq',
          ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
-         value["cli_ip"], value["srv_ip"], ternary(show_cli_port, tostring(value["cli_port"]), ''), ternary(show_srv_port, tostring(value["srv_port"]), ''), protocol)
+         value["cli_ip"], value["srv_ip"], ternary(show_cli_port, tostring(value["cli_port"]), ''), ternary(show_srv_port, tostring(value["srv_port"]), ''), l4_protocol)
       record["historical_url"] = href
    end
 
@@ -297,13 +297,13 @@ function flow_alert_store:format_record(value, no_html)
    record["vlan_id"] = value["vlan_id"]
    record["proto"] = {
       value = value["proto"],
-      label = protocol
+      label = l4_protocol
    }
    record["is_attacker_to_victim"] = value["is_attacker_to_victim"] == "1"
    record["is_victim_to_attacker"] = value["is_victim_to_attacker"] == "1"
    record["l7_proto"] = {
       value = value["l7_proto"],
-      label = application
+      label = l4_protocol..":"..l7_protocol
    }
 
    return record
