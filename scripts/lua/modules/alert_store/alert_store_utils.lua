@@ -38,12 +38,6 @@ end
 
 -- ##############################################
 
-function alert_store_utils.all_instances_factory()
-
--- ##############################################
-
--- ##############################################
-
 -- @brief Call instance:db_cleanup for every available alert_store instance
 function alert_store_utils.housekeeping()
    local all_instances = alert_store_utils.all_instances_factory()
