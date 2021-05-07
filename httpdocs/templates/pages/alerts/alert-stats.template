@@ -366,15 +366,13 @@
         $table.on('click', `a.tag-filter`, async function (e) {
             e.preventDefault();
 
-            // the tag key is contained inside the column's name
-            const colIndex = $table.cell($(this).parent()).index().column;
-            const data = $table.cell($(this).parent()).data();
-
-            const key = $table.column(colIndex).name();
-            const label = i18n.tags[key];
-
-            const tag = { label: label, key: key, value: (data.label) ? data.label : data, realValue: (data.value) ? data.value : data };
-
+            // Getting the row data
+            const key = $(this).data('tagKey');
+            const label = $(this).data('tagLabel');
+            const value = $(this).data('tagValue');
+            const tagTitle = i18n.tags[key];
+            
+            const tag = { label: tagTitle, key: key, value: label, realValue: value };
             // does the tag exist?
             const existingTagElement = tagify.getTagElms().find(htmlTag => htmlTag.getAttribute('key') === tag.key);
             const existingTag = tagify.tagData(existingTagElement);

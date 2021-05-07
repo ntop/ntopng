@@ -642,8 +642,8 @@ class DataTableRenders {
         return seconds;
     }
 
-    static filterize(value, label) {
-        return `<a class='tag-filter' data-tag-value='${value}' href='#'>${label || value}</a>`;
+    static filterize(key, value, label) {
+        return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${value}' data-tag-label='${label || value}' href='#'>${label || value}</a>`;
     }
 
     static formatValueLabel(obj, type, row) {

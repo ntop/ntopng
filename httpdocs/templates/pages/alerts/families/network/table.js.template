@@ -5,7 +5,7 @@
     {name: 'duration', data: 'duration', width: '5%', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
     /* Network */
     {name: 'network_name', data: 'network', width: '12%', orderable: false, render: (network, type) => {
-        if (type === "display") return DataTableRenders.filterize(network, network);
+        if (type === "display") return DataTableRenders.filterize('network', network, network);
         return network;
     }},
     /* Description */
