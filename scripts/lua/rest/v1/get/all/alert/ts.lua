@@ -39,14 +39,17 @@ local res = {
    }
 }
 
-local count_data = all_alert_store:count_by_severity_and_time()
+local count_data = all_alert_store:count_by_severity_and_time(true)
 
 for _, severity in pairsByField(alert_severities, "severity_id", rev) do
-   res.series[#res.series + 1] = {
-      name = i18n(severity.i18n_title),
-      data = count_data[severity.severity_id],
-   }
-   res.fill.colors[#res.fill.colors + 1] = severity.color
+   if(count_data[severity.severity_id] ~= nil) then
+      res.series[#res.series + 1] = {
+	 name = i18n(severity.i18n_title),
+	 data = count_data[severity.severity_id],
+      }
+      
+      res.fill.colors[#res.fill.colors + 1] = severity.color
+   end
 end
 
 rest_utils.answer(rc, res)

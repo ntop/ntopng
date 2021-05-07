@@ -70,26 +70,18 @@ function widget_gui_utils.register_bar_chart(name, update_time, datasources, add
     widget_gui_utils.register_chart_widget(name, 'bar', update_time, datasources, additional_params)
 end
 
-function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datasources)
-    widget_gui_utils.register_chart_widget(name, 'bar', update_time, datasources, {
+function widget_gui_utils.register_timeseries_area_chart(name, update_time, datasources)
+    widget_gui_utils.register_chart_widget(name, 'area', update_time, datasources, {
         apex = {
             legend = {
-                show = false,
+                show = true,
             },
             chart = {
-                type = "bar",
+                type = "area",
                 width = "100%",
-                height = "80%",
-                foreColor = "#999",
+                height = "100%",
+--                foreColor = "#999",
                 stacked = true,
-                animations = {
-                    animateGradually = false,
-                    easing = "easeout",
-                    speed = 500,
-                    dynamicAnimation = {
-                        enabled = false
-                    }
-                },
                 toolbar = {
                     tools = {
                         selection = false,
@@ -106,6 +98,13 @@ function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datas
             dataLabels = {
                 enabled = false
             },
+	    stroke = {
+	       show = false,
+	       curve = 'smooth',
+	    },
+	    fill = {
+	       type = "solid"
+	    },
             xaxis = {
                 type = "datetime",
                 labels = {
@@ -119,7 +118,7 @@ function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datas
                 },
             },
             yaxis = {
-                show = false,
+                show = true,
             },
             grid = {
                show = false,

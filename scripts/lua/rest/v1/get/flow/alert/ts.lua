@@ -32,6 +32,6 @@ end
 
 interface.select(ifid)
 
-local res = flow_alert_store:count_by_severity_and_time_request()
+local res = flow_alert_store:count_by_severity_and_time_request(true)
 
 rest_utils.answer(rc, res)

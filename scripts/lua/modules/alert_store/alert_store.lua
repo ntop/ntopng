@@ -422,7 +422,7 @@ end
 -- ##############################################
 
 --@brief Performs a query and counts the number of records in multiple time slots
-function alert_store:count_by_severity_and_time_historical()
+function alert_store:count_by_severity_and_time_historical(suppress_zero_series)
    -- Preserve all the filters currently set
    local min_slot, max_slot, time_slot_width = self:_count_by_time_get_bounds()
    local where_clause = table.concat(self._where, " AND ")
@@ -472,11 +472,20 @@ function alert_store:count_by_severity_and_time_historical()
    for _, severity in pairs(alert_severities) do
       local severity_id = tonumber(severity.severity_id)
       local severity_res = {}
+      local total = 0
+      
       for slot, count in pairsByKeys(all_severities[severity_id].all_slots, asc) do
 	 severity_res[#severity_res + 1] = {slot * 1000 --[[ In milliseconds --]], count}
+	 total = total + count
       end
 
-      res[severity_id] = severity_res
+      if(suppress_zero_series == nil) then
+	 res[severity_id] = severity_res
+      else
+	 if(total > 0) then
+	    res[severity_id] = severity_res
+	 end
+      end
    end
 
    return res
@@ -486,16 +495,16 @@ end
 
 --@brief Count from memory (engaged) or database (historical)
 --@return Alert counters divided into severity and time slots
-function alert_store:count_by_severity_and_time()
+function alert_store:count_by_severity_and_time(suppress_zero_series)
    -- Add filters
    self:add_request_filters()
    -- Add limits and sort criteria
    self:add_request_ranges()
 
    if self._engaged then -- Engaged
-      return self:count_by_severity_and_time_engaged()
+      return self:count_by_severity_and_time_engaged(suppress_zero_series)
    else -- Historical
-      return self:count_by_severity_and_time_historical()
+      return self:count_by_severity_and_time_historical(suppress_zero_series)
    end
 end
 
@@ -506,7 +515,7 @@ end
 
 --@brief Handle count requests (GET) from memory (engaged) or database (historical)
 --@return Alert counters divided into severity and time slots
-function alert_store:count_by_severity_and_time_request()
+function alert_store:count_by_severity_and_time_request(suppress_zero_series)
    local res = {
       series = {},
       fill = {
@@ -514,14 +523,17 @@ function alert_store:count_by_severity_and_time_request()
       }
    }
 
-   local count_data = self:count_by_severity_and_time()
+   local count_data = self:count_by_severity_and_time(suppress_zero_series)
 
    for _, severity in pairsByField(alert_severities, "severity_id", rev) do
-      res.series[#res.series + 1] = {
-         name = i18n(severity.i18n_title),
-         data = count_data[severity.severity_id],
-      }
-      res.fill.colors[#res.fill.colors + 1] = severity.color
+      if(count_data[severity.severity_id] ~= nil) then
+	 res.series[#res.series + 1] = {
+	    name = i18n(severity.i18n_title),
+	    data = count_data[severity.severity_id],
+	 }
+	 res.fill.colors[#res.fill.colors + 1] = severity.color
+      end
+
    end
 
    return res

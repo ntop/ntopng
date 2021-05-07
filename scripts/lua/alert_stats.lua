@@ -169,7 +169,7 @@ local url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?"
 
 page_utils.print_navbar(i18n("alerts_dashboard.alerts"), url, pages)
 
-widget_gui_utils.register_timeseries_bar_chart(CHART_NAME, 0, {
+widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
     Datasource(endpoint_ts, {
         ifid = ifid,
         epoch_begin = epoch_begin,
