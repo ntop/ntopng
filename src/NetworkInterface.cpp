@@ -5724,7 +5724,9 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
   lua_push_bool_table_entry(vm, "has_seen_external_alerts", hasSeenExternalAlerts());
   lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
+
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
+  luaNumEngagedAlerts(vm);
   luaAlertedFlows(vm);
   lua_push_uint64_table_entry(vm, "num_dropped_alerts", getNumDroppedAlertsSinceReset());
   lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs", periodicStatsUpdateFrequency());
@@ -8396,6 +8398,24 @@ u_int32_t NetworkInterface::getNumEngagedAlerts() const {
     tot_engaged_alerts += num_alerts_engaged[i];
 
   return tot_engaged_alerts;
+};
+
+/* *************************************** */
+
+void NetworkInterface::luaNumEngagedAlerts(lua_State *vm) const {
+  lua_newtable(vm);
+
+  for(int i = 0; i < ALERT_ENTITY_MAX_NUM_ENTITIES; i++) {
+    u_int32_t num_alerts = num_alerts_engaged[i];
+
+    if(num_alerts)
+      /* Use string keys for entity id to avoid confusing lua and treating the table as an array */
+      lua_push_uint64_table_entry(vm, to_string(i).c_str(), num_alerts);
+  }
+  
+  lua_pushstring(vm, "num_alerts_engaged_by_entity");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 };
 
 /* *************************************** */

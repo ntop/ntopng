@@ -465,16 +465,16 @@ else
 			      {
 				 hidden = not periodicity_map_available,
 				 active = page == "periodicity_map",
-             page_name = "periodicity_map",
-             url = periodicity_map_link,
+				 page_name = "periodicity_map",
+				 url = periodicity_map_link,
 				 label = "<i class=\"fas fa-lg fa-clock\"></i> <span style='position: absolute; top: 0' class=\"badge badge-pill badge-secondary\">"..num_periodicity.."</span>",
 			      },
 			      {
 				 hidden = not service_map_available,
 				 active = page == "service_map",
 				 page_name = "service_map",
-             label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
-             url = service_map_link
+				 label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
+				 url = service_map_link
 			      },
 			      {
 				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),

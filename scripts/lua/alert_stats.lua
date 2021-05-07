@@ -15,11 +15,24 @@ local alert_entities = require "alert_entities"
 local Datasource = widget_gui_utils.datasource
 
 local ifid = interface.getId()
+-- Used to print badges next to navbar entries
+local num_alerts_engaged_by_entity = interface.getStats()["num_alerts_engaged_by_entity"]
+
 local CHART_NAME = "alert-timeseries"
 
 -- select the default page
 local page = _GET["page"] or 'all'
-local status = _GET["status"] or "historical"
+local status = _GET["status"]
+
+-- If the status is not explicitly set, it is chosen between (engaged when there are engaged alerts) or historical when
+-- no engaged alert is currently active
+if not status then
+   if alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)] then
+      status = "engaged"
+   else
+      status = "historical"
+   end
+end
 
 local time = os.time()
 
@@ -62,6 +75,7 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/host/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/host/alert/ts.lua",
 	hidden = is_system_interface,
+	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.host.entity_id)]
     },
     {
         active = page == "interface",
@@ -70,6 +84,7 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/interface/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/interface/alert/ts.lua",
 	hidden = is_system_interface,
+	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.interface.entity_id)]
     },
     {
         active = page == "network",
@@ -78,6 +93,7 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/network/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/network/alert/ts.lua",
 	hidden = is_system_interface,
+	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.network.entity_id)]
     },
     {
         active = page == "snmp_device",
@@ -85,6 +101,7 @@ local pages = {
         label = alert_entities.snmp_device.label,
         endpoint_list = "/lua/pro/rest/v1/get/snmp/device/alert/list.lua",
         endpoint_ts = "/lua/pro/rest/v1/get/snmp/device/alert/ts.lua",
+	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.snmp_device.entity_id)]
     },
     {
         active = page == "flow",
@@ -93,6 +110,7 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/flow/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/flow/alert/ts.lua",
 	hidden = is_system_interface,
+	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.flow.entity_id)]
     },
     {
         active = page == "mac",
@@ -101,20 +119,23 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/mac/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/mac/alert/ts.lua",
 	hidden = is_system_interface,
+	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.mac.entity_id)]
     },
     {
         active = page == "system",
         page_name = "system",
         label = alert_entities.system.label,
         endpoint_list = "/lua/rest/v1/get/system/alert/list.lua",
-        endpoint_ts = "/lua/rest/v1/get/system/alert/ts.lua"
+        endpoint_ts = "/lua/rest/v1/get/system/alert/ts.lua",
+	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.system.entity_id)]
     },
     {
         active = page == "am_host",
         page_name = "am_host",
         label = alert_entities.am_host.label,
         endpoint_list = "/lua/rest/v1/get/active_monitoring/alert/list.lua",
-        endpoint_ts = "/lua/rest/v1/get/active_monitoring/alert/ts.lua"
+        endpoint_ts = "/lua/rest/v1/get/active_monitoring/alert/ts.lua",
+	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.am_host.entity_id)]
     },
     {
         active = page == "user",
@@ -123,6 +144,7 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/user/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/user/alert/ts.lua",
 	hidden = is_system_interface,
+	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.user.entity_id)]
     }
 }
 

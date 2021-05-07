@@ -200,10 +200,3 @@ void OtherAlertableEntity::getAlerts(lua_State* vm, ScriptPeriodicity periodicit
       getPeriodicityAlerts(vm, (ScriptPeriodicity)p, type_filter, severity_filter, idx);
   }
 }
-
-/* ****************************************** */
-
-u_int OtherAlertableEntity::getNumEngagedAlertsByPeriodicity(ScriptPeriodicity p) const {
-  return engaged_alerts[p].size();
-}
-

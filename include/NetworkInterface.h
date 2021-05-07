@@ -995,6 +995,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   virtual bool reproducePcapOriginalSpeed() const         { return(false);             }
   u_int32_t getNumEngagedAlerts() const;
+  void luaNumEngagedAlerts(lua_State *vm) const;
   void releaseAllEngagedAlerts();
 
   virtual void flowAlertsDequeueLoop(); /* Body of the loop that dequeues flows for the execution of user script hooks */

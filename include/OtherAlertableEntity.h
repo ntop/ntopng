@@ -64,8 +64,6 @@ public:
 				 ScriptPeriodicity p) {
     alert_cache[(u_int)p][key] = value;
   }
-
-  u_int getNumEngagedAlertsByPeriodicity(ScriptPeriodicity p) const;
   
   bool triggerAlert(lua_State* vm, std::string key,
 		    ScriptPeriodicity p, time_t now,
