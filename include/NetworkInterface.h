@@ -985,7 +985,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline u_int64_t getNumAlertsQueries()		  { return(num_alerts_queries); }
   void walkAlertables(AlertEntity alert_entity, const char *entity_value,
 		      AddressTree *allowed_nets, alertable_callback *callback, void *user_data);
-  void getEngagedAlertsCount(lua_State *vm, AlertEntity alert_entity, const char *entity_value, AddressTree *allowed_nets);
   void getEngagedAlerts(lua_State *vm, AlertEntity alert_entity, const char *entity_value, AlertType alert_type,
 			AlertLevel alert_severity, AddressTree *allowed_nets);
 

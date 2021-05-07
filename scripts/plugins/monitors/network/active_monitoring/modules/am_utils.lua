@@ -2,6 +2,9 @@
 -- (C) 2019-21 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
+
 local am_utils = {}
 local ts_utils = require "ts_utils_core"
 local format_utils = require "format_utils"
@@ -777,7 +780,6 @@ end
 --        `am_host` is one of the hosts obtained with `am_utils.getHosts()`
 -- @return True if the host has engaged alerts, false otherwise
 function am_utils.hasAlerts(am_host)
-   local alert_utils = require "alert_utils"
    local am_key = am_utils.getAmHostKey(am_host.host, am_host.measurement)
    local entity_info = alerts_api.amThresholdCrossEntity(am_key)
 
@@ -786,13 +788,12 @@ function am_utils.hasAlerts(am_host)
    local old_ifid = interface.getId()
    interface.select(getSystemInterfaceId())
 
-   local num_engaged_alerts = alert_utils.getNumAlerts("engaged", {
-							  entity = entity_info.alert_entity.entity_id,
-							  entity_val = entity_info.entity_val })
+   local am_alert_store = require "am_alert_store".new()
+   local engaged = am_alert_store:select_engaged(am_key)
 
    interface.select(tostring(old_ifid))
 
-   return num_engaged_alerts > 0
+   return engaged and #engaged > 0
 end
 
 -- ##############################################

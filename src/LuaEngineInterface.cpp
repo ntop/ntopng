@@ -893,25 +893,6 @@ static int ntop_interface_release_external_alert(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_get_engaged_alerts_count(lua_State* vm) {
-  AlertEntity entity_type = alert_entity_none;
-  const char *entity_value = NULL;
-  NetworkInterface *iface = getCurrentInterface(vm);
-  AddressTree *allowed_nets = get_allowed_nets(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!iface) return(CONST_LUA_ERROR);
-
-  if(lua_type(vm, 1) == LUA_TNUMBER) entity_type = (AlertEntity)lua_tointeger(vm, 1);
-  if(lua_type(vm, 2) == LUA_TSTRING) entity_value = (char*)lua_tostring(vm, 2);
-
-  iface->getEngagedAlertsCount(vm, entity_type, entity_value, allowed_nets);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_interface_get_engaged_alerts(lua_State* vm) {
   AlertEntity entity_type = alert_entity_none;
   const char *entity_value = NULL;
@@ -4647,7 +4628,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "releaseExternalAlert",   ntop_interface_release_external_alert   },
   { "checkContext",           ntop_interface_check_context            },
   { "getEngagedAlerts",       ntop_interface_get_engaged_alerts       },
-  { "getEngagedAlertsCount",  ntop_interface_get_engaged_alerts_count },
   { "getAlerts",              ntop_interface_get_alerts               },
   { "releaseEngagedAlerts",   ntop_interface_release_engaged_alerts   },
   { "incTotalHostAlerts",     ntop_interface_inc_total_host_alerts    },

@@ -219,21 +219,6 @@ end
 
 -- #################################
 
-local function getNumEngagedAlerts(options)
-  local entity_type_filter = tonumber(options.entity)
-  local entity_value_filter = options.entity_val
-
-  local res = interface.getEngagedAlertsCount(entity_type_filter, entity_value_filter)
-
-  if(res ~= nil) then
-    return(res.num_alerts)
-  end
-
-  return(0)
-end
-
--- #################################
-
 -- Remove pagination options from the options
 local function getUnpagedAlertOptions(options)
    local res = {}
