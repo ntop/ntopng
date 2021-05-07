@@ -6,8 +6,6 @@
     {name: 'count_group_warning', data: 'count_group_warning', className: 'text-right font-weight-bold', width: '15%', render: DataTableRenders.hideIfZero},
     {name: 'count_group_error_or_higher', data: 'count_group_error_or_higher', className: 'text-right font-weight-bold', width: '15%', render: DataTableRenders.hideIfZero},
     /* Total Counts */
-    {name: 'count', data: 'count', className: 'text-right font-weight-bold', width: '15%', render: DataTableRenders.hideIfZero},
-    /* Score */
-    {name: 'score', data: 'score', className: 'text-right font-weight-bold', width: '15%', render: DataTableRenders.hideIfZero},
+    {name: 'count', data: 'count', className: 'text-right font-weight-bold', width: '15%', render: DataTableRenders.hideIfZero}
 
 ]

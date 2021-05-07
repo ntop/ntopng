@@ -1,8 +1,7 @@
 <tr>
-    <th><i class="fas fa-glasses"></i></th>
+    <th>&nbsp;</th>
     <th>{{ i18n("severity_groups.group_notice_or_lower") }}</th>
     <th>{{ i18n("severity_groups.group_warning") }}</th>
     <th>{{ i18n("severity_groups.group_error_or_higher") }}</th>
     <th>{{ i18n("total_alerts") }}</th>
-    <th>{{ i18n("total_score") }}</th>
 </tr>
