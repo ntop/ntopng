@@ -359,6 +359,48 @@ end
 
 -- ##############################################
 
+--@brief Pad missing points with zeroes and prepare the series
+function alert_store:_prepare_count_by_severity_and_time_series(all_severities, min_slot, max_slot, time_slot_width)
+   -- Pad missing points with zeroes
+   for _, severity in pairs(alert_severities) do
+      local severity_id = tonumber(severity.severity_id)
+
+      -- Empty series for this severity, skip
+      if not all_severities[severity_id] then goto skip_severity_pad end
+
+      for slot = min_slot, max_slot + 1, time_slot_width do
+	 if not all_severities[severity_id].all_slots[slot] then
+	    all_severities[severity_id].all_slots[slot] = 0
+	 end
+      end
+
+      ::skip_severity_pad::
+   end
+
+   -- Prepare the result as a Lua array ordered by time slot
+   local res = {}
+   for _, severity in pairs(alert_severities) do
+      local severity_id = tonumber(severity.severity_id)
+
+      -- Empty series for this severity, skip
+      if not all_severities[severity_id] then goto skip_severity_prep end
+
+      local severity_res = {}
+
+      for slot, count in pairsByKeys(all_severities[severity_id].all_slots, asc) do
+	 severity_res[#severity_res + 1] = {slot * 1000 --[[ In milliseconds --]], count}
+      end
+
+      res[severity_id] = severity_res
+
+      ::skip_severity_prep::
+   end
+
+   return res
+end
+
+-- ##############################################
+
 --@brief Counts the number of engaged alerts in multiple time slots
 function alert_store:count_by_severity_and_time_engaged(filter, severity)
    local min_slot, max_slot, time_slot_width = self:_count_by_time_get_bounds()
@@ -375,6 +417,8 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
 
    -- Calculate minimum and maximum slots to make sure the response always returns consecutive time slots, possibly filled with zeroes
    for _, alert in ipairs(alerts) do
+      local severity_id = alert.severity
+
       local tstamp = tonumber(alert.tstamp)
       local cur_slot = tstamp - (tstamp % time_slot_width)
 
@@ -382,7 +426,6 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
       if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
       if self._epoch_end and tstamp > self._epoch_end then goto continue end
 
-      local severity_id = alert.severity
       if not all_severities[severity_id] then all_severities[severity_id] = {} end
       if not all_severities[severity_id].all_slots then all_severities[severity_id].all_slots = {} end
 
@@ -391,38 +434,13 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
       ::continue::
    end
 
-   -- Pad missing points with zeroes
-   for _, severity in pairs(alert_severities) do
-      local severity_id = tonumber(severity.severity_id)
-      if not all_severities[severity_id] then all_severities[severity_id] = {} end
-      if not all_severities[severity_id].all_slots then all_severities[severity_id].all_slots = {} end
-
-      for slot = min_slot, max_slot + 1, time_slot_width do
-	 if not all_severities[severity_id].all_slots[slot] then
-	    all_severities[severity_id].all_slots[slot] = 0
-	 end
-      end
-   end
-
-   -- Prepare the result as a Lua array ordered by time slot
-   local res = {}
-   for _, severity in pairs(alert_severities) do
-      local severity_id = tonumber(severity.severity_id)
-      local severity_res = {}
-      for slot, count in pairsByKeys(all_severities[severity_id].all_slots, asc) do
-	 severity_res[#severity_res + 1] = {slot * 1000 --[[ In milliseconds --]], count}
-      end
-
-      res[severity_id] = severity_res
-   end
-
-   return res
+   return self:_prepare_count_by_severity_and_time_series(all_severities, min_slot, max_slot, time_slot_width)
 end
 
 -- ##############################################
 
 --@brief Performs a query and counts the number of records in multiple time slots
-function alert_store:count_by_severity_and_time_historical(suppress_zero_series)
+function alert_store:count_by_severity_and_time_historical()
    -- Preserve all the filters currently set
    local min_slot, max_slot, time_slot_width = self:_count_by_time_get_bounds()
    local where_clause = table.concat(self._where, " AND ")
@@ -442,69 +460,35 @@ function alert_store:count_by_severity_and_time_historical(suppress_zero_series)
    -- Read points from the query
    for _, p in ipairs(q_res) do
       local severity_id = tonumber(p.severity)
-      local cur_slot = tonumber(p.slot)
-      local cur_count = tonumber(p.count)
 
       if not all_severities[severity_id] then all_severities[severity_id] = {} end
       if not all_severities[severity_id].all_slots then all_severities[severity_id].all_slots = {} end
 
       -- Make sure slots are within the requested bounds
+      local cur_slot = tonumber(p.slot)
+      local cur_count = tonumber(p.count)
       if cur_slot >= min_slot and cur_slot <= max_slot then
 	 all_severities[severity_id].all_slots[cur_slot] = cur_count
       end
    end
 
-   -- Pad missing points with zeroes
-   for _, severity in pairs(alert_severities) do
-      local severity_id = tonumber(severity.severity_id)
-      if not all_severities[severity_id] then all_severities[severity_id] = {} end
-      if not all_severities[severity_id].all_slots then all_severities[severity_id].all_slots = {} end
-
-      for slot = min_slot, max_slot + 1, time_slot_width do
-	 if not all_severities[severity_id].all_slots[slot] then
-	    all_severities[severity_id].all_slots[slot] = 0
-	 end
-      end
-   end
-
-   -- Prepare the result as an array ordered by time slot
-   local res = {}
-   for _, severity in pairs(alert_severities) do
-      local severity_id = tonumber(severity.severity_id)
-      local severity_res = {}
-      local total = 0
-      
-      for slot, count in pairsByKeys(all_severities[severity_id].all_slots, asc) do
-	 severity_res[#severity_res + 1] = {slot * 1000 --[[ In milliseconds --]], count}
-	 total = total + count
-      end
-
-      if(suppress_zero_series == nil) then
-	 res[severity_id] = severity_res
-      else
-	 if(total > 0) then
-	    res[severity_id] = severity_res
-	 end
-      end
-   end
-
-   return res
+   return self:_prepare_count_by_severity_and_time_series(all_severities, min_slot, max_slot, time_slot_width)
 end
 
 -- ##############################################
 
 --@brief Count from memory (engaged) or database (historical)
 --@return Alert counters divided into severity and time slots
-function alert_store:count_by_severity_and_time(suppress_zero_series)
+function alert_store:count_by_severity_and_time()
    -- Add filters
    self:add_request_filters()
    -- Add limits and sort criteria
    self:add_request_ranges()
 
    if self._engaged then -- Engaged
-      return self:count_by_severity_and_time_engaged(suppress_zero_series)
+      return self:count_by_severity_and_time_engaged()
    else -- Historical
-      return self:count_by_severity_and_time_historical(suppress_zero_series)
+      return self:count_by_severity_and_time_historical()
    end
 end
 
@@ -515,15 +499,13 @@ end
 
 --@brief Handle count requests (GET) from memory (engaged) or database (historical)
 --@return Alert counters divided into severity and time slots
-function alert_store:count_by_severity_and_time_request(suppress_zero_series)
+function alert_store:count_by_severity_and_time_request()
    local res = {
       series = {},
-      --fill = {
-         colors = {}
-      --}
+      colors = {}
    }
 
-   local count_data = self:count_by_severity_and_time(suppress_zero_series)
+   local count_data = self:count_by_severity_and_time()
 
    for _, severity in pairsByField(alert_severities, "severity_id", rev) do
       if(count_data[severity.severity_id] ~= nil) then
@@ -533,7 +515,6 @@ function alert_store:count_by_severity_and_time_request(suppress_zero_series)
 	 }
 	 res.colors[#res.colors + 1] = severity.color
       end
-
    end
 
    return res
