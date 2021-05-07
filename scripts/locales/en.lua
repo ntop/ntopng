@@ -560,7 +560,7 @@ local lang = {
     ["slow_purge"] = "<a href=\"%{url}\">Hash table idle entries</a> purging on %{iface} is too slow. This could lead to high memory utilization, data accuracy loss and missing alerts. [%{idle}%% &gt %{max_idle}%%]",
     ["speedtest_failed"] = "Speedtest execution failed",
     ["subject_quota_exceeded"] = "Host pool <a href=\"%{url}\">%{pool}</a> exceeded %{subject} quota [%{value} &gt; %{quota}]",
-    ["suspicious_dga_domain"] = " [ Suspicious DGA Domain Contacted : %{domain} ] ",
+    ["suspicious_dga_domain"] = "Suspicious DGA Domain [%{domain}]",
     ["syn_flood_attacker"] = "%{entity} is a SYN flooder [%{value} &gt; %{threshold} SYN/sec sent for ~3 sec]",
     ["syn_flood_victim"] = "%{entity} is under SYN flood attack [%{value} &gt; %{threshold} SYN/sec received for ~3 sec]",
     ["syn_scan_attacker"] = "%{entity} is a SYN scan attacker [%{value} &gt; %{threshold} SYN sent]",
