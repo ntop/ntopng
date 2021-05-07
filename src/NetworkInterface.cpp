@@ -293,12 +293,11 @@ void NetworkInterface::init() {
   num_written_alerts = num_alerts_queries = 0;
   score_as_cli = score_as_srv = 0;
   memset(live_captures, 0, sizeof(live_captures));
-  num_alerts_engaged = 0;
+  memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
   tot_num_anomalies.local_hosts = tot_num_anomalies.remote_hosts = 0;
   num_active_alerted_flows_notice = 0,
     num_active_alerted_flows_warning = 0,
     num_active_alerted_flows_error = 0;
-  has_stored_alerts = false;
 
   is_view = false;
   viewed_by = NULL;
@@ -5725,7 +5724,6 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
   lua_push_bool_table_entry(vm, "has_seen_external_alerts", hasSeenExternalAlerts());
   lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
-  lua_push_bool_table_entry(vm, "has_alerts", hasAlerts());
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
   luaAlertedFlows(vm);
   lua_push_uint64_table_entry(vm, "num_dropped_alerts", getNumDroppedAlertsSinceReset());
@@ -6566,9 +6564,6 @@ void NetworkInterface::allocateStructures() {
   // Keep format in sync with alerts_api.interfaceAlertEntity(ifid)
   snprintf(buf, sizeof(buf), "%d", get_id());
   setEntityValue(buf);
-
-  refreshHasAlerts();
-
   reloadGwMacs();
 }
 
@@ -8373,6 +8368,35 @@ void NetworkInterface::getEngagedAlertsCount(lua_State *vm, AlertEntity alert_en
   /* Total */
   lua_push_int32_table_entry(vm, "num_alerts", tot_alerts);
 }
+
+/* *************************************** */
+
+void NetworkInterface::incNumAlertsEngaged(AlertEntity alert_entity) {
+  u_int i = alert_entity;
+
+  if(i < ALERT_ENTITY_MAX_NUM_ENTITIES)
+    num_alerts_engaged[i]++;
+}
+
+/* *************************************** */
+
+void NetworkInterface::decNumAlertsEngaged(AlertEntity alert_entity) {
+  u_int i = alert_entity;
+
+  if(i < ALERT_ENTITY_MAX_NUM_ENTITIES)
+    num_alerts_engaged[i]--;
+}
+
+/* *************************************** */
+
+u_int32_t NetworkInterface::getNumEngagedAlerts() const {
+  u_int32_t tot_engaged_alerts = 0;
+
+  for(int i = 0; i < ALERT_ENTITY_MAX_NUM_ENTITIES; i++)
+    tot_engaged_alerts += num_alerts_engaged[i];
+
+  return tot_engaged_alerts;
+};
 
 /* *************************************** */
 

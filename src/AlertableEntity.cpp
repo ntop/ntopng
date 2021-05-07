@@ -43,7 +43,7 @@ AlertableEntity::~AlertableEntity() {
 
 /* Increase interface and instance number of engaged alerts */
 void AlertableEntity::incNumAlertsEngaged() {
-  alert_iface->incNumAlertsEngaged();
+  alert_iface->incNumAlertsEngaged(getEntityType());
   num_engaged_alerts++;
 };
 
@@ -51,7 +51,7 @@ void AlertableEntity::incNumAlertsEngaged() {
 
 /* Decrease interface and instance number of engaged alerts */
 void AlertableEntity::decNumAlertsEngaged() {
-  alert_iface->decNumAlertsEngaged();
+  alert_iface->decNumAlertsEngaged(getEntityType());
   num_engaged_alerts--;
 };
 

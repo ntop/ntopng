@@ -42,12 +42,7 @@ class OtherAlertableEntity : public AlertableEntity {
   */
   std::map<std::string, std::string> alert_cache[MAX_NUM_PERIODIC_SCRIPTS];
   std::map<std::string, Alert> engaged_alerts[MAX_NUM_PERIODIC_SCRIPTS];
-  RwLock *locks[MAX_NUM_PERIODIC_SCRIPTS];
 
-  RwLock* getLock(ScriptPeriodicity p);
-  void rdLock(ScriptPeriodicity p, const char *filename, int line);
-  void wrLock(ScriptPeriodicity p, const char *filename, int line);
-  void unlock(ScriptPeriodicity p, const char *filename, int line);
   void getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity p,
 				AlertType type_filter, AlertLevel severity_filter, u_int *idx);
 

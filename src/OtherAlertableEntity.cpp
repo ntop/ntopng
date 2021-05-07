@@ -24,57 +24,11 @@
 /* ****************************************** */
 
 OtherAlertableEntity::OtherAlertableEntity(NetworkInterface *iface, AlertEntity entity) : AlertableEntity(iface, entity) {
-  for(u_int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++)
-    locks[i] = NULL;
 }
 
 /* ****************************************** */
 
 OtherAlertableEntity::~OtherAlertableEntity() {
-  for(u_int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++) {
-    if(locks[i])
-      delete locks[i];
-  }
-}
-
-/* ****************************************** */
-
-RwLock* OtherAlertableEntity::getLock(ScriptPeriodicity p) {
-  try {
-    if(locks[(u_int)p] || (locks[(u_int)p] = new RwLock()))
-      return locks[(u_int)p];
-  } catch(std::bad_alloc& ba) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Memory allocation error");
-  }
-
-  return NULL;
-}
-
-/* ****************************************** */
-
-void OtherAlertableEntity::rdLock(ScriptPeriodicity p, const char *filename, int line) {
-  RwLock *rwl;
-
-  if((rwl = getLock(p)))
-    rwl->rdlock(filename, line);
-}
-
-/* ****************************************** */
-
-void OtherAlertableEntity::wrLock(ScriptPeriodicity p, const char *filename, int line) {
-  RwLock *rwl;
-
-  if((rwl = getLock(p)))
-    rwl->wrlock(filename, line);
-}
-
-/* ****************************************** */
-
-void OtherAlertableEntity::unlock(ScriptPeriodicity p, const char *filename, int line) {
-  RwLock *rwl;
-
-  if((rwl = getLock(p)))
-    rwl->unlock(filename, line);
 }
 
 /* ****************************************** */
@@ -109,7 +63,7 @@ bool OtherAlertableEntity::triggerAlert(lua_State* vm, std::string key,
   if(getEntityValue().empty()) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "setEntityValue() not called or empty entity_val");
   } else {
-    wrLock(p, __FILE__, __LINE__);
+    engaged_alerts_lock.wrlock(__FILE__, __LINE__);
 
     it = engaged_alerts[(u_int)p].find(key);
 
@@ -132,7 +86,7 @@ bool OtherAlertableEntity::triggerAlert(lua_State* vm, std::string key,
       rv = true; /* Actually inserted */
     }
 
-    unlock(p, __FILE__, __LINE__);
+    engaged_alerts_lock.unlock(__FILE__, __LINE__);
   }
 
   if(!rv)
@@ -149,7 +103,7 @@ bool OtherAlertableEntity::releaseAlert(lua_State* vm,
   bool rv = false;
 
   if(!engaged_alerts[(u_int)p].empty()) {
-    wrLock(p, __FILE__, __LINE__);
+    engaged_alerts_lock.wrlock(__FILE__, __LINE__);
 
     it = engaged_alerts[(u_int)p].find(key);
 
@@ -171,7 +125,7 @@ bool OtherAlertableEntity::releaseAlert(lua_State* vm,
       rv = true; /* Actually released */
     }
 
-    unlock(p, __FILE__, __LINE__);
+    engaged_alerts_lock.unlock(__FILE__, __LINE__);
   }
 
   if(!rv)
@@ -189,7 +143,7 @@ void OtherAlertableEntity::countAlerts(grouped_alerts_counters *counters) {
     ScriptPeriodicity p = (ScriptPeriodicity)i;
 
     if(!engaged_alerts[p].empty()) {
-      rdLock(p, __FILE__, __LINE__);
+      engaged_alerts_lock.rdlock(__FILE__, __LINE__);
 
       for(it = engaged_alerts[p].begin(); it != engaged_alerts[p].end(); ++it) {
 	const Alert *alert = &it->second;
@@ -198,7 +152,7 @@ void OtherAlertableEntity::countAlerts(grouped_alerts_counters *counters) {
 	counters->types[std::make_pair(getEntityType(), alert->alert_id)]++;
       }
 
-      unlock(p, __FILE__, __LINE__);
+      engaged_alerts_lock.unlock(__FILE__, __LINE__);
     }
   }
 }
@@ -210,7 +164,7 @@ void OtherAlertableEntity::getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity
   std::map<std::string, Alert>::const_iterator it;
 
   if(!engaged_alerts[p].empty()) {
-    rdLock(p, __FILE__, __LINE__);
+    engaged_alerts_lock.rdlock(__FILE__, __LINE__);
 
     for(it = engaged_alerts[p].begin(); it != engaged_alerts[p].end(); ++it) {
       const Alert *alert = &it->second;
@@ -228,7 +182,7 @@ void OtherAlertableEntity::getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity
       }
     }
 
-    unlock(p, __FILE__, __LINE__);
+    engaged_alerts_lock.unlock(__FILE__, __LINE__);
   }
 }
 

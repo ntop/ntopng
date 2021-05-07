@@ -76,7 +76,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   const char *customIftype;
   u_int8_t purgeRuns;  
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
-  std::atomic<u_int32_t> num_alerts_engaged; /* Possibly touched by multiple concurrent threads */
+  u_int32_t num_alerts_engaged[ALERT_ENTITY_MAX_NUM_ENTITIES];
   /* Counters for active alerts. Changed by multiple concurrent threads */
   std::atomic<u_int64_t> num_active_alerted_flows_notice;  /* Counts all flow alerts with severity <= notice  */
   std::atomic<u_int64_t> num_active_alerted_flows_warning; /* Counts all flow alerts with severity == warning */
@@ -87,7 +87,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   struct {
     u_int32_t local_hosts, remote_hosts;
   } tot_num_anomalies;
-  bool has_stored_alerts;
   AlertsQueue *alertsQueue;
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   PeriodicityMap *pMap;
@@ -977,11 +976,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void incNumAlertedFlows(Flow *f, AlertLevel severity);
   void decNumAlertedFlows(Flow *f, AlertLevel severity);
   virtual u_int64_t getNumActiveAlertedFlows()      const;
-  inline void setHasAlerts(bool has_stored_alerts)        { this->has_stored_alerts = has_stored_alerts; }
-  inline void incNumAlertsEngaged()                       { num_alerts_engaged++; }
-  inline void decNumAlertsEngaged()                       { num_alerts_engaged--; }
-  inline bool hasAlerts()                                 { return(has_stored_alerts || (getNumEngagedAlerts() > 0)); }
-  inline void refreshHasAlerts()                          { has_stored_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
+  void incNumAlertsEngaged(AlertEntity alert_entity);
+  void decNumAlertsEngaged(AlertEntity alert_entity);
   inline void incNumDroppedAlerts(u_int32_t num_dropped)  { num_dropped_alerts += num_dropped; }
   inline void incNumWrittenAlerts()			  { num_written_alerts++; }
   inline void incNumAlertsQueries()			  { num_alerts_queries++; }
@@ -998,7 +994,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void unlockExternalAlertable(AlertableEntity *entity);
 
   virtual bool reproducePcapOriginalSpeed() const         { return(false);             }
-  inline u_int32_t getNumEngagedAlerts()    const         { return num_alerts_engaged; };
+  u_int32_t getNumEngagedAlerts() const;
   void releaseAllEngagedAlerts();
 
   virtual void flowAlertsDequeueLoop(); /* Body of the loop that dequeues flows for the execution of user script hooks */

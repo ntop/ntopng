@@ -393,7 +393,7 @@ print[[
 			}
 		}
 
-		if((rsp.engaged_alerts > 0 || rsp.has_alerts > 0 || rsp.alerted_flows > 0) && $("#alerts-id").is(":visible") == false) {
+		if((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && $("#alerts-id").is(":visible") == false) {
 		  $("#alerts-id").show();
 		}
 

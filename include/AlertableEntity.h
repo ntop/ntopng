@@ -31,10 +31,11 @@ class AlertableEntity {
   AlertEntity entity_type;
   std::string entity_val;
   NetworkInterface *alert_iface;
+  u_int num_engaged_alerts;
 
-  std::atomic<u_int> num_engaged_alerts;
+ protected:  
+  RwLock engaged_alerts_lock; /* Lock to handle concurrent access from the GUI */
 
- protected:
   void incNumAlertsEngaged();
   void decNumAlertsEngaged();
 

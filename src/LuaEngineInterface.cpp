@@ -749,26 +749,6 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_set_has_alerts(lua_State* vm) {
-  bool has_alerts;
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  has_alerts = lua_toboolean(vm, 1);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  ntop_interface->setHasAlerts(has_alerts);
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_interface_get_pods_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4659,7 +4639,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "alert_store_query",      ntop_interface_alert_store_query        },
   { "queryAlertsRaw",         ntop_interface_query_alerts_raw         },
   { "queryFlowAlertsRaw",     ntop_interface_query_flow_alerts_raw    },
-  { "setInterfaceHasAlerts",  ntop_interface_set_has_alerts           },
   { "getCachedAlertValue",    ntop_interface_get_cached_alert_value   },
   { "setCachedAlertValue",    ntop_interface_set_cached_alert_value   },
   { "storeTriggeredAlert",    ntop_interface_store_triggered_alert    },

@@ -33,8 +33,6 @@ class HostAlertableEntity : public AlertableEntity {
   
   HostAlert *engaged_alerts[NUM_DEFINED_HOST_CALLBACKS]; /* List of engaged alerts for each callback */
 
-  RwLock engaged_alerts_lock; /* Lock to handle concurrent access from the GUI */
-
   void clearEngagedAlerts();
   void luaAlert(lua_State* vm, HostAlert *alert);
 

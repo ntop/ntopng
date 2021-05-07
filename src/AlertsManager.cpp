@@ -465,8 +465,6 @@ int AlertsManager::storeAlert(time_t tstart, time_t tend, int granularity, Alert
 
     m.lock(__FILE__, __LINE__);
 
-    iface->setHasAlerts(true);
-
     /* If alert tstart and tend coincide, that is, if the alert wasn't engaged, we try and aggregated it to
        solve issues such as https://github.com/ntop/ntopng/issues/3430 */
     if(tstart == tend) {
@@ -901,8 +899,6 @@ out:
 
   if((rc == 0) && (cur_rowid != (u_int64_t)-1))
     *rowid = cur_rowid;
-
-  iface->setHasAlerts(true);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s", alert_json);
 

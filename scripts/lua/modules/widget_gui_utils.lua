@@ -112,9 +112,10 @@ function widget_gui_utils.register_timeseries_bar_chart(name, update_time, datas
                     datetimeUTC = false,
                 },
                 axisBorder = {
-                    show = false
+                    show = true
                 },
                 axisTicks = {
+		   show = false
                 },
             },
             yaxis = {
