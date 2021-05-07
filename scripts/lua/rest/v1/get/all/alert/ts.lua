@@ -34,9 +34,7 @@ interface.select(ifid)
 
 local res = {
    series = {},
-   fill = {
-      colors = {}
-   }
+   colors = {}
 }
 
 local count_data = all_alert_store:count_by_severity_and_time(true)
@@ -48,7 +46,7 @@ for _, severity in pairsByField(alert_severities, "severity_id", rev) do
 	 data = count_data[severity.severity_id],
       }
       
-      res.fill.colors[#res.fill.colors + 1] = severity.color
+      res.colors[#res.colors + 1] = severity.color
    end
 end
 
