@@ -131,6 +131,7 @@ void HostAlertableEntity::luaAlert(lua_State* vm, HostAlert *alert) {
   lua_push_int32_table_entry(vm,  "alert_id", alert->getAlertType().id);
   lua_push_str_table_entry(vm,    "subtype", "" /* No subtype for hosts */);
   lua_push_int32_table_entry(vm,  "score", alert->getScore());
+  lua_push_int32_table_entry(vm,  "severity", Utils::mapScoreToSeverity(alert->getScore()));
   lua_push_int32_table_entry(vm,  "entity_id", alert_entity_host);
   lua_push_str_table_entry(vm,    "entity_val", alert->getHost()->getEntityValue().c_str());
   lua_push_uint64_table_entry(vm, "tstamp", alert->getEngageTime());
