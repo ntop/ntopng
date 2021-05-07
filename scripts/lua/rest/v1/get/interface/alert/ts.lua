@@ -32,6 +32,6 @@ end
 
 interface.select(ifid)
 
-local count_by_severity_and_time = interface_alert_store:count_by_severity_and_time()
+local res = interface_alert_store:count_by_severity_and_time_request()
 
-rest_utils.answer(rc, {series = {{ data = count_by_severity_and_time, name = i18n("alerts_dashboard.alerts") }}})
+rest_utils.answer(rc, res)
