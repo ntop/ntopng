@@ -518,9 +518,9 @@ end
 function alert_store:count_by_severity_and_time_request(suppress_zero_series)
    local res = {
       series = {},
-      fill = {
+      --fill = {
          colors = {}
-      }
+      --}
    }
 
    local count_data = self:count_by_severity_and_time(suppress_zero_series)
@@ -531,7 +531,7 @@ function alert_store:count_by_severity_and_time_request(suppress_zero_series)
 	    name = i18n(severity.i18n_title),
 	    data = count_data[severity.severity_id],
 	 }
-	 res.fill.colors[#res.fill.colors + 1] = severity.color
+	 res.colors[#res.colors + 1] = severity.color
       end
 
    end
