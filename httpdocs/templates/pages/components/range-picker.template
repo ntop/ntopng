@@ -82,16 +82,9 @@
 
             <div style="width: 30rem;" class="input-group">
                 <div class="input-group-prepend">
-    
-                    <button class="btn input-group-text dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-calendar-alt"></i>
-                    </button>
-    
-                    <div class="dropdown-menu">
-                        <div class="p-2">
-                        </div>
-                    </div>
-    
+		    <span class="input-group-text">
+		        <i class="fas fa-calendar-alt"></i>
+		    </span>
                 </div>
                 <input id='begin-epoch' type="text" aria-label="Begin" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-right-0" data-target="#begin-epoch">
                 <div class="input-group-prepend">
