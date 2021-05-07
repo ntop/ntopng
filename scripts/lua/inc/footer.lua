@@ -13,28 +13,23 @@ local page_utils = require "page_utils"
 local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo(true)
 local is_admin = isAdministrator()
+local maxSpeed
 
-interface.select(ifname)
-local iface_id = interface.name2id(ifname)
+local ifid = interface.getId()
+if page_utils.is_system_view() then
+   ifid = getSystemInterfaceId()
+end
+
+interface.select(tostring(ifid))
 local _ifstats = interface.getStats()
-local ifid = _ifstats.id
 
 if not interface.isPcapDumpInterface() and not have_nedge then
-   if(ifname ~= nil) then
-      maxSpeed = getInterfaceSpeed(_ifstats.id)
-   end
-   -- io.write(maxSpeed)
-   if((maxSpeed == "") or (maxSpeed == nil)) then
-      -- if the speed in not custom we try to read the speed from the interface
-      -- and, as a final resort, we use 1Gbps
-      if tonumber(_ifstats.speed) ~= nil then
-	 maxSpeed = tonumber(_ifstats.speed) * 1e6
-      else
-	 maxSpeed = 1000000000 -- 1 Gbit
-      end
+   -- if the speed in not custom we try to read the speed from the interface
+   -- and, as a final resort, we use 1Gbps
+   if tonumber(_ifstats.speed) ~= nil then
+      maxSpeed = tonumber(_ifstats.speed) * 1e6
    else
-      -- use the user-specified custom value for the speed
-      maxSpeed = tonumber(maxSpeed)*1000000
+      maxSpeed = 1000000000 -- 1 Gbit
    end
 end -- closes interface.isPcapDumpInterface() == false
 
@@ -246,7 +241,7 @@ $("#move-rrd-to-influxdb, #host-id-message-warning, #influxdb-error-msg").on("cl
 		data: {
 			csrf: ']] print(ntop.getRandomCSRFValue()) print[[',
 			action: this.id,
-			ifid: ]] print(string.format("%u", _ifstats.id)) print[[,
+			ifid: ]] print(string.format("%u", ifid)) print[[,
 		}
 	});
 });
@@ -370,16 +365,9 @@ print[[
 
 			var error_color = "#B94A48";
 
-			if (!systemInterfaceEnabled) {
-					if(rsp.engaged_alerts > 0) {
-						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/alert_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=host&status=engaged\">"
-						msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.engaged_alerts)+"</span></a>";
-					}
-			}
-			else if (rsp.system_host_stats.engaged_alerts > 0) {
-				/* Show engaged alerts also for the system interface (e.g., active monitoring engaged alerts) */
-				msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/system_stats.lua?page=alerts\">"
-				msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.system_host_stats.engaged_alerts)+"</span></a>";
+		        if(rsp.engaged_alerts > 0) {
+			        msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/alert_stats.lua?ifid=]] print(tostring(ifid)) print[[\">"
+				msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.engaged_alerts)+"</span></a>";
 			}
 
 			if(rsp.alerted_flows_warning > 0 && !(systemInterfaceEnabled)) {

@@ -147,7 +147,6 @@ function cpu_utils.systemHostStats()
 
    local system_host_stats =  ntop.systemHostStat()
    system_host_stats["cpu_states"] = cpu_utils.get_cpu_states()
-   system_host_stats["engaged_alerts"] = alert_utils.getNumAlerts("engaged", {})
 
    interface.select(tostring(cur_id))
 
