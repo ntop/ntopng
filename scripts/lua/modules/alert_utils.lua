@@ -267,27 +267,6 @@ end
 
 -- #################################
 
--- Faster than of getNumAlerts
-function alert_utils.hasAlerts(what, options)
-  if(what == "engaged") then
-    return(getNumEngagedAlerts(options) > 0)
-  end
-
-  local opts = getUnpagedAlertOptions(options or {})
-  -- limit 1
-  opts.perPage = 1
-  opts.currentPage = 1
-  local res = performAlertsQuery("SELECT rowid", what, opts)
-
-  if((res ~= nil) and (#res == 1)) then
-    return(true)
-  else
-    return(false)
-  end
-end
-
--- #################################
-
 local function engagedAlertsQuery(params)
   local type_filter = tonumber(params.alert_id)
   local entity_type_filter = tonumber(params.entity)
