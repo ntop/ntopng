@@ -826,7 +826,7 @@ function ts_utils.getPossiblyChangedSchemas()
       -- Interface timeseries
       "iface:alerted_flows",
       "iface:score",
-      
+
       -- Host timeseries
       "host:contacts", -- split in "as_client" and "as_server"
       "host:score", -- split in "cli_score" and "srv_score"
