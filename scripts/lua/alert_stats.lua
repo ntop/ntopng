@@ -15,7 +15,9 @@ local alert_entities = require "alert_entities"
 local Datasource = widget_gui_utils.datasource
 
 local ifid = interface.getId()
+
 -- Used to print badges next to navbar entries
+local num_alerts_engaged = interface.getStats()["num_alerts_engaged"]
 local num_alerts_engaged_by_entity = interface.getStats()["num_alerts_engaged_by_entity"]
 
 local CHART_NAME = "alert-timeseries"
@@ -27,7 +29,7 @@ local status = _GET["status"]
 -- If the status is not explicitly set, it is chosen between (engaged when there are engaged alerts) or historical when
 -- no engaged alert is currently active
 if not status then
-   if alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)] then
+   if (page == "all" and num_alerts_engaged > 0) or (alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)]) then
       status = "engaged"
    else
       status = "historical"
@@ -67,6 +69,7 @@ local pages = {
         label = i18n("all"),
         endpoint_list = "/lua/rest/v1/get/all/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/all/alert/ts.lua",
+	badge_num = num_alerts_engaged
    },
    {
         active = page == "host",

@@ -46,6 +46,90 @@ end
 
 -- ##############################################
 
+--@brief Selects engaged alerts from memory
+--@return Selected engaged alerts, and the total number of engaged alerts
+function alert_store:select_engaged(filter)
+   -- No filter, get all active interface alerts
+   local alerts = interface.getEngagedAlerts()
+   local alerts_by_entity_flat = {}
+   local alerts_by_entity = {}
+
+   local total_rows = 0
+   local sort_2_col = {}
+
+   -- Sort and filtering
+   for _, alert in pairs(alerts) do
+      local entity_id = alert.entity_id
+
+      -- Exclude alerts falling outside requested time ranges
+      local tstamp = tonumber(alert.tstamp)
+      if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
+      if self._epoch_end and tstamp > self._epoch_end then goto continue end
+
+      if not alerts_by_entity[entity_id] then
+	 -- Initialize grouped data with some defaults
+	 alerts_by_entity[entity_id] = {
+	    entity_id = entity_id, score = 0,
+	    count_group_notice_or_lower = 0, count_group_warning = 0, count_group_error_or_higher = 0,
+	    count = 0, tstamp = 0, tstamp_end = 0, json = '{}'
+	 }
+
+	 -- Preserve a reference in a table which is flattened
+	 alerts_by_entity_flat[#alerts_by_entity_flat + 1] = alerts_by_entity[entity_id]
+      end
+
+      alerts_by_entity[entity_id].score = alerts_by_entity[entity_id].score + alert.score
+      alerts_by_entity[entity_id].count = alerts_by_entity[entity_id].count + 1
+
+      local count_group
+      if alert.severity <= alert_severities.notice.severity_id then
+	 count_group = "count_group_notice_or_lower"
+      elseif alert.severity == alert_severities.warning.severity_id then
+	 count_group = "count_group_warning"
+      elseif alert.severity >= alert_severities.error.severity_id then
+	 count_group = "count_group_error_or_higher"
+      end
+
+      alerts_by_entity[entity_id][count_group] = alerts_by_entity[entity_id][count_group] + 1
+
+      ::continue::
+   end
+
+   -- Sort and filtering
+   for idx, alert in pairs(alerts_by_entity_flat) do
+      if self._order_by and self._order_by.sort_column and alert[self._order_by.sort_column] then
+	 sort_2_col[#sort_2_col + 1] = {idx = idx, val = tonumber(alert[self._order_by.sort_column]) or alert[self._order_by.sort_column]}
+      else
+	 sort_2_col[#sort_2_col + 1] = {idx = idx, val = count_group_error_or_higher}
+      end
+
+      total_rows = total_rows + 1
+   end
+
+   -- Pagination
+   local offset = self._offset or 0        -- The offset, or zero (start from the beginning) if no offset is set
+   local limit = self._limit or total_rows -- The limit, or the actual number of records, ie., no limit
+
+   local res = {}
+   local i = 0
+
+   for _, val in pairsByField(sort_2_col, "val", ternary(self._order_by and self._order_by.sort_order and self._order_by.sort_order == "asc", asc, rev)) do
+      if i >= offset + limit then
+	 break
+      end
+
+      if i >= offset then
+	 res[#res + 1] = alerts_by_entity_flat[val.idx]
+      end
+
+      i = i + 1
+   end
+
+   return res, total_rows
+end
+
+-- ##############################################
+
 function all_alert_store:select_historical(filter, fields)
    local res = {}
    local where_clause = ''
