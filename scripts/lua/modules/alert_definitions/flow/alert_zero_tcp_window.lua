@@ -18,7 +18,7 @@ local alert_zero_tcp_window = classes.class(alert)
 
 alert_zero_tcp_window.meta = {
    alert_key = flow_alert_keys.flow_alert_zero_tcp_window,
-   i18n_title = "flow_alerts_explorer.zero_tcp_window_title",
+   i18n_title = "flow_alerts_explorer.alert_zero_tcp_window_title",
    icon = "fas fa-fw fa-arrow-circle-up",
 }
 
@@ -41,7 +41,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_zero_tcp_window.format(ifid, alert, alert_type_params)
-   return i18n("flow_alerts_explorer.status_zero_tcp_window_description")
+   return i18n("flow_alerts_explorer.alert_zero_tcp_window_title")
 end
 
 -- #######################################################
