@@ -442,7 +442,7 @@ else
 				 active = page == "alerts",
 				 page_name = "alerts",
 				 label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
-				 url = hostinfo2detailsurl(host, {page = "alerts"})
+				 url = hostinfo2detailsurl(host, {page = ternary(host.num_alerts > 0, "engaged-alerts", "alerts")})
 			      },
 			      {
 				 hidden = not charts_available and not interfaceHasNindexSupport(),
