@@ -45,12 +45,12 @@ function alert_tls_certificate_mismatch.format(ifid, alert, alert_type_params)
    end
 
    local crts = {}
-   if not isEmptyString(alert_type_params["tls_crt.cli"]) then
-      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.client_requested"), alert_type_params["tls_crt.cli"]:gsub(",", ", "))
+   if not isEmptyString(alert_type_params["protos.tls.client_requested_server_name"]) then
+      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.client_requested"), alert_type_params["protos.tls.client_requested_server_name"]:gsub(",", ", "))
    end
 
-   if not isEmptyString(alert_type_params["tls_crt.srv"]) then
-      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.tls_server_names"), alert_type_params["tls_crt.srv"]:gsub(",", ", "))
+   if not isEmptyString(alert_type_params["protos.tls.server_names"]) then
+      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.tls_server_names"), alert_type_params["protos.tls.server_names"]:gsub(",", ", "))
    end
 
    return string.format("%s %s", i18n("flow_risk.ndpi_tls_certificate_mismatch"), table.concat(crts, ""))
