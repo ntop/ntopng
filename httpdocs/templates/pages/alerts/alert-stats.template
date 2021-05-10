@@ -549,16 +549,16 @@
                 }
                 else if (FAMILY === "flow") {
 
-                    const cliLabel = (alert.cli_ip.label) ? `${alert.cli_ip.label} (${alert.cli_ip.value})` : alert.cli_ip.value;
-                    const srvLabel = (alert.srv_ip.label) ? `${alert.srv_ip.label} (${alert.srv_ip.value})` : alert.srv_ip.value;
+                    const cliLabel = (alert.flow.cli_ip.label) ? `${alert.flow.cli_ip.label} (${alert.flow.cli_ip.value})` : alert.flow.cli_ip.value;
+                    const srvLabel = (alert.flow.srv_ip.label) ? `${alert.flow.srv_ip.label} (${alert.flow.srv_ip.value})` : alert.flow.srv_ip.value;
 
                     $(`#cli_addr`).text(cliLabel);
-                    $(`#cli_radio`).val(alert.cli_ip.value);
+                    $(`#cli_radio`).val(alert.flow.cli_ip.value);
                     $(`#srv_addr`).text(srvLabel);
-                    $(`#srv_radio`).val(alert.srv_ip.value);
+                    $(`#srv_radio`).val(alert.flow.srv_ip.value);
                 }
                 else {
-                    $(`.alert_entity_val`).text("Ah boh")
+                    $(`.alert_entity_val`).text("Unexpected alert family")
                 }
 
             },
