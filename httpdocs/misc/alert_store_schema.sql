@@ -176,7 +176,7 @@ CREATE INDEX IF NOT EXISTS `network_alerts_i_tstamp` ON `network_alerts`(tstamp)
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
-`ifid` INTEGER NOT NULL CHECK(`ifid` >= 0),
+`ifid` INTEGER NOT NULL CHECK(`ifid` >= -1),
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
 `name` TEXT NULL,
 `alias` TEXT NULL,

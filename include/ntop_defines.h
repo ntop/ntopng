@@ -877,7 +877,7 @@
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
 #define ALERTS_STORE_SCHEMA_FILE_NAME        "alert_store_schema.sql"
-#define ALERTS_STORE_DB_FILE_NAME            "alert_store_v02.db"
+#define ALERTS_STORE_DB_FILE_NAME            "alert_store_v03.db"
 
 #define NTOPNG_DATASOURCE_KEY                "ntopng.datasources"
 #define NTOPNG_DATASOURCE_URL                "/datasources/"
@@ -903,10 +903,10 @@
 #define HOURLY_SCRIPT_PATH                   "hourly.lua"
 #define DAILY_SCRIPT_PATH                    "daily.lua"
 
-#define CALLBACKS_CONFIG        "ntopng.prefs.user_scripts.configset_v3"  /* Sync with user_scripts.lua CONFIGSET_KEY  */
-#define ALERTS_CONFIG                "ntopng.prefs.alerts_config.configset_v3" /* Sync with alerts_config.lua CONFIGSET_KEY */
-#define SYSLOG_SCRIPT_PATH           "callbacks/system/syslog.lua"
-#define SYSLOG_SCRIPT_CALLBACK_EVENT "handleEvent"
+#define CALLBACKS_CONFIG                     "ntopng.prefs.user_scripts.configset_v3"  /* Sync with user_scripts.lua CONFIGSET_KEY  */
+#define ALERTS_CONFIG                        "ntopng.prefs.alerts_config.configset_v3" /* Sync with alerts_config.lua CONFIGSET_KEY */
+#define SYSLOG_SCRIPT_PATH                   "callbacks/system/syslog.lua"
+#define SYSLOG_SCRIPT_CALLBACK_EVENT         "handleEvent"
 
 /* GRE (Generic Route Encapsulation) */
 #ifndef IPPROTO_GRE
