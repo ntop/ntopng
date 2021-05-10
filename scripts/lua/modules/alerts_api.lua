@@ -540,7 +540,7 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
   local op_fn = user_scripts.operator_functions[threshold_config.operator] or user_scripts.operator_functions.gt
   if op_fn and op_fn(value, threshold) then alarmed = true end
 
-  tprint({params.cur_alerts, alert_type.meta, params.granularity, script.key --[[ the subtype--]], alarmed})
+  -- tprint({params.cur_alerts, alert_type.meta, params.granularity, script.key --[[ the subtype--]], alarmed})
 
   local alert = alert_type.new(
     params.user_script.key,
