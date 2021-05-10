@@ -305,6 +305,8 @@ local context = {
                 l7_proto = i18n("tags.l7proto"),
                 cli_ip = i18n("tags.cli_ip"),
                 srv_ip = i18n("tags.srv_ip"),
+                cli_port = i18n("tags.cli_port"),
+                srv_port = i18n("tags.srv_port"),
                 ip = i18n("tags.ip"),
                 network_name = i18n("tags.network")
             }
