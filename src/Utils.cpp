@@ -33,6 +33,8 @@ extern "C" {
 #include <ifaddrs.h>
 #endif
 
+static const char *hex_chars = "0123456789ABCDEF";
+
 static map<string, int> initTcpStatesStr2State() {
   map<string, int>states_map;
 
