@@ -280,7 +280,7 @@ end
 local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'}) 
 
 local toggle_engaged_alert = ([[
-    <div class='d-flex align-items-center mr-1'>
+    <div class='d-flex align-items-center mx-1'>
         <div class="btn-group" role="group">
             <a href=']] .. base_url .. [[&status=historical&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "historical", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.past") .. [[</a>
             <a href=']] .. base_url .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status ~= "historical", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. [[</a>

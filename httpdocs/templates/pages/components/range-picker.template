@@ -80,7 +80,7 @@
                             </div>
 
 
-            <div style="width: 30rem;" class="input-group">
+            <div style="width: 30rem;" class="input-group mx-1">
                 <div class="input-group-prepend">
 		    <span class="input-group-text">
 		        <i class="fas fa-calendar-alt"></i>
