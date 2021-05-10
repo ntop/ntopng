@@ -295,6 +295,7 @@ local context = {
     range_picker = {
         default = "30min",
         tags = {
+            enabled = page ~= "all",
             tag_operators = {tag_utils.tag_operators.eq},
             defined_tags = defined_tags[page],
             values = initial_tags,
