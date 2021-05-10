@@ -135,8 +135,7 @@ function host_alert_store:format_record(value, no_html)
    local host = hostinfo2hostkey(value)
    local reference_html = nil
 
-   local attacker = ""
-   local victim = ""
+   local attacker_or_victim = ""
    
    if not no_html then
       reference_html = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
@@ -163,12 +162,12 @@ function host_alert_store:format_record(value, no_html)
    record["alert_name"] = alert_name
 
    if value["is_attacker"] == "1" then
-      attacker = "Attacker"
+      attacker_or_victim = "Attacker"
    elseif value["is_victim"] == "1" then
-      victim = "Victim"   
+      attacker_or_victim = "Victim"   
    end
 
-   record["is_attacker_or_victim"] = attacker
+   record["is_attacker_or_victim"] = attacker_or_victim
    
    record["vlan_id"] = value["vlan_id"] or 0
    record["msg"] = msg
