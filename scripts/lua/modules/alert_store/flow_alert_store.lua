@@ -125,6 +125,36 @@ end
 
 -- ##############################################
 
+--@brief Add filters on client port
+--@param port The port
+--@return True if set is successful, false otherwise
+function flow_alert_store:add_cli_port_filter(port)
+   if not self._cli_port then
+      self._cli_port = port
+      self._where[#self._where + 1] = string.format("cli_port = '%s'", self._cli_port)
+      return true
+   end
+
+   return false
+end
+
+-- ##############################################
+
+--@brief Add filters on server port
+--@param port The port
+--@return True if set is successful, false otherwise
+function flow_alert_store:add_srv_port_filter(port)
+   if not self._srv_port then
+      self._srv_port = port
+      self._where[#self._where + 1] = string.format("srv_port = '%s'", self._srv_port)
+      return true
+   end
+
+   return false
+end
+
+-- ##############################################
+
 --@brief Add filters on VLAN ID
 --@param vlan_id The VLAN ID
 --@return True if set is successful, false otherwise
@@ -165,6 +195,8 @@ end
 function flow_alert_store:_add_additional_request_filters()
    local cli_ip = _GET["cli_ip"]
    local srv_ip = _GET["srv_ip"]
+   local cli_port = _GET["cli_port"]
+   local srv_port = _GET["srv_port"]
    local vlan_id = _GET["vlan_id"]
    local l7_proto = _GET["l7_proto"]
 
@@ -192,6 +224,20 @@ function flow_alert_store:_add_additional_request_filters()
       end
       if not isEmptyString(host["vlan"]) then
          self:add_vlan_id_filter(host["vlan"])
+      end
+   end
+
+   if not isEmptyString(cli_port) then
+      local port, op = self:strip_filter_operator(cli_port)
+      if not isEmptyString(port) then
+         self:add_cli_port_filter(port)
+      end
+   end
+
+   if not isEmptyString(srv_port) then
+      local port, op = self:strip_filter_operator(srv_port)
+      if not isEmptyString(port) then
+         self:add_srv_port_filter(port)
       end
    end
 
