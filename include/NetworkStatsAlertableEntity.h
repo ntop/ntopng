@@ -32,7 +32,7 @@ class NetworkStatsAlertableEntity : public OtherAlertableEntity {
  protected:
 
 public:
- NetworkStatsAlertableEntity(NetworkInterface *alert_iface, AlertEntity entity) : OtherAlertableEntity(alert_iface, entity) {};
+ NetworkStatsAlertableEntity(NetworkInterface *alert_iface) : OtherAlertableEntity(alert_iface, alert_entity_network) {};
   virtual ~NetworkStatsAlertableEntity() {};
 };
 

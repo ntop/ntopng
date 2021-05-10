@@ -392,7 +392,6 @@ function loadDefinition(def_script, mod_fname, script_path)
    end
 
    -- Add alert metadata to the script
-   def_script.meta.alert_entity = alert_entity
    alert_consts.alert_types[mod_fname] = def_script
 
    if not alerts_by_id[alert_entity_id] then

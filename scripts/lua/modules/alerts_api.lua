@@ -139,40 +139,6 @@ end
 
 -- ##############################################
 
---@brief Check if the `alert` belongs to an exclusion list
---! @param entity_info data returned by one of the entity_info building functions
---! @param type_info data returned by one of the type_info building functions
---@return True if the alert matches an exclusion list, false otherwise
-local function matchExcludeFilter(entity_info, type_info)
-   local user_scripts = require "user_scripts"
-
-   -- Subdir equals the entity id, e.g., "host", "interface", etc.
-   local cur_subdir = alert_consts.alertEntityRaw(entity_info.alert_entity.entity_id)
-
-   -- Check if the alert has a filter and thus should not be generated
-   local cur_filters = user_scripts.getFilters(current_configset, cur_subdir)
-
-   -- Prepare the context with alert data
-   local context = {
-      alert_id = type_info.alert_type.alert_key,
-      subtype = type_info.subtype,
-      entity_id = entity_info.alert_entity.entity_id,
-      entity_val = entity_info.entity_val,
-      json = type_info.alert_type_params,
-   }
-
-   if current_script and current_script.key and cur_filters then
-      if user_scripts.matchExcludeFilter(cur_filters, current_script, cur_subdir, context) then
-	 -- This alert is matching an exclusion filter. return, and do anything
-	 return true
-      end
-   end
-
-   return false
-end
-
--- ##############################################
-
 --! @param entity_info data returned by one of the entity_info building functions
 --! @param type_info data returned by one of the type_info building functions
 --! @param when (optional) the time when the release event occurs
@@ -213,11 +179,6 @@ function alerts_api.store(entity_info, type_info, when)
   }
 
   addAlertPoolInfo(entity_info, alert_to_store)
-
-  if matchExcludeFilter(entity_info, type_info) then
-     -- This alert is matching an exclusion filter. return, and do anything
-     return false
-  end
 
   recipients.dispatch_notification(alert_to_store, current_script)
 
@@ -270,33 +231,6 @@ end
 
 -- ##############################################
 
---! @brief Checks if a stateful alert should be triggered/released or if has already been triggered/released and there is nothing to do
---! @param cur_alerts a table containing triggered alerts for the current entity
---! @param candidate_type the candidate alert type
---! @param candidate_granularity the candidate alert granularity
---! @param candidate_alert_subtype the candidate alert subtype
---! @param trigger The intention of the caller to trigger this alert (true) or to release this alert (false)
---! @return True if the alert should be processed, or false if there is nothing to do
-function alerts_api.do_stateful_alert(cur_alerts, candidate_type, candidate_granularity, candidate_alert_subtype, trigger)
-   if not cur_alerts then
-      return false
-   end
-
-   local alert_key = candidate_type.meta.alert_key
-   local granularity = alert_consts.alerts_granularities[candidate_granularity]
-   local granularity_sec = granularity and granularity.granularity_seconds or 0
-
-   if trigger then
-      -- True if the alert has not been already triggered
-      return not already_triggered(cur_alerts, alert_key, granularity_sec, candidate_alert_subtype)
-   else --[[ release --]]
-      -- True if the alert was triggered
-      return already_triggered(cur_alerts, alert_key, granularity_sec, candidate_alert_subtype)
-   end
-end
-
--- ##############################################
-
 --! @brief Trigger an alert of given type on the entity
 --! @param entity_info data returned by one of the entity_info building functions
 --! @param type_info data returned by one of the type_info building functions
@@ -327,24 +261,9 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   type_info.alert_type_params = type_info.alert_type_params or {}
   addAlertGenerationInfo(type_info.alert_type_params)
 
-  -- Check whether this alert is matching an exclusion filter
-  local match_exclude_filter = matchExcludeFilter(entity_info, type_info)
-
   if(cur_alerts and already_triggered(cur_alerts, type_info.alert_type.alert_key, granularity_sec, subtype, true) == true) then
-     -- If there, the alert was already engaged at the time this function was called. Hence, if the alert
-     -- is matching the exclusion filter, the alert must actually be RELEASED.
-     -- NOTE: release is called without `cur_alerts` as there is no need to use this cache. Release MUST be done.
-     if match_exclude_filter then
-	return alerts_api.release(entity_info, type_info, when, nil --[[ Don't pass cur_alerts, don't want to use this cache --]])
-     else
-	-- Alert does not belong to an exclusion filter and it is already triggered. There's nothing to do, just return.
-	return true
-     end
-  end
-
-  if match_exclude_filter then
-     -- This alert is matching an exclusion filter. Return, and do not perform any trigger action.
-     return false
+     -- Alert does not belong to an exclusion filter and it is already triggered. There's nothing to do, just return.
+     return true
   end
 
   local alert_json = json.encode(type_info.alert_type_params)
@@ -453,15 +372,6 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   addAlertPoolInfo(entity_info, released)
 
   mark_release_notified(released)
-
-  if matchExcludeFilter(entity_info, type_info) then
-     -- This alert is matching an exclusion filter, return.
-     -- NOTE: this code is placed after the in-memory release (see <entity>.releaseTriggeredAlert calls above)
-     -- as we want to remove triggered alerts matching filters from memory. The only thing that
-     -- should be avoided is the generation of notifications causing the alert to be inserted into SQLite
-     -- and also sent to external endpoints
-     return false
-  end
 
   recipients.dispatch_notification(released, current_script)
 
@@ -630,14 +540,7 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
   local op_fn = user_scripts.operator_functions[threshold_config.operator] or user_scripts.operator_functions.gt
   if op_fn and op_fn(value, threshold) then alarmed = true end
 
-  -- tprint({params.cur_alerts, alert_type.meta, params.granularity, script.key --[[ the subtype--]], alarmed})
-
-  -- Check if there is work to do before creating an instance of the alert and doing the actual trigger release
-  if not alerts_api.do_stateful_alert(params.cur_alerts,
-				      alert_type, params.granularity, script.key --[[ the subtype --]], alarmed) then
-     -- Nothing to do. Alert either already triggered or already released
-     return
-  end
+  tprint({params.cur_alerts, alert_type.meta, params.granularity, script.key --[[ the subtype--]], alarmed})
 
   local alert = alert_type.new(
     params.user_script.key,
