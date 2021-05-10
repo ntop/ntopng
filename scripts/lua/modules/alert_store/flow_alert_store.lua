@@ -218,6 +218,9 @@ function flow_alert_store:format_record(value, no_html)
    local active_url = ""
    local historical_url = ""
 
+   local attacker = ""
+   local victim = ""
+   
    -- Add link to historical flow
    if interfaceHasNindexSupport() and not no_html then
       local href = string.format('%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s,eq&srv_ip=%s,eq&cli_port=%s,eq&srv_port=%s,eq&l4proto=%s,eq',
@@ -305,8 +308,18 @@ function flow_alert_store:format_record(value, no_html)
       value = value["proto"],
       label = l4_protocol
    }
-   record["is_attacker_to_victim"] = value["is_attacker_to_victim"] == "1"
-   record["is_victim_to_attacker"] = value["is_victim_to_attacker"] == "1"
+   
+   if value["is_attacker_to_victim"] == "1" then
+      attacker = cli_ip
+      victim = srv_ip
+   elseif value["is_victim_to_attacker"] == "1" then
+      attacker = srv_ip 
+      victim = cli_ip
+   end
+   
+   record["attacker"] = attacker 
+   record["victim"] = victim
+   
    record["l7_proto"] = {
       value = value["l7_proto"],
       label = l4_protocol..":"..l7_protocol
