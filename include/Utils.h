@@ -254,6 +254,7 @@ public:
 #ifndef WIN32
   static int mapSyslogFacilityTextToValue(const char *facility_text);
 #endif
+  static void buildSqliteAllowedNetworksFilters(lua_State *vm);
 };
 
 #endif /* _UTILS_H_ */

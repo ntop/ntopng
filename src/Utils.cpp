@@ -4833,3 +4833,125 @@ int Utils::mapSyslogFacilityTextToValue(const char *facility_text) {
   else return -1;
 }
 #endif
+
+/* ****************************************************** */
+
+static char* appendFilterString(char *filters, char *new_filter) {
+  if(!filters)
+    filters = strdup(new_filter);
+  else {
+    filters = (char*) realloc(filters, strlen(filters) + strlen(new_filter)
+      + sizeof(" OR "));
+
+    if(filters) {
+      strcat(filters, " OR ");
+      strcat(filters, new_filter);
+    }
+  }
+
+  return(filters);
+}
+
+struct sqlite_filter_data {
+  bool match_all;
+  char *hosts_filter;
+  char *flows_filter;
+};
+
+static void allowed_nets_walker(ndpi_patricia_node_t *node, void *data, void *user_data) {
+  struct sqlite_filter_data *filterdata = (sqlite_filter_data*)user_data;
+  struct in6_addr lower_addr;
+  struct in6_addr upper_addr;
+  ndpi_prefix_t *prefix = ndpi_patricia_get_node_prefix(node);
+  int bitlen = prefix->bitlen;
+  char lower_hex[33], upper_hex[33];
+  char hosts_buf[512], flows_buf[512];
+
+  if(filterdata->match_all)
+    return;
+
+  if(bitlen == 0) {
+    /* Match all, no filter necessary */
+    filterdata->match_all = true;
+
+    if(filterdata->hosts_filter) {
+      free(filterdata->hosts_filter);
+      filterdata->flows_filter = NULL;
+    }
+
+    if(filterdata->flows_filter) {
+      free(filterdata->flows_filter);
+      filterdata->flows_filter = NULL;
+    }
+
+    return;
+  }
+
+  if(prefix->family == AF_INET) {
+    memset(&lower_addr, 0, sizeof(lower_addr)-4);
+    memcpy(((char*)&lower_addr) + 12, &prefix->add.sin.s_addr, 4);
+
+    bitlen += 96;
+  } else
+    memcpy(&lower_addr, &prefix->add.sin6, sizeof(lower_addr));
+
+  /* Calculate upper address */
+  memcpy(&upper_addr, &lower_addr, sizeof(upper_addr));
+
+  for(int i=0; i<(128 - bitlen); i++) {
+    u_char bit = 127-i;
+
+    upper_addr.s6_addr[bit / 8] |= (1 << (bit % 8));
+
+    /* Also normalize the lower address */
+    lower_addr.s6_addr[bit / 8] &= ~(1 << (bit % 8));
+  }
+
+  /* Convert to hex */
+  for(int i=0; i<16; i++) {
+    u_char lval = lower_addr.s6_addr[i];
+    u_char uval = upper_addr.s6_addr[i];
+
+    lower_hex[i*2]   = hex_chars[(lval >> 4) & 0xF];
+    lower_hex[i*2+1] = hex_chars[lval & 0xF];
+
+    upper_hex[i*2]   = hex_chars[(uval >> 4) & 0xF];
+    upper_hex[i*2+1] = hex_chars[uval & 0xF];
+  }
+
+  lower_hex[32] = '\0';
+  upper_hex[32] = '\0';
+
+  /* Build filter strings */
+  snprintf(hosts_buf, sizeof(hosts_buf),
+	    "((ip >= x'%s') AND (ip <= x'%s'))",
+	    lower_hex, upper_hex);
+
+  snprintf(flows_buf, sizeof(flows_buf),
+	    "(((cli_ip >= x'%s') AND (cli_ip <= x'%s')) OR ((srv_ip >= x'%s') AND (srv_ip <= x'%s')))",
+	    lower_hex, upper_hex, lower_hex, upper_hex);
+
+  filterdata->hosts_filter = appendFilterString(filterdata->hosts_filter, hosts_buf);
+
+  filterdata->flows_filter = appendFilterString(filterdata->flows_filter, flows_buf);
+}
+
+/* ******************************************* */
+
+void Utils::buildSqliteAllowedNetworksFilters(lua_State *vm) {
+  AddressTree *allowed_nets = getLuaVMUserdata(vm, allowedNets);
+
+  if(allowed_nets) {
+    struct sqlite_filter_data data;
+    memset(&data, 0, sizeof(data));
+
+    allowed_nets->walk(allowed_nets_walker, &data);
+
+    getLuaVMUservalue(vm, sqlite_hosts_filter) = data.hosts_filter;
+    getLuaVMUservalue(vm, sqlite_flows_filter) = data.flows_filter;
+  }
+
+  getLuaVMUservalue(vm, sqlite_filters_loaded) = true;
+}
+
+/* ****************************************************** */
