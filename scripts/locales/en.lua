@@ -26,6 +26,7 @@ local lang = {
   ["as_number"] = "AS number",
   ["asn"] = "ASN",
   ["attacker"] = "Attacker",
+  ["attacker_or_victim"] = "Attacker / Victim",
   ["autolayout_description"] = "Performing auto-layout could change the network's current layout drastically.",
   ["availability"] = "Availability",
   ["available"] = "Available",

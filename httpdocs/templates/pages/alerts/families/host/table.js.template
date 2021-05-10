@@ -16,10 +16,8 @@
     }},
     /* Description */
     {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
-    /* Attacker */
-    {name: 'attacker', data: 'is_attacker', orderable: false, width: '8%', className: 'text-nowrap'},
-    /* Victim */
-    {name: 'victim', data: 'is_victim', orderable: false, width: '8%', className: 'text-nowrap'},
+    /* Attacker or Victim */
+    {name: 'attacker_or_victim', data: 'is_attacker_or_victim', orderable: false, width: '8%', className: 'text-nowrap'},
     /* Counts */
     {name: 'count', className: 'text-center', width: '5%', data: 'count', visible: false},
 ]

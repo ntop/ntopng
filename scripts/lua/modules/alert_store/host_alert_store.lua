@@ -163,15 +163,12 @@ function host_alert_store:format_record(value, no_html)
    record["alert_name"] = alert_name
 
    if value["is_attacker"] == "1" then
-      attacker = true
+      attacker = "Attacker"
+   elseif value["is_victim"] == "1" then
+      victim = "Victim"   
    end
 
-   if value["is_victim"] == "1" then
-      victim = true
-   end
-   
-   record["is_attacker"] = attacker
-   record["is_victim"] = victim
+   record["is_attacker_or_victim"] = attacker
    
    record["vlan_id"] = value["vlan_id"] or 0
    record["msg"] = msg

@@ -310,11 +310,11 @@ function flow_alert_store:format_record(value, no_html)
    }
    
    if value["is_attacker_to_victim"] == "1" then
-      attacker = cli_ip
-      victim = srv_ip
+      attacker = flow_cli_ip["label"]
+      victim = flow_srv_ip["label"]
    elseif value["is_victim_to_attacker"] == "1" then
-      attacker = srv_ip 
-      victim = cli_ip
+      attacker = flow_srv_ip["label"] 
+      victim = flow_cli_ip["label"]
    end
    
    record["attacker"] = attacker 
