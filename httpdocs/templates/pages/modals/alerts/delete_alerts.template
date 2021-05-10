@@ -21,9 +21,8 @@
                             class="form-control time-input datetimepicker-input border-left-0" data-target="#end-epoch"
                             readonly>
                     </div>
-                    <div class='form-group'>
-                        <ul class='filters-list my-1'></ul>
-                    </div>
+                    <br />
+                    <div class='form-group filters-list'></div>
                     <div class='alert alert-danger'>{* dialog.message *}</div>
                     <span class="invalid-feedback"></span>
                 </div>

@@ -503,8 +503,9 @@
                 for (const tag of sortedTags) {
                     const { key, selectedOperator, realValue, value } = tagify.tagData(tag);
                     const label = i18n.tags[key]
-                    const child = $('<li>' + (label + ' = ' + value) + '</li>');
-                    $('#delete-alerts-modal .filters-list').append(child)
+                    const child = $('<div class="form-group row"><label class="col-form-label col-sm-4"><b>'+label+'</b></label><div class="col-sm-8"><input type="text" value="'+value+'" disabled/></div></div>');
+
+                    $('#delete-alerts-modal .filters-list').append(child);
                 }
             },
             onSubmitSuccess: function (response) {
