@@ -59,9 +59,9 @@ function alert_threshold_cross.format(ifid, alert, alert_type_params)
     metric = alert_type_params.metric,
     entity = entity,
     host_category = format_utils.formatAddressCategory((json.decode(alert.json)).alert_generation.host_info),
-    value = string.format("%u", math.ceil(alert_type_params.value)),
+    value = format_utils.formatValue(alert_type_params.value),
     op = "&".. (alert_type_params.operator or "gt") ..";",
-    threshold = alert_type_params.threshold,
+    threshold = format_utils.formatValue(alert_type_params.threshold),
   })
 end
 
