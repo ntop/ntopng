@@ -247,7 +247,9 @@ local defined_tags = {
     ["flow"] = {
         l7_proto  = {'eq'},
         cli_ip = {'eq'},
-        srv_ip = {'eq'}
+        srv_ip = {'eq'},
+	cli_port = {'eq'},
+	srv_port = {'eq'}
     },
     ["system"] = {
 
