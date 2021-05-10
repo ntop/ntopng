@@ -114,7 +114,7 @@ end
 -- ##############################################
 
 local function formatDiscordMessage(alert)
-   local msg = alert_utils.formatAlertNotification(alert, {nohtml=true, add_cr=true, no_bracket_around_date=true, emoji=true})
+   local msg = alert_utils.formatAlertNotification(alert, {nohtml=true, add_cr=true, no_bracket_around_date=true, emoji=true, show_entity=true})
    
    return(msg)
 end

@@ -60,7 +60,6 @@ class ViewInterface : public NetworkInterface {
   void startPacketPolling();
   bool set_packet_filter(char *filter)    { return false ;                        };
 
-  AlertsManager *getAlertsManager() const { return alertsManager; };
   AlertsQueue* getAlertsQueue()     const { return alertsQueue;   };
 
   virtual u_int64_t getNumPackets();

@@ -57,6 +57,37 @@ void AlertableEntity::decNumAlertsEngaged() {
 
 /* ****************************************** */
 
+int AlertableEntity::parseEntityValueIp(const char *alert_entity_value, struct in6_addr *ip_raw) {
+  char tmp_entity[128];
+  char *sep;
+  int rv;
+
+  memset(ip_raw, 0, sizeof(*ip_raw));
+
+  if(!alert_entity_value)
+    return(-1);
+
+  snprintf(tmp_entity, sizeof(tmp_entity)-1, "%s", alert_entity_value);
+
+  /* Ignore VLAN */
+  if((sep = strchr(tmp_entity, '@')))
+    *sep = '\0';
+
+  /* Ignore subnet. Save the networks as a single IP. */
+  if((sep = strchr(tmp_entity, '/')))
+    *sep = '\0';
+
+  /* Try to parse as IP address */
+  if(strchr(tmp_entity, ':'))
+    rv = inet_pton(AF_INET6, tmp_entity, ip_raw);
+  else
+    rv = inet_pton(AF_INET, tmp_entity, ((char*)ip_raw)+12);
+
+  return(rv);
+}
+
+/* ****************************************** */
+
 bool AlertableEntity::matchesAllowedNetworks(AddressTree *allowed_nets) {
   struct in6_addr ip_raw;
   IpAddress addr;
@@ -67,7 +98,7 @@ bool AlertableEntity::matchesAllowedNetworks(AddressTree *allowed_nets) {
   if(!allowed_nets)
     return(true);
 
-  AlertsManager::parseEntityValueIp(alert_entity_value, &ip_raw);
+  parseEntityValueIp(alert_entity_value, &ip_raw);
 
   if(strchr(alert_entity_value, ':')) {
     // IPv6

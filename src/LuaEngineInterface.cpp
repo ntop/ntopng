@@ -963,7 +963,7 @@ static int ntop_interface_inc_syslog_stats(lua_State* vm) {
 static char *getAllowedNetworksHostsSqlFilter(lua_State* vm) {
   /* Lazy initialization */
   if(!getLuaVMUservalue(vm, sqlite_filters_loaded))
-    AlertsManager::buildSqliteAllowedNetworksFilters(vm);
+    Utils::buildSqliteAllowedNetworksFilters(vm);
 
   return(getLuaVMUserdata(vm, sqlite_hosts_filter));
 }
@@ -973,7 +973,7 @@ static char *getAllowedNetworksHostsSqlFilter(lua_State* vm) {
 static char *getAllowedNetworksFlowsSqlFilter(lua_State* vm) {
   /* Lazy initialization */
   if(!getLuaVMUservalue(vm, sqlite_filters_loaded))
-    AlertsManager::buildSqliteAllowedNetworksFilters(vm);
+    Utils::buildSqliteAllowedNetworksFilters(vm);
 
   return(getLuaVMUserdata(vm, sqlite_flows_filter));
 }
@@ -993,76 +993,6 @@ static int ntop_interface_alert_store_query(lua_State* vm) {
     lua_pushnil(vm);
     return(CONST_LUA_ERROR);
   }
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_interface_query_alerts_raw(lua_State* vm) {
-  NetworkInterface *iface = getCurrentInterface(vm);
-  AlertsManager *am;
-  char *selection = NULL, *filter = NULL, *group_by = NULL;
-  bool ignore_disabled = false;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!iface || !(am = iface->getAlertsManager()))
-    return(CONST_LUA_ERROR);
-
-  if(lua_type(vm, 1) == LUA_TSTRING)
-    if((selection = (char*)lua_tostring(vm, 1)) == NULL)
-      return(CONST_LUA_PARAM_ERROR);
-
-  if(lua_type(vm, 2) == LUA_TSTRING)
-    if((filter = (char*)lua_tostring(vm, 2)) == NULL)
-      return(CONST_LUA_PARAM_ERROR);
-
-  if(lua_type(vm, 3) == LUA_TSTRING)
-    if((group_by = (char*)lua_tostring(vm, 3)) == NULL)
-      return(CONST_LUA_PARAM_ERROR);
-
-  if(lua_type(vm, 4) == LUA_TBOOLEAN)
-    ignore_disabled = lua_toboolean(vm, 4);
-
-  if(am->queryAlertsRaw(vm, selection, filter,
-            getAllowedNetworksHostsSqlFilter(vm), group_by, ignore_disabled))
-    return(CONST_LUA_ERROR);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_interface_query_flow_alerts_raw(lua_State* vm) {
-  NetworkInterface *iface = getCurrentInterface(vm);
-  AlertsManager *am;
-  char *selection = NULL, *filter = NULL, *group_by = NULL;
-  bool ignore_disabled = false;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!iface || !(am = iface->getAlertsManager()))
-    return(CONST_LUA_ERROR);
-
-  if(lua_type(vm, 1) == LUA_TSTRING)
-    if((selection = (char*)lua_tostring(vm, 1)) == NULL)
-      return(CONST_LUA_PARAM_ERROR);
-
-  if(lua_type(vm, 2) == LUA_TSTRING)
-    if((filter = (char*)lua_tostring(vm, 2)) == NULL)
-      return(CONST_LUA_PARAM_ERROR);
-
-  if(lua_type(vm, 3) == LUA_TSTRING)
-    if((group_by = (char*)lua_tostring(vm, 3)) == NULL)
-      return(CONST_LUA_PARAM_ERROR);
-
-  if(lua_type(vm, 4) == LUA_TBOOLEAN)
-    ignore_disabled = lua_toboolean(vm, 4);
-
-  if(am->queryFlowAlertsRaw(vm, selection, filter,
-            getAllowedNetworksFlowsSqlFilter(vm), group_by, ignore_disabled))
-    return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
 }
@@ -4618,8 +4548,6 @@ static luaL_Reg _ntop_interface_reg[] = {
 
   /* Alerts */
   { "alert_store_query",      ntop_interface_alert_store_query        },
-  { "queryAlertsRaw",         ntop_interface_query_alerts_raw         },
-  { "queryFlowAlertsRaw",     ntop_interface_query_flow_alerts_raw    },
   { "getCachedAlertValue",    ntop_interface_get_cached_alert_value   },
   { "setCachedAlertValue",    ntop_interface_set_cached_alert_value   },
   { "storeTriggeredAlert",    ntop_interface_store_triggered_alert    },

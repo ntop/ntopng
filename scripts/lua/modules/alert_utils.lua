@@ -85,140 +85,6 @@ end
 
 -- #################################
 
-local function performAlertsQuery(statement, what, opts, force_query, group_by)
-   local wargs = {"1=1"}
-   local oargs = {}
-
-   if(group_by ~= nil) then
-     group_by = " GROUP BY " .. group_by
-   else
-     group_by = ""
-   end
-
-   if tonumber(opts.row_id) ~= nil then
-      wargs[#wargs+1] = 'AND rowid = '..(opts.row_id)
-   end
-
-   if (not isEmptyString(opts.entity)) and (not isEmptyString(opts.entity_val)) then
-      if(what == "historical-flows") then
-         if(tonumber(opts.entity) ~= alert_consts.alertEntity("host")) then
-           return({})
-         else
-           -- need to handle differently for flows table
-           local info = hostkey2hostinfo(opts.entity_val)
-           wargs[#wargs+1] = 'AND (cli_addr="'..(info.host)..'" OR srv_addr="'..(info.host)..'")'
-           wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
-         end
-      else
-         wargs[#wargs+1] = 'AND alert_entity = "'..(opts.entity)..'"'
-         wargs[#wargs+1] = 'AND alert_entity_val = "'..(opts.entity_val)..'"'
-      end
-   elseif (what ~= "historical-flows") then
-      if (not isEmptyString(opts.entity)) then
-	 wargs[#wargs+1] = 'AND alert_entity = "'..(opts.entity)..'"'
-      end
-   end
-
-   if not isEmptyString(opts.origin) then
-      local info = hostkey2hostinfo(opts.origin)
-      wargs[#wargs+1] = 'AND cli_addr="'..(info.host)..'"'
-      wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
-   end
-
-   if not isEmptyString(opts.target) then
-      local info = hostkey2hostinfo(opts.target)
-      wargs[#wargs+1] = 'AND srv_addr="'..(info.host)..'"'
-      wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
-   end
-
-   if tonumber(opts.epoch_begin) ~= nil then
-      wargs[#wargs+1] = 'AND alert_tstamp >= '..(opts.epoch_begin)
-   end
-
-   if tonumber(opts.epoch_end) ~= nil then
-      wargs[#wargs+1] = 'AND alert_tstamp <= '..(opts.epoch_end)
-   end
-
-   if not isEmptyString(opts.flowhosts_type) then
-      if opts.flowhosts_type ~= "all_hosts" then
-         local cli_local, srv_local = 0, 0
-
-         if opts.flowhosts_type == "local_only" then cli_local, srv_local = 1, 1
-         elseif opts.flowhosts_type == "remote_only" then cli_local, srv_local = 0, 0
-         elseif opts.flowhosts_type == "local_origin_remote_target" then cli_local, srv_local = 1, 0
-         elseif opts.flowhosts_type == "remote_origin_local_target" then cli_local, srv_local = 0, 1
-         end
-
-         if what == "historical-flows" then
-            wargs[#wargs+1] = "AND cli_localhost = "..cli_local
-            wargs[#wargs+1] = "AND srv_localhost = "..srv_local
-         end
-         -- TODO cannot apply it to other tables right now
-      end
-   end
-
-   if tonumber(opts.alert_id) ~= nil then
-      wargs[#wargs+1] = "AND alert_id = "..(opts.alert_id)
-   end
-
-   if what == "historical-flows" then
-      if tonumber(opts.alert_l7_proto) ~= nil then
-         wargs[#wargs+1] = "AND l7_proto = "..(opts.alert_l7_proto)
-      end
-   end
-
-   if((not isEmptyString(opts.sortColumn)) and (not isEmptyString(opts.sortOrder))) then
-      local order_by
-
-      if opts.sortColumn == "column_date" then
-         order_by = "tstamp"
-      elseif opts.sortColumn == "column_key" then
-         order_by = "rowid"
-      elseif opts.sortColumn == "column_type" then
-         order_by = "alert_id"
-      elseif opts.sortColumn == "column_count" and what ~= "engaged" then
-         order_by = "alert_counter"
-      elseif opts.sortColumn == "column_score" and what ~= "engaged" then
-         order_by = "score"
-      elseif((opts.sortColumn == "column_duration") and (what == "historical")) then
-         order_by = "(alert_tstamp_end - alert_tstamp)"
-      else
-         -- default
-         order_by = "alert_tstamp"
-      end
-
-      oargs[#oargs+1] = "ORDER BY "..order_by
-      oargs[#oargs+1] = string.upper(opts.sortOrder)
-   end
-
-   -- pagination
-   if((tonumber(opts.perPage) ~= nil) and (tonumber(opts.currentPage) ~= nil)) then
-      local to_skip = (tonumber(opts.currentPage)-1) * tonumber(opts.perPage)
-      oargs[#oargs+1] = "LIMIT"
-      oargs[#oargs+1] = to_skip..","..(opts.perPage)
-   end
-
-   local query = table.concat(wargs, " ")
-   group_by = table.concat(oargs, " ") .. group_by
-   local res
-
-   -- Uncomment to debug the queries
-   -- tprint(statement.." (from "..what..") WHERE "..query .. " ".. group_by)
-   
-
-   if((what == "engaged") or (what == "historical")) then
-      res = interface.queryAlertsRaw(statement, query, group_by, force_query)
-   elseif what == "historical-flows" then
-      res = interface.queryFlowAlertsRaw(statement, query, group_by, force_query)
-   else
-      error("Invalid alert subject: "..what)
-   end
-
-   return res
-end
-
--- #################################
-
 -- Remove pagination options from the options
 local function getUnpagedAlertOptions(options)
    local res = {}
@@ -234,8 +100,8 @@ local function getUnpagedAlertOptions(options)
    return res
 end
 
--- #################################
-
+ -- #################################
+ 
 function alert_utils.getNumAlerts(what, options)
    local num = 0
 
@@ -243,7 +109,7 @@ function alert_utils.getNumAlerts(what, options)
      num = getNumEngagedAlerts(options)
    else
      local opts = getUnpagedAlertOptions(options or {})
-     local res = performAlertsQuery("SELECT COUNT(*) AS count", what, opts)
+     local res = 0 -- TODO performAlertsQuery("SELECT COUNT(*) AS count", what, opts)
      if((res ~= nil) and (#res == 1) and (res[1].count ~= nil)) then num = tonumber(res[1].count) end
    end
 
@@ -400,136 +266,6 @@ function alert_utils.formatRawFlow(alert)
    flow = "<i class=\"fas fa-stream\"></i> "..(getFlowLabel(flow, false, add_links, time_bounds, {page = "alerts"}) or "")
 
    return flow
-end
-
--- #################################
-
-local function getMenuEntries(status, selection_name, get_params)
-   local actual_entries = {}
-
-   -- table.clone needed to modify some parameters while keeping the original unchanged
-   local params = table.clone(get_params)
-
-   -- Remove previous filters
-   params.alert_type = nil
-   params.l7_proto = nil
-
-   local select_clause = {}    -- Contains the selection which is <alert_entity>, <selection_name>
-   local group_by_clause = {}  -- The clause used to group alerts. It is <alert_entity>, <selection_name> for all non-flow alerts
-
-   if status == "historical-flows" then
-      -- Flows don't have the alert_entity as a table column so we just put the entity id as a placeholder
-      select_clause[#select_clause + 1] = string.format("%u entity", alert_entities.flow.entity_id)
-   else
-      -- TODO: entities will be removed when every entity will have its own database table
-      select_clause[#select_clause + 1] = "alert_entity entity"
-      group_by_clause[#group_by_clause + 1] = "alert_entity"
-   end
-
-   if selection_name == "type" then
-      select_clause[#select_clause + 1] = "alert_id id"
-      group_by_clause[#group_by_clause + 1] = "alert_id"
-   elseif selection_name == "l7_proto" then
-      select_clause[#select_clause + 1] = "l7_proto id"
-      group_by_clause[#group_by_clause + 1] = "l7_proto"
-   end
-
-   select_clause[#select_clause + 1] = "count(*) count"
-
-   local select_str = "SELECT "..table.concat(select_clause, ", ")
-   local group_by_str =  table.concat(group_by_clause, ", ")
-
-   actual_entries = performAlertsQuery(select_str, status, params, nil, group_by_str --[[ group by ]])
-
-   -- tprint({select_str, group_by_str, status, params})
-
-   return actual_entries
-end
-
--- #################################
-
-local function dropdownUrlParams(get_params)
-  local buttons = ""
-
-  for param, val in pairs(get_params) do
-    -- NOTE: exclude the ifid parameter to avoid interface selection issues with system interface alerts
-    if((param ~= "alert_type") and (param ~= "status") and (param ~= "ifid")) then
-      buttons = buttons.."&"..param.."="..val
-    end
-  end
-
-  return(buttons)
-end
-
--- #################################
-
-local function drawDropdown(status, selection_name, active_entry, button_label, get_params, actual_entries)
-   local id_to_label
-   if selection_name == "type" then
-      id_to_label = alert_consts.alertTypeLabel
-   elseif selection_name == "l7_proto" then
-      id_to_label = interface.getnDPIProtoName
-   end
-
-   actual_entries = actual_entries or getMenuEntries(status, selection_name, get_params)
-
-   local buttons = '<div class="btn-group">'
-
-   button_label = button_label or firstToUpper(selection_name)
-   if active_entry ~= nil and active_entry ~= "" then
-      if selection_name == "l7_proto" then 
-         button_label = firstToUpper(interface.getnDPIProtoName(active_entry))..'<span class="fas fa-filter"></span>'
-      else
-         button_label = firstToUpper(active_entry)..'<span class="fas fa-filter"></span>'
-      end
-   end
-
-   buttons = buttons..'<button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..button_label
-   buttons = buttons..'<span class="caret"></span></button>'
-
-   buttons = buttons..'<ul class="dropdown-menu dropdown-menu-right" role="menu">'
-
-   local class_active = ""
-
-   if active_entry == nil then class_active = 'active' end
-   buttons = buttons..'<li><a class="dropdown-item '..class_active..'" href="?status='..status..'">All</a></i>'
-
-   -- add a label to each entry
-   for _, entry in pairs(actual_entries) do
-      local id = tonumber(entry["id"])
-      local alert_entity = tonumber(entry["entity"])
-
-      entry.label = firstToUpper(id_to_label(id, true, alert_entity))
-   end
-
-   for _, entry in pairsByField(actual_entries, 'label', asc) do
-      local id = tonumber(entry["id"])
-      local alert_entity = tonumber(entry["entity"])
-      local count = entry["count"]
-      if(id >= 0) then
-        local label = entry.label
-
-        class_active = ""
-        if label == active_entry then class_active = 'active' end
-        -- buttons = buttons..'<li'..class_active..'><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/show_alerts.lua?status='..status
-        buttons = buttons..'<li><a class="dropdown-item '..class_active..'" href="?status='..status
-        buttons = buttons..dropdownUrlParams(get_params)
-	buttons = buttons..'&entity='..(alert_entity or '')
-        buttons = buttons..'&alert_'..selection_name..'='..id..'">'
-	buttons = buttons..firstToUpper(label)
-
-	-- Add the formatted alert entity between square brackets
-	if alert_entity then
-	   buttons = buttons..' ['..alert_consts.alertEntityLabel(alert_entity)..']'
-	end
-
-        buttons = buttons..' ('..count..')</a></li>'
-      end
-   end
-
-   buttons = buttons..'</ul></div>'
-
-   return buttons
 end
 
 -- #################################
@@ -941,16 +677,17 @@ function alert_utils.formatAlertNotification(notif, options)
    -- entity can be hidden for example when one is OK with just the message
    if options.show_entity then
       msg = msg.."["..alert_consts.alertEntityLabel(notif.entity_id).."]"
-
-      if notif.entity_id ~= "flow" then
-	 local ev = notif.entity_val
-	 if notif.entity_id == "host" then
+      local ev
+      if notif.entity_id == alert_entities.flow.entity_id then
+         ev = noHtml(alert_utils.formatRawFlow(notif))
+      else
+	 ev = notif.entity_val
+	 if notif.entity_id == alert_entities.host.entity_id then
 	    -- suppresses @0 when the vlan is zero
 	    ev = hostinfo2hostkey(hostkey2hostinfo(notif.entity_val))
 	 end
-
-	 msg = msg.."["..(ev or '').."]"
       end
+      msg = msg.."["..(ev or '').."]"
    end
 
    -- add the label, that is, engaged or released

@@ -259,7 +259,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool purge_idle_flows_hosts, inline_interface;
   DB *db;
   StatsManager  *statsManager;
-  AlertsManager *alertsManager;
   AlertStore *alertStore;
   HostPools *host_pools;
   VLANAddressTree *hide_from_top, *hide_from_top_shadow;
@@ -761,7 +760,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   virtual u_int getPacketOverhead() { return 24 /* 8 Preamble + 4 CRC + 12 IFG */; }
   inline void setIdleState(bool new_state)         { is_idle = new_state;  };
   inline StatsManager  *getStatsManager()          { return statsManager;  };
-  AlertsManager *getAlertsManager() const;
   AlertsQueue* getAlertsQueue() const;
   bool alert_store_query(lua_State *vm, const char * const sql);
 

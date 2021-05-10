@@ -184,7 +184,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   loadScalingFactorPrefs();
 
-  statsManager = NULL, alertsManager = NULL, alertStore = NULL, alertsQueue = NULL;
+  statsManager = NULL, alertStore = NULL, alertsQueue = NULL;
   ndpiStats = NULL;
   dscpStats = NULL;
 
@@ -312,7 +312,7 @@ void NetworkInterface::init() {
 #endif
   ndpiStats = NULL;
   dscpStats = NULL;
-  statsManager = NULL, alertsManager = NULL, alertStore = NULL, ifSpeed = 0;
+  statsManager = NULL, alertStore = NULL, ifSpeed = 0;
   host_pools = NULL;
   bcast_domains = NULL;
   checkIdle();
@@ -569,7 +569,6 @@ NetworkInterface::~NetworkInterface() {
   if(ifDescription)  free(ifDescription);
   if(discovery)      delete discovery;
   if(statsManager)   delete statsManager;
-  if(alertsManager)  delete alertsManager;
   if(alertStore)     delete alertStore;
   if(alertsQueue)    delete alertsQueue;
   if(ndpiStats)      delete ndpiStats;
@@ -6531,7 +6530,6 @@ void NetworkInterface::allocateStructures() {
     gw_macs          = new MacHash(this, 32, 64);
     
     if(!isViewed()) {
-      alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
       alertStore    = new AlertStore(id, ALERTS_STORE_DB_FILE_NAME);
       alertsQueue   = new AlertsQueue(this);
     }
@@ -6567,15 +6565,6 @@ void NetworkInterface::allocateStructures() {
   snprintf(buf, sizeof(buf), "%d", get_id());
   setEntityValue(buf);
   reloadGwMacs();
-}
-
-/* **************************************** */
-
-AlertsManager *NetworkInterface::getAlertsManager() const {
-  if(isViewed())
-    return viewedBy()->getAlertsManager();
-  else
-    return alertsManager;
 }
 
 /* **************************************** */

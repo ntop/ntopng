@@ -57,6 +57,8 @@ class AlertableEntity {
     AlertType type_filter, AlertLevel severity_filter, u_int *idx) {};
 
   bool matchesAllowedNetworks(AddressTree *allowed_nets);
+
+  static int parseEntityValueIp(const char *alert_entity_value, struct in6_addr *ip_raw);
 };
 
 #endif

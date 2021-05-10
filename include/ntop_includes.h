@@ -293,7 +293,6 @@ using namespace std;
 #include "TcpFlowStats.h"
 #include "StoreManager.h"
 #include "StatsManager.h"
-#include "AlertsManager.h"
 #include "AlertStore.h"
 #include "DB.h"
 #ifdef HAVE_MYSQL
