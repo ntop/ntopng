@@ -653,6 +653,13 @@ class DataTableRenders {
         return cell;
     }
 
+    static formatNameDescription(obj, type, row) {
+        if (type !== "display") return obj.description;
+        let msg = DataTableRenders.filterize('alert_id', obj.value, obj.name);
+        if (obj.description) msg = msg + ": " + obj.description;
+        return msg;
+    }
+
    static applyCellStyle(cell, cellData, rowData, rowIndex, colIndex) {
       if (cellData.highlight) {
          $(cell).css("border-left", "5px solid "+cellData.highlight);

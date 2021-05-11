@@ -25,7 +25,7 @@
         return `${active_ref} ${historical_ref} ${cliLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
     }},
     /* Description */
-    {responsivePriority: 1, name: 'description', data: 'msg', orderable: false, className: 'text-nowrap',},
+    {responsivePriority: 1, name: 'description', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Attacker */
     {name: 'attacker', data: 'attacker', orderable: false, width: '16%', className: 'text-nowrap'},
     /* Victim */

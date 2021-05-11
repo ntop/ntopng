@@ -293,9 +293,18 @@ function flow_alert_store:format_record(value, no_html)
    if no_html then
       msg = noHtml(msg)
    end
+
+   if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
+      msg = ""
+   end
    
    record["alert_name"] = alert_name
-   record["msg"] = msg
+
+   record["msg"] = {
+     name = noHtml(alert_name),
+     value = tonumber(value["alert_id"]),
+     description = msg,
+   }
 
    -- Format Client  
  
