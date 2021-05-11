@@ -102,11 +102,14 @@ end
 --@param alert_id The id of an alert to be filtered
 --@return True if set is successful, false otherwise
 function alert_store:add_alert_id_filter(alert_id)
-   if not self._alert_id and tonumber(alert_id) then
-      self._alert_id = tonumber(alert_id)
-      self._where[#self._where + 1] = string.format("alert_id = %u", alert_id)
+   if alert_id then
+      local alert_id, op = self:strip_filter_operator(alert_id)
+      if not self._alert_id and tonumber(alert_id) then
+         self._alert_id = tonumber(alert_id)
+         self._where[#self._where + 1] = string.format("alert_id = %u", alert_id)
 
-      return true
+         return true
+      end
    end
 
    return false
