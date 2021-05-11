@@ -159,8 +159,8 @@ function host_alert_store:format_record(value, no_html)
    end
 
    record["ip"]["shown_label"] = record["ip"]["label"]
-   record["attacker"] = ""
-   record["victim"] = ""
+   record["is_attacker"] = ""
+   record["is_victim"] = ""
    
    if value["is_attacker"] == true or value["is_attacker"] == "1" then
       record["is_attacker"] = '<span style="color: #008000;">✓</span>'
