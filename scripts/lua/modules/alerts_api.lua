@@ -173,6 +173,8 @@ function alerts_api.store(entity_info, type_info, when)
     entity_id = entity_info.alert_entity.entity_id,
     entity_val = entity_info.entity_val,
     score = type_info.score,
+    device_type = type_info.device_type,
+    device_name = type_info.device_name,
     tstamp = when,
     tstamp_end = when,
     json = alert_json,

@@ -3710,6 +3710,7 @@ struct flowHostRetriever {
   u_int8_t *mac, bridge_iface_idx;
   char *manufacturer;
   bool sourceMacsOnly, dhcpHostsOnly;
+  time_t min_first_seen;
   char *country;
   int ndpi_proto;             /* Not used in flow_search_walker */
   TrafficType traffic_type;   /* Not used in flow_search_walker */
@@ -4257,6 +4258,7 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data, bool *match
 
   if(!m
      || m->idle()
+     || (r->min_first_seen >= m->get_first_seen()) /* first seen must be greater than or equal to the minimum first seen */
      || (r->sourceMacsOnly && !m->isSourceMac())
      || ((r->devtypeFilter != (u_int8_t)-1) && (m->getDeviceType() != r->devtypeFilter))
      || ((r->locationFilter != (u_int8_t)-1) && (m->locate() != r->locationFilter))
@@ -4929,7 +4931,7 @@ int NetworkInterface::sortMacs(u_int32_t *begin_slot,
 			       bool sourceMacsOnly,
 			       const char *manufacturer,
 			       char *sortColumn, u_int16_t pool_filter,
-			       u_int8_t devtype_filter, u_int8_t location_filter) {
+			       u_int8_t devtype_filter, u_int8_t location_filter, time_t min_first_seen) {
   int (*sorter)(const void *_a, const void *_b);
 
   if(retriever == NULL)
@@ -4942,6 +4944,7 @@ int NetworkInterface::sortMacs(u_int32_t *begin_slot,
     retriever->maxNumEntries = getMacsHashSize();
     retriever->devtypeFilter = devtype_filter,
     retriever->locationFilter = location_filter,
+    retriever->min_first_seen = min_first_seen,
     retriever->ndpi_proto = -1,
     retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
@@ -6770,14 +6773,14 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
 				       char *sortColumn, u_int32_t maxHits,
 				       u_int32_t toSkip, bool a2zSortOrder,
 				       u_int16_t pool_filter, u_int8_t devtype_filter,
-				       u_int8_t location_filter) {
+				       u_int8_t location_filter, time_t min_first_seen) {
   struct flowHostRetriever retriever;
   bool show_details = true;
 
   if(sortMacs(begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      manufacturer, sortColumn,
-	      pool_filter, devtype_filter, location_filter) < 0) {
+	      pool_filter, devtype_filter, location_filter, min_first_seen) < 0) {
     return(-1);
   }
 
@@ -7017,7 +7020,7 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
   if(sortMacs(&begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      NULL, (char*)"column_manufacturer",
-	      (u_int16_t)-1, devtype_filter, location_filter) < 0) {
+	      (u_int16_t)-1, devtype_filter, location_filter, 0) < 0) {
     return(-1);
   }
 
@@ -7104,7 +7107,7 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
   if(sortMacs(&begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      manufacturer, (char*)"column_device_type",
-	      (u_int16_t)-1, (u_int8_t)-1, location_filter) < 0) {
+	      (u_int16_t)-1, (u_int8_t)-1, location_filter, 0) < 0) {
     return(-1);
   }
 

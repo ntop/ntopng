@@ -52,7 +52,7 @@ function alert_unexpected_new_device.format(ifid, alert, alert_type_params)
       if access_port then
         return(i18n("unexpected_new_device.status_unexpected_new_device_description_pro", {
           mac_address = alert_type_params.device,
-          host_url = getMacUrl(alert.entity_val),
+          host_url = getMacUrl(alert_type_params.mac),
           port = access_port.id,
 	  port_url = snmpIfaceUrl(access_port.snmp_device_ip, access_port.id),
 	  interface_name = access_port.name,
@@ -66,7 +66,7 @@ function alert_unexpected_new_device.format(ifid, alert, alert_type_params)
   -- Non enterprise software or the host hasn't an snmp location
   return(i18n("unexpected_new_device.status_unexpected_new_device_description", {
     mac_address = alert_type_params.device,
-    host_url = getMacUrl(alert.entity_val),
+    host_url = getMacUrl(alert_type_params.mac),
   }))
 end
 

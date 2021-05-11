@@ -75,10 +75,10 @@ function mac_alert_store:format_record(value, no_html)
    record["address"] = value["address"]
    record["device_type"] = { 
      value = value["device_type"],
-     label = discover.devtype2string(value["device_type"]),
+     label = string.format("%s %s", discover.devtype2string(value["device_type"]), discover.devtype2icon(value["device_type"])),
    }
 
-   record["alert_name"] = alert_name
+   record["name"] = value["name"]
 
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""

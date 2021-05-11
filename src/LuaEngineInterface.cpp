@@ -1470,17 +1470,19 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   bool a2zSortOrder = true, sourceMacsOnly = false;
   u_int8_t location_filter = (u_int8_t)-1;
   u_int32_t begin_slot = 0;
+  time_t min_first_seen = 0;
   bool walk_all = true;
 
-  if(lua_type(vm, 1) == LUA_TSTRING)  sortColumn = (char*)lua_tostring(vm, 1);
-  if(lua_type(vm, 2) == LUA_TNUMBER)  maxHits = (u_int16_t)lua_tonumber(vm, 2);
-  if(lua_type(vm, 3) == LUA_TNUMBER)  toSkip = (u_int16_t)lua_tonumber(vm, 3);
-  if(lua_type(vm, 4) == LUA_TBOOLEAN) a2zSortOrder = lua_toboolean(vm, 4);
-  if(lua_type(vm, 5) == LUA_TBOOLEAN) sourceMacsOnly = lua_toboolean(vm, 5);
-  if(lua_type(vm, 6) == LUA_TSTRING)  manufacturer = lua_tostring(vm, 6);
-  if(lua_type(vm, 7) == LUA_TNUMBER)  pool_filter = (u_int16_t)lua_tonumber(vm, 7);
-  if(lua_type(vm, 8) == LUA_TNUMBER) devtype_filter = (u_int8_t)lua_tonumber(vm, 8);
-  if(lua_type(vm, 9) == LUA_TSTRING) location_filter = str_2_location(lua_tostring(vm, 9));
+  if(lua_type(vm,  1) == LUA_TSTRING)  sortColumn = (char*)lua_tostring(vm, 1);
+  if(lua_type(vm,  2) == LUA_TNUMBER)  maxHits = (u_int16_t)lua_tonumber(vm, 2);
+  if(lua_type(vm,  3) == LUA_TNUMBER)  toSkip = (u_int16_t)lua_tonumber(vm, 3);
+  if(lua_type(vm,  4) == LUA_TBOOLEAN) a2zSortOrder = lua_toboolean(vm, 4);
+  if(lua_type(vm,  5) == LUA_TBOOLEAN) sourceMacsOnly = lua_toboolean(vm, 5);
+  if(lua_type(vm,  6) == LUA_TSTRING)  manufacturer = lua_tostring(vm, 6);
+  if(lua_type(vm,  7) == LUA_TNUMBER)  pool_filter = (u_int16_t)lua_tonumber(vm, 7);
+  if(lua_type(vm,  8) == LUA_TNUMBER)  devtype_filter = (u_int8_t)lua_tonumber(vm, 8);
+  if(lua_type(vm,  9) == LUA_TSTRING)  location_filter = str_2_location(lua_tostring(vm, 9));
+  if(lua_type(vm, 10) == LUA_TNUMBER)  min_first_seen = lua_tonumber(vm, 10);
 
   if(!ntop_interface ||
      ntop_interface->getActiveMacList(vm,
@@ -1488,7 +1490,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 				      0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
 				      sourceMacsOnly, manufacturer,
 				      sortColumn, maxHits,
-				      toSkip, a2zSortOrder, pool_filter, devtype_filter, location_filter) < 0)
+				      toSkip, a2zSortOrder, pool_filter, devtype_filter, location_filter, min_first_seen) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -1505,6 +1507,7 @@ static int ntop_get_batched_interface_macs_info(lua_State* vm) {
   u_int8_t devtype_filter = (u_int8_t)-1;
   bool a2zSortOrder = true, sourceMacsOnly = false;
   u_int8_t location_filter = (u_int8_t)-1;
+  time_t min_first_seen = 0;
   u_int32_t begin_slot = 0;
   bool walk_all = false;
 
@@ -1516,7 +1519,7 @@ static int ntop_get_batched_interface_macs_info(lua_State* vm) {
 				      0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
 				      sourceMacsOnly, manufacturer,
 				      sortColumn, maxHits,
-				      toSkip, a2zSortOrder, pool_filter, devtype_filter, location_filter) < 0)
+				      toSkip, a2zSortOrder, pool_filter, devtype_filter, location_filter, min_first_seen) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);

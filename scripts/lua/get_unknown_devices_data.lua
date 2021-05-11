@@ -91,8 +91,8 @@ end
 -- First data source: memory
 -- NB: we must fetch this data even if mode is "inactive_only", to properly filter redis data
 local macs_stats = interface.getMacsInfo(nil, nil, nil, nil,
-         true --[[ sourceMacsOnly ]], nil--[[manufacturer]],
-	 tonumber(host_pools_instance.DEFAULT_POOL_ID), false)
+					 true --[[ sourceMacsOnly ]], nil--[[manufacturer]],
+					 tonumber(host_pools_instance.DEFAULT_POOL_ID), nil, nil, nil)
 
 if (macs_stats ~= nil) then
    macs_stats = macs_stats.macs

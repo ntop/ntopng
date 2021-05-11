@@ -319,7 +319,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 	       bool sourceMacsOnly,
 	       const char *manufacturer,
 	       char *sortColumn, u_int16_t pool_filter, u_int8_t devtype_filter,
-	       u_int8_t location_filter);
+	       u_int8_t location_filter, time_t min_first_seen);
   int sortFlows(u_int32_t *begin_slot,
 		bool walk_all,
 		struct flowHostRetriever *retriever,
@@ -676,7 +676,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		       char *sortColumn, u_int32_t maxHits,
 		       u_int32_t toSkip, bool a2zSortOrder,
 		       u_int16_t pool_filter, u_int8_t devtype_filter,
-		       u_int8_t location_filter);
+		       u_int8_t location_filter, time_t min_first_seen);
   int getActiveMacManufacturers(lua_State* vm,
 				u_int8_t bridge_iface_idx,
 				bool sourceMacsOnly,

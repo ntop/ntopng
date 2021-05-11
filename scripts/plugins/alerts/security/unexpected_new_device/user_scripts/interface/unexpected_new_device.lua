@@ -8,79 +8,76 @@ local alert_utils = require "alert_utils"
 local user_scripts = require("user_scripts")
 local callback_utils = require "callback_utils"
 
-local UNEXPECTED_DEV_CONN_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.user_scripts.unexpected_new_device_plugins_enabled"
-
 -- #################################################################
 
 local script
 
 -- #################################################################
 
-local function getSavedDeviceNameKey(mac)
-   return UNEXPECTED_DEV_CONN_PLUGINS_ENABLED_CACHE_KEY .. "." .. mac
-end
-
--- #################################################################
-
-local function setSavedDeviceName(mac, name)
-   local key = getSavedDeviceNameKey(mac)
-   ntop.setCache(key, name)
-end
-
--- #################################################################
-
-function getSavedDeviceName(mac)
-   local key = getSavedDeviceNameKey(mac)
-   return ntop.getCache(key)
-end
-
--- #################################################################
-
 local function check_allowed_mac(params)
-   -- Saving the mac address list into a local variable and swapping keys with value due to performance issues 
+   -- Holds a per-interface timestamp
+   local prev_first_seen_key = string.format("ntopng.cache.ifid_%d.unexpected_new_device.prev_first_seen", interface.getId())
+   -- Saving the mac address list into a local variable and swapping keys with value due to performance issues
    local mac_list = {}
 
+   -- This is the whitelist, that is, MACs configured here won't trigger any alert
    for key, mac in ipairs(params.user_script_config.items) do
       mac_list[mac] = 1
    end
 
-   -- Retrieving the if id 
-   local ifid = interface.getId()
-   local seen_devices_hash = getFirstSeenDevicesHashKey(ifid)
-   -- Retrieving the list of the addresses already seen
-   local seen_devices = ntop.getHashAllCache(seen_devices_hash) or {}
+   -- Keep the current time
+   local cur_first_seen = os.time()
 
-   -- Loop throught all the devices and check if their mac address was already seen before
-   -- if not checks the mac address permitted list and throw an alarm
-   callback_utils.foreachDevice( getInterfaceName(ifid), 
-                                 function(devicename, devicestats, devicebase)
-      -- note: location is always lan when capturing from a local interface
-      if (not devicestats.special_mac) and (devicestats.location == "lan") then
-         local mac = devicestats.mac
+   -- Read the previous time, that is, the time of the previous script execution
+   local prev_first_seen = tonumber(ntop.getCache(prev_first_seen_key))
 
-         -- First time we see a device
-         if not seen_devices[mac] then
-            seen_devices[mac] = 1
-            -- Add the mac address to the already seen addresses
-            ntop.setHashCache(seen_devices_hash, mac, tostring(os.time()))
+   if prev_first_seen then
+      -- If here, this is not the first run
 
-            local device = getDeviceName(mac)
-            setSavedDeviceName(mac, device)
+      local macs_stats = interface.getMacsInfo(nil --[[ sortColumn --]], nil --[[ perPage --]], nil --[[ to_skip --]],
+					       nil --[[ sOrder --]], nil --[[ source_macs_only --]], nil --[[ manufacturer --]],
+					       nil, nil --[[ device_type --]], "", prev_first_seen)
 
-            -- Check if the new mac address is expected or not
-            if not mac_list[mac] then
-               local alert = alert_consts.alert_types.alert_unexpected_new_device.new(
-                  device,
-                  mac
-               )
+      -- tprint("processing interface: ".. interface.getId().." prev_first_seen: "..formatEpoch(prev_first_seen).." cur_first_seen: "..formatEpoch(cur_first_seen))
 
-               alert:set_score(50)
+      for _, mac in pairs(macs_stats["macs"] or {}) do
+	 local addr = mac["mac"]
+	 -- tprint("processing: ".. addr.. " first_seen: "..formatEpoch(mac["seen.first"]).. " prev_first_seen: "..formatEpoch(prev_first_seen).." cur_first_seen: "..formatEpoch(cur_first_seen))
 
-               alert:store(alerts_api.macEntity(mac))
-            end
-         end
+	 if mac["seen.first"] >= cur_first_seen then
+	    -- Will be processed during the next execution (this avoids processing items twice)
+	    goto continue
+	 end
+
+	 if mac_list[addr] then
+	    -- MAC belongs to the whitelist, no alert
+	    goto continue
+	 end
+
+	 if mac["location"] == "lan" and not mac["special_mac"] then
+	    -- This is a LAN MAC address, let's trigger an alert
+	    local device = getDeviceName(addr)
+
+	    -- Check if the new mac address is expected or not
+	    local alert = alert_consts.alert_types.alert_unexpected_new_device.new(
+	       device,
+	       addr
+	    )
+
+	    alert:set_score(50)
+
+	    alert:set_device_type(mac["devtype"])
+	    alert:set_device_name(device)
+
+	    alert:store(alerts_api.macEntity(addr))
+	 end
+
+	 ::continue::
       end
-   end)
+   end
+
+   -- Store the current time so that it will be read again during the next execution
+   ntop.setCache(prev_first_seen_key, tostring(cur_first_seen))
 end
 
 -- #################################################################
@@ -104,18 +101,18 @@ script = {
    },
 
    gui = {
-	i18n_title        = "unexpected_new_device.unexpected_new_device_title",
-	i18n_description  = "unexpected_new_device.unexpected_new_device_description",
+      i18n_title        = "unexpected_new_device.unexpected_new_device_title",
+      i18n_description  = "unexpected_new_device.unexpected_new_device_description",
 
-	input_builder     = "items_list",
-	item_list_type    = "mac_address",
-	input_title       = i18n("unexpected_new_device.title"),
-   input_description = i18n("unexpected_new_device.description"),
-   
-   input_action_i18n = "Reset Learned Devices",
-   input_action_url = "lua/rest/v1/delete/host/new_devices.lua",
-   input_action_confirm = true,
-   input_action_i18n_confirm = "Are you sure to reset the learned devices?",
+      input_builder     = "items_list",
+      item_list_type    = "mac_address",
+      input_title       = i18n("unexpected_new_device.title"),
+      input_description = i18n("unexpected_new_device.description"),
+
+      input_action_i18n = "Reset Learned Devices",
+      input_action_url = "lua/rest/v1/delete/host/new_devices.lua",
+      input_action_confirm = true,
+      input_action_i18n_confirm = "Are you sure to reset the learned devices?",
    },
 }
 

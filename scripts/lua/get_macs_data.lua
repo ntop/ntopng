@@ -69,7 +69,7 @@ if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
 local macs_stats = interface.getMacsInfo(sortColumn, perPage, to_skip, sOrder,
 					 source_macs_only, manufacturer,
-					 nil, device_type, "")
+					 nil, device_type, "", nil)
 
 local total_rows = 0
 

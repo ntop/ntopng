@@ -41,6 +41,6 @@ end -- for
 
 rest_utils.extended_answer(rc, {records = res}, {
 			      ["draw"] = tonumber(_GET["draw"]),
-			      ["recordsFiltered"] = #res,
-			      ["recordsTotal"] = recordsFiltered
+			      ["recordsFiltered"] = recordsFiltered,
+			      ["recordsTotal"] = #res
 }, format)

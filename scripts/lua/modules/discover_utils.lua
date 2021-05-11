@@ -1176,7 +1176,7 @@ local function discoverARP()
       status = discoverStatus("ERROR", i18n("discover.err_unable_to_arp_discovery"))
    else
       -- Add the known macs to the list
-      local known_macs = interface.getMacsInfo(nil, 999, 0, false, true, nil) or {}
+      local known_macs = interface.getMacsInfo(nil, 999, 0, false, true, nil, nil, nil, nil, nil) or {}
 
       for _,hmac in pairs(known_macs.macs) do
 	 if((hmac["bytes.sent"] > 0)

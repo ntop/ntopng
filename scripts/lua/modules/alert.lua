@@ -32,6 +32,8 @@ function Alert:_build_type_info()
       subtype = self.subtype,
       granularity = self.granularity,
       score = self.score,
+      device_type = self.device_type,
+      device_name = self.device_name,
       -- Stuff added in subclasses :init
       alert_type_params = self.alert_type_params or {}
    }
@@ -123,6 +125,12 @@ function Alert:set_granularity(granularity)
    local alert_consts = require "alert_consts"
    self.granularity = alert_consts.alerts_granularities[granularity]
 end
+
+-- ##############################################
+
+--@brief Functions to set L2-related data, e.g., device type and name
+function Alert:set_device_type(devtype) self.device_type = tonumber(devtype) end
+function Alert:set_device_name(devname) self.device_name = tostring(devname) end
 
 -- ##############################################
 

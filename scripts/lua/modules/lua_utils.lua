@@ -1678,7 +1678,6 @@ function getDeviceName(device_mac, skip_manufacturer)
                name = host.name
             elseif host.ip ~= "0.0.0.0" then
                name = ip2label(host.ip)
-
                if name == host.ip then
                   name = nil
                end
@@ -2789,7 +2788,11 @@ function get_symbolic_mac(mac_address, no_href, add_extra_info)
 	 local s = get_mac_classification(m)
 
 	 if(m == s) then
-	    return '<a href="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='..mac_address..'">' .. get_mac_classification(m) .. ":" .. t .. '</a>'
+	    if no_href then
+	       return  get_mac_classification(m) .. ":" .. t
+	    else
+	       return '<a href="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='..mac_address..'">' .. get_mac_classification(m) .. ":" .. t .. '</a>'
+	    end
 	 else
 	    if(add_extra_info == true) then
 	       return(get_mac_classification(m).."_"..t.." ("..macInfo(mac_address)..")")
