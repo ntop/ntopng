@@ -600,6 +600,8 @@ function alert_store:format_record_common(value, entity_id, no_html)
 
    -- Note: this record is rendered by 
    -- httpdocs/templates/pages/alerts/families/{host,..}/table[.js].template 
+   
+   record["family"] = self._alert_entity.alert_store_name
 
    record["row_id"] = value["rowid"]
 

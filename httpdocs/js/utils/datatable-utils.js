@@ -657,15 +657,26 @@ class DataTableRenders {
         if (type !== "display") return obj.name;
         let msg = DataTableRenders.filterize('alert_id', obj.value, obj.name);
         if (obj.description) {
+           const strip_tags = function(html) { let t = document.createElement("div"); t.innerHTML = html; return t.textContent || t.innerText || ""; }
            let desc = obj.description;
+           let name_len = strip_tags(obj.name).length;
+           let desc_len = strip_tags(desc).length;
+           let total_len = name_len + desc_len;
            let tooltip = ""
-           let limit = 40;
-           if (obj.name.length + desc.length > limit) {
-             const strip_tags = function(html) { let t = document.createElement("DIV"); t.innerHTML = html; return t.textContent || t.innerText || ""; }
 
-             if (obj.name.length >= limit) {
-               desc = "";
-             } else if (obj.name.length + desc.length > limit) {
+           let limit = 40; /* description limit */
+           if (row.family == 'network' ||
+               row.family == 'interface' ||
+               row.family == 'am' ||
+               row.family == 'user' ||
+               row.family == 'system') {
+             limit = 80; /* some families have room for bigger descriptions */
+           }
+
+           if (total_len > limit) { /* cut and set a tooltip */
+             if (name_len >= limit) {
+               desc = ""; /* name is already too long, no description */
+             } else { /* cut the description*/
                desc = desc.substr(0, limit-obj.name.length);
                desc = desc.replace(/\s([^\s]*)$/, ''); // word break
                desc = desc + '&hellip;'; // add '...'
