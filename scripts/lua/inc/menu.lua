@@ -883,7 +883,7 @@ for v,k in pairs(iface_names) do
    interface.select(k)
    local _ifstats = interface.getStats()
    ifnames[_ifstats.id] = k
-   action_urls[_ifstats.id] = page_utils.switch_interface_form_action_url(_ifstats.id, _ifstats.type)
+   action_urls[_ifstats.id] = page_utils.switch_interface_form_action_url(ifId, _ifstats.id, _ifstats.type)
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
    if interface.isPcapDumpInterface() then pcapdump[k] = true end
    if(_ifstats.isView == true) then views[k] = true end

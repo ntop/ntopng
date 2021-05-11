@@ -824,14 +824,18 @@ end
 -- @param ifid The interface identifier of the interface that will be switched
 -- @param if_type The type of the interface that will be switched
 -- @return The URL
-function page_utils.switch_interface_form_action_url(ifid, if_type)
+function page_utils.switch_interface_form_action_url(active_ifid, switch_ifid, switch_if_type)
    local action_url = ""
    local page_params = table.clone(_GET)
 
    -- Read the currently active page
    local active_page = page_utils.get_active_section()
 
-   if page_utils.menu_sections[active_page] and page_utils.menu_sections[active_page]["zmq_only"] and if_type ~= "zmq" and if_type ~= "custom" then
+   if active_ifid == tonumber(getSystemInterfaceId()) then
+      -- If the switch is between the system interface and a non-system interface
+      -- the URL is just the home
+      action_url = ntop.getHttpPrefix() .. '/'
+   elseif page_utils.menu_sections[active_page] and page_utils.menu_sections[active_page]["zmq_only"] and switch_if_type ~= "zmq" and switch_if_type ~= "custom" then
       -- If the interface that will be switched is non-ZMQ, and the currently
       -- selected page is for ZMQ-only interfaces, then a redirection to root
       -- is performed, rather than preserving the current page
@@ -839,10 +843,12 @@ function page_utils.switch_interface_form_action_url(ifid, if_type)
    end
 
    -- Attach the interface id of the interface that will be switched
-   page_params.ifid = ifid
+   page_params.ifid = switch_ifid
 
    -- Return the url, preserving all existing page parameters (e.g., host=xx)
-   return getPageUrl(action_url, page_params)
+   local res = getPageUrl(action_url, page_params)
+
+   return res
 end
 
 -- ##############################################
