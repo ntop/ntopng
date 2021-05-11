@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local page_utils = require "page_utils"
 local ui_utils = require "ui_utils"
+local alert_consts = require "alert_consts"
 local json = require "dkjson"
 local template_utils = require "template_utils"
 local widget_gui_utils = require "widget_gui_utils"
@@ -277,7 +278,8 @@ local defined_tags = {
 
 local initial_tags = {}
 local formatters = {
-    l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end
+   l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end,
+   alert_id = function(alert_id) return (alert_consts.alertTypeLabel(tonumber(alert_id), true) or alert_id) end
 }
 
 for tag_key, tag in pairs(defined_tags[page] or {}) do
@@ -304,7 +306,7 @@ local context = {
     range_picker = {
         default = "30min",
         tags = {
-	    enabled = not (page ~= "host" and page ~= "flow"),
+	    enabled = true,
             tag_operators = {tag_utils.tag_operators.eq},
             defined_tags = defined_tags[page],
             values = initial_tags,
