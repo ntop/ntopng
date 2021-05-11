@@ -40,7 +40,7 @@
                 <a id="btn-download-alerts" download="alerts.txt" class="btn btn-secondary" href="{{ ntop.getHttpPrefix() }}/lua/rest/v1/get/{{ alert_stats.entity }}/alert/list.lua{{ build_query_params(datatable.datasource.params) }}&format=txt">
                     <i class="fas fa-file-download"></i> {{ i18n('show_alerts.download_alerts') }}
                 </a>
-		<button id="btn-delete-alerts" hidden={{ ternary(datatable.show_delete, "", "hidden") }} data-target='#delete-alerts-modal' data-toggle="modal" class="btn btn-danger">
+		<button id="btn-delete-alerts" {{ ternary(datatable.show_delete, "", 'hidden="hidden"') }} data-target='#delete-alerts-modal' data-toggle="modal" class="btn btn-danger">
                     <i class="fas fa fa-trash"></i> {{ i18n("delete_alerts")}}
                 </button>
 
@@ -166,7 +166,7 @@
         }
 
         async function onRangePickerChange(pushHistroy = false) {
-            
+
             const [begin, end] = getTimestampRange();
 	        updateDatasourceParams();
             await reloadTable($table);
