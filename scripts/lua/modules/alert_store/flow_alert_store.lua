@@ -364,6 +364,9 @@ function flow_alert_store:format_record(value, no_html)
       label = l4_protocol
    }
 
+   record["attacker"] = ""
+   record["victim"] = ""
+   
    if value["is_attacker_to_victim"] == "1" then
       record["attacker"] = "Client"
       record["victim"] = "Server"
