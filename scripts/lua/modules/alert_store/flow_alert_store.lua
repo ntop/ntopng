@@ -294,11 +294,11 @@ function flow_alert_store:format_record(value, no_html)
       msg = noHtml(msg)
    end
 
+   record["alert_name"] = alert_name
+
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""
    end
-   
-   record["alert_name"] = alert_name
 
    record["msg"] = {
      name = noHtml(alert_name),

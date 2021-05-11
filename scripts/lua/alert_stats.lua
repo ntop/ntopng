@@ -240,34 +240,37 @@ local modals = {
 
 local defined_tags = {
     ["host"] = {
+	alert_id = {'eq'},
         ip = {'eq'}
     },
     ["mac"] = {
+	alert_id = {'eq'}
     },
     ["snmp_device"] = {
-
+	alert_id = {'eq'}
     },
     ["flow"] = {
+	alert_id = {'eq'},
         l7_proto  = {'eq'},
         cli_ip = {'eq'},
         srv_ip = {'eq'},
 	cli_port = {'eq'},
-	srv_port = {'eq'},
-	alert_id = {'eq'}
+	srv_port = {'eq'}
     },
     ["system"] = {
-
+	alert_id = {'eq'}
     },
     ["active_monitoring"] = {
-
+	alert_id = {'eq'}
     },
     ["interface"] = {
-
+	alert_id = {'eq'}
     },
     ["user"] = {
-
+	alert_id = {'eq'}
     },
     ["network"] = {
+	alert_id = {'eq'},
         network_name = {'eq'}
     }
 }

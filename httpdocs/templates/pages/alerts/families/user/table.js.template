@@ -6,5 +6,5 @@
     /* Counts */
     {name: 'count', className: 'text-center', width: '5%', data: 'count', visible: false},
     /* Description */
-    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
+    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
 ]

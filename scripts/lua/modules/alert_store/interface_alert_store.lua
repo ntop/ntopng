@@ -68,17 +68,21 @@ end
 function interface_alert_store:format_record(value, no_html)
    local record = self:format_record_common(value, alert_entities.interface.entity_id, no_html)
 
-   local alert_id_label = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.interface.entity_id)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.interface.entity_id)
    local alert_info = alert_utils.getAlertInfo(value)
    local msg = alert_utils.formatAlertMessage(interface.getId(), value, alert_info)
 
    record["alert_name"] = alert_name
-   record["alert_id"] = {
-      label = alert_id_label,
-      value = value["alert_id"]
+
+   if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
+      msg = ""
+   end
+
+   record["msg"] = {
+     name = noHtml(alert_name),
+     value = tonumber(value["alert_id"]),
+     description = msg,
    }
-   record["msg"] = msg
 
    return record
 end

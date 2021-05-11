@@ -65,19 +65,29 @@ end
 -- ##############################################
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
-function network_alert_store:format_record(alert, no_html)
-   local record = self:format_record_common(alert, alert_entities.network.entity_id, no_html)
+function network_alert_store:format_record(value, no_html)
+   local record = self:format_record_common(value, alert_entities.network.entity_id, no_html)
 
-   local alert_id_label = alert_consts.alertTypeLabel(tonumber(alert["alert_id"]), no_html)
-   local alert_name = alert_consts.alertTypeLabel(tonumber(alert["alert_id"]), no_html, alert_entities.network.entity_id)
-   local alert_info = alert_utils.getAlertInfo(alert)
-   local msg = alert_utils.formatAlertMessage(ifid, alert, alert_info)
+   local alert_id_label = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html)
+   local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.network.entity_id)
+   local alert_info = alert_utils.getAlertInfo(value)
+   local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
+
+   record["alias"] = value.alias
+   record["local_network_id"] = value.local_network_id
+   record["network"] = value.name
 
    record["alert_name"] = alert_name
-   record["alias"] = alert.alias
-   record["local_network_id"] = alert.local_network_id
-   record["network"] = alert.name
-   record["msg"] = msg
+
+   if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
+      msg = ""
+   end
+
+   record["msg"] = {
+     name = noHtml(alert_name),
+     value = tonumber(value["alert_id"]),
+     description = msg,
+   }
 
    return record
 end

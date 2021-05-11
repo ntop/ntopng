@@ -68,7 +68,16 @@ function user_alert_store:format_record(value, no_html)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
 
    record["alert_name"] = alert_name
-   record["msg"] = msg
+
+   if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
+      msg = ""
+   end
+
+   record["msg"] = {
+     name = noHtml(alert_name),
+     value = tonumber(value["alert_id"]),
+     description = msg,
+   }
 
    return record
 end

@@ -4,5 +4,5 @@
     /* Counts */
     {name: 'count', className: 'text-center', data: 'count', width: '5%', visible: false},
     /* Description */
-    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap'},
+    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
 ]

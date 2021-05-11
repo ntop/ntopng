@@ -159,7 +159,6 @@ function host_alert_store:format_record(value, no_html)
    end
 
    record["ip"]["shown_label"] = record["ip"]["label"]
-   record["alert_name"] = alert_name
    record["attacker"] = ""
    record["victim"] = ""
    
@@ -172,7 +171,18 @@ function host_alert_store:format_record(value, no_html)
    end
    
    record["vlan_id"] = value["vlan_id"] or 0
-   record["msg"] = msg
+
+   record["alert_name"] = alert_name
+
+   if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
+      msg = ""
+   end
+
+   record["msg"] = {
+     name = noHtml(alert_name),
+     value = tonumber(value["alert_id"]),
+     description = msg,
+   }
 
    return record
 end

@@ -88,10 +88,20 @@ function am_alert_store:format_record(value, no_html)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.am_host.entity_id)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
 
-   record["alert_name"] = alert_name
    record["threshold"] = 0
    record["value"] = 0
-   record["msg"] = msg
+
+   record["alert_name"] = alert_name
+
+   if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
+      msg = ""
+   end
+
+   record["msg"] = {
+     name = noHtml(alert_name),
+     value = tonumber(value["alert_id"]),
+     description = msg,
+   }
 
    return record
 end
