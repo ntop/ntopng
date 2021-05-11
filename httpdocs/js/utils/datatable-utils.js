@@ -654,9 +654,27 @@ class DataTableRenders {
     }
 
     static formatNameDescription(obj, type, row) {
-        if (type !== "display") return obj.description;
+        if (type !== "display") return obj.name;
         let msg = DataTableRenders.filterize('alert_id', obj.value, obj.name);
-        if (obj.description) msg = msg + ": " + obj.description;
+        if (obj.description) {
+           let desc = obj.description;
+           let tooltip = ""
+           let limit = 40;
+           if (obj.name.length + desc.length > limit) {
+             const strip_tags = function(html) { let t = document.createElement("DIV"); t.innerHTML = html; return t.textContent || t.innerText || ""; }
+
+             if (obj.name.length >= limit) {
+               desc = "";
+             } else if (obj.name.length + desc.length > limit) {
+               desc = desc.substr(0, limit-obj.name.length);
+               desc = desc.replace(/\s([^\s]*)$/, ''); // word break
+               desc = desc + '&hellip;'; // add '...'
+             }
+             tooltip = strip_tags(obj.description);
+           }
+           msg = msg + ': <span title="' + tooltip + '">' + desc + '</span>';
+        }
+        if (obj.configset_ref) msg = msg + obj.configset_ref;
         return msg;
     }
 

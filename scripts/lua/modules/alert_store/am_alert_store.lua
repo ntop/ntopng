@@ -101,6 +101,7 @@ function am_alert_store:format_record(value, no_html)
      name = noHtml(alert_name),
      value = tonumber(value["alert_id"]),
      description = msg,
+     configset_ref = alert_utils.getConfigsetAlertLink(alert_info)
    }
 
    return record

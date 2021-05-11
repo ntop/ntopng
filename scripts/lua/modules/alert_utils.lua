@@ -422,11 +422,26 @@ end
 
 -- #################################
 
-function alert_utils.getConfigsetAlertLink(alert_json)
+function alert_utils.getConfigsetAlertLink(alert_json, alert --[[ optional --]])
    local info = alert_json.alert_generation or (alert_json.alert_info and alert_json.alert_info.alert_generation)
 
    if(info and isAdministrator()) then
-	 return(' <a href="'.. ntop.getHttpPrefix() ..'/lua/admin/edit_configset.lua?'..
+
+      if alert then
+         -- This piece of code (exception) has been moved here from formatAlertMessage
+         if(alert_consts.getAlertType(alert.alert_id, alert.entity_id) == "alert_am_threshold_cross") then
+            local plugins_utils = require "plugins_utils"
+            local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+            local host = json.decode(alert.json)["host"]
+
+            if host and host.measurement and not host.is_infrastructure then
+ 	       return ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/active_monitoring_stats.lua?am_host='
+               .. host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
+            end
+         end
+      end
+
+      return(' <a href="'.. ntop.getHttpPrefix() ..'/lua/admin/edit_configset.lua?'..
 	    'subdir='.. info.subdir ..'&user_script='.. info.script_key ..'#all">'..
 	    '<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>')
    end
@@ -471,21 +486,6 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json, skip_live_data)
      return("")
   end
 
-  if(msg) then
-     if(alert_consts.getAlertType(alert.alert_id, alert.entity_id) == "alert_am_threshold_cross") then
-      local plugins_utils = require "plugins_utils"
-      local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
-      local host = json.decode(alert.json)["host"]
-
-      if host and host.measurement and not host.is_infrastructure then
-	 msg = msg .. ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/active_monitoring_stats.lua?am_host='
-           .. host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
-      end
-    else
-      msg = msg .. alert_utils.getConfigsetAlertLink(alert_json)
-    end
-  end
-
   if isEmptyString(msg) then
     msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]], alert.entity_id)
   end
@@ -515,8 +515,6 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, skip_live_d
   if isEmptyString(msg) then
     msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]], alert_entities.flow.entity_id)
   end
-
-  msg = msg .. alert_utils.getConfigsetAlertLink(alert_json)
 
   return msg or ""
 end
