@@ -252,7 +252,8 @@ local defined_tags = {
         cli_ip = {'eq'},
         srv_ip = {'eq'},
 	cli_port = {'eq'},
-	srv_port = {'eq'}
+	srv_port = {'eq'},
+	alert_id = {'eq'}
     },
     ["system"] = {
 
@@ -310,6 +311,7 @@ local context = {
                 srv_ip = i18n("tags.srv_ip"),
                 cli_port = i18n("tags.cli_port"),
                 srv_port = i18n("tags.srv_port"),
+                alert_id = i18n("tags.alert_id"),
                 ip = i18n("tags.ip"),
                 network_name = i18n("tags.network")
             }

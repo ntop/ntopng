@@ -4996,6 +4996,7 @@ local lang = {
     ["network_name"] = "Network",
     ["srv_ip"] = "Server",
     ["srv_port"] = "Server Port",
+    ["alert_id"] = "Alert Type",
   },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",
