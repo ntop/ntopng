@@ -314,7 +314,18 @@ const get_unit_times = (seconds) => {
 
 function getSanitizedScriptExList(script_exclusion_list) {
    var ex_list_purified;
-   ex_list_purified = script_exclusion_list.split("\n").join(";");
+
+   // IP only are supported at the moment, values are listed without <name>=
+   // as this is more intuitive for the user, however the backend 
+   // handles <name>=<value> (see also appendExclusionList)
+   //ex_list_purified = script_exclusion_list.split("\n").join(";");
+
+   ex_list_purified = script_exclusion_list.split(" ").join(""); 
+   ex_list_purified = ex_list_purified.split("\n").join("");
+   if (ex_list_purified.length > 0) 
+     ex_list_purified = "ip="+ex_list_purified;
+   ex_list_purified = ex_list_purified.split(",").join(";ip=");
+
    return ex_list_purified.split(" ").join("");
 }
 
@@ -1466,12 +1477,17 @@ function appendExclusionList(data) {
                   // Temporary check, needs to be removed in a few time
                   continue;
                }
-               ex_list_str = ex_list_str + name + "=" + value + ",";
+               // IP only are supported at the moment, just list the values without <name>=
+               // as this is more intuitive for the user
+               //ex_list_str = ex_list_str + name + "=" + value + ",";
+               ex_list_str = ex_list_str + value + ",";
             }
 
-            ex_list_str = ex_list_str.slice(0, -1);
-            ex_list_str = ex_list_str + "\n";
+            //ex_list_str = ex_list_str.slice(0, -1);
+            //ex_list_str = ex_list_str + "\n";
          }
+         if (ex_list_str.length > 0) 
+           ex_list_str = ex_list_str.slice(0, -1);
       }
    }
 
