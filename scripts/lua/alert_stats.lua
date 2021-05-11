@@ -296,7 +296,7 @@ local toggle_engaged_alert = ([[
         </div> 
     </div>
 ]])
-    
+
 local context = {
     template_utils = template_utils,
     json = json,
@@ -332,7 +332,8 @@ local context = {
         name = CHART_NAME
     },
     datatable = {
-        name = page .. "-alerts-table",
+        show_delete = isAdministrator(),
+	name = page .. "-alerts-table",
         initialLength = getDefaultTableSize(),
         table = template_utils.gen(string.format("pages/alerts/families/%s/table.template", page), {}),
         js_columns = template_utils.gen(string.format("pages/alerts/families/%s/table.js.template", page), {}),

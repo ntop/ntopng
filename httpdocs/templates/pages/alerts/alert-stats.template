@@ -40,7 +40,7 @@
                 <a id="btn-download-alerts" download="alerts.txt" class="btn btn-secondary" href="{{ ntop.getHttpPrefix() }}/lua/rest/v1/get/{{ alert_stats.entity }}/alert/list.lua{{ build_query_params(datatable.datasource.params) }}&format=txt">
                     <i class="fas fa-file-download"></i> {{ i18n('show_alerts.download_alerts') }}
                 </a>
-		<button id="btn-delete-alerts" data-target='#delete-alerts-modal' data-toggle="modal" class="btn btn-danger">
+		<button id="btn-delete-alerts" hidden={{ ternary(datatable.show_delete, "", "hidden") }} data-target='#delete-alerts-modal' data-toggle="modal" class="btn btn-danger">
                     <i class="fas fa fa-trash"></i> {{ i18n("delete_alerts")}}
                 </button>
 
@@ -200,7 +200,7 @@
 		    {% end %}
 
 		    /* Only not-engaged alerts can be deleted */
-                    {% if alert_stats.entity ~= 'all' and alert_stats.status ~= "engaged" then %}
+                    {% if alert_stats.entity ~= 'all' and alert_stats.status ~= "engaged" and datatable.show_delete == true then %}
                     {icon: 'fa fa-trash', label: "{{ i18n('remove') }}", modal: '#delete_alert_dialog', class: 'btn-danger'},
                     {% end %}
 		];
