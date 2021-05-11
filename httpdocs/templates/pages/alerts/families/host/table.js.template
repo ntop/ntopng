@@ -6,7 +6,7 @@
     /* Duration */
     {name: 'duration', data: 'duration', width: '5%', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
     /* IP Address */
-    {name: 'ip', data: 'ip', orderable: false, width: '16%', render: (ipAddress, type, row) => {
+    {name: 'ip', data: 'ip', orderable: false, width: '16%', className: 'text-nowrap', render: (ipAddress, type, row) => {
         if (type !== "display") return ipAddress;
     	let html_ref = '';
 	if (ipAddress.reference !== undefined)
