@@ -142,13 +142,8 @@ end
 -- #################################
 
 function cpu_utils.systemHostStats()
-   local cur_id = interface.getId()
-   interface.select(getSystemInterfaceId())
-
    local system_host_stats =  ntop.systemHostStat()
    system_host_stats["cpu_states"] = cpu_utils.get_cpu_states()
-
-   interface.select(tostring(cur_id))
 
    return system_host_stats
 end

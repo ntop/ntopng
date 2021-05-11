@@ -39,8 +39,6 @@ local config_set = user_scripts.getConfigset()
 
 -- ################################################
 
-interface.select(getSystemInterfaceId())
-
 local scripts = user_scripts.load(getSystemInterfaceId(), script_type, subdir)
 local result = {}
 

@@ -38,9 +38,6 @@ end
 
 -- ################################################
 
-
-interface.select(getSystemInterfaceId())
-
 local script = user_scripts.loadModule(getSystemInterfaceId(), script_type, subdir, script_key)
 
 if(script == nil) then

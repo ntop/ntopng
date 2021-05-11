@@ -34,7 +34,7 @@ local search_filter = _GET["search_script"]
 
 local configset = user_scripts.getConfigset()
 local script_type = user_scripts.getScriptType(script_subdir)
-interface.select(getSystemInterfaceId())
+
 local scripts = user_scripts.load(getSystemInterfaceId(), script_type, script_subdir)
 
 if not haveAdminPrivileges() or not configset then
