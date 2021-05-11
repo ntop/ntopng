@@ -594,7 +594,7 @@ end
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function alert_store:format_record_common(value, entity_id, no_html)
    local record = {}
-   
+
    -- Note: this record is rendered by 
    -- httpdocs/templates/pages/alerts/families/{host,..}/table[.js].template 
 

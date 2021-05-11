@@ -35,7 +35,7 @@ protected:
   UnexpectedSMTPServer() : UnexpectedServer() {};
   ~UnexpectedSMTPServer() {};
 
-  FlowAlert *buildAlert(Flow *f) { return new UnexpectedSMTPServerAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) { UnexpectedSMTPServerAlert *alert = new UnexpectedSMTPServerAlert(this, f); alert->setSrvAttacker(); return alert; }
 
   std::string getName()          const { return(std::string("unexpected_smtp")); }
 };

@@ -54,7 +54,14 @@ void DeviceProtocolNotAllowed::protocolDetected(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *DeviceProtocolNotAllowed::buildAlert(Flow *f) {
-  return new DeviceProtocolNotAllowedAlert(this, f);
+  DeviceProtocolNotAllowedAlert *alert = new DeviceProtocolNotAllowedAlert(this, f);
+
+  if (!f->isCliDeviceAllowedProtocol())
+    alert->setCliAttacker();
+  else
+    alert->setSrvAttacker();
+
+  return alert;
 }
 
 /* ***************************************************** */

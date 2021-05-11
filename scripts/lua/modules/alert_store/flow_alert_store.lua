@@ -363,18 +363,15 @@ function flow_alert_store:format_record(value, no_html)
       value = value["proto"],
       label = l4_protocol
    }
-   
+
    if value["is_attacker_to_victim"] == "1" then
-      attacker = flow_cli_ip["label"]
-      victim = flow_srv_ip["label"]
+      record["attacker"] = "Client"
+      record["victim"] = "Server"
    elseif value["is_victim_to_attacker"] == "1" then
-      attacker = flow_srv_ip["label"] 
-      victim = flow_cli_ip["label"]
+      record["attacker"] = "Server"
+      record["victim"] = "Client"
    end
-   
-   record["attacker"] = attacker 
-   record["victim"] = victim
-   
+
    record["l7_proto"] = {
       value = value["l7_proto"],
       label = l4_protocol..":"..l7_protocol

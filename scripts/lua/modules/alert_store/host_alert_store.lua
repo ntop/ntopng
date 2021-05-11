@@ -160,14 +160,14 @@ function host_alert_store:format_record(value, no_html)
 
    record["ip"]["shown_label"] = record["ip"]["label"]
    record["alert_name"] = alert_name
-
-   if value["is_attacker"] == "1" then
-      attacker_or_victim = "Attacker"
-   elseif value["is_victim"] == "1" then
-      attacker_or_victim = "Victim"   
+   record["attacker"] = ""
+   record["victim"] = ""
+   
+   if value["is_attacker"] == true then
+      record["is_attacker"] = '<span style="color: #008000;">✓</span>'
+   elseif value["is_victim"] == true then
+      record["is_victim"] = '<span style="color: #008000;">✓</span>'
    end
-
-   record["is_attacker_or_victim"] = attacker_or_victim
    
    record["vlan_id"] = value["vlan_id"] or 0
    record["msg"] = msg

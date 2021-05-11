@@ -38,7 +38,14 @@ void BlacklistedFlow::protocolDetected(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *BlacklistedFlow::buildAlert(Flow *f) {
-  return new BlacklistedFlowAlert(this, f);
+  BlacklistedFlowAlert *alert = new BlacklistedFlowAlert(this, f);
+
+  if(f->isBlacklistedServer())
+    alert->setSrvAttacker();
+  else
+    alert->setCliAttacker();
+    
+  return alert;
 }
 
 /* ***************************************************** */

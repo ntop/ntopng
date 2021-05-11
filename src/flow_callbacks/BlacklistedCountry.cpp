@@ -62,7 +62,14 @@ void BlacklistedCountry::protocolDetected(Flow *f) {
 
 FlowAlert *BlacklistedCountry::buildAlert(Flow *f) {
   bool is_server = hasBlacklistedCountry(f->get_srv_host());
-  return new BlacklistedCountryAlert(this, f, is_server);
+  BlacklistedCountryAlert *alert = new BlacklistedCountryAlert(this, f, is_server);
+
+  if(is_server)
+    alert->setSrvAttacker();
+  else
+    alert->setCliAttacker();
+
+  return alert;
 }
 
 /* ***************************************************** */
