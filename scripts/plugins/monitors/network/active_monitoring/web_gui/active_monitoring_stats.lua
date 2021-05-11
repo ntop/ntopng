@@ -101,7 +101,7 @@ page_utils.print_navbar(navbar_title, url, {
         active = page == "alerts",
         page_name = "alerts",
         label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
-	url = ntop.getHttpPrefix().."/lua/alert_stats.lua?&status=engaged&page=active_monitoring"
+	url = ntop.getHttpPrefix().."/lua/alert_stats.lua?&status=engaged&page=am_host"
     }
 })
 

@@ -482,9 +482,9 @@ class Ntop {
   void loadTrackers();
   bool isATrackerHost(char *host);
   bool isExistingInterface(const char * const name) const;
-  inline NetworkInterface* getFirstInterface() { return(iface[0]);         }
-  inline NetworkInterface* getInterface(int i) { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
-  inline NetworkInterface* getSystemInterface() { return(system_interface); }
+  inline NetworkInterface* getFirstInterface()  const { return(iface[0]);         }
+  inline NetworkInterface* getInterface(int i)  const { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
+  inline NetworkInterface* getSystemInterface() const { return(system_interface); }
 #ifdef NTOPNG_PRO
   bool addToNotifiedInformativeCaptivePortal(u_int32_t client_ip);
   bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id, char *label, char *ifname);

@@ -2438,6 +2438,9 @@ bool Ntop::isExistingInterface(const char * const name) const {
       return(true);
   }
 
+  if(!strcmp(name, getSystemInterface()->get_name()))
+     return(true);
+
   return(false);
 }
 

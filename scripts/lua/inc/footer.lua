@@ -16,11 +16,6 @@ local is_admin = isAdministrator()
 local maxSpeed
 
 local ifid = interface.getId()
-if page_utils.is_system_view() then
-   ifid = getSystemInterfaceId()
-end
-
-interface.select(tostring(ifid))
 local _ifstats = interface.getStats()
 
 if not interface.isPcapDumpInterface() and not have_nedge then
@@ -169,24 +164,10 @@ print([[
 		});
 
 	   const toggleSystemInterface = (isSystemSwitching = false, $form = null) => {
-		  // if form it's empty it means the call was not invoked
-		  // by a form request
-		  // prevent the non admin user to switch in system interface
-		  const isAdmin = ]].. (is_admin and "true" or "false") ..[[;
-
-		  const flag = (isSystemSwitching && isAdmin) ? "1" : "0";
-
-		  $.post(`]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua`, {
-			 system_interface: flag,
-			 csrf: "]].. ntop.getRandomCSRFValue() ..[["
-		  }, function(data) {
-			 if (data.success && $form == null) location.href =  http_prefix + '/';
-			 if (data.success && $form != null) $form.submit();
-			 if (!data.success) {
-				console.error("An error has occurred when switching interface!");
-			 }
-
-		  });
+                  if($form != null)
+                    $form.submit();
+                  else
+                    console.error("An error has occurred when switching interface!");
 	   }
 	]])
 print([[

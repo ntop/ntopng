@@ -64,7 +64,7 @@ page_utils.menu_entries = {
     db_explorer           = {key = "db_explorer", i18n_title = "db_explorer.historical_data_explorer", section = "dashboard", visible_iface = true},
 
     -- Alerts
-    detected_alerts       = {key = "detected_alerts", i18n_title = "show_alerts.detected_alerts", section = "alerts", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/alerts.html"},
+    detected_alerts       = {key = "detected_alerts", i18n_title = "show_alerts.detected_alerts", section = "alerts", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/alerts.html"},
     alerts_dashboard      = {key = "alerts_dashboard", i18n_title = "alerts_dashboard.alerts_dashboard", section = "alerts", visible_iface = true},
     flow_alerts_explorer  = {key = "flow_alerts_explorer", i18n_title = "flow_alerts_explorer.label", section = "alerts", visible_iface = true},
 
@@ -211,21 +211,6 @@ function page_utils.set_active_menu_entry(entry, i18n_params, alt_title)
    active_entry = entry.key
    if entry.subkey then
       active_sub_entry = entry.subkey
-   end
-
-   -- check if the page belong to system view
-   -- or if the page belong to interface view
-   -- if both flags are true then it means the page
-   -- is visible in system view and interface view
-   local visible_iface = entry.visible_iface or false
-   local visible_system = entry.visible_system or false
-
-   if (visible_system and visible_iface) then
-      -- do nothing
-   elseif (visible_system and not page_utils.is_system_view()) then
-      page_utils.set_system_view(true)
-   elseif (visible_iface and page_utils.is_system_view()) then
-      page_utils.set_system_view(false)
    end
 
    page_utils.print_header(alt_title or i18n(entry.i18n_title, i18n_params) or entry.i18n_title)
@@ -663,7 +648,6 @@ end
 -- ##############################################
 
 function page_utils.get_interface_list()
-
    local interfaces = {}
    local iface_names = interface.getIfNames()
    local is_system_interface = page_utils.is_system_view()
@@ -803,23 +787,7 @@ end
 -- ##############################################
 
 function page_utils.is_system_view()
-   return ((ntop.getPref("ntopng.prefs.system_mode_enabled") == "1") and isAdministrator())
-end
-
--- ##############################################
-
-function page_utils.set_system_view(toggle)
-   local t
-
-   if toggle == "1" or toggle == true then
-      t = "1"
-   elseif toggle == "0" or toggle == false then
-      t = "0"
-   end
-
-   if t then
-      ntop.setPref("ntopng.prefs.system_mode_enabled", t)
-   end
+   return interface.getId() == tonumber(getSystemInterfaceId()) and isAdministrator()
 end
 
 -- ##############################################
@@ -858,18 +826,12 @@ end
 -- @return The URL
 function page_utils.switch_interface_form_action_url(ifid, if_type)
    local action_url = ""
-   local is_system_interface = page_utils.is_system_view()
    local page_params = table.clone(_GET)
 
    -- Read the currently active page
    local active_page = page_utils.get_active_section()
 
-   if is_system_interface then
-      -- If the currently selected interface is system,
-      -- then the switch redirects to the root and not to the
-      -- currently selected page
-      action_url = ntop.getHttpPrefix() .. '/'
-   elseif page_utils.menu_sections[active_page] and page_utils.menu_sections[active_page]["zmq_only"] and if_type ~= "zmq" and if_type ~= "custom" then
+   if page_utils.menu_sections[active_page] and page_utils.menu_sections[active_page]["zmq_only"] and if_type ~= "zmq" and if_type ~= "custom" then
       -- If the interface that will be switched is non-ZMQ, and the currently
       -- selected page is for ZMQ-only interfaces, then a redirection to root
       -- is performed, rather than preserving the current page

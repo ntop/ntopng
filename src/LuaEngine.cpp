@@ -699,6 +699,12 @@ bool LuaEngine::switchInterface(struct lua_State *vm, const char *ifid,
   ntop->getRedis()->set(iface_key, iface_id, 0);
   ntop->getRedis()->set(ifname_key, iface->get_name(), 0);
 
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+			       "Switch interface requested via POST [Interface: %s][user: %s]",
+			       iface->get_name(), user);
+
+  getLuaVMUservalue(vm, iface) = iface;
+
   return true;
 }
 
@@ -724,7 +730,7 @@ void LuaEngine::setInterface(const char * user, char * const ifname,
     if(is_allowed) *is_allowed = true;
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Allowed interface found. [Interface: %s][user: %s]",
 				 ifname, user);
-  } else if(snprintf(key, sizeof(key), "ntopng.prefs.%s.ifname", user)
+  } else if(snprintf(key, sizeof(key), NTOPNG_PREFS_PREFIX ".%s.ifname", user)
 	    && (ntop->getRedis()->get(key, ifname, ifname_len) < 0
 		|| (!ntop->isExistingInterface(ifname)))) {
     /* No allowed interface and no default (or not existing) set interface */

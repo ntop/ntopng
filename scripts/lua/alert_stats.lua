@@ -104,6 +104,7 @@ local pages = {
         label = alert_entities.snmp_device.label,
         endpoint_list = "/lua/pro/rest/v1/get/snmp/device/alert/list.lua",
         endpoint_ts = "/lua/pro/rest/v1/get/snmp/device/alert/ts.lua",
+	hidden = not is_system_interface,
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.snmp_device.entity_id)]
     },
     {
@@ -130,6 +131,7 @@ local pages = {
         label = alert_entities.system.label,
         endpoint_list = "/lua/rest/v1/get/system/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/system/alert/ts.lua",
+	hidden = not is_system_interface,
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.system.entity_id)]
     },
     {
@@ -138,6 +140,7 @@ local pages = {
         label = alert_entities.am_host.label,
         endpoint_list = "/lua/rest/v1/get/active_monitoring/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/active_monitoring/alert/ts.lua",
+	hidden = not is_system_interface,
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.am_host.entity_id)]
     },
     {
@@ -146,7 +149,7 @@ local pages = {
         label = alert_entities.user.label,
         endpoint_list = "/lua/rest/v1/get/user/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/user/alert/ts.lua",
-	hidden = is_system_interface,
+	hidden = not is_system_interface,
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.user.entity_id)]
     }
 }
@@ -297,7 +300,7 @@ local context = {
     range_picker = {
         default = "30min",
         tags = {
-            enabled = page ~= "all",
+	    enabled = not (page ~= "host" and page ~= "flow"),
             tag_operators = {tag_utils.tag_operators.eq},
             defined_tags = defined_tags[page],
             values = initial_tags,

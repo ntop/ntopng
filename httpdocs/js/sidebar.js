@@ -101,23 +101,6 @@ $(document).ready(() => {
     $(`button[data-toggle='sidebar']`).click(function() {
         toggleSidebar();
     });
-
-    $(`#iface-select`).change(function() {
-
-        const action = $(this).val();
-        const $form = $(this).parents('form');
-
-        $form.attr('action', action);
-
-        if (!systemInterfaceEnabled) {
-            toggleSystemInterface(true);
-        }
-        else {
-            toggleSystemInterface(false, $form);
-        }
-
-    });
-
 });
 
 $(window).resize(function() {
