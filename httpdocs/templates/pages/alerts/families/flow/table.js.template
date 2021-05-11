@@ -27,9 +27,9 @@
     /* Description */
     {responsivePriority: 1, name: 'description', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Attacker */
-    {name: 'is_attacker_to_victim', data: 'is_attacker_to_victim', orderable: true, width: '15%', className: 'text-center text-nowrap'},
+    {name: 'is_attacker_to_victim', data: 'is_attacker_to_victim', orderable: true, width: '8%', className: 'text-center'},
     /* Victim */
-    {name: 'is_victim_to_attacker', data: 'is_victim_to_attacker', orderable: true, width: '15%', className: 'text-center text-nowrap'},
+    {name: 'is_victim_to_attacker', data: 'is_victim_to_attacker', orderable: true, width: '8%', className: 'text-center'},
     /* Counts */
     {name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
 ]
