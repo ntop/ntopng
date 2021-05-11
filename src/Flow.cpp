@@ -199,7 +199,7 @@ Flow::Flow(NetworkInterface *_iface,
   case IPPROTO_ICMP:
     ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_IP_ICMP,
       ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-    
+
     /* Use nDPI to check potential flow risks */
     if(iface->is_ndpi_enabled()) allocDPIMemory();
     set_hash_entry_state_flow_notyetdetected();
@@ -223,7 +223,7 @@ Flow::Flow(NetworkInterface *_iface,
     if(srv_host) srv_host->inc_num_blacklisted_flows(false);
   } else if(isBlacklistedServer()) {
     if(cli_host) cli_host->inc_num_blacklisted_flows(true);
-  }    
+  }
 }
 
 /* *************************************** */
@@ -691,6 +691,16 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 #endif
 
   if(detected) {
+    /* Ignore unsafe protocols for broadcast packets (e.g. SMBv1) */
+    Mac *srv_mac = srv_host->getMac();
+    
+    if(srv_mac && srv_mac->isBroadcast()) {
+      ndpi_risk r = 2 << (NDPI_UNSAFE_PROTOCOL-1);
+      
+      if((ndpiFlow->risk & r) == r)
+	ndpiFlow->risk &= ~r; /* Clear the bit */
+    }
+
     setRisk(ndpiFlow->risk);
     updateProtocol(proto_id);
     setProtocolDetectionCompleted();
@@ -716,7 +726,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
      See https://github.com/ntop/ntopng/commit/30f52179d9f7a1eb774534def93d55c77d6070bc#diff-20b1df29540b6de59ceb6c6d2f3afdb5R387
   */
   ndpiFlow->check_extra_packets = 1, ndpiFlow->max_extra_packets_to_check = 10;
-  
+
   proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
 					   ip_packet, ip_len, packet_time,
 					   (struct ndpi_id_struct*) cli_id, (struct ndpi_id_struct*) srv_id);
@@ -735,7 +745,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 	cli_host->incContactedService((char*)ndpiFlow->host_server_name);
 	cli_host->incrVisitedWebSite((char*)ndpiFlow->host_server_name);
       }
-	
+
 
       if(ndpiFlow->protos.dns.is_query) {
 	char *q = strdup((const char*)ndpiFlow->host_server_name);
@@ -2429,7 +2439,7 @@ json_object* Flow::flow2JSON() {
     if(srv_host && srv_host->getMac() && !srv_host->getMac()->isNull())
       json_object_object_add(my_object, Utils::jsonLabel(OUT_DST_MAC, "OUT_DST_MAC", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(Utils::formatMac(srv_host ? srv_host->get_mac() : NULL, buf, sizeof(buf))));
-  
+
     if(isTLS() && protos.tls.ja3.client_hash)
       json_object_object_add(my_object, Utils::jsonLabel(JA3C_HASH, "JA3C_HASH", jsonbuf, sizeof(jsonbuf)),
            json_object_new_string(protos.tls.ja3.client_hash));
@@ -2511,7 +2521,7 @@ json_object* Flow::flow2JSON() {
   if(protocol == IPPROTO_TCP) {
     json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
-    
+
     json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "IN_RETRASMISSIONS", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int64(stats.get_cli2srv_tcp_retr()));
     json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "OUT_RETRASMISSIONS", jsonbuf, sizeof(jsonbuf)),
@@ -2525,7 +2535,7 @@ json_object* Flow::flow2JSON() {
     json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "OUT_LOST", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int64(stats.get_srv2cli_tcp_lost()));
   }
-    
+
   json_object_object_add(my_object, Utils::jsonLabel(IN_PKTS, "IN_PKTS", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int64(get_partial_packets_cli2srv()));
   json_object_object_add(my_object, Utils::jsonLabel(IN_BYTES, "IN_BYTES", jsonbuf, sizeof(jsonbuf)),
@@ -3089,7 +3099,7 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
 
   /* TODO: read all the recipients responsible for flows, and enqueue only to them */
   /* Currenty, we forcefully enqueue only to the builtin sqlite */
-    
+
   notification.alert = (char*)flow_str;
   notification.score = getPredominantAlertScore();
   notification.alert_severity = Utils::mapScoreToSeverity(notification.score);
@@ -4927,7 +4937,7 @@ void Flow::lua_get_min_info(lua_State *vm) {
 
 /* ***************************************************** */
 
-/* 
+/*
  * Get minimal flow information.
  * NOTE: this is intended to be called only from flow user scripts
  */
@@ -5332,7 +5342,7 @@ void Flow::setPredominantAlert(FlowAlertType alert_type, u_int16_t score) {
 
   /* Increase the value for the newly set level (if not normal) */
   iface->incNumAlertedFlows(this, Utils::mapScoreToSeverity(score));
- 
+
   /* Update the current predominant alert and score */
   predominant_alert = alert_type;
   predominant_alert_score = score;
@@ -5380,7 +5390,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int8_t cli_inc, u_int8_t 
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (host filter)");
 #endif
-    return false;  
+    return false;
   }
 
   if(!isFlowAlerted())
@@ -5449,18 +5459,18 @@ bool Flow::triggerAlertSync(FlowAlert *alert, u_int8_t cli_inc, u_int8_t srv_inc
 /* *************************************** */
 
 void Flow::setExternalAlert(json_object *a) {
- 
+
   /* In order to avoid concurrency issues with the getter, at most
    * 1 pending external alert is supported. */
   if(!external_alert.json) {
     json_object *val;
- 
+
     if(!iface->hasSeenExternalAlerts())
       iface->setSeenExternalAlerts();
- 
+
     if(json_object_object_get_ex(a, "source", &val))
       external_alert.source = strdup(json_object_get_string(val));
- 
+
     external_alert.json = a;
 
     /* Manually trigger a periodic update to process the alert */
@@ -5472,7 +5482,7 @@ void Flow::setExternalAlert(json_object *a) {
 
 void Flow::luaRetrieveExternalAlert(lua_State *vm) {
   const char *json = external_alert.json ? json_object_to_json_string(external_alert.json) : NULL;
- 
+
   if (json)
      lua_pushstring(vm, json);
   else
