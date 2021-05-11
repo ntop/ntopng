@@ -365,15 +365,13 @@ function flow_alert_store:format_record(value, no_html)
       label = l4_protocol
    }
 
-   record["attacker"] = ""
-   record["victim"] = ""
+   record["is_attacker_to_victim"] = ""
+   record["is_victim_to_attacker"] = ""
    
-   if value["is_attacker_to_victim"] == "1" then
-      record["attacker"] = "Client"
-      record["victim"] = "Server"
-   elseif value["is_victim_to_attacker"] == "1" then
-      record["attacker"] = "Server"
-      record["victim"] = "Client"
+   if value["is_attacker_to_victim"] == "1" and not no_html then
+      record["is_attacker_to_victim"] = '<span style="color: #008000;">✓</span>'
+   elseif value["is_victim_to_attacker"] == "1" and not no_html then
+      record["is_victim_to_attacker"] = '<span style="color: #008000;">✓</span>'
    end
 
    record["l7_proto"] = {
