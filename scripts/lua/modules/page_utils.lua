@@ -9,6 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local plugins_utils = require("plugins_utils")
 local template_utils = require("template_utils")
 local recording_utils = require("recording_utils")
+local alert_entities = require("alert_entities")
 
 local page_utils = {}
 
@@ -115,12 +116,12 @@ page_utils.menu_entries = {
    manage_users           = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-users"},
    preferences            = {key = "preferences", i18n_title = "prefs.preferences", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#preferences"},
    scripts_config         = {key = "scripts_config", i18n_title = "about.user_scripts", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
-   scripts_config_hosts   = {key = "scripts_config", subkey="hosts", i18n_title = "hosts", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
-   scripts_config_interfaces = {key = "scripts_config", subkey="interfaces", i18n_title = "interfaces", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
-   scripts_config_networks = {key = "scripts_config", subkey="networks", i18n_title = "report.local_networks", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
-   scripts_config_snmp_devices = {key = "scripts_config", subkey="snmp_devices", i18n_title = "snmp.snmp_devices", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
-   scripts_config_flows   = {key = "scripts_config", subkey="flows", i18n_title = "flows", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
-   scripts_config_system  = {key = "scripts_config", subkey="system", i18n_title = "system", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
+   scripts_config_hosts   = {key = "scripts_config", subkey="hosts", i18n_title = alert_entities.host.i18n_label, section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
+   scripts_config_interfaces = {key = "scripts_config", subkey="interfaces", i18n_title = alert_entities.interface.i18n_label, section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
+   scripts_config_networks = {key = "scripts_config", subkey="networks", i18n_title = alert_entities.network.i18n_label, section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
+   scripts_config_snmp_devices = {key = "scripts_config", subkey="snmp_devices", i18n_title = alert_entities.snmp_device.i18n_label, section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
+   scripts_config_flows   = {key = "scripts_config", subkey="flows", i18n_title = alert_entities.flow.i18n_label, section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
+   scripts_config_system  = {key = "scripts_config", subkey="system", i18n_title = alert_entities.system.i18n_label, section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
    scripts_config_syslog  = {key = "scripts_config", subkey="syslog", i18n_title = "syslog.syslog", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
    license                = {key = "license", i18n_title = "license_page.license", section = "admin", visible_iface = true, visible_system = true},
    profiles               = {key = "profiles", i18n_title = "traffic_profiles.traffic_profiles", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/advanced_features/traffic_profiles.html"},

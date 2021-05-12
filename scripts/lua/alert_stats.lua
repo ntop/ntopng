@@ -75,7 +75,7 @@ local pages = {
    {
         active = page == "host",
         page_name = "host",
-        label = alert_entities.host.label,
+        label = i18n(alert_entities.host.i18n_label),
         endpoint_list = "/lua/rest/v1/get/host/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/host/alert/ts.lua",
 	hidden = is_system_interface,
@@ -84,7 +84,7 @@ local pages = {
     {
         active = page == "interface",
         page_name = "interface",
-        label = alert_entities.interface.label,
+        label = i18n(alert_entities.interface.i18n_label),
         endpoint_list = "/lua/rest/v1/get/interface/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/interface/alert/ts.lua",
 	hidden = is_system_interface,
@@ -93,7 +93,7 @@ local pages = {
     {
         active = page == "network",
         page_name = "network",
-        label = alert_entities.network.label,
+        label = i18n(alert_entities.network.i18n_label),
         endpoint_list = "/lua/rest/v1/get/network/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/network/alert/ts.lua",
 	hidden = is_system_interface,
@@ -102,7 +102,7 @@ local pages = {
     {
         active = page == "snmp_device",
         page_name = "snmp_device",
-        label = alert_entities.snmp_device.label,
+        label = i18n(alert_entities.snmp_device.i18n_label),
         endpoint_list = "/lua/pro/rest/v1/get/snmp/device/alert/list.lua",
         endpoint_ts = "/lua/pro/rest/v1/get/snmp/device/alert/ts.lua",
 	hidden = not is_system_interface,
@@ -111,7 +111,7 @@ local pages = {
     {
         active = page == "flow",
         page_name = "flow",
-        label = alert_entities.flow.label,
+        label = i18n(alert_entities.flow.i18n_label),
         endpoint_list = "/lua/rest/v1/get/flow/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/flow/alert/ts.lua",
 	hidden = is_system_interface,
@@ -120,7 +120,7 @@ local pages = {
     {
         active = page == "mac",
         page_name = "mac",
-        label = alert_entities.mac.label,
+        label = i18n(alert_entities.mac.i18n_label),
         endpoint_list = "/lua/rest/v1/get/mac/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/mac/alert/ts.lua",
 	hidden = is_system_interface,
@@ -129,7 +129,7 @@ local pages = {
     {
         active = page == "system",
         page_name = "system",
-        label = alert_entities.system.label,
+        label = i18n(alert_entities.system.i18n_label),
         endpoint_list = "/lua/rest/v1/get/system/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/system/alert/ts.lua",
 	hidden = not is_system_interface,
@@ -138,7 +138,7 @@ local pages = {
     {
         active = page == "am_host",
         page_name = "am_host",
-        label = alert_entities.am_host.label,
+        label = i18n(alert_entities.am_host.i18n_label),
         endpoint_list = "/lua/rest/v1/get/active_monitoring/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/active_monitoring/alert/ts.lua",
 	hidden = not is_system_interface,
@@ -147,7 +147,7 @@ local pages = {
     {
         active = page == "user",
         page_name = "user",
-        label = alert_entities.user.label,
+        label = i18n(alert_entities.user.i18n_label),
         endpoint_list = "/lua/rest/v1/get/user/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/user/alert/ts.lua",
 	hidden = not is_system_interface,

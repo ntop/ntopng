@@ -222,7 +222,7 @@ function all_alert_store:format_record(value, no_html)
 				    alert_consts.alertEntityRaw(value["entity_id"]),
 				    _GET["epoch_begin"],
 				    _GET["epoch_end"],
-				    alert_consts.alertEntityById(value["entity_id"]).label)
+				    i18n(alert_consts.alertEntityById(value["entity_id"]).i18n_label))
 
    local score = tonumber(value["score"])
    record["score"] = {

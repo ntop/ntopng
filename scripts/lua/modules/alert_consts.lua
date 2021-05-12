@@ -136,7 +136,6 @@ function alert_consts.formatAlertEntity(ifid, entity_type, entity_value)
    require "flow_utils"
    local value
    local epoch_begin, epoch_end = getAlertTimeBounds({alert_tstamp = os.time()})
-   local label = string.lower(alert_consts.alert_entities[entity_type].label)
 
    if entity_type == "host" then
       local host_info = hostkey2hostinfo(entity_value)
@@ -179,7 +178,7 @@ function alert_consts.formatAlertEntity(ifid, entity_type, entity_value)
       return localized
    else
       -- fallback
-      return label.." "..value
+      return value
    end
 end
 
@@ -286,7 +285,7 @@ function alert_consts.alertEntityLabel(v)
   local entity_id = alert_consts.alertEntityRaw(v)
 
   if(entity_id) then
-    return(alert_consts.alert_entities[entity_id].label)
+    return i18n(alert_consts.alert_entities[entity_id].i18n_label)
   end
 end
 
