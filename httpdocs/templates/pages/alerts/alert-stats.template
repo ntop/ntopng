@@ -192,7 +192,7 @@
 
             /* Actions Column */
 	    {% if alert_stats.entity ~= 'all' then %}
-            columns.push({width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
+            columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
 	        const buttons = [
 		    /* Bell button to disable alerts is only supported for hosts and flows */
 		    {% if alert_stats.entity == 'host' or alert_stats.entity == 'flow' then %}
@@ -222,7 +222,7 @@
 
         let config = DataTableUtils.getStdDatatableConfig(datatableButton);
         config = DataTableUtils.extendConfig(config, {
-	        serverSide: true,
+	    serverSide: true,
             searching: false,
             ajax: {
                 method: 'get',

@@ -656,15 +656,17 @@ class DataTableRenders {
     static formatNameDescription(obj, type, row) {
         if (type !== "display") return obj.name;
         let msg = DataTableRenders.filterize('alert_id', obj.value, obj.name);
+
         if (obj.description) {
            const strip_tags = function(html) { let t = document.createElement("div"); t.innerHTML = html; return t.textContent || t.innerText || ""; }
-           let desc = obj.description;
+           let desc = strip_tags(obj.description);
+           if(desc.startsWith(obj.name)) desc = desc.replace(obj.name, "");
            let name_len = strip_tags(obj.name).length;
-           let desc_len = strip_tags(desc).length;
+           let desc_len = desc.length;
            let total_len = name_len + desc_len;
            let tooltip = ""
 
-           let limit = 40; /* description limit */
+           let limit = 50; /* description limit */
            if (row.family == 'network' ||
                row.family == 'interface' ||
                row.family == 'am' ||
@@ -676,13 +678,14 @@ class DataTableRenders {
            if (total_len > limit) { /* cut and set a tooltip */
              if (name_len >= limit) {
                desc = ""; /* name is already too long, no description */
-             } else { /* cut the description*/
-               desc = desc.substr(0, limit-obj.name.length);
+             } else { /* cut the description */
+               desc = desc.substr(0, limit - obj.name.length);
                desc = desc.replace(/\s([^\s]*)$/, ''); // word break
                desc = desc + '&hellip;'; // add '...'
              }
              tooltip = strip_tags(obj.description);
            }
+
            msg = msg + ': <span title="' + tooltip + '">' + desc + '</span>';
         }
         if (obj.configset_ref) msg = msg + obj.configset_ref;

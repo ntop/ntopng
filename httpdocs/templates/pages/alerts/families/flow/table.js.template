@@ -1,15 +1,15 @@
 [
     /* Date */
-    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle },
+    {responsivePriority: 2, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle },
     /* Score */
-    {name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.formatValueLabel},
     /* Application */
-    {name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center', width: '5%', render: (proto, type, row) => {
+    {responsivePriority: 3, name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center', width: '5%', render: (proto, type, row) => {
         if (type !== "display") return proto.value;
 	return DataTableRenders.filterize('l7_proto', proto.value, proto.label);
     }},
     /* Flow */
-    {responsivePriority: 1, name: 'flow', data: 'flow', orderable: false, className: 'text-nowrap', width: '12%', render: (flow, type, row) => {
+    {responsivePriority: 3, name: 'flow', data: 'flow', orderable: false, className: 'text-nowrap', width: '12%', render: (flow, type, row) => {
 
         let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
         let historical_ref = (flow.historical_url ? `<a href="${flow.historical_url}"><i class="fas fa-search-plus"></i></a>` : "");
@@ -25,11 +25,13 @@
         return `${active_ref} ${historical_ref} ${cliLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
     }},
     /* Description */
-    {responsivePriority: 1, name: 'description', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Attacker */
-    {name: 'is_attacker_to_victim', data: 'is_attacker_to_victim', orderable: true, width: '8%', className: 'text-center'},
+    {responsivePriority: 3, name: 'is_attacker_to_victim', data: 'is_attacker_to_victim', orderable: true, width: '8%', className: 'text-center'},
     /* Victim */
-    {name: 'is_victim_to_attacker', data: 'is_victim_to_attacker', orderable: true, width: '8%', className: 'text-center'},
+    {responsivePriority: 3, name: 'is_victim_to_attacker', data: 'is_victim_to_attacker', orderable: true, width: '8%', className: 'text-center'},
     /* Counts */
-    {name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
+    {responsivePriority: 3, name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
+    /* Description */
+    {responsivePriority: 3, name: 'description', data: 'description', orderable: false, className: 'text-nowrap'},
 ]
