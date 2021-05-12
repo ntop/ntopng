@@ -257,7 +257,8 @@
                     return data;
                 }
             },
-            lengthMenu: [[INITIAL_ROWS_LENGTH, 50, 100, 250], [INITIAL_ROWS_LENGTH, 50, 100, 250]],
+            lengthMenu: [10, 20, 50, 100, 200],
+	    pageLength: INITIAL_ROWS_LENGTH,
             columns: loadColumns()
         });
 
