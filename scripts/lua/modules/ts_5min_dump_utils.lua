@@ -547,6 +547,9 @@ function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
     ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
 				     bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when)
 
+    -- Score
+    ts_utils.append("host:score", {ifid=ifstats.id, host=hostname, score_as_cli = host["score.as_client"], score_as_srv = host["score.as_server"]}, when)
+
     if(config.host_ts_creation == "full") then
       ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 

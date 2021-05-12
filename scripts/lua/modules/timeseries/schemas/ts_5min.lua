@@ -279,6 +279,14 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("host:score", {step=300, metrics_type = ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("score_as_cli")
+schema:addMetric("score_as_srv")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("host:active_flows", {step=300, rrd_fname="active_flows", metrics_type=ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addTag("host")

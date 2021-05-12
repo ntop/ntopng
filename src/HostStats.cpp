@@ -275,6 +275,8 @@ void HostStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host_detai
   lua_push_uint64_table_entry(vm, "total_flows.as_client", total_num_flows_as_client);
   lua_push_uint64_table_entry(vm, "total_flows.as_server", total_num_flows_as_server);
 
+  host->lua_get_score(vm);
+
   if(verbose) {
     if(ndpiStats) ndpiStats->lua(iface, vm, true, tsLua);
     if(dscpStats) dscpStats->lua(iface, vm, tsLua);

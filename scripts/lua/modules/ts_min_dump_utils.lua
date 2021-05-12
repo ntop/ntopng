@@ -110,15 +110,18 @@ end
 -- ########################################################
 
 function ts_dump.iface_update_general_stats(when, ifstats, verbose)
-  -- General stats
-  ts_utils.append("iface:alerts_stats", {ifid=ifstats.id, engaged_alerts=ifstats.num_alerts_engaged, dropped_alerts=ifstats.num_dropped_alerts}, when)
-  ts_utils.append("iface:hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.hosts}, when)
-  ts_utils.append("iface:local_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.local_hosts}, when)
-  ts_utils.append("iface:devices", {ifid=ifstats.id, num_devices=ifstats.stats.devices}, when)
-  ts_utils.append("iface:flows", {ifid=ifstats.id, num_flows=ifstats.stats.flows}, when)
-  ts_utils.append("iface:http_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when)
-  ts_utils.append("iface:alerted_flows", {ifid=ifstats.id, num_flows=ifstats.num_alerted_flows}, when)
-  ts_utils.append("iface:new_flows", {ifid=ifstats.id, new_flows=ifstats.stats.new_flows}, when)
+   -- Score
+   ts_utils.append("iface:score", {ifid=ifstats.id, srv_score=ifstats.score.score_as_srv, cli_score=ifstats.score.score_as_cli}, when)
+
+   -- General stats
+   ts_utils.append("iface:alerts_stats", {ifid=ifstats.id, engaged_alerts=ifstats.num_alerts_engaged, dropped_alerts=ifstats.num_dropped_alerts}, when)
+   ts_utils.append("iface:hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.hosts}, when)
+   ts_utils.append("iface:local_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.local_hosts}, when)
+   ts_utils.append("iface:devices", {ifid=ifstats.id, num_devices=ifstats.stats.devices}, when)
+   ts_utils.append("iface:flows", {ifid=ifstats.id, num_flows=ifstats.stats.flows}, when)
+   ts_utils.append("iface:http_hosts", {ifid=ifstats.id, num_hosts=ifstats.stats.http_hosts}, when)
+   ts_utils.append("iface:alerted_flows", {ifid=ifstats.id, num_flows=ifstats.num_alerted_flows}, when)
+   ts_utils.append("iface:new_flows", {ifid=ifstats.id, new_flows=ifstats.stats.new_flows}, when)
 end
 
 function ts_dump.iface_update_l4_stats(when, ifstats, verbose)
