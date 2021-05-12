@@ -660,7 +660,7 @@ local function processStoreAlertFromQueue(alert)
          alert.dropped
       )
 
-      type_info:set_score(100)
+      type_info:set_score_error()
    else
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown alert type " .. (alert.alert_id or ""))
    end

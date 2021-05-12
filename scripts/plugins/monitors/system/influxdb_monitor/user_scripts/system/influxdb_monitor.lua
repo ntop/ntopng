@@ -61,7 +61,7 @@ script.hooks["min"] = function(params)
 	 last_error
       )
 
-      alert_type:set_score(100)
+      alert_type:set_score_error()
       alert_type:set_granularity(alert_consts.alerts_granularities.min)
 
       alert_type:store(alerts_api.systemEntity())

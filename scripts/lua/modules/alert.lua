@@ -113,6 +113,12 @@ function Alert:set_score(score)
    self.score = tonumber(score)
 end
 
+--@brief Methods to set score defaults, keep them in sync with
+-- ntop_defines.h
+function Alert:set_score_notice()  self.score =  20 --[[ SCORE_LEVEL_NOTICE  --]] end
+function Alert:set_score_warning() self.score =  50 --[[ SCORE_LEVEL_WARNING --]] end
+function Alert:set_score_error()   self.score = 100 --[[ SCORE_LEVEL_ERROR   --]] end
+
 -- ##############################################
 
 function Alert:set_subtype(subtype)

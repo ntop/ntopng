@@ -980,7 +980,7 @@ local alert_consts = require "alert_consts"
         self.url
       )
 
-      alert:set_score(100)
+      alert:set_score_error()
       alert:set_granularity(alert_consts.alerts_granularities.min)
 
       alert:store(alerts_api.systemEntity())

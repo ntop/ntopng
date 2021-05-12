@@ -23,7 +23,7 @@ local function check_interface_drops(params)
     threshold
     )
 
-  alert:set_score(100)
+  alert:set_score_error()
   alert:set_granularity(params.granularity)
 
   if((stats.packets > 100) and (drop_perc > threshold)) then

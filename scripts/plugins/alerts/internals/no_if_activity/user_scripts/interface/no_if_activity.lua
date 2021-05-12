@@ -21,7 +21,7 @@ local function check_interface_activity(params)
 
    local no_if_activity_type = alert_consts.alert_types.alert_no_if_activity.new()
 
-   no_if_activity_type:set_score(100)
+   no_if_activity_type:set_score_error()
    no_if_activity_type:set_granularity(params.granularity)
 
    local delta_packets = alerts_api.interface_delta_val(params.user_script.key..".pkts" --[[ metric name --]], params.granularity, num_packets or 0)

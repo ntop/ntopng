@@ -409,7 +409,7 @@ local function checkListsUpdate(timeout)
 	       last_error
 	    )
 
-	    alert:set_score(100)
+	    alert:set_score_error()
 
 	    alert:store(alerts_api.systemEntity(list_name))
 

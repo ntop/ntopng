@@ -23,7 +23,7 @@ local function check_slow_periodic_activity(params)
          ps_stats["max_duration_secs"] * 1000
       )
    
-      alert:set_score(100)
+      alert:set_score_error()
       alert:set_granularity(params.granularity)
       alert:set_subtype(ps_name)
 

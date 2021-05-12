@@ -35,7 +35,7 @@ local function dropped_alerts_check(params)
       delta_drops
       )
 
-   alert:set_score(100)
+   alert:set_score_error()
    alert:set_granularity(params.granularity)
 
    if(delta_drops > 0) then

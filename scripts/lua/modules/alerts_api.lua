@@ -551,7 +551,7 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
     threshold
   )
 
-  alert:set_score(100)
+  alert:set_score_error()
   alert:set_granularity(params.granularity)
   alert:set_subtype(script.key)
 
@@ -588,7 +588,7 @@ function alerts_api.handlerPeerBehaviour(params, stats, tot_anomalies, host_ip, 
 
    -- Setting score (TODO check the score value)
    if threshold and tot_anomalies and tot_anomalies > threshold then
-      alert_unexpected_behaviour:set_score(100)
+      alert_unexpected_behaviour:set_score_error()
    else
       alert_unexpected_behaviour:set_score(50)
    end
@@ -616,7 +616,7 @@ function alerts_api.anomaly_check_function(params)
   local anomal_key = params.user_script.key
   local type_info = params.user_script.anomaly_type_builder()
 
-  type_info:set_score(100) -- TODO check the score value
+  type_info:set_score_error() -- TODO check the score value
   type_info:set_granularity(params.granularity)
   type_info:set_subtype(anomal_key)
 
