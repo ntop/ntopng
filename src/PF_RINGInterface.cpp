@@ -109,6 +109,7 @@ pfring *PF_RINGInterface::pfringSocketInit(const char *name) {
 /* **************************************************** */
 
 PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
+  int err;
 
   num_pfring_handles = 0;
   pcap_datalink_type = DLT_EN10MB;
@@ -127,8 +128,10 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
 
       pfring_handle[num_pfring_handles] = pfringSocketInit(name);
 
-      if(pfring_handle[num_pfring_handles] == NULL)
-        throw errno; 
+      if(pfring_handle[num_pfring_handles] == NULL) {
+        err = errno;
+        throw err; 
+      }
      
       num_pfring_handles++;
 
@@ -139,8 +142,10 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
 
     pfring_handle[0] = pfringSocketInit(ifname);
 
-    if(pfring_handle[0] == NULL)
-      throw errno; 
+    if(pfring_handle[0] == NULL) {
+      err = errno;
+      throw err; 
+    }
 
     num_pfring_handles = 1;
   }
