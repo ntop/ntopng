@@ -109,8 +109,7 @@ class Widget {
     }
 
     async update(datasourceParams = {}) {
-
-        // build the new endpoint
+	// build the new endpoint
         const u = new URL(`${location.origin}${this._datasource.name}`);
         for (const [key, value] of Object.entries(datasourceParams)) {
             u.searchParams.set(key, value);
@@ -291,11 +290,14 @@ class ChartWidget extends Widget {
     }
 
     async update(datasourceParams = {}) {
+	const previous_series_len = this._fetchedData.rsp.series.length;
+	
         await super.update(datasourceParams);
         if (this._chart != null) {
             // expecting that rsp contains an object called series
             const { series } = this._fetchedData.rsp;
-            this._chart.updateSeries(series);
+	    if (!(previous_series_len === 0 && series.length === 0)) 
+		this._chart.updateSeries(series);
         }
     }
 
