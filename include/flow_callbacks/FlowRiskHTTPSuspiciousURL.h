@@ -29,6 +29,11 @@ class FlowRiskHTTPSuspiciousURL : public FlowRisk {
   ndpi_risk_enum handledRisk()       { return NDPI_HTTP_SUSPICIOUS_URL;             }
   FlowAlertType getAlertType() const { return FlowRiskHTTPSuspiciousURLAlert::getClassType(); }
 
+ protected:
+  /* Overriding the default scores */
+  u_int8_t getClientScore() const { return SCORE_LEVEL_WARNING; }
+  u_int8_t getServerScore() const { return SCORE_LEVEL_INFO;    }
+
  public:
   FlowRiskHTTPSuspiciousURL() : FlowRisk() {};
   ~FlowRiskHTTPSuspiciousURL() {};

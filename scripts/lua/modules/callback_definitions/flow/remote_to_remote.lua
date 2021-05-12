@@ -16,6 +16,8 @@ local script = {
 
   alert_id = flow_alert_keys.flow_alert_remote_to_remote,
 
+  default_enabled = false,
+
   default_value = {
     severity = alert_severities.notice,
   },

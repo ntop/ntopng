@@ -30,6 +30,11 @@ class FlowRiskSSHObsolete : public FlowRisk {
   ndpi_risk_enum handledRisk() { return NDPI_SSH_OBSOLETE_SERVER_VERSION_OR_CIPHER; }
   FlowAlertType getAlertType() const { return FlowRiskSSHObsoleteAlert::getClassType();       }
 
+ protected:
+  /* Overriding the default scores */
+  u_int8_t getClientScore() const { return SCORE_LEVEL_NOTICE;  }
+  u_int8_t getServerScore() const { return SCORE_LEVEL_WARNING; }
+
  public:
   FlowRiskSSHObsolete() : FlowRisk() {};
   ~FlowRiskSSHObsolete() {};

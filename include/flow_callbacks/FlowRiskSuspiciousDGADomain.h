@@ -29,6 +29,11 @@ class FlowRiskSuspiciousDGADomain : public FlowRisk {
   ndpi_risk_enum handledRisk()       { return NDPI_SUSPICIOUS_DGA_DOMAIN;             }
   FlowAlertType getAlertType() const { return FlowRiskSuspiciousDGADomainAlert::getClassType(); }
 
+ protected:
+  /* Overriding the default scores */
+  u_int8_t getClientScore() const { return SCORE_LEVEL_WARNING; }
+  u_int8_t getServerScore() const { return SCORE_LEVEL_INFO;    }
+
  public:
   FlowRiskSuspiciousDGADomain() : FlowRisk() {};
   ~FlowRiskSuspiciousDGADomain() {};

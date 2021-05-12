@@ -31,8 +31,8 @@ class FlowRisk : public FlowCallback {
 
  protected:
   /* Override on specific flow risks if required */
-  virtual u_int8_t getClientScore() { return SCORE_LEVEL_WARNING; }
-  virtual u_int8_t getServerScore() { return SCORE_LEVEL_WARNING; }
+  virtual u_int8_t getClientScore() const { return SCORE_LEVEL_WARNING; }
+  virtual u_int8_t getServerScore() const { return SCORE_LEVEL_WARNING; }
 
  public:
   FlowRisk() : FlowCallback(ntopng_edition_community,

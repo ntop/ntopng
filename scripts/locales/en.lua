@@ -1798,7 +1798,7 @@ local lang = {
     ["ssh_signature"] = "SSH Signature",
     ["suspicious_client_device_protocol"] = "Client app. \"%{proto}\" not allowed for <a href=\"%{url}\">%{devtype} application policy</a>",
     ["suspicious_device_protocol"] = "Suspicious Device Protocol",
-    ["suspicious_server_device_protocol"] = "Server app. \"%{proto}\" not allowed for <a href=\"%{url}\">%{devtype} application policy</a>",
+    ["suspicious_server_device_protocol"] = "Server application \"%{proto}\" not allowed for <a href=\"%{url}\">%{devtype} application policy</a>",
     ["suspicious_tcp_probing"] = "Suspicious TCP Probing",
     ["suspicious_tcp_syn_probing"] = "Suspicious TCP SYN Probing",
     ["sync_source_id"] = "Sync Source ID",
