@@ -3,7 +3,7 @@
  *
  * This script implements the logic to manage the pools inside ntopng gui
  */
-$(document).ready(function() {
+$(function() {
 
     const MAX_RECIPIENTS_TO_SHOW = 10;
 

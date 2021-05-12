@@ -196,7 +196,7 @@ print[[
           <h5 class="modal-title">]] print(i18n("custom_categories.add_custom_app")) print[[</h5>
           <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
-        <form id="add-application-form" method="post" data-toggle="validator" onsubmit="return addApplication()">
+        <form id="add-application-form" method="post" data-bs-toggle="validator" onsubmit="return addApplication()">
         <div class="modal-body">
                 <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
                 <input type="hidden" name="action" value="add">
@@ -273,7 +273,7 @@ print[[
   </td>
   </tr>
   </table>
-  <form id="protos_cat_form" class="w-100 text-right" style="margin-bottom: 0px;" method="post">
+  <form id="protos_cat_form" class="w-100 text-end" style="margin-bottom: 0px;" method="post">
     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">
     <div id="table-edit-ndpi-applications"></div>
     <button class="btn btn-primary" style="margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
@@ -321,7 +321,7 @@ print[[
     buttons: [ ]]
 
   if has_protos_file then
-    print[['<a id="addApplication" onclick="showAddApplicationDialog()" role="button" class="add-on btn float-right" data-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>',]]
+    print[['<a id="addApplication" onclick="showAddApplicationDialog()" role="button" class="add-on btn float-right" data-bs-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>',]]
   end
 
   if isEmptyString(proto_filter) then

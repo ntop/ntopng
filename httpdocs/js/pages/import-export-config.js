@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(function() {
 
     $(`#btn-import-config`).click(function() {
 

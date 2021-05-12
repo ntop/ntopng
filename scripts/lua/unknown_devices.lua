@@ -101,7 +101,7 @@ print ('sort: [ ["' .. getDefaultTableSort("unknown_devices") ..'","' .. getDefa
 print('buttons: [')
    -- table.clone needed to modify some parameters while keeping the original unchanged
    local devices_mode = table.clone(page_params)
-   print('\'<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("unknown_devices.filter_devices")..devices_mode_filter..'<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
+   print('\'<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..i18n("unknown_devices.filter_devices")..devices_mode_filter..'<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
 
    devices_mode.unassigned_devices = nil
    print ('<li class="nav-item"><a class="dropdown-item" href="')

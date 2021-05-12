@@ -31,9 +31,9 @@ if _POST and table.len(_POST) > 0 and isAdministrator() then
       end
 
       if #err_msgs == 0 then
-	      print('<div class="alert alert-success alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_inactive_interfaces_data_ok')..'</div>')
+	      print('<div class="alert alert-success alert-dismissable">'..i18n('delete_data.delete_inactive_interfaces_data_ok')..'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
       else
-	      print('<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_inactive_interfaces_data_failed')..' '..table.concat(err_msgs, ' ')..'</div>')
+	      print('<div class="alert alert-danger alert-dismissable">'..i18n('delete_data.delete_inactive_interfaces_data_failed')..' '..table.concat(err_msgs, ' ')..'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
       end
 
    else
@@ -44,8 +44,8 @@ if _POST and table.len(_POST) > 0 and isAdministrator() then
 
       print([[
          <div class="alert alert-success alert-dismissable">
-            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
             ]]..i18n('delete_data.delete_active_interface_data_ok', {ifname = i18n("system"), product = ntop.getInfo().product})..[[
+               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
          </div>
       ]])
    end

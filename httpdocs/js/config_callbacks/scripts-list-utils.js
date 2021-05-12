@@ -1561,7 +1561,7 @@ function delegateTooltips() {
       });
 }
 
-$(document).ready(function () {
+$(function () {
 
    const CATEGORY_COLUMN_INDEX = 1;
    const VALUES_COLUMN_INDEX = 3;

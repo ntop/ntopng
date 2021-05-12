@@ -3,7 +3,7 @@
  * This script manage the GUI for Host Pool Members page
  */
 
-$(document).ready(function () {
+$(function () {
 
     // this is the current filtering type for the datatable
     let currentType = null;

@@ -220,7 +220,7 @@ end
 
 function printMemberVlanField(member_str)
    print[[<div class="form-group has-feedback" style="margin-bottom:0;">]]
-   print[[<input name="member_' + ]] print(member_str) print[[ + '_vlan" class="form-control text-right" data-member="member" style="width:5em; padding-right:1em; margin: 0 auto;" type="number" min="0" value="0" required/>]]
+   print[[<input name="member_' + ]] print(member_str) print[[ + '_vlan" class="form-control text-end" data-member="member" style="width:5em; padding-right:1em; margin: 0 auto;" type="number" min="0" value="0" required/>]]
    print[[<div class="help-block with-errors" style="margin-bottom:0;"></div>]]
    print[[</div>]]
 end
@@ -268,8 +268,8 @@ local ifstats = interface.getStats()
 print [[
 
   <ul id="hostPoolsNav" class="nav nav-tabs" role="tablist">
-    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#manage">]] print(i18n("host_pools.manage_pools")) print[[</a></li>
-    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#create">]] print(i18n("host_pools.create_pools")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" role="tab" href="#manage">]] print(i18n("host_pools.manage_pools")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" role="tab" href="#create">]] print(i18n("host_pools.create_pools")) print[[</a></li>
   </ul>
   <div class="tab-content">
     <div id="manage" class="tab-pane">
@@ -341,9 +341,8 @@ end
 for _, msg in ipairs(pool_add_warnings) do
    print([[
   <div class="alert alert-warning alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
-    <button type="button" class="close" data-dismiss="alert" aria-label="]]..i18n("close")..[[">
-      <span aria-hidden="true">&times;</span>
-    </button><b>]]..i18n("warning")..[[</b>: ]]..msg..[[
+    <b>]]..i18n("warning")..[[</b>: ]]..msg..[[
+	<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div>]])
 end
 
@@ -382,7 +381,7 @@ print[[
 	  <input type="hidden" name="download" value="true" />
 	  <button type="submit" class="btn btn-secondary"><span>]] print(i18n("host_pools.config_export")) print[[</span></button>
 	</form>
-	<button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>]] print(i18n("host_pools.config_import")) print[[</span></button>
+	<button id="import-modal-btn" data-bs-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>]] print(i18n("host_pools.config_import")) print[[</span></button>
       </div>
 
       <br/><br/>]]
@@ -791,7 +790,7 @@ print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(se
       hidePerPage: true,
 
       buttons: [
-	 '<a id="addPoolMemberBtn" onclick="addPoolMember()" role="button" class="add-on btn" data-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>'
+	 '<a id="addPoolMemberBtn" onclick="addPoolMember()" role="button" class="add-on btn" data-bs-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
 	 {
 	    title: "]] print(i18n("host_pools.member_address")) print[[",
@@ -1082,7 +1081,7 @@ print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[",
       perPage: ]] print(perPagePools) print[[,
 
       buttons: [
-	 '<a id="addNewPoolBtn" onclick="addPool()" role="button" class="add-on btn" data-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>'
+	 '<a id="addNewPoolBtn" onclick="addPool()" role="button" class="add-on btn" data-bs-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
 	 {
 	    field: "column_pool_id",

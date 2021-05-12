@@ -29,7 +29,7 @@ local function generate_map_url(map, map_url, query, icon)
       local map_available = table.len(map) > 0
 
       if (map_available) then
-         url = "<a class='ml-1' href='"..ntop.getHttpPrefix().."/lua/pro/enterprise/"..map_url.."?" .. query .. "'><i class='".. icon .."'></i></a>"
+         url = "<a class='ms-1' href='"..ntop.getHttpPrefix().."/lua/pro/enterprise/"..map_url.."?" .. query .. "'><i class='".. icon .."'></i></a>"
       end
    end
 
@@ -223,16 +223,16 @@ if (_GET["page"] ~= "historical") then
       print [[
    <div class='card'><div class='card-header'>
   <ul class="nav nav-tabs card-header-tabs">
-    <li class="nav-item" class="active"><a class="nav-link active" data-toggle="tab" href="#home">]] print(i18n("hosts_stats.hosts")) print[[</a></li>
+    <li class="nav-item" class="active"><a class="nav-link active" data-bs-toggle="tab" href="#home">]] print(i18n("hosts_stats.hosts")) print[[</a></li>
 ]]
 
       if(asn ~= "0") then
 	 print [[
-    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#asinfo">]] print(i18n("hosts_stats.as_info")) print[[</a></li>
-    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#aspath">]] print(i18n("hosts_stats.as_path")) print[[</a></li>
-    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#geoloc">]] print(i18n("hosts_stats.as_geolocation")) print[[</a></li>
-    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#prefix">]] print(i18n("hosts_stats.as_prefixes")) print[[</a></li>
-    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#bgp">]] print(i18n("hosts_stats.bgp_updates")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#asinfo">]] print(i18n("hosts_stats.as_info")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#aspath">]] print(i18n("hosts_stats.as_path")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#geoloc">]] print(i18n("hosts_stats.as_geolocation")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#prefix">]] print(i18n("hosts_stats.as_prefixes")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#bgp">]] print(i18n("hosts_stats.bgp_updates")) print[[</a></li>
 ]]
       end
    end
@@ -371,7 +371,7 @@ if (_GET["page"] ~= "historical") then
    -- table.clone needed to modify some parameters while keeping the original unchanged
    local hosts_filter_params = table.clone(page_params)
 
-   print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("hosts_stats.filter_hosts")..hosts_filter..'<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;"><li"><a class="dropdown-item" href="')
+   print(', \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..i18n("hosts_stats.filter_hosts")..hosts_filter..'<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;"><li"><a class="dropdown-item" href="')
 
    hosts_filter_params.mode = nil
    hosts_filter_params.pool = nil
@@ -644,7 +644,7 @@ print[[
          loaded_widgets[widget] = true;
       }
 
-      $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+      $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
          var target = $(e.target).attr("href") // activated tab
          load_widget(target);
       });

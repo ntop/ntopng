@@ -64,7 +64,7 @@
             if (chips_created.find(v => $(v).data('value') == value)) return;
 
             const $chip = $(`
-                <div class='chip badge badge-light'>
+                <div class='chip badge bg-light'>
                     ${value} 
                     <i class='fas fa-times'></i>
                 </div>

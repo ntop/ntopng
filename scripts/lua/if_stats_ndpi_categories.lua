@@ -69,7 +69,7 @@ for k, v in pairsByKeys(ifstats["ndpi_categories"], asc) do
      print('<td  style="width: 50%;">')
      print(categories_utils.get_category_protocols_list(v.category))
      print("</td>")
-     print("<td class=\"text-right\" style=\"width: 10%;\">" ..bytesToSize(t).. "</td>")
+     print("<td class=\"text-end\" style=\"width: 10%;\">" ..bytesToSize(t).. "</td>")
      print("<td ><span style=\"width: 60%; float: left;\">")
      graph_utils.percentageBar(total, t, "") -- k
      -- print("</td>\n")

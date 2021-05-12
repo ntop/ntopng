@@ -83,7 +83,7 @@ print[[<div class="row mb-3">
 </div>]]
 
 if isAdministrator() then
-  print[[<div class="col col-md--11 text-right">
+  print[[<div class="col col-md--11 text-end">
   <form class="form-inline" method="POST">
     <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[">
     <input name="action" type="hidden" value="reload" />

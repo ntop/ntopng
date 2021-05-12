@@ -264,7 +264,7 @@ function graph_utils.stackedProgressBars(total, bars, other_label, formatter, cs
       res[#res + 1] = [[<span>]]
       if(num > 0) then res[#res + 1] = [[<br>]] end
       if bar.link ~= nil then res[#res + 1] = [[<a href="]] .. bar.link .. [[">]] end
-      res[#res + 1] = [[<span class="badge badge-]].. (bar.class) ..[[" style="]] .. bar.style .. [[">&nbsp;</span>]]
+      res[#res + 1] = [[<span class="badge bg-]].. (bar.class) ..[[" style="]] .. bar.style .. [[">&nbsp;</span>]]
       if bar.link ~= nil then res[#res + 1] = [[</a>]] end
       res[#res + 1] = [[<span> ]] .. bar.title .. " (".. formatter(bar.value) ..")</span></span>"
       num = num + 1
@@ -417,13 +417,13 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
    <div class='card'>
       <div class='card-header'>
          <ul class="nav nav-tabs card-header-tabs" role="tablist" id="historical-tabs-container">
-            <li class="nav-item active"> <a class="nav-link active" href="#historical-tab-chart" role="tab" data-toggle="tab"> Chart </a> </li>
+            <li class="nav-item active"> <a class="nav-link active" href="#historical-tab-chart" role="tab" data-bs-toggle="tab"> Chart </a> </li>
 ]]
 
    local show_historical_tabs = ntop.getPrefs().is_dump_flows_to_mysql_enabled and options.show_historical
 
    if show_historical_tabs then
-      print('<li class="nav-item"><a class="nav-link" href="#historical-flows" role="tab" data-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
+      print('<li class="nav-item"><a class="nav-link" href="#historical-flows" role="tab" data-bs-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
    end
 
    print[[
@@ -446,7 +446,7 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
    if(options.timeseries) then
       print [[
    <div class="dropdown d-inline">
-      <button class="btn btn-light btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
+      <button class="btn btn-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">Timeseries <span class="caret"></span></button>
       <div class="dropdown-menu scrollable-dropdown">
       ]]
 
@@ -459,7 +459,7 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
       ]]
    end -- options.timeseries
 
-   print('<span class="mx-1">Timeframe:</span><div class="btn-group btn-group-toggle" data-toggle="buttons" id="graph_zoom">\n')
+   print('<span class="mx-1">Timeframe:</span><div class="btn-group btn-group-toggle" data-bs-toggle="buttons" id="graph_zoom">\n')
 
    for k,v in ipairs(graph_common.zoom_vals) do
       -- display 1 minute button only for networks and interface stats
@@ -869,7 +869,7 @@ function graph_utils.printProtocolQuota(proto, ndpi_stats, category_stats, quota
       if not traffic_quota_ratio then traffic_quota_ratio = 0 end
 
       if show_td then
-        output[#output + 1] = [[<td class='text-right']]..ternary(bytes_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_bytes..ternary(hide_limit, "", " / "..lb_bytes_quota).."</span>"
+        output[#output + 1] = [[<td class='text-end']]..ternary(bytes_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_bytes..ternary(hide_limit, "", " / "..lb_bytes_quota).."</span>"
       end
 
       output[#output + 1] = [[
@@ -891,7 +891,7 @@ function graph_utils.printProtocolQuota(proto, ndpi_stats, category_stats, quota
       local duration_quota_ratio = round(duration_taken * 100 / (duration_taken+duration_remaining), 0) or 0
 
       if show_td then
-        output[#output + 1] = [[<td class='text-right']]..ternary(time_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_duration..ternary(hide_limit, "", " / "..lb_duration_quota).."</span>"
+        output[#output + 1] = [[<td class='text-end']]..ternary(time_exceeded, ' style=\'color:red;\'', '').."><span>"..lb_duration..ternary(hide_limit, "", " / "..lb_duration_quota).."</span>"
       end
 
       output[#output + 1] = ([[
@@ -962,7 +962,7 @@ function graph_utils.printPoolChangeDropdown(ifId, pool_id, have_nedge)
 
    output[#output + 1] = [[
             </select>
-        <a class='ml-1' href="]] .. ntop.getHttpPrefix() .. edit_pools_link .. [["><i class="fas fa-edit" aria-hidden="true" title="]]
+        <a class='ms-1' href="]] .. ntop.getHttpPrefix() .. edit_pools_link .. [["><i class="fas fa-edit" aria-hidden="true" title="]]
       ..(have_nedge and i18n("edit") or '')
       .. [["></i></a>
    </tr>]]
@@ -982,7 +982,7 @@ function graph_utils.printCategoryDropdownButton(by_id, cat_id_or_name, base_url
    count_callback = count_callback or count_all
 
    -- 'Category' button
-   print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+   print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..
          i18n("category") .. ternary(not isEmptyString(cat_id_or_name), '<span class="fas fa-filter"></span>', '') ..
          '<span class="caret"></span></div> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
 

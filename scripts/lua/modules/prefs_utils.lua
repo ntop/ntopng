@@ -320,7 +320,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
         </tr>
         <tr>
           <td colspan="3" style="padding:0;">
-            <div class="help-block with-errors text-right" style="height:1em;"></div>
+            <div class="help-block with-errors text-end" style="height:1em;"></div>
           </td>
         </tr>
       </table>
@@ -395,7 +395,7 @@ function prefsDropdownFieldPrefs(label, comment, key, values, default_value, sho
         </tr>
         <tr>
           <td colspan="3" style="padding:0;">
-            <div class="help-block with-errors text-right" style="height:1em;"></div>
+            <div class="help-block with-errors text-end" style="height:1em;"></div>
           </td>
         </tr>
       </table>
@@ -515,9 +515,9 @@ local function toggleTableButtonPrefs(label, comment, on_label, on_value, on_col
   if(label ~= "") then print('<tr id="row_'..submit_field..'"'..objRow..'><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
 
   print([[
-    <div class="custom-control custom-switch ">
-      <input ]].. (value == off_value and '' or 'checked') ..[[ type="checkbox" class="custom-control-input" id="check-]].. submit_field ..[[">
-      <label class="custom-control-label custom-control-label-lg " for="check-]].. submit_field ..[["></label>
+    <div class="form-check form-switch">
+      <input ]].. (value == off_value and '' or 'checked') ..[[ type="checkbox" class="form-check-input" id="check-]].. submit_field ..[[">
+      <label class="form-check-label" for="check-]].. submit_field ..[["></label>
       <input hidden id="input-]].. submit_field ..[[" name="]].. submit_field ..[[" value="]].. value ..[[">
   ]])
   print([[</div>]])
@@ -658,7 +658,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
   end
   if(value ~= nil) then
     if(label ~= "") then print('<tr id="row_'..submit_field..'"'..objRow..'><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
-    print('<div class="btn-group" data-toggle="buttons-radio" data-toggle-name="'..submit_field..'">')
+    print('<div class="btn-group" data-bs-toggle="buttons-radio" data-bs-toggle-name="'..submit_field..'">')
 
     for nameCount = 1, #array_labels do
       local type_button = "btn-secondary"
@@ -671,7 +671,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
         end
         type_button = "btn-"..color.."  active"
       end
-      print('<button id="id_'..submit_field..'_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" type="button" class="btn btn-sm '..type_button..' ' .. disabled .. '"'.. disabled_attr ..' data-toggle="button">'..array_labels[nameCount]..'</button>\n')
+      print('<button id="id_'..submit_field..'_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" type="button" class="btn btn-sm '..type_button..' ' .. disabled .. '"'.. disabled_attr ..' data-bs-toggle="button">'..array_labels[nameCount]..'</button>\n')
     end
     print('</div>\n')
     print('<input type="hidden" id="id-toggle-'..submit_field..'" name="'..submit_field..'" value="'..value..'" />\n')

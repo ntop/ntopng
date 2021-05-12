@@ -93,7 +93,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
    local column_info = "<a href='"
       ..ntop.getHttpPrefix().."/lua/flows_stats.lua?pod="..key.."'>"
-      .."<span class='badge badge-info'>"..i18n("flows").."</span>"
+      .."<span class='badge bg-info'>"..i18n("flows").."</span>"
       .."</a>"
    local chart = "-"
 

@@ -62,8 +62,8 @@ elseif _POST["action"] == "update" then
   local list_name = _POST["list_name"]
   lists_utils.updateList(list_name)
 
-  print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..
-    i18n('category_lists.list_will_be_updated', {name=list_name}) .. '</div>')
+  print('<div class="alert alert-success alert-dismissable">'..
+    i18n('category_lists.list_will_be_updated', {name=list_name}) .. '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
 end
 
 print[[
@@ -84,7 +84,7 @@ print[[
           <h5 class="modal-title">]] print(i18n("category_lists.edit_list")) print[[</h5>
           <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
-        <form id="edit-list-form" method="post" data-toggle="validator">
+        <form id="edit-list-form" method="post" data-bs-toggle="validator">
         <div class="modal-body">
           <div class="container-fluid">
               <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />

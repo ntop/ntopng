@@ -1190,7 +1190,7 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
 <br>
 <div class="container-fluid" id="historical-flows-container">
   <ul class="nav nav-tabs" role="tablist">
-    <li class="nav-item active"> <a class="nav-link active" href="#historical-flows-summary" role="tab" data-toggle="tab"> ]] print(i18n("db_explorer.summary")) print[[ </a> </li>
+    <li class="nav-item active"> <a class="nav-link active" href="#historical-flows-summary" role="tab" data-bs-toggle="tab"> ]] print(i18n("db_explorer.summary")) print[[ </a> </li>
 ]]
 
    print '<li class="nav-item" id="tab-ipv4-li" style="display: none;"> <a class="nav-link" href="#tab-ipv4" role="tab"> ' print(i18n("ipv4")) print' </a> </li>'
@@ -1285,7 +1285,7 @@ $('a[href="#historical-flows"]').on('shown.bs.tab', function (e) {
   $('a[href="#historical-flows"]').attr("loaded", 1);
 
   // disable all tabs
-  $("#historical-flows-container").find("li").addClass("disabled").find("a").removeAttr("data-toggle");
+  $("#historical-flows-container").find("li").addClass("disabled").find("a").removeAttr("data-bs-toggle");
 
   xhr = $.ajax({
     type: 'GET',]]
@@ -1320,7 +1320,7 @@ print[[
       }
 
       // re-enable all tabs
-      $("#historical-flows-container").find("li").removeClass("disabled").find("a").attr("data-toggle", "tab");
+      $("#historical-flows-container").find("li").removeClass("disabled").find("a").attr("data-bs-toggle", "tab");
 
       // populate the number of flows
       $("#tab-ipv4").attr("num_flows", msg.count.IPv4.tot_flows)

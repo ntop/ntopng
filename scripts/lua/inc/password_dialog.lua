@@ -24,11 +24,11 @@ print [[
   <ul class="nav nav-tabs card-header-tabs" role="tablist" id="edit-user-container">
 ]]
     if(is_admin) then
-      print[[<li class="nav-item active" id="li_change_prefs"><a class="nav-link active" href="#change-prefs-dialog" role="tab" data-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
+      print[[<li class="nav-item active" id="li_change_prefs"><a class="nav-link active" href="#change-prefs-dialog" role="tab" data-bs-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
     end
    print[[
-    <li class="nav-item ]] print(ternary(is_admin, "", "active")) print[["><a class="nav-link ]] print(ternary(is_admin, "", "active")) print[[" href="#change-password-dialog" role="tab" data-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
-    <li class="nav-item"><a class="nav-link" href="#user-token-tab" role="tab" data-toggle="tab"> ]] print(i18n("login.auth_token")) print[[ </a></li>
+    <li class="nav-item ]] print(ternary(is_admin, "", "active")) print[["><a class="nav-link ]] print(ternary(is_admin, "", "active")) print[[" href="#change-password-dialog" role="tab" data-bs-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
+    <li class="nav-item"><a class="nav-link" href="#user-token-tab" role="tab" data-bs-toggle="tab"> ]] print(i18n("login.auth_token")) print[[ </a></li>
   
   </ul>
   </div>
@@ -39,11 +39,11 @@ print [[
 
 <script>
   password_alert = function() {}
-  password_alert.error   = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-danger"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>');  }
-  password_alert.success = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>'); }
+  password_alert.error   = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-danger alert-dismissable">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');  }
+  password_alert.success = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-success alert-dismissable">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'); }
 </script>
 
-  <form data-toggle="validator" id="form_password_reset" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua" accept-charset="UTF-8">
+  <form data-bs-toggle="validator" id="form_password_reset" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua" accept-charset="UTF-8">
 ]]
 
    print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -97,7 +97,7 @@ print [[
 
 <hr>
 
-    <div class="has-feedback text-right">
+    <div class="has-feedback text-end">
       <button id="password_reset_submit" class="btn btn-primary">]] print(i18n("manage_users.change_user_password")) print[[</button>
     </div>
 
@@ -111,7 +111,7 @@ print [[
   </div>
 <div class="tab-pane ]] print(ternary(is_admin, "active", "")) print[[" id="change-prefs-dialog">
 
-  <form data-toggle="validator" id="form_pref_change" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
+  <form data-bs-toggle="validator" id="form_pref_change" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
     <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
 
@@ -197,7 +197,7 @@ print[[
 
 print[[
     <hr>
-    <div class="has-feedback text-right">
+    <div class="has-feedback text-end">
       <button id="pref_change" class="btn btn-primary">]] print(i18n("manage_users.change_user_preferences")) print[[</button>
     </div>
   </form>
@@ -220,13 +220,13 @@ print([[
       <div class='d-flex'>
         <input readonly class='form-control' id='input-token' value=']].. input_value ..[['>
         <input readonly hidden id='input-username' value=']].._SESSION['user'] ..[['>
-        <button ]].. (isEmptyString(api_token) and "style='display: none'" or "") ..[[ class="btn btn-light border ml-1" data-placement="bottom" id="btn-copy-token">
+        <button ]].. (isEmptyString(api_token) and "style='display: none'" or "") ..[[ class="btn btn-light border ms-1" data-placement="bottom" id="btn-copy-token">
           <i class='fas fa-copy'></i>
         </button>
       </div>
     </div>
     <hr>
-    <div class='w-100 text-right'>
+    <div class='w-100 text-end'>
       <button class='btn btn-primary' id='btn-generate_token'>]].. i18n("login.generate_token") ..[[</button>
     </div>
   </div>

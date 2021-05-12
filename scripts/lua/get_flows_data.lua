@@ -95,7 +95,7 @@ for key, value in ipairs(flows_stats) do
 	 info = string.format("<i>%s</i>", info)
       end
       info = shortenString(info)
-      flows_stats[key]["info"] = "<span data-toggle='tooltip' title='"..alt_info.."'>"..info.."</span>"
+      flows_stats[key]["info"] = "<span data-bs-toggle='tooltip' title='"..alt_info.."'>"..info.."</span>"
    end
      
 

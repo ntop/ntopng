@@ -95,7 +95,7 @@ print([[
               <span class="invalid-feedback"></span>
             </div>
             <div class="modal-footer">
-              <button id="btn-reset-defaults" type="button" class="btn btn-danger mr-auto">]] .. i18n("reset") .. [[</button>
+              <button id="btn-reset-defaults" type="button" class="btn btn-danger me-auto">]] .. i18n("reset") .. [[</button>
               <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
               <button type="submit" class="btn btn-primary">]] .. i18n("apply") .. [[</button>
             </div>

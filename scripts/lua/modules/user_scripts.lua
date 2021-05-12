@@ -1940,7 +1940,7 @@ local function printUserScriptsTable()
                     <td>%s</td>
                     <td>%s</td>
                     <td>%s</td>
-                    <td class="text-right">%u</td>
+                    <td class="text-end">%u</td>
                     <td class="text-center">%s</td></tr>
                 ]]), name, info.label, available, hooks, filters, script.num_filtered, edit_url or ""))
             ::skip::
@@ -1994,7 +1994,7 @@ function user_scripts.printUserScripts()
 
             const dropdownId = `${title}-filter-menu`;
             const $dropdownContainer = $(`<div id='${dropdownId}' class='dropdown d-inline'></div>`);
-            const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-toggle='dropdown' type='button'></button>`);
+            const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-bs-toggle='dropdown' type='button'></button>`);
             const $dropdownTitle = $(`<span>${title}</span>`);
             $dropdownButton.append($dropdownTitle);
 

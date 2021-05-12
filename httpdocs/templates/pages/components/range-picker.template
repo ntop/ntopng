@@ -104,11 +104,11 @@
             </div>
     
             <div class="controls d-flex flex-wrap">
-                <div class="btn-group mr-auto btn-group-sm">
+                <div class="btn-group me-auto btn-group-sm">
                     <button class="btn btn-link" id="btn-jump-time-back">
                         <i class="fas fa-arrow-left"></i>
                     </button>
-                    <button class="btn btn-link mr-2" disabled id="btn-jump-time-ahead">
+                    <button class="btn btn-link me-2" disabled id="btn-jump-time-ahead">
                         <i class="fas fa-arrow-right"></i>
                     </button>
                     <button class="btn btn-link" id="btn-zoom-in">
@@ -128,7 +128,7 @@
     {% if tags.enabled then %}
     <div class="d-flex mt-1">
         <input class="w-100 form-control h-auto" name="tags" placeholder="{{ i18n('show_alerts.filters') }}">
-        <button data-toggle="tooltip" data-placement="bottom" title="{{ i18n('show_alerts.remove_filters') }}" class="btn ml-1 my-auto btn-sm btn-remove-tags">
+        <button data-toggle="tooltip" data-placement="bottom" title="{{ i18n('show_alerts.remove_filters') }}" class="btn ms-1 my-auto btn-sm btn-remove-tags">
             <i class="fas fa-times"></i>
         </button>
     </div>

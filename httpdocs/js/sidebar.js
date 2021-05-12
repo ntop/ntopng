@@ -41,7 +41,7 @@ $(window).scroll(function(){
 
 });
 
-$(document).ready(() => {
+$(() => {
 
     const toggleSidebar = () => {
         // if the layer doesn't exists then create it

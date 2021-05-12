@@ -6,5 +6,5 @@
             {% end %}
         </select>
     </div>
-    <a class="ml-2" href="/lua/admin/manage_pools.lua?page={{key}}"><i class="fas fa-edit"></i></a>
+    <a class="ms-2" href="/lua/admin/manage_pools.lua?page={{key}}"><i class="fas fa-edit"></i></a>
 </div>

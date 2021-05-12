@@ -1,5 +1,5 @@
 /* Handle Blog Notifications */
-$(document).ready(function () {
+$(function () {
 
     function blogNotifcationClick(e) {
 

@@ -4,7 +4,7 @@
  * This script implements the logic for the system_alerts_stats.lua script
  */
 
-$(document).ready(function () {
+$(function () {
     let last_queues;
     const systemAlertsStatsrefresh = function() {
 	$.ajax({

@@ -80,15 +80,15 @@ print [[
 
 <div class="container">
 
-	 <form role="form" data-toggle="validator" class="form-signin" method="POST">
+	 <form role="form" data-bs-toggle="validator" class="form-signin" method="POST">
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(i18n("login.change_password")) print[[</h2>
    <p>]] print(i18n("login.must_change_password")) print[[</p>
 ]]
 
 if error_msg ~= nil then
    print[[<div class="alert alert-danger alert-dismissable">
-            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
             ]] print(error_msg) print[[.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>]]
 end
 

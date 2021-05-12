@@ -17,7 +17,7 @@ print [[",
 		showPagination: true,
 		title: "",
 		buttons: [
-			"<a href='#add_user_dialog' role='button' class='add-on btn' data-toggle='modal'><i class='fas fa-plus fa-sm'></i></a>"
+			"<a href='#add_user_dialog' role='button' class='add-on btn' data-bs-toggle='modal'><i class='fas fa-plus fa-sm'></i></a>"
 		],
 		tableCallback: function() {
 

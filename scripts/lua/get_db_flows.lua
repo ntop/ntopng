@@ -181,10 +181,10 @@ else
 
 	       flow["PROTOCOL"] = base.."&protocol=&port=&host=&l4proto="..flow["PROTOCOL"].."'>"..pname.."</A>"
 	       flow["L7_PROTO"] = base.."&port=&host=&l4proto=&protocol="..flow["L7_PROTO"].."'>"..getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"]))).."</A>"
-	       flow["FLOW_URL"] = base.."&row_id="..flow["idx"].."&version="..ip_version.."'><span class='badge badge-info'>Info</span></A>"
+	       flow["FLOW_URL"] = base.."&row_id="..flow["idx"].."&version="..ip_version.."'><span class='badge bg-info'>Info</span></A>"
 
 	       if flow["PROFILE"] ~= nil and flow["PROFILE"] ~="" then
-		  flow["INFO"] = "<span class='badge badge-primary'>"..flow["PROFILE"].."</span>&nbsp;"..flow["INFO"]
+		  flow["INFO"] = "<span class='badge bg-primary'>"..flow["PROFILE"].."</span>&nbsp;"..flow["INFO"]
 	       end
 
 	    else

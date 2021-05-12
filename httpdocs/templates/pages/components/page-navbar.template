@@ -1,6 +1,6 @@
-<nav class="navbar navbar-shadow navbar-expand-lg navbar-light bg-light mb-2">
+<nav class="navbar navbar-shadow navbar-expand-lg navbar-light bg-light px-2 mb-2">
     {% if (navbar.label_url == nil) then %}
-        <span class="mr-1" style="font-size: 1.1rem;">{* navbar.title *}</span><span class="text-muted ml-1 d-none d-lg-inline d-md-none">|</span>
+        <span class="me-1" style="font-size: 1.1rem;">{* navbar.title *}</span><span class="text-muted ms-1 d-none d-lg-inline d-md-none">|</span>
     {% else %}
         <a class="navbar-brand" href="{* (navbar.label_url and navbar.label_url or '#') *}">
             <small>{* navbar.title *}</small>
@@ -48,7 +48,7 @@
             {% end %}
         </ul>
         {% if (navbar.help_link ~= nil) then %}
-        <ul class="navbar-nav ml-auto">
+        <ul class="navbar-nav ms-auto">
             <a target='_newtab' href='{* navbar.help_link *}' class='nav-item nav-link text-muted'>
                 <i class='fas fa-question-circle'></i>
             </a>

@@ -194,7 +194,7 @@ function page_utils.print_page_title(title)
    print("<header class='mb-3 d-flex align-items-center'>")
    print("<h2 class='d-inline-block'>".. title .."</h2>")
    if (not isEmptyString(help_link)) then
-      print("<a data-toggle='tooltip' title='".. i18n("open_documentation") .."' target='_newtab' href='".. help_link .."' class='text-muted ml-auto'><i class='fas fa-question-circle'></i></a>")
+      print("<a data-bs-toggle='tooltip' title='".. i18n("open_documentation") .."' target='_newtab' href='".. help_link .."' class='text-muted ms-auto'><i class='fas fa-question-circle'></i></a>")
    end
    print("</header>")
 
@@ -309,7 +309,7 @@ function page_utils.print_header(title)
       print[[<link href="]] print(http_prefix) print[[/css/minified/bootstrap-orange.min.css" rel="stylesheet">]]
       print[[<link href="]] print(http_prefix) print[[/css/minified/dark-mode.min.css?]] print(static_file_epoch) print[[" rel="stylesheet">]]
     else
-      print[[ <link href="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">]]
+      print[[ <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap.min.css" rel="stylesheet">]]
     end
     print[[
     <link href="]] print(http_prefix) print[[/css/minified/ntopng.min.css?]] print(static_file_epoch) print[[" rel="stylesheet">
@@ -337,8 +337,8 @@ function page_utils.print_header(title)
       <script src="]] print(http_prefix) print[[/js/html5shiv.js"></script>
     <![endif]-->
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(static_file_epoch) print[["></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/popper-1.12.9/js/popper.min.js" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/js/bootstrap.min.js?]] print(static_file_epoch) print[[" integrity="sha384-3qaqj0lc6sV/qpzrc1N5DC6i1VRn/HyX4qdPaiEFbn54VjQBEU341pvjz7Dv3n6P" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/js/popper/popper.min.js" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap/js/bootstrap.min.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/tempusdominus.min.js?]] print(static_file_epoch) print[["></script>
@@ -366,7 +366,7 @@ function page_utils.print_header_minimal(title)
         <title>]] print(page_title) print[[</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <link href="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
+        <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap.min.css" rel="stylesheet">
         <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/fontawesome.css" rel="stylesheet">
         <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/brands.css" rel="stylesheet">
         <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/solid.css" rel="stylesheet">
@@ -469,7 +469,7 @@ local function print_submenu(section, container_list_name)
 	    print[["]]
 
             if section_has_submenu then
-               print[[ data-toggle="collapse" ]]
+               print[[ data-bs-toggle="collapse" ]]
             end
 
             print[[ href="]]
@@ -490,7 +490,7 @@ local function print_submenu(section, container_list_name)
             print[["]]
 
             if section_entry.entry.is_modal then
-               print(' data-toggle="modal"')
+               print(' data-bs-toggle="modal"')
             end
 
             if external_link then
@@ -566,7 +566,7 @@ local function print_section(section, list_name)
       print[[" ]]
 
      if section_has_submenu then
-        print[[ data-toggle="collapse" ]]
+        print[[ data-bs-toggle="collapse" ]]
      end
 
      print[[href="]]
@@ -621,7 +621,7 @@ function page_utils.print_menubar()
                })
                ..[[
             </form>
-            <button data-toggle="]] .. list_name .. [[" class='ml-5'><i class="fas fa-times"></i></button>
+            <button data-bs-toggle="]] .. list_name .. [[" class='ms-5'><i class="fas fa-times"></i></button>
       </div>
       <div class="mobile-menu-stats">
       ]])
@@ -780,12 +780,12 @@ function page_utils.generate_info_stats()
             <div class='up'>
                <i class="fas fa-arrow-up"></i>
                <span style='display: none;' class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-               <span class="text-right chart-upload-text"></span>
+               <span class="text-end chart-upload-text"></span>
             </div>
             <div class='down'>
                <i class="fas fa-arrow-down"></i>
                <span style='display: none;' class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-               <span class="text-right chart-download-text"></span>
+               <span class="text-end chart-download-text"></span>
             </div>
          </a>
       ]])
@@ -793,7 +793,7 @@ function page_utils.generate_info_stats()
       return ([[
          <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
             <span style='display: none;' class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-            <span class="text-right chart-total-text"></span>
+            <span class="text-end chart-total-text"></span>
          </a>
       ]])
    end

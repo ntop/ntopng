@@ -41,7 +41,7 @@
                 {% end %}
             </div>
             <input type="number" class="form-control text-right" required {{ (hook_conf.enabled and '' or 'disabled') }} value="{{ hook_conf.script_conf.threshold }}" name="threshold">
-            <span class="mt-auto mb-auto ml-2 mr-2">{{ field_unit }}</span>    
+            <span class="mt-auto mb-auto ms-2 me-2">{{ field_unit }}</span>    
         </div>
     </div>
 

@@ -73,7 +73,7 @@
                                 <input disabled required style="width: calc(100% - 15px);" name="network" class="form-control d-inline" placeholder="172.16.0.0" data-pattern="ipv4|ipv6" />
                             </div>
                             <div class="col-sm-2 pl-0">
-                                <span class="mr-2">/</span>
+                                <span class="me-2">/</span>
                                 <input disabled placeholder='24' required class="form-control d-inline w-75" min="1" max="127" type="number" name="cidr">
                             </div>
                         </div>

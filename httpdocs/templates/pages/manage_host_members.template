@@ -32,7 +32,7 @@
                                         {% end %}
                                     {% end %}
                                 </select>
-                                <a class="align-self-center edit-pool-link ml-2" href='{{ ntop.getHttpPrefix() }}/lua/admin/manage_pools.lua?pool=host&pool_id={{selected_pool_id}}'>
+                                <a class="align-self-center edit-pool-link ms-2" href='{{ ntop.getHttpPrefix() }}/lua/admin/manage_pools.lua?pool=host&pool_id={{selected_pool_id}}'>
                                     <i class="fas fa-edit"></i>
                                 </a>
                             </div>

@@ -570,10 +570,10 @@ local function drawDropdown(status, selection_name, active_entry, button_label, 
       end
    end
 
-   buttons = buttons..'<button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..button_label
+   buttons = buttons..'<button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..button_label
    buttons = buttons..'<span class="caret"></span></button>'
 
-   buttons = buttons..'<ul class="dropdown-menu dropdown-menu-right" role="menu">'
+   buttons = buttons..'<ul class="dropdown-menu dropdown-menu-end" role="menu">'
 
    local class_active = ""
 
