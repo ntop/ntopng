@@ -37,7 +37,8 @@ bool BlacklistedCountry::hasBlacklistedCountry(Host *h) const {
 /* ***************************************************** */
 
 void BlacklistedCountry::protocolDetected(Flow *f) {
-  u_int8_t c_score = 0, s_score = 0;
+  u_int8_t c_score = SCORE_LEVEL_ERROR /* Error score for the client as it can be compromised */,
+      s_score = SCORE_LEVEL_ERROR /* Server is blacklisted */;
   bool is_server_bl = false, is_client_bl = false;
 
   if(blacklisted_countries.size() == 0)
@@ -45,12 +46,12 @@ void BlacklistedCountry::protocolDetected(Flow *f) {
 
   if(hasBlacklistedCountry(f->get_cli_host())) {
     is_client_bl = true;
-    c_score += 60, s_score += 10;
+    c_score += SCORE_LEVEL_ERROR /* Client is the source of trouble */, s_score += SCORE_LEVEL_ERROR /* Server may be under attack */;
   }
 
   if(hasBlacklistedCountry(f->get_srv_host())) {
     is_server_bl = true;
-    s_score += 60, c_score += 10;
+    s_score += SCORE_LEVEL_NOTICE, c_score += SCORE_LEVEL_ERROR /* Client is being attacked */;
   }
 
   if (is_server_bl || is_client_bl) {

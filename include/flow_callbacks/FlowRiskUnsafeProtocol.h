@@ -29,11 +29,6 @@ class FlowRiskUnsafeProtocol : public FlowRisk {
   ndpi_risk_enum handledRisk()       { return NDPI_UNSAFE_PROTOCOL;       }
   FlowAlertType getAlertType() const { return FlowRiskUnsafeProtocolAlert::getClassType(); }
 
-  /* Uncomment to override the default scores:
-  u_int8_t getClientScore() { return 50; }
-  u_int8_t getServerScore() { return 50; }
-  */
-
  public:
   FlowRiskUnsafeProtocol() : FlowRisk() {};
   ~FlowRiskUnsafeProtocol() {};

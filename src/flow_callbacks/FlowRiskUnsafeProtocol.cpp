@@ -26,13 +26,10 @@
 
 void FlowRiskUnsafeProtocol::protocolDetected(Flow *f) {
   if (f->hasRisk(handledRisk())) {
-    u_int8_t c_score = 50;
-    u_int8_t s_score = 50;
-
     if(f->isUnicast())
-      f->triggerAlertAsync(getAlertType(), c_score, s_score);
+      f->triggerAlertAsync(getAlertType(), getClientScore(), getServerScore());
     else
-      f->triggerAlertAsync(getAlertType(), c_score, s_score);
+      f->triggerAlertAsync(getAlertType(), getClientScore(), getServerScore());
   }
 }
 

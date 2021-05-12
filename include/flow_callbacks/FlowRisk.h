@@ -29,9 +29,10 @@ class FlowRisk : public FlowCallback {
   virtual ndpi_risk_enum handledRisk()       { return NDPI_NO_RISK;    };
   virtual FlowAlertType getAlertType() const = 0;
 
+ protected:
   /* Override on specific flow risks if required */
-  virtual u_int8_t getClientScore() { return 50; }
-  virtual u_int8_t getServerScore() { return 50; }
+  virtual u_int8_t getClientScore() { return SCORE_LEVEL_WARNING; }
+  virtual u_int8_t getServerScore() { return SCORE_LEVEL_WARNING; }
 
  public:
   FlowRisk() : FlowCallback(ntopng_edition_community,

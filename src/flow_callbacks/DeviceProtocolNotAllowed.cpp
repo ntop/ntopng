@@ -23,18 +23,18 @@
 #include "flow_callbacks_includes.h"
 
 void DeviceProtocolNotAllowed::protocolDetected(Flow *f) {
-  if (!f->isDeviceAllowedProtocol()) {
+  if(!f->isDeviceAllowedProtocol()) {
     u_int8_t c_score, s_score;
     const IpAddress *attacker, *victim;
 
     if (!f->isCliDeviceAllowedProtocol()) {
-      c_score = 80;
-      s_score = 5;
+      c_score = SCORE_LEVEL_ERROR;
+      s_score = SCORE_LEVEL_INFO;
       attacker = f->get_cli_ip_addr();
       victim = f->get_srv_ip_addr();
     } else {
-      c_score = 5;
-      s_score = 80;
+      c_score = SCORE_LEVEL_INFO;
+      s_score = SCORE_LEVEL_ERROR;
       attacker = f->get_srv_ip_addr();
       victim = f->get_cli_ip_addr();
     }

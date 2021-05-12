@@ -27,9 +27,9 @@ void BlacklistedFlow::protocolDetected(Flow *f) {
     u_int8_t c_score, s_score;
     
     if(f->isBlacklistedServer())
-      c_score = SCORE_MAX_VALUE, s_score = 5;
+      c_score = SCORE_LEVEL_ERROR /* Error severity for the client as it can be compromised */, s_score = SCORE_LEVEL_NOTICE;
     else
-      c_score = 5, s_score = 10;
+      c_score = SCORE_LEVEL_ERROR /* Client is attacking the server */, s_score = SCORE_LEVEL_ERROR /* Higher severity for the server as it can be under attack */;
 
     f->triggerAlertAsync(BlacklistedFlowAlert::getClassType(), c_score, s_score);
   }

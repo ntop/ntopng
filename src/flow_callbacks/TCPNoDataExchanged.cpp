@@ -24,7 +24,7 @@
 
 void TCPNoDataExchanged::checkTCPNoDataExchanged(Flow *f) {
   if(f->isTCP() && (f->get_goodput_bytes() == 0) && f->isUnicast()) {
-    u_int8_t c_score = 50, s_score = 30;
+    u_int8_t c_score = SCORE_LEVEL_NOTICE, s_score = SCORE_LEVEL_INFO;
 
     f->triggerAlertAsync(TCPNoDataExchangedAlert::getClassType(), c_score, s_score);
   }

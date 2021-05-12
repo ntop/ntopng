@@ -26,7 +26,7 @@
 
 void NotPurged::checkNotPurged(Flow *f) {
   if(f->isNotPurged()) {
-    u_int8_t c_score = 0, s_score = 0;
+    u_int8_t c_score = SCORE_LEVEL_WARNING, s_score = SCORE_LEVEL_WARNING;
 
     f->triggerAlertAsync(NotPurgedAlert::getClassType(), c_score, s_score);
   }

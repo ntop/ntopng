@@ -1100,7 +1100,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 
 #define SCORE_MAX_VALUE               128    /* Maximum client/server score. Flow score is 2 * SCORE_MAX_VALUE. */
 
-#define SCORE_LEVEL_INFO                0 /*  0-19 info */
+#define SCORE_LEVEL_INFO                1 /*  1-19 info */
 #define SCORE_LEVEL_NOTICE             20 /* 20-49 notice */
 #define SCORE_LEVEL_WARNING            50 /* 50-99 warning */
 #define SCORE_LEVEL_ERROR             100 /*  100+ error */

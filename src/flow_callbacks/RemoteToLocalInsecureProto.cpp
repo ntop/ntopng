@@ -28,22 +28,22 @@ void RemoteToLocalInsecureProto::protocolDetected(Flow *f) {
   if(f->isRemoteToLocal()) {
     /* Remote to local */
     bool unsafe;
-    u_int8_t c_score, s_score = 5;
+    u_int8_t c_score = SCORE_LEVEL_INFO, s_score = SCORE_LEVEL_INFO /* Server is the Local victim in this case */;
     
     switch(f->get_protocol_breed()) {
     case NDPI_PROTOCOL_UNSAFE:
       unsafe = true;
-      c_score = 50;
+      s_score = SCORE_LEVEL_NOTICE;
       break;
 
     case NDPI_PROTOCOL_POTENTIALLY_DANGEROUS:
       unsafe = true;
-      c_score = 100;
+      s_score = SCORE_LEVEL_WARNING;
       break;
       
     case NDPI_PROTOCOL_DANGEROUS:
       unsafe = true;
-      c_score = SCORE_MAX_VALUE;
+      s_score = SCORE_LEVEL_ERROR;
       break;
 
     default:
@@ -55,7 +55,7 @@ void RemoteToLocalInsecureProto::protocolDetected(Flow *f) {
       switch(f->get_protocol_category()) {
       case CUSTOM_CATEGORY_MALWARE:
       case CUSTOM_CATEGORY_BANNED_SITE:
-	c_score = SCORE_MAX_VALUE;
+	s_score = SCORE_LEVEL_ERROR;
 	unsafe = true;
 	break;
 

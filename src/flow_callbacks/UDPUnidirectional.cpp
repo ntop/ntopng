@@ -24,7 +24,7 @@
 
 void UDPUnidirectional::checkFlow(Flow *f) {
   int16_t network_id;
-  u_int8_t score = 10;
+  u_int8_t score = SCORE_LEVEL_INFO;
   
   if(f->get_protocol() != IPPROTO_UDP)                  return; /* Non UDP traffic        */
   if(f->get_bytes_srv2cli() && f->get_bytes_srv2cli())  return; /* Two way communications */
@@ -47,7 +47,7 @@ void UDPUnidirectional::checkFlow(Flow *f) {
   }
 
   if(!f->get_srv_ip_addr()->isLocalHost(&network_id))
-    score = 50;
+    score = SCORE_LEVEL_NOTICE;
   
   f->triggerAlertAsync(UDPUnidirectionalAlert::getClassType(), score /* c_score */, score /* s_score */);
 }
