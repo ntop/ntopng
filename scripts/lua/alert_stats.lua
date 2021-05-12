@@ -17,15 +17,16 @@ local Datasource = widget_gui_utils.datasource
 
 local ifid = interface.getId()
 
--- Used to print badges next to navbar entries
-local num_alerts_engaged = interface.getStats()["num_alerts_engaged"]
-local num_alerts_engaged_by_entity = interface.getStats()["num_alerts_engaged_by_entity"]
-
 local CHART_NAME = "alert-timeseries"
 
 -- select the default page
 local page = _GET["page"] or 'all'
 local status = _GET["status"]
+
+-- Used to print badges next to navbar entries
+local num_alerts_engaged = interface.getStats()["num_alerts_engaged"]
+local num_alerts_engaged_by_entity = interface.getStats()["num_alerts_engaged_by_entity"]
+local num_alerts_engaged_cur_entity = alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)] or 0
 
 -- If the status is not explicitly set, it is chosen between (engaged when there are engaged alerts) or historical when
 -- no engaged alert is currently active
@@ -291,8 +292,8 @@ local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'})
 local toggle_engaged_alert = ([[
     <div class='d-flex align-items-center mx-1'>
         <div class="btn-group" role="group">
-            <a href=']] .. base_url .. [[&status=historical&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "historical", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.past") .. [[</a>
-            <a href=']] .. base_url .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status ~= "historical", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. [[</a>
+            <a href=']] .. base_url .. [[&status=historical&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "historical", "btn-outline-primary active", "btn-outline-secondary") ..[[">]] .. i18n("show_alerts.past") .. [[</a>
+            <a href=']] .. base_url .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status ~= "historical", "btn-outline-primary active", "btn-outline-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. ternary(num_alerts_engaged_cur_entity > 0, string.format('<span class="badge badge-pill badge-secondary" style="float:right;margin-bottom:-10px;">%u</span>', num_alerts_engaged_cur_entity), "") .. [[</a>
         </div> 
     </div>
 ]])
