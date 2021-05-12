@@ -73,7 +73,11 @@ pfring *PF_RINGInterface::pfringSocketInit(const char *name) {
   pfring_get_bound_device_address(handle, ifMac);
   pfring_set_poll_watermark(handle, 8);
   pfring_set_application_name(handle, (char*)"ntopng");
-  pfring_enable_rss_rehash(handle);
+
+  if (ntop->getPrefs()->hasPF_RINGClusterID())
+    pfring_set_cluster(handle, ntop->getPrefs()->getPF_RINGClusterID(), cluster_per_flow_5_tuple);
+  else
+    pfring_enable_rss_rehash(handle);
   
   switch(ntop->getPrefs()->getCaptureDirection()) {
   case PCAP_D_INOUT: direction = rx_and_tx_direction; break;

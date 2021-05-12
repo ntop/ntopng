@@ -141,6 +141,10 @@ class Prefs {
   bool appliance;
 #endif
 
+#ifdef HAVE_PF_RING
+  int pfring_cluster_id;
+#endif
+
   char *test_pre_script_path;
   char *test_post_script_path;
 
@@ -334,9 +338,13 @@ class Prefs {
   inline void set_lan_interface(char *iface) { if(lan_interface) free(lan_interface); lan_interface = strdup(iface); };
   inline void set_wan_interface(char *iface) { if(wan_interface) free(wan_interface); wan_interface = strdup(iface); };
   inline bool areMacNdpiStatsEnabled()  { return(enable_mac_ndpi_stats); };
-  inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
-  inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }
-  inline bool hasCmdlTraceLevel()      { return has_cmdl_trace_lvl;      }
+  inline pcap_direction_t getCaptureDirection() { return(captureDirection); };
+  inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; };
+#ifdef HAVE_PF_RING
+  inline bool hasPF_RINGClusterID() { return pfring_cluster_id >= 0; };
+  inline int getPF_RINGClusterID()  { return pfring_cluster_id;      };
+#endif
+  inline bool hasCmdlTraceLevel()      { return has_cmdl_trace_lvl;      };
   inline u_int32_t get_auth_session_duration()          { return(auth_session_duration);  };
   inline bool get_auth_session_midnight_expiration()    { return(auth_session_midnight_expiration);  };
   inline u_int32_t get_housekeeping_frequency()         { return(housekeeping_frequency); };

@@ -103,6 +103,9 @@ Prefs::Prefs(Ntop *_ntop) {
 #ifdef HAVE_LIBCAP
   CPU_ZERO(&other_cpu_affinity_mask);
 #endif
+#ifdef HAVE_PF_RING
+  pfring_cluster_id = -1;
+#endif
   redis_host = strdup("127.0.0.1");
   redis_password = NULL;
   redis_port = 6379;
@@ -426,6 +429,9 @@ void usage() {
 	 "                                    |         hardware devices\n"
 	 "[--capture-direction] <dir>         | Specify packet capture direction\n"
 	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
+#ifdef HAVE_PF_RING
+         "[--cluster-id] <cluster id>         | Specify the PF_RING cluster ID on which incoming packets will be bound.\n"
+#endif
 	 /* "--online-check                      | Check the license using the online service\n" */
 	 "[--online-license-check]            | Check the license online\n" /* set as deprecated as soon as --online-check is supported */
 	 "[--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.\n"
@@ -804,6 +810,9 @@ static const struct option long_options[] = {
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
   { "pcap-dir",                          required_argument, NULL, '5' },
+#ifdef HAVE_PF_RING
+  { "cluster-id",                        required_argument, NULL, 204 },
+#endif
 #ifdef NTOPNG_PRO
   { "version-json",                      no_argument,       NULL, 205 },
 #endif
@@ -1414,6 +1423,12 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 'V':
     print_version = true;
     break;
+
+#ifdef HAVE_PF_RING
+  case 204:
+    pfring_cluster_id = atoi(optarg);
+    break;
+#endif
 
   case 205:
     print_version_json = true;
