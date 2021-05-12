@@ -29,11 +29,6 @@ class FlowRiskURLPossibleRCEInjection : public FlowRisk {
   ndpi_risk_enum handledRisk()       { return NDPI_URL_POSSIBLE_RCE_INJECTION;            }
   FlowAlertType getAlertType() const { return FlowRiskURLPossibleRCEInjectionAlert::getClassType(); }
 
-  /* Uncomment to override the default scores:
-  u_int8_t getClientScore() { return 50; }
-  u_int8_t getServerScore() { return 50; }
-  */
-
  public:
   FlowRiskURLPossibleRCEInjection() : FlowRisk() {};
   ~FlowRiskURLPossibleRCEInjection() {};

@@ -29,11 +29,6 @@ class FlowRiskHTTPNumericIPHost : public FlowRisk {
   ndpi_risk_enum handledRisk()       { return NDPI_HTTP_NUMERIC_IP_HOST;            };
   FlowAlertType getAlertType() const { return FlowRiskHTTPNumericIPHostAlert::getClassType(); };
 
-  /* Uncomment to override the default scores:
-  u_int8_t getClientScore() { return 50; }
-  u_int8_t getServerScore() { return 50; }
-  */
-
  public:
   FlowRiskHTTPNumericIPHost() : FlowRisk() {};
   ~FlowRiskHTTPNumericIPHost() {};

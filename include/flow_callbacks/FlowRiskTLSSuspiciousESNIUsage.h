@@ -29,11 +29,6 @@ class FlowRiskTLSSuspiciousESNIUsage : public FlowRiskTLS {
   ndpi_risk_enum handledRisk()       { return NDPI_TLS_SUSPICIOUS_ESNI_USAGE;            }
   FlowAlertType getAlertType() const { return FlowRiskTLSSuspiciousESNIUsageAlert::getClassType(); }
 
-  /* Uncomment to override the default scores:
-  u_int8_t getClientScore() { return 50; }
-  u_int8_t getServerScore() { return 50; }
-  */
-
  public:
   FlowRiskTLSSuspiciousESNIUsage() : FlowRiskTLS() {};
   ~FlowRiskTLSSuspiciousESNIUsage() {};

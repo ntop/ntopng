@@ -29,11 +29,6 @@ class FlowRiskTLSMissingSNI : public FlowRiskTLS {
   ndpi_risk_enum handledRisk()       { return NDPI_TLS_MISSING_SNI;             }
   FlowAlertType getAlertType() const { return FlowRiskTLSMissingSNIAlert::getClassType(); }
 
-  /* Uncomment to override the default scores:
-  u_int8_t getClientScore() { return 50; }
-  u_int8_t getServerScore() { return 50; }
-  */
-
  public:
   FlowRiskTLSMissingSNI() : FlowRiskTLS() {};
   ~FlowRiskTLSMissingSNI() {};
