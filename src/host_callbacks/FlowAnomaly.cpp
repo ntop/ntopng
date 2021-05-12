@@ -32,7 +32,7 @@ FlowAnomaly::FlowAnomaly() : HostCallback(ntopng_edition_community) {
 void FlowAnomaly::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
   u_int8_t cli_score = 0, srv_score = 0;
-  const u_int8_t score_value = 50;
+  const u_int8_t score_value = SCORE_LEVEL_WARNING;
   u_int32_t value = 0, lower_bound = 0, upper_bound = 0;  
 
   if(h->has_flows_anomaly(true)) {

@@ -28,9 +28,9 @@ void SYNFlood::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   u_int16_t hits = 0;
 
   if((hits = h->syn_flood_attacker_hits()) > threshold) 
-    triggerFlowHitsAlert(h, engaged_alert, true, hits, threshold, 100, 0);
+    triggerFlowHitsAlert(h, engaged_alert, true, hits, threshold, SCORE_LEVEL_ERROR, 0);
   else if((hits = h->syn_flood_victim_hits()) > threshold) 
-     triggerFlowHitsAlert(h, engaged_alert, false, hits, threshold, 0, 20);
+     triggerFlowHitsAlert(h, engaged_alert, false, hits, threshold, 0, SCORE_LEVEL_NOTICE);
 
   /* Reset counters once done */
   h->reset_syn_flood_hits();  
