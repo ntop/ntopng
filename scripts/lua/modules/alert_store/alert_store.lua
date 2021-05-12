@@ -364,6 +364,18 @@ end
 
 --@brief Pad missing points with zeroes and prepare the series
 function alert_store:_prepare_count_by_severity_and_time_series(all_severities, min_slot, max_slot, time_slot_width)
+   local res = {}
+
+   if table.len(all_severities) == 0 then
+      -- No series, add a dummy series for "no alerts"
+      local noalert_res = {}
+      for slot = min_slot, max_slot + 1, time_slot_width do
+	 noalert_res[#noalert_res + 1] = {slot * 1000 --[[ In milliseconds --]], 0}
+      end
+      res[0] = noalert_res
+      return res
+   end
+
    -- Pad missing points with zeroes
    for _, severity in pairs(alert_severities) do
       local severity_id = tonumber(severity.severity_id)
@@ -381,7 +393,6 @@ function alert_store:_prepare_count_by_severity_and_time_series(all_severities, 
    end
 
    -- Prepare the result as a Lua array ordered by time slot
-   local res = {}
    for _, severity in pairs(alert_severities) do
       local severity_id = tonumber(severity.severity_id)
 
@@ -518,6 +529,14 @@ function alert_store:count_by_severity_and_time_request()
 	 }
 	 res.colors[#res.colors + 1] = severity.color
       end
+   end
+
+   if table.len(res.series) == 0 and count_data[0] ~= nil then
+      res.series[#res.series + 1] = {
+        name = i18n("alerts_dashboard.no_alerts"),
+        data = count_data[0],
+      }
+      res.colors[#res.colors + 1] = "#ccc"
    end
 
    return res
