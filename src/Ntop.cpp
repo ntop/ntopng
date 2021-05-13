@@ -77,10 +77,16 @@ Ntop::Ntop(char *appName) {
   flow_callbacks_loader = NULL;
   host_callbacks_loader = NULL;
   
-/* Flow alerts loader */
+  /* Flow alerts loader */
   alertExclusionsReloadInProgress = true;
   alert_exclusions = alert_exclusions_shadow = NULL;
-  
+
+  /* Allowed users for alerts and flows */
+#ifdef NTOPNG_PRO
+  allowedUsersReloadInProgress = true; /* Lazy, immediately triggers a reload */
+  allowed_users = allowed_users_shadow = NULL;
+#endif
+
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
@@ -554,6 +560,9 @@ void Ntop::start() {
   checkReloadAlertExclusions();
   checkReloadFlowCallbacks();
   checkReloadHostCallbacks();
+#ifdef NTOPNG_PRO
+  checkReloadAllowedUsers();
+#endif
 
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
@@ -2090,6 +2099,36 @@ bool Ntop::getUserPermission(const char * const username, bool *allow_pcap_downl
 
 /* ******************************************* */
 
+/*
+  Assigns a unique user id to be assigned to a new ntopng user. Callers must lock.
+  Assigned user id, if assignment is successful, is returned in the first param.
+ */
+bool Ntop::assignUserId(u_int8_t *new_user_id) {
+  char cur_id_buf[8];
+  int cur_id;
+
+  for(cur_id = 0; cur_id < NTOP_MAX_NUM_USERS; cur_id++) {
+    snprintf(cur_id_buf, sizeof(cur_id_buf), "%d", cur_id);
+
+    if(!ntop->getRedis()->sismember(PREF_NTOP_USER_IDS, cur_id_buf))
+      break;
+  }
+
+  if(cur_id == NTOP_MAX_NUM_USERS)
+    return false; /* No more ids available */
+
+  if(ntop->getRedis()->sadd(PREF_NTOP_USER_IDS, cur_id_buf) < 0)
+    return false; /* Unable to add the newly assigned user id to the set of all user ids */
+
+  *new_user_id = cur_id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Assigned user id %u", *new_user_id);
+
+  return true;
+}
+
+/* ******************************************* */
+
 bool Ntop::existsUser(const char * const username) const {
   char key[CONST_MAX_LEN_REDIS_KEY], val[2] /* Don't care about the content */;
 
@@ -2107,15 +2146,26 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
 		   char *language, bool allow_pcap_download) {
   char key[CONST_MAX_LEN_REDIS_KEY];
   char password_hash[33];
+  char new_user_id_buf[8];
+  u_int8_t new_user_id = 0;
 
-  if(existsUser(username))
+  users_m.lock(__FILE__, __LINE__);
+
+  if(existsUser(username) /* User already existing */
+     || !assignUserId(&new_user_id) /* Unable to assign a user id */) {
+    users_m.unlock(__FILE__, __LINE__);
     return(false);
+  }
 
   snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
   ntop->getRedis()->set(key, full_name, 0);
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
   ntop->getRedis()->set(key, (char*) host_role, 0);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_ID, username);
+  snprintf(new_user_id_buf, sizeof(new_user_id_buf), "%d", new_user_id);
+  ntop->getRedis()->set(key, new_user_id_buf, 0);
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
   mg_md5(password_hash, password, NULL);
@@ -2144,6 +2194,16 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
     snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
     ntop->getRedis()->set(key, host_pool_id, 0);
   }
+
+#ifdef NTOPNG_PRO
+  /*
+    After the addition of a new user, allowed users must be reloaded to keep into
+    account the newly created user
+   */
+  reloadAllowedUsers();
+#endif
+
+  users_m.unlock(__FILE__, __LINE__);
 
   return(true);
 }
@@ -2177,12 +2237,30 @@ bool Ntop::isCaptivePortalUser(const char * const username) {
 /* ******************************************* */
 
 bool Ntop::deleteUser(char *username) {
+  char user_id_buf[8];
   char key[64];
+
+  users_m.lock(__FILE__, __LINE__);
+
+  if(!existsUser(username)) {
+    users_m.unlock(__FILE__, __LINE__);
+    return(false);
+  }
+
+  snprintf(key, sizeof(key), CONST_STR_USER_ID, username);
+
+  /* Dispose the currently assigned user id so that it can be recycled */
+  if((ntop->getRedis()->get(key, user_id_buf, sizeof(user_id_buf)) >= 0)) {
+    ntop->getRedis()->srem(PREF_NTOP_USER_IDS, user_id_buf);
+  }
 
   snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
   ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_ID, username);
   ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
@@ -2214,6 +2292,15 @@ bool Ntop::deleteUser(char *username) {
 
   snprintf(key, sizeof(key), CONST_STR_USER_API_TOKEN, username);
   ntop->getRedis()->del(key);
+
+#ifdef NTOPNG_PRO
+  /*
+    Delete the user from currently allowed users by trigging a reload
+  */
+  reloadAllowedUsers();
+#endif
+
+  users_m.unlock(__FILE__, __LINE__);
 
   return true;
 }
@@ -2652,11 +2739,34 @@ void Ntop::checkReloadHostCallbacks() {
 
 /* ******************************************* */
 
+#ifdef NTOPNG_PRO  
+void Ntop::checkReloadAllowedUsers() {
+  if(allowed_users_shadow) {
+    delete allowed_users_shadow;
+    allowed_users_shadow = NULL;
+  }
+
+  if(allowedUsersReloadInProgress /* Reload requested from the UI upon configuration changes */
+     || !allowed_users) {
+    allowedUsersReloadInProgress = false;
+
+    /* Do the reload */
+    allowed_users_shadow = allowed_users;
+    allowed_users = new (std::nothrow) AllowedUsers();
+  }
+}
+#endif
+
+/* ******************************************* */
+
 /* NOTE: the multiple isShutdown checks below are necessary to reduce the shutdown time */
 void Ntop::runHousekeepingTasks() {
   checkReloadAlertExclusions();
   checkReloadFlowCallbacks();
   checkReloadHostCallbacks();
+#ifdef NTOPNG_PRO
+  checkReloadAllowedUsers();
+#endif
 
   for(int i = 0; i < get_num_interfaces(); i++)
     iface[i]->runHousekeepingTasks();
@@ -2698,7 +2808,7 @@ void Ntop::shutdownInterfaces() {
     stats->print();
     iface[i]->shutdown();
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Polling shut down [interface: %s]",
-        iface[i]->get_description());
+				 iface[i]->get_description());
   }
 }
 

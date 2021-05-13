@@ -941,6 +941,33 @@ int Redis::smembers(lua_State* vm, char *setName) {
 
 /* **************************************** */
 
+bool Redis::sismember(const char *set_name, const char * const member) {
+  int rc = -1;
+  u_int i;
+  redisReply *reply = NULL;
+  bool res = false;
+
+  l->lock(__FILE__, __LINE__);
+  stats.num_other++;
+  reply = (redisReply*)redisCommand(redis, "SISMEMBER %s %s", set_name, member);
+
+  if(!reply) reconnectRedis(true);
+
+  if(reply) {
+    if(reply->type == REDIS_REPLY_ERROR)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+    else
+      res = (u_int)reply->integer == 1 ? true : false;
+  }
+
+  l->unlock(__FILE__, __LINE__);
+  if(reply) freeReplyObject(reply);
+
+  return res;
+}
+
+/* **************************************** */
+
 int Redis::smembers(const char *set_name, char ***members) {
   int rc = -1;
   u_int i;
@@ -1067,6 +1094,7 @@ u_int Redis::len(const char * const key) {
   reply = (redisReply*)redisCommand(redis, "STRLEN %s", key);
 
   if(!reply) reconnectRedis(true);
+
   if(reply) {
     if(reply->type == REDIS_REPLY_ERROR)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");

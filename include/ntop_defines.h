@@ -258,6 +258,7 @@
 #define CONST_STR_NTOPNG_KEY           "ntopng.key"
 #define CONST_STR_PRODUCT_NAME_KEY     "ntopng.product_name"
 #define CONST_STR_USER_GROUP           NTOPNG_USER_PREFIX".%s.group"
+#define CONST_STR_USER_ID              NTOPNG_USER_PREFIX".%s.user_id"
 #define CONST_STR_USER_FULL_NAME       NTOPNG_USER_PREFIX".%s.full_name"
 #define CONST_STR_USER_PASSWORD        NTOPNG_USER_PREFIX".%s.password"
 #define CONST_STR_USER_NETS            NTOPNG_USER_PREFIX".%s.allowed_nets"
@@ -925,12 +926,14 @@
 
 #define HOST_LOW_GOODPUT_THRESHOLD  25 /* No more than X low goodput flows per host */
 
+#define NTOP_MAX_NUM_USERS          63 /* Maximum number of ntopng users */
 #define NTOP_USERNAME_MAXLEN        33 /* NOTE: do not change, is this bound to mg_md5 ? */
 #define NTOP_GROUP_MAXLEN           33
 #define NTOP_SESSION_ID_LENGTH      33
 #define NTOP_CSRF_TOKEN_LENGTH      33
 #define NTOP_CSRF_TOKEN_NO_SESSION  "CSRF_TOKEN_NO_SESSION"
 #define NTOP_UNKNOWN_GROUP "unknown"
+#define PREF_NTOP_USER_IDS            NTOPNG_PREFS_PREFIX".user_ids"
 #define PREF_NTOP_LDAP_AUTH           NTOPNG_PREFS_PREFIX".ldap.auth_enabled"
 #define PREF_LDAP_ACCOUNT_TYPE        NTOPNG_PREFS_PREFIX".ldap.account_type"
 #define PREF_LDAP_SERVER              NTOPNG_PREFS_PREFIX".ldap.ldap_server_address"

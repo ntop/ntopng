@@ -270,6 +270,9 @@ using namespace std;
 #endif
 #endif
 #include "AlertExclusions.h"
+#ifdef NTOPNG_PRO
+#include "AllowedUsers.h"
+#endif
 #include "HostPoolStats.h"
 #include "HostPools.h"
 #include "Fingerprint.h"

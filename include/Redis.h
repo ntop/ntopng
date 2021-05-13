@@ -104,6 +104,7 @@ class Redis {
   int srem(const char *set_name, char *item);
   int smembers(lua_State* vm, char *setName);
   int smembers(const char *set_name, char ***members);
+  bool sismember(const char *set_name, const char * const member);
 
   int lpush(const char * const queue_name, const char * const msg, u_int queue_trim_size, bool trace_errors = true);
   int rpush(const char * const queue_name, const char * const msg, u_int queue_trim_size);
