@@ -37,7 +37,6 @@
                     </div>
                     <div class="alert-filter-template-container" style="display: none;">
                     </div>
-                    <hr>
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">
