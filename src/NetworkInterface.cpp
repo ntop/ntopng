@@ -4341,6 +4341,10 @@ static bool as_search_walker(GenericHashEntry *he, void *user_data, bool *matche
   case column_asname:
     r->elems[r->actNumEntries++].stringValue = as->get_asname() ? as->get_asname() : (char*)"zzz";
     break;
+    
+  case column_score:
+    r->elems[r->actNumEntries++].numericValue = as->getScore();
+    break;
 
   case column_since:
     r->elems[r->actNumEntries++].numericValue = as->get_first_seen();
@@ -4389,7 +4393,7 @@ static bool os_search_walker(GenericHashEntry *he, void *user_data, bool *matche
   case column_thpt:
     r->elems[r->actNumEntries++].numericValue = os->getBytesThpt();
     break;
-
+    
   case column_traffic:
     r->elems[r->actNumEntries++].numericValue = os->getNumBytes();
     break;
@@ -4430,6 +4434,10 @@ static bool country_search_walker(GenericHashEntry *he, void *user_data, bool *m
 
   case column_since:
     r->elems[r->actNumEntries++].numericValue = country->get_first_seen();
+    break;
+
+  case column_score:
+    r->elems[r->actNumEntries++].numericValue = country->getScore();
     break;
 
   case column_num_hosts:
@@ -4479,6 +4487,10 @@ static bool vlan_search_walker(GenericHashEntry *he, void *user_data, bool *matc
 
   case column_thpt:
     r->elems[r->actNumEntries++].numericValue = vl->getBytesThpt();
+    break;
+
+  case column_score:
+    r->elems[r->actNumEntries++].numericValue = vl->getScore();
     break;
 
   case column_traffic:
@@ -4994,6 +5006,7 @@ int NetworkInterface::sortASes(struct flowHostRetriever *retriever, char *sortCo
 
   if((!strcmp(sortColumn, "column_asn")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_asn, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_asname"))       retriever->sorter = column_asname,       sorter = stringSorter;
+  else if(!strcmp(sortColumn, "column_score"))        retriever->sorter = column_score,        sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_since"))        retriever->sorter = column_since,        sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt"))         retriever->sorter = column_thpt,         sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_traffic"))      retriever->sorter = column_traffic,      sorter = numericSorter;
@@ -5063,6 +5076,7 @@ int NetworkInterface::sortCountries(struct flowHostRetriever *retriever,
 
   if((!strcmp(sortColumn, "column_country")) || (!strcmp(sortColumn, "column_id")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_country, sorter = stringSorter;
   else if(!strcmp(sortColumn, "column_since"))        retriever->sorter = column_since,        sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_score"))        retriever->sorter = column_score,        sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_hosts"))        retriever->sorter = column_num_hosts,    sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt"))         retriever->sorter = column_thpt, 	       sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_traffic"))      retriever->sorter = column_traffic,      sorter = numericSorter;
@@ -5098,6 +5112,7 @@ int NetworkInterface::sortVLANs(struct flowHostRetriever *retriever, char *sortC
   if((!strcmp(sortColumn, "column_vlan")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_vlan, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_since"))        retriever->sorter = column_since,        sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt"))         retriever->sorter = column_thpt,         sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_score"))        retriever->sorter = column_score,        sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_traffic"))      retriever->sorter = column_traffic,      sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_hosts"))        retriever->sorter = column_num_hosts,    sorter = numericSorter;
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;

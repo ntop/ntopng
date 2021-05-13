@@ -14,6 +14,7 @@ function network_table_setID (row) {
   // network_stats_top
   row.find("td").eq(index++).attr('id', network_key+"_chart");
   row.find("td").eq(index++).attr('id', network_key+"_hosts");
+  row.find("td").eq(index++).attr('id', network_key+"_score");
 
   // network_stats_bottom
   row.find("td").eq(index++).attr('id', network_key+"_breakdown");
@@ -34,6 +35,7 @@ function network_row_update(network_key) {
     success: function(content) {
       var data = jQuery.parseJSON(content);
       $("#"+network_key+'_hosts').html(data.column_hosts);
+      $("#"+network_key+'_score').html(data.column_score);
       $("#"+network_key+'_alerts').html(data.column_alerts);
       $("#"+network_key+'_since').html(data.column_since);
       $("#"+network_key+'_breakdown').html(data.column_breakdown);

@@ -114,6 +114,14 @@ print [[
 			     }
 
 				 },
+                         {
+			     title: "]] print(i18n("score")) print[[",
+				 field: "column_score",
+				 sortable: true,
+                             css: {
+			        textAlign: 'left'
+			     }
+				 },
 ]]
 
 print [[

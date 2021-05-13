@@ -106,6 +106,9 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asLis
     }
   }
 
+  Score::lua_get_score(vm);
+  Score::lua_get_score_breakdown(vm);
+
   if(asListElement) {
     lua_pushinteger(vm, asn);
     lua_insert(vm, -2);

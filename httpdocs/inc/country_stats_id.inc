@@ -20,6 +20,7 @@ function country_table_setID (row) {
   row.find("td").eq(index++).attr('id', country_key+"_since");
 
   // country_stats_bottom
+  row.find("td").eq(index++).attr('id', country_key+"_score");
   row.find("td").eq(index++).attr('id', country_key+"_breakdown");
   row.find("td").eq(index++).attr('id', country_key+"_throughput");
   row.find("td").eq(index++).attr('id', country_key+"_traffic");
@@ -40,6 +41,7 @@ function country_row_update(country_key) {
       $("#"+country_key+'_hosts').html(data.column_hosts);
       $("#"+country_key+'_alerts').html(data.column_alerts);
       $("#"+country_key+'_since').html(data.column_since);
+      $("#"+country_key+'_score').html(data.column_score);
       $("#"+country_key+'_breakdown').html(data.column_breakdown);
       $("#"+country_key+'_throughput').html(data.column_thpt);
       $("#"+country_key+'_traffic').html(data.column_traffic);

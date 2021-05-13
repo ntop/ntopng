@@ -112,6 +112,14 @@ print [[
 				textAlign: 'center'
 			     }
 
+				 }, {
+			     title: "]] print(i18n("score")) print[[",
+				 field: "column_score",
+				 sortable: true,
+			     css: {
+				textAlign: 'center'
+			     }
+
 				 },
 ]]
 

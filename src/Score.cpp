@@ -63,7 +63,6 @@ void Score::lua_get_score(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "score", score ? score->get() : 0);
   lua_push_uint64_table_entry(vm, "score.as_client", score ? score->getClient() : 0);
   lua_push_uint64_table_entry(vm, "score.as_server", score ? score->getServer() : 0);
-  lua_push_uint64_table_entry(vm, "score.total", score ? score->get() : 0);
 }
 
 /* ***************************************************** */

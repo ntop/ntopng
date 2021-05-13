@@ -13,6 +13,7 @@ function country2record(ifId, country)
    record["column_id"] = getFlag(country["country"]).."&nbsp&nbsp" .. country_link
 
    record["column_hosts"] = country["num_hosts"]..""
+   record["column_score"] = country["score"]
    record["column_since"] = secondsToTime(now - country["seen.first"] + 1)
 
    local sent2rcvd = round((country["egress"] * 100) / (country["egress"] + country["ingress"]), 0)

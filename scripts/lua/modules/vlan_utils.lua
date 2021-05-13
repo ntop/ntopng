@@ -13,6 +13,7 @@ function vlan2record(ifId, vlan)
    local vlan_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?vlan='..vlan["vlan_id"].."' title='VLAN "..vlan["vlan_id"].."'>"..vlan["vlan_id"]..'</A>'
    record["column_vlan"] = vlan_link
 
+   record["column_score"] = vlan["score"] or 0
    record["column_hosts"] = vlan["num_hosts"]..""
    record["column_since"] = secondsToTime(now - vlan["seen.first"] + 1)
 

@@ -18,6 +18,7 @@ function vlan_table_setID (row) {
   row.find("td").eq(index++).attr('id', vlan_key+"_since");
 
   // vlan_stats_bottom
+  row.find("td").eq(index++).attr('id', vlan_key+"_score");
   row.find("td").eq(index++).attr('id', vlan_key+"_breakdown");
   row.find("td").eq(index++).attr('id', vlan_key+"_throughput");
   row.find("td").eq(index++).attr('id', vlan_key+"_traffic");
@@ -39,6 +40,7 @@ function vlan_row_update(vlan_key) {
       $("#"+vlan_key+'_chart').html(data.column_chart);
       $("#"+vlan_key+'_alerts').html(data.column_alerts);
       $("#"+vlan_key+'_since').html(data.column_since);
+      $("#"+vlan_key+'_score').html(data.column_score);
       $("#"+vlan_key+'_breakdown').html(data.column_breakdown);
       $("#"+vlan_key+'_throughput').html(data.column_thpt);
       $("#"+vlan_key+'_traffic').html(data.column_traffic);

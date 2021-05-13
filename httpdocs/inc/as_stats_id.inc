@@ -20,6 +20,7 @@ function as_table_setID (row) {
   row.find("td").eq(index++).attr('id', as_key+"_asname");
 
   row.find("td").eq(index++).attr('id', as_key+"_since");
+  row.find("td").eq(index++).attr('id', as_key+"_score");
   row.find("td").eq(index++).attr('id', as_key+"_breakdown");
   row.find("td").eq(index++).attr('id', as_key+"_throughput");
   row.find("td").eq(index++).attr('id', as_key+"_traffic");
@@ -46,6 +47,7 @@ function as_row_update(as_key) {
       $("#"+as_key+'_asname').html(data.column_asname);
 
       $("#"+as_key+'_since').html(data.column_since);
+      $("#"+as_key+'_score').html(data.column_score);
       $("#"+as_key+'_breakdown').html(data.column_breakdown);
       $("#"+as_key+'_throughput').html(data.column_thpt);
       $("#"+as_key+'_traffic').html(data.column_traffic);

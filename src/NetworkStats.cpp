@@ -96,6 +96,8 @@ void NetworkStats::lua(lua_State* vm) {
     lua_push_uint64_table_entry(vm, "hits.syn_scan_victim", hits);
   
   GenericTrafficElement::lua(vm, true);
+  Score::lua_get_score(vm);
+  Score::lua_get_score_breakdown(vm);
 }
 
 /* *************************************** */
