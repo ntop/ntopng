@@ -34,4 +34,6 @@
     {responsivePriority: 3, name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
     /* Description */
     {responsivePriority: 3, name: 'description', data: 'description', orderable: false, className: 'text-nowrap'},
+    /* Additional alerts */
+    {responsivePriority: 3, name: 'additional_alerts', data: 'additional_alerts', orderable: false, className: 'text-nowrap'},
 ]

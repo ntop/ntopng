@@ -7,6 +7,7 @@
     <th>{{ i18n("is_attacker_to_victim") }}</th>
     <th>{{ i18n("is_victim_to_attacker") }}</th>
     <th>{{ i18n("show_alerts.alert_counts") }}</th>
-    <th>{{ i18n("description") }}</th> 
+    <th>{{ i18n("description") }}</th>
+    <th>{{ i18n("flow_details.additional_alert_type") }}</th>
     <th>{{ i18n("actions") }}</th>
 </tr>

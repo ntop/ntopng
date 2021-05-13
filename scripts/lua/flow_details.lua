@@ -1256,7 +1256,7 @@ else
    end
 
    -- Print additional flow statuses
-   if flow["alert_map"] then
+   if flow["alerts_map"] then
       local first = true
       local num_statuses = 0
 
@@ -1264,7 +1264,7 @@ else
 	 if t.meta and t.meta.alert_key then
 	    local id = t.meta.alert_key
 
-	    if id ~= flow["predominant_alert"] and flow["alert_map"][id] then
+	    if id ~= flow["predominant_alert"] and flow["alerts_map"][id] then
 	       if first then
 		  print("<tr><th width=30%>"..i18n("flow_details.additional_alert_type").."</th><td colspan=2>")
 		  first = false

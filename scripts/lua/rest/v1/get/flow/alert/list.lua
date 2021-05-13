@@ -32,7 +32,7 @@ end
 interface.select(ifid)
 
 -- Fetch the results
-local alerts, recordsFilter = flow_alert_store:select_request()
+local alerts, recordsFilter = flow_alert_store:select_request(nil, "*, hex(alerts_map) alerts_map")
 
 for _key,_value in ipairs(alerts or {}) do
    local record = flow_alert_store:format_record(_value, no_html)

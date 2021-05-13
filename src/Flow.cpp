@@ -2745,6 +2745,10 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   if(hasRisks())
     ndpi_serialize_string_uint64(s, "flow_risk_bitmap", ndpi_flow_risk_bitmap);
 
+  /* All the statuses set */
+  char status_buf[64];
+  ndpi_serialize_string_string(s, "alerts_map", alerts_map.toHexString(status_buf, sizeof(status_buf)));
+
   /* nDPI data */
   ndpi_serialize_string_string(s, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
   ndpi_serialize_string_int32(s, "l7_master_proto", ndpiDetectedProtocol.master_protocol);

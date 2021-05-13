@@ -37,9 +37,9 @@ function flow_alert_store:insert(alert)
       "is_attacker_to_victim, is_victim_to_attacker, proto, l7_proto, l7_master_proto, l7_cat, "..
       "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, "..
       "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, "..
-      "flow_risk_bitmap, json) "..
+      "flow_risk_bitmap, alerts_map, json) "..
       "VALUES (%u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
-      "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, '%s'); ",
+      "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, X'%s', '%s'); ",
       self._table_name, 
       alert.alert_id,
       alert.tstamp,
@@ -70,6 +70,7 @@ function flow_alert_store:insert(alert)
       alert.community_id,
       alert.score,
       alert.flow_risk_bitmap or 0,
+      alert.alerts_map,
       self:_escape(alert.json)
    )
 
@@ -285,6 +286,36 @@ function flow_alert_store:format_record(value, no_html)
          active_url = href
       end
    end
+
+   -- Unpack all flow alerts, iterating the alerts_map. The alerts_map is stored as an HEX.
+   local additional_alerts = {}
+   local nibble_num = 0 -- Current nibble being processed
+   for alerts_map_nibble_id = #value.alerts_map, 1, -1 do
+      -- Extract the nibble
+      local alerts_map_hex_nibble = value.alerts_map:sub(alerts_map_nibble_id, alerts_map_nibble_id)
+      -- Convert the HEX nibble into a decimal value
+      local alerts_map_nibble = tonumber(alerts_map_hex_nibble, 16)
+
+      if alerts_map_nibble > 0 then
+	 for bit_num = 0, 7 do
+	    -- Checks the bits set in this current nibble
+	    local has_bit = alerts_map_nibble & (1 << bit_num) == (1 << bit_num)
+
+	    if has_bit then -- The bit is set
+	       -- The actual alert id is the bit number times the current byte multiplied by 8
+	       local alert_id = math.floor(8 * nibble_num / 2) + bit_num
+	       if alert_id ~= tonumber(value["alert_id"]) then -- Do not add the predominant alert to the list of additional alerts
+		  additional_alerts[#additional_alerts + 1] = alert_consts.alertTypeLabel(alert_id, true, alert_entities.flow.entity_id)
+	       end
+	    end
+	 end
+      end
+
+      -- Increment the nibble
+      nibble_num = nibble_num + 1
+   end
+
+   record["additional_alerts"] = table.concat(additional_alerts, ", ")
    
    -- Host reference
    local cli_ip = hostinfo2hostkey(value, "cli")

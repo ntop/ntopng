@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS `flow_alerts` (
 `srv2cli_pkts` INTEGER NOT NULL DEFAULT 0 CHECK(`srv2cli_pkts` >= 0),
 `first_seen` DATETIME NOT NULL DEFAULT 0,
 `community_id` TEXT NULL,
+`alerts_map` BLOB DEFAULT 0, -- An HEX bitmap of all flow statuses
 `flow_risk_bitmap` INTEGER NOT NULL DEFAULT 0
 );
 
