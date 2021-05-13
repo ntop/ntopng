@@ -3,6 +3,7 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 
 require "lua_utils"
 local page_utils = require "page_utils"
@@ -13,7 +14,10 @@ local template_utils = require "template_utils"
 local widget_gui_utils = require "widget_gui_utils"
 local tag_utils = require "tag_utils"
 local alert_entities = require "alert_entities"
+local alert_severities = require "alert_severities"
 local Datasource = widget_gui_utils.datasource
+local alert_store_utils = require "alert_store_utils"
+local alert_utils = require "alert_utils"
 
 local ifid = interface.getId()
 
@@ -243,16 +247,20 @@ local modals = {
 local defined_tags = {
     ["host"] = {
 	alert_id = {'eq'},
+	severity = {'eq'},
         ip = {'eq'}
     },
     ["mac"] = {
-	alert_id = {'eq'}
+	alert_id = {'eq'},
+	severity = {'eq'}
     },
     ["snmp_device"] = {
-	alert_id = {'eq'}
+	alert_id = {'eq'},
+	severity = {'eq'}
     },
     ["flow"] = {
 	alert_id = {'eq'},
+	severity = {'eq'},
         l7_proto  = {'eq'},
         cli_ip = {'eq'},
         srv_ip = {'eq'},
@@ -260,19 +268,24 @@ local defined_tags = {
 	srv_port = {'eq'}
     },
     ["system"] = {
-	alert_id = {'eq'}
+	alert_id = {'eq'},
+	severity = {'eq'}
     },
     ["active_monitoring"] = {
-	alert_id = {'eq'}
+	alert_id = {'eq'},
+	severity = {'eq'}
     },
     ["interface"] = {
-	alert_id = {'eq'}
+	alert_id = {'eq'},
+	severity = {'eq'}
     },
     ["user"] = {
-	alert_id = {'eq'}
+	alert_id = {'eq'},
+	severity = {'eq'}
     },
     ["network"] = {
 	alert_id = {'eq'},
+	severity = {'eq'},
         network_name = {'eq'}
     }
 }
@@ -280,7 +293,8 @@ local defined_tags = {
 local initial_tags = {}
 local formatters = {
    l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end,
-   alert_id = function(alert_id) return (alert_consts.alertTypeLabel(tonumber(alert_id), true) or alert_id) end
+   alert_id = function(alert_id) return (alert_consts.alertTypeLabel(tonumber(alert_id), true) or alert_id) end,
+   severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
 }
 
 for tag_key, tag in pairs(defined_tags[page] or {}) do
@@ -294,9 +308,19 @@ local toggle_engaged_alert = ([[
         <div class="btn-group" role="group">
             <a href=']] .. base_url .. [[&status=historical&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "historical", "btn-outline-primary active", "btn-outline-secondary") ..[[">]] .. i18n("show_alerts.past") .. [[</a>
             <a href=']] .. base_url .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status ~= "historical", "btn-outline-primary active", "btn-outline-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. ternary(num_alerts_engaged_cur_entity > 0, string.format('<span class="badge badge-pill badge-secondary" style="float:right;margin-bottom:-10px;">%u</span>', num_alerts_engaged_cur_entity), "") .. [[</a>
-        </div> 
+        </div>
+
+    <button class="btn btn-sm btn-primary mx-1" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="$('#add-alert-filter-modal').modal('show');"><span>]]..i18n("alerts_dashboard.add_filter")..[[</span>
+    </button>
+ 
     </div>
 ]])
+
+local available_filter_types = {}
+local alert_store_instances = alert_store_utils.all_instances_factory()
+if alert_store_instances[page] then
+   available_filter_types = alert_store_instances[page]:get_available_filters()
+end
 
 local context = {
     template_utils = template_utils,
@@ -312,12 +336,13 @@ local context = {
             defined_tags = defined_tags[page],
             values = initial_tags,
             i18n = {
+                alert_id = i18n("tags.alert_id"),
+                severity = i18n("tags.severity"),
                 l7_proto = i18n("tags.l7proto"),
                 cli_ip = i18n("tags.cli_ip"),
                 srv_ip = i18n("tags.srv_ip"),
                 cli_port = i18n("tags.cli_port"),
                 srv_port = i18n("tags.srv_port"),
-                alert_id = i18n("tags.alert_id"),
                 ip = i18n("tags.ip"),
                 network_name = i18n("tags.network")
             }
@@ -357,6 +382,11 @@ local context = {
     alert_stats = {
         entity = page,
         status = status
+    },
+    filters = { -- Context for pages/modals/alerts/filters/add.template
+       available_types = available_filter_types,
+       severities = alert_severities,
+       alert_utils = alert_utils,
     }
 }
 

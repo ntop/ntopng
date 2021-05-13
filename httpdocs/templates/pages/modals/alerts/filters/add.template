@@ -25,12 +25,12 @@
                         </label>
                         <div class="col-sm-5">
                             <select required name="alert_filter_type" class="form-control" id="alert-filter-type-select">
-                                {% for i, filter_type in ipairs(available_types) do %}
-				    {% if true then %}
-                                         <option {{ (i == 1 and "selected" or "") }} data-alert-filter-key="{{ filter_type.key }}" value="{{ filter_type.key }}">
-                                             {{ filter_type.label }}
+                                {% local first_item = true %}
+                                {% for filter_key, filter_type in pairsByKeys(available_types) do %}
+                                         <option {{ (first_item and "selected" or "") }} data-alert-filter-key="{{ filter_type.value_type }}" value="{{ filter_key }}">
+                                             {{ i18n('tags.'..filter_key) }}
                                          </option>
-				    {% end %}
+                                   {% first_item = false %}
                                 {% end %}
                             </select>
                         </div>
@@ -51,3 +51,40 @@
         </div>
     </div>
 </div>
+
+<template id="ip-filter-template">
+    <div class="form-group row">
+        <label class="col-form-label col-sm-3"><b>{{i18n("ip_address")}}</b></label>
+        <div class="col-sm-5">
+            <input data-validation-message="{{i18n("invalid_value")}}" data-pattern="ipv4|ipv6" name="value" type="text" class="form-control">
+        </div>
+    </div>
+</template>
+
+<template id="port-filter-template">
+    <div class="form-group row">
+        <label class="col-form-label col-sm-3"><b>{{i18n("port")}}</b></label>
+        <div class="col-sm-5">
+            <input data-validation-message="{{i18n("invalid_value")}}" data-pattern="port" name="value" type="text" class="form-control">
+        </div>
+    </div>
+</template>
+
+<template id="severity-filter-template">
+    <div class="form-group row">
+        <label class="col-form-label col-sm-3"><b>{{i18n("value")}}</b></label>
+        <div class="col-sm-5">
+            <select required name="value" class="form-control">
+               {% local first_item = true %}
+               {% for _, severity in pairsByValues(severities, alert_utils.severity_rev) do %}
+                  <option {{ (first_item and "selected" or "") }} data-tag-label="{{ i18n(severity.i18n_title) }}" value="{{ severity.severity_id }}">
+                     {{ i18n(severity.i18n_title) }}
+                  </option>
+                  {% first_item = false %}
+               {% end %}
+            </select>
+        </div>
+    </div>
+</template>
+
+

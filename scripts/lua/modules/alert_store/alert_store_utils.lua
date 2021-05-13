@@ -28,7 +28,11 @@ function alert_store_utils.all_instances_factory()
 	 local instance = require(instance_name).new()
 
 	 if instance then
-	    res[#res + 1] = instance
+            local family_name = instance:get_family()
+            -- Note: skip special instances without a family (e.g. 'all')
+            if family_name then
+   	       res[family_name] = instance
+            end
 	 end
       end
    end

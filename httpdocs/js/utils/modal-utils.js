@@ -367,57 +367,80 @@
             /* clean previous state and disable button */
             submitButton.attr("disabled", "disabled");
 
-            let request;
             const self = this;
 
-            if (self.options.method == "post") {
-                request = $.ajax({
-                    url: this.options.endpoint,
-                    data: JSON.stringify(dataToSend),
-                    method: self.options.method,
-                    dataType: "json",
-                    contentType: "application/json; charset=utf-8"
+            if (this.options.endpoint) {
+                let request;
+
+                if (self.options.method == "post") {
+                    request = $.ajax({
+                        url: this.options.endpoint,
+                        data: JSON.stringify(dataToSend),
+                        method: self.options.method,
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8"
+                    });
+                }
+                else {
+                    request = $.get(this.options.endpoint, dataToSend);
+                }
+
+                this.isSubmitting = true;
+
+                request.done(function (response, textStatus) {
+
+                    // clear submitting state
+                    self.isSubmitting = false;
+                    // clear the current form state
+                    self.currentState = null;
+
+                    if (self.options.resetAfterSubmit) self.cleanForm();
+                    $feedbackLabel.hide();
+
+                    const success = self.options.onSubmitSuccess(response, dataToSend, self);
+                    // if the submit return a true boolean then close the modal
+                    if (success) {
+                        self.dialog.modal('hide');
+                    }
+
+                    /* unbind the old closure on submit event and bind a new one */
+                    $(self.element).off('submit', self.submitHandler);
+                    self.delegateSubmit();
+                })
+                .fail(function (jqxhr, textStatus, errorThrown) {
+
+                    self.isSubmitting = false;
+                    const response = jqxhr.responseJSON;
+                    if (response.rc !== undefined && response.rc < 0) {
+                        $feedbackLabel.html(i18n.rest[response.rc_str]).show();
+                    }
+
+                    self.options.onSubmitError(response, dataToSend, textStatus, errorThrown);
+                })
+                .always(function (d) {
+                    submitButton.removeAttr("disabled");
                 });
+
+            } else { // no endpoint
+
+                    // clear the current form state
+                    self.currentState = null;
+
+                    //if (self.options.resetAfterSubmit) self.cleanForm();
+                    $feedbackLabel.hide();
+
+                    const success = self.options.onSubmitSuccess({}, dataToSend, self);
+                    // if the submit return a true boolean then close the modal
+                    if (success) {
+                        self.dialog.modal('hide');
+                    }
+
+                    /* unbind the old closure on submit event and bind a new one */
+                    $(self.element).off('submit', self.submitHandler);
+                    self.delegateSubmit();
+
+                    submitButton.removeAttr("disabled");
             }
-            else {
-                request = $.get(this.options.endpoint, dataToSend);
-            }
-
-            this.isSubmitting = true;
-
-            request.done(function (response, textStatus) {
-
-                // clear submitting state
-                self.isSubmitting = false;
-                // clear the current form state
-                self.currentState = null;
-
-                if (self.options.resetAfterSubmit) self.cleanForm();
-                $feedbackLabel.hide();
-
-                const success = self.options.onSubmitSuccess(response, dataToSend, self);
-                // if the submit return a true boolean then close the modal
-                if (success) {
-                    self.dialog.modal('hide');
-                }
-
-                /* unbind the old closure on submit event and bind a new one */
-                $(self.element).off('submit', self.submitHandler);
-                self.delegateSubmit();
-            })
-            .fail(function (jqxhr, textStatus, errorThrown) {
-
-                self.isSubmitting = false;
-                const response = jqxhr.responseJSON;
-                if (response.rc !== undefined && response.rc < 0) {
-                    $feedbackLabel.html(i18n.rest[response.rc_str]).show();
-                }
-
-                self.options.onSubmitError(response, dataToSend, textStatus, errorThrown);
-            })
-            .always(function (d) {
-                submitButton.removeAttr("disabled");
-            });
         }
 
         delegateResetButton() {

@@ -525,6 +525,12 @@ function alert_utils.notification_timestamp_rev(a, b)
    return (a.tstamp > b.tstamp)
 end
 
+function alert_utils.severity_rev(a, b)
+   return (a.severity_id > b.severity_id)
+end
+
+-- #################################
+--
 -- Returns a summary of the alert as readable text
 function alert_utils.formatAlertNotification(notif, options)
    local defaults = {

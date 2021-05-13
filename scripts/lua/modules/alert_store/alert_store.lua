@@ -59,6 +59,19 @@ end
 
 -- ##############################################
 
+--@brief Return the alert family name
+function alert_store:get_family()
+   local family_name
+
+   if self._alert_entity then
+      family_name = self._alert_entity.alert_store_name
+   end
+
+   return family_name
+end
+
+-- ##############################################
+
 --@brief Add filters on status (engaged or historical)
 --@param engaged true to select engaged alerts
 --@return True if set is successful, false otherwise
@@ -121,11 +134,14 @@ end
 --@param alert_severity The severity of an alert to be filtered
 --@return True if set is successful, false otherwise
 function alert_store:add_alert_severity_filter(alert_severity)
-   if not self._alert_severity and tonumber(alert_severity) then
-      self._alert_severity = tonumber(alert_severity)
-      self._where[#self._where + 1] = string.format("severity = %u", alert_severity)
+   if alert_severity then
+      local alert_severity, op = self:strip_filter_operator(alert_severity)
+      if not self._alert_severity and tonumber(alert_severity) then
+         self._alert_severity = tonumber(alert_severity)
+         self._where[#self._where + 1] = string.format("severity = %u", alert_severity)
 
-      return true
+         return true
+      end
    end
 
    return false
@@ -586,7 +602,7 @@ function alert_store:add_request_filters()
    local epoch_begin = tonumber(_GET["epoch_begin"])
    local epoch_end = tonumber(_GET["epoch_end"])
    local alert_id = _GET["alert_id"] or _GET["alert_type"] --[[ compatibility ]]--
-   local alert_severity = _GET["alert_severity"]
+   local alert_severity = _GET["alert_severity"] or _GET["severity"]
    local rowid = _GET["row_id"]
    local status = _GET["status"]
 
@@ -596,6 +612,28 @@ function alert_store:add_request_filters()
    self:add_status_filter(status and status == 'engaged')
    self:add_alert_rowid_filter(rowid)
    self:_add_additional_request_filters()
+end
+
+-- ##############################################
+
+--@brief Possibly overridden in subclasses to get info about additional available filters
+function alert_store:_get_additional_available_filters()
+   return {}
+end
+
+-- ##############################################
+
+--@brief Get info about available filters
+function alert_store:get_available_filters()
+   local additional_filters = self:_get_additional_available_filters()
+
+   local filters = {
+      severity = {
+         value_type = 'severity',
+      }
+   }
+
+   return table.merge(filters, additional_filters)
 end
 
 -- ##############################################
@@ -620,9 +658,7 @@ function alert_store:format_record_common(value, entity_id, no_html)
    -- Note: this record is rendered by 
    -- httpdocs/templates/pages/alerts/families/{host,..}/table[.js].template 
    
-   if self._alert_entity then
-     record["family"] = self._alert_entity.alert_store_name
-   end
+   record["family"] = self:get_family()
 
    record["row_id"] = value["rowid"]
 

@@ -250,6 +250,30 @@ end
 
 -- ##############################################
 
+--@brief Get info about additional available filters
+function flow_alert_store:_get_additional_available_filters()
+   local filters = {
+--[[
+      cli_ip = {
+         value_type = 'ip',
+      },
+      srv_ip = {
+         value_type = 'ip',
+      },
+      cli_port = {
+         value_type = 'port',
+      }, 
+      srv_port = {
+         value_type = 'port',
+      }, 
+--]]
+   }
+
+   return filters
+end 
+
+-- ##############################################
+
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function flow_alert_store:format_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"

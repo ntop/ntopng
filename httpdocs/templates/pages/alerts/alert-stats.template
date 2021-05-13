@@ -63,11 +63,15 @@
 </div>
 {% end %}
 
+{* template_utils.gen("pages/modals/alerts/filters/add.template", filters) *}
+
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript">
     i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
 </script>
 <script type='text/javascript'>
+    let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+
     $(document).ready(function(){
         const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
         const FAMILY = "{{ alert_stats.entity }}"
@@ -155,7 +159,6 @@
 
             // add the tag filters inside the search params object
             for (const tag of tags) {
-
                 const tagData = tagify.tagData(tag);
                 const {key, selectedOperator, realValue, value} = tagData;
                 searchParams.set(key, `${realValue || value},${selectedOperator}`);
@@ -181,6 +184,36 @@
                 pushNewHistoryState(begin, end);
             }
 
+        }
+
+        async function addFilterTag(tag) {
+            // does the tag exist?
+            const existingTagElement = tagify.getTagElms().find(htmlTag => htmlTag.getAttribute('key') === tag.key);
+            const existingTag = tagify.tagData(existingTagElement);
+
+            if (existingTag !== undefined && existingTag.realValue !== tag.realValue) {
+                
+                // replace the tag!
+                existingTag.value = tag.value;
+                existingTag.realValue = tag.realValue;
+
+                tagify.replaceTag(existingTagElement, existingTag);
+                // update the datasource params
+                datasourceParams[tag.key] = `${tag.realValue},${existingTag.selectedOperator}`;
+                await onRangePickerChange(true);
+
+                return;
+            } 
+
+            // has the tag an operator object?
+            if (!Array.isArray(DEFINED_TAGS[tag.key])) {
+                tag.operators = DEFINED_TAGS[tag.key].operators;
+            }
+
+            tag.selectedOperator = 'eq';
+
+            // add filter!
+            tagify.addTags([tag]);
         }
 
         function loadColumns() {
@@ -372,33 +405,8 @@
             const tagTitle = i18n.tags[key];
             
             const tag = { label: tagTitle, key: key, value: label, realValue: value };
-            // does the tag exist?
-            const existingTagElement = tagify.getTagElms().find(htmlTag => htmlTag.getAttribute('key') === tag.key);
-            const existingTag = tagify.tagData(existingTagElement);
 
-            if (existingTag !== undefined && existingTag.realValue !== tag.realValue) {
-                
-                // replace the tag!
-                existingTag.value = tag.value;
-                existingTag.realValue = tag.realValue;
-
-                tagify.replaceTag(existingTagElement, existingTag);
-                // update the datasource params
-                datasourceParams[tag.key] = `${tag.realValue},${existingTag.selectedOperator}`;
-                await onRangePickerChange(true);
-
-                return;
-            } 
-
-            // has the tag an operator object?
-            if (!Array.isArray(DEFINED_TAGS[key])) {
-                tag.operators = DEFINED_TAGS[key].operators;
-            }
-
-            tag.selectedOperator = 'eq';
-
-            // add filter!
-            tagify.addTags([tag]);
+            addFilterTag(tag);
         });
     
         // when the user navigates using the browser's arrows
@@ -614,6 +622,96 @@
             }
         });
          */
+
+        /*** Filters modal ***/
+
+        const makeFormTag = (formSelector) => {
+
+           const $inputsTemplate = $(`${formSelector} .alert-filter-template-container [name]`);
+
+           const params = {
+               alert_filter_type: $(`${formSelector} [name='alert_filter_type']`).val()
+           };
+
+           // load each filter params inside the template container in params
+           $inputsTemplate.each(function (i, input) {
+               // $(this).attr('name')
+               params['value'] = $(this).val().trim();
+               params['label'] = $('option:selected', this).data('tagLabel');
+           });
+
+           // console.log(params);
+
+           const tag = { 
+              label: i18n.tags[params['alert_filter_type']], // e.g. L7 Proto
+              key: params['alert_filter_type'],              // e.g. l7_proto
+              value: params['label'],                        // e.g. HTTP
+              realValue: params['value']                     // e.g. 7
+           };
+
+           return tag;
+       }
+
+       function cloneTemplate(type) {
+           const template = $(`template#${type}-filter-template`).html();
+           // if the template is not empty then return a copy of the template content
+           if (template && template.trim() != "") {
+               const $template = $(template);
+               return $template;
+           }
+           return (null);
+       }
+
+       const createTemplateOnSelect = (formSelector) => {
+
+           const $templateContainer = $(`${formSelector} .alert-filter-template-container`);
+
+           // on filter type Selection load the right template to fill
+           $(`${formSelector} select[name='alert_filter_type']`).change(function (e) {
+               const $option = $(this).find(`option[value='${$(this).val()}']`);
+               const $cloned = cloneTemplate($option.data('alertFilterKey'));
+               // show the template inside the modal container
+               $templateContainer.hide().empty();
+               if ($cloned) {
+                   $templateContainer.append($(`<hr>`));
+                   $templateContainer.append($cloned).show();
+               }
+               $(`${formSelector} span.test-feedback`).fadeOut();
+           });
+       }
+
+       /* bind add filter event */
+       $(`#add-alert-filter-modal form`).modalHandler({
+           /* Note: no endpoint defined, ajax is not used here */
+           resetAfterSubmit: false,
+           onModalInit: () => { createTemplateOnSelect(`#add-alert-filter-modal`); },
+           onModalShow: () => {
+               // load the template of the selected filter
+               const $cloned = cloneTemplate($(`#add-alert-filter-modal select[name='alert_filter_type'] option:selected`).data('alertFilterKey'));
+               if ($cloned) {
+                   $(`#add-alert-filter-modal form .alert-filter-template-container`).empty().append($(`<hr>`), $cloned).show();
+               }
+           },
+           beforeSumbit: () => {
+               $(`#add-alert-filter-modal form button[type='submit']`).click(function () {
+                   $(`#add-alert-filter-modal form span.invalid-feedback`).hide();
+               });
+
+               $(`#add-alert-filter-modal .test-feedback`).hide();
+
+               const tag = makeFormTag(`#add-alert-filter-modal form`);
+
+               addFilterTag(tag);
+
+               return {};
+           },
+           onSubmitSuccess: (response) => {
+               // hide modal
+               $(`#add-alert-filter-modal`).modal('hide');
+               $(`#add-alert-filter-modal form .alert-filter-template-container`).hide();
+               return true;
+           }
+       }).invokeModalInit();
 
     });
 </script>
