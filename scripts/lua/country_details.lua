@@ -67,6 +67,7 @@ if page == "historical" then
     graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       timeseries = {
         {schema="country:traffic",             label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
+	{schema="country:score",               label=i18n("score"), split_directions = true},
       }
     })
 end

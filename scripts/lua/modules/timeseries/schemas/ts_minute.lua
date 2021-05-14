@@ -124,6 +124,15 @@ schema:addTag("ifid")
 schema:addTag("subnet")
 schema:addMetric("alerts")
 
+-- ##############################################
+
+schema = ts_utils.newSchema("subnet:score", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("subnet")
+schema:addMetric("score")
+schema:addMetric("scoreAsClient")
+schema:addMetric("scoreAsServer")
+
 -------------------------------------------------------
 -- INTERFACES SCHEMAS
 -------------------------------------------------------

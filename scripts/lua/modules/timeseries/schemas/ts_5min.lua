@@ -88,6 +88,15 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("asn:score", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("asn")
+schema:addMetric("score")
+schema:addMetric("scoreAsClient")
+schema:addMetric("scoreAsServer")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("asn:traffic_sent", {step=300, rrd_fname="bytes_sent"})
 schema:addTag("ifid")
 schema:addTag("asn")
@@ -159,6 +168,15 @@ schema:addMetric("bytes_ingress")
 schema:addMetric("bytes_egress")
 schema:addMetric("bytes_inner")
 
+-- ##############################################
+
+schema = ts_utils.newSchema("country:score", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("country")
+schema:addMetric("score")
+schema:addMetric("scoreAsClient")
+schema:addMetric("scoreAsServer")
+
 -------------------------------------------------------
 -- OSES SCHEMAS
 -------------------------------------------------------
@@ -178,6 +196,15 @@ schema:addTag("ifid")
 schema:addTag("vlan")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("vlan:score", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("vlan")
+schema:addMetric("score")
+schema:addMetric("scoreAsClient")
+schema:addMetric("scoreAsServer")
 
 -- ##############################################
 

@@ -77,6 +77,10 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
 		      bytes_ingress=sstats["broadcast"]["ingress"], bytes_egress=sstats["broadcast"]["egress"],
 		      bytes_inner=sstats["broadcast"]["inner"]}, when)
 
+     ts_utils.append("subnet:score",
+		     {ifid=ifstats.id, subnet=subnet,
+		      score=sstats["score"], scoreAsClient=sstats["score.as_client"], scoreAsServer=sstats["score.as_server"]}, when)
+
      ts_utils.append("subnet:tcp_retransmissions",
 		     {ifid=ifstats.id, subnet=subnet,
 		      packets_ingress=sstats["tcpPacketStats.ingress"]["retransmissions"],

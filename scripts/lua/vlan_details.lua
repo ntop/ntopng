@@ -72,6 +72,7 @@ else
          top_protocols = "top:vlan:ndpi",
          timeseries = {
             {schema="vlan:traffic",             	  label=i18n("traffic")},
+	    {schema="vlan:score",                	  label=i18n("score"), split_directions = true},
          },
       })
    end

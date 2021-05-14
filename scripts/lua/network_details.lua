@@ -102,6 +102,7 @@ if page == "historical" then
 	 {schema="subnet:traffic",             label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
 	 {schema="subnet:broadcast_traffic",   label=i18n("broadcast_traffic")},
 	 {schema="subnet:engaged_alerts",      label=i18n("show_alerts.engaged_alerts")},
+	 {schema="subnet:score",               label=i18n("score"), split_directions = true},
 	 {schema="subnet:tcp_retransmissions", label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
 	 {schema="subnet:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
 	 {schema="subnet:tcp_lost",            label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},

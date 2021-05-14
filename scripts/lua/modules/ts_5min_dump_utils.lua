@@ -63,7 +63,12 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
 
     -- Save ASN bytes
     ts_utils.append("asn:traffic", {ifid=ifstats.id, asn=asn,
-              bytes_sent=asn_stats["bytes.sent"], bytes_rcvd=asn_stats["bytes.rcvd"]}, when)
+				    bytes_sent=asn_stats["bytes.sent"], bytes_rcvd=asn_stats["bytes.rcvd"]}, when)
+
+    ts_utils.append("asn:score",
+		     {ifid=ifstats.id, asn=asn,
+		      score=asn_stats["score"], scoreAsClient=asn_stats["score.as_client"], scoreAsServer=asn_stats["score.as_server"]}, when)
+
 
     ts_utils.append("asn:traffic_sent", {ifid=ifstats.id, asn=asn,
               bytes=asn_stats["bytes.sent"]}, when)
@@ -117,6 +122,10 @@ function ts_dump.country_update_rrds(when, ifstats, verbose)
     ts_utils.append("country:traffic", {ifid=ifstats.id, country=country,
                 bytes_ingress=country_stats["ingress"], bytes_egress=country_stats["egress"],
                 bytes_inner=country_stats["inner"]}, when)
+   
+    ts_utils.append("country:score",
+		     {ifid=ifstats.id, country=country,
+		      score=country_stats["score"], scoreAsClient=country_stats["score.as_client"], scoreAsServer=country_stats["score.as_server"]}, when)
   end
 end
 
@@ -143,7 +152,11 @@ function ts_dump.vlan_update_rrds(when, ifstats, verbose)
       local vlan_id = vlan_stats["vlan_id"]
 
       ts_utils.append("vlan:traffic", {ifid=ifstats.id, vlan=vlan_id,
-                bytes_sent=vlan_stats["bytes.sent"], bytes_rcvd=vlan_stats["bytes.rcvd"]}, when)
+				       bytes_sent=vlan_stats["bytes.sent"], bytes_rcvd=vlan_stats["bytes.rcvd"]}, when)
+
+    ts_utils.append("vlan:score",
+		     {ifid=ifstats.id, vlan=vlan_id,
+		      score=vlan_stats["score"], scoreAsClient=vlan_stats["score.as_client"], scoreAsServer=vlan_stats["score.as_server"]}, when)
 
       -- Save VLAN ndpi stats
       if vlan_stats["ndpi"] ~= nil then
