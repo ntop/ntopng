@@ -48,6 +48,11 @@ pool = pool,
 modal_type = "remove",
 pool = pool
 }) *}
+{# include the modal to edit the policy of an existing pool #}
+{* template_utils.gen("pages/modals/pools/change_policy.template", {
+modal_type = "edit",
+pool = pool
+}) *}
 
 {* template_utils.gen("pages/modals/factory-reset.template", {
     body = i18n("endpoint_notifications.factory_reset.body", { reset_element = i18n("pools.pools") }),

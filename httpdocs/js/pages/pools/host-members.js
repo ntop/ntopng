@@ -38,6 +38,10 @@ $(document).ready(function () {
             text: '<i class="fas fa-plus"></i>',
             action: () => { $(`#add-member-modal`).modal('show'); }
         },
+	{
+	    text: '<i class="fas fa-key"></i>',
+            action: () => { $(`#change-policy`).modal('show'); }
+	},
         {
             text: '<i class="fas fa-sync"></i>',
             action: function(e, dt, node, config) {
@@ -99,16 +103,10 @@ $(document).ready(function () {
         const memberRowData = $hostMembersTable.row($(this).parent().parent()).data();
         $removeModalHandler.invokeModalInit(memberRowData);
     });
-
+    
     $(`#select-host-pool`).change(function () {
-        // update selected pool information
-        selectedPool = { name: $(`#select-host-pool option:selected`).text(), id: $(this).val() };
-        // update the datatable
-        $hostMembersTable.ajax.url(`${http_prefix}/lua/rest/v1/get/host/pool/members.lua?pool=${selectedPool.id}`).load().draw(false);
-        // change pool id in edit pool link
-        $(`.edit-pool-link`).attr('href', `${http_prefix}/lua/admin/manage_pools.lua?pool=host&pool_id=${selectedPool.id}`);
-        queryPoolId = selectedPool.id;
-        history.pushState({ pool: queryPoolId }, '', location.href.replace(/pool\=[0-9]+/, `pool=${queryPoolId}`));
+	const poolId = $(this).val();
+	location.href = `${http_prefix}/lua/admin/manage_host_members.lua?pool=${poolId}`;
     });
 
     $(`[href='#import-modal']`).click(function() {
@@ -264,5 +262,25 @@ $(document).ready(function () {
             $(`#remove-member-host-pool`).modal('hide');
         }
     });
+    
+    $(`#change-policy form`).modalHandler({
+        method: 'post',
+        csrf: removeCsrf,
+        endpoint: `${http_prefix}/lua/rest/v1/bind/host/pool/member.lua`,
+        onModalShow: function () {
+	    $(`#change-policy-feedback`).hide();
+        },
+        beforeSumbit: function (hostPool) {
+            return { pool: selectedPool.id, policy: $(`#select-policy`).val() };
+        },
+        onSubmitSuccess: function (response, textStatus, modalHandler) {
 
+            if (response.rc < 0) {
+                $(`#change-policy-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
+                return false;
+            }
+            $hostMembersTable.ajax.reload();
+	    return true;
+	}
+    }).invokeModalInit();
 });
