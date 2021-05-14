@@ -105,3 +105,15 @@
     </div>
 </template>
 
+<template id="role-filter-template">
+    <div class="form-group row">
+        <label class="col-form-label col-sm-3"><b>{{i18n("tags.role")}}</b></label>
+        <div class="col-sm-5">
+            <select required name="value" class="form-control">
+                <option selected data-tag-label="{{i18n("attacker")}}" value="attacker">{{i18n("attacker")}}</option>
+                <option data-tag-label="{{i18n("victim")}}" value="victim">{{i18n("victim")}}</option>
+            </select>
+        </div>
+    </div>
+</template>
+

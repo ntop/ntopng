@@ -98,10 +98,31 @@ end
 
 -- ##############################################
 
+--@brief Add filter on role
+--@param role The role (attacker or victim)
+--@return True if set is successful, false otherwise
+function host_alert_store:add_role_filter(role)
+   if not self._role then
+      self._role = role
+      if role == 'attacker' then
+         self._where[#self._where + 1] = string.format("is_attacker = %s", true)
+      elseif role == 'victim' then
+         self._where[#self._where + 1] = string.format("is_victim = %s", true)
+      end
+      return true
+   end
+
+   return false
+end
+
+
+-- ##############################################
+
 --@brief Add filters according to what is specified inside the REST API
 function host_alert_store:_add_additional_request_filters()
    local ip = _GET["ip"]
    local vlan_id = _GET["vlan_id"]
+   local role = _GET["role"]
 
    if not isEmptyString(vlan_id) then
       local vlan_id, op = self:strip_filter_operator(vlan_id)
@@ -120,6 +141,11 @@ function host_alert_store:_add_additional_request_filters()
          self:add_vlan_id_filter(host["vlan"])
       end
    end
+
+   if not isEmptyString(role) then
+      local role, op = self:strip_filter_operator(role)
+      self:add_role_filter(role)
+   end
 end
 
 -- ##############################################
@@ -133,9 +159,9 @@ function host_alert_store:_get_additional_available_filters()
       ip = {
          value_type = 'ip',
       },
-      --role = {
-      --  value_type = 'role',
-      --},
+      role = {
+        value_type = 'role',
+      },
    }
 
    return filters

@@ -642,8 +642,8 @@ class DataTableRenders {
         return seconds;
     }
 
-    static filterize(key, value, label) {
-        return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${value}' data-tag-label='${label || value}' href='#'>${label || value}</a>`;
+    static filterize(key, value, label, tag_label) {
+        return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${label || value}</a>`;
     }
 
     static formatValueLabel(obj, type, row) {
@@ -660,14 +660,16 @@ class DataTableRenders {
 	   html_ref = obj.reference
 	let label = obj.shown_label || obj.label;
         
-        if (row.role && row.role.value == 'attacker')
-          label = label + ' <i class="fas fa-skull-crossbones" title="'+row.role.label+'"></i> ';
-        else if (row.role && row.role.value == 'victim')
-          label = label + ' <i class="fas fa-sad-tear" title="'+row.role.label+'"></i> ';
-
         label = DataTableRenders.filterize('ip', obj.value, label);
 
-        return label + html_ref; 
+        if (row.role && row.role.value == 'attacker')
+          label = label + ' ' + DataTableRenders.filterize('role', row.role.value, 
+            '<i class="fas fa-skull-crossbones" title="'+row.role.label+'"></i>', row.role.label);
+        else if (row.role && row.role.value == 'victim')
+          label = label + ' ' + DataTableRenders.filterize('role', row.role.value,
+            '<i class="fas fa-sad-tear" title="'+row.role.label+'"></i>', row.role.label);
+
+        return label + ' ' + html_ref; 
     }
 
     static formatFlowTuple(flow, type, row) {

@@ -50,11 +50,16 @@ local epoch_end = _GET["epoch_end"] or time
 
 --------------------------------------------------------------
 
-local network_name = _GET["network_name"]
-local l7_proto = _GET["l7_proto"]
+local alert_id = _GET["alert_id"]
+local severity = _GET["severity"]
+local host_ip = _GET["ip"]
 local cli_ip = _GET["cli_ip"]
 local srv_ip = _GET["srv_ip"]
-local host_ip = _GET["ip"]
+local cli_port = _GET["cli_port"]
+local srv_port = _GET["srv_port"]
+local l7_proto = _GET["l7_proto"]
+local network_name = _GET["network_name"]
+local role = _GET["role"]
 
 --------------------------------------------------------------
 
@@ -187,11 +192,16 @@ widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
         epoch_begin = epoch_begin,
         epoch_end = epoch_end,
         status = status,
+        alert_id = alert_id,
+        severity = severity,
+        ip = host_ip,
         cli_ip = cli_ip,
         srv_ip = srv_ip,
+        cli_port = cli_port,
+        srv_port = srv_port,
         l7_proto = l7_proto,
-        ip = host_ip,
-        network_name = network_name
+        network_name = network_name,
+        role = role,
     })
 })
 
@@ -356,7 +366,9 @@ local context = {
                 cli_port = i18n("tags.cli_port"),
                 srv_port = i18n("tags.srv_port"),
                 ip = i18n("tags.ip"),
-                network_name = i18n("tags.network")
+                network_name = i18n("tags.network"),
+                role = i18n("tags.role"),
+                roles = i18n("tags.roles"),
             }
         },
         presets = {
@@ -381,11 +393,14 @@ local context = {
             epoch_begin = epoch_begin,
             epoch_end = epoch_end,
             status = status,
+            alert_id = alert_id,
+            severity = severity,
+            ip = host_ip,
             cli_ip = cli_ip,
             srv_ip = srv_ip,
             l7_proto = l7_proto,
-            ip = host_ip,
-            network_name = network_name
+            network_name = network_name,
+            role = role,
         }),
         actions = {
             disable = (page ~= "host" and page ~= "flow")
