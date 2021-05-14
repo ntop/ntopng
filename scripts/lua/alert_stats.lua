@@ -308,32 +308,30 @@ end
 
 local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'}) 
 
-local toggle_engaged_alert = [[
+local extra_range_buttons = [[
     <div class='d-flex align-items-center mx-1'>
         <div class="btn-group" role="group">
             <a href=']] .. base_url .. [[&status=historical&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "historical", "btn-outline-primary active", "btn-outline-secondary") ..[[">]] .. i18n("show_alerts.past") .. [[</a>
             <a href=']] .. base_url .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status ~= "historical", "btn-outline-primary active", "btn-outline-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. ternary(num_alerts_engaged_cur_entity > 0, string.format('<span class="badge badge-pill badge-secondary" style="float:right;margin-bottom:-10px;">%u</span>', num_alerts_engaged_cur_entity), "") .. [[</a>
         </div>
-]]
-
-if page ~= "all" then
-toggle_engaged_alert = toggle_engaged_alert .. [[
-    <button class="btn btn-sm btn-primary mx-1" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="$('#add-alert-filter-modal').modal('show');"><span>]]..i18n("alerts_dashboard.add_filter")..[[</span>
-    </button>
-]]
-end
-
-toggle_engaged_alert = toggle_engaged_alert .. [[
     </div>
 ]]
 
 local available_filter_types = {}
 local all_alert_types = {}
-local alert_store_instances = alert_store_utils.all_instances_factory()
-if alert_store_instances[page] then
-   local alert_store_instance = alert_store_instances[page]
-   available_filter_types = alert_store_instance:get_available_filters()
-   all_alert_types = alert_consts.getAlertTypesInfo(alert_entities[page].entity_id)
+local extra_tags_buttons = ""
+if page ~= "all" then
+   extra_tags_buttons = [[
+    <button class="btn btn-link" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="$('#add-alert-filter-modal').modal('show');"><span><i class="fas fa-plus" data-original-title="" title="]]..i18n("alerts_dashboard.add_filter")..[["></i></span>
+    </button>
+   ]]
+
+   local alert_store_instances = alert_store_utils.all_instances_factory()
+   if alert_store_instances[alert_entities[page].alert_store_name] then
+      local alert_store_instance = alert_store_instances[alert_entities[page].alert_store_name]
+      available_filter_types = alert_store_instance:get_available_filters()
+      all_alert_types = alert_consts.getAlertTypesInfo(alert_entities[page].entity_id)
+   end
 end
 
 local context = {
@@ -366,7 +364,8 @@ local context = {
             month = false,
             year = false
         },
-        extra_html = toggle_engaged_alert
+        extra_range_buttons = extra_range_buttons,
+        extra_tags_buttons = extra_tags_buttons,
     },
     chart = {
         name = CHART_NAME

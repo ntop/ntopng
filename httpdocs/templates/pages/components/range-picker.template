@@ -43,8 +43,8 @@
 
     <div class="range-container d-flex flex-wrap">
     
-        {% if not isEmptyString(extra_html) then %}
-            {* extra_html *}
+        {% if not isEmptyString(extra_range_buttons) then %}
+            {* extra_range_buttons *}
         {% end %}
     
         <div class="range-picker d-flex my-auto flex-wrap">
@@ -124,6 +124,11 @@
     {% if tags.enabled then %}
     <div class="d-flex mt-1">
         <input class="w-100 form-control h-auto" name="tags" placeholder="{{ i18n('show_alerts.filters') }}">
+
+        {% if not isEmptyString(extra_tags_buttons) then %}
+            {* extra_tags_buttons *}
+        {% end %}
+
         <button data-toggle="tooltip" data-placement="bottom" title="{{ i18n('show_alerts.remove_filters') }}" class="btn ml-1 my-auto btn-sm btn-remove-tags">
             <i class="fas fa-times"></i>
         </button>

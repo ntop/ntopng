@@ -19,11 +19,11 @@ local json = require "dkjson"
 
 -- ##############################################
 
-local snmp_alert_store = classes.class(alert_store)
+local snmp_device_alert_store = classes.class(alert_store)
 
 -- ##############################################
 
-function snmp_alert_store:init(args)
+function snmp_device_alert_store:init(args)
    self.super:init()
 
    self._table_name = "snmp_alerts"
@@ -32,7 +32,7 @@ end
 
 -- ##############################################
 
-function snmp_alert_store:insert(alert)
+function snmp_device_alert_store:insert(alert)
    local device_ip
    local device_name
    local port
@@ -71,14 +71,14 @@ end
 -- ##############################################
 
 --@brief Add filters according to what is specified inside the REST API
-function snmp_alert_store:_add_additional_request_filters()
+function snmp_device_alert_store:_add_additional_request_filters()
    -- Add filters specific to the snmp family
 end
 
 -- ##############################################
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
-function snmp_alert_store:format_record(value, no_html)
+function snmp_device_alert_store:format_record(value, no_html)
    local record = self:format_record_common(value, alert_entities.snmp_device.entity_id, no_html)
 
    local alert_info = alert_utils.getAlertInfo(value)
@@ -110,4 +110,4 @@ end
 
 -- ##############################################
 
-return snmp_alert_store
+return snmp_device_alert_store
