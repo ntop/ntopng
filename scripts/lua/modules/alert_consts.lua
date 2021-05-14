@@ -293,7 +293,7 @@ end
 
 -- See alert_consts.resetDefinitions()
 alert_consts.alert_types = {}
-local alerts_by_id      = {} -- All available alerts keyed by alert id
+local alerts_by_id = {} -- All available alerts keyed by entity_id and alert_id
 
 local function loadAlertsDefs()
    if(false) then
@@ -384,7 +384,7 @@ function loadDefinition(def_script, mod_fname, script_path)
 
    -- Sanity check: make sure the alert key is not redefined
    local alert_entity_id = alert_entity.entity_id
-   
+  
    if alerts_by_id[alert_entity_id] and alerts_by_id[alert_entity_id][alert_key] then
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert key %d redefined, skipping in %s from %s", alert_key, mod_fname, script_path))
       return(false)
@@ -478,6 +478,37 @@ function alert_consts.getAlertType(alert_key, alert_entity_id)
    if alerts_by_id[alert_entities.other.entity_id][alert_key] then
       return alerts_by_id[alert_entities.other.entity_id][alert_key]
    end
+end
+
+-- ##############################################
+
+function alert_consts.getAlertTypes(alert_entity_id)
+   return alerts_by_id[alert_entity_id]
+end
+
+-- ##############################################
+
+function alert_consts.alert_type_info_asc(a, b)
+   return (a.label:upper() < b.label:upper())
+end
+
+function alert_consts.getAlertTypesInfo(alert_entity_id)
+   local alert_types = alert_consts.getAlertTypes(alert_entity_id)
+
+   if not alert_types then
+      return {}
+   end
+
+   local alert_types_info = {}
+   for alert_id, alert_name in pairs(alert_types) do
+      alert_types_info[alert_id] = {
+         alert_id = alert_id,
+         name = alert_name,
+         label = alert_consts.alertTypeLabel(alert_id, true, alert_entity_id),
+      }
+   end
+
+   return alert_types_info
 end
 
 -- ##############################################

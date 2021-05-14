@@ -86,4 +86,20 @@
     </div>
 </template>
 
+<template id="alert_id-filter-template">
+    <div class="form-group row">
+        <label class="col-form-label col-sm-3"><b>{{i18n("alerts_dashboard.alert_type")}}</b></label>
+        <div class="col-sm-5">
+            <select required name="value" class="form-control">
+               {% local first_item = true %}
+               {% for _, alert_type in pairsByValues(alert_types, alert_consts.alert_type_info_asc) do %}
+                  <option {{ (first_item and "selected" or "") }} data-tag-label="{{ alert_type.label }}" value="{{ alert_type.alert_id }}">
+                     {{ alert_type.label }}
+                  </option>
+                  {% first_item = false %}
+               {% end %}
+            </select>
+        </div>
+    </div>
+</template>
 

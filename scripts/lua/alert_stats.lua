@@ -248,7 +248,8 @@ local defined_tags = {
     ["host"] = {
 	alert_id = {'eq'},
 	severity = {'eq'},
-        ip = {'eq'}
+        ip = {'eq'},
+        role = {'eq'},
     },
     ["mac"] = {
 	alert_id = {'eq'},
@@ -265,7 +266,8 @@ local defined_tags = {
         cli_ip = {'eq'},
         srv_ip = {'eq'},
 	cli_port = {'eq'},
-	srv_port = {'eq'}
+	srv_port = {'eq'},
+        roles = {'eq'},
     },
     ["system"] = {
 	alert_id = {'eq'},
@@ -291,35 +293,47 @@ local defined_tags = {
 }
 
 local initial_tags = {}
+
 local formatters = {
-   l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end,
-   alert_id = function(alert_id) return (alert_consts.alertTypeLabel(tonumber(alert_id), true) or alert_id) end,
    severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
 }
+if page ~= "all" then
+   formatters.l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end
+   formatters.alert_id = function(alert_id) return (alert_consts.alertTypeLabel(tonumber(alert_id), true, alert_entities[page].entity_id) or alert_id) end
+end
 
 for tag_key, tag in pairs(defined_tags[page] or {}) do
-    tag_utils.add_tag_if_valid(initial_tags, tag_key, tag, formatters)
+   tag_utils.add_tag_if_valid(initial_tags, tag_key, tag, formatters)
 end
 
 local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'}) 
 
-local toggle_engaged_alert = ([[
+local toggle_engaged_alert = [[
     <div class='d-flex align-items-center mx-1'>
         <div class="btn-group" role="group">
             <a href=']] .. base_url .. [[&status=historical&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "historical", "btn-outline-primary active", "btn-outline-secondary") ..[[">]] .. i18n("show_alerts.past") .. [[</a>
             <a href=']] .. base_url .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status ~= "historical", "btn-outline-primary active", "btn-outline-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. ternary(num_alerts_engaged_cur_entity > 0, string.format('<span class="badge badge-pill badge-secondary" style="float:right;margin-bottom:-10px;">%u</span>', num_alerts_engaged_cur_entity), "") .. [[</a>
         </div>
+]]
 
+if page ~= "all" then
+toggle_engaged_alert = toggle_engaged_alert .. [[
     <button class="btn btn-sm btn-primary mx-1" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="$('#add-alert-filter-modal').modal('show');"><span>]]..i18n("alerts_dashboard.add_filter")..[[</span>
     </button>
- 
+]]
+end
+
+toggle_engaged_alert = toggle_engaged_alert .. [[
     </div>
-]])
+]]
 
 local available_filter_types = {}
+local all_alert_types = {}
 local alert_store_instances = alert_store_utils.all_instances_factory()
 if alert_store_instances[page] then
-   available_filter_types = alert_store_instances[page]:get_available_filters()
+   local alert_store_instance = alert_store_instances[page]
+   available_filter_types = alert_store_instance:get_available_filters()
+   all_alert_types = alert_consts.getAlertTypesInfo(alert_entities[page].entity_id)
 end
 
 local context = {
@@ -384,9 +398,11 @@ local context = {
         status = status
     },
     filters = { -- Context for pages/modals/alerts/filters/add.template
+       alert_utils = alert_utils,
+       alert_consts = alert_consts,
        available_types = available_filter_types,
        severities = alert_severities,
-       alert_utils = alert_utils,
+       alert_types = all_alert_types,
     }
 }
 

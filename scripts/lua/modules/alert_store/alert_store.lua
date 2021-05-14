@@ -628,9 +628,12 @@ function alert_store:get_available_filters()
    local additional_filters = self:_get_additional_available_filters()
 
    local filters = {
+      -- Note alert_id could have been defined here for all families, 
+      -- however this requires a migration of the 'other' alerts
+      -- in order to list alerts by entity
       severity = {
          value_type = 'severity',
-      }
+      },
    }
 
    return table.merge(filters, additional_filters)

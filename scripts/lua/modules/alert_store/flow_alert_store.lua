@@ -253,6 +253,9 @@ end
 --@brief Get info about additional available filters
 function flow_alert_store:_get_additional_available_filters()
    local filters = {
+      alert_id = {
+         value_type = 'alert_id',
+      }, 
       cli_ip = {
          value_type = 'ip',
       },

@@ -83,7 +83,7 @@
         const $inputEndEpoch = $(`#end-epoch`);
         const $btnGetPermaLink = $(`#btn-get-permalink`);
 
-	    /* Show an overlay to hide loading */
+	/* Show an overlay to hide loading */
         function toggleOverlays(time = 500) {
             $(`.overlay`).toggle(time);
         }
@@ -109,7 +109,6 @@
         }
 
         async function reloadTable($table, ) {
-
             const searchParams = new URLSearchParams(Object.entries(datasourceParams));
 	        toggleOverlays();
 	    
@@ -171,7 +170,7 @@
         async function onRangePickerChange(pushHistroy = false) {
 
             const [begin, end] = getTimestampRange();
-	        updateDatasourceParams();
+	    updateDatasourceParams();
             await reloadTable($table);
 
             // update the link of the download button
@@ -183,7 +182,6 @@
             if (pushHistroy) {
                 pushNewHistoryState(begin, end);
             }
-
         }
 
         async function addFilterTag(tag) {
@@ -304,7 +302,8 @@
         $table.on('xhr', function() {
             printQueryTime($table);
             hideOverlays();
-	    });
+            filterModalLoadData();
+	});
 
 	$(`.range-picker`).on('change', async function(e) {
             await onRangePickerChange(true);
@@ -625,7 +624,14 @@
 
         /*** Filters modal ***/
 
-        const makeFormTag = (formSelector) => {
+        // load data for filters (e.g. alert types in the selected range)
+        async function filterModalLoadData() {
+            const [begin, end] = getTimestampRange();
+
+            /* Here it is where we can load dynamic data on time range change */
+        }
+
+        const filterModalMakeTag = (formSelector) => {
 
            const $inputsTemplate = $(`${formSelector} .alert-filter-template-container [name]`);
 
@@ -653,7 +659,7 @@
            return tag;
        }
 
-       function cloneTemplate(type) {
+       function filterModalCloneTemplate(type) {
            const template = $(`template#${type}-filter-template`).html();
            // if the template is not empty then return a copy of the template content
            if (template && template.trim() != "") {
@@ -663,14 +669,14 @@
            return (null);
        }
 
-       const createTemplateOnSelect = (formSelector) => {
+       const filterModalCreateTemplateOnSelect = (formSelector) => {
 
            const $templateContainer = $(`${formSelector} .alert-filter-template-container`);
 
            // on filter type Selection load the right template to fill
            $(`${formSelector} select[name='alert_filter_type']`).change(function (e) {
                const $option = $(this).find(`option[value='${$(this).val()}']`);
-               const $cloned = cloneTemplate($option.data('alertFilterKey'));
+               const $cloned = filterModalCloneTemplate($option.data('alertFilterKey'));
                // show the template inside the modal container
                $templateContainer.hide().empty();
                if ($cloned) {
@@ -685,10 +691,10 @@
        $(`#add-alert-filter-modal form`).modalHandler({
            /* Note: no endpoint defined, ajax is not used here */
            resetAfterSubmit: false,
-           onModalInit: () => { createTemplateOnSelect(`#add-alert-filter-modal`); },
+           onModalInit: () => { filterModalCreateTemplateOnSelect(`#add-alert-filter-modal`); },
            onModalShow: () => {
                // load the template of the selected filter
-               const $cloned = cloneTemplate($(`#add-alert-filter-modal select[name='alert_filter_type'] option:selected`).data('alertFilterKey'));
+               const $cloned = filterModalCloneTemplate($(`#add-alert-filter-modal select[name='alert_filter_type'] option:selected`).data('alertFilterKey'));
                if ($cloned) {
                    $(`#add-alert-filter-modal form .alert-filter-template-container`).empty().append($(`<hr>`), $cloned).show();
                }
@@ -700,7 +706,7 @@
 
                $(`#add-alert-filter-modal .test-feedback`).hide();
 
-               const tag = makeFormTag(`#add-alert-filter-modal form`);
+               const tag = filterModalMakeTag(`#add-alert-filter-modal form`);
 
                addFilterTag(tag);
 
