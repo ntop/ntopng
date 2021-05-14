@@ -247,7 +247,7 @@ end
 
 -- @brief Persist pool details to disk. Possibly assign a pool id
 -- @param pool_id The pool_id of the pool which needs to be persisted. If nil, a new pool id is assigned
-function pools:_persist(pool_id, name, members, recipients)
+function pools:_persist(pool_id, name, members, recipients, policy)
     -- self:cleanup()
 
     -- Default pool name and members cannot be modified
@@ -265,7 +265,7 @@ function pools:_persist(pool_id, name, members, recipients)
 
     ntop.setCache(pool_details_key, json.encode(pool_details))
 
-    self:_post_persist(pool_id, name, members, recipients)
+    self:_post_persist(pool_id, name, members, recipients, policy)
 
     ntop.reloadPeriodicScripts()
 
@@ -393,7 +393,8 @@ end
 -- ##############################################
 
 -- Overwrite the pool name, members and recipients
-function pools:edit_pool(pool_id, new_name, new_members, new_recipients)
+-- Policy are used just by Host Pool
+function pools:edit_pool(pool_id, new_name, new_members, new_recipients, new_policy)
     local ret = false
 
     local locked = self:_lock()
@@ -414,8 +415,14 @@ function pools:edit_pool(pool_id, new_name, new_members, new_recipients)
             -- are assumed to be the existing recipients
             new_recipients = cur_pool_details["recipients"]
         end
+	
+        if not new_policy then
+            -- In case policy have not been sumbitted, new_policy
+            -- is assumed to be the existing policy
+	    new_policy = cur_pool_details["policy"] or ""
+        end
 
-        if cur_pool_details and new_name and new_members and new_recipients then
+        if cur_pool_details and new_name and new_members and new_recipients and new_policy then
             local checks_ok = true
 
             -- Check if new_name is not the name of any other existing pool
@@ -449,7 +456,7 @@ function pools:edit_pool(pool_id, new_name, new_members, new_recipients)
 
             if checks_ok then
                 -- If here, all checks are valid and the pool can be edited
-                self:_persist(pool_id, new_name, new_members, new_recipients)
+                self:_persist(pool_id, new_name, new_members, new_recipients, new_policy)
                 self:_set_cache_flag()
                 -- Pool edited successfully
                 ret = true
@@ -519,6 +526,12 @@ end
 
 -- ##############################################
 
+-- Currently Implemented only into the Host Pools, used to get the host policy
+function pools:get_pool_policy(pool_id)
+end
+
+-- ##############################################
+
 function pools:get_pool(pool_id, recipient_details)
     local recipient_details = recipient_details or true
     local pool_details
@@ -529,7 +542,7 @@ function pools:get_pool(pool_id, recipient_details)
         local pool_details_str = ntop.getCache(pool_details_key)
         pool_details = json.decode(pool_details_str)
 
-        if pool_details then
+	if pool_details then
             -- Add the integer pool id
             pool_details["pool_id"] = tonumber(pool_id)
 
@@ -543,7 +556,7 @@ function pools:get_pool(pool_id, recipient_details)
                 end
             end
 
-            if pool_details["recipients"] then
+	    if pool_details["recipients"] then
                 local recipients = {}
                 -- get recipient metadata
                 for _, recipient_id in pairs(pool_details["recipients"]) do

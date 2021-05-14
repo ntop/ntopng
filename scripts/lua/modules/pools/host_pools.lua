@@ -48,6 +48,13 @@ end
 
 -- ##############################################
 
+-- Overwrite the pool name, members and recipients
+function host_pools:set_pool_policy(pool_id, new_policy)
+   return pools:edit_pool(pool_id, nil, nil, new_policy)
+end
+   
+-- ##############################################
+
 -- @brief Ends a pool transaction.
 function host_pools:end_transaction()
    -- Perform end-of-transaction operations. Basically all the operations
@@ -212,7 +219,7 @@ end
 
 -- @brief Persist pool details to disk. Possibly assign a pool id
 -- @param pool_id The pool_id of the pool which needs to be persisted. If nil, a new pool id is assigned
-function host_pools:_persist(pool_id, name, members, recipients)
+function host_pools:_persist(pool_id, name, members, recipients, policy)
     -- OVERRIDE
     -- Method must be overridden as host pool details and members are kept as hash caches, which are also used by the C++
 
@@ -235,6 +242,10 @@ function host_pools:_persist(pool_id, name, members, recipients)
 
     -- Recipients
     ntop.setHashCache(pool_details_key, "recipients", json.encode(recipients));
+    
+    -- Policy
+    -- NB: the policy is already a string
+    ntop.setHashCache(pool_details_key, "policy", (policy or ""));
 
     -- Only reload if a transaction is not started. If a transaction is in progress
     -- no reload is performed: it is UP TO THE CALLER to call end_transaction and
@@ -313,6 +324,12 @@ end
 
 -- ##############################################
 
+function host_pools:get_pool_policy(pool_id)
+   return (self:_get_pool_detail(pool_id, "policy") or "")
+end
+   
+-- ##############################################
+
 function host_pools:get_pool(pool_id, recipient_details)
 
     local recipient_details = recipient_details or true
@@ -364,12 +381,15 @@ function host_pools:get_pool(pool_id, recipient_details)
         recipients = {}
     end
 
+    local policy = self:_get_pool_detail(pool_id, "policy")
+
     local pool_details = {
         pool_id = tonumber(pool_id),
         name = pool_name,
         members = members,
         member_details = member_details,
-        recipients = recipients
+        recipients = recipients,
+	policy = policy,
     }
 
     -- Upon success, pool details are returned, otherwise nil
