@@ -6,14 +6,7 @@
     /* Duration */
     {name: 'duration', data: 'duration', width: '5%', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
     /* IP Address */
-    {name: 'ip', data: 'ip', orderable: false, width: '16%', className: 'text-nowrap', render: (ipAddress, type, row) => {
-        if (type !== "display") return ipAddress;
-    	let html_ref = '';
-	if (ipAddress.reference !== undefined)
-	   html_ref = ipAddress.reference
-	const label = `${ipAddress.shown_label || ipAddress.label} ${row.is_attacker ? '<i class="fas fa-skull-crossbones"></i>' : ''} ${row.is_victim ? '<i class="fas fa-sad-tear"></i>': ''}`;
-        return DataTableRenders.filterize('ip', ipAddress.value, label) + html_ref;
-    }},
+    {name: 'ip', data: 'ip', orderable: false, width: '16%', className: 'text-nowrap', render: DataTableRenders.formatHost},
     /* Description */
     {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Attacker */
