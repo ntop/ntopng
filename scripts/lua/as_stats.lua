@@ -119,7 +119,7 @@ print [[
 				 field: "column_score",
 				 sortable: true,
                              css: {
-			        textAlign: 'left'
+			        textAlign: 'center'
 			     }
 				 },
 ]]
