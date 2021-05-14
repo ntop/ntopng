@@ -13,8 +13,12 @@ local host_pools = require "host_pools"
 
 local host_pool = host_pools:create()
 local all_pools = host_pools:get_all_pools()
-local pool_id_get = _GET["pool"]
-local current_pool_name = all_pools[tonumber(pool_id_get)]["name"]
+local pool_id_get = _GET["pool"] or "0"
+local current_pool_name = ""
+
+if all_pools ~= {} and pool_id_get ~= "0" then
+   current_pool_name = all_pools[tonumber(pool_id_get)]["name"]
+end
 
 -- if the _GET["pool"] is not defined then
 -- show the first host pool in the page
