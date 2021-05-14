@@ -124,6 +124,22 @@ end
 
 -- ##############################################
 
+--@brief Get info about additional available filters
+function host_alert_store:_get_additional_available_filters()
+   local filters = {
+      ip = {
+         value_type = 'ip',
+      },
+      --role = {
+      --  value_type = 'role',
+      --},
+   }
+
+   return filters
+end 
+
+-- ##############################################
+
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function host_alert_store:format_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"

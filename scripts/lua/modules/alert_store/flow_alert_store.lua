@@ -253,7 +253,6 @@ end
 --@brief Get info about additional available filters
 function flow_alert_store:_get_additional_available_filters()
    local filters = {
---[[
       cli_ip = {
          value_type = 'ip',
       },
@@ -265,8 +264,13 @@ function flow_alert_store:_get_additional_available_filters()
       }, 
       srv_port = {
          value_type = 'port',
-      }, 
---]]
+      },
+      --roles = {
+      --  value_type = 'roles',
+      --},
+      --l7_proto = {
+      --   value_type = 'l7_proto',
+      --}, 
    }
 
    return filters

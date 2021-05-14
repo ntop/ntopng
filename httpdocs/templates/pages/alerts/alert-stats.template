@@ -638,6 +638,7 @@
                // $(this).attr('name')
                params['value'] = $(this).val().trim();
                params['label'] = $('option:selected', this).data('tagLabel');
+               if (!params['label']) params['label'] = params['value'];
            });
 
            // console.log(params);
