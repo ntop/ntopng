@@ -70,13 +70,13 @@ Ntop::Ntop(char *appName) {
   start_time = last_modified_static_file_epoch = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
   ndpiReloadInProgress = false;
-  
+
   /* Callbacks loader */
   flowCallbacksReloadInProgress = true; /* Lazy, will be reloaded the first time this condition is evaluated */
   hostCallbacksReloadInProgress = true;
   flow_callbacks_loader = NULL;
   host_callbacks_loader = NULL;
-  
+
   /* Flow alerts loader */
   alertExclusionsReloadInProgress = true;
   alert_exclusions = alert_exclusions_shadow = NULL;
@@ -97,7 +97,7 @@ Ntop::Ntop(char *appName) {
 #endif
   privileges_dropped = false;
   can_send_icmp = Utils::isPingSupported();
-  
+
   for (int i = 0; i < CONST_MAX_NUM_NETWORKS; i++)
     local_network_names[i] = local_network_aliases[i] = NULL;
 
@@ -120,7 +120,7 @@ Ntop::Ntop(char *appName) {
   internal_alerts_queue = new (std::nothrow) FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
 
   resolvedHostsBloom = new (std::nothrow) Bloom(NUM_HOSTS_RESOLVED_BITS);
-  
+
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
     strncpy(working_dir, "C:\\Windows\\Temp\\ntopng", sizeof(working_dir)); // Fallback: it should never happen
@@ -157,7 +157,7 @@ Ntop::Ntop(char *appName) {
   plugins0_active = 0;
 
   //umask(0);
-  
+
   if(getcwd(startup_dir, sizeof(startup_dir)) == NULL)
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Occurred while checking the current directory (errno=%d)", errno);
@@ -223,9 +223,9 @@ void Ntop::lockNtopInstance() {
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Working dir does not exist yet");
     return;
   }
-  
+
   snprintf(lockPath, sizeof(lockPath), "%s/.lock", working_dir);
-  
+
   lock.l_type   = F_WRLCK;  /* read/write (exclusive versus shared) lock */
   lock.l_whence = SEEK_SET; /* base for seek offsets */
   lock.l_start  = 0;        /* 1st byte in file */
@@ -241,7 +241,7 @@ void Ntop::lockNtopInstance() {
   if(fcntl(startupLockFile, F_SETLK, &lock) < 0) { /** F_SETLK doesn't block, F_SETLKW does **/
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Another ntopng instance is running...");
     exit(EXIT_FAILURE);
-  }  
+  }
 }
 
 #endif
@@ -270,6 +270,7 @@ void Ntop::initTimezone() {
 
 Ntop::~Ntop() {
   int num_local_networks = local_network_tree.getNumAddresses();
+
   for (int i = 0; i < num_local_networks; i++) {
     if (local_network_names[i] != NULL) free(local_network_names[i]);
     if (local_network_aliases[i] != NULL) free(local_network_aliases[i]);
@@ -296,7 +297,7 @@ Ntop::~Ntop() {
   if(cping)               delete cping;
   if(ping)                delete ping;
 #endif
-  
+
   if(udp_socket != -1)    closesocket(udp_socket);
 
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
@@ -310,7 +311,7 @@ Ntop::~Ntop() {
 #ifdef NTOPNG_PRO
   if(pro) delete pro;
 #endif
-  
+
   if(resolvedHostsBloom) delete resolvedHostsBloom;
   delete internal_alerts_queue;
 
@@ -329,7 +330,12 @@ Ntop::~Ntop() {
   if(host_callbacks_loader)     delete host_callbacks_loader;
   if(alert_exclusions)          delete alert_exclusions;
   if(alert_exclusions_shadow)   delete alert_exclusions_shadow;
-  
+
+#ifdef NTOPNG_PRO
+  if(allowed_users)             delete allowed_users;
+  if(allowed_users_shadow)      delete allowed_users_shadow;
+#endif
+
 #ifdef __linux__
   if(inotify_fd > 0)  close(inotify_fd);
 #endif
@@ -378,13 +384,13 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     /* Initialize another redis instance for the trace of events */
     ntop->getTrace()->initRedis(prefs->get_redis_host(), prefs->get_redis_password(),
 				prefs->get_redis_port(), prefs->get_redis_db_id());
-    
+
     if(ntop->getRedis() == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize redis. Quitting...");
       exit(-1);
     }
   }
-  
+
 #ifdef NTOPNG_PRO
   pro->init_license();
 
@@ -507,7 +513,7 @@ void Ntop::start() {
   prefs->loadInstanceNameDefaults();
 
   loadLocalInterfaceAddress();
-  
+
   address->startResolveAddressLoop();
 
   system_interface->allocateStructures();
@@ -634,7 +640,7 @@ void Ntop::start() {
 
 #ifndef __linux__
     gettimeofday(&end, NULL);
-    
+
     usec_diff = Utils::usecTimevalDiff(&end, &begin);
 
     if(usec_diff < nap_usec)
@@ -677,7 +683,7 @@ void Ntop::start() {
         }
       }
     } while(usec_diff < nap_usec);
-#endif    
+#endif
   }
 }
 
@@ -824,9 +830,9 @@ void Ntop::loadLocalInterfaceAddress() {
 
   for(int ifIdx = 0; ifIdx < (int)pIPAddrTable->dwNumEntries; ifIdx++) {
     char name[256];
-    
+
     getIfName(pIPAddrTable->table[ifIdx].dwIndex, name, sizeof(name));
-    
+
     for(int id = 0; id < num_defined_interfaces; id++) {
       if((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
 	u_int32_t bits = Utils::numberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
@@ -1329,7 +1335,7 @@ bool Ntop::isPcapDownloadAllowed(lua_State* vm, const char *ifname) {
 
   if(isUserAdministrator(vm))
     return true;
-  
+
   if (isInterfaceAllowed(vm, ifname)) {
     char *username = getLuaVMUserdata(vm,user);
     ntop->getUserPermission(username, &allow_pcap_download);
@@ -1427,7 +1433,7 @@ bool Ntop::checkUserInterfaces(const char * const user) const {
 
 bool Ntop::getUserPasswordHashLocal(const char * const user, char *password_hash) const {
   char key[64], val[64];
-  
+
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
 
   if(ntop->getRedis()->get(key, val, sizeof(val)) < 0) {
@@ -2091,7 +2097,7 @@ bool Ntop::getUserPermission(const char * const username, bool *allow_pcap_downl
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, username);
 
-  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) 
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
     if(strcmp(val, "1") == 0) *allow_pcap_download = true;
 
   return(true);
@@ -2281,7 +2287,7 @@ bool Ntop::deleteUser(char *username) {
   snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
   ntop->getRedis()->del(key);
 
-  /* 
+  /*
      Delete the API Token, first from the hash of all tokens,
      then from the user
   */
@@ -2654,7 +2660,7 @@ void Ntop::checkReloadAlertExclusions() {
   }
 
   if(alertExclusionsReloadInProgress /* Check if a reload has been requested */
-     || !alert_exclusions /* Control groups are not allocated */) { 
+     || !alert_exclusions /* Control groups are not allocated */) {
     alertExclusionsReloadInProgress = false; /* Leave this BEFORE the actual swap and new allocation to guarantee changes are always seen */
 
     alert_exclusions_shadow = alert_exclusions; /* Save the existing instance */
@@ -2668,9 +2674,9 @@ void Ntop::checkReloadAlertExclusions() {
 /* ******************************************* */
 
 void Ntop::checkReloadFlowCallbacks() {
-  if (!ntop->getPrefs()->is_pro_edition() /* Community mode */ && 
+  if (!ntop->getPrefs()->is_pro_edition() /* Community mode */ &&
       flow_callbacks_loader && flow_callbacks_loader->getCallbacksEdition() != ntopng_edition_community) {
-    /* Force a reload when switching to community (demo mode) */  
+    /* Force a reload when switching to community (demo mode) */
     reloadFlowCallbacks();
   }
 
@@ -2704,9 +2710,9 @@ void Ntop::checkReloadFlowCallbacks() {
 /* ******************************************* */
 
 void Ntop::checkReloadHostCallbacks() {
-  if (!ntop->getPrefs()->is_pro_edition() /* Community mode */ && 
+  if (!ntop->getPrefs()->is_pro_edition() /* Community mode */ &&
       host_callbacks_loader && host_callbacks_loader->getCallbacksEdition() != ntopng_edition_community) {
-    /* Force a reload when switching to community (demo mode) */  
+    /* Force a reload when switching to community (demo mode) */
     reloadHostCallbacks();
   }
 
@@ -2739,7 +2745,7 @@ void Ntop::checkReloadHostCallbacks() {
 
 /* ******************************************* */
 
-#ifdef NTOPNG_PRO  
+#ifdef NTOPNG_PRO
 void Ntop::checkReloadAllowedUsers() {
   if(allowed_users_shadow) {
     delete allowed_users_shadow;
@@ -2952,7 +2958,7 @@ void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client, lu
     int t = lua_type(L, -1);
 
     if((int)key_proto < 0) continue;
-    
+
     switch (t) {
       case LUA_TNUMBER:
       {
@@ -3134,7 +3140,7 @@ struct ndpi_detection_module_struct* Ntop::initnDPIStruct() {
 
 void Ntop::cleanShadownDPI() {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
-  
+
   ndpi_exit_detection_module(ndpi_struct_shadow);
   ndpi_struct_shadow = NULL;
 }
@@ -3174,18 +3180,18 @@ void Ntop::finalizenDPIReload() {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
     return;
   }
-  
+
   if(ndpi_struct_shadow) {
     struct ndpi_detection_module_struct *old_struct;
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "Going to reload custom categories");
-    
+
     /* The new categories were loaded on the current ndpi_struct_shadow */
     ndpi_enable_loaded_categories(ndpi_struct_shadow);
     ndpi_finalize_initialization(ndpi_struct_shadow);
-    
+
     ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI finalizing reload...");
-    
+
     old_struct = ndpi_struct;
     ndpi_struct = ndpi_struct_shadow;
     ndpi_struct_shadow = old_struct;
@@ -3205,7 +3211,7 @@ void Ntop::finalizenDPIReload() {
 
 void Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
-  
+
   if(what && ndpi_struct_shadow)
     ndpi_load_ip_category(ndpi_struct_shadow, what, id);
 }
@@ -3214,7 +3220,7 @@ void Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
 
 void Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
-  
+
   if(what && ndpi_struct_shadow)
     ndpi_load_hostname_category(ndpi_struct_shadow, what, id);
 }
@@ -3225,7 +3231,7 @@ int Ntop::nDPILoadMaliciousJA3Signatures(const char *file_path) {
   int n = 0;
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
-  
+
   if(file_path && ndpi_struct_shadow)
     n = ndpi_load_malicious_ja3_file(ndpi_struct_shadow, file_path);
 
@@ -3294,7 +3300,7 @@ u_int8_t Ntop::getLocalNetworkId(const char *address_str) {
 bool Ntop::addLocalNetwork(char *_net) {
   char *net, alias[64], *position_ptr;
   int id = local_network_tree.getNumAddresses(), pos = 0;
-  
+
   if(id >= CONST_MAX_NUM_NETWORKS) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s",
 				 id, _net);
@@ -3351,9 +3357,9 @@ bool Ntop::getLocalNetworkAlias(lua_State *vm, u_int8_t network_id) {
 /* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0 */
 void Ntop::addLocalNetworkList(const char *rule) {
   char *tmp, *net = strtok_r((char *) rule, ",", &tmp);
-  
+
   while(net != NULL) {
     if(!addLocalNetwork(net)) return;
-    net = strtok_r(NULL, ",", &tmp);   
+    net = strtok_r(NULL, ",", &tmp);
   }
 }
