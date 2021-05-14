@@ -98,11 +98,14 @@ void Bitmap128::lua(lua_State* vm, const char *label) const {
 
 const char * const Bitmap128::toHexString(char *buf, ssize_t buf_len) const {
   u_int shifts = 0;
-  snprintf(buf, buf_len, "%016lX%016lX", bitmap[1], bitmap[0]);
+
+  snprintf(buf, buf_len, "%016lX%016lX",
+	   (unsigned long)bitmap[1], (unsigned long)bitmap[0]);
 
   /* Remove heading zeroes but keep HEX byte-aligned (SQLite doesn't like heading zeroes when inserting blob literals) */
   for(int pos = 0; pos < strlen(buf) - 2; pos += 2) {
     uint8_t cur_byte = 0;
+    
     sscanf(&buf[pos], "%02hhX", &cur_byte);
     if(cur_byte > 0) break;
     shifts += 2;

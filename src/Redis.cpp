@@ -942,8 +942,6 @@ int Redis::smembers(lua_State* vm, char *setName) {
 /* **************************************** */
 
 bool Redis::sismember(const char *set_name, const char * const member) {
-  int rc = -1;
-  u_int i;
   redisReply *reply = NULL;
   bool res = false;
 
