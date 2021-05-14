@@ -71,15 +71,17 @@
 
 <template id="severity-filter-template">
     <div class="form-group row">
-        <label class="col-form-label col-sm-3"><b>{{i18n("value")}}</b></label>
+        <label class="col-form-label col-sm-3"><b>{{i18n("level")}}</b></label>
         <div class="col-sm-5">
             <select required name="value" class="form-control">
                {% local first_item = true %}
                {% for _, severity in pairsByValues(severities, alert_utils.severity_rev) do %}
-                  <option {{ (first_item and "selected" or "") }} data-tag-label="{{ i18n(severity.i18n_title) }}" value="{{ severity.severity_id }}">
-                     {{ i18n(severity.i18n_title) }}
-                  </option>
-                  {% first_item = false %}
+                  {% if severity.used_by_alerts then %}
+                     <option {{ (first_item and "selected" or "") }} data-tag-label="{{ i18n(severity.i18n_title) }}" value="{{ severity.severity_id }}">
+                        {{ i18n(severity.i18n_title) }}
+                     </option>
+                     {% first_item = false %}
+                  {% end %}
                {% end %}
             </select>
         </div>

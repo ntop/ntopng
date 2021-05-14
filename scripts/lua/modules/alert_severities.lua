@@ -31,6 +31,7 @@ local alert_severities = {
       color = "#adebad",
       i18n_title = "alerts_dashboard.info",
       syslog_severity = 6,
+      used_by_alerts = true,
       emoji = "\xE2\x84\xB9"
    },
    notice = {
@@ -40,6 +41,7 @@ local alert_severities = {
       color = "#70db70",
       i18n_title = "alerts_dashboard.notice",
       syslog_severity = 5,
+      used_by_alerts = true,
       emoji = "\xE2\x84\xB9"
    },
    warning = {
@@ -49,6 +51,7 @@ local alert_severities = {
       color = "#ffc007",
       i18n_title = "alerts_dashboard.warning",
       syslog_severity = 4,
+      used_by_alerts = true,
       emoji = "\xE2\x9A\xA0"
    },
    error = {
@@ -58,6 +61,7 @@ local alert_severities = {
       color = "#ff3231",
       i18n_title = "alerts_dashboard.error",
       syslog_severity = 3,
+      used_by_alerts = true,
       emoji = "\xE2\x9D\x97"
    },
    critical = {
