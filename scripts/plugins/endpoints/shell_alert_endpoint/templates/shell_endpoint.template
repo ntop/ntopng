@@ -1,9 +1,9 @@
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-form-label col-sm-3">
 	    <b>{{ i18n("shell_alert_endpoint.shell_script") }}</b>
     </label>
     <div class="col-sm-5">
-    <select name="shell_script" class="form-control" required>
+    <select name="shell_script" class="form-select" required>
         {%
             for key, dir in pairs(ntop.readdir("/usr/share/ntopng/scripts/shell/")) do 
                 if(key:match('^(.*).sh$')) then   

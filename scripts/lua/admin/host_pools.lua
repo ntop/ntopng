@@ -201,14 +201,14 @@ elseif (_POST["member"] ~= nil) and (_POST["pool"] ~= nil) then
 end
 
 function printPoolNameField(pool_id_str)
-   print[[<div class="form-group has-feedback" style="margin-bottom:0;">]]
+   print[[<div class="form-group mb-3 has-feedback" style="margin-bottom:0;">]]
    print[[<input name="pool_' + ]] print(pool_id_str) print[[ + '" class="form-control" spellcheck="false" data-unique="unique" placeholder="]] print(i18n("host_pools.specify_pool_name")) print[[" required/>]]
    print[[<div class="help-block with-errors" style="margin-bottom:0;"></div>]]
    print[[</div>]]
 end
 
 function printMemberAddressField(member_str, origin_value_str)
-   print[[<div class="form-group has-feedback" style="margin-bottom:0;">]]
+   print[[<div class="form-group mb-3 has-feedback" style="margin-bottom:0;">]]
    print[[<input name="member_' + ]] print(member_str) print[[ + '" class="form-control" spellcheck="false" data-address="address" data-member="member" placeholder="]] print(i18n("host_pools.specify_member_address")) print[["]]
    if not isEmptyString(origin_value_str) then
       print[[ data-origin-value="' + ]] print(origin_value_str) print[[ + '"]]
@@ -219,7 +219,7 @@ function printMemberAddressField(member_str, origin_value_str)
 end
 
 function printMemberVlanField(member_str)
-   print[[<div class="form-group has-feedback" style="margin-bottom:0;">]]
+   print[[<div class="form-group mb-3 has-feedback" style="margin-bottom:0;">]]
    print[[<input name="member_' + ]] print(member_str) print[[ + '_vlan" class="form-control text-end" data-member="member" style="width:5em; padding-right:1em; margin: 0 auto;" type="number" min="0" value="0" required/>]]
    print[[<div class="help-block with-errors" style="margin-bottom:0;"></div>]]
    print[[</div>]]
@@ -276,7 +276,7 @@ print [[
 <br/><table><tbody><tr>
 ]]
 
-print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline; width:14em;" onchange="document.location.href=\'?ifid=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
+print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-select pool-selector" style="display:inline; width:14em;" onchange="document.location.href=\'?ifid=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
 print(graph_utils.poolDropdown(ifId, selected_pool.id, {[host_pools_utils.DEFAULT_POOL_ID]=true}))
 print('</select>')
 
@@ -457,7 +457,7 @@ print(
 		      action  = "changeMemberPool(change_member_id)",
 		      title   = i18n("host_pools.change_member_pool"),
 		      message = i18n("host_pools.select_new_pool", {member='<span id="change_member_pool_dialog_member"></span>'}) ..
-			 '<br><br><select class="form-control" id="changed_host_pool" style="width:15em;">'..
+			 '<br><br><select class="form-select" id="changed_host_pool" style="width:15em;">'..
 			 graph_utils.poolDropdown(ifId, "", {[selected_pool.id]=true, [host_pools_utils.DEFAULT_POOL_ID]=true})..
 			 '</select>',
 		      custom_alert_class = "",

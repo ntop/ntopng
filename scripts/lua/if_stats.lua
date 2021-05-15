@@ -102,7 +102,7 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
 end
 
 function inline_select_form(name, keys, values, curval)
-   print[[<select class="form-control" style="width:12em; display:inline;" name="]] print(name) print[[">]]
+   print[[<select class="form-select" style="width:12em; display:inline;" name="]] print(name) print[[">]]
    for idx, k in ipairs(keys) do
       local v = values[idx]
       print[[<option value="]] print(v) print[[" ]]
@@ -1917,7 +1917,7 @@ function toggle_mirrored_traffic_function_off(){
        <tr>
 	 <th>]] print(i18n("if_stats_config.companion_interface")) print[[</th>
 	 <td>
-	   <select name="companion_interface" class="form-control" style="width:36em; display:inline;">]]
+	   <select name="companion_interface" class="form-select" style="width:36em; display:inline;">]]
 
 	 for _, companion in ipairs(companions) do
 	    local companion_id = companion["ifid"]
@@ -1948,7 +1948,7 @@ function toggle_mirrored_traffic_function_off(){
        <tr>
 	 <th>]] print(i18n("traffic_recording.traffic_recording_provider")) print[[</th>
 	 <td>
-	   <select name="traffic_recording_provider" class="form-control" style="width:36em; display:inline;">]]
+	   <select name="traffic_recording_provider" class="form-select" style="width:36em; display:inline;">]]
 
 	 for _, provider in pairs(providers) do
 	    local label = string.format("%s", provider["name"])
@@ -2009,7 +2009,7 @@ function toggle_mirrored_traffic_function_off(){
        <tr>
 	 <th>]] print(i18n("prefs.dynamic_interfaces_creation_title")) print[[</th>
 	 <td>
-	   <select name="disaggregation_criterion" class="form-control" style="width:36em; display:inline;">]]
+	   <select name="disaggregation_criterion" class="form-select" style="width:36em; display:inline;">]]
 
 	 for k, value in ipairs(values) do
 	    local label = labels[k]
@@ -2120,7 +2120,7 @@ elseif(page == "snmp_bind") then
       <tr>
          <th>]] print(i18n("snmp.snmp_device")) print[[</th>
          <td>
-            <select class="form-control" style="width:30em; display:inline;" id="snmp_bind_device" name="ip">
+            <select class="form-select" style="width:30em; display:inline;" id="snmp_bind_device" name="ip">
                <option]] if isEmptyString(snmp_host) then print(" selected") end print[[ value="">Not Bound</option>
          ]]
 
@@ -2146,7 +2146,7 @@ elseif(page == "snmp_bind") then
       <tr>
          <th>]] print(i18n("snmp.snmp_interface")) print[[</th>
             <td>
-               <select class="form-control" style="width:30em; display:inline;" id="snmp_bind_interface" name="snmp_port_idx">]]
+               <select class="form-select" style="width:30em; display:inline;" id="snmp_bind_interface" name="snmp_port_idx">]]
 
    if not isEmptyString(snmp_interface) then
       -- This is neeeded to initialized ays form fields

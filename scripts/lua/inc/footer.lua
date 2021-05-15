@@ -546,9 +546,6 @@ local footer_refresh_rate = ntop.getPrefs()["housekeeping_frequency"]
 print(footer_refresh_rate.."")
 print[[ * 1000);  /* re-schedule every [interface-rate] seconds */
 
-//Enable tooltip without a fixer placement
-$(document).ready(function () { $("[rel='tooltip'],a,i,summary>span").tooltip(); });
-
 //Automatically open dropdown-menu
 $(document).ready(function(){
     $('ul.nav li.dropdown').hover(function() {
@@ -630,9 +627,13 @@ end
 
 -- ######################################
 
+local http_prefix = ntop.getHttpPrefix()
+
 -- close wrapper
 print[[
 </main>
   </div>
+  <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap/js/bootstrap.min.js?"></script>
+  <script type="text/javascript" src="]] print(http_prefix) print[[/selectpicker/js/bootstrap-select.min.js"></script>
   </body>
 </html> ]]

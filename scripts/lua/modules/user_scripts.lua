@@ -1972,7 +1972,7 @@ function user_scripts.printUserScripts()
                     </tbody>
                 </table>
         </div>
-    <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>
+    <link href="]].. ntop.getHttpPrefix() ..[[/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
     <script type='text/javascript'>
 
     $(document).ready(function() {

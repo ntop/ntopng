@@ -1065,21 +1065,23 @@ local is_no_login_user = isNoLoginUser()
 
 print([[
    <li class="nav-item dropdown">
-      <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" role='button' data-bs-toggle="dropdown">
+      <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" id='navbar-user-dropdown-link' role="button" data-bs-toggle="dropdown" aria-expanded="false">
          <i class='fas fa-user'></i>
       </a>
-      <ul class="dropdown-menu dropdown-menu-end">]])
+      <ul class="dropdown-menu dropdown-menu-lg-end" aria-labelledby='navbar-user-dropdown-link'>]])
 
 if (not _SESSION["localuser"] or not is_admin) and (not is_no_login_user) then
    print[[
+      <li>
          <a class="dropdown-item" href='#password_dialog' data-bs-toggle='modal'>
             <i class='fas fa-user'></i> ]] print(i18n("manage_users.manage_user_x", {user = _SESSION["user"]})) print[[
          </a>
+      </li>
    ]]
 else
 
    if (not is_no_login_user) then
-      print([[<a class='dropdown-item' href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua?user=]].. session_user:gsub("%.", "\\\\\\\\.") ..[['><i class='fas fa-user'></i> ]].. session_user ..[[</a>]])
+      print([[<li><a class="dropdown-item" href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua?user=]].. session_user:gsub("%.", "\\\\\\\\.") ..[['><i class='fas fa-user'></i> ]].. session_user ..[[</a></li>]])
    else
       print([[<li class='dropdown-item disabled'>]])
       print([[<i class='fas fa-user'></i> ]].. session_user ..[[]])
@@ -1111,7 +1113,7 @@ if updates_supported then
 print([[
    <li class="dropdown-divider"></li>
    <li class="dropdown-header" id="updates-info-li">]] .. i18n("updates.no_updates") .. [[.</li>
-   <li><button class="dropdown-item" id="updates-install-li"><i class="fas fa-sync"></i> ]] .. (i18n("updates.check"))  ..[[</button></li>
+   <li><a class='dropdown-item' href='#' id="updates-install-li"><i class="fas fa-sync"></i> ]] .. (i18n("updates.check"))  ..[[</a></li>
 ]])
 end
 
@@ -1119,7 +1121,9 @@ end
 if is_admin then
 print([[
    <li class='dropdown-divider'></li>
-   <a class='dropdown-item toggle-dark-theme' href='#'><i class="fas fa-adjust"></i> ]].. i18n("toggle_dark_theme") ..[[</a>
+   <li>
+      <a class='dropdown-item toggle-dark-theme' href='#'><i class="fas fa-adjust"></i> ]].. i18n("toggle_dark_theme") ..[[</a>
+   </li>
 ]])
 end
 
@@ -1129,7 +1133,7 @@ if(_SESSION["user"] ~= nil and (not is_no_login_user)) then
    print[[
 
  <li class='dropdown-divider'></li>
- <li class="nav-item">
+ <li>
    <a class="dropdown-item" href="]]
    print(ntop.getHttpPrefix())
    print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"><i class="fas fa-sign-out-alt"></i> ]] print(i18n("login.logout")) print[[</a></li>]]
@@ -1139,7 +1143,7 @@ if(_SESSION["user"] ~= nil and (not is_no_login_user)) then
 if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
    print [[
        <li class="dropdown-divider"></li>
-       <li class="nav-item"><a class="dropdown-item restart-service" href="#"><i class="fas fa-redo-alt"></i> ]] print(i18n("restart.restart")) print[[</a></li>
+       <li><a class="dropdown-item restart-service" href="#"><i class="fas fa-redo-alt"></i> ]] print(i18n("restart.restart")) print[[</a></li>
    ]]
 end
 

@@ -40,7 +40,7 @@ print [[
        <b>]] print(i18n("export_data.hosts")) print[[:</b>
        <br>
 
-       <div class="form-group form-inline">
+       <div class="form-group mb-3 form-inline">
          <div class="btn-group btn-group-toggle" data-bs-toggle="buttons" id="export_hosts_buttons" name="export_hosts_buttons">
            <label class="btn btn-secondary active">
              <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off" data-bs-toggle="toggle"  checked="checked">]] print(i18n("export_data.all_hosts")) print[[

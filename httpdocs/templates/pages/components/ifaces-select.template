@@ -1,6 +1,6 @@
 
 <div class="d-flex">
-    <select class="form-control" id="iface-select">
+    <select class="form-select" id="iface-select">
         <optgroup label="{{ i18n("system_interface") }}">
             <option value="system" {{ (is_sys_iface and 'selected' or '') }}>
                 {{ i18n("system") }}

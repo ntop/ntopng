@@ -74,18 +74,16 @@ print([[
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">]] .. i18n("syslog.edit") .. [[</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body container-fluid">
-              <div class="form-group row">
+              <div class="form-group mb-3 row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("syslog.producer_type") .. [[</label>
                 <div class="col-sm-5">
                   ]].. generate_select("select-edit-producer", "syslog_producer_type", true, false, producer_types) ..[[
                 </div>
               </div>
-              <div class="form-group row">
+              <div class="form-group mb-3 row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("syslog.producer_host") .. [[</label>
                 <div class="col-sm-5">
                   <input placeholder="]] .. i18n("syslog.ip_or_device") .. [[" required id="input-edit-host" type="text" name="host" class="form-control" />
@@ -96,7 +94,6 @@ print([[
             </div>
             <div class="modal-footer">
               <button id="btn-reset-defaults" type="button" class="btn btn-danger me-auto">]] .. i18n("reset") .. [[</button>
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
               <button type="submit" class="btn btn-primary">]] .. i18n("apply") .. [[</button>
             </div>
           </div>
@@ -113,18 +110,16 @@ print([[
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">]] .. i18n("syslog.add") .. [[</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body container-fluid">
-              <div class="form-group row">
+              <div class="form-group mb-3 row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("syslog.producer_type") .. [[</label>
                 <div class="col-sm-5">
                   ]] .. generate_select("select-add-producer", "producer", true, false, producer_types) ..[[
                 </div>
               </div>
-              <div class="form-group row">
+              <div class="form-group mb-3 row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("syslog.producer_host") .. [[</label>
                 <div class="col-sm-5">
                   <input placeholder="]] .. i18n("syslog.ip_or_device") .. [[" required id="input-add-host" type="text" name="host" class="form-control" />
@@ -134,7 +129,6 @@ print([[
               <span class="invalid-feedback"></span>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
               <button type="submit" class="btn btn-primary">]] .. i18n("add") .. [[</button>
             </div>
           </div>
@@ -151,9 +145,7 @@ print([[
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">]] .. i18n("delete") .. [[: <span id="delete-host"></span></h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
               <p>
@@ -162,7 +154,6 @@ print([[
               <span class="invalid-feedback"></span>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
               <button id="btn-delete-producer" type="submit" class="btn btn-danger">]] .. i18n("delete") .. [[</button>
             </div>
           </div>
@@ -182,7 +173,7 @@ print([[
 
 -- Table Data
 print([[
-    <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>
+    <link href="]].. ntop.getHttpPrefix() ..[[/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
     <script type="text/javascript">
 
       i18n.showing_x_to_y_rows = "]].. i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) ..[[";

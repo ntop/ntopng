@@ -44,7 +44,7 @@ print(
       action  = "assignDevicePool(mac_to_assign)",
       title   = i18n("unknown_devices.assign_device_pool"),
       message = i18n("unknown_devices.select_pool", {mac="<span id=\"assign_device_dialog_mac\"></span>"}) ..
-        '<br><br><select class="form-control" id="device_target_pool" style="width:15em;" >'..
+        '<br><br><select class="form-select" id="device_target_pool" style="width:15em;" >'..
         graph_utils.poolDropdown(ifstats.id, "")..
         '</select>',
       custom_alert_class = "",

@@ -279,7 +279,7 @@ function system_setup_ui_utils.printPrivateAddressSelector(label, comment, ip_ke
    print('<tr id="'..field_id..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
  print [[
     <td align=right>
-      <table class="form-group" style="margin-bottom: 0; min-width:22em;">
+      <table class="form-group mb-3" style="margin-bottom: 0; min-width:22em;">
         <tr class='border-0'>
           ]]
 
@@ -294,7 +294,7 @@ function system_setup_ui_utils.printPrivateAddressSelector(label, comment, ip_ke
    end
 
    if extra.net_select ~= false then
-      print[[<select name="]] print(field_id) print[[_net" class="form-control d-inline-block" style="width: 9.6rem">]]
+      print[[<select name="]] print(field_id) print[[_net" class="form-select d-inline-block" style="width: 9.6rem">]]
 
       for _, preset in pairs(networks_presets) do
          print[[<option value="]] print(preset.prefix) print[["]]
@@ -416,7 +416,7 @@ function system_setup_ui_utils.prefsDateTimeFieldPrefs(label, comment, key, defa
 
   print [[
     <td align=right>
-      <table class="form-group" style="margin-bottom: 0; min-width:22em;">
+      <table class="form-group mb-3" style="margin-bottom: 0; min-width:22em;">
         <tr>
           <td width="100%;"></td>]]
 

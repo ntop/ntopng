@@ -40,7 +40,7 @@
     title = i18n("endpoint_notifications.factory_reset.title", { reset_element = i18n("endpoint_notifications.endpoint_list") })
 }) *}
 
-<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 <script type="text/javascript">
 
     let csrf = "{{ ntop.getRandomCSRFValue() }}";

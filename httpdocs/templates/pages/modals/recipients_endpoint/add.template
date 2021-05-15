@@ -12,14 +12,12 @@
                             <button data-dismiss="modal" class="btn btn-danger confirm" type="button">{{ i18n("abort") }}</button>
                         </div>
                     </div>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
             <form autocomplete="off">
                 <div class="modal-body">
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="recipient-name-input">
                             <b>{{ i18n("endpoint_notifications.recipient_name") }}</b>
                         </label>
@@ -27,12 +25,12 @@
                             <input minlength="1" required name="recipient_name" type="text" class="form-control" id="recipient-name-input">
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="recipient-type-select">
                             <b>{{ i18n("endpoint_notifications.recipient_select") }}</b>
                         </label>
                         <div class="col-sm-5">
-                            <select required name="endpoint" class="form-control" id="endpoint-select">
+                            <select required name="endpoint" class="form-select" id="endpoint-select">
                                 {% for i, endpoint in ipairs(endpoint_list) do %}
 				                    {% if not endpoint.endpoint_conf.builtin then %}
                                            <option {{ (i == 1 and "selected" or "") }} data-endpoint-key="{{ endpoint.endpoint_key }}" value="{{ endpoint.endpoint_id }}">
@@ -47,31 +45,31 @@
 
                     </div>
                     <hr>
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="recipient-severity-select">
                             <b>{{ i18n("endpoint_notifications.recipient_severity") }}</b>
                         </label>
                         <div class="col-sm-5">
-                            <select required name="recipient_minimum_severity" class="form-control" id="recipient-severity-select">
+                            <select required name="recipient_minimum_severity" class="form-select" id="recipient-severity-select">
                                 {% for key, alert in pairsByField(alert_severities, 'severity_id', asc) do %}
                                     <option {{ (alert.severity_id == 0 and 'selected' or '') }} value="{{ alert.severity_id }}">{{ i18n("endpoint_notifications.severities."..key) }}</option>
                                 {% end %}
                             </select>
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="recipient-name-input">
                             <b>{{ i18n("endpoint_notifications.recipient_category") }}</b>
                         </label>
                         <div class="col-sm-5">
-                            <select multiple name="recipient_user_script_categories" class="form-control selectpicker" id="add-recipient-categories-select">
+                            <select multiple name="recipient_user_script_categories" class="selectpicker" id="add-recipient-categories-select">
                                 {% for _, category in pairsByKeys(script_categories) do %}
                                     <option selected value="{{ category.id }}">{{ i18n(category.i18n_title) }}</option>
                                 {% end %}
                             </select>
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="recipient-name-input">
                             <b>{{ i18n("endpoint_notifications.add_to_all") }}</b>
                         </label>

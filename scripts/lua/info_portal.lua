@@ -61,7 +61,7 @@ print [[
 <br>
 <br>
 
-<div class="form-group">
+<div class="form-group mb-3">
   <div class="form-check">
     <label class="form-check-label" style="font-weight: normal;">]]
 

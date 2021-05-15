@@ -1,4 +1,4 @@
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         <b>{{ i18n("email_alert_endpoint.smtp_server") }}</b>
     </label>
@@ -14,7 +14,7 @@
         </div>
     </div>
 </div>
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         <b>{{ i18n("email_alert_endpoint.email_sender") }}</b>
     </label>
@@ -25,7 +25,7 @@
             name="email_sender" data-pattern="email" class="form-control" required />
     </div>
 </div>
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         {{ i18n("email_alert_endpoint.smtp_username") }}
     </label>
@@ -34,7 +34,7 @@
         <small class="text-muted">{{ i18n("optional_field") }}</small>
     </div>
 </div>
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         {{ i18n("email_alert_endpoint.smtp_password") }}
     </label>

@@ -4,12 +4,12 @@
             <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
             <input type="hidden" name="ifid" value="{{ tostring(getInterfaceId(ifname)) }}">
             <div class="form-row">
-                <div class="form-group col-md-3 col-sm-12 col-xs-12">
+                <div class="mb-3 col-md-3 col-sm-12 col-xs-12">
                     <label for="delete_host">Insert Host IP or Mac Address or /24</label>
                     <input type="text" required id="delete_host" data-host="host" name="host"
                         placeholder="{{ i18n("manage_data.ip_or_mac_address") }}" class="form-control" size="24" />
                 </div>
-                <div class="form-group col-md-3 col-sm-12 col-xs-12">
+                <div class="mb-3 col-md-3 col-sm-12 col-xs-12">
                     <label for="delete_vlan">Insert VLAN</label>
                     <input type="number" min="1" max="65535" placeholder="{{ i18n("vlan") }}" id="delete_vlan"
                         name="vlan" class="form-control" value="" />

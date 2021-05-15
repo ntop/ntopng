@@ -18,7 +18,7 @@
 <div class="notes bg-light border">
     <b>{{ i18n('fingerprint_note') }}</b>
 </div>
-<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 <script type="text/javascript">
 
    i18n.warning ="{{ i18n('warning', {}) }}";

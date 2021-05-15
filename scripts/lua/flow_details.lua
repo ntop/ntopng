@@ -508,7 +508,7 @@ local function printAddCustomHostRule(full_url)
    local short_url = categories_utils.getSuggestedHostName(full_url)
 
    -- Fill the category dropdown
-   local cat_select_dropdown = '<select id="flow_target_category" class="form-control">'
+   local cat_select_dropdown = '<select id="flow_target_category" class="form-select">'
 
    for cat_name, cat_id in pairsByKeys(categories, asc_insensitive) do
       cat_select_dropdown = cat_select_dropdown .. [[<option value="cat_]] ..cat_id .. [[">]] .. (i18n("ndpi_categories." .. cat_name) or cat_name) .. [[</option>]]
@@ -516,7 +516,7 @@ local function printAddCustomHostRule(full_url)
    cat_select_dropdown = cat_select_dropdown .. "</select>"
 
    -- Fill the application dropdown
-   local app_select_dropdown = '<select id="flow_target_app" class="form-control" style="display:none">'
+   local app_select_dropdown = '<select id="flow_target_app" class="form-select" style="display:none">'
 
    for proto_name, proto_id in pairsByKeys(protocols, asc_insensitive) do
       app_select_dropdown = app_select_dropdown .. [[<option value="]] ..proto_id .. [[">]] .. proto_name .. [[</option>]]
@@ -541,7 +541,7 @@ local function printAddCustomHostRule(full_url)
 
    local rule_type_selection = ""
    if protos_utils.hasProtosFile() then
-      rule_type_selection = i18n("flow_details.rule_type")..":"..[[<br><select id="new_rule_type" onchange="new_rule_dropdown_select(this)" class="form-control">
+      rule_type_selection = i18n("flow_details.rule_type")..":"..[[<br><select id="new_rule_type" onchange="new_rule_dropdown_select(this)" class="form-select">
 	    <option value="application">]]..i18n("application")..[[</option>
 	    <option value="category" selected>]]..i18n("category")..[[</option>
 	 </select><br>]]

@@ -954,7 +954,7 @@ function graph_utils.printPoolChangeDropdown(ifId, pool_id, have_nedge)
    output[#output + 1] = [[<tr>
       <th>]] .. i18n(ternary(have_nedge, "nedge.user", "host_config.host_pool")) .. [[</th>
       <td>
-            <select name="pool" class="form-control" style="width:20em; display:inline;">]]
+            <select name="pool" class="form-select" style="width:20em; display:inline;">]]
 
    output[#output + 1] = graph_utils.poolDropdown(ifId, pool_id)
 

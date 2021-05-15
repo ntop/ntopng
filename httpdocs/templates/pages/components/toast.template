@@ -6,9 +6,7 @@
             <i class="fas {{ toast.level.icon }}"></i> {{ toast.title }}
         </strong>
         {% if not (toast.dismissable) then %}
-        <button type="button" class="ms-2 mb-1 close" data-dismiss="toast">
-            <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         {% end %}
     </div>
     <div class="toast-body">

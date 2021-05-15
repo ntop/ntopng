@@ -3320,11 +3320,11 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
       var _resol_inputs = [];
 
       function resol_selector_get_input(a_button) {
-        return $("input", $(a_button).closest(".form-group")).last();
+        return $("input", $(a_button).closest(".form-group.mb-3")).last();
       }
 
       function resol_selector_get_buttons(an_input) {
-        return $(".btn-group", $(an_input).closest(".form-group")).first().find("input");
+        return $(".btn-group", $(an_input).closest(".form-group.mb-3")).first().find("input");
       }
 
       /* This function scales values wrt selected resolution */
@@ -3856,7 +3856,7 @@ function generate_select(id, name, is_required, is_disabled, options, additional
    end
 
    return ([[
-      <select id="]].. id ..[[" class="form-control ]] .. (additional_classes or "") .. [[" ]].. name_attr ..[[ ]].. required_flag ..[[ ]] .. disabled_flag ..[[>
+      <select id="]].. id ..[[" class="form-select ]] .. (additional_classes or "") .. [[" ]].. name_attr ..[[ ]].. required_flag ..[[ ]] .. disabled_flag ..[[>
          ]].. parsed_options ..[[
       </select>
    ]])

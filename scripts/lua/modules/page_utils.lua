@@ -338,11 +338,9 @@ function page_utils.print_header(title)
     <![endif]-->
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/popper/popper.min.js" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap/js/bootstrap.min.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/tempusdominus.min.js?]] print(static_file_epoch) print[["></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/selectpicker/js/bootstrap-select.min.js?]] print(static_file_epoch) print[["></script>
   </head>]]
   print([[
      <body class="body ]].. (dark_mode and "dark" or "") ..[[">

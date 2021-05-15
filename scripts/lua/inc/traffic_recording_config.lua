@@ -99,7 +99,7 @@ if recording_utils.isSupportedZMQInterface(ifid) then
       <tr>
         <th width=30%>]] print(i18n("traffic_recording.ext_interface")) print [[</th>
         <td colspan=2>
-          <select class="form-control" name="custom_name" value="]] print(ext_ifname) print [[">
+          <select class="form-select" name="custom_name" value="]] print(ext_ifname) print [[">
   ]]
   for ifname,info in pairsByKeys(ext_interfaces, asc) do
     print("<option value=\""..ifname.."\" "..ternary(ifname == ext_ifname, "selected", "")..">"..info.ifdesc.."</option>")

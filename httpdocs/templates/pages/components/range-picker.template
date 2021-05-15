@@ -58,11 +58,11 @@
     
                     <div class="dropdown-menu">
                         <div class="p-2">
-                            <div class="form-group">
+                            <div class="mb-3">
                                 <label for="select-presets">
                                     <small><b>{{ i18n('show_alerts.presets.presets') }}</b></small>
                                 </label>
-                                <select class="form-control" id="select-presets">
+                                <select class="form-select" id="select-presets">
                                     {% if (presets.five_mins) or (presets.five_mins ~= false) then %}
                                         <option {{ ((presetSelected and default == '5min') and 'selected' or '') }} value="5,minutes">{{ i18n('show_alerts.presets.5_min') }}</option>
                                     {% end  %}

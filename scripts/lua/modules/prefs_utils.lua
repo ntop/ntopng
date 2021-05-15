@@ -286,7 +286,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
   print [[
     <td align=right>
-      <table class="table table-borderless form-group" style="margin-bottom: 0; min-width:22em;">
+      <table class="table table-borderless form-group mb-3" style="margin-bottom: 0; min-width:22em;">
         <tr>
           <td width="100%;"></td>
           <td style="vertical-align:top;">]]
@@ -360,7 +360,7 @@ function prefsDropdownFieldPrefs(label, comment, key, values, default_value, sho
 
   print [[
     <td align=right>
-      <table class="form-group" style="margin-bottom: 0; min-width:22em;">
+      <table class="form-group mb-3" style="margin-bottom: 0; min-width:22em;">
         <tr>
           <td width="100%;"></td>]]
 
@@ -377,7 +377,7 @@ function prefsDropdownFieldPrefs(label, comment, key, values, default_value, sho
 
       print[[
           <td style="vertical-align:top; padding-left: 2em;">
-            <select id="id_input_]] print(key)  print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print((value or '')..'"') print[[>]]
+            <select id="id_input_]] print(key)  print [[" class="form-select" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print((value or '')..'"') print[[>]]
       if extra.keys == nil then
          for _, optname in pairs(values) do
 	 print("<option " .. ternary(optname == default_value, "selected", "") .. ">"..optname.."</option>")

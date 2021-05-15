@@ -14,10 +14,10 @@
             <div class="card-header">
                 <div class="row">
                     <div class="col-4">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label>{* i18n("host_pools.select_host_pool") *}</label>
                             <div class="d-flex">
-                                <select id="select-host-pool" class="form-control">
+                                <select id="select-host-pool" class="form-select">
                                     {% for _, p in pairs(manage_host_members.all_pools) do %}
                                         {% if p.pool_id ~= pool.DEFAULT_POOL_ID then %}
                                             {% if (p.pool_id == tonumber(manage_host_members.pool_id_get)) then %}
@@ -91,7 +91,7 @@
       })
 *}
 
-<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-ipsorting.js?{{ ntop.getStaticFileEpoch() }}"></script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-macsorting.js?{{ ntop.getStaticFileEpoch() }}"></script>
 <script type="text/javascript">

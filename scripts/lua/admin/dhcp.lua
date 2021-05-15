@@ -102,7 +102,7 @@ print[[
     var name = "input_id_" + input_id;
     input_id++;
 
-    var container = $("<div class='form-group has-feedback' style='margin-bottom:0'></div>");
+    var container = $("<div class='form-group mb-3 has-feedback' style='margin-bottom:0'></div>");
 
     var input = $("<input class='form-control' data-ipaddress='ipaddress' required>")
       .attr("name", name)

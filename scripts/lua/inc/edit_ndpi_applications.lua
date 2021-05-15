@@ -194,7 +194,7 @@ print[[
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">]] print(i18n("custom_categories.add_custom_app")) print[[</h5>
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form id="add-application-form" method="post" data-bs-toggle="validator" onsubmit="return addApplication()">
         <div class="modal-body">
@@ -202,12 +202,12 @@ print[[
                 <input type="hidden" name="action" value="add">
                 <input id="new-custom_hosts" type="hidden" name="custom_hosts">
 
-                <div class="form-group has-feedback">
+                <div class="form-group mb-3 has-feedback">
                   <label class="form-label">]] print(i18n("custom_categories.application_name")) print[[</label>
                   <input id="new-application" type="text" name="new_application" class="form-control" required>
                 </div>
 
-                <div class="form-group has-feedback">
+                <div class="form-group mb-3 has-feedback">
                   <label class="form-label">]] print(i18n("custom_categories.custom_hosts")) print[[</label>
                   ]] print(makeApplicationEditor("new-application-hosts-list", true)) print[[
                 </div>

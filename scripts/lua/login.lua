@@ -70,7 +70,7 @@ print[[
     <input type="hidden" class="form-control" name="referer" value="]] print(referer or "") print [[">
 
     <h1 class="h3 mb-3 fw-normal">]] print(i18n("login.welcome_to", {product=info["product"]})) print[[</h1>
-    <div class="form-group has-feedback mb-3">
+    <div class="form-group mb-3 has-feedback mb-3">
       <div class='form-floating'>
         <input placeholder='admin' id='input-username' type="text" class="form-control" name="_username" required]] print(ternary(blacklisted, " disabled", "")) print[[>
         <label for="input-username">]] print(i18n("login.username_ph")) print[[
@@ -94,7 +94,7 @@ if not isEmptyString(reason) then
 end
 
 print[[
-    </div> <!-- Close .form-group -->
+    </div> <!-- Close .form-group mb-3 -->
     <button class="w-100 btn btn-lg btn-primary" type="submit">]] print(i18n("login.login")) print[[</button>
   	<div class="row">
 
@@ -154,7 +154,8 @@ particlesJS("particles-js", {"particles":{"number":{"value":20,"density":{"enabl
 </script>
 
 </main>
-
+<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print[[/bootstrap/js/bootstrap.min.js?"></script>
+<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print[[/selectpicker/js/bootstrap-select.min.js"></script>
 </body>
 </html>
 ]]

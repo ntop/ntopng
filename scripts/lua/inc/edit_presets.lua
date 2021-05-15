@@ -123,7 +123,7 @@ local function printDeviceProtocolsPage()
        <td style="white-space:nowrap; padding-right:1em;">]]
 
    -- Device type selector
-   print(i18n("details.device_type")) print(': <select id="device_type_selector" class="form-control device-type-selector" style="display:inline; width: 200px" onchange="document.location.href=\'?page=device_protocols&l7proto=') print(proto_filter) print('&device_type=\' + $(this).val()">')
+   print(i18n("details.device_type")) print(': <select id="device_type_selector" class="form-select device-type-selector" style="display:inline; width: 200px" onchange="document.location.href=\'?page=device_protocols&l7proto=') print(proto_filter) print('&device_type=\' + $(this).val()">')
    discover.printDeviceTypeSelectorOptions(device_type, false)
    print[[</select></td><td style="width:100%"></td>]]
 
