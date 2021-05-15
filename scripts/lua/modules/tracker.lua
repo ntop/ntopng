@@ -45,7 +45,7 @@ function tracker.log(f_name, f_args)
     remote_addr
   )
 
-  alert:set_score(10)
+  alert:set_score_notice()
   alert:set_subtype('function'.."/"..(f_name or '').."/"..(remote_addr or ''))
 
   alert:store(alerts_api.userEntity(entity_value))

@@ -375,7 +375,7 @@ local function checkListsUpdate(timeout)
 	       list_name
 	    )
 
-	    alert:set_score(10)
+	    alert:set_score_notice()
 
 	    alert:store(alerts_api.systemEntity(list_name))
 

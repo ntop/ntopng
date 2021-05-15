@@ -20,7 +20,7 @@ local function check_periodic_activity_not_executed(params)
          ps_stats["last_queued_time"] or 0
       )
 
-      alert:set_score(50)
+      alert:set_score_warning()
       alert:set_granularity(params.granularity)
       alert:set_subtype(ps_name)
       if delta > 0 then

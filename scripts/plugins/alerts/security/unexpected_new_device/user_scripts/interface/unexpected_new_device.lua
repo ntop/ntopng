@@ -64,7 +64,7 @@ local function check_allowed_mac(params)
 	       addr
 	    )
 
-	    alert:set_score(50)
+	    alert:set_score_warning()
 
 	    alert:set_device_type(mac["devtype"])
 	    alert:set_device_name(device)

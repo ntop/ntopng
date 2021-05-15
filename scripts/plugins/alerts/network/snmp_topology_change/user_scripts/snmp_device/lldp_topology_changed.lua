@@ -42,7 +42,7 @@ local function storeTopologyChangedAlert(info, arc, nodes, subtype)
          nodes[parts[2]] -- ip2
       )
 
-      alert:set_score(50)
+      alert:set_score_warning()
       alert:set_granularity(info.granularity)
       alert:set_subtype(subtype)
 

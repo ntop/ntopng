@@ -33,7 +33,7 @@ local function check_interface_idle(params)
     threshold
       )
 
-  alert:set_score(50)
+  alert:set_score_warning()
   alert:set_granularity(params.granularity)
   
   if max_idle_perc > threshold then

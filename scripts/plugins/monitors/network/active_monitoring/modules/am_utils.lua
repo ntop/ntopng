@@ -739,7 +739,7 @@ local function amThresholdCrossType(value, threshold, ip, granularity, entity_in
      m_info.i18n_unit
   )
 
-  alert_type:set_score(50)
+  alert_type:set_score_warning()
   alert_type:set_granularity(granularity)
 
   return alert_type

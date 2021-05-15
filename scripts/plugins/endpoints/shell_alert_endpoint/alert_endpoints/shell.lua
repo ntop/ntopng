@@ -101,7 +101,7 @@ function shell.runScript(alerts, settings)
       alert_consts.alertTypeLabel(alert["alert_id"], true)
     )
   
-    type_info:set_score(10)
+    type_info:set_score_notice()
 
     type_info:store(entity_info)
   end -- for

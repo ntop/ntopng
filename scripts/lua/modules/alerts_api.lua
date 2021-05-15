@@ -590,7 +590,7 @@ function alerts_api.handlerPeerBehaviour(params, stats, tot_anomalies, host_ip, 
    if threshold and tot_anomalies and tot_anomalies > threshold then
       alert_unexpected_behaviour:set_score_error()
    else
-      alert_unexpected_behaviour:set_score(50)
+      alert_unexpected_behaviour:set_score_warning()
    end
       
    alert_unexpected_behaviour:set_granularity(params.granularity)

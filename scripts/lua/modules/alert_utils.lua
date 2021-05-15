@@ -314,7 +314,7 @@ function alert_utils.check_host_pools_alerts(params, ifid, alert_pool_connection
 			info.bytes_quota
 		     )
 
-		     alert:set_score(50)
+		     alert:set_score_warning()
 		     alert:store(alerts_api.hostPoolEntity(pool))
 		  end
 
@@ -327,7 +327,7 @@ function alert_utils.check_host_pools_alerts(params, ifid, alert_pool_connection
 			info.time_quota
 		     )
 
-		     alert:set_score(50)
+		     alert:set_score_warning()
 		     alert:store(alerts_api.hostPoolEntity(pool))
 		  end
 	       end
@@ -366,7 +366,7 @@ function alert_utils.check_host_pools_alerts(params, ifid, alert_pool_connection
 		     pool
 		  )
 
-		  alert:set_score(10)
+		  alert:set_score_notice()
 		  alert:store(alerts_api.hostPoolEntity(pool))
 	       end
 	    end
@@ -385,7 +385,7 @@ function alert_utils.check_host_pools_alerts(params, ifid, alert_pool_connection
                pool
             )
 
-            alert:set_score(10)
+            alert:set_score_notice()
             alert:store(alerts_api.hostPoolEntity(pool))
          end
       end
@@ -624,7 +624,7 @@ local function processStoreAlertFromQueue(alert)
 	 alert.client_mac,
 	 alert.sender_mac
       )
-      type_info:set_score(50)
+      type_info:set_score_warning()
       type_info:set_subtype(string.format("%s_%s_%s", hostinfo2hostkey(router_info), alert.client_mac, alert.sender_mac))
    elseif(alert.alert_id == "mac_ip_association_change") then
       local name = getDeviceName(alert.new_mac)
@@ -635,16 +635,16 @@ local function processStoreAlertFromQueue(alert)
 	 alert.old_mac,
 	 alert.new_mac
       )
-      type_info:set_score(50)
+      type_info:set_score_warning()
       type_info:set_subtype(string.format("%s_%s_%s", alert.ip, alert.old_mac, alert.new_mac))
    elseif(alert.alert_id == "login_failed") then
       entity_info = alerts_api.userEntity(alert.user)
       type_info = alert_consts.alert_types.alert_login_failed.new()
-      type_info:set_score(50)
+      type_info:set_score_warning()
    elseif(alert.alert_id == "broadcast_domain_too_large") then
       entity_info = alerts_api.macEntity(alert.src_mac)
       type_info = alert_consts.alert_types.alert_broadcast_domain_too_large.new(alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
-      type_info:set_score(50)
+      type_info:set_score_warning()
       type_info:set_subtype(string.format("%u_%s_%s_%s_%s", alert.vlan_id, alert.src_mac, alert.spa, alert.dst_mac, alert.tpa))
    elseif((alert.alert_id == "user_activity") and (alert.scope == "login")) then
       entity_info = alerts_api.userEntity(alert.user)
@@ -655,7 +655,7 @@ local function processStoreAlertFromQueue(alert)
          nil,
          "authorized"
       )
-      type_info:set_score(10)
+      type_info:set_score_notice()
       type_info:set_subtype("login//")
    elseif(alert.alert_id == "nfq_flushed") then
       entity_info = alerts_api.interfaceAlertEntity(alert.ifid)

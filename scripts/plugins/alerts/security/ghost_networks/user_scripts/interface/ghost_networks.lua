@@ -17,7 +17,7 @@ local function check_ghost_networks(params)
 
       local alert = alert_consts.alert_types.alert_ghost_network.new()
 
-      alert:set_score(50)
+      alert:set_score_warning()
       alert:set_granularity(params.granularity)
       alert:set_subtype(domain)
 
