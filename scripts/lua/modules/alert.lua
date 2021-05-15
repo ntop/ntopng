@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 -- Import the classes library.
 local classes = require "classes"
+local alert_severities = require "alert_severities"
 
 -- ##############################################
 
@@ -115,9 +116,9 @@ end
 
 --@brief Methods to set score defaults, keep them in sync with
 -- ntop_defines.h
-function Alert:set_score_notice()  self.score =  20 --[[ SCORE_LEVEL_NOTICE  --]] end
-function Alert:set_score_warning() self.score =  50 --[[ SCORE_LEVEL_WARNING --]] end
-function Alert:set_score_error()   self.score = 100 --[[ SCORE_LEVEL_ERROR   --]] end
+function Alert:set_score_notice()  self.score = ntop.mapSeverityToScore(alert_severities.notice.severity_id) end
+function Alert:set_score_warning() self.score = ntop.mapSeverityToScore(alert_severities.warning.severity_id) end
+function Alert:set_score_error()   self.score = ntop.mapSeverityToScore(alert_severities.error.severity_id) end
 
 -- ##############################################
 

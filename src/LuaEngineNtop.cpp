@@ -2830,6 +2830,19 @@ static int ntop_map_score_to_severity(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_map_severity_to_score(lua_State *vm) {
+  AlertLevel alert_level;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_level = (AlertLevel)lua_tointeger(vm, 1);
+
+  lua_pushinteger(vm, Utils::mapSeverityToScore(alert_level));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_reset_stats(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -6283,6 +6296,7 @@ static luaL_Reg _ntop_reg[] = {
 
   /* Score */
   { "mapScoreToSeverity",    ntop_map_score_to_severity },
+  { "mapSeverityToScore",    ntop_map_severity_to_score },
 
   /* Alerts queues */
   { "popInternalAlerts",     ntop_pop_internal_alerts         },

@@ -245,6 +245,8 @@ public:
   static ScoreCategory mapAlertToScoreCategory(AlertCategory script_category);
   /* Map alert score to AlertLevel */
   static AlertLevel mapScoreToSeverity(u_int32_t score);
+  /* Map AlertLevel to score */
+  static u_int8_t mapSeverityToScore(AlertLevel alert_level);
   /*
     Maps an AlertLevel into the corresponding AlertLevelGroup. Alert level groups
     are used to 'compress' alert levels into a reduced number of (grouped) levels.
