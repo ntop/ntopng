@@ -1248,7 +1248,7 @@ else
    if flow["flow.alerted"] then
       local message = alert_consts.alertTypeLabel(flow["predominant_alert"])
 
-      message = message .. string.format(" [%s: %d]", i18n("score"), flow["predominant_alert_score"])
+      message = message .. string.format(" [%s: %d]", i18n("total_score"), flow["predominant_alert_score"])
 
       print("<tr><th width=30%>"..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
       print(message)
