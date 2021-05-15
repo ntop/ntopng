@@ -177,7 +177,7 @@ class DataTableFiltersMenu {
             button: $dropdownButton
         };
 
-        const $menuContainer = $(`<ul class='dropdown-menu scrollable-dropdown' id='${this.filterMenuKey}-filter-menu'></ul>`);
+        const $menuContainer = $(`<ul class='dropdown-menu dropdown-menu-lg-end scrollable-dropdown' id='${this.filterMenuKey}-filter-menu'></ul>`);
         for (const [_, filter] of Object.entries(this.filters)) {
             $menuContainer.append(filter.$node);
         }
