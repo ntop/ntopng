@@ -579,10 +579,6 @@ path.link {
 
 /* Container */
 
-.wrapper {
-  height: 100vh;
-}
-
 main#n-container {
   height: 100%;
   display: flex;
