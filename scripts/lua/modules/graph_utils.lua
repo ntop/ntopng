@@ -459,7 +459,7 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
       ]]
    end -- options.timeseries
 
-   print('<span class="mx-1">Timeframe:</span><div class="btn-group btn-group-toggle" data-bs-toggle="buttons" id="graph_zoom">\n')
+   print('<span class="mx-1">Timeframe:</span><div class="btn-group" role="group" id="graph_zoom">\n')
 
    for k,v in ipairs(graph_common.zoom_vals) do
       -- display 1 minute button only for networks and interface stats
@@ -470,13 +470,7 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
       elseif graph_common.zoom_vals[k][1] == '5m' and min_zoom ~= '1m' and min_zoom ~= '5m' then
          goto continue
       end
-
-      if(graph_common.zoom_vals[k][1] == zoomLevel) then
-         print([[<label class="btn bg-primary text-white">]])
-      else
-         print([[<label class="btn btn-link">]])
-      end
-
+      
       local params = table.merge(page_params, {zoom=graph_common.zoom_vals[k][1]})
 
       -- Additional parameters
@@ -488,8 +482,15 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
       end
 
       local url = getPageUrl(baseurl, params)
+      print('<input type="radio" class="btn-check" name="options" id="zoom_level_'..k..'" value="'..url..'">')
 
-      print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..url..'">'.. graph_common.zoom_vals[k][1] ..'</input></label>\n')
+      if(graph_common.zoom_vals[k][1] == zoomLevel) then
+         print([[<label class="btn bg-primary text-white" for='zoom_level_]].. k ..[['>]]..  graph_common.zoom_vals[k][1] ..[[</label>]])
+      else
+         print([[<label class="btn btn-outline-secondary" for='zoom_level_]].. k ..[['>]]..  graph_common.zoom_vals[k][1] ..[[</label>]])
+      end
+
+
       ::continue::
    end
 
