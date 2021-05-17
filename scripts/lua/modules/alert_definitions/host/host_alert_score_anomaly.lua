@@ -65,7 +65,7 @@ local function get_problematic_category(alert_type_params, is_both, is_client_or
       score_category_security = 100 - score_category_network
    end
 
-   return score_category_network, score_category_security
+   return string.format('%.01f', score_category_network), string.format('%.01f', score_category_security)
 end
 
 -- #######################################################
