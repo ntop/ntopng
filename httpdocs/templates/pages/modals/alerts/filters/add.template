@@ -105,6 +105,23 @@
     </div>
 </template>
 
+<template id="l7_proto-filter-template">
+    <div class="form-group row">
+        <label class="col-form-label col-sm-3"><b>{{i18n("tags.l7proto")}}</b></label>
+        <div class="col-sm-5">
+            <select required name="value" class="form-control">
+               {% local first_item = true %}
+               {% for name, id in pairsByKeys(l7_protocols, asc) do %}
+                  <option {{ (first_item and "selected" or "") }} data-tag-label="{{ name }}" value="{{ id }}">
+                     {{ name }}
+                  </option>
+                  {% first_item = false %}
+               {% end %}
+            </select>
+        </div>
+    </div>
+</template>
+
 <template id="role-filter-template">
     <div class="form-group row">
         <label class="col-form-label col-sm-3"><b>{{i18n("tags.role")}}</b></label>
@@ -112,6 +129,18 @@
             <select required name="value" class="form-control">
                 <option selected data-tag-label="{{i18n("attacker")}}" value="attacker">{{i18n("attacker")}}</option>
                 <option data-tag-label="{{i18n("victim")}}" value="victim">{{i18n("victim")}}</option>
+            </select>
+        </div>
+    </div>
+</template>
+
+<template id="roles-filter-template">
+    <div class="form-group row">
+        <label class="col-form-label col-sm-3"><b>{{i18n("tags.roles")}}</b></label>
+        <div class="col-sm-5">
+            <select required name="value" class="form-control">
+                <option selected data-tag-label="{{i18n("is_attacker_to_victim")}}" value="attacker2victim">{{i18n("is_attacker_to_victim")}}</option>
+                <option data-tag-label="{{i18n("is_victim_to_attacker")}}" value="victim2attacker">{{i18n("is_victim_to_attacker")}}</option>
             </select>
         </div>
     </div>

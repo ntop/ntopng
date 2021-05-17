@@ -192,6 +192,25 @@ end
 
 -- ##############################################
 
+--@brief Add filter on roles
+--@param roles The roles (attacker2victim or victim2attacker)
+--@return True if set is successful, false otherwise
+function flow_alert_store:add_roles_filter(roles)
+   if not self._roles then
+      self._roles = roles
+      if roles == 'attacker2victim' then
+         self._where[#self._where + 1] = "is_attacker_to_victim = 1"
+      elseif roles == 'victim2attacker' then
+         self._where[#self._where + 1] = "is_victim_to_attacker = 1"
+      end
+      return true
+   end
+
+   return false
+end
+
+-- ##############################################
+
 --@brief Add filters according to what is specified inside the REST API
 function flow_alert_store:_add_additional_request_filters()
    local cli_ip = _GET["cli_ip"]
@@ -200,6 +219,7 @@ function flow_alert_store:_add_additional_request_filters()
    local srv_port = _GET["srv_port"]
    local vlan_id = _GET["vlan_id"]
    local l7_proto = _GET["l7_proto"]
+   local roles = _GET["roles"]
 
    if not isEmptyString(vlan_id) then
       local vlan_id, op = self:strip_filter_operator(vlan_id)
@@ -246,6 +266,11 @@ function flow_alert_store:_add_additional_request_filters()
       local l7_proto, op = self:strip_filter_operator(l7_proto)
       self:add_l7_proto_filter(l7_proto)
    end
+
+   if not isEmptyString(roles) then
+      local roles, op = self:strip_filter_operator(roles)
+      self:add_roles_filter(roles)
+   end
 end
 
 -- ##############################################
@@ -268,12 +293,12 @@ function flow_alert_store:_get_additional_available_filters()
       srv_port = {
          value_type = 'port',
       },
-      --roles = {
-      --  value_type = 'roles',
-      --},
-      --l7_proto = {
-      --   value_type = 'l7_proto',
-      --}, 
+      roles = {
+        value_type = 'roles',
+      },
+      l7_proto = {
+         value_type = 'l7_proto',
+      }, 
    }
 
    return filters

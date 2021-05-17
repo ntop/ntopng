@@ -60,6 +60,7 @@ local srv_port = _GET["srv_port"]
 local l7_proto = _GET["l7_proto"]
 local network_name = _GET["network_name"]
 local role = _GET["role"]
+local roles = _GET["roles"]
 
 --------------------------------------------------------------
 
@@ -202,6 +203,7 @@ widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
         l7_proto = l7_proto,
         network_name = network_name,
         role = role,
+        roles = roles,
     })
 })
 
@@ -329,6 +331,7 @@ local extra_range_buttons = [[
 
 local available_filter_types = {}
 local all_alert_types = {}
+local all_l7_protocols = {}
 local extra_tags_buttons = ""
 if page ~= "all" then
    extra_tags_buttons = [[
@@ -401,6 +404,7 @@ local context = {
             l7_proto = l7_proto,
             network_name = network_name,
             role = role,
+            roles = roles,
         }),
         actions = {
             disable = (page ~= "host" and page ~= "flow")
@@ -417,6 +421,7 @@ local context = {
        available_types = available_filter_types,
        severities = alert_severities,
        alert_types = all_alert_types,
+       l7_protocols = interface.getnDPIProtocols(),
     }
 }
 
