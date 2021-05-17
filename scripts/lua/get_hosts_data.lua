@@ -364,7 +364,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local column_location = ""
    if(value["localhost"] ~= nil or value["systemhost"] ~= nil) then
-      column_location = format_utils.formatAddressCategory(host)
+      column_location = format_utils.formatMainAddressCategory(host)
    end
 
    record["column_ip"] = column_ip .. column_location

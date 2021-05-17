@@ -62,7 +62,7 @@ function host_alert_flow_flood.format(ifid, alert, alert_type_params)
 
   return i18n(i18n_key, {
     entity = entity,
-    host_category = format_utils.formatAddressCategory((json.decode(alert.json)).alert_generation.host_info),
+    host_category = format_utils.formatMainAddressCategory((json.decode(alert.json)).alert_generation.host_info),
     value = string.format("%u", math.ceil(value)),
     threshold = alert_type_params.threshold,
   })

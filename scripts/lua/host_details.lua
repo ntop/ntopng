@@ -594,7 +594,7 @@ if((page == "overview") or (page == nil)) then
 
       print(hostinfo2detailshref(host, {page = "config"}, ' <i class="fas fa-sm fa-cog" aria-hidden="true"></i> '))
 
-      print(format_utils.formatAddressCategory(host))
+      print(format_utils.formatFullAddressCategory(host))
 
       if(host.services) then
 	 if(host.services.dhcp) then print(' <span class="badge badge-info">'..i18n("details.label_dhcp_server")..'</span>') end
