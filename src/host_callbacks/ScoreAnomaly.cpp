@@ -48,9 +48,10 @@ void ScoreAnomaly::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   }
 
   if(cli_score || srv_score) {
+    bool is_both = (cli_score && srv_score) ? true : false;
     bool is_client_alert = (cli_score > 0) ? true : false;
     
-    if (!alert) alert = allocAlert(this, h, cli_score, srv_score, is_client_alert, value, lower_bound, upper_bound);
+    if (!alert) alert = allocAlert(this, h, cli_score, srv_score, is_both, is_client_alert, value, lower_bound, upper_bound);
     if (alert) h->triggerAlert(alert);
   }
 }

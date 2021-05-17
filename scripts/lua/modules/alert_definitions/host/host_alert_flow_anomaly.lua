@@ -48,11 +48,14 @@ end
 function host_alert_flow_anomaly.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
   local json = json.decode(alert.json)
-  local is_client_alert = json.is_client_alert
+  local is_both = alert_type_params["is_both"]
+  local is_client_alert = alert_type_params["is_client_alert"]
   local role
   local host = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
-  
-  if(is_client_alert) then
+
+  if(is_both) then
+     role = "client and server"
+  elseif(is_client_alert) then
      role = "client"
   else
      role = "server"
