@@ -5,6 +5,10 @@
   --scrollable-dropdown-height: 20rem;
 }
 
+a {
+  text-decoration: none;
+}
+
 summary > span {
   border-bottom: 1px dotted gray;
   font-weight: bolder;
