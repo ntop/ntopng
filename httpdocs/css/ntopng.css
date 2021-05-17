@@ -5,7 +5,7 @@
   --scrollable-dropdown-height: 20rem;
 }
 
-a {
+a, .btn-link {
   text-decoration: none;
 }
 
