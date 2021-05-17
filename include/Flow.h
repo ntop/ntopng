@@ -510,9 +510,9 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getICMPPayloadSize()             const { return(isICMP() ? protos.icmp.max_icmp_payload_size : 0); };
   inline ICMPinfo* getICMPInfo()                    const { return(isICMP() ? icmp_info : NULL); }
   inline ndpi_protocol_breed_t get_protocol_breed() const {
-    return(ndpi_get_proto_breed(iface->get_ndpi_struct(), isDetectionCompleted() ? ndpiDetectedProtocol.app_protocol : NDPI_PROTOCOL_UNKNOWN));
+    return(ndpi_get_proto_breed(iface->get_ndpi_struct(), isDetectionCompleted() ? ndpi_get_upper_proto(ndpiDetectedProtocol) : NDPI_PROTOCOL_UNKNOWN));
   };
-  inline const char * const get_protocol_breed_name() const { return(iface->get_ndpi_proto_breed_name(get_protocol_breed())); };
+  inline const char * const get_protocol_breed_name() const { return(ndpi_get_proto_breed_name(iface->get_ndpi_struct(), get_protocol_breed())); };
   inline ndpi_protocol_category_t get_protocol_category() const {
     return(ndpi_get_proto_category(iface->get_ndpi_struct(),
 				   isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol));
