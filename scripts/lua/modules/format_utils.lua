@@ -381,14 +381,12 @@ function format_utils.formatMainAddressCategory(host)
 	 addr_category = addr_category .. " <a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..host.country.."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(host.country) .."'></a>"
       end
 
-      if(host["localhost"] == true) then
+      if(host["is_multicast"] == true) then 
+         addr_category = addr_category .. " <abbr title=\"".. i18n("multicast") .."\"><span class='badge badge-primary'>" ..i18n("short_multicast").. "</span></abbr>"
+      elseif(host["localhost"] == true) then
          addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_local_host") ..'\"><span class="badge badge-success">'..i18n("details.label_short_local_host")..'</span></abbr>'
       else 
          addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_remote") ..'\"><span class="badge badge-secondary">'..i18n("details.label_short_remote")..'</span></abbr>'
-      end
-
-      if(host["is_multicast"] == true) then 
-         addr_category = addr_category .. " <abbr title=\"".. i18n("multicast") .."\"><span class='badge badge-primary'>" ..i18n("short_multicast").. "</span></abbr>"
       end
    end
 
