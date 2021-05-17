@@ -738,7 +738,7 @@ local lang = {
     ["rcvd"] = "Rcvd",
     ["replies"] = "Odpovědi",
     ["reply_breakdown"] = "Reply Breakdown",
-    ["request_vs_reply"] = "Žádost vs Odpověď Pom\u011Br",
+    ["request_vs_reply"] = "Žádost vs Odpověď Pom",
   },
   ["entity_thresholds"] = {
     ["flow_attacker_description"] = "Spustit upozornění, když nový klient překročí prahovou hodnotu toků/s prahovou hodnotu",
