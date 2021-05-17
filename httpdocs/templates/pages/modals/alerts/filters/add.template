@@ -42,7 +42,7 @@
                 <div class="modal-footer">
                     <div class="mr-auto">
                     </div>
-                    <button type="submit" class="btn btn-primary">{{i18n("add")}}</button>
+                    <button type="submit" id="add-alert-filter-btn" class="btn btn-primary">{{i18n("add")}}</button>
                     <div class="alert alert-info test-feedback w-100" style="display: none;">
                     </div>
                 </div>

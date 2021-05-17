@@ -332,7 +332,7 @@ local all_alert_types = {}
 local extra_tags_buttons = ""
 if page ~= "all" then
    extra_tags_buttons = [[
-    <button class="btn btn-link" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="$('#add-alert-filter-modal').modal('show');"><span><i class="fas fa-plus" data-original-title="" title="]]..i18n("alerts_dashboard.add_filter")..[["></i></span>
+    <button class="btn btn-link" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="alertStats.filterModalShow()"><span><i class="fas fa-plus" data-original-title="" title="]]..i18n("alerts_dashboard.add_filter")..[["></i></span>
     </button>
    ]]
 

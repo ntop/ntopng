@@ -70,6 +70,7 @@
     i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
 </script>
 <script type='text/javascript'>
+    let alertStats = {};
     let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
 
     $(document).ready(function(){
@@ -344,8 +345,30 @@
             await onRangePickerChange(true);
         });
 
-        tagify.on('edit:updated', async function(e) {
+        // Tag 'click' event handler to open the 'Edit' modal. Note: this prevents
+        // inline editing of the tag ('edit:updated' is never called as a consequence)
+        tagify.on('click', async function(e) {
+            const detail = e.detail;
+            if (detail.data === undefined) { return; }
+            if (detail.data.key === undefined) {return;}
 
+            const tag = detail.data;
+
+            alertStats.filterModalShow(true);
+
+            $('#alert-filter-type-select').val(tag.key).change();
+
+            let value_select = $('#add-alert-filter-modal select[name="value"]');
+            let value_input = $('#add-alert-filter-modal input[name="value"]').val(tag.value);
+
+            if (value_select) {
+                value_select.val(tag.realValue || tag.value);
+            } else if (value_input) {
+                value_input.val(tag.realValue || tag.value);
+            }
+        });
+
+        tagify.on('edit:updated', async function(e) {
             const detail = e.detail;
             if (detail.data === undefined) { return; }
             if (detail.data.key === undefined) {return;}
@@ -629,6 +652,13 @@
             const [begin, end] = getTimestampRange();
 
             /* Here it is where we can load dynamic data on time range change */
+        }
+
+        alertStats.filterModalShow = function(edit) {
+            $('#add-alert-filter-modal-title').text(edit ? "{{i18n('alerts_dashboard.edit_filter')}}" : "{{i18n('alerts_dashboard.add_filter')}}");
+            $('#add-alert-filter-btn').text(edit ? "{{i18n('apply')}}" : "{{i18n('add')}}");
+            $('#alert-filter-type-select').prop( "disabled", edit ? true : false);
+            $('#add-alert-filter-modal').modal('show');
         }
 
         const filterModalMakeTag = (formSelector) => {

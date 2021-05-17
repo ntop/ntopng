@@ -641,6 +641,7 @@ local lang = {
     ["device_connection"] = "Device Connection",
     ["device_disconnection"] = "Device Disconnection",
     ["dns_anomaly"] = "DNS Anomaly",
+    ["edit_filter"] = "Edit Filter",
     ["emergency"] = "Emergency",
     ["engaged_for_longest"] = "Past Alerts Engaged for Longest",
     ["error"] = "Error",
