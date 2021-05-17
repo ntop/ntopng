@@ -112,3 +112,35 @@ void ScoreStats::lua_breakdown(lua_State *vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
+
+/* *************************************** */
+
+/*
+  Serialize for client and server per-category score breakdown.
+  Used by ScoreAnomalyAlert.h
+*/
+void ScoreStats::serialize_breakdown(ndpi_serializer* serializer) {
+  u_int32_t total = getClient();
+
+  if(total == 0) total = 1; /* Prevents zero-division errors */
+
+  /* Client breakdown score value per category */
+  for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+    ScoreCategory score_category = (ScoreCategory)i;
+    std::string score_cat = "score_breakdown_client_" + std::to_string(i);
+  
+    ndpi_serialize_string_uint64(serializer, score_cat.c_str(), getClient(score_category) / (float)total * 100);
+  }
+
+  /* Server breakdown score value per category */
+  total = getServer();
+
+  if(total == 0) total = 1; /* Prevents zero-division errors */
+
+  for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+    ScoreCategory score_category = (ScoreCategory)i;
+    std::string score_cat = "score_breakdown_server_" + std::to_string(i);
+  
+    ndpi_serialize_string_uint64(serializer, score_cat.c_str(), getServer(score_category) / (float)total * 100);
+  }
+}

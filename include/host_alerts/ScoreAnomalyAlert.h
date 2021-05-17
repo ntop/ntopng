@@ -33,6 +33,8 @@ class ScoreAnomalyAlert : public HostAlert {
     if(serializer == NULL)
       return NULL;
 
+    getHost()->serialize_breakdown(serializer);
+    
     ndpi_serialize_string_boolean(serializer, "is_both", is_both);
     ndpi_serialize_string_boolean(serializer, "is_client_alert", is_client_alert);
     ndpi_serialize_string_uint64(serializer, "value", value);

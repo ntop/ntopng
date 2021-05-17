@@ -34,6 +34,7 @@ class Score {
   inline u_int32_t getScore()         const { return score ? score->get() : 0; };
   inline u_int32_t getScoreAsClient() const { return score ? score->getClient() : 0; };
   inline u_int32_t getScoreAsServer() const { return score ? score->getServer() : 0; };
+  inline void serialize_breakdown(ndpi_serializer* serializer) const { if(score) score->serialize_breakdown(serializer); };
   u_int16_t incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client);
   u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client);
 

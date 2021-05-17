@@ -51,6 +51,7 @@ class ScoreStats {
   virtual u_int16_t decValue(u_int16_t score, ScoreCategory score_category, bool as_client);
 
   void lua_breakdown(lua_State *vm);
+  void serialize_breakdown(ndpi_serializer* serializer);
 };
 
 #endif
