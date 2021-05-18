@@ -447,7 +447,7 @@ void Flow::processDetectedProtocol() {
  */
 void Flow::processDetectedProtocolData() {
   u_int16_t l7proto;
-  Host *cli_h = get_cli_host();
+  Host *cli_h = get_cli_host(), *srv_h = get_srv_host();;
 
   if(ndpiFlow == NULL)
     return;
@@ -483,19 +483,23 @@ void Flow::processDetectedProtocolData() {
       The statement below can create issues sometimes as devices publish
       themselves with varisous names depending on the context (**)
     */
-    if(ndpiFlow->host_server_name[0] != '\0' && !protos.mdns.answer)
+    if(ndpiFlow->host_server_name[0] != '\0' && !protos.mdns.answer) {
       protos.mdns.answer = strdup((char*)ndpiFlow->host_server_name);
+      if(srv_h) srv_h->setResolvedName((char*)ndpiFlow->host_server_name);
+    }
     break;
 
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_TLS:
   case NDPI_PROTOCOL_QUIC:
-    if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_DOH_DOT
-       && (ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name[0] != '\0')
-       && cli_h && cli_h->isLocalHost())
-      cli_h->incrVisitedWebSite(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
-
-    if(cli_h) cli_h->incContactedService(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
+    if(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name[0] != '\0') {
+      if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_DOH_DOT
+	 && cli_h && cli_h->isLocalHost()) 
+	cli_h->incrVisitedWebSite(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
+      
+      if(cli_h) cli_h->incContactedService(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
+      if(srv_h) srv_h->setResolvedName(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
+    }
     break;
 
   case NDPI_PROTOCOL_HTTP:
@@ -521,6 +525,8 @@ void Flow::processDetectedProtocolData() {
 	if(cli_h->isLocalHost())
 	  cli_h->incrVisitedWebSite(host_server_name);
       }
+
+      if(srv_h) srv_h->setResolvedName((char*)ndpiFlow->host_server_name);
     }
     break;
   } /* switch */

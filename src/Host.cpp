@@ -554,13 +554,13 @@ void Host::lua_get_syn_scan(lua_State *vm) const {
   u_int32_t hits;
 
   hits = 0;
-  if (syn_scan.syn_sent_last_min > syn_scan.synack_recvd_last_min)
+  if(syn_scan.syn_sent_last_min > syn_scan.synack_recvd_last_min)
     hits = syn_scan.syn_sent_last_min - syn_scan.synack_recvd_last_min;
   if(hits)
     lua_push_uint64_table_entry(vm, "hits.syn_scan_attacker", hits);
 
   hits = 0;
-  if (syn_scan.syn_recvd_last_min > syn_scan.synack_sent_last_min)
+  if(syn_scan.syn_recvd_last_min > syn_scan.synack_sent_last_min)
     hits = syn_scan.syn_recvd_last_min - syn_scan.synack_sent_last_min;
   if(hits)
     lua_push_uint64_table_entry(vm, "hits.syn_scan_victim", hits);
@@ -769,7 +769,8 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   /* Most relevant names goes first */
   if(isBroadcastDomainHost()) {
     Mac *cur_mac = getMac(); /* Cache it as it can change */
-    if (cur_mac) {
+
+    if(cur_mac) {
       cur_mac->getDHCPName(name_buf, sizeof(name_buf));
       if(strlen(name_buf))
         goto out;
@@ -1034,7 +1035,7 @@ char* Host::get_visual_name(char *buf, u_int buf_len) {
   char ipbuf[64];
   char *sym_name;
 
-  if(! mask_host) {
+  if(!mask_host) {
     sym_name = get_name(buf2, sizeof(buf2), false);
 
     if(sym_name && sym_name[0]) {
@@ -1320,10 +1321,10 @@ void Host::offlineSetNetbiosName(const char * const netbios_n) {
 
 void Host::setResolvedName(const char * const resolved_name) {
   /* This is NOT set inline, so we must lock. */
-  if(resolved_name) {
+  if(resolved_name && (resolved_name[0] != '\0')
+     && (!names.resolved /* Don't set hostnames already set */) ) {
     m.lock(__FILE__, __LINE__);
-    if(!names.resolved && (names.resolved = strdup(resolved_name)))
-      ;
+    names.resolved = strdup(resolved_name);
     m.unlock(__FILE__, __LINE__);
   }
 }
@@ -1602,7 +1603,7 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
 
 void Host::refreshDisabledAlerts() {
   AlertExclusions *alert_exclusions = ntop->getAlertExclusions();
-  if (alert_exclusions && alert_exclusions->checkChange(&disabled_alerts_tstamp))
+  if(alert_exclusions && alert_exclusions->checkChange(&disabled_alerts_tstamp))
     alert_exclusions->setDisabledHostAlertsBitmaps(get_ip(), &disabled_host_alerts, &disabled_flow_alerts);
 }
 
@@ -1711,7 +1712,7 @@ void Host::releaseAllEngagedAlerts() {
   for (u_int i = 0; i < NUM_DEFINED_HOST_CALLBACKS; i++) {
     HostCallbackID t = (HostCallbackID) i;
     HostAlert *alert = getCallbackEngagedAlert(t);
-    if (alert)
+    if(alert)
       releaseAlert(alert);
   }
 }
@@ -1745,8 +1746,8 @@ bool Host::triggerAlert(HostAlert *alert) {
   /* Leave this AFTER the isHostAlertDisabled check */
   alert->setEngaged();
 
-  if (hasCallbackEngagedAlert(alert->getCallbackType())) {
-    if (getCallbackEngagedAlert(alert->getCallbackType()) == alert) {
+  if(hasCallbackEngagedAlert(alert->getCallbackType())) {
+    if(getCallbackEngagedAlert(alert->getCallbackType()) == alert) {
       /* This is a refresh (see alert->isExpired()) */
       return true;
     } else {

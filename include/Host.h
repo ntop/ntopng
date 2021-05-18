@@ -50,7 +50,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     *mdns_txt /* name from a TXT MDNS reply after "nm=" field (most accurate) */,
     *mdns_info /* name from a TXT MDNS reply */;
     char *resolved; /* The name as resolved by ntopng DNS requests */
-    char *netbios; /* The Netbios name */
+    char *netbios; /* The NetBIOS name */
   } names;
 
   char *ssdpLocation;
