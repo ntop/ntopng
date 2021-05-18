@@ -4,7 +4,7 @@
 <div class="card-footer">
     <form class="interface_data_form form-inline" method="POST">
         {% local sys_iface_requested = delete_active_interface_requested_system and 'disabled' or '' %}
-        <a id='delete-system-interface' class="btn btn-danger {{ sys_iface_requested }}" data-toggle='modal' href='#delete_active_interface_data_system'>
+        <a id='delete-system-interface' class="btn btn-danger {{ sys_iface_requested }}" data-bs-toggle='modal' href='#delete_active_interface_data_system'>
             <i class='fas fa-trash'></i> {{ i18n("manage_data.delete_system_interface_data") }}
         </a>
      </form>

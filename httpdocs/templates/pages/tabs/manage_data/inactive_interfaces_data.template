@@ -4,7 +4,7 @@
 <div class="card-footer">
     <form class="interface_data_form form-inline" id='form_delete_inactive_interfaces' method="POST">
         {% local delete_inactive_class = (num_inactive_interfaces == 0 and 'disabled' or '') %}
-        <a class="btn btn-danger {{delete_inactive_class}}" id='delete-system-inactive' data-toggle='modal' href='#delete_inactive_interfaces_data_system'>
+        <a class="btn btn-danger {{delete_inactive_class}}" id='delete-system-inactive' data-bs-toggle='modal' href='#delete_inactive_interfaces_data_system'>
             <i class='fas fa-trash'></i> {{ i18n("manage_data.delete_inactive_interfaces") }}
         </a>
      </form>

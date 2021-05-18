@@ -7,7 +7,7 @@
             <div class='form-row align-items-center'>
                 <div class="mb-3 col-12">
                     <label class="d-block">Select Export Type</label>
-                    <div class="btn-group btn-group-toggle" data-toggle="buttons" id="export_hosts_buttons"
+                    <div class="btn-group btn-group-toggle" data-bs-toggle="buttons" id="export_hosts_buttons"
                         name="export_hosts_buttons">
                         <label class="btn btn-secondary active">
                             <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off"
@@ -15,15 +15,15 @@
                         </label>
                         <label class="btn btn-secondary">
                             <input type="radio" id="local_hosts" name="mode" value="local" autocomplete="off"
-                                data-toggle=" toggle">{{i18n("manage_data.local_hosts")}}
+                                data-bs-toggle=" toggle">{{i18n("manage_data.local_hosts")}}
                         </label>
                         <label class="btn btn-secondary">
                             <input type="radio" id="remote_hosts" name="mode" value="remote" autocomplete="off"
-                                data-toggle=" toggle">{{i18n("manage_data.remote_hosts")}}
+                                data-bs-toggle=" toggle">{{i18n("manage_data.remote_hosts")}}
                         </label>
                         <label class="btn btn-secondary">
                             <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off"
-                                data-toggle=" toggle">{{i18n("manage_data.single")}}
+                                data-bs-toggle=" toggle">{{i18n("manage_data.single")}}
                         </label>
                     </div>
                 </div>
