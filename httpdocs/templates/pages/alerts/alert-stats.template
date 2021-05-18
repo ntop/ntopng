@@ -189,7 +189,6 @@
             }
 
             url.search = searchParams.toString();
-	    console.log(url);
             window.history.pushState({epoch_begin: begin.unix(), epoch_end: end.unix()}, '', url);
         }
 
