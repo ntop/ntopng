@@ -382,11 +382,11 @@ function format_utils.formatMainAddressCategory(host)
       end
 
       if(host["is_multicast"] == true) then 
-         addr_category = addr_category .. " <abbr title=\"".. i18n("multicast") .."\"><span class='badge badge-primary'>" ..i18n("short_multicast").. "</span></abbr>"
+         addr_category = addr_category .. " <abbr title=\"".. i18n("multicast") .."\"><span class='badge bg-primary'>" ..i18n("short_multicast").. "</span></abbr>"
       elseif(host["localhost"] == true) then
-         addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_local_host") ..'\"><span class="badge badge-success">'..i18n("details.label_short_local_host")..'</span></abbr>'
+         addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_local_host") ..'\"><span class="badge bg-success">'..i18n("details.label_short_local_host")..'</span></abbr>'
       else 
-         addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_remote") ..'\"><span class="badge badge-secondary">'..i18n("details.label_short_remote")..'</span></abbr>'
+         addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_remote") ..'\"><span class="badge bg-secondary">'..i18n("details.label_short_remote")..'</span></abbr>'
       end
    end
 

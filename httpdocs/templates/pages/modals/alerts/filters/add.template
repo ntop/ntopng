@@ -9,10 +9,10 @@
                         <span class='mx-2' style="vertical-align: middle;"><b>{{ i18n("alerts_dashboard.abort_add_filter") }}</b></span>
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-secondary cancel" type="button">{{ i18n("cancel") }}</button>
-                            <button data-dismiss="modal" class="btn btn-danger confirm" type="button">{{ i18n("abort") }}</button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">{{ i18n("abort") }}</button>
                         </div>
                     </div>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -24,7 +24,7 @@
                             <b>{{ i18n("alerts_dashboard.select_filter") }}</b>
                         </label>
                         <div class="col-sm-5">
-                            <select required name="alert_filter_type" class="form-control" id="alert-filter-type-select">
+                            <select required name="alert_filter_type" class="form-select" id="alert-filter-type-select">
                                 {% local first_item = true %}
                                 {% for filter_key, filter_type in pairsByKeys(available_types) do %}
                                          <option {{ (first_item and "selected" or "") }} data-alert-filter-key="{{ filter_type.value_type }}" value="{{ filter_key }}">
@@ -73,7 +73,7 @@
     <div class="form-group row">
         <label class="col-form-label col-sm-3"><b>{{i18n("level")}}</b></label>
         <div class="col-sm-5">
-            <select required name="value" class="form-control">
+            <select required name="value" class="form-select">
                {% local first_item = true %}
                {% for _, severity in pairsByValues(severities, alert_utils.severity_rev) do %}
                   {% if severity.used_by_alerts then %}
@@ -92,7 +92,7 @@
     <div class="form-group row">
         <label class="col-form-label col-sm-3"><b>{{i18n("alerts_dashboard.alert_type")}}</b></label>
         <div class="col-sm-5">
-            <select required name="value" class="form-control">
+            <select required name="value" class="form-select">
                {% local first_item = true %}
                {% for _, alert_type in pairsByValues(alert_types, alert_consts.alert_type_info_asc) do %}
                   <option {{ (first_item and "selected" or "") }} data-tag-label="{{ alert_type.label }}" value="{{ alert_type.alert_id }}">
@@ -109,7 +109,7 @@
     <div class="form-group row">
         <label class="col-form-label col-sm-3"><b>{{i18n("tags.l7proto")}}</b></label>
         <div class="col-sm-5">
-            <select required name="value" class="form-control">
+            <select required name="value" class="form-select">
                {% local first_item = true %}
                {% for name, id in pairsByKeys(l7_protocols, asc) do %}
                   <option {{ (first_item and "selected" or "") }} data-tag-label="{{ name }}" value="{{ id }}">
@@ -126,7 +126,7 @@
     <div class="form-group row">
         <label class="col-form-label col-sm-3"><b>{{i18n("tags.role")}}</b></label>
         <div class="col-sm-5">
-            <select required name="value" class="form-control">
+            <select required name="value" class="form-select">
                 <option selected data-tag-label="{{i18n("attacker")}}" value="attacker">{{i18n("attacker")}}</option>
                 <option data-tag-label="{{i18n("victim")}}" value="victim">{{i18n("victim")}}</option>
             </select>
@@ -138,7 +138,7 @@
     <div class="form-group row">
         <label class="col-form-label col-sm-3"><b>{{i18n("tags.roles")}}</b></label>
         <div class="col-sm-5">
-            <select required name="value" class="form-control">
+            <select required name="value" class="form-select">
                 <option selected data-tag-label="{{i18n("is_attacker_to_victim")}}" value="attacker2victim">{{i18n("is_attacker_to_victim")}}</option>
                 <option data-tag-label="{{i18n("is_victim_to_attacker")}}" value="victim2attacker">{{i18n("is_victim_to_attacker")}}</option>
             </select>
