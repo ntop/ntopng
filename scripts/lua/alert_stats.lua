@@ -98,7 +98,6 @@ local pages = {
         label = i18n(alert_entities.interface.i18n_label),
         endpoint_list = "/lua/rest/v1/get/interface/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/interface/alert/ts.lua",
-	hidden = is_system_interface,
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.interface.entity_id)]
     },
     {
