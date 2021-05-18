@@ -41,10 +41,7 @@ Every user script must return a Lua table with the following keys:
 
   - :code:`hooks`: a Lua table with hook names as key and callbacks as values. :ref:`User Script Hooks` are events or points in time. ntopng uses hooks to know when to call a user script. A user script defining a hook will get the hook callaback called by ntopng. User scripts must register to at least one hook. See :ref:`User Script Hooks`.
   - :code:`gui`: a Lua table specifying user script name, description and configuration. Data is used by ntopng to show the user script configurable from the :ref:`Web GUI`.
-  - :code:`local_only` (optional, hosts only): if true, the user script is only executed for local hosts.
   - :code:`packet_interface_only` (optional): only execute the script on packet interfaces, excluding ZMQ interfaces.
-  - :code:`l4_proto` (optional, flows only): only execute the script for flows matching the L4 protocol.
-  - :code:`l7_proto` (optional, flows only): only execute the script for flows matching the L7 application protocol.
   - :code:`nedge_only` (optional): if true, the script is only executed in nEdge.
   - :code:`nedge_exclude` (optional): if true, the script is not executed in nEdge.
   - :code:`default_value` (optional): the default value for the script configuration, in the form :code:`<script_key>;<operator>;<value>`
@@ -62,57 +59,17 @@ Furthermore, a script may define the following extra functions, which are only c
 Flow User Scripts
 -----------------
 
-Flow user scripts are executed on each network flow. The user script have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things.
+Flow user scripts are executed on each network flow directly from the C++ with flow callbacks. The user script have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things.
 This information can be retrieved via the `Flow User Scripts API`_.
 
 Refer to :ref:`Flow User Script Hooks` for available hooks.
 
 .. _`Flow User Scripts API`: ../api/lua_c/flow_user_scripts/index.html
 
-.. _Setting Flow Statuses:
-
-Setting Flow Statuses
-~~~~~~~~~~~~~~~~~~~~~
-
-Flow statuses are set with
-
-.. code:: lua
-
-  flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
-
-
-See `flow.lua <https://github.com/ntop/ntopng/blob/dev/scripts/callbacks/interface/flow.lua>`_ for the source code. Parameters are:
-
-- :code:`flow_status_type`: flow status as described in :ref:`Flow Definitions`.
-- :code:`flow_score`: A score to be assigned to the current flow
-- :code:`cli_score`: A score to be added to the score of the flow client
-- :code:`srv_score`: A score to be added to the score to the flow server
-
-Setting a flow status will cause ntopng to show it across the interface.
-
-.. _Triggering Flow Alerts:
-
-Triggering Flow Alerts
-~~~~~~~~~~~~~~~~~~~~~~
-
-A status can also determine the triggering of an alert. Triggering an alert is done calling
-
-.. code:: lua
-
-  flow.triggerStatus(flow_status_type, status_info, flow_score, cli_score, srv_score, custom_severity)
-
-See `flow.lua <https://github.com/ntop/ntopng/blob/dev/scripts/callbacks/interface/flow.lua>`_ for the source code. Parameters are those described in :ref:`Setting Flow Statuses` plus a :code:`custom_severity`.
-
-.. _Other User Scripts:
-
-Other User Scripts
-------------------
-
 ntopng supports users scripts for the following traffic elements:
 
   - :code:`interface`: a network interface of ntopng. Check out the `Interface User Scripts API`_.
   - :code:`network`: a local network of ntopng. Check out the `Network User Scripts API`_.
-  - :code:`host`: a local/remote host of ntopng. Check out the `Host User Scripts API`_.
   - :code:`system`: the system on top of which is running ntopng
   - :code:`SNMP interfaces`: interfaces of monitored SNMP devices
 
@@ -120,7 +77,6 @@ Refer to :ref:`Other User Script Hooks` for available hooks.
 
 .. _`Interface User Scripts API`: ../api/lua_c/interface_user_scripts/index.html
 .. _`Network User Scripts API`: ../api/lua_c/network_user_scripts/index.html
-.. _`Host User Scripts API`: ../api/lua_c/host_user_scripts/index.html
 
 Syslog User Scripts
 -------------------
@@ -185,37 +141,3 @@ exported to syslog in Eve JSON format.
    
    return syslog_module
 
-.. _Triggering Alerts:
-
-Triggering Alerts
------------------
-
-An user script can trigger an alert when some anomalous behavior is
-detected. Users can use the already provided hook callbacks:
-
-  - :code:`alerts_api.threshold_check_function`: can check thresholds
-    and trigger threshold cross alerts
-  - :code:`alerts_api.anomaly_check_function`: checks anomaly status,
-    set by the C core
-
-or build their own alert custom logic. In the latter case, the hook
-callback should call the following functions:
-
-  - :code:`alerts_api.trigger(entity_info, type_info)` whenever the
-    entity state is alerted
-  - :code:`alerts_api.release(entity_info, type_info)` whenever the
-    entity state is not alerted
-
-Alert state is kept internally so multiple trigger/releases of the
-same alert have no effect.  The :code:`type_info` is specific of the
-alert_type and should be built using one of the "type_info building
-functions" available into :code:`alerts_api.lua`, for example
-:code:`alerts_api.thresholdCrossType`.
-
-
-Built-in Alerts
-~~~~~~~~~~~~~~~
-
-Alert types are defined into :code:`alert_consts.alert_types` inside
-:code:`scripts/lua/modules/alert_consts.lua`. Additional alert types
-can be created as explained in :ref:`Alert Definitions`.

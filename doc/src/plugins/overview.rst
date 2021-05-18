@@ -21,12 +21,6 @@ Alerts Generation
 
 Plugins enable the generation of custom alerts. Generated alerts appear within the ntopng web GUI and are propagated towards external alert endpoints.
 
-Flow Statuses
-~~~~~~~~~~~~~
-
-Plugins enable the assignment of custom statuses to flows. A status as a sort of label, a tag which can be attached to flows
-having certain features. Alerts are triggered when certain flow statuses are detected.
-
 Custom Pages
 ~~~~~~~~~~~~
 
@@ -47,13 +41,6 @@ Examples
 
 Examples of plugins are:
 
-- A `flood
-  detection <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/alerts/security/flow_flood>`_
-  plugin to trigger alerts when hosts or networks are generating too
-  many traffic flows
-- A `blacklisted flows
-  <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/alerts/security/blacklisted>`_
-  plugin to detect flows involving malware or suspicious clients or servers
 - A `monitor for the disk space
   <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/monitors/system/disk_monitor>`_
   which continuously observes free disk space and triggers alerts when the

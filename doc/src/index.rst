@@ -13,6 +13,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    cli_options
    web_gui/index
    alerts/index
+   developing_alerts/index
    active_monitoring/index
    self_monitoring/index
    using_with_other_tools/index
