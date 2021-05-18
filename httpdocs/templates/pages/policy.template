@@ -36,7 +36,7 @@
 	<td align="right">
              <select required id="default_policy" name="default_policy" class="form-control">
                  <option {{ (default_policy ~= 'drop' and "selected" or "") }} value="pass">{{ i18n('policy.pass') }}</option>
-                 <option {{ (default_policy == 'drop' and "selected" or "") }} value="pass">{{ i18n('policy.drop') }}</option>
+                 <option {{ (default_policy == 'drop' and "selected" or "") }} value="drop">{{ i18n('policy.drop') }}</option>
              </select>
         </td>
       </tr> 
@@ -101,6 +101,8 @@ let policy_global = {};
 policy_global.change = function(name) {
    $('#policy-submit').prop('disabled', false);
 }
+
+$('#default_policy').on('change', policy_global.change);
 
 $('#policy-submit').on('click', function() {
     let policy_conf = {};
