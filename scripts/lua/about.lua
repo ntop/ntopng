@@ -62,7 +62,7 @@ end
 
 print("<tr><th><a href=\"https://curl.haxx.se\" target=\"_blank\">cURL</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>"..info["version.curl"].."</td></tr>\n")
 
-print("<tr><th><a href=\"https://twitter.github.io/\" target=\"_blank\"><i class=\'fab fa-twitter fa-lg'></i> Twitter Bootstrap</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>4.4.0</td></tr>\n")
+print("<tr><th><a href=\"https://twitter.github.io/\" target=\"_blank\"><i class=\'fab fa-twitter fa-lg'></i> Twitter Bootstrap</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>5.0</td></tr>\n")
 print("<tr><th><a href=\"https://github.com/FortAwesome/Font-Awesome\" target=\"_blank\"><i class=\'fab fa-font-awesome fa-lg'></i> Font Awesome</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>5.11.2</td></tr>\n")
 print("<tr><th><a href=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>"..info["version.rrd"].."</td></tr>\n")
 
