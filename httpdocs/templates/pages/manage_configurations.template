@@ -23,7 +23,7 @@
                 </div>
             </div>
             <div class="card-footer">
-                <button id="btn-import" data-toggle="modal" data-target="#import-modal" type="submit" value="import" class="btn btn-primary">
+                <button id="btn-import" data-bs-toggle="modal" data-bs-target="#import-modal" type="submit" value="import" class="btn btn-primary">
                     <i class='fas fa-file-import'></i>
                     <span>{{ i18n("import") }}</span>
                 </button>
@@ -31,7 +31,7 @@
                     <i class='fas fa-file-export'></i>
                     <span>{{ i18n("export") }}</span>
                 </a>
-                <button id="btn-factory-reset" data-target='#reset-modal' data-toggle="modal" class="btn btn-danger">
+                <button id="btn-factory-reset" data-bs-target='#reset-modal' data-bs-toggle="modal" class="btn btn-danger">
                     <i class="fas fa-undo-alt"></i> {{ i18n("factory_reset")}}
                 </button>
             </div>

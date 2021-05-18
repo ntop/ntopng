@@ -9,8 +9,8 @@
         <div class="modal-body">
             <form class='form'>
                 <div class="custom-file">
-                    <input class="custom-file-input" id="import-input" name="JSON" type="file" />
-                    <label class='custom-file-label' for='#import-input'>
+                    <input class="form-control" id="import-input" name="JSON" type="file" />
+                    <label class='form-label' for='#import-input'>
                         {{ i18n("browse_config", {}) }}
                     </label>
                     <div class="invalid-feedback" id='import-error'>
