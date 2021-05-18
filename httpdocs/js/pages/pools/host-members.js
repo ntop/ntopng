@@ -40,7 +40,7 @@ $(function () {
         },
 	{
 	    text: '<i class="fas fa-key"></i>',
-            action: () => { $(`#change-policy`).modal('show'); }
+            action: () => { location.href = `${http_prefix}/lua/pro/policy.lua?pool=${selectedPool.id}`; }
 	},
         {
             text: '<i class="fas fa-sync"></i>',
@@ -262,25 +262,4 @@ $(function () {
             $(`#remove-member-host-pool`).modal('hide');
         }
     });
-    
-    $(`#change-policy form`).modalHandler({
-        method: 'post',
-        csrf: removeCsrf,
-        endpoint: `${http_prefix}/lua/rest/v1/bind/host/pool/member.lua`,
-        onModalShow: function () {
-	    $(`#change-policy-feedback`).hide();
-        },
-        beforeSumbit: function (hostPool) {
-            return { pool: selectedPool.id, policy: $(`#select-policy`).val() };
-        },
-        onSubmitSuccess: function (response, textStatus, modalHandler) {
-
-            if (response.rc < 0) {
-                $(`#change-policy-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
-                return false;
-            }
-            $hostMembersTable.ajax.reload();
-	    return true;
-	}
-    }).invokeModalInit();
 });
