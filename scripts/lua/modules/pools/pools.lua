@@ -404,54 +404,62 @@ function pools:edit_pool(pool_id, new_name, new_members, new_recipients, new_pol
 
     -- If here, pool_id has been found
     if locked then
-        if not new_members then
-            -- In case members have not been sumbitted, new_members
-            -- are assumed to be the existing members
-            new_members = cur_pool_details["members"]
-        end
-
-        if not new_recipients then
-            -- In case recipients have not been sumbitted, new_recipients
-            -- are assumed to be the existing recipients
-            new_recipients = cur_pool_details["recipients"]
-        end
 	
-        if not new_policy then
-            -- In case policy have not been sumbitted, new_policy
-            -- is assumed to be the existing policy
-	    new_policy = cur_pool_details["policy"] or ""
-        end
-
-        if cur_pool_details and new_name and new_members and new_recipients and new_policy then
+        if cur_pool_details and cur_pool_details.name then 
             local checks_ok = true
 
-            -- Check if new_name is not the name of any other existing pool
-            local same_name_pool = self:get_pool_by_name(new_name)
-            if same_name_pool and same_name_pool.pool_id ~= pool_id then
-                checks_ok = false
+            if new_name then
+               -- Check if new_name is not the name of any other existing pool
+               local same_name_pool = self:get_pool_by_name(new_name)
+               if same_name_pool and same_name_pool.pool_id ~= pool_id then
+                   checks_ok = false
+               end
+            else
+               new_name = cur_pool_details.name
             end
 
-            -- Check if members are valid
-            if checks_ok and not self:are_valid_members(new_members) then
-                checks_ok = false
+
+            if new_members then
+               -- Check if members are valid
+               if checks_ok and not self:are_valid_members(new_members) then
+                  checks_ok = false
+               end
+
+               -- Check if none of new_members belongs to any other exsiting pool
+               if checks_ok then
+                   for _, new_member in pairs(new_members) do
+                       local new_member_pool = self:get_pool_by_member(new_member)
+
+                       if new_member_pool and new_member_pool["pool_id"] ~= pool_id then
+                           -- Member already existing in another pool
+                           checks_ok = false
+                           break
+                       end
+                   end
+               end
+            else
+               -- In case members have not been sumbitted, new_members
+               -- are assumed to be the existing members
+               new_members = cur_pool_details["members"]
             end
 
-            -- Check if none of new_members belongs to any other exsiting pool
-            if checks_ok then
-                for _, new_member in pairs(new_members) do
-                    local new_member_pool = self:get_pool_by_member(new_member)
-
-                    if new_member_pool and new_member_pool["pool_id"] ~= pool_id then
-                        -- Member already existing in another pool
-                        checks_ok = false
-                        break
-                    end
-                end
+            if false then -- FIXX this code seems to lead to failures
+            if new_recipients then
+               -- Check if recipients are valid
+               if checks_ok and not self:are_valid_recipients(new_recipients) then
+                   checks_ok = false
+               end
+            else
+               -- In case recipients have not been sumbitted, new_recipients
+               -- are assumed to be the existing recipients
+               new_recipients = cur_pool_details["recipients"]
+            end
             end
 
-            -- Check if recipients are valid
-            if checks_ok and not self:are_valid_recipients(new_recipients) then
-                checks_ok = false
+            if not new_policy then
+               -- In case policy have not been sumbitted, new_policy
+               -- is assumed to be the existing policy
+	       new_policy = cur_pool_details["policy"] or ""
             end
 
             if checks_ok then

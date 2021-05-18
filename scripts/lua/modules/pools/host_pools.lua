@@ -50,7 +50,7 @@ end
 
 -- Overwrite the pool name, members and recipients
 function host_pools:set_pool_policy(pool_id, new_policy)
-   return pools:edit_pool(pool_id, nil, nil, new_policy)
+   return self:edit_pool(pool_id, nil, nil, nil, new_policy)
 end
    
 -- ##############################################
@@ -241,8 +241,10 @@ function host_pools:_persist(pool_id, name, members, recipients, policy)
     end
 
     -- Recipients
-    ntop.setHashCache(pool_details_key, "recipients", json.encode(recipients));
-    
+    if recipients then -- safety check
+       ntop.setHashCache(pool_details_key, "recipients", json.encode(recipients));
+    end    
+
     -- Policy
     -- NB: the policy is already a string
     ntop.setHashCache(pool_details_key, "policy", (policy or ""));
@@ -255,7 +257,9 @@ function host_pools:_persist(pool_id, name, members, recipients, policy)
        ntop.reloadHostPools()
 
        -- Set host recipients in the C++ core
-       self:set_host_recipients(recipients)
+       if recipients then -- safety check
+          self:set_host_recipients(recipients)
+       end
 
        -- Reload periodic scripts
        ntop.reloadPeriodicScripts()
