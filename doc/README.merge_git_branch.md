@@ -105,4 +105,23 @@ Do the merge with
 git merge boostrap5
 ```
 
-Now `dev` has all the commits of `boostrap5` squashed into a single commit.
+Now `dev` has all the commits of `boostrap5` squashed into a single commit. 
+
+Merge Conflicts
+---------------
+
+Merging can result into conflicts, e.g., 
+
+```
+git merge bootstrap5
+Auto-merging scripts/plugins/alerts/security/unexpected_new_device/locales/en.lua
+CONFLICT (content): Merge conflict in scripts/plugins/alerts/security/unexpected_new_device/locales/en.lua
+[...]
+Auto-merging scripts/lua/modules/format_utils.lua
+CONFLICT (content): Merge conflict in scripts/lua/modules/format_utils.lua
+Auto-merging scripts/lua/modules/discover_utils.lua
+Auto-merging scripts/lua/modules/alert_utils.lua
+[...]
+```
+
+To resolve conflicts, edit conflicting files (they can be located with `git status` under `Unmerged paths`). Conflicts are reported between `<<<<<<<` and `>>>>>>>`. Change the code opportunely and remove those symbols. Once the conficts are resolved, mark the resolution with `git add <path to the conflicting file>`. After all the conflicts are resolved, a final `git commit` can be run.
