@@ -62,8 +62,8 @@ elseif _POST["action"] == "update" then
   local list_name = _POST["list_name"]
   lists_utils.updateList(list_name)
 
-  print('<div class="alert alert-success alert-dismissable"><a href="" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..
-    i18n('category_lists.list_will_be_updated', {name=list_name}) .. '</div>')
+  print('<div class="alert alert-success alert-dismissable">'..
+    i18n('category_lists.list_will_be_updated', {name=list_name}) .. '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
 end
 
 print[[
@@ -82,30 +82,30 @@ print[[
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">]] print(i18n("category_lists.edit_list")) print[[</h5>
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <form id="edit-list-form" method="post" data-toggle="validator">
+        <form id="edit-list-form" method="post" data-bs-toggle="validator">
         <div class="modal-body">
           <div class="container-fluid">
               <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
               <input type="hidden" name="currentPage" value="]] print(currentPage) print  [[" />
               <input type="hidden" name="action" value="edit" />
 
-              <div class="row form-group has-feedback">
+              <div class="row form-group mb-3 has-feedback">
                 <div class="col col-md-12">
                   <label class="form-label">]] print(i18n("name")) print[[</label>
                   <input name="list_name" id="form-edit-name" class="form-control" type="text" readonly />
                 </div>
               </div>
 
-              <div class="row form-group has-feedback">
+              <div class="row form-group mb-3 has-feedback">
                 <div class="col col-md-12">
                   <label class="form-label">]] print(i18n("flow_details.url")) print[[</label>
                   <input name="url" class="form-control" type="text" readonly />
                 </div>
               </div>
 
-              <div class="row form-group">
+              <div class="row form-group mb-3">
                 <div class="col col-md-12">
                   <label class="form-label">]] print(i18n("category_lists.enabled")) print[[: </label>
                   <div class="custom-control custom-switch d-inline">
@@ -115,10 +115,10 @@ print[[
                 </div>
               </div>
 
-              <div class="row form-group">
+              <div class="row form-group mb-3">
                 <div class="col col-md-6">
                   <label class="form-label">]] print(i18n("category")) print[[</label>
-                  <select name="category" class="form-control" readonly disabled="disabled">]]
+                  <select name="category" class="form-select" readonly disabled="disabled">]]
 
                   for cat_name, cat_id in pairsByKeys(interface.getnDPICategories()) do
                     print(string.format([[<option value="cat_%s">%s</option>]], cat_id, getCategoryLabel(cat_name)))
@@ -128,7 +128,7 @@ print[[
                 </div>
                 <div class="col col-md-6">
                   <label class="form-label">]] print(i18n("category_lists.update_frequency")) print[[</label>
-                  <select name="list_update" class="form-control">
+                  <select name="list_update" class="form-select">
                     <option value="86400">]] print(i18n("alerts_thresholds_config.daily")) print[[</option>
                     <option value="3600">]] print(i18n("alerts_thresholds_config.hourly")) print[[</option>
                     <option value="0">]] print(i18n("alerts_thresholds_config.manual")) print[[</option>
@@ -138,7 +138,7 @@ print[[
             </div>
             </div>
             <div class='modal-footer'>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <button type="submit" class="btn btn-primary btn-block">]] print(i18n("category_lists.edit_list")) print[[</button>
               </div>
             </div>

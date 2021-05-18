@@ -97,7 +97,7 @@
       // top
       this.$top_details = $("<div></div>").attr("id", "dt-top-details");
       // bottom
-      this.$bottom_details = $("<div></div>").attr("id", "dt-bottom-details");
+      this.$bottom_details = $("<div class='d-flex flex-column'></div>").attr("id", "dt-bottom-details");
 
       // localize the object
       var that = this;
@@ -287,7 +287,7 @@
         that = this;
 
       this.$toolbar = $("<div></div>").addClass(
-        "dt-toolbar btn-toolbar float-right"
+        "dt-toolbar btn-toolbar ms-auto"
       );
 
       this.$button_group = $("<div></div>")
@@ -316,7 +316,7 @@
       } else {
         if (!this.$toolbar_container) {
           this.$toolbar_container = $("<div></div>").addClass(
-            "dt-toolbar-container clearfix"
+            "dt-toolbar-container d-flex"
           );
         }
         $e.prepend(this.$toolbar_container.append(this.$toolbar));
@@ -339,7 +339,7 @@
       if (end > o.totalRows) end = o.totalRows;
 
       $(
-        '<div class="float-left"><p>' +
+        '<div class="text-left"><p>' +
           i18n.showing_x_to_y_rows.sformat(start, end, o.totalRows) +
           "</p></div>"
       ).prependTo(this.$bottom_details);
@@ -592,7 +592,7 @@
       if (o.perPage >= res.totalRows) return;
 
       if (!this.$pagination) {
-        this.$pagination = $("<div></div>").addClass("float-right");
+        this.$pagination = $("<div></div>").addClass("ms-auto");
 
         // how many pages?
         o.pageCount = Math.ceil(res.totalRows / o.perPage);
@@ -897,10 +897,6 @@
           .modal();
         return false;
       })
-      .popover({
-        trigger: "hover",
-        placement: "top"
-      });
     this.buttons.unshift($toggle);
 
     if (o.debug) console.log($toggle);
@@ -927,10 +923,6 @@
 
         return false;
       })
-      .popover({
-        trigger: "hover",
-        placement: "top"
-      });
     this.buttons.unshift($toggle);
   }
 
@@ -947,10 +939,6 @@
       .html(o.perPage + "&nbsp;")
       .css({ fontWeight: "normal" })
       .append($("<span></span>").addClass("caret"))
-      .popover({
-        trigger: "hover",
-        placement: "top"
-      });
     this.buttons.push($perpage_select);
 
     var $perpage_values = $("<ul></ul>")
@@ -1042,9 +1030,6 @@
             : ""
         )
       )
-      .popover({
-        placement: "bottom"
-      });
 
     this.buttons.unshift($info);
   }
@@ -1113,8 +1098,6 @@
       offset = o.currentPage * o.perPage;
     }
     if (o.currentPage < 1) o.currentPage = 1;
-
-    if ($(this).popover) $(this).popover("hide");
 
     // update the table
     that.render();

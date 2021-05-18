@@ -17,7 +17,7 @@ local dirs = ntop.getDirs()
 local alert_severities = {
    debug = {
       severity_id = 1,
-      label = "badge-info",
+      label = "bg-info",
       icon = "fas fa-fw fa-bug text-info",
       color = "#a8e4ef",
       i18n_title = "alerts_dashboard.debug",
@@ -26,7 +26,7 @@ local alert_severities = {
    },
    info = {
       severity_id = 2,
-      label = "badge-info",
+      label = "bg-info",
       icon = "fas fa-fw fa-info-circle text-info",
       color = "#adebad",
       i18n_title = "alerts_dashboard.info",
@@ -36,7 +36,7 @@ local alert_severities = {
    },
    notice = {
       severity_id = 3,
-      label = "badge-info",
+      label = "bg-info",
       icon = "fas fa-fw fa-hand-paper text-primary",
       color = "#70db70",
       i18n_title = "alerts_dashboard.notice",
@@ -46,7 +46,7 @@ local alert_severities = {
    },
    warning = {
       severity_id = 4,
-      label = "badge-warning",
+      label = "bg-warning",
       icon = "fas fa-fw fa-exclamation-triangle text-warning",
       color = "#ffc007",
       i18n_title = "alerts_dashboard.warning",
@@ -56,7 +56,7 @@ local alert_severities = {
    },
    error = {
       severity_id = 5,
-      label = "badge-danger",
+      label = "bg-danger",
       icon = "fas fa-fw fa-exclamation-triangle text-danger",
       color = "#ff3231",
       i18n_title = "alerts_dashboard.error",
@@ -66,7 +66,7 @@ local alert_severities = {
    },
    critical = {
       severity_id = 6,
-      label = "badge-danger",
+      label = "bg-danger",
       icon = "fas fa-fw fa-exclamation-triangle text-danger",
       color = "#fb6962",
       i18n_title = "alerts_dashboard.critical",
@@ -75,7 +75,7 @@ local alert_severities = {
    },
    alert = {
       severity_id = 7,
-      label = "badge-danger",
+      label = "bg-danger",
       icon = "fas fa-fw fa-bomb text-danger",
       color = "#fb6962",
       i18n_title = "alerts_dashboard.alert",
@@ -84,7 +84,7 @@ local alert_severities = {
    },
    emergency = {
       severity_id = 8,
-      label = "badge-danger text-danger",
+      label = "bg-danger text-danger",
       icon = "fas fa-fw fa-bomb",
       color = "#fb6962",
       i18n_title = "alerts_dashboard.emergency",

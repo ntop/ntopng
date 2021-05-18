@@ -4,12 +4,12 @@
             <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
             <input type="hidden" name="ifid" value="{{ tostring(getInterfaceId(ifname)) }}">
             <div class="form-row">
-                <div class="form-group col-md-3 col-sm-12 col-xs-12">
+                <div class="mb-3 col-md-3 col-sm-12 col-xs-12">
                     <label for="delete_host">Insert Host IP or Mac Address or /24</label>
                     <input type="text" required id="delete_host" data-host="host" name="host"
                         placeholder="{{ i18n("manage_data.ip_or_mac_address") }}" class="form-control" size="24" />
                 </div>
-                <div class="form-group col-md-3 col-sm-12 col-xs-12">
+                <div class="mb-3 col-md-3 col-sm-12 col-xs-12">
                     <label for="delete_vlan">Insert VLAN</label>
                     <input type="number" min="1" max="65535" placeholder="{{ i18n("vlan") }}" id="delete_vlan"
                         name="vlan" class="form-control" value="" />
@@ -19,12 +19,12 @@
     </div>
 </div>
 <div class='card-footer text-right'>
-    <button form="host_data_form_delete" class="btn btn-danger mr-1" type="submit" onclick="return delete_data_show_modal();">
+    <button form="host_data_form_delete" class="btn btn-danger me-1" type="submit" onclick="return delete_data_show_modal();">
         <i class="fas fa-trash" aria-hidden="true" title="{{ i18n("manage_data.delete") }}"></i>
         {{ i18n("manage_data.delete") }}
     </button>
     {% if not ntop.isnEdge() and (not delete_active_interface_requested) then %}
-    <span class="mr-1 align-middle border"></span>
+    <span class="me-1 align-middle border"></span>
     <form class="interface_data_form d-inline" method="POST">
         <button 
             class="btn btn-danger d-inline-block mx-1" type="submit"

@@ -80,20 +80,20 @@ print [[
 
 <div class="container">
 
-	 <form role="form" data-toggle="validator" class="form-signin" method="POST">
+	 <form role="form" data-bs-toggle="validator" class="form-signin" method="POST">
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(i18n("login.change_password")) print[[</h2>
    <p>]] print(i18n("login.must_change_password")) print[[</p>
 ]]
 
 if error_msg ~= nil then
    print[[<div class="alert alert-danger alert-dismissable">
-            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
             ]] print(error_msg) print[[.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>]]
 end
 
 print[[
-  <div class="form-group has-feedback">
+  <div class="form-group mb-3 has-feedback">
       <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
       <input type="password" class="form-control" name="new_password" placeholder="]] print(i18n("login.password")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
       <input type="password" class="form-control" name="confirm_password" placeholder="]] print(i18n("login.confirm_password")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
@@ -102,12 +102,10 @@ print[[
   ]]
 
 print[[
-    <label for="user_language">]] print(i18n("language")) print[[</label>
+    <label class='form-label' for="user_language">]] print(i18n("language")) print[[</label>
     <div class="input-group mb-6">
-      <div class="input-group-prepend">
 	<span class="input-group-text"><i class="fas fa-language" aria-hidden="true"></i></span>
-      </div>
-      <select id="user_language" name="user_language" class="form-control">]]
+      <select id="user_language" name="user_language" class="form-select">]]
 
 for _, lang in ipairs(locales_utils.getAvailableLocales()) do
    print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')

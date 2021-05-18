@@ -1,10 +1,10 @@
 <div class="d-flex align-items-center">
-    <div class="form-group mb-0">
-        <select name="pool" class="form-control">
+    <div class="mb-3 mb-0">
+        <select name="pool" class="form-select">
             {% for _, pool in pairsByKeys(pools, asc) do %}
                 <option {{ ((selected_pool_id == pool.pool_id) and 'selected' or '') }} value="{{ pool.pool_id }}">{{ pool.name }}</option>
             {% end %}
         </select>
     </div>
-    <a class="ml-2" href="/lua/admin/manage_pools.lua?page={{key}}"><i class="fas fa-edit"></i></a>
+    <a class="ms-2" href="/lua/admin/manage_pools.lua?page={{key}}"><i class="fas fa-edit"></i></a>
 </div>

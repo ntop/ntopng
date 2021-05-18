@@ -5,7 +5,7 @@
             <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
             <input type=hidden name="ifid" value="{{ tostring(getInterfaceId(ifname)) }}">
             <div class='form-row align-items-center'>
-                <div class="form-group col-12">
+                <div class="mb-3 col-12">
                     <label class="d-block">Select Export Type</label>
                     <div class="btn-group btn-group-toggle" data-toggle="buttons" id="export_hosts_buttons"
                         name="export_hosts_buttons">
@@ -27,13 +27,13 @@
                         </label>
                     </div>
                 </div>
-                <div class="form-group col-auto">
+                <div class="mb-3 col-auto">
                     <label for="export_host">Insert Host IP or Mac Address or /24</label>
                     <input type="text" id="export_host" data-host="host" name="host"
                         placeholder="{{ i18n("manage_data.ip_or_mac_address")}}" class="form-control" size="24" disabled
                         required />
                 </div>
-                <div class="form-group col-auto">
+                <div class="mb-3 col-auto">
                     <label for="export_vlan">Insert VLAN Host</label>
                     <input type="number" min="1" max="65535" placeholder="{{ i18n(" vlan") }}" id="export_vlan"
                         name="vlan" class="form-control" value="" disabled />

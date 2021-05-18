@@ -213,7 +213,7 @@ if(application ~= nil) then
    application_filter = '<span class="fas fa-filter"></span>'
 end
 
-local dt_buttons = "['<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
+local dt_buttons = "['<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-bs-toggle=\"dropdown\">"..i18n("flows_page.applications").. " " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
 dt_buttons = dt_buttons..'<li><a class="dropdown-item" href="'..nav_url..'&page=flows">'..i18n("flows_page.all_proto")..'</a></li>'
 
 local ndpi_stats = interface.getASInfo(asn)
@@ -229,7 +229,7 @@ end
 dt_buttons = dt_buttons .. "</ul>"
 
 -- Hosts type dropdown
-dt_buttons = dt_buttons .. '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">' .. i18n("flows_page.hosts") .. '<span class="caret"></span></button><ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">'
+dt_buttons = dt_buttons .. '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">' .. i18n("flows_page.hosts") .. '<span class="caret"></span></button><ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">'
 
 local flowhosts_type_params = table.clone(page_params)
 flowhosts_type_params["flowhosts_type"] = nil
@@ -245,7 +245,7 @@ dt_buttons = dt_buttons .. formatDropdownEntries({
 dt_buttons = dt_buttons .. "</ul>"
 
 -- IP version dropdown
-dt_buttons = dt_buttons .. '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">' .. i18n("flows_page.ip_version") .. '<span class="caret"></span></button><ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">'
+dt_buttons = dt_buttons .. '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">' .. i18n("flows_page.ip_version") .. '<span class="caret"></span></button><ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">'
 
 local flowhosts_type_params = table.clone(page_params)
 flowhosts_type_params["ipversion"] = nil

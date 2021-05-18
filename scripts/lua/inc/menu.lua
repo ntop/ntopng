@@ -805,7 +805,7 @@ print[[
 
             } else if (rsp.status == 'update-avail' || rsp.status == 'upgrade-failure') {
 
-              $('#updates-info-li').html('<span class="badge badge-pill badge-danger">]] print(i18n("updates.available")) print[[</span> ]] print(info["product"]) print[[ ' + rsp.version);
+              $('#updates-info-li').html('<span class="badge bg-pill bg-danger">]] print(i18n("updates.available")) print[[</span> ]] print(info["product"]) print[[ ' + rsp.version);
               $('#updates-info-li').attr('title', '');
 
               var icon = '<i class="fas fa-download"></i>';
@@ -855,10 +855,10 @@ end -- num_ifaces > 0
 -- ##############################################
 
 print([[
-   <nav class="navbar navbar-expand-md navbar-expand-lg fixed-top navbar-light justify-content-between" id='n-navbar'>
+   <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top px-2" id='n-navbar'>
       <ul class='navbar-nav flex-row flex-wrap'>
          <li class='nav-item'>
-            <button class='btn btn-outline-dark border-0 btn-sidebar' data-toggle='sidebar'>
+            <button class='btn btn-outline-dark border-0 btn-sidebar' data-bs-toggle='sidebar'>
                <i class="fas fa-bars"></i>
             </button>
          </li>
@@ -979,7 +979,7 @@ print(template_utils.gen("pages/components/ifaces-dropdown.template", context))
 if not is_pcap_dump and not is_system_interface then
 
    print([[
-      <li class='nav-item d-none d-sm-done d-md-flex d-lg-flex ml-2'>
+      <li class='nav-item d-none d-sm-done d-md-flex d-lg-flex ms-2'>
          <div class='info-stats'>
             ]].. page_utils.generate_info_stats() ..[[
          </div>
@@ -1000,7 +1000,7 @@ if (_POST["ntopng_license"] == nil) and (info["pro.systemid"] and (info["pro.sys
          local rest = info["pro.demo_ends_at"] - os.time()
 
          if (rest > 0) then
-            print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge badge-warning">')
+            print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge bg-warning">')
             print(" " .. i18n("about.licence_expires_in", {time=secondsToTime(rest)}))
             print('</span></a></li>')
          end
@@ -1008,7 +1008,7 @@ if (_POST["ntopng_license"] == nil) and (info["pro.systemid"] and (info["pro.sys
 
    else
       if(not(ntop.getInfo()["pro.forced_community"])) then
-         print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge badge-warning">')
+         print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge bg-warning">')
          print(i18n("about.upgrade_to_professional")..' <i class="fas fa-external-link-alt"></i>')
          print('</span></a></li>')
       end
@@ -1027,7 +1027,7 @@ print([[
 print('</ul>')
 
 print([[
-<ul class='navbar-nav flex-row ml-auto'>
+<ul class='navbar-nav flex-row ms-auto'>
 ]])
 
 -- ########################################
@@ -1060,7 +1060,6 @@ end
 -- #########################################
 -- User Navbar Menu
 
-
 -- Render Blog Notifications
 if (not info.oem) then
 
@@ -1070,8 +1069,8 @@ if (not info.oem) then
    local posts, new_posts_counter = blog_utils.readPostsFromRedis(username)
 
    print([[
-   <li class="nav-item">
-      <a id="notification-list" href="#" class="nav-link dropdown-toggle mx-2 dark-gray position-relative" data-toggle="dropdown">
+   <li class="nav-item dropdown">
+      <a id="notification-list" href="#" class="nav-link dropdown-toggle mx-2 dark-gray position-relative" data-bs-toggle="dropdown">
          <i class='fas fa-bell'></i>
          ]])
 
@@ -1081,7 +1080,7 @@ if (not info.oem) then
 
    print([[
       </a>
-      <div class="dropdown-menu dropdown-menu-right p-1">
+      <div class="dropdown-menu dropdown-menu-end p-1">
          <div class="blog-section">
             <span class="dropdown-header p-2 mb-0">]].. i18n("blog_feed.news_from_blog") ..[[</span>
             <ul class="list-unstyled">]])
@@ -1137,22 +1136,24 @@ local session_user = _SESSION['user']
 local is_no_login_user = isNoLoginUser()
 
 print([[
-   <li class="nav-item">
-      <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" data-toggle="dropdown">
+   <li class="nav-item dropdown">
+      <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" id='navbar-user-dropdown-link' role="button" data-bs-toggle="dropdown" aria-expanded="false">
          <i class='fas fa-user'></i>
       </a>
-      <ul class="dropdown-menu dropdown-menu-right">]])
+      <ul class="dropdown-menu dropdown-menu-lg-end" aria-labelledby='navbar-user-dropdown-link'>]])
 
 if (not _SESSION["localuser"] or not is_admin) and (not is_no_login_user) then
    print[[
-         <a class="dropdown-item" href='#password_dialog' data-toggle='modal'>
+      <li>
+         <a class="dropdown-item" href='#password_dialog' data-bs-toggle='modal'>
             <i class='fas fa-user'></i> ]] print(i18n("manage_users.manage_user_x", {user = _SESSION["user"]})) print[[
          </a>
+      </li>
    ]]
 else
 
    if (not is_no_login_user) then
-      print([[<a class='dropdown-item' href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua?user=]].. session_user:gsub("%.", "\\\\\\\\.") ..[['><i class='fas fa-user'></i> ]].. session_user ..[[</a>]])
+      print([[<li><a class="dropdown-item" href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua?user=]].. session_user:gsub("%.", "\\\\\\\\.") ..[['><i class='fas fa-user'></i> ]].. session_user ..[[</a></li>]])
    else
       print([[<li class='dropdown-item disabled'>]])
       print([[<i class='fas fa-user'></i> ]].. session_user ..[[]])
@@ -1167,12 +1168,12 @@ print([[
    <li class="dropdown-divider"></li>
    <li class="dropdown-header">]] .. i18n("nedge.product_status", {product=info.product}) .. [[</li>
    <li>
-      <a class="dropdown-item" href="#poweroff_dialog" data-toggle="modal">
+      <a class="dropdown-item" href="#poweroff_dialog" data-bs-toggle="modal">
          <i class="fas fa-power-off"></i> ]]..i18n("nedge.power_off")..[[
       </a>
    </li>
    <li>
-      <a class="dropdown-item" href="#reboot_dialog" data-toggle="modal">
+      <a class="dropdown-item" href="#reboot_dialog" data-bs-toggle="dropdown"e="modal">
          <i class="fas fa-redo"></i> ]]..i18n("nedge.reboot")..[[
       </a>
    </li>
@@ -1184,7 +1185,7 @@ if updates_supported then
 print([[
    <li class="dropdown-divider"></li>
    <li class="dropdown-header" id="updates-info-li">]] .. i18n("updates.no_updates") .. [[.</li>
-   <li><button class="dropdown-item" id="updates-install-li"><i class="fas fa-sync"></i> ]] .. (i18n("updates.check"))  ..[[</button></li>
+   <li><a class='dropdown-item' href='#' id="updates-install-li"><i class="fas fa-sync"></i> ]] .. (i18n("updates.check"))  ..[[</a></li>
 ]])
 end
 
@@ -1192,7 +1193,9 @@ end
 if is_admin then
 print([[
    <li class='dropdown-divider'></li>
-   <a class='dropdown-item toggle-dark-theme' href='#'><i class="fas fa-adjust"></i> ]].. i18n("toggle_dark_theme") ..[[</a>
+   <li>
+      <a class='dropdown-item toggle-dark-theme' href='#'><i class="fas fa-adjust"></i> ]].. i18n("toggle_dark_theme") ..[[</a>
+   </li>
 ]])
 end
 
@@ -1202,7 +1205,7 @@ if(_SESSION["user"] ~= nil and (not is_no_login_user)) then
    print[[
 
  <li class='dropdown-divider'></li>
- <li class="nav-item">
+ <li>
    <a class="dropdown-item" href="]]
    print(ntop.getHttpPrefix())
    print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"><i class="fas fa-sign-out-alt"></i> ]] print(i18n("login.logout")) print[[</a></li>]]
@@ -1212,7 +1215,7 @@ if(_SESSION["user"] ~= nil and (not is_no_login_user)) then
 if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
    print [[
        <li class="dropdown-divider"></li>
-       <li class="nav-item"><a class="dropdown-item restart-service" href="#"><i class="fas fa-redo-alt"></i> ]] print(i18n("restart.restart")) print[[</a></li>
+       <li><a class="dropdown-item restart-service" href="#"><i class="fas fa-redo-alt"></i> ]] print(i18n("restart.restart")) print[[</a></li>
    ]]
 end
 
@@ -1235,8 +1238,8 @@ toasts_manager.render_toasts("main-container", toasts_manager.load_main_toasts()
 print("<div class='main-alerts'>")
 
 -- Hidden by default, will be shown by the footer if necessary
-print('<div id="influxdb-error-msg" class="alert alert-danger" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <span id="influxdb-error-msg-text"></span>')
-print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+print('<div id="influxdb-error-msg" class="alert alert-danger alert-dismissable" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <span id="influxdb-error-msg-text"></span>')
+print[[<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>]]
 print('</div>')
 
 -- Hidden by default, will be shown by the footer if necessary
@@ -1244,15 +1247,15 @@ print('<div id="major-release-alert" class="alert alert-info" style="display:non
 print('</div>')
 
 -- Hidden by default, will be shown by the footer if necessary
-print('<div id="move-rrd-to-influxdb" class="alert alert-warning" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+print('<div id="move-rrd-to-influxdb" class="alert alert-warning alert-dismissable" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
 print(i18n("alert_messages.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
+print[[<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>]]
 print('</div>')
 
 if(_SESSION["INVALID_CSRF"]) then
-  print('<div id="move-rrd-to-influxdb" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-  print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+  print('<div id="move-rrd-to-influxdb" class="alert alert-warning alert-dismissable" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
   print(i18n("expired_csrf"))
+  print[[<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>]]
   print('</div>')
 end
 

@@ -27,7 +27,7 @@ local function printHashTablesDropdown(base_url, page_params)
    hash_table_params["hash_table"] = nil
 
    print[[\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("internals.hash_table")) print[[]] print(hash_table_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("internals.hash_table")) print[[]] print(hash_table_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\]]
 
    print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, hash_table_params)) print[[">]] print(i18n("internals.all_hash_tables")) print[[</a></li>\]]
@@ -210,7 +210,7 @@ local function printPeriodicactivityIssuesDropdown(base_url, page_params)
    periodic_activity_issue_params["periodic_script_issue"] = nil
 
    print[[\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("internals.periodic_activity_issues")) print[[]] print(periodic_activity_issue_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("internals.periodic_activity_issues")) print[[]] print(periodic_activity_issue_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\]]
 
    print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, periodic_activity_issue_params)) print[[">]] print(i18n("internals.all_periodic_activities")) print[[</a></li>\]]
@@ -239,7 +239,7 @@ local function printPeriodicactivityDropdown(base_url, page_params)
    periodic_activity_params["periodic_script"] = nil
 
    print[[\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("internals.periodic_activity")) print[[]] print(periodic_activity_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("internals.periodic_activity")) print[[]] print(periodic_activity_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\]]
 
    print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, periodic_activity_params)) print[[">]] print(i18n("internals.all_periodic_activities")) print[[</a></li>\]]
@@ -264,9 +264,9 @@ local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
 <b>]] print(i18n("notes")) print[[</b>
 <ul>
    <li>]] print(i18n("internals.status_description")) print[[</li><ul>
-      <li><span class="badge badge-secondary">]] print(i18n("internals.sleeping")) print[[</span> ]] print(i18n("internals.status_sleeping_descr")) print[[</li>
-      <li><span class="badge badge-warning">]] print(i18n("internals.queued")) print[[</span> ]] print(i18n("internals.status_queued_descr")) print[[</li>
-      <li><span class="badge badge-success">]] print(i18n("running")) print[[</span> ]] print(i18n("internals.status_running_descr")) print[[</li>
+      <li><span class="badge bg-secondary">]] print(i18n("internals.sleeping")) print[[</span> ]] print(i18n("internals.status_sleeping_descr")) print[[</li>
+      <li><span class="badge bg-warning">]] print(i18n("internals.queued")) print[[</span> ]] print(i18n("internals.status_queued_descr")) print[[</li>
+      <li><span class="badge bg-success">]] print(i18n("running")) print[[</span> ]] print(i18n("internals.status_running_descr")) print[[</li>
    </ul>
    <li>]] print(i18n("internals.periodic_activities_descr")) print[[</li>
    <li>]] print(i18n("internals.periodic_activities_periodicity_descr")) print[[</li>
@@ -281,7 +281,7 @@ local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
 </ul>
 <script type='text/javascript'>
 $(document).ready(function(){
-    $('[data-toggle="popover"]').popover({
+    $('[data-bs-toggle="popover"]').popover({
         placement : 'top',
         trigger : 'hover'
     });
@@ -465,7 +465,7 @@ local function printUserScriptsDropdown(base_url, page_params)
    user_script_target_params["user_script_target"] = nil
 
    print[[\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("internals.user_script_target")) print[[]] print(user_script_target_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("internals.user_script_target")) print[[]] print(user_script_target_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu" role="menu" id="flow_dropdown">\]]
 
    print[[<li><a class="dropdown-item" href="]] print(getPageUrl(base_url, user_script_target_params)) print[[">]] print(i18n("internals.all_user_script_targets")) print[[</a></li>\]]

@@ -12,14 +12,12 @@
                             <button data-dismiss="modal" class="btn btn-danger confirm" type="button">{{ i18n("abort") }}</button>
                         </div>
                     </div>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
             <form autocomplete="off">
                 <div class="modal-body">
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="endpoint-name-input">
                             <b>{{ i18n("endpoint_notifications.name") }}</b>
                         </label>
@@ -27,12 +25,12 @@
                             <input data-validation-empty-message="{{ i18n('validation.empty_name') }}" required name="name" type="text" class="form-control" id="endpoint-name-input">
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="endpoint-type-select">
                             <b>{{ i18n("endpoint_notifications.type") }}</b>
                         </label>
                         <div class="col-sm-5">
-                            <select required name="type" class="form-control" id="endpoint-type-select">
+                            <select required name="type" class="form-select" id="endpoint-type-select">
                                 {%
                                     local selected = false
                                     for endpoint_key, endpoint in pairsByKeys(endpoints, asc) do

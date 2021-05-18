@@ -21,7 +21,7 @@ sendHTTPContentTypeHeader('application/json')
 
 local function getListStatusLabel(list)
   if not list.enabled then
-    return '<span class="badge badge-danger">'.. i18n("nedge.status_disabled") ..'</span>'
+    return '<span class="badge bg-danger">'.. i18n("nedge.status_disabled") ..'</span>'
   end
 
   if list.status.last_error then
@@ -33,10 +33,10 @@ local function getListStatusLabel(list)
       info_msg = list.status.last_error
     end
 
-    return '<span title="'.. info_msg ..'" class="badge badge-danger">'.. i18n("error") .. info ..'</span>'
+    return '<span title="'.. info_msg ..'" class="badge bg-danger">'.. i18n("error") .. info ..'</span>'
   end
 
-  return '<span class="badge badge-success">'.. i18n("category_lists.enabled") ..'</span>'
+  return '<span class="badge bg-success">'.. i18n("category_lists.enabled") ..'</span>'
 end
 
 -- ################################################

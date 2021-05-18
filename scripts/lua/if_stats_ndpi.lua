@@ -104,7 +104,7 @@ for _k in pairsByKeys(vals, asc) do
 
   if(not(json_format)) then
      if(k ~= "ARP") then print(" <A class='btn btn-sm bt-info' HREF=\""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..k.."\"><i class=\"fas fa-search-plus\"></i></A>") end
-     print("</th><td class=\"text-right\" style=\"width: 20%;\">" ..bytesToSize(t).. "</td>")
+     print("</th><td class=\"text-end\" style=\"width: 20%;\">" ..bytesToSize(t).. "</td>")
      print("<td ><span style=\"width: 60%; float: left;\">")
      graph_utils.percentageBar(total, t, "") -- k
      -- print("</td>\n")

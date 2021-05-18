@@ -144,7 +144,7 @@ for app, _ in pairsByValues(sorter, sOrder) do
    record["column_application_hosts"] = makeApplicationHostsList(app["app_name"])
    record["column_is_custom"] = ntop.isCustomApplication(tonumber(app["app_id"]))
 
-   cat_select_dropdown = '<select class="form-control" style="width:320px;" name="proto_' .. app["app_id"] .. '">'
+   cat_select_dropdown = '<select class="form-select" style="width:320px;" name="proto_' .. app["app_id"] .. '">'
    local current_id = tostring(app["cat"]["id"])
 
    for cat_name, cat_id in pairsByKeys(categories, asc_insensitive) do

@@ -31,7 +31,7 @@ for k,v in pairs(lc) do
    local capture_max_pkts = v.capture_max_pkts
    local diff = v.capture_until - os.time()
    local capture_until = format_utils.formatEpoch(v.capture_until).." [ - "..diff.." sec ]"
-   local stop_href = "<A HREF=".. ntop.getHttpPrefix() .."/lua/stop_live_capture.lua?capture_id="..v.id.."><span class=\"badge badge-danger\">Stop <i class=\"fas fa-download\"></i></span></A>"
+   local stop_href = "<A HREF=".. ntop.getHttpPrefix() .."/lua/stop_live_capture.lua?capture_id="..v.id.."><span class=\"badge bg-danger\">Stop <i class=\"fas fa-download\"></i></span></A>"
 
    if(v.host ~= nil) then host = v.host end
    res[#res + 1] = { host = host, num_captured_packets = num_captured_packets, capture_until = capture_until, stop_href = stop_href }

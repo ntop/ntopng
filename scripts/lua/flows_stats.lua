@@ -177,7 +177,7 @@ if table.len(page_params) > 0 then
                <div class="up">
                   <i class="fas fa-arrow-up" data-original-title="" title=""></i>
                   <span id="upload-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                  <div class='d-inline-block text-right' style='width: 11ch'>
+                  <div class='d-inline-block text-end' style='width: 11ch'>
                      <span id="upload-filter-traffic-value">0 kbit/s</span> |
                   </div>
                   <span id="filtered-flows-tot-bytes">]] print(i18n("flows_page.tot_bytes")) print[[</span>
@@ -186,7 +186,7 @@ if table.len(page_params) > 0 then
                <div class="down">
                   <i class="fas fa-arrow-down" data-original-title="" title=""></i>
                   <span id="download-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                  <div class='d-inline-block text-right' style='width: 11ch'>
+                  <div class='d-inline-block text-end' style='width: 11ch'>
                      <span id="download-filter-traffic-value">0 kbit/s</span> |
                   </div>
                   <span id="filtered-flows-tot-throughput">]] print(i18n("flows_page.tot_throughput")) print[[</span>

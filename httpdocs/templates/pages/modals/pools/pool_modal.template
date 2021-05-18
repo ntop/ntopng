@@ -11,14 +11,12 @@
                             <button data-dismiss="modal" class="btn btn-danger confirm" type="button">{{ i18n("abort") }}</button>
                         </div>
                     </div>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
             <form role="form">
                 <div class="modal-body">
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-name-input">
                             <b>{{ i18n("pools.name") }}</b>
                         </label>
@@ -31,12 +29,12 @@
                     </div>
                     {# the host pool modal doesn't have the members field #}
                     {% if (pool.name ~= "host") then %}
-                    <div class="form-group row members-container" {* ((table.len(pool.all_members) > 0) and '' or 'style="display: none"') *}>
+                    <div class="mb-3 row members-container" {* ((table.len(pool.all_members) > 0) and '' or 'style="display: none"') *}>
                         <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-members-input">
                             <b>{{ i18n("pools.members") }}</b>
                         </label>
                         <div class="col-sm-7">
-                            <select class="form-control selectpicker" multiple name="members" id="{{ modal_type }}-pool-members-select">
+                            <select class="selectpicker" multiple name="members" id="{{ modal_type }}-pool-members-select">
                                 {%
                                     local sorting_order = nil
                                     if (pool.name == "snmp" or pool.name == "network") then
@@ -67,7 +65,7 @@
                         </div>
                     </div>
                     {% elseif (pool.name == "host" and modal_type == "edit") then %}
-                    <div class="form-group row members-container">
+                    <div class="mb-3 row members-container">
                         <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-members-input">
                             {{ i18n("pools.members") }}
                         </label>
@@ -77,7 +75,7 @@
                     </div>
                     {% end %}
 
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-recipient-select">
                             <b>{{ i18n("pools.recipients") }}</b>
                         </label>
@@ -95,7 +93,7 @@
                                 end
                             %}
 
-                            <select multiple class="form-control selectpicker" name="recipients" id="{{ modal_type }}-pool-recipient-select">
+                            <select multiple class="selectpicker" name="recipients" id="{{ modal_type }}-pool-recipient-select">
 
                                 {% for group_key, recipients in pairsByKeys(configured_recipients) do %}
                                 <optgroup label="{{ pool.endpoint_types[group_key].name }}">

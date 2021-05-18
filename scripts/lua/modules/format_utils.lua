@@ -354,15 +354,15 @@ function format_utils.formatFullAddressCategory(host)
       end
       
       if(host["is_broadcast"] == true) then 
-         addr_category = addr_category .. " <abbr title=\"".. i18n("broadcast") .."\"><span class='badge badge-dark'>" ..i18n("short_broadcast").. "</span></abbr>"
+         addr_category = addr_category .. " <abbr title=\"".. i18n("broadcast") .."\"><span class='badge bg-dark'>" ..i18n("short_broadcast").. "</span></abbr>"
       end
       
       if(host["broadcast_domain_host"] == true) then
-         addr_category = addr_category .. " <span class='badge badge-info'><i class='fas fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
+         addr_category = addr_category .. " <span class='badge bg-info'><i class='fas fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
       end
       
       if(host["privatehost"] == true) then 
-         addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_private_ip") ..'\"><span class="badge badge-warning">'..i18n("details.label_short_private_ip")..'</span></abbr>'
+         addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_private_ip") ..'\"><span class="badge bg-warning">'..i18n("details.label_short_private_ip")..'</span></abbr>'
       end
 
       if(host["dhcpHost"] == true) then

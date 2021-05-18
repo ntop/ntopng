@@ -43,7 +43,7 @@
 {* template_utils.gen("pages/modals/recipients_endpoint/edit.template", notifications) *}
 {* template_utils.gen("pages/modals/recipients_endpoint/users.template", notifications) *}
 
-<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 <script type="text/javascript">
 
     const CAN_CREATE_RECIPIENT = {{ notifications.can_create_recipient }};

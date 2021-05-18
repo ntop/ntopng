@@ -64,11 +64,11 @@ end
 
 local function status2label(status)
    if status == "running" then
-      return([[<span class="badge badge-success">]] .. i18n("running") .. [[</span>]])
+      return([[<span class="badge bg-success">]] .. i18n("running") .. [[</span>]])
    elseif status == "queued" then
-      return([[<span class="badge badge-warning">]] .. i18n("internals.queued") .. [[</span>]])
+      return([[<span class="badge bg-warning">]] .. i18n("internals.queued") .. [[</span>]])
    elseif status == "sleeping" then
-      return([[<span class="badge badge-secondary">]] .. i18n("internals.sleeping") .. [[</span>]])
+      return([[<span class="badge bg-secondary">]] .. i18n("internals.sleeping") .. [[</span>]])
    else
       return("")
    end
@@ -304,7 +304,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
 	 activity_desc = ""
       end
 
-      -- local activity_name = string.format("<span id='%s' data-toggle='popover' data-trigger='hover'  data-placement='top' title='%s' data-content='%s'>%s</span><script>$('#%s').popover('hide');$('#%s').popover({placement : 'top', trigger : 'hover'});</script>", activity_id, script_stats.script, i18n("periodic_activities_descr."..script_stats.script), script_stats.script, activity_id, activity_id)
+      -- local activity_name = string.format("<span id='%s' data-bs-toggle='popover' data-trigger='hover'  data-placement='top' title='%s' data-content='%s'>%s</span><script>$('#%s').popover('hide');$('#%s').popover({placement : 'top', trigger : 'hover'});</script>", activity_id, script_stats.script, i18n("periodic_activities_descr."..script_stats.script), script_stats.script, activity_id, activity_id)
       local activity_name = string.format("<span id='%s' title='%s'>%s</span>", activity_id, i18n("periodic_activities_descr."..script_stats.script), script_stats.script)
       record["column_periodic_activity_name"] = warn .. activity_name .. activity_desc
 

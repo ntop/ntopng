@@ -1,4 +1,4 @@
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         {{ i18n("discord_alert_endpoint.username") }}
     </label>

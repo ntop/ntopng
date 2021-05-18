@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function () {
     const TABLE_DATA_REFRESH = 15000;
 
     let dtConfig = DataTableUtils.getStdDatatableConfig([

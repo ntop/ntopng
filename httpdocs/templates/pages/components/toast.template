@@ -2,13 +2,11 @@
     data-autohide="false">
     <div
         class="toast-header border-{{ toast.level.bg_color }} bg-{{ toast.level.bg_color }} {{ toast.level.title_text_color }}">
-        <strong class="mr-auto">
+        <strong class="me-auto">
             <i class="fas {{ toast.level.icon }}"></i> {{ toast.title }}
         </strong>
         {% if not (toast.dismissable) then %}
-        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">
-            <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         {% end %}
     </div>
     <div class="toast-body">
@@ -22,7 +20,7 @@
             </a>
             {% end %}
             {% if (toast.dismissable) then %}
-            <button class='dismiss btn btn-sm btn-primary ml-1'>
+            <button class='dismiss btn btn-sm btn-primary ms-1'>
                 {{ i18n("dismiss") }}
             </button>
             {% end %}

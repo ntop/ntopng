@@ -44,7 +44,7 @@ print(
       action  = "assignDevicePool(mac_to_assign)",
       title   = i18n("unknown_devices.assign_device_pool"),
       message = i18n("unknown_devices.select_pool", {mac="<span id=\"assign_device_dialog_mac\"></span>"}) ..
-        '<br><br><select class="form-control" id="device_target_pool" style="width:15em;" >'..
+        '<br><br><select class="form-select" id="device_target_pool" style="width:15em;" >'..
         graph_utils.poolDropdown(ifstats.id, "")..
         '</select>',
       custom_alert_class = "",
@@ -101,7 +101,7 @@ print ('sort: [ ["' .. getDefaultTableSort("unknown_devices") ..'","' .. getDefa
 print('buttons: [')
    -- table.clone needed to modify some parameters while keeping the original unchanged
    local devices_mode = table.clone(page_params)
-   print('\'<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..i18n("unknown_devices.filter_devices")..devices_mode_filter..'<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
+   print('\'<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..i18n("unknown_devices.filter_devices")..devices_mode_filter..'<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
 
    devices_mode.unassigned_devices = nil
    print ('<li class="nav-item"><a class="dropdown-item" href="')

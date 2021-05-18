@@ -90,9 +90,9 @@ end
 if isAdministrator() then
    if _POST["action"] == "reset_stats" then
       if interface.resetMacStats(mac) then
-         print("<div class=\"alert alert alert-success\">")
-         print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+         print("<div class=\"alert alert alert-dismissable alert-success\">")
          print(i18n("mac_details.reset_stats_in_progress"))
+         print([[<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>]])
          print("</div>")
       end
    end

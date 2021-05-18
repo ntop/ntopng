@@ -1033,7 +1033,7 @@ class NtopUtils {
 
 }
 
-$(document).ready(function () {
+$(function () {
 	// if there are inputs with 'pattern' data attribute
 	// then initialize them
 	NtopUtils.initDataPatterns();

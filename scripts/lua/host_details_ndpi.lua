@@ -75,13 +75,13 @@ end
 
 local total = total_sent + total_recv
 
-print("<tr><td>Total</td><td class=\"text-right\">".. secondsToTime(host["total_activity_time"]) .."</td><td class=\"text-right\">" .. bytesToSize(total_sent) .. "</td><td class=\"text-right\">" .. bytesToSize(total_recv) .. "</td>")
+print("<tr><td>Total</td><td class=\"text-end\">".. secondsToTime(host["total_activity_time"]) .."</td><td class=\"text-end\">" .. bytesToSize(total_sent) .. "</td><td class=\"text-end\">" .. bytesToSize(total_recv) .. "</td>")
 
 print("<td>")
 graph_utils.breakdownBar(total_sent, i18n("ndpi_page.sent"), total_recv, i18n("ndpi_page.rcvd"), 0, 100)
 print("</td>\n")
 
-print("<td colspan=2 class=\"text-right\">" ..  bytesToSize(total).. "</td></tr>\n")
+print("<td colspan=2 class=\"text-end\">" ..  bytesToSize(total).. "</td></tr>\n")
 
 for _k in pairsByKeys(vals , desc) do
   k = vals[_k]
@@ -101,13 +101,13 @@ for _k in pairsByKeys(vals , desc) do
     historicalProtoHostHref(getInterfaceId(ifname), host, nil, protos[k], nil)
 
     print('</td>')
-    print("<td class=\"text-right\">" .. secondsToTime(host["ndpi"][k]["duration"]) .. "</td>")
-    print("<td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.sent"]) .. "</td><td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.rcvd"]) .. "</td>")
+    print("<td class=\"text-end\">" .. secondsToTime(host["ndpi"][k]["duration"]) .. "</td>")
+    print("<td class=\"text-end\">" .. bytesToSize(host["ndpi"][k]["bytes.sent"]) .. "</td><td class=\"text-end\">" .. bytesToSize(host["ndpi"][k]["bytes.rcvd"]) .. "</td>")
 
     print("<td>")
     graph_utils.breakdownBar(host["ndpi"][k]["bytes.sent"], i18n("ndpi_page.sent"), host["ndpi"][k]["bytes.rcvd"], i18n("ndpi_page.rcvd"), 0, 100)
     print("</td>\n")
 
-    print("<td class=\"text-right\">" .. bytesToSize(t).. "</td><td class=\"text-right\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
+    print("<td class=\"text-end\">" .. bytesToSize(t).. "</td><td class=\"text-end\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
   end
 end

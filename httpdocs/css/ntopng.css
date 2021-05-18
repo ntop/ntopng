@@ -5,6 +5,10 @@
   --scrollable-dropdown-height: 20rem;
 }
 
+a, .btn-link {
+  text-decoration: none;
+}
+
 summary > span {
   border-bottom: 1px dotted gray;
   font-weight: bolder;
@@ -569,16 +573,15 @@ path.link {
   transform: scale(1.5);
 }
 
+.dt-search {
+  display: inline-block;
+}
 .dt-search label {
   margin-right: 0.5rem;
   margin-top: 0.25rem;
 }
 
 /* Container */
-
-.wrapper {
-  height: 100vh;
-}
 
 main#n-container {
   height: 100%;

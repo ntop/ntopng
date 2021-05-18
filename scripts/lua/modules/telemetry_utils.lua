@@ -60,9 +60,9 @@ function telemetry_utils.print_overview()
 ]]
 
    if telemetry_utils.telemetry_enabled() then
-      print('<span class="badge badge-success">'..i18n('prefs.telemetry_contribute')..'</span>')
+      print('<span class="badge bg-success">'..i18n('prefs.telemetry_contribute')..'</span>')
    elseif telemetry_utils.telemetry_disabled() then
-      print('<span class="badge badge-secondary">'..i18n('prefs.telemetry_do_not_contribute')..'</span>')
+      print('<span class="badge bg-secondary">'..i18n('prefs.telemetry_do_not_contribute')..'</span>')
    else -- no preference expressed
       print('<i>'..i18n('telemetry_page.telemetry_data_no_consent')..'</i>')
    end

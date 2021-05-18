@@ -508,7 +508,7 @@ local function printAddCustomHostRule(full_url)
    local short_url = categories_utils.getSuggestedHostName(full_url)
 
    -- Fill the category dropdown
-   local cat_select_dropdown = '<select id="flow_target_category" class="form-control">'
+   local cat_select_dropdown = '<select id="flow_target_category" class="form-select">'
 
    for cat_name, cat_id in pairsByKeys(categories, asc_insensitive) do
       cat_select_dropdown = cat_select_dropdown .. [[<option value="cat_]] ..cat_id .. [[">]] .. (i18n("ndpi_categories." .. cat_name) or cat_name) .. [[</option>]]
@@ -516,7 +516,7 @@ local function printAddCustomHostRule(full_url)
    cat_select_dropdown = cat_select_dropdown .. "</select>"
 
    -- Fill the application dropdown
-   local app_select_dropdown = '<select id="flow_target_app" class="form-control" style="display:none">'
+   local app_select_dropdown = '<select id="flow_target_app" class="form-select" style="display:none">'
 
    for proto_name, proto_id in pairsByKeys(protocols, asc_insensitive) do
       app_select_dropdown = app_select_dropdown .. [[<option value="]] ..proto_id .. [[">]] .. proto_name .. [[</option>]]
@@ -541,7 +541,7 @@ local function printAddCustomHostRule(full_url)
 
    local rule_type_selection = ""
    if protos_utils.hasProtosFile() then
-      rule_type_selection = i18n("flow_details.rule_type")..":"..[[<br><select id="new_rule_type" onchange="new_rule_dropdown_select(this)" class="form-control">
+      rule_type_selection = i18n("flow_details.rule_type")..":"..[[<br><select id="new_rule_type" onchange="new_rule_dropdown_select(this)" class="form-select">
 	    <option value="application">]]..i18n("application")..[[</option>
 	    <option value="category" selected>]]..i18n("category")..[[</option>
 	 </select><br>]]
@@ -1135,16 +1135,16 @@ else
    end
 
    if(flow["protos.tls.client_alpn"] ~= nil) then
-      print('<tr><th width=30%><a href="https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation" data-toggle="tooltip" title="ALPN">TLS ALPN</A></th><td colspan=2>'..page_utils.safe_html(flow["protos.tls.client_alpn"])..'</td></tr>\n')
+      print('<tr><th width=30%><a href="https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation" data-bs-toggle="tooltip" title="ALPN">TLS ALPN</A></th><td colspan=2>'..page_utils.safe_html(flow["protos.tls.client_alpn"])..'</td></tr>\n')
    end
 
    if(flow["protos.tls.client_tls_supported_versions"] ~= nil) then
-      print('<tr><th width=30%><a href="https://tools.ietf.org/html/rfc7301" data-toggle="tooltip">'.. i18n("flow_details.client_tls_supported_versions") ..'</A></th><td colspan=2>'..page_utils.safe_html(flow["protos.tls.client_tls_supported_versions"])..'</td></tr>\n')
+      print('<tr><th width=30%><a href="https://tools.ietf.org/html/rfc7301" data-bs-toggle="tooltip">'.. i18n("flow_details.client_tls_supported_versions") ..'</A></th><td colspan=2>'..page_utils.safe_html(flow["protos.tls.client_tls_supported_versions"])..'</td></tr>\n')
    end
 
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
      print("<tr><th width=30%>"..
-     '<a href="https://en.wikipedia.org/wiki/TCP_tuning" data-toggle="tooltip" target=\"_blank\" title="'..i18n("flow_details.computed_as_tcp_window_size_rtt")..'">'..
+     '<a href="https://en.wikipedia.org/wiki/TCP_tuning" data-bs-toggle="tooltip" target=\"_blank\" title="'..i18n("flow_details.computed_as_tcp_window_size_rtt")..'">'..
      i18n("flow_details.max_estimated_tcp_throughput").."</a> <i class=\"fas fa-external-link-alt\"></i><td nowrap> "..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server")..": ")
      print(bitsToSize(flow["tcp.max_thpt.cli2srv"]))
      print("</td><td> "..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server")..": ")
@@ -1433,7 +1433,7 @@ else
    end
 
    if(flow["profile"] ~= nil) then
-      print("<tr><th width=30%><A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua\">"..i18n("flow_details.profile_name").."</A></th><td colspan=2><span class='badge badge-primary'>"..flow["profile"].."</span></td></tr>\n")
+      print("<tr><th width=30%><A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua\">"..i18n("flow_details.profile_name").."</A></th><td colspan=2><span class='badge bg-primary'>"..flow["profile"].."</span></td></tr>\n")
    end
 
    if(flow.src_as or flow.dst_as) then

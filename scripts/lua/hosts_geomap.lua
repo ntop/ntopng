@@ -29,10 +29,8 @@ if (num > 0) then
   page_utils.print_page_title(i18n("geo_map.hosts_geomap"))
   print([[
           <div id='geomap-alert' style="display: none" role="alert" class='alert alert-danger'>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
             <span id='error-message'></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
           <div class="d-flex justify-content-center align-items-center" style="height: 720px" id="map-canvas">
               <div class="spinner-border text-primary" role="status">

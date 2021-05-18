@@ -14,9 +14,7 @@
 								<button data-dismiss="modal" class="btn btn-danger confirm" type="button">{{ i18n("abort") }}</button>
 							</div>
 						</div>
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-							<span aria-hidden="true">&times;</span>
-						</button>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
 				</div>
 				<div class="modal-body container-fluid">
@@ -43,9 +41,7 @@
 						<label class="col-sm-3 col-form-label">{{ dialog.threshold }}</label>
 						<div class="col-sm-5">
 							<div class="input-group">
-								<div class="input-group-prepend">
-									<span class="input-group-text measurement-operator"></span>
-								</div>
+								<span class="input-group-text measurement-operator"></span>
 								<input required id="input-add-threshold" value="100" name="threshold" type="number"
 									class="form-control rounded-right measurement-threshold" min="1" max="10000">
 							</div>

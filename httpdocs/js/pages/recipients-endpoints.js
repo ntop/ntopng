@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function () {
 
     const TABLE_DATA_REFRESH = 15000;
     const DEFAULT_RECIPIENT_ID = 0;
@@ -159,7 +159,7 @@ $(document).ready(function () {
                         const isBuiltin = (recipient.endpoint_conf && recipient.endpoint_conf.builtin) || false;
 
                         if (isBuiltin) {
-                            badge = `<span class='badge badge-dark'>built-in</span>`;
+                            badge = `<span class='badge bg-dark'>built-in</span>`;
                         }
 
                         return `${i18n.endpoint_types[endpointType]} ${badge}`;

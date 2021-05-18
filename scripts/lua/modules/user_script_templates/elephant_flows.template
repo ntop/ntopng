@@ -3,7 +3,7 @@
     Template used by the 'Elephant Flows' User Script.
 #}
 
-<div class="form-group row">
+<div class="mb-3 row">
 
 </div>
 <script type="text/javascript">

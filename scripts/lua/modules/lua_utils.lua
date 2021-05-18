@@ -405,7 +405,7 @@ function printIpVersionDropdown(base_url, page_params)
    ipversion_params["version"] = nil
 
    print[[\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.ip_version")) print[[]] print(ipversion_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.ip_version")) print[[]] print(ipversion_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, ipversion_params)) print[[">]] print(i18n("flows_page.all_ip_versions")) print[[</a></li>\
          <li><a class="dropdown-item ]] if ipversion == "4" then print('active') end print[[" href="]] ipversion_params["version"] = "4"; print(getPageUrl(base_url, ipversion_params)); print[[">]] print(i18n("flows_page.ipv4_only")) print[[</a></li>\
@@ -437,7 +437,7 @@ function printVLANFilterDropdown(base_url, page_params)
    vlan_id_params["vlan"] = nil
 
    print[[\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.vlan")) print[[]] print(vlan_id_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.vlan")) print[[]] print(vlan_id_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, vlan_id_params)) print[[">]] print(i18n("flows_page.all_vlan_ids")) print[[</a></li>\]]
    for _, vid in ipairs(ids) do
@@ -481,8 +481,8 @@ function printDSCPDropdown(base_url, page_params, dscp_list)
    end
 
    print[[\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.dscp")) print[[]] print(dscp_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu dropdown-menu-right scrollable-dropdown" role="menu" id="flow_dropdown">\
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.dscp")) print[[]] print(dscp_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dscp_params_non_filter)) print[[">]] print(i18n("flows_page.all_dscp")) print[[</a></li>]]
 
    for key, value in pairsByKeys(ordered_dscp_list, asc) do
@@ -538,8 +538,8 @@ function printHostPoolDropdown(base_url, page_params, host_pool_list)
    end
    
    print[[\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("details.host_pool")) print[[]] print(host_pool_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu dropdown-menu-right scrollable-dropdown" role="menu" id="flow_dropdown">\
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("details.host_pool")) print[[]] print(host_pool_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, host_pool_params_non_filter)) print[[">]] print(i18n("flows_page.all_host_pool")) print[[</a></li>]]
 
    for key, value in pairsByKeys(ordered_host_pool_list, asc) do
@@ -572,7 +572,7 @@ function printTrafficTypeFilterDropdown(base_url, page_params)
    traffic_type_params["traffic_type"] = nil
 
    print[[\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.direction")) print[[]] print(traffic_type_filter) print[[<span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.direction")) print[[]] print(traffic_type_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, traffic_type_params)) print[[">]] print(i18n("hosts_stats.traffic_type_all")) print[[</a></li>\]]
 
@@ -1833,7 +1833,7 @@ function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, 
       local hostdetails_url = hostinfo2detailsurl(host_info, href_params, href_check)
 
       if not isEmptyString(hostdetails_url) then
-	 res = string.format("<a href='%s' data-toggle='tooltip' title='%s'>%s</a>",
+	 res = string.format("<a href='%s' data-bs-toggle='tooltip' title='%s'>%s</a>",
 			     hostdetails_url, href_tooltip or '', href_value or '')
       else
 	 res = href_value or ''
@@ -2938,14 +2938,14 @@ end
 
 -- print TCP flags
 function printTCPFlags(flags)
-   if(hasbit(flags,0x01)) then print('<span class="badge badge-info">FIN</span> ') end
-   if(hasbit(flags,0x02)) then print('<span class="badge badge-info">SYN</span> ')  end
-   if(hasbit(flags,0x04)) then print('<span class="badge badge-danger">RST</span> ') end
-   if(hasbit(flags,0x08)) then print('<span class="badge badge-info">PUSH</span> ') end
-   if(hasbit(flags,0x10)) then print('<span class="badge badge-info">ACK</span> ')  end
-   if(hasbit(flags,0x20)) then print('<span class="badge badge-info">URG</span> ')  end
-   if(hasbit(flags,0x40)) then print('<span class="badge badge-info">ECE</span> ')  end
-   if(hasbit(flags,0x80)) then print('<span class="badge badge-info">CWR</span> ')  end
+   if(hasbit(flags,0x01)) then print('<span class="badge bg-info">FIN</span> ') end
+   if(hasbit(flags,0x02)) then print('<span class="badge bg-info">SYN</span> ')  end
+   if(hasbit(flags,0x04)) then print('<span class="badge bg-danger">RST</span> ') end
+   if(hasbit(flags,0x08)) then print('<span class="badge bg-info">PUSH</span> ') end
+   if(hasbit(flags,0x10)) then print('<span class="badge bg-info">ACK</span> ')  end
+   if(hasbit(flags,0x20)) then print('<span class="badge bg-info">URG</span> ')  end
+   if(hasbit(flags,0x40)) then print('<span class="badge bg-info">ECE</span> ')  end
+   if(hasbit(flags,0x80)) then print('<span class="badge bg-info">CWR</span> ')  end
 end
 
 -- convert the integer carrying TCP flags in a more convenient lua table
@@ -2983,7 +2983,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
       if((ndpi_proto_id ~= nil) and (ndpi_proto_id ~= "")) then hist_url = hist_url.."&protocol="..ndpi_proto_id end
       if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
       print('&nbsp;')
-      -- print('<span class="badge badge-info">')
+      -- print('<span class="badge bg-info">')
       print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-history fa-lg"></i></a>')
       -- print('</span>')
    end
@@ -3289,26 +3289,30 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
   end
 
   local style = table.merge({display="flex"}, extra.style or {})
-  html_lines[#html_lines+1] = [[<div class="btn-group btn-group-toggle ]] .. table.concat(extra.classes or {}, "") .. [[" id="]] .. ctrl_id .. [[" data-toggle="buttons" style="]] .. table.tconcat(style, ":", "; ", ";") .. [[">]]
+  html_lines[#html_lines+1] = [[<div class="btn-group ]] .. table.concat(extra.classes or {}, "") .. [[" id="]] .. ctrl_id .. [[" role="group" style="]] .. table.tconcat(style, ":", "; ", ";") .. [[">]]
 
   -- foreach character in format
   string.gsub(fmt, ".", function(k)
+
     local v = fmt_to_data[k]
     if v ~= nil then
-       local line = {}
+         local line = {}
 
-       if((max_val == nil) or (v.value < max_val)) then
-	  line[#line+1] = [[<label class="btn]]
-	  if selected == k then
-	     line[#line+1] = [[ btn-primary active]]
-	  else
-	     line[#line+1] = [[ btn-secondary]]
-	  end
-	  line[#line+1] = [[ btn-sm"><input data-resol="]] .. k .. [[" value="]] .. truncate(v.value) .. [[" title="]] .. v.label .. [[" name="opt_resbt_]] .. k .. [[_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
-	  if selected == k then line[#line+1] = [[ checked="checked"]] end
-	  line[#line+1] = [[/>]] .. v.label .. [[</label>]]
+         if((max_val == nil) or (v.value < max_val)) then
 
-	  html_lines[#html_lines+1] = table.concat(line, "")
+            local input_name = ("opt_resbt_%s_%s"):format(k, ctrl_id)
+            local input = ([[
+               <input class='btn-check' data-resol="%s" value="%s" title="%s" name="%s" id="input-%s" autocomplete="off" type="radio" %s/>
+            ]]):format(k, truncate(v.value), v.label, input_name, input_name, ternary((selected == k), "checked='checked'", ""))
+
+            local label = ([[
+               <label class="btn btn-sm %s" for="input-%s">%s</label>
+            ]]):format(ternary((selected == k), "btn-primary active", "btn-secondary"), input_name, v.label)
+
+            line[#line+1] = input
+            line[#line+1] = label
+
+            html_lines[#html_lines+1] = table.concat(line, "")
        end
     end
   end)
@@ -3321,11 +3325,11 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
       var _resol_inputs = [];
 
       function resol_selector_get_input(a_button) {
-        return $("input", $(a_button).closest(".form-group")).last();
+        return $("input", $(a_button).closest(".form-group.mb-3")).last();
       }
 
       function resol_selector_get_buttons(an_input) {
-        return $(".btn-group", $(an_input).closest(".form-group")).first().find("input");
+        return $(".btn-group", $(an_input).closest(".form-group.mb-3")).first().find("input");
       }
 
       /* This function scales values wrt selected resolution */
@@ -3657,10 +3661,10 @@ end
 
 function printWarningAlert(message)
    print[[<div class="alert alert-warning alert-dismissable" role="alert">]]
-   print[[<a class="close" data-dismiss="alert" aria-label="close">&times;</a>]]
    print[[<i class="fas fa-exclamation-triangle fa-sm"></i> ]]
    print[[<strong>]] print(i18n("warning")) print[[</strong> ]]
    print(message)
+   print[[<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>]]
    print[[</div>]]
 end
 
@@ -3738,9 +3742,7 @@ function printMessageBanners(banners)
    for _, msg in ipairs(banners) do
       print[[
   <div class="alert alert-]] print(msg.type) print([[ alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
-    <button type="button" class="close" data-dismiss="alert" aria-label="]]..i18n("close")..[[">
-      <span aria-hidden="true">&times;</span>
-    </button>]])
+    ]])
 
       if (msg.type == "warning") then
          print("<b>".. i18n("warning") .. "</b>: ")
@@ -3751,6 +3753,7 @@ function printMessageBanners(banners)
       print(msg.text)
 
       print[[
+         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div>]]
    end
 end
@@ -3858,7 +3861,7 @@ function generate_select(id, name, is_required, is_disabled, options, additional
    end
 
    return ([[
-      <select id="]].. id ..[[" class="form-control ]] .. (additional_classes or "") .. [[" ]].. name_attr ..[[ ]].. required_flag ..[[ ]] .. disabled_flag ..[[>
+      <select id="]].. id ..[[" class="form-select ]] .. (additional_classes or "") .. [[" ]].. name_attr ..[[ ]].. required_flag ..[[ ]] .. disabled_flag ..[[>
          ]].. parsed_options ..[[
       </select>
    ]])

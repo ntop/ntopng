@@ -12,15 +12,13 @@
                             <button data-dismiss="modal" class="btn btn-danger confirm" type="button">{{ i18n("abort") }}</button>
                         </div>
                     </div>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
             <form autocomplete="off">
                 <div class="modal-body">
                     <input type="number" hidden name="recipient_id">
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="recipient-name-input">
                             <b>{{ i18n("endpoint_notifications.recipient_name") }}</b>
                         </label>
@@ -28,7 +26,7 @@
                             <input minlength="1" required name="recipient_name" type="text" class="form-control" id="edit-recipient-name-input">
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="recipient-name-input">
                             <b>{{ i18n("endpoint_notifications.endpoint") }}</b>
                         </label>
@@ -39,24 +37,24 @@
                     <div class="recipient-template-container">
                     </div>
                     <hr>
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="edit-recipient-severity-select">
                             <b>{{ i18n("endpoint_notifications.recipient_severity") }}</b>
                         </label>
                         <div class="col-sm-5">
-                            <select required name="recipient_minimum_severity" class="form-control" id="edit-recipient-severity-select">
+                            <select required name="recipient_minimum_severity" class="form-select" id="edit-recipient-severity-select">
                                 {% for key, alert in pairsByField(alert_severities, 'severity_id', asc) do %}
                                     <option {{ (alert.severity_id == 0 and 'selected' or '') }} value="{{ alert.severity_id }}">{{i18n("endpoint_notifications.severities."..key)}}</option>
                                 {% end %}
                             </select>
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="recipient-name-input">
                             <b>{{ i18n("endpoint_notifications.recipient_category") }}</b>
                         </label>
                         <div class="col-sm-5">
-                            <select multiple name="recipient_user_script_categories" class="form-control selectpicker" id="edit-recipient-categories-select">
+                            <select multiple name="recipient_user_script_categories" class="selectpicker" id="edit-recipient-categories-select">
                                 {% for _, category in pairsByKeys(script_categories) do %}
                                     <option value="{{ category.id }}">{{ i18n(category.i18n_title) }}</option>
                                 {% end %}
@@ -66,7 +64,7 @@
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">
-                    <div class="mr-auto">
+                    <div class="me-auto">
                         <button id="edit-test-recipient" class="btn btn-secondary" disabled type="test">
                             <span style="display: none;" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                             {{ i18n("endpoint_notifications.test_recipient") }}

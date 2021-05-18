@@ -56,7 +56,7 @@ print [[
 
 <div class="container">
 
-	 <form id="form_add_user" role="form" data-toggle="validator" class="form-signin" onsubmit="return makeUsernameLowercase();" action="]] print(ntop.getHttpPrefix()) print[[/lua/authorize_captive.lua]]
+	 <form id="form_add_user" role="form" data-bs-toggle="validator" class="form-signin" onsubmit="return makeUsernameLowercase();" action="]] print(ntop.getHttpPrefix()) print[[/lua/authorize_captive.lua]]
 
 local r = _GET["referer"]
 
@@ -79,7 +79,7 @@ end
 
 print[[" method="POST">
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(info["product"]) print [[ Access Portal</h2>
-  <div class="form-group has-feedback">
+  <div class="form-group mb-3 has-feedback">
       <input type="hidden" class="form-control" name="username">
       <input type="text" class="form-control" name="_username" placeholder="]] print(i18n("login.username")) print[[" pattern="^[\w\.%]{1,}$" required>
       <input type="password" class="form-control" name="password" placeholder="]] print(i18n("login.password")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>

@@ -12,9 +12,7 @@ print [[
     <div class="modal-content">
       <div class="modal-header">
 	<h5 class='modal-title' id="add_user_dialog_label">]]print(add_user_msg)print[[</h5>
-  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-    <span aria-hidden="true">&times;</span>
-  </button>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
 <div class="modal-body">
@@ -23,62 +21,54 @@ print [[
 
 <script type="text/javascript">
   add_user_alert = function() {}
-  add_user_alert.error =   function(message, no_close) { $('#add_user_alert_placeholder').html('<div class="alert alert-danger">' + (no_close ? '' : '<button type="button" class="close" data-dismiss="alert">x</button>') + message + '</div>');
+  add_user_alert.error =   function(message, no_close) { $('#add_user_alert_placeholder').html('<div class="alert alert-danger">' + message + (no_close ? '' : '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>') + '</div>');
  }
-  add_user_alert.success = function(message) { $('#add_user_alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>'); }
+  add_user_alert.success = function(message) { $('#add_user_alert_placeholder').html('<div class="alert alert-success">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'); }
 
 </script>
 
- <form data-toggle="validator" id="form_add_user" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/rest/v1/add/ntopng/user.lua" accept-charset="UTF-8">
+ <form data-bs-toggle="validator" id="form_add_user" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/rest/v1/add/ntopng/user.lua" accept-charset="UTF-8">
 			   ]]
 
 print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
 print [[
-  <div class="form-group">
+  <div class="form-group mb-3">
     <label for="username_input">]] print(i18n("login.username")) print[[</label>
     <div class="input-group mb-6">
-      <div class="input-group-prepend">
 	<span class="input-group-text"><i class="fas fa-user-circle" aria-hidden="true"></i></span>
-      </div>
       <input id="username_input" type="text" name="username" value="" class="form-control" pattern="^[\w]{1,}$" required>
     </div>
     </div>
-    <div class="form-group">
+    <div class="form-group mb-3">
 
     <label for="full_name_input">]] print(i18n("users.full_name")) print[[</label>
     <div class="input-group mb-6">
-      <div class="input-group-prepend">
 	<span class="input-group-text"><i class="fas fa-user" aria-hidden="true"></i></span>
-      </div>
       <input id="full_name_input" type="text" name="full_name" value="" class="form-control">
     </div>
 </div>
 
-<div class="form-group">
+<div class="form-group mb-3">
     <label for="password_input">]] print(i18n("login.password")) print[[</label>
     <div class="input-group mb-6">
-      <div class="input-group-prepend">
 	<span class="input-group-text"><i class="fas fa-lock"></i></span>
-      </div>
       <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
     </div>
 </div>
 
-<div class="form-group">
+<div class="form-group mb-3">
     <label for="confirm_password_input">]] print(i18n("login.confirm_password")) print[[</label>
     <div class="input-group mb-6">
-      <div class="input-group-prepend">
 	<span class="input-group-text"><i class="fas fa-lock"></i></span>
-      </div>
       <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
     </div>
 </div>
 
-<div class="form-group">
+<div class="form-group mb-3">
     <label for="user_role">]] print(i18n("manage_users.user_role")) print[[</label>
     <div class="input-group mb-6">
-	<select id="user_role" name="user_role" class="form-control" style="width:100%;">
+	<select id="user_role" name="user_role" class="form-select" style="width:100%;">
 	  <option value="unprivileged">]] print(i18n("manage_users.non_privileged_user")) print[[</option>
 	  <option value="administrator">]] print(i18n("manage_users.administrator")) print[[</option>
 	</select>
@@ -87,10 +77,10 @@ print [[
 
     <div id="unprivileged_input">
 
-  <div class="form-group">
+  <div class="form-group mb-3">
     <label for="allowed_interface_input">]] print(i18n("manage_users.allowed_interface")) print[[</label>
     <div class="input-group mb-6">
-	<select id="allowed_interface_input" name="allowed_interface" class="form-control ">
+	<select id="allowed_interface_input" name="allowed_interface" class="form-select ">
 	  <option value="">]] print(i18n("manage_users.any_interface")) print[[</option>
 ]]
 
@@ -102,7 +92,7 @@ print [[
     </div>
     </div>
 
-  <div class="form-group">
+  <div class="form-group mb-3">
     <label for="allowed_networks_input">]] print(i18n("manage_users.allowed_networks")) print[[</label>
     <div class="input-group mb-6">
       <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
@@ -110,7 +100,7 @@ print [[
     </div>
   </div>
 
-    <div class="form-group">
+    <div class="form-group mb-3">
       <div class="form-check">]]
 
    print(template.gen("on_off_switch.html", {
@@ -135,14 +125,12 @@ print [[
 ]]
 
   print[[
-    <div class="form-group">
+    <div class="form-group mb-3">
 
     <label for="user_language">]] print(i18n("language")) print[[</label>
-    <div class="input-group mb-6">
-      <div class="input-group-prepend">
-	<span class="input-group-text"><i class="fas fa-language" aria-hidden="true"></i></span>
-      </div>
-      <select id="user_language" name="user_language" class="form-control">]]
+    <div class="input-group mb-3">
+      <span class="input-group-text"><i class="fas fa-language" aria-hidden="true"></i></span>
+      <select id="user_language" name="user_language" class="form-select">]]
 
   for _, lang in ipairs(locales_utils.getAvailableLocales()) do
      print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')

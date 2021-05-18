@@ -11,9 +11,7 @@ print [[
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="password_dialog_label">]] print(i18n("manage_users.manage_user_x", {user=[[<span class="password_dialog_title">]].. _SESSION['user'] ..[[</span>]]})) print[[ </h5>
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
 <div class="modal-body">
@@ -24,11 +22,11 @@ print [[
   <ul class="nav nav-tabs card-header-tabs" role="tablist" id="edit-user-container">
 ]]
     if(is_admin) then
-      print[[<li class="nav-item active" id="li_change_prefs"><a class="nav-link active" href="#change-prefs-dialog" role="tab" data-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
+      print[[<li class="nav-item active" id="li_change_prefs"><a class="nav-link active" href="#change-prefs-dialog" role="tab" data-bs-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
     end
    print[[
-    <li class="nav-item ]] print(ternary(is_admin, "", "active")) print[["><a class="nav-link ]] print(ternary(is_admin, "", "active")) print[[" href="#change-password-dialog" role="tab" data-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
-    <li class="nav-item"><a class="nav-link" href="#user-token-tab" role="tab" data-toggle="tab"> ]] print(i18n("login.auth_token")) print[[ </a></li>
+    <li class="nav-item ]] print(ternary(is_admin, "", "active")) print[["><a class="nav-link ]] print(ternary(is_admin, "", "active")) print[[" href="#change-password-dialog" role="tab" data-bs-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
+    <li class="nav-item"><a class="nav-link" href="#user-token-tab" role="tab" data-bs-toggle="tab"> ]] print(i18n("login.auth_token")) print[[ </a></li>
   
   </ul>
   </div>
@@ -39,11 +37,11 @@ print [[
 
 <script>
   password_alert = function() {}
-  password_alert.error   = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-danger"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>');  }
-  password_alert.success = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>'); }
+  password_alert.error   = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-danger alert-dismissable">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');  }
+  password_alert.success = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-success alert-dismissable">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'); }
 </script>
 
-  <form data-toggle="validator" id="form_password_reset" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua" accept-charset="UTF-8">
+  <form data-bs-toggle="validator" id="form_password_reset" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua" accept-charset="UTF-8">
 ]]
 
    print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -59,12 +57,10 @@ local col_md_size = "6"
 if(not is_admin) then
    col_md_size = "4"
 print [[
-  <div class='form-group'>
-  <label for="old_password_input">]] print(i18n("manage_users.old_password")) print[[</label>
+  <div class='form-group mb-3'>
+  <label class='form-label' for="old_password_input">]] print(i18n("manage_users.old_password")) print[[</label>
   <div class='input-group mb-]] print(col_md_size) print[[ has-feedback'>
-      <div class="input-group-prepend">
         <span class="input-group-text"><i class="fas fa-lock"></i></span>
-      </div>
       <input id="old_password_input" type="password" name="old_password" value="" class="form-control" required>
   </div>
   </div>
@@ -72,22 +68,18 @@ print [[
 end
 
 print [[
-  <div class='form-group'>
-    <label for="new_password_input">]] print(i18n("manage_users.new_password")) print[[</label>
+  <div class='form-group mb-3'>
+    <label class='form-label' for="new_password_input">]] print(i18n("manage_users.new_password")) print[[</label>
     <div class='input-group mb-]] print(col_md_size) print[['>
-        <div class="input-group-prepend"><span class="input-group-text">
-          <i class="fas fa-lock"></i></span>
-        </div>
+        <span class="input-group-text"><i class="fas fa-lock"></i></span>
         <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
     </div>
   </div>
 
-  <div class='form-group'>
-  <label for="confirm_new_password_input">]] print(i18n("manage_users.new_password_confirm")) print[[</label>
+  <div class='form-group mb-3'>
+  <label class='form-label' class='form-label' for="confirm_new_password_input">]] print(i18n("manage_users.new_password_confirm")) print[[</label>
   <div class='input-group md-]] print(col_md_size) print[['>
-      <div class="input-group-prepend">
         <span class="input-group-text"><i class="fas fa-lock"></i></span>
-      </div>
         <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
   </div>
   </div>
@@ -97,7 +89,7 @@ print [[
 
 <hr>
 
-    <div class="has-feedback text-right">
+    <div class="has-feedback text-end">
       <button id="password_reset_submit" class="btn btn-primary">]] print(i18n("manage_users.change_user_password")) print[[</button>
     </div>
 
@@ -111,14 +103,14 @@ print [[
   </div>
 <div class="tab-pane ]] print(ternary(is_admin, "active", "")) print[[" id="change-prefs-dialog">
 
-  <form data-toggle="validator" id="form_pref_change" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
+  <form data-bs-toggle="validator" id="form_pref_change" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
     <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
 
-  <div class='form-group'>
-  <label for="host_role_select">]] print(i18n("manage_users.user_role")) print[[</label>
+  <div class='form-group mb-3'>
+  <label class='form-label' for="host_role_select">]] print(i18n("manage_users.user_role")) print[[</label>
   <div class='input-group mb-6'>
-        <select id="host_role_select" name="user_role" class="form-control">
+        <select id="host_role_select" name="user_role" class="form-select">
           <option value="unprivileged">]] print(i18n("manage_users.non_privileged_user")) print[[</option>
           <option value="administrator">]] print(i18n("manage_users.administrator")) print[[</option>
         </select>
@@ -127,10 +119,10 @@ print [[
 
   <div id="unprivileged_manage_input">
 
-  <div class='form-group'>
-  <label for="allowed_interface">]] print(i18n("manage_users.allowed_interface")) print[[</label>
+  <div class='form-group mb-3'>
+  <label class='form-label' for="allowed_interface">]] print(i18n("manage_users.allowed_interface")) print[[</label>
   <div class='input-group mb-6'>
-        <select name="allowed_interface" id="allowed_interface" class="form-control">
+        <select name="allowed_interface" id="allowed_interface" class="form-select">
           <option value="">]] print(i18n("manage_users.any_interface")) print[[</option>
 ]]
    for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
@@ -142,8 +134,8 @@ print [[
   </div>
   </div>
 
-  <div class='form-group'>
-    <label for="networks_input">]] print(i18n("manage_users.allowed_networks")) print[[</label>
+  <div class='form-group mb-3'>
+    <label class='form-label' for="networks_input">]] print(i18n("manage_users.allowed_networks")) print[[</label>
     <div class='input-group mb-6'>
       <input id="networks_input" type="text" name="allowed_networks" value="" class="form-control w-100" required>
     </div>
@@ -151,7 +143,7 @@ print [[
   </div>
 
 
-    <div class="form-group mb-6">
+    <div class="form-group mb-3 mb-6">
       <div class="form-check pl-0">]]
 
     print(template.gen("on_off_switch.html", {
@@ -178,13 +170,11 @@ print [[
 ]]
 
 print[[
-  <div class='form-group'>
-    <label for="user_language">]] print(i18n("language")) print[[</label>
+  <div class='form-group mb-3'>
+    <label class='form-label' for="user_language">]] print(i18n("language")) print[[</label>
     <div class='input-group mb-6'>
-      <div class="input-group-prepend">
         <span class="input-group-text"><i class="fas fa-language" aria-hidden="true"></i></span>
-      </div>
-      <select name="user_language" id="user_language" class="form-control">]]
+      <select name="user_language" id="user_language" class="form-select">]]
 
 for _, lang in ipairs(locales_utils.getAvailableLocales()) do
    print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
@@ -197,7 +187,7 @@ print[[
 
 print[[
     <hr>
-    <div class="has-feedback text-right">
+    <div class="has-feedback text-end">
       <button id="pref_change" class="btn btn-primary">]] print(i18n("manage_users.change_user_preferences")) print[[</button>
     </div>
   </form>
@@ -215,18 +205,18 @@ local input_value = api_token or i18n("manage_users.token_not_generated")
 
 print([[
   <div class='tab-pane' id='user-token-tab'>
-    <div class="form-group has-error">
-      <label for="token-input">]] .. i18n("manage_users.token") ..[[</label>
+    <div class="form-group mb-3 has-error">
+      <label class='form-label' for="token-input">]] .. i18n("manage_users.token") ..[[</label>
       <div class='d-flex'>
         <input readonly class='form-control' id='input-token' value=']].. input_value ..[['>
         <input readonly hidden id='input-username' value=']].._SESSION['user'] ..[['>
-        <button ]].. (isEmptyString(api_token) and "style='display: none'" or "") ..[[ class="btn btn-light border ml-1" data-placement="bottom" id="btn-copy-token">
+        <button ]].. (isEmptyString(api_token) and "style='display: none'" or "") ..[[ class="btn btn-light border ms-1" data-placement="bottom" id="btn-copy-token">
           <i class='fas fa-copy'></i>
         </button>
       </div>
     </div>
     <hr>
-    <div class='w-100 text-right'>
+    <div class='w-100 text-end'>
       <button class='btn btn-primary' id='btn-generate_token'>]].. i18n("login.generate_token") ..[[</button>
     </div>
   </div>

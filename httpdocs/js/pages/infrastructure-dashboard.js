@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(function() {
 
     const testAuthentication = async (remoteUrl, token) => {
         
@@ -53,7 +53,7 @@ $(document).ready(function() {
                 if (type === "display") {
                     const badgeColor = (am_success && !instance.am_error) ? 'success' : (!am_success && instance.error_message !== undefined) ? 'danger' : 'secondary';
                     const badgeText = (am_success && !instance.am_error) ? i18n.up : (!am_success && instance.error_message !== undefined) ? i18n.error : i18n.not_polled_yet;
-                    return `<span class='badge badge-${badgeColor}'>${badgeText}</span>`;
+                    return `<span class='badge bg-${badgeColor}'>${badgeText}</span>`;
                 }
                 return am_success;
             }},

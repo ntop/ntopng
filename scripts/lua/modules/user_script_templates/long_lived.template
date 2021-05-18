@@ -33,7 +33,7 @@
 %}
 
 <input hidden type="number" value="{{ hook_conf.script_conf.min_duration }}" name="min_duration">
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-sm-2 col-form-label">{{ i18n("enabled") }}</label>
     <div class="col-2">
         <div class="custom-control custom-switch">
@@ -42,7 +42,7 @@
         </div>
     </div>
 </div>
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-sm-2 col-form-label">{{ i18n("scripts_list.templates.flow_duration_threshold") }}</label>
     <div class="col-2">
         <div id="time-toggles" class="btn-group btn-group-toggle w-100" data-toggle="buttons">

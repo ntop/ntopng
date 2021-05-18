@@ -1,9 +1,9 @@
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         <b>{{ i18n("syslog_alert_endpoint.alert_format") }}</b>
     </label>
     <div class="col-sm-5">
-        <select name="syslog_alert_format" class="form-control" required>
+        <select name="syslog_alert_format" class="form-select" required>
             <option value="plaintext">{{ i18n("syslog_alert_endpoint.text") }}</option>
             <option value="plaintextrfc">{{ i18n("syslog_alert_endpoint.text") }} (RFC 5424)</option>
             <option value="json">Raw JSON</option>
@@ -18,7 +18,7 @@
     </div>
 </div>
 
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-form-label col-sm-3">
 	{{ i18n("syslog_alert_endpoint.host") }}
     </label>
@@ -30,7 +30,7 @@
     </div>
 </div>
 
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-form-label col-sm-3">
 	{{ i18n("syslog_alert_endpoint.port") }}
     </label>
@@ -42,12 +42,12 @@
     </div>
 </div>
 
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         <b>{{ i18n("syslog_alert_endpoint.protocol") }}</b>
     </label>
     <div class="col-sm-5">
-        <select name="syslog_protocol" class="form-control">
+        <select name="syslog_protocol" class="form-select">
             <option value="udp">UDP</option>
             <option value="tcp">TCP</option>
         </select>

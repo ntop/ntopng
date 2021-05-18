@@ -132,7 +132,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
          buttons: []]
 
    -- Manufacturer filter
-   print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+   print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..
       i18n("mac_stats.manufacturer") .. ternary(not isEmptyString(manuf_filter), '<span class="fas fa-filter"></span>', '') ..
       '<span class="caret"></span></div> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
 
@@ -153,7 +153,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
    -- Device Type filter
    -- table.clone needed to modify some parameters while keeping the original unchanged
    local type_params = table.clone(page_params)
-   print('\'<div class="btn-group"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+   print('\'<div class="btn-group"><div class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..
       i18n("details.device_type") .. ternary(not isEmptyString(devtype_filter), '<span class="fas fa-filter"></span>', '') ..
       '<span class="caret"></span></div> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
 
@@ -172,7 +172,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
    -- OS filter
    -- table.clone needed to modify some parameters while keeping the original unchanged
    local os_params = table.clone(page_params)
-   print('\'<div class="btn-group"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+   print('\'<div class="btn-group"><div class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..
       i18n("os") .. ternary(not isEmptyString(os_filter), '<span class="fas fa-filter"></span>', '') ..
       '<span class="caret"></span></div> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
 

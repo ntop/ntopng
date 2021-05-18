@@ -127,9 +127,9 @@ if auth.has_capability(auth.capabilities.preferences) then
    prefs = ntop.getPrefs()
 
    if not isEmptyString(message_info) then
-      print[[<div class="alert ]] print(message_severity) print[[" role="alert">]]
-      print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+      print[[<div class="alert alert-dismissable ]] print(message_severity) print[[" role="alert">]]
       print(message_info)
+      print[[<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>]]
       print[[</div>]]
    end
 

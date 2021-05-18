@@ -2,7 +2,7 @@
 JQUERY_BOOTSTRAP_MIN_JS=jquery_bootstrap.min.js
 JQUERY_BOOTSTRAP_MIN_JS_SRC=jquery.js jquery-ui.js \
 			    bootstrap-datatable.js bootstrap3-typeahead.js\
-			    d3.v3.js jquery.peity.js sidebar.js bootstrap-slider.js datatables_sprymedia.min.js
+			    d3.v3.js jquery.peity.js sidebar.js bootstrap-slider.js jquery.dataTables.min.js
 
 DEP_MIN_JS=deps.min.js
 DEP_MIN_JS_SRC=ie_fix.js rickshaw.js pie-chart.js gauge.js \

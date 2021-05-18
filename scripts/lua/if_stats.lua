@@ -94,7 +94,7 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
       if(value ~= nil) then print(value.."") end
       print[[">]]
       if (measure_unit) then
-         print([[<span class='ml-1 align-middle'>]].. i18n(measure_unit) ..[[</span>]])
+         print([[<span class='ms-1 align-middle'>]].. i18n(measure_unit) ..[[</span>]])
       end
    else
       if(value ~= nil) then print(value) end
@@ -102,7 +102,7 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
 end
 
 function inline_select_form(name, keys, values, curval)
-   print[[<select class="form-control" style="width:12em; display:inline;" name="]] print(name) print[[">]]
+   print[[<select class="form-select" style="width:12em; display:inline;" name="]] print(name) print[[">]]
    for idx, k in ipairs(keys) do
       local v = values[idx]
       print[[<option value="]] print(v) print[[" ]]
@@ -737,7 +737,7 @@ print[[
       print("<td width=20% colspan=3><span id=if_drops>")
 
       if(ifstats.stats.drops > 0) then
-	 print('<span class="badge badge-danger">')
+	 print('<span class="badge bg-danger">')
       end
 
       print(formatValue(ifstats.stats.drops).. " " .. label)
@@ -871,7 +871,7 @@ print[[
       local span_danger = ""
       if not export_drops then
       elseif export_drops > 0 then
-	 span_danger = ' class="badge badge-danger"'
+	 span_danger = ' class="badge bg-danger"'
       end
 
       print("<td><span id=exported_flows_drops "..span_danger..">"..formatValue(export_drops).."</span>&nbsp;")
@@ -989,7 +989,7 @@ print[[
       print("<tr><th nowrap>"..i18n("if_stats_overview.nf_queue_total").."</th>")
       local span_class = ''
       if st.nfq.queue_pct > 80 then
-	 span_class = "class='badge badge-danger'"
+	 span_class = "class='badge bg-danger'"
       end
       print("<td width=20%><span id=nfq_queue_total "..span_class..">"..string.format("%s [%s %%]", formatValue(st.nfq.queue_total), formatValue(st.nfq.queue_pct)).." </span> <span id=nfq_queue_total_trend></span></td>")
       print("<th nowrap>"..i18n("if_stats_overview.nf_handle_packet_failed").."</th>")
@@ -1090,11 +1090,11 @@ elseif((page == "packets")) then
    print("<tr " .. nedge_hidden .. "></th><th>" .. i18n("packets_page.lost") .. "</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
 
     if(ifstats.type ~= "zmq") then
-      print [[<tr ]] print(nedge_hidden) print[[><th class="text-left">]] print(i18n("packets_page.size_distribution")) print [[</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>]]
+      print [[<tr ]] print(nedge_hidden) print[[><th class="text-start">]] print(i18n("packets_page.size_distribution")) print [[</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>]]
     end
 
     print[[
-  	 <tr ]] print(nedge_hidden) print[[><th class="text-left">]] print(i18n("packets_page.version_vs_flags_distribution")) print[[</th>
+  	 <tr ]] print(nedge_hidden) print[[><th class="text-start">]] print(i18n("packets_page.version_vs_flags_distribution")) print[[</th>
 <td colspan=1><div class="pie-chart" id="ipverDistro"></div></td><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td></tr>
       </table>
 
@@ -1127,7 +1127,7 @@ elseif(page == "DSCP") then
   print [[
      <table id="dscp_table" class="table table-bordered table-striped tablesorter">
         <tr>
-          <th class="text-left">]] print(i18n("dscp_page.statistics")) print [[</th>
+          <th class="text-start">]] print(i18n("dscp_page.statistics")) print [[</th>
           <td colspan=4><div class="pie-chart" id="dscpGroups"></td>
         </tr>
      </table>
@@ -1142,8 +1142,8 @@ print[[
    <div class='card'>
    <div class='card-header'>
   <ul id="ndpiNav" class="nav nav-tabs card-header-tabs" role="tablist">
-    <li class="nav-item active"><a class="nav-link active" data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
-    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
+    <li class="nav-item active"><a class="nav-link active" data-bs-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
   </ul>
   </div>
   <div class='card-body tab-content'>
@@ -1155,7 +1155,7 @@ print[[
    if ntop.isPro() and ifstats["custom_apps"] then
       print[[
         <tr>
-          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.custom_applications")})) print [[</th>
+          <th class="text-start">]] print(i18n("ndpi_page.overview", {what = i18n("ndpi_page.custom_applications")})) print [[</th>
           <td colspan=5><div class="pie-chart" id="topCustomApps"></td>
         </tr>
 ]]
@@ -1163,12 +1163,12 @@ print[[
 
    print[[
         <tr>
-          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("applications")})) print [[</th>
+          <th class="text-start">]] print(i18n("ndpi_page.overview", {what = i18n("applications")})) print [[</th>
           <td colspan=3><div class="pie-chart" id="topApplicationProtocols"></td>
           <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></td>
         </tr>
         <tr>
-          <th class="text-left">]] print(i18n("ndpi_page.live_flows_count")) print [[</th>
+          <th class="text-start">]] print(i18n("ndpi_page.live_flows_count")) print [[</th>
           <td colspan=3><div class="pie-chart" id="topFlowsCount"></td>
           <td colspan=2><div class="pie-chart" id="topTCPFlowsStats">
           <br><small><b>]] print(i18n("ndpi_page.note")) print [[ :</b>]] print(i18n("ndpi_page.note_live_flows_chart")) print [[
@@ -1189,7 +1189,7 @@ print[[
     <div id="categories" class="tab-pane">
       <table class="table table-bordered table-striped">
         <tr>
-          <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("categories")})) print [[</th>
+          <th class="text-start">]] print(i18n("ndpi_page.overview", {what = i18n("categories")})) print [[</th>
           <td colspan=5><div class="pie-chart" id="topApplicationCategories"></td>
         </tr>
       </table>
@@ -1289,8 +1289,8 @@ print[[
   <div class='card'>
    <div class='card-header'>
   <ul id="icmp_nav" class="nav nav-tabs card-header-tabs" role="tablist">
-    <li class="nav-item active"><a class="nav-link active" data-toggle="tab" role="tab" href="#icmp" active>]] print(i18n("icmpv4")) print[[</a></li>
-    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#icmpv6">]] print(i18n("icmpv6")) print[[</a></li>
+    <li class="nav-item active"><a class="nav-link active" data-bs-toggle="tab" role="tab" href="#icmp" active>]] print(i18n("icmpv4")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" role="tab" href="#icmpv6">]] print(i18n("icmpv6")) print[[</a></li>
   </ul>
   </div>
   <div class="card-body tab-content">
@@ -1463,7 +1463,7 @@ print [[
 
 elseif(page == "traffic_recording" and has_traffic_recording_page) then
    if not dismiss_recording_providers_reminder then
-      print('<div id="traffic-recording-providers-detected" class="alert alert-info alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-label="close">&times;</button>'..i18n('traffic_recording.msg_external_providers_detected', {url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"})..'</div>')
+      print('<div id="traffic-recording-providers-detected" class="alert alert-info alert-dismissable">'..i18n('traffic_recording.msg_external_providers_detected', {url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"})..'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
 
       print [[
   <script>
@@ -1801,7 +1801,7 @@ function toggle_mirrored_traffic_function_off(){
         <small>
         <details class='mt-2'>
          <summary>
-            <span data-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
+            <span data-bs-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
                ]]..i18n("notes")..[[ <i class='fas fa-question-circle '></i>
             </span>
          </summary>
@@ -1886,7 +1886,7 @@ function toggle_mirrored_traffic_function_off(){
        <tr>
 	 <th>]] print(i18n("if_stats_config.companion_interface")) print[[</th>
 	 <td>
-	   <select name="companion_interface" class="form-control" style="width:36em; display:inline;">]]
+	   <select name="companion_interface" class="form-select" style="width:36em; display:inline;">]]
 
 	 for _, companion in ipairs(companions) do
 	    local companion_id = companion["ifid"]
@@ -1917,7 +1917,7 @@ function toggle_mirrored_traffic_function_off(){
        <tr>
 	 <th>]] print(i18n("traffic_recording.traffic_recording_provider")) print[[</th>
 	 <td>
-	   <select name="traffic_recording_provider" class="form-control" style="width:36em; display:inline;">]]
+	   <select name="traffic_recording_provider" class="form-select" style="width:36em; display:inline;">]]
 
 	 for _, provider in pairs(providers) do
 	    local label = string.format("%s", provider["name"])
@@ -1978,7 +1978,7 @@ function toggle_mirrored_traffic_function_off(){
        <tr>
 	 <th>]] print(i18n("prefs.dynamic_interfaces_creation_title")) print[[</th>
 	 <td>
-	   <select name="disaggregation_criterion" class="form-control" style="width:36em; display:inline;">]]
+	   <select name="disaggregation_criterion" class="form-select" style="width:36em; display:inline;">]]
 
 	 for k, value in ipairs(values) do
 	    local label = labels[k]
@@ -1993,7 +1993,7 @@ function toggle_mirrored_traffic_function_off(){
         <small>
         <details class='mt-2'>
          <summary>
-            <span data-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
+            <span data-bs-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
                ]]..i18n("notes")..[[ <i class='fas fa-question-circle '></i>
             </span>
          </summary>
@@ -2030,7 +2030,7 @@ function toggle_mirrored_traffic_function_off(){
       print [[<tr>
     <th>
     ]] print(i18n("if_stats_config.show_dyn_iface_traffic")) print[[
-       <i class='fas fa-question-circle ' data-toggle="tooltip" data-placement="top" title=']] print(i18n("if_stats_config.show_dyn_iface_traffic_note")) print[['></i>
+       <i class='fas fa-question-circle ' data-bs-toggle="tooltip" data-placement="top" title=']] print(i18n("if_stats_config.show_dyn_iface_traffic_note")) print[['></i>
     </th>
     <td>]]
 
@@ -2089,7 +2089,7 @@ elseif(page == "snmp_bind") then
       <tr>
          <th>]] print(i18n("snmp.snmp_device")) print[[</th>
          <td>
-            <select class="form-control" style="width:30em; display:inline;" id="snmp_bind_device" name="ip">
+            <select class="form-select" style="width:30em; display:inline;" id="snmp_bind_device" name="ip">
                <option]] if isEmptyString(snmp_host) then print(" selected") end print[[ value="">Not Bound</option>
          ]]
 
@@ -2115,7 +2115,7 @@ elseif(page == "snmp_bind") then
       <tr>
          <th>]] print(i18n("snmp.snmp_interface")) print[[</th>
             <td>
-               <select class="form-control" style="width:30em; display:inline;" id="snmp_bind_interface" name="snmp_port_idx">]]
+               <select class="form-select" style="width:30em; display:inline;" id="snmp_bind_interface" name="snmp_port_idx">]]
 
    if not isEmptyString(snmp_interface) then
       -- This is neeeded to initialized ays form fields
@@ -2374,9 +2374,9 @@ if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
 
    print[[
         if(rsp.netfilter.nfq.queue_pct > 80) {
-          $('#nfq_queue_total').addClass("badge badge-danger");
+          $('#nfq_queue_total').addClass("badge bg-danger");
         } else {
-          $('#nfq_queue_total').removeClass("badge badge-danger");
+          $('#nfq_queue_total').removeClass("badge bg-danger");
         }
 	$('#nfq_queue_total').html(NtopUtils.fint(rsp.netfilter.nfq.queue_total) + " [" + NtopUtils.fint(rsp.netfilter.nfq.queue_pct) + " %]");
         $('#nfq_queue_total_trend').html(NtopUtils.get_trend(rsp.netfilter.nfq.queue_total, last_nfq_queue_total));
@@ -2437,7 +2437,7 @@ print [[
         }
 
 	if(rsp.drops > 0) {
-          drops = '<span class="badge badge-danger">';
+          drops = '<span class="badge bg-danger">';
         }
 	drops = drops + NtopUtils.addCommas(rsp.drops)+" Pkts";
 
@@ -2449,14 +2449,14 @@ print [[
         $('#exported_flows_rate').html(NtopUtils.fflows(rsp.flow_export_rate));
         if(rsp.flow_export_drops > 0) {
           $('#exported_flows_drops')
-            .addClass("badge badge-danger")
+            .addClass("badge bg-danger")
             .html(NtopUtils.fint(rsp.flow_export_drops));
           if(rsp.flow_export_count > 0) {
             $('#exported_flows_drops_pct')
-              .addClass("badge badge-danger")
+              .addClass("badge bg-danger")
               .html("[" + NtopUtils.fpercent(rsp.flow_export_drops / (rsp.flow_export_count + rsp.flow_export_drops + 1) * 100) + "]");
           } else {
-            $('#exported_flows_drops_pct').addClass("badge badge-danger").html("[100%]");
+            $('#exported_flows_drops_pct').addClass("badge bg-danger").html("[100%]");
           }
         } else {
           $('#exported_flows_drops').removeClass().html("0");

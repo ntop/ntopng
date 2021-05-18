@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(function() {
 
     // initialize the selectpicker
     $('#interfaces-dropdown').selectpicker();
@@ -9,7 +9,7 @@ $(document).ready(function() {
             return;
         } 
 
-        const selected_value = $(this).find('option').eq(clickedIndex).val();  
-        toggleSystemInterface(false, $('#switch_interface_form_' + selected_value));
+        const selectedValue = $(this).find('option').eq(clickedIndex).val();  
+        toggleSystemInterface(false, $('#switch_interface_form_' + selectedValue));
     });
 });
