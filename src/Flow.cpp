@@ -485,7 +485,10 @@ void Flow::processDetectedProtocolData() {
     */
     if(ndpiFlow->host_server_name[0] != '\0' && !protos.mdns.answer) {
       protos.mdns.answer = strdup((char*)ndpiFlow->host_server_name);
-      if(srv_h) srv_h->setResolvedName((char*)ndpiFlow->host_server_name);
+      if(srv_h) {
+	if(strchr((char*)ndpiFlow->host_server_name, '.') == NULL)
+	  srv_h->setResolvedName((char*)ndpiFlow->host_server_name);
+      }
     }
     break;
 
