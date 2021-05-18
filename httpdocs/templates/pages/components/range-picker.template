@@ -75,7 +75,7 @@
                                     <option value="1,years">{{ i18n('show_alerts.presets.year') }}</option>
                                     {% end  %}
                     
-                                    <option>{{ i18n("graphs.custom") }}</option>
+                                    <option value="custom" disabled>{{ i18n("graphs.custom") }}</option>
                                 </select>
                             </div>
 
@@ -225,8 +225,7 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
         }
 
         function highlightCustomPresetButton() {
-            $selectPresets.val('');
-            $(`#select-presets option:last`).attr('selected', 'true');
+            $(`#select-presets`).val('custom');
         }
 
         function disableRangePickerButtons() {
@@ -336,15 +335,13 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
             $rangePicker.dispatchEvent(rangepickerEvent);
         });
 
-        $btnApply.on('click', function() {
-            highlightCustomPresetButton();
-            $rangePicker.dispatchEvent(rangepickerEvent);
-        });
-
-        $btnJumpTimeBack.on('click', function() {
-            highlightCustomPresetButton();
-            $rangePicker.dispatchEvent(rangepickerEvent);
-        });
+	/* Autoselect the 'custom' dropdown entry when clicking any of the buttons */
+	$.each([$btnApply, $btnJumpTimeBack, $btnJumpTimeAhead], function(idx, btn) {
+	    $(btn).on('click', function() {
+		highlightCustomPresetButton();
+		$rangePicker.dispatchEvent(rangepickerEvent);
+            });
+	});
 
         $inputBeginEpoch.on("change.datetimepicker", function (e) {
             
