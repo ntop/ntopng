@@ -212,11 +212,11 @@ print[[
                   ]] print(makeApplicationEditor("new-application-hosts-list", true)) print[[
                 </div>
 
-                </div>
-                <div class='modal-footer'>
-                  <button id="new-application-submit" type="submit" class="btn btn-primary">]] print(i18n("custom_categories.add_application")) print[[</button>
-                </div>
-                </form>
+        </div>
+        <div class='modal-footer'>
+                <button id="new-application-submit" type="submit" class="btn btn-primary">]] print(i18n("custom_categories.add_application")) print[[</button>
+        </div>
+        </form>
       </div>
     </div>
   </div>
@@ -468,7 +468,6 @@ print [[
   function showAddApplicationDialog() {
     $("#add-application-dialog").modal("show");
     $("#new-application").val("");
-    $("#new-application-submit").addClass("disabled");
   }
 
        </script>
