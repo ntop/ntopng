@@ -75,7 +75,7 @@
                                     <option value="1,years">{{ i18n('show_alerts.presets.year') }}</option>
                                     {% end  %}
                     
-                                    <option disabled>{{ i18n("graphs.custom") }}</option>
+                                    <option>{{ i18n("graphs.custom") }}</option>
                                 </select>
                             </div>
 
@@ -337,6 +337,11 @@ const endEpoch = {{ (_GET['end_epoch'] or _GET['epoch_end'] or 'undefined') }};
         });
 
         $btnApply.on('click', function() {
+            highlightCustomPresetButton();
+            $rangePicker.dispatchEvent(rangepickerEvent);
+        });
+
+        $btnJumpTimeBack.on('click', function() {
             highlightCustomPresetButton();
             $rangePicker.dispatchEvent(rangepickerEvent);
         });
