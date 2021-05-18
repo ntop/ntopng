@@ -83,6 +83,8 @@ Example:
 `ntopng -d /path2 -r 127.0.0.1:6379@2 -w 3002`
 ...
 
+In case you save timseries in InfluxDB, make sure you use a different DB per instance in order not to mix data across instances.
+
 Using Interface Views
 ---------------------
 Suppose you want to start ntopng as follows `-i eth0 -i eth1`. ntopng will show you traffic
