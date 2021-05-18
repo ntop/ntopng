@@ -186,7 +186,6 @@ end
 
 -- NOTE: this function must be called after page_utils.set_active_menu_entry
 function page_utils.print_page_title(title)
-
    local help_link = page_utils.menu_entries[active_entry].help_link or ""
    print("<header class='mb-3 d-flex align-items-center'>")
    print("<h2 class='d-inline-block'>".. title .."</h2>")

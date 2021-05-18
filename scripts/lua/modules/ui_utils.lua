@@ -117,4 +117,18 @@ function ui_utils.render_table_picker(name, context, modals)
     })
 end
 
+---Render a Tags Input box.
+--@param name The component unique name
+---@param tags A table containing the values
+---@return string
+function ui_utils.render_tag_input(name, tags)
+    local options = {
+       instance_name = name,
+       json = json,
+       tags = tags or {}, -- initial tags
+    }
+
+    return template_utils.gen("pages/components/tag-input.template", options)
+end
+
 return ui_utils

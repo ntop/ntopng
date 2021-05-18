@@ -1,0 +1,80 @@
+<div class="modal fade" id="add-l7_proto-rule-modal" tabindex="-1" role="dialog" aria-labelledby="add-l7_proto-rule-modal-title"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="add-l7_proto-rule-modal-title">{{ i18n("policy.add_rule") }}</h5>
+                <div class="modal-close">
+                    <div class="confirm-closing" style="display: none;">
+                        <span class='mx-2' style="vertical-align: middle;"><b>{{ i18n("policy.abort_add_rule") }}</b></span>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-secondary cancel" type="button">{{ i18n("cancel") }}</button>
+                            <button data-dismiss="modal" class="btn btn-danger confirm" type="button">{{ i18n("abort") }}</button>
+                        </div>
+                    </div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+            <form autocomplete="off">
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="l7_proto-rule-select">
+                            <b>{{ i18n("policy.l7_proto") }}</b>
+                        </label>
+                        <div class="col-sm-5">
+                            <select required name="l7_proto" class="form-control" id="l7_proto-rule-select">
+                                {% local first_item = true %}
+                                    {% for name, id in pairsByKeys(l7_protocols, asc) do %}
+                                         <option {{ (first_item and "selected" or "") }} data-tag-label="{{ name }}" value="{{ id }}">{{ name }}</option>
+                                        {% first_item = false %}
+                                    {% end %}
+                            </select>
+                        </div>
+                    </div>
+                    <span class="invalid-feedback"></span>
+                </div>
+                <div class="modal-footer">
+                    <div class="mr-auto">
+                    </div>
+                    <button type="submit" id="add-l7_proto-rule-btn" class="btn btn-primary">{{i18n("add")}}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    l7_proto_global.ruleModalShow = function(tag) {
+        if (tag) {
+            let value_select = $('#add-l7_proto-rule-modal select[name="l7_proto"]');
+            value_select.val(tag.value).change();
+        }
+
+        $('#add-l7_proto-rule-modal-title').text(tag ? "{{i18n('policy.edit_rule')}}" : "{{i18n('policy.add_rule')}}");
+        $('#add-l7_proto-rule-btn').text(tag ? "{{i18n('apply')}}" : "{{i18n('add')}}");
+        $('#add-l7_proto-rule-modal').modal('show');
+    }
+
+    /* bind add rule event */
+    $(`#add-l7_proto-rule-modal form`).modalHandler({
+        /* Note: no endpoint defined, ajax is not used here */
+        resetAfterSubmit: false,
+        onModalInit: () => {},
+        onModalShow: () => {},
+        beforeSumbit: () => {
+            let value = $('#add-l7_proto-rule-modal select').val().trim();
+            let label = $('option:selected', $('#add-l7_proto-rule-modal select')).data('tagLabel');
+            l7_proto_global.addTag({ label: label, value: value });
+            return {};
+        },
+        onSubmitSuccess: (response) => {
+            $(`#add-l7_proto-rule-modal`).modal('hide');
+            return true;
+        }
+    }).invokeModalInit();
+});
+</script>
+

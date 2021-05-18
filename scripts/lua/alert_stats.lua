@@ -345,7 +345,6 @@ local extra_range_buttons = [[
 
 local available_filter_types = {}
 local all_alert_types = {}
-local all_l7_protocols = {}
 local extra_tags_buttons = ""
 if page ~= "all" then
    extra_tags_buttons = [[
