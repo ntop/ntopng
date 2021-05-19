@@ -1346,9 +1346,9 @@ elseif((page == "ndpi")) then
 
       print('<div class="dt-toolbar btn-toolbar float-right">')
       print('<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="direction_dropdown">')
-      print('<li>'..hostinfo2detailshref(host, {page = "ndpi"}, i18n("all"))..'</li>')
-      print('<li>'..hostinfo2detailshref(host, {page = "ndpi", direction = "sent"}, i18n("ndpi_page.sent_only"))..'</li>')
-      print('<li>'..hostinfo2detailshref(host, {page = "ndpi", direction = "recv"}, i18n("ndpi_page.received_only"))..'</li>')
+      print('<li class="dropdown-item">'..hostinfo2detailshref(host, {page = "ndpi"}, i18n("all"))..'</li>')
+      print('<li class="dropdown-item">'..hostinfo2detailshref(host, {page = "ndpi", direction = "sent"}, i18n("ndpi_page.sent_only"))..'</li>')
+      print('<li class="dropdown-item">'..hostinfo2detailshref(host, {page = "ndpi", direction = "recv"}, i18n("ndpi_page.received_only"))..'</li>')
       print('</ul></div></div>')
 
       print [[
