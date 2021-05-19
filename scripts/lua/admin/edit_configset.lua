@@ -157,7 +157,7 @@ local context = {
 }
 
 -- print config_list.html template
-print(template.gen("pages/edit_configset.html", context))
+template.render("pages/edit_configset.template", context)
 
 -- append the menu below the page
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

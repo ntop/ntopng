@@ -62,14 +62,14 @@ const select_script_filter = (enabled_count) => {
 const generate_checkbox_enabled = (id, enabled, callback) => {
 
    const $checkbox_enabled = $(`
-      <div class="custom-control custom-switch">
+      <div class="form-switch"">
          <input
             id='${id}'
             name='enabled'
-            class="custom-control-input"
+            class="form-check-input ms-0"
             type="checkbox"
             ${enabled ? "checked" : ""} />
-            <label class="custom-control-label" for="${id}"></label>
+            <label class="form-check-label" for="${id}"></label>
       </div>
    `);
 
@@ -86,7 +86,7 @@ const generate_checkbox_enabled = (id, enabled, callback) => {
  */
 const generate_multi_select = (params, has_container = true) => {
 
-   const $select = $(`<select id='multiple-select' style="height: 10rem" multiple class='form-control'></select>`);
+   const $select = $(`<select id='multiple-select' style="height: 10rem" multiple class='form-select'></select>`);
 
    // add groups and items
    if (params.groups.length == 1) {
@@ -119,7 +119,7 @@ const generate_multi_select = (params, has_container = true) => {
 
    if (has_container) {
       return $(`
-         <div class='form-group ${(params.containerCss || "mt-3")}'>
+         <div class='form-group mb-3 ${(params.containerCss || "mt-3")}'>
             <label>${params.label || 'Default Label'}</label>
          </div>
       `).append($select);
@@ -156,7 +156,7 @@ const generate_input_box = (input_settings, has_container = true) => {
 
 const generate_single_select = (params, has_container = true) => {
 
-   const $select = $(`<select name='${params.name}' class='form-control' />`);
+   const $select = $(`<select name='${params.name}' class='form-select' />`);
 
    if (params.enabled != undefined && !params.enabled) {
       $select.attr("disabled", "");
@@ -184,13 +184,13 @@ const generate_single_select = (params, has_container = true) => {
 const generate_textarea = (textarea_settings) => {
 
    const $textarea = $(`
-         <div class='form-group mt-3'>
+         <div class='form-group mb-3 mt-3'>
             <label class='pl-2'>${textarea_settings.label}</label>
             <textarea ${textarea_settings.class}
                ${textarea_settings.enabled ? '' : 'readonly'}
                name='${textarea_settings.name}'
                placeholder='${textarea_settings.placeholder}'
-               class='form-control ml-2'>${textarea_settings.value}</textarea>
+               class='form-control ms-2'>${textarea_settings.value}</textarea>
             <div class="invalid-feedback"></div>
          </div>
    `);
@@ -208,7 +208,7 @@ const generate_radio_buttons = (params, has_container = true) => {
    const active_third_button = params.granularity.labels[2] == params.granularity.label;
 
    const $radio_buttons = $(`
-      <div class="btn-group float-right btn-group-toggle" data-toggle="buttons">
+      <div class="btn-group float-end btn-group-toggle" data-bs-toggle="buttons">
          <label
             class="btn ${active_first_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}">
             <input
@@ -493,24 +493,24 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          }
 
          const $field = $(`<div class='input-group template' style='width: 14rem'></div>`);
-         $field.append($(`<div class='input-group-prepend'></div>`).append($select));
+         $field.append($select);
          $field.append(`<input
                            type='number'
-                           class='form-control text-right'
+                           class='form-control text-end'
                            required
                            name='${key}-input'
                            ${hook.enabled ? '' : 'readonly'}
                            value='${hook.script_conf.threshold == undefined ? '' : hook.script_conf.threshold}'
                            min='${field_min == undefined ? '' : field_min}'
                            max='${field_max == undefined ? '' : field_max}'>`);
-         $field.append(`<span class='mt-auto mb-auto ml-2 mr-2'>${fields_unit ? fields_unit : ""}</span>`);
+         $field.append(`<span class='mt-auto mb-auto ms-2 me-2'>${fields_unit ? fields_unit : ""}</span>`);
          $field.append(`<div class='invalid-feedback'></div>`);
 
          const $input_container = $(`<tr id='${key}'></tr>`);
          const $checkbox = $(`
-            <div class="custom-control custom-switch">
-               <input class="custom-control-input" id="id-${key}-check" name="${key}-check" type="checkbox" ${hook.enabled ? "checked" : ""} >
-               <label class="custom-control-label" for="id-${key}-check"></label>
+            <div class="form-switch">
+               <input class="form-check-input ms-0" id="id-${key}-check" name="${key}-check" type="checkbox" ${hook.enabled ? "checked" : ""} >
+               <label class="form-check-label" for="id-${key}-check"></label>
             </div>
          `);
 
@@ -690,9 +690,10 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
          'itemslist-checkbox', enabled, callback_checkbox
       );
 
-      const items_list = hooks.all ? hooks.all.script_conf.items : (hooks.min.script_conf.items || []); const $text_area = $(`
+      const items_list = hooks.all ? hooks.all.script_conf.items : (hooks.min.script_conf.items || []); 
+      const $text_area = $(`
          <td>
-            <div class='form-group template w-100'>
+            <div class='form-floating mb-3 template w-100'>
                <textarea
                   ${!enabled ? "readonly" : ""}
                   name='items-list'
@@ -701,6 +702,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
                   rows='10'>${items_list.length > 0 ? items_list.join(',') : ''}</textarea>
                   <small>${gui.input_description || i18n.blacklisted_country}</small>
                <div class="invalid-feedback"></div>
+               <label></label>
             </div>
          </td>
       `);
@@ -1417,8 +1419,8 @@ const createScriptStatusButton = (row_data) => {
 
    if (!is_enabled && row_data.input_handler) {
       $button.html(`<i class='fas fa-toggle-on'></i>`);
-      $button.attr('data-target', '#modal-script');
-      $button.attr('data-toggle', 'modal');
+      $button.attr('data-bs-target', '#modal-script');
+      $button.attr('data-bs-toggle', 'modal');
       return $button;
    }
 
@@ -1491,25 +1493,25 @@ function appendExclusionList(data) {
       }
    }
 
-    if($(`#exclusion-list-template`).length) {
-	/* Only show exclusion lists configuration textarea for those entities that support it */
-	let $container;
-	const $textarea = $($(`#exclusion-list-template`).html());
-	const label = i18n.scripts_list.exclusion_list_title;
+    if ($(`#exclusion-list-template`).length) {
+         /* Only show exclusion lists configuration textarea for those entities that support it */
+         let $container;
+         const $textarea = $($(`#exclusion-list-template`).html());
+         const label = i18n.scripts_list.exclusion_list_title;
 
-	if(["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder)) {
-	    $container = $(`<tr></tr>`);
-	    $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(
-		$(`<label class='col-3 col-form-label'>${label}</label>`),
-		$(`<div class='col-12'></div>`).append($textarea))));
-	} else {
-	    $container = $(`<tr><td></td></tr>`);
-	    $container.append($(`<td class='align-middle'>${label}</td>`));
-	    $container.append($(`<td></td>`).append($textarea));
-	}
+         if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder)) {
+            $container = $(`<tr></tr>`);
+            $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(
+            $(`<label class='col-3 col-form-label'>${label}</label>`),
+            $(`<div class='col-12'></div>`).append($textarea))));
+         } else {
+            $container = $(`<tr><td></td></tr>`);
+            $container.append($(`<td class='align-middle'>${label}</td>`));
+            $container.append($(`<td></td>`).append($textarea));
+         }
 
-	$(`#script-config-editor`).append($container);
-	$(`#script-config-editor Textarea[name='exclusion-list']`).val(ex_list_str);
+         $(`#script-config-editor`).append($container);
+         $(`#script-config-editor Textarea[name='exclusion-list']`).val(ex_list_str);
     }
 }
 
@@ -1555,7 +1557,7 @@ function delegateActionButton(gui) {
 }
 
 function delegateTooltips() {
-   $(`span[data-toggle='popover']`).popover({
+   $(`span[data-bs-toggle='popover']`).popover({
       trigger: 'manual',
       html: true,
       animation: false,
@@ -1586,7 +1588,7 @@ $(function () {
 
       const $dropdown = $(`
          <div id='category-filter-menu' class='dropdown d-inline'>
-            <button class='btn btn-link dropdown-toggle' data-toggle='dropdown' type='button'>
+            <button class='btn btn-link dropdown-toggle' data-bs-toggle='dropdown' type='button'>
                <span>${i18n.filter_categories}</span>
             </button>
             <div id='category-filter' class='dropdown-menu'>
@@ -1809,7 +1811,7 @@ $(function () {
                className: 'btn btn-link'
             },
             container: {
-               className: 'border-left ml-1 float-right'
+               className: 'border-start ms-1 float-end'
             }
          }
       },
@@ -1839,7 +1841,7 @@ $(function () {
                if (type == "display") {
 
                   return `<span
-                           ${data.length >= 72 ? `data-toggle='popover'  data-placement='top' data-html='true'` : ``}
+                           ${data.length >= 72 ? `data-bs-toggle='popover'  data-placement='top' data-html='true'` : ``}
                            title="${row.title}"
                            data-content="${data}" >
                               ${truncate_string(data, 120, true)}
@@ -1853,7 +1855,7 @@ $(function () {
          {
             data: 'enabled_hooks',
             sortable: false,
-            className: 'text-left',
+            className: 'text-start',
             render: function (data, type, row) {
 
                // if the type is flter return true if the data length is greather or equal
@@ -1864,7 +1866,7 @@ $(function () {
                return (type == 'display') ? `
                   <span
                      title="${i18n.values}"
-                     ${row.value_description.length >= 32 ? `data-toggle='popover'  data-placement='top'` : ``}
+                     ${row.value_description.length >= 32 ? `data-bs-toggle='popover'  data-placement='top'` : ``}
                      data-content='${row.value_description}'>
                      ${row.value_description.substr(0, 32)}${row.value_description.length >= 32 ? '...' : ''}
                   </span>
@@ -1925,7 +1927,7 @@ $(function () {
       });
 
    // load templates for the script
-   $('#scripts-config').on('click', '[href="#modal-script"],[data-target="#modal-script"]', function (e) {
+   $('#scripts-config').on('click', '[href="#modal-script"],[data-bs-target="#modal-script"]', function (e) {
 
       const row_data = $script_table.row($(this).parent().parent()).data();
       const script_key = row_data.key;

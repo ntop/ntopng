@@ -75,7 +75,7 @@
   subdir = script_list.script_subdir,
 }) *}
 {# add css, js files #}
-<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 <script type="text/javascript">
 
 const script_subdir = "{{ script_list.script_subdir }}";
