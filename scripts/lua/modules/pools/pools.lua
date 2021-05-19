@@ -444,7 +444,6 @@ function pools:edit_pool(pool_id, new_name, new_members, new_recipients, new_pol
             end
 
 	    if new_recipients then
-	       tprint(new_recipients)
 	       -- Check if recipients are valid
 	       if checks_ok and not self:are_valid_recipients(new_recipients) then
 		  checks_ok = false
