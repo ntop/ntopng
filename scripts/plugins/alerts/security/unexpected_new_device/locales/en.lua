@@ -14,7 +14,7 @@ return {
    -- ####################### Status strings
 
    status_unexpected_new_device_description = "Unexpected MAC <a href=\"%{host_url}\">%{mac_address}</a> connected to the network.",
-   status_unexpected_new_device_description_pro = "Unexpected MAC <a href=\"%{host_url}\">%{mac_address}</a> connected to the network. SNMP Device <a href=\"%{ip_url}\">%{ip}</a> on Port <a href=\"%{port_url}\">%{port}</a> <span class='badge badge-secondary'>%{interface_name}</span>",
+   status_unexpected_new_device_description_pro = "Unexpected MAC <a href=\"%{host_url}\">%{mac_address}</a> connected to the network. SNMP Device <a href=\"%{ip_url}\">%{ip}</a> on Port <a href=\"%{port_url}\">%{port}</a> <span class='badge rounded-pill bg-secondary'>%{interface_name}</span>",
 
    -- ####################### Alert strings
 

@@ -1076,7 +1076,7 @@ if (not info.oem) then
          ]])
 
    if((new_posts_counter ~= nil) and (new_posts_counter > 0)) then
-      print([[<span class="badge notification-bell badge-pill badge-danger">]].. new_posts_counter ..[[</span>]])
+      print([[<span class="notification-bell badge rounded-pill bg-danger">]].. new_posts_counter ..[[</span>]])
    end
 
    print([[
