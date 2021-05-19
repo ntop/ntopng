@@ -32,7 +32,6 @@ class DNSDataExfiltrationAlert : public FlowAlert {
   ~DNSDataExfiltrationAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_dns_data_exfiltration"); }
 };
 
 #endif /* _DNS_DATA_EXFILTRATION_ALERT_H_ */

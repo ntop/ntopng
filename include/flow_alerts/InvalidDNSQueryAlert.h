@@ -32,7 +32,6 @@ class InvalidDNSQueryAlert : public FlowAlert {
   ~InvalidDNSQueryAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_dns_invalid_query"); }
 };
 
 #endif /* _INVALID_DNS_QUERY_ALERT_H_ */

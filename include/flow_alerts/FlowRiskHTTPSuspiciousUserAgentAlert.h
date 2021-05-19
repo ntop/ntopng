@@ -32,7 +32,6 @@ class FlowRiskHTTPSuspiciousUserAgentAlert : public FlowAlert {
   ~FlowRiskHTTPSuspiciousUserAgentAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_ndpi_http_suspicious_user_agent"); }
 };
 
 #endif /* _FR_HTTP_SUSPICIOUS_USER_AGENT_ALERT_H_ */

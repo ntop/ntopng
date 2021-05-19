@@ -39,7 +39,6 @@ class LongLivedFlowAlert : public FlowAlert {
   ~LongLivedFlowAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_longlived"); }
 };
 
 #endif /* _LONGLIVED_FLOW_ALERT_H_ */

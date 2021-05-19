@@ -35,7 +35,6 @@ class FlowRiskBinaryApplicationTransferAlert : public FlowAlert {
   ~FlowRiskBinaryApplicationTransferAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_suspicious_file_transfer"); }
 };
 
 #endif /* _FR_BINARY_APPLICATION_TRANSFER_ALERT_H_ */

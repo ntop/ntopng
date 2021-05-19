@@ -32,7 +32,6 @@ class TCPConnectionRefusedAlert : public FlowAlert {
   ~TCPConnectionRefusedAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_tcp_connection_refused"); } 
 };
 
 #endif /* _TCP_CONNECTION_REFUSED_ALERT_H_ */

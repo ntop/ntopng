@@ -32,7 +32,6 @@ class FlowRiskSMBInsecureVersionAlert : public FlowAlert {
   ~FlowRiskSMBInsecureVersionAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_ndpi_smb_insecure_version"); }
 };
 
 #endif /* _FR_SMB_INSECURE_VERSION_ALERT_H_ */

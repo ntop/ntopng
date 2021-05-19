@@ -35,7 +35,6 @@ class RemoteToLocalInsecureProtoAlert : public FlowAlert {
   ~RemoteToLocalInsecureProtoAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("remote_to_local_insecure_proto"); }
 };
 
 #endif /* _REMOTE_TO_LOCAL_INSECURE_PROTO_ALERT_H_ */

@@ -35,7 +35,6 @@ class DeviceProtocolNotAllowedAlert : public FlowAlert {
   ~DeviceProtocolNotAllowedAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_device_protocol_not_allowed"); }
 };
 
 #endif /* _DEVICE_PROTOCOL_NOT_ALLOWED_ALERT_H_ */

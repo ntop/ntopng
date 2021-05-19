@@ -35,7 +35,6 @@ class FlowRiskTLSOldProtocolVersionAlert : public FlowRiskTLSAlert {
   ~FlowRiskTLSOldProtocolVersionAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_tls_old_protocol_version"); }
 };
 
 #endif /* _FR_TLS_OLD_PROTOCOL_VERSION_ALERT_H_ */

@@ -32,7 +32,6 @@ class NedgeBlockedFlowAlert : public FlowAlert {
   ~NedgeBlockedFlowAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_flow_blocked"); }
 };
 
 #endif /* _NEDGE_BLOCKED_FLOW_ALERT_H_ */

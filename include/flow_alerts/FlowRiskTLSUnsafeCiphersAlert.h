@@ -32,7 +32,6 @@ class FlowRiskTLSUnsafeCiphersAlert : public FlowRiskTLSAlert {
   ~FlowRiskTLSUnsafeCiphersAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_tls_unsafe_ciphers"); }
 };
 
 #endif /* _FR_TLS_UNSAFE_CHIPERS_ALERT_H_ */

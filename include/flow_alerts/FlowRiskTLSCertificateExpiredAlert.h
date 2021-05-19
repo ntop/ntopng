@@ -34,7 +34,6 @@ class FlowRiskTLSCertificateExpiredAlert : public FlowRiskTLSAlert {
   ~FlowRiskTLSCertificateExpiredAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_tls_certificate_expired"); }
 };
 
 #endif /* _FR_TLS_CERTIFICATE_EXPIRED_ALERT_H_ */

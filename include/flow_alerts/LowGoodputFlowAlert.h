@@ -35,7 +35,6 @@ class LowGoodputFlowAlert : public FlowAlert {
   ~LowGoodputFlowAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("low_goodput"); }
 };
 
 #endif /* _LOW_GOODPUT_FLOW_ALERT_H_ */

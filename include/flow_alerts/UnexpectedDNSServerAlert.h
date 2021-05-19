@@ -37,7 +37,6 @@ class UnexpectedDNSServerAlert : public UnexpectedServerAlert {
   ~UnexpectedDNSServerAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("unexpected_dns"); }
 };
 
 #endif /* _UNEXPECTED_DNS_SERVER_ALERT_H_ */

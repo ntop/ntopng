@@ -35,7 +35,6 @@ class FlowRiskSSHObsoleteAlert : public FlowAlert {
   ~FlowRiskSSHObsoleteAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_ndpi_ssh_obsolete"); }
 };
 
 #endif /* _FR_SSH_OBSOLETE_ALERT_H_ */

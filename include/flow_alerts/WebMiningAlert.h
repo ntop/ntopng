@@ -34,7 +34,6 @@ class WebMiningAlert : public FlowAlert {
   ~WebMiningAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("web_mining"); }
 };
 
 #endif /* _WEBMINING_ALERT_H_ */

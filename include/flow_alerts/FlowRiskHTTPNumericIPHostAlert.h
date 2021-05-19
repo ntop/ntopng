@@ -32,7 +32,6 @@ class FlowRiskHTTPNumericIPHostAlert : public FlowAlert {
   ~FlowRiskHTTPNumericIPHostAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_ndpi_http_numeric_ip_host"); }
 };
 
 #endif /* _FR_HTTP_NUMERIC_IP_HOST_ALERT_H_ */

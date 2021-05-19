@@ -32,7 +32,6 @@ class FlowRiskTLSSuspiciousESNIUsageAlert : public FlowRiskTLSAlert {
   ~FlowRiskTLSSuspiciousESNIUsageAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_ndpi_tls_suspicious_esni_usage"); }
 };
 
 #endif /* _FR_TLS_SUSPICIOUS_ESNI_USAGE_ALERT_H_ */

@@ -32,7 +32,6 @@ class FlowRiskDNSSuspiciousTrafficAlert : public FlowAlert {
   ~FlowRiskDNSSuspiciousTrafficAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_ndpi_dns_suspicious_traffic"); }
 };
 
 #endif /* _FR_DNS_SUSPICIOUS_TRAFFIC_ALERT_H_ */

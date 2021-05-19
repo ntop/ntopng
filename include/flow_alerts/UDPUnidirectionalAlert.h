@@ -34,7 +34,6 @@ class UDPUnidirectionalAlert : public FlowAlert {
   ~UDPUnidirectionalAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("udp_unidirectional"); }
 };
 
 #endif /* _UDP_UNIDIRECTIONAL_ALERT_H_ */

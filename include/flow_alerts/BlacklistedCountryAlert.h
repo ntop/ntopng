@@ -37,7 +37,6 @@ class BlacklistedCountryAlert : public FlowAlert {
   ~BlacklistedCountryAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_blacklisted_country"); }
 
   bool isServer() { return is_server; }
 };

@@ -35,7 +35,6 @@ class TLSMaliciousSignatureAlert : public FlowAlert {
   ~TLSMaliciousSignatureAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_malicious_signature"); }
 };
 
 #endif /* _TLS_MALICIOUS_SIGNATURE_ALERT_H_ */

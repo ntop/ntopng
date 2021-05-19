@@ -32,7 +32,6 @@ class DataExfiltrationAlert : public FlowAlert {
   ~DataExfiltrationAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_data_exfiltration"); }
 };
 
 #endif /* _DATA_EXFILTRATION_ALERT_H_ */

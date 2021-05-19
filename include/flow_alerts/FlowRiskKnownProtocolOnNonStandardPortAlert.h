@@ -35,7 +35,6 @@ class FlowRiskKnownProtocolOnNonStandardPortAlert : public FlowAlert {
   ~FlowRiskKnownProtocolOnNonStandardPortAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_known_proto_on_non_std_port"); }
 };
 
 #endif /* _FR_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT_ALERT_H_ */

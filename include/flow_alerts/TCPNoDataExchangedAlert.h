@@ -30,7 +30,6 @@ class TCPNoDataExchangedAlert : public FlowAlert {
   ~TCPNoDataExchangedAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("flow_alert_tcp_no_data_exchanged"); }
 };
 
 #endif /* _TCP_NO_DATA_ECHANGED_ALERT_H_ */

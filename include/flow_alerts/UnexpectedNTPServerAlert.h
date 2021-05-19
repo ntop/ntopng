@@ -34,7 +34,6 @@ class UnexpectedNTPServerAlert : public UnexpectedServerAlert {
   ~UnexpectedNTPServerAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("unexpected_ntp"); }
 };
 
 #endif /* _UNEXPECTED_NTP_SERVER_ALERT_H_ */

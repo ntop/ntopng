@@ -32,7 +32,6 @@ class FlowRiskUnsafeProtocolAlert : public FlowAlert {
   ~FlowRiskUnsafeProtocolAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }  
-  std::string getName() const { return std::string("alert_ndpi_unsafe_protocol"); }
 };
 
 #endif /* _FR_UNSAFE_PROTOCOL_ALERT_H_ */

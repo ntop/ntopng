@@ -34,7 +34,6 @@ class TCPZeroWindowAlert : public FlowAlert {
   ~TCPZeroWindowAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("zero_tcp_window"); }
 };
 
 #endif /* _TCP_ZERO_WINDOW_FLOW_CALLBACK_ALERT_H_ */

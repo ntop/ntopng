@@ -34,7 +34,6 @@ class UnexpectedSMTPServerAlert : public UnexpectedServerAlert {
   ~UnexpectedSMTPServerAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("unexpected_smtp"); }
 };
 
 #endif /* _UNEXPECTED_SMTP_SERVER_ALERT_H_ */

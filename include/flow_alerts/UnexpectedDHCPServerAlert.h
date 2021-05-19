@@ -37,7 +37,6 @@ class UnexpectedDHCPServerAlert : public UnexpectedServerAlert {
   ~UnexpectedDHCPServerAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("unexpected_dhcp"); }
 };
 
 #endif /* _UNEXPECTED_DHCP_SERVER_ALERT_H_ */

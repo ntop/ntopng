@@ -36,7 +36,6 @@ class ExternalAlertCheckAlert : public FlowAlert {
   ~ExternalAlertCheckAlert() {};
   
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("external_alert_check"); }
 };
 
 #endif /* _EXTERNAL_ALERT_CHECK_ALERT_H_ */

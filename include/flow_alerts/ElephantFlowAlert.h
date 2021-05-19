@@ -40,7 +40,6 @@ class ElephantFlowAlert : public FlowAlert {
   ~ElephantFlowAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_elephant_flow"); }
 };
 
 #endif /* _ELEPHANT_FLOW_ALERT_H_ */

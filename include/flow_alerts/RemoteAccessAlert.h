@@ -35,7 +35,6 @@ class RemoteAccessAlert : public FlowAlert {
   ~RemoteAccessAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_remote_access"); }
 };
 
 #endif /* _REMOTE_ACCESS_ALERT_H_ */

@@ -32,7 +32,6 @@ class FlowRiskURLPossibleSQLInjectionAlert : public FlowAlert {
   ~FlowRiskURLPossibleSQLInjectionAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_ndpi_url_possible_sql_injection"); }
 };
 
 #endif /* _FR_URL_POSSIBLE_SQL_INJECTION_ALERT_H_ */

@@ -32,7 +32,6 @@ class FlowRiskURLPossibleRCEInjectionAlert : public FlowAlert {
   ~FlowRiskURLPossibleRCEInjectionAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_ndpi_url_possible_rce_injection"); }
 };
 
 #endif /* _FR_URL_POSSIBLE_RCE_INJ_ALERT_H_ */

@@ -43,7 +43,6 @@ class IECInvalidTransitionAlert : public FlowAlert {
   ~IECInvalidTransitionAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_iec_invalid_transition"); }
 };
 
 #endif /* _IEC_INVALID_TRANSITION_ALERT_H_ */

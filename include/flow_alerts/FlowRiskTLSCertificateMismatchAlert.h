@@ -32,7 +32,6 @@ class FlowRiskTLSCertificateMismatchAlert : public FlowRiskTLSAlert {
   ~FlowRiskTLSCertificateMismatchAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_tls_certificate_mismatch"); }
 };
 
 #endif /* _FR_TLS_CERTIFICATE_MISMATCH_ALERT_H_ */

@@ -46,7 +46,6 @@ class FlowAlert {
   inline bool isSrvAttacker() { return srv_attacker; }
 
   virtual FlowAlertType getAlertType() const = 0;
-  virtual std::string   getName()      const = 0;
 
   inline Flow *getFlow() const { return(flow); }
   inline std::string getCallbackName() const { return(callback_name); }

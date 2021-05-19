@@ -35,7 +35,6 @@ class FlowRiskSuspiciousDGADomainAlert : public FlowAlert {
   ~FlowRiskSuspiciousDGADomainAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_ndpi_suspicious_dga_domain"); }
 };
 
 #endif /* _FR_SUSPICIOUS_DGA_DOMAIN_ALERT_H_ */

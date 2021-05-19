@@ -35,7 +35,6 @@ class FlowRiskTLSCertificateSelfSignedAlert : public FlowRiskTLSAlert {
   ~FlowRiskTLSCertificateSelfSignedAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_tls_certificate_selfsigned"); }
 };
 
 #endif /* _FR_TLS_CERTIFICATE_SELFSIGNED_ALERT_H_ */

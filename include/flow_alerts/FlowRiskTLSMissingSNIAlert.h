@@ -32,7 +32,6 @@ class FlowRiskTLSMissingSNIAlert : public FlowRiskTLSAlert {
   ~FlowRiskTLSMissingSNIAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_ndpi_tls_missing_sni"); }
 };
 
 #endif /* _FR_TLS_MISSING_SNI_ALERT_H_ */
