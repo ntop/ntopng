@@ -64,7 +64,7 @@ These files, documented here (add ref) are mandatory and must be present for a c
 
 ntopng use names to link callback configuration with its C++ class instance. A common :code:`<name>` must be used as:
 
-- The name of the Lua file, e.g., :code:`scripts/lua/modules/callback_definitions/flow/<name>.lua`
+- The name of the Lua file under :code:`scripts/lua/modules/callback_definitions`, e.g., :code:`<name>.lua`
 - The string returned by method :code:`getName` in the C++ class file, e.g., :code:`std::string getName() const { return(std::string("<name>")); }`.
 
 Example
@@ -79,7 +79,7 @@ The following figure shows the interplay between the various components of a flo
   BlacklistedFlow Flow Callback
 
 
-File :code:`BlacklistedFlow.h` *(1)* contains the declaration of class `BlacklistedFlow`, a subclass of :code:`FlowCallback`. The class is defined in :code:`BlacklistedFlow.h` *(2)* that contains class methods implementation.
+File :code:`BlacklistedFlow.h` *(1)* contains the declaration of class `BlacklistedFlow`, a subclass of :code:`FlowCallback`. The class is defined in :code:`BlacklistedFlow.cpp` *(2)* that contains class methods implementation.
 
 To have :code:`BlacklistedFlow` compiled, an :code:`#include` directive must be added in file :code:`include/flow_callbacks_includes.h` *(3)*. The directive must contain the path to the class declaration file :code:`BlacklistedFlow.h`.
 
@@ -110,11 +110,52 @@ Those classes must be used as base classes when implementing alerts:
 - Every host alert implemented must inherit from :code:`HostAlert`
 - Every flow alert implemented must inherit from :code:`FlowAlert`
 
+Identifying Alerts
+------------------
+
+Alerts are uniquely identified with a key, present both in C++ and Lua. In C++ alert keys are enumerated inside file :code:`ntop_typedefs.h`:
+
+- Enumeration :code:`FlowAlertTypeEnum` defines keys for flow alerts
+- Enumeration :code:`HostAlertTypeEnum` defines keys for host alerts
+
+Every C++ alert class must implement :code:`getClassType` to return an enumerated alert key. Every enumerated value must be used by one and only one alert class.
+
+In Lua, alert keys are enumerated inside files:
+
+- :code:`scripts/lua/modules/alert_keys/flow_alert_keys.lua` for flow alerts
+- :code:`scripts/lua/modules/alert_keys/host_alert_keys.lua` for host alerts
+
+C++ and Lua files must be synchronized, that is, they must have the same enumerated alert keys. This means using the same enumeration names and numbers, in C++:
+
+.. code:: C
+
+  typedef enum {
+  flow_alert_normal                           = 0,
+  flow_alert_blacklisted                      = 1,
+  flow_alert_blacklisted_country              = 2,
+  [...]
+  } FlowAlertTypeEnum;
+
+and in Lua:
+
+.. code:: lua
+
+  local flow_alert_keys = {
+    flow_alert_normal                          = 0,
+    flow_alert_blacklisted                     = 1,
+    flow_alert_blacklisted_country             = 2,
+    [...]
+   }
+
+To implement an alert, an additional alert key must be added to bot C++ and Lua.
+
+
 Alert Formatting
 ----------------
 
 Alerts are shown graphically inside the ntopng web UI and are also exported to external recipients. ntopng, to format alerts, needs to know along with other information:
 
+- Unique alert keys
 - Strings (optionally localized) for alert names and descriptions
 - How to handle parameters inserted into the alert from the C++ classes
 
@@ -123,26 +164,49 @@ ntopng reads this information from small Lua files located in:
 - :code:`scripts/lua/modules/alert_definitions/flow/` for flow alerts
 - :code:`scripts/lua/modules/alert_definitions/host` for host alerts
 
-These files are mandatory and must be present for an alert to be properly created and visualized.
+These files are mandatory and must be present for an alert to be properly created and visualized. Each file must return a table containing some metadata, including a unique alert key read from one of the Lua alert keys enumeration files. Each alert key must be returned by one and only one Lua file.
+
+
+Creating Flow Alerts
+--------------------
+
+Alert classes are instantiated inside :code:`buildAlert`, a method that must be implemented by each flow callback. This method is called by ntopng to create the alert, when it has been told to do so from a flow callback.
+
+Callbacks use :code:`triggerAlertAsync` to tell ntopng to create an alert. Indeed, The actual alert creation is triggered from the flow callback with the call :code:`f->triggerAlertAsync`. This call tells ntopng to create an alert identified with :code:`BlacklistedFlowAlert::getClassType()` on the flow instance pointed by :code:`f`.
+
+
+Creating Host Alerts
+--------------------
+
+Alert classes are instantiated inside host callbacks.
+
+Callbacks use :code:`triggerAlert` to tell ntopng to create an alert. Indeed, The actual alert creation is triggered from the host callback with the call :code:`h->triggerAlert` that wants a pointer to the host alert instance as parameter.
+
+
+Example
+-------
+
+The following figure shows the interplay between the various components necessary to create a flow alert. :code:`BlacklistedFlow` is used for reference. Full-screen is recommended to properly visualize the figure.
+
+.. figure:: ../img/developing_alerts_alert_structure.png
+  :align: center
+  :alt: BlacklistedFlowAlert Flow Alert
+
+  BlacklistedFlowAlert Flow Alert
+
+
+File :code:`BlacklistedFlowAlert.h` *(1)* contains the declaration of class `BlacklistedFlowAlert`, a subclass of :code:`FlowAlert`. The class is defined in :code:`BlacklistedFlowAlert.cpp` *(2)* that contains class methods implementation.
+
+To have :code:`BlacklistedFlowAlert` compiled, an :code:`#include` directive must be added in file :code:`include/flow_alerts_includes.h` *(3)*. The directive must contain the path to the class declaration file :code:`BlacklistedFlowAlert.h`.
+
+Class :code:`BlacklistedFlowAlert` is instantiated inside :code:`buildAlert` *(4)*, a method of flow callback :code:`BlacklistedFlow`. Indeed, as seen in the previous section, alerts are created from callbacks. This method is called by ntopng to create the alert, when it has been told to do so from a callback.
+
+The actual alert creation is triggered from the flow callback with the call :code:`f->triggerAlertAsync` *(5)*. This call tells ntopng to create an alert identified with :code:`BlacklistedFlowAlert::getClassType()` on the flow instance pointed by :code:`f`.
+
+Method :code:`getClassType()` returns an alert key *(6)* that is enumerated inside file :code:`ntop_typedefs.h`, as part of the :code:`FlowAlertTypeEnum` enumeration - follow the arrow starting at *(6)*. The same key is also enumerated in :code:`flow_alert_keys.lua` *(7)*, with the same enumeration name and number.
+
+The alert key enumerated in Lua is specified as part of the :code:`meta` data of file :code:`alert_flow_blacklisted.lua` *(8)*. This file tells ntopng how to format the alert and its parameters. In particular, :code:`format` is used for the formatting. The third parameter of the function is a Lua table that contains the fields populated in C++. Indeed, method :code:`getAlertJSON` implemented in :code:`BlacklistedFlowAlert.cpp` *(2)* populates fields that are then propagated to the lua :code:`format` with the same names *(9)*. For example, a boolean :code:`cli_blacklisted` is added in C++ and read in Lua to properly format the blacklisted alert.
 
 
 
-Examples
-----------
-
-Files .h and .cpp must have the same name. For example, the flow callback WebMining in charge of creating alerts for flows performing cryptocurrency mining is implemented in files:
-
-- :code:`./include/flow_callbacks/WebMining.h`
-- :code:`./src/flow_callbacks/WebMining.cpp`
-
-Similarly, the host callback SYNScan in charge of creating alerts for hosts that are SYN scanners or scan victims is implemented in files:
-
-- :code:`./include/host_callbacks/SYNScan.h`
-- :code:`./src/host_callbacks/SYNScan.cpp`
-
-
-Callbacks execution is:
-
-- Periodic for hosts
-- Event-based for flows
 
