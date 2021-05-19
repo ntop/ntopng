@@ -49,7 +49,7 @@
         <div class="range-picker d-flex my-auto flex-wrap">
 
                             <div class="form-group my-auto mx-1">
-                                <select class="form-control" id="select-presets">
+                                <select class="form-select" id="select-presets">
                                     {% if (presets.five_mins) or (presets.five_mins ~= false) then %}
                                         <option {{ ((presetSelected and default == '5min') and 'selected' or '') }} value="5,minutes">{{ i18n('show_alerts.presets.5_min') }}</option>
                                     {% end  %}
@@ -80,17 +80,13 @@
 
 
             <div style="width: 30rem;" class="input-group mx-1">
-                <div class="input-group-prepend">
 		    <span class="input-group-text">
 		        <i class="fas fa-calendar-alt"></i>
 		    </span>
-                </div>
                 <input id='begin-epoch' type="text" aria-label="Begin" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-right-0" data-target="#begin-epoch">
-                <div class="input-group-prepend">
                     <span class="input-group-text">
                         <i class="fas fa-long-arrow-alt-right"></i>
                     </span>
-                </div>
                 <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-left-0" data-target="#end-epoch">
             </div>
 
