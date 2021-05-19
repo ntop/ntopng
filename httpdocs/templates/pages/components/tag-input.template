@@ -60,7 +60,6 @@ $(document).ready(function() {
         //existingTagElements.forEach(elem => console.log(tagify_{{instance_name}}.tagData(elem));
     }
 
-    /*
     // Tag 'click' event handler to open the 'Edit' modal.
     tagify_{{instance_name}}.on('click', async function(e) {
         const detail = e.detail;
@@ -68,9 +67,8 @@ $(document).ready(function() {
         if (detail.data.value === undefined) {return;}
         const tag = detail.data;
 
-        {{instance_name}}_global.ruleModalShow(tag);
+        //{{instance_name}}_global.ruleModalShow(tag);
     });
-    */
 
     tagify_{{instance_name}}.on('change', async function (e) {
         const detail = e.detail;

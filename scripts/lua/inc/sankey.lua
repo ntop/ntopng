@@ -85,7 +85,7 @@ print [[
 
     if ((hosts.links.length == 0) && (hosts.nodes.length == 0)) {
       if(! sankey_has_chart)
-	$('#alert_placeholder').html("<div class=\"alert alert-warning\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\">x</button><strong>Warning: </strong>]] print(i18n("no_talkers_for_the_host")) print[[.</div>");
+	$('#alert_placeholder').html("<div class=\"alert alert-warning\"><button type=\"button\" class=\"close\" data-bs-dismiss=\"alert\">x</button><strong>Warning: </strong>]] print(i18n("no_talkers_for_the_host")) print[[.</div>");
       return;
     }
 
