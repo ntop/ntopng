@@ -1,10 +1,3 @@
-
-Creating Alerts
-###############
-
-Ntopng has the ability to create alerts for hosts, flows, and other network elements. Alerts for flows and hosts are created inside the C++ core of ntopng for performance.  This section describes how to create alerts for hosts and flows. Alerts for other network elements are created by means of plugins (add_ref).
-
-
 Callbacks
 =========
 
@@ -162,7 +155,7 @@ Alerts are shown graphically inside the ntopng web UI and are also exported to e
 ntopng reads this information from small Lua files located in:
 
 - :code:`scripts/lua/modules/alert_definitions/flow/` for flow alerts
-- :code:`scripts/lua/modules/alert_definitions/host` for host alerts
+- :code:`scripts/lua/modules/alert_definitions/host/` for host alerts
 
 These files are mandatory and must be present for an alert to be properly created and visualized. Each file must return a table containing some metadata, including a unique alert key read from one of the Lua alert keys enumeration files. Each alert key must be returned by one and only one Lua file.
 
@@ -206,6 +199,70 @@ The actual alert creation is triggered from the flow callback with the call :cod
 Method :code:`getClassType()` returns an alert key *(6)* that is enumerated inside file :code:`ntop_typedefs.h`, as part of the :code:`FlowAlertTypeEnum` enumeration - follow the arrow starting at *(6)*. The same key is also enumerated in :code:`flow_alert_keys.lua` *(7)*, with the same enumeration name and number.
 
 The alert key enumerated in Lua is specified as part of the :code:`meta` data of file :code:`alert_flow_blacklisted.lua` *(8)*. This file tells ntopng how to format the alert and its parameters. In particular, :code:`format` is used for the formatting. The third parameter of the function is a Lua table that contains the fields populated in C++. Indeed, method :code:`getAlertJSON` implemented in :code:`BlacklistedFlowAlert.cpp` *(2)* populates fields that are then propagated to the lua :code:`format` with the same names *(9)*. For example, a boolean :code:`cli_blacklisted` is added in C++ and read in Lua to properly format the blacklisted alert.
+
+
+Checklists
+==========
+
+Flows
+-----
+
+To create a flow alert, say :code:`BadFlowAlert`, check the following items:
+
+- Implement a flow callback :code:`BadFlow` that inherits from :code:`FlowCallback`
+
+    - Place the class declaration file :code:`BadFlow.h` inside :code:`include/flow_callbacks/BadFlow.h` 
+    - Place the class definition file :code:`BadFlow.cpp` inside :code:`src/flow_callbacks/BadFlow.cpp`
+    - Add an :code:`#include "flow_callbacks/BadFlow.h"` directive in :code:`include/flow_callbacks_includes.h`
+    - Add a :code:`new BadFlow()` constructor in :code:`src/FlowCallbacksLoader.cpp`
+
+- Implement a Lua file :code:`bad_flow.lua` for the callback configuration
+
+    - Place :code:`bad_flow.lua` inside :code:`scripts/lua/modules/callback_definitions/flow/`
+    - Edit method :code:`getName` in :code:`BadFlow.h` to return string :code:`bad_flow`
+
+- Implement a flow alert :code:`BadFlowAlert` that inherits from :code:`FlowAlert`
+
+    - Place the class declaration file :code:`BadFlowAlert.h` inside :code:`include/flow_alerts/BadFlowAlert.h` 
+    - Place the class definition file :code:`BadFlowAlert.cpp` inside :code:`src/flow_alerts/BadFlowAlert.cpp`
+    - Add an :code:`#include "flow_alerts/BadFlowAlert.h"` directive in :code:`include/flow_alerts_includes.h`
+
+- Add a unique alert key
+
+    - Add an enumeration value :code:`flow_alert_bad_flow = <NUM>` in :code:`FlowAlertTypeEnum` inside file :code:`ntop_typedefs.h` and make sure :code:`<NUM>` is unique and not already used
+    - Edit method :code:`getClassType` in :code:`BadFlowAlert.h` to return enumeration value :code:`flow_alert_bad_flow`
+    - Add an enumeration value :code:`flow_alert_bad_flow = <NUM>` inside :code:`scripts/lua/modules/alert_keys/flow_alert_keys.lua` making sure :code:`<NUM>` is the very same number used also in :code:`FlowAlertTypeEnum`
+
+
+Hosts
+-----
+
+To create an host alert, say :code:`BadHostAlert`, check the following items:
+
+- Implement an host callback :code:`BadHost` that inherits from :code:`HostCallback`
+
+    - Place the class declaration file :code:`BadHost.h` inside :code:`include/host_callbacks/BadHost.h` 
+    - Place the class definition file :code:`BadHost.cpp` inside :code:`src/host_callbacks/BadHost.cpp`
+    - Add an :code:`#include "host_callbacks/BadHost.h"` directive in :code:`include/host_callbacks_includes.h`
+    - Add a :code:`new BadHost()` constructor in :code:`src/HostCallbacksLoader.cpp`
+
+- Implement a Lua file :code:`bad_host.lua` for the callback configuration
+
+    - Place :code:`bad_host.lua` inside :code:`scripts/lua/modules/callback_definitions/host/`
+    - Edit method :code:`getName` in :code:`BadHost.h` to return string :code:`bad_host`
+
+- Implement an host alert :code:`BadHostAlert` that inherits from :code:`HostAlert`
+
+    - Place the class declaration file :code:`BadHostAlert.h` inside :code:`include/host_alerts/BadHostAlert.h` 
+    - Place the class definition file :code:`BadHostAlert.cpp` inside :code:`src/host_alerts/BadHostAlert.cpp`
+    - Add an :code:`#include "host_alerts/BadHostAlert.h"` directive in :code:`include/host_alerts_includes.h`
+
+- Add a unique alert key
+
+    - Add an enumeration value :code:`host_alert_bad_host = <NUM>` in :code:`HostAlertTypeEnum` inside file :code:`ntop_typedefs.h` and make sure :code:`<NUM>` is unique and not already used
+    - Edit method :code:`getClassType` in :code:`BadFlowAlert.h` to return enumeration value :code:`host_alert_bad_host`
+    - Add an enumeration value :code:`host_alert_bad_host = <NUM>` inside :code:`scripts/lua/modules/alert_keys/host_alert_keys.lua` making sure :code:`<NUM>` is the very same number used also in :code:`HostAlertTypeEnum`
+
 
 
 
