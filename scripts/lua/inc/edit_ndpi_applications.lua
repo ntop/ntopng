@@ -148,7 +148,7 @@ printMessageBanners(app_warnings)
 
 local function makeApplicationEditor(area_id, required)
   return [[
-  <textarea id="]] .. area_id .. [[" spellcheck="false" style='width:100%; height:14em;' ]] .. ternary(required, "required", "") .. [[></textarea>
+  <textarea class='form-control' id="]] .. area_id .. [[" spellcheck="false" style='width:100%; height:14em;' ]] .. ternary(required, "required", "") .. [[></textarea>
   ]].. ui_utils.render_notes({
     {content = i18n("custom_categories.each_host_separate_line")},
     {content = i18n("custom_categories.host_domain_or_port")},
@@ -196,7 +196,7 @@ print[[
           <h5 class="modal-title">]] print(i18n("custom_categories.add_custom_app")) print[[</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <form id="add-application-form" method="post" data-bs-toggle="validator" onsubmit="return addApplication()">
+        <form id="add-application-form" method="post" data-toggle="validator" onsubmit="return addApplication()">
         <div class="modal-body">
                 <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
                 <input type="hidden" name="action" value="add">
@@ -321,7 +321,7 @@ print[[
     buttons: [ ]]
 
   if has_protos_file then
-    print[['<a id="addApplication" onclick="showAddApplicationDialog()" role="button" class="add-on btn float-right" data-bs-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>',]]
+    print[['<a id="addApplication" data-bs-target="#add-application-dialog" onclick="showAddApplicationDialog()" role="button" class="add-on btn float-right" data-bs-toggle="modal"><i class="fas fa-plus" aria-hidden="true"></i></a>',]]
   end
 
   if isEmptyString(proto_filter) then
@@ -466,8 +466,8 @@ print [[
   }
 
   function showAddApplicationDialog() {
-    $("#add-application-dialog").modal("show");
     $("#new-application").val("");
+    $("#new-application-submit").addClass("disabled");
   }
 
        </script>
