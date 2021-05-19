@@ -443,18 +443,22 @@ function pools:edit_pool(pool_id, new_name, new_members, new_recipients, new_pol
                new_members = cur_pool_details["members"]
             end
 
-            if false then -- FIXX this code seems to lead to failures
-            if new_recipients then
-               -- Check if recipients are valid
-               if checks_ok and not self:are_valid_recipients(new_recipients) then
-                   checks_ok = false
-               end
-            else
-               -- In case recipients have not been sumbitted, new_recipients
-               -- are assumed to be the existing recipients
-               new_recipients = cur_pool_details["recipients"]
-            end
-            end
+	    if new_recipients then
+	       tprint(new_recipients)
+	       -- Check if recipients are valid
+	       if checks_ok and not self:are_valid_recipients(new_recipients) then
+		  checks_ok = false
+	       end
+	    else
+	       -- In case recipients have not been sumbitted, new_recipients
+	       -- are assumed to be the existing recipients
+	       new_recipients = {}
+
+	       -- Populate with recipient IDs
+	       for _, recipient in pairs(cur_pool_details["recipients"] or {}) do
+		  new_recipients[#new_recipients + 1] = recipient["recipient_id"]
+	       end
+	    end
 
             if not new_policy then
                -- In case policy have not been sumbitted, new_policy

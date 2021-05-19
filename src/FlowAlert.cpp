@@ -34,17 +34,6 @@ FlowAlert::FlowAlert(FlowCallback *c, Flow *f) {
 FlowAlert::~FlowAlert() {
 }
 
-/* **************************************************** */
-
-/* This will parse the configuration specific to this alert */
-bool FlowAlert::loadConfiguration(json_object *config) {
-  bool rc = true;
-
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() %s", __FUNCTION__, json_object_to_json_string(config));
-
-  return(rc);
-}
-
 /* ***************************************************** */
 
 ndpi_serializer* FlowAlert::getSerializedAlert() {

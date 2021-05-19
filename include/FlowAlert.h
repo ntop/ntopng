@@ -39,8 +39,6 @@ class FlowAlert {
   FlowAlert(FlowCallback *c, Flow *f);
   virtual ~FlowAlert();
 
-  bool loadConfiguration(json_object *config);
-
   inline void setCliAttacker() { cli_attacker = true; }
   inline void setSrvAttacker() { srv_attacker = true; }
 
