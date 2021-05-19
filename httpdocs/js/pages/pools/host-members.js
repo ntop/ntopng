@@ -33,22 +33,30 @@ $(function () {
         },
     ];
 
-    let dtConfig = DataTableUtils.getStdDatatableConfig([
-        {
+    let buttonArray = function() {
+	let buttons = []
+
+	buttons.push({
             text: '<i class="fas fa-plus"></i>',
             action: () => { $(`#add-member-modal`).modal('show'); }
-        },
-	{
-	    text: '<i class="fas fa-key"></i>',
-            action: () => { location.href = `${http_prefix}/lua/pro/policy.lua?pool=${selectedPool.id}`; }
-	},
-        {
+        });
+	buttons.push({
             text: '<i class="fas fa-sync"></i>',
             action: function(e, dt, node, config) {
                 $hostMembersTable.ajax.reload();
             }
-        }
-    ]);
+        });
+
+	if(__IS_PRO__)
+	    buttons.push({
+	    text: '<i class="fas fa-key"></i>',
+            action: () => { location.href = `${http_prefix}/lua/pro/policy.lua?pool=${selectedPool.id}`; }
+	    });
+
+	return buttons;
+    }
+
+    let dtConfig = DataTableUtils.getStdDatatableConfig(buttonArray());
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/rest/v1/get/host/pool/members.lua?pool=${queryPoolId}`, `rsp`);
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         stateSave: true,
