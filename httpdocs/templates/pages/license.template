@@ -2,7 +2,7 @@
     <div class="col-md-12">
         <table class="table table-bordered table-striped">
             {% 
-                local badge_class = ternary(info["pro.has_valid_license"], 'badge-success', 'badge-danger') 
+                local badge_class = ternary(info["pro.has_valid_license"], 'bg-success', 'bg-danger') 
                 local badge_title = ternary(info["pro.has_valid_license"], i18n("license_page.valid"), i18n("license_page.not_valid"))
             %}
             {% if info["pro.license_type"] then %}
