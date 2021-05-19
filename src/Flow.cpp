@@ -700,14 +700,16 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 #endif
 
   if(detected) {
-    /* Ignore unsafe protocols for broadcast packets (e.g. SMBv1) */
-    Mac *srv_mac = srv_host->getMac();
+    if (srv_host) {
+      /* Ignore unsafe protocols for broadcast packets (e.g. SMBv1) */
+      Mac *srv_mac = srv_host->getMac();
     
-    if(srv_mac && srv_mac->isBroadcast()) {
-      ndpi_risk r = 2 << (NDPI_UNSAFE_PROTOCOL-1);
+      if(srv_mac && srv_mac->isBroadcast()) {
+        ndpi_risk r = 2 << (NDPI_UNSAFE_PROTOCOL-1);
       
-      if((ndpiFlow->risk & r) == r)
-	ndpiFlow->risk &= ~r; /* Clear the bit */
+        if((ndpiFlow->risk & r) == r)
+	  ndpiFlow->risk &= ~r; /* Clear the bit */
+      }
     }
 
     setRisk(ndpiFlow->risk);
