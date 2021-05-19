@@ -76,11 +76,7 @@
     modal_type = "add",
     pool = pool,
 }) *}
-{* template_utils.gen("pages/modals/pools/change_policy.template", {
-    modal_type = "edit",
-    pool = pool,
-    manage_host_members = manage_host_members, 
-}) *}
+
 {* template_utils.gen("pages/modals/pools/remove_host_pool_member.template") *}
 
 {*
