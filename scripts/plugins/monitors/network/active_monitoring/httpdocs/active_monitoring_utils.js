@@ -360,7 +360,7 @@ $(function() {
         endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
         dontDisableSubmit: true,
         onModalInit: function(amData) {
-            $("#delete-host").html(`<b>${amData.url}</b>`);
+            $("#delete-host").html(`<b>${amData.measurement}://${amData.html_label}</b>`);
         },
         beforeSumbit: (amData) => {
             return {

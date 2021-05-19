@@ -18,7 +18,7 @@
                         <button type="button" class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                           {{ hosts_map.label_bubble_mode }}
                         </button>
-                        <div class="dropdown-menu dropdown-menu-right">
+                        <div class="dropdown-menu dropdown-menu-end">
                             {* hosts_map.select_options *}
                         </div>
 			            <button class="btn btn-link btn-reload-graph" id="btn-reload-map">
