@@ -515,7 +515,7 @@ local function toggleTableButtonPrefs(label, comment, on_label, on_value, on_col
   if(label ~= "") then print('<tr id="row_'..submit_field..'"'..objRow..'><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
 
   print([[
-    <div class="form-check form-switch">
+    <div class="form-switch">
       <input ]].. (value == off_value and '' or 'checked') ..[[ type="checkbox" class="form-check-input" id="check-]].. submit_field ..[[">
       <label class="form-check-label" for="check-]].. submit_field ..[["></label>
       <input hidden id="input-]].. submit_field ..[[" name="]].. submit_field ..[[" value="]].. value ..[[">
