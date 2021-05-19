@@ -18,6 +18,10 @@ Classes are implemented with two files, namely a :code:`.h` file with the class 
   - Host callback declarations (:code:`.h` files) are under :code:`include/host_callbacks`. Host callback definitions (:code:`.cpp`) files are under :code:`src/host_callbacks`.
   - Flow callback declarations (:code:`.h` files) are under :code:`include/flow_callbacks`. Flow callback definitions (:code:`.cpp`) files are under :code:`src/host_callbacks`.
 
+
+Callback Execution
+------------------
+
 Callbacks execution for hosts consists in ntopng calling:
 
 -  :code:`HostCallback::periodicUpdate` approximately every 60 seconds
@@ -31,6 +35,7 @@ Callbacks execution for flows consists in ntopng calling for every flow:
 - :code:`FlowCallback::flowEnd` as soon as the flow ends, i.e., when a TCP session is closed or when an UDP flow timeouts
 
 Every flow callback, when subclassing :code:`FlowCallback`, must override one or more of the methods above to implement the desired callback behavior.
+
 
 Callback Configuration
 ----------------------
@@ -59,6 +64,7 @@ ntopng use names to link callback configuration with its C++ class instance. A c
 
 - The name of the Lua file under :code:`scripts/lua/modules/callback_definitions`, e.g., :code:`<name>.lua`
 - The string returned by method :code:`getName` in the C++ class file, e.g., :code:`std::string getName() const { return(std::string("<name>")); }`.
+
 
 Example
 -------
@@ -91,9 +97,7 @@ Alerts
 
 Callbacks create alerts as part of their implementation. A callback, during its execution, can detect a certain condition (e.g., an anomaly) for which it decides to create an alert. When the callback decides to create an alert, it informs ntopng by passing a reference to the alert.
 
-Alerts are implemented with C++ classes.
-
-Alert interfaces are declared in classes:
+Alerts are implemented with C++ classes. Alert interfaces are declared in classes:
 
 - :code:`include/FlowAlert.h` for flows
 - :code:`include/HostAlert.h` for hosts
@@ -173,7 +177,7 @@ Creating Host Alerts
 
 Alert classes are instantiated inside host callbacks.
 
-Callbacks use :code:`triggerAlert` to tell ntopng to create an alert. Indeed, The actual alert creation is triggered from the host callback with the call :code:`h->triggerAlert` that wants a pointer to the host alert instance as parameter.
+Callbacks use :code:`triggerAlert` to tell ntopng to create an alert. Indeed, The actual alert creation is triggered from the host callback with the call :code:`h->triggerAlert` that wants a pointer to the host alert instance as parameter. This call tells ntopng to create an alert on the host instance pointed by :code:`h`.
 
 
 Example
