@@ -93,10 +93,9 @@
                                 end
                             %}
 
-                            <select multiple class="selectpicker" name="recipients" id="{{ modal_type }}-pool-recipient-select">
+                            <select multiple class="selectpicker w-100" name="recipients" id="{{ modal_type }}-pool-recipient-select">
 
                                 {% for group_key, recipients in pairsByKeys(configured_recipients) do %}
-                                <optgroup label="{{ pool.endpoint_types[group_key].name }}">
                                     {% for key, recipient in pairsByKeys(recipients, asc) do %}
                                         {% local is_selected = (recipient.endpoint_conf.builtin and modal_type == "add") %}
                                         <option
@@ -109,7 +108,6 @@
                                             value="{{ recipient.recipient_id }}"
                                         >{{ recipient.recipient_name }}</option>
                                     {% end %}
-                                </optgroup>
                                 {% end %}
 
                             </select>
