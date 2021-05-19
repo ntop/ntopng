@@ -8,11 +8,11 @@
         </div>
         <div class="modal-body">
             <form class='form'>
-                <div class="custom-file">
-                    <input class="form-control" id="import-input" name="JSON" type="file" />
+                <div class="custom-file mb-3">
                     <label class='form-label' for='#import-input'>
                         {{ i18n("browse_config", {}) }}
                     </label>
+                    <input class="form-control" id="import-input" name="JSON" type="file" />
                     <div class="invalid-feedback" id='import-error'>
                         {message}
                     </div>

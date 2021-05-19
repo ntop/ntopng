@@ -743,17 +743,13 @@ class NtopUtils {
 
 		if (!params.loadConfigXHR) { throw ("importModalHelper:: Missing 'loadConfigXHR' param"); return; }
 
-		const oldLabelImportInput = $(`label[for='#import-input']`).html();
-
 		$(`input#import-input`).on('change', function () {
 			const filename = $(this).val().replace("C:\\fakepath\\", "");
-			$(`label[for='#import-input']`).html(filename);
 			$(`#btn-confirm-import`).removeAttr("disabled");
 		});
 
 		$(`#import-modal`).on('hidden.bs.modal', function () {
 			$(`#import-input`).val('');
-			$(`label[for='#import-input']`).html(oldLabelImportInput);
 			$("#import-error").hide().removeClass('text-warning').addClass('invalid-feedback');
 			$(`#btn-confirm-import`).attr("disabled", "disabled");
 		});

@@ -12,10 +12,10 @@
             <form class='form'>
                 <div class="modal-body">
                     <div class="custom-file">
-                        <input required class="custom-file-input" id="import-input" name="JSON" type="file" />
-                        <label class='custom-file-label' for='#import-input'>
+                        <label class='form-label' for='import-input'>
                             {{ i18n("browse_config", {}) }}
                         </label>
+                        <input required class="custom-file-input form-control" id="import-input" name="JSON" type="file" />
                         <small class="text-muted">{{ dialog.input_description }}</small>
                         <div class="invalid-feedback" id='import-error'>
                             {message}
