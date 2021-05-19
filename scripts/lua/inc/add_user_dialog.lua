@@ -14,20 +14,19 @@ print [[
 	<h5 class='modal-title' id="add_user_dialog_label">]]print(add_user_msg)print[[</h5>
   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-
+      <form data-bs-toggle="validator" id="form_add_user" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/rest/v1/add/ntopng/user.lua" accept-charset="UTF-8">
 <div class="modal-body">
 
   <div id="add_user_alert_placeholder"></div>
 
 <script type="text/javascript">
   add_user_alert = function() {}
-  add_user_alert.error =   function(message, no_close) { $('#add_user_alert_placeholder').html('<div class="alert alert-danger">' + message + (no_close ? '' : '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>') + '</div>');
+  add_user_alert.error =   function(message, no_close) { $('#add_user_alert_placeholder').html('<div class="alert alert-dismissible alert-danger">' + message + (no_close ? '' : '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>') + '</div>');
  }
-  add_user_alert.success = function(message) { $('#add_user_alert_placeholder').html('<div class="alert alert-success">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'); }
+  add_user_alert.success = function(message) { $('#add_user_alert_placeholder').html('<div class="alert alert-success">' + message); }
 
 </script>
 
- <form data-bs-toggle="validator" id="form_add_user" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/rest/v1/add/ntopng/user.lua" accept-charset="UTF-8">
 			   ]]
 
 print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -142,13 +141,8 @@ print [[
     </div>
 ]]
 
-print[[
-<br>
-    <div class="input-group mb-12">
-      <button type="submit" id="add_user_submit" class="btn btn-primary btn-block">]] print(i18n("manage_users.add_new_user")) print[[</button>
-    </div>
+print[[    
 
-</form>
 <script>
 
   $("#add_lifetime_selection_table label").attr("disabled", "disabled");
@@ -258,7 +252,10 @@ print[[
 </script>
 
 </div> <!-- modal-body -->
-
+<div class='modal-footer'>
+      <button type="submit" id="add_user_submit" class="btn btn-primary btn-block">]] print(i18n("manage_users.add_new_user")) print[[</button>
+</div>
+</form>
 </div>
 </div>
 </div> <!-- add_user_dialog -->
