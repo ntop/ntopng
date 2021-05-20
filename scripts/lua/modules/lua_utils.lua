@@ -3305,8 +3305,8 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
                <input class='btn-check' data-resol="%s" value="%s" title="%s" name="%s" id="input-%s" autocomplete="off" type="radio" %s/>
                   ]]):format(k, truncate(v.value), v.label, input_name, input_name, ternary((selected == k), "checked='checked'", ""))
             local label = ([[
-               <label class="btn btn-sm btn-outline-primary" for="input-%s">%s</label>
-            ]]):format(input_name, v.label)
+               <label class="btn btn-sm %s" for="input-%s">%s</label>
+            ]]):format(ternary((selected == k), "btn-primary", "btn-secondary"), input_name, v.label)
 
 	    line[#line+1] = input
             line[#line+1] = label
@@ -3361,8 +3361,11 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
        * and add it only to the one selected 
        */
       function resol_selector_change_callback(event) {
-        $(this).parent().find('input[type="radio"]').prop('checked', false);;
-        $(this).prop('checked', true);
+        $(this).parent().find('label').removeClass('btn-primary').removeClass('btn-secondary').addClass('btn-secondary');;
+        $(this).parent().find('input[type="radio"]').prop('checked', false).removeClass('btn-primary').removeClass('btn-secondary').addClass('btn-secondary');;
+        $(this).prop('checked', true).removeClass('btn-secondary').addClass('btn-primary');
+        $(this).parent().find('label[for="' + $(this).attr('id') + '"]').removeClass('btn-secondary').addClass('btn-primary');
+ 
         resol_selector_reset_input_range($(this));
       }
 
