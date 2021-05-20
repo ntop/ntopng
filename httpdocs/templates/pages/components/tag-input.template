@@ -9,7 +9,7 @@
         <button class="btn btn-link" type="button" onclick="{{ instance_name }}_global.ruleModalShow()"><span><i class="fas fa-plus" data-original-title="" title="{{ i18n('policy.add_rule') }}"></i></span>
     </button>
 
-        <button data-toggle="tooltip" data-placement="bottom" title="{{ i18n('policy.remove_rules') }}" class="btn ml-1 my-auto btn-sm btn-remove-tags">
+        <button data-bs-toggle="tooltip" data-placement="bottom" title="{{ i18n('policy.remove_rules') }}" class="btn ml-1 my-auto btn-sm btn-remove-tags">
             <i class="fas fa-times"></i>
         </button>
     </div>

@@ -29,13 +29,13 @@
             <div class="card-header">
                 <ul class="nav nav-tabs card-header-tabs">
                     <li class="nav-item">
-                      <a class="nav-link active" href="#params" data-toggle='tab' role="tab">{{ i18n("edit_user_script.hooks_config") }}</a>
+                      <a class="nav-link active" href="#params" data-bs-toggle='tab' role="tab">{{ i18n("edit_user_script.hooks_config") }}</a>
                     </li>
 
                     {# Add the exclusion list tab only for the flow scripts#}
                     {% if (edit_user_script.script_subdir == "flow") then %}
                         <li class="nav-item">
-                            <a class="nav-link" href="#exclusion-list" data-toggle='tab' role="tab">{{ i18n("edit_user_script.exclusion_list") }}</a>
+                            <a class="nav-link" href="#exclusion-list" data-bs-toggle='tab' role="tab">{{ i18n("edit_user_script.exclusion_list") }}</a>
                         </li>
                     {% end %}
                 </ul>

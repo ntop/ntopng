@@ -18,7 +18,7 @@
           <div class="navbar-inner">
             <ul class="nav nav-wizard">
             {% for step_idx, step in ipairs(wizard.actual_steps) do %}
-              <li{% if step_idx == 1 then %} class="active" {% end %} style="width: {{ (step.size or 1) / wizard.size_sum *100 }}%;"><a{% if step_idx ~= 1 then %} class="disabled" {% end %} href="#{{wizard.id}}Step{{step_idx}}" data-toggle="tab" data-step="{{step_idx}}">{{step.title}}</a></li>
+              <li{% if step_idx == 1 then %} class="active" {% end %} style="width: {{ (step.size or 1) / wizard.size_sum *100 }}%;"><a{% if step_idx ~= 1 then %} class="disabled" {% end %} href="#{{wizard.id}}Step{{step_idx}}" data-bs-toggle="tab" data-step="{{step_idx}}">{{step.title}}</a></li>
             {% end %}
             </ul>
           </div>
@@ -111,7 +111,7 @@
     {% end %}
   {% end %}
 
-  $('#{{wizard.id}} a[data-toggle="tab"]')
+  $('#{{wizard.id}} a[data-bs-toggle="tab"]')
     /* On Tab click */
     .on("click", function(e) {
       if ($(this).hasClass("disabled")) {

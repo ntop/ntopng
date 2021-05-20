@@ -1341,7 +1341,7 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
 
   /* Hide IP version selector when a host is selected */
   if(!params_obj.host) {
-    nindex_buttons += '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
+    nindex_buttons += '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">';
     nindex_buttons += "IP Version";
     nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
     nindex_buttons += '<li><a class="dropdown-item" href="#" onclick="return onGraphMenuClick(null, 4)">4</a></li>';
@@ -1349,7 +1349,7 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
     nindex_buttons += '</span></div>';
   }
 
-  nindex_buttons += '<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">';
+  nindex_buttons += '<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">';
   nindex_buttons += "Explorer";
   nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
   nindex_buttons += '<li><a class="dropdown-item" href="'+ http_prefix +'/lua/pro/nindex_topk.lua'+ nindex_query +'">Top-K</a></li>';

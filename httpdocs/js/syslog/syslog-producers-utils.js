@@ -198,8 +198,8 @@ $(function() {
                 class: 'text-center',
                 render: function() {
                     return `
-                        <a class="badge bg-info" data-toggle="modal" href="#syslog-producers-edit-modal">${i18n.edit}</a>
-                        <a class="badge bg-danger" data-toggle="modal" href="#syslog-producers-delete-modal">${i18n.delete}</a>
+                        <a class="badge bg-info" data-bs-toggle="modal" href="#syslog-producers-edit-modal">${i18n.edit}</a>
+                        <a class="badge bg-danger" data-bs-toggle="modal" href="#syslog-producers-delete-modal">${i18n.delete}</a>
                     `;
                 }
             }

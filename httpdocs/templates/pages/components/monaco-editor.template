@@ -11,7 +11,7 @@
         <div class="col-10">
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         {{ i18n("plugin_contents") }}
                     </button>
                     <div class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownMenuButton">

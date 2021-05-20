@@ -35,7 +35,7 @@
         </div>
         {% if isEmptyString(script_list.search_filter) then %}
         <div class="card-footer">
-          <button id='btn-disable-all' disabled class="btn btn-danger" data-toggle="modal" data-target="#disable-all-modal">
+          <button id='btn-disable-all' disabled class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#disable-all-modal">
             <i class='fas fa-toggle-off'></i> {{ i18n("user_scripts.disable_all") }}</button>
         </div>
         {% end %}

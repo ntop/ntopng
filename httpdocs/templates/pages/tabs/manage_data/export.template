@@ -11,7 +11,7 @@
                         name="export_hosts_buttons">
                         <label class="btn btn-secondary active">
                             <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off"
-                                data-toggle="toggle" checked="checked">{{i18n("manage_data.all_hosts")}}
+                                data-bs-toggle="toggle" checked="checked">{{i18n("manage_data.all_hosts")}}
                         </label>
                         <label class="btn btn-secondary">
                             <input type="radio" id="local_hosts" name="mode" value="local" autocomplete="off"

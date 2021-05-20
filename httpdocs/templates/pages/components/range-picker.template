@@ -83,14 +83,14 @@
 		    <span class="input-group-text">
 		        <i class="fas fa-calendar-alt"></i>
 		    </span>
-                <input id='begin-epoch' type="text" aria-label="Begin" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-right-0" data-target="#begin-epoch">
+                <input id='begin-epoch' type="text" aria-label="Begin" data-bs-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-right-0" data-bs-target="#begin-epoch">
                     <span class="input-group-text">
                         <i class="fas fa-long-arrow-alt-right"></i>
                     </span>
-                <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-left-0" data-target="#end-epoch">
+                <input id='end-epoch' type="text" aria-label="End" data-bs-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-left-0" data-bs-target="#end-epoch">
             </div>
 
-            <span class="wrong-ranger invalid-feedback mx-1 my-auto" data-toggle="tooltip" data-placement="bottom" title="{{ i18n('wrong_date_range') }}" style="width: 1rem; display: none;">
+            <span class="wrong-ranger invalid-feedback mx-1 my-auto" data-bs-toggle="tooltip" data-placement="bottom" title="{{ i18n('wrong_date_range') }}" style="width: 1rem; display: none;">
                 <i class="fas fa-exclamation-circle"></i>
             </span>
     
@@ -124,7 +124,7 @@
             {* extra_tags_buttons *}
         {% end %}
 
-        <button data-toggle="tooltip" data-placement="bottom" title="{{ i18n('show_alerts.remove_filters') }}" class="btn ms-1 my-auto btn-sm btn-remove-tags">
+        <button data-bs-toggle="tooltip" data-placement="bottom" title="{{ i18n('show_alerts.remove_filters') }}" class="btn ms-1 my-auto btn-sm btn-remove-tags">
             <i class="fas fa-times"></i>
         </button>
     </div>
@@ -263,7 +263,7 @@ const endEpoch = {{ (_GET['epoch_end'] or _GET['epoch_end'] or 'undefined') }};
             $rangePicker.dispatchEvent(rangepickerEvent);
         }
 
-        $('[data-toggle="tooltip"]').tooltip();
+        $('[data-bs-toggle="tooltip"]').tooltip();
 
         // initialize timepickers
         $inputBeginEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', useCurrent: false});

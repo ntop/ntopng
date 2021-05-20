@@ -30,7 +30,7 @@
                             <b>{{ i18n("host_pools.member_type") }}</b>
                         </label>
                         <div class="col-sm-6">
-                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <div class="btn-group btn-group-toggle" data-bs-toggle="buttons">
                                 <label class="btn btn-secondary active">
                                   <input id="ip-radio" class="btn-check" type="radio" name="member_type" value="ip" checked> {{ i18n("host_pools.ip_address") }}
                                 </label>

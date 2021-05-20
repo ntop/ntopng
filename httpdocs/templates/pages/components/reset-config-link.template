@@ -1,5 +1,5 @@
 {% if toggle_modal then %}
-<button class="btn btn-danger" data-target="#{{ modal_id }}" data-toggle="modal" {* ( hidden and [[style="display: none"]] or '')*}>
+<button class="btn btn-danger" data-bs-target="#{{ modal_id }}" data-bs-toggle="modal" {* ( hidden and [[style="display: none"]] or '')*}>
     <i class='fas fa-undo-alt'></i> {{  i18n('config_scripts.config_reset') }}
 </a>
 {% else %}
