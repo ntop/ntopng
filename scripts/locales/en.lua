@@ -3290,7 +3290,7 @@ local lang = {
     ["after_reset_request"] = "<b>Restart</b> %{product} to make the configuration factory reset effective.",
     ["config_import"] = "Import <span class='item'>{{ type }}</span> Configuration",
     ["everything"] = "Entire %{product} configuration (includes users, preferences, and all configurations below)",
-    ["export_policy"] = "Export Policy Configuration",
+    ["export_policy"] = "Export nProbe IPS Policy",
     ["infrastructure_instances"] = "Infrastructure Instances",
     ["manage_configuration"] = "Manage Configuration",
     ["manage_configurations"] = "Manage Configurations",

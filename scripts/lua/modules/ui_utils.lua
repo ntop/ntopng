@@ -11,10 +11,10 @@ local template_utils = require("template_utils")
 
 local ui_utils = {}
 
-function ui_utils.render_configuration_footer(item)
+function ui_utils.render_configuration_footer(item,page)
    local ret = template_utils.gen('pages/components/manage-configuration-link.template', {item = item})
-   
-   if(ntop.isPro() or ntop.isEnterpriseM() or ntop.isEnterpriseL()) then
+
+   if((page == "host") and (item == "pool") and (ntop.isPro() or ntop.isEnterpriseM() or ntop.isEnterpriseL())) then
       ret = ret .. template_utils.gen('pages/components/export-policy-configuration-link.template')
    end
    

@@ -28,7 +28,7 @@
                     </table>
             </div>
             <div class="card-footer">
-                {* ui_utils.render_configuration_footer('pool') *}
+                {* ui_utils.render_configuration_footer('pool', _GET["page"]) *}
             </div>
         </div>
     </div>
