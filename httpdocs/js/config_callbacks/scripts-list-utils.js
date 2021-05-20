@@ -1506,8 +1506,7 @@ function appendExclusionList(data) {
             $(`<div class='col-12'></div>`).append($textarea))));
          } else {
             $container = $(`<tr><td></td></tr>`);
-            $container.append($(`<td class='align-middle'>${label}</td>`));
-            $container.append($(`<td></td>`).append($textarea));
+            $container.append($(`<td class='align-middle'>${label}</td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append($textarea)));
          }
 
          $(`#script-config-editor`).append($container);
