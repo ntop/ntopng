@@ -7,7 +7,8 @@ local dirs = ntop.getDirs()
 
 -- ################################################################################
 
--- TODO read country codes from MMDB
+-- https://dev.maxmind.com/geoip/legacy/codes/iso3166/
+
 local country_codes = {
   ['A1'] = "Anonymous Proxy",
   ['A2'] = "Satellite Provider",
