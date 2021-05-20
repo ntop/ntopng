@@ -145,7 +145,7 @@ const generate_input_box = (input_settings, has_container = true) => {
    }
 
    if (has_container) {
-      const $input_container = $(`<div class='form-row mb-2'></div>`);
+      const $input_container = $(`<div class='row'></div>`);
       return $input_container.append($(`<div class='col-2'></div>`).append($input_box));
    }
 
@@ -169,7 +169,7 @@ const generate_single_select = (params, has_container = true) => {
    if (params.current_value != undefined) $select.val(params.current_value);
 
    if (has_container) {
-      const $input_container = $(`<div class='form-row mb-2'></div>`);
+      const $input_container = $(`<div class='row'></div>`);
       return $input_container.append(
          $(`<div class='col-10'><label class='p-2'>${params.label}</label></div>`),
          $(`<div class='col-2'></div>`).append($select),
@@ -202,52 +202,63 @@ const generate_textarea = (textarea_settings) => {
 /* ******************************************************* */
 
 const generate_radio_buttons = (params, has_container = true) => {
-
    const active_first_button = params.granularity.labels[0] == params.granularity.label;
    const active_second_button = params.granularity.labels[1] == params.granularity.label;
    const active_third_button = params.granularity.labels[2] == params.granularity.label;
 
-   const $radio_buttons = $(`
+   let $radio_buttons = $(`
       <div class="btn-group float-end btn-group-toggle" data-bs-toggle="buttons">
-         <label
-            class="btn ${active_first_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}">
-            <input
+         <input
                ${params.enabled ? '' : 'disabled'}
                ${active_first_button ? 'checked' : ''}
                value='${params.granularity.values[0]}'
+               id="first_button_${params.name}"
                type="radio"
-               name="${params.name}"> ${params.granularity.labels[0]}
-         </label>
-         <label
-            class="btn ${active_second_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}">
-            <input
+               class="btn-check"
+               autocomplete="off"
+               name="${params.name}">
+<label class="btn ${active_first_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}" for="first_button_${params.name}">
+ ${params.granularity.labels[0]} </label>
+
+         <input
                ${params.enabled ? '' : 'disabled'}
                ${active_second_button ? 'checked' : ''}
                value='${params.granularity.values[1]}'
+               id="second_button_${params.name}"
                type="radio"
-               name="${params.name}"> ${params.granularity.labels[1]}
-         </label>
-         <label
-            class="btn ${active_third_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}">
-            <input
+               class="btn-check"
+               autocomplete="off"
+               name="${params.name}">
+<label class="btn ${active_second_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}" for="second_button_${params.name}">
+ ${params.granularity.labels[1]} </label>
+
+         <input
                ${params.enabled ? '' : 'disabled'}
                ${active_third_button ? 'checked' : ''}
                value='${params.granularity.values[2]}'
                type="radio"
-               name="${params.name}"> ${params.granularity.labels[2]}
+               id="third_button_${params.name}"
+               class="btn-check"
+               autocomplete="off"
+               name="${params.name}"> 
+<label class="btn ${active_third_button ? 'active btn-primary' : 'btn-secondary'} ${params.enabled ? '' : 'disabled'}" for="third_button_${params.name}">
+${params.granularity.labels[2]}
          </label>
       </div>
    `);
 
-   $radio_buttons.find(`input[type='radio']`).on('click', function (e) {
-
-      // remove active class from every button
+   $radio_buttons.find(`label`).on('click', function (e) {
+      // Remove active class from every button
       $radio_buttons.find('label').removeClass('active').removeClass('btn-primary').addClass('btn-secondary');
-      // remove checked from buttons
-      $radio_buttons.find('input').removeAttr('checked');
 
-      // add active class and btn-primary to the new one
-      $(this).prop('checked', '').parent().addClass('active btn-primary').removeClass('btn-secondary');
+      // Remove checked from buttons
+      const checked_input_id = $(this).attr('for');
+      const checked_input = $("#" + checked_input_id);
+
+      // Add attribute checked to the input associated to this label      
+      checked_input.attr('checked', '');
+      // Set the right classes to this active label
+      $(this).addClass('active btn-primary').removeClass('btn-secondary');
    });
 
    if (has_container) {
@@ -1066,10 +1077,10 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       $input_container.append(
          $input_box_l2r
             .prepend($radio_button_l2r)
-            .prepend($(`<label class='col-7 col-form-label'>${i18n.scripts_list.templates.elephant_flows_l2r}</label>`)),
+            .prepend($(`<label class='col'>${i18n.scripts_list.templates.elephant_flows_l2r}</label>`)),
          $input_box_r2l
             .prepend($radio_button_r2l)
-            .prepend($(`<label class='col-7 col-form-label'>${i18n.scripts_list.templates.elephant_flows_r2l}</label>`)),
+            .prepend($(`<label class='col'>${i18n.scripts_list.templates.elephant_flows_r2l}</label>`)),
          //$multiselect_bytes
       );
 

@@ -292,6 +292,7 @@ function page_utils.print_header(title)
     else
       print[[ <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap.min.css" rel="stylesheet">]]
     end
+
     print[[
     <link href="]] print(http_prefix) print[[/css/minified/ntopng.min.css?]] print(static_file_epoch) print[[" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/fontawesome-custom.min.css" rel="stylesheet">
