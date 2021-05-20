@@ -53,7 +53,7 @@
                     </table>
             </div>
             <div class="card-footer">
-                <a class="btn btn-secondary" data-toggle='modal' href="#import-modal">
+                <a class="btn btn-secondary" data-bs-toggle='modal' href="#import-modal">
                     <i class='fas fa-file-import'></i> {{ i18n("host_pools.import_hosts") }}
                 </a>
             </div>
