@@ -287,7 +287,7 @@ function page_utils.print_header(title)
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
    ]]
     if (dark_mode) then
-      print[[<link href="]] print(http_prefix) print[[/css/minified/bootstrap-orange.min.css" rel="stylesheet">]]
+      print[[<link href="]] print(http_prefix) print[[/bootstrap-custom/bootstrap-5.0.1-ntopng.min.css" rel="stylesheet">]]
       print[[<link href="]] print(http_prefix) print[[/css/minified/dark-mode.min.css?]] print(static_file_epoch) print[[" rel="stylesheet">]]
     else
       print[[ <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap.min.css" rel="stylesheet">]]

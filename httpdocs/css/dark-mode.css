@@ -242,7 +242,7 @@ ul.navbar-nav li.nav-item.active>a.active {
     color: #eee !important;
 }
 
-.form-control, .btn[role=combobox] {
+.form-control, .form-select, .btn[role=combobox] {
   color: #d1d1d1 !important;
   background-color: #181818 !important;
   border: 1px solid #3c3c3c !important;

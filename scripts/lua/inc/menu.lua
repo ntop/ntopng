@@ -856,7 +856,7 @@ end -- num_ifaces > 0
 -- ##############################################
 
 print([[
-   <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top px-2" id='n-navbar'>
+   <nav class="navbar navbar-expand-lg navbar-light fixed-top px-2" id='n-navbar'>
       <ul class='navbar-nav flex-row flex-wrap'>
          <li class='nav-item'>
             <button class='btn btn-outline-dark border-0 btn-sidebar' data-bs-toggle='sidebar'>
@@ -1138,7 +1138,7 @@ local is_no_login_user = isNoLoginUser()
 
 print([[
    <li class="nav-item dropdown">
-      <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" id='navbar-user-dropdown-link' role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" id='navbar-user-dropdown-link' role="button" data-bs-reference="parent" data-bs-toggle="dropdown" aria-expanded="false">
          <i class='fas fa-user'></i>
       </a>
       <ul class="dropdown-menu dropdown-menu-lg-end" aria-labelledby='navbar-user-dropdown-link'>]])
