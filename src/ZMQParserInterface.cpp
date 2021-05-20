@@ -740,7 +740,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
 
   case NPROBE_IPV4_ADDRESS:
     /* Do not override EXPORTER_IPV4_ADDRESS */
-    if(flow->device_ip == 0 && (flow->device_ip = ntohl(inet_addr(value->string))))
+    if(value->string && flow->device_ip == 0 && (flow->device_ip = ntohl(inet_addr(value->string))))
       return false;
     break;
 
@@ -1273,7 +1273,7 @@ int ZMQParserInterface::parseSingleJSONFlow(json_object *o,
       /* This is handled by parseNProbeAgentField or addAdditionalField */
       break;
     default:
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON type %u not supported\n", type);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON type %u not supported [key: %s]\n", type, key);
       break;
     }
 
