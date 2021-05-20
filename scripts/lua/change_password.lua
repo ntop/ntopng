@@ -118,8 +118,8 @@ print[[
 
 print[[
         <br>
-        <div class="input-group mb-12">
-          <button class="btn btn-lg btn-primary btn-block disabled" type="submit">]] print(i18n("login.change_password")) print[[</button>
+        <div class="d-grid gap-2">
+          <button class="btn btn-lg btn-primary disabled btn-block" type="submit">]] print(i18n("login.change_password")) print[[</button>
         </div>
   	<div class="row">
       <div >&nbsp;</div>
