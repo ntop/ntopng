@@ -634,7 +634,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     flow->tcp.out_window = value->int_num;
     break;
   case DNS_QUERY:
-    if(value->string[0] && value->string[0] != '\n') {
+    if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->dns_query) free(flow->dns_query);
       flow->dns_query = strdup(value->string);
     }
@@ -652,13 +652,13 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
       flow->dns_ret_code = value->int_num;
     break;
   case HTTP_URL:
-    if(value->string[0] && value->string[0] != '\n') {
+    if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->http_url) free(flow->http_url);
       flow->http_url = strdup(value->string);
     }
     break;
   case HTTP_SITE:
-    if(value->string[0] && value->string[0] != '\n') {
+    if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->http_site) free(flow->http_site);
       flow->http_site = strdup(value->string);
     }
@@ -670,23 +670,23 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
       flow->http_ret_code = value->int_num;
     break;
   case HTTP_METHOD:
-    if(value->string[0] && value->string[0] != '\n')
+    if(value->string && value->string[0] && value->string[0] != '\n')
       flow->http_method = ndpi_http_str2method(value->string, strlen(value->string));
     break;
   case SSL_SERVER_NAME:
-    if(value->string[0] && value->string[0] != '\n') {
+    if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->tls_server_name) free(flow->tls_server_name);
       flow->tls_server_name = strdup(value->string);
     }
     break;
   case JA3C_HASH:
-    if(value->string[0]) {
+    if(value->string && value->string[0]) {
       if(flow->ja3c_hash) free(flow->ja3c_hash);
       flow->ja3c_hash = strdup(value->string);
     }
     break;
   case JA3S_HASH:
-    if(value->string[0]) {
+    if(value->string && value->string[0]) {
       if(flow->ja3s_hash) free(flow->ja3s_hash);
       flow->ja3s_hash = strdup(value->string);
     }
@@ -701,14 +701,14 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     flow->ndpi_flow_risk_bitmap = value->int_num;
     break;
   case BITTORRENT_HASH:
-    if(value->string[0] && value->string[0] != '\n') {
+    if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->bittorrent_hash) free(flow->bittorrent_hash);
       flow->bittorrent_hash = strdup(value->string);
     }
     break;
   case NPROBE_IPV4_ADDRESS:
     /* Do not override EXPORTER_IPV4_ADDRESS */
-    if(flow->device_ip == 0 && (flow->device_ip = ntohl(inet_addr(value->string))))
+    if(value->string && flow->device_ip == 0 && (flow->device_ip = ntohl(inet_addr(value->string))))
       return false;
     break;
   case SRC_FRAGMENTS:
@@ -1235,7 +1235,7 @@ int ZMQParserInterface::parseSingleJSONFlow(json_object *o,
       /* This is handled by parseNProbeAgentField or addAdditionalField */
       break;
     default:
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON type %u not supported\n", type);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON type %u not supported [key: %s]\n", type, key);
       break;
     }
 
