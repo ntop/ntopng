@@ -3869,7 +3869,7 @@ local lang = {
     ["remove_rules"] = "Remove Rules",
     ["rule"] = "Rule",
     ["rules"] = "Policy Rules",
-    ["traffic_policy_for"] = "Traffic Policies for Pool %{pool}",
+    ["traffic_policy_for"] = "Traffic Policies for <a href='%{url}'>%{pool} <i class='fas fa-users'></i></a>",
     ["markers"] = {
       ["drop"] = "Drop",
       ["pass"] = "Pass",
