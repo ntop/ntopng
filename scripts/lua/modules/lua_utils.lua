@@ -3303,19 +3303,18 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
             local input_name = ("opt_resbt_%s_%s"):format(k, ctrl_id)
             local input = ([[
                <input class='btn-check' data-resol="%s" value="%s" title="%s" name="%s" id="input-%s" autocomplete="off" type="radio" %s/>
-            ]]):format(k, truncate(v.value), v.label, input_name, input_name, ternary((selected == k), "checked='checked'", ""))
-
+                  ]]):format(k, truncate(v.value), v.label, input_name, input_name, ternary((selected == k), "checked='checked'", ""))
             local label = ([[
-               <label class="btn btn-sm %s" for="input-%s">%s</label>
-            ]]):format(ternary((selected == k), "btn-primary active", "btn-secondary"), input_name, v.label)
+               <label class="btn btn-sm btn-outline-primary" for="input-%s">%s</label>
+            ]]):format(input_name, v.label)
 
-            line[#line+1] = input
+	    line[#line+1] = input
             line[#line+1] = label
 
             html_lines[#html_lines+1] = table.concat(line, "")
        end
     end
-  end)
+	       end)
 
   html_lines[#html_lines+1] = [[</div>]]
 
@@ -3333,19 +3332,19 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
       }
 
       /* This function scales values wrt selected resolution */
-      function resol_selector_reset_input_range(selected) {
-        var selected = $(selected);
-        var input = resol_selector_get_input(selected);
+      function resol_selector_reset_input_range($selected) {
+        let duration = $($selected);
+        let input = resol_selector_get_input(duration);
 
-        var raw = parseInt(input.attr("data-min"));
+        let raw = parseInt(input.attr("data-min"));
         if (! isNaN(raw))
-          input.attr("min", Math.sign(raw) * Math.ceil(Math.abs(raw) / selected.val()));
+          input.attr("min", Math.sign(raw) * Math.ceil(Math.abs(raw) / duration.val()));
 
         raw = parseInt(input.attr("data-max"));
         if (! isNaN(raw))
-          input.attr("max", Math.sign(raw) * Math.ceil(Math.abs(raw) / selected.val()));
+          input.attr("max", Math.sign(raw) * Math.ceil(Math.abs(raw) / duration.val()));
 
-        var step = parseInt(input.attr("data-step-" + selected.attr("data-resol")));
+        var step = parseInt(input.attr("data-step-" + duration.attr("data-resol")));
         if (! isNaN(step)) {
           input.attr("step", step);
 
@@ -3357,30 +3356,29 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
         resol_recheck_input_range(input);
       }
 
-      function resol_selector_change_selection(selected) {
-         selected.attr('checked', 'checked')
-          .closest("label").removeClass('btn-secondary').addClass('btn-primary')
-          .siblings().removeClass('active').removeClass('btn-primary').addClass('btn-secondary').find("input").removeAttr('checked');
-
-        resol_selector_reset_input_range(selected);
+      /* 
+       * Remove the checked value inside the radio buttons
+       * and add it only to the one selected 
+       */
+      function resol_selector_change_callback(event) {
+        $(this).parent().find('input[type="radio"]').prop('checked', false);;
+        $(this).prop('checked', true);
+        resol_selector_reset_input_range($(this));
       }
 
+      /* Function used to check the value input range */
       function resol_recheck_input_range(input) {
-        var value = input.val();
+        let value = input.val();
 
-        if (input[0].hasAttribute("min"))
-          value = Math.max(value, input.attr("min"));
-        if (input[0].hasAttribute("max"))
-          value = Math.min(value, input.attr("max"));
+        if (input[0].hasAttribute("min") && Number.isNaN(input.attr("min")))
+          value = Math.max(parseInt(input.val()), !input.attr("min"));
+        if (input[0].hasAttribute("max") && Number.isNaN(input.attr("max")))
+          value = Math.min(parseInt(input.val()), !input.attr("max"));
 
-        var old_val = input.val();
-        if ((old_val != "") && (old_val != value))
+        if ((input.val() != "") && (input.val() != value))
           input.val(value);
       }
 
-      function resol_selector_change_callback(event) {
-        resol_selector_change_selection($(this));
-      }
 
       function resol_selector_on_form_submit(event) {
         var form = $(this);
@@ -3443,8 +3441,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
 
           var selected = $(elem).find("input[checked]");
           var input = resol_selector_get_input(selected);
-          resol_recheck_input_range(input);
-
+ 
           /* transform in raw units */
           var new_input = $("<input type=\"hidden\"/>");
           new_input.attr("name", input.attr("name"));
