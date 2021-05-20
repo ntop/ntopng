@@ -212,7 +212,7 @@ function system_setup_ui_utils.printPageBody(sys_config, print_page_body_callbac
    print[[
       </div>
     </td>
-    <td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">
+    <td colspan=2>
       <form method="POST">
          <table class="table">
 ]]
