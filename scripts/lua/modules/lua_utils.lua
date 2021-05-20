@@ -3302,8 +3302,8 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
 
             local input_name = ("opt_resbt_%s_%s"):format(k, ctrl_id)
             local input = ([[
-               <input class='btn-check' data-resol="%s" value="%s" title="%s" name="%s" id="input-%s" autocomplete="off" type="radio" %s/>
-                  ]]):format(k, truncate(v.value), v.label, input_name, input_name, ternary((selected == k), "checked='checked'", ""))
+               <input class="btn-check" data-resol="%s" value="%s" title="%s" name="%s" id="input-%s" autocomplete="off" type="radio" %s/>
+                  ]]):format(k, truncate(v.value), v.label, input_name, input_name, ternary((selected == k), 'checked="checked"', ""))
             local label = ([[
                <label class="btn btn-sm %s" for="input-%s">%s</label>
             ]]):format(ternary((selected == k), "btn-primary", "btn-secondary"), input_name, v.label)
@@ -3362,7 +3362,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
        */
       function resol_selector_change_callback(event) {
         $(this).parent().find('label').removeClass('btn-primary').removeClass('btn-secondary').addClass('btn-secondary');;
-        $(this).parent().find('input[type="radio"]').prop('checked', false).removeClass('btn-primary').removeClass('btn-secondary').addClass('btn-secondary');;
+        $(this).parent().find('input[type="radio"]').prop('checked', false).removeClass('btn-primary').removeClass('btn-secondary').addClass('btn-secondary');
         $(this).prop('checked', true).removeClass('btn-secondary').addClass('btn-primary');
         $(this).parent().find('label[for="' + $(this).attr('id') + '"]').removeClass('btn-secondary').addClass('btn-primary');
  
@@ -3423,7 +3423,8 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
 
          /* Set */
          input.val(new_value);
-         resol_selector_change_selection($(buttons[new_i]));
+         // resol_selector_change_selection($(buttons[new_i]));
+         resol_selector_change_callback($(buttons[new_i]));
 
          /* This must be set manually on initialization */
          $(buttons[new_i]).closest("label").addClass("active");
@@ -3475,8 +3476,8 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
   ]]
 
   -- join strings and strip newlines
-  local html = string.gsub(table.concat(html_lines, ""), "\n", "")
-  js_init_code = string.gsub(js_init_code, "\n", "")
+  local html = string.gsub(table.concat(html_lines, " "), "\n", "")
+  js_init_code = string.gsub(js_init_code, "", "")
   js_specific_code = string.gsub(js_specific_code, "\n", "")
 
   if tonumber(value) ~= nil then

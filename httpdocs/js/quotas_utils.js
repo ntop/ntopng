@@ -28,7 +28,7 @@ function makeResolutionButtonsAtRuntime(td_object, template_html, template_js, i
 
    // fix ctrl id
    var buttons = $(replaceCtrlId(template_html, input_name));
-   var div = $('<div class="form-group ' + (extra.form_group_class || "") + '"></div>');
+   var div = $('<div class="form-group mb-3 ' + (extra.form_group_class || "") + '"></div>');
    td_object.html("");
    div.appendTo(td_object);
    buttons.appendTo(div);
