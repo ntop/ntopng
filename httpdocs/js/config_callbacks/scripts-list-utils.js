@@ -693,13 +693,13 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
       const items_list = hooks.all ? hooks.all.script_conf.items : (hooks.min.script_conf.items || []); 
       const $text_area = $(`
          <td>
-            <div class='form-floating mb-3 template w-100'>
+            <div class='form-row'>
                <textarea
                   ${!enabled ? "readonly" : ""}
                   name='items-list'
                   id='itemslist-textarea'
                   class="w-100 form-control"
-                  rows='10'>${items_list.length > 0 ? items_list.join(',') : ''}</textarea>
+                  rows='3'>${items_list.length > 0 ? items_list.join(',') : ''}</textarea>
                   <small>${gui.input_description || i18n.blacklisted_country}</small>
                <div class="invalid-feedback"></div>
                <label></label>
