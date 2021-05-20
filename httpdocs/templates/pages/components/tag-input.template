@@ -33,7 +33,7 @@ const tagify_{{instance_name}} = new Tagify({{instance_name}}Input, {
                         <x title='remove tag' class='tagify__tag__removeBtn'></x>
                         <div>
                             <span class='tagify__tag-text'><b>${tagData.label ? tagData.label : tagData.value}</span></b>&nbsp;
-                            <span> ${tagData.marker_label ? tagData.marker_label : tagData.label}</span>
+                            <span> ${tagData.marker_label ? tagData.marker_label : tagData.marker}</span>
                         </div>
                     </tag>`
             }

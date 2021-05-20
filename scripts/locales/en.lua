@@ -3864,11 +3864,18 @@ local lang = {
     ["l7_proto"] = "L7 Protocol",
     ["l7_proto_rules"] = "L7 Protocol Rules",
     ["l7_proto_rules_descr"] = "Configure here the L7/application protocol exception rules.",
+    ["marker"] = "Action",
     ["pass"] = "Pass",
     ["remove_rules"] = "Remove Rules",
     ["rule"] = "Rule",
     ["rules"] = "Policy Rules",
     ["traffic_policy_for"] = "Traffic Policies for Pool %{pool}",
+    ["markers"] = {
+      ["drop"] = "Drop",
+      ["pass"] = "Pass",
+      ["slow"] = "Slow Pass",
+      ["slower"] = "Slower Pass",
+    },
   },
   ["policy_presets"] = {
     ["business"] = "Business",
