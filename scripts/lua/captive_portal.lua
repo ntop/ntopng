@@ -85,7 +85,7 @@ print[[" method="POST">
       <input type="password" class="form-control" name="password" placeholder="]] print(i18n("login.password")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
       <input type="text" class="form-control" name="label" placeholder="]] print(i18n("login.device_label")) print[[" pattern="^[ \w\.%]{1,}$" required>
 </div>
-    <button class="btn btn-lg btn-primary btn-block" type="submit">]] print(i18n("login.login")) print[[</button>
+    <button class="w-100 btn btn-lg btn-primary" type="submit">]] print(i18n("login.login")) print[[</button>
   	<div class="row">
       <div >&nbsp;</div>
       <div class="col-lg-12">
