@@ -1,6 +1,54 @@
 
 var quotas_utils_opts = {}
 
+/*
+  Helper function to set a selector value by raw value
+  NOTE: seems this function attemts at toggling on/off radio button labels
+*/
+function resol_selector_set_value(input_id, its_value) {
+    var input = $(input_id);
+    var buttons = resol_selector_get_buttons($(input_id));
+    var values = [];
+
+    buttons.each(function() {
+        values.push(parseInt($(this).val()));
+    });
+
+    var new_value;
+    var new_i;
+    if (its_value > 0) {
+        /* highest divisor */
+        var highest_i = 0;
+        for (var i=1; i<values.length; i++) {
+            if(((values[i] > values[highest_i]) && (its_value % values[i] == 0)))
+                highest_i = i;
+        }
+
+        new_value = its_value / values[highest_i];
+        new_i = highest_i;
+    } else {
+        /* smallest value */
+        new_value = Math.max(its_value, -1);
+        new_i = values.indexOf(Math.min.apply(Math, values));
+    }
+
+    /* Set */
+    input.val(new_value);
+
+    /* This has been adjusted after the migration to BS5 that broke quota buttons */
+    buttons.each(function(cur_idx) {
+        const lb = $(this).parent().find('label[for="' + $(this).attr('id') + '"]');
+
+        if(cur_idx == new_i) {
+            lb.removeClass('btn-secondary').addClass('btn-primary');
+            $(this).attr('checked', '');
+        } else {
+            lb.removeClass('btn-primary').addClass('btn-secondary');
+            $(this).removeAttr('checked', '');
+        }
+    });
+}
+
 function initQuotaUtils(url_update_callback, pool_id, empty_quota_bar, disabled, reduced_timeout, proto_id_getter, traffic_quota_getter, time_quota_getter) {
    quotas_utils_opts = {
       url_update_callback: url_update_callback,

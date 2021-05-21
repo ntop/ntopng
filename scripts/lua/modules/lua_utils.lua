@@ -3361,8 +3361,8 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
        * and add it only to the one selected 
        */
       function resol_selector_change_callback(event) {
-        $(this).parent().find('label').removeClass('btn-primary').removeClass('btn-secondary').addClass('btn-secondary');;
-        $(this).parent().find('input[type="radio"]').prop('checked', false).removeClass('btn-primary').removeClass('btn-secondary').addClass('btn-secondary');
+        $(this).parent().find('label').removeClass('btn-primary').addClass('btn-secondary');
+        $(this).parent().find('input[type="radio"]').prop('checked', false);
         $(this).prop('checked', true).removeClass('btn-secondary').addClass('btn-primary');
         $(this).parent().find('label[for="' + $(this).attr('id') + '"]').removeClass('btn-secondary').addClass('btn-primary');
  
@@ -3391,43 +3391,6 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
 
         resol_selector_finalize(form);
         return true;
-      }
-
-      /* Helper function to set a selector value by raw value */
-      function resol_selector_set_value(input_id, its_value) {
-         var input = $(input_id);
-         var buttons = resol_selector_get_buttons($(input_id));
-         var values = [];
-
-         buttons.each(function() {
-            values.push(parseInt($(this).val()));
-         });
-
-         var new_value;
-         var new_i;
-         if (its_value > 0) {
-            /* highest divisor */
-            var highest_i = 0;
-            for (var i=1; i<values.length; i++) {
-              if(((values[i] > values[highest_i]) && (its_value % values[i] == 0)))
-                highest_i = i;
-            }
-
-            new_value = its_value / values[highest_i];
-            new_i = highest_i;
-         } else {
-            /* smallest value */
-            new_value = Math.max(its_value, -1);
-            new_i = values.indexOf(Math.min.apply(Math, values));
-         }
-
-         /* Set */
-         input.val(new_value);
-         // resol_selector_change_selection($(buttons[new_i]));
-         resol_selector_change_callback($(buttons[new_i]));
-
-         /* This must be set manually on initialization */
-         $(buttons[new_i]).closest("label").addClass("active");
       }
 
       function resol_selector_get_raw(input) {
