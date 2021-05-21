@@ -19,28 +19,26 @@
  *
  */
 
-#ifndef _HOST_CALLBACKS_INCLUDES_H_
-#define _HOST_CALLBACKS_INCLUDES_H_
+#ifndef _HOST_BAN__ALERT_H_
+#define _HOST_BAN__ALERT_H_
 
-#include "host_alerts_includes.h"
-#include "host_callbacks_includes.h"
 
-#include "host_callbacks/FlowHits.h"
-#include "host_callbacks/FlowFlood.h"
-#include "host_callbacks/SYNScan.h"
-#include "host_callbacks/SYNFlood.h"
+#include "ntop_includes.h"
 
-#include "host_callbacks/ServerContacts.h"
-#include "host_callbacks/DNSServerContacts.h"
-#include "host_callbacks/SMTPServerContacts.h"
-#include "host_callbacks/NTPServerContacts.h"
 
-#include "host_callbacks/P2PTraffic.h"
-#include "host_callbacks/DNSTraffic.h"
+class HostBanAlert : public HostAlert {
+ private:
+  u_int64_t score, consecutive_high_score;
 
-#include "host_callbacks/FlowAnomaly.h"
-#include "host_callbacks/HostBan.h"
-#include "host_callbacks/RemoteConnection.h"
-#include "host_callbacks/ScoreAnomaly.h"
+  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
+  
+ public:
+  static HostAlertType getClassType() { return { host_alert_host_ban, alert_category_security }; }
 
-#endif /* _HOST_CALLBACKS_INCLUDES_H_ */
+  HostBanAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int8_t _consecutive_high_score);
+  ~HostBanAlert() {};
+  
+  HostAlertType getAlertType() const { return getClassType(); }
+};
+
+#endif /* _HOST_BAN__ALERT_H_ */

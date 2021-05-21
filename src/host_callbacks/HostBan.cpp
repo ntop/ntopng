@@ -19,28 +19,28 @@
  *
  */
 
-#ifndef _HOST_CALLBACKS_INCLUDES_H_
-#define _HOST_CALLBACKS_INCLUDES_H_
-
-#include "host_alerts_includes.h"
+#include "ntop_includes.h"
 #include "host_callbacks_includes.h"
 
-#include "host_callbacks/FlowHits.h"
-#include "host_callbacks/FlowFlood.h"
-#include "host_callbacks/SYNScan.h"
-#include "host_callbacks/SYNFlood.h"
+/* ***************************************************** */
 
-#include "host_callbacks/ServerContacts.h"
-#include "host_callbacks/DNSServerContacts.h"
-#include "host_callbacks/SMTPServerContacts.h"
-#include "host_callbacks/NTPServerContacts.h"
+HostBan::HostBan() : HostCallback(ntopng_edition_enterprise_l) {};
 
-#include "host_callbacks/P2PTraffic.h"
-#include "host_callbacks/DNSTraffic.h"
+/* ***************************************************** */
 
-#include "host_callbacks/FlowAnomaly.h"
-#include "host_callbacks/HostBan.h"
-#include "host_callbacks/RemoteConnection.h"
-#include "host_callbacks/ScoreAnomaly.h"
+void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
+  HostAlert *alert = engaged_alert;
 
-#endif /* _HOST_CALLBACKS_INCLUDES_H_ */
+  if(h->getScore() > HOST_MAX_SCORE)
+    h->incrConsecutiveHighScore();
+  else
+    h->resetConsecutiveHighScore();
+  
+  if(h->getConsecutiveHighScore() > 5) {
+    if (!alert) alert = allocAlert(this, h, SCORE_LEVEL_ERROR, 0, h->getScore(), h->getConsecutiveHighScore());
+    if (alert) h->triggerAlert(alert);
+  }
+}
+
+/* ***************************************************** */
+

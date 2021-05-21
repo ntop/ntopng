@@ -35,6 +35,7 @@ HostStats::HostStats(Host *_host) : GenericTrafficElement() {
   total_alerts = 0;
   num_flow_alerts = 0;
   periodicUpdate = 0;
+  consecutive_high_score = 0;
   client_flows_anomaly = server_flows_anomaly = client_score_anomaly = server_score_anomaly = 0;
   
   /* NOTE: deleted by ~GenericTrafficElement */

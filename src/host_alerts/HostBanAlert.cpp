@@ -19,28 +19,25 @@
  *
  */
 
-#ifndef _HOST_CALLBACKS_INCLUDES_H_
-#define _HOST_CALLBACKS_INCLUDES_H_
-
 #include "host_alerts_includes.h"
-#include "host_callbacks_includes.h"
 
-#include "host_callbacks/FlowHits.h"
-#include "host_callbacks/FlowFlood.h"
-#include "host_callbacks/SYNScan.h"
-#include "host_callbacks/SYNFlood.h"
+/* ***************************************************** */
 
-#include "host_callbacks/ServerContacts.h"
-#include "host_callbacks/DNSServerContacts.h"
-#include "host_callbacks/SMTPServerContacts.h"
-#include "host_callbacks/NTPServerContacts.h"
+HostBanAlert::HostBanAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int8_t _consecutive_high_score) : HostAlert(c, f, cli_score, srv_score) {
+  score = _score;
+  consecutive_high_score = _consecutive_high_score;
+};
 
-#include "host_callbacks/P2PTraffic.h"
-#include "host_callbacks/DNSTraffic.h"
+/* ***************************************************** */
 
-#include "host_callbacks/FlowAnomaly.h"
-#include "host_callbacks/HostBan.h"
-#include "host_callbacks/RemoteConnection.h"
-#include "host_callbacks/ScoreAnomaly.h"
+ndpi_serializer* HostBanAlert::getAlertJSON(ndpi_serializer* serializer) {
+  if(serializer == NULL)
+    return NULL;
 
-#endif /* _HOST_CALLBACKS_INCLUDES_H_ */
+  ndpi_serialize_string_uint64(serializer, "consecutive_high_score", consecutive_high_score);
+  ndpi_serialize_string_uint64(serializer, "score", score);
+  
+  return serializer;
+}
+
+/* ***************************************************** */

@@ -210,6 +210,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual HTTPstats* getHTTPstats()           { return(NULL);                  };
   virtual DnsStats*  getDNSstats()            { return(NULL);                  };
   virtual ICMPstats* getICMPstats()           { return(NULL);                  };
+  inline u_int8_t getConsecutiveHighScore()   { return(stats->getConsecutiveHighScore()); };
+  inline void resetConsecutiveHighScore()     { stats->resetConsecutiveHighScore(); };
+  inline void incrConsecutiveHighScore()      { stats->incrConsecutiveHighScore(); };
   inline void set_ipv4(u_int32_t _ipv4)             { ip.set(_ipv4);                 };
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };
   inline u_int32_t key()                            { return(ip.key());              };

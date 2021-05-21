@@ -19,28 +19,24 @@
  *
  */
 
-#ifndef _HOST_CALLBACKS_INCLUDES_H_
-#define _HOST_CALLBACKS_INCLUDES_H_
+#ifndef _HOST_BAN_H_
+#define _HOST_BAN_H_
 
-#include "host_alerts_includes.h"
-#include "host_callbacks_includes.h"
+#include "ntop_includes.h"
 
-#include "host_callbacks/FlowHits.h"
-#include "host_callbacks/FlowFlood.h"
-#include "host_callbacks/SYNScan.h"
-#include "host_callbacks/SYNFlood.h"
+class HostBan : public HostCallback {
+private:
 
-#include "host_callbacks/ServerContacts.h"
-#include "host_callbacks/DNSServerContacts.h"
-#include "host_callbacks/SMTPServerContacts.h"
-#include "host_callbacks/NTPServerContacts.h"
+  HostAlert *allocAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int64_t _consecutive_high_score) { return new HostBanAlert(c, f, cli_score, srv_score, _score, _consecutive_high_score); };
 
-#include "host_callbacks/P2PTraffic.h"
-#include "host_callbacks/DNSTraffic.h"
+ public:
+  HostBan();
+  ~HostBan() {};
 
-#include "host_callbacks/FlowAnomaly.h"
-#include "host_callbacks/HostBan.h"
-#include "host_callbacks/RemoteConnection.h"
-#include "host_callbacks/ScoreAnomaly.h"
+  void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
-#endif /* _HOST_CALLBACKS_INCLUDES_H_ */
+  HostCallbackID getID() const { return host_callback_host_ban; }
+  std::string getName()      const { return(std::string("host_ban")); }
+};
+
+#endif
