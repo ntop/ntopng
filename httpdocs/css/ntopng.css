@@ -474,10 +474,9 @@ path.link {
 /*   font-size: 14px; */
 /* } */
 
-/* .typeahead-dropdown-right .dropdown-menu { */
-/*   left: auto !important; */
-/*   right: 0; */
-/* } */
+.typeahead-dropdown-right .dropdown-menu {
+  right: 0;
+} 
 
 /* .dialog-body-full-height { */
 /*   padding: 15px; */
