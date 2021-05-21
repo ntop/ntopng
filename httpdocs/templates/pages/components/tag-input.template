@@ -74,6 +74,7 @@ $(document).ready(function() {
     tagify_{{instance_name}}.on('change', async function (e) {
         const detail = e.detail;
         if (detail.value === undefined) {return;}
+        if (!detail.value) {return;}
         var tags = JSON.parse(detail.value);
         {{instance_name}}_global.tags = tags;
 
@@ -86,6 +87,8 @@ $(document).ready(function() {
     // clear all the rules on click
     $(`#{{instance_name}}-tags .btn-remove-tags`).on('click', async function() {
         tagify_{{instance_name}}.removeAllTags();
+        {{instance_name}}_global.tags = {};
+        policy_global.change('{{instance_name}}');
     });
 
 });
