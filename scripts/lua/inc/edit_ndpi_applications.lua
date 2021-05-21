@@ -196,7 +196,7 @@ print[[
           <h5 class="modal-title">]] print(i18n("custom_categories.add_custom_app")) print[[</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <form id="add-application-form" method="post" data-toggle="validator" onsubmit="return addApplication()">
+        <form id="add-application-form" method="post" data-bs-toggle="validator" onsubmit="return addApplication()">
         <div class="modal-body">
                 <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
                 <input type="hidden" name="action" value="add">
