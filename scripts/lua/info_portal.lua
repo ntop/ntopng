@@ -62,15 +62,13 @@ print [[
 <br>
 
 <div class="form-group mb-3">
-  <div class="form-check">
-    <label class="form-check-label" style="font-weight: normal;">]]
+  <div class="form-check">]]
 
 print(template.gen("on_off_switch.html", {
-   id = "tos",
+   id = "accept_tos",
 }))
 
 print(i18n("login.informative_captive_portal_tos", {url="https://en.wikipedia.org/wiki/General_Data_Protection_Regulation"})) print[[
-    </label>
   </div>
 </div>
 
@@ -95,7 +93,7 @@ print(r)
 
 
 print [[">
-    <button id="submit" disabled="" class="btn btn-lg btn-primary btn-block" type="submit">]] print(i18n("login.informative_captive_join")) print[[</button>
+    <button id="submit" disabled="" class="w-100 btn btn-lg btn-primary" type="submit">]] print(i18n("login.informative_captive_join")) print[[</button>
   	<div class="row">
       <div >&nbsp;</div>
       <div class="col-lg-12">
@@ -109,7 +107,7 @@ print [[">
 <script>
   $("input:text:visible:first").focus();
 
-  $('#tos').change(function() {
+  $('#accept_tos').change(function() {
     if($(this).prop('checked')) {
       $("#submit").prop("disabled", false);
     } else {
