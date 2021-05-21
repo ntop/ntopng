@@ -3846,6 +3846,7 @@ local lang = {
     ["add_rule"] = "Add Rule",
     ["autoconfigure"] = "Auto Configure",
     ["autoconfigure_note"] = "The Auto Configure functionality automatically creates a suggested configuration for the Pool by detecting protocols/hosts commonly used/contacted by the hosts in the Pool. Please note that the Default Policy is set to Drop when using this functionality.",
+    ["autoconfigure_sites_note"] = "In order to populate Host Rules, the Auto Configure feature requires the Top Visited Sites euristic to be enabled under Settings > Preferences > Applications. For best results it should be enabled at least one day before to collect enough data.",
     ["continent"] = "Continent",
     ["continent_rules"] = "Continent Rules",
     ["continent_rules_descr"] = "Configure here the continent exceptions rules.",
