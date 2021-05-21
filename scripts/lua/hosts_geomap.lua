@@ -64,9 +64,8 @@ if (num > 0) then
     </script>
     <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js?]].. ntop.getStaticFileEpoch() ..[[" type='text/javascript'></script>
   ]])
-
 else
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("no_results_found") .. "</div>")
+   print("<div class=\"alert alert-danger\">".. "<i class='fas fa-exclamation-triangle fa-lg' style='color: #B94A48;'></i> " .. i18n("no_results_found") .. "</div>")
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

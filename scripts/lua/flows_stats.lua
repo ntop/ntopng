@@ -256,7 +256,8 @@ print[[
          field: "column_ndpi",
          sortable: true,
          css: {
-            textAlign: 'center'
+            textAlign: 'center',
+            whiteSpace: 'nowrap'
          }
       }, {
          title: "]] print(i18n("protocol")) print[[",
@@ -287,16 +288,23 @@ print[[
          title: "]] print(i18n("client")) print[[",
          field: "column_client",
          sortable: true,
+         css: {
+            whiteSpace: 'nowrap'
+         }
       }, {
          title: "]] print(i18n("server")) print[[",
          field: "column_server",
          sortable: true,
+         css: {
+            whiteSpace: 'nowrap'
+         }
+
       }, {
          title: "]] print(i18n("duration")) print[[",
          field: "column_duration",
          sortable: true,
          css: {
-            textAlign: 'center'
+            textAlign: 'center',
          }
       }, {
          title: "]] print(i18n("score")) print[[",
@@ -318,21 +326,24 @@ print[[
          field: "column_thpt",
          sortable: true,
          css: {
-            textAlign: 'right'
+            textAlign: 'right',
+            whiteSpace: 'nowrap'
          }
       }, {
          title: "]] print(i18n("flows_page.total_bytes")) print[[",
          field: "column_bytes",
          sortable: true,
          css: {
-            textAlign: 'right'
+            textAlign: 'right',
+            whiteSpace: 'nowrap'
          }
       }, {
          title: "]] print(i18n("info")) print[[",
          field: "column_info",
          sortable: false,
          css: {
-            textAlign: 'left'
+            textAlign: 'left',
+            whiteSpace: 'nowrap'
          }
       }
       ]

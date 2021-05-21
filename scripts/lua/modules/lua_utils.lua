@@ -243,6 +243,7 @@ local http_status_code_map = {
 
 function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers, status_code)
    info = ntop.getInfo(false)
+   -- tprint(info)
    local cookie_attr = ntop.getCookieAttributes()
    local lines = {
       'Cache-Control: max-age=0, no-cache, no-store',
@@ -255,7 +256,8 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_h
    }
 
    if(_SESSION ~= nil) then
-      lines[#lines + 1] = 'Set-Cookie: session='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; ' .. cookie_attr
+      local key = "session_"..info.http_port.."_"..info.https_port
+      lines[#lines + 1] = 'Set-Cookie: '..key..'='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; ' .. cookie_attr
    end
 
    if(ifname ~= nil) then

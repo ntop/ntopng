@@ -257,6 +257,7 @@ public:
   static int mapSyslogFacilityTextToValue(const char *facility_text);
 #endif
   static void buildSqliteAllowedNetworksFilters(lua_State *vm);
+  static void make_session_key(char *buf, u_int buf_len);
 };
 
 #endif /* _UTILS_H_ */

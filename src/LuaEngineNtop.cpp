@@ -3046,6 +3046,8 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "bits", (sizeof(void*) == 4) ? 32 : 64);
   lua_push_uint64_table_entry(vm, "uptime", ntop->getGlobals()->getUptime());
   lua_push_str_table_entry(vm, "command_line", ntop->getPrefs()->get_command_line());
+  lua_push_uint32_table_entry(vm, "http_port", ntop->getPrefs()->get_http_port());
+  lua_push_uint32_table_entry(vm, "https_port", ntop->getPrefs()->get_https_port());				
 
   if(verbose) {
     lua_push_str_table_entry(vm, "version.rrd", rrd_strversion());

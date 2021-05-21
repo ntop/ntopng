@@ -4973,3 +4973,9 @@ void Utils::buildSqliteAllowedNetworksFilters(lua_State *vm) {
 }
 
 /* ****************************************************** */
+
+void Utils::make_session_key(char *buf, u_int buf_len) {
+  snprintf(buf, buf_len, "session_%u_%u", ntop->getPrefs()->get_http_port(), ntop->getPrefs()->get_https_port());
+}
+
+/* ****************************************************** */

@@ -873,7 +873,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   char switch_interface[2] = { '\0' };
   char addr_buf[64];
   char session_buf[64];
-  char ifid_buf[32];
+  char ifid_buf[32], session_key[32];
   const char* origin_header;
   bool send_redirect = false;
   IpAddress client_addr;
@@ -888,7 +888,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   getLuaVMUservalue(L, conn) = conn;
 
   content_type = mg_get_header(conn, "Content-Type");
-  mg_get_cookie(conn, "session", session_buf, sizeof(session_buf));
+  Utils::make_session_key(session_key, sizeof(session_key));
+  mg_get_cookie(conn, session_key, session_buf, sizeof(session_buf));
 
   /* Check for POST requests */
   if((strcmp(request_info->request_method, "POST") == 0) && (content_type != NULL)) {

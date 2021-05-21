@@ -86,7 +86,6 @@ const char *get_secure_cookie_attributes(const struct mg_request_info *request_i
 static void redirect_to_ssl(struct mg_connection *conn,
                             const struct mg_request_info *request_info) {
   const char *host = mg_get_header(conn, "Host");
-  //  u_int16_t port = ntop->get_HTTPserver()->get_port();
 
   if(host != NULL) {
     const char *p = strchr(host, ':');
@@ -195,7 +194,7 @@ static void set_session_cookie(const struct mg_connection * const conn,
 			       const char * const group,
 			       bool localuser,
 			       const char * const referer) {
-  char session_id[64];
+  char session_id[64], session_key[32];
   u_int session_duration;
 
   if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
@@ -219,14 +218,16 @@ static void set_session_cookie(const struct mg_connection * const conn,
     session_duration = ntop->getPrefs()->get_auth_session_duration();
 
   create_session(user, group, localuser, session_id, sizeof(session_id), session_duration);
-
+  Utils::make_session_key(session_key, sizeof(session_key));
+    
   /* http://en.wikipedia.org/wiki/HTTP_cookie */
   mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
 	    "Server: ntopng %s (%s)\r\n"
-	    "Set-Cookie: session=%s; path=/; max-age=%u;%s\r\n"  // Session ID
+	    "Set-Cookie: %s=%s; path=/; max-age=%u;%s\r\n"  // Session ID
 	    "Location: %s\r\n\r\n",
 	    PACKAGE_VERSION, PACKAGE_MACHINE,
-	    session_id, session_duration, get_secure_cookie_attributes(mg_get_request_info((struct mg_connection*)conn)),
+	    session_key, session_id, session_duration,
+	    get_secure_cookie_attributes(mg_get_request_info((struct mg_connection*)conn)),
 	    referer ? referer : "/");
 }
 
@@ -388,7 +389,7 @@ static int getAuthorizedUser(struct mg_connection *conn,
 			     char *username, ssize_t username_len, char *group,
 			     char *csrf, bool *localuser) {
   char session_id[NTOP_SESSION_ID_LENGTH];
-  char key[64], val[128];
+  char key[64], val[128], session_key[32];
   char password[MAX_PASSWORD_LEN];
   char localuser_ch;
   const char *auth_header_p;
@@ -496,9 +497,10 @@ static int getAuthorizedUser(struct mg_connection *conn,
     } else
       return(1);    
   }
-  
+
+  Utils::make_session_key(session_key, sizeof(session_key));
   /* NOTE: this is the only cookie needed for gui authentication */
-  mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+  mg_get_cookie(conn, session_key, session_id, sizeof(session_id));
 
   if(session_id[0] == '\0') {
     /* Explicit username + password */
@@ -639,7 +641,7 @@ static char* make_referer(struct mg_connection *conn, char *buf, int bufsize) {
 static void redirect_to_login(struct mg_connection *conn,
                               const struct mg_request_info *request_info,
 			      const char * const referer, const char * const reason) {
-  char session_id[NTOP_SESSION_ID_LENGTH], buf[128];
+  char session_id[NTOP_SESSION_ID_LENGTH], buf[128], session_key[32];
   char *referer_enc = NULL, *reason_enc = NULL;
 
   if(isCaptiveConnection(conn)) {
@@ -668,7 +670,8 @@ static void redirect_to_login(struct mg_connection *conn,
 				 request_info->uri);
 #endif
 
-    mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+    Utils::make_session_key(session_key, sizeof(session_key));
+    mg_get_cookie(conn, session_key, session_id, sizeof(session_id));
     ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
 
     mg_printf(conn,
@@ -701,12 +704,14 @@ int redirect_to_error_page(struct mg_connection *conn,
 			   const char *i18n_message,
 			   char *script_path, char *error_message) {
   char session_id[NTOP_SESSION_ID_LENGTH], decoded[512];
-  char referer[255];
+  char referer[255], session_key[32];
   char *referer_enc = NULL, *msg;
   const char* url = "/lua/http_status_code.lua";
 
   make_referer(conn, referer, sizeof(referer));
-  mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+  Utils::make_session_key(session_key, sizeof(session_key));
+
+  mg_get_cookie(conn, session_key, session_id, sizeof(session_id));
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
 
   msg = error_message ? Utils::urlEncode(error_message) : NULL;
@@ -747,11 +752,12 @@ int redirect_to_error_page(struct mg_connection *conn,
 static void redirect_to_please_wait(struct mg_connection *conn,
 				    const struct mg_request_info *request_info) {
   char session_id[NTOP_SESSION_ID_LENGTH], buf[128];
-  char referer[255];
+  char referer[255], session_key[32];
   char *referer_enc = NULL;
 
   make_referer(conn, referer, sizeof(referer));
-  mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+  Utils::make_session_key(session_key, sizeof(session_key));
+  mg_get_cookie(conn, session_key, session_id, sizeof(session_id));
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
 
   mg_printf(conn,
@@ -775,11 +781,12 @@ static void redirect_to_please_wait(struct mg_connection *conn,
 static void redirect_to_password_change(struct mg_connection *conn,
 				    const struct mg_request_info *request_info) {
   char session_id[NTOP_SESSION_ID_LENGTH], buf[128];
-  char referer[255];
+  char referer[255], session_key[32];
   char *referer_enc = NULL;
 
   make_referer(conn, referer, sizeof(referer));
-  mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+  Utils::make_session_key(session_key, sizeof(session_key));
+  mg_get_cookie(conn, session_key, session_id, sizeof(session_id));
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
 
   mg_printf(conn,
@@ -1150,8 +1157,10 @@ static int handle_lua_request(struct mg_connection *conn) {
 
     /* Make sure there are existing interfaces for username. */
     if(!ntop->checkUserInterfaces(username)) {
-      char session_id[NTOP_SESSION_ID_LENGTH];
-      mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+      char session_id[NTOP_SESSION_ID_LENGTH], session_key[32];
+
+      Utils::make_session_key(session_key, sizeof(session_key));
+      mg_get_cookie(conn, session_key, session_id, sizeof(session_id));
 
       ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] user %s cannot login due to non-existent allowed_interface", username);
 
