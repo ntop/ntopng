@@ -79,8 +79,8 @@ they do not interfere each other), each instance must:
 3. Use a different http port iwth `-w`
 
 Example:
-`ntopng -d /path1 -r 127.0.0.1:6379@1 -w 3001`
-`ntopng -d /path2 -r 127.0.0.1:6379@2 -w 3002`
+- `ntopng -d /path1 -r 127.0.0.1:6379@1 -w 3001`
+- `ntopng -d /path2 -r 127.0.0.1:6379@2 -w 3002`
 ...
 
 In case you save timseries in InfluxDB, make sure you use a different DB per instance in order not to mix data across instances.
