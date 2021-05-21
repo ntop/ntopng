@@ -4,6 +4,8 @@ ignore:
   - date
   - duration
   - tstamp
+  - label
+  - value
 
 pre: |
   # Enable all user scripts
