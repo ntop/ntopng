@@ -1368,7 +1368,7 @@ function getApplicationLabel(name)
   local icon = getApplicationIcon(name)
 
   name = name:gsub("^%l", string.upper)
-  return(icon.." "..name)
+  return(icon.." "..shortenString(name, 12))
 end
 
 -- #################################

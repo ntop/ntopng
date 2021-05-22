@@ -719,14 +719,21 @@ else
    end
 
    if(flow["verdict.pass"] == false) then print("<strike>") end
-   print(flow["proto.l4"].." / <A HREF=\""..ntop.getHttpPrefix().."/lua/")
-   if((flow.client_process ~= nil) or (flow.server_process ~= nil))then	print("s") end
-   print("flows_stats.lua?application=" .. flow["proto.ndpi"] .. "\">")
-   print(getApplicationLabel(flow["proto.ndpi"]).."</A> ")
-   print("(<A HREF=\""..ntop.getHttpPrefix().."/lua/")
-   print("flows_stats.lua?category=" .. flow["proto.ndpi_cat"] .. "\">")
-   print(getCategoryLabel(flow["proto.ndpi_cat"]))
-   print("</A>) ".. formatBreed(flow["proto.ndpi_breed"]))
+   print(flow["proto.l4"].." / ")
+
+   if(flow["proto.ndpi_id"] == -1) then
+      print(flow["proto.ndpi"])
+   else
+      print("<A HREF=\""..ntop.getHttpPrefix().."/lua/")
+      if((flow.client_process ~= nil) or (flow.server_process ~= nil))then	print("s") end
+      print("flows_stats.lua?application=" .. flow["proto.ndpi"] .. "\">")
+      print(getApplicationLabel(flow["proto.ndpi"]).."</A> ")
+      print("(<A HREF=\""..ntop.getHttpPrefix().."/lua/")
+      print("flows_stats.lua?category=" .. flow["proto.ndpi_cat"] .. "\">")
+      print(getCategoryLabel(flow["proto.ndpi_cat"]))
+      print("</A>) ".. formatBreed(flow["proto.ndpi_breed"]))
+   end
+   
    if(flow["verdict.pass"] == false) then print("</strike>") end
    historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.tls.certificate"] or ''))
 

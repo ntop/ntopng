@@ -2761,9 +2761,9 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_string(s, "alerts_map", alerts_map.toHexString(status_buf, sizeof(status_buf)));
 
   /* nDPI data */
-  ndpi_serialize_string_string(s, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
-  ndpi_serialize_string_int32(s, "l7_master_proto", ndpiDetectedProtocol.master_protocol);
-  ndpi_serialize_string_int32(s, "l7_proto", ndpiDetectedProtocol.app_protocol);
+  ndpi_serialize_string_string(s, "proto.ndpi", detection_completed ? get_detected_protocol_name(buf, sizeof(buf)) : (char*)CONST_TOO_EARLY);
+  ndpi_serialize_string_int32(s, "l7_master_proto", detection_completed ? ndpiDetectedProtocol.master_protocol : -1);
+  ndpi_serialize_string_int32(s, "l7_proto", detection_completed ?  ndpiDetectedProtocol.app_protocol : -1);
   ndpi_serialize_string_int32(s, "l7_cat", get_protocol_category());
 
   if(isDNS())
@@ -4726,17 +4726,20 @@ void Flow::lua_get_protocols(lua_State* vm) const {
 
   if(((get_packets_cli2srv() + get_packets_srv2cli()) > NDPI_MIN_NUM_PACKETS)
      || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)
-     || iface->is_ndpi_enabled()
+     || (iface->is_ndpi_enabled() && detection_completed)
      || iface->isSampledTraffic()
      || (iface->getIfType() == interface_type_ZMQ)
      || (iface->getIfType() == interface_type_SYSLOG)
      || (iface->getIfType() == interface_type_ZC_FLOW)) {
     lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
-  } else
+    lua_push_uint64_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.app_protocol);
+    lua_push_uint64_table_entry(vm, "proto.master_ndpi_id", ndpiDetectedProtocol.master_protocol);    
+  } else {
     lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
-
-  lua_push_uint64_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.app_protocol);
-  lua_push_uint64_table_entry(vm, "proto.master_ndpi_id", ndpiDetectedProtocol.master_protocol);
+    lua_push_int32_table_entry(vm, "proto.ndpi_id", -1);
+    lua_push_int32_table_entry(vm, "proto.master_ndpi_id", -1);
+  }
+  
   lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
   lua_push_uint64_table_entry(vm, "proto.ndpi_cat_id", get_protocol_category());
