@@ -70,7 +70,8 @@ Ntop::Ntop(char *appName) {
   start_time = last_modified_static_file_epoch = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
   ndpiReloadInProgress = false;
-
+  zmqPublisher = NULL;
+  
   /* Callbacks loader */
   flowCallbacksReloadInProgress = true; /* Lazy, will be reloaded the first time this condition is evaluated */
   hostCallbacksReloadInProgress = true;
@@ -3340,6 +3341,7 @@ bool Ntop::addLocalNetwork(char *_net) {
 }
 
 /* ******************************************* */
+
 bool Ntop::getLocalNetworkAlias(lua_State *vm, u_int8_t network_id) {
   char *alias = local_network_aliases[network_id];
 
@@ -3362,4 +3364,31 @@ void Ntop::addLocalNetworkList(const char *rule) {
     if(!addLocalNetwork(net)) return;
     net = strtok_r(NULL, ",", &tmp);
   }
+}
+
+/* ******************************************* */
+
+bool Ntop::broadcastIPSMessage(char *msg) {
+  bool rc;
+  
+  if(prefs->getZMQPublishEventsURL() == NULL)
+    return(false);
+  
+  /* Jeopardized users_m lock :-) */
+  users_m.lock(__FILE__, __LINE__);
+
+  
+  if(zmqPublisher == NULL)
+    zmqPublisher = new ZMQPublisher(prefs->getZMQPublishEventsURL());
+
+  if(!zmqPublisher) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create ZMQ publisher");
+    users_m.unlock(__FILE__, __LINE__);
+    return(false);
+  }
+
+  rc = zmqPublisher->sendIPSMessage(msg);
+  users_m.unlock(__FILE__, __LINE__);
+
+  return(rc);
 }

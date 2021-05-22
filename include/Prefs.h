@@ -43,7 +43,7 @@ class Prefs {
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
   bool enable_client_x509_auth, reproduce_at_original_speed;
-  char *lan_interface, *wan_interface;
+  char *lan_interface, *wan_interface, *zmq_publish_events_url;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, pcap_file_purge_hosts_flows,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
@@ -404,6 +404,7 @@ class Prefs {
   inline u_int32_t getIEC60870LearingPeriod()    { return(iec60870_learning_period);                    };
   inline bool      dontEmitFlowAlerts()          { return(!emit_flow_alerts);                           };
   inline bool      dontEmitHostAlerts()          { return(!emit_host_alerts);                           };
+  inline char*     getZMQPublishEventsURL()      { return(zmq_publish_events_url);                      };
   void setIEC104AllowedTypeIDs(char *protos);
   void validate();
 };

@@ -51,6 +51,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ewma_alpha_percent = CONST_DEFAULT_EWMA_ALPHA_PERCENT;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   emit_flow_alerts = emit_host_alerts = true;
+  zmq_publish_events_url = NULL;
   enable_access_log = false, enable_sql_log = false;
   enable_flow_device_port_rrd_creation = false;
   reproduce_at_original_speed = false;
@@ -192,6 +193,7 @@ Prefs::~Prefs() {
     deferred_interfaces_to_register = NULL;
   }
 
+  if(zmq_publish_events_url) free(zmq_publish_events_url);
   if(data_dir)         free(data_dir);
   if(install_dir)      free(install_dir);
   if(docs_dir)         free(docs_dir);
@@ -345,6 +347,7 @@ void usage() {
 	 "[--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption secret key (debug only) \n"
 	 "[--zmq-encryption-key <key>]        | ZMQ (export) encryption public key (-I only) \n"
 #endif
+	 "[--zmq-publish-events <URL>]        | Endpoint for publishing events (e.g. IPS)\n"
 	 "[--disable-autologout|-q]           | Disable web logout for inactivity\n"
 	 "[--disable-login|-l] <mode>         | Disable user login authentication:\n"
 	 "                                    | 0 - Disable login only for localhost\n"
@@ -810,6 +813,7 @@ static const struct option long_options[] = {
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
   { "pcap-dir",                          required_argument, NULL, '5' },
+  { "zmq-publish-events",                required_argument, NULL, 203 },
 #ifdef HAVE_PF_RING
   { "cluster-id",                        required_argument, NULL, 204 },
 #endif
@@ -1422,6 +1426,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'V':
     print_version = true;
+    break;
+
+  case 203:
+    zmq_publish_events_url = strdup(optarg);
     break;
 
 #ifdef HAVE_PF_RING

@@ -91,6 +91,7 @@ class Ntop {
   bool plugins0_active, can_send_icmp, privileges_dropped;
   FifoSerializerQueue *internal_alerts_queue;
   Recipients recipients; /* Handle notification recipients */
+  ZMQPublisher *zmqPublisher;
   
   /* Local network address list */
   char *local_network_names[CONST_MAX_NUM_NETWORKS];
@@ -573,6 +574,7 @@ class Ntop {
 
   inline FlowCallbacksLoader* getFlowCallbacksLoader() { return(flow_callbacks_loader); }
   inline HostCallbacksLoader* getHostCallbacksLoader() { return(host_callbacks_loader); }
+  bool broadcastIPSMessage(char *msg);
 };
 
 extern Ntop *ntop;

@@ -5854,6 +5854,19 @@ static int ndpi_is_custom_application(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_brodcast_ips_message(lua_State* vm) {
+  char* msg;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  msg = (char*)lua_tostring(vm, 1);
+
+  ntop->broadcastIPSMessage(msg);
+  
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_exec_single_sql_query(lua_State *vm) {
   char *sql;
 
@@ -6318,6 +6331,9 @@ static luaL_Reg _ntop_reg[] = {
   { "setnDPIProtoCategory",   ntop_set_ndpi_protocol_category },
   { "isCustomApplication",    ndpi_is_custom_application      },
 
+  /* IPS */
+  { "broadcastIPSMessage",    ntop_brodcast_ips_message       },
+  
   /* nEdge */
 #ifdef HAVE_NEDGE
   { "setHTTPBindAddr",       ntop_set_http_bind_addr       },

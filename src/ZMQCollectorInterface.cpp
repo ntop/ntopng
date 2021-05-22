@@ -93,25 +93,25 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
       if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE, &val, sizeof(val)) != 0)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set tcp keepalive");
       else
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Tcp keepalive set");
+	ntop->getTrace()->traceEvent(TRACE_INFO, "TCP keepalive set");
 
       val = DEFAULT_ZMQ_TCP_KEEPALIVE_IDLE;
       if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE_IDLE, &val, sizeof(val)) != 0)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set tcp keepalive idle to %u seconds", val);
       else
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Tcp keepalive idle set to %u seconds", val);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "TCP keepalive idle set to %u seconds", val);
 
       val = DEFAULT_ZMQ_TCP_KEEPALIVE_CNT;
       if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE_CNT, &val, sizeof(val)) != 0)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set tcp keepalive count to %u", val);
       else
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Tcp keepalive count set to %u", val);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "TCP keepalive count set to %u", val);
 
       val = DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL;
       if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_TCP_KEEPALIVE_INTVL, &val, sizeof(val)) != 0)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set tcp keepalive interval to %u seconds", val);
       else
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Tcp keepalive interval set to %u seconds", val);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "TCP keepalive interval set to %u seconds", val);
     }
 
     if(last_char == 'c')
@@ -122,7 +122,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
 	zmq_close(subscriber[num_subscribers].socket);
 	zmq_ctx_destroy(context);
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to ZMQ endpoint %s [collector]: %s (%d)",
-          e, strerror(errno), errno);
+				     e, strerror(errno), errno);
 	free(tmp);
 	throw("Unable to bind to the specified ZMQ endpoint");
       }
