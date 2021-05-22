@@ -256,11 +256,7 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_h
    }
 
    if(_SESSION ~= nil) then
-      local key = "session_"
-
-      ifinfo.http_port ~= nil)  then key = key ..info.http_port  end
-      ifinfo.https_port ~= nil) then key = key ..info.https_port end
-
+      local key = "session_"..info.http_port.."_"..info.https_port
       lines[#lines + 1] = 'Set-Cookie: '..key..'='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; ' .. cookie_attr
    end
 
