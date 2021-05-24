@@ -9,6 +9,68 @@
 <script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
 
 <div class='row'>
+<div class="container mt-5">
+      <div class="row">
+        <div class="col-sm" id="box1">
+          <div class="col-body bg-dark pb-3 ">
+
+                <div class="col-text text-white">
+                    <h4 class='ml-2'>Total alerts</h4>
+                </div>
+                <div class="col-text-number text-white mt-1">
+                    <h6 class="mt-4 altro pl-3" id="alertsValue"> loading ...</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm" id="box1">
+            <div class="col-body bg-success pb-3">
+                <div class="col-text text-white">
+                  <h4 class='ml-2'>Top alert type</h4>
+                </div>
+                <div class="col-text-number text-white mt-1">
+                  <h6 class="mt-4 altro pl-3" id="alertsType"> loading ...</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm" id="box1">
+            <div class="col-body bg-danger pb-3">
+
+                 <div class="col-text text-white">
+                    <h4 class='ml-2'>Top victim</h4> 
+                </div>
+                <div class="col-text-number text-white mt-1">
+                    <h6 class="mt-4 altro pl-3" id="topVictim"> loading ...</h6>
+                </div>
+            </div>
+            <p>*victim host with most alerts, if any</p>
+        </div>
+        <div class="col-sm" id="box1">
+            <div class="col-body bg-info pb-3">
+                <div class="col-text text-white">
+                  <h4 class='ml-2'>Top attacker</h4>
+                </div>
+                <div class="col-text-number text-white mt-1">
+                  <h6 class="mt-4 altro pl-3" id="topAttacker"> loading ...</h6>
+                </div>
+            </div>
+            <p>*attacker host with most alerts, if any</p>
+        </div>
+      </div>
+</div>
+
+<style>
+    #box1{
+        text-align: left;
+    }
+    .altro{
+
+        font-size: 30px;
+        text-align: left;
+        box-shadow:
+    }
+</style>
+
+
     <div class='col-12'>
         <div class="mb-2">
             {* ui_utils.render_datetime_range_picker(range_picker) *}
@@ -774,6 +836,25 @@
                return true;
            }
        }).invokeModalInit();
+
+
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+
+
+            if (this.readyState == 4 && this.status == 200) {
+                var test = xhttp.responseText;
+                test = JSON.parse(test);
+                console.log(test.rsp);
+                document.getElementById("alertsValue").innerHTML = test.rsp[0];
+                document.getElementById("alertsType").innerHTML = test.rsp[1];
+                document.getElementById("topVictim").innerHTML = test.rsp[2];
+                document.getElementById("topAttacker").innerHTML = test.rsp[3];
+            }
+            
+        };
+        xhttp.open("GET", "rest/v1/get/alert/blocks/blocks.lua", true);
+        xhttp.send();   
 
     });
 </script>
