@@ -61,6 +61,7 @@ Ntop::Ntop(char *appName) {
   prefs = NULL, redis = NULL;
 #ifndef HAVE_NEDGE
   export_interface = NULL;
+  zmqPublisher = NULL;
 #endif
   trackers_automa = NULL;
   num_cpus = -1;
@@ -70,7 +71,6 @@ Ntop::Ntop(char *appName) {
   start_time = last_modified_static_file_epoch = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
   ndpiReloadInProgress = false;
-  zmqPublisher = NULL;
   
   /* Callbacks loader */
   flowCallbacksReloadInProgress = true; /* Lazy, will be reloaded the first time this condition is evaluated */
@@ -3368,6 +3368,8 @@ void Ntop::addLocalNetworkList(const char *rule) {
 
 /* ******************************************* */
 
+#ifndef HAVE_NEDGE
+
 bool Ntop::broadcastIPSMessage(char *msg) {
   bool rc;
   
@@ -3392,3 +3394,6 @@ bool Ntop::broadcastIPSMessage(char *msg) {
 
   return(rc);
 }
+
+#endif
+

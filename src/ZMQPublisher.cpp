@@ -9,6 +9,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 /**
  * Constructor: initializes ZMQ sockets.
  * @param endpoint The ZMQ endpoint.
@@ -209,3 +211,5 @@ bool ZMQPublisher::sendMessage(const char * topic, char * str) {
 
   return((rc == -1) ? false : true);
 }
+
+#endif /* HAVE_NEDGE */

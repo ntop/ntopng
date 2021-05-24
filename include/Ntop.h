@@ -66,6 +66,7 @@ class Ntop {
   struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
+  ZMQPublisher *zmqPublisher;
 #ifndef WIN32
   SyslogDump *syslog; /**< Pointer of Logstash. */
 #endif
@@ -91,7 +92,6 @@ class Ntop {
   bool plugins0_active, can_send_icmp, privileges_dropped;
   FifoSerializerQueue *internal_alerts_queue;
   Recipients recipients; /* Handle notification recipients */
-  ZMQPublisher *zmqPublisher;
   
   /* Local network address list */
   char *local_network_names[CONST_MAX_NUM_NETWORKS];
@@ -574,7 +574,9 @@ class Ntop {
 
   inline FlowCallbacksLoader* getFlowCallbacksLoader() { return(flow_callbacks_loader); }
   inline HostCallbacksLoader* getHostCallbacksLoader() { return(host_callbacks_loader); }
+#ifndef HAVE_NEDGE
   bool broadcastIPSMessage(char *msg);
+#endif
 };
 
 extern Ntop *ntop;

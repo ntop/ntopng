@@ -1110,6 +1110,20 @@ static int ntop_inet_ntoa(lua_State* vm) {
 /* ****************************************** */
 
 #ifndef HAVE_NEDGE
+
+static int ntop_brodcast_ips_message(lua_State* vm) {
+  char* msg;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  msg = (char*)lua_tostring(vm, 1);
+
+  ntop->broadcastIPSMessage(msg);
+  
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_zmq_connect(lua_State* vm) {
   char *endpoint, *topic;
   void *context, *subscriber;
@@ -5854,19 +5868,6 @@ static int ndpi_is_custom_application(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_brodcast_ips_message(lua_State* vm) {
-  char* msg;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  msg = (char*)lua_tostring(vm, 1);
-
-  ntop->broadcastIPSMessage(msg);
-  
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_exec_single_sql_query(lua_State *vm) {
   char *sql;
 
@@ -6082,11 +6083,15 @@ static luaL_Reg _ntop_reg[] = {
   { "fileLastChange",   ntop_get_file_last_change },
   { "readdir",          ntop_list_dir_files },
   { "rmdir",            ntop_remove_dir_recursively },
+
 #ifndef HAVE_NEDGE
   { "zmq_connect",      ntop_zmq_connect },
   { "zmq_disconnect",   ntop_zmq_disconnect },
-  { "zmq_receive",      ntop_zmq_receive },
+  { "zmq_receive",      ntop_zmq_receive },  
+  /* IPS */
+  { "broadcastIPSMessage",    ntop_brodcast_ips_message       },
 #endif
+
   { "reloadPreferences",   ntop_reload_preferences },
   { "reloadPlugins",       ntop_reload_plugins        },
   { "hasPluginsReloaded",  ntop_has_plugins_reloaded  },
@@ -6330,9 +6335,6 @@ static luaL_Reg _ntop_reg[] = {
   { "getnDPIProtoCategory",   ntop_get_ndpi_protocol_category },
   { "setnDPIProtoCategory",   ntop_set_ndpi_protocol_category },
   { "isCustomApplication",    ndpi_is_custom_application      },
-
-  /* IPS */
-  { "broadcastIPSMessage",    ntop_brodcast_ips_message       },
   
   /* nEdge */
 #ifdef HAVE_NEDGE

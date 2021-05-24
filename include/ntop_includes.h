@@ -379,6 +379,7 @@ using namespace std;
 #ifndef HAVE_NEDGE
 #include "ParserInterface.h"
 #include "ZMQParserInterface.h"
+#include "ZMQPublisher.h"
 #include "ZMQCollectorInterface.h"
 #include "SyslogParserInterface.h"
 #include "SyslogCollectorInterface.h"
@@ -386,7 +387,6 @@ using namespace std;
 #include "DummyInterface.h"
 #include "ExportInterface.h"
 #endif
-#include "ZMQPublisher.h"
 
 #include "Geolocation.h"
 #include "VLAN.h"

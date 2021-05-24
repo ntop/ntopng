@@ -46,3 +46,5 @@ class ZMQPublisher {
 };
 
 #endif /* _ZMQ_PUBLISHER_H_ */
+
+
