@@ -380,13 +380,13 @@ using namespace std;
 #include "ParserInterface.h"
 #include "ZMQParserInterface.h"
 #include "ZMQCollectorInterface.h"
-#include "ZMQPublisher.h"
 #include "SyslogParserInterface.h"
 #include "SyslogCollectorInterface.h"
 #include "ZCCollectorInterface.h"
 #include "DummyInterface.h"
 #include "ExportInterface.h"
 #endif
+#include "ZMQPublisher.h"
 
 #include "Geolocation.h"
 #include "VLAN.h"
