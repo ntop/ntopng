@@ -437,11 +437,12 @@ function system_setup_ui_utils.prefsDateTimeFieldPrefs(label, comment, key, defa
       print[[
           <td style="vertical-align:top; padding-left: 2em;">
             <input type="hidden" id="]] print(orig_name) print[[" name="]] print(orig_name) print[[" value="" />
-            <div class='input-group date' id=']] print(picker_name) print[[' style="width: 20em;" data-target-input="nearest">
-               <input id="]] print(key) print[[" name="]] print(key) print[[" type="text" class="form-control datetimepicker-input" data_target="#]] print(picker_name) print[["/>
-            <div class="input-group-append" data-bs-target="#]] print(picker_name) print[[" data-bs-toggle="datetimepicker">
-               <div class="input-group-text"><i class="fas fa-calendar"></i></div>
+            <div class='input-group' id=']] print(picker_name) print[[' style="width: 20em;" data-target-input="nearest">
+               <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+
+               <input id="]] print(key) print[[" name="]] print(key) print[[" type="text" class="form-control datetimepicker-input" data-target="#]] print(picker_name) print[[" data-toggle="datetimepicker"/>
             </div>
+
         <script type="text/javascript">
             var date_format = 'DD/MM/YYYY HH:mm:ss';
             var language = window.navigator.userLanguage || window.navigator.language;
@@ -458,7 +459,7 @@ function system_setup_ui_utils.prefsDateTimeFieldPrefs(label, comment, key, defa
             });
 
         </script>
-</div>
+
 
           </td>
         </tr>
