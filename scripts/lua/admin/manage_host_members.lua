@@ -13,21 +13,25 @@ local host_pools = require "host_pools"
 
 local host_pool = host_pools:create()
 local all_pools = host_pools:get_all_pools()
-local pool_id_get = _GET["pool"] or "0"
+local pool_id_get = _GET["pool"]
 local current_pool_name = ""
 
-if all_pools ~= {} and pool_id_get ~= "0" then
-   current_pool_name = all_pools[tonumber(pool_id_get)]["name"]
+if pool_id_get then
+   pool_id_get = tonumber(pool_id_get)
+
+   for _, p in pairs(all_pools) do
+      if p.pool_id == pool_id_get then
+         current_pool_name = p.name
+      end
+   end
 end
 
--- if the _GET["pool"] is not defined then
--- show the first host pool in the page
--- otherwise it means there are no host pools and then
--- show an alert
+-- if the _GET["pool"] is not defined then show the first host pool in the page
+-- otherwise it means there are no host pools and then show an alert
 if #all_pools > 1 and pool_id_get == nil then
-    pool_id_get = all_pools[2].pool_id
+   pool_id_get = all_pools[2].pool_id
 elseif #all_pools == 0 then
-    pool_id_get = 0
+   pool_id_get = 0
 end
 
 sendHTTPContentTypeHeader('text/html')
