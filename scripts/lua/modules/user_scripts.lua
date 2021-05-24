@@ -51,6 +51,7 @@ user_scripts.field_units = {
   percentage = "field_units.percentage",
   syn_min = "field_units.syn_min",
   contacts = "field_units.contacts",
+  score = "field_units.score",
 }
 
 -- ##############################################

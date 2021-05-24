@@ -16,12 +16,17 @@ local host_ban = {
    alert_id = host_alert_keys.host_alert_host_ban,
 
    default_value = {
+      operator = "gt",
+      threshold = "1000",
       severity = alert_severities.error,
    },
 
    gui = {
       i18n_title = "alerts_dashboard.host_ban_title",
       i18n_description = "alerts_dashboard.host_ban_description",
+      i18n_field_unit = user_scripts.field_units.score,
+      input_builder = "threshold_cross",
+      field_operator = "gt";
    },
 }
 

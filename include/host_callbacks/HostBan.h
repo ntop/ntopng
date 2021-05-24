@@ -26,6 +26,7 @@
 
 class HostBan : public HostCallback {
 private:
+  u_int64_t score_threshold;
 
   HostAlert *allocAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int64_t _consecutive_high_score) { return new HostBanAlert(c, f, cli_score, srv_score, _score, _consecutive_high_score); };
 
@@ -34,6 +35,7 @@ private:
   ~HostBan() {};
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
+  bool loadConfiguration(json_object *config);  
 
   HostCallbackID getID() const { return host_callback_host_ban; }
   std::string getName()      const { return(std::string("host_ban")); }

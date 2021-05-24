@@ -24,14 +24,16 @@
 
 /* ***************************************************** */
 
-HostBan::HostBan() : HostCallback(ntopng_edition_enterprise_l) {};
+HostBan::HostBan() : HostCallback(ntopng_edition_community) {
+  score_threshold = (u_int64_t)-1;
+};
 
 /* ***************************************************** */
 
 void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
 
-  if(h->getScore() > HOST_MAX_SCORE)
+  if(h->getScore() > score_threshold)
     h->incrConsecutiveHighScore();
   else
     h->resetConsecutiveHighScore();
@@ -40,6 +42,21 @@ void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     if (!alert) alert = allocAlert(this, h, SCORE_LEVEL_ERROR, 0, h->getScore(), h->getConsecutiveHighScore());
     if (alert) h->triggerAlert(alert);
   }
+}
+
+/* ***************************************************** */
+
+bool HostBan::loadConfiguration(json_object *config) {
+  json_object *json_threshold;
+
+  HostCallback::loadConfiguration(config); /* Parse parameters in common */
+
+  if(json_object_object_get_ex(config, "threshold", &json_threshold))
+    score_threshold = json_object_get_int64(json_threshold);
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u", json_object_to_json_string(config), p2p_bytes_threshold);
+
+  return(true);
 }
 
 /* ***************************************************** */
