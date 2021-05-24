@@ -7,7 +7,7 @@ local flow_risk_utils = {}
 -- ##############################################
 
 -- Keep in sync with ndpi_typedefs.h, table keys are risk ids as found in nDPI
-local id2name = {
+flow_risk_utils.risks_by_id = {
    [0]  = "ndpi_no_risk",
    [1]  = "ndpi_url_possible_xss",
    [2]  = "ndpi_url_possible_sql_injection",
@@ -43,22 +43,37 @@ local id2name = {
 
 -- ##############################################
 
--- Same as id2name, just with keys swapped
-flow_risk_utils["risks"] = {}
-
-for risk_id, risk_name in pairs(id2name) do
-   flow_risk_utils["risks"][risk_name] = risk_id
+-- Same as flow_risk_utils.risks_by_id, just with keys swapped
+flow_risk_utils.risks = {}
+for risk_id, risk_name in pairs(flow_risk_utils.risks_by_id) do
+   flow_risk_utils.risks[risk_name] = risk_id
 end
 
 -- ##############################################
 
 -- @brief Returns an i18n-localized risk description given a risk_id as defined in nDPI
 function flow_risk_utils.risk_id_2_i18n(risk_id)
-   if risk_id and id2name[risk_id] then
-      return i18n("flow_risk."..id2name[risk_id])
+   if risk_id and flow_risk_utils.risks_by_id[risk_id] then
+      return i18n("flow_risk."..flow_risk_utils.risks_by_id[risk_id])
    end
 
    return risk_id
+end
+
+-- ##############################################
+
+-- @brief Returns the list of risks with info including name and i18n description
+function flow_risk_utils.get_risks_info()
+   local risks_info = {}
+
+   for risk_id, risk_name in pairs(flow_risk_utils.risks_by_id) do
+      risks_info[risk_id] = {
+         name = risk_name,
+         label = flow_risk_utils.risk_id_2_i18n(risk_id),
+      }
+   end
+
+   return risks_info
 end
 
 -- ##############################################
