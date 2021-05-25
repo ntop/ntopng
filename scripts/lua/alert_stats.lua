@@ -35,7 +35,7 @@ local num_alerts_engaged_cur_entity = alert_entities[page] and num_alerts_engage
 -- If the status is not explicitly set, it is chosen between (engaged when there are engaged alerts) or historical when
 -- no engaged alert is currently active
 if not status then
-   if (page == "all" and num_alerts_engaged > 0) or (alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)]) then
+   if page ~= "all" and alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)] then
       status = "engaged"
    else
       status = "historical"
@@ -44,8 +44,8 @@ end
 
 local time = os.time()
 
--- initial epoch_begin is set as now - 30 minutes
-local epoch_begin = _GET["epoch_begin"] or time - 1800
+-- initial epoch_begin is set as now - 30 minutes for historical, or as 1 week for engaged
+local epoch_begin = _GET["epoch_begin"] or time - (status == "historical" and 1800 or 60 * 60 * 24 * 7)
 local epoch_end = _GET["epoch_end"] or time
 
 --------------------------------------------------------------
@@ -87,7 +87,6 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/all/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/all/alert/ts.lua",
 	url = getPageUrl(base_url, {page = "all"}),
-	badge_num = num_alerts_engaged
    },
    {
         active = page == "host",
@@ -369,7 +368,7 @@ local context = {
     widget_gui_utils = widget_gui_utils,
     ifid = ifid,
     range_picker = {
-        default = "30min",
+        default = status == "historical" and "30min" or "1week",
         tags = {
 	    enabled = true,
             tag_operators = {tag_utils.tag_operators.eq},

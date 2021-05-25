@@ -47,7 +47,6 @@
         {% end %}
     
         <div class="range-picker d-flex my-auto flex-wrap">
-
                             <div class="form-group my-auto mx-1">
                                 <select class="form-select" id="select-presets">
                                     {% if (presets.five_mins) or (presets.five_mins ~= false) then %}
@@ -56,14 +55,14 @@
                     
                                     <option {{ ((presetSelected and default == '30min') and 'selected' or '') }} value="30,minutes">{{ i18n('show_alerts.presets.30_min') }}</option>
                     
-                                    <option value="1,hours">{{ i18n('show_alerts.presets.hour') }}</option>
+                                    <option {{ ((presetSelected and default == '1hour') and 'selected' or '') }} value="1,hours">{{ i18n('show_alerts.presets.hour') }}</option>
                     
                                     {% if (presets.day == nil) or presets.day then %}
-                                    <option value="1,days">{{ i18n('show_alerts.presets.day') }}</option>
+                                    <option {{ ((presetSelected and default == '1day') and 'selected' or '') }} value="1,days">{{ i18n('show_alerts.presets.day') }}</option>
                                     {% end  %}
                     
                                     {% if (presets.week == nil) or presets.week then %}
-                                    <option value="1,weeks">{{ i18n('show_alerts.presets.week') }}</option>
+                                    <option {{ ((presetSelected and default == '1week') and 'selected' or '') }} value="1,weeks">{{ i18n('show_alerts.presets.week') }}</option>
                                     {% end  %}
                     
                                     {% if (presets.month == nil) or presets.month then %}
@@ -195,7 +194,7 @@ const endEpoch = {{ (_GET['epoch_end'] or _GET['epoch_end'] or 'undefined') }};
         const MAX_ZOOM_OUT = {{ (max_delta_out) }}; // 12 hours
 
         const now = (endEpoch === undefined) ? moment() : moment(endEpoch, 'X');
-        const prev = (beginEpoch === undefined) ? moment().subtract({{ (presets.five_mins and '5' or '30') }}, 'minutes') : moment(beginEpoch, 'X');
+        const prev = (beginEpoch === undefined) ? moment().subtract({{ (default == '30min' and '30' or '10080') }}, 'minutes') : moment(beginEpoch, 'X');
 
         const $rangePicker = $(`.range-picker`)[0];
         const $inputBeginEpoch = $(`#begin-epoch`);
