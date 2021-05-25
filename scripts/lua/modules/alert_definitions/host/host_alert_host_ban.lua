@@ -48,7 +48,6 @@ end
 function host_alert_host_ban.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
-  tprint(alert_type_params)
   
   return i18n("alert_messages.host_alert_host_ban", {
     entity = entity,
