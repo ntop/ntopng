@@ -12,10 +12,6 @@
     {responsivePriority: 3, name: 'flow', data: 'flow', orderable: false, className: 'text-nowrap', width: '12%', render: DataTableRenders.formatFlowTuple},
     /* Description */
     {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
-    /* Attacker */
-    {responsivePriority: 3, name: 'is_attacker_to_victim', data: 'is_attacker_to_victim', orderable: true, width: '8%', className: 'text-center'},
-    /* Victim */
-    {responsivePriority: 3, name: 'is_victim_to_attacker', data: 'is_victim_to_attacker', orderable: true, width: '8%', className: 'text-center'},
     /* Counts */
     {responsivePriority: 3, name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
     /* Description */

@@ -2742,7 +2742,9 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_int64(s, "tstamp", now);
   ndpi_serialize_string_int64(s, "alert_id", alert->getAlertType().id);
   ndpi_serialize_string_boolean(s, "is_cli_attacker", alert->isCliAttacker());
+  ndpi_serialize_string_boolean(s, "is_cli_victim",   alert->isCliVictim());
   ndpi_serialize_string_boolean(s, "is_srv_attacker", alert->isSrvAttacker());
+  ndpi_serialize_string_boolean(s, "is_srv_victim",   alert->isSrvVictim());
 
   // alert_entity MUST be in sync with alert_consts.lua flow alert entity
   ndpi_serialize_string_int32(s, "entity_id", alert_entity_flow);

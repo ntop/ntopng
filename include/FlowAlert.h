@@ -29,6 +29,7 @@ class FlowAlert {
   Flow *flow;
   std::string callback_name;
   bool cli_attacker, srv_attacker;
+  bool cli_victim, srv_victim;
 
   /* 
      Adds to the passed `serializer` (generated with `getAlertSerializer`) information specific to this alert
@@ -43,7 +44,10 @@ class FlowAlert {
   inline void setSrvAttacker() { srv_attacker = true; }
 
   inline bool isCliAttacker() { return cli_attacker; }
+  inline bool isCliVictim()   { return cli_victim;   }
+
   inline bool isSrvAttacker() { return srv_attacker; }
+  inline bool isSrvVictim()   { return srv_victim;   }
 
   virtual FlowAlertType getAlertType() const = 0;
 

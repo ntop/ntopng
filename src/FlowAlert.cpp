@@ -26,6 +26,7 @@
 FlowAlert::FlowAlert(FlowCallback *c, Flow *f) {
   flow = f;
   cli_attacker = srv_attacker = false;
+  cli_victim = srv_victim = false;
   if (c) callback_name = c->getName();
 }
 

@@ -34,11 +34,11 @@ end
 function flow_alert_store:insert(alert)
    local insert_stmt = string.format("INSERT INTO %s "..
       "(alert_id, tstamp, tstamp_end, severity, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
-      "is_attacker_to_victim, is_victim_to_attacker, proto, l7_proto, l7_master_proto, l7_cat, "..
+      "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, "..
       "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, "..
       "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, "..
       "flow_risk_bitmap, alerts_map, json) "..
-      "VALUES (%u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
+      "VALUES (%u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
       "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, X'%s', '%s'); ",
       self._table_name, 
       alert.alert_id,
@@ -51,7 +51,9 @@ function flow_alert_store:insert(alert)
       alert.srv_port,
       alert.vlan_id,
       ternary(alert.is_cli_attacker, 1, 0),
+      ternary(alert.is_cli_victim, 1, 0),
       ternary(alert.is_srv_attacker, 1, 0),
+      ternary(alert.is_srv_victim, 1, 0),
       alert.proto,
       alert.l7_proto,
       alert.l7_master_proto,
@@ -193,15 +195,17 @@ end
 -- ##############################################
 
 --@brief Add filter on roles
---@param roles The roles (attacker2victim or victim2attacker)
+--@param roles The roles (had_attacker, has_victim, no_attacker_nor_victim)
 --@return True if set is successful, false otherwise
 function flow_alert_store:add_roles_filter(roles)
    if not self._roles then
       self._roles = roles
-      if roles == 'attacker2victim' then
-         self._where[#self._where + 1] = "is_attacker_to_victim = 1"
-      elseif roles == 'victim2attacker' then
-         self._where[#self._where + 1] = "is_victim_to_attacker = 1"
+      if roles == 'has_attacker' then
+         self._where[#self._where + 1] = "(is_cli_attacker = 1 OR is_srv_attacker = 1)"
+      elseif roles == 'has_victim' then
+         self._where[#self._where + 1] = "(is_cli_victim = 1 OR is_srv_victim = 1)"
+      elseif roles == 'no_attacker_nor_victim' then
+        self._where[#self._where + 1] = "(is_cli_attacker = 0 AND is_srv_attacker = 0 AND is_srv_victim = 0 AND is_cli_victim = 0)"
       end
       return true
    end
@@ -454,14 +458,10 @@ function flow_alert_store:format_record(value, no_html)
       label = l4_protocol
    }
 
-   record["is_attacker_to_victim"] = ""
-   record["is_victim_to_attacker"] = ""
-   
-   if value["is_attacker_to_victim"] == "1" and not no_html then
-      record["is_attacker_to_victim"] = '<span style="color: #008000;">✓</span>'
-   elseif value["is_victim_to_attacker"] == "1" and not no_html then
-      record["is_victim_to_attacker"] = '<span style="color: #008000;">✓</span>'
-   end
+   if value["is_cli_victim"]   == "1" then record["cli_role"] = { value = 'victim',   label = i18n("victim")   } end
+   if value["is_cli_attacker"] == "1" then record["cli_role"] = { value = 'attacker', label = i18n("attacker") } end
+   if value["is_srv_victim"]   == "1" then record["srv_role"] = { value = 'victim',   label = i18n("victim")   } end
+   if value["is_srv_attacker"] == "1" then record["srv_role"] = { value = 'attacker', label = i18n("attacker") } end
 
    record["l7_proto"] = {
       value = value["l7_proto"],
