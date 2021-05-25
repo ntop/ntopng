@@ -43,6 +43,7 @@ void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     if (!alert) alert = allocAlert(this, h, SCORE_LEVEL_ERROR, 0, h->getScore(), h->getConsecutiveHighScore());
     if (alert) h->triggerAlert(alert);
 
+#ifdef NTOPNG_PRO
     /* Get nProbe IPS host pool ID */
     HostPools* pool = h->getInterface()->getHostPools();
     u_int8_t poolId = pool->getPoolByName(DROP_HOST_POOL_NAME);
@@ -61,6 +62,7 @@ void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     }
 
     ntop->getRedis()->rpush((char*) DROP_HOST_POOL_LIST, redis_host_key, 3600);
+#endif
   }
 }
 
