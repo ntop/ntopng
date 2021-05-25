@@ -310,7 +310,8 @@
 #define TRAFFIC_MAP_REFRESH            30  /* 30 sec */
 #define HOST_SITES_TOP_NUMBER          10
 #define HOST_MAX_SERIALIZED_LEN        1048576 /* 1MB, use only when allocating memory in the heap */
-#define POOL_MAX_SERIALIZED_LEN        32768 /* bytes */
+#define POOL_MAX_SERIALIZED_LEN        32768   /* bytes */
+#define POOL_MAX_NAME_LEN              33      /* Characters */
 #define HOST_MAX_SCORE                 500
 
 #define CONST_MAX_NUM_NETWORKS         255
@@ -1033,7 +1034,8 @@
 #define MARKER_PASS                     1
 #define MARKER_DROP                     2
 
-#define NO_HOST_POOL_ID                 0
+#define NO_HOST_POOL_ID                 0          /* Keep in sync with pools.lua pools.DEFAULT_POOL_ID   */
+#define DEFAULT_POOL_NAME               "Default"  /* Keep in sync with pools.lua pools.DEFAULT_POOL_NAME */
 
 extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define getLuaVMContext(a)      (a ? getUserdata(a) : NULL)

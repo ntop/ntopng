@@ -43,6 +43,12 @@ void HostPoolStats::updateSeen(time_t _last_seen) {
 
 /* ***************************************** */
 
+void HostPoolStats::updateName(const char * const _pool_name) {
+  pool_name.assign(_pool_name ? _pool_name : "");
+}
+
+/* ***************************************** */
+
 void HostPoolStats::lua(lua_State* vm, NetworkInterface *iface) {
   u_int64_t bytes = 0;
   u_int32_t duration = 0;

@@ -26,6 +26,7 @@
 
 class HostPoolStats : public GenericTrafficElement {
  private:
+  std::string pool_name;
   nDPIStats *totalStats;
   time_t first_seen;   /**< Time of first seen. */
   time_t last_seen;    /**< Time of last seen. */
@@ -33,7 +34,7 @@ class HostPoolStats : public GenericTrafficElement {
 
  public:
 
- HostPoolStats(NetworkInterface *iface);
+  HostPoolStats(NetworkInterface *iface);
 
  HostPoolStats(const HostPoolStats &hps) : GenericTrafficElement(hps) {
     // NOTE: ndpiStats already copied by GenericTrafficElement
@@ -41,11 +42,13 @@ class HostPoolStats : public GenericTrafficElement {
     first_seen = hps.first_seen;
     last_seen = hps.last_seen;
     mustReset = hps.mustReset;
+    pool_name.assign(hps.pool_name);
   };
 
   virtual ~HostPoolStats() { if(totalStats) delete totalStats; };
 
   void updateSeen(time_t when);
+  void updateName(const char * const _pool_name);
 
   void lua(lua_State* vm, NetworkInterface *iface);
   char* serialize(NetworkInterface *iface);
@@ -91,6 +94,8 @@ class HostPoolStats : public GenericTrafficElement {
     *bytes = ndpiStats->getCategoryBytes(category);
     *duration = ndpiStats->getCategoryDuration(category);
   }
+
+  inline std::string getName() const { return pool_name; }
 
   inline bool needsReset() { return mustReset; }
 

@@ -20,8 +20,8 @@ local pools = {}
 -- ##############################################
 
 -- A default pool id value associated to any member without pools
-pools.DEFAULT_POOL_ID = 0
-pools.DEFAULT_POOL_NAME = "Default"
+pools.DEFAULT_POOL_ID = 0           -- Keep in sync with ntop_defines.h NO_HOST_POOL_ID
+pools.DEFAULT_POOL_NAME = "Default" -- Keep in sync with ntop_defines.h DEFAULT_POOL_NAME
 
 if ntop.isnEdge() then
     -- Compatibility with nEdge pools

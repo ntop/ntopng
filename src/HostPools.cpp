@@ -413,6 +413,9 @@ void HostPools::reloadPools() {
   else /* Brand new statistics */
     new_stats[0] = new (std::nothrow) HostPoolStats(iface);
 
+  /* Set the default pool name into the stats */
+  if(new_stats[0]) new_stats[0]->updateName(DEFAULT_POOL_NAME);
+
   /* Keys are pool ids */
   if((num_pools = redis->smembers(kname, &pools)) == -1)
     return; /* Something went wrong with redis? */
@@ -431,6 +434,8 @@ void HostPools::reloadPools() {
       continue;
     }
 
+    snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, _pool_id);
+
     if(_pool_id != 0) { /* Pool id 0 stats already updated */
       if(stats && stats[_pool_id]) /* Duplicate existing statistics */
 	new_stats[_pool_id] = new (std::nothrow) HostPoolStats(*stats[_pool_id]);
@@ -438,7 +443,12 @@ void HostPools::reloadPools() {
 	new_stats[_pool_id] = new (std::nothrow) HostPoolStats(iface);
     }
 
-    snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, _pool_id);
+    /* Initialize the name */
+    if(new_stats[_pool_id]) {
+      char name_rsp[POOL_MAX_NAME_LEN];
+      redis->hashGet(kname, (char*)"name", name_rsp, sizeof(name_rsp));
+      new_stats[_pool_id]->updateName(name_rsp);
+    }
 
 #ifdef NTOPNG_PRO
     char rsp[16] = { 0 };
@@ -619,4 +629,18 @@ u_int16_t HostPools::getPool(Host *h) {
     return NO_HOST_POOL_ID;
 
   return pool_id;
+}
+
+/* *************************************** */
+
+/* Returns a pool id, given a pool name. When no pool id is found, the default pool id is returned */
+u_int16_t HostPools::getPoolByName(const char * const pool_name) {
+  HostPoolStats *hps;
+
+  for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+    if((hps = getPoolStats(i)) && hps->getName().compare(pool_name) == 0)
+      return i;
+  }
+
+  return NO_HOST_POOL_ID;
 }
