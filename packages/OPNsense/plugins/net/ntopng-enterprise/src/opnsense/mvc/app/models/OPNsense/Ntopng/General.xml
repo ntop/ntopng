@@ -16,9 +16,21 @@
             <default></default>
         </localnet>
         <collector type="BooleanField">
+            <Required>N</Required>
             <default>0</default>
-            <Required>Y</Required>
         </collector>
+        <zmq_endpoint type="TextField">
+            <Required>N</Required>
+            <default>tcp://*:5556c</default>
+        </zmq_endpoint>
+        <publisher type="BooleanField">
+            <Required>N</Required>
+            <default>0</default>
+        </publisher>
+        <zmq_publish_endpoint type="TextField">
+            <Required>N</Required>
+            <default>tcp://*:5557</default>
+        </zmq_publish_endpoint>
         <httpport type="PortField">
             <Required>Y</Required>
             <default>3000</default>
