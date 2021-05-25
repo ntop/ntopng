@@ -322,6 +322,8 @@ local initial_tags = {}
 
 local formatters = {
    severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
+   roles = function(roles) return (i18n(roles)) end,
+   role = function(role) return (i18n(role)) end,
 }
 if page ~= "all" then
    formatters.l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end

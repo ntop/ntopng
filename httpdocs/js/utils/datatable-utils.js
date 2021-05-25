@@ -686,16 +686,16 @@ class DataTableRenders {
         let srvIcons = "";
         if (row.cli_role) {
             if (row.cli_role.value == 'attacker')
-                cliIcons += DataTableRenders.filterize('roles', 'has_attacker', '<i class="fas fa-skull-crossbones" title="'+row.cli_role.label+'"></i>', row.cli_role.label);
+                cliIcons += DataTableRenders.filterize('roles', 'has_attacker', '<i class="fas fa-skull-crossbones" title="'+row.cli_role.label+'"></i>', row.cli_role.tag_label);
             else if (row.cli_role.value == 'victim')
-                cliIcons += DataTableRenders.filterize('roles', 'has_victim',  '<i class="fas fa-sad-tear" title="'+row.cli_role.label+'"></i>', row.cli_role.label);
+                cliIcons += DataTableRenders.filterize('roles', 'has_victim',  '<i class="fas fa-sad-tear" title="'+row.cli_role.label+'"></i>', row.cli_role.tag_label);
         }
 
         if (row.srv_role) {
             if (row.srv_role.value == 'attacker')
-                srvIcons += DataTableRenders.filterize('roles', 'has_attacker', '<i class="fas fa-skull-crossbones" title="'+row.srv_role.label+'"></i>', row.srv_role.label);
+                srvIcons += DataTableRenders.filterize('roles', 'has_attacker', '<i class="fas fa-skull-crossbones" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
             else if (row.srv_role.value == 'victim')
-                srvIcons += DataTableRenders.filterize('roles', 'has_victim',  '<i class="fas fa-sad-tear" title="'+row.srv_role.label+'"></i>', row.srv_role.label);
+                srvIcons += DataTableRenders.filterize('roles', 'has_victim',  '<i class="fas fa-sad-tear" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
         }
 
         return `${active_ref} ${historical_ref} ${cliLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
