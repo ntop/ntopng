@@ -18,15 +18,16 @@
 {% -- Print out the interfaces dropdown %}
 
 <li class="nav-item d-flex align-items-center">
-
-  {% local ifname_len = is_system_interface and string.len(i18n('system')) or string.len(ifHdescr[interface.getId()]) %}
-
   <select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker" 
     data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
   {% -- The Interfaces optgroup %}
   <optgroup label="{{ i18n('interfaces') }}">
-     <option value="{{ getSystemInterfaceId() }}" {{ selected }} data-content="{{ i18n('system') }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;">{{ i18n('system') }}</option>
-     {% for round = 1, 2 do -- First round: only physical interfaces, second round: only virtual interfaces %}
+
+    {% if isAdministrator() then %}
+    <option value="{{ getSystemInterfaceId() }}" {{ selected }} data-content="{{ i18n('system') }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;">{{ i18n('system') }}</option>
+    {% end %}
+
+    {% for round = 1, 2 do -- First round: only physical interfaces, second round: only virtual interfaces %}
       {% for k, v in pairsByValues(ifnames, asc) do %}
         {% if round == 1 and ifCustom[k] then %}
           {% -- Nothing to do, this round is for physical, non-disaggregated interfaces ... %}

@@ -674,7 +674,8 @@ void LuaEngine::purifyHTTPParameter(char *param) {
 /* ****************************************** */
 
 bool LuaEngine::switchInterface(struct lua_State *vm, const char *ifid,
-    const char *user, const char *session) {
+				const char *user, const char *group,
+				const char *session) {
   NetworkInterface *iface = NULL;
   char iface_key[64], ifname_key[64];
   char iface_id[16];
@@ -687,6 +688,12 @@ bool LuaEngine::switchInterface(struct lua_State *vm, const char *ifid,
   if(user != NULL) {
     if(!strlen(session) && strcmp(user, NTOP_NOLOGIN_USER))
       return false; 
+
+    /* Non-admins cannot switch to the system interface */
+    if(iface == ntop->getSystemInterface()
+       && strcmp(user, NTOP_NOLOGIN_USER)
+       && strncmp(group, CONST_USER_GROUP_ADMIN, strlen(CONST_USER_GROUP_ADMIN)))
+      return false;
 
     snprintf(iface_key, sizeof(iface_key), NTOPNG_PREFS_PREFIX ".%s.iface", user);
     snprintf(ifname_key, sizeof(ifname_key), NTOPNG_PREFS_PREFIX ".%s.ifname", user);
@@ -974,7 +981,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       if (strlen(switch_interface) > 0 && request_info->query_string) {
         mg_get_var(request_info->query_string, strlen(request_info->query_string), "ifid", ifid_buf, sizeof(ifid_buf));
         if (strlen(ifid_buf) > 0) {
-          switchInterface(L, ifid_buf, user, session_buf);
+          switchInterface(L, ifid_buf, user, group, session_buf);
 
 	  /* Sending a redirect is needed to prevent the current lua script
 	   * from receiving the POST request, as it could exchange the request
@@ -1118,7 +1125,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       ptree.addAddresses(val);
 
     getLuaVMUservalue(L, allowedNets) = &ptree;
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "SET [p: %p][val: %s][user: %s]", &ptree, val, user);
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "SET [p: %p][val: %s][user: %s]", &ptree, val, user);
 
     snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, user);
     if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)
