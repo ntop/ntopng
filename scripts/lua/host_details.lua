@@ -10,6 +10,7 @@ local snmp_utils
 local snmp_location
 local host_sites_update
 local sites_granularities = nil
+local auth = require "auth"
 
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -438,7 +439,7 @@ else
 				 label = "<i class='fas fa-lg fa-globe'></i>",
 			      },
 			      {
-				 hidden = not areAlertsEnabled(),
+				 hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
 				 active = page == "alerts",
 				 page_name = "alerts",
 				 label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",

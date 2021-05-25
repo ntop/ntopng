@@ -17,6 +17,7 @@ local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 local ui_utils = require("ui_utils")
 local local_network_pools = require ("local_network_pools")
+local auth = require "auth"
 
 local network        = _GET["network"]
 local network_name   = _GET["network_cidr"]
@@ -63,7 +64,7 @@ page_utils.print_navbar(title, nav_url,
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
 			   {
-			      hidden = interface.isPcapDumpInterface() or not areAlertsEnabled(),
+			      hidden = not areAlertsEnabled() or  not auth.has_capability(auth.capabilities.alerts),
 			      active = page == "alerts",
 			      page_name = "alerts",
 			      url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=network&network_name=" .. network_name .. ",eq",

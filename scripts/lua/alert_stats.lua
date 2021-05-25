@@ -87,6 +87,7 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/all/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/all/alert/ts.lua",
 	url = getPageUrl(base_url, {page = "all"}),
+	hidden = is_system_interface,
    },
    {
         active = page == "host",

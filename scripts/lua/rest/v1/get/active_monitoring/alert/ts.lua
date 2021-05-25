@@ -11,6 +11,7 @@ local alert_consts = require "alert_consts"
 local alert_entities = require "alert_entities"
 local rest_utils = require("rest_utils")
 local am_alert_store = require "am_alert_store".new()
+local auth = require "auth"
 
 --
 -- Read alerts count by time
@@ -20,6 +21,11 @@ local am_alert_store = require "am_alert_store".new()
 --
 
 local rc = rest_utils.consts.success.ok
+
+if not auth.has_capability(auth.capabilities.alerts) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
 
 interface.select(getSystemInterfaceId())
 

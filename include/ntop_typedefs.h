@@ -884,7 +884,8 @@ typedef enum {
   capability_developer = 5,
   capability_user_scripts = 6,
   capability_flowdevices = 7,
-  MAX_NUM_USER_CAPABILITIES = 8 /* Do NOT go above 63 */
+  capability_alerts = 8,
+  MAX_NUM_USER_CAPABILITIES = 9 /* Do NOT go above 63 */
 } UserCapabilities;
 
 typedef struct {

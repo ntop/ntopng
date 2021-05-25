@@ -1779,17 +1779,22 @@ function hostinfo2detailsurl(host_info, href_params, href_check)
    local res = ''
 
    if not href_check or hostdetails_exists(host_info, href_params) then
+      local auth = require "auth"
       local url_params = table.tconcat(href_params or {}, "=", "&")
 
       -- Alerts pages for the host are in alert_stats.lua (Alerts menu)
       if href_params and href_params.page == "engaged-alerts" then
-         res = string.format("%s/lua/alert_stats.lua?page=host&status=engaged&ip=%s,eq",
-			  ntop.getHttpPrefix(),
-			  hostinfo2hostkey(host_info))
+	 if auth.has_capability(auth.capabilities.alerts) then
+	    res = string.format("%s/lua/alert_stats.lua?page=host&status=engaged&ip=%s,eq",
+				ntop.getHttpPrefix(),
+				hostinfo2hostkey(host_info))
+	 end
       elseif href_params and href_params.page == "alerts" then
-         res = string.format("%s/lua/alert_stats.lua?page=host&status=historical&ip=%s,eq",
-			  ntop.getHttpPrefix(),
-			  hostinfo2hostkey(host_info))
+	 if auth.has_capability(auth.capabilities.alerts) then
+	    res = string.format("%s/lua/alert_stats.lua?page=host&status=historical&ip=%s,eq",
+				ntop.getHttpPrefix(),
+				hostinfo2hostkey(host_info))
+	 end
       -- All other pages are in host_details.lua
       else
          res = string.format("%s/lua/host_details.lua?%s%s%s",

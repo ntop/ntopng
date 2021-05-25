@@ -24,7 +24,7 @@ local internals_utils = require "internals_utils"
 local page_utils = require("page_utils")
 local ui_utils = require("ui_utils")
 local interface_pools = require ("interface_pools")
-
+local auth = require "auth"
 
 require "lua_utils"
 require "prefs_utils"
@@ -356,7 +356,7 @@ page_utils.print_navbar(title, url,
 				 label = "<i class=\"fas fa-lg fa-hdd\"></i>",
                },
 			      {
-				 hidden = not isAdministrator() or not areAlertsEnabled(),
+				 hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
 				 active = page == "alerts",
 				 page_name = "alerts",
              url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=interface",

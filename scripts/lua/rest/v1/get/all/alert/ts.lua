@@ -12,6 +12,7 @@ local alert_entities = require "alert_entities"
 local rest_utils = require("rest_utils")
 local all_alert_store = require "all_alert_store".new()
 local alert_severities = require "alert_severities"
+local auth = require "auth"
 
 --
 -- Read alerts count by time
@@ -23,6 +24,11 @@ local alert_severities = require "alert_severities"
 local rc = rest_utils.consts.success.ok
 
 local ifid = _GET["ifid"]
+
+if not auth.has_capability(auth.capabilities.alerts) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts.err.invalid_interface

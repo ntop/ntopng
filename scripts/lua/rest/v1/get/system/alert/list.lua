@@ -12,6 +12,7 @@ local alert_consts = require "alert_consts"
 local alert_entities = require "alert_entities"
 local rest_utils = require("rest_utils")
 local system_alert_store = require "system_alert_store".new()
+local auth = require "auth"
 
 --
 -- Read alerts data
@@ -25,6 +26,11 @@ local res = {}
 
 local format = _GET["format"] or "json"
 local no_html = (format == "txt")
+
+if not auth.has_capability(auth.capabilities.alerts) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
 
 interface.select(getSystemInterfaceId())
 

@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. p
 
 local rest_utils = require("rest_utils")
 local network_alert_store = require "network_alert_store".new()
+local auth = require "auth"
 
 --
 -- Read alerts data
@@ -22,6 +23,11 @@ local res = {}
 local ifid = _GET["ifid"]
 local format = _GET["format"] or "json"
 local no_html = (format == "txt")
+
+if not auth.has_capability(auth.capabilities.alerts) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts.err.invalid_interface

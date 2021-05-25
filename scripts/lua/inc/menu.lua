@@ -18,6 +18,7 @@ local host_pools = require "host_pools"
 local auth = require "auth"
 local blog_utils = require("blog_utils")
 local template_utils = require "template_utils"
+local auth = require "auth"
 
 local is_nedge = ntop.isnEdge()
 local is_appliance = ntop.isAppliance()
@@ -205,7 +206,7 @@ else
    page_utils.add_menubar_section(
       {
 	 section = page_utils.menu_sections.alerts,
-	 hidden = not ntop.getPrefs().are_alerts_enabled,
+	 hidden = not ntop.getPrefs().are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts),
          url = '/lua/alert_stats.lua',
       }
    )

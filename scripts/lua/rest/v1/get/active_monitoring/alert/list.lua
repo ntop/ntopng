@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. p
 
 local rest_utils = require("rest_utils")
 local am_alert_store = require "am_alert_store".new()
+local auth = require "auth"
 
 --
 -- Read alerts data
@@ -20,6 +21,11 @@ local no_html = (format == "txt")
 
 local rc = rest_utils.consts.success.ok
 local res = {}
+
+if not auth.has_capability(auth.capabilities.alerts) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
 
 -- Active monitoring stay in the system interface
 interface.select(getSystemInterfaceId())

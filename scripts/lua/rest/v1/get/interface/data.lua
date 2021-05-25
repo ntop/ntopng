@@ -17,6 +17,7 @@ local callback_utils = require("callback_utils")
 local recording_utils = require("recording_utils")
 local alert_consts = require("alert_consts")
 local rest_utils = require("rest_utils")
+local auth = require "auth"
 
 --
 -- Read information about an interface
@@ -106,7 +107,7 @@ function dumpInterfaceStats(ifid)
          res["flow_export_count"]  = ifstats.stats_since_reset.flow_export_count
       end
 
-      if prefs.are_alerts_enabled == true then
+      if prefs.are_alerts_enabled == true and auth.has_capability(auth.capabilities.alerts) then
          res["engaged_alerts"]     = ifstats["num_alerts_engaged"] or 0
          res["dropped_alerts"]     = ifstats["num_dropped_alerts"] or 0
 
