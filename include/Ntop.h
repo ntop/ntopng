@@ -104,15 +104,6 @@ class Ntop {
 
   /* Hosts Control (e.g., disabled alerts) */
   AlertExclusions *alert_exclusions, *alert_exclusions_shadow;
-
-#ifdef NTOPNG_PRO
-  /* Allowed users */
-  bool allowedUsersReloadInProgress;
-  AllowedUsers *allowed_users, *allowed_users_shadow;
-
-  void checkReloadAllowedUsers();
-  inline void reloadAllowedUsers() { allowedUsersReloadInProgress = true; };
-#endif
   bool assignUserId(u_int8_t *new_user_id);
 
 #ifndef WIN32

@@ -82,12 +82,6 @@ Ntop::Ntop(char *appName) {
   alertExclusionsReloadInProgress = true;
   alert_exclusions = alert_exclusions_shadow = NULL;
 
-  /* Allowed users for alerts and flows */
-#ifdef NTOPNG_PRO
-  allowedUsersReloadInProgress = true; /* Lazy, immediately triggers a reload */
-  allowed_users = allowed_users_shadow = NULL;
-#endif
-
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
@@ -332,11 +326,6 @@ Ntop::~Ntop() {
   if(alert_exclusions)          delete alert_exclusions;
   if(alert_exclusions_shadow)   delete alert_exclusions_shadow;
 
-#ifdef NTOPNG_PRO
-  if(allowed_users)             delete allowed_users;
-  if(allowed_users_shadow)      delete allowed_users_shadow;
-#endif
-
 #ifdef __linux__
   if(inotify_fd > 0)  close(inotify_fd);
 #endif
@@ -567,9 +556,6 @@ void Ntop::start() {
   checkReloadAlertExclusions();
   checkReloadFlowCallbacks();
   checkReloadHostCallbacks();
-#ifdef NTOPNG_PRO
-  checkReloadAllowedUsers();
-#endif
 
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
@@ -2202,14 +2188,6 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
     ntop->getRedis()->set(key, host_pool_id, 0);
   }
 
-#ifdef NTOPNG_PRO
-  /*
-    After the addition of a new user, allowed users must be reloaded to keep into
-    account the newly created user
-   */
-  reloadAllowedUsers();
-#endif
-
   users_m.unlock(__FILE__, __LINE__);
 
   return(true);
@@ -2299,13 +2277,6 @@ bool Ntop::deleteUser(char *username) {
 
   snprintf(key, sizeof(key), CONST_STR_USER_API_TOKEN, username);
   ntop->getRedis()->del(key);
-
-#ifdef NTOPNG_PRO
-  /*
-    Delete the user from currently allowed users by trigging a reload
-  */
-  reloadAllowedUsers();
-#endif
 
   users_m.unlock(__FILE__, __LINE__);
 
@@ -2746,34 +2717,11 @@ void Ntop::checkReloadHostCallbacks() {
 
 /* ******************************************* */
 
-#ifdef NTOPNG_PRO
-void Ntop::checkReloadAllowedUsers() {
-  if(allowed_users_shadow) {
-    delete allowed_users_shadow;
-    allowed_users_shadow = NULL;
-  }
-
-  if(allowedUsersReloadInProgress /* Reload requested from the UI upon configuration changes */
-     || !allowed_users) {
-    allowedUsersReloadInProgress = false;
-
-    /* Do the reload */
-    allowed_users_shadow = allowed_users;
-    allowed_users = new (std::nothrow) AllowedUsers();
-  }
-}
-#endif
-
-/* ******************************************* */
-
 /* NOTE: the multiple isShutdown checks below are necessary to reduce the shutdown time */
 void Ntop::runHousekeepingTasks() {
   checkReloadAlertExclusions();
   checkReloadFlowCallbacks();
   checkReloadHostCallbacks();
-#ifdef NTOPNG_PRO
-  checkReloadAllowedUsers();
-#endif
 
   for(int i = 0; i < get_num_interfaces(); i++)
     iface[i]->runHousekeepingTasks();
