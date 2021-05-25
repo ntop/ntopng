@@ -80,7 +80,6 @@ if(ntop.isPro()) then
    local blocked_hosts_pool_name = pools.DROP_HOST_POOL_NAME
    local host_pool = host_pools:create()
    local all_pools = host_pool:get_all_pools()
-   tprint(blocked_hosts_pool_name)
 
    -- Check the existance of the pool
    for _, value in pairs(all_pools) do
