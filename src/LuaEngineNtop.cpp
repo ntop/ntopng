@@ -5360,8 +5360,12 @@ static int ntop_rrd_inc_num_drops(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_drop_pool_name(lua_State* vm) {
-  lua_pushstring(vm, DROP_HOST_POOL_NAME);
+static int ntop_get_drop_pool_info(lua_State* vm) {
+  lua_newtable(vm);
+  
+  lua_push_str_table_entry(vm, "pool_name", DROP_HOST_POOL_NAME);
+  lua_push_str_table_entry(vm, "list_key", DROP_HOST_POOL_LIST);
+  lua_push_uint64_table_entry(vm, "expiration_time", DROP_HOST_POOL_EXPIRATION_TIME);
 
   return CONST_LUA_OK;
 }
@@ -6046,7 +6050,7 @@ static luaL_Reg _ntop_reg[] = {
   { "getShadowPluginsDir",  ntop_get_shadow_plugins_dir },
   { "swapPluginsDir",   ntop_swap_plugins_dir },
   { "isPlugins0Dir",    ntop_is_plugins0_dir },
-  { "getDropPoolName",   ntop_get_drop_pool_name },
+  { "getDropPoolInfo",   ntop_get_drop_pool_info },
 
   /* Redis */
   { "getCacheStatus",    ntop_info_redis },

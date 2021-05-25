@@ -39,8 +39,28 @@ void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     h->resetConsecutiveHighScore();
   
   if(h->getConsecutiveHighScore() > 5) {
+    /* Trigger the alert and add the host to the Default nProbe IPS host pool */
     if (!alert) alert = allocAlert(this, h, SCORE_LEVEL_ERROR, 0, h->getScore(), h->getConsecutiveHighScore());
     if (alert) h->triggerAlert(alert);
+
+    /* Get nProbe IPS host pool ID */
+    HostPools* pool = h->getInterface()->getHostPools();
+    u_int8_t poolId = pool->getPoolByName(DROP_HOST_POOL_NAME);
+      
+    char ipbuf[64], redis_host_key[256];
+    time_t now = time(NULL);
+
+    /* Save the host based on if we have to serialize by Mac (DHCP) or by IP */
+    if(h->serializeByMac()) {
+      pool->addToPool(h->getMac()->print(ipbuf, sizeof(ipbuf)), poolId);
+      snprintf(redis_host_key, sizeof(redis_host_key), "%s_%ld", h->getMac()->print(ipbuf, sizeof(ipbuf)), now);
+    }
+    else {
+      pool->addToPool(h->get_ip()->print(ipbuf, sizeof(ipbuf)), poolId);
+      snprintf(redis_host_key, sizeof(redis_host_key), "%s_%ld", h->get_ip()->print(ipbuf, sizeof(ipbuf)), now);
+    }
+
+    ntop->getRedis()->rpush((char*) DROP_HOST_POOL_LIST, redis_host_key, 3600);
   }
 }
 

@@ -4,6 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local scripts_triggers = require "scripts_triggers"
 local prefs_dump_utils = require "prefs_dump_utils"
@@ -26,6 +27,12 @@ if scripts_triggers.isRrdInterfaceCreation() then
    
    ts_utils.append("iface:alerts_stats", {ifid=getSystemInterfaceId(), engaged_alerts=ifstats.num_alerts_engaged, dropped_alerts=ifstats.num_dropped_alerts}, when)
 end
+
+if ntop.isPro() then
+   local drop_host_pool = require "drop_host_pool_utils"
+
+   drop_host_pool.check_periodic_hosts_list()
+end   
 
 -- Run minute scripts
 ntop.checkSystemScriptsMin()
