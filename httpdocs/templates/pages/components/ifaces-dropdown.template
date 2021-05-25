@@ -25,7 +25,7 @@
     data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
   {% -- The Interfaces optgroup %}
   <optgroup label="{{ i18n('interfaces') }}">
-     <option value="-1" {{ selected }} data-content="{{ i18n('system') }}">{{ i18n('system') }}</option>
+     <option value="{{ getSystemInterfaceId() }}" {{ selected }} data-content="{{ i18n('system') }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;">{{ i18n('system') }}</option>
      {% for round = 1, 2 do -- First round: only physical interfaces, second round: only virtual interfaces %}
       {% for k, v in pairsByValues(ifnames, asc) do %}
         {% if round == 1 and ifCustom[k] then %}
