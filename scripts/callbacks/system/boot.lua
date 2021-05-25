@@ -68,3 +68,37 @@ if(ntop.exists(local_boot_file)) then
    traceError(TRACE_NORMAL, TRACE_CONSOLE, "Running "..local_boot_file)
    dofile(local_boot_file)
 end
+
+
+-- Create the special drop pool for nProbe IPS
+if(ntop.isPro()) then
+   local host_pools = require "host_pools"
+
+   local blocked_hosts_pool_id = -2
+   -- Get the pool name
+   local blocked_hosts_pool_name = ntop.getDropPoolName()
+   local host_pool = host_pools:create()
+   local all_pools = host_pool:get_all_pools()
+
+   -- Check the existance of the pool
+   for _, value in pairs(all_pools) do
+      if value["name"] == blocked_hosts_pool_name then
+	      goto continue
+      end
+   end
+
+   if host_pool then
+      -- Create an instance out of the drop hosts pool
+      members_list = {}
+      -- SQL Lite recipient
+      recipients = { 0 }
+
+      blocked_hosts_pool_id = host_pool:add_pool(
+	      blocked_hosts_pool_name,
+	      members_list --[[ an array of valid interface ids]],
+	      recipients --[[ an array of valid recipient ids (names)]]
+      )
+   end
+
+   ::continue::
+end   

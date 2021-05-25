@@ -210,6 +210,7 @@
 #define TRAFFIC_FILTERING_TO_RESOLVE       "ntopng.trafficfiltering.toresolve"
 #define PREFS_CHANGED            "ntopng.cache.prefs_changed"
 #define DROP_HOST_TRAFFIC        "ntopng.prefs.drop_host_traffic"
+#define DROP_HOST_POOL_NAME      "Default dropped hosts pool"
 #define HOST_TRAFFIC_QUOTA       "ntopng.prefs.hosts_quota"
 #define HTTP_ACL_MANAGEMENT_PORT "ntopng.prefs.http_acl_management_port"
 #define TEMP_ADMIN_PASSWORD      "ntopng.prefs.temp_admin_password"

@@ -5360,6 +5360,14 @@ static int ntop_rrd_inc_num_drops(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_drop_pool_name(lua_State* vm) {
+  lua_pushstring(vm, DROP_HOST_POOL_NAME);
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 /* positional 1:4 parameters for ntop_rrd_fetch */
 static int __ntop_rrd_args (lua_State* vm, char **filename, char **cf, time_t *start, time_t *end) {
   char *start_s, *end_s, *err;
@@ -6038,6 +6046,7 @@ static luaL_Reg _ntop_reg[] = {
   { "getShadowPluginsDir",  ntop_get_shadow_plugins_dir },
   { "swapPluginsDir",   ntop_swap_plugins_dir },
   { "isPlugins0Dir",    ntop_is_plugins0_dir },
+  { "getDropPoolName",   ntop_get_drop_pool_name },
 
   /* Redis */
   { "getCacheStatus",    ntop_info_redis },
