@@ -8,67 +8,49 @@
 <script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/apexchart/apexcharts.min.js?{{ ntop.getStaticFileEpoch() }}'></script>
 <script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
 
-<div class='row'>
-<div class="container mt-5">
-      <div class="row">
-        <div class="col-sm" id="box1">
-          <div class="col-body bg-dark pb-3 ">
 
-                <div class="col-text text-white">
-                    <h4 class='ml-2'>Total alerts</h4>
-                </div>
-                <div class="col-text-number text-white mt-1">
-                    <h6 class="mt-4 altro pl-3" id="alertsValue"> loading ...</h6>
-                </div>
+<div class="container px-1">
+    <div class="row gx-5">
+        <div class="col">
+            <div class="card card mb-3 mt-2 w-80 h-60 border-success">
+            <div class="card-header bg-success text-center text-dark fs-5 fw-bold">Top alerts</div>
+            <div class="card-body">
+                <p class="card-text text-center fs-5" id="totalAlerts">Loading...</p>
+            </div>
             </div>
         </div>
-        <div class="col-sm" id="box1">
-            <div class="col-body bg-success pb-3">
-                <div class="col-text text-white">
-                  <h4 class='ml-2'>Top alert type</h4>
-                </div>
-                <div class="col-text-number text-white mt-1">
-                  <h6 class="mt-4 altro pl-3" id="alertsType"> loading ...</h6>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm" id="box1">
-            <div class="col-body bg-danger pb-3">
 
-                 <div class="col-text text-white">
-                    <h4 class='ml-2'>Top victim</h4> 
-                </div>
-                <div class="col-text-number text-white mt-1">
-                    <h6 class="mt-4 altro pl-3" id="topVictim"> loading ...</h6>
-                </div>
+        <div class="col">
+            <div class="card card mb-3 mt-2 w-80 h-60 border-primary">
+            <div class="card-header bg-primary text-center text-dark fs-5 fw-bold">Top alert type</div>
+            <div class="card-body">
+                <p class="card-text text-center fs-5" id="topAlertType">Loading...</p>
             </div>
-            <p>*victim host with most alerts, if any</p>
-        </div>
-        <div class="col-sm" id="box1">
-            <div class="col-body bg-info pb-3">
-                <div class="col-text text-white">
-                  <h4 class='ml-2'>Top attacker</h4>
-                </div>
-                <div class="col-text-number text-white mt-1">
-                  <h6 class="mt-4 altro pl-3" id="topAttacker"> loading ...</h6>
-                </div>
             </div>
-            <p>*attacker host with most alerts, if any</p>
         </div>
-      </div>
+
+        <div class="col">
+            <div class="card card mb-3 mt-2 w-80 h-60 border-danger ">
+            <div class="card-header bg-danger text-center text-dark fs-5 fw-bold data-bs-custom-class="custom-tooltip" data-bs-toggle="tooltip" data-bs-html="true" title="Victim host with most alert, if any">Top victim</div>
+            <div class="card-body">
+                <p class="card-text text-center fs-5" id="topVictim">Loading...</p>
+            </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card card mb-3 mt-2 w-80 h-60 border-info ">
+            <div class="card-header bg-info text-center text-dark fs-5 fw-bold data-bs-custom-class="custom-tooltip" data-bs-toggle="tooltip" data-bs-html="true" title="Attacker host with most alert, if any">Top attacker</div>
+            <div class="card-body">
+                <p class="card-text text-center fs-5" id="topAttacker">Loading...</p>
+            </div>
+            </div>
+        </div>
+
+    </div>
+
 </div>
 
-<style>
-    #box1{
-        text-align: left;
-    }
-    .altro{
-
-        font-size: 30px;
-        text-align: left;
-        box-shadow:
-    }
-</style>
 
 
     <div class='col-12'>
@@ -838,23 +820,30 @@
        }).invokeModalInit();
 
 
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
+    $(document).ready(function () {
+        $.getJSON("rest/v1/get/alert/blocks/blocks.lua",function (data) {
+
+            totalAlerts = $('#totalAlerts');
+            topAlertType = $('#topAlertType');
+            topVictim = $('#topVictim');
+            topAttacker = $('#topAttacker');
 
 
-            if (this.readyState == 4 && this.status == 200) {
-                var test = xhttp.responseText;
-                test = JSON.parse(test);
-                console.log(test.rsp);
-                document.getElementById("alertsValue").innerHTML = test.rsp[0];
-                document.getElementById("alertsType").innerHTML = test.rsp[1];
-                document.getElementById("topVictim").innerHTML = test.rsp[2];
-                document.getElementById("topAttacker").innerHTML = test.rsp[3];
-            }
-            
-        };
-        xhttp.open("GET", "rest/v1/get/alert/blocks/blocks.lua", true);
-        xhttp.send();   
+            totalAlerts.html(data.rsp[0]);
+            topAlertType.html(data.rsp[1])
+            topVictim.html(data.rsp[2])
+            topAttacker.html(data.rsp[3])
+
+        });
+    });
+
+    $(document).ready(function(){
+        let tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        let tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return (new bootstrap.Tooltip(tooltipTriggerEl));
+        })
+    })
+
 
     });
 </script>
