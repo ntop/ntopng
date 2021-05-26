@@ -633,6 +633,7 @@ function alert_store:get_available_filters()
       -- in order to list alerts by entity
       severity = {
          value_type = 'severity',
+	 i18n_label = 'tags.severity'
       },
    }
 

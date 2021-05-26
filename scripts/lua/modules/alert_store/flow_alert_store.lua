@@ -284,24 +284,31 @@ function flow_alert_store:_get_additional_available_filters()
    local filters = {
       alert_id = {
          value_type = 'alert_id',
+	 i18n_label = i18n('tags.alert_id'),
       }, 
       cli_ip = {
          value_type = 'ip',
+	 i18n_label = i18n('tags.cli_ip'),
       },
       srv_ip = {
          value_type = 'ip',
+	 i18n_label = i18n('tags.srv_ip'),
       },
       cli_port = {
          value_type = 'port',
+	 i18n_label = i18n('tags.cli_port'),
       }, 
       srv_port = {
          value_type = 'port',
+	 i18n_label = i18n('tags.srv_port'),
       },
       roles = {
-        value_type = 'roles',
+	 value_type = 'roles',
+	 i18n_label = i18n('tags.roles'),
       },
       l7_proto = {
          value_type = 'l7_proto',
+	 i18n_label = i18n('tags.l7_proto'),
       }, 
    }
 

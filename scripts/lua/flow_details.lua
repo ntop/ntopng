@@ -451,7 +451,7 @@ sendHTTPContentTypeHeader('text/html')
 warn_shown = 0
 
 local alert_banners = {}
-local status_icon = "<i class=\"fas fa-exclamation-circle\" aria-hidden=true style=\"color: orange;\" \"></i> "
+local status_icon = "<span class='text-danger'><i class=\"fas fa-exclamation-triangle\"></i></span>"
 
 if isAdministrator() then
    if _POST["custom_hosts"] and _POST["l7proto"] then
@@ -1073,7 +1073,7 @@ else
    end
 
    if(flow["protos.tls.client_requested_server_name"] ~= nil) then
-      print("<tr><th width=30%><i class='fas fa-lock fa-lg'></i> "..i18n("flow_details.tls_certificate").."</th><td>")
+      print("<tr><th width=30%><i class='fas fa-lock'></i> "..i18n("flow_details.tls_certificate").."</th><td>")
       print(i18n("flow_details.client_requested")..":<br>")
       print("<A HREF=\"http://"..page_utils.safe_html(flow["protos.tls.client_requested_server_name"]).."\">"..page_utils.safe_html(flow["protos.tls.client_requested_server_name"]).."</A> <i class=\"fas fa-external-link-alt\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.tls.client_requested_server_name"], flow["category"])) end
@@ -1237,27 +1237,12 @@ else
 
    -- ######################################
 
-   if flow["flow_risk"] and table.len(flow["flow_risk"]) > 0 then
-      local flow_risk_utils = require "flow_risk_utils"
-      local risk = flow["flow_risk"]
-
-      print("<tr><th width=30%>"..status_icon..i18n("flow_details.flow_anomalies").."</th><td colspan=2>")
-
-      for risk_str,risk_id in pairs(risk) do
-	 print(flow_risk_utils.risk_id_2_i18n(risk_id).."<br>")
-      end
-
-      print("</td></tr>")
-   end
-
-   -- ######################################
-
    if flow["flow.alerted"] then
       local message = alert_consts.alertTypeLabel(flow["predominant_alert"])
 
-      message = message .. string.format(" [%s: %d]", i18n("total_score"), flow["predominant_alert_score"])
+      message = message .. string.format(" [%s: %d]", i18n("score_contribution"), format_utils.formatValue(flow["predominant_alert_score"]))
 
-      print("<tr><th width=30%>"..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
+      print("<tr><th width=30%>"..status_icon.." "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
       print(message)
       print("</td></tr>\n")
    end
@@ -1291,7 +1276,7 @@ else
    end
 
    if(isScoreEnabled() and (flow.score.flow_score > 0)) then
-      print("\n<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td>"..flow.score.flow_score.."</td>\n")
+      print("\n<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td>"..format_utils.formatValue(flow.score.flow_score).."</td>\n")
 
       local score_category_network  = flow.score.host_categories_total["0"]
       local score_category_security = flow.score.host_categories_total["1"]
