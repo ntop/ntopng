@@ -768,7 +768,14 @@ function hasAlertsDisabled()
 end
 
 function hasNindexSupport()
+   local auth = require "auth"
+
    if not ntop.isPro() or ntop.isWindows() then
+      return false
+   end
+
+   -- Don't allow nIndex for unauthorized users
+   if not auth.has_capability(auth.capabilities.historical_flows) then
       return false
    end
 

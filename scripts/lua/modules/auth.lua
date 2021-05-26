@@ -39,6 +39,7 @@ auth.capabilities = {
    user_scripts      = {id = 6, label = i18n("capabilities.user_scripts")},
    flowdevices       = {id = 7, label = i18n("capabilities.flowdevices")},
    alerts            = {id = 8, label = i18n("capabilities.alerts")},
+   historical_flows  = {id = 9, label = i18n("capabilities.historical_flows")},
 }
 
 -- #######################

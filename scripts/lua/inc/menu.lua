@@ -183,17 +183,13 @@ else
 	       url = "/lua/pro/report.lua",
 	    },
 	    {
-	       entry = page_utils.menu_entries.divider,
-	       hidden = not ntop.isPro() or not (prefs.is_dump_flows_to_mysql_enabled or prefs.is_nindex_enabled) or ifs.isViewed,
-	    },
-	    {
 	       entry = page_utils.menu_entries.db_explorer,
 	       hidden = not ntop.isPro() or not prefs.is_dump_flows_to_mysql_enabled or ifs.isViewed,
 	       url = "/lua/pro/db_explorer.lua?ifid="..ifId,
 	    },
 	    {
 	       entry = page_utils.menu_entries.db_explorer,
-	       hidden = not ntop.isPro() or not prefs.is_nindex_enabled or ifs.isViewed,
+	       hidden = not ntop.isPro() or not prefs.is_nindex_enabled or ifs.isViewed or not auth.has_capability(auth.capabilities.historical_flows),
 	       url = "/lua/pro/nindex_query.lua",
 	    },
 	 },

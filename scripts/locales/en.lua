@@ -923,6 +923,7 @@ local lang = {
     ["snmp"] = "SNMP",
     ["user_scripts"] = "User Scripts",
     ["alerts"] = "Alerts",
+    ["historical_flows"] = "Historical Flows",
   },
   ["categories_page"] = {
     ["search_application"] = "Search Application",

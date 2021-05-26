@@ -1111,12 +1111,12 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     snprintf(allowed_nets, sizeof(allowed_nets), CONST_DEFAULT_ALL_NETS);
 
   /*
-    Give user the 'alerts' capability if its allowed networks equal the 'all networks' constant
+    Give user the 'alerts' and 'historical_flows' capabilities if its allowed networks equal the 'all networks' constant
     NOTE: currently, this is only given for local-users. For non-local users (i.e., Radius, LDAP)
     this is left for future implementation.
   */
   if(localuser && !strncmp(allowed_nets, CONST_DEFAULT_ALL_NETS, sizeof(allowed_nets)))
-    capabilities |= (1 << capability_alerts);
+    capabilities |= (1 << capability_alerts) | (1 << capability_historical_flows);
 
   /* Put the _SESSION params into the environment */
   lua_newtable(L);
