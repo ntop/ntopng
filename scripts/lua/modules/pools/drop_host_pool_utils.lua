@@ -28,13 +28,12 @@ function drop_host_pool_utils.check_pre_banned_hosts_to_add()
 	 break
       else
 	 if(host_pool == nil) then host_pool = host_pools:create() end
-	 io.write("Adding "..elem.." to pool ["..pools.DROP_HOST_POOL_NAME.."]\n")
+	 -- io.write("Adding "..elem.." to pool ["..pools.DROP_HOST_POOL_NAME.."]\n")
 	 host_pool:add_to_pool(pools.DROP_HOST_POOL_NAME, { elem }, { 0 } )
 	 changed = true
       end
    end
 
-   changed = true
    -- Read rules from configured pools and policies
    -- and push rules to the nProbe listeners
    if(changed) then
