@@ -609,10 +609,11 @@ end
 
 local builtin_recipients_cache
 function recipients.get_builtin_recipients()
-   -- Currently, only sqlite (created in startup.lua) is the builtin recipient
-   -- The builtin sqlite recipient is created in startup.lua
+   -- Currently, only sqlite is the builtin recipient
+   -- created in startup.lua calling recipients.initialize()
    if not builtin_recipients_cache then
-      builtin_recipients_cache = { recipients.get_recipient_by_name("builtin_recipient_sqlite").recipient_id }
+      local sqlite_recipient = recipients.get_recipient_by_name("builtin_recipient_sqlite")
+      builtin_recipients_cache = { sqlite_recipient.recipient_id }
    end
 
    return builtin_recipients_cache

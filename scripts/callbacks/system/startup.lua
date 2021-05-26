@@ -230,6 +230,39 @@ if(has_pcap_dump_interface) then
   traceError(TRACE_NORMAL, TRACE_CONSOLE, "Loading category lists done")
 end
 
+-- Create the special drop pool for nProbe IPS
+if(ntop.isPro()) then
+   local pools = require "pools"
+   local host_pools = require "host_pools"
+
+   local blocked_hosts_pool_id = -2
+   -- Get the pool name
+   local blocked_hosts_pool_name = pools.DROP_HOST_POOL_NAME
+   local host_pool = host_pools:create()
+   local all_pools = host_pool:get_all_pools()
+
+   -- Check the existance of the pool
+   local found = false
+   for _, value in pairs(all_pools) do
+      if value["name"] == blocked_hosts_pool_name then
+          found = true
+      end
+   end
+
+   if host_pool and not found then
+      -- Create an instance out of the drop hosts pool
+      members_list = {}
+      -- SQL Lite recipient
+      recipients = { 0 }
+
+      blocked_hosts_pool_id = host_pool:add_pool(
+	      blocked_hosts_pool_name,
+	      members_list --[[ an array of valid interface ids]],
+	      recipients --[[ an array of valid recipient ids (names)]]
+      )
+   end
+end   
+
 -- Show the warning at most 1 time per run
 ntop.delCache("ntopng.cache.rrd_format_change_warning_shown")
 
