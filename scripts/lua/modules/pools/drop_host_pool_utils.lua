@@ -10,11 +10,49 @@ local host_pools = require "host_pools"
 
 -- Retrieve the info from the pool
 local pool_info = ntop.getDropPoolInfo()
-    
+
 local drop_host_pool_utils = {}
 local drop_host_pool_id
 
 -- ############################################
+
+function drop_host_pool_utils.check_pre_banned_hosts_to_add()
+   local queue_name = "ntopng.cache.tmp_add_host_list"
+   local host_pool = nil
+   local changed = false
+
+   while(true) do
+      local elem = ntop.lpopCache(queue_name)
+
+      if(elem == nil) then
+	 break
+      else
+	 if(host_pool == nil) then host_pool = host_pools:create() end
+	 io.write("Adding "..elem.." to pool ["..pools.DROP_HOST_POOL_NAME.."]\n")
+	 host_pool:add_to_pool(pools.DROP_HOST_POOL_NAME, { elem }, { 0 } )
+	 changed = true
+      end
+   end
+
+   changed = true
+   -- Read rules from configured pools and policies
+   -- and push rules to the nProbe listeners
+   if(changed) then
+      if ntop.isPro() then
+	 package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+	 local policy_utils = require "policy_utils"
+	 
+	 local rsp = policy_utils.get_ips_rules()
+	 if(rsp ~= nil) then
+	    ntop.broadcastIPSMessage(rsp)
+	 end
+      end
+   end
+end
+
+-- ############################################
+
+-- This function checks if the are banned hosts that need ti be unbanned
 
 function drop_host_pool_utils.check_periodic_hosts_list()
     -- Check the list length
