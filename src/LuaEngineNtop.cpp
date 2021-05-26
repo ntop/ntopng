@@ -316,12 +316,7 @@ static int ntop_set_mac_device_type(lua_State* vm) {
 static int ntop_reload_host_pools(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  for(int i = 0; i < ntop->get_num_interfaces(); i++) {
-    NetworkInterface *iface;
-
-    if((iface = ntop->getInterface(i)) != NULL)
-      iface->getHostPools()->reloadPools();
-  }
+  ntop->reloadHostPools();
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);

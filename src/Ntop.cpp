@@ -82,6 +82,9 @@ Ntop::Ntop(char *appName) {
   alertExclusionsReloadInProgress = true;
   alert_exclusions = alert_exclusions_shadow = NULL;
 
+  /* Host Pools reload - Interfaces initialize their pools inside the constructor */
+  hostPoolsReloadInProgress = false;
+
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
@@ -553,6 +556,7 @@ void Ntop::start() {
     get_HTTPserver()->startCaptiveServer();
 #endif
 
+  checkReloadHostPools();
   checkReloadAlertExclusions();
   checkReloadFlowCallbacks();
   checkReloadHostCallbacks();
@@ -2623,6 +2627,41 @@ void Ntop::initInterface(NetworkInterface *_if) {
   _if->checkDisaggregationMode();
 }
 
+/* *************************************** */
+
+void Ntop::addToPool(char *host_or_mac, u_int16_t user_pool_id) {
+  char key[128], pool_buf[16];
+
+#ifdef HOST_POOLS_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Adding %s as host pool member [pool id: %i]",
+			       host_or_mac,
+			       user_pool_id);
+#endif
+
+  snprintf(pool_buf, sizeof(pool_buf), "%u", user_pool_id);
+  snprintf(key, sizeof(key), HOST_POOL_MEMBERS_KEY, pool_buf);
+  ntop->getRedis()->sadd(key, host_or_mac); /* New member added */
+
+  reloadHostPools();
+}
+
+/* ******************************************* */
+
+void Ntop::checkReloadHostPools() {
+  if(hostPoolsReloadInProgress /* Check if a reload has been requested */) {
+    /* Leave this BEFORE the actual swap and new allocation to guarantee changes are always seen */
+    hostPoolsReloadInProgress = false; 
+
+    for(int i = 0; i < get_num_interfaces(); i++) {
+      NetworkInterface *iface;
+
+      if((iface = ntop->getInterface(i)) != NULL)
+	iface->reloadHostPools();
+    }
+  }
+}
+
 /* ******************************************* */
 
 void Ntop::checkReloadAlertExclusions() {
@@ -2719,6 +2758,7 @@ void Ntop::checkReloadHostCallbacks() {
 
 /* NOTE: the multiple isShutdown checks below are necessary to reduce the shutdown time */
 void Ntop::runHousekeepingTasks() {
+  checkReloadHostPools();
   checkReloadAlertExclusions();
   checkReloadFlowCallbacks();
   checkReloadHostCallbacks();

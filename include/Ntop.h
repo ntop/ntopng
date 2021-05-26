@@ -45,6 +45,7 @@ class Ntop {
   bool purgeLoop_started; /* Flag that indicates whether the purgeLoop has been started */
   bool ndpiReloadInProgress;
   bool flowCallbacksReloadInProgress, hostCallbacksReloadInProgress, alertExclusionsReloadInProgress;
+  bool hostPoolsReloadInProgress;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   AddressTree local_interface_addresses;
   char epoch_buf[11];
@@ -133,6 +134,7 @@ class Ntop {
   void checkReloadFlowCallbacks();
   void checkReloadHostCallbacks();
   void checkReloadAlertExclusions();
+  void checkReloadHostPools();
   
  public:
   /**
@@ -538,6 +540,9 @@ class Ntop {
   inline void reloadFlowCallbacks()   { flowCallbacksReloadInProgress = true;    };
   inline void reloadHostCallbacks()   { hostCallbacksReloadInProgress = true;    };
   inline void reloadAlertExclusions() { alertExclusionsReloadInProgress = true;  };
+  inline void reloadHostPools()       { hostPoolsReloadInProgress = true;        };
+
+  void addToPool(char *host_or_mac, u_int16_t user_pool_id);
 
   char *getAlertJSON(FlowAlertType fat, Flow *f) const;
   ndpi_serializer *getAlertSerializer(FlowAlertType fat, Flow *f) const;

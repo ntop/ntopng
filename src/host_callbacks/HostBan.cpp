@@ -57,11 +57,11 @@ void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
 
     /* Save the host based on if we have to serialize by Mac (DHCP) or by IP */
     if(h->serializeByMac()) {
-      pool->addToPool(h->getMac()->print(ipbuf, sizeof(ipbuf)), poolId);
+      ntop->addToPool(h->getMac()->print(ipbuf, sizeof(ipbuf)), poolId);
       snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", h->getMac()->print(ipbuf, sizeof(ipbuf)), time);
     }
     else {
-      pool->addToPool(h->get_ip()->print(ipbuf, sizeof(ipbuf)), poolId);
+      ntop->addToPool(h->get_ip()->print(ipbuf, sizeof(ipbuf)), poolId);
       snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", h->get_ip()->print(ipbuf, sizeof(ipbuf)), time);
     }
 
