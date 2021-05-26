@@ -46,7 +46,7 @@ function drop_host_pool_utils.check_periodic_hosts_list()
     -- Check the hosts inside the list
     while list_len > 0 do
         local data = ntop.lpopCache(pool_info.list_key)
-        local curr_time = ntop.gettimemsec()
+        local curr_time = os.time()
         local host
         local time
 
