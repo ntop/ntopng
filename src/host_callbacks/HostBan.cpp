@@ -59,7 +59,7 @@ void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
       else {
 	snprintf(member, sizeof(member), "%s/32@%d", h->get_ip()->print(ipbuf, sizeof(ipbuf)), h->get_vlan_id());
 	ntop->addToPool(member, poolId);
-	snprintf(redis_host_key, sizeof(redis_host_key), "%s_%ld", h->get_ip()->print(ipbuf, sizeof(ipbuf)), tp);
+	snprintf(redis_host_key, sizeof(redis_host_key), "%s_%ld", member, tp);
       }
 
       ntop->getRedis()->rpush((char*) DROP_HOST_POOL_LIST, redis_host_key, 3600);
