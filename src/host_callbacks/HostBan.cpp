@@ -39,34 +39,38 @@ void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     h->resetConsecutiveHighScore();
   
   if(h->getConsecutiveHighScore() > 5) {
-    /* Trigger the alert and add the host to the Default nProbe IPS host pool */
-    if (!alert) alert = allocAlert(this, h, SCORE_LEVEL_ERROR, 0, h->getScore(), h->getConsecutiveHighScore());
-    if (alert) h->triggerAlert(alert);
+    if (!alert) { /* Alert not already triggered */
+      /* Trigger the alert and add the host to the Default nProbe IPS host pool */
+      alert = allocAlert(this, h, SCORE_LEVEL_ERROR, 0, h->getScore(), h->getConsecutiveHighScore());
 
 #ifdef NTOPNG_PRO
-    /* Get nProbe IPS host pool ID */
-    HostPools* pool = h->getInterface()->getHostPools();
-    u_int8_t poolId = pool->getPoolByName(DROP_HOST_POOL_NAME);
+      /* Get nProbe IPS host pool ID */
+      HostPools* pool = h->getInterface()->getHostPools();
+      u_int8_t poolId = pool->getPoolByName(DROP_HOST_POOL_NAME);
       
-    char ipbuf[64], redis_host_key[256];
-    struct timeval tp;
+      char ipbuf[64], redis_host_key[256];
+      struct timeval tp;
 
-    gettimeofday(&tp, NULL);
+      gettimeofday(&tp, NULL);
   
-    double time = (((double)tp.tv_usec) / (double)1000000) + tp.tv_sec;
+      double time = (((double)tp.tv_usec) / (double)1000000) + tp.tv_sec;
 
-    /* Save the host based on if we have to serialize by Mac (DHCP) or by IP */
-    if(h->serializeByMac()) {
-      ntop->addToPool(h->getMac()->print(ipbuf, sizeof(ipbuf)), poolId);
-      snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", h->getMac()->print(ipbuf, sizeof(ipbuf)), time);
-    }
-    else {
-      ntop->addToPool(h->get_ip()->print(ipbuf, sizeof(ipbuf)), poolId);
-      snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", h->get_ip()->print(ipbuf, sizeof(ipbuf)), time);
-    }
+      /* Save the host based on if we have to serialize by Mac (DHCP) or by IP */
+      if(h->serializeByMac()) {
+	ntop->addToPool(h->getMac()->print(ipbuf, sizeof(ipbuf)), poolId);
+	snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", h->getMac()->print(ipbuf, sizeof(ipbuf)), time);
+      }
+      else {
+	ntop->addToPool(h->get_ip()->print(ipbuf, sizeof(ipbuf)), poolId);
+	snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", h->get_ip()->print(ipbuf, sizeof(ipbuf)), time);
+      }
 
-    ntop->getRedis()->rpush((char*) DROP_HOST_POOL_LIST, redis_host_key, 3600);
+      ntop->getRedis()->rpush((char*) DROP_HOST_POOL_LIST, redis_host_key, 3600);
 #endif
+    }
+
+    /* Refresh */
+    if (alert) h->triggerAlert(alert);
   }
 }
 
