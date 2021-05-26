@@ -21,14 +21,14 @@
     </field>
     <field>
         <id>general.collector</id>
-        <label>Connect to nProbe</label>
+        <label>Collect nProbe Flows</label>
         <type>checkbox</type>
         <advanced>true</advanced>
-        <help>This will collect traffic information from the local nProbe instance (requires the installation of the nProbe plugin).</help>
+        <help>This will collect traffic information from a local or remote nProbe instance through ZMQ. It requires the installation of the nProbe plugin to configure a local instance.</help>
     </field>
     <field>
         <id>general.zmq_endpoint</id>
-        <label>ZMQ Endpoint</label>
+        <label>Flows ZMQ Endpoint</label>
         <type>text</type>
         <advanced>true</advanced>
         <help>ZMQ Endpoint for collecting flows from nProbe. Use the 'c' suffix to listen for connections (connect as client otherwise).</help>
@@ -42,7 +42,7 @@
     </field>
     <field>
         <id>general.zmq_publish_endpoint</id>
-        <label>ZMQ Events Endpoint</label>
+        <label>Events ZMQ Endpoint</label>
         <type>text</type>
         <advanced>true</advanced>
         <help>ZMQ Endpoint for publishing IPS Events (listen for connections from nProbe in IPS mode).</help>
