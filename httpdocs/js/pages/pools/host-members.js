@@ -98,13 +98,8 @@ $(function () {
                 data: null, targets: -1, className: 'text-center',
                 width: "10%",
                 render: () => {
-                    let pool_class = 'btn-danger';
-
-                    if(!changable_pool)
-                        pool_class = pool_class + ' disabled'    
-
                     return DataTableUtils.createActionButtons([
-                        { class: pool_class, icon: 'fa-trash', modal: '#remove-member-host-pool'}
+                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-member-host-pool'}
                     ]);
                 }
             }
