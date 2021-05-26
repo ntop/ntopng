@@ -49,16 +49,20 @@ void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     u_int8_t poolId = pool->getPoolByName(DROP_HOST_POOL_NAME);
       
     char ipbuf[64], redis_host_key[256];
-    time_t now = time(NULL);
+    struct timeval tp;
+
+    gettimeofday(&tp, NULL);
+  
+    double time = (((double)tp.tv_usec) / (double)1000000) + tp.tv_sec;
 
     /* Save the host based on if we have to serialize by Mac (DHCP) or by IP */
     if(h->serializeByMac()) {
       pool->addToPool(h->getMac()->print(ipbuf, sizeof(ipbuf)), poolId);
-      snprintf(redis_host_key, sizeof(redis_host_key), "%s_%ld", h->getMac()->print(ipbuf, sizeof(ipbuf)), now);
+      snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", h->getMac()->print(ipbuf, sizeof(ipbuf)), time);
     }
     else {
       pool->addToPool(h->get_ip()->print(ipbuf, sizeof(ipbuf)), poolId);
-      snprintf(redis_host_key, sizeof(redis_host_key), "%s_%ld", h->get_ip()->print(ipbuf, sizeof(ipbuf)), now);
+      snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", h->get_ip()->print(ipbuf, sizeof(ipbuf)), time);
     }
 
     ntop->getRedis()->rpush((char*) DROP_HOST_POOL_LIST, redis_host_key, 3600);
