@@ -44,30 +44,36 @@ void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
       alert = allocAlert(this, h, SCORE_LEVEL_ERROR, 0, h->getScore(), h->getConsecutiveHighScore());
 
 #ifdef NTOPNG_PRO
-      /* Get nProbe IPS host pool ID */
-      HostPools* pool = h->getInterface()->getHostPools();
-      u_int8_t poolId = pool->getPoolByName(DROP_HOST_POOL_NAME);
-      
-      char ipbuf[64], redis_host_key[256], member[256];
-      time_t tp = time(NULL);
-      
-      /* Save the host based on if we have to serialize by Mac (DHCP) or by IP */
-      if(h->serializeByMac()) {
-	ntop->addToPool(h->getMac()->print(ipbuf, sizeof(ipbuf)), poolId);
-	snprintf(redis_host_key, sizeof(redis_host_key), "%s_%ld", h->getMac()->print(ipbuf, sizeof(ipbuf)), tp);
-      }
-      else {
-	snprintf(member, sizeof(member), "%s/32@%d", h->get_ip()->print(ipbuf, sizeof(ipbuf)), h->get_vlan_id());
-	ntop->addToPool(member, poolId);
-	snprintf(redis_host_key, sizeof(redis_host_key), "%s_%ld", member, tp);
-      }
+    /* Get nProbe IPS host pool ID */
+    char buf[64], redis_host_key[256];
+    struct timeval tp;
 
-      ntop->getRedis()->rpush((char*) DROP_HOST_POOL_LIST, redis_host_key, 3600);
-#endif
+    gettimeofday(&tp, NULL);
+  
+    double time = (((double)tp.tv_usec) / (double)1000000) + tp.tv_sec;
+
+    /*
+      Save the host based on if we have to serialize by Mac (DHCP) or by IP. The pool addition
+      is deferred because pools reload is a costly operation 
+    */
+    if(h->serializeByMac()) {
+      char *e = h->getMac()->print(buf, sizeof(buf));
+      
+      ntop->getRedis()->lpush(DROP_TMP_ADD_HOST_LIST, e, 0); /* New member added */
+      snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", e, time);
+    } else {
+      char host_buf[64], *e = h->get_ip()->print(buf, sizeof(buf));
+
+      /* For hosts we need to add a VLAN and a subnet */
+
+      snprintf(host_buf, sizeof(host_buf), "%s/%u@%u",
+	       e,  h->get_ip()->isIPv4() ? 32 : 128, h->get_vlan_id());
+      ntop->getRedis()->lpush(DROP_TMP_ADD_HOST_LIST, e, 0);
+      snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", e, time);
     }
-
-    /* Refresh */
-    if (alert) h->triggerAlert(alert);
+    
+    ntop->getRedis()->rpush((char*) DROP_HOST_POOL_LIST, redis_host_key, 3600);
+#endif
   }
 }
 

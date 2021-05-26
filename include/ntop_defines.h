@@ -190,7 +190,7 @@
 #define MIN_NUM_VISITED_ENTRIES  1024
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
-#define NTOP_COPYRIGHT          "(C) 1998-20 ntop.org"
+#define NTOP_COPYRIGHT          "(C) 1998-21 ntop.org"
 #define DEFAULT_PID_PATH        "/var/run/ntopng.pid"
 #define SYSTEM_INTERFACE_NAME   "__system__"
 #define SYSTEM_INTERFACE_ID     -1
@@ -212,6 +212,7 @@
 #define DROP_HOST_TRAFFIC        "ntopng.prefs.drop_host_traffic"
 #define DROP_HOST_POOL_NAME      "Jailed hosts pool"
 #define DROP_HOST_POOL_LIST      "ntopng.cache.drop_host_list"
+#define DROP_TMP_ADD_HOST_LIST   "ntopng.cache.tmp_add_host_list"
 #define DROP_HOST_POOL_EXPIRATION_TIME    900 /*  15 m */
 #define HOST_TRAFFIC_QUOTA       "ntopng.prefs.hosts_quota"
 #define HTTP_ACL_MANAGEMENT_PORT "ntopng.prefs.http_acl_management_port"
