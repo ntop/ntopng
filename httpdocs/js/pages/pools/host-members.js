@@ -45,11 +45,10 @@ $(function () {
     let buttonArray = function() {
 	let buttons = [];
 
-    if(changable_pool)
-	    buttons.push({
-                text: '<i class="fas fa-plus"></i>',
-                action: () => { $(`#add-member-modal`).modal('show'); }
-            });
+	buttons.push({
+            text: '<i class="fas fa-plus"></i>',
+            action: () => { $(`#add-member-modal`).modal('show'); }
+        });
 
 	buttons.push({
             text: '<i class="fas fa-sync"></i>',
