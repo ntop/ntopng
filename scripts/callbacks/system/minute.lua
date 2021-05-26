@@ -29,9 +29,10 @@ if scripts_triggers.isRrdInterfaceCreation() then
 end
 
 if ntop.isPro() then
-   local drop_host_pool = require "drop_host_pool_utils"
+   local drop_host_pool_utils = require "drop_host_pool_utils"
 
-   drop_host_pool.check_periodic_hosts_list()
+   drop_host_pool_utils.check_periodic_hosts_list()
+   drop_host_pool_utils.check_pre_banned_hosts_to_add()
 end   
 
 -- Run minute scripts
