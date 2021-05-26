@@ -2920,6 +2920,8 @@ static int ntop_get_dirs(lua_State* vm) {
   lua_push_str_table_entry(vm, "httpdocsdir", ntop->getPrefs()->get_docs_dir());
   lua_push_str_table_entry(vm, "callbacksdir", ntop->getPrefs()->get_callbacks_dir());
   lua_push_str_table_entry(vm, "pcapdir", ntop->getPrefs()->get_pcap_dir());
+  lua_push_str_table_entry(vm, "etcdir", CONST_ETC_DIR);
+  lua_push_str_table_entry(vm, "sharedir", CONST_SHARE_DIR);
 
   return(CONST_LUA_OK);
 }
