@@ -169,10 +169,33 @@ end
 
 -- ##############################################
 
+function host_alert_store:printMyTable(table)
+   
+   traceError(TRACE_ERROR, TRACE_CONSOLE, "#"..tostring(#table))
+   if #table == 0 then
+      return
+   end
+
+   for key, value in pairs(table) do
+      if type(value)=="table" then
+         -- traceError(TRACE_ERROR, TRACE_CONSOLE, "KEY = "..key.." VALUE "..value.value)
+         self:printMyTable(value)
+      else
+         traceError(TRACE_ERROR, TRACE_CONSOLE, "KEY = "..key.." VALUE "..value)      
+      end
+   end
+end
+
+function host_alert_store:format_txt_record(value)
+   local tmp_json_record = self:format_json_record(value, true)
+   -- self:printMyTable(tmp_json_record)
+   return tmp_json_record
+end
+
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
-function host_alert_store:format_record(value, no_html)
+function host_alert_store:format_json_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"
-   local record = self:format_record_common(value, alert_entities.host.entity_id, no_html)
+   local record = self:format_json_record_common(value, alert_entities.host.entity_id)
 
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.host.entity_id)
@@ -180,13 +203,9 @@ function host_alert_store:format_record(value, no_html)
    local host = hostinfo2hostkey(value)
    local reference_html = nil
 
-   if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
-      if reference_html == href_icon then
-	 reference_html = nil
-      end
-   else
-      msg = noHtml(msg)
+   reference_html = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
+   if reference_html == href_icon then
+      reference_html = nil
    end
 
    record["ip"] = {
@@ -202,23 +221,35 @@ function host_alert_store:format_record(value, no_html)
    end
 
    record["ip"]["shown_label"] = record["ip"]["label"]
-   record["is_attacker"] = ""
    record["is_victim"] = ""
+   record["is_attacker"] = ""
 
    if value["is_victim"] == true or value["is_victim"] == "1" then
-      record["is_victim"] = '<span style="color: #008000;">✓</span>'
-      record["role"] = {
-        label = i18n("victim"),
-        value = "victim",
-      }
+      if no_html then
+         record["is_victim"] = tostring(true)
+      else
+         record["is_victim"] = '<span style="color: #008000;">✓</span>'
+         record["role"] = {
+            label = i18n("victim"),
+            value = "victim",
+          }
+      end
+   elseif no_html then
+      record["is_victim"] = tostring(false)
    end
 
    if value["is_attacker"] == true or value["is_attacker"] == "1" then
-      record["is_attacker"] = '<span style="color: #008000;">✓</span>'
-      record["role"] = {
-        label = i18n("attacker"),
-        value = "attacker",
-      }
+      if no_html then
+         record["is_attacker"] = tostring(true)
+      else
+         record["is_attacker"] = '<span style="color: #008000;">✓</span>'
+         record["role"] = {
+           label = i18n("attacker"),
+           value = "attacker",
+         }
+      end
+   elseif no_html then
+      record["is_attacker"] = tostring(false) 
    end
 
    record["vlan_id"] = value["vlan_id"] or 0

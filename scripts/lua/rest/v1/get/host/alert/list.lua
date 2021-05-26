@@ -22,7 +22,7 @@ local res = {}
 
 local ifid = _GET["ifid"]
 local format = _GET["format"] or "json"
-local no_html = (format == "txt")
+local isTxtFormat = (format == "txt")
 
 if not auth.has_capability(auth.capabilities.alerts) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -41,7 +41,16 @@ interface.select(ifid)
 local alerts, recordsFiltered = host_alert_store:select_request()
 
 for _key,_value in ipairs(alerts or {}) do
-   local record = host_alert_store:format_record(_value, no_html)
+   local record
+   if isTxtFormat 
+   then
+      -- used to the download alerts in csv format
+      record = host_alert_store:format_txt_record(_value)   
+   else
+      -- used by the UI to fill the table
+      record = host_alert_store:format_json_record(_value, false)   
+   end
+   
    res[#res + 1] = record
 end -- for
 
