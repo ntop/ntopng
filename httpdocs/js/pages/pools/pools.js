@@ -90,13 +90,21 @@ $(function() {
                 data: null, targets: -1, className: 'text-center',
                 width: "10%",
                 render: function(_, type, pool) {
+                    let changable_pool = true;
+
+                    for(const pool_names of unchangable_pool_names) {
+                        if(pool_names === pool.name) {
+                            changable_pool = false;
+                            break;
+                        }
+                    }
 
                     /* disable actions for ALL_POOL page */
                     if (IS_ALL_POOL) return;
 
                     const buttons = [
                         { class: 'btn-info', icon: 'fa-edit', modal: '#edit-pool' },
-                        { class: `btn-danger ${(pool.pool_id == DEFAULT_POOL_ID || IS_NEDGE) ? 'disabled' : '' }`, icon: 'fa-trash', modal: '#remove-pool'}
+                        { class: `btn-danger ${((pool.pool_id == DEFAULT_POOL_ID || IS_NEDGE) || !changable_pool) ? 'disabled' : '' }`, icon: 'fa-trash', modal: '#remove-pool'}
                     ];
 
                     if (poolType == "host") {
@@ -208,9 +216,18 @@ $(function() {
         resetAfterSubmit: false,
         onModalInit: (pool) => {
 
+            let changable_pool = true;
+
+            for(const pool_names of unchangable_pool_names) {
+                if(pool_names === pool.name) {
+                    changable_pool = false;
+                    break;
+                }
+            }
+            
             // disable pool name field if we are editing the default pool
             // also hide the members multiselect
-            if (pool.pool_id == DEFAULT_POOL_ID) {
+            if (pool.pool_id == DEFAULT_POOL_ID || !changable_pool) {
                 $(`#edit-pool form input[name='name']`).attr("readonly", "true");
                 $(`#edit-pool .members-container`).hide();
             }

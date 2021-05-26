@@ -9,6 +9,15 @@ $(function () {
     let currentType = null;
     const INDEX_MEMBER_FILTER = 0;
 
+    let changable_pool = true;
+
+    for(const pool_names of unchangable_pool_names) {
+        if(pool_names === selectedPool.name) {
+            changable_pool = false;
+            break;
+        }
+    }
+
     const filters = [
         {
             regex: NtopUtils.getIPv4RegexWithCIDR(),
@@ -34,12 +43,14 @@ $(function () {
     ];
 
     let buttonArray = function() {
-	let buttons = []
+	let buttons = [];
 
-	buttons.push({
-            text: '<i class="fas fa-plus"></i>',
-            action: () => { $(`#add-member-modal`).modal('show'); }
-        });
+    if(changable_pool)
+	    buttons.push({
+                text: '<i class="fas fa-plus"></i>',
+                action: () => { $(`#add-member-modal`).modal('show'); }
+            });
+
 	buttons.push({
             text: '<i class="fas fa-sync"></i>',
             action: function(e, dt, node, config) {
@@ -47,7 +58,7 @@ $(function () {
             }
         });
 
-	if(__IS_PRO__)
+	if(__IS_PRO__ && changable_pool)
 	    buttons.push({
 	    text: '<i class="fas fa-key"></i>',
             action: () => { location.href = `${http_prefix}/lua/pro/policy.lua?pool=${selectedPool.id}`; }
@@ -88,8 +99,13 @@ $(function () {
                 data: null, targets: -1, className: 'text-center',
                 width: "10%",
                 render: () => {
+                    let pool_class = 'btn-danger';
+
+                    if(!changable_pool)
+                        pool_class = pool_class + ' disabled'    
+
                     return DataTableUtils.createActionButtons([
-                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-member-host-pool'}
+                        { class: pool_class, icon: 'fa-trash', modal: '#remove-member-host-pool'}
                     ]);
                 }
             }
