@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `resolved_ip` TEXT NULL,
 `resolved_name` TEXT NULL,
 `interface_id` INTEGER NULL,
+`measurement` TEXT NULL,
 `measure_threshold` INTEGER NULL DEFAULT 0,
 `measure_value` REAL NULL DEFAULT 0,
 `tstamp` DATETIME NOT NULL,

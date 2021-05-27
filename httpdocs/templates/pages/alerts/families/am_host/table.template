@@ -1,6 +1,7 @@
 <tr>
     <th>{{ i18n("show_alerts.alert_datetime") }}</th>
     <th>{{ i18n("show_alerts.alert_counts") }}</th>
+    <th>{{ i18n("active_monitoring_stats.measurement") }}</th>
     <th>{{ i18n("threshold") }}</th>
     <th>{{ i18n("system_stats.value") }}</th>
     <th>{{ i18n("description") }}</th>

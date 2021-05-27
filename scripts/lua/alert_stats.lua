@@ -299,9 +299,9 @@ local defined_tags = {
 	alert_id = {'eq'},
 	severity = {'eq'}
     },
-    ["active_monitoring"] = {
+    ["am_host"] = {
 	alert_id = {'eq'},
-	severity = {'eq'}
+	severity = {'eq'},
     },
     ["interface"] = {
 	alert_id = {'eq'},
