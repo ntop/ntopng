@@ -51,7 +51,7 @@ end
 
 -- ############################################
 
--- This function checks if the are banned hosts that need ti be unbanned
+-- This function checks if the are banned hosts that need to be unbanned
 
 function drop_host_pool_utils.check_periodic_hosts_list()
    -- Check the list length
