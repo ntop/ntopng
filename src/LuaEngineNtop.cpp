@@ -316,12 +316,7 @@ static int ntop_set_mac_device_type(lua_State* vm) {
 static int ntop_reload_host_pools(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  for(int i = 0; i < ntop->get_num_interfaces(); i++) {
-    NetworkInterface *iface;
-
-    if((iface = ntop->getInterface(i)) != NULL)
-      iface->getHostPools()->reloadPools();
-  }
+  ntop->reloadHostPools();
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -2920,6 +2915,8 @@ static int ntop_get_dirs(lua_State* vm) {
   lua_push_str_table_entry(vm, "httpdocsdir", ntop->getPrefs()->get_docs_dir());
   lua_push_str_table_entry(vm, "callbacksdir", ntop->getPrefs()->get_callbacks_dir());
   lua_push_str_table_entry(vm, "pcapdir", ntop->getPrefs()->get_pcap_dir());
+  lua_push_str_table_entry(vm, "etcdir", CONST_ETC_DIR);
+  lua_push_str_table_entry(vm, "sharedir", CONST_SHARE_DIR);
 
   return(CONST_LUA_OK);
 }

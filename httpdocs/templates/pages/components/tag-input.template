@@ -74,7 +74,7 @@ $(document).ready(function() {
     tagify_{{instance_name}}.on('change', async function (e) {
         const detail = e.detail;
         if (detail.value === undefined) {return;}
-        if (!detail.value) {return;}
+        if (!detail.value) {detail.value = "[]";}
         var tags = JSON.parse(detail.value);
         {{instance_name}}_global.tags = tags;
 

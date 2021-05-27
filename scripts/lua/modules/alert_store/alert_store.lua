@@ -633,6 +633,7 @@ function alert_store:get_available_filters()
       -- in order to list alerts by entity
       severity = {
          value_type = 'severity',
+	 i18n_label = 'tags.severity'
       },
    }
 
@@ -714,45 +715,61 @@ function alert_store:format_json_record_common(value, entity_id)
 end
 
 -- Used to escape "'s by toCSV
-function alert_store:escapeCSV(s)
+function alert_store:escape_csv(s)
    if string.find(s, '[,"]') then
-     s = '"' .. string.gsub(s, '"', '""') .. '"'
+      s = '"' .. string.gsub(s, '"', '""') .. '"'
    end
    return s
- end
+end
 
 -- Convert from table to CSV string
-function alert_store:toCsv(documents)
+function alert_store:to_csv(documents)
 
    local csv = {}
 
-   local csv_header = {}
+   if table.len(documents) == 0 then
+      return csv
+   end
+
+   local csv_header = {} -- contains the column heading names
    for key, value in pairs(documents[1]) do
       csv_header[#csv_header + 1] = tostring(key)
    end
-   table.sort(csv_header)
+   table.sort(csv_header) -- this assure the same csv columns order at each iteration
 
+   -- column heading output
    local row = ""
    for _, value in ipairs(csv_header) do
-      row = row .. "," .. self:escapeCSV(value)
+      row = row .. "," .. self:escape_csv(value)
    end
    row = string.sub(row, 2) -- remove first comma
    csv[#csv+1] = row
    
+   -- csv row output
    for _, document in ipairs(documents) do
       row = ""
       for _, column_name in ipairs(csv_header) do
-         row = row .. "," .. self:escapeCSV(tostring(document[column_name]))
+         row = row .. "," .. self:escape_csv(tostring(document[column_name]))
       end
       row = string.sub(row, 2) -- remove first comma
       csv[#csv+1] = row
    end
 
-   self:printMyTable(csv)
-
    return csv
 end
 
+function alert_store:stringify_csv_table(csv)
+
+   local stringified = ""
+
+   for _, value in ipairs(csv) do
+      stringified = stringified .. value .. '\n'
+   end
+
+   return stringified
+end
+
+-- TODO remove
 function alert_store:printMyTable(t)
    for key, value in pairs(t) do
       if(type(value) == "table") then

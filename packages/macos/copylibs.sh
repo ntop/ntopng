@@ -16,6 +16,7 @@ function findlibs {
 
 /bin/rm -f $TMPFILE $TMPFILEALL
 
+findlibs /usr/local/bin/redis-server $TMPFILE
 findlibs ../../ntopng $TMPFILE
 
 cp $TMPFILE $TMPFILEALL

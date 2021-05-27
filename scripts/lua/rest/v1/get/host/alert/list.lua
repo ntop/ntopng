@@ -23,7 +23,7 @@ local res = {}
 
 local ifid = _GET["ifid"]
 local format = _GET["format"] or "json"
-local isTxtFormat = (format == "txt")
+local no_html = (format == "txt")
 
 if not auth.has_capability(auth.capabilities.alerts) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -41,10 +41,10 @@ interface.select(ifid)
 -- Fetch the results
 local alerts, recordsFiltered = host_alert_store:select_request()
 
-for _key,_value in ipairs(alerts or {}) do
+for _, _value in ipairs(alerts or {}) do
    local record = {}
 
-   if isTxtFormat then
+   if no_html then
       record = host_alert_store:format_txt_record(_value)   
    else
       record = host_alert_store:format_json_record(_value)      
@@ -53,12 +53,15 @@ for _key,_value in ipairs(alerts or {}) do
    res[#res + 1] = record
 end -- for
 
-if isTxtFormat and #res > 0 then
-   res = host_alert_store:toCsv(res)
+if no_html then
+   res = host_alert_store:to_csv(res)   
+   res = host_alert_store:stringify_csv_table(res)
+   rest_utils.vanilla_payload_answer(rc, res, "text/csv")
+else
+   rest_utils.extended_answer(rc, {records = res}, {
+      ["draw"] = tonumber(_GET["draw"]),
+      ["recordsFiltered"] = recordsFiltered,
+      ["recordsTotal"] = #res
+   }, format)
 end
 
-rest_utils.extended_answer(rc, {records = res}, {
-			      ["draw"] = tonumber(_GET["draw"]),
-			      ["recordsFiltered"] = recordsFiltered,
-			      ["recordsTotal"] = #res
-}, format)

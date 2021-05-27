@@ -190,7 +190,7 @@
 #define MIN_NUM_VISITED_ENTRIES  1024
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
-#define NTOP_COPYRIGHT          "(C) 1998-20 ntop.org"
+#define NTOP_COPYRIGHT          "(C) 1998-21 ntop.org"
 #define DEFAULT_PID_PATH        "/var/run/ntopng.pid"
 #define SYSTEM_INTERFACE_NAME   "__system__"
 #define SYSTEM_INTERFACE_ID     -1
@@ -210,8 +210,9 @@
 #define TRAFFIC_FILTERING_TO_RESOLVE       "ntopng.trafficfiltering.toresolve"
 #define PREFS_CHANGED            "ntopng.cache.prefs_changed"
 #define DROP_HOST_TRAFFIC        "ntopng.prefs.drop_host_traffic"
-#define DROP_HOST_POOL_NAME      "Default dropped hosts pool"
+#define DROP_HOST_POOL_NAME      "Jailed hosts pool"
 #define DROP_HOST_POOL_LIST      "ntopng.cache.drop_host_list"
+#define DROP_TMP_ADD_HOST_LIST   "ntopng.cache.tmp_add_host_list"
 #define DROP_HOST_POOL_EXPIRATION_TIME    900 /*  15 m */
 #define HOST_TRAFFIC_QUOTA       "ntopng.prefs.hosts_quota"
 #define HTTP_ACL_MANAGEMENT_PORT "ntopng.prefs.http_acl_management_port"
@@ -503,17 +504,19 @@
 #define CONST_DEFAULT_INSTALL_DIR    (DATA_DIR "/ntopng")
 #if defined(__FreeBSD__)
 #define CONST_BIN_DIR                "/usr/local/bin"
-#define CONST_ALT_INSTALL_DIR        "/usr/local/share/ntopng"
-#define CONST_ALT2_INSTALL_DIR       "/usr/share/ntopng"
+#define CONST_SHARE_DIR              "/usr/local/share"
+#define CONST_SHARE_DIR_2            "/usr/share"
 #define CONST_ETC_DIR                "/usr/local/etc"
 #define CONST_DEFAULT_DATA_DIR       "/var/db/ntopng"
 #else
 #define CONST_BIN_DIR                "/usr/bin"
-#define CONST_ALT_INSTALL_DIR        "/usr/share/ntopng"
-#define CONST_ALT2_INSTALL_DIR       "/usr/local/share/ntopng"
+#define CONST_SHARE_DIR              "/usr/share"
+#define CONST_SHARE_DIR_2            "/usr/local/share"
 #define CONST_ETC_DIR                "/etc"
 #define CONST_DEFAULT_DATA_DIR       "/var/lib/ntopng"
 #endif
+#define CONST_ALT_INSTALL_DIR        CONST_SHARE_DIR   "/ntopng"
+#define CONST_ALT2_INSTALL_DIR       CONST_SHARE_DIR_2 "/usr/share/ntopng"
 #define CONST_HTTP_PREFIX_STRING     "@HTTP_PREFIX@"
 #define CONST_NTOP_STARTUP_EPOCH     "@NTOP_STARTUP_EPOCH@"
 #define CONST_NTOP_PRODUCT_NAME      "@NTOP_PRODUCT_NAME@"

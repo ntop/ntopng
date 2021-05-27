@@ -22,6 +22,8 @@
 #include "ntop_includes.h"
 #include "host_callbacks_includes.h"
 
+#define NUM_CONSECUTIVE_CHECKS_BEFORE_ALERTING 5
+
 /* ***************************************************** */
 
 HostBan::HostBan() : HostCallback(ntopng_edition_community) {
@@ -38,31 +40,46 @@ void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   else
     h->resetConsecutiveHighScore();
   
-  if(h->getConsecutiveHighScore() > 5) {
-    /* Trigger the alert and add the host to the Default nProbe IPS host pool */
-    if (!alert) alert = allocAlert(this, h, SCORE_LEVEL_ERROR, 0, h->getScore(), h->getConsecutiveHighScore());
-    if (alert) h->triggerAlert(alert);
+  if(h->getConsecutiveHighScore() > NUM_CONSECUTIVE_CHECKS_BEFORE_ALERTING) {
+    if (!alert) { /* Alert not already triggered */
+      /* Trigger the alert and add the host to the Default nProbe IPS host pool */
+      alert = allocAlert(this, h, SCORE_LEVEL_ERROR, 0, h->getScore(), h->getConsecutiveHighScore());
 
 #ifdef NTOPNG_PRO
-    /* Get nProbe IPS host pool ID */
-    HostPools* pool = h->getInterface()->getHostPools();
-    u_int8_t poolId = pool->getPoolByName(DROP_HOST_POOL_NAME);
+      /* Get nProbe IPS host pool ID */
+      char buf[64], redis_host_key[256];
+      struct timeval tp;
+
+      gettimeofday(&tp, NULL);
+  
+      double time = (((double)tp.tv_usec) / (double)1000000) + tp.tv_sec;
+
+      /*
+	Save the host based on if we have to serialize by Mac (DHCP) or by IP. The pool addition
+	is deferred because pools reload is a costly operation 
+      */
+      if(h->serializeByMac()) {
+	char *e = h->getMac()->print(buf, sizeof(buf));
       
-    char ipbuf[64], redis_host_key[256];
-    time_t now = time(NULL);
+	ntop->getRedis()->lpush(DROP_TMP_ADD_HOST_LIST, e, 0); /* New member added */
+	snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", e, time);
+      } else {
+	char host_buf[64], *e = h->get_ip()->print(buf, sizeof(buf));
 
-    /* Save the host based on if we have to serialize by Mac (DHCP) or by IP */
-    if(h->serializeByMac()) {
-      pool->addToPool(h->getMac()->print(ipbuf, sizeof(ipbuf)), poolId);
-      snprintf(redis_host_key, sizeof(redis_host_key), "%s_%ld", h->getMac()->print(ipbuf, sizeof(ipbuf)), now);
-    }
-    else {
-      pool->addToPool(h->get_ip()->print(ipbuf, sizeof(ipbuf)), poolId);
-      snprintf(redis_host_key, sizeof(redis_host_key), "%s_%ld", h->get_ip()->print(ipbuf, sizeof(ipbuf)), now);
-    }
+	/* For hosts we need to add a VLAN and a subnet */
 
-    ntop->getRedis()->rpush((char*) DROP_HOST_POOL_LIST, redis_host_key, 3600);
+	snprintf(host_buf, sizeof(host_buf), "%s/%u@%u",
+		 e,  h->get_ip()->isIPv4() ? 32 : 128, h->get_vlan_id());
+	ntop->getRedis()->lpush(DROP_TMP_ADD_HOST_LIST, e, 0);
+	snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", e, time);
+      }
+    
+      ntop->getRedis()->rpush((char*) DROP_HOST_POOL_LIST, redis_host_key, 3600);
 #endif
+    }
+    
+    /* Refresh */
+    if (alert) h->triggerAlert(alert);
   }
 }
 

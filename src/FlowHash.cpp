@@ -44,13 +44,13 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
   Flow *head = (Flow*)table[hash];
   u_int16_t num_loops = 0;
 
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u:%u / %u:%u [icmp: %u][key: %u][icmp info key: %u][head: 0x%x]", src_ip->key(), src_port, dst_ip->key(), dst_port, icmp_info ? 1 : 0, hash, icmp_info ? icmp_info->key() : 0, head);
+
   if(!head)
     return(NULL);
 
   if(!is_inline_call)
     locks[hash]->rdlock(__FILE__, __LINE__);
-
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u:%u / %u:%u [icmp: %u][key: %u][icmp info key: %u][head: 0x%x]", src_ip->key(), src_port, dst_ip->key(), dst_port, icmp_info ? 1 : 0, hash, icmp_info ? icmp_info->key() : 0, head);
 
   while(head) {
     if(!head->idle()

@@ -30,8 +30,6 @@ class Mac;
 
 class HostPools {
  private:
-  Mutex *swap_lock;
-  volatile time_t latest_swap;
   VLANAddressTree *tree, *tree_shadow;
   NetworkInterface *iface;
   u_int16_t max_num_pools;
@@ -160,7 +158,6 @@ class HostPools {
   inline u_int32_t getPoolSchedule(u_int16_t pool_id) {
     return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? schedule_bitmap[pool_id] : DEFAULT_TIME_SCHEDULE);
   }
-  void addToPool(char *host_or_mac, u_int16_t user_pool_id);
 
   inline bool isChildrenSafePool(u_int16_t pool_id) {
     return((pool_id < max_num_pools) ? children_safe[pool_id] : false);

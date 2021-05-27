@@ -25,7 +25,7 @@
                         <div class="col-sm-5">
                             <select required name="alert_filter_type" class="form-select" id="alert-filter-type-select">
                                 {% local first_item = true %}
-                                {% for filter_key, filter_type in pairsByKeys(available_types) do %}
+                                {% for filter_key, filter_type in pairsByField(available_types, 'i18n_label', asc) do %}
                                          <option {{ (first_item and "selected" or "") }} data-alert-filter-key="{{ filter_type.value_type }}" value="{{ filter_key }}">
                                              {{ i18n('tags.'..filter_key) }}
                                          </option>

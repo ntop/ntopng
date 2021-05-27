@@ -26,14 +26,14 @@ alert_ghost_network.meta = {
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param one_param The first alert param
--- @param another_param The second alert param
 -- @return A table with the alert built
-function alert_ghost_network:init()
+function alert_ghost_network:init(network)
    -- Call the parent constructor
    self.super:init()
 
-   self.alert_type_params = {}
+   self.alert_type_params = {
+      network = network
+   }
 end
 
 -- #######################################################
@@ -45,7 +45,7 @@ end
 -- @return A human-readable string
 function alert_ghost_network.format(ifid, alert, alert_type_params)
   return(i18n("alerts_dashboard.ghost_network_detected_description", {
-    network = alert.alert_subtype,
+    network = alert_type_params.network,
     entity = getInterfaceName(ifid),
     url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=".. ifid .."&page=networks",
   }))

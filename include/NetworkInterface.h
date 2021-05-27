@@ -771,6 +771,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline FlowInterfacesStats* getFlowInterfacesStats() { return(flow_interfaces_stats);  }
 #endif
   inline HostPools* getHostPools()                     { return(host_pools);    }
+  inline void reloadHostPools()     { if(host_pools) host_pools->reloadPools(); }
 
   bool registerLiveCapture(struct ntopngLuaContext * const luactx, int *id);
   bool deregisterLiveCapture(struct ntopngLuaContext * const luactx);

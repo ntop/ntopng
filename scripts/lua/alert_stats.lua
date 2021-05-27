@@ -162,8 +162,8 @@ local pages = {
         active = page == "am_host",
         page_name = "am_host",
         label = i18n(alert_entities.am_host.i18n_label),
-        endpoint_list = "/lua/rest/v1/get/active_monitoring/alert/list.lua",
-        endpoint_ts = "/lua/rest/v1/get/active_monitoring/alert/ts.lua",
+        endpoint_list = "/lua/rest/v1/get/am_host/alert/list.lua",
+        endpoint_ts = "/lua/rest/v1/get/am_host/alert/ts.lua",
 	url = getPageUrl(base_url, {page = "am_host"}),
 	hidden = not is_system_interface,
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.am_host.entity_id)]

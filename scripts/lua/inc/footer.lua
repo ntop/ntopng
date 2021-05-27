@@ -347,7 +347,7 @@ print[[
 			var error_color = "#B94A48";
 
 		        if(rsp.engaged_alerts > 0) {
-			        msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/alert_stats.lua?ifid=]] print(tostring(ifid)) print[[\">"
+			        msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/alert_stats.lua?ifid=]] print(tostring(ifid)) print[[&status=engaged\">"
 				msg += "<span class=\"badge bg-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.engaged_alerts)+"</span></a>";
 			}
 

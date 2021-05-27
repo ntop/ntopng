@@ -155,12 +155,15 @@ function host_alert_store:_get_additional_available_filters()
    local filters = {
       alert_id = {
          value_type = 'alert_id',
+	 i18n_label = i18n('tags.alert_id'),
       }, 
       ip = {
          value_type = 'ip',
+	 i18n_label = i18n('tags.ip'),
       },
       role = {
-        value_type = 'role',
+	 value_type = 'role',
+	 i18n_label = i18n('tags.role'),
       },
    }
 
@@ -222,7 +225,7 @@ function host_alert_store:format_record(value, no_html)
 
    if value["is_victim"] == true or value["is_victim"] == "1" then
       if no_html then
-         record["is_victim"] = tostring(true)
+         record["is_victim"] = tostring(true) -- when no_html is enabled a default value must be present
       else
          record["is_victim"] = '<span style="color: #008000;">✓</span>'
          record["role"] = {
@@ -231,12 +234,12 @@ function host_alert_store:format_record(value, no_html)
           }
       end
    elseif no_html then
-      record["is_victim"] = tostring(false)
+      record["is_victim"] = tostring(false) -- when no_html is enabled a default value must be present
    end
 
    if value["is_attacker"] == true or value["is_attacker"] == "1" then
       if no_html then
-         record["is_attacker"] = tostring(true)
+         record["is_attacker"] = tostring(true) -- when no_html is enabled a default value must be present
       else
          record["is_attacker"] = '<span style="color: #008000;">✓</span>'
          record["role"] = {
@@ -245,7 +248,7 @@ function host_alert_store:format_record(value, no_html)
          }
       end
    elseif no_html then
-      record["is_attacker"] = tostring(false) 
+      record["is_attacker"] = tostring(false)  -- when no_html is enabled a default value must be present
    end
 
    record["vlan_id"] = value["vlan_id"] or 0
