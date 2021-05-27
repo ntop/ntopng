@@ -101,3 +101,4 @@ src/flow_alerts/*.o
 src/host_alerts/*.o
 src/flow_callbacks/*.o
 src/host_callbacks/*.o
+.vscode/
