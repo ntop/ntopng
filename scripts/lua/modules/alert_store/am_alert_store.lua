@@ -91,7 +91,6 @@ function am_alert_store:format_record(value, no_html)
    local record = self:format_record_common(value, alert_entities.am_host.entity_id, no_html)
 
    local alert_info = alert_utils.getAlertInfo(value)
-   tprint(alert_info)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.am_host.entity_id)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
 
