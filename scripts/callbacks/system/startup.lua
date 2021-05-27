@@ -268,6 +268,13 @@ if(ntop.isPro()) then
 					default_policy = 'drop',
 					pool_id = blocked_hosts_pool_id,
       })
+
+      -- Read rules from configured pools and policies
+      -- and push rules to the nProbe listeners
+      local rsp = policy_utils.get_ips_rules()
+      if(rsp ~= nil) then
+	 ntop.broadcastIPSMessage(rsp)
+      end
    end
 end   
 
