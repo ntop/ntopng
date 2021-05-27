@@ -162,8 +162,10 @@ int main(int argc, char *argv[])
   if(prefs->daemonize_ntopng())
     ntop->daemonize();
 
+#ifndef HAVE_NEDGE
   /* Force ZMQ interface creation */
   ntop->broadcastIPSMessage(NULL);
+#endif
   
 #ifdef __linux__
   /* Store number of CPUs before dropping privileges */
