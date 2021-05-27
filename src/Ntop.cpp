@@ -3368,9 +3368,14 @@ bool Ntop::broadcastIPSMessage(char *msg) {
   users_m.lock(__FILE__, __LINE__);
 
   
-  if(zmqPublisher == NULL)
-    zmqPublisher = new ZMQPublisher(prefs->getZMQPublishEventsURL());
-
+  if(zmqPublisher == NULL) {
+    try {
+      zmqPublisher = new ZMQPublisher(prefs->getZMQPublishEventsURL());
+    } catch(...) {
+      zmqPublisher = NULL;
+    }
+  }
+  
   if(!zmqPublisher) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create ZMQ publisher");
     users_m.unlock(__FILE__, __LINE__);
