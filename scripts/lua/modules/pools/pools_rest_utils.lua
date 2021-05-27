@@ -158,6 +158,7 @@ end
 
 -- @brief Bind a member to a pool
 function pools_rest_utils.bind_member(pools)
+   local old_pool_name = _GET["pool_name"]
    local pool_id = _GET["pool"]
    local member = _POST["member"]
 
@@ -181,6 +182,15 @@ function pools_rest_utils.bind_member(pools)
    if pool_id == s.DEFAULT_POOL_ID then
       -- Always bind the member to the default pool id (possibly removing it from any other pool)
       res, err = s:bind_member(member, pool_id)
+      if old_pool_name == pools.DROP_HOST_POOL_NAME and ntop.isPro() then
+	 package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+	 local policy_utils = require "policy_utils"
+	 
+	 local rsp = policy_utils.get_ips_rules()
+	 if(rsp ~= nil) then
+	    ntop.broadcastIPSMessage(rsp)
+	 end	 
+      end
    else
       -- Bind the member only if it is not already in another pool
       res, err = s:bind_member_if_not_already_bound(member, pool_id)

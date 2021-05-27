@@ -268,7 +268,7 @@ $(function () {
             $(`#remove-pool-name`).html(`<b>${selectedPool.name}</b>`);
         },
         beforeSumbit: function (hostMember) {
-            return { pool: defaultPoolId, member: hostMember.member };
+            return { pool: defaultPoolId, member: hostMember.member, pool_name: selectedPool.name };
         },
         onSubmitSuccess: function (response, textStatus, modalHandler) {
 

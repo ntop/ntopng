@@ -234,7 +234,8 @@ end
 if(ntop.isPro()) then
    local pools = require "pools"
    local host_pools = require "host_pools"
-
+   local policy_utils = require "policy_utils"
+   
    local blocked_hosts_pool_id = -2
    -- Get the pool name
    local blocked_hosts_pool_name = pools.DROP_HOST_POOL_NAME
@@ -260,6 +261,13 @@ if(ntop.isPro()) then
 	      members_list --[[ an array of valid interface ids]],
 	      recipients --[[ an array of valid recipient ids (names)]]
       )
+
+      -- Add the default drop policy to the pool
+      policy_utils.set_configuration(blocked_hosts_pool_id, {
+					rules = {},
+					default_policy = 'drop',
+					pool_id = blocked_hosts_pool_id,
+      })
    end
 end   
 
