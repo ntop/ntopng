@@ -713,6 +713,56 @@ function alert_store:format_json_record_common(value, entity_id)
    return record
 end
 
+-- Used to escape "'s by toCSV
+function alert_store:escapeCSV(s)
+   if string.find(s, '[,"]') then
+     s = '"' .. string.gsub(s, '"', '""') .. '"'
+   end
+   return s
+ end
+
+-- Convert from table to CSV string
+function alert_store:toCsv(documents)
+
+   local csv = {}
+
+   local csv_header = {}
+   for key, value in pairs(documents[1]) do
+      csv_header[#csv_header + 1] = tostring(key)
+   end
+   table.sort(csv_header)
+
+   local row = ""
+   for _, value in ipairs(csv_header) do
+      row = row .. "," .. self:escapeCSV(value)
+   end
+   row = string.sub(row, 2) -- remove first comma
+   csv[#csv+1] = row
+   
+   for _, document in ipairs(documents) do
+      row = ""
+      for _, column_name in ipairs(csv_header) do
+         row = row .. "," .. self:escapeCSV(tostring(document[column_name]))
+      end
+      row = string.sub(row, 2) -- remove first comma
+      csv[#csv+1] = row
+   end
+
+   self:printMyTable(csv)
+
+   return csv
+end
+
+function alert_store:printMyTable(t)
+   for key, value in pairs(t) do
+      if(type(value) == "table") then
+         traceError(TRACE_CONSOLE, TRACE_ERROR, tostring(key).." "..tostring(value.value))
+      else
+         traceError(TRACE_CONSOLE, TRACE_ERROR, tostring(key).." "..tostring(value))
+      end           
+   end
+end
+
 -- ##############################################
 
 --@brief Deletes old data according to the configuration or up to a safe limit

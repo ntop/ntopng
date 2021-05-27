@@ -79,7 +79,7 @@ end
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function snmp_device_alert_store:format_record(value, no_html)
-   local record = self:format_record_common(value, alert_entities.snmp_device.entity_id, no_html)
+   local record = self:format_json_record_common(value, alert_entities.snmp_device.entity_id, no_html)
 
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.snmp_device.entity_id)

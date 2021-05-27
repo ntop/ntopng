@@ -169,31 +169,27 @@ end
 
 -- ##############################################
 
-function host_alert_store:printMyTable(table)
-   
-   traceError(TRACE_ERROR, TRACE_CONSOLE, "#"..tostring(#table))
-   if #table == 0 then
-      return
-   end
+function host_alert_store:format_txt_record(value)
+   local result = {}
+   local record = self:format_record(value, true)
 
-   for key, value in pairs(table) do
-      if type(value)=="table" then
-         -- traceError(TRACE_ERROR, TRACE_CONSOLE, "KEY = "..key.." VALUE "..value.value)
-         self:printMyTable(value)
+   for key, value in pairs(record) do
+      if type(value) == "table" then
+         result[key] = tostring(value.value)
       else
-         traceError(TRACE_ERROR, TRACE_CONSOLE, "KEY = "..key.." VALUE "..value)      
+         result[key] = tostring(value)
       end
    end
+
+   return result
 end
 
-function host_alert_store:format_txt_record(value)
-   local tmp_json_record = self:format_json_record(value, true)
-   -- self:printMyTable(tmp_json_record)
-   return tmp_json_record
+function host_alert_store:format_json_record(value)
+   return self:format_record(value, false)
 end
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
-function host_alert_store:format_json_record(value, no_html)
+function host_alert_store:format_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"
    local record = self:format_json_record_common(value, alert_entities.host.entity_id)
 

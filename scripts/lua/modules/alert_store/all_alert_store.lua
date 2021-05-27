@@ -215,7 +215,7 @@ end
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function all_alert_store:format_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"
-   local record = self:format_record_common(value, alert_entities.host.entity_id, no_html)
+   local record = self:format_json_record_common(value, alert_entities.host.entity_id, no_html)
 
    record["entity"] = string.format('<a href="%s/lua/alert_stats.lua?page=%s&epoch_begin=%u&epoch_end=%u">%s</a>',
 				    ntop.getHttpPrefix(),

@@ -1,3 +1,4 @@
+local lists_utils = require "scripts.lua.modules.lists_utils"
 --
 -- (C) 2021-21 - ntop.org
 --
@@ -41,18 +42,20 @@ interface.select(ifid)
 local alerts, recordsFiltered = host_alert_store:select_request()
 
 for _key,_value in ipairs(alerts or {}) do
-   local record
-   if isTxtFormat 
-   then
-      -- used to the download alerts in csv format
+   local record = {}
+
+   if isTxtFormat then
       record = host_alert_store:format_txt_record(_value)   
    else
-      -- used by the UI to fill the table
-      record = host_alert_store:format_json_record(_value, false)   
+      record = host_alert_store:format_json_record(_value)      
    end
    
    res[#res + 1] = record
 end -- for
+
+if isTxtFormat and #res > 0 then
+   res = host_alert_store:toCsv(res)
+end
 
 rest_utils.extended_answer(rc, {records = res}, {
 			      ["draw"] = tonumber(_GET["draw"]),
