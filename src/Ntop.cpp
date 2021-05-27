@@ -3366,7 +3366,6 @@ bool Ntop::broadcastIPSMessage(char *msg) {
   
   /* Jeopardized users_m lock :-) */
   users_m.lock(__FILE__, __LINE__);
-
   
   if(zmqPublisher == NULL) {
     try {
@@ -3382,7 +3381,9 @@ bool Ntop::broadcastIPSMessage(char *msg) {
     return(false);
   }
 
-  rc = zmqPublisher->sendIPSMessage(msg);
+  if(msg)
+    rc = zmqPublisher->sendIPSMessage(msg);
+  
   users_m.unlock(__FILE__, __LINE__);
 
   return(rc);

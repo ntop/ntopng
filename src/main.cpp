@@ -162,6 +162,9 @@ int main(int argc, char *argv[])
   if(prefs->daemonize_ntopng())
     ntop->daemonize();
 
+  /* Force ZMQ interface creation */
+  ntop->broadcastIPSMessage(NULL);
+  
 #ifdef __linux__
   /* Store number of CPUs before dropping privileges */
   ntop->setNumCPUs(sysconf(_SC_NPROCESSORS_ONLN));
