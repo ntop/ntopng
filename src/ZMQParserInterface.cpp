@@ -1138,14 +1138,23 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 	 && ntohs(flow->src_port) < ntohs(flow->dst_port))
 	flow->swap();
     } else if(ntohs(flow->src_port) < 1024
-	 && ntohs(flow->src_port) < ntohs(flow->dst_port)
+	      && ntohs(flow->src_port) < ntohs(flow->dst_port)
 	      // && flow->in_pkts && flow->out_pkts /* Flows can be mono-directional, so can't use this condition */
-	      && (flow->l4_proto != IPPROTO_TCP  /* Not TCP or TCP but without 3WH (See https://github.com/ntop/ntopng/issues/5058) */
-	     || !((flow->tcp.server_tcp_flags | flow->tcp.client_tcp_flags | flow->tcp.tcp_flags) & TH_SYN)))
+	      && (flow->l4_proto != IPPROTO_TCP /* Not TCP or TCP but without SYN (See https://github.com/ntop/ntopng/issues/5058) */
+		  /*
+		    No SYN (cumulative flow->tcp.tcp_flags are NOT checked as they can contain a SYN but the direction is unknown),
+		    do the swap as it is assumed the beginning of the TCP flow has not been seen
+		   */
+		  || !((flow->tcp.server_tcp_flags | flow->tcp.client_tcp_flags) & TH_SYN)
+		  /*
+		    The SYN is server to client, swapping is safe
+		  */
+		  || flow->tcp.server_tcp_flags & TH_SYN))
       /* Attempt to determine flow client and server using port numbers
 	 useful when exported flows are mono-directional
 	 https://github.com/ntop/ntopng/issues/1978 */
       flow->swap();
+
 
     if(flow->pkt_sampling_rate == 0)
       flow->pkt_sampling_rate = 1;
