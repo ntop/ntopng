@@ -3359,7 +3359,7 @@ void Ntop::addLocalNetworkList(const char *rule) {
 #ifndef HAVE_NEDGE
 
 bool Ntop::broadcastIPSMessage(char *msg) {
-  bool rc;
+  bool rc = false;
   
   if(prefs->getZMQPublishEventsURL() == NULL)
     return(false);
