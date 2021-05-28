@@ -20,12 +20,15 @@
 <li class="nav-item d-flex align-items-center">
   <select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker" 
     data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
-  {% -- The Interfaces optgroup %}
-  <optgroup label="{{ i18n('interfaces') }}">
 
     {% if isAdministrator() then %}
-    <option value="{{ getSystemInterfaceId() }}" {{ selected }} data-content="{{ i18n('system') }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;">{{ i18n('system') }}</option>
+    <optgroup label="System">
+      <option value="{{ getSystemInterfaceId() }}" {{ selected }} data-content="{{ i18n('system') }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;">{{ i18n('system') }}</option>
+    </optgroup>
     {% end %}
+
+    {% -- The Interfaces optgroup %}
+  <optgroup label="{{ i18n('interfaces') }}">
 
     {% for round = 1, 2 do -- First round: only physical interfaces, second round: only virtual interfaces %}
       {% for k, v in pairsByValues(ifnames, asc) do %}
