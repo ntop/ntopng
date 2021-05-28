@@ -205,7 +205,7 @@ function all_alert_store:select_request(filter, select_fields)
 
       return alerts, total_rows
    else -- Historical
-      local res = self:select_historical(filter, select_fields)
+      local res = self:select_historical(filter, select_fields) or {}
       return res, #res
    end
 end
