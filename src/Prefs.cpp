@@ -1574,16 +1574,20 @@ int Prefs::checkOptions() {
     /* Disable tracing messages */
     ntop->getTrace()->set_trace_level(0);
     ntop->registerPrefs(this, true);
-    ntop->getPro()->check_maintenance_duration();
-    exit(0);
+    if (ntop->getPro()->check_maintenance_duration())
+      exit(0);
+    else
+      exit(1);
   }
 
   if(print_license) {
     /* Disable tracing messages */
     ntop->getTrace()->set_trace_level(0);
     ntop->registerPrefs(this, true);
-    ntop->getPro()->check_license_validity();
-    exit(0);
+    if (ntop->getPro()->check_license_validity())
+      exit(0);
+    else
+      exit(1);
   }
 #endif
 
