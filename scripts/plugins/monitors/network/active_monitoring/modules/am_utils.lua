@@ -290,7 +290,12 @@ local function is_infrastructure(host)
    -- The host is considered an infrastructure host if it contains the endpoint in the name
    if host:find(infrastructure_utils.ENDPOINT_TO_EXTRACT_DATA) or host:find(infrastructure_utils.SUFFIX_THROUGHPUT) then
       local instance = infrastructure_utils.get_instance_by_host(host)
-      return true, instance.alias
+
+      if not instance then
+	 return false, nil
+      else
+	 return true, instance.alias
+      end
    end
 
    return false, nil
