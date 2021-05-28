@@ -634,7 +634,9 @@ class DataTableRenders {
         let color = (obj.color !== undefined ? obj.color : "#aaa");
         let value = (obj.value !== undefined ? obj.value : obj);
         if (type === "display" && parseInt(value) === 0) color = "#aaa";
-        return `<span style='color: ${color}'>${NtopUtils.fint(value)}</span>`;
+        let span = `<span style='color: ${color}'>${NtopUtils.fint(value)}</span>`;
+        if (obj.url !== undefined) span = `<a href="${obj.url}">${span}</a>`;
+        return span;
     }
 
     static secondsToTime(seconds, type, row) {
