@@ -1,5 +1,6 @@
 /**
  * (C) 2020-21 - ntop.org
+ * This file contains utilities used by the *new* datatables.
  */
 
 jQuery.fn.dataTableExt.sErrMode = 'console';
