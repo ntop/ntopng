@@ -155,7 +155,6 @@ particlesJS("particles-js", {"particles":{"number":{"value":20,"density":{"enabl
 
 </main>
 <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print[[/bootstrap/js/bootstrap.min.js?"></script>
-<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print[[/selectpicker/js/bootstrap-select.min.js"></script>
 </body>
 </html>
 ]]
