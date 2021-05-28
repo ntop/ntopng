@@ -1,4 +1,12 @@
 /*!
+ *
+ * WARNING WARNING WARNING WARNING
+ * 
+ * This file has been modified by the ntop team to fix
+ * an issue open for this version (v1.14.0-beta2). See the line that contains: NTOP_FIX
+ * 
+ * WARNING WARNING WARNING WARNING
+ * 
  * Bootstrap-select v1.14.0-beta2 (https://developer.snapappointments.com/bootstrap-select)
  *
  * Copyright 2012-2021 SnapAppointments, LLC
