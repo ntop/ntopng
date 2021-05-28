@@ -37,17 +37,6 @@ print ([[
     text-align: center;
   }
 
-  #particles-js {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: #f5f5f5;
-    background-image: url("");
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: 50% 50%;
-  } /* ---- stats.js ---- */
-
   .form-signin {
     width: 100%;
     max-width: 330px;
