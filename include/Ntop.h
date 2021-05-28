@@ -91,6 +91,9 @@ class Ntop {
   cpu_load_stats cpu_stats;
   float cpu_load;
   bool plugins0_active, can_send_icmp, privileges_dropped;
+#ifndef HAVE_NEDGE
+  bool refresh_ips_rules;
+#endif
   FifoSerializerQueue *internal_alerts_queue;
   Recipients recipients; /* Handle notification recipients */
   
@@ -572,6 +575,8 @@ class Ntop {
   inline HostCallbacksLoader* getHostCallbacksLoader() { return(host_callbacks_loader); }
 #ifndef HAVE_NEDGE
   bool broadcastIPSMessage(char *msg);
+  inline void askToRefreshIPSRules()  { refresh_ips_rules = true; }
+  inline bool timeToRefreshIPSRules() { bool rc = refresh_ips_rules; refresh_ips_rules = false; return(rc); }
 #endif
 };
 

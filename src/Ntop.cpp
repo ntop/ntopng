@@ -192,6 +192,10 @@ Ntop::Ntop(char *appName) {
   inotify_fd = -1;
 #endif
 
+#ifndef HAVE_NEDGE
+  refresh_ips_rules = false;
+#endif
+  
   // printf("--> %s [%s]\n", startup_dir, appName);
 
   initTimezone();
