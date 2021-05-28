@@ -601,7 +601,7 @@ function page_utils.print_menubar()
                })
                ..[[
             </form>
-            <button data-bs-toggle="]] .. list_name .. [[" class='ms-5'><i class="fas fa-times"></i></button>
+            <button data-bs-toggle="]] .. list_name .. [[" class='ms-5 my-auto btn btn-close'></button>
       </div>
       <div class="mobile-menu-stats">
       ]])

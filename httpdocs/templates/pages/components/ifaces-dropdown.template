@@ -17,12 +17,12 @@
 
 {% -- Print out the interfaces dropdown %}
 
-<li class="nav-item d-flex align-items-center">
+<li class="nav-item d-none d-sm-flex align-items-center">
   <select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker" 
     data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
 
     {% if isAdministrator() then %}
-    <optgroup label="System">
+    <optgroup label="{{ i18n('system') }}">
       <option value="{{ getSystemInterfaceId() }}" {{ selected }} data-content="{{ i18n('system') }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;">{{ i18n('system') }}</option>
     </optgroup>
     {% end %}

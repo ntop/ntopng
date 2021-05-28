@@ -298,7 +298,7 @@ print[[
 		$('#network-clock').html(`${rsp.localtime}`);
 		$('#network-uptime').html(`${rsp.uptime}`);
 
-		let msg = `<div class='m-2'><div class='d-flex'>`;
+		let msg = `<div class='m-2'><div class='d-flex flex-wrap'>`;
 
 		if (rsp.system_host_stats.cpu_states) {
             const iowait = ']] print(i18n("about.iowait")) print[[: ' + NtopUtils.formatValue(rsp.system_host_stats.cpu_states.iowait) + "%";
