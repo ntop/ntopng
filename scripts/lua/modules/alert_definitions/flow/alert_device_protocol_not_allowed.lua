@@ -22,7 +22,7 @@ alert_device_protocol_not_allowed.meta = {
    alert_key = flow_alert_keys.flow_alert_device_protocol_not_allowed,
    i18n_title = "alerts_dashboard.suspicious_device_protocol",
    icon = "fas fa-fw fa-exclamation",
-   has_victim = true,
+
    has_attacker = true,
 }
 

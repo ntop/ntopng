@@ -37,7 +37,19 @@ class FlowRiskBinaryApplicationTransfer : public FlowRisk {
   FlowRiskBinaryApplicationTransfer() : FlowRisk() {};
   ~FlowRiskBinaryApplicationTransfer() {};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskBinaryApplicationTransferAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    FlowRiskBinaryApplicationTransferAlert *alert = new FlowRiskBinaryApplicationTransferAlert(this, f);
+
+    /*
+      The client is considered an attacker as it can be an infected host now part of a botnet
+      which fetches a malware executable. The server is considered an attacker as well as it can
+      be a server providing malicious files.
+     */
+    alert->setCliAttacker(),
+      alert->setSrvAttacker();
+
+    return alert;
+  }
 
   std::string getName()        const { return(std::string("suspicious_file_transfer")); }
 };

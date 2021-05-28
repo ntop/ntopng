@@ -21,6 +21,9 @@ alert_ndpi_http_suspicious_header.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_http_suspicious_header,
    i18n_title = "alerts_dashboard.ndpi_http_suspicious_header_title",
    icon = "fas fa-fw fa-exclamation",
+
+   has_victim = true,
+   has_attacker = true,
 }
 
 -- ##############################################

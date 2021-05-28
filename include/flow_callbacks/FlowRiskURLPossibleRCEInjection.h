@@ -38,7 +38,13 @@ class FlowRiskURLPossibleRCEInjection : public FlowRisk {
   FlowRiskURLPossibleRCEInjection() : FlowRisk() {};
   ~FlowRiskURLPossibleRCEInjection() {};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskURLPossibleRCEInjectionAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    FlowRiskURLPossibleRCEInjectionAlert *alert = new FlowRiskURLPossibleRCEInjectionAlert(this, f);
+
+    alert->setCliAttacker(), alert->setSrvVictim();
+
+    return alert;
+  }
 
   std::string getName()        const { return(std::string("ndpi_url_possible_rce_injection")); }
 };

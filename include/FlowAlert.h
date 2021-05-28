@@ -42,6 +42,8 @@ class FlowAlert {
 
   inline void setCliAttacker() { cli_attacker = true; }
   inline void setSrvAttacker() { srv_attacker = true; }
+  inline void setCliVictim()   { cli_victim = true;   }
+  inline void setSrvVictim()   { srv_victim = true;   }
 
   inline bool isCliAttacker() { return cli_attacker; }
   inline bool isCliVictim()   { return cli_victim;   }

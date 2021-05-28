@@ -24,6 +24,9 @@ alert_remote_to_local_insecure_proto.meta = {
    alert_key = flow_alert_keys.flow_alert_remote_to_local_insecure_proto,
    i18n_title = "alerts_dashboard.remote_to_local_insecure_proto",
    icon = "fas fa-fw fa-exclamation",
+
+   has_victim = true,
+   has_attacker = true,
 }
 
 -- ##############################################

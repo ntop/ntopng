@@ -20,6 +20,9 @@ alert_potentially_dangerous_protocol.meta = {
    alert_key = flow_alert_keys.flow_alert_potentially_dangerous,
    i18n_title = "flow_details.potentially_dangerous_protocol",
    icon = "fas fa-fw fa-exclamation",
+
+   has_victim = true,
+   has_attacker = true,
 }
 
 -- ##############################################

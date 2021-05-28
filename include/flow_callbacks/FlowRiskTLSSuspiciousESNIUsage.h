@@ -38,7 +38,13 @@ class FlowRiskTLSSuspiciousESNIUsage : public FlowRiskTLS {
   FlowRiskTLSSuspiciousESNIUsage() : FlowRiskTLS() {};
   ~FlowRiskTLSSuspiciousESNIUsage() {};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskTLSSuspiciousESNIUsageAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    FlowRiskTLSSuspiciousESNIUsageAlert *alert = new FlowRiskTLSSuspiciousESNIUsageAlert(this, f);
+
+    alert->setCliAttacker();
+
+    return alert;
+  }
 
   std::string getName()        const { return(std::string("ndpi_tls_suspicious_esni_usage")); }
 };

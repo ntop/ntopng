@@ -37,7 +37,18 @@ class FlowRiskKnownProtocolOnNonStandardPort : public FlowRisk {
   FlowRiskKnownProtocolOnNonStandardPort() : FlowRisk() {};
   ~FlowRiskKnownProtocolOnNonStandardPort() {};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskKnownProtocolOnNonStandardPortAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    FlowRiskKnownProtocolOnNonStandardPortAlert *alert = new FlowRiskKnownProtocolOnNonStandardPortAlert(this, f);
+
+    /* Client is an attacker, trying to use a server on a non-std port */
+    alert->setCliAttacker();
+
+    /* If the server responds, the server is also an attacker as it is offering a service on a non std-port */
+    if(f->get_bytes_srv2cli() > 10)
+      alert->setSrvAttacker();
+
+    return alert;
+  }
 
   std::string getName()        const { return(std::string("known_proto_on_non_std_port")); }
 };
