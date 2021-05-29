@@ -90,7 +90,7 @@ local charts_available = areInterfaceTimeseriesEnabled(ifid)
 
 function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_class, measure_unit)
    if(can_edit) then
-      print('<input style="width:12em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_class or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
+      print('<input style="width:36em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_class or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
       if(value ~= nil) then print(value.."") end
       print[[">]]
       if (measure_unit) then
