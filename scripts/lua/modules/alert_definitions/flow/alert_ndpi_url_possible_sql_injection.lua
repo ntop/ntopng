@@ -21,6 +21,9 @@ alert_ndpi_url_possible_sql_injection.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_url_possible_sql_injection,
    i18n_title = "alerts_dashboard.ndpi_url_possible_sql_injection_title",
    icon = "fas fa-fw fa-exclamation",
+
+   has_victim = true,
+   has_attacker = true,
 }
 
 -- ##############################################

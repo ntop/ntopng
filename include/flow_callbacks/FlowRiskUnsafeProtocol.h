@@ -39,7 +39,15 @@ class FlowRiskUnsafeProtocol : public FlowRisk {
   ~FlowRiskUnsafeProtocol() {};
 
   void protocolDetected(Flow *f);
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskUnsafeProtocolAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    FlowRiskUnsafeProtocolAlert *alert = new FlowRiskUnsafeProtocolAlert(this, f);
+
+    alert->setCliAttacker();
+    if(f->get_packets_srv2cli() > 10)
+      alert->setSrvAttacker();
+
+    return alert;
+  }
 
   std::string getName()        const { return(std::string("ndpi_unsafe_protocol")); }
 };

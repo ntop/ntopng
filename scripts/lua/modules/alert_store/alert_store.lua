@@ -343,8 +343,12 @@ end
 --@brief Performs a query and counts the number of records
 function alert_store:count()
    local count_query = self:select_historical(nil, "count(*) as count")
-   local num_results = tonumber(count_query[1]["count"])
-
+   local num_results = 0
+   
+   if count_query then
+      num_results = tonumber(count_query[1]["count"])
+   end
+      
    return num_results
 end
 
@@ -483,7 +487,7 @@ function alert_store:count_by_severity_and_time_historical()
    local q = string.format("SELECT severity, (tstamp - tstamp %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY severity, slot ORDER BY severity, slot ASC",
 			   time_slot_width, self._table_name, where_clause)
 
-   local q_res = interface.alert_store_query(q)
+   local q_res = interface.alert_store_query(q) or {}
 
    local all_severities = {}
 
@@ -516,9 +520,9 @@ function alert_store:count_by_severity_and_time()
    self:add_request_ranges()
 
    if self._engaged then -- Engaged
-      return self:count_by_severity_and_time_engaged()
+      return self:count_by_severity_and_time_engaged() or 0
    else -- Historical
-      return self:count_by_severity_and_time_historical()
+      return self:count_by_severity_and_time_historical() or 0
    end
 end
 

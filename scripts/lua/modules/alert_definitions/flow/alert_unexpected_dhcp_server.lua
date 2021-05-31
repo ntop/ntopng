@@ -20,7 +20,7 @@ alert_unexpected_dhcp_server.meta = {
    alert_key = flow_alert_keys.flow_alert_unexpected_dhcp_server,
    i18n_title = "flow_alerts_explorer.alert_unexpected_dhcp_title",
    icon = "fas fa-fw fa-exclamation",
-   has_victim = true,
+
    has_attacker = true,
 }
 

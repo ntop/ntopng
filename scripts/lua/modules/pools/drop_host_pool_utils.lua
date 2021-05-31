@@ -51,7 +51,7 @@ end
 
 -- ############################################
 
--- This function checks if the are banned hosts that need ti be unbanned
+-- This function checks if the are banned hosts that need to be unbanned
 
 function drop_host_pool_utils.check_periodic_hosts_list()
    -- Check the list length
@@ -67,6 +67,8 @@ function drop_host_pool_utils.check_periodic_hosts_list()
    -- Get the pool name
    local blocked_hosts_pool_name = pools.DROP_HOST_POOL_NAME
    local blocked_hosts_pool_members = {}
+   local host_pool = host_pools:create()
+   local all_pools = host_pool:get_all_pools()
    
    -- Check the existance of the pool   
    for _, value in pairs(all_pools) do

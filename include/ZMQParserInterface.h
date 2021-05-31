@@ -62,7 +62,7 @@ protected:
   struct {
     u_int32_t num_flows, /* flows processed */
       num_dropped_flows, /* flows unhandles (received but no room in the flow hash) */
-      num_events, num_counters,
+      num_events, num_counters, num_hello,
       num_templates, num_options, num_network_events,
       zmq_msg_rcvd, zmq_msg_drops;
   } recvStats, recvStatsCheckpoint;

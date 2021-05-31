@@ -140,7 +140,6 @@ i18n.tags = {* json.encode(tags.localization) *};
 
 const TAG_OPERATORS = {* json.encode(tags.tag_operators) *};
 const DEFINED_TAGS = {* json.encode(tags.defined_tags) *};
-
 const initialTags =  {* json.encode(tags.values) *};
 const input = $(`[name='tags']`)[0];
 

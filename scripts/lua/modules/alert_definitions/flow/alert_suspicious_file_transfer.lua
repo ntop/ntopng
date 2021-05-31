@@ -22,6 +22,9 @@ alert_suspicious_file_transfer.meta = {
    alert_key = flow_alert_keys.flow_alert_suspicious_file_transfer,
    i18n_title = "alerts_dashboard.suspicious_file_transfer",
    icon = "fas fa-fw fa-file-download",
+
+   has_victim = true,
+   has_attacker = true,
 }
 
 -- ##############################################

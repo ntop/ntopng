@@ -279,22 +279,22 @@ function page_utils.print_header(title)
     page_title = info.product .. " - " .. title
   end
 
-  print [[<!DOCTYPE html>
-<html>
-  <head>
+  print [[
+   <!DOCTYPE html>
+   <html>
+   <head>
     <title>]] print(page_title) print[[</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-   ]]
+
+    <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/minified/ntopng.min.css?]] print(static_file_epoch) print[[" rel="stylesheet"> ]]
+
     if (dark_mode) then
-      print[[<link href="]] print(http_prefix) print[[/bootstrap-custom/bootstrap-5.0.1-ntopng.min.css" rel="stylesheet">]]
       print[[<link href="]] print(http_prefix) print[[/css/minified/dark-mode.min.css?]] print(static_file_epoch) print[[" rel="stylesheet">]]
-    else
-      print[[ <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap.min.css" rel="stylesheet">]]
     end
 
     print[[
-    <link href="]] print(http_prefix) print[[/css/minified/ntopng.min.css?]] print(static_file_epoch) print[[" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/fontawesome-custom.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/tempusdominus.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/heatmap.min.css" rel="stylesheet">
@@ -303,12 +303,12 @@ function page_utils.print_header(title)
     <link href="]] print(http_prefix) print[[/selectpicker/css/bootstrap-select.min.css" rel="stylesheet">
 
    <style>
-   .flag {
-      width: 16px;
-      height: 11px;
-      margin-top: -5px;
-      background:url(]] print(http_prefix) print[[/img/flags.png) no-repeat
-   }
+      .flag {
+         width: 16px;
+         height: 11px;
+         margin-top: -5px;
+         background:url(]] print(http_prefix) print[[/img/flags.png) no-repeat
+      }
    </style>
     <link href="]] print(http_prefix) print[[/css/flags.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/pie-chart.css" rel="stylesheet">
@@ -601,7 +601,7 @@ function page_utils.print_menubar()
                })
                ..[[
             </form>
-            <button data-bs-toggle="]] .. list_name .. [[" class='ms-5'><i class="fas fa-times"></i></button>
+            <button data-bs-toggle="]] .. list_name .. [[" class='ms-5 my-auto btn btn-close'></button>
       </div>
       <div class="mobile-menu-stats">
       ]])

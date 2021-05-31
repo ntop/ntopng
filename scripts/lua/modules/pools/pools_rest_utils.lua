@@ -185,11 +185,8 @@ function pools_rest_utils.bind_member(pools)
       if old_pool_name == pools.DROP_HOST_POOL_NAME and ntop.isPro() then
 	 package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 	 local policy_utils = require "policy_utils"
-	 
-	 local rsp = policy_utils.get_ips_rules()
-	 if(rsp ~= nil) then
-	    ntop.broadcastIPSMessage(rsp)
-	 end	 
+
+	 policy_utils.broadcast_ips_rules()
       end
    else
       -- Bind the member only if it is not already in another pool

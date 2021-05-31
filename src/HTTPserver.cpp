@@ -503,6 +503,11 @@ static int getAuthorizedUser(struct mg_connection *conn,
   mg_get_cookie(conn, session_key, session_id, sizeof(session_id));
 
   if(session_id[0] == '\0') {
+    /* Try also with 'session' in case this comes from the REST API */
+    mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+  }
+
+  if(session_id[0] == '\0') {
     /* Explicit username + password */
     mg_get_cookie(conn, "user", username, NTOP_USERNAME_MAXLEN);
     mg_get_cookie(conn, "password", password, sizeof(password));

@@ -35,7 +35,11 @@ protected:
   UnexpectedNTPServer() : UnexpectedServer() {};
   ~UnexpectedNTPServer() {};
   
-  FlowAlert *buildAlert(Flow *f) { UnexpectedNTPServerAlert *alert = new UnexpectedNTPServerAlert(this, f); alert->setSrvAttacker(); return alert; }
+  FlowAlert *buildAlert(Flow *f) {
+    UnexpectedNTPServerAlert *alert = new UnexpectedNTPServerAlert(this, f);
+    alert->setCliAttacker();
+    return alert;
+  }
 
   std::string getName()          const { return(std::string("unexpected_ntp")); }
 };

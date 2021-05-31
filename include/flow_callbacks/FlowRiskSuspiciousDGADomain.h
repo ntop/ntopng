@@ -38,7 +38,11 @@ class FlowRiskSuspiciousDGADomain : public FlowRisk {
   FlowRiskSuspiciousDGADomain() : FlowRisk() {};
   ~FlowRiskSuspiciousDGADomain() {};
 
-  FlowAlert *buildAlert(Flow *f)  { return new FlowRiskSuspiciousDGADomainAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f)  {
+    FlowRiskSuspiciousDGADomainAlert *alert = new FlowRiskSuspiciousDGADomainAlert(this, f);
+    alert->setCliAttacker();
+    return alert;
+  }
 
   std::string getName()        const { return(std::string("ndpi_suspicious_dga_domain")); }
 };

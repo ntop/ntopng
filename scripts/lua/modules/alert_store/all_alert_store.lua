@@ -205,7 +205,7 @@ function all_alert_store:select_request(filter, select_fields)
 
       return alerts, total_rows
    else -- Historical
-      local res = self:select_historical(filter, select_fields)
+      local res = self:select_historical(filter, select_fields) or {}
       return res, #res
    end
 end
@@ -217,12 +217,13 @@ function all_alert_store:format_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"
    local record = self:format_json_record_common(value, alert_entities.host.entity_id, no_html)
 
-   record["entity"] = string.format('<a href="%s/lua/alert_stats.lua?page=%s&epoch_begin=%u&epoch_end=%u">%s</a>',
-				    ntop.getHttpPrefix(),
-				    alert_consts.alertEntityRaw(value["entity_id"]),
-				    _GET["epoch_begin"],
-				    _GET["epoch_end"],
-				    i18n(alert_consts.alertEntityById(value["entity_id"]).i18n_label))
+   local url = string.format('%s/lua/alert_stats.lua?page=%s&epoch_begin=%u&epoch_end=%u',
+      ntop.getHttpPrefix(),
+      alert_consts.alertEntityRaw(value["entity_id"]),
+      _GET["epoch_begin"],
+      _GET["epoch_end"])
+
+   record["entity"] = string.format('<a href="%s">%s</a>', url, i18n(alert_consts.alertEntityById(value["entity_id"]).i18n_label))
 
    local score = tonumber(value["score"])
    record["score"] = {
@@ -233,14 +234,17 @@ function all_alert_store:format_record(value, no_html)
    record["count_group_notice_or_lower"] = {
       value = value["count_group_notice_or_lower"],
       color = alert_severities.notice.color,
+      url = url.."&severity=3,eq",
    }
    record["count_group_warning"] = {
       value = value["count_group_warning"],
       color = alert_severities.warning.color,
+      url = url.."&severity=4,eq",
    }
    record["count_group_error_or_higher"] = {
       value = value["count_group_error_or_higher"],
       color = alert_severities.error.color,
+      url = url.."&severity=5,eq",
    }
 
    return record

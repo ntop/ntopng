@@ -269,6 +269,10 @@ if(ntop.isPro()) then
 					pool_id = blocked_hosts_pool_id,
       })
    end
+   
+   if host_pool then
+      policy_utils.broadcast_ips_rules()
+   end
 end   
 
 -- Show the warning at most 1 time per run

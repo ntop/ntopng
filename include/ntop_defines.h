@@ -886,7 +886,7 @@
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
 #define ALERTS_STORE_SCHEMA_FILE_NAME        "alert_store_schema.sql"
-#define ALERTS_STORE_DB_FILE_NAME            "alert_store_v06.db"
+#define ALERTS_STORE_DB_FILE_NAME            "alert_store_v07.db"
 
 #define NTOPNG_DATASOURCE_KEY                "ntopng.datasources"
 #define NTOPNG_DATASOURCE_URL                "/datasources/"

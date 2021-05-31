@@ -21,6 +21,8 @@ alert_data_exfiltration.meta = {
    i18n_title = "flow_details.data_exfiltration",
    icon = "fas fa-fw fa-exclamation",
    status_keep_increasing_scores = true, -- Keep increasing the score so the longer the flow, the higher the score
+
+   has_attacker = true,
 }
 
 -- ##############################################

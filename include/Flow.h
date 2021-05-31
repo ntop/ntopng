@@ -634,7 +634,7 @@ class Flow : public GenericHashEntry {
     return 0;
   }
   inline bool hasInvalidDNSQueryChars()  { return(isDNS() && protos.dns.invalid_chars_in_query); }
-  inline bool hasMaliciousSignature()    { return(has_malicious_cli_signature || has_malicious_srv_signature); }
+  inline bool hasMaliciousSignature(bool as_client) const { return as_client ? has_malicious_cli_signature : has_malicious_srv_signature; }
 
   void setRisk(ndpi_risk r);
   void addRisk(ndpi_risk r);

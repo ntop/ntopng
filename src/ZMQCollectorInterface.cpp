@@ -27,7 +27,7 @@
 
 ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserInterface(_endpoint) {
   char *tmp, *e, *t;
-  const char *topics[] = { "flow", "event", "counter", "template", "option", NULL };
+  const char *topics[] = { "flow", "event", "counter", "template", "option", "hello", NULL };
   
   num_subscribers = 0;
   server_secret_key[0] = '\0';
@@ -305,7 +305,6 @@ void ZMQCollectorInterface::collect_flows() {
           publisher_version = h0.version;
 
 	} else /* size == struct zmq_msg_hdr */ {
-
           /* safety checks */
           if(size != sizeof(struct zmq_msg_hdr) || (
             h->version != ZMQ_MSG_VERSION && 
@@ -337,8 +336,9 @@ void ZMQCollectorInterface::collect_flows() {
 	  source_id_last_msg_id[source_id] = 0;
 
 	last_msg_id = source_id_last_msg_id[source_id];
-
+	
 #ifdef ZMQ_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[topic: %s]", h->url);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[subscriber_id: %u][message source: %u]"
 				     "[msg_id: %u][last_msg_id: %u][lost: %i]",
 				     subscriber_id, source_id, msg_id, last_msg_id, msg_id - last_msg_id - 1);
@@ -452,6 +452,13 @@ void ZMQCollectorInterface::collect_flows() {
             parseOption(uncompressed, uncompressed_len, subscriber_id, this);
             break;
 
+	  case 'h': /* hello */
+	    recvStats.num_hello++;
+#ifndef HAVE_NEDGE
+	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HELLO] %s", uncompressed);
+#endif
+	    ntop->askToRefreshIPSRules();
+	    break;
           }
 
 	  /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h->url, uncompressed); */

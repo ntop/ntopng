@@ -110,7 +110,7 @@ function pools:_initialize()
 	   self:_persist(pools.DEFAULT_POOL_ID,
                          pools.DEFAULT_POOL_NAME,
 			 {} --[[ no members --]] ,
-			 recipients_mod.get_builtin_recipients() --[[ builtin recipients --]])
+			 recipients_mod.get_builtin_recipients() --[[ builtin recipients --]], nil --[[ policy ]])
         end
 
         self:_unlock()
@@ -241,7 +241,7 @@ function pools:_unlock() ntop.delCache(self:_get_pool_lock_key()) end
 -- ##############################################
 
 --@brief Method called after a successful execution of method persist
-function pools:_post_persist(pool_id, name, members, recipients)
+function pools:_post_persist(pool_id, name, members, recipients, policy)
 end
 
 -- ##############################################
@@ -286,7 +286,7 @@ end
 -- ##############################################
 
 -- Create a new pool (unless it already exists)
-function pools:add_pool(name, members, recipients)
+function pools:add_pool(name, members, recipients, policy)
     local pool_id
 
     local locked = self:_lock()
@@ -330,7 +330,7 @@ function pools:add_pool(name, members, recipients)
                 -- All the checks have succeeded
                 -- Now that everything is ok, the id can be assigned and the pool can be persisted with the assigned id
                 pool_id = self:_assign_pool_id()
-                self:_persist(pool_id, name, members, recipients)
+                self:_persist(pool_id, name, members, recipients, policy)
                 self:_set_cache_flag()
             end
         end
@@ -812,7 +812,7 @@ function pools:unbind_all_recipient_id(recipient_id)
 
             if found then
                 -- Rewrite the pool using the new recipients set
-                self:_persist(pool["pool_id"], pool["name"], pool["members"], new_recipients)
+                self:_persist(pool["pool_id"], pool["name"], pool["members"], new_recipients, pool["policy"])
             end
         end
 
@@ -857,7 +857,7 @@ function pools:bind_all_recipient_id(recipient_id)
 	       new_recipients[#new_recipients + 1] = tonumber(recipient_id)
 
 	       -- Rewrite the pool using the extended recipients array
-	       self:_persist(pool["pool_id"], pool["name"], pool["members"], new_recipients)
+	       self:_persist(pool["pool_id"], pool["name"], pool["members"], new_recipients, pool["policy"])
 	    end
 	 end
       end
@@ -927,7 +927,7 @@ function pools:_bind_recipient(recipient_id, pool_id)
 
       -- Persist the pool with the new `recipient`
          self:_persist(bind_pool["pool_id"], bind_pool["name"],
-                       bind_pool_members, bind_pool_recipients)
+                       bind_pool_members, bind_pool_recipients, pool["policy"])
       end
 
       -- Bind has executed successfully
@@ -968,7 +968,7 @@ function pools:_bind_member(member, pool_id)
 
             -- Persist the pool with the new `member`
             self:_persist(bind_pool["pool_id"], bind_pool["name"],
-                          bind_pool_members, bind_pool_recipients)
+                          bind_pool_members, bind_pool_recipients, bind_pool["policy"])
 
             -- Bind has executed successfully
             ret = true
@@ -1017,7 +1017,7 @@ function pools:bind_member(member, pool_id)
 
                 -- Persist the existing pool without the removed `member`
                 self:_persist(cur_pool["pool_id"], cur_pool["name"],
-                              new_members, bind_pool_recipients)
+                              new_members, bind_pool_recipients, cur_pool["policy"])
             end
         end
 

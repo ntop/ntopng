@@ -1113,7 +1113,14 @@ static int ntop_brodcast_ips_message(lua_State* vm) {
   msg = (char*)lua_tostring(vm, 1);
 
   ntop->broadcastIPSMessage(msg);
-  
+
+  return(CONST_LUA_OK);
+}
+
+static int ntop_time_to_refresh_ips_rules(lua_State* vm) {
+  /* Read and reset the variable */
+  lua_pushboolean(vm, ntop->timeToRefreshIPSRules());
+
   return(CONST_LUA_OK);
 }
 
@@ -1671,13 +1678,13 @@ static int ntop_http_get_auth_token(lua_State* vm) {
     it just matters to time (for instance when use for testing HTTP services)
   */
   if(lua_type(vm, 4) == LUA_TBOOLEAN)
-    return_content = lua_toboolean(vm, 4) ? true : false;  
+    return_content = lua_toboolean(vm, 4) ? true : false;
 
   if(lua_type(vm, 5) == LUA_TBOOLEAN)
     use_cookie_authentication = lua_toboolean(vm, 5) ? true : false;
 
   if(lua_type(vm, 6) == LUA_TBOOLEAN)
-    follow_redirects = lua_toboolean(vm, 6) ? true : false;  
+    follow_redirects = lua_toboolean(vm, 6) ? true : false;
 
   if(lua_type(vm, 7) == LUA_TNUMBER)
     ip_version = lua_tointeger(vm, 7);
@@ -1821,7 +1828,7 @@ static int ntop_ping_host(lua_State* vm) {
 #else
       ping = ntop->getPing();
 #endif
-      
+
       if(ping == NULL) {
 	lua_pushnil(vm);
 	return(CONST_LUA_OK);
@@ -1934,7 +1941,7 @@ static int ntop_is_administrator(lua_State* vm) {
 /* ****************************************** */
 
 static bool allowLocalUserManagement(lua_State* vm) {
-  if (!ntop->isLocalUser(vm) && !ntop->isLocalAuthEnabled()) 
+  if (!ntop->isLocalUser(vm) && !ntop->isLocalAuthEnabled())
    return(false);
 
   if(!ntop->isUserAdministrator(vm))
@@ -2336,7 +2343,7 @@ static int ntop_create_user_session(lua_State* vm) {
   char *username;
   char session_id[NTOP_SESSION_ID_LENGTH];
   u_int session_duration = 0;
-  
+
   session_id[0] = '\0';
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -2354,7 +2361,7 @@ static int ntop_create_user_session(lua_State* vm) {
     if (strcmp(curr_user, username) != 0)
       return(CONST_LUA_ERROR);
   }
-  
+
   ntop->get_HTTPserver()->authorize_noconn(username, session_id, sizeof(session_id), session_duration);
 
   lua_pushstring(vm, session_id);
@@ -2365,12 +2372,12 @@ static int ntop_create_user_session(lua_State* vm) {
 
 static int ntop_create_user_api_token(lua_State* vm) {
   char *username = NULL;
-  char api_token[NTOP_SESSION_ID_LENGTH];  
+  char api_token[NTOP_SESSION_ID_LENGTH];
   api_token[0] = '\0';
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
-  
+
   if(ntop->get_HTTPserver()->create_api_token(username, api_token, sizeof(api_token)))
     lua_pushstring(vm, api_token);
   else
@@ -2382,7 +2389,7 @@ static int ntop_create_user_api_token(lua_State* vm) {
 /* ******************************************* */
 
 static int ntop_get_user_api_token(lua_State* vm) {
-  
+
   char* username = NULL;
   char api_token[NTOP_SESSION_ID_LENGTH];
   api_token[0] = '\0';
@@ -3058,7 +3065,7 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "uptime", ntop->getGlobals()->getUptime());
   lua_push_str_table_entry(vm, "command_line", ntop->getPrefs()->get_command_line());
   lua_push_uint32_table_entry(vm, "http_port", ntop->getPrefs()->get_http_port());
-  lua_push_uint32_table_entry(vm, "https_port", ntop->getPrefs()->get_https_port());				
+  lua_push_uint32_table_entry(vm, "https_port", ntop->getPrefs()->get_https_port());
 
   if(verbose) {
     lua_push_str_table_entry(vm, "version.rrd", rrd_strversion());
@@ -3395,7 +3402,7 @@ static int ntop_snmpv3_batch_get(lua_State* vm) {
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
   char value_types[SNMP_MAX_NUM_OIDS];
   SNMP *snmp;
-   
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop_interface)
@@ -3414,7 +3421,7 @@ static int ntop_snmpv3_batch_get(lua_State* vm) {
 
   snmp = getLuaVMUserdata(vm, snmpBatch);
 
-  if(snmp == NULL) {   
+  if(snmp == NULL) {
     snmp = new SNMP();
 
     if(!snmp) return(CONST_LUA_ERROR);
@@ -4354,7 +4361,7 @@ static int ntop_get_hash_redis(lua_State* vm) {
   char *key, *member, *rsp;
   Redis *redis = ntop->getRedis();
   u_int json_len;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
@@ -4363,7 +4370,7 @@ static int ntop_get_hash_redis(lua_State* vm) {
 
   json_len = ntop->getRedis()->hstrlen(key, member);
   if(json_len == 0) json_len = CONST_MAX_LEN_REDIS_VALUE; else json_len += 8; /* Little overhead */
-  
+
   if((rsp = (char*)malloc(json_len)) == NULL) return(CONST_LUA_PARAM_ERROR);
   lua_pushfstring(vm, "%s", (redis->hashGet(key, member, rsp, CONST_MAX_LEN_REDIS_VALUE) == 0) ? rsp : (char*)"");
   free(rsp);
@@ -4931,14 +4938,14 @@ static int _ntop_set_redis(bool do_setnx, lua_State* vm) {
     value = buf;
   } else if(lua_type(vm, 2) == LUA_TBOOLEAN) {
     bool v = (bool)lua_toboolean(vm, 2);
-    
+
     snprintf(buf, sizeof(buf), "%s", v ? "true" : "false");
     value = buf;
   } else {
     lua_pushboolean(vm, false);
     return(CONST_LUA_OK);
   }
-  
+
   /* Optional key expiration in SECONDS */
   if(lua_type(vm, 3) == LUA_TNUMBER)
     expire_secs = (u_int)lua_tonumber(vm, 3);
@@ -4947,7 +4954,7 @@ static int _ntop_set_redis(bool do_setnx, lua_State* vm) {
     lua_pushboolean(vm, (redis->setnx(key, value, expire_secs) == 1 /* value added (not existing) */) ? true : false);
   else
     lua_pushboolean(vm, (redis->set(key, value, expire_secs) == 0));
-  
+
   return(CONST_LUA_OK);
 }
 
@@ -5359,7 +5366,7 @@ static int ntop_rrd_inc_num_drops(lua_State* vm) {
 
 static int ntop_get_drop_pool_info(lua_State* vm) {
   lua_newtable(vm);
-  
+
   lua_push_str_table_entry(vm, "pool_name", DROP_HOST_POOL_NAME);
   lua_push_str_table_entry(vm, "list_key", DROP_HOST_POOL_LIST);
   lua_push_uint64_table_entry(vm, "expiration_time", DROP_HOST_POOL_EXPIRATION_TIME);
@@ -5421,7 +5428,7 @@ static int __ntop_rrd_status(lua_State* vm, int status, char *filename, char *cf
 
       if(strstr(err, "fetching cdp from rra") != NULL)
 	unlink(filename); /* 99,99999% this is a corrupted file */
-	
+
       return(CONST_LUA_ERROR);
     }
   }
@@ -5673,16 +5680,16 @@ static int ntop_get_networks(lua_State* vm) {
 
 static int ntop_pop_internal_alerts(lua_State* vm) {
   ndpi_serializer *alert = ntop->getInternalAlertsQueue()->dequeue();
-			
-  if(alert) {    
+
+  if(alert) {
     lua_newtable(vm);
     Utils::tlv2lua(vm, alert);
-    
+
     ndpi_term_serializer(alert);
-    free(alert);    
+    free(alert);
   } else
     lua_pushnil(vm);
-  
+
   return(CONST_LUA_OK);
 }
 
@@ -6095,11 +6102,12 @@ static luaL_Reg _ntop_reg[] = {
   { "rmdir",            ntop_remove_dir_recursively },
 
 #ifndef HAVE_NEDGE
-  { "zmq_connect",      ntop_zmq_connect },
+  { "zmq_connect",      ntop_zmq_connect    },
   { "zmq_disconnect",   ntop_zmq_disconnect },
-  { "zmq_receive",      ntop_zmq_receive },  
+  { "zmq_receive",      ntop_zmq_receive    },
   /* IPS */
   { "broadcastIPSMessage",    ntop_brodcast_ips_message       },
+  { "timeToRefreshIPSRules",  ntop_time_to_refresh_ips_rules  },
 #endif
 
   { "reloadPreferences",   ntop_reload_preferences },
@@ -6153,7 +6161,7 @@ static luaL_Reg _ntop_reg[] = {
   /* UDP */
   { "send_udp_data",    ntop_send_udp_data },
 
-  /* TCP */  
+  /* TCP */
   { "send_tcp_data",    ntop_send_tcp_data },
 
   /* IP */
@@ -6302,7 +6310,7 @@ static luaL_Reg _ntop_reg[] = {
   { "setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids },
   { "getLocalNetworkAlias",  ntop_check_local_network_alias },
   { "getLocalNetworkID",     ntop_get_local_network_id },
-  
+
   /* Mac */
   { "setMacDeviceType",     ntop_set_mac_device_type     },
 
@@ -6345,7 +6353,7 @@ static luaL_Reg _ntop_reg[] = {
   { "getnDPIProtoCategory",   ntop_get_ndpi_protocol_category },
   { "setnDPIProtoCategory",   ntop_set_ndpi_protocol_category },
   { "isCustomApplication",    ndpi_is_custom_application      },
-  
+
   /* nEdge */
 #ifdef HAVE_NEDGE
   { "setHTTPBindAddr",       ntop_set_http_bind_addr       },

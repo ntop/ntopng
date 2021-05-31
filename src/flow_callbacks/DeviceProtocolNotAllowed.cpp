@@ -25,27 +25,13 @@
 void DeviceProtocolNotAllowed::protocolDetected(Flow *f) {
   if(!f->isDeviceAllowedProtocol()) {
     u_int8_t c_score, s_score;
-    const IpAddress *attacker, *victim;
 
-    if (!f->isCliDeviceAllowedProtocol()) {
-      c_score = SCORE_LEVEL_ERROR;
-      s_score = SCORE_LEVEL_INFO;
-      attacker = f->get_cli_ip_addr();
-      victim = f->get_srv_ip_addr();
-    } else {
-      c_score = SCORE_LEVEL_INFO;
-      s_score = SCORE_LEVEL_ERROR;
-      attacker = f->get_srv_ip_addr();
-      victim = f->get_cli_ip_addr();
-    }
-
-    /* TODO
-     * char buf[64];
-     * attacker->print(buf, sizeof(buf);
-     * victim->print(buf, sizeof(buf)
-     * set_attacker(attacker)
-     * set_victim(victim)
-     */
+    if (!f->isCliDeviceAllowedProtocol())
+      c_score = SCORE_LEVEL_ERROR,
+	s_score = SCORE_LEVEL_INFO;
+    else
+      c_score = SCORE_LEVEL_INFO,
+	s_score = SCORE_LEVEL_ERROR;
 
     f->triggerAlertAsync(DeviceProtocolNotAllowedAlert::getClassType(), c_score, s_score);
   }
@@ -54,9 +40,15 @@ void DeviceProtocolNotAllowed::protocolDetected(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *DeviceProtocolNotAllowed::buildAlert(Flow *f) {
-  DeviceProtocolNotAllowedAlert *alert = new DeviceProtocolNotAllowedAlert(this, f);
+  DeviceProtocolNotAllowedAlert *alert = new (std::nothrow) DeviceProtocolNotAllowedAlert(this, f);
 
-  if (!f->isCliDeviceAllowedProtocol())
+  /*
+    Only the attacker is known, and it can be either the client or the server.
+    Nothing can be said on the victim as the non-attacker peer can just do legitimate activities.
+    E.g., a client using TOR as protocol not allowed can contact legitimate (non-victim) TOR nodes
+  */
+    
+  if(!f->isCliDeviceAllowedProtocol())
     alert->setCliAttacker();
   else
     alert->setSrvAttacker();

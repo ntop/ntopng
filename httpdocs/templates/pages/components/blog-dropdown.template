@@ -1,0 +1,53 @@
+<li class="nav-item dropdown">
+    <a id="notification-list" href="#" class="nav-link dropdown-toggle mx-2 dark-gray position-relative" data-bs-toggle="dropdown">
+       <i class='fas fa-bell'></i>
+       {% if ((new_posts_counter ~= nil) and (new_posts_counter > 0)) then %}
+        <span class="notification-bell badge rounded-pill bg-danger">{{ new_posts_counter }}</span>
+       {% end %}
+    </a>
+    <div class="dropdown-menu dropdown-menu-end p-1">
+        <div class="blog-section">
+            <span class="dropdown-header p-2 mb-0">{* i18n("blog_feed.news_from_blog") *}</span>
+            <ul class="list-unstyled p-2">
+
+            {% if (posts ~= nil) then %}
+
+                {% 
+                    for _, p in pairs(posts) do
+
+                        local user_has_read_post = not (p.users_read[username] == nil)
+                        local post_date = os.date("%x", p.epoch)
+            
+                        local post_title = p.title or ''
+                        if (string.len(post_title)) then
+                            post_title = string.sub(p.title, 1, 42) .. "..."
+                        end
+                %}
+
+                    <li class='media-body pt-2 pr-2 pl-2 pb-1'>
+                        <a target="_about"
+                            class="blog-notification text-dark"
+                            data-read="{{ (user_has_read_post and "true" or "false") }}"
+                            data-id="{{ p.id }}"
+                            class='text-dark'
+                            href="{{ (p.link or '/') }}">
+                                <h6 class='mt-0 mb-1'>
+                                    {% if (not user_has_read_post) then %} 
+                                        <span class='badge bg-danger'>{{ i18n('new') }}</span>
+                                    {% end %}
+                                    {* post_title *}
+                                    <i class='fas fa-external-link-alt float-end'></i>
+                                </h6>
+                                <p class='mb-0'> {{ (p.shortDesc) }}</p>
+                                <small>{{ (i18n('posted') .. " " .. post_date) }}</small>
+                        </a>
+                    </li>
+                {% end %}
+            {% else %}
+                <li class="text-muted p-2">{{ i18n("blog_feed.nothing_to_show") }}</li>
+            {% end %}
+ 
+            </ul>
+        </div>
+    </div>
+</li>

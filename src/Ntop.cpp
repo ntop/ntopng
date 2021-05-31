@@ -192,6 +192,10 @@ Ntop::Ntop(char *appName) {
   inotify_fd = -1;
 #endif
 
+#ifndef HAVE_NEDGE
+  refresh_ips_rules = false;
+#endif
+  
   // printf("--> %s [%s]\n", startup_dir, appName);
 
   initTimezone();
@@ -3359,25 +3363,31 @@ void Ntop::addLocalNetworkList(const char *rule) {
 #ifndef HAVE_NEDGE
 
 bool Ntop::broadcastIPSMessage(char *msg) {
-  bool rc;
+  bool rc = false;
   
   if(prefs->getZMQPublishEventsURL() == NULL)
     return(false);
   
   /* Jeopardized users_m lock :-) */
   users_m.lock(__FILE__, __LINE__);
-
   
-  if(zmqPublisher == NULL)
-    zmqPublisher = new ZMQPublisher(prefs->getZMQPublishEventsURL());
-
+  if(zmqPublisher == NULL) {
+    try {
+      zmqPublisher = new ZMQPublisher(prefs->getZMQPublishEventsURL());
+    } catch(...) {
+      zmqPublisher = NULL;
+    }
+  }
+  
   if(!zmqPublisher) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create ZMQ publisher");
     users_m.unlock(__FILE__, __LINE__);
     return(false);
   }
 
-  rc = zmqPublisher->sendIPSMessage(msg);
+  if(msg)
+    rc = zmqPublisher->sendIPSMessage(msg);
+  
   users_m.unlock(__FILE__, __LINE__);
 
   return(rc);

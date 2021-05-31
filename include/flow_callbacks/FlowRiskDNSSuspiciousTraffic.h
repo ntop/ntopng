@@ -38,7 +38,14 @@ class FlowRiskDNSSuspiciousTraffic : public FlowRisk {
   FlowRiskDNSSuspiciousTraffic() : FlowRisk() {};
   ~FlowRiskDNSSuspiciousTraffic() {};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskDNSSuspiciousTrafficAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f) {
+    FlowRiskDNSSuspiciousTrafficAlert *alert = new FlowRiskDNSSuspiciousTrafficAlert(this, f);
+
+    /* The client is assuming to be probing the victim DNS server with suspicious DNS traffic */
+    alert->setCliAttacker(), alert->setSrvVictim();
+
+    return alert;
+  }
 
   std::string getName()        const { return(std::string("ndpi_dns_suspicious_traffic")); }
 };
