@@ -190,6 +190,17 @@ typedef enum {
 } AlertLevelGroup;
 
 /*
+  Used to filter engaged alerts according to the role
+  NOTE: Keep in sync with Lua alert_roles.lua
+ */
+typedef enum {
+  alert_role_any = 0,
+  alert_role_is_attacker = 1,
+  alert_role_is_victim = 2,
+  alert_role_is_both = 3,
+} AlertRole;
+
+/*
   Keep in sync with alert_entities.lua entity_id
  */
 typedef enum {

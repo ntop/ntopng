@@ -8392,18 +8392,19 @@ struct get_engaged_alerts_userdata {
   AlertEntity alert_entity;
   AlertType alert_type;
   AlertLevel alert_severity;
+  AlertRole role_filter;
   u_int idx;
 };
 
 static void get_engaged_alerts_callback(AlertEntity alert_entity, AlertableEntity *alertable, void *user_data) {
   struct get_engaged_alerts_userdata *data = (struct get_engaged_alerts_userdata *)user_data;
 
-  alertable->getAlerts(data->vm, no_periodicity, data->alert_type, data->alert_severity, &data->idx);
+  alertable->getAlerts(data->vm, no_periodicity, data->alert_type, data->alert_severity, data->role_filter, &data->idx);
 }
 
 void NetworkInterface::getEngagedAlerts(lua_State *vm, AlertEntity alert_entity,
 					const char *entity_value, AlertType alert_type, AlertLevel alert_severity,
-					AddressTree *allowed_nets) {
+					AlertRole role_filter, AddressTree *allowed_nets) {
   struct get_engaged_alerts_userdata data;
 
   data.vm = vm;
@@ -8411,6 +8412,7 @@ void NetworkInterface::getEngagedAlerts(lua_State *vm, AlertEntity alert_entity,
   data.alert_entity = alert_entity;
   data.alert_type = alert_type;
   data.alert_severity = alert_severity;
+  data.role_filter = role_filter;
 
   lua_newtable(vm);
 

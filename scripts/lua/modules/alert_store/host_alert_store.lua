@@ -15,6 +15,7 @@ local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
+local alert_roles = require "alert_roles"
 local json = require "dkjson"
 
 -- ##############################################
@@ -105,8 +106,10 @@ function host_alert_store:add_role_filter(role)
    if not self._role then
       self._role = role
       if role == 'attacker' then
+	 self._role = alert_roles.alert_role_is_attacker.role_id
          self._where[#self._where + 1] = "is_attacker = 1"
       elseif role == 'victim' then
+	 self._role = alert_roles.alert_role_is_victim.role_id
          self._where[#self._where + 1] = "is_victim = 1"
       end
       return true

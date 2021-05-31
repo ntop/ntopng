@@ -162,15 +162,22 @@ void HostAlertableEntity::luaAlert(lua_State* vm, HostAlert *alert) {
 /* ****************************************** */
 
 void HostAlertableEntity::getAlerts(lua_State* vm, ScriptPeriodicity p /* not used */,
-  AlertType type_filter, AlertLevel severity_filter, u_int *idx) {
+				    AlertType type_filter, AlertLevel severity_filter, AlertRole role_filter,
+				    u_int *idx) {
 
   engaged_alerts_lock.rdlock(__FILE__, __LINE__);
 
   for (u_int i = 0; i < NUM_DEFINED_HOST_CALLBACKS; i++) {
     HostAlert *alert = engaged_alerts[i];
     if (alert) {
-      if ((type_filter == alert_none || type_filter == alert->getAlertType().id) &&
-          (severity_filter == alert_level_none || severity_filter == Utils::mapScoreToSeverity(alert->getScore()))) {
+      if((type_filter == alert_none
+	   || type_filter == alert->getAlertType().id)
+	  && (severity_filter == alert_level_none
+	      || severity_filter == Utils::mapScoreToSeverity(alert->getScore()))
+	  && (role_filter == alert_role_any
+	      || (role_filter == alert_role_is_attacker && alert->isAttacker())
+	      || (role_filter == alert_role_is_victim && alert->isVictim())
+	      || (role_filter == alert_role_is_both && (alert->isAttacker() || alert->isVictim())))) {
         lua_newtable(vm);
         luaAlert(vm, alert);
 

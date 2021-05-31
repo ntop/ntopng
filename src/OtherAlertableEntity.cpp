@@ -160,7 +160,8 @@ void OtherAlertableEntity::countAlerts(grouped_alerts_counters *counters) {
 /* ****************************************** */
 
 void OtherAlertableEntity::getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity p,
-				AlertType type_filter, AlertLevel severity_filter, u_int *idx) {
+						AlertType type_filter, AlertLevel severity_filter,
+						AlertRole role_filter, u_int *idx) {
   std::map<std::string, Alert>::const_iterator it;
 
   if(!engaged_alerts[p].empty()) {
@@ -189,14 +190,15 @@ void OtherAlertableEntity::getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity
 /* ****************************************** */
 
 void OtherAlertableEntity::getAlerts(lua_State* vm, ScriptPeriodicity periodicity_filter,
-				AlertType type_filter, AlertLevel severity_filter, u_int *idx) {
+				     AlertType type_filter, AlertLevel severity_filter, AlertRole role_filter,
+				     u_int *idx) {
   if(periodicity_filter != no_periodicity) {
     /* Get alerts about a specific periodicity */
-    getPeriodicityAlerts(vm, periodicity_filter, type_filter, severity_filter, idx);
+    getPeriodicityAlerts(vm, periodicity_filter, type_filter, severity_filter, role_filter, idx);
   } else {
     int p;
 
     for(p = 0; p < MAX_NUM_PERIODIC_SCRIPTS; p++)
-      getPeriodicityAlerts(vm, (ScriptPeriodicity)p, type_filter, severity_filter, idx);
+      getPeriodicityAlerts(vm, (ScriptPeriodicity)p, type_filter, severity_filter, role_filter, idx);
   }
 }

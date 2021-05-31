@@ -49,7 +49,8 @@ class HostAlertableEntity : public AlertableEntity {
 
   void countAlerts(grouped_alerts_counters *counters);
   void getAlerts(lua_State* vm, ScriptPeriodicity p,
-    AlertType type_filter, AlertLevel severity_filter, u_int *idx);
+		 AlertType type_filter, AlertLevel severity_filter, AlertRole role_filter,
+		 u_int *idx);
 };
 
 #endif
