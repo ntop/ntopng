@@ -8,14 +8,14 @@
     <div class="dropdown-menu dropdown-menu-end p-1">
         <div class="blog-section">
             <span class="dropdown-header p-2 mb-0">{* i18n("blog_feed.news_from_blog") *}</span>
-            <ul class="list-unstyled p-2">
+            <ul class="list-unstyled">
 
             {% if (posts ~= nil) then %}
 
                 {% 
                     for _, p in pairs(posts) do
 
-                        local user_has_read_post = not (p.users_read[username] == nil)
+                        local user_has_read_post = (p.users_read[username] == true)
                         local post_date = os.date("%x", p.epoch)
             
                         local post_title = p.title or ''
@@ -24,7 +24,7 @@
                         end
                 %}
 
-                    <li class='media-body pt-2 pr-2 pl-2 pb-1'>
+                    <li class='media-body pt-2 pe-2 ps-2 pb-1'>
                         <a target="_about"
                             class="blog-notification text-dark"
                             data-read="{{ (user_has_read_post and "true" or "false") }}"

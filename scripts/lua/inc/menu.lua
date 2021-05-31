@@ -82,10 +82,14 @@ print[[
    window.unchangable_pool_names = [
       'Jailed hosts pool'
    ]
+
+
    window.__IS_PRO__ = ]] print(ntop.isPro()) print[[;
    window.__CSRF_DATATABLE__ = `]] print(ntop.getRandomCSRFValue()) print[[`;
+   window.__BLOG_NOTIFICATION_CSRF__ = `]] print(ntop.getRandomCSRFValue()) print[[`;
 
-   if(document.cookie.indexOf("tzoffset=") < 0) {
+
+   if (document.cookie.indexOf("tzoffset=") < 0) {
       // Tell the server the client timezone
       document.cookie = "tzoffset=" + (new Date().getTimezoneOffset() * 60 * -1);
    }
@@ -1070,7 +1074,8 @@ if (not info.oem) then
    local posts, new_posts_counter = blog_utils.readPostsFromRedis(username)
    template_utils.render("pages/components/blog-dropdown.template", {
       posts = posts,
-      new_posts_counter = new_posts_counter
+      new_posts_counter = new_posts_counter,
+      username = username
    })
 end
 

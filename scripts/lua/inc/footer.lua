@@ -187,9 +187,6 @@ local message_enabled = (areHostL7TimeseriesEnabled(ifid) or areHostCategoriesTi
 if not info.oem then
 	-- Create a CSRF Token to handle the blog notifications
 	print([[
-		<script type='text/javascript'>
-			const blogNotificationCsrf = "]].. ntop.getRandomCSRFValue() ..[[";
-		</script>
 		<script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/utils/blog-notification-utils.js?]].. ntop.getStaticFileEpoch() ..[['></script>
 	]])
 end
