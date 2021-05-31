@@ -163,11 +163,13 @@ print([[
 			ToastUtils.initToasts();
 		});
 
-	   const toggleSystemInterface = (isSystemSwitching = false, $form = null) => {
-                  if($form != null)
-                    $form.submit();
-                  else
-                    console.error("An error has occurred when switching interface!");
+	   const toggleSystemInterface = ($form = null) => {
+			if($form != null) {
+				$form.submit(); 				
+			}
+			else {
+				console.error("An error has occurred when switching interface!");
+			}
 	   }
 	]])
 print([[
