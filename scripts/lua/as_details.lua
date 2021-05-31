@@ -104,7 +104,7 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.autonomous_systems)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if isEmptyString(asn) then
-   print("<div class=\"alert alert alert-danger\">.. "<i class='fas fa-exclamation-triangle fa-lg' style='color: #B94A48;'></i> " .. i18n("as_details.as_parameter_missing_message") .. "</div>")
+   print("<div class=\"alert alert alert-danger\">".."<i class='fas fa-exclamation-triangle fa-lg' style='color: #B94A48;'></i> " .. i18n("as_details.as_parameter_missing_message") .. "</div>")
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
 end
