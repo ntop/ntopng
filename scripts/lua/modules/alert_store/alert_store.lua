@@ -721,11 +721,11 @@ end
 -- Convert from table to CSV string
 function alert_store:to_csv(documents)
 
-   if table.len(documents) == 0 then
-      return "no_data"
-   end
-
    local csv = ""
+
+   if table.len(documents) == 0 then
+      return csv
+   end
 
    local csv_header = {} -- contains the column heading names
    for key, value in pairs(documents[1]) do
