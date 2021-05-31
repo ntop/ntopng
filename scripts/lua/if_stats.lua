@@ -495,9 +495,25 @@ print[[
 	 if not isEmptyString(ifstats["probe.probe_os"]) then
 	    print(" ("..ifstats["probe.probe_os"]..")")
 	 end
-	 print("</td>")
-	 cur_i = cur_i + 1
-      end
+
+    print("</td>")
+    cur_i = cur_i + 1
+    
+    if not isEmptyString(ifstats["probe.probe_edition"]) then
+      if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+      cur_i = cur_i + 1
+      print("<th nowrap>".. i18n("if_stats_overview.remote_probe_edition") .."</th><td nowrap>" .. ifstats["probe.probe_edition"].."</td>")
+    end
+
+    if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+    cur_i = cur_i + 1
+    print("<th nowrap>".. i18n("if_stats_overview.remote_probe_license") .."</th><td nowrap>" .. (ifstats["probe.probe_license"] or i18n("if_stats_overview.no_license")).."</td>")
+    
+    if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+    cur_i = cur_i + 1
+    print("<th nowrap>".. i18n("if_stats_overview.remote_probe_maintenance") .."</th><td nowrap>" .. (ifstats["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance")).."</td>")
+    
+   end
 
       if not isEmptyString(ifstats["probe.ip"]) then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
