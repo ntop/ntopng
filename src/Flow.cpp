@@ -264,13 +264,16 @@ Flow::~Flow() {
 
   /*
     Get client and server hosts. Use unsafe* methods to get the client and server also for 'viewed' interfaces.
-    For 'viewed' interfaces, host pointers are shared across multiple 'viewed' interfaces and thus they are termed as unsafe.
+    For 'Viewed' interfaces, host pointers are shared across multiple 'viewed' interfaces and thus they are termed as unsafe.
 
     IMPORTANT: only call here methods that are safe (e.g., locked or atomic-ed).
 
     It is fundamental to only call
    */
   Host *cli_u = getViewSharedClient(), *srv_u = getViewSharedServer();
+
+  if(getInterface()->isViewed()) /* Score decrements done here for 'viewed' interfaces to avoid races. */
+    decAllFlowScores();
 
   if(cli_u) {
     cli_u->decUses(); /* Decrease the number of uses */
@@ -1752,11 +1755,6 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
   }
 #endif
 
-  /*
-     Check (and possibly enqueue) the flow for processing by a view interface
-   */
-  getInterface()->viewEnqueue(tv->tv_sec, this);
-
   memcpy(&last_update_time, tv, sizeof(struct timeval));
   GenericHashEntry::periodic_stats_update(tv);
 }
@@ -2890,8 +2888,16 @@ void Flow::decAllFlowScores() {
 
   if(isFlowAlerted()) {
     iface->decNumAlertedFlows(this, Utils::mapScoreToSeverity(getPredominantAlertScore()));
-    if(cli_u) cli_u->decNumAlertedFlows(true /* As client */);
-    if(srv_u) srv_u->decNumAlertedFlows(false /* As server */);
+
+    if(!getInterface()->isViewed() /* Always for non-viewed interfaces (increments are always performed and in the same thread) */
+      /*
+	For viewed interfaces, do the decrement only if previously incremented.
+	A previous increment can fail when the view flows queue is full and enqueues fail.
+      */
+       || (getViewInterfaceFlowStats() && getViewInterfaceFlowStats()->getPartializableStats()->get_is_flow_alerted())) {
+      if(cli_u) cli_u->decNumAlertedFlows(true /* As client */);
+      if(srv_u) srv_u->decNumAlertedFlows(false /* As server */);
+    }
 
 #ifdef ALERTED_FLOWS_DEBUG
     iface_alert_dec = true;
@@ -2945,14 +2951,23 @@ void Flow::housekeep(time_t t) {
 
     /*
       Score decrements MUST be performed here as this is the same thread of callbacks execution where
-      scores are increased
+      scores are increased.
+      NOTE: for view interfaces, decrement are performed in ~Flow to avoid races.
      */
-    decAllFlowScores();
+    if(!getInterface()->isViewed()) decAllFlowScores();
     break;
 
   default:
     break;
   }
+
+  /*
+    Check (and possibly enqueue) the flow for processing by a view interface.
+    Make sure to enqueue the flow to view interfaces AFTER all housekeeping tasks have been performed.
+    This guarantees any change set by these operations (e.g., changes in the flow status, flow alerts, etc.)
+    are done before the flow is propagated to the view.
+  */
+  getInterface()->viewEnqueue(t, this);
 }
 
 /* *************************************** */
@@ -5345,6 +5360,9 @@ void Flow::setNormalToAlertedCounters() {
   if(srv_h)
     srv_h->incNumAlertedFlows(false /* As server */),
       srv_h->incTotalAlerts();
+
+  /* Set this into the partializable flow traffic stats as well (necessary for view interfaces) */
+  stats.setFlowAlerted();
 
 #ifdef ALERTED_FLOWS_DEBUG
   iface_alert_inc = true;

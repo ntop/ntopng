@@ -510,6 +510,11 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 	  srv_host->incScoreValue(srv_score_val, score_category, false /* as server */);
       }
 
+      if(partials.get_is_flow_alerted()) {
+	if(cli_host) cli_host->incNumAlertedFlows(true /* As client */),  cli_host->incTotalAlerts();
+	if(srv_host) srv_host->incNumAlertedFlows(false /* As server */), srv_host->incTotalAlerts();
+      }
+
       incStats(true /* ingressPacket */,
 	       tv->tv_sec, cli_ip && cli_ip->isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	       f->getStatsProtocol(), f->get_protocol_category(),
