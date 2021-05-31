@@ -18,4 +18,4 @@ After grouping hosts by the means of host pools, it is possible to view the
 grouped statistics and timeseries. For more information, check out the relevant
 `documentation section`_.
 
-.. _`documentation section`: ../web_gui/interfaces.html#host-pools
+.. _`documentation section`: ../web_gui/pools.html

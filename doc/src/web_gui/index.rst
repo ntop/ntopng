@@ -65,6 +65,7 @@ Each individual menu bar entry will be discussed below.
     categories
     hosts
     host_details
+    pools
     interfaces
     settings
     administration
