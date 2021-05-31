@@ -169,7 +169,7 @@ if(traffic_profile ~= nil) then
   page_params["traffic_profile"] = traffic_profile
 end
 
-if table.len(page_params) > 0 then
+if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"])) then
       print [[
       <div class="col-12 p-1">
          <div class="info-stats">
@@ -358,7 +358,7 @@ print[[
 </script>
 ]]
 
-if table.len(page_params) > 0 then
+if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"])) then
    print([[
       <script type='text/javascript'>
          let old_totBytesSent = 0;
