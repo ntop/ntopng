@@ -77,8 +77,6 @@ function blog_utils.updatePostState(blogNotificationId, username)
       end
    end
 
-   tprint(posts)
-
    ntop.setPref(BLOG_FEED_KEY, json.encode(posts))
 
    return (success)
