@@ -718,22 +718,14 @@ function alert_store:format_json_record_common(value, entity_id)
    return record
 end
 
--- Used to escape "'s by toCSV
-function alert_store:escape_csv(s)
-   if string.find(s, '[,"]') then
-      s = '"' .. string.gsub(s, '"', '""') .. '"'
-   end
-   return s
-end
-
 -- Convert from table to CSV string
 function alert_store:to_csv(documents)
 
-   local csv = {}
-
    if table.len(documents) == 0 then
-      return csv
+      return "no_data"
    end
+
+   local csv = ""
 
    local csv_header = {} -- contains the column heading names
    for key, value in pairs(documents[1]) do
@@ -747,7 +739,7 @@ function alert_store:to_csv(documents)
       row = row .. "," .. self:escape_csv(value)
    end
    row = string.sub(row, 2) -- remove first comma
-   csv[#csv+1] = row
+   csv = csv .. row .. '\n'
    
    -- csv row output
    for _, document in ipairs(documents) do
@@ -756,21 +748,18 @@ function alert_store:to_csv(documents)
          row = row .. "," .. self:escape_csv(tostring(document[column_name]))
       end
       row = string.sub(row, 2) -- remove first comma
-      csv[#csv+1] = row
+      csv = csv .. row .. '\n'
    end
 
    return csv
 end
 
-function alert_store:stringify_csv_table(csv)
-
-   local stringified = ""
-
-   for _, value in ipairs(csv) do
-      stringified = stringified .. value .. '\n'
+-- Used to escape "'s by toCSV
+function alert_store:escape_csv(s)
+   if string.find(s, '[,"]') then
+      s = '"' .. string.gsub(s, '"', '""') .. '"'
    end
-
-   return stringified
+   return s
 end
 
 -- TODO remove

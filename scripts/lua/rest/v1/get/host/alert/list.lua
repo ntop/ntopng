@@ -55,8 +55,7 @@ end -- for
 
 if no_html then
    res = host_alert_store:to_csv(res)   
-   res = host_alert_store:stringify_csv_table(res)
-   rest_utils.vanilla_payload_answer(rc, res, "text/csv")
+   rest_utils.vanilla_payload_response(rc, res, "text/csv")
 else
    rest_utils.extended_answer(rc, {records = res}, {
       ["draw"] = tonumber(_GET["draw"]),
