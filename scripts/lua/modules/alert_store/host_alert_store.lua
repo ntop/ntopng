@@ -209,7 +209,7 @@ function host_alert_store:format_record(value, no_html)
    record["is_victim"] = ""
 
    if value["is_victim"] == true or value["is_victim"] == "1" then
-      record["is_victim"] = '<span style="color: #008000;">✓</span>'
+      record["is_victim"] = '<i class="fas fa-sad-tear"></i>'
       record["role"] = {
         label = i18n("victim"),
         value = "victim",
@@ -217,7 +217,7 @@ function host_alert_store:format_record(value, no_html)
    end
 
    if value["is_attacker"] == true or value["is_attacker"] == "1" then
-      record["is_attacker"] = '<span style="color: #008000;">✓</span>'
+      record["is_attacker"] = '<i class="fas fa-skull"></i>'
       record["role"] = {
         label = i18n("attacker"),
         value = "attacker",

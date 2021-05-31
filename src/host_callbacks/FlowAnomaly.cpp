@@ -35,14 +35,14 @@ void FlowAnomaly::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   const u_int8_t score_value = SCORE_LEVEL_WARNING;
   u_int32_t value = 0, lower_bound = 0, upper_bound = 0;  
 
-  if(true || h->has_flows_anomaly(true)) {
+  if(h->has_flows_anomaly(true)) {
     cli_score = score_value;
     value = h->value_flows_anomaly(true);
     lower_bound = h->lower_bound_flows_anomaly(true);
     upper_bound = h->upper_bound_flows_anomaly(true);
   }
 
-  if(true || h->has_flows_anomaly(false)) {
+  if(h->has_flows_anomaly(false)) {
     srv_score = score_value;
     value = h->value_flows_anomaly(false);
     lower_bound = h->lower_bound_flows_anomaly(false);

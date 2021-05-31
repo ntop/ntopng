@@ -32,7 +32,14 @@ public:
   ~FlowAnomaly() {};
 
   FlowAnomalyAlert *allocAlert(HostCallback *c, Host *h, u_int8_t cli_score, u_int8_t srv_score, bool is_both, bool is_client_alert, u_int32_t _value, u_int32_t _lower_bound, u_int32_t _upper_bound) {
-    return new FlowAnomalyAlert(c, h, cli_score, srv_score, is_both, is_client_alert, _value, _lower_bound, _upper_bound);
+    FlowAnomalyAlert *alert = new FlowAnomalyAlert(c, h, cli_score, srv_score, is_both, is_client_alert, _value, _lower_bound, _upper_bound);
+
+    if(is_client_alert)
+      alert->setAttacker();
+    else
+      alert->setVictim();
+
+    return alert;
   };
 
   bool loadConfiguration(json_object *config);
