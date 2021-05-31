@@ -104,7 +104,6 @@ end
 --@return True if set is successful, false otherwise
 function host_alert_store:add_role_filter(role)
    if not self._role then
-      self._role = role
       if role == 'attacker' then
 	 self._role = alert_roles.alert_role_is_attacker.role_id
          self._where[#self._where + 1] = "is_attacker = 1"
