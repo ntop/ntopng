@@ -4068,18 +4068,21 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 	break;
       case column_ndpi:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_detected_protocol().app_protocol;
-	break;
-      case column_duration:
-	retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
-	break;
-      case column_score:
-        retriever->elems[retriever->actNumEntries++].numericValue = f->getScore();
-        break;
-      case column_thpt:
-	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes_thpt();
+	  break;
+  case column_duration:
+	  retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
+	  break;
+  case column_score:
+    retriever->elems[retriever->actNumEntries++].numericValue = f->getScore();
+    break;
+  case column_thpt:
+	  retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes_thpt();
 	break;
       case column_bytes:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes();
+	break;
+      case column_last_seen:
+	retriever->elems[retriever->actNumEntries++].numericValue = f->get_last_seen();
 	break;
       case column_client_rtt:
 	if((tcp_info = f->getClientTcpInfo()))
@@ -4601,6 +4604,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_score_as_client")) retriever->sorter = column_score_as_client, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_score_as_server")) retriever->sorter = column_score_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_last_seen")) retriever->sorter = column_last_seen, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_client_rtt")) retriever->sorter = column_client_rtt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_server_rtt")) retriever->sorter = column_server_rtt, sorter = numericSorter;
   else if((!strcmp(sortColumn, "column_bytes")) || (!strcmp(sortColumn, "column_") /* default */)) retriever->sorter = column_bytes, sorter = numericSorter;

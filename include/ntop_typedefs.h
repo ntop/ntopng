@@ -589,7 +589,8 @@ typedef enum {
   column_device_type,
   column_arp_total,
   column_arp_sent,
-  column_arp_rcvd
+  column_arp_rcvd,
+  column_last_seen
 } sortField;
 
 typedef struct {

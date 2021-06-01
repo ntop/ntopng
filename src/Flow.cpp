@@ -1997,6 +1997,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
   lua_get_bytes(vm);
 
+  lua_push_int32_table_entry(vm, "last_seen", get_last_seen());
+
   if(details_level >= details_high) {
     lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
     lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);

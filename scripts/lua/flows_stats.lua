@@ -322,6 +322,13 @@ print[[
             textAlign: 'center'
          }
       }, {
+         title: "]] print(i18n("last_seen")) print[[",
+         field: "column_last_seen",
+         sortable: true,
+         css: {
+            textAlign: 'center'
+         }
+      }, {
          title: "]] print(i18n("flows_page.actual_throughput")) print[[",
          field: "column_thpt",
          sortable: true,
