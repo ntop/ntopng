@@ -1733,6 +1733,8 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
   u_int n, m, o;
   last_pkt_rcvd = when;
 
+  bcast_domains->reloadBroadcastDomains(full_scan /* Force a reload only if a full scan is requested */);
+
   if((n = purgeIdleFlows(force_idle, full_scan)) > 0)
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle flows on %s",
 				 n, getNumFlows(), ifname);
@@ -3059,6 +3061,8 @@ void NetworkInterface::periodicStatsUpdate() {
   if(db)
     db->updateStats(&tv);
 
+  checkReloadHostsBroadcastDomain();
+
   if(!checkPeriodicStatsUpdateTime(&tv))
     return; /* Not yet the time to perform an update */
 
@@ -3074,8 +3078,6 @@ void NetworkInterface::periodicStatsUpdate() {
 
   if(ndpiStats)
     ndpiStats->updateStats(&tv);
-
-  checkReloadHostsBroadcastDomain();
 
   if(ntop->getGlobals()->isShutdownRequested())
     return;
@@ -5413,7 +5415,6 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle, bool full_scan) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
   pollQueuedeCompanionEvents();
-  bcast_domains->reloadBroadcastDomains();
 
   if(!force_idle && !full_scan && last_packet_time < next_idle_flow_purge)
     return(0); /* Too early */
