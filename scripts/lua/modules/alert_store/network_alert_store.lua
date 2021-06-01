@@ -64,6 +64,18 @@ end
 
 -- ##############################################
 
+local RNAME = {
+   ALIAS = { name = "alias", export = true},
+   LOCAL_NETWORK_ID = { name = "local_network_id", export = true},
+   NETWORK = { name = "network", export = true},
+   ALERT_NAME = { name = "alert_name", export = true},
+   MSG = { name = "msg", export = true}
+}
+
+function network_alert_store:get_export_rnames()
+   return RNAME
+end
+
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function network_alert_store:format_record(value, no_html)
    local record = self:format_json_record_common(value, alert_entities.network.entity_id, no_html)
@@ -73,17 +85,17 @@ function network_alert_store:format_record(value, no_html)
    local alert_info = alert_utils.getAlertInfo(value)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
 
-   record["alias"] = value.alias
-   record["local_network_id"] = value.local_network_id
-   record["network"] = value.name
+   record[RNAME.ALIAS.name] = value.alias
+   record[RNAME.LOCAL_NETWORK_ID.name] = value.local_network_id
+   record[RNAME.NETWORK.name] = value.name
 
-   record["alert_name"] = alert_name
+   record[RNAME.ALERT_NAME.name] = alert_name
 
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""
    end
 
-   record["msg"] = {
+   record[RNAME.MSG.name] = {
      name = noHtml(alert_name),
      value = tonumber(value["alert_id"]),
      description = msg,

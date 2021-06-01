@@ -64,6 +64,15 @@ end
 
 -- ##############################################
 
+local RNAME = {
+   ALERT_NAME = { name = "alert_name", export = true},
+   MSG = { name = "msg", export = true}
+}
+
+function interface_alert_store:get_export_rnames()
+   return RNAME
+end
+
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function interface_alert_store:format_record(value, no_html)
    local record = self:format_json_record_common(value, alert_entities.interface.entity_id, no_html)
@@ -72,13 +81,13 @@ function interface_alert_store:format_record(value, no_html)
    local alert_info = alert_utils.getAlertInfo(value)
    local msg = alert_utils.formatAlertMessage(interface.getId(), value, alert_info)
 
-   record["alert_name"] = alert_name
+   record[RNAME.ALERT_NAME.name] = alert_name
 
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""
    end
 
-   record["msg"] = {
+   record[RNAME.MSG.name] = {
      name = noHtml(alert_name),
      value = tonumber(value["alert_id"]),
      description = msg,

@@ -40,14 +40,25 @@ interface.select(ifid)
 -- Fetch the results
 local alerts, recordsFiltered = all_alert_store:select_request()
 
-for _key,_value in ipairs(alerts or {}) do
-   local record = all_alert_store:format_record(_value, no_html)
+for _, _value in ipairs(alerts or {}) do
+   local record = {}
+
+   if no_html then
+      record = all_alert_store:format_txt_record(_value)   
+   else
+      record = all_alert_store:format_json_record(_value)      
+   end
+   
    res[#res + 1] = record
 end -- for
 
-
-rest_utils.extended_answer(rc, {records = res}, {
-			      ["draw"] = tonumber(_GET["draw"]),
-			      ["recordsFiltered"] = recordsFiltered,
-			      ["recordsTotal"] = #res
-}, format)
+if no_html then
+   res = all_alert_store:to_csv(res)   
+   rest_utils.vanilla_payload_response(rc, res, "text/csv")
+else
+   rest_utils.extended_answer(rc, {records = res}, {
+      ["draw"] = tonumber(_GET["draw"]),
+      ["recordsFiltered"] = recordsFiltered,
+      ["recordsTotal"] = #res
+   }, format)
+end

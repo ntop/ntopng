@@ -659,6 +659,43 @@ end
 
 -- ##############################################
 
+-- used for downloading data
+function alert_store:format_txt_record(value)
+   local result = {}
+   local record = self:format_record(value, true)
+
+   for key, value in pairs(record) do
+      if type(value) == "table" then
+         result[key] = tostring(value.value)
+      else
+         result[key] = tostring(value)
+      end
+   end
+
+   return result
+end
+
+-- used to feed the UI
+function alert_store:format_json_record(value)
+   return self:format_record(value, false)
+end
+
+-- define the base record names of the document, both json and csv
+-- add a new record name here if you want to add a new base element
+-- name: the actual record name 
+-- export: use only in csv export, true the record is included in the csv, false otherwise
+local BASE_RNAME = {
+   FAMILY = { name = "family", export = true},
+   ROW_ID = { name = "row_id", export = true},
+   TSTAMP = { name = "tstamp", export = true},
+   ALERT_ID = { name = "alert_id", export = true},
+   SCORE = { name = "score", export = true},
+   SEVERITY = { name = "severity", export = true},
+   DURATION = { name = "duration", export = true},
+   COUNT = { name = "count", export = true},
+   SCRIPT_KEY = { name = "script_key", export = true},
+}
+
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function alert_store:format_json_record_common(value, entity_id)
    local record = {}
@@ -666,27 +703,27 @@ function alert_store:format_json_record_common(value, entity_id)
    -- Note: this record is rendered by 
    -- httpdocs/templates/pages/alerts/families/{host,..}/table[.js].template 
    
-   record["family"] = self:get_family()
+   record[BASE_RNAME.FAMILY.name] = self:get_family()
 
-   record["row_id"] = value["rowid"]
+   record[BASE_RNAME.ROW_ID.name] = value["rowid"]
 
    local score = tonumber(value["score"])
    local severity_id = ntop.mapScoreToSeverity(score)
    local severity = alert_consts.alertSeverityById(severity_id)
 
    local tstamp = tonumber(value["alert_tstamp"] or value["tstamp"])
-   record["tstamp"] = {
+   record[BASE_RNAME.TSTAMP.name] = {
       value = tstamp,
       label = format_utils.formatPastEpochShort(tstamp),
       highlight = severity.color,
    }
 
-   record["alert_id"] = {
+   record[BASE_RNAME.ALERT_ID.name] = {
       value = value["alert_id"],
       label = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), false, entity_id),
    }
 
-   record["score"] = {
+   record[BASE_RNAME.SCORE.name] = {
       value = score,
       label = format_utils.formatValue(score),
       color = severity.color,
@@ -697,82 +734,98 @@ function alert_store:format_json_record_common(value, entity_id)
       severity_label = "<i class='"..severity.icon.."' style='color: "..severity.color.."!important' title='"..i18n(severity.i18n_title).."'></i> "
    end
 
-   record["severity"] = {
+   record[BASE_RNAME.SEVERITY.name] = {
       value = severity_id,
       label = severity_label,
       color = severity.color,
    }
 
    if tonumber(value["tstamp_end"]) > 0 and tonumber(value["tstamp"]) > 0 then
-      record["duration"] = tonumber(value["tstamp_end"]) - tonumber(value["tstamp"]) 
+      record[BASE_RNAME.DURATION.name] = tonumber(value["tstamp_end"]) - tonumber(value["tstamp"]) 
    elseif tonumber(value["tstamp"]) > 0 then
       local now = os.time()
-      record["duration"] = now - tonumber(value["tstamp"])
+      record[BASE_RNAME.DURATION.name] = now - tonumber(value["tstamp"])
    end
 
-   record["count"] = tonumber(value["count"]) or 1
+   record[BASE_RNAME.COUNT.name] = tonumber(value["count"]) or 1
 
    local alert_json = json.decode(value["json"]) or {}
-   record["script_key"] = alert_json["alert_generation"] and alert_json["alert_generation"]["script_key"]
+   record[BASE_RNAME.SCRIPT_KEY.name] = alert_json["alert_generation"] and alert_json["alert_generation"]["script_key"]
 
    return record
+end
+
+-- do not override in subclasses
+function alert_store:get_export_base_rnames()
+   return BASE_RNAME
+end
+
+-- to add new elements in subclasses define a RNAME table in subclass and returned it overring this function
+function alert_store:get_export_rnames()
+   return {}
+end
+
+-- do not override in subclasses
+function alert_store:get_export_record_names()
+   local columns_to_export = {}
+
+   for key, value in pairs(self:get_export_base_rnames()) do
+      if value.export then
+         columns_to_export[key] = value.name
+      end
+   end
+
+   for key, value in pairs(self:get_export_rnames()) do
+      if value.export then
+         columns_to_export[key] = value.name
+      end
+   end
+
+   return columns_to_export
 end
 
 -- Convert from table to CSV string
 function alert_store:to_csv(documents)
 
+   local separator = "|" -- change this to use another separator
    local csv = ""
 
-   if table.len(documents) == 0 then
-      return csv
-   end
-
    local csv_header = {} -- contains the column heading names
-   for key, value in pairs(documents[1]) do
-      csv_header[#csv_header + 1] = tostring(key)
+   for _, value in pairs(self:get_export_record_names()) do
+      csv_header[#csv_header + 1] = tostring(value)
    end
    table.sort(csv_header) -- this assure the same csv columns order at each iteration
 
    -- column heading output
    local row = ""
    for _, value in ipairs(csv_header) do
-      row = row .. "," .. self:escape_csv(value)
+      row = row .. separator .. self:escape_csv(value)
    end
-   row = string.sub(row, 2) -- remove first comma
+   row = string.sub(row, 2) -- remove first separator
    csv = csv .. row .. '\n'
-   
-   -- csv row output
-   for _, document in ipairs(documents) do
-      row = ""
-      for _, column_name in ipairs(csv_header) do
-         row = row .. "," .. self:escape_csv(tostring(document[column_name]))
+
+   if table.len(documents) > 0 then
+      -- csv row output
+      for _, document in ipairs(documents) do
+         row = ""
+         for _, column_name in ipairs(csv_header) do
+            row = row .. separator .. self:escape_csv(tostring(document[column_name]))
+         end
+         row = string.sub(row, 2) -- remove first separator
+         csv = csv .. row .. '\n'
       end
-      row = string.sub(row, 2) -- remove first comma
-      csv = csv .. row .. '\n'
    end
 
    return csv
 end
 
--- Used to escape "'s by toCSV
+-- Used to escape "'s by to_csv
 function alert_store:escape_csv(s)
-   if string.find(s, '[,"]') then
+   if string.find(s, '[,"|]') then
       s = '"' .. string.gsub(s, '"', '""') .. '"'
    end
    return s
 end
-
--- TODO remove
-function alert_store:printMyTable(t)
-   for key, value in pairs(t) do
-      if(type(value) == "table") then
-         traceError(TRACE_CONSOLE, TRACE_ERROR, tostring(key).." "..tostring(value.value))
-      else
-         traceError(TRACE_CONSOLE, TRACE_ERROR, tostring(key).." "..tostring(value))
-      end           
-   end
-end
-
 -- ##############################################
 
 --@brief Deletes old data according to the configuration or up to a safe limit
