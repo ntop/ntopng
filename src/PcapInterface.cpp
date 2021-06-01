@@ -346,9 +346,9 @@ static void* packetPollLoop(void* ptr) {
     } /* while */
   } while(pcap_list != NULL);
 
-  sleep(OTHER_PURGE_FREQUENCY); /* Sleep for max purge freq to make sure things will settle down */
-
-  iface->purgeIdle(time(NULL), false, true /* Full scan */);
+  /* Do two full scans to make sure all stats are updated */
+  for(int i = 0; i < 2; i++)
+    iface->purgeIdle(time(NULL), false, true /* Full scan */);
  
   if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
     iface->set_read_from_pcap_dump_done();

@@ -5415,7 +5415,7 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle, bool full_scan) {
   pollQueuedeCompanionEvents();
   bcast_domains->reloadBroadcastDomains();
 
-  if(!force_idle && last_packet_time < next_idle_flow_purge)
+  if(!force_idle && !full_scan && last_packet_time < next_idle_flow_purge)
     return(0); /* Too early */
   else {
     /* Time to purge flows */
@@ -5520,7 +5520,7 @@ u_int NetworkInterface::getNumMacs() {
 u_int NetworkInterface::purgeIdleHosts(bool force_idle, bool full_scan) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
-  if(!force_idle && last_packet_time < next_idle_host_purge)
+  if(!force_idle && !full_scan && last_packet_time < next_idle_host_purge)
     return(0); /* Too early */
   else {
     /* Time to purge hosts */
@@ -5547,7 +5547,7 @@ u_int NetworkInterface::purgeIdleHosts(bool force_idle, bool full_scan) {
 u_int NetworkInterface::purgeIdleMacsASesCountriesVLANs(bool force_idle, bool full_scan) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
-  if(!force_idle && last_packet_time < next_idle_other_purge)
+  if(!force_idle && !full_scan && last_packet_time < next_idle_other_purge)
     return(0); /* Too early */
   else {
     /* Time to purge */
