@@ -13,6 +13,8 @@ local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_severities = require "alert_severities"
+local alert_roles = require "alert_roles"
+local tag_utils = require "tag_utils"
 
 -- ##############################################
 
@@ -86,7 +88,14 @@ end
 function alert_store:strip_filter_operator(value)
    if isEmptyString(value) then return nil, nil end
    local filter = split(value, ",")
-   return filter[1], filter[2]
+   local value = filter[1]
+   local op = filter[2]
+   if tag_utils.tag_operators[op] then
+      op = tag_utils.tag_operators[op]
+   else
+      op = tag_utils.tag_operators['eq']
+   end
+   return value, op
 end
 
 -- ##############################################
@@ -138,8 +147,7 @@ function alert_store:add_alert_severity_filter(alert_severity)
       local alert_severity, op = self:strip_filter_operator(alert_severity)
       if not self._alert_severity and tonumber(alert_severity) then
          self._alert_severity = tonumber(alert_severity)
-         self._where[#self._where + 1] = string.format("severity = %u", alert_severity)
-
+         self._where[#self._where + 1] = string.format("severity %s %u", op, alert_severity)
          return true
       end
    end
@@ -291,9 +299,11 @@ function alert_store:select_engaged(filter)
    local severity_filter = tonumber(self._alert_severity)
    local entity_id_filter = tonumber(self._alert_entity and self._alert_entity.entity_id) -- Possibly set in subclasses constructor
    local entity_value_filter = filter or self._entity_value
+   -- Role is currently supported and populated for hosts engaged alerts.
+   local role_filter = tonumber(self._role) or alert_roles.alert_role_any.role_id
 
    -- tprint(string.format("id=%s sev=%s entity=%s val=%s", alert_id_filter, severity_filter, entity_id_filter, entity_value_filter))
-   local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter)
+   local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter, role_filter)
 
    local total_rows = 0
    local sort_2_col = {}

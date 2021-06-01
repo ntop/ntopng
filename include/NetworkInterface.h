@@ -985,7 +985,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void walkAlertables(AlertEntity alert_entity, const char *entity_value,
 		      AddressTree *allowed_nets, alertable_callback *callback, void *user_data);
   void getEngagedAlerts(lua_State *vm, AlertEntity alert_entity, const char *entity_value, AlertType alert_type,
-			AlertLevel alert_severity, AddressTree *allowed_nets);
+			AlertLevel alert_severity, AlertRole role_filter, AddressTree *allowed_nets);
 
   /* unlockExternalAlertable must be called after use whenever a non-null reference is returned */
   AlertableEntity* lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing);

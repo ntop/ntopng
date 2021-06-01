@@ -1,13 +1,13 @@
 <div class="d-flex">
     <select class="form-select" id="iface-select">
         <optgroup label="{{ i18n("system") }}">
-	    <option {{ (is_sys_iface and 'selected' or '') }}>
+	    <option value="{{ getSystemInterfaceId() }}" {{ (is_sys_iface and 'selected' or '') }}>
                 {{ i18n("system") }}
             </option>
         </optgroup>
         <optgroup label="{{ i18n("interfaces") }}">
-	{% for _, interface in ipairs(ifaces) do %}
-            <option {{ (interface.is_selected and 'selected' or '') }}>
+	    {% for _, interface in ipairs(ifaces) do %}
+            <option value="{{ interface.ifid }}" {{ (interface.is_selected and 'selected' or '') }}>
                 {{ interface.human_name }}
             </option>
         {% end %}

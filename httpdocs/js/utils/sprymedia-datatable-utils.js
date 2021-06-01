@@ -667,7 +667,7 @@ class DataTableRenders {
 
         if (row.role && row.role.value == 'attacker')
           label = label + ' ' + DataTableRenders.filterize('role', row.role.value, 
-            '<i class="fas fa-skull-crossbones" title="'+row.role.label+'"></i>', row.role.label);
+            '<i class="fas fa-skull" title="'+row.role.label+'"></i>', row.role.label);
         else if (row.role && row.role.value == 'victim')
           label = label + ' ' + DataTableRenders.filterize('role', row.role.value,
             '<i class="fas fa-sad-tear" title="'+row.role.label+'"></i>', row.role.label);
@@ -689,14 +689,14 @@ class DataTableRenders {
         let srvIcons = "";
         if (row.cli_role) {
             if (row.cli_role.value == 'attacker')
-                cliIcons += DataTableRenders.filterize('roles', 'has_attacker', '<i class="fas fa-skull-crossbones" title="'+row.cli_role.label+'"></i>', row.cli_role.tag_label);
+                cliIcons += DataTableRenders.filterize('roles', 'has_attacker', '<i class="fas fa-skull" title="'+row.cli_role.label+'"></i>', row.cli_role.tag_label);
             else if (row.cli_role.value == 'victim')
                 cliIcons += DataTableRenders.filterize('roles', 'has_victim',  '<i class="fas fa-sad-tear" title="'+row.cli_role.label+'"></i>', row.cli_role.tag_label);
         }
 
         if (row.srv_role) {
             if (row.srv_role.value == 'attacker')
-                srvIcons += DataTableRenders.filterize('roles', 'has_attacker', '<i class="fas fa-skull-crossbones" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
+                srvIcons += DataTableRenders.filterize('roles', 'has_attacker', '<i class="fas fa-skull" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
             else if (row.srv_role.value == 'victim')
                 srvIcons += DataTableRenders.filterize('roles', 'has_victim',  '<i class="fas fa-sad-tear" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
         }
@@ -718,11 +718,7 @@ class DataTableRenders {
            let tooltip = ""
 
            let limit = 50; /* description limit */
-           if (row.family == 'network' ||
-               row.family == 'interface' ||
-               row.family == 'am' ||
-               row.family == 'user' ||
-               row.family == 'system') {
+           if (row.family != 'flow') {
              limit = 80; /* some families have room for bigger descriptions */
            }
 

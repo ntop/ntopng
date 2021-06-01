@@ -71,9 +71,9 @@ function blog_utils.updatePostState(blogNotificationId, username)
 
    for _, p in pairs(posts) do
       if (p.id == blogNotificationId) then
-	 if (p.users_read == nil) then p.users_read = {} end
-	 p.users_read[username] = true
-	 success = true
+         if (p.users_read == nil) then p.users_read = {} end
+         p.users_read[username] = true
+         success = true
       end
    end
 

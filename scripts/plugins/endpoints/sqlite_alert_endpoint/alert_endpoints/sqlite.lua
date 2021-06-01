@@ -1,5 +1,5 @@
 --
--- (C) 2018 - ntop.org
+-- (C) 2021 - ntop.org
 --
 
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path

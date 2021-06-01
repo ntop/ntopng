@@ -35,6 +35,8 @@ PartializableFlowTrafficStats::PartializableFlowTrafficStats() {
   memset(&cli_host_score, 0, sizeof(cli_host_score));
   memset(&srv_host_score, 0, sizeof(srv_host_score));
 
+  is_flow_alerted = false;
+
   memset(&protos, 0, sizeof(protos));
 }
 
@@ -54,6 +56,8 @@ PartializableFlowTrafficStats::PartializableFlowTrafficStats(const Partializable
 
   memcpy(&cli_host_score, &fts.cli_host_score, sizeof(cli_host_score));
   memcpy(&srv_host_score, &fts.srv_host_score, sizeof(srv_host_score));
+
+  is_flow_alerted = fts.is_flow_alerted;
 
   memcpy(&protos, &fts.protos, sizeof(protos));
 }
@@ -92,6 +96,12 @@ PartializableFlowTrafficStats PartializableFlowTrafficStats::operator-(const Par
   for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++)
     cur.cli_host_score[i] -= fts.cli_host_score[i],
       cur.srv_host_score[i] -= fts.srv_host_score[i];
+
+  /*
+    Even though is_flow_alerted is a boolean, we can still use operator -= to keep it consistent with other fields.
+    Compilers know how to handle the boolean as 0, 1. 
+   */
+  cur.is_flow_alerted -= fts.is_flow_alerted;
 
   switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
   case NDPI_PROTOCOL_HTTP:
@@ -153,13 +163,18 @@ void PartializableFlowTrafficStats::incTcpStats(bool cli2srv_direction, u_int re
   cur_stats->pktLost += lost;
 }
 
-
 /* *************************************** */
 
 void PartializableFlowTrafficStats::incScore(u_int16_t score, ScoreCategory score_category, bool as_client) {
   u_int16_t *dst = as_client ? cli_host_score : srv_host_score;
 
   dst[score_category] += min_val(score, SCORE_MAX_VALUE);
+}
+
+/* *************************************** */
+
+void PartializableFlowTrafficStats::setFlowAlerted() {
+  is_flow_alerted = true;
 }
 
 /* *************************************** */

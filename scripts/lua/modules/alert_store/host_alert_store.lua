@@ -15,6 +15,7 @@ local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
+local alert_roles = require "alert_roles"
 local json = require "dkjson"
 
 -- ##############################################
@@ -103,10 +104,11 @@ end
 --@return True if set is successful, false otherwise
 function host_alert_store:add_role_filter(role)
    if not self._role then
-      self._role = role
       if role == 'attacker' then
+	 self._role = alert_roles.alert_role_is_attacker.role_id
          self._where[#self._where + 1] = "is_attacker = 1"
       elseif role == 'victim' then
+	 self._role = alert_roles.alert_role_is_victim.role_id
          self._where[#self._where + 1] = "is_victim = 1"
       end
       return true
@@ -221,7 +223,7 @@ function host_alert_store:format_record(value, no_html)
       if no_html then
          record[RNAME.IS_VICTIM.name] = tostring(true) -- when no_html is enabled a default value must be present
       else
-         record[RNAME.IS_VICTIM.name] = '<span style="color: #008000;">✓</span>'
+         record[RNAME.IS_VICTIM.name] = '<i class="fas fa-sad-tear"></i>'
          record["role"] = {
             label = i18n("victim"),
             value = "victim",
@@ -235,7 +237,7 @@ function host_alert_store:format_record(value, no_html)
       if no_html then
          record[RNAME.IS_ATTACKER.name] = tostring(true) -- when no_html is enabled a default value must be present
       else
-         record[RNAME.IS_ATTACKER.name] = '<span style="color: #008000;">✓</span>'
+         record[RNAME.IS_ATTACKER.name] = '<i class="fas fa-skull"></i>'
          record["role"] = {
            label = i18n("attacker"),
            value = "attacker",

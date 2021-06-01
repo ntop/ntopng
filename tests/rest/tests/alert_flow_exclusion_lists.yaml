@@ -5,8 +5,6 @@ localnet: 192.168.1.0/24
 ignore:
   - date
   - duration
-  - label
-  - value
 
 pre: |
   # Enable all user scripts

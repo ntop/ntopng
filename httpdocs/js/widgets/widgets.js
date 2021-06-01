@@ -293,7 +293,7 @@ class ChartWidget extends Widget {
         await super.update(datasourceParams);
         if (this._chart != null) {
 	    // expecting that rsp contains an object called series
-            const { colors, series } = this._fetchedData.rsp;
+        const { colors, series } = this._fetchedData.rsp;
 	    // update the colors list
 	    this._chartConfig.colors = colors;
 	    this._chartConfig.series = series;

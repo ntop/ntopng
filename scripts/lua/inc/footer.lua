@@ -163,11 +163,13 @@ print([[
 			ToastUtils.initToasts();
 		});
 
-	   const toggleSystemInterface = (isSystemSwitching = false, $form = null) => {
-                  if($form != null)
-                    $form.submit();
-                  else
-                    console.error("An error has occurred when switching interface!");
+	   const toggleSystemInterface = ($form = null) => {
+			if($form != null) {
+				$form.submit(); 				
+			}
+			else {
+				console.error("An error has occurred when switching interface!");
+			}
 	   }
 	]])
 print([[
@@ -187,9 +189,6 @@ local message_enabled = (areHostL7TimeseriesEnabled(ifid) or areHostCategoriesTi
 if not info.oem then
 	-- Create a CSRF Token to handle the blog notifications
 	print([[
-		<script type='text/javascript'>
-			const blogNotificationCsrf = "]].. ntop.getRandomCSRFValue() ..[[";
-		</script>
 		<script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/utils/blog-notification-utils.js?]].. ntop.getStaticFileEpoch() ..[['></script>
 	]])
 end

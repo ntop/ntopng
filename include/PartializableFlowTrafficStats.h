@@ -33,6 +33,7 @@ class PartializableFlowTrafficStats {
   u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
   FlowTCPPacketStats cli2srv_tcp_stats, srv2cli_tcp_stats;
   u_int16_t cli_host_score[MAX_NUM_SCORE_CATEGORIES], srv_host_score[MAX_NUM_SCORE_CATEGORIES];
+  bool is_flow_alerted; /* NOTE: only used by view interfaces. Potentially removed in the future after views rework */
   union {
     FlowHTTPStats http;
     FlowDNSStats dns;
@@ -49,6 +50,7 @@ class PartializableFlowTrafficStats {
   void incTcpStats(bool cli2srv_direction, u_int retr, u_int ooo, u_int lost, u_int keepalive);
 
   void incScore(u_int16_t score, ScoreCategory score_category, bool as_client);
+  void setFlowAlerted();
 
   inline void incHTTPReqPOST()  { protos.http.num_post++;  };
   inline void incHTTPReqPUT()   { protos.http.num_put++;   };
@@ -96,6 +98,7 @@ class PartializableFlowTrafficStats {
 
   inline const u_int16_t get_cli_score(ScoreCategory score_category) const { return cli_host_score[score_category]; };
   inline const u_int16_t get_srv_score(ScoreCategory score_category) const { return srv_host_score[score_category]; };
+  inline const bool      get_is_flow_alerted() const { return is_flow_alerted; };
 };
 
 #endif /* _PARTIALIZABLE_FLOW_TRAFFIC_STATS_H_ */

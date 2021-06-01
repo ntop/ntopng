@@ -267,12 +267,19 @@ filter_ntopng_log() {
 # $2 - File with items to be ignores
 #
 filter_json() {
+    TMP=${1}.1
+
+    # Filter out fields in the 'ignore' section of the conf file
     if [ -s "${2}" ]; then
-        TMP=${1}.1
         cat ${1} | grep -v -f "${IGNORE}" > ${TMP}
         cat ${TMP} > ${1}
         /bin/rm -f ${TMP}
     fi
+
+    # Filter out timestamps (1621612265) and duration (17:51:05)
+    cat ${1} | grep -v "\"value\": [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]" | grep -v "\"label\": \"[0-9][0-9]:[0-9][0-9]:[0-9][0-9]\"" > ${TMP}
+    cat ${TMP} > ${1}
+    /bin/rm -f ${TMP}
 }
 
 RC=0

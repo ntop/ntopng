@@ -806,7 +806,7 @@ int ntop_get_alerts(lua_State* vm, AlertableEntity *entity) {
   if(lua_type(vm, 1) == LUA_TNUMBER) periodicity = (ScriptPeriodicity)lua_tointeger(vm, 1);
 
   lua_newtable(vm);
-  entity->getAlerts(vm, periodicity, alert_none, alert_level_none, &idx);
+  entity->getAlerts(vm, periodicity, alert_none, alert_level_none, alert_role_any, &idx);
 
   return(CONST_LUA_OK);
 }
@@ -898,6 +898,7 @@ static int ntop_interface_get_engaged_alerts(lua_State* vm) {
   const char *entity_value = NULL;
   AlertType alert_type = alert_none;
   AlertLevel alert_severity = alert_level_none;
+  AlertRole role_filter = alert_role_any;
   NetworkInterface *iface = getCurrentInterface(vm);
   AddressTree *allowed_nets = get_allowed_nets(vm);
 
@@ -908,8 +909,9 @@ static int ntop_interface_get_engaged_alerts(lua_State* vm) {
   if(lua_type(vm, 2) == LUA_TSTRING) entity_value = (char*)lua_tostring(vm, 2);
   if(lua_type(vm, 3) == LUA_TNUMBER) alert_type = (AlertType)lua_tointeger(vm, 3);
   if(lua_type(vm, 4) == LUA_TNUMBER) alert_severity = (AlertLevel)lua_tointeger(vm, 4);
+  if(lua_type(vm, 5) == LUA_TNUMBER) role_filter = (AlertRole)lua_tointeger(vm, 5);
 
-  iface->getEngagedAlerts(vm, entity_type, entity_value, alert_type, alert_severity, allowed_nets);
+  iface->getEngagedAlerts(vm, entity_type, entity_value, alert_type, alert_severity, role_filter, allowed_nets);
 
   return(CONST_LUA_OK);
 }

@@ -85,13 +85,13 @@ function host_alert_score_anomaly.format(ifid, alert, alert_type_params)
   local net_cat = 0
   
   if(is_both) then
-     role = "client and server"
+     role = i18n("client_and_server")
      net_cat, sec_cat = get_problematic_category(alert_type_params, true)
   elseif(is_client_alert) then
-     role = "client"
+     role = i18n("client")
      net_cat, sec_cat = get_problematic_category(alert_type_params, nil, "client")
   else
-     role = "server"
+     role = i18n("server")
      net_cat, sec_cat = get_problematic_category(alert_type_params, nil, "server")
   end
   

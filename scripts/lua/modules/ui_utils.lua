@@ -100,6 +100,7 @@ function ui_utils.render_datetime_range_picker(options)
     options.max_delta_out = ternary(options.max_delta_in ~= nil, options.max_delta_in, 43200)
     options.tags = ternary(options.tags ~= nil, table.merge(tags, options.tags), tags)
     options.tags.localization = ternary(options.tags.i18n ~= nil, table.merge(tags_localization, options.tags.i18n), tags_localization)
+    options.tags.view_only = ternary(options.tags.view_only ~= nil, options.tags.view_only, false)
 
     return template_utils.gen("pages/components/range-picker.template", options)
 end

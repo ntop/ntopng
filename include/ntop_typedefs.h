@@ -190,6 +190,17 @@ typedef enum {
 } AlertLevelGroup;
 
 /*
+  Used to filter engaged alerts according to the role
+  NOTE: Keep in sync with Lua alert_roles.lua
+ */
+typedef enum {
+  alert_role_any = 0,
+  alert_role_is_attacker = 1,
+  alert_role_is_victim = 2,
+  alert_role_is_both = 3,
+} AlertRole;
+
+/*
   Keep in sync with alert_entities.lua entity_id
  */
 typedef enum {
@@ -330,6 +341,8 @@ typedef struct zmq_remote_stats {
   char remote_ifname[32], remote_ifaddress[64];
   char remote_probe_address[64], remote_probe_public_address[64];
   char remote_probe_version[64], remote_probe_os[64];
+  char remote_probe_license[64], remote_probe_edition[64];
+  char remote_probe_maintenance[64];
   u_int8_t  source_id, num_exporters;
   u_int64_t remote_bytes, remote_pkts, num_flow_exports;
   u_int32_t remote_ifspeed, remote_time, local_time, avg_bps, avg_pps;

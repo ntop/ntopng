@@ -44,7 +44,8 @@ class OtherAlertableEntity : public AlertableEntity {
   std::map<std::string, Alert> engaged_alerts[MAX_NUM_PERIODIC_SCRIPTS];
 
   void getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity p,
-				AlertType type_filter, AlertLevel severity_filter, u_int *idx);
+			    AlertType type_filter, AlertLevel severity_filter,
+			    AlertRole role_filter, u_int *idx);
 
 public:
   OtherAlertableEntity(NetworkInterface *alert_iface, AlertEntity entity);
@@ -76,7 +77,8 @@ public:
   void luaAlert(lua_State* vm, const Alert *alert, ScriptPeriodicity p) const;
   void countAlerts(grouped_alerts_counters *counters);
   void getAlerts(lua_State* vm, ScriptPeriodicity p, AlertType type_filter,
-		 AlertLevel severity_filter, u_int *idx);
+		 AlertLevel severity_filter, AlertRole role_filter,
+		 u_int *idx);
 };
 
 #endif
