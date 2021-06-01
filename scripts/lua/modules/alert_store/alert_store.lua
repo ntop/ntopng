@@ -536,6 +536,44 @@ function alert_store:count_by_severity_and_time()
    end
 end
 
+-- ##############################################
+
+--@brief Performs a query for the top alerts by alert count
+function alert_store:top_alert_id_historical()
+   -- Preserve all the filters currently set
+   local where_clause = table.concat(self._where, " AND ")
+   local limit = 10
+tprint(where_clause)
+   local q = string.format("SELECT alert_id, count(*) count FROM %s WHERE %s GROUP BY alert_id ORDER BY count DESC LIMIT %u",
+			   self._table_name, where_clause, limit)
+
+   local q_res = interface.alert_store_query(q) or {}
+
+   return q_res
+end
+
+-- ##############################################
+
+--@brief Child stats
+function alert_store:_get_additional_stats()
+   return {}
+end
+
+-- ##############################################
+
+--@brief Stats used by the dashboard
+function alert_store:get_stats()
+   -- Add filters
+   self:add_request_filters()
+
+   -- Get child stats
+   local stats = self:_get_additional_stats()
+
+   stats.top = stats.top or {}
+   stats.top.alert_id = self:top_alert_id_historical()
+
+   return stats
+end
 
 -- ##############################################
 -- REST API Utility Functions

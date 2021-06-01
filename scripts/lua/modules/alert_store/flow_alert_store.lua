@@ -83,6 +83,75 @@ end
 
 -- ##############################################
 
+--@brief Performs a query for the top client hosts by alert count
+function flow_alert_store:top_cli_ip_historical()
+   -- Preserve all the filters currently set
+   local where_clause = table.concat(self._where, " AND ")
+   local limit = 10
+
+   local q = string.format("SELECT cli_ip, count(*) count FROM %s WHERE %s GROUP BY cli_ip ORDER BY count DESC LIMIT %u",
+			   self._table_name, where_clause, limit)
+
+   local q_res = interface.alert_store_query(q) or {}
+
+   return q_res
+end
+
+-- ##############################################
+
+--@brief Performs a query for the top server hosts by alert count
+function flow_alert_store:top_srv_ip_historical()
+   -- Preserve all the filters currently set
+   local where_clause = table.concat(self._where, " AND ")
+   local limit = 10
+
+   local q = string.format("SELECT srv_ip, count(*) count FROM %s WHERE %s GROUP BY srv_ip ORDER BY count DESC LIMIT %u",
+			   self._table_name, where_clause, limit)
+
+   local q_res = interface.alert_store_query(q) or {}
+
+   return q_res
+end
+
+-- ##############################################
+
+--@brief Merge top clients and top servers to build a top hosts 
+local function top_ip_merge(top_cli_ip, top_srv_ip)
+   local all_ip = {}
+   local top_ip = {}
+   local limit = 10
+
+   for _, p in ipairs(top_cli_ip) do
+      all_ip[p.cli_ip] = tonumber(p.count)
+   end 
+   for _, p in ipairs(top_srv_ip) do
+      all_ip[p.srv_ip] = (all_ip[p.srv_ip] or 0) + tonumber(p.count)
+   end 
+   for ip, count in pairsByValues(all_ip, rev) do
+      top_ip[#top_ip + 1] = {
+         ip = ip,
+         count = count,
+      }
+      if #top_ip >= limit then break end
+   end
+
+   return top_ip
+end
+
+-- ##############################################
+
+--@brief Stats used by the dashboard
+function flow_alert_store:_get_additional_stats()
+   local stats = {}
+   stats.top = {}
+   stats.top.cli_ip = self:top_cli_ip_historical()
+   stats.top.srv_ip = self:top_srv_ip_historical()
+   stats.top.ip = top_ip_merge(stats.top.cli_ip, stats.top.srv_ip)
+   return stats
+end
+
+-- ##############################################
+
 --@brief Add filters on client host address
 --@param ip The host IP
 --@return True if set is successful, false otherwise
