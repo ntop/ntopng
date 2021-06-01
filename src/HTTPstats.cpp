@@ -586,6 +586,10 @@ void HTTPstats::updateStats(const struct timeval *tv) {
     virtualHosts->purgeQueuedIdleEntries(); /* Actually reclaim memory (delete*) of idle virtual hosts */
   }
 
+  if(tdiff_msec < 1000) {
+    return;  // too early
+  }
+
   for(u_int8_t i = 0; i < 2 ; i++) {
     u_int8_t direction = indices[i];
     struct http_query_rates    *dq = &query_rate[direction];
