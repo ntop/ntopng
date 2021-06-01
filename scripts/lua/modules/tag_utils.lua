@@ -70,22 +70,24 @@ function tag_utils.add_tag_if_valid(tags, tag_key, operators, formatters)
       return
    end
 
-   local value
    local selected_operator = 'eq'
 
    local get_value = _GET[tag_key]
    local splitted = split(get_value, ',')
 
+   local realValue
    if #splitted == 2 then
-      value = splitted[1]
+      realValue = splitted[1]
       selected_operator = splitted[2]
    end
 
+   local value = realValue
    if formatters[tag_key] ~= nil then
       value = formatters[tag_key](value)
    end
 
    table.insert(tags, {
+      realValue = realValue,
       value = value,
       label = i18n("tags.".. tag_key),
       key = tag_key,

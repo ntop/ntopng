@@ -348,7 +348,10 @@ local extra_range_buttons = [[
 local available_filter_types = {}
 local all_alert_types = {}
 local extra_tags_buttons = ""
+local severity_operators = {}
 if page ~= "all" then
+   severity_operators = defined_tags[page].severity
+
    extra_tags_buttons = [[
     <button class="btn btn-link" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="alertStats.filterModalShow()"><span><i class="fas fa-plus" data-original-title="" title="]]..i18n("alerts_dashboard.add_filter")..[["></i></span>
     </button>
@@ -438,6 +441,8 @@ local context = {
        severities = alert_severities,
        alert_types = all_alert_types,
        l7_protocols = interface.getnDPIProtocols(),
+       severity_operators = severity_operators,
+       tag_operators = tag_utils.tag_operators,
     }
 }
 
