@@ -225,6 +225,9 @@
                 // replace the tag!
                 existingTag.value = tag.value;
                 existingTag.realValue = tag.realValue;
+                if (tag.selectedOperator) {
+                    existingTag.selectedOperator = tag.selectedOperator;
+                }
 
                 tagify.replaceTag(existingTagElement, existingTag);
                 // update the datasource params
