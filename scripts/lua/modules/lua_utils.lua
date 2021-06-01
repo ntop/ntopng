@@ -689,6 +689,7 @@ end
 
 function l4_proto_to_string(proto_id)
    if not proto_id then return "" end
+   if isEmptyString(proto_id) then return "" end
 
    proto_id = tonumber(proto_id)
 
