@@ -217,7 +217,7 @@ function all_alert_store:format_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"
    local record = self:format_record_common(value, alert_entities.host.entity_id, no_html)
 
-   local url = string.format('%s/lua/alert_stats.lua?page=%s&epoch_begin=%u&epoch_end=%u',
+   local url = string.format('%s/lua/alert_stats.lua?page=%s&epoch_begin=%u&epoch_end=%u&status=historical',
       ntop.getHttpPrefix(),
       alert_consts.alertEntityRaw(value["entity_id"]),
       _GET["epoch_begin"],
@@ -234,7 +234,7 @@ function all_alert_store:format_record(value, no_html)
    record["count_group_notice_or_lower"] = {
       value = value["count_group_notice_or_lower"],
       color = alert_severities.notice.color,
-      url = url.."&severity=3,lt",
+      url = url.."&severity=3,lte",
    }
    record["count_group_warning"] = {
       value = value["count_group_warning"],
@@ -244,7 +244,7 @@ function all_alert_store:format_record(value, no_html)
    record["count_group_error_or_higher"] = {
       value = value["count_group_error_or_higher"],
       color = alert_severities.error.color,
-      url = url.."&severity=5,gt",
+      url = url.."&severity=5,gte",
    }
 
    return record

@@ -273,21 +273,21 @@ local modals = {
 local defined_tags = {
     ["host"] = {
 	alert_id = {'eq'},
-	severity = {'eq','lt'},
+	severity = {'eq','lte','gte'},
         ip = {'eq'},
         role = {'eq'},
     },
     ["mac"] = {
 	alert_id = {'eq'},
-	severity = {'eq','lt'}
+	severity = {'eq','lte','gte'}
     },
     ["snmp_device"] = {
 	alert_id = {'eq'},
-	severity = {'eq','lt'}
+	severity = {'eq','lte','gte'}
     },
     ["flow"] = {
 	alert_id = {'eq'},
-	severity = {'eq','lt'},
+	severity = {'eq','lte','gte'},
         l7_proto  = {'eq'},
         cli_ip = {'eq'},
         srv_ip = {'eq'},
@@ -297,23 +297,23 @@ local defined_tags = {
     },
     ["system"] = {
 	alert_id = {'eq'},
-	severity = {'eq','lt'}
+	severity = {'eq','lte','gte'}
     },
     ["am_host"] = {
 	alert_id = {'eq'},
-	severity = {'eq','lt'},
+	severity = {'eq','lte','gte'},
     },
     ["interface"] = {
 	alert_id = {'eq'},
-	severity = {'eq','lt'}
+	severity = {'eq','lte','gte'}
     },
     ["user"] = {
 	alert_id = {'eq'},
-	severity = {'eq','lt'}
+	severity = {'eq','lte','gte'}
     },
     ["network"] = {
 	alert_id = {'eq'},
-	severity = {'eq','lt'},
+	severity = {'eq','lte','gte'},
         network_name = {'eq'}
     }
 }
@@ -330,8 +330,8 @@ if page ~= "all" then
    formatters.alert_id = function(alert_id) return (alert_consts.alertTypeLabel(tonumber(alert_id), true, alert_entities[page].entity_id) or alert_id) end
 end
 
-for tag_key, tag in pairs(defined_tags[page] or {}) do
-   tag_utils.add_tag_if_valid(initial_tags, tag_key, tag, formatters)
+for tag_key, operators in pairs(defined_tags[page] or {}) do
+   tag_utils.add_tag_if_valid(initial_tags, tag_key, operators, formatters)
 end
 
 local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'}) 
@@ -372,7 +372,8 @@ local context = {
         default = status == "historical" and "30min" or "1week",
         tags = {
 	    enabled = true,
-            tag_operators = {tag_utils.tag_operators.eq},
+            tag_operators = tag_utils.tag_operators,
+            view_only = true,
             defined_tags = defined_tags[page],
             values = initial_tags,
             i18n = {

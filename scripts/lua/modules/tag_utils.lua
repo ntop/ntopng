@@ -64,10 +64,10 @@ tag_utils.nindex_tags_to_where_v6 = {
 
 -- #####################################
 
-function tag_utils.add_tag_if_valid(tags, tag_key, tag, formatters)
+function tag_utils.add_tag_if_valid(tags, tag_key, operators, formatters)
     
    if isEmptyString(_GET[tag_key]) then
-        return
+      return
    end
 
    local value
@@ -77,16 +77,20 @@ function tag_utils.add_tag_if_valid(tags, tag_key, tag, formatters)
    local splitted = split(get_value, ',')
 
    if #splitted == 2 then
-       value = splitted[1]
-       selected_operator = splitted[2]
+      value = splitted[1]
+      selected_operator = splitted[2]
    end
 
    if formatters[tag_key] ~= nil then
-       value = formatters[tag_key](value)
+      value = formatters[tag_key](value)
    end
 
    table.insert(tags, {
-       value = value, label = i18n("tags.".. tag_key), key = tag_key, operators = tag.operators, selectedOperator = selected_operator
+      value = value,
+      label = i18n("tags.".. tag_key),
+      key = tag_key,
+      operators = operators,
+      selectedOperator = selected_operator
    })
 end
 

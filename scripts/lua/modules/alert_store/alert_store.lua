@@ -14,6 +14,7 @@ local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_severities = require "alert_severities"
 local alert_roles = require "alert_roles"
+local tag_utils = require "tag_utils"
 
 -- ##############################################
 
@@ -89,12 +90,10 @@ function alert_store:strip_filter_operator(value)
    local filter = split(value, ",")
    local value = filter[1]
    local op = filter[2]
-   if op == 'lt' then
-      op = '<='
-   elseif op == 'gt' then
-      op = '>='
+   if tag_utils.tag_operators[op] then
+      op = tag_utils.tag_operators[op]
    else
-      op = '='
+      op = tag_utils.tag_operators['eq']
    end
    return value, op
 end
