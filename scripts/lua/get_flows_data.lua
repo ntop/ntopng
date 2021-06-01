@@ -202,7 +202,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       end
    end
 
-   record["column_last_seen"] = os.date("%x %X", tonumber(value["last_seen"]))
+   record["column_last_seen"] = formatEpoch(value["seen.last"])
 
    if(value["client_tcp_info"] ~= nil) then
       record["column_client_rtt"] = format_utils.formatMillis(value["client_tcp_info"]["rtt"])
