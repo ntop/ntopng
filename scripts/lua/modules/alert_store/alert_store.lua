@@ -87,7 +87,16 @@ end
 function alert_store:strip_filter_operator(value)
    if isEmptyString(value) then return nil, nil end
    local filter = split(value, ",")
-   return filter[1], filter[2]
+   local value = filter[1]
+   local op = filter[2]
+   if op == 'lt' then
+      op = '<='
+   elseif op == 'gt' then
+      op = '>='
+   else
+      op = '='
+   end
+   return value, op
 end
 
 -- ##############################################
@@ -139,8 +148,7 @@ function alert_store:add_alert_severity_filter(alert_severity)
       local alert_severity, op = self:strip_filter_operator(alert_severity)
       if not self._alert_severity and tonumber(alert_severity) then
          self._alert_severity = tonumber(alert_severity)
-         self._where[#self._where + 1] = string.format("severity = %u", alert_severity)
-
+         self._where[#self._where + 1] = string.format("severity %s %u", op, alert_severity)
          return true
       end
    end

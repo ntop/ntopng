@@ -234,7 +234,7 @@ function all_alert_store:format_record(value, no_html)
    record["count_group_notice_or_lower"] = {
       value = value["count_group_notice_or_lower"],
       color = alert_severities.notice.color,
-      url = url.."&severity=3,eq",
+      url = url.."&severity=3,lt",
    }
    record["count_group_warning"] = {
       value = value["count_group_warning"],
@@ -244,7 +244,7 @@ function all_alert_store:format_record(value, no_html)
    record["count_group_error_or_higher"] = {
       value = value["count_group_error_or_higher"],
       color = alert_severities.error.color,
-      url = url.."&severity=5,eq",
+      url = url.."&severity=5,gt",
    }
 
    return record

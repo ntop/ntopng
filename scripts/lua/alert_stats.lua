@@ -273,21 +273,21 @@ local modals = {
 local defined_tags = {
     ["host"] = {
 	alert_id = {'eq'},
-	severity = {'eq'},
+	severity = {'eq','lt'},
         ip = {'eq'},
         role = {'eq'},
     },
     ["mac"] = {
 	alert_id = {'eq'},
-	severity = {'eq'}
+	severity = {'eq','lt'}
     },
     ["snmp_device"] = {
 	alert_id = {'eq'},
-	severity = {'eq'}
+	severity = {'eq','lt'}
     },
     ["flow"] = {
 	alert_id = {'eq'},
-	severity = {'eq'},
+	severity = {'eq','lt'},
         l7_proto  = {'eq'},
         cli_ip = {'eq'},
         srv_ip = {'eq'},
@@ -297,23 +297,23 @@ local defined_tags = {
     },
     ["system"] = {
 	alert_id = {'eq'},
-	severity = {'eq'}
+	severity = {'eq','lt'}
     },
     ["am_host"] = {
 	alert_id = {'eq'},
-	severity = {'eq'},
+	severity = {'eq','lt'},
     },
     ["interface"] = {
 	alert_id = {'eq'},
-	severity = {'eq'}
+	severity = {'eq','lt'}
     },
     ["user"] = {
 	alert_id = {'eq'},
-	severity = {'eq'}
+	severity = {'eq','lt'}
     },
     ["network"] = {
 	alert_id = {'eq'},
-	severity = {'eq'},
+	severity = {'eq','lt'},
         network_name = {'eq'}
     }
 }
