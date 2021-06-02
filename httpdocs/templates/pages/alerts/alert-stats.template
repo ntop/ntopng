@@ -185,7 +185,12 @@
             // add the tag filters inside the search params object
             for (const tag of tags) {
                 const tagData = tagify.tagData(tag);
-                const {key, selectedOperator, realValue, value} = tagData;
+
+                const key = tagData.key;
+                const selectedOperator = tagData.selectedOperator;
+                const realValue = tagData.realValue;
+                const value = tagData.value;
+
                 searchParams.set(key, `${realValue || value},${selectedOperator}`);
             }
 
@@ -215,11 +220,14 @@
             const existingTagElement = tagify.getTagElms().find(htmlTag => htmlTag.getAttribute('key') === tag.key);
             const existingTag = tagify.tagData(existingTagElement);
 
-            if (existingTag !== undefined && existingTag.realValue !== tag.realValue) {
+            if (existingTag !== undefined /* && existingTag.realValue !== tag.realValue */) {
                 
                 // replace the tag!
                 existingTag.value = tag.value;
                 existingTag.realValue = tag.realValue;
+                if (tag.selectedOperator) {
+                    existingTag.selectedOperator = tag.selectedOperator;
+                }
 
                 tagify.replaceTag(existingTagElement, existingTag);
                 // update the datasource params
@@ -234,7 +242,9 @@
                 tag.operators = DEFINED_TAGS[tag.key].operators;
             }
 
-            tag.selectedOperator = 'eq';
+            if (!tag.selectedOperator) {
+                tag.selectedOperator = 'eq';
+            }
 
             // add filter!
             tagify.addTags([tag]);
@@ -364,8 +374,9 @@
             }
 
             const tag = detail.data;
+
             // add/update datasource params, default operator `=`
-            datasourceParams[tag.key] = `${tag.realValue || tag.value},eq`;
+            datasourceParams[tag.key] = `${tag.realValue || tag.value},${tag.selectedOperator || 'eq'}`;
             // trigger request
             await onRangePickerChange(true);
         });
@@ -687,29 +698,24 @@
         }
 
         const filterModalMakeTag = (formSelector) => {
+           const alert_filter_type = $(`${formSelector} [name='alert_filter_type']`).val();
 
+           let tag = {
+               key: alert_filter_type,             // e.g. l7_proto 
+               label: i18n.tags[alert_filter_type] // e.g. L7 Proto
+           }
+
+           // load filter params inside the template container
            const $inputsTemplate = $(`${formSelector} .alert-filter-template-container [name]`);
-
-           const params = {
-               alert_filter_type: $(`${formSelector} [name='alert_filter_type']`).val()
-           };
-
-           // load each filter params inside the template container in params
            $inputsTemplate.each(function (i, input) {
-               // $(this).attr('name')
-               params['value'] = $(this).val().trim();
-               params['label'] = $('option:selected', this).data('tagLabel');
-               if (!params['label']) params['label'] = params['value'];
+               if ($(this).attr('name') == 'operator') {
+                   tag.selectedOperator = $(this).val().trim();
+               } else {
+                   tag.realValue = $(this).val().trim();
+                   tag.value = $('option:selected', this).data('tagLabel');
+                   if (!tag.value) tag.value = tag.realValue;
+               }
            });
-
-           // console.log(params);
-
-           const tag = { 
-              label: i18n.tags[params['alert_filter_type']], // e.g. L7 Proto
-              key: params['alert_filter_type'],              // e.g. l7_proto
-              value: params['label'],                        // e.g. HTTP
-              realValue: params['value']                     // e.g. 7
-           };
 
            return tag;
        }

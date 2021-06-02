@@ -5049,7 +5049,7 @@ void Flow::lua_duration_info(lua_State *vm) {
   lua_newtable(vm);
 
   lua_push_uint64_table_entry(vm, "first_seen", get_first_seen());
-  lua_push_uint64_table_entry(vm, "last_seen", get_first_seen());
+  lua_push_uint64_table_entry(vm, "last_seen", get_last_seen());
   lua_push_bool_table_entry(vm, "twh_over", twh_over);
 }
 

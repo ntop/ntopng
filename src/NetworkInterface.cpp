@@ -1733,6 +1733,8 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
   u_int n, m, o;
   last_pkt_rcvd = when;
 
+  bcast_domains->reloadBroadcastDomains(full_scan /* Force a reload only if a full scan is requested */);
+
   if((n = purgeIdleFlows(force_idle, full_scan)) > 0)
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle flows on %s",
 				 n, getNumFlows(), ifname);
@@ -3059,6 +3061,8 @@ void NetworkInterface::periodicStatsUpdate() {
   if(db)
     db->updateStats(&tv);
 
+  checkReloadHostsBroadcastDomain();
+
   if(!checkPeriodicStatsUpdateTime(&tv))
     return; /* Not yet the time to perform an update */
 
@@ -3074,8 +3078,6 @@ void NetworkInterface::periodicStatsUpdate() {
 
   if(ndpiStats)
     ndpiStats->updateStats(&tv);
-
-  checkReloadHostsBroadcastDomain();
 
   if(ntop->getGlobals()->isShutdownRequested())
     return;
@@ -4066,18 +4068,21 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 	break;
       case column_ndpi:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_detected_protocol().app_protocol;
-	break;
-      case column_duration:
-	retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
-	break;
-      case column_score:
-        retriever->elems[retriever->actNumEntries++].numericValue = f->getScore();
-        break;
-      case column_thpt:
-	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes_thpt();
+	  break;
+  case column_duration:
+	  retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
+	  break;
+  case column_score:
+    retriever->elems[retriever->actNumEntries++].numericValue = f->getScore();
+    break;
+  case column_thpt:
+	  retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes_thpt();
 	break;
       case column_bytes:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes();
+	break;
+      case column_last_seen:
+	retriever->elems[retriever->actNumEntries++].numericValue = f->get_last_seen();
 	break;
       case column_client_rtt:
 	if((tcp_info = f->getClientTcpInfo()))
@@ -4599,6 +4604,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_score_as_client")) retriever->sorter = column_score_as_client, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_score_as_server")) retriever->sorter = column_score_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_last_seen")) retriever->sorter = column_last_seen, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_client_rtt")) retriever->sorter = column_client_rtt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_server_rtt")) retriever->sorter = column_server_rtt, sorter = numericSorter;
   else if((!strcmp(sortColumn, "column_bytes")) || (!strcmp(sortColumn, "column_") /* default */)) retriever->sorter = column_bytes, sorter = numericSorter;
@@ -5413,9 +5419,8 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle, bool full_scan) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
   pollQueuedeCompanionEvents();
-  bcast_domains->reloadBroadcastDomains();
 
-  if(!force_idle && last_packet_time < next_idle_flow_purge)
+  if(!force_idle && !full_scan && last_packet_time < next_idle_flow_purge)
     return(0); /* Too early */
   else {
     /* Time to purge flows */
@@ -5520,7 +5525,7 @@ u_int NetworkInterface::getNumMacs() {
 u_int NetworkInterface::purgeIdleHosts(bool force_idle, bool full_scan) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
-  if(!force_idle && last_packet_time < next_idle_host_purge)
+  if(!force_idle && !full_scan && last_packet_time < next_idle_host_purge)
     return(0); /* Too early */
   else {
     /* Time to purge hosts */
@@ -5547,7 +5552,7 @@ u_int NetworkInterface::purgeIdleHosts(bool force_idle, bool full_scan) {
 u_int NetworkInterface::purgeIdleMacsASesCountriesVLANs(bool force_idle, bool full_scan) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
-  if(!force_idle && last_packet_time < next_idle_other_purge)
+  if(!force_idle && !full_scan && last_packet_time < next_idle_other_purge)
     return(0); /* Too early */
   else {
     /* Time to purge */

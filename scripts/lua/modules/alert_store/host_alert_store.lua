@@ -69,6 +69,32 @@ end
 
 -- ##############################################
 
+--@brief Performs a query for the top hosts by alert count
+function host_alert_store:top_ip_historical()
+   -- Preserve all the filters currently set
+   local where_clause = table.concat(self._where, " AND ")
+   local limit = 10
+
+   local q = string.format("SELECT ip, count(*) count FROM %s WHERE %s GROUP BY ip ORDER BY count DESC LIMIT %u",
+			   self._table_name, where_clause, limit)
+
+   local q_res = interface.alert_store_query(q) or {}
+
+   return q_res
+end
+
+-- ##############################################
+
+--@brief Stats used by the dashboard
+function host_alert_store:_get_additional_stats()
+   local stats = {}
+   stats.top = {}
+   stats.top.ip = self:top_ip_historical()
+   return stats
+end
+
+-- ##############################################
+
 --@brief Add filters on host address
 --@param ip The host IP
 --@return True if set is successful, false otherwise

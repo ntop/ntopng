@@ -617,8 +617,8 @@ void Ntop::start() {
 	/* One extra housekeeping before executing tests (this assumes all flows have been walked) */
 	runHousekeepingTasks();
 
-	/* Allow NetworkInterface::hookFlowLoop to process all enqueued flows for hook execution */
-	sleep(1);
+	/* Allow host and flow callbacks to be executed, allow notifications to be processed (notifications.lua) */
+	sleep(3);
 
 	/* Test Script (Post Analysis) */
 	if(ntop->getPrefs()->get_test_post_script_path()) {

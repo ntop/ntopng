@@ -72,17 +72,28 @@
     <div class="form-group row">
         <label class="col-form-label col-sm-3"><b>{{i18n("level")}}</b></label>
         <div class="col-sm-5">
-            <select required name="value" class="form-select">
-               {% local first_item = true %}
-               {% for _, severity in pairsByValues(severities, alert_utils.severity_rev) do %}
-                  {% if severity.used_by_alerts then %}
-                     <option {{ (first_item and "selected" or "") }} data-tag-label="{{ i18n(severity.i18n_title) }}" value="{{ severity.severity_id }}">
-                        {{ i18n(severity.i18n_title) }}
-                     </option>
-                     {% first_item = false %}
-                  {% end %}
-               {% end %}
-            </select>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <select required name="operator" class="form-select">
+                        {% local first_item = true %}
+                        {% for _, operator in ipairs(severity_operators) do %}
+                            <option {{ (first_item and "selected" or "") }} value="{{operator}}">{{tag_operators[operator]}}</option>
+                            {% first_item = false %}
+                        {% end %}
+                    </select>
+                </div>
+                <select required name="value" class="form-select">
+                   {% local first_item = true %}
+                   {% for _, severity in pairsByValues(severities, alert_utils.severity_rev) do %}
+                      {% if severity.used_by_alerts then %}
+                         <option {{ (first_item and "selected" or "") }} data-tag-label="{{ i18n(severity.i18n_title) }}" value="{{ severity.severity_id }}">
+                            {{ i18n(severity.i18n_title) }}
+                         </option>
+                         {% first_item = false %}
+                      {% end %}
+                   {% end %}
+                </select>
+            </div>
         </div>
     </div>
 </template>
