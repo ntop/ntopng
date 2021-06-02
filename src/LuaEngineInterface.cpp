@@ -2996,7 +2996,7 @@ static int ntop_nindex_select(lua_State* vm) {
   char *select = NULL, *where = NULL;
   bool export_results = false;
   char *timestamp_begin, *timestamp_end;
-  u_int32_t skip_initial_records, max_num_hits;
+  u_int32_t start_record, end_record, skip_initial_records;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   NIndexFlowDB *nindex;
   struct mg_connection *conn;
@@ -3021,10 +3021,15 @@ static int ntop_nindex_select(lua_State* vm) {
   where = (char*)lua_tostring(vm, id++);
 
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  skip_initial_records = (u_int32_t)lua_tonumber(vm, id++);
+  start_record = (u_int32_t)lua_tonumber(vm, id++);
 
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  max_num_hits = (u_int32_t)lua_tonumber(vm, id++);
+  end_record = (u_int32_t)lua_tonumber(vm, id++);
+
+  ntop->getTrace()->traceEvent(TRACE_ERROR, "[start_record: %u][end_record: %u]",
+			       start_record, end_record);
+  
+  skip_initial_records = (start_record <= 1) ? 0 : start_record-1;
 
   if(lua_type(vm, id) == LUA_TBOOLEAN)
     export_results = lua_toboolean(vm, id++) ? true : false;
@@ -3033,7 +3038,7 @@ static int ntop_nindex_select(lua_State* vm) {
 
   return(nindex->select(vm,
 			timestamp_begin, timestamp_end, select,
-			where, skip_initial_records, max_num_hits,
+			where, skip_initial_records, end_record,
 			export_results ? conn : NULL));
 }
 
