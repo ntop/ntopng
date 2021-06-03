@@ -45,30 +45,25 @@ for _, value in pairs(res.top.alert_id) do
    }
 end   
 
-res = {
-   top_hosts = {
-      label = i18n("alerts_dashboard.top_hosts"),
-      value = {
-         res.top.ip
+-- Request from the frontend - to have 
+res = { 
+   { 
+      top_hosts = { 
+         label = i18n("alerts_dashboard.top_hosts"),
+         tooltip = i18n("alerts_dashboard.tooltips.top_hosts"),
+         value = {
+            res.top.ip
+         },
       },
    },
-   top_srv = {
-      label = i18n("alerts_dashboard.top_srv"),
-      value = {
-         res.top.srv_ip
-      },
-   },
-   top_cli = {
-      label = i18n("alerts_dashboard.top_cli"),
-      value = {
-         res.top.cli_ip
-      },
-   },
-   top_alerts = {
-      label = i18n("alerts_dashboard.top_alerts"),
-      value = {
-         top_alerts
-      },
+   {
+      top_alerts = {
+         label = i18n("alerts_dashboard.top_alerts"),
+         tooltip = i18n("alerts_dashboard.tooltips.top_alerts"),
+         value = {
+            top_alerts
+         },
+      }
    }
 }
 

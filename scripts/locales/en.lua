@@ -837,6 +837,10 @@ local lang = {
     ["x_lost"] = "%{lost} Lost",
     ["x_ooo"] = "%{ooo} Out-of-Order",
     ["x_retx"] = "%{retx} Retransmissions",
+    ["tooltips"] = {
+      ["top_alerts"] = "Most seen alerts",
+      ["top_hosts"] = "Hosts with most alerts",
+    },
   },
   ["alerts_thresholds_config"] = {
     ["active_local_hosts"] = "Local Hosts Alert",
