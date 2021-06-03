@@ -651,7 +651,7 @@ print[[
    end
    print("</tr>")
 
-   if ifstats.encryption and ifstats.encryption.public_key then
+   if ifstats.encryption and ifstats.encryption.public_key and isAdministrator() then
       print("<tr><th width=250>"..i18n("if_stats_overview.zmq_encryption_public_key").."</th><td colspan=6>"..i18n("if_stats_overview.zmq_encryption_alias").."<span>")
       print("<input type='hidden' id='hiddenKey' value='"..ifstats.encryption.public_key.."'>")
       print("<button id='copy' class='btn btn-light border ms-1'>".."<i class='fas fa-copy'></i>".." </button>")
@@ -2532,7 +2532,7 @@ print[[
 print[[
   <script type='text/javascript'>
       $(document).ready(function(){
-        $('#copy').tooltip({title: "Copied!", trigger: "focus", delay: {"show": 50, "hide": 300}});
+        $('#copy').tooltip({title: "]] print(i18n("copied")) print[[", trigger: "focus", delay: {"show": 50, "hide": 300}});
 
       });    
   </script>
