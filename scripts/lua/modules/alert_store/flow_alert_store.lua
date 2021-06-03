@@ -114,7 +114,7 @@ end
 -- ##############################################
 
 --@brief Merge top clients and top servers to build a top hosts 
-local function top_ip_merge(top_cli_ip, top_srv_ip)
+function flow_alert_store:top_ip_merge(top_cli_ip, top_srv_ip)
    local all_ip = {}
    local top_ip = {}
 
@@ -143,7 +143,7 @@ function flow_alert_store:_get_additional_stats()
    stats.top = {}
    stats.top.cli_ip = self:top_cli_ip_historical()
    stats.top.srv_ip = self:top_srv_ip_historical()
-   stats.top.ip = top_ip_merge(stats.top.cli_ip, stats.top.srv_ip)
+   stats.top.ip = self:top_ip_merge(stats.top.cli_ip, stats.top.srv_ip)
    return stats
 end
 
