@@ -734,7 +734,7 @@ end
 -- export: use only in csv export, true the record is included in the csv, false otherwise
 local BASE_RNAME = {
    FAMILY = { name = "family", export = true},
-   ROW_ID = { name = "row_id", export = true},
+   ROW_ID = { name = "row_id", export = false},
    TSTAMP = { name = "tstamp", export = true},
    ALERT_ID = { name = "alert_id", export = true},
    SCORE = { name = "score", export = true},
