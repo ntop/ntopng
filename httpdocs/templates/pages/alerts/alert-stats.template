@@ -488,11 +488,10 @@
             // copy the url to the clipboard from the dummy input
             document.execCommand("copy");
             document.body.removeChild(dummyInput);
+        });
 
-            $this.attr("title", "Copied!")
-                .tooltip("dispose")
-                .tooltip()
-                .tooltip("show");
+        $(document).ready(function(){
+            $btnGetPermaLink.tooltip({title: "Copied!", trigger: "focus", delay: {"show": 50, "hide": 300}});
         });
 
         ChartWidget.registerEventCallback("{{ chart.name }}", 'zoomed', async (chartContext, { xaxis, yaxis }) => {
