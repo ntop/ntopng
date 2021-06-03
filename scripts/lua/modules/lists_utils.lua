@@ -125,6 +125,7 @@ local BUILTIN_LISTS = {
       update_interval = DEFAULT_UPDATE_INTERVAL,
    }
 }
+BUILTIN_LISTS = {} -- REMOVE
 
 -- ##############################################
 
