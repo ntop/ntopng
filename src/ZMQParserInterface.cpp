@@ -191,8 +191,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
   memset(&zrs, 0, sizeof(zrs));
 
   // payload[payload_size] = '\0';
-
-  //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+  
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
   o = json_tokener_parse_verbose(payload, &jerr);
 
   if(o) {
@@ -588,6 +588,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     } else {
       flow->l7_proto.app_protocol = value->int_num;
     }
+
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[value: %s][master: %u][app: %u]",
 				 value->string ? value->string : "(int)",
@@ -708,6 +709,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
       flow->tls_server_name = strdup(value->string);
     }
     break;
+    
   case JA3C_HASH:
     if(value->string && value->string[0]) {
       if(flow->ja3c_hash) free(flow->ja3c_hash);

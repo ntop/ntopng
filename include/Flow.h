@@ -367,6 +367,9 @@ class Flow : public GenericHashEntry {
   void alert2JSON(FlowAlert *alert, ndpi_serializer *serializer);
   json_object* flow2JSON();
   json_object* flow2es(json_object *flow_object);
+
+  inline void updateJA3C(char *j) { if(j && (j[0] != '\0') && (protos.tls.ja3.client_hash == NULL)) protos.tls.ja3.client_hash = strdup(j); updateCliJA3(); }
+  inline void updateJA3S(char *j) { if(j && (j[0] != '\0') && (protos.tls.ja3.server_hash == NULL)) protos.tls.ja3.server_hash = strdup(j); updateSrvJA3(); }
   
   inline u_int8_t getTcpFlags()        const { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
   inline u_int8_t getTcpFlagsCli2Srv() const { return(src2dst_tcp_flags);                      };
