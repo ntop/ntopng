@@ -708,38 +708,6 @@ function alert_store:add_request_ranges()
 end
 
 -- ##############################################
-function alert_store:format_value(value, no_html)
-   local record = {}
-
-   if no_html then
-      record = self:format_txt_record(value)   
-   else
-      record = self:format_json_record(value)      
-   end
-
-   return record
-end
-
--- used for downloading data
-function alert_store:format_txt_record(value)
-   local result = {}
-   local record = self:format_record(value, true)
-
-   for key, value in pairs(record) do
-      if type(value) == "table" then
-         result[key] = tostring(value.value)
-      else
-         result[key] = tostring(value)
-      end
-   end
-
-   return result
-end
-
--- used to feed the UI
-function alert_store:format_json_record(value)
-   return self:format_record(value, false)
-end
 
 -- define the base record names of the document, both json and csv
 -- add a new record name here if you want to add a new base element
@@ -816,64 +784,92 @@ function alert_store:format_json_record_common(value, entity_id)
    return record
 end
 
+-- Convert from table to CSV string
+function alert_store:to_csv(documents)
+   local csv = ""
+
+   local rnames = self:get_rnames_to_export()
+
+   -- column heading output
+   local row = self:build_csv_row_header(rnames)
+   csv = csv .. row .. '\n'
+
+   for _, document in ipairs(documents) do
+      row = self:build_csv_row(rnames, document)
+      csv = csv .. row .. '\n'
+   end
+
+   return csv
+end
+
+function alert_store:get_rnames_to_export()
+   local rnames = {}
+
+   for key, value in pairs(self:get_export_base_rnames()) do
+      if value.export then
+         rnames[key] = value
+      end
+   end
+   
+   for key, value in pairs(self:get_rnames()) do
+      if value.export then
+         rnames[key] = value
+      end
+   end
+
+   return rnames
+end
+
 -- do not override in subclasses
 function alert_store:get_export_base_rnames()
    return BASE_RNAME
 end
 
 -- to add new elements in subclasses define a RNAME table in subclass and returned it overring this function
-function alert_store:get_export_rnames()
+function alert_store:get_rnames()
    return {}
 end
 
 -- do not override in subclasses
-function alert_store:get_csv_header()
-   local csv_header = {}
+function alert_store:build_csv_row_header(rnames)
+   local row = ""
 
-   for _, value in pairs(self:get_export_base_rnames()) do
-      if value.export then
-         csv_header[#csv_header + 1] = value.name
+   for _, value in pairsByKeys(rnames) do
+      if value["elements"] == nil then
+         row = row .. CSV_SEPARATOR .. self:escape_csv(value.name)
+      else
+         for _, element in ipairs(value.elements) do
+            row = row .. CSV_SEPARATOR .. self:escape_csv(value.name .. "_" .. element)
+         end
       end
    end
 
-   for _, value in pairs(self:get_export_rnames()) do
-      if value.export then
-         csv_header[#csv_header + 1] = value.name
-      end
-   end
-
-   table.sort(csv_header) -- this assure the same csv columns order at each iteration
-
-   return csv_header
+   row = string.sub(row, 2) -- remove first separator
+   
+   return row;
 end
 
--- Convert from table to CSV string
-function alert_store:to_csv(documents)
-
-   local csv = ""
-   local csv_header = self:get_csv_header()
-
-   -- column heading output
+function alert_store:build_csv_row(rnames, document)
    local row = ""
-   for _, value in ipairs(csv_header) do
-      row = row .. CSV_SEPARATOR .. self:escape_csv(value)
-   end
-   row = string.sub(row, 2) -- remove first separator
-   csv = csv .. row .. '\n'
-
-   if table.len(documents) > 0 then
-      -- csv row output
-      for _, document in ipairs(documents) do
-         row = ""
-         for _, column_name in ipairs(csv_header) do
-            row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(document[column_name]))
+   
+   for _, rname in pairsByKeys(rnames) do
+      local doc_value = document[rname.name]
+      if type(doc_value) ~= "table" then
+         row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(doc_value))
+      else
+         if rname["elements"] ~= nil then
+            for _, element in ipairs(rname.elements) do
+               row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(doc_value[element]))
+            end
+         else
+            row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(doc_value.value))
          end
-         row = string.sub(row, 2) -- remove first separator
-         csv = csv .. row .. '\n'
       end
    end
-
-   return csv
+   
+   row = string.sub(row, 2) -- remove first separator
+   
+   return row
 end
 
 -- Used to escape "'s by to_csv

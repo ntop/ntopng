@@ -206,10 +206,10 @@ local RNAME = {
    IS_ATTACKER = { name = "is_attacker", export = true},
    VLAN_ID = { name = "vlan_id", export = true},
    ALERT_NAME = { name = "alert_name", export = true},
-   MSG = { name = "msg", export = true}
+   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
 }
 
-function host_alert_store:get_export_rnames()
+function host_alert_store:get_rnames()
    return RNAME
 end
 

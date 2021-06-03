@@ -220,7 +220,7 @@ local RNAME = {
    COUNT_GROUP_ERROR_OR_HIGHER = { name = "count_group_error_or_higher", export = true},
 }
 
-function alert_store:get_export_rnames()
+function alert_store:get_rnames()
    return RNAME
 end
 

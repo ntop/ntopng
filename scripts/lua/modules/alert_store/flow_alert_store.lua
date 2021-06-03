@@ -390,13 +390,13 @@ local RNAME = {
    ADDITIONAL_ALERTS = { name = "additional_alerts", export = true},
    ALERT_NAME = { name = "alert_name", export = true},
    DESCRIPTION = { name = "description", export = true},
-   MSG = { name = "msg", export = true},
+   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}},
    VLAN_ID = { name = "vlan_id", export = true},
    PROTO = { name = "proto", export = true},
    L7_PROTO = { name = "l7_proto", export = true}
 }
 
-function flow_alert_store:get_export_rnames()
+function flow_alert_store:get_rnames()
    return RNAME
 end
 
@@ -465,12 +465,8 @@ function flow_alert_store:format_record(value, no_html)
       nibble_num = nibble_num + 1
    end
 
-   if table.len(additional_alerts) == 0 then
-      record[RNAME.ADDITIONAL_ALERTS.name] = "nil"
-   else
-      record[RNAME.ADDITIONAL_ALERTS.name] = table.concat(additional_alerts, ", ")
-   end
-   
+   record[RNAME.ADDITIONAL_ALERTS.name] = table.concat(additional_alerts, ", ")
+
    -- Host reference
    local cli_ip = hostinfo2hostkey(value, "cli")
    local srv_ip = hostinfo2hostkey(value, "srv")

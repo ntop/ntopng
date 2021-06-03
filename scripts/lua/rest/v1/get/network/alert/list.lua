@@ -41,7 +41,7 @@ interface.select(ifid)
 local alerts, recordsFiltered = network_alert_store:select_request()
 
 for _, _value in ipairs(alerts or {}) do
-   res[#res + 1] = network_alert_store:format_value(_value, no_html)
+   res[#res + 1] = network_alert_store:format_record(_value, no_html)
 end
 
 if no_html then

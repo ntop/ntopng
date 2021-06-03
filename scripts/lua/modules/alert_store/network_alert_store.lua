@@ -69,10 +69,10 @@ local RNAME = {
    LOCAL_NETWORK_ID = { name = "local_network_id", export = true},
    NETWORK = { name = "network", export = true},
    ALERT_NAME = { name = "alert_name", export = true},
-   MSG = { name = "msg", export = true}
+   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
 }
 
-function network_alert_store:get_export_rnames()
+function network_alert_store:get_rnames()
    return RNAME
 end
 

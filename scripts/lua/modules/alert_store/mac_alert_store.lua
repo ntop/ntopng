@@ -68,10 +68,10 @@ local RNAME = {
    ADDRESS = { name = "address", export = true},
    DEVICE_TYPE = { name = "device_type", export = true},
    NAME = { name = "name", export = true},
-   MSG = { name = "msg", export = true}
+   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
 }
 
-function mac_alert_store:get_export_rnames()
+function mac_alert_store:get_rnames()
    return RNAME
 end
 
