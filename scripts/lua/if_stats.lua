@@ -39,6 +39,7 @@ local storage_utils = require "storage_utils"
 
 local have_nedge = ntop.isnEdge()
 local sites_granularities = nil
+local show_zmq_encryption_public_key = false
 
 if ntop.isPro() then
    shaper_utils = require("shaper_utils")
@@ -651,7 +652,9 @@ print[[
    end
    print("</tr>")
 
-   if ifstats.encryption and ifstats.encryption.public_key and isAdministrator() then
+   show_zmq_encryption_public_key = (ifstats.encryption and ifstats.encryption.public_key and isAdministrator())
+   
+   if show_zmq_encryption_public_key == true then
       print("<tr><th width=250>"..i18n("if_stats_overview.zmq_encryption_public_key").."</th><td colspan=6>"..i18n("if_stats_overview.zmq_encryption_alias").."<span>")
       print("<input type='hidden' id='hiddenKey' value='"..ifstats.encryption.public_key.."'>")
       print("<button id='copy' class='btn btn-light border ms-1'>".."<i class='fas fa-copy'></i>".." </button>")
@@ -2513,21 +2516,23 @@ $(document).ready(function()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
-print[[
-  <script type='text/javascript'>
-   const copyButton = document.getElementById("copy");
-   let copyKey=() => {
-      const input = document.getElementById("hiddenKey");
-      input.type="text";
-      input.select();
-      document.execCommand("copy");
-      input.type='hidden';
-   } 
+if show_zmq_encryption_public_key == true then
+   print[[
+      <script type='text/javascript'>
+      const copyButton = document.getElementById("copy");
+      let copyKey=() => {
+         const input = document.getElementById("hiddenKey");
+         input.type="text";
+         input.select();
+         document.execCommand("copy");
+         input.type='hidden';
+      } 
 
-   copyButton.onclick = copyKey;
+      copyButton.onclick = copyKey;
 
-   </script>
-]]
+      </script>
+   ]]
+end   
 
 print[[
   <script type='text/javascript'>
