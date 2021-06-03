@@ -837,6 +837,10 @@ local lang = {
     ["x_lost"] = "%{lost} Lost",
     ["x_ooo"] = "%{ooo} Out-of-Order",
     ["x_retx"] = "%{retx} Retransmissions",
+    ["tooltips"] = {
+      ["top_alerts"] = "Most seen alerts",
+      ["top_hosts"] = "Hosts with most alerts",
+    },
   },
   ["alerts_thresholds_config"] = {
     ["active_local_hosts"] = "Local Hosts Alert",
@@ -3033,6 +3037,7 @@ local lang = {
     ["zmq_message_drops"] = "Dropped ZMQ Messages",
     ["zmq_message_rcvd"] = "Collected ZMQ Messages",
     ["zmq_rx_statistics"] = "ZMQ Statistics",
+    ["zmq_encryption_alias"] = "******************",
   },
   ["index_page"] = {
     ["applications"] = "Applications",

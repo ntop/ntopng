@@ -77,8 +77,9 @@ end
 local function recursivePluginsSearch(edition, source_dir, max_recursion, plugins, plugins_with_deps)
    -- Prepend the current `source_dir` to the Lua path - this is necessary for doing the require
    lua_path_utils.package_path_prepend(source_dir)
+   local source_dir_contents = ntop.readdir(source_dir)
 
-   for plugin_name in pairs(ntop.readdir(source_dir)) do
+   for plugin_name in pairs(source_dir_contents) do
       local plugin_dir = os_utils.fixPath(source_dir .. "/" .. plugin_name)
       local plugin_info = os_utils.fixPath(plugin_dir .. "/manifest.lua")
 
@@ -121,8 +122,7 @@ local function recursivePluginsSearch(edition, source_dir, max_recursion, plugin
 	    recursivePluginsSearch(edition, plugin_dir, max_recursion - 1, plugins, plugins_with_deps)
 	 else
 	    -- Maximum recursion hit. must stop
-	    traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Unable to load '%s'. Missing 'manifest.lua'", plugin_dir))
-	    return
+	    traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Unable to load '%s'. Too many recursion levels.", plugin_dir))
 	 end
       end
 

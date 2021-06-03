@@ -37,38 +37,37 @@ interface.select(ifid)
 
 local res = flow_alert_store:get_stats()
 local top_alerts = {}
+local top_hosts = {}
 
 for _, value in pairs(res.top.alert_id) do
    top_alerts[#top_alerts + 1] = {
       count = value.count,
-      alert_name = alert_consts.alertTypeLabel(tonumber(value.alert_id), true),
+      name = alert_consts.alertTypeLabel(tonumber(value.alert_id), true),
    }
 end   
 
-res = {
-   top_hosts = {
+for _, value in pairs(res.top.ip) do
+   top_hosts[#top_hosts + 1] = {
+      count = value.count,
+      name = value.ip,
+   }
+end  
+
+-- Request from the frontend - to have them as array
+res = { 
+   { 
       label = i18n("alerts_dashboard.top_hosts"),
+      tooltip = i18n("alerts_dashboard.tooltips.top_hosts"),
       value = {
-         res.top.ip
-      },
+         top_hosts
+      }
    },
-   top_srv = {
-      label = i18n("alerts_dashboard.top_srv"),
-      value = {
-         res.top.srv_ip
-      },
-   },
-   top_cli = {
-      label = i18n("alerts_dashboard.top_cli"),
-      value = {
-         res.top.cli_ip
-      },
-   },
-   top_alerts = {
+   {
       label = i18n("alerts_dashboard.top_alerts"),
+      tooltip = i18n("alerts_dashboard.tooltips.top_alerts"),
       value = {
          top_alerts
-      },
+      }
    }
 }
 

@@ -4,6 +4,7 @@ NUM=1
 echo "$NUM. Uninstall ntopng"
 sudo /bin/rm -f /usr/local/bin/ntopng
 sudo /bin/rm -f /usr/local/bin/ntopng-bin
+sudo launchctl unload /Library/LaunchDaemons/org.ntop.ntopng.plist
 
 NUM=$((NUM+1))
 echo "$NUM. Uninstall companion files"

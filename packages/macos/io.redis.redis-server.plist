@@ -6,7 +6,8 @@
          <string>io.redis.redis-server</string>
          <key>ProgramArguments</key>
          <array>
-                <string>/usr/local/bin/ntopng-redis-server /usr/local/etc/redis.conf</string>
+           <string>/usr/local/bin/redis-server-bin</string>
+	   <string>/usr/local/etc/redis.conf</string>
 	 </array>
          <key>RunAtLoad</key>
          <true/>

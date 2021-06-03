@@ -29,11 +29,6 @@ class FlowRiskHTTPSuspiciousHeader : public FlowRisk {
   ndpi_risk_enum handledRisk()       { return NDPI_HTTP_SUSPICIOUS_HEADER;             }
   FlowAlertType getAlertType() const { return FlowRiskHTTPSuspiciousHeaderAlert::getClassType(); }
 
- protected:
-  /* Overriding the default scores */
-  u_int8_t getClientScore() const { return SCORE_LEVEL_WARNING; }
-  u_int8_t getServerScore() const { return SCORE_LEVEL_INFO;    }
-
  public:
   FlowRiskHTTPSuspiciousHeader() : FlowRisk() {};
   ~FlowRiskHTTPSuspiciousHeader() {};

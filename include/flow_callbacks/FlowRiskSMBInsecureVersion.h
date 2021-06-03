@@ -29,11 +29,6 @@ class FlowRiskSMBInsecureVersion : public FlowRisk {
   ndpi_risk_enum handledRisk() { return NDPI_SMB_INSECURE_VERSION;                   }
   FlowAlertType getAlertType() const { return FlowRiskSMBInsecureVersionAlert::getClassType(); }
 
- protected:
-  /* Overriding the default scores */
-  u_int8_t getClientScore() const { return SCORE_LEVEL_NOTICE;  }
-  u_int8_t getServerScore() const { return SCORE_LEVEL_WARNING; }
-
  public:
   FlowRiskSMBInsecureVersion() : FlowRisk() {};
   ~FlowRiskSMBInsecureVersion() {};

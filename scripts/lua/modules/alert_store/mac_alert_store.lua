@@ -57,6 +57,31 @@ end
 
 -- ##############################################
 
+--@brief Performs a query for the top device address by alert count
+function mac_alert_store:top_address_historical()
+   -- Preserve all the filters currently set
+   local where_clause = table.concat(self._where, " AND ")
+
+   local q = string.format("SELECT address, count(*) count FROM %s WHERE %s GROUP BY address ORDER BY count DESC LIMIT %u",
+			   self._table_name, where_clause, self._top_limit)
+
+   local q_res = interface.alert_store_query(q) or {}
+
+   return q_res
+end
+
+-- ##############################################
+
+--@brief Stats used by the dashboard
+function mac_alert_store:_get_additional_stats()
+   local stats = {}
+   stats.top = {}
+   stats.top.address = self:top_address_historical()
+   return stats
+end
+
+-- ##############################################
+
 --@brief Add filters according to what is specified inside the REST API
 function mac_alert_store:_add_additional_request_filters()
    -- Add filters specific to the mac family

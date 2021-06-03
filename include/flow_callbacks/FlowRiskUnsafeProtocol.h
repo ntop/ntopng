@@ -29,16 +29,10 @@ class FlowRiskUnsafeProtocol : public FlowRisk {
   ndpi_risk_enum handledRisk()       { return NDPI_UNSAFE_PROTOCOL;       }
   FlowAlertType getAlertType() const { return FlowRiskUnsafeProtocolAlert::getClassType(); }
 
- protected:
-  /* Overriding the default scores */
-  u_int8_t getClientScore() const { return SCORE_LEVEL_ERROR; }
-  u_int8_t getServerScore() const { return SCORE_LEVEL_INFO;  }
-
  public:
   FlowRiskUnsafeProtocol() : FlowRisk() {};
   ~FlowRiskUnsafeProtocol() {};
 
-  void protocolDetected(Flow *f);
   FlowAlert *buildAlert(Flow *f) {
     FlowRiskUnsafeProtocolAlert *alert = new FlowRiskUnsafeProtocolAlert(this, f);
 

@@ -5393,7 +5393,7 @@ void Flow::setPredominantAlert(FlowAlertType alert_type, u_int16_t score) {
 
   Return true if the activities are completed successfully, of false otherwise
 */
-bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int8_t cli_inc, u_int8_t srv_inc, bool async) {
+bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc, bool async) {
   ScoreCategory score_category = Utils::mapAlertToScoreCategory(alert_type.category);
   u_int16_t flow_inc;
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
@@ -5466,7 +5466,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int8_t cli_inc, u_int8_t 
 
 /* *************************************** */
 
-bool Flow::triggerAlertAsync(FlowAlertType alert_type, u_int8_t cli_inc, u_int8_t srv_inc) {
+bool Flow::triggerAlertAsync(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc) {
   bool res;
 
   res = setAlertsBitmap(alert_type, cli_inc, srv_inc, true);
@@ -5476,7 +5476,7 @@ bool Flow::triggerAlertAsync(FlowAlertType alert_type, u_int8_t cli_inc, u_int8_
 
 /* *************************************** */
 
-bool Flow::triggerAlertSync(FlowAlert *alert, u_int8_t cli_inc, u_int8_t srv_inc) {
+bool Flow::triggerAlertSync(FlowAlert *alert, u_int16_t cli_inc, u_int16_t srv_inc) {
   bool res;
 
   res = setAlertsBitmap(alert->getAlertType(), cli_inc, srv_inc, false);

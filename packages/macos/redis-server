@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export DYLD_LIBRARY_PATH=/usr/local/opt/ntopng/:$DYLD_LIBRARY_PATH
+
+# $@ means pass all parameters
+/usr/local/bin/ntopng-redis-server $@

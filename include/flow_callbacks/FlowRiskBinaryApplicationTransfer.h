@@ -29,10 +29,6 @@ class FlowRiskBinaryApplicationTransfer : public FlowRisk {
   ndpi_risk_enum handledRisk()       { return NDPI_BINARY_APPLICATION_TRANSFER; };
   FlowAlertType getAlertType() const { return FlowRiskBinaryApplicationTransferAlert::getClassType(); };
 
-  /* Overriding the default scores */
-  u_int8_t getClientScore() const { return SCORE_LEVEL_ERROR; }
-  u_int8_t getServerScore() const { return SCORE_LEVEL_ERROR; }
-
  public:
   FlowRiskBinaryApplicationTransfer() : FlowRisk() {};
   ~FlowRiskBinaryApplicationTransfer() {};

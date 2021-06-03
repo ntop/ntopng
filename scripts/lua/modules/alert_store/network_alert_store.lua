@@ -64,6 +64,31 @@ end
 
 -- ##############################################
 
+--@brief Performs a query for the top networks by alert count
+function network_alert_store:top_local_network_id_historical()
+   -- Preserve all the filters currently set
+   local where_clause = table.concat(self._where, " AND ")
+
+   local q = string.format("SELECT local_network_id, count(*) count, name FROM %s WHERE %s GROUP BY local_network_id ORDER BY count DESC LIMIT %u",
+			   self._table_name, where_clause, self._top_limit)
+
+   local q_res = interface.alert_store_query(q) or {}
+
+   return q_res
+end
+
+-- ##############################################
+
+--@brief Stats used by the dashboard
+function network_alert_store:_get_additional_stats()
+   local stats = {}
+   stats.top = {}
+   stats.top.local_network_id = self:top_local_network_id_historical()
+   return stats
+end
+
+-- ##############################################
+
 local RNAME = {
    ALIAS = { name = "alias", export = true},
    LOCAL_NETWORK_ID = { name = "local_network_id", export = true},

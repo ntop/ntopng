@@ -39,6 +39,7 @@ local storage_utils = require "storage_utils"
 
 local have_nedge = ntop.isnEdge()
 local sites_granularities = nil
+local show_zmq_encryption_public_key = false
 
 if ntop.isPro() then
    shaper_utils = require("shaper_utils")
@@ -651,11 +652,14 @@ print[[
    end
    print("</tr>")
 
-   if ifstats.encryption and ifstats.encryption.public_key then
-      print("<tr><th width=250>"..i18n("if_stats_overview.zmq_encryption_public_key").."</th><td colspan=6><span>")
-      print(ifstats.encryption.public_key)
+   show_zmq_encryption_public_key = (ifstats.encryption and ifstats.encryption.public_key and isAdministrator())
+   
+   if show_zmq_encryption_public_key == true then
+      print("<tr><th width=250>"..i18n("if_stats_overview.zmq_encryption_public_key").."</th><td colspan=6>"..i18n("if_stats_overview.zmq_encryption_alias").."<span>")
+      print("<input type='hidden' id='hiddenKey' value='"..ifstats.encryption.public_key.."'>")
+      print("<button id='copy' class='btn btn-light border ms-1'>".."<i class='fas fa-copy'></i>".." </button>")
       print("<br><small><b>"..i18n("if_stats_overview.note").."</b>:<ul><li> ".. i18n("if_stats_overview.zmq_encryption_public_key_note", {key="&lt;key&gt;"}).."")
-      print("<li>nprobe --zmq "..ifstats.name.." --zmq-encryption-key '"..ifstats.encryption.public_key.."' ...")
+      print("<li>nprobe --zmq "..ifstats.name.." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
       print("</small></ul></td></tr>\n")
    end
 
@@ -2511,3 +2515,30 @@ $(document).ready(function()
 ]]
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+
+if show_zmq_encryption_public_key == true then
+   print[[
+      <script type='text/javascript'>
+      const copyButton = document.getElementById("copy");
+      let copyKey=() => {
+         const input = document.getElementById("hiddenKey");
+         input.type="text";
+         input.select();
+         document.execCommand("copy");
+         input.type='hidden';
+      } 
+
+      copyButton.onclick = copyKey;
+
+      </script>
+   ]]
+end   
+
+print[[
+  <script type='text/javascript'>
+      $(document).ready(function(){
+        $('#copy').tooltip({title: "]] print(i18n("copied")) print[[", trigger: "focus", delay: {"show": 50, "hide": 300}});
+
+      });    
+  </script>
+]]
