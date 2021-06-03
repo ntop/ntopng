@@ -45,24 +45,20 @@ for _, value in pairs(res.top.alert_id) do
    }
 end   
 
--- Request from the frontend - to have 
+-- Request from the frontend - to have them as array
 res = { 
    { 
-      top_hosts = { 
-         label = i18n("alerts_dashboard.top_hosts"),
-         tooltip = i18n("alerts_dashboard.tooltips.top_hosts"),
-         value = {
-            res.top.ip
-         },
-      },
+      label = i18n("alerts_dashboard.top_hosts"),
+      tooltip = i18n("alerts_dashboard.tooltips.top_hosts"),
+      value = {
+         res.top.ip
+      }
    },
    {
-      top_alerts = {
-         label = i18n("alerts_dashboard.top_alerts"),
-         tooltip = i18n("alerts_dashboard.tooltips.top_alerts"),
-         value = {
-            top_alerts
-         },
+      label = i18n("alerts_dashboard.top_alerts"),
+      tooltip = i18n("alerts_dashboard.tooltips.top_alerts"),
+      value = {
+         top_alerts
       }
    }
 }
