@@ -3033,6 +3033,7 @@ local lang = {
     ["zmq_message_drops"] = "Dropped ZMQ Messages",
     ["zmq_message_rcvd"] = "Collected ZMQ Messages",
     ["zmq_rx_statistics"] = "ZMQ Statistics",
+    ["zmq_encryption_alias"] = "******************",
   },
   ["index_page"] = {
     ["applications"] = "Applications",

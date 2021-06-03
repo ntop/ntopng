@@ -652,10 +652,11 @@ print[[
    print("</tr>")
 
    if ifstats.encryption and ifstats.encryption.public_key then
-      print("<tr><th width=250>"..i18n("if_stats_overview.zmq_encryption_public_key").."</th><td colspan=6><span>")
-      print(ifstats.encryption.public_key)
+      print("<tr><th width=250>"..i18n("if_stats_overview.zmq_encryption_public_key").."</th><td colspan=6>"..i18n("if_stats_overview.zmq_encryption_alias").."<span>")
+      print("<input type='hidden' id='hiddenKey' value='"..ifstats.encryption.public_key.."'>")
+      print("<button id='copy' class='btn btn-light border ms-1'>".."<i class='fas fa-copy'></i>".." </button>")
       print("<br><small><b>"..i18n("if_stats_overview.note").."</b>:<ul><li> ".. i18n("if_stats_overview.zmq_encryption_public_key_note", {key="&lt;key&gt;"}).."")
-      print("<li>nprobe --zmq "..ifstats.name.." --zmq-encryption-key '"..ifstats.encryption.public_key.."' ...")
+      print("<li>nprobe --zmq "..ifstats.name.." --zmq-encryption-key '"..i18n("if_stats_overview.zmq_encryption_alias").."' ...")
       print("</small></ul></td></tr>\n")
    end
 
@@ -2511,3 +2512,28 @@ $(document).ready(function()
 ]]
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+
+print[[
+  <script type='text/javascript'>
+   const copyButton = document.getElementById("copy");
+   let copyKey=() => {
+      const input = document.getElementById("hiddenKey");
+      input.type="text";
+      input.select();
+      document.execCommand("copy");
+      input.type='hidden';
+   } 
+
+   copyButton.onclick = copyKey;
+
+   </script>
+]]
+
+print[[
+  <script type='text/javascript'>
+      $(document).ready(function(){
+        $('#copy').tooltip({title: "Copied!", trigger: "focus", delay: {"show": 50, "hide": 300}});
+
+      });    
+  </script>
+]]
