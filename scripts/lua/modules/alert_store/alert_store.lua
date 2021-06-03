@@ -706,6 +706,17 @@ function alert_store:add_request_ranges()
 end
 
 -- ##############################################
+function alert_store:format_value(value, no_html)
+   local record = {}
+
+   if no_html then
+      record = self:format_txt_record(value)   
+   else
+      record = self:format_json_record(value)      
+   end
+
+   return record
+end
 
 -- used for downloading data
 function alert_store:format_txt_record(value)

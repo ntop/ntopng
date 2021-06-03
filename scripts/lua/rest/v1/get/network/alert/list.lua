@@ -41,16 +41,8 @@ interface.select(ifid)
 local alerts, recordsFiltered = network_alert_store:select_request()
 
 for _, _value in ipairs(alerts or {}) do
-   local record = {}
-
-   if no_html then
-      record = network_alert_store:format_txt_record(_value)   
-   else
-      record = network_alert_store:format_json_record(_value)      
-   end
-   
-   res[#res + 1] = record
-end -- for
+   res[#res + 1] = network_alert_store:format_value(_value, no_html)
+end
 
 if no_html then
    res = network_alert_store:to_csv(res)   
