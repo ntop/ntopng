@@ -27,11 +27,6 @@
 class FlowRiskTLS : public FlowRisk {
  private:
 
- protected:
-  /* Overriding the default scores */
-  u_int8_t getClientScore() const { return SCORE_LEVEL_NOTICE; }
-  u_int8_t getServerScore() const { return SCORE_LEVEL_NOTICE; }
-
  public:
  FlowRiskTLS() : FlowRisk() {};
  FlowRiskTLS(NtopngEdition _edition) : FlowRisk(_edition) {};

@@ -29,10 +29,6 @@ class FlowRiskKnownProtocolOnNonStandardPort : public FlowRisk {
   ndpi_risk_enum handledRisk() { return NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT; }
   FlowAlertType getAlertType() const { return FlowRiskKnownProtocolOnNonStandardPortAlert::getClassType();  }
 
-  /* Overriding the default scores */
-  u_int8_t getClientScore() const { return SCORE_LEVEL_NOTICE; }
-  u_int8_t getServerScore() const { return SCORE_LEVEL_NOTICE; }
-
  public:
   FlowRiskKnownProtocolOnNonStandardPort() : FlowRisk() {};
   ~FlowRiskKnownProtocolOnNonStandardPort() {};

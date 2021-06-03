@@ -26,10 +26,13 @@
 
 void FlowRisk::protocolDetected(Flow *f) {
   if (f->hasRisk(handledRisk())) {
-    u_int8_t c_score = getClientScore();
-    u_int8_t s_score = getServerScore();
+    u_int16_t flow_score, cli_score, srv_score;
+    ndpi_risk risk_bitmap = 0;
 
-    f->triggerAlertAsync(getAlertType(), c_score, s_score);
+    NDPI_SET_BIT(risk_bitmap, handledRisk());
+    flow_score = ndpi_risk2score(risk_bitmap, &cli_score, &srv_score);
+
+    f->triggerAlertAsync(getAlertType(), cli_score, srv_score);
   }
 }
 
