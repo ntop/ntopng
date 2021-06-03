@@ -19,6 +19,7 @@
 #include <curl/curl.h>
 #include "json.h"
 #define _usleep usleep
+#define DEBUG_SPEEDTEST
 #endif
 
 #ifdef HAVE_EXPAT
@@ -40,7 +41,8 @@
 
 #define MAX_ISP_NAME         255
 #define MAX_IPADDRESS_STRLEN 48
-#define MAX_CLOSEST_SERVER_NUM 5
+#define MAX_CLOSEST_SERVER_NUM 16
+#define MIN_SERVERS_TO_CHECK 5
 
 #define RECORED_EVERY_SEC    0.2
 #define PRINT_RECORED_NUM    2
@@ -209,27 +211,23 @@ static void XMLCALL end_element(void *userData, const char *name)
     p_server->distance = get_distance(client.lat, client.lon, p_server->lat, p_server->lon);
 
     for (i = 0; i < MAX_CLOSEST_SERVER_NUM; i++) {
-
-      if ( servers[i].url[0] == 0 ) {
-
+      if (servers[i].url[0] == 0 ) {
         break;
       }
     }
 
-    if ( i == MAX_CLOSEST_SERVER_NUM ) {
-
+    if (i == MAX_CLOSEST_SERVER_NUM) {
       for (i = 0; i <MAX_CLOSEST_SERVER_NUM; i++) {
-
-        if (servers[i].distance >  p_server->distance) {
+        if (servers[i].distance > p_server->distance) {
           break;
         }
       }
     }
+
     if (i != MAX_CLOSEST_SERVER_NUM)
       memcpy(&servers[i], p_server, sizeof(struct server_info));
     memset(p_server, 0, sizeof(struct server_info));
   }
-
 }
 
 static int do_latency(char *p_url)
@@ -251,8 +249,9 @@ static int do_latency(char *p_url)
   curl_easy_cleanup(curl);
 
   if (res != CURLE_OK || response_code != 200) {
-
-    //printf("curl_easy_perform() failed: %s %ld\n", curl_easy_strerror(res), response_code);
+#ifdef DEBUG_SPEEDTEST
+    printf("curl_easy_perform() failed for %s: %s %ld\n", p_url, curl_easy_strerror(res), response_code);
+#endif
     return NOK;
   }
   return OK;
@@ -676,14 +675,17 @@ static int get_client_info(struct client_info *p_client)
   res = curl_easy_perform(curl);
   curl_easy_cleanup(curl);
   if (res != CURLE_OK) {
-    // printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+#ifdef DEBUG_SPEEDTEST
+    printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+#endif
     goto cleanup;
   }
   XML_SetUserData(xml, p_client);
   XML_SetElementHandler(xml, start_element, end_element);
   if (XML_Parse(xml, web.data, web.size , 1) == XML_STATUS_ERROR) {
-
-    // fprintf(stderr, "Parse client failed\n");
+#ifdef DEBUG_SPEEDTEST
+    fprintf(stderr, "Parse client failed\n");
+#endif
     // exit(-1);
     goto cleanup;
   }
@@ -719,15 +721,18 @@ static int get_closest_server()
   res = curl_easy_perform(curl);
   curl_easy_cleanup(curl);
   if (res != CURLE_OK) {
-    // printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+#ifdef DEBUG_SPEEDTEST
+    printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+#endif
     goto cleanup;
   }
   XML_SetUserData(xml, &server);
   depth = 0;
   XML_SetElementHandler(xml, start_element, end_element);
   if (XML_Parse(xml, web.data, web.size , 1) == XML_STATUS_ERROR) {
-
-    // fprintf(stderr, "Parse servers list failed\n");
+#ifdef DEBUG_SPEEDTEST
+    fprintf(stderr, "Parse servers list failed\n");
+#endif
     // exit(-1);
     goto cleanup;
   }
@@ -748,19 +753,30 @@ static int get_best_server(int *p_index)
   char    server[URL_LENGTH_MAX] = {0};
 
   for (i = 0; i < MAX_CLOSEST_SERVER_NUM; i++) {
-
     double latency;
+
+    if (minimum != DBL_MAX && i >= MIN_SERVERS_TO_CHECK)
+      break; /* MIN_SERVERS_TO_CHECK evaluated and at least one found */
 
     sscanf(servers[i].url, "http://%[^/]speedtest/upload.%*s", server);
     latency = test_latency(server);
-    if (minimum > latency ) {
 
+#ifdef DEBUG_SPEEDTEST
+    //printf("Measured latency for %s is %0.3fms\n", server, latency);
+#endif
+
+    if (minimum > latency ) {
       minimum = latency;
       *p_index = i;
+#ifdef DEBUG_SPEEDTEST
+      //printf("Best server set to %u (%s)\n", i, server);
+#endif
     }
   }
+
   if (minimum == DBL_MAX)
     return NOK;
+
   return OK;
 }
 
@@ -784,23 +800,40 @@ json_object* speedtest() {
   memset(server_url, 0, sizeof(server_url));
   memset(ext, 0, sizeof(ext));
 
-  if (server_url[0] == 0) {
-    // printf("Retrieving speedtest.net configuration...\n");
-    get_client_info(&client);
-    // printf("Retrieving speedtest.net server list...\n");
-    get_closest_server();
-    // printf("Testing from %s (%s)...\n", client.isp, client.ip);
+#ifdef DEBUG_SPEEDTEST
+  printf("Retrieving speedtest.net configuration...\n");
+#endif
+  get_client_info(&client);
 
-    json_object_object_add(rc, "client.isp", json_object_new_string(client.isp));
-    json_object_object_add(rc, "client.ip", json_object_new_string(client.ip));
+#ifdef DEBUG_SPEEDTEST
+  printf("Retrieving speedtest.net server list...\n");
+#endif
+  get_closest_server();
 
-    // printf("Selecting best server based on ping...\n");
-    get_best_server(&sindex);
-    sscanf(servers[sindex].url, "http://%[^/]/speedtest/upload.%4s", server_url, ext);
-    // printf("Bestest server: %s(%0.2fKM)\n", server_url, servers[sindex].distance);
-    json_object_object_add(rc, "server.url", json_object_new_string(server_url));
-    json_object_object_add(rc, "server.distance", json_object_new_double(servers[sindex].distance));
+#ifdef DEBUG_SPEEDTEST
+  printf("Testing from %s (%s)...\n", client.isp, client.ip);
+#endif
+
+  json_object_object_add(rc, "client.isp", json_object_new_string(client.isp));
+  json_object_object_add(rc, "client.ip", json_object_new_string(client.ip));
+
+#ifdef DEBUG_SPEEDTEST
+  printf("Selecting best server based on ping...\n");
+#endif
+
+  if (get_best_server(&sindex) != OK) {
+#ifdef DEBUG_SPEEDTEST
+    printf("Failure selecting the best server\n");
+#endif
+    return(rc);
   }
+  
+  sscanf(servers[sindex].url, "http://%[^/]/speedtest/upload.%4s", server_url, ext);
+#ifdef DEBUG_SPEEDTEST
+  printf("Best server: %s(%0.2fKM)\n", server_url, servers[sindex].distance);
+#endif
+  json_object_object_add(rc, "server.url", json_object_new_string(server_url));
+  json_object_object_add(rc, "server.distance", json_object_new_double(servers[sindex].distance));
 
   /* Must initialize libcurl before any threads are started */
   curl_global_init(CURL_GLOBAL_ALL);
@@ -810,17 +843,23 @@ json_object* speedtest() {
   if (latency == DBL_MAX)
     return(rc);
 
-  //printf("Server latency is %0.0fms\n", latency);
+#ifdef DEBUG_SPEEDTEST
+  printf("Server latency is %0.0fms\n", latency);
+#endif
   json_object_object_add(rc, "server.latency", json_object_new_double(latency));
 #endif
 
   speed = test_download(server_url, num_thread, dsize, 0);
 
   dsize = get_download_filename(speed, num_thread);
-  // // fprintf(stderr, "Testing download speed");
+#ifdef DEBUG_SPEEDTEST
+  fprintf(stderr, "Testing download speed");
+#endif
   download_speed = test_download(server_url, num_thread, dsize, 1);
 
-  // printf("Download speed: %0.2fMbps\n", ((download_speed*8)/(1024*1024)));
+#ifdef DEBUG_SPEEDTEST
+  printf("Download speed: %0.2fMbps\n", ((download_speed*8)/(1024*1024)));
+#endif
   json_object_object_add(rc, "download.speed", json_object_new_double((download_speed*8)/(1024*1024)));
 
   if (ext[0] == 0 && get_upload_extension(server_url, ext) != OK)
@@ -829,10 +868,14 @@ json_object* speedtest() {
 #ifdef FULL_REPORT
   speed = test_upload(server_url, num_thread, speed, ext, 0);
 
-  // // fprintf(stderr, "Testing upload speed");
+#ifdef DEBUG_SPEEDTEST
+  fprintf(stderr, "Testing upload speed");
+#endif
   upload_speed = test_upload(server_url, num_thread, speed*SPEEDTEST_TIME_MAX, ext, 1);
 
-  // printf("Upload speed: %0.2fMbps\n", ((upload_speed*8)/(1024*1024)));
+#ifdef DEBUG_SPEEDTEST
+  printf("Upload speed: %0.2fMbps\n", ((upload_speed*8)/(1024*1024)));
+#endif
   json_object_object_add(rc, "upload.speed", json_object_new_double(((upload_speed*8)/(1024*1024))));
 #endif
 
