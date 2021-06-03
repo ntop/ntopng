@@ -24,12 +24,14 @@ local alert_store = classes.class()
 
 -- Default number of time slots to be returned when aggregating by time
 local NUM_TIME_SLOTS = 31
+local TOP_LIMIT = 10
 
 -- ##############################################
 
 function alert_store:init(args)
    self._where = { "1 = 1" }
    self._group_by = nil
+   self._top_limit = TOP_LIMIT
 end
 
 -- ##############################################

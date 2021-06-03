@@ -87,10 +87,9 @@ end
 function flow_alert_store:top_cli_ip_historical()
    -- Preserve all the filters currently set
    local where_clause = table.concat(self._where, " AND ")
-   local limit = 10
 
    local q = string.format("SELECT cli_ip, count(*) count FROM %s WHERE %s GROUP BY cli_ip ORDER BY count DESC LIMIT %u",
-			   self._table_name, where_clause, limit)
+			   self._table_name, where_clause, self._top_limit)
 
    local q_res = interface.alert_store_query(q) or {}
 
@@ -103,10 +102,9 @@ end
 function flow_alert_store:top_srv_ip_historical()
    -- Preserve all the filters currently set
    local where_clause = table.concat(self._where, " AND ")
-   local limit = 10
 
    local q = string.format("SELECT srv_ip, count(*) count FROM %s WHERE %s GROUP BY srv_ip ORDER BY count DESC LIMIT %u",
-			   self._table_name, where_clause, limit)
+			   self._table_name, where_clause, self._top_limit)
 
    local q_res = interface.alert_store_query(q) or {}
 
@@ -119,7 +117,6 @@ end
 local function top_ip_merge(top_cli_ip, top_srv_ip)
    local all_ip = {}
    local top_ip = {}
-   local limit = 10
 
    for _, p in ipairs(top_cli_ip) do
       all_ip[p.cli_ip] = tonumber(p.count)
@@ -132,7 +129,7 @@ local function top_ip_merge(top_cli_ip, top_srv_ip)
          ip = ip,
          count = count,
       }
-      if #top_ip >= limit then break end
+      if #top_ip >= self._top_limit then break end
    end
 
    return top_ip

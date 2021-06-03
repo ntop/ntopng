@@ -73,10 +73,9 @@ end
 function host_alert_store:top_ip_historical()
    -- Preserve all the filters currently set
    local where_clause = table.concat(self._where, " AND ")
-   local limit = 10
 
    local q = string.format("SELECT ip, count(*) count FROM %s WHERE %s GROUP BY ip ORDER BY count DESC LIMIT %u",
-			   self._table_name, where_clause, limit)
+			   self._table_name, where_clause, self._top_limit)
 
    local q_res = interface.alert_store_query(q) or {}
 
