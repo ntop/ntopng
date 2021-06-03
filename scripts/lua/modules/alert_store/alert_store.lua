@@ -25,6 +25,8 @@ local alert_store = classes.class()
 -- Default number of time slots to be returned when aggregating by time
 local NUM_TIME_SLOTS = 31
 
+local CSV_SEPARATOR = "|"
+
 -- ##############################################
 
 function alert_store:init(args)
@@ -825,40 +827,36 @@ function alert_store:get_export_rnames()
 end
 
 -- do not override in subclasses
-function alert_store:get_export_record_names()
-   local columns_to_export = {}
+function alert_store:get_csv_header()
+   local csv_header = {}
 
-   for key, value in pairs(self:get_export_base_rnames()) do
+   for _, value in pairs(self:get_export_base_rnames()) do
       if value.export then
-         columns_to_export[key] = value.name
+         csv_header[#csv_header + 1] = value.name
       end
    end
 
-   for key, value in pairs(self:get_export_rnames()) do
+   for _, value in pairs(self:get_export_rnames()) do
       if value.export then
-         columns_to_export[key] = value.name
+         csv_header[#csv_header + 1] = value.name
       end
    end
 
-   return columns_to_export
+   table.sort(csv_header) -- this assure the same csv columns order at each iteration
+
+   return csv_header
 end
 
 -- Convert from table to CSV string
 function alert_store:to_csv(documents)
 
-   local separator = "|" -- change this to use another separator
    local csv = ""
-
-   local csv_header = {} -- contains the column heading names
-   for _, value in pairs(self:get_export_record_names()) do
-      csv_header[#csv_header + 1] = tostring(value)
-   end
-   table.sort(csv_header) -- this assure the same csv columns order at each iteration
+   local csv_header = self:get_csv_header()
 
    -- column heading output
    local row = ""
    for _, value in ipairs(csv_header) do
-      row = row .. separator .. self:escape_csv(value)
+      row = row .. CSV_SEPARATOR .. self:escape_csv(value)
    end
    row = string.sub(row, 2) -- remove first separator
    csv = csv .. row .. '\n'
@@ -868,7 +866,7 @@ function alert_store:to_csv(documents)
       for _, document in ipairs(documents) do
          row = ""
          for _, column_name in ipairs(csv_header) do
-            row = row .. separator .. self:escape_csv(tostring(document[column_name]))
+            row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(document[column_name]))
          end
          row = string.sub(row, 2) -- remove first separator
          csv = csv .. row .. '\n'
@@ -880,7 +878,7 @@ end
 
 -- Used to escape "'s by to_csv
 function alert_store:escape_csv(s)
-   if string.find(s, '[,"|]') then
+   if string.find(s, '[,"|\n]') then
       s = '"' .. string.gsub(s, '"', '""') .. '"'
    end
    return s
