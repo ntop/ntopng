@@ -387,7 +387,7 @@ local RNAME = {
    ADDITIONAL_ALERTS = { name = "additional_alerts", export = true},
    ALERT_NAME = { name = "alert_name", export = true},
    DESCRIPTION = { name = "description", export = true},
-   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}},
+   MSG = { name = "msg", export = true, elements = {"name", "value"}},
    VLAN_ID = { name = "vlan_id", export = true},
    PROTO = { name = "proto", export = true},
    L7_PROTO = { name = "l7_proto", export = true}
