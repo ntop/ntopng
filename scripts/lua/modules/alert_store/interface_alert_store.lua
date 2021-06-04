@@ -66,7 +66,7 @@ end
 
 local RNAME = {
    ALERT_NAME = { name = "alert_name", export = true},
-   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
+   MSG = { name = "msg", export = true, elements = {"name", "value"}}
 }
 
 function interface_alert_store:get_rnames()

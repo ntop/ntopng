@@ -715,6 +715,9 @@ end
 -- add a new record name here if you want to add a new base element
 -- name: the actual record name 
 -- export: use only in csv export, true the record is included in the csv, false otherwise
+-- in case an element is a table by default the 'value' key is exported, if you want to export multiple fields
+-- add an 'element' array specifing the field names to export, for example:
+-- MSG = { name = "msg", export = true, elements = {"name", "value"}}
 local BASE_RNAME = {
    FAMILY = { name = "family", export = true},
    ROW_ID = { name = "row_id", export = false},
@@ -838,10 +841,10 @@ function alert_store:build_csv_row_header(rnames)
 
    for _, value in pairsByKeys(rnames) do
       if value["elements"] == nil then
-         row = row .. CSV_SEPARATOR .. self:escape_csv(value.name)
+         row = row .. CSV_SEPARATOR .. value.name
       else
          for _, element in ipairs(value.elements) do
-            row = row .. CSV_SEPARATOR .. self:escape_csv(value.name .. "_" .. element)
+            row = row .. CSV_SEPARATOR .. value.name .. "_" .. element
          end
       end
    end
