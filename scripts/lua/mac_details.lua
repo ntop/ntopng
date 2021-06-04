@@ -82,6 +82,9 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.devices)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+
+mac = nil
+
 if(mac == nil) then
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>" .. " " .. i18n("mac_details.mac_parameter_missing_message") .. "</div>")
    return
