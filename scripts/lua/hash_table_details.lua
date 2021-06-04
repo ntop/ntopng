@@ -30,12 +30,14 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.interface, {ifname=getH
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(hash_table == nil) then
-   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Hash_Table parameter is missing (internal error ?)</div>")
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> Hash_Table parameter is missing (internal error ?)</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
 end
 
 if(not ts_utils.exists("ht:state", {ifid = ifId, hash_table = hash_table})) then
-   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available stats for hash table "..hash_table.."</div>")
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> No available stats for hash table "..hash_table.."</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
 end
 

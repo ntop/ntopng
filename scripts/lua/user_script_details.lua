@@ -29,12 +29,14 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.scripts_config)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if((user_script == nil) or (subdir == nil)) then
-   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> user_script/subdir parameter is missing (internal error ?)</div>")
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> user_script/subdir parameter is missing (internal error ?)</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
 end
 
 if(not ts_utils.exists(schema_prefix .. ":duration", {ifid = ifId, user_script = user_script, subdir = subdir})) then
-   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available stats for user script "..user_script.."</div>")
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> No available stats for user script "..user_script.."</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
 end
 

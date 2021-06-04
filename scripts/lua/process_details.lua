@@ -32,12 +32,12 @@ else
 end
 
 if not pid or not name_key then
-   print("<div class=\"alert alert-danger\"><img src=/img/warning.png> "..i18n("processes_stats.missing_pid_name_message").."</div>")
+   print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("processes_stats.missing_pid_name_message").."</div>")
 else
 
    local name = ''
    if num == 0 then
-      print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("processes_stats.no_traffic_detected").."</div>")
+      print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("processes_stats.no_traffic_detected").."</div>")
    else
       local title = ''
       local nav_url = ntop.getHttpPrefix().."/lua/process_details.lua?pid="..pid.."&pid_name="..name_key

@@ -35,7 +35,7 @@ end
 
 
 if(user_key == nil) then
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("user_info.missing_user_name_message").."</div>")
+   print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("user_info.missing_user_name_message").."</div>")
 else
    local title = ''
    local nav_url = ntop.getHttpPrefix().."/lua/username_details.lua?username="..user_key.."&uid="..uid
