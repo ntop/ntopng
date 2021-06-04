@@ -1,4 +1,3 @@
-local lists_utils = require "scripts.lua.modules.lists_utils"
 --
 -- (C) 2021-21 - ntop.org
 --
