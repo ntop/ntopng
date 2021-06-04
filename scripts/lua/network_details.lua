@@ -46,8 +46,9 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.networks)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(network == nil) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> ".. i18n("network_details.network_parameter_missing_message") .. "</div>")
-    return
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> ".. i18n("network_details.network_parameter_missing_message") .. "</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 end
 
 --[[

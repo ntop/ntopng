@@ -24,16 +24,13 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.containers)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-if(container == nil) then
-    return
+if not container or not ts_utils.exists("container:num_flows", {ifid=ifId, container=container}) then
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " .. i18n("no_data_available") .. "</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 end
 
 local container_label = format_utils.formatContainerFromId(container)
-
-if(not ts_utils.exists("container:num_flows", {ifid=ifId, container=container})) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("no_data_available") .. "</div>")
-    return
-end
 
 --[[
 Create Menu Bar with buttons

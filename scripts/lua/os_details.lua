@@ -26,13 +26,15 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.countries)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(OS == nil) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> ".. i18n("os_details.os_parameter_missing_message") .. "</div>")
-    return
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> ".. i18n("os_details.os_parameter_missing_message") .. "</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 end
 
 if(not ts_utils.exists("os:traffic", {ifid=ifId, os=OS})) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("os_details.no_available_stats_for_os",{os=OS}) .. "</div>")
-    return
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " .. i18n("os_details.no_available_stats_for_os",{os=OS}) .. "</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 end
 
 --[[

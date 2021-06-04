@@ -29,13 +29,15 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.vlans)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if vlan_id == nil or tonumber(vlan_id) == nil or tonumber(vlan_id) == 0 then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("vlan_details.vlan_id_parameter_missing_or_invalid_message") .. "</div>")
-    return
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " .. i18n("vlan_details.vlan_id_parameter_missing_or_invalid_message") .. "</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 end
 
 if(not areVlanTimeseriesEnabled(ifId)) then
-   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("vlan_details.no_available_stats_for_vlan_message",{vlan_id=vlan_id, product=info["product"]}).."</div>")
-
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " .. i18n("vlan_details.no_available_stats_for_vlan_message",{vlan_id=vlan_id, product=info["product"]}).."</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 else
 
    --[[

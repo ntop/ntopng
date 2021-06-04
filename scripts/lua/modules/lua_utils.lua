@@ -2596,7 +2596,7 @@ function haveAdminPrivileges(isJsonResponse)
       local page_utils = require("page_utils")
       page_utils.print_header()
       dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-      print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Access forbidden</div>")
+      print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> Access forbidden</div>")
    end
 
    return(false)
