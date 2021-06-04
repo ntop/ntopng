@@ -526,6 +526,15 @@ function printMisc()
 			      h_labels, h_values, "0", "primary", "toggle_host_mask", "ntopng.prefs.host_mask")
   end
 
+  print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.flow_table")..'</th></tr></thead>')
+
+  local h_labels = {i18n("prefs.duration"), i18n("prefs.last_seen")}
+  local h_values = {"0", "1"}
+
+  multipleTableButtonPrefs(subpage_active.entries["flow_table_time"].title,
+          subpage_active.entries["flow_table_time"].description,
+          h_labels, h_values, "0", "primary", "flow_table_time", "ntopng.prefs.flow_table_time")
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />

@@ -1622,6 +1622,7 @@ local known_parameters = {
 
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons
+   ["flow_table_time"]                             = validateBool,
    ["interface_rrd_creation"]                      = validateBool,
    ["interface_one_way_hosts_rrd_creation"]        = validateBool,
    ["interface_top_talkers_creation"]              = validateBool,

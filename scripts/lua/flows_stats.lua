@@ -62,6 +62,8 @@ local server_asn   = _GET["server_asn"]
 local prefs = ntop.getPrefs()
 local ifstats = interface.getStats()
 
+local duration_or_last_seen = prefs.flow_table_time
+
 local flows_filter = getFlowsFilter()
 
 flows_filter.statusFilter = nil -- remove the filter, otherwise no menu entries will be shown
@@ -215,6 +217,7 @@ print ('";')
             ]] initFlowsRefreshRows() print[[
          },
 ]]
+
 preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
@@ -299,14 +302,32 @@ print[[
             whiteSpace: 'nowrap'
          }
 
-      }, {
+      }, ]]
+
+if duration_or_last_seen == false then 
+   print[[
+      {
          title: "]] print(i18n("duration")) print[[",
          field: "column_duration",
          sortable: true,
          css: {
             textAlign: 'center',
          }
-      }, {
+      },
+   ]]
+else
+   print[[
+      {
+         title: "]] print(i18n("last_seen")) print[[",
+         field: "column_last_seen",
+         sortable: true,
+         css: {
+            textAlign: 'center'
+         }
+      },
+   ]]
+end   
+print[[{
          title: "]] print(i18n("score")) print[[",
          field: "column_score",
          hidden: ]] print(ternary(isScoreEnabled(), "false", "true")) print[[,
@@ -318,13 +339,6 @@ print[[
          title: "]] print(i18n("breakdown")) print[[",
          field: "column_breakdown",
          sortable: false,
-         css: {
-            textAlign: 'center'
-         }
-      }, {
-         title: "]] print(i18n("last_seen")) print[[",
-         field: "column_last_seen",
-         sortable: true,
          css: {
             textAlign: 'center'
          }

@@ -373,8 +373,10 @@ local menu_subpages = {
     }, topk_heuristic_precision = {
       title       = i18n("prefs.topk_heuristic_precision_title"),
       description = i18n("prefs.topk_heuristic_precision_description"),
-    }, 
-
+    }, flow_table_time = {
+      title       = i18n("prefs.flow_table_time_title"),
+      description = i18n("prefs.flow_table_time_description"),
+    },
   }}, {id="updates", label=i18n("prefs.updates"), advanced=false, pro_only=false, hidden=(is_windows or (not ntop.isPackage())), entries={
     toggle_autoupdates = {
       title       = i18n("prefs.toggle_autoupdates_title"),

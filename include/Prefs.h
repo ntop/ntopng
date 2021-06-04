@@ -78,6 +78,7 @@ class Prefs {
   bool device_protocol_policies_enabled, enable_vlan_trunk_bridge;
   bool enable_arp_matrix_generation;
   bool enable_zmq_encryption;
+  bool flow_table_time;
   u_int32_t max_num_secs_before_delete_alert;
   int32_t max_entity_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
@@ -355,6 +356,7 @@ class Prefs {
   inline u_int32_t get_pkt_ifaces_flow_max_idle()       { return(pkt_ifaces_flow_max_idle);    };
   inline bool  are_alerts_disabled()                    { return(disable_alerts);              };
   inline bool  are_top_talkers_enabled()                { return(enable_top_talkers);     };
+  inline bool  flow_table_duration_or_last_seen()       { return(flow_table_time);     };
   inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };
   inline bool  is_active_local_host_cache_enabled()     { return(enable_active_local_hosts_cache);  };
 

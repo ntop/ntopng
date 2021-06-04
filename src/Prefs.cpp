@@ -101,6 +101,7 @@ Prefs::Prefs(Ntop *_ntop) {
   timeseries_driver = ts_driver_rrd;
   lan_interface = wan_interface = NULL;
   cpu_affinity = other_cpu_affinity = NULL;
+  flow_table_time = false;
 #ifdef HAVE_LIBCAP
   CPU_ZERO(&other_cpu_affinity_mask);
 #endif
@@ -669,6 +670,7 @@ void Prefs::reloadPrefsFromRedis() {
 
     max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN, CONST_DEFAULT_MAX_UI_STRLEN),
     hostMask      = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, no_host_mask),
+    flow_table_time      = (bool)getDefaultPrefsValue(CONST_FLOW_TABLE_TIME, flow_table_time),
     auto_assigned_pool_id = (u_int16_t) getDefaultPrefsValue(CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID);
 
   getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_TS_DRIVER, &aux, (char*)"rrd");
@@ -1920,6 +1922,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
 
   lua_push_bool_table_entry(vm, "are_top_talkers_enabled", enable_top_talkers);
+  lua_push_bool_table_entry(vm, "flow_table_time", flow_table_time);
   lua_push_bool_table_entry(vm, "is_active_local_hosts_cache_enabled", enable_active_local_hosts_cache);
 
   lua_push_bool_table_entry(vm,"is_tiny_flows_export_enabled",             enable_tiny_flows_export);
