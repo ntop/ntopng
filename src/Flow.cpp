@@ -340,9 +340,9 @@ Flow::~Flow() {
   } else if(isTLSProto()) {
     if(protos.tls.client_requested_server_name)
       free(protos.tls.client_requested_server_name);
-    if(protos.tls.server_names)        free(protos.tls.server_names);
-    if(protos.tls.ja3.client_hash)     free(protos.tls.ja3.client_hash);
-    if(protos.tls.ja3.server_hash)     free(protos.tls.ja3.server_hash);
+    if(protos.tls.server_names)                  free(protos.tls.server_names);
+    if(protos.tls.ja3.client_hash)               free(protos.tls.ja3.client_hash);
+    if(protos.tls.ja3.server_hash)               free(protos.tls.ja3.server_hash);
     if(protos.tls.client_alpn)                   free(protos.tls.client_alpn);
     if(protos.tls.client_tls_supported_versions) free(protos.tls.client_tls_supported_versions);
     if(protos.tls.issuerDN)                      free(protos.tls.issuerDN);
@@ -500,9 +500,9 @@ void Flow::processDetectedProtocolData() {
   case NDPI_PROTOCOL_QUIC:
     if(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name[0] != '\0') {
       if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_DOH_DOT
-	 && cli_h && cli_h->isLocalHost()) 
+	 && cli_h && cli_h->isLocalHost())
 	cli_h->incrVisitedWebSite(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
-      
+
       if(cli_h) cli_h->incContactedService(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
       if(srv_h) srv_h->setResolvedName(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
     }
@@ -706,10 +706,10 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
     if (srv_host) {
       /* Ignore unsafe protocols for broadcast packets (e.g. SMBv1) */
       Mac *srv_mac = srv_host->getMac();
-    
+
       if(srv_mac && srv_mac->isBroadcast()) {
         ndpi_risk r = 2 << (NDPI_UNSAFE_PROTOCOL-1);
-      
+
         if((ndpiFlow->risk & r) == r)
 	  ndpiFlow->risk &= ~r; /* Clear the bit */
       }
@@ -4750,13 +4750,13 @@ void Flow::lua_get_protocols(lua_State* vm) const {
      || (iface->getIfType() == interface_type_ZC_FLOW)) {
     lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
     lua_push_uint64_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.app_protocol);
-    lua_push_uint64_table_entry(vm, "proto.master_ndpi_id", ndpiDetectedProtocol.master_protocol);    
+    lua_push_uint64_table_entry(vm, "proto.master_ndpi_id", ndpiDetectedProtocol.master_protocol);
   } else {
     lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
     lua_push_int32_table_entry(vm, "proto.ndpi_id", -1);
     lua_push_int32_table_entry(vm, "proto.master_ndpi_id", -1);
   }
-  
+
   lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
   lua_push_uint64_table_entry(vm, "proto.ndpi_cat_id", get_protocol_category());
@@ -5178,7 +5178,7 @@ void Flow::getTLSInfo(ndpi_serializer *serializer) const {
       ndpi_serialize_string_int32(serializer, "protos.tls.notAfter", protos.tls.notAfter);
     }
 
-    if(protos.tls.ja3.client_hash) {
+    if(protos.tls.ja3.client_hash) {     
       ndpi_serialize_string_string(serializer, "protos.tls.ja3.client_hash", protos.tls.ja3.client_hash);
 
       if(has_malicious_cli_signature)
