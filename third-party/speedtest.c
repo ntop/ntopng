@@ -10,9 +10,6 @@
  * ./speedtest
  */
 
-
-#define DEBUG_SPEEDTEST 1
-
 #ifdef TEST_SPEEDTEST
 #include <stdio.h>
 #include <string.h>
