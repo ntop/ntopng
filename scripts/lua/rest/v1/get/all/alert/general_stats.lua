@@ -25,15 +25,7 @@ if not auth.has_capability(auth.capabilities.alerts) then
    return
 end
 
-local ifid = _GET["ifid"]
-
-if isEmptyString(ifid) then
-   rc = rest_utils.consts.err.invalid_interface
-   rest_utils.answer(rc)
-   return
-end
-
-interface.select(ifid)
+interface.select(getSystemInterfaceId())
 
 local res = all_alert_store:get_stats()
 local top_alerts = {}
