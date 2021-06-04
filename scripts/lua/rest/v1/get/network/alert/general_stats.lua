@@ -6,14 +6,15 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 
+requre "lua_utils"
 local auth = require "auth"
 local rest_utils = require "rest_utils"
 local alert_consts = require "alert_consts"
-local flow_alert_store = require "flow_alert_store".new()
+local network_alert_store = require "network_alert_store".new()
 
 --
 -- Read alerts count by time
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/flow/alert/general_stats.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/network/alert/general_stats.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
@@ -25,12 +26,11 @@ if not auth.has_capability(auth.capabilities.alerts) then
    return
 end
 
-
 interface.select(getSystemInterfaceId())
 
-local res = flow_alert_store:get_stats()
+local res = network_alert_store:get_stats()
 local top_alerts = {}
-local top_hosts = {}
+local local_network_id = {}
 
 for _, value in pairs(res.top.alert_id) do
    top_alerts[#top_alerts + 1] = {
@@ -39,20 +39,20 @@ for _, value in pairs(res.top.alert_id) do
    }
 end   
 
-for _, value in pairs(res.top.ip) do
-   top_hosts[#top_hosts + 1] = {
+for _, value in pairs(res.top.local_network_id) do
+   local_network_id[#local_network_id + 1] = {
       count = value.count,
-      name = value.ip,
+      name = getFullLocalNetworkName(value.local_network_id),
    }
 end  
 
 -- Request from the frontend - to have them as array
 res = { 
    { 
-      label = i18n("alerts_dashboard.top_hosts"),
-      tooltip = i18n("alerts_dashboard.tooltips.top_hosts"),
+      label = i18n("alerts_dashboard.top_networks"),
+      tooltip = i18n("alerts_dashboard.tooltips.top_networks"),
       value = {
-         top_hosts
+         local_network_id
       }
    },
    {

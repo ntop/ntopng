@@ -1,3 +1,4 @@
+local lists_utils = require "scripts.lua.modules.lists_utils"
 --
 -- (C) 2021-21 - ntop.org
 --
@@ -40,13 +41,18 @@ interface.select(ifid)
 -- Fetch the results
 local alerts, recordsFiltered = host_alert_store:select_request()
 
-for _key,_value in ipairs(alerts or {}) do
-   local record = host_alert_store:format_record(_value, no_html)
-   res[#res + 1] = record
-end -- for
+for _, _value in ipairs(alerts or {}) do
+   res[#res + 1] = host_alert_store:format_record(_value, no_html)
+end
 
-rest_utils.extended_answer(rc, {records = res}, {
-			      ["draw"] = tonumber(_GET["draw"]),
-			      ["recordsFiltered"] = recordsFiltered,
-			      ["recordsTotal"] = #res
-}, format)
+if no_html then
+   res = host_alert_store:to_csv(res)   
+   rest_utils.vanilla_payload_response(rc, res, "text/csv")
+else
+   rest_utils.extended_answer(rc, {records = res}, {
+      ["draw"] = tonumber(_GET["draw"]),
+      ["recordsFiltered"] = recordsFiltered,
+      ["recordsTotal"] = #res
+   }, format)
+end
+

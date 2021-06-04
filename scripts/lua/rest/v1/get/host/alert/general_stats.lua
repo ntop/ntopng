@@ -9,11 +9,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. p
 local auth = require "auth"
 local rest_utils = require "rest_utils"
 local alert_consts = require "alert_consts"
-local flow_alert_store = require "flow_alert_store".new()
+local host_alert_store = require "host_alert_store".new()
 
 --
 -- Read alerts count by time
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/flow/alert/general_stats.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/host/alert/general_stats.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
@@ -25,10 +25,9 @@ if not auth.has_capability(auth.capabilities.alerts) then
    return
 end
 
-
 interface.select(getSystemInterfaceId())
 
-local res = flow_alert_store:get_stats()
+local res = host_alert_store:get_stats()
 local top_alerts = {}
 local top_hosts = {}
 
