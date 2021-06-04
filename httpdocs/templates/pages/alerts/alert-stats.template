@@ -205,10 +205,11 @@
             await reloadTable($table);
 
             // update the link of the download button
-            const href = $(`#btn-download-records`).attr('href');
+            const href = $(`#btn-download-alerts`).attr('href');
             const newDownloadURL = new URL(href, location.origin);
-            newDownloadURL.search = new URLSearchParams(datasourceParams); 
-            $(`#btn-download-records`).attr('href', newDownloadURL.toString());
+            newDownloadURL.search = new URLSearchParams(datasourceParams);
+	    newDownloadURL.searchParams.set('format', 'txt');
+            $(`#btn-download-alerts`).attr('href', newDownloadURL.toString());
 
             if (pushHistroy) {
                 pushNewHistoryState(begin, end);
