@@ -295,7 +295,7 @@ function page_utils.print_header(title)
     end
 
     print[[
-    <link href="]] print(http_prefix) print[[/css/minified/fontawesome-custom.min.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/all.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/tempusdominus.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/heatmap.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/rickshaw.min.css" type="text/css" rel="stylesheet">
