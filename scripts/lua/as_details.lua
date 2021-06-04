@@ -135,7 +135,7 @@ if isEmptyString(page) or page == "historical" then
    local default_schema = "asn:traffic"
 
    if(not ts_utils.exists(default_schema, {ifid=ifId, asn=asn})) then
-      print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("as_details.no_available_data_for_as",{asn = label}))
+      print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("as_details.no_available_data_for_as",{asn = label}))
       print(" "..i18n("as_details.as_timeseries_enable_message",{url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",icon_flask="<i class=\"fas fa-flask\"></i>"})..'</div>')
 
    else

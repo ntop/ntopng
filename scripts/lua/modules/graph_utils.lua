@@ -821,7 +821,7 @@ $("#chart").click(function() {
 
 ]]
    else
-      print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No data found</div>")
+      print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> No data found</div>")
    end -- if(data)
 end
 

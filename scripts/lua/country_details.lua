@@ -26,13 +26,15 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.countries)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(country == nil) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> ".. i18n("country_details.country_parameter_missing_message") .. "</div>")
-    return
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> ".. i18n("country_details.country_parameter_missing_message") .. "</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 end
 
 if(not ts_utils.exists("country:traffic", {ifid=ifId, country=country})) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("country_details.no_available_stats_for_country",{country=country}) .. "</div>")
-    return
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " .. i18n("country_details.no_available_stats_for_country",{country=country}) .. "</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 end
 
 --[[

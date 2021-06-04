@@ -23,7 +23,7 @@ local what = {}
 local res = {}
 
 if(host == nil) then
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> This flow cannot be found (expired ?)</div>")
+   print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> This flow cannot be found (expired ?)</div>")
 else
 
    if((type == nil) or (type == "size")) then

@@ -25,7 +25,7 @@ local ago1h  = now - 3600
 local protos = interface.getnDPIProtocols()
 
 if(host == nil) then
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("ndpi_page.unable_to_find_host",{host_ip=host_ip}).."</div>")
+   print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("ndpi_page.unable_to_find_host",{host_ip=host_ip}).."</div>")
    return
 end
 

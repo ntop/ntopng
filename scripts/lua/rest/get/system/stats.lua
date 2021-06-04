@@ -17,7 +17,7 @@ if not isAllowedSystemInterface() then
 
    page_utils.print_header()
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>"..i18n("error_not_granted").."</div>")
+   print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("error_not_granted").."</div>")
    return
 end
 
