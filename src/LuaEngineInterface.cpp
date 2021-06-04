@@ -3026,8 +3026,7 @@ static int ntop_nindex_select(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   end_record = (u_int32_t)lua_tonumber(vm, id++);
 
-  ntop->getTrace()->traceEvent(TRACE_ERROR, "[start_record: %u][end_record: %u]",
-			       start_record, end_record);
+  /* ntop->getTrace()->traceEvent(TRACE_ERROR, "[start_record: %u][end_record: %u]", start_record, end_record); */
   
   skip_initial_records = (start_record <= 1) ? 0 : start_record-1;
 

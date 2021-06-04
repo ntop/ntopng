@@ -418,9 +418,13 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   if(zflow->src_as) flow->setSrcAS(zflow->src_as);
   if(zflow->dst_as) flow->setDstAS(zflow->dst_as);
+
   if(zflow->prev_adjacent_as) flow->setPrevAdjacentAS(zflow->prev_adjacent_as);
   if(zflow->next_adjacent_as) flow->setNextAdjacentAS(zflow->next_adjacent_as);
 
+  if(zflow->ja3c_hash) flow->updateJA3C(zflow->ja3c_hash);
+  if(zflow->ja3s_hash) flow->updateJA3S(zflow->ja3s_hash);  
+  
 #ifdef NTOPNG_PRO
   if(zflow->custom_app.pen) {
     flow->setCustomApp(zflow->custom_app);
