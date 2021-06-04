@@ -383,10 +383,24 @@ end
 
 -- ##############################################
 
+local RNAME = {
+   ADDITIONAL_ALERTS = { name = "additional_alerts", export = true},
+   ALERT_NAME = { name = "alert_name", export = true},
+   DESCRIPTION = { name = "description", export = true},
+   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}},
+   VLAN_ID = { name = "vlan_id", export = true},
+   PROTO = { name = "proto", export = true},
+   L7_PROTO = { name = "l7_proto", export = true}
+}
+
+function flow_alert_store:get_rnames()
+   return RNAME
+end
+
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function flow_alert_store:format_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"
-   local record = self:format_record_common(value, alert_entities.flow.entity_id, no_html)
+   local record = self:format_json_record_common(value, alert_entities.flow.entity_id, no_html)
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.flow.entity_id)
    local l4_protocol = l4_proto_to_string(value["proto"])
@@ -448,8 +462,8 @@ function flow_alert_store:format_record(value, no_html)
       nibble_num = nibble_num + 1
    end
 
-   record["additional_alerts"] = table.concat(additional_alerts, ", ")
-   
+   record[RNAME.ADDITIONAL_ALERTS.name] = table.concat(additional_alerts, ", ")
+
    -- Host reference
    local cli_ip = hostinfo2hostkey(value, "cli")
    local srv_ip = hostinfo2hostkey(value, "srv")
@@ -458,15 +472,15 @@ function flow_alert_store:format_record(value, no_html)
       msg = noHtml(msg)
    end
 
-   record["alert_name"] = alert_name
+   record[RNAME.ALERT_NAME.name] = alert_name
 
-   record["description"] = msg
+   record[RNAME.DESCRIPTION.name] = msg
 
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""
    end
 
-   record["msg"] = {
+   record[RNAME.MSG.name] = {
      name = noHtml(alert_name),
      value = tonumber(value["alert_id"]),
      description = msg,
@@ -525,8 +539,8 @@ function flow_alert_store:format_record(value, no_html)
       active_url = active_url,
    }
 
-   record["vlan_id"] = value["vlan_id"]
-   record["proto"] = {
+   record[RNAME.VLAN_ID.name] = value["vlan_id"]
+   record[RNAME.PROTO.name] = {
       value = value["proto"],
       label = l4_protocol
    }
@@ -536,7 +550,7 @@ function flow_alert_store:format_record(value, no_html)
    if value["is_srv_victim"]   == "1" then record["srv_role"] = { value = 'victim',   label = i18n("victim"),   tag_label = i18n("has_victim") } end
    if value["is_srv_attacker"] == "1" then record["srv_role"] = { value = 'attacker', label = i18n("attacker"), tag_label = i18n("has_attacker") } end
 
-   record["l7_proto"] = {
+   record[RNAME.L7_PROTO.name] = {
       value = value["l7_proto"],
       label = l4_protocol..":"..l7_protocol
    }

@@ -95,9 +95,11 @@ dump.rdb
 packages/FreeBSD/build.sh
 packages/OPNsense/build.sh
 !packages/OPNsense/plugins/net/ntopng-enterprise/src/opnsense/service/templates/OPNsense/Ntopng/ntopng
+tests/rest/conflicts/*.out
 
 # Ignore callback objects
 src/flow_alerts/*.o
 src/host_alerts/*.o
 src/flow_callbacks/*.o
 src/host_callbacks/*.o
+.vscode/

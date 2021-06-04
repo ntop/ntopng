@@ -40,13 +40,17 @@ interface.select(ifid)
 -- Fetch the results
 local alerts, recordsFilter = flow_alert_store:select_request(nil, "*, hex(alerts_map) alerts_map")
 
-for _key,_value in ipairs(alerts or {}) do
-   local record = flow_alert_store:format_record(_value, no_html)
-   res[#res + 1] = record
-end -- for
+for _, _value in ipairs(alerts or {}) do
+   res[#res + 1] = flow_alert_store:format_record(_value, no_html)
+end
 
-rest_utils.extended_answer(rc, {records = res}, {
-			      ["draw"] = tonumber(_GET["draw"]),
-			      ["recordsFiltered"] = recordsFilter,
-			      ["recordsTotal"] = #res
-}, format)
+if no_html then
+   res = flow_alert_store:to_csv(res)   
+   rest_utils.vanilla_payload_response(rc, res, "text/csv")
+else
+   rest_utils.extended_answer(rc, {records = res}, {
+      ["draw"] = tonumber(_GET["draw"]),
+      ["recordsFiltered"] = recordsFiltered,
+      ["recordsTotal"] = #res
+   }, format)
+end

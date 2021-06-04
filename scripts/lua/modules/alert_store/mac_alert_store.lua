@@ -89,27 +89,38 @@ end
 
 -- ##############################################
 
+local RNAME = {
+   ADDRESS = { name = "address", export = true},
+   DEVICE_TYPE = { name = "device_type", export = true},
+   NAME = { name = "name", export = true},
+   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
+}
+
+function mac_alert_store:get_rnames()
+   return RNAME
+end
+
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function mac_alert_store:format_record(value, no_html)
-   local record = self:format_record_common(value, alert_entities.mac.entity_id, no_html)
+   local record = self:format_json_record_common(value, alert_entities.mac.entity_id, no_html)
 
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.mac.entity_id)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
 
-   record["address"] = value["address"]
-   record["device_type"] = { 
+   record[RNAME.ADDRESS.name] = value["address"]
+   record[RNAME.DEVICE_TYPE.name] = { 
      value = value["device_type"],
      label = string.format("%s %s", discover.devtype2string(value["device_type"]), discover.devtype2icon(value["device_type"])),
    }
 
-   record["name"] = value["name"]
+   record[RNAME.NAME.name] = value["name"]
 
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""
    end
 
-   record["msg"] = {
+   record[RNAME.MSG.name] = {
      name = noHtml(alert_name),
      value = tonumber(value["alert_id"]),
      description = msg,

@@ -132,4 +132,12 @@ function rest_utils.extended_answer(ret_const, payload, additional_response_para
    print(rest_utils.rc(ret_const, payload, additional_response_param, format))
 end
 
+function rest_utils.vanilla_payload_response(ret_const, payload, content_type)
+   if content_type == nil then
+      content_type = "text/plain"
+   end
+   sendHTTPHeader(content_type, nil, {}, ret_const.http_code)
+   print(payload)
+end
+
 return rest_utils

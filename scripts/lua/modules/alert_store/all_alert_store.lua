@@ -212,10 +212,22 @@ end
 
 -- ##############################################
 
+local RNAME = {
+   ENTITY = { name = "entity", export = true},
+   SCORE = { name = "score", export = true},
+   COUNT_GROUP_NOTICE_OR_LOWER = { name = "count_group_notice_or_lower", export = true},
+   COUNT_GROUP_WARNING = { name = "count_group_warning", export = true},
+   COUNT_GROUP_ERROR_OR_HIGHER = { name = "count_group_error_or_higher", export = true},
+}
+
+function alert_store:get_rnames()
+   return RNAME
+end
+
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function all_alert_store:format_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"
-   local record = self:format_record_common(value, alert_entities.host.entity_id, no_html)
+   local record = self:format_json_record_common(value, alert_entities.host.entity_id, no_html)
 
    local url = string.format('%s/lua/alert_stats.lua?page=%s&epoch_begin=%u&epoch_end=%u&status=historical',
       ntop.getHttpPrefix(),
@@ -223,25 +235,32 @@ function all_alert_store:format_record(value, no_html)
       _GET["epoch_begin"],
       _GET["epoch_end"])
 
-   record["entity"] = string.format('<a href="%s">%s</a>', url, i18n(alert_consts.alertEntityById(value["entity_id"]).i18n_label))
+   local entity = i18n(alert_consts.alertEntityById(value["entity_id"]).i18n_label)
+   if no_html then
+      record[RNAME.ENTITY.name] = entity
+   else
+      record[RNAME.ENTITY.name] = string.format('<a href="%s">%s</a>', url, entity)   
+   end
 
    local score = tonumber(value["score"])
-   record["score"] = {
+   record[RNAME.SCORE.name] = {
       value = score,
       label = format_utils.formatValue(score),
    }
 
-   record["count_group_notice_or_lower"] = {
+   record[RNAME.COUNT_GROUP_NOTICE_OR_LOWER.name] = {
       value = value["count_group_notice_or_lower"],
       color = alert_severities.notice.color,
       url = url.."&severity=3,lte",
    }
-   record["count_group_warning"] = {
+
+   record[RNAME.COUNT_GROUP_WARNING.name] = {
       value = value["count_group_warning"],
       color = alert_severities.warning.color,
       url = url.."&severity=4,eq",
    }
-   record["count_group_error_or_higher"] = {
+
+   record[RNAME.COUNT_GROUP_ERROR_OR_HIGHER.name] = {
       value = value["count_group_error_or_higher"],
       color = alert_severities.error.color,
       url = url.."&severity=5,gte",

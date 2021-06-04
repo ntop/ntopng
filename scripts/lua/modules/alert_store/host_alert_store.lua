@@ -199,10 +199,23 @@ end
 
 -- ##############################################
 
+local RNAME = {
+   IP = { name = "ip", export = true},
+   IS_VICTIM = { name = "is_victim", export = true},
+   IS_ATTACKER = { name = "is_attacker", export = true},
+   VLAN_ID = { name = "vlan_id", export = true},
+   ALERT_NAME = { name = "alert_name", export = true},
+   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
+}
+
+function host_alert_store:get_rnames()
+   return RNAME
+end
+
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function host_alert_store:format_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"
-   local record = self:format_record_common(value, alert_entities.host.entity_id, no_html)
+   local record = self:format_json_record_common(value, alert_entities.host.entity_id)
 
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.host.entity_id)
@@ -210,16 +223,12 @@ function host_alert_store:format_record(value, no_html)
    local host = hostinfo2hostkey(value)
    local reference_html = nil
 
-   if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
-      if reference_html == href_icon then
-	 reference_html = nil
-      end
-   else
-      msg = noHtml(msg)
+   reference_html = hostinfo2detailshref({ip = value["ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
+   if reference_html == href_icon then
+      reference_html = nil
    end
 
-   record["ip"] = {
+   record[RNAME.IP.name] = {
       value = host,
       label = host,
       shown_label = host,
@@ -228,38 +237,50 @@ function host_alert_store:format_record(value, no_html)
 
    -- Checking that the name of the host is not empty
    if value["name"] and (not isEmptyString(value["name"])) then
-      record["ip"]["label"] = value["name"]
+      record[RNAME.IP.name]["label"] = value["name"]
    end
 
-   record["ip"]["shown_label"] = record["ip"]["label"]
-   record["is_attacker"] = ""
-   record["is_victim"] = ""
+   record[RNAME.IP.name]["shown_label"] = record[RNAME.IP.name]["label"]
+   record[RNAME.IS_VICTIM.name] = ""
+   record[RNAME.IS_ATTACKER.name] = ""
 
    if value["is_victim"] == true or value["is_victim"] == "1" then
-      record["is_victim"] = '<i class="fas fa-sad-tear"></i>'
-      record["role"] = {
-        label = i18n("victim"),
-        value = "victim",
-      }
+      if no_html then
+         record[RNAME.IS_VICTIM.name] = tostring(true) -- when no_html is enabled a default value must be present
+      else
+         record[RNAME.IS_VICTIM.name] = '<i class="fas fa-sad-tear"></i>'
+         record["role"] = {
+            label = i18n("victim"),
+            value = "victim",
+          }
+      end
+   elseif no_html then
+      record[RNAME.IS_VICTIM.name] = tostring(false) -- when no_html is enabled a default value must be present
    end
 
    if value["is_attacker"] == true or value["is_attacker"] == "1" then
-      record["is_attacker"] = '<i class="fas fa-skull"></i>'
-      record["role"] = {
-        label = i18n("attacker"),
-        value = "attacker",
-      }
+      if no_html then
+         record[RNAME.IS_ATTACKER.name] = tostring(true) -- when no_html is enabled a default value must be present
+      else
+         record[RNAME.IS_ATTACKER.name] = '<i class="fas fa-skull"></i>'
+         record["role"] = {
+           label = i18n("attacker"),
+           value = "attacker",
+         }
+      end
+   elseif no_html then
+      record[RNAME.IS_ATTACKER.name] = tostring(false)  -- when no_html is enabled a default value must be present
    end
 
-   record["vlan_id"] = value["vlan_id"] or 0
+   record[RNAME.VLAN_ID.name] = value["vlan_id"] or 0
 
-   record["alert_name"] = alert_name
+   record[RNAME.ALERT_NAME.name] = alert_name
 
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""
    end
 
-   record["msg"] = {
+   record[RNAME.MSG.name] = {
      name = noHtml(alert_name),
      value = tonumber(value["alert_id"]),
      description = msg,
