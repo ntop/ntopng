@@ -844,7 +844,7 @@ function alert_store:build_csv_row_header(rnames)
          row = row .. CSV_SEPARATOR .. value.name
       else
          for _, element in ipairs(value.elements) do
-            row = row .. CSV_SEPARATOR .. value.name .. "_" .. element
+            row = row .. CSV_SEPARATOR .. value.name .. "_" .. string.gsub(element, "%.", "_")
          end
       end
    end
@@ -860,14 +860,12 @@ function alert_store:build_csv_row(rnames, document)
    for _, rname in pairsByKeys(rnames) do
       local doc_value = document[rname.name]
       if type(doc_value) ~= "table" then
-         row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(doc_value))
+         row = row .. self:build_csv_row_single_element(doc_value)
       else
          if rname["elements"] ~= nil then
-            for _, element in ipairs(rname.elements) do
-               row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(doc_value[element]))
-            end
+            row = row .. self:build_csv_row_multiple_elements(doc_value, rname.elements)
          else
-            row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(doc_value.value))
+            row = row .. self:build_csv_row_single_element(doc_value.value)
          end
       end
    end
@@ -875,6 +873,35 @@ function alert_store:build_csv_row(rnames, document)
    row = string.sub(row, 2) -- remove first separator
    
    return row
+end
+
+function alert_store:build_csv_row_single_element(value)
+   return CSV_SEPARATOR .. self:escape_csv(tostring(value))
+end
+
+function alert_store:build_csv_row_multiple_elements(value, elements)
+   local row = ""
+   for _, element in ipairs(elements) do
+      local splitted = string.split(element, "%.")
+      if(splitted == nil) then
+         row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(value[element]))
+      else 
+         if #splitted > 2 then
+            row = row .. self:build_csv_row_multiple_elements(value[splitted[1]], self:rebuild_sub_elements(splitted))
+         else
+            row = row .. CSV_SEPARATOR .. self:escape_csv(tostring(value[splitted[1]][splitted[2]]))   
+         end
+      end
+   end   
+   return row
+end
+
+function alert_store:rebuild_sub_elements(splitted)
+   local tmp_elements = {}
+   for i = 2, #splitted, 1 do
+      tmp_elements[#tmp_elements+1] = splitted[i]
+   end
+   return { table.concat(tmp_elements, ".") }
 end
 
 -- Used to escape "'s by to_csv

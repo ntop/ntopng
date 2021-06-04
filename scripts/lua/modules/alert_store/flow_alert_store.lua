@@ -388,6 +388,7 @@ local RNAME = {
    ALERT_NAME = { name = "alert_name", export = true},
    DESCRIPTION = { name = "description", export = true},
    MSG = { name = "msg", export = true, elements = {"name", "value"}},
+   FLOW = { name = "flow", export = true, elements = {"srv_ip.label", "srv_ip.value", "srv_port", "cli_ip.label", "cli_ip.value", "cli_port"}},
    VLAN_ID = { name = "vlan_id", export = true},
    PROTO = { name = "proto", export = true},
    L7_PROTO = { name = "l7_proto", export = true}
@@ -530,13 +531,13 @@ function flow_alert_store:format_record(value, no_html)
    local flow_cli_port = value["cli_port"]
    local flow_srv_port = value["srv_port"]
 
-   record["flow"] = {
+   record[RNAME.FLOW.name] = {
       cli_ip = flow_cli_ip,
       srv_ip = flow_srv_ip,
       cli_port = flow_cli_port,
       srv_port = flow_srv_port,
       historical_url = historical_url,
-      active_url = active_url,
+      active_url = active_url
    }
 
    record[RNAME.VLAN_ID.name] = value["vlan_id"]
