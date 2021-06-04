@@ -81,3 +81,19 @@ more specific rules that can be used to configure exceptions with respect to the
 
   The Traffic Policies Page
 
+An *Auto Configure* functionality is also available to automatically create a recommended configuration
+for the Traffic Policy by leveraging on the protocols/hosts seen by ntopng for the devices belonging to the Pool
+(please note ntopng should run for at least 1 day in order to get the best results). Please note that this
+configuration is a *guess* and should be manually fine tuned. This feature is particularly useful in case of 
+devices which are supposed to use a limited/static set of services, which is the case of *IoT devices* for 
+instance. In this case the *Default Policy* is set to Drop (*Default Deny*) and the *Auto Configure* 
+functionality adds those L7 protocols and hostnames which are actually required for the device to work 
+(according to the historical data). In order to populate *Host Rules*, the *Top Visited Sites* euristic 
+should be enabled under *Settings* > *Preferences* > *Applications*.
+
+.. figure:: ../img/web_gui_interfaces_autoconfigure_policies.png
+  :align: center
+  :alt: Auto Configure Traffic Policies
+
+  The Auto Configure Feature
+
