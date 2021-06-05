@@ -532,15 +532,14 @@ if((page == "overview") or (page == nil)) then
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
 
       if(host["local_network_name"] ~= nil) then
-	 local network_key = ntop.getNetworkNameById(tonumber(network))
-
-	 network_name = getLocalNetworkAlias(host["local_network_name"] )
+	 local network_name = getLocalNetworkAlias(host["local_network_name"] )
 
 	 if((network_name == nil) or (network_name == "")) then
 	    network_name = ""
 	 else
 	    network_name = " ("..network_name..")"
 	 end
+	 
 	 print(" [&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..host["local_network_id"].."&page=historical'>".. host["local_network_name"].."</A> "..network_name.." &nbsp;]")
       end
 
