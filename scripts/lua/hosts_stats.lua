@@ -86,6 +86,12 @@ function getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipv
       mode_label = i18n("nedge.network_conf_dhcp")
    end
 
+   if(network == nil) then
+      wheel = ""
+   else
+      wheel = '<A HREF="'.. ntop.getHttpPrefix().. '/lua/network_details.lua?network='.. network ..'&page=config' ..'"><i class="fas fa-cog fa-sm"></i></A>'
+   end
+   
    -- Note: we must use the empty string as fallback. Multiple spaces will be collapsed into one automatically.
    return i18n("hosts_stats.hosts_page_title", {
         all = isEmptyString(mode_label) and i18n("hosts_stats.all") or "",
@@ -98,6 +104,7 @@ function getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipv
         ["os"] = discover.getOsName(os_),
         country_asn_or_mac = country or asninfo or mac or pool_ or "",
         vlan = vlan_title or "",
+	wheel = wheel
    }) .. charts_icon
 end
 
