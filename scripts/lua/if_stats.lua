@@ -2248,7 +2248,10 @@ elseif(page == "unassigned_pool_devices") then
 elseif(page == "dhcp") then
     dofile(dirs.installdir .. "/scripts/lua/admin/dhcp.lua")
 elseif page == "traffic_report" then
-   dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
+   package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/?.lua;" .. package.path
+   local traffic_report = require "traffic_report"
+
+   traffic_report.generate_traffic_report()
 end
 
 print("<script>\n")

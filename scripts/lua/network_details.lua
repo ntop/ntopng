@@ -174,7 +174,10 @@ elseif (page == "config") then
   ]])
 
 elseif page == "traffic_report" then
-    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
+   package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/?.lua;" .. package.path
+   local traffic_report = require "traffic_report"
+
+   traffic_report.generate_traffic_report()
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

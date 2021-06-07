@@ -2216,8 +2216,11 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
 })
 
 elseif(page == "traffic_report") then
-   dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
-   end
+   package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/?.lua;" .. package.path
+   local traffic_report = require "traffic_report"
+
+   traffic_report.generate_traffic_report(tskey)
+end
 end
 
 if(not only_historical) and (host ~= nil) then
