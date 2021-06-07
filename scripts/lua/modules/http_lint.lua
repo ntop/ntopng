@@ -156,21 +156,6 @@ local function validatePort(p)
 end
 http_lint.validatePort = validatePort
 
--- Port validation, used for protocols like IGMP, 
--- they are saved inside the db with port == 0
-local function validatePortWithZero(p)
-   local is_port = validatePort(p)
-
-   if (is_port == false) and validateNumber(p) then
-      if tonumber(p) == 0 then
-         is_port = true
-      end
-   end
-   
-   return is_port
-end
-http_lint.validatePortWithZero = validatePortWithZero
-
 local function validateUnquoted(p)
    -- This function only verifies that value does not contain single quotes, but
    -- does not perform any type validation, so it should be used with care.
@@ -1372,8 +1357,8 @@ local known_parameters = {
    ["ip"]                      = validateEmptyOr(validateFilters(validateHost)), -- An IPv4 or IPv6 address
    ["cli_ip"]                  = validateEmptyOr(validateFilters(validateHost)), -- An IPv4 or IPv6 address
    ["srv_ip"]                  = validateEmptyOr(validateFilters(validateHost)), -- An IPv4 or IPv6 address
-   ["cli_port"]                = validateFilters(validatePortWithZero),          --Client port
-   ["srv_port"]                = validateFilters(validatePortWithZero),          --Server port
+   ["cli_port"]                = validateFilters(validatePort),          --Client port
+   ["srv_port"]                = validateFilters(validatePort),          --Server port
    ["tot_pkts"]                = validateFilters(validateNumber),                --Total packtes, used by nindex query
    ["tot_bytes"]               = validateFilters(validateNumber),                --Total bytes, used by nindex query
    ["src2dst_dscp"]            = validateEmptyOr(validateFilters(validateUnquoted)),                               --Client DSCP, used by nindex query
