@@ -25,7 +25,7 @@
             </div>
 
             <div class="card-body">
-                {% if alert_stats.status ~= "engaged" then %}
+                {% if alert_stats.status ~= "engaged" and isPro == true then %}
 
                     <div class="row mb-2">
                         <div class="col-5">                       
@@ -61,7 +61,7 @@
                     </div>
 
                 {% end  %}
-                {% if alert_stats.status == "engaged" then %}
+                {% if alert_stats.status == "engaged" or not isPro then %}
                         <div class="col-12">
                             <div class="card h-100">
                                 {* widget_gui_utils.render_chart(chart.name, {

@@ -371,6 +371,7 @@ local context = {
     ui_utils = ui_utils,
     widget_gui_utils = widget_gui_utils,
     ifid = ifid,
+    isPro = ntop.isPro(),
     range_picker = {
         default = status == "historical" and "30min" or "1week",
         tags = {
