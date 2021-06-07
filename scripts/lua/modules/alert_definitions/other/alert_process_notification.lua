@@ -42,9 +42,9 @@ end
 
 function alert_process_notification.format(ifid, alert, alert_type_params)
   if alert_type_params.event_type == "start" then
-    return string.format("%s %s", i18n("alert_messages.start"), alert_type_params.msg_details)
+    return string.format("%s %s", i18n("alert_messages.ntopng_start"), alert_type_params.msg_details)
   elseif alert_type_params.event_type == "stop" then
-    return string.format("%s %s", i18n("alert_messages.stop"), alert_type_params.msg_details)
+    return string.format("%s %s", i18n("alert_messages.ntopng_stop"), alert_type_params.msg_details)
   elseif alert_type_params.event_type == "update" then
     return string.format("%s %s", i18n("alert_messages.update"), alert_type_params.msg_details)
   elseif alert_type_params.event_type == "anomalous_termination" then
