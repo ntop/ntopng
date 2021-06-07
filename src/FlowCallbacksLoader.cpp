@@ -94,7 +94,6 @@ void FlowCallbacksLoader::registerCallbacks() {
   if((fcb = new DataExfiltration()))                            registerCallback(fcb);
   if((fcb = new DNSDataExfiltration()))                         registerCallback(fcb);
   if((fcb = new ElephantFlow()))                                registerCallback(fcb);
-  if((fcb = new PotentiallyDangerous()))                        registerCallback(fcb);
   if((fcb = new ExternalAlertCheckPro()))                       registerCallback(fcb);
   if((fcb = new InvalidDNSQuery()))                             registerCallback(fcb);
   if((fcb = new LongLivedFlow()))                               registerCallback(fcb);
