@@ -469,7 +469,8 @@ else
 				 active = page == "periodicity_map",
 				 page_name = "periodicity_map",
 				 url = periodicity_map_link,
-				 label = "<i class=\"fas fa-lg fa-clock\"></i> <span style='position: absolute; top: 0' class=\"badge bg-pill bg-secondary\">"..num_periodicity.."</span>",
+				 label = "<i class=\"fas fa-lg fa-clock\"></i>",
+				 badge_num = num_periodicity,
 			      },
 			      {
 				 hidden = not service_map_available,
