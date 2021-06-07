@@ -820,7 +820,7 @@
 
 
         $(document).ready(function () {
-            $.getJSON("rest/v1/get/{{ alert_stats.entity }}/alert/general_stats.lua",{ifid:"2"},function (data) {
+            $.getJSON("rest/v1/get/{{ alert_stats.entity }}/alert/general_stats.lua",function (data) {
                 let alertCard = [$('#alertCard1'),$('#alertCard2')];
                 let alertCardTitle = [$('#alertCardTitle1'),$('#alertCardTitle2')];
                 for(i=0;i<alertCard.length;i++){
