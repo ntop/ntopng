@@ -24,9 +24,45 @@
                 </div>
             </div>
             <div class="card-body p-2">
-                {* widget_gui_utils.render_chart(chart.name, {
-                    displaying_label = ""
-                }) *}
+
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-5">
+
+
+                        <div class="row h-100 w-100">
+                            <div class="col-6">
+                                <div class="card border-primary h-100 w-100">
+                                    <div class="card-header text-start text-white fs-6 fw-bold data-bs-custom-class="custom-tooltip" title="Loading..." id="alertCardTitle1"> Loading... </div>
+                                    <div class="card-body">
+                                        <span class="card-text text-start fs-6" id="alertCard1">Loading...</span>
+                                    </div>    
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="card border-success h-100 w-100">
+                                    <div class="card-header text-start text-white fs-6 fw-bold data-bs-custom-class="custom-tooltip"  title="Loading..." id="alertCardTitle2"> Loading...</div>
+                                    <div class="card-body">
+                                        <span class="card-text text-start fs-6" id="alertCard2">Loading...</span> 
+                                    </div>   
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-7">
+                        <div class="card h-100">
+                            {* widget_gui_utils.render_chart(chart.name, {
+                                displaying_label = ""
+                            }) *}
+                        </div>           
+                    </div>
+                </div>
+
+
+
                <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'> 
                     <thead>
                        {* datatable.table *}
@@ -781,6 +817,46 @@
                return true;
            }
        }).invokeModalInit();
+
+
+        $(document).ready(function () {
+            $.getJSON("rest/v1/get/{{ alert_stats.entity }}/alert/general_stats.lua",{ifid:"2"},function (data) {
+                let alertCard = [$('#alertCard1'),$('#alertCard2')];
+                let alertCardTitle = [$('#alertCardTitle1'),$('#alertCardTitle2')];
+                for(i=0;i<alertCard.length;i++){
+                    if(data.rsp[i] == undefined){
+                        alertCardTitle[i].html(i18n.no_data_available);
+                        alertCardTitle[i].attr({
+                          "title" : i18n.no_data_available                
+                        });
+
+                        let noDataText = i18n.no_data_available;
+                        alertCard[i].html(noDataText);
+
+                    }else{
+                        alertCardTitle[i].html(data.rsp[i].label);
+                        alertCardTitle[i].attr({
+                          "title" : data.rsp[i].label                
+                        });
+                        let cardText = "";
+                        for(j=0;j<3;j++){
+                            if(data.rsp[i].value[0].lenght != 0 && data.rsp[i].value[0][j] == undefined){
+		                        let noDataText = i18n.no_data_available;
+        						alertCard[i].html(noDataText);
+                            }
+                            else{
+                                cardText += "<li>" + data.rsp[i].value[0][j].name + " (" + data.rsp[i].value[0][j].count + ")" + "<br>" + "</li>";
+                            }                           
+                        }
+                        if(cardText != ""){
+                            alertCard[i].html(cardText);
+                        }
+
+                    }
+                }
+            });
+        });
+
 
     });
 </script>
