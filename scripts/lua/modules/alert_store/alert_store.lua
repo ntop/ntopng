@@ -547,7 +547,7 @@ function alert_store:top_alert_id_historical()
    -- Preserve all the filters currently set
    local where_clause = table.concat(self._where, " AND ")
    local limit = 10
-tprint(where_clause)
+   
    local q = string.format("SELECT alert_id, count(*) count FROM %s WHERE %s GROUP BY alert_id ORDER BY count DESC LIMIT %u",
 			   self._table_name, where_clause, limit)
 
