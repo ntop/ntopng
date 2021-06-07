@@ -22,7 +22,7 @@ local function check_allowed_mac(params)
 
    -- This is the whitelist, that is, MACs configured here won't trigger any alert
    for key, mac in ipairs(params.user_script_config.items) do
-      mac_list[mac] = 1
+      mac_list[mac:upper()] = 1
    end
 
    -- Keep the current time
@@ -41,7 +41,7 @@ local function check_allowed_mac(params)
       -- tprint("processing interface: ".. interface.getId().." prev_first_seen: "..formatEpoch(prev_first_seen).." cur_first_seen: "..formatEpoch(cur_first_seen))
 
       for _, mac in pairs(macs_stats["macs"] or {}) do
-	 local addr = mac["mac"]
+	 local addr = mac["mac"]:upper()
 	 -- tprint("processing: ".. addr.. " first_seen: "..formatEpoch(mac["seen.first"]).. " prev_first_seen: "..formatEpoch(prev_first_seen).." cur_first_seen: "..formatEpoch(cur_first_seen))
 
 	 if mac["seen.first"] >= cur_first_seen then
