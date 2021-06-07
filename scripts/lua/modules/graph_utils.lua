@@ -526,6 +526,17 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
 
    local label = data.series[1].label
 
+   -- Attempt at reading the formatter from the options using the schema
+   local formatter
+   if options and options.timeseries then
+      for _, cur_ts in pairs(options.timeseries or {}) do
+	 if cur_ts.schema == schema and cur_ts.value_formatter then
+	    formatter = cur_ts.value_formatter[1] or cur_ts.value_formatter
+	    break
+	 end
+      end
+   end
+   
    if label == "load_percentage" then
       formatter_fctn = "NtopUtils.ffloat"
       format_as_bps = false
@@ -546,6 +557,11 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
       format_as_bps = false
    elseif string.contains(label, "packets") or string.contains(label, "flows") or label:starts("num_") or label:contains("alerts") then
       formatter_fctn = "NtopUtils.fint"
+      format_as_bytes = false
+      format_as_bps = false
+   elseif formatter then
+      -- The formatter specified in the options
+      formatter_fctn = formatter
       format_as_bytes = false
       format_as_bps = false
    else
