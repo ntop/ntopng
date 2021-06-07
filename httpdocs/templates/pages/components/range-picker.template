@@ -194,7 +194,7 @@ const endEpoch = {{ (_GET['epoch_end'] or _GET['epoch_end'] or 'undefined') }};
         const MAX_ZOOM_OUT = {{ (max_delta_out) }}; // 12 hours
 
         const now = (endEpoch === undefined) ? moment() : moment(endEpoch, 'X');
-        const prev = (beginEpoch === undefined) ? moment().subtract({{ (default == '5min' and '5' or '300') }}, 'minutes') : moment(beginEpoch, 'X');
+        const prev = (beginEpoch === undefined) ? moment().subtract({{ (default == '30min' and '30' or '10080') }}, 'minutes') : moment(beginEpoch, 'X');
 
         const $rangePicker = $(`.range-picker`)[0];
         const $inputBeginEpoch = $(`#begin-epoch`);
