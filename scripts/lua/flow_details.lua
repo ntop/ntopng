@@ -667,7 +667,7 @@ if not table.empty(alert_banners) then
    print("<br>")
 end
 
-print('<div style=\"display:none;\" id=\"flow_purged\" class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg"></i>&nbsp;'..i18n("flow_details.not_purged")..'</div>')
+print('<div style=\"display:none;\" id=\"flow_purged\" class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg"></i>&nbsp;'..i18n("flow_details.now_purged")..'</div>')
 
 throughput_type = getThroughputType()
 
