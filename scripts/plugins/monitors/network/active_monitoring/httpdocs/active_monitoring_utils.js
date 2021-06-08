@@ -508,7 +508,6 @@ $(function() {
                     // The raw data must be returned here for sorting
                     return(data);
                 }
-
             },
             {
                 data: 'alerted',
@@ -531,6 +530,7 @@ $(function() {
                 sortable: false,
                 name: 'actions',
                 width: "200px",
+		responsivePriority: 3,
                 class: 'text-center',
                 render: function(_, type, host) {
 
