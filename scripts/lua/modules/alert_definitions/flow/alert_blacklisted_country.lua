@@ -7,7 +7,6 @@
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local flow_alert_keys = require "flow_alert_keys"
-local alert_severities = require "alert_severities"
 
 -- Import the classes library.
 local classes = require "classes"
@@ -30,8 +29,6 @@ alert_blacklisted_country.meta = {
 
    -- Default values
    default = {
-      -- Default severity, must be one of `alert_severities` and can overridden from the UI
-      severity = alert_severities.error,
       -- Fitlters to be applied on the alert, e.g., cli_port=23
       filters = {},
    }
@@ -40,7 +37,6 @@ alert_blacklisted_country.meta = {
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
 -- @param cli_country ISO 3166-1 alpha-2 client country code
 -- @param srv_country ISO 3166-1 alpha-2 server country code
 -- @param cli_blacklisted Boolean indicating whether the client belongs to a blacklisted country

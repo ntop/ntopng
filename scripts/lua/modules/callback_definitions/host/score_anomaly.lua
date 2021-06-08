@@ -3,7 +3,6 @@
 --
 
 local user_scripts = require("user_scripts")
-local alert_severities = require "alert_severities"
 local host_alert_keys = require "host_alert_keys"
 
 -- #################################################################
@@ -16,7 +15,6 @@ local score_anomaly = {
    alert_id = host_alert_keys.host_alert_score_anomaly,
 
    default_value = {
-      severity = alert_severities.warning,
    },
 
    gui = {

@@ -5,7 +5,6 @@
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local user_scripts = require("user_scripts")
-local alert_severities = require "alert_severities"
 
 -- #################################################################
 
@@ -31,7 +30,6 @@ script = {
    is_alert = true,
 
    default_value = {
-      severity = alert_severities.warning,
    },
 
    -- This is only for nEdge

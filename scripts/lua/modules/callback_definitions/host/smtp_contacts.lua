@@ -3,7 +3,6 @@
 --
 
 local user_scripts = require("user_scripts")
-local alert_severities = require "alert_severities"
 local host_alert_keys = require "host_alert_keys"
 
 -- #################################################################
@@ -18,7 +17,6 @@ local smtp_contacts = {
   default_value = {
      operator = "gt",
      threshold = 5,
-     severity = alert_severities.error,
   },
 
   gui = {

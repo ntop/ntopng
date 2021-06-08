@@ -28,7 +28,6 @@ alert_connection_issues.meta = {
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
 -- @param tcp_stats A lua table with TCP stats obtained with flow.getTCPStats
 -- @param cli2srv_pkts Number of packets sent from the client to the server
 -- @param srv2cli_pkts Number of packets sent from the server to the client

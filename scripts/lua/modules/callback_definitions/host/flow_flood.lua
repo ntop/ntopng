@@ -3,7 +3,6 @@
 --
 
 local user_scripts = require("user_scripts")
-local alert_severities = require "alert_severities"
 local host_alert_keys = require "host_alert_keys"
 
 -- #################################################################
@@ -19,7 +18,6 @@ local flow_flood = {
       -- "> 50"
       operator = "gt",
       threshold = 256,
-      severity = alert_severities.error,
    },
 
    gui = {

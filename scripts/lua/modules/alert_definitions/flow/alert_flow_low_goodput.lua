@@ -28,7 +28,6 @@ alert_flow_low_goodput.meta = {
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
 -- @return A table with the alert built
 function alert_flow_low_goodput:init(goodput_ratio)
    -- Call the parent constructor

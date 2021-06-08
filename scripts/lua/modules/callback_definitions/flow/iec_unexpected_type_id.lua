@@ -4,7 +4,6 @@
 
 local user_scripts = require("user_scripts")
 local alerts_api = require("alerts_api")
-local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local flow_alert_keys = require "flow_alert_keys"
 
@@ -18,7 +17,6 @@ local script = {
 
    -- Specify the default value when clicking on the "Reset Default" button
    default_value = {
-      severity = alert_severities.warning,
       items = {
 	 9,13,36,45,46,48,30,103,100,37
       },

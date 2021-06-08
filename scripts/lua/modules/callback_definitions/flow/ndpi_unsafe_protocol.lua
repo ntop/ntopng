@@ -3,7 +3,6 @@
 --
 
 local user_scripts = require("user_scripts")
-local alert_severities = require "alert_severities"
 local flow_alert_keys = require "flow_alert_keys"
 
 -- #################################################################
@@ -18,7 +17,6 @@ local script = {
    default_enabled = true,
 
    default_value = {
-      severity = alert_severities.warning,
    },
 
 

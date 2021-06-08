@@ -5,7 +5,6 @@
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
-local alert_severities = require "alert_severities"
 
 local script = {
   packet_interface_only = true,
@@ -18,7 +17,6 @@ local script = {
   default_value = {
      operator = "gt",
      threshold = 32768,
-     severity = alert_severities.error,
   },
 
   -- See below

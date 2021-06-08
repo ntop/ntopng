@@ -54,7 +54,6 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_attack_mitigation_via_snmp.format(ifid, alert, alert_type_params)
-   local alert_severities = require "alert_severities"
    local alert_consts = require("alert_consts")
    local snmp_consts = require "snmp_consts"
 

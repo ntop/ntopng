@@ -3,7 +3,6 @@
 --
 
 local user_scripts = require("user_scripts")
-local alert_severities = require "alert_severities"
 local host_alert_keys = require "host_alert_keys"
 
 local syn_scan = {
@@ -18,7 +17,6 @@ local syn_scan = {
    default_value = {
       operator = "gt",
       threshold = 256,
-      severity = alert_severities.error,
    },
 
    -- Allow user script configuration from the GUI

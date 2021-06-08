@@ -29,7 +29,6 @@ alert_device_protocol_not_allowed.meta = {
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
 -- @param cli_devtype A string with the device type of the client
 -- @param srv_devtype A string with the device type of the server
 -- @param devproto_forbidden_peer A string with the forbidden peer, one of 'cli' or 'srv'
