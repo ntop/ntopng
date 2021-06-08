@@ -60,7 +60,7 @@ $(function() {
 
     const addAlertedFilter = (tableAPI) => {
 
-        const ALERTED_COLUMN_INDEX = 7;
+        const ALERTED_COLUMN_INDEX = 8;
         const filters = [
             {
                 key: 'alerted',
