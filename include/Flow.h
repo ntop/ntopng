@@ -116,6 +116,7 @@ class Flow : public GenericHashEntry {
     struct {
       char *last_query;
       char *last_query_shadow;
+      time_t last_query_update_time;
       u_int16_t last_query_type;
       u_int16_t last_return_code;
       bool invalid_chars_in_query;
@@ -646,13 +647,7 @@ class Flow : public GenericHashEntry {
   bool hasRisks() const;
 
   inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }
-  inline void  setDNSQuery(char *v) {
-    if(isDNS()) {
-      if(protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
-      protos.dns.last_query_shadow = protos.dns.last_query;
-      protos.dns.last_query = v;
-    }
-  }
+  bool setDNSQuery(char *v);
   inline void  setDNSQueryType(u_int16_t t) { if(isDNS()) { protos.dns.last_query_type = t; } }
   inline void  setDNSRetCode(u_int16_t c)   { if(isDNS()) { protos.dns.last_return_code = c; } }
   inline u_int16_t getLastQueryType()       { return(isDNS() ? protos.dns.last_query_type : 0); }

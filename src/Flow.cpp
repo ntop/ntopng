@@ -774,8 +774,11 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 	    }
 	  }
 
-	  setDNSQuery(q);
-	  protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
+	  if(setDNSQuery(q))
+	    protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
+	  else
+	    /* Unable to set the DNS query, must free the memory */
+	    free(q);
 	}
       } else { /* this is a response... */
 	if(ntop->getPrefs()->decode_dns_responses()) {
@@ -3820,16 +3823,46 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
 /* *************************************** */
 
 /*
+  Performs DNS query updates. No more than one update per second is performed to handle concurrency issues.
+  This is safe in general as it is unlikely to see more than one query per second for the same DNS flow.
+ */
+bool Flow::setDNSQuery(char *v) {
+  if(isDNS()) {
+    time_t last_pkt_rcvd = getInterface()->getTimeLastPktRcvd();
+
+    if(!protos.dns.last_query_shadow /* The first time the swap is done */
+       || protos.dns.last_query_update_time + 1 < last_pkt_rcvd /* Latest swap occurred at least one second ago */) {
+      if(protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
+      protos.dns.last_query_shadow = protos.dns.last_query;
+      protos.dns.last_query = v;
+      protos.dns.last_query_update_time = last_pkt_rcvd;
+
+      return true; /* Swap successful */
+    }
+  }
+
+  /* Unable to set the DNS query. Too early or not a DNS flow. */
+  return false;
+}
+
+/* *************************************** */
+
+/*
   @brief Update DNS stats for flows received via ZMQ
  */
 void Flow::updateDNS(ParsedFlow *zflow) {
   if(isDNS()) {
     if(zflow->dns_query) {
-      setDNSQuery(zflow->dns_query);
+      if(setDNSQuery(zflow->dns_query)) {
+	/* Set successful, query will be freed in the destructor */
+	setDNSQueryType(zflow->dns_query_type);
+	setDNSRetCode(zflow->dns_ret_code);
+      } else
+	/* Set error, query must be freed now */
+	free(zflow->dns_query);
+
       zflow->dns_query = NULL;
     }
-    setDNSQueryType(zflow->dns_query_type);
-    setDNSRetCode(zflow->dns_ret_code);
 
     stats.incDNSQuery(getLastQueryType());
     stats.incDNSResp(getDNSRetCode());
