@@ -459,7 +459,6 @@ $(function() {
                 data: 'threshold',
                 className: 'text-center',
                 render: function(data, type, row) {
-
                     if(type === 'display' || type === 'filter') {
                         if(row.threshold)
                             return `${row.threshold} ${row.unit}`
@@ -487,7 +486,8 @@ $(function() {
             },
             {
                 data: 'last_mesurement_time',
-                className: 'text-center'
+                className: 'text-center',
+		render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS,
             },
             {
                 data: 'last_ip',
