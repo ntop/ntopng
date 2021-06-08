@@ -323,6 +323,7 @@ Flow::~Flow() {
   } else if(isDNS()) {
     if(protos.dns.last_query)        free(protos.dns.last_query);
     if(protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
+    if(protos.dns.dga_query)         free(protos.dns.dga_query);
   } else if(isMDNS()) {
     if(protos.mdns.answer)           free(protos.mdns.answer);
     if(protos.mdns.name)             free(protos.mdns.name);
@@ -618,6 +619,9 @@ void Flow::processExtraDissectedInformation() {
       break;
 
     case NDPI_PROTOCOL_DNS:
+      if(hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && protos.dns.last_query && !protos.dns.dga_query)
+	protos.dns.dga_query = strdup(protos.dns.last_query);
+
     case NDPI_PROTOCOL_IEC60870:
       /*
 	Don't free the memory, let the nDPI dissection run for DNS.
