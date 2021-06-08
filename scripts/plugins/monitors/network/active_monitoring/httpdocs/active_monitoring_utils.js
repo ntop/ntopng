@@ -32,7 +32,7 @@ $(function() {
 
     const addMeasurementFilter = (tableAPI) => {
 
-        const MEASUREMENT_COLUMN_INDEX = 0;
+        const MEASUREMENT_COLUMN_INDEX = 1;
 
         // build filters for datatable
         const measurements = Object.keys(measurements_info);
@@ -42,7 +42,7 @@ $(function() {
             filters.push({
                 key: measurement,
                 label: `${measurements_info[measurement].label}`,
-                regex: `^(${measurement}://).+`
+                regex: `^(${measurements_info[measurement].label})$`
             });
         }
 
