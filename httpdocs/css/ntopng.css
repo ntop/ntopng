@@ -1004,10 +1004,6 @@ td.dashboard-counter {
   padding-bottom: 0!important;
 }
 
-nav.navbar {
-  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
-}
-
 .fa-ntopng-warning {
   color: #B94A48;
 }
