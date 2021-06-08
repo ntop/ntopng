@@ -96,7 +96,7 @@ for key, am_host in pairs(am_hosts) do
        html_label = am_utils.formatAmHost(am_host.host, am_host.measurement, true),
        host = am_host.host,
        alerted = alerted,
-       measurement = am_host.measurement,
+       measurement = i18n(m_info.i18n_label),
        chart = chart,
        threshold = am_host.threshold,
        last_measure = column_last_value or "",

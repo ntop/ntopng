@@ -105,7 +105,8 @@ if(action == "add") then
    existing = am_utils.hasHost(host, measurement)
 
    if existing then
-      reportError(i18n("active_monitoring_stats.host_exists", {host=url}))
+      local measurement_info = am_utils.getMeasurementInfo(measurement)
+      reportError(i18n("active_monitoring_stats.host_exists", {measurement = i18n(measurement_info.i18n_label), host = url}))
       return
    end
 
