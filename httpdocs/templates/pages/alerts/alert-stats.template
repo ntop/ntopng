@@ -833,7 +833,7 @@
 
         const [begin_epoch, end_epoch] = getTimestampRange();
         let alertCardStats = () => {
-            $.getJSON("rest/v1/get/{{ alert_stats.entity }}/alert/general_stats.lua",{ ifid: {{ ifid }}, begin_epoch: begin_epoch.unix(), end_epoch: end_epoch.unix()},function (data) {
+            $.getJSON("pro/rest/v1/get/{{ alert_stats.entity }}/alert/general_stats.lua",{ ifid: {{ ifid }}, begin_epoch: begin_epoch.unix(), end_epoch: end_epoch.unix()},function (data) {
 
                 let divBox = [$('#CardDiv1'),$('#CardDiv2')];
                 let cardBox = [$('#Card1'),$('#Card2')];
