@@ -28,19 +28,6 @@
     </div>
   </div>
 </div>
-<div class='notes bg-light border'>
-  <b>{{ i18n('notes') }}</b>
-  <ul>
-    <li> {{ i18n('user_scripts.categories') }}
-      <ul>
-        {% for _, cat in pairsByKeys(script_categories) do %}
-        <li> {* string.format("<i class='fa %s'></i> %s: %s", cat.icon, i18n(cat.i18n_title, {product=info.product}),
-          i18n(cat.i18n_descr, {product=info.product})) *} </li>
-        {% end %}
-      </ul>
-    </li>
-  </ul>
-</div>
 
 {*
 script_list.template_utils.gen("modal_confirm_dialog.html", {
@@ -64,66 +51,13 @@ subdir = script_list.script_subdir,
 <link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css?{{ ntop.getStaticFileEpoch() }}" rel="stylesheet"/>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-ipsorting.js?{{ ntop.getStaticFileEpoch() }}"></script>
 <script type="text/javascript">
-
   const script_subdir = "{{ script_list.script_subdir }}";
-
-  const scripts_categories = [
-  {
-  label: "{{ i18n('scripts_list.all') }}",
-  disableFilter: true
-  },
-  {% for _, cat in pairsByKeys(script_categories) do %}
-  {
-  label: "{{ i18n(cat.i18n_title) }}",
-  disableFilter: false
-  },
-  {% end %}
-  ];
-
   let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
-  let script_key_filter = "{{ script_list.script_filter }}";
   let page_url = "{* script_list.page_url *}";
-  let apps_and_categories = {* script_list.apps_and_categories *};
-  let device_types = {* script_list.device_types *};
-
-  i18n.all = '{{ i18n("all", {}) }}';
-  i18n.enabled = '{{ i18n("enabled", {}) }}';
-  i18n.disabled = '{{ i18n("disabled", {}) }}';
   i18n.request_failed_message = '{{ i18n("request_failed_message") }}';
-  i18n.select_operator = "{{ i18n('scripts_list.select_operator') }}";
-  i18n.empty_input_box = "{{ i18n('config_scripts.empty_value_message') }}";
-  i18n.template_not_found = "{{ i18n('scripts_list.template_not_found') }}";
-  i18n.view = "{{ i18n('scripts_list.actions.view') }}";
-  i18n.view_src_script = "{{ i18n('scripts_list.actions.view_src_script') }}";
-  i18n.edit = "{{ i18n('scripts_list.actions.edit') }}";
-  i18n.edit_script = "{{ i18n('scripts_list.actions.edit_script') }}";
-  i18n.items_list_comma = "{{ i18n('scripts_list.items_list_comma') }}";
-  i18n.blacklisted_country = "{{ i18n('scripts_list.blacklisted_country') }}";
   i18n.expired_csrf = "{{ i18n('expired_csrf') }}";
-  i18n.filter_categories = "{{ i18n('scripts_list.filter_dropdown') }}";
   i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
-  i18n.script_search = "{{ i18n('scripts_list.script_search') }}";
-
-  i18n.scripts_list = {};
-  i18n.scripts_list.templates = {};
-  i18n.scripts_list.templates.excluded_applications = "{{ i18n('scripts_list.templates.excluded_applications') }}";
-  i18n.scripts_list.templates.flow_duration_threshold = "{{ i18n('scripts_list.templates.flow_duration_threshold') }}";
-  i18n.scripts_list.templates.elephant_flows_l2r = "{{ i18n('scripts_list.templates.elephant_flows_l2r') }}";
-  i18n.scripts_list.templates.elephant_flows_r2l = "{{ i18n('scripts_list.templates.elephant_flows_r2l') }}";
-  i18n.scripts_list.templates.template_not_implemented = "{{ i18n('scripts_list.templates.template_not_implemented') }}";
-  i18n.scripts_list.templates.blacklisted_country_list = "{{ i18n('scripts_list.templates.blacklisted_country_list') }}";
-  i18n.scripts_list.exclusion_list_title = "{{ i18n('scripts_list.exclusion_list_title') }}";
-
-  i18n.enable = "{{ i18n('show_alerts.enable_alerts') }}";
-  i18n.disable = "{{ i18n('show_alerts.disable_alerts') }}";
-
-  i18n.metrics = {};
-  i18n.metrics.minutes = "{{ i18n('metrics.minutes') }}";
-  i18n.metrics.hours = "{{ i18n('metrics.hours') }}";
-  i18n.metrics.days = "{{ i18n('metrics.days') }}";
-
-  i18n.values = "{{ i18n('values', {}) }}";
-  i18n.rest = {* json.encode(i18n('rest_consts')) *};
+  i18n.script_search = "{{ i18n('search') }}";
 
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/edit_alert_exclusions.js?{{ ntop.getStartupEpoch() }}"></script>
