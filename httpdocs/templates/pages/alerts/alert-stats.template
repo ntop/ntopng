@@ -853,21 +853,13 @@
                 let cardBox = [$('#Card1'),$('#Card2')];
                 let alertCard = [$('#alertCard1'),$('#alertCard2')];
                 let alertCardTitle = [$('#alertCardTitle1'),$('#alertCardTitle2')];
+                let numCards = 0;
+                let graphWidth;
 
                 for(i=0;i<alertCard.length;i++){
                     if(data.rsp[i] == undefined){
                         cardBox[i].remove();
                         divBox[i].remove();
-                        if(data.rsp.length==1){
-                            chartBox.attr({
-                                "class" : "col-10 mb-2"
-                            });
-                        }
-                        if(data.rsp.length==0){
-                            chartBox.attr({
-                                "class" : "col-12 mb-2"
-                            });
-                        }
                     }else{
                         alertCardTitle[i].html(data.rsp[i].label);
                         alertCardTitle[i].attr({
@@ -875,29 +867,28 @@
                         });
                         let cardText = "";
                         for(j=0;j<3;j++){
+                            // Concat the name with the percentage of the stat
+                            // NB: These name should be filters if available
                             if(data.rsp[i].value[0].lenght != 0 && data.rsp[i].value[0][j] != undefined){
                                 cardText += "<li>" + data.rsp[i].value[0][j].name + " (" + (data.rsp[i].value[0][j].count).toFixed(2) + "%)</li>";
                             }                           
                         }
                         if(cardText != ""){
                             alertCard[i].html(cardText);
+                            numCards += 1;
                         }else{
                             cardBox[i].remove();
                             divBox[i].remove();
-                            if(data.rsp.length==1){
-                                chartBox.attr({
-                                    "class" : "col-10 mb-2"
-                                });
-                            }
-
-                            if(data.rsp.length==0 || data.rsp[i].value[0].length == 0){
-                                chartBox.attr({
-                                    "class" : "col-12 mb-2"
-                                });
-                            }
                         }
                     }
                 }
+
+                // Calculating the width of the graph: Tot width (12) - Num of cards (2 per card)
+                graphWidth = (12 - (numCards * 2)).toString();
+
+                chartBox.attr({
+                    "class" : "col-" + graphWidth + " mb-2"
+                });
             });
         }
 
