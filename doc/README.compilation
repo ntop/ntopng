@@ -24,7 +24,10 @@ Prerequisites
 On Ubuntu/Debian
 ~~~~~~~~~~~~~~~~
 
-apt-get install build-essential git bison flex libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf pkg-config automake autogen redis-server wget libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev zlib1g-dev libssl-dev libcap-dev libnetfilter-conntrack-dev libreadline-dev libjson-c-dev libldap2-dev rename libsnmp-dev libexpat1-dev
+apt-get install build-essential git bison flex libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf pkg-config automake autogen redis-server wget libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev zlib1g-dev libssl-dev libcap-dev libnetfilter-conntrack-dev libreadline-dev libjson-c-dev libldap2-dev rename libsnmp-dev libexpat1-dev npm
+
+npm install -g uglify-es
+npm install -g clean-css-cli
 
 If you plan to build packages you should also install:
 
@@ -123,7 +126,8 @@ On Windows
 You can download the Redis server from
 https://github.com/rgl/redis/downloads
 
-Note that:
+Additional Notes
+~~~~~~~~~~~~~~~~
 
 - you can use ZMQ 4.x in addition to 3.x (but not 2.x)
 - make sure nobody owns /var/lib/ntopng
@@ -143,7 +147,6 @@ cd ntopng
 ./autogen.sh
 ./configure
 make
-
 
 Binary Packages
 ---------------
