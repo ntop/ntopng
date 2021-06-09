@@ -24,14 +24,13 @@
                 </div>
             </div>
 
+
             <div class="card-body">
                 {% if alert_stats.status ~= "engaged" and isPro == true then %}
 
-                    <div class="row">
-                        <div class="col-12">                       
-                            <div class="row ">
+                            <div class="row container-fluid">
 
-                                <div class="col-8 mb-2" id="ChartDiv">
+                                <div class="col-8" id="ChartDiv">
                                     <div class="card h-100">
                                         {* widget_gui_utils.render_chart(chart.name, {
                                             displaying_label = ""
@@ -39,7 +38,7 @@
                                     </div>    
                                 </div>
 
-                                <div class="col-2 mb-2" id="CardDiv1">
+                                <div class="col-2" id="CardDiv1">
                                     <div class="card border-primary h-100" id="Card1">
                                         <div class="card-header text-start fs-6 fw-bold data-bs-custom-class="custom-tooltip" title="Loading..." id="alertCardTitle1"> Loading... </div>
                                         <div class="card-body ms-1">
@@ -48,13 +47,11 @@
                                     </div>
                                 </div>
 
-                                <div class="col-2 mb-2" id="CardDiv2">
+                                <div class="col-2" id="CardDiv2">
                                     <div class="card border-success h-100" id="Card2">
                                         <div class="card-header text-start fs-6 fw-bold data-bs-custom-class="custom-tooltip"  title="Loading..." id="alertCardTitle2"> Loading...</div>
                                         <div class="card-body ms-1">
                                             <span class="card-text text-start fs-6" id="alertCard2">Loading...</span> 
-                                        </div>   
-                                    </div>
                                 </div>
 
                             </div>
@@ -870,11 +867,11 @@
                             // Concat the name with the percentage of the stat
                             // NB: These name should be filters if available
                             if(data.rsp[i].value[0].lenght != 0 && data.rsp[i].value[0][j] != undefined){
-                                cardText += "<li>" + data.rsp[i].value[0][j].name + " (" + (data.rsp[i].value[0][j].count).toFixed(2) + "%)</li>";
+                                cardText += "<li>" + data.rsp[i].value[0][j].name + " (" + (data.rsp[i].value[0][j].count).toFixed(1) + "%)</li>";
                             }                           
                         }
                         if(cardText != ""){
-                            alertCard[i].html(cardText);
+                            alertCard[i].html("<small>" + cardText + "</small>");
                             numCards += 1;
                         }else{
                             cardBox[i].remove();
