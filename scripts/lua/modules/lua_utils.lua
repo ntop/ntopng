@@ -4284,6 +4284,12 @@ end
 
 -- #####################
 
+function formatAlertAHref(key, value, label)
+   return "<a class='tag-filter' data-tag-key='" .. key .. "' data-tag-value='" .. value .. "' data-tag-label='" .. label .. "' href='#'>" .. label .. "</a>"
+end
+
+-- #####################
+
 local iec104_typeids = {
    M_SP_NA_1=0x01,
    M_SP_TA_1=0x02,

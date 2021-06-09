@@ -502,7 +502,21 @@
 
         $table.on('click', `a.tag-filter`, async function (e) {
             e.preventDefault();
+    
+            // Getting the row data
+            const key = $(this).data('tagKey');
+            const label = $(this).data('tagLabel');
+            const value = $(this).data('tagValue');
+            const tagTitle = i18n.tags[key];
+            
+            const tag = { label: tagTitle, key: key, value: label, realValue: value };
 
+            addFilterTag(tag);
+        });
+
+        $(".card").on('click', `a.tag-filter`, async function (e) {
+            e.preventDefault();
+    
             // Getting the row data
             const key = $(this).data('tagKey');
             const label = $(this).data('tagLabel');
@@ -831,7 +845,8 @@
 
         const [begin_epoch, end_epoch] = getTimestampRange();
         let alertCardStats = () => {
-            $.getJSON("pro/rest/v1/get/{{ alert_stats.entity }}/alert/general_stats.lua",{ ifid: {{ ifid }}, begin_epoch: begin_epoch.unix(), end_epoch: end_epoch.unix()},function (data) {
+            let params = (new URLSearchParams(datasourceParams)).toString();
+            $.getJSON(`pro/rest/v1/get/{{ alert_stats.entity }}/alert/general_stats.lua?${params}`,function (data) {
 
                 let chartBox = $('#ChartDiv')
                 let divBox = [$('#CardDiv1'),$('#CardDiv2')];
@@ -861,7 +876,7 @@
                         let cardText = "";
                         for(j=0;j<3;j++){
                             if(data.rsp[i].value[0].lenght != 0 && data.rsp[i].value[0][j] != undefined){
-                                cardText += "<li>" + data.rsp[i].value[0][j].name +"</li>";
+                                cardText += "<li>" + data.rsp[i].value[0][j].name + " (" + (data.rsp[i].value[0][j].count).toFixed(2) + "%)</li>";
                             }                           
                         }
                         if(cardText != ""){
