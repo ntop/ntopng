@@ -19,25 +19,26 @@
  *
  */
 
-#include "host_alerts_includes.h"
+#ifndef _DANGEROUS_HOST__ALERT_H_
+#define _DANGEROUS_HOST__ALERT_H_
 
-/* ***************************************************** */
 
-HostBanAlert::HostBanAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int8_t _consecutive_high_score) : HostAlert(c, f, cli_score, srv_score) {
-  score = _score;
-  consecutive_high_score = _consecutive_high_score;
+#include "ntop_includes.h"
+
+
+class DangerousHostAlert : public HostAlert {
+ private:
+  u_int64_t score, consecutive_high_score;
+
+  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
+  
+ public:
+  static HostAlertType getClassType() { return { host_alert_dangerous_host, alert_category_security }; }
+
+  DangerousHostAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int8_t _consecutive_high_score);
+  ~DangerousHostAlert() {};
+  
+  HostAlertType getAlertType() const { return getClassType(); }
 };
 
-/* ***************************************************** */
-
-ndpi_serializer* HostBanAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
-
-  ndpi_serialize_string_uint64(serializer, "consecutive_high_score", consecutive_high_score);
-  ndpi_serialize_string_uint64(serializer, "score", score);
-  
-  return serializer;
-}
-
-/* ***************************************************** */
+#endif /* _DANGEROUS_HOST__ALERT_H_ */

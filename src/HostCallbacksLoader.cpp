@@ -61,7 +61,7 @@ void HostCallbacksLoader::registerCallbacks() {
   if((fcb = new FlowAnomaly()))                registerCallback(fcb);
   if((fcb = new ScoreAnomaly()))               registerCallback(fcb);
   if((fcb = new RemoteConnection()))           registerCallback(fcb);
-  if((fcb = new HostBan()))                    registerCallback(fcb);
+  if((fcb = new DangerousHost()))              registerCallback(fcb);
 
   // printCallbacks();
 }

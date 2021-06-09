@@ -19,17 +19,17 @@
  *
  */
 
-#ifndef _HOST_BAN_H_
-#define _HOST_BAN_H_
+#ifndef _DANGEROUS_HOST_H_
+#define _DANGEROUS_HOST_H_
 
 #include "ntop_includes.h"
 
-class HostBan : public HostCallback {
+class DangerousHost : public HostCallback {
 private:
   u_int64_t score_threshold;
 
   HostAlert *allocAlert(HostCallback *c, Host *h, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int64_t _consecutive_high_score) {
-    HostBanAlert *alert = new HostBanAlert(c, h, cli_score, srv_score, _score, _consecutive_high_score);
+    DangerousHostAlert *alert = new DangerousHostAlert(c, h, cli_score, srv_score, _score, _consecutive_high_score);
 
     if(h->getScoreAsClient() > score_threshold)
       alert->setAttacker();
@@ -40,14 +40,14 @@ private:
   };
 
  public:
-  HostBan();
-  ~HostBan() {};
+  DangerousHost();
+  ~DangerousHost() {};
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
   bool loadConfiguration(json_object *config);  
 
-  HostCallbackID getID() const { return host_callback_host_ban; }
-  std::string getName()      const { return(std::string("host_ban")); }
+  HostCallbackID getID() const { return host_callback_dangerous_host; }
+  std::string getName()      const { return(std::string("dangerous_host")); }
 };
 
 #endif

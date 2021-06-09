@@ -485,7 +485,7 @@ typedef enum {
   host_alert_score_anomaly               = 11,
   host_alert_remote_connection           = 12,
   host_alert_host_log                    = 13,
-  host_alert_host_ban                    = 14,
+  host_alert_dangerous_host              = 14,
 
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */ 
   MAX_HOST_ALERT_TYPE = 16 /* Constrained by Bitmap16 engaged_alerts_map inside HostAlertableEntity */
@@ -514,7 +514,7 @@ typedef enum {
   host_callback_flow_anomaly,
   host_callback_score_anomaly,
   host_callback_remote_connection,
-  host_callback_host_ban,
+  host_callback_dangerous_host,
 
   NUM_DEFINED_HOST_CALLBACKS, /* Leave it as last member */ 
 } HostCallbackID;

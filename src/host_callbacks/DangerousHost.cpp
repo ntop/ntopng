@@ -26,13 +26,13 @@
 
 /* ***************************************************** */
 
-HostBan::HostBan() : HostCallback(ntopng_edition_community) {
+DangerousHost::DangerousHost() : HostCallback(ntopng_edition_community) {
   score_threshold = (u_int64_t)-1;
 };
 
 /* ***************************************************** */
 
-void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
+void DangerousHost::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
 
   if(h->getScore() > score_threshold)
@@ -85,7 +85,7 @@ void HostBan::periodicUpdate(Host *h, HostAlert *engaged_alert) {
 
 /* ***************************************************** */
 
-bool HostBan::loadConfiguration(json_object *config) {
+bool DangerousHost::loadConfiguration(json_object *config) {
   json_object *json_threshold;
 
   HostCallback::loadConfiguration(config); /* Parse parameters in common */

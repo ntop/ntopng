@@ -34,7 +34,7 @@
 #include "host_alerts/DNSTrafficAlert.h"
 
 #include "host_alerts/FlowAnomalyAlert.h"
-#include "host_alerts/HostBanAlert.h"
+#include "host_alerts/DangerousHostAlert.h"
 #include "host_alerts/RemoteConnectionAlert.h"
 #include "host_alerts/ScoreAnomalyAlert.h"
 

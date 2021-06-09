@@ -7,12 +7,12 @@ local host_alert_keys = require "host_alert_keys"
 
 -- #################################################################
 
-local host_ban = {
+local dangerous_host = {
    -- Script category
    category = user_scripts.script_categories.security,
 
    default_enabled = true,
-   alert_id = host_alert_keys.host_alert_host_ban,
+   alert_id = host_alert_keys.host_alert_dangerous_host,
 
    default_value = {
       operator = "gt",
@@ -20,8 +20,8 @@ local host_ban = {
    },
 
    gui = {
-      i18n_title = "alerts_dashboard.host_ban_title",
-      i18n_description = "alerts_dashboard.host_ban_description",
+      i18n_title = "alerts_dashboard.dangerous_host_title",
+      i18n_description = "alerts_dashboard.dangerous_host_description",
       i18n_field_unit = user_scripts.field_units.score,
       input_builder = "threshold_cross",
       field_operator = "gt";
@@ -30,4 +30,4 @@ local host_ban = {
 
 -- #################################################################
 
-return host_ban
+return dangerous_host
