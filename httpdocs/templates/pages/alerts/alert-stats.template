@@ -29,9 +29,9 @@
 
                     <div class="row">
                         <div class="col-12">                       
-                            <div class="row ">
+                            <div class="row h-100">
 
-                                <div class="col-8 mb-2" id="ChartDiv">
+                                <div class="col-8 mb-2" id="ChartDiv" style="padding-right: 2px;padding-left: 2px;">
                                     <div class="card h-100">
                                         {* widget_gui_utils.render_chart(chart.name, {
                                             displaying_label = ""
@@ -39,7 +39,7 @@
                                     </div>    
                                 </div>
 
-                                <div class="col-2 mb-2" id="CardDiv1">
+                                <div class="col-2 mb-2" id="CardDiv1" style="padding-right: 2px;padding-left: 2px;">
                                     <div class="card border-primary h-100" id="Card1">
                                         <div class="card-header text-start fs-6 fw-bold data-bs-custom-class="custom-tooltip" title="Loading..." id="alertCardTitle1"> Loading... </div>
                                         <div class="card-body ms-1">
@@ -48,7 +48,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-2 mb-2" id="CardDiv2">
+                                <div class="col-2 mb-2" id="CardDiv2" style="padding-right: 2px;padding-left: 2px;">
                                     <div class="card border-success h-100" id="Card2">
                                         <div class="card-header text-start fs-6 fw-bold data-bs-custom-class="custom-tooltip"  title="Loading..." id="alertCardTitle2"> Loading...</div>
                                         <div class="card-body ms-1">
@@ -841,6 +841,12 @@
                return true;
            }
        }).invokeModalInit();
+
+
+        //Set chart on his max height
+        $('#widget-alert-timeseries').attr({
+            "class" : "widget chart-widget h-100"
+        })
 
 
         const [begin_epoch, end_epoch] = getTimestampRange();
