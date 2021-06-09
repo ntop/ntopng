@@ -210,7 +210,6 @@ l4_keys = {
    { "Other IP", "other_ip",   -1 }
 }
 
-
 L4_PROTO_KEYS = {tcp=6, udp=17, icmp=1, other_ip=-1}
 
 function __FILE__() return debug.getinfo(2,'S').source end
@@ -700,6 +699,19 @@ function l4_proto_to_string(proto_id)
    end
 
    return string.format("%d", proto_id)
+end
+
+-- Return the list of L4 proto (key = name, value = id)
+function l4_proto_list()
+   local list = {}
+
+   for _, proto in pairs(l4_keys) do
+      if L4_PROTO_KEYS[proto[2]] then -- add L4 proto only
+         list[proto[1]] =  proto[3]
+      end
+   end
+
+   return list
 end
 
 -- ##############################################
