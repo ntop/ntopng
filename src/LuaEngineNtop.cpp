@@ -5927,6 +5927,25 @@ static int ntop_reload_device_protocols(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_get_asn_name(lua_State *vm) {
+  IpAddress a;
+  char *as_name;
+  u_int32_t asn = 0;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+
+  a.set((char*)lua_tostring(vm, 1));
+  
+  ntop->getGeolocation()->getAS(&a, &asn, &as_name);
+
+  lua_pushstring(vm, as_name);
+  
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_ndpi_protocol_category(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int proto;
@@ -6311,6 +6330,9 @@ static luaL_Reg _ntop_reg[] = {
   { "getLocalNetworkAlias",  ntop_check_local_network_alias },
   { "getLocalNetworkID",     ntop_get_local_network_id },
 
+  /* ASN */
+  { "getASName",            ntop_get_asn_name },
+  
   /* Mac */
   { "setMacDeviceType",     ntop_set_mac_device_type     },
 

@@ -39,6 +39,8 @@ tag_utils.nindex_tags_to_where_v4 = {
    ["info"]         = "INFO",
    ["srv_label"]    = "DST_LABEL",
    ["cli_label"]    = "SRC_LABEL",
+   ["cli_asn"]      = "SRC_ASN",
+   ["srv_asn"]      = "DST_ASN",
 }
 
 -- #####################################
@@ -60,6 +62,8 @@ tag_utils.nindex_tags_to_where_v6 = {
    ["src2dst_dscp"] = "SRC2DST_DSCP",
    ["dst2src_dscp"] = "DST2SRC_DSCP",
    ["info"]         = "INFO",
+   ["cli_asn"]      = "SRC_ASN",
+   ["srv_asn"]      = "DST_ASN",
 }
 
 -- #####################################
