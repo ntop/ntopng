@@ -99,7 +99,6 @@ if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, i18n("host_details.tr
 
 
 local host = interface.getHostInfo(host_info["host"], host_vlan)
-
 local tskey
 
 if _GET["tskey"] then
@@ -535,7 +534,7 @@ if((page == "overview") or (page == nil)) then
       if(host["local_network_name"] ~= nil) then
 	 local network_name = getLocalNetworkAlias(host["local_network_name"] )
 
-	 if((network_name == nil) or (network_name == "")) then
+	 if((network_name == nil) or (network_name == "") or (network_name == host["local_network_name"])) then
 	    network_name = ""
 	 else
 	    network_name = " ("..network_name..")"

@@ -582,7 +582,9 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
    local srv_name = flowinfo2hostname(flow, "srv")
    local cli_mac = flow["cli.mac"] 
    local srv_mac = flow["srv.mac"]
-      
+   local cli_as  = nil
+   local srv_as  = nil
+
    if((not isIPv4(cli_name)) and (not isIPv6(cli_name))) then cli_name = shortenString(cli_name) end
    if((not isIPv4(srv_name)) and (not isIPv6(srv_name))) then srv_name = shortenString(srv_name) end
 
@@ -603,12 +605,22 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
 	 srv_port = formatFlowPort(flow, "srv", srv_port, historical_bounds)
       end
 
-      if cli_mac then
-	 cli_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..cli_mac.."\">" ..cli_mac.."</A>"
+      if((flow.cli_as ~= nil) and (flow.cli_as ~= 0)) then
+         cli_as = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?asn=" ..flow.cli_as.."\">" .. shortenString( flow.cli_as_name or "", 14 ) .."</A>"
+         cli_mac = ""
+      else  
+         if cli_mac then
+	   cli_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..cli_mac.."\">" ..cli_mac.."</A>"
+         end
       end
 
-      if srv_mac then
-	 srv_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..srv_mac.."\">" ..srv_mac.."</A>"
+      if((flow.dst_as ~= nil) and (flow.dst_as ~= 0)) then
+         dst_as = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?asn=" ..flow.dst_as.."\">" .. shortenString( flow.dst_as_name or "", 14 ) .."</A>"
+	 srv_mac = ""
+      else  
+        if srv_mac then
+  	  srv_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..srv_mac.."\">" ..srv_mac.."</A>"
+        end
       end
 
    end
@@ -631,10 +643,14 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
       label = label..":"..cli_port
    end
 
-   if show_macs and cli_mac then
-      label = label.." [ "..cli_mac.." ]"
+  if(cli_as ~= nil) then
+     label = label.." [ "..cli_as.." ]"
+   else
+     if show_macs and cli_mac then
+        label = label.." [ "..cli_mac.." ]"
+     end
    end
-
+   
    label = label.."&nbsp; <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> &nbsp;"
 
    if not isEmptyString(srv_name) then
@@ -653,9 +669,13 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
       label = label..":"..srv_port
    end
 
-   if show_macs and srv_mac then
+  if(dst_as ~= nil) then
+     label = label.." [ "..dst_as.." ]"
+  else
+    if show_macs and srv_mac then
       label = label.." [ "..srv_mac.." ]"
-   end
+    end
+  end
 
    local s_info = flow2alertinfo(flow)
    if(s_info ~= nil) then

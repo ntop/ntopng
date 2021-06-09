@@ -2015,8 +2015,28 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(vrfId) lua_push_uint64_table_entry(vm, "vrfId", vrfId);
     lua_push_uint64_table_entry(vm, "vlan", get_vlan_id());
 
-    if(srcAS) lua_push_int32_table_entry(vm, "src_as", srcAS);
-    if(dstAS) lua_push_int32_table_entry(vm, "dst_as", dstAS);
+    if(srcAS)
+      lua_push_int32_table_entry(vm, "src_as", srcAS);
+    else {
+      Host *h = get_cli_host();
+
+      if(h) {
+	lua_push_int32_table_entry(vm, "src_as", h->get_asn());
+	lua_push_str_table_entry(vm, "src_as_name", h->get_asname());
+      }
+    }
+    
+    if(dstAS)
+      lua_push_int32_table_entry(vm, "dst_as", dstAS);
+    else {
+      Host *h = get_srv_host();
+      
+      if(h) {
+	lua_push_int32_table_entry(vm, "dst_as", h->get_asn());
+	lua_push_str_table_entry(vm, "dst_as_name", h->get_asname());
+      }
+    }
+
     if(prevAdjacentAS) lua_push_int32_table_entry(vm, "prev_adjacent_as", prevAdjacentAS);
     if(nextAdjacentAS)lua_push_int32_table_entry(vm, "next_adjacent_as", nextAdjacentAS);
 

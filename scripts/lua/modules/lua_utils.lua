@@ -1613,7 +1613,11 @@ function hostinfo2label(host_info, show_vlan)
       end
    end
 
-   alt_name = getHostAltName(ip)
+   if(host_info.label ~= nil) then
+     alt_name = host_info.label
+   else
+     alt_name = getHostAltName(ip)
+   end
    
    if not isEmptyString(alt_name) then
       alt_name = add_vlan_to_alt_name(alt_name, host_info, show_vlan)
@@ -1899,6 +1903,7 @@ function flowinfo2hostname(flow_info, host_type, alerts_view)
 
    local hostinfo = {
       host = flow_info[host_type..".ip"],
+      label = flow_info[host_type..".host"],
       mac = flow_info[host_type..".mac"],
       dhcpHost = flow_info[host_type..".dhcpHost"],
       broadcast_domain_host = flow_info[host_type..".broadcast_domain_host"],
