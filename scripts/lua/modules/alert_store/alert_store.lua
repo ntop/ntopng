@@ -573,6 +573,7 @@ function alert_store:get_stats()
    -- Get child stats
    local stats = self:_get_additional_stats()
 
+   stats.count = self:count()
    stats.top = stats.top or {}
    stats.top.alert_id = self:top_alert_id_historical()
 
