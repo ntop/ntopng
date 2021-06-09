@@ -11,7 +11,7 @@ local host_ban = {
    -- Script category
    category = user_scripts.script_categories.security,
 
-   default_enabled = false,
+   default_enabled = true,
    alert_id = host_alert_keys.host_alert_host_ban,
 
    default_value = {
