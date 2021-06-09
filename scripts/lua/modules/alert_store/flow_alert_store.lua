@@ -88,7 +88,7 @@ function flow_alert_store:top_cli_ip_historical()
    -- Preserve all the filters currently set
    local where_clause = table.concat(self._where, " AND ")
 
-   local q = string.format("SELECT cli_ip, count(*) count FROM %s WHERE %s GROUP BY cli_ip ORDER BY count DESC LIMIT %u",
+   local q = string.format("SELECT cli_ip, cli_name, count(*) count FROM %s WHERE %s GROUP BY cli_ip ORDER BY count DESC LIMIT %u",
 			   self._table_name, where_clause, self._top_limit)
 
    local q_res = interface.alert_store_query(q) or {}
@@ -103,7 +103,7 @@ function flow_alert_store:top_srv_ip_historical()
    -- Preserve all the filters currently set
    local where_clause = table.concat(self._where, " AND ")
 
-   local q = string.format("SELECT srv_ip, count(*) count FROM %s WHERE %s GROUP BY srv_ip ORDER BY count DESC LIMIT %u",
+   local q = string.format("SELECT srv_ip, srv_name, count(*) count FROM %s WHERE %s GROUP BY srv_ip ORDER BY count DESC LIMIT %u",
 			   self._table_name, where_clause, self._top_limit)
 
    local q_res = interface.alert_store_query(q) or {}
@@ -117,17 +117,22 @@ end
 function flow_alert_store:top_ip_merge(top_cli_ip, top_srv_ip)
    local all_ip = {}
    local top_ip = {}
+   local ip_names = {}
 
    for _, p in ipairs(top_cli_ip) do
       all_ip[p.cli_ip] = tonumber(p.count)
+      ip_names[p.cli_ip] = p.cli_name
    end 
    for _, p in ipairs(top_srv_ip) do
       all_ip[p.srv_ip] = (all_ip[p.srv_ip] or 0) + tonumber(p.count)
+      ip_names[p.srv_ip] = p.srv_name
    end 
+
    for ip, count in pairsByValues(all_ip, rev) do
       top_ip[#top_ip + 1] = {
          ip = ip,
          count = count,
+         name = ip_names[ip],
       }
       if #top_ip >= self._top_limit then break end
    end
