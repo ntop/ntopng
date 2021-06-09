@@ -92,6 +92,7 @@ class Flow : public GenericHashEntry {
   ndpi_serializer *tlv_info;
   char *host_server_name, *bt_hash;
   IEC104Stats *iec104;
+  char *suspicious_dga_domain; /* Stores the suspicious DGA domain for flows with NDPI_SUSPICIOUS_DGA_DOMAIN */
   OSType operating_system;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update; 
@@ -117,7 +118,6 @@ class Flow : public GenericHashEntry {
       char *last_query;
       char *last_query_shadow;
       time_t last_query_update_time; /* The time when the last query was updated */
-      char *dga_query;               /* Stores the first DGA-query for flows with NDPI_SUSPICIOUS_DGA_DOMAIN */
       u_int16_t last_query_type;
       u_int16_t last_return_code;
       bool invalid_chars_in_query;
@@ -647,8 +647,8 @@ class Flow : public GenericHashEntry {
   bool hasRisk(ndpi_risk_enum r) const;
   bool hasRisks() const;
 
-  inline char* getDNSQuery()    const { return(isDNS() ? protos.dns.last_query : (char*)"");  }
-  inline char* getDNSQueryDGA() const { return(isDNS() && hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && protos.dns.dga_query ? protos.dns.dga_query : (char*)""); }
+  inline char* getDGADomain() const { return(hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && suspicious_dga_domain ? suspicious_dga_domain : (char*)""); }
+  inline char* getDNSQuery()  const { return(isDNS() ? protos.dns.last_query : (char*)"");  }
   bool setDNSQuery(char *v);
   inline void  setDNSQueryType(u_int16_t t) { if(isDNS()) { protos.dns.last_query_type = t; } }
   inline void  setDNSRetCode(u_int16_t c)   { if(isDNS()) { protos.dns.last_return_code = c; } }

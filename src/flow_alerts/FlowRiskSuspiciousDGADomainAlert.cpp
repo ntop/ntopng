@@ -25,7 +25,7 @@
 
 ndpi_serializer *FlowRiskSuspiciousDGADomainAlert::getAlertJSON(ndpi_serializer* serializer) {
   Flow *f = getFlow();
-  char *info = f->getDNSQueryDGA();
+  char *info = f->getDGADomain();
   
   if(serializer == NULL)
     return NULL;

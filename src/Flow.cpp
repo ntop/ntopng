@@ -53,6 +53,7 @@ Flow::Flow(NetworkInterface *_iface,
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
   periodic_update_ctr = 0, cli2srv_tos = srv2cli_tos = 0, iec104 = NULL;
+  suspicious_dga_domain = NULL;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
   swap_done = swap_requested = false;
 
@@ -307,6 +308,7 @@ Flow::~Flow() {
 
   if(host_server_name)              free(host_server_name);
   if(iec104)                        delete iec104;
+  if(suspicious_dga_domain)         free(suspicious_dga_domain);
 
   if(cli_ebpf) delete cli_ebpf;
   if(srv_ebpf) delete srv_ebpf;
@@ -323,7 +325,6 @@ Flow::~Flow() {
   } else if(isDNS()) {
     if(protos.dns.last_query)        free(protos.dns.last_query);
     if(protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
-    if(protos.dns.dga_query)         free(protos.dns.dga_query);
   } else if(isMDNS()) {
     if(protos.mdns.answer)           free(protos.mdns.answer);
     if(protos.mdns.name)             free(protos.mdns.name);
@@ -619,9 +620,6 @@ void Flow::processExtraDissectedInformation() {
       break;
 
     case NDPI_PROTOCOL_DNS:
-      if(hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && protos.dns.last_query && !protos.dns.dga_query)
-	protos.dns.dga_query = strdup(protos.dns.last_query);
-
     case NDPI_PROTOCOL_IEC60870:
       /*
 	Don't free the memory, let the nDPI dissection run for DNS.
@@ -642,6 +640,9 @@ void Flow::processExtraDissectedInformation() {
       break;
     }
   }
+
+  if(hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && !suspicious_dga_domain)
+    suspicious_dga_domain = strdup(getFlowInfo(NULL, 0));
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   getInterface()->updateFlowPeriodicity(this);
