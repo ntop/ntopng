@@ -152,6 +152,38 @@ end
 
 -- ##############################################
 
+--@brief Removes all exclusions for a given entity
+local function _enable_all_alerts(alert_entity)
+   local ret = false
+
+   local locked = _lock()
+
+   if locked then
+      -- In JSON, keys are always strings
+      local entity_id = tostring(alert_entity.entity_id) -- The entity of the alert that is being disabled, e.g., "host", or "flow"
+
+      local do_persist = false
+      local exclusions = _get_configured_alert_exclusions()
+
+      -- Add an entry for the current alert entity, if currently exising exclusions don't already have it
+      if exclusions[entity_id] then
+	 exclusions[entity_id] = nil
+	 do_persist = true
+      end
+
+      if do_persist then
+	 _set_configured_alert_exclusions(exclusions)
+      end
+
+      ret = true
+      _unlock()
+   end
+
+   return ret
+end
+
+-- ##############################################
+
 -- @brief Returns true if `host_ip` has the alert identified with `alert_key` disabled
 function _has_disabled_alert(alert_entity, host_ip, alert_key)
    local exclusions = _get_configured_alert_exclusions()
@@ -162,6 +194,22 @@ function _has_disabled_alert(alert_entity, host_ip, alert_key)
 		      and exclusions[entity_id][alert_key]
 		      and exclusions[entity_id][alert_key]["excluded_hosts"]
 		      and exclusions[entity_id][alert_key]["excluded_hosts"][host_ip])
+end
+
+-- ##############################################
+
+-- @brief Returns true if `alert_entity` has one or more disabled alerts
+function alert_exclusions.has_disabled_alerts(alert_entity)
+   local exclusions = _get_configured_alert_exclusions()
+   local entity_id = tostring(alert_entity.entity_id)
+
+   for alert_key, alert_exclusions in pairs(exclusions[entity_id] or {}) do
+      if alert_exclusions["excluded_hosts"] and table.len(alert_exclusions["excluded_hosts"]) > 0 then
+	 return true
+      end
+   end
+
+   return false
 end
 
 -- ##############################################
@@ -196,6 +244,14 @@ end
 
 -- ##############################################
 
+--@brief Enables all flow alerts possibly disabled
+--@return True, if enabled with success, false otherwise
+function alert_exclusions.enable_all_flow_alerts()
+   return _enable_all_alerts(alert_entities.flow)
+end
+
+-- ##############################################
+
 -- @brief Returns true if `host_ip` has the flow alert identified with `alert_key` disabled
 function alert_exclusions.has_disabled_flow_alert(host_ip, alert_key)
    return _has_disabled_alert(alert_entities.flow, host_ip, alert_key)
@@ -215,6 +271,14 @@ end
 --@return True, if alert is enabled with success, false otherwise
 function alert_exclusions.enable_host_alert(host_ip, alert_key)
    return _toggle_alert(alert_entities.host, host_ip, alert_key, false --[[ enable --]])
+end
+
+-- ##############################################
+
+--@brief Enables all host alerts possibly disabled
+--@return True, if enabled with success, false otherwise
+function alert_exclusions.enable_all_host_alerts()
+   return _enable_all_alerts(alert_entities.host)
 end
 
 -- ##############################################

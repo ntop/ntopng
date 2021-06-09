@@ -9,6 +9,8 @@ local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local user_scripts = require "user_scripts"
 local alert_utils = require "alert_utils"
+local alert_consts = require "alert_consts"
+local auth = require "auth"
 local alert_exclusions = require "alert_exclusions"
 
 local alert_rest_utils = {}
@@ -83,6 +85,102 @@ function alert_rest_utils.exclude_alert()
    end
    
    rest_utils.answer(rest_utils.consts.err.invalid_args)
+end
+
+-- #################################
+
+function alert_rest_utils.get_alert_exclusions(subdir)
+   if not auth.has_capability(auth.capabilities.user_scripts) then
+      -- Not allowed to see alert exclusions
+      rest_utils.answer(rest_utils.consts.err.not_granted)
+      return
+   end
+
+   local alerts_get_excluded_hosts
+
+   if subdir == "host" then
+      alerts_get_excluded_hosts = alert_exclusions.host_alerts_get_excluded_hosts
+   elseif subdir == "flow" then
+      alerts_get_excluded_hosts = alert_exclusions.flow_alerts_get_excluded_hosts
+   else
+      -- Alert exclusions not supported for this subdir
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
+   end
+
+   local script_type = user_scripts.getScriptType(subdir)
+   local config_set = user_scripts.getConfigset()
+
+   -- ################################################
+
+   local scripts = user_scripts.load(getSystemInterfaceId(), script_type, subdir)
+   local result = {}
+
+   for script_name, script in pairs(scripts.modules) do
+      if script.gui and script.gui.i18n_title and script.gui.i18n_description and script.alert_id then
+	 local excluded_hosts = alerts_get_excluded_hosts(script.alert_id)
+
+	 for excluded_host, _ in pairs(excluded_hosts) do
+	    local input_handler = script.gui.input_builder
+	    result[#result + 1] = {
+	       key = script_name,
+	       alert_key = script.alert_id,
+	       title = i18n(script.gui.i18n_title) or script.gui.i18n_title,
+	       excluded_host = excluded_host,
+	       category_title = i18n(script.category.i18n_title),
+	       category_icon = script.category.icon,
+	       edit_url = user_scripts.getScriptEditorUrl(script),
+	    }
+	 end
+      end
+   end
+
+   rest_utils.answer(rest_utils.consts.success.ok, result)
+end
+
+-- #################################
+
+function alert_rest_utils.delete_alert_exclusions(subdir, host_ip, alert_key)
+   if not auth.has_capability(auth.capabilities.user_scripts) then
+      -- Not allowed to see alert exclusions
+      rest_utils.answer(rest_utils.consts.err.not_granted)
+      return
+   end
+
+   local alerts_get_excluded_hosts
+
+   if (subdir ~= "host" and subdir ~= "flow") or isEmptyString(host_ip) or isEmptyString(alert_key) then
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
+   elseif subdir == "flow" then
+      alert_exclusions.enable_flow_alert(host_ip, alert_key)
+   else
+      alert_exclusions.enable_host_alert(host_ip, alert_key)
+   end
+
+   rest_utils.answer(rest_utils.consts.success.ok)
+end
+
+-- #################################
+
+function alert_rest_utils.delete_all_alert_exclusions(subdir)
+   if not auth.has_capability(auth.capabilities.user_scripts) then
+      -- Not allowed to see alert exclusions
+      rest_utils.answer(rest_utils.consts.err.not_granted)
+      return
+   end
+
+   if subdir == "host" then
+      alert_exclusions.enable_all_host_alerts()
+   elseif subdir == "flow" then
+      alert_exclusions.enable_all_flow_alerts()
+   else
+      -- Alert exclusions not supported for this subdir
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
+   end
+
+   rest_utils.answer(rest_utils.consts.success.ok)
 end
 
 -- #################################

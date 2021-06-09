@@ -594,8 +594,14 @@ page_utils.add_menubar_section(
 	 {
 	    entry = page_utils.menu_entries.scripts_config,
 	    section = page_utils.menu_sections.user_scripts,
-	    hidden = not is_admin,
-       url = '/lua/admin/edit_configset.lua?subdir=host',
+	    hidden = not is_admin or not auth.has_capability(auth.capabilities.user_scripts),
+	    url = '/lua/admin/edit_configset.lua?subdir=host',
+	 },
+	 {
+	    entry = page_utils.menu_entries.alert_exclusions,
+	    section = page_utils.menu_sections.user_scripts,
+	    hidden = not is_admin or not auth.has_capability(auth.capabilities.user_scripts),
+	    url = '/lua/admin/edit_alert_exclusions.lua?subdir=host',
 	 },
          {
             entry = page_utils.menu_entries.license,
