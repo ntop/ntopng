@@ -357,7 +357,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int64_t dequeueFlowAlerts(u_int budget);
 
   u_int64_t dequeueHostAlerts(u_int budget); /* Same as above but for hosts */
-
+  u_int16_t guessEthType(const u_char *p, u_int len, u_int8_t *is_ethernet);
+    
  public:
   /**
   * @brief A Constructor

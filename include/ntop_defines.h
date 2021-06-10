@@ -48,8 +48,8 @@
 #define	ETHERTYPE_ARP		0x0806	/* Address Resolution Protocol */
 #endif
 
-#ifndef ETHERTYPE_PPOE
-#define ETHERTYPE_PPOE          0x8864
+#ifndef ETHERTYPE_PPPoE
+#define ETHERTYPE_PPPoE         0x8864
 #endif
 
 #ifndef IPPROTO_ICMPV6

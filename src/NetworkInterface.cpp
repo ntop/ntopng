@@ -1761,6 +1761,43 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
     reloadGwMacs();
 }
 
+/* ****************************************************** */
+
+u_int16_t NetworkInterface::guessEthType(const u_char *p, u_int len, u_int8_t *is_ethernet) {
+  if(len >= sizeof(struct ndpi_ethhdr)) {
+    /* Check if this looks like ethernet */
+    struct ndpi_ethhdr *ehdr = (struct ndpi_ethhdr*)p;
+    u_int16_t eth_type = ntohs(ehdr->h_proto);
+
+    switch(eth_type) {
+    case ETHERTYPE_IP:
+    case ETHERTYPE_IPV6:
+    case ETHERTYPE_PPPoE:
+    case ETHERTYPE_VLAN:
+      *is_ethernet = 1;
+      return(eth_type);
+    }
+  }
+
+  *is_ethernet = 0;
+  
+  if(len >= sizeof(struct ip)) {
+    struct ip *ipv4 = (struct ip*)p;
+
+    if(ipv4->ip_v == 4)
+      return(ETHERTYPE_IP);
+  }
+
+  if(len >= sizeof(struct ip6_hdr)) {
+    struct ip6_hdr *ipv6 = (struct ip6_hdr*)p;
+
+    if(((ipv6->ip6_vfc >> 4) & 0x0f) == 6)
+      return(ETHERTYPE_IPV6);
+  }
+
+  return(1 /* Unknown */);
+}
+
 /* **************************************************** */
 
 bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
@@ -1901,7 +1938,12 @@ datalink_check:
 
       bos = (((u_int8_t)packet[ip_offset+2]) & 0x1), ip_offset += 4;
       if(bos) {
-	eth_type = ETHERTYPE_IP;
+	u_int8_t is_ethernet;
+	
+	eth_type = guessEthType((const u_char*)&packet[ip_offset], h->caplen-ip_offset, &is_ethernet);
+
+	if(is_ethernet)
+	  ip_offset += sizeof(struct ndpi_ethhdr);
 	break;
       }
     } else
@@ -1922,7 +1964,7 @@ datalink_check:
   }
 
   switch(eth_type) {
-  case ETHERTYPE_PPOE:
+  case ETHERTYPE_PPPoE:
     ip_offset += 6 /* PPPoE */;
     /* Now we need to skip the PPP header */
     if(packet[ip_offset] == 0x0)
