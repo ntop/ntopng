@@ -946,8 +946,10 @@ local function validateCategory(cat)
    if starts(cat, "cat_") then
       local id = split(cat, "cat_")[2]
       return validateNumber(id)
+   elseif validateChoiceByKeys(ndpi_categories, cat) then
+      return true
    else
-      return validateChoiceByKeys(ndpi_categories, cat)
+      return validateNumber(cat)
    end
 
    return false
