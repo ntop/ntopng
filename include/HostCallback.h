@@ -30,9 +30,6 @@ class HostCallback {
   u_int8_t enabled:1 /*,  _unused:7 */;
   u_int32_t periodicity_secs;
 
- protected:
-  AlertLevel severity_id;
-
  public:
   HostCallback(NtopngEdition _edition);
   virtual ~HostCallback();
@@ -52,7 +49,6 @@ class HostCallback {
 
   inline void enable(u_int32_t _periodicity_secs) { enabled = 1; periodicity_secs = _periodicity_secs; }
   inline bool isEnabled() { return(enabled ? true : false); }
-  virtual AlertLevel getSeverity() { return severity_id; }
 
   inline void addCallback(std::list<HostCallback*> *l, NetworkInterface *iface) { l->push_back(this); }
   virtual bool loadConfiguration(json_object *config);

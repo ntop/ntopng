@@ -31,9 +31,6 @@ class FlowCallback {
 
   bool isCallbackCompatibleWithInterface(NetworkInterface *iface);
 
- protected:
-  AlertLevel severity_id;
-
  public:
   FlowCallback(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only,
 	       bool _has_protocok_detected, bool _has_periodic_update, bool _has_flow_end);
@@ -56,7 +53,6 @@ class FlowCallback {
 
   inline void enable()    { enabled = 1; }
   inline bool isEnabled() { return(enabled ? true : false); }
-  virtual AlertLevel getSeverity() { return severity_id; }
 
   void addCallback(std::list<FlowCallback*> *l, NetworkInterface *iface, FlowCallbacks callback);
   virtual bool loadConfiguration(json_object *config);

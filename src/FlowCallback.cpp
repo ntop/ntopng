@@ -36,7 +36,7 @@ FlowCallback::FlowCallback(NtopngEdition _edition,
   if(_has_flow_end)           has_flow_end = 1;
 
   callback_edition = _edition;
-  enabled = 0, severity_id = alert_level_warning;
+  enabled = 0;
 };
 
 /* **************************************************** */
@@ -113,7 +113,6 @@ void FlowCallback::addCallback(std::list<FlowCallback*> *l, NetworkInterface *if
 /* **************************************************** */
 
 bool FlowCallback::loadConfiguration(json_object *config) {
-  json_object *json_severity, *json_severity_id;
   bool rc = true;
   
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() %s", __FUNCTION__, json_object_to_json_string(config));
@@ -131,15 +130,6 @@ bool FlowCallback::loadConfiguration(json_object *config) {
       }
     }
    */
-
-  severity_id = alert_level_warning; /* Default */
-  
-  /* Read and parse the default severity */
-  if(json_object_object_get_ex(config, "severity", &json_severity)
-     && json_object_object_get_ex(json_severity, "severity_id", &json_severity_id)) {
-    if((severity_id = (AlertLevel)json_object_get_int(json_severity_id)) >= ALERT_LEVEL_MAX_LEVEL)
-      severity_id = alert_level_emergency;
-  }
   
   return(rc);
 }
