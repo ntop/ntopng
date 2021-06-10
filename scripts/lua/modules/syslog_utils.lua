@@ -68,8 +68,6 @@ function syslog_utils.handle_event(message, host, priority, level_threshold)
 
    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "[host="..host.."][facility="..facility_name.."][level="..level_name.."][message="..message.."]")
 
-   traceError(TRACE_NORMAL, TRACE_CONSOLE, "[host="..host.."]")
-
    -- Discard info messages
    if level_threshold and level <= level_threshold then
 
