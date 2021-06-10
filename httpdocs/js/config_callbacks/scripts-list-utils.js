@@ -1851,8 +1851,7 @@ $(function () {
                if (type == "display") {
 
                   return `<span
-                           ${data.length >= 72 ? `data-bs-toggle='popover'  data-placement='top' data-html='true'` : ``}
-                           title="${row.title}"
+                           ${data.length >= 120 ? `data-bs-toggle='popover'  data-placement='top' data-html='true' title="${row.title}" data-bs-content="${data}"` : ``}
                            data-content="${data}" >
                               ${truncate_string(data, 120, true)}
                            </span>`;
