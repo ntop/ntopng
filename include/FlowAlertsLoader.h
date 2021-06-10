@@ -19,28 +19,21 @@
  *
  */
 
-#ifndef _BLACKLISTED_COUNTRY_ALERT_H_
-#define _BLACKLISTED_COUNTRY_ALERT_H_
+#ifndef _FLOW_ALERTS_LOADER_H_
+#define _FLOW_ALERTS_LOADER_H_
 
 #include "ntop_includes.h"
 
-class BlacklistedCountryAlert : public FlowAlert {
+class FlowAlertsLoader { /* A single instance inside Ntop */
  private:
-  bool is_server;
-
-  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
+  /* For each alert, keep the corresponding total score. */
+  std::map<FlowAlertTypeEnum, u_int8_t> alert_to_score;
 
  public:
-  static FlowAlertType getClassType()  { return { flow_alert_blacklisted_country, alert_category_security }; }
-  static u_int8_t      getClassScore() { return SCORE_LEVEL_ERROR; };
+  FlowAlertsLoader();
+  virtual ~FlowAlertsLoader();
 
-  BlacklistedCountryAlert(FlowCallback *c, Flow *f, bool _is_server) : FlowAlert(c, f) { is_server = _is_server; };
-  ~BlacklistedCountryAlert() { };
-
-  FlowAlertType getAlertType() const { return getClassType();  }
-  u_int8_t getScore()          const { return getClassScore(); }
-
-  bool isServer() { return is_server; }
+  u_int8_t getAlertScore(FlowAlertTypeEnum alert_id) const;
 };
 
-#endif /* _BLACKLISTED_COUNTRY_ALERT_H_ */
+#endif /* _FLOW_ALERTS_LOADER_H_ */

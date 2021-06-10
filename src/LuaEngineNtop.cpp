@@ -720,6 +720,18 @@ static int ntop_reload_host_callbacks(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_flow_alert_score(lua_State* vm) {
+  FlowAlertTypeEnum alert_id;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_id = (FlowAlertTypeEnum)lua_tonumber(vm, 1);
+
+  lua_pushnumber(vm, ntop->getFlowAlertScore(alert_id));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_reload_hosts_control(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -6325,6 +6337,7 @@ static luaL_Reg _ntop_reg[] = {
   { "reloadFlowCallbacks",   ntop_reload_flow_callbacks   },
   { "reloadHostCallbacks",   ntop_reload_host_callbacks   },
   { "reloadAlertExclusions", ntop_reload_hosts_control    },
+  { "getFlowAlertScore",     ntop_get_flow_alert_score    },
   { "shouldResolveHost",     ntop_should_resolve_host     },
   { "setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids },
   { "getLocalNetworkAlias",  ntop_check_local_network_alias },

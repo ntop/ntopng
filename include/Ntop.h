@@ -102,6 +102,9 @@ class Ntop {
   char *local_network_aliases[CONST_MAX_NUM_NETWORKS];
   AddressTree local_network_tree;
 
+  /* Alerts */
+  FlowAlertsLoader flow_alerts_loader;
+
   /* Callbacks */
   FlowCallbacksLoader *flow_callbacks_loader;
   HostCallbacksLoader *host_callbacks_loader;
@@ -573,6 +576,7 @@ class Ntop {
 
   inline FlowCallbacksLoader* getFlowCallbacksLoader() { return(flow_callbacks_loader); }
   inline HostCallbacksLoader* getHostCallbacksLoader() { return(host_callbacks_loader); }
+  inline u_int8_t getFlowAlertScore(FlowAlertTypeEnum alert_id) const { return flow_alerts_loader.getAlertScore(alert_id); };
 #ifndef HAVE_NEDGE
   bool broadcastIPSMessage(char *msg);
   inline void askToRefreshIPSRules()  { refresh_ips_rules = true; }

@@ -19,28 +19,30 @@
  *
  */
 
-#ifndef _BLACKLISTED_COUNTRY_ALERT_H_
-#define _BLACKLISTED_COUNTRY_ALERT_H_
-
 #include "ntop_includes.h"
+#include "flow_callbacks_includes.h"
 
-class BlacklistedCountryAlert : public FlowAlert {
- private:
-  bool is_server;
+/* **************************************************** */
 
-  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
+FlowAlertsLoader::FlowAlertsLoader() {
+  /* TODO: implement dynamic loading */
+  alert_to_score[BlacklistedCountryAlert::getClassType().id] = BlacklistedCountryAlert::getClassScore();
 
- public:
-  static FlowAlertType getClassType()  { return { flow_alert_blacklisted_country, alert_category_security }; }
-  static u_int8_t      getClassScore() { return SCORE_LEVEL_ERROR; };
+  /* TODO: add all alerts */
+}
 
-  BlacklistedCountryAlert(FlowCallback *c, Flow *f, bool _is_server) : FlowAlert(c, f) { is_server = _is_server; };
-  ~BlacklistedCountryAlert() { };
+/* **************************************************** */
 
-  FlowAlertType getAlertType() const { return getClassType();  }
-  u_int8_t getScore()          const { return getClassScore(); }
+FlowAlertsLoader::~FlowAlertsLoader() {
+}
 
-  bool isServer() { return is_server; }
-};
+/* **************************************************** */
 
-#endif /* _BLACKLISTED_COUNTRY_ALERT_H_ */
+u_int8_t FlowAlertsLoader::getAlertScore(FlowAlertTypeEnum alert_id) const {
+  std::map<FlowAlertTypeEnum, u_int8_t>::const_iterator it = alert_to_score.find(alert_id);
+
+  if(it != alert_to_score.end())
+    return it->second;
+
+  return 0;
+}

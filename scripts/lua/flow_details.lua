@@ -1275,6 +1275,7 @@ else
 		  first = false
 	       end
 
+	       local alert_score = ntop.getFlowAlertScore(id)
 	       local message = alert_consts.alertTypeLabel(t.meta.alert_key, true)
 
 	       local score_contribution = i18n("other")

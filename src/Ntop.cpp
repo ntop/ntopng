@@ -78,7 +78,7 @@ Ntop::Ntop(char *appName) {
   flow_callbacks_loader = NULL;
   host_callbacks_loader = NULL;
 
-  /* Flow alerts loader */
+  /* Flow alerts exclusions */
   alertExclusionsReloadInProgress = true;
   alert_exclusions = alert_exclusions_shadow = NULL;
 
