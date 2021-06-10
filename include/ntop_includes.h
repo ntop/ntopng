@@ -237,6 +237,7 @@ using namespace std;
 #include "nDPIStats.h"
 #include "InterarrivalStats.h"
 #include "FlowStats.h"
+#include "BehaviouralCounter.h"
 #ifdef NTOPNG_PRO
 #include "CustomAppMaps.h"
 #include "CustomAppStats.h"
@@ -395,7 +396,6 @@ using namespace std;
 #include "Mac.h"
 #include "PartializableFlowTrafficStats.h"
 #include "ViewInterfaceFlowStats.h"
-#include "BehaviouralCounter.h"
 #include "FlowTrafficStats.h"
 #include "HostStats.h"
 #include "HostCallbacksStatus.h"

@@ -59,6 +59,38 @@ function ts_dump.iface_update_stats_rrds(when, _ifname, ifstats, verbose)
   if(ifstats["localstats"]["bytes"]["remote2local"] > 0) then
     ts_utils.append("iface:remote2local", {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["remote2local"]}, when)
   end
+
+  if ntop.isPro() then
+    -- Score Behaviour
+    ts_utils.append("iface:score_behavior", {ifid=ifstats.id,
+      value=ifstats["score_behavior"]["value"], lower_bound=ifstats["score_behavior"]["lower_bound"], 
+      upper_bound = ifstats["score_behavior"]["upper_bound"]}, when)
+      
+    -- Score Anomalies
+    local anomaly = 0
+    if ifstats["score_behavior"]["anomaly"] == true then
+      anomaly = 1
+    end
+      
+    ts_utils.append("iface:score_anomalies", {ifid=ifstats.id, anomaly=anomaly}, when)   
+
+    -- Traffic Behaviour
+    ts_utils.append("iface:traffic_rx_behavior", {ifid=ifstats.id,
+      value=ifstats["traffic_rx_behavior"]["value"], lower_bound=ifstats["traffic_rx_behavior"]["lower_bound"], 
+      upper_bound = ifstats["traffic_rx_behavior"]["upper_bound"]}, when)
+
+    ts_utils.append("iface:traffic_tx_behavior", {ifid=ifstats.id,
+      value=ifstats["traffic_tx_behavior"]["value"], lower_bound=ifstats["traffic_tx_behavior"]["lower_bound"], 
+      upper_bound = ifstats["traffic_tx_behavior"]["upper_bound"]}, when)
+      
+    -- Traffic Anomalies
+    local anomaly = 0
+    if ifstats["traffic_tx_behavior"]["anomaly"] == true or ifstats["traffic_rx_behavior"]["anomaly"] == true then
+      anomaly = 1
+    end
+      
+    ts_utils.append("iface:traffic_anomalies", {ifid=ifstats.id, anomaly=anomaly}, when)   
+  end
 end
 
 -- ########################################################
@@ -67,47 +99,79 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
   local subnet_stats = interface.getNetworksStats()
 
   for subnet,sstats in pairs(subnet_stats) do
-     ts_utils.append("subnet:traffic",
-		     {ifid=ifstats.id, subnet=subnet,
-		      bytes_ingress=sstats["ingress"], bytes_egress=sstats["egress"],
-		      bytes_inner=sstats["inner"]}, when)
+    ts_utils.append("subnet:traffic",
+        {ifid=ifstats.id, subnet=subnet,
+        bytes_ingress=sstats["ingress"], bytes_egress=sstats["egress"],
+        bytes_inner=sstats["inner"]}, when)
 
-     ts_utils.append("subnet:broadcast_traffic",
-		     {ifid=ifstats.id, subnet=subnet,
-		      bytes_ingress=sstats["broadcast"]["ingress"], bytes_egress=sstats["broadcast"]["egress"],
-		      bytes_inner=sstats["broadcast"]["inner"]}, when)
+    ts_utils.append("subnet:broadcast_traffic",
+        {ifid=ifstats.id, subnet=subnet,
+        bytes_ingress=sstats["broadcast"]["ingress"], bytes_egress=sstats["broadcast"]["egress"],
+        bytes_inner=sstats["broadcast"]["inner"]}, when)
 
-     ts_utils.append("subnet:score",
-		     {ifid=ifstats.id, subnet=subnet,
-		      score=sstats["score"], scoreAsClient=sstats["score.as_client"], scoreAsServer=sstats["score.as_server"]}, when)
+    ts_utils.append("subnet:score",
+        {ifid=ifstats.id, subnet=subnet,
+        score=sstats["score"], scoreAsClient=sstats["score.as_client"], scoreAsServer=sstats["score.as_server"]}, when)
 
-     ts_utils.append("subnet:tcp_retransmissions",
-		     {ifid=ifstats.id, subnet=subnet,
-		      packets_ingress=sstats["tcpPacketStats.ingress"]["retransmissions"],
-		      packets_egress=sstats["tcpPacketStats.egress"]["retransmissions"],
-		      packets_inner=sstats["tcpPacketStats.inner"]["retransmissions"]}, when)
+    ts_utils.append("subnet:tcp_retransmissions",
+        {ifid=ifstats.id, subnet=subnet,
+        packets_ingress=sstats["tcpPacketStats.ingress"]["retransmissions"],
+        packets_egress=sstats["tcpPacketStats.egress"]["retransmissions"],
+        packets_inner=sstats["tcpPacketStats.inner"]["retransmissions"]}, when)
 
-     ts_utils.append("subnet:tcp_out_of_order",
-		     {ifid=ifstats.id, subnet=subnet,
-		      packets_ingress=sstats["tcpPacketStats.ingress"]["out_of_order"],
-		      packets_egress=sstats["tcpPacketStats.egress"]["out_of_order"],
-		      packets_inner=sstats["tcpPacketStats.inner"]["out_of_order"]}, when)
+    ts_utils.append("subnet:tcp_out_of_order",
+        {ifid=ifstats.id, subnet=subnet,
+        packets_ingress=sstats["tcpPacketStats.ingress"]["out_of_order"],
+        packets_egress=sstats["tcpPacketStats.egress"]["out_of_order"],
+        packets_inner=sstats["tcpPacketStats.inner"]["out_of_order"]}, when)
 
-     ts_utils.append("subnet:tcp_lost",
-		     {ifid=ifstats.id, subnet=subnet,
-		      packets_ingress=sstats["tcpPacketStats.ingress"]["lost"],
-		      packets_egress=sstats["tcpPacketStats.egress"]["lost"],
-		      packets_inner=sstats["tcpPacketStats.inner"]["lost"]}, when)
+    ts_utils.append("subnet:tcp_lost",
+        {ifid=ifstats.id, subnet=subnet,
+        packets_ingress=sstats["tcpPacketStats.ingress"]["lost"],
+        packets_egress=sstats["tcpPacketStats.egress"]["lost"],
+        packets_inner=sstats["tcpPacketStats.inner"]["lost"]}, when)
 
-     ts_utils.append("subnet:tcp_keep_alive",
-		     {ifid=ifstats.id, subnet=subnet,
-		      packets_ingress=sstats["tcpPacketStats.ingress"]["keep_alive"],
-		      packets_egress=sstats["tcpPacketStats.egress"]["keep_alive"],
-		      packets_inner=sstats["tcpPacketStats.inner"]["keep_alive"]}, when)
+    ts_utils.append("subnet:tcp_keep_alive",
+        {ifid=ifstats.id, subnet=subnet,
+        packets_ingress=sstats["tcpPacketStats.ingress"]["keep_alive"],
+        packets_egress=sstats["tcpPacketStats.egress"]["keep_alive"],
+        packets_inner=sstats["tcpPacketStats.inner"]["keep_alive"]}, when)
 
-     ts_utils.append("subnet:engaged_alerts",
-		     {ifid=ifstats.id, subnet=subnet,
-		      alerts=sstats["engaged_alerts"]}, when)
+    ts_utils.append("subnet:engaged_alerts",
+        {ifid=ifstats.id, subnet=subnet,
+        alerts=sstats["engaged_alerts"]}, when)
+
+    if ntop.isPro() then
+      -- Score Behaviour
+      ts_utils.append("subnet:score_behavior", {ifid=ifstats.id, subnet=subnet,
+        value=sstats["score_behavior"]["value"], lower_bound=sstats["score_behavior"]["lower_bound"], 
+        upper_bound = sstats["score_behavior"]["upper_bound"]}, when)
+        
+      -- Score Anomalies
+      local anomaly = 0
+      if sstats["score_behavior"]["anomaly"] == true then
+        anomaly = 1
+      end
+        
+      ts_utils.append("subnet:score_anomalies", {ifid=ifstats.id, subnet=subnet, anomaly=anomaly}, when)   
+
+      -- Traffic Behaviour
+      ts_utils.append("subnet:traffic_rx_behavior", {ifid=ifstats.id, subnet=subnet,
+        value=sstats["traffic_rx_behavior"]["value"], lower_bound=sstats["traffic_rx_behavior"]["lower_bound"], 
+        upper_bound = sstats["traffic_rx_behavior"]["upper_bound"]}, when)
+
+      ts_utils.append("subnet:traffic_tx_behavior", {ifid=ifstats.id, subnet=subnet,
+        value=sstats["traffic_tx_behavior"]["value"], lower_bound=sstats["traffic_tx_behavior"]["lower_bound"], 
+        upper_bound = sstats["traffic_tx_behavior"]["upper_bound"]}, when)
+        
+      -- Traffic Anomalies
+      local anomaly = 0
+      if sstats["traffic_tx_behavior"]["anomaly"] == true or sstats["traffic_rx_behavior"]["anomaly"] == true then
+        anomaly = 1
+      end
+        
+      ts_utils.append("subnet:traffic_anomalies", {ifid=ifstats.id, subnet=subnet, anomaly=anomaly}, when)
+    end
   end
 end
 

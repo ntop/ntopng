@@ -100,6 +100,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #if defined(NTOPNG_PRO)
   /* Map containing various stats resetted every day */
   CheckTrafficMap *check_traffic_stats;
+  time_t nextMinPeriodicUpdate;
+  /* Behavioural analysis regarding the interface */
+  DESCounter score_behavior, traffic_rx_behavior, traffic_tx_behavior;
 #endif
   
   /* Variables used by top sites periodic update */
@@ -400,10 +403,25 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
 #if defined(NTOPNG_PRO)
+  void updateScoreIfaceBehavior();
+  void updateTrafficIfaceBehavior();
+  void luaScoreBehavior(lua_State* vm);
+  void luaTrafficBehavior(lua_State* vm);
   void luaTrafficMap(lua_State *vm);
   void enableTrafficMap(bool enable);
   inline bool isTrafficMapEnabled() { return(check_traffic_stats != NULL); };
   inline bool updateCheckTrafficMap(IpAddress *ip, Mac *mac, u_int16_t vlan_id, TrafficStatsMonitor updated_stats) { return(check_traffic_stats) ? check_traffic_stats->updateElement(ip, mac, vlan_id, updated_stats) : false; };
+
+  /* Traffic analysis behavior */
+  inline u_int32_t value_score_anomaly() { return(score_behavior.getLastValue()); }
+  inline u_int32_t lower_bound_score_anomaly() { return(score_behavior.getLastLowerBound()); }
+  inline u_int32_t upper_bound_score_anomaly() { return(score_behavior.getLastUpperBound()); }
+  inline u_int32_t value_traffic_rx_anomaly() { return(traffic_rx_behavior.getLastValue()); }
+  inline u_int32_t lower_bound_traffic_rx_anomaly() { return(traffic_rx_behavior.getLastLowerBound()); }
+  inline u_int32_t upper_bound_traffic_rx_anomaly() { return(traffic_rx_behavior.getLastUpperBound()); }
+  inline u_int32_t value_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastValue()); }
+  inline u_int32_t lower_bound_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastLowerBound()); }
+  inline u_int32_t upper_bound_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastUpperBound()); }
 #endif
   inline bool are_ip_reassignment_alerts_enabled()       { return(enable_ip_reassignment_alerts); };
   inline AddressTree* getInterfaceNetworks()   { return(&interface_networks); };
@@ -830,6 +848,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void startDBLoop() { if(db) db->startDBLoop(); };
   inline void incDBNumDroppedFlows(DB *dumper, u_int num = 1) { if(dumper) dumper->incNumDroppedFlows(num); };
 #ifdef NTOPNG_PRO
+  void updateBehaviorStats(const struct timeval *tv);
+
   void getFlowDevices(lua_State *vm) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);
   };

@@ -309,6 +309,8 @@ void NetworkInterface::init() {
   flow_interfaces_stats = NULL;
   policer = NULL;
   check_traffic_stats = NULL;
+
+  nextMinPeriodicUpdate = 0;
 #endif
   ndpiStats = NULL;
   dscpStats = NULL;
@@ -3146,7 +3148,99 @@ void NetworkInterface::periodicStatsUpdate() {
   gettimeofday(&tdebug, NULL);
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats update done [took: %d]", tdebug.tv_sec - tdebug_init.tv_sec);
 #endif
+
+  updateBehaviorStats(&tv);
 }
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+
+void NetworkInterface::updateBehaviorStats(const struct timeval *tv) {
+  /* 1 Min Update */
+  if(tv->tv_sec >= nextMinPeriodicUpdate) {
+    /* hll visited sites update */
+    updateTrafficIfaceBehavior();
+    updateScoreIfaceBehavior();
+
+    nextMinPeriodicUpdate = tv->tv_sec + IFACE_BEHAVIOR_REFRESH;
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::updateScoreIfaceBehavior() {
+  if(score_behavior.addObservation(score_as_cli + score_as_srv)) {
+#ifdef DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [iface score] [value: %u]",
+          get_name(),
+          score_as_cli + score_as_srv);
+#endif
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::updateTrafficIfaceBehavior() {
+  if(traffic_rx_behavior.addObservation(ethStats.getNumIngressBytes())) {
+#ifdef DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [iface traffic rx] [value: %lu]",
+          get_name(),
+          ethStats.getNumIngressBytes());
+#endif
+  }
+
+  if(traffic_tx_behavior.addObservation(ethStats.getNumEgressBytes())) {
+#ifdef DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [iface traffic tx] [value: %lu]",
+          get_name(),
+          ethStats.getNumEgressBytes());
+#endif
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::luaTrafficBehavior(lua_State* vm) {
+  lua_newtable(vm);
+  /* Interface score behaviour */
+  lua_push_bool_table_entry(vm,  "anomaly",     traffic_rx_behavior.anomalyFound());
+  lua_push_int32_table_entry(vm, "value",       traffic_rx_behavior.getLastValue());
+  lua_push_int32_table_entry(vm, "lower_bound", traffic_rx_behavior.getLastLowerBound());
+  lua_push_int32_table_entry(vm, "upper_bound", traffic_rx_behavior.getLastUpperBound());
+
+  lua_pushstring(vm, "traffic_rx_behavior");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_newtable(vm);
+  /* Interface score behaviour */
+  lua_push_bool_table_entry(vm,  "anomaly",     traffic_tx_behavior.anomalyFound());
+  lua_push_int32_table_entry(vm, "value",       traffic_tx_behavior.getLastValue());
+  lua_push_int32_table_entry(vm, "lower_bound", traffic_tx_behavior.getLastLowerBound());
+  lua_push_int32_table_entry(vm, "upper_bound", traffic_tx_behavior.getLastUpperBound());
+
+  lua_pushstring(vm, "traffic_tx_behavior");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
+void NetworkInterface::luaScoreBehavior(lua_State* vm) {
+  lua_newtable(vm);
+  /* Interface score behaviour */
+  lua_push_bool_table_entry(vm,  "anomaly",     score_behavior.anomalyFound());
+  lua_push_int32_table_entry(vm, "value",       score_behavior.getLastValue());
+  lua_push_int32_table_entry(vm, "lower_bound", score_behavior.getLastLowerBound());
+  lua_push_int32_table_entry(vm, "upper_bound", score_behavior.getLastUpperBound());
+
+  lua_pushstring(vm, "score_behavior");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+#endif
 
 /* **************************************************** */
 
@@ -5891,6 +5985,9 @@ void NetworkInterface::lua(lua_State *vm) {
     host_pools->lua(vm);
 
 #ifdef NTOPNG_PRO
+  luaScoreBehavior(vm);
+  luaTrafficBehavior(vm);
+
   if(custom_app_stats)
     custom_app_stats->lua(vm);
 #endif

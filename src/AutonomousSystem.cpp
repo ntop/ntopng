@@ -28,6 +28,7 @@
 AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface) {
   asname = NULL;
   round_trip_time = 0;
+  nextMinPeriodicUpdate = 0;
   ntop->getGeolocation()->getAS(ipa, &asn, &asname);
 
 #ifdef AS_DEBUG
@@ -106,6 +107,11 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asLis
     }
   }
 
+#ifdef NTOPNG_PRO
+  luaTrafficBehavior(vm);
+  luaScoreBehavior(vm);
+#endif
+
   Score::lua_get_score(vm);
   Score::lua_get_score_breakdown(vm);
 
@@ -121,3 +127,100 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asLis
 bool AutonomousSystem::equal(u_int32_t _asn) {
   return(asn == _asn);
 }
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+
+/* ***************************************** */
+
+void AutonomousSystem::updateStats(const struct timeval *tv)  {
+  GenericTrafficElement::updateStats(tv);
+  
+  updateBehaviorStats(tv);
+}
+
+/* ***************************************** */
+
+void AutonomousSystem::updateBehaviorStats(const struct timeval *tv) {
+  /* 5 Min Update */
+  if(tv->tv_sec >= nextMinPeriodicUpdate) {
+    /* hll visited sites update */
+    updateTrafficIfaceBehavior();
+    updateScoreIfaceBehavior();
+
+    nextMinPeriodicUpdate = tv->tv_sec + ASES_BEHAVIOR_REFRESH;
+  }
+}
+
+/* *************************************** */
+
+void AutonomousSystem::updateScoreIfaceBehavior() {
+  if(score_behavior.addObservation(getScore())) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [ASN: %s | score] [value: %u]",
+          iface->get_name(),
+          get_asname(),
+          getScore());
+  }
+}
+
+/* *************************************** */
+
+void AutonomousSystem::updateTrafficIfaceBehavior() {
+  if(traffic_rx_behavior.addObservation(getNumBytesSent())) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [ASN: %s | traffic rx] [value: %lu]",
+          iface->get_name(),
+          get_asname(),
+          getNumBytesSent());
+  }
+
+  if(traffic_tx_behavior.addObservation(getNumBytesRcvd())) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [ASN: %s | traffic tx] [value: %lu]",
+          iface->get_name(),
+          get_asname(),
+          getNumBytesRcvd());
+  }
+}
+
+/* *************************************** */
+
+void AutonomousSystem::luaTrafficBehavior(lua_State* vm) {
+  lua_newtable(vm);
+  /* ASN score behaviour */
+  lua_push_bool_table_entry(vm,  "anomaly",     traffic_rx_behavior.anomalyFound());
+  lua_push_int32_table_entry(vm, "value",       traffic_rx_behavior.getLastValue());
+  lua_push_int32_table_entry(vm, "lower_bound", traffic_rx_behavior.getLastLowerBound());
+  lua_push_int32_table_entry(vm, "upper_bound", traffic_rx_behavior.getLastUpperBound());
+
+  lua_pushstring(vm, "traffic_rx_behavior");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_newtable(vm);
+  /* ASN score behaviour */
+  lua_push_bool_table_entry(vm,  "anomaly",     traffic_tx_behavior.anomalyFound());
+  lua_push_int32_table_entry(vm, "value",       traffic_tx_behavior.getLastValue());
+  lua_push_int32_table_entry(vm, "lower_bound", traffic_tx_behavior.getLastLowerBound());
+  lua_push_int32_table_entry(vm, "upper_bound", traffic_tx_behavior.getLastUpperBound());
+
+  lua_pushstring(vm, "traffic_tx_behavior");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
+void AutonomousSystem::luaScoreBehavior(lua_State* vm) {
+  lua_newtable(vm);
+  /* ASN score behaviour */
+  lua_push_bool_table_entry(vm,  "anomaly",     score_behavior.anomalyFound());
+  lua_push_int32_table_entry(vm, "value",       score_behavior.getLastValue());
+  lua_push_int32_table_entry(vm, "lower_bound", score_behavior.getLastLowerBound());
+  lua_push_int32_table_entry(vm, "upper_bound", score_behavior.getLastUpperBound());
+
+  lua_pushstring(vm, "score_behavior");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+#endif

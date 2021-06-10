@@ -108,6 +108,38 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
 		    {ifid=ifstats.id, asn=asn,
 		     packets_sent=asn_stats["tcpPacketStats.sent"]["keep_alive"],
 		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["keep_alive"]}, when)
+
+    if ntop.isPro() then
+      -- Score Behaviour
+      ts_utils.append("asn:score_behavior", {ifid=ifstats.id, asn=asn,
+        value=asn_stats["score_behavior"]["value"], lower_bound=asn_stats["score_behavior"]["lower_bound"], 
+        upper_bound = asn_stats["score_behavior"]["upper_bound"]}, when)
+        
+      -- Score Anomalies
+      local anomaly = 0
+      if asn_stats["score_behavior"]["anomaly"] == true then
+        anomaly = 1
+      end
+        
+      ts_utils.append("asn:score_anomalies", {ifid=ifstats.id, asn=asn, anomaly=anomaly}, when)   
+
+      -- Traffic Behaviour
+      ts_utils.append("asn:traffic_rx_behavior", {ifid=ifstats.id, asn=asn,
+        value=asn_stats["traffic_rx_behavior"]["value"], lower_bound=asn_stats["traffic_rx_behavior"]["lower_bound"], 
+        upper_bound = asn_stats["traffic_rx_behavior"]["upper_bound"]}, when)
+
+      ts_utils.append("asn:traffic_tx_behavior", {ifid=ifstats.id, asn=asn,
+        value=asn_stats["traffic_tx_behavior"]["value"], lower_bound=asn_stats["traffic_tx_behavior"]["lower_bound"], 
+        upper_bound = asn_stats["traffic_tx_behavior"]["upper_bound"]}, when)
+        
+      -- Traffic Anomalies
+      local anomaly = 0
+      if asn_stats["traffic_tx_behavior"]["anomaly"] == true or asn_stats["traffic_rx_behavior"]["anomaly"] == true then
+        anomaly = 1
+      end
+        
+      ts_utils.append("asn:traffic_anomalies", {ifid=ifstats.id, asn=asn, anomaly=anomaly}, when)   
+    end
   end
 end
 

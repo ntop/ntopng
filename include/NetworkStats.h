@@ -36,6 +36,12 @@ class NetworkStats : public NetworkStatsAlertableEntity, public GenericTrafficEl
   AlertCounter flow_flood_victim_alert;
   u_int32_t syn_recvd_last_min, synack_sent_last_min; /* syn scan counters (victim) */
 
+#if defined(NTOPNG_PRO)
+  time_t nextMinPeriodicUpdate;
+  /* Behavioural analysis regarding the interface */
+  DESCounter score_behavior, traffic_rx_behavior, traffic_tx_behavior;
+#endif
+
   static inline void incTcp(TcpPacketStats *tps, u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
     if(ooo_pkts)        tps->incOOO(ooo_pkts);
     if(retr_pkts)       tps->incRetr(retr_pkts);
@@ -91,6 +97,27 @@ class NetworkStats : public NetworkStatsAlertableEntity, public GenericTrafficEl
   bool serialize(json_object *my_object);
   void deserialize(json_object *obj);
   void housekeepAlerts(ScriptPeriodicity p);
+
+#ifdef NTOPNG_PRO
+  /* Traffic analysis behavior */
+  inline u_int32_t value_score_anomaly() { return(score_behavior.getLastValue()); }
+  inline u_int32_t lower_bound_score_anomaly() { return(score_behavior.getLastLowerBound()); }
+  inline u_int32_t upper_bound_score_anomaly() { return(score_behavior.getLastUpperBound()); }
+  inline u_int32_t value_traffic_rx_anomaly() { return(traffic_rx_behavior.getLastValue()); }
+  inline u_int32_t lower_bound_traffic_rx_anomaly() { return(traffic_rx_behavior.getLastLowerBound()); }
+  inline u_int32_t upper_bound_traffic_rx_anomaly() { return(traffic_rx_behavior.getLastUpperBound()); }
+  inline u_int32_t value_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastValue()); }
+  inline u_int32_t lower_bound_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastLowerBound()); }
+  inline u_int32_t upper_bound_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastUpperBound()); }
+
+  virtual void updateStats(const struct timeval *tv);
+  
+  void updateBehaviorStats(const struct timeval *tv);
+  void updateScoreIfaceBehavior();
+  void updateTrafficIfaceBehavior();
+  void luaScoreBehavior(lua_State* vm);
+  void luaTrafficBehavior(lua_State* vm);
+#endif
 
   void updateSynAlertsCounter(time_t when, bool syn_sent);
   void updateSynAckAlertsCounter(time_t when, bool synack_sent);

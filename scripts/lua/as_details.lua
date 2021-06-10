@@ -161,6 +161,12 @@ if isEmptyString(page) or page == "historical" then
 	    {schema="asn:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
 	    {schema="asn:tcp_lost",            label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
 	    {schema="asn:tcp_keep_alive",      label=i18n("graphs.tcp_packets_keep_alive"), nedge_exclude=1},
+       {schema="asn:score_anomalies",       label=i18n("graphs.iface_score_anomalies")},
+       {schema="asn:score_behavior",        label=i18n("graphs.iface_score_behavior")},
+       {schema="asn:score_anomalies",       label=i18n("graphs.iface_score_anomalies")},
+       {schema="asn:traffic_anomalies",     label=i18n("graphs.iface_traffic_anomalies")},
+       {schema="asn:traffic_rx_behavior",   label=i18n("graphs.iface_traffic_rx_behavior")},
+       {schema="asn:traffic_tx_behavior",   label=i18n("graphs.iface_traffic_tx_behavior")},
          },
        })
    end

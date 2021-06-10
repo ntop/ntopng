@@ -826,6 +826,11 @@ function ts_utils.getPossiblyChangedSchemas()
       -- Interface timeseries
       "iface:alerted_flows",
       "iface:score",
+      "iface:score_behavior",
+      "iface:score_anomalies",
+      "iface:traffic_anomalies",
+      "iface:traffic_rx_behavior",
+      "iface:traffic_tx_behavior",
 
       -- Host timeseries
       "host:contacts", -- split in "as_client" and "as_server"

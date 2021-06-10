@@ -157,6 +157,49 @@ schema:addTag("asn")
 schema:addMetric("packets_sent")
 schema:addMetric("packets_rcvd")
 
+-- ##############################################
+
+if ntop.isPro() then
+    schema = ts_utils.newSchema("asn:traffic_anomalies", {step=300, metrics_type=ts_utils.metrics.gauge})
+    schema:addTag("ifid")
+    schema:addTag("asn")
+    schema:addMetric("anomaly")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("asn:traffic_tx_behavior", {step=300, metrics_type=ts_utils.metrics.gauge, rrd_fname="bytes"})
+    schema:addTag("ifid")
+    schema:addTag("asn")
+    schema:addMetric("value")
+    schema:addMetric("lower_bound")
+    schema:addMetric("upper_bound")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("asn:traffic_rx_behavior", {step=300, metrics_type=ts_utils.metrics.gauge, rrd_fname="bytes"})
+    schema:addTag("ifid")
+    schema:addTag("asn")
+    schema:addMetric("value")
+    schema:addMetric("lower_bound")
+    schema:addMetric("upper_bound")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("asn:score_anomalies", {step=300, metrics_type=ts_utils.metrics.gauge})
+    schema:addTag("ifid")
+    schema:addTag("asn")
+    schema:addMetric("anomaly")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("asn:score_behavior", {step=300, metrics_type=ts_utils.metrics.gauge})
+    schema:addTag("ifid")
+    schema:addTag("asn")
+    schema:addMetric("value")
+    schema:addMetric("lower_bound")
+    schema:addMetric("upper_bound")
+end
+
 -------------------------------------------------------
 -- COUNTRIES SCHEMAS
 -------------------------------------------------------
@@ -529,12 +572,6 @@ schema = ts_utils.newSchema("host:srv_score_anomalies", {step=300, metrics_type=
 schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("anomaly")
-
--- ##############################################
-
-schema = ts_utils.newSchema("iface:anomalies", {step=300, metrics_type=ts_utils.metrics.gauge})
-schema:addTag("ifid")
-schema:addMetric("anomalies")
 
 -- ##############################################
 

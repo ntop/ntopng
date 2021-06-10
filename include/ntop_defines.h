@@ -310,6 +310,9 @@
 #define CONST_EST_MAX_HOSTS            200000
 #define MIN_HOST_RESOLUTION_FREQUENCY  60  /* 1 min */
 #define HOST_SITES_REFRESH             300 /* 5 min */
+#define IFACE_BEHAVIOR_REFRESH         60  /* 1 min */
+#define ASES_BEHAVIOR_REFRESH          300 /* 5 min */
+#define NETWORK_BEHAVIOR_REFRESH       300 /* 5 min */
 #define TRAFFIC_MAP_REFRESH            30  /* 30 sec */
 #define HOST_SITES_TOP_NUMBER          10
 #define HOST_MAX_SERIALIZED_LEN        1048576 /* 1MB, use only when allocating memory in the heap */

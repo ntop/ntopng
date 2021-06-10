@@ -109,6 +109,12 @@ if page == "historical" then
 	 {schema="subnet:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
 	 {schema="subnet:tcp_lost",            label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
 	 {schema="subnet:tcp_keep_alive",      label=i18n("graphs.tcp_packets_keep_alive"), nedge_exclude=1},
+   {schema="subnet:score_anomalies",     label=i18n("graphs.iface_score_anomalies")},
+   {schema="subnet:score_behavior",      label=i18n("graphs.iface_score_behavior")},
+   {schema="subnet:score_anomalies",     label=i18n("graphs.iface_score_anomalies")},
+   {schema="subnet:traffic_anomalies",   label=i18n("graphs.iface_traffic_anomalies")},
+   {schema="subnet:traffic_rx_behavior", label=i18n("graphs.iface_traffic_rx_behavior")},
+   {schema="subnet:traffic_tx_behavior", label=i18n("graphs.iface_traffic_tx_behavior")},
       }
     })
 elseif (page == "config") then
