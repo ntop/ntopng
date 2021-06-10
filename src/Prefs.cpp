@@ -2012,13 +2012,19 @@ void Prefs::refreshDbDumpPrefs() {
 /* *************************************** */
 
 void Prefs::resetDeferredInterfacesToRegister() {
+  int num = 0;
+  ntop->getTrace()->traceEvent(TRACE_ERROR, "Reset interfaces");
   for(int i = 0; i < num_deferred_interfaces_to_register; i++) {
+    /* Reset network interfaces, excluding event interfaces like syslog/zmq */
     if(deferred_interfaces_to_register[i] != NULL) {
-      free(deferred_interfaces_to_register[i]);
-      deferred_interfaces_to_register[i] = NULL;
+      if (strstr(deferred_interfaces_to_register[i], "syslog://") ||
+          strstr(deferred_interfaces_to_register[i], "tcp://"))
+        deferred_interfaces_to_register[num++] = deferred_interfaces_to_register[i];
+      else    
+        free(deferred_interfaces_to_register[i]);
     }
   }
-  num_deferred_interfaces_to_register = 0;
+  num_deferred_interfaces_to_register = num;
 }
 
 /* *************************************** */
