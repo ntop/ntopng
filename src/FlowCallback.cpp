@@ -133,3 +133,13 @@ bool FlowCallback::loadConfiguration(json_object *config) {
   
   return(rc);
 }
+
+/* **************************************************** */
+
+void FlowCallback::computeCliSrvScore(u_int8_t score, u_int8_t cli_pctg, u_int8_t *cli_score, u_int8_t *srv_score) {
+  *cli_score = (score * cli_pctg) / 100;
+  *srv_score = score - (*cli_score);
+}
+
+/* **************************************************** */
+

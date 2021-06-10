@@ -58,6 +58,8 @@ class FlowCallback {
   virtual bool loadConfiguration(json_object *config);
   
   virtual std::string getName()        const = 0;
+
+  static void computeCliSrvScore(u_int8_t score, u_int8_t cli_pctg, u_int8_t *cli_score, u_int8_t *srv_score);
 };
 
 #endif /* _FLOW_CALLBACK_H_ */

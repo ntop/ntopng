@@ -62,6 +62,7 @@ class FlowAlert {
      NOTE: memory must be freed by the caller.
   */
   ndpi_serializer* getSerializedAlert();
+
 };
 
 #endif /* _FLOW_ALERT_H_ */
