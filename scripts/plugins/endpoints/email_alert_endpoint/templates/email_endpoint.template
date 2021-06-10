@@ -43,3 +43,4 @@
         <small class="text-muted">{{ i18n("optional_field") }}</small>
     </div>
 </div>
+<small>{* i18n('prefs.email_notification_server_description') *}</small>
