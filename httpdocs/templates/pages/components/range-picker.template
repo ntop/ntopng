@@ -14,7 +14,6 @@
 .tagify__input {
   min-width: 175px;
 }
-
 .tagify__tag {
   white-space: nowrap;
   margin: 3px 0px 5px 5px;

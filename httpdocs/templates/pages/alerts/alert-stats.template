@@ -843,7 +843,7 @@
             "class" : "widget chart-widget h-100"
         })
 
-
+        /* Cards */
 
         const [begin_epoch, end_epoch] = getTimestampRange();
         let alertCardStats = () => {

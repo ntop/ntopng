@@ -43,6 +43,11 @@ combination with `nProbe in IPS mode <https://www.ntop.org/guides/nprobe/ips_mod
 In the latter case, ntopng can be used to report information about policed traffic, and also to configure
 traffic policies using the web GUI.
 
+.. note::
+
+   A ntopng Pro or Enterprise license is required.
+
+
 Traffic policies are automatically exported to nProbe after a change to the policies configuration, or
 when a new nProbe instance connects to ntopng via ZMQ. In order to publish IPS events (including policies)
 an additional ZMQ channel is required. This can be configured using the *--zmq-publish-events* option to 
