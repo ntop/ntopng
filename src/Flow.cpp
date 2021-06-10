@@ -89,6 +89,7 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&flow_device, 0, sizeof(flow_device));
 
   flow_score = 0;
+  flow_score_breakdown = NULL; /* Lazy allocation, only for flows with alerts */;
 
   PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
@@ -296,6 +297,7 @@ Flow::~Flow() {
     Finish deleting other flow data structures
    */
 
+  if(flow_score_breakdown)          delete flow_score_breakdown;
   if(viewFlowStats)                 delete(viewFlowStats);
   if(periodic_stats_update_partial) delete(periodic_stats_update_partial);
   if(last_db_dump.partial)          delete(last_db_dump.partial);
@@ -4788,6 +4790,9 @@ void Flow::lua_get_status(lua_State* vm) const {
     lua_push_bool_table_entry(vm, "flow.alerted", true);
     lua_push_uint64_table_entry(vm, "predominant_alert", getPredominantAlert().id);
     lua_push_uint64_table_entry(vm, "predominant_alert_score", getPredominantAlertScore());
+
+    if(flow_score_breakdown)
+      flow_score_breakdown->lua(vm, "alert_score_breakdown");
   }
 }
 
@@ -5496,6 +5501,10 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
   alerts_map.setBit(alert_type.id);
 
   flow_score += flow_inc;
+
+  /* Update breakdown increments */
+  if(flow_score_breakdown || (flow_score_breakdown = new (std::nothrow) FlowScoreBreakdown()))
+    flow_score_breakdown->incScore(alert_type, flow_inc);
 
   stats.incScore(cli_inc, score_category, true  /* as client */);
   stats.incScore(srv_inc, score_category, false /* as server */);

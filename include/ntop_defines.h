@@ -316,6 +316,7 @@
 #define POOL_MAX_SERIALIZED_LEN        32768   /* bytes */
 #define POOL_MAX_NAME_LEN              33      /* Characters */
 #define HOST_MAX_SCORE                 500
+#define FLOW_MAX_SCORE_BREAKDOWN       8 /* Maximum number of alerts for the flow score breadkown. Additional alerts will fall under 'other' */
 
 #define CONST_MAX_NUM_NETWORKS         255
 #define CONST_MAX_NUM_CHECKPOINTS      4

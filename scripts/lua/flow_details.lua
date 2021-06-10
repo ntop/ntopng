@@ -1252,7 +1252,7 @@ else
    if flow["flow.alerted"] then
       local message = alert_consts.alertTypeLabel(flow["predominant_alert"])
 
-      message = message .. string.format(" [%s: %d]", i18n("score_contribution"), format_utils.formatValue(flow["predominant_alert_score"]))
+      message = message .. string.format(" [%s: %d]", i18n("score"), format_utils.formatValue(flow["predominant_alert_score"]))
 
       print("<tr><th width=30%>"..status_icon.." "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
       print(message)
@@ -1263,6 +1263,7 @@ else
    if flow["alerts_map"] then
       local first = true
       local num_statuses = 0
+      local alert_score_breakdown = flow["alert_score_breakdown"] or {}
 
       for _, t in pairsByKeys(alert_consts.alert_types) do
 	 if t.meta and t.meta.alert_key then
@@ -1275,6 +1276,18 @@ else
 	       end
 
 	       local message = alert_consts.alertTypeLabel(t.meta.alert_key, true)
+
+	       local score_contribution = i18n("other")
+	       if alert_score_breakdown[id] then
+		  score_contribution = string.format("%s %s",
+						     alert_score_breakdown[id].is_max and "&ge;" or "",
+						     format_utils.formatValue(alert_score_breakdown[id].score))
+	       end
+
+	       message = message .. string.format(" [%s: %s]",
+						  i18n("score"),
+						  score_contribution)
+
 	       print(message.."<br />")
 
 	       num_statuses = num_statuses + 1
