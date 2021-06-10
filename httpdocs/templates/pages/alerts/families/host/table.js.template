@@ -2,13 +2,16 @@
     /* Date */
     {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Score */
-    {name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.formatValueLabel},
     /* Duration */
-    {name: 'duration', data: 'duration', width: '5%', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
+    {responsivePriority: 2, name: 'duration', data: 'duration', width: '5%', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
     /* IP Address */
-    {name: 'ip', data: 'ip', orderable: false, width: '16%', className: 'text-nowrap', render: DataTableRenders.formatHost},
-    /* Description */
-    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'ip', data: 'ip', orderable: false, width: '16%', className: 'text-nowrap', render: DataTableRenders.formatHost},
+    /* Alert */
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Counts */
-    {name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
+    {responsivePriority: 3, name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
+    /* Description */
+    {responsivePriority: 3, name: 'description', data: 'description', orderable: false, className: 'text-nowrap'},
+
 ]

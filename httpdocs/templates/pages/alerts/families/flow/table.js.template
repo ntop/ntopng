@@ -10,7 +10,7 @@
     }},
     /* Flow */
     {responsivePriority: 3, name: 'flow', data: 'flow', orderable: false, className: 'text-nowrap', width: '12%', render: DataTableRenders.formatFlowTuple},
-    /* Description */
+    /* Alert */
     {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Counts */
     {responsivePriority: 3, name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},

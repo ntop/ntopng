@@ -205,6 +205,7 @@ local RNAME = {
    IS_ATTACKER = { name = "is_attacker", export = true},
    VLAN_ID = { name = "vlan_id", export = true},
    ALERT_NAME = { name = "alert_name", export = true},
+   DESCRIPTION = { name = "description", export = true},
    MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
 }
 
@@ -275,6 +276,8 @@ function host_alert_store:format_record(value, no_html)
    record[RNAME.VLAN_ID.name] = value["vlan_id"] or 0
 
    record[RNAME.ALERT_NAME.name] = alert_name
+
+   record[RNAME.DESCRIPTION.name] = msg
 
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""
