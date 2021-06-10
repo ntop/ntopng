@@ -26,6 +26,18 @@ if ntop.isPro() then
    end
 end
 
+function formatASN(v)
+   local asn
+   
+   if(v == 0) then
+      asn = "&nbsp;"
+   else
+      asn = "<A HREF=\"".. ntop.getHttpPrefix() .."/lua/hosts_stats.lua?asn=" .. v .. "\">".. v .."</A>"
+   end
+
+   print("<td>"..asn.."</td>\n")
+end
+
 require "historical_utils"
 require "flow_utils"
 require "voip_utils"
@@ -1429,18 +1441,24 @@ else
    end
 
    if(flow.src_as or flow.dst_as) then
+      local asn
+      
       print("<tr>")
       print("<th width=30%>"..i18n("flow_details.as_src_dst").."</th>")
-      print("<td>"..ternary(flow.src_as, flow.src_as, "").."</td>\n")
-      print("<td>"..ternary(flow.dst_as, flow.dst_as, "").."</td>\n")
+
+      formatASN(flow.src_as)
+      formatASN(flow.dst_as)
+
       print("</tr>\n")
    end
 
    if(flow.prev_adjacent_as or flow.next_adjacent_as) then
       print("<tr>")
       print("<th width=30%>"..i18n("flow_details.as_prev_next").."</th>")
-      print("<td>"..ternary(flow.prev_adjacent_as, flow.prev_adjacent_as, "").."</td>\n")
-      print("<td>"..ternary(flow.next_adjacent_as, flow.next_adjacent_as, "").."</td>\n")
+      
+      formatASN(flow.prev_adjacent_as)
+      formatASN(flow.next_adjacent_as)
+
       print("</tr>\n")
    end
 
