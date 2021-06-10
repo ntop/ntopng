@@ -33,6 +33,12 @@ If you plan to build packages you should also install:
 
 apt-get install debhelper dpkg-sig dkms
 
+On Ubuntu16/18
+~~~~~~~~~~~~~~
+
+You also need to do "apt-get install libtool-bin"
+You can decide to use MariaDB (instead of MySQL) do "apt-get install libmariadb-client-lgpl-dev" instead.
+
 On Debian 9/10
 ~~~~~~~~~~~~~~
 
@@ -45,11 +51,10 @@ On Other Debian
 
 apt-get install libmysqlclient-dev libzmq3-dev
 
-On Ubuntu16/18
+On Raspbian 10
 ~~~~~~~~~~~~~~
 
-You also need to do "apt-get install libtool-bin"
-You can decide to use MariaDB (instead of MySQL) do "apt-get install libmariadb-client-lgpl-dev" instead.
+apt-get install libmariadb-dev libzmq3-dev
 
 On CentOS Stream (8)
 ~~~~~~~~~~~~~~~~~~~~
