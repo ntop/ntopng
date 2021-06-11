@@ -368,6 +368,27 @@ end
 
 -- ##############################################
 
+--@brief Checks whether there are alerts, wither engaged or historical
+function alert_store:has_alerts()
+   -- First, check for engaged alerts (fastest)
+   local _, num_alerts = self:select_engaged()
+   if num_alerts > 0 then
+      return true
+   end
+
+   -- Now check for historical alerts written in the database. Slightly slower.
+
+   -- Fastest way to query SQLite for existance of records. Response will be either a string '1' if records exist,
+   -- or '0' if records don't exist
+   local q = string.format(" SELECT EXISTS (SELECT 1 FROM `%s`) has_historical_alerts ", self._table_name)
+   local res = interface.alert_store_query(q)
+   local has_historical_alerts = res and res[1] and res[1]["has_historical_alerts"] == "1" or false
+
+   return has_historical_alerts
+end
+
+-- ##############################################
+
 --@brief Returns minimum and maximum timestamps and the time slot width to
 -- be used for queries performing group-by-time operations
 function alert_store:_count_by_time_get_bounds()

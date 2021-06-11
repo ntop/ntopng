@@ -18,6 +18,7 @@ local alert_severities = require "alert_severities"
 local Datasource = widget_gui_utils.datasource
 local alert_store_utils = require "alert_store_utils"
 local alert_utils = require "alert_utils"
+local alert_store = require "alert_store"
 
 local ifid = interface.getId()
 
@@ -35,10 +36,22 @@ local num_alerts_engaged_cur_entity = alert_entities[page] and num_alerts_engage
 -- If the status is not explicitly set, it is chosen between (engaged when there are engaged alerts) or historical when
 -- no engaged alert is currently active
 if not status then
-   if page ~= "all" and alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)] then
-      status = "engaged"
+   -- Default to historical
+   status = "historical"
+
+   if page ~= "all" then
+      -- If there alert alerts engaged for the selected entity, go to the engaged tab
+      if alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)] then
+	 status = "engaged"
+      end
    else
-      status = "historical"
+      -- For the 'all' page, the tab 'engaged' is selected if there is at least one entity with engaged alerts
+      for _, n in pairs(num_alerts_engaged_by_entity) do
+	 if n > 0 then
+	    status = "engaged"
+	    break
+	 end
+      end
    end
 end
 
@@ -79,6 +92,9 @@ local base_params = table.clone(_GET)
 base_params["page"] = nil
 local base_url = getPageUrl(ntop.getHttpPrefix().."/lua/alert_stats.lua", base_params)
 
+base_params["status"] = "historical"
+local base_url_historical_only = getPageUrl(ntop.getHttpPrefix().."/lua/alert_stats.lua", base_params)
+
 local pages = {
    {
         active = page == "all",
@@ -87,7 +103,6 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/all/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/all/alert/ts.lua",
 	url = getPageUrl(base_url, {page = "all"}),
-	hidden = is_system_interface,
    },
    {
         active = page == "host",
@@ -96,7 +111,7 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/host/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/host/alert/ts.lua",
 	url = getPageUrl(base_url, {page = "host"}),
-	hidden = is_system_interface,
+	hidden = is_system_interface or not require "host_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.host.entity_id)]
     },
     {
@@ -106,6 +121,7 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/interface/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/interface/alert/ts.lua",
 	url = getPageUrl(base_url, {page = "interface"}),
+	hidden = not require "interface_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.interface.entity_id)]
     },
     {
@@ -115,7 +131,7 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/network/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/network/alert/ts.lua",
 	url = getPageUrl(base_url, {page = "network"}),
-	hidden = is_system_interface,
+	hidden = is_system_interface or not require "network_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.network.entity_id)]
     },
     {
@@ -124,8 +140,8 @@ local pages = {
         label = i18n(alert_entities.snmp_device.i18n_label),
         endpoint_list = "/lua/pro/rest/v1/get/snmp/device/alert/list.lua",
         endpoint_ts = "/lua/pro/rest/v1/get/snmp/device/alert/ts.lua",
-	url = getPageUrl(base_url, {page = "snmp_device"}),
-	hidden = not is_system_interface,
+	url = getPageUrl(base_url_historical_only, {page = "snmp_device"}),
+	hidden = not is_system_interface or not require "snmp_device_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.snmp_device.entity_id)]
     },
     {
@@ -134,8 +150,8 @@ local pages = {
         label = i18n(alert_entities.flow.i18n_label),
         endpoint_list = "/lua/rest/v1/get/flow/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/flow/alert/ts.lua",
-	url = getPageUrl(base_url, {page = "flow"}),
-	hidden = is_system_interface,
+	url = getPageUrl(base_url_historical_only, {page = "flow"}),
+	hidden = is_system_interface or not require "flow_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.flow.entity_id)]
     },
     {
@@ -144,8 +160,8 @@ local pages = {
         label = i18n(alert_entities.mac.i18n_label),
         endpoint_list = "/lua/rest/v1/get/mac/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/mac/alert/ts.lua",
-	url = getPageUrl(base_url, {page = "mac"}),
-	hidden = is_system_interface,
+	url = getPageUrl(base_url_historical_only, {page = "mac"}),
+	hidden = is_system_interface or not require "mac_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.mac.entity_id)]
     },
     {
@@ -154,8 +170,8 @@ local pages = {
         label = i18n(alert_entities.system.i18n_label),
         endpoint_list = "/lua/rest/v1/get/system/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/system/alert/ts.lua",
-	url = getPageUrl(base_url, {page = "system"}),
-	hidden = not is_system_interface,
+	url = getPageUrl(base_url_historical_only, {page = "system"}),
+	hidden = not is_system_interface or not require "system_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.system.entity_id)]
     },
     {
@@ -165,7 +181,7 @@ local pages = {
         endpoint_list = "/lua/rest/v1/get/am_host/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/am_host/alert/ts.lua",
 	url = getPageUrl(base_url, {page = "am_host"}),
-	hidden = not is_system_interface,
+	hidden = not is_system_interface or not require "am_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.am_host.entity_id)]
     },
     {
@@ -174,8 +190,8 @@ local pages = {
         label = i18n(alert_entities.user.i18n_label),
         endpoint_list = "/lua/rest/v1/get/user/alert/list.lua",
         endpoint_ts = "/lua/rest/v1/get/user/alert/ts.lua",
-	url = getPageUrl(base_url, {page = "user"}),
-	hidden = not is_system_interface,
+	url = getPageUrl(base_url_historical_only, {page = "user"}),
+	hidden = not is_system_interface or not require "user_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.user.entity_id)]
     }
 }
