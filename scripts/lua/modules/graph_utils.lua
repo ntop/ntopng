@@ -1056,16 +1056,10 @@ local default_timeseries = {
    {schema="iface:traffic",               label=i18n("traffic")},
    {schema="iface:score",                 label=i18n("score"), metrics_labels = { i18n("graphs.cli_score"), i18n("graphs.srv_score")}},
    {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_rxtx"), layout={ ["bytes_sent"] = "area", ["bytes_rcvd"] = "line" } },
-   {schema="iface:hosts_anomalies",       label=i18n("graphs.hosts_anomalies"), layout={ ["num_local_hosts_anomalies"] = "area", ["num_remote_hosts_anomalies"] = "area" }, metrics_labels = { i18n("graphs.loc_host_anomalies"), i18n("graphs.rem_host_anomalies")}  },
-   {schema="iface:score_anomalies",       label=i18n("graphs.iface_score_anomalies"), pro_only=1},
-   {schema="iface:score_behavior",        label=i18n("graphs.iface_score_behavior"), pro_only=1},
-   {schema="iface:score_anomalies",       label=i18n("graphs.iface_score_anomalies"), pro_only=1},
-   {schema="iface:traffic_anomalies",     label=i18n("graphs.iface_traffic_anomalies"), pro_only=1},
-   {schema="iface:traffic_rx_behavior",   label=i18n("graphs.iface_traffic_rx_behavior"), pro_only=1},
-   {schema="iface:traffic_tx_behavior",   label=i18n("graphs.iface_traffic_tx_behavior"), pro_only=1},
    {schema="iface:packets_vs_drops",      label=i18n("graphs.packets_vs_drops")},
    {schema="iface:nfq_pct",               label=i18n("graphs.num_nfq_pct"), nedge_only=1},
-
+   {schema="iface:hosts_anomalies",       label=i18n("graphs.hosts_anomalies"), layout={ ["num_local_hosts_anomalies"] = "area", ["num_remote_hosts_anomalies"] = "area" }, metrics_labels = { i18n("graphs.loc_host_anomalies"), i18n("graphs.rem_host_anomalies")}  },
+      
    {schema="iface:disc_prob_bytes",       label=i18n("graphs.discarded_probing_bytes"), nedge_exclude=1},
    {schema="iface:disc_prob_pkts",        label=i18n("graphs.discarded_probing_packets"), nedge_exclude=1},
 
@@ -1087,6 +1081,18 @@ local default_timeseries = {
    {schema="iface:tcp_finack",            label=i18n("graphs.tcp_finack_packets"), nedge_exclude=1},
    {schema="iface:tcp_rst",               label=i18n("graphs.tcp_rst_packets"), nedge_exclude=1},
 }
+
+if ntop.isPro() then
+   local pro_timeseries = {
+      {schema="iface:score_anomalies",       label=i18n("graphs.iface_score_anomalies")},
+      {schema="iface:score_behavior",        label=i18n("graphs.iface_score_behavior"), split_directions = true --[[ split RX and TX directions ]]},
+      {schema="iface:traffic_anomalies",     label=i18n("graphs.iface_traffic_anomalies")},
+      {schema="iface:traffic_rx_behavior",   label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true --[[ split RX and TX directions ]]},
+      {schema="iface:traffic_tx_behavior",   label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true --[[ split RX and TX directions ]]},
+   }
+
+   default_timeseries = table.merge(default_timeseries, pro_timeseries)
+end
 
 -- #################################################
 

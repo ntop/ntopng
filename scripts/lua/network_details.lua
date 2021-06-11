@@ -99,23 +99,30 @@ if page == "historical" then
       subnet = network_name,
     }
 
-    graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-      timeseries = {
-	 {schema="subnet:traffic",             label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
-	 {schema="subnet:broadcast_traffic",   label=i18n("broadcast_traffic")},
-	 {schema="subnet:engaged_alerts",      label=i18n("show_alerts.engaged_alerts")},
-	 {schema="subnet:score",               label=i18n("score"), split_directions = true},
-	 {schema="subnet:tcp_retransmissions", label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
-	 {schema="subnet:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
-	 {schema="subnet:tcp_lost",            label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
-	 {schema="subnet:tcp_keep_alive",      label=i18n("graphs.tcp_packets_keep_alive"), nedge_exclude=1},
-   {schema="subnet:score_anomalies",     label=i18n("graphs.iface_score_anomalies")},
-   {schema="subnet:score_behavior",      label=i18n("graphs.iface_score_behavior")},
-   {schema="subnet:score_anomalies",     label=i18n("graphs.iface_score_anomalies")},
-   {schema="subnet:traffic_anomalies",   label=i18n("graphs.iface_traffic_anomalies")},
-   {schema="subnet:traffic_rx_behavior", label=i18n("graphs.iface_traffic_rx_behavior")},
-   {schema="subnet:traffic_tx_behavior", label=i18n("graphs.iface_traffic_tx_behavior")},
+    local all_timeseries = {
+      {schema="subnet:traffic",             label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
+      {schema="subnet:broadcast_traffic",   label=i18n("broadcast_traffic")},
+      {schema="subnet:engaged_alerts",      label=i18n("show_alerts.engaged_alerts")},
+      {schema="subnet:score",               label=i18n("score"), split_directions = true},
+      {schema="subnet:tcp_retransmissions", label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
+      {schema="subnet:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
+      {schema="subnet:tcp_lost",            label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
+      {schema="subnet:tcp_keep_alive",      label=i18n("graphs.tcp_packets_keep_alive"), nedge_exclude=1},
+    }
+
+    if ntop.isPro() then
+      local pro_timeseries = {
+        {schema="subnet:score_anomalies",     label=i18n("graphs.iface_score_anomalies")},
+        {schema="subnet:score_behavior",      label=i18n("graphs.iface_score_behavior"), split_directions = true},
+        {schema="subnet:traffic_anomalies",   label=i18n("graphs.iface_traffic_anomalies")},
+        {schema="subnet:traffic_rx_behavior", label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true},
+        {schema="subnet:traffic_tx_behavior", label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true},
       }
+      all_timeseries = table.merge(all_timeseries, pro_timeseries)
+    end
+
+    graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
+      timeseries = all_timeseries,
     })
 elseif (page == "config") then
     if(not isAdministrator()) then

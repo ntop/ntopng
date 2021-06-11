@@ -149,25 +149,32 @@ if isEmptyString(page) or page == "historical" then
          protocol = _GET["protocol"],
        }
 
-       graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], asn_url, selected_epoch, {
-         top_protocols = "top:asn:ndpi",
-         timeseries = {
-            {schema="asn:traffic",             label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
+       local all_timeseries = {
+         {schema="asn:traffic",             label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
 			{schema="asn:rtt",                 label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
 			{schema="asn:traffic_sent",        label=i18n("graphs.traffic_sent"), nedge_exclude=1},
 			{schema="asn:traffic_rcvd",        label=i18n("graphs.traffic_rcvd"), nedge_exclude=1},
 			{schema="asn:score",                 label=i18n("score"), split_directions = true},
 			{schema="asn:tcp_retransmissions", label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
-	    {schema="asn:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
-	    {schema="asn:tcp_lost",            label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
-	    {schema="asn:tcp_keep_alive",      label=i18n("graphs.tcp_packets_keep_alive"), nedge_exclude=1},
-       {schema="asn:score_anomalies",       label=i18n("graphs.iface_score_anomalies")},
-       {schema="asn:score_behavior",        label=i18n("graphs.iface_score_behavior")},
-       {schema="asn:score_anomalies",       label=i18n("graphs.iface_score_anomalies")},
-       {schema="asn:traffic_anomalies",     label=i18n("graphs.iface_traffic_anomalies")},
-       {schema="asn:traffic_rx_behavior",   label=i18n("graphs.iface_traffic_rx_behavior")},
-       {schema="asn:traffic_tx_behavior",   label=i18n("graphs.iface_traffic_tx_behavior")},
-         },
+         {schema="asn:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
+         {schema="asn:tcp_lost",            label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
+         {schema="asn:tcp_keep_alive",      label=i18n("graphs.tcp_packets_keep_alive"), nedge_exclude=1},
+       }
+
+       if ntop.isPro() then
+         local pro_timeseries = {
+            {schema="asn:score_anomalies",       label=i18n("graphs.iface_score_anomalies")},
+            {schema="asn:score_behavior",        label=i18n("graphs.iface_score_behavior"), split_directions = true},
+            {schema="asn:traffic_anomalies",     label=i18n("graphs.iface_traffic_anomalies")},
+            {schema="asn:traffic_rx_behavior",   label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true},
+            {schema="asn:traffic_tx_behavior",   label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true},
+         }
+         all_timeseries = table.merge(all_timeseries, pro_timeseries)
+       end
+
+       graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], asn_url, selected_epoch, {
+         top_protocols = "top:asn:ndpi",
+         timeseries = all_timeseries,
        })
    end
 
