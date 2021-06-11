@@ -3149,7 +3149,9 @@ void NetworkInterface::periodicStatsUpdate() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats update done [took: %d]", tdebug.tv_sec - tdebug_init.tv_sec);
 #endif
 
+#ifdef NTOPNG_PRO
   updateBehaviorStats(&tv);
+#endif
 }
 
 /* *************************************** */

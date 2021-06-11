@@ -28,7 +28,9 @@
 AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface) {
   asname = NULL;
   round_trip_time = 0;
+#ifdef NTOPNG_PRO
   nextMinPeriodicUpdate = 0;
+#endif
   ntop->getGeolocation()->getAS(ipa, &asn, &asname);
 
 #ifdef AS_DEBUG
