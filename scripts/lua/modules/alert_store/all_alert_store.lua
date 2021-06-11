@@ -229,11 +229,13 @@ function all_alert_store:format_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"
    local record = self:format_json_record_common(value, alert_entities.host.entity_id, no_html)
 
-   local url = string.format('%s/lua/alert_stats.lua?page=%s&epoch_begin=%u&epoch_end=%u&status=historical',
+   local url = string.format('%s/lua/alert_stats.lua?page=%s&epoch_begin=%u&epoch_end=%u&status=%s',
       ntop.getHttpPrefix(),
       alert_consts.alertEntityRaw(value["entity_id"]),
       _GET["epoch_begin"],
-      _GET["epoch_end"])
+      _GET["epoch_end"],
+      _GET["status"] or "historical"
+   )
 
    local entity = i18n(alert_consts.alertEntityById(value["entity_id"]).i18n_label)
    if no_html then
