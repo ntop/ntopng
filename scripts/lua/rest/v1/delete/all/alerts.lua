@@ -10,11 +10,11 @@ local alert_utils = require "alert_utils"
 local alert_consts = require "alert_consts"
 local alert_entities = require "alert_entities"
 local rest_utils = require("rest_utils")
-local flow_alert_store = require "flow_alert_store".new()
+local alert_store_utils = require "alert_store_utils"
 
 --
 -- Read alerts data
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/delete/flow/alerts.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/delete/all/alerts.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
@@ -32,10 +32,11 @@ end
 
 interface.select(ifid)
 
--- Add filters
-flow_alert_store:add_request_filters()
-
-flow_alert_store:delete()
+local all_instances = alert_store_utils.all_instances_factory()
+for _, instance in pairs(all_instances) do
+   instance:add_request_filters()
+   instance:delete() 
+end
 
 rest_utils.answer(rc)
 
