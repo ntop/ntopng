@@ -1259,7 +1259,7 @@ else
       print("</td></tr>\n")
    end
 
-   -- Print additional flow statuses
+   local other_alerts_by_score = {} -- Table used to keep messages ordered by score
    if flow["alerts_map"] then
       local first = true
       local num_statuses = 0
@@ -1269,12 +1269,6 @@ else
 	    local id = t.meta.alert_key
 
 	    if id ~= flow["predominant_alert"] and flow["alerts_map"][id] then
-	       if first then
-		  print("<tr><th width=30%>"..i18n("flow_details.additional_alert_type").."</th><td colspan=2>")
-		  first = false
-	       end
-
-
 	       local message = alert_consts.alertTypeLabel(t.meta.alert_key, true)
 	       local alert_score = ntop.getFlowAlertScore(id)
 
@@ -1285,14 +1279,29 @@ else
 	       end
 
 
-	       print(message.."<br />")
+	       if not other_alerts_by_score[alert_score] then
+		  other_alerts_by_score[alert_score] = {}
+	       end
+	       other_alerts_by_score[alert_score][#other_alerts_by_score[alert_score] + 1] = message
 
 	       num_statuses = num_statuses + 1
 	    end
 	 end
       end
 
+      -- Print additional flow statuses (ordered by score and then alphabetically)
       if num_statuses > 0 then
+	 for _, messages in pairsByKeys(other_alerts_by_score, rev) do
+	    for _, message in pairsByValues(messages, asc) do
+	       if first then
+		  print("<tr><th width=30%>"..i18n("flow_details.additional_alert_type").."</th><td colspan=2>")
+		  first = false
+	       end
+
+	       print(message.."<br />")
+	    end
+	 end
+
 	 print("</td></tr>\n")
       end
    end
