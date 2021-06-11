@@ -441,6 +441,7 @@ function flow_alert_store:format_record(value, no_html)
    end
 
    -- Unpack all flow alerts, iterating the alerts_map. The alerts_map is stored as an HEX.
+   local other_alerts_by_score = {} -- Table used to keep messages ordered by score
    local additional_alerts = {}
    local nibble_num = 0 -- Current nibble being processed
    for alerts_map_nibble_id = #value.alerts_map, 1, -1 do
@@ -457,8 +458,22 @@ function flow_alert_store:format_record(value, no_html)
 	    if has_bit then -- The bit is set
 	       -- The actual alert id is the bit number times the current byte multiplied by 8
 	       local alert_id = math.floor(8 * nibble_num / 2) + bit_num
+
 	       if alert_id ~= tonumber(value["alert_id"]) then -- Do not add the predominant alert to the list of additional alerts
-		  additional_alerts[#additional_alerts + 1] = alert_consts.alertTypeLabel(alert_id, true, alert_entities.flow.entity_id)
+		  local message = alert_consts.alertTypeLabel(alert_id, true, alert_entities.flow.entity_id)
+
+		  local alert_score = ntop.getFlowAlertScore(alert_id)
+		  if alert_score > 0 then
+		     message = message .. string.format(" [%s: %s]",
+							i18n("score"),
+							format_utils.formatValue(alert_score))
+		  end
+
+		  if not other_alerts_by_score[alert_score] then
+		     other_alerts_by_score[alert_score] = {}
+		  end
+		  other_alerts_by_score[alert_score][#other_alerts_by_score[alert_score] + 1] = message
+		  additional_alerts[#additional_alerts + 1] = message
 	       end
 	    end
 	 end
@@ -468,7 +483,22 @@ function flow_alert_store:format_record(value, no_html)
       nibble_num = nibble_num + 1
    end
 
-   record[RNAME.ADDITIONAL_ALERTS.name] = table.concat(additional_alerts, ", ")
+   -- Print additional issues, sorted by score
+   record[RNAME.ADDITIONAL_ALERTS.name] = ''
+   local cur_additional_alert = 0
+   for _, messages in pairsByKeys(other_alerts_by_score, rev) do
+      for _, message in pairsByValues(messages, asc) do
+	 local cur_msg = ''
+	 if cur_additional_alert > 0 then
+	    -- Every 4 issues print a newline
+	    cur_msg = cur_additional_alert % 4 ~= 0 and ", " or "<br>"
+	 end
+	 cur_additional_alert = cur_additional_alert + 1
+
+	 cur_msg = cur_msg..message
+	 record[RNAME.ADDITIONAL_ALERTS.name] = record[RNAME.ADDITIONAL_ALERTS.name] ..cur_msg
+      end
+   end
 
    -- Host reference
    local cli_ip = hostinfo2hostkey(value, "cli")
