@@ -25,8 +25,10 @@
 /* ***************************************************** */
 
 void LowGoodputFlow::checkLowGoodput(Flow *f) {
-  u_int8_t c_score = SCORE_LEVEL_INFO, s_score = SCORE_LEVEL_INFO;
-
+  FlowAlertType alert_type = LowGoodputFlowAlert::getClassType();
+  u_int8_t c_score, s_score;
+  risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE; 
+ 
   if(!f->isTCP())                 return; /* TCP only                      */
   if(!f->isThreeWayHandshakeOK()) return; /* Three way handshake completed */
   if(f->get_packets() <= 3)       return; /* Minimum number of packets     */
@@ -52,7 +54,9 @@ void LowGoodputFlow::checkLowGoodput(Flow *f) {
     break; /* Continue with the check */
   };
 
-  f->triggerAlertAsync(LowGoodputFlowAlert::getClassType(), c_score, s_score);
+  computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+
+  f->triggerAlertAsync(alert_type, c_score, s_score);
 }
 
 /* ***************************************************** */

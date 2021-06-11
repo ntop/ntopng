@@ -24,16 +24,18 @@
 
 void DeviceProtocolNotAllowed::protocolDetected(Flow *f) {
   if(!f->isDeviceAllowedProtocol()) {
+    FlowAlertType alert_type = DeviceProtocolNotAllowedAlert::getClassType();
     u_int8_t c_score, s_score;
+    risk_percentage cli_score_pctg;
 
     if (!f->isCliDeviceAllowedProtocol())
-      c_score = SCORE_LEVEL_ERROR,
-	s_score = SCORE_LEVEL_INFO;
+      cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
     else
-      c_score = SCORE_LEVEL_INFO,
-	s_score = SCORE_LEVEL_ERROR;
+      cli_score_pctg = CLIENT_LOW_RISK_PERCENTAGE;
 
-    f->triggerAlertAsync(DeviceProtocolNotAllowedAlert::getClassType(), c_score, s_score);
+    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score); 
+
+    f->triggerAlertAsync(alert_type, c_score, s_score);
   }
 }
 

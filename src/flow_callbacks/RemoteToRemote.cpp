@@ -24,10 +24,13 @@
 
 void RemoteToRemote::protocolDetected(Flow *f) {
   if (f->isRemoteToRemote() && f->isUnicast()) {
-    u_int8_t c_score = SCORE_LEVEL_NOTICE;
-    u_int8_t s_score = SCORE_LEVEL_NOTICE;
-    
-    f->triggerAlertAsync(RemoteToRemoteAlert::getClassType(), c_score, s_score);
+    FlowAlertType alert_type = RemoteToRemoteAlert::getClassType();
+    u_int8_t c_score, s_score;
+    risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
+   
+    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+ 
+    f->triggerAlertAsync(alert_type, c_score, s_score);
   }
 }
 

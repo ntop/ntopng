@@ -26,9 +26,13 @@
 
 void NotPurged::checkNotPurged(Flow *f) {
   if(f->isNotPurged()) {
-    u_int8_t c_score = SCORE_LEVEL_WARNING, s_score = SCORE_LEVEL_WARNING;
+    FlowAlertType alert_type = NotPurgedAlert::getClassType();
+    u_int8_t c_score, s_score;
+    risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
 
-    f->triggerAlertAsync(NotPurgedAlert::getClassType(), c_score, s_score);
+    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+
+    f->triggerAlertAsync(alert_type, c_score, s_score);
   }
 }
 

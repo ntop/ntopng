@@ -24,9 +24,13 @@
 
 void TCPZeroWindow::checkTCPWindow(Flow *f) {
   if(f->isTCPZeroWindow()) {
-    u_int8_t c_score = SCORE_LEVEL_NOTICE, s_score = SCORE_LEVEL_INFO;
+    FlowAlertType alert_type = TCPZeroWindowAlert::getClassType();
+    u_int8_t c_score, s_score;
+    risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
 
-    f->triggerAlertAsync(TCPZeroWindowAlert::getClassType(), c_score, s_score);
+    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+
+    f->triggerAlertAsync(alert_type, c_score, s_score);
   }
 }
 

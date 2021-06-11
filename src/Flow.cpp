@@ -5461,8 +5461,12 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
   u_int16_t flow_inc;
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
 
+  /* Safety checks */
   cli_inc = min_val(cli_inc, SCORE_MAX_VALUE);
   srv_inc = min_val(srv_inc, SCORE_MAX_VALUE);
+  if (cli_inc + srv_inc > SCORE_MAX_VALUE)
+    srv_inc = SCORE_MAX_VALUE - cli_inc;
+
   flow_inc = cli_inc + srv_inc;
 
 #ifdef DEBUG_SCORE

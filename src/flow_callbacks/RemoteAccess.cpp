@@ -25,8 +25,10 @@
 /* ***************************************************** */
 
 void RemoteAccess::protocolDetected(Flow *f) {
+  FlowAlertType alert_type = RemoteAccessAlert::getClassType();
+  u_int8_t c_score, s_score;
+  risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
   Host *cli = f->get_cli_host();
-  u_int8_t c_score = SCORE_LEVEL_INFO, s_score = SCORE_LEVEL_INFO;
 
   switch(f->get_protocol_category()) {
   case NDPI_PROTOCOL_CATEGORY_REMOTE_ACCESS:
@@ -34,7 +36,9 @@ void RemoteAccess::protocolDetected(Flow *f) {
   case NDPI_PROTOCOL_CATEGORY_FILE_SHARING:
     if(cli) cli->incrRemoteAccess();
 
-    f->triggerAlertAsync(RemoteAccessAlert::getClassType(), c_score, s_score);
+    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+
+    f->triggerAlertAsync(alert_type, c_score, s_score);
     break;
   default:
     break;

@@ -26,7 +26,7 @@
 
 FlowAlertsLoader::FlowAlertsLoader() {
   /* TODO: implement dynamic loading */
-  alert_to_score[BlacklistedCountryAlert::getClassType().id] = BlacklistedCountryAlert::getClassScore();
+  alert_to_score[BlacklistedCountryAlert::getClassType().id] = BlacklistedCountryAlert::getDefaultScore();
 
   /* TODO: add all alerts */
 }

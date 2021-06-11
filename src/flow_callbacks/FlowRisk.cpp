@@ -30,6 +30,7 @@ void FlowRisk::protocolDetected(Flow *f) {
     ndpi_risk risk_bitmap = 0;
 
     NDPI_SET_BIT(risk_bitmap, handledRisk());
+
     flow_score = ndpi_risk2score(risk_bitmap, &cli_score, &srv_score);
 
     f->triggerAlertAsync(getAlertType(), cli_score, srv_score);

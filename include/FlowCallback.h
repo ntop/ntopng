@@ -59,7 +59,7 @@ class FlowCallback {
   
   virtual std::string getName()        const = 0;
 
-  static void computeCliSrvScore(u_int8_t score, u_int8_t cli_pctg, u_int8_t *cli_score, u_int8_t *srv_score);
+  static void computeCliSrvScore(FlowAlertType alert_type, u_int8_t cli_pctg, u_int8_t *cli_score, u_int8_t *srv_score);
 };
 
 #endif /* _FLOW_CALLBACK_H_ */

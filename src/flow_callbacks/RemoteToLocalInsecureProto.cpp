@@ -26,24 +26,24 @@
 
 void RemoteToLocalInsecureProto::protocolDetected(Flow *f) {
   if(f->isRemoteToLocal()) {
+    risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
     /* Remote to local */
     bool unsafe;
-    u_int8_t c_score = SCORE_LEVEL_INFO, s_score = SCORE_LEVEL_INFO /* Server is the Local victim in this case */;
     
     switch(f->get_protocol_breed()) {
     case NDPI_PROTOCOL_UNSAFE:
       unsafe = true;
-      s_score = SCORE_LEVEL_NOTICE;
+      cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
       break;
 
     case NDPI_PROTOCOL_POTENTIALLY_DANGEROUS:
       unsafe = true;
-      s_score = SCORE_LEVEL_WARNING;
+      cli_score_pctg = CLIENT_LOW_RISK_PERCENTAGE;
       break;
       
     case NDPI_PROTOCOL_DANGEROUS:
       unsafe = true;
-      s_score = SCORE_LEVEL_ERROR;
+      cli_score_pctg = CLIENT_LOW_RISK_PERCENTAGE;
       break;
 
     default:
@@ -55,7 +55,7 @@ void RemoteToLocalInsecureProto::protocolDetected(Flow *f) {
       switch(f->get_protocol_category()) {
       case CUSTOM_CATEGORY_MALWARE:
       case CUSTOM_CATEGORY_BANNED_SITE:
-	s_score = SCORE_LEVEL_ERROR;
+	cli_score_pctg = CLIENT_LOW_RISK_PERCENTAGE;
 	unsafe = true;
 	break;
 
@@ -64,8 +64,14 @@ void RemoteToLocalInsecureProto::protocolDetected(Flow *f) {
       }
     }
   
-    if(unsafe)
-      f->triggerAlertAsync(RemoteToLocalInsecureProtoAlert::getClassType(), c_score, s_score);
+    if(unsafe) {
+      FlowAlertType alert_type = RemoteToLocalInsecureProtoAlert::getClassType();
+      u_int8_t c_score, s_score;
+
+      computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+
+      f->triggerAlertAsync(alert_type, c_score, s_score);
+    }
   }
 }
 

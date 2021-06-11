@@ -54,8 +54,11 @@ void BlacklistedCountry::protocolDetected(Flow *f) {
   }
 
   if (is_server_bl || is_client_bl) {
-    computeCliSrvScore(BlacklistedCountryAlert::getClassScore(), cli_score_pctg, &c_score, &s_score);
-    f->triggerAlertAsync(BlacklistedCountryAlert::getClassType(), c_score, s_score);
+    FlowAlertType alert_type = BlacklistedCountryAlert::getClassType();
+
+    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+
+    f->triggerAlertAsync(alert_type, c_score, s_score);
   }
 }
 

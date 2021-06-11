@@ -23,11 +23,14 @@
 #include "flow_callbacks_includes.h"
 
 void ExternalAlertCheck::checkExternalAlert(Flow *f) {
-  if (f->hasExternalAlert()) { 
-    u_int8_t c_score = SCORE_LEVEL_ERROR;
-    u_int8_t s_score = SCORE_LEVEL_ERROR;
+  if (f->hasExternalAlert()) {
+    FlowAlertType alert_type = ExternalAlertCheckAlert::getClassType();
+    risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
+    u_int8_t c_score, s_score;
 
-    f->triggerAlertAsync(ExternalAlertCheckAlert::getClassType(), c_score, s_score);
+    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+
+    f->triggerAlertAsync(alert_type, c_score, s_score);
   }
 }
 

@@ -23,8 +23,10 @@
 #include "flow_callbacks_includes.h"
 
 void UDPUnidirectional::checkFlow(Flow *f) {
+  FlowAlertType alert_type = UDPUnidirectionalAlert::getClassType();
+  u_int8_t c_score, s_score;
+  risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
   int16_t network_id;
-  u_int8_t score = SCORE_LEVEL_INFO;
   
   if(f->get_protocol() != IPPROTO_UDP)                  return; /* Non UDP traffic        */
   if(f->get_bytes_srv2cli() && f->get_bytes_srv2cli())  return; /* Two way communications */
@@ -46,10 +48,13 @@ void UDPUnidirectional::checkFlow(Flow *f) {
     break;
   }
 
-  if(!f->get_srv_ip_addr()->isLocalHost(&network_id))
-    score = SCORE_LEVEL_NOTICE;
+  if(!f->get_srv_ip_addr()->isLocalHost(&network_id)) {
+    cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
+  }
   
-  f->triggerAlertAsync(UDPUnidirectionalAlert::getClassType(), score /* c_score */, score /* s_score */);
+  computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+
+  f->triggerAlertAsync(alert_type, c_score, s_score);
 }
 
 /* ***************************************************** */
