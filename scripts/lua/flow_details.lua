@@ -1274,10 +1274,10 @@ else
    end
 
    local other_alerts_by_score = {} -- Table used to keep messages ordered by score
-   if flow["alerts_map"] then
-      local first = true
-      local num_statuses = 0
+   local num_statuses = 0
+   local first = true
 
+   if flow["alerts_map"] then
       for _, t in pairsByKeys(alert_consts.alert_types) do
 	 if t.meta and t.meta.alert_key then
 	    local id = t.meta.alert_key
@@ -1302,22 +1302,46 @@ else
 	    end
 	 end
       end
+   end
 
-      -- Print additional flow statuses (ordered by score and then alphabetically)
-      if num_statuses > 0 then
-	 for _, messages in pairsByKeys(other_alerts_by_score, rev) do
-	    for _, message in pairsByValues(messages, asc) do
-	       if first then
-		  print("<tr><th width=30%>"..i18n("flow_details.additional_alert_type").."</th><td colspan=2>")
-		  first = false
-	       end
+   -- ######################################
 
-	       print(message.."<br />")
-	    end
+   -- Unhandled flow risk as 'fake' issues with a 'fake' score of zero
+   if flow["unhandled_flow_risk"] and table.len(flow["unhandled_flow_risk"]) > 0 then
+      local unhandled_risk_score = 0
+      local risk = flow["unhandled_flow_risk"]
+
+      for risk_str,risk_id in pairs(risk) do
+	 if not other_alerts_by_score[unhandled_risk_score] then
+	    other_alerts_by_score[unhandled_risk_score] = {}
 	 end
 
-	 print("</td></tr>\n")
+	 local message =  string.format("%s [%s: %s]",
+					risk_str,
+					i18n("score"),
+					i18n("score_not_accounted"))
+
+	 other_alerts_by_score[unhandled_risk_score][#other_alerts_by_score[unhandled_risk_score] + 1] = message
+	 num_statuses = num_statuses + 1
       end
+   end
+
+   -- ######################################
+
+   -- Print additional flow statuses (ordered by score and then alphabetically)
+   if num_statuses > 0 then
+      for _, messages in pairsByKeys(other_alerts_by_score, rev) do
+	 for _, message in pairsByValues(messages, asc) do
+	    if first then
+	       print("<tr><th width=30%>"..i18n("flow_details.additional_alert_type").."</th><td colspan=2>")
+	       first = false
+	    end
+
+	    print(message.."<br />")
+	 end
+      end
+
+      print("</td></tr>\n")
    end
 
    -- ######################################
