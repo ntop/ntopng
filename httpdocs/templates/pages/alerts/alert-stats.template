@@ -437,13 +437,16 @@
 
             $('#alert-filter-type-select').val(tag.key).change();
 
-            let value_select = $('#add-alert-filter-modal select[name="value"]');
-            let value_input = $('#add-alert-filter-modal input[name="value"]').val(tag.value);
+            let value = tag.realValue || tag.value;
 
+            let value_select = $('#add-alert-filter-modal select[name="value"]');
             if (value_select) {
-                value_select.val(tag.realValue || tag.value);
-            } else if (value_input) {
-                value_input.val(tag.realValue || tag.value);
+                value_select.val(value);
+            }
+
+            let value_input = $('#add-alert-filter-modal input[name="value"]');
+            if (value_input) {
+                value_input.val(value);
             }
         });
 
