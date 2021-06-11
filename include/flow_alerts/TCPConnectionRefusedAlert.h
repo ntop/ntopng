@@ -27,6 +27,7 @@
 class TCPConnectionRefusedAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { flow_alert_tcp_connection_refused, alert_category_network }; }
+  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
  TCPConnectionRefusedAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~TCPConnectionRefusedAlert() { };

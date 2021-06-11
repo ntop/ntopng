@@ -29,6 +29,7 @@ class NotPurgedAlert : public FlowAlert {
   
  public:
   static FlowAlertType getClassType() { return { flow_alert_internals, alert_category_internals }; }
+  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_WARNING; };
 
  NotPurgedAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
   ~NotPurgedAlert() {};

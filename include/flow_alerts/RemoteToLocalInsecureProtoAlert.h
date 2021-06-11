@@ -30,6 +30,7 @@ class RemoteToLocalInsecureProtoAlert : public FlowAlert {
 
  public:
   static FlowAlertType getClassType() { return { flow_alert_remote_to_local_insecure_proto, alert_category_security }; }
+  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
  RemoteToLocalInsecureProtoAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
   ~RemoteToLocalInsecureProtoAlert() {};

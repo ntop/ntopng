@@ -35,6 +35,7 @@ class IECUnexpectedTypeIdAlert : public FlowAlert {
 
  public:
   static FlowAlertType getClassType() { return { flow_alert_iec_unexpected_type_id, alert_category_security }; }
+  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
   IECUnexpectedTypeIdAlert(FlowCallback *c, Flow *f, u_int8_t _type_id, u_int16_t _asdu, u_int8_t _cause_tx, u_int8_t _negative) : FlowAlert(c, f) { 
     type_id = _type_id;

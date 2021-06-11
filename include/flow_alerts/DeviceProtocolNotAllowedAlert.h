@@ -30,6 +30,7 @@ class DeviceProtocolNotAllowedAlert : public FlowAlert {
 
  public:
   static FlowAlertType getClassType() { return { flow_alert_device_protocol_not_allowed, alert_category_security }; }
+  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
  DeviceProtocolNotAllowedAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~DeviceProtocolNotAllowedAlert() { };
