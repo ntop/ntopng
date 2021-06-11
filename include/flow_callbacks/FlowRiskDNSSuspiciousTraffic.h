@@ -26,7 +26,6 @@
 
 class FlowRiskDNSSuspiciousTraffic : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk()       { return FlowRiskDNSSuspiciousTrafficAlert::getClassRisk(); };
   FlowAlertType getAlertType() const { return FlowRiskDNSSuspiciousTrafficAlert::getClassType(); };
 
  public:
@@ -43,6 +42,7 @@ class FlowRiskDNSSuspiciousTraffic : public FlowRisk {
   }
 
   std::string getName()        const { return(std::string("ndpi_dns_suspicious_traffic")); }
+  ndpi_risk_enum handledRisk()       { return FlowRiskDNSSuspiciousTrafficAlert::getClassRisk(); };
 };
 
 #endif

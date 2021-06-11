@@ -26,7 +26,6 @@
 
 class FlowRiskUnsafeProtocol : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk()       { return FlowRiskUnsafeProtocolAlert::getClassRisk(); }
   FlowAlertType getAlertType() const { return FlowRiskUnsafeProtocolAlert::getClassType(); }
 
  public:
@@ -44,6 +43,7 @@ class FlowRiskUnsafeProtocol : public FlowRisk {
   }
 
   std::string getName()        const { return(std::string("ndpi_unsafe_protocol")); }
+  ndpi_risk_enum handledRisk()       { return FlowRiskUnsafeProtocolAlert::getClassRisk(); }
 };
 
 #endif

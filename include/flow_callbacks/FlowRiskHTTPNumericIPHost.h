@@ -26,7 +26,6 @@
 
 class FlowRiskHTTPNumericIPHost : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk()       { return FlowRiskHTTPNumericIPHostAlert::getClassRisk(); };
   FlowAlertType getAlertType() const { return FlowRiskHTTPNumericIPHostAlert::getClassType(); };
 
  public:
@@ -42,6 +41,7 @@ class FlowRiskHTTPNumericIPHost : public FlowRisk {
   }
 
   std::string getName()        const { return(std::string("ndpi_http_numeric_ip_host")); }
+  ndpi_risk_enum handledRisk()       { return FlowRiskHTTPNumericIPHostAlert::getClassRisk(); };
 };
 
 #endif

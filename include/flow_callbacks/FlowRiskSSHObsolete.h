@@ -27,7 +27,6 @@
 class FlowRiskSSHObsolete : public FlowRisk {
  private:
   /* TODO also handle NDPI_SSH_OBSOLETE_CLIENT_VERSION_OR_CIPHER */
-  ndpi_risk_enum handledRisk() { return FlowRiskSSHObsoleteAlert::getClassRisk();       }
   FlowAlertType getAlertType() const { return FlowRiskSSHObsoleteAlert::getClassType(); }
 
  public:
@@ -37,6 +36,7 @@ class FlowRiskSSHObsolete : public FlowRisk {
   FlowAlert *buildAlert(Flow *f)  { return new FlowRiskSSHObsoleteAlert(this, f); }
 
   std::string getName()        const { return(std::string("ndpi_ssh_obsolete")); }
+  ndpi_risk_enum handledRisk() { return FlowRiskSSHObsoleteAlert::getClassRisk();       }
 };
 
 #endif

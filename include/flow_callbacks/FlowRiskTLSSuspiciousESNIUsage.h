@@ -26,7 +26,6 @@
 
 class FlowRiskTLSSuspiciousESNIUsage : public FlowRiskTLS {
  private:
-  ndpi_risk_enum handledRisk()       { return FlowRiskTLSSuspiciousESNIUsageAlert::getClassRisk(); }
   FlowAlertType getAlertType() const { return FlowRiskTLSSuspiciousESNIUsageAlert::getClassType(); }
 
  public:
@@ -42,6 +41,7 @@ class FlowRiskTLSSuspiciousESNIUsage : public FlowRiskTLS {
   }
 
   std::string getName()        const { return(std::string("ndpi_tls_suspicious_esni_usage")); }
+  ndpi_risk_enum handledRisk()       { return FlowRiskTLSSuspiciousESNIUsageAlert::getClassRisk(); }
 };
 
 #endif

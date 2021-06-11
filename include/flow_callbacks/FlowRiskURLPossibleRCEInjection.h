@@ -26,7 +26,6 @@
 
 class FlowRiskURLPossibleRCEInjection : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk()       { return FlowRiskURLPossibleRCEInjectionAlert::getClassRisk(); }
   FlowAlertType getAlertType() const { return FlowRiskURLPossibleRCEInjectionAlert::getClassType(); }
 
  public:
@@ -42,6 +41,7 @@ class FlowRiskURLPossibleRCEInjection : public FlowRisk {
   }
 
   std::string getName()        const { return(std::string("ndpi_url_possible_rce_injection")); }
+  ndpi_risk_enum handledRisk()       { return FlowRiskURLPossibleRCEInjectionAlert::getClassRisk(); }
 };
 
 #endif

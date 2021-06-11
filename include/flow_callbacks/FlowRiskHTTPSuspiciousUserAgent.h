@@ -26,7 +26,6 @@
 
 class FlowRiskHTTPSuspiciousUserAgent : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk() { return FlowRiskHTTPSuspiciousUserAgentAlert::getClassRisk();       }
   FlowAlertType getAlertType() const { return FlowRiskHTTPSuspiciousUserAgentAlert::getClassType(); }
 
  public:
@@ -42,6 +41,7 @@ class FlowRiskHTTPSuspiciousUserAgent : public FlowRisk {
   }
 
   std::string getName()        const { return(std::string("ndpi_http_suspicious_user_agent")); }
+  ndpi_risk_enum handledRisk() { return FlowRiskHTTPSuspiciousUserAgentAlert::getClassRisk();       }
 };
 
 #endif

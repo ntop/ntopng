@@ -26,7 +26,6 @@
 
 class FlowRiskMalformedPacket : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk() { return FlowRiskMalformedPacketAlert::getClassRisk();       }
   FlowAlertType getAlertType() const { return FlowRiskMalformedPacketAlert::getClassType(); }
 
  public:
@@ -36,6 +35,7 @@ class FlowRiskMalformedPacket : public FlowRisk {
   FlowAlert *buildAlert(Flow *f) { return new FlowRiskMalformedPacketAlert(this, f); }
 
   std::string getName()        const { return(std::string("ndpi_malformed_packet")); }
+  ndpi_risk_enum handledRisk() { return FlowRiskMalformedPacketAlert::getClassRisk();       }
 };
 
 #endif

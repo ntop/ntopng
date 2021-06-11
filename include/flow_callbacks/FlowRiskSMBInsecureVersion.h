@@ -26,7 +26,6 @@
 
 class FlowRiskSMBInsecureVersion : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk() { return FlowRiskSMBInsecureVersionAlert::getClassRisk();       }
   FlowAlertType getAlertType() const { return FlowRiskSMBInsecureVersionAlert::getClassType(); }
 
  public:
@@ -36,6 +35,7 @@ class FlowRiskSMBInsecureVersion : public FlowRisk {
   FlowAlert *buildAlert(Flow *f)  { return new FlowRiskSMBInsecureVersionAlert(this, f); }
 
   std::string getName()        const { return(std::string("ndpi_smb_insecure_version")); }
+  ndpi_risk_enum handledRisk() { return FlowRiskSMBInsecureVersionAlert::getClassRisk();       }
 };
 
 #endif

@@ -26,7 +26,6 @@
 
 class FlowRiskURLPossibleSQLInjection : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk()       { return FlowRiskURLPossibleSQLInjectionAlert::getClassRisk(); }
   FlowAlertType getAlertType() const { return FlowRiskURLPossibleSQLInjectionAlert::getClassType(); }
 
  public:
@@ -42,6 +41,7 @@ class FlowRiskURLPossibleSQLInjection : public FlowRisk {
   }
 
   std::string getName()        const { return(std::string("ndpi_url_possible_sql_injection")); }
+  ndpi_risk_enum handledRisk()       { return FlowRiskURLPossibleSQLInjectionAlert::getClassRisk(); }
 };
 
 #endif
