@@ -25,6 +25,11 @@
 /* **************************************************** */
 
 FlowCallbacksLoader::FlowCallbacksLoader() : CallbacksLoader() {
+  /*
+    Assuments all risks as unhanlded. Bits corresponding to risks handled by callbacks will be set to
+    zero during callbacks registration.
+   */
+  NDPI_BITMASK_SET_ALL(unhandled_ndpi_risks);
 }
 
 /* **************************************************** */
@@ -42,7 +47,13 @@ void FlowCallbacksLoader::registerCallback(FlowCallback *cb) {
     delete cb;
   } else
     cb_all[cb->getName()] = cb;
-  
+
+  /*
+    If this is a callback that handles an nDPI flow risk, the corresponding risk is cleared in the
+    unhandled risks bitmap
+   */
+  FlowRisk *fr = dynamic_cast<FlowRisk*>(cb);
+  if(fr) NDPI_CLR_BIT(unhandled_ndpi_risks, fr->handledRisk());
 }
 /* **************************************************** */
 
@@ -221,6 +232,14 @@ void FlowCallbacksLoader::printCallbacks() {
 
   for(std::map<std::string, FlowCallback*>::const_iterator it = cb_all.begin(); it != cb_all.end(); ++it)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "\t%s", it->first.c_str());
+
+  if(unhandled_ndpi_risks) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unhandled Risks:");
+
+    for(int i = 0; i < NDPI_MAX_RISK; i++)
+      if(NDPI_ISSET_BIT(unhandled_ndpi_risks, (ndpi_risk_enum)i))
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "\t%s [%u]", ndpi_risk2str((ndpi_risk_enum)i), i);
+  }
 }
 
 /* **************************************************** */

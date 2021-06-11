@@ -26,6 +26,8 @@
 
 class FlowCallbacksLoader : public CallbacksLoader { /* A single instance inside Ntop */
  private:
+  /* nDPI risks not currently hanlded by registered callbacks */
+  ndpi_risk unhandled_ndpi_risks;
   /* These are callback instances, that is classes instantiated at runtime each one with a given configuration */
   std::map<std::string, FlowCallback*> cb_all; /* All the callbacks instantiated */
 

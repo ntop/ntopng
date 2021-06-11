@@ -2704,6 +2704,7 @@ void Ntop::checkReloadFlowCallbacks() {
     }
 
     tmp_flow_callbacks_loader->initialize();
+    tmp_flow_callbacks_loader->printCallbacks();
     old = flow_callbacks_loader;
 
     /* Pass the newly allocated loader to all interfaces so they will update their callbacks */
