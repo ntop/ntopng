@@ -726,7 +726,7 @@ static int ntop_get_flow_alert_score(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_id = (FlowAlertTypeEnum)lua_tonumber(vm, 1);
 
-  lua_pushnumber(vm, ntop->getFlowAlertScore(alert_id));
+  lua_pushinteger(vm, ntop->getFlowAlertScore(alert_id));
   return(CONST_LUA_OK);
 }
 

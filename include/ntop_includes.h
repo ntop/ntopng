@@ -219,7 +219,6 @@ using namespace std;
 #include "ScoreStats.h"
 #include "ViewScoreStats.h"
 #include "Score.h"
-#include "FlowScoreBreakdown.h"
 #include "FrequentStringItems.h"
 #include "Trace.h"
 #include "ProtoStats.h"

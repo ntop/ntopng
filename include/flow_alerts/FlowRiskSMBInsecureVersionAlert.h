@@ -28,7 +28,7 @@ class FlowRiskSMBInsecureVersionAlert : public FlowRiskAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_SMB_INSECURE_VERSION; }
   static FlowAlertType getClassType() { return { flow_alert_ndpi_smb_insecure_version, alert_category_security }; }
-  static u_int8_t      getDefaultScore() { u_int16_t c, s; ndpi_risk2score(getClassRisk(), &c, &s); return c + s; }
+  static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
  FlowRiskSMBInsecureVersionAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskSMBInsecureVersionAlert() { };

@@ -35,6 +35,7 @@ class FlowAlertsLoader { /* A single instance inside Ntop */
   virtual ~FlowAlertsLoader();
 
   u_int8_t getAlertScore(FlowAlertTypeEnum alert_id) const;
+  void printRegisteredAlerts() const;
 };
 
 #endif /* _FLOW_ALERTS_LOADER_H_ */

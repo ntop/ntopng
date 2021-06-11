@@ -107,3 +107,12 @@ u_int8_t FlowAlertsLoader::getAlertScore(FlowAlertTypeEnum alert_id) const {
 
   return 0;
 }
+
+/* **************************************************** */
+
+void FlowAlertsLoader::printRegisteredAlerts() const {
+  for(int i = 0; i < MAX_DEFINED_FLOW_ALERT_TYPE; i++) {
+    if(alert_to_score[i])
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert [%u][score: %u]", i, alert_to_score[i]);
+  }
+}

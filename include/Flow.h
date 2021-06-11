@@ -47,7 +47,6 @@ class Flow : public GenericHashEntry {
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   u_int8_t src2dst_tcp_zero_window:1, dst2src_tcp_zero_window:1, _pad:6;
   u_int16_t flow_score;
-  FlowScoreBreakdown *flow_score_breakdown;
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
   /* The bitmap of all possible flow alerts set by FlowCallback subclasses. When no alert is set, the 

@@ -1263,7 +1263,6 @@ else
    if flow["alerts_map"] then
       local first = true
       local num_statuses = 0
-      local alert_score_breakdown = flow["alert_score_breakdown"] or {}
 
       for _, t in pairsByKeys(alert_consts.alert_types) do
 	 if t.meta and t.meta.alert_key then
@@ -1275,19 +1274,16 @@ else
 		  first = false
 	       end
 
-	       local alert_score = ntop.getFlowAlertScore(id)
-	       local message = alert_consts.alertTypeLabel(t.meta.alert_key, true)
 
-	       local score_contribution = i18n("other")
-	       if alert_score_breakdown[id] then
-		  score_contribution = string.format("%s %s",
-						     alert_score_breakdown[id].is_max and "&ge;" or "",
-						     format_utils.formatValue(alert_score_breakdown[id].score))
+	       local message = alert_consts.alertTypeLabel(t.meta.alert_key, true)
+	       local alert_score = ntop.getFlowAlertScore(id)
+
+	       if alert_score > 0 then
+		  message = message .. string.format(" [%s: %s]",
+						     i18n("score"),
+						     format_utils.formatValue(alert_score))
 	       end
 
-	       message = message .. string.format(" [%s: %s]",
-						  i18n("score"),
-						  score_contribution)
 
 	       print(message.."<br />")
 
