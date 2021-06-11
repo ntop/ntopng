@@ -104,8 +104,8 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asLis
 
     if(details_level >= details_higher) {
       if(ndpiStats) ndpiStats->lua(iface, vm);
-        tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
-	tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");
+      tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
+      tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");
     }
   }
 
@@ -138,7 +138,7 @@ bool AutonomousSystem::equal(u_int32_t _asn) {
 
 void AutonomousSystem::updateStats(const struct timeval *tv)  {
   GenericTrafficElement::updateStats(tv);
-  
+
   updateBehaviorStats(tv);
 }
 
@@ -160,9 +160,9 @@ void AutonomousSystem::updateBehaviorStats(const struct timeval *tv) {
 void AutonomousSystem::updateScoreIfaceBehavior() {
   if(score_behavior.addObservation(getScore())) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [ASN: %s | score] [value: %u]",
-          iface->get_name(),
-          get_asname(),
-          getScore());
+				 iface->get_name(),
+				 get_asname(),
+				 getScore());
   }
 }
 
@@ -170,17 +170,17 @@ void AutonomousSystem::updateScoreIfaceBehavior() {
 
 void AutonomousSystem::updateTrafficIfaceBehavior() {
   if(traffic_rx_behavior.addObservation(getNumBytesSent())) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [ASN: %s | traffic rx] [value: %lu]",
-          iface->get_name(),
-          get_asname(),
-          getNumBytesSent());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [ASN: %u (%s) | traffic rx] [value: %lu]",
+				 iface->get_name(),
+				 get_asn(), get_asname(),
+				 getNumBytesSent());
   }
 
   if(traffic_tx_behavior.addObservation(getNumBytesRcvd())) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [ASN: %s | traffic tx] [value: %lu]",
-          iface->get_name(),
-          get_asname(),
-          getNumBytesRcvd());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [ASN: %u (%s) | traffic tx] [value: %lu]",
+				 iface->get_name(),
+				 get_asn(), get_asname(),
+				 getNumBytesRcvd());
   }
 }
 

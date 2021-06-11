@@ -27,7 +27,7 @@
 #include "ntop_includes.h"
 
 class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement, public SerializableElement, public Score {
- private:
+private:
   u_int32_t asn;
   char *asname;
   u_int32_t round_trip_time;
@@ -40,23 +40,23 @@ class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement, 
 
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
     if(first_seen == 0) first_seen = t,
-    last_seen = iface->getTimeLastPktRcvd();
+			  last_seen = iface->getTimeLastPktRcvd();
     sent.incStats(t, num_pkts, num_bytes);
   }
   inline void incRcvdStats(time_t t,u_int64_t num_pkts, u_int64_t num_bytes) {
     rcvd.incStats(t, num_pkts, num_bytes);
   }
 
- public:
+public:
   AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa);
   ~AutonomousSystem();
 
   void set_hash_entry_state_idle();
 
-  inline u_int16_t getNumHosts()               { return getUses();            }
-  inline u_int32_t key()                       { return(asn);                 }
-  inline u_int32_t get_asn()                   { return(asn);                 }
-  inline char *get_asname()                    { return(asname);              }
+  inline u_int16_t getNumHosts()               { return getUses();             }
+  inline u_int32_t key()                       { return(asn);                  }
+  inline u_int32_t get_asn()                   { return(asn);                  }
+  inline char*    get_asname()                 { return(asname ? asname : (char*)""); }
 
   bool equal(u_int32_t asn);
 
@@ -85,7 +85,7 @@ class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement, 
   inline u_int32_t upper_bound_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastUpperBound()); }
 
   virtual void updateStats(const struct timeval *tv);
-  
+
   void updateBehaviorStats(const struct timeval *tv);
   void updateScoreIfaceBehavior();
   void updateTrafficIfaceBehavior();
@@ -104,4 +104,3 @@ class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement, 
 };
 
 #endif /* _AUTONOMOUS_SYSTEM_H_ */
-
