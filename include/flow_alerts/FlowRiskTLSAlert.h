@@ -24,14 +24,14 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskTLSAlert : public FlowAlert {
+class FlowRiskTLSAlert : public FlowRiskAlert {
  private:
 
  protected:
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
  public:
- FlowRiskTLSAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
+ FlowRiskTLSAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskTLSAlert() { };
 };
 

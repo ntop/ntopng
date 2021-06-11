@@ -27,7 +27,8 @@
 class FlowAlertsLoader { /* A single instance inside Ntop */
  private:
   /* For each alert, keep the corresponding total score. */
-  std::map<FlowAlertTypeEnum, u_int8_t> alert_to_score;
+  u_int8_t alert_to_score[MAX_DEFINED_FLOW_ALERT_TYPE];
+  void registerAlert(FlowAlertType alert_type, u_int8_t alert_score);
 
  public:
   FlowAlertsLoader();

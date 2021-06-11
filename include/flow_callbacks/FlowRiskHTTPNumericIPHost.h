@@ -26,7 +26,7 @@
 
 class FlowRiskHTTPNumericIPHost : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk()       { return NDPI_HTTP_NUMERIC_IP_HOST;            };
+  ndpi_risk_enum handledRisk()       { return FlowRiskHTTPNumericIPHostAlert::getClassRisk(); };
   FlowAlertType getAlertType() const { return FlowRiskHTTPNumericIPHostAlert::getClassType(); };
 
  public:

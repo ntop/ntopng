@@ -24,17 +24,21 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskBinaryApplicationTransferAlert : public FlowAlert {
+class FlowRiskBinaryApplicationTransferAlert : public FlowRiskAlert {
  private:
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
  public:
+  static ndpi_risk_enum getClassRisk() { return NDPI_BINARY_APPLICATION_TRANSFER; }
   static FlowAlertType getClassType() { return { flow_alert_suspicious_file_transfer, alert_category_security }; }
+  static u_int8_t      getDefaultScore() { u_int16_t c, s; ndpi_risk2score(getClassRisk(), &c, &s); return c + s; }
 
- FlowRiskBinaryApplicationTransferAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
+ FlowRiskBinaryApplicationTransferAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskBinaryApplicationTransferAlert() { };
 
-  FlowAlertType getAlertType() const { return getClassType(); }
+  FlowAlertType  getAlertType()  const { return getClassType();  }
+  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
+  u_int8_t       getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_BINARY_APPLICATION_TRANSFER_ALERT_H_ */

@@ -24,17 +24,21 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskSuspiciousDGADomainAlert : public FlowAlert {
+class FlowRiskSuspiciousDGADomainAlert : public FlowRiskAlert {
  private:
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { flow_alert_ndpi_suspicious_dga_domain, alert_category_security }; }
+  static ndpi_risk_enum getClassRisk() { return NDPI_SUSPICIOUS_DGA_DOMAIN; }
+  static FlowAlertType getClassType()  { return { flow_alert_ndpi_suspicious_dga_domain, alert_category_security }; }
+  static u_int8_t      getDefaultScore() { u_int16_t c, s; ndpi_risk2score(getClassRisk(), &c, &s); return c + s; }
 
- FlowRiskSuspiciousDGADomainAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
+ FlowRiskSuspiciousDGADomainAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskSuspiciousDGADomainAlert() { };
 
-  FlowAlertType getAlertType() const { return getClassType(); }
+  FlowAlertType  getAlertType()  const { return getClassType();  }
+  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
+  u_int8_t       getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_SUSPICIOUS_DGA_DOMAIN_ALERT_H_ */

@@ -24,14 +24,18 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskURLPossibleRCEInjectionAlert : public FlowAlert {
+class FlowRiskURLPossibleRCEInjectionAlert : public FlowRiskAlert {
  public:
+  static ndpi_risk_enum getClassRisk() { return NDPI_URL_POSSIBLE_RCE_INJECTION; }
   static FlowAlertType getClassType() { return { flow_alert_ndpi_url_possible_rce_injection, alert_category_security }; }
+  static u_int8_t      getDefaultScore() { u_int16_t c, s; ndpi_risk2score(getClassRisk(), &c, &s); return c + s; }
 
- FlowRiskURLPossibleRCEInjectionAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
+ FlowRiskURLPossibleRCEInjectionAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) {};
   ~FlowRiskURLPossibleRCEInjectionAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
+  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
+  u_int8_t       getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_URL_POSSIBLE_RCE_INJ_ALERT_H_ */

@@ -26,7 +26,7 @@
 
 class FlowRiskURLPossibleSQLInjection : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk()       { return NDPI_URL_POSSIBLE_SQL_INJECTION;            }
+  ndpi_risk_enum handledRisk()       { return FlowRiskURLPossibleSQLInjectionAlert::getClassRisk(); }
   FlowAlertType getAlertType() const { return FlowRiskURLPossibleSQLInjectionAlert::getClassType(); }
 
  public:

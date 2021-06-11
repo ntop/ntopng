@@ -26,7 +26,7 @@
 
 class FlowRiskHTTPSuspiciousHeader : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk()       { return NDPI_HTTP_SUSPICIOUS_HEADER;             }
+  ndpi_risk_enum handledRisk()       { return FlowRiskHTTPSuspiciousHeaderAlert::getClassRisk(); }
   FlowAlertType getAlertType() const { return FlowRiskHTTPSuspiciousHeaderAlert::getClassType(); }
 
  public:

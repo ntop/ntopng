@@ -24,17 +24,21 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskKnownProtocolOnNonStandardPortAlert : public FlowAlert {
+class FlowRiskKnownProtocolOnNonStandardPortAlert : public FlowRiskAlert {
  private:
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
+  static ndpi_risk_enum getClassRisk() { return NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT; }
   static FlowAlertType getClassType() { return { flow_alert_known_proto_on_non_std_port, alert_category_security }; }
+  static u_int8_t      getDefaultScore() { u_int16_t c, s; ndpi_risk2score(getClassRisk(), &c, &s); return c + s; }
 
- FlowRiskKnownProtocolOnNonStandardPortAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
+ FlowRiskKnownProtocolOnNonStandardPortAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskKnownProtocolOnNonStandardPortAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
+  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
+  u_int8_t       getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT_ALERT_H_ */

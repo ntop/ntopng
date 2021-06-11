@@ -24,17 +24,21 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskSSHObsoleteAlert : public FlowAlert {
+class FlowRiskSSHObsoleteAlert : public FlowRiskAlert {
  private:
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
  public:
+  static ndpi_risk_enum getClassRisk() { return NDPI_SSH_OBSOLETE_SERVER_VERSION_OR_CIPHER; }
   static FlowAlertType getClassType() { return { flow_alert_ndpi_ssh_obsolete, alert_category_security }; }
+  static u_int8_t      getDefaultScore() { u_int16_t c, s; ndpi_risk2score(getClassRisk(), &c, &s); return c + s; }
 
- FlowRiskSSHObsoleteAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
+ FlowRiskSSHObsoleteAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskSSHObsoleteAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
+  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
+  u_int8_t       getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_SSH_OBSOLETE_ALERT_H_ */

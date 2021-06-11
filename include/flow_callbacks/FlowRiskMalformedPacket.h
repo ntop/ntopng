@@ -26,7 +26,7 @@
 
 class FlowRiskMalformedPacket : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk() { return NDPI_MALFORMED_PACKET;                    }
+  ndpi_risk_enum handledRisk() { return FlowRiskMalformedPacketAlert::getClassRisk();       }
   FlowAlertType getAlertType() const { return FlowRiskMalformedPacketAlert::getClassType(); }
 
  public:

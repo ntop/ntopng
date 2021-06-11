@@ -26,7 +26,7 @@
 
 class FlowRiskURLPossibleXSS : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk()       { return NDPI_URL_POSSIBLE_XSS;       }
+  ndpi_risk_enum handledRisk()       { return FlowRiskURLPossibleXSSAlert::getClassRisk(); }
   FlowAlertType getAlertType() const { return FlowRiskURLPossibleXSSAlert::getClassType(); }
 
  public:

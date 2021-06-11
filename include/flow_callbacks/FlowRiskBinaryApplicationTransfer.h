@@ -26,7 +26,7 @@
 
 class FlowRiskBinaryApplicationTransfer : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk()       { return NDPI_BINARY_APPLICATION_TRANSFER; };
+  ndpi_risk_enum handledRisk()       { return FlowRiskBinaryApplicationTransferAlert::getClassRisk(); };
   FlowAlertType getAlertType() const { return FlowRiskBinaryApplicationTransferAlert::getClassType(); };
 
  public:

@@ -26,7 +26,7 @@
 
 class FlowRiskTLSMissingSNI : public FlowRiskTLS {
  private:
-  ndpi_risk_enum handledRisk()       { return NDPI_TLS_MISSING_SNI;             }
+  ndpi_risk_enum handledRisk()       { return FlowRiskTLSMissingSNIAlert::getClassRisk(); }
   FlowAlertType getAlertType() const { return FlowRiskTLSMissingSNIAlert::getClassType(); }
 
  public:

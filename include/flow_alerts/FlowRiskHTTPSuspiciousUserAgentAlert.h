@@ -24,14 +24,18 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskHTTPSuspiciousUserAgentAlert : public FlowAlert {
+class FlowRiskHTTPSuspiciousUserAgentAlert : public FlowRiskAlert {
  public:
+  static ndpi_risk_enum getClassRisk() { return NDPI_HTTP_SUSPICIOUS_USER_AGENT; }
   static FlowAlertType getClassType() { return { flow_alert_ndpi_http_suspicious_user_agent, alert_category_security }; }
+  static u_int8_t      getDefaultScore() { u_int16_t c, s; ndpi_risk2score(getClassRisk(), &c, &s); return c + s; }
 
- FlowRiskHTTPSuspiciousUserAgentAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
+ FlowRiskHTTPSuspiciousUserAgentAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskHTTPSuspiciousUserAgentAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
+  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
+  u_int8_t       getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_HTTP_SUSPICIOUS_USER_AGENT_ALERT_H_ */

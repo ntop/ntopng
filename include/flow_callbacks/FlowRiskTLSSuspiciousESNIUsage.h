@@ -26,7 +26,7 @@
 
 class FlowRiskTLSSuspiciousESNIUsage : public FlowRiskTLS {
  private:
-  ndpi_risk_enum handledRisk()       { return NDPI_TLS_SUSPICIOUS_ESNI_USAGE;            }
+  ndpi_risk_enum handledRisk()       { return FlowRiskTLSSuspiciousESNIUsageAlert::getClassRisk(); }
   FlowAlertType getAlertType() const { return FlowRiskTLSSuspiciousESNIUsageAlert::getClassType(); }
 
  public:

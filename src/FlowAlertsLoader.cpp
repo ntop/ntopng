@@ -25,12 +25,37 @@
 /* **************************************************** */
 
 FlowAlertsLoader::FlowAlertsLoader() {
+  memset(&alert_to_score, 0, sizeof(alert_to_score));
+
   /* TODO: implement dynamic loading */
-  alert_to_score[BlacklistedCountryAlert::getClassType().id] = BlacklistedCountryAlert::getDefaultScore();
+  registerAlert(FlowRiskBinaryApplicationTransferAlert::getClassType(), FlowRiskBinaryApplicationTransferAlert::getDefaultScore());
+  registerAlert(FlowRiskDNSSuspiciousTrafficAlert::getClassType(), FlowRiskDNSSuspiciousTrafficAlert::getDefaultScore());
+  registerAlert(FlowRiskHTTPNumericIPHostAlert::getClassType(), FlowRiskHTTPNumericIPHostAlert::getDefaultScore());
+  registerAlert(FlowRiskHTTPSuspiciousHeaderAlert::getClassType(), FlowRiskHTTPSuspiciousHeaderAlert::getDefaultScore());
+  registerAlert(FlowRiskHTTPSuspiciousURLAlert::getClassType(), FlowRiskHTTPSuspiciousURLAlert::getDefaultScore());
+  registerAlert(FlowRiskHTTPSuspiciousUserAgentAlert::getClassType(), FlowRiskHTTPSuspiciousUserAgentAlert::getDefaultScore());
+  registerAlert(FlowRiskKnownProtocolOnNonStandardPortAlert::getClassType(), FlowRiskKnownProtocolOnNonStandardPortAlert::getDefaultScore());
+  registerAlert(FlowRiskMalformedPacketAlert::getClassType(), FlowRiskMalformedPacketAlert::getDefaultScore());
+  registerAlert(FlowRiskSMBInsecureVersionAlert::getClassType(), FlowRiskSMBInsecureVersionAlert::getDefaultScore());
+  registerAlert(FlowRiskSSHObsoleteAlert::getClassType(), FlowRiskSSHObsoleteAlert::getDefaultScore());
+  registerAlert(FlowRiskSuspiciousDGADomainAlert::getClassType(), FlowRiskSuspiciousDGADomainAlert::getDefaultScore());
+  registerAlert(FlowRiskTLSMissingSNIAlert::getClassType(), FlowRiskTLSMissingSNIAlert::getDefaultScore());
+  registerAlert(FlowRiskTLSNotCarryingHTTPSAlert::getClassType(), FlowRiskTLSNotCarryingHTTPSAlert::getDefaultScore());
+  registerAlert(FlowRiskTLSSuspiciousESNIUsageAlert::getClassType(), FlowRiskTLSSuspiciousESNIUsageAlert::getDefaultScore());
+  registerAlert(FlowRiskURLPossibleRCEInjectionAlert::getClassType(), FlowRiskURLPossibleRCEInjectionAlert::getDefaultScore());
+  registerAlert(FlowRiskURLPossibleSQLInjectionAlert::getClassType(), FlowRiskURLPossibleSQLInjectionAlert::getDefaultScore());
+  registerAlert(FlowRiskURLPossibleXSSAlert::getClassType(), FlowRiskURLPossibleXSSAlert::getDefaultScore());
+  registerAlert(FlowRiskUnsafeProtocolAlert::getClassType(), FlowRiskUnsafeProtocolAlert::getDefaultScore());
 
-  /* TODO: add all alerts */
+  /* PRO */
+  registerAlert(FlowRiskTLSCertificateExpiredAlert::getClassType(), FlowRiskTLSCertificateExpiredAlert::getDefaultScore());
+  registerAlert(FlowRiskTLSCertificateMismatchAlert::getClassType(), FlowRiskTLSCertificateMismatchAlert::getDefaultScore());
+  registerAlert(FlowRiskTLSCertificateSelfSignedAlert::getClassType(), FlowRiskTLSCertificateSelfSignedAlert::getDefaultScore());
+  registerAlert(FlowRiskTLSOldProtocolVersionAlert::getClassType(), FlowRiskTLSOldProtocolVersionAlert::getDefaultScore());
+  registerAlert(FlowRiskTLSUnsafeCiphersAlert::getClassType(), FlowRiskTLSUnsafeCiphersAlert::getDefaultScore());
+
+  registerAlert(BlacklistedCountryAlert::getClassType(), BlacklistedCountryAlert::getDefaultScore());
 }
-
 /* **************************************************** */
 
 FlowAlertsLoader::~FlowAlertsLoader() {
@@ -38,11 +63,18 @@ FlowAlertsLoader::~FlowAlertsLoader() {
 
 /* **************************************************** */
 
-u_int8_t FlowAlertsLoader::getAlertScore(FlowAlertTypeEnum alert_id) const {
-  std::map<FlowAlertTypeEnum, u_int8_t>::const_iterator it = alert_to_score.find(alert_id);
+void FlowAlertsLoader::registerAlert(FlowAlertType alert_type, u_int8_t alert_score) {
+  if(alert_type.id >= MAX_DEFINED_FLOW_ALERT_TYPE)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Ignoring alert with unknown id %u", alert_type.id);
 
-  if(it != alert_to_score.end())
-    return it->second;
+  alert_to_score[alert_type.id] = alert_score;
+}
+
+/* **************************************************** */
+
+u_int8_t FlowAlertsLoader::getAlertScore(FlowAlertTypeEnum alert_id) const {
+  if(alert_id < MAX_DEFINED_FLOW_ALERT_TYPE)
+    return alert_to_score[alert_id];
 
   return 0;
 }

@@ -24,14 +24,18 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskHTTPNumericIPHostAlert : public FlowAlert {
+class FlowRiskHTTPNumericIPHostAlert : public FlowRiskAlert {
  public:
+  static ndpi_risk_enum getClassRisk() { return NDPI_HTTP_NUMERIC_IP_HOST; }
   static FlowAlertType getClassType() { return { flow_alert_ndpi_http_numeric_ip_host, alert_category_security }; }
+  static u_int8_t      getDefaultScore() { u_int16_t c, s; ndpi_risk2score(getClassRisk(), &c, &s); return c + s; }
 
- FlowRiskHTTPNumericIPHostAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
+ FlowRiskHTTPNumericIPHostAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskHTTPNumericIPHostAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
+  ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
+  u_int8_t       getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_HTTP_NUMERIC_IP_HOST_ALERT_H_ */

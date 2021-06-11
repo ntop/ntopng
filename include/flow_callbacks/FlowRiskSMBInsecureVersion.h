@@ -26,7 +26,7 @@
 
 class FlowRiskSMBInsecureVersion : public FlowRisk {
  private:
-  ndpi_risk_enum handledRisk() { return NDPI_SMB_INSECURE_VERSION;                   }
+  ndpi_risk_enum handledRisk() { return FlowRiskSMBInsecureVersionAlert::getClassRisk();       }
   FlowAlertType getAlertType() const { return FlowRiskSMBInsecureVersionAlert::getClassType(); }
 
  public:
