@@ -30,6 +30,7 @@ FlowCallbacksLoader::FlowCallbacksLoader() : CallbacksLoader() {
     zero during callbacks registration.
    */
   NDPI_BITMASK_SET_ALL(unhandled_ndpi_risks);
+  NDPI_CLR_BIT(unhandled_ndpi_risks, NDPI_NO_RISK);
 }
 
 /* **************************************************** */

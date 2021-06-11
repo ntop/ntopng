@@ -577,6 +577,7 @@ class Ntop {
   inline FlowCallbacksLoader* getFlowCallbacksLoader() { return(flow_callbacks_loader); }
   inline HostCallbacksLoader* getHostCallbacksLoader() { return(host_callbacks_loader); }
   inline u_int8_t getFlowAlertScore(FlowAlertTypeEnum alert_id) const { return flow_alerts_loader.getAlertScore(alert_id); };
+  inline ndpi_risk getUnhandledRisks() const { return flow_callbacks_loader ? flow_callbacks_loader->getUnhandledRisks() : 0; };
 #ifndef HAVE_NEDGE
   bool broadcastIPSMessage(char *msg);
   inline void askToRefreshIPSRules()  { refresh_ips_rules = true; }

@@ -1249,6 +1249,20 @@ else
 
    -- ######################################
 
+   if flow["unhandled_flow_risk"] and table.len(flow["unhandled_flow_risk"]) > 0 then
+      local risk = flow["unhandled_flow_risk"]
+
+      print("<tr><th width=30%>"..i18n("flow_details.flow_anomalies").."</th><td colspan=2>")
+
+      for risk_str,risk_id in pairs(risk) do
+	 print(risk_str.."<br>")
+      end
+
+      print("</td></tr>")
+   end
+
+   -- ######################################
+
    if flow["flow.alerted"] then
       local message = alert_consts.alertTypeLabel(flow["predominant_alert"])
 
@@ -1305,6 +1319,8 @@ else
 	 print("</td></tr>\n")
       end
    end
+
+   -- ######################################
 
    if(isScoreEnabled() and (flow.score.flow_score > 0)) then
       print("\n<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td>"..format_utils.formatValue(flow.score.flow_score).."</td>\n")

@@ -2198,7 +2198,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       }
     }
 
-    lua_get_risk_info(vm, true);
+    lua_get_risk_info(vm);
     lua_entropy(vm);
   }
 
@@ -2237,19 +2237,31 @@ void Flow::lua_tos(lua_State* vm) {
 
 /* *************************************** */
 
-void Flow::lua_get_risk_info(lua_State* vm, bool as_table) {
+void Flow::lua_get_risk_info(lua_State* vm) {
   if(ndpi_flow_risk_bitmap != 0) {
     u_int i;
 
-    if(as_table)
-      lua_newtable(vm);
+    lua_newtable(vm);
 
     for(i = 0; i < NDPI_MAX_RISK; i++)
       if(hasRisk((ndpi_risk_enum)i))
 	lua_push_uint64_table_entry(vm, ndpi_risk2str((ndpi_risk_enum)i), i);
 
-    if(as_table) {
-      lua_pushstring(vm, "flow_risk");
+    lua_pushstring(vm, "flow_risk");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+
+    ndpi_risk unhandled_ndpi_risks = ntop->getUnhandledRisks();
+    if(unhandled_ndpi_risks & ndpi_flow_risk_bitmap) {
+      /* This flow has some unhandled risks, that is, risks set by nDPI but not handled by flow callbacks */
+
+      lua_newtable(vm);
+
+      for(i = 0; i < NDPI_MAX_RISK; i++)
+	if(hasRisk((ndpi_risk_enum)i) && NDPI_ISSET_BIT(unhandled_ndpi_risks, (ndpi_risk_enum)i))
+	  lua_push_uint64_table_entry(vm, ndpi_risk2str((ndpi_risk_enum)i), i);
+
+      lua_pushstring(vm, "unhandled_flow_risk");
       lua_insert(vm, -2);
       lua_settable(vm, -3);
     }

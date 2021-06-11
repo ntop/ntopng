@@ -47,6 +47,7 @@ class FlowCallbacksLoader : public CallbacksLoader { /* A single instance inside
   inline std::list<FlowCallback*>* getPeriodicUpdateCallbacks(NetworkInterface *iface)   { return(getCallbacks(iface, flow_callback_periodic_update));   }
   inline std::list<FlowCallback*>* getFlowEndCallbacks(NetworkInterface *iface)          { return(getCallbacks(iface, flow_callback_flow_end));          }
   inline std::list<FlowCallback*>* getNoneFlowCallbacks(NetworkInterface *iface)         { return(getCallbacks(iface, flow_callback_flow_none));         }
+  inline ndpi_risk getUnhandledRisks() const { return unhandled_ndpi_risks; };
 };
 
 #endif /* _FLOW_CALLBACKS_LOADER_H_ */

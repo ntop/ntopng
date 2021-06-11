@@ -592,7 +592,7 @@ class Flow : public GenericHashEntry {
   void lua_get_tcp_info(lua_State *vm) const;
   void lua_get_port(lua_State *vm, bool client) const;
   void lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_city) const;
-  void lua_get_risk_info(lua_State* vm, bool as_table);
+  void lua_get_risk_info(lua_State* vm);
   
   void getInfo(ndpi_serializer *serializer);
   void getHTTPInfo(ndpi_serializer *serializer) const;
