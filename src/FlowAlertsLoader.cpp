@@ -28,6 +28,8 @@ FlowAlertsLoader::FlowAlertsLoader() {
   memset(&alert_to_score, 0, sizeof(alert_to_score));
 
   /* TODO: implement dynamic loading */
+
+  /* Risks - Community */
   registerAlert(FlowRiskBinaryApplicationTransferAlert::getClassType(), FlowRiskBinaryApplicationTransferAlert::getDefaultScore());
   registerAlert(FlowRiskDNSSuspiciousTrafficAlert::getClassType(), FlowRiskDNSSuspiciousTrafficAlert::getDefaultScore());
   registerAlert(FlowRiskHTTPNumericIPHostAlert::getClassType(), FlowRiskHTTPNumericIPHostAlert::getDefaultScore());
@@ -47,14 +49,41 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(FlowRiskURLPossibleXSSAlert::getClassType(), FlowRiskURLPossibleXSSAlert::getDefaultScore());
   registerAlert(FlowRiskUnsafeProtocolAlert::getClassType(), FlowRiskUnsafeProtocolAlert::getDefaultScore());
 
-  /* PRO */
+  /* Risks - PRO */
   registerAlert(FlowRiskTLSCertificateExpiredAlert::getClassType(), FlowRiskTLSCertificateExpiredAlert::getDefaultScore());
   registerAlert(FlowRiskTLSCertificateMismatchAlert::getClassType(), FlowRiskTLSCertificateMismatchAlert::getDefaultScore());
   registerAlert(FlowRiskTLSCertificateSelfSignedAlert::getClassType(), FlowRiskTLSCertificateSelfSignedAlert::getDefaultScore());
   registerAlert(FlowRiskTLSOldProtocolVersionAlert::getClassType(), FlowRiskTLSOldProtocolVersionAlert::getDefaultScore());
   registerAlert(FlowRiskTLSUnsafeCiphersAlert::getClassType(), FlowRiskTLSUnsafeCiphersAlert::getDefaultScore());
 
-  registerAlert(BlacklistedCountryAlert::getClassType(), BlacklistedCountryAlert::getDefaultScore());
+  /* Other */
+  registerAlert(BlacklistedCountryAlert::getClassType(),         BlacklistedCountryAlert::getDefaultScore());
+  registerAlert(BlacklistedFlowAlert::getClassType(),            BlacklistedFlowAlert::getDefaultScore());
+  registerAlert(DNSDataExfiltrationAlert::getClassType(),        DNSDataExfiltrationAlert::getDefaultScore());
+  registerAlert(DataExfiltrationAlert::getClassType(),           DataExfiltrationAlert::getDefaultScore());
+  registerAlert(DeviceProtocolNotAllowedAlert::getClassType(),   DeviceProtocolNotAllowedAlert::getDefaultScore());
+  registerAlert(ElephantFlowAlert::getClassType(),               ElephantFlowAlert::getDefaultScore());
+  registerAlert(ExternalAlertCheckAlert::getClassType(),         ExternalAlertCheckAlert::getDefaultScore());
+  registerAlert(IECInvalidTransitionAlert::getClassType(),       IECInvalidTransitionAlert::getDefaultScore());
+  registerAlert(IECUnexpectedTypeIdAlert::getClassType(),        IECUnexpectedTypeIdAlert::getDefaultScore());
+  registerAlert(InvalidDNSQueryAlert::getClassType(),            InvalidDNSQueryAlert::getDefaultScore());
+  registerAlert(LongLivedFlowAlert::getClassType(),              LongLivedFlowAlert::getDefaultScore());
+  registerAlert(LowGoodputFlowAlert::getClassType(),             LowGoodputFlowAlert::getDefaultScore());
+  registerAlert(NedgeBlockedFlowAlert::getClassType(),           NedgeBlockedFlowAlert::getDefaultScore());
+  registerAlert(NotPurgedAlert::getClassType(),                  NotPurgedAlert::getDefaultScore());
+  registerAlert(RemoteAccessAlert::getClassType(),               RemoteAccessAlert::getDefaultScore());
+  registerAlert(RemoteToLocalInsecureProtoAlert::getClassType(), RemoteToLocalInsecureProtoAlert::getDefaultScore());
+  registerAlert(RemoteToRemoteAlert::getClassType(),             RemoteToRemoteAlert::getDefaultScore());
+  registerAlert(TCPConnectionRefusedAlert::getClassType(),       TCPConnectionRefusedAlert::getDefaultScore());
+  registerAlert(TCPNoDataExchangedAlert::getClassType(),         TCPNoDataExchangedAlert::getDefaultScore());
+  registerAlert(TCPZeroWindowAlert::getClassType(),              TCPZeroWindowAlert::getDefaultScore());
+  registerAlert(TLSMaliciousSignatureAlert::getClassType(),      TLSMaliciousSignatureAlert::getDefaultScore());
+  registerAlert(UDPUnidirectionalAlert::getClassType(),          UDPUnidirectionalAlert::getDefaultScore());
+  registerAlert(UnexpectedDHCPServerAlert::getClassType(),       UnexpectedDHCPServerAlert::getDefaultScore());
+  registerAlert(UnexpectedDNSServerAlert::getClassType(),        UnexpectedDNSServerAlert::getDefaultScore());
+  registerAlert(UnexpectedNTPServerAlert::getClassType(),        UnexpectedNTPServerAlert::getDefaultScore());
+  registerAlert(UnexpectedSMTPServerAlert::getClassType(),       UnexpectedSMTPServerAlert::getDefaultScore());
+  registerAlert(WebMiningAlert::getClassType(),                  WebMiningAlert::getDefaultScore());
 }
 /* **************************************************** */
 
