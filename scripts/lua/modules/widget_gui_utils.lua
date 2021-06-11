@@ -114,7 +114,10 @@ function widget_gui_utils.register_timeseries_area_chart(name, update_time, data
                     show = true
                 },
                 axisTicks = {
-		   show = false
+		   			show = false
+                },
+                tooltip={
+                	enabled=false
                 },
             },
             yaxis = {
