@@ -138,7 +138,37 @@
             $(`.overlay`).fadeOut(time);
         }
 
-        function updateDatasourceParams() {
+        function getSearchParams() {
+            const searchParams = new URLSearchParams();
+
+            // get all filters tags
+            const tags = tagify.getTagElms();
+
+            // add the tag filters inside the search params object
+            for (const tag of tags) {
+                const tagData = tagify.tagData(tag);
+
+                const key = tagData.key;
+                const selectedOperator = tagData.selectedOperator;
+                const realValue = tagData.realValue;
+                const value = tagData.value;
+
+                let param_value = `${realValue || value}{{ opsep }}${selectedOperator || 'eq'}`;
+                if (searchParams.get(key)) {
+                    param_value = `${searchParams.get(key)},${param_value}`;
+                }
+                searchParams.set(key, param_value);
+            }
+
+            return searchParams;
+        }
+
+        function setDatasourceParams() {
+            const searchParams = getSearchParams();
+
+            searchParams.forEach(function(value, key) {
+                datasourceParams[key] = value;
+            });
 
             const [begin, end] = getTimestampRange();
             if (begin == null && end == null) return datasourceParams;
@@ -152,7 +182,8 @@
 
         async function reloadTable($table, ) {
             const searchParams = new URLSearchParams(Object.entries(datasourceParams));
-	        toggleOverlays();
+
+            toggleOverlays();
 	    
             // reload the table
             $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
@@ -182,9 +213,9 @@
         }
 
         function pushNewHistoryState(begin, end, len) {
-            
             const url = new URL(location);
-            const searchParams = new URLSearchParams();
+
+            const searchParams = getSearchParams();
 
             searchParams.set('epoch_begin', begin.unix());
             searchParams.set('epoch_end', end.unix());
@@ -221,29 +252,15 @@
                 searchParams.set('page', url.searchParams.get('page'));
             }
 
-            // get all filters tags
-            const tags = tagify.getTagElms();
-
-            // add the tag filters inside the search params object
-            for (const tag of tags) {
-                const tagData = tagify.tagData(tag);
-
-                const key = tagData.key;
-                const selectedOperator = tagData.selectedOperator;
-                const realValue = tagData.realValue;
-                const value = tagData.value;
-
-                searchParams.set(key, `${realValue || value}{{ opsep }}${selectedOperator}`);
-            }
-
             url.search = searchParams.toString();
             window.history.pushState({epoch_begin: begin.unix(), epoch_end: end.unix()}, '', url);
         }
 
         async function onRangePickerChange(pushHistroy = false) {
-
             const [begin, end] = getTimestampRange();
-	    updateDatasourceParams();
+
+	    setDatasourceParams();
+
             await reloadTable($table);
 
             // update the link of the download button
@@ -273,8 +290,8 @@
                 }
 
                 tagify.replaceTag(existingTagElement, existingTag);
+
                 // update the datasource params
-                datasourceParams[tag.key] = `${tag.realValue}{{ opsep }}${existingTag.selectedOperator}`;
                 await onRangePickerChange(true);
 
                 return;
@@ -418,8 +435,6 @@
 
             const tag = detail.data;
 
-            // add/update datasource params, default operator `=`
-            datasourceParams[tag.key] = `${tag.realValue || tag.value}{{ opsep }}${tag.selectedOperator || 'eq'}`;
             // trigger request
             await onRangePickerChange(true);
         });
@@ -460,9 +475,6 @@
 
             tag.realValue = tag.value;
 
-            // add/update datasource params, default operator `=`
-            datasourceParams[tag.key] = `${tag.value},${prevTag.selectedOperator}`;
-
             // trigger request
             await onRangePickerChange(true);
         });
@@ -476,14 +488,13 @@
 
             $tag.attr("selectedoperator", selectedOperator);
 
-            datasourceParams[$tag.attr('key')] = `${tagData.realValue || tagData.value}{{ opsep }}${selectedOperator}`;
             tagData.selectedOperator = selectedOperator;
 
             // trigger request
             await onRangePickerChange(true);
         });
 
-	    // clear all the filters on click
+	// clear all the filters on click
         $(".btn-remove-tags").on('click', async function() {
 
             const tags = tagify.getTagElms();
