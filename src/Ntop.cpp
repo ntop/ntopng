@@ -2909,8 +2909,11 @@ void Ntop::loadTrackers() {
       return;
     }
 
-    while(fgets(line, MAX_PATH, fd) != NULL)
-      ndpi_add_string_to_automa(trackers_automa, line);
+    while(fgets(line, MAX_PATH, fd) != NULL) {
+      char *str = strdup(line);
+      if (str)
+        ndpi_add_string_to_automa(trackers_automa, str);
+    }
 
     fclose(fd);
     ndpi_finalize_automa(trackers_automa);
