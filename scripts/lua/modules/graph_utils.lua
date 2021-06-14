@@ -1091,7 +1091,7 @@ if ntop.isPro() then
       {schema="iface:traffic_tx_behavior",   label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true --[[ split RX and TX directions ]]},
    }
 
-   default_timeseries = table.merge(default_timeseries, pro_timeseries)
+   default_timeseries = table.merge(pro_timeseries, default_timeseries)
 end
 
 -- #################################################
