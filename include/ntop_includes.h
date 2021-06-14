@@ -238,6 +238,7 @@ using namespace std;
 #include "FlowStats.h"
 #include "BehaviouralCounter.h"
 #ifdef NTOPNG_PRO
+#include "AnalysisBehavior.h"
 #include "CustomAppMaps.h"
 #include "CustomAppStats.h"
 #endif

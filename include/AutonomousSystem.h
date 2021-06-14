@@ -34,8 +34,9 @@ private:
 
 #if defined(NTOPNG_PRO)
   time_t nextMinPeriodicUpdate;
-  /* Behavioural analysis regarding the interface */
-  DESCounter score_behavior, traffic_rx_behavior, traffic_tx_behavior;
+
+  /* Traffic behavior analysis */
+  AnalysisBehavior *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
 #endif
 
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
@@ -46,6 +47,10 @@ private:
   inline void incRcvdStats(time_t t,u_int64_t num_pkts, u_int64_t num_bytes) {
     rcvd.incStats(t, num_pkts, num_bytes);
   }
+
+#ifdef NTOPNG_PRO
+  void updateBehaviorStats(const struct timeval *tv);
+#endif
 
 public:
   AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa);
@@ -72,26 +77,8 @@ public:
   void updateRoundTripTime(u_int32_t rtt_msecs);
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
 
-#ifdef NTOPNG_PRO
-  /* Traffic analysis behavior */
-  inline u_int32_t value_score_anomaly() { return(score_behavior.getLastValue()); }
-  inline u_int32_t lower_bound_score_anomaly() { return(score_behavior.getLastLowerBound()); }
-  inline u_int32_t upper_bound_score_anomaly() { return(score_behavior.getLastUpperBound()); }
-  inline u_int32_t value_traffic_rx_anomaly() { return(traffic_rx_behavior.getLastValue()); }
-  inline u_int32_t lower_bound_traffic_rx_anomaly() { return(traffic_rx_behavior.getLastLowerBound()); }
-  inline u_int32_t upper_bound_traffic_rx_anomaly() { return(traffic_rx_behavior.getLastUpperBound()); }
-  inline u_int32_t value_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastValue()); }
-  inline u_int32_t lower_bound_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastLowerBound()); }
-  inline u_int32_t upper_bound_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastUpperBound()); }
-
   virtual void updateStats(const struct timeval *tv);
 
-  void updateBehaviorStats(const struct timeval *tv);
-  void updateScoreIfaceBehavior();
-  void updateTrafficIfaceBehavior();
-  void luaScoreBehavior(lua_State* vm);
-  void luaTrafficBehavior(lua_State* vm);
-#endif
   inline void deserialize(json_object *obj) {
     GenericHashEntry::deserialize(obj);
     GenericTrafficElement::deserialize(obj, iface);

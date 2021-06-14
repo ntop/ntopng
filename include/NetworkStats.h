@@ -39,7 +39,7 @@ class NetworkStats : public NetworkStatsAlertableEntity, public GenericTrafficEl
 #if defined(NTOPNG_PRO)
   time_t nextMinPeriodicUpdate;
   /* Behavioural analysis regarding the interface */
-  DESCounter score_behavior, traffic_rx_behavior, traffic_tx_behavior;
+  AnalysisBehavior *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;  
 #endif
 
   static inline void incTcp(TcpPacketStats *tps, u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
@@ -49,9 +49,13 @@ class NetworkStats : public NetworkStatsAlertableEntity, public GenericTrafficEl
     if(keep_alive_pkts) tps->incKeepAlive(keep_alive_pkts);
   }
 
+#ifdef NTOPNG_PRO
+  void updateBehaviorStats(const struct timeval *tv);
+#endif
+
  public:
   NetworkStats(NetworkInterface *iface, u_int8_t _network_id);
-  virtual ~NetworkStats() {};
+  virtual ~NetworkStats();
 
   inline bool trafficSeen(){
     return ingress.getNumPkts() || egress.getNumPkts() || inner.getNumPkts();
@@ -98,26 +102,7 @@ class NetworkStats : public NetworkStatsAlertableEntity, public GenericTrafficEl
   void deserialize(json_object *obj);
   void housekeepAlerts(ScriptPeriodicity p);
 
-#ifdef NTOPNG_PRO
-  /* Traffic analysis behavior */
-  inline u_int32_t value_score_anomaly() { return(score_behavior.getLastValue()); }
-  inline u_int32_t lower_bound_score_anomaly() { return(score_behavior.getLastLowerBound()); }
-  inline u_int32_t upper_bound_score_anomaly() { return(score_behavior.getLastUpperBound()); }
-  inline u_int32_t value_traffic_rx_anomaly() { return(traffic_rx_behavior.getLastValue()); }
-  inline u_int32_t lower_bound_traffic_rx_anomaly() { return(traffic_rx_behavior.getLastLowerBound()); }
-  inline u_int32_t upper_bound_traffic_rx_anomaly() { return(traffic_rx_behavior.getLastUpperBound()); }
-  inline u_int32_t value_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastValue()); }
-  inline u_int32_t lower_bound_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastLowerBound()); }
-  inline u_int32_t upper_bound_traffic_tx_anomaly() { return(traffic_tx_behavior.getLastUpperBound()); }
-
   virtual void updateStats(const struct timeval *tv);
-  
-  void updateBehaviorStats(const struct timeval *tv);
-  void updateScoreIfaceBehavior();
-  void updateTrafficIfaceBehavior();
-  void luaScoreBehavior(lua_State* vm);
-  void luaTrafficBehavior(lua_State* vm);
-#endif
 
   void updateSynAlertsCounter(time_t when, bool syn_sent);
   void updateSynAckAlertsCounter(time_t when, bool synack_sent);
