@@ -85,6 +85,11 @@ const initDeleteAlertExclusionModal = (alert_key, script_title, excluded_host, i
 /* ******************************************************* */
 
 $(function () {
+    /* Possibly pass an host when requesting datatable data to have results filtered by host */
+    let ajax_data = {};
+    if(`${host}`)
+	ajax_data = {"host": `${host}`};
+
     // initialize script table
     const $script_table = $("#scripts-config").DataTable({
 	dom: "Bfrtip",
@@ -104,7 +109,8 @@ $(function () {
 	ajax: {
 	    url: `${http_prefix}/lua/rest/v1/get/${script_subdir}/alert/exclusions.lua`,
 	    type: 'get',
-	    dataSrc: 'rsp'
+	    dataSrc: 'rsp',
+	    data: ajax_data,
 	},
 	stateSave: true,
 	initComplete: function (settings, json) {
@@ -151,7 +157,14 @@ $(function () {
 		}
 	    },
 	    {
+		sortable: false,
+		searchable: false,
+		visible: false,
 		data: 'excluded_host',
+		type: 'ip-address',
+	    },
+	    {
+		data: 'excluded_host_label',
 		type: 'ip-address',
 		width: '20%',
 	    },
@@ -217,7 +230,8 @@ $(function () {
 	$(this).attr("disabled", "disabled");
 	$.post(`${http_prefix}/lua/rest/v1/delete/all/alert/exclusions.lua`, {
 	    script_subdir: script_subdir,
-	    csrf: pageCsrf
+	    csrf: pageCsrf,
+	    host: host, // Can be empty, when no host is selected
 	})
 	    .then((result) => {
 		if (result.rc == 0) location.reload();

@@ -7,4 +7,4 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local alert_rest_utils = require "alert_rest_utils"
 
-alert_rest_utils.get_alert_exclusions("host")
+alert_rest_utils.get_alert_exclusions("host", _GET["host"])

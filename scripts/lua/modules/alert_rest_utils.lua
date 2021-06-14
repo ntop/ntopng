@@ -89,7 +89,7 @@ end
 
 -- #################################
 
-function alert_rest_utils.get_alert_exclusions(subdir)
+function alert_rest_utils.get_alert_exclusions(subdir, host)
    if not auth.has_capability(auth.capabilities.user_scripts) then
       -- Not allowed to see alert exclusions
       rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -121,20 +121,31 @@ function alert_rest_utils.get_alert_exclusions(subdir)
 	 local excluded_hosts = alerts_get_excluded_hosts(script.alert_id)
 
 	 for excluded_host, _ in pairs(excluded_hosts) do
-	    local excluded_host_info = hostkey2hostinfo(excluded_host)
-	    local excluded_host_name = hostinfo2label(excluded_host_info)
-	    local excluded_host_href =  hostinfo2detailshref(excluded_host_info, {}, excluded_host, excluded_host, true)
+	    -- Return all excluded hosts if no specific `host` has been requested, or only stuff
+	    -- regarding `host`
+	    if isEmptyString(host) or excluded_host == host then
+	       -- Prepare a name and a label
+	       local excluded_host_info = hostkey2hostinfo(excluded_host)
+	       local excluded_host_name = hostinfo2label(excluded_host_info)
+	       local excluded_host_href =  hostinfo2detailshref(excluded_host_info, {}, excluded_host, excluded_host, true)
 
-	    result[#result + 1] = {
-	       key = script_name,
-	       alert_key = script.alert_id,
-	       title = i18n(script.gui.i18n_title) or script.gui.i18n_title,
-	       excluded_host = excluded_host_href,
-	       excluded_host_name = excluded_host_name ~= excluded_host and excluded_host_name or '',
-	       category_title = i18n(script.category.i18n_title),
-	       category_icon = script.category.icon,
-	       edit_url = user_scripts.getScriptEditorUrl(script),
-	    }
+	       -- If necessary, add an hyperlink to show alert exclusions only filtered for `host`
+	       if isEmptyString(host) then
+		  excluded_host_href = string.format('%s <a href="%s/lua/admin/edit_alert_exclusions.lua?subdir=%s&host=%s"><i class="fas fa-bell-slash"></i></a>', excluded_host_href, ntop.getHttpPrefix(), subdir, excluded_host)
+	       end
+
+	       result[#result + 1] = {
+		  key = script_name,
+		  alert_key = script.alert_id,
+		  title = i18n(script.gui.i18n_title) or script.gui.i18n_title,
+		  excluded_host = excluded_host,
+		  excluded_host_label = excluded_host_href,
+		  excluded_host_name = excluded_host_name ~= excluded_host and excluded_host_name or '',
+		  category_title = i18n(script.category.i18n_title),
+		  category_icon = script.category.icon,
+		  edit_url = user_scripts.getScriptEditorUrl(script),
+	       }
+	    end
 	 end
       end
    end
@@ -167,7 +178,7 @@ end
 
 -- #################################
 
-function alert_rest_utils.delete_all_alert_exclusions(subdir)
+function alert_rest_utils.delete_all_alert_exclusions(subdir, host)
    if not auth.has_capability(auth.capabilities.user_scripts) then
       -- Not allowed to see alert exclusions
       rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -175,9 +186,9 @@ function alert_rest_utils.delete_all_alert_exclusions(subdir)
    end
 
    if subdir == "host" then
-      alert_exclusions.enable_all_host_alerts()
+      alert_exclusions.enable_all_host_alerts(host)
    elseif subdir == "flow" then
-      alert_exclusions.enable_all_flow_alerts()
+      alert_exclusions.enable_all_flow_alerts(host)
    else
       -- Alert exclusions not supported for this subdir
       rest_utils.answer(rest_utils.consts.err.invalid_args)

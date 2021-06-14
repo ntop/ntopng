@@ -29,6 +29,8 @@ sendHTTPContentTypeHeader('text/html')
 local script_subdir = _GET["subdir"]
 local script_filter = _GET["user_script"]
 local search_filter = _GET["search_script"]
+-- If not nil, exclusions are printed for this particular host
+local host          = _GET["host"]
 
 local configset = user_scripts.getConfigset()
 local script_type = user_scripts.getScriptType(script_subdir)
@@ -60,20 +62,25 @@ page_utils.set_active_menu_entry(active_entry)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local url = ntop.getHttpPrefix() .. "/lua/admin/edit_alert_exclusions.lua"
+if not isEmptyString(host) then
+   url = string.format("%s?host=%s&", url, host)
+end
+
 local navbar_menu = {}
 for key, sub_menu in pairsByField(sub_menu_entries, 'order', asc) do
    navbar_menu[#navbar_menu+1] = {
       active = (script_subdir == key),
       page_name = key,
       label = i18n(sub_menu.entry.i18n_title),
-      url = url .. "?subdir="..key
+      url = url .. (isEmptyString(host) and "?" or '') .. "subdir="..key
   }
 end
 
-page_utils.print_navbar(i18n("edit_user_script.exclusion_list"), '#', navbar_menu)
+page_utils.print_navbar(host and i18n("edit_user_script.exclusion_list_host_x", {host = host}) or i18n("edit_user_script.exclusion_list"), '#', navbar_menu)
 
 local context = {
    script_list = {
+      host = host,
       subdir = script_subdir,
       template_utils = template,
       script_subdir = script_subdir,

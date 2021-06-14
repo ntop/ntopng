@@ -153,7 +153,7 @@ end
 -- ##############################################
 
 --@brief Removes all exclusions for a given entity
-local function _enable_all_alerts(alert_entity)
+local function _enable_all_alerts(alert_entity, host)
    local ret = false
 
    local locked = _lock()
@@ -166,9 +166,19 @@ local function _enable_all_alerts(alert_entity)
       local exclusions = _get_configured_alert_exclusions()
 
       -- Add an entry for the current alert entity, if currently exising exclusions don't already have it
-      if exclusions[entity_id] then
-	 exclusions[entity_id] = nil
-	 do_persist = true
+      if isEmptyString(host) then
+	 if exclusions[entity_id] then
+	    exclusions[entity_id] = nil
+	    do_persist = true
+	 end
+      else
+	 for alert_key, cur_exclusions in pairs(exclusions[entity_id] or {}) do
+	    if cur_exclusions["excluded_hosts"] and cur_exclusions["excluded_hosts"][host] then
+	       -- Remove the entry
+	       cur_exclusions["excluded_hosts"][host] = nil
+	       do_persist = true
+	    end
+	 end
       end
 
       if do_persist then
@@ -245,9 +255,10 @@ end
 -- ##############################################
 
 --@brief Enables all flow alerts possibly disabled
+--@param host If a valid ip address is specified, then all alerts will be enabled only for `host`, otherwise all alerts will be enabled
 --@return True, if enabled with success, false otherwise
-function alert_exclusions.enable_all_flow_alerts()
-   return _enable_all_alerts(alert_entities.flow)
+function alert_exclusions.enable_all_flow_alerts(host)
+   return _enable_all_alerts(alert_entities.flow, host)
 end
 
 -- ##############################################
@@ -276,9 +287,10 @@ end
 -- ##############################################
 
 --@brief Enables all host alerts possibly disabled
+--@param host If a valid ip address is specified, then all alerts will be enabled only for `host`, otherwise all alerts will be enabled
 --@return True, if enabled with success, false otherwise
-function alert_exclusions.enable_all_host_alerts()
-   return _enable_all_alerts(alert_entities.host)
+function alert_exclusions.enable_all_host_alerts(host)
+   return _enable_all_alerts(alert_entities.host, host)
 end
 
 -- ##############################################
