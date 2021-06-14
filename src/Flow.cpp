@@ -395,9 +395,12 @@ void Flow::processDetectedProtocol() {
 
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
-  swapped = check_swap(getTcpFlags());
+  swapped = is_swap_requested();
 
-  /* If peers should be swapped, then pointers are inverted */
+  /*
+    If peers should be swapped, then pointers are inverted.
+    NOTE: only function pointers are inverted, not pointers in the flow.
+   */
   if(swapped) {
     Host *tmp_h = cli_h;
     cli_h = srv_h;
@@ -680,6 +683,11 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 			 u_int8_t *payload, u_int16_t payload_len) {
   bool detected;
   ndpi_protocol proto_id;
+
+  /*
+    Check is flow peers need to be swapped.
+   */
+  check_swap(getTcpFlags());
 
   /* Note: do not call endProtocolDissection before ndpi_detection_process_packet. In case of
    * early giveup (e.g. sampled traffic), nDPI should process at least one packet in order to
@@ -2980,7 +2988,7 @@ void Flow::housekeep(time_t t) {
     break;
 
   case hash_entry_state_idle:
-    if(swap_requested && !swap_done) /* Swap requested but never performed (no more packets seen) */
+    if(is_swap_requested() && !is_swap_done()) /* Swap requested but never performed (no more packets seen) */
       iface->execProtocolDetectedCallbacks(this);
 
     if(!is_swap_requested() /* Swap not requested */
@@ -5635,6 +5643,12 @@ bool Flow::check_swap(u_int32_t tcp_flags) {
    */
   if(!getInterface()->isPacketInterface())
     return false;
+
+  /*
+    Already checked and already requested. No need to re-check.
+   */
+  if(is_swap_requested())
+    return true;
 
   /*
     This is the heuristic "For TCP flows for which the 3WH has not been observed..."
