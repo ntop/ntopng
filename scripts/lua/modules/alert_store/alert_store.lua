@@ -91,7 +91,7 @@ end
 --@brief Handle filter operator (eq, lt, gt, gte, lte)
 function alert_store:strip_filter_operator(value)
    if isEmptyString(value) then return nil, nil end
-   local filter = split(value, ",")
+   local filter = split(value, tag_utils.SEPARATOR)
    local value = filter[1]
    local op = filter[2]
    if tag_utils.tag_operators[op] then

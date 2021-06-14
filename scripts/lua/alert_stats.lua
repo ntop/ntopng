@@ -347,7 +347,7 @@ if page ~= "all" then
 end
 
 for tag_key, operators in pairs(defined_tags[page] or {}) do
-   tag_utils.add_tag_if_valid(initial_tags, tag_key, operators, formatters)
+   tag_utils.add_tag_if_valid(initial_tags, tag_key, operators, formatters, 'tags')
 end
 
 local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'}) 
@@ -385,6 +385,7 @@ local context = {
     template_utils = template_utils,
     json = json,
     ui_utils = ui_utils,
+    opsep = tag_utils.SEPARATOR,
     widget_gui_utils = widget_gui_utils,
     ifid = ifid,
     isPro = ntop.isPro(),

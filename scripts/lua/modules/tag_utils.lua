@@ -7,6 +7,12 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local tag_utils = {}
 
+-- Operator Separator in query strings
+tag_utils.SEPARATOR = ';'
+
+-- #####################################
+
+-- Supported operators
 tag_utils.tag_operators = {
     ["eq"] = "=",
     ["neq"] = "!=",
@@ -68,36 +74,42 @@ tag_utils.nindex_tags_to_where_v6 = {
 
 -- #####################################
 
-function tag_utils.add_tag_if_valid(tags, tag_key, operators, formatters)
+function tag_utils.add_tag_if_valid(tags, tag_key, operators, formatters, i18n_prefix)
     
    if isEmptyString(_GET[tag_key]) then
       return
    end
 
-   local selected_operator = 'eq'
-
    local get_value = _GET[tag_key]
-   local splitted = split(get_value, ',')
+   local list = split(get_value, ',')
 
-   local realValue
-   if #splitted == 2 then
-      realValue = splitted[1]
-      selected_operator = splitted[2]
+   for _,item in ipairs(list) do
+      local selected_operator = 'eq'
+
+      local splitted = split(item, tag_utils.SEPARATOR)
+
+      local realValue
+      if #splitted == 2 then
+         realValue = splitted[1]
+         selected_operator = splitted[2]
+      end
+
+      local value = realValue
+      if formatters[tag_key] ~= nil then
+         value = formatters[tag_key](value)
+      end
+
+      tag = {
+         realValue = realValue,
+         value = value,
+         label = i18n(i18n_prefix .. "." .. tag_key),
+         key = tag_key,
+         operators = operators,
+         selectedOperator = selected_operator
+      }
+
+      table.insert(tags, tag)
    end
-
-   local value = realValue
-   if formatters[tag_key] ~= nil then
-      value = formatters[tag_key](value)
-   end
-
-   table.insert(tags, {
-      realValue = realValue,
-      value = value,
-      label = i18n("tags.".. tag_key),
-      key = tag_key,
-      operators = operators,
-      selectedOperator = selected_operator
-   })
 end
 
 return tag_utils

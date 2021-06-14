@@ -233,7 +233,7 @@
                 const realValue = tagData.realValue;
                 const value = tagData.value;
 
-                searchParams.set(key, `${realValue || value},${selectedOperator}`);
+                searchParams.set(key, `${realValue || value}{{ opsep }}${selectedOperator}`);
             }
 
             url.search = searchParams.toString();
@@ -274,7 +274,7 @@
 
                 tagify.replaceTag(existingTagElement, existingTag);
                 // update the datasource params
-                datasourceParams[tag.key] = `${tag.realValue},${existingTag.selectedOperator}`;
+                datasourceParams[tag.key] = `${tag.realValue}{{ opsep }}${existingTag.selectedOperator}`;
                 await onRangePickerChange(true);
 
                 return;
@@ -419,7 +419,7 @@
             const tag = detail.data;
 
             // add/update datasource params, default operator `=`
-            datasourceParams[tag.key] = `${tag.realValue || tag.value},${tag.selectedOperator || 'eq'}`;
+            datasourceParams[tag.key] = `${tag.realValue || tag.value}{{ opsep }}${tag.selectedOperator || 'eq'}`;
             // trigger request
             await onRangePickerChange(true);
         });
@@ -476,7 +476,7 @@
 
             $tag.attr("selectedoperator", selectedOperator);
 
-            datasourceParams[$tag.attr('key')] = `${tagData.realValue || tagData.value},${selectedOperator}`;
+            datasourceParams[$tag.attr('key')] = `${tagData.realValue || tagData.value}{{ opsep }}${selectedOperator}`;
             tagData.selectedOperator = selectedOperator;
 
             // trigger request

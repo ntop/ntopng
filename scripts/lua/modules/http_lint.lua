@@ -804,8 +804,15 @@ end
 
 local function validateFilters(other_validation)
    return function(s)
-      local param = split(s, ",")
+      local param = split(s, ";")
+      if param and #param == 2 then
+	 return (other_validation(param[1]) and
+		    (validateTagsOperator(param[2])))
+      end
 
+      -- Note: comma is deprecated, use ';'
+      -- Checking comma for backward compatibility
+      param = split(s, ",")
       if param and #param == 2 then
 	 return (other_validation(param[1]) and
 		    (validateTagsOperator(param[2])))
@@ -1357,12 +1364,12 @@ local known_parameters = {
    ["network_name"]            = validateFilters(validateNetwork),
    ["network_cidr"]            = validateNetwork,               -- A network expressed with the /
    ["ip"]                      = validateEmptyOr(validateFilters(validateHost)), -- An IPv4 or IPv6 address
-   ["cli_ip"]                  = validateEmptyOr(validateFilters(validateHost)), -- An IPv4 or IPv6 address
-   ["srv_ip"]                  = validateEmptyOr(validateFilters(validateHost)), -- An IPv4 or IPv6 address
-   ["cli_port"]                = validateFilters(validatePort),          --Client port
-   ["srv_port"]                = validateFilters(validatePort),          --Server port
-   ["cli_asn"]                 = validateFilters(validateNumber),
-   ["srv_asn"]                 = validateFilters(validateNumber),
+   ["cli_ip"]                  = validateEmptyOr(validateListOfTypeInline(validateFilters(validateHost))), -- An IPv4 or IPv6 address
+   ["srv_ip"]                  = validateEmptyOr(validateListOfTypeInline(validateFilters(validateHost))), -- An IPv4 or IPv6 address
+   ["cli_port"]                = validateListOfTypeInline(validateFilters(validatePort)),          --Client port
+   ["srv_port"]                = validateListOfTypeInline(validateFilters(validatePort)),          --Server port
+   ["cli_asn"]                 = validateListOfTypeInline(validateFilters(validateNumber)),
+   ["srv_asn"]                 = validateListOfTypeInline(validateFilters(validateNumber)),
    ["tot_pkts"]                = validateFilters(validateNumber),                --Total packtes, used by nindex query
    ["tot_bytes"]               = validateFilters(validateNumber),                --Total bytes, used by nindex query
    ["src2dst_dscp"]            = validateEmptyOr(validateFilters(validateUnquoted)),                               --Client DSCP, used by nindex query
@@ -1390,12 +1397,12 @@ local known_parameters = {
    ["ndpistats_mode"]          = validateNdpiStatsMode,         -- A mode for rest/v1/get/interface/l7/stats.lua
    ["l4_proto_id"]             = validateProtocolIdOrName,      -- get_historical_data.lua
    ["l7_proto_id"]             = validateProtocolIdOrName,      -- get_historical_data.lua
-   ["l4proto"]                 = validateFilters(validateProtocolIdOrName),      -- An nDPI application protocol ID, layer 4
-   ["l7proto"]                 = validateFilters(validateProtocolIdOrName),      -- An nDPI application protocol ID, layer 7
-   ["l7_proto"]                 = validateFilters(validateProtocolIdOrName),      -- An nDPI application protocol ID, layer 7
+   ["l4proto"]                 = validateListOfTypeInline(validateFilters(validateProtocolIdOrName)),      -- An nDPI application protocol ID, layer 4
+   ["l7proto"]                 = validateListOfTypeInline(validateFilters(validateProtocolIdOrName)), -- An nDPI application protocol ID, layer 7
+   ["l7_proto"]                = validateListOfTypeInline(validateFilters(validateProtocolIdOrName)), -- An nDPI application protocol ID, layer 7
    ["filtered_query"]          = validateBool,            -- Parameter used to download nindex flows
-   ["l7cat"]                   = validateFilters(validateCategory),      -- An nDPI category, layer 7
-   ["flow_risk"]               = validateFilters(validateUnquoted),        -- Flow risk   
+   ["l7cat"]                   = validateListOfTypeInline(validateFilters(validateCategory)), -- An nDPI category, layer 7
+   ["flow_risk"]               = validateListOfTypeInline(validateFilters(validateUnquoted)), -- Flow risk   
    ["visible_columns"]         = validateSingleWord,        -- String containing the visible columns used by nindex raw flows   
    ["protocol"]                = validateProtocolIdOrName,      -- An nDPI application protocol ID or name
    ["ndpi"]                    = validateApplicationsList,      -- a list applications
