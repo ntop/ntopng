@@ -153,7 +153,13 @@ $(function () {
 	    {
 		data: 'excluded_host',
 		type: 'ip-address',
-		width: '30%',
+		width: '20%',
+	    },
+	    {
+		data: 'excluded_host_name',
+		sortable: true,
+		searchable: true,
+		width: '20%',
 	    },
 	    {
 		targets: -1,

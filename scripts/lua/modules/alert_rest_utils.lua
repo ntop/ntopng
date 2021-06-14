@@ -121,12 +121,16 @@ function alert_rest_utils.get_alert_exclusions(subdir)
 	 local excluded_hosts = alerts_get_excluded_hosts(script.alert_id)
 
 	 for excluded_host, _ in pairs(excluded_hosts) do
-	    local input_handler = script.gui.input_builder
+	    local excluded_host_info = hostkey2hostinfo(excluded_host)
+	    local excluded_host_name = hostinfo2label(excluded_host_info)
+	    local excluded_host_href =  hostinfo2detailshref(excluded_host_info, {}, excluded_host, excluded_host, true)
+
 	    result[#result + 1] = {
 	       key = script_name,
 	       alert_key = script.alert_id,
 	       title = i18n(script.gui.i18n_title) or script.gui.i18n_title,
-	       excluded_host = excluded_host,
+	       excluded_host = excluded_host_href,
+	       excluded_host_name = excluded_host_name ~= excluded_host and excluded_host_name or '',
 	       category_title = i18n(script.category.i18n_title),
 	       category_icon = script.category.icon,
 	       edit_url = user_scripts.getScriptEditorUrl(script),

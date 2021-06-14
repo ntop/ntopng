@@ -1366,6 +1366,7 @@ local lang = {
     ["delete_all_alert_exclusions_message"] = "Do you really want to delete all configured alert exclusions?",
     ["description"] = "Description",
     ["excluded_host"] = "Excluded Host",
+    ["excluded_host_name"] = "Excluded Host Name",
     ["exclusion_list"] = "Alert Exclusions",
     ["hooks_config"] = "Hooks Configuration",
     ["success_message"] = "The User Script <b>%{script_name}</b> configuration has been saved successfully!",

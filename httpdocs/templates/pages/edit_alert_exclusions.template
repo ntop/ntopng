@@ -13,6 +13,7 @@
               <th>{{ i18n("name", {}) }}</th>
               <th>{{ i18n("category", {}) }}</th>
               <th>{{ i18n("edit_user_script.excluded_host", {}) }}</th>
+              <th>{{ i18n("edit_user_script.excluded_host_name", {}) }}</th>
               <th style="width: 200px">{{ i18n("action", {})}}</th>
             </tr>
           </thead>
