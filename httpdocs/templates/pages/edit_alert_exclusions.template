@@ -24,7 +24,7 @@
       {% if alert_exclusions.has_disabled_alerts(alert_consts.alertEntityById(alert_consts.alertEntity(script_list.script_subdir))) then %}
       <div class="card-footer">
         <button id='btn-delete-all' class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-all-modal">
-          <i class='fas fa-trash'></i> {{ i18n("edit_user_script.delete_all_alert_exclusions", {host = script_list.host or i18n('all')}) }}</button>
+          <i class='fas fa-trash'></i> {{ i18n("edit_user_script.delete_all_alert_exclusions", {host = script_list.host or ''}) }}</button>
       </div>
       {% end %}
     </div>
@@ -35,7 +35,7 @@
 script_list.template_utils.gen("modal_confirm_dialog.html", {
 dialog={
 id = "delete-all-modal",
-message = i18n('edit_user_script.delete_all_alert_exclusions_message', {host = script_list.host or i18n('all')}),
+message = i18n('edit_user_script.delete_all_alert_exclusions_message', {host = script_list.host or ''}),
 title = i18n('edit_user_script.delete_all_alert_exclusions', {host = script_list.host or i18n('all')}),
 confirm = i18n('edit_user_script.delete_all_alert_exclusions', {host = script_list.host or i18n('all')}),
 custom_alert_class = 'alert alert-danger',
