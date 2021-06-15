@@ -255,7 +255,9 @@ function flow_alert_store:add_l7_proto_filter(l7_proto)
       end
       if tonumber(l7_proto) then
          self._l7_proto = tonumber(l7_proto)
-         self._where[#self._where + 1] = string.format("l7_proto = %u", self._l7_proto)
+         self._l7_master_proto = tonumber(l7_proto)
+         self._where[#self._where + 1] = string.format("(l7_proto = %u OR l7_master_proto = %u)",
+            self._l7_proto, self._l7_master_proto)
          return true
       end
    end
@@ -591,7 +593,7 @@ function flow_alert_store:format_record(value, no_html)
    if value["is_srv_attacker"] == "1" then record["srv_role"] = { value = 'attacker', label = i18n("attacker"), tag_label = i18n("has_attacker") } end
 
    record[RNAME.L7_PROTO.name] = {
-      value = value["l7_proto"],
+      value = ternary(tonumber(value["l7_proto"]) ~= 0, value["l7_proto"], value["l7_master_proto"]),
       label = l4_protocol..":"..l7_protocol
    }
 
