@@ -25,12 +25,24 @@ function drop_host_pool_utils.check_pre_banned_hosts_to_add()
       local elem = ntop.lpopCache(queue_name)
 
       if(elem == nil) then
-	 break
+	      break
       else
-	 if(host_pool == nil) then host_pool = host_pools:create() end
-	 -- io.write("Adding "..elem.." to pool ["..pools.DROP_HOST_POOL_NAME.."]\n")
-	 host_pool:add_to_pool(pools.DROP_HOST_POOL_NAME, { elem }, { 0 } )
-	 changed = true
+	      if(host_pool == nil) then 
+            host_pool = host_pools:create() 
+         end
+
+         -- io.write("Adding "..elem.." to pool ["..pools.DROP_HOST_POOL_NAME.."]\n")
+         local blocked_hosts_pool_name = pools.DROP_HOST_POOL_NAME
+         local all_pools = host_pool:get_all_pools()
+         
+         -- Check the existance of the pool   
+         for _, value in pairs(all_pools) do
+            if value["name"] == blocked_hosts_pool_name then
+               local res, err = host_pool:bind_member(elem, value["pool_id"])
+               changed = true
+               break
+            end
+         end	 
       end
    end
 
@@ -38,13 +50,13 @@ function drop_host_pool_utils.check_pre_banned_hosts_to_add()
    -- and push rules to the nProbe listeners
    if(changed) then
       if ntop.isPro() then
-	 package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-	 local policy_utils = require "policy_utils"
-	 
-	 local rsp = policy_utils.get_ips_rules()
-	 if(rsp ~= nil) then
-	    ntop.broadcastIPSMessage(rsp)
-	 end
+         package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+         local policy_utils = require "policy_utils"
+         
+         local rsp = policy_utils.get_ips_rules()
+         if(rsp ~= nil) then
+            ntop.broadcastIPSMessage(rsp)
+         end
       end
    end
 end
@@ -73,7 +85,7 @@ function drop_host_pool_utils.check_periodic_hosts_list()
    -- Check the existance of the pool   
    for _, value in pairs(all_pools) do
       if value["name"] == blocked_hosts_pool_name then
-            blocked_hosts_pool_id = value["id"]
+            blocked_hosts_pool_id = value["pool_id"]
             blocked_hosts_pool_members = value.members
             goto continue
       end

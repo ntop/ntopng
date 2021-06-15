@@ -2039,11 +2039,7 @@ end
 -- ##############################################
 
 function getVlanAlias(vlan_id)
-   local alias = ntop.getVlanAliasKey(vlan_id) or nil
-
-   if not alias then
-      alias = ntop.getHashCache(getVlanAliasKey(), vlan_id)
-   end
+   local alias = ntop.getHashCache(getVlanAliasKey(), vlan_id)
 
    if not isEmptyString(alias) then
       return alias

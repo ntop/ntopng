@@ -70,7 +70,7 @@ void DangerousHost::periodicUpdate(Host *h, HostAlert *engaged_alert) {
 
 	snprintf(host_buf, sizeof(host_buf), "%s/%u@%u",
 		 e,  h->get_ip()->isIPv4() ? 32 : 128, h->get_vlan_id());
-	ntop->getRedis()->lpush(DROP_TMP_ADD_HOST_LIST, e, 0);
+	ntop->getRedis()->lpush(DROP_TMP_ADD_HOST_LIST, host_buf, 0);
 	snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", e, time);
       }
     
