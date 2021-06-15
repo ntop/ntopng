@@ -202,78 +202,59 @@ end
 -- ================================================================================
 
 function printAlerts()
-  print('<form method="post">')
-  print('<table class="table">')
-  print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("show_alerts.alerts")..'</th></tr></thead>')
+   print('<form method="post">')
+   print('<table class="table">')
+   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("show_alerts.alerts")..'</th></tr></thead>')
 
- if ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1" then
-      showElements = true
-  else
+   local elementToSwitch = {
+      "row_toggle_emit_flow_alerts", "row_toggle_emit_host_alerts",
+      "max_entity_alerts",
+      "max_num_secs_before_delete_alert",
+   }
+
+   prefsToggleButton(subpage_active, {
+			field = "disable_alerts_generation",
+			default = "0",
+			to_switch = elementToSwitch,
+			on_value = "0",     -- On  means alerts enabled and thus disable_alerts_generation == 0
+			off_value = "1",    -- Off for enabled alerts implies 1 for disable_alerts_generation
+   })
+
+   if ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1" then
       showElements = false
-  end
+   else
+      showElements = true
+   end
 
- local elementToSwitch = { "dont_emit_flow_alerts", "max_entity_alerts", 
-			   "row_alerts_retention_header", "row_alerts_settings_header", "row_alerts_security_header",
-			   "row_alerts_informative_header",
-			   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert",
-			}
+   prefsToggleButton(subpage_active, {
+			field = "toggle_emit_flow_alerts",
+			default = "1",
+			pref = "emit_flow_alerts",
+			on_value = "1",     -- On  flow alerts are generated
+			off_value = "0",    -- Off NO flow alerts are generated
+			hidden = not showElements,
+   })
 
- if not subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden then
-    elementToSwitch[#elementToSwitch+1] = "row_toggle_mysql_check_open_files_limit"
-  end
+   prefsToggleButton(subpage_active, {
+			field = "toggle_emit_host_alerts",
+			default = "1",
+			pref = "emit_host_alerts",
+			on_value = "1",     -- On  alerts are generated
+			off_value = "0",    -- Off NO alerts are generated
+			hidden = not showElements,
+   })
 
-  prefsToggleButton(subpage_active, {
-    field = "disable_alerts_generation",
-    default = "0",
-    to_switch = elementToSwitch,
-    on_value = "0",     -- On  means alerts enabled and thus disable_alerts_generation == 0
-    off_value = "1",    -- Off for enabled alerts implies 1 for disable_alerts_generation
-  })
+   prefsInputFieldPrefs(subpage_active.entries["max_entity_alerts"].title, subpage_active.entries["max_entity_alerts"].description,
+			"ntopng.prefs.", "max_entity_alerts", prefs.max_entity_alerts, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
 
-  if ntop.getPrefs().are_alerts_enabled == true then
-     showElements = true
-  else
-     showElements = false
-  end
+   prefsInputFieldPrefs(subpage_active.entries["max_num_secs_before_delete_alert"].title, subpage_active.entries["max_num_secs_before_delete_alert"].description,
+			"ntopng.prefs.", "max_num_secs_before_delete_alert", prefs.max_num_secs_before_delete_alert, "number", showElements, false, nil, {min=1, tformat="d"--[[ TODO check min/max ]]})
 
-  prefsToggleButton(subpage_active, {
-    field = "toggle_mysql_check_open_files_limit",
-    default = "1",
-    pref = "alerts.mysql_check_open_files_limit",
-    hidden = not showElements or subpage_active.entries["toggle_mysql_check_open_files_limit"].hidden,
-  })
-
-  print('<thead class="table-primary"><tr id="row_alerts_retention_header" ')
-  if (showElements == false) then print(' style="display:none;"') end
-  print('><th colspan=2 class="info">'..i18n("prefs.alerts_retention")..'</th></tr></thead>')
-
-  prefsToggleButton(subpage_active, {
-    field = "toggle_emit_flow_alerts",
-    default = "1",
-    pref = "emit_flow_alerts",
-    on_value = "1",     -- On  flow alerts are generated
-    off_value = "0",    -- Off NO flow alerts are generated
-  })
-
-  prefsToggleButton(subpage_active, {
-    field = "toggle_emit_host_alerts",
-    default = "1",
-    pref = "emit_host_alerts",
-    on_value = "1",     -- On  alerts are generated
-    off_value = "0",    -- Off NO alerts are generated
-  })
-
-  prefsInputFieldPrefs(subpage_active.entries["max_entity_alerts"].title, subpage_active.entries["max_entity_alerts"].description,
-		       "ntopng.prefs.", "max_entity_alerts", prefs.max_entity_alerts, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
-  
-  prefsInputFieldPrefs(subpage_active.entries["max_num_secs_before_delete_alert"].title, subpage_active.entries["max_num_secs_before_delete_alert"].description,
-        "ntopng.prefs.", "max_num_secs_before_delete_alert", prefs.max_num_secs_before_delete_alert, "number", showElements, false, nil, {min=1, tformat="d"--[[ TODO check min/max ]]})
-
-  print('<tr><th colspan=2 style="text-align:right;">')
-  print('<button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button>')
-  print('</th></tr>')
-  print('</table>')
-  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+   print('<tr><th colspan=2 style="text-align:right;">')
+   print('<button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button>')
+   print('</th></tr>')
+   print('</table>')
+   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
   ]]
 end
