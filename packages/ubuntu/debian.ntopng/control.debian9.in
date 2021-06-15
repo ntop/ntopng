@@ -6,7 +6,7 @@ Standards-Version: @NTOPNG_VERS@
 Build-Depends:
 Build-Conflicts:
 
-Depends: ntopng-data (=@NTOPNG_VERS@), @PFRING_DEP@, libsqlite3-0, libexpat1, redis-server, librrd8, logrotate, libcurl3, libpcap0.8, libldap-2.4-2, libhiredis0.13, libssl1.0.2, libmariadbclient18, lsb-release, tar, ethtool, libcap2, bridge-utils, libnetfilter-conntrack3, libzstd1, libmaxminddb0, libradcli4, libjson-c3, libsnmp30, whiptail, udev @EXTRA_DEPS@
+Depends: ntopng-data (=@NTOPNG_VERS@), @PFRING_DEP@, libsqlite3-0, libexpat1, redis-server, librrd8, logrotate, libcurl3, libpcap0.8, libldap-2.4-2, libhiredis0.13, libssl1.0.2, libmariadbclient18, lsb-release, tar, ethtool, libcap2, bridge-utils, libnetfilter-conntrack3, libzstd1, libmaxminddb0, libradcli4, libjson-c3, libsnmp30, whiptail, libatomic1, udev @EXTRA_DEPS@
 Package: ntopng
 Architecture: @EXTN@
 Recommends:
