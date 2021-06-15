@@ -29,7 +29,6 @@ function _exclude_flow_alert(additional_filters, delete_alerts, subdir)
    end
 
    if success then
-
       if alert_addr then
 	 if alert_addr == "" then
 	    -- Disable for "All", so toggle the user script to OFF

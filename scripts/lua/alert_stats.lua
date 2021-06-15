@@ -259,7 +259,7 @@ local modals = {
             alert_filter = "default_filter",
             confirm = i18n("filter"),
             confirm_button = "btn-warning",
-            custom_alert_class = "alert alert-warning",
+            custom_alert_class = "alert alert-danger",
             entity = page
         }
     }),

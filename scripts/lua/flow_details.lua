@@ -463,7 +463,7 @@ sendHTTPContentTypeHeader('text/html')
 warn_shown = 0
 
 local alert_banners = {}
-local status_icon = "<span class='text-danger'><i class=\"fas fa-exclamation-triangle\"></i></span>"
+local status_icon = "<span class='text-danger'><i class=\"fas fa-lg fa-exclamation-triangle\"></i></span>"
 
 if isAdministrator() then
    if _POST["custom_hosts"] and _POST["l7proto"] then
@@ -1249,105 +1249,8 @@ else
 
    -- ######################################
 
-   if flow["unhandled_flow_risk"] and table.len(flow["unhandled_flow_risk"]) > 0 then
-      local risk = flow["unhandled_flow_risk"]
-
-      print("<tr><th width=30%>"..i18n("flow_details.flow_anomalies").."</th><td colspan=2>")
-
-      for risk_str,risk_id in pairs(risk) do
-	 print(risk_str.."<br>")
-      end
-
-      print("</td></tr>")
-   end
-
-   -- ######################################
-
-   if flow["flow.alerted"] then
-      local message = alert_consts.alertTypeLabel(flow["predominant_alert"])
-
-      message = message .. string.format(" [%s: %d]", i18n("score"), format_utils.formatValue(flow["predominant_alert_score"]))
-
-      print("<tr><th width=30%>"..status_icon.." "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
-      print(message)
-      print("</td></tr>\n")
-   end
-
-   local other_alerts_by_score = {} -- Table used to keep messages ordered by score
-   local num_statuses = 0
-   local first = true
-
-   if flow["alerts_map"] then
-      for _, t in pairsByKeys(alert_consts.alert_types) do
-	 if t.meta and t.meta.alert_key then
-	    local id = t.meta.alert_key
-
-	    if id ~= flow["predominant_alert"] and flow["alerts_map"][id] then
-	       local message = alert_consts.alertTypeLabel(t.meta.alert_key, true)
-	       local alert_score = ntop.getFlowAlertScore(id)
-
-	       if alert_score > 0 then
-		  message = message .. string.format(" [%s: %s]",
-						     i18n("score"),
-						     format_utils.formatValue(alert_score))
-	       end
-
-
-	       if not other_alerts_by_score[alert_score] then
-		  other_alerts_by_score[alert_score] = {}
-	       end
-	       other_alerts_by_score[alert_score][#other_alerts_by_score[alert_score] + 1] = message
-
-	       num_statuses = num_statuses + 1
-	    end
-	 end
-      end
-   end
-
-   -- ######################################
-
-   -- Unhandled flow risk as 'fake' issues with a 'fake' score of zero
-   if flow["unhandled_flow_risk"] and table.len(flow["unhandled_flow_risk"]) > 0 then
-      local unhandled_risk_score = 0
-      local risk = flow["unhandled_flow_risk"]
-
-      for risk_str,risk_id in pairs(risk) do
-	 if not other_alerts_by_score[unhandled_risk_score] then
-	    other_alerts_by_score[unhandled_risk_score] = {}
-	 end
-
-	 local message =  string.format("%s [%s: %s]",
-					risk_str,
-					i18n("score"),
-					i18n("score_not_accounted"))
-
-	 other_alerts_by_score[unhandled_risk_score][#other_alerts_by_score[unhandled_risk_score] + 1] = message
-	 num_statuses = num_statuses + 1
-      end
-   end
-
-   -- ######################################
-
-   -- Print additional flow statuses (ordered by score and then alphabetically)
-   if num_statuses > 0 then
-      for _, messages in pairsByKeys(other_alerts_by_score, rev) do
-	 for _, message in pairsByValues(messages, asc) do
-	    if first then
-	       print("<tr><th width=30%>"..i18n("flow_details.additional_alert_type").."</th><td colspan=2>")
-	       first = false
-	    end
-
-	    print(message.."<br />")
-	 end
-      end
-
-      print("</td></tr>\n")
-   end
-
-   -- ######################################
-
    if(isScoreEnabled() and (flow.score.flow_score > 0)) then
-      print("\n<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td>"..format_utils.formatValue(flow.score.flow_score).."</td>\n")
+      print("\n<tr><th width=30%>"..i18n("flow_details.flow_score").. " / "..i18n("flow_details.flow_score_breakdown").."</th><td>"..format_utils.formatValue(flow.score.flow_score).."</td>\n")
 
       local score_category_network  = flow.score.host_categories_total["0"]
       local score_category_security = flow.score.host_categories_total["1"]
@@ -1360,6 +1263,91 @@ else
       print('</div><div class="progress-bar bg-info" style="width: ' .. score_category_security .. '%;">' .. i18n("flow_details.score_category_security") .. '</div></div></td>\n')
       print("</tr>\n")
    end
+
+   -- ######################################
+
+   local alerts_by_score = {} -- Table used to keep messages ordered by score
+   local num_statuses = 0
+   local first = true
+
+   if flow["alerts_map"] then
+      for _, t in pairsByKeys(alert_consts.alert_types) do
+	 if t.meta and t.meta.alert_key then
+	    local id = t.meta.alert_key
+
+	    if flow["alerts_map"][id] then
+	       local is_predominant = id == flow["predominant_alert"]
+	       local alert_label = alert_consts.alertTypeLabel(t.meta.alert_key, true)
+	       local message = alert_label
+	       local alert_score = ntop.getFlowAlertScore(id)
+
+	       if alert_score > 0 then
+		  message = message .. string.format(" [%s: %s]",
+						     i18n("score"),
+						     format_utils.formatValue(alert_score))
+	       end
+
+	       if not alerts_by_score[alert_score] then
+		  alerts_by_score[alert_score] = {}
+	       end
+	       alerts_by_score[alert_score][#alerts_by_score[alert_score] + 1] = {message = message, is_predominant = is_predominant, alert_id = id, alert_label = alert_label}
+	       num_statuses = num_statuses + 1
+	    end
+	 end
+      end
+   end
+
+   -- ######################################
+
+   -- Unhandled flow risk as 'fake' alerts with a 'fake' score of zero
+   if flow["unhandled_flow_risk"] and table.len(flow["unhandled_flow_risk"]) > 0 then
+      local unhandled_risk_score = 0
+      local risk = flow["unhandled_flow_risk"]
+
+      for risk_str,risk_id in pairs(risk) do
+	 if not alerts_by_score[unhandled_risk_score] then
+	    alerts_by_score[unhandled_risk_score] = {}
+	 end
+
+	 local message =  string.format("%s [%s: %s]",
+					risk_str,
+					i18n("score"),
+					i18n("score_not_accounted"))
+
+	 alerts_by_score[unhandled_risk_score][#alerts_by_score[unhandled_risk_score] + 1] = {message = message, is_predominant = false}
+	 num_statuses = num_statuses + 1
+      end
+   end
+
+   -- ######################################
+
+   -- Print flow alerts (ordered by score and then alphabetically)
+   if num_statuses > 0 then
+      for _, score_alerts in pairsByKeys(alerts_by_score, rev) do
+	 for _, score_alert in pairsByField(score_alerts, "message", asc) do
+	    if first then
+	       print("<tr><th width=30%>"..i18n("flow_details.flow_issues").."</th><td colspan=2>")
+	       first = false
+	    end
+
+	    if score_alert.is_predominant then
+	       print(status_icon.." ")
+	    end
+
+	    print(score_alert.message)
+
+	    if score_alert.alert_id then
+	       print(string.format(' <a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a>', score_alert.alert_id, score_alert.alert_label))
+	    end
+
+	    print("<br />")
+	 end
+      end
+
+      print("</td></tr>\n")
+   end
+
+   -- ######################################
 
    if(flow.entropy and flow.entropy.client and flow.entropy.server) then
       print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Entropy_(information_theory)\" target=\"_blank\">"..i18n("flow_details.entropy").."</A> <i class=\"fas fa-external-link-alt\"></i></th>")
@@ -1595,14 +1583,75 @@ else
    print("</table>\n")
 end
 
+local disable_modal = "pages/modals/modal_alerts_filter_dialog.html"
+local alerts_filter_dialog = template.gen(
+   disable_modal, {
+      dialog = {
+	 id = "alerts_filter_dialog",
+	 title = i18n("show_alerts.filter_alert"),
+	 message	= i18n("show_alerts.confirm_filter_alert"),
+	 delete_message = i18n("show_alerts.confirm_delete_filtered_alerts"),
+	 delete_alerts = i18n("delete_disabled_alerts"),
+	 alert_filter = "default_filter",
+	 confirm = i18n("filter"),
+	 confirm_button = "btn-warning",
+	 custom_alert_class = "alert alert-danger",
+	 entity = page
+      }
+})
+
 print [[
+<div class="modals">
+]] print(alerts_filter_dialog) print[[
+</div>
 <script>
 /*
       $(document).ready(function() {
 	      $('.progress .bar').progressbar({ use_percentage: true, display_text: 1 });
    });
 */
+        $(`a[href='#alerts_filter_dialog']`).click( function (e) {
+            const alert_id = e.target.closest('a').attributes.alert_id.value;
+            const alert_label = e.target.closest('a').attributes.alert_label.value;
+            const alert = {alert_id: alert_id, alert_label: alert_label};
+            $disableAlert.invokeModalInit(alert);
+            $('#alerts_filter_dialog').modal('show');
+        });
 
+        const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
+            method: 'post',
+            csrf: "]] print(ntop.getRandomCSRFValue()) print[[",
+            endpoint: `${http_prefix}/lua/rest/v1/edit/user_script/filter.lua`,
+            beforeSumbit: function (alert) {
+                const data = {
+                    alert_key: alert.alert_id,
+                    subdir: "flow",
+		    script_key: "",
+                    delete_alerts: $(`#delete_alerts_switch`).is(":checked"),
+		    alert_addr: $(`[name='alert_addr']:checked`).val(),
+                };
+
+                return data;
+            },
+            onModalInit: function (alert) {
+                const $type = $(`<span>${alert.alert_label}</span>`);
+                $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
+
+                const cliLabel = "]] print(flowinfo2hostname(flow,"cli")) print[[";
+                const srvLabel = "]] print(flowinfo2hostname(flow,"srv")) print[[";
+
+                $(`#cli_addr`).text(cliLabel);
+                $(`#cli_radio`).val("]] print(flow["cli.ip"]) print[[");
+                $(`#srv_addr`).text(srvLabel);
+                $(`#srv_radio`).val("]] print(flow["srv.ip"]) print[[");
+                $(`#srv_radio`).prop("checked", true),
+		$(`#all_radio`).parent().hide();
+            },
+            onSubmitSuccess: function (response, dataSent) {
+              $('a[alert_id=' +  dataSent.alert_key+']').hide();
+              return (response.rc == 0);
+            }
+        });
 
 var thptChart = $("#thpt_load_chart").peity("line", { width: 64 });
 ]]

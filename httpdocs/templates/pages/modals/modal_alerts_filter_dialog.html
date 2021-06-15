@@ -29,8 +29,6 @@
 	    </div>
 	  </div>
 
-	  <hr class="separator">
-
 	  <div class="message {{dialog.custom_alert_class or "alert alert-danger"}} -1" id="flow_alerts_danger_msg">
             {*dialog.delete_message*}
           </div>
@@ -42,7 +40,7 @@
 	      <label class="custom-control-label" for="delete_alerts_switch">{*dialog.delete_alerts*}</label>
 	    </div>
 	  </div>
-    <div id="script-description" class="alert alert-light border" role="alert">
+    <div id="script-description" class="alert alert-warning border" role="alert">
       {*dialog.message*}
 </div>
 	</div>
