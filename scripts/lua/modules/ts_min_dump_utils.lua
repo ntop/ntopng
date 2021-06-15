@@ -59,38 +59,6 @@ function ts_dump.iface_update_stats_rrds(when, _ifname, ifstats, verbose)
   if(ifstats["localstats"]["bytes"]["remote2local"] > 0) then
     ts_utils.append("iface:remote2local", {ifid=ifstats.id, bytes=ifstats["localstats"]["bytes"]["remote2local"]}, when)
   end
-
-  if ntop.isPro() then
-    -- Score Behaviour
-    ts_utils.append("iface:score_behavior", {ifid=ifstats.id,
-      value=ifstats["score_behavior"]["value"], lower_bound=ifstats["score_behavior"]["lower_bound"], 
-      upper_bound=ifstats["score_behavior"]["upper_bound"]}, when)
-      
-    -- Score Anomalies
-    local anomaly = 0
-    if ifstats["score_behavior"]["anomaly"] == true then
-      anomaly = 1
-    end
-      
-    ts_utils.append("iface:score_anomalies", {ifid=ifstats.id, anomaly=anomaly}, when)   
-
-    -- Traffic Behaviour
-    ts_utils.append("iface:traffic_rx_behavior", {ifid=ifstats.id,
-      value=ifstats["traffic_rx_behavior"]["value"], lower_bound=ifstats["traffic_rx_behavior"]["lower_bound"], 
-      upper_bound=ifstats["traffic_rx_behavior"]["upper_bound"]}, when)
-
-    ts_utils.append("iface:traffic_tx_behavior", {ifid=ifstats.id,
-      value=ifstats["traffic_tx_behavior"]["value"], lower_bound=ifstats["traffic_tx_behavior"]["lower_bound"], 
-      upper_bound=ifstats["traffic_tx_behavior"]["upper_bound"]}, when)
-      
-    -- Traffic Anomalies
-    local anomaly = 0
-    if ifstats["traffic_tx_behavior"]["anomaly"] == true or ifstats["traffic_rx_behavior"]["anomaly"] == true then
-      anomaly = 1
-    end
-      
-    ts_utils.append("iface:traffic_anomalies", {ifid=ifstats.id, anomaly=anomaly}, when)   
-  end
 end
 
 -- ########################################################
@@ -140,48 +108,6 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
     ts_utils.append("subnet:engaged_alerts",
         {ifid=ifstats.id, subnet=subnet,
         alerts=sstats["engaged_alerts"]}, when)
-
-    if ntop.isPro() then
-      -- Score Behaviour
-      ts_utils.append("subnet:score_behavior", 
-      {ifid=ifstats.id, subnet=subnet,
-      value=sstats["score_behavior"]["value"], 
-      lower_bound=sstats["score_behavior"]["lower_bound"], 
-      upper_bound = sstats["score_behavior"]["upper_bound"]}, when)
-        
-      -- Score Anomalies
-      local anomaly = 0
-      if sstats["score_behavior"]["anomaly"] == true then
-        anomaly = 1
-      end
-        
-      ts_utils.append("subnet:score_anomalies", 
-      {ifid=ifstats.id, subnet=subnet, 
-      anomaly=anomaly}, when)   
-
-      -- Traffic Behaviour
-      ts_utils.append("subnet:traffic_rx_behavior", 
-      {ifid=ifstats.id, subnet=subnet,
-      value=sstats["traffic_rx_behavior"]["value"], 
-      lower_bound = sstats["traffic_rx_behavior"]["lower_bound"], 
-      upper_bound = sstats["traffic_rx_behavior"]["upper_bound"]}, when)
-
-      ts_utils.append("subnet:traffic_tx_behavior", 
-      {ifid=ifstats.id, subnet=subnet,
-      value=sstats["traffic_tx_behavior"]["value"], 
-      lower_bound=sstats["traffic_tx_behavior"]["lower_bound"], 
-      upper_bound = sstats["traffic_tx_behavior"]["upper_bound"]}, when)
-        
-      -- Traffic Anomalies
-      local anomaly = 0
-      if sstats["traffic_tx_behavior"]["anomaly"] == true or sstats["traffic_rx_behavior"]["anomaly"] == true then
-        anomaly = 1
-      end
-        
-      ts_utils.append("subnet:traffic_anomalies", 
-      {ifid=ifstats.id, subnet=subnet, 
-      anomaly=anomaly}, when)
-    end
   end
 end
 

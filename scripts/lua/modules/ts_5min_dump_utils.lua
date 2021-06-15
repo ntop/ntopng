@@ -55,6 +55,94 @@ end
 
 -- ########################################################
 
+function ts_dump.subnet_update_rrds(when, ifstats, verbose)
+  local subnet_stats = interface.getNetworksStats()
+  tprint(subnet_stats)
+
+  for subnet,sstats in pairs(subnet_stats) do
+    if ntop.isPro() then
+      -- Score Behaviour
+      ts_utils.append("subnet:score_behavior", 
+      {ifid=ifstats.id, subnet=subnet,
+      value=sstats["score_behavior"]["value"], 
+      lower_bound=sstats["score_behavior"]["lower_bound"], 
+      upper_bound = sstats["score_behavior"]["upper_bound"]}, when)
+        
+      -- Score Anomalies
+      local anomaly = 0
+      if sstats["score_behavior"]["anomaly"] == true then
+        anomaly = 1
+      end
+        
+      ts_utils.append("subnet:score_anomalies", 
+      {ifid=ifstats.id, subnet=subnet, 
+      anomaly=anomaly}, when)   
+
+      -- Traffic Behaviour
+      ts_utils.append("subnet:traffic_rx_behavior", 
+      {ifid=ifstats.id, subnet=subnet,
+      value=sstats["traffic_rx_behavior"]["value"], 
+      lower_bound = sstats["traffic_rx_behavior"]["lower_bound"], 
+      upper_bound = sstats["traffic_rx_behavior"]["upper_bound"]}, when)
+
+      ts_utils.append("subnet:traffic_tx_behavior", 
+      {ifid=ifstats.id, subnet=subnet,
+      value=sstats["traffic_tx_behavior"]["value"], 
+      lower_bound=sstats["traffic_tx_behavior"]["lower_bound"], 
+      upper_bound = sstats["traffic_tx_behavior"]["upper_bound"]}, when)
+        
+      -- Traffic Anomalies
+      local anomaly = 0
+      if sstats["traffic_tx_behavior"]["anomaly"] == true or sstats["traffic_rx_behavior"]["anomaly"] == true then
+        anomaly = 1
+      end
+        
+      ts_utils.append("subnet:traffic_anomalies", 
+      {ifid=ifstats.id, subnet=subnet, 
+      anomaly=anomaly}, when)
+    end
+  end
+end
+
+-- ########################################################
+
+function ts_dump.iface_update_stats_rrds(when, ifstats, verbose)
+  tprint(ifstats)
+  if ntop.isPro() then
+    -- Score Behaviour
+    ts_utils.append("iface:score_behavior", {ifid=ifstats.id,
+      value=ifstats["score_behavior"]["value"], lower_bound=ifstats["score_behavior"]["lower_bound"], 
+      upper_bound=ifstats["score_behavior"]["upper_bound"]}, when)
+      
+    -- Score Anomalies
+    local anomaly = 0
+    if ifstats["score_behavior"]["anomaly"] == true then
+      anomaly = 1
+    end
+      
+    ts_utils.append("iface:score_anomalies", {ifid=ifstats.id, anomaly=anomaly}, when)   
+
+    -- Traffic Behaviour
+    ts_utils.append("iface:traffic_rx_behavior", {ifid=ifstats.id,
+      value=ifstats["traffic_rx_behavior"]["value"], lower_bound=ifstats["traffic_rx_behavior"]["lower_bound"], 
+      upper_bound=ifstats["traffic_rx_behavior"]["upper_bound"]}, when)
+
+    ts_utils.append("iface:traffic_tx_behavior", {ifid=ifstats.id,
+      value=ifstats["traffic_tx_behavior"]["value"], lower_bound=ifstats["traffic_tx_behavior"]["lower_bound"], 
+      upper_bound=ifstats["traffic_tx_behavior"]["upper_bound"]}, when)
+      
+    -- Traffic Anomalies
+    local anomaly = 0
+    if ifstats["traffic_tx_behavior"]["anomaly"] == true or ifstats["traffic_rx_behavior"]["anomaly"] == true then
+      anomaly = 1
+    end
+      
+    ts_utils.append("iface:traffic_anomalies", {ifid=ifstats.id, anomaly=anomaly}, when)   
+  end
+end
+
+-- ########################################################
+
 function ts_dump.asn_update_rrds(when, ifstats, verbose)
   local asn_info = interface.getASesInfo({detailsLevel = "higher"})
 
@@ -702,6 +790,12 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
   if config.asn_rrd_creation == "1" then
     ts_dump.asn_update_rrds(when, ifstats, verbose)
   end
+
+  -- Update 5min Network stats
+  ts_dump.subnet_update_rrds(when, ifstats, verbose)
+
+  -- Update 5min Network stats
+  ts_dump.iface_update_stats_rrds(when, ifstats, verbose)
 
   -- create RRD for Countries
   if config.country_rrd_creation == "1" then

@@ -159,47 +159,6 @@ schema:addMetric("packets_rcvd")
 
 -- ##############################################
 
-if ntop.isPro() then
-    schema = ts_utils.newSchema("asn:traffic_anomalies", {step=300, metrics_type=ts_utils.metrics.gauge})
-    schema:addTag("ifid")
-    schema:addTag("asn")
-    schema:addMetric("anomaly")
-
-    -- ##############################################
-
-    schema = ts_utils.newSchema("asn:traffic_tx_behavior", {step=300})
-    schema:addTag("ifid")
-    schema:addTag("asn")
-    schema:addMetric("value")
-    schema:addMetric("lower_bound")
-    schema:addMetric("upper_bound")
-
-    -- ##############################################
-
-    schema = ts_utils.newSchema("asn:traffic_rx_behavior", {step=300})
-    schema:addTag("ifid")
-    schema:addTag("asn")
-    schema:addMetric("value")
-    schema:addMetric("lower_bound")
-    schema:addMetric("upper_bound")
-
-    -- ##############################################
-
-    schema = ts_utils.newSchema("asn:score_anomalies", {step=300, metrics_type=ts_utils.metrics.gauge})
-    schema:addTag("ifid")
-    schema:addTag("asn")
-    schema:addMetric("anomaly")
-
-    -- ##############################################
-
-    schema = ts_utils.newSchema("asn:score_behavior", {step=300, metrics_type=ts_utils.metrics.gauge})
-    schema:addTag("ifid")
-    schema:addTag("asn")
-    schema:addMetric("value")
-    schema:addMetric("lower_bound")
-    schema:addMetric("upper_bound")
-end
-
 -------------------------------------------------------
 -- COUNTRIES SCHEMAS
 -------------------------------------------------------
@@ -625,3 +584,134 @@ schema:addTag("ifid")
 
 schema = ts_utils.newSchema("local_receivers", {step=300, is_system_schema = true})
 schema:addTag("ifid")
+
+-------------------------------------------------------
+-- PRO VERSION SCHEMAS
+-------------------------------------------------------
+
+-- ##############################################
+
+if ntop.isPro() then
+    -------------------------------------------------------
+    -- ASN SCHEMAS
+    -------------------------------------------------------
+    
+    schema = ts_utils.newSchema("asn:traffic_anomalies", {step=300, metrics_type=ts_utils.metrics.gauge})
+    schema:addTag("ifid")
+    schema:addTag("asn")
+    schema:addMetric("anomaly")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("asn:traffic_tx_behavior", {step=300})
+    schema:addTag("ifid")
+    schema:addTag("asn")
+    schema:addMetric("value")
+    schema:addMetric("lower_bound")
+    schema:addMetric("upper_bound")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("asn:traffic_rx_behavior", {step=300})
+    schema:addTag("ifid")
+    schema:addTag("asn")
+    schema:addMetric("value")
+    schema:addMetric("lower_bound")
+    schema:addMetric("upper_bound")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("asn:score_anomalies", {step=300, metrics_type=ts_utils.metrics.gauge})
+    schema:addTag("ifid")
+    schema:addTag("asn")
+    schema:addMetric("anomaly")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("asn:score_behavior", {step=300, metrics_type=ts_utils.metrics.gauge})
+    schema:addTag("ifid")
+    schema:addTag("asn")
+    schema:addMetric("value")
+    schema:addMetric("lower_bound")
+    schema:addMetric("upper_bound")
+
+    -------------------------------------------------------
+    -- INTERFACE SCHEMAS
+    -------------------------------------------------------
+    schema = ts_utils.newSchema("iface:traffic_anomalies", {step=60, metrics_type=ts_utils.metrics.gauge})
+    schema:addTag("ifid")
+    schema:addMetric("anomaly")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("iface:traffic_tx_behavior", {step=60})
+    schema:addTag("ifid")
+    schema:addMetric("value")
+    schema:addMetric("lower_bound")
+    schema:addMetric("upper_bound")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("iface:traffic_rx_behavior", {step=60})
+    schema:addTag("ifid")
+    schema:addMetric("value")
+    schema:addMetric("lower_bound")
+    schema:addMetric("upper_bound")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("iface:score_anomalies", {step=60, metrics_type=ts_utils.metrics.gauge})
+    schema:addTag("ifid")
+    schema:addMetric("anomaly")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("iface:score_behavior", {step=60, metrics_type=ts_utils.metrics.gauge})
+    schema:addTag("ifid")
+    schema:addMetric("value")
+    schema:addMetric("lower_bound")
+    schema:addMetric("upper_bound")
+
+    -------------------------------------------------------
+    -- SUBNET SCHEMAS
+    -------------------------------------------------------
+
+    schema = ts_utils.newSchema("subnet:traffic_anomalies", {step=60, metrics_type=ts_utils.metrics.gauge})
+    schema:addTag("ifid")
+    schema:addTag("subnet")
+    schema:addMetric("anomaly")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("subnet:traffic_tx_behavior", {step=60})
+    schema:addTag("ifid")
+    schema:addTag("subnet")
+    schema:addMetric("value")
+    schema:addMetric("lower_bound")
+    schema:addMetric("upper_bound")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("subnet:traffic_rx_behavior", {step=60})
+    schema:addTag("ifid")
+    schema:addTag("subnet")
+    schema:addMetric("value")
+    schema:addMetric("lower_bound")
+    schema:addMetric("upper_bound")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("subnet:score_anomalies", {step=60, metrics_type=ts_utils.metrics.gauge})
+    schema:addTag("ifid")
+    schema:addTag("subnet")
+    schema:addMetric("anomaly")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("subnet:score_behavior", {step=60, metrics_type=ts_utils.metrics.gauge})
+    schema:addTag("ifid")
+    schema:addTag("subnet")
+    schema:addMetric("value")
+    schema:addMetric("lower_bound")
+    schema:addMetric("upper_bound")
+end
