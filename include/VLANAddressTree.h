@@ -24,6 +24,21 @@
 
 class AddressTree;
 
+/*
+typedef struct {
+  // u_int32_t vlan_id:12, observation_domain_id:20;
+} VLANid; 
+*/
+
+/* 
+   vlan_id:               lower 12 bits
+   observation_domain_id: upper 20 bits
+ */
+typedef u_int32_t VLANid;
+
+inline u_int16_t filterVLANid(VLANid id)              { return((u_int16_t)(id & 0xFFF)); }
+inline u_int32_t filterObservationDomainId(VLANid id) { return((id >> 12) & 0xFFFFF);    }
+
 class VLANAddressTree {
  protected:
   AddressTree **tree;
@@ -32,13 +47,13 @@ class VLANAddressTree {
   VLANAddressTree();
   ~VLANAddressTree();
 
-  bool addAddress(u_int16_t vlan_id, char *_net, const int16_t user_data = -1);
-  bool addAddresses(u_int16_t vlan_id, char *net, const int16_t user_data = -1);
+  bool addAddress(VLANid vlan_id, char *_net, const int16_t user_data = -1);
+  bool addAddresses(VLANid vlan_id, char *net, const int16_t user_data = -1);
 
-  int16_t findAddress(u_int16_t vlan_id, int family, void *addr, u_int8_t *network_mask_bits = NULL);
-  int16_t findMac(u_int16_t vlan_id, const u_int8_t addr[]);
+  int16_t findAddress(VLANid vlan_id, int family, void *addr, u_int8_t *network_mask_bits = NULL);
+  int16_t findMac(VLANid vlan_id, const u_int8_t addr[]);
 
-  inline AddressTree *getAddressTree(u_int16_t vlan_id) { return tree[vlan_id]; };
+  inline AddressTree *getAddressTree(VLANid vlan_id) { return tree[vlan_id]; };
 };
 
 #endif

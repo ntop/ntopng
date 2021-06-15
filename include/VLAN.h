@@ -26,7 +26,7 @@
 
 class VLAN : public GenericHashEntry, public GenericTrafficElement, public SerializableElement, public Score {
  private:
-  u_int16_t vlan_id;
+  VLANid vlan_id;
   
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
     if(first_seen == 0) first_seen = t;
@@ -39,16 +39,16 @@ class VLAN : public GenericHashEntry, public GenericTrafficElement, public Seria
   }
 
  public:
-  VLAN(NetworkInterface *_iface, u_int16_t _vlan_id);
+  VLAN(NetworkInterface *_iface, VLANid _vlan_id);
   ~VLAN();
 
   void set_hash_entry_state_idle();
 
   inline u_int16_t getNumHosts()               { return getUses();            }
   inline u_int32_t key()                       { return(vlan_id);             }
-  inline u_int16_t get_vlan_id()               { return(vlan_id);             }
+  inline VLANid    get_vlan_id()               { return(vlan_id);             }
 
-  bool equal(u_int16_t _vlan_id);
+  bool equal(VLANid _vlan_id);
 
   inline void incStats(time_t when, u_int16_t proto_id,
 		       u_int64_t sent_packets, u_int64_t sent_bytes,

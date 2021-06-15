@@ -33,7 +33,7 @@ const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
 /* *************************************** */
 
 Flow::Flow(NetworkInterface *_iface,
-	   u_int16_t _vlanId, u_int8_t _protocol,
+	   VLANid _vlanId, u_int8_t _protocol,
 	   Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   const ICMPinfo * const _icmp_info,
@@ -1874,7 +1874,7 @@ void Flow::update_pools_stats(NetworkInterface *iface,
 
 bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 		 u_int16_t _cli_port, u_int16_t _srv_port,
-		 u_int16_t _vlanId, u_int8_t _protocol,
+		 VLANid _vlanId, u_int8_t _protocol,
 		 const ICMPinfo * const _icmp_info,
 		 bool *src2srv_direction) const {
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
@@ -2021,7 +2021,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_get_info(vm, false /* Server */);
 
     if(vrfId) lua_push_uint64_table_entry(vm, "vrfId", vrfId);
-    lua_push_uint64_table_entry(vm, "vlan", get_vlan_id());
+
+    lua_push_uint32_table_entry(vm, "vlan", filterVLANid(get_vlan_id()));
+    lua_push_uint32_table_entry(vm, "observation_domain_id", filterObservationDomainId(get_vlan_id()));
 
     if(srcAS)
       lua_push_int32_table_entry(vm, "src_as", srcAS);
@@ -2327,7 +2329,7 @@ u_int32_t Flow::key() {
 
 u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 		    Host *_srv, u_int16_t _srv_port,
-		    u_int16_t _vlan_id,
+		    VLANid _vlan_id,
 		    u_int16_t _protocol) {
   u_int32_t k = _cli_port + _srv_port + _vlan_id + _protocol;
 
@@ -2798,7 +2800,9 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   // flows don't have any pool for now
   ndpi_serialize_string_int32(s, "pool_id", NO_HOST_POOL_ID);
 
-  ndpi_serialize_string_int32(s, "vlan_id", get_vlan_id());
+  ndpi_serialize_string_int32(s, "vlan_id", filterVLANid(get_vlan_id()));
+  ndpi_serialize_string_int32(s, "observation_domain_id", filterObservationDomainId(get_vlan_id()));
+  
   ndpi_serialize_string_int32(s, "proto", get_protocol());
 
   if(hasRisks())

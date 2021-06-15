@@ -356,7 +356,8 @@ void HostPools::reloadPools() {
   char kname[CONST_MAX_LEN_REDIS_KEY];
   char **pools, **pool_members, *at, *member;
   int num_pools, num_members, actual_num_members;
-  u_int16_t _pool_id, vlan_id;
+  u_int16_t _pool_id;
+  VLANid vlan_id;
   VLANAddressTree *new_tree;
   HostPoolStats **new_stats;
   Redis *redis = ntop->getRedis();
@@ -535,7 +536,8 @@ bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
 
 /* *************************************** */
 
-bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, ndpi_patricia_node_t **found_node) {
+bool HostPools::findIpPool(IpAddress *ip, VLANid vlan_id,
+			   u_int16_t *found_pool, ndpi_patricia_node_t **found_node) {
   VLANAddressTree *cur_tree; /* must use this as tree can be swapped */
 #ifdef HOST_POOLS_DEBUG
   char buf[128];

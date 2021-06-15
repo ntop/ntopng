@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-VLAN::VLAN(NetworkInterface *_iface, u_int16_t _vlan_id) : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface) {
+VLAN::VLAN(NetworkInterface *_iface, VLANid _vlan_id) : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface) {
   vlan_id = _vlan_id;
 
 #ifdef VLAN_DEBUG
@@ -80,6 +80,6 @@ void VLAN::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
 
 /* *************************************** */
 
-bool VLAN::equal(u_int16_t _vlan_id) {
+bool VLAN::equal(VLANid _vlan_id) {
   return(vlan_id == _vlan_id);
 }

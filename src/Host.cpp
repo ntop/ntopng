@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : GenericHashEntry(_iface),
+Host::Host(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId) : GenericHashEntry(_iface),
 									   HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostCallbacksStatus() {
   ip.set(ipAddress);
   initialize(NULL, _vlanId);
@@ -32,7 +32,7 @@ Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : Gener
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, Mac *_mac,
-	   u_int16_t _vlanId, IpAddress *_ip) : GenericHashEntry(_iface), HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostCallbacksStatus() {
+	   VLANid _vlanId, IpAddress *_ip) : GenericHashEntry(_iface), HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostCallbacksStatus() {
   ip.set(_ip);
 
 #ifdef BROADCAST_DEBUG
@@ -169,7 +169,7 @@ void Host::housekeep(time_t t) {
 
 /* *************************************** */
 
-void Host::initialize(Mac *_mac, u_int16_t _vlanId) {
+void Host::initialize(Mac *_mac, VLANid _vlanId) {
   char buf[64];
 
   stats = NULL; /* it will be instantiated by specialized classes */
@@ -391,7 +391,8 @@ void Host::lua_get_ip(lua_State *vm) const {
   char ip_buf[64];
 
   lua_push_str_table_entry(vm, "ip", ip.print(ip_buf, sizeof(ip_buf)));
-  lua_push_uint64_table_entry(vm, "vlan", get_vlan_id());
+  lua_push_uint32_table_entry(vm, "vlan", filterVLANid(get_vlan_id()));
+  lua_push_uint32_table_entry(vm, "observation_domain_id", filterObservationDomainId(get_vlan_id()));
 }
 
 /* ***************************************************** */
@@ -665,7 +666,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "ip", (ipaddr = printMask(ip_buf, sizeof(ip_buf))));
-  lua_push_uint64_table_entry(vm, "vlan", vlan_id);
+  lua_push_uint32_table_entry(vm, "vlan", filterVLANid(get_vlan_id()));
+  lua_push_uint32_table_entry(vm, "observation_domain_id", filterObservationDomainId(get_vlan_id()));
+
   lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
 
   lua_push_uint64_table_entry(vm, "ipkey", ip.key());
@@ -1228,7 +1231,7 @@ void Host::luaUsedQuotas(lua_State* vm) {
 /* *************************************** */
 
 /* Splits a string in the format hostip@vlanid: *buf=hostip, *vlan_id=vlanid */
-void Host::splitHostVLAN(const char *at_sign_str, char*buf, int bufsize, u_int16_t *vlan_id) {
+void Host::splitHostVLAN(const char *at_sign_str, char*buf, int bufsize, VLANid *vlan_id) {
   int size;
   const char *vlan_ptr = strchr(at_sign_str, '@');
 

@@ -30,7 +30,7 @@ class FlowHash : public GenericHash {
 
   Flow* find(IpAddress *src_ip, IpAddress *dst_ip,
 	     u_int16_t src_port, u_int16_t dst_port,
-	     u_int16_t vlanId, u_int8_t protocol,
+	     VLANid vlanId, u_int8_t protocol,
 	     const ICMPinfo * const icmp_info,
 	     bool *src2dst_direction,
 	     bool is_inline_call);

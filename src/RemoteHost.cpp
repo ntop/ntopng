@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-RemoteHost::RemoteHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip) : Host(_iface, _mac, _vlanId, _ip) {
+RemoteHost::RemoteHost(NetworkInterface *_iface, Mac *_mac, VLANid _vlanId, IpAddress *_ip) : Host(_iface, _mac, _vlanId, _ip) {
 #ifdef REMOTEHOST_DEBUG
   char buf[48];
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Instantiating REMOTE host %s", _ip ? _ip->print(buf, sizeof(buf)) : "");
@@ -33,7 +33,7 @@ RemoteHost::RemoteHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, I
 
 /* *************************************** */
 
-RemoteHost::RemoteHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : Host(_iface, ipAddress, _vlanId) {
+RemoteHost::RemoteHost(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId) : Host(_iface, ipAddress, _vlanId) {
   initialize();
 }
 

@@ -38,7 +38,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   } fingerprints;
   
   bool stats_reset_requested, name_reset_requested, data_delete_requested;
-  u_int16_t vlan_id, host_pool_id, host_services_bitmap;
+  u_int16_t host_pool_id, host_services_bitmap;
+  VLANid vlan_id;
   u_int8_t num_remote_access;
   HostStats *stats, *stats_shadow;
   time_t last_stats_reset;
@@ -98,7 +99,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   Bitmap128 disabled_flow_alerts;
   time_t disabled_alerts_tstamp;
 
-  void initialize(Mac *_mac, u_int16_t _vlan_id);
+  void initialize(Mac *_mac, VLANid _vlan_id);
   void inlineSetOS(OSType _os);
   bool statsResetRequested();
   void checkStatsReset();
@@ -115,8 +116,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize);
   
  public:
-  Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
-  Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
+  Host(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId);
+  Host(NetworkInterface *_iface, Mac *_mac, VLANid _vlanId, IpAddress *_ip);
 
   virtual ~Host();
 
@@ -182,7 +183,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client);
 
   inline u_int16_t get_host_pool()    const { return(host_pool_id);   };
-  inline u_int16_t get_vlan_id()      const { return(vlan_id);        };
+  inline VLANid get_vlan_id()      const { return(vlan_id);        };
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
 
   inline void incSentTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
@@ -384,7 +385,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t getTotalNumUnreachableIncomingFlows() const { return stats->getTotalUnreachableNumFlowsAsServer(); };
   inline u_int32_t getTotalNumHostUnreachableOutgoingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsClient(); };
   inline u_int32_t getTotalNumHostUnreachableIncomingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsServer(); };
-  void splitHostVLAN(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
+  void splitHostVLAN(const char *at_sign_str, char *buf, int bufsize, VLANid *vlan_id);
   char* get_country(char *buf, u_int buf_len);
   char* get_city(char *buf, u_int buf_len);
   void get_geocoordinates(float *latitude, float *longitude);

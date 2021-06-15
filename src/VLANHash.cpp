@@ -30,7 +30,7 @@ VLANHash::VLANHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_
 
 /* ************************************ */
 
-VLAN* VLANHash::get(u_int16_t _vlan_id, bool is_inline_call) {
+VLAN* VLANHash::get(VLANid _vlan_id, bool is_inline_call) {
   u_int32_t hash = _vlan_id;
 
   hash %= num_hashes;

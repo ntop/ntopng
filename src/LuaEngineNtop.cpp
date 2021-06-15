@@ -57,8 +57,8 @@ int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type) 
 /* ****************************************** */
 
 void get_host_vlan_info(char* lua_ip, char** host_ip,
-			       u_int16_t* vlan_id,
-			       char *buf, u_int buf_len) {
+			VLANid* vlan_id,
+			char *buf, u_int buf_len) {
   char *where, *vlan = NULL;
 
   snprintf(buf, buf_len, "%s", lua_ip);
@@ -3177,7 +3177,7 @@ static int ntop_is_allowed_interface(lua_State* vm) {
 
 static int ntop_is_allowed_network(lua_State* vm) {
   bool rv = false;
-  u_int16_t vlan_id = 0;
+  VLANid vlan_id = 0;
   char *host, buf[64];
   AddressTree *allowed_nets = get_allowed_nets(vm);
 
@@ -3215,7 +3215,7 @@ static int ntop_is_local_interface_address(lua_State* vm) {
 static int ntop_get_resolved_address(lua_State* vm) {
   char *key, *tmp,rsp[256],value[64];
   Redis *redis = ntop->getRedis();
-  u_int16_t vlan_id = 0;
+  VLANid vlan_id = 0;
   char buf[64];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -4415,7 +4415,7 @@ static void ntop_reset_host_name(lua_State* vm, char *address) {
   NetworkInterface *iface;
   char buf[64], *host_ip;
   Host *host;
-  u_int16_t vlan_id;
+  VLANid vlan_id;
 
   get_host_vlan_info(address, &host_ip, &vlan_id, buf, sizeof(buf));
 

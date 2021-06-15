@@ -27,11 +27,11 @@
 class DoHDoTStats {
 private:
   IpAddress ip;
-  u_int16_t vlan_id;
+  VLANid vlan_id;
   u_int32_t num_uses;
   
 public:
-  DoHDoTStats(IpAddress i, u_int16_t id) { ip = i, vlan_id = id, num_uses = 0; }
+  DoHDoTStats(IpAddress i, VLANid id) { ip = i, vlan_id = id, num_uses = 0; }
 
   inline void incUses() { num_uses++; }
 
@@ -68,8 +68,8 @@ class LocalHost : public Host, public SerializableElement {
   void luaDoHDot(lua_State *vm);
   
  public:
-  LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
-  LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
+  LocalHost(NetworkInterface *_iface, Mac *_mac, VLANid _vlanId, IpAddress *_ip);
+  LocalHost(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId);
   virtual ~LocalHost();
 
   virtual void set_hash_entry_state_idle();

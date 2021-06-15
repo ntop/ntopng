@@ -415,7 +415,7 @@ void ViewInterface::sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 
 /* **************************************************** */
 
-Flow* ViewInterface::findFlowByTuple(u_int16_t vlan_id,
+Flow* ViewInterface::findFlowByTuple(VLANid vlan_id,
 				     IpAddress *src_ip,  IpAddress *dst_ip,
 				     u_int16_t src_port, u_int16_t dst_port,
 				     u_int8_t l4_proto,

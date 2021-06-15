@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-LocalHost::LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId,
+LocalHost::LocalHost(NetworkInterface *_iface, Mac *_mac, VLANid _vlanId,
 		     IpAddress *_ip) : Host(_iface, _mac, _vlanId, _ip) {
 #ifdef LOCALHOST_DEBUG
   char buf[48];
@@ -37,7 +37,7 @@ LocalHost::LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId,
 /* *************************************** */
 
 LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress,
-		     u_int16_t _vlanId) : Host(_iface, ipAddress, _vlanId) {
+		     VLANid _vlanId) : Host(_iface, ipAddress, _vlanId) {
   initialize();
 }
 

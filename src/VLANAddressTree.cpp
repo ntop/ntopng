@@ -40,7 +40,7 @@ VLANAddressTree::~VLANAddressTree() {
 
 /* **************************************** */
 
-bool VLANAddressTree::addAddress(u_int16_t vlan_id, char *_net, const int16_t user_data) {
+bool VLANAddressTree::addAddress(VLANid vlan_id, char *_net, const int16_t user_data) {
   if(tree[vlan_id] || (tree[vlan_id] = new (std::nothrow) AddressTree()))
     return tree[vlan_id]->addAddress(_net, user_data);
 
@@ -49,7 +49,7 @@ bool VLANAddressTree::addAddress(u_int16_t vlan_id, char *_net, const int16_t us
 
 /* **************************************** */
 
-bool VLANAddressTree::addAddresses(u_int16_t vlan_id, char *net, const int16_t user_data) {
+bool VLANAddressTree::addAddresses(VLANid vlan_id, char *net, const int16_t user_data) {
   if(tree[vlan_id] || (tree[vlan_id] = new (std::nothrow) AddressTree()))
     return tree[vlan_id]->addAddresses(net, user_data);
 
@@ -58,14 +58,14 @@ bool VLANAddressTree::addAddresses(u_int16_t vlan_id, char *net, const int16_t u
 
 /* **************************************** */
 
-int16_t VLANAddressTree::findAddress(u_int16_t vlan_id, int family, void *addr, u_int8_t *network_mask_bits) {
+int16_t VLANAddressTree::findAddress(VLANid vlan_id, int family, void *addr, u_int8_t *network_mask_bits) {
   if(! tree[vlan_id]) return -1;
   return tree[vlan_id]->findAddress(family, addr, network_mask_bits);
 }
 
 /* **************************************** */
 
-int16_t VLANAddressTree::findMac(u_int16_t vlan_id, const u_int8_t addr[]) {
+int16_t VLANAddressTree::findMac(VLANid vlan_id, const u_int8_t addr[]) {
   if(! tree[vlan_id]) return -1;
   return tree[vlan_id]->findMac(addr);
 }

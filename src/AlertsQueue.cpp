@@ -53,7 +53,7 @@ void AlertsQueue::pushAlertJson(ndpi_serializer *alert, const char *atype, const
 /* **************************************************** */
 
 void AlertsQueue::pushOutsideDhcpRangeAlert(u_int8_t *cli_mac, Mac *sender_mac,
-					    u_int32_t ip, u_int32_t router_ip, int vlan_id) {
+					    u_int32_t ip, u_int32_t router_ip, VLANid vlan_id) {
   ndpi_serializer *tlv;
   char name[64];
 
@@ -128,7 +128,7 @@ void AlertsQueue::pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_m
 /* **************************************************** */
 
 void AlertsQueue::pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac, const u_int8_t *dst_mac,
-						   u_int32_t spa, u_int32_t tpa, int vlan_id) {
+						   u_int32_t spa, u_int32_t tpa, VLANid vlan_id) {
   ndpi_serializer *tlv;
 
   if(ntop->getPrefs()->are_alerts_disabled())

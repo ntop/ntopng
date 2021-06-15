@@ -41,7 +41,8 @@ class Flow : public GenericHashEntry {
   IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
   u_int8_t cli2srv_tos, srv2cli_tos; /* RFC 2474, 3168 */
-  u_int16_t cli_port, srv_port, vlanId;
+  u_int16_t cli_port, srv_port;
+  VLANid vlanId;
   u_int32_t vrfId;
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
@@ -279,7 +280,7 @@ class Flow : public GenericHashEntry {
 
  public:
   Flow(NetworkInterface *_iface,
-       u_int16_t _vlanId, u_int8_t _protocol,
+       VLANid _vlanId, u_int8_t _protocol,
        Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
        Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
        const ICMPinfo * const icmp_info,
@@ -471,7 +472,7 @@ class Flow : public GenericHashEntry {
   inline const struct ndpi_in6_addr* get_srv_ipv6() const { return(srv_host->get_ip()->get_ipv6());  };
   inline u_int16_t get_cli_port()        const { return(ntohs(cli_port));                 };
   inline u_int16_t get_srv_port()        const { return(ntohs(srv_port));                 };
-  inline u_int16_t get_vlan_id()         const { return(vlanId);                          };
+  inline VLANid    get_vlan_id()         const { return(vlanId);                          };
   inline u_int8_t  get_protocol()        const { return(protocol);                        };
   inline u_int64_t get_bytes()           const { return(stats.get_cli2srv_bytes() + stats.get_srv2cli_bytes() );                };
   inline u_int64_t get_bytes_cli2srv()   const { return(stats.get_cli2srv_bytes());                                             };
@@ -564,7 +565,7 @@ class Flow : public GenericHashEntry {
   u_int32_t key();
   static u_int32_t key(Host *cli, u_int16_t cli_port,
 		       Host *srv, u_int16_t srv_port,
-		       u_int16_t vlan_id,
+		       VLANid vlan_id,
 		       u_int16_t protocol);
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
   void lua_get_min_info(lua_State* vm);
@@ -600,7 +601,7 @@ class Flow : public GenericHashEntry {
 
   bool equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
-	     u_int16_t _vlanId, u_int8_t _protocol,
+	     VLANid _vlanId, u_int8_t _protocol,
 	     const ICMPinfo * const icmp_info,
 	     bool *src2srv_direction) const;
   void sumStats(nDPIStats *ndpi_stats, FlowStats *stats);
