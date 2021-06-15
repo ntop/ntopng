@@ -57,7 +57,6 @@ end
 
 function ts_dump.subnet_update_rrds(when, ifstats, verbose)
   local subnet_stats = interface.getNetworksStats()
-  tprint(subnet_stats)
 
   for subnet,sstats in pairs(subnet_stats) do
     if ntop.isPro() then
@@ -107,7 +106,6 @@ end
 -- ########################################################
 
 function ts_dump.iface_update_stats_rrds(when, ifstats, verbose)
-  tprint(ifstats)
   if ntop.isPro() then
     -- Score Behaviour
     ts_utils.append("iface:score_behavior", {ifid=ifstats.id,
