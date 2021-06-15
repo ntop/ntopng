@@ -112,7 +112,7 @@ function alert_rest_utils.get_alert_exclusions(subdir, host)
 
    -- ################################################
 
-   local scripts = user_scripts.load(getSystemInterfaceId(), script_type, subdir)
+   local scripts = user_scripts.load(getSystemInterfaceId(), script_type, subdir, {return_all = true})
    local result = {}
 
    for script_name, script in pairs(scripts.modules) do
