@@ -2032,6 +2032,38 @@ end
 
 -- ##############################################
 
+function getVlanAliasKey()
+   return "ntopng.vlan_aliases"
+end
+
+-- ##############################################
+
+function getVlanAlias(vlan_id)
+   local alias = ntop.getLocalNetworkAlias(vlan_id) or nil
+
+   if not alias then
+      alias = ntop.getHashCache(getVlanAliasKey(), vlan_id)      
+   end
+
+   if not isEmptyString(alias) then
+      return alias
+   end
+
+   return vlan_id
+end
+
+-- ##############################################
+
+function setVlanAlias(vlan_id, alias)
+   if((vlan_id ~= alias) or isEmptyString(alias)) then
+      ntop.setHashCache(getVlanAliasKey(), vlan_id, alias)
+   else
+      ntop.delHashCache(getVlanAliasKey(), vlan_id)
+   end
+end
+
+-- ##############################################
+
 function flow2hostinfo(host_info, host_type)
    if host_type == "cli" then
       return({host = host_info["cli.ip"], vlan = host_info["cli.vlan"]})
