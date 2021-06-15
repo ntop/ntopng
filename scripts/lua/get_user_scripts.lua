@@ -39,7 +39,7 @@ local config_set = user_scripts.getConfigset()
 
 -- ################################################
 
-local scripts = user_scripts.load(getSystemInterfaceId(), script_type, subdir)
+local scripts = user_scripts.load(getSystemInterfaceId(), script_type, subdir, {return_all = true})
 local result = {}
 
 for script_name, script in pairs(scripts.modules) do
