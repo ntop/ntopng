@@ -64,7 +64,7 @@ function ts_dump.iface_update_stats_rrds(when, _ifname, ifstats, verbose)
     -- Score Behaviour
     ts_utils.append("iface:score_behavior", {ifid=ifstats.id,
       value=ifstats["score_behavior"]["value"], lower_bound=ifstats["score_behavior"]["lower_bound"], 
-      upper_bound = ifstats["score_behavior"]["upper_bound"]}, when)
+      upper_bound=ifstats["score_behavior"]["upper_bound"]}, when)
       
     -- Score Anomalies
     local anomaly = 0
@@ -77,11 +77,11 @@ function ts_dump.iface_update_stats_rrds(when, _ifname, ifstats, verbose)
     -- Traffic Behaviour
     ts_utils.append("iface:traffic_rx_behavior", {ifid=ifstats.id,
       value=ifstats["traffic_rx_behavior"]["value"], lower_bound=ifstats["traffic_rx_behavior"]["lower_bound"], 
-      upper_bound = ifstats["traffic_rx_behavior"]["upper_bound"]}, when)
+      upper_bound=ifstats["traffic_rx_behavior"]["upper_bound"]}, when)
 
     ts_utils.append("iface:traffic_tx_behavior", {ifid=ifstats.id,
       value=ifstats["traffic_tx_behavior"]["value"], lower_bound=ifstats["traffic_tx_behavior"]["lower_bound"], 
-      upper_bound = ifstats["traffic_tx_behavior"]["upper_bound"]}, when)
+      upper_bound=ifstats["traffic_tx_behavior"]["upper_bound"]}, when)
       
     -- Traffic Anomalies
     local anomaly = 0

@@ -167,7 +167,7 @@ if ntop.isPro() then
 
     -- ##############################################
 
-    schema = ts_utils.newSchema("asn:traffic_tx_behavior", {step=300, rrd_fname="bytes"})
+    schema = ts_utils.newSchema("asn:traffic_tx_behavior", {step=300})
     schema:addTag("ifid")
     schema:addTag("asn")
     schema:addMetric("value")
@@ -176,7 +176,7 @@ if ntop.isPro() then
 
     -- ##############################################
 
-    schema = ts_utils.newSchema("asn:traffic_rx_behavior", {step=300, rrd_fname="bytes"})
+    schema = ts_utils.newSchema("asn:traffic_rx_behavior", {step=300})
     schema:addTag("ifid")
     schema:addTag("asn")
     schema:addMetric("value")
