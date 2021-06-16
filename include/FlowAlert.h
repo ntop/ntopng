@@ -27,7 +27,7 @@
 class FlowAlert {
  private:
   Flow *flow;
-  std::string callback_name;
+  std::string check_name;
   bool cli_attacker, srv_attacker;
   bool cli_victim, srv_victim;
 
@@ -37,7 +37,7 @@ class FlowAlert {
   virtual ndpi_serializer* getAlertJSON(ndpi_serializer* serializer)  { return serializer; }  
 
  public:
-  FlowAlert(FlowCallback *c, Flow *f);
+  FlowAlert(FlowCheck *c, Flow *f);
   virtual ~FlowAlert();
 
   inline void setCliAttacker() { cli_attacker = true; }
@@ -55,10 +55,10 @@ class FlowAlert {
   virtual u_int8_t getAlertScore()      const { return SCORE_LEVEL_INFO; };
 
   inline Flow *getFlow() const { return(flow); }
-  inline std::string getCallbackName() const { return(callback_name); }
+  inline std::string getCheckName() const { return(check_name); }
 
   /* 
-     Generates the JSON alert serializer with base information and per-callback information gathered with `getAlertJSON`.
+     Generates the JSON alert serializer with base information and per-check information gathered with `getAlertJSON`.
      NOTE: memory must be freed by the caller.
   */
   ndpi_serializer* getSerializedAlert();

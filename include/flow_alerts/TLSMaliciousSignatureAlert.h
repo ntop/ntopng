@@ -32,7 +32,7 @@ class TLSMaliciousSignatureAlert : public FlowAlert {
   static FlowAlertType getClassType() { return { flow_alert_malicious_signature, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return SCORE_LEVEL_WARNING; };
 
- TLSMaliciousSignatureAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
+ TLSMaliciousSignatureAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) { };
   ~TLSMaliciousSignatureAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

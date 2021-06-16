@@ -23,7 +23,7 @@
 
 /* ***************************************************** */
 
-FlowHitsAlert::FlowHitsAlert(HostCallback *c, Host *h, u_int8_t cli_score, u_int8_t srv_score,
+FlowHitsAlert::FlowHitsAlert(HostCheck *c, Host *h, u_int8_t cli_score, u_int8_t srv_score,
 			     u_int16_t _hits, u_int64_t _threshold, bool _is_attacker)
   : HostAlert(c, h, cli_score, srv_score) {
   hits = _hits;

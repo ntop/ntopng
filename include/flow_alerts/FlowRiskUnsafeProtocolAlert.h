@@ -30,7 +30,7 @@ class FlowRiskUnsafeProtocolAlert : public FlowRiskAlert {
   static FlowAlertType getClassType() { return { flow_alert_ndpi_unsafe_protocol, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskUnsafeProtocolAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
+ FlowRiskUnsafeProtocolAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskUnsafeProtocolAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

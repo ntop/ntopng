@@ -30,7 +30,7 @@ class FlowRiskURLPossibleRCEInjectionAlert : public FlowRiskAlert {
   static FlowAlertType getClassType() { return { flow_alert_ndpi_url_possible_rce_injection, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskURLPossibleRCEInjectionAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) {};
+ FlowRiskURLPossibleRCEInjectionAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) {};
   ~FlowRiskURLPossibleRCEInjectionAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

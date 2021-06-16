@@ -33,7 +33,7 @@ class RemoteConnectionAlert : public HostAlert {
  public:
   static HostAlertType getClassType() { return { host_alert_remote_connection, alert_category_network }; }
 
-  RemoteConnectionAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int8_t _num_remote_access);
+  RemoteConnectionAlert(HostCheck *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int8_t _num_remote_access);
   ~RemoteConnectionAlert() {};
   
   HostAlertType getAlertType() const { return getClassType(); }

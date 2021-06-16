@@ -23,11 +23,11 @@
 
 /* **************************************************** */
 
-HostAlert::HostAlert(HostCallback *c, Host *h, u_int8_t cli_score, u_int8_t srv_score) {
+HostAlert::HostAlert(HostCheck *c, Host *h, u_int8_t cli_score, u_int8_t srv_score) {
   host = h;
   expiring = released = false;
-  callback_id = c->getID();
-  callback_name = c->getName();
+  check_id = c->getID();
+  check_name = c->getName();
   engage_time = time(NULL);
   release_time = 0;
   score_as_cli = cli_score;
@@ -54,11 +54,11 @@ ndpi_serializer* HostAlert::getSerializedAlert() {
     return NULL;
   }
 
-  /* Add here global callback information, common to any alerted host */
+  /* Add here global check information, common to any alerted host */
 
-  /* Add information relative to this callback */
+  /* Add information relative to this check */
   ndpi_serialize_start_of_block(serializer, "alert_generation");
-  ndpi_serialize_string_string(serializer, "script_key", getCallbackName().c_str());
+  ndpi_serialize_string_string(serializer, "script_key", getCheckName().c_str());
   ndpi_serialize_string_string(serializer, "subdir", "host");
 
   ndpi_serialize_start_of_block(serializer, "host_info");
@@ -82,7 +82,7 @@ ndpi_serializer* HostAlert::getSerializedAlert() {
   ndpi_serialize_end_of_block(serializer); /* host_info        */
   ndpi_serialize_end_of_block(serializer); /* alert_generation */
   
-  /* This call adds callback-specific information to the serializer */
+  /* This call adds check-specific information to the serializer */
   getAlertJSON(serializer);
 
   return serializer;

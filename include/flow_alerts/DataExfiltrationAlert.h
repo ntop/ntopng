@@ -29,7 +29,7 @@ class DataExfiltrationAlert : public FlowAlert {
   static FlowAlertType getClassType() { return { flow_alert_data_exfiltration, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return SCORE_LEVEL_WARNING; };
 
- DataExfiltrationAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
+ DataExfiltrationAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) { };
   ~DataExfiltrationAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

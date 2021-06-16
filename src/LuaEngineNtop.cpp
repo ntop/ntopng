@@ -698,10 +698,10 @@ static int ntop_reload_periodic_scripts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_reload_flow_callbacks(lua_State* vm) {
+static int ntop_reload_flow_checks(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  ntop->reloadFlowCallbacks();
+  ntop->reloadFlowChecks();
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -709,10 +709,10 @@ static int ntop_reload_flow_callbacks(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_reload_host_callbacks(lua_State* vm) {
+static int ntop_reload_host_checks(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  ntop->reloadHostCallbacks();
+  ntop->reloadHostChecks();
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -6334,8 +6334,8 @@ static luaL_Reg _ntop_reg[] = {
   { "getTLSVersionName",     ntop_get_tls_version_name    },
   { "isIPv6",                ntop_is_ipv6                 },
   { "reloadPeriodicScripts", ntop_reload_periodic_scripts },
-  { "reloadFlowCallbacks",   ntop_reload_flow_callbacks   },
-  { "reloadHostCallbacks",   ntop_reload_host_callbacks   },
+  { "reloadFlowChecks",      ntop_reload_flow_checks      },
+  { "reloadHostChecks",      ntop_reload_host_checks      },
   { "reloadAlertExclusions", ntop_reload_hosts_control    },
   { "getFlowAlertScore",     ntop_get_flow_alert_score    },
   { "shouldResolveHost",     ntop_should_resolve_host     },

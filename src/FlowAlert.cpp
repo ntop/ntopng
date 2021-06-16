@@ -23,11 +23,11 @@
 
 /* **************************************************** */
 
-FlowAlert::FlowAlert(FlowCallback *c, Flow *f) {
+FlowAlert::FlowAlert(FlowCheck *c, Flow *f) {
   flow = f;
   cli_attacker = srv_attacker = false;
   cli_victim = srv_victim = false;
-  if (c) callback_name = c->getName();
+  if (c) check_name = c->getName();
 }
 
 /* **************************************************** */
@@ -50,7 +50,7 @@ ndpi_serializer* FlowAlert::getSerializedAlert() {
     return NULL;
   }
 
-  /* Add here global callback information, common to any alerted flow */
+  /* Add here global check information, common to any alerted flow */
 
   /* Guys used to link the alert back to the active flow */
   ndpi_serialize_string_uint64(serializer, "ntopng.key", flow->key());
@@ -73,13 +73,13 @@ ndpi_serializer* FlowAlert::getSerializedAlert() {
     ndpi_serialize_end_of_block(serializer);
   }
   
-  /* Add information relative to this callback */
+  /* Add information relative to this check */
   ndpi_serialize_start_of_block(serializer, "alert_generation");
-  ndpi_serialize_string_string(serializer, "script_key", getCallbackName().c_str());
+  ndpi_serialize_string_string(serializer, "script_key", getCheckName().c_str());
   ndpi_serialize_string_string(serializer, "subdir", "flow");
   ndpi_serialize_end_of_block(serializer);
 
-  /* This call adds callback-specific information to the serializer */
+  /* This call adds check-specific information to the serializer */
   getAlertJSON(serializer);
 
   return serializer;

@@ -33,7 +33,7 @@ class FlowRiskKnownProtocolOnNonStandardPortAlert : public FlowRiskAlert {
   static FlowAlertType getClassType() { return { flow_alert_known_proto_on_non_std_port, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskKnownProtocolOnNonStandardPortAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
+ FlowRiskKnownProtocolOnNonStandardPortAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskKnownProtocolOnNonStandardPortAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

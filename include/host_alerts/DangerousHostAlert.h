@@ -35,7 +35,7 @@ class DangerousHostAlert : public HostAlert {
  public:
   static HostAlertType getClassType() { return { host_alert_dangerous_host, alert_category_security }; }
 
-  DangerousHostAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int8_t _consecutive_high_score);
+  DangerousHostAlert(HostCheck *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int8_t _consecutive_high_score);
   ~DangerousHostAlert() {};
   
   HostAlertType getAlertType() const { return getClassType(); }

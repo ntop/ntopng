@@ -31,7 +31,7 @@ class UDPUnidirectionalAlert : public FlowAlert {
   static FlowAlertType getClassType() { return { flow_alert_udp_unidirectional, alert_category_network }; }
   static u_int8_t      getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
- UDPUnidirectionalAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
+ UDPUnidirectionalAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) {};
   ~UDPUnidirectionalAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }

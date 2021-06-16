@@ -24,7 +24,7 @@
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId) : GenericHashEntry(_iface),
-									   HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostCallbacksStatus() {
+									   HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostChecksStatus() {
   ip.set(ipAddress);
   initialize(NULL, _vlanId);
 }
@@ -32,7 +32,7 @@ Host::Host(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId) : GenericH
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, Mac *_mac,
-	   VLANid _vlanId, IpAddress *_ip) : GenericHashEntry(_iface), HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostCallbacksStatus() {
+	   VLANid _vlanId, IpAddress *_ip) : GenericHashEntry(_iface), HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostChecksStatus() {
   ip.set(_ip);
 
 #ifdef BROADCAST_DEBUG
@@ -157,7 +157,7 @@ void Host::updateSynAckAlertsCounter(time_t when, bool synack_sent) {
 void Host::housekeep(time_t t) {  
   switch(get_state()) {
   case hash_entry_state_active:
-    iface->execHostCallbacks(this);
+    iface->execHostChecks(this);
     break;
   case hash_entry_state_idle:
     releaseAllEngagedAlerts();
@@ -1652,7 +1652,7 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
   ndpi_serialize_string_boolean(s, "is_attacker", alert->isAttacker());
   ndpi_serialize_string_boolean(s, "is_victim", alert->isVictim());
 
-  HostCallback *cb = getInterface()->getCallback(alert->getCallbackType());
+  HostCheck *cb = getInterface()->getCheck(alert->getCheckType());
   ndpi_serialize_string_int32(s, "granularity", cb ? cb->getPeriod() : 0);
 
   alert_json_serializer = alert->getSerializedAlert();
@@ -1712,9 +1712,9 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
 
 /* Call this when setting host idle (before removing it from memory) */
 void Host::releaseAllEngagedAlerts() {
-  for (u_int i = 0; i < NUM_DEFINED_HOST_CALLBACKS; i++) {
-    HostCallbackID t = (HostCallbackID) i;
-    HostAlert *alert = getCallbackEngagedAlert(t);
+  for (u_int i = 0; i < NUM_DEFINED_HOST_CHECKS; i++) {
+    HostCheckID t = (HostCheckID) i;
+    HostAlert *alert = getCheckEngagedAlert(t);
     if(alert)
       releaseAlert(alert);
   }
@@ -1723,7 +1723,7 @@ void Host::releaseAllEngagedAlerts() {
 /* *************************************** */
 
 /*
- * This is called by the Callback to trigger an alert
+ * This is called by the Check to trigger an alert
  */
 bool Host::triggerAlert(HostAlert *alert) {
   ScoreCategory score_category;
@@ -1738,7 +1738,7 @@ bool Host::triggerAlert(HostAlert *alert) {
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding disabled alert");
 #endif
-    if(getCallbackEngagedAlert(alert->getCallbackType()) == alert) /* Alert is engaged */
+    if(getCheckEngagedAlert(alert->getCheckType()) == alert) /* Alert is engaged */
       alert->setExpiring(); /* Mark this alert as expiring to have it released soon */
     else /* Triggered alert is not yet engaged */
       delete alert; /* Delete it right now, don't even let it continue */
@@ -1749,12 +1749,12 @@ bool Host::triggerAlert(HostAlert *alert) {
   /* Leave this AFTER the isHostAlertDisabled check */
   alert->setEngaged();
 
-  if(hasCallbackEngagedAlert(alert->getCallbackType())) {
-    if(getCallbackEngagedAlert(alert->getCallbackType()) == alert) {
+  if(hasCheckEngagedAlert(alert->getCheckType())) {
+    if(getCheckEngagedAlert(alert->getCheckType()) == alert) {
       /* This is a refresh (see alert->isExpired()) */
       return true;
     } else {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error: One engaged alert is allowed per callback");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error: One engaged alert is allowed per check");
       delete alert;
       return false;
     }
@@ -1781,7 +1781,7 @@ bool Host::triggerAlert(HostAlert *alert) {
 /* *************************************** */
 
 /*
- * This is called by the Callback (or by the HostCallbacksExecutor
+ * This is called by the Check (or by the HostChecksExecutor
  * for expired alerts with auto release) to release an alert
  */
 void Host::releaseAlert(HostAlert *alert) {

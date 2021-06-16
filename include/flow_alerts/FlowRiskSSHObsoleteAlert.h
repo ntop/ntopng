@@ -33,7 +33,7 @@ class FlowRiskSSHObsoleteAlert : public FlowRiskAlert {
   static FlowAlertType getClassType() { return { flow_alert_ndpi_ssh_obsolete, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskSSHObsoleteAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
+ FlowRiskSSHObsoleteAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskSSHObsoleteAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

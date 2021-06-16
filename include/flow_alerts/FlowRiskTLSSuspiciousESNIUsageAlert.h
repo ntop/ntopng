@@ -30,7 +30,7 @@ class FlowRiskTLSSuspiciousESNIUsageAlert : public FlowRiskTLSAlert {
   static FlowAlertType getClassType() { return { flow_alert_ndpi_tls_suspicious_esni_usage, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskTLSSuspiciousESNIUsageAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
+ FlowRiskTLSSuspiciousESNIUsageAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSSuspiciousESNIUsageAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

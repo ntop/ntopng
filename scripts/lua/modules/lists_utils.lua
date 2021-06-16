@@ -507,6 +507,9 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
          loadWarning(string.format("Unsupported IPv6 address '%s' found in list '%s'", host, list.name))
       else
 	 -- Domain
+	 if tonumber(list) then
+	    tprint(debug.traceback())
+	 end
 	 if((not list) or (list.format ~= "ip")) then
 	   if((string.len(host) < 4) or (string.find(host, "%.") == nil)) then
 	     traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Bad domain name '%s' in list '%s' [line: %u]", host, list and list.name, num_line))
@@ -703,6 +706,7 @@ local function reloadListsNow()
    saveListsStatusToRedis(lists, "reloadListsNow")
 
    -- Load user-customized categories
+   tprint(user_custom_categories)
    for category_id, hosts in pairs(user_custom_categories) do
       for _, host in ipairs(hosts) do
 	 if ntop.isShutdown() then

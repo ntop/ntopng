@@ -33,7 +33,7 @@ class FlowRiskSuspiciousDGADomainAlert : public FlowRiskAlert {
   static FlowAlertType getClassType()  { return { flow_alert_ndpi_suspicious_dga_domain, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskSuspiciousDGADomainAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
+ FlowRiskSuspiciousDGADomainAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskSuspiciousDGADomainAlert() { };
 
   FlowAlertType  getAlertType()  const { return getClassType();  }

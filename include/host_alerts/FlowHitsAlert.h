@@ -32,7 +32,7 @@ class FlowHitsAlert : public HostAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
   
  public:
-  FlowHitsAlert(HostCallback *c, Host *h, u_int8_t cli_score, u_int8_t srv_score, u_int16_t hits, u_int64_t threshold, bool is_attacker);
+  FlowHitsAlert(HostCheck *c, Host *h, u_int8_t cli_score, u_int8_t srv_score, u_int16_t hits, u_int64_t threshold, bool is_attacker);
   ~FlowHitsAlert() {};
 
   void toggleAttacker(bool _is_attacker) { is_attacker = _is_attacker; }

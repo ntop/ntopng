@@ -23,7 +23,7 @@
 
 /* ***************************************************** */
 
-RemoteConnectionAlert::RemoteConnectionAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int8_t _num_remote_access) : HostAlert(c, f, cli_score, srv_score) {
+RemoteConnectionAlert::RemoteConnectionAlert(HostCheck *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int8_t _num_remote_access) : HostAlert(c, f, cli_score, srv_score) {
   num_remote_access = _num_remote_access;
 };
 

@@ -24,15 +24,15 @@
 
 #include "ntop_includes.h"
 
-class HostCallback;
+class HostCheck;
 
 class HostAlert {
  private:
   Host *host;
   bool released; /* to be released */
   bool expiring; /* engaged, under re-evaluation */
-  HostCallbackID callback_id;
-  std::string callback_name;
+  HostCheckID check_id;
+  std::string check_name;
   time_t engage_time;
   time_t release_time;
   u_int8_t score_as_cli;
@@ -46,7 +46,7 @@ class HostAlert {
   virtual ndpi_serializer* getAlertJSON(ndpi_serializer* serializer)  { return serializer; }  
 
  public:
-  HostAlert(HostCallback *c, Host *h, u_int8_t cli_score, u_int8_t srv_score);
+  HostAlert(HostCheck *c, Host *h, u_int8_t cli_score, u_int8_t srv_score);
   virtual ~HostAlert();
 
   inline u_int8_t getCliScore() { return score_as_cli; }
@@ -66,8 +66,8 @@ class HostAlert {
   virtual bool hasAutoRelease()  { return true; }
 
   inline Host *getHost() const                  { return(host);          }
-  inline HostCallbackID getCallbackType() const { return(callback_id);   }
-  inline std::string getCallbackName() const    { return(callback_name); }
+  inline HostCheckID getCheckType() const { return(check_id);   }
+  inline std::string getCheckName() const    { return(check_name); }
 
   inline void setEngaged()       { expiring = released = false; }
 
@@ -82,7 +82,7 @@ class HostAlert {
 
   inline bool equals(HostAlertType type) { return getAlertType().id == type.id; }
 
-  /* Generates the JSON alert serializer with base information and per-callback information gathered with `getAlertJSON`.
+  /* Generates the JSON alert serializer with base information and per-check information gathered with `getAlertJSON`.
    *  NOTE: memory must be freed by the caller. */
   ndpi_serializer* getSerializedAlert();
 };

@@ -30,7 +30,7 @@ class FlowRiskHTTPNumericIPHostAlert : public FlowRiskAlert {
   static FlowAlertType getClassType() { return { flow_alert_ndpi_http_numeric_ip_host, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskHTTPNumericIPHostAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
+ FlowRiskHTTPNumericIPHostAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskHTTPNumericIPHostAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

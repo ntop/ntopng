@@ -139,8 +139,8 @@ default: hooks/.enabled $(NDPI_LIB_DEP) $(LIB_TARGETS) $(TARGET)
 
 all: default
 
-OBJECTS = $(patsubst src/%.cpp, src/%.o, $(wildcard src/*.cpp)) $(patsubst src/flow_callbacks/%.cpp, src/flow_callbacks/%.o, $(wildcard src/flow_callbacks/*.cpp)) $(patsubst src/flow_alerts/%.cpp, src/flow_alerts/%.o, $(wildcard src/flow_alerts/*.cpp)) $(patsubst src/host_callbacks/%.cpp, src/host_callbacks/%.o, $(wildcard src/host_callbacks/*.cpp)) $(patsubst src/host_alerts/%.cpp, src/host_alerts/%.o, $(wildcard src/host_alerts/*.cpp)) @PRO_OBJECTS@
-HEADERS = $(wildcard include/*.h) $(wildcard include/flow_callbacks/*.h) $(wildcard include/flow_alerts/*.h) $(wildcard include/host_callbacks/*.h) $(wildcard include/host_alerts/*.h) @PRO_HEADERS@
+OBJECTS = $(patsubst src/%.cpp, src/%.o, $(wildcard src/*.cpp)) $(patsubst src/flow_checks/%.cpp, src/flow_checks/%.o, $(wildcard src/flow_checks/*.cpp)) $(patsubst src/flow_alerts/%.cpp, src/flow_alerts/%.o, $(wildcard src/flow_alerts/*.cpp)) $(patsubst src/host_checks/%.cpp, src/host_checks/%.o, $(wildcard src/host_checks/*.cpp)) $(patsubst src/host_alerts/%.cpp, src/host_alerts/%.o, $(wildcard src/host_alerts/*.cpp)) @PRO_OBJECTS@
+HEADERS = $(wildcard include/*.h) $(wildcard include/flow_checks/*.h) $(wildcard include/flow_alerts/*.h) $(wildcard include/host_checks/*.h) $(wildcard include/host_alerts/*.h) @PRO_HEADERS@
 INC     = $(wildcard src/*.inc)
 OBJECTS_NO_MAIN := $(filter-out src/main.o,$(OBJECTS))
 
@@ -180,7 +180,7 @@ hooks/.enabled:
 	touch hooks/.enabled
 
 clean:
-	-rm -f src/*.o src/*~ src/flow_callbacks/*.o  src/flow_callbacks/*~ src/flow_alerts/*.o  src/flow_alerts/*~ src/host_callbacks/*.o  src/host_callbacks/*~ src/host_alerts/*.o  src/host_alerts/*~ include/*~ *~ #config.h
+	-rm -f src/*.o src/*~ src/flow_checks/*.o  src/flow_checks/*~ src/flow_alerts/*.o  src/flow_alerts/*~ src/host_checks/*.o  src/host_checks/*~ src/host_alerts/*.o  src/host_alerts/*~ include/*~ *~ #config.h
 	-rm -f $(TARGET)
 	if [ -d pro ]; then cd pro && make clean; fi
 

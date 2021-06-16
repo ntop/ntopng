@@ -30,7 +30,7 @@ class FlowRiskHTTPSuspiciousHeaderAlert : public FlowRiskAlert {
   static FlowAlertType getClassType() { return { flow_alert_ndpi_http_suspicious_header, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskHTTPSuspiciousHeaderAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
+ FlowRiskHTTPSuspiciousHeaderAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskHTTPSuspiciousHeaderAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

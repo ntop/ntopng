@@ -57,7 +57,7 @@ class SNMP {
   bool batch_mode;
 #ifdef HAVE_LIBSNMP
   std::vector<SNMPSession*> sessions;
-  /* Variables below are used for the async callback */
+  /* Variables below are used for the async check */
   lua_State* vm;
 #else
   int udp_sock;

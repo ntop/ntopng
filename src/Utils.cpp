@@ -1618,7 +1618,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 
 /* **************************************** */
 
-static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *stream) {
+static size_t read_check(void *ptr, size_t size, size_t nmemb, void *stream) {
   return(fread(ptr, size, nmemb, (FILE*)stream));
 }
 
@@ -1669,7 +1669,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     curl_easy_setopt(curl, CURLOPT_READDATA, fd);
-    curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
+    curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_check);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (curl_off_t)file_len);
 
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
@@ -1932,7 +1932,7 @@ bool Utils::progressCanContinue(ProgressState *progressState) {
 
 /* **************************************** */
 
-static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
+static int progress_check(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
   ProgressState *progressState = (ProgressState*) clientp;
 
   progressState->bytes.download = (u_int32_t)dlnow,  progressState->bytes.upload = (u_int32_t)ulnow;
@@ -2086,7 +2086,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url,
       memset(&progressState, 0, sizeof(progressState));
       progressState.vm = vm;
       curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-      curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+      curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_check);
       curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &progressState);
     }
 

@@ -30,7 +30,7 @@ class FlowRiskMalformedPacketAlert : public FlowRiskAlert {
   static FlowAlertType getClassType() { return { flow_alert_ndpi_malformed_packet, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskMalformedPacketAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
+ FlowRiskMalformedPacketAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskMalformedPacketAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

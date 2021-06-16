@@ -377,7 +377,7 @@ u_int16_t Flow::getStatsProtocol() const {
 /* *************************************** */
 
 /* This function is called as soon as the protocol detection is
- * completed. See processExtraDissectedInformation for a later callback.
+ * completed. See processExtraDissectedInformation for a later check.
  * NOTE: does NOT need ndpiFlow
  */
 void Flow::processDetectedProtocol() {
@@ -2261,7 +2261,7 @@ void Flow::lua_get_risk_info(lua_State* vm) {
 
     ndpi_risk unhandled_ndpi_risks = ntop->getUnhandledRisks();
     if(unhandled_ndpi_risks & ndpi_flow_risk_bitmap) {
-      /* This flow has some unhandled risks, that is, risks set by nDPI but not handled by flow callbacks */
+      /* This flow has some unhandled risks, that is, risks set by nDPI but not handled by flow checks */
 
       lua_newtable(vm);
 
@@ -2977,7 +2977,7 @@ void Flow::housekeep(time_t t) {
 
   case hash_entry_state_flow_protocoldetected:
     if(!is_swap_requested()) /* The flow will be swapped, hook execution will occur on the swapped flow. */
-      iface->execProtocolDetectedCallbacks(this);
+      iface->execProtocolDetectedChecks(this);
     break;
 
   case hash_entry_state_active:
@@ -2991,16 +2991,16 @@ void Flow::housekeep(time_t t) {
 
   case hash_entry_state_idle:
     if(is_swap_requested() && !is_swap_done()) /* Swap requested but never performed (no more packets seen) */
-      iface->execProtocolDetectedCallbacks(this);
+      iface->execProtocolDetectedChecks(this);
 
     if(!is_swap_requested() /* Swap not requested */
        || (is_swap_requested() && !is_swap_done())) /* Or requested but never performed (no more packets seen) */
-      iface->execFlowEndCallbacks(this);
+      iface->execFlowEndChecks(this);
 
     dumpCheck(t, true /* LAST dump before delete */);
 
     /*
-      Score decrements MUST be performed here as this is the same thread of callbacks execution where
+      Score decrements MUST be performed here as this is the same thread of checks execution where
       scores are increased.
       NOTE: for view interfaces, decrement are performed in ~Flow to avoid races.
      */
@@ -3150,7 +3150,7 @@ void Flow::callFlowUpdate(time_t t) {
     next_call_periodic_update = t + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS; /* Set the time of the new periodic call */
 
   if(trigger_immediate_periodic_update || next_call_periodic_update <= t) {
-    iface->execPeriodicUpdateCallbacks(this);
+    iface->execPeriodicUpdateChecks(this);
     next_call_periodic_update = 0; /* Reset */
 
     if(trigger_immediate_periodic_update)
@@ -4602,7 +4602,7 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
      already have an existing flow matching the same 5-tuple, we sum counters
      rather than overwriting them.
 
-     A complete solution would require the registration of a netfilter callback
+     A complete solution would require the registration of a netfilter check
      and the detection of event NFCT_T_DESTROY.
   */
   nf_existing_flow = !(get_packets_cli2srv() > s2d_pkts || get_bytes_cli2srv() > s2d_bytes

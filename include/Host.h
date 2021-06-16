@@ -26,7 +26,7 @@
 
 class HostAlert;
 
-class Host : public GenericHashEntry, public HostAlertableEntity, public Score, public HostCallbacksStatus {
+class Host : public GenericHashEntry, public HostAlertableEntity, public Score, public HostChecksStatus {
  protected:
   IpAddress ip;
   Mac *mac;
@@ -461,7 +461,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   bool enqueueAlertToRecipients(HostAlert *alert, bool released);
   void alert2JSON(HostAlert *alert, bool released, ndpi_serializer *serializer);
 
-  /* Callbacks API */
+  /* Checks API */
   bool triggerAlert(HostAlert *alert);
   void releaseAlert(HostAlert* alert);
 

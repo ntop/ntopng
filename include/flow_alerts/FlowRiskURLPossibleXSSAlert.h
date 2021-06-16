@@ -30,7 +30,7 @@ class FlowRiskURLPossibleXSSAlert : public FlowRiskAlert {
   static FlowAlertType getClassType() { return { flow_alert_ndpi_url_possible_xss, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskURLPossibleXSSAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
+ FlowRiskURLPossibleXSSAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskURLPossibleXSSAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

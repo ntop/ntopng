@@ -33,7 +33,7 @@ class FlowRiskTLSCertificateSelfSignedAlert : public FlowRiskTLSAlert {
   static FlowAlertType getClassType() { return { flow_alert_tls_certificate_selfsigned, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskTLSCertificateSelfSignedAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) {};
+ FlowRiskTLSCertificateSelfSignedAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) {};
   ~FlowRiskTLSCertificateSelfSignedAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

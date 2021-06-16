@@ -31,7 +31,7 @@ class HostAlertableEntity : public AlertableEntity {
  private:
   Bitmap16 engaged_alerts_map;
   
-  HostAlert *engaged_alerts[NUM_DEFINED_HOST_CALLBACKS]; /* List of engaged alerts for each callback */
+  HostAlert *engaged_alerts[NUM_DEFINED_HOST_CHECKS]; /* List of engaged alerts for each check */
 
   void clearEngagedAlerts();
   void luaAlert(lua_State* vm, HostAlert *alert);
@@ -43,9 +43,9 @@ class HostAlertableEntity : public AlertableEntity {
   bool addEngagedAlert(HostAlert *a);
   bool removeEngagedAlert(HostAlert *a);
   inline bool isEngagedAlert(HostAlertType alert_id) { return engaged_alerts_map.isSetBit(alert_id.id); }
-  bool hasCallbackEngagedAlert(HostCallbackID callback_id);
-  inline HostAlert *getCallbackEngagedAlert(HostCallbackID t) { return engaged_alerts[t]; }
-  HostAlert *findEngagedAlert(HostAlertType alert_id, HostCallbackID callback_id);
+  bool hasCheckEngagedAlert(HostCheckID check_id);
+  inline HostAlert *getCheckEngagedAlert(HostCheckID t) { return engaged_alerts[t]; }
+  HostAlert *findEngagedAlert(HostAlertType alert_id, HostCheckID check_id);
 
   void countAlerts(grouped_alerts_counters *counters);
   void getAlerts(lua_State* vm, ScriptPeriodicity p,

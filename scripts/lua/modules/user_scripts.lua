@@ -977,8 +977,8 @@ local function saveConfigset(configset)
    ntop.reloadPeriodicScripts()
 
    -- Reload flow and host callbacks executed in C++
-   ntop.reloadFlowCallbacks()
-   ntop.reloadHostCallbacks()
+   ntop.reloadFlowChecks()
+   ntop.reloadHostChecks()
 
    return true
 end

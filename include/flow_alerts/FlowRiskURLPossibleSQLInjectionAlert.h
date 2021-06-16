@@ -30,7 +30,7 @@ class FlowRiskURLPossibleSQLInjectionAlert : public FlowRiskAlert {
   static FlowAlertType getClassType() { return { flow_alert_ndpi_url_possible_sql_injection, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskURLPossibleSQLInjectionAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
+ FlowRiskURLPossibleSQLInjectionAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskURLPossibleSQLInjectionAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

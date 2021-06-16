@@ -29,7 +29,7 @@ class DNSDataExfiltrationAlert : public FlowAlert {
   static FlowAlertType getClassType() { return { flow_alert_dns_data_exfiltration, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return SCORE_LEVEL_WARNING; };
 
- DNSDataExfiltrationAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
+ DNSDataExfiltrationAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) { };
   ~DNSDataExfiltrationAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

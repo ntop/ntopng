@@ -23,7 +23,7 @@
 
 /* ***************************************************** */
 
-DNSServerContactsAlert::DNSServerContactsAlert(HostCallback *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _contacts, u_int64_t _contacts_threshold)
+DNSServerContactsAlert::DNSServerContactsAlert(HostCheck *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _contacts, u_int64_t _contacts_threshold)
   : ServerContactsAlert(c, f, cli_score, srv_score, _contacts, _contacts_threshold) {
 };
 

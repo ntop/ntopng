@@ -33,7 +33,7 @@ class FlowRiskTLSOldProtocolVersionAlert : public FlowRiskTLSAlert {
   static FlowAlertType getClassType() { return { flow_alert_tls_old_protocol_version, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskTLSOldProtocolVersionAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
+ FlowRiskTLSOldProtocolVersionAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSOldProtocolVersionAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

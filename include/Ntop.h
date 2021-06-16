@@ -44,7 +44,7 @@ class Ntop {
   pthread_t purgeLoop;    /* Loop which iterates on active interfaces to delete idle hash table entries */
   bool purgeLoop_started; /* Flag that indicates whether the purgeLoop has been started */
   bool ndpiReloadInProgress;
-  bool flowCallbacksReloadInProgress, hostCallbacksReloadInProgress, alertExclusionsReloadInProgress;
+  bool flowChecksReloadInProgress, hostChecksReloadInProgress, alertExclusionsReloadInProgress;
   bool hostPoolsReloadInProgress;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   AddressTree local_interface_addresses;
@@ -105,9 +105,9 @@ class Ntop {
   /* Alerts */
   FlowAlertsLoader flow_alerts_loader;
 
-  /* Callbacks */
-  FlowCallbacksLoader *flow_callbacks_loader;
-  HostCallbacksLoader *host_callbacks_loader;
+  /* Checks */
+  FlowChecksLoader *flow_checks_loader;
+  HostChecksLoader *host_checks_loader;
 
   /* Hosts Control (e.g., disabled alerts) */
   AlertExclusions *alert_exclusions, *alert_exclusions_shadow;
@@ -137,8 +137,8 @@ class Ntop {
   bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
   bool startPurgeLoop();
 
-  void checkReloadFlowCallbacks();
-  void checkReloadHostCallbacks();
+  void checkReloadFlowChecks();
+  void checkReloadHostChecks();
   void checkReloadAlertExclusions();
   void checkReloadHostPools();
   
@@ -543,8 +543,8 @@ class Ntop {
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   void reloadPeriodicScripts();
-  inline void reloadFlowCallbacks()   { flowCallbacksReloadInProgress = true;    };
-  inline void reloadHostCallbacks()   { hostCallbacksReloadInProgress = true;    };
+  inline void reloadFlowChecks()   { flowChecksReloadInProgress = true;    };
+  inline void reloadHostChecks()   { hostChecksReloadInProgress = true;    };
   inline void reloadAlertExclusions() { alertExclusionsReloadInProgress = true;  };
   inline void reloadHostPools()       { hostPoolsReloadInProgress = true;        };
 
@@ -574,10 +574,10 @@ class Ntop {
   
   //void getLocalAddresses(lua_State* vm) { return(local_network_tree.getAddresses(vm)); };
 
-  inline FlowCallbacksLoader* getFlowCallbacksLoader() { return(flow_callbacks_loader); }
-  inline HostCallbacksLoader* getHostCallbacksLoader() { return(host_callbacks_loader); }
+  inline FlowChecksLoader* getFlowChecksLoader() { return(flow_checks_loader); }
+  inline HostChecksLoader* getHostChecksLoader() { return(host_checks_loader); }
   inline u_int8_t getFlowAlertScore(FlowAlertTypeEnum alert_id) const { return flow_alerts_loader.getAlertScore(alert_id); };
-  inline ndpi_risk getUnhandledRisks() const { return flow_callbacks_loader ? flow_callbacks_loader->getUnhandledRisks() : 0; };
+  inline ndpi_risk getUnhandledRisks() const { return flow_checks_loader ? flow_checks_loader->getUnhandledRisks() : 0; };
 #ifndef HAVE_NEDGE
   bool broadcastIPSMessage(char *msg);
   inline void askToRefreshIPSRules()  { refresh_ips_rules = true; }

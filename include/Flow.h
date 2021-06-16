@@ -33,7 +33,7 @@ typedef struct {
 } TCPSeqNum;
 
 class FlowAlert;
-class FlowCallback;
+class FlowCheck;
 
 class Flow : public GenericHashEntry {
  private:
@@ -50,7 +50,7 @@ class Flow : public GenericHashEntry {
   u_int16_t flow_score;
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
-  /* The bitmap of all possible flow alerts set by FlowCallback subclasses. When no alert is set, the 
+  /* The bitmap of all possible flow alerts set by FlowCheck subclasses. When no alert is set, the 
      flow is in flow_alert_normal.
 
      A flow can have multiple alerts but at most ONE of its alerts is predominant
@@ -293,14 +293,14 @@ class Flow : public GenericHashEntry {
   bool enqueueAlertToRecipients(FlowAlert *alert);
 
   /*
-    Called by FlowCallback subclasses to trigger a flow alert. This is an asynchronous call, faster, but can
+    Called by FlowCheck subclasses to trigger a flow alert. This is an asynchronous call, faster, but can
     cause the alert JSON to be generated after the call.
-    The FlowCallback should implement the buildAlert() method which is called in the predominant callback to actually build the FlowAlert object.
+    The FlowCheck should implement the buildAlert() method which is called in the predominant check to actually build the FlowAlert object.
    */
   bool triggerAlertAsync(FlowAlertType alert_type, u_int16_t cli_score_inc, u_int16_t srv_score_inc);
 
   /* 
-     Called by FlowCallback subclasses to trigger a flow alert. This is a syncrhonous call, more expensive, but
+     Called by FlowCheck subclasses to trigger a flow alert. This is a syncrhonous call, more expensive, but
      causes the alert (FlowAlert) to be immediately enqueued to all recipients.
    */
   bool triggerAlertSync(FlowAlert *alert, u_int16_t cli_score_inc, u_int16_t srv_score_inc);

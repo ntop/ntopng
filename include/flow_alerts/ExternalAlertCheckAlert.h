@@ -32,7 +32,7 @@ class ExternalAlertCheckAlert : public FlowAlert {
   static FlowAlertType getClassType() { return { flow_alert_external, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
- ExternalAlertCheckAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
+ ExternalAlertCheckAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) {};
   ~ExternalAlertCheckAlert() {};
   
   FlowAlertType getAlertType() const { return getClassType(); }

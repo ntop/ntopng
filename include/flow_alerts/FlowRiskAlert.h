@@ -28,7 +28,7 @@ class FlowRiskAlert : public FlowAlert {
  private:
 
  public:
- FlowRiskAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
+ FlowRiskAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) {};
   virtual ~FlowRiskAlert() {};
 
   virtual ndpi_risk_enum getAlertRisk()  const = 0;

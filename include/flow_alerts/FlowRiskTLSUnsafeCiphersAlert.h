@@ -30,7 +30,7 @@ class FlowRiskTLSUnsafeCiphersAlert : public FlowRiskTLSAlert {
   static FlowAlertType getClassType() { return { flow_alert_tls_unsafe_ciphers, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskTLSUnsafeCiphersAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
+ FlowRiskTLSUnsafeCiphersAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSUnsafeCiphersAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

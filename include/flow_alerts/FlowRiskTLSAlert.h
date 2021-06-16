@@ -31,7 +31,7 @@ class FlowRiskTLSAlert : public FlowRiskAlert {
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
  public:
- FlowRiskTLSAlert(FlowCallback *c, Flow *f) : FlowRiskAlert(c, f) { };
+ FlowRiskTLSAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskTLSAlert() { };
 };
 

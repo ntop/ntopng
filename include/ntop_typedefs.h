@@ -388,11 +388,11 @@ struct string_list {
 };
 
 typedef enum {
-  flow_callback_protocol_detected = 0,
-  flow_callback_periodic_update,
-  flow_callback_flow_end,
-  flow_callback_flow_none /* Flow callback not bound to protoDetected, periodicUpdate, flowEnd */
-} FlowCallbacks;
+  flow_check_protocol_detected = 0,
+  flow_check_periodic_update,
+  flow_check_flow_end,
+  flow_check_flow_none /* Flow check not bound to protoDetected, periodicUpdate, flowEnd */
+} FlowChecks;
 
 /* NOTE: Throw modules/alert_keys.lua as it has been merged with modules/alert_keys.lua */
 /* NOTE: keep in sync with modules/alert_keys.lua */
@@ -468,8 +468,8 @@ typedef struct {
 
 
 /* 
-   Each C++ host callback must have an entry here,
-   returned with HostCallbackID getID()
+   Each C++ host check must have an entry here,
+   returned with HostCheckID getID()
 */
 typedef enum {
   host_alert_normal                      =  0,
@@ -501,24 +501,24 @@ class HostAlert;
 typedef std::pair<HostAlert *, bool> HostAlertReleasedPair;
 
 typedef enum {
-  host_callback_http_replies_requests_ratio = 0,
-  host_callback_dns_replies_requests_ratio,
-  host_callback_syn_flood,
-  host_callback_syn_scan,
-  host_callback_flow_flood,
-  host_callback_ntp_server_contacts,
-  host_callback_smtp_server_contacts,
-  host_callback_dns_server_contacts,
-  host_callback_score_host,
-  host_callback_p2p_traffic,
-  host_callback_dns_traffic,
-  host_callback_flow_anomaly,
-  host_callback_score_anomaly,
-  host_callback_remote_connection,
-  host_callback_dangerous_host,
+  host_check_http_replies_requests_ratio = 0,
+  host_check_dns_replies_requests_ratio,
+  host_check_syn_flood,
+  host_check_syn_scan,
+  host_check_flow_flood,
+  host_check_ntp_server_contacts,
+  host_check_smtp_server_contacts,
+  host_check_dns_server_contacts,
+  host_check_score_host,
+  host_check_p2p_traffic,
+  host_check_dns_traffic,
+  host_check_flow_anomaly,
+  host_check_score_anomaly,
+  host_check_remote_connection,
+  host_check_dangerous_host,
 
-  NUM_DEFINED_HOST_CALLBACKS, /* Leave it as last member */ 
-} HostCallbackID;
+  NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */ 
+} HostCheckID;
 
 typedef enum {
   flow_lua_call_exec_status_ok = 0,                             /* Call executed successfully                                */
@@ -608,13 +608,6 @@ typedef struct {
   const char *class_name;
   const luaL_Reg *class_methods;
 } ntop_class_reg;
-
-typedef enum {
-  callback_flow_create,
-  callback_flow_delete,
-  callback_flow_update,
-  callback_flow_proto_callback
-} LuaCallback;
 
 typedef enum {
   walker_hosts = 0,

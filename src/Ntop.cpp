@@ -72,11 +72,11 @@ Ntop::Ntop(char *appName) {
   last_stats_reset = 0;
   ndpiReloadInProgress = false;
   
-  /* Callbacks loader */
-  flowCallbacksReloadInProgress = true; /* Lazy, will be reloaded the first time this condition is evaluated */
-  hostCallbacksReloadInProgress = true;
-  flow_callbacks_loader = NULL;
-  host_callbacks_loader = NULL;
+  /* Checks loader */
+  flowChecksReloadInProgress = true; /* Lazy, will be reloaded the first time this condition is evaluated */
+  hostChecksReloadInProgress = true;
+  flow_checks_loader = NULL;
+  host_checks_loader = NULL;
 
   /* Flow alerts exclusions */
   alertExclusionsReloadInProgress = true;
@@ -328,8 +328,8 @@ Ntop::~Ntop() {
   if(prefs)   { delete prefs; prefs = NULL;     }
   if(globals) { delete globals; globals = NULL; }
 
-  if(flow_callbacks_loader)     delete flow_callbacks_loader;
-  if(host_callbacks_loader)     delete host_callbacks_loader;
+  if(flow_checks_loader)     delete flow_checks_loader;
+  if(host_checks_loader)     delete host_checks_loader;
   if(alert_exclusions)          delete alert_exclusions;
   if(alert_exclusions_shadow)   delete alert_exclusions_shadow;
 
@@ -562,8 +562,8 @@ void Ntop::start() {
 
   checkReloadHostPools();
   checkReloadAlertExclusions();
-  checkReloadFlowCallbacks();
-  checkReloadHostCallbacks();
+  checkReloadFlowChecks();
+  checkReloadHostChecks();
 
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
@@ -617,7 +617,7 @@ void Ntop::start() {
 	/* One extra housekeeping before executing tests (this assumes all flows have been walked) */
 	runHousekeepingTasks();
 
-	/* Allow host and flow callbacks to be executed, allow notifications to be processed (notifications.lua) */
+	/* Allow host and flow checks to be executed, allow notifications to be processed (notifications.lua) */
 	sleep(3);
 
 	/* Test Script (Post Analysis) */
@@ -2626,8 +2626,8 @@ void Ntop::initInterface(NetworkInterface *_if) {
   }
 
   /* Other initialization activities */
-  _if->initFlowCallbacksLoop();
-  _if->initHostCallbacksLoop();
+  _if->initFlowChecksLoop();
+  _if->initHostChecksLoop();
   _if->checkDisaggregationMode();
 }
 
@@ -2688,29 +2688,29 @@ void Ntop::checkReloadAlertExclusions() {
 
 /* ******************************************* */
 
-void Ntop::checkReloadFlowCallbacks() {
+void Ntop::checkReloadFlowChecks() {
   if (!ntop->getPrefs()->is_pro_edition() /* Community mode */ &&
-      flow_callbacks_loader && flow_callbacks_loader->getCallbacksEdition() != ntopng_edition_community) {
+      flow_checks_loader && flow_checks_loader->getChecksEdition() != ntopng_edition_community) {
     /* Force a reload when switching to community (demo mode) */
-    reloadFlowCallbacks();
+    reloadFlowChecks();
   }
 
-  if(flowCallbacksReloadInProgress /* Reload requested from the UI upon configuration changes */) {
-    FlowCallbacksLoader *old, *tmp_flow_callbacks_loader = new (std::nothrow) FlowCallbacksLoader();
+  if(flowChecksReloadInProgress /* Reload requested from the UI upon configuration changes */) {
+    FlowChecksLoader *old, *tmp_flow_checks_loader = new (std::nothrow) FlowChecksLoader();
 
-    if(!tmp_flow_callbacks_loader) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for flow callbacks.");
+    if(!tmp_flow_checks_loader) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for flow checks.");
       return;
     }
 
-    tmp_flow_callbacks_loader->initialize();
-    old = flow_callbacks_loader;
+    tmp_flow_checks_loader->initialize();
+    old = flow_checks_loader;
 
-    /* Pass the newly allocated loader to all interfaces so they will update their callbacks */
+    /* Pass the newly allocated loader to all interfaces so they will update their checks */
     for(int i = 0; i < get_num_interfaces(); i++)
-      iface[i]->reloadFlowCallbacks(tmp_flow_callbacks_loader);
+      iface[i]->reloadFlowChecks(tmp_flow_checks_loader);
 
-    flow_callbacks_loader = tmp_flow_callbacks_loader;
+    flow_checks_loader = tmp_flow_checks_loader;
 
     if(old) {
       sleep(2); /* Make sure nobody is using the old one */
@@ -2718,35 +2718,35 @@ void Ntop::checkReloadFlowCallbacks() {
       delete old;
     }
 
-    flowCallbacksReloadInProgress = false;
+    flowChecksReloadInProgress = false;
   }
 }
 
 /* ******************************************* */
 
-void Ntop::checkReloadHostCallbacks() {
+void Ntop::checkReloadHostChecks() {
   if (!ntop->getPrefs()->is_pro_edition() /* Community mode */ &&
-      host_callbacks_loader && host_callbacks_loader->getCallbacksEdition() != ntopng_edition_community) {
+      host_checks_loader && host_checks_loader->getChecksEdition() != ntopng_edition_community) {
     /* Force a reload when switching to community (demo mode) */
-    reloadHostCallbacks();
+    reloadHostChecks();
   }
 
-  if(hostCallbacksReloadInProgress /* Reload requested from the UI upon configuration changes */) {
-    HostCallbacksLoader *old, *tmp_host_callbacks_loader = new (std::nothrow) HostCallbacksLoader();
+  if(hostChecksReloadInProgress /* Reload requested from the UI upon configuration changes */) {
+    HostChecksLoader *old, *tmp_host_checks_loader = new (std::nothrow) HostChecksLoader();
 
-    if(!tmp_host_callbacks_loader) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for host callbacks.");
+    if(!tmp_host_checks_loader) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for host checks.");
       return;
     }
 
-    tmp_host_callbacks_loader->initialize();
-    old = host_callbacks_loader;
+    tmp_host_checks_loader->initialize();
+    old = host_checks_loader;
 
-    /* Pass the newly allocated loader to all interfaces so they will update their callbacks */
+    /* Pass the newly allocated loader to all interfaces so they will update their checks */
     for(int i = 0; i < get_num_interfaces(); i++)
-      iface[i]->reloadHostCallbacks(tmp_host_callbacks_loader);
+      iface[i]->reloadHostChecks(tmp_host_checks_loader);
 
-    host_callbacks_loader = tmp_host_callbacks_loader;
+    host_checks_loader = tmp_host_checks_loader;
 
     if(old) {
       sleep(2); /* Make sure nobody is using the old one */
@@ -2754,7 +2754,7 @@ void Ntop::checkReloadHostCallbacks() {
       delete old;
     }
 
-    hostCallbacksReloadInProgress = false;
+    hostChecksReloadInProgress = false;
   }
 }
 
@@ -2764,8 +2764,8 @@ void Ntop::checkReloadHostCallbacks() {
 void Ntop::runHousekeepingTasks() {
   checkReloadHostPools();
   checkReloadAlertExclusions();
-  checkReloadFlowCallbacks();
-  checkReloadHostCallbacks();
+  checkReloadFlowChecks();
+  checkReloadHostChecks();
 
   for(int i = 0; i < get_num_interfaces(); i++)
     iface[i]->runHousekeepingTasks();
