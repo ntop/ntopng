@@ -2060,6 +2060,18 @@ end
 
 -- ##############################################
 
+function getFullVlanName(vlan_id)
+   local alias = setVlanAlias(vlan_id)
+
+   if alias ~= vlan_id then
+      return string.format("%s [%s]", alias, vlan_id)
+   end
+
+   return vlan_id
+end
+
+-- ##############################################
+
 function flow2hostinfo(host_info, host_type)
    if host_type == "cli" then
       return({host = host_info["cli.ip"], vlan = host_info["cli.vlan"]})
