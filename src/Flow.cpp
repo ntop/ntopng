@@ -383,8 +383,13 @@ u_int16_t Flow::getStatsProtocol() const {
 void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
   u_int16_t stats_protocol;
-  Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
-  bool swapped;
+  Host *cli_h = NULL, *srv_h = NULL;
+
+  /*
+    If peers should be swapped, then pointers are inverted.
+    NOTE: only function pointers are inverted, not pointers in the flow.
+   */
+  get_actual_peers(&cli_h, &srv_h);
 
   stats_protocol = getStatsProtocol();
 
@@ -394,18 +399,6 @@ void Flow::processDetectedProtocol() {
   iface->incnDPIFlows(stats_protocol);
 
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
-
-  swapped = is_swap_requested();
-
-  /*
-    If peers should be swapped, then pointers are inverted.
-    NOTE: only function pointers are inverted, not pointers in the flow.
-   */
-  if(swapped) {
-    Host *tmp_h = cli_h;
-    cli_h = srv_h;
-    srv_h = tmp_h;
-  }
 
   switch(l7proto) {
   case NDPI_PROTOCOL_DHCP:
@@ -455,7 +448,12 @@ void Flow::processDetectedProtocol() {
  */
 void Flow::processDetectedProtocolData() {
   u_int16_t l7proto;
-  Host *cli_h = get_cli_host(), *srv_h = get_srv_host();;
+  Host *cli_h = NULL, *srv_h = NULL;
+  /*
+    Make sure to actual client and server to avoid setting wrong names (e.g., set the server name to the client)
+    https://github.com/ntop/ntopng/issues/5506
+   */
+  get_actual_peers(&cli_h, &srv_h);
 
   if(ndpiFlow == NULL)
     return;

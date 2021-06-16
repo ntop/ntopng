@@ -552,6 +552,16 @@ class Flow : public GenericHashEntry {
   inline bool is_swap_requested()  const { return swap_requested;  };
   inline bool is_swap_done()       const { return swap_done;       };
   inline void set_swap_done()            { swap_done = true;       };
+  /*
+    Returns actual client and server, that is the client and server as determined after
+    the swap heuristic that has taken place.
+   */
+  inline void get_actual_peers(Host **actual_client, Host **actual_server) const {
+    if(is_swap_requested())
+      *actual_client = get_srv_host(), *actual_server = get_cli_host();
+    else
+      *actual_client = get_cli_host(), *actual_server = get_srv_host();
+  };
   bool is_hash_entry_state_idle_transition_ready() const;
   void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial,
 				   bool first_partial, const struct timeval *tv) const;
