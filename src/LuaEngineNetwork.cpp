@@ -139,7 +139,7 @@ static int ntop_network_release_triggered_alert(lua_State* vm) {
 /* **************************************************************** */
 
 static luaL_Reg _ntop_network_reg[] = {
-/* Public User Scripts API, documented at doc/src/api/lua_c/network_user_scripts/network.lua */
+/* Public User Scripts API, documented at doc/src/api/lua_c/network_checks/network.lua */
   { "getNetworkStats",          ntop_network_get_network_stats       },
 /* END Public API */
 

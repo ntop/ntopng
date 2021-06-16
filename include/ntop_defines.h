@@ -911,13 +911,13 @@
 #define SECOND_SCRIPT_PATH                   "second.lua"
 #define MINUTE_SCRIPT_PATH                   "minute.lua"
 #define STATS_UPDATE_SCRIPT_PATH             "stats_update.lua"
-#define PERIODIC_USER_SCRIPTS_PATH           "periodic_user_scripts.lua"
+#define PERIODIC_CHECKS_PATH           "periodic_checks.lua"
 #define THIRTY_SECONDS_SCRIPT_PATH           "30sec.lua"
 #define FIVE_MINUTES_SCRIPT_PATH             "5min.lua"
 #define HOURLY_SCRIPT_PATH                   "hourly.lua"
 #define DAILY_SCRIPT_PATH                    "daily.lua"
 
-#define CHECKS_CONFIG                        "ntopng.prefs.checks.configset_v1"  /* Sync with user_scripts.lua CONFIGSET_KEY  */
+#define CHECKS_CONFIG                        "ntopng.prefs.checks.configset_v1"  /* Sync with checks.lua CONFIGSET_KEY  */
 #define SYSLOG_SCRIPT_PATH                   "callbacks/system/syslog.lua"
 #define SYSLOG_SCRIPT_CALLBACK_EVENT         "handleEvent"
 

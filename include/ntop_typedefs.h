@@ -63,7 +63,7 @@ typedef struct {
   struct timeval *tv;
   time_t deadline;
   bool no_time_left;
-  bool skip_user_scripts;
+  bool skip_checks;
   ThreadedActivityStats *thstats;
   u_int32_t cur_entries;
   u_int32_t tot_entries;

@@ -119,7 +119,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   
 
   /* Queues for the execution of flow user scripts.
-     See scripts/plugins/examples/example/user_scripts/flow/example.lua for the checks
+     See scripts/plugins/examples/example/checks/flow/example.lua for the checks
    */
   SPSCQueue<FlowAlert *> *flowAlertsQueue;
   SPSCQueue<HostAlertReleasedPair> *hostAlertsQueue;
