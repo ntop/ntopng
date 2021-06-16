@@ -11,7 +11,7 @@ local graph_utils = require "graph_utils"
 local os_utils = require "os_utils"
 local top_talkers_utils = require "top_talkers_utils"
 local ts_utils = require("ts_utils_core")
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 require("ts_minute")
 
 local ts_custom
@@ -310,15 +310,15 @@ end
 
 -- ########################################################
 
-local function update_internals_user_scripts_stats(when, ifid, verbose)
+local function update_internals_checks_stats(when, ifid, verbose)
   -- NOTE: flow scripts are monitored in 5sec.lua
   local all_scripts = {
-    host = user_scripts.script_types.traffic_element,
-    interface = user_scripts.script_types.traffic_element,
-    network = user_scripts.script_types.traffic_element,
+    host = checks.script_types.traffic_element,
+    interface = checks.script_types.traffic_element,
+    network = checks.script_types.traffic_element,
   }
 
-  user_scripts.ts_dump(when, ifid, verbose, "elem_user_script", all_scripts)
+  checks.ts_dump(when, ifid, verbose, "elem_check", all_scripts)
 end
 
 -- ########################################################
@@ -348,7 +348,7 @@ end
 function ts_dump.run_min_dump(_ifname, ifstats, config, when)
   dumpTopTalkers(_ifname, ifstats, verbose)
 
-  user_scripts.schedulePeriodicScripts("min")
+  checks.schedulePeriodicScripts("min")
 
   local iface_rrd_creation_enabled = areInterfaceTimeseriesEnabled(ifstats.id)
 
@@ -394,7 +394,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, config, when)
      update_internals_hash_tables_stats(when, ifstats, verbose)
 
      -- Save the traffic elements user scripts stats
-     update_internals_user_scripts_stats(when, ifstats.id, verbose)
+     update_internals_checks_stats(when, ifstats.id, verbose)
      
      -- Save duration of periodic activities
      ts_dump.update_internals_periodic_activities_stats(when, ifstats, verbose)

@@ -593,14 +593,14 @@ page_utils.add_menubar_section(
 	 },
 	 {
 	    entry = page_utils.menu_entries.scripts_config,
-	    section = page_utils.menu_sections.user_scripts,
-	    hidden = not is_admin or not auth.has_capability(auth.capabilities.user_scripts),
+	    section = page_utils.menu_sections.checks,
+	    hidden = not is_admin or not auth.has_capability(auth.capabilities.checks),
 	    url = '/lua/admin/edit_configset.lua?subdir=host',
 	 },
 	 {
 	    entry = page_utils.menu_entries.alert_exclusions,
-	    section = page_utils.menu_sections.user_scripts,
-	    hidden = not is_admin or not auth.has_capability(auth.capabilities.user_scripts),
+	    section = page_utils.menu_sections.checks,
+	    hidden = not is_admin or not auth.has_capability(auth.capabilities.checks),
 	    url = '/lua/admin/edit_alert_exclusions.lua?subdir=host',
 	 },
          {
@@ -663,8 +663,8 @@ if not info.oem and auth.has_capability(auth.capabilities.developer) then
 	       url = '/lua/plugins_overview.lua',
 	    },
 	    {
-	       entry = page_utils.menu_entries.user_scripts_dev,
-	       url = '/lua/user_scripts_overview.lua',
+	       entry = page_utils.menu_entries.checks_dev,
+	       url = '/lua/checks_overview.lua',
 	    },
 	    {
 	       entry = page_utils.menu_entries.alert_definitions,

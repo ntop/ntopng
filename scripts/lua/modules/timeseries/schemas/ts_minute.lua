@@ -24,19 +24,19 @@ schema:addMetric("drops")
 -- TRAFFIC ELEMENTS USER SCRIPTS SCHEMAS
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("elem_user_script:duration", {step = 60, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("elem_check:duration", {step = 60, metrics_type = ts_utils.metrics.gauge})
 schema:addTag("ifid")
-schema:addTag("user_script")
+schema:addTag("check")
 schema:addTag("subdir")
 schema:addMetric("num_ms")
 
-schema = ts_utils.newSchema("elem_user_script:num_calls", {step = 60, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("elem_check:num_calls", {step = 60, metrics_type = ts_utils.metrics.gauge})
 schema:addTag("ifid")
-schema:addTag("user_script")
+schema:addTag("check")
 schema:addTag("subdir")
 schema:addMetric("num_calls")
 
-schema = ts_utils.newSchema("elem_user_script:total_stats", {step = 60, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("elem_check:total_stats", {step = 60, metrics_type = ts_utils.metrics.gauge})
 schema:addTag("ifid")
 schema:addTag("subdir")
 schema:addMetric("num_ms")

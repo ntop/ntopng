@@ -20,7 +20,7 @@ local auth = require "auth"
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-if not auth.has_capability(auth.capabilities.user_scripts) then
+if not auth.has_capability(auth.capabilities.checks) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end

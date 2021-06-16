@@ -5,7 +5,7 @@ local dirs = ntop.getDirs()
 
 require "lua_utils"
 local alert_severities = require "alert_severities"
-local user_scripts = require "user_scripts"
+local checks = require "checks"
 
 -- ##############################################
 
@@ -15,7 +15,7 @@ local recipients_rest_utils = {}
 
 -- @brief Parses and validates a comma-separated list of user script category ids into a lua array
 -- @return A lua array of valid user script category ids
-function recipients_rest_utils.parse_user_script_categories(categories_string)
+function recipients_rest_utils.parse_check_categories(categories_string)
    local categories = {}
 
     if isEmptyString(categories_string) then return categories end
@@ -27,7 +27,7 @@ function recipients_rest_utils.parse_user_script_categories(categories_string)
     for _, category_id in pairs(categories) do
        local category_id = tonumber(category_id)
 
-       for _, category in pairs(user_scripts.script_categories) do
+       for _, category in pairs(checks.script_categories) do
 	  if category_id == category.id then
 	     res[#res + 1] = category_id
 	     break

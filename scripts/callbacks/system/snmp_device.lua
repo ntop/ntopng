@@ -13,7 +13,7 @@ local snmp_utils = require "snmp_utils"
 local snmp_consts = require "snmp_consts"
 
 local alerts_api = require("alerts_api")
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 local alert_consts = require("alert_consts")
 local snmp_config = require "snmp_config"
 local snmp_cached_dev = require "snmp_cached_dev"
@@ -38,11 +38,11 @@ function setup(str_granularity)
    local ifname = getInterfaceName(tostring(ifid))
 
    -- Load the threshold checking functions
-   available_modules = user_scripts.load(ifid, user_scripts.script_types.snmp_device, "snmp_device", {
+   available_modules = checks.load(ifid, checks.script_types.snmp_device, "snmp_device", {
       do_benchmark = do_benchmark,
    })
 
-   configset = user_scripts.getConfigset()
+   configset = checks.getConfigset()
    -- Instance of snmp device pools to get assigned members
    pools_instance = snmp_device_pools:create()
 end
@@ -53,14 +53,14 @@ end
 function teardown(str_granularity)
    if(do_trace) then print("alert.lua:teardown("..str_granularity..") called\n") end
 
-   user_scripts.teardown(available_modules, do_benchmark, do_print_benchmark)
+   checks.teardown(available_modules, do_benchmark, do_print_benchmark)
 end
 
 -- #################################################################
 
 local cur_granularity
 
-local function snmp_device_run_user_scripts(cached_device)
+local function snmp_device_run_checks(cached_device)
    local granularity = cur_granularity
    local device_ip  = cached_device["host_ip"]
    local snmp_device_entity = alerts_api.snmpDeviceEntity(device_ip)
@@ -71,18 +71,18 @@ local function snmp_device_run_user_scripts(cached_device)
    local info = {
       granularity = granularity,
       alert_entity = snmp_device_entity,
-      user_script = check,
+      check = check,
       cached_device = cached_device,
       now = now,
    }
 
    -- Retrieve the configuration
-   local device_conf = user_scripts.getConfig(configset, "snmp_device")
+   local device_conf = checks.getConfig(configset, "snmp_device")
 
    -- Run callback for each device
    for mod_key, hook_fn in pairs(available_modules.hooks["snmpDevice"] or {}) do
       local script = all_modules[mod_key]
-      local conf = user_scripts.getTargetHookConfig(device_conf, script)
+      local conf = checks.getTargetHookConfig(device_conf, script)
 
       if(conf.enabled) then
         alerts_api.invokeScriptHook(script, configset, hook_fn, device_ip, info, conf)
@@ -92,7 +92,7 @@ local function snmp_device_run_user_scripts(cached_device)
    -- Run callback for each interface
    for mod_key, hook_fn in pairs(available_modules.hooks["snmpDeviceInterface"] or {}) do
       local script = all_modules[mod_key]
-      local conf = user_scripts.getTargetHookConfig(device_conf, script)
+      local conf = checks.getTargetHookConfig(device_conf, script)
 
       -- For each interface of the current device...
       for snmp_interface_index, snmp_interface in pairs(cached_device.interfaces) do
@@ -112,7 +112,7 @@ local function snmp_device_run_user_scripts(cached_device)
 	    alerts_api.invokeScriptHook(script, configset, hook_fn, device_ip, snmp_interface_index, table.merge(snmp_interface, {
 	       granularity = granularity,
 	       alert_entity = iface_entity,
-	       user_script = script,
+	       check = script,
 	       conf = conf.script_conf,
 	       now = now,
 	    }))
@@ -144,7 +144,7 @@ function runScripts(granularity)
       local cached_device = snmp_cached_dev:create(device_ip)
 
       if cached_device then
-	 snmp_device_run_user_scripts(cached_device)
+	 snmp_device_run_checks(cached_device)
       end
    end
 end

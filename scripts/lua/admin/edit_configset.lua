@@ -13,14 +13,14 @@ local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
 local template = require "template_utils"
-local user_scripts = require "user_scripts"
+local checks = require "checks"
 local json = require "dkjson"
 local discover = require "discover_utils"
 local rest_utils = require "rest_utils"
 local auth = require "auth"
-local user_scripts_utils = require("user_scripts_utils")
+local checks_utils = require("checks_utils")
 
-if not auth.has_capability(auth.capabilities.user_scripts) then
+if not auth.has_capability(auth.capabilities.checks) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end
@@ -29,13 +29,13 @@ sendHTTPContentTypeHeader('text/html')
 
 -- get config parameters like the id and name
 local script_subdir = _GET["subdir"]
-local script_filter = _GET["user_script"]
+local script_filter = _GET["check"]
 local search_filter = _GET["search_script"]
 
-local configset = user_scripts.getConfigset()
-local script_type = user_scripts.getScriptType(script_subdir)
+local configset = checks.getConfigset()
+local script_type = checks.getScriptType(script_subdir)
 
-local scripts = user_scripts.load(getSystemInterfaceId(), script_type, script_subdir)
+local scripts = checks.load(getSystemInterfaceId(), script_type, script_subdir)
 
 if not haveAdminPrivileges() or not configset then
   return
@@ -44,7 +44,7 @@ end
 local confset_name = configset.name
 
 -- create a table that holds localization about hooks name
-local titles = user_scripts_utils.load_configset_titles()
+local titles = checks_utils.load_configset_titles()
 
 local sub_menu_entries = {
   ['host'] = {
@@ -101,10 +101,10 @@ end
 
 apps_and_categories = {cat_groups, app_groups}
 
---tprint(user_scripts.script_categories)
+--tprint(checks.script_categories)
 local script_categories = {}
 for script_name, script in pairs(scripts.modules) do
-   for cat_k, cat_v in pairs(user_scripts.script_categories) do
+   for cat_k, cat_v in pairs(checks.script_categories) do
       if script["category"]["id"] == cat_v["id"] and not script_categories[cat_k] then
       script_categories[cat_k] = cat_v
       break
@@ -136,7 +136,7 @@ for key, sub_menu in pairsByField(sub_menu_entries, 'order', asc) do
   }
 end
 
-page_utils.print_navbar(i18n("internals.user_scripts"), '#', navbar_menu)
+page_utils.print_navbar(i18n("internals.checks"), '#', navbar_menu)
 
 local context = {
    script_list = {

@@ -5,7 +5,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local pools                     = require("pools")
-local user_script_utils         = require("user_scripts")
+local check_utils         = require("checks")
 local endpoint_configs          = require("endpoints")
 local recipients_manager        = require("recipients")
 local page_utils                = require('page_utils')
@@ -28,7 +28,7 @@ local IS_ADMIN = isAdministrator()
 local IS_SYSTEM_INTERFACE = page_utils.is_system_view()
 local IS_PCAP_DUMP = interface.isPcapDumpInterface()
 local IS_PACKET_INTERFACE = interface.isPacketInterface()
-local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.user_scripts.unexpected_plugins_enabled"
+local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.checks.unexpected_plugins_enabled"
 
 local predicates = {}
 
@@ -645,8 +645,8 @@ function predicates.unexpected_plugins(toast, container)
     local url = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua?subdir=flow&search_script=unexpected#disabled"
 
     -- TODO: missing documentation links
-    local title = i18n("user_scripts.hint.title")
-    local body = i18n("user_scripts.hint.body", {
+    local title = i18n("checks.hint.title")
+    local body = i18n("checks.hint.body", {
         link_DHCP = "https://ntop.org",
         link_SMTP = "https://ntop.org",
         link_DNS = "https://ntop.org",

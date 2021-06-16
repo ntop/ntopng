@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" ..
 
 
 require "lua_utils"
-local user_scripts = require "user_scripts"
+local checks = require "checks"
 local recipients_mod = require "recipients"
 local json = require "dkjson"
 local ntop_info = ntop.getInfo()
@@ -580,7 +580,7 @@ function pools:get_pool(pool_id, recipient_details)
 			 if recipient and recipient.recipient_name then
 			    -- Keep in in sync with overridden method in host_pool.lua
 			    res["recipient_name"] = recipient.recipient_name
-			    res["recipient_user_script_categories"] = recipient.user_script_categories
+			    res["recipient_check_categories"] = recipient.check_categories
 			    res["recipient_minimum_severity"] = recipient.minimum_severity
 			 end
 		      end

@@ -31,21 +31,21 @@ schema:addMetric("num_ts") -- Number of timeseries currently in the queue
 -- FLOW USER SCRIPTS SCHEMAS
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("flow_user_script:duration", {step = 5, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("flow_check:duration", {step = 5, metrics_type = ts_utils.metrics.gauge})
 schema:addTag("ifid")
-schema:addTag("user_script")
+schema:addTag("check")
 schema:addTag("subdir")
 schema:addMetric("num_ms")
 
-schema = ts_utils.newSchema("flow_user_script:num_calls", {step = 5, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("flow_check:num_calls", {step = 5, metrics_type = ts_utils.metrics.gauge})
 schema:addTag("ifid")
-schema:addTag("user_script")
-schema:addTag("subdir") -- NOTE: needed by user_scripts.ts_dump
+schema:addTag("check")
+schema:addTag("subdir") -- NOTE: needed by checks.ts_dump
 schema:addMetric("num_calls")
 
-schema = ts_utils.newSchema("flow_user_script:total_stats", {step = 5, metrics_type = ts_utils.metrics.gauge})
+schema = ts_utils.newSchema("flow_check:total_stats", {step = 5, metrics_type = ts_utils.metrics.gauge})
 schema:addTag("ifid")
-schema:addTag("subdir") -- NOTE: needed by user_scripts.ts_dump
+schema:addTag("subdir") -- NOTE: needed by checks.ts_dump
 schema:addMetric("num_ms")
 schema:addMetric("num_calls")
 

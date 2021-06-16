@@ -661,7 +661,7 @@
         const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
             method: 'post',
             csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}/lua/rest/v1/edit/user_script/filter.lua`,
+            endpoint: `${http_prefix}/lua/rest/v1/edit/check/filter.lua`,
             beforeSumbit: function (alert) {
 
                 const data = {

@@ -15,7 +15,7 @@ local alert_store_utils = require "alert_store_utils"
 
 -- ########################################################
 
-local k = string.format("ntopng.cache.ifid_%i.user_scripts.request.granularity_hourly", interface.getId())
+local k = string.format("ntopng.cache.ifid_%i.checks.request.granularity_hourly", interface.getId())
 ntop.setCache(k, "1")
 
 -- ########################################################

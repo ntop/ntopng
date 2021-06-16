@@ -91,12 +91,12 @@ if tags.ifid then
   interface.select(tags.ifid)
 end
 
-if((ts_schema == "top:flow_user_script:duration")
-    or (ts_schema == "top:elem_user_script:duration")
-    or (ts_schema == "custom:flow_user_script:total_stats")
-    or (ts_schema == "custom:elem_user_script:total_stats")) then
+if((ts_schema == "top:flow_check:duration")
+    or (ts_schema == "top:elem_check:duration")
+    or (ts_schema == "custom:flow_check:total_stats")
+    or (ts_schema == "custom:elem_check:total_stats")) then
   -- NOTE: Temporary fix for top user scripts page
-  tags.user_script = nil
+  tags.check = nil
 end
 
 local function performQuery(tstart, tend, keep_total, additional_options)

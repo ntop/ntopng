@@ -28,10 +28,10 @@ local default_builtin_minimum_severity = alert_severities.notice.severity_id -- 
 
 -- ##############################################
 
-local function _bitmap_from_user_script_categories(user_script_categories)
+local function _bitmap_from_check_categories(check_categories)
    local bitmap = 0
 
-   for _, category_id in ipairs(user_script_categories) do
+   for _, category_id in ipairs(check_categories) do
       bitmap = bitmap | (1 << category_id)
    end
 
@@ -42,11 +42,11 @@ end
 
 -- @brief Performs Initialization operations performed during startup
 function recipients.initialize()
-   local user_scripts = require "user_scripts"
+   local checks = require "checks"
    -- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
    -- For each builtin configuration type, a configuration and a recipient is created
    local all_categories = {}
-   for _, category in pairs(user_scripts.script_categories) do
+   for _, category in pairs(checks.script_categories) do
       all_categories[#all_categories + 1] = category.id
    end
    
@@ -79,7 +79,7 @@ function recipients.initialize()
    -- Register all existing recipients in C to make sure ntopng can start with all the
    -- existing recipients properly loaded and ready for notification enqueues/dequeues
    for _, recipient in pairs(recipients.get_all_recipients()) do
-      ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, _bitmap_from_user_script_categories(recipient.user_script_categories))
+      ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, _bitmap_from_check_categories(recipient.check_categories))
    end
 
    -- Now specify which recipients are "flow" and "host" recipients and tell this information to C++
@@ -247,17 +247,17 @@ end
 -- @brief Set a configuration along with its params. Configuration name and params must be already sanitized
 -- @param endpoint_id An integer identifier of the endpoint
 -- @param endpoint_recipient_name A string with the recipient name
--- @param user_script_categories A Lua array with already-validated ids as found in `user_scripts.script_categories` or nil to indicate all categories
+-- @param check_categories A Lua array with already-validated ids as found in `checks.script_categories` or nil to indicate all categories
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param safe_params A table with endpoint recipient params already sanitized
 -- @return nil
-local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
+local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, minimum_severity, safe_params)
    -- Write the endpoint recipient config into another hash
    local k = _get_recipient_details_key(recipient_id)
 
    ntop.setCache(k, json.encode({endpoint_id = endpoint_id,
 				 recipient_name = endpoint_recipient_name,
-				 user_script_categories = user_script_categories,
+				 check_categories = check_categories,
 				 minimum_severity = minimum_severity,
 				 recipient_params = safe_params}))
 
@@ -269,12 +269,12 @@ end
 -- @brief Add a new recipient of an existing endpoint configuration and returns its id
 -- @param endpoint_id An integer identifier of the endpoint
 -- @param endpoint_recipient_name A string with the recipient name
--- @param user_script_categories A Lua array with already-validated ids as found in `user_scripts.script_categories` or nil to indicate all categories
+-- @param check_categories A Lua array with already-validated ids as found in `checks.script_categories` or nil to indicate all categories
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param bind_to_all_pools A boolean indicating whether this recipient should be bound to all existing pools
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
-function recipients.add_recipient(endpoint_id, endpoint_recipient_name, user_script_categories, minimum_severity, bind_to_all_pools, recipient_params)
+function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, minimum_severity, bind_to_all_pools, recipient_params)
    local locked = _lock()
    local res = { status = "failed" }
 
@@ -300,10 +300,10 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, user_scr
 	       -- Assign the recipient id
 	       local recipient_id = _assign_recipient_id()
 	       -- Persist the configuration
-	       _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
+	       _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, minimum_severity, safe_params)
 
 	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
-	       ntop.recipient_register(recipient_id, minimum_severity, _bitmap_from_user_script_categories(user_script_categories))
+	       ntop.recipient_register(recipient_id, minimum_severity, _bitmap_from_check_categories(check_categories))
 
 	       -- Set a flag to indicate that a recipient has been created
 	       if not ec.endpoint_conf.builtin and isEmptyString(ntop.getPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY)) then
@@ -332,11 +332,11 @@ end
 -- @brief Edit the recipient parameters of an existing endpoint configuration
 -- @param recipient_id The integer recipient identificator
 -- @param endpoint_recipient_name A string with the recipient name
--- @param user_script_categories A Lua array with already-validated ids as found in `user_scripts.script_categories` or nil to indicate all categories
+-- @param check_categories A Lua array with already-validated ids as found in `checks.script_categories` or nil to indicate all categories
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function recipients.edit_recipient(recipient_id, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
+function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_categories, minimum_severity, recipient_params)
    local locked = _lock()
    local res = { status = "failed" }
 
@@ -364,13 +364,13 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, user_s
 		  rc["endpoint_id"],
 		  recipient_id,
 		  endpoint_recipient_name,
-		  user_script_categories,
+		  check_categories,
 		  minimum_severity,
 		  safe_params)
 
 	       -- Finally, register the recipient in C to make sure also the C knows about this edit
 	       -- and periodic scripts can be reloaded
-	       ntop.recipient_register(tonumber(recipient_id), minimum_severity, _bitmap_from_user_script_categories(user_script_categories))
+	       ntop.recipient_register(tonumber(recipient_id), minimum_severity, _bitmap_from_check_categories(check_categories))
 
 	       res = {status = "OK"}
 	    end
@@ -530,14 +530,14 @@ function recipients.get_recipient(recipient_id, include_stats)
 	 recipient_details["endpoint_id"] =  ec["endpoint_id"]
 
 	 -- Add user script categories. nil or empty user script categories read from the JSON imply ANY AVAILABLE category
-	 if not recipient_details["user_script_categories"] or #recipient_details["user_script_categories"] == 0 then
-	    if not recipient_details["user_script_categories"] then
-	       recipient_details["user_script_categories"] = {}
+	 if not recipient_details["check_categories"] or #recipient_details["check_categories"] == 0 then
+	    if not recipient_details["check_categories"] then
+	       recipient_details["check_categories"] = {}
 	    end
 
-	    local user_scripts = require "user_scripts"
-	    for _, category in pairs(user_scripts.script_categories) do
-	       recipient_details["user_script_categories"][#recipient_details["user_script_categories"] + 1] = category.id
+	    local checks = require "checks"
+	    for _, category in pairs(checks.script_categories) do
+	       recipient_details["check_categories"][#recipient_details["check_categories"] + 1] = category.id
 	    end
 	 end
 

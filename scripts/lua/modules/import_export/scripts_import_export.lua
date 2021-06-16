@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" ..
 require "lua_utils" 
 local import_export = require "import_export"
 local json = require "dkjson"
-local user_scripts = require "user_scripts"
+local checks = require "checks"
 local rest_utils = require "rest_utils"
 
 -- ##############################################
@@ -55,7 +55,7 @@ function scripts_import_export:import(conf)
    -- Import the default config_set only (others are deprecated)
    -- This used to be: for config_id, config_set in pairs(conf) do
 
-   local success = user_scripts.createOrReplaceConfigset(config_set)
+   local success = checks.createOrReplaceConfigset(config_set)
 
    if not success then
       res.err = rest_utils.consts.err.internal_error
@@ -75,7 +75,7 @@ end
 function scripts_import_export:export()
    local conf = {}
 
-   conf[user_scripts.DEFAULT_CONFIGSET_ID] = user_scripts.getConfigset()
+   conf[checks.DEFAULT_CONFIGSET_ID] = checks.getConfigset()
 
    return conf
 end
@@ -84,7 +84,7 @@ end
 
 -- @brief Reset configuration
 function scripts_import_export:reset()
-   user_scripts.resetConfigset()
+   checks.resetConfigset()
 end
 
 -- ##############################################

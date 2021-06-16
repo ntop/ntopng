@@ -54,7 +54,7 @@
                             <b>{{ i18n("endpoint_notifications.recipient_category") }}</b>
                         </label>
                         <div class="col-sm-5">
-                            <select multiple name="recipient_user_script_categories" class="selectpicker" id="edit-recipient-categories-select">
+                            <select multiple name="recipient_check_categories" class="selectpicker" id="edit-recipient-categories-select">
                                 {% for _, category in pairsByKeys(script_categories) do %}
                                     <option value="{{ category.id }}">{{ i18n(category.i18n_title) }}</option>
                                 {% end %}

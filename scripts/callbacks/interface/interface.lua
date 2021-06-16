@@ -10,7 +10,7 @@ local alert_utils = require "alert_utils"
 local interface_pools = require "interface_pools"
 
 local alerts_api = require("alerts_api")
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 local alert_consts = require("alert_consts")
 
 local do_benchmark = false         -- Compute benchmarks and store their results
@@ -31,16 +31,16 @@ function setup(str_granularity)
    local ifname = interface.setActiveInterfaceId(ifid)
 
    -- Load the check modules
-   available_modules = user_scripts.load(ifid, user_scripts.script_types.traffic_element, "interface", {
+   available_modules = checks.load(ifid, checks.script_types.traffic_element, "interface", {
       hook_filter = str_granularity,
       do_benchmark = do_benchmark,
    })
 
-   configset = user_scripts.getConfigset()
+   configset = checks.getConfigset()
    -- Instance of local network pools to get assigned members
    pools_instance = interface_pools:create()
    -- Retrieve the configuration associated to the confset
-   iface_config = user_scripts.getConfig(configset, "interface")
+   iface_config = checks.getConfig(configset, "interface")
 end
 
 -- #################################################################
@@ -49,7 +49,7 @@ end
 function teardown(str_granularity)
    if(do_trace) then print("alert.lua:teardown("..str_granularity..") called\n") end
 
-   user_scripts.teardown(available_modules, do_benchmark, do_print_benchmark)
+   checks.teardown(available_modules, do_benchmark, do_print_benchmark)
 end
 
 -- #################################################################
@@ -71,17 +71,17 @@ function runScripts(granularity)
    if(do_trace) then print("checkInterfaceAlerts()\n") end
 
    for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
-     local user_script = available_modules.modules[mod_key]
-     local conf = user_scripts.getTargetHookConfig(iface_config, user_script, granularity)
+     local check = available_modules.modules[mod_key]
+     local conf = checks.getTargetHookConfig(iface_config, check, granularity)
 
      if(conf.enabled) then
-	alerts_api.invokeScriptHook(user_script, configset, hook_fn, {
+	alerts_api.invokeScriptHook(check, configset, hook_fn, {
 				       granularity = granularity,
 				       alert_entity = entity_info,
 				       entity_info = info,
 				       cur_alerts = cur_alerts,
-				       user_script_config = conf.script_conf,
-				       user_script = user_script,
+				       check_config = conf.script_conf,
+				       check = check,
 	})
       end
    end

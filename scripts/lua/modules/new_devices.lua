@@ -8,7 +8,7 @@ local rest_utils = require("rest_utils")
 
 local new_devices = {}
 
-local redis_key = "ntopng.cache.user_scripts.unexpected_new_device_plugins_enabled"
+local redis_key = "ntopng.cache.checks.unexpected_new_device_plugins_enabled"
 
 -- ################################################################
 

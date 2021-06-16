@@ -1,7 +1,7 @@
 --
 -- (C) 2020-21 - ntop.org
 --
--- This file contains the user_script constats
+-- This file contains the check constats
 
 local periodic_activities_utils = {}
 
@@ -12,7 +12,7 @@ periodic_activities_utils.periodic_activities = {
    -- Keep in sync with PeriodicActivities.cpp
    ["stats_update.lua"]            = { max_duration =    10 },
    ["dequeue_flows_for_hooks.lua"] = { max_duration =  3600 },
-   ["periodic_user_scripts.lua"]   = { max_duration =    60 },
+   ["periodic_checks.lua"]   = { max_duration =    60 },
    ["minute.lua"]                  = { max_duration =    60 },
    ["5min.lua"]                    = { max_duration =   300 },
    ["hourly.lua"]                  = { max_duration =   600 },

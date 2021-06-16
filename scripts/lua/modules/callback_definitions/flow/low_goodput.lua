@@ -2,7 +2,7 @@
 -- (C) 2019-21 - ntop.org
 --
 
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 local alerts_api = require "alerts_api"
 local alert_consts = require "alert_consts"
 local flow_alert_keys = require "flow_alert_keys"
@@ -13,7 +13,7 @@ local script = {
   packet_interface_only = true,
   
   -- Script category
-  category = user_scripts.script_categories.network,
+  category = checks.script_categories.network,
 
   packet_interface_only = true,
   nedge_exclude = true,
@@ -25,7 +25,7 @@ local script = {
     
   },
   
-  -- For a full list check "available_subdir.flow.available_fields" in user_scripts.lua
+  -- For a full list check "available_subdir.flow.available_fields" in checks.lua
   filter = {
      default_filters = {
 	{ l7_proto =   8 }, -- MDNS

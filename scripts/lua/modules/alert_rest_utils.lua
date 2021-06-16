@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
-local user_scripts = require "user_scripts"
+local checks = require "checks"
 local alert_utils = require "alert_utils"
 local alert_consts = require "alert_consts"
 local auth = require "auth"
@@ -32,7 +32,7 @@ function _exclude_flow_alert(additional_filters, delete_alerts, subdir)
       if alert_addr then
 	 if alert_addr == "" then
 	    -- Disable for "All", so toggle the user script to OFF
-	    user_scripts.toggleScript(script_key, subdir, false --[[ turn it off --]])
+	    checks.toggleScript(script_key, subdir, false --[[ turn it off --]])
 	 elseif subdir == "flow" then
 	    -- Disable for a specific address, need to just turn off the alert
 	    alert_exclusions.disable_flow_alert(alert_addr, alert_key)
@@ -89,7 +89,7 @@ end
 -- #################################
 
 function alert_rest_utils.get_alert_exclusions(subdir, host)
-   if not auth.has_capability(auth.capabilities.user_scripts) then
+   if not auth.has_capability(auth.capabilities.checks) then
       -- Not allowed to see alert exclusions
       rest_utils.answer(rest_utils.consts.err.not_granted)
       return
@@ -107,12 +107,12 @@ function alert_rest_utils.get_alert_exclusions(subdir, host)
       return
    end
 
-   local script_type = user_scripts.getScriptType(subdir)
-   local config_set = user_scripts.getConfigset()
+   local script_type = checks.getScriptType(subdir)
+   local config_set = checks.getConfigset()
 
    -- ################################################
 
-   local scripts = user_scripts.load(getSystemInterfaceId(), script_type, subdir, {return_all = true})
+   local scripts = checks.load(getSystemInterfaceId(), script_type, subdir, {return_all = true})
    local result = {}
 
    for script_name, script in pairs(scripts.modules) do
@@ -142,7 +142,7 @@ function alert_rest_utils.get_alert_exclusions(subdir, host)
 		  excluded_host_name = excluded_host_name ~= excluded_host and excluded_host_name or '',
 		  category_title = i18n(script.category.i18n_title),
 		  category_icon = script.category.icon,
-		  edit_url = user_scripts.getScriptEditorUrl(script),
+		  edit_url = checks.getScriptEditorUrl(script),
 	       }
 	    end
 	 end
@@ -155,7 +155,7 @@ end
 -- #################################
 
 function alert_rest_utils.delete_alert_exclusions(subdir, host_ip, alert_key)
-   if not auth.has_capability(auth.capabilities.user_scripts) then
+   if not auth.has_capability(auth.capabilities.checks) then
       -- Not allowed to see alert exclusions
       rest_utils.answer(rest_utils.consts.err.not_granted)
       return
@@ -178,7 +178,7 @@ end
 -- #################################
 
 function alert_rest_utils.delete_all_alert_exclusions(subdir, host)
-   if not auth.has_capability(auth.capabilities.user_scripts) then
+   if not auth.has_capability(auth.capabilities.checks) then
       -- Not allowed to see alert exclusions
       rest_utils.answer(rest_utils.consts.err.not_granted)
       return

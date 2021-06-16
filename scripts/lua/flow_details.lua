@@ -48,7 +48,7 @@ local protos_utils = require("protos_utils")
 local discover = require("discover_utils")
 local json = require ("dkjson")
 local page_utils = require("page_utils")
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 
 local tls_cipher_suites = {
    TLS_NULL_WITH_NULL_NULL=0x000000,
@@ -1621,7 +1621,7 @@ print [[
         const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
             method: 'post',
             csrf: "]] print(ntop.getRandomCSRFValue()) print[[",
-            endpoint: `${http_prefix}/lua/rest/v1/edit/user_script/filter.lua`,
+            endpoint: `${http_prefix}/lua/rest/v1/edit/check/filter.lua`,
             beforeSumbit: function (alert) {
                 const data = {
                     alert_key: alert.alert_id,

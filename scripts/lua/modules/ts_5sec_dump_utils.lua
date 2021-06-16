@@ -5,7 +5,7 @@
 -- ########################################################
 
 local ts_utils = require("ts_utils_core")
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 local ts_dump = {}
 
 -- ########################################################
@@ -37,13 +37,13 @@ end
 
 -- ########################################################
 
-local function update_user_scripts_stats(when, ifid, verbose)
+local function update_checks_stats(when, ifid, verbose)
   -- NOTE: interface/host/network scripts are monitored in minute.lua
   local all_scripts = {
-    flow = user_scripts.script_types.flow,
+    flow = checks.script_types.flow,
   }
 
-  user_scripts.ts_dump(when, ifid, verbose, "flow_user_script", all_scripts)
+  checks.ts_dump(when, ifid, verbose, "flow_check", all_scripts)
 end
 
 -- ########################################################
@@ -70,7 +70,7 @@ function ts_dump.run_5sec_dump(ifid, when, periodic_ht_state_update_stats)
    end
 
    iface_update_periodic_ht_state_update_stats(when, ifid, periodic_ht_state_update_stats)
-   update_user_scripts_stats(when, ifid, verbose)
+   update_checks_stats(when, ifid, verbose)
    ts_dump.update_rrd_queue_length(ifid, when)
 end
 

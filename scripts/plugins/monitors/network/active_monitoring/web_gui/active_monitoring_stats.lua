@@ -18,7 +18,7 @@ local am_pool = active_monitoring_pools:create()
 
 local graph_utils = require("graph_utils")
 local alert_utils = require("alert_utils")
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 local auth = require "auth"
 
 local ts_creation = plugins_utils.timeseriesCreationEnabled()
@@ -41,12 +41,12 @@ local url = base_url
 local info = ntop.getInfo()
 local measurement_info
 
-if (not user_scripts.isSystemScriptEnabled("active_monitoring")) then
+if (not checks.isSystemScriptEnabled("active_monitoring")) then
     -- The active monitoring is disabled
     print [[<div class="alert alert-warning" role="alert">]]
     print(i18n("host_config.active_monitor_enable", {
         url = ntop.getHttpPrefix() ..
-            '/lua/admin/edit_configset.lua?subdir=system&user_script=active_monitoring#all'
+            '/lua/admin/edit_configset.lua?subdir=system&check=active_monitoring#all'
     }))
     print [[</div>]]
 

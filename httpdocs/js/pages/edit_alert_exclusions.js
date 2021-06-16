@@ -3,7 +3,7 @@
 /* ******************************************************* */
 
 const reloadPageAfterPOST = () => {
-    if (location.href.indexOf("user_script=") > 0) {
+    if (location.href.indexOf("check=") > 0) {
 	/* Go back to the alerts page */
 	//location.href = page_url + location.hash;
 	window.history.back();

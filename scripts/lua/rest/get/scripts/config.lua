@@ -12,7 +12,7 @@ local json = require ("dkjson")
 local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
-local user_scripts = require "user_scripts"
+local checks = require "checks"
 
 if not haveAdminPrivileges() then
    sendHTTPContentTypeHeader('text/html')
@@ -27,6 +27,6 @@ sendHTTPContentTypeHeader('application/json', 'attachment; filename="scripts_con
 
 local conf = {}
 
-conf[user_scripts.DEFAULT_CONFIGSET_ID] = user_scripts.getConfigset()
+conf[checks.DEFAULT_CONFIGSET_ID] = checks.getConfigset()
 
 print(json.encode(conf, nil))

@@ -13,7 +13,7 @@ local host_pools_instance = host_pools:create()
 local callback_utils = require "callback_utils"
 local ts_utils = require "ts_utils_core"
 local format_utils = require "format_utils"
-local user_scripts = require "user_scripts"
+local checks = require "checks"
 require "ts_5min"
 
 -- Set to true to debug host timeseries points timestamps
@@ -709,7 +709,7 @@ end
 
 -- This performs all the 5 minutes tasks execept the timeseries dump
 function ts_dump.run_5min_tasks(_ifname, ifstats)
-  user_scripts.schedulePeriodicScripts("5mins")
+  checks.schedulePeriodicScripts("5mins")
 end
 
 -- ########################################################

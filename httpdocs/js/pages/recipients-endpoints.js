@@ -12,7 +12,7 @@ $(function () {
             recipient_name: $(`${formSelector} [name='recipient_name']`).val(),
             endpoint_id: $(`${formSelector} [name='endpoint']`).val(),
             recipient_minimum_severity: $(`${formSelector} [name='recipient_minimum_severity']`).val(),
-            recipient_user_script_categories: $(`${formSelector} [name='recipient_user_script_categories']`).val().join(","),
+            recipient_check_categories: $(`${formSelector} [name='recipient_check_categories']`).val().join(","),
             bind_to_all_pools: $(`${formSelector} [name='bind_to_all_pools']`).prop('checked')
         };
 
@@ -355,8 +355,8 @@ $(function () {
 		$(`#edit-recipient-modal form [name='recipient_name']`).attr('readonly', '');
             $(`#edit-recipient-modal form [name='endpoint_conf_name']`).val(recipient.endpoint_conf_name);
             $(`#edit-recipient-modal form [name='recipient_minimum_severity']`).val(recipient.minimum_severity);
-            $(`#edit-recipient-modal form [name='recipient_user_script_categories']`).val(recipient.user_script_categories);
-            $(`#edit-recipient-modal form [name='recipient_user_script_categories']`).selectpicker('refresh');
+            $(`#edit-recipient-modal form [name='recipient_check_categories']`).val(recipient.check_categories);
+            $(`#edit-recipient-modal form [name='recipient_check_categories']`).selectpicker('refresh');
             $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {
                 $(this).val(recipient.recipient_params[$(this).attr('name')]);
             });
@@ -465,7 +465,7 @@ $(function () {
             .then(() => { $self.removeAttr("disabled"); });
     });
 
-    $(`[name='recipient_user_script_categories']`).on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
+    $(`[name='recipient_check_categories']`).on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
 
         const lessThanOne = $(this).val().length < 1;
 

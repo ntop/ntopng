@@ -22,7 +22,7 @@ local telemetry_utils = require "telemetry_utils"
 local tracker = require "tracker"
 local alerts_api = require "alerts_api"
 local icmp_utils = require "icmp_utils"
-local user_scripts = require "user_scripts"
+local checks = require "checks"
 
 local shaper_utils = nil
 
@@ -442,7 +442,7 @@ function alert_utils.getConfigsetAlertLink(alert_json, alert --[[ optional --]])
       end
 
       return(' <a href="'.. ntop.getHttpPrefix() ..'/lua/admin/edit_configset.lua?'..
-	    'subdir='.. info.subdir ..'&user_script='.. info.script_key ..'#all">'..
+	    'subdir='.. info.subdir ..'&check='.. info.script_key ..'#all">'..
 	    '<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>')
    end
 

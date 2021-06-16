@@ -2,14 +2,14 @@
 -- (C) 2019-21 - ntop.org
 --
 
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 local host_alert_keys = require "host_alert_keys"
 
 -- #################################################################
 
 local score_anomaly = {
    -- Script category
-   category = user_scripts.script_categories.security,
+   category = checks.script_categories.security,
 
    default_enabled = true,
    alert_id = host_alert_keys.host_alert_score_anomaly,

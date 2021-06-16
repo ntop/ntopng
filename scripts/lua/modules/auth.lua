@@ -36,7 +36,7 @@ auth.capabilities = {
    active_monitoring = {id = 3, label = i18n("capabilities.active_monitoring")},
    preferences       = {id = 4, label = i18n("capabilities.preferences")},
    developer         = {id = 5, label = i18n("capabilities.developer")},
-   user_scripts      = {id = 6, label = i18n("capabilities.user_scripts")},
+   checks      = {id = 6, label = i18n("capabilities.checks")},
    flowdevices       = {id = 7, label = i18n("capabilities.flowdevices")},
    alerts            = {id = 8, label = i18n("capabilities.alerts")},
    historical_flows  = {id = 9, label = i18n("capabilities.historical_flows")},

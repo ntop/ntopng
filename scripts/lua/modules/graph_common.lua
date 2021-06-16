@@ -646,23 +646,23 @@ local locally_defined_custom_schemas = {
       bases = {"flow_script:skipped_calls", "flow_script:pending_calls", "flow_script:successful_calls"},
       types = {"area", "area", "line"},
       axis = {1, 1, 1},
-   }, ["custom:flow_user_script:vs_total"] = {
-      bases = {"flow_user_script:duration", "flow_user_script:total_stats", "flow_user_script:num_calls"},
+   }, ["custom:flow_check:vs_total"] = {
+      bases = {"flow_check:duration", "flow_check:total_stats", "flow_check:num_calls"},
       types = {"line", "line", "bar"},
       axis = {1, 1, 2},
-      tags_ignore = {nil, {user_script=1}},
+      tags_ignore = {nil, {check=1}},
       exclude = {nil, {num_calls=1}},
-   }, ["custom:elem_user_script:vs_total"] = {
-      bases = {"elem_user_script:duration", "elem_user_script:total_stats", "elem_user_script:num_calls"},
+   }, ["custom:elem_check:vs_total"] = {
+      bases = {"elem_check:duration", "elem_check:total_stats", "elem_check:num_calls"},
       types = {"line", "line", "bar"},
       axis = {1, 1, 2},
-      tags_ignore = {nil, {user_script=1}},
+      tags_ignore = {nil, {check=1}},
       exclude = {nil, {num_calls=1}},
-   }, ["custom:flow_user_script:total_stats"] = {
-      bases = {"flow_user_script:total_stats"},
+   }, ["custom:flow_check:total_stats"] = {
+      bases = {"flow_check:total_stats"},
       types = {"line"},
       axis = {1},
-      tags_ignore = {nil, {user_script=1}},
+      tags_ignore = {nil, {check=1}},
       exclude = {num_calls=1},
    },
 }

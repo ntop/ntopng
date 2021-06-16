@@ -12,7 +12,7 @@ local json = require ("dkjson")
 local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
-local user_scripts = require "user_scripts"
+local checks = require "checks"
 
 if not haveAdminPrivileges() then
    sendHTTPContentTypeHeader('text/html')
@@ -53,7 +53,7 @@ end
 
 for config_id, configset in pairs(data) do
   if configset.name ~= nil then
-    local success = user_scripts.createOrReplaceConfigset(configset)
+    local success = checks.createOrReplaceConfigset(configset)
 
     if not success then
       result.error = "internal-failure"

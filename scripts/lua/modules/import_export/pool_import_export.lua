@@ -9,7 +9,7 @@ require "lua_utils"
 local import_export = require "import_export"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
-local user_scripts = require "user_scripts"
+local checks = require "checks"
 local recipients_mod = require "recipients"
 
 local host_pools              = require "host_pools":create()

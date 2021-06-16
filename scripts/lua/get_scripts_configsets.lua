@@ -9,11 +9,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 local rest_utils = require "rest_utils"
 local auth = require "auth"
 
-if not auth.has_capability(auth.capabilities.user_scripts) then
+if not auth.has_capability(auth.capabilities.checks) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end
@@ -27,8 +27,8 @@ if(subdir == nil) then
   return
 end
 
-local script_type = user_scripts.script_types[subdir]
-local configset = user_scripts.getConfigset()
+local script_type = checks.script_types[subdir]
+local configset = checks.getConfigset()
 local rv = {}
 
 -- Only return the essential information

@@ -10,12 +10,12 @@ require "lua_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 local alert_consts = require("alert_consts")
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 local plugins_utils = require("plugins_utils")
 local graph_utils = require("graph_utils")
 local alert_utils = require("alert_utils")
 
-local probe = user_scripts.loadModule(getSystemInterfaceId(), user_scripts.script_types.system, "system", "influxdb_monitor")
+local probe = checks.loadModule(getSystemInterfaceId(), checks.script_types.system, "system", "influxdb_monitor")
 
 sendHTTPContentTypeHeader('text/html')
 

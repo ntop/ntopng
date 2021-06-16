@@ -3,7 +3,7 @@
 --
 
 local json = require ("dkjson")
-local user_scripts = require ("user_scripts")
+local checks = require ("checks")
 local alert_consts = require("alert_consts")
 local alerts_api = require "alerts_api"
 local flow_alert_keys = require "flow_alert_keys"

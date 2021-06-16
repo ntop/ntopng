@@ -463,12 +463,12 @@ function endpoints.add_configs_with_recipients(configs)
             -- Restore Recipients
             for _, recipient_conf in ipairs(conf.recipients) do
                local endpoint_recipient_name = recipient_conf.recipient_name
-               local user_script_categories = recipient_conf.user_script_categories
+               local check_categories = recipient_conf.check_categories
                local minimum_severity = recipient_conf.minimum_severity
                local recipient_params = recipient_conf.recipient_params
 
                ret = recipients.add_recipient(ret.endpoint_id, endpoint_recipient_name,
-					      user_script_categories, minimum_severity,
+					      check_categories, minimum_severity,
 					      false, -- Not necessary to bind to every pool: the restore takes care of tis automatically
 					      recipient_params)
 

@@ -36,7 +36,7 @@
         {% if isEmptyString(script_list.search_filter) then %}
         <div class="card-footer">
           <button id='btn-disable-all' disabled class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#disable-all-modal">
-            <i class='fas fa-toggle-off'></i> {{ i18n("user_scripts.disable_all") }}</button>
+            <i class='fas fa-toggle-off'></i> {{ i18n("checks.disable_all") }}</button>
         </div>
         {% end %}
       </div>
@@ -45,7 +45,7 @@
   <div class='notes bg-light border'>
     <b>{{ i18n('notes') }}</b>
     <ul>
-      <li> {{ i18n('user_scripts.categories') }}
+      <li> {{ i18n('checks.categories') }}
         <ul>
           {% for _, cat in pairsByKeys(script_categories) do %}
           <li> {* string.format("<i class='fa %s'></i> %s: %s", cat.icon, i18n(cat.i18n_title, {product=info.product}),
@@ -60,9 +60,9 @@
   script_list.template_utils.gen("modal_confirm_dialog.html", {
       dialog={
           id = "disable-all-modal",
-          message = i18n('user_scripts.disable_all_message'),
-          title = i18n('user_scripts.disable_all_user_scripts'),
-          confirm = i18n("user_scripts.disable_all"),
+          message = i18n('checks.disable_all_message'),
+          title = i18n('checks.disable_all_checks'),
+          confirm = i18n("checks.disable_all"),
           custom_alert_class = 'alert alert-danger',
           confirm_button = 'btn-danger',
       },

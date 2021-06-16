@@ -106,10 +106,10 @@ function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id, 
 	    local recipient_ok = false
 
 	    if current_script and current_script.category and current_script.category.id and 
-               recipient["recipient_user_script_categories"] ~= nil then
+               recipient["recipient_check_categories"] ~= nil then
 	       -- Make sure the user script category belongs to the recipient user script categories
-	       for _, user_script_category in pairs(recipient["recipient_user_script_categories"]) do
-		  if user_script_category == current_script.category.id then
+	       for _, check_category in pairs(recipient["recipient_check_categories"]) do
+		  if check_category == current_script.category.id then
 		     recipient_ok = true
 		  end
 	       end

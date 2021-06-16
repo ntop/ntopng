@@ -2,18 +2,18 @@
 -- (C) 2019-21 - ntop.org
 --
 
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 local alerts_api = require "alerts_api"
 local alert_consts = require("alert_consts")
 local flow_alert_keys = require "flow_alert_keys"
 
-local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.user_scripts.unexpected_plugins_enabled"
+local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.checks.unexpected_plugins_enabled"
 
 -- #################################################################
 
 local script = {
    -- Script category
-   category = user_scripts.script_categories.security,
+   category = checks.script_categories.security,
 
    -- This module is disabled by default
    default_enabled = false,

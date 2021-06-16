@@ -6,10 +6,10 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 local json = require "dkjson"
 
-local redis = user_scripts.loadModule(getSystemInterfaceId(), user_scripts.script_types.system, "system", "redis_monitor")
+local redis = checks.loadModule(getSystemInterfaceId(), checks.script_types.system, "system", "redis_monitor")
 
 sendHTTPContentTypeHeader('application/json')
 

@@ -47,8 +47,8 @@ function getSerieLabel(schema, serie, visualization, serie_index) {
       return serie.tags.ifname;
     else if(serie.tags.profile)
         return serie.tags.profile;
-    else if(serie.tags.user_script)
-      return serie.tags.user_script;
+    else if(serie.tags.check)
+      return serie.tags.check;
     else if(serie.tags.command)
       return serie.tags.command.substring(4).toUpperCase();
   } else if(data_label != "bytes") { // single series

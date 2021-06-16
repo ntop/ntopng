@@ -5,7 +5,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 
 local syslog_modules = nil
 local syslog_conf = nil
@@ -15,11 +15,11 @@ local syslog_conf = nil
 -- The function below ia called once (#pragma once)
 function setup()
    local ifid = interface.getId()
-   syslog_modules = user_scripts.load(ifid, user_scripts.script_types.syslog, "syslog")
+   syslog_modules = checks.load(ifid, checks.script_types.syslog, "syslog")
 
-   local configset = user_scripts.getConfigset()
+   local configset = checks.getConfigset()
    -- Configuration is global, system-wide
-   syslog_conf = user_scripts.getConfig(configset, "syslog")
+   syslog_conf = checks.getConfig(configset, "syslog")
 end
 
 -- #################################################################
@@ -43,7 +43,7 @@ function teardown()
       local script = all_modules[mod_name]
 
       if syslog_module.teardown ~= nil then
-          local conf = user_scripts.getTargetHookConfig(syslog_conf, script)
+          local conf = checks.getTargetHookConfig(syslog_conf, script)
 
           if conf.enabled then
             syslog_module.teardown(conf.script_conf)

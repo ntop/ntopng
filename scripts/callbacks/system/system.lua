@@ -8,7 +8,7 @@ require "lua_utils"
 local alert_utils = require "alert_utils"
 
 local alerts_api = require("alerts_api")
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 local alert_consts = require("alert_consts")
 
 local do_benchmark = false         -- Compute benchmarks and store their results
@@ -33,13 +33,13 @@ function setup(str_granularity)
    system_ts_enabled = areSystemTimeseriesEnabled()
 
    -- Load the threshold checking functions
-   available_modules = user_scripts.load(ifid, user_scripts.script_types.system, "system", {
+   available_modules = checks.load(ifid, checks.script_types.system, "system", {
       hook_filter = str_granularity,
       do_benchmark = do_benchmark,
    })
 
-   configset = user_scripts.getConfigset()
-   system_config = user_scripts.getConfig(configset, "system")
+   configset = checks.getConfigset()
+   system_config = checks.getConfig(configset, "system")
 end
 
 -- #################################################################
@@ -48,7 +48,7 @@ end
 function teardown(str_granularity)
    if(do_trace) then print("alert.lua:teardown("..str_granularity..") called\n") end
 
-   user_scripts.teardown(available_modules, do_benchmark, do_print_benchmark)
+   checks.teardown(available_modules, do_benchmark, do_print_benchmark)
 end
 
 -- #################################################################
@@ -70,16 +70,16 @@ function runScripts(granularity)
   --~ local cur_alerts = host.getAlerts(granularity_id)
 
   for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
-    local user_script = available_modules.modules[mod_key]
-    local conf = user_scripts.getTargetHookConfig(system_config, user_script, granularity)
+    local check = available_modules.modules[mod_key]
+    local conf = checks.getTargetHookConfig(system_config, check, granularity)
 
     if(conf.enabled) then
-      if((not user_script.is_alert) or (not suppressed_alerts)) then
-        alerts_api.invokeScriptHook(user_script, configset, hook_fn, {
+      if((not check.is_alert) or (not suppressed_alerts)) then
+        alerts_api.invokeScriptHook(check, configset, hook_fn, {
            granularity = granularity,
            alert_entity = alerts_api.interfaceAlertEntity(getSystemInterfaceId()),
-           user_script_config = conf.script_conf,
-           user_script = user_script,
+           check_config = conf.script_conf,
+           check = check,
            when = when,
            ts_enabled = system_ts_enabled,
 	   --cur_alerts = cur_alerts

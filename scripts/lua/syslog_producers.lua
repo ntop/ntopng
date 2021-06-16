@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
 require "lua_utils"
-local user_scripts = require "user_scripts"
+local checks = require "checks"
 local template = require "template_utils"
 
 if not isAdministrator() then
@@ -22,7 +22,7 @@ elseif not ifid then
 end
 
 local producer_types = {};
-local syslog_plugins = user_scripts.listScripts(user_scripts.script_types.syslog, "syslog")
+local syslog_plugins = checks.listScripts(checks.script_types.syslog, "syslog")
 for k,v in pairs(syslog_plugins) do
   table.insert(producer_types, { title = i18n(v.."_collector.title"), value = v  })
 end

@@ -11,7 +11,7 @@ String.prototype.titleCase = function () {
 /* ******************************************************* */
 
 const reloadPageAfterPOST = () => {
-   if (location.href.indexOf("user_script=") > 0) {
+   if (location.href.indexOf("check=") > 0) {
       /* Go back to the alerts page */
       //location.href = page_url + location.hash;
       window.history.back();
@@ -357,7 +357,7 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
    $('#edit-form').removeClass('dirty')
    $apply_btn.attr('disabled', '');
 
-   $.post(`${http_prefix}/lua/edit_user_script_config.lua`, {
+   $.post(`${http_prefix}/lua/edit_check_config.lua`, {
       script_subdir: script_subdir,
       script_key: script_key,
       csrf: pageCsrf,
@@ -394,7 +394,7 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
 
    const $error_label = $('#apply-error');
 
-   $.get(`${http_prefix}/lua/get_user_script_config.lua`, {
+   $.get(`${http_prefix}/lua/get_check_config.lua`, {
       script_subdir: script_subdir,
       script_key: script_key,
       factory: 'true'
@@ -1323,7 +1323,7 @@ const initScriptConfModal = (script_key, script_title, script_desc, is_alert) =>
       $("#btn-apply").trigger("click");
    });
 
-   $.get(`${http_prefix}/lua/get_user_script_config.lua`,
+   $.get(`${http_prefix}/lua/get_check_config.lua`,
       {
          script_subdir: script_subdir,
          script_key: script_key,
@@ -1451,7 +1451,7 @@ const createScriptStatusButton = (row_data) => {
 
    $button.off('click').on('click', function () {
 
-      $.post(`${http_prefix}/lua/toggle_user_script.lua`, {
+      $.post(`${http_prefix}/lua/toggle_check.lua`, {
          script_subdir: script_subdir,
          script_key: row_data.key,
          csrf: pageCsrf,
@@ -1713,7 +1713,7 @@ $(function () {
       },
       lengthChange: false,
       ajax: {
-         url: `${http_prefix}/lua/get_user_scripts.lua?script_subdir=${script_subdir}`,
+         url: `${http_prefix}/lua/get_checks.lua?script_subdir=${script_subdir}`,
          type: 'get',
          dataSrc: ''
       },
@@ -1978,7 +1978,7 @@ $(function () {
    $(`#disable-all-modal #btn-confirm-action`).click(async function () {
 
       $(this).attr("disabled", "disabled");
-      $.post(`${http_prefix}/lua/toggle_all_user_scripts.lua`, {
+      $.post(`${http_prefix}/lua/toggle_all_checks.lua`, {
          action: 'disable',
          script_subdir: script_subdir,
          csrf: pageCsrf

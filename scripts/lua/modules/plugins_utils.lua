@@ -365,8 +365,8 @@ end
 
 -- ##############################################
 
-local function load_plugin_user_scripts(paths_to_plugin, plugin)
-  local scripts_path = os_utils.fixPath(plugin.path .. "/user_scripts")
+local function load_plugin_checks(paths_to_plugin, plugin)
+  local scripts_path = os_utils.fixPath(plugin.path .. "/checks")
   local paths_map = {}
   local extn = ".lua"
   local rv = (
@@ -634,7 +634,7 @@ function plugins_utils.loadPlugins(community_plugins_only)
         load_plugin_web_gui(plugin) and
         load_plugin_data_dirs(plugin) and
         load_plugin_other(plugin) and
-        load_plugin_user_scripts(path_map, plugin) and
+        load_plugin_checks(path_map, plugin) and
         load_plugin_alert_endpoints(plugin) then
       loaded_plugins[plugin.key] = plugin
     else
@@ -664,15 +664,15 @@ function plugins_utils.loadPlugins(community_plugins_only)
   -- Swap the active plugins directory with the shadow
   clearInternalState()
   ntop.swapPluginsDir()
-  deleteCachePattern("ntonpng.cache.user_scripts.available_system_modules.*")
+  deleteCachePattern("ntonpng.cache.checks.available_system_modules.*")
 
   -- Reload the periodic scripts to load the new plugins
   ntop.reloadPeriodicScripts()
 
   -- Reload user scripts with their configurations
-  local user_scripts = require "user_scripts"
-  user_scripts.initDefaultConfig()
-  user_scripts.loadUnloadUserScripts(true --[[ load --]])
+  local checks = require "checks"
+  checks.initDefaultConfig()
+  checks.loadUnloadUserScripts(true --[[ load --]])
 
   return(true)
 end
@@ -1004,7 +1004,7 @@ function plugins_utils.renderTemplate(plugin_name, template_file, context)
   -- If no template is found...
   if not ntop.exists(full_path) then
      -- Attempt at locating the template class under modules (global to ntopng)
-     full_path = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/user_script_templates/"..template_file)
+     full_path = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/check_templates/"..template_file)
   end
 
   return template_utils.gen(full_path, context, true --[[ using full path ]])

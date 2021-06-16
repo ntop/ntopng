@@ -2,12 +2,12 @@
 -- (C) 2019-21 - ntop.org
 --
 
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 local host_alert_keys = require "host_alert_keys"
 
 local remote_connection = {
    -- Script category
-   category = user_scripts.script_categories.network,
+   category = checks.script_categories.network,
 
    default_enabled = false,
    alert_id = host_alert_keys.host_alert_remote_connection,

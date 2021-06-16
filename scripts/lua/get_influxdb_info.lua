@@ -8,10 +8,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local ts_utils = require("ts_utils")
 local json = require "dkjson"
-local user_scripts = require("user_scripts")
+local checks = require("checks")
 
 local driver = ts_utils.getQueryDriver()
-local probe = user_scripts.loadModule(getSystemInterfaceId(), user_scripts.script_types.system, "system", "influxdb_monitor")
+local probe = checks.loadModule(getSystemInterfaceId(), checks.script_types.system, "system", "influxdb_monitor")
 
 local info = {}
 

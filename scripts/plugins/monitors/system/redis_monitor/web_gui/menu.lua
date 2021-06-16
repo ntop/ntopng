@@ -5,8 +5,8 @@ return {
   menu_entry = {key = "redis_monitor", i18n_title = "Redis", section = "health"},
 
   is_shown = function()
-    local user_scripts = require("user_scripts")
+    local checks = require("checks")
 
-    return(user_scripts.isSystemScriptEnabled("redis_monitor"))
+    return(checks.isSystemScriptEnabled("redis_monitor"))
   end
 }
