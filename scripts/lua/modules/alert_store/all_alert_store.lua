@@ -16,6 +16,7 @@ local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
 local alert_severities = require "alert_severities"
+local tag_utils = require "tag_utils"
 local json = require "dkjson"
 
 -- ##############################################
@@ -253,19 +254,19 @@ function all_alert_store:format_record(value, no_html)
    record[RNAME.COUNT_GROUP_NOTICE_OR_LOWER.name] = {
       value = value["count_group_notice_or_lower"],
       color = alert_severities.notice.color,
-      url = url.."&severity=3,lte",
+      url = url.."&severity=3" .. tag_utils.SEPARATOR .. "lte",
    }
 
    record[RNAME.COUNT_GROUP_WARNING.name] = {
       value = value["count_group_warning"],
       color = alert_severities.warning.color,
-      url = url.."&severity=4,eq",
+      url = url.."&severity=4" .. tag_utils.SEPARATOR .. "eq",
    }
 
    record[RNAME.COUNT_GROUP_ERROR_OR_HIGHER.name] = {
       value = value["count_group_error_or_higher"],
       color = alert_severities.error.color,
-      url = url.."&severity=5,gte",
+      url = url.."&severity=5" .. tag_utils.SEPARATOR .. "gte",
    }
 
    return record
