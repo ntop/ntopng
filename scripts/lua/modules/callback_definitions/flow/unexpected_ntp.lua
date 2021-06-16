@@ -13,7 +13,7 @@ local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.checks.unexpected_plu
 
 local script = {
    -- Script category
-   category = checks.script_categories.security,
+   category = checks.check_categories.security,
 
    -- This module is disabled by default
    default_enabled = false,

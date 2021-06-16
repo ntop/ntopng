@@ -45,26 +45,26 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.scripts_config)
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local script_subdir = _GET["subdir"]
+local check_subdir = _GET["subdir"]
 local script_key    = _GET["script_key"]
 
 local configset     = checks.getConfigset()
-local script_type   = checks.getScriptType(script_subdir)
-local selected_script = checks.loadModule(getSystemInterfaceId(), script_type, script_subdir, script_key)
+local script_type   = checks.getScriptType(check_subdir)
+local selected_script = checks.loadModule(getSystemInterfaceId(), script_type, check_subdir, script_key)
 local script_title = i18n(selected_script.gui.i18n_title) or selected_script.gui.i18n_title
 
 local confset_name  = configset.name
 local titles        = checks_utils.load_configset_titles()
 
-local hooks_config = checks.getScriptConfig(configset, selected_script, script_subdir)
+local hooks_config = checks.getScriptConfig(configset, selected_script, check_subdir)
 local generated_templates = selected_script.template:render(hooks_config)
 
 local generated_breadcrumb = ui_utils.render_breadcrumb(i18n("about.checks"), {
     {
-        label = titles[script_subdir],
+        label = titles[check_subdir],
     },
     {
-        href = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua?subdir=" .. script_subdir,
+        href = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua?subdir=" .. check_subdir,
         label = i18n("scripts_list.config", {}) .. " " .. confset_name
     },
     {
@@ -85,9 +85,9 @@ local base_context = {
         rendered_hooks = generated_templates,
         
         hooks_config = hooks_config,
-        script_subdir = script_subdir,
+        check_subdir = check_subdir,
         script_key = script_key,
-        filters = format_exclusion_list_filters(checks.getDefaultFilters(interface.getId(), script_subdir, script_key))
+        filters = format_exclusion_list_filters(checks.getDefaultFilters(interface.getId(), check_subdir, script_key))
     }
 }
 

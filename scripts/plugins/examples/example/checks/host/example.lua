@@ -15,8 +15,8 @@ local global_state = nil
 -- #################################################################
 
 local script = {
-  -- Script category, see checks.script_categories for all available categories
-  category = checks.script_categories.other,
+  -- Script category, see checks.check_categories for all available categories
+  category = checks.check_categories.other,
 
   -- This module is enabled by default
   default_enabled = true,

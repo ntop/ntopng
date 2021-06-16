@@ -11,7 +11,7 @@ local flow_alert_keys = require "flow_alert_keys"
 
 local script = {
    -- Script category
-   category = checks.script_categories.internals,
+   category = checks.check_categories.internals,
 
    -- This script is only for alerts generation
    alert_id = flow_alert_keys.flow_alert_internals,

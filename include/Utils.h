@@ -247,7 +247,7 @@ public:
   static int snappend(char *str, size_t size, const char *tobeappended, const char *separator);
   static bool isNumber(const char *s, unsigned int s_len, bool *is_float);
   static bool isPingSupported();
-  static ScoreCategory mapAlertToScoreCategory(AlertCategory script_category);
+  static ScoreCategory mapAlertToScoreCategory(AlertCategory check_category);
   /* Map alert score to AlertLevel */
   static AlertLevel mapScoreToSeverity(u_int32_t score);
   /* Map AlertLevel to score */

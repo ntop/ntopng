@@ -13,7 +13,7 @@ local alert_exclusions = require "alert_exclusions"
 
 sendHTTPContentTypeHeader('application/json')
 
-local subdir = _GET["script_subdir"] or "host"
+local subdir = _GET["check_subdir"] or "host"
 local factory = _GET["factory"]
 local script_key = _GET["script_key"]
 

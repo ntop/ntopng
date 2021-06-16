@@ -25,7 +25,7 @@ end
 
 -- ################################################
 
-local subdir = _POST["script_subdir"]
+local subdir = _POST["check_subdir"]
 if(subdir == nil) then
   rest_utils.answer(rest_utils.consts.err.invalid_args)
   return

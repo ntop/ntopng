@@ -9,7 +9,7 @@ local host_alert_keys = require "host_alert_keys"
 
 local p2p = {
   -- Script category
-  category = checks.script_categories.network,
+  category = checks.check_categories.network,
 
   default_enabled = false,
   alert_id = host_alert_keys.host_alert_p2p_traffic,

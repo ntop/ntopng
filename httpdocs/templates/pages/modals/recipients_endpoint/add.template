@@ -63,7 +63,7 @@
                         </label>
                         <div class="col-sm-5">
                             <select multiple name="recipient_check_categories" class="selectpicker" id="add-recipient-categories-select">
-                                {% for _, category in pairsByKeys(script_categories) do %}
+                                {% for _, category in pairsByKeys(check_categories) do %}
                                     <option selected value="{{ category.id }}">{{ i18n(category.i18n_title) }}</option>
                                 {% end %}
                             </select>

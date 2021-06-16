@@ -114,7 +114,7 @@ $(function() {
             }
         },
         ajax: {
-            url: `${http_prefix}/lua/get_scripts_configsets.lua?script_subdir=${subdir}`,
+            url: `${http_prefix}/lua/get_scripts_configsets.lua?check_subdir=${subdir}`,
             type: 'GET',
             dataSrc: ''
         },

@@ -11,7 +11,7 @@ local syslog_utils = require "syslog_utils"
 
 local syslog_module = {
   -- Script category
-  category = checks.script_categories.security,
+  category = checks.check_categories.security,
 
   key = "host_log",
 

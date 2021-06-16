@@ -9,7 +9,7 @@ local host_alert_keys = require "host_alert_keys"
 
 local flows_anomaly = {
   -- Script category
-   category = checks.script_categories.network,
+   category = checks.check_categories.network,
 
    alert_id = host_alert_keys.host_alert_flows_anomaly,
 

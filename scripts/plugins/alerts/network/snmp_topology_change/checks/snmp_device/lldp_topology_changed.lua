@@ -8,7 +8,7 @@ local alert_consts = require("alert_consts")
 local json = require("dkjson")
 
 local script = {
-   category = checks.script_categories.network,
+   category = checks.check_categories.network,
 
    -- See below
    hooks = {},

@@ -23,7 +23,7 @@ end
 
 sendHTTPContentTypeHeader('application/json')
 
-local subdir = _POST["script_subdir"]
+local subdir = _POST["check_subdir"]
 local script_key = _POST["script_key"]
 local alert_exclusion_list = _POST['script_exclusion_list']
 
@@ -42,7 +42,7 @@ if(table.empty(data)) then
 end
 
 if(subdir == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'script_subdir' parameter")
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'check_subdir' parameter")
   return
 end
 

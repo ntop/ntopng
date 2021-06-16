@@ -28,14 +28,14 @@ end
 sendHTTPContentTypeHeader('text/html')
 
 -- get config parameters like the id and name
-local script_subdir = _GET["subdir"]
+local check_subdir = _GET["subdir"]
 local script_filter = _GET["check"]
 local search_filter = _GET["search_script"]
 
 local configset = checks.getConfigset()
-local script_type = checks.getScriptType(script_subdir)
+local script_type = checks.getScriptType(check_subdir)
 
-local scripts = checks.load(getSystemInterfaceId(), script_type, script_subdir)
+local scripts = checks.load(getSystemInterfaceId(), script_type, check_subdir)
 
 if not haveAdminPrivileges() or not configset then
   return
@@ -76,9 +76,9 @@ local sub_menu_entries = {
      entry = page_utils.menu_entries.scripts_config_syslog
   }
 }
-local active_entry = sub_menu_entries[script_subdir].entry or page_utils.menu_entries.scripts_config
+local active_entry = sub_menu_entries[check_subdir].entry or page_utils.menu_entries.scripts_config
 page_utils.set_active_menu_entry(active_entry)
---page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=titles[script_subdir], config=confset_name }))
+--page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=titles[check_subdir], config=confset_name }))
 
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
@@ -101,12 +101,12 @@ end
 
 apps_and_categories = {cat_groups, app_groups}
 
---tprint(checks.script_categories)
-local script_categories = {}
+--tprint(checks.check_categories)
+local check_categories = {}
 for script_name, script in pairs(scripts.modules) do
-   for cat_k, cat_v in pairs(checks.script_categories) do
-      if script["category"]["id"] == cat_v["id"] and not script_categories[cat_k] then
-      script_categories[cat_k] = cat_v
+   for cat_k, cat_v in pairs(checks.check_categories) do
+      if script["category"]["id"] == cat_v["id"] and not check_categories[cat_k] then
+      check_categories[cat_k] = cat_v
       break
       end
    end
@@ -129,7 +129,7 @@ local url = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua"
 local navbar_menu = {}
 for key, sub_menu in pairsByField(sub_menu_entries, 'order', asc) do
    navbar_menu[#navbar_menu+1] = {
-      active = (script_subdir == key),
+      active = (check_subdir == key),
       page_name = key,
       label = i18n(sub_menu.entry.i18n_title),
       url = url .. "?subdir="..key
@@ -140,18 +140,18 @@ page_utils.print_navbar(i18n("internals.checks"), '#', navbar_menu)
 
 local context = {
    script_list = {
-      subdir = script_subdir,
+      subdir = check_subdir,
       template_utils = template,
       hooks_localizated = titles,
-      script_subdir = script_subdir,
+      check_subdir = check_subdir,
       confset_name = confset_name,
       script_filter = script_filter,
       search_filter = search_filter,
-      page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?subdir=%s", script_subdir),
+      page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?subdir=%s", check_subdir),
       apps_and_categories = json.encode(apps_and_categories),
       device_types = json.encode(device_types_list),
    },
-   script_categories = script_categories,
+   check_categories = check_categories,
    info = ntop.getInfo(),
    json = json
 }

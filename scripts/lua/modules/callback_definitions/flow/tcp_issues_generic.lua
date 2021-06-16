@@ -14,7 +14,7 @@ local script = {
    packet_interface_only = true,
   
    -- Script category
-   category = checks.script_categories.network,
+   category = checks.check_categories.network,
 
    nedge_exclude = true,
 

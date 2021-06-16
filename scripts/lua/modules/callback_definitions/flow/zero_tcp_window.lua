@@ -11,7 +11,7 @@ local flow_alert_keys = require "flow_alert_keys"
 
 local script = {
   -- Script category
-  category = checks.script_categories.network,
+  category = checks.check_categories.network,
 
   -- NB atm working only for packet interfaces
   packet_interface_only = true,

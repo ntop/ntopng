@@ -200,8 +200,8 @@ local available_subdirs = {
 }
 
 -- User scripts category consts
--- IMPORTANT keep it in sync with ntop_typedefs.h enum ScriptCategory
-checks.script_categories = {
+-- IMPORTANT keep it in sync with ntop_typedefs.h enum CheckCategory
+checks.check_categories = {
    other = {
       id = 0,
       icon = "fas fa-scroll",
@@ -279,16 +279,16 @@ checks.script_types = {
 -- and, if not valid, it assigns to the plugin a default category
 local function checkCategory(category)
    if not category or not category["id"] then
-      return checks.script_categories.other
+      return checks.check_categories.other
    end
 
-   for cat_k, cat_v in pairs(checks.script_categories) do
+   for cat_k, cat_v in pairs(checks.check_categories) do
       if category["id"] == cat_v["id"] then
 	 return cat_v
       end
    end
 
-   return checks.script_categories.other
+   return checks.check_categories.other
 end
 
 -- ##############################################

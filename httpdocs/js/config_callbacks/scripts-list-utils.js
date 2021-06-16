@@ -342,7 +342,7 @@ function getSanitizedScriptExList(script_exclusion_list) {
 
 /* ******************************************************* */
 
-const apply_edits_script = (template_data, script_subdir, script_key) => {
+const apply_edits_script = (template_data, check_subdir, script_key) => {
    const exclusionList = $(`#script-config-editor textarea[name='exclusion-list']`).val();
    var script_exclusion_list = exclusionList || undefined;
 
@@ -358,7 +358,7 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
    $apply_btn.attr('disabled', '');
 
    $.post(`${http_prefix}/lua/edit_check_config.lua`, {
-      script_subdir: script_subdir,
+      check_subdir: check_subdir,
       script_key: script_key,
       csrf: pageCsrf,
       script_exclusion_list: script_exclusion_list,
@@ -390,12 +390,12 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
       });
 }
 
-const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
+const reset_script_defaults = (script_key, check_subdir, callback_reset) => {
 
    const $error_label = $('#apply-error');
 
    $.get(`${http_prefix}/lua/get_check_config.lua`, {
-      script_subdir: script_subdir,
+      check_subdir: check_subdir,
       script_key: script_key,
       factory: 'true'
    })
@@ -453,7 +453,7 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
 
 // TEMPALTES:
 
-const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
+const ThresholdCross = (gui, hooks, check_subdir, script_key) => {
 
    const $table_editor = $("#script-config-editor");
 
@@ -629,12 +629,12 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
          }
       });
 
-      apply_edits_script(data, script_subdir, script_key);
+      apply_edits_script(data, check_subdir, script_key);
    };
 
    const reset_event = (event) => {
 
-      reset_script_defaults(script_key, script_subdir, (data) => {
+      reset_script_defaults(script_key, check_subdir, (data) => {
 
          const { hooks } = data;
 
@@ -677,7 +677,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
 /* ******************************************************* */
 
-const ItemsList = (gui, hooks, script_subdir, script_key) => {
+const ItemsList = (gui, hooks, check_subdir, script_key) => {
 
    const $table_editor = $("#script-config-editor");
 
@@ -743,13 +743,13 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
       };
 
       // make post request to save edits
-      apply_edits_script(template_data, script_subdir, script_key);
+      apply_edits_script(template_data, check_subdir, script_key);
 
    }
 
    const reset_event = (event) => {
 
-      reset_script_defaults(script_key, script_subdir, (reset_data) => {
+      reset_script_defaults(script_key, check_subdir, (reset_data) => {
 
          const items_list = reset_data.hooks.all.script_conf.items;
          const enabled = reset_data.hooks.all ? reset_data.hooks.all.enabled : reset_data.hooks.min.enabled;
@@ -776,7 +776,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
 /* ******************************************************* */
 
-const LongLived = (gui, hooks, script_subdir, script_key) => {
+const LongLived = (gui, hooks, check_subdir, script_key) => {
 
    const $table_editor = $("#script-config-editor");
    $("#script-config-editor").empty();
@@ -918,13 +918,13 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
       }
 
       // make post request to save data
-      apply_edits_script(template_data, script_subdir, script_key);
+      apply_edits_script(template_data, check_subdir, script_key);
 
    }
 
    const reset_event = (event) => {
 
-      reset_script_defaults(script_key, script_subdir, (data_reset) => {
+      reset_script_defaults(script_key, check_subdir, (data_reset) => {
 
          // reset textarea content
          const items_list = data_reset.hooks.all.script_conf.items || [];
@@ -963,7 +963,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
 /* ******************************************************* */
 
-const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
+const ElephantFlows = (gui, hooks, check_subdir, script_key) => {
 
    const $table_editor = $("#script-config-editor");
    $("#script-config-editor").empty();
@@ -1121,13 +1121,13 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
          }
       }
 
-      apply_edits_script(template_data, script_subdir, script_key);
+      apply_edits_script(template_data, check_subdir, script_key);
 
    }
 
    const reset_event = (event) => {
 
-      reset_script_defaults(script_key, script_subdir, (data_reset) => {
+      reset_script_defaults(script_key, check_subdir, (data_reset) => {
 
          // reset textarea content
          const items_list = data_reset.hooks.all.script_conf.items || [];
@@ -1174,7 +1174,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
 /* ******************************************************* */
 
-const MultiSelect = (gui, hooks, script_subdir, script_key) => {
+const MultiSelect = (gui, hooks, check_subdir, script_key) => {
 
    const $table_editor = $("#script-config-editor");
    $("#script-config-editor").empty();
@@ -1234,11 +1234,11 @@ const MultiSelect = (gui, hooks, script_subdir, script_key) => {
          }
       }
 
-      apply_edits_script(template_data, script_subdir, script_key);
+      apply_edits_script(template_data, check_subdir, script_key);
    }
 
    const reset_event = (event) => {
-      reset_script_defaults(script_key, script_subdir, (data_reset) => {
+      reset_script_defaults(script_key, check_subdir, (data_reset) => {
 
          // reset textarea content
          const items_list = data_reset.hooks.all.script_conf.items || [];
@@ -1258,7 +1258,7 @@ const MultiSelect = (gui, hooks, script_subdir, script_key) => {
 
 /* ******************************************************* */
 
-const DefaultTemplate = (gui, hooks, script_subdir, script_key) => {
+const DefaultTemplate = (gui, hooks, check_subdir, script_key) => {
 
    const $tableEditor = $("#script-config-editor");
 
@@ -1272,10 +1272,10 @@ const DefaultTemplate = (gui, hooks, script_subdir, script_key) => {
             }
          }
 
-         apply_edits_script(template_data, script_subdir, script_key);
+         apply_edits_script(template_data, check_subdir, script_key);
       },
       reset_click_event: function () {
-         reset_script_defaults(script_key, script_subdir, (data_reset) => { });
+         reset_script_defaults(script_key, check_subdir, (data_reset) => { });
       },
       render: function () {
          $tableEditor.empty();
@@ -1285,7 +1285,7 @@ const DefaultTemplate = (gui, hooks, script_subdir, script_key) => {
 
 /* ******************************************************* */
 
-const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_key = null) => {
+const EmptyTemplate = (gui = null, hooks = null, check_subdir = null, script_key = null) => {
 
    const $tableEditor = $("#script-config-editor");
 
@@ -1325,7 +1325,7 @@ const initScriptConfModal = (script_key, script_title, script_desc, is_alert) =>
 
    $.get(`${http_prefix}/lua/get_check_config.lua`,
       {
-         script_subdir: script_subdir,
+         check_subdir: check_subdir,
          script_key: script_key,
          factory: false
       }
@@ -1338,7 +1338,7 @@ const initScriptConfModal = (script_key, script_title, script_desc, is_alert) =>
          // hide previous error
          $("#apply-error").hide();
 
-         const template = TemplateBuilder(data, script_subdir, script_key, is_alert);
+         const template = TemplateBuilder(data, check_subdir, script_key, is_alert);
 
          // render template
          template.render();
@@ -1375,21 +1375,21 @@ const get_search_toggle_value = hash => hash == "#enabled" ? 'true' : (hash == "
 
 /* ******************************************************* */
 
-const TemplateBuilder = ({ gui, hooks, metadata }, script_subdir, script_key, is_alert) => {
+const TemplateBuilder = ({ gui, hooks, metadata }, check_subdir, script_key, is_alert) => {
 
    // get template name
    const template_name = gui.input_builder;
 
 
    const templates = {
-      threshold_cross: ThresholdCross(gui, hooks, script_subdir, script_key),
-      items_list: ItemsList(gui, hooks, script_subdir, script_key),
-      long_lived: LongLived(gui, hooks, script_subdir, script_key),
-      elephant_flows: ElephantFlows(gui, hooks, script_subdir, script_key),
-      multi_select: MultiSelect(gui, hooks, script_subdir, script_key)
+      threshold_cross: ThresholdCross(gui, hooks, check_subdir, script_key),
+      items_list: ItemsList(gui, hooks, check_subdir, script_key),
+      long_lived: LongLived(gui, hooks, check_subdir, script_key),
+      elephant_flows: ElephantFlows(gui, hooks, check_subdir, script_key),
+      multi_select: MultiSelect(gui, hooks, check_subdir, script_key)
    }
 
-   const isSubdirFlow = (script_subdir === "flow")
+   const isSubdirFlow = (check_subdir === "flow")
    let template_chosen = templates[template_name];
    if (!template_chosen && !(is_alert || isSubdirFlow)) {
       template_chosen = EmptyTemplate();
@@ -1397,7 +1397,7 @@ const TemplateBuilder = ({ gui, hooks, metadata }, script_subdir, script_key, is
       console.warn("The chosen template doesn't exist yet. See the avaible templates.")
    }
    else if (!template_chosen && (is_alert || isSubdirFlow)) {
-      template_chosen = DefaultTemplate(gui, hooks, script_subdir, script_key);
+      template_chosen = DefaultTemplate(gui, hooks, check_subdir, script_key);
    }
 
    // check if the script has an action button
@@ -1452,7 +1452,7 @@ const createScriptStatusButton = (row_data) => {
    $button.off('click').on('click', function () {
 
       $.post(`${http_prefix}/lua/toggle_check.lua`, {
-         script_subdir: script_subdir,
+         check_subdir: check_subdir,
          script_key: row_data.key,
          csrf: pageCsrf,
          action: (is_enabled) ? 'disable' : 'enable'
@@ -1713,7 +1713,7 @@ $(function () {
       },
       lengthChange: false,
       ajax: {
-         url: `${http_prefix}/lua/get_checks.lua?script_subdir=${script_subdir}`,
+         url: `${http_prefix}/lua/get_checks.lua?check_subdir=${check_subdir}`,
          type: 'get',
          dataSrc: ''
       },
@@ -1893,7 +1893,7 @@ $(function () {
             render: function (data, type, script) {
 
                const isScriptEnabled = script.is_enabled;
-               const isSubdirFlow = (script_subdir === "flow");
+               const isSubdirFlow = (check_subdir === "flow");
                const srcCodeButtonEnabled = data.edit_url && isScriptEnabled ? '' : 'disabled';
                const editScriptButtonEnabled = ((!script.is_alert && !script.input_handler && !isSubdirFlow) || !isScriptEnabled) ? 'disabled' : '';
 
@@ -1980,7 +1980,7 @@ $(function () {
       $(this).attr("disabled", "disabled");
       $.post(`${http_prefix}/lua/toggle_all_checks.lua`, {
          action: 'disable',
-         script_subdir: script_subdir,
+         check_subdir: check_subdir,
          csrf: pageCsrf
       })
          .then((result) => {

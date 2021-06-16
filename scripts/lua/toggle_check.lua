@@ -12,7 +12,7 @@ local alert_consts = require("alert_consts")
 
 sendHTTPContentTypeHeader('application/json')
 
-local subdir = _POST["script_subdir"]
+local subdir = _POST["check_subdir"]
 local script_key = _POST["script_key"]
 local action = _POST["action"]
 
@@ -29,7 +29,7 @@ if(action == nil) then
 end
 
 if(subdir == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'script_subdir' parameter")
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'check_subdir' parameter")
   return
 end
 

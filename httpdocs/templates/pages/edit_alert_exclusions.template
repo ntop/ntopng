@@ -21,7 +21,7 @@
           <tbody></tbody>
         </table>
       </div>
-      {% if alert_exclusions.has_disabled_alerts(alert_consts.alertEntityById(alert_consts.alertEntity(script_list.script_subdir))) then %}
+      {% if alert_exclusions.has_disabled_alerts(alert_consts.alertEntityById(alert_consts.alertEntity(script_list.check_subdir))) then %}
       <div class="card-footer">
         <button id='btn-delete-all' class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-all-modal">
           <i class='fas fa-trash'></i> {{ i18n("edit_check.delete_all_alert_exclusions", {host = script_list.host or ''}) }}</button>
@@ -47,13 +47,13 @@ confirm_button = 'btn-danger',
 
 {# include modals  #}
 {* script_list.template_utils.gen("pages/modals/alerts/delete_alert_exclusion_modal.template", {
-subdir = script_list.script_subdir,
+subdir = script_list.check_subdir,
 }) *}
 {# add css, js files #}
 <link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css?{{ ntop.getStaticFileEpoch() }}" rel="stylesheet"/>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-ipsorting.js?{{ ntop.getStaticFileEpoch() }}"></script>
 <script type="text/javascript">
-  const script_subdir = "{{ script_list.script_subdir }}";
+  const check_subdir = "{{ script_list.check_subdir }}";
   const host = "{{ script_list.host }}";
   let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
   let page_url = "{* script_list.page_url *}";

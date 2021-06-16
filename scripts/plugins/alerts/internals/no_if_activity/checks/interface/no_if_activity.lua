@@ -48,7 +48,7 @@ end
 
 script = {
    -- Script category
-   category = checks.script_categories.internals,
+   category = checks.check_categories.internals,
 
    default_enabled = true,
    hooks = {

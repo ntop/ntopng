@@ -11,7 +11,7 @@ local flow_alert_keys = require "flow_alert_keys"
 
 local script = {
    -- Script category
-   category = checks.script_categories.security,
+   category = checks.check_categories.security,
 
    default_enabled = true,
    alert_id = flow_alert_keys.flow_alert_iec_invalid_transition,

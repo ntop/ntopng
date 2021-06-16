@@ -94,13 +94,13 @@ typedef enum {
 } ScriptPeriodicity;
 
 typedef enum {
-  script_category_other = 0,
-  script_category_security = 1,
-  script_category_internals = 2,
-  script_category_network = 3,
-  script_category_system = 4,
+  check_category_other = 0,
+  check_category_security = 1,
+  check_category_internals = 2,
+  check_category_network = 3,
+  check_category_system = 4,
   MAX_NUM_SCRIPT_CATEGORIES = 5
-} ScriptCategory; /* Keep in sync with user_scripts.script_categories in scripts/lua/modules/user_scripts.lua  */
+} CheckCategory; /* Keep in sync with checks.check_categories in scripts/lua/modules/checks.lua  */
 
 typedef enum {
   alert_category_other = 0,
@@ -109,10 +109,10 @@ typedef enum {
   alert_category_network = 3,
   alert_category_system = 4,
   MAX_NUM_ALERT_CATEGORIES = 5
-} AlertCategory; /* TODO: keep in sync with ScriptCategory until we remove ScriptCategory */
+} AlertCategory; /* TODO: keep in sync with CheckCategory until we remove CheckCategory */
 
 /*
-  This is a subset of ScriptCategory as flow scripts fall only in this subset
+  This is a subset of CheckCategory as flow scripts fall only in this subset
  */
 typedef enum {
   score_category_network = 0,

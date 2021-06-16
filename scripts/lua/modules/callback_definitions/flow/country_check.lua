@@ -9,7 +9,7 @@ local flow_alert_keys = require "flow_alert_keys"
 
 local script = {
   -- Script category
-  category = checks.script_categories.security, 
+  category = checks.check_categories.security, 
 
   -- This module is disabled by default
   default_enabled = false,

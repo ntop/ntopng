@@ -21,10 +21,10 @@ local dirs = ntop.getDirs()
 
 sendHTTPContentTypeHeader('application/json')
 
-local subdir = _GET["script_subdir"]
+local subdir = _GET["check_subdir"]
 
 if(subdir == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'script_subdir' parameter")
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'check_subdir' parameter")
   return
 end
 

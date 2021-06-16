@@ -14,7 +14,7 @@ local checks = require("checks")
 
 local syslog_module = {
   -- Script category
-  category = checks.script_categories.security,
+  category = checks.check_categories.security,
 
   nedge_exclude = true,
 

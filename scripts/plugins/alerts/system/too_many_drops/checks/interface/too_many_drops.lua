@@ -37,7 +37,7 @@ end
 
 script = {
   -- Script category
-  category = checks.script_categories.system,
+  category = checks.check_categories.system,
 
   default_enabled = true,
   default_value = {

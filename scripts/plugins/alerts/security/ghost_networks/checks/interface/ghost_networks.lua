@@ -34,7 +34,7 @@ end
 
 script = {
   -- Script category
-  category = checks.script_categories.security,
+  category = checks.check_categories.security,
 
   default_enabled = true,
 

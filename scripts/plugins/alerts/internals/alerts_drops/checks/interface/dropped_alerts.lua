@@ -8,7 +8,7 @@ local alert_consts = require("alert_consts")
 
 local script = {
   -- Script category
-  category = checks.script_categories.internals,
+  category = checks.check_categories.internals,
 
   -- This script is only for alerts generation
   is_alert = true,

@@ -47,7 +47,7 @@
     <ul>
       <li> {{ i18n('checks.categories') }}
         <ul>
-          {% for _, cat in pairsByKeys(script_categories) do %}
+          {% for _, cat in pairsByKeys(check_categories) do %}
           <li> {* string.format("<i class='fa %s'></i> %s: %s", cat.icon, i18n(cat.i18n_title, {product=info.product}),
             i18n(cat.i18n_descr, {product=info.product})) *} </li>
           {% end %}
@@ -72,20 +72,20 @@
 
 {# include modals for edit_configset.lua #}
 {* script_list.template_utils.gen("pages/modals/edit_configset/edit_config_modal.html", {
-  subdir = script_list.script_subdir,
+  subdir = script_list.check_subdir,
 }) *}
 {# add css, js files #}
 <link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 <script type="text/javascript">
 
-const script_subdir = "{{ script_list.script_subdir }}";
+const check_subdir = "{{ script_list.check_subdir }}";
 
 const scripts_categories = [
   {
     label: "{{ i18n('scripts_list.all') }}",
     disableFilter: true
   },
-  {% for _, cat in pairsByKeys(script_categories) do %}
+  {% for _, cat in pairsByKeys(check_categories) do %}
     {
       label: "{{ i18n(cat.i18n_title) }}",
       disableFilter: false

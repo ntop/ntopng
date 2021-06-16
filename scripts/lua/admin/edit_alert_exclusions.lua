@@ -26,16 +26,16 @@ end
 sendHTTPContentTypeHeader('text/html')
 
 -- get config parameters like the id and name
-local script_subdir = _GET["subdir"]
+local check_subdir = _GET["subdir"]
 local script_filter = _GET["check"]
 local search_filter = _GET["search_script"]
 -- If not nil, exclusions are printed for this particular host
 local host          = _GET["host"]
 
 local configset = checks.getConfigset()
-local script_type = checks.getScriptType(script_subdir)
+local script_type = checks.getScriptType(check_subdir)
 
-local scripts = checks.load(getSystemInterfaceId(), script_type, script_subdir)
+local scripts = checks.load(getSystemInterfaceId(), script_type, check_subdir)
 
 if not haveAdminPrivileges() or not configset then
   return
@@ -55,7 +55,7 @@ local sub_menu_entries = {
      entry = page_utils.menu_entries.alert_exclusions_flows
   },
 }
-local active_entry = sub_menu_entries[script_subdir].entry or page_utils.menu_entries.alert_exclusions
+local active_entry = sub_menu_entries[check_subdir].entry or page_utils.menu_entries.alert_exclusions
 page_utils.set_active_menu_entry(active_entry)
 
 -- append the menu above the page
@@ -69,7 +69,7 @@ end
 local navbar_menu = {}
 for key, sub_menu in pairsByField(sub_menu_entries, 'order', asc) do
    navbar_menu[#navbar_menu+1] = {
-      active = (script_subdir == key),
+      active = (check_subdir == key),
       page_name = key,
       label = i18n(sub_menu.entry.i18n_title),
       url = url .. (isEmptyString(host) and "?" or '') .. "subdir="..key
@@ -81,10 +81,10 @@ page_utils.print_navbar(host and i18n("edit_check.exclusion_list_host_x", {host 
 local context = {
    script_list = {
       host = host,
-      subdir = script_subdir,
+      subdir = check_subdir,
       template_utils = template,
-      script_subdir = script_subdir,
-      page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_alert_exclusions.lua?subdir=%s", script_subdir),
+      check_subdir = check_subdir,
+      page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_alert_exclusions.lua?subdir=%s", check_subdir),
    },
    alert_exclusions = alert_exclusions,
    alert_consts = alert_consts

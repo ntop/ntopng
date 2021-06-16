@@ -27,7 +27,7 @@ function recipients_rest_utils.parse_check_categories(categories_string)
     for _, category_id in pairs(categories) do
        local category_id = tonumber(category_id)
 
-       for _, category in pairs(checks.script_categories) do
+       for _, category in pairs(checks.check_categories) do
 	  if category_id == category.id then
 	     res[#res + 1] = category_id
 	     break

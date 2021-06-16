@@ -12,7 +12,7 @@ local do_trace = false
 
 local script = {
   -- Script category
-  category = checks.script_categories.network,
+  category = checks.check_categories.network,
 
   -- This module is enabled by default
   default_enabled = true,

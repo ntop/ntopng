@@ -46,7 +46,7 @@ function recipients.initialize()
    -- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
    -- For each builtin configuration type, a configuration and a recipient is created
    local all_categories = {}
-   for _, category in pairs(checks.script_categories) do
+   for _, category in pairs(checks.check_categories) do
       all_categories[#all_categories + 1] = category.id
    end
    
@@ -247,7 +247,7 @@ end
 -- @brief Set a configuration along with its params. Configuration name and params must be already sanitized
 -- @param endpoint_id An integer identifier of the endpoint
 -- @param endpoint_recipient_name A string with the recipient name
--- @param check_categories A Lua array with already-validated ids as found in `checks.script_categories` or nil to indicate all categories
+-- @param check_categories A Lua array with already-validated ids as found in `checks.check_categories` or nil to indicate all categories
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param safe_params A table with endpoint recipient params already sanitized
 -- @return nil
@@ -269,7 +269,7 @@ end
 -- @brief Add a new recipient of an existing endpoint configuration and returns its id
 -- @param endpoint_id An integer identifier of the endpoint
 -- @param endpoint_recipient_name A string with the recipient name
--- @param check_categories A Lua array with already-validated ids as found in `checks.script_categories` or nil to indicate all categories
+-- @param check_categories A Lua array with already-validated ids as found in `checks.check_categories` or nil to indicate all categories
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param bind_to_all_pools A boolean indicating whether this recipient should be bound to all existing pools
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
@@ -332,7 +332,7 @@ end
 -- @brief Edit the recipient parameters of an existing endpoint configuration
 -- @param recipient_id The integer recipient identificator
 -- @param endpoint_recipient_name A string with the recipient name
--- @param check_categories A Lua array with already-validated ids as found in `checks.script_categories` or nil to indicate all categories
+-- @param check_categories A Lua array with already-validated ids as found in `checks.check_categories` or nil to indicate all categories
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
@@ -536,7 +536,7 @@ function recipients.get_recipient(recipient_id, include_stats)
 	    end
 
 	    local checks = require "checks"
-	    for _, category in pairs(checks.script_categories) do
+	    for _, category in pairs(checks.check_categories) do
 	       recipient_details["check_categories"][#recipient_details["check_categories"] + 1] = category.id
 	    end
 	 end

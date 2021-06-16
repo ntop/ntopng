@@ -12,7 +12,7 @@ local alert_consts = require("alert_consts")
 
 sendHTTPContentTypeHeader('application/json')
 
-local subdir = _POST["script_subdir"] -- optional (all subdirs if not specified)
+local subdir = _POST["check_subdir"] -- optional (all subdirs if not specified)
 local action = _POST["action"] -- enable/disable
 
 if(not isAdministrator()) then

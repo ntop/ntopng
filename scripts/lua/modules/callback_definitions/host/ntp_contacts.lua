@@ -9,7 +9,7 @@ local host_alert_keys = require "host_alert_keys"
 
 local ntp_contacts = {
   -- Script category
-  category = checks.script_categories.security,
+  category = checks.check_categories.security,
 
   default_enabled = false,
   alert_id = host_alert_keys.host_alert_ntp_server_contacts,
