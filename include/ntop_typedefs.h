@@ -890,7 +890,7 @@ typedef enum {
   capability_active_monitoring = 3,
   capability_preferences = 4,
   capability_developer = 5,
-  capability_user_scripts = 6,
+  capability_checks = 6,
   capability_flowdevices = 7,
   capability_alerts = 8,
   capability_historical_flows = 9,
