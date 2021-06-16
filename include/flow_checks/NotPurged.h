@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _NOT_PURGED_FLOW_CALLBACK_H_
-#define _NOT_PURGED_FLOW_CALLBACK_H_
+#ifndef _NOT_PURGED_FLOW_H_
+#define _NOT_PURGED_FLOW_H_
 
 #include "ntop_includes.h"
 
@@ -41,4 +41,4 @@ class NotPurged : public FlowCheck {
   std::string getName()        const { return(std::string("not_purged")); }
 };
 
-#endif /* _NOT_PURGED_FLOW_CALLBACK_H_ */
+#endif /* _NOT_PURGED_FLOW_H_ */

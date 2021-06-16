@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _TCP_ZERO_WINDOW_FLOW_CALLBACK_H_
-#define _TCP_ZERO_WINDOW_FLOW_CALLBACK_H_
+#ifndef _TCP_ZERO_WINDOW_FLOW_H_
+#define _TCP_ZERO_WINDOW_FLOW_H_
 
 #include "ntop_includes.h"
 
@@ -43,4 +43,4 @@ class TCPZeroWindow : public FlowCheck {
   std::string getName()        const { return(std::string("zero_tcp_window")); }
 };
 
-#endif /* _TCP_ZERO_WINDOW_FLOW_CALLBACK_H_ */
+#endif /* _TCP_ZERO_WINDOW_FLOW_H_ */

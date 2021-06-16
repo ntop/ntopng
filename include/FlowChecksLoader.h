@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _FLOW_CALLBACKS_LOADER_H_
-#define _FLOW_CALLBACKS_LOADER_H_
+#ifndef _FLOW_CHECKS_LOADER_H_
+#define _FLOW_CHECKS_LOADER_H_
 
 #include "ntop_includes.h"
 
@@ -50,4 +50,4 @@ class FlowChecksLoader : public ChecksLoader { /* A single instance inside Ntop 
   inline ndpi_risk getUnhandledRisks() const { return unhandled_ndpi_risks; };
 };
 
-#endif /* _FLOW_CALLBACKS_LOADER_H_ */
+#endif /* _FLOW_CHECKS_LOADER_H_ */

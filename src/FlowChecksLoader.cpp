@@ -139,15 +139,15 @@ void FlowChecksLoader::loadConfiguration() {
   struct json_object_iterator itEnd;
   enum json_tokener_error jerr = json_tokener_success;
   char *value = NULL;
-  u_int actual_len = ntop->getRedis()->len(CALLBACKS_CONFIG);
+  u_int actual_len = ntop->getRedis()->len(CHECKS_CONFIG);
 
   if((value = (char *) malloc(actual_len + 1)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", CALLBACKS_CONFIG);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", CHECKS_CONFIG);
     goto out;
   }
 
-  if(ntop->getRedis()->get((char*)CALLBACKS_CONFIG, value, actual_len + 1) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to find configuration %s", CALLBACKS_CONFIG);
+  if(ntop->getRedis()->get((char*)CHECKS_CONFIG, value, actual_len + 1) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to find configuration %s", CHECKS_CONFIG);
     goto out;
   }
 

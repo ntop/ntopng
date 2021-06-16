@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _FLOW_CALLBACK_H_
-#define _FLOW_CALLBACK_H_
+#ifndef _FLOW_CHECK_H_
+#define _FLOW_CHECK_H_
 
 #include "ntop_includes.h"
 
@@ -62,4 +62,4 @@ class FlowCheck {
   static void computeCliSrvScore(FlowAlertType alert_type, u_int8_t cli_pctg, u_int8_t *cli_score, u_int8_t *srv_score);
 };
 
-#endif /* _FLOW_CALLBACK_H_ */
+#endif /* _FLOW_CHECK_H_ */

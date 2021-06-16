@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _HOST_CALLBACK_H_
-#define _HOST_CALLBACK_H_
+#ifndef _HOST_CHECK_H_
+#define _HOST_CHECK_H_
 
 #include "ntop_includes.h"
 
@@ -57,4 +57,4 @@ class HostCheck {
   virtual std::string getName() const = 0;
 };
 
-#endif /* _HOST_CALLBACK_H_ */
+#endif /* _HOST_CHECK_H_ */

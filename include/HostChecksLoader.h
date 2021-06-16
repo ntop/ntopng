@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _HOST_CALLBACKS_LOADER_H_
-#define _HOST_CALLBACKS_LOADER_H_
+#ifndef _HOST_CHECKS_LOADER_H_
+#define _HOST_CHECKS_LOADER_H_
 
 #include "ntop_includes.h"
 
@@ -42,4 +42,4 @@ class HostChecksLoader : public ChecksLoader {
   std::list<HostCheck*>* getChecks(NetworkInterface *iface);
 };
 
-#endif /* _HOST_CALLBACKS_LOADER_H_ */
+#endif /* _HOST_CHECKS_LOADER_H_ */

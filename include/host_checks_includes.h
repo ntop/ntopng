@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _HOST_CALLBACKS_INCLUDES_H_
-#define _HOST_CALLBACKS_INCLUDES_H_
+#ifndef _HOST_CHECKS_INCLUDES_H_
+#define _HOST_CHECKS_INCLUDES_H_
 
 #include "host_alerts_includes.h"
 #include "host_checks_includes.h"
@@ -43,4 +43,4 @@
 #include "host_checks/RemoteConnection.h"
 #include "host_checks/ScoreAnomaly.h"
 
-#endif /* _HOST_CALLBACKS_INCLUDES_H_ */
+#endif /* _HOST_CHECKS_INCLUDES_H_ */

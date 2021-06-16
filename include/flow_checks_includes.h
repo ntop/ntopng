@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _FLOW_CALLBACKS_INCLUDES_H_
-#define _FLOW_CALLBACKS_INCLUDES_H_
+#ifndef _FLOW_CHECKS_INCLUDES_H_
+#define _FLOW_CHECKS_INCLUDES_H_
 
 #include "flow_alerts_includes.h"
 
@@ -82,4 +82,4 @@
 #include "flow_checks/NedgeBlockedFlow.h"
 #endif
 
-#endif /* _FLOW_CALLBACKS_INCLUDES_H_ */
+#endif /* _FLOW_CHECKS_INCLUDES_H_ */

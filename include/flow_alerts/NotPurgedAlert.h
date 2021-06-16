@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _NOT_PURGED_FLOW_CALLBACK_ALERT_H_
-#define _NOT_PURGED_FLOW_CALLBACK_ALERT_H_
+#ifndef _NOT_PURGED_FLOW_ALERT_H_
+#define _NOT_PURGED_FLOW_ALERT_H_
 
 #include "ntop_includes.h"
 
@@ -37,4 +37,4 @@ class NotPurgedAlert : public FlowAlert {
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 
-#endif /* _NOT_PURGED_FLOW_CALLBACK_ALERT_H_ */
+#endif /* _NOT_PURGED_FLOW_ALERT_H_ */

@@ -72,7 +72,7 @@ local REQUEST_PERIODIC_USER_SCRIPTS_RUN_KEY = "ntopng.cache.ifid_%i.user_scripts
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
 local ALL_HOOKS_CONFIG_KEY = "all"
-local CONFIGSET_KEY = "ntopng.prefs.user_scripts.configset_v3" -- Keep in sync with ntop_defines.h FLOW_CALLBACKS_CONFIG
+local CONFIGSET_KEY = "ntopng.prefs.user_scripts.configset_v3" -- Keep in sync with ntop_defines.h CHECKS_CONFIG
 user_scripts.DEFAULT_CONFIGSET_ID = 0
 
 -- NOTE: the subdir id must be unique

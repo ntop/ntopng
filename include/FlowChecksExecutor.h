@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _FLOW_CALLBACKS_EXECUTOR_H_
-#define _FLOW_CALLBACKS_EXECUTOR_H_
+#ifndef _FLOW_CHECKS_EXECUTOR_H_
+#define _FLOW_CHECKS_EXECUTOR_H_
 
 #include "ntop_includes.h"
 
@@ -41,4 +41,4 @@ class FlowChecksExecutor { /* One instance per ntopng Interface */
   FlowAlert *execChecks(Flow *f, FlowChecks c);
 };
 
-#endif /* _FLOW_CALLBACKS_EXECUTOR_H_ */
+#endif /* _FLOW_CHECKS_EXECUTOR_H_ */

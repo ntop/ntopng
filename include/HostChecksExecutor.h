@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _HOST_CALLBACKS_EXECUTOR_H_
-#define _HOST_CALLBACKS_EXECUTOR_H_
+#ifndef _HOST_CHECKS_EXECUTOR_H_
+#define _HOST_CHECKS_EXECUTOR_H_
 
 #include "ntop_includes.h"
 
@@ -45,4 +45,4 @@ class HostChecksExecutor { /* One instance per ntopng Interface */
   void execChecks(Host *h);
 };
 
-#endif /* _HOST_CALLBACKS_EXECUTOR_H_ */
+#endif /* _HOST_CHECKS_EXECUTOR_H_ */

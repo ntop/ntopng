@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _HOST_CALLBACKS_STATUS_H_
-#define _HOST_CALLBACKS_STATUS_H_
+#ifndef _HOST_CHECKS_STATUS_H_
+#define _HOST_CHECKS_STATUS_H_
 
 #include "ntop_includes.h"
 
@@ -50,4 +50,4 @@ class HostChecksStatus { /* Container to keep per-check status (e.g., traffic de
   inline u_int64_t cb_status_delta_dns_bytes(u_int64_t new_value) { return Utils::uintDiff(&dns_bytes, new_value); };
 };
 
-#endif /* _HOST_CALLBACKS_STATUS_H_ */
+#endif /* _HOST_CHECKS_STATUS_H_ */

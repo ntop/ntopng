@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _CALLBACKS_LOADER_H_
-#define _CALLBACKS_LOADER_H_
+#ifndef _CHECKS_LOADER_H_
+#define _CHECKS_LOADER_H_
 
 #include "ntop_includes.h"
 
@@ -39,4 +39,4 @@ class ChecksLoader {
   inline NtopngEdition getChecksEdition() { return checks_edition; };
 };
 
-#endif /* _CALLBACKS_LOADER_H_ */
+#endif /* _CHECKS_LOADER_H_ */

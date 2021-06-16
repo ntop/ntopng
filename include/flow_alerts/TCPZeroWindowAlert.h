@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _TCP_ZERO_WINDOW_FLOW_CALLBACK_ALERT_H_
-#define _TCP_ZERO_WINDOW_FLOW_CALLBACK_ALERT_H_
+#ifndef _TCP_ZERO_WINDOW_FLOW_ALERT_H_
+#define _TCP_ZERO_WINDOW_FLOW_ALERT_H_
 
 #include "ntop_includes.h"
 
@@ -37,4 +37,4 @@ class TCPZeroWindowAlert : public FlowAlert {
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 
-#endif /* _TCP_ZERO_WINDOW_FLOW_CALLBACK_ALERT_H_ */
+#endif /* _TCP_ZERO_WINDOW_FLOW_ALERT_H_ */
