@@ -212,8 +212,8 @@ local lang = {
     ["defs_directories"] = "Definice adresářů",
     ["dhcp_range_missing_warning"] = "<a href='%{url}'>%{name}</a> preference je neúčinná. Prosím nakonfigurujte <a href='%{dhcp_url}'>Rozsah DHCP</a> vhodně.",
     ["directories"] = "Adresáře",
-    ["flow_callbacks_directory"] = "Tok",
-    ["host_callbacks_directory"] = "Host",
+    ["flow_checks_directory"] = "Tok",
+    ["host_checks_directory"] = "Host",
     ["host_identifier_warning"] = "Toto rozhraní monitoruje hostitele DHCP. Zvažte prosím změnu <a href='%{url}'>%{name}</a> preference \"Mac adresy\".",
     ["influxdb_migration_msg"] = "Máte spoustu místních hostitelů. Prosím zvažte <a href='%{url}'>přesun z RRD do InfluxDB</a> pro ukládání časových řad pro zlepšení výkonu.",
     ["interface_callbacks_directory"] = "Rozhraní",
@@ -803,7 +803,7 @@ local lang = {
     ["type_explorer"] = "Zadejte Průzkumník",
     ["visual_explorer"] = "Visual Explorer",
   },
-  ["flow_callbacks"] = {
+  ["flow_checks"] = {
     ["application_detected"] = "Aplikace byla detekována",
     ["callback"] = "Flow Callback",
     ["callback_config"] = "Konfigurace",
@@ -831,7 +831,7 @@ local lang = {
     ["periodic_update"] = "Pravidelná aktualizace",
     ["status_changed"] = "Stav změněn",
   },
-  ["flow_callbacks_config"] = {
+  ["flow_checks_config"] = {
     ["blacklisted"] = "Tok na černé listině",
     ["blacklisted_description"] = "Pokud je na seznamu zakázaných alespoň jeden mezi klientem a serverem, aktivujte upozornění",
     ["no_input"] = "Není nutná žádná konfigurace",

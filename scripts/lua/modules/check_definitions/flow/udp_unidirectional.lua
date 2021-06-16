@@ -24,8 +24,8 @@ local script = {
    },
 
    gui = {
-      i18n_title = "flow_callbacks_config.udp_unidirectional",
-      i18n_description = "flow_callbacks_config.udp_unidirectional_description",
+      i18n_title = "flow_checks_config.udp_unidirectional",
+      i18n_description = "flow_checks_config.udp_unidirectional_description",
    }
 }
 

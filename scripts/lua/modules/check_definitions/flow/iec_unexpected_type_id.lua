@@ -23,11 +23,11 @@ local script = {
    },
 
    gui = {
-      i18n_title        = "flow_callbacks.iec104_unexpected_type_id_title",
-      i18n_description  = "flow_callbacks.iec104_unexpected_type_id_description",
+      i18n_title        = "flow_checks.iec104_unexpected_type_id_title",
+      i18n_description  = "flow_checks.iec104_unexpected_type_id_description",
       input_builder     = "items_list", -- TODO: fix the input list
-      input_title       = "flow_callbacks.iec104_unexpected_type_id_allowed_type_ids_title",
-      input_description = "flow_callbacks.iec104_unexpected_type_id_allowed_type_ids_description",
+      input_title       = "flow_checks.iec104_unexpected_type_id_allowed_type_ids_title",
+      input_description = "flow_checks.iec104_unexpected_type_id_allowed_type_ids_description",
    }
 }
 

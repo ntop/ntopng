@@ -50,7 +50,7 @@
           add_record = i18n("active_monitoring_stats.add_record"),
           measurement = i18n("active_monitoring_stats.measurement"),
           add_measurement_select = generate_select("select-add-measurement", "measurement", true, false, {}, "measurement-select"),
-          am_host = i18n("about.host_callbacks_directory"),
+          am_host = i18n("about.host_checks_directory"),
           periodicity = i18n("internals.periodicity"),
           add_granularity_select = generate_select("select-add-granularity", "granularity", true, false, {}, "measurement-granularity"),
           threshold = i18n("threshold"),
@@ -70,7 +70,7 @@
         dialog = {
           measurement = i18n("active_monitoring_stats.measurement"),
           edit_measurement_select = generate_select("select-edit-measurement", "measurement", true, false, {}, "measurement-select"),
-          am_host = i18n("about.host_callbacks_directory"),
+          am_host = i18n("about.host_checks_directory"),
           periodicity = i18n("internals.periodicity"),
           edit_granularity_select = generate_select("select-edit-granularity", "granularity", true, false, {}, "measurement-granularity"),
           edit_record = i18n("active_monitoring_stats.edit_record"),

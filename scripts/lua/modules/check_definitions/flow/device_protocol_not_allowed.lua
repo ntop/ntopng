@@ -20,9 +20,9 @@ local script = {
   },
 
   gui = {
-    i18n_title = "flow_callbacks_config.dev_proto_not_allowed",
+    i18n_title = "flow_checks_config.dev_proto_not_allowed",
     i18n_description = i18n(
-      ternary(ntop.isnEdge(), "flow_callbacks_config.dev_proto_not_allowed_nedge_description", "flow_callbacks_config.dev_proto_not_allowed_description"),
+      ternary(ntop.isnEdge(), "flow_checks_config.dev_proto_not_allowed_nedge_description", "flow_checks_config.dev_proto_not_allowed_description"),
       {url = getDeviceProtocolPoliciesUrl()}),
   }
 }

@@ -23,8 +23,8 @@ local script = {
   },
   
   gui = {
-    i18n_title        = "flow_callbacks.zero_tcp_window_title",
-    i18n_description  = "flow_callbacks.zero_tcp_window_description",
+    i18n_title        = "flow_checks.zero_tcp_window_title",
+    i18n_description  = "flow_checks.zero_tcp_window_description",
   }
 }
 

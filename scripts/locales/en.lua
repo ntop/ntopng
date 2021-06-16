@@ -380,10 +380,10 @@ local lang = {
     ["dhcp_range_missing_warning"] = "Configure <a href='%{dhcp_url}'>DHCP ranges</a> to make <a href='%{url}'>%{name}</a> preference effective.",
     ["directories"] = "Directories",
     ["dropped_store_queries_alerts"] = "Queries/Stored/Dropped Alerts",
-    ["flow_callbacks_directory"] = "Flow",
+    ["flow_checks_directory"] = "Flow",
     ["forced_community_notification"] = "Community edition forced with <code>--community</code> with a ntop license installed. Please remove this option to enable the installed license.",
     ["forced_community_notification_short"] = "Community edition forced with --community",
-    ["host_callbacks_directory"] = "Host",
+    ["host_checks_directory"] = "Host",
     ["host_identifier_warning"] = "This interface is monitoring DHCP hosts. Please consider changing the <a href='%{url}'>%{name}</a> preference to \"MAC Address\".",
     ["idle"] = "idle",
     ["interface_callbacks_directory"] = "Interface",
@@ -1563,7 +1563,7 @@ local lang = {
     ["type_explorer"] = "Type Explorer",
     ["visual_explorer"] = "Visual Explorer",
   },
-  ["flow_callbacks"] = {
+  ["flow_checks"] = {
     ["allowed_servers_description"] = "Comma separated values of server IPs. Example: 173.194.76.109,52.97.232.242",
     ["allowed_servers_title"] = "Allowed Servers",
     ["application_detected"] = "Application Detected",
@@ -1623,7 +1623,7 @@ local lang = {
     ["zero_tcp_window_description"] = "Trigger an alert when a flow TCP window is zero",
     ["zero_tcp_window_title"] = "Zero TCP Window",
   },
-  ["flow_callbacks_config"] = {
+  ["flow_checks_config"] = {
     ["blacklisted"] = "Blacklisted Flow",
     ["blacklisted_description"] = "Trigger an alert when a blacklisted host or domain is detected",
     ["data_exfiltration"] = "Data Exfiltration",

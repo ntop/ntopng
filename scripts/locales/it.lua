@@ -316,9 +316,9 @@ local lang = {
     ["dhcp_range_missing_warning"] = "La preferenza <a href='%{url}'>%{name}</a> non ha effetto. Configurare il <a href='%{dhcp_url}'>range DHCP</a>.",
     ["directories"] = "Cartelle",
     ["dropped_store_queries_alerts"] = "Allarmi Queries/Salvate/Perse",
-    ["flow_callbacks_directory"] = "Flusso",
+    ["flow_checks_directory"] = "Flusso",
     ["forced_community_notification"] = "Edizione Community forzata con --community con una licenza installata. Rimuovere questa opzione per utilizzare la licenza installata",
-    ["host_callbacks_directory"] = "Host",
+    ["host_checks_directory"] = "Host",
     ["host_identifier_warning"] = "Questa interfaccia monitora host DHCP. Cambiare la preferenza <a href='%{url}'>%{name}</a> a \"Mac Address\".",
     ["idle"] = "idle",
     ["interface_callbacks_directory"] = "Interfaccia",
@@ -1250,7 +1250,7 @@ local lang = {
     ["type_explorer"] = "Esplora per Tipo",
     ["visual_explorer"] = "Esploratore Visuale",
   },
-  ["flow_callbacks"] = {
+  ["flow_checks"] = {
     ["application_detected"] = "Applicazione Rilevata",
     ["callback"] = "User Script",
     ["callback_config"] = "Configurazione",
@@ -1285,7 +1285,7 @@ local lang = {
     ["periodic_update"] = "Aggiornamento Periodico",
     ["status_changed"] = "Cambiamento di Stato",
   },
-  ["flow_callbacks_config"] = {
+  ["flow_checks_config"] = {
     ["blacklisted"] = "Flusso in Blacklist",
     ["blacklisted_description"] = "Emette un allarme quando viene rilevato un host o un dominio in blacklist",
     ["data_exfiltration"] = "Data Exfiltration",

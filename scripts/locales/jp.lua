@@ -323,10 +323,10 @@ local lang = {
     ["dhcp_range_missing_warning"] = "\" <a href='%{url}'> %{name}</a>設定は有効ではありません。 <a href='%{dhcp_url}'>DHCPレンジ</a>を正確に設定してください.",
     ["directories"] = "ディレクトリ",
     ["dropped_store_queries_alerts"] = "クエリ/保存/ドロップされたアラート",
-    ["flow_callbacks_directory"] = "フロー",
+    ["flow_checks_directory"] = "フロー",
     ["forced_community_notification"] = "コミュニティバージョンは --communityオプションを指定します. 有償ライセンスを有効にするにはこのオプションを削除してください.",
     ["forced_community_notification_short"] = "コミュニティバージョンは、--communityを使ってください",
-    ["host_callbacks_directory"] = "ホスト",
+    ["host_checks_directory"] = "ホスト",
     ["host_identifier_warning"] = "このインターフェイスはDHCPホストを監視しています. <a href='%{url}'> %{name}</a> 設定を \"MACアドレス\"に変更することを検討してください.",
     ["idle"] = "アイドル",
     ["interface_callbacks_directory"] = "インターフェィス",
@@ -1275,7 +1275,7 @@ local lang = {
     ["type_explorer"] = "タイプエクスプローラ",
     ["visual_explorer"] = "ビジュアルエクスプローラ",
   },
-  ["flow_callbacks"] = {
+  ["flow_checks"] = {
     ["application_detected"] = "検出されたアプリケーション",
     ["callback"] = "ユーザースクリプト",
     ["callback_config"] = "構成",
@@ -1310,7 +1310,7 @@ local lang = {
     ["periodic_update"] = "定期的な更新",
     ["status_changed"] = "ステータスが変更されました",
   },
-  ["flow_callbacks_config"] = {
+  ["flow_checks_config"] = {
     ["blacklisted"] = "ブラックリストに登録されたフロー",
     ["blacklisted_description"] = "ブラックリストに登録されたホストまたはドメインが検出されたときにアラートをトリガーします",
     ["data_exfiltration"] = "データ流出",

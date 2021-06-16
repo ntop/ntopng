@@ -3,7 +3,8 @@
 --
 
 local checks = require("checks")
-local alerts_api = require("alerts_api")
+local flow_consts = require("flow_consts")
+local alerts_api = require "alerts_api"
 local alert_consts = require("alert_consts")
 local flow_alert_keys = require "flow_alert_keys"
 
@@ -11,18 +12,18 @@ local flow_alert_keys = require "flow_alert_keys"
 
 local script = {
    -- Script category
-   category = checks.check_categories.security,
+   category = checks.check_categories.security, 
 
    default_enabled = true,
-   alert_id = flow_alert_keys.flow_alert_iec_invalid_transition,
 
-   -- Specify the default value whe clicking on the "Reset Default" button
+   alert_id = flow_alert_keys.flow_alert_remote_to_local_insecure_proto,
+
    default_value = {
    },
 
    gui = {
-      i18n_title        = "flow_callbacks.iec104_title",
-      i18n_description  = "flow_callbacks.iec104_description",
+      i18n_title = "flow_checks_config.remote_to_local_insecure_proto_title",
+      i18n_description = "flow_checks_config.remote_to_local_insecure_proto_description",
    }
 }
 

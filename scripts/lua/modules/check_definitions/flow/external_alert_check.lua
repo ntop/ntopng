@@ -14,8 +14,8 @@ local script = {
    alert_id = flow_alert_keys.flow_alert_external,
 
    gui = {
-      i18n_title = "flow_callbacks_config.ext_alert",
-      i18n_description = "flow_callbacks_config.ext_alert_description",
+      i18n_title = "flow_checks_config.ext_alert",
+      i18n_description = "flow_checks_config.ext_alert_description",
    }
 }
 

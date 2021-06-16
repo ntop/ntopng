@@ -24,8 +24,8 @@ local script = {
   },
   
   gui = {
-    i18n_title        = "flow_callbacks.tcp_no_data_exchanged_title",
-    i18n_description  = "flow_callbacks.tcp_no_data_exchanged_description",
+    i18n_title        = "flow_checks.tcp_no_data_exchanged_title",
+    i18n_description  = "flow_checks.tcp_no_data_exchanged_description",
   }
 }
 

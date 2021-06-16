@@ -19,7 +19,7 @@ local script = {
    default_enabled = false,
 
    -- This script is only for alerts generation
-   alert_id = flow_alert_keys.flow_alert_unexpected_ntp_server,
+   alert_id = flow_alert_keys.flow_alert_unexpected_dhcp_server,
 
    -- Specify the default value whe clicking on the "Reset Default" button
    default_value = {
@@ -27,13 +27,13 @@ local script = {
    },
 
    gui = {
-      i18n_title        = "flow_callbacks.unexpected_ntp_title",
-      i18n_description  = "flow_callbacks.unexpected_ntp_description",
+      i18n_title        = "flow_checks.unexpected_dhcp_title",
+      i18n_description  = "flow_checks.unexpected_dhcp_description",
 
       input_builder     = "items_list",
       item_list_type    = "ip_address",
-      input_title       = "flow_callbacks.allowed_servers_title",
-      input_description = "flow_callbacks.allowed_servers_description",
+      input_title       = "flow_checks.allowed_servers_title",
+      input_description = "flow_checks.allowed_servers_description",
    }
 }
 

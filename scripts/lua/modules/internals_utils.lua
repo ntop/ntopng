@@ -534,7 +534,7 @@ $("#table-internals-periodic-activities").datatable({
 	 width: '5%',
        }
      }, {
-       title: "]] print(i18n("flow_callbacks.callback_function")) print[[",
+       title: "]] print(i18n("flow_checks.callback_function")) print[[",
        field: "column_hook",
        sortable: true,
        css: {
@@ -649,7 +649,7 @@ function internals_utils.getHashTablesFillBar(first_fill_pct, second_fill_pct, t
    end
 
    if second_fill_pct > 0 then
-      code = code..[[<div class="progress-bar bg-info" role="progressbar" title="]] ..i18n("flow_callbacks.idle").. [[" style="width: ]]..second_fill_pct..[[%" aria-valuenow="]]..second_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("flow_callbacks.idle")..[[</div>]]
+      code = code..[[<div class="progress-bar bg-info" role="progressbar" title="]] ..i18n("flow_checks.idle").. [[" style="width: ]]..second_fill_pct..[[%" aria-valuenow="]]..second_fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..i18n("flow_checks.idle")..[[</div>]]
    end
 
    if third_fill_pct > 0 then
@@ -706,7 +706,7 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
 	 schema = "periodic_script:duration",
 	 label = i18n("internals.chart_script_duration", {script = script}),
 	 extra_params = {periodic_script = script},
-	 metrics_labels = {i18n("flow_callbacks.last_duration"), },
+	 metrics_labels = {i18n("flow_checks.last_duration"), },
 
 	 -- Horizontal line with max duration
 	 extra_series = {

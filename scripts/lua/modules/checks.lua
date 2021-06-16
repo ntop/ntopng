@@ -350,7 +350,7 @@ function checks.getSubdirectoryPath(script_type, subdir)
 
    if subdir == "host" or subdir == "flow" then
       -- host and flow have their callbacks defined under modules/ and implemented in C++
-      path = string.format("%s/scripts/lua/modules/callback_definitions/%s", dirs.installdir, subdir)
+      path = string.format("%s/scripts/lua/modules/check_definitions/%s", dirs.installdir, subdir)
    elseif not isEmptyString(subdir) and subdir ~= "." then
       path = string.format("%s/%s/%s", prefix, script_type.parent_dir, subdir)
    else
@@ -359,10 +359,10 @@ function checks.getSubdirectoryPath(script_type, subdir)
 
    res[#res + 1] = os_utils.fixPath(path)
 
-   -- Add pro callback_definitions if necessary
+   -- Add pro check_definitions if necessary
    if ntop.isPro() then
       if subdir == "flow" then
-	 local pro_path = string.format("%s/pro/scripts/lua/modules/callback_definitions/%s", dirs.installdir, subdir)
+	 local pro_path = string.format("%s/pro/scripts/lua/modules/check_definitions/%s", dirs.installdir, subdir)
 	 res[#res + 1] = os_utils.fixPath(pro_path)
       end
    end

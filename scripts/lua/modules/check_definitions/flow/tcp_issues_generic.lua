@@ -25,8 +25,8 @@ local script = {
    },
 
    gui = {
-      i18n_title = "flow_callbacks_config.tcp_issues_generic",
-      i18n_description = "flow_callbacks_config.tcp_issues_generic_description",
+      i18n_title = "flow_checks_config.tcp_issues_generic",
+      i18n_description = "flow_checks_config.tcp_issues_generic_description",
    }
 }
 

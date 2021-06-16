@@ -20,8 +20,8 @@ local script = {
    },
 
    gui = {
-      i18n_title = "flow_callbacks_config.not_purged",
-      i18n_description = "flow_callbacks_config.not_purged_description",
+      i18n_title = "flow_checks_config.not_purged",
+      i18n_description = "flow_checks_config.not_purged_description",
    }
 }
 
