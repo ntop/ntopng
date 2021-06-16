@@ -1903,6 +1903,8 @@ function flowinfo2hostname(flow_info, host_type, alerts_view)
       return(flow_info[host_type..".ip"])
    end
 
+   if(flow_info == nil) then return("") end
+   
    if(host_type == "srv") then
       if flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "" and flow_info["host_server_name"]:match("%w") then
 	 -- remove possible ports from the name
