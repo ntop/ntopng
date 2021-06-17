@@ -59,8 +59,8 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
       hostinfo2detailshref(server, nil, hostinfo2label(server))
 
    rsp = rsp .. " ["..interface.getnDPIProtoName(alert.l7_proto).."]"
-   if not isEmptyString(alert_type_params.info) then
-      rsp = rsp .. "[" .. alert_type_params.info .. "]"
+   if not isEmptyString(info) then
+      rsp = rsp .. "[" .. info .. "]"
    end
 
    return(rsp)
