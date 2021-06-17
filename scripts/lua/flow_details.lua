@@ -1629,8 +1629,8 @@ print [[
                 const $type = $(`<span>${alert.alert_label}</span>`);
                 $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
 
-                const cliLabel = "]] print(flowinfo2hostname(flow,"cli")) print[[";
-                const srvLabel = "]] print(flowinfo2hostname(flow,"srv")) print[[";
+                const cliLabel = "]] local n = flowinfo2hostname(flow,"cli"); if n ~= flow["cli.ip"] then print(string.format("%s (%s)", n, flow["cli.ip"])) else print(n) end print[[";
+                const srvLabel =  "]] local n = flowinfo2hostname(flow,"srv"); if n ~= flow["srv.ip"] then print(string.format("%s (%s)", n, flow["srv.ip"])) else print(n) end print[[";
 
                 $(`#cli_addr`).text(cliLabel);
                 $(`#cli_radio`).val("]] print(flow["cli.ip"]) print[[");
