@@ -89,7 +89,6 @@ else
 	    {schema="vlan:score",                	  label=i18n("score"), split_directions = true},
          },
       })
-   end
    elseif (page == "config") then
       if(not isAdministrator()) then
          return
@@ -126,7 +125,7 @@ else
          ]]
 
       print[[</table>]]
-
+   end
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
