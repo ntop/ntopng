@@ -4416,7 +4416,8 @@ void Flow::dissectNetBIOS(u_int8_t *payload, u_int16_t payload_len) {
 
   if(((payload[2] & 0x80) /* NetBIOS Response */ || ((payload[2] & 0x78) == 0x28 /* NetBIOS Registration */))
      && (payload_len >= 12)
-     && (ndpi_netbios_name_interpret((u_char*)&payload[12], payload_len - 12, (u_char*)name, sizeof(name)) > 0)
+     && (ndpi_netbios_name_interpret((u_char*)&payload[12], payload_len - 12,
+				     (u_char*)name, sizeof(name)) > 0)
      && (!strstr(name, "__MSBROWSE__"))
      ) {
 
