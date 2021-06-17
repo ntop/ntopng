@@ -34,7 +34,7 @@ if vlan_id == nil or tonumber(vlan_id) == nil or tonumber(vlan_id) == 0 then
    return
 end
 
-if(not areVlanTimeseriesEnabled(ifId)) then
+if(not areVlanTimeseriesEnabled(ifId)) and (page ~= "config") then
    print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " .. i18n("vlan_details.no_available_stats_for_vlan_message",{vlan_id=vlan_id, product=info["product"]}).."</div>")
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
@@ -94,7 +94,7 @@ else
          return
       end
       print[[
-      <form id="network_config" class="form-inline" style="margin-bottom: 0px;" method="post">
+      <form id="vlan_config" class="form-inline" style="margin-bottom: 0px;" method="post">
       <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
       <table class="table table-bordered table-striped">]]
 
@@ -120,7 +120,7 @@ else
             <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
             </form>
             <script>
-              aysHandleForm("#network_config");
+              aysHandleForm("#vlan_config");
             </script>
          ]]
 
