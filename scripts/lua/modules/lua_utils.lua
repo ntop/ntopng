@@ -2063,9 +2063,9 @@ end
 -- ##############################################
 
 function getFullVlanName(vlan_id)
-   local alias = setVlanAlias(vlan_id)
+   local alias = getVlanAlias(vlan_id)
 
-   if alias ~= vlan_id then
+   if (tostring(alias)) ~= (tostring(vlan_id)) then
       return string.format("%s [%s]", alias, vlan_id)
    end
 

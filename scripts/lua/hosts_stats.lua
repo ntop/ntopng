@@ -71,7 +71,7 @@ if ((mode ~= "all") or (not isEmptyString(pool))) then
    hosts_filter = '<span class="fas fa-filter"></span>'
 end
 
-function getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipver_title, os_, country, asninfo, mac, pool_, vlan_title)
+function getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipver_title, os_, country, asninfo, mac, pool_, vlan_title, vlan_alias)
    local mode_label = ""
 
    if mode == "remote" then
@@ -104,6 +104,7 @@ function getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipv
         ["os"] = discover.getOsName(os_),
         country_asn_or_mac = country or asninfo or mac or pool_ or "",
         vlan = vlan_title or "",
+        vlan_name = vlan_alias or "",
 	wheel = wheel
    }) .. charts_icon
 end
@@ -123,6 +124,7 @@ local country_title = nil
 local mac_title = nil
 local vlan_title = nil
 local pool_title = nil
+local vlan_alias = nil
 
 if((protocol ~= nil) and (protocol ~= "")) then
    protocol_name = interface.getnDPIProtoName(tonumber(protocol))
@@ -184,7 +186,12 @@ if(vlan ~= nil) then
    local link_service_map = generate_map_url(interface.serviceMap(nil, tonumber(vlan)), "service_map.lua", "vlan=" .. vlan, "fas fa-concierge-bell")
    local link_periodicity_map = generate_map_url(interface.periodicityMap(nil, tonumber(vlan)), "periodicity_map.lua", "vlan=" .. vlan, "fas fa-clock")
 
-   vlan_title = " [".. i18n("hosts_stats.vlan_title", {vlan=vlan}) .."] " .. link_service_map .. " " .. link_periodicity_map
+   vlan_title = " [".. i18n("hosts_stats.vlan_title", {vlan=vlan}) .."] <A HREF='".. ntop.getHttpPrefix().. "/lua/vlan_details.lua?vlan=".. vlan .."&page=config" .."'><i class='fas fa-cog fa-sm'></i></A>" .. link_service_map .. " " .. link_periodicity_map
+   if(vlan==getVlanAlias(vlan)) then
+      vlan_alias=""
+   else
+      vlan_alias = getVlanAlias(vlan)
+   end
 end
 
 if(pool ~= nil) then
@@ -223,7 +230,7 @@ if(pool ~= nil) then
       "</small>"
 end
 
-page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipver_title, os_title, country_title, asninfo, mac_title, pool_title, vlan_title))
+page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipver_title, os_title, country_title, asninfo, mac_title, pool_title, vlan_title,vlan_alias))
 
 if (_GET["page"] ~= "historical") then
    if(asn ~= nil) then

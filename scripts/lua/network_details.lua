@@ -148,7 +148,7 @@ elseif (page == "config") then
    print [[<tr>
 	 <th>]] print(i18n("network_details.network_alias")) print[[</th>
 	 <td>
-         <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]] print(custom_name) print[[ "
+         <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]] print(custom_name) print[["
          ]] 
          local option_name = ntop.getLocalNetworkAlias(network_name) or nil
          if option_name then

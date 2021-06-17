@@ -2895,7 +2895,7 @@ local lang = {
     ["host_pool"] = "Host Pool %{pool_name}",
     ["hosts"] = "Hosts",
     ["hosts_list"] = "Hosts List",
-    ["hosts_page_title"] = "%{all} %{traffic_type} %{local_remote} %{protocol} %{network_cidr} %{network} %{ip_version} %{os} Hosts %{country_asn_or_mac} %{vlan} %{wheel}",
+    ["hosts_page_title"] = "%{all} %{vlan_name} %{traffic_type} %{local_remote} %{protocol} %{network_cidr} %{network} %{ip_version} %{os} Hosts %{country_asn_or_mac} %{vlan} %{wheel}",
     ["idle_hosts_not_listed"] = "Idle hosts not listed.",
     ["in_network"] = "%{network}",
     ["ipver_title"] = "IPv%{version_num}",
@@ -5493,6 +5493,7 @@ local lang = {
   ["vlan_details"] = {
     ["no_available_stats_for_vlan_message"] = "No available stats for VLAN %{vlan_id}. Please wait a few minutes to allow %{product} to harvest new statistics.",
     ["vlan_id_parameter_missing_or_invalid_message"] = "Vlan_Id parameter is missing or is not valid",
+    ["vlan_alias"] = "Vlan Alias",
   },
   ["vlan_stats"] = {
     ["vlan_id"] = "VLAN ID",
