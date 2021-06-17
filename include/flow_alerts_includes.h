@@ -73,6 +73,7 @@
 #include "flow_alerts/FlowRiskTLSCertificateSelfSignedAlert.h"
 #include "flow_alerts/DataExfiltrationAlert.h"
 #include "flow_alerts/ElephantFlowAlert.h"
+#include "flow_alerts/LateralMovementAlert.h"
 #include "flow_alerts/LongLivedFlowAlert.h"
 #include "flow_alerts/DNSDataExfiltrationAlert.h"
 #include "flow_alerts/TCPConnectionRefusedAlert.h"

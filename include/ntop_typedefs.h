@@ -455,6 +455,7 @@ typedef enum {
   flow_alert_iec_unexpected_type_id           = 55, /* To be implemented */
   flow_alert_tcp_no_data_exchanged            = 56,
   flow_alert_remote_access                    = 57,
+  flow_alert_lateral_movement                 = 58,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

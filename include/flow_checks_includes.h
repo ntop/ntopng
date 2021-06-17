@@ -71,6 +71,7 @@
 #include "flow_checks/ElephantFlow.h"
 #include "flow_checks/ExternalAlertCheckPro.h"
 #include "flow_checks/InvalidDNSQuery.h"
+#include "flow_checks/LateralMovement.h"
 #include "flow_checks/LongLivedFlow.h"
 #include "flow_checks/TCPConnectionRefused.h"
 #include "flow_checks/FlowRiskTLSCertificateExpired.h"

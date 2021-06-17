@@ -72,12 +72,14 @@ class Flow : public GenericHashEntry {
     good_tls_hs,
     quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature,
     swap_done, swap_requested;
+  
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
 #endif
 #ifdef NTOPNG_PRO
   bool ingress2egress_direction;
   u_int8_t routing_table_id;
+  bool lateral_movement, create_or_delete;
 #ifndef HAVE_NEDGE
   FlowProfile *trafficProfile;
 #else
@@ -341,6 +343,13 @@ class Flow : public GenericHashEntry {
   inline bool isSMTP() const { return(isProto(NDPI_PROTOCOL_MAIL_SMTP) || isProto(NDPI_PROTOCOL_MAIL_SMTPS));  }
   inline bool isHTTP() const { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP() const { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
+
+#ifdef NTOPNG_PRO
+  inline bool isLateralMovement() const { return(lateral_movement);  }
+  inline bool isCreateOrDelete()  const { return(create_or_delete);  }
+  inline void setLateralMovement(bool change) { lateral_movement = change;  }
+  inline void setCreateOrDelete(bool change)  { create_or_delete = change;  }
+#endif
 
   inline bool isCliDeviceAllowedProtocol() const {
     return !cli_host || cli_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), true) == device_proto_allowed;

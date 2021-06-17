@@ -58,7 +58,6 @@ local other_alert_keys = {
    alert_host_log                       =  OTHER_BASE_KEY + 45, -- No longer used (moved to the host)
    alert_attack_mitigation_via_snmp     =  OTHER_BASE_KEY + 46,
    alert_iec104_error                   =  OTHER_BASE_KEY + 47, -- No longer used
-   alert_lateral_movement               =  OTHER_BASE_KEY + 48,
    alert_list_download_succeeded        =  OTHER_BASE_KEY + 49,
    alert_no_if_activity                 =  OTHER_BASE_KEY + 50, -- scripts/plugins/alerts/internals/no_if_activity
    alert_unexpected_new_device          =  OTHER_BASE_KEY + 51, -- scripts/plugins/alerts/security/unexpected_new_device

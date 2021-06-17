@@ -4,7 +4,7 @@
 
 -- ##############################################
 
-local other_alert_keys = require "other_alert_keys"
+local flow_alert_keys = require "flow_alert_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -17,7 +17,7 @@ local alert_lateral_movement = classes.class(alert)
 -- ##############################################
 
 alert_lateral_movement.meta = {
-   alert_key = other_alert_keys.alert_lateral_movement,
+   alert_key = flow_alert_keys.flow_alert_lateral_movement,
    i18n_title = "alerts_dashboard.lateral_movement",
    icon = "fas fa-fw fa-arrows-alt-h",
 }
@@ -31,10 +31,6 @@ alert_lateral_movement.meta = {
 function alert_lateral_movement:init(last_error)
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {
-      error_msg = last_error
-   }
 end
 
 -- #######################################################
@@ -45,18 +41,17 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_lateral_movement.format(ifid, alert, alert_type_params)
-   local msg = alert_type_params.error_msg
-   local vlan_id = msg.vlan_id or 0
-   local client = {host = msg.shost, vlan = vlan_id}
-   local server = {host = msg.dhost, vlan = vlan_id}
+   local vlan_id = alert_type_params.vlan_id or 0
+   local client = {host = alert_type_params.shost, vlan = vlan_id}
+   local server = {host = alert_type_params.dhost, vlan = vlan_id}
 
    local rsp = hostinfo2detailshref(client, nil, hostinfo2label(client))..
       " <i class=\"fas fa-fw fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i> " ..
       hostinfo2detailshref(server, nil, hostinfo2label(server))
 
-   rsp = rsp .. " ["..interface.getnDPIProtoName(msg.l7).."]"
-   if not isEmptyString(msg.info) then
-      rsp = rsp .. "[" .. msg.info .. "]"
+   rsp = rsp .. " ["..alert_type_params.l7_proto.."]"
+   if not isEmptyString(alert_type_params.info) then
+      rsp = rsp .. "[" .. alert_type_params.info .. "]"
    end
 
    return(rsp)
