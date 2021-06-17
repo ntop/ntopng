@@ -8,6 +8,7 @@ require "lua_utils"
 local import_export = require "import_export"
 local json = require "dkjson"
 local checks = require "checks"
+local alert_exclusions = require "alert_exclusions"
 local rest_utils = require "rest_utils"
 
 -- ##############################################
@@ -45,7 +46,7 @@ function scripts_import_export:import(conf)
       return res
    end
 
-   local config_set = conf["0"]
+   local config_set = conf[tostring(checks.DEFAULT_CONFIGSET_ID)]
 
    if config_set == nil then
       res.err = rest_utils.consts.err.bad_content
@@ -62,6 +63,12 @@ function scripts_import_export:import(conf)
    end
 
    if not res.err then
+
+      -- Import exclusions (if present)
+      if conf["alert_exclusions"] then
+	 alert_exclusions.import(conf["alert_exclusions"])
+      end
+
       res.success = true
    end
 
@@ -76,6 +83,7 @@ function scripts_import_export:export()
    local conf = {}
 
    conf[checks.DEFAULT_CONFIGSET_ID] = checks.getConfigset()
+   conf["alert_exclusions"] = alert_exclusions.export()
 
    return conf
 end

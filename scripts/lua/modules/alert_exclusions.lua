@@ -316,6 +316,22 @@ end
 
 -- ##############################################
 
+-- @brief Import a previously `export`ed exclusions configuration
+function alert_exclusions.import(exclusions)
+   _set_configured_alert_exclusions(exclusions)
+end
+
+-- ##############################################
+
+-- @brief Exports the current configuration
+function alert_exclusions.export()
+   local exclusions = _get_configured_alert_exclusions()
+
+   return exclusions
+end
+
+-- ##############################################
+
 -- @brief Delete all alert_exclusions
 function alert_exclusions.cleanup()
    local locked = _lock()
