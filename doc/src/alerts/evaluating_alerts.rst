@@ -7,7 +7,7 @@ User Scripts
 ntopng alerts are evaluated with :ref:`WebUIUserScripts`. User Scripts are executed for hosts, interfaces, SNMP devices, and other network elements, and are configurable from the settings
 
 
-.. figure:: ../img/alerts_user_scripts_management.png
+.. figure:: ../img/alerts_checks_management.png
   :align: center
   :alt: User Scripts Configuration
 

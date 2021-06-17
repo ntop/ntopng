@@ -7,7 +7,7 @@ User scripts process network elements and perform actions such as triggering ale
 
 User scripts can be configured from any interface, from the menu `Settings->User Scripts`. 
 
-.. figure:: ../img/web_gui_user_scripts.png
+.. figure:: ../img/web_gui_checks.png
   :align: center
   :alt: User Scripts Settings
 
@@ -58,7 +58,7 @@ A newly cloned configuration shows a message `Warning: this config is not applie
 
 An example of three configurations is shown in the image:
 
-.. figure:: ../img/web_gui_user_scripts_configurations.png
+.. figure:: ../img/web_gui_checks_configurations.png
   :align: center
   :alt: User Scripts Configurations
 
@@ -78,7 +78,7 @@ Editing Configurations
 
 User scripts configurations can be edited for any of the configurable network elements. The edit page shows three tabs, namely `All`, `Enabled`, and `Disabled` to give immediate access to the whole list of user scripts, or to limit the view to only those that are enabled or disabled.
 
-.. figure:: ../img/web_gui_user_scripts_configurations_edit.png
+.. figure:: ../img/web_gui_checks_configurations_edit.png
   :align: center
   :alt: User Scripts Configuration Edit
 
@@ -87,7 +87,7 @@ User scripts configurations can be edited for any of the configurable network el
 A user script can be enabled or disabled by clicking the corresponding button under the `Actions` column. Certain user scripts can also have their values configured. In this case, an extra button `Edit` becomes available under the `Actions` column. For example, the traffic alert user script can be edited as follows:
 
 
-.. figure:: ../img/web_gui_user_scripts_configurations_edit_traffic.png
+.. figure:: ../img/web_gui_checks_configurations_edit_traffic.png
   :align: center
   :alt: User Scripts Configuration Edit Traffic Alert
 

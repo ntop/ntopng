@@ -73,8 +73,8 @@ A user script could then use the above schema as follows:
 It's important to check that `params.ts_enabled` flag in order to call `ts_utils.append` only
 if the timeseries are enabled for the given entity currently processed.
 
-.. _`user scripts hooks`: user_script_hooks.html#user-script-hooks
+.. _`user scripts hooks`: check_hooks.html#user-script-hooks
 .. _`Timeseries API`: ../api/timeseries/index.html
 .. _`Custom Pages`: custom_pages.html
 .. _`Redis monitor plugin`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/redis_monitor
-.. _`the relevant page`: user_script_hooks.html#other-user-script-hooks
+.. _`the relevant page`: check_hooks.html#other-user-script-hooks

@@ -1,5 +1,3 @@
-.. _UseCaseMikrotik:
-
 Monitoring Large Networks
 #########################
 

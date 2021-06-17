@@ -121,6 +121,7 @@ Webhook
 
 TODO
 
+.. _ElasticsearchAlerts:
 Elasticsearch
 -------------
 

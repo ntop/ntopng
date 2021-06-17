@@ -154,7 +154,7 @@ User Scripts
 
 Aim of the `User Scripts` internals table is to monitor the execution of scripts.
 
-.. figure:: ../img/internals_user_scripts.png
+.. figure:: ../img/internals_checks.png
   :align: center
   :alt: Internals: User Scripts
 
@@ -163,7 +163,7 @@ Aim of the `User Scripts` internals table is to monitor the execution of scripts
 Information shown in the table columns is:
 
 - `User Script`: The name of the user script which is executed.
-- `Target`: The target of the user script, either an `host`, a `flow` or one of the other :ref:`Other User Scripts` targets.
+- `Target`: The target of the user script, either an `host`, a `flow` or one of the other targets.
 - `Hook`: One of the :ref:`User Script Hooks`.
 - `Last Num Calls`: The number of times the user script has been called the last time a periodic activity has executed it.
 - `Last Duration`: The total duration of the user script, computed as the sum of the duration of any of its `Last Num Calls`.

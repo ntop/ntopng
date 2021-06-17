@@ -193,7 +193,7 @@ In order to reset the ntopng preferences the following commands can be used:
    On windows instead of restarting ntopnng with the systemctl tool you need to use the Windows Services Manager.
 
 How Can I Troubleshoot SNMP ?
-============================
+=============================
 
 If SNMP polling is not working as expected it may be necessary to inspect
 the low-level SNMP messages exchanged by ntopng and the SNMP agents.

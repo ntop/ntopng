@@ -27,7 +27,7 @@ The complete structure of the plugin is as follows:
 
 	  blacklisted
 	      |-- manifest.lua
-	      |-- user_scripts
+	      |-- checks
 		  `-- flow
 		      `-- blacklisted.lua
 	      |-- alert_definitions
@@ -56,17 +56,16 @@ sub-directories and a :code:`manifest.lua` (see :ref:`Manifest`) file containing
 	  }
 
 Sub-directories
-:code:`alert_definitions` and :code:`status_definitions` contain Lua scripts necessary to define alerts and flow statuses. Specifically, :ref:`Alert Definitions`
 define the alerts the plugin is going to trigger, whereas :ref:`Flow Definitions` define flow statues the plugin is going to set. In this specific plugin,
 :code:`alert_flow_blacklisted.lua` tells ntopng the plugin is willing
 to create an alert for blacklisted flows. Similarly,
 :code:`status_blacklisted.lua` tells ntopng the plugin is going to set
 a blacklisted status for certain flows. Those two directories, as said
 by their names, contain just definitions of alerts and flow status,
-the actual logic which sets the status and trigger the alert resides in directory :code:`user_scripts`.
+the actual logic which sets the status and trigger the alert resides in directory :code:`checks`.
 
 As this plugin requires flows to carry on its task, directory
-:code:`user_scripts` (see :ref:`User Scripts`) with the logic must contain a sub-directory
+:code:`checks` (see :ref:`User Scripts`) with the logic must contain a sub-directory
 :code:`flow`, which, in turn, contains file
 :code:`blacklisted.lua`. ntopng knows it has to execute
 :code:`blacklisted.lua` against each flow it sees because
@@ -188,7 +187,7 @@ The complete structure of the plugin is as follows:
 	      |-- manifest.lua
 	      |-- alert_definitions
 	      |   `-- alert_flows_flood.lua
-	      `-- user_scripts
+	      `-- checks
 		  |-- host
 		  |   |-- flow_flood_attacker.lua
 		  |   `-- flow_flood_victim.lua
@@ -214,13 +213,13 @@ representative for the plugin. The :code:`manifest.lua` (see :ref:`Manifest`) sc
    }
 
 This plugin doesn't work on flows, so no :code:`flow` directory is
-present under :code:`user_scripts` and no :code:`status_definitions`
+present under :code:`checks` and no :code:`status_definitions`
 is necessary as it has been seen for the `Blacklisted
 Flows`_. However, as this plugin generates alerts,
 :code:`alert_flows_flood.lua` is needed under
 :code:`alert_definitions` to tell ntopng about this.
 
-The logic stays under :code:`user_scripts`  (see :ref:`User Scripts`) which
+The logic stays under :code:`checks`  (see :ref:`User Scripts`) which
 has two sub-directories: :code:`host` and :code:`network`, each one
 containing Lua files with the logic necessary to trigger the
 alert. ntopng will execute scripts under the :code:`host` directory on
@@ -238,7 +237,7 @@ scripts executed on hosts (the other Lua script are similar):
 
    local alerts_api = require("alerts_api")
    local alert_consts = require("alert_consts")
-   local user_scripts = require("user_scripts")
+   local checks = require("checks")
 
    local script = {
      default_enabled = true,
@@ -257,7 +256,7 @@ scripts executed on hosts (the other Lua script are similar):
      gui = {
        i18n_title = "entity_thresholds.flow_attacker_title",
        i18n_description = "entity_thresholds.flow_attacker_description",
-       i18n_field_unit = user_scripts.field_units.flow_sec,
+       i18n_field_unit = checks.field_units.flow_sec,
        input_builder = "threshold_cross",
        field_max = 65535,
        field_min = 1,
@@ -335,7 +334,7 @@ This example shows how to log the traffic of a `local network`_.
 
 	  network_monitor/
 	      |-- manifest.lua
-	      `-- user_scripts
+	      `-- checks
 		  `-- network
 		      `-- traffic_log.lua
 
@@ -345,12 +344,12 @@ so it won't be discussed again. The core logic is contained into the
 
 .. code:: lua
 
-   local user_scripts = require("user_scripts")
+   local checks = require("checks")
    require("lua_utils")
 
    local script = {
      -- This is a network related script
-     category = user_scripts.script_categories.network,
+     category = checks.script_categories.network,
 
      -- This module is enabled by default
      default_enabled = true,
@@ -378,7 +377,7 @@ so it won't be discussed again. The core logic is contained into the
 
    -- #################################################################
 
-   return(user_scripts)
+   return(checks)
 
 The `script.hooks.min` hook is called by ntopng every minute for every
 local network. It prints into the console the local network CIDR along
@@ -391,7 +390,7 @@ parameter. The most relevant fields are:
 - :code:`alert_entity`: the alert entity, can be passed to the alerts API
   to trigger alerts
 - :code:`entity_info`: information about the network, see below for details
-- :code:`user_script_config`: the current configuration of this user script
+- :code:`check_config`: the current configuration of this user script
 
 The current network status is available into the `info.entity_info` field.
 Here are reported the most important fields:
@@ -455,7 +454,7 @@ The complete structure of the plugin is as follows:
 	      |-- manifest.lua
 	      |-- alert_definitions
 	      |	  `-- alert_snmp_topology_changed.lua
-	      `-- user_scripts
+	      `-- checks
 		  `-- snmp_device
 		      `-- lldp_topology_changed.lua
 
@@ -468,7 +467,7 @@ Here is an analysis of the user script reponsible for the alert generation.
 .. code:: lua
 
    local script = {
-      category = user_scripts.script_categories.network,
+      category = checks.script_categories.network,
 
       hooks = {},
 

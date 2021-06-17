@@ -5,4 +5,4 @@ The Network User Scripts API is only available from the Network `User Scripts Ho
 
 .. doxygenfile:: network.lua.cpp
 
-.. _`User Scripts Hooks`: ../../../plugins/user_script_hooks.html
+.. _`User Scripts Hooks`: ../../../plugins/check_hooks.html

@@ -16,4 +16,4 @@ For an extensive discussion on how to develop new plugins check out the `Plugins
 .. _`localization files`: ../plugins/localization.html
 .. _`custom pages`: ../plugins/custom_pages.html
 .. _`alert definitions`: ../plugins/alert_definitions.html
-.. _`User Scripts`: ../plugins/user_scripts.html
+.. _`User Scripts`: ../plugins/checks.html

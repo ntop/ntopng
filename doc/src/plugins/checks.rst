@@ -15,7 +15,7 @@ The structure of a user script is the following:
 
 .. code:: lua
 
-  local user_scripts = require("user_scripts")
+  local checks = require("checks")
 
   -- #################################################################
 
@@ -64,7 +64,7 @@ This information can be retrieved via the `Flow User Scripts API`_.
 
 Refer to :ref:`Flow User Script Hooks` for available hooks.
 
-.. _`Flow User Scripts API`: ../api/lua_c/flow_user_scripts/index.html
+.. _`Flow User Scripts API`: ../api/lua_c/flow_checks/index.html
 
 ntopng supports users scripts for the following traffic elements:
 
@@ -75,8 +75,8 @@ ntopng supports users scripts for the following traffic elements:
 
 Refer to :ref:`Other User Script Hooks` for available hooks.
 
-.. _`Interface User Scripts API`: ../api/lua_c/interface_user_scripts/index.html
-.. _`Network User Scripts API`: ../api/lua_c/network_user_scripts/index.html
+.. _`Interface User Scripts API`: ../api/lua_c/interface_checks/index.html
+.. _`Network User Scripts API`: ../api/lua_c/network_checks/index.html
 
 Syslog User Scripts
 -------------------
