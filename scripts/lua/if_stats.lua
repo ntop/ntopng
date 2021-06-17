@@ -511,14 +511,13 @@ print[[
     print("<th nowrap>".. i18n("if_stats_overview.remote_probe_license") .."</th><td nowrap>" .. (ifstats["probe.probe_license"] or i18n("if_stats_overview.no_license")).."</td>")
     
     if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-    cur_i = cur_i + 1
-    print("<th nowrap>".. i18n("if_stats_overview.remote_probe_maintenance") .."</th><td nowrap>" .. (ifstats["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance")).."</td>")
-    
+      cur_i = cur_i + 1
+      print("<th nowrap>".. i18n("if_stats_overview.remote_probe_maintenance") .."</th><td nowrap>" .. (ifstats["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance")).."</td>")    
    end
-
+      
       if not isEmptyString(ifstats["probe.ip"]) then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-
+	 
 	 print("<th nowrap>".. i18n("if_stats_overview.probe_ip"))
 
 	 if not isEmptyString(ifstats["probe.public_ip"]) then
@@ -549,7 +548,7 @@ print[[
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 
 	 print("<th nowrap>"..i18n("if_stats_overview.probe_timeout_lifetime")..
-		  " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_timeout_lifetime").."'></i></sup></th><td nowrap>")
+	       " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_timeout_lifetime").."'></i></sup></th><td nowrap>")
 
 	 if((ifstats["timeout.collected_lifetime"] ~= nil) and (ifstats["timeout.collected_lifetime"] > 0)) then
 	    -- We're in collector mode on the nProbe side
@@ -572,8 +571,8 @@ print[[
 	 local tdiff = math.abs(ifstats["probe.local_time"]-ifstats["probe.remote_time"])
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 	 print("<th nowrap>"..i18n("if_stats_overview.remote_probe_time")..
-		  " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_remote_probe_time").."'></i></sup>" ..
-		  "</th><td nowrap>")
+	       " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_remote_probe_time").."'></i></sup>" ..
+	       "</th><td nowrap>")
 
 	 if(tdiff > 10) then print("<font color=red><b>") end
 	 print(formatValue(tdiff).." sec")
