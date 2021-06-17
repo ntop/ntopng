@@ -45,53 +45,12 @@ Additional configurations can be created to limit the scope of their application
 
 The scope of application is shown in column `Applied To`. The Default configuration is `Applied to` any network element which is not included in any other configuration.
 
-Creating New Configurations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-New configurations can be created by `cloning` the default or any other existing configuration. To clone a configuration select the `clone` button in the `Actions` column. The cloned configuration has checks configurations which are equal to the configuration it has been cloned from.
-
-A newly cloned configuration shows a message `Warning: this config is not applied to any specific target!` in the `Applied To` column. Clicking on the `edit` button in the `Actions` column allows to specify the scope of application:
-
-- Under `Hosts`, a comma separated list of IPv4 and IPv6 CIDR prefixes can be specified to choose to which hosts the configuration is going to be applied. Hosts matching these prefixes will have this configuration applied. The longest-match principle holds. When an host matches multiple configurations, the one with the longest-match is chosen for application to the host. Prefixes are applied to hosts in any interface.
-- Under `Interfaces` and `flows`, a multi-selection allows to choose to which interfaces the configuration is going to be applied.
-- Under `Local Networks`,  a multi-selections allows to choose to which local networks the configuration is going to be applied.
-
-An example of three configurations is shown in the image:
-
-.. figure:: ../img/web_gui_checks_configurations.png
-  :align: center
-  :alt: Checks Configurations
-
-  Checks Configurations
-
-In the image there are two configurations `Guests` and `IT Department`, in addition to the `Default` configuration. `Guests` is applied to all hosts matching `10.10.0.0/16`, whereas `IT Department` applies to all hosts matching `10.20.0.0/16`. Hosts not matching any of the two prefixes will have the `Default` configuration applied.
-
-As checks can be controlled on a per-configuration basis:
-
-- `Guests` can have certain checks enabled. The same checks can be disabled for `IT Department`.
-- `Guests` can have certain checks configuration values (such as thresholds) which are different from those configured for `IT Department`.
-
-Checks configuration values can be controlled using button `Edit` from the `Actions` column.
-
 Editing Configurations
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Checks configurations can be edited for any of the configurable network elements. The edit page shows three tabs, namely `All`, `Enabled`, and `Disabled` to give immediate access to the whole list of checks, or to limit the view to only those that are enabled or disabled.
 
-.. figure:: ../img/web_gui_checks_configurations_edit.png
-  :align: center
-  :alt: Checks Configuration Edit
-
-  Checks Configuration Edit
-
-A check can be enabled or disabled by clicking the corresponding button under the `Actions` column. Certain checks can also have their values configured. In this case, an extra button `Edit` becomes available under the `Actions` column. For example, the traffic alert check can be edited as follows:
-
-
-.. figure:: ../img/web_gui_checks_configurations_edit_traffic.png
-  :align: center
-  :alt: Checks Configuration Edit Traffic Alert
-
-  Checks Configuration Edit Traffic Alert
+A check can be enabled or disabled by clicking the corresponding button under the `Actions` column. Certain checks can also have their values configured. In this case, an extra button `Edit` becomes available under the `Actions` column.
 
 Resetting, Importing and Exporting Configurations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
