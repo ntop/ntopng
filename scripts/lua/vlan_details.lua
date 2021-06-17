@@ -16,7 +16,7 @@ local page_utils = require("page_utils")
 
 local info = ntop.getInfo(false)
 local vlan_id        = _GET["vlan"]
-local page           = "historical" -- only historical for now _GET["page"]
+local page           = _GET["page"] -- only historical for now _GET["page"]
 
 interface.select(ifname)
 ifId = getInterfaceId(ifname)
@@ -43,16 +43,28 @@ else
    --[[
       Create Menu Bar with buttons
    --]]
-   local nav_url = ntop.getHttpPrefix().."/lua/vlan_details.lua?vlan"..vlan_id
-   local title = i18n("vlan")..": "..vlan_id
+   local nav_url = ntop.getHttpPrefix().."/lua/vlan_details.lua?vlan="..vlan_id
+   local title = i18n("vlan")..": "..vlan_id..""
 
    page_utils.print_navbar(title, nav_url,
 			   {
 			      {
-				 active = page == "historical" or not page,
-				 page_name = "historical",
-				 label = "<i class='fas fa-lg fa-chart-area'></i>",
+                  active = page == "historical" or not page,
+                  page_name = "historical",
+                  label = "<i class='fas fa-lg fa-chart-area'></i>",
 			      },
+               {
+                  active = page == "alerts",
+                  page_name = "alerts",
+                  url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua",
+                  label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
+               },
+               {
+                  hidden = not network or not isAdministrator(),
+                  active = page == "config",
+                  page_name = "config",
+                  label = "<i class=\"fas fa-cog fa-lg\"></i>",
+               },
 			   }
    )
 
@@ -78,6 +90,42 @@ else
          },
       })
    end
+   elseif (page == "config") then
+      if(not isAdministrator()) then
+         return
+      end
+      print[[
+      <form id="network_config" class="form-inline" style="margin-bottom: 0px;" method="post">
+      <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
+      <table class="table table-bordered table-striped">]]
+
+      if _SERVER["REQUEST_METHOD"] == "POST" then
+         setVlanAlias(tonumber(vlan_id), _POST["custom_name"])
+         custom_name = getVlanAlias(tonumber(vlan_id))
+      end
+      custom_name = getVlanAlias(vlan_id)
+
+      print [[<tr>
+       <th>]] print(i18n("vlan_details.vlan_alias")) print[[</th>
+       <td>
+            <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]]print(custom_name)
+            print[["]]
+
+            print[[>
+                  </td>
+                     </tr>
+                  ]]
+
+         print[[
+            </table>
+            <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
+            </form>
+            <script>
+              aysHandleForm("#network_config");
+            </script>
+         ]]
+
+      print[[</table>]]
 
 end
 
