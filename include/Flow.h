@@ -79,7 +79,7 @@ class Flow : public GenericHashEntry {
 #ifdef NTOPNG_PRO
   bool ingress2egress_direction;
   u_int8_t routing_table_id;
-  bool lateral_movement, create_or_delete;
+  bool lateral_movement;
 #ifndef HAVE_NEDGE
   FlowProfile *trafficProfile;
 #else
@@ -346,9 +346,7 @@ class Flow : public GenericHashEntry {
 
 #ifdef NTOPNG_PRO
   inline bool isLateralMovement() const { return(lateral_movement);  }
-  inline bool isCreateOrDelete()  const { return(create_or_delete);  }
   inline void setLateralMovement(bool change) { lateral_movement = change;  }
-  inline void setCreateOrDelete(bool change)  { create_or_delete = change;  }
 #endif
 
   inline bool isCliDeviceAllowedProtocol() const {
