@@ -31,20 +31,7 @@ ndpi_serializer *LateralMovementAlert::getAlertJSON(ndpi_serializer* serializer)
   if(serializer == NULL)
     return NULL;
 
-  if (cli && cli->get_ip()) {
-    ndpi_serialize_string_string(serializer, "cli_ip", cli->get_ip()->print(buf, sizeof(buf)));
-    ndpi_serialize_string_uint32(serializer, "cli_port", f->get_cli_port());
-  }
-    
-  if (srv && srv->get_ip()) {
-    ndpi_serialize_string_string(serializer, "srv_ip", srv->get_ip()->print(buf, sizeof(buf)));
-    ndpi_serialize_string_uint32(serializer, "srv_port", f->get_srv_port());
-  }
-
   ndpi_serialize_string_boolean(serializer, "create_or_delete", f->isCreateOrDelete());
-  ndpi_serialize_string_string(serializer, "l7_proto", f->get_detected_protocol_name(buf, sizeof(buf)));
-  ndpi_serialize_string_uint32(serializer, "vlan_id", f->get_vlan_id());
-  ndpi_serialize_string_string(serializer, "info", f->getFlowInfo(buf, sizeof(buf)));
 
   return serializer;
 }

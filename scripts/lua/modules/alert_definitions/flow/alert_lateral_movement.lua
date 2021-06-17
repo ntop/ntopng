@@ -9,6 +9,7 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local json = require "dkjson"
 
 -- ##############################################
 
@@ -25,10 +26,8 @@ alert_lateral_movement.meta = {
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param last_error A table containing the last lateral movement error, e.g.,
---                   {"event":"create","shost":"192.168.2.153","dhost":"224.0.0.68","dport":1968,"vlan_id":0,"l4":17,"l7":0,"first_seen":1602488355,"last_seen":1602488355,"num_uses":1}
 -- @return A table with the alert built
-function alert_lateral_movement:init(last_error)
+function alert_lateral_movement:init()
    -- Call the parent constructor
    self.super:init()
 end
@@ -41,15 +40,25 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_lateral_movement.format(ifid, alert, alert_type_params)
-   local vlan_id = alert_type_params.vlan_id or 0
-   local client = {host = alert_type_params.shost, vlan = vlan_id}
-   local server = {host = alert_type_params.dhost, vlan = vlan_id}
+   local vlan_id = tonumber(alert.vlan_id) or 0
+   local client = {host = alert.cli_ip, vlan = vlan_id}
+   local server = {host = alert.srv_ip, vlan = vlan_id}
+   local info = ""
+
+   if alert.json then
+      info = json.decode(alert["json"])
+      if info["info"] then
+         info = info["info"]
+      else
+         info = ""
+      end   
+   end
 
    local rsp = hostinfo2detailshref(client, nil, hostinfo2label(client))..
       " <i class=\"fas fa-fw fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i> " ..
       hostinfo2detailshref(server, nil, hostinfo2label(server))
 
-   rsp = rsp .. " ["..alert_type_params.l7_proto.."]"
+   rsp = rsp .. " ["..interface.getnDPIProtoName(alert.l7_proto).."]"
    if not isEmptyString(alert_type_params.info) then
       rsp = rsp .. "[" .. alert_type_params.info .. "]"
    end
