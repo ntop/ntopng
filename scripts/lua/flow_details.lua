@@ -13,6 +13,7 @@ local have_nedge = ntop.isnEdge()
 local nf_config = nil
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
+local alert_entities = require "alert_entities"
 local dscp_consts = require "dscp_consts"
 require "flow_utils"
 
@@ -1270,31 +1271,23 @@ else
    local num_statuses = 0
    local first = true
 
-   if flow["alerts_map"] then
-      for _, t in pairsByKeys(alert_consts.alert_types) do
-	 if t.meta and t.meta.alert_key then
-	    local id = t.meta.alert_key
+   for id, _ in pairs(flow["alerts_map"] or {}) do
+      local is_predominant = id == flow["predominant_alert"]
+      local alert_label = alert_consts.alertTypeLabel(id, true, alert_entities.flow.entity_id)
+      local message = alert_label
+      local alert_score = ntop.getFlowAlertScore(id)
 
-	    if flow["alerts_map"][id] then
-	       local is_predominant = id == flow["predominant_alert"]
-	       local alert_label = alert_consts.alertTypeLabel(t.meta.alert_key, true)
-	       local message = alert_label
-	       local alert_score = ntop.getFlowAlertScore(id)
-
-	       if alert_score > 0 then
-		  message = message .. string.format(" [%s: %s]",
-						     i18n("score"),
-						     format_utils.formatValue(alert_score))
-	       end
-
-	       if not alerts_by_score[alert_score] then
-		  alerts_by_score[alert_score] = {}
-	       end
-	       alerts_by_score[alert_score][#alerts_by_score[alert_score] + 1] = {message = message, is_predominant = is_predominant, alert_id = id, alert_label = alert_label}
-	       num_statuses = num_statuses + 1
-	    end
-	 end
+      if alert_score > 0 then
+	 message = message .. string.format(" [%s: %s]",
+					    i18n("score"),
+					    format_utils.formatValue(alert_score))
       end
+
+      if not alerts_by_score[alert_score] then
+	 alerts_by_score[alert_score] = {}
+      end
+      alerts_by_score[alert_score][#alerts_by_score[alert_score] + 1] = {message = message, is_predominant = is_predominant, alert_id = id, alert_label = alert_label}
+      num_statuses = num_statuses + 1
    end
 
    -- ######################################
@@ -1320,6 +1313,7 @@ else
    end
 
    -- ######################################
+
 
    -- Print flow alerts (ordered by score and then alphabetically)
    if num_statuses > 0 then
