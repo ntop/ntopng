@@ -9,45 +9,33 @@ require "lua_utils"
 
 local info = ntop.getInfo() 
 
-local scripts_import_export = require "scripts_import_export"
+local checks_import_export = require "checks_import_export"
 local json = require ("dkjson")
 local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
 local rest_utils = require("rest_utils")
-local tracker = require("tracker")
 
 --
--- Import scripts configuration
+-- Read checks configuration
+-- Example: curl -u admin:admin -H "Content-Type: application/json" http://localhost:3000/lua/rest/v1/get/scripts/config.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
+
+local download = _GET["download"] 
 
 if not haveAdminPrivileges() then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end
 
--- ################################################
+local checks_import_export = checks_import_export:create()
+local res = checks_import_export:export()
 
-if(_POST["JSON"] == nil) then
-  rest_utils.answer(rest_utils.consts.err.invalid_args)
-  return
+if isEmptyString(download) then
+   rest_utils.answer(rest_utils.consts.success.ok, res)
+else
+   sendHTTPContentTypeHeader('application/json', 'attachment; filename="scripts_configuration.json"')
+   print(json.encode(res, nil))
 end
-
-local data = json.decode(_POST["JSON"])
-
-local scripts_import_export = scripts_import_export:create()
-local res = scripts_import_export:import(data)
-
-if res.err then
-  rest_utils.answer(res.err)
-  return
-end
-
--- ################################################
-
--- TRACKER HOOK
-tracker.log('set_scripts_config', {})
-
-rest_utils.answer(rest_utils.consts.success.ok)

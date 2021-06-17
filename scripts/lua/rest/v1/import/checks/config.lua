@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" ..
 
 require "lua_utils"
 
-local scripts_import_export = require "scripts_import_export"
+local checks_import_export = require "checks_import_export"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local import_export_rest_utils = require "import_export_rest_utils"
@@ -39,7 +39,7 @@ end
 
 local items = {}
 
-local scripts_ie = scripts_import_export:create()
+local scripts_ie = checks_import_export:create()
 items[#items+1] = {
    name = "scripts",
    conf = modules["scripts"],

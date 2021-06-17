@@ -13,24 +13,24 @@ local rest_utils = require "rest_utils"
 
 -- ##############################################
 
-local scripts_import_export = {}
+local checks_import_export = {}
 
 -- ##############################################
 
-function scripts_import_export:create(args)
+function checks_import_export:create(args)
     -- Instance of the base class
-    local _scripts_import_export = import_export:create()
+    local _checks_import_export = import_export:create()
 
     -- Subclass using the base class instance
     self.key = "scripts"
     -- self is passed as argument so it will be set as base class metatable
     -- and this will actually make it possible to override functions
-    local _scripts_import_export_instance = _scripts_import_export:create(self)
+    local _checks_import_export_instance = _checks_import_export:create(self)
 
     -- Compute
 
     -- Return the instance
-    return _scripts_import_export_instance
+    return _checks_import_export_instance
 end
 
 -- ##############################################
@@ -38,7 +38,7 @@ end
 -- @brief Import configuration
 -- @param conf The configuration to be imported
 -- @return A table with a key "success" set to true is returned on success. A key "err" is set in case of failure, with one of the errors defined in rest_utils.consts.err.
-function scripts_import_export:import(conf)
+function checks_import_export:import(conf)
    local res = {}
 
    if table.empty(conf) then
@@ -79,7 +79,7 @@ end
 
 -- @brief Export configuration
 -- @return The current configuration
-function scripts_import_export:export()
+function checks_import_export:export()
    local conf = {}
 
    conf[checks.DEFAULT_CONFIGSET_ID] = checks.getConfigset()
@@ -91,10 +91,10 @@ end
 -- ##############################################
 
 -- @brief Reset configuration
-function scripts_import_export:reset()
+function checks_import_export:reset()
    checks.resetConfigset()
 end
 
 -- ##############################################
 
-return scripts_import_export
+return checks_import_export
