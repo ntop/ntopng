@@ -17,7 +17,7 @@ local os_utils = require "os_utils"
 local rest_utils = require("rest_utils")
 
 --
--- Read user scripts configuration
+-- Read checks configuration
 -- Example: curl -u admin:admin -H "Content-Type: application/json" http://localhost:3000/lua/rest/v1/get/scripts/config.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login

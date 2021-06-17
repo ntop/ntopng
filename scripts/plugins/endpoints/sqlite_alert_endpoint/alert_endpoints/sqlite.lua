@@ -68,7 +68,7 @@ function sqlite.dequeueRecipientAlerts(recipient, budget, high_priority)
    local more_available = true
    local budget_used = 0
 
-   -- Now also check for alerts pushed by user scripts from Lua
+   -- Now also check for alerts pushed by checks from Lua
    -- Dequeue alerts up to budget
    -- Note: in this case budget is the number of sqlite alerts to insert into the queue
    while budget_used <= budget and more_available do

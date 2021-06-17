@@ -23,7 +23,7 @@ print(
 ]]
 )
 
-page_utils.print_page_title('User Scripts')
+page_utils.print_page_title('Checks')
 
 checks.printUserScripts()
 

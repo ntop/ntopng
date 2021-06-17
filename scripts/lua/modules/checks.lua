@@ -2,7 +2,7 @@
 -- (C) 2019-21 - ntop.org
 --
 
--- User scripts provide a scriptable way to interact with the ntopng
+-- Checks provide a scriptable way to interact with the ntopng
 -- core. Users can provide their own modules to trigger custom alerts,
 -- export data, or perform periodic tasks.
 
@@ -56,8 +56,8 @@ checks.field_units = {
 
 -- ##############################################
 
--- Operator functions associated to user scripts `operator`, which is specified
--- both inside user scripts default configuration values, as well as when user scripts
+-- Operator functions associated to checks `operator`, which is specified
+-- both inside checks default configuration values, as well as when checks
 -- are configured from the UI.
 --
 checks.operator_functions = {
@@ -199,7 +199,7 @@ local available_subdirs = {
    }
 }
 
--- User scripts category consts
+-- Checks category consts
 -- IMPORTANT keep it in sync with ntop_typedefs.h enum CheckCategory
 checks.check_categories = {
    other = {
@@ -525,7 +525,7 @@ end
 
 -- ##############################################
 
--- @brief Lists available user scripts.
+-- @brief Lists available checks.
 -- @params script_type one of checks.script_types
 -- @params subdir the modules subdir
 -- @return a list of available module names
@@ -643,7 +643,7 @@ local function init_check(check, mod_fname, full_path, plugin, script_type, subd
    end
 
    if not check.hooks then
-      -- Flow user scripts no longer have hooks. They have callbacks in C++ that have replaced hooks
+      -- Flow checks no longer have hooks. They have callbacks in C++ that have replaced hooks
       check.hooks = {}
    end
 end
@@ -737,12 +737,12 @@ end
 
 -- ##############################################
 
--- @brief Load the user scripts.
+-- @brief Load the checks.
 -- @param ifid the interface ID
 -- @param script_type one of checks.script_types
 -- @param subdir the modules subdir. *NOTE* this must be unique as it is used as a key.
 -- @param options an optional table with the following supported options:
---  - hook_filter: if non nil, only load the user scripts for the specified hook
+--  - hook_filter: if non nil, only load the checks for the specified hook
 --  - do_benchmark: if true, computes benchmarks for every hook
 --  - return_all: if true, returns all the scripts, even those with filters not matching the current configuration
 --    NOTE: this can only be applied if the script type has the "has_no_entity" flag set.
@@ -907,7 +907,7 @@ end
 
 -- ##############################################
 
--- @brief Reload user scripts with their existing configurations.
+-- @brief Reload checks with their existing configurations.
 --        Method called as part of plugins reload (during startup or when plugins are reloaded)
 -- @param is_load Boolean, indicating whether callback onLoad/onUnload should be called
 -- @return nil
@@ -917,7 +917,7 @@ function checks.loadUnloadUserScripts(is_load)
 
    -- For each subdir available, (i.e., host, flow, interface, ...)
    for _, subdir in ipairs(checks.listSubdirs()) do
-      -- Load all the available user scripts for this subdir
+      -- Load all the available checks for this subdir
       local scripts = checks.load(interface.getId(), checks.getScriptType(subdir.id), subdir.id, {return_all = true})
 
       for name, script in pairsByKeys(scripts.modules) do
@@ -946,7 +946,7 @@ function checks.loadUnloadUserScripts(is_load)
 	          -- Some hooks can be enabled, whereas some other hooks can be disabled:
 	          -- methods onLoad/onUnload are only called for hooks that are enabled.
 	          if script and hook_config.enabled then
-	             -- onLoad/onUnload methods are ONLY called for user scripts that are enabled
+	             -- onLoad/onUnload methods are ONLY called for checks that are enabled
 		     if is_load and script.onLoad then
 		        -- This is a load operation
 		        script.onLoad(hook, hook_config)
@@ -1291,7 +1291,7 @@ end
 
 -- ##############################################
 
--- @brief Returns the factory user scripts configuration
+-- @brief Returns the factory checks configuration
 --        Any user-submitted conf param is ignored
 function checks.getFactoryConfig()
    local ifid = getSystemInterfaceId()
@@ -1355,7 +1355,7 @@ end
 
 -- ##############################################
 
--- @brief Initializes a default configuration for user scripts
+-- @brief Initializes a default configuration for checks
 -- @param overwrite If true, a possibly existing configuration is overwritten with default values
 function checks.initDefaultConfig()
    local ifid = getSystemInterfaceId()

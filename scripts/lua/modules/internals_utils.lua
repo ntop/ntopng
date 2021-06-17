@@ -629,7 +629,7 @@ function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_
    elseif tab == "periodic_activities" and print_periodic_activities then
       printPeriodicActivitiesTable(base_url.."&tab=periodic_activities", ifid, ts_creation)
    elseif tab == "checks" and print_checks then
-      -- Reuse the same function that prints user scripts for the Developers
+      -- Reuse the same function that prints checks for the Developers
       checks.printUserScripts()
       -- printUserScriptsTable(base_url.."&tab=checks", ifid, ts_creation)
    end

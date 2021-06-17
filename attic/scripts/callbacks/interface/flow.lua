@@ -429,7 +429,7 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
 
    setStatus(status_info, flow_score, cli_score, srv_score)
 
-   -- A notification is only emitted for the predominant status, once all flow user scripts have been processed
+   -- A notification is only emitted for the predominant status, once all flow checks have been processed
    -- and all statuses have been set.
    -- However, if the current status has the `status_always_notify`, a notification MUST always be emitted
    -- even if it is not the predominant status.

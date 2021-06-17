@@ -49,7 +49,7 @@ end
 -- #######################
 
 -- Extracts the information serialized into alert_info from the flow
--- user scripts
+-- checks
 function flow2alertinfo(flow)
    local alert_info = flow["alert_info"]
 

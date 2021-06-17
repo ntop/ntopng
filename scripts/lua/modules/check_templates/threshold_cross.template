@@ -1,7 +1,7 @@
 {#
     
     (C) 2020 - ntop.org
-    Template for the User Scripts using the 'Threshold Cross' GUI.
+    Template for the Checks using the 'Threshold Cross' GUI.
 
     Defined fields:
     * hook_name: contains the name for the current rendered hook 

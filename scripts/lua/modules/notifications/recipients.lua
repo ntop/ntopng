@@ -759,7 +759,7 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
    local alert_utils = require "alert_utils"
    alert_utils.process_notifications_from_c_queue()
 
-   -- Dequeue alerts enqueued into per-recipient queues from user scripts
+   -- Dequeue alerts enqueued into per-recipient queues from checks
    if not cached_recipients then
       -- Cache recipients to avoid re-reading them constantly
       -- NOTE: in case of recipient add/edit/delete, the vm executing this

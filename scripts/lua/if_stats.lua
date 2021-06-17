@@ -2072,7 +2072,7 @@ function toggle_mirrored_traffic_function_off(){
    </script>]]
 
 elseif(page == "internals") then
-   internals_utils.printInternals(ifid, true --[[ hash tables ]], true --[[ periodic activities ]], true --[[ user scripts]], true --[[ queues --]])
+   internals_utils.printInternals(ifid, true --[[ hash tables ]], true --[[ periodic activities ]], true --[[ checks]], true --[[ queues --]])
 print [[
    </table>
 ]]

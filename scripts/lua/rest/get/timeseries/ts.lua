@@ -94,7 +94,7 @@ if((ts_schema == "top:flow_check:duration")
     or (ts_schema == "top:elem_check:duration")
     or (ts_schema == "custom:flow_check:total_stats")
     or (ts_schema == "custom:elem_check:total_stats")) then
-  -- NOTE: Temporary fix for top user scripts page
+  -- NOTE: Temporary fix for top checks page
   tags.check = nil
 end
 

@@ -14,7 +14,7 @@ local import_export_rest_utils = require "import_export_rest_utils"
 local auth = require "auth"
 
 --
--- Reset User Scripts configuration
+-- Reset Checks configuration
 -- Example: curl -u admin:admin http://localhost:3000/lua/rest/v1/reset/scripts/config.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login

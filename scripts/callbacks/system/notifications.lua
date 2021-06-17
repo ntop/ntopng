@@ -38,7 +38,7 @@ while true do
    end
 
    -- Check the next VM reload to decide if it is time to exit the loop
-   -- A VM reload is triggered when user scripts have changed, or when recipients have changed.
+   -- A VM reload is triggered when checks have changed, or when recipients have changed.
    -- Recipient changes allow this vm to reload and thus re-read user script configurations.
    if ntop.getNextVmReload() - now < 1 --[[ less than 1 second from the next vm reload ]] then
       break

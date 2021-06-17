@@ -21,7 +21,7 @@ schema:addMetric("writes")
 schema:addMetric("drops")
 
 -------------------------------------------------------
--- TRAFFIC ELEMENTS USER SCRIPTS SCHEMAS
+-- TRAFFIC ELEMENTS CHECKS SCHEMAS
 -------------------------------------------------------
 
 schema = ts_utils.newSchema("elem_check:duration", {step = 60, metrics_type = ts_utils.metrics.gauge})

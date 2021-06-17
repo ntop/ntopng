@@ -226,7 +226,7 @@ local function init_runtime_paths()
     modules = os_utils.fixPath(runtime_path) .. "/modules",
     httpdocs = os_utils.fixPath(runtime_path) .. "/httpdocs",
 
-    -- User scripts
+    -- Checks
     interface_scripts = os_utils.fixPath(runtime_path .. "/callbacks/interface/interface"),
     host_scripts = os_utils.fixPath(runtime_path .. "/callbacks/interface/host"),
     network_scripts = os_utils.fixPath(runtime_path .. "/callbacks/interface/network"),
@@ -669,7 +669,7 @@ function plugins_utils.loadPlugins(community_plugins_only)
   -- Reload the periodic scripts to load the new plugins
   ntop.reloadPeriodicScripts()
 
-  -- Reload user scripts with their configurations
+  -- Reload checks with their configurations
   local checks = require "checks"
   checks.initDefaultConfig()
   checks.loadUnloadUserScripts(true --[[ load --]])
@@ -1012,7 +1012,7 @@ end
 
 -- ##############################################
 
--- @brief Load a plugin Lua template, e.g., those used for plugin user scripts
+-- @brief Load a plugin Lua template, e.g., those used for plugin checks
 function plugins_utils.loadTemplate(plugin_name, template_file)
    -- Attempt at locating the template class under the plugin templates directory
    -- Locate the template directory of the plugin containing this user script

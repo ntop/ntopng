@@ -203,7 +203,7 @@ elseif(page == "historical" and ts_creation) then
       }
    })
 elseif page == "internals" then
-   internals_utils.printInternals(getSystemInterfaceId(), false --[[ hash tables ]], true --[[ periodic activities ]], true --[[ user scripts]], true --[[ queues --]])
+   internals_utils.printInternals(getSystemInterfaceId(), false --[[ hash tables ]], true --[[ periodic activities ]], true --[[ checks]], true --[[ queues --]])
 end
 
 -- #######################################################

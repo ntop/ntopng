@@ -28,7 +28,7 @@ schema:addTag("ifid")
 schema:addMetric("num_ts") -- Number of timeseries currently in the queue
 
 -------------------------------------------------------
--- FLOW USER SCRIPTS SCHEMAS
+-- FLOW CHECKS SCHEMAS
 -------------------------------------------------------
 
 schema = ts_utils.newSchema("flow_check:duration", {step = 5, metrics_type = ts_utils.metrics.gauge})

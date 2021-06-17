@@ -393,7 +393,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, config, when)
      -- Save internal hash tables states every minute
      update_internals_hash_tables_stats(when, ifstats, verbose)
 
-     -- Save the traffic elements user scripts stats
+     -- Save the traffic elements checks stats
      update_internals_checks_stats(when, ifstats.id, verbose)
      
      -- Save duration of periodic activities

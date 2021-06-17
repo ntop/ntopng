@@ -34,7 +34,7 @@ end
 
 recipients.process_notifications(now, now + 3 --[[ deadline ]], 3 --[[ periodicity ]], true)
 
--- Unload all user scripts
+-- Unload all checks
 checks.loadUnloadUserScripts(false --[[ unload --]])
 
 recovery_utils.mark_clean_shutdown()

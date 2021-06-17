@@ -42,7 +42,7 @@ function check_template:render(hooks_conf)
    local plugins_utils = require "plugins_utils"
 
    -- check if the input_builder is defined
-   -- TODO: define empty template for the user scripts without input_builder/template
+   -- TODO: define empty template for the checks without input_builder/template
    if (isEmptyString(self._check.gui.input_builder)) then
       return { templates = {{hook = "all", template = ""}}, check = self._check }
    end

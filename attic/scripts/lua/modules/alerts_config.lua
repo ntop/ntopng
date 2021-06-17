@@ -48,7 +48,7 @@ end
 
 -- ##############################################
 
--- @brief Initializes a default configuration for user scripts
+-- @brief Initializes a default configuration for checks
 -- @param overwrite If true, a possibly existing configuration is overwritten with default values
 function alerts_config.initDefaultConfig()
    -- Current (possibly not-existing, not yet created configset)
