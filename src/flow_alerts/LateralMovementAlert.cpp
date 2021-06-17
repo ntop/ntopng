@@ -24,15 +24,17 @@
 /* ***************************************************** */
 
 ndpi_serializer *LateralMovementAlert::getAlertJSON(ndpi_serializer* serializer) {
+  if(serializer == NULL)
+    return NULL;
+
+#ifdef NTOPNG_PRO
   Flow *f = getFlow();
   Host *cli = f->get_cli_host(), *srv = f->get_srv_host(); 
   char buf[128];
 
-  if(serializer == NULL)
-    return NULL;
-
   ndpi_serialize_string_boolean(serializer, "create_or_delete", f->isCreateOrDelete());
-
+#endif
+  
   return serializer;
 }
 
