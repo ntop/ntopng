@@ -1,92 +1,92 @@
-Callbacks
+Checks
 =========
 
-Alerts are created inside callbacks. Callbacks are chunks of code executed by ntopng. Callbacks are implemented as C++ classes with a predefined interface.
+Alerts are created inside checks. Checks are chunks of code executed by ntopng. Checks are implemented as C++ classes with a predefined interface.
 
-Callback interfaces are declared in classes:
+Check interfaces are declared in classes:
 
-- :code:`include/FlowCallback.h` for flows
-- :code:`include/HostCallback.h` for hosts
+- :code:`include/FlowCheck.h` for flows
+- :code:`include/HostCheck.h` for hosts
 
-Those classes must be used as base classes when implementing callbacks:
+Those classes must be used as base classes when implementing checks:
 
-  - Every host callback implemented must inherit from :code:`HostCallback`
-  - Every flow callback implemented must inherit from :code:`FlowCallback`
+  - Every host check implemented must inherit from :code:`HostCheck`
+  - Every flow check implemented must inherit from :code:`FlowCheck`
 
 Classes are implemented with two files, namely a :code:`.h` file with the class declaration, and a :code:`.cpp` file with the class definition:
 
-  - Host callback declarations (:code:`.h` files) are under :code:`include/host_callbacks`. Host callback definitions (:code:`.cpp`) files are under :code:`src/host_callbacks`.
-  - Flow callback declarations (:code:`.h` files) are under :code:`include/flow_callbacks`. Flow callback definitions (:code:`.cpp`) files are under :code:`src/host_callbacks`.
+  - Host check declarations (:code:`.h` files) are under :code:`include/host_checks`. Host check definitions (:code:`.cpp`) files are under :code:`src/host_checks`.
+  - Flow check declarations (:code:`.h` files) are under :code:`include/flow_checks`. Flow check definitions (:code:`.cpp`) files are under :code:`src/host_checks`.
 
 
-Callback Execution
+Check Execution
 ------------------
 
-Callbacks execution for hosts consists in ntopng calling:
+Checks execution for hosts consists in ntopng calling:
 
--  :code:`HostCallback::periodicUpdate` approximately every 60 seconds
+-  :code:`HostCheck::periodicUpdate` approximately every 60 seconds
 
-Every host callback, when subclassing :code:`HostCallback`, must override :code:`periodicUpdate` to implement the desired callback behavior.
+Every host check, when subclassing :code:`HostCheck`, must override :code:`periodicUpdate` to implement the desired check behavior.
 
-Callbacks execution for flows consists in ntopng calling for every flow:
+Checks execution for flows consists in ntopng calling for every flow:
 
-- :code:`FlowCallback::protocolDetected` as soon as the Layer-7 is detected
-- :code:`FlowCallback::periodicUpdate` approximately every 300 seconds only for flows with a minimum duration of 300 seconds
-- :code:`FlowCallback::flowEnd` as soon as the flow ends, i.e., when a TCP session is closed or when an UDP flow timeouts
+- :code:`FlowCheck::protocolDetected` as soon as the Layer-7 is detected
+- :code:`FlowCheck::periodicUpdate` approximately every 300 seconds only for flows with a minimum duration of 300 seconds
+- :code:`FlowCheck::flowEnd` as soon as the flow ends, i.e., when a TCP session is closed or when an UDP flow timeouts
 
-Every flow callback, when subclassing :code:`FlowCallback`, must override one or more of the methods above to implement the desired callback behavior.
+Every flow check, when subclassing :code:`FlowCheck`, must override one or more of the methods above to implement the desired check behavior.
 
 
-Callback Configuration
+Check Configuration
 ----------------------
 
-Callbacks are configured from the ntopng Web UI. Configuration involves the ability to:
+Checks are configured from the ntopng Web UI. Configuration involves the ability to:
 
-- Turn any callback on or off
-- Set configuration parameters selectively for every callback
+- Turn any check on or off
+- Set configuration parameters selectively for every check
 
-A callback that is turned off is not executed. Configuration parameters can be used to set a threshold used by the callback to decide if it is time to create an alert. Similarly, configuration parameters can be used to indicate a list of IP addresses to exclude when executing callbacks.
+A check that is turned off is not executed. Configuration parameters can be used to set a threshold used by the check to decide if it is time to create an alert. Similarly, configuration parameters can be used to indicate a list of IP addresses to exclude when executing checks.
 
-ntopng, to populate the callback configuration UI and to properly store the configured callback parameters that will be passed to the C++ callback class instances, needs to know along with other information:
+ntopng, to populate the check configuration UI and to properly store the configured check parameters that will be passed to the C++ check class instances, needs to know along with other information:
 
-- Strings (optionally localized) for callback names and descriptions
+- Strings (optionally localized) for check names and descriptions
 - Type and format of the configuration parameters
-- Default parameters, e.g, whether the callback is on or off by default
+- Default parameters, e.g, whether the check is on or off by default
 
 ntopng reads this information from small Lua files located in:
 
-- :code:`scripts/lua/modules/callback_definitions/flow/` for flow callbacks
-- :code:`scripts/lua/modules/callback_definitions/host` for host callbacks
+- :code:`scripts/lua/modules/check_definitions/flow/` for flow checks
+- :code:`scripts/lua/modules/check_definitions/host` for host checks
 
-These files, documented here (add ref) are mandatory and must be present for a callback to be properly executed.
+These files, documented here (add ref) are mandatory and must be present for a check to be properly executed.
 
-ntopng use names to link callback configuration with its C++ class instance. A common :code:`<name>` must be used as:
+ntopng use names to link check configuration with its C++ class instance. A common :code:`<name>` must be used as:
 
-- The name of the Lua file under :code:`scripts/lua/modules/callback_definitions`, e.g., :code:`<name>.lua`
+- The name of the Lua file under :code:`scripts/lua/modules/check_definitions`, e.g., :code:`<name>.lua`
 - The string returned by method :code:`getName` in the C++ class file, e.g., :code:`std::string getName() const { return(std::string("<name>")); }`.
 
 
 Example
 -------
 
-The following figure shows the interplay between the various components of a flow callback. :code:`BlacklistedFlow` is used for reference. Full-screen is recommended to properly visualize the figure.
+The following figure shows the interplay between the various components of a flow check. :code:`BlacklistedFlow` is used for reference. Full-screen is recommended to properly visualize the figure.
 
-.. figure:: ../img/developing_alerts_callback_structure.png
+.. figure:: ../img/developing_alerts_check_structure.png
   :align: center
-  :alt: BlacklistedFlow Flow Callback
+  :alt: BlacklistedFlow Flow Check
 
-  BlacklistedFlow Flow Callback
+  BlacklistedFlow Flow Check
 
 
-File :code:`BlacklistedFlow.h` *(1)* contains the declaration of class `BlacklistedFlow`, a subclass of :code:`FlowCallback`. The class is defined in :code:`BlacklistedFlow.cpp` *(2)* that contains class methods implementation.
+File :code:`BlacklistedFlow.h` *(1)* contains the declaration of class `BlacklistedFlow`, a subclass of :code:`FlowCheck`. The class is defined in :code:`BlacklistedFlow.cpp` *(2)* that contains class methods implementation.
 
-To have :code:`BlacklistedFlow` compiled, an :code:`#include` directive must be added in file :code:`include/flow_callbacks_includes.h` *(3)*. The directive must contain the path to the class declaration file :code:`BlacklistedFlow.h`.
+To have :code:`BlacklistedFlow` compiled, an :code:`#include` directive must be added in file :code:`include/flow_checks_includes.h` *(3)*. The directive must contain the path to the class declaration file :code:`BlacklistedFlow.h`.
 
-To have the callback loaded and executed at runtime, :code:`BlacklistedFlow` must be instantiated and added to the ntopng callbacks in file :code:`src/FlowCallbacksLoader.cpp` *(4)*.
+To have the check loaded and executed at runtime, :code:`BlacklistedFlow` must be instantiated and added to the ntopng checks in file :code:`src/FlowChecksLoader.cpp` *(4)*.
 
 Method :code:`protocolDetected` is overridden and implemented in :code:`BlacklistedFlow.cpp` *(5)* so that ntopng will call it for every flow as soon as the Layer-7 application protocol is detected.
 
-Callback configuration UI is populated according to the contents of :code:`scripts/lua/modules/callback_definitions/flow/blacklisted.lua` *(6)*. ntopng is able to link the callback configuration with its C++ class thanks to the name :code:`blacklisted` as highlighted with the arrow starting at *(6)*. Indeed, to have the C++ and the Lua properly linked, the same name is used for:
+Check configuration UI is populated according to the contents of :code:`scripts/lua/modules/check_definitions/flow/blacklisted.lua` *(6)*. ntopng is able to link the check configuration with its C++ class thanks to the name :code:`blacklisted` as highlighted with the arrow starting at *(6)*. Indeed, to have the C++ and the Lua properly linked, the same name is used for:
 
 - The name of the Lua file
 - The string returned by method :code:`getName` in the C++ class file
@@ -95,7 +95,7 @@ Callback configuration UI is populated according to the contents of :code:`scrip
 Alerts
 ======
 
-Callbacks create alerts as part of their implementation. A callback, during its execution, can detect a certain condition (e.g., an anomaly) for which it decides to create an alert. When the callback decides to create an alert, it informs ntopng by passing a reference to the alert.
+Checks create alerts as part of their implementation. A check, during its execution, can detect a certain condition (e.g., an anomaly) for which it decides to create an alert. When the check decides to create an alert, it informs ntopng by passing a reference to the alert.
 
 Alerts are implemented with C++ classes. Alert interfaces are declared in classes:
 
@@ -167,17 +167,17 @@ These files are mandatory and must be present for an alert to be properly create
 Creating Flow Alerts
 --------------------
 
-Alert classes are instantiated inside :code:`buildAlert`, a method that must be implemented by each flow callback. This method is called by ntopng to create the alert, when it has been told to do so from a flow callback.
+Alert classes are instantiated inside :code:`buildAlert`, a method that must be implemented by each flow check. This method is called by ntopng to create the alert, when it has been told to do so from a flow check.
 
-Callbacks use :code:`triggerAlertAsync` to tell ntopng to create an alert. Indeed, The actual alert creation is triggered from the flow callback with the call :code:`f->triggerAlertAsync`. This call tells ntopng to create an alert identified with :code:`BlacklistedFlowAlert::getClassType()` on the flow instance pointed by :code:`f`.
+Checks use :code:`triggerAlertAsync` to tell ntopng to create an alert. Indeed, The actual alert creation is triggered from the flow check with the call :code:`f->triggerAlertAsync`. This call tells ntopng to create an alert identified with :code:`BlacklistedFlowAlert::getClassType()` on the flow instance pointed by :code:`f`.
 
 
 Creating Host Alerts
 --------------------
 
-Alert classes are instantiated inside host callbacks.
+Alert classes are instantiated inside host checks.
 
-Callbacks use :code:`triggerAlert` to tell ntopng to create an alert. Indeed, The actual alert creation is triggered from the host callback with the call :code:`h->triggerAlert` that wants a pointer to the host alert instance as parameter. This call tells ntopng to create an alert on the host instance pointed by :code:`h`.
+Checks use :code:`triggerAlert` to tell ntopng to create an alert. Indeed, The actual alert creation is triggered from the host check with the call :code:`h->triggerAlert` that wants a pointer to the host alert instance as parameter. This call tells ntopng to create an alert on the host instance pointed by :code:`h`.
 
 
 Example
@@ -196,9 +196,9 @@ File :code:`BlacklistedFlowAlert.h` *(1)* contains the declaration of class `Bla
 
 To have :code:`BlacklistedFlowAlert` compiled, an :code:`#include` directive must be added in file :code:`include/flow_alerts_includes.h` *(3)*. The directive must contain the path to the class declaration file :code:`BlacklistedFlowAlert.h`.
 
-Class :code:`BlacklistedFlowAlert` is instantiated inside :code:`buildAlert` *(4)*, a method of flow callback :code:`BlacklistedFlow`. Indeed, as seen in the previous section, alerts are created from callbacks. This method is called by ntopng to create the alert, when it has been told to do so from a callback.
+Class :code:`BlacklistedFlowAlert` is instantiated inside :code:`buildAlert` *(4)*, a method of flow check :code:`BlacklistedFlow`. Indeed, as seen in the previous section, alerts are created from checks. This method is called by ntopng to create the alert, when it has been told to do so from a check.
 
-The actual alert creation is triggered from the flow callback with the call :code:`f->triggerAlertAsync` *(5)*. This call tells ntopng to create an alert identified with :code:`BlacklistedFlowAlert::getClassType()` on the flow instance pointed by :code:`f`.
+The actual alert creation is triggered from the flow check with the call :code:`f->triggerAlertAsync` *(5)*. This call tells ntopng to create an alert identified with :code:`BlacklistedFlowAlert::getClassType()` on the flow instance pointed by :code:`f`.
 
 Method :code:`getClassType()` returns an alert key *(6)* that is enumerated inside file :code:`ntop_typedefs.h`, as part of the :code:`FlowAlertTypeEnum` enumeration - follow the arrow starting at *(6)*. The same key is also enumerated in :code:`flow_alert_keys.lua` *(7)*, with the same enumeration name and number.
 
@@ -213,16 +213,16 @@ Flows
 
 To create a flow alert, say :code:`BadFlowAlert`, check the following items:
 
-- Implement a flow callback :code:`BadFlow` that inherits from :code:`FlowCallback`
+- Implement a flow check :code:`BadFlow` that inherits from :code:`FlowCheck`
 
-    - Place the class declaration file :code:`BadFlow.h` inside :code:`include/flow_callbacks/BadFlow.h` 
-    - Place the class definition file :code:`BadFlow.cpp` inside :code:`src/flow_callbacks/BadFlow.cpp`
-    - Add an :code:`#include "flow_callbacks/BadFlow.h"` directive in :code:`include/flow_callbacks_includes.h`
-    - Add a :code:`new BadFlow()` constructor in :code:`src/FlowCallbacksLoader.cpp`
+    - Place the class declaration file :code:`BadFlow.h` inside :code:`include/flow_checks/BadFlow.h` 
+    - Place the class definition file :code:`BadFlow.cpp` inside :code:`src/flow_checks/BadFlow.cpp`
+    - Add an :code:`#include "flow_checks/BadFlow.h"` directive in :code:`include/flow_checks_includes.h`
+    - Add a :code:`new BadFlow()` constructor in :code:`src/FlowChecksLoader.cpp`
 
-- Implement a Lua file :code:`bad_flow.lua` for the callback configuration
+- Implement a Lua file :code:`bad_flow.lua` for the check configuration
 
-    - Place :code:`bad_flow.lua` inside :code:`scripts/lua/modules/callback_definitions/flow/`
+    - Place :code:`bad_flow.lua` inside :code:`scripts/lua/modules/check_definitions/flow/`
     - Edit method :code:`getName` in :code:`BadFlow.h` to return string :code:`bad_flow`
 
 - Implement a flow alert :code:`BadFlowAlert` that inherits from :code:`FlowAlert`
@@ -243,16 +243,16 @@ Hosts
 
 To create an host alert, say :code:`BadHostAlert`, check the following items:
 
-- Implement an host callback :code:`BadHost` that inherits from :code:`HostCallback`
+- Implement an host check :code:`BadHost` that inherits from :code:`HostCheck`
 
-    - Place the class declaration file :code:`BadHost.h` inside :code:`include/host_callbacks/BadHost.h` 
-    - Place the class definition file :code:`BadHost.cpp` inside :code:`src/host_callbacks/BadHost.cpp`
-    - Add an :code:`#include "host_callbacks/BadHost.h"` directive in :code:`include/host_callbacks_includes.h`
-    - Add a :code:`new BadHost()` constructor in :code:`src/HostCallbacksLoader.cpp`
+    - Place the class declaration file :code:`BadHost.h` inside :code:`include/host_checks/BadHost.h` 
+    - Place the class definition file :code:`BadHost.cpp` inside :code:`src/host_checks/BadHost.cpp`
+    - Add an :code:`#include "host_checks/BadHost.h"` directive in :code:`include/host_checks_includes.h`
+    - Add a :code:`new BadHost()` constructor in :code:`src/HostChecksLoader.cpp`
 
-- Implement a Lua file :code:`bad_host.lua` for the callback configuration
+- Implement a Lua file :code:`bad_host.lua` for the check configuration
 
-    - Place :code:`bad_host.lua` inside :code:`scripts/lua/modules/callback_definitions/host/`
+    - Place :code:`bad_host.lua` inside :code:`scripts/lua/modules/check_definitions/host/`
     - Edit method :code:`getName` in :code:`BadHost.h` to return string :code:`bad_host`
 
 - Implement an host alert :code:`BadHostAlert` that inherits from :code:`HostAlert`

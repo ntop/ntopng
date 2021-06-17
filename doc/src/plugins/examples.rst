@@ -89,8 +89,8 @@ contents of :code:`blacklisted.lua`:
       hooks = {},
 
       gui = {
-	 i18n_title = "flow_callbacks_config.blacklisted",
-	 i18n_description = "flow_callbacks_config.blacklisted_description",
+	 i18n_title = "flow_checks_config.blacklisted",
+	 i18n_description = "flow_checks_config.blacklisted_description",
       }
    }
 

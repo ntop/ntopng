@@ -39,7 +39,7 @@ The structure of a user script is the following:
 
 Every user script must return a Lua table with the following keys:
 
-  - :code:`hooks`: a Lua table with hook names as key and callbacks as values. :ref:`User Script Hooks` are events or points in time. ntopng uses hooks to know when to call a user script. A user script defining a hook will get the hook callaback called by ntopng. User scripts must register to at least one hook. See :ref:`User Script Hooks`.
+  - :code:`hooks`: a Lua table with hook names as key and checks as values. :ref:`User Script Hooks` are events or points in time. ntopng uses hooks to know when to call a user script. A user script defining a hook will get the hook callaback called by ntopng. User scripts must register to at least one hook. See :ref:`User Script Hooks`.
   - :code:`gui`: a Lua table specifying user script name, description and configuration. Data is used by ntopng to show the user script configurable from the :ref:`Web GUI`.
   - :code:`packet_interface_only` (optional): only execute the script on packet interfaces, excluding ZMQ interfaces.
   - :code:`nedge_only` (optional): if true, the script is only executed in nEdge.
@@ -59,7 +59,7 @@ Furthermore, a script may define the following extra functions, which are only c
 Flow User Scripts
 -----------------
 
-Flow user scripts are executed on each network flow directly from the C++ with flow callbacks. The user script have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things.
+Flow user scripts are executed on each network flow directly from the C++ with flow checks. The user script have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things.
 This information can be retrieved via the `Flow User Scripts API`_.
 
 Refer to :ref:`Flow User Script Hooks` for available hooks.
@@ -89,12 +89,12 @@ Scripts Location
 ~~~~~~~~~~~~~~~~
 
 Syslog scripts are located under
-:code:`/usr/share/ntopng/scripts/callbacks/syslog` and should use the
+:code:`/usr/share/ntopng/scripts/callbacks/system/syslog` and should use the
 source name (e.g. application name) with the :code:`.lua` extension as
 file name. In fact messages demultiplexing is implemented by using the
 source name for matching the script name. For example, log messages
 coming from :code:`suricata` will be delivered to the
-:code:`/usr/share/ntopng/scripts/callbacks/syslog/suricata.lua`
+:code:`/usr/share/ntopng/scripts/checks/syslog/suricata.lua`
 script.
 
 Script API

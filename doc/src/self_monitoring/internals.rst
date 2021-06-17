@@ -66,7 +66,7 @@ Information shown is useful to troubleshoot the following issues:
 Periodic Activities
 -------------------
 
-Periodic activities are Lua scripts executed by ntopng at regular intervals of time. Lua scripts are found in the `callbacks <https://github.com/ntop/ntopng/tree/dev/scripts/callbacks>`_. They can be run, in parallel, for each interface or for the system. Periodic activities include, but are not limited to:
+Periodic activities are Lua scripts executed by ntopng at regular intervals of time. Lua scripts are found in the `checks <https://github.com/ntop/ntopng/tree/dev/scripts/checks>`_. They can be run, in parallel, for each interface or for the system. Periodic activities include, but are not limited to:
 
 - `Timeseries generation`.
 - `Execution of User Scripts` as described in :ref:`WebUIUserScripts`.
@@ -106,7 +106,7 @@ Aim of the `Periodic Activities` internals table is to monitor the execution of 
 
 Information shown in the table columns is:
 
-- `Periodic Activity`: The name of the periodic activity. Name equals the file name of the periodic activity Lua script which can be either found under the `system <https://github.com/ntop/ntopng/tree/dev/scripts/callbacks/system>`_ periodic activities, `interface <https://github.com/ntop/ntopng/tree/dev/scripts/callbacks/interface>`_ periodic activities, or both.
+- `Periodic Activity`: The name of the periodic activity. Name equals the file name of the periodic activity Lua script which can be either found under the `system <https://github.com/ntop/ntopng/tree/dev/scripts/checks/system>`_ periodic activities, `interface <https://github.com/ntop/ntopng/tree/dev/scripts/checks/interface>`_ periodic activities, or both.
 - `Frequency`: How often a periodic activity has to be executed.
 - `Max Duration`: How long the periodic activity execution can take.
 - `Chart`: A link to the historical charts of the periodic activity.

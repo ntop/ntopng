@@ -3,7 +3,7 @@
 User Script Hooks
 =================
 
-ntopng uses hooks to know when to execute a user script. Hooks are string keys of the plugin :code:`hooks` table and have a callback function assigned. Hooks are associated to:
+ntopng uses hooks to know when to execute a user script. Hooks are string keys of the plugin :code:`hooks` table and have a check function assigned. Hooks are associated to:
 
 - Predefined events for flows
 - Intervals of time for any other network element such as an host, or a network
@@ -21,7 +21,7 @@ Available hooks for flow user scripts are the following:
 - :code:`statusChanged`: Called when the internal status of the flow has changed since the previous invocation.
 - :code:`periodicUpdate`: Called every few minutes on long-lived flows.
 - :code:`flowEnd`: Called when the flow is considered finished.
-- :code:`all`: A special hook which will cause the associated callback to be called for all the available hooks.
+- :code:`all`: A special hook which will cause the associated check to be called for all the available hooks.
 
 Flow User Script Hooks Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -34,13 +34,13 @@ ntopng calls flow user scripts with two parameters:
 Flow User Script Hook Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A user script which needs to be called every time a flow goes idle, will implement a callback function and assign it to hook :code:`flowEnd`.
+A user script which needs to be called every time a flow goes idle, will implement a check function and assign it to hook :code:`flowEnd`.
 
 .. code:: lua
 
   hooks = {
     flowEnd  = function (now, script_config)
-      --[[ Callback function body --]]
+      --[[ Check function body --]]
     end
   }
 
@@ -56,7 +56,7 @@ Available hooks for non-flow user scripts are the following:
 - :code:`5mins`: Called every 5 minutes.
 - :code:`hour`: Called every hour.
 - :code:`day`: Called every day (at midnight localtime).
-- :code:`all`: A special hook name which will cause the associated callback to be called for all the available hooks.
+- :code:`all`: A special hook name which will cause the associated check to be called for all the available hooks.
 
 Other User Script Hooks Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,7 +65,7 @@ ntopng calls every user script hook function with a :code:`params` Lua table as 
 
 .. code:: lua
 
-  function my_callback(params)
+  function my_check(params)
     -- ...
   end
 
@@ -81,16 +81,16 @@ The :code:`params` contains the following keys:
 - :code:`ifid`: The interface id of the current interface.
 - :code:`ts_enabled`: True when the timeseries generation is enabled for the current timeseries.
 
-It is ntopng which takes care of calling the hook callback function with table :code:`params` opportunely populated.
+It is ntopng which takes care of calling the hook check function with table :code:`params` opportunely populated.
 
 
 Other User Script Hooks Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A user script which needs to be called every minute will implement a callback function and assign it to hook :code:`min`
+A user script which needs to be called every minute will implement a check function and assign it to hook :code:`min`
 
 .. code:: lua
 
-  hooks = {min  = function (params) --[[ Callback function body --]] end }
+  hooks = {min  = function (params) --[[ Check function body --]] end }
 
 
