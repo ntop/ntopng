@@ -1,7 +1,7 @@
-Interface User Scripts
+Interface Checks
 ======================
 
-`User Scripts Hooks`_ can use the full network interface API `documented here`_.
+`Checks Hooks`_ can use the full network interface API `documented here`_.
 
-.. _`User Scripts Hooks`: ../../../plugins/check_hooks.html
+.. _`Checks Hooks`: ../../../plugins/check_hooks.html
 .. _`documented here`: ../interface/index.html

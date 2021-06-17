@@ -5,7 +5,7 @@ The ntopng core provides a Lua C API to interact with it. The API is internally 
 by periodic scripts and GUI scripts to extract information or to apply configuration
 changes.
 
-Custom user scripts can use the API, for example, to provide new data visualizations
+Custom checks can use the API, for example, to provide new data visualizations
 or extract the data to send it to an external program.
 
 Since some API functions can return very complex objects, which will not be covered here,

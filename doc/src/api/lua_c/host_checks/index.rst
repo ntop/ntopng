@@ -1,8 +1,8 @@
-Host User Scripts
+Host Checks
 =================
 
-The Host User Scripts API is only available from the Host `User Scripts Hooks`_.
+The Host Checks API is only available from the Host `Checks Hooks`_.
 
 .. doxygenfile:: host.lua.cpp
 
-.. _`User Scripts Hooks`: ../../../plugins/check_hooks.html
+.. _`Checks Hooks`: ../../../plugins/check_hooks.html

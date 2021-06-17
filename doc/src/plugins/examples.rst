@@ -65,7 +65,7 @@ by their names, contain just definitions of alerts and flow status,
 the actual logic which sets the status and trigger the alert resides in directory :code:`checks`.
 
 As this plugin requires flows to carry on its task, directory
-:code:`checks` (see :ref:`User Scripts`) with the logic must contain a sub-directory
+:code:`checks` (see :ref:`Checks`) with the logic must contain a sub-directory
 :code:`flow`, which, in turn, contains file
 :code:`blacklisted.lua`. ntopng knows it has to execute
 :code:`blacklisted.lua` against each flow it sees because
@@ -124,7 +124,7 @@ The first thing to observe, is that :code:`blacklisted.lua` contains a
 single :code:`function` with a predefined
 name :code:`script.hooks.protocolDetected`. This name tells
 ntopng to execute the plugin for every flow, as soon as the flow has
-its :code:`protocolDetected`, which is one of the several :ref:`User Script Hooks`
+its :code:`protocolDetected`, which is one of the several :ref:`Check Hooks`
 a plugin can attach to.
 
 The body of the function has access to a :code:`flow` Lua table, with
@@ -219,7 +219,7 @@ Flows`_. However, as this plugin generates alerts,
 :code:`alert_flows_flood.lua` is needed under
 :code:`alert_definitions` to tell ntopng about this.
 
-The logic stays under :code:`checks`  (see :ref:`User Scripts`) which
+The logic stays under :code:`checks`  (see :ref:`Checks`) which
 has two sub-directories: :code:`host` and :code:`network`, each one
 containing Lua files with the logic necessary to trigger the
 alert. ntopng will execute scripts under the :code:`host` directory on
@@ -279,7 +279,7 @@ scripts executed on hosts (the other Lua script are similar):
    return script
 
 The first thing to observe is that the script has only one function
-with a predefined name :code:`script.hooks.min` which is part of the :ref:`User Script Hooks` table. This name tells
+with a predefined name :code:`script.hooks.min` which is part of the :ref:`Check Hooks` table. This name tells
 ntopng to call this function on every host, *every minute*. The body
 of the function is fairly straightforward. It access a Lua table
 :code:`host`, with several methods available to be called. This Lua
@@ -314,16 +314,16 @@ script is to generate alerts.
 
 An empty :code:`hooks` table is then
 specified. This table is used by ntopng to determine when a certain
-user script needs do be called. Remember the function
+check needs do be called. Remember the function
 :code:`script.hooks.min`? That actually adds the entry :code:`min` to
 the :code:`hooks` table so this plugin will be executed every minute!
 
 Finally, there is a :code:`gui` table to give ntopng instructions on
-how to render the configuration page of this user script. Basically, a
+how to render the configuration page of this check. Basically, a
 title, description and unit of measure are indicated, along with an
 input builder and upper and lower bounds for the input. Input
 builders, as it will be seen in the next section, are used by ntopng
-to render the configuration of the user script.
+to render the configuration of the check.
 
 Log Network Traffic
 -------------------
@@ -390,7 +390,7 @@ parameter. The most relevant fields are:
 - :code:`alert_entity`: the alert entity, can be passed to the alerts API
   to trigger alerts
 - :code:`entity_info`: information about the network, see below for details
-- :code:`check_config`: the current configuration of this user script
+- :code:`check_config`: the current configuration of this check
 
 The current network status is available into the `info.entity_info` field.
 Here are reported the most important fields:
@@ -462,7 +462,7 @@ This plugin uses the `LLDP <https://en.wikipedia.org/wiki/Link_Layer_Discovery_P
 information that ntopng has collected to determine changes in the SNMP network topology.
 When a new link is added or an old link is removed, the `alert_snmp_topology_changed` alert is generated.
 
-Here is an analysis of the user script reponsible for the alert generation.
+Here is an analysis of the check reponsible for the alert generation.
 
 .. code:: lua
 
@@ -580,5 +580,5 @@ The above information can be interpreted as:
 - `AccessSW-1` is connected to `NetworkSpine-2` via the interface with index `2111493`
 - The total traffic registered from `AccessSW-1` to `NetworkSpine-2` is 25151496709 bytes
 
-The user script keeps track of the old arcs by storing them into the Redis key `ntopng.cache.snmp_topology_arcs_monitor.<device_ip>`.
+The check keeps track of the old arcs by storing them into the Redis key `ntopng.cache.snmp_topology_arcs_monitor.<device_ip>`.
 By comparing the old registered arcs with the new ones it can determine if an arc was removed or added.

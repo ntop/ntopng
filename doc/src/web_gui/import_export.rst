@@ -9,7 +9,7 @@ Through the web GUI it is possible to export selected configurations, including:
 
 - SNMP configuration
 - Active Monitoring configuration
-- User Scripts configuration
+- Checks configuration
 - Alerts Endpoints and Recipients
 - All Pools (this will also include all the previous items, as this depends on them)
 

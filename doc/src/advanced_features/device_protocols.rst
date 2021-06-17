@@ -7,7 +7,7 @@ of the devices connected to a network. This includes printers, IoT and phone dev
 For each device type, ntopng provides a configurable set of policies to determine
 which applications are acceptable for the specific device type. When a non-acceptable
 application is detected, ntopng generates an alert. ntopng provides some built-in policies which should suit most environments.
-The `Device Application Not Allowed` flow user script be enabled in order to generate alerts.
+The `Device Application Not Allowed` flow check be enabled in order to generate alerts.
 
 Policies can be reviewed and customized in the `Device Applications` page.
 

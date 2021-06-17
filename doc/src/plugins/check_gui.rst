@@ -1,12 +1,12 @@
 .. _Web GUI:
 
-User Scripts GUI
+Checks GUI
 ################
 
-User Scripts can define their own configuration and allow the final user
+Checks can define their own configuration and allow the final user
 to modify it by providing a specialized GUI.
 
-The GUI is defined into the User Script via the :code:`gui` attribute:
+The GUI is defined into the Check via the :code:`gui` attribute:
 
 .. code:: lua
 
@@ -35,7 +35,7 @@ The most important GUI attributes are:
     description of the element
   - :code:`input_builder`: defines the template which will be used to
     render the GUI. If it's not defined, the user will only be able to
-    enable or disable the user scripts without any additional configuration.
+    enable or disable the checks without any additional configuration.
 
 The :code:`default_value` can be used to define a default for the configuration. Its format
 depends on the `input_builder` used, see below for more information.
@@ -70,7 +70,7 @@ enabled.
   :alt: Threshold Cross GUI
   :scale: 60
 
-When the `threshold_cross` input builder is used, the user script can specify some additional parameters into
+When the `threshold_cross` input builder is used, the check can specify some additional parameters into
 the :code:`gui` section:
 
 - :code:`field_max`: max value for the threshold field

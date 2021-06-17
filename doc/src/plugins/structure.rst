@@ -48,7 +48,7 @@ representative for the plugin. Sub-directories contain:
   found under the :code:`interface` directory are be executed for every
   interface; files found under the :code:`network` directory will be executed for every local network; and so on.
   Sub-directories can be missing or empty, depending
-  on whether the plugins wants to perform certain actions or not. See :ref:`User Scripts`.
+  on whether the plugins wants to perform certain actions or not. See :ref:`Checks`.
 - :code:`ts_schemas`: contains timeseries schemas definitions. See :ref:`Timeseries Schemas`.
 - :code:`web_gui`: file to create custom ntopng pages and link them in
   the main ntopng menu. See :ref:`Custom Pages`.

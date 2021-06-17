@@ -1,21 +1,21 @@
-.. _User Script Hooks:
+.. _Check Hooks:
 
-User Script Hooks
+Check Hooks
 =================
 
-ntopng uses hooks to know when to execute a user script. Hooks are string keys of the plugin :code:`hooks` table and have a check function assigned. Hooks are associated to:
+ntopng uses hooks to know when to execute a check. Hooks are string keys of the plugin :code:`hooks` table and have a check function assigned. Hooks are associated to:
 
 - Predefined events for flows
 - Intervals of time for any other network element such as an host, or a network
 
-:ref:`Flow User Script Hooks` and :ref:`Other User Script Hooks` are discussed below.
+:ref:`Flow Check Hooks` and :ref:`Other Check Hooks` are discussed below.
 
-.. _Flow User Script Hooks:
+.. _Flow Check Hooks:
 
-Flow User Script Hooks
+Flow Check Hooks
 ----------------------
 
-Available hooks for flow user scripts are the following:
+Available hooks for flow checks are the following:
 
 - :code:`protocolDetected`: Called after the Layer-7 application protocol has been detected.
 - :code:`statusChanged`: Called when the internal status of the flow has changed since the previous invocation.
@@ -23,18 +23,18 @@ Available hooks for flow user scripts are the following:
 - :code:`flowEnd`: Called when the flow is considered finished.
 - :code:`all`: A special hook which will cause the associated check to be called for all the available hooks.
 
-Flow User Script Hooks Parameters
+Flow Check Hooks Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-ntopng calls flow user scripts with two parameters:
+ntopng calls flow checks with two parameters:
 
 - :code:`now`: An integer indicating the current epoch
-- :code:`script_config`: A table containing the user script configuration submitted by the user from the :ref:`Web GUI`. Table can be empty if the script doesn not require user-submitted configuration.
+- :code:`script_config`: A table containing the check configuration submitted by the user from the :ref:`Web GUI`. Table can be empty if the script doesn not require user-submitted configuration.
 
-Flow User Script Hook Example
+Flow Check Hook Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A user script which needs to be called every time a flow goes idle, will implement a check function and assign it to hook :code:`flowEnd`.
+A check which needs to be called every time a flow goes idle, will implement a check function and assign it to hook :code:`flowEnd`.
 
 .. code:: lua
 
@@ -45,12 +45,12 @@ A user script which needs to be called every time a flow goes idle, will impleme
   }
 
 
-.. _Other User Script Hooks:
+.. _Other Check Hooks:
 
-Other User Script Hooks
+Other Check Hooks
 -----------------------
 
-Available hooks for non-flow user scripts are the following:
+Available hooks for non-flow checks are the following:
 
 - :code:`min`: Called every minute.
 - :code:`5mins`: Called every 5 minutes.
@@ -58,10 +58,10 @@ Available hooks for non-flow user scripts are the following:
 - :code:`day`: Called every day (at midnight localtime).
 - :code:`all`: A special hook name which will cause the associated check to be called for all the available hooks.
 
-Other User Script Hooks Parameters
+Other Check Hooks Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-ntopng calls every user script hook function with a :code:`params` Lua table as argument. The script hook function is expected to have this structure:
+ntopng calls every check hook function with a :code:`params` Lua table as argument. The script hook function is expected to have this structure:
 
 .. code:: lua
 
@@ -75,8 +75,8 @@ The :code:`params` contains the following keys:
 - :code:`alert_entity`: A table carrying information on the current entity which can be used to generate alerts.
 - :code:`entity_info`: A string identifying the current entity.
 - :code:`cur_alerts`: Currently engaged alert for the entity.
-- :code:`check_config`: The user script configuration submitted by the user from the :ref:`Web GUI`. Table can be empty if the script doesn not require user-submitted configuration.
-- :code:`check`: The name of the user script which is being called.
+- :code:`check_config`: The check configuration submitted by the user from the :ref:`Web GUI`. Table can be empty if the script doesn not require user-submitted configuration.
+- :code:`check`: The name of the check which is being called.
 - :code:`when`: An integer indicating the current epoch.
 - :code:`ifid`: The interface id of the current interface.
 - :code:`ts_enabled`: True when the timeseries generation is enabled for the current timeseries.
@@ -84,10 +84,10 @@ The :code:`params` contains the following keys:
 It is ntopng which takes care of calling the hook check function with table :code:`params` opportunely populated.
 
 
-Other User Script Hooks Example
+Other Check Hooks Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A user script which needs to be called every minute will implement a check function and assign it to hook :code:`min`
+A check which needs to be called every minute will implement a check function and assign it to hook :code:`min`
 
 .. code:: lua
 
