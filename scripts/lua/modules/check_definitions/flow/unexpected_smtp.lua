@@ -18,9 +18,6 @@ local script = {
    -- This module is disabled by default
    alert_id = flow_alert_keys.flow_alert_unexpected_smtp_server,
 
-   -- This script is only for alerts generation
-   is_alert = true,
-
    default_enabled = false,
 
    -- Specify the default value whe clicking on the "Reset Default" button

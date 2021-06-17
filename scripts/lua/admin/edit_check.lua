@@ -2,7 +2,6 @@
 -- (C) 2021 - ntop.org
 --
 
--- TODO: check the 'is_alert' field
 -- TODO: reset custom callback
 -- TODO: /scripts/lua/module/checks/templates
 

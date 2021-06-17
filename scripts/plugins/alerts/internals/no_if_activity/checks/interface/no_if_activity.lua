@@ -57,8 +57,6 @@ script = {
       min = check_interface_activity,
    },
 
-   -- This script is only for alerts generation
-   is_alert = true,
 
    gui = {
       i18n_title        = "no_if_activity.no_if_activity_title",

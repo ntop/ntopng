@@ -49,7 +49,6 @@ local script = {
 
   -- If true, the script will be automatically disabled when alerts are
   -- disabled.
-  is_alert = false,
 
   -- If true, this script will only be executed on packet interfaces
   packet_interface_only = false,

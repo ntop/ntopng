@@ -1310,7 +1310,7 @@ const EmptyTemplate = (gui = null, hooks = null, check_subdir = null, script_key
 /* ******************************************************* */
 
 // get script key and script name
-const initScriptConfModal = (script_key, script_title, script_desc, is_alert) => {
+const initScriptConfModal = (script_key, script_title, script_desc) => {
    // change title to modal
    $("#script-name").html(script_title);
    $('#script-description').html(script_desc);
@@ -1338,7 +1338,7 @@ const initScriptConfModal = (script_key, script_title, script_desc, is_alert) =>
          // hide previous error
          $("#apply-error").hide();
 
-         const template = TemplateBuilder(data, check_subdir, script_key, is_alert);
+         const template = TemplateBuilder(data, check_subdir, script_key);
 
          // render template
          template.render();
@@ -1375,7 +1375,7 @@ const get_search_toggle_value = hash => hash == "#enabled" ? 'true' : (hash == "
 
 /* ******************************************************* */
 
-const TemplateBuilder = ({ gui, hooks, metadata }, check_subdir, script_key, is_alert) => {
+const TemplateBuilder = ({ gui, hooks, metadata }, check_subdir, script_key) => {
 
    // get template name
    const template_name = gui.input_builder;
@@ -1391,12 +1391,12 @@ const TemplateBuilder = ({ gui, hooks, metadata }, check_subdir, script_key, is_
 
    const isSubdirFlow = (check_subdir === "flow")
    let template_chosen = templates[template_name];
-   if (!template_chosen && !(is_alert || isSubdirFlow)) {
+   if (!template_chosen && !(isSubdirFlow)) {
       template_chosen = EmptyTemplate();
       // this message is for the developers
       console.warn("The chosen template doesn't exist yet. See the avaible templates.")
    }
-   else if (!template_chosen && (is_alert || isSubdirFlow)) {
+   else if (!template_chosen && (isSubdirFlow)) {
       template_chosen = DefaultTemplate(gui, hooks, check_subdir, script_key);
    }
 
@@ -1895,7 +1895,7 @@ $(function () {
                const isScriptEnabled = script.is_enabled;
                const isSubdirFlow = (check_subdir === "flow");
                const srcCodeButtonEnabled = data.edit_url && isScriptEnabled ? '' : 'disabled';
-               const editScriptButtonEnabled = ((!script.is_alert && !script.input_handler && !isSubdirFlow) || !isScriptEnabled) ? 'disabled' : '';
+               const editScriptButtonEnabled = ((!script.input_handler && !isSubdirFlow) || !isScriptEnabled) ? 'disabled' : '';
 
                return DataTableUtils.createActionButtons([
                   { class: `btn-info ${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit' },
@@ -1942,9 +1942,8 @@ $(function () {
       const script_key = row_data.key;
       const script_title = row_data.title;
       const script_desc = row_data.description;
-      const is_alert = row_data.is_alert;
 
-      initScriptConfModal(script_key, script_title, script_desc, is_alert);
+      initScriptConfModal(script_key, script_title, script_desc);
    });
 
    /**

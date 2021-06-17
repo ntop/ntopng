@@ -55,7 +55,7 @@ const apply_delete_alert_exclusion = (event) => {
 /* ******************************************************* */
 
 // get script key and script name
-const initDeleteAlertExclusionModal = (alert_key, script_title, excluded_host, is_alert) => {
+const initDeleteAlertExclusionModal = (alert_key, script_title, excluded_host) => {
     // change title to modal
     $("#script-name").html(script_title);
     $('#script-description').html(excluded_host);
@@ -221,9 +221,8 @@ $(function () {
 	const alert_key = row_data.alert_key;
 	const script_title = row_data.title;
 	const excluded_host = row_data.excluded_host;
-	const is_alert = row_data.is_alert;
 
-	initDeleteAlertExclusionModal(alert_key, script_title, excluded_host, is_alert);
+	initDeleteAlertExclusionModal(alert_key, script_title, excluded_host);
     });
 
     $(`#delete-all-modal #btn-confirm-action`).click(async function () {

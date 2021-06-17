@@ -72,10 +72,6 @@ if (script.default_value) then
   result.metadata.default_value = script.default_value
 end
 
-if (script.is_alert) then
-  result.metadata.is_alert = script.is_alert
-end
-
 -- Getting filter configurations
 
 if script.alert_id and (subdir == "flow" or subdir == "host") then

@@ -15,8 +15,6 @@ local script = {
   -- This module is disabled by default
   default_enabled = false,
 
-  -- This script is only for alerts generation
-  is_alert = true,
 
   default_value = {
      operator = "gt",

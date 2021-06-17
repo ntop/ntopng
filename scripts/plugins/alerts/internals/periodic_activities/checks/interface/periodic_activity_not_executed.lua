@@ -40,8 +40,6 @@ script = {
   -- Script category
   category = checks.check_categories.internals,
 
-  -- This script is only for alerts generation
-  is_alert = true,
 
   hooks = {
     min = check_periodic_activity_not_executed,

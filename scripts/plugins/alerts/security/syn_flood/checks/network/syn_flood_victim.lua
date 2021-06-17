@@ -22,8 +22,6 @@ local script = {
   -- See below
   hooks = {},
 
-  -- This script is only for alerts generation
-  is_alert = true,
 
   gui = {
     i18n_title = "entity_thresholds.syn_victim_title",

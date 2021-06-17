@@ -610,7 +610,6 @@ local function init_check(check, mod_fname, full_path, plugin, script_type, subd
    check.edition = plugin and plugin.edition
    check.category = checkCategory(check.category)
    -- A user script is assumed to be able to generate alerts if it has a flag or an alert id specified
-   check.is_alert = (check.is_alert == true or check.alert_id ~= nil)
    check.num_filtered = tonumber(ntop.getCache(string.format(NUM_FILTERED_KEY, subdir, mod_fname))) or 0 -- math.random(1000,2000)
 
    if subdir == "host" then
@@ -706,10 +705,6 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
 
    -- Augument with additional attributes
    init_check(check, mod_fname, full_path, plugin, script_type, subdir)
-
-   if((not return_all) and alerts_disabled and check.is_alert) then
-      return(nil)
-   end
 
    if(hook_filter ~= nil) then
       -- Only return modules which should be called for the specified hook
@@ -1845,7 +1840,6 @@ local function printUserScriptsTable()
             hooks = table.concat(hooks, ", ")
 
             -- Filters
-            if(script.is_alert) then filters[#filters + 1] = "alerts" end
             if(script.l4_proto) then filters[#filters + 1] = "l4_proto=" .. script.l4_proto end
             if(script.l7_proto) then filters[#filters + 1] = "l7_proto=" .. script.l7_proto end
             if(script.packet_interface_only) then filters[#filters + 1] = "packet_interface" end

@@ -65,7 +65,6 @@ function runScripts(granularity)
   -- is_critical_ts flag set.
 
   local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
-  local suppressed_alerts = false
   local when = os.time()
   --~ local cur_alerts = host.getAlerts(granularity_id)
 
@@ -74,17 +73,17 @@ function runScripts(granularity)
     local conf = checks.getTargetHookConfig(system_config, check, granularity)
 
     if(conf.enabled) then
-      if((not check.is_alert) or (not suppressed_alerts)) then
-        alerts_api.invokeScriptHook(check, configset, hook_fn, {
-           granularity = granularity,
-           alert_entity = alerts_api.interfaceAlertEntity(getSystemInterfaceId()),
-           check_config = conf.script_conf,
-           check = check,
-           when = when,
-           ts_enabled = system_ts_enabled,
-	   --cur_alerts = cur_alerts
-        })
-      end
+       alerts_api.invokeScriptHook(
+	  check, configset, hook_fn,
+	  {
+	     granularity = granularity,
+	     alert_entity = alerts_api.interfaceAlertEntity(getSystemInterfaceId()),
+	     check_config = conf.script_conf,
+	     check = check,
+	     when = when,
+	     ts_enabled = system_ts_enabled,
+	     --cur_alerts = cur_alerts
+       })
     end
   end
 

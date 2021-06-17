@@ -26,8 +26,6 @@ script = {
 
    default_enabled = false,
 
-   -- This script is only for alerts generation
-   is_alert = true,
 
    default_value = {
    },

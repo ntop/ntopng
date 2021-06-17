@@ -546,7 +546,7 @@ print[[
 
 // hide the possibly shown alerts icon in the header
 ]]
-if not _ifstats.isView or ntop.getPrefs().are_alerts_enabled == false then
+if not _ifstats.isView then
    print("$('#alerts-li').hide();")
 else
    print("$('#alerts-li').show();")

@@ -46,8 +46,6 @@ script = {
     threshold = 5,
   },
 
-  -- This script is only for alerts generation
-  is_alert = true,
 
   hooks = {
     min = check_interface_drops,

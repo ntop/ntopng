@@ -88,8 +88,6 @@ script = {
 
    default_enabled = false,
 
-   -- This script is only for alerts generation
-   is_alert = true,
 
    -- Specify the default value whe clicking on the "Reset Default" button
    default_value = {

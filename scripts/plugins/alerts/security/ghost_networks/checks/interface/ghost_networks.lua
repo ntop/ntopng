@@ -38,8 +38,6 @@ script = {
 
   default_enabled = true,
 
-  -- This script is only for alerts generation
-  is_alert = true,
 
   hooks = {
     min = check_ghost_networks,
