@@ -376,6 +376,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
 	flow->src_ip.set(ntohl(value->int_num));
     } else {
       ip_aux.set((char *) value->string);
+
       if(!ip_aux.isEmpty()  && !ntop->getPrefs()->do_override_src_with_post_nat_src())
 	/* tried to overwrite a non-empty IP with another non-empty IP */
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -479,6 +480,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     if(value->string != NULL) {
       /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
       u_int32_t ip = ntohl(inet_addr(value->string));
+
       if(ip) {
         flow->device_ip = ip;
         return false; /* FIXX check why we are returning false here */
@@ -496,7 +498,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     flow->outIndex = value->int_num;
     break;
   case OBSERVATION_POINT_ID:
-    flow->deviceId = value->int_num;
+    flow->observationPointId = value->int_num;
     break;
   case POST_NAT_SRC_IPV4_ADDR:
     if(ntop->getPrefs()->do_override_src_with_post_nat_src()) {
@@ -869,8 +871,8 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow * const flow, u_int32_t fi
     else return (flow->outIndex == value->int_num);
 
   case OBSERVATION_POINT_ID:
-    if(value->string) return (flow->deviceId == atoi(value->string));
-    else return (flow->deviceId == value->int_num);
+    if(value->string) return (flow->observationPointId == atoi(value->string));
+    else return (flow->observationPointId == value->int_num);
 
   case INGRESS_VRFID:
     if(value->string) return (flow->vrfId == (u_int) atoi(value->string));

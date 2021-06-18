@@ -496,7 +496,8 @@ flow_consts.flow_fields_description = {
    -- Misc
    ["COMMUNITY_ID"] = i18n("flow_fields_description.community_id"),
    ["FLOW_VERDICT"] = i18n("flow_fields_description.flow_verdict"),
-
+   ["L7_RISK_SCORE"] = i18n("flow_fields_description.l7_risk_score"),
+   
    -- Numeric fields not handled by nProbe
    ["25"]  =  i18n("flow_fields_description.ip_lenght_minimum"),
    ["26"]  =  i18n("flow_fields_description.ip_lenght_maximum"),

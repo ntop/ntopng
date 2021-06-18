@@ -1550,15 +1550,15 @@ else
 	 snmpdevice = syminfo["NPROBE_IPV4_ADDRESS"]
       end
 
-      if flow["device_id"] and flow["device_id"] ~= 0 then
-         print("<tr><th>"..i18n("details.device_id").."</th>")
-         print("<td colspan=\"2\">"..flow["device_id"].."</td></tr>")
+      if(flow["observation_point_id"] ~= nil) then
+	 print("<tr><th>"..i18n("details.observation_point_id").."</th>")
+	 print("<td colspan=\"2\">"..flow["observation_point_id"].."</td></tr>")
       end
-
+      
       if flow["in_index"] or flow["out_index"] then
 	 printFlowSNMPInfo(snmpdevice, flow["in_index"], flow["out_index"])
       end
-
+      
       local num = 0
       for key,value in pairsByKeys(info) do
 	 if(num == 0) then
@@ -1629,13 +1629,13 @@ print [[
                 const $type = $(`<span>${alert.alert_label}</span>`);
                 $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
 
-                const cliLabel = "]] local n = flowinfo2hostname(flow,"cli"); if n ~= flow["cli.ip"] then print(string.format("%s (%s)", n, flow["cli.ip"])) else print(n) end print[[";
-                const srvLabel =  "]] local n = flowinfo2hostname(flow,"srv"); if n ~= flow["srv.ip"] then print(string.format("%s (%s)", n, flow["srv.ip"])) else print(n) end print[[";
+                const cliLabel = "]]  if(flow ~= nil) then local n = flowinfo2hostname(flow,"cli"); if n ~= flow["cli.ip"] then print(string.format("%s (%s)", n, flow["cli.ip"])) else print(n) end end print[[";
+                const srvLabel =  "]] if(flow ~= nil) then local n = flowinfo2hostname(flow,"srv"); if n ~= flow["srv.ip"] then print(string.format("%s (%s)", n, flow["srv.ip"])) else print(n) end end print[[";
 
                 $(`#cli_addr`).text(cliLabel);
-                $(`#cli_radio`).val("]] print(flow["cli.ip"]) print[[");
+                $(`#cli_radio`).val("]] if(flow ~= nil) then print(flow["cli.ip"]) end print[[");
                 $(`#srv_addr`).text(srvLabel);
-                $(`#srv_radio`).val("]] print(flow["srv.ip"]) print[[");
+                $(`#srv_radio`).val("]] if(flow ~= nil) then print(flow["srv.ip"]) end print[[");
                 $(`#srv_radio`).prop("checked", true),
 		$(`#all_radio`).parent().hide();
             },

@@ -5140,7 +5140,7 @@ void Flow::lua_duration_info(lua_State *vm) {
 void Flow::lua_snmp_info(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "in_index", flow_device.in_index);
   lua_push_uint64_table_entry(vm, "out_index", flow_device.out_index);
-  lua_push_uint64_table_entry(vm, "device_id", flow_device.device_id);
+  lua_push_uint64_table_entry(vm, "observation_point_id", flow_device.observation_point_id);
 }
 
 /* ***************************************************** */

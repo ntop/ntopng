@@ -250,7 +250,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     flow->updateSeen();
   }
 
-  flow->setFlowDevice(zflow->device_ip, zflow->deviceId,
+  flow->setFlowDevice(zflow->device_ip, zflow->observationPointId,
 		      src2dst_direction ? zflow->inIndex  : zflow->outIndex,
 		      src2dst_direction ? zflow->outIndex : zflow->inIndex);
 

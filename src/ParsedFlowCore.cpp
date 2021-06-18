@@ -33,7 +33,7 @@ ParsedFlowCore::ParsedFlowCore() {
   device_ip = 0;
   src_port = dst_port = 0;
   inIndex = outIndex = 0;
-  deviceId = 0;
+  observationPointId = 0;
   l7_proto = Flow::get_ndpi_unknown_protocol();
   vlan_id = 0;
   pkt_sampling_rate = 1; /* 1:1 (no sampling) */
@@ -58,7 +58,7 @@ ParsedFlowCore::ParsedFlowCore(const ParsedFlowCore &pfc) {
   device_ip = pfc.device_ip;
   src_port = pfc.src_port, dst_port = pfc.dst_port;
   inIndex = pfc.inIndex, outIndex = pfc.outIndex;
-  deviceId = pfc.deviceId;
+  observationPointId = pfc.observationPointId;
   l7_proto = pfc.l7_proto;
   vlan_id = pfc.vlan_id;
   pkt_sampling_rate = pfc.pkt_sampling_rate;

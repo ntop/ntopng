@@ -1406,12 +1406,10 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
 	       return ifurl
 	    end
 
-	    local inputurl
-	    local outputurl
-
 	    if input_idx then
 	       inputurl = prepare_interface_url(input_idx, snmp_interfaces[input_idx])
 	    end
+	    
 	    if output_idx then
 	       outputurl = prepare_interface_url(output_idx, snmp_interfaces[output_idx])
 	    end
