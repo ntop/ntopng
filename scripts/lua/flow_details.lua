@@ -719,7 +719,7 @@ else
    if ifstats.vlan and flow["vlan"] > 0 then
       print("<tr><th width=30%>")
       print(i18n("details.vlan_id"))
-      print("</th><td colspan=2>" .. flow["vlan"].. "</td></tr>\n")
+      print("</th><td colspan=2>" .. getFullVlanName(flow["vlan"]) .. "</td></tr>\n")
    end
 
    print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, not ifstats.isViewed --[[ don't add hyperlinks, viewed interface don't have hosts --]], nil, nil, true --[[ add flags ]]).."</td></tr>\n")
