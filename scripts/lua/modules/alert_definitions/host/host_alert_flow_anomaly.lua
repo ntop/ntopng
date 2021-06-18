@@ -50,8 +50,6 @@ function host_alert_flow_anomaly.format(ifid, alert, alert_type_params)
    local is_client_alert = alert_type_params["is_client_alert"]
    local role
 
-   tprint(alert_type_params)
-
    if(is_both) then
       role = i18n("client_and_server")
    elseif(is_client_alert) then
@@ -60,12 +58,12 @@ function host_alert_flow_anomaly.format(ifid, alert, alert_type_params)
       role = i18n("server")
    end
 
-return i18n("alert_messages.flow_number_anomaly", {
-     role = role,
-     value = alert_type_params["value"],
-     lower_bound = alert_type_params["lower_bound"],
-     upper_bound = alert_type_params["upper_bound"],
-})
+   return i18n("alert_messages.flow_number_anomaly", {
+      role = role,
+      value = alert_type_params["value"],
+      lower_bound = alert_type_params["lower_bound"],
+      upper_bound = alert_type_params["upper_bound"],
+   })
 end
 
 -- #######################################################
