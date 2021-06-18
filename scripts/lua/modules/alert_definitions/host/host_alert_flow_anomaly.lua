@@ -46,28 +46,26 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function host_alert_flow_anomaly.format(ifid, alert, alert_type_params)
-  local alert_consts = require("alert_consts")
-  local json = json.decode(alert.json)
-  local is_both = alert_type_params["is_both"]
-  local is_client_alert = alert_type_params["is_client_alert"]
-  local role
-  local host = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
+   local is_both = alert_type_params["is_both"]
+   local is_client_alert = alert_type_params["is_client_alert"]
+   local role
 
-  if(is_both) then
-     role = "client and server"
-  elseif(is_client_alert) then
-     role = "client"
-  else
-     role = "server"
-  end
+   tprint(alert_type_params)
 
-  return i18n("alert_messages.flow_number_anomaly", {
-		 role = role,
-		 host = host,
-		 value = alert_type_params["value"],
-		 lower_bound = alert_type_params["lower_bound"],
-		 upper_bound = alert_type_params["upper_bound"],
-  })
+   if(is_both) then
+      role = i18n("client_and_server")
+   elseif(is_client_alert) then
+      role = i18n("client")
+   else
+      role = i18n("server")
+   end
+
+return i18n("alert_messages.flow_number_anomaly", {
+     role = role,
+     value = alert_type_params["value"],
+     lower_bound = alert_type_params["lower_bound"],
+     upper_bound = alert_type_params["upper_bound"],
+})
 end
 
 -- #######################################################
