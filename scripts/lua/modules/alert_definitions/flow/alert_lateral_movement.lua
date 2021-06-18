@@ -40,31 +40,19 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_lateral_movement.format(ifid, alert, alert_type_params)
-   local vlan_id = tonumber(alert.vlan_id) or 0
-   local client = {host = alert.cli_ip, vlan = vlan_id}
-   local server = {host = alert.srv_ip, vlan = vlan_id}
+   -- Extracting info field
    local info = ""
 
    if alert.json then
       info = json.decode(alert["json"])
       if info["info"] then
-         info = info["info"]
+         info = "[" .. info["info"] .. "]"
       else
          info = ""
       end   
    end
 
-   local rsp = hostinfo2detailshref(client, nil, hostinfo2label(client))..
-      " <i class=\"fas fa-fw fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i> " ..
-      hostinfo2detailshref(server, nil, hostinfo2label(server))
-
-   rsp = rsp .. " ["..interface.getnDPIProtoName(tonumber(alert.l7_proto)) or alert.l7_proto .."]"
-   
-   if not isEmptyString(info) then
-      rsp = rsp .. "[" .. info .. "]"
-   end
-
-   return(rsp)
+   return(i18n("alerts_dashboard.lateral_movement_descr", { info = info }))
 end
 
 -- #######################################################
