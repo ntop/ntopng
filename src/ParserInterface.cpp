@@ -289,11 +289,16 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       /* There's a breadown between client and server TCP flags */
       if(zflow->tcp.client_tcp_flags)
 	flow->updateTcpFlags(&now_tv, zflow->tcp.client_tcp_flags, src2dst_direction);
+
       if(zflow->tcp.server_tcp_flags)
 	flow->updateTcpFlags(&now_tv, zflow->tcp.server_tcp_flags, !src2dst_direction);
-    } else if(zflow->tcp.tcp_flags) {
-      /* TCP flags are cumulated */
-      flow->updateTcpFlags(&now_tv, zflow->tcp.tcp_flags, src2dst_direction);
+      
+      if(zflow->tcp.tcp_flags
+	 && (zflow->tcp.client_tcp_flags == 0)
+	 && (zflow->tcp.server_tcp_flags == 0)) {
+	/* TCP flags are cumulative and set only if client/server flags are zero */
+	flow->updateTcpFlags(&now_tv, zflow->tcp.tcp_flags, src2dst_direction);
+      }
     }
 
     flow->updateTcpSeqIssues(zflow);

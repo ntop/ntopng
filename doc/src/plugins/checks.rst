@@ -1,21 +1,21 @@
-.. _User Scripts:
+.. _Checks:
 
-User Scripts
+Checks
 ============
 
-User scripts are the core of plugins. They actually allow certain
+Checks are the core of plugins. They actually allow certain
 actions to be performed periodically, or when a certain event
 occurs. The logic of a plugin is contained in its users
-scripts. A plugin contains zero to many user scripts.
+scripts. A plugin contains zero to many checks.
 
 Structure
 ---------
 
-The structure of a user script is the following:
+The structure of a check is the following:
 
 .. code:: lua
 
-  local user_scripts = require("user_scripts")
+  local checks = require("checks")
 
   -- #################################################################
 
@@ -37,10 +37,10 @@ The structure of a user script is the following:
   return(script)
 
 
-Every user script must return a Lua table with the following keys:
+Every check must return a Lua table with the following keys:
 
-  - :code:`hooks`: a Lua table with hook names as key and callbacks as values. :ref:`User Script Hooks` are events or points in time. ntopng uses hooks to know when to call a user script. A user script defining a hook will get the hook callaback called by ntopng. User scripts must register to at least one hook. See :ref:`User Script Hooks`.
-  - :code:`gui`: a Lua table specifying user script name, description and configuration. Data is used by ntopng to show the user script configurable from the :ref:`Web GUI`.
+  - :code:`hooks`: a Lua table with hook names as key and checks as values. :ref:`Check Hooks` are events or points in time. ntopng uses hooks to know when to call a check. A check defining a hook will get the hook callaback called by ntopng. Checks must register to at least one hook. See :ref:`Check Hooks`.
+  - :code:`gui`: a Lua table specifying check name, description and configuration. Data is used by ntopng to show the check configurable from the :ref:`Web GUI`.
   - :code:`packet_interface_only` (optional): only execute the script on packet interfaces, excluding ZMQ interfaces.
   - :code:`nedge_only` (optional): if true, the script is only executed in nEdge.
   - :code:`nedge_exclude` (optional): if true, the script is not executed in nEdge.
@@ -50,35 +50,35 @@ Every user script must return a Lua table with the following keys:
 
 Furthermore, a script may define the following extra functions, which are only called once per script:
 
-  - :code:`setup()`: called once per user script. If it returns :code:`false` then the script is considered
+  - :code:`setup()`: called once per check. If it returns :code:`false` then the script is considered
     disabled and its hooks are not be called.
   - :code:`teardown()`: called after the script operation is complete (e.g. after all the hosts have been iterated and hooks called).
 
-.. _Flow User Scripts:
+.. _Flow Checks:
 
-Flow User Scripts
+Flow Checks
 -----------------
 
-Flow user scripts are executed on each network flow directly from the C++ with flow callbacks. The user script have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things.
-This information can be retrieved via the `Flow User Scripts API`_.
+Flow checks are executed on each network flow directly from the C++ with flow checks. The check have access to flow information such as L4 and L7 protocols, peers involved in the communication, and other things.
+This information can be retrieved via the `Flow Checks API`_.
 
-Refer to :ref:`Flow User Script Hooks` for available hooks.
+Refer to :ref:`Flow Check Hooks` for available hooks.
 
-.. _`Flow User Scripts API`: ../api/lua_c/flow_user_scripts/index.html
+.. _`Flow Checks API`: ../api/lua_c/flow_checks/index.html
 
 ntopng supports users scripts for the following traffic elements:
 
-  - :code:`interface`: a network interface of ntopng. Check out the `Interface User Scripts API`_.
-  - :code:`network`: a local network of ntopng. Check out the `Network User Scripts API`_.
+  - :code:`interface`: a network interface of ntopng. Check out the `Interface Checks API`_.
+  - :code:`network`: a local network of ntopng. Check out the `Network Checks API`_.
   - :code:`system`: the system on top of which is running ntopng
   - :code:`SNMP interfaces`: interfaces of monitored SNMP devices
 
-Refer to :ref:`Other User Script Hooks` for available hooks.
+Refer to :ref:`Other Check Hooks` for available hooks.
 
-.. _`Interface User Scripts API`: ../api/lua_c/interface_user_scripts/index.html
-.. _`Network User Scripts API`: ../api/lua_c/network_user_scripts/index.html
+.. _`Interface Checks API`: ../api/lua_c/interface_checks/index.html
+.. _`Network Checks API`: ../api/lua_c/network_checks/index.html
 
-Syslog User Scripts
+Syslog Checks
 -------------------
 
 Syslog scripts are used to handle syslog events and ingest data,
@@ -89,12 +89,12 @@ Scripts Location
 ~~~~~~~~~~~~~~~~
 
 Syslog scripts are located under
-:code:`/usr/share/ntopng/scripts/callbacks/syslog` and should use the
+:code:`/usr/share/ntopng/scripts/callbacks/system/syslog` and should use the
 source name (e.g. application name) with the :code:`.lua` extension as
 file name. In fact messages demultiplexing is implemented by using the
 source name for matching the script name. For example, log messages
 coming from :code:`suricata` will be delivered to the
-:code:`/usr/share/ntopng/scripts/callbacks/syslog/suricata.lua`
+:code:`/usr/share/ntopng/scripts/checks/syslog/suricata.lua`
 script.
 
 Script API

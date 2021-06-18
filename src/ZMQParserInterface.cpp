@@ -638,10 +638,12 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     
   case CLIENT_TCP_FLAGS:
     flow->tcp.client_tcp_flags = value->int_num;
+    flow->tcp.tcp_flags        |= flow->tcp.client_tcp_flags;
     break;
     
   case SERVER_TCP_FLAGS:
     flow->tcp.server_tcp_flags = value->int_num;
+    flow->tcp.tcp_flags        |= flow->tcp.server_tcp_flags;
     break;
     
   case APPL_LATENCY_MS:

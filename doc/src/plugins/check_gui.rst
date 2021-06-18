@@ -1,12 +1,12 @@
 .. _Web GUI:
 
-User Scripts GUI
+Checks GUI
 ################
 
-User Scripts can define their own configuration and allow the final user
+Checks can define their own configuration and allow the final user
 to modify it by providing a specialized GUI.
 
-The GUI is defined into the User Script via the :code:`gui` attribute:
+The GUI is defined into the Check via the :code:`gui` attribute:
 
 .. code:: lua
 
@@ -35,7 +35,7 @@ The most important GUI attributes are:
     description of the element
   - :code:`input_builder`: defines the template which will be used to
     render the GUI. If it's not defined, the user will only be able to
-    enable or disable the user scripts without any additional configuration.
+    enable or disable the checks without any additional configuration.
 
 The :code:`default_value` can be used to define a default for the configuration. Its format
 depends on the `input_builder` used, see below for more information.
@@ -53,7 +53,7 @@ available input builders are:
 - :code:`flow_mud`: template specialized for the `flow MUD plugin`_
 
 Currently the user is limited to the above input builders but in the future it will be
-possible to define new input builders. The input builders backend code can be found in `user_scripts_templates.lua`_
+possible to define new input builders. The input builders backend code can be found in `checks_templates.lua`_
 whereas the frontend code can be found in `scripts-list-utils.js`_.
 
 Here is a description of the most useful input builders.
@@ -65,12 +65,12 @@ The Threshold Cross input builder allows the user to configure a threshold for a
 metric (e.g. the DNS traffic) for one or more granularities. Each granularity can be separately
 enabled.
 
-.. figure:: ../img/user_scripts_gui_threshold_cross.png
+.. figure:: ../img/checks_gui_threshold_cross.png
   :align: center
   :alt: Threshold Cross GUI
   :scale: 60
 
-When the `threshold_cross` input builder is used, the user script can specify some additional parameters into
+When the `threshold_cross` input builder is used, the check can specify some additional parameters into
 the :code:`gui` section:
 
 - :code:`field_max`: max value for the threshold field
@@ -79,7 +79,7 @@ the :code:`gui` section:
 - :code:`field_operator`: can be used to fix a specific threshold operator: :code:`gt`
   for the ">" operator, :code:`lt` for the "<" operator
 - :code:`i18n_field_unit`: localization string to be displayed after the threshold
-  field (e.g. "Bytes" in the example above). `user_scripts.field_units` provides some commonly used values.
+  field (e.g. "Bytes" in the example above). `checks.field_units` provides some commonly used values.
 
 Here is an example showing the usage of the `threshold_cross` input builder:
 
@@ -93,7 +93,7 @@ Here is an example showing the usage of the `threshold_cross` input builder:
       i18n_description = "entity_thresholds.syn_victim_description",
       input_builder = "threshold_cross",
 
-      i18n_field_unit = user_scripts.field_units.syn_sec, -- Syn/Sec
+      i18n_field_unit = checks.field_units.syn_sec, -- Syn/Sec
       field_max = 65535,                                  -- Max 65535 Syn/Sec
       field_min = 1,                                      -- Min 1 Syn/Sec
       field_operator = "gt";                              -- Only ">" will be shown
@@ -109,7 +109,7 @@ Here is an example showing the usage of the `threshold_cross` input builder:
 
   ..
 
-The current script configuration is available into `params.user_script_config`:
+The current script configuration is available into `params.check_config`:
 
 - :code:`operator`: contains :code:`gt` for ">" or :code:`lt` for "<"
 - :code:`threshold`: contains the numeric value for the threshold
@@ -123,7 +123,7 @@ Items List
 This input builder allows the user to insert a list of items. The items
 must be separated by a comma.
 
-.. figure:: ../img/user_scripts_gui_items_list.png
+.. figure:: ../img/checks_gui_items_list.png
   :align: center
   :alt: Items List GUI
   :scale: 60
@@ -178,5 +178,5 @@ As shown into the example, the configured list of countries can be found
 in :code:`conf.items`.
 
 .. _`scripts-list-utils.js`: https://github.com/ntop/ntopng/blob/dev/httpdocs/js/config_callbacks/scripts-list-utils.js
-.. _`user_scripts_templates.lua`: https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/user_scripts_templates.lua
+.. _`checks_templates.lua`: https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/checks_templates.lua
 .. _`flow MUD plugin`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/mud

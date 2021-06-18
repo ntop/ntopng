@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" ..
 
 require "lua_utils"
 
-local scripts_import_export = require "scripts_import_export"
+local checks_import_export = require "checks_import_export"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local import_export_rest_utils = require "import_export_rest_utils"
@@ -26,6 +26,6 @@ if not auth.has_capability(auth.capabilities.checks) then
 end
 
 local instances = {}
-instances["scripts"] = scripts_import_export:create()
+instances["scripts"] = checks_import_export:create()
 import_export_rest_utils.reset(instances)
 

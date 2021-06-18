@@ -81,18 +81,13 @@ function host_alert_score_anomaly.format(ifid, alert, alert_type_params)
   local is_both = alert_type_params["is_both"]
   local role
   local host = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
-  local sec_cat = 0
-  local net_cat = 0
   
   if(is_both) then
      role = i18n("client_and_server")
-     net_cat, sec_cat = get_problematic_category(alert_type_params, true)
   elseif(is_client_alert) then
      role = i18n("client")
-     net_cat, sec_cat = get_problematic_category(alert_type_params, nil, "client")
   else
      role = i18n("server")
-     net_cat, sec_cat = get_problematic_category(alert_type_params, nil, "server")
   end
   
   return i18n("alert_messages.score_number_anomaly", {
@@ -101,8 +96,6 @@ function host_alert_score_anomaly.format(ifid, alert, alert_type_params)
 		 score = alert_type_params["value"],
 		 lower_bound = alert_type_params["lower_bound"],
 		 upper_bound = alert_type_params["upper_bound"],
-		 network = net_cat,
-		 security = sec_cat,
   })
 end
 

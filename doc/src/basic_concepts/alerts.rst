@@ -3,7 +3,7 @@
 Alerts
 ======
 
-ntopng generates alerts to report the occurrence of events and user-configurable thresholds. :ref:`WebUIUserScripts` are responsible for the generation of alerts. Enabling and disabling a user scripts enables or disables the corresponding alerts.
+ntopng generates alerts to report the occurrence of events and user-configurable thresholds. :ref:`WebUIUserScripts` are responsible for the generation of alerts. Enabling and disabling a checks enables or disables the corresponding alerts.
 
 Alerts include, but are not limited to:
 

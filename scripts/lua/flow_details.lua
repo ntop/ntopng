@@ -1320,25 +1320,23 @@ else
       for _, score_alerts in pairsByKeys(alerts_by_score, rev) do
 	 for _, score_alert in pairsByField(score_alerts, "message", asc) do
 	    if first then
-	       print("<tr><th width=30%>"..i18n("flow_details.flow_issues").."</th><td colspan=2>")
+	       print("<tr><th width=30% rowspan="..(num_statuses+1)..">"..i18n("flow_details.flow_issues").."</th><th>"..i18n("description").."</th><th>"..i18n("actions").."</th></tr>")
 	       first = false
 	    end
 
-	    if score_alert.is_predominant then
-	       print(status_icon.." ")
-	    end
+	    print(string.format('<tr>'))
 
-	    print(score_alert.message)
+	    print(string.format('<td>%s %s</td>', score_alert.message, score_alert.is_predominant and status_icon or ''))
 
 	    if score_alert.alert_id then
-	       print(string.format(' <a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a>', score_alert.alert_id, score_alert.alert_label))
+	       print(string.format('<td><a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a></td>', score_alert.alert_id, score_alert.alert_label))
+	    else -- These are unhandled alerts, e.g., flow risks for which a check doesn't exist
+	       print(string.format('<td></td>'))
 	    end
 
-	    print("<br />")
+	    print('</tr>')
 	 end
       end
-
-      print("</td></tr>\n")
    end
 
    -- ######################################
@@ -1631,8 +1629,8 @@ print [[
                 const $type = $(`<span>${alert.alert_label}</span>`);
                 $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
 
-                const cliLabel = "]] print(flowinfo2hostname(flow,"cli")) print[[";
-                const srvLabel = "]] print(flowinfo2hostname(flow,"srv")) print[[";
+                const cliLabel = "]] local n = flowinfo2hostname(flow,"cli"); if n ~= flow["cli.ip"] then print(string.format("%s (%s)", n, flow["cli.ip"])) else print(n) end print[[";
+                const srvLabel =  "]] local n = flowinfo2hostname(flow,"srv"); if n ~= flow["srv.ip"] then print(string.format("%s (%s)", n, flow["srv.ip"])) else print(n) end print[[";
 
                 $(`#cli_addr`).text(cliLabel);
                 $(`#cli_radio`).val("]] print(flow["cli.ip"]) print[[");

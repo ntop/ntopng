@@ -223,11 +223,14 @@ function run_upgrade() {
 		${APT_GET} update
 
 		# Install
-		${APT_GET} upgrade --assume-yes --fix-broken --allow-unauthenticated --with-new-pkgs ${PRODUCT}
+		#${APT_GET} upgrade --assume-yes --fix-broken --allow-unauthenticated --with-new-pkgs ${PRODUCT}
+		# Note: using install instead of upgrade to avoid blocking the installation due to 'kept back' packages
+		${APT_GET} install --assume-yes --fix-broken --allow-unauthenticated ${PRODUCT}
 		RESULT=$?
 
 		# Check if installation is successful (we do not trust $?)
-		NTOPNG_VERSION=$(${APT_GET} --just-print upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
+		#NTOPNG_VERSION=$(${APT_GET} --just-print upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
+		NTOPNG_VERSION=$(${APT_GET} --just-print install ${PRODUCT} 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
 		if [ -z "${NTOPNG_VERSION}" ]; then
 			RESULT=0
 		fi
@@ -277,12 +280,14 @@ function check_updates() {
 		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/${APT_SOURCE}" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
 		# Check for broken packages
-		${APT_GET} --just-print upgrade >/dev/null 2>&1
+		#${APT_GET} --just-print upgrade >/dev/null 2>&1
+		${APT_GET} --just-print install ${PRODUCT} >/dev/null 2>&1
 		if [ ! $? -eq 0 ]; then
 			# Something went wrong, trying to fix it
 			${APT_GET} --assume-yes --fix-broken install
 
-			${APT_GET} --just-print upgrade >/dev/null 2>&1
+			#${APT_GET} --just-print upgrade >/dev/null 2>&1
+			${APT_GET} --just-print install ${PRODUCT} >/dev/null 2>&1
 		fi
 
 		if [ ! $? -eq 0 ]; then
@@ -290,7 +295,9 @@ function check_updates() {
 			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "update-failure" >/dev/null 2>&1 
 		else
 			# Check update and get version
-			NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes --with-new-pkgs upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
+			#NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes --with-new-pkgs upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
+			# Note: using install instead of upgrade to handle 'kept back' packages
+			NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes install ${PRODUCT} 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
 			RESULT=0
 		fi
 	else

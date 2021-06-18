@@ -2828,7 +2828,7 @@
 					"All"
 				],
 				"summary": "Export all configurations as a JSON file",
-				"description": "Export all configurations including Pools, Active Monitoring, Notifications (Endpoints and Recipients), User Scripts, SNMP devices",
+				"description": "Export all configurations including Pools, Active Monitoring, Notifications (Endpoints and Recipients), Checks, SNMP devices",
 				"operationId": "export_all_config",
 				"produces": [
 					"application/json"
@@ -2916,7 +2916,7 @@
 					"Pools"
 				],
 				"summary": "Export the pools configuration as a JSON file",
-				"description": "Export the configuration of all pools and dependencies (notifications, SNMP, active monitoring, user scripts",
+				"description": "Export the configuration of all pools and dependencies (notifications, SNMP, active monitoring, checks",
 				"operationId": "export_pool_config",
 				"produces": [
 					"application/json"
@@ -2944,8 +2944,8 @@
 				"tags": [
 					""
 				],
-				"summary": "Export the User Scripts configuration as a JSON file",
-				"description": "Export the configuration for all user scripts",
+				"summary": "Export the Checks configuration as a JSON file",
+				"description": "Export the configuration for all checks",
 				"operationId": "export_scripts_config",
 				"produces": [
 					"application/json"
@@ -3003,7 +3003,7 @@
 					"All"
 				],
 				"summary": "Import all configurations providing a JSON file",
-				"description": "Import all configurations including Pools, Active Monitoring, Notifications (Endpoints and Recipients), User Scripts, SNMP devices",
+				"description": "Import all configurations including Pools, Active Monitoring, Notifications (Endpoints and Recipients), Checks, SNMP devices",
 				"operationId": "import_all_config",
 				"produces": [
 					"application/json"
@@ -3099,7 +3099,7 @@
 					"Pools"
 				],
 				"summary": "Import the pools configuration providing a JSON file",
-				"description": "Import the configuration of all pools and dependencies (notifications, SNMP, active monitoring, user scripts",
+				"description": "Import the configuration of all pools and dependencies (notifications, SNMP, active monitoring, checks",
 				"operationId": "import_pool_config",
 				"produces": [
 					"application/json"
@@ -3130,8 +3130,8 @@
 				"tags": [
 					""
 				],
-				"summary": "Import the User Scripts configuration providing a JSON file",
-				"description": "Import the configuration for all user scripts",
+				"summary": "Import the Checks configuration providing a JSON file",
+				"description": "Import the configuration for all checks",
 				"operationId": "import_scripts_config",
 				"produces": [
 					"application/json"

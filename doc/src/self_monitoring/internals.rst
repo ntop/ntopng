@@ -7,7 +7,7 @@ Internals expose status and health of certain ntopng components. Internal compon
 
 - `Hash Tables`
 - `Periodic Activities`
-- `User Scripts`
+- `Checks`
 
 Information exposed is accessible from the `wrench` icon of any interface - including the :ref:`BasicConceptSystemInterface` - and is discussed detail below for each component.
 
@@ -66,10 +66,10 @@ Information shown is useful to troubleshoot the following issues:
 Periodic Activities
 -------------------
 
-Periodic activities are Lua scripts executed by ntopng at regular intervals of time. Lua scripts are found in the `callbacks <https://github.com/ntop/ntopng/tree/dev/scripts/callbacks>`_. They can be run, in parallel, for each interface or for the system. Periodic activities include, but are not limited to:
+Periodic activities are Lua scripts executed by ntopng at regular intervals of time. Lua scripts are found in the `checks <https://github.com/ntop/ntopng/tree/dev/scripts/checks>`_. They can be run, in parallel, for each interface or for the system. Periodic activities include, but are not limited to:
 
 - `Timeseries generation`.
-- `Execution of User Scripts` as described in :ref:`WebUIUserScripts`.
+- `Execution of Checks` as described in :ref:`WebUIUserScripts`.
 - `Handling idle and active hash table entries` as described in :ref:`InternalsHashTables`.
 
 Multiple threads are available for the execution of periodic activities. A thread executes one periodic activity at time. Multiple periodic activities are executed sequentially by the same thread. Multiple parallel threads execute multiple periodic activities simultaneously.
@@ -92,7 +92,7 @@ Failing to meet one or more of the conditions above can cause ntopng to malfunct
 
 - All threads are busy so no one can execute a periodic activity ad the right `frequency`.
 - A bug is causing a periodic activity to take more than its `max duration` to complete.
-- A user activity is executing too many :ref:`User Scripts` that make it slow.
+- A user activity is executing too many :ref:`Checks` that make it slow.
 - Too many alerts are being generated and the export cannot keep up with the generation.
 
 
@@ -106,7 +106,7 @@ Aim of the `Periodic Activities` internals table is to monitor the execution of 
 
 Information shown in the table columns is:
 
-- `Periodic Activity`: The name of the periodic activity. Name equals the file name of the periodic activity Lua script which can be either found under the `system <https://github.com/ntop/ntopng/tree/dev/scripts/callbacks/system>`_ periodic activities, `interface <https://github.com/ntop/ntopng/tree/dev/scripts/callbacks/interface>`_ periodic activities, or both.
+- `Periodic Activity`: The name of the periodic activity. Name equals the file name of the periodic activity Lua script which can be either found under the `system <https://github.com/ntop/ntopng/tree/dev/scripts/checks/system>`_ periodic activities, `interface <https://github.com/ntop/ntopng/tree/dev/scripts/checks/interface>`_ periodic activities, or both.
 - `Frequency`: How often a periodic activity has to be executed.
 - `Max Duration`: How long the periodic activity execution can take.
 - `Chart`: A link to the historical charts of the periodic activity.
@@ -145,29 +145,29 @@ Periodic activities with issues also have their alerts. Alerts are engaged when 
 
   Internals: Periodic Activities Alerts
 
-Periodic activities are in charge of running plugin user scripts.
+Periodic activities are in charge of running plugin checks.
 
-User Scripts
+Checks
 ------------
 
-:ref:`User Scripts` are part of ntopng plugins. They are executed periodically or when a certain event occurs.
+:ref:`Checks` are part of ntopng plugins. They are executed periodically or when a certain event occurs.
 
-Aim of the `User Scripts` internals table is to monitor the execution of scripts.
+Aim of the `Checks` internals table is to monitor the execution of scripts.
 
-.. figure:: ../img/internals_user_scripts.png
+.. figure:: ../img/internals_checks.png
   :align: center
-  :alt: Internals: User Scripts
+  :alt: Internals: Checks
 
-  Internals: User Scripts
+  Internals: Checks
 
 Information shown in the table columns is:
 
-- `User Script`: The name of the user script which is executed.
-- `Target`: The target of the user script, either an `host`, a `flow` or one of the other :ref:`Other User Scripts` targets.
-- `Hook`: One of the :ref:`User Script Hooks`.
-- `Last Num Calls`: The number of times the user script has been called the last time a periodic activity has executed it.
-- `Last Duration`: The total duration of the user script, computed as the sum of the duration of any of its `Last Num Calls`.
+- `Check`: The name of the check which is executed.
+- `Target`: The target of the check, either an `host`, a `flow` or one of the other targets.
+- `Hook`: One of the :ref:`Check Hooks`.
+- `Last Num Calls`: The number of times the check has been called the last time a periodic activity has executed it.
+- `Last Duration`: The total duration of the check, computed as the sum of the duration of any of its `Last Num Calls`.
 
 Information shown is useful to troubleshoot the following issues:
 
-- `Troubleshoot` periodic activities with :ref:`Degraded Performance`: A periodic activity may be slow because it is executing too many user scripts. Combining data from the `Periodic Activities` internals table with this table can highlight this condition.
+- `Troubleshoot` periodic activities with :ref:`Degraded Performance`: A periodic activity may be slow because it is executing too many checks. Combining data from the `Periodic Activities` internals table with this table can highlight this condition.

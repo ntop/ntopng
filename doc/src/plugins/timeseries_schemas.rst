@@ -3,7 +3,7 @@
 Timeseries Schemas
 ==================
 
-User scripts invoked via the `user scripts hooks`_ can use the `Timeseries
+Checks invoked via the `checks hooks`_ can use the `Timeseries
 API`_ to write their own timeseries data and then visualize it in `Custom
 Pages`_. A full example of a plugin specialized in collecting Redis metrics
 is the `Redis monitor plugin`_ .
@@ -47,7 +47,7 @@ identified by the `ifid` tag and contains one gauge metric named `num_hosts`.
 Schemas Usage
 -------------
 
-A user script could then use the above schema as follows:
+A check could then use the above schema as follows:
 
 .. code:: lua
 
@@ -73,8 +73,8 @@ A user script could then use the above schema as follows:
 It's important to check that `params.ts_enabled` flag in order to call `ts_utils.append` only
 if the timeseries are enabled for the given entity currently processed.
 
-.. _`user scripts hooks`: user_script_hooks.html#user-script-hooks
+.. _`checks hooks`: check_hooks.html#user-script-hooks
 .. _`Timeseries API`: ../api/timeseries/index.html
 .. _`Custom Pages`: custom_pages.html
 .. _`Redis monitor plugin`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/redis_monitor
-.. _`the relevant page`: user_script_hooks.html#other-user-script-hooks
+.. _`the relevant page`: check_hooks.html#other-user-script-hooks

@@ -777,4 +777,28 @@ function alert_utils.notify_ntopng_stop()
    return(notify_ntopng_status(false))
 end
 
+function alert_utils.formatBehaviorAlert(params, anomalies, stats, id, subtype)
+   -- Cycle throught the behavior stats
+   for anomaly_type, anomaly in pairs(anomalies) do
+      local alert = alert_consts.alert_types.alert_behavior_anomaly.new(
+         i18n(subtype .. "_id", {id = id}),
+         i18n("alert_behaviors." .. anomaly_type),
+         stats[anomaly_type]["value"],
+         stats[anomaly_type]["lower_bound"],
+         stats[anomaly_type]["upper_bound"]
+      )
+
+      alert:set_score_warning()
+      alert:set_granularity(params.granularity)
+      alert:set_subtype(subtype .. "_" .. id)
+
+      -- Trigger an alert if an anomaly is found
+      if anomaly == true then
+         alert:trigger(params.alert_entity, nil, params.cur_alerts)
+      else
+         alert:release(params.alert_entity, nil, params.cur_alerts)
+      end
+   end
+end
+
 return alert_utils

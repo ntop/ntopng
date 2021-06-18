@@ -87,14 +87,14 @@ becomes
           |   |-- manifest.lua
           |   |-- status_definitions
           |   |   `-- status_blacklisted.lua
-          |   `-- user_scripts
+          |   `-- checks
           |       `-- flow
           |           `-- blacklisted.lua
           `-- flow_flood
         |-- alert_definitions
         |   `-- alert_flows_flood.lua
         |-- manifest.lua
-        `-- user_scripts
+        `-- checks
             |-- host
             |   |-- flow_flood_attacker.lua
             |   `-- flow_flood_victim.lua

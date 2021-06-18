@@ -69,7 +69,7 @@ Alert description :code:`i18n_description` can be either a string with the alert
 String
 ~~~~~~
 
-When the alert description is string, it is localized as described in :ref:`Plugin Localization`. An :code:`alert_json` table is passed as the parameters table for the localization. Keys and values of :code:`alert_json` can be used to add parameters to the localization string. Refer to :ref:`Triggering Alerts` to see how to create and :code:`alert_json`.
+When the alert description is string, it is localized as described in :ref:`Plugin Localization`. An :code:`alert_json` table is passed as the parameters table for the localization. Keys and values of :code:`alert_json` can be used to add parameters to the localization string.
 
 Function
 ~~~~~~~~
@@ -79,8 +79,6 @@ When the alert description is a function, it gets called with three parameters:
 - :code:`ifid`: An integer number uniquely identifying the interface which is triggering the alert.
 - :code:`alert`: A Lua table containing the details of the alert.
 - :code:`alert_json`: A Lua table that can be used to add parameters to the localization string.
-
-Refer to :ref:`Triggering Alerts` for additional details on these three parameters.
 
 The function is expected to return a string which is possibly localized. It is up to the plugin to call the :code:`i18n()` localization function to do the actual localization. ntopng will not perform any localization on the returned value of the function.
 
