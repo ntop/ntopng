@@ -636,8 +636,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline float getThroughputPps()            { return pkts_thpt.getThpt();  };
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline ServiceMap* getServiceMap()         { return(sMap);           };
+  inline bool isServiceMapEnabled()          { return(sMap ? true : false); };
   inline void flushServiceMap()              { if(sMap) sMap->flush(); };
   inline PeriodicityMap* getPeriodicityMap() { return(pMap);           };
+  inline bool isPeriodicityMapEnabled()      { return(pMap ? true : false); };
   inline void flushPeriodicityMap()          { if(pMap) pMap->flush(); };
   void updateFlowPeriodicity(Flow *f);
   void updateServiceMap(Flow *f);  

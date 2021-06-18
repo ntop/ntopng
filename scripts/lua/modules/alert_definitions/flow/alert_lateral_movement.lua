@@ -45,7 +45,7 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
 
    if alert.json then
       info = json.decode(alert["json"])
-      if info["info"] then
+      if not isEmptyString(info["info"]) then
          info = "[" .. info["info"] .. "]"
       else
          info = ""
