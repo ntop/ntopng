@@ -42,6 +42,7 @@ end
 function alert_lateral_movement.format(ifid, alert, alert_type_params)
    -- Extracting info field
    local info = ""
+   local href = ""
 
    if alert.json then
       info = json.decode(alert["json"])
@@ -52,7 +53,9 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
       end   
    end
 
-   return(i18n("alerts_dashboard.lateral_movement_descr", { info = info }))
+   href = '<a href="/lua/pro/enterprise/service_map.lua"><i class="fas fa-lg fa-concierge-bell"></i></a>'
+
+   return(i18n("alerts_dashboard.lateral_movement_descr", { info = info, href = href }))
 end
 
 -- #######################################################
