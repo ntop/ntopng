@@ -29,7 +29,7 @@ alert_behavior_anomaly.meta = {
 -- @param lower_bound The lower bound of the measurement
 -- @param upper_bound The upper bound of the measurement
 -- @return A table with the alert built
-function alert_behavior_anomaly:init(entity, type_of_behaviour, value, upper_bound, lower_bound)
+function alert_behavior_anomaly:init(entity, type_of_behaviour, value, upper_bound, lower_bound, href)
    -- Call the parent constructor
    self.super:init()
 
@@ -39,6 +39,7 @@ function alert_behavior_anomaly:init(entity, type_of_behaviour, value, upper_bou
          value = value,
          upper_bound = upper_bound,
          lower_bound = lower_bound,
+         href = href,
    }
 end
 
@@ -52,11 +53,12 @@ end
 function alert_behavior_anomaly.format(ifid, alert, alert_type_params)
    return(i18n("alerts_dashboard.unexpected_behavior_anomaly_description",
 		{
-		   entity = alert_type_params.entity,
-		   type_of_behaviour = alert_type_params.type_of_behaviour,
-		   value = alert_type_params.value,
+		   entity = alert_type_params.entity or "",
+		   type_of_behaviour = alert_type_params.type_of_behaviour or "",
+		   value = alert_type_params.value or 0,
 		   lower_bound = alert_type_params.lower_bound or 0,
 		   upper_bound = alert_type_params.upper_bound or 0,
+         href = alert_type_params.href or "",
 		}))
 end
 

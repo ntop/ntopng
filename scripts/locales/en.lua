@@ -838,7 +838,7 @@ local lang = {
     ["total_alerts"] = "Total Alerts",
     ["trailing_msg"] = "Time Window",
     ["trailing_msg_compact"] = "Window",
-    ["unexpected_behavior_anomaly_description"] = "%{entity} %{href} [%{type_of_behaviour}: %{value} | Expected Range: %{lower_bound} ... %{upper_bound}]",
+    ["unexpected_behavior_anomaly_description"] = "%{entity} <a href=\"%{href}\"><i class=\"fas fa-lg fa-chart-area\"></i></a> [%{type_of_behaviour}: %{value} | Expected Range: %{lower_bound} ... %{upper_bound}]",
     ["unexpected_host_behavior_description"] = "%{host} [%{type_of_behaviour}][Value: %{value}][Expected Range: %{lower_bound} ... %{upper_bound}]",
     ["unexpected_host_behaviour_act_flows_title"] = "Unexpected Host Active Flows Behaviour",
     ["unexpected_host_behaviour_contacts_title"] = "Unexpected Host Contacts Behaviour",

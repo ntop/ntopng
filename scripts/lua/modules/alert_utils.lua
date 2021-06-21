@@ -777,15 +777,26 @@ function alert_utils.notify_ntopng_stop()
    return(notify_ntopng_status(false))
 end
 
-function alert_utils.formatBehaviorAlert(params, anomalies, stats, id, subtype)
+function alert_utils.formatBehaviorAlert(params, anomalies, stats, id, subtype, name)
    -- Cycle throught the behavior stats
-   for anomaly_type, anomaly in pairs(anomalies) do
+   for anomaly_type, anomaly_table in pairs(anomalies) do
+      local lower_bound = stats[anomaly_type]["lower_bound"]
+      local upper_bound = stats[anomaly_type]["upper_bound"]
+      local value = stats[anomaly_type]["value"]
+      
+      if anomaly_table["formatter"] then
+         value = anomaly_table["formatter"](value)
+         lower_bound = anomaly_table["formatter"](lower_bound)
+         upper_bound = anomaly_table["formatter"](upper_bound)
+      end
+
       local alert = alert_consts.alert_types.alert_behavior_anomaly.new(
-         i18n(subtype .. "_id", {id = id}),
+         i18n(subtype .. "_id", {id = name or id}),
          i18n("alert_behaviors." .. anomaly_type),
-         stats[anomaly_type]["value"],
-         stats[anomaly_type]["lower_bound"],
-         stats[anomaly_type]["upper_bound"]
+         value,
+         lower_bound,
+         upper_bound,
+         anomaly_table["href"]
       )
 
       alert:set_score_warning()
@@ -793,7 +804,7 @@ function alert_utils.formatBehaviorAlert(params, anomalies, stats, id, subtype)
       alert:set_subtype(subtype .. "_" .. id)
 
       -- Trigger an alert if an anomaly is found
-      if anomaly == true then
+      if anomaly_table["anomaly"] == true then
          alert:trigger(params.alert_entity, nil, params.cur_alerts)
       else
          alert:release(params.alert_entity, nil, params.cur_alerts)
