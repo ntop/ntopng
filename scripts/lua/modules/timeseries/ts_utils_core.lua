@@ -832,6 +832,18 @@ function ts_utils.getPossiblyChangedSchemas()
       "iface:traffic_rx_behavior",
       "iface:traffic_tx_behavior",
 
+      "subnet:score_anomalies",
+      "subnet:traffic_tx_behavior",
+      "subnet:traffic_rx_behavior",
+      "subnet:score_anomalies",
+      "subnet:score_behavior",
+
+      "asn:score_anomalies",
+      "asn:score_behavior",
+      "asn:traffic_anomalies",
+      "asn:traffic_rx_behavior",
+      "asn:traffic_tx_behavior",
+
       -- Host timeseries
       "host:contacts", -- split in "as_client" and "as_server"
       "host:score", -- split in "cli_score" and "srv_score"
