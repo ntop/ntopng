@@ -57,7 +57,6 @@ function alert_flow_flood_victim.format(ifid, alert, alert_type_params)
   
   return i18n("alert_messages.flow_flood_victim", {
     entity = firstToUpper(entity),
-    host_category = format_utils.formatMainAddressCategory((json.decode(alert.json)).alert_generation.host_info),
     value = string.format("%u", math.ceil(value)),
     threshold = alert_type_params.threshold,
   })
