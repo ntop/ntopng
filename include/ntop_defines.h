@@ -265,6 +265,7 @@
 #define CONST_STR_USER_ID              NTOPNG_USER_PREFIX".%s.user_id"
 #define CONST_STR_USER_FULL_NAME       NTOPNG_USER_PREFIX".%s.full_name"
 #define CONST_STR_USER_PASSWORD        NTOPNG_USER_PREFIX".%s.password"
+#define CONST_STR_USER_THEME           NTOPNG_USER_PREFIX".%s.theme"
 #define CONST_STR_USER_NETS            NTOPNG_USER_PREFIX".%s.allowed_nets"
 #define CONST_STR_USER_ALLOWED_IFNAME  NTOPNG_USER_PREFIX".%s.allowed_ifname"
 #define CONST_STR_USER_HOST_POOL_ID    NTOPNG_USER_PREFIX".%s.host_pool_id"

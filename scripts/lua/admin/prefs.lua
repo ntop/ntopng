@@ -444,7 +444,7 @@ function printGUI()
   multipleTableButtonPrefs(subpage_active.entries[label].title,
 			   subpage_active.entries[label].description,
 			   t_labels, t_values, "default", "primary",
-			   label, "ntopng.prefs.theme")
+			   label, "ntopng.user." .. _SESSION["user"] .. ".theme")
 
   -- ######################
 

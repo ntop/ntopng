@@ -259,7 +259,7 @@ end
 function page_utils.is_dark_mode_enabled(theme)
 
    local dark_mode
-   local theme = theme or ntop.getPref("ntopng.prefs.theme")
+   local theme = theme or ntop.getPref("ntopng.user." .. _SESSION["user"] .. ".theme")
 
    if (isEmptyString(theme)) then
       dark_mode = false
@@ -582,7 +582,7 @@ function page_utils.print_menubar()
       logo_path = ntop.getHttpPrefix().."/img/custom_logo.png"
    end
 
-   local navbar_style = _POST["toggle_theme"] or ntop.getPref("ntopng.prefs.theme")
+   local navbar_style = _POST["toggle_theme"] or ntop.getPref("ntopng.user." .. _SESSION["user"] .. ".theme")
 
    if ((navbar_style == nil) or (navbar_style == "")) then
       navbar_style = "default"
