@@ -27,7 +27,7 @@
 class BehaviouralCounter {
  protected:
   bool is_anomaly;
-  u_int32_t tot_num_anomalies, last_lower, last_upper, last_value;
+  u_int64_t tot_num_anomalies, last_lower, last_upper, last_value;
 
  public:
   /* Number of points to be used by the algorithm in the learning phase */
@@ -42,15 +42,15 @@ class BehaviouralCounter {
      true     An anomaly has been detected (i.e. prediction < lower_bound, or prediction > upper_bound)
      false    The value is within the expected range
   */
-  virtual bool addObservation(u_int32_t value) { return(false); };
-  inline u_int32_t getTotNumAnomalies() { return(tot_num_anomalies); };
+  virtual bool addObservation(u_int64_t value) { return(false); };
+  inline u_int64_t getTotNumAnomalies() { return(tot_num_anomalies); };
 
   /* Last measurement */
   inline bool anomalyFound()            { return(is_anomaly);        };
-  inline u_int32_t getLastValue()       { return(last_value);        };
-  inline u_int32_t getTotAnomalies()    { return(tot_num_anomalies); };
-  inline u_int32_t getLastLowerBound()  { return(last_lower);        };
-  inline u_int32_t getLastUpperBound()  { return(last_upper);        };
+  inline u_int64_t getLastValue()       { return(last_value);        };
+  inline u_int64_t getTotAnomalies()    { return(tot_num_anomalies); };
+  inline u_int64_t getLastLowerBound()  { return(last_lower);        };
+  inline u_int64_t getLastUpperBound()  { return(last_upper);        };
 };
 
 /* ******************************** */
@@ -72,14 +72,14 @@ class RSICounter : public BehaviouralCounter {
   }
   ~RSICounter() { ndpi_free_rsi(&rsi); }
 
-  bool addObservation(u_int32_t value) {
+  bool addObservation(u_int64_t value) {
     float res = ndpi_rsi_add_value(&rsi, last_value = value);
 
     if(res == -1)
       last_lower = last_upper = 0, is_anomaly = false; /* Too early */
     else {
       is_anomaly = ((res < lower_pctg) || (res > upper_pctg)) ? true : false;
-      last_lower = (u_int32_t)lower_pctg, last_upper = (u_int32_t)upper_pctg;
+      last_lower = (u_int64_t)lower_pctg, last_upper = (u_int64_t)upper_pctg;
       if(is_anomaly) tot_num_anomalies++;
     }
 
@@ -100,14 +100,14 @@ class DESCounter : public BehaviouralCounter {
       throw "Error while creating DES";
   }
 
-  bool addObservation(u_int32_t value) {
+  bool addObservation(u_int64_t value) {
     double forecast, confidence_band;
     bool rc = ndpi_des_add_value(&des, last_value = value, &forecast, &confidence_band) == 1 ? true : false;
     double l_forecast = forecast-confidence_band;
     double h_forecast = forecast+confidence_band;
 
-    last_lower = (u_int32_t)floor(((l_forecast < 0) ? 0 : l_forecast)),
-      last_upper = (u_int32_t)round(h_forecast+0.5);
+    last_lower = (u_int64_t)floor(((l_forecast < 0) ? 0 : l_forecast)),
+      last_upper = (u_int64_t)round(h_forecast+0.5);
 
     if(rc) {
       is_anomaly = ((value < last_lower) || (value > last_upper)) ? true : false;
@@ -135,14 +135,14 @@ class HWCounter : public BehaviouralCounter {
   }
   ~HWCounter() { ndpi_hw_free(&hw); }
 
-  bool addObservation(u_int32_t value) {
+  bool addObservation(u_int64_t value) {
     double forecast, confidence_band;
     bool rc = ndpi_hw_add_value(&hw, last_value = value, &forecast, &confidence_band) == 1 ? true : false;
     double l_forecast = forecast-confidence_band;
     double h_forecast = forecast+confidence_band;
 
-    last_lower = (u_int32_t)floor(((l_forecast < 0) ? 0 : l_forecast)),
-      last_upper = (u_int32_t)round(h_forecast+0.5), is_anomaly = rc;
+    last_lower = (u_int64_t)floor(((l_forecast < 0) ? 0 : l_forecast)),
+      last_upper = (u_int64_t)round(h_forecast+0.5), is_anomaly = rc;
     
     if(is_anomaly) tot_num_anomalies++;
 

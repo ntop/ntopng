@@ -219,8 +219,8 @@ void LocalHostStats::luaHostBehaviour(lua_State* vm) {
     
   lua_push_float_table_entry(vm, "value", hll_delta_value);
   lua_push_bool_table_entry(vm, "anomaly",      contacted_hosts.anomalyFound());
-  lua_push_int32_table_entry(vm, "lower_bound", contacted_hosts.getLastLowerBound());
-  lua_push_int32_table_entry(vm, "upper_bound", contacted_hosts.getLastUpperBound());
+  lua_push_uint64_table_entry(vm, "lower_bound", contacted_hosts.getLastLowerBound());
+  lua_push_uint64_table_entry(vm, "upper_bound", contacted_hosts.getLastUpperBound());
 
   lua_pushstring(vm, "contacted_hosts_behaviour");
   lua_insert(vm, -2);
@@ -646,5 +646,5 @@ void LocalHostStats::updateContactedHostsBehaviour() {
   ndpi_hll_reset(&hll_contacted_hosts);
 #endif
   
-  contacted_hosts.addObservation((u_int32_t)hll_delta_value);
+  contacted_hosts.addObservation((u_int64_t)hll_delta_value);
 }

@@ -158,15 +158,21 @@ void AutonomousSystem::updateBehaviorStats(const struct timeval *tv) {
   /* 5 Min Update */
   if(tv->tv_sec >= nextMinPeriodicUpdate) {
     char score_buf[128], tx_buf[128], rx_buf[128];
+    char asname_buf[64];
+
+    if(!strcmp(get_asname(), "")) 
+      snprintf(asname_buf, sizeof(asname_buf), "%d", get_asn());
+    else
+      snprintf(asname_buf, sizeof(asname_buf), "%s", get_asname());
 
     /* Traffic behavior stats update, currently score, traffic rx and tx */
-    snprintf(score_buf, sizeof(score_buf), "ASN %s | score", get_asname());
+    snprintf(score_buf, sizeof(score_buf), "ASN %s | score", asname_buf);
     score_behavior->updateBehavior(iface, getScore(), score_buf);
 
-    snprintf(tx_buf, sizeof(tx_buf), "ASN %s | traffic tx", get_asname());
+    snprintf(tx_buf, sizeof(tx_buf), "ASN %s | traffic tx", asname_buf);
     traffic_tx_behavior->updateBehavior(iface, getNumBytesSent(), tx_buf);
 
-    snprintf(rx_buf, sizeof(rx_buf), "ASN %s | traffic rx", get_asname());
+    snprintf(rx_buf, sizeof(rx_buf), "ASN %s | traffic rx", asname_buf);
     traffic_rx_behavior->updateBehavior(iface, getNumBytesRcvd(), rx_buf);
 
     nextMinPeriodicUpdate = tv->tv_sec + ASES_BEHAVIOR_REFRESH;
