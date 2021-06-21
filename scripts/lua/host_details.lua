@@ -561,7 +561,7 @@ if((page == "overview") or (page == nil)) then
    if host["vlan"] and host["vlan"] > 0 then
       print("<tr><th>")
       print(i18n("details.vlan_id"))
-      print("</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?vlan="..host["vlan"]..">"..host["vlan"].."</A></td></tr>\n")
+      print("</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?vlan="..host["vlan"]..">"..getFullVlanName(host["vlan"]).."</A></td></tr>\n")
    end
 
    if(host["os"] ~= "" and host["os"] ~= 0) then

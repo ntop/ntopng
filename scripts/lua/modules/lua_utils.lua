@@ -1318,7 +1318,7 @@ function hostVisualization(ip, name, vlan)
       end
    else
       if vlan ~= nil and tonumber(vlan) > 0 then
-        name = name.."@"..vlan
+        name = name.."@"..getFullVlanName(vlan)
       end
    end
 

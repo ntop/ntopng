@@ -260,7 +260,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    record["column_vlan"] = ''
    if((value["vlan"] ~= nil)) then
-      record["column_vlan"] = value["vlan"]
+      record["column_vlan"] = getFullVlanName(value["vlan"])
    end
 
    local column_proto_l4 = ''

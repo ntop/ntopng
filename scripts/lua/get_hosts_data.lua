@@ -319,7 +319,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    if value["vlan"] > 0 then
-      record["column_vlan"] = value["vlan"]
+      record["column_vlan"] = getFullVlanName(value["vlan"])
    end
 
    record["column_since"] = secondsToTime(now-value["seen.first"] + 1)
