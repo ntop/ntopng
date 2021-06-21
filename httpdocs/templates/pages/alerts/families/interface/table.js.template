@@ -4,5 +4,7 @@
     /* Duration */
     {name: 'duration', data: 'duration', className: 'text-center', width: '5%', orderable: false, render: DataTableRenders.secondsToTime},
     /* Description */
-    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+     /* Description */
+    {name: 'description', data: 'msg.description', orderable: false, className: 'text-nowrap'},
 ]

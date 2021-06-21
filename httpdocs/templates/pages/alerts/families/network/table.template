@@ -2,6 +2,7 @@
     <th>{{ i18n("show_alerts.alert_datetime") }}</th>
     <th>{{ i18n("duration") }}</th>
     <th>{{ i18n("host_pools.network") }}</th>
+    <th>{{ i18n("alert") }}</th>
     <th>{{ i18n("description") }}</th>
     <th>{{ i18n("actions") }}</th>
 </tr>
