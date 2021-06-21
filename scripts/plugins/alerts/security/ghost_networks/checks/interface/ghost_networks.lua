@@ -10,12 +10,12 @@ local script
 -- #################################################################
 
 local function check_ghost_networks(params)
-  for domain, domain_info in pairs(params.entity_info.bcast_domains or {}) do
+   for domain, domain_info in pairs(params.entity_info.bcast_domains or {}) do
     if(domain_info.ghost_network) then
       local key = params.check.key .. "__" .. domain
       local delta_hits = alerts_api.interface_delta_val(key, params.granularity, domain_info.hits)
 
-      local alert = alert_consts.alert_types.alert_ghost_network.new()
+      local alert = alert_consts.alert_types.alert_ghost_network.new(domain)
 
       alert:set_score_warning()
       alert:set_granularity(params.granularity)
