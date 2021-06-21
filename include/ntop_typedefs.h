@@ -134,6 +134,8 @@ typedef enum {
   location_local_only,
   location_remote_only,
   location_broadcast_domain_only,
+  location_private_only, /* Only 192.168.0.0/16 and other private */
+  location_public_only,  /* Only non-private */
   location_all,
 } LocationPolicy;
 

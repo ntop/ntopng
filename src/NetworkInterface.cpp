@@ -4216,6 +4216,9 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   if((r->location == location_local_only            && !h->isLocalHost())                 ||
      (r->location == location_remote_only           && h->isLocalHost())                  ||
      (r->location == location_broadcast_domain_only && !h->isBroadcastDomainHost())       ||
+     (r->location == location_private_only && !h->isPrivateHost())                        ||
+     (r->location == location_public_only && h->isPrivateHost())                          ||
+     (r->location == location_public_only           && h->isPrivateHost())                ||
      ((r->vlan_id != ((u_int16_t)-1)) && (r->vlan_id != h->get_vlan_id()))                ||
      ((r->ndpi_proto != -1) && (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0))  ||
      ((r->asnFilter != (u_int32_t)-1)     && (r->asnFilter       != h->get_asn()))        ||

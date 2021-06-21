@@ -3327,6 +3327,10 @@ static int ntop_get_interface_broadcast_domain_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_broadcast_domain_only));
 }
 
+static int ntop_get_public_hosts_info(lua_State* vm) {
+  return(ntop_get_interface_hosts(vm, location_public_only));
+}
+
 /* ****************************************** */
 
 static int ntop_get_batched_interface_hosts_info(lua_State* vm) {
@@ -4388,6 +4392,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getLocalHostsInfo",        ntop_get_interface_local_hosts_info },
   { "getRemoteHostsInfo",       ntop_get_interface_remote_hosts_info },
   { "getBroadcastDomainHostsInfo", ntop_get_interface_broadcast_domain_hosts_info },
+  { "getPublicHostsInfo",          ntop_get_public_hosts_info },
   { "getBatchedFlowsInfo",         ntop_get_batched_interface_flows_info },
   { "getBatchedHostsInfo",         ntop_get_batched_interface_hosts_info },
   { "getBatchedLocalHostsInfo",    ntop_get_batched_interface_local_hosts_info },
