@@ -1146,13 +1146,22 @@ print([[
 end
 
 -- Rende Toggle Dark theme menu button
-if is_admin then
-print([[
+
+local theme_selector = ntop.getPref("ntopng.prefs.theme")
+if(theme_selector ~= 'dark') then
+   print([[
+      <li class='dropdown-divider'></li>
+      <li>
+         <a class='dropdown-item toggle-dark-theme' href='#'><i class="fas fa-adjust"></i> ]].. i18n("toggle_dark_theme") ..[[</a>
+      </li>
+   ]])
+else
+   print([[
    <li class='dropdown-divider'></li>
    <li>
-      <a class='dropdown-item toggle-dark-theme' href='#'><i class="fas fa-adjust"></i> ]].. i18n("toggle_dark_theme") ..[[</a>
+      <a class='dropdown-item toggle-dark-theme' href='#'><i class="fas fa-adjust"></i> ]].. i18n("toggle_white_theme") ..[[</a>
    </li>
-]])
+   ]])
 end
 
 -- Logout

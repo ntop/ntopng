@@ -319,6 +319,7 @@ local lang = {
   ["tls_certificate"] = "TLS Certificate",
   ["today"] = "Today",
   ["toggle_dark_theme"] = "Toggle Dark Theme",
+  ["toggle_white_theme"] = "Toggle White Theme",
   ["too_many_exports"] = "Too many flow export drops",
   ["too_many_flows"] = "Too many flows",
   ["too_many_hosts"] = "Too many hosts",
