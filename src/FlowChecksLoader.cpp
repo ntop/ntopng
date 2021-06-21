@@ -109,6 +109,7 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new ExternalAlertCheckPro()))                       registerCheck(fcb);
   if((fcb = new InvalidDNSQuery()))                             registerCheck(fcb);
   if((fcb = new LateralMovement()))                             registerCheck(fcb);
+  if((fcb = new PeriodicityChanged()))                          registerCheck(fcb);
   if((fcb = new LongLivedFlow()))                               registerCheck(fcb);
   if((fcb = new TCPConnectionRefused()))                        registerCheck(fcb);
   if((fcb = new FlowRiskTLSCertificateExpired()))               registerCheck(fcb);

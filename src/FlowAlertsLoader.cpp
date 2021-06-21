@@ -68,6 +68,7 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(IECUnexpectedTypeIdAlert::getClassType(),        IECUnexpectedTypeIdAlert::getDefaultScore());
   registerAlert(InvalidDNSQueryAlert::getClassType(),            InvalidDNSQueryAlert::getDefaultScore());
   registerAlert(LateralMovementAlert::getClassType(),            LateralMovementAlert::getDefaultScore());
+  registerAlert(PeriodicityChangedAlert::getClassType(),         PeriodicityChangedAlert::getDefaultScore());
   registerAlert(LongLivedFlowAlert::getClassType(),              LongLivedFlowAlert::getDefaultScore());
   registerAlert(LowGoodputFlowAlert::getClassType(),             LowGoodputFlowAlert::getDefaultScore());
   registerAlert(NedgeBlockedFlowAlert::getClassType(),           NedgeBlockedFlowAlert::getDefaultScore());

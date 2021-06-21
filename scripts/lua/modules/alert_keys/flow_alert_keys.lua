@@ -64,6 +64,7 @@ local flow_alert_keys = {
    flow_alert_tcp_no_data_exchanged           = 56,
    flow_alert_remote_access                   = 57,
    flow_alert_lateral_movement                = 58,
+   flow_alert_periodicity_changed             = 59,
    -- NOTE: for flow alerts not not go beyond the size of Bitmap alert_map inside Flow.h (currently 128)
 }
 

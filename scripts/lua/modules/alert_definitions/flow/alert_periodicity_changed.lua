@@ -4,22 +4,21 @@
 
 -- ##############################################
 
-local other_alert_keys = require "other_alert_keys"
+local flow_alert_keys = require "flow_alert_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
-
-require("lua_utils")
-
--- ##############################################
-
-local alert_periodicity_update = classes.class(alert)
+local json = require "dkjson"
 
 -- ##############################################
 
-alert_periodicity_update.meta = {
-   alert_key = other_alert_keys.alert_periodicity_update,
+local alert_periodicity_changed = classes.class(alert)
+
+-- ##############################################
+
+alert_periodicity_changed.meta = {
+   alert_key = flow_alert_keys.flow_alert_periodicity_changed,
    i18n_title = "alerts_dashboard.alert_periodicity_update",
    icon = "fas fa-fw fa-arrows-alt-h",
 }
@@ -30,7 +29,7 @@ alert_periodicity_update.meta = {
 -- @param last_error A table containing the last lateral movement error, e.g.,
 --                   {"event":"create","shost":"192.168.2.153","dhost":"224.0.0.68","dport":1968,"vlan_id":0,"l4":17,"l7":0,"first_seen":1602488355,"last_seen":1602488355,"num_uses":1}
 -- @return A table with the alert built
-function alert_periodicity_update:init(last_error, created_or_removed)
+function alert_periodicity_changed:init(last_error, created_or_removed)
    -- Call the parent constructor
    self.super:init()
 
@@ -47,35 +46,25 @@ end
 -- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
-function alert_periodicity_update.format(ifid, alert, alert_type_params)
-   local msg = alert_type_params.error_msg
-   local vlan_id = msg.vlan_id or 0
-   local client = {host = msg.shost, vlan = vlan_id}
-   local server = {host = msg.dhost, vlan = vlan_id}
-   local rsp
+function alert_periodicity_changed.format(ifid, alert, alert_type_params)
+   -- Extracting info field
+   local info = ""
+   local href = ""
 
-   if alert_type_params.created_or_removed == "create" then
-      rsp = {
-      	  host_info1 = hostinfo2detailshref(client, nil, hostinfo2label(client)),
-	  host_info2 = hostinfo2detailshref(server, nil, hostinfo2label(server)),
-	  l7_proto   = interface.getnDPIProtoName(msg.l7),
-	  info 	     = shortenString(msg.info, 24) or "",
-	  frequency  = msg.frequency or "",	  
-      }
-
-      return (i18n("alert_messages.periodicity_update_new", rsp))
-   else
-      rsp = {
-      	  host_info1 = hostinfo2detailshref(client, nil, hostinfo2label(client)),
-	  host_info2 = hostinfo2detailshref(server, nil, hostinfo2label(server)),
-	  l7_proto   = interface.getnDPIProtoName(msg.l7),
-	  info 	     = shortenString(msg.info, 24) or "",	  
-      }
-      
-      return (i18n("alert_messages.periodicity_update_ended", rsp))
+   if alert.json then
+      info = json.decode(alert["json"])
+      if not isEmptyString(info["info"]) then
+         info = "[" .. info["info"] .. "]"
+      else
+         info = ""
+      end   
    end
+
+   href = '<a href="/lua/pro/enterprise/periodicity_map.lua"><i class="fas fa-lg fa-clock"></i></a>'
+
+   return(i18n("alerts_dashboard.periodicity_changed_descr", { info = info, href = href }))
 end
 
 -- #######################################################
 
-return alert_periodicity_update
+return alert_periodicity_changed
