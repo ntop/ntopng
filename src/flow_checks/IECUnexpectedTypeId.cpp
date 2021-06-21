@@ -73,5 +73,5 @@ bool IECUnexpectedTypeId::loadConfiguration(json_object *config) {
 /* *********************************************************** */
 
 void IECUnexpectedTypeId::scriptDisable() {
-  ntop->getPrefs()->setIEC104AllowedTypeIDs((char*)"-1"); /* Enable all so no alerts are generated */
+  ntop->getPrefs()->setIEC104AllowedTypeIDs("-1"); /* Enable all so no alerts are generated */
 }

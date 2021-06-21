@@ -407,7 +407,7 @@ class Prefs {
   inline bool      dontEmitFlowAlerts()          { return(!emit_flow_alerts);                           };
   inline bool      dontEmitHostAlerts()          { return(!emit_host_alerts);                           };
   inline char*     getZMQPublishEventsURL()      { return(zmq_publish_events_url);                      };
-  void setIEC104AllowedTypeIDs(char *protos);
+  void setIEC104AllowedTypeIDs(const char * const protos);
   void validate();
 };
 

@@ -2162,20 +2162,21 @@ const char * const Prefs::getCaptivePortalUrl() {
 
 /* *************************************** */
 
-void Prefs::setIEC104AllowedTypeIDs(char *protos) {
-  char *p, *tmp;
+void Prefs::setIEC104AllowedTypeIDs(const char * const protos) {
+  char *p, *buf, *tmp;
   
-  if(!protos) return; else p = strtok_r(protos, ",", &tmp);
+  if(!protos) return;
 
-  if((p != NULL) && (strcmp(p, "-1") == 0))
+  if((strcmp(protos, "-1") == 0))
     iec104_allowed_typeids[0] = (u_int64_t)-1, iec104_allowed_typeids[1] = (u_int64_t)-1; /* All */
-  else {
+  else if((buf = strdup(protos))) {
     iec104_allowed_typeids[0] = (u_int64_t)0, iec104_allowed_typeids[1] = (u_int64_t)0;
-    
+
+    p = strtok_r(buf, ",", &tmp);
     while(p != NULL) {
       int type_id = atoi(p);
       
-      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "-> %d", type_id); */
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "-> %d", type_id);
       
       if(type_id < 64)
 	iec104_allowed_typeids[0] |= ((u_int64_t)1 << type_id);
@@ -2184,5 +2185,7 @@ void Prefs::setIEC104AllowedTypeIDs(char *protos) {
       
       p = strtok_r(NULL, ",", &tmp);
     }
+
+    free(buf);
   }
 }
