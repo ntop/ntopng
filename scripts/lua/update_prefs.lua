@@ -30,7 +30,7 @@ if isAdministrator() then
         -- does the user want to toggle theme?
         local enabled = toboolean(_POST['toggle_dark_theme'])
         -- set dark theme or the default one
-        ntop.setPref("ntopng.prefs.theme", (enabled and "dark" or ""))
+        ntop.setPref("ntopng.prefs.theme", (enabled and "dark" or "white"))
     end
     res.success = true
 end
