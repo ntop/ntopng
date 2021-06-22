@@ -9,90 +9,89 @@
 <script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
 
 <div class='row'>
-    <div class='col-12'>
-        <div class="mb-2">
-            {* ui_utils.render_datetime_range_picker(range_picker) *}
-        </div>
+  <div class='col-12'>
+    <div class="mb-2">
+      {* ui_utils.render_datetime_range_picker(range_picker) *}
     </div>
-    <div class='col-12'>
-        <div class="card card-shadow">
-	        <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                          <span class="sr-only">Loading...</span>
-                    </div>
-                </div>
-            </div>
-
-
-            <div class="card-body">
-                {% if alert_stats.status ~= "engaged" and isPro == true then %}
-
-                            <div class="row container-fluid">
-
-                                <div class="col-12" id="ChartDiv" style="padding-right: 2px;padding-left: 2px;">
-                                    <div class="card h-100 overflow-hidden">
-                                        {* widget_gui_utils.render_chart(chart.name, {
-                                            displaying_label = ""
-                                        }) *}
-                                    </div>    
-                                </div>
-
-                                <div class="col-2 d-none" id="CardDiv1" style="padding-right: 2px;padding-left: 2px;">
-                                    <div class="card border-primary h-100" id="Card1">
-                                        <div class="card-header text-start fs-6 fw-bold data-bs-custom-class="custom-tooltip" title="Loading..." id="alertCardTitle1"> Loading... </div>
-                                        <div class="card-body ms-1">
-                                            <span class="card-text text-start fs-6" id="alertCard1">Loading...</span>
-                                        </div>    
-                                    </div>
-                                </div>
-
-                                <div class="col-2 d-none" id="CardDiv2" style="padding-right: 2px;padding-left: 2px;">
-                                    <div class="card border-success h-100" id="Card2">
-                                        <div class="card-header text-start fs-6 fw-bold data-bs-custom-class="custom-tooltip"  title="Loading..." id="alertCardTitle2"> Loading...</div>
-                                        <div class="card-body ms-1">
-                                            <span class="card-text text-start fs-6" id="alertCard2">Loading...</span> 
-                                        </div>
-                                    </div>
-                                </div>
-                {% end  %}
-                
-                {% if alert_stats.status == "engaged" or not isPro then %}
-                        <div class="col-12">
-                            <div class="card h-100">
-                                {* widget_gui_utils.render_chart(chart.name, {
-                                    displaying_label = ""
-                                }) *}
-                            </div>           
-                        </div>
-                    </div>
-                {% end  %}
-
-               <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'> 
-                    <thead>
-                       {* datatable.table *}
-                    </thead>
-                </table>
-            </div>
-            <div class="card-footer">
-                <button id="btn-get-permalink" class="btn btn-secondary">
-                    <i class="fas fa-link"></i> {{ i18n('graphs.get_permanent_link') }}
-                </button>
-                <a id="btn-download-alerts" download="alerts.txt" class="btn btn-secondary" href="{{ ntop.getHttpPrefix() }}/lua/rest/v1/get/{{ alert_stats.entity }}/alert/list.lua{{ build_query_params(datatable.datasource.params) }}&format=txt">
-                    <i class="fas fa-file-download"></i> {{ i18n('show_alerts.download_alerts') }}
-                </a>
-		<button id="btn-delete-alerts" {{ ternary(datatable.show_delete, "", 'hidden="hidden"') }} data-bs-target='#delete-alerts-modal' data-bs-toggle="modal" class="btn btn-danger">
-                    <i class="fas fa fa-trash"></i> {{ i18n("delete_alerts")}}
-                </button>
-
-            </div>
+  </div>
+  <div class='col-12'>
+    <div class="card card-shadow">
+      <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
         </div>
+      </div>
+
+
+      <div class="card-body">
+        <div class="row container-fluid">
+
+          {% if alert_stats.status ~= "engaged" and isPro == true then %}
+          <div class="col-12" id="ChartDiv" style="padding-right: 2px;padding-left: 2px;">
+            <div class="card h-100 overflow-hidden">
+              {* widget_gui_utils.render_chart(chart.name, {
+              displaying_label = ""
+              }) *}
+            </div>
+          </div>
+
+          <div class="col-2 d-none" id="CardDiv1" style="padding-right: 2px;padding-left: 2px;">
+            <div class="card border-primary h-100" id="Card1">
+              <div class="card-header text-start fs-6 fw-bold" data-bs-custom-class="custom-tooltip" title="Loading..." id="alertCardTitle1"> Loading... </div>
+	      <div class="card-body ms-1">
+		<span class="card-text text-start fs-6" id="alertCard1">Loading...</span>
+	      </div>
+	    </div>
+	  </div>
+
+          <div class="col-2 d-none" id="CardDiv2" style="padding-right: 2px;padding-left: 2px;">
+            <div class="card border-success h-100" id="Card2">
+              <div class="card-header text-start fs-6 fw-bold" data-bs-custom-class="custom-tooltip"  title="Loading..." id="alertCardTitle2"> Loading...</div>
+              <div class="card-body ms-1">
+                <span class="card-text text-start fs-6" id="alertCard2">Loading...</span>
+              </div>
+            </div>
+          </div>
+          {% end  %}
+
+          {% if alert_stats.status == "engaged" or not isPro then %}
+          <div class="col-12">
+            <div class="card h-100">
+              {* widget_gui_utils.render_chart(chart.name, {
+              displaying_label = ""
+              }) *}
+            </div>
+          </div>
+          {% end  %}
+
+          <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'>
+            <thead>
+              {* datatable.table *}
+            </thead>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button id="btn-get-permalink" class="btn btn-secondary">
+          <i class="fas fa-link"></i> {{ i18n('graphs.get_permanent_link') }}
+        </button>
+        <a id="btn-download-alerts" download="alerts.txt" class="btn btn-secondary" href="{{ ntop.getHttpPrefix() }}/lua/rest/v1/get/{{ alert_stats.entity }}/alert/list.lua{{ build_query_params(datatable.datasource.params) }}&format=txt">
+          <i class="fas fa-file-download"></i> {{ i18n('show_alerts.download_alerts') }}
+        </a>
+        <button id="btn-delete-alerts" {{ ternary(datatable.show_delete, "", 'hidden="hidden"') }} data-bs-target='#delete-alerts-modal' data-bs-toggle="modal" class="btn btn-danger">
+          <i class="fas fa fa-trash"></i> {{ i18n("delete_alerts")}}
+        </button>
+
+      </div>
     </div>
+  </div>
 </div>
 <style>
-    table.dataTable td, table.dataTable th {
-        padding: 0.55rem;
-    }
+  table.dataTable td, table.dataTable th {
+  padding: 0.55rem;
+  }
 </style>
 
 {# add modals if defined #}
