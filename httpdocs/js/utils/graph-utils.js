@@ -971,7 +971,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           //trend: [graph_i18n.trend, "#62ADF6", smooth, num_smoothed_points],
           //ema: ["EMA", "#F96BFF", exponentialMovingAverageArray, {periods: num_smoothed_points}],
           //sma: ["SMA", "#A900FF", simpleMovingAverageArray, {periods: num_smoothed_points}],
-          rsi: ["RSI cur vs past", "#00FF5D", relativeStrengthIndexArray, {periods: num_smoothed_points}],
+          //rsi: ["RSI cur vs past", "#00FF5D", relativeStrengthIndexArray, {periods: num_smoothed_points}],
         }
 
         function add_smoothed_serie(fn_to_use) {
