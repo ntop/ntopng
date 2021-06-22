@@ -14,6 +14,7 @@ local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
+local tag_utils = require "tag_utils"
 local json = require "dkjson"
 
 -- ##############################################
@@ -425,9 +426,14 @@ function flow_alert_store:format_record(value, no_html)
    
    -- Add link to historical flow
    if interfaceHasNindexSupport() and not no_html then
-      local href = string.format('%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s,eq&srv_ip=%s,eq&cli_port=%s,eq&srv_port=%s,eq&l4proto=%s,eq',
+      local op_suffix = tag_utils.SEPARATOR .. 'eq'
+      local href = string.format('%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%%s',
          ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
-         value["cli_ip"], value["srv_ip"], ternary(show_cli_port, tostring(value["cli_port"]), ''), ternary(show_srv_port, tostring(value["srv_port"]), ''), l4_protocol)
+         value["cli_ip"], op_suffix,
+         value["srv_ip"], op_suffix,
+         ternary(show_cli_port, tostring(value["cli_port"]), ''), op_suffix,
+         ternary(show_srv_port, tostring(value["srv_port"]), ''), op_suffix,
+         l4_protocol, op_suffix)
       historical_url = href
    end
 

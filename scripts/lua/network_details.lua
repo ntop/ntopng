@@ -68,7 +68,7 @@ page_utils.print_navbar(title, nav_url,
 			      hidden = not areAlertsEnabled() or  not auth.has_capability(auth.capabilities.alerts),
 			      active = page == "alerts",
 			      page_name = "alerts",
-			      url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=network&network_name=" .. network_name .. ",eq",
+			      url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=network&network_name=" .. network_name .. tag_utils.SEPARATOR .. "eq",
 			      label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
 			   },
 			   {

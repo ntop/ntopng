@@ -26,6 +26,7 @@ locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
 local dscp_consts = require "dscp_consts"
+local tag_utils = require "tag_utils"
 
 -- TODO: replace those globals with locals everywhere
 
@@ -1809,15 +1810,17 @@ function hostinfo2detailsurl(host_info, href_params, href_check)
       -- Alerts pages for the host are in alert_stats.lua (Alerts menu)
       if href_params and href_params.page == "engaged-alerts" then
 	 if auth.has_capability(auth.capabilities.alerts) then
-	    res = string.format("%s/lua/alert_stats.lua?page=host&status=engaged&ip=%s,eq",
+	    res = string.format("%s/lua/alert_stats.lua?page=host&status=engaged&ip=%s%s%s",
 				ntop.getHttpPrefix(),
-				hostinfo2hostkey(host_info))
+				hostinfo2hostkey(host_info),
+                                tag_utils.SEPARATOR, "eq")
 	 end
       elseif href_params and href_params.page == "alerts" then
 	 if auth.has_capability(auth.capabilities.alerts) then
-	    res = string.format("%s/lua/alert_stats.lua?page=host&status=historical&ip=%s,eq",
+	    res = string.format("%s/lua/alert_stats.lua?page=host&status=historical&ip=%s%s%s",
 				ntop.getHttpPrefix(),
-				hostinfo2hostkey(host_info))
+				hostinfo2hostkey(host_info),
+                                tag_utils.SEPARATOR, "eq")
 	 end
       -- All other pages are in host_details.lua
       else
