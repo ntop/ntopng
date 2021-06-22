@@ -4863,14 +4863,17 @@ static int set_ssl_option(struct mg_context *ctx) {
 
 #ifndef __APPLE__ /* Brew comes with an old OpenSSL version */
 #ifdef MODERN_OPENSSL
-#ifndef TLS1_1_VERSION
-#define TLS1_1_VERSION          0x0302
+#ifndef TLS1_2_VERSION
+#define TLS1_2_VERSION          0x0303
 #endif
-  SSL_CTX_set_min_proto_version(ctx->ssl_ctx, TLS1_1_VERSION);
+  SSL_CTX_set_min_proto_version(ctx->ssl_ctx, TLS1_2_VERSION);
 #else
   {
 #ifndef SSL_OP_NO_TLSv1
 #define SSL_OP_NO_TLSv1 0x04000000L
+#endif
+#ifndef SSL_OP_NO_TLSv1_1
+#define SSL_OP_NO_TLSv1_1 0x10000000L
 #endif
 #ifndef SSL_OP_NO_SSLv2
 #define SSL_OP_NO_SSLv2 0x01000000L
@@ -4882,6 +4885,7 @@ static int set_ssl_option(struct mg_context *ctx) {
     long opts = SSL_CTX_get_options(ctx->ssl_ctx);
     
     opts |= SSL_OP_NO_TLSv1;
+    opts |= SSL_OP_NO_TLSv1_1;
     opts |= SSL_OP_NO_SSLv2;
     opts |= SSL_OP_NO_SSLv3;
     SSL_CTX_set_options(ctx->ssl_ctx, opts);
