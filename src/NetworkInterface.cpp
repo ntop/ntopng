@@ -313,8 +313,8 @@ void NetworkInterface::init() {
   /* Behavior init variables */
   nextMinPeriodicUpdate = 0;
   score_behavior = new AnalysisBehavior();
-  traffic_tx_behavior = new AnalysisBehavior(0,5 /* Alpha parameter */);
-  traffic_rx_behavior = new AnalysisBehavior(0,5 /* Alpha parameter */);
+  traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */);
+  traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */);
 #endif
   ndpiStats = NULL;
   dscpStats = NULL;
