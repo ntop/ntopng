@@ -205,6 +205,32 @@ Method :code:`getClassType()` returns an alert key *(6)* that is enumerated insi
 The alert key enumerated in Lua is specified as part of the :code:`meta` data of file :code:`alert_flow_blacklisted.lua` *(8)*. This file tells ntopng how to format the alert and its parameters. In particular, :code:`format` is used for the formatting. The third parameter of the function is a Lua table that contains the fields populated in C++. Indeed, method :code:`getAlertJSON` implemented in :code:`BlacklistedFlowAlert.cpp` *(2)* populates fields that are then propagated to the lua :code:`format` with the same names *(9)*. For example, a boolean :code:`cli_blacklisted` is added in C++ and read in Lua to properly format the blacklisted alert.
 
 
+Behavior Alerts
+---------------
+
+.. figure:: ../img/behavior_alert_example.png
+  :align: center
+  :alt: Alert of an ASN with an Unexpected Behavior
+
+  Alert of an ASN with an Unexpected Behavior
+
+Behavior alerts are new types of alerts introduced lately. Differently from the usual alerts, configured using a static threshold, they have the ability to learn throught the time and change their threshold dinamically.
+
+This is achived by using one of the three foresighting alghoritm developed by nDPI: Simple Exponential Smoothing, Double Exponential Smoothing, Triple Exponential Smoothing (Holt-Winters alghoritm).
+
+These alghoritms have the ability to foresight the future and give a prediction of the analized value. Based on this foresighted value the alert is triggered.
+
+The alert is triggered only if the real value is lesser or greater then certain thresholds that nDPI calculates (it gives a lower and upper bound).
+
+.. figure:: ../img/behavior_graph_example.png
+  :align: center
+  :alt: Timeserie of an ASN with an Unexpected Behavior
+
+  Timeserie of an ASN with an Unexpected Behavior
+
+The interest
+
+
 Checklists
 ==========
 
