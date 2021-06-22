@@ -236,6 +236,7 @@
 		if(cur_page) {
 		    /* Prepare the new URL which is the page name extracted plus all other params */
 		    searchParams.set('page', cur_page);
+		    searchParams.delete('alert_id');
 		    cur_url.search = searchParams.toString();
 		    /* Attach the new URL to the current href */
 		    $(element).attr('href', cur_url.toString());

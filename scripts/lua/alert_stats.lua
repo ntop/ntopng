@@ -90,6 +90,7 @@ local endpoint_ts = "/lua/rest/v1/get/host/alert/ts.lua"
 -- Preserve page params when switching between tabs
 local base_params = table.clone(_GET)
 base_params["page"] = nil
+base_params["alert_id"] = nil
 local base_url = getPageUrl(ntop.getHttpPrefix().."/lua/alert_stats.lua", base_params)
 
 base_params["status"] = "historical"
