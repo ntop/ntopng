@@ -72,6 +72,31 @@ During its execution, ntopng can detect anomalous or suspicious flows for which 
 
   Flow Alerts Page
 
+
+Behavior Alerts
+---------------
+
+.. figure:: ../img/behavior_alert_example.png
+  :align: center
+  :alt: Alert of an ASN with an Unexpected Behavior
+
+  Alert of an ASN with an Unexpected Behavior
+
+Behavior alerts are new types of alerts introduced lately. Differently from the usual alerts, configured using a static threshold, they have the ability to learn throught the time and change their threshold dinamically.
+
+This is achived by using one of the three foresighting alghoritm developed by nDPI: Simple Exponential Smoothing, Double Exponential Smoothing, Triple Exponential Smoothing (Holt-Winters alghoritm).
+
+These alghoritms have the ability to foresight the future and give a prediction of the analized value. Based on this foresighted value the alert is triggered.
+
+The alert is triggered only if the real value is lesser or greater then certain thresholds that nDPI calculates (it gives a lower and upper bound).
+
+.. figure:: ../img/behavior_graph_example.png
+  :align: center
+  :alt: Timeserie of an ASN with an Unexpected Behavior
+
+  Timeserie of an ASN with an Unexpected Behavior
+  
+
 User Activities
 ---------------
 
