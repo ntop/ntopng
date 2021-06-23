@@ -898,9 +898,10 @@
                 });
             });
         }
-        {% end %}
-
     alertCardStats();
+        
+    {% end %}
+
 
     });
 </script>
