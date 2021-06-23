@@ -13,6 +13,7 @@ end
 require "lua_utils"
 local graph_utils = require "graph_utils"
 local alert_utils = require "alert_utils"
+local tag_utils = require("tag_utils")
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 local ui_utils = require("ui_utils")
@@ -115,8 +116,8 @@ if page == "historical" then
         {schema="subnet:score_anomalies",     label=i18n("graphs.iface_score_anomalies")},
         {schema="subnet:score_behavior",      label=i18n("graphs.iface_score_behavior"), split_directions = true, metrics_labels = {i18n("graphs.score"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
         {schema="subnet:traffic_anomalies",   label=i18n("graphs.iface_traffic_anomalies")},
-        {schema="subnet:traffic_rx_behavior", label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true, value_formatter = {"fbits"}, metrics_labels = {i18n("graphs.traffic_rcvd"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
-        {schema="subnet:traffic_tx_behavior", label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true, value_formatter = {"fbits"}, metrics_labels = {i18n("graphs.traffic_sent"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
+        {schema="subnet:traffic_rx_behavior", label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true, value_formatter = {"NtopUtils.fbits"}, metrics_labels = {i18n("graphs.traffic_rcvd"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
+        {schema="subnet:traffic_tx_behavior", label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true, value_formatter = {"NtopUtils.fbits"}, metrics_labels = {i18n("graphs.traffic_sent"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
       }
       all_timeseries = table.merge(all_timeseries, pro_timeseries)
     end
