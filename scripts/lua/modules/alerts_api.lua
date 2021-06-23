@@ -606,44 +606,6 @@ function alerts_api.handlerPeerBehaviour(params, stats, tot_anomalies, host_ip, 
    end
 end
 
--- #####################################
-
-function alerts_api.formatBehaviorAlert(params, anomalies, stats, id, subtype, name)
-  -- Cycle throught the behavior stats
-  for anomaly_type, anomaly_table in pairs(anomalies) do
-     local lower_bound = stats[anomaly_type]["lower_bound"]
-     local upper_bound = stats[anomaly_type]["upper_bound"]
-     local value = stats[anomaly_type]["value"]
-     
-     if anomaly_table["formatter"] then
-        value = anomaly_table["formatter"](value)
-        lower_bound = anomaly_table["formatter"](lower_bound)
-        upper_bound = anomaly_table["formatter"](upper_bound)
-     end
-
-     local alert = alert_consts.alert_types.alert_behavior_anomaly.new(
-        i18n(subtype .. "_id", {id = name or id}),
-        anomaly_type,
-        value,
-        lower_bound,
-        upper_bound,
-        anomaly_table["family_key"],
-        id
-     )
-
-     alert:set_score_warning()
-     alert:set_granularity(params.granularity)
-     alert:set_subtype(subtype .. "_" .. id)
-
-     -- Trigger an alert if an anomaly is found
-     if anomaly_table["anomaly"] == true then
-        alert:trigger(params.alert_entity, nil, params.cur_alerts)
-     else
-        alert:release(params.alert_entity, nil, params.cur_alerts)
-     end
-  end
-end
-
 -- ##############################################
 
 -- An alert check function which checks for anomalies.

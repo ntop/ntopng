@@ -29,8 +29,7 @@ alert_behavior_anomaly.meta = {
 -- @param lower_bound The lower bound of the measurement
 -- @param upper_bound The upper bound of the measurement
 -- @return A table with the alert built
-function alert_behavior_anomaly:init(entity, type_of_behavior, value, upper_bound, lower_bound, 
-   family_key, timeseries_id --[[ This last 3 params are used to build up the href to the timeseries lately, if available ]])
+function alert_behavior_anomaly:init(entity, type_of_behavior, value, upper_bound, lower_bound, family_key, timeseries_id --[[ This last 3 params are used to build up the href to the timeseries lately, if available ]])
    -- Call the parent constructor
    self.super:init()
 
