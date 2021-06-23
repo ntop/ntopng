@@ -4,8 +4,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="deleteAlertTitle">{* dialog.title *}</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                 </button>
             </div>
             <form>
@@ -15,20 +14,20 @@
                             <label class="col-form-label"><b>{{ i18n("date_from") }}</b></label>
                         </div>
                         <div class="col-sm-6">
-                            <input id='begin-epoch-delete' type="text" value="" disabled />
+                            <input id='begin-epoch-delete' class="form-control" type="text" value="" disabled />
                         </div>
                     </div>
                     <div class="form-group row">
                         <div class="col-sm-6">
                             <label class="col-form-label"><b>{{ i18n("date_to") }}</b></label>
                         </div>
-                        <div class="col-sm-6">
-                            <input id='end-epoch-delete' type="text" value="" disabled />
+                        <div class="col-sm-6 mt-1">
+                            <input id='end-epoch-delete' class="form-control" type="text" value="" disabled />
                         </div>
                     </div>
 
                     <div class='form-group filters-list'></div>
-                    <div class='alert alert-danger'>{* dialog.message *}</div>
+                    <div class='alert alert-danger mt-3 mb-1'>{* dialog.message *}</div>
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">
