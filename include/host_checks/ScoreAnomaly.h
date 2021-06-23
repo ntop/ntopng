@@ -31,13 +31,11 @@ public:
   ScoreAnomaly();
   ~ScoreAnomaly() {};
 
-  ScoreAnomalyAlert *allocAlert(HostCheck *c, Host *h, u_int8_t cli_score, u_int8_t srv_score, bool is_both, bool is_client_alert, u_int32_t _value, u_int32_t _lower_bound, u_int32_t _upper_bound) {
-    ScoreAnomalyAlert *alert = new ScoreAnomalyAlert(c, h, cli_score, srv_score, is_both, is_client_alert, _value, _lower_bound, _upper_bound);
+  ScoreAnomalyAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int32_t _value, u_int32_t _lower_bound, u_int32_t _upper_bound) {
+    ScoreAnomalyAlert *alert = new ScoreAnomalyAlert(c, h, cli_pctg, _value, _lower_bound, _upper_bound);
 
-    if(is_client_alert)
+    if(cli_pctg != CLIENT_NO_RISK_PERCENTAGE)
       alert->setAttacker();
-    else
-      alert->setVictim();
 
     return alert;
   };

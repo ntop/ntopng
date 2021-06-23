@@ -23,7 +23,7 @@
 
 /* ***************************************************** */
 
-DangerousHostAlert::DangerousHostAlert(HostCheck *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int8_t _consecutive_high_score) : HostAlert(c, f, cli_score, srv_score) {
+DangerousHostAlert::DangerousHostAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _score, u_int8_t _consecutive_high_score) : HostAlert(c, f, cli_pctg) {
   score = _score;
   consecutive_high_score = _consecutive_high_score;
 };

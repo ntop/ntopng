@@ -23,7 +23,7 @@
 
 /* ***************************************************** */
 
-ServerContactsAlert::ServerContactsAlert(HostCheck *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _contacts, u_int64_t _contacts_threshold) : HostAlert(c, f, cli_score, srv_score) {
+ServerContactsAlert::ServerContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _contacts, u_int64_t _contacts_threshold) : HostAlert(c, f, cli_pctg) {
   contacts = _contacts,
     contacts_threshold = _contacts_threshold;
 };

@@ -33,8 +33,10 @@ class ServerContactsAlert : public HostAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  ServerContactsAlert(HostCheck *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _syns, u_int64_t _syns_threshold);
+  ServerContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _syns, u_int64_t _syns_threshold);
   ~ServerContactsAlert() {};
+
+  u_int8_t getAlertScore() { return SCORE_LEVEL_NOTICE; };
 };
 
 #endif /* _SERVER_CONTACTS_ALERT_H_ */
