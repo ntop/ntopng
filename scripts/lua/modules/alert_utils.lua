@@ -37,21 +37,6 @@ local alert_utils = {}
 
 -- ##############################################
 
-local behavior_utils = {
-   asn = {
-      page_path = "/lua/as_details.lua",
-      timeserie_id = "asn",
-      schema_id = "asn",
-   },
-   network = {
-      page_path = "/lua/network_details.lua",
-      timeserie_id = "network",
-      schema_id = "subnet",
-   }
-}
-
--- ##############################################
-
 local function alertTypeDescription(alert_key, entity_id)
 
    local alert_id = alert_consts.getAlertType(alert_key, entity_id)
@@ -790,10 +775,6 @@ end
 
 function alert_utils.notify_ntopng_stop()
    return(notify_ntopng_status(false))
-end
-
-function alert_utils.get_behavior_timeseries_utils(family_key)
-   return behavior_utils[family_key]
 end
 
 -- #####################################
