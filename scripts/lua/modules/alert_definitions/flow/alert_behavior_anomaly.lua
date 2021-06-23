@@ -30,7 +30,7 @@ alert_behavior_anomaly.meta = {
 -- @param upper_bound The upper bound of the measurement
 -- @return A table with the alert built
 function alert_behavior_anomaly:init(entity, type_of_behavior, value, upper_bound, lower_bound, 
-   ts_schema, page_path, timeserie_id --[[ This last 3 params are used to build up the href to the timeseries lately, if available ]])
+   family_key, timeseries_id --[[ This last 3 params are used to build up the href to the timeseries lately, if available ]])
    -- Call the parent constructor
    self.super:init()
 
@@ -40,9 +40,8 @@ function alert_behavior_anomaly:init(entity, type_of_behavior, value, upper_boun
       value = value,
       upper_bound = upper_bound,
       lower_bound = lower_bound,
-      ts_schema = ts_schema,
-      page_path = page_path,
-      timeserie_id = timeserie_id,
+      family_key = family_key,
+      timeseries_id = timeseries_id,
    }
 end
 
@@ -64,13 +63,17 @@ function alert_behavior_anomaly.format(ifid, alert, alert_type_params)
 
    -- Generating the href for the timeserie
    if ntop.isEnterpriseL() then
-      if alert_type_params["ts_schema"] and alert_type_params["page_path"] and alert_type_params["timeserie_id"] then
-         local alert_time = tonumber(alert.tstamp)
+      if alert_type_params["family_key"] and alert_type_params["timeseries_id"] then
+         local alert_utils = require("alert_utils")
+
          -- 10 minutes before and 10 minutes after the alert
+         local alert_time = tonumber(alert.tstamp)
          local curr_time = '&epoch_begin=' .. tonumber(alert_time - 600) .. '&epoch_end=' .. tonumber(alert_time + 600)
 
-         href = alert_type_params["page_path"] .. "?" .. alert_type_params["timeserie_id"] .. 
-               "&page=historical&ts_schema=" .. alert_type_params["ts_schema"] .. "%3A" .. alert_type_params.type_of_behavior ..
+         local timeseries_table = alert_utils.get_behavior_timeseries_utils(alert_type_params["family_key"])
+
+         href = timeseries_table["page_path"] .. "?" .. timeseries_table["timeseries_id"] .. "=" .. alert_type_params["timeseries_id"] ..
+               "&ifid=" .. ifid .. "&page=historical&ts_schema=" .. timeseries_table["schema_id"] .. "%3A" .. alert_type_params.type_of_behavior ..
                "&zoom=30m" .. curr_time
       end
    end

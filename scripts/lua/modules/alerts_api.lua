@@ -627,9 +627,8 @@ function alerts_api.formatBehaviorAlert(params, anomalies, stats, id, subtype, n
         value,
         lower_bound,
         upper_bound,
-        anomaly_table["ts_schema"],
-        anomaly_table["page_path"],
-        anomaly_table["timeserie_id"]
+        anomaly_table["family_key"],
+        id
      )
 
      alert:set_score_warning()
