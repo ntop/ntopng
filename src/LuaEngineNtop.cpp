@@ -5744,7 +5744,7 @@ static int ntop_recipient_enqueue(lua_State* vm) {
   if(!rv) {
     NetworkInterface *iface = getCurrentInterface(vm);
     if(iface) {
-      iface->incNumDroppedAlerts(1);
+      iface->incNumDroppedAlerts(alert_entity_other);
 
       if(ctx->threaded_activity_stats)
 	ctx->threaded_activity_stats->setAlertsDrops();

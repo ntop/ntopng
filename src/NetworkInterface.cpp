@@ -289,7 +289,8 @@ void NetworkInterface::init() {
   hide_from_top = hide_from_top_shadow = NULL;
 
   gettimeofday(&last_periodic_stats_update, NULL);
-  num_live_captures = 0, num_dropped_alerts = 0, prev_dropped_alerts = 0;
+  num_live_captures = 0;
+  num_host_dropped_alerts = num_flow_dropped_alerts = num_other_dropped_alerts = 0;
   num_written_alerts = num_alerts_queries = 0;
   score_as_cli = score_as_srv = 0;
   memset(live_captures, 0, sizeof(live_captures));
@@ -5543,7 +5544,7 @@ u_int64_t NetworkInterface::getNumBytes() {
 /* **************************************************** */
 
 u_int64_t NetworkInterface::getNumDroppedAlerts() {
-  return((u_int64_t)num_dropped_alerts);
+  return num_host_dropped_alerts + num_flow_dropped_alerts + num_other_dropped_alerts;
 }
 
 /* **************************************************** */
@@ -5837,6 +5838,12 @@ void NetworkInterface::lua(lua_State *vm) {
   luaNumEngagedAlerts(vm);
   luaAlertedFlows(vm);
   lua_push_uint64_table_entry(vm, "num_dropped_alerts", getNumDroppedAlertsSinceReset());
+
+  /* Those counters are absolute, i.e., they are not subject to reset */
+  lua_push_uint64_table_entry(vm, "num_host_dropped_alerts", num_host_dropped_alerts);
+  lua_push_uint64_table_entry(vm, "num_flow_dropped_alerts", num_flow_dropped_alerts);
+  lua_push_uint64_table_entry(vm, "num_other_dropped_alerts", num_other_dropped_alerts);
+
   lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs", periodicStatsUpdateFrequency());
 
   /* .stats */
@@ -8477,6 +8484,22 @@ void NetworkInterface::releaseAllEngagedAlerts() {
       network_script.setNetwork(stats);
       network_script.pcall(0, 0);
     }
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::incNumDroppedAlerts(AlertEntity alert_entity) {
+  switch(alert_entity) {
+  case alert_entity_host:
+    num_host_dropped_alerts++;
+    break;
+  case alert_entity_flow:
+    num_flow_dropped_alerts++;
+    break;
+  default:
+    num_other_dropped_alerts++;
+    break;
   }
 }
 

@@ -81,7 +81,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   std::atomic<u_int64_t> num_active_alerted_flows_notice;  /* Counts all flow alerts with severity <= notice  */
   std::atomic<u_int64_t> num_active_alerted_flows_warning; /* Counts all flow alerts with severity == warning */
   std::atomic<u_int64_t> num_active_alerted_flows_error;   /* Counts all flow alerts with severity >= error   */
-  u_int32_t num_dropped_alerts, prev_dropped_alerts, checked_dropped_alerts;
+  u_int32_t num_host_dropped_alerts, num_flow_dropped_alerts, num_other_dropped_alerts;
   u_int64_t num_written_alerts, num_alerts_queries, score_as_cli, score_as_srv;
   u_int64_t num_new_flows;
   struct {
@@ -985,7 +985,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   virtual u_int64_t getNumActiveAlertedFlows()      const;
   void incNumAlertsEngaged(AlertEntity alert_entity);
   void decNumAlertsEngaged(AlertEntity alert_entity);
-  inline void incNumDroppedAlerts(u_int32_t num_dropped)  { num_dropped_alerts += num_dropped; }
+  void incNumDroppedAlerts(AlertEntity alert_entity);
   inline void incNumWrittenAlerts()			  { num_written_alerts++; }
   inline void incNumAlertsQueries()			  { num_alerts_queries++; }
   inline u_int64_t getNumWrittenAlerts()		  { return(num_written_alerts); }

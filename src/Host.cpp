@@ -1698,7 +1698,7 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
 				alert_entity_host /* Host recipients */);
 
   if(!rv)
-    getInterface()->incNumDroppedAlerts(1);
+    getInterface()->incNumDroppedAlerts(alert_entity_host);
 
   ndpi_term_serializer(&host_json);
 

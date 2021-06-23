@@ -3193,7 +3193,7 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
 				alert_entity_flow /* Flow recipients */);
 
   if(!rv)
-    getInterface()->incNumDroppedAlerts(1);
+    getInterface()->incNumDroppedAlerts(alert_entity_flow);
 
   ndpi_term_serializer(&flow_json);
 
