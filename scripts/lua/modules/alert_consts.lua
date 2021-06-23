@@ -398,6 +398,18 @@ function loadDefinition(def_script, mod_fname, script_path)
    end
    alerts_by_id[alert_entity_id][alert_key] = mod_fname
 
+   -- Handle 'other' alerts
+   -- Note: some are used by multiple entities, defined under
+   -- meta in the alert definition
+   if def_script.meta['entities'] then
+      for _, entity in ipairs(def_script.meta['entities']) do
+         if not alerts_by_id[entity.entity_id] then
+            alerts_by_id[entity.entity_id] = {}
+         end
+         alerts_by_id[entity.entity_id][alert_key] = mod_fname
+      end
+   end
+
    -- Success
    return(true)
 end

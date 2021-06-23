@@ -14,6 +14,7 @@ local format_utils = require "format_utils"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -25,6 +26,9 @@ alert_slow_periodic_activity.meta = {
   alert_key = other_alert_keys.alert_slow_periodic_activity,
   i18n_title = "alerts_dashboard.slow_periodic_activity",
   icon = "fas fa-fw fa-undo",
+  entities = {
+    alert_entities.system
+  },
 }
 
 -- ##############################################

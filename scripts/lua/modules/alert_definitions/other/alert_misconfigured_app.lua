@@ -10,6 +10,7 @@ local other_alert_keys = require "other_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -21,6 +22,9 @@ alert_misconfigured_app.meta = {
   alert_key = other_alert_keys.alert_misconfigured_app,
   i18n_title = "alerts_dashboard.misconfigured_app",
   icon = "fas fa-fw fa-cog",
+  entities = {
+    alert_entities.system
+  },
 }
 
 -- ##############################################

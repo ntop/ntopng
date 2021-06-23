@@ -11,6 +11,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -22,6 +23,9 @@ alert_too_many_drops.meta = {
   alert_key = other_alert_keys.alert_too_many_drops,
   i18n_title = "alerts_dashboard.too_many_drops",
   icon = "fas fa-fw fa-tint",
+  entities = {
+    alert_entities.interface
+  },
 }
 
 -- ##############################################

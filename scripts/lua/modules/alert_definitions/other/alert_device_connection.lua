@@ -10,6 +10,7 @@ local alert_creators = require "alert_creators"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -21,6 +22,9 @@ alert_device_connection.meta = {
   alert_key = other_alert_keys.alert_device_connection,
   i18n_title = "alerts_dashboard.device_connection",
   icon = "fas fa-fw fa-sign-in",
+  entities = {
+    alert_entities.mac
+  },
 }
 
 -- ##############################################

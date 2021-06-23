@@ -14,6 +14,7 @@ local format_utils = require "format_utils"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -25,6 +26,10 @@ alert_excessive_traffic.meta = {
   alert_key = other_alert_keys.alert_excessive_traffic,
   i18n_title = "excessive_traffic.title",
   icon = "fas fa-fw fa-arrow-circle-up",
+  entities = {
+    alert_entities.interface,
+    alert_entities.network 
+  },
 }
 
 -- ##############################################

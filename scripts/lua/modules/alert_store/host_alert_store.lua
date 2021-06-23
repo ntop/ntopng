@@ -180,10 +180,6 @@ end
 --@brief Get info about additional available filters
 function host_alert_store:_get_additional_available_filters()
    local filters = {
-      alert_id = {
-         value_type = 'alert_id',
-	 i18n_label = i18n('tags.alert_id'),
-      }, 
       ip = {
          value_type = 'ip',
 	 i18n_label = i18n('tags.ip'),

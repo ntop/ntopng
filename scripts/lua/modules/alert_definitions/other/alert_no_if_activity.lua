@@ -9,6 +9,7 @@ local other_alert_keys = require "other_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -17,9 +18,12 @@ local alert_no_if_activity = classes.class(alert)
 -- ##############################################
 
 alert_no_if_activity.meta = {  
-alert_key = other_alert_keys.alert_no_if_activity,
-i18n_title = "no_if_activity.alert_no_activity_title",
-icon = "fas fa-fw fa-arrow-circle-up",
+   alert_key = other_alert_keys.alert_no_if_activity,
+   i18n_title = "no_if_activity.alert_no_activity_title",
+   icon = "fas fa-fw fa-arrow-circle-up",
+   entities = {
+      alert_entities.interface
+   },
 }
 
 -- ##############################################

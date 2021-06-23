@@ -14,6 +14,8 @@ local format_utils = require "format_utils"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -25,6 +27,12 @@ alert_threshold_cross.meta = {
   alert_key = other_alert_keys.alert_threshold_cross,
   i18n_title = "alerts_dashboard.threashold_cross",
   icon = "fas fa-fw fa-arrow-circle-up",
+entities = {},
+  entities = {
+    alert_entities.interface,
+    alert_entities.network,
+    alert_entities.host_pool,
+  }
 }
 
 -- ##############################################

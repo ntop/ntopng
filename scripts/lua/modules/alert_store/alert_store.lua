@@ -706,9 +706,10 @@ function alert_store:get_available_filters()
    local additional_filters = self:_get_additional_available_filters()
 
    local filters = {
-      -- Note alert_id could have been defined here for all families, 
-      -- however this requires a migration of the 'other' alerts
-      -- in order to list alerts by entity
+      alert_id = {
+         value_type = 'alert_id',
+	 i18n_label = i18n('tags.alert_id'),
+      }, 
       severity = {
          value_type = 'severity',
 	 i18n_label = 'tags.severity'

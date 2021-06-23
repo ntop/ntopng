@@ -11,6 +11,7 @@ local alert_creators = require "alert_creators"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -22,6 +23,9 @@ alert_unexpected_new_device.meta = {
   alert_key = other_alert_keys.alert_unexpected_new_device,
   i18n_title = "unexpected_new_device.alert_unexpected_new_device_title",
   icon = "fas fa-fw fa-exclamation",
+  entities = {
+    alert_entities.mac
+  },
 }
 
 -- ##############################################

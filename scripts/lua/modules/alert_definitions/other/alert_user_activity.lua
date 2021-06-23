@@ -11,6 +11,7 @@ local pools_lua_utils = require "pools_lua_utils"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -19,9 +20,12 @@ local alert_user_activity = classes.class(alert)
 -- ##############################################
 
 alert_user_activity.meta = {
-	alert_key = other_alert_keys.alert_user_activity,
-	i18n_title = "alerts_dashboard.user_activity",
-	icon = "fas fa-fw fa-user",
+   alert_key = other_alert_keys.alert_user_activity,
+   i18n_title = "alerts_dashboard.user_activity",
+   icon = "fas fa-fw fa-user",
+   entities = {
+      alert_entities.user
+   },
 }
 
 -- ##############################################

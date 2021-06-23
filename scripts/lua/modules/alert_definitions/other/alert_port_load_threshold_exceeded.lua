@@ -9,6 +9,7 @@ local other_alert_keys = require "other_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -20,6 +21,9 @@ alert_port_load_threshold_exceeded.meta = {
    alert_key = other_alert_keys.alert_port_load_threshold_exceeded,
    i18n_title = "alerts_dashboard.snmp_port_load_threshold_exceeded",
    icon = "fas fa-fw fa-exclamation",
+   entities = {
+      alert_entities.snmp_device
+   },
 }
 
 -- ##############################################

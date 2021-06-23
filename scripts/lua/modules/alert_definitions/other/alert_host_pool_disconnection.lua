@@ -10,6 +10,7 @@ local alert_creators = require "alert_creators"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -21,6 +22,7 @@ alert_host_pool_disconnection.meta = {
   alert_key = other_alert_keys.alert_host_pool_disconnection,
   i18n_title = "alerts_dashboard.host_pool_disconnection",
   icon = "fas fa-fw fa-sign-out",
+entities = {},
 }
 
 -- ##############################################

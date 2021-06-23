@@ -11,6 +11,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -22,6 +23,9 @@ alert_snmp_topology_changed.meta = {
   alert_key = other_alert_keys.alert_snmp_topology_changed,
   i18n_title = i18n("snmp.lldp_topology_changed"),
   icon = "fas fa-fw fa-topology-alt",
+  entities = {
+    alert_entities.snmp_device
+  },
 }
 
 -- ##############################################

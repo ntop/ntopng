@@ -9,6 +9,7 @@ local other_alert_keys = require "other_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -20,6 +21,9 @@ alert_shell_script_executed.meta = {
   alert_key = other_alert_keys.alert_shell_script_executed,
   i18n_title = "alerts_dashboard.shell_script",
   icon = "fas fa-fw fa-info-circle",
+  entities = {
+     alert_entities.system
+  },
 }
 
 -- ##############################################

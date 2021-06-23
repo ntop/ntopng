@@ -11,6 +11,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 local format_utils = require "format_utils"
 
 -- ##############################################
@@ -23,6 +24,9 @@ alert_periodic_activity_not_executed.meta = {
   alert_key = other_alert_keys.alert_periodic_activity_not_executed,
   i18n_title = "alerts_dashboard.periodic_activity_not_executed",
   icon = "fas fa-fw fa-undo",
+  entities = {
+    alert_entities.system
+  },
 }
 
 -- ##############################################

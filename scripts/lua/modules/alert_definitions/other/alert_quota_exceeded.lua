@@ -11,6 +11,7 @@ local other_alert_keys = require "other_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -22,6 +23,9 @@ alert_quota_exceeded.meta = {
   alert_key = other_alert_keys.alert_quota_exceeded,
   i18n_title = "alerts_dashboard.quota_exceeded",
   icon = "fas fa-fw fa-thermometer-full",
+  entities = {
+    alert_entities.host_pool
+  },
 }
 
 -- ##############################################

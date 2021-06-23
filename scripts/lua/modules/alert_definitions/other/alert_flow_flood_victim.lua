@@ -14,6 +14,7 @@ local json = require("dkjson")
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -25,6 +26,7 @@ alert_flow_flood_victim.meta = {
   alert_key = other_alert_keys.alert_flow_flood_victim,
   i18n_title = "alerts_dashboard.flow_flood_victim",
   icon = "fas fa-fw fa-life-ring",
+  entities = {},
   has_victim = true,
 }
 

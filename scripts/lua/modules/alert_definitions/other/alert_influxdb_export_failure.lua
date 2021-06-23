@@ -9,6 +9,7 @@ local other_alert_keys = require "other_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -20,6 +21,7 @@ alert_influxdb_export_failure.meta = {
    alert_key = other_alert_keys.alert_influxdb_export_failure,
    i18n_title = "alerts_dashboard.influxdb_export_failure",
    icon = "fas fa-fw fa-database",
+entities = {},
 }
 
 -- ##############################################

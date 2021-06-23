@@ -11,6 +11,7 @@ local other_alert_keys = require "other_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -20,6 +21,9 @@ alert_dropped_alerts.meta = {
   alert_key = other_alert_keys.alert_dropped_alerts,
   i18n_title = i18n("show_alerts.dropped_alerts"),
   icon = "fas fa-fw fa-exclamation-triangle",
+  entities = {
+    alert_entities.system
+  },
 }
 
 -- ##############################################

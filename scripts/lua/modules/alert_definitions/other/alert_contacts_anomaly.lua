@@ -7,6 +7,7 @@
 local other_alert_keys = require "other_alert_keys"
 local classes = require "classes"
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -18,6 +19,7 @@ alert_contacts_anomaly.meta = {
    alert_key = other_alert_keys.alert_contacts_anomaly,
    i18n_title = "alerts_dashboard.unexpected_host_behaviour_contacts_title",
    icon = "fas fa-fw fa-exclamation",
+   entities = {},
 }
 
 -- ##############################################
