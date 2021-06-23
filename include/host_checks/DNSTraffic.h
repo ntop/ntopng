@@ -28,7 +28,7 @@ class DNSTraffic : public HostCheck {
 private:
   u_int64_t dns_bytes_threshold;
 
-  HostAlert *allocAlert(HostCheck *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _dns_bytes, u_int64_t _dns_bytes_threshold) { return new DNSTrafficAlert(c, f, cli_score, srv_score, _dns_bytes, _dns_bytes_threshold); };
+  HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _dns_bytes, u_int64_t _dns_bytes_threshold) { return new DNSTrafficAlert(c, f, cli_pctg, _dns_bytes, _dns_bytes_threshold); };
 
  public:
   DNSTraffic();

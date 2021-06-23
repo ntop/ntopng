@@ -29,7 +29,7 @@ class FlowHits : public HostCheck {
 
  protected:
   void triggerFlowHitsAlert(Host *h, HostAlert *engaged_alert, bool attacker,
-    u_int16_t hits, u_int64_t threshold, u_int8_t cli_score, u_int8_t srv_score);
+    u_int16_t hits, u_int64_t threshold, risk_percentage cli_pctg);
 
   u_int64_t threshold;
 
@@ -37,7 +37,7 @@ class FlowHits : public HostCheck {
   FlowHits();
   ~FlowHits() {};
 
-  virtual FlowHitsAlert *allocAlert(Host *h, u_int8_t cli_score, u_int8_t srv_score, u_int16_t hits, u_int64_t threshold, bool attacker) = 0;
+  virtual FlowHitsAlert *allocAlert(Host *h, risk_percentage cli_pctg, u_int16_t hits, u_int64_t threshold, bool attacker) = 0;
 
   bool loadConfiguration(json_object *config);  
 };

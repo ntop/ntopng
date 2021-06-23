@@ -31,29 +31,25 @@ FlowAnomaly::FlowAnomaly() : HostCheck(ntopng_edition_community) {
 
 void FlowAnomaly::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
-  u_int8_t cli_score = 0, srv_score = 0;
+  bool cli_anomaly = false, srv_anomaly = false;
   const u_int8_t score_value = SCORE_LEVEL_WARNING;
-  u_int32_t value = 0, lower_bound = 0, upper_bound = 0;  
+  u_int32_t value = 0, lower_bound = 0, upper_bound = 0;
+  risk_percentage cli_pctg = CLIENT_FULL_RISK_PERCENTAGE;
 
-  if(h->has_flows_anomaly(true)) {
-    cli_score = score_value;
+  if((cli_anomaly = h->has_flows_anomaly(true))) {
+    cli_pctg = CLIENT_FULL_RISK_PERCENTAGE; /* All risk to the client */
     value = h->value_flows_anomaly(true);
     lower_bound = h->lower_bound_flows_anomaly(true);
     upper_bound = h->upper_bound_flows_anomaly(true);
-  }
-
-  if(h->has_flows_anomaly(false)) {
-    srv_score = score_value;
+  } else if((srv_anomaly = h->has_flows_anomaly(false))) {
+    cli_pctg = CLIENT_NO_RISK_PERCENTAGE;   /* All risk to the server */
     value = h->value_flows_anomaly(false);
     lower_bound = h->lower_bound_flows_anomaly(false);
     upper_bound = h->upper_bound_flows_anomaly(false);
   }
   
-  if(cli_score || srv_score) {
-    bool is_both = (cli_score && srv_score) ? true : false;
-    bool is_client_alert = (cli_score > 0) ? true : false;
-    
-    if (!alert) alert = allocAlert(this, h, cli_score, srv_score, is_both, is_client_alert, value, lower_bound, upper_bound);
+  if(cli_anomaly || srv_anomaly) {
+    if (!alert) alert = allocAlert(this, h, cli_pctg, value, lower_bound, upper_bound);
     if (alert) h->triggerAlert(alert);
   }
 }

@@ -35,8 +35,7 @@ class HostAlert {
   std::string check_name;
   time_t engage_time;
   time_t release_time;
-  u_int8_t score_as_cli;
-  u_int8_t score_as_srv;
+  risk_percentage cli_pctg; /* The fraction of total risk that goes to the client */
   u_int8_t is_attacker;
   u_int8_t is_victim;
 
@@ -46,13 +45,11 @@ class HostAlert {
   virtual ndpi_serializer* getAlertJSON(ndpi_serializer* serializer)  { return serializer; }  
 
  public:
-  HostAlert(HostCheck *c, Host *h, u_int8_t cli_score, u_int8_t srv_score);
+  HostAlert(HostCheck *c, Host *h, risk_percentage _cli_pctg);
   virtual ~HostAlert();
 
-  inline u_int8_t getCliScore() { return score_as_cli; }
-  inline u_int8_t getSrvScore() { return score_as_srv; }
-
-  inline u_int16_t getScore()   { return score_as_cli + score_as_srv; }
+  inline u_int8_t getCliScore() { return (cli_pctg * getAlertScore()) / 100; }
+  inline u_int8_t getSrvScore() { return (getAlertScore() - getCliScore());  }
 
   inline void setAttacker() { is_attacker = true; }
   inline void setVictim()   { is_victim = true;   }
@@ -61,6 +58,7 @@ class HostAlert {
   inline bool isVictim()   { return is_victim;   }
 
   virtual HostAlertType getAlertType() const = 0;
+  virtual u_int8_t      getAlertScore() { return SCORE_LEVEL_NOTICE; };
 
   /* Alert automatically released when the condition is no longer satisfied. */
   virtual bool hasAutoRelease()  { return true; }

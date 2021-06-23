@@ -23,15 +23,14 @@
 
 /* **************************************************** */
 
-HostAlert::HostAlert(HostCheck *c, Host *h, u_int8_t cli_score, u_int8_t srv_score) {
+HostAlert::HostAlert(HostCheck *c, Host *h, risk_percentage _cli_pctg) {
   host = h;
   expiring = released = false;
   check_id = c->getID();
   check_name = c->getName();
   engage_time = time(NULL);
   release_time = 0;
-  score_as_cli = cli_score;
-  score_as_srv = srv_score;
+  cli_pctg = _cli_pctg;
   is_attacker = is_victim = false;
 }
 

@@ -28,13 +28,11 @@ class DangerousHost : public HostCheck {
 private:
   u_int64_t score_threshold;
 
-  HostAlert *allocAlert(HostCheck *c, Host *h, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int64_t _consecutive_high_score) {
-    DangerousHostAlert *alert = new DangerousHostAlert(c, h, cli_score, srv_score, _score, _consecutive_high_score);
+  HostAlert *allocAlert(HostCheck *c, Host *h,  risk_percentage cli_pctg, u_int64_t _score, u_int64_t _consecutive_high_score) {
+    DangerousHostAlert *alert = new DangerousHostAlert(c, h, cli_pctg, _score, _consecutive_high_score);
 
-    if(h->getScoreAsClient() > score_threshold)
+    if(cli_pctg != CLIENT_NO_RISK_PERCENTAGE)
       alert->setAttacker();
-    else
-      alert->setVictim();
 
     return alert;
   };

@@ -35,10 +35,11 @@ class DNSTrafficAlert : public HostAlert {
  public:
   static HostAlertType getClassType() { return { host_alert_dns_traffic, alert_category_network }; }
 
-  DNSTrafficAlert(HostCheck *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _dns_bytes, u_int64_t _dns_bytes_threshold);
+  DNSTrafficAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _dns_bytes, u_int64_t _dns_bytes_threshold);
   ~DNSTrafficAlert() {};
   
   HostAlertType getAlertType() const { return getClassType(); }
+  u_int8_t getAlertScore() { return SCORE_LEVEL_ERROR; };
 };
 
 #endif /* _DNS_TRAFFIC__ALERT_H_ */

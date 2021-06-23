@@ -29,8 +29,8 @@ public:
   RemoteConnection();
   ~RemoteConnection() {};
 
-  RemoteConnectionAlert *allocAlert(HostCheck *c, Host *h, u_int8_t cli_score, u_int8_t srv_score, u_int8_t num_remote_access) {
-    return new RemoteConnectionAlert(c, h, cli_score, srv_score, num_remote_access);
+  RemoteConnectionAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int8_t num_remote_access) {
+    return new RemoteConnectionAlert(c, h, cli_pctg, num_remote_access);
   };
 
   bool loadConfiguration(json_object *config);

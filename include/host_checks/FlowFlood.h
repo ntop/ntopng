@@ -31,7 +31,7 @@ public:
   FlowFlood() : FlowHits() {};
   ~FlowFlood() {};
 
-  FlowHitsAlert *allocAlert(Host *h, u_int8_t cli_score, u_int8_t srv_score, u_int16_t hits, u_int64_t threshold, bool attacker) { return new FlowFloodAlert(this, h, cli_score, srv_score, hits, threshold, attacker); };
+  FlowHitsAlert *allocAlert(Host *h, risk_percentage cli_pctg, u_int16_t hits, u_int64_t threshold, bool attacker) { return new FlowFloodAlert(this, h, cli_pctg, hits, threshold, attacker); };
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
 

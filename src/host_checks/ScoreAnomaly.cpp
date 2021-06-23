@@ -31,27 +31,24 @@ ScoreAnomaly::ScoreAnomaly() : HostCheck(ntopng_edition_community) {
 
 void ScoreAnomaly::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
-  u_int8_t cli_score = 0, srv_score = 0;
+  bool cli_anomaly = false, srv_anomaly = false;
+  risk_percentage cli_pctg = CLIENT_FULL_RISK_PERCENTAGE;
   u_int32_t value = 0, lower_bound = 0, upper_bound = 0;
-  const u_int8_t score_value = 50;
   
-  if(h->has_score_anomaly(true)) {
-    cli_score = score_value;
+  if((cli_anomaly = h->has_score_anomaly(true))) {
+    cli_pctg = CLIENT_FULL_RISK_PERCENTAGE;
     value = h->value_score_anomaly(true);
     lower_bound = h->lower_bound_score_anomaly(true);
     upper_bound = h->upper_bound_score_anomaly(true);
-  } else if(h->has_score_anomaly(false)) {
-    srv_score = score_value;
+  } else if((srv_anomaly = h->has_score_anomaly(false))) {
+    cli_pctg = CLIENT_NO_RISK_PERCENTAGE;
     value = h->value_score_anomaly(false);
     lower_bound = h->lower_bound_score_anomaly(false);
     upper_bound = h->upper_bound_score_anomaly(false);
   }
 
-  if(cli_score || srv_score) {
-    bool is_both = (cli_score && srv_score) ? true : false;
-    bool is_client_alert = (cli_score > 0) ? true : false;
-    
-    if (!alert) alert = allocAlert(this, h, cli_score, srv_score, is_both, is_client_alert, value, lower_bound, upper_bound);
+  if(cli_anomaly || srv_anomaly) {
+    if (!alert) alert = allocAlert(this, h, cli_pctg, value, lower_bound, upper_bound);
     if (alert) h->triggerAlert(alert);
   }
 }

@@ -35,10 +35,11 @@ class P2PTrafficAlert : public HostAlert {
  public:
   static HostAlertType getClassType() { return { host_alert_p2p_traffic, alert_category_network }; }
 
-  P2PTrafficAlert(HostCheck *c, Host *f, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _p2p_bytes, u_int64_t _p2p_bytes_threshold);
+  P2PTrafficAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _p2p_bytes, u_int64_t _p2p_bytes_threshold);
   ~P2PTrafficAlert() {};
   
   HostAlertType getAlertType() const { return getClassType(); }
+  u_int8_t getAlertScore() { return SCORE_LEVEL_ERROR; };
 };
 
 #endif /* _P2P_TRAFFIC_ALERT_H_ */

@@ -26,7 +26,7 @@
 
 class ScoreAnomalyAlert : public HostAlert {
  private:
-  bool is_client_alert, is_both;
+  bool is_client_alert;
   u_int32_t value, lower_bound, upper_bound;
   
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer) {
@@ -35,7 +35,6 @@ class ScoreAnomalyAlert : public HostAlert {
 
     getHost()->serialize_breakdown(serializer);
     
-    ndpi_serialize_string_boolean(serializer, "is_both", is_both);
     ndpi_serialize_string_boolean(serializer, "is_client_alert", is_client_alert);
     ndpi_serialize_string_uint64(serializer, "value", value);
     ndpi_serialize_string_uint64(serializer, "lower_bound", lower_bound);
@@ -45,10 +44,9 @@ class ScoreAnomalyAlert : public HostAlert {
   }
 
  public:
- ScoreAnomalyAlert(HostCheck *c, Host *h, u_int8_t cli_score, u_int8_t srv_score, bool _is_both, bool _is_client_alert, u_int32_t _value, u_int32_t _lower_bound, u_int32_t _upper_bound)
-    : HostAlert(c, h, cli_score, srv_score) {
-    is_both = _is_both;
-    is_client_alert = _is_client_alert;
+ ScoreAnomalyAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int32_t _value, u_int32_t _lower_bound, u_int32_t _upper_bound)
+    : HostAlert(c, h, cli_pctg) {
+    is_client_alert = cli_pctg != CLIENT_NO_RISK_PERCENTAGE;
     value = _value;
     lower_bound = _lower_bound;
     upper_bound = _upper_bound;
@@ -57,6 +55,7 @@ class ScoreAnomalyAlert : public HostAlert {
 
   static HostAlertType getClassType() { return { host_alert_score_anomaly, alert_category_security }; }
   HostAlertType getAlertType() const  { return getClassType(); }
+  u_int8_t getAlertScore() { return SCORE_LEVEL_WARNING; };
 };
 
 #endif /* _SCORE_ANOMALY_ALERT_H_ */
