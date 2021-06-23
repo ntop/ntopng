@@ -138,7 +138,7 @@ local function scoreBreakdown(what)
       score_category_security = 100 - score_category_network
 
       print('<span class="progress w-100 ms-1"><span class="progress-bar bg-warning" style="width: '..score_category_network..'%;">'.. i18n("flow_details.score_category_network"))
-      print('</span><span class="progress-bar bg-info" style="width: ' .. score_category_security .. '%;">' .. i18n("flow_details.score_category_security") .. '</span></span>\n')
+      print('</span><span class="progress-bar bg-success" style="width: ' .. score_category_security .. '%;">' .. i18n("flow_details.score_category_security") .. '</span></span>\n')
    else
       print("&nbsp;")
    end
@@ -607,14 +607,14 @@ if((page == "overview") or (page == nil)) then
       print(format_utils.formatFullAddressCategory(host))
 
       if(host.services) then
-	 if(host.services.dhcp) then print(' <span class="badge bg-info">'..i18n("details.label_dhcp_server")..'</span>') end
-	 if(host.services.dns)  then print(' <span class="badge bg-info">'..i18n("details.label_dns_server")..'</span>') end
-	 if(host.services.smtp) then print(' <span class="badge bg-info">'..i18n("details.label_smtp_server")..'</span>') end
-	 if(host.services.ntp)  then print(' <span class="badge bg-info">'..i18n("details.label_ntp_server")..'</span>') end
+	 if(host.services.dhcp) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
+	 if(host.services.dns)  then print(' <span class="badge bg-success">'..i18n("details.label_dns_server")..'</span>') end
+	 if(host.services.smtp) then print(' <span class="badge bg-success">'..i18n("details.label_smtp_server")..'</span>') end
+	 if(host.services.ntp)  then print(' <span class="badge bg-success">'..i18n("details.label_ntp_server")..'</span>') end
       end
 
-      if(host["dhcp_server"] == true) then print(' <span class="badge bg-info">'..i18n("details.label_dhcp_server")..'</span>') end
-      if(host["systemhost"] == true) then print(' <span class="badge bg-info"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
+      if(host["dhcp_server"] == true) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
+      if(host["systemhost"] == true) then print(' <span class="badge bg-success"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="badge bg-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
       if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
 	 print(' <A HREF="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'

@@ -123,7 +123,7 @@ if host then
    sent2rcvd = round((host["bytes.sent"] * 100) / (host["bytes.sent"]+host["bytes.rcvd"]), 0)
    if(sent2rcvd == nil) then sent2rcvd = 0 end
    res["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
-	  .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
+	  .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
 
 end
 

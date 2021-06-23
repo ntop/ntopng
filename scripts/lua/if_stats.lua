@@ -792,7 +792,7 @@ print[[
 
 
       print('<td><div class="progress"><div class="progress-bar bg-warning" style="width: ' .. (tx * 100 / tot) .. '%;">'.. i18n("sent") ..'</div>')
-      print('<div class="progress-bar bg-info" style="width: ' .. (rx * 100 / tot) .. '%;">'.. i18n("received")..'</div></div></td>')
+      print('<div class="progress-bar bg-success" style="width: ' .. (rx * 100 / tot) .. '%;">'.. i18n("received")..'</div></div></td>')
 
 
       print("</tr>")

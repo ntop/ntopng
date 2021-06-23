@@ -896,7 +896,7 @@ else
 	 cli_name = cli_name .. ":" .. flow["cli.port"]
 	 srv_name = srv_name .. ":" .. flow["srv.port"]
       end
-      print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. cli2srv.. '%;">'.. cli_name..'</div><div class="progress-bar bg-info" style="width: ' .. (100-cli2srv) .. '%;">' .. srv_name .. '</div></div>')
+      print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. cli2srv.. '%;">'.. cli_name..'</div><div class="progress-bar bg-success" style="width: ' .. (100-cli2srv) .. '%;">' .. srv_name .. '</div></div>')
       print("</td></tr>\n")
    end
 
@@ -978,7 +978,7 @@ else
       
       print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. pctg .. '%;">'..pctg..'% </div>')
       pctg = 100-pctg
-      print('<div class="progress-bar bg-info" style="width: ' .. pctg .. '%;">'..pctg..'% </div></div>')
+      print('<div class="progress-bar bg-success" style="width: ' .. pctg .. '%;">'..pctg..'% </div></div>')
       -- print(formatValue(flow.iec104.stats.forward_msgs).." RX / "..formatValue(flow.iec104.stats.reverse_msgs).." TX")
       print("</td></tr>\n")
 
@@ -1008,7 +1008,7 @@ else
 
 	 print("<tr><th width=30%>"..i18n("flow_details.rtt_breakdown").."</th><td colspan=2>")
 	 print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. (cli2srv * 100 / rtt) .. '%;">'.. cli2srv ..' ms (client)</div>')
-	 print('<div class="progress-bar bg-info" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
+	 print('<div class="progress-bar bg-success" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
 	 print("</td></tr>\n")
 
 	 c = interface.getAddressInfo(flow["cli.ip"])
@@ -1261,7 +1261,7 @@ else
       score_category_security = 100 - score_category_network
 
       print('<td><div class="progress"><div class="progress-bar bg-warning" style="width: '..score_category_network..'%;">'.. i18n("flow_details.score_category_network"))
-      print('</div><div class="progress-bar bg-info" style="width: ' .. score_category_security .. '%;">' .. i18n("flow_details.score_category_security") .. '</div></div></td>\n')
+      print('</div><div class="progress-bar bg-success" style="width: ' .. score_category_security .. '%;">' .. i18n("flow_details.score_category_security") .. '</div></div></td>\n')
       print("</tr>\n")
    end
 
