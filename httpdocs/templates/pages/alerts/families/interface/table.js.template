@@ -3,6 +3,8 @@
     {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Duration */
     {name: 'duration', data: 'duration', className: 'text-center', width: '5%', orderable: false, render: DataTableRenders.secondsToTime},
+    /* Subject */
+    {name: 'subtype', data: 'subtype', orderable: true, className: 'text-nowrap' },
     /* Description */
     {name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
      /* Description */

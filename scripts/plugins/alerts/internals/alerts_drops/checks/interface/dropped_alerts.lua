@@ -34,6 +34,7 @@ local function dropped_alerts_check(params)
       )
 
    alert:set_score_error()
+   alert:set_subtype(getInterfaceName(interface.getId()))
    alert:set_granularity(params.granularity)
 
    if(delta_drops > 0) then

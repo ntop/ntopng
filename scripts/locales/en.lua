@@ -620,6 +620,7 @@ local lang = {
     ["active_flows_anomaly"] = "Active Flows Anomaly",
     ["add_filter"] = "Add Filter",
     ["alert"] = "Alert",
+    ["subject"] = "Subject",
     ["alert_counts"] = "Counts",
     ["alert_duration"] = "Duration",
     ["alert_periodicity_update"] = "Periodicity Changed",

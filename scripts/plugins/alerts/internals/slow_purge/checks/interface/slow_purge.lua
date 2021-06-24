@@ -31,11 +31,12 @@ local function check_interface_idle(params)
     max_idle,
     max_idle_perc,
     threshold
-      )
+  )
 
   alert:set_score_warning()
+  alert:set_subtype(getInterfaceName(interface.getId()))
   alert:set_granularity(params.granularity)
-  
+
   if max_idle_perc > threshold then
     alert:trigger(params.alert_entity, nil, params.cur_alerts)
   else

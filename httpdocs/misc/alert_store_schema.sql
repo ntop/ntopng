@@ -182,6 +182,7 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `ifid` INTEGER NOT NULL CHECK(`ifid` >= -1),
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
+`subtype` TEXT NULL,
 `name` TEXT NULL,
 `alias` TEXT NULL,
 `tstamp` DATETIME NOT NULL,

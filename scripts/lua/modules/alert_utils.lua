@@ -804,8 +804,8 @@ function alert_utils.formatBehaviorAlert(params, anomalies, stats, id, subtype, 
  
       alert:set_score_warning()
       alert:set_granularity(params.granularity)
-      alert:set_subtype(subtype .. "_" .. id)
- 
+      alert:set_subtype(name)
+
       -- Trigger an alert if an anomaly is found
       if anomaly_table["anomaly"] == true then
          alert:trigger(params.alert_entity, nil, params.cur_alerts)
