@@ -1163,7 +1163,7 @@ print([[
 
 -- Logout
 
-if(_SESSION["user"] ~= nil and (not is_no_login_user)) then
+if(not is_no_login_user) then
    print[[
 
  <li class='dropdown-divider'></li>
