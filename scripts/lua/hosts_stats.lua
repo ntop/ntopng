@@ -88,8 +88,10 @@ function getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipv
 
    if(network == nil) then
       wheel = ""
+      charts_icon = ""
    else
       wheel = '<A HREF="'.. ntop.getHttpPrefix().. '/lua/network_details.lua?network='.. network ..'&page=config' ..'"><i class="fas fa-cog fa-sm"></i></A>'
+      charts_icon = charts_icon.."&nbsp; <a href='".. ntop.getHttpPrefix() .."/lua/network_details.lua?network=".. network .. "&page=historical'><i class='fas fa-sm fa-chart-area'></i></a>"
    end
    
    -- Note: we must use the empty string as fallback. Multiple spaces will be collapsed into one automatically.
@@ -105,8 +107,9 @@ function getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipv
         country_asn_or_mac = country or asninfo or mac or pool_ or "",
         vlan = vlan_title or "",
         vlan_name = vlan_alias or "",
+        charts_icon = charts_icon,
 	wheel = wheel
-   }) .. charts_icon
+   })
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
