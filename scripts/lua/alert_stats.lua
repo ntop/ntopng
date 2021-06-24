@@ -74,6 +74,7 @@ local l7_proto = _GET["l7_proto"]
 local network_name = _GET["network_name"]
 local role = _GET["role"]
 local roles = _GET["roles"]
+local subtype = _GET["subtype"]
 
 --------------------------------------------------------------
 
@@ -235,6 +236,7 @@ widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
         network_name = network_name,
         role = role,
         roles = roles,
+	subtype = subtype,
     })
 })
 
@@ -321,7 +323,8 @@ local defined_tags = {
 	severity = {'eq','lte','gte'},
     },
     ["interface"] = {
-	alert_id = {'eq'},
+        alert_id = {'eq'},
+       	subtype = {'eq'},
 	severity = {'eq','lte','gte'}
     },
     ["user"] = {
@@ -408,6 +411,7 @@ local context = {
                 srv_port = i18n("tags.srv_port"),
                 ip = i18n("tags.ip"),
                 network_name = i18n("tags.network"),
+		subtype = i18n("alerts_dashboard.subject"),
                 role = i18n("tags.role"),
                 roles = i18n("tags.roles"),
             }
@@ -443,6 +447,7 @@ local context = {
             network_name = network_name,
             role = role,
             roles = roles,
+	    subtype = subtype,
         }),
         actions = {
             disable = (page ~= "host" and page ~= "flow")

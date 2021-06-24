@@ -4,7 +4,7 @@
     /* Duration */
     {name: 'duration', data: 'duration', className: 'text-center', width: '5%', orderable: false, render: DataTableRenders.secondsToTime},
     /* Subject */
-    {name: 'subtype', data: 'subtype', orderable: true, className: 'text-nowrap' },
+    {name: 'subtype', data: 'subtype', orderable: true, className: 'text-nowrap', width: '20%', render: DataTableRenders.formatSubtype },
     /* Description */
     {name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
      /* Description */

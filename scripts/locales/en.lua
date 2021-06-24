@@ -5169,6 +5169,7 @@ local lang = {
     ["end_time"] = "End; Time",
     ["flow_risk"] = "Flow Risk",
     ["ip"] = "Host",
+    ["subtype"] = "Subject",
     ["l4proto"] = "Protocol",
     ["l7_proto"] = "Application",
     ["l7cat"] = "Category",

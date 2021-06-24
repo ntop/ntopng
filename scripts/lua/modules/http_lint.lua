@@ -1370,6 +1370,7 @@ local known_parameters = {
    ["srv_port"]                = validateListOfTypeInline(validateFilters(validatePort)),          --Server port
    ["cli_asn"]                 = validateListOfTypeInline(validateFilters(validateNumber)),
    ["srv_asn"]                 = validateListOfTypeInline(validateFilters(validateNumber)),
+   ["subtype"]                 = validateListOfTypeInline(validateFilters(validateUnquoted)),
    ["tot_pkts"]                = validateFilters(validateNumber),                --Total packtes, used by nindex query
    ["tot_bytes"]               = validateFilters(validateNumber),                --Total bytes, used by nindex query
    ["src2dst_dscp"]            = validateEmptyOr(validateFilters(validateUnquoted)),                               --Client DSCP, used by nindex query

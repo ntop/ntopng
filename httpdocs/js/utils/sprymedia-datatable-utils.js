@@ -656,6 +656,14 @@ class DataTableRenders {
         return cell;
     }
 
+    static formatSubtype(obj, type, row) {
+        if (type !== "display") return obj;
+
+        let label = DataTableRenders.filterize('subtype', obj, obj);
+
+        return label; 
+    }
+
     static formatHost(obj, type, row) {
         if (type !== "display") return obj;
     	let html_ref = '';

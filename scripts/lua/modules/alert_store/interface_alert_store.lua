@@ -57,11 +57,33 @@ function interface_alert_store:insert(alert)
    return interface.alert_store_query(insert_stmt)
 end
 
+
+-- ##############################################
+
+--@brief Add filters on the subtype (i.e., a 'meta' field that holds ASNs, periodic script names, etc)
+--@param ip The subtype, as string
+--@return True if set is successful, false otherwise
+function interface_alert_store:add_subtype_filter(subtype)
+   if not self._subtype and not isEmptyString(subtype) then
+      self._subtype = subtype
+      self._where[#self._where + 1] = string.format("subtype = '%s'", self:_escape(self._subtype))
+      return true
+   end
+
+   return false
+end
+
 -- ##############################################
 
 --@brief Add filters according to what is specified inside the REST API
 function interface_alert_store:_add_additional_request_filters()
    -- Add filters specific to the system family
+   local subtype = _GET["subtype"]
+
+   if not isEmptyString(subtype) then
+      local subtype, op = self:strip_filter_operator(subtype)
+      self:add_subtype_filter(subtype)
+   end
 end
 
 -- ##############################################
