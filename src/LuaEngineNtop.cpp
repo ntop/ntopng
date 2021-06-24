@@ -5186,13 +5186,15 @@ static int ntop_rrd_create(lua_State* vm) {
     offset++;
   }
 
+  if(Utils::file_exists(filename))
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Overwriting already existing RRD [%s]", filename);
+
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%s)", __FUNCTION__, filename);
 
   argv = make_argv(vm, &argc, offset, 0);
 
   reset_rrd_state();
-  /* _r2 used to avoid overwriting exising RRDs, see https://github.com/oetiker/rrdtool-1.x/blob/ec0227272cf04726aebf71819551806e6da27322/src/rrd_create.c#L798 */
-  status = rrd_create_r2(filename, pdp_step, start_time, 1 /* Do NOT overwrite */, NULL, NULL, argc, argv);
+  status = rrd_create_r(filename, pdp_step, start_time, argc, argv);
   free(argv);
 
   if(status != 0) {
