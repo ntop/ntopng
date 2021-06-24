@@ -167,13 +167,13 @@ void AutonomousSystem::updateBehaviorStats(const struct timeval *tv) {
 
     /* Traffic behavior stats update, currently score, traffic rx and tx */
     snprintf(score_buf, sizeof(score_buf), "ASN %s | score", asname_buf);
-    score_behavior->updateBehavior(iface, getScore(), score_buf);
+    score_behavior->updateBehavior(iface, getScore(), score_buf, (asn ? true : false));
 
     snprintf(tx_buf, sizeof(tx_buf), "ASN %s | traffic tx", asname_buf);
-    traffic_tx_behavior->updateBehavior(iface, getNumBytesSent(), tx_buf);
+    traffic_tx_behavior->updateBehavior(iface, getNumBytesSent(), tx_buf), (asn ? true : false);
 
     snprintf(rx_buf, sizeof(rx_buf), "ASN %s | traffic rx", asname_buf);
-    traffic_rx_behavior->updateBehavior(iface, getNumBytesRcvd(), rx_buf);
+    traffic_rx_behavior->updateBehavior(iface, getNumBytesRcvd(), rx_buf, (asn ? true : false));
 
     nextMinPeriodicUpdate = tv->tv_sec + ASES_BEHAVIOR_REFRESH;
   }
