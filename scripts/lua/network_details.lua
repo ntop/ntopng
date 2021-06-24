@@ -116,8 +116,8 @@ if page == "historical" then
         {schema="subnet:score_anomalies",     label=i18n("graphs.iface_score_anomalies")},
         {schema="subnet:score_behavior",      label=i18n("graphs.iface_score_behavior"), split_directions = true, metrics_labels = {i18n("graphs.score"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
         {schema="subnet:traffic_anomalies",   label=i18n("graphs.iface_traffic_anomalies")},
-        {schema="subnet:traffic_rx_behavior", label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true, value_formatter = {"NtopUtils.fbits"}, metrics_labels = {i18n("graphs.traffic_rcvd"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
-        {schema="subnet:traffic_tx_behavior", label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true, value_formatter = {"NtopUtils.fbits"}, metrics_labels = {i18n("graphs.traffic_sent"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
+        {schema="subnet:traffic_rx_behavior", label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true, value_formatter = {"NtopUtils.fbits_from_bytes"}, metrics_labels = {i18n("graphs.traffic_rcvd"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
+        {schema="subnet:traffic_tx_behavior", label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true, value_formatter = {"NtopUtils.fbits_from_bytes"}, metrics_labels = {i18n("graphs.traffic_sent"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
       }
       all_timeseries = table.merge(all_timeseries, pro_timeseries)
     end
