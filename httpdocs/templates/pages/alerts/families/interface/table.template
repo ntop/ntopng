@@ -1,6 +1,7 @@
 <tr>
     <th>{{ i18n("show_alerts.alert_datetime") }}</th>
     <th>{{ i18n("duration") }}</th>
+    <th>{{ i18n("alerts_dashboard.subject") }}</th>
     <th>{{ i18n("alerts_dashboard.alert") }}</th>
     <th>{{ i18n("description") }}</th>
     <th>{{ i18n("actions") }}</th>

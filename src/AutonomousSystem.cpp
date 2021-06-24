@@ -157,23 +157,23 @@ void AutonomousSystem::updateStats(const struct timeval *tv)  {
 void AutonomousSystem::updateBehaviorStats(const struct timeval *tv) {
   /* 5 Min Update */
   if(tv->tv_sec >= nextMinPeriodicUpdate) {
-    char score_buf[128], tx_buf[128], rx_buf[128];
+    char score_buf[256], tx_buf[128], rx_buf[128];
     char asname_buf[64];
 
-    if(!strcmp(get_asname(), "")) 
-      snprintf(asname_buf, sizeof(asname_buf), "%d", get_asn());
+    if(!asname) 
+      snprintf(asname_buf, sizeof(asname_buf), "%d", asn);
     else
-      snprintf(asname_buf, sizeof(asname_buf), "%s", get_asname());
+      snprintf(asname_buf, sizeof(asname_buf), "%s", asname);
 
     /* Traffic behavior stats update, currently score, traffic rx and tx */
     snprintf(score_buf, sizeof(score_buf), "ASN %s | score", asname_buf);
-    score_behavior->updateBehavior(iface, getScore(), score_buf);
+    score_behavior->updateBehavior(iface, getScore(), score_buf, (asn ? true : false));
 
     snprintf(tx_buf, sizeof(tx_buf), "ASN %s | traffic tx", asname_buf);
-    traffic_tx_behavior->updateBehavior(iface, getNumBytesSent(), tx_buf);
+    traffic_tx_behavior->updateBehavior(iface, getNumBytesSent(), tx_buf), (asn ? true : false);
 
     snprintf(rx_buf, sizeof(rx_buf), "ASN %s | traffic rx", asname_buf);
-    traffic_rx_behavior->updateBehavior(iface, getNumBytesRcvd(), rx_buf);
+    traffic_rx_behavior->updateBehavior(iface, getNumBytesRcvd(), rx_buf, (asn ? true : false));
 
     nextMinPeriodicUpdate = tv->tv_sec + ASES_BEHAVIOR_REFRESH;
   }

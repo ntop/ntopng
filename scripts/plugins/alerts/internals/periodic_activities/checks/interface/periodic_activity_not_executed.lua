@@ -17,6 +17,7 @@ local function check_periodic_activity_not_executed(params)
       local delta = alerts_api.interface_delta_val(script.key..ps_name --[[ metric name --]], params.granularity, ps_stats["num_not_executed"] or 0)
 
       local alert = alert_consts.alert_types.alert_periodic_activity_not_executed.new(
+	 ps_name,
          ps_stats["last_queued_time"] or 0
          )
    

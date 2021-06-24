@@ -110,6 +110,9 @@ function dumpInterfaceStats(ifid)
       if auth.has_capability(auth.capabilities.alerts) then
          res["engaged_alerts"]     = ifstats["num_alerts_engaged"] or 0
          res["dropped_alerts"]     = ifstats["num_dropped_alerts"] or 0
+	 res["host_dropped_alerts"]  = ifstats["num_host_dropped_alerts"] or 0
+	 res["flow_dropped_alerts"]  = ifstats["num_flow_dropped_alerts"] or 0
+	 res["other_dropped_alerts"] = ifstats["num_other_dropped_alerts"] or 0
 
 	 -- Active flow alerts: total
 	 res["alerted_flows"]         = ifstats["num_alerted_flows"] or 0

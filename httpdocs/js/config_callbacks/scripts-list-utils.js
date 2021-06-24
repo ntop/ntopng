@@ -682,7 +682,13 @@ const ItemsList = (gui, hooks, check_subdir, script_key) => {
    const $table_editor = $("#script-config-editor");
 
    const render_template = () => {
-      const enabled = hooks.all ? hooks.all.enabled : hooks.min.enabled
+      let enabled = undefined;
+
+      if(hooks.all) 
+         enabled = hooks.all.enabled
+      else
+         enabled = hooks["5mins"] ? hooks["5mins"].enabled : hooks.min.enabled;
+
       const $component_container = $(`<tr></tr>`);
       const callback_checkbox = function (e) {
 
@@ -701,7 +707,7 @@ const ItemsList = (gui, hooks, check_subdir, script_key) => {
          'itemslist-checkbox', enabled, callback_checkbox
       );
 
-      const items_list = hooks.all ? hooks.all.script_conf.items : (hooks.min.script_conf.items || []); 
+      const items_list = hooks.all ? hooks.all.script_conf.items : ( (hooks["5mins"] ? hooks["5mins"].script_conf.items : hooks.min.script_conf.items) || []); 
       const $text_area = $(`
          <td>
             <div class='form-row'>
@@ -732,7 +738,7 @@ const ItemsList = (gui, hooks, check_subdir, script_key) => {
       const textarea_value = $('#itemslist-textarea').val().trim();
 
       const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim()) : [];
-      const hook = (hooks.all === undefined) ? "min" : "all";
+      const hook = (hooks.all === undefined) ? ((hooks["5mins"] === undefined) ? "min" : "5mins") : "all";
       const template_data = {
          [hook]: {
             enabled: hook_enabled,
@@ -750,9 +756,8 @@ const ItemsList = (gui, hooks, check_subdir, script_key) => {
    const reset_event = (event) => {
 
       reset_script_defaults(script_key, check_subdir, (reset_data) => {
-
-         const items_list = reset_data.hooks.all.script_conf.items;
-         const enabled = reset_data.hooks.all ? reset_data.hooks.all.enabled : reset_data.hooks.min.enabled;
+         const enabled = reset_data.hooks.all ? reset_data.hooks.all.enabled : (reset_data.hooks["5mins"] ? reset_data.hooks["5mins"].enabled : reset_data.hooks.min.enabled);
+         const items_list = reset_data.hooks.all ? reset_data.hooks.all.script_conf.items : (reset_data.hooks["5mins"] ? reset_data.hooks["5mins"].script_conf.items : reset_data.hooks.min.script_conf.items);
 
          // set textarea value with default's one
          $('#itemslist-textarea').val(items_list.join(','));

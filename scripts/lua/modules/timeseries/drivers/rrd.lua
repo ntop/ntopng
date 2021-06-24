@@ -265,75 +265,6 @@ local function create_rrd(schema, path, timestamp)
   return true
 end
 
--- ##############################################
-
-local function handle_old_rrd_tune(schema, rrdfile, timestamp)
-  -- In this case the only thing we can do is to remove the file and create a new one
-  if ntop.getCache("ntopng.cache.rrd_format_change_warning_shown") ~= "1" then
-    traceError(TRACE_WARNING, TRACE_CONSOLE, "RRD format change detected, incompatible RRDs will be moved to '.rrd.bak' files")
-    ntop.setCache("ntopng.cache.rrd_format_change_warning_shown", "1")
-  end
-
-  os.rename(rrdfile, rrdfile .. ".bak")
-
-  if(not create_rrd(schema, rrdfile, timestamp)) then
-    return false
-  end
-
-  return true
-end
-
-local function add_missing_ds(schema, rrdfile, cur_ds, timestamp)
-  local cur_metrics = map_metrics_to_rrd_columns(cur_ds)
-  local new_metrics = map_metrics_to_rrd_columns(#schema._metrics)
-
-  if((cur_metrics == nil) or (new_metrics == nil)) then
-    return false
-  end
-
-  if cur_ds >= #new_metrics then
-    return false
-  end
-
-  traceError(TRACE_INFO, TRACE_CONSOLE, "RRD format changed [schema=".. schema.name .."], trying to fix " .. rrdfile)
-
-  local params = {rrdfile, }
-  local heartbeat = schema.options.rrd_heartbeat or (schema.options.insertion_step * 2)
-  local rrd_type = type_to_rrdtype[schema.options.metrics_type]
-
-  for idx, metric in ipairs(schema._metrics) do
-    local old_name = cur_metrics[idx]
-    local new_name = new_metrics[idx]
-
-    if old_name == nil then
-      params[#params + 1] = "DS:" .. new_name .. ":" .. rrd_type .. ':' .. heartbeat .. ':U:U'
-    elseif old_name ~= new_name then
-      params[#params + 1] = "--data-source-rename"
-      params[#params + 1] = old_name ..":" .. new_name
-    end
-  end
-
-  local err = ntop.rrd_tune(table.unpack(params))
-  if(err ~= nil) then
-    if(string.find(err, "unknown data source name") ~= nil) then
-      -- the RRD was already mangled by incompatible rrd_tune
-      return handle_old_rrd_tune(schema, rrdfile, timestamp)
-    else
-      traceError(TRACE_ERROR, TRACE_CONSOLE, err)
-      return false
-    end
-  end
-
-  -- Double check as some older implementations do not support adding a column and will silently fail
-  local last_update, num_ds = ntop.rrd_lastupdate(rrdfile)
-  if num_ds ~= #new_metrics then
-    return handle_old_rrd_tune(schema, rrdfile, timestamp)
-  end
-
-  traceError(TRACE_INFO, TRACE_CONSOLE, "RRD successfully fixed: " .. rrdfile)
-  return true
-end
-
 -- ###############################################
 
 -- Converts a number (either decimal or integer) to a string
@@ -371,7 +302,7 @@ end
 
 -- ##############################################
 
-local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
+local function update_rrd(schema, rrdfile, timestamp, data)
   local params = { number_to_rrd_string(timestamp), }
 
   if isDebugEnabled() then
@@ -401,39 +332,8 @@ local function update_rrd(schema, rrdfile, timestamp, data, dont_recover)
   end
 
   local err = ntop.rrd_update(rrdfile, table.unpack(params))
+
   if(err ~= nil) then
-    if(dont_recover ~= true) then
-      -- Try to recover
-      local last_update, num_ds = ntop.rrd_lastupdate(rrdfile)
-      local retry = false
-
-      if((num_ds ~= nil) and (num_ds < #schema._metrics)) then
-        if add_missing_ds(schema, rrdfile, num_ds, timestamp) then
-          retry = true
-        end
-      elseif((num_ds == 2) and (schema.name == "iface:traffic")) then
-        -- The RRD is corrupted due to collision between "iface:traffic" and "evexporter_iface:traffic"
-        traceError(TRACE_WARNING, TRACE_CONSOLE, "'evexporter_iface:traffic' schema collision detected on " .. rrdfile .. ", moving RRD to .old")
-        local rv, errmsg = os.rename(rrdfile, rrdfile..".old")
-
-        if(rv == nil) then
-          traceError(TRACE_ERROR, TRACE_CONSOLE, errmsg)
-          return false
-        end
-
-        if(not create_rrd(schema, rrdfile, timestamp)) then
-          return false
-        end
-
-        retry = true
-      end
-
-      if retry then
-        -- Problem possibly fixed, retry
-        return update_rrd(schema, rrdfile, timestamp, data, true --[[ do not recovery again ]])
-      end
-    end
-
     traceError(TRACE_ERROR, TRACE_CONSOLE, err)
     return false
   end

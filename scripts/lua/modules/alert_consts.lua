@@ -475,7 +475,7 @@ function alert_consts.getAlertType(alert_key, alert_entity_id)
    alert_key = tonumber(alert_key)
    alert_entity_id = tonumber(alert_entity_id)
 
-   if alert_entity_id and alerts_by_id[alert_entity_id] then
+   if alert_entity_id and alerts_by_id[alert_entity_id] and alerts_by_id[alert_entity_id][alert_key] then
       return alerts_by_id[alert_entity_id][alert_key]
    end
 

@@ -2445,7 +2445,7 @@ print [[
 	last_engaged_alerts = rsp.engaged_alerts;
 	$('#dropped_alerts_trend').html(NtopUtils.get_trend(rsp.dropped_alerts, last_dropped_alerts));
 	last_dropped_alerts = rsp.dropped_alerts;
-        $('#dropped_alerts').html(last_dropped_alerts);
+        $('#dropped_alerts').html(NtopUtils.fint(last_dropped_alerts));
 
         $('#local_hosts_anomalies').html(NtopUtils.fint(rsp.num_local_hosts_anomalies));
         $('#local_hosts_anomalies_trend').html(NtopUtils.get_trend(rsp.num_local_hosts_anomalies, last_num_local_hosts_anomalies));

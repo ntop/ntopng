@@ -843,7 +843,8 @@
         })
 
         /* Cards */
-
+        {% if alert_stats.status ~= "engaged" and ntop.isPro() then %}
+        
         const [begin_epoch, end_epoch] = getTimestampRange();
         let alertCardStats = () => {
             let params = (new URLSearchParams(datasourceParams)).toString();
@@ -897,8 +898,10 @@
                 });
             });
         }
-
     alertCardStats();
+        
+    {% end %}
+
 
     });
 </script>

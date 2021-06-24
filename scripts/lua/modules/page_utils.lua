@@ -584,7 +584,7 @@ function page_utils.print_menubar()
 
    local navbar_style = _POST["toggle_theme"] or ntop.getPref("ntopng.user." .. _SESSION["user"] .. ".theme")
 
-   if ((navbar_style == nil) or (navbar_style == "white")) then
+   if ((navbar_style == nil) or (navbar_style == "white") or (navbar_style == "")) then
       navbar_style = "default"
    end
 

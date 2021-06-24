@@ -32,7 +32,6 @@ FlowAnomaly::FlowAnomaly() : HostCheck(ntopng_edition_community) {
 void FlowAnomaly::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
   bool cli_anomaly = false, srv_anomaly = false;
-  const u_int8_t score_value = SCORE_LEVEL_WARNING;
   u_int32_t value = 0, lower_bound = 0, upper_bound = 0;
   risk_percentage cli_pctg = CLIENT_FULL_RISK_PERCENTAGE;
 

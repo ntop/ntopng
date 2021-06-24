@@ -24,6 +24,7 @@ local function check_interface_drops(params)
     )
 
   alert:set_score_error()
+  alert:set_subtype(getInterfaceName(interface.getId()))
   alert:set_granularity(params.granularity)
 
   if((stats.packets > 100) and (drop_perc > threshold)) then
