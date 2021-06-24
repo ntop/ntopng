@@ -2176,7 +2176,7 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
   ntop->getRedis()->set(key, allowed_networks, 0);
 
   snprintf(key, sizeof(key), CONST_STR_USER_THEME, username);
-  ntop->getRedis()->set(key, "white", 0);
+  ntop->getRedis()->set(key, "", 0);
 
   if(language && language[0] != '\0') {
     snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
