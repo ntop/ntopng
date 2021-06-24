@@ -71,7 +71,7 @@ function alert_behavior_anomaly.format(ifid, alert, alert_type_params)
          local timeseries_table = behavior_utils.get_behavior_timeseries_utils(alert_type_params["family_key"])
 
          href = timeseries_table["page_path"] .. "?" .. timeseries_table["timeseries_id"] .. "=" .. alert_type_params["timeseries_id"] .. 
-                  "&ifid=" .. ifid .. "&page=historical&ts_schema=" .. timeseries_table["schema_id"] .. "%3A" .. alert_type_params.type_of_behavior .. 
+                  "&ifid=" .. interface.getId() .. "&page=historical&ts_schema=" .. timeseries_table["schema_id"] .. "%3A" .. alert_type_params.type_of_behavior .. 
                   "&zoom=30m" .. curr_time
       end
    end
