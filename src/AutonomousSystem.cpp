@@ -157,13 +157,13 @@ void AutonomousSystem::updateStats(const struct timeval *tv)  {
 void AutonomousSystem::updateBehaviorStats(const struct timeval *tv) {
   /* 5 Min Update */
   if(tv->tv_sec >= nextMinPeriodicUpdate) {
-    char score_buf[128], tx_buf[128], rx_buf[128];
+    char score_buf[256], tx_buf[128], rx_buf[128];
     char asname_buf[64];
 
-    if(!strcmp(get_asname(), "")) 
-      snprintf(asname_buf, sizeof(asname_buf), "%d", get_asn());
+    if(!asname) 
+      snprintf(asname_buf, sizeof(asname_buf), "%d", asn);
     else
-      snprintf(asname_buf, sizeof(asname_buf), "%s", get_asname());
+      snprintf(asname_buf, sizeof(asname_buf), "%s", asname);
 
     /* Traffic behavior stats update, currently score, traffic rx and tx */
     snprintf(score_buf, sizeof(score_buf), "ASN %s | score", asname_buf);
