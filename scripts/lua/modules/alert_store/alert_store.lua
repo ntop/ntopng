@@ -751,7 +751,7 @@ local BASE_RNAME = {
    SEVERITY = { name = "severity", export = true},
    DURATION = { name = "duration", export = true},
    COUNT = { name = "count", export = true},
-   SCRIPT_KEY = { name = "script_key", export = true},
+   SCRIPT_KEY = { name = "script_key", export = false},
 }
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API

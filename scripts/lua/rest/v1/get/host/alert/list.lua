@@ -45,7 +45,7 @@ for _, _value in ipairs(alerts or {}) do
 end
 
 if no_html then
-   res = host_alert_store:to_csv(res)   
+   res = host_alert_store:to_csv(res)
    rest_utils.vanilla_payload_response(rc, res, "text/csv")
 else
    rest_utils.extended_answer(rc, {records = res}, {
