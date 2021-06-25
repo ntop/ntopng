@@ -157,3 +157,12 @@
     </div>
 </template>
 
+<template id="text-filter-template">
+    <div class="form-group row">
+        <label class="col-form-label col-sm-3"><b>{{i18n("value")}}</b></label>
+        <div class="col-sm-5">
+            <input data-validation-message="{{i18n("invalid_value")}}" name="value" type="text" class="form-control">
+        </div>
+    </div>
+</template>
+

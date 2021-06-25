@@ -88,6 +88,20 @@ end
 
 -- ##############################################
 
+--@brief Get info about additional available filters
+function interface_alert_store:_get_additional_available_filters()
+   local filters = {
+      subtype = {
+	 value_type = 'text',
+	 i18n_label = i18n('tags.subtype'),
+      }
+   }
+
+   return filters
+end 
+
+-- ##############################################
+
 local RNAME = {
    ALERT_NAME = { name = "alert_name", export = true},
    SUBTYPE = { name = "subtype", export = true},
