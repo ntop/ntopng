@@ -296,7 +296,9 @@ ul.navbar-nav li.nav-item.active > a.active {
 .table td,
 .table th {
   border-top: 1px solid #2c2c2c !important;
-  border-color: #2c2c2c !important;
+  border-right-color: #2c2c2c !important;
+  border-top-color: #2c2c2c !important;
+  border-bottom-color: #2c2c2c !important;
   color: #e2e2e2;
 }
 .table-hover tbody tr:hover {
