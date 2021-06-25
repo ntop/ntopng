@@ -1,16 +1,18 @@
 [
     /* Date */
-    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '8%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Score */
-    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.formatValueLabel},
-    /* Counts */
-    {name: 'count', className: 'text-center', data: 'count', width: '5%', visible: false},
+    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
+    /* Alert */
+    {responsivePriority: 2, name: 'msg', data: 'msg', orderable: false, className: 'text-nowrap', width: '55%', render: DataTableRenders.formatNameDescription },
     /* Mac Address */
-    {name: 'address', width: '12%', className: 'text-left', data: 'address'},
+    {responsivePriority: 2, name: 'address', width: '15%', className: 'text-left', data: 'address'},
     /* Device Type */
-    {name: 'device_type', className: 'text-center', width: '12%', data: 'device_type', orderable: false, render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 3, name: 'device_type', className: 'text-nowrap', width: '15%', data: 'device_type', orderable: false, render: DataTableRenders.formatValueLabel},
     /* Name */
-    {name: 'name', className: 'text-left', data: 'name', width: '12%'},
+    {responsivePriority: 3, name: 'name', className: 'text-left', data: 'name', width: '100%'},
+    /* Counts */
+    {responsivePriority: 3, name: 'count', className: 'text-center', data: 'count', width: '5%', visible: false},
     /* Description */
-    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 4, name: 'description', data: 'description', orderable: false, className: 'text-nowrap'},
 ]

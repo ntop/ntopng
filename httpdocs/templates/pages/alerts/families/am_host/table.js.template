@@ -1,16 +1,16 @@
 [
     /* Date */
-    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '8%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Score */
-    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.formatValueLabel},
-    /* Counts */
-    {name: 'count', className: 'text-center', width: '8%', data: 'count', visible: false},
+    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
+    /* Alert */
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width: '55%', className: 'text-nowrap', },
     /* Measurement */
-    {name: 'measurement', data: 'measurement', orderable: false, className: 'text-nowrap', width: '8%'},
+    {responsivePriority: 3, name: 'measurement', data: 'measurement', orderable: false, width: '10%', className: 'text-nowrap', width: '8%'},
     /* Threshold */
-    {name: 'measure_threshold', data: 'measure_threshold', orderable: false, className: 'text-center', width: '8%'},
+    {responsivePriority: 3, name: 'measure_threshold', data: 'measure_threshold', orderable: false, width: '10%', className: 'text-center', width: '8%'},
     /* Value */
-    {name: 'measure_value', data: 'measure_value', orderable: false, className: 'text-center', width: '8%'},
-    /* Description */
-    {name: 'description', data: 'msg', orderable: false, className: 'text-nowrap', },
+    {responsivePriority: 3, name: 'measure_value', data: 'measure_value', orderable: false, width: '100%', className: 'text-center', width: '8%'},
+    /* Counts */
+    {responsivePriority: 3, name: 'count', className: 'text-center', width: '8%', data: 'count', visible: false},
 ]

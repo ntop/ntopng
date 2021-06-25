@@ -93,6 +93,7 @@ local RNAME = {
    ADDRESS = { name = "address", export = true},
    DEVICE_TYPE = { name = "device_type", export = true},
    NAME = { name = "name", export = true},
+   DESCRIPTION = { name = "description", export = true},
    MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
 }
 
@@ -123,6 +124,8 @@ function mac_alert_store:format_record(value, no_html)
    if no_html then
       msg = noHtml(msg)
    end
+
+   record[RNAME.DESCRIPTION.name] = msg
 
    record[RNAME.MSG.name] = {
      name = noHtml(alert_name),

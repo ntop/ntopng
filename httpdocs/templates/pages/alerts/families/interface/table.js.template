@@ -1,14 +1,14 @@
 [
     /* Date */
-    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '8%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Score */
-    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
     /* Duration */
-    {name: 'duration', data: 'duration', className: 'text-center', width: '5%', orderable: false, render: DataTableRenders.secondsToTime},
+    {responsivePriority: 2, name: 'duration', data: 'duration', className: 'text-center', width: '5%', orderable: false, render: DataTableRenders.secondsToTime},
+    /* Alert */
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width:'55%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Subject */
-    {name: 'subtype', data: 'subtype', orderable: true, className: 'text-nowrap', width: '20%', render: DataTableRenders.formatSubtype },
+    {responsivePriority: 2, name: 'subtype', data: 'subtype', orderable: true, className: 'text-nowrap', width: '100%', render: DataTableRenders.formatSubtype },
     /* Description */
-    {name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
-     /* Description */
-    {name: 'description', data: 'msg.description', orderable: false, className: 'text-nowrap'},
+    {responsivePriority: 3, name: 'description', data: 'msg.description', orderable: false, className: 'text-nowrap'},
 ]

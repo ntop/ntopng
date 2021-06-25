@@ -73,6 +73,8 @@ function system_alert_store:format_record(value, no_html)
       msg = ""
    end
 
+   record["description"] = msg
+
    record["msg"] = {
      name = noHtml(alert_name),
      value = tonumber(value["alert_id"]),

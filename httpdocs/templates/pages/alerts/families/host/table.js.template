@@ -6,7 +6,7 @@
     /* Duration */
     {responsivePriority: 2, name: 'duration', data: 'duration', width: '5%', className: 'text-center', orderable: false, render: DataTableRenders.secondsToTime},
     /* Alert */
-    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width:'%55', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width:'55%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* IP Address */
     {responsivePriority: 2, name: 'ip', data: 'ip', orderable: false, width: '100%', className: 'text-nowrap', render: DataTableRenders.formatHost},
     /* Counts */
