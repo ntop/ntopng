@@ -85,6 +85,20 @@ end
 
 -- ##############################################
 
+local RNAME = {
+   ALERT_NAME = { name = "alert_name", export = true},
+   MEASUREMENT = { name = "measurement", export = true},
+   MEASURE_THRESHOLD = { name = "measure_threshold", export = true},
+   MEASURE_VALUE = { name = "measure_value", export = true},
+   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
+}
+
+function am_alert_store:get_rnames()
+   return RNAME
+end
+
+-- ##############################################
+
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function am_alert_store:format_record(value, no_html)
    local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
@@ -95,23 +109,23 @@ function am_alert_store:format_record(value, no_html)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
 
    if alert_info.threshold > 0 then
-      record["measure_threshold"] = format_utils.formatValue(alert_info.threshold)
+      record[RNAME.MEASURE_THRESHOLD.name] = format_utils.formatValue(alert_info.threshold)
    end
 
    if alert_info.value > 0 then
-      record["measure_value"] = alert_info.value
+      record[RNAME.MEASURE_VALUE.name] = alert_info.value
    end
 
    local measurement_info = am_utils.getMeasurementInfo(alert_info.host.measurement)
-   record["measurement"] = i18n(measurement_info.i18n_label)
+   record[RNAME.MEASUREMENT.name] = i18n(measurement_info.i18n_label)
 
-   record["alert_name"] = alert_name
+   record[RNAME.ALERT_NAME.name] = alert_name
 
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""
    end
 
-   record["msg"] = msg
+   record[RNAME.MSG.name] = msg
 
    return record
 end
