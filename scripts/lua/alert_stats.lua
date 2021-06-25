@@ -433,6 +433,7 @@ local context = {
         initialLength = getDefaultTableSize(),
         table = template_utils.gen(string.format("pages/alerts/families/%s/table.template", page), {}),
         js_columns = template_utils.gen(string.format("pages/alerts/families/%s/table.js.template", page), {}),
+	endpoint_list = endpoint_list,
         datasource = Datasource(endpoint_list, {
             ifid = ifid,
             epoch_begin = epoch_begin,
