@@ -835,7 +835,7 @@ function ts_utils.getPossiblyChangedSchemas()
       "subnet:score_anomalies",
       "subnet:traffic_tx_behavior",
       "subnet:traffic_rx_behavior",
-      "subnet:score_anomalies",
+      "subnet:traffic_anomalies",
       "subnet:score_behavior",
 
       "asn:score_anomalies",
