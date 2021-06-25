@@ -90,6 +90,7 @@ for key, am_host in pairs(am_hosts) do
        host = am_host.host,
        alerted = alerted,
        measurement = i18n(m_info.i18n_label),
+       measurement_key = am_host.measurement,
        chart = chart,
        threshold = am_host.threshold,
        last_measure = column_last_value or "",

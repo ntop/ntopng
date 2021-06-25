@@ -366,7 +366,7 @@ $(function() {
             return {
                 action: 'delete',
                 am_host: amData.host,
-                measurement: amData.measurement,
+                measurement: amData.measurement_key,
                 csrf: am_csrf
             }
         },
@@ -541,6 +541,10 @@ $(function() {
                         { class: `btn-danger ${disabled}`, icon: 'fa-trash', modal: '#am-delete-modal', }
                     ]);
                 }
+            },
+	    {
+                data: 'measurement_key',
+		visible: false
             }
         ]
     });
