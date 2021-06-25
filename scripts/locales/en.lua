@@ -528,6 +528,7 @@ local lang = {
     ["system"] = "System",
     ["test"] = "Test",
     ["user"] = "User",
+    ["asn"] = "ASN",
   },
   ["alert_messages"] = {
     ["a_new_device_has_connected"] = "New device <a href=\"%{url}\">%{device}</a> has connected to the network.",

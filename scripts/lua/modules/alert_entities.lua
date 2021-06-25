@@ -66,6 +66,10 @@ local alert_entities = {
       i18n_label = "alert_entities.other",
       pools = nil, -- no pool for other
       alert_store_name = "system",
+   }, asn = {
+      entity_id = 16,
+      i18n_label = "alert_entities.asn",
+      pools = nil, -- no pool for other
    }
 }
 

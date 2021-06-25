@@ -798,7 +798,7 @@ function alert_utils.formatBehaviorAlert(params, anomalies, stats, id, subtype, 
          value,
          lower_bound,
          upper_bound,
-         anomaly_table["family_key"],
+         anomaly_table["entity_id"],
          id
       )
  

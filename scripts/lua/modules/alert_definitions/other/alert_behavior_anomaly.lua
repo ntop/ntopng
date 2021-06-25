@@ -7,6 +7,7 @@
 local other_alert_keys = require "other_alert_keys"
 local classes = require "classes"
 local alert = require "alert"
+local alert_entities = require("alert_entities")
 local behavior_utils = require("behavior_utils")
 
 -- ##############################################
@@ -30,7 +31,7 @@ alert_behavior_anomaly.meta = {
 -- @param lower_bound The lower bound of the measurement
 -- @param upper_bound The upper bound of the measurement
 -- @return A table with the alert built
-function alert_behavior_anomaly:init(entity, type_of_behavior, value, upper_bound, lower_bound, family_key, timeseries_id)
+function alert_behavior_anomaly:init(entity, type_of_behavior, value, upper_bound, lower_bound, entity_id, timeseries_id)
    -- Call the parent constructor
    self.super:init()
 
@@ -40,7 +41,7 @@ function alert_behavior_anomaly:init(entity, type_of_behavior, value, upper_boun
       value = value,
       upper_bound = upper_bound,
       lower_bound = lower_bound,
-      family_key = family_key,
+      entity_id = entity_id,
       timeseries_id = timeseries_id,
    }
 end
@@ -63,12 +64,21 @@ function alert_behavior_anomaly.format(ifid, alert, alert_type_params)
 
    -- Generating the href for the timeserie
    if ntop.isEnterpriseL() then
-      if alert_type_params["family_key"] and alert_type_params["timeseries_id"] then
+      -- Mantaining family_key for supporting past alerts
+      if (alert_type_params["family_key"] or alert_type_params["entity_id"]) and alert_type_params["timeseries_id"] then
          -- 10 minutes before and 10 minutes after the alert
          local alert_time = tonumber(alert.tstamp)
          local curr_time = '&epoch_begin=' .. tonumber(alert_time - 600) .. '&epoch_end=' .. tonumber(alert_time + 600)
+         local key = nil
 
-         local timeseries_table = behavior_utils.get_behavior_timeseries_utils(alert_type_params["family_key"])
+         for k, v in pairs(alert_entities) do
+            if v["entity_id"] == alert_type_params["entity_id"] then
+               key = k
+               break
+            end
+         end
+         
+         local timeseries_table = behavior_utils.get_behavior_timeseries_utils(key or (alert_type_params["family_key"]))
 
          href = timeseries_table["page_path"] .. "?" .. timeseries_table["timeseries_id"] .. "=" .. alert_type_params["timeseries_id"] .. 
                   "&ifid=" .. interface.getId() .. "&page=historical&ts_schema=" .. timeseries_table["schema_id"] .. "%3A" .. alert_type_params.type_of_behavior .. 
