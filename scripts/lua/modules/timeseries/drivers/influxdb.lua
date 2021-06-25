@@ -780,6 +780,8 @@ function driver:query(schema, tstart, tend, tags, options)
 
       for k, v in pairs(series) do
         local s = ts_common.calculateStatistics(v.data, time_step, tend - tstart, data_type)
+        -- Adding per timeseries min-max stats
+        stats.by_serie[k] = table.merge(s, ts_common.calculateMinMax(v.data))
         stats.by_serie[k] = s
 
         -- Remove the total for now as it requires a complex computation (see below)

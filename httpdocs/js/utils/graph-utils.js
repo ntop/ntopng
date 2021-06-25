@@ -1109,6 +1109,37 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           });
         }
 
+        /* 
+          Function used to split charts info, otherwise graphs with multiple
+          timeseries are going to have incorrect values
+        */
+        function splitSeriesInfo(stats_name, cell, show_date = false) {
+          let val = "";
+
+          if(visualization.split_directions && stats.by_serie) {
+            const values = [];
+
+            /* Format each splitted info */
+            for(var i=0; i<series.length; i++) {
+              if(stats.by_serie[i])
+                values.push(stats_formatter(stats.by_serie[i][stats_name]) +
+                  " [" + series_formatted_labels[i] + "]" +
+                  /* Add the date */
+                  (show_date ? (" (" + (new Date(res[i].values[stats.by_serie[i][stats_name + "_idx"] + 1][0] * 1000)).format(datetime_format) + ")") : ""));
+            }
+
+            /* Join them using a new line */
+            val = values.join("<br />");
+          } else
+            val = stats_formatter(stats[stats_name]) + (show_date ? (" (" + (new Date(res[0].values[stats[stats_name + "_idx"]][0] * 1000)).format(datetime_format) + ")") : "");
+
+          /* Add the string to the span */
+          if(val)
+            cell.show().find("span").html(val);
+
+          return values;
+        }
+
         var total_cell = stats_table.find(".graph-val-total");
         var average_cell = stats_table.find(".graph-val-average");
         var min_cell = stats_table.find(".graph-val-min");
@@ -1117,33 +1148,18 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
         // fill the stats
         if(stats.total || total_cell.is(':visible'))
-          total_cell.show().find("span").html(tot_formatter(stats.total));
+          splitSeriesInfo("total", total_cell)
         if(stats.average || average_cell.is(':visible'))
-          average_cell.show().find("span").html(stats_formatter(stats.average));
+          splitSeriesInfo("average", average_cell)
         if((stats.min_val || min_cell.is(':visible')) && res[0].values[stats.min_val_idx])
-          min_cell.show().find("span").html(stats_formatter(stats.min_val) + " @ " + (new Date(res[0].values[stats.min_val_idx][0] * 1000)).format(datetime_format));
+          splitSeriesInfo("min_val", min_cell, true)
         if((stats.max_val || max_cell.is(':visible')) && res[0].values[stats.max_val_idx])
-          max_cell.show().find("span").html(stats_formatter(stats.max_val) + " @ " + (new Date(res[0].values[stats.max_val_idx][0] * 1000)).format(datetime_format));
+          splitSeriesInfo("max_val", max_cell, true)
         if(stats["95th_percentile"] || perc_cell.is(':visible')) {
-          let perc_val = "";
-
-          if(visualization.split_directions && stats.by_serie) {
-            const values = [];
-
-            for(var i=0; i<series.length; i++) {
-              if(stats.by_serie[i])
-                values.push(stats_formatter(stats.by_serie[i]["95th_percentile"]) + " [" + series_formatted_labels[i] + "]");
-            }
-
-            perc_val = values.join(", ");
-          } else
-            perc_val = stats_formatter(stats["95th_percentile"]);
-
-          if(perc_val)
-            perc_cell.show().find("span").html(perc_val);
+          splitSeriesInfo("95th_percentile", perc_cell);
 
           if(!visualization.split_directions) {
-            /* When directions are split, hide the total 95th percentile */
+            /* When directions are split, hide the total stat */
             var values = makeFlatLineValues(data.start, data.step, data.count, stats["95th_percentile"]);
 
             res.push({

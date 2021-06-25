@@ -609,7 +609,8 @@ function driver:query(schema, tstart, tend, tags, options)
     -- Also calculate per-serie statistics
     for k, v in pairs(series) do
       local s = ts_common.calculateStatistics(v.data, unsampled_fstep, tend - tstart, schema.options.metrics_type)
-      stats.by_serie[k] = s
+      -- Adding per timeseries min-max stats
+      stats.by_serie[k] = table.merge(s, ts_common.calculateMinMax(v.data))
     end
   end
 
