@@ -725,9 +725,9 @@ class DataTableRenders {
            let total_len = name_len + desc_len;
            let tooltip = ""
 
-           let limit = 50; /* description limit */
+           let limit = 30; /* description limit */
            if (row.family != 'flow') {
-             limit = 80; /* some families have room for bigger descriptions */
+             limit = 50; /* some families have room for bigger descriptions */
            }
 
            if (total_len > limit) { /* cut and set a tooltip */

@@ -1,21 +1,21 @@
 [
     /* Date */
-    {responsivePriority: 2, name: 'tstamp', data: 'tstamp', width: '12%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle },
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '8%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle },
     /* Score */
-    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '3%', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
     /* Application */
     {responsivePriority: 3, name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center', width: '5%', render: (proto, type, row) => {
         if (type !== "display") return proto.value;
 	return DataTableRenders.filterize('l7_proto', proto.value, proto.label);
     }},
-    /* Flow */
-    {responsivePriority: 3, name: 'flow', data: 'flow', orderable: false, className: 'text-nowrap', width: '12%', render: DataTableRenders.formatFlowTuple},
     /* Alert */
-    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', width: '55%', render: DataTableRenders.formatNameDescription },
+    /* Flow */
+    {responsivePriority: 2, name: 'flow', data: 'flow', orderable: false, className: 'text-nowrap', width: '100%', render: DataTableRenders.formatFlowTuple},
     /* Counts */
-    {responsivePriority: 3, name: 'count', className: 'text-center', width: '3%', data: 'count', visible: false},
+    {responsivePriority: 3, name: 'count', className: 'text-center', data: 'count', visible: false},
     /* Description */
     {responsivePriority: 3, name: 'description', data: 'description', orderable: false, className: 'text-nowrap'},
     /* Additional alerts */
-    {responsivePriority: 3, name: 'additional_alerts', data: 'additional_alerts', orderable: false, className: 'text-nowrap'},
+    {responsivePriority: 4, name: 'additional_alerts', data: 'additional_alerts', orderable: false, className: 'text-nowrap'},
 ]
