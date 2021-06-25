@@ -23,7 +23,7 @@ alert_am_threshold_cross.meta = {
    i18n_title = "graphs.active_monitoring",
    icon = "fas fa-fw fa-exclamation",
    entities = {
-      am_host,
+      alert_entities.am_host,
    },
 }
 
