@@ -453,7 +453,7 @@ function host_pools:hostpool2record(ifid, pool_id, pool)
     record["column_breakdown"] =
         "<div class='progress'><div class='progress-bar bg-warning' style='width: " ..
             sent2rcvd ..
-            "%;'>Sent</div><div class='progress-bar bg-info' style='width: " ..
+            "%;'>Sent</div><div class='progress-bar bg-success' style='width: " ..
             (100 - sent2rcvd) .. "%;'>Rcvd</div></div>"
 
     if (throughput_type == "pps") then

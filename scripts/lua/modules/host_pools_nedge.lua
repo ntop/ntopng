@@ -554,7 +554,7 @@ function host_pools_nedge.hostpool2record(ifid, pool_id, pool)
 
    local sent2rcvd = round((pool["bytes.sent"] * 100) / (pool["bytes.sent"] + pool["bytes.rcvd"]), 0)
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
-      .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
+      .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
 
    if(throughput_type == "pps") then
       record["column_thpt"] = pktsToSize(pool["throughput_pps"])

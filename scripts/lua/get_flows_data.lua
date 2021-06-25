@@ -211,7 +211,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       record["column_server_rtt"] = format_utils.formatMillis(value["server_tcp_info"]["rtt"])
    end
 
-   local column_key = "<A class='btn btn-sm btn-info' HREF='"
+   local column_key = "<A class='btn btn-sm btn-warning' HREF='"
       ..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..value["ntopng.key"].."&flow_hash_id="..value["hash_entry_id"]
       .."'><i class='fas fa-search-plus'></i></A>"
    if(have_nedge) then
@@ -311,7 +311,7 @@ end
 
    local cli2srv = round((value["cli2srv.bytes"] * 100) / value["bytes"], 0)
 
-   record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: " .. cli2srv .."%;'>Client</div><div class='progress-bar bg-info' style='width: " .. (100-cli2srv) .. "%;'>Server</div></div>"
+   record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: " .. cli2srv .."%;'>Client</div><div class='progress-bar bg-success' style='width: " .. (100-cli2srv) .. "%;'>Server</div></div>"
 
    local info = value["info"]
 

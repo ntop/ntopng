@@ -160,7 +160,7 @@ function graph_utils.breakdownBar(sent, sentLabel, rcvd, rcvdLabel, thresholdLow
     elseif(sent2rcvd > thresholdHigh) then rcvdLabel = '<i class="fas fa-exclamation-triangle fa-lg""></i> '..rcvdLabel end
 
       print('<div class="progress"><div class="progress-bar bg-warning" aria-valuenow="'.. sent2rcvd..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. sent2rcvd.. '%;">'..sentLabel)
-      print('</div><div class="progress-bar bg-info" aria-valuenow="'.. (100-sent2rcvd)..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. (100-sent2rcvd) .. '%;">' .. rcvdLabel .. '</div></div>')
+      print('</div><div class="progress-bar bg-success" aria-valuenow="'.. (100-sent2rcvd)..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. (100-sent2rcvd) .. '%;">' .. rcvdLabel .. '</div></div>')
 
    else
       print('&nbsp;')
