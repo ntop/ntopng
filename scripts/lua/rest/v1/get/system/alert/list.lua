@@ -42,8 +42,13 @@ for _key,_value in ipairs(alerts or {}) do
    res[#res + 1] = record
 end -- for
 
-rest_utils.extended_answer(rc, {records = res}, {
-			      ["draw"] = tonumber(_GET["draw"]),
-			      ["recordsFiltered"] = recordsFiltered,
-			      ["recordsTotal"] = #res
-}, format)
+if no_html then
+   res = system_alert_store:to_csv(res)   
+   rest_utils.vanilla_payload_response(rc, res, "text/csv")
+else
+   rest_utils.extended_answer(rc, {records = res}, {
+				 ["draw"] = tonumber(_GET["draw"]),
+				 ["recordsFiltered"] = recordsFiltered,
+				 ["recordsTotal"] = #res
+						   }, format)
+end
