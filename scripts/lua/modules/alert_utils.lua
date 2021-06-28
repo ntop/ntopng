@@ -786,16 +786,16 @@ function alert_utils.formatBehaviorAlert(params, anomalies, stats, id, subtype, 
       local upper_bound = stats[anomaly_type]["upper_bound"]
       local value = stats[anomaly_type]["value"]
       
-      if anomaly_table["formatter"] then
-         value = anomaly_table["formatter"](value * (anomaly_table["multiplier"] or 1))
-         lower_bound = anomaly_table["formatter"](lower_bound * (anomaly_table["multiplier"] or 1))
-         upper_bound = anomaly_table["formatter"](upper_bound * (anomaly_table["multiplier"] or 1))
+      if anomaly_table["cut_values"] then
+         value = tonumber(string.format("%.2f", tonumber(value * (anomaly_table["multiplier"] or 1))))
+         lower_bound = tonumber(string.format("%.2f", tonumber(lower_bound * (anomaly_table["multiplier"] or 1))))
+         upper_bound = tonumber(string.format("%.2f", tonumber(upper_bound * (anomaly_table["multiplier"] or 1))))
       end
 
-      if anomaly_table["cut_values"] then
-         value = string.format("%.2f", value)
-         lower_bound = string.format("%.2f", lower_bound)
-         upper_bound = string.format("%.2f", upper_bound)
+      if anomaly_table["formatter"] then
+         value = anomaly_table["formatter"](value)
+         lower_bound = anomaly_table["formatter"](lower_bound)
+         upper_bound = anomaly_table["formatter"](upper_bound)
       end
  
       local alert = alert_consts.alert_types.alert_behavior_anomaly.new(
