@@ -1127,6 +1127,8 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define CONST_DEFAULT_DUMP_SYSLOG_FACILITY LOG_DAEMON
 #endif
 
+#define UNKNOWN_FLOW_DIRECTION          2
+
 //#define PROFILING
 #ifdef PROFILING
 #define PROFILING_DECLARE(n) \

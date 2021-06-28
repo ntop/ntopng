@@ -513,12 +513,15 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void incFlagStats(u_int8_t flags, bool cumulative_flags) {
     pktStats.incFlagStats(flags, cumulative_flags);
   };
-  inline void _incStats(bool ingressPacket, time_t when,
+
+  inline void incStats(bool ingressPacket, time_t when,
 			u_int16_t eth_proto,
 			u_int16_t ndpi_proto, ndpi_protocol_category_t ndpi_category,
 			u_int8_t l4proto,
-			u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
-    incEthStats(ingressPacket, eth_proto, num_pkts, pkt_len, pkt_overhead);
+			u_int32_t pkt_len, u_int32_t num_pkts) {
+#ifndef HAVE_NEDGE
+    /* In nedge, we only update the stats periodically with conntrack */    
+    incEthStats(ingressPacket, eth_proto, num_pkts, pkt_len, getPacketOverhead());
     ndpiStats->incStats(when, ndpi_proto, 0, 0, num_pkts, pkt_len);
     // Note: here we are not currently interested in packet direction, so we tell it is receive
     ndpiStats->incCategoryStats(when, ndpi_category, 0 /* see above comment */, pkt_len);
@@ -526,16 +529,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     l4Stats.incStats(when, l4proto,
 		     ingressPacket ? num_pkts : 0, ingressPacket ? pkt_len : 0,
 		     !ingressPacket ? num_pkts : 0, !ingressPacket ? pkt_len : 0);
-  };
-  inline void incStats(bool ingressPacket, time_t when, u_int16_t eth_proto,
-		       u_int16_t ndpi_proto, ndpi_protocol_category_t ndpi_category,
-		       u_int8_t l4proto, u_int pkt_len, u_int num_pkts) {
-#ifdef HAVE_NEDGE
-    /* In nedge, we only update the stats periodically with conntrack */
-    return;
 #endif
-    u_int pkt_overhead = getPacketOverhead();
-    _incStats(ingressPacket, when, eth_proto, ndpi_proto, ndpi_category, l4proto, pkt_len, num_pkts, pkt_overhead);
   };
 
   inline void incICMPStats(bool is_icmpv6, u_int32_t num_pkts, u_int8_t icmp_type, u_int8_t icmp_code, bool sent) {

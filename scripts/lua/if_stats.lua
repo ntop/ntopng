@@ -725,7 +725,7 @@ print[[
       print("<tr>")
       print("<th nowrap>"..i18n("if_stats_overview.zmq_message_rcvd")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_rcvd>"..formatValue(ifstats.zmqRecvStats.zmq_msg_rcvd).."</span></td>")
       print("<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.zmq_message_drops")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td>")
-      print("<th nowrap> "..i18n("if_stats_overview.zmq_avg_msg_flows").."</th><td width=20%><span id=if_zmq_avg_msg_flows></span></td>")
+      print("<td nowrap> <b>"..i18n("if_stats_overview.zmq_avg_msg_flows").."</b>: <span id=if_zmq_avg_msg_flows></span></td>")
       print("</tr>")
 
       print("<tr>")
@@ -739,8 +739,8 @@ print[[
 
 
    print("<tr><th nowrap>"..i18n("report.traffic_anomalies")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:hosts_anomalies'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
-   print("<th width=20%>"..i18n("report.traffic_anomalies_local_hosts").."</th><td><span id=local_hosts_anomalies>"..formatValue(ifstats.anomalies.num_local_hosts_anomalies).."</span> <span id=local_hosts_anomalies_trend></span></td>")
-   print("<th width=20%>"..i18n("report.traffic_anomalies_remote_hosts").."</th><td><span id=remote_hosts_anomalies>"..formatValue(ifstats.anomalies.num_remote_hosts_anomalies).."</span> <span id=remote_hosts_anomalies_trend></span></td>")
+   print("<th width=20% nowrap>"..i18n("report.traffic_anomalies_local_hosts").."</th><td><span id=local_hosts_anomalies>"..formatValue(ifstats.anomalies.num_local_hosts_anomalies).."</span> <span id=local_hosts_anomalies_trend></span></td>")
+   print("<th width=20% nowrap>"..i18n("report.traffic_anomalies_remote_hosts").."</th><td><span id=remote_hosts_anomalies>"..formatValue(ifstats.anomalies.num_remote_hosts_anomalies).."</span> <span id=remote_hosts_anomalies_trend></span></td>")
    print("</tr>\n")
 
    
@@ -770,7 +770,18 @@ print[[
       print("</span>&nbsp;<span id=drops_trend></span>")
 
       if(ifstats.zmqRecvStats ~= nil) then
-	 print("<p><small> <b>"..i18n("if_stats_overview.note").."</b>:<br>".. i18n("if_stats_overview.note_drops_sflow").."</small>")
+       print([[
+        <small>
+        <details class='mt-2'>
+         <summary>
+            <span data-bs-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
+               ]]..i18n("notes")..[[ <i class='fas fa-question-circle '></i>
+            </span>
+         </summary>
+         <p>]]..i18n("if_stats_overview.note_drops_sflow")..[[</p>
+        </details>
+        </small>
+       ]])
       end
 
       print("</td>")

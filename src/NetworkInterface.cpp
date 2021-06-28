@@ -5827,8 +5827,8 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_seen_dhcp_addresses", hasSeenDHCPAddresses());
   /* Note: source MAC is now used to get traffic direction when not areTrafficDirectionsSupported() */
   lua_push_bool_table_entry(vm, "has_traffic_directions",
-    (areTrafficDirectionsSupported() || !Utils::isEmptyMac(ifMac)) && !isLoopback() &&
-    (!isTrafficMirrored() || isGwMacConfigured()));
+			    (areTrafficDirectionsSupported() || (!Utils::isEmptyMac(ifMac)))
+			    && (!isLoopback()) && (!isTrafficMirrored() || isGwMacConfigured()));
   lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
   lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
   lua_push_bool_table_entry(vm, "has_seen_external_alerts", hasSeenExternalAlerts());

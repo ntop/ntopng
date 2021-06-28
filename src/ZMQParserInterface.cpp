@@ -1252,7 +1252,7 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
     PROFILING_SECTION_EXIT(30);
   }
 
-  if (!rc)
+  if(!rc)
     recvStats.num_dropped_flows++;
 
   return rc;
@@ -1260,8 +1260,7 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 
 /* **************************************************** */
 
-int ZMQParserInterface::parseSingleJSONFlow(json_object *o,
-					     u_int8_t source_id) {
+int ZMQParserInterface::parseSingleJSONFlow(json_object *o, u_int8_t source_id) {
   ParsedFlow flow;
   struct json_object_iterator it = json_object_iter_begin(o);
   struct json_object_iterator itEnd = json_object_iter_end(o);
@@ -1269,7 +1268,8 @@ int ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 
   /* Reset data */
   flow.source_id = source_id;
-
+  flow.direction = UNKNOWN_FLOW_DIRECTION;
+  
   while(!json_object_iter_equal(&it, &itEnd)) {
     const char *key     = json_object_iter_peek_name(&it);
     json_object *jvalue = json_object_iter_peek_value(&it);
@@ -1374,7 +1374,7 @@ int ZMQParserInterface::parseSingleJSONFlow(json_object *o,
     json_object_iter_next(&it);
   } // while json_object_iter_equal
 
-  if (preprocessFlow(&flow))
+  if(preprocessFlow(&flow))
     ret = 1;
 
   return ret;
@@ -1391,7 +1391,8 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
   /* Reset data */
   flow.source_id = source_id;
-
+  flow.direction = UNKNOWN_FLOW_DIRECTION;
+  
   PROFILING_SECTION_ENTER("Decode TLV", 9);
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing TLV record");
   while((et = ndpi_deserialize_get_item_type(deserializer, &kt)) != ndpi_serialization_unknown) {
@@ -1596,7 +1597,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
   if(recordFound) {
     PROFILING_SECTION_EXIT(9); /* Closes Decode TLV */
     PROFILING_SECTION_ENTER("processFlow", 10);
-    if (preprocessFlow(&flow))
+    if(preprocessFlow(&flow))
       ret = 1;
     PROFILING_SECTION_EXIT(10);
   }
@@ -1628,14 +1629,14 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int paylo
       for(id = 0; id < num_elements; id++) {
 	rc = parseSingleJSONFlow(json_object_array_get_idx(f, id), source_id);
 
-        if (rc > 0)
+        if(rc > 0)
           n++;
       }
 
     } else {
       rc = parseSingleJSONFlow(f, source_id);
 
-      if (rc > 0)
+      if(rc > 0)
         n++;
     }
 
@@ -1684,9 +1685,9 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char * const payload, int payloa
   while(ndpi_deserialize_get_item_type(&deserializer, &kt) != ndpi_serialization_unknown) {
     rc = parseSingleTLVFlow(&deserializer, source_id);
 
-    if (rc < 0)
+    if(rc < 0)
       break;
-    else if (rc > 0)
+    else if(rc > 0)
       n++;
   }
 
