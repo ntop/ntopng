@@ -228,6 +228,21 @@ static int ntop_get_max_if_speed(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_get_observation_points(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface)
+    ntop_interface->getObservationPoints(vm);
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifdef NTOPNG_PRO
 /**
  * @brief Get the SNMP statistics of interface.
@@ -4353,7 +4368,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getId",                    ntop_get_interface_id },
   { "getName",                  ntop_get_interface_name },
   { "isValidIfId",              ntop_is_valid_interface_id },
-
+  { "getObservationPoints",     ntop_interface_get_observation_points },
   { "getMaxIfSpeed",            ntop_get_max_if_speed },
   { "hasVLANs",                 ntop_interface_has_vlans },
   { "hasEBPF",                  ntop_interface_has_ebpf  },

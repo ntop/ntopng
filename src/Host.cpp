@@ -171,7 +171,9 @@ void Host::housekeep(time_t t) {
 
 void Host::initialize(Mac *_mac, VLANid _vlanId) {
   char buf[64];
-
+  u_int16_t masked_vlanId = filterVLANid(_vlanId); /* Skip observationPointId (if any) */
+  u_int16_t observationPointId = filterObservationPointId(_vlanId);
+  
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
@@ -192,7 +194,10 @@ void Host::initialize(Mac *_mac, VLANid _vlanId) {
   if((mac = _mac))
     mac->incUses();
 
-  if((vlan = iface->getVLAN(_vlanId, true, true /* Inline call */)) != NULL)
+  if(observationPointId != 0)
+    iface->setObservationPointId(observationPointId);
+      
+  if((vlan = iface->getVLAN(masked_vlanId, true, true /* Inline call */)) != NULL)
     vlan->incUses();
 
   num_resolve_attempts = 0, ssdpLocation = NULL;
@@ -392,7 +397,7 @@ void Host::lua_get_ip(lua_State *vm) const {
 
   lua_push_str_table_entry(vm, "ip", ip.print(ip_buf, sizeof(ip_buf)));
   lua_push_uint32_table_entry(vm, "vlan", filterVLANid(get_vlan_id()));
-  lua_push_uint32_table_entry(vm, "observation_domain_id", filterObservationDomainId(get_vlan_id()));
+  lua_push_uint32_table_entry(vm, "observation_point_id", filterObservationPointId(get_vlan_id()));
 }
 
 /* ***************************************************** */
@@ -667,7 +672,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_str_table_entry(vm, "ip", (ipaddr = printMask(ip_buf, sizeof(ip_buf))));
   lua_push_uint32_table_entry(vm, "vlan", filterVLANid(get_vlan_id()));
-  lua_push_uint32_table_entry(vm, "observation_domain_id", filterObservationDomainId(get_vlan_id()));
+  lua_push_uint32_table_entry(vm, "observation_point_id", filterObservationPointId(get_vlan_id()));
 
   lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
 

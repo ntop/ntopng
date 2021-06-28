@@ -138,6 +138,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /* Queue containing the ip@vlan strings of the hosts to restore. */
   StringFifoQueue *hosts_to_restore;
 
+  std::map<u_int16_t, bool> observationPoints;
+  
   /* External alerts contain alertable entities other than host/interface/network
    * which are dynamically allocated when an alert for them occurs.
    * A lock is necessary to guard the insert/delete operations from lookup operations
@@ -255,7 +257,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   CountriesHash *countries_hash;
 
   /* VLANs */
-  VLANHash *vlans_hash; /**< Hash used to store Vlans information. */
+  VLANHash *vlans_hash; /**< Hash used to store VLAN information. */
 
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to store hosts information. */
@@ -1030,6 +1032,12 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int64_t dequeueHostAlertsFromChecks(u_int budget);
   inline HostChecksExecutor* getHostCheckExecutor() { return(host_checks_executor); }
   HostCheck *getCheck(HostCheckID t);
+
+  inline void setObservationPointId(u_int16_t pointId) {
+    /* This is work in progress and it needs to be locked when read */
+    observationPoints[pointId] = true;
+  }
+  void getObservationPoints(lua_State* vm);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

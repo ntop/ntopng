@@ -2021,8 +2021,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(vrfId) lua_push_uint64_table_entry(vm, "vrfId", vrfId);
 
+    /* See VLANAddressTree.h for details */
     lua_push_uint32_table_entry(vm, "vlan", filterVLANid(get_vlan_id()));
-    lua_push_uint32_table_entry(vm, "observation_domain_id", filterObservationDomainId(get_vlan_id()));
+    lua_push_uint32_table_entry(vm, "observation_point_id", filterObservationPointId(get_vlan_id()));
 
     if(srcAS)
       lua_push_int32_table_entry(vm, "src_as", srcAS);
@@ -2799,8 +2800,9 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   // flows don't have any pool for now
   ndpi_serialize_string_int32(s, "pool_id", NO_HOST_POOL_ID);
 
+  /* See VLANAddressTree.h for details */
   ndpi_serialize_string_int32(s, "vlan_id", filterVLANid(get_vlan_id()));
-  ndpi_serialize_string_int32(s, "observation_domain_id", filterObservationDomainId(get_vlan_id()));
+  ndpi_serialize_string_int32(s, "observation_point_id", filterObservationPointId(get_vlan_id()));
   
   ndpi_serialize_string_int32(s, "proto", get_protocol());
 

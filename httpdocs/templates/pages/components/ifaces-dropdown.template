@@ -74,4 +74,26 @@
   </select>
 </li>
 
+
+{% -- Print the observation point dropdown %}
+{% if observationPoints ~= nil then %}
+&nbsp;<li class="nav-item d-none d-sm-flex align-items-center">
+  <select name="observationpoint-dropdown" id="observationpoint-dropdown" class="selectpicker" 
+    data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
+
+
+    {% -- The Observationpoint optgroup %}
+  <optgroup label="{{ i18n('observationpoints') }}">
+   {% for k, v in pairsByKeys(observationPoints, asc) do %}
+        selected = ""
+        <option data-tokens="{{ k }}" value="{{ k }}" {{ selected }}>{{ k }}</option>
+   {% end %}
+   </optgroup>
+
+  </select>
+</li>
+{% end %}
+
+
+
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/components/ifaces-dropdown.js?{{ ntop.getStaticFileEpoch() }}"></script>

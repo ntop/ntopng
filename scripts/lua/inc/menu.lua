@@ -889,6 +889,7 @@ local pcapdump = {}
 local ifnames = {}
 local iftype = {}
 local ifHdescr = {}
+local observationPoints = {}
 local ifCustom = {}
 local dynamic = {}
 local action_urls = {}
@@ -967,7 +968,11 @@ for v,k in pairs(iface_names) do
 
 --   tprint({k, dynamic[k], _ifstats.dynamic_interface_probe_ip, _ifstats.dynamic_interface_inifidx})
 
-   ifHdescr[_ifstats.id] = descr
+    ifHdescr[_ifstats.id] = descr
+
+    if(ifs.id == _ifstats.id) then
+      observationPoints = interface.getObservationPoints()
+   end
 end
 
 interface.select(ifs.id.."")
@@ -984,6 +989,7 @@ local context = {
    ifCustom = ifCustom,
    action_urls = action_urls,
    is_system_interface = is_system_interface,
+   observationPoints = observationPoints
 }
 
 print(template_utils.gen("pages/components/ifaces-dropdown.template", context))

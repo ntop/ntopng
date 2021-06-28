@@ -898,7 +898,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
   if(!flows_hash)
     return(NULL);
 
-  if(vlan_id != 0)
+  if(filterVLANid(vlan_id) != 0)
     setSeenVLANTaggedPackets();
 
   if((srcMac && Utils::macHash(srcMac->get_mac()) != 0)
@@ -9076,6 +9076,27 @@ void NetworkInterface::luaTrafficMap(lua_State *vm) {
 void NetworkInterface::execHostChecks(Host *h) {
   if(host_checks_executor)
     host_checks_executor->execChecks(h);
+}
+
+/* *************************************** */
+
+void NetworkInterface::getObservationPoints(lua_State* vm) {
+  bool found = false;
+
+  for(std::map<u_int16_t, bool>::iterator it = observationPoints.begin(); it != observationPoints.end(); ++it) {
+    char key[16];
+
+    if(!found) {
+      lua_newtable(vm);
+      found = true;
+    }
+    
+    snprintf(key, sizeof(key), "%u", it->first);
+    lua_push_bool_table_entry(vm, key, it->second);
+  }
+
+  if(!found)
+    lua_pushnil(vm);
 }
 
 /* *************************************** */

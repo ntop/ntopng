@@ -154,7 +154,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac,
-		 zflow->vlan_id,
+		 buildVLANId(zflow->vlan_id, zflow->observationPointId),
 		 zflow->device_ip,
 		 zflow->inIndex, zflow->outIndex,
 		 NULL /* ICMPinfo */,
