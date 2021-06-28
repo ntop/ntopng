@@ -95,10 +95,10 @@
             <div class="controls d-flex flex-wrap">
                 <div class="btn-group me-auto btn-group-sm">
                     <button class="btn btn-link" id="btn-jump-time-back">
-                        <i class="fas fa-arrow-left"></i>
+                        <i class="fas fa-long-arrow-alt-left"></i>
                     </button>
                     <button class="btn btn-link me-2" disabled id="btn-jump-time-ahead">
-                        <i class="fas fa-arrow-right"></i>
+                        <i class="fas fa-long-arrow-alt-right"></i>
                     </button>
                     <button class="btn btn-link" id="btn-zoom-in">
                         <i class="fas fa-search-plus"></i>

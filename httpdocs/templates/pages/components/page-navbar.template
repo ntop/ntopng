@@ -46,13 +46,19 @@
                 {% end %}
 
             {% end %}
+
         </ul>
-        {% if (navbar.help_link ~= nil) then %}
-        <ul class="navbar-nav ms-auto">
-            <a target='_newtab' href='{* navbar.help_link *}' class='nav-item nav-link text-muted'>
-                <i class='fas fa-question-circle'></i>
-            </a>
-        </ul>
-        {% end %}
+
+	<ul class="navbar-nav ms-auto">
+	  <a href="javascript:history.back()" class="nav-item nav-link text-muted">
+	    <i class="fas fa-arrow-left"></i>
+	  </a>
+          {% if (navbar.help_link ~= nil) then %}
+          <a target='_newtab' href='{* navbar.help_link *}' class='nav-item nav-link text-muted'>
+            <i class='fas fa-question-circle'></i>
+          </a>
+
+          {% end %}
+	</ul>
     </div>
 </nav>

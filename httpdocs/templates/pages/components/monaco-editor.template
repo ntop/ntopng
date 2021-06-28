@@ -3,7 +3,7 @@
         {% if (not isEmptyString(monaco_editor.referarl_script_page)) then %}
         <div class="col-2">
             <a class="btn w-100 btn-primary" href="{{ ntop.getHttpPrefix() }}{* monaco_editor.referarl_script_page *}">
-                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-long-arrow-alt-left"></i>
                 {{ i18n('scripts_list.back_scripts_page') }}
             </a>
         </div>

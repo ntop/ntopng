@@ -884,7 +884,7 @@ else
 	 print("<td>&nbsp;</td></tr>\n")
       end
 
-      print("<tr><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-arrow-right\"></i> " .. i18n("server") .. ": <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-arrow-left\"></i> " .. i18n("server") .. ": <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
+      print("<tr><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server") .. ": <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " .. i18n("server") .. ": <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
 
       print("<tr><td colspan=2>")
       cli2srv = round((flow["cli2srv.bytes"] * 100) / flow["bytes"], 0)
@@ -939,7 +939,7 @@ else
 	 if(keys[1] == keys[2]) then
 	    key = key ..' <i class="fas fa-exchange-alt"></i> '
 	 else
-	    key = key ..' <i class="fas fa-arrow-right"></i> '
+	    key = key ..' <i class="fas fa-long-arrow-alt-right"></i> '
 	 end
 
 	 key = key .. iec104_typeids2str(tonumber(keys[2]))
@@ -983,7 +983,7 @@ else
       print("</td></tr>\n")
 
       print("<tr><th>"..i18n("flow_details.iec104_msg_loss").."</th><td>")
-      print("<i class=\"fas fa-arrow-left\"></i> "..colorNotZero(flow.iec104.pkt_lost.rx)..", <i class=\"fas fa-arrow-right\"></i> "..colorNotZero(flow.iec104.pkt_lost.tx).." / ")
+      print("<i class=\"fas fa-long-arrow-alt-left\"></i> "..colorNotZero(flow.iec104.pkt_lost.rx)..", <i class=\"fas fa-long-arrow-alt-right\"></i> "..colorNotZero(flow.iec104.pkt_lost.tx).." / ")
 
       if(flow.iec104.stats.retransmitted_msgs == 0) then
 	 print("0")
@@ -1038,13 +1038,13 @@ else
       if flow["cli2srv.packets"] > 1 and flow["interarrival.cli2srv"] and flow["interarrival.cli2srv"]["max"] > 0 then
 	 print("<tr><th width=30%")
 	 if(flow["flow.idle"] == true) then print(" rowspan=2") end
-	 print(">"..i18n("flow_details.packet_inter_arrival_time").."</th><td nowrap>"..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server")..": ")
+	 print(">"..i18n("flow_details.packet_inter_arrival_time").."</th><td nowrap>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server")..": ")
 	 print(msToTime(flow["interarrival.cli2srv"]["min"]).." / "..msToTime(flow["interarrival.cli2srv"]["avg"]).." / "..msToTime(flow["interarrival.cli2srv"]["max"]))
 	 print("</td>\n")
 	 if(flow["srv2cli.packets"] < 2) then
 	    print("<td>&nbsp;")
 	 else
-	    print("<td nowrap>"..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server")..": ")
+	    print("<td nowrap>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server")..": ")
 	    print(msToTime(flow["interarrival.srv2cli"]["min"]).." / "..msToTime(flow["interarrival.srv2cli"]["avg"]).." / "..msToTime(flow["interarrival.srv2cli"]["max"]))
 	 end
 	 print("</td></tr>\n")
@@ -1054,7 +1054,7 @@ else
       if((flow["cli2srv.fragments"] + flow["srv2cli.fragments"]) > 0) then
 	 rowspan = 2
 	 print("<tr><th width=30% rowspan="..rowspan..">"..i18n("flow_details.ip_packet_analysis").."</th>")
-	 print("<th>&nbsp;</th><th>"..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server").."</th></tr>\n")
+	 print("<th>&nbsp;</th><th>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server").."</th></tr>\n")
 	 print("<tr><th>"..i18n("details.fragments").."</th><td align=right><span id=c2sFrag>".. formatPackets(flow["cli2srv.fragments"]) .."</span> / <span id=s2cFrag>".. formatPackets(flow["srv2cli.fragments"]) .."</span></td></tr>\n")
       end
 
@@ -1067,7 +1067,7 @@ else
 
 	 if rowspan > 1 then
 	    print("<tr><th width=30% rowspan="..rowspan..">"..i18n("flow_details.tcp_packet_analysis").."</th>")
-	    print("<th></th><th>"..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server").."</th></tr>\n")
+	    print("<th></th><th>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server").." / "..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server").."</th></tr>\n")
 
 	    if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]) > 0) then
 	       print("<tr><th>"..i18n("details.retransmissions").."</th><td align=right><span id=c2sretr>".. formatPackets(flow["cli2srv.retransmissions"]) .."</span> / <span id=s2cretr>".. formatPackets(flow["srv2cli.retransmissions"]) .."</span></td></tr>\n")
@@ -1165,17 +1165,17 @@ else
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
      print("<tr><th width=30%>"..
      '<a href="https://en.wikipedia.org/wiki/TCP_tuning" data-bs-toggle="tooltip" target=\"_blank\" title="'..i18n("flow_details.computed_as_tcp_window_size_rtt")..'">'..
-     i18n("flow_details.max_estimated_tcp_throughput").."</a> <i class=\"fas fa-external-link-alt\"></i><td nowrap> "..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server")..": ")
+     i18n("flow_details.max_estimated_tcp_throughput").."</a> <i class=\"fas fa-external-link-alt\"></i><td nowrap> "..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server")..": ")
      print(bitsToSize(flow["tcp.max_thpt.cli2srv"]))
-     print("</td><td> "..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server")..": ")
+     print("</td><td> "..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server")..": ")
      print(bitsToSize(flow["tcp.max_thpt.srv2cli"]))
      print("</td></tr>\n")
    end
 
    if((flow["cli2srv.trend"] ~= nil) and false) then
-     print("<tr><th width=30%>"..i18n("flow_details.throughput_trend").."</th><td nowrap>"..flow["cli.ip"].." <i class=\"fas fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
+     print("<tr><th width=30%>"..i18n("flow_details.throughput_trend").."</th><td nowrap>"..flow["cli.ip"].." <i class=\"fas fa-long-arrow-alt-right\"></i> "..flow["srv.ip"]..": ")
      print(flow["cli2srv.trend"])
-     print("</td><td>"..flow["cli.ip"].." <i class=\"fas fa-arrow-left\"></i> "..flow["srv.ip"]..": ")
+     print("</td><td>"..flow["cli.ip"].." <i class=\"fas fa-long-arrow-alt-left\"></i> "..flow["srv.ip"]..": ")
      print(flow["srv2cli.trend"])
      print("</td></tr>\n")
     end
@@ -1183,9 +1183,9 @@ else
    local flags = flow["cli2srv.tcp_flags"] or flow["srv2cli.tcp_flags"]
 
    if((flags ~= nil) and (flags > 0)) then
-      print("<tr><th width=30% rowspan=2>"..i18n("tcp_flags").."</th><td nowrap>"..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server")..": ")
+      print("<tr><th width=30% rowspan=2>"..i18n("tcp_flags").."</th><td nowrap>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server")..": ")
       printTCPFlags(flow["cli2srv.tcp_flags"])
-      print("</td><td nowrap>"..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server")..": ")
+      print("</td><td nowrap>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server")..": ")
       printTCPFlags(flow["srv2cli.tcp_flags"])
       print("</td></tr>\n")
 
@@ -1343,8 +1343,8 @@ else
 
    if(flow.entropy and flow.entropy.client and flow.entropy.server) then
       print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Entropy_(information_theory)\" target=\"_blank\">"..i18n("flow_details.entropy").."</A> <i class=\"fas fa-external-link-alt\"></i></th>")
-      print("<td>"..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.client) .. "</td>")
-      print("<td>"..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.server) .. "</td>")
+      print("<td>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.client) .. "</td>")
+      print("<td>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.server) .. "</td>")
       print("</tr>\n")
    end
 
