@@ -1116,7 +1116,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         function splitSeriesInfo(stats_name, cell, show_date = false) {
           let val = "";
 
-          if(visualization.split_directions && stats.by_serie) {
+          if(visualization.first_timeseries_only) {
+            val = stats_formatter(stats.by_serie[0][stats_name]) + (show_date ? (" (" + (new Date(res[0].values[stats[stats_name + "_idx"]][0] * 1000)).format(datetime_format) + ")") : "");
+          } else if(visualization.split_directions && stats.by_serie) {
             const values = [];
 
             /* Format each splitted info */
@@ -1145,7 +1147,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         var min_cell = stats_table.find(".graph-val-min");
         var max_cell = stats_table.find(".graph-val-max");
         var perc_cell = stats_table.find(".graph-val-95percentile");
-
+        
         // fill the stats
         if(stats.total || total_cell.is(':visible'))
           splitSeriesInfo("total", total_cell)
