@@ -167,6 +167,11 @@ const tagify = new Tagify(input, {
                 console.error(`An error occured when creating a new tag: ${err}`);
             }
         },
+    },
+    validate: function(tagData) {
+       return (typeof tagData.key !== 'undefined' &&
+               typeof tagData.selectedOperator !== 'undefined' &&
+               typeof tagData.value !== 'undefined');
     }
 });
 
