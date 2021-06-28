@@ -97,7 +97,7 @@ class NetworkStats : public NetworkStatsAlertableEntity, public GenericTrafficEl
 
   void setNetworkId(u_int8_t id);
   bool match(const AddressTree * const tree) const;
-  void lua(lua_State* vm);
+  void lua(lua_State* vm, bool diff = false);
   bool serialize(json_object *my_object);
   void deserialize(json_object *obj);
   void housekeepAlerts(ScriptPeriodicity p);

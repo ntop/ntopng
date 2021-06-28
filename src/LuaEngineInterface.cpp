@@ -1664,6 +1664,7 @@ static int ntop_get_mac_device_types(lua_State* vm) {
 
 static int ntop_get_interface_ases_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool diff = false;
 
   Paginator *p = NULL;
 
@@ -1676,7 +1677,10 @@ static int ntop_get_interface_ases_info(lua_State* vm) {
   if(lua_type(vm, 1) == LUA_TTABLE)
     p->readOptions(vm, 1);
 
-  if(ntop_interface->getActiveASList(vm, p) < 0) {
+  if(lua_type(vm, 2) == LUA_TBOOLEAN)
+    diff = lua_toboolean(vm, 2) ? true : false;
+
+  if(ntop_interface->getActiveASList(vm, p, diff) < 0) {
     if(p) delete(p);
     return(CONST_LUA_ERROR);
   }
@@ -2104,10 +2108,14 @@ static int ntop_get_interface_flows_stats(lua_State* vm) {
 
 static int ntop_get_interface_networks_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool diff = false;
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    diff = lua_toboolean(vm, 1) ? true : false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   if(ntop_interface)
-    ntop_interface->getNetworksStats(vm, get_allowed_nets(vm));
+    ntop_interface->getNetworksStats(vm, get_allowed_nets(vm), diff);
   else
     lua_pushnil(vm);
 

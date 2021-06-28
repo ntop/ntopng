@@ -92,7 +92,7 @@ void AutonomousSystem::updateRoundTripTime(u_int32_t rtt_msecs) {
 
 /* *************************************** */
 
-void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
+void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asListElement, bool diff) {
   lua_newtable(vm);
 
   lua_push_uint64_table_entry(vm, "asn", asn);
@@ -119,8 +119,8 @@ void AutonomousSystem::lua(lua_State* vm, DetailsLevel details_level, bool asLis
   }
 
 #ifdef NTOPNG_PRO
-  traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior");
-  traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior");
+  traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior", diff ? ASES_BEHAVIOR_REFRESH : 0);
+  traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior", diff ? ASES_BEHAVIOR_REFRESH : 0);
   score_behavior->luaBehavior(vm, "score_behavior");
 #endif
 

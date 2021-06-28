@@ -5437,7 +5437,7 @@ void NetworkInterface::getFlowsStats(lua_State* vm) {
 
 /* **************************************************** */
 
-void NetworkInterface::getNetworkStats(lua_State* vm, u_int16_t network_id, AddressTree *allowed_hosts) const {
+void NetworkInterface::getNetworkStats(lua_State* vm, u_int16_t network_id, AddressTree *allowed_hosts, bool diff) const {
   NetworkStats *network_stats;
 
   if((network_stats = getNetworkStats(network_id))
@@ -5445,7 +5445,7 @@ void NetworkInterface::getNetworkStats(lua_State* vm, u_int16_t network_id, Addr
      && network_stats->match(allowed_hosts)) {
     lua_newtable(vm);
 
-    network_stats->lua(vm);
+    network_stats->lua(vm, diff);
 
     lua_push_int32_table_entry(vm, "network_id", network_id);
     lua_pushstring(vm, ntop->getLocalNetworkName(network_id));
@@ -5456,13 +5456,13 @@ void NetworkInterface::getNetworkStats(lua_State* vm, u_int16_t network_id, Addr
 
 /* **************************************************** */
 
-void NetworkInterface::getNetworksStats(lua_State* vm, AddressTree *allowed_hosts) const {
+void NetworkInterface::getNetworksStats(lua_State* vm, AddressTree *allowed_hosts, bool diff) const {
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
 
   lua_newtable(vm);
 
   for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++)
-    getNetworkStats(vm, network_id, allowed_hosts);
+    getNetworkStats(vm, network_id, allowed_hosts, diff);
 }
 
 /* **************************************************** */
@@ -6935,7 +6935,7 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
 
 /* **************************************** */
 
-int NetworkInterface::getActiveASList(lua_State* vm, const Paginator *p) {
+int NetworkInterface::getActiveASList(lua_State* vm, const Paginator *p, bool diff) {
   struct flowHostRetriever retriever;
   DetailsLevel details_level;
 
@@ -6958,14 +6958,14 @@ int NetworkInterface::getActiveASList(lua_State* vm, const Paginator *p) {
     for(int i = p->toSkip(), num = 0; i < (int)retriever.actNumEntries && num < (int)p->maxHits(); i++, num++) {
       AutonomousSystem *as = retriever.elems[i].asValue;
 
-      as->lua(vm, details_level, false);
+      as->lua(vm, details_level, false, diff);
       lua_rawseti(vm, -2, num + 1); /* Must use integer keys to preserve and iterate inorder with ipairs */
     }
   } else {
     for(int i = (retriever.actNumEntries - 1 - p->toSkip()), num = 0; i >= 0 && num < (int)p->maxHits(); i--, num++) {
       AutonomousSystem *as = retriever.elems[i].asValue;
 
-      as->lua(vm, details_level, false);
+      as->lua(vm, details_level, false, diff);
       lua_rawseti(vm, -2, num + 1);
     }
   }

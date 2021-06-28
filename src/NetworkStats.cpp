@@ -75,7 +75,7 @@ NetworkStats::~NetworkStats() {
 
 /* *************************************** */
 
-void NetworkStats::lua(lua_State* vm) {
+void NetworkStats::lua(lua_State* vm, bool diff) {
   int hits;
 
   lua_push_str_table_entry(vm, "network_key", ntop->getLocalNetworkName(network_id));
@@ -96,8 +96,8 @@ void NetworkStats::lua(lua_State* vm) {
   lua_settable(vm, -3);
 
 #ifdef NTOPNG_PRO
-  traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior");
-  traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior");
+  traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior", diff ? NETWORK_BEHAVIOR_REFRESH : 0);
+  traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior", diff ? NETWORK_BEHAVIOR_REFRESH : 0);
   score_behavior->luaBehavior(vm, "score_behavior");
 #endif
 

@@ -75,7 +75,7 @@ public:
   }
 
   void updateRoundTripTime(u_int32_t rtt_msecs);
-  void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
+  void lua(lua_State* vm, DetailsLevel details_level, bool asListElement, bool diff = false);
 
   virtual void updateStats(const struct timeval *tv);
 
