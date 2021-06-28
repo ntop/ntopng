@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
+local callback_utils = require "callback_utils"
 
 sendHTTPHeader('application/json')
 interface.select(ifname)
@@ -56,40 +57,46 @@ local function handlePeer(prefix, host_key, value)
    return(nil)
 end
 
-
-local function handleHost(address, value)
-   if((value["latitude"] ~= 0) or (value["longitude"] ~= 0)) then
-      -- set up the host informations
-      local host = {
-	 lat = value["latitude"],
-	 lng = value["longitude"],
-	 isRoot = false,
-	 html = getFlag(value["country"]),
-	 name = address
-      }
-
-      if not isEmptyString(value["city"]) then
-	 host["city"] = value["city"]
-      end
-
-      return(host)
-   end
-
-   return(nil)
-end
-
 -- ##############
 
 local function show_hosts(hosts_count, host_key)
    local hosts = {}
+   local num_hosts = 0
+
    if((host_key == nil) or (host_key == "")) then
-      local what = interface.getPublicHostsInfo(true, "column_traffic", MAX_HOSTS)
+      tprint(getInterfaceName(interface.getId()))
+      callback_utils.foreachHost(
+	 getInterfaceName(interface.getId()),
+	 function(address, value)
+	    tprint(address)
+	    if value["latitude"] ~= 0 or value["longitude"] ~= 0 then
+	       -- set up the host informations
+	       local host = {
+		  lat = value["latitude"],
+		  lng = value["longitude"],
+		  isRoot = false,
+		  html = getFlag(value["country"]),
+		  name = address
+	       }
 
-      for key,value in pairs(what.hosts) do
-	 local h = handleHost(key, value)
+	       if not isEmptyString(value["city"]) then
+		  host["city"] = value["city"]
+	       end
 
-	 if(h ~= nil) then table.insert(hosts, h) end
-      end
+	       table.insert(hosts, host)
+	       num_hosts = num_hosts + 1
+
+	       if num_hosts >= MAX_HOSTS then
+		  -- Stop the iteration
+		  return false
+	       end
+	    end
+
+	    -- Still room, continue the iteration
+	    return true
+	 end
+      )
+
    else
       local what = getTopFlowPeers(hostinfo2hostkey(host_info), MAX_HOSTS - hosts_count, nil, {detailsLevel="max"})
       local keys = {}
