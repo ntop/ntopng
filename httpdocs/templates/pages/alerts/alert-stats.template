@@ -177,7 +177,9 @@
             catch(e) {
                 console.warn(e);
             }
-            alertCardStats();  
+            {% if alert_stats.status ~= "engaged" and ntop.isPro() then %}
+                alertCardStats();
+            {% end %} 
         }
 
         function printQueryTime($table) {
