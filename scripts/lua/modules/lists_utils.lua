@@ -508,12 +508,8 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
       else
 	 -- Domain
 	 if((not list) or (list.format ~= "ip")) then
-	   if((string.len(host) < 4) or (string.find(host, "%.") == nil)) then
-	     traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Bad domain name '%s' in list '%s' [line: %u]", host, list and list.name, num_line))
-	   else
-	     ntop.loadCustomCategoryHost(host, category)
-	     return "domain"
-	   end
+	    ntop.loadCustomCategoryHost(host, category)
+	    return "domain"
 	 else
 	   loadWarning(string.format("Invalid domain '%s' in list '%s'", host, list.name))
 	 end
@@ -708,7 +704,7 @@ local function reloadListsNow()
 	 if ntop.isShutdown() then
 	    break
 	 end
-	 loadListItem(host, category_id, user_custom_categories, 0)
+	 loadListItem(host, category_id, user_custom_categories, {} --[[ No list --]], 0 --[[ No line number --]])
       end
    end
 
