@@ -28,27 +28,28 @@
 #include <math.h>
 #include "expat.h"
 
-#define URL_LENGTH_MAX       255
-#define THREAD_NUM_MAX       1
-#define UPLOAD_EXT_LENGTH_MAX 5
-#define SPEEDTEST_TIME_MAX   10
-#define CUNTRY_NAME_MAX      64
+#define URL_LENGTH_MAX         255
+#define THREAD_NUM_MAX           1
+#define UPLOAD_EXT_LENGTH_MAX    5
+#define SPEEDTEST_TIME_MAX      10
+#define CUNTRY_NAME_MAX         64
+
 #define UPLOAD_EXTENSION_TAG "upload_extension"
 #define LATENCY_TXT_URL "/speedtest/latency.txt"
 
 #define INIT_DOWNLOAD_FILE_RESOLUTION 750
 #define FILE_350_SIZE                 245388
 
-#define MAX_ISP_NAME         255
-#define MAX_IPADDRESS_STRLEN 48
-#define MAX_CLOSEST_SERVER_NUM 16
-#define MIN_SERVERS_TO_CHECK 5
+#define MAX_ISP_NAME           255
+#define MAX_IPADDRESS_STRLEN    48
+#define MAX_CLOSEST_SERVER_NUM  64
+#define MIN_SERVERS_TO_CHECK     5
 
-#define RECORED_EVERY_SEC    0.2
-#define PRINT_RECORED_NUM    2
+#define RECORED_EVERY_SEC        0.2
+#define PRINT_RECORED_NUM        2
 
-#define PI                      3.1415926
-#define EARTH_RADIUS            6378.137
+#define PI                       3.1415926
+#define EARTH_RADIUS          6378.137
 
 #define UPLOAD_CHRUNK_SIZE_MAX  512000 // Max upload chunk size 512K
 
@@ -205,22 +206,30 @@ static void XMLCALL end_element(void *userData, const char *name)
   depth--;
 
   if (strcmp(name, "server") == 0) {
-    int     i;
+    int i;
     struct server_info *p_server = (struct server_info *)userData;
+    double max_distance = 0;
+    int max_distance_i = -1;
 
     p_server->distance = get_distance(client.lat, client.lon, p_server->lat, p_server->lon);
 
     for (i = 0; i < MAX_CLOSEST_SERVER_NUM; i++) {
       if (servers[i].url[0] == 0 ) {
         break;
+      } else {
+        if (servers[i].distance >= max_distance) {
+          /* Keep track of the server with max distance */
+          max_distance = servers[i].distance;
+          max_distance_i = i;
+        }
       }
     }
 
     if (i == MAX_CLOSEST_SERVER_NUM) {
-      for (i = 0; i <MAX_CLOSEST_SERVER_NUM; i++) {
-        if (servers[i].distance > p_server->distance) {
-          break;
-        }
+      /* No room */
+      if (max_distance > p_server->distance) {
+        /* Replacing the server with max distance */
+        i = max_distance_i;
       }
     }
 
