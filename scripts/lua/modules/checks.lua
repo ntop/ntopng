@@ -676,7 +676,7 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
       return(nil)
    end
 
-   if((not return_all) and ((check.nedge_exclude and ntop.isnEdge()) or (check.nedge_only and (not ntop.isnEdge())))) then
+   if((check.nedge_exclude and ntop.isnEdge()) or (check.nedge_only and (not ntop.isnEdge()))) then
       traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for nEdge", mod_fname))
       return(nil)
    end

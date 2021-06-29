@@ -30,8 +30,8 @@ class FlowRisk : public FlowCheck {
 
  public:
   FlowRisk() : FlowCheck(ntopng_edition_community,
-			    false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-			    true /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {};
+			 false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
+			 true /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {};
  FlowRisk(NtopngEdition _edition) : FlowCheck(_edition,
 						 false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
 						 true /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {};

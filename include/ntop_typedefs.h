@@ -416,8 +416,8 @@ typedef enum {
   flow_alert_internals                        = 14,
   flow_alert_potentially_dangerous            = 15,
   flow_alert_remote_to_remote                 = 16,
-  flow_alert_suspicious_tcp_probing           = 17,
-  flow_alert_suspicious_tcp_syn_probing       = 18,
+  flow_alert_suspicious_tcp_probing           = 17, /* No longer used, can be recycled */
+  flow_alert_suspicious_tcp_syn_probing       = 18, /* No longer used, can be recycled */
   flow_alert_tcp_connection_issues            = 19, /* No longer used, can be recycled */
   flow_alert_tcp_connection_refused           = 20,
   flow_alert_tcp_severe_connection_issues     = 21, /* No longer used, merged with flow_alert_tcp_connection_issues */

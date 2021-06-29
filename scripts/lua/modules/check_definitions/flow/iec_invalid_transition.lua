@@ -13,7 +13,9 @@ local script = {
    -- Script category
    category = checks.check_categories.security,
 
-   default_enabled = true,
+   default_enabled = false,
+   packet_interface_only = true,
+
    alert_id = flow_alert_keys.flow_alert_iec_invalid_transition,
 
    -- Specify the default value whe clicking on the "Reset Default" button

@@ -27,8 +27,8 @@
 class IECUnexpectedTypeId : public FlowCheck {
  public:
   IECUnexpectedTypeId() : FlowCheck(ntopng_edition_community,
-				       false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
-				       false /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {};
+				    true /* Packet Interfaces only */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
+				    false /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {};
   ~IECUnexpectedTypeId() {};
 
   void scriptDisable();

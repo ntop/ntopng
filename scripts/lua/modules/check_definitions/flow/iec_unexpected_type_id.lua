@@ -13,6 +13,9 @@ local script = {
    -- Script category
    category = checks.check_categories.security,
 
+   default_enabled = false,
+   packet_interface_only = true,
+
    alert_id = flow_alert_keys.flow_alert_iec_unexpected_type_id,
 
    -- Specify the default value when clicking on the "Reset Default" button

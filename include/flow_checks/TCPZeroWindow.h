@@ -30,8 +30,8 @@ class TCPZeroWindow : public FlowCheck {
 
  public:
  TCPZeroWindow() : FlowCheck(ntopng_edition_community,
-				true /* Packet-interfaces only */, true /* Exclude for nEdge */, false /* NOT only for nEdge */,
-				false /* has_protocol_detected */, true /* has_periodic_update */, true /* has_flow_end */) {};
+			     true /* Packet Interfaces only */, true /* Exclude for nEdge */, false /* NOT only for nEdge */,
+			     false /* has_protocol_detected */, true /* has_periodic_update */, true /* has_flow_end */) {};
   ~TCPZeroWindow() {};
 
   bool loadConfiguration(json_object *config) { return(true); }

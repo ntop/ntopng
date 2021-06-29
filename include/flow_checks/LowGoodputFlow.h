@@ -31,8 +31,8 @@ class LowGoodputFlow : public FlowCheck {
 
  public:
   LowGoodputFlow() : FlowCheck(ntopng_edition_community,
-				  false /* All interfaces */, true /* Exclude for nEdge */, false /* Only for nEdge */,
-				  false /* has_protocol_detected */, true /* has_periodic_update */, true /* has_flow_end */) {};
+			       true /* Packet Interfaces only */, true /* Exclude for nEdge */, false /* Only for nEdge */,
+			       false /* has_protocol_detected */, true /* has_periodic_update */, true /* has_flow_end */) {};
   virtual ~LowGoodputFlow() {};
 
   void periodicUpdate(Flow *f);

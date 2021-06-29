@@ -30,7 +30,7 @@ class TCPNoDataExchanged : public FlowCheck {
   
  public:
   TCPNoDataExchanged() : FlowCheck(ntopng_edition_community,
-				   true /* packtes only */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
+				   true /* Packet Interfaces only */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
 				   false /* has_protocol_detected */, false /* has_periodic_update */, true /* has_flow_end */) {};
   ~TCPNoDataExchanged() {};
 
