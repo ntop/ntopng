@@ -195,7 +195,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId) {
     mac->incUses();
 
   if(observationPointId != 0)
-    iface->setObservationPointId(observationPointId);
+    iface->incObservationPointIdFlows(observationPointId);
       
   if((vlan = iface->getVLAN(masked_vlanId, true, true /* Inline call */)) != NULL)
     vlan->incUses();

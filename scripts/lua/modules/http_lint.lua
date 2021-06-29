@@ -1488,6 +1488,7 @@ local known_parameters = {
    ["begin_epoch"]             = validateNumber,
    ["end_epoch"]               = validateNumber,
    ["ifid"]                    = validateInterface,             -- An ntopng interface ID
+   ["observationPointId"]      = validateNumber,
    ["ifname"]                  = validateSingleWord,
    ["iffilter"]                = validateIfFilter,              -- An interface ID or 'all'
    ["mode"]                    = validateMode,                  -- Remote or Local users

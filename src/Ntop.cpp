@@ -1220,7 +1220,7 @@ bool Ntop::isUserAdministrator(lua_State* vm) {
   } else if(HTTPserver::authorized_localhost_user_login(conn))
     return(true); /* login disabled from localhost, everyone's connecting from localhost is an admin */
 
-  if((username = getLuaVMUserdata(vm,user)) == NULL) {
+  if((username = getLuaVMUserdata(vm, user)) == NULL) {
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, "???");
     return(false); /* Unknown */
   }

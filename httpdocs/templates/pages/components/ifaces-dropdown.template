@@ -76,22 +76,31 @@
 
 
 {% -- Print the observation point dropdown %}
-{% if observationPoints ~= nil then %}
-&nbsp;<li class="nav-item d-none d-sm-flex align-items-center">
-  <select name="observationpoint-dropdown" id="observationpoint-dropdown" class="selectpicker" 
-    data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
+{% if(observationPoints ~= nil) then %}
+&nbsp;
 
+{% for k, v in pairsByKeys(observationPoints, asc) do %}
+  <form id="switch_interface_form_observation_point_{{ k }}" method="POST" action="?ifid={{ currentIfaceId }}&observationPointId={{ k }}" >
+    <input name="switch_interface" type="hidden" value="1" />
+    <input name="switch_observation_point" type="hidden" value="{{ k }}" />
+    <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
+  </form>
+{% end %}
+
+
+    <li class="nav-item d-none d-sm-flex align-items-center">
+     <select name="observationpoint-dropdown" id="observationpoint-dropdown" class="selectpicker" data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
 
     {% -- The Observationpoint optgroup %}
-  <optgroup label="{{ i18n('observationpoints') }}">
-   {% for k, v in pairsByKeys(observationPoints, asc) do %}
-        selected = ""
-        <option data-tokens="{{ k }}" value="{{ k }}" {{ selected }}>{{ k }}</option>
-   {% end %}
-   </optgroup>
-
-  </select>
-</li>
+      <optgroup label="{{ i18n('observationpoints') }}">
+     {% for k, v in pairsByKeys(observationPoints, asc) do %}
+          {% local selected = '' %}
+        {% if((observationPointId ~= nil) and (k == observationPointId)) then selected = 'selected' end %}
+        <option value="{{ k }}" {{ selected }}>{{ k }}</option>
+     {% end %}
+      </optgroup>
+    </select>
+   </li>
 {% end %}
 
 

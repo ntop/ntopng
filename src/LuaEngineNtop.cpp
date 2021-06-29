@@ -507,6 +507,7 @@ static int ntop_elasticsearch_connection(lua_State* vm) {
 
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
     lua_newtable(vm);
+
     lua_push_str_table_entry(vm, "user", ntop->getPrefs()->get_es_user());
     lua_push_str_table_entry(vm, "password", ntop->getPrefs()->get_es_pwd());
     lua_push_str_table_entry(vm, "url", ntop->getPrefs()->get_es_url());
@@ -1166,6 +1167,7 @@ static int ntop_zmq_connect(lua_State* vm) {
 
   getLuaVMUservalue(vm, zmq_context)    = context;
   getLuaVMUservalue(vm, zmq_subscriber) = subscriber;
+
   lua_pushnil(vm);
 
   return(CONST_LUA_OK);
@@ -5044,6 +5046,69 @@ static int ntop_service_restart(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_set_user_observation_point_id(lua_State* vm) {
+  char *username;
+
+  if((username = getLuaVMUserdata(vm, user)) == NULL) {
+    lua_pushboolean(vm, false);
+  } else {
+    char key[64], val[16];
+    u_int16_t observationPointId;
+    NetworkInterface *iface = getCurrentInterface(vm);
+    bool rc;
+
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+    observationPointId = lua_tointeger(vm, 1);
+
+    if(iface->hasObservationPointId(observationPointId)) {
+      snprintf(key, sizeof(key), NTOPNG_PREFS_PREFIX ".%s.observationPointId", username);
+      snprintf(val, sizeof(val), "%u", observationPointId);
+
+      ntop->getRedis()->set(key, val);
+      rc = true;
+    } else
+      rc = false;
+
+    lua_pushboolean(vm, rc);
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_user_observation_point_id(lua_State* vm) {
+  char *username;
+
+  if((username = getLuaVMUserdata(vm, user)) == NULL) {
+    lua_pushboolean(vm, false);
+  } else {
+    char key[64], val[16];
+    NetworkInterface *iface = getCurrentInterface(vm);
+    bool rc = false;
+
+    snprintf(key, sizeof(key), NTOPNG_PREFS_PREFIX ".%s.observationPointId", username);
+    
+    if(ntop->getRedis()->get(key, val, sizeof(val)) != -1) {
+      u_int16_t observationPointId = (u_int16_t)atoi(val);
+      
+      if(iface->haveObservationPointsDefined()
+	 && iface->hasObservationPointId(observationPointId)) {
+	getLuaVMUservalue(vm, observationPointId) = observationPointId;
+	rc = true;
+	lua_pushinteger(vm, observationPointId);
+      }
+    }
+
+    if(!rc)
+      lua_pushinteger(vm, 0 /* No observation point */);
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_set_logging_level(lua_State* vm) {
   char *lvlStr;
 
@@ -5054,27 +5119,21 @@ static int ntop_set_logging_level(lua_State* vm) {
     return(CONST_LUA_ERROR);
 
   lvlStr = (char*)lua_tostring(vm, 1);
-  if(!strcmp(lvlStr, "trace")){
+
+  if(!strcmp(lvlStr, "trace"))
     ntop->getTrace()->set_trace_level(TRACE_LEVEL_TRACE);
-  }
-  else if(!strcmp(lvlStr, "debug")){
+  else if(!strcmp(lvlStr, "debug"))
     ntop->getTrace()->set_trace_level(TRACE_LEVEL_DEBUG);
-  }
-  else if(!strcmp(lvlStr, "info")){
+  else if(!strcmp(lvlStr, "info"))
     ntop->getTrace()->set_trace_level(TRACE_LEVEL_INFO);
-  }
-  else if(!strcmp(lvlStr, "normal")){
+  else if(!strcmp(lvlStr, "normal"))
     ntop->getTrace()->set_trace_level(TRACE_LEVEL_NORMAL);
-  }
-  else if(!strcmp(lvlStr, "warning")){
+  else if(!strcmp(lvlStr, "warning"))
     ntop->getTrace()->set_trace_level(TRACE_LEVEL_WARNING);
-  }
-  else if(!strcmp(lvlStr, "error")){
+  else if(!strcmp(lvlStr, "error"))
     ntop->getTrace()->set_trace_level(TRACE_LEVEL_ERROR);
-  }
-  else{
+  else
     return(CONST_LUA_ERROR);
-  }
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -5746,6 +5805,7 @@ static int ntop_recipient_enqueue(lua_State* vm) {
 
   if(!rv) {
     NetworkInterface *iface = getCurrentInterface(vm);
+
     if(iface) {
       iface->incNumDroppedAlerts(alert_entity_other);
 
@@ -5951,11 +6011,11 @@ static int ntop_get_asn_name(lua_State *vm) {
     return(CONST_LUA_PARAM_ERROR);
 
   a.set((char*)lua_tostring(vm, 1));
-  
+
   ntop->getGeolocation()->getAS(&a, &asn, &as_name);
 
   lua_pushstring(vm, as_name);
-  
+
   return(CONST_LUA_OK);
 }
 
@@ -6253,6 +6313,8 @@ static luaL_Reg _ntop_reg[] = {
   { "getNetworks",          ntop_get_networks },
   { "isGuiAccessRestricted", ntop_is_gui_access_restricted },
   { "serviceRestart",       ntop_service_restart },
+  { "setUserObservationPointId", ntop_set_user_observation_point_id },
+  { "getUserObservationPointId", ntop_get_user_observation_point_id },
 
   /* Security */
   { "getRandomCSRFValue",   ntop_get_csrf_value },
@@ -6348,7 +6410,7 @@ static luaL_Reg _ntop_reg[] = {
 
   /* ASN */
   { "getASName",            ntop_get_asn_name },
-  
+
   /* Mac */
   { "setMacDeviceType",     ntop_set_mac_device_type     },
 

@@ -793,7 +793,8 @@ struct ntopngLuaContext {
   NetworkStats *network;
   Flow *flow;
   bool localuser;
-
+  u_int16_t observationPointId;
+  
   /* Capabilities bitmap */
   u_int64_t capabilities;
 

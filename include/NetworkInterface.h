@@ -138,7 +138,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /* Queue containing the ip@vlan strings of the hosts to restore. */
   StringFifoQueue *hosts_to_restore;
 
-  std::map<u_int16_t, bool> observationPoints;
+  std::map<u_int16_t /* observationPointId */, u_int32_t /* # of collected flows */> observationPoints;
   
   /* External alerts contain alertable entities other than host/interface/network
    * which are dynamically allocated when an alert for them occurs.
@@ -1033,11 +1033,18 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline HostChecksExecutor* getHostCheckExecutor() { return(host_checks_executor); }
   HostCheck *getCheck(HostCheckID t);
 
-  inline void setObservationPointId(u_int16_t pointId) {
+  inline void incObservationPointIdFlows(u_int16_t pointId) {
     /* This is work in progress and it needs to be locked when read */
     observationPoints[pointId] = true;
   }
+
+  inline bool hasObservationPointId(u_int16_t pointId) {
+    /* This is work in progress and it needs to be locked when read */
+    return((observationPoints.find(pointId) == observationPoints.end()) ? false : true);
+  }
+  
   void getObservationPoints(lua_State* vm);
+  inline bool haveObservationPointsDefined() { return(observationPoints.size() == 0 ? false : true); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

@@ -9083,7 +9083,7 @@ void NetworkInterface::execHostChecks(Host *h) {
 void NetworkInterface::getObservationPoints(lua_State* vm) {
   bool found = false;
 
-  for(std::map<u_int16_t, bool>::iterator it = observationPoints.begin(); it != observationPoints.end(); ++it) {
+  for(std::map<u_int16_t, u_int32_t>::iterator it = observationPoints.begin(); it != observationPoints.end(); ++it) {
     char key[16];
 
     if(!found) {
@@ -9092,7 +9092,7 @@ void NetworkInterface::getObservationPoints(lua_State* vm) {
     }
     
     snprintf(key, sizeof(key), "%u", it->first);
-    lua_push_bool_table_entry(vm, key, it->second);
+    lua_push_int32_table_entry(vm, key, it->second);
   }
 
   if(!found)

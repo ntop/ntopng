@@ -721,6 +721,8 @@ void LuaEngine::setInterface(const char * user, char * const ifname,
 			     u_int16_t ifname_len, bool * const is_allowed) const {
   NetworkInterface *iface = NULL;
   char key[CONST_MAX_LEN_REDIS_KEY];
+  u_int16_t observationPointId = 0;
+  
   ifname[0] = '\0';
 
   if((user == NULL) || (user[0] == '\0'))
@@ -756,6 +758,24 @@ void LuaEngine::setInterface(const char * user, char * const ifname,
 
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Interface found [Interface: %s][user: %s]", iface->get_name(), user);
   }
+
+  if(iface && iface->haveObservationPointsDefined()) {
+    char buf[16];
+    
+    snprintf(key, sizeof(key), NTOPNG_PREFS_PREFIX ".%s.observationPointId", user);
+    
+    if(ntop->getRedis()->get(key, buf, sizeof(buf)) != -1) {
+      observationPointId = atoi(buf);
+
+      if(!iface->hasObservationPointId(observationPointId))
+	observationPointId = 0; /* Not existing: set it to 0 */
+    }
+  }
+
+  /* Set the observationPointId in the VM */
+  getLuaVMUservalue(L, observationPointId) = observationPointId;
+  
+  lua_push_uint32_table_entry(L, "observationPointId", observationPointId);
 }
 
 /* ****************************************** */
@@ -902,7 +922,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   if((strcmp(request_info->request_method, "POST") == 0) && (content_type != NULL)) {
     int content_len = mg_get_content_len(conn) + 1;
 
-    if (content_len > HTTP_MAX_POST_DATA_LEN) {
+    if(content_len > HTTP_MAX_POST_DATA_LEN) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Too much data submitted with the form. [data len: %u][max len: %u]",
 				   content_len, HTTP_MAX_POST_DATA_LEN);
@@ -978,9 +998,10 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
       /* Check for interface switch requests */
       mg_get_var(post_data, post_data_len, "switch_interface", switch_interface, sizeof(switch_interface));
-      if (strlen(switch_interface) > 0 && request_info->query_string) {
+      if(strlen(switch_interface) > 0 && request_info->query_string) {
         mg_get_var(request_info->query_string, strlen(request_info->query_string), "ifid", ifid_buf, sizeof(ifid_buf));
-        if (strlen(ifid_buf) > 0) {
+	
+        if(strlen(ifid_buf) > 0) {
           switchInterface(L, ifid_buf, user, group, session_buf);
 
 	  /* Sending a redirect is needed to prevent the current lua script
@@ -1125,8 +1146,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   lua_push_str_table_entry(L, "user", (char*)user);
   lua_push_str_table_entry(L, "group", (char*)group);
   lua_push_bool_table_entry(L, "localuser", localuser);
-  lua_push_uint64_table_entry(L, "capabilities", capabilities);
-
+  lua_push_uint64_table_entry(L, "capabilities", capabilities);  
+  
   // now it's time to set the interface.
   setInterface(user, ifname, sizeof(ifname), &is_interface_allowed);
 

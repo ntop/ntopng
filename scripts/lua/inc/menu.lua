@@ -5,8 +5,10 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/toasts/?.lua;" .. package.path
+
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
+
 local alerts_api = require("alerts_api")
 local recording_utils = require "recording_utils"
 local telemetry_utils = require "telemetry_utils"
@@ -27,10 +29,15 @@ local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
 local updates_supported = (is_admin and ntop.isPackage() and not ntop.isWindows())
 local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
-
+local observationPointId = _GET["observationPointId"]
 local is_system_interface = page_utils.is_system_view()
 
 blog_utils.fetchLatestPosts()
+
+
+if(observationPointId ~= nil) then
+  ntop.setUserObservationPointId(tonumber(observationPointId))  
+end
 
 print([[
    <div class='wrapper'>
@@ -975,6 +982,14 @@ for v,k in pairs(iface_names) do
    end
 end
 
+if((observationPoints == nil) or (table.len(observationPoints) == 0)) then
+  -- read the validated observation point
+  observationPoints = nil
+  observationPointId = nil
+else
+  observationPointId = tostring(ntop.getUserObservationPointId())
+end
+
 interface.select(ifs.id.."")
 
 local context = {
@@ -989,7 +1004,9 @@ local context = {
    ifCustom = ifCustom,
    action_urls = action_urls,
    is_system_interface = is_system_interface,
-   observationPoints = observationPoints
+   currentIfaceId = ifs.id,
+   observationPoints = observationPoints,
+   observationPointId = observationPointId
 }
 
 print(template_utils.gen("pages/components/ifaces-dropdown.template", context))

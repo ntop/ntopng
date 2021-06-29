@@ -414,9 +414,12 @@ else
         if((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~="")) then
           sip_rtp_dst_addr = 1
           local address_ip = getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
-          if (address_ip ~= "0.0.0.0") then
+
+	  if (address_ip ~= "0.0.0.0") then
             interface.select(ifname)
+	    
             rtp_host = interface.getHostInfo(address_ip)
+	    
             if(rtp_host ~= nil) then
 	      print(hostinfo2detailshref(rtp_host, nil, address_ip))
             end
