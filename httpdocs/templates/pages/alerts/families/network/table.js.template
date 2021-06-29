@@ -9,7 +9,7 @@
     {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width:'55%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Network */
     {responsivePriority: 2, name: 'network_name', data: 'network', width: '100%', orderable: false, render: (network, type) => {
-        if (type === "display") return DataTableRenders.filterize('network', network, network);
+        if (type === "display") return DataTableRenders.filterize('network_name', network, network);
         return network;
     }},
      /* Description */
