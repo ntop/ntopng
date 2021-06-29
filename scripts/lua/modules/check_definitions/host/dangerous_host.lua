@@ -11,7 +11,7 @@ local dangerous_host = {
    -- Script category
    category = checks.check_categories.security,
 
-   default_enabled = true,
+   default_enabled = false,
    alert_id = host_alert_keys.host_alert_dangerous_host,
 
    default_value = {

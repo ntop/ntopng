@@ -651,7 +651,6 @@ end
 -- ##############################################
 
 local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir, return_all, scripts_filter, hook_filter)
-   local alerts_disabled = (not areAlertsEnabled())
    local setup_ok = true
 
    -- Recheck the edition as the demo mode may expire
@@ -678,10 +677,12 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
    end
 
    if((not return_all) and ((check.nedge_exclude and ntop.isnEdge()) or (check.nedge_only and (not ntop.isnEdge())))) then
+      traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for nEdge", mod_fname))
       return(nil)
    end
 
    if((not return_all) and (check.windows_exclude and ntop.isWindows())) then
+      traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' not supported on Windows", mod_fname))
       return(nil)
    end
 

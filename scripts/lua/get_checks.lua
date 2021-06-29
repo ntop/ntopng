@@ -39,7 +39,7 @@ local config_set = checks.getConfigset()
 
 -- ################################################
 
-local scripts = checks.load(getSystemInterfaceId(), script_type, subdir, {return_all = true})
+local scripts = checks.load(getSystemInterfaceId(), script_type, subdir)
 local result = {}
 
 for script_name, script in pairs(scripts.modules) do
