@@ -289,52 +289,63 @@ local modals = {
     })
 }
 
+local operators_by_filter = {
+    alert_id = {'eq','neq'},
+    severity = {'eq','lte','gte','neq'},
+    ip = {'eq','neq'},
+    port = {'eq','neq'},
+    l7_proto  = {'eq','neq'},
+    role = {'eq','neq'},
+    roles = {'eq','neq'},
+    text = {'eq','neq'},
+}
+
 local defined_tags = {
     ["host"] = {
-	alert_id = {'eq'},
-	severity = {'eq','lte','gte'},
-        ip = {'eq'},
-        role = {'eq'},
+	alert_id = operators_by_filter.alert_id,
+	severity = operators_by_filter.severity,
+        ip = operators_by_filter.ip,
+        role = operators_by_filter.role,
     },
     ["mac"] = {
-	alert_id = {'eq'},
-	severity = {'eq','lte','gte'}
+	alert_id = operators_by_filter.alert_id,
+	severity = operators_by_filter.severity,
     },
     ["snmp_device"] = {
-	alert_id = {'eq'},
-	severity = {'eq','lte','gte'}
+	alert_id = operators_by_filter.alert_id,
+	severity = operators_by_filter.severity,
     },
     ["flow"] = {
-	alert_id = {'eq'},
-	severity = {'eq','lte','gte'},
-        l7_proto  = {'eq'},
-        cli_ip = {'eq'},
-        srv_ip = {'eq'},
-	cli_port = {'eq'},
-	srv_port = {'eq'},
-        roles = {'eq'},
+	alert_id = operators_by_filter.alert_id,
+	severity = operators_by_filter.severity,
+        l7_proto  = operators_by_filter.l7_proto,
+        cli_ip = operators_by_filter.ip,
+        srv_ip = operators_by_filter.ip,
+	cli_port = operators_by_filter.port,
+	srv_port = operators_by_filter.port,
+        roles = operators_by_filter.roles,
     },
     ["system"] = {
-	alert_id = {'eq'},
-	severity = {'eq','lte','gte'}
+	alert_id = operators_by_filter.alert_id,
+	severity = operators_by_filter.severity,
     },
     ["am_host"] = {
-	alert_id = {'eq'},
-	severity = {'eq','lte','gte'},
+	alert_id = operators_by_filter.alert_id,
+	severity = operators_by_filter.severity,
     },
     ["interface"] = {
-        alert_id = {'eq'},
-       	subtype = {'eq'},
-	severity = {'eq','lte','gte'}
+        alert_id = operators_by_filter.alert_id,
+	severity = operators_by_filter.severity,
+       	subtype = operators_by_filter.text,
     },
     ["user"] = {
-	alert_id = {'eq'},
-	severity = {'eq','lte','gte'}
+	alert_id = operators_by_filter.alert_id,
+	severity = operators_by_filter.severity,
     },
     ["network"] = {
-	alert_id = {'eq'},
-	severity = {'eq','lte','gte'},
-        network_name = {'eq'}
+	alert_id = operators_by_filter.alert_id,
+	severity = operators_by_filter.severity,
+        network_name = operators_by_filter.text,
     }
 }
 
@@ -368,10 +379,7 @@ local extra_range_buttons = [[
 local available_filter_types = {}
 local all_alert_types = {}
 local extra_tags_buttons = ""
-local severity_operators = {}
 if page ~= "all" then
-   severity_operators = defined_tags[page].severity
-
    extra_tags_buttons = [[
     <button class="btn btn-link" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="alertStats.filterModalShow()"><span><i class="fas fa-plus" data-original-title="" title="]]..i18n("alerts_dashboard.add_filter")..[["></i></span>
     </button>
@@ -396,7 +404,7 @@ local context = {
     range_picker = {
         default = status == "historical" and "30min" or "1week",
         tags = {
-	    enabled = true,
+	    enabled = (page ~= 'all' and status ~= 'engaged'),
             tag_operators = tag_utils.tag_operators,
             view_only = true,
             defined_tags = defined_tags[page],
@@ -466,7 +474,7 @@ local context = {
        severities = alert_severities,
        alert_types = all_alert_types,
        l7_protocols = interface.getnDPIProtocols(),
-       severity_operators = severity_operators,
+       operators_by_filter = operators_by_filter,
        tag_operators = tag_utils.tag_operators,
     }
 }

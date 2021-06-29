@@ -132,8 +132,7 @@ function alert_store:add_alert_id_filter(alert_id)
       local alert_id, op = self:strip_filter_operator(alert_id)
       if not self._alert_id and tonumber(alert_id) then
          self._alert_id = tonumber(alert_id)
-         self._where[#self._where + 1] = string.format("alert_id = %u", alert_id)
-
+         self._where[#self._where + 1] = string.format("alert_id %s %u", op, alert_id)
          return true
       end
    end

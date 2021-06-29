@@ -98,10 +98,21 @@ end
 --@param ip The host IP
 --@return True if set is successful, false otherwise
 function host_alert_store:add_ip_filter(ip)
-   if not self._ip then
-      self._ip = ip
-      self._where[#self._where + 1] = string.format("ip = '%s'", self._ip)
-      return true
+   if not isEmptyString(ip) then
+      local ip, op = self:strip_filter_operator(ip)
+      local host = hostkey2hostinfo(ip)
+      self._entity_value = hostinfo2hostkey(host)
+
+      if not isEmptyString(host["host"]) then
+         if not self._ip then
+            self._ip = host["host"]
+            self._where[#self._where + 1] = string.format("ip %s '%s'", op, self._ip)
+            if not isEmptyString(host["vlan"]) then
+               self:add_vlan_id_filter(host["vlan"])
+            end
+            return true
+         end
+      end
    end
 
    return false
@@ -113,10 +124,13 @@ end
 --@param ip The VLAN ID
 --@return True if set is successful, false otherwise
 function host_alert_store:add_vlan_id_filter(vlan_id)
-   if not self._vlan_id and tonumber(vlan_id) then
-      self._vlan_id = tonumber(vlan_id)
-      self._where[#self._where + 1] = string.format("vlan_id = %u", self._vlan_id)
-      return true
+   if not isEmptyString(vlan_id) then
+      local vlan_id, op = self:strip_filter_operator(vlan_id)
+      if not self._vlan_id and tonumber(vlan_id) then
+         self._vlan_id = tonumber(vlan_id)
+         self._where[#self._where + 1] = string.format("vlan_id %s %u", op, self._vlan_id)
+         return true
+      end
    end
 
    return false
@@ -128,51 +142,34 @@ end
 --@param role The role (attacker or victim)
 --@return True if set is successful, false otherwise
 function host_alert_store:add_role_filter(role)
-   if not self._role then
-      if role == 'attacker' then
-	 self._role = alert_roles.alert_role_is_attacker.role_id
-         self._where[#self._where + 1] = "is_attacker = 1"
-      elseif role == 'victim' then
-	 self._role = alert_roles.alert_role_is_victim.role_id
-         self._where[#self._where + 1] = "is_victim = 1"
+   if not isEmptyString(role) then
+      local role, op = self:strip_filter_operator(role)
+      if not self._role then
+         if role == 'attacker' then
+	    self._role = alert_roles.alert_role_is_attacker.role_id
+            self._where[#self._where + 1] = string.format("is_attacker %s 1", op)
+         elseif role == 'victim' then
+            self._role = alert_roles.alert_role_is_victim.role_id
+            self._where[#self._where + 1] = string.format("is_victim %s 1", op)
+         end
+         return true
       end
-      return true
    end
 
    return false
 end
 
-
 -- ##############################################
 
 --@brief Add filters according to what is specified inside the REST API
 function host_alert_store:_add_additional_request_filters()
-   local ip = _GET["ip"]
    local vlan_id = _GET["vlan_id"]
+   local ip = _GET["ip"]
    local role = _GET["role"]
 
-   if not isEmptyString(vlan_id) then
-      local vlan_id, op = self:strip_filter_operator(vlan_id)
-      self:add_vlan_id_filter(vlan_id)
-   end
-
-   if not isEmptyString(ip) then
-      local ip, op = self:strip_filter_operator(ip)
-      local host = hostkey2hostinfo(ip)
-      self._entity_value = hostinfo2hostkey(host)
-
-      if not isEmptyString(host["host"]) then
-         self:add_ip_filter(host["host"])
-      end
-      if not isEmptyString(host["vlan"]) then
-         self:add_vlan_id_filter(host["vlan"])
-      end
-   end
-
-   if not isEmptyString(role) then
-      local role, op = self:strip_filter_operator(role)
-      self:add_role_filter(role)
-   end
+   self:add_vlan_id_filter(vlan_id)
+   self:add_ip_filter(ip)
+   self:add_role_filter(role)
 end
 
 -- ##############################################

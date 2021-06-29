@@ -62,14 +62,16 @@ end
 --@param network_name The local network name
 --@return True if set is successful, false otherwise
 function network_alert_store:add_network_name_filter(network_name)
-   if not self._entity_value and not self._network_name and not isEmptyString(network_name) then
-      -- This is to filter engaged alerts
-      self._entity_value = network_name
-
-      -- This is to filter historical alerts
-      self._network_name = network_name
-      self._where[#self._where + 1] = string.format("name = '%s'", self._escape(network_name))
-      return true
+   if not isEmptyString(network_name) then
+      network_name, op = self:strip_filter_operator(network_name)
+      if not self._entity_value and not self._network_name and not isEmptyString(network_name) then
+         -- This is to filter engaged alerts
+         self._entity_value = network_name
+         -- This is to filter historical alerts
+         self._network_name = network_name
+         self._where[#self._where + 1] = string.format("name %s '%s'", op, self._escape(network_name))
+         return true
+      end
    end
 
    return false
@@ -82,10 +84,7 @@ function network_alert_store:_add_additional_request_filters()
    -- Add filters specific to the system family
    local network_name = _GET["network_name"]
 
-   if not isEmptyString(network_name) then
-      network_name = self:strip_filter_operator(network_name)
-      self:add_network_name_filter(network_name)
-   end
+   self:add_network_name_filter(network_name)
 end
 
 -- ##############################################
