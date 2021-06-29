@@ -34,7 +34,7 @@ class UDPUnidirectional : public FlowCheck {
 				     false /* has_protocol_detected */, true /* has_periodic_update */, true /* has_flow_end */) {};
   ~UDPUnidirectional() {};
   
-  void periodicActivities(Flow *f);
+  void periodicUpdate(Flow *f);
   void flowEnd(Flow *f);
   FlowAlert *buildAlert(Flow *f);
   

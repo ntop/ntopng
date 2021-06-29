@@ -59,8 +59,8 @@ void UDPUnidirectional::checkFlow(Flow *f) {
 
 /* ***************************************************** */
 
-void UDPUnidirectional::periodicActivities(Flow *f) { checkFlow(f); }
-void UDPUnidirectional::flowEnd(Flow *f)            { checkFlow(f); }
+void UDPUnidirectional::periodicUpdate(Flow *f) { checkFlow(f); }
+void UDPUnidirectional::flowEnd(Flow *f)        { checkFlow(f); }
   
 /* ***************************************************** */
 
