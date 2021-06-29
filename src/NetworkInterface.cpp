@@ -4652,7 +4652,7 @@ int stringSorter(const void *_a, const void *_b) {
   struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
   struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
 
-  return(strcmp(a->stringValue, b->stringValue));
+  return(strcasecmp(a->stringValue, b->stringValue));
 }
 
 /* **************************************************** */
