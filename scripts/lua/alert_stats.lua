@@ -143,7 +143,7 @@ local pages = {
         endpoint_list = "/lua/pro/rest/v1/get/snmp/device/alert/list.lua",
         endpoint_ts = "/lua/pro/rest/v1/get/snmp/device/alert/ts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "snmp_device"}),
-	hidden = not is_system_interface or not require "snmp_device_alert_store".new():has_alerts(),
+	hidden = not is_system_interface or not ntop.isPro() or not require "snmp_device_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.snmp_device.entity_id)]
     },
     {
