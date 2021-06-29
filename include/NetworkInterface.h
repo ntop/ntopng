@@ -619,7 +619,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void luaScore(lua_State* vm);
   void luaAlertedFlows(lua_State* vm);
   void luaAnomalies(lua_State* vm);
-  void luaNdpiStats(lua_State* vm);
+  void luaNdpiStats(lua_State* vm, bool diff = false);
   void luaPeriodicityFilteringMenu(lua_State* vm);
   void luaServiceFilteringMenu(lua_State* vm);
   void luaPeriodicityStats(lua_State* vm, IpAddress *ip_address, VLANid vlan_id, u_int16_t host_pool_id, 

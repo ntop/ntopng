@@ -3183,7 +3183,7 @@ void NetworkInterface::updateBehaviorStats(const struct timeval *tv) {
     //snprintf(rx_buf, sizeof(rx_buf), "Interface %s | traffic rx", get_asname());
     traffic_rx_behavior->updateBehavior(this, ethStats.getNumIngressBytes(), rx_buf);
 
-    nextMinPeriodicUpdate = tv->tv_sec + ASES_BEHAVIOR_REFRESH;
+    nextMinPeriodicUpdate = tv->tv_sec + IFACE_BEHAVIOR_REFRESH;
   }
 }
 
@@ -6644,7 +6644,7 @@ void NetworkInterface::allocateStructures() {
 
     networkStats     = new NetworkStats*[numNetworks];
     statsManager     = new StatsManager(id, STATS_MANAGER_STORE_NAME);
-    ndpiStats        = new nDPIStats(true /* Enable throughput calculation */);
+    ndpiStats        = new nDPIStats(true /* Enable throughput calculation */, true /* Enable traffic behavior calculation */);
     dscpStats        = new DSCPStats();
 
     gw_macs          = new MacHash(this, 32, 64);
@@ -9025,10 +9025,10 @@ void NetworkInterface::luaScore(lua_State *vm) {
 
 /* *************************************** */
 
-void NetworkInterface::luaNdpiStats(lua_State *vm) {
+void NetworkInterface::luaNdpiStats(lua_State *vm, bool diff) {
   /* nDPI stats */
   if(ndpiStats)
-    ndpiStats->lua(this, vm, true);
+    ndpiStats->lua(this, vm, true, diff);
 }
 
 /* *************************************** */

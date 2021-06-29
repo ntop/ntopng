@@ -27,11 +27,15 @@ alert_behavior_anomaly.meta = {
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param value       The value got from the measurement
--- @param lower_bound The lower bound of the measurement
--- @param upper_bound The upper bound of the measurement
+-- @param entity           The entity of this anomaly (ASN, Network, ..)
+-- @param type_of_behavior The type of anomaly presented (Traffic RX, Traffic TX, Score, ...)
+-- @param value            The value got from the measurement
+-- @param lower_bound      The lower bound of the measurement
+-- @param upper_bound      The upper bound of the measurement
+-- @param entity_id        The entity id of the anomaly (Found into behavior_utils.lua)
+-- @param extra_params     Table of extra parameters used to create the href to the graph (e.g. protocol), pass nil if no extra params is needed
 -- @return A table with the alert built
-function alert_behavior_anomaly:init(entity, type_of_behavior, value, upper_bound, lower_bound, entity_id, timeseries_id)
+function alert_behavior_anomaly:init(entity, type_of_behavior, value, upper_bound, lower_bound, entity_id, timeseries_id, extra_params)
    -- Call the parent constructor
    self.super:init()
 
@@ -43,6 +47,7 @@ function alert_behavior_anomaly:init(entity, type_of_behavior, value, upper_boun
       lower_bound = lower_bound,
       entity_id = entity_id,
       timeseries_id = timeseries_id,
+      extra_params = extra_params or {},
    }
 end
 
@@ -68,7 +73,6 @@ function alert_behavior_anomaly.format(ifid, alert, alert_type_params)
       if (alert_type_params["family_key"] or alert_type_params["entity_id"]) and alert_type_params["timeseries_id"] then
          -- 10 minutes before and 10 minutes after the alert
          local alert_time = tonumber(alert.tstamp)
-         local curr_time = '&epoch_begin=' .. tonumber(alert_time - 600) .. '&epoch_end=' .. tonumber(alert_time + 600)
          local key = nil
 
          for k, v in pairs(alert_entities) do
@@ -77,12 +81,27 @@ function alert_behavior_anomaly.format(ifid, alert, alert_type_params)
                break
             end
          end
-         
-         local timeseries_table = behavior_utils.get_behavior_timeseries_utils(key or (alert_type_params["family_key"]))
 
-         href = timeseries_table["page_path"] .. "?" .. timeseries_table["timeseries_id"] .. "=" .. alert_type_params["timeseries_id"] .. 
-                  "&ifid=" .. interface.getId() .. "&page=historical&ts_schema=" .. timeseries_table["schema_id"] .. "%3A" .. alert_type_params.type_of_behavior .. 
-                  "&zoom=30m" .. curr_time
+         local timeseries_table = behavior_utils.get_behavior_timeseries_utils(key or (alert_type_params["family_key"]))
+         -- Formatting all the strings used to create the href to the graph
+         local timeseries_id = ""
+         local iface_id = "ifid=" .. interface.getId()
+         local page = "page=" .. timeseries_table["page"]
+         local schema = "ts_schema=" .. timeseries_table["schema_id"] .. "%3A" .. (timeseries_table["type_of_behavior"] or alert_type_params.type_of_behavior)
+         local zoom = "zoom=30m"
+         local curr_time = 'epoch_begin=' .. tonumber(alert_time - 600) .. '&epoch_end=' .. tonumber(alert_time + 600)
+         local extra_params = ""
+
+         for k, v in pairs(alert_type_params["extra_params"]) do
+            extra_params = extra_params .. "&" .. k .. "=" .. v
+         end
+
+         if timeseries_table["timeseries_id"] then
+            timeseries_id = timeseries_table["timeseries_id"] .. "=" .. alert_type_params["timeseries_id"]
+         end
+         
+         -- "ifid=3&page=historical&ts_schema=iface%3Andpi&zoom=5m&protocol=Amazon"
+         href = timeseries_table["page_path"] .. "?" .. timeseries_id .. "&" .. iface_id .. "&" .. page .. "&" .. schema .. "&" .. zoom .. "&" .. curr_time .. extra_params
       end
    end
 

@@ -70,6 +70,10 @@ local alert_entities = {
       entity_id = 16,
       i18n_label = "alert_entities.asn",
       pools = nil, -- no pool for other
+   }, l7 = {
+      entity_id = 17,
+      i18n_label = "alert_entities.l7",
+      pools = nil, -- no pool for other
    }
 }
 

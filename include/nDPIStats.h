@@ -50,14 +50,18 @@ class ThroughputStats;
 
 class nDPIStats {
  private:
+#ifdef NTOPNG_PRO
+  time_t nextMinPeriodicUpdate;
+  AnalysisBehavior **behavior_bytes_traffic;
+#endif
   ProtoCounter *counters[MAX_NDPI_PROTOS];
   ThroughputStats **bytes_thpt;
   /* NOTE: category counters are not dumped to redis right now, they are only used internally */
   CategoryCounter cat_counters[NDPI_PROTOCOL_NUM_CATEGORIES];
 
  public:
-  nDPIStats(bool enable_throughput_stats = false);
-  nDPIStats(const nDPIStats &stats);
+  nDPIStats(bool enable_throughput_stats = false, bool update_behavior_stats = false);
+  nDPIStats(const nDPIStats &stats, bool update_behavior_stats = false);
   ~nDPIStats();
 
   void updateStats(const struct timeval *tv);
@@ -72,7 +76,7 @@ class nDPIStats {
   void incFlowsStats(u_int16_t proto_id);
 
   void print(NetworkInterface *iface);
-  void lua(NetworkInterface *iface, lua_State* vm, bool with_categories = false, bool tsLua = false);
+  void lua(NetworkInterface *iface, lua_State* vm, bool with_categories = false, bool tsLua = false, bool diff = false);
   char* serialize(NetworkInterface *iface);
   json_object* getJSONObject(NetworkInterface *iface);
   void deserialize(NetworkInterface *iface, json_object *o);

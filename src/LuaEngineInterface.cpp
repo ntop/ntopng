@@ -1743,13 +1743,17 @@ static int ntop_get_interface_anomalies(lua_State* vm) {
 
 static int ntop_get_ndpi_interface_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool diff = false;
 
   lua_newtable(vm);
 
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  ntop_interface->luaNdpiStats(vm);
+	if(lua_type(vm, 4) == LUA_TBOOLEAN) 
+	  diff = lua_toboolean(vm, 1) ? true : false;
+
+  ntop_interface->luaNdpiStats(vm, diff);
 
   return(CONST_LUA_OK);
 }

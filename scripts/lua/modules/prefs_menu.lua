@@ -248,7 +248,7 @@ local menu_subpages = {
       description = i18n("prefs.toggle_emit_host_alerts_description"),
     }
   }}, { id ="traffic_behaviour",
-    label=i18n("prefs.traffic_behaviour"),  
+    label=i18n("prefs.behaviour"),  
     advanced=true, 
     enterprise_l_only=true, 
     hidden=false,
@@ -268,12 +268,24 @@ local menu_subpages = {
       behaviour_analysis_learning_status_post_learning = {
         title = i18n("prefs.behaviour_analysis_status_post_learning_title"),
         description = i18n("prefs.behaviour_analysis_status_post_learning_description")
-      }
+      },
+      toggle_asn_behavior_analysis = {
+        title       = i18n("prefs.toggle_asn_behavior_analysis_title"),
+        description = i18n("prefs.toggle_asn_behavior_analysis_description"),
+      },
+      toggle_network_behavior_analysis = {
+        title       = i18n("prefs.toggle_network_behavior_analysis_title"),
+        description = i18n("prefs.toggle_network_behavior_analysis_description"),
+      },
+      toggle_iface_l7_behavior_analysis = {
+        title       = i18n("prefs.toggle_iface_l7_behavior_analysis_title"),
+        description = i18n("prefs.toggle_iface_l7_behavior_analysis_description"),
+      },
     }, 
     iec60870_learning_period = {
       title       = i18n("prefs.iec60870_learning_period_title"),
       description = i18n("prefs.iec60870_learning_period_description"),
-    }
+    },
   }, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  hidden=false, entries={
     toggle_top_sites = {
       title       = i18n("prefs.toggle_top_sites_title"),

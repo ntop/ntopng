@@ -31,9 +31,15 @@ NetworkStats::NetworkStats(NetworkInterface *iface, u_int8_t _network_id) : Netw
 
 #ifdef NTOPNG_PRO
   nextMinPeriodicUpdate = 0;
-  score_behavior = new AnalysisBehavior();
-  traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */);
-  traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */);
+  if(ntop->getPrefs()->isNetworkBehavourAnalysisEnabled()) {
+    score_behavior = new AnalysisBehavior();
+    traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */);
+    traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */);
+  } else {
+    score_behavior = NULL;
+    traffic_tx_behavior = NULL;
+    traffic_rx_behavior = NULL;
+  }
 #endif
 
   netname = ntop->getLocalNetworkName(network_id);
@@ -96,9 +102,12 @@ void NetworkStats::lua(lua_State* vm, bool diff) {
   lua_settable(vm, -3);
 
 #ifdef NTOPNG_PRO
-  traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior", diff ? NETWORK_BEHAVIOR_REFRESH : 0);
-  traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior", diff ? NETWORK_BEHAVIOR_REFRESH : 0);
-  score_behavior->luaBehavior(vm, "score_behavior");
+  if(traffic_rx_behavior)
+    traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior", diff ? NETWORK_BEHAVIOR_REFRESH : 0);
+  if(traffic_tx_behavior)
+    traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior", diff ? NETWORK_BEHAVIOR_REFRESH : 0);
+  if(score_behavior)
+    score_behavior->luaBehavior(vm, "score_behavior");
 #endif
 
   tcp_packet_stats_ingress.lua(vm, "tcpPacketStats.ingress");
@@ -199,14 +208,20 @@ void NetworkStats::updateBehaviorStats(const struct timeval *tv) {
     char score_buf[128], tx_buf[128], rx_buf[128];
 
     /* Traffic behavior stats update, currently score, traffic rx and tx */
-    snprintf(score_buf, sizeof(score_buf), "Network %d | score", network_id);
-    score_behavior->updateBehavior(getAlertInterface(), getScore(), score_buf);
+    if(score_behavior) {
+      snprintf(score_buf, sizeof(score_buf), "Network %d | score", network_id);
+      score_behavior->updateBehavior(getAlertInterface(), getScore(), score_buf);
+    }
 
-    snprintf(tx_buf, sizeof(tx_buf), "Network %d | traffic tx", network_id);
-    traffic_tx_behavior->updateBehavior(getAlertInterface(), getNumBytesSent(), tx_buf);
+    if(traffic_tx_behavior) {
+      snprintf(tx_buf, sizeof(tx_buf), "Network %d | traffic tx", network_id);
+      traffic_tx_behavior->updateBehavior(getAlertInterface(), getNumBytesSent(), tx_buf);
+    }
 
-    snprintf(rx_buf, sizeof(rx_buf), "Network %d | traffic rx", network_id);
-    traffic_rx_behavior->updateBehavior(getAlertInterface(), getNumBytesRcvd(), rx_buf);
+    if(traffic_rx_behavior) {
+      snprintf(rx_buf, sizeof(rx_buf), "Network %d | traffic rx", network_id);
+      traffic_rx_behavior->updateBehavior(getAlertInterface(), getNumBytesRcvd(), rx_buf);
+    }
 
     nextMinPeriodicUpdate = tv->tv_sec + NETWORK_BEHAVIOR_REFRESH;
   }

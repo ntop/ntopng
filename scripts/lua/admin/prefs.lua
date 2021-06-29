@@ -762,13 +762,14 @@ function printNetworkBehaviour()
 
    -- ######################
 
-   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.behaviour")..'</th></tr></thead>')
-
+   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.traffic_behaviour")..'</th></tr></thead>')
+   -- Behavior analysis for asn, network and l7proto (iface)
+ 
    prefsToggleButton(subpage_active, {
 			field = "toggle_behaviour_analysis",
 			default = "0",
 			pref = "is_behaviour_analysis_enabled", -- redis preference
-			to_switch = {"learning-status-thead", "behaviour_analysis_learning_period", "row_behaviour_analysis_learning_status_during_learning", "row_behaviour_analysis_learning_status_post_learning", "iec60870_learning_period"},
+			to_switch = {"learning-status-thead", "behaviour_analysis_learning_period", "row_behaviour_analysis_learning_status_during_learning", "row_behaviour_analysis_learning_status_post_learning"},
    })
 
    local is_behaviour_analysis_enabled = ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1"
@@ -810,6 +811,27 @@ function printNetworkBehaviour()
       "ntopng.prefs.","iec60870_learning_period",
       prefs.iec60870_learning_period,
       "number", nil, nil, nil, {min=21600, tformat="hd"})
+
+   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n('prefs.behavior_timeseries')..'</th></tr></thead>')
+
+   prefsToggleButton(subpage_active, {
+      field = "toggle_asn_behavior_analysis",
+      default = "0",
+      pref = "is_asn_behavior_analysis_enabled", -- redis preference
+      })
+    
+   prefsToggleButton(subpage_active, {
+      field = "toggle_network_behavior_analysis",
+      default = "0",
+      pref = "is_network_behavior_analysis_enabled", -- redis preference
+      })
+  
+   prefsToggleButton(subpage_active, {
+      field = "toggle_iface_l7_behavior_analysis",
+      default = "0",
+      pref = "is_iface_l7_behavior_analysis_enabled", -- redis preference
+    })
+
 
    -- #####################
    

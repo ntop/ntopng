@@ -310,8 +310,9 @@
 #define CONST_EST_MAX_FLOWS            200000
 #define CONST_EST_MAX_HOSTS            200000
 #define MIN_HOST_RESOLUTION_FREQUENCY  60  /* 1 min */
+#define NDPI_TRAFFIC_BEHAVIOR_REFRESH  60  /* 1 min */
 #define HOST_SITES_REFRESH             300 /* 5 min */
-#define IFACE_BEHAVIOR_REFRESH         60  /* 1 min */
+#define IFACE_BEHAVIOR_REFRESH         300 /* 5 min */
 #define ASES_BEHAVIOR_REFRESH          300 /* 5 min */
 #define NETWORK_BEHAVIOR_REFRESH       300 /* 5 min */
 #define TRAFFIC_MAP_REFRESH            30  /* 30 sec */
@@ -622,6 +623,10 @@
 #define CONST_PREFS_EMIT_FLOW_ALERTS        NTOPNG_PREFS_PREFIX".emit_flow_alerts"
 #define CONST_PREFS_EMIT_HOST_ALERTS        NTOPNG_PREFS_PREFIX".emit_host_alerts"
 
+
+#define CONST_PREFS_ASN_BEHAVIOR_ANALYSIS              NTOPNG_PREFS_PREFIX".is_asn_behavior_analysis_enabled"
+#define CONST_PREFS_NETWORK_BEHAVIOR_ANALYSIS          NTOPNG_PREFS_PREFIX".is_network_behavior_analysis_enabled"
+#define CONST_PREFS_IFACE_L7_BEHAVIOR_ANALYSIS         NTOPNG_PREFS_PREFIX".is_iface_l7_behavior_analysis_enabled"
 #define CONST_PREFS_BEHAVIOUR_ANALYSIS                  NTOPNG_PREFS_PREFIX".is_behaviour_analysis_enabled"
 #define CONST_PREFS_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD  NTOPNG_PREFS_PREFIX".behaviour_analysis_learning_period"
 #define CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_DURING_LEARNING  NTOPNG_PREFS_PREFIX".behaviour_analysis_learning_status_during_learning"

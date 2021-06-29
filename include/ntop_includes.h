@@ -233,12 +233,16 @@ using namespace std;
 #include "NetworkInterfaceAlertableEntity.h"
 #include "NetworkStatsAlertableEntity.h"
 #include "ExternalAlertableEntity.h"
+#include "BehaviouralCounter.h"
+
+#ifdef NTOPNG_PRO
+#include "AnalysisBehavior.h"
+#endif
+
 #include "nDPIStats.h"
 #include "InterarrivalStats.h"
 #include "FlowStats.h"
-#include "BehaviouralCounter.h"
 #ifdef NTOPNG_PRO
-#include "AnalysisBehavior.h"
 #include "CustomAppMaps.h"
 #include "CustomAppStats.h"
 #endif

@@ -805,7 +805,8 @@ function alert_utils.formatBehaviorAlert(params, anomalies, stats, id, subtype, 
          lower_bound,
          upper_bound,
          anomaly_table["entity_id"],
-         id
+         id,
+         anomaly_table["extra_params"]
       )
  
       alert:set_score_warning()

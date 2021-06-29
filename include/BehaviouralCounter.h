@@ -46,11 +46,11 @@ class BehaviouralCounter {
   inline u_int64_t getTotNumAnomalies() { return(tot_num_anomalies); };
 
   /* Last measurement */
-  inline bool anomalyFound()            { return(is_anomaly);        };
-  inline u_int64_t getLastValue()       { return(last_value);        };
-  inline u_int64_t getTotAnomalies()    { return(tot_num_anomalies); };
-  inline u_int64_t getLastLowerBound()  { return(last_lower);        };
-  inline u_int64_t getLastUpperBound()  { return(last_upper);        };
+  virtual inline bool anomalyFound()            { return(is_anomaly);        };
+  virtual inline u_int64_t getLastValue()       { return(last_value);        };
+  virtual inline u_int64_t getTotAnomalies()    { return(tot_num_anomalies); };
+  virtual inline u_int64_t getLastLowerBound()  { return(last_lower);        };
+  virtual inline u_int64_t getLastUpperBound()  { return(last_upper);        };
 };
 
 /* ******************************** */
@@ -102,21 +102,25 @@ class DESCounter : public BehaviouralCounter {
 
   bool addObservation(u_int64_t value) {
     double forecast, confidence_band;
-    bool rc = ndpi_des_add_value(&des, last_value = value, &forecast, &confidence_band) == 1 ? true : false;
+    bool rc = (ndpi_des_add_value(&des, value, &forecast, &confidence_band) == 1) ? true : false;
     double l_forecast = forecast-confidence_band;
     double h_forecast = forecast+confidence_band;
 
-    last_lower = (u_int64_t)floor(((l_forecast < 0) ? 0 : l_forecast)),
-      last_upper = (u_int64_t)round(h_forecast+0.5);
+    last_value = value;
+    last_lower = (u_int64_t)floor(((l_forecast < 0) ? 0 : l_forecast));
+    last_upper = (u_int64_t)round(h_forecast+0.5);
 
     if(rc) {
-      is_anomaly = ((value < last_lower) || (value > last_upper)) ? true : false;
-      if(is_anomaly) tot_num_anomalies++;
-      return(is_anomaly);
+      if((value < last_lower) || (value > last_upper)) 
+        tot_num_anomalies++;
+
+      return((value < last_lower) || (value > last_upper));
     }
 
     return(rc);
   }
+
+  inline bool anomalyFound()  { return((last_value < last_lower) || (last_value > last_upper)); };
 };
 
 /* ******************************** */
