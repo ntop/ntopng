@@ -61,19 +61,19 @@ local alert_entities = {
       i18n_label = "alert_entities.test",
       pools = "system_pools", -- modules/pools/system_pools.lua
       alert_store_name = "system",
+   }, asn = {
+      entity_id = 11,
+      i18n_label = "alert_entities.asn",
+      pools = nil, -- no pool for other
+   }, l7 = {
+      entity_id = 12,
+      i18n_label = "alert_entities.l7",
+      pools = nil, -- no pool for other
    }, other = {
       entity_id = 15,
       i18n_label = "alert_entities.other",
       pools = nil, -- no pool for other
       alert_store_name = "system",
-   }, asn = {
-      entity_id = 16,
-      i18n_label = "alert_entities.asn",
-      pools = nil, -- no pool for other
-   }, l7 = {
-      entity_id = 17,
-      i18n_label = "alert_entities.l7",
-      pools = nil, -- no pool for other
    }
 }
 

@@ -60,6 +60,12 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
 
   for subnet,sstats in pairs(subnet_stats) do
     if ntop.isPro() then
+      -- Check to see if the values are inserted
+      if not sstats["score_behavior"] or 
+          not sstats["traffic_rx_behavior"] or 
+          not sstats["traffic_tx_behavior"] then
+        goto continue
+      end
       -- Score Behaviour
       ts_utils.append("subnet:score_behavior", 
       {ifid=ifstats.id, subnet=subnet,
@@ -99,6 +105,8 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
       ts_utils.append("subnet:traffic_anomalies", 
       {ifid=ifstats.id, subnet=subnet, 
       anomaly=anomaly}, when)
+
+    ::continue::
     end
   end
 end
@@ -107,6 +115,12 @@ end
 
 function ts_dump.iface_update_stats_rrds(when, ifstats, verbose)
   if ntop.isPro() then
+    if not ifstats["score_behavior"] or 
+        not ifstats["traffic_rx_behavior"] or 
+        not ifstats["traffic_tx_behavior"] then
+      goto continue
+    end
+
     -- Score Behaviour
     ts_utils.append("iface:score_behavior", {ifid=ifstats.id,
       value=ifstats["score_behavior"]["value"], lower_bound=ifstats["score_behavior"]["lower_bound"], 
@@ -136,6 +150,8 @@ function ts_dump.iface_update_stats_rrds(when, ifstats, verbose)
     end
       
     ts_utils.append("iface:traffic_anomalies", {ifid=ifstats.id, anomaly=anomaly}, when)   
+
+  ::continue::
   end
 end
 
@@ -196,6 +212,12 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
 		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["keep_alive"]}, when)
 
     if ntop.isPro() then
+      -- Check to see if the values are inserted
+      if not asn_stats["score_behavior"] or 
+          not asn_stats["traffic_rx_behavior"] or 
+          not asn_stats["traffic_tx_behavior"] then
+        goto continue
+      end
       -- Score Behaviour
       ts_utils.append("asn:score_behavior", 
       {ifid=ifstats.id, asn=asn,
@@ -235,6 +257,8 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
       ts_utils.append("asn:traffic_anomalies", 
       {ifid=ifstats.id, asn=asn, 
       anomaly=anomaly}, when)   
+
+      ::continue::
     end
   end
 end

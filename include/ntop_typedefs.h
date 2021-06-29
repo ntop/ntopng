@@ -218,6 +218,8 @@ typedef enum {
   alert_entity_am_host             =  8,
   alert_entity_system              =  9,
   alert_entity_test                = 10,
+  alert_entity_asn                 = 11,
+  alert_entity_l7                  = 12,
 
   /* Add new entities above ^ and do not exceed alert_entity_other */
   alert_entity_other               = 15,

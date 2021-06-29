@@ -65,8 +65,10 @@ nDPIStats::nDPIStats(const nDPIStats &stats, bool update_behavior_stats) {
       bytes_thpt[i] = new (std::nothrow)ThroughputStats(*stats.bytes_thpt[i]);
 
   #ifdef NTOPNG_PRO
-    if(behavior_bytes_traffic && stats.behavior_bytes_traffic && stats.behavior_bytes_traffic[i])
+    if(behavior_bytes_traffic && stats.behavior_bytes_traffic && stats.behavior_bytes_traffic[i]) {
       behavior_bytes_traffic[i] = new (std::nothrow)AnalysisBehavior(0.5);
+      behavior_bytes_traffic[i]->updateBehavior(NULL, counters[i]->bytes.sent + counters[i]->bytes.rcvd, NULL, false);
+    }
   #endif
 
     if(stats.counters[i]
