@@ -22,6 +22,10 @@
 #define DEBUG_SPEEDTEST
 #endif
 
+//#ifdef DEBUG_SPEEDTEST
+#define INFO_SPEEDTEST
+//#endif
+
 #ifdef HAVE_EXPAT
 
 #include <float.h>
@@ -101,6 +105,7 @@ struct server_info
 int depth;
 struct client_info client;
 struct server_info servers[MAX_CLOSEST_SERVER_NUM];
+int num_servers = 0;
 
 static int calc_past_time(struct timeval* start, struct timeval* end)
 {
@@ -233,8 +238,11 @@ static void XMLCALL end_element(void *userData, const char *name)
       }
     }
 
-    if (i != MAX_CLOSEST_SERVER_NUM)
+    if (i != MAX_CLOSEST_SERVER_NUM) {
       memcpy(&servers[i], p_server, sizeof(struct server_info));
+      num_servers++; /* Note: this also includes servers discarded due to distance */
+    }
+
     memset(p_server, 0, sizeof(struct server_info));
   }
 }
@@ -767,6 +775,9 @@ static int get_best_server(int *p_index)
     if (minimum != DBL_MAX && i >= MIN_SERVERS_TO_CHECK)
       break; /* MIN_SERVERS_TO_CHECK evaluated and at least one found */
 
+    if (strlen(servers[i].url) == 0)
+      continue;
+
     sscanf(servers[i].url, "http://%[^/]speedtest/upload.%*s", server);
     latency = test_latency(server);
 
@@ -799,7 +810,12 @@ json_object* speedtest() {
   int     dsize, sindex;
   json_object *rc = json_object_new_object();
 
-  if(rc == NULL) return(rc);
+  if(rc == NULL) {
+#ifdef INFO_SPEEDTEST
+    printf("speedtest: failure allocating memory\n");
+#endif
+    return(rc);
+  }
 
   //Initialization
 
@@ -831,8 +847,8 @@ json_object* speedtest() {
 #endif
 
   if (get_best_server(&sindex) != OK) {
-#ifdef DEBUG_SPEEDTEST
-    printf("Failure selecting the best server\n");
+#ifdef INFO_SPEEDTEST
+    printf("speedtest: failure selecting the best server out of %u\n", num_servers);
 #endif
     return(rc);
   }
@@ -849,8 +865,12 @@ json_object* speedtest() {
 
 #ifdef FULL_REPORT
   latency = test_latency(server_url);
-  if (latency == DBL_MAX)
+  if (latency == DBL_MAX) {
+#ifdef INFO_SPEEDTEST
+    printf("speedtest: failure testing latency\n");
+#endif
     return(rc);
+  }
 
 #ifdef DEBUG_SPEEDTEST
   printf("Server latency is %0.0fms\n", latency);
@@ -871,8 +891,12 @@ json_object* speedtest() {
 #endif
   json_object_object_add(rc, "download.speed", json_object_new_double((download_speed*8)/(1024*1024)));
 
-  if (ext[0] == 0 && get_upload_extension(server_url, ext) != OK)
+  if (ext[0] == 0 && get_upload_extension(server_url, ext) != OK) {
+#ifdef INFO_SPEEDTEST
+    printf("speedtest: failure in upload extension\n");
+#endif
     return(rc);
+  }
 
 #ifdef FULL_REPORT
   speed = test_upload(server_url, num_thread, speed, ext, 0);
