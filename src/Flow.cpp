@@ -4596,7 +4596,6 @@ bool Flow::isTiny() const {
 void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 			   u_int64_t s2d_bytes, u_int64_t d2s_bytes) {
   u_int16_t eth_proto = ETHERTYPE_IP;
-  u_int overhead = 0;
   bool nf_existing_flow;
 
   /* netfilter (depending on configured timeouts) could expire a flow before than
@@ -4632,20 +4631,18 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   */
   last_conntrack_update = now;
 
-  iface->_incStats(isIngress2EgressDirection(), now, eth_proto,
-		   getStatsProtocol(), get_protocol_category(),
-		   protocol,
-		   nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
-		   nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
-		   overhead);
-
-  iface->_incStats(!isIngress2EgressDirection(), now, eth_proto,
-		   getStatsProtocol(), get_protocol_category(),
-		   protocol,
-		   nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes,
-		   nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts,
-		   overhead);
-
+  iface->incStats(isIngress2EgressDirection(), now, eth_proto,
+		  getStatsProtocol(), get_protocol_category(),
+		  protocol,
+		  nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
+		  nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts);
+  
+  iface->incStats(!isIngress2EgressDirection(), now, eth_proto,
+		  getStatsProtocol(), get_protocol_category(),
+		  protocol,
+		  nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes,
+		  nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts);
+  
   if(nf_existing_flow) {
     stats.setStats(true, s2d_pkts, s2d_bytes, 0);
     stats.setStats(false, d2s_pkts, d2s_bytes, 0);
