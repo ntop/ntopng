@@ -209,17 +209,17 @@ void NetworkStats::updateBehaviorStats(const struct timeval *tv) {
 
     /* Traffic behavior stats update, currently score, traffic rx and tx */
     if(score_behavior) {
-      snprintf(score_buf, sizeof(score_buf), "Network %d | score", network_id);
+      snprintf(score_buf, sizeof(score_buf), "%d | score", network_id);
       score_behavior->updateBehavior(getAlertInterface(), getScore(), score_buf);
     }
 
     if(traffic_tx_behavior) {
-      snprintf(tx_buf, sizeof(tx_buf), "Network %d | traffic tx", network_id);
+      snprintf(tx_buf, sizeof(tx_buf), "%d | traffic tx", network_id);
       traffic_tx_behavior->updateBehavior(getAlertInterface(), getNumBytesSent(), tx_buf);
     }
 
     if(traffic_rx_behavior) {
-      snprintf(rx_buf, sizeof(rx_buf), "Network %d | traffic rx", network_id);
+      snprintf(rx_buf, sizeof(rx_buf), "%d | traffic rx", network_id);
       traffic_rx_behavior->updateBehavior(getAlertInterface(), getNumBytesRcvd(), rx_buf);
     }
 

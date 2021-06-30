@@ -167,23 +167,20 @@ void AutonomousSystem::updateBehaviorStats(const struct timeval *tv) {
   /* 5 Min Update */
   if(tv->tv_sec >= nextMinPeriodicUpdate) {
     char score_buf[256], tx_buf[128], rx_buf[128];
-    char asname_buf[64];
-
-    snprintf(asname_buf, sizeof(asname_buf), "%d", asn);
 
     /* Traffic behavior stats update, currently score, traffic rx and tx */
     if(score_behavior) {
-      snprintf(score_buf, sizeof(score_buf), "ASN %s | score", asname_buf);
+      snprintf(score_buf, sizeof(score_buf), "%d | score", asn);
       score_behavior->updateBehavior(iface, getScore(), score_buf, (asn ? true : false));
     }
 
     if(traffic_tx_behavior) {
-      snprintf(tx_buf, sizeof(tx_buf), "ASN %s | traffic tx", asname_buf);
+      snprintf(tx_buf, sizeof(tx_buf), "%d | traffic tx", asn);
       traffic_tx_behavior->updateBehavior(iface, getNumBytesSent(), tx_buf, (asn ? true : false));
     }
 
     if(traffic_rx_behavior) {
-      snprintf(rx_buf, sizeof(rx_buf), "ASN %s | traffic rx", asname_buf);
+      snprintf(rx_buf, sizeof(rx_buf), "%d | traffic rx", asn);
       traffic_rx_behavior->updateBehavior(iface, getNumBytesRcvd(), rx_buf, (asn ? true : false));
     }
 
