@@ -132,14 +132,14 @@ end
 --@return True if set is successful, false otherwise
 function host_alert_store:add_role_filter(role)
    if not isEmptyString(role) then
-      local role, op = self:strip_filter_operator(role)
+      local role_value, op = self:strip_filter_operator(role)
       if not op or not tag_utils.tag_operators[op] then op = 'eq' end
       local sql_op = tag_utils.tag_operators[op]
-      if role == 'attacker' then
+      if role_value == 'attacker' then
          self:add_filter_condition_raw('role', string.format("is_attacker %s 1", sql_op))
-      elseif role == 'victim' then
+      elseif role_value == 'victim' then
          self:add_filter_condition_raw('role', string.format("is_victim %s 1", sql_op))
-      elseif role == 'no_attacker_no_victim' then
+      elseif role_value == 'no_attacker_no_victim' then
          self:add_filter_condition_raw('role', "(is_attacker = 0 AND is_victim = 0)")
       end
       return true

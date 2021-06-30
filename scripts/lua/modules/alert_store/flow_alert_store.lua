@@ -257,11 +257,11 @@ end
 function flow_alert_store:add_role_filter(role)
    if not isEmptyString(role) then
       local role_value, op = self:strip_filter_operator(role)
-      if role == 'attacker' then
+      if role_value == 'attacker' then
          self:add_filter_condition_raw('role', "(is_cli_attacker = 1 OR is_srv_attacker = 1)", true)
-      elseif role == 'victim' then
+      elseif role_value == 'victim' then
          self:add_filter_condition_raw('role', "(is_cli_victim = 1 OR is_srv_victim = 1)", true)
-      elseif role == 'no_attacker_no_victim' then
+      elseif role_value == 'no_attacker_no_victim' then
          self:add_filter_condition_raw('role', "(is_cli_attacker = 0 AND is_srv_attacker = 0 AND is_srv_victim = 0 AND is_cli_victim = 0)", true)
       end
       return true
