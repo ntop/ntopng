@@ -31,9 +31,9 @@ local CSV_SEPARATOR = "|"
 -- ##############################################
 
 function alert_store:init(args)
-   self._where = { "1 = 1" }
    self._group_by = nil
    self._top_limit = TOP_LIMIT
+   self._where = {}
 end
 
 -- ##############################################
@@ -88,22 +88,6 @@ end
 
 -- ##############################################
 
---@brief Handle filter operator (eq, lt, gt, gte, lte)
-function alert_store:strip_filter_operator(value)
-   if isEmptyString(value) then return nil, nil end
-   local filter = split(value, tag_utils.SEPARATOR)
-   local value = filter[1]
-   local op = filter[2]
-   if tag_utils.tag_operators[op] then
-      op = tag_utils.tag_operators[op]
-   else
-      op = tag_utils.tag_operators['eq']
-   end
-   return value, op
-end
-
--- ##############################################
-
 --@brief Add filters on time
 --@param epoch_begin The start timestamp
 --@param epoch_end The end timestamp
@@ -111,12 +95,12 @@ end
 function alert_store:add_time_filter(epoch_begin, epoch_end)
    if not self._epoch_begin and tonumber(epoch_begin) then
       self._epoch_begin = tonumber(epoch_begin)
-      self._where[#self._where + 1] = string.format("tstamp >= %u", epoch_begin)
+      self:add_filter_condition('tstamp', 'gte', epoch_begin, 'number')
    end
 
    if not self._epoch_end and tonumber(epoch_end) then
       self._epoch_end = tonumber(epoch_end)
-      self._where[#self._where + 1] = string.format("tstamp <= %u", epoch_end)
+      self:add_filter_condition('tstamp', 'lte', epoch_end, 'number')
    end
 
    return true
@@ -124,53 +108,160 @@ end
 
 -- ##############################################
 
---@brief Add filters on alert id
---@param alert_id The id of an alert to be filtered
---@return True if set is successful, false otherwise
-function alert_store:add_alert_id_filter(alert_id)
-   if alert_id then
-      local alert_id, op = self:strip_filter_operator(alert_id)
-      if not self._alert_id and tonumber(alert_id) then
-         self._alert_id = tonumber(alert_id)
-         self._where[#self._where + 1] = string.format("alert_id %s %u", op, alert_id)
-         return true
+--@brief Build where string from filters
+--@return the where condition in SQL syntax
+function alert_store:build_where_clause()
+   local where_clause = ""
+   local and_clauses = {}
+   local or_clauses = {}
+
+   for name, groups in pairs(self._where) do
+     -- Build AND clauses for all fields
+     for _, cond in ipairs(groups.all) do
+        if and_clauses[name] then
+           and_clauses[name] = and_clauses[name] .. " AND " .. cond.sql
+        else
+           and_clauses[name] = cond.sql
+        end
+     end
+
+     -- Build OR clauses for all fields
+     for _, cond in ipairs(groups.any) do
+        if or_clauses[name] then
+           or_clauses[name] = or_clauses[name] .. " OR " .. cond.sql
+        else
+           or_clauses[name] = cond.sql
+        end
+     end
+   end
+
+   -- Join all groups
+  
+   -- AND groups
+   for name, clause in pairs(and_clauses) do
+      if isEmptyString(where_clause) then
+         where_clause = "(" .. clause .. ")"
+      else
+         where_clause = where_clause .. " AND " .. "(" .. clause .. ")"
       end
    end
 
-   return false
+   -- OR groups
+   for name, clause in pairs(or_clauses) do
+      if isEmptyString(where_clause) then
+         where_clause = "(" .. clause .. ")"
+      else
+         where_clause = where_clause .. " AND " .. "(" .. clause .. ")"
+      end
+   end
+
+   if isEmptyString(where_clause) then
+      where_clause = "1 = 1"
+   end
+
+tprint(where_clause)
+   return where_clause
 end
 
 -- ##############################################
 
---@brief Add filters on alert severity
---@param alert_severity The severity of an alert to be filtered
---@return True if set is successful, false otherwise
-function alert_store:add_alert_severity_filter(alert_severity)
-   if alert_severity then
-      local alert_severity, op = self:strip_filter_operator(alert_severity)
-      if not self._alert_severity and tonumber(alert_severity) then
-         self._alert_severity = tonumber(alert_severity)
-         self._where[#self._where + 1] = string.format("severity %s %u", op, alert_severity)
-         return true
-      end
+--@brief Add raw/sql condition to the 'where' filters
+--@param field The field name (e.g. 'alert_id')
+--@param sql_cond The raw sql condition
+function alert_store:add_filter_condition_raw(field, sql_cond, any)
+   local cond = {
+      sql = sql_cond,
+      field = field,
+   }
+
+   if not self._where[field] then
+      self._where[field] = { all = {}, any = {} }
    end
 
-   return false
+   if any then
+      self._where[field].any[#self._where[field].any + 1] = cond
+   else
+      self._where[field].all[#self._where[field].all + 1] = cond
+   end
 end
 
 -- ##############################################
 
---@brief Add filters on alert rowid
---@param rowid The rowid of an alert to be filtered
---@return True if set is successful, false otherwise
-function alert_store:add_alert_rowid_filter(rowid)
-   if tonumber(rowid) then
-      self._where[#self._where + 1] = string.format("rowid = %u", rowid)
+--@brief Add condition to the 'where' filters
+--@param field The field name (e.g. 'alert_id')
+--@param op The operator (e.g. 'neq')
+--@param value The value
+--@param value_type The value type (e.g. 'number')
+function alert_store:add_filter_condition(field, op, value, value_type)
+   local sql_cond
 
-      return true
+   if not op or not tag_utils.tag_operators[op] then
+      op = 'eq'
    end
 
-   return false
+   sql_op = tag_utils.tag_operators[op]
+
+   if value_type == 'number' then
+     value = tonumber(value)
+     sql_cond = string.format("%s %s %u", field, sql_op, value)
+   else
+     sql_cond = string.format("%s %s '%s'", field, sql_op, value)
+   end
+
+   local cond = {
+      sql = sql_cond,
+      field = field,
+      op = op,
+      value = value,
+   }
+
+   if not self._where[field] then
+      self._where[field] = { all = {}, any = {} }
+   end
+
+   if op == 'neq' then
+      self._where[field].all[#self._where[field].all + 1] = cond
+   else
+      self._where[field].any[#self._where[field].any + 1] = cond
+   end
+end
+
+-- ##############################################
+
+--@brief Handle filter operator (eq, lt, gt, gte, lte)
+function alert_store:strip_filter_operator(value)
+   if isEmptyString(value) then return nil, nil end
+   local filter = split(value, tag_utils.SEPARATOR)
+   local value = filter[1]
+   local op = filter[2]
+   return value, op
+end
+
+-- ##############################################
+
+--@brief Add list of conditions to the 'where' filters
+--@param field The field name (e.g. 'alert_id')
+--@param values The comma-separated list of values and operators
+--@param value_type The value type (e.g. 'number')
+--@return True if set is successful, false otherwise
+function alert_store:add_filter_condition_list(field, values, values_type)
+   if not values then
+      return false
+   end
+
+   local list = split(values, ',')
+
+   for _, value_op in ipairs(list) do
+      local value, op = self:strip_filter_operator(value_op)
+      if values_type == 'number' then
+         value = tonumber(value)
+      end
+      if value then
+         self:add_filter_condition(field, op, value, values_type)
+      end
+   end
+
+   return true
 end
 
 -- ##############################################
@@ -233,7 +324,7 @@ end
 
 --@brief Deletes data according to specified filters
 function alert_store:delete()
-   local where_clause = table.concat(self._where, " AND ")
+   local where_clause = self:build_where_clause()
 
    -- Prepare the final query
    local q = string.format("DELETE FROM `%s` WHERE %s ", self._table_name, where_clause)
@@ -261,7 +352,7 @@ function alert_store:select_historical(filter, fields)
       return res
    end
 
-   where_clause = table.concat(self._where, " AND ")
+   where_clause = self:build_where_clause()
 
    -- [OPTIONAL] Add the group by
    if self._group_by then
@@ -298,15 +389,16 @@ end
 --@brief Selects engaged alerts from memory
 --@return Selected engaged alerts, and the total number of engaged alerts
 function alert_store:select_engaged(filter)
-   local alert_id_filter = tonumber(self._alert_id)
-   local severity_filter = tonumber(self._alert_severity)
    local entity_id_filter = tonumber(self._alert_entity and self._alert_entity.entity_id) -- Possibly set in subclasses constructor
-   local entity_value_filter = filter or self._entity_value
-   -- Role is currently supported and populated for hosts engaged alerts.
-   local role_filter = tonumber(self._role) or alert_roles.alert_role_is_any.role_id
+   local entity_value_filter = filter
+   -- The below filters are evaluated in Lua to support all operators
+   local alert_id_filter = nil
+   local severity_filter = nil
+   local role_filter = nil
 
-   -- tprint(string.format("id=%s sev=%s entity=%s val=%s", alert_id_filter, severity_filter, entity_id_filter, entity_value_filter))
    local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter, role_filter)
+
+   -- TODO Lua filters
 
    local total_rows = 0
    local sort_2_col = {}
@@ -473,13 +565,16 @@ end
 --@brief Counts the number of engaged alerts in multiple time slots
 function alert_store:count_by_severity_and_time_engaged(filter, severity)
    local min_slot, max_slot, time_slot_width = self:_count_by_time_get_bounds()
-   local alert_id_filter = tonumber(self._alert_id)
-   local severity_filter = tonumber(severity) or tonumber(self._alert_severity)
    local entity_id_filter = tonumber(self._alert_entity and self._alert_entity.entity_id) -- Possibly set in subclasses constructor
-   local entity_value_filter = filter or self._entity_value
+   local entity_value_filter = filter
+   -- The below filters are evaluated in Lua to support all operators
+   local alert_id_filter = nil
+   local severity_filter = nil
+   local role_filter = nil
 
-   -- tprint(string.format("id=%s sev=%s entity=%s val=%s", alert_id_filter, severity_filter, entity_id_filter, entity_value_filter))
    local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter)
+
+   -- TODO Lua filters
 
    local all_severities = {}
    local all_slots = {}
@@ -512,7 +607,7 @@ end
 function alert_store:count_by_severity_and_time_historical()
    -- Preserve all the filters currently set
    local min_slot, max_slot, time_slot_width = self:_count_by_time_get_bounds()
-   local where_clause = table.concat(self._where, " AND ")
+   local where_clause = self:build_where_clause()
 
    if severity then
       where_clause = string.format("severity = %u", severity) .. " AND " .. where_clause
@@ -566,7 +661,7 @@ end
 --@brief Performs a query for the top alerts by alert count
 function alert_store:top_alert_id_historical()
    -- Preserve all the filters currently set
-   local where_clause = table.concat(self._where, " AND ")
+   local where_clause = self:build_where_clause()
    local limit = 10
    
    local q = string.format("SELECT alert_id, count(*) count FROM %s WHERE %s GROUP BY alert_id ORDER BY count DESC LIMIT %u",
@@ -684,11 +779,13 @@ function alert_store:add_request_filters()
    local rowid = _GET["row_id"]
    local status = _GET["status"]
 
-   self:add_time_filter(epoch_begin, epoch_end)
-   self:add_alert_id_filter(alert_id)
-   self:add_alert_severity_filter(alert_severity)
    self:add_status_filter(status and status == 'engaged')
-   self:add_alert_rowid_filter(rowid)
+   self:add_time_filter(epoch_begin, epoch_end)
+
+   self:add_filter_condition_list('alert_id', alert_id, 'number')
+   self:add_filter_condition_list('severity', alert_severity, 'number')
+   self:add_filter_condition_list('rowid', rowid, 'number')
+
    self:_add_additional_request_filters()
 end
 

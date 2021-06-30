@@ -157,65 +157,24 @@ end
 -- ##############################################
 
 --@brief Add filters on client host address
---@param ip The host IP
+--@param values The host IP comma-separated-list
 --@return True if set is successful, false otherwise
-function flow_alert_store:add_cli_ip_filter(ip)
-   if not isEmptyString(ip) then
-      local ip, op = self:strip_filter_operator(ip)
-      local host = hostkey2hostinfo(ip)
-      if not isEmptyString(host["host"]) then
-         if not self._cli_ip then
-            self._cli_ip = host["host"]
-            self._where[#self._where + 1] = string.format("cli_ip %s '%s'", op, self._cli_ip)
-            if not isEmptyString(host["vlan"]) then
-               self:add_vlan_id_filter(host["vlan"])
-            end
-            return true
-         end
-      end
+function flow_alert_store:add_cli_ip_filter(values)
+   if isEmptyString(values) then
+      return false
    end
 
-   return false
-end
+   local list = split(values, ',')
 
--- ##############################################
+   for _, value_op in ipairs(list) do
+      local value, op = self:strip_filter_operator(value_op)
 
---@brief Add filters on server host address
---@param ip The host IP
---@return True if set is successful, false otherwise
-function flow_alert_store:add_srv_ip_filter(ip)
-   if not isEmptyString(ip) then
-      local ip, op = self:strip_filter_operator(ip)
-      local host = hostkey2hostinfo(ip)
+      local host = hostkey2hostinfo(value)
       if not isEmptyString(host["host"]) then
-         self:add_srv_ip_filter(host["host"])
-         if not self._srv_ip then
-            self._srv_ip = host["host"]
-            self._where[#self._where + 1] = string.format("srv_ip %s '%s'", op, self._srv_ip)
-            if not isEmptyString(host["vlan"]) then
-               self:add_vlan_id_filter(host["vlan"])
-            end
-            return true
+         self:add_filter_condition('cli_ip', op, host["host"])
+         if not isEmptyString(host["vlan"]) then
+            self:add_filter_condition('vlan_id', op, host["vlan"], 'number')
          end
-      end
-   end
-
-   return false
-end
-
--- ##############################################
-
---@brief Add filters on host address, either as client or as server
---@param ip The host IP
---@return True if set is successful, false otherwise
-function flow_alert_store:add_ip_filter(ip)
-   if not isEmptyString(ip) then
-      local ip, op = self:strip_filter_operator(ip)
-      if not self._ip then
-         self._ip = ip
-         local logic = 'OR'
-         if op == '!=' then logic = 'AND' end
-         self._where[#self._where + 1] = string.format("(srv_ip %s '%s' %s cli_ip %s '%s')", op, self._ip, logic, op, self._ip)
          return true
       end
    end
@@ -225,55 +184,25 @@ end
 
 -- ##############################################
 
---@brief Add filters on client port
---@param port The port
+--@brief Add filters on server host address
+--@param values The host IP comma-separated list
 --@return True if set is successful, false otherwise
-function flow_alert_store:add_cli_port_filter(port)
-   if not isEmptyString(port) then
-      local port, op = self:strip_filter_operator(port)
-      if not isEmptyString(port) then
-         if not self._cli_port then
-            self._cli_port = port
-            self._where[#self._where + 1] = string.format("cli_port %s '%s'", op, self._cli_port)
-            return true
-         end
-      end
+function flow_alert_store:add_srv_ip_filter(values)
+   if isEmptyString(values) then
+      return false
    end
 
-   return false
-end
+   local list = split(values, ',')
 
--- ##############################################
+   for _, value_op in ipairs(list) do
+      local value, op = self:strip_filter_operator(value_op)
 
---@brief Add filters on server port
---@param port The port
---@return True if set is successful, false otherwise
-function flow_alert_store:add_srv_port_filter(port)
-   if not isEmptyString(port) then
-      local port, op = self:strip_filter_operator(port)
-      if not isEmptyString(port) then
-         if not self._srv_port then
-            self._srv_port = port
-            self._where[#self._where + 1] = string.format("srv_port %s '%s'", op, self._srv_port)
-            return true
+      local host = hostkey2hostinfo(value)
+      if not isEmptyString(host["host"]) then
+         self:add_filter_condition('srv_ip', op, host["host"])
+         if not isEmptyString(host["vlan"]) then
+            self:add_filter_condition('vlan_id', op, host["vlan"], 'number')
          end
-      end
-   end
-
-   return false
-end
-
--- ##############################################
-
---@brief Add filters on VLAN ID
---@param vlan_id The VLAN ID
---@return True if set is successful, false otherwise
-function flow_alert_store:add_vlan_id_filter(vlan_id)
-   if not isEmptyString(vlan_id) then
-      local vlan_id, op = self:strip_filter_operator(vlan_id)
-      if not self._vlan_id and tonumber(vlan_id) then
-         self._vlan_id = tonumber(vlan_id)
-         self._where[#self._where + 1] = string.format("vlan_id %s %u", op, self._vlan_id)
          return true
       end
    end
@@ -284,25 +213,36 @@ end
 -- ##############################################
 
 --@brief Add filters on L7 Proto
---@param l7_proto The l7 proto
+--@param values The l7 proto comma-separated list
 --@return True if set is successful, false otherwise
-function flow_alert_store:add_l7_proto_filter(l7_proto)
-   if not isEmptyString(l7_proto) then
-      local l7_proto, op = self:strip_filter_operator(l7_proto)
-      if not self._l7_proto then
-         if not tonumber(l7_proto) then
-            -- Try converting l7 proto name to number
-            l7_proto = interface.getnDPIProtoId(l7_proto)
-         end
-         if tonumber(l7_proto) then
-            self._l7_proto = tonumber(l7_proto)
-            self._l7_master_proto = tonumber(l7_proto)
-            local logic = 'OR'
-            if op == '!=' then logic = 'AND' end
-            self._where[#self._where + 1] = string.format("(l7_proto %s %u %s l7_master_proto %s %u)",
-               op, self._l7_proto, logic, op, self._l7_master_proto)
-            return true
-         end
+function flow_alert_store:add_l7_proto_filter(values)
+   if isEmptyString(values) then
+      return false
+   end
+
+   local list = split(values, ',')
+
+   for _, value_op in ipairs(list) do
+      local l7_proto, op = self:strip_filter_operator(value_op)
+
+      if not tonumber(l7_proto) then
+         -- Try converting l7 proto name to number
+         l7_proto = interface.getnDPIProtoId(l7_proto)
+      end
+
+      if tonumber(l7_proto) then
+         l7_proto = tonumber(l7_proto)
+
+         local logic = 'OR'
+         if op == 'neq' then logic = 'AND' end
+         if not op or not tag_utils.tag_operators[op] then op = 'eq' end
+         local sql_op = tag_utils.tag_operators[op]
+         local sql_cond = string.format("(l7_proto %s %u %s l7_master_proto %s %u)",
+            sql_op, l7_proto, logic, sql_op, l7_proto)
+
+         self:add_filter_condition_raw('l7_proto', sql_cond, op ~= 'neq')
+
+         return true
       end
    end
 
@@ -316,20 +256,15 @@ end
 --@return True if set is successful, false otherwise
 function flow_alert_store:add_role_filter(role)
    if not isEmptyString(role) then
-      local role, op = self:strip_filter_operator(role)
-      if not self._role then
-         if role == 'attacker' then
-	    self._role = alert_roles.alert_role_is_attacker.role_id
-            self._where[#self._where + 1] = "(is_cli_attacker = 1 OR is_srv_attacker = 1)"
-         elseif role == 'victim' then
-	    self._role = alert_roles.alert_role_is_victim.role_id
-            self._where[#self._where + 1] = "(is_cli_victim = 1 OR is_srv_victim = 1)"
-         elseif role == 'no_attacker_no_victim' then
-	    self._role = alert_roles.alert_role_is_none
-	    self._where[#self._where + 1] = "(is_cli_attacker = 0 AND is_srv_attacker = 0 AND is_srv_victim = 0 AND is_cli_victim = 0)"
-         end
-         return true
+      local role_value, op = self:strip_filter_operator(role)
+      if role == 'attacker' then
+         self:add_filter_condition_raw('role', "(is_cli_attacker = 1 OR is_srv_attacker = 1)", true)
+      elseif role == 'victim' then
+         self:add_filter_condition_raw('role', "(is_cli_victim = 1 OR is_srv_victim = 1)", true)
+      elseif role == 'no_attacker_no_victim' then
+         self:add_filter_condition_raw('role', "(is_cli_attacker = 0 AND is_srv_attacker = 0 AND is_srv_victim = 0 AND is_cli_victim = 0)", true)
       end
+      return true
    end
 
    return false
@@ -347,11 +282,13 @@ function flow_alert_store:_add_additional_request_filters()
    local l7_proto = _GET["l7_proto"]
    local role = _GET["role"]
 
-   self:add_vlan_id_filter(vlan_id)
+   self:add_filter_condition_list('vlan_id', vlan_id, 'number')
+   self:add_filter_condition_list('cli_port', cli_port, 'number')
+   self:add_filter_condition_list('srv_port', srv_port, 'number')
+
+   -- Custom filters
    self:add_cli_ip_filter(cli_ip)
    self:add_srv_ip_filter(srv_ip)
-   self:add_cli_port_filter(cli_port)
-   self:add_srv_port_filter(srv_port)
    self:add_l7_proto_filter(l7_proto)
    self:add_role_filter(role)
 end
