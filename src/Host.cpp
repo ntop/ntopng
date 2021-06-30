@@ -205,7 +205,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId) {
   active_alerted_flows = 0;
 
   nextResolveAttempt = 0;
-  vlan_id = _vlanId % MAX_NUM_VLAN,
+  vlan_id = _vlanId;
   memset(&names, 0, sizeof(names));
   asn = 0, asname = NULL;
   as = NULL, country = NULL;
@@ -254,10 +254,26 @@ void Host::initialize(Mac *_mac, VLANid _vlanId) {
 char* Host::get_hostkey(char *buf, u_int buf_len, bool force_vlan) {
   char ipbuf[64];
   char *key = ip.print(ipbuf, sizeof(ipbuf));
+  
+  if((vlan_id > 0) || force_vlan) {
+    char obsBuf[16] = { '\0' };
 
-  if((vlan_id > 0) || force_vlan)
-    snprintf(buf, buf_len, "%s@%u", key, vlan_id);
-  else
+    /*
+      Uncomment to add observation_point_id in the host name
+
+      u_int16_t observation_point_id = get_observation_point_id();
+      
+      if(observation_point_id == 0)
+        obsBuf[0] = '\0';
+      else
+        snprintf(obsBuf, sizeof(obsBuf), " (%u)", observation_point_id);
+    */
+    
+    if(get_vlan_id())
+      snprintf(buf, buf_len, "%s@%u%s", key, get_vlan_id(), obsBuf);
+    else
+      snprintf(buf, buf_len, "%s%s", key, obsBuf);
+  } else
     strncpy(buf, key, buf_len);
 
   buf[buf_len-1] = '\0';
@@ -396,8 +412,8 @@ void Host::lua_get_ip(lua_State *vm) const {
   char ip_buf[64];
 
   lua_push_str_table_entry(vm, "ip", ip.print(ip_buf, sizeof(ip_buf)));
-  lua_push_uint32_table_entry(vm, "vlan", filterVLANid(get_vlan_id()));
-  lua_push_uint32_table_entry(vm, "observation_point_id", filterObservationPointId(get_vlan_id()));
+  lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
+  lua_push_uint32_table_entry(vm, "observation_point_id", get_observation_point_id());
 }
 
 /* ***************************************************** */
@@ -671,8 +687,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "ip", (ipaddr = printMask(ip_buf, sizeof(ip_buf))));
-  lua_push_uint32_table_entry(vm, "vlan", filterVLANid(get_vlan_id()));
-  lua_push_uint32_table_entry(vm, "observation_point_id", filterObservationPointId(get_vlan_id()));
+  lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
+  lua_push_uint32_table_entry(vm, "observation_point_id", get_observation_point_id());
 
   lua_push_bool_table_entry(vm, "hiddenFromTop", isHiddenFromTop());
 
@@ -1650,6 +1666,7 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
   get_name(buf, sizeof(buf), false);
   ndpi_serialize_string_string(s, "name", buf);
   ndpi_serialize_string_int32(s, "vlan_id", get_vlan_id());
+  ndpi_serialize_string_int32(s, "observation_point_id", get_observation_point_id());
   ndpi_serialize_string_int32(s, "entity_id", alert_entity_host);
   ndpi_serialize_string_string(s, "entity_val", getEntityValue().c_str());
   ndpi_serialize_string_uint32(s, "tstamp", alert->getEngageTime());

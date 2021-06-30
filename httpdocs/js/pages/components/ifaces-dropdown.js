@@ -11,8 +11,7 @@ $(function() {
     const toggleObservationPoint = ($form = null) => {
 	if($form != null) {
 	    $form.submit();
-	}
-	else {
+	} else {
 	    console.error("An error has occurred when switching interface!");
 	}
     }

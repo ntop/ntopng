@@ -182,8 +182,11 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   u_int16_t incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client);
   u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client);
 
-  inline u_int16_t get_host_pool()    const { return(host_pool_id);   };
-  inline VLANid get_vlan_id()      const { return(vlan_id);        };
+  inline u_int16_t get_host_pool()         const { return(host_pool_id);                      };
+  inline VLANid get_raw_vlan_id()          const { return(vlan_id);                           }; /* vlanId + observationPointId */
+  inline VLANid get_vlan_id()              const { return(filterVLANid(vlan_id));             };
+  inline VLANid get_observation_point_id() const { return(filterObservationPointId(vlan_id)); };
+  
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
 
   inline void incSentTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {

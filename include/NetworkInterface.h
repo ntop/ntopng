@@ -573,7 +573,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool restoreHost(char *host_ip, VLANid vlan_id);
   void checkHostsToRestore();
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
-  void findFlowHosts(VLANid vlan_id,
+  void findFlowHosts(VLANid vlan_id, u_int16_t observation_domain_id,
 		     Mac *src_mac, IpAddress *_src_ip, Host **src,
 		     Mac *dst_mac, IpAddress *_dst_ip, Host **dst);
   virtual Flow* findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts);
@@ -752,7 +752,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   OperatingSystem *getOS(OSType os, bool create_if_not_present, bool is_inline_call);
   Country* getCountry(const char *country_name, bool create_if_not_present, bool is_inline_call);
   virtual Mac*  getMac(u_int8_t _mac[6], bool create_if_not_present, bool is_inline_call);
-  virtual Host* getHost(char *host_ip, VLANid vlan_id, bool is_inline_call);
+  virtual Host* getHost(char *host_ip, VLANid vlan_id, u_int16_t observationPointId, bool is_inline_call);
   bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id);
   void findPidFlows(lua_State *vm, u_int32_t pid);
   void findProcNameFlows(lua_State *vm, char *proc_name);
@@ -935,7 +935,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void decPoolNumL2Devices(u_int16_t id, bool is_inline_call) {
     if (host_pools) host_pools->decNumL2Devices(id, is_inline_call);
   };
-  Host* findHostByIP(AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id);
+  Host* findHostByIP(AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id, u_int16_t observationPointId);
 #ifdef HAVE_NINDEX
   NIndexFlowDB* getNindex();
 #endif
@@ -1044,7 +1044,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   }
   
   void getObservationPoints(lua_State* vm);
-  inline bool haveObservationPointsDefined() { return(observationPoints.size() == 0 ? false : true); }
+  inline bool haveObservationPointsDefined()    { return(observationPoints.size() == 0 ? false : true); }
+  inline u_int16_t getFirstObservationPointId() { return(observationPoints.size() == 0 ? 0 : observationPoints.begin()->first); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

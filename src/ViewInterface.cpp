@@ -457,7 +457,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
        * is used to call `incNumFlows` and `incUses` on the hosts below, so it is essential that
        * findFlowHosts is called only when first_partial is true. */
       if(first_partial) {
-	findFlowHosts(f->get_vlan_id(),
+	findFlowHosts(f->get_vlan_id(), f->get_observation_point_id(),
 		      NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
 		      NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
 

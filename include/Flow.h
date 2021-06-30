@@ -481,7 +481,8 @@ class Flow : public GenericHashEntry {
   inline const struct ndpi_in6_addr* get_srv_ipv6() const { return(srv_host->get_ip()->get_ipv6());  };
   inline u_int16_t get_cli_port()        const { return(ntohs(cli_port));                 };
   inline u_int16_t get_srv_port()        const { return(ntohs(srv_port));                 };
-  inline VLANid    get_vlan_id()         const { return(vlanId);                          };
+  inline VLANid    get_vlan_id()              const { return(filterVLANid(vlanId));                        };
+  inline VLANid    get_observation_point_id() const { return(filterObservationPointId(vlanId));            };
   inline u_int8_t  get_protocol()        const { return(protocol);                        };
   inline u_int64_t get_bytes()           const { return(stats.get_cli2srv_bytes() + stats.get_srv2cli_bytes() );                };
   inline u_int64_t get_bytes_cli2srv()   const { return(stats.get_cli2srv_bytes());                                             };

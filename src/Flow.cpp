@@ -38,6 +38,8 @@ Flow::Flow(NetworkInterface *_iface,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   const ICMPinfo * const _icmp_info,
 	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
+  u_int16_t _observation_point_id = filterObservationPointId(_vlanId);
+  
   periodic_stats_update_partial = NULL;
   viewFlowStats = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
@@ -91,7 +93,7 @@ Flow::Flow(NetworkInterface *_iface,
   flow_score = 0;
 
   PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
-  iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
+  iface->findFlowHosts(_vlanId, _observation_point_id, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   PROFILING_SUB_SECTION_EXIT(iface, 7);
 
   if(cli_host) {
@@ -2022,8 +2024,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(vrfId) lua_push_uint64_table_entry(vm, "vrfId", vrfId);
 
     /* See VLANAddressTree.h for details */
-    lua_push_uint32_table_entry(vm, "vlan", filterVLANid(get_vlan_id()));
-    lua_push_uint32_table_entry(vm, "observation_point_id", filterObservationPointId(get_vlan_id()));
+    lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
+    lua_push_uint32_table_entry(vm, "observation_point_id", get_observation_point_id());
 
     if(srcAS)
       lua_push_int32_table_entry(vm, "src_as", srcAS);

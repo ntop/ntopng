@@ -8,6 +8,14 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local page_utils = require("page_utils")
 local is_system_interface = page_utils.is_system_view()
+local observationPointId = _GET["observationPointId"]
+
+if(observationPointId ~= nil) then
+-- tprint("--->>> SET("..observationPointId..")")
+  ntop.setUserObservationPointId(tonumber(observationPointId))
+  -- Read it to make it sure it is validated
+ observationPointId = ntop.getUserObservationPointId()
+end
 
 interface.select(ifname)
 

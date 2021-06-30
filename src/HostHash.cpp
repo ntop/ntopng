@@ -30,7 +30,7 @@ HostHash::HostHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_
 
 /* ************************************ */
 
-Host* HostHash::get(VLANid vlanId, IpAddress *key, bool is_inline_call) {
+Host* HostHash::get(VLANid vlanId, IpAddress *key, bool is_inline_call, u_int16_t observation_point_id) {
   u_int32_t hash = (key->key() % num_hashes);
 
   if(table[hash] == NULL) {
@@ -46,6 +46,7 @@ Host* HostHash::get(VLANid vlanId, IpAddress *key, bool is_inline_call) {
     while(head != NULL) {      
       if((!head->idle())
 	 && (head->get_vlan_id() == vlanId)
+	 && (head->get_observation_point_id() == observation_point_id)
 	 && (head->get_ip() != NULL)
 	 && (head->get_ip()->compare(key) == 0))
 	break;

@@ -2958,7 +2958,7 @@ void NetworkInterface::cleanup() {
 
 /* **************************************************** */
 
-void NetworkInterface::findFlowHosts(VLANid vlanId,
+void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain_id,
 				     Mac *src_mac, IpAddress *_src_ip, Host **src,
 				     Mac *dst_mac, IpAddress *_dst_ip, Host **dst) {
   int16_t local_network_id;
@@ -2970,7 +2970,7 @@ void NetworkInterface::findFlowHosts(VLANid vlanId,
 
   PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
   /* Do not look on sub interfaces, Flows are always created in the same interface of its hosts */
-  (*src) = hosts_hash->get(vlanId, _src_ip, true /* Inline call */);
+  (*src) = hosts_hash->get(vlanId, _src_ip, true /* Inline call */, observation_domain_id);
   PROFILING_SECTION_EXIT(3);
 
   if((*src) == NULL) {
@@ -3011,7 +3011,7 @@ void NetworkInterface::findFlowHosts(VLANid vlanId,
   /* ***************************** */
 
   PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
-  (*dst) = hosts_hash->get(vlanId, _dst_ip, true /* Inline call */);
+  (*dst) = hosts_hash->get(vlanId, _dst_ip, true /* Inline call */, observation_domain_id);
   PROFILING_SECTION_EXIT(3);
 
   if((*dst) == NULL) {
@@ -3430,6 +3430,7 @@ void NetworkInterface::resetPoolsStats(u_int16_t pool_filter) {
 struct host_find_info {
   char *host_to_find;
   VLANid vlan_id;
+  u_int16_t observationPointId;
   Host *h;
 };
 
@@ -3479,7 +3480,6 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data, bool *matche
   char ip_buf[32], name_buf[96];
   name_buf[0] = '\0';
 
-
 #ifdef DEBUG
   char buf[64];
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s][%s][%s]",
@@ -3487,7 +3487,9 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data, bool *matche
 			       host->get_name(), info->host_to_find);
 #endif
 
-  if((info->h == NULL) && (host->get_vlan_id() == info->vlan_id)) {
+  if((info->h == NULL)
+     && (host->get_observation_point_id() == info->observationPointId)
+     && (host->get_vlan_id() == info->vlan_id)) {
     host->get_name(name_buf, sizeof(name_buf), false);
 
     if(strlen(name_buf) == 0 && host->get_ip()) {
@@ -3588,7 +3590,9 @@ bool NetworkInterface::restoreHost(char *host_ip, VLANid vlan_id) {
 
 /* **************************************************** */
 
-Host* NetworkInterface::getHost(char *host_ip, VLANid vlan_id, bool isInlineCall) {
+Host* NetworkInterface::getHost(char *host_ip, VLANid vlan_id,
+				u_int16_t observation_point_id,
+				bool isInlineCall) {
   struct in_addr  a4;
   struct in6_addr a6;
   Host *h = NULL;
@@ -3605,6 +3609,7 @@ Host* NetworkInterface::getHost(char *host_ip, VLANid vlan_id, bool isInlineCall
 
     memset(&info, 0, sizeof(info));
     info.host_to_find = host_ip, info.vlan_id = vlan_id;
+    info.observationPointId = observation_point_id;
     walker(&begin_slot, walk_all,  walker_hosts, find_host_by_name, (void*)&info);
 
     h = info.h;
@@ -3614,7 +3619,7 @@ Host* NetworkInterface::getHost(char *host_ip, VLANid vlan_id, bool isInlineCall
     if(ip) {
       ip->set(host_ip);
 
-      h = hosts_hash ? hosts_hash->get(vlan_id, ip, isInlineCall) : NULL;
+      h = hosts_hash ? hosts_hash->get(vlan_id, ip, isInlineCall, observation_point_id) : NULL;
 
       delete ip;
     }
@@ -3674,7 +3679,7 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
   Host *h;
   bool ret;
 
-  h = findHostByIP(allowed_hosts, host_ip, vlan_id);
+  h = findHostByIP(allowed_hosts, host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId));
 
   if(h) {
     h->lua(vm, allowed_hosts, true, true, true, false);
@@ -3694,7 +3699,7 @@ void NetworkInterface::luaTrafficMapHostStats(lua_State* vm, AddressTree *allowe
   if(!check_traffic_stats)
     return;
 
-  h = findHostByIP(allowed_hosts, host_ip, vlan_id);
+  h = findHostByIP(allowed_hosts, host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId));
 
   if(h)
     check_traffic_stats->lua_get_host_stats(vm, h->get_ip(), h->getMac(), h->get_vlan_id());
@@ -3712,7 +3717,7 @@ bool NetworkInterface::getHostMinInfo(lua_State* vm,
   Host *h;
   bool ret;
 
-  h = findHostByIP(allowed_hosts, host_ip, vlan_id);
+  h = findHostByIP(allowed_hosts, host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId));
 
   if(h) {
     lua_newtable(vm);
@@ -3746,7 +3751,7 @@ void NetworkInterface::checkReloadHostsBroadcastDomain() {
 void NetworkInterface::checkPointHostTalker(lua_State* vm, char *host_ip, VLANid vlan_id) {
   Host *h;
 
-  if(host_ip && (h = getHost(host_ip, vlan_id, false /* Not an inline call */)))
+  if(host_ip && (h = getHost(host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */)))
     h->checkpoint(vm);
   else
     lua_pushnil(vm);
@@ -3755,9 +3760,10 @@ void NetworkInterface::checkPointHostTalker(lua_State* vm, char *host_ip, VLANid
 /* **************************************************** */
 
 Host* NetworkInterface::findHostByIP(AddressTree *allowed_hosts,
-				      char *host_ip, VLANid vlan_id) {
+				     char *host_ip, VLANid vlan_id,
+				     u_int16_t observationPointId) {
   if(host_ip != NULL) {
-    Host *h = getHost(host_ip, vlan_id, false /* Not an inline call */);
+    Host *h = getHost(host_ip, vlan_id, observationPointId, false /* Not an inline call */);
 
     if(h && h->match(allowed_hosts))
       return(h);
@@ -3786,6 +3792,7 @@ struct flowHostRetriever {
   /* Search criteria */
   AddressTree *allowed_hosts;
   Host *host;
+  u_int16_t observationPointId;
   u_int8_t *mac, bridge_iface_idx;
   char *manufacturer;
   bool sourceMacsOnly, dhcpHostsOnly;
@@ -3864,6 +3871,16 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 #endif
 
   if(f && (!f->idle())) {
+    if(f->get_observation_point_id() != retriever->observationPointId) {
+#if 0
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Skipping VLAN: %u-%u / observationPointId: %u-%u",
+				   f->get_vlan_id(), vlan_id,
+				   f->get_observation_point_id(), retriever->observationPointId);
+#endif
+      return(false);
+    }
+    
     if(retriever->host) {
       if(!f->getInterface()->isViewed()) {
 	/*
@@ -4015,7 +4032,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->pag
        && retriever->pag->vlanIdFilter(&vlan_id)
-       && f->get_vlan_id() != vlan_id)
+       && (f->get_vlan_id() != vlan_id))
       return(false);
 
     if(retriever->pag
@@ -4205,7 +4222,9 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   if(r->actNumEntries >= r->maxNumEntries)
     return(true); /* Limit reached */
 
-  if(!h || h->idle() || !h->match(r->allowed_hosts))
+  // ntop->getTrace()->traceEvent(TRACE_WARNING, "Host %u / Menu %u", h->get_observation_point_id(), r->observationPointId);
+  
+  if(!h || h->idle() || !h->match(r->allowed_hosts) || (h->get_observation_point_id() != r->observationPointId))
     return(false);
 
   if((r->location == location_local_only            && !h->isLocalHost())                 ||
@@ -4747,6 +4766,7 @@ void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *sta
   retriever.stats = stats;
   retriever.totBytesSent = 0, retriever.totBytesRcvd = 0, retriever.totThpt = 0;
   retriever.only_traffic_stats = only_traffic_stats;
+  retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
   
   walker(&begin_slot, walk_all, walker_flows, flow_sum_stats, &retriever);
 
@@ -4791,6 +4811,8 @@ int NetworkInterface::getFlows(lua_State* vm,
   if(! p->getDetailsLevel(&highDetails))
     highDetails = p->detailedResults() ? details_high : (local_hosts || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? details_high : details_normal;
 
+  retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
+  
   if(sortFlows(begin_slot, walk_all, &retriever, allowed_hosts, host, p, sortColumn) < 0) {
     return(-1);
   }
@@ -4852,6 +4874,8 @@ int NetworkInterface::getFlowsGroup(lua_State* vm,
     return(-1);
   }
 
+  retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
+  
   if(sortFlows(&begin_slot, walk_all, &retriever, allowed_hosts, NULL, p, groupColumn) < 0) {
     return(-1);
   }
@@ -4944,8 +4968,6 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 
   if(retriever == NULL)
     return(-1);
-
-  memset(retriever, 0, sizeof(struct flowHostRetriever));
 
   if(mac_filter) {
     Utils::parseMac(macAddr, mac_filter);
@@ -5232,13 +5254,16 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
-
+ 
 #if DEBUG
   if(!walk_all)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[BEGIN] %s(begin_slot=%u, walk_all=%u)",
 				 __FUNCTION__, *begin_slot, walk_all);
 #endif
 
+  memset(&retriever, 0, sizeof(struct flowHostRetriever));
+  retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
+  
   if(sortHosts(begin_slot, walk_all,
 	       &retriever, bridge_iface_idx,
 	       allowed_hosts, host_details, location,
@@ -5371,7 +5396,7 @@ int NetworkInterface::getMacsIpAddresses(lua_State *vm, int idx) {
 
   retriever.vm = vm;
   retriever.idx = idx;
-
+  
   walker(&begin_slot, walk_all,  walker_hosts, hosts_get_macs, (void*)&retriever);
   return 0;
 }
@@ -6888,6 +6913,8 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
   struct flowHostRetriever retriever;
   bool show_details = true;
 
+  retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
+  
   if(sortMacs(begin_slot, walk_all,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      manufacturer, sortColumn,
@@ -7427,7 +7454,7 @@ int NetworkInterface::updateHostTrafficPolicy(AddressTree* allowed_networks,
   Host *h;
   int rv;
 
-  if((h = findHostByIP(allowed_networks, host_ip, host_vlan)) != NULL) {
+  if((h = findHostByIP(allowed_networks, host_ip, host_vlan, 0 /* any observation point */)) != NULL) {
     h->updateHostTrafficPolicy(host_ip);
     rv = CONST_LUA_OK;
   } else
@@ -8363,7 +8390,7 @@ void NetworkInterface::walkAlertables(AlertEntity alert_entity, const char *enti
 
       get_host_vlan_info((char*)entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
 
-      if(host_ip && (host = getHost(host_ip, vlan_id, false /* not inline */)) &&
+      if(host_ip && (host = getHost(host_ip, vlan_id, 0 /* not sure it can be read by the VM */, false /* not inline */)) &&
 	  host->matchesAllowedNetworks(allowed_nets))
         callback(alert_entity_host, host, user_data);
     }
@@ -8604,7 +8631,7 @@ void NetworkInterface::checkHostsToRestore() {
     vlan_id = atoi(d+1);
     ipa.set(ip);
 
-    if((h = getHost(ip, vlan_id, true /* inline call */)))
+    if((h = getHost(ip, vlan_id, 0 /* any observation point */, true /* inline call */)))
       /* Host already exists */
       goto next_host;
 

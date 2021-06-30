@@ -586,7 +586,12 @@ if((page == "overview") or (page == nil)) then
       print("</td></tr>\n")
    end
 
-   if(host["ip"] ~= nil) then
+   if(host["observation_point_id"] ~= nil) then
+      print("<tr><th>"..i18n("details.observation_point_id").."</th>")
+      print("<td colspan=\"2\">"..host["observation_point_id"].."</td></tr>")
+   end
+
+if(host["ip"] ~= nil) then
       print("<tr><th>"..i18n("name").."</th>")
 
       if(isAdministrator()) then

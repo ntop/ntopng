@@ -34,10 +34,7 @@ local is_system_interface = page_utils.is_system_view()
 
 blog_utils.fetchLatestPosts()
 
-
-if(observationPointId ~= nil) then
-  ntop.setUserObservationPointId(tonumber(observationPointId))  
-end
+observationPointId = ntop.getUserObservationPointId()
 
 print([[
    <div class='wrapper'>
@@ -71,7 +68,7 @@ print[[
       "others": "]] print(i18n("others")) print[[",
       "warning": "]] print(i18n("warning")) print[[",
       "search": "]] print(i18n("search")) print[[",
-      
+
       "and_x_more": "]] print(i18n("and_x_more", { num = '$num'})) print[[",
       "invalid_input": "]] print(i18n("validation.invalid_input")) print[[",
       "missing_field": "]] print(i18n("validation.missing_field")) print[[",
@@ -251,7 +248,7 @@ else
          periodic_info_available = true
       end
    end
-   
+
    -- Hosts
    page_utils.add_menubar_section(
       {
@@ -321,7 +318,7 @@ else
    )
 
   -- ##############################################
-   
+
   -- Maps
    page_utils.add_menubar_section({
       section = page_utils.menu_sections.maps,
@@ -688,7 +685,7 @@ if not info.oem and auth.has_capability(auth.capabilities.developer) then
 	       entry = page_utils.menu_entries.api,
 	       url = 'https://www.ntop.org/guides/ntopng/api/',
 	    },
-	   
+
 	 },
       }
    )
@@ -986,8 +983,6 @@ if((observationPoints == nil) or (table.len(observationPoints) == 0)) then
   -- read the validated observation point
   observationPoints = nil
   observationPointId = nil
-else
-  observationPointId = tostring(ntop.getUserObservationPointId())
 end
 
 interface.select(ifs.id.."")
@@ -1138,7 +1133,7 @@ else
       print([[<i class='fas fa-user'></i> ]].. session_user ..[[]])
       print([[</li>]])
    end
-   
+
 end
 
 -- Render nendge services

@@ -4423,7 +4423,7 @@ static void ntop_reset_host_name(lua_State* vm, char *address) {
 
   for(int i=0; i<ntop->get_num_interfaces(); i++) {
     if((iface = ntop->getInterface(i)) != NULL) {
-      host = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id);
+      host = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId));
       if(host)
         host->requestNameReset();
     }
@@ -5092,8 +5092,13 @@ static int ntop_get_user_observation_point_id(lua_State* vm) {
     if(ntop->getRedis()->get(key, val, sizeof(val)) != -1) {
       u_int16_t observationPointId = (u_int16_t)atoi(val);
       
-      if(iface->haveObservationPointsDefined()
-	 && iface->hasObservationPointId(observationPointId)) {
+      if(iface->haveObservationPointsDefined()) {
+	if(!iface->hasObservationPointId(observationPointId)) {
+	  observationPointId = iface->getFirstObservationPointId();
+	  snprintf(val, sizeof(val), "%u", observationPointId);
+	  ntop->getRedis()->set(key, val);
+	}
+	
 	getLuaVMUservalue(vm, observationPointId) = observationPointId;
 	rc = true;
 	lua_pushinteger(vm, observationPointId);

@@ -768,7 +768,7 @@ void LuaEngine::setInterface(const char * user, char * const ifname,
       observationPointId = atoi(buf);
 
       if(!iface->hasObservationPointId(observationPointId))
-	observationPointId = 0; /* Not existing: set it to 0 */
+	observationPointId = iface->getFirstObservationPointId(); /* Not existing */
     }
   }
 
@@ -1147,7 +1147,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   lua_push_str_table_entry(L, "group", (char*)group);
   lua_push_bool_table_entry(L, "localuser", localuser);
   lua_push_uint64_table_entry(L, "capabilities", capabilities);  
-  
+
   // now it's time to set the interface.
   setInterface(user, ifname, sizeof(ifname), &is_interface_allowed);
 
@@ -1170,12 +1170,13 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)
        && (val[0] != '\0')) {
       lua_pushstring(L, val);
-    } else {
+    } else
       lua_pushstring(L, NTOP_DEFAULT_USER_LANG);
-    }
+    
     lua_setglobal(L, CONST_USER_LANGUAGE);
   }
 
+  
   getLuaVMUservalue(L, group) = (char*)(group ? (group) : "");
   getLuaVMUservalue(L, localuser) = localuser;
   getLuaVMUservalue(L, csrf) = (char*)session_csrf;
