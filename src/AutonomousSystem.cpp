@@ -32,8 +32,8 @@ AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : G
   nextMinPeriodicUpdate = 0;
   if(ntop->getPrefs()->isASNBehavourAnalysisEnabled()) {
     score_behavior = new AnalysisBehavior();
-    traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */);
-    traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */);
+    traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
+    traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
   } else {
     score_behavior = NULL;
     traffic_tx_behavior = NULL;
