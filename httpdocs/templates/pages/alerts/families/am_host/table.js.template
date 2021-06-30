@@ -4,7 +4,7 @@
     /* Score */
     {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
     /* Alert */
-    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width: '55%', className: 'text-nowrap', },
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width: '55%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Measurement */
     {responsivePriority: 3, name: 'measurement', data: 'measurement', orderable: false, width: '10%', className: 'text-nowrap', width: '8%'},
     /* Threshold */
