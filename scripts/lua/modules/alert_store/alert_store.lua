@@ -159,7 +159,8 @@ function alert_store:build_where_clause()
       where_clause = "1 = 1"
    end
 
-tprint(where_clause)
+   -- tprint(where_clause)
+
    return where_clause
 end
 

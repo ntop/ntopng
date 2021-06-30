@@ -17,6 +17,7 @@ local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
 local alert_roles = require "alert_roles"
 local json = require "dkjson"
+local tag_utils = require "tag_utils"
 
 -- ##############################################
 
