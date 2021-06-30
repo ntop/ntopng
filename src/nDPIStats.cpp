@@ -69,13 +69,6 @@ nDPIStats::nDPIStats(const nDPIStats &stats) {
       memcpy(counters[i], stats.counters[i], sizeof(*counters[i]));
     else
       counters[i] = NULL;
-
-#ifdef NTOPNG_PRO
-    if(behavior_bytes_traffic && stats.behavior_bytes_traffic && stats.behavior_bytes_traffic[i]) {
-      behavior_bytes_traffic[i] = new (std::nothrow)AnalysisBehavior(0.5);
-      behavior_bytes_traffic[i]->updateBehavior(NULL, counters[i]->bytes.sent + counters[i]->bytes.rcvd, NULL, false);
-    }
-#endif
   }
 }
 
@@ -285,7 +278,7 @@ void nDPIStats::updateStats(const struct timeval *tv) {
         continue;
 
       if(!behavior_bytes_traffic[i])
-        behavior_bytes_traffic[i] = new (std::nothrow)AnalysisBehavior(0.5);
+        behavior_bytes_traffic[i] = new (std::nothrow)AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
 
       if(behavior_bytes_traffic[i])
         behavior_bytes_traffic[i]->updateBehavior(NULL, counters[i]->bytes.sent + counters[i]->bytes.rcvd, NULL, false);
