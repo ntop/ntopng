@@ -40,7 +40,7 @@ class FlowHitsAlert : public HostAlert {
   void setThreshold(u_int64_t _hits_threshold) { hits_threshold = _hits_threshold; }
   inline bool isAttacker() const { return is_attacker; }
 
-  u_int8_t getAlertScore() { return SCORE_LEVEL_WARNING; };
+  u_int8_t getAlertScore() const { return SCORE_LEVEL_WARNING; };
 };
 
 #endif /* _FLOW_HITS_ALERT_H_ */

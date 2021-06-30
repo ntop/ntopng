@@ -196,10 +196,12 @@ typedef enum {
   NOTE: Keep in sync with Lua alert_roles.lua
  */
 typedef enum {
-  alert_role_any = 0,
+  alert_role_is_any = 0,
   alert_role_is_attacker = 1,
   alert_role_is_victim = 2,
-  alert_role_is_both = 3,
+  alert_role_is_client = 3,
+  alert_role_is_server = 4,
+  alert_role_is_none = 5,
 } AlertRole;
 
 /*

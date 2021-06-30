@@ -37,7 +37,7 @@ class RemoteConnectionAlert : public HostAlert {
   ~RemoteConnectionAlert() {};
   
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore() { return SCORE_LEVEL_NOTICE; };
+  u_int8_t getAlertScore()     const { return SCORE_LEVEL_NOTICE; };
 };
 
 #endif /* _REMOTE_CONNECTION_ALERT_H_ */

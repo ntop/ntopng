@@ -36,6 +36,8 @@ end
 function host_alert_store:insert(alert)
    local is_attacker = ternary(alert.is_attacker, 1, 0)
    local is_victim = ternary(alert.is_victim, 1, 0)
+   local is_client = ternary(alert.is_client, 1, 0)
+   local is_server = ternary(alert.is_server, 1, 0)
    local ip = alert.ip
    local vlan_id = alert.vlan_id
 
@@ -46,8 +48,8 @@ function host_alert_store:insert(alert)
    end
 
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, ip, vlan_id, name, is_attacker, is_victim, tstamp, tstamp_end, severity, score, granularity, json) "..
-      "VALUES (%u, '%s', %u, '%s', %u, %u, %u, %u, %u, %u, %u, '%s'); ",
+      "(alert_id, ip, vlan_id, name, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, json) "..
+      "VALUES (%u, '%s', %u, '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
       self._table_name, 
       alert.alert_id,
       ip,
@@ -55,6 +57,8 @@ function host_alert_store:insert(alert)
       self:_escape(alert.name),
       is_attacker,
       is_victim,
+      is_client,
+      is_server,
       alert.tstamp,
       alert.tstamp_end,
       ntop.mapScoreToSeverity(alert.score),
@@ -147,10 +151,10 @@ function host_alert_store:add_role_filter(role)
       if not self._role then
          if role == 'attacker' then
 	    self._role = alert_roles.alert_role_is_attacker.role_id
-            self._where[#self._where + 1] = string.format("is_attacker %s 1", op)
+            self._where[#self._where + 1] = string.format("is_attacker = 1")
          elseif role == 'victim' then
             self._role = alert_roles.alert_role_is_victim.role_id
-            self._where[#self._where + 1] = string.format("is_victim %s 1", op)
+            self._where[#self._where + 1] = string.format("is_victim = 1")
 	 elseif role == 'no_attacker_no_victim' then
 	    self._role = alert_roles.alert_role_is_none
 	    self._where[#self._where + 1] = "(is_attacker = 0 AND is_victim = 0)"
@@ -164,15 +168,40 @@ end
 
 -- ##############################################
 
+--@brief Add filter on client/server role
+--@param role_cli_srv The client/server role (client or server)
+--@return True if set is successful, false otherwise
+function host_alert_store:add_role_cli_srv_filter(role_cli_srv)
+   if not isEmptyString(role_cli_srv) then
+      local role_cli_srv, op = self:strip_filter_operator(role_cli_srv)
+      if not self._role_cli_srv then
+         if role_cli_srv == 'client' then
+	    self._role_cli_srv = alert_roles.alert_role_is_client.role_id
+            self._where[#self._where + 1] = string.format("is_client = 1")
+         elseif role_cli_srv == 'server' then
+            self._role_cli_srv = alert_roles.alert_role_is_server.role_id
+            self._where[#self._where + 1] = string.format("is_server = 1")
+	    return true
+	 end
+      end
+   end
+
+   return false
+end
+
+-- ##############################################
+
 --@brief Add filters according to what is specified inside the REST API
 function host_alert_store:_add_additional_request_filters()
    local vlan_id = _GET["vlan_id"]
    local ip = _GET["ip"]
    local role = _GET["role"]
+   local role_cli_srv = _GET["role_cli_srv"]
 
    self:add_vlan_id_filter(vlan_id)
    self:add_ip_filter(ip)
    self:add_role_filter(role)
+   self:add_role_cli_srv_filter(role_cli_srv)
 end
 
 -- ##############################################
@@ -188,6 +217,10 @@ function host_alert_store:_get_additional_available_filters()
 	 value_type = 'role',
 	 i18n_label = i18n('tags.role'),
       },
+      role_cli_srv = {
+	 value_type = 'role_cli_srv',
+	 i18n_label = i18n('tags.role_cli_srv'),
+      },
    }
 
    return filters
@@ -199,6 +232,8 @@ local RNAME = {
    IP = { name = "ip", export = true},
    IS_VICTIM = { name = "is_victim", export = true},
    IS_ATTACKER = { name = "is_attacker", export = true},
+   IS_CLIENT = { name = "is_client", export = true},
+   IS_SERVER = { name = "is_server", export = true},
    VLAN_ID = { name = "vlan_id", export = true},
    ALERT_NAME = { name = "alert_name", export = true},
    DESCRIPTION = { name = "description", export = true},
@@ -240,6 +275,8 @@ function host_alert_store:format_record(value, no_html)
    record[RNAME.IP.name]["shown_label"] = record[RNAME.IP.name]["label"]
    record[RNAME.IS_VICTIM.name] = ""
    record[RNAME.IS_ATTACKER.name] = ""
+   record[RNAME.IS_CLIENT.name] = ""
+   record[RNAME.IS_SERVER.name] = ""
 
    if value["is_victim"] == true or value["is_victim"] == "1" then
       if no_html then
@@ -267,6 +304,34 @@ function host_alert_store:format_record(value, no_html)
       end
    elseif no_html then
       record[RNAME.IS_ATTACKER.name] = tostring(false)  -- when no_html is enabled a default value must be present
+   end
+
+   if value["is_client"] == true or value["is_client"] == "1" then
+      if no_html then
+         record[RNAME.IS_CLIENT.name] = tostring(true) -- when no_html is enabled a default value must be present
+      else
+         record[RNAME.IS_CLIENT.name] = '<i class="fas fa-long-arrow-alt-right"></i>'
+         record["role_cli_srv"] = {
+           label = i18n("client"),
+           value = "client",
+         }
+      end
+   elseif no_html then
+      record[RNAME.IS_CLIENT.name] = tostring(false)  -- when no_html is enabled a default value must be present
+   end
+
+   if value["is_server"] == true or value["is_server"] == "1" then
+      if no_html then
+         record[RNAME.IS_SERVER.name] = tostring(true) -- when no_html is enabled a default value must be present
+      else
+         record[RNAME.IS_SERVER.name] = '<i class="fas fa-long-arrow-alt-left"></i>'
+         record["role_cli_srv"] = {
+           label = i18n("server"),
+           value = "server",
+         }
+      end
+   elseif no_html then
+      record[RNAME.IS_SERVER.name] = tostring(false)  -- when no_html is enabled a default value must be present
    end
 
    record[RNAME.VLAN_ID.name] = value["vlan_id"] or 0

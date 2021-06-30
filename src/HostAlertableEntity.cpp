@@ -143,6 +143,8 @@ void HostAlertableEntity::luaAlert(lua_State* vm, HostAlert *alert) {
   lua_push_uint64_table_entry(vm, "vlan_id", alert->getHost()->get_vlan_id());
   lua_push_bool_table_entry(vm, "is_attacker", alert->isAttacker());
   lua_push_bool_table_entry(vm, "is_victim", alert->isVictim());
+  lua_push_bool_table_entry(vm, "is_client", alert->isClient());
+  lua_push_bool_table_entry(vm, "is_server", alert->isServer());
 
   HostCheck *cb = getAlertInterface()->getCheck(alert->getCheckType());
   lua_push_int32_table_entry(vm,  "granularity", cb ? cb->getPeriod() : 0);
@@ -174,10 +176,9 @@ void HostAlertableEntity::getAlerts(lua_State* vm, ScriptPeriodicity p /* not us
 	   || type_filter == alert->getAlertType().id)
 	  && (severity_filter == alert_level_none
 	      || severity_filter == Utils::mapScoreToSeverity(alert->getAlertScore()))
-	  && (role_filter == alert_role_any
+	  && (role_filter == alert_role_is_any
 	      || (role_filter == alert_role_is_attacker && alert->isAttacker())
-	      || (role_filter == alert_role_is_victim && alert->isVictim())
-	      || (role_filter == alert_role_is_both && (alert->isAttacker() || alert->isVictim())))) {
+	      || (role_filter == alert_role_is_victim && alert->isVictim()))) {
         lua_newtable(vm);
         luaAlert(vm, alert);
 

@@ -36,9 +36,7 @@ class HostAlert {
   time_t engage_time;
   time_t release_time;
   risk_percentage cli_pctg; /* The fraction of total risk that goes to the client */
-  u_int8_t is_attacker;
-  u_int8_t is_victim;
-
+  bool is_attacker, is_victim; /* Whether the host of this alert is considered to be an attacker o a victim */
   /* 
      Adds to the passed `serializer` (generated with `getAlertSerializer`) information specific to this alert
    */
@@ -48,17 +46,22 @@ class HostAlert {
   HostAlert(HostCheck *c, Host *h, risk_percentage _cli_pctg);
   virtual ~HostAlert();
 
-  inline u_int8_t getCliScore() { return (cli_pctg * getAlertScore()) / 100; }
-  inline u_int8_t getSrvScore() { return (getAlertScore() - getCliScore());  }
+  inline u_int8_t getCliScore() const { return (cli_pctg * getAlertScore()) / 100; }
+  inline u_int8_t getSrvScore() const { return (getAlertScore() - getCliScore());  }
+  /*
+    An alert is assumed to be client if the client score is positive and greater than the server score.
+    Similarly, it is assumed to be server when the server score is positive and greater than the client score.
+   */
+  inline bool isClient()   const { return getCliScore() > 0 && getCliScore() > getSrvScore(); }
+  inline bool isServer()   const { return getSrvScore() > 0 && getSrvScore() > getCliScore(); }
 
-  inline void setAttacker() { is_attacker = true; }
-  inline void setVictim()   { is_victim = true;   }
+  inline void setAttacker()      { is_attacker = true; }
+  inline void setVictim()        { is_victim = true;   }
+  inline bool isAttacker() const { return is_attacker; }
+  inline bool isVictim()   const { return is_victim;   }
 
-  inline bool isAttacker() { return is_attacker; }
-  inline bool isVictim()   { return is_victim;   }
-
-  virtual HostAlertType getAlertType() const = 0;
-  virtual u_int8_t      getAlertScore() { return SCORE_LEVEL_NOTICE; };
+  virtual HostAlertType getAlertType()  const = 0;
+  virtual u_int8_t      getAlertScore() const { return SCORE_LEVEL_NOTICE; };
 
   /* Alert automatically released when the condition is no longer satisfied. */
   virtual bool hasAutoRelease()  { return true; }

@@ -48,12 +48,11 @@ void FlowHits::triggerFlowHitsAlert(Host *h, HostAlert *engaged, bool attacker,
     */
     if(alert->isAttacker() == attacker) { 
       /* Update engaged alert */
-      
       alert->setHits(hits);
     }
   }
 
-  if (alert)
+  if(alert)
     h->triggerAlert(alert);
 }
 

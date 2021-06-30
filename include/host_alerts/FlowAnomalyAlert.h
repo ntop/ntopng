@@ -53,7 +53,7 @@ class FlowAnomalyAlert : public HostAlert {
 
   static HostAlertType getClassType() { return { host_alert_flows_anomaly, alert_category_network }; }
   HostAlertType getAlertType() const  { return getClassType(); }
-  u_int8_t getAlertScore() { return SCORE_LEVEL_WARNING; };
+  u_int8_t getAlertScore()     const  { return SCORE_LEVEL_WARNING; };
 };
 
 #endif /* _FLOW_ANOMALY_ALERT_H_ */

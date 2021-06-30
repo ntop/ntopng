@@ -73,6 +73,7 @@ local srv_port = _GET["srv_port"]
 local l7_proto = _GET["l7_proto"]
 local network_name = _GET["network_name"]
 local role = _GET["role"]
+local role_cli_srv = _GET["role_cli_srv"]
 local subtype = _GET["subtype"]
 
 --------------------------------------------------------------
@@ -234,6 +235,7 @@ widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
         l7_proto = l7_proto,
         network_name = network_name,
         role = role,
+	role_cli_srv = role_cli_srv,
 	subtype = subtype,
     })
 })
@@ -293,7 +295,8 @@ local operators_by_filter = {
     ip = {'eq','neq'},
     port = {'eq','neq'},
     l7_proto  = {'eq','neq'},
-    role = {'eq','neq'},
+    role = {'eq'},
+    role_cli_srv = {'eq'},
     text = {'eq','neq'},
 }
 
@@ -303,6 +306,7 @@ local defined_tags = {
 	severity = operators_by_filter.severity,
         ip = operators_by_filter.ip,
         role = operators_by_filter.role,
+	role_cli_srv = operators_by_filter.role_cli_srv,
     },
     ["mac"] = {
 	alert_id = operators_by_filter.alert_id,
@@ -351,6 +355,7 @@ local initial_tags = {}
 local formatters = {
    severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
    role = function(role) return (i18n(role)) end,
+   role_cli_srv = function(role) return (i18n(role)) end,
 }
 if page ~= "all" then
    formatters.l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end
@@ -417,6 +422,7 @@ local context = {
                 network_name = i18n("tags.network_name"),
 		subtype = i18n("alerts_dashboard.subject"),
                 role = i18n("tags.role"),
+		role_cli_srv = i18n("tags.role_cli_srv"),
             }
         },
         presets = {
@@ -450,6 +456,7 @@ local context = {
             l7_proto = l7_proto,
             network_name = network_name,
             role = role,
+	    role_cli_srv = role_cli_srv,
 	    subtype = subtype,
         }),
         actions = {

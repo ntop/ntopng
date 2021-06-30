@@ -39,7 +39,7 @@ class DNSTrafficAlert : public HostAlert {
   ~DNSTrafficAlert() {};
   
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore() { return SCORE_LEVEL_ERROR; };
+  u_int8_t getAlertScore()     const { return SCORE_LEVEL_ERROR; };
 };
 
 #endif /* _DNS_TRAFFIC__ALERT_H_ */

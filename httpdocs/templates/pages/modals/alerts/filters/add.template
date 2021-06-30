@@ -201,6 +201,29 @@
     </div>
 </template>
 
+<template id="role_cli_srv-filter-template">
+    <div class="form-group row">
+        <label class="col-form-label col-sm-3"><b>{{i18n("tags.role_cli_srv")}}</b></label>
+        <div class="col-sm-5">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <select required name="operator" class="form-select">
+                        {% local first_item = true %}
+                        {% for _, operator in ipairs(operators_by_filter.role_cli_srv) do %}
+                            <option {{ (first_item and "selected" or "") }} value="{{operator}}">{{tag_operators[operator]}}</option>
+                            {% first_item = false %}
+                        {% end %}
+                    </select>
+                </div>
+                <select required name="value" class="form-select">
+                    <option selected data-tag-label="{{i18n("client")}}" value="client">{{i18n("client")}}</option>
+                    <option data-tag-label="{{i18n("server")}}" value="server">{{i18n("server")}}</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</template>
+
 <template id="text-filter-template">
     <div class="form-group row">
         <label class="col-form-label col-sm-3"><b>{{i18n("value")}}</b></label>

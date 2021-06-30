@@ -86,6 +86,8 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 `name` TEXT NULL,
 `is_attacker` INTEGER NULL CHECK(`is_attacker` IN (0,1)),
 `is_victim` INTEGER NULL CHECK(`is_victim` IN (0,1)),
+`is_client` INTEGER NULL CHECK(`is_client` IN (0,1)),
+`is_server` INTEGER NULL CHECK(`is_server` IN (0,1)),
 `tstamp` DATETIME NOT NULL,
 `tstamp_end` DATETIME NULL DEFAULT 0,
 `severity` INTEGER NOT NULL CHECK(`severity` >= 0),
@@ -101,6 +103,9 @@ CREATE INDEX IF NOT EXISTS `host_alerts_i_tstamp` ON `host_alerts`(`tstamp`);
 CREATE INDEX IF NOT EXISTS `host_alerts_i_ip` ON `host_alerts`(`vlan_id`,`ip`);
 CREATE INDEX IF NOT EXISTS `host_alerts_i_is_attacker` ON `host_alerts`(`is_attacker`);
 CREATE INDEX IF NOT EXISTS `host_alerts_i_is_victim` ON `host_alerts`(`is_victim`);
+CREATE INDEX IF NOT EXISTS `host_alerts_i_is_client` ON `host_alerts`(`is_client`);
+CREATE INDEX IF NOT EXISTS `host_alerts_i_is_victim` ON `host_alerts`(`is_victim`);
+CREATE INDEX IF NOT EXISTS `host_alerts_i_is_server` ON `host_alerts`(`is_server`);
 
 -- -----------------------------------------------------
 -- Table `mac_alerts`

@@ -36,7 +36,7 @@ class ServerContactsAlert : public HostAlert {
   ServerContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _syns, u_int64_t _syns_threshold);
   ~ServerContactsAlert() {};
 
-  u_int8_t getAlertScore() { return SCORE_LEVEL_NOTICE; };
+  u_int8_t getAlertScore() const { return SCORE_LEVEL_NOTICE; };
 };
 
 #endif /* _SERVER_CONTACTS_ALERT_H_ */

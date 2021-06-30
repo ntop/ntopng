@@ -39,7 +39,7 @@ class P2PTrafficAlert : public HostAlert {
   ~P2PTrafficAlert() {};
   
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore() { return SCORE_LEVEL_ERROR; };
+  u_int8_t getAlertScore()     const { return SCORE_LEVEL_ERROR; };
 };
 
 #endif /* _P2P_TRAFFIC_ALERT_H_ */

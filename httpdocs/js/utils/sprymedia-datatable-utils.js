@@ -680,6 +680,13 @@ class DataTableRenders {
           label = label + ' ' + DataTableRenders.filterize('role', row.role.value,
             '<i class="fas fa-sad-tear" title="'+row.role.label+'"></i>', row.role.label);
 
+        if (row.role_cli_srv && row.role_cli_srv.value == 'client')
+          label = label + ' ' + DataTableRenders.filterize('role_cli_srv', row.role_cli_srv.value, 
+            '<i class="fas fa-long-arrow-alt-right" title="'+row.role_cli_srv.label+'"></i>', row.role_cli_srv.label);
+        else if (row.role_cli_srv && row.role_cli_srv.value == 'server')
+          label = label + ' ' + DataTableRenders.filterize('role_cli_srv', row.role_cli_srv.value,
+            '<i class="fas fa-long-arrow-alt-left" title="'+row.role_cli_srv.label+'"></i>', row.role_cli_srv.label);
+
         return label + ' ' + html_ref; 
     }
 

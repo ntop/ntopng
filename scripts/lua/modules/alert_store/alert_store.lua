@@ -303,7 +303,7 @@ function alert_store:select_engaged(filter)
    local entity_id_filter = tonumber(self._alert_entity and self._alert_entity.entity_id) -- Possibly set in subclasses constructor
    local entity_value_filter = filter or self._entity_value
    -- Role is currently supported and populated for hosts engaged alerts.
-   local role_filter = tonumber(self._role) or alert_roles.alert_role_any.role_id
+   local role_filter = tonumber(self._role) or alert_roles.alert_role_is_any.role_id
 
    -- tprint(string.format("id=%s sev=%s entity=%s val=%s", alert_id_filter, severity_filter, entity_id_filter, entity_value_filter))
    local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter, role_filter)
