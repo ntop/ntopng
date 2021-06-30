@@ -93,14 +93,15 @@ end
 --@param epoch_end The end timestamp
 --@return True if set is successful, false otherwise
 function alert_store:add_time_filter(epoch_begin, epoch_end)
-   if not self._epoch_begin and tonumber(epoch_begin) then
-      self._epoch_begin = tonumber(epoch_begin)
-      self:add_filter_condition('tstamp', 'gte', epoch_begin, 'number')
-   end
+   if not self._epoch_begin and 
+      tonumber(epoch_begin) and 
+      tonumber(epoch_end) then
 
-   if not self._epoch_end and tonumber(epoch_end) then
+      self._epoch_begin = tonumber(epoch_begin)
       self._epoch_end = tonumber(epoch_end)
-      self:add_filter_condition('tstamp', 'lte', epoch_end, 'number')
+
+      self:add_filter_condition_raw('tstamp',
+        string.format("tstamp >= %u AND tstamp <= %u", self._epoch_begin, self._epoch_end))
    end
 
    return true
