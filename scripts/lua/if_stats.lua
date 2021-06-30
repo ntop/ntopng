@@ -689,7 +689,7 @@ print[[
    label = i18n("pkts")
 
    print[[</tbody></table>]]
-	print[[<table class="table table-striped table-bordered"><tbody>]
+	print[[<table class="table table-striped table-bordered"><tbody>]]
 
    print[[ <tr><th colspan=1 nowrap>]] print(i18n("if_stats_overview.traffic_breakdown")) print[[</th> ]]
 
