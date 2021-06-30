@@ -61,7 +61,7 @@ class nDPIStats {
 
  public:
   nDPIStats(bool enable_throughput_stats = false, bool update_behavior_stats = false);
-  nDPIStats(const nDPIStats &stats, bool update_behavior_stats = false);
+  nDPIStats(const nDPIStats &stats);
   ~nDPIStats();
 
   void updateStats(const struct timeval *tv);

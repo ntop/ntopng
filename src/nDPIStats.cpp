@@ -44,12 +44,12 @@ nDPIStats::nDPIStats(bool enable_throughput_stats, bool update_behavior_stats) {
 
 /* *************************************** */
 
-nDPIStats::nDPIStats(const nDPIStats &stats, bool update_behavior_stats) {
+nDPIStats::nDPIStats(const nDPIStats &stats) {
   memset(counters, 0, sizeof(counters));
   memset(cat_counters, 0, sizeof(cat_counters));
 
 #ifdef NTOPNG_PRO
-  if(update_behavior_stats && ntop->getPrefs()->isIfaceL7BehavourAnalysisEnabled())
+  if(stats.behavior_bytes_traffic && ntop->getPrefs()->isIfaceL7BehavourAnalysisEnabled())
     behavior_bytes_traffic = new (std::nothrow)AnalysisBehavior*[MAX_NDPI_PROTOS]();
   else
     behavior_bytes_traffic = NULL;
@@ -64,18 +64,18 @@ nDPIStats::nDPIStats(const nDPIStats &stats, bool update_behavior_stats) {
     if(bytes_thpt && stats.bytes_thpt && stats.bytes_thpt[i])
       bytes_thpt[i] = new (std::nothrow)ThroughputStats(*stats.bytes_thpt[i]);
 
-  #ifdef NTOPNG_PRO
-    if(behavior_bytes_traffic && stats.behavior_bytes_traffic && stats.behavior_bytes_traffic[i]) {
-      behavior_bytes_traffic[i] = new (std::nothrow)AnalysisBehavior(0.5);
-      behavior_bytes_traffic[i]->updateBehavior(NULL, counters[i]->bytes.sent + counters[i]->bytes.rcvd, NULL, false);
-    }
-  #endif
-
     if(stats.counters[i]
        && (counters[i] = (ProtoCounter*)malloc(sizeof(*counters[i]))))
       memcpy(counters[i], stats.counters[i], sizeof(*counters[i]));
     else
       counters[i] = NULL;
+
+#ifdef NTOPNG_PRO
+    if(behavior_bytes_traffic && stats.behavior_bytes_traffic && stats.behavior_bytes_traffic[i]) {
+      behavior_bytes_traffic[i] = new (std::nothrow)AnalysisBehavior(0.5);
+      behavior_bytes_traffic[i]->updateBehavior(NULL, counters[i]->bytes.sent + counters[i]->bytes.rcvd, NULL, false);
+    }
+#endif
   }
 }
 
