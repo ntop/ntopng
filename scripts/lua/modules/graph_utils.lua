@@ -1055,7 +1055,7 @@ local default_timeseries = {
    {schema="iface:http_hosts",            label=i18n("graphs.active_http_servers"), nedge_exclude=1},
    {schema="iface:traffic",               label=i18n("traffic")},
    {schema="iface:score",                 label=i18n("score"), metrics_labels = { i18n("graphs.cli_score"), i18n("graphs.srv_score")}},
-   {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_rxtx"), layout={ ["bytes_sent"] = "area", ["bytes_rcvd"] = "line" } },
+   {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_rxtx"), split_directions = true, layout={ ["bytes_sent"] = "area", ["bytes_rcvd"] = "line" }, value_formatter = {"NtopUtils.fbits_from_bytes", "NtopUtils.bytesToSize"} },
    {schema="iface:packets_vs_drops",      label=i18n("graphs.packets_vs_drops")},
    {schema="iface:nfq_pct",               label=i18n("graphs.num_nfq_pct"), nedge_only=1},
    {schema="iface:hosts_anomalies",       label=i18n("graphs.hosts_anomalies"), layout={ ["num_local_hosts_anomalies"] = "area", ["num_remote_hosts_anomalies"] = "area" }, metrics_labels = { i18n("graphs.loc_host_anomalies"), i18n("graphs.rem_host_anomalies")}  },
@@ -1087,8 +1087,8 @@ if ntop.isPro() then
       {schema="iface:score_anomalies",       label=i18n("graphs.iface_score_anomalies")},
       {schema="iface:score_behavior",        label=i18n("graphs.iface_score_behavior"), split_directions = true --[[ split RX and TX directions ]], first_timeseries_only = true, metrics_labels = {i18n("graphs.score"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
       {schema="iface:traffic_anomalies",     label=i18n("graphs.iface_traffic_anomalies")},
-      {schema="iface:traffic_rx_behavior",   label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true --[[ split RX and TX directions ]], first_timeseries_only = true, value_formatter = {"NtopUtils.fbits_from_bytes"}, metrics_labels = {i18n("graphs.traffic_rcvd"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
-      {schema="iface:traffic_tx_behavior",   label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true --[[ split RX and TX directions ]], first_timeseries_only = true, value_formatter = {"NtopUtils.fbits_from_bytes"}, metrics_labels = {i18n("graphs.traffic_sent"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
+      {schema="iface:traffic_rx_behavior",   label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true --[[ split RX and TX directions ]], first_timeseries_only = true, value_formatter = {"NtopUtils.fbits_from_bytes", "NtopUtils.bytesToSize"}, metrics_labels = {i18n("graphs.traffic_rcvd"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
+      {schema="iface:traffic_tx_behavior",   label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true --[[ split RX and TX directions ]], first_timeseries_only = true, value_formatter = {"NtopUtils.fbits_from_bytes", "NtopUtils.bytesToSize"}, metrics_labels = {i18n("graphs.traffic_sent"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
    }
 
    default_timeseries = table.merge(pro_timeseries, default_timeseries)

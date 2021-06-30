@@ -1113,18 +1113,19 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           Function used to split charts info, otherwise graphs with multiple
           timeseries are going to have incorrect values
         */
-        function splitSeriesInfo(stats_name, cell, show_date = false) {
+        function splitSeriesInfo(stats_name, cell, show_date, formatter, total) {
           let val = "";
-
+          const val_formatter = (formatter ? formatter : stats_formatter)
+          debugger;
           if(visualization.first_timeseries_only) {
-            val = stats_formatter(stats.by_serie[0][stats_name]) + (show_date ? (" (" + (new Date(res[0].values[stats[stats_name + "_idx"]][0] * 1000)).format(datetime_format) + ")") : "");
-          } else if(visualization.split_directions && stats.by_serie) {
+            val = val_formatter(stats.by_serie[0][stats_name]) + (show_date ? (" (" + (new Date(res[0].values[stats[stats_name + "_idx"]][0] * 1000)).format(datetime_format) + ")") : "");
+          } else if(visualization.split_directions && stats.by_serie && !total) {
             const values = [];
 
             /* Format each splitted info */
             for(var i=0; i<series.length; i++) {
               if(stats.by_serie[i])
-                values.push(stats_formatter(stats.by_serie[i][stats_name]) +
+                values.push(val_formatter(stats.by_serie[i][stats_name]) +
                   " [" + series_formatted_labels[i] + "]" +
                   /* Add the date */
                   (show_date ? (" (" + (new Date(res[i].values[stats.by_serie[i][stats_name + "_idx"] + 1][0] * 1000)).format(datetime_format) + ")") : ""));
@@ -1133,7 +1134,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
             /* Join them using a new line */
             val = values.join("<br />");
           } else
-            val = stats_formatter(stats[stats_name]) + (show_date ? (" (" + (new Date(res[0].values[stats[stats_name + "_idx"]][0] * 1000)).format(datetime_format) + ")") : "");
+            val = val_formatter(stats[stats_name]) + (show_date ? (" (" + (new Date(res[0].values[stats[stats_name + "_idx"]][0] * 1000)).format(datetime_format) + ")") : "");
 
           /* Add the string to the span */
           if(val)
@@ -1150,15 +1151,15 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         
         // fill the stats
         if(stats.total || total_cell.is(':visible'))
-          splitSeriesInfo("total", total_cell)
+          splitSeriesInfo("total", total_cell, false, tot_formatter, true);
         if(stats.average || average_cell.is(':visible'))
-          splitSeriesInfo("average", average_cell)
+          splitSeriesInfo("average", average_cell, false, stats_formatter);
         if((stats.min_val || min_cell.is(':visible')) && res[0].values[stats.min_val_idx])
-          splitSeriesInfo("min_val", min_cell, true)
+          splitSeriesInfo("min_val", min_cell, true, stats_formatter);
         if((stats.max_val || max_cell.is(':visible')) && res[0].values[stats.max_val_idx])
-          splitSeriesInfo("max_val", max_cell, true)
+          splitSeriesInfo("max_val", max_cell, true, stats_formatter);
         if(stats["95th_percentile"] || perc_cell.is(':visible')) {
-          splitSeriesInfo("95th_percentile", perc_cell);
+          splitSeriesInfo("95th_percentile", perc_cell, false, stats_formatter);
 
           if(!visualization.split_directions) {
             /* When directions are split, hide the total stat */
