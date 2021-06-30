@@ -118,7 +118,6 @@ function host_alert_store:add_ip_filter(values)
          if not isEmptyString(host["vlan"]) then
             self:add_filter_condition('vlan_id', op, host["vlan"], 'number')
          end
-         return true
       end
    end
 

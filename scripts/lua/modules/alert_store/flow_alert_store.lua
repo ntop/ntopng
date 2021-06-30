@@ -175,7 +175,6 @@ function flow_alert_store:add_cli_ip_filter(values)
          if not isEmptyString(host["vlan"]) then
             self:add_filter_condition('vlan_id', op, host["vlan"], 'number')
          end
-         return true
       end
    end
 
@@ -198,12 +197,12 @@ function flow_alert_store:add_srv_ip_filter(values)
       local value, op = self:strip_filter_operator(value_op)
 
       local host = hostkey2hostinfo(value)
+
       if not isEmptyString(host["host"]) then
          self:add_filter_condition('srv_ip', op, host["host"])
          if not isEmptyString(host["vlan"]) then
             self:add_filter_condition('vlan_id', op, host["vlan"], 'number')
          end
-         return true
       end
    end
 
@@ -241,8 +240,6 @@ function flow_alert_store:add_l7_proto_filter(values)
             sql_op, l7_proto, logic, sql_op, l7_proto)
 
          self:add_filter_condition_raw('l7_proto', sql_cond, op ~= 'neq')
-
-         return true
       end
    end
 
