@@ -4,7 +4,7 @@
     /* Score */
     {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
     /* Duration */
-    {responsivePriority: 2, name: 'duration', data: 'duration', className: 'text-center', width: '5%', orderable: false, render: DataTableRenders.secondsToTime},
+    {responsivePriority: 2, name: 'duration', data: 'duration', className: 'text-center', width: '5%', render: DataTableRenders.secondsToTime},
     /* Alert */
     {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width:'55%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Subject */

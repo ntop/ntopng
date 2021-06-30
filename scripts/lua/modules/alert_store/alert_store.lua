@@ -376,7 +376,7 @@ function alert_store:select_historical(filter, fields)
 
    -- Prepare the final query
    -- NOTE: entity_id is necessary as alert_utils.formatAlertMessage assumes it to always be present inside the alert
-   local q = string.format(" SELECT %u entity_id, %s FROM `%s` WHERE %s %s %s %s %s",
+   local q = string.format(" SELECT %u entity_id, (tstamp_end - tstamp) duration, %s FROM `%s` WHERE %s %s %s %s %s",
 			   self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
 
    res = interface.alert_store_query(q)
@@ -894,13 +894,7 @@ function alert_store:format_json_record_common(value, entity_id)
       color = severity.color,
    }
 
-   if tonumber(value["tstamp_end"]) > 0 and tonumber(value["tstamp"]) > 0 then
-      record[BASE_RNAME.DURATION.name] = tonumber(value["tstamp_end"]) - tonumber(value["tstamp"]) 
-   elseif tonumber(value["tstamp"]) > 0 then
-      local now = os.time()
-      record[BASE_RNAME.DURATION.name] = now - tonumber(value["tstamp"])
-   end
-
+   record[BASE_RNAME.DURATION.name] = tonumber(value["duration"]) or (tonumber(value["tstamp_end"]) - tonumber(value["tstamp"]))
    record[BASE_RNAME.COUNT.name] = tonumber(value["count"]) or 1
 
    local alert_json = json.decode(value["json"]) or {}
