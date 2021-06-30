@@ -193,30 +193,7 @@
                 <select required name="value" class="form-select">
                     <option selected data-tag-label="{{i18n("attacker")}}" value="attacker">{{i18n("attacker")}}</option>
                     <option data-tag-label="{{i18n("victim")}}" value="victim">{{i18n("victim")}}</option>
-                </select>
-            </div>
-        </div>
-    </div>
-</template>
-
-<template id="roles-filter-template">
-    <div class="form-group row">
-        <label class="col-form-label col-sm-3"><b>{{i18n("tags.roles")}}</b></label>
-        <div class="col-sm-5">
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <select required name="operator" class="form-select">
-                        {% local first_item = true %}
-                        {% for _, operator in ipairs(operators_by_filter.roles) do %}
-                            <option {{ (first_item and "selected" or "") }} value="{{operator}}">{{tag_operators[operator]}}</option>
-                            {% first_item = false %}
-                        {% end %}
-                    </select>
-                </div>
-                <select required name="value" class="form-select">
-                    <option selected data-tag-label="{{i18n("has_attacker")}}" value="has_attacker">{{i18n("has_attacker")}}</option>
-                    <option data-tag-label="{{i18n("has_victim")}}" value="has_victim">{{i18n("has_victim")}}</option>
-                    <option data-tag-label="{{i18n("no_attacker_nor_victim")}}" value="no_attacker_nor_victim">{{i18n("no_attacker_nor_victim")}}</option>
+		    <option data-tag-label="{{i18n("no_attacker_no_victim")}}" value="no_attacker_no_victim">{{i18n("no_attacker_no_victim")}}</option>
                 </select>
             </div>
         </div>

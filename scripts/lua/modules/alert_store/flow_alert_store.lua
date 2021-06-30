@@ -14,6 +14,7 @@ local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
+local alert_roles = require "alert_roles"
 local tag_utils = require "tag_utils"
 local json = require "dkjson"
 
@@ -310,20 +311,22 @@ end
 
 -- ##############################################
 
---@brief Add filter on roles
---@param roles The roles (had_attacker, has_victim, no_attacker_nor_victim)
+--@brief Add filter on role
+--@param role The role (had_attacker, has_victim, no_attacker_nor_victim)
 --@return True if set is successful, false otherwise
-function flow_alert_store:add_roles_filter(roles)
-   if not isEmptyString(roles) then
-      local roles, op = self:strip_filter_operator(roles)
-      if not self._roles then
-         self._roles = roles
-         if roles == 'has_attacker' then
+function flow_alert_store:add_role_filter(role)
+   if not isEmptyString(role) then
+      local role, op = self:strip_filter_operator(role)
+      if not self._role then
+         if role == 'attacker' then
+	    self._role = alert_roles.alert_role_is_attacker.role_id
             self._where[#self._where + 1] = "(is_cli_attacker = 1 OR is_srv_attacker = 1)"
-         elseif roles == 'has_victim' then
+         elseif role == 'victim' then
+	    self._role = alert_roles.alert_role_is_victim.role_id
             self._where[#self._where + 1] = "(is_cli_victim = 1 OR is_srv_victim = 1)"
-         elseif roles == 'no_attacker_nor_victim' then
-           self._where[#self._where + 1] = "(is_cli_attacker = 0 AND is_srv_attacker = 0 AND is_srv_victim = 0 AND is_cli_victim = 0)"
+         elseif role == 'no_attacker_no_victim' then
+	    self._role = alert_roles.alert_role_is_none
+	    self._where[#self._where + 1] = "(is_cli_attacker = 0 AND is_srv_attacker = 0 AND is_srv_victim = 0 AND is_cli_victim = 0)"
          end
          return true
       end
@@ -342,7 +345,7 @@ function flow_alert_store:_add_additional_request_filters()
    local srv_port = _GET["srv_port"]
    local vlan_id = _GET["vlan_id"]
    local l7_proto = _GET["l7_proto"]
-   local roles = _GET["roles"]
+   local role = _GET["role"]
 
    self:add_vlan_id_filter(vlan_id)
    self:add_cli_ip_filter(cli_ip)
@@ -350,7 +353,7 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_cli_port_filter(cli_port)
    self:add_srv_port_filter(srv_port)
    self:add_l7_proto_filter(l7_proto)
-   self:add_roles_filter(roles)
+   self:add_role_filter(role)
 end
 
 -- ##############################################
@@ -374,9 +377,9 @@ function flow_alert_store:_get_additional_available_filters()
          value_type = 'port',
 	 i18n_label = i18n('tags.srv_port'),
       },
-      roles = {
-	 value_type = 'roles',
-	 i18n_label = i18n('tags.roles'),
+      role = {
+	 value_type = 'role',
+	 i18n_label = i18n('tags.role'),
       },
       l7_proto = {
          value_type = 'l7_proto',
@@ -591,10 +594,10 @@ function flow_alert_store:format_record(value, no_html)
       label = l4_protocol
    }
 
-   if value["is_cli_victim"]   == "1" then record["cli_role"] = { value = 'victim',   label = i18n("victim"),   tag_label = i18n("has_victim") } end
-   if value["is_cli_attacker"] == "1" then record["cli_role"] = { value = 'attacker', label = i18n("attacker"), tag_label = i18n("has_attacker") } end
-   if value["is_srv_victim"]   == "1" then record["srv_role"] = { value = 'victim',   label = i18n("victim"),   tag_label = i18n("has_victim") } end
-   if value["is_srv_attacker"] == "1" then record["srv_role"] = { value = 'attacker', label = i18n("attacker"), tag_label = i18n("has_attacker") } end
+   if value["is_cli_victim"]   == "1" then record["cli_role"] = { value = 'victim',   label = i18n("victim"),   tag_label = i18n("victim") } end
+   if value["is_cli_attacker"] == "1" then record["cli_role"] = { value = 'attacker', label = i18n("attacker"), tag_label = i18n("attacker") } end
+   if value["is_srv_victim"]   == "1" then record["srv_role"] = { value = 'victim',   label = i18n("victim"),   tag_label = i18n("victim") } end
+   if value["is_srv_attacker"] == "1" then record["srv_role"] = { value = 'attacker', label = i18n("attacker"), tag_label = i18n("attacker") } end
 
    record[RNAME.L7_PROTO.name] = {
       value = ternary(tonumber(value["l7_proto"]) ~= 0, value["l7_proto"], value["l7_master_proto"]),

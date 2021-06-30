@@ -73,7 +73,6 @@ local srv_port = _GET["srv_port"]
 local l7_proto = _GET["l7_proto"]
 local network_name = _GET["network_name"]
 local role = _GET["role"]
-local roles = _GET["roles"]
 local subtype = _GET["subtype"]
 
 --------------------------------------------------------------
@@ -235,7 +234,6 @@ widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
         l7_proto = l7_proto,
         network_name = network_name,
         role = role,
-        roles = roles,
 	subtype = subtype,
     })
 })
@@ -296,7 +294,6 @@ local operators_by_filter = {
     port = {'eq','neq'},
     l7_proto  = {'eq','neq'},
     role = {'eq','neq'},
-    roles = {'eq','neq'},
     text = {'eq','neq'},
 }
 
@@ -323,7 +320,7 @@ local defined_tags = {
         srv_ip = operators_by_filter.ip,
 	cli_port = operators_by_filter.port,
 	srv_port = operators_by_filter.port,
-        roles = operators_by_filter.roles,
+	role = operators_by_filter.role,
     },
     ["system"] = {
 	alert_id = operators_by_filter.alert_id,
@@ -353,7 +350,6 @@ local initial_tags = {}
 
 local formatters = {
    severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
-   roles = function(roles) return (i18n(roles)) end,
    role = function(role) return (i18n(role)) end,
 }
 if page ~= "all" then
@@ -421,7 +417,6 @@ local context = {
                 network_name = i18n("tags.network_name"),
 		subtype = i18n("alerts_dashboard.subject"),
                 role = i18n("tags.role"),
-                roles = i18n("tags.roles"),
             }
         },
         presets = {
@@ -455,7 +450,6 @@ local context = {
             l7_proto = l7_proto,
             network_name = network_name,
             role = role,
-            roles = roles,
 	    subtype = subtype,
         }),
         actions = {

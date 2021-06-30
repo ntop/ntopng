@@ -23,6 +23,9 @@ local alert_roles = {
    alert_role_is_both = {
       role_id = 3,
    },
+   alert_role_is_none = {
+      role_id = 4,
+   },
 }
 
 -- ################################################################################

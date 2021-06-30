@@ -151,6 +151,9 @@ function host_alert_store:add_role_filter(role)
          elseif role == 'victim' then
             self._role = alert_roles.alert_role_is_victim.role_id
             self._where[#self._where + 1] = string.format("is_victim %s 1", op)
+	 elseif role == 'no_attacker_no_victim' then
+	    self._role = alert_roles.alert_role_is_none
+	    self._where[#self._where + 1] = "(is_attacker = 0 AND is_victim = 0)"
          end
          return true
       end
