@@ -33,6 +33,26 @@ local CSV_SEPARATOR = "|"
 function alert_store:init(args)
    self._group_by = nil
    self._top_limit = TOP_LIMIT
+
+   -- Note: _where contains conditions for the where clause.
+   -- Example:
+   -- {
+   --   -- List of items
+   --   'alert_id' = { 
+   --     all = {
+   --       -- List of AND conditions
+   --       {
+   --         field = 'alert_id',
+   --         op = 'eq',
+   --         valie = 1,
+   --         sql = 'alert_id = 1',
+   --       }
+   --     },
+   --     any = {
+   --       -- List of OR conditions
+   --     } 
+   --   }
+   -- }
    self._where = {}
 end
 
