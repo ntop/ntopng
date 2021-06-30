@@ -90,18 +90,14 @@ function alert_behavior_anomaly.format(ifid, alert, alert_type_params)
          local schema = "ts_schema=" .. timeseries_table["schema_id"] .. "%3A" .. (timeseries_table["type_of_behavior"] or alert_type_params.type_of_behavior)
          local zoom = "zoom=30m"
          local curr_time = 'epoch_begin=' .. tonumber(alert_time - 600) .. '&epoch_end=' .. tonumber(alert_time + 600)
-         local extra_params = ""
-
-         for k, v in pairs(alert_type_params["extra_params"]) do
-            extra_params = extra_params .. "&" .. k .. "=" .. v
-         end
+         local extra_params = table.tconcat(alert_type_params["extra_params"], "=", "&")
 
          if timeseries_table["timeseries_id"] then
             timeseries_id = timeseries_table["timeseries_id"] .. "=" .. alert_type_params["timeseries_id"]
          end
          
          -- "ifid=3&page=historical&ts_schema=iface%3Andpi&zoom=5m&protocol=Amazon"
-         href = timeseries_table["page_path"] .. "?" .. timeseries_id .. "&" .. iface_id .. "&" .. page .. "&" .. schema .. "&" .. zoom .. "&" .. curr_time .. extra_params
+         href = timeseries_table["page_path"] .. "?" .. timeseries_id .. "&" .. iface_id .. "&" .. page .. "&" .. schema .. "&" .. zoom .. "&" .. curr_time .. "&" .. extra_params
       end
    end
 
