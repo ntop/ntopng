@@ -680,7 +680,7 @@ function alert_store:add_request_filters()
    local epoch_begin = tonumber(_GET["epoch_begin"])
    local epoch_end = tonumber(_GET["epoch_end"])
    local alert_id = _GET["alert_id"] or _GET["alert_type"] --[[ compatibility ]]--
-   local alert_severity = _GET["alert_severity"] or _GET["severity"]
+   local alert_severity = _GET["severity"] or _GET["alert_severity"]
    local rowid = _GET["row_id"]
    local status = _GET["status"]
 
