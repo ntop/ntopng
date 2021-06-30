@@ -314,7 +314,9 @@
 	    {% if alert_stats.entity ~= 'all' then %}
             columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
 	        const buttons = [
+		    {% if alert_stats.entity ~= 'system' then %}
 		    {icon: 'fa fa-cog', label: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-info'},
+                    {% end %}
 
 		    /* Bell button to disable alerts is only supported for hosts and flows */
 		    {% if alert_stats.entity == 'host' or alert_stats.entity == 'flow' then %}
