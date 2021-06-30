@@ -99,33 +99,6 @@ end
 
 -- ##############################################
 
---@brief Add filters on host address
---@param values The host IP comma-separated list
---@return True if set is successful, false otherwise
-function host_alert_store:add_ip_filter(values)
-   if isEmptyString(values) then
-      return false
-   end
-
-   local list = split(values, ',')
-
-   for _, value_op in ipairs(list) do
-      local value, op = self:strip_filter_operator(value_op)
-
-      local host = hostkey2hostinfo(value)
-      if not isEmptyString(host["host"]) then
-         self:add_filter_condition('ip', op, host["host"])
-         if not isEmptyString(host["vlan"]) then
-            self:add_filter_condition('vlan_id', op, host["vlan"], 'number')
-         end
-      end
-   end
-
-   return false
-end
-
--- ##############################################
-
 --@brief Add filter on role
 --@param role The role (attacker or victim)
 --@return True if set is successful, false otherwise
@@ -176,9 +149,9 @@ function host_alert_store:_add_additional_request_filters()
    local role_cli_srv = _GET["role_cli_srv"]
 
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
+   self:add_filter_condition_list('ip', ip)
 
    -- Custom filters
-   self:add_ip_filter(ip)
    self:add_role_filter(role)
    self:add_role_cli_srv_filter(role_cli_srv)
 end

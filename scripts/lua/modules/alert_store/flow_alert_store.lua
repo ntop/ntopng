@@ -156,61 +156,6 @@ end
 
 -- ##############################################
 
---@brief Add filters on client host address
---@param values The host IP comma-separated-list
---@return True if set is successful, false otherwise
-function flow_alert_store:add_cli_ip_filter(values)
-   if isEmptyString(values) then
-      return false
-   end
-
-   local list = split(values, ',')
-
-   for _, value_op in ipairs(list) do
-      local value, op = self:strip_filter_operator(value_op)
-
-      local host = hostkey2hostinfo(value)
-      if not isEmptyString(host["host"]) then
-         self:add_filter_condition('cli_ip', op, host["host"])
-         if not isEmptyString(host["vlan"]) then
-            self:add_filter_condition('vlan_id', op, host["vlan"], 'number')
-         end
-      end
-   end
-
-   return false
-end
-
--- ##############################################
-
---@brief Add filters on server host address
---@param values The host IP comma-separated list
---@return True if set is successful, false otherwise
-function flow_alert_store:add_srv_ip_filter(values)
-   if isEmptyString(values) then
-      return false
-   end
-
-   local list = split(values, ',')
-
-   for _, value_op in ipairs(list) do
-      local value, op = self:strip_filter_operator(value_op)
-
-      local host = hostkey2hostinfo(value)
-
-      if not isEmptyString(host["host"]) then
-         self:add_filter_condition('srv_ip', op, host["host"])
-         if not isEmptyString(host["vlan"]) then
-            self:add_filter_condition('vlan_id', op, host["vlan"], 'number')
-         end
-      end
-   end
-
-   return false
-end
-
--- ##############################################
-
 --@brief Add filters on L7 Proto
 --@param values The l7 proto comma-separated list
 --@return True if set is successful, false otherwise
@@ -280,12 +225,12 @@ function flow_alert_store:_add_additional_request_filters()
    local role = _GET["role"]
 
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
+   self:add_filter_condition_list('cli_ip', cli_ip)
+   self:add_filter_condition_list('srv_ip', srv_ip)
    self:add_filter_condition_list('cli_port', cli_port, 'number')
    self:add_filter_condition_list('srv_port', srv_port, 'number')
 
    -- Custom filters
-   self:add_cli_ip_filter(cli_ip)
-   self:add_srv_ip_filter(srv_ip)
    self:add_l7_proto_filter(l7_proto)
    self:add_role_filter(role)
 end
