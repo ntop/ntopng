@@ -23,6 +23,7 @@
                             <b>{{ i18n("alerts_dashboard.select_filter") }}</b>
                         </label>
                         <div class="col-sm-5">
+                            <input type="hidden" name="index" />
                             <select required name="alert_filter_type" class="form-select" id="alert-filter-type-select">
                                 {% local first_item = true %}
                                 {% for filter_key, filter_type in pairsByField(available_types, 'i18n_label', asc) do %}

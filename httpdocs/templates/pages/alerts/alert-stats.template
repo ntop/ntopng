@@ -263,12 +263,18 @@
         }
 
         async function addFilterTag(tag) {
-            // does the tag exist?
-            const existingTagElement = tagify.getTagElms().find(htmlTag => htmlTag.getAttribute('key') === tag.key);
-            const existingTag = tagify.tagData(existingTagElement);
+            const existingTagElms = tagify.getTagElms();
 
-            if (existingTag !== undefined /* && existingTag.realValue !== tag.realValue */) {
-                
+            /* Lookup by key (does not allow dup) */
+            //const existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key);
+            //const existingTag = tagify.tagData(existingTagElement);
+            //if (existingTag !== undefined /* && existingTag.realValue !== tag.realValue */) {
+               
+            /* Lookup by index (allow dup) */
+            if (tag.index && existingTagElms.length > tag.index) {
+                const existingTagElement = existingTagElms[tag.index];
+                const existingTag = tagify.tagData(existingTagElement);
+
                 // replace the tag!
                 existingTag.value = tag.value;
                 existingTag.realValue = tag.realValue;
@@ -430,6 +436,7 @@
         // inline editing of the tag ('edit:updated' is never called as a consequence)
         tagify.on('click', async function(e) {
             const detail = e.detail;
+
             if (detail.data === undefined) { return; }
             if (detail.data.key === undefined) {return;}
 
@@ -437,6 +444,7 @@
 
             alertStats.filterModalShow(true);
 
+            $('#add-alert-filter-modal input[name="index"]').val(detail.index);
             $('#alert-filter-type-select').val(tag.key).change();
 
             let value = tag.realValue || tag.value;
@@ -497,6 +505,7 @@
             await onRangePickerChange(true);
         });
 
+        /* Replaced by the handler for $(".card").on('click') below
         $table.on('click', `a.tag-filter`, async function (e) {
             e.preventDefault();
     
@@ -510,6 +519,7 @@
 
             addFilterTag(tag);
         });
+        */
 
         $(".card").on('click', `a.tag-filter`, async function (e) {
             e.preventDefault();
@@ -753,6 +763,7 @@
             $('#add-alert-filter-btn').text(edit ? "{{i18n('apply')}}" : "{{i18n('add')}}");
             $('#alert-filter-type-select').prop( "disabled", edit ? true : false);
             $('#add-alert-filter-modal').modal('show');
+            $('#add-alert-filter-modal input[name="index"]').val('');
         }
 
         const filterModalMakeTag = (formSelector) => {
@@ -761,6 +772,11 @@
            let tag = {
                key: alert_filter_type,             // e.g. l7_proto 
                label: i18n.tags[alert_filter_type] // e.g. L7 Proto
+           }
+
+           let index = $(`${formSelector} input[name='index']`).val();
+           if (index) {
+               tag.index = index;
            }
 
            // load filter params inside the template container

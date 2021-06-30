@@ -400,7 +400,7 @@ local context = {
     range_picker = {
         default = status == "historical" and "30min" or "1week",
         tags = {
-	    enabled = (page ~= 'all' and status ~= 'engaged'),
+	    enabled = (page ~= 'all'),
             tag_operators = tag_utils.tag_operators,
             view_only = true,
             defined_tags = defined_tags[page],
