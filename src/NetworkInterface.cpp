@@ -3170,18 +3170,12 @@ void NetworkInterface::periodicStatsUpdate() {
 void NetworkInterface::updateBehaviorStats(const struct timeval *tv) {
   /* 5 Min Update */
   if(tv->tv_sec >= nextMinPeriodicUpdate) {
-    char score_buf[128], tx_buf[128], rx_buf[128];
-
     /* Traffic behavior stats update, currently score, traffic rx and tx */
-    /* Currently commented the debug print because it causes too many alerts into the terminal */
-    //snprintf(score_buf, sizeof(score_buf), "Interface %s | score", get_asname());
-    score_behavior->updateBehavior(this, score_as_cli + score_as_srv, score_buf);
+    score_behavior->updateBehavior(this, score_as_cli + score_as_srv, "", false);
 
-    //snprintf(tx_buf, sizeof(tx_buf), "Interface %s | traffic tx", get_asname());
-    traffic_tx_behavior->updateBehavior(this, ethStats.getNumEgressBytes(), tx_buf);
+    traffic_tx_behavior->updateBehavior(this, ethStats.getNumEgressBytes(), "", false);
 
-    //snprintf(rx_buf, sizeof(rx_buf), "Interface %s | traffic rx", get_asname());
-    traffic_rx_behavior->updateBehavior(this, ethStats.getNumIngressBytes(), rx_buf);
+    traffic_rx_behavior->updateBehavior(this, ethStats.getNumIngressBytes(), "", false);
 
     nextMinPeriodicUpdate = tv->tv_sec + IFACE_BEHAVIOR_REFRESH;
   }
