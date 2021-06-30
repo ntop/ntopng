@@ -155,16 +155,12 @@ end
 function host_alert_store:add_role_cli_srv_filter(role_cli_srv)
    if not isEmptyString(role_cli_srv) then
       local role_cli_srv, op = self:strip_filter_operator(role_cli_srv)
-      if not self._role_cli_srv then
-         if role_cli_srv == 'client' then
-	    self._role_cli_srv = alert_roles.alert_role_is_client.role_id
-            self._where[#self._where + 1] = string.format("is_client = 1")
-         elseif role_cli_srv == 'server' then
-            self._role_cli_srv = alert_roles.alert_role_is_server.role_id
-            self._where[#self._where + 1] = string.format("is_server = 1")
-	    return true
-	 end
+      if role_cli_srv == 'client' then
+         self:add_filter_condition('is_client', op, 1, 'number')
+      elseif role_cli_srv == 'server' then
+         self:add_filter_condition('is_server', op, 1, 'number')
       end
+      return true
    end
 
    return false
