@@ -458,6 +458,11 @@
             if (value_input) {
                 value_input.val(value);
             }
+
+            let operator_select = $('#add-alert-filter-modal select[name="operator"]');
+            if (operator_select) {
+                operator_select.val(tag.selectedOperator);
+            }
         });
 
         tagify.on('edit:updated', async function(e) {
