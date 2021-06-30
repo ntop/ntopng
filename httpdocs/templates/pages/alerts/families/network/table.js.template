@@ -6,12 +6,12 @@
     /* Duration */
     {responsivePriority: 2, name: 'duration', data: 'duration', width: '5%', className: 'text-center', render: DataTableRenders.secondsToTime},
     /* Alert */
-    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width:'55%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width:'25%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Network */
-    {responsivePriority: 2, name: 'network_name', data: 'network', width: '100%', orderable: false, render: (network, type) => {
+    {responsivePriority: 2, name: 'network_name', data: 'network', width: '25%', orderable: false, render: (network, type) => {
         if (type === "display") return DataTableRenders.filterize('network_name', network, network);
         return network;
     }},
      /* Description */
-    {responsivePriority: 3, name: 'description', data: 'msg.description', orderable: false, className: 'text-nowrap'},
+    {responsivePriority: 3, name: 'description', data: 'msg.description', orderable: false, className: 'text-nowrap', width: '100%'},
 ]

@@ -6,9 +6,9 @@
     /* Duration */
     {responsivePriority: 2, name: 'duration', data: 'duration', className: 'text-center', width: '5%', render: DataTableRenders.secondsToTime},
     /* Alert */
-    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width:'55%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width:'25%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Subject */
-    {responsivePriority: 2, name: 'subtype', data: 'subtype', orderable: true, className: 'text-nowrap', width: '100%', render: DataTableRenders.formatSubtype },
+    {responsivePriority: 2, name: 'subtype', data: 'subtype', orderable: true, className: 'text-nowrap', width: '25%', render: DataTableRenders.formatSubtype },
     /* Description */
-    {responsivePriority: 3, name: 'description', data: 'msg.description', orderable: false, className: 'text-nowrap'},
+    {responsivePriority: 3, name: 'description', data: 'msg.description', orderable: false, className: 'text-nowrap', width: '100%'},
 ]

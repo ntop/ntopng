@@ -723,7 +723,8 @@ class DataTableRenders {
         if (type !== "display") return obj.name;
         let msg = DataTableRenders.filterize('alert_id', obj.value, obj.name);
 
-        if (obj.description) {
+	/* DECIDED NOT TO SHOW SHORTENED DESCRIPTIONS IN THE ALERT COLUMNS
+        if(obj.description) {
            const strip_tags = function(html) { let t = document.createElement("div"); t.innerHTML = html; return t.textContent || t.innerText || ""; }
            let desc = strip_tags(obj.description);
            if(desc.startsWith(obj.name)) desc = desc.replace(obj.name, "");
@@ -732,15 +733,15 @@ class DataTableRenders {
            let total_len = name_len + desc_len;
            let tooltip = ""
 
-           let limit = 30; /* description limit */
+           let limit = 30; // description limit
            if (row.family != 'flow') {
-             limit = 50; /* some families have room for bigger descriptions */
+             limit = 50; // some families have room for bigger descriptions
            }
 
-           if (total_len > limit) { /* cut and set a tooltip */
+           if (total_len > limit) { // cut and set a tooltip
              if (name_len >= limit) {
-               desc = ""; /* name is already too long, no description */
-             } else { /* cut the description */
+               desc = ""; // name is already too long, no description
+             } else { // cut the description
                desc = desc.substr(0, limit - obj.name.length);
                desc = desc.replace(/\s([^\s]*)$/, ''); // word break
                desc = desc + '&hellip;'; // add '...'
@@ -750,6 +751,8 @@ class DataTableRenders {
 
            msg = msg + ': <span title="' + tooltip + '">' + desc + '</span>';
         }
+	*/
+
         return msg;
     }
 
