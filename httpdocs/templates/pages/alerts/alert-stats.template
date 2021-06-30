@@ -314,6 +314,8 @@
 	    {% if alert_stats.entity ~= 'all' then %}
             columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
 	        const buttons = [
+		    {icon: 'fa fa-cog', label: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-info'},
+
 		    /* Bell button to disable alerts is only supported for hosts and flows */
 		    {% if alert_stats.entity == 'host' or alert_stats.entity == 'flow' then %}
 		    {icon: 'fa-bell-slash', label: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning {{ ((alert_stats.entity == 'host' or alert_stats.entity == 'flow') and '' or 'disabled') }}"},
@@ -580,6 +582,12 @@
             $inputEndEpoch.datetimepicker('date', end);
 
             await onRangePickerChange(true);
+        });
+
+	$table.on('click', `a[href='#check_settings']`, function (e) {
+            const alert = $table.row($(this).parent().parent()).data();
+	    const check_settings_href = $(alert.msg.configset_ref).attr('href');
+	    window.location.href = check_settings_href;
         });
 
 	$table.on('click', `a[href='#delete_alert_dialog']`, function (e) {

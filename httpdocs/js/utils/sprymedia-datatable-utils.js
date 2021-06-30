@@ -750,7 +750,6 @@ class DataTableRenders {
 
            msg = msg + ': <span title="' + tooltip + '">' + desc + '</span>';
         }
-        if (obj.configset_ref) msg = msg + obj.configset_ref;
         return msg;
     }
 
