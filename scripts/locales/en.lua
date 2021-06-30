@@ -634,7 +634,7 @@ local lang = {
     ["alert_snmp_interface_mac_changed_description"] = "MAC <a href=\"%{mac_url}\">%{mac}</a> seen on SNMP device <a href=\"%{url}\">%{device}</a> interface <a href=\"%{port_url}\">%{port}</a> previously seen on  SNMP device <a href=\"%{prev_device_url}\">%{prev_device}</a> interface <a href=\"%{prev_port_url}\">%{prev_port}</a>",
     ["alert_snmp_interface_mac_changed_title"] = "SNMP Interface MAC Changed",
     ["alert_type"] = "Type",
-    ["alert_unexpected_behavior_description"] = "Trigger an alert when an unexpected behavior is identified from the specified %{type}/s<br/><b>Note:</b> to be effective this alert you need to activate the relative behavior analysis <a href='/lua/admin/prefs.lua?tab=traffic_behaviour'><i class='fas fa-cog' title='Edit Configuration'></i></a>",
+    ["alert_unexpected_behavior_description"] = "Trigger an alert when an unexpected behavior is identified from the specified %{type}/s <br/><b>Note:</b> to be effective this alert you need to activate the relative behavior analysis <a href='/lua/admin/prefs.lua?tab=traffic_behaviour'><i class='fas fa-cog' title='Edit Configuration'></i></a>",
     ["alert_unexpected_behavior_title"] = "Unexpected %{type} Behavior",
     ["alerts"] = "Alerts",
     ["alerts_dashboard"] = "Alerts Dashboard",
