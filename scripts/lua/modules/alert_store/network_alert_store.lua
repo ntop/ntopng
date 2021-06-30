@@ -63,8 +63,26 @@ function network_alert_store:_add_additional_request_filters()
    -- Add filters specific to the system family
    local network_name = _GET["network_name"]
 
-   self:add_filter_condition_list('name', self._escape(network_name))
+   if network_name then
+      network_name = self:_escape(network_name)
+   end
+
+   self:add_filter_condition_list('name', network_name)
 end
+
+-- ##############################################
+
+--@brief Get info about additional available filters
+function network_alert_store:_get_additional_available_filters()
+   local filters = {
+      network_name = {
+         value_type = 'text',
+        i18n_label = i18n('tags.network_name'),
+      },
+   }
+
+   return filters
+end 
 
 -- ##############################################
 
