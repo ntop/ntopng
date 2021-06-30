@@ -97,8 +97,10 @@ nDPIStats::~nDPIStats() {
 
   if(bytes_thpt)
     delete []bytes_thpt;
+#ifdef NTOPNG_PRO
   if(behavior_bytes_traffic)
     delete []behavior_bytes_traffic;
+#endif
 }
 
 /* *************************************** */
