@@ -60,7 +60,7 @@ end
 --@brief Performs a query for the top device address by alert count
 function mac_alert_store:top_address_historical()
    -- Preserve all the filters currently set
-   local where_clause = table.concat(self._where, " AND ")
+   local where_clause = self:build_where_clause()
 
    local q = string.format("SELECT address, count(*) count FROM %s WHERE %s GROUP BY address ORDER BY count DESC LIMIT %u",
 			   self._table_name, where_clause, self._top_limit)

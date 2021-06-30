@@ -71,7 +71,7 @@ end
 --@brief Performs a query for the top networks by alert count
 function network_alert_store:top_local_network_id_historical()
    -- Preserve all the filters currently set
-   local where_clause = table.concat(self._where, " AND ")
+   local where_clause = self:build_where_clause()
 
    local q = string.format("SELECT local_network_id, count(*) count, name FROM %s WHERE %s GROUP BY local_network_id ORDER BY count DESC LIMIT %u",
 			   self._table_name, where_clause, self._top_limit)

@@ -88,7 +88,7 @@ end
 --@brief Performs a query for the top client hosts by alert count
 function flow_alert_store:top_cli_ip_historical()
    -- Preserve all the filters currently set
-   local where_clause = table.concat(self._where, " AND ")
+   local where_clause = self:build_where_clause()
 
    local q = string.format("SELECT cli_ip, cli_name, count(*) count FROM %s WHERE %s GROUP BY cli_ip ORDER BY count DESC LIMIT %u",
 			   self._table_name, where_clause, self._top_limit)
@@ -103,7 +103,7 @@ end
 --@brief Performs a query for the top server hosts by alert count
 function flow_alert_store:top_srv_ip_historical()
    -- Preserve all the filters currently set
-   local where_clause = table.concat(self._where, " AND ")
+   local where_clause = self:build_where_clause()
 
    local q = string.format("SELECT srv_ip, srv_name, count(*) count FROM %s WHERE %s GROUP BY srv_ip ORDER BY count DESC LIMIT %u",
 			   self._table_name, where_clause, self._top_limit)

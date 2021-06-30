@@ -148,7 +148,7 @@ function all_alert_store:select_historical(filter, fields)
       return res
    end
 
-   where_clause = table.concat(self._where, " AND ")
+   where_clause = self:build_where_clause()
 
    -- [OPTIONAL] Add sort criteria
    if self._order_by then
