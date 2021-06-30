@@ -1116,7 +1116,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         function splitSeriesInfo(stats_name, cell, show_date, formatter, total) {
           let val = "";
           const val_formatter = (formatter ? formatter : stats_formatter)
-          debugger;
+          
           if(visualization.first_timeseries_only) {
             val = val_formatter(stats.by_serie[0][stats_name]) + (show_date ? (" (" + (new Date(res[0].values[stats[stats_name + "_idx"]][0] * 1000)).format(datetime_format) + ")") : "");
           } else if(visualization.split_directions && stats.by_serie && !total) {
