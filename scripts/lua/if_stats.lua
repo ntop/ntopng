@@ -452,7 +452,7 @@ if((page == "overview") or (page == nil)) then
    print("<div class='table-responsive-xl'>")
 print[[
 ]]
-   print("<table class=\"table table-striped table-bordered\">\n")
+   print("<table class=\"table table-striped table-bordered mb-0\">\n")
    print("<tr><th width=15%>"..i18n("if_stats_overview.id").."</th><td colspan=6>" .. ifstats.id .. " ")
    if(ifstats.description ~= ifstats.name) then print(" ("..ifstats.description..")") end
    print("</td></tr>\n")
@@ -572,7 +572,7 @@ print[[
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 	 print("<th nowrap>"..i18n("if_stats_overview.remote_probe_time")..
 	       " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_remote_probe_time").."'></i></sup>" ..
-	       "</th><td nowrap>")
+	       "</th><td colspan=5 nowrap>")
 
 	 if(tdiff > 10) then print("<font color=red><b>") end
 	 print(formatValue(tdiff).." sec")
@@ -688,6 +688,9 @@ print[[
 
    label = i18n("pkts")
 
+   print[[</tbody></table>]]
+	print[[<table class="table table-striped table-bordered"><tbody>]
+
    print[[ <tr><th colspan=1 nowrap>]] print(i18n("if_stats_overview.traffic_breakdown")) print[[</th> ]]
 
    if(ifstats.type ~= "zmq") then
@@ -719,7 +722,7 @@ print[[
       print("<tr>")
       print("<th nowrap>"..i18n("if_stats_overview.collected_flows")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:zmq_recv_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
       print("<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.unhandled_flows").."</th><td width=20%><span id=if_zmq_dropped_flows>"..formatValue(ifstats.zmqRecvStats.dropped_flows).."</span></td>")
-      print("<th nowrap></th><td width=20%></td>")
+      print("<td width=20%></td>")
       print("</tr>")
 
       print("<tr>")
@@ -731,8 +734,8 @@ print[[
       print("<tr>")
       print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span></td>")
       print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></td>")
-      print("<th nowrap></th><td width=20%></td>")
-      print("</tr>")
+		print("<td width=20%></td>")
+		print("</tr>")
    end
 
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.traffic_statistics").."</th></tr>\n")
