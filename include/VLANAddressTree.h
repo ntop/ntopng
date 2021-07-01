@@ -32,22 +32,12 @@ typedef struct {
 
 /*
   VLANId is 12 bits but in order to avoid breaking bytes
-  boundaries we assign 16 bits each, also because the
-  observation_point_id is 16 bits
-  
-  vlan_id:              lower 16 bits
-  observation_point_id: upper 16 bits
+  boundaries we assign 16 bits each
 */
-typedef u_int32_t VLANid;
+typedef u_int16_t VLANid;
 
+/* Make sure we won't exceed 12 bites for vlanId */
 inline u_int16_t filterVLANid(VLANid id)             { return((u_int16_t)(id & 0xFFF)); }
-inline u_int16_t filterObservationPointId(VLANid id) { return((id >> 16) & 0xFFFFF);    }
-
-inline u_int32_t buildVLANId(u_int16_t vlan_id, u_int16_t observationPointId) {
-  u_int32_t ret = ((u_int32_t)observationPointId) << 16;
-
-  return(ret | (vlan_id & 0xFFF));
-}
 
 class VLANAddressTree {
  protected:

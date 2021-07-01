@@ -282,7 +282,8 @@ class Flow : public GenericHashEntry {
 
  public:
   Flow(NetworkInterface *_iface,
-       VLANid _vlanId, u_int8_t _protocol,
+       VLANid _vlanId, u_int16_t _observation_point_id,
+       u_int8_t _protocol,
        Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
        Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
        const ICMPinfo * const icmp_info,
@@ -482,7 +483,6 @@ class Flow : public GenericHashEntry {
   inline u_int16_t get_cli_port()        const { return(ntohs(cli_port));                 };
   inline u_int16_t get_srv_port()        const { return(ntohs(srv_port));                 };
   inline VLANid    get_vlan_id()              const { return(filterVLANid(vlanId));                        };
-  inline VLANid    get_observation_point_id() const { return(filterObservationPointId(vlanId));            };
   inline u_int8_t  get_protocol()        const { return(protocol);                        };
   inline u_int64_t get_bytes()           const { return(stats.get_cli2srv_bytes() + stats.get_srv2cli_bytes() );                };
   inline u_int64_t get_bytes_cli2srv()   const { return(stats.get_cli2srv_bytes());                                             };
@@ -586,8 +586,10 @@ class Flow : public GenericHashEntry {
   static u_int32_t key(Host *cli, u_int16_t cli_port,
 		       Host *srv, u_int16_t srv_port,
 		       VLANid vlan_id,
+		       u_int16_t _observation_point_id,
 		       u_int16_t protocol);
-  void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
+  void lua(lua_State* vm, AddressTree * ptree,
+	   DetailsLevel details_level, bool asListElement);
   void lua_get_min_info(lua_State* vm);
   void lua_duration_info(lua_State* vm);
   void lua_snmp_info(lua_State* vm);
@@ -621,7 +623,8 @@ class Flow : public GenericHashEntry {
 
   bool equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
-	     VLANid _vlanId, u_int8_t _protocol,
+	     VLANid _vlanId, u_int16_t _observation_point_id,
+	     u_int8_t _protocol,
 	     const ICMPinfo * const icmp_info,
 	     bool *src2srv_direction) const;
   void sumStats(nDPIStats *ndpi_stats, FlowStats *stats);
@@ -749,10 +752,11 @@ class Flow : public GenericHashEntry {
     flow_device.device_ip = device_ip, flow_device.observation_point_id = observation_point_id;
     flow_device.in_index = inidx, flow_device.out_index = outidx;
   }
-  inline u_int32_t getFlowDeviceIp()           { return flow_device.device_ip;            };
-  inline u_int32_t getFlowObservationPointId() { return flow_device.observation_point_id; };
-  inline u_int32_t getFlowDeviceInIndex()      { return flow_device.in_index;             };
-  inline u_int32_t getFlowDeviceOutIndex()     { return flow_device.out_index;            };
+  inline u_int32_t getFlowDeviceIp()           { return flow_device.device_ip;             };
+  inline u_int32_t getFlowObservationPointId() { return flow_device.observation_point_id;  };
+  inline u_int16_t get_observation_point_id()  { return(getFlowObservationPointId());      };
+  inline u_int32_t getFlowDeviceInIndex()      { return flow_device.in_index;              };
+  inline u_int32_t getFlowDeviceOutIndex()     { return flow_device.out_index;             };
 
   inline const u_int16_t getScore()            const { return(flow_score); };
 

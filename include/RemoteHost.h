@@ -29,8 +29,8 @@ class RemoteHost : public Host {
   void initialize();
 
  public:
-  RemoteHost(NetworkInterface *_iface, Mac *_mac, VLANid _vlanId, IpAddress *_ip);
-  RemoteHost(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId);
+  RemoteHost(NetworkInterface *_iface, Mac *_mac, VLANid _vlanId, u_int16_t _observation_point_id, IpAddress *_ip);
+  RemoteHost(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId, u_int16_t _observation_point_id);
   virtual ~RemoteHost();
 
   void set_hash_entry_state_idle();

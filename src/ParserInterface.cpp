@@ -154,7 +154,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac,
-		 buildVLANId(zflow->vlan_id, zflow->observationPointId),
+		 zflow->vlan_id, zflow->observationPointId,
 		 zflow->device_ip,
 		 zflow->inIndex, zflow->outIndex,
 		 NULL /* ICMPinfo */,
@@ -167,9 +167,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   PROFILING_SECTION_EXIT(0);
 
-  if(flow == NULL) {
-    return false;
-  }
+  if(flow == NULL)
+    return false;  
 
   if(zflow->absolute_packet_octet_counters) {
     /* Ajdust bytes and packets counters if the zflow update contains absolute values.
@@ -283,6 +282,10 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     dstMac->incRcvdStats(getTimeLastPktRcvd(), zflow->pkt_sampling_rate * zflow->in_pkts,
 			 zflow->pkt_sampling_rate * zflow->in_bytes);
   }
+
+  if(zflow->observationPointId != 0) 
+    incObservationPointIdFlows(zflow->observationPointId,
+			       zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));      
 
   if(zflow->l4_proto == IPPROTO_TCP) {
     if(zflow->tcp.client_tcp_flags || zflow->tcp.server_tcp_flags) {

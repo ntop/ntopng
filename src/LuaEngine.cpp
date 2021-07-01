@@ -774,6 +774,8 @@ void LuaEngine::setInterface(const char * user, char * const ifname,
 
   /* Set the observationPointId in the VM */
   getLuaVMUservalue(L, observationPointId) = observationPointId;
+
+  // ntop->getTrace()->traceEvent(TRACE_WARNING, "observationPointId: %u", observationPointId);
   
   lua_push_uint32_table_entry(L, "observationPointId", observationPointId);
 }

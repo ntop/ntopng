@@ -33,16 +33,16 @@ const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
 /* *************************************** */
 
 Flow::Flow(NetworkInterface *_iface,
-	   VLANid _vlanId, u_int8_t _protocol,
+	   VLANid _vlanId, u_int16_t _observation_point_id,
+	   u_int8_t _protocol,
 	   Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   const ICMPinfo * const _icmp_info,
 	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
-  u_int16_t _observation_point_id = filterObservationPointId(_vlanId);
-  
   periodic_stats_update_partial = NULL;
   viewFlowStats = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
+  flow_device.observation_point_id = _observation_point_id;  
   cli_host = srv_host = NULL;
   cli_ip_addr = srv_ip_addr = NULL;
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
@@ -1875,7 +1875,8 @@ void Flow::update_pools_stats(NetworkInterface *iface,
 
 bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 		 u_int16_t _cli_port, u_int16_t _srv_port,
-		 VLANid _vlanId, u_int8_t _protocol,
+		 VLANid _vlanId, u_int16_t _observation_point_id,
+		 u_int8_t _protocol,
 		 const ICMPinfo * const _icmp_info,
 		 bool *src2srv_direction) const {
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
@@ -1889,7 +1890,15 @@ bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 			       _srv_ip->print(buf4, sizeof(buf4)));
 #endif
 
-  if(_vlanId != vlanId)
+  if((get_vlan_id() != _vlanId)
+#ifdef MAKE_OBSERVATION_POINT_KEY
+     /*
+       Uncomment the line below if you want the same host
+       seen from various observation points, to be considered
+       a unique host */
+     || (get_observation_point_id() != _observation_point_id)
+#endif
+    )
     return(false);
 
   if(_protocol != protocol)
@@ -2320,6 +2329,10 @@ bool Flow::hasRisks() const {
 u_int32_t Flow::key() {
   u_int32_t k = cli_port + srv_port + vlanId + protocol;
 
+#ifdef MAKE_OBSERVATION_POINT_KEY
+  k += get_observation_point_id();
+#endif
+  
   if(get_cli_ip_addr()) k += get_cli_ip_addr()->key();
   if(get_srv_ip_addr()) k += get_srv_ip_addr()->key();
   if(icmp_info) k += icmp_info->key();
@@ -2331,9 +2344,13 @@ u_int32_t Flow::key() {
 
 u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 		    Host *_srv, u_int16_t _srv_port,
-		    VLANid _vlan_id,
+		    VLANid _vlan_id, u_int16_t _observation_point_id,
 		    u_int16_t _protocol) {
   u_int32_t k = _cli_port + _srv_port + _vlan_id + _protocol;
+  
+#ifdef MAKE_OBSERVATION_POINT_KEY
+  k += _observation_point_id;
+#endif
 
   if(_cli) k += _cli -> key();
   if(_srv) k += _srv -> key();
@@ -2803,8 +2820,8 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_int32(s, "pool_id", NO_HOST_POOL_ID);
 
   /* See VLANAddressTree.h for details */
-  ndpi_serialize_string_int32(s, "vlan_id", filterVLANid(get_vlan_id()));
-  ndpi_serialize_string_int32(s, "observation_point_id", filterObservationPointId(get_vlan_id()));
+  ndpi_serialize_string_int32(s, "vlan_id", get_vlan_id());
+  ndpi_serialize_string_int32(s, "observation_point_id", get_observation_point_id());
   
   ndpi_serialize_string_int32(s, "proto", get_protocol());
 

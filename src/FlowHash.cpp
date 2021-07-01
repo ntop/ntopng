@@ -34,7 +34,8 @@ static u_int16_t max_num_loops = 0;
 
 Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
 		     u_int16_t src_port, u_int16_t dst_port, 
-		     VLANid vlanId, u_int8_t protocol,
+		     VLANid vlanId, u_int16_t observation_point_id,
+		     u_int8_t protocol,
 		     const ICMPinfo * const icmp_info,
 		     bool *src2dst_direction,
 		     bool is_inline_call) {
@@ -55,7 +56,8 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
   while(head) {
     if(!head->idle()
        && !head->is_swap_done() /* Do NOT return flows for which swap has been done. Leave them so they will be marked as idle and disappear */
-       && head->equal(src_ip, dst_ip, src_port, dst_port, vlanId, protocol, icmp_info, src2dst_direction)) {
+       && head->equal(src_ip, dst_ip, src_port, dst_port, vlanId, observation_point_id,
+		      protocol, icmp_info, src2dst_direction)) {
       if(num_loops > max_num_loops) {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "DEBUG: [Num loops: %u][hashId: %u]", num_loops, hash);
 	max_num_loops = num_loops;

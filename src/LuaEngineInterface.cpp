@@ -2499,7 +2499,7 @@ static int ntop_get_interface_flow_key(lua_State* vm) {
      ||(srv = ntop_interface->getHost(srv_name, srv_vlan, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */)) == NULL) {
     lua_pushnil(vm);
   } else
-    lua_pushinteger(vm, Flow::key(cli, cli_port, srv, srv_port, cli_vlan, protocol));
+    lua_pushinteger(vm, Flow::key(cli, cli_port, srv, srv_port, cli_vlan, getLuaVMUservalue(vm, observationPointId), protocol));
 
   return(CONST_LUA_OK);
 }
@@ -2577,7 +2577,8 @@ static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
 
   src_ip_addr.set(src_ip), dst_ip_addr.set(dst_ip);
 
-  f = ntop_interface->findFlowByTuple(vlan_id, &src_ip_addr, &dst_ip_addr, htons(src_port), htons(dst_port), l4_proto, ptree);
+  f = ntop_interface->findFlowByTuple(vlan_id, getLuaVMUservalue(vm, observationPointId),
+				      &src_ip_addr, &dst_ip_addr, htons(src_port), htons(dst_port), l4_proto, ptree);
 
   if(f == NULL)
     return(CONST_LUA_ERROR);

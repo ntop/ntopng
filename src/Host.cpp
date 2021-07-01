@@ -23,16 +23,17 @@
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId) : GenericHashEntry(_iface),
-									   HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostChecksStatus() {
+Host::Host(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId, u_int16_t observation_point_id)
+  : GenericHashEntry(_iface), HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostChecksStatus() {
   ip.set(ipAddress);
-  initialize(NULL, _vlanId);
+  initialize(NULL, _vlanId, observation_point_id);
 }
 
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, Mac *_mac,
-	   VLANid _vlanId, IpAddress *_ip) : GenericHashEntry(_iface), HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostChecksStatus() {
+	   VLANid _vlanId, u_int16_t observation_point_id, IpAddress *_ip)
+  : GenericHashEntry(_iface), HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostChecksStatus() {
   ip.set(_ip);
 
 #ifdef BROADCAST_DEBUG
@@ -42,7 +43,7 @@ Host::Host(NetworkInterface *_iface, Mac *_mac,
 			       ip.print(buf, sizeof(buf)), isBroadcastHost() ? 1 : 0);
 #endif
 
-  initialize(_mac, _vlanId);
+  initialize(_mac, _vlanId, observation_point_id);
 }
 
 /* *************************************** */
@@ -169,10 +170,9 @@ void Host::housekeep(time_t t) {
 
 /* *************************************** */
 
-void Host::initialize(Mac *_mac, VLANid _vlanId) {
+void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id) {
   char buf[64];
-  u_int16_t masked_vlanId = filterVLANid(_vlanId); /* Skip observationPointId (if any) */
-  u_int16_t observationPointId = filterObservationPointId(_vlanId);
+  u_int16_t masked_vlanId = filterVLANid(_vlanId); /* Cleanup any possible junk */
   
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
@@ -194,9 +194,8 @@ void Host::initialize(Mac *_mac, VLANid _vlanId) {
   if((mac = _mac))
     mac->incUses();
 
-  if(observationPointId != 0)
-    iface->incObservationPointIdFlows(observationPointId);
-      
+  observationPointId = observation_point_id;
+  
   if((vlan = iface->getVLAN(masked_vlanId, true, true /* Inline call */)) != NULL)
     vlan->incUses();
 
@@ -259,14 +258,12 @@ char* Host::get_hostkey(char *buf, u_int buf_len, bool force_vlan) {
     char obsBuf[16] = { '\0' };
 
     /*
-      Uncomment to add observation_point_id in the host name
-
-      u_int16_t observation_point_id = get_observation_point_id();
+      Uncomment to add observationPointId in the host name
       
-      if(observation_point_id == 0)
+      if(observationPointId == 0)
         obsBuf[0] = '\0';
       else
-        snprintf(obsBuf, sizeof(obsBuf), " (%u)", observation_point_id);
+        snprintf(obsBuf, sizeof(obsBuf), " (%u)", observationPointId);
     */
     
     if(get_vlan_id())

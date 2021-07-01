@@ -138,7 +138,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /* Queue containing the ip@vlan strings of the hosts to restore. */
   StringFifoQueue *hosts_to_restore;
 
-  std::map<u_int16_t /* observationPointId */, u_int32_t /* # of collected flows */> observationPoints;
+  std::map<u_int16_t /* observationPointId */, ObservationPointIdTrafficStats*> observationPoints;
   
   /* External alerts contain alertable entities other than host/interface/network
    * which are dynamically allocated when an alert for them occurs.
@@ -283,6 +283,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   NetworkInterface* getDynInterface(u_int64_t criteria, bool parser_interface);
   Flow* getFlow(Mac *srcMac, Mac *dstMac, VLANid vlan_id,
+		u_int16_t observation_domain_id,
 		u_int32_t deviceIP, u_int32_t inIndex, u_int32_t outIndex,
 		const ICMPinfo * const icmp_info,
 		IpAddress *src_ip, IpAddress *dst_ip,
@@ -578,6 +579,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		     Mac *dst_mac, IpAddress *_dst_ip, Host **dst);
   virtual Flow* findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts);
   virtual Flow* findFlowByTuple(VLANid vlan_id,
+				u_int16_t observation_domain_id,
 				IpAddress *src_ip,  IpAddress *dst_ip,
 				u_int16_t src_port, u_int16_t dst_port,
 				u_int8_t l4_proto,
@@ -1033,9 +1035,14 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline HostChecksExecutor* getHostCheckExecutor() { return(host_checks_executor); }
   HostCheck *getCheck(HostCheckID t);
 
-  inline void incObservationPointIdFlows(u_int16_t pointId) {
-    /* This is work in progress and it needs to be locked when read */
-    observationPoints[pointId] = true;
+  inline void incObservationPointIdFlows(u_int16_t pointId, u_int32_t tot_bytes) {
+    /* TODO This is work in progress and it needs to be locked when read */
+    std::map<u_int16_t,ObservationPointIdTrafficStats*>::iterator o = observationPoints.find(pointId);
+
+    if(o == observationPoints.end())
+      observationPoints[pointId] = new ObservationPointIdTrafficStats(1, tot_bytes);
+    else
+      o->second->inc(tot_bytes);
   }
 
   inline bool hasObservationPointId(u_int16_t pointId) {

@@ -547,7 +547,8 @@ void NetworkInterface::deleteDataStructures() {
 
 NetworkInterface::~NetworkInterface() {
   std::map<std::pair<AlertEntity, std::string>, AlertableEntity*>::iterator it;
-
+  std::map<u_int16_t /* observationPointId */, ObservationPointIdTrafficStats*>::iterator it_o;
+  
 #ifdef PROFILING
   u_int64_t n = ethStats.getNumIngressPackets();
   if(isPacketInterface() && n > 0) {
@@ -604,6 +605,9 @@ NetworkInterface::~NetworkInterface() {
     delete it->second;
   external_alerts.clear();
 
+  for(it_o = observationPoints.begin(); it_o != observationPoints.end(); ++it)
+    delete it_o->second;
+ 
 #ifdef NTOPNG_PRO
   if(policer)               delete(policer);
 #ifndef HAVE_NEDGE
@@ -881,7 +885,8 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 /* **************************************************** */
 
 Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
-				VLANid vlan_id,  u_int32_t deviceIP,
+				VLANid vlan_id, u_int16_t observation_domain_id,
+				u_int32_t deviceIP,
 				u_int32_t inIndex,  u_int32_t outIndex,
 				const ICMPinfo * const icmp_info,
   				IpAddress *src_ip,  IpAddress *dst_ip,
@@ -907,7 +912,8 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
   PROFILING_SECTION_ENTER("NetworkInterface::getFlow: flows_hash->find", 1);
   ret = flows_hash->find(src_ip, dst_ip, src_port, dst_port,
-			 vlan_id, l4_proto, icmp_info, src2dst_direction,
+			 vlan_id, observation_domain_id,
+			 l4_proto, icmp_info, src2dst_direction,
 			 true /* Inline call */);
   PROFILING_SECTION_EXIT(1);
 
@@ -926,11 +932,11 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
     try {
       PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow", 2);
-      ret = new (std::nothrow) Flow(this, vlan_id, l4_proto,
-		     srcMac, src_ip, src_port,
-		     dstMac, dst_ip, dst_port,
-		     icmp_info,
-		     first_seen, last_seen);
+      ret = new (std::nothrow) Flow(this, vlan_id, observation_domain_id, l4_proto,
+				    srcMac, src_ip, src_port,
+				    dstMac, dst_ip, dst_port,
+				    icmp_info,
+				    first_seen, last_seen);
       PROFILING_SECTION_EXIT(2);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
@@ -1439,10 +1445,12 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
  pre_get_flow:
   /* Updating Flow */
-  flow = getFlow(srcMac, dstMac, vlan_id, 0, 0, 0,
+  flow = getFlow(srcMac, dstMac, vlan_id, 0 /* observationPointId */,
+		 0, 0, 0,
 		 l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
 		 &src_ip, &dst_ip, src_port, dst_port,
-		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, len_on_wire, &new_flow, true);
+		 l4_proto, &src2dst_direction, last_pkt_rcvd,
+		 last_pkt_rcvd, len_on_wire, &new_flow, true);
   PROFILING_SECTION_EXIT(0);
 
   if(flow == NULL) {
@@ -2426,6 +2434,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 
       flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
 		     0 /* vlan_id */,
+		     0 /* observationPointId */,
 		     0 /* deviceIP */,
 		     0 /* inIndex */, 1 /* outIndex */,
 		     NULL /* ICMPinfo */,
@@ -2983,11 +2992,11 @@ void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain
     if(_src_ip
        && (_src_ip->isLocalHost(&local_network_id) || _src_ip->isLocalInterfaceAddress())) {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
-      (*src) = new (std::nothrow) LocalHost(this, src_mac, vlanId, _src_ip);
+      (*src) = new (std::nothrow) LocalHost(this, src_mac, vlanId, observation_domain_id, _src_ip);
       PROFILING_SECTION_EXIT(4);
     } else {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
-      (*src) = new (std::nothrow) RemoteHost(this, src_mac, vlanId, _src_ip);
+      (*src) = new (std::nothrow) RemoteHost(this, src_mac, vlanId, observation_domain_id, _src_ip);
       PROFILING_SECTION_EXIT(5);
     }
 
@@ -3024,11 +3033,11 @@ void NetworkInterface::findFlowHosts(VLANid vlanId, u_int16_t observation_domain
     if(_dst_ip
        && (_dst_ip->isLocalHost(&local_network_id) || _dst_ip->isLocalInterfaceAddress())) {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
-      (*dst) = new (std::nothrow) LocalHost(this, dst_mac, vlanId, _dst_ip);
+      (*dst) = new (std::nothrow) LocalHost(this, dst_mac, vlanId, observation_domain_id, _dst_ip);
       PROFILING_SECTION_EXIT(4);
     } else {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
-      (*dst) = new (std::nothrow) RemoteHost(this, dst_mac, vlanId, _dst_ip);
+      (*dst) = new (std::nothrow) RemoteHost(this, dst_mac, vlanId, observation_domain_id, _dst_ip);
       PROFILING_SECTION_EXIT(5);
     }
 
@@ -6264,6 +6273,7 @@ Flow* NetworkInterface::findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, Add
 /* **************************************************** */
 
 Flow* NetworkInterface::findFlowByTuple(VLANid vlan_id,
+					u_int16_t observation_domain_id,
 					IpAddress *src_ip,  IpAddress *dst_ip,
 					u_int16_t src_port, u_int16_t dst_port,
 					u_int8_t l4_proto,
@@ -6274,7 +6284,8 @@ Flow* NetworkInterface::findFlowByTuple(VLANid vlan_id,
   if(!flows_hash)
     return NULL;
 
-  f = (Flow*)flows_hash->find(src_ip, dst_ip, src_port, dst_port, vlan_id, l4_proto, NULL, &src2dst, false /* Not an inline call */);
+  f = (Flow*)flows_hash->find(src_ip, dst_ip, src_port, dst_port, vlan_id,
+			      observation_domain_id, l4_proto, NULL, &src2dst, false /* Not an inline call */);
 
   if(f && (!f->match(allowed_hosts))) f = NULL;
 
@@ -8652,9 +8663,9 @@ void NetworkInterface::checkHostsToRestore() {
 
     /* TODO provide the host MAC address when available to properly restore LBD hosts */
     if(ipa.isLocalHost(&local_network_id) || ipa.isLocalInterfaceAddress())
-      h = new (std::nothrow) LocalHost(this, mac, vlan_id, &ipa);
+      h = new (std::nothrow) LocalHost(this, mac, vlan_id, 0 /* any observation point */, &ipa);
     else
-      h = new (std::nothrow) RemoteHost(this, mac, vlan_id, &ipa);
+      h = new (std::nothrow) RemoteHost(this, mac, vlan_id, 0 /* any observation point */, &ipa);
 
     if(!h)
       goto next_host;
@@ -9104,16 +9115,21 @@ void NetworkInterface::execHostChecks(Host *h) {
 void NetworkInterface::getObservationPoints(lua_State* vm) {
   bool found = false;
 
-  for(std::map<u_int16_t, u_int32_t>::iterator it = observationPoints.begin(); it != observationPoints.end(); ++it) {
+  for(std::map<u_int16_t, ObservationPointIdTrafficStats*>::iterator it = observationPoints.begin(); it != observationPoints.end(); ++it) {
     char key[16];
 
     if(!found) {
       lua_newtable(vm);
       found = true;
     }
-    
-    snprintf(key, sizeof(key), "%u", it->first);
-    lua_push_int32_table_entry(vm, key, it->second);
+
+    lua_newtable(vm);
+
+    it->second->lua(vm);
+
+    lua_pushinteger(vm, it->first);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
 
   if(!found)
