@@ -99,29 +99,6 @@ end
 
 -- ##############################################
 
---@brief Add filter on role
---@param role The role (attacker or victim)
---@return True if set is successful, false otherwise
-function host_alert_store:add_role_filter(role)
-   if not isEmptyString(role) then
-      local role_value, op = self:strip_filter_operator(role)
-      if not op or not tag_utils.tag_operators[op] then op = 'eq' end
-      local sql_op = tag_utils.tag_operators[op]
-      if role_value == 'attacker' then
-         self:add_filter_condition_raw('role', string.format("is_attacker %s 1", sql_op))
-      elseif role_value == 'victim' then
-         self:add_filter_condition_raw('role', string.format("is_victim %s 1", sql_op))
-      elseif role_value == 'no_attacker_no_victim' then
-         self:add_filter_condition_raw('role', "(is_attacker = 0 AND is_victim = 0)")
-      end
-      return true
-   end
-
-   return false
-end
-
--- ##############################################
-
 --@brief Add filter on client/server role
 --@param role_cli_srv The client/server role (client or server)
 --@return True if set is successful, false otherwise
@@ -150,10 +127,8 @@ function host_alert_store:_add_additional_request_filters()
 
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
    self:add_filter_condition_list('ip', ip)
-
-   -- Custom filters
-   self:add_role_filter(role)
-   self:add_role_cli_srv_filter(role_cli_srv)
+   self:add_filter_condition_list('host_role', role)
+   self:add_filter_condition_list('role_cli_srv', role_cli_srv)
 end
 
 -- ##############################################

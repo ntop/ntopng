@@ -146,7 +146,7 @@ function alert_store:build_sql_cond(cond)
          sql_op, cond.value, ternary(cond.op == 'neq', 'AND', 'OR'), sql_op, cond.value)
    
    -- Special case: ip (with vlan)
-    elseif cond.field == 'ip' then
+   elseif cond.field == 'ip' then
       local host = hostkey2hostinfo(cond.value)
 
       if not isEmptyString(host["host"]) then
@@ -155,6 +155,34 @@ function alert_store:build_sql_cond(cond)
          else
             sql_cond = string.format("(ip %s '%s' %s vlan_id %s %u)", sql_op, host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
          end
+      end
+
+   -- Special case: role (host)
+   elseif cond.field == 'host_role' then
+      if cond.value == 'attacker' then
+         sql_cond = "is_attacker = 1"
+      elseif cond.value == 'victim' then
+         sql_cond = "is_victim = 1"
+      else -- 'no_attacker_no_victim'
+         sql_cond = "(is_attacker = 0 AND is_victim = 0)"
+      end
+
+   -- Special case: role (flow)
+   elseif cond.field == 'flow_role' then
+      if cond.value == 'attacker' then
+         sql_cond = "(is_cli_attacker = 1 OR is_srv_attacker = 1)"
+      elseif cond.value == 'victim' then
+         sql_cond = "(is_cli_victim = 1 OR is_srv_victim = 1)"
+      else -- 'no_attacker_no_victim'
+         sql_cond = "(is_cli_attacker = 0 AND is_srv_attacker = 0 AND is_srv_victim = 0 AND is_cli_victim = 0)"
+      end
+
+   -- Special case: role_cli_srv)
+   elseif cond.field == 'role_cli_srv' then
+      if role_cli_srv == 'client' then
+         sql_cond = "is_client = 1"
+      else -- 'server'
+         sql_cond = "is_server = 1"
       end
 
    -- Number

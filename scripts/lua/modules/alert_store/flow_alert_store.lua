@@ -185,27 +185,6 @@ end
 
 -- ##############################################
 
---@brief Add filter on role
---@param role The role (had_attacker, has_victim, no_attacker_nor_victim)
---@return True if set is successful, false otherwise
-function flow_alert_store:add_role_filter(role)
-   if not isEmptyString(role) then
-      local role_value, op = self:strip_filter_operator(role)
-      if role_value == 'attacker' then
-         self:add_filter_condition_raw('role', "(is_cli_attacker = 1 OR is_srv_attacker = 1)", true)
-      elseif role_value == 'victim' then
-         self:add_filter_condition_raw('role', "(is_cli_victim = 1 OR is_srv_victim = 1)", true)
-      elseif role_value == 'no_attacker_no_victim' then
-         self:add_filter_condition_raw('role', "(is_cli_attacker = 0 AND is_srv_attacker = 0 AND is_srv_victim = 0 AND is_cli_victim = 0)", true)
-      end
-      return true
-   end
-
-   return false
-end
-
--- ##############################################
-
 --@brief Add filters according to what is specified inside the REST API
 function flow_alert_store:_add_additional_request_filters()
    local cli_ip = _GET["cli_ip"]
@@ -221,10 +200,10 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('srv_ip', srv_ip)
    self:add_filter_condition_list('cli_port', cli_port, 'number')
    self:add_filter_condition_list('srv_port', srv_port, 'number')
+   self:add_filter_condition_list('flow_role', role)
+   self:add_filter_condition_list('l7_proto', l7_proto)
 
-   -- Custom filters
    self:add_l7_proto_filter(l7_proto)
-   self:add_role_filter(role)
 end
 
 -- ##############################################
