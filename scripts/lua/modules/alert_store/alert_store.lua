@@ -43,8 +43,8 @@ function alert_store:init(args)
    --       -- List of AND conditions
    --       {
    --         field = 'alert_id',
-   --         op = 'eq',
-   --         valie = 1,
+   --         op = 'neq',
+   --         value = 1,
    --         sql = 'alert_id = 1',
    --       }
    --     },
@@ -183,6 +183,81 @@ function alert_store:build_where_clause()
    -- tprint(where_clause)
 
    return where_clause
+end
+
+-- ##############################################
+
+--@brief Filter (engaged) alerts in lua) evaluating self:_where conditions
+function alert_store:eval_alert_cond(alert, cond)
+   local verdict = true -- pass
+
+   if not alert[cond.field] then -- field not defined, pass
+      return verdict
+   end
+
+   if cond.op == 'eq' then
+      return alert[cond.field] == cond.value
+   elseif cond.op == 'neq' then
+      return alert[cond.field] ~= cond.value
+   elseif cond.op == 'lt' then
+      return alert[cond.field] < cond.value
+   elseif cond.op == 'gt' then
+      return alert[cond.field] > cond.value
+   elseif cond.op == 'gte' then
+      return alert[cond.field] >= cond.value
+   elseif cond.op == 'lte' then
+      return alert[cond.field] <= cond.value
+   end 
+
+   return verdict
+end
+
+-- ##############################################
+
+--@brief Filter (engaged) alerts in lua) evaluating self:_where conditions
+function alert_store:filter_alerts(alerts)
+   local result = {}
+
+   -- For all alerts
+   for _, alert in ipairs(alerts) do
+      local pass = true
+     
+      -- For all fields
+      for name, groups in pairs(self._where) do
+
+         -- Eval AND conditions
+         for _, cond in ipairs(groups.all) do
+            if not self:eval_alert_cond(alert, cond) then
+               pass = false
+               break
+            end
+         end
+         if not pass then
+            break
+         end
+
+         -- Eval OR conditions
+         if #groups.any > 0 then
+            local or_pass = false
+            for _, cond in ipairs(groups.any) do
+               if self:eval_alert_cond(alert, cond) then
+                  or_pass = true
+                  break
+               end
+            end
+            if not or_pass then
+               pass = false
+               break
+            end
+         end
+      end
+
+      if pass then
+         result[#result + 1] = alert
+      end
+   end
+
+   return result
 end
 
 -- ##############################################
@@ -420,7 +495,7 @@ function alert_store:select_engaged(filter)
 
    local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter, role_filter)
 
-   -- TODO Lua filters
+   alerts = self:filter_alerts(alerts)
 
    local total_rows = 0
    local sort_2_col = {}
@@ -596,7 +671,7 @@ function alert_store:count_by_severity_and_time_engaged(filter, severity)
 
    local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter)
 
-   -- TODO Lua filters
+   alerts = self:filter_alerts(alerts)
 
    local all_severities = {}
    local all_slots = {}
