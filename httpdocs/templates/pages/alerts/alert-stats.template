@@ -265,7 +265,7 @@
         async function addFilterTag(tag) {
             const existingTagElms = tagify.getTagElms();
 
-            {% if alert_stats.status == "engaged" then %}
+            {% if false then %}
             /* Lookup by key (does not allow dup) */
             const existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key);
             const existingTag = tagify.tagData(existingTagElement);
