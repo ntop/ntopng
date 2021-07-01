@@ -74,27 +74,25 @@ $(() => {
         $(`#n-sidebar`).toggleClass('active');
     }
 
-    $(`#n-sidebar a.submenu`).on('mouseenter', function() {
-
-        const $submenu = $(this).parent().find(`div[id$='submenu']`);
-        fixSubMenuPosition($submenu, $(this));
-        $submenu.collapse('show');
-
-        $(this).attr('aria-expanded', true);
+    $('#n-sidebar a.submenu').bind({
+        mouseenter: function() {
+            let submenu = $(this).parent().find(`div[id$='submenu']`);
+            fixSubMenuPosition(submenu, $(this));
+            submenu.show()
+        },
+        mouseleave: function() {
+            let submenu = $(this).parent().find(`div[id$='submenu']`);
+            submenu.hide();
+        }
     });
 
-    $(`div[id$='submenu']`).on('mouseenter', function() {
-        $(this).addClass('show');
-    });
-    $(`div[id$='submenu']`).on('mouseleave', function() {
-        $(this).removeClass('show');
-        $(this).css({'max-height': 'initial'});
-    });
-
-    $(`#n-sidebar a.submenu`).on('mouseleave', function() {
-        const $submenu = $(this).parent().find(`div[id$='submenu']`);
-        $submenu.removeClass('show');
-        $(this).attr('aria-expanded', false);
+    $(`div[id$='submenu']`).bind({
+        mouseenter: function() {
+            $(this).show()
+        },
+        mouseleave: function() {
+            $(this).hide();
+        }
     });
 
     /* toggle sidebar display */
