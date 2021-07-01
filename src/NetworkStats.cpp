@@ -29,16 +29,20 @@ NetworkStats::NetworkStats(NetworkInterface *iface, u_int8_t _network_id) : Netw
   numHosts = 0;
   syn_recvd_last_min = synack_sent_last_min = 0;
 
-#ifdef NTOPNG_PRO
+#ifdef NTOPNG_PRO  
+  char buf[32];
   nextMinPeriodicUpdate = 0;
-  if(ntop->getPrefs()->isNetworkBehavourAnalysisEnabled()) {
-    score_behavior = new AnalysisBehavior();
-    traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
-    traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
-  } else {
-    score_behavior = NULL;
-    traffic_tx_behavior = NULL;
-    traffic_rx_behavior = NULL;
+
+  score_behavior = NULL;
+  traffic_tx_behavior = NULL;
+  traffic_rx_behavior = NULL;
+
+  if(ntop->getRedis()->get((char *)CONST_PREFS_NETWORK_BEHAVIOR_ANALYSIS, buf, sizeof(buf)) != 0) {
+    if(!strcmp(buf, "1")) {
+      score_behavior = new AnalysisBehavior();
+      traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
+      traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
+    }
   }
 #endif
 
@@ -209,17 +213,17 @@ void NetworkStats::updateBehaviorStats(const struct timeval *tv) {
 
     /* Traffic behavior stats update, currently score, traffic rx and tx */
     if(score_behavior) {
-      snprintf(score_buf, sizeof(score_buf), "%d | score", network_id);
+      snprintf(score_buf, sizeof(score_buf), "Net %d | score", network_id);
       score_behavior->updateBehavior(getAlertInterface(), getScore(), score_buf);
     }
 
     if(traffic_tx_behavior) {
-      snprintf(tx_buf, sizeof(tx_buf), "%d | traffic tx", network_id);
+      snprintf(tx_buf, sizeof(tx_buf), "Net %d | traffic tx", network_id);
       traffic_tx_behavior->updateBehavior(getAlertInterface(), getNumBytesSent(), tx_buf);
     }
 
     if(traffic_rx_behavior) {
-      snprintf(rx_buf, sizeof(rx_buf), "%d | traffic rx", network_id);
+      snprintf(rx_buf, sizeof(rx_buf), "Net %d | traffic rx", network_id);
       traffic_rx_behavior->updateBehavior(getAlertInterface(), getNumBytesRcvd(), rx_buf);
     }
 

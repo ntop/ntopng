@@ -269,18 +269,6 @@ local menu_subpages = {
         title = i18n("prefs.behaviour_analysis_status_post_learning_title"),
         description = i18n("prefs.behaviour_analysis_status_post_learning_description")
       },
-      toggle_asn_behavior_analysis = {
-        title       = i18n("prefs.toggle_asn_behavior_analysis_title"),
-        description = i18n("prefs.toggle_asn_behavior_analysis_description"),
-      },
-      toggle_network_behavior_analysis = {
-        title       = i18n("prefs.toggle_network_behavior_analysis_title"),
-        description = i18n("prefs.toggle_network_behavior_analysis_description"),
-      },
-      toggle_iface_l7_behavior_analysis = {
-        title       = i18n("prefs.toggle_iface_l7_behavior_analysis_title"),
-        description = i18n("prefs.toggle_iface_l7_behavior_analysis_description"),
-      },
     }, 
     iec60870_learning_period = {
       title       = i18n("prefs.iec60870_learning_period_title"),

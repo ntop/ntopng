@@ -812,27 +812,6 @@ function printNetworkBehaviour()
       prefs.iec60870_learning_period,
       "number", nil, nil, nil, {min=21600, tformat="hd"})
 
-   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n('prefs.behavior_timeseries')..'</th></tr></thead>')
-
-   prefsToggleButton(subpage_active, {
-      field = "toggle_asn_behavior_analysis",
-      default = "0",
-      pref = "is_asn_behavior_analysis_enabled", -- redis preference
-      })
-    
-   prefsToggleButton(subpage_active, {
-      field = "toggle_network_behavior_analysis",
-      default = "0",
-      pref = "is_network_behavior_analysis_enabled", -- redis preference
-      })
-  
-   prefsToggleButton(subpage_active, {
-      field = "toggle_iface_l7_behavior_analysis",
-      default = "0",
-      pref = "is_iface_l7_behavior_analysis_enabled", -- redis preference
-    })
-
-
    -- #####################
    
    print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')

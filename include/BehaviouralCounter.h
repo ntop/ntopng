@@ -46,11 +46,11 @@ class BehaviouralCounter {
   inline u_int64_t getTotNumAnomalies() { return(tot_num_anomalies); };
 
   /* Last measurement */
-  virtual inline bool anomalyFound()            { return(is_anomaly);        };
-  virtual inline u_int64_t getLastValue()       { return(last_value);        };
-  virtual inline u_int64_t getTotAnomalies()    { return(tot_num_anomalies); };
-  virtual inline u_int64_t getLastLowerBound()  { return(last_lower);        };
-  virtual inline u_int64_t getLastUpperBound()  { return(last_upper);        };
+  inline bool anomalyFound()            { return(is_anomaly);        };
+  inline u_int64_t getLastValue()       { return(last_value);        };
+  inline u_int64_t getTotAnomalies()    { return(tot_num_anomalies); };
+  inline u_int64_t getLastLowerBound()  { return(last_lower);        };
+  inline u_int64_t getLastUpperBound()  { return(last_upper);        };
 };
 
 /* ******************************** */
@@ -119,8 +119,6 @@ class DESCounter : public BehaviouralCounter {
 
     return(rc);
   }
-
-  inline bool anomalyFound()  { return((last_value < last_lower) || (last_value > last_upper)); };
 };
 
 /* ******************************** */

@@ -29,16 +29,21 @@ AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : G
   asname = NULL;
   round_trip_time = 0;
 #ifdef NTOPNG_PRO
+  char buf[32];
   nextMinPeriodicUpdate = 0;
-  if(ntop->getPrefs()->isASNBehavourAnalysisEnabled()) {
-    score_behavior = new AnalysisBehavior();
-    traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
-    traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
-  } else {
-    score_behavior = NULL;
-    traffic_tx_behavior = NULL;
-    traffic_rx_behavior = NULL;
+
+  score_behavior = NULL;
+  traffic_tx_behavior = NULL;
+  traffic_rx_behavior = NULL; 
+
+  if(ntop->getRedis()->get((char *)CONST_PREFS_ASN_BEHAVIOR_ANALYSIS, buf, sizeof(buf)) != 0) {
+    if(!strcmp(buf, "1")) {
+      score_behavior = new AnalysisBehavior();
+      traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
+      traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
+    }
   }
+  
 #endif
   ntop->getGeolocation()->getAS(ipa, &asn, &asname);
 
@@ -170,17 +175,17 @@ void AutonomousSystem::updateBehaviorStats(const struct timeval *tv) {
 
     /* Traffic behavior stats update, currently score, traffic rx and tx */
     if(score_behavior) {
-      snprintf(score_buf, sizeof(score_buf), "%d | score", asn);
+      snprintf(score_buf, sizeof(score_buf), "AS %d | score", asn);
       score_behavior->updateBehavior(iface, getScore(), score_buf, (asn ? true : false));
     }
 
     if(traffic_tx_behavior) {
-      snprintf(tx_buf, sizeof(tx_buf), "%d | traffic tx", asn);
+      snprintf(tx_buf, sizeof(tx_buf), "AS %d | traffic tx", asn);
       traffic_tx_behavior->updateBehavior(iface, getNumBytesSent(), tx_buf, (asn ? true : false));
     }
 
     if(traffic_rx_behavior) {
-      snprintf(rx_buf, sizeof(rx_buf), "%d | traffic rx", asn);
+      snprintf(rx_buf, sizeof(rx_buf), "AS %d | traffic rx", asn);
       traffic_rx_behavior->updateBehavior(iface, getNumBytesRcvd(), rx_buf, (asn ? true : false));
     }
 

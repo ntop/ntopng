@@ -6663,7 +6663,7 @@ void NetworkInterface::allocateStructures() {
 
     networkStats     = new NetworkStats*[numNetworks];
     statsManager     = new StatsManager(id, STATS_MANAGER_STORE_NAME);
-    ndpiStats        = new nDPIStats(true /* Enable throughput calculation */, true /* Enable traffic behavior calculation */);
+    ndpiStats        = new nDPIStats(true /* Enable throughput calculation */);
     dscpStats        = new DSCPStats();
 
     gw_macs          = new MacHash(this, 32, 64);

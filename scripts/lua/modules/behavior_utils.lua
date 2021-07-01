@@ -2,7 +2,10 @@
 -- (C) 2020-21 - ntop.org
 --
 
+local rest_utils = require("rest_utils")
+
 local behavior_utils = {}
+local redis_key = "changed_behavior_alert_setup"
 
 -- ##############################################
 
@@ -33,6 +36,29 @@ function behavior_utils.get_behavior_timeseries_utils(family_key)
    return behavior_table[family_key]
 end
 
+function behavior_utils.change_behavior_alert_status()
+   -- Set the redis key for the restart
+   ntop.setCache(redis_key, true)
+   rest_utils.answer(rest_utils.consts.success.ok, res)
+end
+
 -- ##############################################
+
+function behavior_utils.restart_required()
+    if ntop.getCache(redis_key) == '' then
+        return false
+    end
+
+    return true
+end
+
+-- ##############################################
+
+function behavior_utils.reset()
+    if ntop.getCache(redis_key) ~= '' then
+        ntop.delCache(redis_key)
+    end
+end
+
 
 return behavior_utils

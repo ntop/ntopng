@@ -24,16 +24,19 @@
 
 /* *************************************** */
 
-nDPIStats::nDPIStats(bool enable_throughput_stats, bool update_behavior_stats) {
+nDPIStats::nDPIStats(bool enable_throughput_stats) {
   memset(counters, 0, sizeof(counters));
   memset(cat_counters, 0, sizeof(cat_counters));
 
 #ifdef NTOPNG_PRO
+  char buf[32];
   nextMinPeriodicUpdate = 0;
-  if(update_behavior_stats && ntop->getPrefs()->isIfaceL7BehavourAnalysisEnabled())
-    behavior_bytes_traffic = new (std::nothrow)AnalysisBehavior*[MAX_NDPI_PROTOS]();
-  else
-    behavior_bytes_traffic = NULL;
+
+  behavior_bytes_traffic = NULL;
+
+  if(ntop->getRedis()->get((char *)CONST_PREFS_IFACE_L7_BEHAVIOR_ANALYSIS, buf, sizeof(buf)) != 0) {
+    if(!strcmp(buf, "1")) behavior_bytes_traffic = new (std::nothrow)AnalysisBehavior*[MAX_NDPI_PROTOS]();
+  }
 #endif
 
   if(enable_throughput_stats)
@@ -49,10 +52,14 @@ nDPIStats::nDPIStats(const nDPIStats &stats) {
   memset(cat_counters, 0, sizeof(cat_counters));
 
 #ifdef NTOPNG_PRO
-  if(stats.behavior_bytes_traffic && ntop->getPrefs()->isIfaceL7BehavourAnalysisEnabled())
-    behavior_bytes_traffic = new (std::nothrow)AnalysisBehavior*[MAX_NDPI_PROTOS]();
-  else
-    behavior_bytes_traffic = NULL;
+  char buf[32];
+  nextMinPeriodicUpdate = 0;
+  
+  behavior_bytes_traffic = NULL;
+
+  if(ntop->getRedis()->get((char *)CONST_PREFS_IFACE_L7_BEHAVIOR_ANALYSIS, buf, sizeof(buf)) != 0) {
+    if(!strcmp(buf, "1")) behavior_bytes_traffic = new (std::nothrow)AnalysisBehavior*[MAX_NDPI_PROTOS]();
+  }
 #endif
 
   if(stats.bytes_thpt)
