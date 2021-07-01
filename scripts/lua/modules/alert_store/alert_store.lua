@@ -263,31 +263,72 @@ end
 
 --@brief Filter (engaged) alerts in lua) evaluating self:_where conditions
 function alert_store:eval_alert_cond(alert, cond)
-   local verdict = true -- pass
 
-   if not alert[cond.field] then -- field not defined, pass
-      return verdict
+   -- Special case: l7_proto
+   if cond.field == 'l7_proto' and cond.value ~= 0 then
+      -- Search also in l7_master_proto, unless value is 0 (Unknown)
+      if cond.op == 'neq' then
+         return tag_utils.eval_op(alert['l7_proto'], cond.op, cond.value) and 
+                tag_utils.eval_op(alert['l7_master_proto'], cond.op, cond.value)
+      else
+         return tag_utils.eval_op(alert['l7_proto'], cond.op, cond.value) or 
+                tag_utils.eval_op(alert['l7_master_proto'], cond.op, cond.value)
+      end
+
+   -- Special case: ip (with vlan)
+   elseif cond.field == 'ip' then
+      local host = hostkey2hostinfo(cond.value)
+
+      if not isEmptyString(host["host"]) then
+         if isEmptyString(host["vlan"]) then
+            return tag_utils.eval_op(alert['ip'], cond.op, host["host"])
+         else
+            if cond.op == 'neq' then
+               return tag_utils.eval_op(alert['ip'], cond.op, host["host"]) or
+                      tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
+            else
+               return tag_utils.eval_op(alert['ip'], cond.op, host["host"]) and
+                      tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
+            end
+         end
+      end
+
+   -- Special case: role (host)
+   elseif cond.field == 'host_role' then
+      if cond.value == 'attacker' then
+         return tag_utils.eval_op(alert['is_attacker'], cond.op, 1)
+      elseif cond.value == 'victim' then
+         return tag_utils.eval_op(alert['is_victim'], cond.op, 1)
+      else -- 'no_attacker_no_victim'
+         return tag_utils.eval_op(alert['is_attacker'], cond.op, 0) and
+                tag_utils.eval_op(alert['is_victim'], cond.op, 0)
+      end
+
+   -- Special case: role (flow)
+   elseif cond.field == 'flow_role' then
+      if cond.value == 'attacker' then
+         return tag_utils.eval_op(alert['is_cli_attacker'], cond.op, 1) or
+                tag_utils.eval_op(alert['is_srv_attacker'], cond.op, 1)
+      elseif cond.value == 'victim' then
+         return tag_utils.eval_op(alert['is_cli_victim'], cond.op, 1) or
+                tag_utils.eval_op(alert['is_srv_victim'], cond.op, 1)
+      else -- 'no_attacker_no_victim'
+         return tag_utils.eval_op(alert['is_cli_attacker'], cond.op, 0) and
+                tag_utils.eval_op(alert['is_srv_attacker'], cond.op, 0) and
+                tag_utils.eval_op(alert['is_cli_victim'], cond.op, 0) and
+                tag_utils.eval_op(alert['is_srv_victim'], cond.op, 0)
+      end
+
+   -- Special case: role_cli_srv)
+   elseif cond.field == 'role_cli_srv' then
+      if role_cli_srv == 'client' then
+         return tag_utils.eval_op(alert['is_client'], cond.op, 1)
+      else -- 'server'
+         return tag_utils.eval_op(alert['is_server'], cond.op, 1)
+      end
    end
 
-   if not cond.value then -- handle special conditions with no simple value
-      return verdict
-   end
-
-   if cond.op == 'eq' then
-      return alert[cond.field] == cond.value
-   elseif cond.op == 'neq' then
-      return alert[cond.field] ~= cond.value
-   elseif cond.op == 'lt' then
-      return alert[cond.field] < cond.value
-   elseif cond.op == 'gt' then
-      return alert[cond.field] > cond.value
-   elseif cond.op == 'gte' then
-      return alert[cond.field] >= cond.value
-   elseif cond.op == 'lte' then
-      return alert[cond.field] <= cond.value
-   end 
-
-   return verdict
+   return tag_utils.eval_op(alert[cond.field], cond.op, cond.value)
 end
 
 -- ##############################################

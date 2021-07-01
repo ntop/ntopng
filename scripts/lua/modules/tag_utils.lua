@@ -22,6 +22,38 @@ tag_utils.tag_operators = {
     ["lte"] = "<=",
 }
 
+-- ##############################################
+
+--@brief Evaluate operator
+function tag_utils.eval_op(v1, op, v2)
+   local default_verdict = true
+
+   -- Convert boolean for compatibility
+   if type(v1) == 'boolean' then
+      if v1 then v1 = 1 else v1 = 0 end
+   end
+
+   if not v1 or not v2 then
+      return default_verdict
+   end
+
+   if op == 'eq' then
+      return v1 == v2
+   elseif op == 'neq' then
+      return v1 ~= v2
+   elseif op == 'lt' then
+      return v1 < v2
+   elseif op == 'gt' then
+      return v1 > v2
+   elseif op == 'gte' then
+      return v1 >= v2
+   elseif op == 'lte' then
+      return v1 <= v2
+   end 
+
+   return default_verdict
+end
+
 -- #####################################
 
 -- This table is done to convert tags to their where 
