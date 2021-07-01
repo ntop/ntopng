@@ -15,6 +15,7 @@ local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
 local dscp_consts = require "dscp_consts"
+local tag_utils = require "tag_utils"
 require "flow_utils"
 
 if ntop.isPro() then
@@ -1329,7 +1330,32 @@ else
 	    print(string.format('<td>%s %s</td>', score_alert.message, score_alert.is_predominant and status_icon or ''))
 
 	    if score_alert.alert_id then
-	       print(string.format('<td><a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a></td>', score_alert.alert_id, score_alert.alert_label))
+	       print('<td>')
+
+	       if score_alert.is_predominant then
+		  -- Prepare bounds for the historical alert search.
+		  local epoch_begin = flow["seen.first"]
+		  -- In case the interface is a pcap dump, we cannot use the flow last seen as alerts have timestamps
+		  -- that depends on when ntopng is executed. For this reason, os.time() is used
+		  local epoch_end = ifstats.type == "pcap dump" and os.time() or flow["seen.last"]
+		  local l7_proto = flow["proto.ndpi_id"] .. tag_utils.SEPARATOR .. "eq"
+		  local cli_ip = flow["cli.ip"]  .. tag_utils.SEPARATOR .. "eq"
+		  local srv_ip = flow["srv.ip"]  .. tag_utils.SEPARATOR .. "eq"
+		  local cli_port = flow["cli.port"]  .. tag_utils.SEPARATOR .. "eq"
+		  local srv_port = flow["srv.port"]  .. tag_utils.SEPARATOR .. "eq"
+
+		  print(string.format('<a href="%s/lua/alert_stats.lua?status=historical&page=flow&epoch_begin=%u&epoch_end=%u&l7_proto=%s&cli_ip=%s&cli_port=%s&srv_ip=%s&srv_port=%s" class="btn btn-sm btn-info" role="button"><i class="fas fa-exclamation-triangle"></i></a>&nbsp;',
+				      ntop.getHttpPrefix(),
+				      epoch_begin,
+				      epoch_end,
+				      l7_proto,
+				      cli_ip, cli_port,
+				      srv_ip, srv_port))
+	       end
+
+	       print(string.format('<a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a>', score_alert.alert_id, score_alert.alert_label))
+
+	       print('</td>')
 	    else -- These are unhandled alerts, e.g., flow risks for which a check doesn't exist
 	       print(string.format('<td></td>'))
 	    end

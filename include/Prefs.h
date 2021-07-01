@@ -402,11 +402,8 @@ class Prefs {
   inline bool      isBehavourAnalysisEnabled()   { return(enable_behaviour_analysis);                   };
   inline u_int32_t behaviourAnalysisLearningPeriod() { return behaviour_analysis_learning_period;       };
   
-  inline void      enableASNBehaviourAnalysis()       { enable_asn_behaviour_analysis = true;                };
   inline bool      isASNBehavourAnalysisEnabled()     { return(enable_asn_behaviour_analysis);               };
-  inline void      enableNetworkBehaviourAnalysis()   { enable_network_behaviour_analysis = true;            };
   inline bool      isNetworkBehavourAnalysisEnabled() { return(enable_network_behaviour_analysis);           };
-  inline void      enableIfaceL7BehaviourAnalysis()   { enable_iface_l7_behaviour_analysis = true;           };
   inline bool      isIfaceL7BehavourAnalysisEnabled() { return(enable_iface_l7_behaviour_analysis);          };
 
   inline ServiceAcceptance behaviourAnalysisStatusDuringLearning() { return behaviour_analysis_learning_status_during_learning; };
