@@ -99,25 +99,6 @@ end
 
 -- ##############################################
 
---@brief Add filter on client/server role
---@param role_cli_srv The client/server role (client or server)
---@return True if set is successful, false otherwise
-function host_alert_store:add_role_cli_srv_filter(role_cli_srv)
-   if not isEmptyString(role_cli_srv) then
-      local role_cli_srv, op = self:strip_filter_operator(role_cli_srv)
-      if role_cli_srv == 'client' then
-         self:add_filter_condition('is_client', op, 1, 'number')
-      elseif role_cli_srv == 'server' then
-         self:add_filter_condition('is_server', op, 1, 'number')
-      end
-      return true
-   end
-
-   return false
-end
-
--- ##############################################
-
 --@brief Add filters according to what is specified inside the REST API
 function host_alert_store:_add_additional_request_filters()
    local vlan_id = _GET["vlan_id"]
