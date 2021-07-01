@@ -422,28 +422,33 @@ end
 
 -- #################################
 
+function alert_utils.getConfigsetURL(script_key, subdir)
+   return string.format('%s/lua/admin/edit_configset.lua?subdir=%s&check=%s#all', ntop.getHttpPrefix(), subdir, script_key)
+end
+
+-- #################################
+
 function alert_utils.getConfigsetAlertLink(alert_json, alert --[[ optional --]])
    local info = alert_json.alert_generation or (alert_json.alert_info and alert_json.alert_info.alert_generation)
 
    if(info and isAdministrator()) then
 
       if alert then
-         -- This piece of code (exception) has been moved here from formatAlertMessage
-         if(alert_consts.getAlertType(alert.alert_id, alert.entity_id) == "alert_am_threshold_cross") then
-            local plugins_utils = require "plugins_utils"
-            local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
-            local host = json.decode(alert.json)["host"]
+	 -- This piece of code (exception) has been moved here from formatAlertMessage
+	 if(alert_consts.getAlertType(alert.alert_id, alert.entity_id) == "alert_am_threshold_cross") then
+	    local plugins_utils = require "plugins_utils"
+	    local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+	    local host = json.decode(alert.json)["host"]
 
-            if host and host.measurement and not host.is_infrastructure then
- 	       return ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/active_monitoring_stats.lua?am_host='
-               .. host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
-            end
-         end
+	    if host and host.measurement and not host.is_infrastructure then
+	       return ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/active_monitoring_stats.lua?am_host='
+		  .. host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
+	    end
+	 end
       end
 
-      return(' <a href="'.. ntop.getHttpPrefix() ..'/lua/admin/edit_configset.lua?'..
-	    'subdir='.. info.subdir ..'&check='.. info.script_key ..'#all">'..
-	    '<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>')
+      return(' <a href="'..alert_utils.getConfigsetURL(info.script_key, info.subdir)..'">'..
+		'<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>')
    end
 
    return('')

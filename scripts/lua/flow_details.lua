@@ -1318,6 +1318,16 @@ else
 
    -- Print flow alerts (ordered by score and then alphabetically)
    if num_statuses > 0 then
+      -- Prepare a mapping between alert id and check
+      local alert_id_to_flow_check = {}
+      local checks = require "checks"
+      local flow_checks = checks.load(ifId, checks.script_types.flow, "flow")
+      for flow_check_name, flow_check in pairs(flow_checks.modules) do
+	 if flow_check.alert_id then
+	    alert_id_to_flow_check[flow_check.alert_id] = flow_check_name
+	 end
+      end
+
       for _, score_alerts in pairsByKeys(alerts_by_score, rev) do
 	 for _, score_alert in pairsByField(score_alerts, "message", asc) do
 	    if first then
@@ -1332,6 +1342,15 @@ else
 	    if score_alert.alert_id then
 	       print('<td>')
 
+	       -- Add rules to disable the check
+	       print(string.format('<a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a>', score_alert.alert_id, score_alert.alert_label))
+
+	       -- If available, add a cog to configure the check
+	       if alert_id_to_flow_check[score_alert.alert_id] then
+		  print(string.format('&nbsp;<a href="%s" class="btn btn-sm btn-info" role="button"><i class="fas fa-cog"></i></a>', alert_utils.getConfigsetURL(alert_id_to_flow_check[score_alert.alert_id], "flow")))
+	       end
+
+	       -- For the predominant alert, add an anchor to the historical alert
 	       if score_alert.is_predominant then
 		  -- Prepare bounds for the historical alert search.
 		  local epoch_begin = flow["seen.first"]
@@ -1344,7 +1363,7 @@ else
 		  local cli_port = flow["cli.port"]  .. tag_utils.SEPARATOR .. "eq"
 		  local srv_port = flow["srv.port"]  .. tag_utils.SEPARATOR .. "eq"
 
-		  print(string.format('<a href="%s/lua/alert_stats.lua?status=historical&page=flow&epoch_begin=%u&epoch_end=%u&l7_proto=%s&cli_ip=%s&cli_port=%s&srv_ip=%s&srv_port=%s" class="btn btn-sm btn-info" role="button"><i class="fas fa-exclamation-triangle"></i></a>&nbsp;',
+		  print(string.format('&nbsp;<a href="%s/lua/alert_stats.lua?status=historical&page=flow&epoch_begin=%u&epoch_end=%u&l7_proto=%s&cli_ip=%s&cli_port=%s&srv_ip=%s&srv_port=%s" class="btn btn-sm btn-info" role="button"><i class="fas fa-exclamation-triangle"></i></a>',
 				      ntop.getHttpPrefix(),
 				      epoch_begin,
 				      epoch_end,
@@ -1352,8 +1371,6 @@ else
 				      cli_ip, cli_port,
 				      srv_ip, srv_port))
 	       end
-
-	       print(string.format('<a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a>', score_alert.alert_id, score_alert.alert_label))
 
 	       print('</td>')
 	    else -- These are unhandled alerts, e.g., flow risks for which a check doesn't exist

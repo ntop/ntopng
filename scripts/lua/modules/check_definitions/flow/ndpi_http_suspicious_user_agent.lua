@@ -12,7 +12,7 @@ local script = {
    category = checks.check_categories.security, 
 
    -- This script is only for alerts generation
-   alert_id = flow_alert_keys.flow_alert_ndpi_http_suspicious_header,
+   alert_id = flow_alert_keys.flow_alert_ndpi_http_suspicious_user_agent,
 
    default_enabled = true,
 
