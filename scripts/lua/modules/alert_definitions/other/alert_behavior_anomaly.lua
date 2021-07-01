@@ -84,25 +84,25 @@ function alert_behavior_anomaly.format(ifid, alert, alert_type_params)
 
          local timeseries_table = behavior_utils.get_behavior_timeseries_utils(key or (alert_type_params["family_key"]))
          -- Formatting all the strings used to create the href to the graph
-         local timeseries_id = ""
+         local timeseries_id = {}
 
          if timeseries_table["timeseries_id"] then
-            timeseries_id = timeseries_table["timeseries_id"] .. "=" .. alert_type_params["timeseries_id"]
+            timeseries_id[timeseries_table["timeseries_id"]] = alert_type_params["timeseries_id"]
          end
 
          local tmp = {
-            timeseries_id,
-            "ifid=" .. interface.getId(),
-            "page=" .. timeseries_table["page"],
-            "ts_schema=" .. timeseries_table["schema_id"] .. "%3A" .. (timeseries_table["type_of_behavior"] or alert_type_params.type_of_behavior),
-            "zoom=30m",
-            "epoch_begin=" .. tonumber(alert_time - 600) .. "&epoch_end=" .. tonumber(alert_time + 600),
-            table.tconcat(alert_type_params["extra_params"], "=", "&") or nil,
+            ifid = interface.getId(),
+            page = timeseries_table["page"],
+            ts_schema = timeseries_table["schema_id"] .. "%3A" .. (timeseries_table["type_of_behavior"] or alert_type_params.type_of_behavior),
+            zoom = "30m",
+            epoch_begin = tonumber(alert_time - 600),
+            epoch_end = tonumber(alert_time + 600),
          }         
+
+         tmp = table.merge(tmp, alert_type_params["extra_params"] or {})
+         tmp = table.merge(tmp, timeseries_id)
          
-         -- e.g. of the url "ifid=3&page=historical&ts_schema=iface%3Andpi&zoom=5m&protocol=Amazon"
-         
-         href = timeseries_table["page_path"] .. "?" .. table.concat(tmp, "&")
+         href = timeseries_table["page_path"] .. "?" .. table.tconcat(tmp, "=", "&")
       end
    end
 
