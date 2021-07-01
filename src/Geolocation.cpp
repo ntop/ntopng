@@ -86,7 +86,9 @@ Geolocation::Geolocation() {
       if(strncmp(dp->d_name, "dbip-", 5) == 0) {
 	if((!mmdbs_asn_ok) && (strncmp(dp->d_name, "dbip-asn", 8) == 0)) {
 	  mmdbs_asn_ok  = loadGeoDB(lookup_paths[i], dp->d_name,  &geo_ip_asn_mmdb);
-	} else if((!mmdbs_city_ok) && (strncmp(dp->d_name, "dbip-country", 12) == 0)) {
+	}
+
+	if((!mmdbs_city_ok) && (strncmp(dp->d_name, "dbip-city", 9) == 0)) {
 	  mmdbs_city_ok = loadGeoDB(lookup_paths[i], dp->d_name, &geo_ip_city_mmdb);
 	}
       }
