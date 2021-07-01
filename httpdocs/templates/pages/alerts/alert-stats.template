@@ -542,6 +542,9 @@
         });
         
 
+        /* Cards */
+        {% if alert_stats.status ~= "engaged" and ntop.isPro() then %}
+
         alertCard.forEach(element=>{
             const card = "#".concat(element[0].id);
             
@@ -549,6 +552,8 @@
                 addFilter(e, $(this));
             })
         })
+
+        {% end %}
         
         // when the user navigates using the browser's arrows
         // set the input boxes with their respective values
