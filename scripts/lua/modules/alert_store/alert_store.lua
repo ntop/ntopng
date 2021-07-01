@@ -45,7 +45,8 @@ function alert_store:init(args)
    --         field = 'alert_id',
    --         op = 'neq',
    --         value = 1,
-   --         sql = 'alert_id = 1',
+   --         value_type = 'number', -- default: string
+   --         sql = 'alert_id = 1', -- special conditions only
    --       }
    --     },
    --     any = {
@@ -129,6 +130,47 @@ end
 
 -- ##############################################
 
+function alert_store:build_sql_cond(cond)
+   if cond.sql then
+      return cond.sql -- special condition
+   end
+
+   local sql_cond
+
+   local sql_op = tag_utils.tag_operators[cond.op]
+
+   -- Special case: l7_proto
+   if cond.field == 'l7_proto' and cond.value ~= 0 then
+      -- Search also in l7_master_proto, unless value is 0 (Unknown)
+      sql_cond = string.format("(l7_proto %s %u %s l7_master_proto %s %u)",
+         sql_op, cond.value, ternary(cond.op == 'neq', 'AND', 'OR'), sql_op, cond.value)
+   
+   -- Special case: ip (with vlan)
+    elseif cond.field == 'ip' then
+      local host = hostkey2hostinfo(cond.value)
+
+      if not isEmptyString(host["host"]) then
+         if isEmptyString(host["vlan"]) then
+            sql_cond = string.format("ip %s '%s'", cond.field, sql_op, cond.value)
+         else
+            sql_cond = string.format("(ip %s '%s' %s vlan_id %s %u)", sql_op, host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
+         end
+      end
+
+   -- Number
+   elseif cond.value_type == 'number' then
+     sql_cond = string.format("%s %s %u", cond.field, sql_op, cond.value)
+
+   -- String
+   else
+     sql_cond = string.format("%s %s '%s'", cond.field, sql_op, cond.value)
+   end
+
+   return sql_cond
+end
+
+-- ##############################################
+
 --@brief Build where string from filters
 --@return the where condition in SQL syntax
 function alert_store:build_where_clause()
@@ -139,19 +181,23 @@ function alert_store:build_where_clause()
    for name, groups in pairs(self._where) do
      -- Build AND clauses for all fields
      for _, cond in ipairs(groups.all) do
+        local sql_cond = self:build_sql_cond(cond)
+
         if and_clauses[name] then
-           and_clauses[name] = and_clauses[name] .. " AND " .. cond.sql
+           and_clauses[name] = and_clauses[name] .. " AND " .. sql_cond
         else
-           and_clauses[name] = cond.sql
+           and_clauses[name] = sql_cond
         end
      end
 
      -- Build OR clauses for all fields
      for _, cond in ipairs(groups.any) do
+        local sql_cond = self:build_sql_cond(cond)
+
         if or_clauses[name] then
-           or_clauses[name] = or_clauses[name] .. " OR " .. cond.sql
+           or_clauses[name] = or_clauses[name] .. " OR " .. sql_cond
         else
-           or_clauses[name] = cond.sql
+           or_clauses[name] = sql_cond
         end
      end
    end
@@ -192,6 +238,10 @@ function alert_store:eval_alert_cond(alert, cond)
    local verdict = true -- pass
 
    if not alert[cond.field] then -- field not defined, pass
+      return verdict
+   end
+
+   if not cond.value then -- handle special conditions with no simple value
       return verdict
    end
 
@@ -267,8 +317,8 @@ end
 --@param sql_cond The raw sql condition
 function alert_store:add_filter_condition_raw(field, sql_cond, any)
    local cond = {
-      sql = sql_cond,
       field = field,
+      sql = sql_cond,
    }
 
    if not self._where[field] then
@@ -290,26 +340,20 @@ end
 --@param value The value
 --@param value_type The value type (e.g. 'number')
 function alert_store:add_filter_condition(field, op, value, value_type)
-   local sql_cond
 
    if not op or not tag_utils.tag_operators[op] then
       op = 'eq'
    end
 
-   sql_op = tag_utils.tag_operators[op]
-
    if value_type == 'number' then
      value = tonumber(value)
-     sql_cond = string.format("%s %s %u", field, sql_op, value)
-   else
-     sql_cond = string.format("%s %s '%s'", field, sql_op, value)
    end
 
    local cond = {
-      sql = sql_cond,
       field = field,
       op = op,
       value = value,
+      value_type = value_type,
    }
 
    if not self._where[field] then

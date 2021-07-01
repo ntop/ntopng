@@ -176,15 +176,7 @@ function flow_alert_store:add_l7_proto_filter(values)
 
       if tonumber(l7_proto) then
          l7_proto = tonumber(l7_proto)
-
-         local logic = 'OR'
-         if op == 'neq' then logic = 'AND' end
-         if not op or not tag_utils.tag_operators[op] then op = 'eq' end
-         local sql_op = tag_utils.tag_operators[op]
-         local sql_cond = string.format("(l7_proto %s %u %s l7_master_proto %s %u)",
-            sql_op, l7_proto, logic, sql_op, l7_proto)
-
-         self:add_filter_condition_raw('l7_proto', sql_cond, op ~= 'neq')
+         self:add_filter_condition('l7_proto', op, l7_proto, 'number')
       end
    end
 
