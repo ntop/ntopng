@@ -943,7 +943,6 @@
                             // NB: These name should be filters if available
                             if(data.rsp[i].value[0].lenght != 0 && data.rsp[i].value[0][j] != undefined){
                                 let restText = " (" + (data.rsp[i].value[0][j].count).toFixed(1) + "%)</li>";
-                                console.log((data.rsp[i].value[0][j].count))
                                 if(data.rsp[i].value[0][j].count != 0 && data.rsp[i].value[0][j].count < 0.1){restText = " (< 0.1%)</li>";}
                                 cardText += "<li>" + data.rsp[i].value[0][j].name + restText;
                             }                           
