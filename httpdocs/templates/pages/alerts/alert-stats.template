@@ -108,6 +108,7 @@
         const $inputBeginEpoch = $(`#begin-epoch`);
         const $inputEndEpoch = $(`#end-epoch`);
         const $btnGetPermaLink = $(`#btn-get-permalink`);
+        const alertCard = [$('#alertCard1'),$('#alertCard2')];    
 
 	/* Show an overlay to hide loading */
         function toggleOverlays(time = 500) {
@@ -521,36 +522,34 @@
             await onRangePickerChange(true);
         });
 
-        /* Replaced by the handler for $(".card").on('click') below
+
+        const addFilter = (e, tmp) => {
+            e.preventDefault();
+    
+            // Getting the row data
+            const key = tmp.data('tagKey');
+            const label = tmp.data('tagLabel');
+            const value = tmp.data('tagValue');
+            const tagTitle = i18n.tags[key];
+            
+            const tag = { label: tagTitle, key: key, value: label, realValue: value };
+
+            addFilterTag(tag);
+        }
+
         $table.on('click', `a.tag-filter`, async function (e) {
-            e.preventDefault();
-    
-            // Getting the row data
-            const key = $(this).data('tagKey');
-            const label = $(this).data('tagLabel');
-            const value = $(this).data('tagValue');
-            const tagTitle = i18n.tags[key];
-            
-            const tag = { label: tagTitle, key: key, value: label, realValue: value };
-
-            addFilterTag(tag);
+            addFilter(e, $(this));
         });
-        */
+        
 
-        $(".card").on('click', `a.tag-filter`, async function (e) {
-            e.preventDefault();
-    
-            // Getting the row data
-            const key = $(this).data('tagKey');
-            const label = $(this).data('tagLabel');
-            const value = $(this).data('tagValue');
-            const tagTitle = i18n.tags[key];
+        alertCard.forEach(element=>{
+            const card = "#".concat(element[0].id);
             
-            const tag = { label: tagTitle, key: key, value: label, realValue: value };
-
-            addFilterTag(tag);
-        });
-    
+            $(card).on('click', `a.tag-filter`, async function (e) {
+                addFilter(e, $(this));
+            })
+        })
+        
         // when the user navigates using the browser's arrows
         // set the input boxes with their respective values
         $(window).on('popstate', function(e) {
@@ -922,7 +921,6 @@
                 let chartBox = $('#ChartDiv')
                 let divBox = [$('#CardDiv1'),$('#CardDiv2')];
                 let cardBox = [$('#Card1'),$('#Card2')];
-                let alertCard = [$('#alertCard1'),$('#alertCard2')];
                 let alertCardTitle = [$('#alertCardTitle1'),$('#alertCardTitle2')];
                 let numCards = 0;
                 let graphWidth;
