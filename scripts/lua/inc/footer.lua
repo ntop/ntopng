@@ -4,6 +4,7 @@
 
 require "os"
 require "lua_utils"
+
 local ts_utils = require("ts_utils_core")
 
 local template = require "template_utils"
@@ -182,7 +183,6 @@ print([[
 local message_enabled = (areHostL7TimeseriesEnabled(ifid) or areHostCategoriesTimeseriesEnabled(ifid)) and
    (ts_utils.getDriverName() ~= "influxdb") and
    (ntop.getPref("ntopng.prefs.disable_ts_migration_message") ~= "1")
-
 
 -- Import the BlogNotification Utils script only
 -- if ntopng is not in OEM version

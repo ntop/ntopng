@@ -320,6 +320,11 @@
 		    {icon: 'fa fa-cog', label: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-info'},
                     {% end %}
 
+		    /* Button to jump to flow alerts within the same time period */
+		    {% if alert_stats.entity == 'host' then %}
+		    {icon: 'fa-stream', label: "{{ i18n('flows') }}", modal: '#flow_alerts', class: "btn-info"},
+		    {% end %}
+
 		    /* Bell button to disable alerts is only supported for hosts and flows */
 		    {% if alert_stats.entity == 'host' or alert_stats.entity == 'flow' then %}
 		    {icon: 'fa-bell-slash', label: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning {{ ((alert_stats.entity == 'host' or alert_stats.entity == 'flow') and '' or 'disabled') }}"},
@@ -591,7 +596,34 @@
 	$table.on('click', `a[href='#check_settings']`, function (e) {
             const alert = $table.row($(this).parent().parent()).data();
 	    const check_settings_href = $(alert.msg.configset_ref).attr('href');
-	    window.location.href = check_settings_href;
+            window.location.href = check_settings_href;
+        });
+
+        $table.on('click', `a[href='#flow_alerts']`, function (e) {
+            /* Create and redirect to the flow alerts filtered by alert timestamps and alert ip */
+
+            /* Prepare URL params */
+            const alert = $table.row($(this).parent().parent()).data();
+            const alert_tstamp = alert.tstamp.value;
+            const duration = alert.duration;
+            const [epoch_begin, epoch_end] = [alert_tstamp - 300 /* Look a bit before than the timestamp */, alert_tstamp + duration];
+            const alert_ip = alert.ip.value + "{{ require("tag_utils").SEPARATOR }}eq";
+
+            const flow_alerts_url = new URL(location);
+            const flow_search_params = {epoch_begin: epoch_begin, epoch_end: epoch_end, page: "flow"};
+
+            /*
+                For server alerts, we redirect to the flow alerts having this IP as server. For client alert, the
+                redirection is done on the client.
+             */
+            if(alert.is_server) {
+                flow_search_params["srv_ip"] = alert_ip;
+            } else { /* Client alert or unkown cli/srv role */
+                flow_search_params["cli_ip"] = alert_ip;
+            }
+
+            flow_alerts_url.search = new URLSearchParams(flow_search_params);
+            window.location.href = flow_alerts_url.href;
         });
 
 	$table.on('click', `a[href='#delete_alert_dialog']`, function (e) {
