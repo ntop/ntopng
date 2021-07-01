@@ -63,6 +63,7 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_informative_captive_portal = false,
     override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false;
     hostMask = no_host_mask;
+  enable_asn_behaviour_analysis = enable_network_behaviour_analysis = enable_iface_l7_behaviour_analysis = false; 
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
   default_l7policy = PASS_ALL_SHAPER_ID;
@@ -743,7 +744,10 @@ void Prefs::reloadPrefsFromRedis() {
 /* ******************************************* */
 
 void Prefs::refreshBehaviourAnalysis() {
-  enable_behaviour_analysis  = getDefaultBoolPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS, false);
+  enable_behaviour_analysis          = getDefaultBoolPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS, false);
+  enable_asn_behaviour_analysis      = getDefaultBoolPrefsValue(CONST_PREFS_ASN_BEHAVIOR_ANALYSIS, false);
+  enable_network_behaviour_analysis  = getDefaultBoolPrefsValue(CONST_PREFS_NETWORK_BEHAVIOR_ANALYSIS, false);
+  enable_iface_l7_behaviour_analysis = getDefaultBoolPrefsValue(CONST_PREFS_IFACE_L7_BEHAVIOR_ANALYSIS, false);
   behaviour_analysis_learning_period = getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD, CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD);
   behaviour_analysis_learning_status_during_learning = (ServiceAcceptance)getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_DURING_LEARNING, service_allowed);
   behaviour_analysis_learning_status_post_learning = (ServiceAcceptance)getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_POST_LEARNING, service_allowed);

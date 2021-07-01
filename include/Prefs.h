@@ -52,6 +52,7 @@ class Prefs {
     enable_users_login, disable_localhost_login, online_license_check,
     service_license_check, enable_sql_log, enable_access_log, log_to_file,
     enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
+    enable_asn_behaviour_analysis, enable_network_behaviour_analysis, enable_iface_l7_behaviour_analysis,
     emit_flow_alerts, emit_host_alerts;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period;
@@ -400,6 +401,14 @@ class Prefs {
   inline void      enableBehaviourAnalysis()     { enable_behaviour_analysis = true;                    };
   inline bool      isBehavourAnalysisEnabled()   { return(enable_behaviour_analysis);                   };
   inline u_int32_t behaviourAnalysisLearningPeriod() { return behaviour_analysis_learning_period;       };
+  
+  inline void      enableASNBehaviourAnalysis()       { enable_asn_behaviour_analysis = true;                };
+  inline bool      isASNBehavourAnalysisEnabled()     { return(enable_asn_behaviour_analysis);               };
+  inline void      enableNetworkBehaviourAnalysis()   { enable_network_behaviour_analysis = true;            };
+  inline bool      isNetworkBehavourAnalysisEnabled() { return(enable_network_behaviour_analysis);           };
+  inline void      enableIfaceL7BehaviourAnalysis()   { enable_iface_l7_behaviour_analysis = true;           };
+  inline bool      isIfaceL7BehavourAnalysisEnabled() { return(enable_iface_l7_behaviour_analysis);          };
+
   inline ServiceAcceptance behaviourAnalysisStatusDuringLearning() { return behaviour_analysis_learning_status_during_learning; };
   inline ServiceAcceptance behaviourAnalysisStatusPostLearning()   { return behaviour_analysis_learning_status_post_learning;   };
   inline u_int64_t* getIEC104AllowedTypeIDs()    { return(iec104_allowed_typeids);                      };

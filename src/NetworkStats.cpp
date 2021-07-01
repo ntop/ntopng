@@ -29,20 +29,17 @@ NetworkStats::NetworkStats(NetworkInterface *iface, u_int8_t _network_id) : Netw
   numHosts = 0;
   syn_recvd_last_min = synack_sent_last_min = 0;
 
-#ifdef NTOPNG_PRO  
-  char buf[32];
+#ifdef NTOPNG_PRO
   nextMinPeriodicUpdate = 0;
 
   score_behavior = NULL;
   traffic_tx_behavior = NULL;
   traffic_rx_behavior = NULL;
 
-  if(ntop->getRedis()->get((char *)CONST_PREFS_NETWORK_BEHAVIOR_ANALYSIS, buf, sizeof(buf)) != 0) {
-    if(!strcmp(buf, "1")) {
-      score_behavior = new AnalysisBehavior();
-      traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
-      traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
-    }
+  if(ntop->getPrefs()->isNetworkBehavourAnalysisEnabled()) {
+    score_behavior = new AnalysisBehavior();
+    traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
+    traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */); 
   }
 #endif
 

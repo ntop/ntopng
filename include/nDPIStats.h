@@ -60,7 +60,7 @@ class nDPIStats {
   CategoryCounter cat_counters[NDPI_PROTOCOL_NUM_CATEGORIES];
 
  public:
-  nDPIStats(bool enable_throughput_stats = false);
+  nDPIStats(bool enable_throughput_stats = false, bool enable_behavior_stats = false);
   nDPIStats(const nDPIStats &stats);
   ~nDPIStats();
 

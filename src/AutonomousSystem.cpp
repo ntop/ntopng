@@ -29,19 +29,16 @@ AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : G
   asname = NULL;
   round_trip_time = 0;
 #ifdef NTOPNG_PRO
-  char buf[32];
   nextMinPeriodicUpdate = 0;
 
   score_behavior = NULL;
   traffic_tx_behavior = NULL;
   traffic_rx_behavior = NULL; 
 
-  if(ntop->getRedis()->get((char *)CONST_PREFS_ASN_BEHAVIOR_ANALYSIS, buf, sizeof(buf)) != 0) {
-    if(!strcmp(buf, "1")) {
-      score_behavior = new AnalysisBehavior();
-      traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
-      traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
-    }
+  if(ntop->getPrefs()->isASNBehavourAnalysisEnabled()) {
+    score_behavior = new AnalysisBehavior();
+    traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
+    traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
   }
   
 #endif
