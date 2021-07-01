@@ -1,0 +1,59 @@
+Usage: cleancss [options] <source-file ...>
+
+Options:
+  -b, --batch                    If enabled, optimizes input files one by one
+                                 instead of joining them together
+  -c, --compatibility [ie7|ie8]  Force compatibility mode (see Readme for
+                                 advanced examples)
+  -d, --debug                    Shows debug information (minification time &
+                                 compression efficiency)
+  -f, --format <options>         Controls output formatting, see examples below
+  -h, --help                     display this help
+  -o, --output [output-file]     Use [output-file] as output instead of STDOUT
+  -O <n> [optimizations]         Turn on level <n> optimizations; optionally
+                                 accepts a list of fine-grained options,
+                                 defaults to `1`, see examples below,
+                                 IMPORTANT: the prefix is O (a capital o
+                                 letter), NOT a 0 (zero, a number)
+  -v, --version                  output the version number
+  --batch-suffix <suffix>        A suffix (without extension) appended to input
+                                 file name when processing in batch mode
+                                 (`-min` is the default) (default: "-min")
+  --inline [rules]               Enables inlining for listed sources (defaults
+                                 to `local`)
+  --inline-timeout [seconds]     Per connection timeout when fetching remote
+                                 stylesheets (defaults to 5 seconds)
+  --input-source-map [file]      Specifies the path of the input source map
+                                 file
+  --remove-inlined-files         Remove files inlined in <source-file ...> or
+                                 via `@import` statements
+  --source-map                   Enables building input's source map
+  --source-map-inline-sources    Enables inlining sources inside source maps
+  --with-rebase                  Enable URLs rebasing
+
+Examples:
+
+  %> cleancss one.css
+  %> cleancss -o one-min.css one.css
+  %> cleancss -o merged-and-minified.css one.css two.css three.css
+  %> cleancss one.css two.css three.css | gzip -9 -c > merged-minified-and-gzipped.css.gz
+
+Formatting options:
+  %> cleancss --format beautify one.css
+  %> cleancss --format keep-breaks one.css
+  %> cleancss --format 'indentBy:1;indentWith:tab' one.css
+  %> cleancss --format 'breaks:afterBlockBegins=on;spaces:aroundSelectorRelation=on' one.css
+  %> cleancss --format 'breaks:afterBlockBegins=2;spaces:aroundSelectorRelation=on' one.css
+
+Level 0 optimizations:
+  %> cleancss -O0 one.css
+
+Level 1 optimizations:
+  %> cleancss -O1 one.css
+  %> cleancss -O1 removeQuotes:off;roundingPrecision:4;specialComments:1 one.css
+  %> cleancss -O1 all:off;specialComments:1 one.css
+
+Level 2 optimizations:
+  %> cleancss -O2 one.css
+  %> cleancss -O2 mergeMedia:off;restructureRules:off;mergeSemantically:on;mergeIntoShorthands:off one.css
+  %> cleancss -O2 all:off;removeDuplicateRules:on one.css
