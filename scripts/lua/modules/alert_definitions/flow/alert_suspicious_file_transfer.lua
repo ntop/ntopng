@@ -62,8 +62,8 @@ function alert_suspicious_file_transfer.format(ifid, alert, alert_type_params)
 	 type_icon = '<i class="fas fa-fw fa-file-image"></i>'
       end
 
-      if string.len(url) > 64 then
-         url = shortenString(alert_type_params["protos.http.last_url"], 64)
+      if string.len(url) > 128 then
+         url = shortenString(alert_type_params["protos.http.last_url"], 128)
          info = '<i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="'..alert_type_params["protos.http.last_url"]..'"></i>'
       end
       res = i18n("alerts_dashboard.suspicious_file_transfer_url", { 
