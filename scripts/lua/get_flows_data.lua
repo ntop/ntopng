@@ -114,19 +114,23 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    -- Retrieving first Alt Name then Name if no value is found then use ip
    local srv_name = getHostAltName(value["srv.ip"])
+   
    if isEmptyString(srv_name) then
-      srv_name = info_srv["name"]
-   end
-   if isEmptyString(srv_name) then
-      srv_name = value["srv.ip"]
+      if isEmptyString(info_srv["name"]) then
+         srv_name = hostVisualization(value["srv.ip"], value["srv.ip"], value["srv.vlan"])
+      else
+         srv_name = hostVisualization(info_srv["name"], info_srv["name"], value["srv.vlan"])
+      end
    end
 
    local cli_name = getHostAltName(value["cli.ip"])
+
    if isEmptyString(cli_name) then
-      cli_name = info_cli["name"]
-   end
-   if isEmptyString(cli_name) then
-      cli_name = value["cli.ip"]
+      if isEmptyString(info_cli["name"]) then
+         cli_name = hostVisualization(value["cli.ip"], value["cli.ip"], value["cli.vlan"])
+      else
+         cli_name = hostVisualization(info_cli["name"], info_cli["name"], value["cli.vlan"])
+      end
    end
 
    local src_port, dst_port = '', ''
@@ -148,7 +152,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    if value["cli.allowed_host"] and not ifstats.isViewed then
-      local src_name = shortenString(stripVlan(cli_name))
+      local src_name = shortenString(cli_name)
       
       if(value["cli.systemhost"] == true) then src_name = src_name .. "&nbsp;<i class='fas fa-flag'></i>" end
       src_key = hostinfo2detailshref(flow2hostinfo(value, "cli"), nil, src_name, cli_tooltip, false)
@@ -163,7 +167,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       src_process   = flowinfo2process(value["client_process"], hostinfo2url(value,"cli"))
       src_container = flowinfo2container(value["client_container"])
    else
-      src_key = shortenString(stripVlan(cli_name))
+      src_key = shortenString(cli_name)
 
       if value["cli.port"] > 0 then
 	 src_port = value["cli.port"]..''
@@ -171,7 +175,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    if value["srv.allowed_host"] and not ifstats.isViewed then
-      local dst_name = shortenString(stripVlan(srv_name))
+      local dst_name = shortenString(srv_name)
       if(value["srv.systemhost"] == true) then dst_name = dst_name .. "&nbsp;<i class='fas fa-flag'></i>" end
       dst_key = hostinfo2detailshref(flow2hostinfo(value, "srv"), nil, dst_name, srv_tooltip, false)
 
@@ -195,7 +199,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 	 end
       end
    else
-      dst_key = shortenString(stripVlan(srv_name))
+      dst_key = shortenString(srv_name)
 
       if value["srv.port"] > 0 then
 	 dst_port = value["srv.port"]..""

@@ -53,7 +53,9 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
       end   
    end
 
-   href = '<a href="/lua/pro/enterprise/service_map.lua"><i class="fas fa-lg fa-concierge-bell"></i></a>'
+   if ntop.isAdministrator() then
+      href = '<a href="/lua/pro/enterprise/service_map.lua"><i class="fas fa-lg fa-concierge-bell"></i></a>'
+   end
 
    return(i18n("alerts_dashboard.lateral_movement_descr", { info = info, href = href }))
 end

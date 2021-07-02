@@ -403,7 +403,7 @@ function flow_alert_store:format_record(value, no_html)
    }
 
    if not isEmptyString(value["cli_name"]) then
-      flow_cli_ip["label"] = value["cli_name"]
+      flow_cli_ip["label"] = hostVisualization(value["cli_name"], value["cli_name"], value["vlan_id"])
    end
 
    -- Format Server
@@ -423,7 +423,7 @@ function flow_alert_store:format_record(value, no_html)
    }
 
    if not isEmptyString(value["srv_name"]) then
-      flow_srv_ip["label"] = value["srv_name"]
+      flow_srv_ip["label"] = hostVisualization(value["srv_name"], value["srv_name"], value["vlan_id"])
    end
    
    local flow_cli_port = value["cli_port"]

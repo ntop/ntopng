@@ -1650,14 +1650,17 @@ function hostinfo2label(host_info, show_vlan)
 
    -- Try to get the resolved name
    local hostname = ntop.getResolvedName(ip)
-   local rname = hostVisualization(ip, hostname, host_info["vlan"])
+   local rname = ""
+   if not isEmptyString(hostname) then
+      rname = hostVisualization(hostname, hostname, host_info["vlan"])
+   end
 
    if not isEmptyString(rname) then
       return rname
    end
 
    -- Fallback: just the IP and VLAN
-   return(hostinfo2hostkey(host_info))
+   return(hostinfo2hostkey(host_info, true))
 end
 
 -- ##############################################

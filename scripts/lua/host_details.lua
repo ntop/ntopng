@@ -274,7 +274,7 @@ else
       setHostAltName(host_info, _POST["custom_name"])
    end
 
-   host_label = hostinfo2label(host)
+   host_label = hostinfo2label(host, true)
 
    if canRestoreHost(ifId, host_info["host"], host_vlan) then
       printRestoreHostBanner(true --[[ hidden ]])
