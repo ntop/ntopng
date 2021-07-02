@@ -31,6 +31,7 @@ local updates_supported = (is_admin and ntop.isPackage() and not ntop.isWindows(
 local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
 local observationPointId = _GET["observationPointId"]
 local is_system_interface = page_utils.is_system_view()
+local behavior_utils = require("behavior_utils")
 
 blog_utils.fetchLatestPosts()
 
@@ -232,22 +233,9 @@ else
    -- ##############################################
 
    local service_map_available = false
-   if(ntop.isEnterpriseL() and (ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1")) then
-      local service_map = interface.serviceMap()
+   local periodicity_map_available = false
 
-      if service_map and (table.len(service_map) > 0) then
-         service_map_available = true
-      end
-   end
-
-   local periodic_info_available = false
-   if(ntop.isEnterpriseL() and (ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1")) then
-      local periodicity_map = interface.periodicityMap()
-
-      if periodicity_map and (table.len(periodicity_map) > 0) then
-         periodic_info_available = true
-      end
-   end
+   service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
 
    -- Hosts
    page_utils.add_menubar_section(
@@ -331,7 +319,7 @@ else
           },
           {
             entry = page_utils.menu_entries.periodicity_map,
-            hidden = not periodic_info_available,
+            hidden = not periodicity_map_available,
             url = '/lua/pro/enterprise/periodicity_map.lua',
           },
           {

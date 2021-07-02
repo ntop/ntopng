@@ -25,6 +25,7 @@ local page_utils = require("page_utils")
 local ui_utils = require("ui_utils")
 local interface_pools = require ("interface_pools")
 local auth = require "auth"
+local behavior_utils = require("behavior_utils")
 
 require "lua_utils"
 require "prefs_utils"
@@ -80,11 +81,9 @@ if not ntop.isnEdge() and is_packet_interface then
    is_mirrored_traffic = ternary(ntop.getPref(is_mirrored_traffic_pref) == '1', true, false)
 end
 
-local service_map = interface.serviceMap()
 local service_map_available = false
-if(service_map and (table.len(service_map) > 0)) then
-   service_map_available = true
-end
+local periodicity_map_available = false
+service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
 
 local disaggregation_criterion_key = "ntopng.prefs.dynamic_sub_interfaces.ifid_"..tostring(ifid)..".mode"
 local charts_available = areInterfaceTimeseriesEnabled(ifid)
@@ -270,25 +269,6 @@ if (ntop.isPro()) then
    sites_granularities = top_sites_update.getGranularitySites(nil, nil, ifId, true)
 end
 
-local periodicity_map_available = false
-local service_map_available = false
-
-if(ntop.isEnterpriseL() and (ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1")) then
-   local service_map = interface.serviceMap(_GET["host"])
-
-   if service_map and (table.len(service_map) > 0) then
-      service_map_available = true
-   end
-end
-
-if(ntop.isEnterpriseL() and (ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1")) then
-   local periodicity_map = interface.periodicityMap(_GET["host"])
-
-   if periodicity_map and (table.len(periodicity_map) > 0) then
-      periodicity_map_available = true
-   end
-end
-
 page_utils.print_navbar(title, url,
 			   {
 			      {
@@ -406,7 +386,7 @@ page_utils.print_navbar(title, url,
                },
                {
                   hidden = (not periodicity_map_available),
-                  page_name = "service_map",
+                  page_name = "periodicity_map",
                   url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua",
                   label = "<i class=\"fas fa-lg fa-clock\"></i>",
                },

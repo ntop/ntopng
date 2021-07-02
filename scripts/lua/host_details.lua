@@ -35,6 +35,7 @@ local flow_consts = require "flow_consts"
 local alert_consts = require "alert_consts"
 local plugins_utils = require "plugins_utils"
 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+local behavior_utils = require "behavior_utils"
 
 local host_pools_nedge
 if ntop.isnEdge() then
@@ -302,29 +303,14 @@ else
    local service_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua?host=" .. host_ip
    local periodicity_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua?&host=" .. host_ip
 
-   if(ntop.isEnterpriseL() and (ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1")) then
-      local service_map = interface.serviceMap(_GET["host"])
+   service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
 
-      if service_map and (table.len(service_map) > 0) then
-         service_map_available = true
-      end
-
-      if host_vlan ~= 0 then
-         service_map_link = service_map_link .. "&vlan=" .. host_vlan
-      end
+   if(service_map_available) and (host_vlan ~= 0) then
+   	  service_map_link = service_map_link .. "&vlan=" .. host_vlan		
    end
 
-   if(ntop.isEnterpriseL() and (ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1")) then
-      local periodicity_map = interface.periodicityMap(_GET["host"])
-
-      if periodicity_map and (table.len(periodicity_map) > 0) then
-         num_periodicity = table.len(periodicity_map)
-         periodicity_map_available = true
-      end
-
-      if host_vlan ~= 0 then
-         periodicity_map_link = periodicity_map_link .. "&vlan=" .. host_vlan
-      end
+   if(periodicity_map_available) and (host_vlan ~= 0) then
+   	  periodicity_map_link = periodicity_map_link .. "&vlan=" .. host_vlan		
    end
 
    page_utils.print_navbar(title, url,

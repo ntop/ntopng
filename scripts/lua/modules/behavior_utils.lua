@@ -6,6 +6,7 @@ local rest_utils = require("rest_utils")
 
 local behavior_utils = {}
 local redis_key = "changed_behavior_alert_setup"
+local behavior_maps_key = "ntopng.prefs.is_behaviour_analysis_enabled"
 
 -- ##############################################
 
@@ -60,5 +61,38 @@ function behavior_utils.reset()
     end
 end
 
+local maps_utils = {}
+
+
+-- ##############################################
+
+local function areMapsEnabled()
+  return(ntop.isEnterpriseL() and ntop.isAdministrator() and (ntop.getPref(behavior_maps_key) == "1"))
+end
+
+-- ##############################################
+
+-- Returns two bools value, one for service map and the other for periodicity map
+function behavior_utils.mapsAvailable()
+  local service_map_available = false
+  local periodic_map_available = false  
+
+  if areMapsEnabled() then
+    local service_map = interface.serviceMap()
+    local periodicity_map = interface.periodicityMap()
+
+    if service_map and (table.len(service_map) > 0) then
+      service_map_available = true
+    end
+
+    if periodicity_map and (table.len(periodicity_map) > 0) then
+      periodic_map_available = true
+    end
+  end
+
+  return service_map_available, periodic_map_available
+end
+
+-- ##############################################
 
 return behavior_utils
