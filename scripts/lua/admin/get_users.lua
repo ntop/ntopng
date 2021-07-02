@@ -8,7 +8,7 @@ require "lua_utils"
 
 sendHTTPHeader('application/json')
 
-if(haveAdminPrivileges()) then
+if(isAdministratorOrPrintErr()) then
 local currentPage     = _GET["currentPage"]
 local perPage         = _GET["perPage"]
 local sortColumn      = _GET["sortColumn"]

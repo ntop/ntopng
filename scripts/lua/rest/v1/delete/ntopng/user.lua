@@ -21,7 +21,7 @@ local tracker = require("tracker")
 local rc = rest_utils.consts.success.ok
 local res = {}
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
    rest_utils.answer(rest_utils.consts.err.not_granted, res)
    return
 end

@@ -23,7 +23,7 @@ local tracker = require("tracker")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end

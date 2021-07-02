@@ -51,7 +51,7 @@ end
 function system_setup_ui_utils.print_page_before()
    sendHTTPContentTypeHeader('text/html')
 
-   if not haveAdminPrivileges() then
+   if not isAdministratorOrPrintErr() then
       return false
    end
 

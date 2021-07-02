@@ -14,7 +14,7 @@ local ui_utils = require "ui_utils"
 local category_filter = _GET["l7proto"]
 local ifId = getInterfaceId(ifname)
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
   return
 end
 

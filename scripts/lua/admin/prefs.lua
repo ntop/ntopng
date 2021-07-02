@@ -496,7 +496,7 @@ function printMisc()
 
   -- ######################
 
-  if(haveAdminPrivileges()) then
+  if(isAdministratorOrPrintErr()) then
      print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("hosts")..'</th></tr></thead>')
 
      local h_labels = {i18n("prefs.no_host_mask"), i18n("prefs.local_host_mask"), i18n("prefs.remote_host_mask")}
@@ -1501,4 +1501,4 @@ aysHandleForm("form", {
 $("form[id!='search-host-form']").validator({disable:true});
 </script>]])
 
-end --[[ haveAdminPrivileges ]]
+end --[[ isAdministratorOrPrintErr ]]

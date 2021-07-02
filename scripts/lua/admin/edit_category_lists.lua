@@ -17,7 +17,7 @@ local format_utils = require("format_utils")
 sendHTTPContentTypeHeader('text/html')
 
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
   return
 end
 

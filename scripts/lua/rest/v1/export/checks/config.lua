@@ -21,7 +21,7 @@ local import_export_rest_utils = require "import_export_rest_utils"
 
 local download = _GET["download"] 
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end

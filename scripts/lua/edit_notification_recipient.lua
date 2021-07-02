@@ -28,7 +28,7 @@ local action = _POST["action"]
 
 sendHTTPContentTypeHeader('application/json')
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
    return
 end
 

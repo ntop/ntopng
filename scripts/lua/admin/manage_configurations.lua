@@ -12,7 +12,7 @@ local template_utils = require "template_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-if not haveAdminPrivileges() then return end
+if not isAdministratorOrPrintErr() then return end
 
 -- The order key is used to set an order for the rendered list in the page
 local configuration_items

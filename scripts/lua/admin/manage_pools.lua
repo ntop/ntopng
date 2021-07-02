@@ -45,7 +45,7 @@ local page = _GET["page"] or 'host'
 
 sendHTTPContentTypeHeader('text/html')
 
-if not haveAdminPrivileges() then return end
+if not isAdministratorOrPrintErr() then return end
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.manage_pools)
 

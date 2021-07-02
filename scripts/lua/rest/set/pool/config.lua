@@ -14,7 +14,7 @@ local format_utils = require("format_utils")
 local os_utils = require "os_utils"
 local host_pools_nedge = require "host_pools_nedge"
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
    sendHTTPContentTypeHeader('text/html')
 
    page_utils.print_header()

@@ -9,7 +9,7 @@ require "lua_utils"
 local json = require("dkjson")
 local info = ntop.getInfo()
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
   return
 end
 

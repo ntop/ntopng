@@ -13,7 +13,7 @@ local template = require "template_utils"
 local json = require "dkjson"
 local format_utils = require("format_utils")
 
-if not haveAdminPrivileges() then return end
+if not isAdministratorOrPrintErr() then return end
 
 sendHTTPContentTypeHeader('text/html')
 

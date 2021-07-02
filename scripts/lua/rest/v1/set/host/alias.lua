@@ -23,7 +23,7 @@ local res = {}
 local host_info = url2hostinfo(_POST)
 local custom_name = _POST["custom_name"]
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end

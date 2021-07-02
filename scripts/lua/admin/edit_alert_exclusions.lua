@@ -37,7 +37,7 @@ local script_type = checks.getScriptType(check_subdir)
 
 local scripts = checks.load(getSystemInterfaceId(), script_type, check_subdir)
 
-if not haveAdminPrivileges() or not configset then
+if not isAdministratorOrPrintErr() or not configset then
   return
 end
 

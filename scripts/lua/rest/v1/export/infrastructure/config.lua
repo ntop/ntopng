@@ -15,7 +15,7 @@ local rest_utils = require "rest_utils"
 local import_export_rest_utils = require "import_export_rest_utils"
 local auth = require "auth"
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
     rest_utils.answer(rest_utils.consts.err.not_granted)
     return
 end

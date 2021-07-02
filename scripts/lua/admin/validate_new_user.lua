@@ -8,7 +8,7 @@ require "lua_utils"
 
 sendHTTPHeader('application/json')
 
-if(haveAdminPrivileges()) then
+if(isAdministratorOrPrintErr()) then
    key = "ntopng.user.".. string.lower(_GET["username"]) ..".password"
    existing = ntop.getCache(key)
    

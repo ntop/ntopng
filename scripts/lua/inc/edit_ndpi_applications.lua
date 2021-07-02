@@ -18,7 +18,7 @@ local has_protos_file = protos_utils.hasProtosFile()
 
 local ifId = getInterfaceId(ifname)
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
   return
 end
 

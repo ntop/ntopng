@@ -18,7 +18,7 @@ local alert_severities = require "alert_severities"
 local endpoint_configs = require("endpoints")
 local endpoints = endpoint_configs.get_configs(true)
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
     return
 end
 

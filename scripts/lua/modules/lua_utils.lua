@@ -2644,7 +2644,7 @@ end
 
  -- ##############################################
 
-function haveAdminPrivileges(isJsonResponse)
+function isAdministratorOrPrintErr(isJsonResponse)
 
    if (isAdministrator()) then
       return(true)

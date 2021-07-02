@@ -395,7 +395,7 @@ end
 -- #################################
 
 function alert_utils.disableAlertsGeneration()
-   if not haveAdminPrivileges() then
+   if not isAdministratorOrPrintErr() then
       return
    end
 

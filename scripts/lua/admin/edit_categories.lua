@@ -17,7 +17,7 @@ sendHTTPContentTypeHeader('text/html')
 local category_filter = _GET["l7proto"]
 local ifId = getInterfaceId(ifname)
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
   return
 end
 

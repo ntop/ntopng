@@ -13,7 +13,7 @@ local page_utils = require "page_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
    return
 end
 

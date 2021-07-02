@@ -8,7 +8,7 @@ require "lua_utils"
 
 sendHTTPHeader('application/json')
 
-if(haveAdminPrivileges()) then
+if(isAdministratorOrPrintErr()) then
    print("{\n")
 
    local users_list = ntop.getUsers()

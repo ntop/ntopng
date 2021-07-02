@@ -11,7 +11,7 @@ local info = ntop.getInfo()
 
 sendHTTPHeader('application/json')
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
   return
 end
 

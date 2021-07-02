@@ -19,7 +19,7 @@ local rest_utils = require("rest_utils")
 
 local rc = rest_utils.consts.success.ok
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
    local res = {}
    rest_utils.answer(rest_utils.consts.err.not_granted, res)
    return
