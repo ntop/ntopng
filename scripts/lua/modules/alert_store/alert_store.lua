@@ -33,6 +33,7 @@ local CSV_SEPARATOR = "|"
 function alert_store:init(args)
    self._group_by = nil
    self._top_limit = TOP_LIMIT
+   self._acknowledged = false -- By default, don't include acknowledged alerts
 
    -- Note: _where contains conditions for the where clause.
    -- Example:
@@ -206,6 +207,10 @@ function alert_store:build_where_clause()
    local where_clause = ""
    local and_clauses = {}
    local or_clauses = {}
+
+   if not self._acknowledged then
+      where_clause = string.format("alert_status <> %u", alert_consts.alert_status.acknowledged.alert_status_id)
+   end
 
    for name, groups in pairs(self._where) do
      -- Build AND clauses for all fields
