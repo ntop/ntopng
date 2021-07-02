@@ -4,6 +4,7 @@
 CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
+`alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0, -- e.g., historical [0], acknowledged [1], engaged (TBD)
 `resolved_ip` TEXT NULL,
 `resolved_name` TEXT NULL,
 `interface_id` INTEGER NULL,
@@ -16,9 +17,13 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `score` INTEGER NOT NULL DEFAULT 0 CHECK(`score` >= 0),
 `counter` INTEGER NOT NULL DEFAULT 0 CHECK(`counter` >= 0),
 `description` TEXT NULL,
-`json` TEXT NULL);
+`json` TEXT NULL,
+`user_label` TEXT NULL, -- A label that can be set by the user
+`user_label_tstamp` DATETIME NULL DEFAULT 0 -- Timestamp of the last user_label change
+);
 
 CREATE INDEX IF NOT EXISTS `am_alerts_i_id` ON `active_monitoring_alerts`(alert_id);
+CREATE INDEX IF NOT EXISTS `am_alerts_i_alert_status` ON `active_monitoring_alerts`(alert_status);
 CREATE INDEX IF NOT EXISTS `am_alerts_i_severity` ON `active_monitoring_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `am_alerts_i_tstamp` ON `active_monitoring_alerts`(tstamp);
 
@@ -28,6 +33,7 @@ CREATE INDEX IF NOT EXISTS `am_alerts_i_tstamp` ON `active_monitoring_alerts`(ts
 CREATE TABLE IF NOT EXISTS `flow_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
+`alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
 `tstamp` DATETIME NOT NULL,
 `tstamp_end` DATETIME NULL DEFAULT 0,
 `severity` INTEGER NOT NULL CHECK(`severity` >= 0),
@@ -60,10 +66,13 @@ CREATE TABLE IF NOT EXISTS `flow_alerts` (
 `first_seen` DATETIME NOT NULL DEFAULT 0,
 `community_id` TEXT NULL,
 `alerts_map` BLOB DEFAULT 0, -- An HEX bitmap of all flow statuses
-`flow_risk_bitmap` INTEGER NOT NULL DEFAULT 0
+`flow_risk_bitmap` INTEGER NOT NULL DEFAULT 0,
+`user_label` TEXT NULL,
+`user_label_tstamp` DATETIME NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS `flow_alerts_i_id` ON `flow_alerts`(alert_id);
+CREATE INDEX IF NOT EXISTS `flow_alerts_i_alert_status` ON `flow_alerts`(alert_status);
 CREATE INDEX IF NOT EXISTS `flow_alerts_i_severity` ON `flow_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `flow_alerts_i_tstamp` ON `flow_alerts`(tstamp);
 CREATE INDEX IF NOT EXISTS `flow_alerts_i_cli_ip` ON `flow_alerts`(`vlan_id`,`cli_ip`);
@@ -81,6 +90,7 @@ CREATE INDEX IF NOT EXISTS `flow_alerts_i_flow_risk_bitmap` ON `flow_alerts`(`fl
 CREATE TABLE IF NOT EXISTS `host_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
+`alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
 `ip` TEXT NOT NULL,
 `vlan_id` INTEGER NULL DEFAULT 0 CHECK(`vlan_id` >= 0),
 `name` TEXT NULL,
@@ -95,9 +105,13 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 `granularity` INTEGER NOT NULL DEFAULT 0 CHECK(`granularity` >= 0),
 `counter` INTEGER NOT NULL DEFAULT 0 CHECK(`counter` >= 0),
 `description` TEXT NULL,
-`json` TEXT NULL);
+`json` TEXT NULL,
+`user_label` TEXT NULL,
+`user_label_tstamp` DATETIME NULL DEFAULT 0
+);
 
 CREATE INDEX IF NOT EXISTS `host_alerts_i_id` ON `host_alerts`(`alert_id`);
+CREATE INDEX IF NOT EXISTS `host_alerts_i_alert_status` ON `host_alerts`(`alert_status`);
 CREATE INDEX IF NOT EXISTS `host_alerts_i_severity` ON `host_alerts`(`severity`);
 CREATE INDEX IF NOT EXISTS `host_alerts_i_tstamp` ON `host_alerts`(`tstamp`);
 CREATE INDEX IF NOT EXISTS `host_alerts_i_ip` ON `host_alerts`(`vlan_id`,`ip`);
@@ -113,6 +127,7 @@ CREATE INDEX IF NOT EXISTS `host_alerts_i_is_server` ON `host_alerts`(`is_server
 CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
+`alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
 `address` TEXT NULL DEFAULT 0,
 `device_type` INTEGER NULL CHECK(`device_type` >= 0),
 `name` TEXT NULL,
@@ -125,9 +140,13 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `granularity` INTEGER NOT NULL DEFAULT 0 CHECK(`granularity` >= 0),
 `counter` INTEGER NOT NULL DEFAULT 0 CHECK(`counter` >= 0),
 `description` TEXT NULL,
-`json` TEXT NULL);
+`json` TEXT NULL,
+`user_label` TEXT NULL,
+`user_label_tstamp` DATETIME NULL DEFAULT 0
+);
 
 CREATE INDEX IF NOT EXISTS `mac_alerts_i_id` ON `mac_alerts`(alert_id);
+CREATE INDEX IF NOT EXISTS `mac_alerts_i_alert_status` ON `mac_alerts`(alert_status);
 CREATE INDEX IF NOT EXISTS `mac_alerts_i_severity` ON `mac_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `mac_alerts_i_tstamp` ON `mac_alerts`(tstamp);
 CREATE INDEX IF NOT EXISTS `mac_alerts_i_address` ON `mac_alerts`(`address`);
@@ -140,6 +159,7 @@ CREATE INDEX IF NOT EXISTS `mac_alerts_i_is_victim` ON `mac_alerts`(`is_victim`)
 CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
+`alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
 `ip` TEXT NOT NULL,
 `port` INTEGER NULL,
 `name` TEXT NULL,
@@ -151,9 +171,13 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `granularity` INTEGER NOT NULL DEFAULT 0 CHECK(`granularity` >= 0),
 `counter` INTEGER NOT NULL DEFAULT 0 CHECK(`counter` >= 0),
 `description` TEXT NULL,
-`json` TEXT NULL);
+`json` TEXT NULL,
+`user_label` TEXT NULL,
+`user_label_tstamp` DATETIME NULL DEFAULT 0
+);
 
 CREATE INDEX IF NOT EXISTS `snmp_alerts_i_id` ON `snmp_alerts`(alert_id);
+CREATE INDEX IF NOT EXISTS `snmp_alerts_i_alert_status` ON `snmp_alerts`(alert_status);
 CREATE INDEX IF NOT EXISTS `snmp_alerts_i_severity` ON `snmp_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `snmp_alerts_i_tstamp` ON `snmp_alerts`(tstamp);
 CREATE INDEX IF NOT EXISTS `snmp_alerts_i_ip` ON `snmp_alerts`(`ip`);
@@ -165,6 +189,7 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `local_network_id` INTEGER NOT NULL CHECK(`local_network_id` >= 0),
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
+`alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
 `name` TEXT NULL,
 `alias` TEXT NULL,
 `tstamp` DATETIME NOT NULL,
@@ -174,11 +199,15 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `granularity` INTEGER NOT NULL DEFAULT 0 CHECK(`granularity` >= 0),
 `counter` INTEGER NOT NULL DEFAULT 0 CHECK(`counter` >= 0),
 `description` TEXT NULL,
-`json` TEXT NULL);
+`json` TEXT NULL,
+`user_label` TEXT NULL,
+`user_label_tstamp` DATETIME NULL DEFAULT 0
+);
 
 CREATE INDEX IF NOT EXISTS `network_alerts_i_id` ON `network_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `network_alerts_i_severity` ON `network_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `network_alerts_i_tstamp` ON `network_alerts`(tstamp);
+CREATE INDEX IF NOT EXISTS `network_alerts_i_alert_status` ON `network_alerts`(alert_status);
 
 -- -----------------------------------------------------
 -- Table `interface_alerts`
@@ -187,6 +216,7 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `ifid` INTEGER NOT NULL CHECK(`ifid` >= -1),
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
+`alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
 `subtype` TEXT NULL,
 `name` TEXT NULL,
 `alias` TEXT NULL,
@@ -197,11 +227,15 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `granularity` INTEGER NOT NULL DEFAULT 0 CHECK(`granularity` >= 0),
 `counter` INTEGER NOT NULL DEFAULT 0 CHECK(`counter` >= 0),
 `description` TEXT NULL,
-`json` TEXT NULL);
+`json` TEXT NULL,
+`user_label` TEXT NULL,
+`user_label_tstamp` DATETIME NULL DEFAULT 0
+);
 
 CREATE INDEX IF NOT EXISTS `interface_alerts_i_id` ON `interface_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `interface_alerts_i_severity` ON `interface_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `interface_alerts_i_tstamp` ON `interface_alerts`(tstamp);
+CREATE INDEX IF NOT EXISTS `interface_alerts_i_alert_status` ON `interface_alerts`(alert_status);
 
 -- -----------------------------------------------------
 -- Table `user_alerts`
@@ -209,6 +243,7 @@ CREATE INDEX IF NOT EXISTS `interface_alerts_i_tstamp` ON `interface_alerts`(tst
 CREATE TABLE IF NOT EXISTS `user_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
+`alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
 `user` TEXT NULL,
 `tstamp` DATETIME NOT NULL,
 `tstamp_end` DATETIME NULL DEFAULT 0,
@@ -217,11 +252,15 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 `granularity` INTEGER NOT NULL DEFAULT 0 CHECK(`granularity` >= 0),
 `counter` INTEGER NOT NULL DEFAULT 0 CHECK(`counter` >= 0),
 `description` TEXT NULL,
-`json` TEXT NULL);
+`json` TEXT NULL,
+`user_label` TEXT NULL,
+`user_label_tstamp` DATETIME NULL DEFAULT 0
+);
 
 CREATE INDEX IF NOT EXISTS `user_alerts_i_id` ON `interface_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `user_alerts_i_severity` ON `interface_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `user_alerts_i_tstamp` ON `interface_alerts`(tstamp);
+CREATE INDEX IF NOT EXISTS `user_alerts_i_alert_status` ON `interface_alerts`(alert_status);
 
 -- -----------------------------------------------------
 -- Table `system_alerts`
@@ -229,6 +268,7 @@ CREATE INDEX IF NOT EXISTS `user_alerts_i_tstamp` ON `interface_alerts`(tstamp);
 CREATE TABLE IF NOT EXISTS `system_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
+`alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
 `name` TEXT NULL,
 `tstamp` DATETIME NOT NULL,
 `tstamp_end` DATETIME NULL DEFAULT 0,
@@ -237,12 +277,15 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 `granularity` INTEGER NOT NULL DEFAULT 0 CHECK(`granularity` >= 0),
 `counter` INTEGER NOT NULL DEFAULT 0 CHECK(`counter` >= 0),
 `description` TEXT NULL,
-`json` TEXT NULL);
+`json` TEXT NULL,
+`user_label` TEXT NULL,
+`user_label_tstamp` DATETIME NULL DEFAULT 0
+);
 
 CREATE INDEX IF NOT EXISTS `system_alerts_i_id` ON `system_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `system_alerts_i_severity` ON `system_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `system_alerts_i_tstamp` ON `system_alerts`(tstamp);
-
+CREATE INDEX IF NOT EXISTS `system_alerts_i_alert_status` ON `system_alerts`(alert_status);
 
 -- -----------------------------------------------------
 -- View that merges all tables together
@@ -250,21 +293,21 @@ CREATE INDEX IF NOT EXISTS `system_alerts_i_tstamp` ON `system_alerts`(tstamp);
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `all_alerts`;
 CREATE VIEW IF NOT EXISTS `all_alerts` AS
-       SELECT 8 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `active_monitoring_alerts`
-       UNION ALL
-       SELECT 4 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `flow_alerts`
-       UNION ALL
-       SELECT 1 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `host_alerts`
-       UNION ALL
-       SELECT 5 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `mac_alerts`
-       UNION ALL
-       SELECT 3 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `snmp_alerts`
-       UNION ALL
-       SELECT 2 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `network_alerts`
-       UNION ALL
-       SELECT 0 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `interface_alerts`
-       UNION ALL
-       SELECT 7 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `user_alerts`
-       UNION ALL
-       SELECT 9 entity_id, alert_id, tstamp, tstamp_end, severity, score, json FROM `system_alerts`
+SELECT 8 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `active_monitoring_alerts`
+UNION ALL 
+SELECT 4 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `flow_alerts`
+UNION ALL
+SELECT 1 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `host_alerts`
+UNION ALL
+SELECT 5 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `mac_alerts`
+UNION ALL
+SELECT 3 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `snmp_alerts`
+UNION ALL
+SELECT 2 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `network_alerts`
+UNION ALL
+SELECT 0 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `interface_alerts`
+UNION ALL
+SELECT 7 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `user_alerts`
+UNION ALL
+SELECT 9 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `system_alerts`
 ;

@@ -545,6 +545,22 @@ function alert_store:delete()
    return res and table.len(res) == 0
 end
 
+
+-- ##############################################
+
+--@brief Acknowledges alerts according to specified filters
+function alert_store:acknowledge()
+   local where_clause = self:build_where_clause()
+
+   -- Prepare the final query
+   local q = string.format("UPDATE `%s` SET alert_status = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, where_clause)
+
+   tprint(q)
+
+   local res = interface.alert_store_query(q)
+   return res and table.len(res) == 0
+end
+
 -- ##############################################
 
 function alert_store:select_historical(filter, fields)

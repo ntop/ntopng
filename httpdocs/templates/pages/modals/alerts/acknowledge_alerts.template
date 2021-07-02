@@ -1,0 +1,39 @@
+<div class="modal fade" id="acknowledge-alerts-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="acknowledgeAlertTitle">{* dialog.title *}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                </button>
+            </div>
+            <form>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            <label class="col-form-label"><b>{{ i18n("date_from") }}</b></label>
+                        </div>
+                        <div class="col-sm-6">
+                            <input id='begin-epoch-acknowledge' class="form-control" type="text" value="" disabled />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-6">
+                            <label class="col-form-label"><b>{{ i18n("date_to") }}</b></label>
+                        </div>
+                        <div class="col-sm-6 mt-1">
+                            <input id='end-epoch-acknowledge' class="form-control" type="text" value="" disabled />
+                        </div>
+                    </div>
+
+                    <div class='form-group filters-list'></div>
+                    <div class='alert alert-warning mt-3 mb-1'>{* dialog.message *}</div>
+                    <span class="invalid-feedback"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="btn-acknowledge-alerts">{* dialog.apply *}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

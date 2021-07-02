@@ -89,6 +89,24 @@ alert_consts.alerts_granularities = {
 
 -- ################################################################################
 
+-- This status is written inside SQLite column `alert_status`
+alert_consts.alert_status = {
+   ["historical"] = {
+      -- Default for alerts written to the database
+      alert_status_id = 0,
+   },
+   ["acknowledged"] = {
+      -- Alerts acknowledged
+      alert_status_id = 1,
+   },
+   ["engaged"] = {
+      -- Not used yet. Will be possibly used when managing engaged alerts inside sqlite
+      alert_status_id = 2,
+   },
+}
+
+-- ################################################################################
+
 alert_consts.ids_rule_maker = {
   GPL = "GPL",
   SURICATA = "Suricata",

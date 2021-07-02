@@ -10,11 +10,11 @@ local alert_utils = require "alert_utils"
 local alert_consts = require "alert_consts"
 local alert_entities = require "alert_entities"
 local rest_utils = require("rest_utils")
-local user_alert_store = require "user_alert_store".new()
+local system_alert_store = require "system_alert_store".new()
 
 --
 -- Read alerts data
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/delete/user/alerts.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{}' http://localhost:3000/lua/rest/v1/acknowledge/system/alerts.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
@@ -25,9 +25,9 @@ local res = {}
 interface.select(getSystemInterfaceId())
 
 -- Add filters
-user_alert_store:add_request_filters()
+system_alert_store:add_request_filters()
 
-user_alert_store:delete()
+system_alert_store:acknowledge()
 
 rest_utils.answer(rc)
 
