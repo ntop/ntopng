@@ -53,6 +53,12 @@ end
 
 -- ##############################################
 
+function all_alert_store:label()
+   traceError(TRACE_ERROR, TRACE_CONSOLE, "Unsupported!")
+end
+
+-- ##############################################
+
 --@brief Selects engaged alerts from memory
 --@return Selected engaged alerts, and the total number of engaged alerts
 function alert_store:select_engaged(filter)

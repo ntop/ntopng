@@ -250,7 +250,7 @@ local RNAME = {
    FLOW = { name = "flow", export = true, elements = {"srv_ip.label", "srv_ip.value", "srv_port", "cli_ip.label", "cli_ip.value", "cli_port"}},
    VLAN_ID = { name = "vlan_id", export = true},
    PROTO = { name = "proto", export = true},
-   L7_PROTO = { name = "l7_proto", export = true}
+   L7_PROTO = { name = "l7_proto", export = true},
 }
 
 function flow_alert_store:get_rnames()

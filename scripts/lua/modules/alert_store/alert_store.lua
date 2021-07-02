@@ -545,6 +545,18 @@ function alert_store:delete()
    return res and table.len(res) == 0
 end
 
+-- ##############################################
+
+--@brief Labels alerts according to specified filters
+function alert_store:label(label)
+   local where_clause = self:build_where_clause()
+
+   -- Prepare the final query
+   local q = string.format("UPDATE `%s` SET `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, self:_escape(label), os.time(), where_clause)
+
+   local res = interface.alert_store_query(q)
+   return res and table.len(res) == 0
+end
 
 -- ##############################################
 
@@ -1074,6 +1086,7 @@ local BASE_RNAME = {
    DURATION = { name = "duration", export = true},
    COUNT = { name = "count", export = true},
    SCRIPT_KEY = { name = "script_key", export = false},
+   USER_LABEL = { name = "user_label", export = true},
 }
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
@@ -1119,6 +1132,8 @@ function alert_store:format_json_record_common(value, entity_id)
       label = severity_label,
       color = severity.color,
    }
+
+   record[BASE_RNAME.USER_LABEL.name] = value["user_label"]
 
    record[BASE_RNAME.DURATION.name] = tonumber(value["duration"]) or (tonumber(value["tstamp_end"]) - tonumber(value["tstamp"]))
    record[BASE_RNAME.COUNT.name] = tonumber(value["count"]) or 1

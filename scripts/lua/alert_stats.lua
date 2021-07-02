@@ -80,8 +80,6 @@ local subtype = _GET["subtype"]
 
 sendHTTPContentTypeHeader('text/html')
 
-local disable_modal = "pages/modals/modal_alerts_filter_dialog.html"
-
 local is_system_interface = page_utils.is_system_view()
 
 -- default endpoints (host)
@@ -89,6 +87,7 @@ local endpoint_list = "/lua/rest/v1/get/host/alert/list.lua"
 local endpoint_ts = "/lua/rest/v1/get/host/alert/ts.lua"
 local endpoint_delete = "/lua/rest/v1/delete/host/alerts.lua"
 local endpoint_acknowledge = "/lua/rest/v1/acknowledge/host/alerts.lua"
+local endpoint_label = "/lua/rest/v1/label/host/alerts.lua"
 
 -- Preserve page params when switching between tabs
 local base_params = table.clone(_GET)
@@ -116,6 +115,7 @@ local pages = {
         endpoint_ts = "/lua/rest/v1/get/host/alert/ts.lua",
 	endpoint_delete = "/lua/rest/v1/delete/host/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v1/acknowledge/host/alerts.lua",
+	endpoint_label = "/lua/rest/v1/label/host/alerts.lua",
 	url = getPageUrl(base_url, {page = "host"}),
 	hidden = is_system_interface or not require "host_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.host.entity_id)]
@@ -128,6 +128,7 @@ local pages = {
         endpoint_ts = "/lua/rest/v1/get/interface/alert/ts.lua",
 	endpoint_delete = "/lua/rest/v1/delete/interface/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v1/acknowledge/interface/alerts.lua",
+	endpoint_label = "/lua/rest/v1/label/interface/alerts.lua",
 	url = getPageUrl(base_url, {page = "interface"}),
 	hidden = not require "interface_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.interface.entity_id)]
@@ -140,6 +141,7 @@ local pages = {
         endpoint_ts = "/lua/rest/v1/get/network/alert/ts.lua",
 	endpoint_delete = "/lua/rest/v1/delete/network/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v1/acknowledge/network/alerts.lua",
+	endpoint_label = "/lua/rest/v1/label/network/alerts.lua",
 	url = getPageUrl(base_url, {page = "network"}),
 	hidden = is_system_interface or not require "network_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.network.entity_id)]
@@ -152,6 +154,7 @@ local pages = {
         endpoint_ts = "/lua/pro/rest/v1/get/snmp/device/alert/ts.lua",
 	endpoint_delete = "/lua/pro/rest/v1/delete/snmp/device/alerts.lua",
 	endpoint_acknowledge = "/lua/pro/rest/v1/acknowledge/snmp/device/alerts.lua",
+	endpoint_label = "/lua/pro/rest/v1/label/snmp/device/alerts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "snmp_device"}),
 	hidden = not is_system_interface or not ntop.isPro() or not require "snmp_device_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.snmp_device.entity_id)]
@@ -164,6 +167,7 @@ local pages = {
         endpoint_ts = "/lua/rest/v1/get/flow/alert/ts.lua",
 	endpoint_delete = "/lua/rest/v1/delete/flow/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v1/acknowledge/flow/alerts.lua",
+	endpoint_label = "/lua/rest/v1/label/flow/alerts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "flow"}),
 	hidden = is_system_interface or not require "flow_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.flow.entity_id)]
@@ -176,6 +180,7 @@ local pages = {
         endpoint_ts = "/lua/rest/v1/get/mac/alert/ts.lua",
 	endpoint_delete = "/lua/rest/v1/delete/mac/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v1/acknowledge/mac/alerts.lua",
+	endpoint_label = "/lua/rest/v1/label/mac/alerts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "mac"}),
 	hidden = is_system_interface or not require "mac_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.mac.entity_id)]
@@ -188,6 +193,7 @@ local pages = {
         endpoint_ts = "/lua/rest/v1/get/system/alert/ts.lua",
 	endpoint_delete = "/lua/rest/v1/delete/system/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v1/acknowledge/system/alerts.lua",
+	endpoint_label = "/lua/rest/v1/label/system/alerts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "system"}),
 	hidden = not is_system_interface or not require "system_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.system.entity_id)]
@@ -200,6 +206,7 @@ local pages = {
         endpoint_ts = "/lua/rest/v1/get/am_host/alert/ts.lua",
 	endpoint_delete = "/lua/rest/v1/delete/am_host/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v1/acknowledge/am_host/alerts.lua",
+	endpoint_label = "/lua/rest/v1/label/am_host/alerts.lua",
 	url = getPageUrl(base_url, {page = "am_host"}),
 	hidden = not is_system_interface or not require "am_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.am_host.entity_id)]
@@ -212,6 +219,7 @@ local pages = {
         endpoint_ts = "/lua/rest/v1/get/user/alert/ts.lua",
 	endpoint_delete = "/lua/rest/v1/delete/user/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v1/acknowledge/user/alerts.lua",
+	endpoint_label = "/lua/rest/v1/label/user/alerts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "user"}),
 	hidden = not is_system_interface or not require "user_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.user.entity_id)]
@@ -229,6 +237,7 @@ for i = #pages, 1, -1 do
       endpoint_ts = cur_page.endpoint_ts
       endpoint_delete = cur_page.endpoint_delete
       endpoint_acknowledge = cur_page.endpoint_acknowledge
+      endpoint_label = cur_page.endpoint_label
    end
 end
 
@@ -285,7 +294,17 @@ local modals = {
             no_confirm_id = true
         }
     }),
-    ["alerts_filter_dialog"] = template_utils.gen(disable_modal, {
+    ["label_alert_dialog"] = template_utils.gen("pages/modals/alerts/label_alert.template", {
+        dialog = {
+            id      = "label_alert_dialog",
+            title   = i18n("show_alerts.label_alert"),
+            message = i18n("show_alerts.confirm_label_alert"),
+            confirm = i18n("label"),
+            confirm_button = "btn-primary",
+            custom_alert_class = "alert alert-warning",
+        }
+    }),
+    ["alerts_filter_dialog"] = template_utils.gen("pages/modals/modal_alerts_filter_dialog.html", {
         dialog = {
             id = "alerts_filter_dialog",
             title = i18n("show_alerts.filter_alert"),
@@ -329,6 +348,16 @@ local modals = {
             cancel  = i18n("cancel"),
 	    apply   = i18n("acknowledge")
 	    }
+    }),
+    ["label-alerts-modal"] = template_utils.gen("pages/modals/alerts/label_alerts.template",{
+        dialog = {
+            id      = "label-alerts-modal",
+            title   = i18n("label_alerts"),
+            label   = "",
+            message = i18n("show_alerts.confirm_label_alerts"),
+            cancel  = i18n("cancel"),
+	    apply   = i18n("label")
+        }
     })
 
 }
@@ -489,6 +518,7 @@ local context = {
 	endpoint_list = endpoint_list,
 	endpoint_delete = endpoint_delete,
 	endpoint_acknowledge = endpoint_acknowledge,
+	endpoint_label = endpoint_label,
         datasource = Datasource(endpoint_list, {
             ifid = ifid,
             epoch_begin = epoch_begin,
