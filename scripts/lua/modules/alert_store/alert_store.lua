@@ -146,14 +146,15 @@ function alert_store:build_sql_cond(cond)
          sql_op, cond.value, ternary(cond.op == 'neq', 'AND', 'OR'), sql_op, cond.value)
    
    -- Special case: ip (with vlan)
-   elseif cond.field == 'ip' then
+   elseif cond.field == 'ip' or
+          cond.field == 'cli_ip' or 
+          cond.field == 'srv_ip' then
       local host = hostkey2hostinfo(cond.value)
-
       if not isEmptyString(host["host"]) then
-         if isEmptyString(host["vlan"]) then
-            sql_cond = string.format("ip %s '%s'", cond.field, sql_op, cond.value)
+         if not host["vlan"] or host["vlan"] == 0 then
+            sql_cond = string.format("%s %s '%s'", cond.field, sql_op, cond.value)
          else
-            sql_cond = string.format("(ip %s '%s' %s vlan_id %s %u)", sql_op, host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
+            sql_cond = string.format("(%s %s '%s' %s vlan_id %s %u)", cond.field, sql_op, host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
          end
       end
 
@@ -276,18 +277,19 @@ function alert_store:eval_alert_cond(alert, cond)
       end
 
    -- Special case: ip (with vlan)
-   elseif cond.field == 'ip' then
+   elseif cond.field == 'ip' or
+          cond.field == 'cli_ip' or
+          cond.field == 'srv_ip' then
       local host = hostkey2hostinfo(cond.value)
-
       if not isEmptyString(host["host"]) then
-         if isEmptyString(host["vlan"]) then
-            return tag_utils.eval_op(alert['ip'], cond.op, host["host"])
+         if not host["vlan"] or host["vlan"] == 0 then
+            return tag_utils.eval_op(alert[cond.field], cond.op, host["host"])
          else
             if cond.op == 'neq' then
-               return tag_utils.eval_op(alert['ip'], cond.op, host["host"]) or
+               return tag_utils.eval_op(alert[cond.field], cond.op, host["host"]) or
                       tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
             else
-               return tag_utils.eval_op(alert['ip'], cond.op, host["host"]) and
+               return tag_utils.eval_op(alert[cond.field], cond.op, host["host"]) and
                       tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
             end
          end
