@@ -358,6 +358,16 @@ local modals = {
             cancel  = i18n("cancel"),
 	    apply   = i18n("label")
         }
+    }),
+    ["external-link"] = template_utils.gen("pages/modals/alerts/redirect_modal.template", {
+        dialog={
+            id      = "external-link",
+            title   = i18n("external_link"),
+            message = i18n("show_alerts.confirm_external_link"),
+            message2= i18n("are_you_sure"),
+            cancel  = i18n("cancel"),
+            apply   = i18n("redirect")
+        }
     })
 
 }

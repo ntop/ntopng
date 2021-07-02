@@ -48,8 +48,9 @@ end
 function alert_suspicious_file_transfer.format(ifid, alert, alert_type_params)
    local res = i18n("alerts_dashboard.suspicious_file_transfer")
    local url = alert_type_params["protos.http.last_url"]
-   local href = '<a href=http://' .. url .. ' target="_blank"><i class="fas fa-external-link-alt"></i></a>'
+   local href = '<a id="external-link-href" data-bs-toggle="modal" href="#external-link"><i class="fas fa-external-link-alt"></i></a>'
    local info = ""
+   local tmp = "<div id='tmpUrl' title='".. url .."' class='d-none'></div>"
 
    if alert_type_params and alert_type_params["protos.http.last_url"] then
       local type_icon = ''
@@ -71,6 +72,7 @@ function alert_suspicious_file_transfer.format(ifid, alert, alert_type_params)
          type_icon = type_icon,
          info = info,
          href = href,
+         tmp = tmp,
       })
    end
 
