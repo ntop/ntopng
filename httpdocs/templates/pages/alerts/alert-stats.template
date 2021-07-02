@@ -644,7 +644,7 @@
         const $acknowledgeAlertModal = $('#acknowledge_alert_dialog form').modalHandler({
             method: 'post',
             csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}/lua/rest/v1/acknowledge/{{ alert_stats.entity }}/alerts.lua`,
+            endpoint: `${http_prefix}{* datatable.endpoint_acknowledge *}`,
             beforeSumbit: function (alert) {
                 return { ifid: "{{ ifid }}", row_id: alert.row_id };
             },
