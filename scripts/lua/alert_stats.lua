@@ -481,7 +481,7 @@ local context = {
         name = CHART_NAME
     },
     datatable = {
-        show_delete = isAdministrator(),
+        show_admin_controls = isAdministrator(),
 	name = page .. "-alerts-table",
         initialLength = getDefaultTableSize(),
         table = template_utils.gen(string.format("pages/alerts/families/%s/table.template", page), {}),
