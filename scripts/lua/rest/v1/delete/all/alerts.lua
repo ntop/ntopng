@@ -22,6 +22,12 @@ local alert_store_utils = require "alert_store_utils"
 local rc = rest_utils.consts.success.ok
 local res = {}
 
+-- Checking root privileges
+if not isAdministrator() then
+    rest_utils.answer(rest_utils.consts.err.not_granted)
+    return
+ end
+
 local ifid = _GET["ifid"]
 
 if isEmptyString(ifid) then

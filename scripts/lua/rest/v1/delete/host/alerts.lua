@@ -22,6 +22,11 @@ local host_alert_store = require "host_alert_store".new()
 local rc = rest_utils.consts.success.ok
 local res = {}
 
+if not isAdministrator() then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local ifid = _GET["ifid"]
 
 if isEmptyString(ifid) then
