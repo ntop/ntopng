@@ -48,6 +48,7 @@ end
 function alert_suspicious_file_transfer.format(ifid, alert, alert_type_params)
    local res = i18n("alerts_dashboard.suspicious_file_transfer")
    local url = alert_type_params["protos.http.last_url"]
+   local href = '<a href=http://' .. url .. ' target="_blank"><i class="fas fa-external-link-alt"></i></a>'
    local info = ""
 
    if alert_type_params and alert_type_params["protos.http.last_url"] then
@@ -60,6 +61,7 @@ function alert_suspicious_file_transfer.format(ifid, alert, alert_type_params)
       elseif extn == ".png" or extn == ".jpg" then
 	 type_icon = '<i class="fas fa-fw fa-file-image"></i>'
       end
+
       if string.len(url) > 64 then
          url = shortenString(alert_type_params["protos.http.last_url"], 64)
          info = '<i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="'..alert_type_params["protos.http.last_url"]..'"></i>'
@@ -68,6 +70,7 @@ function alert_suspicious_file_transfer.format(ifid, alert, alert_type_params)
          url = url,
          type_icon = type_icon,
          info = info,
+         href = href,
       })
    end
 
