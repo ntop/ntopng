@@ -9116,8 +9116,6 @@ void NetworkInterface::getObservationPoints(lua_State* vm) {
   bool found = false;
 
   for(std::map<u_int16_t, ObservationPointIdTrafficStats*>::iterator it = observationPoints.begin(); it != observationPoints.end(); ++it) {
-    char key[16];
-
     if(!found) {
       lua_newtable(vm);
       found = true;
