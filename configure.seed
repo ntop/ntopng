@@ -2,16 +2,16 @@ odnl> Do not add anything above
 AC_INIT([ntopng],[@VERSION@])
 dnl> Do not add anything above
 
-AC_ARG_WITH(leak-sanitizer,     [  --with-leak-sanitizer   Build with support for the LLVM address leak and sanitizer])
+HERE=`pwd`
+SYSTEM=`uname -s`
 
 CPPFLAGS="${CPPFLAGS} -Wno-address-of-packed-member -Wno-unused-function"
 AC_PROG_CPP
 AC_PROG_CXX
 
-
-SYSTEM=`uname -s`
 dnl> On Ubuntu do sudo apt-get install -y clang-10  clang-tools-10
-AS_IF([test "${with_leak-sanitizer+set}" = set],[
+AC_ARG_WITH(leak-sanitizer,     [  --with-leak-sanitizer   Build with support for the LLVM address leak and sanitizer])
+AS_IF([test "${with_leak_sanitizer+set}" = set],[
      CFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
      CPPFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
      LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak"
@@ -25,18 +25,8 @@ AS_IF([test "${with_leak-sanitizer+set}" = set],[
     CPP=$CC
 ])
 
-
-dnl> --------------------
-
-AC_ARG_WITH(sanitizer,     [  --with-sanitizer   Build with support for the LLVM address sanitizer])
-
-CPPFLAGS="${CPPFLAGS} -Wno-address-of-packed-member -Wno-unused-function"
-AC_PROG_CPP
-AC_PROG_CXX
-
-
-SYSTEM=`uname -s`
 dnl> On Ubuntu do sudo apt-get install -y clang-10  clang-tools-10
+AC_ARG_WITH(sanitizer,     [  --with-sanitizer   Build with support for the LLVM address sanitizer])
 AS_IF([test "${with_sanitizer+set}" = set],[
      CFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
      CPPFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
@@ -50,11 +40,6 @@ AS_IF([test "${with_sanitizer+set}" = set],[
    fi
     CPP=$CC
 ])
-
-
-
-
-HERE=`pwd`
 
 dnl> Add /usr/local/ /opt/local
 CFLAGS="${CFLAGS} -I${HERE} -I${HERE}/include"
@@ -877,6 +862,7 @@ fi
 echo "
 This is the ntopng configuration:
 
+C++ Flags         : ${CPPFLAGS}
 System Libs       : ${LDFLAGS}
 nDPI Lib:         : ${NDPI_LIB}
 JSON Lib:         : ${JSON_LIB}
