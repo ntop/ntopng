@@ -181,7 +181,7 @@ function alert_store:build_sql_cond(cond)
 
    -- Special case: role_cli_srv)
    elseif cond.field == 'role_cli_srv' then
-      if role_cli_srv == 'client' then
+      if cond.value == 'client' then
          sql_cond = "is_client = 1"
       else -- 'server'
          sql_cond = "is_server = 1"
@@ -328,7 +328,7 @@ function alert_store:eval_alert_cond(alert, cond)
 
    -- Special case: role_cli_srv)
    elseif cond.field == 'role_cli_srv' then
-      if role_cli_srv == 'client' then
+      if cond.value == 'client' then
          return tag_utils.eval_op(alert['is_client'], cond.op, 1)
       else -- 'server'
          return tag_utils.eval_op(alert['is_server'], cond.op, 1)
