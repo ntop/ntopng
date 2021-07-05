@@ -63,6 +63,8 @@
           </table>
         </div>
       </div>
+
+      {% if alert_stats.entity ~= 'all' then %}
       <div class="card-footer">
         <button id="btn-get-permalink" class="btn btn-secondary">
           <i class="fas fa-link"></i> {{ i18n('graphs.get_permanent_link') }}
@@ -71,19 +73,17 @@
           <i class="fas fa-file-download"></i> {{ i18n('show_alerts.download_alerts') }}
         </a>
 
+        {% if alert_stats.status ~= "engaged" then %}
         <button id="btn-acknowledge-alerts" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#acknowledge-alerts-modal' data-bs-toggle="modal" class="btn btn-info">
           <i class="fas fa fa-user-check"></i> {{ i18n("acknowledge_alerts")}}
-        </button>
-
-        <button id="btn-label-alerts" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#label-alerts-modal' data-bs-toggle="modal" class="btn btn-info">
-          <i class="fas fa fa-user-tag"></i> {{ i18n("label_alerts")}}
         </button>
 
         <button id="btn-delete-alerts" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#delete-alerts-modal' data-bs-toggle="modal" class="btn btn-danger">
           <i class="fas fa fa-trash"></i> {{ i18n("delete_alerts")}}
         </button>
-
+	{% end %}
       </div>
+      {% end %}
     </div>
   </div>
 </div>
@@ -343,7 +343,6 @@
 		    /* Only not-engaged alerts can be deleted */
                     {% if alert_stats.entity ~= 'all' and alert_stats.status ~= "engaged" and datatable.show_admin_controls == true then %}
 		    {icon: 'fa fa-user-check', label: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog', class: 'btn-info'},
-		    {icon: 'fa fa-user-tag', label: "{{ i18n('label') }}", modal: '#label_alert_dialog', class: 'btn-info'},
                     {icon: 'fa fa-trash', label: "{{ i18n('remove') }}", modal: '#delete_alert_dialog', class: 'btn-danger'},
                     {% end %}
 		];
@@ -641,33 +640,6 @@
             window.location.href = flow_alerts_url.href;
         });
 
-	$table.on('click', `a[href='#acknowledge_alert_dialog']`, function (e) {
-            const alert = $table.row($(this).parent().parent()).data();
-            $acknowledgeAlertModal.invokeModalInit(alert);
-        });
-
-        const $acknowledgeAlertModal = $('#acknowledge_alert_dialog form').modalHandler({
-            method: 'post',
-            csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}{* datatable.endpoint_acknowledge *}`,
-            beforeSumbit: function (alert) {
-                return { ifid: "{{ ifid }}", row_id: alert.row_id };
-            },
-            onModalInit: function (alert) {
-                $(`#acknowledge_alert_dialog button[type='submit']`).removeAttr("disabled");
-            },
-            onSubmitSuccess: function (response) {
-                if (response.rc < 0) {
-                    $('#acknowledge_alert_dialog .invalid-feedback').html(i18n.rest[response.rc_str]).show();
-                }
-                else {
-                    onRangePickerChange(false);
-                }
-
-                return (response.rc == 0);
-            }
-        });
-
 	$table.on('click', `a[href='#delete_alert_dialog']`, function (e) {
             const alert = $table.row($(this).parent().parent()).data();
             $deleteAlertModal.invokeModalInit(alert);
@@ -709,10 +681,14 @@
 		for (let key in datasourceParams) {
 		    post_params[key] = (datasourceParams[key]);
 		}
-	    	return post_params;
+
+		/* Read the label from the corresponding form field */
+		post_params["label"] = $("#acknowledge-alerts-modal #alert-label").val();
+
+		return post_params;
             },
             onModalInit: function () {
-
+	        $(`#acknowledge-alerts-modal button[type='submit']`).removeAttr("disabled");
                 $('#acknowledge-alerts-modal .filters-list').empty();
                 const tags = tagify.getTagElms();
 
@@ -732,54 +708,6 @@
                     const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
 
                     $('#acknowledge-alerts-modal .filters-list').append(child);
-                }
-            },
-            onSubmitSuccess: function (response) {
-                reloadTable($table);
-		return (response.rc == 0);
-            }
-        });
-
-	    $(`#btn-label-alerts`).on('click', function (e) {
-            $labelFilteredAlerts.invokeModalInit();
-        });
-
-	    const $labelFilteredAlerts = $('#label-alerts-modal form').modalHandler({
-            method: 'post',
-            csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}{* datatable.endpoint_label *}`,
-		beforeSumbit: function (alert) {
-	    	let post_params = {};
-		for (let key in datasourceParams) {
-		    post_params[key] = (datasourceParams[key]);
-		}
-
-		/* Read the label from the corresponding form field */
-		post_params["label"] = $("#label-alerts-modal #alert-label").val();
-
-	        return post_params;
-            },
-            onModalInit: function () {
-
-                $('#label-alerts-modal .filters-list').empty();
-                const tags = tagify.getTagElms();
-
-                const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
-                const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
-
-                const sortedTags = tags.sort((a, b) => {
-                    return i18n.tags[tagify.tagData(a).key].localeCompare(i18n.tags[tagify.tagData(b).key])
-                });
-
-                $('#label-alerts-modal #end-epoch-label').val(endEpoch);
-                $('#label-alerts-modal #begin-epoch-label').val(beginEpoch);
-
-                for (const tag of sortedTags) {
-                    const { key, selectedOperator, realValue, value } = tagify.tagData(tag);
-                    const label = i18n.tags[key]
-                    const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
-
-                    $('#label-alerts-modal .filters-list').append(child);
                 }
             },
             onSubmitSuccess: function (response) {
@@ -898,27 +826,28 @@
             }
         });
 
-        $table.on('click', `a[href='#label_alert_dialog']`, function (e) {
+        $table.on('click', `a[href='#acknowledge_alert_dialog']`, function (e) {
             const alert = $table.row($(this).parent().parent()).data();
-            $labelAlert.invokeModalInit(alert);
+            $acknowledgeAlert.invokeModalInit(alert);
         });
 
-        const $labelAlert = $('#label_alert_dialog form').modalHandler({
+        const $acknowledgeAlert = $('#acknowledge_alert_dialog form').modalHandler({
             method: 'post',
             csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}{* datatable.endpoint_label *}`,
+            endpoint: `${http_prefix}{* datatable.endpoint_acknowledge *}`,
             beforeSumbit: function (alert) {
-                return { ifid: "{{ ifid }}", row_id: alert.row_id, label: $(`#label_alert_dialog #alert-label`).val() };
+                return { ifid: "{{ ifid }}", row_id: alert.row_id, label: $(`#acknowledge_alert_dialog #alert-label`).val() };
             },
             onModalInit: function (alert) {
+	        $(`#acknowledge_alert_dialog button[type='submit']`).removeAttr("disabled");
                 const $type = $(`<span>${alert.alert_id.label}</span>`);
-                $(`#label_alert_dialog .alert_label`).text($type.text().trim());
-                $(`#label_alert_dialog #alert-label`).val(alert.user_label);
+                $(`#acknowledge_alert_dialog .alert_label`).text($type.text().trim());
+                $(`#acknowledge_alert_dialog #alert-label`).val(alert.user_label);
             },
             onSubmitSuccess: function (response, dataSent) {
 
                 if (response.rc < 0) {
-                    $('#label_alert_dialog .invalid-feedback').html(i18n.rest[response.rc_str] || response.rc_str).show();
+                    $('#acknowledge_alert_dialog .invalid-feedback').html(i18n.rest[response.rc_str] || response.rc_str).show();
                 }
                 else {
 

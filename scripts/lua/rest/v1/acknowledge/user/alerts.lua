@@ -27,7 +27,7 @@ interface.select(getSystemInterfaceId())
 -- Add filters
 user_alert_store:add_request_filters()
 
-user_alert_store:acknowledge()
+user_alert_store:acknowledge(_GET["label"])
 
 rest_utils.answer(rc)
 

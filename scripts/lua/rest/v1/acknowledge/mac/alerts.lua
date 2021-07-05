@@ -35,7 +35,7 @@ interface.select(ifid)
 -- Add filters
 mac_alert_store:add_request_filters()
 
-mac_alert_store:acknowledge()
+mac_alert_store:acknowledge(_GET["label"])
 
 rest_utils.answer(rc)
 

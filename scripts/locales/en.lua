@@ -72,6 +72,7 @@ local lang = {
   ["define"] = "Define",
   ["acknowledge"] = "Acknowledge",
   ["label"] = "Label",
+  ["comment"] = "Comment",
   ["delete"] = "Delete",
   ["delete_alerts"] = "Delete Alerts",
   ["acknowledge_alerts"] = "Acknowledge Alerts",

@@ -553,24 +553,11 @@ end
 -- ##############################################
 
 --@brief Labels alerts according to specified filters
-function alert_store:label(label)
+function alert_store:acknowledge(label)
    local where_clause = self:build_where_clause()
 
    -- Prepare the final query
-   local q = string.format("UPDATE `%s` SET `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, self:_escape(label), os.time(), where_clause)
-
-   local res = interface.alert_store_query(q)
-   return res and table.len(res) == 0
-end
-
--- ##############################################
-
---@brief Acknowledges alerts according to specified filters
-function alert_store:acknowledge()
-   local where_clause = self:build_where_clause()
-
-   -- Prepare the final query
-   local q = string.format("UPDATE `%s` SET alert_status = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, where_clause)
+   local q = string.format("UPDATE `%s` SET `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
 
    local res = interface.alert_store_query(q)
    return res and table.len(res) == 0

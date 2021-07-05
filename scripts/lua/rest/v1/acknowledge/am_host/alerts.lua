@@ -14,7 +14,7 @@ local am_alert_store = require "am_alert_store".new()
 
 --
 -- Read alerts data
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{}' http://localhost:3000/lua/rest/v1/acknowledge/am_host/alerts.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/acknowledge/am_host/alerts.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
@@ -27,7 +27,7 @@ interface.select(getSystemInterfaceId())
 -- Add filters
 am_alert_store:add_request_filters()
 
-am_alert_store:acknowledge()
+am_alert_store:acknowledge(_GET["label"])
 
 rest_utils.answer(rc)
 
