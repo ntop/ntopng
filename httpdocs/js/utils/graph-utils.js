@@ -859,8 +859,6 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
             serie_type = "area";
         }
 
-        debugger;
-
         series_formatted_labels[j] = label;
 
         res.push({
