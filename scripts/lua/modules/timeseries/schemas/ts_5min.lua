@@ -603,7 +603,7 @@ if ntop.isPro() then
 
     -- ##############################################
 
-    schema = ts_utils.newSchema("asn:traffic_tx_behavior", {step=300, metrics_type=ts_utils.metrics.gauge})
+    schema = ts_utils.newSchema("asn:traffic_tx_behavior_v2", {step=300, metrics_type=ts_utils.metrics.gauge})
     schema:addTag("ifid")
     schema:addTag("asn")
     schema:addMetric("value")
@@ -612,7 +612,7 @@ if ntop.isPro() then
 
     -- ##############################################
 
-    schema = ts_utils.newSchema("asn:traffic_rx_behavior", {step=300, metrics_type=ts_utils.metrics.gauge})
+    schema = ts_utils.newSchema("asn:traffic_rx_behavior_v2", {step=300, metrics_type=ts_utils.metrics.gauge})
     schema:addTag("ifid")
     schema:addTag("asn")
     schema:addMetric("value")
@@ -644,7 +644,7 @@ if ntop.isPro() then
 
     -- ##############################################
 
-    schema = ts_utils.newSchema("iface:traffic_tx_behavior", {step=300, metrics_type=ts_utils.metrics.gauge})
+    schema = ts_utils.newSchema("iface:traffic_tx_behavior_v2", {step=300, metrics_type=ts_utils.metrics.gauge})
     schema:addTag("ifid")
     schema:addMetric("value")
     schema:addMetric("lower_bound")
@@ -652,7 +652,7 @@ if ntop.isPro() then
 
     -- ##############################################
 
-    schema = ts_utils.newSchema("iface:traffic_rx_behavior", {step=300, metrics_type=ts_utils.metrics.gauge})
+    schema = ts_utils.newSchema("iface:traffic_rx_behavior_v2", {step=300, metrics_type=ts_utils.metrics.gauge})
     schema:addTag("ifid")
     schema:addMetric("value")
     schema:addMetric("lower_bound")
@@ -683,7 +683,7 @@ if ntop.isPro() then
 
     -- ##############################################
 
-    schema = ts_utils.newSchema("subnet:traffic_tx_behavior", {step=300, metrics_type=ts_utils.metrics.gauge})
+    schema = ts_utils.newSchema("subnet:traffic_tx_behavior_v2", {step=300, metrics_type=ts_utils.metrics.gauge})
     schema:addTag("ifid")
     schema:addTag("subnet")
     schema:addMetric("value")
@@ -692,7 +692,7 @@ if ntop.isPro() then
 
     -- ##############################################
 
-    schema = ts_utils.newSchema("subnet:traffic_rx_behavior", {step=300, metrics_type=ts_utils.metrics.gauge})
+    schema = ts_utils.newSchema("subnet:traffic_rx_behavior_v2", {step=300, metrics_type=ts_utils.metrics.gauge})
     schema:addTag("ifid")
     schema:addTag("subnet")
     schema:addMetric("value")

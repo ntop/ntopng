@@ -167,8 +167,8 @@ if isEmptyString(page) or page == "historical" then
             {schema="asn:score_anomalies",       label=i18n("graphs.iface_score_anomalies")},
             {schema="asn:score_behavior",        label=i18n("graphs.iface_score_behavior"), split_directions = true, first_timeseries_only = true, metrics_labels = {i18n("graphs.score"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
             {schema="asn:traffic_anomalies",     label=i18n("graphs.iface_traffic_anomalies")},
-            {schema="asn:traffic_rx_behavior",   label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true, first_timeseries_only = true, time_elapsed = asn_behavior_update_freq, value_formatter = {"NtopUtils.fbits_from_bytes", "NtopUtils.bytesToSize"}, metrics_labels = {i18n("graphs.traffic_rcvd"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
-            {schema="asn:traffic_tx_behavior",   label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true, first_timeseries_only = true, time_elapsed = asn_behavior_update_freq, value_formatter = {"NtopUtils.fbits_from_bytes", "NtopUtils.bytesToSize"}, metrics_labels = {i18n("graphs.traffic_sent"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
+            {schema="asn:traffic_rx_behavior_v2",   label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true, first_timeseries_only = true, time_elapsed = asn_behavior_update_freq, value_formatter = {"NtopUtils.fbits_from_bytes", "NtopUtils.bytesToSize"}, metrics_labels = {i18n("graphs.traffic_rcvd"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
+            {schema="asn:traffic_tx_behavior_v2",   label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true, first_timeseries_only = true, time_elapsed = asn_behavior_update_freq, value_formatter = {"NtopUtils.fbits_from_bytes", "NtopUtils.bytesToSize"}, metrics_labels = {i18n("graphs.traffic_sent"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
          }
          all_timeseries = table.merge(all_timeseries, pro_timeseries)
        end

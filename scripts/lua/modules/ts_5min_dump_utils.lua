@@ -84,13 +84,13 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
       anomaly=anomaly}, when)   
 
       -- Traffic Behaviour
-      ts_utils.append("subnet:traffic_rx_behavior", 
+      ts_utils.append("subnet:traffic_rx_behavior_v2", 
       {ifid=ifstats.id, subnet=subnet,
       value=sstats["traffic_rx_behavior"]["value"], 
       lower_bound = sstats["traffic_rx_behavior"]["lower_bound"], 
       upper_bound = sstats["traffic_rx_behavior"]["upper_bound"]}, when)
 
-      ts_utils.append("subnet:traffic_tx_behavior", 
+      ts_utils.append("subnet:traffic_tx_behavior_v2", 
       {ifid=ifstats.id, subnet=subnet,
       value=sstats["traffic_tx_behavior"]["value"], 
       lower_bound=sstats["traffic_tx_behavior"]["lower_bound"], 
@@ -135,11 +135,11 @@ function ts_dump.iface_update_stats_rrds(when, ifstats, verbose)
     ts_utils.append("iface:score_anomalies", {ifid=ifstats.id, anomaly=anomaly}, when)   
 
     -- Traffic Behaviour
-    ts_utils.append("iface:traffic_rx_behavior", {ifid=ifstats.id,
+    ts_utils.append("iface:traffic_rx_behavior_v2", {ifid=ifstats.id,
       value=ifstats["traffic_rx_behavior"]["value"], lower_bound=ifstats["traffic_rx_behavior"]["lower_bound"], 
       upper_bound=ifstats["traffic_rx_behavior"]["upper_bound"]}, when)
 
-    ts_utils.append("iface:traffic_tx_behavior", {ifid=ifstats.id,
+    ts_utils.append("iface:traffic_tx_behavior_v2", {ifid=ifstats.id,
       value=ifstats["traffic_tx_behavior"]["value"], lower_bound=ifstats["traffic_tx_behavior"]["lower_bound"], 
       upper_bound=ifstats["traffic_tx_behavior"]["upper_bound"]}, when)
       
@@ -236,13 +236,13 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
       anomaly=anomaly}, when)   
 
       -- Traffic Behaviour
-      ts_utils.append("asn:traffic_rx_behavior", 
+      ts_utils.append("asn:traffic_rx_behavior_v2", 
       {ifid=ifstats.id, asn=asn,
       value=asn_stats["traffic_rx_behavior"]["value"], 
       lower_bound=asn_stats["traffic_rx_behavior"]["lower_bound"], 
       upper_bound = asn_stats["traffic_rx_behavior"]["upper_bound"]}, when)
 
-      ts_utils.append("asn:traffic_tx_behavior", 
+      ts_utils.append("asn:traffic_tx_behavior_v2", 
       {ifid=ifstats.id, asn=asn,
       value=asn_stats["traffic_tx_behavior"]["value"], 
       lower_bound=asn_stats["traffic_tx_behavior"]["lower_bound"], 
