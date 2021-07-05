@@ -85,14 +85,14 @@ ntopng Configuration
 ====================
 
 A sample ntopng configuration file is located under /usr/local/etc/ntopng/ntopng.conf.sample,
-please copy it to /usr/local/etc/ntopng/ntopng.conf (it is recommended to keep the 'ntopng' user as
+please copy it to /usr/local/etc/ntopng.conf (it is recommended to keep the 'ntopng' user as
 owner) and open it with the preferred editor in case the default settings should be modified.
 Add a new line with the *--community* option to run ntopng in Community mode.
 
 .. code:: bash
 
-   cp /usr/local/etc/ntopng/ntopng.conf.sample /usr/local/etc/ntopng/ntopng.conf
-   chown ntopng:ntopng /usr/local/etc/ntopng/ntopng.conf
+   cp /usr/local/etc/ntopng/ntopng.conf.sample /usr/local/etc/ntopng.conf
+   chown ntopng:ntopng /usr/local/etc/ntopng.conf
 
 Enable ntopng and redis with the below commands:
 
