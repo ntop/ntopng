@@ -111,10 +111,12 @@ class DESCounter : public BehaviouralCounter {
     last_upper = (u_int64_t)round(h_forecast+0.5);
 
     if(rc) {
-      if((value < last_lower) || (value > last_upper)) 
-        tot_num_anomalies++;
+      is_anomaly = ((value < last_lower) || (value > last_upper)) ? true : false;
 
-      return((value < last_lower) || (value > last_upper));
+      if(is_anomaly) 
+        tot_num_anomalies++;
+      
+      return(is_anomaly);
     }
 
     return(rc);

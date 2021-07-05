@@ -826,6 +826,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       var series = data.series;
       var total_serie;
       var color_i = 0;
+      let time_elapsed = 1;
+
+      if(visualization.time_elapsed)
+        time_elapsed = visualization.time_elapsed;
 
       var chart_colors = (series.length <= chart_colors_min.length) ? chart_colors_min : chart_colors_full;
 
@@ -835,7 +839,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
         var t = data.start;
         for(var i=0; i<serie_data.length; i++) {
-          values[i] = [t, serie_data[i] ];
+          values[i] = [t, serie_data[i] / time_elapsed ];
           t += data.step;
         }
 
@@ -854,6 +858,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           } else
             serie_type = "area";
         }
+
+        debugger;
 
         series_formatted_labels[j] = label;
 
@@ -1115,17 +1121,21 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         */
         function splitSeriesInfo(stats_name, cell, show_date, formatter, total) {
           let val = "";
+          let time_elapsed = 1;
           const val_formatter = (formatter ? formatter : stats_formatter)
+
+          if(visualization.time_elapsed)
+            time_elapsed = visualization.time_elapsed
           
           if(visualization.first_timeseries_only) {
-            val = val_formatter(stats.by_serie[0][stats_name]) + (show_date ? (" (" + (new Date(res[0].values[stats[stats_name + "_idx"]][0] * 1000)).format(datetime_format) + ")") : "");
+            val = val_formatter(stats.by_serie[0][stats_name] / time_elapsed) + (show_date ? (" (" + (new Date(res[0].values[stats[stats_name + "_idx"]][0] * 1000)).format(datetime_format) + ")") : "");
           } else if(visualization.split_directions && stats.by_serie && !total) {
             const values = [];
 
             /* Format each splitted info */
             for(var i=0; i<series.length; i++) {
               if(stats.by_serie[i])
-                values.push(val_formatter(stats.by_serie[i][stats_name]) +
+                values.push(val_formatter(stats.by_serie[i][stats_name] / time_elapsed) +
                   " [" + series_formatted_labels[i] + "]" +
                   /* Add the date */
                   (show_date ? (" (" + (new Date(res[i].values[stats.by_serie[i][stats_name + "_idx"] + 1][0] * 1000)).format(datetime_format) + ")") : ""));
@@ -1134,7 +1144,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
             /* Join them using a new line */
             val = values.join("<br />");
           } else
-            val = val_formatter(stats[stats_name]) + (show_date ? (" (" + (new Date(res[0].values[stats[stats_name + "_idx"]][0] * 1000)).format(datetime_format) + ")") : "");
+            val = val_formatter(stats[stats_name] / time_elapsed) + (show_date ? (" (" + (new Date(res[0].values[stats[stats_name + "_idx"]][0] * 1000)).format(datetime_format) + ")") : "");
 
           /* Add the string to the span */
           if(val)

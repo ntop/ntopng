@@ -19,6 +19,8 @@ local have_nedge = ntop.isnEdge()
 
 local ts_utils = require("ts_utils")
 
+local iface_behavior_update_freq = 300 --Seconds
+
 -- ########################################################
 
 local graph_utils = {}
@@ -1087,8 +1089,8 @@ if ntop.isPro() then
       {schema="iface:score_anomalies",       label=i18n("graphs.iface_score_anomalies")},
       {schema="iface:score_behavior",        label=i18n("graphs.iface_score_behavior"), split_directions = true --[[ split RX and TX directions ]], first_timeseries_only = true, metrics_labels = {i18n("graphs.score"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
       {schema="iface:traffic_anomalies",     label=i18n("graphs.iface_traffic_anomalies")},
-      {schema="iface:traffic_rx_behavior",   label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true --[[ split RX and TX directions ]], first_timeseries_only = true, value_formatter = {"NtopUtils.fbits_from_bytes", "NtopUtils.bytesToSize"}, metrics_labels = {i18n("graphs.traffic_rcvd"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
-      {schema="iface:traffic_tx_behavior",   label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true --[[ split RX and TX directions ]], first_timeseries_only = true, value_formatter = {"NtopUtils.fbits_from_bytes", "NtopUtils.bytesToSize"}, metrics_labels = {i18n("graphs.traffic_sent"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
+      {schema="iface:traffic_rx_behavior",   label=i18n("graphs.iface_traffic_rx_behavior"), split_directions = true --[[ split RX and TX directions ]], first_timeseries_only = true, time_elapsed = iface_behavior_update_freq, value_formatter = {"NtopUtils.fbits_from_bytes", "NtopUtils.bytesToSize"}, metrics_labels = {i18n("graphs.traffic_rcvd"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
+      {schema="iface:traffic_tx_behavior",   label=i18n("graphs.iface_traffic_tx_behavior"), split_directions = true --[[ split RX and TX directions ]], first_timeseries_only = true, time_elapsed = iface_behavior_update_freq, value_formatter = {"NtopUtils.fbits_from_bytes", "NtopUtils.bytesToSize"}, metrics_labels = {i18n("graphs.traffic_sent"), i18n("graphs.lower_bound"), i18n("graphs.upper_bound")}},
    }
 
    default_timeseries = table.merge(pro_timeseries, default_timeseries)
