@@ -9115,6 +9115,8 @@ void NetworkInterface::execHostChecks(Host *h) {
 void NetworkInterface::getObservationPoints(lua_State* vm) {
   bool found = false;
 
+  observationLock.rdlock(__FILE__, __LINE__);
+  
   for(std::map<u_int16_t, ObservationPointIdTrafficStats*>::iterator it = observationPoints.begin(); it != observationPoints.end(); ++it) {
     if(!found) {
       lua_newtable(vm);
@@ -9130,8 +9132,32 @@ void NetworkInterface::getObservationPoints(lua_State* vm) {
     lua_settable(vm, -3);
   }
 
+  observationLock.unlock(__FILE__, __LINE__);
+  
   if(!found)
     lua_pushnil(vm);
 }
 
 /* *************************************** */
+
+void NetworkInterface::incObservationPointIdFlows(u_int16_t pointId, u_int32_t tot_bytes) {
+  std::map<u_int16_t,ObservationPointIdTrafficStats*>::iterator o = observationPoints.find(pointId);
+  
+  if(o == observationPoints.end()) {
+    if(observationPoints.size() < MAX_NUM_OBSERVATION_POINTS) {
+      observationLock.wrlock(__FILE__, __LINE__);
+      observationPoints[pointId] = new ObservationPointIdTrafficStats(1, tot_bytes);
+      observationLock.unlock(__FILE__, __LINE__);
+    } else {
+      static bool shown = false;
+
+      if(!shown) {
+	shown = true;
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Too many observation points defined for %s",
+				     observationPoints.size(), get_name());
+      }
+    }
+  } else
+    o->second->inc(tot_bytes);
+}

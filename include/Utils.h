@@ -244,7 +244,6 @@ public:
 #endif
   static void tlv2lua(lua_State *vm, ndpi_serializer *serializer);
   static u_int16_t country2u16(const char *country_code);
-  static int snappend(char *str, size_t size, const char *tobeappended, const char *separator);
   static bool isNumber(const char *s, unsigned int s_len, bool *is_float);
   static bool isPingSupported();
   static ScoreCategory mapAlertToScoreCategory(AlertCategory check_category);

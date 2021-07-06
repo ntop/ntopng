@@ -430,10 +430,10 @@ print(
 if((page == "overview") or (page == nil)) then
    local tags = {ifid = ifstats.id}
    print("<div class='table-responsive-xl'>")
-print[[
-]]
+  
    print("<table class=\"table table-striped table-bordered mb-0\">\n")
    print("<tr><th width=15%>"..i18n("if_stats_overview.id").."</th><td colspan=6>" .. ifstats.id .. " ")
+
    if(ifstats.description ~= ifstats.name) then print(" ("..ifstats.description..")") end
    print("</td></tr>\n")
 
@@ -452,7 +452,9 @@ print[[
       print("</td></tr>\n")
    end
 
-   if(ifstats["remote.name"] ~= nil) then
+   
+   --if(ifstats["remote.name"] ~= nil) then
+--    if(true) then
       local max_items_per_row = 3
       local cur_i = 0
       local title = i18n("if_stats_overview.remote_probe")
@@ -464,58 +466,82 @@ print[[
       print("<tr><th colspan=7 nowrap>".. title .."</th></tr><tr>")
 
       if(ifstats["remote.name"] ~= "none") then
-	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	 print("<th nowrap>".. i18n("if_stats_overview.interface_name") .."</th><td nowrap>".. string.format("%s [%s]", ifstats["remote.name"], bitsToSize(ifstats.speed*1000000)) .."</td>")
-	 cur_i = cur_i + 1
-      end
+	 print("<th nowrap>".. i18n("if_stats_overview.interface_name") .."</th><td nowrap><ol>")
 
-      if not isEmptyString(ifstats["probe.probe_version"]) then
-	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	 print("<th nowrap>".. i18n("if_stats_overview.remote_probe") .."</th><td nowrap>" .. ifstats["probe.probe_version"])
-
-	 if not isEmptyString(ifstats["probe.probe_os"]) then
-	    print(" ("..ifstats["probe.probe_os"]..")")
+	 for k, v in pairs(ifstats.probes) do
+	    print("<li>"..string.format("%s [%s]", v["remote.name"], bitsToSize(v["remote.ifspeed"]*1000000)) .."</li>\n")
 	 end
-
-    print("</td>")
-    cur_i = cur_i + 1
-    
-    if not isEmptyString(ifstats["probe.probe_edition"]) then
-      if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-      cur_i = cur_i + 1
-      print("<th nowrap>".. i18n("if_stats_overview.remote_probe_edition") .."</th><td nowrap>" .. ifstats["probe.probe_edition"].."</td>")
-    end
-
-    if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-    cur_i = cur_i + 1
-    print("<th nowrap>".. i18n("if_stats_overview.remote_probe_license") .."</th><td nowrap>" .. (ifstats["probe.probe_license"] or i18n("if_stats_overview.no_license")).."</td>")
-    
-    if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-      cur_i = cur_i + 1
-      print("<th nowrap>".. i18n("if_stats_overview.remote_probe_maintenance") .."</th><td nowrap>" .. (ifstats["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance")).."</td>")    
-   end
-      
-      if not isEmptyString(ifstats["probe.ip"]) then
-	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 	 
-	 print("<th nowrap>".. i18n("if_stats_overview.probe_ip"))
-
-	 if not isEmptyString(ifstats["probe.public_ip"]) then
-	    print(" / ".. i18n("if_stats_overview.public_probe_ip"))
-	 end
-
-	 print("</th><td nowrap>" .. ifstats["probe.ip"])
-
-	 if not isEmptyString(ifstats["probe.public_ip"]) then
-	    print(" / <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fas fa-external-link-alt'><i>")
-	 end
-
-	 print("</td>")
-	 cur_i = cur_i + 1
+	 print("</ol></td>\n")
       end
 
+      -- #########################
+      
+      print("<th nowrap>".. i18n("if_stats_overview.remote_probe") .."</th><td nowrap><ol>")
+      
+      for k, v in pairs(ifstats.probes) do
+	 print("<li>"..v["probe.probe_version"])
+	 
+	 if not isEmptyString(v["probe.probe_os"]) then
+	    print(" ("..v["probe.probe_os"]..")")
+	 end
+	 
+	 print("</li>\n")
+      end
+      
+      print("</ol></td>\n")
+
+      -- #########################
+      
+      print("<th nowrap>".. i18n("if_stats_overview.remote_probe_edition") .."</th><td nowrap><ol>")
+      
+      for k, v in pairs(ifstats.probes) do
+	 print("<li>"..v["probe.probe_edition"].."</li>\n")
+      end
+      
+      print("</ol></td>\n")
+
+      -- #########################
+      
+      print("</tr><tr><th nowrap>".. i18n("if_stats_overview.remote_probe_license") .."</th><td nowrap><ol>")
+      
+      for k, v in pairs(ifstats.probes) do
+	 print("<li>".. (v["probe.probe_license"] or i18n("if_stats_overview.no_license")) .."</li>\n")
+      end
+      
+      print("</ol></td>\n")
+
+      -- #########################
+      
+      print("<th nowrap>".. i18n("if_stats_overview.remote_probe_maintenance") .."</th><td nowrap><ol>")
+      
+      for k, v in pairs(ifstats.probes) do
+	 print("<li>".. (v["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance")) .."</li>\n")
+      end
+      
+      print("</ol></td>\n")
+
+      -- #########################
+      
+      print("<th nowrap>".. i18n("if_stats_overview.probe_ip") .."</th><td nowrap><ol>")
+      
+      for k, v in pairs(ifstats.probes) do
+	 print("<li>".. v["probe.ip"])
+
+	 if(v["probe.public_ip"] ~= "") then
+	    print(" (".. v["probe.ip"]..")")
+	 end
+	 
+	 print("</li>\n")
+      end
+      
+      print("</ol></td><td colspan=2>&nbsp;</td>\n")
+
+      -- #########################
+      
       if not isEmptyString(ifstats["remote_pps"]) or not isEmptyString(ifstats["remote_bps"]) then
-	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	 print("</tr><tr>")
+	 cur_i = 0
 
 	 print("<th nowrap>".. i18n("if_stats_overview.probe_throughput").."</th>")
 	 print('<td nowrap><span id="if_zmq_remote_bps">' .. format_utils.bitsToSize(ifstats["remote_bps"]) .. '</span>')
@@ -524,6 +550,8 @@ print[[
 	 cur_i = cur_i + 1
       end
 
+      -- #########################
+      
       if ifstats["timeout.lifetime"] > 0 then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 
@@ -534,6 +562,7 @@ print[[
 	    -- We're in collector mode on the nProbe side
 	    print(" "..secondsToTime(ifstats["timeout.lifetime"]).." [".. i18n("if_stats_overview.remote_flow_lifetime")..": "..secondsToTime(ifstats["timeout.collected_lifetime"]).."]")
 	 else
+
 	    -- Modern nProbe in non-flow collector mode or old nProbe
 	    print(secondsToTime(ifstats["timeout.lifetime"]))
 	 end
@@ -595,7 +624,7 @@ print[[
       end
 
       print("</tr>")
-   end
+--   end
 
    local is_physical_iface = is_packet_interface and (not is_pcap_dump)
 

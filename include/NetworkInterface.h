@@ -138,6 +138,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /* Queue containing the ip@vlan strings of the hosts to restore. */
   StringFifoQueue *hosts_to_restore;
 
+  RwLock observationLock;
   std::map<u_int16_t /* observationPointId */, ObservationPointIdTrafficStats*> observationPoints;
   
   /* External alerts contain alertable entities other than host/interface/network
@@ -1035,15 +1036,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline HostChecksExecutor* getHostCheckExecutor() { return(host_checks_executor); }
   HostCheck *getCheck(HostCheckID t);
 
-  inline void incObservationPointIdFlows(u_int16_t pointId, u_int32_t tot_bytes) {
-    /* TODO This is work in progress and it needs to be locked when read */
-    std::map<u_int16_t,ObservationPointIdTrafficStats*>::iterator o = observationPoints.find(pointId);
-
-    if(o == observationPoints.end())
-      observationPoints[pointId] = new ObservationPointIdTrafficStats(1, tot_bytes);
-    else
-      o->second->inc(tot_bytes);
-  }
+  void incObservationPointIdFlows(u_int16_t pointId, u_int32_t tot_bytes);
 
   inline bool hasObservationPointId(u_int16_t pointId) {
     /* This is work in progress and it needs to be locked when read */

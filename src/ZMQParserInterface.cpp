@@ -136,6 +136,7 @@ ZMQParserInterface::~ZMQParserInterface() {
 
   for(it = source_id_last_zmq_remote_stats.begin(); it != source_id_last_zmq_remote_stats.end(); ++it)
     free(it->second);
+  
   source_id_last_zmq_remote_stats.clear();
 }
 
@@ -2081,15 +2082,6 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
       free(zrs_i);
       source_id_last_zmq_remote_stats.erase(it++);
     } else {
-      Utils::snappend(cumulative_zrs->remote_ifname, sizeof(cumulative_zrs->remote_ifname), zrs_i->remote_ifname, ",");
-      Utils::snappend(cumulative_zrs->remote_ifaddress, sizeof(cumulative_zrs->remote_ifaddress), zrs_i->remote_ifaddress, ",");
-      Utils::snappend(cumulative_zrs->remote_probe_address, sizeof(cumulative_zrs->remote_probe_address), zrs_i->remote_probe_address, ",");
-      Utils::snappend(cumulative_zrs->remote_probe_public_address,  sizeof(cumulative_zrs->remote_probe_public_address), zrs_i->remote_probe_public_address, ",");
-      Utils::snappend(cumulative_zrs->remote_probe_version,  sizeof(cumulative_zrs->remote_probe_version), zrs_i->remote_probe_version, ",");
-      Utils::snappend(cumulative_zrs->remote_probe_os,  sizeof(cumulative_zrs->remote_probe_os), zrs_i->remote_probe_os, ",");
-      Utils::snappend(cumulative_zrs->remote_probe_license,  sizeof(cumulative_zrs->remote_probe_license), zrs_i->remote_probe_license, ",");
-      Utils::snappend(cumulative_zrs->remote_probe_edition,  sizeof(cumulative_zrs->remote_probe_edition), zrs_i->remote_probe_edition, ",");
-      Utils::snappend(cumulative_zrs->remote_probe_maintenance,  sizeof(cumulative_zrs->remote_probe_maintenance), zrs_i->remote_probe_maintenance, ",");
       cumulative_zrs->num_exporters += zrs_i->num_exporters;
       cumulative_zrs->remote_bytes += zrs_i->remote_bytes;
       cumulative_zrs->remote_pkts += zrs_i->remote_pkts;
@@ -2161,28 +2153,44 @@ bool ZMQParserInterface::getCustomAppDetails(u_int32_t remapped_app_id, u_int32_
 
 void ZMQParserInterface::lua(lua_State* vm) {
   ZMQ_RemoteStats *zrs = zmq_remote_stats;
-
+  std::map<u_int8_t, ZMQ_RemoteStats*>::iterator it;
+  
   NetworkInterface::lua(vm);
 
+  /* ************************************* */
+  
+  lua_newtable(vm);
+  
+  for(it = source_id_last_zmq_remote_stats.begin(); it != source_id_last_zmq_remote_stats.end(); ++it) {
+    ZMQ_RemoteStats *zrs = it->second;
+
+    lua_newtable(vm);
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s (%u)", zrs->remote_ifname, it->first);
+    
+    lua_push_str_table_entry(vm, "remote.name", zrs->remote_ifname);
+    lua_push_str_table_entry(vm, "remote.if_addr",zrs->remote_ifaddress);
+    lua_push_uint64_table_entry(vm, "remote.ifspeed", zrs->remote_ifspeed);
+    lua_push_str_table_entry(vm, "probe.ip", zrs->remote_probe_address);
+    lua_push_str_table_entry(vm, "probe.public_ip", zrs->remote_probe_public_address);
+    lua_push_str_table_entry(vm, "probe.probe_version", zrs->remote_probe_version);
+    lua_push_str_table_entry(vm, "probe.probe_os", zrs->remote_probe_os);
+    lua_push_str_table_entry(vm, "probe.probe_license", zrs->remote_probe_license);
+    lua_push_str_table_entry(vm, "probe.probe_edition", zrs->remote_probe_edition);
+    lua_push_str_table_entry(vm, "probe.probe_maintenance", zrs->remote_probe_maintenance);
+    
+    lua_pushinteger(vm, it->first);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);      
+  }
+  
+  lua_pushstring(vm, "probes");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);  
+
+  /* ************************************* */
+  
   if(zrs) {
-    if(zrs->remote_ifname[0] != '\0')
-      lua_push_str_table_entry(vm, "remote.name", zrs->remote_ifname);
-    if(zrs->remote_ifaddress[0] != '\0')
-      lua_push_str_table_entry(vm, "remote.if_addr",zrs->remote_ifaddress);
-    if(zrs->remote_probe_address[0] != '\0')
-      lua_push_str_table_entry(vm, "probe.ip", zrs->remote_probe_address);
-    if(zrs->remote_probe_public_address[0] != '\0')
-      lua_push_str_table_entry(vm, "probe.public_ip", zrs->remote_probe_public_address);
-    if(zrs->remote_probe_version[0] != '\0')
-      lua_push_str_table_entry(vm, "probe.probe_version", zrs->remote_probe_version);
-    if(zrs->remote_probe_os[0] != '\0')
-      lua_push_str_table_entry(vm, "probe.probe_os", zrs->remote_probe_os);
-    if(zrs->remote_probe_license[0] != '\0')
-      lua_push_str_table_entry(vm, "probe.probe_license", zrs->remote_probe_license);
-    if(zrs->remote_probe_edition[0] != '\0')
-      lua_push_str_table_entry(vm, "probe.probe_edition", zrs->remote_probe_edition);
-    if(zrs->remote_probe_maintenance[0] != '\0')
-      lua_push_str_table_entry(vm, "probe.probe_maintenance", zrs->remote_probe_maintenance);
     lua_push_uint64_table_entry(vm, "probe.remote_time", zrs->remote_time); /* remote time when last event has been sent */
     lua_push_uint64_table_entry(vm, "probe.local_time", zrs->local_time); /* local time when last event has been received */
 
