@@ -111,6 +111,8 @@ Geolocation::Geolocation() {
   if(!mmdbs_ok)
 #endif
     {
+    if (mmdbs_asn_ok) MMDB_close(&geo_ip_asn_mmdb);
+    if (mmdbs_city_ok) MMDB_close(&geo_ip_city_mmdb);
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running without geolocation support.");
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "To enable geolocation follow the instructions at");
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md");
