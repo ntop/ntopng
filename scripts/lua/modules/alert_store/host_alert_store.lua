@@ -99,6 +99,13 @@ end
 
 -- ##############################################
 
+--@brief Add ip filter
+function host_alert_store:add_ip_filter(ip)
+   self:add_filter_condition('ip', 'eq', ip);
+end
+
+-- ##############################################
+
 --@brief Add filters according to what is specified inside the REST API
 function host_alert_store:_add_additional_request_filters()
    local vlan_id = _GET["vlan_id"]

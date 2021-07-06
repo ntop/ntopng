@@ -192,6 +192,13 @@ end
 
 -- ##############################################
 
+--@brief Add ip filter
+function flow_alert_store:add_ip_filter(ip)
+   self:add_filter_condition('ip', 'eq', ip);
+end
+
+-- ##############################################
+
 --@brief Add filters according to what is specified inside the REST API
 function flow_alert_store:_add_additional_request_filters()
    local cli_ip = _GET["cli_ip"]

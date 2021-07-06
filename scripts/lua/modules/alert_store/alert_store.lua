@@ -15,6 +15,7 @@ local alert_utils = require "alert_utils"
 local alert_severities = require "alert_severities"
 local alert_roles = require "alert_roles"
 local tag_utils = require "tag_utils"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
@@ -176,9 +177,22 @@ function alert_store:build_sql_cond(cond)
       local host = hostkey2hostinfo(cond.value)
       if not isEmptyString(host["host"]) then
          if not host["vlan"] or host["vlan"] == 0 then
-            sql_cond = string.format("%s %s '%s'", cond.field, sql_op, cond.value)
+            if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
+               sql_cond = string.format("(%s %s '%s' OR %s %s '%s')",
+                  'cli_ip', sql_op, cond.value, 
+                  'srv_ip', sql_op, cond.value)
+            else
+               sql_cond = string.format("%s %s '%s'", cond.field, sql_op, cond.value)
+            end
          else
-            sql_cond = string.format("(%s %s '%s' %s vlan_id %s %u)", cond.field, sql_op, host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
+            if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
+               sql_cond = string.format("((%s %s '%s' OR %s %s '%s') %s vlan_id %s %u)",
+                  'cli_ip', sql_op, host["host"], 
+                  'srv_ip', sql_op, host["host"], 
+                  ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
+            else
+               sql_cond = string.format("(%s %s '%s' %s vlan_id %s %u)", cond.field, sql_op, host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
+            end
          end
       end
 
@@ -311,14 +325,31 @@ function alert_store:eval_alert_cond(alert, cond)
       local host = hostkey2hostinfo(cond.value)
       if not isEmptyString(host["host"]) then
          if not host["vlan"] or host["vlan"] == 0 then
-            return tag_utils.eval_op(alert[cond.field], cond.op, host["host"])
+            if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
+               return tag_utils.eval_op(alert['cli_ip'], cond.op, host["host"]) or
+                      tag_utils.eval_op(alert['srv_ip'], cond.op, host["host"])
+            else
+               return tag_utils.eval_op(alert[cond.field], cond.op, host["host"])
+            end
          else
             if cond.op == 'neq' then
-               return tag_utils.eval_op(alert[cond.field], cond.op, host["host"]) or
-                      tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
+               if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
+                  return tag_utils.eval_op(alert['cli_ip'], cond.op, host["host"]) or
+                         tag_utils.eval_op(alert['srv_ip'], cond.op, host["host"]) or
+                         tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
+               else
+                  return tag_utils.eval_op(alert[cond.field], cond.op, host["host"]) or
+                         tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
+               end
             else
-               return tag_utils.eval_op(alert[cond.field], cond.op, host["host"]) and
-                      tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
+               if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
+                  return (tag_utils.eval_op(alert['cli_ip'], cond.op, host["host"]) or
+                          tag_utils.eval_op(alert['srv_ip'], cond.op, host["host"])) and
+                         tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
+               else
+                  return tag_utils.eval_op(alert[cond.field], cond.op, host["host"]) and
+                         tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
+               end
             end
          end
       end
@@ -1019,6 +1050,13 @@ end
 
 --@brief Possibly overridden in subclasses to add additional filters from the request
 function alert_store:_add_additional_request_filters()
+end
+
+-- ##############################################
+
+--@brief Add ip filter
+function alert_store:add_alert_id_filter(alert_id)
+   self:add_filter_condition('alert_id', 'eq', alert_id, 'number');
 end
 
 -- ##############################################
