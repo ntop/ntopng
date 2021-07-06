@@ -1,10 +1,10 @@
 [
     /* Date */
-    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '8%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '8%', className: 'text-center text-nowrap', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Score */
     {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
     /* Alert */
-    {responsivePriority: 2, name: 'msg', data: 'msg', orderable: false, className: 'text-nowrap', width: '25%', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'msg', data: 'msg', orderable: false, className: 'text-nowrap', width: '15%', render: DataTableRenders.formatNameDescription },
     /* Mac Address */
     {responsivePriority: 2, name: 'address', width: '15%', className: 'text-left', data: 'address'},
     /* Device Type */

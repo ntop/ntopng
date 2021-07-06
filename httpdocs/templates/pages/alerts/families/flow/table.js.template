@@ -1,6 +1,6 @@
 [
     /* Date */
-    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '8%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle },
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '10%', className: 'text-center text-nowrap', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle },
     /* Score */
     {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
     /* Application */
@@ -9,13 +9,13 @@
 	return DataTableRenders.filterize('l7_proto', proto.value, proto.label);
     }},
     /* Alert */
-    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', width: '55%', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', width: '5%', render: DataTableRenders.formatNameDescription },
     /* Flow */
-    {responsivePriority: 2, name: 'flow', data: 'flow', orderable: false, className: 'text-nowrap', width: '100%', render: DataTableRenders.formatFlowTuple},
+    {responsivePriority: 2, name: 'flow', data: 'flow', orderable: false, className: 'text-nowrap', width: '5%', render: DataTableRenders.formatFlowTuple},
     /* Counts */
     {responsivePriority: 3, name: 'count', className: 'text-center', data: 'count', visible: false},
     /* Description */
-    {responsivePriority: 3, name: 'description', data: 'description', orderable: false, className: 'text-nowrap'},
+    {responsivePriority: 3, name: 'description', data: 'description', orderable: false, width: '100%',  className: 'text-nowrap'},
     /* Additional alerts */
-    {responsivePriority: 4, name: 'additional_alerts', data: 'additional_alerts', orderable: false, className: 'text-nowrap'},
+    {responsivePriority: 4, name: 'additional_alerts', data: 'additional_alerts',  orderable: false, className: 'text-nowrap'},
 ]
