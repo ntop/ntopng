@@ -650,7 +650,7 @@
             csrf: PAGE_CSRF,
             endpoint: `${http_prefix}{* datatable.endpoint_delete *}`,
             beforeSumbit: function (alert) {
-                return { ifid: "{{ ifid }}", row_id: alert.row_id };
+                return { ifid: "{{ ifid }}", row_id: alert.row_id, acknowledged: "acknowledged_all"};
             },
             onModalInit: function (alert) {
                 $(`#delete_alert_dialog button[type='submit']`).removeAttr("disabled");
