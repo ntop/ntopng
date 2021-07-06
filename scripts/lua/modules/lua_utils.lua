@@ -1312,14 +1312,14 @@ end
 
 -- #################################
 
-function hostVisualization(ip, name, vlan)
+function hostVisualization(ip, name, vlan, short_version)
    if (ip ~= name) then
       if isIPv6(ip) then
         name = name.." [IPv6]"
       end
    else
       if vlan ~= nil and tonumber(vlan) > 0 then
-        name = name.."@"..getFullVlanName(vlan)
+         name = name .. "@" .. getFullVlanName(vlan, short_version)
       end
    end
 
@@ -2068,11 +2068,15 @@ end
 
 -- ##############################################
 
-function getFullVlanName(vlan_id)
+function getFullVlanName(vlan_id, short_version)
    local alias = getVlanAlias(vlan_id)
 
    if (tostring(alias)) ~= (tostring(vlan_id)) then
-      return string.format("%s [%s]", alias, vlan_id)
+      if not short_version then
+         return string.format("%s [%s]", alias, vlan_id)
+      else
+         return alias
+      end
    end
 
    return vlan_id
