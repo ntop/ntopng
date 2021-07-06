@@ -1313,17 +1313,21 @@ end
 -- #################################
 
 function hostVisualization(ip, name, vlan, short_version)
-   if (ip ~= name) then
-      if isIPv6(ip) then
-        name = name.." [IPv6]"
-      end
-   else
-      if vlan ~= nil and tonumber(vlan) > 0 then
-         name = name .. "@" .. getFullVlanName(vlan, short_version)
-      end
+   local res = name
+
+   if vlan ~= nil and tonumber(vlan) > 0 then
+      res = res .. "@" .. getFullVlanName(vlan, short_version)
    end
 
-   return name
+   if ip ~= name then
+      if isIPv6(ip) then
+        res = res.." [IPv6]"
+      end
+   else
+
+   end
+
+   return res
 end
 
 -- #################################
