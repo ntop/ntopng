@@ -207,7 +207,7 @@ function all_alert_store:select_request(filter, select_fields)
    -- Add limits and sort criteria
    self:add_request_ranges()
 
-   if self._engaged then -- Engaged
+   if self._status == alert_consts.alert_status.engaged.alert_status_id then -- Engaged
       local alerts, total_rows =  self:select_engaged(filter)
 
       return alerts, total_rows

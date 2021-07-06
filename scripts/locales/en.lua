@@ -4837,6 +4837,7 @@ local lang = {
     ["older_6_months_ago"] = "older than 6 months ago",
     ["older_than"] = "older than",
     ["past"] = "Past",
+    ["acknowledged"] = "Acknowledged",
     ["past_alerts"] = "Past Alerts",
     ["past_flow"] = "Past Flow",
     ["purge_all_alerts"] = "Purge All Alerts",

@@ -58,7 +58,7 @@ end
 local time = os.time()
 
 -- initial epoch_begin is set as now - 30 minutes for historical, or as 1 week for engaged
-local epoch_begin = _GET["epoch_begin"] or time - (status == "historical" and 1800 or 60 * 60 * 24 * 7)
+local epoch_begin = _GET["epoch_begin"] or time - (status ~= "engaged" and 1800 or 60 * 60 * 24 * 7)
 local epoch_end = _GET["epoch_end"] or time
 
 --------------------------------------------------------------
@@ -74,7 +74,6 @@ local l7_proto = _GET["l7_proto"]
 local network_name = _GET["network_name"]
 local role = _GET["role"]
 local role_cli_srv = _GET["role_cli_srv"]
-local acknowledged = _GET["acknowledged"]
 local subtype = _GET["subtype"]
 
 --------------------------------------------------------------
@@ -258,7 +257,6 @@ widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
         role = role,
 	role_cli_srv = role_cli_srv,
 	subtype = subtype,
-	acknowledged = acknowledged,
     })
 })
 
@@ -352,7 +350,6 @@ local operators_by_filter = {
     role = {'eq'},
     role_cli_srv = {'eq'},
     text = {'eq','neq'},
-    acknowledged = {'eq'}
 }
 
 local defined_tags = {
@@ -362,17 +359,14 @@ local defined_tags = {
         ip = operators_by_filter.ip,
         role = operators_by_filter.role,
 	role_cli_srv = operators_by_filter.role_cli_srv,
-	acknowledged = operators_by_filter.acknowledged,
     },
     ["mac"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
-	acknowledged = operators_by_filter.acknowledged,
     },
     ["snmp_device"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
-	acknowledged = operators_by_filter.acknowledged,
     },
     ["flow"] = {
 	alert_id = operators_by_filter.alert_id,
@@ -383,34 +377,28 @@ local defined_tags = {
 	cli_port = operators_by_filter.port,
 	srv_port = operators_by_filter.port,
 	role = operators_by_filter.role,
-	acknowledged = operators_by_filter.acknowledged,
     },
     ["system"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
-	acknowledged = operators_by_filter.acknowledged,
     },
     ["am_host"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
-	acknowledged = operators_by_filter.acknowledged,
     },
     ["interface"] = {
         alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
        	subtype = operators_by_filter.text,
-	acknowledged = operators_by_filter.acknowledged,
     },
     ["user"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
-	acknowledged = operators_by_filter.acknowledged,
     },
     ["network"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
         network_name = operators_by_filter.text,
-	acknowledged = operators_by_filter.acknowledged,
     }
 }
 
@@ -420,7 +408,6 @@ local formatters = {
    severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
    role = function(role) return (i18n(role)) end,
    role_cli_srv = function(role) return (i18n(role)) end,
-   acknowledged = function(acknowledged) return (i18n(acknowledged)) end,
 }
 if page ~= "all" then
    formatters.l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end
@@ -437,7 +424,8 @@ local extra_range_buttons = [[
     <div class='d-flex align-items-center me-1'>
         <div class="btn-group" role="group">
             <a href=']] .. base_url .. [[&status=historical&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "historical", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.past") .. [[</a>
-            <a href=']] .. base_url .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status ~= "historical", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. ternary(num_alerts_engaged_cur_entity > 0, string.format('<span class="badge rounded-pill bg-dark" style="float:right;margin-bottom:-10px;">%u</span>', num_alerts_engaged_cur_entity), "") .. [[</a>
+            <a href=']] .. base_url .. [[&status=acknowledged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "acknowledged", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.acknowledged") .. [[</a>
+            <a href=']] .. base_url .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "engaged", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. ternary(num_alerts_engaged_cur_entity > 0, string.format('<span class="badge rounded-pill bg-dark" style="float:right;margin-bottom:-10px;">%u</span>', num_alerts_engaged_cur_entity), "") .. [[</a>
         </div>
     </div>
 ]]
@@ -468,7 +456,7 @@ local context = {
     ifid = ifid,
     isPro = ntop.isPro(),
     range_picker = {
-        default = status == "historical" and "30min" or "1week",
+        default = status ~= "engaged" and "30min" or "1week",
         tags = {
 	    enabled = (page ~= 'all'),
             tag_operators = tag_utils.tag_operators,
@@ -477,7 +465,6 @@ local context = {
             values = initial_tags,
             i18n = {
 	        alert_id = i18n("tags.alert_id"),
-	        acknowledged = i18n("tags.acknowledged"), 
                 severity = i18n("tags.severity"),
                 l7_proto = i18n("tags.l7proto"),
                 cli_ip = i18n("tags.cli_ip"),

@@ -34,7 +34,6 @@ local CSV_SEPARATOR = "|"
 function alert_store:init(args)
    self._group_by = nil
    self._top_limit = TOP_LIMIT
-   self._acknowledged = false -- By default, don't include acknowledged alerts
 
    -- Note: _where contains conditions for the where clause.
    -- Example:
@@ -101,12 +100,25 @@ end
 
 -- ##############################################
 
---@brief Add filters on status (engaged or historical)
---@param engaged true to select engaged alerts
+--@brief Add filters on status (engaged, historical, or acknowledged, one of `alert_consts.alert_status`)
+--@param status A key of `alert_consts.alert_status`
 --@return True if set is successful, false otherwise
-function alert_store:add_status_filter(engaged)
-   self._engaged = engaged
-   return true
+function alert_store:add_status_filter(status)
+   if not self._status then
+      if alert_consts.alert_status[status] then
+	 self._status = alert_consts.alert_status[status].alert_status_id
+
+	 -- Engaged alerts don't add a database filter as they are in-memory only
+	 if status ~= "engaged" then
+	    self:add_filter_condition_raw('alert_status',
+					  string.format(" alert_status = %u ", self._status))
+	 end
+      end
+
+      return true
+   end
+
+   return false
 end
 
 -- ##############################################
@@ -125,29 +137,6 @@ function alert_store:add_time_filter(epoch_begin, epoch_end)
 
       self:add_filter_condition_raw('tstamp',
         string.format("tstamp >= %u AND tstamp <= %u", self._epoch_begin, self._epoch_end))
-   end
-
-   return true
-end
-
--- ##############################################
-
---@brief Add filters on acknowledged alerts
---@param acknowledged A string, either `acknowledged_only` or `acknowledged_all`
---@return True if set is successful, false otherwise
-function alert_store:add_acknowledged_filter(acknowledged)
-   acknowledged, op = self:strip_filter_operator(acknowledged)
-
-   if not self._acknowledged then
-      if acknowledged == "acknowledged_only" then
-	 self._acknowledged = alert_consts.alert_status.acknowledged.alert_status_id
-	 self:add_filter_condition_raw('alert_status',
-				       string.format(" alert_status = %u ", alert_consts.alert_status.acknowledged.alert_status_id))
-      elseif acknowledged == "acknowledged_all" then
-	 self._acknowledged = alert_consts.alert_status.any.alert_status_id
-	 self:add_filter_condition_raw('alert_status',
-				       string.format("alert_status >= 0 "))
-      end
    end
 
    return true
@@ -244,10 +233,6 @@ function alert_store:build_where_clause()
    local where_clause = ""
    local and_clauses = {}
    local or_clauses = {}
-
-   if not self._acknowledged then
-      where_clause = string.format("alert_status <> %u", alert_consts.alert_status.acknowledged.alert_status_id)
-   end
 
    for name, groups in pairs(self._where) do
      -- Build AND clauses for all fields
@@ -933,7 +918,7 @@ function alert_store:count_by_severity_and_time()
    -- Add limits and sort criteria
    self:add_request_ranges()
 
-   if self._engaged then -- Engaged
+   if self._status == alert_consts.alert_status.engaged.alert_status_id then -- Engaged
       return self:count_by_severity_and_time_engaged() or 0
    else -- Historical
       return self:count_by_severity_and_time_historical() or 0
@@ -1026,7 +1011,7 @@ function alert_store:select_request(filter, select_fields)
    -- Add filters
    self:add_request_filters()
 
-   if self._engaged then -- Engaged
+   if self._status == alert_consts.alert_status.engaged.alert_status_id then -- Engaged
       -- Add limits and sort criteria
       self:add_request_ranges()
 
@@ -1069,11 +1054,9 @@ function alert_store:add_request_filters()
    local alert_severity = _GET["severity"] or _GET["alert_severity"]
    local rowid = _GET["row_id"]
    local status = _GET["status"]
-   local acknowledged = _GET["acknowledged"]
 
-   self:add_status_filter(status and status == 'engaged')
+   self:add_status_filter(status)
    self:add_time_filter(epoch_begin, epoch_end)
-   self:add_acknowledged_filter(acknowledged)
 
    self:add_filter_condition_list('alert_id', alert_id, 'number')
    self:add_filter_condition_list('severity', alert_severity, 'number')
@@ -1103,10 +1086,6 @@ function alert_store:get_available_filters()
       severity = {
          value_type = 'severity',
 	 i18n_label = i18n('tags.severity'),
-      },
-      acknowledged = {
-         value_type = 'acknowledged',
-	 i18n_label = i18n('tags.acknowledged'),
       },
    }
 
