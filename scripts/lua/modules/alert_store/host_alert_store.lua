@@ -177,7 +177,7 @@ function host_alert_store:format_record(value, no_html)
 
    -- Checking that the name of the host is not empty
    if value["name"] and (not isEmptyString(value["name"])) then
-      record[RNAME.IP.name]["label"] = value["name"]
+      record[RNAME.IP.name]["label"] = hostVisualization(value["name"], value["name"], value["vlan_id"])
    end
 
    record[RNAME.IP.name]["shown_label"] = record[RNAME.IP.name]["label"]
