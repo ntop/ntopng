@@ -45,6 +45,7 @@ Geolocation::Geolocation() {
 #endif
     docs_path
   };
+  bool mmdbs_asn_ok = false, mmdbs_city_ok = false;
 
   mmdbs_ok = false;
   
@@ -54,11 +55,10 @@ Geolocation::Geolocation() {
   for(u_int i = 0; i < sizeof(lookup_paths) / sizeof(lookup_paths[0]) && !mmdbs_ok; i++) {
     DIR *dirp;
     struct dirent *dp;
-    bool mmdbs_asn_ok, mmdbs_city_ok;
     
     /* Let's try with MaxMind files DBs: https://dev.maxmind.com/geoip/geoipupdate/ */
-    mmdbs_asn_ok  = loadGeoDB(lookup_paths[i], "GeoLite2-ASN.mmdb",  &geo_ip_asn_mmdb);
-    mmdbs_city_ok = loadGeoDB(lookup_paths[i], "GeoLite2-City.mmdb", &geo_ip_city_mmdb);
+    if (!mmdbs_asn_ok)  mmdbs_asn_ok  = loadGeoDB(lookup_paths[i], "GeoLite2-ASN.mmdb",  &geo_ip_asn_mmdb);
+    if (!mmdbs_city_ok) mmdbs_city_ok = loadGeoDB(lookup_paths[i], "GeoLite2-City.mmdb", &geo_ip_city_mmdb);
 
     if(mmdbs_asn_ok && mmdbs_city_ok) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using geolocation provided by MaxMind (https://maxmind.com)");
@@ -73,8 +73,6 @@ Geolocation::Geolocation() {
        - dbip-asn-lite-YYYY-MM.mmdb
        - dbip-country-lite-YYYY-MM.mmdb
     */
-
-    mmdbs_asn_ok = mmdbs_city_ok = false;
 
     dirp = opendir(lookup_paths[i]);
     if(dirp == NULL)
