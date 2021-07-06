@@ -36,7 +36,7 @@ If you prefer to handle updates manually, you may skip `ntopng-data` installatio
 
 ## Using geolocation on Raspberry Pi OS (Raspbian)
 
-Since the `geoipupdate` package is not availebl on Raspberry Pi, the MaxMind database should be downloaded and installed manually on this platform. Please check the next section for further instructions.
+Since the `geoipupdate` package is not available on Raspberry Pi, the MaxMind database should be downloaded and installed manually on this platform. Please check the next section for further instructions.
 
 ## Using geolocation when `ntopng-data` is not available
 
