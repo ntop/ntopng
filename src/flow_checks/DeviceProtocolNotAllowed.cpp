@@ -47,13 +47,18 @@ FlowAlert *DeviceProtocolNotAllowed::buildAlert(Flow *f) {
   /*
     Only the attacker is known, and it can be either the client or the server.
     Nothing can be said on the victim as the non-attacker peer can just do legitimate activities.
-    E.g., a client using TOR as protocol not allowed can contact legitimate (non-victim) TOR nodes
+    E.g., a client using TOR as protocol not allowed can contact legitimate (non-victim) TOR nodes.
+
+    As setting attacker/victim is a strong concept, the flow is checked to be unicast to avoid
+    considering multicast/broadcast addresses (see https://github.com/ntop/ntopng/issues/5624)
   */
-    
-  if(!f->isCliDeviceAllowedProtocol())
-    alert->setCliAttacker();
-  else
-    alert->setSrvAttacker();
+
+  if(f->isUnicast()) {
+    if(!f->isCliDeviceAllowedProtocol())
+      alert->setCliAttacker();
+    else
+      alert->setSrvAttacker();
+  }
 
   return alert;
 }
