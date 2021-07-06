@@ -54,8 +54,23 @@ tend = tonumber(tend) or os.time()
 tags = tsQueryToTags(tags)
 
 if _GET["tskey"] then
-  -- this can contain a MAC address for local broadcast domain hosts
-  tags.host = _GET["tskey"]
+  -- This can contain a MAC address for local broadcast domain hosts
+  local tskey = _GET["tskey"]
+
+  -- Setting host_ip (check that the provided IP matches the provided
+  -- mac address as safety check and to avoid security issues)
+  if tags.host then
+    local host = hostkey2hostinfo(tags.host)
+    if not isEmptyString(host["host"]) then
+      local host_info = interface.getHostInfo(host["host"], host["vlan"])
+      local mac_info = split(tskey, "_")
+      if host_info.mac == mac_info[1] then
+         tags.host_ip = tags.host;
+      end
+    end
+  end
+
+  tags.host = tskey
 end
 
 local driver = ts_utils.getQueryDriver()

@@ -191,8 +191,10 @@ local function isUserAccessAllowed(tags)
       return false
    end
 
-   if tags.host and not ntop.isAllowedNetwork(tags.host) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. _SESSION["user"] .. " is not allowed to access host " .. tags.host)
+   -- Note: tags.host can contain a MAC address for local broadcast domain hosts
+   local host = tags.host_ip or tags.host
+   if host and not ntop.isAllowedNetwork(host) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. _SESSION["user"] .. " is not allowed to access host " .. host)
       return false
    end
 
