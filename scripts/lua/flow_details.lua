@@ -1593,13 +1593,17 @@ else
 	 snmpdevice = syminfo["NPROBE_IPV4_ADDRESS"]
       end
 
-      if(flow["observation_point_id"] ~= nil) then
+      if((flow["observation_point_id"] ~= nil) and (flow["observation_point_id"] ~= 0)) then
 	 print("<tr><th>"..i18n("details.observation_point_id").."</th>")
 	 print("<td colspan=\"2\">"..flow["observation_point_id"].."</td></tr>")
       end
       
-      if flow["in_index"] or flow["out_index"] then
-	 printFlowSNMPInfo(snmpdevice, flow["in_index"], flow["out_index"])
+      if(flow["in_index"] or flow["out_index"]) then
+	 if((flow["in_index"] == flow["out_index"]) and (flow["in_index"] == 0)) then
+	    -- nothing to do (they are likely to be not initialized)
+	 else
+	    printFlowSNMPInfo(snmpdevice, flow["in_index"], flow["out_index"])
+	 end
       end
       
       local num = 0

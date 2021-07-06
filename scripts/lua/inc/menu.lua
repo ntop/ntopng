@@ -29,7 +29,6 @@ local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
 local updates_supported = (is_admin and ntop.isPackage() and not ntop.isWindows())
 local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
-local observationPointId = _GET["observationPointId"]
 local is_system_interface = page_utils.is_system_view()
 local behavior_utils = require("behavior_utils")
 
