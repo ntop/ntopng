@@ -131,6 +131,29 @@ end
 
 -- ##############################################
 
+--@brief Add filters on acknowledged alerts
+--@param acknowledged A string, either `acknowledged_only` or `acknowledged_all`
+--@return True if set is successful, false otherwise
+function alert_store:add_acknowledged_filter(acknowledged)
+   acknowledged, op = self:strip_filter_operator(acknowledged)
+
+   if not self._acknowledged then
+      if acknowledged == "acknowledged_only" then
+	 self._acknowledged = alert_consts.alert_status.acknowledged.alert_status_id
+	 self:add_filter_condition_raw('alert_status',
+				       string.format(" alert_status = %u ", alert_consts.alert_status.acknowledged.alert_status_id))
+      elseif acknowledged == "acknowledged_all" then
+	 self._acknowledged = alert_consts.alert_status.any.alert_status_id
+	 self:add_filter_condition_raw('alert_status',
+				       string.format("alert_status >= 0 "))
+      end
+   end
+
+   return true
+end
+
+-- ##############################################
+
 function alert_store:build_sql_cond(cond)
    if cond.sql then
       return cond.sql -- special condition
@@ -1008,9 +1031,11 @@ function alert_store:add_request_filters()
    local alert_severity = _GET["severity"] or _GET["alert_severity"]
    local rowid = _GET["row_id"]
    local status = _GET["status"]
+   local acknowledged = _GET["acknowledged"]
 
    self:add_status_filter(status and status == 'engaged')
    self:add_time_filter(epoch_begin, epoch_end)
+   self:add_acknowledged_filter(acknowledged)
 
    self:add_filter_condition_list('alert_id', alert_id, 'number')
    self:add_filter_condition_list('severity', alert_severity, 'number')
@@ -1039,7 +1064,11 @@ function alert_store:get_available_filters()
       }, 
       severity = {
          value_type = 'severity',
-	 i18n_label = 'tags.severity'
+	 i18n_label = i18n('tags.severity'),
+      },
+      acknowledged = {
+         value_type = 'acknowledged',
+	 i18n_label = i18n('tags.acknowledged'),
       },
    }
 

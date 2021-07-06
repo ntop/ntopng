@@ -103,6 +103,9 @@ alert_consts.alert_status = {
       -- Not used yet. Will be possibly used when managing engaged alerts inside sqlite
       alert_status_id = 2,
    },
+   ["any"] = {
+      alert_status_id = 3,
+   },
 }
 
 -- ################################################################################

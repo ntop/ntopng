@@ -51,6 +51,29 @@
     </div>
 </div>
 
+<template id="acknowledged-filter-template">
+    <div class="form-group row">
+        <label class="col-form-label col-sm-3"><b>{{i18n("tags.acknowledged")}}</b></label>
+        <div class="col-sm-5">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <select required name="operator" class="form-select">
+                        {% local first_item = true %}
+                        {% for _, operator in ipairs(operators_by_filter.acknowledged) do %}
+                            <option {{ (first_item and "selected" or "") }} value="{{operator}}">{{tag_operators[operator]}}</option>
+                            {% first_item = false %}
+                        {% end %}
+                    </select>
+                </div>
+                <select required name="value" class="form-select">
+                    <option selected data-tag-label="{{i18n("acknowledged_only")}}" value="acknowledged_only">{{i18n("acknowledged_only")}}</option>
+                    <option data-tag-label="{{i18n("acknowledged_all")}}" value="acknowledged_all">{{i18n("acknowledged_all")}}</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</template>
+
 <template id="ip-filter-template">
     <div class="form-group row">
         <label class="col-form-label col-sm-3"><b>{{i18n("ip_address")}}</b></label>

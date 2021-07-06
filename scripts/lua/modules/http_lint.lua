@@ -1528,6 +1528,7 @@ local known_parameters = {
    ["entity"]                  = validateNumber,                -- An alert entity type
    ["role"]                    = validateListOfTypeInline(validateFilters(validateSingleWord)), -- attacker/victim
    ["role_cli_srv"]            = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
+   ["acknowledged"]            = validateListOfTypeInline(validateFilters(validateSingleWord)), -- acknowledged
    ["asn"]                     = validateNumber,                -- An ASN number
    ["module"]                  = validateTopModule,             -- A top script module
    ["step"]                    = validateNumber,                -- A step value

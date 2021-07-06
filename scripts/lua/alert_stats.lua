@@ -74,6 +74,7 @@ local l7_proto = _GET["l7_proto"]
 local network_name = _GET["network_name"]
 local role = _GET["role"]
 local role_cli_srv = _GET["role_cli_srv"]
+local acknowledged = _GET["acknowledged"]
 local subtype = _GET["subtype"]
 
 --------------------------------------------------------------
@@ -257,6 +258,7 @@ widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
         role = role,
 	role_cli_srv = role_cli_srv,
 	subtype = subtype,
+	acknowledged = acknowledged,
     })
 })
 
@@ -350,6 +352,7 @@ local operators_by_filter = {
     role = {'eq'},
     role_cli_srv = {'eq'},
     text = {'eq','neq'},
+    acknowledged = {'eq'}
 }
 
 local defined_tags = {
@@ -359,14 +362,17 @@ local defined_tags = {
         ip = operators_by_filter.ip,
         role = operators_by_filter.role,
 	role_cli_srv = operators_by_filter.role_cli_srv,
+	acknowledged = operators_by_filter.acknowledged,
     },
     ["mac"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	acknowledged = operators_by_filter.acknowledged,
     },
     ["snmp_device"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	acknowledged = operators_by_filter.acknowledged,
     },
     ["flow"] = {
 	alert_id = operators_by_filter.alert_id,
@@ -377,28 +383,34 @@ local defined_tags = {
 	cli_port = operators_by_filter.port,
 	srv_port = operators_by_filter.port,
 	role = operators_by_filter.role,
+	acknowledged = operators_by_filter.acknowledged,
     },
     ["system"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	acknowledged = operators_by_filter.acknowledged,
     },
     ["am_host"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	acknowledged = operators_by_filter.acknowledged,
     },
     ["interface"] = {
         alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
        	subtype = operators_by_filter.text,
+	acknowledged = operators_by_filter.acknowledged,
     },
     ["user"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	acknowledged = operators_by_filter.acknowledged,
     },
     ["network"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
         network_name = operators_by_filter.text,
+	acknowledged = operators_by_filter.acknowledged,
     }
 }
 
@@ -408,6 +420,7 @@ local formatters = {
    severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
    role = function(role) return (i18n(role)) end,
    role_cli_srv = function(role) return (i18n(role)) end,
+   acknowledged = function(acknowledged) return (i18n(acknowledged)) end,
 }
 if page ~= "all" then
    formatters.l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end
@@ -463,7 +476,8 @@ local context = {
             defined_tags = defined_tags[page],
             values = initial_tags,
             i18n = {
-                alert_id = i18n("tags.alert_id"),
+	        alert_id = i18n("tags.alert_id"),
+	        acknowledged = i18n("tags.acknowledged"), 
                 severity = i18n("tags.severity"),
                 l7_proto = i18n("tags.l7proto"),
                 cli_ip = i18n("tags.cli_ip"),
