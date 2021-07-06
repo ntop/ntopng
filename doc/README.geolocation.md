@@ -11,7 +11,6 @@ By default the `ntopng-data` includes the DB-IP databases that are released unde
 
 Please install the `ntopng-data` package to enable geolocation in ntopng, this unless you already have geolocation databases installed.
 
-
 ## Using MaxMind geolocation in ntopng
 
 New privacy regulations, such as GDPR and CCPA, place restrictions that impact our ability to continue distributing MaxMind GeoLite2 databases in the public `ntopng-data` package. Reasons are explained in detail at the following page https://blog.maxmind.com/2019/12/18/significant-changes-to-accessing-and-using-geolite2-databases/.
@@ -35,17 +34,21 @@ Subsequent updates of the `ntopng-data` package will check for the availability 
 
 If you prefer to handle updates manually, you may skip `ntopng-data` installation and direcly use `geoipupdate`. Instructions to use `geoipupdate` are available at https://dev.maxmind.com/geoip/geoipupdate/
 
+## Using geolocation on Raspberry Pi OS (Raspbian)
+
+Since the `geoipupdate` package is not availebl on Raspberry Pi, the MaxMind database should be downloaded and installed manually on this platform. Please check the next section for further instructions.
+
 ## Using geolocation when `ntopng-data` is not available
 
 In case package `ntopng-data` or `geoipupdate` is not available on your platform:
 
 0. Manually download database files
    - DB-IP: IP-to-ISP (https://db-ip.com/db/ip-to-isp) and IP-to-Country (https://db-ip.com/db/ip-to-country) databases
-   - MaxMind: `GeoLite2-ASN.mmdb` and `GeoLite2-City.mmdb` from the download section of your MaxMind account page
+   - MaxMind: `GeoLite2-ASN.mmdb` and `GeoLite2-City.mmdb` from the "GeoIP2 / GeoLite2" > "Download Files" section of your MaxMind account page
    
 1. Then place the downloaded files under a specifiy folder which depends on the platform:
 
-    - **Linux**: place downloaded files under `/var/lib/GeoIP/` or `/usr/share/GeoIP/`
+    - **Linux** (including Raspberry Pi OS): place downloaded files under `/var/lib/GeoIP/` (`/usr/share/GeoIP/` is also a valid path)
     - **Windows**: place downloaded files under `Program Files/ntopng/httpdocs/geoip/`
     - **OS X package**: place downloaded files under `/usr/local/share/ntopng/httpdocs/geoip` (in case the `geoip` folder is missing, it is necessary to create it with `mkdir -p /usr/local/share/ntopng/httpdocs/geoip` before copying the files)
 
