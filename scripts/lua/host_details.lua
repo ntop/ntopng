@@ -286,7 +286,7 @@ else
       print('<div style=\"display:none;\" id=\"host_purged\" class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle"></i>&nbsp;'..i18n("details.host_purged")..'</div>')
    end
 
-   local title = i18n("host_details.host")..": "..host_label
+   local title = i18n("host_details.host")..": "..shortenString(host_label)
    if host["broadcast_domain_host"] then
       title = title.." &nbsp;<i class='fas fa-sitemap' aria-hidden='true' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
    end
