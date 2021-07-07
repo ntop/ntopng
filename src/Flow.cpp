@@ -2800,7 +2800,13 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   u_char community_id[200];
   time_t now = time(NULL);
 
-  ndpi_serialize_string_int32(s, "ifid", iface->get_id());
+  /*
+    If the interface is viewed, the id of the view interface is specified as ifid. This ensures
+    flow alerts of any viewed interface end up in the view interface, thus giving the user a single point
+    where to look at all the troubles.
+   */
+  ndpi_serialize_string_int32(s, "ifid", iface->isViewed() ? iface->viewedBy()->get_id() : iface->get_id());
+
   ndpi_serialize_string_string(s, "action", "store");
   ndpi_serialize_string_int64(s, "first_seen", get_first_seen());
   ndpi_serialize_string_int32(s, "score", getScore());
