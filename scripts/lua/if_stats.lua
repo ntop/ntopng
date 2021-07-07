@@ -451,10 +451,8 @@ if((page == "overview") or (page == nil)) then
 
       print("</td></tr>\n")
    end
-
    
-   --if(ifstats["remote.name"] ~= nil) then
---    if(true) then
+   if(ifstats.probes ~= nil) then
       local max_items_per_row = 3
       local cur_i = 0
       local title = i18n("if_stats_overview.remote_probe")
@@ -624,7 +622,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       print("</tr>")
---   end
+   end
 
    local is_physical_iface = is_packet_interface and (not is_pcap_dump)
 
