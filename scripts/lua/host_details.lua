@@ -402,7 +402,7 @@ else
 				 hidden = only_historical,
 				 active = page == "flows",
 				 page_name = "flows",
-				 label = i18n("flows"),
+				 label = i18n("iclass_flows"),
 			      },
 			      {
 				 hidden = only_historical or not host["localhost"] or (table.len(sites_granularities) == 0),

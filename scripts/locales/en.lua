@@ -130,6 +130,7 @@ local lang = {
   ["flow_search_from_aggregated"] = "(Aggregated)",
   ["flow_search_results"] = "Flow Search Results",
   ["flows"] = "Flows",
+  ["iclass_flows"] = "<span class='fas fa-stream'></span>",
   ["flush_periodicity_map_data"] = "Flush Data",
   ["flush_service_map_data"] = "Flush Data",
   ["forbidden"] = "Forbidden",
