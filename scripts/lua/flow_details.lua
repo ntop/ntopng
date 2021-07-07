@@ -1351,7 +1351,7 @@ else
 	       end
 
 	       -- For the predominant alert, add an anchor to the historical alert
-	       if score_alert.is_predominant then
+	       if not ifstats.isViewed and score_alert.is_predominant then
 		  -- Prepare bounds for the historical alert search.
 		  local epoch_begin = flow["seen.first"]
 		  -- In case the interface is a pcap dump, we cannot use the flow last seen as alerts have timestamps
