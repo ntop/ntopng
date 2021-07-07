@@ -1354,9 +1354,9 @@ else
 	       if not ifstats.isViewed and score_alert.is_predominant then
 		  -- Prepare bounds for the historical alert search.
 		  local epoch_begin = flow["seen.first"]
-		  -- In case the interface is a pcap dump, we cannot use the flow last seen as alerts have timestamps
-		  -- that depends on when ntopng is executed. For this reason, os.time() is used
-		  local epoch_end = ifstats.type == "pcap dump" and os.time() or flow["seen.last"]
+		  -- As this is the page of active flows, it is meaningful to use the current time for the epoch end.
+		  -- This will also enable multiple flows with the same tuple to be shown.
+		  local epoch_end = os.time()
 		  local l7_proto = flow["proto.ndpi_id"] .. tag_utils.SEPARATOR .. "eq"
 		  local cli_ip = flow["cli.ip"]  .. tag_utils.SEPARATOR .. "eq"
 		  local srv_ip = flow["srv.ip"]  .. tag_utils.SEPARATOR .. "eq"
