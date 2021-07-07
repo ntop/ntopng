@@ -462,7 +462,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   else {
     u_int16_t eth_type = srcIP.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6;
 
-#if 1
+#if 0
     ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%d) [in: %u][out: %u]",
 				 (zflow->direction == 0 /* RX */) ? "RX" : "TX",
 				 zflow->direction,
