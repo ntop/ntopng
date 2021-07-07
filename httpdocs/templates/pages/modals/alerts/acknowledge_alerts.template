@@ -33,7 +33,7 @@
                         <label class="col-form-label"><b>{{ i18n("comment") }}</b></label>
                       </div>
                       <div class="col-sm-6 mt-1">
-                        <input id="alert-label" name="label" class="form-control" type="text" value=""  maxlength="255"/>
+                        <input id="alert-label-modal" name="label" class="form-control" type="text" value=""  maxlength="255"/>
                       </div>
                     </div>
 

@@ -692,7 +692,7 @@
 		}
 
 		/* Read the label from the corresponding form field */
-		post_params["label"] = $("#acknowledge-alerts-modal #alert-label").val();
+		post_params["label"] = $("#acknowledge-alerts-modal #alert-label-modal").val();
 
 		return post_params;
             },

@@ -22,7 +22,7 @@
 
         <div class="modal-footer">
 	  <span class="invalid-feedback" id="{{dialog.id}}_error"></span>
-          <button id="btn-confirm-action" type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</button>
+          <button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</button>
         </div>
       </div>
     </div>
