@@ -2051,17 +2051,24 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
 
   /* Store stats for the current exporter */
 
+  lock.wrlock(__FILE__, __LINE__);
+  
   if(source_id_last_zmq_remote_stats.find(zrs->source_id) == source_id_last_zmq_remote_stats.end()) {
     last_zrs = (ZMQ_RemoteStats*)malloc(sizeof(ZMQ_RemoteStats));
-    if(!last_zrs)
+
+    if(!last_zrs) {
+      lock.unlock(__FILE__, __LINE__);
       return;
+    }
+    
     source_id_last_zmq_remote_stats[zrs->source_id] = last_zrs;
-  } else {
-    last_zrs = source_id_last_zmq_remote_stats[zrs->source_id];
-  }
+  } else
+    last_zrs = source_id_last_zmq_remote_stats[zrs->source_id];  
 
   memcpy(last_zrs, zrs, sizeof(ZMQ_RemoteStats));
 
+  lock.unlock(__FILE__, __LINE__);
+  
   if(Utils::msTimevalDiff(&now, &last_zmq_remote_stats_update) < 1000) {
     /* Do not update cumulative stats more frequently than once per second.
      * Note: this also avoids concurrent access (use after free) of shadow */
@@ -2074,13 +2081,15 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   if(!cumulative_zrs)
     return;
 
+  lock.wrlock(__FILE__, __LINE__); /* Need write lock due to (*) */
+
   for(it = source_id_last_zmq_remote_stats.begin(); it != source_id_last_zmq_remote_stats.end(); ) {
     ZMQ_RemoteStats *zrs_i = it->second;
 
     if(zrs_i->local_time < last_time - 3 /* sec */) {
       /* do not account inactive exporters, release them */
       free(zrs_i);
-      source_id_last_zmq_remote_stats.erase(it++);
+      source_id_last_zmq_remote_stats.erase(it++); /* (*) */
     } else {
       cumulative_zrs->num_exporters += zrs_i->num_exporters;
       cumulative_zrs->remote_bytes += zrs_i->remote_bytes;
@@ -2104,6 +2113,8 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
       ++it;
     }
   }
+
+  lock.unlock(__FILE__, __LINE__);
 
   ifSpeed = cumulative_zrs->remote_ifspeed;
   last_pkt_rcvd = 0;
@@ -2160,6 +2171,8 @@ void ZMQParserInterface::lua(lua_State* vm) {
   /* ************************************* */
   
   lua_newtable(vm);
+
+  lock.rdlock(__FILE__, __LINE__);
   
   for(it = source_id_last_zmq_remote_stats.begin(); it != source_id_last_zmq_remote_stats.end(); ++it) {
     ZMQ_RemoteStats *zrs = it->second;
@@ -2183,6 +2196,8 @@ void ZMQParserInterface::lua(lua_State* vm) {
     lua_insert(vm, -2);
     lua_settable(vm, -3);      
   }
+
+  lock.unlock(__FILE__, __LINE__);
   
   lua_pushstring(vm, "probes");
   lua_insert(vm, -2);

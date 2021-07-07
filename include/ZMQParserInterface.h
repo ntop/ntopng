@@ -37,6 +37,7 @@ class ZMQParserInterface : public ParserInterface {
   ZMQ_RemoteStats *zmq_remote_stats, *zmq_remote_stats_shadow;
   u_int32_t remote_lifetime_timeout, remote_idle_timeout;
   struct timeval last_zmq_remote_stats_update;
+  RwLock lock;
 #ifdef NTOPNG_PRO
   CustomAppMaps *custom_app_maps;
 #endif
