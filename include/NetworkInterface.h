@@ -982,6 +982,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void incNumAlertedFlows(Flow *f, AlertLevel severity);
   void decNumAlertedFlows(Flow *f, AlertLevel severity);
   virtual u_int64_t getNumActiveAlertedFlows()      const;
+  virtual u_int64_t getNumActiveAlertedFlows(AlertLevelGroup alert_level_group) const;
   void incNumAlertsEngaged(AlertEntity alert_entity);
   void decNumAlertsEngaged(AlertEntity alert_entity);
   void incNumDroppedAlerts(AlertEntity alert_entity);

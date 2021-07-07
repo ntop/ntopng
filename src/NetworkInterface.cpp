@@ -8277,6 +8277,21 @@ void NetworkInterface::decNumAlertedFlows(Flow *f, AlertLevel severity){
 
 /* *************************************** */
 
+u_int64_t NetworkInterface::getNumActiveAlertedFlows(AlertLevelGroup alert_level_group) const {
+  switch(alert_level_group) {
+  case alert_level_group_notice_or_lower:
+    return num_active_alerted_flows_notice;
+  case alert_level_group_warning:
+    return num_active_alerted_flows_warning;
+  case alert_level_group_error_or_higher:
+    return num_active_alerted_flows_error;
+  default:
+    return 0;
+  }
+};
+
+/* *************************************** */
+
 u_int64_t NetworkInterface::getNumActiveAlertedFlows() const {
   return num_active_alerted_flows_notice + num_active_alerted_flows_warning + num_active_alerted_flows_error;
 };
@@ -8685,9 +8700,9 @@ void NetworkInterface::luaAlertedFlows(lua_State* vm) {
   /* Total */
   lua_push_int32_table_entry(vm, "num_alerted_flows", getNumActiveAlertedFlows());
   /* Breakdown */
-  lua_push_int32_table_entry(vm, "num_alerted_flows_notice",  num_active_alerted_flows_notice);
-  lua_push_int32_table_entry(vm, "num_alerted_flows_warning", num_active_alerted_flows_warning);
-  lua_push_int32_table_entry(vm, "num_alerted_flows_error",   num_active_alerted_flows_error);
+  lua_push_int32_table_entry(vm, "num_alerted_flows_notice",  getNumActiveAlertedFlows(alert_level_group_notice_or_lower));
+  lua_push_int32_table_entry(vm, "num_alerted_flows_warning", getNumActiveAlertedFlows(alert_level_group_warning));
+  lua_push_int32_table_entry(vm, "num_alerted_flows_error",   getNumActiveAlertedFlows(alert_level_group_error_or_higher));
 }
 
 /* *************************************** */

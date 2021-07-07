@@ -71,6 +71,7 @@ class ViewInterface : public NetworkInterface {
   virtual u_int64_t getNumNewFlows();
   virtual u_int     getNumFlows();
   virtual u_int64_t getNumActiveAlertedFlows() const;
+  virtual u_int64_t getNumActiveAlertedFlows(AlertLevelGroup alert_level_group) const;
 
   virtual u_int64_t getCheckPointNumPackets();
   virtual u_int64_t getCheckPointDroppedAlerts();
