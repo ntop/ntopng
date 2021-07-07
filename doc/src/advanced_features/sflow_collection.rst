@@ -30,7 +30,7 @@ sFlow Devices
 -------------
 
 When capturing sFlow traffic, ntopng displays aggregated information regarding the
-sFlow devices and their ports. This information is accessible from the `Exporters` menu, `sFlow Devices` entry:
+sFlow devices and their ports. This information is accessible from the `Collectors` menu, `sFlow Devices` entry:
 
 .. figure:: ../img/advanced_features_sflow_devices_list.jpg
   :align: center

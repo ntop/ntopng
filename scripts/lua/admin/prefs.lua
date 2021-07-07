@@ -1130,15 +1130,13 @@ function printStatsTimeseries()
 				    "ntopng.prefs.l2_device_ndpi_timeseries_creation", nil,
 				    elementToSwitch, showElementArray, nil, showElement)
 
-  if table.len(interface.getObservationPoints() or {}) > 0 then
-    print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n('prefs.observation_points')..'</th></tr></thead>')
+  print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n('prefs.observation_points')..'</th></tr></thead>')
 
-    prefsToggleButton(subpage_active, {
-      field = "toggle_observation_points_rrd_creation",
-      default = "0",
-      pref = "observation_points_rrd_creation",
-    })
-  end
+  prefsToggleButton(subpage_active, {
+    field = "toggle_observation_points_rrd_creation",
+    default = "0",
+    pref = "observation_points_rrd_creation",
+  })
 
   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n('prefs.system_probes_timeseries')..'</th></tr></thead>')
 
