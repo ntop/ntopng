@@ -29,7 +29,17 @@ end
 if string.find(hostname, '://') then
    -- Looks like an URI, strip the scheme
    local uri_info = string.split(hostname, "://")
-   hostname = uri_info[2]
+   if #uri_info == 2 then
+      hostname = uri_info[2]
+   end
+end
+
+if string.find(hostname, ':') then
+   local host_port_info = string.split(hostname, ":")
+   if #host_port_info == 2 then
+      -- Looks like host:port, strip the port
+      hostname = host_port_info[1]
+   end
 end
 
 local resolved = ntop.resolveHost(hostname, true --[[ IPv4 --]])
