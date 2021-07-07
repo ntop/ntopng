@@ -550,7 +550,7 @@ if((page == "overview") or (page == nil)) then
 
       -- #########################
       
-      if ifstats["timeout.lifetime"] > 0 then
+      if ifstats["timeout.lifetime"] and ifstats["timeout.lifetime"] > 0 then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 
 	 print("<th nowrap>"..i18n("if_stats_overview.probe_timeout_lifetime")..
@@ -568,7 +568,7 @@ if((page == "overview") or (page == nil)) then
 	 cur_i = cur_i + 1
       end
 
-      if ifstats["timeout.idle"] > 0 then
+      if ifstats["timeout.idle"] and ifstats["timeout.idle"] > 0 then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 	 print("<th nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</th><td nowrap>"..secondsToTime(ifstats["timeout.idle"]).."</td>")
 	 cur_i = cur_i + 1
