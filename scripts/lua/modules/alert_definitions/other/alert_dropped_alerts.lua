@@ -22,7 +22,8 @@ alert_dropped_alerts.meta = {
   i18n_title = i18n("show_alerts.dropped_alerts"),
   icon = "fas fa-fw fa-exclamation-triangle",
   entities = {
-    alert_entities.system
+     alert_entities.system,
+     alert_entities.interface,
   },
 }
 
