@@ -35,7 +35,6 @@ local predicates = {}
 -- ###############################################################
 
 local function create_DHCP_range_missing_notification(toast)
-
     local title = i18n("about.configure_dhcp_range")
     local description = i18n("about.dhcp_range_missing_warning", {
         name = i18n("prefs.toggle_host_tskey_title"),
@@ -50,7 +49,6 @@ end
 -- ###############################################################
 
 local function create_DCHP_monitoring_toast(toast)
-
     local title = i18n("about.dhcp_monitoring_title")
     local description = i18n("about.host_identifier_warning", {
         name = i18n("prefs.toggle_host_tskey_title"),
@@ -68,7 +66,6 @@ end
 -- ###############################################################
 
 local function create_DHCP_range_missing_toast(toast)
-
     local title = i18n("about.dhcp_monitoring_title")
     local description = i18n("about.dhcp_range_missing_warning", {
         name = i18n("prefs.toggle_host_tskey_title"),
@@ -88,7 +85,6 @@ end
 -- ###############################################################
 
 local function create_geo_ip_toast_ui(toast)
-
     local title = i18n("geolocation_unavailable_title")
     local description = i18n("geolocation_unavailable", {
         url = "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md",
@@ -102,7 +98,6 @@ end
 -- ###############################################################
 
 local function create_contribute_toast_ui(toast)
-
     local title = i18n("about.contribute_to_project")
     local description = i18n("about.telemetry_data_opt_out_msg", {
         tel_url = ntop.getHttpPrefix() .. "/lua/telemetry.lua",
@@ -121,7 +116,6 @@ end
 -- ###############################################################
 
 local function create_forced_community_toast(toast)
-
     local title = i18n("about.licence")
     local description = i18n("about.forced_community_notification")
 
@@ -131,7 +125,6 @@ end
 -- ###############################################################
 
 local function create_tempdir_toast_ui(toast)
-
     local title = i18n("warning")
     local description = i18n("about.datadir_warning")
     local action = {
@@ -153,7 +146,6 @@ end
 -- ###############################################################
 
 local function create_too_many_flows_toast(toast, level)
-
     local info = ntop.getInfo()
     local title = i18n("too_many_flows")
     local desc = i18n("about.you_have_too_many_flows",
@@ -182,7 +174,6 @@ end
 -- ###############################################################
 
 local function create_too_many_hosts_toast(toast, level)
-
     local info = ntop.getInfo()
     local title = i18n("too_many_hosts")
     local desc = i18n("about.you_have_too_many_hosts",
@@ -210,7 +201,6 @@ end
 -- ###############################################################
 
 local function create_remote_probe_clock_drift_toast(toast, level)
-
     local title = i18n("remote_probe_clock_drift")
     local desc = i18n("about.you_need_to_sync_remote_probe_time",
                       {url = ntop.getHttpPrefix() .. "/lua/if_stats.lua"})
@@ -221,7 +211,6 @@ end
 -- ##################################################################
 
 local function create_flow_dump_toast_ui(toast)
-
     local title = i18n("flow_dump_not_working_title")
     local description = i18n("flow_dump_not_working", {
         icon = "fas fa-external-link-alt"
@@ -234,7 +223,6 @@ end
 
 --- 
 local function create_restart_required_toast(toast, description)
-
     local title = i18n("restart.restart_required")
     local action = nil
     -- only the ntop packed can be restarted
@@ -255,6 +243,7 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.restart_required(toast, container)
+   if not IS_ADMIN or not ntop.isPackage() or ntop.isWindows() then return end
 
     -- ifname is defined globally
     local delete_active_interface_requested = delete_data_utils.delete_active_interface_data_requested(ifname)
@@ -279,9 +268,11 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.DHCP(toast, container)
+    if not IS_ADMIN then return end
 
     -- In System Interface we can't collect the required data
     if (IS_SYSTEM_INTERFACE) then return false end
+
     local ifs = interface.getStats()
 
     if (not(ifs.has_seen_dhcp_addresses and IS_ADMIN and (not IS_PCAP_DUMP) and IS_PACKET_INTERFACE)) then
@@ -323,6 +314,8 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.temp_working_dir(toast, container)
+   if not IS_ADMIN or ntop.isWindows() then return end
+
     if (dirs.workingdir == "/var/tmp/ntopng") then
         table.insert(container, create_tempdir_toast_ui(toast))
     end
@@ -332,6 +325,8 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.contribute(toast, container)
+    if not IS_ADMIN then return end
+
     if (not info.oem) and (not telemetry_utils.dismiss_notice()) then
         table.insert(container, create_contribute_toast_ui(toast))
     end
@@ -340,6 +335,8 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.update_ntopng(toast, container)
+   if not IS_ADMIN or not ntop.isPackage() or ntop.isWindows() then return end
+
     -- check if ntopng is oem and the user is an Administrator
     local is_not_oem_and_administrator = IS_ADMIN and not info.oem
     local message = check_latest_major_release()
@@ -352,6 +349,7 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.too_many_hosts(toast, container)
+   if not IS_ADMIN or not ntop.isPackage() or ntop.isWindows() then return end
 
     -- In System Interface we can't get the hosts number from `interface.getNumHosts()`
     if (IS_SYSTEM_INTERFACE) then return end
@@ -374,6 +372,7 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.too_many_flows(toast, container)
+   if not IS_ADMIN or not ntop.isPackage() or ntop.isWindows() then return end
 
     -- In System Interface we can't get the flows number from `interface.getNumFlows()`
     if (IS_SYSTEM_INTERFACE) then return end
@@ -396,6 +395,7 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.remote_probe_clock_drift(toast, container)
+   if not IS_ADMIN then return end
 
     -- In System Interface we can't collect the stats from `interface.getStats()`
     if (IS_SYSTEM_INTERFACE) then return end
@@ -425,6 +425,7 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.flow_dump(toast, container)
+   if not IS_ADMIN or not ntop.isPackage() or ntop.isWindows() then return end
 
     -- In System Interface we can't collect the stats from `interface.getStats()`
     if (IS_SYSTEM_INTERFACE) then return end
@@ -442,6 +443,7 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.about_page(toast, container)
+    if not IS_ADMIN then return end
 
     if (_POST["ntopng_license"] ~= nil) then
 
@@ -468,6 +470,7 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.hosts_geomap(toast, container)
+    if not IS_ADMIN then return end
 
     local hosts_stats = interface.getHostsInfo()
     local num = hosts_stats["numHosts"]
@@ -489,8 +492,7 @@ end
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.exporters_SNMP_ratio_column(toast, container)
-
-    if not ntop.isPro() then return end
+    if not IS_ADMIN or not ntop.isPro() then return end
 
     local snmp_utils = require "snmp_utils"
     local snmp_cached_dev = require "snmp_cached_dev"
@@ -570,7 +572,6 @@ end
 
 --- Generate a toast to adive the user about toast endpoints
 function predicates.create_endpoint(toast, container)
-
     if (not IS_ADMIN) then return end
     if (user_has_created_endpoint()) then return end
     if IS_PCAP_DUMP then return end
@@ -592,7 +593,6 @@ end
 
 -- Generate a second toast to inform the user to create a recipient for the new endpoint
 function predicates.create_recipients_for_endpoint(toast, container)
-
     if (not IS_ADMIN) then return end
     if IS_PCAP_DUMP then return end
 
@@ -616,7 +616,6 @@ end
 
 --- Generate a third notificiation to inform the user to bind the new recipients to a pool
 function predicates.bind_recipient_to_pools(toast, container)
-
     if (not IS_ADMIN) then return end
     if (not user_has_created_endpoint()) then return end
     if (not user_has_created_recipient()) then return end
@@ -638,7 +637,6 @@ end
 --- Check if unexpected plugins are disabled and notifiy the user
 --- about their existance
 function predicates.unexpected_plugins(toast, container)
-
     if (not IS_ADMIN) then return end
     if not isEmptyString(ntop.getCache(UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY)) then return end
 
@@ -662,7 +660,6 @@ end
 -- ###############################################
 
 function predicates.export_drops(toast, container)
-
     if (IS_SYSTEM_INTERFACE) then return end
     local is_dump_flows_enabled = prefs.is_dump_flows_enabled
     
