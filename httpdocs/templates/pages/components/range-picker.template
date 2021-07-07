@@ -8,7 +8,6 @@
     local presetSelected = (isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"]))
 %}
 
-{% if tags.enabled then %}
 <link rel="stylesheet" href="{{ ntop.getHttpPrefix }}/css/tagify.css" />
 <style>
 .tagify__input {
@@ -35,7 +34,6 @@
   align-items: center;
 }
 </style>
-{% end %}
 
 <div class="w-100">
 
@@ -116,6 +114,10 @@
 
     {% if tags.enabled then %}
     <div class="d-flex mt-1">
+    {% else %}
+    <div class="d-none mt-1">
+    {% end %}
+
         <input class="w-100 form-control h-auto" name="tags" placeholder="{{ i18n('show_alerts.filters') }}">
 
         {% if not isEmptyString(extra_tags_buttons) then %}
@@ -126,12 +128,11 @@
             <i class="fas fa-times"></i>
         </button>
     </div>
-    {% end %}
+
 </div>
 
   
 
-{% if tags.enabled then %}
 <script type="text/javascript" src="{{ ntop.getHttpPrefix }}/js/tagify.min.js"></script>
 <script type="text/javascript">
 
@@ -182,7 +183,6 @@ $(document).ready(function() {
     $(`.btn-remove-tags`).tooltip();
 });
 </script>
-{% end %}
 
 
 <script type="text/javascript">
