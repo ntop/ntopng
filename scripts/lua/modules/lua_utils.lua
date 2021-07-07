@@ -1313,18 +1313,20 @@ end
 -- #################################
 
 function hostVisualization(ip, name, vlan, short_version)
-   local res = name
+   local res = ip
+
+   if not isEmptyString(name) then
+      res = name
+   end
 
    if vlan ~= nil and tonumber(vlan) > 0 then
       res = res .. "@" .. getFullVlanName(vlan, short_version)
    end
 
-   if ip ~= name then
+   if not isEmptyString(name) and ip ~= name then
       if isIPv6(ip) then
         res = res.." [IPv6]"
       end
-   else
-
    end
 
    return res

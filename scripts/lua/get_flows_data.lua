@@ -116,21 +116,13 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local srv_name = getHostAltName(value["srv.ip"])
    
    if isEmptyString(srv_name) then
-      if isEmptyString(info_srv["name"]) then
-         srv_name = hostVisualization(value["srv.ip"], value["srv.ip"], value["srv.vlan"])
-      else
-         srv_name = hostVisualization(info_srv["name"], info_srv["name"], value["srv.vlan"])
-      end
+      srv_name = hostVisualization(value["srv.ip"], info_srv["name"], value["srv.vlan"])
    end
 
    local cli_name = getHostAltName(value["cli.ip"])
 
    if isEmptyString(cli_name) then
-      if isEmptyString(info_cli["name"]) then
-         cli_name = hostVisualization(value["cli.ip"], value["cli.ip"], value["cli.vlan"])
-      else
-         cli_name = hostVisualization(info_cli["name"], info_cli["name"], value["cli.vlan"])
-      end
+      cli_name = hostVisualization(value["cli.ip"], info_cli["name"], value["cli.vlan"])
    end
 
    local src_port, dst_port = '', ''
