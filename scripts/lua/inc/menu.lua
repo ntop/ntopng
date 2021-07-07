@@ -1218,14 +1218,8 @@ print('</div>')
 print('<div id="major-release-alert" class="alert alert-info" style="display:none" role="alert"><i class="fas fa-cloud-download-alt" id="alerts-menu-triangle"></i> <span id="ntopng_update_available"></span>')
 print('</div>')
 
--- Hidden by default, will be shown by the footer if necessary
-print('<div id="move-rrd-to-influxdb" class="alert alert-warning alert-dismissable" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-print(i18n("alert_messages.influxdb_migration_msg", {url="https://www.ntop.org/ntopng/ntopng-and-time-series-from-rrd-to-influxdb-new-charts-with-time-shift/"}))
-print[[<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>]]
-print('</div>')
-
 if(_SESSION["INVALID_CSRF"]) then
-  print('<div id="move-rrd-to-influxdb" class="alert alert-warning alert-dismissable" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
+  print('<div class="alert alert-warning alert-dismissable" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
   print(i18n("expired_csrf"))
   print[[<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>]]
   print('</div>')

@@ -18,9 +18,7 @@ if _POST["action"] == "toggle_theme" then
     ntop.setPref("ntopng.user." .. _SESSION['user'] .. ".theme", (enabled and "dark" or "white"))
     res.success = true
 elseif isAdministrator() then
-    if _POST["action"] == "move-rrd-to-influxdb" then
-        ntop.setPref("ntopng.prefs.disable_ts_migration_message", "1")
-    elseif _POST["action"] == "disable-telemetry-data" then
+   if _POST["action"] == "disable-telemetry-data" then
         ntop.setPref("ntopng.prefs.disable_telemetry_data_message", "1")
     elseif _POST["action"] == "host-id-message-warning" then
         local ifid = _POST["ifid"]

@@ -179,11 +179,6 @@ print([[
 
 -- End of Toggle System Interface
 
--- Only show the message if the host protocol/category timeseries are enabled
-local message_enabled = (areHostL7TimeseriesEnabled(ifid) or areHostCategoriesTimeseriesEnabled(ifid)) and
-   (ts_utils.getDriverName() ~= "influxdb") and
-   (ntop.getPref("ntopng.prefs.disable_ts_migration_message") ~= "1")
-
 -- Import the BlogNotification Utils script only
 -- if ntopng is not in OEM version
 if not info.oem then
@@ -200,29 +195,9 @@ print [[
 print[[
 var is_historical = false;
 
-function checkMigrationMessage(data) {
-  const max_local_hosts = 500;
-  let enabled = ]] print(ternary(message_enabled, "true", "false")) print[[;
-
-  if(enabled && (data.num_local_hosts > max_local_hosts))
-    $("#move-rrd-to-influxdb").show();
-}
-
 $(`[data-toast-id='0'`).on('hide.bs.toast', function() {
 	$.post(']] print(ntop.getHttpPrefix()) print[[/lua/update_prefs.lua', {
 		csrf: ']] print(ntop.getRandomCSRFValue()) print[[', action: 'disable-telemetry-data'
-	});
-});
-
-$("#move-rrd-to-influxdb, #host-id-message-warning, #influxdb-error-msg").on("close.bs.alert", function() {
-  $.ajax({
-		type: 'POST',
-		url: ']] print (ntop.getHttpPrefix()) print [[/lua/update_prefs.lua',
-		data: {
-			csrf: ']] print(ntop.getRandomCSRFValue()) print[[',
-			action: this.id,
-			ifid: ]] print(string.format("%u", ifid)) print[[,
-		}
 	});
 });
 
@@ -378,8 +353,6 @@ print[[
 		  msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=local\">";
 		  msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"badge bg-success\">";
 		  msg += NtopUtils.addCommas(rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
-
-		  checkMigrationMessage(rsp);
 		}
 
         const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
