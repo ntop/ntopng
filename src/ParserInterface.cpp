@@ -462,7 +462,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   else {
     u_int16_t eth_type = srcIP.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6;
 
-#if 0
+#if 1
     ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%d) [in: %u][out: %u]",
 				 (zflow->direction == 0 /* RX */) ? "RX" : "TX",
 				 zflow->direction,
@@ -475,8 +475,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 	       flow->getStatsProtocol(),
 	       flow->get_protocol_category(),
 	       zflow->l4_proto,
-	       zflow->pkt_sampling_rate*zflow->in_bytes,
-	       zflow->pkt_sampling_rate*zflow->in_pkts);
+	       zflow->pkt_sampling_rate*zflow->out_bytes,
+	       zflow->pkt_sampling_rate*zflow->out_pkts);
 
       if(zflow->out_bytes)
 	incStats(false /* egress */,
@@ -484,8 +484,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 		 flow->getStatsProtocol(),
 		 flow->get_protocol_category(),
 		 zflow->l4_proto,
-		 zflow->pkt_sampling_rate*zflow->out_bytes,
-		 zflow->pkt_sampling_rate*zflow->out_pkts);
+		 zflow->pkt_sampling_rate*zflow->in_bytes,
+		 zflow->pkt_sampling_rate*zflow->in_pkts);
     } else {
       incStats(false /* egress */,
 	       now, eth_type,
