@@ -399,12 +399,6 @@ else
 				 badge_num = host["active_http_hosts"],
 			      },
 			      {
-				 hidden = only_historical,
-				 active = page == "flows",
-				 page_name = "flows",
-				 label = '<span class="fas fa-stream"></span>',
-			      },
-			      {
 				 hidden = only_historical or not host["localhost"] or (table.len(sites_granularities) == 0),
 				 active = page == "sites",
 				 page_name = "sites",
@@ -421,6 +415,12 @@ else
 				 active = page == "processes",
 				 page_name = "processes",
 				 label = i18n("user_info.processes"),
+			      },
+			      {
+				 hidden = only_historical,
+				 active = page == "flows",
+				 page_name = "flows",
+				 label = '<span class="fas fa-stream"></span>',
 			      },
 			      {
 				 hidden = only_historical or host["is_broadcast"] or host["is_multicast"] or not ntop.hasGeoIP(),
