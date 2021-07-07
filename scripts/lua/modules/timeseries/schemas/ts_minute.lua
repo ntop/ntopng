@@ -358,3 +358,17 @@ schema:addTag("ifid")
 schema:addTag("pod")
 schema:addMetric("as_client")
 schema:addMetric("as_server")
+
+-------------------------------------------------------
+-- NPROBE OBSERVATION POINTS SCHEMAS
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("observation_point:traffic", {step=60})
+schema:addTag("ifid")
+schema:addTag("observation_point_id")
+schema:addMetric("bytes")
+
+schema = ts_utils.newSchema("observation_point:flows", {step=60})
+schema:addTag("ifid")
+schema:addTag("observation_point_id")
+schema:addMetric("flows")

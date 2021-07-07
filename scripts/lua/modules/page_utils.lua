@@ -100,7 +100,7 @@ page_utils.menu_entries = {
     -- Exporters
     event_exporters       = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "exporters"},
     sflow_exporters       = {key = "sflow_exporters", i18n_title = "flows_page.sflow_devices", section = "exporters"},
-    flow_exporters        = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters", help_link = "https://www.ntop.org"},
+    flow_exporters        = {key = "flow_exporters", i18n_title = "flow_devices.probe_exporters", section = "exporters", help_link = "https://www.ntop.org"},
     observation_points    = {key = "observation_points", i18n_title = "flow_devices.observation_points", section = "exporters", help_link = "https://www.ntop.org"},
 
    -- Map
