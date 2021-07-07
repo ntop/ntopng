@@ -1955,6 +1955,8 @@ local lang = {
     ["note_zmq_fields2"] = "Flow devices interfaces are determined using ZMQ fields %%INPUT_SNMP and %%OUTPUT_SNMP",
     ["note_zmq_fields3"] = "sFlow devices are determined using sFlow field deviceIP received via ZMQ (topic 'counter')",
     ["note_zmq_fields4"] = "sFlow devices interfaces are determined using field ifIndex received via ZMQ (topic 'counter')",
+    ["note_observation_points_fields1"] = "Observation Points timeseries can be enabled from the <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferences</a>. Few minutes are necessary to see the first data points",
+    ["observation_points"] = "Observation Points",
     ["out_errors"] = "Out Errors",
     ["promisc"] = "Promisc",
     ["ratio_not_ready"] = "Computing flow ratio...",
@@ -1975,6 +1977,8 @@ local lang = {
     ["snmp_ratio_descr"] = "The Flow/SNMP Ratio is calculated by dividing the total interface traffic obtained using flows, by the total traffic of the same interface read via SNMP. As in flow-based analysis non-IP and layer 2 headers are not accounted, <br>typical ratio values are between 0.8 and 0.9 (i.e. 0.9 means that 90%% of the received traffic as observed via SNMP has been reported in flows).<br>Ratio is computed using the traffic over the latest 5 minutes, as periodic SNMP walks are performed at 5-minute intervals. Ratio is only computed when the following conditions are met",
     ["this_page_contains_couters"] = "This page contains interface counters as they have been collected via sFlow. If SNMP is configured, you can also see the <A HREF=\"%{url}\">SNMP view</A> of this device",
     ["timeseries_descr"] = "Flow devices timeseries can be enabled from the <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferences</a>. Few minutes are necessary to see the first data points",
+    ["tot_flows"] = "Total Flows",
+    ["tot_bytes"] = "Total Bytes",
   },
   ["flow_fields_description"] = {
     ["appl_latency_ms"] = "Application latency (msec), a.k.a. server response time",

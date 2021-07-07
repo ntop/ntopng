@@ -355,6 +355,11 @@ else
 	       entry = page_utils.menu_entries.flow_exporters,
 	       url = '/lua/pro/enterprise/flowdevices_stats.lua',
 	    },
+       {
+          entry = page_utils.menu_entries.observation_points,
+          --hidden = table.len(interface.getObservationPoints() or {}) == 0,
+          url = '/lua/pro/enterprise/observation_points.lua',
+       },
 	 },
       }
    )
