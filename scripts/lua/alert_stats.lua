@@ -422,7 +422,7 @@ local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'})
 
 local extra_range_buttons = [[
     <div class='d-flex align-items-center me-1'>
-        <div class="btn-group" role="group">
+        <div class="btn-group" id="statusSwitch" role="group">
             <a href=']] .. base_url .. [[&status=historical&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "historical", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.past") .. [[</a>
             <a href=']] .. base_url .. [[&status=acknowledged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "acknowledged", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.acknowledged") .. [[</a>
             <a href=']] .. base_url .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "engaged", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. ternary(num_alerts_engaged_cur_entity > 0, string.format('<span class="badge rounded-pill bg-dark" style="float:right;margin-bottom:-10px;">%u</span>', num_alerts_engaged_cur_entity), "") .. [[</a>

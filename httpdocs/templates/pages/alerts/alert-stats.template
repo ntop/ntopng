@@ -210,6 +210,36 @@
             return [begin, end];
         }
 
+        function updateNavbarLink(searchParams, element) {
+	    /* Read the current href */
+	    const cur_href = $(element).attr('href');
+	    let cur_url = new URL(cur_href, location.origin);
+	    /* Read current href params and extract the page name */
+	    const cur_page = cur_url.searchParams.get('page');
+	    if(cur_page) {
+	        /* Prepare the new URL which is the page name extracted plus all other params */
+	        searchParams.set('page', cur_page);
+	        searchParams.delete('alert_id');
+	        cur_url.search = searchParams.toString();
+	        /* Attach the new URL to the current href */
+	        $(element).attr('href', cur_url.toString());
+	    }
+	}
+
+        function updateStatusSwitchLink(begin, end, element) {
+	    const cur_href = $(element).attr('href');
+	    let cur_url = new URL(cur_href, location.origin + location.pathname);
+            let searchParams = new URLSearchParams(cur_url.search);
+
+            /* Set updated epoch */
+            searchParams.set('epoch_begin', begin.unix());
+            searchParams.set('epoch_end',   end.unix());
+
+	    /* Attach the new URL to the current href */
+	    cur_url.search = searchParams.toString();
+	    $(element).attr('href', cur_url.toString());
+	}
+
         function pushNewHistoryState(begin, end, len) {
             const url = new URL(location);
 
@@ -223,24 +253,20 @@
             }
 
 	    /*
-	      Update navbar items, e.g., alert entities, with begin/end epochs and status to preserve them when
-	      switching between tabs
+	      Update navbar items, e.g., alert entities, with begin/end epochs
+              and status to preserve them when switching between tabs
 	     */
 	    $('#navbarNav a').each(function(index, element) {
-		/* Read the current href */
-		const cur_href = $(element).attr('href');
-		let cur_url = new URL(cur_href, location.origin);
-		/* Read current href params and extract the page name */
-		const cur_page = cur_url.searchParams.get('page');
-		if(cur_page) {
-		    /* Prepare the new URL which is the page name extracted plus all other params */
-		    searchParams.set('page', cur_page);
-		    searchParams.delete('alert_id');
-		    cur_url.search = searchParams.toString();
-		    /* Attach the new URL to the current href */
-		    $(element).attr('href', cur_url.toString());
-		}
-	    });
+                updateNavbarLink(searchParams, element);
+            });
+
+	    /*
+	      Update status switch items (Engaged, Acknoledged, Past)
+              with begin/end epochs to preserve them when switching status
+	     */
+	    $('#statusSwitch a').each(function(index, element) {
+                updateStatusSwitchLink(begin, end, element);
+            });
 
 	    /*
 	      Other page params are not preserved when switching tabs as they may be not valid across
