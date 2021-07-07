@@ -56,8 +56,9 @@ After that navigate to Notification->Recipients and, just like before, click on 
 
 Then go back to Telegram. 
 If the bot have to personally send the alarms directly into the private chat then follow these steps:
+  - start a conversation with the ntopng bot in Telegram (a bot can't initiate conversation with a user!)
   - search for `@getidsbot` and start a conversation with it
-  - copy the id the bot gave to you
+  - copy the id `@getidsbot` gave to you
 
 .. figure:: ../img/telegram_getidsbot_search.png
 
