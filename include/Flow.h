@@ -416,6 +416,7 @@ class Flow : public GenericHashEntry {
   void updateTcpSeqIssues(const ParsedFlow *pf);
   void updateDNS(ParsedFlow *zflow);
   void updateHTTP(ParsedFlow *zflow);
+  void updateSuspiciousDGADomain();
   static void incTcpBadStats(bool src2dst_direction,
 			     Host *cli, Host *srv,
 			     NetworkInterface *iface,
@@ -670,7 +671,6 @@ class Flow : public GenericHashEntry {
   inline ndpi_risk getRiskBitmap() const { return ndpi_flow_risk_bitmap; }
   bool hasRisk(ndpi_risk_enum r) const;
   bool hasRisks() const;
-
   inline char* getDGADomain() const { return(hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && suspicious_dga_domain ? suspicious_dga_domain : (char*)""); }
   inline char* getDNSQuery()  const { return(isDNS() ? protos.dns.last_query : (char*)"");  }
   bool setDNSQuery(char *v);

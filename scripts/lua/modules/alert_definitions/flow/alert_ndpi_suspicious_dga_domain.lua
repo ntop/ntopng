@@ -42,13 +42,15 @@ end
 -- #######################################################
 
 function alert_ndpi_suspicious_dga_domain.format(ifid, alert, alert_type_params)
-   if alert_type_params.dga_domain then
-      return i18n("alert_messages.suspicious_dga_domain", {
-		     domain = alert_type_params["dga_domain"],
-      })
-   else
-      return
+   local domain = ''
+
+   if not isEmptyString(alert_type_params.dga_domain) then
+      domain = string.format("[%s]", alert_type_params.dga_domain)
    end
+
+   return i18n("alert_messages.suspicious_dga_domain", {
+		  domain = domain,
+   })
 end
 
 -- #######################################################

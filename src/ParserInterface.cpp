@@ -42,7 +42,6 @@ ParserInterface::~ParserInterface() {
 bool ParserInterface::processFlow(ParsedFlow *zflow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
-  ndpi_protocol p = Flow::ndpiUnknownProtocol;
   time_t now;
   bpf_timeval now_tv = { 0 };
   Mac *srcMac = NULL, *dstMac = NULL;
@@ -329,12 +328,13 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 		     zflow->first_switched,
 		     zflow->last_switched);
 
-  p.app_protocol = zflow->l7_proto.app_protocol;
-  p.master_protocol = zflow->l7_proto.master_protocol;
-  p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
-
   if(!flow->isDetectionCompleted()) {
+    ndpi_protocol p = Flow::ndpiUnknownProtocol;
     ndpi_protocol guessed_protocol = Flow::ndpiUnknownProtocol;
+
+    p.app_protocol = zflow->l7_proto.app_protocol;
+    p.master_protocol = zflow->l7_proto.master_protocol;
+    p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
 
     /* First, there's an attempt to guess the protocol so that custom protocols
        defined in ntopng will still be applied to the protocols detected by nprobe. */
@@ -449,6 +449,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     json_object *o = json_tokener_parse_verbose(zflow->external_alert, &jerr);
     if(o) flow->setExternalAlert(o);
   }
+
+  flow->updateSuspiciousDGADomain();
 
   /* Do not put incStats before guessing the flow protocol */
   if(zflow->direction == UNKNOWN_FLOW_DIRECTION)

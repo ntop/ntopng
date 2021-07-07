@@ -643,10 +643,9 @@ void Flow::processExtraDissectedInformation() {
 
       break;
     }
-  }
 
-  if(hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && !suspicious_dga_domain)
-    suspicious_dga_domain = strdup(getFlowInfo(NULL, 0));
+    updateSuspiciousDGADomain();
+  }
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   getInterface()->updateFlowPeriodicity(this);
@@ -4006,6 +4005,13 @@ void Flow::updateHTTP(ParsedFlow *zflow) {
     case 5: stats.incHTTPResp5xx(); break;
     }
   }
+}
+
+/* *************************************** */
+
+void Flow::updateSuspiciousDGADomain() {
+  if(hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && !suspicious_dga_domain)
+    suspicious_dga_domain = strdup(getFlowInfo(NULL, 0));
 }
 
 /* *************************************** */
