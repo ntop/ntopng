@@ -60,6 +60,7 @@ local time = os.time()
 -- initial epoch_begin is set as now - 30 minutes for historical, or as 1 week for engaged
 local epoch_begin = _GET["epoch_begin"] or time - (status ~= "engaged" and 1800 or 60 * 60 * 24 * 7)
 local epoch_end = _GET["epoch_end"] or time
+local time_range_query = "epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
 
 --------------------------------------------------------------
 
@@ -423,9 +424,9 @@ local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'})
 local extra_range_buttons = [[
     <div class='d-flex align-items-center me-1'>
         <div class="btn-group" id="statusSwitch" role="group">
-            <a href=']] .. base_url .. [[&status=historical&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "historical", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.past") .. [[</a>
-            <a href=']] .. base_url .. [[&status=acknowledged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "acknowledged", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.acknowledged") .. [[</a>
-            <a href=']] .. base_url .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "engaged", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. ternary(num_alerts_engaged_cur_entity > 0, string.format('<span class="badge rounded-pill bg-dark" style="float:right;margin-bottom:-10px;">%u</span>', num_alerts_engaged_cur_entity), "") .. [[</a>
+            <a href=']] .. base_url .. [[&]]..time_range_query .. [[&status=historical&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "historical", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.past") .. [[</a>
+            <a href=']] .. base_url .. [[&]]..time_range_query .. [[&status=acknowledged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "acknowledged", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.acknowledged") .. [[</a>
+            <a href=']] .. base_url .. [[&]]..time_range_query .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "engaged", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. ternary(num_alerts_engaged_cur_entity > 0, string.format('<span class="badge rounded-pill bg-dark" style="float:right;margin-bottom:-10px;">%u</span>', num_alerts_engaged_cur_entity), "") .. [[</a>
         </div>
     </div>
 ]]
