@@ -26,6 +26,12 @@ if isEmptyString(hostname) then
    return
 end
 
+if string.find(hostname, '://') then
+   -- Looks like an URI, strip the scheme
+   local uri_info = string.split(hostname, "://")
+   hostname = uri_info[2]
+end
+
 local resolved = ntop.resolveHost(hostname, true --[[ IPv4 --]])
 if not resolved then
    resolved = ntop.resolveHost(hostname, false --[[ IPv6 --]])

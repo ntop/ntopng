@@ -4169,7 +4169,7 @@ local lang = {
     ["email_notification_recipient_title"] = "Recipient",
     ["email_notification_sender_description"] = "The sender email address.",
     ["email_notification_sender_title"] = "Sender",
-    ["email_notification_server_description"] = "<b>NOTES</b>:<ul><li>GMail users need to specify <i>smtp.gmail.com</i> as SMTP Server.</li><li>GMail also requires the <a href=\"https://myaccount.google.com/lesssecureapps\">Access for less secure apps</a> to be enabled.</li></ul>",
+    ["email_notification_server_description"] = "<b>NOTES</b>:<ul><li>GMail users need to specify <i>smtps://smtp.gmail.com</i> as SMTP Server.</li><li>GMail also requires the <a href=\"https://myaccount.google.com/lesssecureapps\">Access for less secure apps</a> to be enabled.</li></ul>",
     ["email_notification_server_title"] = "SMTP Server",
     ["email_notification_username_description"] = "The SMTP server username for authentication (optional).",
     ["email_notification_username_title"] = "Username",
