@@ -576,7 +576,7 @@ if((page == "overview") or (page == nil)) then
       print("</td></tr>\n")
    end
 
-   if(host["observation_point_id"] ~= nil) then
+   if((host["observation_point_id"] ~= nil) and (host["observation_point_id"] ~= 0)) then
       print("<tr><th>"..i18n("details.observation_point_id").."</th>")
       print("<td colspan=\"2\">"..host["observation_point_id"].."</td></tr>")
    end
