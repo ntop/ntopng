@@ -1522,7 +1522,7 @@ else
       print("<tr><th width=30%><A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua\">"..i18n("flow_details.profile_name").."</A></th><td colspan=2><span class='badge bg-primary'>"..flow["profile"].."</span></td></tr>\n")
    end
 
-   if(flow.src_as or flow.dst_as) then
+   if(flow.src_as and flow.src_as ~= 0) or (flow.dst_as and flow.dst_as ~= 0) then
       local asn
       
       print("<tr>")
@@ -1587,6 +1587,7 @@ else
       info = removeProtocolFields("RTP",info)
 
       local snmpdevice = nil
+
       if(ntop.isPro() and not isEmptyString(syminfo["EXPORTER_IPV4_ADDRESS"])) then
 	 snmpdevice = syminfo["EXPORTER_IPV4_ADDRESS"]
       elseif(ntop.isPro() and not isEmptyString(syminfo["NPROBE_IPV4_ADDRESS"])) then

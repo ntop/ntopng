@@ -293,17 +293,12 @@ function handleCustomFlowField(key, value, snmpdevice)
       return(format_utils.formatValue(value))
    elseif key == 'EXPORTER_IPV4_ADDRESS' or
           key == 'NPROBE_IPV4_ADDRESS' then
-      local hinfo = hostkey2hostinfo(value)
-      local res = hostinfo2label(hinfo)
 
-      local ret = ip2detailshref(value, nil, nil, value)
-
-      if((res == "") or (res == nil)) and ret ~= ipaddr then
-	 ret = string.format("%s [%s]", ret, ipaddr)
-      elseif value ~= res then
-	 ret = string.format("%s [%s]", ret, res)
+      if ntop.isPro() then
+	 return("<A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/enterprise/flowdevice_details.lua?ip="..value.."\">"..value.."</A>")
+      else
+	 return(value)
       end
-      return(ret .. "</A>")
    elseif key == 'FLOW_USER_NAME' then
       elems = string.split(value, ';')
 
