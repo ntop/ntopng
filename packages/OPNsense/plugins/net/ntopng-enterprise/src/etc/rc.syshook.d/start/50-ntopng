@@ -1,4 +1,0 @@
-#!/bin/sh
-
-# start again to fix race with redis (no need to restart)
-/usr/local/etc/rc.d/ntopng start

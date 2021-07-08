@@ -1,3 +1,0 @@
-{% if helpers.exists('OPNsense.ntopng.license.licensekey') %}
-{{ OPNsense.ntopng.license.licensekey }}
-{% endif %}
