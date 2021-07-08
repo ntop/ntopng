@@ -118,6 +118,7 @@ interface.select(ifname)
 local ifs = interface.getStats()
 local is_pcap_dump = interface.isPcapDumpInterface()
 local is_packet_interface = interface.isPacketInterface()
+local is_viewed = ifs.isViewed
 ifId = ifs.id
 
 -- NOTE: see sidebar.js for the client logic
@@ -240,7 +241,7 @@ else
    page_utils.add_menubar_section(
       {
 	 section = page_utils.menu_sections.hosts,
-	 hidden = ifs.isViewed or is_system_interface,
+	 hidden = is_system_interface or is_viewed,
 	 entries = {
 	    {
 	       entry = page_utils.menu_entries.hosts,
@@ -309,7 +310,7 @@ else
   -- Maps
    page_utils.add_menubar_section({
       section = page_utils.menu_sections.maps,
-      hidden = is_system_interface,
+      hidden = is_system_interface or is_viewed,
       entries = {
          {
             entry = page_utils.menu_entries.service_map,
