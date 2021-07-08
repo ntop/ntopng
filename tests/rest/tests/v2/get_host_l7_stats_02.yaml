@@ -1,0 +1,9 @@
+input: test_01.pcap
+
+ignore:
+
+pre: |
+
+post: |
+  sleep 15
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "host" : "192.168.1.93", "breed": true}' http://localhost:3333/lua/rest/v1/get/host/l7/stats.lua

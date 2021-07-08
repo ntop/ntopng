@@ -1,0 +1,16 @@
+input: invalid_dns_query.pcap
+
+localnet: 192.168.2.0/24
+
+ignore:
+  - date
+  - duration
+  - tstamp
+  - label
+
+pre: |
+  curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "action": "enable"}' http://localhost:3333/lua/toggle_all_checks.lua
+  curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "check_subdir": "flow", "script_key": "unexpected_dns"}' http://localhost:3333/lua/rest/v1/disable/check.lua
+
+post: |
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0}' http://localhost:3333/lua/rest/v1/get/flow/alert/list.lua
