@@ -167,16 +167,18 @@ function alert_store:build_sql_cond(cond)
       if not isEmptyString(host["host"]) then
          if not host["vlan"] or host["vlan"] == 0 then
             if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
-               sql_cond = string.format("(%s %s '%s' OR %s %s '%s')",
-                  'cli_ip', sql_op, cond.value, 
+               sql_cond = string.format("(%s %s '%s' %s %s %s '%s')",
+                  'cli_ip', sql_op, cond.value,
+                  ternary(cond.op == 'neq', 'AND', 'OR'), 
                   'srv_ip', sql_op, cond.value)
             else
                sql_cond = string.format("%s %s '%s'", cond.field, sql_op, cond.value)
             end
          else
             if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
-               sql_cond = string.format("((%s %s '%s' OR %s %s '%s') %s vlan_id %s %u)",
+               sql_cond = string.format("((%s %s '%s' %s %s %s '%s') %s vlan_id %s %u)",
                   'cli_ip', sql_op, host["host"], 
+                  ternary(cond.op == 'neq', 'AND', 'OR'),
                   'srv_ip', sql_op, host["host"], 
                   ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
             else

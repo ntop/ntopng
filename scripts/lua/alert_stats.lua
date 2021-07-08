@@ -373,6 +373,7 @@ local defined_tags = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
         l7_proto  = operators_by_filter.l7_proto,
+        ip = operators_by_filter.ip,
         cli_ip = operators_by_filter.ip,
         srv_ip = operators_by_filter.ip,
 	cli_port = operators_by_filter.port,

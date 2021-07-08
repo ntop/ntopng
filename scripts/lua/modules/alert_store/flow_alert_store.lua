@@ -201,6 +201,7 @@ end
 
 --@brief Add filters according to what is specified inside the REST API
 function flow_alert_store:_add_additional_request_filters()
+   local ip = _GET["ip"]
    local cli_ip = _GET["cli_ip"]
    local srv_ip = _GET["srv_ip"]
    local cli_port = _GET["cli_port"]
@@ -209,6 +210,7 @@ function flow_alert_store:_add_additional_request_filters()
    local l7_proto = _GET["l7_proto"]
    local role = _GET["role"]
 
+   self:add_filter_condition_list('ip', ip)
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
    self:add_filter_condition_list('cli_ip', cli_ip)
    self:add_filter_condition_list('srv_ip', srv_ip)
@@ -225,6 +227,10 @@ end
 --@brief Get info about additional available filters
 function flow_alert_store:_get_additional_available_filters()
    local filters = {
+      ip = {
+         value_type = 'ip',
+	 i18n_label = i18n('tags.ip'),
+      },
       cli_ip = {
          value_type = 'ip',
 	 i18n_label = i18n('tags.cli_ip'),
