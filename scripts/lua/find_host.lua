@@ -242,7 +242,7 @@ end
 
 for ip,name in pairs(ip_to_name) do
    if string.contains(string.lower(name), string.lower(query)) then
-      res[ip] = hostVisualization(ip, name)
+      res[ip] = hostinfo2label({host = ip, name = name})
    end
 end
 
@@ -255,7 +255,7 @@ for k in pairs(mac_to_name) do
    local name = ntop.getCache(k)
 
    if not isEmptyString(name) and string.contains(string.lower(name), string.lower(query)) then
-      res[mac] = hostVisualization(mac, name)
+      res[mac] = hostinfo2label({host = mac, mac = mac, name = name})
    end
 end
 
