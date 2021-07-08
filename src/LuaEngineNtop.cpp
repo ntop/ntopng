@@ -1137,6 +1137,14 @@ static int ntop_time_to_refresh_ips_rules(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+static int ntop_ask_to_refresh_ips_rules(lua_State* vm) {
+
+  ntop->askToRefreshIPSRules();
+
+  lua_pushboolean(vm, true);
+  return(CONST_LUA_OK);
+}
+
 /* ****************************************** */
 
 static int ntop_zmq_connect(lua_State* vm) {
@@ -6205,8 +6213,9 @@ static luaL_Reg _ntop_reg[] = {
   { "zmq_disconnect",   ntop_zmq_disconnect },
   { "zmq_receive",      ntop_zmq_receive    },
   /* IPS */
-  { "broadcastIPSMessage",    ntop_brodcast_ips_message       },
-  { "timeToRefreshIPSRules",  ntop_time_to_refresh_ips_rules  },
+  { "broadcastIPSMessage",   ntop_brodcast_ips_message      },
+  { "timeToRefreshIPSRules", ntop_time_to_refresh_ips_rules },
+  { "askToRefreshIPSRules",  ntop_ask_to_refresh_ips_rules  },
 #endif
 
   { "reloadPreferences",   ntop_reload_preferences },
