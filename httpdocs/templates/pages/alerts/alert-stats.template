@@ -577,7 +577,7 @@
             const value = tmp.data('tagValue');
             const tagTitle = i18n.tags[key];
             
-            const tag = { label: tagTitle, key: key, value: label, realValue: value };
+            const tag = { label: tagTitle, key: key, value: label, realValue: value, title: value};
 
             addFilterTag(tag);
         }
