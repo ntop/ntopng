@@ -409,7 +409,7 @@ run_tests() {
 
 run_all_tests() {
     # Read tests
-    TESTS=`cd tests; /bin/ls *.yaml`
+    TESTS=`cd tests; /bin/ls {v1,v2}/*.yaml`
     run_tests "${TESTS}"
 }
 
