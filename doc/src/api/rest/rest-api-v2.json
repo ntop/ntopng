@@ -2822,7 +2822,7 @@
 				}
 			}
 		},
-		"/lua/rest/v1/get/system/stats.lua": {
+		"/lua/rest/v2/get/system/stats.lua": {
 			"get": {
 				"tags": [
 					"All"
