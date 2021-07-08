@@ -1312,32 +1312,6 @@ end
 
 -- #################################
 
-function hostVisualization(ip, name, vlan, short_version, short_name)
-   local res = ip
-
-   if not isEmptyString(name) then
-      res = name
-   end
-
-   if short_name and (short_name == true) then
-      res = shortenString(res)
-   end
-
-   if vlan ~= nil and tonumber(vlan) > 0 then
-      res = res .. "@" .. getFullVlanName(vlan, short_version)
-   end
-
-   if not isEmptyString(name) and ip ~= name then
-      if isIPv6(ip) then
-        res = res.." [IPv6]"
-      end
-   end
-
-   return res
-end
-
--- #################################
-
 -- This function actively resolves an host if there is not information about it.
 -- NOTE: prefer the host2name on this function
 function resolveAddress(hostinfo, allow_empty)
@@ -1358,7 +1332,7 @@ function resolveAddress(hostinfo, allow_empty)
          return hostinfo2label(hostinfo)
       end
    end
-   return hostVisualization(hostinfo["host"], hostname, hostinfo["vlan"])
+   return hostinfo2label(hostinfo)
 end
 
 -- #################################
