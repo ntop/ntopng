@@ -1375,14 +1375,7 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
     nindex_buttons += '<li><a class="dropdown-item" href="#" onclick="return onGraphMenuClick(null, 6)">6</a></li>';
     nindex_buttons += '</span></div>';
   }
-
-  nindex_buttons += '<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">';
-  nindex_buttons += "Explorer";
-  nindex_buttons += '<span class="caret"></span></button><ul class="dropdown-menu" role="menu">';
-  nindex_buttons += '<li><a class="dropdown-item" href="'+ http_prefix +'/lua/pro/nindex_topk.lua'+ nindex_query +'">Top-K</a></li>';
-  nindex_buttons += '<li><a class="dropdown-item" href="'+ http_prefix +'/lua/pro/nindex.lua'+ nindex_query +'">Flows</a></li>';
-  nindex_buttons += '</span></div>';
-
+  
   if(view.columns) {
     var url = http_prefix + (view.nindex_view ? "/lua/pro/get_nindex_flows.lua" : "/lua/pro/get_ts_table.lua");
 
@@ -1456,7 +1449,10 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
           $("table td:last-child, th:last-child", graph_table).remove();
 
         if(data && data.stats && data.stats.query_duration_msec) {
-           $("#flows-query-time").html(data.stats.query_duration_msec/1000.0);
+           let time_elapsed = data.stats.query_duration_msec/1000.0;
+           if(time_elapsed < 0.1)
+            time_elapsed = "< 0.1"
+           $("#flows-query-time").html(time_elapsed);
            $("#flows-processed-records").html(data.stats.num_records_processed);
            stats_div.show();
         } else
