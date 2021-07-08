@@ -112,18 +112,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local info_cli = interface.getHostMinInfo(value["cli.ip"], value["cli.vlan"])
    local info_srv = interface.getHostMinInfo(value["srv.ip"], value["srv.vlan"])
 
-   -- Retrieving first Alt Name then Name if no value is found then use ip
-   local srv_name = getHostAltName(value["srv.ip"])
-   
-   if isEmptyString(srv_name) then
-      srv_name = hostVisualization(value["srv.ip"], info_srv["name"], value["srv.vlan"])
-   end
-
-   local cli_name = getHostAltName(value["cli.ip"])
-
-   if isEmptyString(cli_name) then
-      cli_name = hostVisualization(value["cli.ip"], info_cli["name"], value["cli.vlan"])
-   end
+   -- Print labels. VLAN is not printed in the label as there is a dedicated column that already carries this information
+   local srv_name = hostinfo2label(flow2hostinfo(value, "cli"))
+   local cli_name = hostinfo2label(flow2hostinfo(value, "srv"))
 
    local src_port, dst_port = '', ''
    local src_process, dst_process = '', ''
