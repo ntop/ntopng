@@ -1,5 +1,5 @@
 --
--- (C) 2013-21 - ntop.org
+-- (C) 2013-20 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -17,7 +17,6 @@ local callback_utils = require("callback_utils")
 local recording_utils = require("recording_utils")
 local alert_consts = require("alert_consts")
 local rest_utils = require("rest_utils")
-local auth = require "auth"
 
 --
 -- Read information about an interface
@@ -107,20 +106,16 @@ function dumpInterfaceStats(ifid)
          res["flow_export_count"]  = ifstats.stats_since_reset.flow_export_count
       end
 
-      if auth.has_capability(auth.capabilities.alerts) then
+      if prefs.are_alerts_enabled == true then
          res["engaged_alerts"]     = ifstats["num_alerts_engaged"] or 0
          res["dropped_alerts"]     = ifstats["num_dropped_alerts"] or 0
-	 res["host_dropped_alerts"]  = ifstats["num_host_dropped_alerts"] or 0
-	 res["flow_dropped_alerts"]  = ifstats["num_flow_dropped_alerts"] or 0
-	 res["other_dropped_alerts"] = ifstats["num_other_dropped_alerts"] or 0
+	 res["alerted_flows"]      = ifstats["num_alerted_flows"] or 0
+         res["has_alerts"]         = ifstats["has_alerts"]
+         res["ts_alerts"] = {}
 
-	 -- Active flow alerts: total
-	 res["alerted_flows"]         = ifstats["num_alerted_flows"] or 0
-
-	 -- Active flow alerts: breakdown
-	 res["alerted_flows_notice"]  = ifstats["num_alerted_flows_notice"]  or 0
-	 res["alerted_flows_warning"] = ifstats["num_alerted_flows_warning"] or 0
-	 res["alerted_flows_error"]   = ifstats["num_alerted_flows_error"]   or 0
+         if ts_utils.getDriverName() == "influxdb" and plugins_utils.hasAlerts(getSystemInterfaceId(), {entity = alert_consts.alertEntity("influx_db")}) then
+            res["ts_alerts"]["influxdb"] = true
+         end
       end
 
       if periodic_activities_utils.have_degraded_performance() then
@@ -167,9 +162,6 @@ function dumpInterfaceStats(ifid)
       res["packets_upload"] = ifstats["eth"]["egress"]["packets"]
       res["packets_download"] = ifstats["eth"]["ingress"]["packets"]
 
-      res["num_local_hosts_anomalies"] = ifstats.anomalies.num_local_hosts_anomalies
-      res["num_remote_hosts_anomalies"] = ifstats.anomalies.num_remote_hosts_anomalies
-      
       local ingress_thpt = ifstats["eth"]["ingress"]["throughput"]
       local egress_thpt  = ifstats["eth"]["egress"]["throughput"]
       res["throughput"] = {
@@ -199,36 +191,20 @@ function dumpInterfaceStats(ifid)
 
          res["zmqRecvStats"] = {}
          res["zmqRecvStats"]["flows"] = ifstats.zmqRecvStats.flows
-         res["zmqRecvStats"]["dropped_flows"] = ifstats.zmqRecvStats.dropped_flows
 	 res["zmqRecvStats"]["events"] = ifstats.zmqRecvStats.events
 	 res["zmqRecvStats"]["counters"] = ifstats.zmqRecvStats.counters
 	 res["zmqRecvStats"]["zmq_msg_rcvd"] = ifstats.zmqRecvStats.zmq_msg_rcvd
 	 res["zmqRecvStats"]["zmq_msg_drops"] = ifstats.zmqRecvStats.zmq_msg_drops
-	 res["zmqRecvStats"]["zmq_avg_msg_flows"] = math.max(1, ifstats.zmqRecvStats.flows / (ifstats.zmqRecvStats.zmq_msg_rcvd + 1))
+	 res["zmqRecvStats"]["zmq_avg_msg_flows"] = math.max(1, ifstats.zmqRecvStats.flows / (ifstats.zmqRecvStats.zmq_msg_rcvd + 1)) 
 
 	 res["zmq.num_flow_exports"] = ifstats["zmq.num_flow_exports"] or 0
          res["zmq.num_exporters"] = ifstats["zmq.num_exporters"] or 0
-
-	 res["zmq.drops.export_queue_full"] = ifstats["zmq.drops.export_queue_full"] or 0
-	 res["zmq.drops.flow_collection_drops"] = ifstats["zmq.drops.flow_collection_drops"] or 0
-	 res["zmq.drops.flow_collection_udp_socket_drops"] = ifstats["zmq.drops.flow_collection_udp_socket_drops"] or 0
       end
 
       res["tcpPacketStats"] = {}
       res["tcpPacketStats"]["retransmissions"] = ifstats.tcpPacketStats.retransmissions
       res["tcpPacketStats"]["out_of_order"]    = ifstats.tcpPacketStats.out_of_order
       res["tcpPacketStats"]["lost"]            = ifstats.tcpPacketStats.lost
-
-      if interface.isSyslogInterface() then
-        res["syslog"] = {}
-        res["syslog"]["tot_events"] = ifstats.syslog.tot_events
-        res["syslog"]["malformed"] = ifstats.syslog.malformed
-        res["syslog"]["dispatched"] = ifstats.syslog.dispatched
-        res["syslog"]["unhandled"] = ifstats.syslog.unhandled
-        res["syslog"]["alerts"] = ifstats.syslog.alerts
-        res["syslog"]["host_correlations"] = ifstats.syslog.host_correlations
-        res["syslog"]["flows"] = ifstats.syslog.flows
-      end
 
       if(ifstats["profiles"] ~= nil) then
          res["profiles"] = ifstats["profiles"]
