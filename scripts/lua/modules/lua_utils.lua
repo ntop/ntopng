@@ -2090,7 +2090,6 @@ function getFullVlanName(vlan_id)
       alias = shortenString(alias)
 
       if not isEmptyString(alias) and alias ~= tostring(vlan_id) then
-	 tprint(alias)
 	 return string.format("%u [%s]", vlan_id, alias)
       end
    end
