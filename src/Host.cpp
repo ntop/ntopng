@@ -820,8 +820,16 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 				      force_resolution_if_not_found);
   }
 
-  if(rc == 0 && strcmp(addr, name_buf))
+  if(rc == 0 && strcmp(addr, name_buf)) {
+    char c;
+    int i = 0;
+    while(name_buf[i]) {
+      c=name_buf[i];
+      name_buf[i] = tolower(c);
+      i++;
+    }
     setResolvedName(name_buf);
+  }
   else
     addr = ip.print(name_buf, sizeof(name_buf));
 
