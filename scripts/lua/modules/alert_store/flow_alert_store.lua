@@ -416,7 +416,7 @@ function flow_alert_store:format_record(value, no_html)
       reference = reference_html
    }
 
-   flow_cli_ip["label"] = shortenString(hostVisualization(value["cli_ip"], value["cli_name"], value["vlan_id"], true))
+   flow_cli_ip["label"] = hostVisualization(value["cli_ip"], value["cli_name"], value["vlan_id"], true, true)
 
    -- Format Server
  
@@ -434,7 +434,7 @@ function flow_alert_store:format_record(value, no_html)
       reference = reference_html
    }
 
-   flow_srv_ip["label"] = shortenString(hostVisualization(value["srv_ip"], value["srv_name"], value["vlan_id"], true))
+   flow_srv_ip["label"] = hostVisualization(value["srv_ip"], value["srv_name"], value["vlan_id"], true, true)
    
    local flow_cli_port = value["cli_port"]
    local flow_srv_port = value["srv_port"]

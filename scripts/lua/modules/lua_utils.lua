@@ -1312,11 +1312,15 @@ end
 
 -- #################################
 
-function hostVisualization(ip, name, vlan, short_version)
+function hostVisualization(ip, name, vlan, short_version, short_name)
    local res = ip
 
    if not isEmptyString(name) then
       res = name
+   end
+
+   if short_name and (short_name == true) then
+      res = shortenString(res)
    end
 
    if vlan ~= nil and tonumber(vlan) > 0 then
