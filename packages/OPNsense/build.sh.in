@@ -2,6 +2,21 @@
 
 PWD=`pwd`
 
+########
+
+if ! test -d opnsense; then
+    git clone https://github.com/ntop/opnsense.git
+else
+    cd opnsense; git pull --rebase; cd ..
+fi
+
+if test -d $PWD/plugins; then
+    rm -r $PWD/plugins
+fi
+cp -r $PWD/opnsense/ntopng/plugins .
+
+########
+
 STAGEDIR=${PWD}/stage
 rm -rf ${STAGEDIR}
 mkdir -p ${STAGEDIR}
