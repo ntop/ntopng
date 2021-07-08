@@ -3542,6 +3542,43 @@
 				}
 			}
 		},
+		"lua/rest/v1/get/ntopng/session.lua": {
+			"post": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Create a new ntopng user session Cookie (same as create/ntopng/session.lua)",
+				"description": "Generate a new user session to be used as session Cookie",
+				"operationId": "create_ntopng_session",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "username",
+						"in": "formData",
+						"description": "Username",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "auth_session_duration",
+						"in": "formData",
+						"description": "Session duration (seconds). Default: 0 (no expiration).",
+						"required": false,
+						"type": "integer"
+					}
+				],
+				"responses": {
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					}
+				}
+			}
+		},
 		"/lua/pro/rest/v1/get/infrastructure/instance.lua": {
 			"get": {
 				"tags": [
