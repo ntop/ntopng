@@ -1604,8 +1604,12 @@ end
 local function  add_vlan_to_alt_name(alt_name, host_info, show_vlan)
    -- Adding the vlan if requested
    if show_vlan then
-      if host_info["vlan"] ~= 0 then
-	 alt_name = alt_name .. "@".. host_info["vlan"]
+      local vlan = tonumber(host_info["vlan"])
+
+      if vlan and vlan > 0 then
+	 local full_vlan_name = getFullVlanName(vlan)
+
+	 alt_name = string.format("%s@%s", alt_name, full_vlan_name)
       end
    end
 
@@ -1624,49 +1628,50 @@ end
 function hostinfo2label(host_info, show_vlan)
    local alt_name = nil
    local ip = host_info["ip"] or host_info["host"]
+   local res
 
    -- If local broadcast domain host and DHCP, try to get the label associated
    -- to the MAC address
    if host_info["mac"] and (host_info["broadcast_domain_host"] or host_info["dhcpHost"]) then
-      alt_name = getHostAltName(host_info["mac"])
+      res = getHostAltName(host_info["mac"])
+   end
 
-      if not isEmptyString(alt_name) then
-	 -- Adding the vlan if requested
-	 return add_vlan_to_alt_name(alt_name, host_info, show_vlan)
+   if isEmptyString(res) then
+      -- Take the label as found in the host structure
+      res = host_info.label
+
+      if isEmptyString(res) then
+	 -- Use any user-configured custom name
+	 res = getHostAltName(ip)
+
+	 if isEmptyString(res) then
+	    -- Read what is found inside host `name`, e.g., name as found by dissected traffic such as DHCP
+	    res = host_info["name"]
+
+	    if isEmptyString(res) then
+	       -- Try and get the resolved name
+	       res = ntop.getResolvedName(ip)
+
+	       if isEmptyString(res) then
+		  -- Nothing found, just fallback to the IP address
+		  res = ip
+	       end
+	    end
+	 end
       end
    end
 
-   if(host_info.label ~= nil) then
-     alt_name = host_info.label
-   else
-     alt_name = getHostAltName(ip)
-   end
-   
-   if not isEmptyString(alt_name) then
-      alt_name = add_vlan_to_alt_name(alt_name, host_info, show_vlan)
-      
-      if isIPv6(ip) == true then
-	 alt_name = alt_name .. " [IPv6]"
+   if not isEmptyString(res) then
+      -- Make it shorter
+      res = shortenString(res)
+
+      -- Add the ipv6 suffix
+      if isIPv6(ip) then
+	 res = res .. " [v6]"
       end
 
-      -- Adding the vlan if requested
-      return alt_name
-   end
-
-   -- Name info from C (e.g. DHCP name)
-   if not isEmptyString(host_info["name"]) then
-      return add_vlan_to_alt_name(host_info["name"], host_info, show_vlan)      
-   end
-
-   -- Try to get the resolved name
-   local hostname = ntop.getResolvedName(ip)
-   local rname = ""
-   if not isEmptyString(hostname) then
-      rname = hostVisualization(hostname, hostname, host_info["vlan"])
-   end
-
-   if not isEmptyString(rname) then
-      return rname
+      -- Add the VLAN
+      return add_vlan_to_alt_name(res, host_info, show_vlan)
    end
 
    -- Fallback: just the IP and VLAN
@@ -2063,7 +2068,7 @@ function getVlanAlias(vlan_id)
       return alias
    end
 
-   return vlan_id
+   return tostring(vlan_id)
 end
 
 -- ##############################################
@@ -2078,14 +2083,15 @@ end
 
 -- ##############################################
 
-function getFullVlanName(vlan_id, short_version)
+function getFullVlanName(vlan_id)
    local alias = getVlanAlias(vlan_id)
 
-   if (tostring(alias)) ~= (tostring(vlan_id)) then
-      if not short_version then
-         return string.format("%s [%s]", alias, vlan_id)
-      else
-         return alias
+   if not isEmptyString(alias) then
+      alias = shortenString(alias)
+
+      if not isEmptyString(alias) and alias ~= tostring(vlan_id) then
+	 tprint(alias)
+	 return string.format("%u [%s]", vlan_id, alias)
       end
    end
 

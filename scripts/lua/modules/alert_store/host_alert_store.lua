@@ -159,6 +159,11 @@ function host_alert_store:get_rnames()
    return RNAME
 end
 
+--@brief Convert an alert coming from the DB (value) to an host_info table
+function host_alert_store:_alert2hostinfo(value)
+   return {ip = value["ip"], vlan = value["vlan_id"], name = value["name"]}
+end
+
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function host_alert_store:format_record(value, no_html)
    local href_icon = "<i class='fas fa-laptop'></i>"
@@ -183,7 +188,7 @@ function host_alert_store:format_record(value, no_html)
    }
 
    -- Checking that the name of the host is not empty
-   record[RNAME.IP.name]["label"] = hostVisualization(value["ip"], value["name"], value["vlan_id"], true, true)
+   record[RNAME.IP.name]["label"] = hostinfo2label(self:_alert2hostinfo(value), true --[[ Show VLAN --]])
 
    record[RNAME.IP.name]["shown_label"] = record[RNAME.IP.name]["label"]
    record[RNAME.IS_VICTIM.name] = ""

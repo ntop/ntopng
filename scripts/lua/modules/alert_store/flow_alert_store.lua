@@ -267,9 +267,26 @@ local RNAME = {
    L7_PROTO = { name = "l7_proto", export = true},
 }
 
+-- ##############################################
+
 function flow_alert_store:get_rnames()
    return RNAME
 end
+
+-- ##############################################
+
+--@brief Convert an alert coming from the DB (value) to an host_info table, either for the client or for the server
+--@param value The alert as read from the database
+--@param as_client A boolean indicating whether the hostinfo should be build for the client or for the server
+function flow_alert_store:_alert2hostinfo(value, as_client)
+   if as_client then
+      return {ip = value["cli_ip"], vlan = value["vlan_id"], name = value["cli_name"]}
+   else
+      return {ip = value["srv_ip"], vlan = value["vlan_id"], name = value["srv_name"]}
+   end
+end
+
+-- ##############################################
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function flow_alert_store:format_record(value, no_html)
@@ -416,7 +433,7 @@ function flow_alert_store:format_record(value, no_html)
       reference = reference_html
    }
 
-   flow_cli_ip["label"] = hostVisualization(value["cli_ip"], value["cli_name"], value["vlan_id"], true, true)
+   flow_cli_ip["label"] = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), true --[[ Show VLAN --]])
 
    -- Format Server
  
@@ -434,7 +451,7 @@ function flow_alert_store:format_record(value, no_html)
       reference = reference_html
    }
 
-   flow_srv_ip["label"] = hostVisualization(value["srv_ip"], value["srv_name"], value["vlan_id"], true, true)
+   flow_srv_ip["label"] = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), true --[[ Show VLAN --]])
    
    local flow_cli_port = value["cli_port"]
    local flow_srv_port = value["srv_port"]
