@@ -19,7 +19,7 @@ print [[
   delete_user_alert.warning = function(message) { $('#delete_user_alert_placeholder').html('<div class="alert alert-warning">' + message + '</div>'); }
 </script>
 
-  <form id="form_delete_user" class="form-horizontal" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/rest/v1/delete/ntopng/user.lua">
+  <form id="form_delete_user" class="form-horizontal" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/rest/v2/delete/ntopng/user.lua">
 			      ]]
 print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 

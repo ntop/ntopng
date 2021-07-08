@@ -803,7 +803,7 @@
         const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
             method: 'post',
             csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}/lua/rest/v1/edit/check/filter.lua`,
+            endpoint: `${http_prefix}/lua/rest/v2/edit/check/filter.lua`,
             beforeSumbit: function (alert) {
 
                 const data = {
@@ -909,7 +909,7 @@
         const $releaseAlertModal = $('#release_single_alert form').modalHandler({
             method: 'post',
             csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}/lua/rest/v1/release/{{ alert_stats.entity }}/alerts.lua`,
+            endpoint: `${http_prefix}/lua/rest/v2/release/{{ alert_stats.entity }}/alerts.lua`,
             beforeSumbit: function (alert) {
                 return {
                     ifid: "{{ ifid }}",
@@ -1052,7 +1052,7 @@
             let entity = "{{ alert_stats.entity }}"
             entity = entity.replace("_", "/")
             let params = (new URLSearchParams(datasourceParams)).toString();
-            $.getJSON(`pro/rest/v1/get/${entity}/alert/general_stats.lua?${params}`,function (data) {
+            $.getJSON(`pro/rest/v2/get/${entity}/alert/general_stats.lua?${params}`,function (data) {
 
                 let chartBox = $('#ChartDiv')
                 let divBox = [$('#CardDiv1'),$('#CardDiv2')];

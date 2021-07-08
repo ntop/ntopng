@@ -108,7 +108,7 @@ script = {
       input_description = i18n("unexpected_new_device.description"),
 
       input_action_i18n = "Reset Learned Devices",
-      input_action_url = "lua/rest/v1/delete/host/new_devices.lua",
+      input_action_url = "lua/rest/v2/delete/host/new_devices.lua",
       input_action_confirm = true,
       input_action_i18n_confirm = "Are you sure to reset the learned devices?",
    },

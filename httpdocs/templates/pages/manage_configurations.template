@@ -27,7 +27,7 @@
                     <i class='fas fa-file-import'></i>
                     <span>{{ i18n("import") }}</span>
                 </button>
-                <a id="btn-export" download="{{ manage_configurations.selected_item }}_config.json" class="btn btn-primary" href="{{ ntop.getHttpPrefix() }}/lua/rest/v1/export/{{ manage_configurations.selected_item }}/config.lua?download=1">
+                <a id="btn-export" download="{{ manage_configurations.selected_item }}_config.json" class="btn btn-primary" href="{{ ntop.getHttpPrefix() }}/lua/rest/v2/export/{{ manage_configurations.selected_item }}/config.lua?download=1">
                     <i class='fas fa-file-export'></i>
                     <span>{{ i18n("export") }}</span>
                 </a>

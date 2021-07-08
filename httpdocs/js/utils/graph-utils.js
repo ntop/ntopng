@@ -411,7 +411,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   var max_interval = findActualStep(step, params.epoch_begin) * 8;
   var initial_interval = (params.epoch_end - params.epoch_begin);
   var is_max_zoom = (initial_interval <= max_interval);
-  var url = http_prefix + "/lua/rest/v1/get/timeseries/ts.lua";
+  var url = http_prefix + "/lua/rest/v2/get/timeseries/ts.lua";
   var first_load = true;
   var first_time_loaded = true;
   var manual_trigger_extra_series = {}; // keeps track of series manually shown/hidden by the user

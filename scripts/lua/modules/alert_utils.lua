@@ -204,7 +204,7 @@ function alert_utils.drawAlertPCAPDownloadDialog(ifid)
 
    function submitPcapDownload(form) {
      var frm = $('#'+form.id);
-     window.open(']] print(ntop.getHttpPrefix()) print [[/lua/rest/v1/get/pcap/live_extraction.lua?' + frm.serialize(), '_self', false);
+     window.open(']] print(ntop.getHttpPrefix()) print [[/lua/rest/v2/get/pcap/live_extraction.lua?' + frm.serialize(), '_self', false);
      $('#]] print(modalID) print [[').modal('hide');
      return false;
    }

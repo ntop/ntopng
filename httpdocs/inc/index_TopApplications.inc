@@ -8,6 +8,6 @@
 window.onload = () => {
    //interface.getStats()
    let refresh = 3000 /* ms */;
-   do_pie("#topApplicationProtocols", '@HTTP_PREFIX@/lua/rest/v1/get/interface/l7/stats.lua', { ndpistats_mode: "sinceStartup", ifid: interfaceID}, "", refresh);
+   do_pie("#topApplicationProtocols", '@HTTP_PREFIX@/lua/rest/v2/get/interface/l7/stats.lua', { ndpistats_mode: "sinceStartup", ifid: interfaceID}, "", refresh);
 }
 </script>

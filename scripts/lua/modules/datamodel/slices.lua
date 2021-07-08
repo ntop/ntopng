@@ -21,7 +21,7 @@ local slices = classes.class()
 -- ##############################################
 
 -- This is the base REST prefix for all the available datasources
-slices.BASE_REST_PREFIX = "/lua/rest/v1/get/datasource/"
+slices.BASE_REST_PREFIX = "/lua/rest/v2/get/datasource/"
 
 -- ##############################################
 

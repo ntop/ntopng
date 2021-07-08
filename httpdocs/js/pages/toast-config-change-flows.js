@@ -11,7 +11,7 @@ const toastConfigFlowChanges = function() {
 	type: 'POST',
 	contentType: "application/json",
 	dataType: "json",
-	url: `${http_prefix}/lua/rest/v1/edit/ntopng/incr_flows.lua`, /* TODO: Change */
+	url: `${http_prefix}/lua/rest/v2/edit/ntopng/incr_flows.lua`, /* TODO: Change */
 	data: JSON.stringify({
 	    csrf: toastCSRF,
 	}),

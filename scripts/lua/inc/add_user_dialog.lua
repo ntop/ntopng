@@ -14,7 +14,7 @@ print [[
 	<h5 class='modal-title' id="add_user_dialog_label">]]print(add_user_msg)print[[</h5>
   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form data-bs-toggle="validator" id="form_add_user" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/rest/v1/add/ntopng/user.lua" accept-charset="UTF-8">
+      <form data-bs-toggle="validator" id="form_add_user" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/rest/v2/add/ntopng/user.lua" accept-charset="UTF-8">
 <div class="modal-body">
 
   <div id="add_user_alert_placeholder"></div>

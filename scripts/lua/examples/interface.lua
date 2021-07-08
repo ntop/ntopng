@@ -202,7 +202,7 @@ if(showjson ~= nil) then
     else
       host_info = hosts_json[key]["mac"]
     end
-    print('<li><a href="/lua/rest/v1/get/host/data.lua?host=' .. host_info..'&vlan='..hosts_json[key]["vlan"]..'" target="_blank"> All information</a>')
+    print('<li><a href="/lua/rest/v2/get/host/data.lua?host=' .. host_info..'&vlan='..hosts_json[key]["vlan"]..'" target="_blank"> All information</a>')
     print('<li><a href="/lua/get_host_activitymap.lua?host=' .. key..'" target="_blank"> Only Activity Map </a>')
     print('</ul>')
   end

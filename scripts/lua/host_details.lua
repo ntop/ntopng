@@ -923,7 +923,7 @@ end
    print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td")
    local show_live_capture = ntop.isPcapDownloadAllowed()
    if(not show_live_capture) then print(" colspan=2") end
-   print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/v1/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
+   print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/v2/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
    print [[<td>]]
    if (show_live_capture and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
       local live_traffic_utils = require("live_traffic_utils")
@@ -1024,9 +1024,9 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
 
       <script type='text/javascript'>
         window.onload=function() {
-          do_pie("#dscpPrecedenceSent", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v1/get/host/dscp/stats.lua', { direction: "sent", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+          do_pie("#dscpPrecedenceSent", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v2/get/host/dscp/stats.lua', { direction: "sent", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
       print [[
-	  do_pie("#dscpPrecedenceReceived", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v1/get/host/dscp/stats.lua', { direction: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+	  do_pie("#dscpPrecedenceReceived", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v2/get/host/dscp/stats.lua', { direction: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
       print [[
 	}
       </script>
@@ -1410,15 +1410,15 @@ elseif((page == "ndpi")) then
 
       print[[ do_pie("#topApplicationProtocols", ']]
       print (ntop.getHttpPrefix())
-   print [[/lua/rest/v1/get/host/l7/stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
+   print [[/lua/rest/v2/get/host/l7/stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 
 				   do_pie("#topApplicationCategories", ']]
       print (ntop.getHttpPrefix())
-      print [[/lua/rest/v1/get/host/l7/stats.lua', { ndpi_category: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
+      print [[/lua/rest/v2/get/host/l7/stats.lua', { ndpi_category: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 
 				   do_pie("#topApplicationBreeds", ']]
       print (ntop.getHttpPrefix())
-      print [[/lua/rest/v1/get/host/l7/stats.lua', { breed: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
+      print [[/lua/rest/v2/get/host/l7/stats.lua', { breed: "true", ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 
 
 				}
@@ -1567,7 +1567,7 @@ elseif(page == "dns") then
    end
 elseif(page == "tls") then
    local fingerprint_type = 'ja3'
-   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/get/host/fingerprint/data.lua?fingerprint_type=%s&ifid=%s&host=%s", fingerprint_type, ifId, host_ip)
+   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v2/get/host/fingerprint/data.lua?fingerprint_type=%s&ifid=%s&host=%s", fingerprint_type, ifId, host_ip)
    local context = {
       json = json,
       template = template,
@@ -1580,7 +1580,7 @@ print(template.gen("pages/ja3_fingerprint.template", context))
 
 elseif(page == "ssh") then
    local fingerprint_type = 'hassh'
-   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/get/host/fingerprint/data.lua?fingerprint_type=%s&ifid=%s&host=%s", fingerprint_type, ifId, host_ip)
+   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v2/get/host/fingerprint/data.lua?fingerprint_type=%s&ifid=%s&host=%s", fingerprint_type, ifId, host_ip)
    local context = {
       json = json,
       template = template,
@@ -1665,7 +1665,7 @@ elseif(page == "sites") then
       print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
 
    elseif table.len(sites_granularities) > 0 then
-      local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/pro/rest/v1/get/host/top/local/sites.lua?ifid=%s&host=%s&vlan=%s", ifId, host_ip, host_vlan)
+      local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/host/top/local/sites.lua?ifid=%s&host=%s&vlan=%s", ifId, host_ip, host_vlan)
       local context = {
          json = json,
          template = template,

@@ -435,7 +435,7 @@ $(function () {
 
         try {
 
-            const response = await fetch(`${http_prefix}/lua/rest/v1/get/recipient/pools.lua?recipient_id=${recipient_id}`);
+            const response = await fetch(`${http_prefix}/lua/rest/v2/get/recipient/pools.lua?recipient_id=${recipient_id}`);
             const { rsp } = await response.json();
 
             // if there are no pools for the selected recipient shows a message

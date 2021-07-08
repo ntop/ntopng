@@ -304,7 +304,7 @@ $(function () {
 
         try {
 
-            const response = await NtopUtils.fetchWithTimeout(`${http_prefix}/lua/rest/v1/delete/endpoints.lua`);
+            const response = await NtopUtils.fetchWithTimeout(`${http_prefix}/lua/rest/v2/delete/endpoints.lua`);
             const result = await response.json();
             if (result.rc == 0) {
                 $endpointsTable.ajax.reload();

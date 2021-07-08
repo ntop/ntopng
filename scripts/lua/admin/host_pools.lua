@@ -376,7 +376,7 @@ print[[
       </form>
 
       <div style="float:left">
-	<form action="/lua/rest/v1/get/pool/config.lua" class="form-inline" method="GET" data-ays-ignore="true">
+	<form action="/lua/rest/v2/get/pool/config.lua" class="form-inline" method="GET" data-ays-ignore="true">
 	  <input type="hidden" name="ifid" value="]] print(tostring(ifId)) print[[" />
 	  <input type="hidden" name="download" value="true" />
 	  <button type="submit" class="btn btn-secondary"><span>]] print(i18n("host_pools.config_export")) print[[</span></button>
@@ -519,7 +519,7 @@ print[[
 			$button.removeAttr("disabled");
 		    } else {
 			// Submit configuration file
-			$.post(`${http_prefix}/lua/rest/v1/set/pool/config.lua`, {
+			$.post(`${http_prefix}/lua/rest/v2/set/pool/config.lua`, {
 			    csrf: import_csrf,
 			    JSON: JSON.stringify(json_conf)
 			})

@@ -67,7 +67,7 @@ $(function () {
     }
 
     let dtConfig = DataTableUtils.getStdDatatableConfig(buttonArray());
-    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/rest/v1/get/host/pool/members.lua?pool=${queryPoolId}`, `rsp`);
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/rest/v2/get/host/pool/members.lua?pool=${queryPoolId}`, `rsp`);
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         stateSave: true,
         hasFilters: true,
@@ -161,7 +161,7 @@ $(function () {
         reader.readAsText(inputFilename, "UTF-8");
 
         reader.onload = (function() {
-            const req = $.post(`${http_prefix}/lua/rest/v1/import/pool/host_pool/members.lua`, {csrf: importCsrf, pool: selectedPool.id, host_pool_members: reader.result});
+            const req = $.post(`${http_prefix}/lua/rest/v2/import/pool/host_pool/members.lua`, {csrf: importCsrf, pool: selectedPool.id, host_pool_members: reader.result});
             req.then(function(response) {
 
                 if (response.rc < 0) {
@@ -188,7 +188,7 @@ $(function () {
         method: 'post',
         csrf: addCsrf,
         resetAfterSubmit: false,
-        endpoint: `${http_prefix}/lua/rest/v1/bind/host/pool/member.lua`,
+        endpoint: `${http_prefix}/lua/rest/v2/bind/host/pool/member.lua`,
         onModalShow: function () {
             // hide the fields and select default type entry
             const macAndNetworkFields = "#add-member-modal .mac-fields, #add-member-modal .network-fields";
@@ -259,7 +259,7 @@ $(function () {
     const $removeModalHandler = $(`#remove-member-host-pool form`).modalHandler({
         method: 'post',
         csrf: removeCsrf,
-        endpoint: `${http_prefix}/lua/rest/v1/bind/host/pool/member.lua`,
+        endpoint: `${http_prefix}/lua/rest/v2/bind/host/pool/member.lua`,
         onModalShow: function () {
             $(`#remove-modal-feedback`).hide();
         },

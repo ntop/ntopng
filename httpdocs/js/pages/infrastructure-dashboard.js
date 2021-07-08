@@ -2,7 +2,7 @@ $(function() {
 
     const testAuthentication = async (remoteUrl, token) => {
         
-        const response = await fetch(`${http_prefix}/lua/pro/rest/v1/check/infrastructure/config.lua`, {
+        const response = await fetch(`${http_prefix}/lua/pro/rest/v2/check/infrastructure/config.lua`, {
             method: 'post',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({token: token, url: remoteUrl, csrf: pageCsrf})
@@ -30,7 +30,7 @@ $(function() {
             action: () => { reloadTable(); }
         }
     ]);
-    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/rest/v1/get/infrastructure/instance.lua?stats=true`, 'rsp');
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/rest/v2/get/infrastructure/instance.lua?stats=true`, 'rsp');
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         columns: [
             /* Alias Column */
@@ -122,7 +122,7 @@ $(function() {
      /* bind add endpoint event */
      $(`#add-instance-modal form`).modalHandler({
         method: 'post',
-        endpoint: `${http_prefix}/lua/rest/v1/add/infrastructure/instance.lua`,
+        endpoint: `${http_prefix}/lua/rest/v2/add/infrastructure/instance.lua`,
         csrf: pageCsrf,
         resetAfterSubmit: false,
         beforeSumbit: () => {
@@ -150,7 +150,7 @@ $(function() {
     const $editInstanceModal = $(`#edit-instance-modal form`).modalHandler({
         method: 'post',
         csrf: pageCsrf,
-        endpoint: `${http_prefix}/lua/rest/v1/edit/infrastructure/instance.lua`,
+        endpoint: `${http_prefix}/lua/rest/v2/edit/infrastructure/instance.lua`,
         dontDisableSubmit: true,
         onModalInit: (instance) => {
             $(`#edit-instance-modal form input`).each(function() {
@@ -189,7 +189,7 @@ $(function() {
     const $removeInstanceModal = $(`#remove-instance-modal form`).modalHandler({
         method: 'post',
         csrf: pageCsrf,
-        endpoint: `${http_prefix}/lua/rest/v1/delete/infrastructure/instance.lua`,
+        endpoint: `${http_prefix}/lua/rest/v2/delete/infrastructure/instance.lua`,
         dontDisableSubmit: true,
         onModalInit: (instance) => {
             $(`.remove-instance-name`).text(`${instance.alias}`);

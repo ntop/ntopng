@@ -217,7 +217,7 @@ let updatingChart_totals = [
 const footerRefresh = function() {
     $.ajax({
       type: 'GET',
-	  url: ']]print (ntop.getHttpPrefix()) print [[/lua/rest/v1/get/interface/data.lua',
+	  url: ']]print (ntop.getHttpPrefix()) print [[/lua/rest/v2/get/interface/data.lua',
 	  data: { ifid: ]] print(tostring(ifid)) print[[ },
 	  success: function(content) {
           if(content["rc_str"] != "OK") {

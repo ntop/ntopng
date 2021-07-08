@@ -248,7 +248,7 @@ print [[
     $(`#btn-generate_token`).click(async function(e) {
 
       const user = $(`#input-username`).val() || loggedUser;
-      const response = await fetch(`${http_prefix}/lua/rest/v1/create/ntopng/api_token.lua`, {
+      const response = await fetch(`${http_prefix}/lua/rest/v2/create/ntopng/api_token.lua`, {
         method: 'POST',
         body: JSON.stringify({username: user, csrf: ']] print(ntop.getRandomCSRFValue()) print [['}),
         headers: {

@@ -9,7 +9,7 @@ $(function () {
     const systemAlertsStatsrefresh = function() {
 	$.ajax({
 	    type: 'GET',
-	    url: `${http_prefix}/lua/rest/v1/get/system/stats.lua`,
+	    url: `${http_prefix}/lua/rest/v2/get/system/stats.lua`,
 	    success: function(content) {
 		if(content["rc_str"] != "OK") {
 		    return;

@@ -14,7 +14,7 @@ local widget_gui_utils = require("widget_gui_utils")
 local Datasource = widget_gui_utils.datasource
 
 local show_remote  = true
-local map_endpoint = "/lua/rest/v1/charts/host/map.lua"
+local map_endpoint = "/lua/rest/v2/charts/host/map.lua"
 local bubble_mode  = tonumber(_GET["bubble_mode"]) or 0
 local current_label = MODES[bubble_mode + 1].label
 local widget_name = 'hosts-map'

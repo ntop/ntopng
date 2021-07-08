@@ -402,7 +402,7 @@ if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"
 
             function updateChart() {
 
-               const request = $.get("]] .. getPageUrl(ntop.getHttpPrefix() .. "/lua/rest/v1/get/flow/traffic_stats.lua", page_params) .. "&ifid=" .. interface.getId() .. [[");
+               const request = $.get("]] .. getPageUrl(ntop.getHttpPrefix() .. "/lua/rest/v2/get/flow/traffic_stats.lua", page_params) .. "&ifid=" .. interface.getId() .. [[");
                request.then((data) => {
                   let throughput_bps_sent = (8 * (data.rsp.totBytesSent - old_totBytesSent)) / refresh_rate;
                   let throughput_bps_rcvd = (8 * (data.rsp.totBytesRcvd - old_totBytesRcvd)) / refresh_rate;

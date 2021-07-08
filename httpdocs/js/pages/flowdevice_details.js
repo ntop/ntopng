@@ -78,7 +78,7 @@ $(function () {
 			}
 		}
 	]);
-    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/pro/rest/v1/get/flowdevice/stats.lua?ip=${flowDeviceIP}`, 'rsp');
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/pro/rest/v2/get/flowdevice/stats.lua?ip=${flowDeviceIP}`, 'rsp');
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
 	columns: generateColumns(),
 	initComplete: function (settings, json) {

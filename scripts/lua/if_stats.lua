@@ -1172,7 +1172,7 @@ elseif(page == "DSCP") then
         </tr>
      </table>
 <script>
- do_pie("#dscpGroups", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v1/get/interface/dscp/stats.lua', { ifid: "]] print(ifid) print [[" }, "", refresh);
+ do_pie("#dscpGroups", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v2/get/interface/dscp/stats.lua', { ifid: "]] print(ifid) print [[" }, "", refresh);
 </script>
 
 ]]
@@ -1264,19 +1264,19 @@ print [[
 
    print[[do_pie("#topApplicationProtocols", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/rest/v1/get/interface/l7/stats.lua', { ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/rest/v2/get/interface/l7/stats.lua', { ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topApplicationBreeds", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/rest/v1/get/interface/l7/stats.lua', { breed: "true", ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/rest/v2/get/interface/l7/stats.lua', { breed: "true", ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topApplicationCategories", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/rest/v1/get/interface/l7/stats.lua', { ndpi_category: "true", ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/rest/v2/get/interface/l7/stats.lua', { ndpi_category: "true", ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topFlowsCount", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/rest/v1/get/interface/l7/stats.lua', { breed: "true", ndpistats_mode: "count", ifid: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/rest/v2/get/interface/l7/stats.lua', { breed: "true", ndpistats_mode: "count", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topTCPFlowsStats", ']]
    print (ntop.getHttpPrefix())
@@ -1382,7 +1382,7 @@ setInterval(update_icmp_tables, 5000);
 
 ]]
 elseif(page == "ARP") then
-   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/get/interface/arp.lua?ifid=%s", ifId)
+   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v2/get/interface/arp.lua?ifid=%s", ifId)
    local context = {
       json = json,
       template = template,
@@ -1400,7 +1400,7 @@ elseif(page == "sites") then
       print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
 
    elseif table.len(sites_granularities) > 0 then
-      local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/pro/rest/v1/get/interface/top/sites.lua?ifid=%s", ifid)
+      local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/interface/top/sites.lua?ifid=%s", ifid)
       local context = {
          json = json,
          template = template,
@@ -1476,7 +1476,7 @@ print [[
 		    type: 'GET',
 		    url: ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/rest/v1/get/interface/data.lua',
+   print [[/lua/rest/v2/get/interface/data.lua',
 		    data: { iffilter: "]] print(tostring(interface.name2id(if_name))) print [[" },
 		    success: function(content) {
 			if(content["rc_str"] == "OK" && content["rsp"] && content["rsp"]["profiles"] != null) {
@@ -2336,7 +2336,7 @@ setInterval(function() {
 	  type: 'GET',
 	  url: ']]
 print (ntop.getHttpPrefix())
-print [[/lua/rest/v1/get/interface/data.lua',
+print [[/lua/rest/v2/get/interface/data.lua',
 	  data: { iffilter: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
 	  success: function(content) {
         if(content["rc_str"] != "OK") {

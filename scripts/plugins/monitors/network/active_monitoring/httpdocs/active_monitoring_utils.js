@@ -2,7 +2,7 @@ $(function() {
 
     const MAX_RECIPIENTS = 3;
     const DEFAULT_MEASUREMENT = "cicmp";
-    const INFRASTRUCTURE_ENDPOINT = "/lua/rest/v1/get/system/data.lua";
+    const INFRASTRUCTURE_ENDPOINT = "/lua/rest/v2/get/system/data.lua";
 
     const getMeasurementRegex = (measurement) => {
         switch (measurement) {

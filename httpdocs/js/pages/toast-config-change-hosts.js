@@ -12,7 +12,7 @@ const toastConfigHostChanges = function() {
 	type: 'POST',
 	contentType: "application/json",
 	dataType: "json",
-	url: `${http_prefix}/lua/rest/v1/edit/ntopng/incr_hosts.lua`, /* TODO: Change */
+	url: `${http_prefix}/lua/rest/v2/edit/ntopng/incr_hosts.lua`, /* TODO: Change */
 	data: JSON.stringify({
 	    csrf: toastCSRF,
 	}),

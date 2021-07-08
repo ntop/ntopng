@@ -6,11 +6,11 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/rest/v1/get/datasource/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/rest/v2/get/datasource/?.lua;" .. package.path
 
 if ntop.isPro() then
    -- Add Pro datasources
-   package.path = dirs.installdir .. "/pro/scripts/lua/rest/v1/get/datasource/?.lua;" .. package.path
+   package.path = dirs.installdir .. "/pro/scripts/lua/rest/v2/get/datasource/?.lua;" .. package.path
 end
 
 local os_utils = require "os_utils"
@@ -238,10 +238,10 @@ local function cache_source_types(recache)
    -- Cache available datasource types
    source_key_source_type_cache = {}
 
-   local datasources_dir = {os_utils.fixPath(dirs.installdir .. "/scripts/lua/rest/v1/get/datasource/")}
+   local datasources_dir = {os_utils.fixPath(dirs.installdir .. "/scripts/lua/rest/v2/get/datasource/")}
 
    if ntop.isPro() then
-      datasources_dir[#datasources_dir + 1] = os_utils.fixPath(dirs.installdir .. "/pro/scripts/lua/rest/v1/get/datasource/")
+      datasources_dir[#datasources_dir + 1] = os_utils.fixPath(dirs.installdir .. "/pro/scripts/lua/rest/v2/get/datasource/")
    end
 
    -- The base datasources directory

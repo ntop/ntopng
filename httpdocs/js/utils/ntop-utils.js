@@ -73,7 +73,7 @@ class NtopUtils {
 
 		// resolve the hostname by doing a fetch request to the backend
 		try {
-			const request = await fetch(`${http_prefix}/lua/rest/v1/get/dns/resolve.lua?hostname=${hostname}`);
+			const request = await fetch(`${http_prefix}/lua/rest/v2/get/dns/resolve.lua?hostname=${hostname}`);
 			const response = await request.json();
 			return response;
 		}
@@ -952,7 +952,7 @@ class NtopUtils {
 	}
 
 	static getPoolLink(poolType, poolId = 0) {
-		return `${http_prefix}/lua/rest/v1/get/${poolType}/pools.lua?pool=${poolId}`;
+		return `${http_prefix}/lua/rest/v2/get/${poolType}/pools.lua?pool=${poolId}`;
 	}
 
 	static async getPool(poolType, id = 0) {
