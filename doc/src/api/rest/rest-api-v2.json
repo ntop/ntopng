@@ -2822,6 +2822,25 @@
 				}
 			}
 		},
+		"/lua/rest/v1/get/system/stats.lua": {
+			"get": {
+				"tags": [
+					"All"
+				],
+				"summary": "Get system stats",
+				"description": "Get statistics of the system on top of which ntopng is running",
+				"operationId": "get_system_stats",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
 		"lua/rest/v2/export/all/config.lua": {
 			"post": {
 				"tags": [
