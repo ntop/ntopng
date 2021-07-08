@@ -1,0 +1,4096 @@
+{
+	"swagger": "2.0",
+	"info": {
+		"version": "3.9",
+		"title": "ntopng",
+		"description": "ntopng RESTful API documentation"
+	},
+	"tags": [{
+			"name": "Interfaces",
+			"description": "Everything about interfaces"
+		},
+		{
+			"name": "Hosts",
+			"description": "Everything about hosts"
+		},
+		{
+			"name": "Alerts",
+			"description": "Everything about alerts"
+		},
+	 	{
+			"name": "Flows",
+			"description": "Everything about flows"
+		},
+		{
+			"name": "PCAP",
+			"description": "Raw PCAP traffic"
+	 	},
+		{
+			"name": "Users",
+			"description": "ntopng users management"
+		 },
+		 {
+			"name": "Infrastructures",
+			"description": "Manage infrastructure configurations"
+		 }
+	],
+	"schemes": [
+		"https",
+		"http"
+	],
+	"paths": {
+		"/lua/rest/v2/get/interface/data.lua": {
+			"get": {
+				"tags": [
+					"Interfaces"
+				],
+				"summary": "Get interface data",
+				"description": "Interface data is returned",
+				"operationId": "get_interface_data",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/Interface"
+						}
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/interface/bcast_domains.lua": {
+			"get": {
+				"tags": [
+					"Interfaces"
+				],
+				"summary": "Get interface broadcast domains",
+				"description": "Interface broadcast domains as detected from ARP traffic and broadcast traffic are returned",
+				"operationId": "get_interface_bcast_domains",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/Interface"
+						}
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+	        "/lua/rest/v2/get/interface/address.lua": {
+			"get": {
+				"tags": [
+					"Interfaces"
+				],
+				"summary": "Get interface IP addresses",
+				"description": "List of interface IP addresses is returned",
+				"operationId": "get_interface_address",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"name": "ifid",
+					"in": "query",
+					"description": "Interface identifier",
+					"required": true,
+					"type": "integer",
+					"format": "int32"
+				}],
+				"responses": {
+					"0": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/Interface"
+						}
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-6": {
+					"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/interface/l7/stats.lua": {
+			"get": {
+				"tags": [
+					"Interfaces"
+				],
+				"summary": "Get L7 statistics for an interface",
+				"description": "nDPI statistics",
+				"operationId": "get_interface_l7_stats",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "ndpistats_mode",
+						"in": "query",
+						"description": "Stats mode: 'sinceStartup' or 'count'",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "breed",
+						"in": "query",
+						"description": "Show breed",
+						"required": false,
+						"type": "boolean"
+					},
+					{
+						"name": "ndpi_category",
+						"in": "query",
+						"description": "Show nDPI category",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/interface/dscp/stats.lua": {
+			"get": {
+				"tags": [
+					"Interfaces"
+				],
+				"summary": "Get IP DSCP statistics for an interface",
+				"description": "DSCP statistics",
+				"operationId": "get_interface_dscp_stats",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host/active.lua": {
+			"get": {
+				"tags": [
+					"Hosts"
+				],
+				"summary": "Get active hosts",
+				"description": "List of active hosts",
+				"operationId": "get_host_active",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "currentPage",
+						"in": "query",
+						"description": "Pagination: page (optional)",
+						"required": false,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "perPage",
+						"in": "query",
+						"description": "Pagination: items per page (optional)",
+						"required": false,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "sortColumn",
+						"in": "query",
+						"description": "Pagination: column for sorting (e.g. ip, name, since, last, alerts, country, vlan, num_flows, traffic, thpt) (optional)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "sortOrder",
+						"in": "query",
+						"description": "Pagination: sorting order: 'asc' or 'desc' (optional)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "all",
+						"in": "query",
+						"description": "Get all hosts (optional)",
+						"required": false,
+						"type": "boolean"
+					},
+					{
+						"name": "mode",
+						"in": "query",
+						"description": "Mode filter: all, local, remote, broadcast_domain, filtered, blacklisted, dhcp (optional)",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-1": {
+						"description": "NOT_FOUND"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host/interfaces.lua": {
+			"get": {
+				"tags": [
+					"Hosts"
+				],
+				"summary": "Get host interfaces",
+				"description": "All interface ids of a given host are returned",
+				"operationId": "get_host_interfaces",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "host",
+						"in": "query",
+						"description": "Host address",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/Host"
+						}
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host/data.lua": {
+			"get": {
+				"tags": [
+					"Hosts"
+				],
+				"summary": "Get host data",
+				"description": "Host data is returned",
+				"operationId": "get_host_json",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "host",
+						"in": "query",
+						"description": "Host address",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/Host"
+						}
+					},
+					"-1": {
+						"description": "NOT_FOUND"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-4": {
+						"description": "INVALID_HOST"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					},
+					"-7": {
+						"description": "BAD_FORMAT"
+					},
+					"-8": {
+						"description": "BAD_CONTENT"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host/custom_data.lua": {
+			"get": {
+				"tags": [
+					"Hosts"
+				],
+				"summary": "Get host custom data",
+				"description": "Custom data is returned for one or all hosts",
+				"operationId": "get_host_custom_data_json",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "host",
+						"in": "query",
+						"description": "Host address",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "field_alias",
+						"in": "query",
+						"description": "Field alias",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/Host"
+						}
+					},
+					"-1": {
+						"description": "NOT_FOUND"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-4": {
+						"description": "INVALID_HOST"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					},
+					"-7": {
+						"description": "BAD_FORMAT"
+					},
+					"-8": {
+						"description": "BAD_CONTENT"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host/l7/stats.lua": {
+			"get": {
+				"tags": [
+					"Hosts"
+				],
+				"summary": "Get L7 statistics for a host",
+				"description": "nDPI statistics",
+				"operationId": "get_host_l7_stats",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "host",
+						"in": "query",
+						"description": "Host address",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "vlan",
+						"in": "query",
+						"description": "VLAN ID",
+						"required": false,
+						"type": "integer",
+						"format": "int16"
+					},
+					{
+						"name": "breed",
+						"in": "query",
+						"description": "Show breed",
+						"required": false,
+						"type": "boolean"
+					},
+					{
+						"name": "ndpi_category",
+						"in": "query",
+						"description": "Show nDPI category",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host/dscp/stats.lua": {
+			"get": {
+				"tags": [
+					"Hosts"
+				],
+				"summary": "Get IP DSCP statistics for a host",
+				"description": "DSCP statistics",
+				"operationId": "get_host_dscp_stats",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "host",
+						"in": "query",
+						"description": "Host address",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "vlan",
+						"in": "query",
+						"description": "VLAN ID",
+						"required": false,
+						"type": "integer",
+						"format": "int16"
+					},
+					{
+						"name": "direction",
+						"in": "query",
+						"description": "Select direction: 'sent' or 'recvd' (default)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/set/host/alias.lua": {
+			"post": {
+				"tags": [
+					"Hosts"
+				],
+				"summary": "Set host alias",
+				"description": "Set hsot custom name",
+				"operationId": "set_host_alias",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "host",
+						"in": "formData",
+						"description": "Host address",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "custom_name",
+						"in": "formData",
+						"description": "Custom name",
+						"required": true,
+						"type": "string"
+					}
+
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/alert/data.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get alerts data",
+				"description": "Alerts are returned",
+				"operationId": "get_alert_data",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"description": "Status filter (historical, historical-flows, engaged)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch) (optional)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "Start time (epoch) (optional)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "alert_type",
+						"in": "query",
+						"description": "Alert Type (optional)",
+						"required": false,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "alert_severity",
+						"in": "query",
+						"description": "Alert Severity (optional)",
+						"required": false,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/Host"
+						}
+					},
+					"-1": {
+						"description": "NOT_FOUND"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-4": {
+						"description": "INVALID_HOST"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					},
+					"-7": {
+						"description": "BAD_FORMAT"
+					},
+					"-8": {
+						"description": "BAD_CONTENT"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/alert/ts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get alerts timeseries",
+				"description": "Number of alerts per hour divided by day are returned",
+				"operationId": "get_alert_ts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"description": "Status filter (historical, historical-flows)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "alert_type",
+						"in": "query",
+						"description": "Alert Type (optional)",
+						"required": false,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "alert_severity",
+						"in": "query",
+						"description": "Alert Severity (optional)",
+						"required": false,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/alert/type/consts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get alert type constants",
+				"description": "Alert type string and integer alert key for each defined alert",
+				"operationId": "get_alert_type_consts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/alert/severity/consts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get alert severity constants",
+				"description": "Alert severity string and integer severity id for each defined severity",
+				"operationId": "get_alert_severity_consts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/alert/type/counters.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"description": "Status filter (historical, historical-flows)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/alert/severity/counters.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per severity",
+				"description": "Number of alerts per alert severity",
+				"operationId": "get_alert_severity_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"description": "Status filter: 'historical' or 'historical-flows'",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/l4/protocol/consts.lua": {
+			"get": {
+				"tags": [
+					"L4 Protocols"
+				],
+				"summary": "Get L4 protocol constants",
+				"description": "L4 protocol names and integer identifiers",
+				"operationId": "get_l4_protocol_consts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/l7/application/consts.lua": {
+			"get": {
+				"tags": [
+					"L7 Application Protocols"
+				],
+				"summary": "Get L7 application protocol constants",
+				"description": "L7 application protocol names and integer identifiers",
+				"operationId": "get_l7_application_consts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/l7/category/consts.lua": {
+			"get": {
+				"tags": [
+					"L7 Application Categories"
+				],
+				"summary": "Get L7 application category constants",
+				"description": "L7 application category names and integer identifiers",
+				"operationId": "get_l7_category_consts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/ntopng/interfaces.lua": {
+			"get": {
+				"tags": [
+					"Interfaces"
+				],
+				"summary": "Get ntopng actively monitored interfaces names and ids",
+				"description": "Interface name and integer interface id for each actively monitored ntopng interface",
+				"operationId": "get_ntopng_interfaces",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/flow/active.lua": {
+			"get": {
+				"tags": [
+					"Flows"
+				],
+				"summary": "Get active flows",
+				"description": "List of active flows",
+				"operationId": "get_flow_active",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "currentPage",
+						"in": "query",
+						"description": "Pagination: page (optional)",
+						"required": false,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "perPage",
+						"in": "query",
+						"description": "Pagination: items per page (optional)",
+						"required": false,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "sortColumn",
+						"in": "query",
+						"description": "Pagination: column for sorting (e.g. 'score') (optional)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "sortOrder",
+						"in": "query",
+						"description": "Pagination: sorting order: 'asc' or 'desc' (optional)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "host",
+						"in": "query",
+						"description": "Host address filter (optional)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "vlan",
+						"in": "query",
+						"description": "VLAN ID filter (optional)",
+						"required": false,
+						"type": "integer",
+						"format": "int16"
+					},
+					{
+						"name": "l4proto",
+						"in": "query",
+						"description": "L4 protocol filter (optional)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "application",
+						"in": "query",
+						"description": "Application protocol filter (optional)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "verbose",
+						"in": "query",
+						"description": "Add more details including TCP stats (optional)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-1": {
+						"description": "NOT_FOUND"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/flow/l4/counters.lua": {
+			"get": {
+				"tags": [
+					"Flows"
+				],
+				"summary": "Get flow counters for L4 protocols",
+				"description": "Number of active flows per L4 protocol",
+				"operationId": "get_flow_l4_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/flow/l7/counters.lua": {
+			"get": {
+				"tags": [
+					"Flows"
+				],
+				"summary": "Get flow counters for L7 protocols",
+				"description": "Number of active flows per L7 application protocol",
+				"operationId": "get_flow_l7_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/db/flows.lua": {
+			"get": {
+				"tags": [
+					"Flows"
+				],
+				"summary": "Get flows data. Columns include (but are not limited to) IP_PROTOCOL_VERSION, FLOW_TIME, FIRST_SEEN, LAST_SEEN, VLAN_ID, PACKETS, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, IPV4_SRC_ADDR, IPV4_DST_ADDR, IPV6_SRC_ADDR, IPV6_DST_ADDR, PROTOCOL, L7_PROTO.",
+				"description": "Executes a query to the flows database",
+				"operationId": "get_flows_data",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "begin_time_clause",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "end_time_clause",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "select_clause",
+						"in": "query",
+						"description": "Select clause (default: *)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "where_clause",
+						"in": "query",
+						"description": "Where clause (default: none)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "maxhits_clause",
+						"in": "query",
+						"description": "Max hits (default: 10)",
+						"required": false,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-1": {
+						"description": "NOT_FOUND"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/db/topk_flows.lua": {
+			"get": {
+				"tags": [
+					"Flows"
+				],
+				"summary": "Get Top-K flows data. Columns include (but are not limited to) IP_PROTOCOL_VERSION, FLOW_TIME, FIRST_SEEN, LAST_SEEN, VLAN_ID, PACKETS, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, IPV4_SRC_ADDR, IPV4_DST_ADDR, IPV6_SRC_ADDR, IPV6_DST_ADDR, PROTOCOL, L7_PROTO",
+				"description": "Executes a top-k query to the flows database",
+				"operationId": "get_topk_data",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "begin_time_clause",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "end_time_clause",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "select_keys_clause",
+						"in": "query",
+						"description": "Select comma-separated keys list (default: IPV4_SRC_ADDR,IPV4_DST_ADDR,L7_PROTO)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "select_values_clause",
+						"in": "query",
+						"description": "Select value (default: BYTES)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "where_clause",
+						"in": "query",
+						"description": "Where clause (default: none)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "topk_clause",
+						"in": "query",
+						"description": "Top-K clause (default: SUM)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "approx_search",
+						"in": "query",
+						"description": "Approximate search (default: true)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "maxhits_clause",
+						"in": "query",
+						"description": "Max hits (default: 10)",
+						"required": false,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-1": {
+						"description": "NOT_FOUND"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"lua/pro/rest/v2/get/interface/top/local/talkers.lua": {
+			"get": {
+				"tags": [
+					"Hosts"
+				],
+				"summary": "Get Top local talkers",
+				"description": "Get the Top 10 local talkers",
+				"operationId": "get_local_talkers",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+                                                "name": "ifid",
+                                                "in": "query",
+                                                "description": "Interface ID",
+                                                "required": true,
+                                                "type": "number"
+                                        }
+                                ],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					}
+				}
+			}
+		},
+		"lua/pro/rest/v2/get/interface/top/remote/talkers.lua": {
+			"get": {
+                                "tags": [
+                                        "Hosts"
+                                ],
+                                "summary": "Get Top remote talkers",
+                                "description": "Get the Top 10 remote talkers",
+				"operationId": "get_remote_talkers",
+                                "produces": [
+                                        "application/json"
+                                ],
+                                "parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface ID",
+						"required": true,
+						"type": "number"
+					}
+				],
+                                "responses": {
+                                        "0": {
+                                                "description": "OK"
+                                        },
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					}
+                                }
+                        }
+                },
+		"lua/pro/rest/v2/add/snmp/device.lua": {
+			"get": {
+				"tags": [
+					"SNMP"
+				],
+				"summary": "Add SNMP devices",
+				"description": "Add devices to the monitored SNMP devices",
+				"operationId": "add_snmp_device",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "snmp_host",
+						"in": "query",
+						"description": "IP address or symbolic name of and an SNMP device",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "snmp_read_community",
+						"in": "query",
+						"description": "The SNMP read community to use (SNMP v1/v2c only)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "snmp_write_community",
+						"in": "query",
+						"description": "The SNMP write community to use (SNMP v1/v2c only)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "snmp_version",
+						"in": "query",
+						"description": "The SNMP version to use: 2 (SNMP v3), 1 (v2c) or 0 (v1)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "snmp_level",
+						"in": "query",
+						"description": "Used only with SNMP v3: noAuthNoPriv, authNoPriv, or authPriv)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "snmp_auth_protocol",
+						"in": "query",
+						"description": "Used only with SNMP v3 and level not set to noAuthNoPriv: MD5 or SHA",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "snmp_auth_passphrase",
+						"in": "query",
+						"description": "Used only with SNMP v3 and level not set to noAuthNoPriv: 8 chars+ passphrase",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "snmp_privacy_protocol",
+						"in": "query",
+						"description": "Used only with SNMP v3 and level set to autPriv: DES or AES",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "snmp_privacy_passphrase",
+						"in": "query",
+						"description": "Used only with SNMP v3 and level set to autPriv: 8 chars+ passphrase",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "cidr",
+						"in": "query",
+						"description": "Either 24 or 32. If 32, snmp_host is treated as single host. If 24 snmp_host is treated as as CIDR address",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-4": {
+						"description": "INVALID_HOST"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-9": {
+						"description": "NAME_RESOLUTION_FAILED"
+					},
+					"-10": {
+						"description": "SNMP_DEVICE_ALREADY_ADDED"
+					},
+					"-11": {
+						"description": "SNMP_DEVICE_UNREACHABLE"
+					},
+					"-12": {
+						"description": "NO_SNMP_DEVICE_DISCOVERED"
+					}
+				}
+			}
+		},
+		"lua/pro/rest/v2/edit/snmp/device/device.lua": {
+			"get": {
+				"tags": [
+					"SNMP"
+				],
+				"summary": "Edit a SNMP device",
+				"description": "Edit an existing monitored SNMP device",
+				"operationId": "add_snmp_device",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "snmp_host",
+						"in": "query",
+						"description": "IP address or symbolic name of and an SNMP device",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "snmp_read_community",
+						"in": "query",
+						"description": "The SNMP read community to use (SNMP v1/v2c only)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "snmp_write_community",
+						"in": "query",
+						"description": "The SNMP write community to use (SNMP v1/v2c only)",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "snmp_version",
+						"in": "query",
+						"description": "The SNMP version to use: 2 (SNMP v3), 1 (v2c) or 0 (v1)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "snmp_level",
+						"in": "query",
+						"description": "Used only with SNMP v3: noAuthNoPriv, authNoPriv, or authPriv)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "snmp_auth_protocol",
+						"in": "query",
+						"description": "Used only with SNMP v3 and level not set to noAuthNoPriv: MD5 or SHA",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "snmp_auth_passphrase",
+						"in": "query",
+						"description": "Used only with SNMP v3 and level not set to noAuthNoPriv: 8 chars+ passphrase",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "snmp_privacy_protocol",
+						"in": "query",
+						"description": "Used only with SNMP v3 and level set to autPriv: DES or AES",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "snmp_privacy_passphrase",
+						"in": "query",
+						"description": "Used only with SNMP v3 and level set to autPriv: 8 chars+ passphrase",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-4": {
+						"description": "INVALID_HOST"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-9": {
+						"description": "NAME_RESOLUTION_FAILED"
+					},
+					"-10": {
+						"description": "SNMP_DEVICE_ALREADY_ADDED"
+					},
+					"-11": {
+						"description": "SNMP_DEVICE_UNREACHABLE"
+					},
+					"-12": {
+						"description": "NO_SNMP_DEVICE_DISCOVERED"
+					},
+					"-22": {
+						"description": "SNMP_UNKNOWN_DEVICE"
+					}
+				}
+			}
+		},
+		"lua/pro/rest/v2/change/snmp/device/interface/status.lua": {
+			"get": {
+				"tags": [
+					"SNMP"
+				],
+				"summary": "Change SNMP device interface status",
+				"description": "Change the status of an SNMP device in terface to up or down",
+				"operationId": "change_snmp_device_interface_status",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "host",
+						"in": "query",
+						"description": "IP address of an SNMP device",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "snmp_admin_status",
+						"in": "query",
+						"description": "The new admin status, either 'up' or 'down'",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "snmp_port_idx",
+						"in": "query",
+						"description": "The index of the SNMP device interface",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-4": {
+						"description": "INVALID_HOST"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-26": {
+						"description": "SNMP_DEVICE_INTERFACE_STATUS_CHANGE_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/pcap/live_extraction.lua": {
+			"get": {
+				"tags": [
+					"PCAP"
+				],
+				"summary": "Live PCAP traffic extraction",
+				"description": "Raw PCAP data is returned",
+				"operationId": "live_traffic_extraction",
+				"produces": [
+					"application/vnd.tcpdump.pcap"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_begin",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "epoch_end",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "bpf_filter",
+						"in": "query",
+						"description": "BPF filter",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"FILE": {
+						"description": "OK"
+					},
+					"-1": {
+						"description": "NOT_FOUND"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					},
+					"-7": {
+						"description": "BAD_FORMAT"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/add/interface/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Add an interface pool",
+				"description": "Add an interface pool with members and configuration",
+				"operationId": "add_interface_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-13": {
+						"description": "ADD_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/add/host/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Add an host pool",
+				"description": "Add an host pool with members and configuration",
+				"operationId": "add_host_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-13": {
+						"description": "ADD_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/add/network/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Add a local network pool",
+				"description": "Add a local network pool with members and configuration",
+				"operationId": "add_network_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-13": {
+						"description": "ADD_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/add/snmp/device/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Add an SNMP device pool",
+				"description": "Add an SNMP device pool with members and configuration",
+				"operationId": "add_snmp_device_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-13": {
+						"description": "ADD_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/add/active_monitoring/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Add an active monitoring pool",
+				"description": "Add an active monitoring pool with members and configuration",
+				"operationId": "add_active_monitoring_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-13": {
+						"description": "ADD_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/edit/interface/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit an interface pool",
+				"description": "Edit an interface pool with members and configuration",
+				"operationId": "edit_interface_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/edit/host/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit an host pool",
+				"description": "Edit an host pool with members and configuration",
+				"operationId": "edit_host_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/edit/network/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit a local network pool",
+				"description": "Edit a local network pool with members and configuration",
+				"operationId": "edit_network_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/edit/snmp/device/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit an SNMP device pool",
+				"description": "Edit an SNMP device pool with members and configuration",
+				"operationId": "edit_snmp_device_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/edit/active_monitoring/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit an active monitoring pool",
+				"description": "Edit an active monitoring pool with members and configuration",
+				"operationId": "edit_active_monitoring_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/edit/flow/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit a flow pool",
+				"description": "Edit a flow pool (only recipients edit is allowed)",
+				"operationId": "edit_flow_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"recipients": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/edit/mac/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit a MAC pool",
+				"description": "Edit a MAC pool (only recipients edit is allowed)",
+				"operationId": "edit_mac_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"recipients": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/edit/host_pool/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit an host pool pool",
+				"description": "Edit an host pool pool (only recipients edit is allowed)",
+				"operationId": "edit_host_pool_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"recipients": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/edit/system/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit a system pool",
+				"description": "Edit a system pool (only recipients edit is allowed)",
+				"operationId": "edit_system_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"recipients": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/interface/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Delete an interface pool",
+				"description": "Delete an interface pool",
+				"operationId": "delete_interface_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/host/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Delete an host pool",
+				"description": "Delete an host pool",
+				"operationId": "delete_host_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/network/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Delete a local network pool",
+				"description": "Delete a local network pool",
+				"operationId": "delete_network_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/delete/snmp/device/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Delete an SNMP device pool",
+				"description": "Delete an SNMP device pool",
+				"operationId": "delete_snmp_device_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/active_monitoring/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Delete an active monitoring pool",
+				"description": "Delete an active monitoring pool",
+				"operationId": "delete_active_monitoring_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Delete all pools for any available pool type",
+				"description": "Delete all pools for any available pool type",
+				"operationId": "delete_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/recipients.lua": {
+			"get": {
+				"tags": [
+					"Notification Recipients"
+				],
+				"summary": "Delete all defined recipients and reset them to factory-defaults",
+				"description": "Delete all defined recipients and reset them to factory-defaults",
+				"operationId": "delete_recipients",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/endpoints.lua": {
+			"get": {
+				"tags": [
+					"Notification Endpoints"
+				],
+				"summary": "Delete all defined notification endpoints and reset them to factory-defaults",
+				"description": "Delete all defined notification endpoints and reset them to factory-defaults",
+				"operationId": "delete_endpoints",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/interface/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all interface pools",
+				"description": "Get one or all interface pools",
+				"operationId": "get_interface_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all host pools",
+				"description": "Get one or all host pools",
+				"operationId": "get_host_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/network/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all local network pools",
+				"description": "Get one or all local network pools",
+				"operationId": "get_network_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get all pools of any type",
+				"description": "Get all pools defined for any available pool type",
+				"operationId": "get_all_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/recipient/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get all pools of any type for a given recipient id",
+				"description": "Get all pools defined for any available pool type for a given recipient id",
+				"operationId": "get_all_recipient_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"name": "recipient_id",
+					"in": "query",
+					"description": "A recipient id",
+					"required": true,
+					"type": "int16"
+				}
+			],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/snmp/device/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all SNMP device pools",
+				"description": "Get one or all SNMP device pools",
+				"operationId": "get_snmp_device_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/active_monitoring/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all active monitoring pools",
+				"description": "Get one or all active monitoring pools",
+				"operationId": "get_active_monitoring_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/flow/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all flow pools",
+				"description": "Get one or all flow pools",
+				"operationId": "get_flow_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/mac/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all MAC pools",
+				"description": "Get one or all MAC pools",
+				"operationId": "get_mac_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host_pool/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all host pool pools",
+				"description": "Get one or all host pool pools",
+				"operationId": "get_host_pool_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/system/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all system pools",
+				"description": "Get one or all system pools",
+				"operationId": "get_system_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host/pool/members.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get all host pool members",
+				"description": "Get all the members of a given host pool",
+				"operationId": "get_host_pool_members",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"member": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/bind/host/pool/member.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Bind a member to an host pool",
+				"description": "Bind a member to an host pool",
+				"operationId": "bind_host_pool_member",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"member": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-17": {
+						"description": "BIND_POOL_MEMBER_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host/pool_by_member.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get an host pool given a member",
+				"description": "Get an host pool given a member",
+				"operationId": "get_host_pool_by_member",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"member": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/export/all/config.lua": {
+			"post": {
+				"tags": [
+					"All"
+				],
+				"summary": "Export all configurations as a JSON file",
+				"description": "Export all configurations including Pools, Active Monitoring, Notifications (Endpoints and Recipients), Checks, SNMP devices",
+				"operationId": "export_all_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/export/active_monitoring/config.lua": {
+			"post": {
+				"tags": [
+					"Active Monitoring"
+				],
+				"summary": "Export the active monitoring configuration as a JSON file",
+				"description": "Export the active monitoring configuration",
+				"operationId": "export_active_monitoring_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [	{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/export/notifications/config.lua": {
+			"post": {
+				"tags": [
+					"Notifications"
+				],
+				"summary": "Export the notifications configuration as a JSON file",
+				"description": "Export the configuration for endpoints and recipients",
+				"operationId": "export_notifications_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [	{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/export/pool/config.lua": {
+			"post": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Export the pools configuration as a JSON file",
+				"description": "Export the configuration of all pools and dependencies (notifications, SNMP, active monitoring, checks",
+				"operationId": "export_pool_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [	{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/export/scripts/config.lua": {
+			"post": {
+				"tags": [
+					""
+				],
+				"summary": "Export the Checks configuration as a JSON file",
+				"description": "Export the configuration for all checks",
+				"operationId": "export_scripts_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [	{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/export/snmp/config.lua": {
+			"post": {
+				"tags": [
+					""
+				],
+				"summary": "Export the SNMP configuration as a JSON file",
+				"description": "Export the configuration for the SNMP devices",
+				"operationId": "export_snmp_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [	{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/import/all/config.lua": {
+			"post": {
+				"tags": [
+					"All"
+				],
+				"summary": "Import all configurations providing a JSON file",
+				"description": "Import all configurations including Pools, Active Monitoring, Notifications (Endpoints and Recipients), Checks, SNMP devices",
+				"operationId": "import_all_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/import/active_monitoring/config.lua": {
+			"post": {
+				"tags": [
+					"Active Monitoring"
+				],
+				"summary": "Import the active monitoring configuration providing a JSON file",
+				"description": "Import the active monitoring configuration",
+				"operationId": "import_active_monitoring_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/import/notifications/config.lua": {
+			"post": {
+				"tags": [
+					"Notifications"
+				],
+				"summary": "Import the notifications configuration providing a JSON file",
+				"description": "Import the configuration for endpoints and recipients",
+				"operationId": "import_notifications_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/import/pool/config.lua": {
+			"post": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Import the pools configuration providing a JSON file",
+				"description": "Import the configuration of all pools and dependencies (notifications, SNMP, active monitoring, checks",
+				"operationId": "import_pool_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/import/scripts/config.lua": {
+			"post": {
+				"tags": [
+					""
+				],
+				"summary": "Import the Checks configuration providing a JSON file",
+				"description": "Import the configuration for all checks",
+				"operationId": "import_scripts_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/import/snmp/config.lua": {
+			"post": {
+				"tags": [
+					""
+				],
+				"summary": "Import the SNMP configuration providing a JSON file",
+				"description": "Import the configuration for the SNMP devices",
+				"operationId": "import_snmp_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/reset/all/config.lua": {
+			"post": {
+				"tags": [
+					"All"
+				],
+				"summary": "Reset all configurations",
+				"description": "Reset all configurations",
+				"operationId": "reset_all_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/check/infrastructure/config.lua": {
+			"post": {
+				"tags": [
+					"All"
+				],
+				"summary": "Test an infrastructure configuration",
+				"description": "Uses an url and token to connect to the REST API of an ntopng in the infrastructure",
+				"operationId": "check_infrastructure_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "url",
+						"in": "query",
+						"description": "The URL of the ntopng in the infrastructure",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "token",
+						"in": "query",
+						"description": "The REST API Token for the authentication",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-42": {
+						"description": "INFRASTRUCTURE_INSTANCE_ALREADY_EXISTING"
+					},
+					"-43": {
+						"description": "INFRASTRUCTURE_INSTANCE_CHECK_FAILED"
+					},
+					"-44": {
+						"description": "INFRASTRUCTURE_INSTANCE_CHECK_NOT_FOUND"
+					},
+					"-45": {
+						"description": "INFRASTRUCTURE_INSTANCE_CHECK_INVALID_RESPONSE"
+					},
+					"-46": {
+						"description": "INFRASTRUCTURE_INSTANCE_CHECK_AUTH_FAILED"
+					}
+				}
+			}
+		},
+	    "lua/rest/v2/get/ntopng/users.lua": {
+			"post": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Read all configured ntopng users",
+				"description": "Read all configured ntopng users",
+				"operationId": "getall_ntopng_users",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+	 	"lua/rest/v2/add/ntopng/user.lua": {
+			"post": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Add ntopng user",
+				"description": "Add a ntopng user",
+				"operationId": "add_ntopng_user",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "username",
+						"in": "formData",
+						"description": "Username",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "full_name",
+						"in": "formData",
+						"description": "Full name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "password",
+						"in": "formData",
+						"description": "Password",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "confirm_password",
+						"in": "formData",
+						"description": "Confirmed password",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "user_role",
+						"in": "formData",
+						"description": "User role (unprivileged / administrator)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "allowed_networks",
+						"in": "formData",
+						"description": "Allowed networks (e.g. 0.0.0.0/0,::/0)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "allowed_interface",
+						"in": "formData",
+						"description": "Allowed interfaces (empty for all)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "user_language",
+						"in": "formData",
+						"description": "Language (en, it, de, jp, pt, cz)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "allow_pcap_download",
+						"in": "formData",
+						"description": "Allow PCAPs download (1 to allow)",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-19": {
+						"description": "PASSWORD_MISMATCH"
+					},
+					"-20": {
+						"description": "ADD_USER_FAILED"
+					},
+					"-23": {
+						"description": "USER_ALREADY_EXISTING"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/delete/ntopng/user.lua": {
+			"post": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Delete ntopng user",
+				"description": "Delete a ntopng user",
+				"operationId": "delete_ntopng_user",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "username",
+						"in": "formData",
+						"description": "Username",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-21": {
+						"description": "DELETE_USER_FAILED"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/edit/ntopng/user.lua": {
+			"post": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Edit a ntopng user",
+				"description": "Edit an existing ntopng user",
+				"operationId": "edit_ntopng_user",
+				"produces": [
+					"application/json"
+				],
+			    "parameters": [
+				{
+						"name": "username",
+						"in": "formData",
+						"description": "Username",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "user_role",
+						"in": "formData",
+						"description": "User role (unprivileged / administrator)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "allowed_networks",
+						"in": "formData",
+						"description": "Allowed networks (e.g. 0.0.0.0/0,::/0)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "allowed_interface",
+						"in": "formData",
+						"description": "Allowed interfaces (empty for all)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "user_language",
+						"in": "formData",
+						"description": "Language (en, it, de, jp, pt, cz)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "allow_pcap_download",
+						"in": "formData",
+						"description": "Allow PCAPs download (1 to allow)",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-21": {
+						"description": "DELETE_USER_FAILED"
+					},
+					"-23": {
+						"description": "USER_DOES_NOT_EXIST"
+					},
+					"-24": {
+						"description": "EDIT_USER_FAILED"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/create/ntopng/session.lua": {
+			"post": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Create a new ntopng user session Cookie",
+				"description": "Generate a new user session to be used as session Cookie",
+				"operationId": "create_ntopng_session",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "username",
+						"in": "formData",
+						"description": "Username",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "auth_session_duration",
+						"in": "formData",
+						"description": "Session duration (seconds). Default: 0 (no expiration).",
+						"required": false,
+						"type": "integer"
+					}
+				],
+				"responses": {
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/infrastructure/instance.lua": {
+			"get": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Get one or all infrastructure configs",
+				"description": "Get one or all infrastructure configs",
+				"operationId": "get_infrastructure_configs",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"instance_id": "string",
+						"required": false
+					},
+					{
+						"stats": "boolean",
+						"required": false,
+						"description": "Add statistics collected by the active monitoring module"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-32": {
+						"description": "INFRASTRUCTURE_INSTANCE_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/add/infrastructure/instance.lua": {
+			"post": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Add a new infrastructure configuration",
+				"description": "Add a new infrastructure configuration",
+				"operationId": "add_infrastructure_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "url",
+						"description": "The URL of the ntopng in the infrastructure",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "alias",
+						"description": "An alias for the infrastructure",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "token",
+						"description": "The REST API Token for the authentication",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "rtt_threshold",
+						"description": "RTT threshold used by the active monitoring",
+						"required": true,
+						"type": "int32"
+					},
+					{
+						"name": "bandwidth_threshold",
+						"description": "Bandwidth threshold used by the active monitoring",
+						"required": true,
+						"type": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-34": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_ALIAS"
+					},
+					"-35": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_URL"
+					},
+					"-36": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_TOKEN"
+					},
+					"-37": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_RTT_THRESHOLD"
+					},
+					"-39": {
+						"description": "INFRASTRUCTURE_INSTANCE_SAME_ALIAS"
+					},
+					"-40": {
+						"description": "INFRASTRUCTURE_INSTANCE_SAME_URL"
+					},
+					"-41": {
+						"description": "INFRASTRUCTURE_INSTANCE_SAME_TOKEN"
+					},
+					"-42": {
+						"description": "INFRASTRUCTURE_INSTANCE_ALREADY_EXISTING"
+					},
+					"-47": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_BANDWIDTH_THRESHOLD"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/edit/infrastructure/instance.lua": {
+			"post": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Edit an existing infrastructure configuration",
+				"description": "Edit an existing infrastructure configuration",
+				"operationId": "edit_infrastructure_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "instance_id",
+						"description": "The ID of the infrastructure configuration to edit",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "url",
+						"description": "The URL of the ntopng in the infrastructure",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "alias",
+						"description": "An alias for the infrastructure",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "token",
+						"description": "The REST API Token for the authentication",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "rtt_threshold",
+						"description": "RTT threshold used by the active monitoring",
+						"required": true,
+						"type": "int32"
+					},
+					{
+						"name": "bandwidth_threshold",
+						"description": "Bandwidth threshold used by the active monitoring",
+						"required": true,
+						"type": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-32": {
+						"description": "INFRASTRUCTURE_INSTANCE_NOT_FOUND"
+					},
+					"-33": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_ID"
+					},
+					"-34": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_ALIAS"
+					},
+					"-35": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_URL"
+					},
+					"-36": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_TOKEN"
+					},
+					"-37": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_RTT_THRESHOLD"
+					},
+					"-39": {
+						"description": "INFRASTRUCTURE_INSTANCE_SAME_ALIAS"
+					},
+					"-40": {
+						"description": "INFRASTRUCTURE_INSTANCE_SAME_URL"
+					},
+					"-41": {
+						"description": "INFRASTRUCTURE_INSTANCE_SAME_TOKEN"
+					},
+					"-47": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_BANDWIDTH_THRESHOLD"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/delete/infrastructure/instance.lua": {
+			"post": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Delete an existing infrastructure configuration",
+				"description": "Delete an existing infrastructure configuration",
+				"operationId": "delete_infrastructure_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "instance_id",
+						"description": "The ID of the infrastructure to delete",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-32": {
+						"description": "INFRASTRUCTURE_INSTANCE_NOT_FOUND"
+					},
+					"-33": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_ID"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/import/infrastructure/config.lua": {
+			"post": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Import the Infrastructure configuration providing a JSON file",
+				"description": "Import the configuration for all infrastructure configurations",
+				"operationId": "import_infrastructure_configs",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/export/infrastructure/config.lua": {
+			"post": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Export the Infrastructure configurations as a JSON file",
+				"description": "Export the configuration for the infrastructure configurations",
+				"operationId": "export_infrastructure_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [	{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v2/reset/infrastructure/config.lua": {
+			"post": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Reset all infrastructure configurations",
+				"description": "Reset all infrastructure configurations",
+				"operationId": "reset_all_infrastructure_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		}
+	},
+	"definitions": {
+		"Interface": {
+			"type": "object",
+			"properties": {
+				"ifname": {
+					"type": "string"
+				},
+				"is_view": {
+					"type": "boolean",
+					"default": false
+				},
+				"id": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"speed": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"epoch": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"packets": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"bytes": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"drops": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"num_devices": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"num_hosts": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"num_flows": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"remote_bps": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"remote_pps": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"remote2local": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"local2remote": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"num_local_hosts": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"alerts_stored": {
+					"type": "boolean"
+				},
+				"engaged_alerts": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"tcpPacketStats": {
+					"type": "object",
+					"properties": {
+						"retransmissions": {
+							"type": "integer",
+							"format": "int32"
+						},
+						"lost": {
+							"type": "integer",
+							"format": "int32"
+						},
+						"out_of_order": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				}
+			}
+		},
+		"Host": {
+			"type": "object",
+			"properties": {
+				"localHost": {
+					"type": "boolean"
+				},
+				"ifid": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"mac_address": {
+					"type": "string"
+				},
+				"symbolic_name": {
+					"type": "string"
+				},
+				"seen.first": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"seen.last": {
+					"type": "integer",
+					"format": "int32"
+					},
+				"flows.as_client": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"flows.as_server": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"throughput_pps": {
+					"type": "number"
+				},
+				"throughput_bps": {
+					"type": "number"
+				},
+				"os": {
+					"type": "string"
+				},
+				"systemHost": {
+					"type": "boolean"
+				},
+				"throughput_trend_pps": {
+					"type": "string"
+				},
+				"throughput_trend_bps": {
+					"type": "string"
+				},
+				"total_activity_time": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"num_alerts": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"is_blacklisted": {
+					"type": "boolean"
+				},
+				"asn": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"rcvd": {
+					"type": "object",
+					"properties": {
+						"packets": {
+							"type": "integer",
+							"format": "int32"
+						},
+						"bytes": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				},
+				"sent": {
+					"type": "object",
+					"properties": {
+						"packets": {
+							"type": "integer",
+							"format": "int32"
+						},
+						"bytes": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				},
+				"ip": {
+					"type": "object",
+					"properties": {
+						"localHost": {
+							"type": "boolean"
+						},
+						"ip": {
+							"type": "string"
+						},
+						"ipVersion": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				}
+			}
+		},
+		"Alert": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"entity": {
+						"type": "string"
+					},
+					"msg": {
+						"type": "string"
+					},
+					"duration": {
+						"type": "string"
+					},
+					"date": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string"
+					},
+					"key": {
+						"type": "string"
+					},
+					"entity_val": {
+						"type": "string"
+					},
+					"severity": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
