@@ -20,7 +20,7 @@ Date.prototype.format = function (format) { //author: meizz
 	return format;
 }
 
-// Extended disable function
+// Extended disable function 
 jQuery.fn.extend({
 	disable: function (state) {
 		return this.each(function () {
