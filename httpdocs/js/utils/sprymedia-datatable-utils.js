@@ -577,6 +577,7 @@ class DataTableUtils {
                 `);
 
                 $checkbox.on('change', function (e) {
+                    $(`.overlay`).toggle(500);
                     
                     // Get the column API object
                     const col = tableAPI.column(column.index);
