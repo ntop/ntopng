@@ -57,6 +57,7 @@ end
 -- ##############################################
 
 function shortenString(name, max_len)
+   local ellipsis = "\u{2026}" -- The unicode ellipsis (takes less space than three separate dots)
    if(name == nil) then return("") end
 
    if max_len == nil then
@@ -65,10 +66,10 @@ function shortenString(name, max_len)
       if(max_len == nil) then max_len = 24 end
    end
 
-   if(string.len(name) < max_len) then
+   if(string.len(name) < max_len + 1 --[[ The space taken by the ellipsis --]]) then
       return(name)
    else
-      return(string.sub(name, 1, max_len).."...")
+      return(string.sub(name, 1, max_len)..ellipsis)
    end
 end
 
