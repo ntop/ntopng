@@ -420,10 +420,8 @@ void NetworkInterface::loadScalingFactorPrefs() {
     if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
       scaling_factor = atol(rsp);
 
-    if(scaling_factor == 0)
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: scalingFactor can't be 0!");
-
-    setScalingFactor(scaling_factor);
+    if(scaling_factor > 0)
+      setScalingFactor(scaling_factor);
   }
 }
 
