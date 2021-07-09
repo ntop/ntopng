@@ -1649,7 +1649,6 @@ end
 -- In case host_info is not enough to label the host, then local caches and DNS resolution kick in
 -- to find a label (at the expense of extra time).
 function hostinfo2label(host_info, show_vlan)
-   tprint(host_info)
    local alt_name = nil
    local ip = host_info["ip"] or host_info["host"]
 
