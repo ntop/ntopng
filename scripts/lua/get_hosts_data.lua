@@ -258,7 +258,15 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local column_name = ''
    if host then
-      column_name = hostinfo2label(host)
+      if host["name"] then
+	 column_name = shortenString(host["name"])
+      end
+
+      -- This is the label as set-up by the user
+      local alt_name = getHostAltName(host["ip"])
+      if not isEmptyString(alt_name) and alt_name ~= column_name then
+	 column_name = string.format("%s [%s]", column_name, shortenString(alt_name))
+      end
    end
 
    if value["has_blocking_quota"] or value["has_blocking_shaper"] then
