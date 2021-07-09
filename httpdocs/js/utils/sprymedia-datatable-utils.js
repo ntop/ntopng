@@ -646,8 +646,8 @@ class DataTableRenders {
         return seconds;
     }
 
-    static filterize(key, value, label, tag_label) {
-        return `<a class='tag-filter' data-tag-key='${key}' title='${value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${label || value}</a>`;
+    static filterize(key, value, label, tag_label, title) {
+        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${label || value}</a>`;
     }
 
     static formatValueLabel(obj, type, row) {
@@ -722,7 +722,7 @@ class DataTableRenders {
 
     static formatNameDescription(obj, type, row) {
         if (type !== "display") return obj.name;
-        let msg = DataTableRenders.filterize('alert_id', obj.value, obj.name);
+        let msg = DataTableRenders.filterize('alert_id', obj.value, obj.name, obj.fullname, obj.fullname);
 
 	/* DECIDED NOT TO SHOW SHORTENED DESCRIPTIONS IN THE ALERT COLUMNS
         if(obj.description) {

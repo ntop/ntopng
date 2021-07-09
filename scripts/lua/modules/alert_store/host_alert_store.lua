@@ -171,6 +171,7 @@ function host_alert_store:format_record(value, no_html)
 
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.host.entity_id)
+   local alert_fullname = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true, alert_entities.host.entity_id)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
    local host = hostinfo2hostkey(value)
    local reference_html = nil
@@ -267,6 +268,7 @@ function host_alert_store:format_record(value, no_html)
 
    record[RNAME.MSG.name] = {
      name = noHtml(alert_name),
+     fullname = alert_fullname,
      value = tonumber(value["alert_id"]),
      description = msg,
      configset_ref = alert_utils.getConfigsetAlertLink(alert_info, value)
