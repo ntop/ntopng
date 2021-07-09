@@ -105,7 +105,7 @@ void HostStats::updateStats(const struct timeval *tv) {
       num_anomalies++;
       client_score_anomaly = 1;
     } else
-      server_score_anomaly = 0;
+      client_score_anomaly = 0;
 
     if(score_srv.addObservation(host->getScoreAsServer())) {
       char buf[64];
