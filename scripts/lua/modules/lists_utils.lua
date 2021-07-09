@@ -740,6 +740,11 @@ end
 
 -- This is run in housekeeping.lua
 function lists_utils.checkReloadLists()
+
+   if ntop.isOffline() then
+      return
+   end
+
    local forced_reload = (ntop.getCache("ntopng.cache.reload_lists_utils") == "1")
    local reload_now = false
 

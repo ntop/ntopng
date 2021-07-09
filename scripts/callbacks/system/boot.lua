@@ -14,6 +14,15 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local prefs_dump_utils = require "prefs_dump_utils"
+
+-- Check connectivity
+local connectivity_utils = require "connectivity_utils"
+local online = connectivity_utils.checkConnectivity()
+if not online then
+   traceError(TRACE_WARNING, TRACE_CONSOLE, "No connectivity detected, ntopng will run in offline mode")
+   ntop.setOffline()
+end
+
 -- Check and possibly restore preferences dumped to file
 prefs_dump_utils.check_restore_prefs_from_disk()
 

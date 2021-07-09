@@ -5469,6 +5469,20 @@ static int ntop_is_offline(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_set_offline(lua_State* vm) {
+  ntop->toggleOffline(true);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_set_online(lua_State* vm) {
+  ntop->toggleOffline(false);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 /* positional 1:4 parameters for ntop_rrd_fetch */
 static int __ntop_rrd_args (lua_State* vm, char **filename, char **cf, time_t *start, time_t *end) {
   char *start_s, *end_s, *err;
@@ -6146,29 +6160,31 @@ static int ntop_refresh_device_protocols_policies_pref(lua_State* vm) {
 /* **************************************************************** */
 
 static luaL_Reg _ntop_reg[] = {
-  { "getDirs",          ntop_get_dirs },
-  { "getInfo",          ntop_get_info },
-  { "getUptime",        ntop_get_uptime },
-  { "dumpFile",         ntop_dump_file },
-  { "dumpBinaryFile",   ntop_dump_binary_file },
-  { "checkLicense",     ntop_check_license },
-  { "systemHostStat",   ntop_system_host_stat },
-  { "refreshCPULoad",   ntop_refresh_cpu_load },
+  { "getDirs",           ntop_get_dirs },
+  { "getInfo",           ntop_get_info },
+  { "getUptime",         ntop_get_uptime },
+  { "dumpFile",          ntop_dump_file },
+  { "dumpBinaryFile",    ntop_dump_binary_file },
+  { "checkLicense",      ntop_check_license },
+  { "systemHostStat",    ntop_system_host_stat },
+  { "refreshCPULoad",    ntop_refresh_cpu_load },
   { "getCookieAttributes", ntop_get_cookie_attributes },
   { "isAllowedInterface",  ntop_is_allowed_interface },
-  { "isAllowedNetwork", ntop_is_allowed_network },
+  { "isAllowedNetwork",  ntop_is_allowed_network },
   { "isLocalInterfaceAddress", ntop_is_local_interface_address },
-  { "md5",              ntop_md5 },
-  { "hasRadiusSupport", ntop_has_radius_support },
-  { "hasLdapSupport",   ntop_has_ldap_support },
+  { "md5",               ntop_md5 },
+  { "hasRadiusSupport",  ntop_has_radius_support },
+  { "hasLdapSupport",    ntop_has_ldap_support },
   { "execSingleSQLQuery", ntop_exec_single_sql_query },
-  { "resetStats",       ntop_reset_stats },
+  { "resetStats",        ntop_reset_stats },
   { "getCurrentPluginsDir", ntop_get_current_plugins_dir },
   { "getShadowPluginsDir",  ntop_get_shadow_plugins_dir },
-  { "swapPluginsDir",   ntop_swap_plugins_dir },
-  { "isPlugins0Dir",    ntop_is_plugins0_dir },
-  { "getDropPoolInfo",  ntop_get_drop_pool_info },
-  { "isOffline",        ntop_is_offline },
+  { "swapPluginsDir",    ntop_swap_plugins_dir },
+  { "isPlugins0Dir",     ntop_is_plugins0_dir },
+  { "getDropPoolInfo",   ntop_get_drop_pool_info },
+  { "isOffline",         ntop_is_offline },
+  { "setOffline",        ntop_set_offline },
+  { "setOnline",         ntop_set_online },
 
   /* Redis */
   { "getCacheStatus",    ntop_info_redis },
