@@ -445,11 +445,14 @@
         });
 
         // on ajax request complete then print the query time
+        $table.on('preXhr', function() {
+            toggleOverlays();
+        });
         $table.on('xhr', function() {
             printQueryTime($table);
             hideOverlays();
             filterModalLoadData();
-	});
+        });
 
 	$(`.range-picker`).on('change', async function(e) {
             await onRangePickerChange(true);
