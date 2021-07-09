@@ -52,6 +52,7 @@ class ViewInterface : public NetworkInterface {
   /* Dequeues enqueued flows sequentially for each of the viewed interfaces belonging to this view.
      The total number of elements dequeued is returned. */
   u_int64_t viewDequeue(u_int budget);
+  virtual bool areTrafficDirectionsSupported() { return(true); };
   virtual InterfaceType getIfType() const { return interface_type_VIEW;           };
   virtual const char* get_type()    const { return CONST_INTERFACE_TYPE_VIEW;     };
   virtual bool is_ndpi_enabled()    const { return false;                         };
