@@ -1583,7 +1583,7 @@ local function label2formattedlabel(alt_name, host_info, show_vlan)
 
       -- Special shorting function for IP addresses
       if res ~= ip then
-	 res = shortHostName(res)
+	 res = shortenString(res)
       end
 
       -- Adding the vlan if requested
