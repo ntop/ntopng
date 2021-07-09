@@ -9,6 +9,7 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local json = require "dkjson"
 
 -- ##############################################
 
@@ -43,18 +44,21 @@ function alert_longlived.format(ifid, alert, alert_type_params)
    local threshold = ""
    local res = i18n("flow_details.longlived_flow")
 
-   if not alert_type_params then
-      return res
+   if alert_type_params then
+      if alert_type_params["longlived.threshold"] then
+	 threshold = alert_type_params["longlived.threshold"]
+      end
+
+      res = string.format("%s<sup><i class='fas fa-fw fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.longlived_flow_descr").."'></i></sup>", res)
+
+      if threshold ~= "" then
+	 res = string.format("%s [%s]", res, i18n("flow_details.longlived_exceeded", {amount = secondsToTime(threshold)}))
+      end
    end
 
-   if alert_type_params["longlived.threshold"] then
-      threshold = alert_type_params["longlived.threshold"]
-   end
-
-   res = string.format("%s<sup><i class='fas fa-fw fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.longlived_flow_descr").."'></i></sup>", res)
-
-   if threshold ~= "" then
-      res = string.format("%s [%s]", res, i18n("flow_details.longlived_exceeded", {amount = secondsToTime(threshold)}))
+   local alert_json = json.decode(alert["json"])
+   if alert_json and not isEmptyString(alert_json["info"]) then
+      res = string.format("%s [%s]", res, alert_json["info"])
    end
 
    return res

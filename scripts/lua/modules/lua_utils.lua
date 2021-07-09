@@ -2992,34 +2992,6 @@ end
 
 -- ###############################################
 
-function formatElephantAlertType(flowalert_info)
-   local threshold = ""
-   local res = ""
-
-   if not flowalert_info then
-      return i18n("flow_details.elephant_flow")
-   end
-
-   local l2r_bytes = bytesToSize(flowalert_info["l2r_bytes"])
-
-   if flowalert_info["l2r_bytes"] > flowalert_info["l2r_threshold"] and flowalert_info["l2r_threshold"] > 0 then
-      l2r_bytes = l2r_bytes .." > "..bytesToSize(flowalert_info["l2r_threshold"])
-   end
-
-   local r2l_bytes = bytesToSize(flowalert_info["r2l_bytes"])
-   if flowalert_info["r2l_bytes"] > flowalert_info["r2l_threshold"] and flowalert_info["l2r_threshold"] > 0 then
-      r2l_bytes = r2l_bytes .. " > "..bytesToSize(flowalert_info["r2l_threshold"])
-   end
-
-   res = i18n("flow_details.elephant_flow")
-   res = string.format("%s<sup><i class='fas fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.elephant_flow_descr").."'></i></sup>", res)
-   res = string.format("%s %s", res, i18n("flow_details.elephant_exceeded", {l2r = l2r_bytes, r2l = r2l_bytes}))
-
-   return res
-end
-
--- ###############################################
-
 -- prints purged information for hosts / flows
 function purgedErrorString()
     local info = ntop.getInfo(false)
