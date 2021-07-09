@@ -100,6 +100,11 @@ function blog_utils.updateRedis(newPosts)
 end
 
 function blog_utils.fetchLatestPosts()  
+
+   if ntop.isOffline() then
+      return
+   end
+
    local response
    local now = os.time()
    local next_fetch = ntop.getPref(BLOG_NEXT_FEED_UPDATE)
