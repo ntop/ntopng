@@ -410,18 +410,20 @@ void NetworkInterface::checkDisaggregationMode() {
 /* **************************************************** */
 
 void NetworkInterface::loadScalingFactorPrefs() {
+  
   if(ntop->getRedis() != NULL) {
     char rkey[128], rsp[16];
+    u_int32_t scaling_factor = 0;
 
     snprintf(rkey, sizeof(rkey), CONST_IFACE_SCALING_FACTOR_PREFS, id);
 
     if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
-      scalingFactor = atol(rsp);
+      scaling_factor = atol(rsp);
 
-    if(scalingFactor == 0) {
+    if(scaling_factor == 0)
       ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: scalingFactor can't be 0!");
-      scalingFactor = 1;
-    }
+
+    setScalingFactor(scaling_factor);
   }
 }
 
@@ -1833,7 +1835,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   u_int32_t null_type;
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
-  u_int32_t len_on_wire = h->len * scalingFactor;
+  u_int32_t len_on_wire = h->len * getScalingFactor();
   *flow = NULL;
 
   /* Note summy ethernet is always 0 unless sender_mac is set (Netfilter only) */
@@ -5831,7 +5833,7 @@ void NetworkInterface::lua(lua_State *vm) {
 
   lua_push_str_table_entry(vm, "name", get_name());
   lua_push_str_table_entry(vm, "description", get_description());
-  lua_push_uint64_table_entry(vm, "scalingFactor", scalingFactor);
+  lua_push_uint64_table_entry(vm, "scalingFactor", getScalingFactor());
   lua_push_int32_table_entry(vm,  "id", id);
   lua_push_str_table_entry(vm, "mac", Utils::formatMac(ifMac, buf, sizeof(buf)));
   if(customIftype) lua_push_str_table_entry(vm, "customIftype", (char*)customIftype);

@@ -29,7 +29,7 @@ class ZMQParserInterface : public ParserInterface {
   typedef std::pair<u_int32_t, u_int32_t> pen_value_t;
   typedef std::map<string, pen_value_t > labels_map_t;
   labels_map_t labels_map;
-  bool once;
+  bool once, is_sampled_traffic;
   u_int32_t flow_max_idle;
   u_int64_t zmq_initial_bytes, zmq_initial_pkts,
     zmq_remote_initial_exported_flows;
@@ -73,6 +73,7 @@ public:
   ~ZMQParserInterface();
 
   virtual InterfaceType getIfType() const { return(interface_type_ZMQ); }
+  virtual bool isSampledTraffic()   const { return(is_sampled_traffic); }
 
   bool matchField(ParsedFlow * const flow, const char * const key, ParsedValue * value);
 

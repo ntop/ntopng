@@ -890,9 +890,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void decNumHosts(bool local) { if(local) numLocalHosts--; numHosts--; };
   inline void incNumL2Devices()       { numL2Devices++; }
   inline void decNumL2Devices()       { numL2Devices--; }
-  inline u_int32_t getScalingFactor()       { return(scalingFactor); }
+  inline u_int32_t getScalingFactor()       const { return(scalingFactor); }
   inline void setScalingFactor(u_int32_t f) { scalingFactor = f;     }
-  inline bool isSampledTraffic()            { return((scalingFactor == 1) ? false : true); }
+  virtual bool isSampledTraffic()           const { return((scalingFactor == 1) ? false : true); }
 #ifdef NTOPNG_PRO
   virtual bool getCustomAppDetails(u_int32_t remapped_app_id, u_int32_t *const pen, u_int32_t *const app_field, u_int32_t *const app_id) { return false; };
   virtual void addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) { ; };

@@ -355,6 +355,10 @@ typedef struct zmq_remote_stats {
   u_int32_t remote_lifetime_timeout, remote_idle_timeout, remote_collected_lifetime_timeout;
   u_int32_t export_queue_full, too_many_flows, elk_flow_drops,
     sflow_pkt_sample_drops, flow_collection_drops, flow_collection_udp_socket_drops;
+  struct {
+    u_int64_t nf_ipfix_flows;
+    u_int64_t sflow_samples;
+  } flow_collection;
 } ZMQ_RemoteStats;
 
 typedef struct zmq_template {

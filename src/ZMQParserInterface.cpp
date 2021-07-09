@@ -35,7 +35,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   memset(&last_zmq_remote_stats_update, 0, sizeof(last_zmq_remote_stats_update));
   zmq_remote_initial_exported_flows = 0;
   remote_lifetime_timeout = remote_idle_timeout = 0;
-  once = false;
+  once = false, is_sampled_traffic = false;
   flow_max_idle = ntop->getPrefs()->get_pkt_ifaces_flow_max_idle();
 #ifdef NTOPNG_PRO
   custom_app_maps = NULL;
@@ -276,6 +276,14 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 
       if(json_object_object_get_ex(w, "flow_collection_udp_socket_drops", &z))
 	zrs.flow_collection_udp_socket_drops = (u_int32_t)json_object_get_int64(z);
+    }
+
+    if(json_object_object_get_ex(o, "flow_collection", &w)) {
+      if(json_object_object_get_ex(w, "nf_ipfix_flows", &z))
+	zrs.flow_collection.nf_ipfix_flows = (u_int64_t)json_object_get_int64(z);
+
+      if(json_object_object_get_ex(w, "sflow_samples", &z))
+	zrs.flow_collection.sflow_samples = (u_int64_t)json_object_get_int64(z);
     }
 
     if(json_object_object_get_ex(o, "zmq", &w)) {
@@ -2109,6 +2117,8 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
       cumulative_zrs->sflow_pkt_sample_drops += zrs_i->sflow_pkt_sample_drops;
       cumulative_zrs->flow_collection_drops += zrs_i->flow_collection_drops;
       cumulative_zrs->flow_collection_udp_socket_drops += zrs_i->flow_collection_udp_socket_drops;
+      cumulative_zrs->flow_collection.nf_ipfix_flows += zrs_i->flow_collection.nf_ipfix_flows;
+      cumulative_zrs->flow_collection.sflow_samples += zrs_i->flow_collection.sflow_samples;
 
       ++it;
     }
@@ -2121,6 +2131,8 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   last_pkt_rcvd_remote = cumulative_zrs->remote_time;
   last_remote_pps = cumulative_zrs->avg_pps;
   last_remote_bps = cumulative_zrs->avg_bps;
+  if(cumulative_zrs->flow_collection.sflow_samples > 0)
+    is_sampled_traffic = true;
 
   /* Recalculate the flow max idle according to the timeouts received */
   flow_max_idle = max(cumulative_zrs->remote_lifetime_timeout, cumulative_zrs->remote_collected_lifetime_timeout) + 10 /* Safe margin */;
