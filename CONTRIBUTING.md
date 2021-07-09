@@ -66,8 +66,9 @@ will compare the output of the test with the old one to make sure it
 is still the same.
 
 Creating a new test is as simple as creating a small .yaml file, with
-the test name as name of the file, under ntopng/tests/rest/tests 
-containing the below sections:
+the test name as name of the file, under ntopng/tests/rest/tests/<API version>
+(where *API version* should be at least the latest API, e.g. v2) containing
+the below sections:
 
 - input: the name of a pcap in the 'ntopng/tests/rest/pcap' folder containing some traffic to be provided to ntopng as input
 - localnet: the local network(s) as usually specified with the -m option in ntopng
@@ -87,17 +88,17 @@ pre: |
 
 post: |
   sleep 10
-  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "status": "historical-flows"}' http://localhost:3333/lua/rest/v1/get/alert/data.lua
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "status": "historical-flows"}' http://localhost:3333/lua/rest/v2/get/alert/data.lua
 
 ignore:
   - date
 ```
 
-In order to run a specific test and avoid running all the suite, it is possible to specify -y=<test name> when running the run.sh script under ntopng/tests/rest:
+In order to run a specific test and avoid running all the suite, it is possible to specify -y=<API version>/<test name> when running the run.sh script under ntopng/tests/rest:
 
 ```
 cd ntopng/tests/rest
-./run.sh -y=get_alert_data
+./run.sh -y=v2/get_alert_data_01
 ```
 
 Memory Leak Detection
