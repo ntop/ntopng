@@ -46,6 +46,7 @@ class Ntop {
   bool ndpiReloadInProgress;
   bool flowChecksReloadInProgress, hostChecksReloadInProgress, alertExclusionsReloadInProgress;
   bool hostPoolsReloadInProgress;
+  bool offline;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   AddressTree local_interface_addresses;
   char epoch_buf[11];
@@ -583,6 +584,9 @@ class Ntop {
   inline void askToRefreshIPSRules()  { refresh_ips_rules = true; }
   inline bool timeToRefreshIPSRules() { bool rc = refresh_ips_rules; refresh_ips_rules = false; return(rc); }
 #endif
+
+  inline bool isOffline() { return offline; }
+  inline void toggleOffline(bool off) { offline = off; }
 };
 
 extern Ntop *ntop;

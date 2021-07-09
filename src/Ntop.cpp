@@ -57,6 +57,7 @@ Ntop::Ntop(char *appName) {
   extract = new (std::nothrow) TimelineExtract();
   pa      = new (std::nothrow) PeriodicActivities();
   address = new (std::nothrow) AddressResolution();
+  offline = false;
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
 #ifndef HAVE_NEDGE

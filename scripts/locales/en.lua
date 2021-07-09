@@ -222,6 +222,7 @@ local lang = {
   ["observationpoints"] = "Observation Points",
   ["observations"] = "Observations",
   ["off"] = "Off",
+  ["offline"] = "Offline (No Internet Connectivity)",
   ["open_documentation"] = "Open in Documentation",
   ["operating_systems"] = "Operating Systems",
   ["optional_field"] = "(This field is optional)",
