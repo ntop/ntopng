@@ -1575,19 +1575,65 @@ end
 
 -- ##############################################
 
-local function  add_vlan_to_alt_name(alt_name, host_info, show_vlan)
-   -- Adding the vlan if requested
-   if show_vlan then
-      local vlan = tonumber(host_info["vlan"])
+local function label2formattedlabel(alt_name, host_info, show_vlan)
+   if not isEmptyString(alt_name) then
+      local ip = host_info["ip"] or host_info["host"]
+      -- Make it shorter
+      local res = shortenString(alt_name)
 
-      if vlan and vlan > 0 then
-	 local full_vlan_name = getFullVlanName(vlan)
+      -- Add the ipv6 suffix
+      if isIPv6(ip) then
+	 res = res .. " [v6]"
+      end
 
-	 alt_name = string.format("%s@%s", alt_name, full_vlan_name)
+      -- Adding the vlan if requested
+      if show_vlan then
+	 local vlan = tonumber(host_info["vlan"])
+
+	 if vlan and vlan > 0 then
+	    local full_vlan_name = getFullVlanName(vlan)
+
+	    res = string.format("%s@%s", res, full_vlan_name)
+	 end
+      end
+
+      return res
+   end
+
+   -- Fallback: just the IP and VLAN
+   return(hostinfo2hostkey(host_info, true))
+end
+
+-- ##############################################
+
+-- Attempt at retrieving an host label from an host_info, using local caches and DNS resolution.
+-- This can be more expensive if compared to only using information found inside host_info.
+local function hostinfo2label_resolved(host_info, show_vlan)
+   local ip = host_info["ip"] or host_info["host"]
+   local res
+
+   -- If local broadcast domain host and DHCP, try to get the label associated
+   -- to the MAC address
+   if host_info["mac"] and (host_info["broadcast_domain_host"] or host_info["dhcpHost"]) then
+      res = getHostAltName(host_info["mac"])
+   end
+
+   if isEmptyString(res) then
+      -- Use any user-configured custom name
+      res = getHostAltName(ip)
+
+      if isEmptyString(res) then
+	 -- Try and get the resolved name
+	 res = ntop.getResolvedName(ip)
+
+	 if isEmptyString(res) then
+	    -- Nothing found, just fallback to the IP address
+	    res = ip
+	 end
       end
    end
 
-   return alt_name
+   return label2formattedlabel(res, host_info, show_vlan)
 end
 
 -- ##############################################
@@ -1599,57 +1645,27 @@ end
 -- The following order is used to determine the label:
 --    MAC label (LBD hosts only), IP label, MDNS/DHCP name from C, resolved IP
 --
+-- NOTE: The function attempt at labelling an host only using information found in host_info.
+-- In case host_info is not enough to label the host, then local caches and DNS resolution kick in
+-- to find a label (at the expense of extra time).
 function hostinfo2label(host_info, show_vlan)
+   tprint(host_info)
    local alt_name = nil
    local ip = host_info["ip"] or host_info["host"]
-   local res
 
-   -- If local broadcast domain host and DHCP, try to get the label associated
-   -- to the MAC address
-   if host_info["mac"] and (host_info["broadcast_domain_host"] or host_info["dhcpHost"]) then
-      res = getHostAltName(host_info["mac"])
-   end
+   -- Take the label as found in the host structure
+   local res = host_info.label
 
    if isEmptyString(res) then
-      -- Take the label as found in the host structure
-      res = host_info.label
+      -- Read what is found inside host `name`, e.g., name as found by dissected traffic such as DHCP
+      res = host_info["name"]
 
       if isEmptyString(res) then
-	 -- Use any user-configured custom name
-	 res = getHostAltName(ip)
-
-	 if isEmptyString(res) then
-	    -- Read what is found inside host `name`, e.g., name as found by dissected traffic such as DHCP
-	    res = host_info["name"]
-
-	    if isEmptyString(res) then
-	       -- Try and get the resolved name
-	       res = ntop.getResolvedName(ip)
-
-	       if isEmptyString(res) then
-		  -- Nothing found, just fallback to the IP address
-		  res = ip
-	       end
-	    end
-	 end
+	 return hostinfo2label_resolved(host_info, show_vlan)
       end
    end
 
-   if not isEmptyString(res) then
-      -- Make it shorter
-      res = shortenString(res)
-
-      -- Add the ipv6 suffix
-      if isIPv6(ip) then
-	 res = res .. " [v6]"
-      end
-
-      -- Add the VLAN
-      return add_vlan_to_alt_name(res, host_info, show_vlan)
-   end
-
-   -- Fallback: just the IP and VLAN
-   return(hostinfo2hostkey(host_info, true))
+   return label2formattedlabel(res, host_info, show_vlan)
 end
 
 -- ##############################################
