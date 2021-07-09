@@ -1591,7 +1591,7 @@ local function label2formattedlabel(alt_name, host_info, show_vlan)
 	 local vlan = tonumber(host_info["vlan"])
 
 	 if vlan and vlan > 0 then
-	    local full_vlan_name = getFullVlanName(vlan)
+	    local full_vlan_name = getFullVlanName(vlan, true --[[ Compact --]])
 
 	    res = string.format("%s@%s", res, full_vlan_name)
 	 end
@@ -2072,14 +2072,17 @@ end
 
 -- ##############################################
 
-function getFullVlanName(vlan_id)
+function getFullVlanName(vlan_id, compact)
    local alias = getVlanAlias(vlan_id)
 
    if not isEmptyString(alias) then
-      alias = shortenString(alias)
-
       if not isEmptyString(alias) and alias ~= tostring(vlan_id) then
-	 return string.format("%u [%s]", vlan_id, alias)
+	 if compact then
+	    alias = shortenString(alias)
+	    return string.format("%s", alias)
+	 else
+	    return string.format("%u [%s]", vlan_id, alias)
+	 end
       end
    end
 
