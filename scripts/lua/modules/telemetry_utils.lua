@@ -15,6 +15,10 @@ local TELEMETRY_RECORDS_SENT = "ntopng.cache.telemetry_data_sent"
 local TELEMETRY_MAX_NUM_RECORDS = 5
 
 function telemetry_utils.telemetry_enabled()
+   if ntop.isOffline() then
+      return false
+   end
+
    local tm = ntop.getPref(TELEMETRY_ENABLED_KEY)
 
    return tm == "1"
