@@ -4058,6 +4058,11 @@ end
 --- @return string message If there is a new major release then return a non-nil string
 --- containing the update message.
 function check_latest_major_release()
+
+   if ntop.isOffline() then
+      return nil
+   end
+
    -- get the latest major release
    local latest_version = ntop.getCache("ntopng.cache.major_release")
 
@@ -4077,7 +4082,6 @@ function check_latest_major_release()
    end
 
    return get_version_update_msg(info, latest_version)
-
 end
 
 -- ###########################################
