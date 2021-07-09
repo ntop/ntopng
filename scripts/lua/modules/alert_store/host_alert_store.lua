@@ -190,7 +190,6 @@ function host_alert_store:format_record(value, no_html)
    -- Checking that the name of the host is not empty
    record[RNAME.IP.name]["label"] = hostinfo2label(self:_alert2hostinfo(value), true --[[ Show VLAN --]])
 
-   record[RNAME.IP.name]["shown_label"] = record[RNAME.IP.name]["label"]
    record[RNAME.IS_VICTIM.name] = ""
    record[RNAME.IS_ATTACKER.name] = ""
    record[RNAME.IS_CLIENT.name] = ""

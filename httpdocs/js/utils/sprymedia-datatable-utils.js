@@ -669,7 +669,7 @@ class DataTableRenders {
     	let html_ref = '';
 	if (obj.reference !== undefined)
 	   html_ref = obj.reference
-	let label = obj.shown_label || obj.label;
+	let label = obj.label;
         
         label = DataTableRenders.filterize('ip', obj.value, label);
 

@@ -448,7 +448,7 @@ function alert_consts.alertTypeLabel(alert_id, nohtml, alert_entity_id)
       if(nohtml) then
         return(title)
       else
-        return(string.format('<i class="%s"></i> %s', type_info.icon or type_info.meta.icon, title))
+        return(string.format('<i class="%s"></i> %s', type_info.icon or type_info.meta.icon, shortenString(title)))
       end
    end
 
