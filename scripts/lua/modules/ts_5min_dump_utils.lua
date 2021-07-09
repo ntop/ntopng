@@ -191,25 +191,27 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
 		     millis_rtt=asn_stats["round_trip_time"]}, when)
 
     -- Save ASN TCP stats
-    ts_utils.append("asn:tcp_retransmissions",
-		    {ifid=ifstats.id, asn=asn,
-		     packets_sent=asn_stats["tcpPacketStats.sent"]["retransmissions"],
-		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["retransmissions"]}, when)
+    if not ifstats.isSampledTraffic then
+       ts_utils.append("asn:tcp_retransmissions",
+		       {ifid=ifstats.id, asn=asn,
+			packets_sent=asn_stats["tcpPacketStats.sent"]["retransmissions"],
+			packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["retransmissions"]}, when)
 
-    ts_utils.append("asn:tcp_out_of_order",
-		    {ifid=ifstats.id, asn=asn,
-		     packets_sent=asn_stats["tcpPacketStats.sent"]["out_of_order"],
-		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["out_of_order"]}, when)
+       ts_utils.append("asn:tcp_out_of_order",
+		       {ifid=ifstats.id, asn=asn,
+			packets_sent=asn_stats["tcpPacketStats.sent"]["out_of_order"],
+			packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["out_of_order"]}, when)
 
-    ts_utils.append("asn:tcp_lost",
-		    {ifid=ifstats.id, asn=asn,
-		     packets_sent=asn_stats["tcpPacketStats.sent"]["lost"],
-		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["lost"]}, when)
+       ts_utils.append("asn:tcp_lost",
+		       {ifid=ifstats.id, asn=asn,
+			packets_sent=asn_stats["tcpPacketStats.sent"]["lost"],
+			packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["lost"]}, when)
 
-    ts_utils.append("asn:tcp_keep_alive",
-		    {ifid=ifstats.id, asn=asn,
-		     packets_sent=asn_stats["tcpPacketStats.sent"]["keep_alive"],
-		     packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["keep_alive"]}, when)
+       ts_utils.append("asn:tcp_keep_alive",
+		       {ifid=ifstats.id, asn=asn,
+			packets_sent=asn_stats["tcpPacketStats.sent"]["keep_alive"],
+			packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["keep_alive"]}, when)
+    end
 
     if ntop.isPro() then
       -- Check to see if the values are inserted

@@ -540,6 +540,15 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 
 /* **************************************************** */
 
+bool ViewInterface::isSampledTraffic() const {
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    if(viewed_interfaces[s]->isSampledTraffic()) return true;
+
+  return false;
+}
+
+/* **************************************************** */
+
 void ViewInterface::flowPollLoop() {
   while(!ntop->getGlobals()->isShutdownRequested()) {
     while(idle()) sleep(1);

@@ -81,29 +81,31 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
         {ifid=ifstats.id, subnet=subnet,
         score=sstats["score"], scoreAsClient=sstats["score.as_client"], scoreAsServer=sstats["score.as_server"]}, when)
 
-    ts_utils.append("subnet:tcp_retransmissions",
-        {ifid=ifstats.id, subnet=subnet,
-        packets_ingress=sstats["tcpPacketStats.ingress"]["retransmissions"],
-        packets_egress=sstats["tcpPacketStats.egress"]["retransmissions"],
-        packets_inner=sstats["tcpPacketStats.inner"]["retransmissions"]}, when)
+    if not ifstats.isSampledTraffic then
+       ts_utils.append("subnet:tcp_retransmissions",
+		       {ifid=ifstats.id, subnet=subnet,
+			packets_ingress=sstats["tcpPacketStats.ingress"]["retransmissions"],
+			packets_egress=sstats["tcpPacketStats.egress"]["retransmissions"],
+			packets_inner=sstats["tcpPacketStats.inner"]["retransmissions"]}, when)
 
-    ts_utils.append("subnet:tcp_out_of_order",
-        {ifid=ifstats.id, subnet=subnet,
-        packets_ingress=sstats["tcpPacketStats.ingress"]["out_of_order"],
-        packets_egress=sstats["tcpPacketStats.egress"]["out_of_order"],
-        packets_inner=sstats["tcpPacketStats.inner"]["out_of_order"]}, when)
+       ts_utils.append("subnet:tcp_out_of_order",
+		       {ifid=ifstats.id, subnet=subnet,
+			packets_ingress=sstats["tcpPacketStats.ingress"]["out_of_order"],
+			packets_egress=sstats["tcpPacketStats.egress"]["out_of_order"],
+			packets_inner=sstats["tcpPacketStats.inner"]["out_of_order"]}, when)
 
-    ts_utils.append("subnet:tcp_lost",
-        {ifid=ifstats.id, subnet=subnet,
-        packets_ingress=sstats["tcpPacketStats.ingress"]["lost"],
-        packets_egress=sstats["tcpPacketStats.egress"]["lost"],
-        packets_inner=sstats["tcpPacketStats.inner"]["lost"]}, when)
+       ts_utils.append("subnet:tcp_lost",
+		       {ifid=ifstats.id, subnet=subnet,
+			packets_ingress=sstats["tcpPacketStats.ingress"]["lost"],
+			packets_egress=sstats["tcpPacketStats.egress"]["lost"],
+			packets_inner=sstats["tcpPacketStats.inner"]["lost"]}, when)
 
-    ts_utils.append("subnet:tcp_keep_alive",
-        {ifid=ifstats.id, subnet=subnet,
-        packets_ingress=sstats["tcpPacketStats.ingress"]["keep_alive"],
-        packets_egress=sstats["tcpPacketStats.egress"]["keep_alive"],
-        packets_inner=sstats["tcpPacketStats.inner"]["keep_alive"]}, when)
+       ts_utils.append("subnet:tcp_keep_alive",
+		       {ifid=ifstats.id, subnet=subnet,
+			packets_ingress=sstats["tcpPacketStats.ingress"]["keep_alive"],
+			packets_egress=sstats["tcpPacketStats.egress"]["keep_alive"],
+			packets_inner=sstats["tcpPacketStats.inner"]["keep_alive"]}, when)
+    end
 
     ts_utils.append("subnet:engaged_alerts",
         {ifid=ifstats.id, subnet=subnet,
@@ -379,7 +381,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, config, when)
      ts_dump.iface_update_flow_dump_stats(when, ifstats, verbose)
   end
 
-  if not ifstats.has_seen_ebpf_events then
+  if not ifstats.has_seen_ebpf_events and not ifstats.isSampledTraffic then
      ts_dump.iface_update_tcp_flags(when, ifstats, verbose)
      ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
   end
