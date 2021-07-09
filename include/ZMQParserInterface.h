@@ -30,7 +30,7 @@ class ZMQParserInterface : public ParserInterface {
   typedef std::map<string, pen_value_t > labels_map_t;
   labels_map_t labels_map;
   bool once, is_sampled_traffic;
-  u_int32_t flow_max_idle;
+  u_int32_t flow_max_idle, returned_flow_max_idle;
   u_int64_t zmq_initial_bytes, zmq_initial_pkts,
     zmq_remote_initial_exported_flows;
   std::map<u_int8_t, ZMQ_RemoteStats*>source_id_last_zmq_remote_stats;
@@ -67,7 +67,8 @@ protected:
       num_templates, num_options, num_network_events,
       zmq_msg_rcvd, zmq_msg_drops;
   } recvStats, recvStatsCheckpoint;
-
+  inline void updateFlowMaxIdle() { returned_flow_max_idle = max(remote_idle_timeout, flow_max_idle); }
+  
 public:
   ZMQParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ZMQParserInterface();
@@ -85,13 +86,13 @@ public:
   u_int8_t parseOption(const char * const payload, int payload_size, u_int8_t source_id, void *data);
 
   u_int32_t periodicStatsUpdateFrequency() const;
-  virtual u_int32_t getFlowMaxIdle();
   virtual void setRemoteStats(ZMQ_RemoteStats *zrs);
 #ifdef NTOPNG_PRO
   virtual bool getCustomAppDetails(u_int32_t remapped_app_id, u_int32_t *const pen, u_int32_t *const app_field, u_int32_t *const app_id);
 #endif
   u_int32_t getNumDroppedPackets() { return zmq_remote_stats ? zmq_remote_stats->sflow_pkt_sample_drops : 0; };
   virtual void lua(lua_State* vm);
+  inline u_int32_t getFlowMaxIdle() { return(returned_flow_max_idle); }
 };
 
 #endif /* _ZMQ_PARSER_INTERFACE_H_ */

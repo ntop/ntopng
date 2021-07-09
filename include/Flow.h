@@ -40,6 +40,7 @@ class Flow : public GenericHashEntry {
   Host *cli_host, *srv_host;
   IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
+  u_int32_t flowCreationTime;
   u_int8_t cli2srv_tos, srv2cli_tos; /* RFC 2474, 3168 */
   u_int16_t cli_port, srv_port;
   VLANid vlanId;
@@ -573,7 +574,7 @@ class Flow : public GenericHashEntry {
     else
       *actual_client = get_cli_host(), *actual_server = get_srv_host();
   };
-  bool is_hash_entry_state_idle_transition_ready() const;
+  bool is_hash_entry_state_idle_transition_ready();
   void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial,
 				   bool first_partial, const struct timeval *tv) const;
   void periodic_stats_update(const struct timeval *tv);

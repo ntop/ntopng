@@ -58,7 +58,8 @@ Flow::Flow(NetworkInterface *_iface,
   suspicious_dga_domain = NULL;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
   swap_done = swap_requested = false;
-
+  flowCreationTime = iface->getTimeLastPktRcvd();
+  
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
@@ -2371,7 +2372,7 @@ u_int Flow::get_hash_entry_id() const {
 
 /* *************************************** */
 
-bool Flow::is_hash_entry_state_idle_transition_ready() const {
+bool Flow::is_hash_entry_state_idle_transition_ready() {
   bool ret = false;
 
 #ifdef EXPIRE_FLOWS_IMMEDIATELY
@@ -2419,6 +2420,14 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
   if(ret)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Idle flow found", iface->get_name());
 #endif
+
+  if(ret && ((iface->getTimeLastPktRcvd()-flowCreationTime) < 10 /* sec */)) {
+    /*
+      Trick to keep flows a minimum amount of time in memory
+      and thus avoid quick purging 
+    */
+    ret = false;
+  }
 
   return(ret);
 }

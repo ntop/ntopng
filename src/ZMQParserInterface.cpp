@@ -40,6 +40,8 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
 #ifdef NTOPNG_PRO
   custom_app_maps = NULL;
 #endif
+
+  updateFlowMaxIdle();
   memset(&recvStats, 0, sizeof(recvStats));
   memset(&recvStatsCheckpoint, 0, sizeof(recvStatsCheckpoint));
 
@@ -2136,7 +2138,8 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
 
   /* Recalculate the flow max idle according to the timeouts received */
   flow_max_idle = max(cumulative_zrs->remote_lifetime_timeout, cumulative_zrs->remote_collected_lifetime_timeout) + 10 /* Safe margin */;
-
+  updateFlowMaxIdle();
+  
   if((zmq_initial_pkts == 0) /* ntopng has been restarted */
      || (cumulative_zrs->remote_bytes < zmq_initial_bytes) /* nProbe has been restarted */
      ) {
@@ -2235,12 +2238,6 @@ void ZMQParserInterface::lua(lua_State* vm) {
     lua_push_uint64_table_entry(vm, "timeout.collected_lifetime", zrs->remote_collected_lifetime_timeout);
     lua_push_uint64_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);
   }
-}
-
-/* **************************************************** */
-
-u_int32_t ZMQParserInterface::getFlowMaxIdle() {
-  return(max(remote_idle_timeout, flow_max_idle));
 }
 
 /* **************************************************** */

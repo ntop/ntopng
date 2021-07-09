@@ -929,7 +929,7 @@ const char * Host::getOSDetail(char * const buf, ssize_t buf_len) {
 
 /* ***************************************** */
 
-bool Host::is_hash_entry_state_idle_transition_ready() const {
+bool Host::is_hash_entry_state_idle_transition_ready() {
   u_int32_t max_idle;
 
   /*

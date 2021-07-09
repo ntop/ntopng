@@ -210,7 +210,7 @@ class GenericHashEntry {
    * @brief Determine whether this entry is ready for the transition to the idle state
    * 
    */
-  virtual bool is_hash_entry_state_idle_transition_ready() const {
+  virtual bool is_hash_entry_state_idle_transition_ready() {
     return getUses() == 0 && is_active_entry_now_idle(MAX_HASH_ENTRY_IDLE);
   }
 

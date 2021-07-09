@@ -278,7 +278,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   char* get_hostkey(char *buf, u_int buf_len, bool force_vlan=false);
   char* get_tskey(char *buf, size_t bufsize);
 
-  bool is_hash_entry_state_idle_transition_ready() const;
+  bool is_hash_entry_state_idle_transition_ready();
   void periodic_stats_update(const struct timeval *tv);
   virtual void custom_periodic_stats_update(const struct timeval *tv) { ; }
   
