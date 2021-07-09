@@ -81,7 +81,7 @@ class IpAddress {
   inline bool isBlacklistedAddress()     const        { return(addr.blacklistedIP); };
   inline bool isBroadMulticastAddress()  const        { return(addr.broadcastIP || addr.multicastIP); };
   inline bool isNonEmptyUnicastAddress() const        { return(!isMulticastAddress() && !isBroadcastAddress() && !isEmpty()); };
-  inline u_int8_t getVersion()                        { return(addr.ipVersion); };
+  inline u_int8_t getVersion()           const        { return(addr.ipVersion); };
   inline void setVersion(u_int8_t version)            { addr.ipVersion = version; };
   char* print(char *str, u_int str_len, u_int8_t bitmask = 0xFF) const;
   char* printMask(char *str, u_int str_len, bool isLocalIP);

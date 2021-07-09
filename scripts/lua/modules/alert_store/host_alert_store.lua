@@ -39,6 +39,7 @@ function host_alert_store:insert(alert)
    local is_victim = ternary(alert.is_victim, 1, 0)
    local is_client = ternary(alert.is_client, 1, 0)
    local is_server = ternary(alert.is_server, 1, 0)
+   local ip_version = alert.ip_version
    local ip = alert.ip
    local vlan_id = alert.vlan_id
 
@@ -49,10 +50,11 @@ function host_alert_store:insert(alert)
    end
 
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, ip, vlan_id, name, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, json) "..
-      "VALUES (%u, '%s', %u, '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
+      "(alert_id, ip_version, ip, vlan_id, name, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, json) "..
+      "VALUES (%u, %u, '%s', %u, '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
       self._table_name, 
       alert.alert_id,
+      ip_version,
       ip,
       vlan_id or 0,
       self:_escape(alert.name),
@@ -109,11 +111,13 @@ end
 --@brief Add filters according to what is specified inside the REST API
 function host_alert_store:_add_additional_request_filters()
    local vlan_id = _GET["vlan_id"]
+   local ip_version = _GET["ip_version"]
    local ip = _GET["ip"]
    local role = _GET["role"]
    local role_cli_srv = _GET["role_cli_srv"]
 
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
+   self:add_filter_condition_list('ip_version', ip_version)
    self:add_filter_condition_list('ip', ip)
    self:add_filter_condition_list('host_role', role)
    self:add_filter_condition_list('role_cli_srv', role_cli_srv)
@@ -124,6 +128,10 @@ end
 --@brief Get info about additional available filters
 function host_alert_store:_get_additional_available_filters()
    local filters = {
+      ip_version = {
+         value_type = 'ip_version',
+	 i18n_label = i18n('tags.ip_version'),
+      },
       ip = {
          value_type = 'ip',
 	 i18n_label = i18n('tags.ip'),

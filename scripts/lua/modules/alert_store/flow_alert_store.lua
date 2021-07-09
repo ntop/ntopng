@@ -35,18 +35,19 @@ end
 
 function flow_alert_store:insert(alert)
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, tstamp, tstamp_end, severity, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
+      "(alert_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
       "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, "..
       "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, "..
       "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, "..
       "flow_risk_bitmap, alerts_map, json) "..
-      "VALUES (%u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
+      "VALUES (%u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
       "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, X'%s', '%s'); ",
       self._table_name, 
       alert.alert_id,
       alert.tstamp,
       alert.tstamp,
       ntop.mapScoreToSeverity(alert.score),
+      alert.ip_version,
       alert.cli_ip,
       alert.srv_ip,
       alert.cli_port,
@@ -201,6 +202,7 @@ end
 
 --@brief Add filters according to what is specified inside the REST API
 function flow_alert_store:_add_additional_request_filters()
+   local ip_version = _GET["ip_version"]
    local ip = _GET["ip"]
    local cli_ip = _GET["cli_ip"]
    local srv_ip = _GET["srv_ip"]
@@ -210,8 +212,9 @@ function flow_alert_store:_add_additional_request_filters()
    local l7_proto = _GET["l7_proto"]
    local role = _GET["role"]
 
-   self:add_filter_condition_list('ip', ip)
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
+   self:add_filter_condition_list('ip_version', ip_version)
+   self:add_filter_condition_list('ip', ip)
    self:add_filter_condition_list('cli_ip', cli_ip)
    self:add_filter_condition_list('srv_ip', srv_ip)
    self:add_filter_condition_list('cli_port', cli_port, 'number')
@@ -227,6 +230,10 @@ end
 --@brief Get info about additional available filters
 function flow_alert_store:_get_additional_available_filters()
    local filters = {
+      ip_version = {
+         value_type = 'ip_version',
+	 i18n_label = i18n('tags.ip_version'),
+      },
       ip = {
          value_type = 'ip',
 	 i18n_label = i18n('tags.ip'),

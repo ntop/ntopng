@@ -2860,6 +2860,8 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_int64(s, "srv2cli_bytes", get_bytes_srv2cli());
   ndpi_serialize_string_int64(s, "srv2cli_packets", get_packets_srv2cli());
 
+  ndpi_serialize_string_int32(s, "ip_version", get_cli_ip_addr()->getVersion());
+
   ndpi_serialize_string_string(s, "cli_ip", get_cli_ip_addr()->print(buf, sizeof(buf)));
   ndpi_serialize_string_boolean(s, "cli_blacklisted", isBlacklistedClient());
   ndpi_serialize_string_int32(s, "cli_port", get_cli_port());

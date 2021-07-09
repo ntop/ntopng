@@ -1667,6 +1667,7 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
   ndpi_serialize_string_int32(s, "alert_id", alert->getAlertType().id);
   ndpi_serialize_string_int32(s, "score", alert->getAlertScore());
   ndpi_serialize_string_string(s, "subtype", "" /* No subtype for hosts */);
+  ndpi_serialize_string_int32(s, "ip_version", ip.getVersion());
   ndpi_serialize_string_string(s, "ip", ip.print(ip_buf, sizeof(ip_buf)));
   get_name(buf, sizeof(buf), false);
   ndpi_serialize_string_string(s, "name", buf);

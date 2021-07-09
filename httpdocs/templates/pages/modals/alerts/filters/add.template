@@ -51,6 +51,29 @@
     </div>
 </div>
 
+<template id="ip_version-filter-template">
+    <div class="form-group row">
+        <label class="col-form-label col-sm-3"><b>{{i18n("tags.ip_version")}}</b></label>
+        <div class="col-sm-5">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <select required name="operator" class="form-select">
+                        {% local first_item = true %}
+                        {% for _, operator in ipairs(operators_by_filter.ip_version) do %}
+                            <option {{ (first_item and "selected" or "") }} value="{{operator}}">{{tag_operators[operator]}}</option>
+                            {% first_item = false %}
+                        {% end %}
+                    </select>
+                </div>
+                <select required name="value" class="form-select">
+                    <option selected data-tag-label="{{i18n("ipv4")}}" value="4">{{i18n("ipv4")}}</option>
+                    <option data-tag-label="{{i18n("ipv6")}}" value="6">{{i18n("ipv6")}}</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</template>
+
 <template id="ip-filter-template">
     <div class="form-group row">
         <label class="col-form-label col-sm-3"><b>{{i18n("ip_address")}}</b></label>
