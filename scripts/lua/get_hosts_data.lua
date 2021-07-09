@@ -20,7 +20,6 @@ local perPage     = _GET["perPage"]
 local sortColumn  = _GET["sortColumn"]
 local sortOrder   = _GET["sortOrder"]
 local protocol    = _GET["protocol"]
-local long_names  = _GET["long_names"]
 local custom_column = _GET["custom_column"]
 local traffic_type = _GET["traffic_type"]
 
@@ -55,16 +54,6 @@ end
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
-
-if(long_names == nil) then
-   long_names = false
-else
-   if(long_names == "1") then
-      long_names = true
-   else
-      long_names = false
-   end
-end
 
 local sortPrefs = "hosts"
 
@@ -267,45 +256,9 @@ for _key, _value in pairsByKeys(vals, funct) do
       record["column_url"] = url
    end
 
-   if(value["name"] == nil) then
-      local hinfo = hostkey2hostinfo(key)
-      value["name"] = hostinfo2label(hinfo)
-   end
-
-   if(value["name"] == "") then
-      value["name"] = key
-   end
-
-   local column_name
-   local is_short = false
-
-   -- Visualize both the MDNS/DHCP name from C and (possibly) the host label
-   if(long_names) then
-      column_name = value["name"]
-   else
-      column_name = value["name"]
-
-      if not isIPv4(column_name) and not isIPv6(column_name) then
-         column_name = shortenString(column_name, 24)
-      end
-
-      is_short = true
-   end
-
-   if(value["ip"] ~= nil) then
-      local label = hostinfo2label(value)
-
-      if label ~= value["ip"] then
-	 if(is_short == true) then
-	    if(value["name"] ~= label) then
-	       column_name = column_name .. " ["..shortenString(label, 24).."]"
-	    end
-	 else
-	    if column_name ~= label then
-	       column_name = column_name .. " ["..shortenString(label, 24).."]"
-	    end
-	 end
-      end
+   local column_name = ''
+   if host then
+      column_name = hostinfo2label(host)
    end
 
    if value["has_blocking_quota"] or value["has_blocking_shaper"] then

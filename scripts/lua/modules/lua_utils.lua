@@ -1579,11 +1579,11 @@ local function label2formattedlabel(alt_name, host_info, show_vlan)
    if not isEmptyString(alt_name) then
       local ip = host_info["ip"] or host_info["host"]
       -- Make it shorter
-      local res = shortenString(alt_name)
+      local res = alt_name
 
-      -- Add the ipv6 suffix
-      if isIPv6(ip) then
-	 res = res .. " [v6]"
+      -- Special shorting function for IP addresses
+      if res ~= ip then
+	 res = shortHostName(res)
       end
 
       -- Adding the vlan if requested
@@ -1619,17 +1619,12 @@ local function hostinfo2label_resolved(host_info, show_vlan)
    end
 
    if isEmptyString(res) then
-      -- Use any user-configured custom name
-      res = getHostAltName(ip)
+      -- Try and get the resolved name
+      res = ntop.getResolvedName(ip)
 
       if isEmptyString(res) then
-	 -- Try and get the resolved name
-	 res = ntop.getResolvedName(ip)
-
-	 if isEmptyString(res) then
-	    -- Nothing found, just fallback to the IP address
-	    res = ip
-	 end
+	 -- Nothing found, just fallback to the IP address
+	 res = ip
       end
    end
 
@@ -1656,14 +1651,19 @@ function hostinfo2label(host_info, show_vlan)
    local res = host_info.label
 
    if isEmptyString(res) then
-      -- Read what is found inside host `name`, e.g., name as found by dissected traffic such as DHCP
-      res = host_info["name"]
+      -- Use any user-configured custom name
+      -- This goes first as a label set by the user MUST take precedance over any other possibly available label
+      res = getHostAltName(ip)
 
       if isEmptyString(res) then
-	 return hostinfo2label_resolved(host_info, show_vlan)
+	 -- Read what is found inside host `name`, e.g., name as found by dissected traffic such as DHCP
+	 res = host_info["name"]
+
+	 if isEmptyString(res) then
+	    return hostinfo2label_resolved(host_info, show_vlan)
+	 end
       end
    end
-
    return label2formattedlabel(res, host_info, show_vlan)
 end
 
