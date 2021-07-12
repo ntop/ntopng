@@ -13,4 +13,4 @@ pre: |
   sleep 5
 
 post: |
-  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0}' http://localhost:3333/lua/rest/v1/get/flow/alert/list.lua
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0}' http://localhost:3333/lua/rest/v2/get/flow/alert/list.lua
