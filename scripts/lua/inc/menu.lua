@@ -3,6 +3,7 @@
 --
 
 local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/toasts/?.lua;" .. package.path
 
@@ -980,8 +981,19 @@ end
 
 interface.select(ifs.id.."")
 
+local infrastructures = {}
+
+if ntop.isPro() then
+   local infrastructure_utils = require("infrastructure_utils")
+
+   for _, v in pairs(infrastructure_utils.get_all_instances()) do
+      infrastructures[v.alias] = v.url
+   end
+end
+
 local context = {
    ifnames = ifnames,
+   infrastructures = infrastructures, 
    views = views,
    dynamic = dynamic,
    recording = recording,

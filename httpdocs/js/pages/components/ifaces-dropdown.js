@@ -3,11 +3,6 @@ $(function() {
     // initialize the selectpicker
     $('#interfaces-dropdown').selectpicker();
 
-    $(`#iface-select`).on('change', function(e) {
-        const selectedValue = $(this).val();
-        toggleSystemInterface($('#switch_interface_form_' + selectedValue));
-    });
-
     const toggleObservationPoint = ($form = null) => {
 	if($form != null) {
 	    $form.submit();
@@ -26,8 +21,11 @@ $(function() {
         if (clickedIndex == null && isSelected == null) {
             return;
         } 
-
         const selectedValue = $(this).find('option').eq(clickedIndex).val();  
-        toggleSystemInterface($('#switch_interface_form_' + selectedValue));
+        if(isNaN(Number(selectedValue)) ){
+            window.location.replace(selectedValue);
+        }else{
+            toggleSystemInterface($('#switch_interface_form_' + selectedValue));
+        }
     });
 });

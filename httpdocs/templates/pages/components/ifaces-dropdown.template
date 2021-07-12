@@ -70,7 +70,13 @@
         {% end %}
       {% end %}
     </optgroup>
-
+  {% if ntop.isPro() and isAdministrator() and (table.len(infrastructures) > 0) then %}  
+    <optgroup id="optInf" label="{{ i18n('infrastructure_dashboard.infrastructure') }}">
+    {% for k,v in pairs(infrastructures or {}) do %}
+      <option value="{{ v }}" href="#" data-content="{{ "<i class='fas fa-building'></i> "..k }}"> {{ v }}</option>
+    {% end %} 
+    </optgroup>
+  {% end %}
   </select>
 </li>
 
