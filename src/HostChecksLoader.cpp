@@ -129,29 +129,34 @@ void HostChecksLoader::loadConfiguration() {
 	if(cb_all.find(check_key) != cb_all.end()) {
 	  HostCheck *cb = cb_all[check_key];
 
+	  if(!cb->isCheckCompatibleWithEdition()) {
+	    ntop->getTrace()->traceEvent(TRACE_INFO, "Check not compatible with current edition [check: %s]", check_key);
+	    continue;
+	  }
+
 	  if(json_object_object_get_ex(json_hook_all, "enabled", &json_enabled))
 	    enabled = json_object_get_boolean(json_enabled);
 	  else
 	    enabled = false;
 
-	  if(enabled && cb->isCheckCompatibleWithEdition()) {
-	    /* Script enabled */
-	    if(json_object_object_get_ex(json_hook_all, "script_conf", &json_script_conf)) {
-	      if(cb_all.find(check_key) != cb_all.end()) {
-		HostCheck *cb = cb_all[check_key];
+	  if(!enabled) {
+	    ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping check not enabled [check: %s]", check_key);
+	    continue;
+	  }
 
-		if(cb->loadConfiguration(json_script_conf)) {
-		  ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully enabled check %s for %s", check_key, it->first.c_str());
-		} else {
-		  ntop->getTrace()->traceEvent(TRACE_ERROR, "Error while loading check %s configuration for %s",
-					       check_key, it->first.c_str());
-		}
-
-		cb->enable(it->second /* This is the periodicity in seconds */);
-		cb->scriptEnable(); 
-	      }
+	  /* Script enabled */
+	  if(json_object_object_get_ex(json_hook_all, "script_conf", &json_script_conf)) {
+	    if(cb->loadConfiguration(json_script_conf)) {
+	      ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully enabled check %s for %s", check_key, it->first.c_str());
+	    } else {
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error while loading check %s configuration for %s",
+					   check_key, it->first.c_str());
 	    }
+
+	    cb->enable(it->second /* This is the periodicity in seconds */);
+	    cb->scriptEnable(); 
 	  } else {
+	    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error while loading check configuration for %s", check_key);
 	    /* Script disabled */
 	    cb->scriptDisable(); 
 	  }
