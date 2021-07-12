@@ -31,10 +31,6 @@ class HostCheck : public Check {
  public:
   HostCheck(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only);
   virtual ~HostCheck();
-
-  /* Enable/Disable hooks */
-  virtual void scriptEnable()            {};
-  virtual void scriptDisable()           {};
   
   /* Check hook (periodic)
    * engaged_alert is the alert already engaged by the check

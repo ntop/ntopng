@@ -38,9 +38,13 @@ class Check {
   bool isCheckCompatibleWithInterface(NetworkInterface *iface);
   bool isCheckCompatibleWithEdition() const;
   inline NtopngEdition getEdition()   const { return check_edition; };
+ 
+  /* Enable/Disable hooks */
+  virtual void scriptEnable()            {};
+  virtual void scriptDisable()           {};
 
-  inline void enable()    { enabled = 1; }
-  inline bool isEnabled() { return(enabled ? true : false); }
+  inline void enable()          { enabled = true; }
+  inline bool isEnabled() const { return(enabled ? true : false); }
 
   virtual std::string getName()       const = 0;
 };

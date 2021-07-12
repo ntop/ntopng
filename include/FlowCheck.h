@@ -32,10 +32,6 @@ class FlowCheck : public Check {
   FlowCheck(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only,
 	       bool _has_protocok_detected, bool _has_periodic_update, bool _has_flow_end);
   virtual ~FlowCheck();
-
-  /* Enable/Disable hooks */
-  virtual void scriptEnable()            {};
-  virtual void scriptDisable()           {};
   
   /* Check hooks */
   virtual void protocolDetected(Flow *f) {};
