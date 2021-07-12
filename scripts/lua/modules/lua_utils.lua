@@ -1576,7 +1576,7 @@ end
 
 -- ##############################################
 
-local function label2formattedlabel(alt_name, host_info, show_vlan)
+local function label2formattedlabel(alt_name, host_info, show_vlan, shorten_len)
    if not isEmptyString(alt_name) then
       local ip = host_info["ip"] or host_info["host"]
       -- Make it shorter
@@ -1584,7 +1584,11 @@ local function label2formattedlabel(alt_name, host_info, show_vlan)
 
       -- Special shorting function for IP addresses
       if res ~= ip then
-	 res = shortenString(res)
+         if shorten_len then
+            res = shortenString(res, shorten_len)
+         else
+            res = shortenString(res)
+         end
       end
 
       -- Adding the vlan if requested
@@ -1609,7 +1613,7 @@ end
 
 -- Attempt at retrieving an host label from an host_info, using local caches and DNS resolution.
 -- This can be more expensive if compared to only using information found inside host_info.
-local function hostinfo2label_resolved(host_info, show_vlan)
+local function hostinfo2label_resolved(host_info, show_vlan, shorten_len)
    local ip = host_info["ip"] or host_info["host"]
    local res
 
@@ -1629,7 +1633,7 @@ local function hostinfo2label_resolved(host_info, show_vlan)
       end
    end
 
-   return label2formattedlabel(res, host_info, show_vlan)
+   return label2formattedlabel(res, host_info, show_vlan, shorten_len)
 end
 
 -- ##############################################
@@ -1644,7 +1648,7 @@ end
 -- NOTE: The function attempt at labelling an host only using information found in host_info.
 -- In case host_info is not enough to label the host, then local caches and DNS resolution kick in
 -- to find a label (at the expense of extra time).
-function hostinfo2label(host_info, show_vlan)
+function hostinfo2label(host_info, show_vlan, shorten_len)
    local alt_name = nil
    local ip = host_info["ip"] or host_info["host"]
 
@@ -1661,11 +1665,11 @@ function hostinfo2label(host_info, show_vlan)
 	 res = host_info["name"]
 
 	 if isEmptyString(res) then
-	    return hostinfo2label_resolved(host_info, show_vlan)
+	    return hostinfo2label_resolved(host_info, show_vlan, shorten_len)
 	 end
       end
    end
-   return label2formattedlabel(res, host_info, show_vlan)
+   return label2formattedlabel(res, host_info, show_vlan, shorten_len)
 end
 
 -- ##############################################
