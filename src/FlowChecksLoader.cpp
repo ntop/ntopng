@@ -259,3 +259,22 @@ std::list<FlowCheck*>* FlowChecksLoader::getChecks(NetworkInterface *iface, Flow
 
   return(l);
 }
+
+/* **************************************************** */
+
+bool FlowChecksLoader::luaCheckInfo(lua_State* vm, std::string check_name) const {
+  std::map<std::string, FlowCheck*>::const_iterator it = cb_all.find(check_name);
+
+  if(it == cb_all.end())
+    return false;
+
+  lua_newtable(vm);
+  /*
+    Following keys are compatible and interoperable with Lua plugins as found under plugins_utils.lua
+    inside plugin metadata Lua table
+   */
+  lua_push_str_table_entry(vm, "edition", Utils::edition2name(it->second->getEdition()));
+  lua_push_str_table_entry(vm, "key", it->second->getName().c_str());
+
+  return true;
+}

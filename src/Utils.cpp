@@ -223,6 +223,23 @@ char* Utils::l4proto2name(u_int8_t proto) {
 
 /* ****************************************************** */
 
+const char* Utils::edition2name(NtopngEdition ntopng_edition) {
+  switch(ntopng_edition) {
+  case ntopng_edition_community:
+    return "community";
+  case ntopng_edition_pro:
+    return "pro";
+  case ntopng_edition_enterprise_m:
+    return "enterprise_m";
+  case ntopng_edition_enterprise_l:
+    return "enterprise_l";
+  default:
+    return "unknown";
+  }
+}
+
+/* ****************************************************** */
+
 u_int8_t Utils::l4name2proto(const char *name) {
        if(strcmp(name, "IP") == 0) return 0;
   else if(strcmp(name, "ICMP") == 0) return 1;

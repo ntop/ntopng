@@ -40,6 +40,7 @@ class HostChecksLoader : public ChecksLoader {
   void printChecks();
 
   std::list<HostCheck*>* getChecks(NetworkInterface *iface);
+  bool luaCheckInfo(lua_State* vm, std::string check_name) const;
 };
 
 #endif /* _HOST_CHECKS_LOADER_H_ */

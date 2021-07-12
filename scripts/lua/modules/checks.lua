@@ -361,7 +361,7 @@ function checks.getSubdirectoryPath(script_type, subdir)
 
    -- Add pro check_definitions if necessary
    if ntop.isPro() then
-      if subdir == "flow" then
+      if subdir == "flow" or subdir == "host" then
 	 local pro_path = string.format("%s/pro/scripts/lua/modules/check_definitions/%s", dirs.installdir, subdir)
 	 res[#res + 1] = os_utils.fixPath(pro_path)
       end
@@ -656,7 +656,7 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
    -- Recheck the edition as the demo mode may expire
    if plugin then
       if((plugin.edition == "pro" and (not ntop.isPro())) or
-	 ((plugin.edition == "enterprise" and (not ntop.isEnterpriseM())))) then
+	 (((plugin.edition == "enterprise_m" or plugin.edition == "enterprise_l") and (not ntop.isEnterpriseM())))) then
 	 traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping user script '%s' with '%s' edition", mod_fname, plugin.edition))
 	 return(nil)
       end
@@ -780,9 +780,16 @@ function checks.load(ifid, script_type, subdir, options)
 	    local full_path = os_utils.fixPath(checks_dir .. "/" .. fname)
 	    local plugin = plugins_utils.getUserScriptPlugin(full_path)
 
-	    if(plugin == nil) and subdir ~= "host" and subdir ~= "flow" --[[ host and flow don't have plugins, they are implemented in C++ --]] then
-	       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Skipping unknown user script '%s'", mod_fname))
-	       goto next_module
+	    if not plugin then
+	       --[[ host and flow don't have plugins, they are implemented in C++ so we call the C++ method to get their information --]]
+	       if subdir == "host" then
+		  plugin = ntop.getHostCheckInfo(mod_fname)
+	       elseif subdir == "flow" then
+		  plugin = ntop.getFlowCheckInfo(mod_fname)
+	       else
+		  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Skipping unknown user script '%s'", mod_fname))
+		  goto next_module
+	       end
 	    end
 
 	    if(rv.modules[mod_fname]) then
@@ -1556,7 +1563,7 @@ end
 -- ##############################################
 
 function checks.getScriptEditorUrl(script)
-   if(script.edition == "community") then
+   if(script.edition == "community" and script.source_path) then
        local plugin_file_path = string.sub(script.source_path, string.len(dirs.scriptdir) + 1)
        local plugin_path = string.sub(script.plugin.path, string.len(dirs.scriptdir) + 1)
        return(string.format("%s/lua/code_viewer.lua?plugin_file_path=%s&plugin_path=%s", ntop.getHttpPrefix(), plugin_file_path, plugin_path))
@@ -1825,11 +1832,9 @@ local function printUserScriptsTable()
    local ifid = interface.getId()
 
     for _, info in ipairs(checks.listSubdirs()) do
-
         local scripts = checks.load(ifid, checks.getScriptType(info.id), info.id, {return_all = true})
 
         for name, script in pairsByKeys(scripts.modules) do
-
             local available = ""
             local filters = {}
             local hooks = {}

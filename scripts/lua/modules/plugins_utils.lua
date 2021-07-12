@@ -658,6 +658,7 @@ function plugins_utils.loadPlugins(community_plugins_only)
     plugins = loaded_plugins,
     path_map = path_map,
   }
+
   persistence.store(getMetadataPath(), plugins_metadata)
   ntop.setDefaultFilePermissions(getMetadataPath())
 

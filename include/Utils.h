@@ -44,6 +44,7 @@ public:
   static char* jsonLabel(int label,const char *label_str, char *buf, u_int buf_len);
   static char* formatTraffic(float numBits, bool bits, char *buf, u_int buf_len);
   static char* formatPackets(float numPkts, char *buf, u_int buf_len);
+  static const char* edition2name(NtopngEdition ntopng_edition);
   static char* l4proto2name(u_int8_t proto);
   static u_int8_t l4name2proto(const char *name);
   static u_int8_t queryname2type(const char *name);

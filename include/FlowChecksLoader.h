@@ -48,6 +48,7 @@ class FlowChecksLoader : public ChecksLoader { /* A single instance inside Ntop 
   inline std::list<FlowCheck*>* getFlowEndChecks(NetworkInterface *iface)          { return(getChecks(iface, flow_check_flow_end));          }
   inline std::list<FlowCheck*>* getNoneFlowChecks(NetworkInterface *iface)         { return(getChecks(iface, flow_check_flow_none));         }
   inline ndpi_risk getUnhandledRisks() const { return unhandled_ndpi_risks; };
+  bool luaCheckInfo(lua_State* vm, std::string check_name) const;
 };
 
 #endif /* _FLOW_CHECKS_LOADER_H_ */

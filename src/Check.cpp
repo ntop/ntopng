@@ -23,38 +23,39 @@
 
 /* **************************************************** */
 
-HostCheck::HostCheck(NtopngEdition _edition) : Check(_edition) {
-  enabled = 0;
-  periodicity_secs = 0;
+Check::Check(NtopngEdition _edition) {
+  check_edition = _edition;
 };
 
 /* **************************************************** */
 
-HostCheck::~HostCheck() {
+Check::~Check() {
 };
 
 /* **************************************************** */
 
-bool HostCheck::loadConfiguration(json_object *config) {
-  bool rc = true;
-  
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() %s", __FUNCTION__, json_object_to_json_string(config));
+bool Check::isCheckCompatibleWithEdition() const {
+  /* Check first if the license allows plugin to be enabled */
+  switch(check_edition) {
+  case ntopng_edition_community:
+    /* Ok */
+    break;
+     
+  case ntopng_edition_pro:
+    if(!ntop->getPrefs()->is_pro_edition() /* includes Pro, Enterprise M/L */)
+      return(false);
+    break;
+     
+  case ntopng_edition_enterprise_m:
+    if(!ntop->getPrefs()->is_enterprise_m_edition() /* includes Enterprise M/L */)
+      return(false);
+    break;
+     
+  case ntopng_edition_enterprise_l:
+    if(!ntop->getPrefs()->is_enterprise_l_edition() /* includes L */)
+      return(false);
+    break;     
+  }
 
-  /*
-    Example of simple configuration without parameters:
-
-    {
-      "severity": {
-        "i18n_title": "alerts_dashboard.error",
-        "icon": "fas fa-exclamation-triangle text-danger",
-        "label": "badge-danger",
-        "syslog_severity": 3,
-        "severity_id": 5
-      }
-    }
-   */
-
-  return(rc);
+  return(true);
 }
-
-/* **************************************************** */

@@ -425,6 +425,7 @@ using namespace std;
 #include "HTTPserver.h"
 #include "Paginator.h"
 #include "FlowAlert.h"
+#include "Check.h"
 #include "FlowCheck.h"
 #include "HostAlert.h"
 #include "HostCheck.h"

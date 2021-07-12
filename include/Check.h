@@ -19,32 +19,27 @@
  *
  */
 
-#ifndef _SCORE_ANOMALY_H_
-#define _SCORE_ANOMALY_H_
+#ifndef _CHECK_H_
+#define _CHECK_H_
 
 #include "ntop_includes.h"
 
-class ScoreAnomaly : public HostCheck {
-private:
-  
-public:
-  ScoreAnomaly();
-  ~ScoreAnomaly() {};
+class Check {
+ private:
+  NtopngEdition check_edition;
+  u_int8_t has_protocol_detected:1, has_periodic_update:1, has_flow_end:1, packet_interface_only:1, nedge_exclude:1, nedge_only:1, enabled:1/* , _unused:1 */;
 
-  ScoreAnomalyAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int32_t _value, u_int32_t _lower_bound, u_int32_t _upper_bound) {
-    ScoreAnomalyAlert *alert = new ScoreAnomalyAlert(c, h, cli_pctg, _value, _lower_bound, _upper_bound);
+  bool isCheckCompatibleWithInterface(NetworkInterface *iface);
 
-    if(cli_pctg != CLIENT_NO_RISK_PERCENTAGE)
-      alert->setAttacker();
+ public:
+  Check(NtopngEdition _edition);
+  virtual ~Check();
 
-    return alert;
-  };
+  /* Compatibility */
+  bool isCheckCompatibleWithEdition() const;
+  inline NtopngEdition getEdition()   const { return check_edition; };
 
-  bool loadConfiguration(json_object *config);
-  void periodicUpdate(Host *h, HostAlert *engaged_alert);
-  
-  HostCheckID getID() const { return host_check_score_anomaly; }
-  std::string getName()  const { return(std::string("score_anomaly")); }
+  virtual std::string getName()       const = 0;
 };
 
-#endif
+#endif /* _CHECK_H_ */

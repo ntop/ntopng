@@ -25,7 +25,7 @@
 
 FlowCheck::FlowCheck(NtopngEdition _edition,
 			   bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only,
-			   bool _has_protocol_detected, bool _has_periodic_update, bool _has_flow_end) {
+		     bool _has_protocol_detected, bool _has_periodic_update, bool _has_flow_end) : Check(_edition) {
   packet_interface_only = nedge_exclude = nedge_only = has_protocol_detected = has_periodic_update = has_flow_end = 0;
 
   if(_packet_interface_only)  packet_interface_only = 1;
@@ -35,7 +35,6 @@ FlowCheck::FlowCheck(NtopngEdition _edition,
   if(_has_periodic_update)    has_periodic_update = 1;
   if(_has_flow_end)           has_flow_end = 1;
 
-  check_edition = _edition;
   enabled = 0;
 };
 
@@ -43,34 +42,6 @@ FlowCheck::FlowCheck(NtopngEdition _edition,
 
 FlowCheck::~FlowCheck() {
 };
-
-/* **************************************************** */
-
-bool FlowCheck::isCheckCompatibleWithEdition() const {
-  /* Check first if the license allows plugin to be enabled */
-  switch(check_edition) {
-  case ntopng_edition_community:
-    /* Ok */
-    break;
-     
-  case ntopng_edition_pro:
-    if(!ntop->getPrefs()->is_pro_edition() /* includes Pro, Enterprise M/L */)
-      return(false);
-    break;
-     
-  case ntopng_edition_enterprise_m:
-    if(!ntop->getPrefs()->is_enterprise_m_edition() /* includes Enterprise M/L */)
-      return(false);
-    break;
-     
-  case ntopng_edition_enterprise_l:
-    if(!ntop->getPrefs()->is_enterprise_l_edition() /* includes L */)
-      return(false);
-    break;     
-  }
-
-  return(true);
-}
 
 /* **************************************************** */
 

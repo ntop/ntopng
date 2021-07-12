@@ -38,9 +38,13 @@
 #include "host_checks/P2PTraffic.h"
 #include "host_checks/DNSTraffic.h"
 
-#include "host_checks/FlowAnomaly.h"
+
 #include "host_checks/DangerousHost.h"
 #include "host_checks/RemoteConnection.h"
-#include "host_checks/ScoreAnomaly.h"
 
+
+#ifdef NTOPNG_PRO
+#include "host_checks/ScoreAnomaly.h"
+#include "host_checks/FlowAnomaly.h"
+#endif
 #endif /* _HOST_CHECKS_INCLUDES_H_ */

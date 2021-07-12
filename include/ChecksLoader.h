@@ -35,6 +35,7 @@ class ChecksLoader {
   ChecksLoader();
   virtual ~ChecksLoader();
 
+  virtual bool luaCheckInfo(lua_State* vm, std::string check_name) const = 0;
   inline void initialize() { registerChecks(); loadConfiguration();   };
   inline NtopngEdition getChecksEdition() { return checks_edition; };
 };

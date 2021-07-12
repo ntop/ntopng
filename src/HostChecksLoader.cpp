@@ -58,10 +58,13 @@ void HostChecksLoader::registerChecks() {
   if((fcb = new NTPServerContacts()))          registerCheck(fcb);
   if((fcb = new P2PTraffic()))                 registerCheck(fcb);
   if((fcb = new DNSTraffic()))                 registerCheck(fcb);
-  if((fcb = new FlowAnomaly()))                registerCheck(fcb);
-  if((fcb = new ScoreAnomaly()))               registerCheck(fcb);
   if((fcb = new RemoteConnection()))           registerCheck(fcb);
   if((fcb = new DangerousHost()))              registerCheck(fcb);
+
+#ifdef NTOPNG_PRO
+  if((fcb = new ScoreAnomaly()))               registerCheck(fcb);
+  if((fcb = new FlowAnomaly()))                registerCheck(fcb);
+#endif
 
   // printChecks();
 }
@@ -131,7 +134,7 @@ void HostChecksLoader::loadConfiguration() {
 	  else
 	    enabled = false;
 
-	  if(enabled) {
+	  if(enabled && cb->isCheckCompatibleWithEdition()) {
 	    /* Script enabled */
 	    if(json_object_object_get_ex(json_hook_all, "script_conf", &json_script_conf)) {
 	      if(cb_all.find(check_key) != cb_all.end()) {
@@ -190,4 +193,19 @@ std::list<HostCheck*>* HostChecksLoader::getChecks(NetworkInterface *iface) {
   }
 
   return(l);
+}
+
+/* **************************************************** */
+
+bool HostChecksLoader::luaCheckInfo(lua_State* vm, std::string check_name) const {
+  std::map<std::string, HostCheck*>::const_iterator it = cb_all.find(check_name);
+
+  if(it == cb_all.end())
+    return false;
+
+  lua_newtable(vm);
+  lua_push_str_table_entry(vm, "edition", Utils::edition2name(it->second->getEdition()));
+  lua_push_str_table_entry(vm, "key", it->second->getName().c_str());
+
+  return true;
 }

@@ -67,7 +67,6 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
   }
 
   for(list<FlowCheck*>::iterator it = checks->begin(); it != checks->end(); ++it) {
-
     switch (c) {
       case flow_check_protocol_detected:
         (*it)->protocolDetected(f);

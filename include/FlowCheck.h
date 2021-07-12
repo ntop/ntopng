@@ -24,20 +24,17 @@
 
 #include "ntop_includes.h"
 
-class FlowCheck {
+class FlowCheck : public Check {
  private:
-  NtopngEdition check_edition;
   u_int8_t has_protocol_detected:1, has_periodic_update:1, has_flow_end:1, packet_interface_only:1, nedge_exclude:1, nedge_only:1, enabled:1/* , _unused:1 */;
-
-  bool isCheckCompatibleWithInterface(NetworkInterface *iface);
 
  public:
   FlowCheck(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only,
 	       bool _has_protocok_detected, bool _has_periodic_update, bool _has_flow_end);
   virtual ~FlowCheck();
 
-  /* Compatibility */
-  bool isCheckCompatibleWithEdition() const;
+    /* Compatibility */
+  bool isCheckCompatibleWithInterface(NetworkInterface *iface);
 
   /* Enable/Disable hooks */
   virtual void scriptEnable()            {};

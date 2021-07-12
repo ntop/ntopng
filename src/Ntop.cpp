@@ -3372,6 +3372,24 @@ void Ntop::addLocalNetworkList(const char *rule) {
 
 /* ******************************************* */
 
+bool Ntop::luaFlowCheckInfo(lua_State *vm, std::string check_name) const {
+  FlowChecksLoader *fcl = flow_checks_loader;
+  if(fcl) return fcl->luaCheckInfo(vm, check_name);
+
+  return false;
+}
+
+/* ******************************************* */
+
+bool Ntop::luaHostCheckInfo(lua_State *vm, std::string check_name) const {
+  HostChecksLoader *hcl = host_checks_loader;
+  if(hcl) return hcl->luaCheckInfo(vm, check_name);
+
+  return false;
+}
+
+/* ******************************************* */
+
 #ifndef HAVE_NEDGE
 
 bool Ntop::broadcastIPSMessage(char *msg) {

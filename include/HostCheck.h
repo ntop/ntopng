@@ -24,9 +24,8 @@
 
 #include "ntop_includes.h"
 
-class HostCheck {
+class HostCheck : public Check {
  private:
-  NtopngEdition check_edition;
   u_int8_t enabled:1 /*,  _unused:7 */;
   u_int32_t periodicity_secs;
 
