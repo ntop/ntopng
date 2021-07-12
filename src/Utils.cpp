@@ -1483,6 +1483,22 @@ static void readCurlStats(CURL *curl, HTTPTranferStats *stats, lua_State* vm) {
 
 /* **************************************** */
 
+static void fillcURLProxy(CURL *curl) {
+  if (getenv("HTTP_PROXY")) {
+    char proxy[1024];
+    
+    if(getenv("HTTP_PROXY_PORT"))
+      sprintf(proxy, "%s:%s", getenv("HTTP_PROXY"), getenv("HTTP_PROXY_PORT"));
+    else
+      sprintf(proxy, "%s", getenv("HTTP_PROXY"));
+
+    curl_easy_setopt(curl, CURLOPT_PROXY, proxy);
+    curl_easy_setopt(curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+  }
+}
+
+/* **************************************** */
+
 bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 			     char *json, int timeout, HTTPTranferStats *stats) {
   CURL *curl;
@@ -1493,6 +1509,8 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
     CURLcode res;
     struct curl_slist* headers = NULL;
 
+    fillcURLProxy(curl);
+    
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -1566,6 +1584,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
   bool ret = false;
 
   curl = curl_easy_init();
+
   if(curl) {
     CURLcode res;
     struct curl_slist* headers = NULL;
@@ -1574,6 +1593,8 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 			      /* .cur_size = */ 0,
 			      /* .max_size = */ (size_t)return_data_size};
 
+    fillcURLProxy(curl);
+    
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -1656,11 +1677,14 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
     file_len = (size_t)buf.st_size;
 
   curl = curl_easy_init();
+
   if(curl) {
     CURLcode res;
     DownloadState *state = NULL;
     struct curl_slist* headers = NULL;
 
+    fillcURLProxy(curl);
+    
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -1772,7 +1796,8 @@ bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *messag
   curl = curl_easy_init();
 
   if(curl) {
-
+    fillcURLProxy(curl);
+    
     if(username != NULL && password != NULL) {
       curl_easy_setopt(curl, CURLOPT_USERNAME, username);
       curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
@@ -1983,6 +2008,8 @@ bool Utils::httpGetPost(lua_State* vm, char *url,
     char *content_type, *redirection;
     char ua[64];
 
+    fillcURLProxy(curl);
+    
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -2194,6 +2221,8 @@ long Utils::httpGet(const char * const url,
 			      /* .cur_size = */ 0,
 			      /* .max_size = */ resp_len};
 
+    fillcURLProxy(curl);
+    
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if(user_header_token == NULL) {
@@ -2286,6 +2315,7 @@ char* Utils::urlEncode(const char *url) {
     if(curl) {
       char *escaped = curl_easy_escape(curl, url, strlen(url));
       char *output = strdup(escaped);
+      
       curl_free(escaped);
       curl_easy_cleanup(curl);
 

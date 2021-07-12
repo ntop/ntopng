@@ -93,10 +93,20 @@ If you also need an aggregated view of both interfaces you can start ntopng
 as `ntopng -i eth0 -i eth1 -i view:eth0,eth1` so ntopng will create a virtual interface
 that merges information from the two physical interfaces.
 
-Using ntopng behind a Proxy
----------------------------
+Accessing ntopng behind a Reverse Proxy
+---------------------------------------
 If you have many ntopng instances that you want to mask behind a proxy the
 `-Z` option is what you look for. See the man page for more information.
+
+Using ntopng with a HTTP(S) Proxy
+---------------------------------
+If in your network you need to use a proxy to access the Internet, you need
+to set in your environment the HTTP_PROXY to use and ntopng will use it. Both
+HTTP and HTTPS URLs are supported.
+
+Example:
+export HTTP_PROXY=http://127.0.0.1:1234
+ntopng -i eth0
 
 Traffic with sampling rate
 --------------------------
