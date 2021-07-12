@@ -27,7 +27,8 @@ void UDPUnidirectional::checkFlow(Flow *f) {
   u_int8_t c_score, s_score;
   risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
   int16_t network_id;
-  
+
+  if(f->getInterface()->isSampledTraffic())             return;
   if(f->get_protocol() != IPPROTO_UDP)                  return; /* Non UDP traffic        */
   if(f->get_bytes_srv2cli() && f->get_bytes_srv2cli())  return; /* Two way communications */
   if(!f->get_cli_ip_addr()->isNonEmptyUnicastAddress()) return; /* No client IP           */

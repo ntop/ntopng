@@ -28,11 +28,12 @@ void LowGoodputFlow::checkLowGoodput(Flow *f) {
   FlowAlertType alert_type = LowGoodputFlowAlert::getClassType();
   u_int8_t c_score, s_score;
   risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE; 
- 
-  if(!f->isTCP())                 return; /* TCP only                      */
-  if(!f->isThreeWayHandshakeOK()) return; /* Three way handshake completed */
-  if(f->get_packets() <= 3)       return; /* Minimum number of packets     */
-  if(f->get_goodput_ratio() > 60) return; /* Goodput less than 60%         */
+
+  if(f->getInterface()->isSampledTraffic()) return; 
+  if(!f->isTCP())                           return; /* TCP only                      */
+  if(!f->isThreeWayHandshakeOK())           return; /* Three way handshake completed */
+  if(f->get_packets() <= 3)                 return; /* Minimum number of packets     */
+  if(f->get_goodput_ratio() > 60)           return; /* Goodput less than 60%         */
 
   switch(f->get_detected_protocol().app_protocol) {
   case NDPI_PROTOCOL_MDNS:
