@@ -27,6 +27,7 @@ MAIL_FROM=""
 MAIL_TO=""
 DISCORD_WEBHOOK=""
 TEST_NAME=""
+API_VERSION=""
 
 DEBUG_LEVEL=0
 KEEP_RUNNING=0
@@ -42,6 +43,7 @@ function usage {
     echo ""
     echo "Options:"
     echo "[-y|--test]=<test>                | Run a selected test"
+    echo "[-v|--api-version]=<version>      | Run a test for the specified Rest API Version (1|2)"
     echo "[-f|--mail-from]=<address>        | Send notifications from the specified email address"
     echo "[-t|--mail-to]=<address>          | Send notifications to the specified email address"
     echo "[-d|--discord-webhook]=<endpoint> | Send notification to the specified Discord endpoint"
@@ -68,6 +70,10 @@ do
 
 	-y=*|--test=*)
 	    TEST_NAME="${i#*=}"
+	    ;;
+
+	-v=*|--api-version=*)
+	    API_VERSION="${i#*=}"
 	    ;;
 
 	-D=*|--debug=*)
@@ -407,16 +413,14 @@ run_tests() {
     ntopng_cleanup
 }
 
-run_all_tests() {
-    # Read tests
+if [ ! -z "${TEST_NAME}" ]; then
+    run_tests "${TEST_NAME}.yaml"
+elif [ ! -z "${API_VERSION}" ]; then
+    TESTS=`cd tests; /bin/ls v${API_VERSION}/*.yaml`
+    run_tests "${TESTS}"
+else
     TESTS=`cd tests; /bin/ls {v1,v2}/*.yaml`
     run_tests "${TESTS}"
-}
-
-if [ -z "${TEST_NAME}" ]; then
-    run_all_tests
-else
-    run_tests "${TEST_NAME}.yaml"
 fi
 
 exit $RC
