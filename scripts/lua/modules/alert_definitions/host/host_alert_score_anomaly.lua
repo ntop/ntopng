@@ -31,11 +31,13 @@ host_alert_score_anomaly.meta = {
 
 -- @brief Prepare an alert table used to generate the alert
 -- @return A table with the alert built
-function host_alert_score_anomaly:init()
+function host_alert_score_anomaly:init(threshold)
    -- Call the parent constructor
    self.super:init()
 
-   self.alert_type_params = {}
+   self.alert_type_params = {
+      threshold = threshold,
+   }
 end
 
 -- ##############################################
@@ -76,27 +78,46 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function host_alert_score_anomaly.format(ifid, alert, alert_type_params)
-  local alert_consts = require("alert_consts")
-  local is_client_alert = alert_type_params["is_client_alert"]
-  local is_both = alert_type_params["is_both"]
-  local role
-  local host = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
+   local alert_consts = require("alert_consts")
+   local is_client_alert = alert_type_params["is_client_alert"]
+   local is_both = alert_type_params["is_both"]
+   local role
+   local host = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
+   local threshold = alert_type_params["threshold"] or 0
+   local cli_or_srv
   
-  if(is_both) then
-     role = i18n("client_and_server")
-  elseif(is_client_alert) then
-     role = i18n("client")
-  else
-     role = i18n("server")
-  end
-  
-  return i18n("alert_messages.score_number_anomaly", {
-		 role = role,
-		 host = host,
-		 score = alert_type_params["value"],
-		 lower_bound = alert_type_params["lower_bound"],
-		 upper_bound = alert_type_params["upper_bound"],
-  })
+   if(is_both) then
+      role = i18n("client_and_server")
+   elseif(is_client_alert) then
+      role = i18n("client")
+      cli_or_srv = "client" 
+   else
+      role = i18n("server")
+      cli_or_srv = "server"
+   end
+
+   local cat_net, cat_sec = get_problematic_category(alert_type_params, is_both, cli_or_srv)
+
+   if tonumber(alert_type_params["value"]) > tonumber(threshold) then
+      -- Anomaly due to threshold crossed
+      return i18n("alert_messages.score_number_anomaly_threshold", {
+         metric = role .. " Score",
+         entity = host,
+         value = alert_type_params["value"],
+         threshold = threshold,
+      })
+   else
+      -- Anomaly due to DES anomaly
+      return i18n("alert_messages.score_number_anomaly", {
+   		role = role,
+   		host = host,
+   		score = alert_type_params["value"],
+   		lower_bound = alert_type_params["lower_bound"],
+   		upper_bound = alert_type_params["upper_bound"],
+         cat_net = cat_net,
+         cat_sec = cat_sec,
+      })
+   end
 end
 
 -- #######################################################
