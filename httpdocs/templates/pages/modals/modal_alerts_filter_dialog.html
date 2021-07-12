@@ -44,19 +44,17 @@
       {*dialog.message*}
 </div>
 	</div>
-        {% if dialog.no_footer then %}
-          {# empty #}
-        {% else %}
-
         <div class="modal-footer">
 	  <span class="invalid-feedback" id="{{dialog.id}}_error"></span>
-          {% if dialog.action ~= nil then %}
-            <button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</button>
-          {% else %}
-            <button id="btn-confirm-action" type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</button>
-          {% end %}
+	  {% if ntop.isEnterpriseM() or ntop.getInfo()["oem"] then %}
+          <button id="btn-confirm-action" type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</button>
+	  {% else %}
+	  <div id="script-description" class="alert alert-warning border" role="alert">
+	    {* i18n("show_alerts.disabled_alerts_not_available") *}
+	  </div>
+	  <button id="btn-confirm-action" type="submit" class="btn {{dialog.confirm_button or "btn-primary"}} disabled">{*dialog.confirm*}</button>
+	  {% end %}
         </div>
-        {% end %}
       </div>
     </div>
   </form>

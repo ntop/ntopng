@@ -4792,6 +4792,7 @@ local lang = {
     ["confirm_label_alert"] = "Do you really want to label the specified alert?",
     ["confirm_label_alerts"] = "Stored alerts matching the specified criteria will be labelled. Continue?",
     ["confirm_release_alert"] = "Do you really want to release the specified alert?",
+    ["disabled_alerts_not_available"] = "This feature is only available on ntopng Enterprise M or above.",
     ["daily"] = "Daily",
     ["delete_alert"] = "Delete Alert",
     ["delete_alerts_configuration"] = "Delete Configuration",

@@ -23,7 +23,7 @@ const apply_delete_alert_exclusion = (event) => {
     $('#edit-form').removeClass('dirty')
     $apply_btn.attr('disabled', '');
 
-    $.post(`${http_prefix}/lua/rest/v2/delete/${check_subdir}/alert/exclusions.lua`, {
+    $.post(`${http_prefix}/lua/pro/rest/v2/delete/${check_subdir}/alert/exclusions.lua`, {
 	alert_addr: $("#alert_addr").val(),
 	alert_key: $("#alert_key").val(),
 	csrf: pageCsrf,
@@ -107,7 +107,7 @@ $(function () {
 	},
 	lengthChange: false,
 	ajax: {
-	    url: `${http_prefix}/lua/rest/v2/get/${check_subdir}/alert/exclusions.lua`,
+	    url: `${http_prefix}/lua/pro/rest/v2/get/${check_subdir}/alert/exclusions.lua`,
 	    type: 'get',
 	    dataSrc: 'rsp',
 	    data: ajax_data,
@@ -227,7 +227,7 @@ $(function () {
 
     $(`#delete-all-modal #btn-confirm-action`).click(async function () {
 	$(this).attr("disabled", "disabled");
-	$.post(`${http_prefix}/lua/rest/v2/delete/all/alert/exclusions.lua`, {
+	$.post(`${http_prefix}/lua/pro/rest/v2/delete/all/alert/exclusions.lua`, {
 	    check_subdir: check_subdir,
 	    csrf: pageCsrf,
 	    host: host, // Can be empty, when no host is selected

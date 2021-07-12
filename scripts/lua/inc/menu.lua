@@ -605,8 +605,8 @@ page_utils.add_menubar_section(
 	 {
 	    entry = page_utils.menu_entries.alert_exclusions,
 	    section = page_utils.menu_sections.checks,
-	    hidden = not is_admin or not auth.has_capability(auth.capabilities.checks),
-	    url = '/lua/admin/edit_alert_exclusions.lua?subdir=host',
+	    hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or not ntop.isEnterpriseM(),
+	    url = '/lua/pro/admin/edit_alert_exclusions.lua?subdir=host',
 	 },
 	 {
 	    entry = page_utils.menu_entries.divider,
