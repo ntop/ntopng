@@ -983,13 +983,16 @@ interface.select(ifs.id.."")
 
 local infrastructures = {}
 
-if ntop.isPro() then
+if ntop.isEnterpriseM() then
    local infrastructure_utils = require("infrastructure_utils")
-
-   for _, v in pairs(infrastructure_utils.get_all_instances()) do
-      infrastructures[v.alias] = v.url
+   if ntop.isPro() then
+      for _, v in pairs(infrastructure_utils.get_all_instances()) do
+         infrastructures[v.alias] = v.url
+      end
    end
 end
+
+
 
 local context = {
    ifnames = ifnames,
