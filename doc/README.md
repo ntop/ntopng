@@ -105,8 +105,8 @@ to set in your environment the HTTP_PROXY to use and ntopng will use it. Both
 HTTP and HTTPS URLs are supported.
 
 Example:
-export HTTP_PROXY=http://127.0.0.1:1234
-ntopng -i eth0
+- `export HTTP_PROXY=http://127.0.0.1:1234`
+- `ntopng -i eth0`
 
 Traffic with sampling rate
 --------------------------
