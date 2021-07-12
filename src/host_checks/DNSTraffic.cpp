@@ -24,7 +24,7 @@
 
 /* ***************************************************** */
 
-DNSTraffic::DNSTraffic() : HostCheck(ntopng_edition_community) {
+DNSTraffic::DNSTraffic() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
   dns_bytes_threshold = (u_int64_t)-1;
 };
 

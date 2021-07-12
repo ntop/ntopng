@@ -24,7 +24,7 @@
 
 /* ***************************************************** */
 
-ServerContacts::ServerContacts() : HostCheck(ntopng_edition_community) {
+ServerContacts::ServerContacts() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
   contacts_threshold = (u_int64_t)5;
 };
 

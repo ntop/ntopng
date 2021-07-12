@@ -24,7 +24,7 @@
 
 /* ***************************************************** */
 
-RemoteConnection::RemoteConnection() : HostCheck(ntopng_edition_community) {};
+RemoteConnection::RemoteConnection() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {};
 
 /* ***************************************************** */
 

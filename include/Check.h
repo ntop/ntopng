@@ -27,17 +27,20 @@
 class Check {
  private:
   NtopngEdition check_edition;
-  u_int8_t has_protocol_detected:1, has_periodic_update:1, has_flow_end:1, packet_interface_only:1, nedge_exclude:1, nedge_only:1, enabled:1/* , _unused:1 */;
-
-  bool isCheckCompatibleWithInterface(NetworkInterface *iface);
+  bool packet_interface_only, nedge_exclude, nedge_only;
+  bool enabled;
 
  public:
-  Check(NtopngEdition _edition);
+  Check(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only);
   virtual ~Check();
 
   /* Compatibility */
+  bool isCheckCompatibleWithInterface(NetworkInterface *iface);
   bool isCheckCompatibleWithEdition() const;
   inline NtopngEdition getEdition()   const { return check_edition; };
+
+  inline void enable()    { enabled = 1; }
+  inline bool isEnabled() { return(enabled ? true : false); }
 
   virtual std::string getName()       const = 0;
 };

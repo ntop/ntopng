@@ -23,8 +23,7 @@
 
 /* **************************************************** */
 
-HostCheck::HostCheck(NtopngEdition _edition) : Check(_edition) {
-  enabled = 0;
+HostCheck::HostCheck(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only) : Check(_edition, _packet_interface_only, _nedge_exclude, _nedge_only) {
   periodicity_secs = 0;
 };
 

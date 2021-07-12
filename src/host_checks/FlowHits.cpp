@@ -24,7 +24,7 @@
 
 /* ***************************************************** */
 
-FlowHits::FlowHits() : HostCheck(ntopng_edition_community) {
+FlowHits::FlowHits() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
   threshold = (u_int64_t)-1;
 };
 

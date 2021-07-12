@@ -24,7 +24,7 @@
 
 /* ***************************************************** */
 
-P2PTraffic::P2PTraffic() : HostCheck(ntopng_edition_community) {
+P2PTraffic::P2PTraffic() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
   p2p_bytes_threshold = (u_int64_t)-1;
 };
 

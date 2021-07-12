@@ -24,37 +24,18 @@
 /* **************************************************** */
 
 FlowCheck::FlowCheck(NtopngEdition _edition,
-			   bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only,
-		     bool _has_protocol_detected, bool _has_periodic_update, bool _has_flow_end) : Check(_edition) {
-  packet_interface_only = nedge_exclude = nedge_only = has_protocol_detected = has_periodic_update = has_flow_end = 0;
-
-  if(_packet_interface_only)  packet_interface_only = 1;
-  if(_nedge_exclude)          nedge_exclude = 1;
-  if(_nedge_only)             nedge_only = 1;
-  if(_has_protocol_detected)  has_protocol_detected = 1;
-  if(_has_periodic_update)    has_periodic_update = 1;
-  if(_has_flow_end)           has_flow_end = 1;
-
-  enabled = 0;
+		     bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only,
+		     bool _has_protocol_detected, bool _has_periodic_update, bool _has_flow_end)
+  : Check(_edition, _packet_interface_only, _nedge_exclude, _nedge_only) {
+  _has_protocol_detected  = has_protocol_detected;
+  _has_periodic_update    = has_periodic_update;
+  _has_flow_end           = has_flow_end;
 };
 
 /* **************************************************** */
 
 FlowCheck::~FlowCheck() {
 };
-
-/* **************************************************** */
-
-bool FlowCheck::isCheckCompatibleWithInterface(NetworkInterface *iface) {
-  /* Version check, done at runtime as versions can change */
-  if(!isCheckCompatibleWithEdition())                     return(false);  
-
-  if(packet_interface_only && (!iface->isPacketInterface())) return(false);
-  if(nedge_only && (!ntop->getPrefs()->is_nedge_edition()))  return(false);
-  if(nedge_exclude && ntop->getPrefs()->is_nedge_edition())  return(false);
-
-  return(true);
-}
 
 /* **************************************************** */
 

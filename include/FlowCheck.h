@@ -26,15 +26,12 @@
 
 class FlowCheck : public Check {
  private:
-  u_int8_t has_protocol_detected:1, has_periodic_update:1, has_flow_end:1, packet_interface_only:1, nedge_exclude:1, nedge_only:1, enabled:1/* , _unused:1 */;
+  bool has_protocol_detected, has_periodic_update, has_flow_end;
 
  public:
   FlowCheck(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only,
 	       bool _has_protocok_detected, bool _has_periodic_update, bool _has_flow_end);
   virtual ~FlowCheck();
-
-    /* Compatibility */
-  bool isCheckCompatibleWithInterface(NetworkInterface *iface);
 
   /* Enable/Disable hooks */
   virtual void scriptEnable()            {};
@@ -47,9 +44,6 @@ class FlowCheck : public Check {
 
   /* Used to build an alert when triggerAlertAsync is used */
   virtual FlowAlert *buildAlert(Flow *f) { return NULL; };
-
-  inline void enable()    { enabled = 1; }
-  inline bool isEnabled() { return(enabled ? true : false); }
 
   void addCheck(std::list<FlowCheck*> *l, NetworkInterface *iface, FlowChecks check);
   virtual bool loadConfiguration(json_object *config);

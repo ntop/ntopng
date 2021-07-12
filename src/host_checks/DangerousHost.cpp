@@ -26,7 +26,7 @@
 
 /* ***************************************************** */
 
-DangerousHost::DangerousHost() : HostCheck(ntopng_edition_community) {
+DangerousHost::DangerousHost() : HostCheck(ntopng_edition_community, false /* All interfaces */, true /* Exclude for nEdge */, false /* NOT only for nEdge */) {
   score_threshold = (u_int64_t)-1;
 };
 

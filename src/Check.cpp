@@ -23,8 +23,12 @@
 
 /* **************************************************** */
 
-Check::Check(NtopngEdition _edition) {
+Check::Check(NtopngEdition _edition, bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only) {
   check_edition = _edition;
+  packet_interface_only = _packet_interface_only;
+  nedge_exclude = _nedge_exclude;
+  nedge_only = _nedge_only;
+  enabled = false;
 };
 
 /* **************************************************** */
@@ -56,6 +60,19 @@ bool Check::isCheckCompatibleWithEdition() const {
       return(false);
     break;     
   }
+
+  return(true);
+}
+
+/* **************************************************** */
+
+bool Check::isCheckCompatibleWithInterface(NetworkInterface *iface) {
+  /* Version check, done at runtime as versions can change */
+  if(!isCheckCompatibleWithEdition())                        return(false);
+
+  if(packet_interface_only && (!iface->isPacketInterface())) return(false);
+  if(nedge_only && (!ntop->getPrefs()->is_nedge_edition()))  return(false);
+  if(nedge_exclude && ntop->getPrefs()->is_nedge_edition())  return(false);
 
   return(true);
 }
