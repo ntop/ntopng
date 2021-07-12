@@ -189,35 +189,41 @@ void FlowChecksLoader::loadConfiguration() {
       if(cb_all.find(check_key) != cb_all.end()) {
 	FlowCheck *cb = cb_all[check_key];
 
+	if(!cb->isCheckCompatibleWithEdition()) {
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "Check not compatible with current edition [check: %s]", check_key);
+	  goto next_object;
+	}
+
 	if(json_object_object_get_ex(json_hook_all, "enabled", &json_enabled))
 	  enabled = json_object_get_boolean(json_enabled);
 	else
 	  enabled = false;
 
-	if(enabled && cb->isCheckCompatibleWithEdition()) {
-	  /* Script enabled */
-	  if(json_object_object_get_ex(json_hook_all, "script_conf", &json_script_conf)) {
-	    if(cb_all.find(check_key) != cb_all.end()) {
-	      FlowCheck *cb = cb_all[check_key];
+	if(!enabled) {
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping check not enabled [check: %s]", check_key);
+	  goto next_object;
+	}
 
-	      if(cb->loadConfiguration(json_script_conf)) {
-		ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully enabled check %s", check_key);
-	      } else {
-		ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while loading check %s configuration",
-					     check_key);
-	      }
-
-	      cb->enable();
-	      cb->scriptEnable(); 
-	    }
+	/* Script enabled */
+	if(json_object_object_get_ex(json_hook_all, "script_conf", &json_script_conf)) {
+	  if(cb->loadConfiguration(json_script_conf)) {
+	    ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully enabled check %s", check_key);
+	  } else {
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while loading check %s configuration",
+					 check_key);
 	  }
+
+	  cb->enable();
+	  cb->scriptEnable(); 
 	} else {
 	  /* Script disabled */
 	  cb->scriptDisable(); 
 	}
-      }
+      }	else
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to find flow check %s", check_key);
     }
 
+  next_object:
     /* Move to the next element */
     json_object_iter_next(&it);
   } /* while */
