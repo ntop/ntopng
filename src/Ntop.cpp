@@ -80,8 +80,10 @@ Ntop::Ntop(char *appName) {
   host_checks_loader = NULL;
 
   /* Flow alerts exclusions */
+#ifdef NTOPNG_PRO
   alertExclusionsReloadInProgress = true;
   alert_exclusions = alert_exclusions_shadow = NULL;
+#endif
 
   /* Host Pools reload - Interfaces initialize their pools inside the constructor */
   hostPoolsReloadInProgress = false;
@@ -313,6 +315,8 @@ Ntop::~Ntop() {
 
 #ifdef NTOPNG_PRO
   if(pro) delete pro;
+  if(alert_exclusions)          delete alert_exclusions;
+  if(alert_exclusions_shadow)   delete alert_exclusions_shadow;
 #endif
 
   if(resolvedHostsBloom) delete resolvedHostsBloom;
@@ -331,8 +335,6 @@ Ntop::~Ntop() {
 
   if(flow_checks_loader)     delete flow_checks_loader;
   if(host_checks_loader)     delete host_checks_loader;
-  if(alert_exclusions)          delete alert_exclusions;
-  if(alert_exclusions_shadow)   delete alert_exclusions_shadow;
 
 #ifdef __linux__
   if(inotify_fd > 0)  close(inotify_fd);
@@ -2676,6 +2678,7 @@ void Ntop::checkReloadHostPools() {
 /* ******************************************* */
 
 void Ntop::checkReloadAlertExclusions() {
+#ifdef NTOPNG_PRO
   if(alert_exclusions_shadow) { /* Dispose old memory if necessary */
     delete alert_exclusions_shadow;
     alert_exclusions_shadow = NULL;
@@ -2691,6 +2694,7 @@ void Ntop::checkReloadAlertExclusions() {
     if(!alert_exclusions)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for control groups.");
   }
+#endif
 }
 
 /* ******************************************* */

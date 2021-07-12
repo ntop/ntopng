@@ -44,7 +44,7 @@ class Ntop {
   pthread_t purgeLoop;    /* Loop which iterates on active interfaces to delete idle hash table entries */
   bool purgeLoop_started; /* Flag that indicates whether the purgeLoop has been started */
   bool ndpiReloadInProgress;
-  bool flowChecksReloadInProgress, hostChecksReloadInProgress, alertExclusionsReloadInProgress;
+  bool flowChecksReloadInProgress, hostChecksReloadInProgress;
   bool hostPoolsReloadInProgress;
   bool offline;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
@@ -111,7 +111,10 @@ class Ntop {
   HostChecksLoader *host_checks_loader;
 
   /* Hosts Control (e.g., disabled alerts) */
+#ifdef NTOPNG_PRO
+  bool alertExclusionsReloadInProgress;
   AlertExclusions *alert_exclusions, *alert_exclusions_shadow;
+#endif
   bool assignUserId(u_int8_t *new_user_id);
 
 #ifndef WIN32
@@ -475,7 +478,9 @@ class Ntop {
   inline void      setLastModifiedStaticFileEpoch(u_int32_t t) { if(t > last_modified_static_file_epoch) last_modified_static_file_epoch = t; }
   inline u_int32_t getUptime()                 { return((u_int32_t)((start_time > 0) ? (time(NULL)-start_time) : 0)); }
   inline int getUdpSock()                      { return(udp_socket); }
+#ifdef NTOPNG_PRO
   inline AlertExclusions *getAlertExclusions() { return alert_exclusions; }
+#endif
 
   inline u_int getNumCPUs()             { return(num_cpus); }
   inline void setNumCPUs(u_int num)     { num_cpus = num; }
@@ -546,7 +551,11 @@ class Ntop {
   void reloadPeriodicScripts();
   inline void reloadFlowChecks()   { flowChecksReloadInProgress = true;    };
   inline void reloadHostChecks()   { hostChecksReloadInProgress = true;    };
-  inline void reloadAlertExclusions() { alertExclusionsReloadInProgress = true;  };
+  inline void reloadAlertExclusions() {
+#ifdef NTOPNG_PRO
+    alertExclusionsReloadInProgress = true;
+#endif
+  };
   inline void reloadHostPools()       { hostPoolsReloadInProgress = true;        };
 
   void addToPool(char *host_or_mac, u_int16_t user_pool_id);

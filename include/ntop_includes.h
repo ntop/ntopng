@@ -262,6 +262,7 @@ using namespace std;
 #include "Profile.h"
 #include "Profiles.h"
 #include "CountMinSketch.h"
+#include "AlertExclusions.h"
 #ifndef HAVE_NEDGE
 #include "FlowProfile.h"
 #include "FlowProfiles.h"
@@ -275,7 +276,6 @@ using namespace std;
 #include "LdapAuthenticator.h"
 #endif
 #endif
-#include "AlertExclusions.h"
 #include "HostPoolStats.h"
 #include "HostPools.h"
 #include "Fingerprint.h"
