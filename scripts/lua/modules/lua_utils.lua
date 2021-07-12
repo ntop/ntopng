@@ -192,27 +192,32 @@ end
 
 -- See Utils::l4proto2name()
 l4_keys = {
-   { "IP",       "ip",          0 },
-   { "ICMP",     "icmp",        1 },
-   { "IGMP",     "igmp",        2 },
-   { "TCP",      "tcp",         6 },
-   { "UDP",      "udp",        17 },
+   { "IP",        "ip",          0 },
+   { "ICMP",      "icmp",        1 },
+   { "IGMP",      "igmp",        2 },
+   { "TCP",       "tcp",         6 },
+   { "UDP",       "udp",        17 },
 
-   { "IPv6",     "ipv6",       41 },
-   { "RSVP",     "rsvp",       46 },
-   { "GRE",      "gre",        47 },
-   { "ESP",      "esp",        50 },
-   { "IPv6-ICMP", "ipv6icmp",  58 },
-   { "OSPF",      "ospf",      89 },
-   { "PIM",      "pim",       103 },
-   { "VRRP",     "vrrp",      112 },
-   { "HIP",      "hip",       139 },
-   { "ICMPv6",   "icmpv6",     58 },
-   { "IGMP",     "igmp",        2 },
-   { "Other IP", "other_ip",   -1 }
+   { "IPv6",      "ipv6",       41 },
+   { "RSVP",      "rsvp",       46 },
+   { "GRE",       "gre",        47 },
+   { "ESP",       "esp",        50 },
+   { "IPv6-ICMP", "ipv6icmp",   58 },
+   { "OSPF",      "ospf",       89 },
+   { "PIM",       "pim",       103 },
+   { "VRRP",      "vrrp",      112 },
+   { "HIP",       "hip",       139 },
+   { "ICMPv6",    "icmpv6",     58 },
+   { "IGMP",      "igmp",        2 },
+   { "Other IP",  "other_ip",   -1 }
 }
 
-L4_PROTO_KEYS = {tcp=6, udp=17, icmp=1, other_ip=-1}
+L4_PROTO_KEYS = {
+   tcp=6,
+   udp=17,
+   icmp=1,
+   other_ip=-1
+}
 
 function __FILE__() return debug.getinfo(2,'S').source end
 function __LINE__() return debug.getinfo(2, 'l').currentline end
@@ -708,7 +713,9 @@ function l4_proto_list()
    local list = {}
 
    for _, proto in pairs(l4_keys) do
-      if L4_PROTO_KEYS[proto[2]] then -- add L4 proto only
+      -- add L4 proto only
+      if proto[2] ~= 'ip' and
+         proto[2] ~= 'ipv6' then
          list[proto[1]] =  proto[3]
       end
    end

@@ -395,30 +395,6 @@ end
 
 -- #######################
 
--- See Utils::l4proto2name()
-l4_protocols = {
-   ['IP'] = 0,
-   ['ICMP'] = 1,
-   ['IGMP'] = 2,
-   ['TCP'] = 6,
-   ['UDP'] = 17,
-   ['IPv6'] = 41,
-   ['RSVP'] = 46,
-   ['GRE'] = 47,
-   ['ESP'] = 50,
-   ['IPv6-ICMP'] = 58,
-   ['OSPF'] = 89,
-   ['PIM'] = 103,
-   ['VRRP'] = 112,
-   ['HIP'] = 139,
-}
-
-function getL4ProtoName(proto_id)
-   return(l4_proto_to_string(proto_id))
-end
-
- -- #######################
-
 local dns_types = {
   ['A'] = 1,
   ['NS'] = 2,
