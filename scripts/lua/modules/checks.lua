@@ -655,8 +655,9 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
 
    -- Recheck the edition as the demo mode may expire
    if plugin then
-      if((plugin.edition == "pro" and (not ntop.isPro())) or
-	 (((plugin.edition == "enterprise_m" or plugin.edition == "enterprise_l") and (not ntop.isEnterpriseM())))) then
+      if (plugin.edition == "pro" and not ntop.isPro())
+         or ((plugin.edition == "enterprise_l" or plugin.edition == "enterprise_m") and not ntop.isEnterpriseM())
+         or (plugin.edition == "enterprise_l" and not ntop.isEnterpriseL()) then
 	 traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping user script '%s' with '%s' edition", mod_fname, plugin.edition))
 	 return(nil)
       end
