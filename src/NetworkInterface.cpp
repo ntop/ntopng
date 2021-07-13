@@ -9170,7 +9170,7 @@ void NetworkInterface::incObservationPointIdFlows(u_int16_t pointId, u_int32_t t
       if(!shown) {
 	shown = true;
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "Too many observation points defined for %s",
+				     "Too many observation points %u defined for %s",
 				     observationPoints.size(), get_name());
       }
     }
