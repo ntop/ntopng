@@ -98,7 +98,7 @@ function host_alert_score_anomaly.format(ifid, alert, alert_type_params)
 
    local cat_net, cat_sec = get_problematic_category(alert_type_params, is_both, cli_or_srv)
 
-   if tonumber(alert_type_params["value"]) > tonumber(threshold) then
+   if (tonumber(alert_type_params["value"]) > tonumber(threshold)) and (threshold > 0) then
       -- Anomaly due to threshold crossed
       return i18n("alert_messages.score_number_anomaly_threshold", {
          metric = role .. " Score",
