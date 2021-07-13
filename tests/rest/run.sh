@@ -134,11 +134,26 @@ function send_error {
 
         sendError "${TITLE}" "${MESSAGE}" "${FILE_PATH}"
     else
-        echo "[!]  ${TITLE}: ${MESSAGE}"
+        echo "[!] ${TITLE}: ${MESSAGE}"
 
         if [ ! -z "${FILE_PATH}" ]; then
             cat "${FILE_PATH}"
         fi
+    fi
+}
+
+check_connectivity() {
+    URL="https://version.ntop.org"
+    CURL_FAIL_CODE=6
+    CURL_LOG=$(mktemp)
+
+    curl -ksSf "${URL}" > ${CURL_LOG} 2>&1
+
+    if [ ! $? = ${CURL_FAIL_CODE} ]; then
+        echo "[i] Connectivity ok"
+    else
+        send_error "Unable to run tests" "No connectivity, unable to run the tests" "${CURL_LOG}"
+	exit 1
     fi
 }
 
@@ -300,6 +315,9 @@ run_tests() {
     TESTS_ARR=( $TESTS )
     NUM_TESTS=${#TESTS_ARR[@]}
     NUM_SUCCESS=0
+
+    # Check Internet connectivity
+    check_connectivity
 
     if [ ! -f "${NTOPNG_ROOT}/ntopng" ]; then
         send_error "Unable to run tests" "ntopng binary not found, unable to run the tests"
