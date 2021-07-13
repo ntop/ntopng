@@ -108,6 +108,10 @@ Example:
 - `export HTTP_PROXY=http://127.0.0.1:1234`
 - `ntopng -i eth0`
 
+If you start ntopng from systemd you need to edit /etc/systemd/system.conf and set:
+- `DefaultEnvironment=http://127.0.0.1:1234`
+
+
 Traffic with sampling rate
 --------------------------
 If you apply a sampling rate to capture traffic on an interface, say x100, the
