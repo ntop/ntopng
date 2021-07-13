@@ -2004,6 +2004,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url,
     DownloadState *state = NULL;
     ProgressState progressState;
     CURLcode curlcode;
+    struct curl_slist *headers = NULL;
     long response_code;
     char *content_type, *redirection;
     char ua[64];
@@ -2059,27 +2060,24 @@ bool Utils::httpGetPost(lua_State* vm, char *url,
       curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(form_data));
 
       if(form_data[0] == '{' /* JSON */) {
-	struct curl_slist *hs = NULL;
 
-	hs = curl_slist_append(hs, "Content-Type: application/json");
+	headers = curl_slist_append(headers, "Content-Type: application/json");
 
 	if(tokenBuffer[0] != '\0') {
-	  hs = curl_slist_append(hs, tokenBuffer);
+	  headers = curl_slist_append(headers, tokenBuffer);
 	  used_tokenBuffer = true;
 	}
-
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
       }
     }
 
     if((tokenBuffer[0] != '\0') && (!used_tokenBuffer)) {
-      struct curl_slist *hs = NULL;
-
       snprintf(tokenBuffer, sizeof(tokenBuffer), "Authorization: Token %s", user_header_token);
-      hs = curl_slist_append(hs, tokenBuffer);
-      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
+      headers = curl_slist_append(headers, tokenBuffer);
       used_tokenBuffer = true;
     }
+
+    if (headers != NULL)
+      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     if(write_fname) {
       ntop->fixPath(write_fname);
@@ -2194,6 +2192,8 @@ bool Utils::httpGetPost(lua_State* vm, char *url,
       free(state);
 
     /* always cleanup */
+    if (headers != NULL)
+      curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
   }
 
@@ -2214,6 +2214,7 @@ long Utils::httpGet(const char * const url,
   char tokenBuffer[64];
 
   if(curl) {
+    struct curl_slist *headers = NULL;
     char *content_type;
     char ua[64];
     curl_fetcher_t fetcher = {
@@ -2236,12 +2237,12 @@ long Utils::httpGet(const char * const url,
 	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
       }
     } else {
-      struct curl_slist *hs = NULL;
-
       snprintf(tokenBuffer, sizeof(tokenBuffer), "Authorization: Token %s", user_header_token);
-      hs = curl_slist_append(hs, tokenBuffer);
-      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
+      headers = curl_slist_append(headers, tokenBuffer);
     }
+
+    if (headers != NULL)
+      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     if(!strncmp(url, "https", 5)) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
@@ -2274,6 +2275,8 @@ long Utils::httpGet(const char * const url,
     }
 
     /* always cleanup */
+    if (headers != NULL)
+      curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
   }
 
