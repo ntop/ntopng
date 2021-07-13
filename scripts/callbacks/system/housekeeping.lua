@@ -39,9 +39,11 @@ if scripts_triggers.isRecordingAvailable() then
   recording_utils.checkExtractionJobs()
 end
 
-if ntop.isPro() and ntop.timeToRefreshIPSRules() then
-   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-   local policy_utils = require "policy_utils"
+if ntop.isPro() and not ntop.isnEdge() then
+   if  ntop.timeToRefreshIPSRules() then
+      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+      local policy_utils = require "policy_utils"
 
-   policy_utils.broadcast_ips_rules()
+      policy_utils.broadcast_ips_rules()
+   end
 end
