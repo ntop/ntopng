@@ -4673,17 +4673,17 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   */
   last_conntrack_update = now;
 
-  iface->incStats(isIngress2EgressDirection(), now, eth_proto,
-		  getStatsProtocol(), get_protocol_category(),
-		  protocol,
-		  nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
-		  nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts);
-  
-  iface->incStats(!isIngress2EgressDirection(), now, eth_proto,
-		  getStatsProtocol(), get_protocol_category(),
-		  protocol,
-		  nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes,
-		  nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts);
+  static_cast<NetfilterInterface*>(iface)->incStatsConntrack(isIngress2EgressDirection(), now, eth_proto,
+							     getStatsProtocol(), get_protocol_category(),
+							     protocol,
+							     nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
+							     nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts);
+
+  static_cast<NetfilterInterface*>(iface)->incStatsConntrack(!isIngress2EgressDirection(), now, eth_proto,
+							     getStatsProtocol(), get_protocol_category(),
+							     protocol,
+							     nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes,
+							     nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts);
   
   if(nf_existing_flow) {
     stats.setStats(true, s2d_pkts, s2d_bytes, 0);

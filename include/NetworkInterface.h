@@ -523,8 +523,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 			u_int16_t ndpi_proto, ndpi_protocol_category_t ndpi_category,
 			u_int8_t l4proto,
 			u_int32_t pkt_len, u_int32_t num_pkts) {
+    /* NOTE: nEdge does the incs in NetfilterInterface::incStatsConntrack, keep it in sync! */
 #ifndef HAVE_NEDGE
-    /* In nedge, we only update the stats periodically with conntrack */    
     incEthStats(ingressPacket, eth_proto, num_pkts, pkt_len, getPacketOverhead());
     ndpiStats->incStats(when, ndpi_proto, 0, 0, num_pkts, pkt_len);
     // Note: here we are not currently interested in packet direction, so we tell it is receive
