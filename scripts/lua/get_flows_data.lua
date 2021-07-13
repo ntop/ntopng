@@ -265,7 +265,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    local app = getApplicationLabel(value["proto.ndpi"])
    if(value["verdict.pass"] == false) then
-      app = "<strike>"..shortenString(app, 12).."</strike>"
+      app = "<strike>"..app.."</strike>"
    end
 
    record["column_ndpi"] = app -- can't set the hosts_stats hyperlink for viewed interfaces
