@@ -754,7 +754,7 @@ class Flow : public GenericHashEntry {
     flow_device.in_index = inidx, flow_device.out_index = outidx;
   }
   inline u_int32_t getFlowDeviceIp()           { return flow_device.device_ip;             };
-  inline u_int32_t getFlowObservationPointId() { return flow_device.observation_point_id;  };
+  inline u_int16_t getFlowObservationPointId() { return flow_device.observation_point_id;  };
   inline u_int16_t get_observation_point_id()  { return(getFlowObservationPointId());      };
   inline u_int32_t getFlowDeviceInIndex()      { return flow_device.in_index;              };
   inline u_int32_t getFlowDeviceOutIndex()     { return flow_device.out_index;             };

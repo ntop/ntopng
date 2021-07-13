@@ -503,5 +503,6 @@
 #define FLOW_RISK             NTOP_BASE_ID+508
 #define SRC_ASN               NTOP_BASE_ID+525
 #define DST_ASN               NTOP_BASE_ID+526
+#define PROBE_IP              NTOP_BASE_ID+527
 
 #endif /* _NTOP_FLOW_H_ */

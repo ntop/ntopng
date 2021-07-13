@@ -79,6 +79,8 @@ tag_utils.nindex_tags_to_where_v4 = {
    ["cli_label"]    = "SRC_LABEL",
    ["cli_asn"]      = "SRC_ASN",
    ["srv_asn"]      = "DST_ASN",
+   ["observation_point_id"] = "OBSERVATION_POINT_ID",
+   ["probe_ip"]     = "PROBE_IP",
 }
 
 -- #####################################
@@ -102,6 +104,8 @@ tag_utils.nindex_tags_to_where_v6 = {
    ["info"]         = "INFO",
    ["cli_asn"]      = "SRC_ASN",
    ["srv_asn"]      = "DST_ASN",
+   ["observation_point_id"] = "OBSERVATION_POINT_ID",
+   ["probe_ip"]     = "PROBE_IP",
 }
 
 -- #####################################
