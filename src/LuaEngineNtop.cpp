@@ -6079,7 +6079,10 @@ static int ntop_get_asn_name(lua_State *vm) {
 
   ntop->getGeolocation()->getAS(&a, &asn, &as_name);
 
-  lua_pushstring(vm, as_name);
+  if (as_name != NULL) {
+    lua_pushstring(vm, as_name);
+    free(as_name);
+  }
 
   return(CONST_LUA_OK);
 }
