@@ -4346,6 +4346,53 @@ function formatAlertAHref(key, value, label)
    return "<a class='tag-filter' data-tag-key='" .. key .. "' title='" .. value .. "' data-tag-value='" .. value .. "' data-tag-label='" .. label .. "' href='#'>" .. label .. "</a>"
 end
 
+-- ##############################################
+
+function getObsPointAliasKey()
+   return "ntopng.observation_point_aliases"
+end
+
+-- ##############################################
+
+function getObsPointAlias(observation_point_id)
+   local alias = ntop.getHashCache(getObsPointAliasKey(), observation_point_id)
+
+   if not isEmptyString(alias) then
+      return alias
+   end
+
+   return tostring(observation_point_id)
+end
+
+-- ##############################################
+
+function setObsPointAlias(observation_point_id, alias)
+   if((observation_point_id ~= alias) or isEmptyString(alias)) then
+      ntop.setHashCache(getObsPointAliasKey(), observation_point_id, alias)
+   else
+      ntop.delHashCache(getObsPointAliasKey(), observation_point_id)
+   end
+end
+
+-- ##############################################
+
+function getFullObsPointName(observation_point_id, compact)
+   local alias = getObsPointAlias(observation_point_id)
+
+   if not isEmptyString(observation_point_id) then
+      if not isEmptyString(observation_point_id) and alias ~= tostring(observation_point_id) then
+    if compact then
+       alias = shortenString(alias)
+       return string.format("%s", alias)
+    else
+       return string.format("%u [%s]", observation_point_id, alias)
+    end
+      end
+   end
+
+   return observation_point_id
+end
+
 -- #####################
 
 local iec104_typeids = {
