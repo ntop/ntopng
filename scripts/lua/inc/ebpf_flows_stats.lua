@@ -55,7 +55,7 @@ local ifstats = interface.getStats()
 local ndpistats = interface.getActiveFlowsStats()
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
-local page_params = {}
+local page_params = { ifid = interface.getId() }
 
 if (page == "flows" or page == nil) then
 

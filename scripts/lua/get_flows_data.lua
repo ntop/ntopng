@@ -20,6 +20,12 @@ sendHTTPContentTypeHeader('application/json')
 local debug = false
 local debug_process = false -- Show flow processed information
 
+local ifid  = _GET["ifid"]
+
+if not isEmptyString(ifid) then
+   interface.select(ifid)
+end
+
 local ifstats = interface.getStats()
 local delta_cache = "ntopng.interface_filtered_traffic_" .. ifstats.id
 

@@ -22,10 +22,9 @@ local application    = _GET["application"]
 local version     = _GET["version"]
 local flowhosts_type = _GET["flowhosts_type"]
 
-interface.select(ifname)
+local ifId = interface.getId()
 
 local as_info = interface.getASInfo(asn) or {}
-local ifId = getInterfaceId(ifname)
 local asname = as_info["asname"]
 local base_url = ntop.getHttpPrefix() .. "/lua/as_details.lua"
 local asn_behavior_update_freq = 300 -- An update each 300 seconds
@@ -122,7 +121,7 @@ page_utils.print_navbar(title, nav_url,
 			   {
 			      active = page == "flows" or not page,
 			      page_name = "flows",
-			      label = i18n("flows"),
+			      label = '<i class="fas fa-stream"></i>',
 			   },
 			   {
 			      active = page == "historical",

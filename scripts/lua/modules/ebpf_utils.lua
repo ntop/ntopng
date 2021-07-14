@@ -263,7 +263,7 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
    var url_update = "]]
    print (ntop.getHttpPrefix())
    print [[/lua/get_flows_data.lua?]]
-   print(table.tconcat({username = username, pid_name = pid_name, host = hostinfo2hostkey(host_info)}, "=", "&"))
+   print(table.tconcat({ifid = interface.getId(), username = username, pid_name = pid_name, host = hostinfo2hostkey(host_info)}, "=", "&"))
    print ('";')
 
    local show_vlan

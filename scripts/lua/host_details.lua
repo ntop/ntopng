@@ -416,7 +416,7 @@ else
 				 hidden = only_historical,
 				 active = page == "flows",
 				 page_name = "flows",
-				 label = '<span class="fas fa-stream"></span>',
+				 label = '<i class="fas fa-stream"></i>',
 			      },
 			      {
 				 hidden = only_historical or host["is_broadcast"] or host["is_multicast"] or not ntop.hasGeoIP(),

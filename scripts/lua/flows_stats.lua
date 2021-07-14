@@ -70,7 +70,7 @@ flows_filter.statusFilter = nil -- remove the filter, otherwise no menu entries 
 local flowstats = interface.getActiveFlowsStats(host, flows_filter)
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
-local page_params = {}
+local page_params = { ifid = interface.getId() }
 
 if (page == "flows" or page == nil) then
    local active_msg = getFlowsTableTitle()
@@ -204,7 +204,6 @@ end
       <div id="table-flows"></div>
         <script>
    var url_update = "]]
-
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
 
 print ('";')
