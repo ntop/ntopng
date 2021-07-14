@@ -54,6 +54,7 @@
 #include "flow_alerts/FlowRiskSSHObsoleteAlert.h"
 #include "flow_alerts/FlowRiskSuspiciousDGADomainAlert.h"
 #include "flow_alerts/FlowRiskTLSAlert.h"
+#include "flow_alerts/FlowRiskTLSCertValidityTooLongAlert.h"
 #include "flow_alerts/FlowRiskTLSMissingSNIAlert.h"
 #include "flow_alerts/FlowRiskTLSNotCarryingHTTPSAlert.h"
 #include "flow_alerts/FlowRiskTLSSuspiciousESNIUsageAlert.h"

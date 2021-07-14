@@ -467,6 +467,7 @@ typedef enum {
   flow_alert_remote_access                    = 57,
   flow_alert_lateral_movement                 = 58,
   flow_alert_periodicity_changed              = 59,
+  flow_alert_ndpi_tls_cert_validity_too_long  = 60,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

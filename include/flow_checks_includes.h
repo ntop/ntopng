@@ -75,6 +75,7 @@
 #include "flow_checks/PeriodicityChanged.h"
 #include "flow_checks/LongLivedFlow.h"
 #include "flow_checks/TCPConnectionRefused.h"
+#include "flow_checks/FlowRiskTLSCertValidityTooLong.h"
 #include "flow_checks/FlowRiskTLSCertificateExpired.h"
 #include "flow_checks/FlowRiskTLSCertificateSelfSigned.h"
 #include "flow_checks/FlowRiskTLSCertificateMismatch.h"

@@ -112,6 +112,7 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new PeriodicityChanged()))                          registerCheck(fcb);
   if((fcb = new LongLivedFlow()))                               registerCheck(fcb);
   if((fcb = new TCPConnectionRefused()))                        registerCheck(fcb);
+  if((fcb = new FlowRiskTLSCertValidityTooLong()))              registerCheck(fcb);
   if((fcb = new FlowRiskTLSCertificateExpired()))               registerCheck(fcb);
   if((fcb = new FlowRiskTLSCertificateMismatch()))              registerCheck(fcb);
   if((fcb = new FlowRiskTLSOldProtocolVersion()))               registerCheck(fcb);

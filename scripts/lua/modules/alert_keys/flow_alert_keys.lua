@@ -65,6 +65,7 @@ local flow_alert_keys = {
    flow_alert_remote_access                   = 57,
    flow_alert_lateral_movement                = 58,
    flow_alert_periodicity_changed             = 59,
+   flow_alert_ndpi_tls_cert_validity_too_long = 60,
    -- NOTE: for flow alerts not not go beyond the size of Bitmap alert_map inside Flow.h (currently 128)
 }
 
