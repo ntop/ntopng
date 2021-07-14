@@ -1,0 +1,54 @@
+
+   
+<form id="op_config" class="form-inline" style="margin-bottom: 0px;" method="post">
+<input id="csrf" name="csrf" type="hidden" value="{{ csrf }}"/>
+<table class="table table-bordered table-striped">
+
+<tr>
+<th> print(i18n("observation_point_alias")) </th>
+   <td>
+      <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="print(custom_name)" id="observation_point_alias">
+   </td>
+</tr>
+            
+
+   
+</table>
+   <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit" id="save"> print(i18n("save_settings")) </button><br><br>
+   </form>
+   <script>
+     aysHandleForm("#op_config");
+   </script>
+
+
+</table>
+
+
+
+<script>
+   $(document).ready(function(){
+
+
+      $.get( "/lua/rest/v2/get/observation_points/alias.lua?{{ op_id }}", function( data ) {
+        alert( "Load was performed." );
+      });
+
+      $('#save').on('click',function(){   
+
+         let input_text=document.getELementByID('#observation_point_alias').value;
+
+
+         $.post("/lua/rest/v2/set/observation_points/alias.lua",
+         {
+          alias: input_text,
+          observation_point_id: "{{ op_id }}"
+         },
+         function(data, status){
+          alert("Data: " + data + "\nStatus: " + status);
+         });
+
+      });
+
+   });
+
+</script>
