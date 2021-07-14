@@ -36,21 +36,33 @@ local ts_dump = {}
 -- ########################################################
 
 function ts_dump.l2_device_update_categories_rrds(when, devicename, device, ifstats, verbose)
-  -- nDPI Protocol CATEGORIES
-  for k, cat in pairs(device["ndpi_categories"] or {}) do
-    ts_utils.append("mac:ndpi_categories", {ifid=ifstats.id, mac=devicename, category=k,
-              bytes=cat["bytes"]}, when)
-  end
+   -- nDPI Protocol CATEGORIES
+   if not ifstats.isViewed and not ifstats.isView then
+      for k, cat in pairs(device["ndpi_categories"] or {}) do
+	 ts_utils.append("mac:ndpi_categories",
+			 {
+			    ifid=ifstats.id, mac=devicename, category=k,
+			    bytes=cat["bytes"]
+			 }, when)
+      end
+   end
 end
 
 function ts_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, verbose)
-  ts_utils.append("mac:traffic", {ifid=ifstats.id, mac=devicename,
-              bytes_sent=device["bytes.sent"], bytes_rcvd=device["bytes.rcvd"]}, when, verbose)
-  
-  ts_utils.append("mac:arp_rqst_sent_rcvd_rpls", {ifid=ifstats.id, mac=devicename,
-              request_packets_sent = device["arp_requests.sent"],
-              reply_packets_rcvd = device["arp_replies.rcvd"]},
-        when)
+   if not ifstats.isViewed and not ifstats.isView then
+      ts_utils.append("mac:traffic",
+		      {
+			 ifid=ifstats.id, mac=devicename,
+			 bytes_sent=device["bytes.sent"], bytes_rcvd=device["bytes.rcvd"]
+		      }, when, verbose)
+      
+      ts_utils.append("mac:arp_rqst_sent_rcvd_rpls",
+		      {
+			 ifid=ifstats.id, mac=devicename,
+			 request_packets_sent = device["arp_requests.sent"],
+			 reply_packets_rcvd = device["arp_replies.rcvd"]
+		      }, when)
+   end
 end
 
 -- ########################################################
@@ -186,9 +198,11 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
     end
 
     -- Save ASN RTT stats
-    ts_utils.append("asn:rtt",
-		    {ifid=ifstats.id, asn=asn,
-		     millis_rtt=asn_stats["round_trip_time"]}, when)
+    if not ifstats.isViewed and not ifstats.isView then
+       ts_utils.append("asn:rtt",
+		       {ifid=ifstats.id, asn=asn,
+			millis_rtt=asn_stats["round_trip_time"]}, when)
+    end
 
     -- Save ASN TCP stats
     if not ifstats.isSampledTraffic then

@@ -107,9 +107,11 @@ function ts_dump.subnet_update_rrds(when, ifstats, verbose)
 			packets_inner=sstats["tcpPacketStats.inner"]["keep_alive"]}, when)
     end
 
-    ts_utils.append("subnet:engaged_alerts",
-        {ifid=ifstats.id, subnet=subnet,
-        alerts=sstats["engaged_alerts"]}, when)
+    if areAlertsEnabled() then
+       ts_utils.append("subnet:engaged_alerts",
+		       {ifid=ifstats.id, subnet=subnet,
+			alerts=sstats["engaged_alerts"]}, when)
+    end
   end
 end
 
@@ -363,7 +365,9 @@ end
 -- ########################################################
 
 function ts_dump.iface_update_anomalies(when, ifstats, verbose)
-   ts_utils.append("iface:hosts_anomalies", {ifid=ifstats.id, num_local_hosts_anomalies=ifstats.anomalies.num_local_hosts_anomalies, num_remote_hosts_anomalies=ifstats.anomalies.num_remote_hosts_anomalies}, when)
+   if not ifstats.isViewed then
+      ts_utils.append("iface:hosts_anomalies", {ifid=ifstats.id, num_local_hosts_anomalies=ifstats.anomalies.num_local_hosts_anomalies, num_remote_hosts_anomalies=ifstats.anomalies.num_remote_hosts_anomalies}, when)
+   end
 end
 
 -- ########################################################
