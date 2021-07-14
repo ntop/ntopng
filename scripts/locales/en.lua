@@ -221,6 +221,7 @@ local lang = {
   ["num_uses"] = "Num Uses",
   ["observationpoints"] = "Observation Points",
   ["observations"] = "Observations",
+  ["observation_point_alias"] = "Observation Point Alias",
   ["observation_point_id"] = "Obs. Point ID",
   ["off"] = "Off",
   ["offline"] = "Offline (No Internet Connectivity)",

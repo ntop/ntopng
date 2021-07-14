@@ -4367,7 +4367,7 @@ end
 -- ##############################################
 
 function setObsPointAlias(observation_point_id, alias)
-   if((observation_point_id ~= alias) or isEmptyString(alias)) then
+   if((observation_point_id ~= alias) and not isEmptyString(alias)) then
       ntop.setHashCache(getObsPointAliasKey(), observation_point_id, alias)
    else
       ntop.delHashCache(getObsPointAliasKey(), observation_point_id)
