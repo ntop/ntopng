@@ -197,8 +197,16 @@ elseif(page == "historical" and ts_creation) then
 	    metrics_labels = {i18n("about.alerts_stored"), i18n("about.alert_queries"), i18n("about.alerts_dropped")},
 	 },
 	 {
-	    schema="iface:alerts_stats",
-	    label=i18n("show_alerts.iface_engaged_dropped_alerts"),
+	    schema="iface:engaged_alerts",
+	    label=i18n("show_alerts.engaged_alerts"),
+	    metrics_labels = { i18n("show_alerts.engaged_alerts") },
+	    skip=hasAllowedNetworksSet()
+	 },
+	 {
+	    schema="iface:dropped_alerts",
+	    label=i18n("show_alerts.dropped_alerts"),
+	    metrics_labels = { i18n("show_alerts.dropped_alerts") },
+	    skip=hasAllowedNetworksSet()
 	 },
       }
    })

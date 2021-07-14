@@ -24,8 +24,11 @@ end
 
 if scripts_triggers.isRrdInterfaceCreation() then
    local ts_utils = require("ts_utils_core")
-   
-   ts_utils.append("iface:alerts_stats", {ifid=getSystemInterfaceId(), engaged_alerts=ifstats.num_alerts_engaged, dropped_alerts=ifstats.num_dropped_alerts}, when)
+
+   if areAlertsEnabled() then
+      ts_utils.append("iface:engaged_alerts", {ifid=getSystemInterfaceId(), engaged_alerts=ifstats.num_alerts_engaged}, when)
+      ts_utils.append("iface:dropped_alerts", {ifid=getSystemInterfaceId(), dropped_alerts=ifstats.num_dropped_alerts}, when)
+   end
 end
 
 if ntop.isPro() then
