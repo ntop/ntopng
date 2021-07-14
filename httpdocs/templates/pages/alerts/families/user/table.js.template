@@ -6,5 +6,7 @@
     /* Counts */
     {responsivePriority: 3, name: 'count', className: 'text-center', width: '5%', data: 'count', visible: false},
     /* Alert */
-    {responsivePriority: 3, name: 'description', data: 'msg', orderable: false, width: '100%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 3, name: 'description', data: 'msg', orderable: false, width: '1%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    /* Description */
+    {responsivePriority: 3, name: 'description', data: 'description', orderable: false, width: '100%'},
 ]

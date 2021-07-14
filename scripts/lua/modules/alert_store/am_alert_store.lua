@@ -90,6 +90,7 @@ local RNAME = {
    MEASUREMENT = { name = "measurement", export = true},
    MEASURE_THRESHOLD = { name = "measure_threshold", export = true},
    MEASURE_VALUE = { name = "measure_value", export = true},
+   DESCRIPTION = { name = "description", export = true},
    MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
 }
 
@@ -125,6 +126,8 @@ function am_alert_store:format_record(value, no_html)
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""
    end
+
+   record[RNAME.DESCRIPTION.name] = msg
 
    record[RNAME.MSG.name] = {
      name = noHtml(alert_name),

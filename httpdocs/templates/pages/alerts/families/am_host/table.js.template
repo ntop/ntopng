@@ -4,13 +4,15 @@
     /* Score */
     {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
     /* Alert */
-    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width: '55%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width: '1%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Measurement */
     {responsivePriority: 3, name: 'measurement', data: 'measurement', orderable: false, width: '10%', className: 'text-nowrap', width: '8%'},
     /* Threshold */
     {responsivePriority: 3, name: 'measure_threshold', data: 'measure_threshold', orderable: false, width: '10%', className: 'text-center', width: '8%'},
     /* Value */
-    {responsivePriority: 3, name: 'measure_value', data: 'measure_value', orderable: false, width: '100%', className: 'text-center', width: '8%'},
+    {responsivePriority: 3, name: 'measure_value', data: 'measure_value', orderable: false, width: '10%', className: 'text-center', width: '8%'},
     /* Counts */
     {responsivePriority: 3, name: 'count', className: 'text-center', width: '8%', data: 'count', visible: false},
+    /* Description */
+    {responsivePriority: 3, name: 'description', data: 'description', orderable: false, width: '100%'},
 ]

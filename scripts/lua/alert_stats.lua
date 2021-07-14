@@ -31,7 +31,7 @@ local status = _GET["status"]
 -- Used to print badges next to navbar entries
 local num_alerts_engaged = interface.getStats()["num_alerts_engaged"]
 local num_alerts_engaged_by_entity = interface.getStats()["num_alerts_engaged_by_entity"]
-local num_alerts_engaged_cur_entity = alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)] or 0
+local num_alerts_engaged_cur_entity = alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)] or num_alerts_engaged
 
 -- If the status is not explicitly set, it is chosen between (engaged when there are engaged alerts) or historical when
 -- no engaged alert is currently active
@@ -107,6 +107,7 @@ local pages = {
         endpoint_list = "/lua/rest/v2/get/all/alert/list.lua",
         endpoint_ts = "/lua/rest/v2/get/all/alert/ts.lua",
 	url = getPageUrl(base_url, {page = "all"}),
+	badge_num = num_alerts_engaged,
    },
    {
         active = page == "host",

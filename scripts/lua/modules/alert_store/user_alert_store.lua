@@ -61,6 +61,7 @@ end
 
 local RNAME = {
    ALERT_NAME = { name = "alert_name", export = true},
+   DESCRIPTION = { name = "description", export = true},
    MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
 }
 
@@ -84,6 +85,8 @@ function user_alert_store:format_record(value, no_html)
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""
    end
+
+   record[RNAME.DESCRIPTION.name] = msg
 
    record[RNAME.MSG.name] = {
      name = noHtml(alert_name),
