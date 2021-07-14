@@ -622,6 +622,11 @@ local locally_defined_custom_schemas = {
       axis = {1,2,2},
       exclude = {virtual_bytes=1},
       tags_override = {{ifid=getSystemInterfaceId()},},
+   }, ["custom:score_vs_flows_hosts"] = {
+      bases = {"iface:score", "iface:flows", "iface:hosts"},
+      types = {"line", "bar", "bar"},
+      axis = {1,2,2},
+      exclude = {virtual_bytes=1},
    }, ["custom:snmp_traffic_vs_errors"] = {
       bases = {"snmp_if:traffic", "snmp_if:errors"},
       types = {"line", "bar"},

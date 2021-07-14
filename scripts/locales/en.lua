@@ -2639,6 +2639,7 @@ local lang = {
     ["max_ms"] = "Max ms",
     ["max_rtt"] = "Max RTT Time",
     ["memory_vs_hosts_flows"] = "Process Memory vs Hosts/Flows",
+    ["score_vs_hosts_flows"] = "Score vs Hosts/Flows",
     ["min_rtt"] = "Min RTT Time",
     ["minute_interface_top_stats"] = "Minute Interface Top Traffic Statistics",
     ["name_lookup"] = "Name Lookup",
