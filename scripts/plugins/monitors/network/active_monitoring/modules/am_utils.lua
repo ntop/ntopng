@@ -512,7 +512,6 @@ function am_utils.deleteHost(host, measurement)
 
   local host_key = am_utils.getAmHostKey(host, measurement)
   local am_host_entity = alerts_api.amThresholdCrossEntity(host_key)
-  local old_ifname = ifname
 
   -- Release any engaged alerts of the host
   alerts_api.releaseEntityAlerts(am_host_entity)

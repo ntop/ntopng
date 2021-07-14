@@ -8,7 +8,6 @@ $(function() {
             body: JSON.stringify({token: token, url: remoteUrl, csrf: pageCsrf})
         });
         const data = await response.json();
-        console.log(data);
         const hasLoggedIn = (data.rc == 0);
         const errorMessage = (data.rc_str);
 
