@@ -443,7 +443,7 @@ function ts_dump.getConfig()
 
   config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
   config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
-  config.observation_points_rrd_creation = ntop.getPref("ntopng.prefs.observation_points_rrd_creation")
+  config.observation_points_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
   config.internals_rrd_creation = ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1"
   config.is_dump_flows_enabled = ntop.getPrefs()["is_dump_flows_enabled"]
 
