@@ -959,7 +959,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	      change the status of ntopng and thus CSRF checks MUST be enforced.
 	      In this case, post_data is decoded as JSON to enforce the check.
 	    */
-	    json_object *o, *csrf_o;
+	    json_object *o = NULL, *csrf_o;
 
 	    if(!(o = json_tokener_parse(post_data))
 	       || !json_object_object_get_ex(o, "csrf", &csrf_o)
@@ -971,6 +971,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	      */
 	      valid_csrf = 0;
             }
+
+            if (o) json_object_put(o);
 	  }
 	} else {
 	  /*
