@@ -357,7 +357,9 @@ class Flow : public GenericHashEntry {
     return !cli_host || cli_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), true) == device_proto_allowed;
   }		      
   inline bool isSrvDeviceAllowedProtocol() const {
-    return !srv_host || srv_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), false) == device_proto_allowed;
+    return !srv_host
+      || get_bytes_srv2cli() == 0 /* Server must respond to be considered NOT allowed */
+      || srv_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), false) == device_proto_allowed;
   }
   inline bool isDeviceAllowedProtocol() const {
     return isCliDeviceAllowedProtocol() && isSrvDeviceAllowedProtocol();
