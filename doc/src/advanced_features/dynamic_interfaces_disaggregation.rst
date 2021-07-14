@@ -3,9 +3,9 @@ Interfaces Disaggregation
 
 ntopng can split and visualize the traffic into virtual sub-interfaces based on a specified criterion.
 This comes handy, for example, when a single nProbe instance is capturing flows from multiple
-NetFlow/sFLow exporters. By default, ntopng would aggregate all the exporters traffic together
+NetFlow/sFLow probes. By default, ntopng would aggregate all the probes traffic together
 into one `tcp://...` interface, whereas by enabling the disaggregation by "Probe IP" ntopng
-will also create as many virtual interfaces as the exporters, for example
+will also create as many virtual interfaces as the probes, for example
 `tcp://...192.168.0.1` and `tcp://...192.168.2.20`.
 
 Dynamic Disaggregation

@@ -2283,13 +2283,13 @@ Flow Device Metrics
    +--------------------------+-----------------------------------------------------------+
 
 
-Event Exporter Metrics
+Event Probe Metrics
 ======================
 
 
 .. admonition:: evexporter_iface:traffic
    
-   Total number of bytes sent and received on an interface of an event exporter (nProbe Agent).
+   Total number of bytes sent and received on an interface of an event probe (nProbe Agent).
    
    - **Type**: counter 
    - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)
@@ -2301,7 +2301,7 @@ Event Exporter Metrics
    +==========================+===========================================================+
    | ifid                     | Interface index                                           |
    +--------------------------+-----------------------------------------------------------+
-   | exporter                 | Exporter IP                                               |
+   | probe                    | Probe IP                                                  |
    +--------------------------+-----------------------------------------------------------+
    | ifname                   | Interface name                                            |
    +--------------------------+-----------------------------------------------------------+

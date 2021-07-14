@@ -337,24 +337,24 @@ else
 
    -- ##############################################
 
-   -- Exporters
+   -- Probes
    page_utils.add_menubar_section(
       {
-	 section = page_utils.menu_sections.exporters,
+	 section = page_utils.menu_sections.probes,
 	 hidden = ((ifs.type ~= "zmq" and ifs.type ~= "custom") or not ntop.isEnterpriseM()) or is_system_interface,
 	 entries = {
 	    {
-	       entry = page_utils.menu_entries.event_exporters,
+	       entry = page_utils.menu_entries.event_probes,
 	       hidden = not ifs.has_seen_ebpf_events,
 	       url = '/lua/pro/enterprise/event_exporters.lua',
 	    },
 	    {
-	       entry = page_utils.menu_entries.sflow_exporters,
+	       entry = page_utils.menu_entries.sflow_probes,
 	       hidden = table.len(interface.getSFlowDevices() or {}) == 0,
 	       url = '/lua/pro/enterprise/sflowdevices_stats.lua',
 	    },
 	    {
-	       entry = page_utils.menu_entries.flow_exporters,
+	       entry = page_utils.menu_entries.probes,
 	       url = '/lua/pro/enterprise/flowdevices_stats.lua',
 	    },
        {
@@ -920,7 +920,7 @@ for v,k in pairs(iface_names) do
       local snmp_name, snmp_if_name
 
       if cached_device then
-	 -- See if there is a name for this exporter in SNMP
+	 -- See if there is a name for this probe in SNMP
 	 if cached_device.system and cached_device.system.name then
 	    snmp_name = cached_device.system.name
 

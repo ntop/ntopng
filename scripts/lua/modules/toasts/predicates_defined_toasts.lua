@@ -488,7 +488,7 @@ function predicates.empty(toast, container)
     -- do nothing!
 end 
 
---- Generate two toasts if the SNMP ratio is not available for exporters
+--- Generate two toasts if the SNMP ratio is not available for probes
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.exporters_SNMP_ratio_column(toast, container)

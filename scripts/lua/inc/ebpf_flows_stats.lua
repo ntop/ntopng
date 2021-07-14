@@ -32,7 +32,7 @@ local ipversion = _GET["version"]
 local vlan = _GET["vlan"]
 local l4proto = _GET["l4proto"]
 
--- remote exporters address and interfaces
+-- remote probes address and interfaces
 local deviceIP = _GET["deviceIP"]
 local inIfIdx  = _GET["inIfIdx"]
 local outIfIdx = _GET["outIfIdx"]

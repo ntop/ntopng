@@ -1423,7 +1423,7 @@ local known_parameters = {
    ["ifIdx"]                   = validateNumber,                -- A generic switch/router port id
    ["inIfIdx"]                 = validateNumber,                -- A switch/router INPUT port id (%INPUT_SNMP)
    ["outIfIdx"]                = validateNumber,                -- A switch/router OUTPUT port id (%OUTPUT_SNMP)
-   ["deviceIP"]                = validateIPV4,                  -- The switch/router exporter ip address (%EXPORTER_IPV4_ADDRESS)
+   ["deviceIP"]                = validateIPV4,                  -- The switch/router probe ip address (%EXPORTER_IPV4_ADDRESS)
    ["ebpf_data"]               = validateEBPFData,              -- mode for get_username_data.lua and get_process_data.lua
    ["uid"]                     = validateNumber,                -- user id
    ["pid_mode"]                = validatePidMode,               -- pid mode for pid_stats.lua
@@ -1433,7 +1433,7 @@ local known_parameters = {
    ["sflowdistro_mode"]        = validateSflowDistroMode,       -- A mode for host_sflow_distro
    ["distr"]                   = validateSflowDistroType,       -- A type for host_sflow_distro
    ["sflow_filter"]            = validateSflowFilter,           -- sflow host filter
-   ["exporter_ifname"]         = validateSingleWord,            -- an interface name on the exporter system
+   ["exporter_ifname"]         = validateSingleWord,            -- an interface name on the probe system
 
 -- TIME SPECIFICATION
    ["epoch"]                   = validateNumber,                -- A timestamp value
