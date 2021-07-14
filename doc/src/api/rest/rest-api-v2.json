@@ -603,6 +603,46 @@
 				}
 			}
 		},
+		"/lua/pro/rest/v2/set/observation_points/alias.lua": {
+			"post": {
+				"tags": [
+					"Observation Point"
+				],
+				"summary": "Set the alias of an Observation Point",
+				"description": "Set the alias of an Observation Point is returned",
+				"operationId": "set_observation_point_alias",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "alias",
+						"in": "formData",
+						"description": "New Observation Point Alias",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "observation_point_id",
+						"in": "formData",
+						"description": "Observation Point ID",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK",
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+				}
+			}
+		},
 		"/lua/rest/v2/set/host/alias.lua": {
 			"post": {
 				"tags": [
@@ -1205,6 +1245,36 @@
 					"-6": {
 						"description": "INTERNAL_ERROR"
 					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/observation_points/alias.lua": {
+			"get": {
+				"tags": [
+					"Observation Point"
+				],
+				"summary": "Get the alias of an Observation Point",
+				"description": "The alias of an Observation Point is returned",
+				"operationId": "get_observation_point_alias",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "observation_point_id",
+						"in": "query",
+						"description": "Observation Point ID",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK",
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
 				}
 			}
 		},
