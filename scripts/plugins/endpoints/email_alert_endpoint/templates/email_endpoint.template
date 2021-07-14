@@ -7,7 +7,7 @@
             <input
                 data-validation-message="{{ i18n('email_alert_endpoint.validation.invalid_SMTP_server') }}"
                 data-validation-empty-message="{{ i18n('email_alert_endpoint.validation.empty_SMTP_server') }}"
-                data-pattern="ipv4|ipv6|domainName" data-validation-resolveDNS="true" name="smtp_server" type="text" class="form-control" required />
+                data-pattern="ipv4|ipv6|domainName|emailUrl" data-validation-resolveDNS="true" name="smtp_server" type="text" class="form-control" required />
             <div class="spinner-border spinner-border-sm" role="status" style="display: none;">
                 <span class="sr-only">Loading...</span>
             </div>
