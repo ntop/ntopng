@@ -276,7 +276,12 @@ end
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
 function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, minimum_severity, bind_to_all_pools, recipient_params)
    local locked = _lock()
-   local res = { status = "failed" }
+   local res = { 
+      status = "failed",
+      error = {
+         type = "internal_error"
+      }
+   }
 
    if locked then
       local ec = endpoints.get_endpoint_config(endpoint_id)
@@ -286,9 +291,12 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
 	 -- Is the endpoint already existing?
 	 local same_recipient = recipients.get_recipient_by_name(endpoint_recipient_name)
 	 if same_recipient then
-	    res = {status = "failed",
-		   error = {type = "endpoint_recipient_already_existing",
-			    endpoint_recipient_name = endpoint_recipient_name}
+	    res = {
+               status = "failed",
+	       error = {
+                  type = "endpoint_recipient_already_existing",
+		  endpoint_recipient_name = endpoint_recipient_name
+               }
 	    }
 	 else
 	    local endpoint_key = ec["endpoint_key"]
@@ -316,9 +324,21 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
 		  pools_lua_utils.bind_all_recipient_id(recipient_id)
 	       end
 
-	       res = {status = "OK", recipient_id = recipient_id}
+	       res = {
+                  status = "OK", 
+                  recipient_id = recipient_id
+               }
+            else
+               res = status
 	    end
 	 end
+      else
+         res = {
+            status = "failed",
+            error = {
+               type = "bad_endpoint",
+            }
+         }
       end
 
       _unlock()
