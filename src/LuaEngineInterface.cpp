@@ -977,26 +977,6 @@ static int ntop_interface_inc_syslog_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-static char *getAllowedNetworksHostsSqlFilter(lua_State* vm) {
-  /* Lazy initialization */
-  if(!getLuaVMUservalue(vm, sqlite_filters_loaded))
-    Utils::buildSqliteAllowedNetworksFilters(vm);
-
-  return(getLuaVMUserdata(vm, sqlite_hosts_filter));
-}
-
-/* ****************************************** */
-
-static char *getAllowedNetworksFlowsSqlFilter(lua_State* vm) {
-  /* Lazy initialization */
-  if(!getLuaVMUservalue(vm, sqlite_filters_loaded))
-    Utils::buildSqliteAllowedNetworksFilters(vm);
-
-  return(getLuaVMUserdata(vm, sqlite_flows_filter));
-}
-
-/* ****************************************** */
-
 static int ntop_interface_alert_store_query(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   char *query;
