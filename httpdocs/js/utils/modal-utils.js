@@ -221,7 +221,7 @@
                     // if the response was negative then alert the user
                     if (response.rc < 0) {
                         input.setCustomValidity(response.rc_str);
-                        return [false, i18n[response.rc_str]];
+                        return [false, response.rc_str_hr];
                     }
 
                     // return success for valid resolved hostnmae
@@ -412,7 +412,7 @@
                     self.isSubmitting = false;
                     const response = jqxhr.responseJSON;
                     if (response.rc !== undefined && response.rc < 0) {
-                        $feedbackLabel.html(i18n.rest[response.rc_str]).show();
+                        $feedbackLabel.html(response.rc_str_hr).show();
                     }
 
                     self.options.onSubmitError(response, dataToSend, textStatus, errorThrown);

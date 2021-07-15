@@ -150,7 +150,7 @@
 #define MAX_NUM_VIEW_INTERFACES   8
 
 #define LIMITED_NUM_INTERFACES    8
-#define LIMITED_NUM_HOST_POOLS    4 /* 3 pools plus the NO_HOST_POOL_ID */
+#define LIMITED_NUM_HOST_POOLS    5 /* 3 pools plus the NO_HOST_POOL_ID plus the Jailed hosts pool */
 #define LIMITED_NUM_PROFILES      16
 #define LIMITED_NUM_POOL_MEMBERS  8
 #define UNLIMITED_NUM_INTERFACES  32
@@ -210,7 +210,7 @@
 #define TRAFFIC_FILTERING_TO_RESOLVE       "ntopng.trafficfiltering.toresolve"
 #define PREFS_CHANGED            "ntopng.cache.prefs_changed"
 #define DROP_HOST_TRAFFIC        "ntopng.prefs.drop_host_traffic"
-#define DROP_HOST_POOL_NAME      "Jailed hosts pool"
+#define DROP_HOST_POOL_NAME      "Jailed Hosts"
 #define DROP_HOST_POOL_LIST      "ntopng.cache.drop_host_list"
 #define DROP_TMP_ADD_HOST_LIST   "ntopng.cache.tmp_add_host_list"
 #define DROP_HOST_POOL_EXPIRATION_TIME    1800 /*  30 m */

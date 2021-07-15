@@ -22,7 +22,7 @@ local pools = {}
 -- A default pool id value associated to any member without pools
 pools.DEFAULT_POOL_ID = 0           -- Keep in sync with ntop_defines.h NO_HOST_POOL_ID
 pools.DEFAULT_POOL_NAME = "Default" -- Keep in sync with ntop_defines.h DEFAULT_POOL_NAME
-pools.DROP_HOST_POOL_NAME = "Jailed hosts pool"
+pools.DROP_HOST_POOL_NAME = "Jailed Hosts"
 
 if ntop.isnEdge() then
     -- Compatibility with nEdge pools
@@ -534,6 +534,13 @@ function pools:get_num_pools()
     local cur_pool_ids = self:_get_assigned_pool_ids()
 
     return #cur_pool_ids
+end
+
+-- ##############################################
+
+-- @brief returns the maximum number of pools that can be created
+function pools:get_max_num_pools()
+   return 128
 end
 
 -- ##############################################

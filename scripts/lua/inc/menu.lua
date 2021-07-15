@@ -85,7 +85,7 @@ print[[
    const http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
 
    window.unchangable_pool_names = [
-      'Jailed hosts pool'
+      'Jailed Hosts'
    ]
 
 

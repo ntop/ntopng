@@ -4598,6 +4598,8 @@ local lang = {
   },
   ["rest_consts"] = {
     ["ADD_POOL_FAILED"] = "Unable to add a pool with the submitted params",
+    ["ADD_POOL_FAILED_TOO_MANY_POOLS"] = "Too many pools created. Consider upgrading ntopng to Enterprise M or above to create additionl pools.",
+    ["ADD_POOL_FAILED_TOO_MANY_POOLS_ENTERPRISE"] = "Too many pools created.",
     ["BAD_CONTENT"] = "Bad content",
     ["BAD_FORMAT"] = "Bad format",
     ["BIND_POOL_MEMBER_ALREADY_BOUND"] = "Unable to bind member which is already bound to another pool",

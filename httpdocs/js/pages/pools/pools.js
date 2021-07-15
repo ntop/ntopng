@@ -139,17 +139,18 @@ $(function() {
     let dtConfig = DataTableUtils.getStdDatatableConfig( [
         {
             text: '<i class="fas fa-plus"></i>',
-            enabled: !ADD_POOL_DISABLED && !IS_ALL_POOL && !IS_NEDGE,
+            enabled: !IS_ALL_POOL && !IS_NEDGE,
             action: () => { $(`#add-pool`).modal('show'); }
         },
         {
             text: '<i class="fas fa-sync"></i>',
-            enabled: !ADD_POOL_DISABLED && !IS_ALL_POOL,
+            enabled: !IS_ALL_POOL,
             action: function(e, dt, node, config) {
                 $poolTable.ajax.reload();
             }
         }
     ]);
+
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, endpoints.get_all_pools, 'rsp');
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         stateSave: true,
@@ -175,7 +176,6 @@ $(function() {
         resetAfterSubmit: false,
         endpoint: endpoints.add_pool,
         beforeSumbit: function() {
-
             const members = $(`#add-pool form select[name='members']`).val() || [];
             const recipients = $(`#add-pool form select[name='recipients']`).val() || [];
 
@@ -188,9 +188,8 @@ $(function() {
             };
         },
         onSubmitSuccess: function (response, textStatus, modalHandler) {
-
             if (response.rc < 0) {
-                $(`#add-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
+                $(`#add-modal-feedback`).html(response.rc_str_hr).fadeIn();
                 return;
             }
 
@@ -294,7 +293,7 @@ $(function() {
             const oldPoolData = modalHandler.data;
 
             if (response.rc < 0) {
-                $(`#edit-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
+                $(`#edit-modal-feedback`).html(response.rc_str_hr).fadeIn();
                 return;
             }
 
@@ -348,7 +347,7 @@ $(function() {
             const oldPoolData = modalHandler.data;
 
             if (response.rc < 0) {
-                $(`#remove-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
+                $(`#remove-modal-feedback`).html(response.rc_str_hr).fadeIn();
                 return;
             }
 
