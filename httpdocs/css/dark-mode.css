@@ -11,6 +11,11 @@ code {
  color: #000!important; 
 }
 
+.graph-val-total-title, .graph-val-95percentile-title, .graph-val-average-title, .graph-val-max-title, .graph-val-total{
+  border-color:  #2c2c2c!important;
+}
+
+
 .btn-primary {
   color: #000;
   background-color: var(--ntop-orange);

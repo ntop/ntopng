@@ -1157,6 +1157,47 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         var max_cell = stats_table.find(".graph-val-max");
         var perc_cell = stats_table.find(".graph-val-95percentile");
         
+        var total_cell_title = stats_table.find(".graph-val-total-title");
+        var average_cell_title = stats_table.find(".graph-val-average-title");
+        var max_cell_title = stats_table.find(".graph-val-max-title");
+        var min_cell_title = stats_table.find(".graph-val-min-title");
+        var perc_cell_title = stats_table.find(".graph-val-95percentile-title");
+
+
+        // fill the stats
+        if(stats.total || total_cell_title.is(':visible'))
+          splitSeriesInfo("total", total_cell_title, false, tot_formatter, true);
+        if(stats.average || average_cell_title.is(':visible'))
+          splitSeriesInfo("average", average_cell_title, false, stats_formatter);
+        if((stats.max_val || max_cell_title.is(':visible')) && res[0].values[stats.max_val_idx])
+          splitSeriesInfo("max_val", max_cell_title, true, stats_formatter);
+        if((stats.min_val || min_cell_title.is(':visible')) && res[0].values[stats.min_val_idx])
+          splitSeriesInfo("min_val", min_cell_title, true, stats_formatter);
+        if(stats["95th_percentile"] || perc_cell.is(':visible')) {
+          splitSeriesInfo("95th_percentile", perc_cell_title, false, stats_formatter);
+
+
+
+
+
+          if(!visualization.split_directions) {
+            /* When directions are split, hide the total stat */
+            var values = makeFlatLineValues(data.start, data.step, data.count, stats["95th_percentile"]);
+
+            res.push({
+              key: graph_i18n["95_perc"],
+              yAxis: 1,
+              values: values,
+              type: "line",
+              classed: "line-dashed line-animated",
+              color: "#476DFF",
+              legend_key: "95perc",
+              disabled: isLegendDisabled("95perc", true),
+            });
+          }
+        }
+
+
         // fill the stats
         if(stats.total || total_cell.is(':visible'))
           splitSeriesInfo("total", total_cell, false, tot_formatter, true);
@@ -1168,6 +1209,10 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           splitSeriesInfo("max_val", max_cell, true, stats_formatter);
         if(stats["95th_percentile"] || perc_cell.is(':visible')) {
           splitSeriesInfo("95th_percentile", perc_cell, false, stats_formatter);
+
+
+
+
 
           if(!visualization.split_directions) {
             /* When directions are split, hide the total stat */
