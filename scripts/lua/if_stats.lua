@@ -278,6 +278,12 @@ page_utils.print_navbar(title, url,
 				 label = "<i class=\"fas fa-lg fa-home\"></i>",
 			      },
 			      {
+				 hidden = is_packet_interface or ntop.isnEdge(),
+				 active = page == "nprobe",
+				 page_name = "nprobe",
+				 label = "nProbe",
+			      },
+			      {
 				 hidden = not is_packet_interface or ntop.isnEdge() or interface.isView(),
 				 active = page == "networks",
 				 page_name = "networks",
@@ -451,95 +457,98 @@ if((page == "overview") or (page == nil)) then
 
       print("</td></tr>\n")
    end
-   
-   if(ifstats.probes ~= nil) then
+
+   local nprobe_interface, nprobe_version, nprobe_probe_ip, nprobe_probe_public_ip, nprobe_edition, nprobe_license, nprobe_maintenance = {}, {}, {}, {}, {}, {}, {}
+
+   local tot_num_nprobes = table.len(ifstats.probes or {})
+   local max_num_nprobes = 2
+   local cur_num_nprobes = 0
+
+   for k, v in pairsByKeys(ifstats.probes or {}, asc) do
+      cur_num_nprobes = cur_num_nprobes + 1
+      if cur_num_nprobes > max_num_nprobes then
+	 break
+      end
+
+      local cur_interface = i18n("if_stats_overview.remote_probe_collector_mode")
+
+      if v["remote.name"] ~= "none" then
+	 cur_interface = string.format("%s [%s]", v["remote.name"], bitsToSize(v["remote.ifspeed"]*1000000))
+      end
+      nprobe_interface[#nprobe_interface + 1] = cur_interface
+
+      local cur_version = v["probe.probe_version"]
+
+      if not isEmptyString(v["probe.probe_os"]) then
+	 cur_version = string.format("%s (%s)", cur_version, v["probe.probe_os"])
+      end
+      nprobe_version[#nprobe_version + 1] = cur_version
+
+      local cur_probe_ip = v["probe.ip"]
+      if v["probe.public_ip"] ~= "" then
+	 cur_probe_ip = string.format("%s (%s)", cur_probe_ip, v["probe.public_ip"])
+      end
+      nprobe_probe_ip[#nprobe_probe_ip + 1] = cur_probe_ip
+
+      nprobe_edition[#nprobe_edition + 1] = v["probe.probe_edition"]
+      nprobe_license[#nprobe_license + 1] = v["probe.probe_license"] or i18n("if_stats_overview.no_license")
+      nprobe_maintenance[#nprobe_maintenance + 1] = v["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance")
+   end
+
+   if cur_num_nprobes > 0 then
+      print("<tr><th nowrap>".. i18n("if_stats_overview.remote_probe") .."</th>")
+
+      local msg =  i18n("if_stats_overview.remote_probe_collecting_from_x_devices",
+			{
+			   num = tot_num_nprobes,
+			   url = ntop.getHttpPrefix() .."/lua/if_stats.lua?page=nprobe"
+      })
+
+      if max_num_nprobes < tot_num_nprobes then
+	 msg = string.format("%s %s", msg, i18n("if_stats_overview.remote_probe_showing_first_x_devices", {num = max_num_nprobes}))
+      end
+
+      print("<td colspan=6 nowrap>".. msg .."</td>")
+
+      print("</tr><tr>")
+
+      print("<th nowrap>".. i18n("if_stats_overview.interface_name") .."</th><td nowrap><ol><li>")
+      print(table.concat(nprobe_interface, "</li><li>"))
+      print("</li></ol></td>\n")
+
+      print("<th nowrap>".. i18n("if_stats_overview.remote_probe") .."</th><td nowrap><ol><li>")
+      print(table.concat(nprobe_version, "</li><li>"))
+      print("</li></ol></td>\n")
+
+      print("<th nowrap>".. i18n("if_stats_overview.remote_probe_edition") .."</th><td nowrap colspan=2><ol><li>")
+      print(table.concat(nprobe_edition, "</li><li>"))
+      print("</li></ol></td>\n")
+
+      print("</tr></tr>")
+
+      print("<th nowrap>".. i18n("if_stats_overview.remote_probe_license") .."</th><td nowrap><ol><li>")
+      print(table.concat(nprobe_license, "</li><li>"))
+      print("</li></ol></td>\n")
+
+      print("<th nowrap>".. i18n("if_stats_overview.probe_ip") .."</th><td nowrap><ol><li>")
+      print(table.concat(nprobe_probe_ip, "</li><li>"))
+      print("</li></ol></td>\n")
+
+      print("<th nowrap>".. i18n("if_stats_overview.remote_probe_maintenance") .."</th><td nowrap colspan=2><ol><li>")
+      print(table.concat(nprobe_maintenance, "</li><li>"))
+      print("</li></ol></td>\n")
+
+      print("</tr>")
+end
+
+   if cur_num_nprobes > 0 then
       local max_items_per_row = 3
       local cur_i = 0
-      local title = i18n("if_stats_overview.remote_probe")
 
-      if ifstats["remote.name"] == "none" then
-	 title = title .. " [" .. i18n("if_stats_overview.remote_probe_collector_mode") .. "]"
-      end
+      print("<tr>")
 
-      print("<tr><th colspan=7 nowrap>".. title .."</th></tr><tr>")
-
-      if(ifstats["remote.name"] ~= "none") then
-	 print("<th nowrap>".. i18n("if_stats_overview.interface_name") .."</th><td nowrap><ol>")
-
-	 for k, v in pairs(ifstats.probes) do
-	    print("<li>"..string.format("%s [%s]", v["remote.name"], bitsToSize(v["remote.ifspeed"]*1000000)) .."</li>\n")
-	 end
-	 
-	 print("</ol></td>\n")
-      end
-
-      -- #########################
-      
-      print("<th nowrap>".. i18n("if_stats_overview.remote_probe") .."</th><td nowrap><ol>")
-      
-      for k, v in pairs(ifstats.probes) do
-	 print("<li>"..v["probe.probe_version"])
-	 
-	 if not isEmptyString(v["probe.probe_os"]) then
-	    print(" ("..v["probe.probe_os"]..")")
-	 end
-	 
-	 print("</li>\n")
-      end
-      
-      print("</ol></td>\n")
-
-      -- #########################
-      
-      print("<th nowrap>".. i18n("if_stats_overview.remote_probe_edition") .."</th><td nowrap><ol>")
-      
-      for k, v in pairs(ifstats.probes) do
-	 print("<li>"..v["probe.probe_edition"].."</li>\n")
-      end
-      
-      print("</ol></td>\n")
-
-      -- #########################
-      
-      print("</tr><tr><th nowrap>".. i18n("if_stats_overview.remote_probe_license") .."</th><td nowrap><ol>")
-      
-      for k, v in pairs(ifstats.probes) do
-	 print("<li>".. (v["probe.probe_license"] or i18n("if_stats_overview.no_license")) .."</li>\n")
-      end
-      
-      print("</ol></td>\n")
-
-      -- #########################
-      
-      print("<th nowrap>".. i18n("if_stats_overview.remote_probe_maintenance") .."</th><td nowrap><ol>")
-      
-      for k, v in pairs(ifstats.probes) do
-	 print("<li>".. (v["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance")) .."</li>\n")
-      end
-      
-      print("</ol></td>\n")
-
-      -- #########################
-      
-      print("<th nowrap>".. i18n("if_stats_overview.probe_ip") .."</th><td nowrap><ol>")
-      
-      for k, v in pairs(ifstats.probes) do
-	 print("<li>".. v["probe.ip"])
-
-	 if(v["probe.public_ip"] ~= "") then
-	    print(" (".. v["probe.ip"]..")")
-	 end
-	 
-	 print("</li>\n")
-      end
-      
-      print("</ol></td><td colspan=2>&nbsp;</td>\n")
-
-      -- #########################
-      
       if not isEmptyString(ifstats["remote_pps"]) or not isEmptyString(ifstats["remote_bps"]) then
-	 print("</tr><tr>")
-	 cur_i = 0
+	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 
 	 print("<th nowrap>".. i18n("if_stats_overview.probe_throughput").."</th>")
 	 print('<td nowrap><span id="if_zmq_remote_bps">' .. format_utils.bitsToSize(ifstats["remote_bps"]) .. '</span>')
@@ -548,19 +557,16 @@ if((page == "overview") or (page == nil)) then
 	 cur_i = cur_i + 1
       end
 
-      -- #########################
-      
-      if ifstats["timeout.lifetime"] and ifstats["timeout.lifetime"] > 0 then
+      if ifstats["timeout.lifetime"] > 0 then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 
 	 print("<th nowrap>"..i18n("if_stats_overview.probe_timeout_lifetime")..
-	       " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_timeout_lifetime").."'></i></sup></th><td nowrap>")
+		  " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_timeout_lifetime").."'></i></sup></th><td nowrap>")
 
 	 if((ifstats["timeout.collected_lifetime"] ~= nil) and (ifstats["timeout.collected_lifetime"] > 0)) then
 	    -- We're in collector mode on the nProbe side
 	    print(" "..secondsToTime(ifstats["timeout.lifetime"]).." [".. i18n("if_stats_overview.remote_flow_lifetime")..": "..secondsToTime(ifstats["timeout.collected_lifetime"]).."]")
 	 else
-
 	    -- Modern nProbe in non-flow collector mode or old nProbe
 	    print(secondsToTime(ifstats["timeout.lifetime"]))
 	 end
@@ -568,25 +574,28 @@ if((page == "overview") or (page == nil)) then
 	 cur_i = cur_i + 1
       end
 
-      if ifstats["timeout.idle"] and ifstats["timeout.idle"] > 0 then
+      if ifstats["timeout.idle"] > 0 then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	 print("<th nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</th><td nowrap>"..secondsToTime(ifstats["timeout.idle"]).."</td>")
+	 print("<th nowrap>"..i18n("if_stats_overview.probe_timeout_idle").."</th><td nowrap>"..secondsToTime(ifstats["timeout.idle"]).."</td>")
 	 cur_i = cur_i + 1
       end
 
       if not isEmptyString(ifstats["probe.local_time"]) and not isEmptyString(ifstats["probe.remote_time"]) then
 	 local tdiff = math.abs(ifstats["probe.local_time"]-ifstats["probe.remote_time"])
-	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	 print("<th nowrap>"..i18n("if_stats_overview.remote_probe_time")..
-	       " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_remote_probe_time").."'></i></sup>" ..
-	       "</th><td colspan=5 nowrap>")
 
-	 if(tdiff > 10) then print("<font color=red><b>") end
-	 print(formatValue(tdiff).." sec")
-	 if(tdiff > 10) then print("</b></font>") end
+	 if tdiff > 0 then
+	    if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	    print("<th nowrap>"..i18n("if_stats_overview.remote_probe_time")..
+		     " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_remote_probe_time").."'></i></sup>" ..
+		     "</th><td>")
 
-	 print("</td>")
-	 cur_i = cur_i + 1
+	    if(tdiff > 10) then print("<font color=red>") end
+	    print(formatValue(tdiff).." sec")
+	    if(tdiff > 10) then print("</font>") end
+
+	    print("</td>")
+	    cur_i = cur_i + 1
+	 end
       end
 
       local has_drops_export_queue_full = (tonumber(ifstats["zmq.drops.export_queue_full"]) and tonumber(ifstats["zmq.drops.export_queue_full"]) > 0)
@@ -619,6 +628,11 @@ if((page == "overview") or (page == nil)) then
 	 print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_udp_socket_drops").." <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_udp_socket_drops").."'></i></sup></th>")
 	 print("<td nowrap><span "..span_class.." id=if_zmq_drops_flow_collection_udp_socket_drops>"..formatValue(ifstats["zmq.drops.flow_collection_udp_socket_drops"]).."</span> <span id=if_zmq_drops_flow_collection_udp_socket_drops_trend></span></td>")
 	 cur_i = cur_i + 1
+      end
+
+      if cur_i < max_items_per_row then
+	 -- 7 is the default colspan, then for each element we subtract two columns
+	 print(string.format("<td colspan=%u></td>", 7 - cur_i * 2))
       end
 
       print("</tr>")
@@ -1050,6 +1064,10 @@ if((page == "overview") or (page == nil)) then
    print("</table>\n")
    print("</div>") -- close of table responsive
 
+elseif page == "nprobe" and not is_packet_interface then
+   local context = {
+   }
+   print(template.gen("pages/interface_nprobes.template", context))
 elseif page == "networks" and is_packet_interface then
 
    print("<table class=\"table table-striped table-bordered\">")

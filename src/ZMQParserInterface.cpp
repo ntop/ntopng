@@ -2207,7 +2207,7 @@ void ZMQParserInterface::lua(lua_State* vm) {
     lua_push_str_table_entry(vm, "probe.probe_edition", zrs->remote_probe_edition);
     lua_push_str_table_entry(vm, "probe.probe_maintenance", zrs->remote_probe_maintenance);
     
-    lua_pushinteger(vm, it->first);
+    lua_pushstring(vm, std::to_string(it->first).c_str() /* The source_id as string (can't use integers or Lua will think it's an array ) */);
     lua_insert(vm, -2);
     lua_settable(vm, -3);      
   }
