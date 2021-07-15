@@ -403,7 +403,7 @@ end
 -- ##############################################
 
 -- @brief returns the maximum number of pools that can be created
-function pools:get_max_num_pools()
+function host_pools:get_max_num_pools()
    local ntop_info = ntop.getInfo()
    return ntop_info["constants.max_num_host_pools"]
 end
