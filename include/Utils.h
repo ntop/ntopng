@@ -41,6 +41,7 @@ class Utils {
   static bool validInterface(const pcap_if_t *pcap_if);
 
 public:
+  static void toLowerResolvedNames(char *name);
   static char* jsonLabel(int label,const char *label_str, char *buf, u_int buf_len);
   static char* formatTraffic(float numBits, bool bits, char *buf, u_int buf_len);
   static char* formatPackets(float numPkts, char *buf, u_int buf_len);

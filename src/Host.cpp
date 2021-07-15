@@ -820,16 +820,8 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 				      force_resolution_if_not_found);
   }
 
-  if(rc == 0 && strcmp(addr, name_buf)) {
-    char c;
-    int i = 0;
-    while(name_buf[i]) {
-      c=name_buf[i];
-      name_buf[i] = tolower(c);
-      i++;
-    }
+  if(rc == 0 && strcmp(addr, name_buf))
     setResolvedName(name_buf);
-  }
   else
     addr = ip.print(name_buf, sizeof(name_buf));
 
@@ -1329,21 +1321,21 @@ void Host::offlineSetSSDPLocation(const char * const url) {
 
 void Host::offlineSetMDNSName(const char * const mdns_n) {
   if(!names.mdns && mdns_n && (names.mdns = strdup(mdns_n)))
-    ;
+    Utils::toLowerResolvedNames(names.mdns);
 }
 
 /* *************************************** */
 
 void Host::offlineSetMDNSTXTName(const char * const mdns_n_txt) {
   if(!names.mdns_txt && mdns_n_txt && (names.mdns_txt = strdup(mdns_n_txt)))
-    ;
+    Utils::toLowerResolvedNames(names.mdns_txt);
 }
 
 /* *************************************** */
 
 void Host::offlineSetNetbiosName(const char * const netbios_n) {
   if(!names.netbios && netbios_n && (names.netbios = strdup(netbios_n)))
-    ;
+    Utils::toLowerResolvedNames(names.netbios);
 }
 
 /* *************************************** */
@@ -1354,6 +1346,7 @@ void Host::setResolvedName(const char * const resolved_name) {
      && (!names.resolved /* Don't set hostnames already set */) ) {
     m.lock(__FILE__, __LINE__);
     names.resolved = strdup(resolved_name);
+    Utils::toLowerResolvedNames(names.resolved);
     m.unlock(__FILE__, __LINE__);
   }
 }
@@ -1835,4 +1828,3 @@ void Host::releaseAlert(HostAlert *alert) {
 }
 
 /* *************************************** */
-

@@ -394,7 +394,7 @@ void Mac::inlineSetSSID(const char * const s) {
 
 void Mac::inlineSetDHCPName(const char * const dhcp_name) {
   if(!names.dhcp && dhcp_name && (names.dhcp = strdup(dhcp_name)))
-    ;
+    Utils::toLowerResolvedNames(names.dhcp);
 }
 
 /* *************************************** */
