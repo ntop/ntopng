@@ -5020,12 +5020,11 @@ void Utils::make_session_key(char *buf, u_int buf_len) {
 /* ****************************************************** */
 
 /* Internal function used to set names to lower*/
-void Utils::toLowerResolvedNames(char *name) {
-  char c;
-  int i = 0;
-  while(name[i]) {
-    c = name[i];
-    name[i] = tolower(c);
-    i++;
+char* Utils::toLowerResolvedNames(const char *const resolvedName) {
+  char *name = strdup(resolvedName);
+  if(name) {
+    name = Utils::stringtolower(name);
   }
+
+  return name;
 }
