@@ -2054,7 +2054,7 @@ u_int32_t ZMQParserInterface::periodicStatsUpdateFrequency() const {
 void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   ZMQ_RemoteStats *last_zrs, *cumulative_zrs;
   map<u_int8_t, ZMQ_RemoteStats*>::iterator it;
-  u_int32_t last_time = zrs->local_time;
+  u_int32_t last_time = getTimeLastPktRcvdRemote();
   struct timeval now;
 
   gettimeofday(&now, NULL);
