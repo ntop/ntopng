@@ -1595,8 +1595,10 @@ else
       end
 
       if((flow["observation_point_id"] ~= nil) and (flow["observation_point_id"] ~= 0)) then
+	 local custom_name = getObsPointAlias(flow["observation_point_id"], true, true)
+
 	 print("<tr><th>"..i18n("details.observation_point_id").."</th>")
-	 print("<td colspan=\"2\">"..flow["observation_point_id"].."</td></tr>")
+	 print("<td colspan=\"2\">"..custom_name.."</td></tr>")
       end
       
       if(flow["in_index"] or flow["out_index"]) then

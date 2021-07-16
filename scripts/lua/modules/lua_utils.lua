@@ -4354,14 +4354,25 @@ end
 
 -- ##############################################
 
-function getObsPointAlias(observation_point_id)
+function getObsPointAlias(observation_point_id, add_id, add_href)
    local alias = ntop.getHashCache(getObsPointAliasKey(), observation_point_id)
-
+   local ret
+   
    if not isEmptyString(alias) then
-      return alias
+      if(add_id == true) then
+	 ret = observation_point_id .. " [".. alias .."]"
+      else
+	 ret = alias
+      end
+   else
+      ret = tostring(observation_point_id)
    end
 
-   return tostring(observation_point_id)
+   if(add_href == true) then
+      ret = "<A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/enterprise/observation_points.lua\">"..ret.."</A>"
+   end
+
+   return ret
 end
 
 -- ##############################################
