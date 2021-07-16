@@ -2096,8 +2096,9 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   for(it = source_id_last_zmq_remote_stats.begin(); it != source_id_last_zmq_remote_stats.end(); ) {
     ZMQ_RemoteStats *zrs_i = it->second;
 
-    if(zrs_i->local_time < last_time - 3 /* sec */) {
+    if(zrs_i->local_time < last_time - MAX_HASH_ENTRY_IDLE /* sec */) {
       /* do not account inactive exporters, release them */
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Erased %s [local_time: %u][last_time: %u]", zrs_i->remote_ifname, zrs_i->local_time, last_time);
       free(zrs_i);
       source_id_last_zmq_remote_stats.erase(it++); /* (*) */
     } else {
