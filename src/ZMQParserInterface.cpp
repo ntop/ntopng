@@ -1763,6 +1763,7 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
 
       if((key != NULL) && (value != NULL)) {
 	if(!strcmp(key, "deviceIP")) stats.deviceIP = ntohl(inet_addr(value));
+	else if(!strcmp(key, "samplesGenerated")) stats.samplesGenerated = (u_int32_t)json_object_get_int64(v);
 	else if(!strcmp(key, "ifIndex")) stats.ifIndex = (u_int32_t)json_object_get_int64(v);
 	else if(!strcmp(key, "ifName")) stats.ifName = (char*)json_object_get_string(v);
 	else if(!strcmp(key, "ifType")) stats.ifType = (u_int32_t)json_object_get_int64(v);
