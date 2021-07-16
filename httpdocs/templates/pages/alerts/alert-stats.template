@@ -1055,7 +1055,7 @@
             let entity = "{{ alert_stats.entity }}"
             entity = entity.replace("_", "/")
             let params = (new URLSearchParams(datasourceParams)).toString();
-            $.getJSON(`pro/rest/v2/get/${entity}/alert/general_stats.lua?${params}`,function (data) {
+            $.getJSON(`${http_prefix}/lua/pro/rest/v2/get/${entity}/alert/general_stats.lua?${params}`,function (data) {
 
                 let chartBox = $('#ChartDiv')
                 let divBox = [$('#CardDiv1'),$('#CardDiv2')];
