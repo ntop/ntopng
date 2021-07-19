@@ -30,7 +30,7 @@ page_utils.menu_sections = {
    flows         = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
    hosts         = {key = "hosts", i18n_title = "hosts", icon = "fas fa-laptop"},
    maps          = {key = "maps", i18n_title = "maps", icon = "fas fa-map"},
-   probes        = {key = "probes", i18n_title = "flow_devices.probes", icon = "fas fa-file-export", zmq_only = true --[[ only for non-packet ZMQ interfaces --]] },
+   collection    = {key = "collection", i18n_title = "flow_devices.collection", icon = "fas fa-file-export", zmq_only = true --[[ only for non-packet ZMQ interfaces --]] },
    if_stats      = {key = "if_stats", i18n_title = "interface", icon = "fas fa-ethernet"},
    system_stats  = {key = "system_stats", i18n_title = "system", icon = "fas fa-desktop"},
    admin         = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},

@@ -340,7 +340,7 @@ else
    -- Probes
    page_utils.add_menubar_section(
       {
-	 section = page_utils.menu_sections.probes,
+	 section = page_utils.menu_sections.collection,
 	 hidden = ((ifs.type ~= "zmq" and ifs.type ~= "custom") or not ntop.isEnterpriseM()) or is_system_interface,
 	 entries = {
 	    {
