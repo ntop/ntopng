@@ -20,6 +20,7 @@ local host_alert_keys = {
   host_alert_remote_connection           = 12,
   host_alert_host_log                    = 13,
   host_alert_dangerous_host              = 14,
+  host_alert_countries_contacts          = 15,
    
    -- NOTE: Keep in sync with HostAlertTypeEnum in ntop_typedefs.h
 }

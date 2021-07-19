@@ -54,6 +54,7 @@ class LocalHostStats: public HostStats {
     num_contacted_ports_as_client,           /* # of different ports this host has contacted          */
     num_host_contacted_ports_as_server,      /* # of different server ports contacted by remote peers */
     contacts_as_cli, contacts_as_srv;        /* Minute reset host contacts          */
+    num_countries_contacts;                  /* # of countries contacted */
 
   PeerStats *peers;
 
@@ -132,6 +133,10 @@ class LocalHostStats: public HostStats {
     if(name && (name[0] != '\0'))
       num_contacted_services_as_client.addElement(name, strlen(name));
   }
+
+  virtual void incCountriesContacts(Country *country) { num_countries_contacts.addElement(country->key()); }
+  virtual u_int32_t getCountriesContactsCardinality(){ return(num_countries_contacts.getEstimate()); }
+
 };
 
 #endif

@@ -48,6 +48,7 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   num_host_contacted_ports_as_server.init(4);  /* 16 bytes  */
   contacts_as_cli.init(4);                     /* 16 bytes  */
   contacts_as_srv.init(4);                     /* 16 bytes  */
+  num_countries_contacts.init(8);              /* 128 bytes */
 
   /* hll init, 8 bits -> 256 bytes per LocalHost */
   if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
@@ -82,6 +83,7 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
   num_ntp_servers.init(5);
+  num_countries_contacts.init(8);
 }
 
 /* *************************************** */
