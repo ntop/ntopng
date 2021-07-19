@@ -40,11 +40,11 @@
           <div class="col-2 d-none" id="CardDiv1" style="padding-right: 2px;padding-left: 2px;">
             <div class="card border-primary h-100 mb-2" id="Card1">
               <div class="card-header text-start fs-6 fw-bold" data-bs-custom-class="custom-tooltip" title="Loading..." id="alertCardTitle1"> Loading... </div>
-	      <div class="card-body ms-1">
-		<span class="card-text text-start fs-6" id="alertCard1">Loading...</span>
-	      </div>
-	    </div>
-	  </div>
+              <div class="card-body ms-1">
+                <span class="card-text text-start fs-6" id="alertCard1">Loading...</span>
+              </div>
+            </div>
+          </div>
 
           <div class="col-2 d-none" id="CardDiv2" style="padding-right: 2px;padding-left: 2px;">
             <div class="card border-success h-100 mb-2" id="Card2">
@@ -77,13 +77,13 @@
         <button id="btn-acknowledge-alerts" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#acknowledge-alerts-modal' data-bs-toggle="modal" class="btn btn-primary">
           <i class="fas fa fa-user-check"></i> {{ i18n("acknowledge_alerts")}}
         </button>
-	{% end %}
+        {% end %}
 
-	{% if alert_stats.status ~= "engaged" then %}
-	<button id="btn-delete-alerts" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#delete-alerts-modal' data-bs-toggle="modal" class="btn btn-danger">
+        {% if alert_stats.status ~= "engaged" then %}
+        <button id="btn-delete-alerts" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#delete-alerts-modal' data-bs-toggle="modal" class="btn btn-danger">
           <i class="fas fa fa-trash"></i> {{ i18n("delete_alerts")}}
         </button>
-	{% end %}
+        {% end %}
       </div>
       {% end %}
     </div>
@@ -121,7 +121,7 @@
         const $btnGetPermaLink = $(`#btn-get-permalink`);
         const alertCard = [$('#alertCard1'),$('#alertCard2')];    
 
-	/* Show an overlay to hide loading */
+        /* Show an overlay to hide loading */
         function toggleOverlays(time = 500) {
             $(`.overlay`).toggle(time);
         }
@@ -180,7 +180,7 @@
             const searchParams = new URLSearchParams(Object.entries(datasourceParams));
 
             toggleOverlays();
-	    
+            
             // reload the table
             $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
             try {
@@ -211,34 +211,34 @@
         }
 
         function updateNavbarLink(searchParams, element) {
-	    /* Read the current href */
-	    const cur_href = $(element).attr('href');
-	    let cur_url = new URL(cur_href, location.origin);
-	    /* Read current href params and extract the page name */
-	    const cur_page = cur_url.searchParams.get('page');
-	    if(cur_page) {
-	        /* Prepare the new URL which is the page name extracted plus all other params */
-	        searchParams.set('page', cur_page);
-	        searchParams.delete('alert_id');
-	        cur_url.search = searchParams.toString();
-	        /* Attach the new URL to the current href */
-	        $(element).attr('href', cur_url.toString());
-	    }
-	}
+            /* Read the current href */
+            const cur_href = $(element).attr('href');
+            let cur_url = new URL(cur_href, location.origin);
+            /* Read current href params and extract the page name */
+            const cur_page = cur_url.searchParams.get('page');
+            if(cur_page) {
+                /* Prepare the new URL which is the page name extracted plus all other params */
+                searchParams.set('page', cur_page);
+                searchParams.delete('alert_id');
+                cur_url.search = searchParams.toString();
+                /* Attach the new URL to the current href */
+                $(element).attr('href', cur_url.toString());
+            }
+        }
 
         function updateStatusSwitchLink(begin, end, element) {
-	    const cur_href = $(element).attr('href');
-	    let cur_url = new URL(cur_href, location.origin + location.pathname);
+            const cur_href = $(element).attr('href');
+            let cur_url = new URL(cur_href, location.origin + location.pathname);
             let searchParams = new URLSearchParams(cur_url.search);
 
             /* Set updated epoch */
             searchParams.set('epoch_begin', begin.unix());
             searchParams.set('epoch_end',   end.unix());
 
-	    /* Attach the new URL to the current href */
-	    cur_url.search = searchParams.toString();
-	    $(element).attr('href', cur_url.toString());
-	}
+            /* Attach the new URL to the current href */
+            cur_url.search = searchParams.toString();
+            $(element).attr('href', cur_url.toString());
+        }
 
         function pushNewHistoryState(begin, end, len) {
             const url = new URL(location);
@@ -252,27 +252,27 @@
                 searchParams.set('status', url.searchParams.get('status'));
             }
 
-	    /*
-	      Update navbar items, e.g., alert entities, with begin/end epochs
+            /*
+              Update navbar items, e.g., alert entities, with begin/end epochs
               and status to preserve them when switching between tabs
-	     */
-	    $('#navbarNav a').each(function(index, element) {
+             */
+            $('#navbarNav a').each(function(index, element) {
                 updateNavbarLink(searchParams, element);
             });
 
-	    /*
-	      Update status switch items (Engaged, Acknoledged, Past)
+            /*
+              Update status switch items (Engaged, Acknoledged, Past)
               with begin/end epochs to preserve them when switching status
-	     */
-	    $('#statusSwitch a').each(function(index, element) {
+             */
+            $('#statusSwitch a').each(function(index, element) {
                 updateStatusSwitchLink(begin, end, element);
             });
 
-	    /*
-	      Other page params are not preserved when switching tabs as they may be not valid across
-	      multiple entities
-	     */
-	    searchParams.delete('page');
+            /*
+              Other page params are not preserved when switching tabs as they may be not valid across
+              multiple entities
+             */
+            searchParams.delete('page');
             if (url.searchParams.has('page')) {
                 searchParams.set('page', url.searchParams.get('page'));
             }
@@ -284,7 +284,7 @@
         async function onRangePickerChange(pushHistroy = false) {
             const [begin, end] = getTimestampRange();
 
-	    setDatasourceParams();
+            setDatasourceParams();
 
             await reloadTable($table);
 
@@ -292,7 +292,7 @@
             const href = $(`#btn-download-alerts`).attr('href');
             const newDownloadURL = new URL(href, location.origin);
             newDownloadURL.search = new URLSearchParams(datasourceParams);
-	    newDownloadURL.searchParams.set('format', 'txt');
+            newDownloadURL.searchParams.set('format', 'txt');
             $(`#btn-download-alerts`).attr('href', newDownloadURL.toString());
 
             if (pushHistroy) {
@@ -351,40 +351,40 @@
             {% end %}
 
             /* Actions Column */
-	    {% if alert_stats.entity ~= 'all' then %}
+            {% if alert_stats.entity ~= 'all' then %}
             columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
-		const buttons = [
-		    {% if alert_stats.entity ~= 'system' and datatable.show_admin_controls == true then %}
-		    {icon: 'fa fa-cog', label: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-primary'},
-		    {% end %}
+                const buttons = [
+                    {% if alert_stats.entity ~= 'system' and datatable.show_admin_controls == true then %}
+                    {icon: 'fa fa-cog', label: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-primary'},
+                    {% end %}
 
-		    /* Button to jump to flow alerts within the same time period */
-		    {% if alert_stats.entity == 'host' then %}
-		    {icon: 'fa-stream', label: "{{ i18n('flows') }}", modal: '#flow_alerts', class: "btn-info"},
-		    {% end %}
+                    /* Button to jump to flow alerts within the same time period */
+                    {% if alert_stats.entity == 'host' then %}
+                    {icon: 'fa-stream', label: "{{ i18n('flows') }}", modal: '#flow_alerts', class: "btn-info"},
+                    {% end %}
 
-		    /* Bell button to disable alerts is only supported for hosts and flows */
-		    {% if (alert_stats.entity == 'host' or alert_stats.entity == 'flow') and datatable.show_admin_controls == true then %}
-		    {icon: 'fa-bell-slash', label: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning {{ ((alert_stats.entity == 'host' or alert_stats.entity == 'flow') and '' or 'disabled') }}"},
-		    {% end %}
+                    /* Bell button to disable alerts is only supported for hosts and flows */
+                    {% if (alert_stats.entity == 'host' or alert_stats.entity == 'flow') and datatable.show_admin_controls == true then %}
+                    {icon: 'fa-bell-slash', label: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning {{ ((alert_stats.entity == 'host' or alert_stats.entity == 'flow') and '' or 'disabled') }}"},
+                    {% end %}
 
-		    /* Only not-engaged alerts can be deleted */
-		    {% if alert_stats.entity ~= 'all' and datatable.show_admin_controls == true then %}
+                    /* Only not-engaged alerts can be deleted */
+                    {% if alert_stats.entity ~= 'all' and datatable.show_admin_controls == true then %}
 
-		    {% if alert_stats.status == "historical" then %}
-		    {icon: 'fa fa-user-check', label: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog', class: 'btn-primary'},
-		    {% end %}
+                    {% if alert_stats.status == "historical" then %}
+                    {icon: 'fa fa-user-check', label: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog', class: 'btn-primary'},
+                    {% end %}
 
-		    {% if alert_stats.status ~= "engaged" then %}
-		    {icon: 'fa fa-trash', label: "{{ i18n('remove') }}", modal: '#delete_alert_dialog', class: 'btn-danger'},
-		    {% end %}
+                    {% if alert_stats.status ~= "engaged" then %}
+                    {icon: 'fa fa-trash', label: "{{ i18n('remove') }}", modal: '#delete_alert_dialog', class: 'btn-danger'},
+                    {% end %}
 
-		    {% end %}
-		];
+                    {% end %}
+                ];
 
                 return DataTableUtils.createActionButtons(buttons);
             }});
-	    {% end %}
+            {% end %}
 
             return columns;
         }
@@ -399,7 +399,7 @@
 
         let config = DataTableUtils.getStdDatatableConfig(datatableButton);
         config = DataTableUtils.extendConfig(config, {
-	    serverSide: true,
+            serverSide: true,
             searching: false,
             ajax: {
                 method: 'get',
@@ -435,7 +435,7 @@
                 }
             },
             lengthMenu: [10, 20, 50, 100, 200],
-	    pageLength: INITIAL_ROWS_LENGTH,
+            pageLength: INITIAL_ROWS_LENGTH,
             columns: loadColumns()
         });
 
@@ -454,7 +454,7 @@
             filterModalLoadData();
         });
 
-	$(`.range-picker`).on('change', async function(e) {
+        $(`.range-picker`).on('change', async function(e) {
             await onRangePickerChange(true);
         });
 
@@ -554,7 +554,7 @@
             await onRangePickerChange(true);
         });
 
-	// clear all the filters on click
+        // clear all the filters on click
         $(".btn-remove-tags").on('click', async function() {
 
             const tags = tagify.getTagElms();
@@ -637,7 +637,7 @@
             const begin = moment(xaxis.min);
             const end = moment(xaxis.max);
 
-	    $(`#select-presets`).val('custom');
+            $(`#select-presets`).val('custom');
 
             $inputBeginEpoch.datetimepicker('date', begin);
             $inputEndEpoch.datetimepicker('date', end);
@@ -645,9 +645,9 @@
             await onRangePickerChange(true);
         });
 
-	$table.on('click', `a[href='#check_settings']`, function (e) {
+        $table.on('click', `a[href='#check_settings']`, function (e) {
             const alert = $table.row($(this).parent().parent()).data();
-	    const check_settings_href = $(alert.msg.configset_ref).attr('href');
+            const check_settings_href = $(alert.msg.configset_ref).attr('href');
             window.location.href = check_settings_href;
         });
 
@@ -678,7 +678,7 @@
             window.location.href = flow_alerts_url.href;
         });
 
-	$table.on('click', `a[href='#delete_alert_dialog']`, function (e) {
+        $table.on('click', `a[href='#delete_alert_dialog']`, function (e) {
             const alert = $table.row($(this).parent().parent()).data();
             $deleteAlertModal.invokeModalInit(alert);
         });
@@ -706,27 +706,27 @@
             }
         });
 
-	    $(`#btn-acknowledge-alerts`).on('click', function (e) {
+        $(`#btn-acknowledge-alerts`).on('click', function (e) {
             $acknowledgeFilteredAlerts.invokeModalInit();
         });
 
-	    const $acknowledgeFilteredAlerts = $('#acknowledge-alerts-modal form').modalHandler({
+            const $acknowledgeFilteredAlerts = $('#acknowledge-alerts-modal form').modalHandler({
             method: 'post',
             csrf: PAGE_CSRF,
             endpoint: `${http_prefix}{* datatable.endpoint_acknowledge *}`,
             beforeSumbit: function (alert) {
-	    	let post_params = {};
-		for (let key in datasourceParams) {
-		    post_params[key] = (datasourceParams[key]);
-		}
+                    let post_params = {};
+                for (let key in datasourceParams) {
+                    post_params[key] = (datasourceParams[key]);
+                }
 
-		/* Read the label from the corresponding form field */
-		post_params["label"] = $("#acknowledge-alerts-modal #alert-label-modal").val();
+                /* Read the label from the corresponding form field */
+                post_params["label"] = $("#acknowledge-alerts-modal #alert-label-modal").val();
 
-		return post_params;
+                return post_params;
             },
             onModalInit: function () {
-	        $(`#acknowledge-alerts-modal button[type='submit']`).removeAttr("disabled");
+                $(`#acknowledge-alerts-modal button[type='submit']`).removeAttr("disabled");
                 $('#acknowledge-alerts-modal .filters-list').empty();
                 const tags = tagify.getTagElms();
 
@@ -750,24 +750,20 @@
             },
             onSubmitSuccess: function (response) {
                 reloadTable($table);
-		return (response.rc == 0);
+                return (response.rc == 0);
             }
         });
 
-	    $(`#btn-delete-alerts`).on('click', function (e) {
-            $deleteFilteredAlerts.invokeModalInit();
-        });
-
-	    const $deleteFilteredAlerts = $('#delete-alerts-modal form').modalHandler({
+        const $deleteFilteredAlerts = $('#delete-alerts-modal form').modalHandler({
             method: 'post',
             csrf: PAGE_CSRF,
             endpoint: `${http_prefix}{* datatable.endpoint_delete *}`,
             beforeSumbit: function (alert) {
-	    	let post_params = {};
-		for (let key in datasourceParams) {
-		    post_params[key] = (datasourceParams[key]);
-		}
-	    	return post_params;
+                    let post_params = {};
+                for (let key in datasourceParams) {
+                    post_params[key] = (datasourceParams[key]);
+                }
+                    return post_params;
             },
             onModalInit: function () {
 
@@ -791,11 +787,17 @@
 
                     $('#delete-alerts-modal .filters-list').append(child);
                 }
+
+                $('#delete-alerts-modal #btn-delete-alerts').prop('disabled', false);
             },
             onSubmitSuccess: function (response) {
                 reloadTable($table);
-		return (response.rc == 0);
+                return (response.rc == 0);
             }
+        });
+
+        $(`#btn-delete-alerts`).on('click', function (e) {
+            $deleteFilteredAlerts.invokeModalInit();
         });
 
         $table.on('click', `a[href='#alerts_filter_dialog']`, function (e) {
@@ -812,9 +814,9 @@
                 const data = {
                     alert_key: alert.alert_id.value,
                     subdir: FAMILY,
-		    script_key: alert.script_key,
+                    script_key: alert.script_key,
                     delete_alerts: $(`#delete_alerts_switch`).is(":checked"),
-		    alert_addr: $(`[name='alert_addr']:checked`).val(),
+                    alert_addr: $(`[name='alert_addr']:checked`).val(),
                 };
 
                 return data;
@@ -826,9 +828,9 @@
 
                 if (FAMILY === "host") {
                     const label = (alert.ip.label) ? `${alert.ip.label} (${alert.ip.value})` : alert.ip.value; 
-		    $(`#srv_addr`).text(label);
+                    $(`#srv_addr`).text(label);
                     $(`#srv_radio`).val(alert.ip.value);
-		    $(`#cli_radio`).parent().hide();
+                    $(`#cli_radio`).parent().hide();
                 }
                 else if (FAMILY === "flow") {
 
@@ -875,11 +877,11 @@
             endpoint: `${http_prefix}{* datatable.endpoint_acknowledge *}`,
             beforeSumbit: function (alert) {
                 return { ifid: "{{ ifid }}",
-		       row_id: alert.row_id,
-		       label: $(`#acknowledge_alert_dialog #alert-label`).val()};
+                       row_id: alert.row_id,
+                       label: $(`#acknowledge_alert_dialog #alert-label`).val()};
             },
             onModalInit: function (alert) {
-	        $(`#acknowledge_alert_dialog button[type='submit']`).removeAttr("disabled");
+                $(`#acknowledge_alert_dialog button[type='submit']`).removeAttr("disabled");
                 const $type = $(`<span>${alert.alert_id.label}</span>`);
                 $(`#acknowledge_alert_dialog .alert_label`).text($type.text().trim());
                 $(`#acknowledge_alert_dialog #alert-label`).val(alert.user_label);
@@ -1067,7 +1069,7 @@
                 for(i=0;i<alertCard.length;i++){
                     if(data.rsp[i] == undefined){
                         divBox[i].attr({
-                        	"class" : "col-2 d-none"
+                                "class" : "col-2 d-none"
                         });
                     }else{
                         alertCardTitle[i].html(data.rsp[i].label);
@@ -1085,15 +1087,15 @@
                             }                           
                         }
                         if(cardText != ""){
-	                        divBox[i].attr({
-	                        	"class" : "col-2 mb-2"
-	                        });
+                                divBox[i].attr({
+                                        "class" : "col-2 mb-2"
+                                });
                             alertCard[i].html("<small>" + cardText + "</small>");
                             numCards += 1;
                         }else{
-	                        divBox[i].attr({
-	                        	"class" : "col-2 d-none"
-	                        });
+                                divBox[i].attr({
+                                        "class" : "col-2 d-none"
+                                });
                         }
                     }
                 }
