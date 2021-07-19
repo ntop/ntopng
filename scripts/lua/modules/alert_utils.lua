@@ -407,14 +407,18 @@ end
 -- #################################
 
 local function alertNotificationActionToLabel(action, use_emoji)
-   local label = "["
+   local label = ""
 
    if action == "engage" then
+      label = "["
       if(use_emoji) then label = label .."\xE2\x9D\x97 " end
-      label = label .. "Engaged]"
+      label = label .. "Engaged"
+      label = label .. "]"
    elseif action == "release" then
+      label = "["
       if(use_emoji) then label = label .."\xE2\x9C\x94 " end
-      label = label .. "Released]"
+      label = label .. "Released"
+      label = label .. "]"
    end
 
    return label
