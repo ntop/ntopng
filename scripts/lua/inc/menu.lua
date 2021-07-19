@@ -754,6 +754,10 @@ print[[
 
   const updates_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
 
+  /* Updates status */
+  var updatesStatus = '';
+  var updatesLastCheck = 0;
+
   /* Install latest update */
   var installUpdate = function() {
     if (confirm(']] print(i18n("updates.install_confirm"))
@@ -770,8 +774,10 @@ print[[
         },
         success: function(rsp) {
           $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
+          $('#updates-info-li').attr('title', '');
           $('#updates-install-li').hide();
           $('#admin-badge').hide();
+	  updatesStatus = 'installing';
         }
       });
     }
@@ -788,20 +794,37 @@ print[[
       },
       success: function(rsp) {
         $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
+        $('#updates-info-li').attr('title', '');
         $('#updates-install-li').hide();
         $('#admin-badge').hide();
+	updatesStatus = 'checking';
       }
     });
   }
 
   /* Update the menu with the current updates status */
   var updatesRefresh = function() {
+    const now = Date.now();
+
+    if (updatesStatus == 'installing' || updatesStatus == 'checking') {
+        /* Go ahead (frequent update) */
+    } else if (updatesStatus == 'update-avail' || updatesStatus == 'upgrade-failure') {
+        return; /* no need to check again */
+    } else { /* updatesStatus == 'not-avail' || updatesStatus == 'update-failure' || updatesStatus == <other errors> || updatesStatus == '' */
+        const check_time_sec = 120;
+        if (now < updatesLastCheck + check_time_sec) return; /* check with low freq */
+    }
+
+    updatesLastCheck = now; 
+
     $.ajax({
       type: 'GET',
         url: ']] print (ntop.getHttpPrefix()) print [[/lua/check_update.lua',
         data: {},
         success: function(rsp) {
           if(rsp && rsp.status) {
+
+	    updatesStatus = rsp.status;
 
             if (rsp.status == 'installing') {
               $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
