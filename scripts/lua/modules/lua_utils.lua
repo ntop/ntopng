@@ -4387,8 +4387,8 @@ end
 
 -- ##############################################
 
-function getFullObsPointName(observation_point_id, compact)
-   local alias = getObsPointAlias(observation_point_id)
+function getFullObsPointName(observation_point_id, compact, add_id)
+   local alias = getObsPointAlias(observation_point_id, add_id)
 
    if not isEmptyString(observation_point_id) then
       if not isEmptyString(observation_point_id) and alias ~= tostring(observation_point_id) then
@@ -4396,7 +4396,7 @@ function getFullObsPointName(observation_point_id, compact)
        alias = shortenString(alias)
        return string.format("%s", alias)
     else
-       return string.format("%u [%s]", observation_point_id, alias)
+       return string.format("%u (%s)", observation_point_id, alias)
     end
       end
    end
