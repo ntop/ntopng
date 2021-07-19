@@ -156,6 +156,12 @@ local function validatePort(p)
 end
 http_lint.validatePort = validatePort
 
+-- ##############################################
+local function validateASN(p)
+   -- Unique case in which the asn has 'No ASN' as value
+   return (validateNumber(p) or p == "No ASN")
+end
+
 local function validateUnquoted(p)
    -- This function only verifies that value does not contain single quotes, but
    -- does not perform any type validation, so it should be used with care.
@@ -1368,8 +1374,8 @@ local known_parameters = {
    ["srv_ip"]                  = validateEmptyOr(validateListOfTypeInline(validateFilters(validateHost))), -- An IPv4 or IPv6 address
    ["cli_port"]                = validateListOfTypeInline(validateFilters(validatePort)),          --Client port
    ["srv_port"]                = validateListOfTypeInline(validateFilters(validatePort)),          --Server port
-   ["cli_asn"]                 = validateListOfTypeInline(validateFilters(validateUnquoted)),
-   ["srv_asn"]                 = validateListOfTypeInline(validateFilters(validateUnquoted)),
+   ["cli_asn"]                 = validateListOfTypeInline(validateFilters(validateASN)),
+   ["srv_asn"]                 = validateListOfTypeInline(validateFilters(validateASN)),
    ["subtype"]                 = validateListOfTypeInline(validateFilters(validateUnquoted)),
    ["tot_pkts"]                = validateFilters(validateNumber),                --Total packtes, used by nindex query
    ["observation_point_id"]    = validateFilters(validateNumber),                --Observation point ID, used by nindex query
