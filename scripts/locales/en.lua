@@ -158,6 +158,7 @@ local lang = {
   ["icmp"] = "ICMP",
   ["icmpv4"] = "ICMPv4",
   ["icmpv6"] = "ICMPv6",
+  ["id"] = "ID",
   ["iface_download"] = "%{iface} download",
   ["iface_upload"] = "%{iface} upload",
   ["import"] = "Import",
