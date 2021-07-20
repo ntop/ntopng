@@ -1557,7 +1557,7 @@ function getHostAltName(host_info)
       alt_name = ntop.getCache(getHostAltNamesKey(host_key))
    end
 
-   return alt_name
+   return string.lower(alt_name)
 end
 
 function setHostAltName(host_info, alt_name)
@@ -1632,7 +1632,7 @@ local function hostinfo2label_resolved(host_info, show_vlan, shorten_len)
 
    if isEmptyString(res) then
       -- Try and get the resolved name
-      res = ntop.getResolvedName(ip)
+      res = string.lower(ntop.getResolvedName(ip))
 
       if isEmptyString(res) then
 	 -- Nothing found, just fallback to the IP address
