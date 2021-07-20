@@ -3886,6 +3886,7 @@ local lang = {
     ["status"] = "Status",
     ["throughput"] = "Thpt",
     ["time_range"] = "Time Range",
+    ["vlan_id"] = "VLAN",
     ["where_note"] = "Use &lt;field&gt; &lt;operator&gt; &lt;value&gt; conditions, where &lt;operator&gt; could be &lt;, &gt;, =, !=. AND/OR operators are also allowed to combine conditions. Please use quotes for string fields (e.g. INFO='www.ntop.org')",
     ["tags"] = {
       ["cli_asn"] = "Client ASN",
@@ -3896,6 +3897,8 @@ local lang = {
       ["l7_proto"] = "Application",
       ["l7cat"] = "Category",
       ["l7proto"] = "Application",
+      ["observation_point_id"] = "Observation Point ID",
+      ["probe_ip"] = "Probe IP",
       ["role"] = "Role",
       ["roles"] = "Roles",
       ["src2dst_dscp"] = "Client DSCP",
@@ -3903,8 +3906,7 @@ local lang = {
       ["srv_ip"] = "Server IP",
       ["srv_port"] = "Server Port",
       ["status"] = "Status",
-      ["observation_point_id"] = "Observation Point ID",
-      ["probe_ip"] = "Probe IP",
+      ["vlan_id"] = "VLAN",
     },
   },
   ["os_details"] = {
