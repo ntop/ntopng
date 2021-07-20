@@ -482,7 +482,7 @@ local context = {
                 ip_version = i18n("tags.ip_version"),
                 ip = i18n("tags.ip"),
                 network_name = i18n("tags.network_name"),
-		subtype = i18n("alerts_dashboard.subject"),
+		subtype = i18n("alerts_dashboard.element"),
                 role = i18n("tags.role"),
 		role_cli_srv = i18n("tags.role_cli_srv"),
             }
