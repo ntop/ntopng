@@ -52,7 +52,6 @@ function recipients.initialize()
    
    for endpoint_key, endpoint in pairs(endpoints.get_types()) do
       if endpoint.builtin then
-
          -- Add the configuration
          local res = endpoints.add_config(
             endpoint_key --[[ the type of the endpoint--]],
@@ -69,9 +68,10 @@ function recipients.initialize()
 	       "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
 	       all_categories,
 	       default_builtin_minimum_severity,
-	       false, -- Do Not add it to every pool automatically
+	       true, -- Add it to every pool automatically so that after a factory reset all pools gets the default
 	       {} --[[ no recipient params --]]
 	    )
+
 	 end
       end
    end
