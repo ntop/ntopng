@@ -174,7 +174,6 @@ class HostStats: public GenericTrafficElement {
   inline u_int64_t upper_bound_flows_anomaly(bool as_client) { return(as_client ? active_flows_cli.getLastUpperBound() : active_flows_srv.getLastUpperBound()); }
 
   inline bool has_score_anomaly(bool as_client) { return(as_client ? client_score_anomaly : server_score_anomaly); }
-  inline u_int64_t value_score_anomaly(bool as_client) { return(as_client ? score_cli.getLastValue() : score_srv.getLastValue()); }
   inline u_int64_t lower_bound_score_anomaly(bool as_client) { return(as_client ? score_cli.getLastLowerBound() : score_srv.getLastLowerBound()); }
   inline u_int64_t upper_bound_score_anomaly(bool as_client) { return(as_client ? score_cli.getLastUpperBound() : score_srv.getLastUpperBound()); }
 };
