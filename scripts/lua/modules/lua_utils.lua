@@ -4396,7 +4396,7 @@ function getFullObsPointName(observation_point_id, compact, add_id)
        alias = shortenString(alias)
        return string.format("%s", alias)
     else
-       return string.format("%u (%s)", observation_point_id, alias)
+       return string.format("%u [%s]", observation_point_id, alias)
     end
       end
    end
