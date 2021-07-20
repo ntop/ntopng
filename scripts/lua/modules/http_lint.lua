@@ -148,7 +148,7 @@ local function validatePort(p)
    end
 
    local n = tonumber(p)
-   if ((n ~= nil) and (n >= 1) and (n <= 65535)) then
+   if ((n ~= nil) and (n >= 0) and (n <= 65535)) then
       return true
    else
       return false
