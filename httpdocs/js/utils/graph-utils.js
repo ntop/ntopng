@@ -297,8 +297,8 @@ function fixTimeRange(chart, params, align_step, actual_step) {
 
   resolution = Math.max(actual_step, resolution);
 
-  if(align) {
-    align = (align_step && (frame != 86400) /* do not align daily traffic to avoid jumping to other RRA */) ? Math.max(align, align_step) : 1;
+    if(align) {
+    align = (align_step && (frame < 86400) /* do not align daily traffic to avoid jumping to other RRA <???> */) ? Math.max(align, align_step) : 1;
     params.epoch_begin -= params.epoch_begin % align;
     params.epoch_end -= params.epoch_end % align;
     diff_epoch = (params.epoch_end - params.epoch_begin);
@@ -317,23 +317,27 @@ function fixTimeRange(chart, params, align_step, actual_step) {
 function findActualStep(raw_step, tstart) {
   if(typeof supported_steps === "object") {
     if(supported_steps[raw_step]) {
-      var retention = supported_steps[raw_step].retention;
+      const retention = supported_steps[raw_step].retention;
 
       if(retention) {
-        var now_ts = Date.now() / 1000;
+        const now_ts = Date.now() / 1000;
         var delta = now_ts - tstart;
+        var partial;
 
         for(var i=0; i<retention.length; i++) {
-          var partial = raw_step * retention[i].aggregation_dp;
           var tframe = partial * retention[i].retention_dp;
+	  partial = raw_step * retention[i].aggregation_dp;
           delta -= tframe;
 
           if(delta <= 0)
-            return partial;
+            break;
         }
+
+	return partial;
       }
     }
   }
+
   return raw_step;
 }
 

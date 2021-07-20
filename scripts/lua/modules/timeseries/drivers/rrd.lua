@@ -562,11 +562,6 @@ function driver:query(schema, tstart, tend, tags, options)
 
   local count = 0
   local series = {}
-
-  if schema.name == "iface:traffic_rxtx" then
-     tprint(debug.traceback())
---     tprint({getConsolidationFunction(schema), formatEpoch(fstart), fstep, formatEpoch(fend), fcount})
-  end
   
   for name_key, serie in pairs(fdata) do
     local serie_idx = map_rrd_column_to_metrics(schema, name_key)
