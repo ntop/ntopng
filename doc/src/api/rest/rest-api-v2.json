@@ -632,14 +632,14 @@
 				],
 				"responses": {
 					"0": {
-						"description": "OK",
+						"description": "OK"
 					},
 					"-3": {
 						"description": "NOT_GRANTED"
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
-					},
+					}
 				}
 			}
 		},
@@ -1270,11 +1270,11 @@
 				],
 				"responses": {
 					"0": {
-						"description": "OK",
+						"description": "OK"
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
-					},
+					}
 				}
 			}
 		},
