@@ -122,7 +122,7 @@ static void *packetPollLoop(void *ptr) {
   ZCCollectorInterface *iface = (ZCCollectorInterface *) ptr;
 
   /* Wait until the initialization completes */
-  while(!iface->isRunning()) sleep(1);
+  while(iface->isStartingUp()) sleep(1);
 
   iface->collect_flows();
   return(NULL);
