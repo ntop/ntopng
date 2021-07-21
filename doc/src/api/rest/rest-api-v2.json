@@ -1388,7 +1388,7 @@
 					{
 						"name": "end_time_clause",
 						"in": "query",
-						"description": "Start time (epoch)",
+						"description": "End time (epoch)",
 						"required": true,
 						"type": "integer",
 						"format": "int32"
@@ -3920,6 +3920,3779 @@
 					},
 					"-3": {
 						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/enable/check.lua": {
+			"get": {
+				"tags": [
+					"Checks"
+				],
+				"summary": "Enables a check",
+				"description": "Enables a check",
+				"operationId": "enable_check",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "check_subdir",
+						"in": "query",
+						"description": "The check subdir",
+						"required": true,
+						"type": "string"
+					       },
+					       {
+						"name": "script_key",
+						"in": "query",
+						"description": "The key of the script",
+						"required": true,
+						"type": "string"
+					       }
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},				    
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/disable/check.lua": {
+			"get": {
+				"tags": [
+					"Checks"
+				],
+				"summary": "Disables a check",
+				"description": "Disables a check",
+				"operationId": "disable_check",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "check_subdir",
+						"in": "query",
+						"description": "The check subdir",
+						"required": true,
+						"type": "string"
+					       },
+					       {
+						"name": "script_key",
+						"in": "query",
+						"description": "The key of the script",
+						"required": true,
+						"type": "string"
+					       }
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},				    
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/interface/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Delete interface alerts",
+				"description": "Delete historical interface alerts",
+				"operationId": "delete_interface_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/host/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Delete host alerts",
+				"description": "Delete historical host alerts",
+				"operationId": "delete_host_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/host/new_devices.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Delete all new devices",
+				"description": "Delete all new devices learned by ntopng",
+				"operationId": "delete_host_new_devices",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/network/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Delete network alerts",
+				"description": "Delete historical network alerts",
+				"operationId": "delete_network_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/all/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Delete all alerts",
+				"description": "Delete all historical alerts",
+				"operationId": "delete_all_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/am_host/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Delete active monitoring hosts alerts",
+				"description": "Delete active monitoring hosts historical alerts",
+				"operationId": "delete_am_host_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/user/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Delete user alerts",
+				"description": "Delete user historical alerts",
+				"operationId": "delete_user_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/mac/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Delete MAC alerts",
+				"description": "Delete MAC historical alerts",
+				"operationId": "delete_mac_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/system/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Delete system alerts",
+				"description": "Delete system historical alerts",
+				"operationId": "delete_system_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/delete/flow/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Delete flow alerts",
+				"description": "Delete flow historical alerts",
+				"operationId": "delete_flow_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/reset/snmp/config.lua": {
+			"get": {
+				"tags": [
+					"SNMP"
+				],
+				"summary": "Reset SNMP configuration",
+				"description": "Reset SNMP configuration including all configured devices",
+				"operationId": "reset_snmp_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/reset/checks/config.lua": {
+			"get": {
+				"tags": [
+					"Checks"
+				],
+				"summary": "Reset Checks configuration",
+				"description": "Reset checks configuration",
+				"operationId": "reset_checks_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/reset/active_monitoring/config.lua": {
+			"get": {
+				"tags": [
+					"Active Monitoring"
+				],
+				"summary": "Reset Active Monitoring configuration",
+				"description": "Reset active monitoring configuration",
+				"operationId": "reset_active_monitoring_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/reset/pool/config.lua": {
+			"get": {
+				"tags": [
+					"Pool"
+				],
+				"summary": "Reset Pool configuration",
+				"description": "Reset pool configuration",
+				"operationId": "reset_pool_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/reset/notifications/config.lua": {
+			"get": {
+				"tags": [
+					"Notifications"
+				],
+				"summary": "Reset Notifications configuration",
+				"description": "Reset notifications configuration",
+				"operationId": "reset_notifications_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/acknowledge/interface/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Acknowledge interface alerts",
+				"description": "Acknowledge interface historical alerts",
+				"operationId": "acknowledge_interface_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/acknowledge/host/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Acknowledge host alerts",
+				"description": "Acknowledge host historical alerts",
+				"operationId": "acknowledge_host_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/acknowledge/network/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Acknowledge network alerts",
+				"description": "Acknowledge network historical alerts",
+				"operationId": "acknowledge_network_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/acknowledge/am_host/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Acknowledge Active Monitoring alerts",
+				"description": "Acknowledge Active Monitoring historical alerts",
+				"operationId": "acknowledge_active_monitoring_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/acknowledge/user/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Acknowledge user alerts",
+				"description": "Acknowledge user historical alerts",
+				"operationId": "acknowledge_user_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/acknowledge/mac/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Acknowledge MAC alerts",
+				"description": "Acknowledge MAC historical alerts",
+				"operationId": "acknowledge_mac_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/acknowledge/system/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Acknowledge system alerts",
+				"description": "Acknowledge system historical alerts",
+				"operationId": "acknowledge_system_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/acknowledge/flow/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Acknowledge flow alerts",
+				"description": "Acknowledge flow historical alerts",
+				"operationId": "acknowledge_flow_alerts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/charts/host/map.lua": {
+			"get": {
+				"tags": [
+					"Charts"
+				],
+				"summary": "Get an host map",
+				"description": "Get an host map",
+				"operationId": "charts_host_map",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					      },
+					       {
+						"name": "bubble_mode",
+						"in": "query",
+						"description": "The identifier of the bubble chart to obtain",
+						"required": true,
+						"type": "integer",
+						   "format": "int32"
+					       },
+					       {
+						"name": "show_remote",
+						"in": "query",
+						"description": "Whether to show remote hosts",
+						"required": false,
+						"type": "boolean"
+					       }
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/charts/time/data.lua": {
+			"get": {
+				"tags": [
+					"Charts"
+				],
+				"summary": "Get widget time data",
+				"description": "Get widget time data",
+				"operationId": "charts_time_data",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					      },
+					       {
+						"name": "begin_epoch",
+						"in": "query",
+						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					       },
+					       {
+						"name": "end_epoch",
+						"in": "query",
+						"description": "End time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					       },
+					       {
+						"name": "totalRows",
+						"in": "query",
+						"description": "The number of records",
+						"required": false,
+						"type": "integer",
+						"format": "int32"
+					       }
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/datasource/interface/packet_distro.lua": {
+			"get": {
+				"tags": [
+					"Datasource"
+				],
+				"summary": "Get interface packets distribution",
+				"description": "Get interface packets distribution",
+				"operationId": "get_datasource_interface_packet_distro",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/datasource/datasource.lua": {
+			"get": {
+				"tags": [
+					"Datasource"
+				],
+				"summary": "Get datasource",
+				"description": "Get datasource",
+				"operationId": "get_datasource",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/interface/nprobes/data.lua": {
+			"get": {
+				"tags": [
+					"Traffic"
+				],
+				"summary": "Get interface nProbe data",
+				"description": "Get data for nProbe instances connected to an ntopng interface",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/interface/alert/ts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get interface alerts timeseries",
+				"description": "Get interface alerts timeseries",
+				"operationId": "get_interface_alert_ts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/interface/alert/list.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get interface alerts list",
+				"description": "Get interface alerts list",
+				"operationId": "get_interface_alert_list",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/interface/arp.lua": {
+			"get": {
+				"tags": [
+					"ARP"
+				],
+				"summary": "Get interface ARP info",
+				"description": "Get interface ARP info",
+				"operationId": "get_interface_arp",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+				               },
+					       {
+						"name": "host",
+						"in": "query",
+						"description": "Host address",
+						"required": false,
+						"type": "string"
+					       }
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/timeseries/ts.lua": {
+			"get": {
+				"tags": [
+					"Timeseries"
+				],
+				"summary": "Get timeseries data",
+				"description": "Get timeseries data",
+				"operationId": "get_timeseries_ts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host/fingerprint/data.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+ 				               },
+					       {
+						"name": "host",
+						"in": "query",
+						"description": "Host address",
+						"required": true,
+						"type": "string"
+					       },
+					       {
+						"name": "fingerprint_type",
+						"in": "query",
+						"description": "The fingerprint type, either ja3 or hassh",
+						"required": true,
+						"type": "string"
+ 				               }
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host/alert/ts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get host alerts timeseries",
+				"description": "Get host alerts timeseries",
+				"operationId": "get_host_alert_ts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/host/alert/list.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get host alerts list",
+				"description": "Get host alerts list",
+				"operationId": "get_host_alert_list",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/recipient/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get recipient pools",
+				"description": "Get all pools bound to a recipient",
+				"operationId": "get_recipient_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "recipient_id",
+						"in": "query",
+						"description": "Recipient identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/checks/config.lua": {
+			"get": {
+				"tags": [
+					"Checks"
+				],
+				"summary": "Get Checks configuration",
+				"description": "Get checks configuration",
+				"operationId": "get_checks_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/network/alert/ts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get network alerts timeseries",
+				"description": "Get network alerts timeseries",
+				"operationId": "get_network_alert_ts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/network/alert/list.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get network alerts list",
+				"description": "Get network alerts list",
+				"operationId": "get_network_alert_list",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/all/alert/ts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get all alerts timeseries",
+				"description": "Get all alerts timeseries",
+				"operationId": "get_all_alert_ts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/all/alert/list.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get all alerts list",
+				"description": "Get all alerts list",
+				"operationId": "get_all_alert_list",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/am_host/alert/ts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get Active Monitoring alerts timeseries",
+				"description": "Get Active Monitoring alerts timeseries",
+				"operationId": "get_active_monitoring_alert_ts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/am_host/alert/list.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get Active Monitoring alerts list",
+				"description": "Get Active Monitoring alerts list",
+				"operationId": "get_active_monitoring_alert_list",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/user/alert/ts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get user alerts timeseries",
+				"description": "Get user alerts timeseries",
+				"operationId": "get_user_alert_ts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/user/alert/list.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get user alerts list",
+				"description": "Get user alerts list",
+				"operationId": "get_user_alert_list",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/ntopng/session.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/time/data.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/mac/alert/ts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/mac/alert/list.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/system/alert/ts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/system/alert/list.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/active_monitoring/pools.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/dns/resolve.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/pool/config.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/flow/alert/ts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/flow/alert/list.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/flow/traffic_stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/edit/ntopng/incr_hosts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/edit/ntopng/incr_flows.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/set/checks/config.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/set/pool/config.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/export/checks/config.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/import/checks/config.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/import/pool/host_pool/members.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/create/ntopng/api_token.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/delete/host/alert/exclusions.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/delete/snmp/device.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/delete/snmp/device/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/delete/all/alert/exclusions.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/delete/flow/alert/exclusions.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/acknowledge/snmp/device/alerts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/maps/periodicity_map.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/maps/service_map.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/datasource/snmp_device/interfaces_status.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/flowdevices/stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/interface/top/sites.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/interface/top/local/talkers_ng.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/interface/top/l7_stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/interface/top/score.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/interface/top/realtime_traffic.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/interface/top/remote/talkers_ng.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/interface/alert/general_stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/observation_points/stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/host/top/local/sites.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/host/alert/exclusions.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/host/alert/general_stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/host/flows/flows_info.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/snmp/device/alert/ts.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/snmp/device/alert/general_stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/snmp/device/alert/list.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/snmp/device/pools.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/network/alert/general_stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/sflowdevice/stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/all/alert/general_stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/am_host/alert/general_stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/user/alert/general_stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/mac/alert/general_stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/system/alert/general_stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/system/data.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/infrastructure/data.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/sflowdevices/stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/flowdevice/stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/flow/alert/exclusions.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/get/flow/alert/general_stats.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/edit/check/filter.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/set/pool/policy.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/set/pool/policy_autoconf.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v2/export/pool/policy.lua": {
+			"get": {
+				"tags": [
+					"Alerts"
+				],
+				"summary": "Get counters per type",
+				"description": "Number of alerts per alert type",
+				"operationId": "get_alert_type_counters",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
