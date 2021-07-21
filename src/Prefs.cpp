@@ -845,7 +845,6 @@ static const struct option long_options[] = {
 #endif
 #ifdef NTOPNG_PRO
   { "vm",                                no_argument,       NULL, 251 }, // --vm no longer used (keeping for backward cmpatibility)
-#endif
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
   { "community",                         no_argument,       NULL, 254 },
