@@ -9,7 +9,7 @@ local callback_utils = require("callback_utils")
 local behavior_utils = {}
 local redis_key = "changed_behavior_learning_setup"
 local behavior_maps_key = "ntopng.prefs.is_behaviour_analysis_enabled"
-local behavior_mac_ip_mapping = "ntopng.cache.mac_ip_mapping"
+local behavior_mac_ip_mapping = "ntopng.cache.mac_ip_mapping_ifid"
 local mac_ip_table = {}
 local SEC_BEFORE_EXPIRE = 420 -- 7 mins
 
@@ -80,11 +80,14 @@ end
 -- ##############################################
 
 function behavior_utils.mapMacIp(hostname, hoststats)
-    if not mac_ip_table[hoststats["mac"]] then
-        mac_ip_table[hoststats["mac"]] = {}
+    local first_host
+    local mac_hosts = interface.getMacHosts(hoststats["mac"])
+    for _, h in pairsByKeys(mac_hosts, asc) do
+        first_host = h["ip"]
+        break
     end
 
-    mac_ip_table[hoststats["mac"]][#mac_ip_table[hoststats["mac"]] + 1] = hostname
+    mac_ip_table[hoststats["mac"]] = first_host
 end
 
 -- ##############################################
@@ -92,14 +95,14 @@ end
 function behavior_utils.updateMacs()
     mac_ip_table = {}
     callback_utils.foreachLocalHost(interface.getName(), behavior_utils.mapMacIp)
-    ntop.setCache(behavior_mac_ip_mapping, json.encode(mac_ip_table), SEC_BEFORE_EXPIRE)
+    ntop.setCache(behavior_mac_ip_mapping .. interface.getId(), json.encode(mac_ip_table), SEC_BEFORE_EXPIRE)
     return mac_ip_table 
 end
 
 -- ##############################################
 
 function behavior_utils.getMacs()
-    mac_ip_table = ntop.getCache(behavior_mac_ip_mapping)
+    mac_ip_table = ntop.getCache(behavior_mac_ip_mapping .. interface.getId())
 
     if not isEmptyString(mac_ip_table) then
         return json.decode(mac_ip_table)
