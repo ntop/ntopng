@@ -454,7 +454,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void incDohDoTUses(Host *srv_host) {}
 
   virtual void incCountriesContacts(Country *country) { ; }
-  virtual u_int32_t getCountriesContactsCardinality() { return(0); }
+  virtual u_int8_t getCountriesContactsCardinality() { return(0); }
 
   virtual void incNTPContactCardinality(Host *h)  { ; }
   virtual void incDNSContactCardinality(Host *h)  { ; }

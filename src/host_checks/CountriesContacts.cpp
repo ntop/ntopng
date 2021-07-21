@@ -1,13 +1,13 @@
 #include "ntop_includes.h"
 #include "host_checks_includes.h"
 
-CountriesContacts::CountriesContacts() : HostCheck(ntopng_edition_community) {
-    countries_contacts_threshold = (u_int64_t)10;
+CountriesContacts::CountriesContacts() : HostCheck(ntopng_edition_community, false /* All interfaces */, true /* Exclude for nEdge */, false /* NOT only for nEdge */) {
+    countries_contacts_threshold = (u_int8_t)75;
 }
 
 void CountriesContacts::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     HostAlert *alert = engaged_alert;
-    u_int32_t contacted_countries = 0;
+    u_int8_t contacted_countries = 0;
 
     if ((contacted_countries = getContactedCountries(h)) >= countries_contacts_threshold) {
         if (!alert) alert = allocAlert(this, h, CLIENT_FAIR_RISK_PERCENTAGE, contacted_countries, countries_contacts_threshold);

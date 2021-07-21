@@ -162,7 +162,7 @@ class HostStats: public GenericTrafficElement {
   virtual void incSrvHostContacts(IpAddress *peer)   { ; }
 
   virtual void incCountriesContacts(Country *country) { ; }
-  virtual u_int32_t getCountriesContactsCardinality() { return((u_int32_t)-1); }
+  virtual u_int8_t getCountriesContactsCardinality() { return((u_int8_t)-1); }
 
   virtual u_int32_t getNTPContactCardinality()  { return((u_int32_t)-1); }
   virtual u_int32_t getDNSContactCardinality()  { return((u_int32_t)-1); }

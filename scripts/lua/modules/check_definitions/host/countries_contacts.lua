@@ -7,7 +7,7 @@ local host_alert_keys = require "host_alert_keys"
 
 -- #################################################################
 
-local country_contacts = {
+local countries_contacts = {
    -- Script category
    category = checks.check_categories.security,
 
