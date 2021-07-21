@@ -49,9 +49,12 @@ function recipients.initialize()
    for _, category in pairs(checks.check_categories) do
       all_categories[#all_categories + 1] = category.id
    end
-   
+
    for endpoint_key, endpoint in pairs(endpoints.get_types()) do
       if endpoint.builtin then
+	 -- Delete (if existing) the old, string-keyed endpoint configuration
+	 endpoints.delete_config("builtin_config_"..endpoint_key)
+
          -- Add the configuration
          local res = endpoints.add_config(
             endpoint_key --[[ the type of the endpoint--]],
