@@ -447,11 +447,6 @@ void usage() {
 	 "[--check-license]                   | Check if the license is valid.\n"
 	 "[--check-maintenance]               | Check until maintenance is included\n"
 	 "                                    | in the license.\n"
-#ifdef __linux__
-         "[--vm]                              | Check the license on VMs (migration resistant).\n"
-         "                                    | This flag should be used in combination with the other options (e.g. -V).\n"
-         "                                    | Note: this changes the System ID (license should be migrated if any)\n"
-#endif
 #endif
 	 "[--version|-V]                      | Print version and license information, then quit\n"
 #ifdef NTOPNG_PRO
@@ -849,8 +844,7 @@ static const struct option long_options[] = {
   { "appliance",                         no_argument,       NULL, 223 },
 #endif
 #ifdef NTOPNG_PRO
-#ifdef __linux__
-  { "vm",                                no_argument,       NULL, 251 },
+  { "vm",                                no_argument,       NULL, 251 }, // --vm no longer used (keeping for backward cmpatibility)
 #endif
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
@@ -1541,7 +1535,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 #ifdef NTOPNG_PRO
 #ifdef __linux__
   case 251:
-    ntop->getPro()->set_vm_mode();
+    // --vm no longer used (keeping for backward cmpatibility)
     break;
 #endif
 
