@@ -5575,12 +5575,6 @@ local lang = {
     ["vlan_id"] = "VLAN ID",
     ["vlans"] = "VLANs",
   },
-  ["webhook_alert_endpoint"] = {
-    ["password"] = "Password",
-    ["shared_secret"] = "Shared Secret",
-    ["url"] = "URL",
-    ["username"] = "Username",
-  },
   ["widgets_page"] = {
     ["actions"] = "Actions",
     ["begin_time"] = "Begin Time",
