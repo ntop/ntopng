@@ -5429,86 +5429,14 @@
 				}
 			}
 		},
-		"/lua/rest/v2/get/ntopng/session.lua": {
-			"get": {
-				"tags": [
-					"Alerts"
-				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
-				],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
-					}
-				}
-			}
-		},
-		"/lua/rest/v2/get/time/data.lua": {
-			"get": {
-				"tags": [
-					"Alerts"
-				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
-				],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
-					}
-				}
-			}
-		},
 		"/lua/rest/v2/get/mac/alert/ts.lua": {
 			"get": {
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get MAC alerts timeseries",
+				"description": "Get MAC alerts timeseries",
+				"operationId": "get_mac_alert_ts",
 				"produces": [
 					"application/json"
 				],
@@ -5528,11 +5456,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -5542,9 +5467,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get MAC alerts list",
+				"description": "Get MAC alerts list",
+				"operationId": "get_mac_alert_list",
 				"produces": [
 					"application/json"
 				],
@@ -5564,11 +5489,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -5578,9 +5500,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get system alerts timeseries",
+				"description": "Get system alerts timeseries",
+				"operationId": "get_system_alert_ts",
 				"produces": [
 					"application/json"
 				],
@@ -5600,11 +5522,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -5614,9 +5533,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get system alerts list",
+				"description": "Get system alerts list",
+				"operationId": "get_system_alert_list",
 				"produces": [
 					"application/json"
 				],
@@ -5636,11 +5555,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -5648,19 +5564,19 @@
 		"/lua/rest/v2/get/active_monitoring/pools.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Pools"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get Active Monitoring pools",
+				"description": "Get Active Monitoring pools",
+				"operationId": "get_active_monitoring_pools",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "pool",
 						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
+						"description": "Pool identifier",
+						"required": false,
 						"type": "integer",
 						"format": "int32"
 					}
@@ -5669,14 +5585,8 @@
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-16": {
+						"description": "POOL_NOT_FOUND"
 					}
 				}
 			}
@@ -5684,35 +5594,28 @@
 		"/lua/rest/v2/get/dns/resolve.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"DNS"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Resolve an host name into an IP address",
+				"description": "Resolve an host name into an IP address",
+				"operationId": "get_dns_resolve",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "hostname",
 						"in": "query",
-						"description": "Interface identifier",
+						"description": "The host name to be resolved",
 						"required": true,
-						"type": "integer",
-						"format": "int32"
+						"type": "string"
 					}
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-9": {
+						"description": "NAME_RESOLUTION_FAILED"
 					}
 				}
 			}
@@ -5720,11 +5623,11 @@
 		"/lua/rest/v2/get/pool/config.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Pools"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get configurations for all pools (deprecated)",
+				"description": "Get configurations for all pools",
+				"operationId": "get_pool_config",
 				"produces": [
 					"application/json"
 				],
@@ -5744,11 +5647,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -5758,9 +5658,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get flow alerts timeseries",
+				"description": "Get flow alerts timeseries",
+				"operationId": "get_flow_alert_ts",
 				"produces": [
 					"application/json"
 				],
@@ -5780,11 +5680,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -5794,9 +5691,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get flow alerts list",
+				"description": "Get flow alerts list",
+				"operationId": "get_flow_alert_list",
 				"produces": [
 					"application/json"
 				],
@@ -5816,11 +5713,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -5830,9 +5724,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get traffic stats for active flows",
+				"description": "Get traffic stats for active flows",
+				"operationId": "get_flow_traffic_stats",
 				"produces": [
 					"application/json"
 				],
@@ -5851,12 +5745,6 @@
 					},
 					"-2": {
 						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -5864,35 +5752,25 @@
 		"/lua/rest/v2/edit/ntopng/incr_hosts.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Configuration"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Double the maximum number of hosts managed by ntopng",
+				"description": "Double the maximum number of hosts managed by ntopng",
+				"operationId": "edit_ntopng_incr_hosts",
 				"produces": [
 					"application/json"
 				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+				"parameters": [
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
+					"-3": {
+						"description": "NOT_GRANTED"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-7": {
+						"description": "BAD_FORMAT"
 					}
 				}
 			}
@@ -5900,35 +5778,25 @@
 		"/lua/rest/v2/edit/ntopng/incr_flows.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Configuration"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Double the maximum number of flows managed by ntopng",
+				"description": "Double the maximum number of flows managed by ntopng",
+				"operationId": "edit_ntopng_incr_flows",
 				"produces": [
 					"application/json"
 				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+				"parameters": [
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
+					"-3": {
+						"description": "NOT_GRANTED"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-7": {
+						"description": "BAD_FORMAT"
 					}
 				}
 			}
@@ -5936,35 +5804,31 @@
 		"/lua/rest/v2/set/checks/config.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Checks"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Set Checks configuration",
+				"description": "Set Checks configuration",
+				"operationId": "set_checks_config",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "JSON",
 						"in": "query",
-						"description": "Interface identifier",
+						"description": "Check configuration in JSON",
 						"required": true,
-						"type": "integer",
-						"format": "int32"
+						"type": "string"
 					}
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
+					"-3": {
+						"description": "NOT_GRANTED"
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -5972,11 +5836,11 @@
 		"/lua/rest/v2/set/pool/config.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Pools"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Set pool configuration",
+				"description": "Set pool configuration",
+				"operationId": "set_pool_config",
 				"produces": [
 					"application/json"
 				],
@@ -5987,6 +5851,13 @@
 						"required": true,
 						"type": "integer",
 						"format": "int32"
+				               },
+					       {
+						"name": "JSON",
+						"in": "query",
+						"description": "Pool configuration in JSON",
+						"required": true,
+						"type": "string"
 					}
 				],
 				"responses": {
@@ -6001,6 +5872,12 @@
 					},
 					"-6": {
 						"description": "INTERNAL_ERROR"
+					},
+				        "-7": {
+						"description": "BAD_FORMAT"
+					},
+					"-8": {
+						"description": "BAD_CONTENT"
 					}
 				}
 			}
@@ -6008,35 +5885,22 @@
 		"/lua/rest/v2/export/checks/config.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Checks"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Export Checks configuration",
+				"description": "Export Checks configuration",
+				"operationId": "export_checks_config",
 				"produces": [
 					"application/json"
 				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+				"parameters": [
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -6044,35 +5908,34 @@
 		"/lua/rest/v2/import/checks/config.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Checks"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Import Checks configuration",
+				"description": "Import Checks configuration",
+				"operationId": "import_checks_config",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "JSON",
 						"in": "query",
-						"description": "Interface identifier",
+						"description": "The Checks configuration in JSON",
 						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+						"type": "string"
+					       }
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
+					"-3": {
+						"description": "NOT_GRANTED"
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
 					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
 					}
 				}
 			}
@@ -6080,35 +5943,39 @@
 		"/lua/rest/v2/import/pool/host_pool/members.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Pools"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Import host pool members",
+				"description": "Import host pool members",
+				"operationId": "import_pool_host_pool_members",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "pool",
 						"in": "query",
-						"description": "Interface identifier",
+						"description": "Pool identifier",
 						"required": true,
 						"type": "integer",
 						"format": "int32"
+				               },
+					       {
+						"name": "host_pool_members",
+						"in": "query",
+						"description": "A newline-separated list of host pool members",
+						"required": true,
+						"type": "string"
 					}
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
+					"-3": {
+						"description": "NOT_GRANTED"
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -6116,35 +5983,28 @@
 		"/lua/rest/v2/create/ntopng/api_token.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"User"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Create an API token",
+				"description": "Create an API token",
+				"operationId": "create_ntopng_api_token",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "username",
 						"in": "query",
-						"description": "Interface identifier",
+						"description": "An existing ntopng username",
 						"required": true,
-						"type": "integer",
-						"format": "int32"
+						"type": "string"
 					}
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -6154,33 +6014,36 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Delete host alert exclusions",
+				"description": "Delete host alert exclusions",
+				"operationId": "delete_host_alert_exclusions",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "alert_addr",
 						"in": "query",
-						"description": "Interface identifier",
+						"description": "The host IP address",
 						"required": true,
+						"type": "string"
+				               },
+				               {
+						"name": "alert_key",
+						"in": "query",
+						"description": "The host alert key to exclude from host alerts",
 						"type": "integer",
 						"format": "int32"
-					}
+					       }
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
+					"-3": {
+						"description": "NOT_GRANTED"
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -6188,35 +6051,31 @@
 		"/lua/pro/rest/v2/delete/snmp/device.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"SNMP"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Delete an SNMP device",
+				"description": "Delete an SNMP device from the monitored SNMP devices",
+				"operationId": "delete_snmp_device",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "host",
 						"in": "query",
-						"description": "Interface identifier",
+						"description": "IP address of an SNMP device",
 						"required": true,
-						"type": "integer",
-						"format": "int32"
+						"type": "string"
 					}
 				],
 				"responses": {
 					"0": {
-						"description": "OK"
+						"description": "SNMP_DEVICE_DELETED_SUCCESSFULLY"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
+					"-3": {
+						"description": "NOT_GRANTED"
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -6226,33 +6085,20 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Delete SNMP device alerts",
+				"description": "Delete SNMP device alerts",
+				"operationId": "delete_snmp_device_alerts",
 				"produces": [
 					"application/json"
 				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+				"parameters": [
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -6262,33 +6108,36 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Delete all alert exclusions",
+				"description": "Delete all configured host or flow alert exclusions for a specific host",
+				"operationId": "delete_host_alert_exclusions",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "check_subdir",
 						"in": "query",
-						"description": "Interface identifier",
+						"description": "Either 'host' or 'flow'",
 						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+						"type": "string"
+				               },
+				               {
+						"name": "host",
+						"in": "query",
+						"description": "The IP address of the host",
+						"required": true,
+						"type": "string"
+					       }
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
+					"-3": {
+						"description": "NOT_GRANTED"
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -6298,33 +6147,36 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Delete flow alert exclusions",
+				"description": "Delete flow alert exclusions",
+				"operationId": "delete_flow_alert_exclusions",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "alert_addr",
 						"in": "query",
-						"description": "Interface identifier",
+						"description": "The host IP address",
 						"required": true,
+						"type": "string"
+				               },
+				               {
+						"name": "alert_key",
+						"in": "query",
+						"description": "The flow alert key to exclude from flow alerts",
 						"type": "integer",
 						"format": "int32"
-					}
+					       }
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
+					"-3": {
+						"description": "NOT_GRANTED"
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -6334,33 +6186,20 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Acknowledge SNMP device alerts",
+				"description": "Acknowledge SNMP device historical alerts",
+				"operationId": "acknowledge_snmp_device_alerts",
 				"produces": [
 					"application/json"
 				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+				"parameters": [
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -6368,11 +6207,11 @@
 		"/lua/pro/rest/v2/get/maps/periodicity_map.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Maps"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get the periodicity map of an interface",
+				"description": "Get the periodicity map of an interface",
+				"operationId": "get_maps_periodicity_map",
 				"produces": [
 					"application/json"
 				],
@@ -6404,47 +6243,11 @@
 		"/lua/pro/rest/v2/get/maps/service_map.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Maps"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
-				],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
-					}
-				}
-			}
-		},
-		"/lua/pro/rest/v2/get/datasource/snmp_device/interfaces_status.lua": {
-			"get": {
-				"tags": [
-					"Alerts"
-				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get the service map of an interface",
+				"description": "Get the service map of an interface",
+				"operationId": "get_maps_service_map",
 				"produces": [
 					"application/json"
 				],
@@ -6478,9 +6281,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get flow devices stats",
+				"description": "get flow devices stats",
+				"operationId": "get_flowdevices_stats",
 				"produces": [
 					"application/json"
 				],
@@ -6497,14 +6300,8 @@
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -6512,47 +6309,11 @@
 		"/lua/pro/rest/v2/get/interface/top/sites.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Sites"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
-				],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
-					}
-				}
-			}
-		},
-		"/lua/pro/rest/v2/get/interface/top/local/talkers_ng.lua": {
-			"get": {
-				"tags": [
-					"Alerts"
-				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get interface top sites",
+				"description": "Get the top sites for an interface",
+				"operationId": "get_interface_top_sites",
 				"produces": [
 					"application/json"
 				],
@@ -6584,11 +6345,11 @@
 		"/lua/pro/rest/v2/get/interface/top/l7_stats.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Top"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get interface top Layer-7 stats",
+				"description": "Get interface top Layer-7 stats",
+				"operationId": "get_interface_top_l7_stats",
 				"produces": [
 					"application/json"
 				],
@@ -6607,12 +6368,6 @@
 					},
 					"-2": {
 						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -6620,11 +6375,11 @@
 		"/lua/pro/rest/v2/get/interface/top/score.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Top"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get interface top score stats",
+				"description": "Get interface top score stats",
+				"operationId": "get_interface_top_score",
 				"produces": [
 					"application/json"
 				],
@@ -6643,12 +6398,6 @@
 					},
 					"-2": {
 						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -6656,11 +6405,11 @@
 		"/lua/pro/rest/v2/get/interface/top/realtime_traffic.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Top"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get interface top traffic stats",
+				"description": "Get interface top traffic stats",
+				"operationId": "get_interface_top_traffic",
 				"produces": [
 					"application/json"
 				],
@@ -6679,12 +6428,6 @@
 					},
 					"-2": {
 						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -6692,11 +6435,11 @@
 		"/lua/pro/rest/v2/get/interface/top/remote/talkers_ng.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Top"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get interface top talkers stats",
+				"description": "Get interface top talkers stats",
+				"operationId": "get_interface_top_talkers",
 				"produces": [
 					"application/json"
 				],
@@ -6715,12 +6458,6 @@
 					},
 					"-2": {
 						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -6730,9 +6467,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get interface alert stats",
+				"description": "Get interface alert stats",
+				"operationId": "get_interface_alert_general_stats",
 				"produces": [
 					"application/json"
 				],
@@ -6752,11 +6489,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -6766,9 +6500,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get observation points alert stats",
+				"description": "Get observation points alert stats",
+				"operationId": "get_observation_points_stats",
 				"produces": [
 					"application/json"
 				],
@@ -6788,11 +6522,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -6800,11 +6531,11 @@
 		"/lua/pro/rest/v2/get/host/top/local/sites.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Top"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get host top local sites",
+				"description": "Get host top local sites",
+				"operationId": "get_host_top_local_sites",
 				"produces": [
 					"application/json"
 				],
@@ -6815,7 +6546,15 @@
 						"required": true,
 						"type": "integer",
 						"format": "int32"
-					}
+				               },
+				               {
+						"name": "host",
+						"in": "query",
+						"description": "The IP address of the host",
+						"required": true,
+						"type": "string"
+					       }
+					       
 				],
 				"responses": {
 					"0": {
@@ -6838,33 +6577,29 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get host alert exclusions",
+				"description": "Get host alert exclusions",
+				"operationId": "get_host_alert_exclusions",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "host",
 						"in": "query",
-						"description": "Interface identifier",
+						"description": "The host IP address",
 						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+						"type": "string"
+				               }
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
+					"-3": {
+						"description": "NOT_GRANTED"
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -6874,9 +6609,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get host alert stats",
+				"description": "Get host alert stats",
+				"operationId": "get_host_alert_general_stats",
 				"produces": [
 					"application/json"
 				],
@@ -6896,11 +6631,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -6908,11 +6640,11 @@
 		"/lua/pro/rest/v2/get/host/flows/flows_info.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Traffic"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get host flows info",
+				"description": "Get host flows info",
+				"operationId": "get_host_flows_flows_info",
 				"produces": [
 					"application/json"
 				],
@@ -6946,9 +6678,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get SNMP device alerts timeseries",
+				"description": "Get SNMP device alerts timeseries",
+				"operationId": "get_snmp_device_alert_ts",
 				"produces": [
 					"application/json"
 				],
@@ -6968,11 +6700,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -6982,9 +6711,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get SNMP device alert stats",
+				"description": "Get SNMP device alert stats",
+				"operationId": "get_snmp_device_alert_general_stats",
 				"produces": [
 					"application/json"
 				],
@@ -7004,11 +6733,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7018,9 +6744,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get SNMP device alerts list",
+				"description": "Get SNMP device alerts list",
+				"operationId": "get_snmp_device_alert_list",
 				"produces": [
 					"application/json"
 				],
@@ -7040,11 +6766,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7052,19 +6775,19 @@
 		"/lua/pro/rest/v2/get/snmp/device/pools.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Pools"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get SNMP device pools",
+				"description": "Get SNMP device pools",
+				"operationId": "get_snmp_device_pools",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "pool",
 						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
+						"description": "Pool identifier",
+						"required": false,
 						"type": "integer",
 						"format": "int32"
 					}
@@ -7073,14 +6796,8 @@
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-16": {
+						"description": "POOL_NOT_FOUND"
 					}
 				}
 			}
@@ -7090,9 +6807,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get network alert stats",
+				"description": "Get network alert stats",
+				"operationId": "get_network_alert_general_stats",
 				"produces": [
 					"application/json"
 				],
@@ -7112,11 +6829,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7126,9 +6840,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get sFlow device stats",
+				"description": "get sFlow device stats",
+				"operationId": "get_sflowdevice_stats",
 				"produces": [
 					"application/json"
 				],
@@ -7139,20 +6853,29 @@
 						"required": true,
 						"type": "integer",
 						"format": "int32"
-					}
-				],
+				               },
+				               {
+						"name": "ip",
+						"in": "query",
+						"description": "The IP address of the device",
+						"required": true,
+						"type": "string"
+					       },
+				               {
+						"name": "ifIdx",
+						"in": "query",
+						"description": "The interface index",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					       }
+			        ],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7162,9 +6885,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get all alert stats",
+				"description": "Get all alert stats",
+				"operationId": "get_all_alert_general_stats",
 				"produces": [
 					"application/json"
 				],
@@ -7184,11 +6907,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7198,9 +6918,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get Active Monitoring alert stats",
+				"description": "Get Active Monitoring alert stats",
+				"operationId": "get_active_monitoring_alert_general_stats",
 				"produces": [
 					"application/json"
 				],
@@ -7220,11 +6940,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7234,9 +6951,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get user alert stats",
+				"description": "Get user alert stats",
+				"operationId": "get_user_alert_general_stats",
 				"produces": [
 					"application/json"
 				],
@@ -7256,11 +6973,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7270,9 +6984,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get MAC alert stats",
+				"description": "Get MAC alert stats",
+				"operationId": "get_mac_alert_general_stats",
 				"produces": [
 					"application/json"
 				],
@@ -7292,11 +7006,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7306,9 +7017,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get system alert stats",
+				"description": "Get system alert stats",
+				"operationId": "get_system_alert_general_stats",
 				"produces": [
 					"application/json"
 				],
@@ -7328,11 +7039,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7340,35 +7048,19 @@
 		"/lua/pro/rest/v2/get/system/data.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"System"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get system data",
+				"description": "Get system data",
+				"operationId": "get_system_data",
 				"produces": [
 					"application/json"
 				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+				"parameters": [
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
-					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -7376,35 +7068,22 @@
 		"/lua/pro/rest/v2/get/infrastructure/data.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"System"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get infrastructure data",
+				"description": "Get infrastructure data",
+				"operationId": "get_infrastructure_data",
 				"produces": [
 					"application/json"
 				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+				"parameters": [
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7414,9 +7093,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get sFlow devices stats",
+				"description": "get sF devices stats",
+				"operationId": "get_sflowdevices_stats",
 				"produces": [
 					"application/json"
 				],
@@ -7433,14 +7112,8 @@
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7450,9 +7123,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get flow device stats",
+				"description": "get flow device stats",
+				"operationId": "get_flowdevice_stats",
 				"produces": [
 					"application/json"
 				],
@@ -7463,20 +7136,29 @@
 						"required": true,
 						"type": "integer",
 						"format": "int32"
-					}
-				],
+				               },
+				               {
+						"name": "ip",
+						"in": "query",
+						"description": "The IP address of the device",
+						"required": true,
+						"type": "string"
+					       },
+				               {
+						"name": "ifIdx",
+						"in": "query",
+						"description": "The interface index",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					       }
+			        ],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7486,33 +7168,29 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get flow alert exclusions",
+				"description": "Get flow alert exclusions",
+				"operationId": "get_flow_alert_exclusions",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
+						"name": "host",
 						"in": "query",
-						"description": "Interface identifier",
+						"description": "The host IP address",
 						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+						"type": "string"
+				               }
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
+					"-3": {
+						"description": "NOT_GRANTED"
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
 					}
 				}
 			}
@@ -7522,9 +7200,9 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Get flow alert stats",
+				"description": "Get flow alert stats",
+				"operationId": "get_flow_alert_general_stats",
 				"produces": [
 					"application/json"
 				],
@@ -7544,11 +7222,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -7558,20 +7233,13 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Edit a check filter",
+				"description": "Edit a check filter",
+				"operationId": "edit_check_filter",
 				"produces": [
 					"application/json"
 				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+				"parameters": [
 				],
 				"responses": {
 					"0": {
@@ -7592,11 +7260,11 @@
 		"/lua/pro/rest/v2/set/pool/policy.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Pools"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Set pool policy",
+				"description": "Set pool policy",
+				"operationId": "set_pool_policy",
 				"produces": [
 					"application/json"
 				],
@@ -7621,28 +7289,29 @@
 					},
 					"-6": {
 						"description": "INTERNAL_ERROR"
-					}
+					},
+					"-7": {
+						"description": "BAD_FORMAT"
+					}				    
 				}
 			}
 		},
 		"/lua/pro/rest/v2/set/pool/policy_autoconf.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Pools"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Set a pool policy from autoconfiguration",
+				"description": "Set a pool policy from autoconfiguration",
+				"operationId": "set_pool_policy_autoconf",
 				"produces": [
 					"application/json"
 				],
 				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
 					}
 				],
 				"responses": {
@@ -7651,9 +7320,6 @@
 					},
 					"-2": {
 						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
 					},
 					"-6": {
 						"description": "INTERNAL_ERROR"
@@ -7664,35 +7330,22 @@
 		"/lua/pro/rest/v2/export/pool/policy.lua": {
 			"get": {
 				"tags": [
-					"Alerts"
+					"Pools"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
-				"operationId": "get_alert_type_counters",
+				"summary": "Export pool policies",
+				"description": "Export pool policies",
+				"operationId": "export_pool_policy",
 				"produces": [
 					"application/json"
 				],
-				"parameters": [{
-						"name": "ifid",
-						"in": "query",
-						"description": "Interface identifier",
-						"required": true,
-						"type": "integer",
-						"format": "int32"
-					}
+				"parameters": [
 				],
 				"responses": {
 					"0": {
 						"description": "OK"
 					},
-					"-2": {
-						"description": "INVALID_INTERFACE"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
