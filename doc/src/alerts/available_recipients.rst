@@ -248,7 +248,13 @@ Alerts are sent to Elasticsearch in JSON format, following the ECS format (more 
 Slack
 -----
 
-TODO
+Slack (https://slack.com) is a IRC-like business communication platform that can be used by ntopng to deliver alerts. In order to deliver alerts to a slack channel you need to:
+
+- Create a new channel to be used for notifications
+- Create a new Slack app from https://api.slack.com/apps?new_app=1
+- After creating a Slack app, you will be redirected to a page where you can Activate Incoming Webhooks 
+- At the bottom of the page, Add a new Webhook, selecting the channel you previously created for notifications
+- Copy the Webhook URL to the Notification Webhook field in ntopng
 
 Syslog
 ------
