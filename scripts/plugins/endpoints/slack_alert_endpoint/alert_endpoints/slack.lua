@@ -124,7 +124,7 @@ function slack.dequeueRecipientAlerts(recipient, budget, high_priority)
 
       -- Most recent notifications first
       for _, notif in pairsByValues(notifications, alert_utils.notification_timestamp_rev) do
-        local msg = alert_utils.formatAlertNotification(notif, {nohtml=true, show_severity=false})
+        local msg = alert_utils.formatAlertNotification(notif, {nohtml=true, show_severity=false, show_entity=true})
         table.insert(messages, msg)
 
         if #messages >= MAX_ALERTS_PER_MESSAGE then

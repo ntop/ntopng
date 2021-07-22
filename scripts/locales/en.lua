@@ -4911,10 +4911,6 @@ local lang = {
     ["top_sites_not_seen"] = "Current local host has not visited any website yet.",
     ["top_visited_sites"] = "Top Visited Sites",
   },
-  ["slack_alert_endpoint"] = {
-    ["notification_webhook"] = "Notification Webhook",
-    ["sender_username"] = "Sender Username",
-  },
   ["snmp"] = {
     ["AlertDescription"] = "Alert Description",
     ["ConsoleDisplayBufferText"] = "Display Text",
