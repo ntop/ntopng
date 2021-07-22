@@ -42,8 +42,6 @@
 #include "host_checks/DangerousHost.h"
 #include "host_checks/RemoteConnection.h"
 
-#include "host_checks/ASNConnection.h"
-
 
 #ifdef NTOPNG_PRO
 #include "host_checks/ScoreAnomaly.h"

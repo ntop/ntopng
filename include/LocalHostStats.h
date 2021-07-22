@@ -39,12 +39,10 @@ class LocalHostStats: public HostStats {
   /* Estimate of the number of critical servers used by this host */
   Cardinality num_dns_servers, num_smtp_servers, num_ntp_servers;
 
-  /* Estimate the number of contacted hosts,asn and country using HyperLogLog*/
-  struct ndpi_hll hll_contacted_hosts,hll_contacted_asn, hll_contacted_country;
-  double old_hll_value, new_hll_value, hll_delta_value,
-         old_hll_value_asn, new_hll_value_asn, hll_delta_value_asn,
-         old_hll_value_country, new_hll_value_country, hll_delta_value_country;
-  DESCounter contacted_hosts,contacted_asn,contacted_country;
+  /* Estimate the number of contacted hosts using HyperLogLog */
+  struct ndpi_hll hll_contacted_hosts;
+  double old_hll_value, new_hll_value, hll_delta_value;
+  DESCounter contacted_hosts;
   
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   char *old_sites;
@@ -94,12 +92,6 @@ class LocalHostStats: public HostStats {
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose)    { if (icmp) icmp->lua(isV4, vm, verbose); }
   virtual void luaPeers(lua_State *vm);
   virtual void incrVisitedWebSite(char *hostname);
-  virtual void addContactedAsnCountry(u_init32_t asn,u_init32_t country) { ndpi_hll_add(&hll_contacted_country, country);
-                                                                           ndpi_hll_add(&hll_contacted_asn, asn);         }       
-  virtual double getContactedASN()                                       { return ndpi_hll_count(&hll_contacted_asn);     }  
-  virtual void resetContactedASN()                                       { ndpi_hll_reset(&hll_contacted_asn);            }       
-  virtual double getContactedCountry()                                   { return ndpi_hll_count(&hll_contacted_country); } 
-  virtual void resetContactedCountry()                                   { ndpi_hll_reset(&hll_contacted_country);        }      
   virtual void lua_get_timeseries(lua_State* vm);
   void luaContactsBehaviour(lua_State *vm);
   virtual void luaHostBehaviour(lua_State* vm);
