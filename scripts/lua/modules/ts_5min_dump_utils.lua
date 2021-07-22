@@ -346,7 +346,7 @@ function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
     local ports = interface.getSFlowDeviceInfo(flow_device_ip)
 
     if(verbose) then
-      print ("["..__FILE__()..":"..__LINE__().."] Processing sFlow device "..flow_device_ip.."\n")
+      print ("["..__FILE__()..":"..__LINE__().."] Processing sFlow probe "..flow_device_ip.."\n")
     end
 
     for port_idx,port_value in pairs(ports) do
@@ -372,7 +372,7 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
   for flow_device_ip,_ in pairs(flowdevs) do
     local ports = interface.getFlowDeviceInfo(flow_device_ip)
 
-    if(verbose) then print ("["..__FILE__()..":"..__LINE__().."] Processing flow device "..flow_device_ip.."\n") end
+    if(verbose) then print ("["..__FILE__()..":"..__LINE__().."] Processing flow probe "..flow_device_ip.."\n") end
 
     for port_idx,port_value in pairs(ports) do
        -- Traffic
@@ -850,7 +850,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
     ts_dump.vlan_update_rrds(when, ifstats, verbose)
   end
 
-  -- Create RRDs for flow and sFlow devices
+  -- Create RRDs for flow and sFlow probes
   if(config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM()) then
     ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
     ts_dump.flow_device_update_rrds(when, ifstats, verbose)

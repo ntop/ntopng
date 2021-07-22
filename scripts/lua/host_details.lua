@@ -2162,6 +2162,13 @@ local tags = {
 }
 
 local url = hostinfo2detailsurl(host, {page = "historical"})
+local show_graph = true
+
+if not host["localhost"] or 
+	(host["localhost"] == false or 
+	 host["is_multicast"] == true) then
+	show_graph = false
+end
 
 graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    top_protocols = "top:host:ndpi",
@@ -2203,7 +2210,7 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:cli_active_flows_anomalies",  label=i18n("graphs.cli_active_flows_anomalies")},
    }, graph_utils.getDeviceCommonTimeseries()),
    device_timeseries_mac = host["mac"],
-})
+}, show_graph)
 
 elseif(page == "traffic_report") then
    package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/?.lua;" .. package.path

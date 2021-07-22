@@ -120,7 +120,11 @@ After creating the endpoint, create a new recipient to associate with the new en
 Webhook
 -------
 
-TODO
+Webhooks can be used to deliver alert information to a HTTP endpoint by configuring the URL in ntopng. Alert information are provided to the webhook in JSON format by means of POST requests.
+
+A Shared Secret can be configured in ntopng, which is an arbitrary string included in all JSON messages.
+
+A Username and Password can also be used to use HTTP Basic authentication.
 
 .. _ElasticsearchAlerts:
 Elasticsearch
@@ -248,7 +252,38 @@ Alerts are sent to Elasticsearch in JSON format, following the ECS format (more 
 Slack
 -----
 
-TODO
+Slack (https://slack.com) is a IRC-like business communication platform that can be used by ntopng to deliver alerts. In order to deliver alerts to a slack channel you need to:
+
+- Create a new channel to be used for notifications
+- Create a new Slack app from https://api.slack.com/apps?new_app=1
+
+.. figure:: ../img/alerts_slack_new_app.png
+  :align: center
+  :alt: 
+
+- After creating a Slack app, select Incoming Webhooks 
+
+.. figure:: ../img/alerts_slack_incoming_webooks.png
+  :align: center
+  :alt: 
+
+- Activate Incoming Webhooks 
+
+.. figure:: ../img/alerts_slack_activate_webhook.png
+  :align: center
+  :alt: 
+
+- At the bottom of the page, Add a new Webhook, selecting the channel you previously created for notifications
+
+.. figure:: ../img/alerts_slack_create_webhook.png
+  :align: center
+  :alt: 
+
+- Copy the Webhook URL to the Notification Webhook field in ntopng
+
+.. figure:: ../img/alerts_slack_copy_url.png
+  :align: center
+  :alt: 
 
 Syslog
 ------

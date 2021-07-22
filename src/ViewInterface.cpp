@@ -570,7 +570,7 @@ void ViewInterface::dumpFlowLoop() {
 			       get_description(), get_id());
 
   /* Wait until it starts up */
-  while(!isRunning()) _usleep(10000);
+  while(isStartingUp()) _usleep(10000);
 
   /* Now operational */
   while(isRunning()) {

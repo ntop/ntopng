@@ -427,6 +427,16 @@ void NetworkInterface::loadScalingFactorPrefs() {
 
 /* **************************************************** */
 
+/* Whether the initialization procedure is completed for this interface */
+bool NetworkInterface::isStartingUp() const {
+  return !running
+    && !ntop->getGlobals()->isShutdownRequested()
+    && !ntop->getGlobals()->isShutdown();
+}
+
+/* **************************************************** */
+
+/* Whether the interface is running and ntopng is not shutting down */
 bool NetworkInterface::isRunning() const {
   return running
     && !ntop->getGlobals()->isShutdownRequested()

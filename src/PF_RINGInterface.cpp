@@ -264,7 +264,7 @@ static void* packetPollLoop(void* ptr) {
   PF_RINGInterface *iface = (PF_RINGInterface *) ptr;
   
   /* Wait until the initialization completes */
-  while(!iface->isRunning()) sleep(1);
+  while(iface->isStartingUp()) sleep(1);
 
   while(iface->idle()) {
     if(ntop->getGlobals()->isShutdown()) return(NULL);

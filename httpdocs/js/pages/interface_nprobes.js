@@ -20,27 +20,6 @@ $(function () {
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
 	columns: [
 	    {
-		data: "column_nprobe_interface",
-		width: '15%', className: 'text-nowrap'
-	    },
-	    {
-		data: "column_nprobe_version",
-		width: '15%', className: 'text-nowrap'
-	    },
-	    {
-		data: "column_nprobe_edition",
-		width: '15%', className: 'text-nowrap'
-	    },
-	    {
-		data: "column_nprobe_license",
-		width: '15%', className: 'text-nowrap'
-	    },
-	    {
-		data: "column_nprobe_maintenance",
-		width: '15%', className: 'text-nowrap',
-		orderable: false,
-	    },
-	    {
 		data: "column_nprobe_probe_ip",
 		width: '15%', className: 'text-nowrap',
 		render: function (data, type, row) {
@@ -61,7 +40,28 @@ $(function () {
 
 		    return data;
 		}
-	    }
+	    },
+	    {
+		data: "column_nprobe_interface",
+		width: '15%', className: 'text-nowrap'
+	    },
+	    {
+		data: "column_nprobe_version",
+		width: '15%', className: 'text-nowrap'
+	    },
+	    {
+		data: "column_nprobe_edition",
+		width: '15%', className: 'text-nowrap'
+	    },
+	    {
+		data: "column_nprobe_license",
+		width: '15%', className: 'text-nowrap'
+	    },
+	    {
+		data: "column_nprobe_maintenance",
+		width: '15%', className: 'text-nowrap',
+		orderable: false,
+	    },
 	],
 	stateSave: true,
 	hasFilters: true,

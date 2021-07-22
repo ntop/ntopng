@@ -314,7 +314,7 @@ end
 
 -- ########################################################
 
-function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
+function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options, show_graph)
    local page_utils =require("page_utils") -- Do not require at the top as it could conflict with plugins_utils.getMenuEntries
    local debug_rrd = false
    local is_system_interface = page_utils.is_system_view()
@@ -356,7 +356,7 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
 
    if graph_utils.drawProGraph then
       _ifstats = interface.getStats()
-      graph_utils.drawProGraph(ifid, schema, tags, zoomLevel, baseurl, options)
+      graph_utils.drawProGraph(ifid, schema, tags, zoomLevel, baseurl, options, show_graph)
       return
    end
 

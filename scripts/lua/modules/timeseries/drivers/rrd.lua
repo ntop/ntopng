@@ -550,10 +550,10 @@ function driver:query(schema, tstart, tend, tags, options)
   -- Avoid reporting the last point when the timeseries write has not completed
   -- yet. Use 2*step as a bound.
   if((tend > last_update) and ((tend - last_update) <= 2*schema.options.step)) then
-    tend = last_update
+     tend = last_update
   end
 
-  --tprint("rrdtool fetch ".. rrdfile.. " " .. getConsolidationFunction(schema) .. " -s ".. tstart .. " -e " .. tend)
+  -- tprint("rrdtool fetch ".. rrdfile.. " " .. getConsolidationFunction(schema) .. " -s ".. tstart .. " -e " .. tend)
   local fstart, fstep, fdata, fend, fcount = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema), tstart, tend)
 
   if fdata == nil then
@@ -562,7 +562,7 @@ function driver:query(schema, tstart, tend, tags, options)
 
   local count = 0
   local series = {}
-
+  
   for name_key, serie in pairs(fdata) do
     local serie_idx = map_rrd_column_to_metrics(schema, name_key)
     local name = schema._metrics[serie_idx]
