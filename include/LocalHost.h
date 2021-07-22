@@ -29,6 +29,8 @@ private:
   IpAddress ip;
   VLANid vlan_id;
   u_int32_t num_uses;
+
+
   
 public:
   DoHDoTStats(IpAddress i, VLANid id) { ip = i, vlan_id = id, num_uses = 0; }
@@ -53,7 +55,7 @@ class LocalHost : public Host, public SerializableElement {
   time_t initialization_time;
   LocalHostStats *initial_ts_point;
   std::unordered_map<u_int32_t, DoHDoTStats*> doh_dot_map;
-  
+
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail;
   bool drop_all_host_traffic;
@@ -95,6 +97,17 @@ class LocalHost : public Host, public SerializableElement {
   virtual void lua_peers_stats(lua_State* vm)    const;
   virtual void lua_contacts_stats(lua_State *vm) const;
   virtual void incrVisitedWebSite(char *hostname)  { stats->incrVisitedWebSite(hostname); };
+
+ /* sopra versione local host, sotto versione local host stats*/
+
+  virtual void addContactedAsnCountry(u_int32_t asn, u_int32_t country);    { stats->addContactedAsnCountry(asn,country); }          /* aggiunge un nuovo asn o country code */
+  virtual double getContactedASN()                 { return (stats->getContactedASN();    }          /* ritorna il conteggio di ASN e Country diversi contattati */
+  virtual void resetContactedASN()                 { stats->resetContactedASN();          }          /* resetta il conteggio di ASN e Country diversi contattati */
+  virtual double getContactedCountry()                 { return (stats->getContactedCountry();    }          /* ritorna il conteggio di ASN e Country diversi contattati */
+  virtual void resetContactedCountry()                 { stats->resetContactedCountry();          }          /* resetta il conteggio di ASN e Country diversi contattati */
+
+ /* ******************************************************************************************* */
+
   virtual HTTPstats* getHTTPstats()                { return(stats->getHTTPstats());       };
   virtual DnsStats*  getDNSstats()                 { return(stats->getDNSstats());        };
   virtual ICMPstats* getICMPstats()                { return(stats->getICMPstats());       };

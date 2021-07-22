@@ -101,6 +101,14 @@ Flow::Flow(NetworkInterface *_iface,
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
 
     cli_host->incUses(), cli_host->incNumFlows(last_seen, true);
+
+  if(srv_host){
+     u_int32_t asn, country;
+     asn=srv_host->get_asn();
+     country = srv_host->getCountryStats()->key();
+     cli_host->addContactedAsnCountry(asn,country);
+    }
+
     if(network_stats) network_stats->incNumFlows(last_seen, true);
     cli_ip_addr = cli_host->get_ip();
     cli_host->incCliContactedHosts(_srv_ip);
@@ -114,6 +122,14 @@ Flow::Flow(NetworkInterface *_iface,
     NetworkStats *network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
 
     srv_host->incUses(), srv_host->incNumFlows(last_seen, false);
+   
+  if(cli_host){
+     u_int32_t asn, country;
+     asn= cli_host->get_asn();
+     country = cli_host->getCountryStats()->key();
+     srv_host->addContactedAsnCountry(asn,country);
+    }
+
     if(network_stats) network_stats->incNumFlows(last_seen, false);
     srv_ip_addr = srv_host->get_ip();
 
