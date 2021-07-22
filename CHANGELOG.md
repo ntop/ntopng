@@ -35,6 +35,7 @@
 * Fixes several leaks in NetworkInterface
 
 ## Notes
+
 * To ensure optimal performance and scalability and to prevent uneven resource utilization, the maximum number of interfaces handled by a single ntopng instance has been reduced to 
   * 16 (Enterprise M)
   * 32 (Enterprise L) 

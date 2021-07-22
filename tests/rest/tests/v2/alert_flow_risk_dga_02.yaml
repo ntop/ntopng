@@ -12,7 +12,7 @@ pre: |
   curl -s -u admin:admin -H "Content-Type: application/json" -d '{"alert_addr":"4.2.2.4","subdir":"flow","alert_key":"47"}' http://localhost:3333/lua/rest/v2/edit/check/filter.lua
 
   # Allow the changed configuration to be re-read
-  sleep 5
+  sleep 10
 
 post: |
   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0}' http://localhost:3333/lua/rest/v2/get/flow/alert/list.lua
