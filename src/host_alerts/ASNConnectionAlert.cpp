@@ -19,33 +19,25 @@
  *
  */
 
-#ifndef _HOST_CHECKS_INCLUDES_H_
-#define _HOST_CHECKS_INCLUDES_H_
-
 #include "host_alerts_includes.h"
-#include "host_checks_includes.h"
 
-#include "host_checks/FlowHits.h"
-#include "host_checks/FlowFlood.h"
-#include "host_checks/SYNScan.h"
-#include "host_checks/SYNFlood.h"
+/* ***************************************************** */
 
-#include "host_checks/ServerContacts.h"
-#include "host_checks/DNSServerContacts.h"
-#include "host_checks/SMTPServerContacts.h"
-#include "host_checks/NTPServerContacts.h"
+ASNConnectionAlert::ASNConnectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int8_t _num_asn, u_int8_t _num_countries) : HostAlert(c, f, cli_pctg) {
+  num_asn = _num_asn;
+  num_countries = _num_countries
+};
 
-#include "host_checks/P2PTraffic.h"
-#include "host_checks/DNSTraffic.h"
+/* ***************************************************** */
 
+ndpi_serializer* ASNConnectionAlert::getAlertJSON(ndpi_serializer* serializer) {
+  if(serializer == NULL)
+    return NULL;
 
-#include "host_checks/DangerousHost.h"
-#include "host_checks/RemoteConnection.h"
-#include "host_checks/ASNConnection.h"
+  ndpi_serialize_string_uint32(serializer, "num_asn", num_asn);
+  ndpi_serialize_string_uint32(serializer, "num_countries", num_countries);
+  
+  return serializer;
+}
 
-
-#ifdef NTOPNG_PRO
-#include "host_checks/ScoreAnomaly.h"
-#include "host_checks/FlowAnomaly.h"
-#endif
-#endif /* _HOST_CHECKS_INCLUDES_H_ */
+/* ***************************************************** */
