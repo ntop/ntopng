@@ -98,11 +98,13 @@ class LocalHost : public Host, public SerializableElement {
   virtual void lua_contacts_stats(lua_State *vm) const;
   virtual void incrVisitedWebSite(char *hostname)  { stats->incrVisitedWebSite(hostname); };
 
-  virtual void addContactedAsnCountry(u_int32_t asn, u_int32_t country);    { stats->addContactedAsnCountry(asn,country); }
-  virtual double getContactedASN()                 { return (stats->getContactedASN();    }
-  virtual void resetContactedASN()                 { stats->resetContactedASN();          }
-  virtual double getContactedCountry()             { return (stats->getContactedCountry();    }
-  virtual void resetContactedCountry()             { stats->resetContactedCountry();          }
+ /* sopra versione local host, sotto versione local host stats*/
+
+  virtual void addContactedAsnCountry(u_int32_t asn, u_int32_t country);    { stats->addContactedAsnCountry(asn,country); }          /* aggiunge un nuovo asn o country code */
+  virtual double getContactedASN()                 { return (stats->getContactedASN();    }          /* ritorna il conteggio di ASN e Country diversi contattati */
+  virtual void resetContactedASN()                 { stats->resetContactedASN();          }          /* resetta il conteggio di ASN e Country diversi contattati */
+  virtual double getContactedCountry()                 { return (stats->getContactedCountry();    }          /* ritorna il conteggio di ASN e Country diversi contattati */
+  virtual void resetContactedCountry()                 { stats->resetContactedCountry();          }          /* resetta il conteggio di ASN e Country diversi contattati */
 
  /* ******************************************************************************************* */
 
