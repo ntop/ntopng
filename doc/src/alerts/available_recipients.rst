@@ -252,9 +252,34 @@ Slack (https://slack.com) is a IRC-like business communication platform that can
 
 - Create a new channel to be used for notifications
 - Create a new Slack app from https://api.slack.com/apps?new_app=1
-- After creating a Slack app, you will be redirected to a page where you can Activate Incoming Webhooks 
+
+.. figure:: ../img/alerts_slack_new_app.png
+  :align: center
+  :alt: 
+
+- After creating a Slack app, select Incoming Webhooks 
+
+.. figure:: ../img/alerts_slack_incoming_webooks.png
+  :align: center
+  :alt: 
+
+- Activate Incoming Webhooks 
+
+.. figure:: ../img/alerts_slack_activate_webhook.png
+  :align: center
+  :alt: 
+
 - At the bottom of the page, Add a new Webhook, selecting the channel you previously created for notifications
+
+.. figure:: ../img/alerts_slack_create_webhook.png
+  :align: center
+  :alt: 
+
 - Copy the Webhook URL to the Notification Webhook field in ntopng
+
+.. figure:: ../img/alerts_slack_copy_url.png
+  :align: center
+  :alt: 
 
 Syslog
 ------
