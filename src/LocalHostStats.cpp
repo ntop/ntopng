@@ -50,9 +50,18 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   contacts_as_srv.init(4);                     /* 16 bytes  */
 
   /* hll init, 8 bits -> 256 bytes per LocalHost */
-  if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
-    throw "Failed HLL initialization";  
-  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
+   if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
+    throw "Failed HLL initialization"; 
+
+   if(ndpi_hll_init(&hll_contacted_asn, 8) != 0)
+    throw "Failed HLL initialization"; 
+
+   if(ndpi_hll_init(&hll_contacted_country, 8) != 0)
+    throw "Failed HLL initialization"; 
+
+  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0,
+  hll_delta_value_asn = 0, old_hll_value_asn = 0, new_hll_value_asn = 0,
+  hll_delta_value_country = 0, old_hll_value_country = 0, new_hll_value-country = 0;
 
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
@@ -75,9 +84,18 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   traffic_stats.ip = host->get_ip();
 #endif
   /* hll init, 8 bits -> 256 bytes per LocalHost */
-  if(ndpi_hll_init(&hll_contacted_hosts, 8))
-    throw "Failed HLL initialization";
-  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
+   if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
+    throw "Failed HLL initialization"; 
+
+   if(ndpi_hll_init(&hll_contacted_asn, 8) != 0)
+    throw "Failed HLL initialization"; 
+
+   if(ndpi_hll_init(&hll_contacted_country, 8) != 0)
+    throw "Failed HLL initialization"; 
+
+  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0,
+  hll_delta_value_asn = 0, old_hll_value_asn = 0, new_hll_value_asn = 0,
+  hll_delta_value_country = 0, old_hll_value_country = 0, new_hll_value_country = 0;
   
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
@@ -98,6 +116,8 @@ LocalHostStats::~LocalHostStats() {
   iface->updateCheckTrafficMap(host->get_ip(), host->getMac(), host->get_vlan_id(), traffic_stats);
 #endif
   ndpi_hll_destroy(&hll_contacted_hosts);
+  ndpi_hll_destroy(&hll_contacted_asn);
+  ndpi_hll_destroy(&hll_contacted_country);
 }
 
 /* *************************************** */
@@ -131,6 +151,7 @@ void LocalHostStats::incrVisitedWebSite(char *hostname) {
   }
 }
 
+
 /* *************************************** */
 
 void LocalHostStats::updateStats(const struct timeval *tv) {
@@ -154,7 +175,11 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
   if(tv->tv_sec >= nextPeriodicUpdate) {
     /* hll visited sites update */
     updateContactedHostsBehaviour();
-    
+    /* hll contacted asn and country*/
+    updateContactedASNBehaviour();
+    updateContactedCountryBehaviour();
+  
+
     /* Contacted peers update */
     updateHostContacts();
     
@@ -229,6 +254,44 @@ void LocalHostStats::luaHostBehaviour(lua_State* vm) {
 
 /* *************************************** */
 
+
+
+void LocalHostStats::luaASNBehaviour(lua_State* vm) {
+  HostStats::luaHostBehaviour(vm);
+  
+  lua_newtable(vm);
+    
+  lua_push_float_table_entry(vm, "value", hll_delta_value_asn);
+  lua_push_bool_table_entry(vm, "anomaly",      contacted_asn.anomalyFound());
+  lua_push_uint64_table_entry(vm, "lower_bound", contacted_asn.getLastLowerBound());
+  lua_push_uint64_table_entry(vm, "upper_bound", contacted_asn.getLastUpperBound());
+
+  lua_pushstring(vm, "contacted_asn_behaviour");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
+
+
+void LocalHostStats::luaCountryBehaviour(lua_State* vm) {
+  HostStats::luaHostBehaviour(vm);
+  
+  lua_newtable(vm);
+    
+  lua_push_float_table_entry(vm, "value", hll_delta_value_country);
+  lua_push_bool_table_entry(vm, "anomaly",      contacted_country.anomalyFound());
+  lua_push_uint64_table_entry(vm, "lower_bound", contacted_country.getLastLowerBound());
+  lua_push_uint64_table_entry(vm, "upper_bound", contacted_country.getLastUpperBound());
+
+  lua_pushstring(vm, "contacted_country_behaviour");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
 void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level) {
   HostStats::lua(vm, mask_host, details_level);
 
@@ -243,6 +306,8 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
   }
 
   luaHostBehaviour(vm);
+  luaASNBehaviour(vm);
+  luaCountryBehaviour(vm);
   
   if(details_level >= details_high) {
     luaICMP(vm,host->get_ip()->isIPv4(),true);
@@ -374,6 +439,8 @@ void LocalHostStats::lua_get_timeseries(lua_State* vm) {
   }
 
   luaHostBehaviour(vm);
+  luaASNBehaviour(vm);
+  luaCountryBehaviour(vm);
 }
 
 /* *************************************** */
@@ -647,4 +714,27 @@ void LocalHostStats::updateContactedHostsBehaviour() {
 #endif
   
   contacted_hosts.addObservation((u_int64_t)hll_delta_value);
+}
+
+/* *************************************** */
+
+void LocalHostStats::updateContactedCountryBehaviour() {
+
+  old_hll_value_country = new_hll_value_country;
+  new_hll_value_country = ndpi_hll_count(&hll_contacted_country);
+  hll_delta_value_country = new_hll_value_country - old_hll_value_country;
+
+  contacted_country.addObservation((u_int64_t)hll_delta_value_country);
+}
+
+/* *************************************** */
+
+
+void LocalHostStats::updateContactedASNBehaviour() {
+
+  old_hll_value_asn = new_hll_value_asn;
+  new_hll_value_asn = ndpi_hll_count(&hll_contacted_asn);
+  hll_delta_value_asn = new_hll_value_asn - old_hll_value_asn;
+
+  contacted_asn.addObservation((u_int64_t)hll_delta_value-asn);
 }
