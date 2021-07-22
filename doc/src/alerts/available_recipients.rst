@@ -120,7 +120,11 @@ After creating the endpoint, create a new recipient to associate with the new en
 Webhook
 -------
 
-TODO
+Webhooks can be used to deliver alert information to a HTTP endpoint by configuring the URL in ntopng. Alert information are provided to the webhook in JSON format by means of POST requests.
+
+A Shared Secret can be configured in ntopng, which is an arbitrary string included in all JSON messages.
+
+A Username and Password can also be used to use HTTP Basic authentication.
 
 .. _ElasticsearchAlerts:
 Elasticsearch
