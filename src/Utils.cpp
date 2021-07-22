@@ -5019,10 +5019,7 @@ void Utils::make_session_key(char *buf, u_int buf_len) {
 
 /* ****************************************************** */
 
-/* Internal function used to set names to lower 
- * Use this function only if you need to duplicate the string to be lowered
- * otherwise use Utils::stringtolower(name)
- */
+/* Internal function used to set names to lower*/
 char* Utils::toLowerResolvedNames(const char *const resolvedName) {
   char *name = strdup(resolvedName);
   if(name) {

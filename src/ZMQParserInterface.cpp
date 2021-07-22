@@ -1763,7 +1763,6 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
 
       if((key != NULL) && (value != NULL)) {
 	if(!strcmp(key, "deviceIP")) stats.deviceIP = ntohl(inet_addr(value));
-	else if(!strcmp(key, "samplesGenerated")) stats.samplesGenerated = (u_int32_t)json_object_get_int64(v);
 	else if(!strcmp(key, "ifIndex")) stats.ifIndex = (u_int32_t)json_object_get_int64(v);
 	else if(!strcmp(key, "ifName")) stats.ifName = (char*)json_object_get_string(v);
 	else if(!strcmp(key, "ifType")) stats.ifType = (u_int32_t)json_object_get_int64(v);
@@ -2055,7 +2054,7 @@ u_int32_t ZMQParserInterface::periodicStatsUpdateFrequency() const {
 void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   ZMQ_RemoteStats *last_zrs, *cumulative_zrs;
   map<u_int8_t, ZMQ_RemoteStats*>::iterator it;
-  u_int32_t last_time = getTimeLastPktRcvdRemote();
+  u_int32_t last_time = zrs->local_time;
   struct timeval now;
 
   gettimeofday(&now, NULL);
@@ -2097,9 +2096,8 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   for(it = source_id_last_zmq_remote_stats.begin(); it != source_id_last_zmq_remote_stats.end(); ) {
     ZMQ_RemoteStats *zrs_i = it->second;
 
-    if(last_time > MAX_HASH_ENTRY_IDLE && zrs_i->remote_time < last_time - MAX_HASH_ENTRY_IDLE /* sec */) {
-      /* Do not account inactive exporters, release them */
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Erased %s [local_time: %u][last_time: %u]", zrs_i->remote_ifname, zrs_i->local_time, last_time);
+    if(zrs_i->local_time < last_time - 3 /* sec */) {
+      /* do not account inactive exporters, release them */
       free(zrs_i);
       source_id_last_zmq_remote_stats.erase(it++); /* (*) */
     } else {

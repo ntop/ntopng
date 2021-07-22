@@ -33,4 +33,3 @@
         <small class="text-muted">{{ i18n("optional_field") }}</small>
     </div>
 </div>
-<small>{* i18n('webhook_alert_endpoint.webhook_description') *}</small>

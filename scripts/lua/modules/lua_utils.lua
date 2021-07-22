@@ -1557,7 +1557,7 @@ function getHostAltName(host_info)
       alt_name = ntop.getCache(getHostAltNamesKey(host_key))
    end
 
-   return string.lower(alt_name)
+   return alt_name
 end
 
 function setHostAltName(host_info, alt_name)
@@ -1632,7 +1632,7 @@ local function hostinfo2label_resolved(host_info, show_vlan, shorten_len)
 
    if isEmptyString(res) then
       -- Try and get the resolved name
-      res = string.lower(ntop.getResolvedName(ip))
+      res = ntop.getResolvedName(ip)
 
       if isEmptyString(res) then
 	 -- Nothing found, just fallback to the IP address
@@ -4354,25 +4354,14 @@ end
 
 -- ##############################################
 
-function getObsPointAlias(observation_point_id, add_id, add_href)
+function getObsPointAlias(observation_point_id)
    local alias = ntop.getHashCache(getObsPointAliasKey(), observation_point_id)
-   local ret
-   
+
    if not isEmptyString(alias) then
-      if(add_id == true) then
-	 ret = observation_point_id .. " [".. alias .."]"
-      else
-	 ret = alias
-      end
-   else
-      ret = tostring(observation_point_id)
+      return alias
    end
 
-   if(add_href == true) then
-      ret = "<A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/enterprise/observation_points.lua\">"..ret.."</A>"
-   end
-
-   return ret
+   return tostring(observation_point_id)
 end
 
 -- ##############################################
@@ -4387,8 +4376,8 @@ end
 
 -- ##############################################
 
-function getFullObsPointName(observation_point_id, compact, add_id)
-   local alias = getObsPointAlias(observation_point_id, add_id)
+function getFullObsPointName(observation_point_id, compact)
+   local alias = getObsPointAlias(observation_point_id)
 
    if not isEmptyString(observation_point_id) then
       if not isEmptyString(observation_point_id) and alias ~= tostring(observation_point_id) then

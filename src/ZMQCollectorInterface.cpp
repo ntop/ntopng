@@ -483,7 +483,7 @@ static void* packetPollLoop(void* ptr) {
   ZMQCollectorInterface *iface = (ZMQCollectorInterface*)ptr;
 
   /* Wait until the initialization completes */
-  while(iface->isStartingUp()) sleep(1);
+  while(!iface->isRunning()) sleep(1);
 
   iface->collect_flows();
   return(NULL);

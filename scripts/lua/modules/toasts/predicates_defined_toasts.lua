@@ -514,7 +514,7 @@ function predicates.exporters_SNMP_ratio_column(toast, container)
     local device_exists = not(cached_device == nil)
     -- Are SNMP Timeseries enabled?
     local snmp_dev_creation = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1"
-    -- Are Flow Probes Timseries enabled?
+    -- Are Flow Devices Timseries enabled?
     local flow_dev_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation") == "1"
 
     if not device_exists then

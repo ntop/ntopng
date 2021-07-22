@@ -514,7 +514,6 @@ function alert_store:add_filter_condition_list(field, values, values_type)
       if values_type == 'number' then
          value = tonumber(value)
       end
-
       if value then
          self:add_filter_condition(field, op, value, values_type)
       end

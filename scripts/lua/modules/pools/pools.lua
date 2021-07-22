@@ -934,7 +934,7 @@ function pools:_bind_recipient(recipient_id, pool_id)
 
       -- Persist the pool with the new `recipient`
          self:_persist(bind_pool["pool_id"], bind_pool["name"],
-                       bind_pool_members, bind_pool_recipients, bind_pool["policy"])
+                       bind_pool_members, bind_pool_recipients, pool["policy"])
       end
 
       -- Bind has executed successfully

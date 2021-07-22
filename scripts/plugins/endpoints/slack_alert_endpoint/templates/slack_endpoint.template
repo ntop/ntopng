@@ -14,4 +14,3 @@
         <input data-pattern="https" name="slack_webhook" type="text" class="form-control" required />
     </div>
 </div>
-<small>{* i18n('slack_alert_endpoint.webhook_description') *}</small>

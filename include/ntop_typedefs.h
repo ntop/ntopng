@@ -610,7 +610,6 @@ typedef enum {
 } sortField;
 
 typedef struct {
-  u_int32_t samplesGenerated; /* The sequence number of this counter sample */
   u_int32_t deviceIP, ifIndex, ifType, ifSpeed;
   char *ifName;
   bool ifFullDuplex, ifAdminStatus, ifOperStatus, ifPromiscuousMode;

@@ -560,7 +560,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline EthStats* getStats()      { return(&ethStats);          };
   inline int get_datalink()        { return(pcap_datalink_type); };
   inline void set_datalink(int l)  { pcap_datalink_type = l;     };
-  bool isStartingUp() const;
   bool isRunning() const;
   inline bool isTrafficMirrored()           const { return is_traffic_mirrored;            };
   inline bool showDynamicInterfaceTraffic() const { return show_dynamic_interface_traffic; };

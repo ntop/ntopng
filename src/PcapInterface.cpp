@@ -186,7 +186,7 @@ static void* packetPollLoop(void* ptr) {
   int fd = -1;
 
   /* Wait until the initialization completes */
-  while(iface->isStartingUp()) sleep(1);
+  while(!iface->isRunning()) sleep(1);
 
   /* Test Script (Pre Analysis) */ 
   if(ntop->getPrefs()->get_test_pre_script_path()) {

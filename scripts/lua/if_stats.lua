@@ -484,9 +484,9 @@ if((page == "overview") or (page == nil)) then
       end
       nprobe_version[#nprobe_version + 1] = cur_version
 
-      local cur_probe_ip = ip2detailshref(v["probe.ip"], 0, nil, v["probe.ip"], nil, true)
-      if not isEmptyString(v["probe.public_ip"]) then
-	 cur_probe_ip = string.format("%s (%s)", cur_probe_ip, ip2detailshref(v["probe.public_ip"], 0, nil, v["probe.public_ip"], nil, true))
+      local cur_probe_ip = v["probe.ip"]
+      if v["probe.public_ip"] ~= "" then
+	 cur_probe_ip = string.format("%s (%s)", cur_probe_ip, v["probe.public_ip"])
       end
       nprobe_probe_ip[#nprobe_probe_ip + 1] = cur_probe_ip
 

@@ -28,7 +28,7 @@ local is_appliance = ntop.isAppliance()
 local is_admin = isAdministrator()
 local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
-local updates_supported = (not ntop.isOffline() and is_admin and ntop.isPackage() and not ntop.isWindows())
+local updates_supported = (is_admin and ntop.isPackage() and not ntop.isWindows())
 local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
 local is_system_interface = page_utils.is_system_view()
 local behavior_utils = require("behavior_utils")
@@ -340,7 +340,7 @@ else
    -- Probes
    page_utils.add_menubar_section(
       {
-	 section = page_utils.menu_sections.collection,
+	 section = page_utils.menu_sections.probes,
 	 hidden = ((ifs.type ~= "zmq" and ifs.type ~= "custom") or not ntop.isEnterpriseM()) or is_system_interface,
 	 entries = {
 	    {
@@ -754,10 +754,6 @@ print[[
 
   const updates_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
 
-  /* Updates status */
-  var updatesStatus = '';
-  var updatesLastCheck = 0;
-
   /* Install latest update */
   var installUpdate = function() {
     if (confirm(']] print(i18n("updates.install_confirm"))
@@ -774,10 +770,8 @@ print[[
         },
         success: function(rsp) {
           $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
-          $('#updates-info-li').attr('title', '');
           $('#updates-install-li').hide();
           $('#admin-badge').hide();
-	  updatesStatus = 'installing';
         }
       });
     }
@@ -794,37 +788,20 @@ print[[
       },
       success: function(rsp) {
         $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
-        $('#updates-info-li').attr('title', '');
         $('#updates-install-li').hide();
         $('#admin-badge').hide();
-	updatesStatus = 'checking';
       }
     });
   }
 
   /* Update the menu with the current updates status */
   var updatesRefresh = function() {
-    const now = Date.now()/1000;
-
-    if (updatesStatus == 'installing' || updatesStatus == 'checking') {
-        /* Go ahead (frequent update) */
-    } else if (updatesStatus == 'update-avail' || updatesStatus == 'upgrade-failure') {
-        return; /* no need to check again */
-    } else { /* updatesStatus == 'not-avail' || updatesStatus == 'update-failure' || updatesStatus == <other errors> || updatesStatus == '' */
-        const check_time_sec = 300;
-        if (now < updatesLastCheck + check_time_sec) return; /* check with low freq */
-    }
-
-    updatesLastCheck = now; 
-
     $.ajax({
       type: 'GET',
         url: ']] print (ntop.getHttpPrefix()) print [[/lua/check_update.lua',
         data: {},
         success: function(rsp) {
           if(rsp && rsp.status) {
-
-	    updatesStatus = rsp.status;
 
             if (rsp.status == 'installing') {
               $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')

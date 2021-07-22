@@ -49,15 +49,13 @@ function am_import_export:import(conf)
 
    local old_hosts = am_utils.getHosts(true --[[ config only ]])
 
-   for host_key, host_conf in pairs(conf) do
+   for host_key, conf in pairs(conf) do
       local host = am_utils.key2host(host_key)
 
-      if not host.is_infrastructure then -- Infrastructure is handled separately on another import_export
-	 if old_hosts[host_key] then
-	    am_utils.editHost(host.host, host_conf.ifname, host.measurement, host_conf.threshold, host_conf.granularity, host_pools.DEFAULT_POOL_ID, host_conf.token, host_conf.save_result, host_conf.readonly)
-	 else
-	    am_utils.addHost(host.host, host_conf.ifname, host.measurement, host_conf.threshold, host_conf.granularity, host_pools.DEFAULT_POOL_ID, host_conf.token, host_conf.save_result, host_conf.readonly)
-	 end
+      if old_hosts[host_key] then
+         am_utils.editHost(host.host, host.measurement, conf.threshold, conf.granularity, host_pools.DEFAULT_POOL_ID, conf.token, conf.save_result, conf.readonly)
+      else
+         am_utils.addHost(host.host, host.measurement, conf.threshold, conf.granularity, host_pools.DEFAULT_POOL_ID, conf.token, conf.save_result, conf.readonly)
       end
    end
 
@@ -74,35 +72,14 @@ end
 -- @return The current configuration
 function am_import_export:export()
    local conf = am_utils.getHosts(true --[[ only retrieve the configuration ]])
-   local res = {}
-
-   for host_key, host_conf in pairs(conf) do
-      local host = am_utils.key2host(host_key)
-
-      -- Infrastructure has its own import_export utilities so
-      -- hosts that belong to infrastructure monitoring are skipped.
-      if not host.is_infrastructure then
-	 res[host_key] = host_conf
-      end
-   end
-   
-   return res
+   return conf
 end
 
 -- ##############################################
 
 -- @brief Reset configuration
 function am_import_export:reset()
-   local conf = am_utils.getHosts(true --[[ only retrieve the configuration ]])
-
-   for host_key, _ in pairs(conf) do
-      local host = am_utils.key2host(host_key)
-
-      -- Don't delete infrastructure hosts
-      if not host.is_infrastructure then
-	 am_utils.deleteHost(host.host, host.measurement)
-      end
-   end
+   am_utils.resetConfig()   
 end
 
 -- ##############################################

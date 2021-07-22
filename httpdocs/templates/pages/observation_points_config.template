@@ -5,7 +5,7 @@
 <tr>
 <th> {{ i18n("observation_point_alias") }} </th>
    <td>
-      <input type="text" name="custom_name" class="form-control" placeholder="{{ custom_name }}" style="width: 280px;" value="{{ custom_name }}" id="observation_point_alias">
+      <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="{{ custom_name }}" id="observation_point_alias">
    </td>
 </tr>
             
@@ -27,12 +27,12 @@
    $(document).ready(function(){
       const PAGE_CSRF = "{{ csrf }}";   
 
-      $.get(`${http_prefix}/lua/rest/v2/get/observation_points/alias.lua?observation_point={{ op_id }}`);
+      $.get( "/lua/rest/v2/get/observation_points/alias.lua?observation_point={{ op_id }}");
 
       $(`.btn-primary`).click(function(){   
          let input_text = document.getElementById(`observation_point_alias`).value;
 
-         $.post(`${http_prefix}/lua/rest/v2/set/observation_points/alias.lua`,
+         $.post("/lua/rest/v2/set/observation_points/alias.lua",
          {
             csrf: PAGE_CSRF,
             alias: input_text,

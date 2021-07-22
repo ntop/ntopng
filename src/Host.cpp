@@ -858,7 +858,7 @@ char * Host::getResolvedName(char * const buf, ssize_t buf_len) {
     m.unlock(__FILE__, __LINE__);
   }
 
-  return Utils::stringtolower(buf);
+  return buf;
 }
 
 /* ***************************************** */
@@ -870,7 +870,7 @@ char * Host::getMDNSName(char * const buf, ssize_t buf_len) {
     m.unlock(__FILE__, __LINE__);
   }
 
-  return Utils::stringtolower(buf);
+  return buf;
 }
 
 
@@ -883,7 +883,7 @@ char * Host::getMDNSTXTName(char * const buf, ssize_t buf_len) {
     m.unlock(__FILE__, __LINE__);
   }
 
-  return Utils::stringtolower(buf);
+  return buf;
 }
 
 /* ***************************************** */
@@ -907,7 +907,7 @@ char * Host::getNetbiosName(char * const buf, ssize_t buf_len) {
     m.unlock(__FILE__, __LINE__);
   }
 
-  return Utils::stringtolower(buf);
+  return buf;
 }
 
 /* ***************************************** */

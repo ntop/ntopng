@@ -139,12 +139,12 @@ function interface.getHostPoolsInfo()
 --! @brief Reset the host pools traffic accounted in quotas (nEdge only).
 function interface.resetPoolsQuotas()
 
---! @brief Returns a list of active sFlow probes.
+--! @brief Returns a list of active sFlow devices.
 --! @return table (device_ip -> device_ip_numeric) on success, nil otherwise.
 function interface.getSFlowDevices()
 
---! @brief Returns information about a specific sFlow probe interfaces.
---! @param device_ip the sFlow probe IP.
+--! @brief Returns information about a specific sFlow device interfaces.
+--! @param device_ip the sFlow device IP.
 --! @return table (if_idx -> if_information) on success, nil otherwise.
 function interface.getSFlowDeviceInfo(string device_ip)
 

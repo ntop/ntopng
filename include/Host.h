@@ -477,6 +477,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t upper_bound_flows_anomaly(bool as_client) { return(stats->upper_bound_flows_anomaly(as_client)); }
   
   inline bool has_score_anomaly(bool as_client) { return(stats->has_score_anomaly(as_client)); }
+  inline u_int32_t value_score_anomaly(bool as_client) { return(stats->value_score_anomaly(as_client)); }
   inline u_int32_t lower_bound_score_anomaly(bool as_client) { return(stats->lower_bound_score_anomaly(as_client)); }
   inline u_int32_t upper_bound_score_anomaly(bool as_client) { return(stats->upper_bound_score_anomaly(as_client)); }
 

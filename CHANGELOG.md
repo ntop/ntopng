@@ -1,50 +1,5 @@
 # Changelog
 
-#### ntopng 5.0 (July 2021)
-
-## Breakthroughs
-
-* Advanced alerts engine with security features, including the detection of [attackers and victims](https://www.ntop.org/ntopng/how-attackers-and-victims-detection-works-in-ntopng/)
-  * Integration of 30+ [nDPI security risks](https://www.ntop.org/ndpi/how-to-spot-unsafe-communications-using-ndpi-flow-risk-score/) 
-  * Generation of the `score` [indicator of compromise](https://www.ntop.org/ntopng/what-is-score-and-how-it-can-drive-you-towards-network-issues/) for hosts, interfaces and other network elements
-* Anomaly detection based on Double Exponential Smoothing (DES) to uncover possibly suspicious behaviors in the traffic and in the score
-* Encrypted Traffic Analysis (ETA) with special emphasis on the TLS to uncover self-signed, expired, invalid certificates and other issues
-
-## New features
-
-* Ability to configure alert exclusions for individual hosts to mitigate false positives
-* FreeBSD / OPNsense / pfSense [packages](https://packages.ntop.org/)
-* Ability to see the TX/RX traffic breakdown both for physical interfaces and when receiving traffic from nProbe
-* Add support for ECS when exporting to Syslog
-* Improved TCP analysis, including analysis of TCP flows with zero window and low goodput
-* Ability to send alerts to Slack
-* Implementation of a token-based REST API access
-
-## Improvements
-
-* Reworked the execution of hosts and flows checks (formerly user scripts), yielding a reduced CPU load of about 50%
-* Improved 100Kfps+ [NetFlow/sFlow collection performance](https://www.ntop.org/nprobe/netflow-collection-performance-using-ntopng-and-nprobe/)
-* Drilldown of [nIndex](https://www.ntop.org/guides/ntopng/advanced_features/flows_dump.html#nindex) historical flows much more flexible
-* Migration to Bootstrap 5
-* Check malicious JA3 signatures against all TLS-based protocols
-* Reworked Doh/DoT handling
-
-## Fixes
-
-* Fixes SSRF and stored-XSS injected with malicious SSDP responses
-* Fixes several leaks in NetworkInterface
-
-## Notes
-
-* To ensure optimal performance and scalability and to prevent uneven resource utilization, the maximum number of interfaces handled by a single ntopng instance has been reduced to 
-  * 16 (Enterprise M)
-  * 32 (Enterprise L) 
-  * 8  (all other versions)
-* REST API v1/ is deprecated and will be dropped in the next stable release in favor of REST API v2/
-* The old alerts dashboard has been removed and replaced by an advanced alerts drilldown page with integrated charts
-
-----------------------------------------------------------------
-
 #### ntopng 4.2 (October 2020)
 
 ## Breakthroughs

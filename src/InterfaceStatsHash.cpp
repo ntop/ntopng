@@ -96,26 +96,10 @@ bool InterfaceStatsHash::set(const sFlowInterfaceStats * const stats) {
       /* Update values */
       head->ifType = stats->ifType, head->ifSpeed = stats->ifSpeed,
 	head->ifFullDuplex = stats->ifFullDuplex, head->ifAdminStatus = stats->ifAdminStatus,
-	head->ifOperStatus = stats->ifOperStatus, head->ifPromiscuousMode = stats->ifPromiscuousMode;
-
-      if(stats->samplesGenerated > 0 && stats->samplesGenerated == head->samplesGenerated) {
-	/*
-	  This is an update as `samplesGenerated`.
-	  Ubiquiti routers when generating sFlow send two counters samples in two different packets
-	  with the same value for `samplesGenerated`. The first counter sample has data for the IN direction
-	  and the second counter sample has data for the OUT direction.
-	  In this case, we need to check and update values rather than overwriting them.
-	 */
-	head->ifInOctets += stats->ifInOctets, head->ifInPackets += stats->ifInPackets,
-	  head->ifInErrors += stats->ifInErrors, head->ifOutOctets += stats->ifOutOctets,
-	  head->ifOutPackets += stats->ifOutPackets, head->ifOutErrors += stats->ifOutErrors;
-      } else {
+	head->ifOperStatus = stats->ifOperStatus, head->ifPromiscuousMode = stats->ifPromiscuousMode,
 	head->ifInOctets = stats->ifInOctets, head->ifInPackets = stats->ifInPackets,
 	head->ifInErrors = stats->ifInErrors, head->ifOutOctets = stats->ifOutOctets,
 	head->ifOutPackets = stats->ifOutPackets, head->ifOutErrors = stats->ifOutErrors;
-      }
-
-      head->samplesGenerated = stats->samplesGenerated;
     } else {
     new_bucket:
       buckets[hash] = (sFlowInterfaceStats*)malloc(sizeof(sFlowInterfaceStats));

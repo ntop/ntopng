@@ -322,7 +322,7 @@ char * Mac::getDHCPName(char * const buf, ssize_t buf_size) {
     m.unlock(__FILE__, __LINE__);
   }
 
-  return Utils::stringtolower(buf);
+  return buf;
 }
 
 /* *************************************** */

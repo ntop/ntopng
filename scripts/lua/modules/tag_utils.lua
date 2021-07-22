@@ -108,25 +108,6 @@ tag_utils.nindex_tags_to_where_v6 = {
    ["probe_ip"]     = "PROBE_IP",
 }
 
-
--- #####################################
-
-tag_utils.topk_tags_v4 = {
-   ["host"]   = {
-      "IPV4_DST_ADDR",
-      "IPV4_SRC_ADDR",
-   }
-}
-
--- #####################################
-
-tag_utils.topk_tags_v6 = {
-   ["host"]   = {
-      "IPV6_DST_ADDR",
-      "IPV6_SRC_ADDR",
-   }
-}
-
 -- #####################################
 
 function tag_utils.add_tag_if_valid(tags, tag_key, operators, formatters, i18n_prefix)

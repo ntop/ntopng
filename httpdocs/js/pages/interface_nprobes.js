@@ -20,28 +20,6 @@ $(function () {
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
 	columns: [
 	    {
-		data: "column_nprobe_probe_ip",
-		width: '15%', className: 'text-nowrap',
-		render: function (data, type, row) {
-		    if (type == "sort" || type == "type") {
-			return $.fn.dataTableExt.oSort["ip-address-pre"](data);
-		    }
-
-		    return data;
-		}
-	    },
-	    {
-		data: "column_nprobe_probe_public_ip",
-		width: '10%', className: 'text-nowrap',
-		render: function (data, type, row) {
-		    if (type == "sort" || type == "type") {
-			return $.fn.dataTableExt.oSort["ip-address-pre"](data);
-		    }
-
-		    return data;
-		}
-	    },
-	    {
 		data: "column_nprobe_interface",
 		width: '15%', className: 'text-nowrap'
 	    },
@@ -62,6 +40,28 @@ $(function () {
 		width: '15%', className: 'text-nowrap',
 		orderable: false,
 	    },
+	    {
+		data: "column_nprobe_probe_ip",
+		width: '15%', className: 'text-nowrap',
+		render: function (data, type, row) {
+		    if (type == "sort" || type == "type") {
+			return $.fn.dataTableExt.oSort["ip-address-pre"](data);
+		    }
+
+		    return data;
+		}
+	    },
+	    {
+		data: "column_nprobe_probe_public_ip",
+		width: '10%', className: 'text-nowrap',
+		render: function (data, type, row) {
+		    if (type == "sort" || type == "type") {
+			return $.fn.dataTableExt.oSort["ip-address-pre"](data);
+		    }
+
+		    return data;
+		}
+	    }
 	],
 	stateSave: true,
 	hasFilters: true,

@@ -1,4 +1,4 @@
-OBJECTS=ntopng.min.css heatmap.min.css rickshaw.min.css dark-mode.min.css tempusdominus.min.css
+OBJECTS=ntopng.min.css heatmap.min.css rickshaw.min.css bootstrap-orange.min.css dark-mode.min.css tempusdominus.min.css
 
 minify: $(OBJECTS)
 

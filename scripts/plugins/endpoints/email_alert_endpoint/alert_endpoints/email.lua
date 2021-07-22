@@ -152,7 +152,7 @@ function email.dequeueRecipientAlerts(recipient, budget, high_priority)
 
     for _, json_message in ipairs(notifications) do
       local notif = json.decode(json_message)
-      message_body[#message_body + 1] = alert_utils.formatAlertNotification(notif, {show_entity = true, nohtml=true})
+      message_body[#message_body + 1] = alert_utils.formatAlertNotification(notif, {nohtml=true})
     end
 
     message_body = table.concat(message_body, "<br>")

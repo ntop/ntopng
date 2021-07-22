@@ -43,11 +43,11 @@ for k, v in pairs(ifstats.probes or {}) do
       nprobe_version = string.format("%s (%s)", nprobe_version, v["probe.probe_os"])
    end
 
-   local nprobe_probe_ip = ip2detailshref(v["probe.ip"], 0, nil, v["probe.ip"], nil, true)
+   local nprobe_probe_ip = v["probe.ip"]
    local nprobe_probe_public_ip
 
-   if not isEmptyString(v["probe.public_ip"]) then
-      nprobe_probe_public_ip = ip2detailshref(v["probe.public_ip"], 0, nil, v["probe.public_ip"], nil, true)
+   if v["probe.public_ip"] ~= "" then
+      nprobe_probe_public_ip = v["probe.public_ip"]
    end
 
    local nprobe_edition = v["probe.probe_edition"]
