@@ -396,6 +396,9 @@ void Host::lua_get_names(lua_State * const vm, char * const buf, ssize_t buf_siz
   getTLSName(buf, buf_size);
   if(buf[0]) lua_push_str_table_entry(vm, "tls", buf);
 
+  getHTTPName(buf, buf_size);
+  if(buf[0]) lua_push_str_table_entry(vm, "http", buf);
+
   if(isBroadcastDomainHost() && cur_mac) {
     cur_mac->getDHCPName(buf, buf_size);
     if(buf[0]) lua_push_str_table_entry(vm, "dhcp", buf);
@@ -821,6 +824,10 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   if(name_buf[0])
     goto out;
 
+  getHTTPName(name_buf, sizeof(name_buf));
+  if(name_buf[0])
+    goto out;
+
   if(!skip_resolution) {
     addr = ip.print(buf, buf_len);
     rc = ntop->getRedis()->getAddress(addr, name_buf, sizeof(name_buf),
@@ -923,6 +930,18 @@ char * Host::getTLSName(char * const buf, ssize_t buf_len) {
   if(buf && buf_len) {
     m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_len, "%s", names.tls ? names.tls : "");
+    m.unlock(__FILE__, __LINE__);
+  }
+
+  return Utils::stringtolower(buf);
+}
+
+/* ***************************************** */
+
+char * Host::getHTTPName(char * const buf, ssize_t buf_len) {
+  if(buf && buf_len) {
+    m.lock(__FILE__, __LINE__);
+    snprintf(buf, buf_len, "%s", names.http ? names.http : "");
     m.unlock(__FILE__, __LINE__);
   }
 
@@ -1366,6 +1385,13 @@ void Host::offlineSetTLSName(const char * const tls_n) {
 
 /* *************************************** */
 
+void Host::offlineSetHTTPName(const char * const http_n) {
+  if(!names.http && http_n && (names.http = Utils::toLowerResolvedNames(http_n)))
+    ;
+}
+
+/* *************************************** */
+
 void Host::setResolvedName(const char * const resolved_name) {
   /* Multiple threads can set this so we must lock */
   if(resolved_name && resolved_name[0] != '\0') {
@@ -1544,6 +1570,7 @@ void Host::freeHostNames() {
   if(names.resolved) { free(names.resolved); names.resolved = NULL;   }
   if(names.netbios)  { free(names.netbios); names.netbios = NULL;     }
   if(names.tls)      { free(names.tls); names.tls = NULL;             }
+  if(names.http)     { free(names.http); names.http = NULL;           }
 }
 
 /* *************************************** */
