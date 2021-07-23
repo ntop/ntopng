@@ -571,7 +571,6 @@ void Flow::processExtraDissectedInformation() {
     case NDPI_PROTOCOL_MAIL_IMAPS:
     case NDPI_PROTOCOL_MAIL_SMTPS:
     case NDPI_PROTOCOL_MAIL_POPS:
-    case NDPI_PROTOCOL_TOR:
     case NDPI_PROTOCOL_QUIC:
       protos.tls.tls_version = ndpiFlow->protos.tls_quic_stun.tls_quic.ssl_version;
 
@@ -3168,7 +3167,6 @@ bool Flow::isTLS() const {
 	 || isProto(NDPI_PROTOCOL_MAIL_IMAPS)
 	 || isProto(NDPI_PROTOCOL_MAIL_SMTPS)
 	 || isProto(NDPI_PROTOCOL_MAIL_POPS)
-	 || isProto(NDPI_PROTOCOL_TOR)
 	 || isProto(NDPI_PROTOCOL_QUIC)
 	 );
 }
