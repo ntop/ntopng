@@ -301,7 +301,7 @@ else
    local num_periodicity = 0
 
    local service_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua?host=" .. host_ip
-   local periodicity_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua?&host=" .. host_ip
+   local periodicity_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua?ifid="..ifId.."&host=" .. host_ip
 
    service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
 
