@@ -398,9 +398,3 @@ void IpAddress::dump() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Local: %s][SystemHost: %s]",
 			       print(buf, sizeof(buf)), local, system);
 }
-
-/* ****************************** */
-
-IpAddress* IpAddress::clone() {
-  return(new (std::nothrow) IpAddress(*this));
-}
