@@ -297,8 +297,8 @@ function fixTimeRange(chart, params, align_step, actual_step) {
 
   resolution = Math.max(actual_step, resolution);
 
-    if(align) {
-    align = (align_step && (frame < 86400) /* do not align daily traffic to avoid jumping to other RRA <???> */) ? Math.max(align, align_step) : 1;
+  if(align) {
+    align = (align_step && (frame != 86400) /* do not align daily traffic to avoid jumping to other RRA */) ? Math.max(align, align_step) : 1;
     params.epoch_begin -= params.epoch_begin % align;
     params.epoch_end -= params.epoch_end % align;
     diff_epoch = (params.epoch_end - params.epoch_begin);
@@ -317,27 +317,23 @@ function fixTimeRange(chart, params, align_step, actual_step) {
 function findActualStep(raw_step, tstart) {
   if(typeof supported_steps === "object") {
     if(supported_steps[raw_step]) {
-      const retention = supported_steps[raw_step].retention;
+      var retention = supported_steps[raw_step].retention;
 
       if(retention) {
-        const now_ts = Date.now() / 1000;
+        var now_ts = Date.now() / 1000;
         var delta = now_ts - tstart;
-        var partial;
 
         for(var i=0; i<retention.length; i++) {
+          var partial = raw_step * retention[i].aggregation_dp;
           var tframe = partial * retention[i].retention_dp;
-	  partial = raw_step * retention[i].aggregation_dp;
           delta -= tframe;
 
           if(delta <= 0)
-            break;
+            return partial;
         }
-
-	return partial;
       }
     }
   }
-
   return raw_step;
 }
 
@@ -1121,7 +1117,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           Function used to split charts info, otherwise graphs with multiple
           timeseries are going to have incorrect values
         */
-        function splitSeriesInfo(stats_name, cell, show_date, formatter, total) {
+          function splitSeriesInfo(stats_name, cell, show_date, formatter, total) {
           let val = "";
           let time_elapsed = 1;
           const val_formatter = (formatter ? formatter : stats_formatter)
