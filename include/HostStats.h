@@ -108,6 +108,11 @@ class HostStats: public GenericTrafficElement {
   void luaStats(lua_State* vm, NetworkInterface *iface, bool host_details, bool verbose, bool tsLua = false);
   virtual u_int16_t getNumActiveContactsAsClient() { return 0; }
   virtual u_int16_t getNumActiveContactsAsServer() { return 0; }
+  virtual void addContactedAsnCountry(u_int32_t asn,u_int32_t country)   {}       
+  virtual double getContactedASN()                                       { return 0; }
+  virtual void resetContactedASN()                                       {}       
+  virtual double getContactedCountry()                                   { return 0; }
+  virtual void resetContactedCountry()                                   {}  
   virtual void resetTopSitesData() {};
   
   inline void incSentStats(u_int num_pkts, u_int pkt_len) { sent_stats.incStats(num_pkts, pkt_len); };

@@ -31,7 +31,7 @@ public:
   ~ASNConnection() {};
 
   ASNConnectionAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, double num_asn, double num_countries) {
-    return new ASNConnectionAlert(c, h, cli_pctg, num_asn);
+    return new ASNConnectionAlert(c, h, cli_pctg, num_asn, num_countries);
   };
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);

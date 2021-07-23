@@ -95,10 +95,10 @@ class LocalHost : public Host, public SerializableElement {
   virtual void lua_peers_stats(lua_State* vm)    const;
   virtual void lua_contacts_stats(lua_State *vm) const;
   virtual void incrVisitedWebSite(char *hostname)  { stats->incrVisitedWebSite(hostname); };
-  virtual void addContactedAsnCountry(u_int32_t asn, u_int32_t country);    { stats->addContactedAsnCountry(asn,country); }         
-  virtual double getContactedASN()                     { return (stats->getContactedASN();    }      
+  virtual void addContactedAsnCountry(u_int32_t asn, u_int32_t country)    { stats->addContactedAsnCountry(asn,country); }         
+  virtual double getContactedASN()                     { return (stats->getContactedASN());    }      
   virtual void resetContactedASN()                     { stats->resetContactedASN();          }         
-  virtual double getContactedCountry()                 { return (stats->getContactedCountry();    }       
+  virtual double getContactedCountry()                 { return (stats->getContactedCountry());    }       
   virtual void resetContactedCountry()                 { stats->resetContactedCountry();          }        
   virtual HTTPstats* getHTTPstats()                { return(stats->getHTTPstats());       };
   virtual DnsStats*  getDNSstats()                 { return(stats->getDNSstats());        };

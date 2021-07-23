@@ -24,9 +24,7 @@
 
 /* ***************************************************** */
 
-ASNConnection::ASNConnection() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
-    periodicity_secs = (u_int32_t)300;
-};
+ASNConnection::ASNConnection() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {};
 
 /* ***************************************************** */
 
@@ -37,16 +35,16 @@ void ASNConnection::periodicUpdate(Host *h, HostAlert *engaged_alert) {
 
 
   num_asn = h->getContactedASN();
-  num_countries =  h->getContactedCountries();
+  num_countries =  h->getContactedCountry();
 
 
-  if(num_asn > threshold || num_countries > threshold) {
+  if(num_asn > 100 || num_countries > 100) {
     if (!alert) alert = allocAlert(this, h, CLIENT_FAIR_RISK_PERCENTAGE, num_asn, num_countries);
     if (alert) h->triggerAlert(alert);
   }
 
   h->resetContactedASN();
-  h->resetContactedCountries();
+  h->resetContactedCountry();
 
 }
 

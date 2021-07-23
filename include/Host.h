@@ -364,6 +364,11 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void luaTCP(lua_State *vm) { };
   virtual u_int16_t getNumActiveContactsAsClient()  { return 0; };
   virtual u_int16_t getNumActiveContactsAsServer()  { return 0; };
+  virtual void addContactedAsnCountry(u_int32_t asn,u_int32_t country)   {}       
+  virtual double getContactedASN()                                       { return 0; }
+  virtual void resetContactedASN()                                       {}       
+  virtual double getContactedCountry()                                   { return 0; }
+  virtual void resetContactedCountry()                                   {}
   inline TcpPacketStats* getTcpPacketSentStats() { return(stats->getTcpPacketSentStats()); }
   inline TcpPacketStats* getTcpPacketRcvdStats() { return(stats->getTcpPacketRcvdStats()); }
 

@@ -53,15 +53,15 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
    if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
     throw "Failed HLL initialization"; 
 
-   if(ndpi_hll_init(&hll_contacted_asn, 8) != 0)
+   if(ndpi_hll_init(&hll_contacted_asn, 32) != 0)
     throw "Failed HLL initialization"; 
 
-   if(ndpi_hll_init(&hll_contacted_country, 8) != 0)
+   if(ndpi_hll_init(&hll_contacted_country, 32) != 0)
     throw "Failed HLL initialization"; 
 
   hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0,
   hll_delta_value_asn = 0, old_hll_value_asn = 0, new_hll_value_asn = 0,
-  hll_delta_value_country = 0, old_hll_value_country = 0, new_hll_value-country = 0;
+  hll_delta_value_country = 0, old_hll_value_country = 0, new_hll_value_country = 0;
 
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
@@ -87,10 +87,10 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
    if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
     throw "Failed HLL initialization"; 
 
-   if(ndpi_hll_init(&hll_contacted_asn, 8) != 0)
+   if(ndpi_hll_init(&hll_contacted_asn, 32) != 0)
     throw "Failed HLL initialization"; 
 
-   if(ndpi_hll_init(&hll_contacted_country, 8) != 0)
+   if(ndpi_hll_init(&hll_contacted_country, 32) != 0)
     throw "Failed HLL initialization"; 
 
   hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0,
@@ -736,5 +736,5 @@ void LocalHostStats::updateContactedASNBehaviour() {
   new_hll_value_asn = ndpi_hll_count(&hll_contacted_asn);
   hll_delta_value_asn = new_hll_value_asn - old_hll_value_asn;
 
-  contacted_asn.addObservation((u_int64_t)hll_delta_value-asn);
+  contacted_asn.addObservation((u_int64_t)hll_delta_value_asn);
 }

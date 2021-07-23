@@ -67,6 +67,8 @@ class LocalHostStats: public HostStats {
   void serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize);
   void deserializeTopSites(char* redis_key_current);
   void updateContactedHostsBehaviour();
+  void updateContactedASNsBehaviour();
+  void updateContactedCountrysBehaviour();
 #if defined(NTOPNG_PRO)
   void resetTrafficStats();
 #endif
@@ -94,8 +96,8 @@ class LocalHostStats: public HostStats {
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose)    { if (icmp) icmp->lua(isV4, vm, verbose); }
   virtual void luaPeers(lua_State *vm);
   virtual void incrVisitedWebSite(char *hostname);
-  virtual void addContactedAsnCountry(u_init32_t asn,u_init32_t country) { ndpi_hll_add(&hll_contacted_country, country);
-                                                                           ndpi_hll_add(&hll_contacted_asn, asn);         }       
+  virtual void addContactedAsnCountry(u_int32_t asn,u_int32_t country) { ndpi_hll_add_number(&hll_contacted_country, country);
+                                                                           ndpi_hll_add_number(&hll_contacted_asn, asn);  }       
   virtual double getContactedASN()                                       { return ndpi_hll_count(&hll_contacted_asn);     }  
   virtual void resetContactedASN()                                       { ndpi_hll_reset(&hll_contacted_asn);            }       
   virtual double getContactedCountry()                                   { return ndpi_hll_count(&hll_contacted_country); } 
@@ -103,6 +105,8 @@ class LocalHostStats: public HostStats {
   virtual void lua_get_timeseries(lua_State* vm);
   void luaContactsBehaviour(lua_State *vm);
   virtual void luaHostBehaviour(lua_State* vm);
+  virtual void luaASNBehaviour(lua_State* vm);
+  virtual void luaCountryBehaviour(lua_State* vm);
   virtual bool hasAnomalies(time_t when);
   virtual void luaAnomalies(lua_State* vm, time_t when);
   virtual HTTPstats* getHTTPstats() { return(http); };
