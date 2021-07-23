@@ -1341,13 +1341,15 @@ void Host::offlineSetNetbiosName(const char * const netbios_n) {
 /* *************************************** */
 
 void Host::setResolvedName(const char * const resolved_name) {
-  /* This is NOT set inline, so we must lock. */
-  if(resolved_name && (resolved_name[0] != '\0')
-     && (!names.resolved /* Don't set hostnames already set */) ) {
+  /* Multiple threads can set this so we must lock */
+  if(resolved_name && resolved_name[0] != '\0') {
     m.lock(__FILE__, __LINE__);
-    names.resolved = Utils::toLowerResolvedNames(resolved_name);
+
+    if(!names.resolved /* Don't set hostnames already set */)
+      names.resolved = Utils::toLowerResolvedNames(resolved_name);
+
     m.unlock(__FILE__, __LINE__);
-  }
+    }
 }
 
 /* *************************************** */

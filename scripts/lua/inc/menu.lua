@@ -805,16 +805,17 @@ print[[
   /* Update the menu with the current updates status */
   var updatesRefresh = function() {
     const now = Date.now()/1000;
+    let check_time_sec = 10;
 
     if (updatesStatus == 'installing' || updatesStatus == 'checking') {
         /* Go ahead (frequent update) */
     } else if (updatesStatus == 'update-avail' || updatesStatus == 'upgrade-failure') {
         return; /* no need to check again */
     } else { /* updatesStatus == 'not-avail' || updatesStatus == 'update-failure' || updatesStatus == <other errors> || updatesStatus == '' */
-        const check_time_sec = 300;
-        if (now < updatesLastCheck + check_time_sec) return; /* check with low freq */
+        check_time_sec = 300;
     }
 
+    if (now < updatesLastCheck + check_time_sec) return; /* check with low freq */
     updatesLastCheck = now; 
 
     $.ajax({
@@ -879,8 +880,7 @@ print[[
         }
     });
   }
-  updatesRefresh();
-  setInterval(updatesRefresh, 10000);
+  setInterval(updatesRefresh, 1000);
 </script>
 ]]
 end
