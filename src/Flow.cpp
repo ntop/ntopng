@@ -343,9 +343,8 @@ Flow::~Flow() {
     if(protos.ssh.server_signature)  free(protos.ssh.server_signature);
     if(protos.ssh.hassh.client_hash) free(protos.ssh.hassh.client_hash);
     if(protos.ssh.hassh.server_hash) free(protos.ssh.hassh.server_hash);
-  } else if(isTLSProto()) {
-    if(protos.tls.client_requested_server_name)
-      free(protos.tls.client_requested_server_name);
+  } else if(isTLS()) {
+    if(protos.tls.client_requested_server_name)  free(protos.tls.client_requested_server_name);
     if(protos.tls.server_names)                  free(protos.tls.server_names);
     if(protos.tls.ja3.client_hash)               free(protos.tls.ja3.client_hash);
     if(protos.tls.ja3.server_hash)               free(protos.tls.ja3.server_hash);
@@ -489,17 +488,7 @@ void Flow::processDetectedProtocolData() {
     break;
 
   case NDPI_PROTOCOL_MDNS:
-    /*
-      The statement below can create issues sometimes as devices publish
-      themselves with varisous names depending on the context (**)
-    */
-    if(ndpiFlow->host_server_name[0] != '\0' && !protos.mdns.answer) {
-      protos.mdns.answer = strdup((char*)ndpiFlow->host_server_name);
-      if(srv_h) {
-	if(strchr((char*)ndpiFlow->host_server_name, '.') == NULL)
-	  srv_h->setResolvedName((char*)ndpiFlow->host_server_name);
-      }
-    }
+    /* protos.mdns.{answer,name} already propagated to hosts in Flow::hosts_periodic_stats_update  */
     break;
 
   case NDPI_PROTOCOL_TOR:
@@ -578,11 +567,13 @@ void Flow::processExtraDissectedInformation() {
       }
       break;
 
+    /* Protocols with TLS transport (keep in sync with isTLS()) */
     case NDPI_PROTOCOL_TLS:
-    /* More protocols with TLS transport (keep in sync with isTLSProto()) */
     case NDPI_PROTOCOL_MAIL_IMAPS:
     case NDPI_PROTOCOL_MAIL_SMTPS:
     case NDPI_PROTOCOL_MAIL_POPS:
+    case NDPI_PROTOCOL_TOR:
+    case NDPI_PROTOCOL_QUIC:
       protos.tls.tls_version = ndpiFlow->protos.tls_quic_stun.tls_quic.ssl_version;
 
       protos.tls.notBefore = ndpiFlow->protos.tls_quic_stun.tls_quic.notBefore,
@@ -2162,7 +2153,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       if(isSSH())
 	lua_get_ssh_info(vm);
 
-      if(isTLSProto())
+      if(isTLS())
 	lua_get_tls_info(vm);
     }
 
@@ -3164,14 +3155,14 @@ bool Flow::isBlacklistedServer() const {
 
 /* *************************************** */
 
-bool Flow::isTLSProto() const {
-  u_int16_t lower = ndpi_get_lower_proto(ndpiDetectedProtocol);
-
+bool Flow::isTLS() const {
   return(
-	 (lower == NDPI_PROTOCOL_TLS) ||
-	 (lower == NDPI_PROTOCOL_MAIL_IMAPS) ||
-	 (lower == NDPI_PROTOCOL_MAIL_SMTPS) ||
-	 (lower == NDPI_PROTOCOL_MAIL_POPS)
+	 isProto(NDPI_PROTOCOL_TLS)
+	 || isProto(NDPI_PROTOCOL_MAIL_IMAPS)
+	 || isProto(NDPI_PROTOCOL_MAIL_SMTPS)
+	 || isProto(NDPI_PROTOCOL_MAIL_POPS)
+	 || isProto(NDPI_PROTOCOL_TOR)
+	 || isProto(NDPI_PROTOCOL_QUIC)
 	 );
 }
 
@@ -4759,7 +4750,7 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
 /* ***************************************************** */
 
 void Flow::updateCliJA3() {
-  if(cli_host && isTLSProto() && protos.tls.ja3.client_hash) {
+  if(cli_host && isTLS() && protos.tls.ja3.client_hash) {
     cli_host->getJA3Fingerprint()->update(protos.tls.ja3.client_hash,
 					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL,
 					  has_malicious_cli_signature);
@@ -4769,7 +4760,7 @@ void Flow::updateCliJA3() {
 /* ***************************************************** */
 
 void Flow::updateSrvJA3() {
-  if(srv_host && isTLSProto() && protos.tls.ja3.server_hash) {
+  if(srv_host && isTLS() && protos.tls.ja3.server_hash) {
     srv_host->getJA3Fingerprint()->update(protos.tls.ja3.server_hash,
 					  srv_ebpf ? srv_ebpf->process_info.process_name : NULL, false);
   }
@@ -5224,7 +5215,7 @@ void Flow::lua_get_unicast_info(lua_State* vm) const {
 /* ***************************************************** */
 
 void Flow::lua_get_tls_info(lua_State *vm) const {
-  if(isTLSProto()) {
+  if(isTLS()) {
     lua_push_int32_table_entry(vm, "protos.tls_version", protos.tls.tls_version);
 
     if(protos.tls.server_names)
@@ -5274,7 +5265,7 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
 /* ***************************************************** */
 
 void Flow::getTLSInfo(ndpi_serializer *serializer) const {
-  if(isTLSProto()) {
+  if(isTLS()) {
     ndpi_serialize_string_int32(serializer, "protos.tls_version", protos.tls.tls_version);
 
     if(protos.tls.server_names)
