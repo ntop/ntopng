@@ -393,6 +393,9 @@ void Host::lua_get_names(lua_State * const vm, char * const buf, ssize_t buf_siz
   getNetbiosName(buf, buf_size);
   if(buf[0]) lua_push_str_table_entry(vm, "netbios", buf);
 
+  getTLSName(buf, buf_size);
+  if(buf[0]) lua_push_str_table_entry(vm, "tls", buf);
+
   if(isBroadcastDomainHost() && cur_mac) {
     cur_mac->getDHCPName(buf, buf_size);
     if(buf[0]) lua_push_str_table_entry(vm, "dhcp", buf);
@@ -814,6 +817,10 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   if(name_buf[0])
     goto out;
 
+  getTLSName(name_buf, sizeof(name_buf));
+  if(name_buf[0])
+    goto out;
+
   if(!skip_resolution) {
     addr = ip.print(buf, buf_len);
     rc = ntop->getRedis()->getAddress(addr, name_buf, sizeof(name_buf),
@@ -904,6 +911,18 @@ char * Host::getNetbiosName(char * const buf, ssize_t buf_len) {
   if(buf && buf_len) {
     m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_len, "%s", names.netbios ? names.netbios : "");
+    m.unlock(__FILE__, __LINE__);
+  }
+
+  return Utils::stringtolower(buf);
+}
+
+/* ***************************************** */
+
+char * Host::getTLSName(char * const buf, ssize_t buf_len) {
+  if(buf && buf_len) {
+    m.lock(__FILE__, __LINE__);
+    snprintf(buf, buf_len, "%s", names.tls ? names.tls : "");
     m.unlock(__FILE__, __LINE__);
   }
 
@@ -1340,6 +1359,13 @@ void Host::offlineSetNetbiosName(const char * const netbios_n) {
 
 /* *************************************** */
 
+void Host::offlineSetTLSName(const char * const tls_n) {
+  if(!names.tls && tls_n && (names.tls = Utils::toLowerResolvedNames(tls_n)))
+    ;
+}
+
+/* *************************************** */
+
 void Host::setResolvedName(const char * const resolved_name) {
   /* Multiple threads can set this so we must lock */
   if(resolved_name && resolved_name[0] != '\0') {
@@ -1511,12 +1537,13 @@ void Host::checkBroadcastDomain() {
 /* *************************************** */
 
 void Host::freeHostNames() {
-  if(ssdpLocation)   { free(ssdpLocation); ssdpLocation = NULL;     }
-  if(names.mdns)     { free(names.mdns); names.mdns = NULL;         }
+  if(ssdpLocation)   { free(ssdpLocation); ssdpLocation = NULL;       }
+  if(names.mdns)     { free(names.mdns); names.mdns = NULL;           }
   if(names.mdns_info){ free(names.mdns_info); names.mdns_info = NULL; }
-  if(names.mdns_txt) { free(names.mdns_txt); names.mdns_txt = NULL; }
-  if(names.resolved) { free(names.resolved); names.resolved = NULL; }
-  if(names.netbios)  { free(names.netbios); names.netbios = NULL;   }
+  if(names.mdns_txt) { free(names.mdns_txt); names.mdns_txt = NULL;   }
+  if(names.resolved) { free(names.resolved); names.resolved = NULL;   }
+  if(names.netbios)  { free(names.netbios); names.netbios = NULL;     }
+  if(names.tls)      { free(names.tls); names.tls = NULL;             }
 }
 
 /* *************************************** */

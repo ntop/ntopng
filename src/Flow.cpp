@@ -500,7 +500,6 @@ void Flow::processDetectedProtocolData() {
 	cli_h->incrVisitedWebSite(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
 
       if(cli_h) cli_h->incContactedService(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
-      if(srv_h) srv_h->setResolvedName(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
     }
     break;
 
@@ -1592,6 +1591,9 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
   default:
     break;
   }
+
+  if(srv_host && isTLS())
+    srv_host->offlineSetTLSName(protos.tls.client_requested_server_name);
 }
 
 /* *************************************** */
