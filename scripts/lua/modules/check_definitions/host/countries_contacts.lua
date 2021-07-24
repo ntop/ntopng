@@ -11,12 +11,12 @@ local countries_contacts = {
    -- Script category
    category = checks.check_categories.security,
 
-   default_enabled = false,
+   default_enabled = true,
    alert_id = host_alert_keys.host_alert_countries_contacts,
 
    default_value = {
       operator = "gt",
-      threshold = 10,
+      threshold = 100,
    },
 
    gui = {

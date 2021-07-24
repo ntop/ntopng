@@ -168,6 +168,7 @@ local lang = {
     ["host_activity"] = "Host Aktivität",
   },
   ["alert_messages"] = {
+    ["host_alert_countries_contacts"] = "Zu viele Länder kontaktiert von %{entity} [%{value} &gt; %{threshold} Länder]",
     ["a_new_device_has_connected"] = "Neues Gerät <a href=\"%{url}\">%{device}</a> hat sich mit dem Netzwerk verbunden.",
     ["anomalous_tcp_flags"] = "%{entity} has %{sent_or_rcvd} zu viele TCP RST-Flags vs. SYN [Verhältnis: %{ratio}%%]",
     ["attack_mitigation_via_snmp_failure"] = "Schnittstelle nicht eingestellt <a href=\"%{port_url}\">%{port}</a> Admin-Status auf SNMP-Gerät <a href=\"%{url}\">%{device}</a> nach %{admin_down}: %{granularity} <b>%{metric}</b> durchquert von %{entity} [%{value} %{op} %{threshold}]. Stellen Sie sicher, dass das SNMP-Gerät eine (gültige) Schreib-Community konfiguriert hat.",
@@ -243,6 +244,7 @@ local lang = {
     ["x_alerts"] = "%{num} Alarme",
    },
   ["alerts_dashboard"] = {
+    ["host_alert_countries_contacts"] = "Länderkontakte Benachrichtigung",
     ["alert_counts"] = "Anzahl",
     ["alert_duration"] = "Dauer",
     ["alert_severity"] = "Schwierigkeitsgrad",
@@ -286,6 +288,8 @@ local lang = {
     ["warning"] = "Warning",
   },
   ["alerts_thresholds_config"] = {
+    ["countries_contacts_title"] = "Länderkontakte Benachrichtigung",
+    ["countries_contacts_description"] = "Alarm auslösen, wenn die Anzahl der kontaktierten Länder den Schwellenwert überschreitet",
     ["activity_time"] = "Aktivitätszeit",
     ["alert_active_description"] = "Aktivitätszeit seit letzer Kontrolle (Sekunden).",
     ["alert_bytes_description"] = "Layer 2 Bytes Delta (gesendet + erhalten)",

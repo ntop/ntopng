@@ -422,6 +422,7 @@ local lang = {
     ["timeseries"] = "Preleva e scrive le serie temporali accodate per la scrittura.",
   },
   ["alert_messages"] = {
+    ["host_alert_countries_contacts"] = "Troppe nazioni contattate da %{entity} [%{value} &gt; %{threshold} nazioni",
     ["a_new_device_has_connected"] = "Il nuovo dispositivo <a href=\"%{url}\">%{device}</a> si è connesso alla rete.",
     ["anomalous_tcp_flags"] = "%{entity} ha %{sent_or_rcvd} troppi TCP RST rispetto ai SYN [Rapporto: %{ratio}%%]",
     ["attack_mitigation_via_snmp_failure"] = "Impossibile cambiare l'admin status dell'interfaccia <a href=\"%{port_url}\">%{port}</a> del dispositivo SNMP <a href=\"%{url}\">%{device}</a> a %{admin_down}: %{granularity} <b>%{metric}</b> oltrepassata da %{entity} [%{value} %{op} %{threshold}]. Controllare la write community configurata per il dispositivo SNMP.",
@@ -481,6 +482,7 @@ local lang = {
     ["x_alerts"] = "%{num} allarmi",
   },
   ["alerts_dashboard"] = {
+    ["host_alert_countries_contacts"] = "Allarme nazioni contattate",
     ["active_flows_anomaly"] = "Anomalie Flussi Attivi",
     ["alert"] = "Allarme",
     ["alert_counts"] = "Conteggio",
@@ -636,6 +638,8 @@ local lang = {
     ["web_mining"] = "Mining Web",
   },
   ["alerts_thresholds_config"] = {
+    ["countries_contacts_title"] = "Allarme sulle nazioni contattate",
+    ["countries_contacts_description"] = "Emette un allarme quando il numero di nazioni differenti contattate eccede la soglia",
     ["active_local_hosts"] = "Host Locali",
     ["active_local_hosts_threshold_descr"] = "Numero di host locali attivi",
     ["activity_time"] = "Tempo d'Attività",

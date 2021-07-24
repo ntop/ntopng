@@ -43,7 +43,12 @@ class LocalHostStats: public HostStats {
   struct ndpi_hll hll_contacted_hosts;
   double old_hll_value, new_hll_value, hll_delta_value;
   DESCounter contacted_hosts;
-  
+
+  /* Estimate the number of contacted countries using HyperLogLog */
+  struct ndpi_hll hll_countries_contacts;
+  double old_hll_countries_value, new_hll_countries_value, hll_delta_countries_value;
+  DESCounter countries_contacts;
+
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   char *old_sites;
   u_int8_t current_cycle;
@@ -53,8 +58,7 @@ class LocalHostStats: public HostStats {
     num_contacted_services_as_client,        /* DNS, TLS, HTTP....                  */
     num_contacted_ports_as_client,           /* # of different ports this host has contacted          */
     num_host_contacted_ports_as_server,      /* # of different server ports contacted by remote peers */
-    contacts_as_cli, contacts_as_srv,        /* Minute reset host contacts          */
-    num_countries_contacts;                  /* # of countries contacted */
+    contacts_as_cli, contacts_as_srv;        /* Minute reset host contacts          */
 
   PeerStats *peers;
 
@@ -66,6 +70,7 @@ class LocalHostStats: public HostStats {
   void serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize);
   void deserializeTopSites(char* redis_key_current);
   void updateContactedHostsBehaviour();
+  void updateCountriesContactsBehaviour();
 #if defined(NTOPNG_PRO)
   void resetTrafficStats();
 #endif
@@ -96,6 +101,7 @@ class LocalHostStats: public HostStats {
   virtual void lua_get_timeseries(lua_State* vm);
   void luaContactsBehaviour(lua_State *vm);
   virtual void luaHostBehaviour(lua_State* vm);
+  virtual void luaCountriesBehaviour(lua_State* vm);
   virtual bool hasAnomalies(time_t when);
   virtual void luaAnomalies(lua_State* vm, time_t when);
   virtual HTTPstats* getHTTPstats() { return(http); };
@@ -134,8 +140,9 @@ class LocalHostStats: public HostStats {
       num_contacted_services_as_client.addElement(name, strlen(name));
   }
 
-  virtual void incCountriesContacts(Country *country) { num_countries_contacts.addElement(country->key()); }
-  virtual u_int8_t getCountriesContactsCardinality(){ return(num_countries_contacts.getEstimate()); }
+  virtual void incCountriesContacts(char *country)    { ndpi_hll_add(&hll_countries_contacts, country, strlen(country)); }
+  virtual u_int32_t getCountriesContactsCardinality() { return ndpi_hll_count(&hll_countries_contacts);                  }
+  virtual void resetCountriesContacts()               { ndpi_hll_reset(&hll_countries_contacts);                         } 
 
 };
 

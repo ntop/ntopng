@@ -127,6 +127,7 @@ class HostStats: public GenericTrafficElement {
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
   void updateStats(const struct timeval *tv);
   virtual void luaHostBehaviour(lua_State* vm);
+  void luaCountriesBehaviour(lua_State* vm);
 #ifdef NTOPNG_PRO
   inline void incQuotaEnforcementStats(time_t when, u_int16_t ndpi_proto,
 				       u_int64_t sent_packets, u_int64_t sent_bytes,
@@ -161,9 +162,10 @@ class HostStats: public GenericTrafficElement {
   virtual void incCliContactedHosts(IpAddress *peer) { ; }
   virtual void incSrvHostContacts(IpAddress *peer)   { ; }
 
-  virtual void incCountriesContacts(Country *country) { ; }
-  virtual u_int8_t getCountriesContactsCardinality() { return((u_int8_t)-1); }
-
+  virtual void incCountriesContacts(char *country)    { ; }
+  virtual void resetCountriesContacts()               { ; }
+  virtual u_int32_t getCountriesContactsCardinality() { return((u_int32_t)-1); }
+  
   virtual u_int32_t getNTPContactCardinality()  { return((u_int32_t)-1); }
   virtual u_int32_t getDNSContactCardinality()  { return((u_int32_t)-1); }
   virtual u_int32_t getSMTPContactCardinality() { return((u_int32_t)-1); }

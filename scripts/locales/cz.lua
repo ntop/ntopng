@@ -248,6 +248,7 @@ local lang = {
     ["host_activity"] = "Hostitelská aktivita",
   },
   ["alert_messages"] = {
+    ["host_alert_countries_contacts"] = "Příliš mnoho zemí kontaktováno% {entity} [% {value} & gt; % {threshold} zemí]",
     ["a_new_device_has_connected"] = "Nové zařízení <a href=\"%{url}\">%{device}</a> se připojilo do sítě.",
     ["anomalous_tcp_flags"] = "%{entity} has %{sent_or_rcvd} too many TCP RST flags vs SYN [Ratio: %{ratio}%%]",
     ["broadcast_domain_too_large"] = "Provoz ARP z <a href=\"%{src_mac_url}\">%{src_mac}</a>/<a href=\"%{spa_url}\">%{spa}</a> do <a href=\"%{dst_mac_url}\">%{dst_mac}</a>/<a href=\"%{tpa_url}\">%{tpa}</a> detekováno. Je nepravděpodobné, že by mezi těmito IPs viděl přenos ARP, protože patrně patří do různých vysílacích domén. Zkontrolujte konfigurace hostitelů a sítí.",
@@ -292,6 +293,7 @@ local lang = {
     ["x_alerts"] = "%{num} upozornění",
   },
   ["alerts_dashboard"] = {
+    ["host_alert_countries_contacts"] = "Země Upozornění na kontakty",
     ["active_flows_anomaly"] = "Anomálie aktivních toků.",
     ["alert_counts"] = "Počítá",
     ["alert_duration"] = "Doba trvání",
@@ -389,6 +391,8 @@ local lang = {
     ["web_mining"] = "Web Mining",
   },
   ["alerts_thresholds_config"] = {
+    ["countries_contacts_title"] = "Země Upozornění na kontakty",
+    ["countries_contacts_description"] = "Spustit výstrahu, když počet různých kontaktovaných zemí překročí prahovou hodnotu",
     ["active_local_hosts"] = "Upozornění místních hostitelů",
     ["active_local_hosts_threshold_descr"] = "Spustí upozornění, když počet aktivních místních hostitelů překročí prahovou hodnotu",
     ["activity_time"] = "Výstraha času aktivity",

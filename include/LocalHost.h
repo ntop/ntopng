@@ -114,8 +114,9 @@ class LocalHost : public Host, public SerializableElement {
   virtual void luaHostBehaviour(lua_State* vm)    { if(stats) stats->luaHostBehaviour(vm); }
   virtual void incDohDoTUses(Host *srv_host);
 
-  virtual void incCountriesContacts(Country *country) { stats->incCountriesContacts(country); }
-  virtual u_int8_t getCountriesContactsCardinality() { return(stats->getCountriesContactsCardinality()); }
+  virtual void incCountriesContacts(char *country)    { stats->incCountriesContacts(country);             }
+  virtual void resetCountriesContacts()               { stats->resetCountriesContacts();                  }
+  virtual u_int32_t getCountriesContactsCardinality() { return(stats->getCountriesContactsCardinality()); }
 
   virtual void incNTPContactCardinality(Host *h)  { stats->incNTPContactCardinality(h);  }
   virtual void incDNSContactCardinality(Host *h)  { stats->incDNSContactCardinality(h);  }

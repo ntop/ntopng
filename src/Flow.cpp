@@ -97,6 +97,8 @@ Flow::Flow(NetworkInterface *_iface,
   iface->findFlowHosts(_vlanId, _observation_point_id, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   PROFILING_SUB_SECTION_EXIT(iface, 7);
 
+  char country[64];
+
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
 
@@ -105,7 +107,11 @@ Flow::Flow(NetworkInterface *_iface,
     cli_ip_addr = cli_host->get_ip();
     cli_host->incCliContactedHosts(_srv_ip);
     cli_host->incCliContactedPorts(_srv_port);
-    if (srv_host) cli_host->incCountriesContacts(srv_host->getCountryStats());
+
+    if (cli_host->isLocalHost() && srv_host) {
+      srv_host->get_country(country, sizeof(country));
+      cli_host->incCountriesContacts(country);
+    }
   } else { /* Client host has not been allocated, let's keep the info in an IpAddress */
     if((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
       cli_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
@@ -120,7 +126,11 @@ Flow::Flow(NetworkInterface *_iface,
 
     srv_host->incSrvHostContacts(_cli_ip);
     srv_host->incSrvPortsContacts(_cli_port);
-    if (cli_host) srv_host->incCountriesContacts(cli_host->getCountryStats());
+    
+    if (srv_host->isLocalHost() && cli_host) {
+      cli_host->get_country(country, sizeof(country));
+      srv_host->incCountriesContacts(country);
+    }
   } else { /* Server host has not been allocated, let's keep the info in an IpAddress */
     if((srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip)))
       srv_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
