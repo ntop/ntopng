@@ -30,7 +30,7 @@ ASNConnection::ASNConnection() : HostCheck(ntopng_edition_community, false /* Al
 
 void ASNConnection::periodicUpdate(Host *h, HostAlert *engaged_alert) {
 
-  if (period != 4)  // waiting 5 mins before execute check
+  if (get_period() != 4)  // waiting 5 mins before execute check
   {
     incrPeriod();
     return;

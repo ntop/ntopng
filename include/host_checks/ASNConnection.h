@@ -26,8 +26,8 @@
 
 class ASNConnection : public HostCheck {
 private:
-  int period = 0;
-  int threshold = 100;
+  u_int8_t period = 0;
+  u_int8_t threshold = 100;
 
 public:
   ASNConnection();
@@ -44,7 +44,8 @@ public:
 
   void incrPeriod() { period++; };
   void resetPeriod() { period = 0; };
-  int getThreshold() { return threshold; };
+  u_int8_t get_period() { return period; };
+  u_int8_t getThreshold() { return threshold; };
 
 };
 
