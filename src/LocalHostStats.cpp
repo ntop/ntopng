@@ -53,10 +53,10 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
    if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
     throw "Failed HLL initialization"; 
 
-   if(ndpi_hll_init(&hll_contacted_asn, 32) != 0)
+   if(ndpi_hll_init(&hll_contacted_asn, 8) != 0)
     throw "Failed HLL initialization"; 
 
-   if(ndpi_hll_init(&hll_contacted_country, 32) != 0)
+   if(ndpi_hll_init(&hll_contacted_country, 8) != 0)
     throw "Failed HLL initialization"; 
 
   hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0,
@@ -87,10 +87,10 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
    if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
     throw "Failed HLL initialization"; 
 
-   if(ndpi_hll_init(&hll_contacted_asn, 32) != 0)
+   if(ndpi_hll_init(&hll_contacted_asn, 8) != 0)
     throw "Failed HLL initialization"; 
 
-   if(ndpi_hll_init(&hll_contacted_country, 32) != 0)
+   if(ndpi_hll_init(&hll_contacted_country, 8) != 0)
     throw "Failed HLL initialization"; 
 
   hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0,
@@ -257,7 +257,6 @@ void LocalHostStats::luaHostBehaviour(lua_State* vm) {
 
 
 void LocalHostStats::luaASNBehaviour(lua_State* vm) {
-  HostStats::luaHostBehaviour(vm);
   
   lua_newtable(vm);
     
@@ -276,7 +275,6 @@ void LocalHostStats::luaASNBehaviour(lua_State* vm) {
 
 
 void LocalHostStats::luaCountryBehaviour(lua_State* vm) {
-  HostStats::luaHostBehaviour(vm);
   
   lua_newtable(vm);
     

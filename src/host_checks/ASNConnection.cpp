@@ -29,6 +29,13 @@ ASNConnection::ASNConnection() : HostCheck(ntopng_edition_community, false /* Al
 /* ***************************************************** */
 
 void ASNConnection::periodicUpdate(Host *h, HostAlert *engaged_alert) {
+
+  if (period != 4)  // waiting 5 mins before execute check
+  {
+    incrPeriod();
+    return;
+  }
+  
   HostAlert *alert = engaged_alert;
   double num_asn = 0;
   double num_countries = 0;
@@ -38,13 +45,15 @@ void ASNConnection::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   num_countries =  h->getContactedCountry();
 
 
-  if(num_asn > 100 || num_countries > 100) {
+  if(num_asn > getThreshold() || num_countries > getThreshold()) {
     if (!alert) alert = allocAlert(this, h, CLIENT_FAIR_RISK_PERCENTAGE, num_asn, num_countries);
     if (alert) h->triggerAlert(alert);
   }
 
   h->resetContactedASN();
   h->resetContactedCountry();
+
+  resetPeriod();
 
 }
 

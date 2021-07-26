@@ -100,6 +100,17 @@ Flow::Flow(NetworkInterface *_iface,
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
 
+    if(srv_host){
+ 
+    Country * csrv=srv_host->getCountryStats();
+    if(csrv!=NULL){
+      u_int32_t asns=srv_host->get_asn();
+       char* countrys=csrv->get_country_name();
+      if(asns > 0 && countrys !=NULL)
+         cli_host->addContactedAsnCountry(asns,countrys);
+      }
+    }
+
     cli_host->incUses(), cli_host->incNumFlows(last_seen, true);
 
   if(srv_host){
@@ -120,6 +131,16 @@ Flow::Flow(NetworkInterface *_iface,
 
   if(srv_host) {
     NetworkStats *network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
+
+    if(cli_host){
+        Country * ccli=cli_host->getCountryStats();   
+        if(ccli != NULL){
+           u_int32_t asnc=cli_host->get_asn();
+           char* countryc=ccli->get_country_name();   
+           if(asnc >0 && countryc !=NULL)
+          srv_host->addContactedAsnCountry(asnc,countryc);
+      }
+    }
 
     srv_host->incUses(), srv_host->incNumFlows(last_seen, false);
    

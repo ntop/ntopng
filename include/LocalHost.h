@@ -95,7 +95,7 @@ class LocalHost : public Host, public SerializableElement {
   virtual void lua_peers_stats(lua_State* vm)    const;
   virtual void lua_contacts_stats(lua_State *vm) const;
   virtual void incrVisitedWebSite(char *hostname)  { stats->incrVisitedWebSite(hostname); };
-  virtual void addContactedAsnCountry(u_int32_t asn, u_int32_t country)    { stats->addContactedAsnCountry(asn,country); }         
+  virtual void addContactedAsnCountry(u_int32_t asn, char* country)    { stats->addContactedAsnCountry(asn,country); }         
   virtual double getContactedASN()                     { return (stats->getContactedASN());    }      
   virtual void resetContactedASN()                     { stats->resetContactedASN();          }         
   virtual double getContactedCountry()                 { return (stats->getContactedCountry());    }       
@@ -116,7 +116,9 @@ class LocalHost : public Host, public SerializableElement {
 		   bool verbose, bool returnHost, bool asListElement);
   void custom_periodic_stats_update(const struct timeval *tv) { ; }
 
-  virtual void luaHostBehaviour(lua_State* vm)    { if(stats) stats->luaHostBehaviour(vm); }
+  virtual void luaHostBehaviour(lua_State* vm)       { if(stats) stats->luaHostBehaviour(vm); }
+  virtual void luaASNBehaviour(lua_State* vm)        { if(stats) stats->luaASNBehaviour(vm); }
+  virtual void luaCountryBehaviour(lua_State* vm)    { if(stats) stats->luaCountryBehaviour(vm); }
   virtual void incDohDoTUses(Host *srv_host);
 
   virtual void incNTPContactCardinality(Host *h)  { stats->incNTPContactCardinality(h);  }

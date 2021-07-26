@@ -25,6 +25,9 @@
 #include "ntop_includes.h"
 
 class ASNConnection : public HostCheck {
+private:
+  int period = 0;
+  int threshold = 100;
 
 public:
   ASNConnection();
@@ -38,6 +41,10 @@ public:
 
   HostCheckID getID() const { return host_check_asn_connection; }
   std::string getName()  const { return(std::string("asn_connection")); }
+
+  void incrPeriod() { period++; };
+  void resetPeriod() { period = 0; };
+  int getThreshold() { return threshold; };
 
 };
 
