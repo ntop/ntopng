@@ -26,15 +26,15 @@
 
 class ASNConnectionAlert : public HostAlert {
  private:
-  double num_asn;
-  double num_countries;
+  u_int16_t num_asn;
+  u_int8_t num_countries;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
   
  public:
   static HostAlertType getClassType() { return { host_alert_asn_connection, alert_category_network }; }
 
-  ASNConnectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, double _num_asn, double _num_countries);
+  ASNConnectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int16_t _num_asn, u_int8_t _num_countries);
   ~ASNConnectionAlert() {};
   
   HostAlertType getAlertType() const { return getClassType(); }

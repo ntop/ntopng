@@ -52,15 +52,16 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   /* hll init, 8 bits -> 256 bytes per LocalHost */
    if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
     throw "Failed HLL initialization"; 
-
-   if(ndpi_hll_init(&hll_contacted_asn, 8) != 0)
-    throw "Failed HLL initialization"; 
-
+   
    if(ndpi_hll_init(&hll_contacted_country, 8) != 0)
     throw "Failed HLL initialization"; 
 
-  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0,
-  hll_delta_value_asn = 0, old_hll_value_asn = 0, new_hll_value_asn = 0,
+   if(ndpi_hll_init(&hll_contacted_asn, 8) != 0)
+    throw "Failed HLL initialization";  
+
+
+  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
+  hll_delta_value_asn = 0, old_hll_value_asn = 0, new_hll_value_asn = 0;
   hll_delta_value_country = 0, old_hll_value_country = 0, new_hll_value_country = 0;
 
   num_dns_servers.init(5);
@@ -83,18 +84,19 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   traffic_stats.ntp_traffic_sent = traffic_stats.dns_traffic_sent = traffic_stats.ntp_traffic_rcvd = traffic_stats.dns_traffic_rcvd = 0;
   traffic_stats.ip = host->get_ip();
 #endif
-  /* hll init, 8 bits -> 256 bytes per LocalHost */
+   /* hll init, 8 bits -> 256 bytes per LocalHost */
    if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
     throw "Failed HLL initialization"; 
-
-   if(ndpi_hll_init(&hll_contacted_asn, 8) != 0)
-    throw "Failed HLL initialization"; 
-
+   
    if(ndpi_hll_init(&hll_contacted_country, 8) != 0)
     throw "Failed HLL initialization"; 
 
-  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0,
-  hll_delta_value_asn = 0, old_hll_value_asn = 0, new_hll_value_asn = 0,
+   if(ndpi_hll_init(&hll_contacted_asn, 8) != 0)
+    throw "Failed HLL initialization";  
+    
+ 
+  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
+  hll_delta_value_asn = 0, old_hll_value_asn = 0, new_hll_value_asn = 0;
   hll_delta_value_country = 0, old_hll_value_country = 0, new_hll_value_country = 0;
   
   num_dns_servers.init(5);
@@ -257,6 +259,7 @@ void LocalHostStats::luaHostBehaviour(lua_State* vm) {
 
 
 void LocalHostStats::luaASNBehaviour(lua_State* vm) {
+HostStats::luaHostBehaviour(vm);
   
   lua_newtable(vm);
     
@@ -275,6 +278,7 @@ void LocalHostStats::luaASNBehaviour(lua_State* vm) {
 
 
 void LocalHostStats::luaCountryBehaviour(lua_State* vm) {
+HostStats::luaHostBehaviour(vm);
   
   lua_newtable(vm);
     
@@ -722,7 +726,16 @@ void LocalHostStats::updateContactedCountryBehaviour() {
   new_hll_value_country = ndpi_hll_count(&hll_contacted_country);
   hll_delta_value_country = new_hll_value_country - old_hll_value_country;
 
-  contacted_country.addObservation((u_int64_t)hll_delta_value_country);
+ #ifdef TRACE_ME
+  char buf[64];
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s / %f contacts",
+			       host->get_ip()->print(buf, sizeof(buf)),
+			       last_hll_contacted_asn_value);
+  ndpi_hll_reset(&hll_delta_value_country);
+#endif
+
+  contacted_country.addObservation((u_int32_t)hll_delta_value_country);
 }
 
 /* *************************************** */
@@ -734,5 +747,14 @@ void LocalHostStats::updateContactedASNBehaviour() {
   new_hll_value_asn = ndpi_hll_count(&hll_contacted_asn);
   hll_delta_value_asn = new_hll_value_asn - old_hll_value_asn;
 
-  contacted_asn.addObservation((u_int64_t)hll_delta_value_asn);
+#ifdef TRACE_ME
+  char buf[64];
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s / %f contacts",
+			       host->get_ip()->print(buf, sizeof(buf)),
+			       last_hll_contacted_country_value);
+  ndpi_hll_reset(&hll_delta_value_asn);
+#endif
+
+  contacted_asn.addObservation((u_int32_t)hll_delta_value_asn);
 }

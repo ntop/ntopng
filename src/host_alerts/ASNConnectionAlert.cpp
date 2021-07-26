@@ -23,7 +23,7 @@
 
 /* ***************************************************** */
 
-ASNConnectionAlert::ASNConnectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, double _num_asn, double _num_countries) : HostAlert (c, f, cli_pctg) {
+ASNConnectionAlert::ASNConnectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int16_t _num_asn, u_int8_t _num_countries) : HostAlert (c, f, cli_pctg) {
   num_asn = _num_asn;
   num_countries = _num_countries;
 };

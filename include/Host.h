@@ -54,8 +54,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     char *resolved; /* The name as resolved by ntopng DNS requests */
     char *netbios; /* The NetBIOS name */
     char *tls; /* The TLS SNI or the name as dissected from other TLS-transported protocols */
-    char *http; /* The HTTP Host: name */
-  } names;
+    char *http; /* The HTTP Host: name */  
+    } names;
 
   char *ssdpLocation;
   bool prefs_loaded;
@@ -239,7 +239,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   char * getNetbiosName(char * const buf, ssize_t buf_len);
   char * getTLSName(char * const buf, ssize_t buf_len);
   char * getHTTPName(char * const buf, ssize_t buf_len);
-#ifdef NTOPNG_PRO
+  #ifdef NTOPNG_PRO
   inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
   inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }
   inline void resetQuotaStats()                                        { stats->resetQuotaStats(); }
@@ -368,11 +368,12 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void luaTCP(lua_State *vm) { };
   virtual u_int16_t getNumActiveContactsAsClient()  { return 0; };
   virtual u_int16_t getNumActiveContactsAsServer()  { return 0; };
-  virtual void addContactedAsnCountry(u_int32_t asn, char* country)   {}       
-  virtual double getContactedASN()                                       { return 0; }
-  virtual void resetContactedASN()                                       {}       
-  virtual double getContactedCountry()                                   { return 0; }
-  virtual void resetContactedCountry()                                   {}
+  virtual void addContactedAsnCountry(u_int32_t asn,char* country) {}       
+  virtual double getContactedASN()     {return 0;}  
+  virtual void resetContactedASN()     {}       
+  virtual double getContactedCountry() {return 0;} 
+  virtual void resetContactedCountry() {}
+  
   inline TcpPacketStats* getTcpPacketSentStats() { return(stats->getTcpPacketSentStats()); }
   inline TcpPacketStats* getTcpPacketRcvdStats() { return(stats->getTcpPacketRcvdStats()); }
 
@@ -464,6 +465,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void luaHostBehaviour(lua_State* vm) { lua_pushnil(vm); }
   virtual void luaASNBehaviour(lua_State* vm) { lua_pushnil(vm); }
   virtual void luaCountryBehaviour(lua_State* vm) { lua_pushnil(vm); }
+  
   virtual void incDohDoTUses(Host *srv_host) {}
 
   virtual void incNTPContactCardinality(Host *h)  { ; }

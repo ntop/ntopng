@@ -27,6 +27,13 @@ local asn_connection = {
 
       -- The input builder to use to draw the gui
       input_builder = "threshold_cross",
+      
+      -- max allowed threshold value
+      field_max = 65535,
+      -- min allowed threshold value
+      field_min = 1,
+      -- threshold check operator. "gt" for ">", "lt" or "<"
+      field_operator = "gt";
    }
 }
 

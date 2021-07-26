@@ -27,13 +27,13 @@
 class ASNConnection : public HostCheck {
 private:
   u_int8_t period = 0;
-  u_int8_t threshold = 100;
+  u_int16_t threshold = 100;
 
 public:
   ASNConnection();
   ~ASNConnection() {};
 
-  ASNConnectionAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, double num_asn, double num_countries) {
+  ASNConnectionAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int16_t num_asn, u_int8_t num_countries) {
     return new ASNConnectionAlert(c, h, cli_pctg, num_asn, num_countries);
   };
 
@@ -45,7 +45,7 @@ public:
   void incrPeriod() { period++; };
   void resetPeriod() { period = 0; };
   u_int8_t get_period() { return period; };
-  u_int8_t getThreshold() { return threshold; };
+  u_int16_t getThreshold() { return threshold; };
 
 };
 

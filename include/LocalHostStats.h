@@ -68,7 +68,7 @@ class LocalHostStats: public HostStats {
   void deserializeTopSites(char* redis_key_current);
   void updateContactedHostsBehaviour();
   void updateContactedASNBehaviour();
-  void updateContactedCountryBehaviour();
+  void updateContactedCountryBehaviour();  
 #if defined(NTOPNG_PRO)
   void resetTrafficStats();
 #endif
@@ -96,8 +96,8 @@ class LocalHostStats: public HostStats {
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose)    { if (icmp) icmp->lua(isV4, vm, verbose); }
   virtual void luaPeers(lua_State *vm);
   virtual void incrVisitedWebSite(char *hostname);
-  virtual void addContactedAsnCountry(u_int32_t asn, char* country) { ndpi_hll_add(&hll_contacted_country, country, strlen(country));
-                                                                           ndpi_hll_add_number(&hll_contacted_asn, asn);  }       
+  virtual void addContactedAsnCountry(u_int32_t asn,char* country) {    ndpi_hll_add(&hll_contacted_country,country,strlen(country));
+                                                                           ndpi_hll_add_number(&hll_contacted_asn,asn);       }       
   virtual double getContactedASN()                                       { return ndpi_hll_count(&hll_contacted_asn);     }  
   virtual void resetContactedASN()                                       { ndpi_hll_reset(&hll_contacted_asn);            }       
   virtual double getContactedCountry()                                   { return ndpi_hll_count(&hll_contacted_country); } 
