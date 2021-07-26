@@ -408,11 +408,6 @@ void usage() {
 	 "[--check-license]                   | Check if the license is valid.\n"
 	 "[--check-maintenance]               | Check until maintenance is included\n"
 	 "                                    | in the license.\n"
-#ifdef __linux__
-         "[--vm]                              | Check the license on VMs (migration resistant).\n"
-         "                                    | This flag should be used in combination with the other options (e.g. -V).\n"
-         "                                    | Note: this changes the System ID (license should be migrated if any)\n"
-#endif
 #endif
 	 "[--version|-V]                      | Print version and license information, then quit\n"
 	 "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]\n"
@@ -1450,7 +1445,6 @@ int Prefs::setOption(int optkey, char *optarg) {
 #ifdef NTOPNG_PRO
 #ifdef __linux__
   case 251:
-    ntop->getPro()->set_vm_mode();
     break;
 #endif
 

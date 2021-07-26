@@ -93,7 +93,7 @@ Ntop::Ntop(char *appName) {
   last_ndpi_reload = 0;
   ndpi_struct_shadow = NULL;
   ndpi_struct = initnDPIStruct();
-  ndpi_finalize_initalization(ndpi_struct);
+  ndpi_finalize_initialization(ndpi_struct);
 
   internal_alerts_queue = new FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
 
@@ -2856,7 +2856,6 @@ void Ntop::loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_s
 
 struct ndpi_detection_module_struct* Ntop::initnDPIStruct() {
   struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module(ndpi_no_prefs);
-  u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
   ndpi_port_range d_port[MAX_DEFAULT_PORTS];
   NDPI_PROTOCOL_BITMASK all;
 
@@ -2870,7 +2869,7 @@ struct ndpi_detection_module_struct* Ntop::initnDPIStruct() {
 
   memset(d_port, 0, sizeof(d_port));
   ndpi_set_proto_defaults(ndpi_s, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
-			  0, no_master, no_master, (char*)"Operating System",
+			  (char*)"Operating System",
 			  NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
 
   // enable all protocols
@@ -2935,7 +2934,7 @@ void Ntop::reloadCustomCategories() {
     
     /* The new categories were loaded on the current ndpi_struct_shadow */
     ndpi_enable_loaded_categories(ndpi_struct_shadow);
-    ndpi_finalize_initalization(ndpi_struct_shadow);
+    ndpi_finalize_initialization(ndpi_struct_shadow);
     
     ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI finalizing reload...");
     
