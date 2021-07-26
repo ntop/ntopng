@@ -79,7 +79,7 @@ function saveTopologyView(network) {
         }
     };
 
-    $.post(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, { JSON: JSON.stringify(info), csrf: VIEW_CSRF, map: MAP, action: 'save_view' });
+    $.post(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, { ifid:ifid, JSON: JSON.stringify(info), csrf: VIEW_CSRF, map: MAP, action: 'save_view' });
 }
 
 function setEventListenersNetwork(network) {
@@ -143,7 +143,7 @@ function setEventListenersNetwork(network) {
 
 function loadGraph(container) {
 
-    const dataRequest = { action: 'load_graph', map: MAP};
+    const dataRequest = { ifid: ifid, action: 'load_graph', map: MAP};
     // if an host has been defined inside the URL query then add it to the request
     const url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, {
         host: host,

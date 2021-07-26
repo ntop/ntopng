@@ -4587,6 +4587,7 @@ local lang = {
     ["starting"] = "Starting",
     ["submit_filter"] = "Submit Filter",
     ["symbolic_host_name_at_visualization"] = "Symbolic host names are resolved during the visualization.",
+    ["approximated_data"] = "Minor data approximation can be performed when selecting very large intervals of time.",
     ["toggle_all"] = "Toggle All",
     ["top_asn"] = "Top ASN",
     ["top_countries"] = "Top Countries",

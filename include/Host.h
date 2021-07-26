@@ -53,6 +53,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     *mdns_info /* name from a TXT MDNS reply */;
     char *resolved; /* The name as resolved by ntopng DNS requests */
     char *netbios; /* The NetBIOS name */
+    char *tls; /* The TLS SNI or the name as dissected from other TLS-transported protocols */
+    char *http; /* The HTTP Host: name */
   } names;
 
   char *ssdpLocation;
@@ -235,6 +237,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   char * getMDNSTXTName(char * const buf, ssize_t buf_len);
   char * getMDNSInfo(char * const buf, ssize_t buf_len);
   char * getNetbiosName(char * const buf, ssize_t buf_len);
+  char * getTLSName(char * const buf, ssize_t buf_len);
+  char * getHTTPName(char * const buf, ssize_t buf_len);
 #ifdef NTOPNG_PRO
   inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
   inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }
@@ -421,6 +425,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void housekeep(time_t t); /* Virtual method, called in the datapath from GenericHash::purgeIdle */
   virtual void inlineSetOSDetail(const char *detail) { }
   virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
+  void offlineSetTLSName(const char * const n);
+  void offlineSetHTTPName(const char * const n);
   void offlineSetNetbiosName(const char * const n);
   void offlineSetSSDPLocation(const char * const url);
   void offlineSetMDNSInfo(char * const s);
