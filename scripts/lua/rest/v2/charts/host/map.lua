@@ -31,6 +31,16 @@ local formatHost
 local bubble_mode = tonumber(_GET["bubble_mode"]) or 0
 local show_remote = _GET["show_remote"] or true
 
+local ifid = _GET["ifid"]
+
+if isEmptyString(ifid) then
+   rc = rest_utils.consts.err.invalid_interface
+   rest_utils.answer(rc)
+   return
+end
+
+interface.select(ifid)
+
 -- ###################################################
 
 local function shrinkTable(t, max_num)
