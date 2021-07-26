@@ -833,6 +833,7 @@ function ts_utils.getPossiblyChangedSchemas()
       "iface:traffic_anomalies",
       "iface:traffic_rx_behavior_v2",
       "iface:traffic_tx_behavior_v2",
+      "iface:engaged_alerts",
 
       "subnet:score_anomalies",
       "subnet:traffic_tx_behavior_v2",
