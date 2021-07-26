@@ -116,7 +116,7 @@ class LocalHost : public Host, public SerializableElement {
 
   virtual void incCountriesContacts(char *country)    { stats->incCountriesContacts(country);             }
   virtual void resetCountriesContacts()               { stats->resetCountriesContacts();                  }
-  virtual u_int32_t getCountriesContactsCardinality() { return(stats->getCountriesContactsCardinality()); }
+  virtual u_int8_t getCountriesContactsCardinality()  { return(stats->getCountriesContactsCardinality()); }
 
   virtual void incNTPContactCardinality(Host *h)  { stats->incNTPContactCardinality(h);  }
   virtual void incDNSContactCardinality(Host *h)  { stats->incDNSContactCardinality(h);  }

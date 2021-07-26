@@ -11,7 +11,7 @@ local countries_contacts = {
    -- Script category
    category = checks.check_categories.security,
 
-   default_enabled = true,
+   default_enabled = false,
    alert_id = host_alert_keys.host_alert_countries_contacts,
 
    default_value = {
@@ -24,7 +24,7 @@ local countries_contacts = {
       i18n_description = "alerts_thresholds_config.countries_contacts_description",
       i18n_field_unit = checks.field_units.contacts,
       input_builder = "threshold_cross",
-      field_max = 65535,
+      field_max = 255,
       field_min = 1,
       field_operator = "gt";
    }

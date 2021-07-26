@@ -700,4 +700,5 @@ void LocalHostStats::updateCountriesContactsBehaviour() {
   #endif
 
   countries_contacts.addObservation((u_int64_t)hll_delta_countries_value);
+  host->resetCountriesContacts();
 }

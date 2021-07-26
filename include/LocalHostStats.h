@@ -46,7 +46,7 @@ class LocalHostStats: public HostStats {
 
   /* Estimate the number of contacted countries using HyperLogLog */
   struct ndpi_hll hll_countries_contacts;
-  double old_hll_countries_value, new_hll_countries_value, hll_delta_countries_value;
+  u_int8_t old_hll_countries_value, new_hll_countries_value, hll_delta_countries_value;
   DESCounter countries_contacts;
 
   /* Written by NetworkInterface::periodicStatsUpdate thread */
@@ -141,7 +141,7 @@ class LocalHostStats: public HostStats {
   }
 
   virtual void incCountriesContacts(char *country)    { ndpi_hll_add(&hll_countries_contacts, country, strlen(country)); }
-  virtual u_int32_t getCountriesContactsCardinality() { return ndpi_hll_count(&hll_countries_contacts);                  }
+  virtual u_int8_t getCountriesContactsCardinality()  { return((u_int8_t)ndpi_hll_count(&hll_countries_contacts));       }
   virtual void resetCountriesContacts()               { ndpi_hll_reset(&hll_countries_contacts);                         } 
 
 };
