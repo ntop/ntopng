@@ -145,57 +145,6 @@ end
 
 -- ###################################################
 
-local function dnsBytes(hostname, host, label)
-   local line
-   host = interface.getTrafficMapHostStats(hostname)
-   
-   if ((host ~= nil) and
-       (host["dns_traffic"] ~= nil) and
-      ((host["dns_traffic"]["sent"] + host["dns_traffic"]["rcvd"]) > 0)) then
-      local x = host["dns_traffic"]["rcvd"]
-      local y = host["dns_traffic"]["sent"]
-      line = {
-	 meta = {
-	    url_query = "host="..hostname,
-	    label = label,
-	 }, 
-	 x = x, 
-	 y = y, 
-	 z = x + y
-      }
-   end
-
-   return line
-end
-
--- ###################################################
-
-local function ntpPkts(hostname, host, label)
-   local line
-   host = interface.getTrafficMapHostStats(hostname)
-
-   if ((host ~= nil) and
-       (host["ntp_traffic"] ~= nil) and
-      ((host["ntp_traffic"]["sent"] + host["ntp_traffic"]["rcvd"]) > 0)) then
-      local x = host["ntp_traffic"]["rcvd"]
-      local y = host["ntp_traffic"]["sent"]
-      
-      line = {
-	 meta = {
-	    url_query = "host="..hostname,
-	    label = label,
-	 }, 
-	 x = x, 
-	 y = y, 
-	 z = x + y
-      }
-   end
-
-   return line
-end
-
--- ###################################################
-
 local function synDistribution(hostname, host, label)
    local line
    local stats = interface.getHostInfo(host["ip"], host["vlan"])
@@ -404,10 +353,6 @@ elseif (bubble_mode == HostsMapMode.ALERTED_FLOWS) then
    formatHost = alertedFlows
 elseif (bubble_mode == HostsMapMode.DNS_QUERIES) then
    formatHost = dnsQueries
-elseif (bubble_mode == HostsMapMode.DNS_BYTES) then
-   formatHost = dnsBytes    
-elseif (bubble_mode == HostsMapMode.NTP_PACKETS) then
-   formatHost = ntpPkts
 elseif (bubble_mode == HostsMapMode.SYN_DISTRIBUTION) then
    formatHost = synDistribution
 elseif (bubble_mode == HostsMapMode.SYN_VS_RST) then

@@ -309,7 +309,6 @@ void NetworkInterface::init() {
   custom_app_stats = NULL;
   flow_interfaces_stats = NULL;
   policer = NULL;
-  check_traffic_stats = NULL;
 
   /* Behavior init variables */
   nextMinPeriodicUpdate = 0;
@@ -3708,24 +3707,6 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
   return ret;
 }
-
-/* **************************************************** */
-
-#ifdef NTOPNG_PRO
-void NetworkInterface::luaTrafficMapHostStats(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id) {
-  Host *h;
-
-  if(!check_traffic_stats)
-    return;
-
-  h = findHostByIP(allowed_hosts, host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId));
-
-  if(h)
-    check_traffic_stats->lua_get_host_stats(vm, h->get_ip(), h->getMac(), h->get_vlan_id());
-  else
-    lua_pushnil(vm);
-}
-#endif
 
 /* **************************************************** */
 
@@ -9105,30 +9086,6 @@ void NetworkInterface::luaAnomalies(lua_State *vm) {
   lua_settable(vm, -3);
 }
 
-#ifdef NTOPNG_PRO
-/* *************************************** */
-
-void NetworkInterface::enableTrafficMap(bool enable) {
-  if(enable == true) {
-    if(!check_traffic_stats) {
-      check_traffic_stats = new (std::nothrow) CheckTrafficMap();
-    }
-  } else { 
-    if(check_traffic_stats) {
-      delete(check_traffic_stats);
-      check_traffic_stats = NULL;
-    }
-  }
-}
-
-/* *************************************** */
-
-void NetworkInterface::luaTrafficMap(lua_State *vm) {
-  check_traffic_stats ? check_traffic_stats->lua_get_threshold_stats(vm) : lua_pushnil(vm);
-}
-
-#endif
-  
 /* *************************************** */
 
 void NetworkInterface::execHostChecks(Host *h) {
