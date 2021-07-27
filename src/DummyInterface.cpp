@@ -82,7 +82,7 @@ static void* packetPollLoop(void* ptr) {
   u_int32_t iteration = 0;
 
   /* Wait until the initialization completes */
-  while(!iface->isRunning()) sleep(1);
+  while(iface->isStartingUp()) sleep(1);
 
   while(iface->isRunning()) {
     iface->forgeFlow(++iteration);

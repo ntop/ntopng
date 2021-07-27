@@ -49,9 +49,11 @@ function recipients.initialize()
    for _, category in pairs(checks.check_categories) do
       all_categories[#all_categories + 1] = category.id
    end
-   
+
    for endpoint_key, endpoint in pairs(endpoints.get_types()) do
       if endpoint.builtin then
+	 -- Delete (if existing) the old, string-keyed endpoint configuration
+	 endpoints.delete_config("builtin_config_"..endpoint_key)
 
          -- Add the configuration
          local res = endpoints.add_config(
@@ -69,9 +71,10 @@ function recipients.initialize()
 	       "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
 	       all_categories,
 	       default_builtin_minimum_severity,
-	       false, -- Do Not add it to every pool automatically
+	       true, -- Add it to every pool automatically so that after a factory reset all pools gets the default
 	       {} --[[ no recipient params --]]
 	    )
+
 	 end
       end
    end

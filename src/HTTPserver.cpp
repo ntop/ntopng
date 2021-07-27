@@ -890,7 +890,6 @@ bool HTTPserver::authorize_noconn(char *username, char *session_id, u_int sessio
   return(false);
 }
 
-
 /* ****************************************** */
 
 bool HTTPserver::create_api_token(const char *username, char *api_token, u_int api_token_size) {

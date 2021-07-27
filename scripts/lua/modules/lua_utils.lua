@@ -1557,7 +1557,7 @@ function getHostAltName(host_info)
       alt_name = ntop.getCache(getHostAltNamesKey(host_key))
    end
 
-   return alt_name
+   return string.lower(alt_name)
 end
 
 function setHostAltName(host_info, alt_name)
@@ -1632,7 +1632,7 @@ local function hostinfo2label_resolved(host_info, show_vlan, shorten_len)
 
    if isEmptyString(res) then
       -- Try and get the resolved name
-      res = ntop.getResolvedName(ip)
+      res = string.lower(ntop.getResolvedName(ip))
 
       if isEmptyString(res) then
 	 -- Nothing found, just fallback to the IP address
@@ -3611,7 +3611,7 @@ end
 
 -- ###########################################
 
-function getNtopngRelease(ntopng_info)
+function getNtopngRelease(ntopng_info, verbose)
    local release
 
    if ntopng_info.oem or ntopng_info["version.nedge_edition"] then
@@ -3632,6 +3632,10 @@ function getNtopngRelease(ntopng_info)
 
    -- E.g., ntopng edge v.4.3.210112 (Ubuntu 16.04.6 LTS)
    local res = string.format("%s %s v.%s (%s)", ntopng_info.product, release, ntopng_info.version, ntopng_info.OS)
+
+   if verbose and ntopng_info.revision then
+     res = string.format("%s %s v.%s rev.%s (%s)", ntopng_info.product, release, ntopng_info.version, ntopng_info.revision, ntopng_info.OS)
+   end
 
    if not ntopng_info.oem then
       local vers = string.split(ntopng_info["version.git"], ":")
@@ -4387,8 +4391,8 @@ end
 
 -- ##############################################
 
-function getFullObsPointName(observation_point_id, compact)
-   local alias = getObsPointAlias(observation_point_id)
+function getFullObsPointName(observation_point_id, compact, add_id)
+   local alias = getObsPointAlias(observation_point_id, add_id)
 
    if not isEmptyString(observation_point_id) then
       if not isEmptyString(observation_point_id) and alias ~= tostring(observation_point_id) then

@@ -103,6 +103,64 @@ will be split into two separate virtual network interfaces into ntopng:
 
 .. _`Dynamic Interfaces Disaggregation`: advanced_features/dynamic_interfaces_disaggregation.html
 
+Observation Points
+~~~~~~~~~~~~~~~~~~
+
+ntopng 5.0 and later, and nProbe 9.6 and later, include support for Observation Points. An Observation Point is defined in
+IPFIX as a location in the Network where packets can be observed. This is useful when collecting flows
+on large networks from hundred of routers, as ntopng allows you to create a limited number of collection
+interfaces (up to 32 virtual at the moment), to avoid merging collected flows from all routers.
+
+.. figure:: ../img/observation_points_diagram.png
+  :align: center
+  :alt: Probes/Collector Architecture
+
+Each nProbe instance can be configured to set a numerical value for the Observation Point ID that uniquely
+identifies a site. Depending on the site size, a site can have one or multiple probes.
+
+The Observation Point can be configured in nProbe using the -E option as in the below example.
+
+Site A (1 nProbe intance):
+
+.. code:: bash
+
+   nprobe -i eth1 -E 0:1234 --zmq tcp://192.168.1.1:5556 --zmq-probe-mode
+
+Site B (2 nProbe instances):
+
+.. code:: bash
+
+   nprobe -i eth1 -E 0:1235 --zmq tcp://192.168.1.1:5556 --zmq-probe-mode
+   nprobe -i eth2 -E 0:1235 --zmq tcp://192.168.1.1:5556 --zmq-probe-mode
+
+Central ntopng (Flow Collector):
+
+.. code:: bash
+
+   ntopng -i tcp://92.168.1.100:5556c
+
+In this configuration, flows sent by nProbe to ntopng are marked with the Observation Point ID, which is
+reported by ntopng in the web interface.
+
+All the Observation Point IDs seen by ntopng are listed in the dropdown menu at the top of the page.
+By selecting an Observation Point it is possible to visualise only flows matching that Observation Point.
+
+.. figure:: ../img/observation_points_flow.png
+  :align: center
+  :alt: Observastion Point Selection and Flow Details
+
+On the Probes menu from the sidebar, it is possible to list all the Observation Point IDs seen by ntopng,
+set a custom name by clicking on the wheel icon, and visualize traffic statistics by clicking on the chart icon.
+
+.. figure:: ../img/observation_points_list.png
+  :align: center
+  :alt: Observastion Points List
+
+Please pay attention that, while flows are selected by the Observation Point when using the dropdown menu,
+traffic reported for hosts, ASs, networks etc is merged at the interface level regardless of the that.
+This allows statistics not to be duplicated when hosts from different Observation Points talk together.
+
+
 Using Behind a Firewall
 =======================
 

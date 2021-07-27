@@ -66,7 +66,7 @@ else
 			      {
 				 active = page == "flows",
 				 page_name = "flows",
-				 label = i18n("flows"),
+				 label = '<i class="fas fa-stream"></i>',
 			      },
 			   }
    )

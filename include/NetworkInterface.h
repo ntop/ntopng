@@ -98,8 +98,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   HostChecksExecutor *host_checks_executor, *prev_host_checks_executor;
 
 #if defined(NTOPNG_PRO)
-  /* Map containing various stats resetted every day */
-  CheckTrafficMap *check_traffic_stats;
   time_t nextMinPeriodicUpdate;
   /* Behavioural analysis regarding the interface */
   AnalysisBehavior *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
@@ -406,12 +404,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void decScoreValue(u_int16_t score_incr, bool as_client)  { as_client ? score_as_cli -= score_incr : score_as_srv -= score_incr; };
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
-#if defined(NTOPNG_PRO)
-  void luaTrafficMap(lua_State *vm);
-  void enableTrafficMap(bool enable);
-  inline bool isTrafficMapEnabled() { return(check_traffic_stats != NULL); };
-  inline bool updateCheckTrafficMap(IpAddress *ip, Mac *mac, VLANid vlan_id, TrafficStatsMonitor updated_stats) { return(check_traffic_stats) ? check_traffic_stats->updateElement(ip, mac, vlan_id, updated_stats) : false; };
-#endif
   inline bool are_ip_reassignment_alerts_enabled()       { return(enable_ip_reassignment_alerts); };
   inline AddressTree* getInterfaceNetworks()   { return(&interface_networks); };
   virtual void startPacketPolling();
@@ -560,6 +552,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline EthStats* getStats()      { return(&ethStats);          };
   inline int get_datalink()        { return(pcap_datalink_type); };
   inline void set_datalink(int l)  { pcap_datalink_type = l;     };
+  bool isStartingUp() const;
   bool isRunning() const;
   inline bool isTrafficMirrored()           const { return is_traffic_mirrored;            };
   inline bool showDynamicInterfaceTraffic() const { return show_dynamic_interface_traffic; };
@@ -616,9 +609,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   virtual u_int32_t getFlowMaxIdle();
 
   virtual void lua(lua_State* vm);
-#ifdef NTOPNG_PRO
-  void luaTrafficMapHostStats(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id);
-#endif
   void luaScore(lua_State* vm);
   void luaAlertedFlows(lua_State* vm);
   void luaAnomalies(lua_State* vm);

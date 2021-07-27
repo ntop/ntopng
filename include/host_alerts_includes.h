@@ -32,6 +32,7 @@
 #include "host_alerts/DNSServerContactsAlert.h"
 #include "host_alerts/SMTPServerContactsAlert.h"
 #include "host_alerts/NTPServerContactsAlert.h"
+#include "host_alerts/NTPTrafficAlert.h"
 #include "host_alerts/P2PTrafficAlert.h"
 #include "host_alerts/DNSTrafficAlert.h"
 

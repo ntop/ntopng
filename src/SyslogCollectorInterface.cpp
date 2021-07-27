@@ -425,7 +425,7 @@ static void* messagePollLoop(void* ptr) {
   SyslogCollectorInterface *iface = (SyslogCollectorInterface*)ptr;
 
   /* Wait until the initialization completes */
-  while(!iface->isRunning()) sleep(1);
+  while(iface->isStartingUp()) sleep(1);
 
   iface->collect_events();
 

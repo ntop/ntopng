@@ -303,6 +303,10 @@
         async function addFilterTag(tag) {
             const existingTagElms = tagify.getTagElms();
 
+            /* Convert values to string (this avoids issues e.g. with 0) */
+            if (typeof tag.realValue == 'number') { tag.realValue = ''+tag.realValue; }
+            if (typeof tag.value == 'number') { tag.value = ''+tag.value; }
+
             {% if false then %}
             /* Lookup by key (does not allow dup) */
             const existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key);
@@ -588,7 +592,6 @@
         $table.on('click', `a.tag-filter`, async function (e) {
             addFilter(e, $(this));
         });
-        
 
         /* Cards */
         {% if alert_stats.status ~= "engaged" and ntop.isPro() then %}

@@ -93,6 +93,7 @@ end
 -- @brief Reset configuration
 function checks_import_export:reset()
    checks.resetConfigset()
+   alert_exclusions.cleanup()
 end
 
 -- ##############################################

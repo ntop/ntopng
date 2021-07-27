@@ -49,6 +49,14 @@ function host_alert_store:insert(alert)
       vlan_id = host_info.vlan
    end
 
+   if not ip_version then
+      if isIPv4(ip) then
+         ip_version = 4
+      else
+         ip_version = 6
+      end
+   end
+
    local insert_stmt = string.format("INSERT INTO %s "..
       "(alert_id, ip_version, ip, vlan_id, name, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, json) "..
       "VALUES (%u, %u, '%s', %u, '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",

@@ -57,6 +57,7 @@ void HostChecksLoader::registerChecks() {
   if((fcb = new DNSServerContacts()))          registerCheck(fcb);
   if((fcb = new SMTPServerContacts()))         registerCheck(fcb);
   if((fcb = new NTPServerContacts()))          registerCheck(fcb);
+  if((fcb = new NTPTraffic()))                 registerCheck(fcb);
   if((fcb = new P2PTraffic()))                 registerCheck(fcb);
   if((fcb = new DNSTraffic()))                 registerCheck(fcb);
   if((fcb = new RemoteConnection()))           registerCheck(fcb);

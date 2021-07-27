@@ -16,6 +16,7 @@ local dns = {
 
    default_value = {
       operator = "gt",
+      threshold = 1048576,
    },
 
    gui = {

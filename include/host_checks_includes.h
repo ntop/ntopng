@@ -38,8 +38,8 @@
 #include "host_checks/NTPServerContacts.h"
 
 #include "host_checks/P2PTraffic.h"
+#include "host_checks/NTPTraffic.h"
 #include "host_checks/DNSTraffic.h"
-
 
 #include "host_checks/DangerousHost.h"
 #include "host_checks/RemoteConnection.h"
