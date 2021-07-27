@@ -9,4 +9,5 @@ ntopng supports active monitoring of hosts and devices. Active monitoring means 
     :maxdepth: 2
 
     active_monitor
+    infrastructure
     snmp
