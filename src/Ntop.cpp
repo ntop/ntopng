@@ -2812,13 +2812,28 @@ void Ntop::shutdownPeriodicActivities() {
 /* ******************************************* */
 
 void Ntop::shutdownInterfaces() {
+  /* First, shutdown all view interfaces so they can release counters from the viewed interfaces */
   for(int i=0; i<num_defined_interfaces; i++) {
-    EthStats *stats = iface[i]->getStats();
+    if(iface[i]->isView()) {
+      EthStats *stats = iface[i]->getStats();
 
-    stats->print();
-    iface[i]->shutdown();
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Polling shut down [interface: %s]",
-				 iface[i]->get_description());
+      stats->print();
+      iface[i]->shutdown();
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Polling shut down [interface: %s]",
+				   iface[i]->get_description());
+    }
+  }
+
+  /* Now, shutdown all other non-view interfaces */
+  for(int i=0; i<num_defined_interfaces; i++) {
+    if(!iface[i]->isView()) {
+      EthStats *stats = iface[i]->getStats();
+
+      stats->print();
+      iface[i]->shutdown();
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Polling shut down [interface: %s]",
+				   iface[i]->get_description());
+    }
   }
 }
 

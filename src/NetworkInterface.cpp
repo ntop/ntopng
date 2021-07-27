@@ -152,7 +152,9 @@ NetworkInterface::NetworkInterface(const char *name,
 
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
-      flowDumpLoopCreated = false, flowAlertsDequeueLoopCreated = false, bridge_interface = false;
+      flowDumpLoopCreated = false,
+      hostAlertsDequeueLoopCreated = flowAlertsDequeueLoopCreated = false,
+      bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = next_idle_other_purge = 0;
     cpu_affinity = -1 /* no affinity */,
       has_vlan_packets = has_ebpf_events = false;
