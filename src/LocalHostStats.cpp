@@ -54,8 +54,8 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
     throw "Failed HLL initialization";  
   hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
 
-  /* hll init, 8 bits -> 256 bytes per LocalHost */
-  if(ndpi_hll_init(&hll_countries_contacts, 8) != 0)
+  /* hll init, 5 bits -> 32 bytes per LocalHost */
+  if(ndpi_hll_init(&hll_countries_contacts, 5) != 0)
     throw "Failed HLL initialization";  
   old_hll_countries_value = 0, new_hll_countries_value = 0, hll_delta_countries_value = 0;
 
@@ -84,8 +84,8 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
     throw "Failed HLL initialization";
   hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
 
-  /* hll init, 8 bits -> 256 bytes per LocalHost */
-  if(ndpi_hll_init(&hll_countries_contacts, 8) != 0)
+  /* hll init, 5 bits -> 32 bytes per LocalHost */
+  if(ndpi_hll_init(&hll_countries_contacts, 5) != 0)
     throw "Failed HLL initialization";
   old_hll_countries_value = 0, new_hll_countries_value = 0, hll_delta_countries_value = 0;  
   
