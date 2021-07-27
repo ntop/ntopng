@@ -19,32 +19,25 @@
  *
  */
 
-#ifndef _HOST_CHECKS_INCLUDES_H_
-#define _HOST_CHECKS_INCLUDES_H_
-
 #include "host_alerts_includes.h"
-#include "host_checks_includes.h"
 
-#include "host_checks/FlowHits.h"
-#include "host_checks/FlowFlood.h"
-#include "host_checks/SYNScan.h"
-#include "host_checks/SYNFlood.h"
+/* ***************************************************** */
 
-#include "host_checks/ServerContacts.h"
-#include "host_checks/DNSServerContacts.h"
-#include "host_checks/SMTPServerContacts.h"
-#include "host_checks/NTPServerContacts.h"
+NTPTrafficAlert::NTPTrafficAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _ntp_bytes, u_int64_t _ntp_bytes_threshold) : HostAlert(c, f, cli_pctg) {
+  ntp_bytes = _ntp_bytes,
+    ntp_bytes_threshold = _ntp_bytes_threshold;
+};
 
-#include "host_checks/P2PTraffic.h"
-#include "host_checks/NTPTraffic.h"
-#include "host_checks/DNSTraffic.h"
+/* ***************************************************** */
 
-#include "host_checks/DangerousHost.h"
-#include "host_checks/RemoteConnection.h"
+ndpi_serializer* NTPTrafficAlert::getAlertJSON(ndpi_serializer* serializer) {
+  if(serializer == NULL)
+    return NULL;
 
+  ndpi_serialize_string_uint64(serializer, "value", ntp_bytes);
+  ndpi_serialize_string_uint64(serializer, "threshold", ntp_bytes_threshold);
+  
+  return serializer;
+}
 
-#ifdef NTOPNG_PRO
-#include "host_checks/ScoreAnomaly.h"
-#include "host_checks/FlowAnomaly.h"
-#endif
-#endif /* _HOST_CHECKS_INCLUDES_H_ */
+/* ***************************************************** */

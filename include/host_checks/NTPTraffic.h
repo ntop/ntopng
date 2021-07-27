@@ -19,32 +19,29 @@
  *
  */
 
-#ifndef _HOST_CHECKS_INCLUDES_H_
-#define _HOST_CHECKS_INCLUDES_H_
+#ifndef _NTP_TRAFFIC_H_
+#define _NTP_TRAFFIC_H_
 
-#include "host_alerts_includes.h"
-#include "host_checks_includes.h"
+#include "ntop_includes.h"
 
-#include "host_checks/FlowHits.h"
-#include "host_checks/FlowFlood.h"
-#include "host_checks/SYNScan.h"
-#include "host_checks/SYNFlood.h"
+class NTPTraffic : public HostCheck {
+private:
+  u_int64_t ntp_bytes_threshold;  
 
-#include "host_checks/ServerContacts.h"
-#include "host_checks/DNSServerContacts.h"
-#include "host_checks/SMTPServerContacts.h"
-#include "host_checks/NTPServerContacts.h"
+  HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _ntp_bytes, u_int64_t _ntp_bytes_threshold) {
+    return new NTPTrafficAlert(c, f, cli_pctg, _ntp_bytes, _ntp_bytes_threshold);
+  };
+  
+public:
+  NTPTraffic();
+  ~NTPTraffic() {};
+  
+  void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
-#include "host_checks/P2PTraffic.h"
-#include "host_checks/NTPTraffic.h"
-#include "host_checks/DNSTraffic.h"
+  bool loadConfiguration(json_object *config);  
 
-#include "host_checks/DangerousHost.h"
-#include "host_checks/RemoteConnection.h"
+  HostCheckID getID() const { return host_check_ntp_traffic; }
+  std::string getName()  const { return(std::string("ntp")); }
+};
 
-
-#ifdef NTOPNG_PRO
-#include "host_checks/ScoreAnomaly.h"
-#include "host_checks/FlowAnomaly.h"
 #endif
-#endif /* _HOST_CHECKS_INCLUDES_H_ */
