@@ -615,9 +615,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void luaNdpiStats(lua_State* vm, bool diff = false);
   void luaPeriodicityFilteringMenu(lua_State* vm);
   void luaServiceFilteringMenu(lua_State* vm);
-  void luaPeriodicityStats(lua_State* vm, IpAddress *ip_address, VLANid vlan_id, u_int16_t host_pool_id, 
+  void luaPeriodicityStats(lua_State* vm, const u_int8_t * const mac, IpAddress *ip_address, VLANid vlan_id, u_int16_t host_pool_id, 
                             bool unicast, u_int32_t first_seen, u_int16_t filter_ndpi_proto);
-  void luaServiceMap(lua_State* vm, IpAddress *ip_address, VLANid vlan_id, u_int16_t host_pool_id, 
+  void luaServiceMap(lua_State* vm, const u_int8_t * const mac, IpAddress *ip_address, VLANid vlan_id, u_int16_t host_pool_id, 
                       bool unicast, u_int32_t first_seen, u_int16_t filter_ndpi_proto);
   void luaSubInterface(lua_State *vm);
   void luaServiceMapStatus(lua_State *vm);
