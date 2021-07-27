@@ -3611,7 +3611,7 @@ end
 
 -- ###########################################
 
-function getNtopngRelease(ntopng_info)
+function getNtopngRelease(ntopng_info, verbose)
    local release
 
    if ntopng_info.oem or ntopng_info["version.nedge_edition"] then
@@ -3632,6 +3632,10 @@ function getNtopngRelease(ntopng_info)
 
    -- E.g., ntopng edge v.4.3.210112 (Ubuntu 16.04.6 LTS)
    local res = string.format("%s %s v.%s (%s)", ntopng_info.product, release, ntopng_info.version, ntopng_info.OS)
+
+   if verbose and ntopng_info.revision then
+     res = string.format("%s %s v.%s rev.%s (%s)", ntopng_info.product, release, ntopng_info.version, ntopng_info.revision, ntopng_info.OS)
+   end
 
    if not ntopng_info.oem then
       local vers = string.split(ntopng_info["version.git"], ":")
