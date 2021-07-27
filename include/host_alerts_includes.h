@@ -37,7 +37,7 @@
 #include "host_alerts/DangerousHostAlert.h"
 #include "host_alerts/RemoteConnectionAlert.h"
 #include "host_alerts/ScoreAnomalyAlert.h"
-#include "host_alerts/ASNConnectionAlert.h"
+#include "host_alerts/DomainNamesConnectionAlert.h"
 
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */
 

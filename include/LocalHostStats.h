@@ -40,11 +40,10 @@ class LocalHostStats: public HostStats {
   Cardinality num_dns_servers, num_smtp_servers, num_ntp_servers;
 
   /* Estimate the number of contacted hosts,asn and country using HyperLogLog*/
-  struct ndpi_hll hll_contacted_hosts,hll_contacted_asn, hll_contacted_country;
-  double old_hll_value, new_hll_value, hll_delta_value,
-         old_hll_value_asn, new_hll_value_asn, hll_delta_value_asn,
-         old_hll_value_country, new_hll_value_country, hll_delta_value_country;
-  DESCounter contacted_hosts,contacted_asn,contacted_country;
+  struct ndpi_hll hll_contacted_hosts, hll_contacted_domain_names;
+  double     old_hll_value,              new_hll_value,              hll_delta_value;
+  u_int32_t  old_hll_value_domain_names, new_hll_value_domain_names, hll_delta_value_domain_names;
+  DESCounter contacted_hosts, contacted_domain_names;
   
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   char *old_sites;
@@ -67,8 +66,7 @@ class LocalHostStats: public HostStats {
   void serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize);
   void deserializeTopSites(char* redis_key_current);
   void updateContactedHostsBehaviour();
-  void updateContactedASNBehaviour();
-  void updateContactedCountryBehaviour();  
+  void updateDomainNamesBehaviour();  
 #if defined(NTOPNG_PRO)
   void resetTrafficStats();
 #endif
@@ -96,17 +94,13 @@ class LocalHostStats: public HostStats {
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose)    { if (icmp) icmp->lua(isV4, vm, verbose); }
   virtual void luaPeers(lua_State *vm);
   virtual void incrVisitedWebSite(char *hostname);
-  virtual void addContactedAsnCountry(u_int32_t asn,char* country) {    ndpi_hll_add(&hll_contacted_country,country,strlen(country));
-                                                                           ndpi_hll_add_number(&hll_contacted_asn,asn);       }       
-  virtual double getContactedASN()                                       { return ndpi_hll_count(&hll_contacted_asn);     }  
-  virtual void resetContactedASN()                                       { ndpi_hll_reset(&hll_contacted_asn);            }       
-  virtual double getContactedCountry()                                   { return ndpi_hll_count(&hll_contacted_country); } 
-  virtual void resetContactedCountry()                                   { ndpi_hll_reset(&hll_contacted_country);        }      
+  virtual void addContactedDomainName(char* domain_name)    { ndpi_hll_add(&hll_contacted_domain_names,domain_name,strlen(domain_name));}       
+  virtual u_int32_t getDomainNamesCardinality()             { return (u_int32_t)ndpi_hll_count(&hll_contacted_domain_names);            }  
+  virtual void resetDomainNamesCardinality()                { ndpi_hll_reset(&hll_contacted_domain_names);                              }         
   virtual void lua_get_timeseries(lua_State* vm);
   void luaContactsBehaviour(lua_State *vm);
   virtual void luaHostBehaviour(lua_State* vm);
-  virtual void luaASNBehaviour(lua_State* vm);
-  virtual void luaCountryBehaviour(lua_State* vm);
+  virtual void luaDomainNamesBehaviour(lua_State* vm);
   virtual bool hasAnomalies(time_t when);
   virtual void luaAnomalies(lua_State* vm, time_t when);
   virtual HTTPstats* getHTTPstats() { return(http); };

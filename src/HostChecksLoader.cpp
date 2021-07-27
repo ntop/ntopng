@@ -60,7 +60,7 @@ void HostChecksLoader::registerChecks() {
   if((fcb = new DNSTraffic()))                 registerCheck(fcb);
   if((fcb = new RemoteConnection()))           registerCheck(fcb);
   if((fcb = new DangerousHost()))              registerCheck(fcb);
-  if((fcb = new ASNConnection()))              registerCheck(fcb);
+  if((fcb = new DomainNamesConnection()))      registerCheck(fcb);
 
 #ifdef NTOPNG_PRO
   if((fcb = new ScoreAnomaly()))               registerCheck(fcb);

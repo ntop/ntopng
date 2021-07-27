@@ -95,11 +95,9 @@ class LocalHost : public Host, public SerializableElement {
   virtual void lua_peers_stats(lua_State* vm)    const;
   virtual void lua_contacts_stats(lua_State *vm) const;
   virtual void incrVisitedWebSite(char *hostname)  { stats->incrVisitedWebSite(hostname); };
-  virtual void addContactedAsnCountry(u_int32_t asn, char* country)    { stats->addContactedAsnCountry(asn,country); }         
-  virtual double getContactedASN()                     { return stats->getContactedASN();    }      
-  virtual void resetContactedASN()                     { stats->resetContactedASN();          }         
-  virtual double getContactedCountry()                 { return stats->getContactedCountry();    }       
-  virtual void resetContactedCountry()                 { stats->resetContactedCountry();          }        
+  virtual void addContactedDomainName(char* domain_name)    { stats->addContactedDomainName(domain_name);   }         
+  virtual u_int32_t getDomainNamesCardinality()             { return stats->getDomainNamesCardinality();    }      
+  virtual void resetDomainNamesCardinality()                { stats->resetDomainNamesCardinality();         }           
   virtual HTTPstats* getHTTPstats()                { return(stats->getHTTPstats());       };
   virtual DnsStats*  getDNSstats()                 { return(stats->getDNSstats());        };
   virtual ICMPstats* getICMPstats()                { return(stats->getICMPstats());       };
@@ -117,8 +115,7 @@ class LocalHost : public Host, public SerializableElement {
   void custom_periodic_stats_update(const struct timeval *tv) { ; }
 
   virtual void luaHostBehaviour(lua_State* vm)       { if(stats) stats->luaHostBehaviour(vm); }
-  virtual void luaASNBehaviour(lua_State* vm)        { if(stats) stats->luaASNBehaviour(vm); }
-  virtual void luaCountryBehaviour(lua_State* vm)    { if(stats) stats->luaCountryBehaviour(vm); }
+  virtual void luaDomainNamesBehaviour(lua_State* vm){ if(stats) stats->luaDomainNamesBehaviour(vm); }
   virtual void incDohDoTUses(Host *srv_host);
 
   virtual void incNTPContactCardinality(Host *h)  { stats->incNTPContactCardinality(h);  }

@@ -368,11 +368,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void luaTCP(lua_State *vm) { };
   virtual u_int16_t getNumActiveContactsAsClient()  { return 0; };
   virtual u_int16_t getNumActiveContactsAsServer()  { return 0; };
-  virtual void addContactedAsnCountry(u_int32_t asn,char* country) {}       
-  virtual double getContactedASN()     {return 0;}  
-  virtual void resetContactedASN()     {}       
-  virtual double getContactedCountry() {return 0;} 
-  virtual void resetContactedCountry() {}
+  virtual void addContactedDomainName(char* domain_name) {};       
+  virtual u_int32_t getDomainNamesCardinality()          { return 0; };      
+  virtual void resetDomainNamesCardinality()             {};
   
   inline TcpPacketStats* getTcpPacketSentStats() { return(stats->getTcpPacketSentStats()); }
   inline TcpPacketStats* getTcpPacketRcvdStats() { return(stats->getTcpPacketRcvdStats()); }
@@ -462,9 +460,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void incSrvPortsContacts(u_int16_t port)   { stats->incSrvPortsContacts(port);  }
   void incContactedService(char *name)       { stats->incContactedService(name);  }
 
-  virtual void luaHostBehaviour(lua_State* vm) { lua_pushnil(vm); }
-  virtual void luaASNBehaviour(lua_State* vm) { lua_pushnil(vm); }
-  virtual void luaCountryBehaviour(lua_State* vm) { lua_pushnil(vm); }
+  virtual void luaHostBehaviour(lua_State* vm)        { lua_pushnil(vm); }
+  virtual void luaDomainNamesBehaviour(lua_State* vm) { lua_pushnil(vm); }
   
   virtual void incDohDoTUses(Host *srv_host) {}
 

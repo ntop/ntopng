@@ -19,44 +19,26 @@
  *
  */
 
-#include "ntop_includes.h"
-#include "host_checks_includes.h"
+#include "host_alerts_includes.h"
 
 /* ***************************************************** */
 
-ASNConnection::ASNConnection() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {};
+DomainNamesConnectionAlert::DomainNamesConnectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int32_t _num_domain_names, u_int8_t _domain_names_threshold) : HostAlert (c, f, cli_pctg) {
+
+  num_domain_names = _num_domain_names;
+  domain_names_threshold=_domain_names_threshold;
+};
 
 /* ***************************************************** */
 
-void ASNConnection::periodicUpdate(Host *h, HostAlert *engaged_alert) {
-	
-  u_int16_t threshold=getThreshold();	
+ndpi_serializer* DomainNamesConnectionAlert::getAlertJSON(ndpi_serializer* serializer) {
+  if(serializer == NULL)
+    return NULL;
 
-  if (get_period() != 4)  // waiting 5 mins before execute check
-  {
-    incrPeriod();
-    return;
-  }
+  ndpi_serialize_string_uint64(serializer, "num_domain_names", num_domain_names);
+  ndpi_serialize_string_uint64(serializer, "threshold", domain_names_threshold);
   
-  HostAlert *alert = engaged_alert;
-  u_int16_t num_asn = 0;
-  u_int8_t num_countries = 0;
-
-
-  num_asn = h->getContactedASN();
-  num_countries =  h->getContactedCountry();
-
-
-  if(num_asn > threshold || num_countries > threshold) {
-    if (!alert) alert = allocAlert(this, h, CLIENT_FAIR_RISK_PERCENTAGE, num_asn, num_countries);
-    if (alert) h->triggerAlert(alert);
-  }
-
-  h->resetContactedASN();
-  h->resetContactedCountry();
-
-  resetPeriod();
-
+  return serializer;
 }
 
 /* ***************************************************** */

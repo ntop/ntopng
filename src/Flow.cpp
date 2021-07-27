@@ -97,38 +97,17 @@ Flow::Flow(NetworkInterface *_iface,
   iface->findFlowHosts(_vlanId, _observation_point_id, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   PROFILING_SUB_SECTION_EXIT(iface, 7);
 
+  char *domain_name = ndpiFlow ? ndpi_get_flow_name(ndpiFlow) : NULL;
+
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
-
-    if(srv_host){
- 
-    Country * csrv=srv_host->getCountryStats();
-    if(csrv!=NULL){
-      u_int32_t asns=srv_host->get_asn();
-       char* countrys=csrv->get_country_name();
-      if(asns > 0 && countrys !=NULL)
-         cli_host->addContactedAsnCountry(asns,countrys);
-      }
-    }
-
     cli_host->incUses(), cli_host->incNumFlows(last_seen, true);
-
-  if(srv_host){
- 
-    Country * csrv=srv_host->getCountryStats();
-    if(csrv!=NULL){
-      u_int32_t asns=srv_host->get_asn();
-       char* countrys=csrv->get_country_name();
-
-      if(asns > 0 && countrys !=NULL)
-         cli_host->addContactedAsnCountry(asns,countrys);
-      }
-    }
 
     if(network_stats) network_stats->incNumFlows(last_seen, true);
     cli_ip_addr = cli_host->get_ip();
     cli_host->incCliContactedHosts(_srv_ip);
     cli_host->incCliContactedPorts(_srv_port);
+    if(cli_host->isLocalHost() && domain_name!=NULL)  cli_host->addContactedDomainName(domain_name);
   } else { /* Client host has not been allocated, let's keep the info in an IpAddress */
     if((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
       cli_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
@@ -136,34 +115,12 @@ Flow::Flow(NetworkInterface *_iface,
 
   if(srv_host) {
     NetworkStats *network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
-
-    if(cli_host){
-        Country * ccli=cli_host->getCountryStats();   
-        if(ccli != NULL){
-           u_int32_t asnc=cli_host->get_asn();
-           char* countryc=ccli->get_country_name();   
-           if(asnc >0 && countryc !=NULL)
-          srv_host->addContactedAsnCountry(asnc,countryc);
-      }
-    }
-
     srv_host->incUses(), srv_host->incNumFlows(last_seen, false);
-   
-  if(cli_host){
-        Country * ccli=cli_host->getCountryStats();   
-        if(ccli != NULL){
-           u_int32_t asnc=cli_host->get_asn();
-           char* countryc=ccli->get_country_name();   
-           if(asnc >0 && countryc !=NULL)
-          srv_host->addContactedAsnCountry(asnc,countryc);
-      }
-    }
-
     if(network_stats) network_stats->incNumFlows(last_seen, false);
     srv_ip_addr = srv_host->get_ip();
-
     srv_host->incSrvHostContacts(_cli_ip);
     srv_host->incSrvPortsContacts(_cli_port);
+    if(srv_host->isLocalHost() && domain_name!=NULL) srv_host->addContactedDomainName(domain_name);
   } else { /* Server host has not been allocated, let's keep the info in an IpAddress */
     if((srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip)))
       srv_ip_addr->reloadBlacklist(iface->get_ndpi_struct());

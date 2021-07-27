@@ -634,6 +634,7 @@ local lang = {
     ["too_many_hosts_title"] = "Double Max Hosts",
     ["unknown_contacted_peers"] = "Too many Peers contacted by %{host} %{host_category}.",
     ["x_alerts"] = "%{num} alerts",
+    ["host_alert_domain_names_connection"]= "Too many Domain Names contacted",
   },
   ["alerts_dashboard"] = {
     ["abort_add_filter"] = "Abort add filter?",
@@ -875,6 +876,7 @@ local lang = {
     ["x_lost"] = "%{lost} Lost",
     ["x_ooo"] = "%{ooo} Out-of-Order",
     ["x_retx"] = "%{retx} Retransmissions",
+    ["host_alert_domain_names_connection"]= "Trigger an alert when the number of contacted Domain Names exceed a certain threshold",
     ["tooltips"] = {
       ["top_addresses"] = "Mac Addresses with most alerts",
       ["top_alerts"] = "Most seen alerts",
@@ -934,6 +936,8 @@ local lang = {
     ["threshold_type"] = "Callback",
     ["thresholds_single_source"] = "%{source} %{alt_name} Configuration",
     ["throughput"] = "Throughput Alert",
+    ["domain_names_connection_title"]= "Domain Names connections",
+    ["domain_names_connection_description"]="Trigger an alert when the number of contacted Domain Names is greater then a certain threshold"
   },
   ["appliance"] = {
     ["capture_interfaces"] = "Capture Interfaces",

@@ -108,11 +108,9 @@ class HostStats: public GenericTrafficElement {
   void luaStats(lua_State* vm, NetworkInterface *iface, bool host_details, bool verbose, bool tsLua = false);
   virtual u_int16_t getNumActiveContactsAsClient() { return 0; }
   virtual u_int16_t getNumActiveContactsAsServer() { return 0; }
-  virtual void addContactedAsnCountry(u_int32_t asn,char* country) {}       
-  virtual double getContactedASN()     {return 0;}  
-  virtual void resetContactedASN()     {}       
-  virtual double getContactedCountry() {return 0;} 
-  virtual void resetContactedCountry() {}
+  virtual void addContactedDomainName(char* domain_name) {}       
+  virtual u_int32_t getDomainNamesCardinality()    {return (u_int32_t)-1;  }  
+  virtual void resetDomainNamesCardinality()       {}
   
   virtual void resetTopSitesData() {};
  
@@ -133,8 +131,7 @@ class HostStats: public GenericTrafficElement {
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
   void updateStats(const struct timeval *tv);
   virtual void luaHostBehaviour(lua_State* vm);
-  virtual void luaASNBehaviour(lua_State* vm){}
-  virtual void luaCountryBehaviour(lua_State* vm){}
+  virtual void luaDomainNamesBehaviour(lua_State* vm){}
   
 #ifdef NTOPNG_PRO
   inline void incQuotaEnforcementStats(time_t when, u_int16_t ndpi_proto,

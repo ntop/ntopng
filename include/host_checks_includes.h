@@ -41,7 +41,7 @@
 
 #include "host_checks/DangerousHost.h"
 #include "host_checks/RemoteConnection.h"
-#include "host_checks/ASNConnection.h"
+#include "host_checks/DomainNamesConnection.h"
 
 
 #ifdef NTOPNG_PRO
