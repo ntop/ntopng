@@ -512,6 +512,7 @@ typedef enum {
   host_check_flow_flood,
   host_check_ntp_server_contacts,
   host_check_smtp_server_contacts,
+  host_check_countries_contacts,
   host_check_dns_server_contacts,
   host_check_score_host,
   host_check_p2p_traffic,
@@ -520,11 +521,7 @@ typedef enum {
   host_check_score_anomaly,
   host_check_remote_connection,
   host_check_dangerous_host,
-<<<<<<< HEAD
-  host_check_countries_contacts,
-=======
   host_check_ntp_traffic,
->>>>>>> f56189dbd169bf57585e1da677f8b9e664accd00
 
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */ 
 } HostCheckID;
