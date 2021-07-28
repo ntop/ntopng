@@ -564,8 +564,6 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	    past_flows_filter["epoch_end"] = past_flows_filter["epoch_begin"] + duration
 	 end
 
-	 tprint(past_flows_filter)
-
 	 -- Return the link augmented with the filter
 	 return string.format("%s/lua/pro/nindex_query.lua?", ntop.getHttpPrefix(), table.tconcat(past_flows_filter, "=", "&"))
       end
