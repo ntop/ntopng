@@ -3063,7 +3063,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
       if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
       print('&nbsp;')
       -- print('<span class="badge bg-info">')
-      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-history fa-lg"></i></a>')
+      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-search-plus fa-lg"></i></a>')
       -- print('</span>')
    end
 end
