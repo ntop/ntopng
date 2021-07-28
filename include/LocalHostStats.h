@@ -29,11 +29,9 @@ class LocalHostStats: public HostStats {
   HTTPstats *http;
   ICMPstats *icmp;
   FrequentStringItems *top_sites;
-#if defined(NTOPNG_PRO)
-  TrafficStatsMonitor traffic_stats;
-#endif
+
   /* nextPeriodicUpdate done every 5 min */
-  time_t nextPeriodicUpdate, nextPeriodicTrafficMapUpdate;
+  time_t nextPeriodicUpdate;
   u_int32_t num_contacts_as_cli, num_contacts_as_srv;
 
   /* Estimate of the number of critical servers used by this host */

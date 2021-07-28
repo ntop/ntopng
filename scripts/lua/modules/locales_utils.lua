@@ -21,6 +21,7 @@ local locales_initialized = false
 
 local supported_locales = {
    {code = "en"},
+   {code = "cn"},
    {code = "it"},
    {code = "de"},
    {code = "jp"},

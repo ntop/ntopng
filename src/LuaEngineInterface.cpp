@@ -3129,46 +3129,6 @@ static int ntop_nindex_enabled(lua_State* vm) {
 
 #endif
 
-#ifdef NTOPNG_PRO
-
-/* ****************************************** */
-
-static int ntop_interface_enable_traffic_map(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  bool enable = false;
-
-  if(lua_type(vm, 1) == LUA_TBOOLEAN) enable = (bool)lua_toboolean(vm, 1);
-  
-  ntop_interface->enableTrafficMap(enable);
-    
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
- 
-static int ntop_interface_get_traffic_map_enabled(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  if(!ntop_interface)
-    lua_pushboolean(vm, false);
-  else
-    lua_pushboolean(vm, ntop_interface->isTrafficMapEnabled());
-    
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-  
-static int ntop_interface_get_traffic_map_stats(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop_interface->luaTrafficMap(vm);
-    
-  return(CONST_LUA_OK);
-}
-
-#endif
-
 /* ****************************************** */
 
 static void* pcapDumpLoop(void* ptr) {
@@ -3919,9 +3879,10 @@ static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_periodicity_map(lua_State* vm) {
+static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   IpAddress *ip = NULL;
+  u_int8_t *mac = NULL;
   char * l7_proto = NULL;
   VLANid vlan_id = 0, host_pool_id = 0, filter_ndpi_proto = 0;
   u_int32_t first_seen = 0;
@@ -3930,8 +3891,15 @@ static int ntop_get_interface_periodicity_map(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
-    ip = new (std::nothrow) IpAddress();
-    if(ip) ip->set((char*)lua_tostring(vm, 1));    
+    const char *addr = lua_tostring(vm, 1);
+
+    if(strchr(addr, ':')) { /* This is a MAC address */
+      mac = new (std::nothrow) u_int8_t[6]();
+      if(mac) Utils::parseMac(mac, addr);
+    } else { /* This is an IP address */
+      ip = new (std::nothrow) IpAddress();
+      if(ip) ip->set(addr);
+    }
   }
   if(lua_type(vm, 2) == LUA_TNUMBER)  vlan_id      = (u_int16_t)lua_tonumber(vm, 2);
   if(lua_type(vm, 3) == LUA_TNUMBER)  host_pool_id = (u_int16_t)lua_tonumber(vm, 3);
@@ -3942,14 +3910,30 @@ static int ntop_get_interface_periodicity_map(lua_State* vm) {
   if(l7_proto)
     filter_ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
 
-  if(ntop_interface)
-    ntop_interface->luaPeriodicityStats(vm, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto);
-  else
+  if(ntop_interface) {
+    if(periodicity) 
+      ntop_interface->luaPeriodicityStats(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto);
+    else
+      ntop_interface->luaServiceMap(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto);
+  } else
     lua_pushnil(vm);
 
-  if(ip) delete ip;
+  if(ip)  delete ip;
+  if(mac) delete [] mac;
 
   return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_interface_periodicity_map(lua_State* vm) {
+  return ntop_get_interface_map(vm, true /* periodicity */);
+}
+
+/* ****************************************** */
+
+static int ntop_get_interface_service_map(lua_State* vm) {
+  return ntop_get_interface_map(vm, false /* service */);
 }
 
 /* ****************************************** */
@@ -3966,42 +3950,6 @@ static int ntop_flush_interface_periodicity_map(lua_State* vm) {
 #endif
 
   lua_pushnil(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_get_interface_service_map(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  IpAddress *ip = NULL;
-  char *l7_proto = NULL;
-  VLANid vlan_id = 0, host_pool_id = 0, filter_ndpi_proto = 0;
-  u_int32_t first_seen = 0;
-  bool unicast = false;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(lua_type(vm, 1) == LUA_TSTRING) {
-    ip = new (std::nothrow) IpAddress();
-    if(ip) ip->set((char*)lua_tostring(vm, 1));    
-  }
-
-  if(lua_type(vm, 2) == LUA_TNUMBER)  vlan_id           = (u_int16_t)lua_tonumber(vm, 2);
-  if(lua_type(vm, 3) == LUA_TNUMBER)  host_pool_id      = (u_int16_t)lua_tonumber(vm, 3);
-  if(lua_type(vm, 4) == LUA_TBOOLEAN) unicast           = (bool)lua_toboolean(vm, 4);
-  if(lua_type(vm, 5) == LUA_TNUMBER)  first_seen        = (u_int32_t)lua_tonumber(vm, 5);
-  if(lua_type(vm, 6) == LUA_TSTRING)  l7_proto          = (char *)lua_tostring(vm, 6);
-
-  if(l7_proto)
-    filter_ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
-
-  if(ntop_interface)
-    ntop_interface->luaServiceMap(vm, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto);
-  else
-    lua_pushnil(vm);
-
-  if(ip) delete ip;
 
   return(CONST_LUA_OK);
 }
@@ -4160,32 +4108,6 @@ static int ntop_get_address_info(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
-
-/* ****************************************** */
-
-#ifdef NTOPNG_PRO
-static int ntop_interface_get_traffic_map_host_stats(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *host_ip;
-  VLANid vlan_id = 0;
-  char buf[64];
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  /* Optional VLAN id */
-  if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-  else
-    ntop_interface->luaTrafficMapHostStats(vm, get_allowed_nets(vm), host_ip, vlan_id);
-      
-  return(CONST_LUA_OK);
-}
-#endif
 
 /* ****************************************** */
 
@@ -4600,15 +4522,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getContainersStats",     ntop_interface_get_containers_stats     },
   { "reloadCompanions",       ntop_interface_reload_companions        },
 
-#ifdef NTOPNG_PRO
-  /* Traffic Map */
-  { "getTrafficMap",          ntop_interface_get_traffic_map_stats    },
-  { "trafficMapEnabled",      ntop_interface_get_traffic_map_enabled  },
-  { "enableTrafficMap",       ntop_interface_enable_traffic_map       },
-  { "getTrafficMapHostStats", ntop_interface_get_traffic_map_host_stats },
-  
-#endif
-  
   /* Syslog */
   { "isSyslogInterface",      ntop_interface_is_syslog_interface      },
   { "incSyslogStats",         ntop_interface_inc_syslog_stats         },
