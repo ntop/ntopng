@@ -561,6 +561,12 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	 -- Add a default end time, if not end time has been added by the filter-generation function
 	 if not past_flows_filter["epoch_end"] then
 	    local duration = tonumber(alert["duration"]) or (tonumber(alert["tstamp_end"]) - tonumber(alert["tstamp"]))
+
+	    if duration > 300 then
+	       -- Dont' make the interval too large by default
+	       duration = 300
+	    end
+
 	    past_flows_filter["epoch_end"] = past_flows_filter["epoch_begin"] + duration
 	 end
 

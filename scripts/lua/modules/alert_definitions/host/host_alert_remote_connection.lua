@@ -55,4 +55,23 @@ end
 
 -- #######################################################
 
+-- @brief Prepare a table containing a set of filters useful to query historical flows that contributed to the generation of this alert
+-- @param ifid The integer interface id of the generated alert
+-- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
+-- @param alert_type_params Table `alert_type_params` as built in the `:init` method
+-- @return A human-readable string
+function host_alert_remote_connection.filter_to_past_flows(ifid, alert, alert_type_params)
+   local res = {}
+   local host_key = hostinfo2hostkey({ip = alert["ip"], vlan = alert["vlan_id"]})
+
+   -- Look for the IP both as client and as server as the alert does not differentiate
+   res["ip"] = host_key
+   -- Category FileSharing, not just a single protocol
+   res["l7cat"] = "RemoteAccess"
+
+   return res
+end
+
+-- #######################################################
+
 return host_alert_remote_connection
