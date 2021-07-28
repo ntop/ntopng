@@ -3354,6 +3354,7 @@ local lang = {
     ["looking_glass"] = "Looking Glass",
   },
   ["locales"] = {
+    ["cn"] = "Chinese",
     ["cz"] = "Czech",
     ["de"] = "German",
     ["en"] = "English",
