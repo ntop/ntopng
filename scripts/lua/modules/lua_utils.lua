@@ -3011,15 +3011,20 @@ function purgedErrorString()
 end
 
 -- print TCP flags
+function formatTCPFlags(flags)
+   if(hasbit(flags,0x01)) then return('<span class="badge bg-warning">FIN</span> ') end
+   if(hasbit(flags,0x02)) then return('<span class="badge bg-warning">SYN</span> ')  end
+   if(hasbit(flags,0x04)) then return('<span class="badge bg-danger">RST</span> ') end
+   if(hasbit(flags,0x08)) then return('<span class="badge bg-warning">PUSH</span> ') end
+   if(hasbit(flags,0x10)) then return('<span class="badge bg-warning">ACK</span> ')  end
+   if(hasbit(flags,0x20)) then return('<span class="badge bg-warning">URG</span> ')  end
+   if(hasbit(flags,0x40)) then return('<span class="badge bg-warning">ECE</span> ')  end
+   if(hasbit(flags,0x80)) then return('<span class="badge bg-warning">CWR</span> ')  end
+end
+
+-- print TCP flags
 function printTCPFlags(flags)
-   if(hasbit(flags,0x01)) then print('<span class="badge bg-warning">FIN</span> ') end
-   if(hasbit(flags,0x02)) then print('<span class="badge bg-warning">SYN</span> ')  end
-   if(hasbit(flags,0x04)) then print('<span class="badge bg-danger">RST</span> ') end
-   if(hasbit(flags,0x08)) then print('<span class="badge bg-warning">PUSH</span> ') end
-   if(hasbit(flags,0x10)) then print('<span class="badge bg-warning">ACK</span> ')  end
-   if(hasbit(flags,0x20)) then print('<span class="badge bg-warning">URG</span> ')  end
-   if(hasbit(flags,0x40)) then print('<span class="badge bg-warning">ECE</span> ')  end
-   if(hasbit(flags,0x80)) then print('<span class="badge bg-warning">CWR</span> ')  end
+   print(formatTCPFlags(flags))
 end
 
 -- convert the integer carrying TCP flags in a more convenient lua table
