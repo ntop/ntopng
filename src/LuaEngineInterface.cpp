@@ -3119,8 +3119,17 @@ static int ntop_nindex_topk(lua_State* vm) {
 		      max_num_hits, topToBottomSort));
 }
 
+/* ****************************************** */
+
 static int ntop_nindex_enabled(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  NetworkInterface *ntop_interface = NULL;
+  int ifid;
+
+  if(lua_type(vm, 1) == LUA_TNUMBER) {
+    ifid = lua_tointeger(vm, 1);
+    ntop_interface = ntop->getInterfaceById(ifid);
+  } else
+    ntop_interface = getCurrentInterface(vm);
 
   lua_pushboolean(vm, ntop_interface && ntop_interface->getNindex());
 

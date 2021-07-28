@@ -38,16 +38,11 @@ local alert_utils = {}
 -- ##############################################
 
 local function alertTypeDescription(alert_key, entity_id)
-
    local alert_id = alert_consts.getAlertType(alert_key, entity_id)
 
    if(alert_id) then
       if alert_consts.alert_types[alert_id].format then
-	 -- New API
 	 return alert_consts.alert_types[alert_id].format
-      else
-	 -- TODO: Possible removed once migration is done
-	 return(alert_consts.alert_types[alert_id].i18n_description)
       end
    end
 
@@ -474,7 +469,7 @@ end
 
 -- #################################
 
-function alert_utils.formatAlertMessage(ifid, alert, alert_json, skip_live_data)
+function alert_utils.formatAlertMessage(ifid, alert, alert_json)
   local msg
 
   if(alert_json == nil) then
@@ -508,7 +503,7 @@ end
 
 -- #################################
 
-function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, skip_live_data)
+function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json)
   local msg
 
   if(alert_json == nil) then
@@ -534,6 +529,47 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, skip_live_d
   end
 
   return msg or ""
+end
+
+-- #################################
+
+function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
+   if not ntop.isEnterpriseM() or not hasNindexSupport() or not interface.nIndexEnabled(ifid) then
+      -- nIndex not enabled or enabled but not available for this particular interface
+      return
+   end
+
+   -- Fetch the alert id
+   local alert_id = alert_consts.getAlertType(alert.alert_id, alert.entity_id)
+   if alert_id then
+      -- If there's a function that generates the filter available for this particular alert,
+      -- then the function is called to fetch the filter for the historical flows
+      if alert_consts.alert_types[alert_id].filter_to_past_flows then
+	 if not alert_json then
+	    alert_json = alert_utils.getAlertInfo(alert)
+	 end
+
+	 -- Fetch the filter
+	 local past_flows_filter = alert_consts.alert_types[alert_id].filter_to_past_flows(ifid, alert, alert_json)
+
+	 -- Add a defaut start time, if no start time has been added by the filter-generation function
+	 if not past_flows_filter["epoch_begin"] then
+	    past_flows_filter["epoch_begin"] = tonumber(alert["tstamp"]) - 300 -- Look a bit before than the timestamp
+	 end
+	 past_flows_filter["epoch_begin"] = tonumber(past_flows_filter["epoch_begin"])
+
+	 -- Add a default end time, if not end time has been added by the filter-generation function
+	 if not past_flows_filter["epoch_end"] then
+	    local duration = tonumber(alert["duration"]) or (tonumber(alert["tstamp_end"]) - tonumber(alert["tstamp"]))
+	    past_flows_filter["epoch_end"] = past_flows_filter["epoch_begin"] + duration
+	 end
+
+	 tprint(past_flows_filter)
+
+	 -- Return the link augmented with the filter
+	 return string.format("%s/lua/pro/nindex_query.lua?", ntop.getHttpPrefix(), table.tconcat(past_flows_filter, "=", "&"))
+      end
+   end
 end
 
 -- #################################

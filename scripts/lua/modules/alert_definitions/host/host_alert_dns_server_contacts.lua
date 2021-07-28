@@ -63,4 +63,21 @@ end
 
 -- #######################################################
 
+function host_alert_dns_server_contacts.filter_to_past_flows(ifid, alert, alert_type_params)
+   local res = {}
+   local host_key = hostinfo2hostkey({ip = alert["ip"], vlan = alert["vlan_id"]})
+
+   if alert["is_client"] == true or alert["is_client"] == "1" then
+      res["client_ip"] = host_key
+   elseif alert["is_server"] == true or alert["is_server"] == "1" then
+      res["server_ip"] = host_key
+   end
+
+   res["l7_proto"] = "DNS"
+
+   return res
+end
+
+-- #######################################################
+
 return host_alert_dns_server_contacts
