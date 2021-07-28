@@ -7,6 +7,7 @@
 * Advanced alerts engine with security features, including the detection of [attackers and victims](https://www.ntop.org/ntopng/how-attackers-and-victims-detection-works-in-ntopng/)
   * Integration of 30+ [nDPI security risks](https://www.ntop.org/ndpi/how-to-spot-unsafe-communications-using-ndpi-flow-risk-score/) 
   * Generation of the `score` [indicator of compromise](https://www.ntop.org/ntopng/what-is-score-and-how-it-can-drive-you-towards-network-issues/) for hosts, interfaces and other network elements
+* Ability to collect flows from hundredths of routers by means of [observation points](https://www.ntop.org/nprobe/collecting-flows-from-hundred-of-routers-using-observation-points/)
 * Anomaly detection based on Double Exponential Smoothing (DES) to uncover possibly suspicious behaviors in the traffic and in the score
 * Encrypted Traffic Analysis (ETA) with special emphasis on the TLS to uncover self-signed, expired, invalid certificates and other issues
 
