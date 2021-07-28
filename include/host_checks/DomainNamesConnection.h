@@ -28,8 +28,8 @@ class DomainNamesConnection : public HostCheck {
 private:
   u_int8_t domain_names_threshold;
 
-  DomainNamesConnectionAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int32_t num_domain_names, u_int8_t _domain_names_threshold) {
-    return new DomainNamesConnectionAlert(c, h, cli_pctg, num_domain_names,_domain_names_threshold);
+  DomainNamesConnectionAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int32_t _num_domain_names, u_int8_t _domain_names_threshold) { 
+    return new DomainNamesConnectionAlert(c, h, cli_pctg, _num_domain_names,_domain_names_threshold);
   }; 
 
 public:
