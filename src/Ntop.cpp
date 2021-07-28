@@ -2778,8 +2778,9 @@ void Ntop::runHousekeepingTasks() {
   checkReloadFlowChecks();
   checkReloadHostChecks();
 
-  for(int i = 0; i < get_num_interfaces(); i++)
-    iface[i]->runHousekeepingTasks();
+  for(int i = 0; i < get_num_interfaces(); i++) {
+    if (!iface[i]->isStartingUp()) iface[i]->runHousekeepingTasks();
+  }
 
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();
