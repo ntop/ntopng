@@ -3012,14 +3012,16 @@ end
 
 -- print TCP flags
 function formatTCPFlags(flags)
-   if(hasbit(flags,0x01)) then return('<span class="badge bg-warning">FIN</span> ') end
-   if(hasbit(flags,0x02)) then return('<span class="badge bg-warning">SYN</span> ')  end
-   if(hasbit(flags,0x04)) then return('<span class="badge bg-danger">RST</span> ') end
-   if(hasbit(flags,0x08)) then return('<span class="badge bg-warning">PUSH</span> ') end
-   if(hasbit(flags,0x10)) then return('<span class="badge bg-warning">ACK</span> ')  end
-   if(hasbit(flags,0x20)) then return('<span class="badge bg-warning">URG</span> ')  end
-   if(hasbit(flags,0x40)) then return('<span class="badge bg-warning">ECE</span> ')  end
-   if(hasbit(flags,0x80)) then return('<span class="badge bg-warning">CWR</span> ')  end
+   local out = ''
+   if(hasbit(flags,0x01)) then out = out .. '<span class="badge bg-warning">FIN</span> '  end
+   if(hasbit(flags,0x02)) then out = out .. '<span class="badge bg-warning">SYN</span> '  end
+   if(hasbit(flags,0x04)) then out = out .. '<span class="badge bg-danger">RST</span> '   end
+   if(hasbit(flags,0x08)) then out = out .. '<span class="badge bg-warning">PUSH</span> ' end
+   if(hasbit(flags,0x10)) then out = out .. '<span class="badge bg-warning">ACK</span> '  end
+   if(hasbit(flags,0x20)) then out = out .. '<span class="badge bg-warning">URG</span> '  end
+   if(hasbit(flags,0x40)) then out = out .. '<span class="badge bg-warning">ECE</span> '  end
+   if(hasbit(flags,0x80)) then out = out .. '<span class="badge bg-warning">CWR</span> '  end
+   return out
 end
 
 -- print TCP flags
