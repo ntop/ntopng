@@ -1382,12 +1382,14 @@ local known_parameters = {
    ["probe_ip"]                = validateFilters(validateHost),                  --Probe IP, used by nindex query
    ["tot_bytes"]               = validateFilters(validateNumber),                --Total bytes, used by nindex query
    ["src2dst_dscp"]            = validateEmptyOr(validateFilters(validateUnquoted)),                               --Client DSCP, used by nindex query
-   ["flow_status_num"]                  = validateEmptyOr(validateFilters(validateUnquoted)),                               --Flow Status, used by nindex query
+   ["flow_status_num"]         = validateEmptyOr(validateFilters(validateUnquoted)),                               --Flow Status, used by nindex query
    ["vhost"]                   = validateHTTPHost,              -- HTTP server name or IP address
    ["version"]                 = validateIpVersion,             -- To specify an IPv4 or IPv6
    ["ip_version"]              = validateListOfTypeInline(validateFilters(validateIpVersion)),             -- To specify an IPv4 or IPv6
    ["vlan"]                    = validateEmptyOr(validateNumber), -- A VLAN id
    ["hosts"]                   = validateHostsList,             -- A list of hosts
+   ["src2dst_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Client to Server TCP flags
+   ["dst2src_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Server to Client TCP flags
 
 -- AUTHENTICATION
    ["username"]                = validateUsername,              -- A ntopng user name, new or existing
