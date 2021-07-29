@@ -621,7 +621,7 @@ void Ntop::start() {
 	runHousekeepingTasks();
 
 	/* Allow host and flow checks to be executed, allow notifications to be processed (notifications.lua) */
-	sleep(3);
+	sleep(6);
 
 	/* Test Script (Post Analysis) */
 	if(ntop->getPrefs()->get_test_post_script_path()) {
@@ -2778,8 +2778,9 @@ void Ntop::runHousekeepingTasks() {
   checkReloadFlowChecks();
   checkReloadHostChecks();
 
-  for(int i = 0; i < get_num_interfaces(); i++)
-    iface[i]->runHousekeepingTasks();
+  for(int i = 0; i < get_num_interfaces(); i++) {
+    if (!iface[i]->isStartingUp()) iface[i]->runHousekeepingTasks();
+  }
 
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();

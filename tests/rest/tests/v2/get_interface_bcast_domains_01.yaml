@@ -4,6 +4,5 @@ ignore:
 
 
 post: |
-  sleep 10
   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0}' http://localhost:3333/lua/rest/v2/get/interface/bcast_domains.lua
 
