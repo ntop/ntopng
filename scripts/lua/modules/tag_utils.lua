@@ -14,13 +14,14 @@ tag_utils.SEPARATOR = ';'
 
 -- Supported operators
 tag_utils.tag_operators = {
-    ["eq"] = "=",
+    ["eq"]  = "=",
     ["neq"] = "!=",
-    ["lt"] = "<",
-    ["gt"] = ">",
+    ["lt"]  = "<",
+    ["gt"]  = ">",
     ["gte"] = ">=",
     ["lte"] = "<=",
-    ["in"] = "&",
+    ["in"]  = "has",
+    ["nin"] = "does not have",
 }
 
 -- ##############################################
@@ -53,6 +54,9 @@ function tag_utils.eval_op(v1, op, v2)
    elseif op == 'in' then
       v_and = v1 & v2
       return v1 == v_and
+   elseif op == 'nin' then
+      v_and = v1 & v2
+      return v1 ~= v_and
    end 
 
    return default_verdict
