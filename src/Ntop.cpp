@@ -621,7 +621,7 @@ void Ntop::start() {
 	runHousekeepingTasks();
 
 	/* Allow host and flow checks to be executed, allow notifications to be processed (notifications.lua) */
-	sleep(3);
+	sleep(6);
 
 	/* Test Script (Post Analysis) */
 	if(ntop->getPrefs()->get_test_post_script_path()) {
