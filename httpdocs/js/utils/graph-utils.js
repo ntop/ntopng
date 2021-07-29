@@ -1493,7 +1493,7 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
         if(!has_drilldown)
           $("table td:last-child, th:last-child", graph_table).remove();
 
-        if(data && data.stats && data.stats.query_duration_msec) {
+        if(data && data.totalRows > 0 && data.stats && data.stats.query_duration_msec) {
            let time_elapsed = data.stats.query_duration_msec/1000.0;
            if(time_elapsed < 0.1)
             time_elapsed = "< 0.1"
