@@ -3910,6 +3910,7 @@ local lang = {
       ["probe_ip"] = "Probe IP",
       ["role"] = "Role",
       ["roles"] = "Roles",
+      ["score"] = "Score",
       ["src2dst_dscp"] = "Client DSCP",
       ["src2dst_tcp_flags"] = "Cli TCP Flags",
       ["srv_asn"] = "Server ASN",

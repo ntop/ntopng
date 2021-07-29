@@ -1390,6 +1390,7 @@ local known_parameters = {
    ["hosts"]                   = validateHostsList,             -- A list of hosts
    ["src2dst_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Client to Server TCP flags
    ["dst2src_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Server to Client TCP flags
+   ["score"]                   = validateListOfTypeInline(validateFilters(validateNumber)), -- Score
 
 -- AUTHENTICATION
    ["username"]                = validateUsername,              -- A ntopng user name, new or existing

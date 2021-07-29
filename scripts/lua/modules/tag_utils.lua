@@ -91,6 +91,8 @@ tag_utils.nindex_tags_to_where_v4 = {
    ["probe_ip"]     = "PROBE_IP",
    ["src2dst_tcp_flags"] = "SRC2DST_TCP_FLAGS",
    ["dst2src_tcp_flags"] = "DST2SRC_TCP_FLAGS",
+   ["l7proto_master"]  = "L7_PROTO_MASTER",
+   ["score"] = "SCORE",
 }
 
 -- #####################################
@@ -118,6 +120,8 @@ tag_utils.nindex_tags_to_where_v6 = {
    ["probe_ip"]     = "PROBE_IP",
    ["src2dst_tcp_flags"] = "SRC2DST_TCP_FLAGS",
    ["dst2src_tcp_flags"] = "DST2SRC_TCP_FLAGS",
+   ["l7proto_master"]  = "L7_PROTO_MASTER",
+   ["score"] = "SCORE",
 }
 
 
