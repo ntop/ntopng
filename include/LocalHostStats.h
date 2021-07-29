@@ -37,6 +37,9 @@ class LocalHostStats: public HostStats {
   /* Estimate of the number of critical servers used by this host */
   Cardinality num_dns_servers, num_smtp_servers, num_ntp_servers;
 
+  /* Estimate of the number of different Domain Names contacted */
+  Cardinality num_contacted_domain_names;
+ 
   /* Estimate the number of contacted hosts using HyperLogLog */
   struct ndpi_hll hll_contacted_hosts;
   double old_hll_value, new_hll_value, hll_delta_value;
@@ -84,6 +87,9 @@ class LocalHostStats: public HostStats {
   virtual void deserialize(json_object *obj);
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
   virtual void resetTopSitesData();
+  virtual void addContactedDomainName(char* domain_name)    { num_contacted_domain_names.addElement(domain_name,strlen(domain_name));  }
+  virtual u_int32_t getDomainNamesCardinality()             { return num_contacted_domain_names.getEstimate(); }  
+  virtual void resetDomainNamesCardinality()                { num_contacted_domain_names.reset();              } 
 
   virtual void luaDNS(lua_State *vm, bool verbose)  { if(dns) dns->lua(vm, verbose); }
   virtual void luaHTTP(lua_State *vm)  { if(http) http->lua(vm); }

@@ -109,6 +109,9 @@ class HostStats: public GenericTrafficElement {
   virtual u_int16_t getNumActiveContactsAsClient() { return 0; }
   virtual u_int16_t getNumActiveContactsAsServer() { return 0; }
   virtual void resetTopSitesData() {};
+  virtual void addContactedDomainName(char* domain_name) {}       
+  virtual u_int32_t getDomainNamesCardinality()    {return (u_int32_t)-1;  }  
+  virtual void resetDomainNamesCardinality()       {}
   
   inline void incSentStats(u_int num_pkts, u_int pkt_len) { sent_stats.incStats(num_pkts, pkt_len); };
   inline void incRecvStats(u_int num_pkts, u_int pkt_len) { recv_stats.incStats(num_pkts, pkt_len); };
