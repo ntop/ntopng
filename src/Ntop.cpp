@@ -621,7 +621,7 @@ void Ntop::start() {
 	runHousekeepingTasks();
 
 	/* Allow host and flow checks to be executed, allow notifications to be processed (notifications.lua) */
-	sleep(3);
+	sleep(6);
 
 	/* Test Script (Post Analysis) */
 	if(ntop->getPrefs()->get_test_post_script_path()) {
@@ -2778,8 +2778,9 @@ void Ntop::runHousekeepingTasks() {
   checkReloadFlowChecks();
   checkReloadHostChecks();
 
-  for(int i = 0; i < get_num_interfaces(); i++)
-    iface[i]->runHousekeepingTasks();
+  for(int i = 0; i < get_num_interfaces(); i++) {
+    if (!iface[i]->isStartingUp()) iface[i]->runHousekeepingTasks();
+  }
 
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();
@@ -2812,13 +2813,28 @@ void Ntop::shutdownPeriodicActivities() {
 /* ******************************************* */
 
 void Ntop::shutdownInterfaces() {
+  /* First, shutdown all view interfaces so they can release counters from the viewed interfaces */
   for(int i=0; i<num_defined_interfaces; i++) {
-    EthStats *stats = iface[i]->getStats();
+    if(iface[i]->isView()) {
+      EthStats *stats = iface[i]->getStats();
 
-    stats->print();
-    iface[i]->shutdown();
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Polling shut down [interface: %s]",
-				 iface[i]->get_description());
+      stats->print();
+      iface[i]->shutdown();
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Polling shut down [interface: %s]",
+				   iface[i]->get_description());
+    }
+  }
+
+  /* Now, shutdown all other non-view interfaces */
+  for(int i=0; i<num_defined_interfaces; i++) {
+    if(!iface[i]->isView()) {
+      EthStats *stats = iface[i]->getStats();
+
+      stats->print();
+      iface[i]->shutdown();
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Polling shut down [interface: %s]",
+				   iface[i]->get_description());
+    }
   }
 }
 

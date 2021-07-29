@@ -19,26 +19,29 @@
  *
  */
 
-#ifndef _ASN_CONNECTION_H_
-#define _ASN_CONNECTION_H_
+#ifndef _DOMAIN_NAMES_CONNECTION_H_
+#define _DOMAIN_NAMES_CONNECTION_H_
 
 #include "ntop_includes.h"
 
-class ASNConnection : public HostCheck {
+class DomainNamesConnection : public HostCheck {
+private:
+  u_int8_t domain_names_threshold;
+
+  DomainNamesConnectionAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, u_int32_t _num_domain_names, u_int8_t _domain_names_threshold) { 
+    return new DomainNamesConnectionAlert(c, h, cli_pctg, _num_domain_names,_domain_names_threshold);
+  }; 
 
 public:
-  ASNConnection();
-  ~ASNConnection() {};
-
-  ASNConnectionAlert *allocAlert(HostCheck *c, Host *h, risk_percentage cli_pctg, double num_asn, double num_countries) {
-    return new ASNConnectionAlert(c, h, cli_pctg, num_asn);
-  };
+  DomainNamesConnection();
+  ~DomainNamesConnection() {};
 
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
+  bool loadConfiguration(json_object *config); 
 
-  HostCheckID getID() const { return host_check_asn_connection; }
-  std::string getName()  const { return(std::string("asn_connection")); }
+  HostCheckID getID() const { return host_check_domain_names_connection; }
+  std::string getName()  const { return(std::string("domain_names_connection")); }
 
 };
 
-#endif /* _ASN_CONNECTION_H_ */
+#endif /* _DOMAIN_NAMES_CONNECTION_H_ */

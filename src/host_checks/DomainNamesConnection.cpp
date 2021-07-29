@@ -24,30 +24,38 @@
 
 /* ***************************************************** */
 
-ASNConnection::ASNConnection() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
-    periodicity_secs = (u_int32_t)300;
+DomainNamesConnection::DomainNamesConnection() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
+  domain_names_threshold=(u_int8_t)-1;
 };
 
 /* ***************************************************** */
 
-void ASNConnection::periodicUpdate(Host *h, HostAlert *engaged_alert) {
+void DomainNamesConnection::periodicUpdate(Host *h, HostAlert *engaged_alert) {
+  
   HostAlert *alert = engaged_alert;
-  double num_asn = 0;
-  double num_countries = 0;
+  u_int32_t num_domain_names = 0;
 
 
-  num_asn = h->getContactedASN();
-  num_countries =  h->getContactedCountries();
-
-
-  if(num_asn > threshold || num_countries > threshold) {
-    if (!alert) alert = allocAlert(this, h, CLIENT_FAIR_RISK_PERCENTAGE, num_asn, num_countries);
+  if((num_domain_names = h->getDomainNamesCardinality()) > domain_names_threshold ) {
+    if (!alert) alert = allocAlert(this, h, CLIENT_FAIR_RISK_PERCENTAGE, num_domain_names,domain_names_threshold);
     if (alert) h->triggerAlert(alert);
   }
 
-  h->resetContactedASN();
-  h->resetContactedCountries();
+  h->resetDomainNamesCardinality();
 
+}
+
+bool DomainNamesConnection::loadConfiguration(json_object *config) {
+  json_object *json_threshold;
+
+  HostCheck::loadConfiguration(config); /* Parse parameters in common */
+
+  if(json_object_object_get_ex(config, "threshold", &json_threshold))
+    domain_names_threshold = (u_int8_t)json_object_get_int64(json_threshold);
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u", json_object_to_json_string(config), ntp_bytes_threshold);
+
+  return(true);
 }
 
 /* ***************************************************** */

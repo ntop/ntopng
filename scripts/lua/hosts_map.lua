@@ -13,6 +13,7 @@ local MODES = require("hosts_map_utils").MODES
 local widget_gui_utils = require("widget_gui_utils")
 local Datasource = widget_gui_utils.datasource
 
+local ifid = interface.getId()
 local show_remote  = true
 local map_endpoint = "/lua/rest/v2/charts/host/map.lua"
 local bubble_mode  = tonumber(_GET["bubble_mode"]) or 0
@@ -63,7 +64,7 @@ end
 
 -- register the bubble chart for the hosts map
 widget_gui_utils.register_bubble_chart(widget_name, 0, {
-	Datasource(map_endpoint, {bubble_mode = bubble_mode})
+	Datasource(map_endpoint, {ifid = ifid, bubble_mode = bubble_mode})
 })
 
 template_utils.render("pages/hosts_map.template", {

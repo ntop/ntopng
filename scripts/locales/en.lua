@@ -567,6 +567,7 @@ local lang = {
     ["host_alert_dns_traffic"] = "DNS traffic exceeded by %{entity} [%{value} %{op} %{threshold}]",
     ["host_alert_ntp_server_contacts"] = "Too many NTP servers contacted by %{entity} [%{value} &gt; %{threshold} servers]",
     ["host_alert_p2p_traffic"] = "P2P traffic exceeded by %{entity} [%{value} %{op} %{threshold}]",
+    ["host_alert_ntp_traffic"] = "NTP traffic exceeded by %{entity} [%{value} %{op} %{threshold}]",
     ["host_alert_score"] = "Score exceeded by %{entity} [%{value} %{op} %{threshold}]",
     ["host_alert_smtp_server_contacts"] = "Too many SMTP servers contacted by %{entity} [%{value} &gt; %{threshold} servers]",
     ["host_entity"] = "host %{entity_value}",
@@ -633,6 +634,7 @@ local lang = {
     ["too_many_hosts_title"] = "Double Max Hosts",
     ["unknown_contacted_peers"] = "Too many Peers contacted by %{host} %{host_category}.",
     ["x_alerts"] = "%{num} alerts",
+    ["host_alert_domain_names_connection"]= "Too many Domain Names contacted",
   },
   ["alerts_dashboard"] = {
     ["abort_add_filter"] = "Abort add filter?",
@@ -874,6 +876,7 @@ local lang = {
     ["x_lost"] = "%{lost} Lost",
     ["x_ooo"] = "%{ooo} Out-of-Order",
     ["x_retx"] = "%{retx} Retransmissions",
+    ["host_alert_domain_names_connection"]= "Trigger an alert when the number of contacted Domain Names exceed a certain threshold",
     ["tooltips"] = {
       ["top_addresses"] = "Mac Addresses with most alerts",
       ["top_alerts"] = "Most seen alerts",
@@ -896,6 +899,7 @@ local lang = {
     ["alert_network_ingress_description"] = "Trigger an alert when the Ingress Bytes delta exceeds the threshold",
     ["alert_network_inner_description"] = "Trigger an alert when the Inner Bytes delta exceeds the threshold",
     ["alert_p2p_description"] = "Trigger an alert when the Layer 2 bytes delta (sent + received) for P2P traffic exceeds the threshold",
+    ["alert_ntp_description"] = "Trigger an alert when the Layer 2 bytes delta (sent + received) for NTP traffic exceeds the threshold",
     ["alert_packets_description"] = "Trigger an alert when the Packets delta (sent + received) exceeds the threshold",
     ["alert_packets_title"] = "Packets Alert",
     ["alert_slow_purge_threshold"] = "Idle Hash Table Entries Alert",
@@ -926,6 +930,7 @@ local lang = {
     ["ntp_contacts_description"] = "Trigger an alert when the number of different NTP servers contacted exceeds the threshold",
     ["ntp_contacts_title"] = "NTP Server Contacts Alert",
     ["p2p_traffic"] = "P2P Traffic Alert",
+    ["ntp_traffic"] = "NTP Traffic Alert",
     ["score_anomaly_description"] = "Detects anomalies in host score",
     ["score_anomaly_title"] = "Score Anomaly",
     ["smtp_contacts_description"] = "Trigger an alert when the number of different SMTP servers contacted exceeds the threshold",
@@ -933,6 +938,8 @@ local lang = {
     ["threshold_type"] = "Callback",
     ["thresholds_single_source"] = "%{source} %{alt_name} Configuration",
     ["throughput"] = "Throughput Alert",
+    ["domain_names_connection_title"]= "Domain Names connections",
+    ["domain_names_connection_description"]="Trigger an alert when the number of contacted Domain Names is greater then a certain threshold"
   },
   ["appliance"] = {
     ["capture_interfaces"] = "Capture Interfaces",
@@ -3349,6 +3356,7 @@ local lang = {
     ["looking_glass"] = "Looking Glass",
   },
   ["locales"] = {
+    ["cn"] = "Chinese",
     ["cz"] = "Czech",
     ["de"] = "German",
     ["en"] = "English",
@@ -3859,6 +3867,7 @@ local lang = {
     ["bytes"] = "Bytes",
     ["cli_asn"] = "Cli ASN",
     ["cli_port"] = "Cli Port",
+    ["cli_tcp_flags"] = "Cli TCP Flags",
     ["client"] = "Client",
     ["client_name"] = "Client Name",
     ["extract_flow_info"] = "Actions",
@@ -3881,6 +3890,7 @@ local lang = {
     ["src2dst_dscp"] = "Client DSCP",
     ["srv_asn"] = "Srv ASN",
     ["srv_port"] = "Srv Port",
+    ["srv_tcp_flags"] = "Srv TCP Flags",
     ["status"] = "Status",
     ["throughput"] = "Thpt",
     ["time_range"] = "Time Range",
@@ -3951,7 +3961,7 @@ local lang = {
   },
   ["periodicity_map_page"] = {
     ["no_periodicity"] = "No <b>hosts</b> were found.",
-    ["node_descr"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> Hosts.<li>Double click on a node to jump to the host page. Use the mouse wheel to zoom in/out.</li>",
+    ["node_descr"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> hosts and <font color=#8004e0>MAC</font> addresses.<li>Double click on a node to jump to the host page. Use the mouse wheel to zoom in/out.</li>",
   },
   ["please_wait_page"] = {
     ["command"] = "Command",
@@ -4583,6 +4593,7 @@ local lang = {
     ["starting"] = "Starting",
     ["submit_filter"] = "Submit Filter",
     ["symbolic_host_name_at_visualization"] = "Symbolic host names are resolved during the visualization.",
+    ["approximated_data"] = "Minor data approximation can be performed when selecting very large intervals of time.",
     ["toggle_all"] = "Toggle All",
     ["top_asn"] = "Top ASN",
     ["top_countries"] = "Top Countries",
@@ -4702,7 +4713,7 @@ local lang = {
     ["learning"] = "The Service Map is <b>learning</b>...",
     ["learning_table"] = "The Service Map is <b>learning</b>, click on the reload table button to see new changes...",
     ["no_services"] = "No <b>services</b> were found.",
-    ["node_descr"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> Hosts.<li>Arcs represent a communication between two hosts: <font color=#28a745>allowed</font>, <font color=red>denied</font>, and <font color=#ffc107>undecided</font> service status.<li>Double click on a node to jump to the host page. Use the mouse wheel to zoom in/out.</li>",
+    ["node_descr"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> hosts and <font color=#8004e0>MAC</font> addresses.<li>Arcs represent a communication between two hosts: <font color=#28a745>allowed</font>, <font color=red>denied</font>, and <font color=#ffc107>undecided</font> service status.<li>Double click on a node to jump to the host page. Use the mouse wheel to zoom in/out.</li>",
     ["note_1"] = "During the <b>learning</b>, a service status cannot be changed.",
     ["note_2"] = "The services with the <b>Undecided</b> (<kbd class='bg-warning text-dark'><i class='fas fa-hourglass-half'></i></kbd>) status require a confirmation by the user. Once a service status has been confirmed it can be <b>Allowed</b> (<kbd class='bg-success'><i class='fas fa-check'></i></kbd>) or <b>Denied</b> (<kbd class='bg-danger'><i class='fas fas fa-times'></i></kbd>).",
     ["protocols"] = "All Protocols",

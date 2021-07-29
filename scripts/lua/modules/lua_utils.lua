@@ -3011,15 +3011,20 @@ function purgedErrorString()
 end
 
 -- print TCP flags
+function formatTCPFlags(flags)
+   if(hasbit(flags,0x01)) then return('<span class="badge bg-warning">FIN</span> ') end
+   if(hasbit(flags,0x02)) then return('<span class="badge bg-warning">SYN</span> ')  end
+   if(hasbit(flags,0x04)) then return('<span class="badge bg-danger">RST</span> ') end
+   if(hasbit(flags,0x08)) then return('<span class="badge bg-warning">PUSH</span> ') end
+   if(hasbit(flags,0x10)) then return('<span class="badge bg-warning">ACK</span> ')  end
+   if(hasbit(flags,0x20)) then return('<span class="badge bg-warning">URG</span> ')  end
+   if(hasbit(flags,0x40)) then return('<span class="badge bg-warning">ECE</span> ')  end
+   if(hasbit(flags,0x80)) then return('<span class="badge bg-warning">CWR</span> ')  end
+end
+
+-- print TCP flags
 function printTCPFlags(flags)
-   if(hasbit(flags,0x01)) then print('<span class="badge bg-warning">FIN</span> ') end
-   if(hasbit(flags,0x02)) then print('<span class="badge bg-warning">SYN</span> ')  end
-   if(hasbit(flags,0x04)) then print('<span class="badge bg-danger">RST</span> ') end
-   if(hasbit(flags,0x08)) then print('<span class="badge bg-warning">PUSH</span> ') end
-   if(hasbit(flags,0x10)) then print('<span class="badge bg-warning">ACK</span> ')  end
-   if(hasbit(flags,0x20)) then print('<span class="badge bg-warning">URG</span> ')  end
-   if(hasbit(flags,0x40)) then print('<span class="badge bg-warning">ECE</span> ')  end
-   if(hasbit(flags,0x80)) then print('<span class="badge bg-warning">CWR</span> ')  end
+   print(formatTCPFlags(flags))
 end
 
 -- convert the integer carrying TCP flags in a more convenient lua table
@@ -3058,7 +3063,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
       if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
       print('&nbsp;')
       -- print('<span class="badge bg-info">')
-      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-history fa-lg"></i></a>')
+      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-search-plus fa-lg"></i></a>')
       -- print('</span>')
    end
 end
@@ -3611,7 +3616,7 @@ end
 
 -- ###########################################
 
-function getNtopngRelease(ntopng_info)
+function getNtopngRelease(ntopng_info, verbose)
    local release
 
    if ntopng_info.oem or ntopng_info["version.nedge_edition"] then
@@ -3632,6 +3637,10 @@ function getNtopngRelease(ntopng_info)
 
    -- E.g., ntopng edge v.4.3.210112 (Ubuntu 16.04.6 LTS)
    local res = string.format("%s %s v.%s (%s)", ntopng_info.product, release, ntopng_info.version, ntopng_info.OS)
+
+   if verbose and ntopng_info.revision then
+     res = string.format("%s %s v.%s rev.%s (%s)", ntopng_info.product, release, ntopng_info.version, ntopng_info.revision, ntopng_info.OS)
+   end
 
    if not ntopng_info.oem then
       local vers = string.split(ntopng_info["version.git"], ":")

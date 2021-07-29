@@ -49,6 +49,14 @@ function host_alert_store:insert(alert)
       vlan_id = host_info.vlan
    end
 
+   if not ip_version then
+      if isIPv4(ip) then
+         ip_version = 4
+      else
+         ip_version = 6
+      end
+   end
+
    local insert_stmt = string.format("INSERT INTO %s "..
       "(alert_id, ip_version, ip, vlan_id, name, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, json) "..
       "VALUES (%u, %u, '%s', %u, '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
@@ -160,7 +168,8 @@ local RNAME = {
    VLAN_ID = { name = "vlan_id", export = true},
    ALERT_NAME = { name = "alert_name", export = true},
    DESCRIPTION = { name = "description", export = true},
-   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
+   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}},
+   LINK_TO_PAST_FLOWS = { name = "link_to_past_flows", export = false},
 }
 
 function host_alert_store:get_rnames()
@@ -281,6 +290,8 @@ function host_alert_store:format_record(value, no_html)
      description = msg,
      configset_ref = alert_utils.getConfigsetAlertLink(alert_info, value)
    }
+
+   record[RNAME.LINK_TO_PAST_FLOWS.name] = alert_utils.getLinkToPastFlows(ifid, value, alert_info)
 
    return record
 end

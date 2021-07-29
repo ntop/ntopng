@@ -53,7 +53,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     *mdns_info /* name from a TXT MDNS reply */;
     char *resolved; /* The name as resolved by ntopng DNS requests */
     char *netbios; /* The NetBIOS name */
-  } names;
+    char *tls; /* The TLS SNI or the name as dissected from other TLS-transported protocols */
+    char *http; /* The HTTP Host: name */  
+    } names;
 
   char *ssdpLocation;
   bool prefs_loaded;
@@ -235,7 +237,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   char * getMDNSTXTName(char * const buf, ssize_t buf_len);
   char * getMDNSInfo(char * const buf, ssize_t buf_len);
   char * getNetbiosName(char * const buf, ssize_t buf_len);
-#ifdef NTOPNG_PRO
+  char * getTLSName(char * const buf, ssize_t buf_len);
+  char * getHTTPName(char * const buf, ssize_t buf_len);
+  #ifdef NTOPNG_PRO
   inline TrafficShaper *get_ingress_shaper(ndpi_protocol ndpiProtocol) { return(get_shaper(ndpiProtocol, true)); }
   inline TrafficShaper *get_egress_shaper(ndpi_protocol ndpiProtocol)  { return(get_shaper(ndpiProtocol, false)); }
   inline void resetQuotaStats()                                        { stats->resetQuotaStats(); }
@@ -364,6 +368,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual void luaTCP(lua_State *vm) { };
   virtual u_int16_t getNumActiveContactsAsClient()  { return 0; };
   virtual u_int16_t getNumActiveContactsAsServer()  { return 0; };
+  virtual void addContactedDomainName(char* domain_name) {};       
+  virtual u_int32_t getDomainNamesCardinality()          { return 0; };      
+  virtual void resetDomainNamesCardinality()             {};
+  
   inline TcpPacketStats* getTcpPacketSentStats() { return(stats->getTcpPacketSentStats()); }
   inline TcpPacketStats* getTcpPacketRcvdStats() { return(stats->getTcpPacketRcvdStats()); }
 
@@ -416,6 +424,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void housekeep(time_t t); /* Virtual method, called in the datapath from GenericHash::purgeIdle */
   virtual void inlineSetOSDetail(const char *detail) { }
   virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
+  void offlineSetTLSName(const char * const n);
+  void offlineSetHTTPName(const char * const n);
   void offlineSetNetbiosName(const char * const n);
   void offlineSetSSDPLocation(const char * const url);
   void offlineSetMDNSInfo(char * const s);
@@ -450,7 +460,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void incSrvPortsContacts(u_int16_t port)   { stats->incSrvPortsContacts(port);  }
   void incContactedService(char *name)       { stats->incContactedService(name);  }
 
-  virtual void luaHostBehaviour(lua_State* vm) { lua_pushnil(vm); }
+  virtual void luaHostBehaviour(lua_State* vm)        { lua_pushnil(vm); }
+  virtual void luaDomainNamesBehaviour(lua_State* vm) { lua_pushnil(vm); }
+  
   virtual void incDohDoTUses(Host *srv_host) {}
 
   virtual void incNTPContactCardinality(Host *h)  { ; }

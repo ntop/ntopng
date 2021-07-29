@@ -375,18 +375,18 @@ end
 
 -- #################################
 
-function page_utils.print_navbar(title, base_url, items_table, label_url)
-
+function page_utils.print_navbar(title, base_url, items_table, label_url, back_url)
    local help_link = page_utils.menu_entries[active_entry].help_link or nil
    local icon = page_utils.menu_sections[active_section].icon or ""
 
    local context = {
       navbar = {
-         title = "<i class='".. icon .. "'></i>" .. " " .. title,
-         base_url = base_url,
+         title       = "<i class='".. icon .. "'></i>" .. " " .. title,
+         base_url    = base_url,
          items_table = items_table,
-         label_url = label_url,
-         help_link = help_link
+         label_url   = label_url,
+         back_url    = back_url,
+         help_link   = help_link
       }
    }
    print(template_utils.gen("pages/components/page-navbar.template", context))
