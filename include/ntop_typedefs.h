@@ -521,7 +521,7 @@ typedef enum {
   host_check_remote_connection,
   host_check_dangerous_host,
   host_check_ntp_traffic,
-  host_check_domain_names_contacts
+  host_check_domain_names_contacts,
 
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */ 
 } HostCheckID;
