@@ -79,7 +79,7 @@ function saveTopologyView(network) {
         }
     };
 
-    $.post(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, { ifid:ifid, JSON: JSON.stringify(info), csrf: VIEW_CSRF, map: MAP, action: 'save_view' });
+    $.post(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, { JSON: JSON.stringify(info), csrf: VIEW_CSRF, map: MAP, action: 'save_view' });
 }
 
 function setEventListenersNetwork(network) {
@@ -108,10 +108,7 @@ function setEventListenersNetwork(network) {
         if (selectedNode !== undefined && host === "") {
             window.location.href = http_prefix + `/lua/pro/enterprise/${MAP}_map.lua?page=graph&host=` + selectedNode.id + query;
         }
-        else if (selectedNode !== undefined && host !== "" && host.match(NtopUtils.REGEXES.macAddress)) {
-            window.location.href = http_prefix + '/lua/mac_details.lua?host=' + selectedNode.id;
-        }
-	else if (selectedNode !== undefined && host !== "") {
+        else if (selectedNode !== undefined && host !== "") {
             window.location.href = http_prefix + '/lua/host_details.lua?host=' + selectedNode.id;
         }
 
@@ -146,7 +143,7 @@ function setEventListenersNetwork(network) {
 
 function loadGraph(container) {
 
-    const dataRequest = { ifid: ifid, action: 'load_graph', map: MAP};
+    const dataRequest = { action: 'load_graph', map: MAP};
     // if an host has been defined inside the URL query then add it to the request
     const url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, {
         host: host,

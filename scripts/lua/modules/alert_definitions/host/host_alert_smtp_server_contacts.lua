@@ -60,23 +60,6 @@ function host_alert_smtp_server_contacts.format(ifid, alert, alert_type_params)
     threshold = alert_type_params.threshold or 0,
   })
 end
--- #######################################################
-
--- @brief Prepare a table containing a set of filters useful to query historical flows that contributed to the generation of this alert
--- @param ifid The integer interface id of the generated alert
--- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
--- @param alert_type_params Table `alert_type_params` as built in the `:init` method
--- @return A human-readable string
-function host_alert_smtp_server_contacts.filter_to_past_flows(ifid, alert, alert_type_params)
-   local res = {}
-   local host_key = hostinfo2hostkey({ip = alert["ip"], vlan = alert["vlan_id"]})
-
-   -- Look for the IP as client as the alert is about too many contacted SERVERs
-   res["cli_ip"] = host_key
-   res["l7proto"] = "SMTP"
-
-   return res
-end
 
 -- #######################################################
 

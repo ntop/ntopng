@@ -81,8 +81,6 @@ tag_utils.nindex_tags_to_where_v4 = {
    ["srv_asn"]      = "DST_ASN",
    ["observation_point_id"] = "OBSERVATION_POINT_ID",
    ["probe_ip"]     = "PROBE_IP",
-   ["src2dst_tcp_flags"] = "SRC2DST_TCP_FLAGS",
-   ["dst2src_tcp_flags"] = "DST2SRC_TCP_FLAGS",
 }
 
 -- #####################################
@@ -108,8 +106,6 @@ tag_utils.nindex_tags_to_where_v6 = {
    ["srv_asn"]      = "DST_ASN",
    ["observation_point_id"] = "OBSERVATION_POINT_ID",
    ["probe_ip"]     = "PROBE_IP",
-   ["src2dst_tcp_flags"] = "SRC2DST_TCP_FLAGS",
-   ["dst2src_tcp_flags"] = "DST2SRC_TCP_FLAGS",
 }
 
 -- #####################################

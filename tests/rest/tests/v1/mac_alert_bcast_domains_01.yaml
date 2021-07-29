@@ -6,4 +6,5 @@ ignore:
 pre: |
 
 post: |
+  sleep 10
   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0}' http://localhost:3333/lua/rest/v1/get/mac/alert/list.lua

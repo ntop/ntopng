@@ -4,26 +4,32 @@
 
 -- ##############################################
 
-local host_alert_keys = require "host_alert_keys"
+local other_alert_keys = require "other_alert_keys"
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local json = require("dkjson")
 local alert_creators = require "alert_creators"
+local format_utils = require "format_utils"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local alert_entities = require "alert_entities"
 
 -- ##############################################
 
-local host_alert_p2p_traffic = classes.class(alert)
+local alert_excessive_traffic = classes.class(alert)
 
 -- ##############################################
 
-host_alert_p2p_traffic.meta = {
-  alert_key = host_alert_keys.host_alert_p2p_traffic,
-  i18n_title = "alerts_dashboard.threashold_cross",
+alert_excessive_traffic.meta = {
+  alert_key = other_alert_keys.alert_excessive_traffic,
+  i18n_title = "excessive_traffic.title",
   icon = "fas fa-fw fa-arrow-circle-up",
+  entities = {
+    alert_entities.interface,
+    alert_entities.network 
+  },
 }
 
 -- ##############################################
@@ -34,11 +40,16 @@ host_alert_p2p_traffic.meta = {
 -- @param operator A string indicating the operator used when evaluating the threshold, one of "gt", ">", "<"
 -- @param threshold A number indicating the threshold compared with `value`  using operator
 -- @return A table with the alert built
-function host_alert_p2p_traffic:init(metric, value, operator, threshold)
+function alert_excessive_traffic:init(host, traffic_type, value, unit)
    -- Call the parent constructor
    self.super:init()
 
-   self.alert_type_params = alert_creators.createThresholdCross(metric, value, operator, threshold)
+   self.alert_type_params = {
+      host = host,
+      traffic_type = traffic_type,
+      value = value,
+      unit = unit,
+   }
 end
 
 -- #######################################################
@@ -48,18 +59,17 @@ end
 -- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
-function host_alert_p2p_traffic.format(ifid, alert, alert_type_params)
+function alert_excessive_traffic.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
-  local entity = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
 
-  return i18n("alert_messages.host_alert_p2p_traffic", {
-    entity = entity,
-    value = string.format("%u", math.ceil(alert_type_params.value)),
-    op = "&".. (alert_type_params.operator or "gt") ..";",
-    threshold = alert_type_params.threshold,
+  return i18n("excessive_traffic.alert.description", {
+		 host = alert_type_params.host,
+		 traffic_type = alert_type_params.traffic_type,
+		 value = alert_type_params.value,
+		 unit = alert_type_params.unit,
   })
 end
 
 -- #######################################################
 
-return host_alert_p2p_traffic
+return alert_excessive_traffic

@@ -24,36 +24,30 @@
 
 /* ***************************************************** */
 
-NTPTraffic::NTPTraffic() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
-  ntp_bytes_threshold = (u_int64_t)-1;
+ASNConnection::ASNConnection() : HostCheck(ntopng_edition_community, false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */) {
+    periodicity_secs = (u_int32_t)300;
 };
 
 /* ***************************************************** */
 
-void NTPTraffic::periodicUpdate(Host *h, HostAlert *engaged_alert) {
+void ASNConnection::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
-  u_int64_t delta;
+  double num_asn = 0;
+  double num_countries = 0;
 
-  if((delta = h->cb_status_delta_ntp_bytes(h->get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_NTP))) > ntp_bytes_threshold) {
-    if (!alert) alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, delta, ntp_bytes_threshold);
+
+  num_asn = h->getContactedASN();
+  num_countries =  h->getContactedCountries();
+
+
+  if(num_asn > threshold || num_countries > threshold) {
+    if (!alert) alert = allocAlert(this, h, CLIENT_FAIR_RISK_PERCENTAGE, num_asn, num_countries);
     if (alert) h->triggerAlert(alert);
   }
+
+  h->resetContactedASN();
+  h->resetContactedCountries();
+
 }
 
 /* ***************************************************** */
-
-bool NTPTraffic::loadConfiguration(json_object *config) {
-  json_object *json_threshold;
-
-  HostCheck::loadConfiguration(config); /* Parse parameters in common */
-
-  if(json_object_object_get_ex(config, "threshold", &json_threshold))
-    ntp_bytes_threshold = json_object_get_int64(json_threshold);
-
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %u", json_object_to_json_string(config), ntp_bytes_threshold);
-
-  return(true);
-}
-
-/* ***************************************************** */
-

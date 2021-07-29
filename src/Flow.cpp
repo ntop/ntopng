@@ -97,17 +97,22 @@ Flow::Flow(NetworkInterface *_iface,
   iface->findFlowHosts(_vlanId, _observation_point_id, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   PROFILING_SUB_SECTION_EXIT(iface, 7);
 
-  char *domain_name = ndpiFlow ? ndpi_get_flow_name(ndpiFlow) : NULL;
-
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
+
     cli_host->incUses(), cli_host->incNumFlows(last_seen, true);
+
+  if(srv_host){
+     u_int32_t asn, country;
+     asn=srv_host->get_asn();
+     country = srv_host->getCountryStats()->key();
+     cli_host->addContactedAsnCountry(asn,country);
+    }
 
     if(network_stats) network_stats->incNumFlows(last_seen, true);
     cli_ip_addr = cli_host->get_ip();
     cli_host->incCliContactedHosts(_srv_ip);
     cli_host->incCliContactedPorts(_srv_port);
-    if(cli_host->isLocalHost() && domain_name!=NULL)  cli_host->addContactedDomainName(domain_name);
   } else { /* Client host has not been allocated, let's keep the info in an IpAddress */
     if((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
       cli_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
@@ -115,6 +120,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   if(srv_host) {
     NetworkStats *network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
+
     srv_host->incUses(), srv_host->incNumFlows(last_seen, false);
    
   if(cli_host){
@@ -126,9 +132,9 @@ Flow::Flow(NetworkInterface *_iface,
 
     if(network_stats) network_stats->incNumFlows(last_seen, false);
     srv_ip_addr = srv_host->get_ip();
+
     srv_host->incSrvHostContacts(_cli_ip);
     srv_host->incSrvPortsContacts(_cli_port);
-    if(srv_host->isLocalHost() && domain_name!=NULL) srv_host->addContactedDomainName(domain_name);
   } else { /* Server host has not been allocated, let's keep the info in an IpAddress */
     if((srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip)))
       srv_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
@@ -353,8 +359,9 @@ Flow::~Flow() {
     if(protos.ssh.server_signature)  free(protos.ssh.server_signature);
     if(protos.ssh.hassh.client_hash) free(protos.ssh.hassh.client_hash);
     if(protos.ssh.hassh.server_hash) free(protos.ssh.hassh.server_hash);
-  } else if(isTLS()) {
-    if(protos.tls.client_requested_server_name)  free(protos.tls.client_requested_server_name);
+  } else if(isTLSProto()) {
+    if(protos.tls.client_requested_server_name)
+      free(protos.tls.client_requested_server_name);
     if(protos.tls.server_names)                  free(protos.tls.server_names);
     if(protos.tls.ja3.client_hash)               free(protos.tls.ja3.client_hash);
     if(protos.tls.ja3.server_hash)               free(protos.tls.ja3.server_hash);
@@ -498,7 +505,17 @@ void Flow::processDetectedProtocolData() {
     break;
 
   case NDPI_PROTOCOL_MDNS:
-    /* protos.mdns.{answer,name} already propagated to hosts in Flow::hosts_periodic_stats_update  */
+    /*
+      The statement below can create issues sometimes as devices publish
+      themselves with varisous names depending on the context (**)
+    */
+    if(ndpiFlow->host_server_name[0] != '\0' && !protos.mdns.answer) {
+      protos.mdns.answer = strdup((char*)ndpiFlow->host_server_name);
+      if(srv_h) {
+	if(strchr((char*)ndpiFlow->host_server_name, '.') == NULL)
+	  srv_h->setResolvedName((char*)ndpiFlow->host_server_name);
+      }
+    }
     break;
 
   case NDPI_PROTOCOL_TOR:
@@ -510,6 +527,7 @@ void Flow::processDetectedProtocolData() {
 	cli_h->incrVisitedWebSite(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
 
       if(cli_h) cli_h->incContactedService(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
+      if(srv_h) srv_h->setResolvedName(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
     }
     break;
 
@@ -576,12 +594,11 @@ void Flow::processExtraDissectedInformation() {
       }
       break;
 
-    /* Protocols with TLS transport (keep in sync with isTLS()) */
     case NDPI_PROTOCOL_TLS:
+    /* More protocols with TLS transport (keep in sync with isTLSProto()) */
     case NDPI_PROTOCOL_MAIL_IMAPS:
     case NDPI_PROTOCOL_MAIL_SMTPS:
     case NDPI_PROTOCOL_MAIL_POPS:
-    case NDPI_PROTOCOL_QUIC:
       protos.tls.tls_version = ndpiFlow->protos.tls_quic_stun.tls_quic.ssl_version;
 
       protos.tls.notBefore = ndpiFlow->protos.tls_quic_stun.tls_quic.notBefore,
@@ -1533,19 +1550,17 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     }
     /* Don't break, let's process also HTTP_PROXY */
   case NDPI_PROTOCOL_HTTP_PROXY:
-    if(srv_host) {
-      srv_host->offlineSetHTTPName(host_server_name);
-
-      if(srv_host->getHTTPstats()
-	 && host_server_name
-	 && isThreeWayHandshakeOK()) {
-	srv_host->getHTTPstats()->updateHTTPHostRequest(tv->tv_sec, host_server_name,
+    if(srv_host
+       && srv_host->getHTTPstats()
+       && host_server_name
+       && isThreeWayHandshakeOK()) {
+      srv_host->getHTTPstats()->updateHTTPHostRequest(tv->tv_sec, host_server_name,
 						      partial->get_num_http_requests(),
 						      partial->get_cli2srv_bytes(),
 						      partial->get_srv2cli_bytes());
-      }
     }
     break;
+
   case NDPI_PROTOCOL_DNS:
     if(cli_host && cli_host->getDNSstats())
       cli_host->getDNSstats()->incStats(true  /* Client */, partial->get_flow_dns_stats());
@@ -1602,9 +1617,6 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
   default:
     break;
   }
-
-  if(srv_host && isTLS())
-    srv_host->offlineSetTLSName(protos.tls.client_requested_server_name);
 }
 
 /* *************************************** */
@@ -1707,7 +1719,6 @@ void Flow::updateThroughputStats(float tdiff_msec,
 void Flow::periodic_stats_update(const struct timeval *tv) {
   bool first_partial;
   PartializableFlowTrafficStats partial;
-  Host *cli_h = NULL, *srv_h = NULL;
   get_partial_traffic_stats(&periodic_stats_update_partial, &partial, &first_partial);
 
   u_int32_t diff_sent_packets = partial.get_cli2srv_packets();
@@ -1718,14 +1729,12 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
   u_int64_t diff_rcvd_bytes = partial.get_srv2cli_bytes();
   u_int64_t diff_rcvd_goodput_bytes = partial.get_srv2cli_goodput_bytes();
 
-  get_actual_peers(&cli_h, &srv_h); /* Do the stats update on the actual peers, i.e., peers possibly swapped due to the heuristic */
+  Mac *cli_mac = get_cli_host() ? get_cli_host()->getMac() : NULL;
+  Mac *srv_mac = get_srv_host() ? get_srv_host()->getMac() : NULL;
 
-  Mac *cli_mac = cli_h ? cli_h->getMac() : NULL;
-  Mac *srv_mac = srv_h ? srv_h->getMac() : NULL;
+  hosts_periodic_stats_update(getInterface(), cli_host, srv_host, &partial, first_partial, tv);
 
-  hosts_periodic_stats_update(getInterface(), cli_h, srv_h, &partial, first_partial, tv);
-
-  if(cli_h && srv_h) {
+  if(cli_host && srv_host) {
     if(diff_sent_bytes || diff_rcvd_bytes) {
       /* Update L2 Device stats */
       if(srv_mac) {
@@ -1765,7 +1774,7 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
       }
 #endif
     }
-  } /* Closes if(cli_h && srv_h) */
+  } /* Closes if(cli_host && srv_host) */
 
 #ifndef HAVE_NEDGE /* For nEdge check Flow::setPacketsBytes */
   /* Non-Packet interfaces (e.g., ZMQ) have flow throughput stats updated as soon as the flow is received.
@@ -2169,7 +2178,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       if(isSSH())
 	lua_get_ssh_info(vm);
 
-      if(isTLS())
+      if(isTLSProto())
 	lua_get_tls_info(vm);
     }
 
@@ -3171,13 +3180,14 @@ bool Flow::isBlacklistedServer() const {
 
 /* *************************************** */
 
-bool Flow::isTLS() const {
+bool Flow::isTLSProto() const {
+  u_int16_t lower = ndpi_get_lower_proto(ndpiDetectedProtocol);
+
   return(
-	 isProto(NDPI_PROTOCOL_TLS)
-	 || isProto(NDPI_PROTOCOL_MAIL_IMAPS)
-	 || isProto(NDPI_PROTOCOL_MAIL_SMTPS)
-	 || isProto(NDPI_PROTOCOL_MAIL_POPS)
-	 || isProto(NDPI_PROTOCOL_QUIC)
+	 (lower == NDPI_PROTOCOL_TLS) ||
+	 (lower == NDPI_PROTOCOL_MAIL_IMAPS) ||
+	 (lower == NDPI_PROTOCOL_MAIL_SMTPS) ||
+	 (lower == NDPI_PROTOCOL_MAIL_POPS)
 	 );
 }
 
@@ -4765,7 +4775,7 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
 /* ***************************************************** */
 
 void Flow::updateCliJA3() {
-  if(cli_host && isTLS() && protos.tls.ja3.client_hash) {
+  if(cli_host && isTLSProto() && protos.tls.ja3.client_hash) {
     cli_host->getJA3Fingerprint()->update(protos.tls.ja3.client_hash,
 					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL,
 					  has_malicious_cli_signature);
@@ -4775,7 +4785,7 @@ void Flow::updateCliJA3() {
 /* ***************************************************** */
 
 void Flow::updateSrvJA3() {
-  if(srv_host && isTLS() && protos.tls.ja3.server_hash) {
+  if(srv_host && isTLSProto() && protos.tls.ja3.server_hash) {
     srv_host->getJA3Fingerprint()->update(protos.tls.ja3.server_hash,
 					  srv_ebpf ? srv_ebpf->process_info.process_name : NULL, false);
   }
@@ -5230,7 +5240,7 @@ void Flow::lua_get_unicast_info(lua_State* vm) const {
 /* ***************************************************** */
 
 void Flow::lua_get_tls_info(lua_State *vm) const {
-  if(isTLS()) {
+  if(isTLSProto()) {
     lua_push_int32_table_entry(vm, "protos.tls_version", protos.tls.tls_version);
 
     if(protos.tls.server_names)
@@ -5280,7 +5290,7 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
 /* ***************************************************** */
 
 void Flow::getTLSInfo(ndpi_serializer *serializer) const {
-  if(isTLS()) {
+  if(isTLSProto()) {
     ndpi_serialize_string_int32(serializer, "protos.tls_version", protos.tls.tls_version);
 
     if(protos.tls.server_names)

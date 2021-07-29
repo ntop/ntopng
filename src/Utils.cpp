@@ -3029,8 +3029,8 @@ u_int32_t Utils::macHash(const u_int8_t * const mac) {
 
 /* ****************************************************** */
 
-bool Utils::isEmptyMac(const u_int8_t * const mac) {
-  static const u_int8_t zero[6] = { 0, 0, 0, 0, 0, 0 };
+bool Utils::isEmptyMac(u_int8_t *mac) {
+  u_int8_t zero[6] = { 0, 0, 0, 0, 0, 0 };
 
   return (memcmp(mac, zero, 6) == 0);
 }

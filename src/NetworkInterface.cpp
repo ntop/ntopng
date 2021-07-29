@@ -152,9 +152,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
-      flowDumpLoopCreated = false,
-      hostAlertsDequeueLoopCreated = flowAlertsDequeueLoopCreated = false,
-      bridge_interface = false;
+      flowDumpLoopCreated = false, flowAlertsDequeueLoopCreated = false, bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = next_idle_other_purge = 0;
     cpu_affinity = -1 /* no affinity */,
       has_vlan_packets = has_ebpf_events = false;
@@ -311,6 +309,7 @@ void NetworkInterface::init() {
   custom_app_stats = NULL;
   flow_interfaces_stats = NULL;
   policer = NULL;
+  check_traffic_stats = NULL;
 
   /* Behavior init variables */
   nextMinPeriodicUpdate = 0;
@@ -3699,6 +3698,24 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
   return ret;
 }
+
+/* **************************************************** */
+
+#ifdef NTOPNG_PRO
+void NetworkInterface::luaTrafficMapHostStats(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id) {
+  Host *h;
+
+  if(!check_traffic_stats)
+    return;
+
+  h = findHostByIP(allowed_hosts, host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId));
+
+  if(h)
+    check_traffic_stats->lua_get_host_stats(vm, h->get_ip(), h->getMac(), h->get_vlan_id());
+  else
+    lua_pushnil(vm);
+}
+#endif
 
 /* **************************************************** */
 
@@ -8717,14 +8734,12 @@ void NetworkInterface::luaServiceFilteringMenu(lua_State* vm) {
 
 /* *************************************** */
 
-void NetworkInterface::luaPeriodicityStats(lua_State* vm,
-					   const u_int8_t * const mac,
-					   IpAddress *ip_address,
-					   VLANid vlan_id, u_int16_t host_pool_id, bool unicast,
-					   u_int32_t first_seen, u_int16_t filter_ndpi_proto) {
+void NetworkInterface::luaPeriodicityStats(lua_State* vm, IpAddress *ip_address,
+				     VLANid vlan_id, u_int16_t host_pool_id, bool unicast,
+             u_int32_t first_seen, u_int16_t filter_ndpi_proto) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pMap) {
-    pMap->lua(vm, true, this, mac, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen);
+    pMap->lua(vm, true, this, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen);
     return;
   }
 #endif
@@ -8734,14 +8749,12 @@ void NetworkInterface::luaPeriodicityStats(lua_State* vm,
 
 /* *************************************** */
 
-void NetworkInterface::luaServiceMap(lua_State* vm,
-				     const u_int8_t * const mac,
-				     IpAddress *ip_address,
+void NetworkInterface::luaServiceMap(lua_State* vm, IpAddress *ip_address,
 				     VLANid vlan_id, u_int16_t host_pool_id, bool unicast,
              u_int32_t first_seen, u_int16_t filter_ndpi_proto) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(sMap) {
-    sMap->lua(vm, false, this, mac, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen);
+    sMap->lua(vm, false, this, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen);
     return;
   }
 #endif
@@ -9082,6 +9095,30 @@ void NetworkInterface::luaAnomalies(lua_State *vm) {
   lua_settable(vm, -3);
 }
 
+#ifdef NTOPNG_PRO
+/* *************************************** */
+
+void NetworkInterface::enableTrafficMap(bool enable) {
+  if(enable == true) {
+    if(!check_traffic_stats) {
+      check_traffic_stats = new (std::nothrow) CheckTrafficMap();
+    }
+  } else { 
+    if(check_traffic_stats) {
+      delete(check_traffic_stats);
+      check_traffic_stats = NULL;
+    }
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::luaTrafficMap(lua_State *vm) {
+  check_traffic_stats ? check_traffic_stats->lua_get_threshold_stats(vm) : lua_pushnil(vm);
+}
+
+#endif
+  
 /* *************************************** */
 
 void NetworkInterface::execHostChecks(Host *h) {

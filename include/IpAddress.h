@@ -62,6 +62,7 @@ class IpAddress {
   inline bool equal(struct ndpi_in6_addr *ip6_addr) const { if((addr.ipVersion == 6) && (memcmp(&addr.ipType.ipv6, ip6_addr, sizeof(struct ndpi_in6_addr)) == 0)) return(true); else return(false); };
   inline bool equal(const IpAddress * const _ip) const { return(this->compare(_ip) == 0); };
   int compare(const IpAddress * const ip)        const;
+  IpAddress* clone();
   inline u_int32_t key()                        const { return(ip_key);         };
   inline void set(u_int32_t _ipv4)                    { addr.ipVersion = 4, addr.ipType.ipv4 = _ipv4; compute_key(); }
   inline void set(struct ndpi_in6_addr *_ipv6)        { addr.ipVersion = 6, memcpy(&addr.ipType.ipv6, _ipv6, sizeof(struct ndpi_in6_addr));

@@ -108,12 +108,8 @@ class HostStats: public GenericTrafficElement {
   void luaStats(lua_State* vm, NetworkInterface *iface, bool host_details, bool verbose, bool tsLua = false);
   virtual u_int16_t getNumActiveContactsAsClient() { return 0; }
   virtual u_int16_t getNumActiveContactsAsServer() { return 0; }
-  virtual void addContactedDomainName(char* domain_name) {}       
-  virtual u_int32_t getDomainNamesCardinality()    {return (u_int32_t)-1;  }  
-  virtual void resetDomainNamesCardinality()       {}
-  
   virtual void resetTopSitesData() {};
- 
+  
   inline void incSentStats(u_int num_pkts, u_int pkt_len) { sent_stats.incStats(num_pkts, pkt_len); };
   inline void incRecvStats(u_int num_pkts, u_int pkt_len) { recv_stats.incStats(num_pkts, pkt_len); };
   inline void incnDPIFlows(u_int16_t l7_protocol)   { if(ndpiStats) ndpiStats->incFlowsStats(l7_protocol); };
@@ -131,8 +127,6 @@ class HostStats: public GenericTrafficElement {
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
   void updateStats(const struct timeval *tv);
   virtual void luaHostBehaviour(lua_State* vm);
-  virtual void luaDomainNamesBehaviour(lua_State* vm){}
-  
 #ifdef NTOPNG_PRO
   inline void incQuotaEnforcementStats(time_t when, u_int16_t ndpi_proto,
 				       u_int64_t sent_packets, u_int64_t sent_bytes,

@@ -80,7 +80,7 @@ local other_alert_keys = {
    alert_active_flows_anomaly_server    =  OTHER_BASE_KEY + 67, -- scripts/plugins/alerts/security/unexpected_host_behaviour/modules/active_flows_behaviour
    alert_broadcast_domain_too_large     =  OTHER_BASE_KEY + 68,
    alert_ngi_trust_event                =  OTHER_BASE_KEY + 69,
-   alert_excessive_traffic              =  OTHER_BASE_KEY + 70, -- No longer used
+   alert_excessive_traffic              =  OTHER_BASE_KEY + 70, -- pro/scripts/pro_plugins/alerts/security/excessive_traffic
    alert_behavior_anomaly               =  OTHER_BASE_KEY + 71, -- scripts/lua/modules/alert_definitions/other/alert_behavior_anomaly.lua
 }
 

@@ -31,16 +31,6 @@ local formatHost
 local bubble_mode = tonumber(_GET["bubble_mode"]) or 0
 local show_remote = _GET["show_remote"] or true
 
-local ifid = _GET["ifid"]
-
-if isEmptyString(ifid) then
-   rc = rest_utils.consts.err.invalid_interface
-   rest_utils.answer(rc)
-   return
-end
-
-interface.select(ifid)
-
 -- ###################################################
 
 local function shrinkTable(t, max_num)
@@ -128,6 +118,57 @@ local function dnsQueries(hostname, host, label)
       ((host["dns"]["sent"]["num_queries"] + host["dns"]["rcvd"]["num_queries"]) > 0)) then
       local x = host["dns"]["rcvd"]["num_replies_ok"]
       local y = host["dns"]["sent"]["num_queries"]
+      
+      line = {
+	 meta = {
+	    url_query = "host="..hostname,
+	    label = label,
+	 }, 
+	 x = x, 
+	 y = y, 
+	 z = x + y
+      }
+   end
+
+   return line
+end
+
+-- ###################################################
+
+local function dnsBytes(hostname, host, label)
+   local line
+   host = interface.getTrafficMapHostStats(hostname)
+   
+   if ((host ~= nil) and
+       (host["dns_traffic"] ~= nil) and
+      ((host["dns_traffic"]["sent"] + host["dns_traffic"]["rcvd"]) > 0)) then
+      local x = host["dns_traffic"]["rcvd"]
+      local y = host["dns_traffic"]["sent"]
+      line = {
+	 meta = {
+	    url_query = "host="..hostname,
+	    label = label,
+	 }, 
+	 x = x, 
+	 y = y, 
+	 z = x + y
+      }
+   end
+
+   return line
+end
+
+-- ###################################################
+
+local function ntpPkts(hostname, host, label)
+   local line
+   host = interface.getTrafficMapHostStats(hostname)
+
+   if ((host ~= nil) and
+       (host["ntp_traffic"] ~= nil) and
+      ((host["ntp_traffic"]["sent"] + host["ntp_traffic"]["rcvd"]) > 0)) then
+      local x = host["ntp_traffic"]["rcvd"]
+      local y = host["ntp_traffic"]["sent"]
       
       line = {
 	 meta = {
@@ -353,6 +394,10 @@ elseif (bubble_mode == HostsMapMode.ALERTED_FLOWS) then
    formatHost = alertedFlows
 elseif (bubble_mode == HostsMapMode.DNS_QUERIES) then
    formatHost = dnsQueries
+elseif (bubble_mode == HostsMapMode.DNS_BYTES) then
+   formatHost = dnsBytes    
+elseif (bubble_mode == HostsMapMode.NTP_PACKETS) then
+   formatHost = ntpPkts
 elseif (bubble_mode == HostsMapMode.SYN_DISTRIBUTION) then
    formatHost = synDistribution
 elseif (bubble_mode == HostsMapMode.SYN_VS_RST) then

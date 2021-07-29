@@ -50,12 +50,8 @@
         </ul>
 
 	<ul class="navbar-nav ms-auto">
-          {% if (navbar.back_url ~= nil) then %}
-             <a href="{{ navbar.back_url }}" class="nav-item nav-link text-muted">
-          {% else %}
-             <a href="javascript:history.back()" class="nav-item nav-link text-muted">
-          {% end %}
-            <i class="fas fa-arrow-left"></i>
+	  <a href="javascript:history.back()" class="nav-item nav-link text-muted">
+	    <i class="fas fa-arrow-left"></i>
 	  </a>
           {% if (navbar.help_link ~= nil) then %}
           <a target='_newtab' href='{* navbar.help_link *}' class='nav-item nav-link text-muted'>

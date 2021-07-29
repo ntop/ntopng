@@ -30,7 +30,6 @@
 #include "host_alerts/DNSServerContactsAlert.h"
 #include "host_alerts/SMTPServerContactsAlert.h"
 #include "host_alerts/NTPServerContactsAlert.h"
-#include "host_alerts/NTPTrafficAlert.h"
 #include "host_alerts/P2PTrafficAlert.h"
 #include "host_alerts/DNSTrafficAlert.h"
 
@@ -38,7 +37,7 @@
 #include "host_alerts/DangerousHostAlert.h"
 #include "host_alerts/RemoteConnectionAlert.h"
 #include "host_alerts/ScoreAnomalyAlert.h"
-#include "host_alerts/DomainNamesConnectionAlert.h"
+#include "host_alerts/ASNConnectionAlert.h"
 
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */
 

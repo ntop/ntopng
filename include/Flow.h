@@ -332,7 +332,8 @@ class Flow : public GenericHashEntry {
   inline bool isProto(u_int16_t p) const { return(((ndpiDetectedProtocol.master_protocol == p)
 						   || (ndpiDetectedProtocol.app_protocol == p))
 						  ? true : false); }
-  bool isTLS() const;
+  bool isTLSProto() const; 
+  inline bool isTLS()  const { return(isProto(NDPI_PROTOCOL_TLS));  }
   inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
   inline bool isIEC60870()  const { return(isProto(NDPI_PROTOCOL_IEC60870));  }
@@ -814,8 +815,8 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getTLSVersion()   { return(isTLS() ? protos.tls.tls_version : 0); }
   inline u_int32_t getTLSNotBefore() { return(isTLS() ? protos.tls.notBefore   : 0); };
   inline u_int32_t getTLSNotAfter()  { return(isTLS() ? protos.tls.notAfter    : 0); };
-  inline char* getTLSCertificateIssuerDN()  { return(isTLS() ? protos.tls.issuerDN  : NULL); }
-  inline char* getTLSCertificateSubjectDN() { return(isTLS() ? protos.tls.subjectDN : NULL); }
+  inline char* getTLSCertificateIssuerDN()  { return(isTLSProto() ? protos.tls.issuerDN  : NULL); }
+  inline char* getTLSCertificateSubjectDN() { return(isTLSProto() ? protos.tls.subjectDN : NULL); }
 
   inline void setTOS(u_int8_t tos, bool is_cli_tos) { if(is_cli_tos) cli2srv_tos = tos; srv2cli_tos = tos; }
   inline u_int8_t getTOS(bool is_cli_tos) const { return (is_cli_tos ? cli2srv_tos : srv2cli_tos); }

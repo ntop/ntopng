@@ -1117,7 +1117,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           Function used to split charts info, otherwise graphs with multiple
           timeseries are going to have incorrect values
         */
-          function splitSeriesInfo(stats_name, cell, show_date, formatter, total) {
+        function splitSeriesInfo(stats_name, cell, show_date, formatter, total) {
           let val = "";
           let time_elapsed = 1;
           const val_formatter = (formatter ? formatter : stats_formatter)

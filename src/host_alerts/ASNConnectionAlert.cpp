@@ -23,20 +23,19 @@
 
 /* ***************************************************** */
 
-DomainNamesConnectionAlert::DomainNamesConnectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int32_t _num_domain_names, u_int8_t _domain_names_threshold) : HostAlert (c, f, cli_pctg) {
-
-  num_domain_names = _num_domain_names;
-  domain_names_threshold=_domain_names_threshold;
+ASNConnectionAlert::ASNConnectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int8_t _num_asn, u_int8_t _num_countries) : HostAlert(c, f, cli_pctg) {
+  num_asn = _num_asn;
+  num_countries = _num_countries
 };
 
 /* ***************************************************** */
 
-ndpi_serializer* DomainNamesConnectionAlert::getAlertJSON(ndpi_serializer* serializer) {
+ndpi_serializer* ASNConnectionAlert::getAlertJSON(ndpi_serializer* serializer) {
   if(serializer == NULL)
     return NULL;
 
-  ndpi_serialize_string_uint64(serializer, "num_domain_names", num_domain_names);
-  ndpi_serialize_string_uint64(serializer, "threshold", domain_names_threshold);
+  ndpi_serialize_string_uint32(serializer, "num_asn", num_asn);
+  ndpi_serialize_string_uint32(serializer, "num_countries", num_countries);
   
   return serializer;
 }

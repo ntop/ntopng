@@ -32,9 +32,14 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   icmp = new (std::nothrow) ICMPstats();
   peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
 
-  nextPeriodicUpdate = 0;
+  nextPeriodicUpdate = nextPeriodicTrafficMapUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = 0;
   current_cycle = 0;
+  
+#if defined(NTOPNG_PRO)
+  traffic_stats.ntp_traffic_sent = traffic_stats.dns_traffic_sent = traffic_stats.ntp_traffic_rcvd = traffic_stats.dns_traffic_rcvd = 0;
+  traffic_stats.ip = host->get_ip();
+#endif
   
   num_contacted_hosts_as_client.init(8);       /* 128 bytes */
   num_host_contacts_as_server.init(8);         /* 128 bytes */
@@ -48,13 +53,15 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
    if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
     throw "Failed HLL initialization"; 
 
-   /* hll init, 4 bits -> 16 bytes per LocalHost */ 
-   if(ndpi_hll_init(&hll_contacted_domain_names, 4) != 0) 
+   if(ndpi_hll_init(&hll_contacted_asn, 8) != 0)
     throw "Failed HLL initialization"; 
 
+   if(ndpi_hll_init(&hll_contacted_country, 8) != 0)
+    throw "Failed HLL initialization"; 
 
-  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
-  hll_delta_value_domain_names = 0, old_hll_value_domain_names= 0, new_hll_value_domain_names= 0;
+  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0,
+  hll_delta_value_asn = 0, old_hll_value_asn = 0, new_hll_value_asn = 0,
+  hll_delta_value_country = 0, old_hll_value_country = 0, new_hll_value-country = 0;
 
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
@@ -70,19 +77,25 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   dns = s.getDNSstats() ? new (std::nothrow) DnsStats(*s.getDNSstats()) : NULL;
   http = NULL;
   icmp = NULL;
-  nextPeriodicUpdate = 0;
+  nextPeriodicUpdate = nextPeriodicTrafficMapUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = 0;
-
+#if defined(NTOPNG_PRO)
+  traffic_stats.ntp_traffic_sent = traffic_stats.dns_traffic_sent = traffic_stats.ntp_traffic_rcvd = traffic_stats.dns_traffic_rcvd = 0;
+  traffic_stats.ip = host->get_ip();
+#endif
   /* hll init, 8 bits -> 256 bytes per LocalHost */
    if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
     throw "Failed HLL initialization"; 
 
-   /* hll init, 4 bits -> 16 bytes per LocalHost */ 
-   if(ndpi_hll_init(&hll_contacted_domain_names, 4) != 0) 
+   if(ndpi_hll_init(&hll_contacted_asn, 8) != 0)
     throw "Failed HLL initialization"; 
 
-  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
-  hll_delta_value_domain_names = 0, old_hll_value_domain_names= 0, new_hll_value_domain_names= 0;
+   if(ndpi_hll_init(&hll_contacted_country, 8) != 0)
+    throw "Failed HLL initialization"; 
+
+  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0,
+  hll_delta_value_asn = 0, old_hll_value_asn = 0, new_hll_value_asn = 0,
+  hll_delta_value_country = 0, old_hll_value_country = 0, new_hll_value_country = 0;
   
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
@@ -99,9 +112,12 @@ LocalHostStats::~LocalHostStats() {
   if(icmp)                delete icmp;
   if(peers)               delete(peers);
 
+#if defined(NTOPNG_PRO)
+  iface->updateCheckTrafficMap(host->get_ip(), host->getMac(), host->get_vlan_id(), traffic_stats);
+#endif
   ndpi_hll_destroy(&hll_contacted_hosts);
-  ndpi_hll_destroy(&hll_contacted_domain_names);
-
+  ndpi_hll_destroy(&hll_contacted_asn);
+  ndpi_hll_destroy(&hll_contacted_country);
 }
 
 /* *************************************** */
@@ -145,12 +161,24 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
   if(icmp) icmp->updateStats(tv);
   if(http) http->updateStats(tv);
 
+  /* 30 Sec Update */
+  if(tv->tv_sec >= nextPeriodicTrafficMapUpdate) {
+    /* Updates Traffic Map, enabled by Excessive Traffic alert */
+#if defined(NTOPNG_PRO)
+    iface->updateCheckTrafficMap(host->get_ip(), host->getMac(), host->get_vlan_id(), traffic_stats);
+    resetTrafficStats();
+#endif
+    nextPeriodicTrafficMapUpdate = tv->tv_sec + TRAFFIC_MAP_REFRESH;
+  }
+
   /* 5 Min Update */
   if(tv->tv_sec >= nextPeriodicUpdate) {
     /* hll visited sites update */
     updateContactedHostsBehaviour();
     /* hll contacted asn and country*/
-    updateDomainNamesBehaviour();
+    updateContactedASNBehaviour();
+    updateContactedCountryBehaviour();
+  
 
     /* Contacted peers update */
     updateHostContacts();
@@ -169,6 +197,17 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
     nextPeriodicUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
 }
+
+/* *************************************** */
+
+#if defined(NTOPNG_PRO)
+void LocalHostStats::resetTrafficStats() {
+  traffic_stats.ntp_traffic_sent = 0;
+  traffic_stats.dns_traffic_sent = 0;
+  traffic_stats.ntp_traffic_rcvd = 0;
+  traffic_stats.dns_traffic_rcvd = 0;
+}
+#endif
   
 /* *************************************** */
 
@@ -217,17 +256,36 @@ void LocalHostStats::luaHostBehaviour(lua_State* vm) {
 
 
 
-void LocalHostStats::luaDomainNamesBehaviour(lua_State* vm) {
-HostStats::luaHostBehaviour(vm);
+void LocalHostStats::luaASNBehaviour(lua_State* vm) {
+  HostStats::luaHostBehaviour(vm);
   
   lua_newtable(vm);
     
-  lua_push_float_table_entry(vm, "value", hll_delta_value_domain_names);
-  lua_push_bool_table_entry(vm, "anomaly",      contacted_domain_names.anomalyFound());
-  lua_push_uint64_table_entry(vm, "lower_bound", contacted_domain_names.getLastLowerBound());
-  lua_push_uint64_table_entry(vm, "upper_bound", contacted_domain_names.getLastUpperBound());
+  lua_push_float_table_entry(vm, "value", hll_delta_value_asn);
+  lua_push_bool_table_entry(vm, "anomaly",      contacted_asn.anomalyFound());
+  lua_push_uint64_table_entry(vm, "lower_bound", contacted_asn.getLastLowerBound());
+  lua_push_uint64_table_entry(vm, "upper_bound", contacted_asn.getLastUpperBound());
 
-  lua_pushstring(vm, "contacted_domain_names_behaviour");
+  lua_pushstring(vm, "contacted_asn_behaviour");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
+
+
+void LocalHostStats::luaCountryBehaviour(lua_State* vm) {
+  HostStats::luaHostBehaviour(vm);
+  
+  lua_newtable(vm);
+    
+  lua_push_float_table_entry(vm, "value", hll_delta_value_country);
+  lua_push_bool_table_entry(vm, "anomaly",      contacted_country.anomalyFound());
+  lua_push_uint64_table_entry(vm, "lower_bound", contacted_country.getLastLowerBound());
+  lua_push_uint64_table_entry(vm, "upper_bound", contacted_country.getLastUpperBound());
+
+  lua_pushstring(vm, "contacted_country_behaviour");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
@@ -248,8 +306,9 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
   }
 
   luaHostBehaviour(vm);
-  luaDomainNamesBehaviour(vm);
-
+  luaASNBehaviour(vm);
+  luaCountryBehaviour(vm);
+  
   if(details_level >= details_high) {
     luaICMP(vm,host->get_ip()->isIPv4(),true);
     luaDNS(vm, true);
@@ -380,8 +439,8 @@ void LocalHostStats::lua_get_timeseries(lua_State* vm) {
   }
 
   luaHostBehaviour(vm);
-  luaDomainNamesBehaviour(vm);
-
+  luaASNBehaviour(vm);
+  luaCountryBehaviour(vm);
 }
 
 /* *************************************** */
@@ -413,6 +472,23 @@ void LocalHostStats::incStats(time_t when, u_int8_t l4_proto,
   HostStats::incStats(when, l4_proto, ndpi_proto, ndpi_category, custom_app,
 		      sent_packets, sent_bytes, sent_goodput_bytes,
 		      rcvd_packets, rcvd_bytes, rcvd_goodput_bytes, peer_is_unicast);
+#if defined(NTOPNG_PRO)
+  if(iface->isTrafficMapEnabled()) {
+    /* NOTE: right now ntp stats goes with pkts and dns with bytes */
+    switch(ndpi_proto) {
+    case NDPI_PROTOCOL_DNS:
+      traffic_stats.dns_traffic_sent += sent_bytes;
+      traffic_stats.dns_traffic_rcvd += rcvd_bytes;
+      break;
+    case NDPI_PROTOCOL_NTP: 
+      traffic_stats.ntp_traffic_sent += sent_packets;
+      traffic_stats.ntp_traffic_rcvd += rcvd_packets;
+      break;
+    default:
+      break;
+    }
+  }
+#endif
   
   if(l4_proto == IPPROTO_UDP) {
     if(peer_is_unicast)
@@ -642,21 +718,23 @@ void LocalHostStats::updateContactedHostsBehaviour() {
 
 /* *************************************** */
 
-void LocalHostStats::updateDomainNamesBehaviour() {
+void LocalHostStats::updateContactedCountryBehaviour() {
 
-  old_hll_value_domain_names = new_hll_value_domain_names;
-  new_hll_value_domain_names = ndpi_hll_count(&hll_contacted_domain_names);
-  hll_delta_value_domain_names = new_hll_value_domain_names - old_hll_value_domain_names;
+  old_hll_value_country = new_hll_value_country;
+  new_hll_value_country = ndpi_hll_count(&hll_contacted_country);
+  hll_delta_value_country = new_hll_value_country - old_hll_value_country;
 
-#ifdef TRACE_ME
-  char buf[64];
-  
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s / %f contacts",
-			       host->get_ip()->print(buf, sizeof(buf)),
-			       last_hll_contacted_domain_names_value);
-  ndpi_hll_reset(&hll_contacted_domain_names);
-#endif
+  contacted_country.addObservation((u_int64_t)hll_delta_value_country);
+}
 
-  contacted_domain_names.addObservation((u_int32_t)hll_delta_value_domain_names);
-  
+/* *************************************** */
+
+
+void LocalHostStats::updateContactedASNBehaviour() {
+
+  old_hll_value_asn = new_hll_value_asn;
+  new_hll_value_asn = ndpi_hll_count(&hll_contacted_asn);
+  hll_delta_value_asn = new_hll_value_asn - old_hll_value_asn;
+
+  contacted_asn.addObservation((u_int64_t)hll_delta_value-asn);
 }

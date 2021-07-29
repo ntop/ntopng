@@ -31,7 +31,14 @@ print("<tr><th>") print(i18n("about.copyright")) print("</th><td colspan=2>"..in
 
 --
 
-print("<tr><th>"..i18n("about.version").."</th><td colspan=2>"..getNtopngRelease(info, true).."</td></tr>\n")
+vers = string.split(info["version.git"], ":")
+if((vers ~= nil) and (vers[2] ~= nil)) then
+   ntopng_git_url = "<A HREF=\"https://github.com/ntop/ntopng/commit/".. vers[2] .."\">"..info["version"].." ("..info["revision"]..")</A> <i class='fas fa-external-link-alt'></i>"
+else
+   ntopng_git_url = info["version"]
+end
+
+print("<tr><th>"..i18n("about.version").."</th><td colspan=2>"..getNtopngRelease(info).."</td></tr>\n")
 print("<tr><th>"..i18n("about.system_id").."</th><td colspan=2>"..info["pro.systemid"].." <A HREF=\"".. ntop.getHttpPrefix() .. "/lua/license.lua\"><i class=\"fas fa-cog\"></i></A></td></tr>\n")
 
 print("<tr><th nowrap>"..i18n("about.platform").."</th><td colspan=2>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
@@ -40,17 +47,17 @@ print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td colspan=2>".. inf
 
 ndpi_ver = info["version.ndpi"]
 if (ndpi_ver ~= nil) then
-   v = string.split(ndpi_ver, " ")
-   if (v ~= nil) then
-      ndpi_vers = v[1]
-      v_all = string.sub(v[2], 2, -2)
-      local vers = string.split(v_all, ":")
-      ndpi_hash = vers[1]
-      ndpi_date = vers[2]
-      print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</a> <i class='fas fa-external-link-alt'></i></th><td colspan=2> <A HREF=\"https://github.com/ntop/nDPI/commit/\"".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
-   else
-      print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2> <A HREF=\"https://github.com/ntop/nDPI/\">"..ndpi_ver.."</A></td></tr>\n")
-   end
+  v = string.split(ndpi_ver, " ")
+  if (v ~= nil) then
+    ndpi_vers = v[1]
+     v_all = string.sub(v[2], 2, -2)
+     vers = string.split(v_all, ":")
+     ndpi_hash = vers[1]
+     ndpi_date = vers[2]
+     print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</a> <i class='fas fa-external-link-alt'></i></th><td colspan=2> <A HREF=\"https://github.com/ntop/nDPI/commit/\"".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
+  else
+     print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2> <A HREF=\"https://github.com/ntop/nDPI/\">"..ndpi_ver.."</A></td></tr>\n")
+  end
 end
 
 print("<tr><th><a href=\"https://curl.haxx.se\" target=\"_blank\">cURL</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>"..info["version.curl"].."</td></tr>\n")

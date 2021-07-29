@@ -19,25 +19,26 @@
  *
  */
 
-#include "host_alerts_includes.h"
+#ifndef _ASN_CONNECTION_ALERT_H_
+#define _ASN_CONNECTION_ALERT_H_
 
-/* ***************************************************** */
+#include "ntop_includes.h"
 
-NTPTrafficAlert::NTPTrafficAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _ntp_bytes, u_int64_t _ntp_bytes_threshold) : HostAlert(c, f, cli_pctg) {
-  ntp_bytes = _ntp_bytes,
-    ntp_bytes_threshold = _ntp_bytes_threshold;
+class ASNConnectionAlert : public HostAlert {
+ private:
+  double num_asn;
+  double num_countries;
+
+  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
+  
+ public:
+  static HostAlertType getClassType() { return { host_alert_asn_connection, alert_category_network }; }
+
+  ASNConnectionAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, double _num_asn, double _num_countries);
+  ~ASNConnectionAlert() {};
+  
+  HostAlertType getAlertType() const { return getClassType(); }
+  u_int8_t getAlertScore()     const { return SCORE_LEVEL_NOTICE; };
 };
 
-/* ***************************************************** */
-
-ndpi_serializer* NTPTrafficAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
-
-  ndpi_serialize_string_uint64(serializer, "value", ntp_bytes);
-  ndpi_serialize_string_uint64(serializer, "threshold", ntp_bytes_threshold);
-  
-  return serializer;
-}
-
-/* ***************************************************** */
+#endif /* _ASN_CONNECTION_ALERT_H_ */
