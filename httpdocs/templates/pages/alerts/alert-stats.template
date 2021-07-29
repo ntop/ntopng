@@ -690,11 +690,10 @@
 
             const alert = $table.row($(this).parent().parent()).data();
 
-    	    if(alert.link_to_past_flows) {
+    	    if(alert.link_to_past_flows)
 	    	window.location.href = alert.link_to_past_flows;
-	    }
-
-            window.location.href = `${http_prefix}/lua/pro/nindex_query.lua`;
+	    else
+	    	window.location.href = `${http_prefix}/lua/pro/nindex_query.lua`;
         });
 
         $table.on('click', `a[href='#delete_alert_dialog']`, function (e) {

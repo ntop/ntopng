@@ -22,6 +22,7 @@ local telemetry_utils = require "telemetry_utils"
 local tracker = require "tracker"
 local alerts_api = require "alerts_api"
 local icmp_utils = require "icmp_utils"
+local tag_utils = require "tag_utils"
 local checks = require "checks"
 
 local shaper_utils = nil
@@ -551,12 +552,14 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 
 	 -- Fetch the filter
 	 local past_flows_filter = alert_consts.alert_types[alert_id].filter_to_past_flows(ifid, alert, alert_json)
+	 local epoch_begin, epoch_end
 
 	 -- Add a defaut start time, if no start time has been added by the filter-generation function
 	 if not past_flows_filter["epoch_begin"] then
 	    past_flows_filter["epoch_begin"] = tonumber(alert["tstamp"]) - 300 -- Look a bit before than the timestamp
 	 end
-	 past_flows_filter["epoch_begin"] = tonumber(past_flows_filter["epoch_begin"])
+	 epoch_begin = tonumber(past_flows_filter["epoch_begin"])
+	 past_flows_filter["epoch_begin"] = nil
 
 	 -- Add a default end time, if not end time has been added by the filter-generation function
 	 if not past_flows_filter["epoch_end"] then
@@ -567,14 +570,46 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	       duration = 300
 	    end
 
-	    past_flows_filter["epoch_end"] = past_flows_filter["epoch_begin"] + duration
+	    past_flows_filter["epoch_end"] = epoch_begin + duration
+	 end
+	 epoch_end = tonumber(past_flows_filter["epoch_end"])
+	 past_flows_filter["epoch_end"] = nil
+
+	 local tags = {}
+	 for name, val in pairs(past_flows_filter) do
+	    local filter_op, filter_val
+
+	    if name == "epoch_end" or name == "epoch_begin" then
+	       -- They are not tags, they will be inserted as-is
+	       goto continue
+	    elseif val == true then
+	       -- Assumes > 0
+	       tags[#tags + 1] = {name = name, op = "gt", val = "0"}
+	    elseif name == "ip" then
+	       -- Currently convert to client IP, until the OR is supported as with nIndex
+	       tags[#tags + 1] = {name = "cli_ip", op = "eq", val = val}
+	    else
+	       -- Fallback, assume equality
+	       tags[#tags + 1] = {name = name, op = "eq", val = tostring(val)}
+	    end
+
+	    ::continue::
 	 end
 
-	 -- TODO: Temporarily disabled, WIP
-	 past_flows_filter = {}
+	 -- Join the TAG filters using the predefined operator
+	 local final_filter = {}
+	 for _, tag in pairs(tags) do
+	    final_filter[tag.name] = string.format("%s%s%s", tag.val, tag_utils.SEPARATOR, tag.op)
+	 end
 
 	 -- Return the link augmented with the filter
-	 return string.format("%s/lua/pro/nindex_query.lua?", ntop.getHttpPrefix(), table.tconcat(past_flows_filter, "=", "&"))
+	 local res = string.format("%s/lua/pro/nindex_query.lua?epoch_begin=%u&epoch_end=%u&%s",
+				   ntop.getHttpPrefix(),
+				   epoch_begin,
+				   epoch_end,
+				   table.tconcat(final_filter, "=", "&"))
+
+	 return res
       end
    end
 end
