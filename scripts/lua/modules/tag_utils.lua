@@ -20,8 +20,8 @@ tag_utils.tag_operators = {
     ["gt"]  = ">",
     ["gte"] = ">=",
     ["lte"] = "<=",
-    ["in"]  = "has",
-    ["nin"] = "does not have",
+    ["in"]  = i18n("has"),
+    ["nin"] = i18n("does_not_have"),
 }
 
 -- ##############################################
