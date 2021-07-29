@@ -20,6 +20,7 @@ tag_utils.tag_operators = {
     ["gt"] = ">",
     ["gte"] = ">=",
     ["lte"] = "<=",
+    ["in"] = "&",
 }
 
 -- ##############################################
@@ -49,6 +50,9 @@ function tag_utils.eval_op(v1, op, v2)
       return v1 >= v2
    elseif op == 'lte' then
       return v1 <= v2
+   elseif op == 'in' then
+      v_and = v1 & v2
+      return v1 == v_and
    end 
 
    return default_verdict
