@@ -580,6 +580,14 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	    elseif val == true then
 	       -- Assumes > 0
 	       tags[#tags + 1] = {name = name, op = "gt", val = "0"}
+	    elseif string.contains(name, "ip") then
+	       -- Unpack the hostkey into two separate fields, one for the VLAN (if present and positive) and one for the IP
+	       local host_info = hostkey2hostinfo(val)
+
+	       tags[#tags + 1] = {name = name, op = "eq", val = host_info["host"]}
+	       if host_info["vlan"] > 0 then
+		  tags[#tags + 1] = {name = "vlan_id", op = "eq", val = tostring(host_info["vlan"])}
+	       end
 	    elseif string.contains(name, "tcp_flags") then
 	       -- Assumes IN query
 	       tags[#tags + 1] = {name = name, op = "in", val = tostring(val)}
