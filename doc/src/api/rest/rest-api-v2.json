@@ -1061,7 +1061,26 @@
 				}
 			}
 		},
-		"/lua/rest/v2/get/ntopng/interfaces.lua": {
+		"/lua/rest/version.lua": {
+			"get": {
+				"tags": [
+					"REST API"
+				],
+				"summary": "Get supported and current REST API versions",
+				"description": "Return all the supported REST API versions and the current REST API version used",
+				"operationId": "rest_version",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+	        "/lua/rest/v2/get/ntopng/interfaces.lua": {
 			"get": {
 				"tags": [
 					"Interfaces"
