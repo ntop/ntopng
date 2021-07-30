@@ -1,14 +1,12 @@
 Plugins and Checks
-========================
+==================
 
 End users can extend the ntopng functionalities by creating plugins which
 allow them, for example, to trigger custom alerts or provide new data visualizations
 in ntopng.
 
 Plugins can contain different resources, for example `localization files`_, `custom pages`_
-and `alert definitions`_. The `Checks`_ are one particular resource which
-allow the user to implement a custom logic in response to an event (such
-events are called Hooks in ntopng).
+and `Checks`_. The `Checks`_ are used to implement logic such as the triggering of alerts when a certain even occurs.
 
 For an extensive discussion on how to develop new plugins check out the `Plugins section`_ .
 

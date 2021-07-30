@@ -22,7 +22,7 @@ local host_alert_ntp_traffic = classes.class(alert)
 
 host_alert_ntp_traffic.meta = {
   alert_key = host_alert_keys.host_alert_ntp_traffic,
-  i18n_title = "alerts_dashboard.threashold_cross",
+  i18n_title = "alerts_dashboard.host_alert_ntp_traffic",
   icon = "fas fa-fw fa-arrow-circle-up",
 }
 

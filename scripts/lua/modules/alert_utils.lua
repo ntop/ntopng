@@ -585,9 +585,6 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	    elseif val == true then
 	       -- Assumes > 0
 	       tags[#tags + 1] = {name = name, op = "gt", val = "0"}
-	    elseif name == "ip" then
-	       -- Currently convert to client IP, until the OR is supported as with nIndex
-	       tags[#tags + 1] = {name = "cli_ip", op = "eq", val = val}
 	    else
 	       -- Fallback, assume equality
 	       tags[#tags + 1] = {name = name, op = "eq", val = tostring(val)}

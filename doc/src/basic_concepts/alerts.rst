@@ -19,14 +19,9 @@ Certain alerts are configurable. For example, alerts can be triggered when certa
 - "Packet drops of an interface exceeds a given percentage of the total number of monitored packets"
 - "The total traffic originated at a network exceeds a certain threshold"
 
-ntopng :ref:`WebUIUserScripts` perform the evaluation of thresholds periodically, at predefined time intervals:
+ntopng :ref:`WebUIUserScripts` perform the evaluation of thresholds periodically, at predefined time intervals.
 
-- Every minute
-- Every 5 minutes
-- Every hour
-- Daily
-
-Alerts associated with a threshold have a duration, that is, they are active for a certain period of time. This period of time starts then the threshold is first met and stops when the threshold is no longer met. For this reason, such alerts are said to be *engaged* or *released*, depending on whether the triggering threshold is still met or not.
+Alerts associated with a threshold have a duration, that is, they are active for a certain period of time. This period of time starts then the threshold is first met and stops when the threshold is no longer met. For this reason, such alerts are said to be *engaged* or *past*, depending on whether the triggering threshold is still met or not.
 
 .. _Engaged Alerts:
 
@@ -41,12 +36,12 @@ When the threshold is first met, puts the corresponding alert in an *engaged* st
 
   Engaged Alerts Page
 
-.. _Released Alerts:
+.. _PastAlerts:
 
-Released Alerts
----------------
+Past Alerts
+-----------
 
-When the triggering threshold of an engaged alert is no longer met, the alert is *released* an it will no longer be visible in the engaged alerts page. Alerts, once released, become available from the past alerts page and their duration is indicated in the corresponding column
+When the triggering threshold of an engaged alert is no longer met, the alert becomes *past* an it will no longer be visible in the engaged alerts page. Alerts, once released, become available from the past alerts page and their duration is indicated in the corresponding column
 
 .. figure:: ../img/basic_concepts_alerts_past_alerts.png
   :align: center
@@ -55,9 +50,9 @@ When the triggering threshold of an engaged alert is no longer met, the alert is
   Past Alerts Page
 
 
-Alerts associated with events don't have a duration associated. They are triggered *at the time of the event* but any duration is not meaningful for them. For this reason, such alerts are never *engaged*  or *released*, they are just *stored* as soon as they are detected, and they are placed under the past alerts page without any duration indicated.
+Alerts associated with events don't have a duration associated. They are triggered *at the time of the event* but any duration is not meaningful for them. For this reason, such alerts are never *engaged*  or *released*, they are just considered *past* as soon as they are detected, and they are placed under the past alerts page without any duration indicated.
 
-.. _Flow Alerts:
+.. _FlowAlerts:
 
 Flow Alerts
 -----------
@@ -100,7 +95,7 @@ The alert is triggered only if the real value is lesser or greater then certain 
 User Activities
 ---------------
 
-ntopng keeps track of user activities that are related to system management and security, storing them as alerts. 
+ntopng keeps track of user activities that are related to system management and security, storing them as alerts.
 These activities include:
 
 - Users management: user added or remove, password changed

@@ -52,7 +52,9 @@ Four fields need to be input when adding a host:
 - :code:`measurement`: The type of check.
 - :code:`host`: The host name or the IP address of the host which needs to be monitored.
 - :code:`periodicity`: How often to perform the check.
-- :code:`rtt threshold`: A threshold used to trigger :ref:`Measure Alerts`.
+- :code:`rtt threshold`: A threshold used to trigger :ref:`Measure Alerts`
+- :code:`active monitoring pool`: The active monitoring pool associated to this host
+- :code:`default interface`: The interface to be used when checking this host (only availble for icmp)
 
 .. _Measure Alerts:
 
