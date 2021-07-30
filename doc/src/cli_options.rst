@@ -6,11 +6,10 @@ ntopng supports a large number of command line parameters. To see what they are,
 
 .. code:: bash
 
-   ntopng --help
    Usage:
-   ntopng <configuration file path>
-   or
-   ntopng <command line options>
+     ntopng <configuration file path>
+     or
+     ntopng <command line options>
 
    Options:
    [--dns-mode|-n] <mode>              | DNS address resolution mode
@@ -21,7 +20,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | 2 - Decode DNS responses and don't
                                        |     resolve numeric IPs
                                        | 3 - Don't decode DNS responses and don't
-                                          |     resolve numeric IPs
+                                       |     resolve numeric IPs
    [--interface|-i] <interface|pcap>   | Input interface name (numeric/symbolic),
                                        | view or pcap file path
    [--data-dir|-d] <path>              | Data directory (must be writable).
@@ -52,8 +51,13 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | -w 192.168.1.1:3001
                                        | -w [3ffe:2a00:100:7031::1]:3002
    [--https-port|-W] <[:]https port>   | HTTPS. See also -w above. Default: 3001
-   [--local-networks|-m] <local nets>  | Local nets list (default: 192.168.1.0/24)
-                                       | (e.g. -m "192.168.0.0/24,172.16.0.0/16")
+   [--local-networks|-m] <local nets>  | Local networks list.
+                                       | <local nets> is a comma-separated list of networks
+                                       | in CIDR format. An optional '=<alias>' is supported
+                                       | to specify an alias.
+                                       | Examples:
+                                       | -m "192.168.1.0/24,172.16.0.0/16"
+                                       | -m "192.168.1.0/24=LAN_1,192.168.2.0/24=LAN_2,10.0.0.0/8"
    [--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file
                                        | (eg. protos.txt)
    [--redis|-r] <fmt>                  | Redis connection. <fmt> is specified as
@@ -86,6 +90,7 @@ ntopng supports a large number of command line parameters. To see what they are,
    [--zmq-encryption]                  | Enable ZMQ encryption
    [--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption secret key (debug only)
    [--zmq-encryption-key <key>]        | ZMQ (export) encryption public key (-I only)
+   [--zmq-publish-events <URL>]        | Endpoint for publishing events (e.g. IPS)
    [--disable-autologout|-q]           | Disable web logout for inactivity
    [--disable-login|-l] <mode>         | Disable user login authentication:
                                        | 0 - Disable login only for localhost
@@ -106,6 +111,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        |   Note: the direct option delivers higher performance
                                        |   with less detailed flow information (it dumps raw flows)
                                        |   when collecting from ZMQ.
+                                       |
                                        | es            Dump in ElasticSearch database
                                        |   Format:
                                        |   es;<mapping type>;<idx name>;<es URL>;<http auth>
@@ -117,7 +123,14 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        |   ElasticSearch version 6. <mapping type> values whill therefore be
                                        |   ignored when using versions greater than or equal to 6.
                                        |
-                                       | syslog      Dump in syslog
+                                       | syslog        Dump in syslog
+                                       |   Format:
+                                       |   syslog[;<facility-text>]
+                                       |   Example:
+                                       |   syslog
+                                       |   syslog;local3
+                                       |   Notes:
+                                       |   <facility-text> is case-insensitive.
                                        |
                                        | mysql         Dump in MySQL database
                                        |   Format:
@@ -137,7 +150,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        |     ./ntopng ... --dump-flows="mysql-nprobe;localhost;ntopng;nf;root;root"
    [--export-flows|-I] <endpoint>      | Export flows with the specified endpoint
                                        | See https://wp.me/p1LxdS-O5 for a -I use case.
-   --hw-timestamp-mode <mode>          | Enable hw timestamping/stripping.
+   [--hw-timestamp-mode] <mode>        | Enable hw timestamping/stripping.
                                        | Supported TS modes are:
                                        | apcon - Timestamped pkts by apcon.com
                                        |         hardware devices
@@ -145,9 +158,10 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        |         hardware devices
                                        | vss   - Timestamped pkts by vssmonitoring.com
                                        |         hardware devices
-   --capture-direction                 | Specify packet capture direction
+   [--capture-direction] <dir>         | Specify packet capture direction
                                        | 0=RX+TX (default), 1=RX only, 2=TX only
-   --online-license-check              | Check the license online
+   [--cluster-id] <cluster id>         | Specify the PF_RING cluster ID on which incoming packets will be bound.
+   [--online-license-check]            | Check the license online
    [--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.
                                        | Useful when using ntopng behind a proxy.
    [--instance-name|-N <name>]         | Assign a name to this ntopng instance.
@@ -155,27 +169,20 @@ ntopng supports a large number of command line parameters. To see what they are,
    [--check-license]                   | Check if the license is valid.
    [--check-maintenance]               | Check until maintenance is included
                                        | in the license.
-   [--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]
    [--version|-V]                      | Print version and license information, then quit
-   --print-ndpi-protocols              | Print the nDPI protocols list
-   --ignore-macs                       | Ignore MAC addresses from traffic
-   --ignore-vlans                      | Ignore VLAN tags from traffic
-   --pcap-file-purge-flows             | Enable flow purge with pcap files (debug only)
-   --simulate-vlans                    | Simulate VLAN traffic (debug only)
-   --simulate-ips <num>                | Simulate IPs by choosing clients and servers among <num> random addresses
+   [--version-json]                    | Print version and license information in JSON format, then quit
+   [--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]
+   [--print-ndpi-protocols]            | Print the nDPI protocols list
+   [--ignore-macs]                     | Ignore MAC addresses from traffic
+   [--ignore-vlans]                    | Ignore VLAN tags from traffic
+   [--pcap-file-purge-flows]           | Enable flow purge with pcap files (debug only)
+   [--simulate-vlans]                  | Simulate VLAN traffic (debug only)
+   [--simulate-ips] <num>              | Simulate IPs by choosing clients and servers among <num> random addresses
    [--help|-h]                         | Help
 
    Available interfaces (-i <interface index>):
       1. lo
-      2. enp2s0f0
-      3. enp2s0f1
-      4. enp2s0f2
-      5. enp2s0f3
-      6. eno1
-      7. enp5s0
-      8. docker0
-      9. enp1s0f0
-      10. enp1s0f1
+      2. eno1
 
 
 Some of the most important parameters are briefly discussed here.
