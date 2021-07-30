@@ -70,7 +70,7 @@ function host_alert_dangerous_host.filter_to_past_flows(ifid, alert, alert_type_
    -- Look for the IP as client as currently the alert is for dangerous clients
    res["cli_ip"] = host_key
    -- A non-normal flow status
-   res["status"] = true 
+   res["score"] = true 
 
    return res
 end
