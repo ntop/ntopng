@@ -323,7 +323,7 @@ function flow_alert_store:format_record(value, no_html)
    -- Add link to historical flow
    if interfaceHasNindexSupport() and not no_html then
       local op_suffix = tag_utils.SEPARATOR .. 'eq'
-      local href = string.format('%s/lua/pro/nindex_query.lua?begin_epoch=%u&end_epoch=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%%s',
+      local href = string.format('%s/lua/pro/nindex_query.lua?epoch_begin=%u&epoch_end=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%%s',
          ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
          value["cli_ip"], op_suffix,
          value["srv_ip"], op_suffix,

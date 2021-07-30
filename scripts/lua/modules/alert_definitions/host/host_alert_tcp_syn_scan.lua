@@ -69,12 +69,13 @@ function host_alert_tcp_syn_scan.filter_to_past_flows(ifid, alert, alert_type_pa
 
    -- Filter by client or server, depending on whether this alert is as-client or as-server
    if alert["is_client"] == true or alert["is_client"] == "1" then
-      res["src2dst_tcp_flags"] = 0x02 -- SYN
       res["cli_ip"] = host_key
    elseif alert["is_server"] == true or alert["is_server"] == "1" then
-      res["dst2src_tcp_flags"] = 0x02 -- SYN
       res["srv_ip"] = host_key
    end
+
+   res["src2dst_tcp_flags"] = 0x02 -- Has SYN
+   -- res["dst2src_tcp_flags"] = 0x16 -- TODO: Doesn't have ACK
 
    res["l4proto"] = "TCP"
 

@@ -1497,8 +1497,6 @@ local known_parameters = {
 -- OTHER
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
    ["__"]                      = validateUnquoted,              -- see LDAP prefs page
-   ["begin_epoch"]             = validateNumber,
-   ["end_epoch"]               = validateNumber,
    ["ifid"]                    = validateInterface,             -- An ntopng interface ID
    ["observationPointId"]      = validateNumber,
    ["ifname"]                  = validateSingleWord,
