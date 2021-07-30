@@ -4779,7 +4779,7 @@
 						"format": "int32"
 					      },
 					       {
-						"name": "begin_epoch",
+						"name": "epoch_begin",
 						"in": "query",
 						"description": "Start time (epoch)",
 						"required": true,
@@ -4787,7 +4787,7 @@
 						"format": "int32"
 					       },
 					       {
-						"name": "end_epoch",
+						"name": "epoch_end",
 						"in": "query",
 						"description": "End time (epoch)",
 						"required": true,
