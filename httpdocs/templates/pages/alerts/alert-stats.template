@@ -153,6 +153,7 @@
                 if (searchParams.get(key)) {
                     param_value = `${searchParams.get(key)},${param_value}`;
                 }
+
                 searchParams.set(key, param_value);
             }
 
@@ -210,7 +211,16 @@
             return [begin, end];
         }
 
-        function updateNavbarLink(searchParams, element) {
+        function updateNavbarLink(url, begin, end, element) {
+            const searchParams = getSearchParams();
+
+            searchParams.set('epoch_begin', begin.unix());
+            searchParams.set('epoch_end', end.unix());
+            
+            if (url.searchParams.has('status')) {
+                searchParams.set('status', url.searchParams.get('status'));
+            }
+
             /* Read the current href */
             const cur_href = $(element).attr('href');
             let cur_url = new URL(cur_href, location.origin);
@@ -257,7 +267,7 @@
               and status to preserve them when switching between tabs
              */
             $('#navbarNav a').each(function(index, element) {
-                updateNavbarLink(searchParams, element);
+                updateNavbarLink(url, begin, end, element);
             });
 
             /*
@@ -278,6 +288,7 @@
             }
 
             url.search = searchParams.toString();
+
             window.history.pushState({epoch_begin: begin.unix(), epoch_end: end.unix()}, '', url);
         }
 
