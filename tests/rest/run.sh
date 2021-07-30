@@ -174,6 +174,7 @@ ntopng_init_conf() {
     echo "-r=@${NTOPNG_TEST_REDIS}" >> ${NTOPNG_TEST_CONF}
     echo "-p=${NTOPNG_TEST_CUSTOM_PROTOS}" >> ${NTOPNG_TEST_CONF}
     echo "-N=ntopng_test" >> ${NTOPNG_TEST_CONF}
+    echo "-F=nindex" >> ${NTOPNG_TEST_CONF}
     echo "--http-port=${NTOPNG_TEST_HTTP_PORT}" >> ${NTOPNG_TEST_CONF}
     if [ "${KEEP_RUNNING}" -eq "0" ]; then
         echo "--shutdown-when-done" >> ${NTOPNG_TEST_CONF}

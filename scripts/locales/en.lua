@@ -5259,6 +5259,7 @@ local lang = {
     ["srv_ip"] = "Server",
     ["srv_port"] = "Server Port",
     ["subtype"] = "Subject",
+    ["vlan_id"] = "VLAN",
   },
   ["telemetry_page"] = {
     ["crash_report"] = "Crash Report",

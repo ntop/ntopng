@@ -6,6 +6,7 @@ ignore:
   - date
   - duration
   - rowid
+  - historical_url
 
 pre: |
   # Enable all user scripts

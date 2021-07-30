@@ -139,7 +139,7 @@ function host_alert_score_anomaly.filter_to_past_flows(ifid, alert, alert_type_p
    end
 
    -- A non-normal flow status
-   res["status"] = true
+   res["score"] = true
 
    return res
 end
