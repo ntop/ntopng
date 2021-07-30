@@ -554,9 +554,9 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	 local past_flows_filter = alert_consts.alert_types[alert_id].filter_to_past_flows(ifid, alert, alert_json)
 	 local epoch_begin, epoch_end
 
-	 -- Add a defaut start time, if no start time has been added by the filter-generation function
+	 -- Add a default start time, if no start time has been added by the filter-generation function
 	 if not past_flows_filter["epoch_begin"] then
-	    past_flows_filter["epoch_begin"] = tonumber(alert["tstamp"]) - 300 -- Look a bit before than the timestamp
+	    past_flows_filter["epoch_begin"] = tonumber(alert["tstamp"])
 	 end
 	 epoch_begin = tonumber(past_flows_filter["epoch_begin"])
 	 past_flows_filter["epoch_begin"] = nil
@@ -564,11 +564,6 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	 -- Add a default end time, if not end time has been added by the filter-generation function
 	 if not past_flows_filter["epoch_end"] then
 	    local duration = tonumber(alert["duration"]) or (tonumber(alert["tstamp_end"]) - tonumber(alert["tstamp"]))
-
-	    if duration > 300 then
-	       -- Dont' make the interval too large by default
-	       duration = 300
-	    end
 
 	    past_flows_filter["epoch_end"] = epoch_begin + duration
 	 end
@@ -593,11 +588,22 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	    ::continue::
 	 end
 
+	 -- Look a bit around the epochs...
+	 epoch_begin = epoch_begin - 150
+	 epoch_end = epoch_end + 150
+
+	 -- ... but not too much
+	 if epoch_end - epoch_begin > 600 then
+	    epoch_end = epoch_begin + 600
+	 end
+
 	 -- Join the TAG filters using the predefined operator
 	 local final_filter = {}
 	 for _, tag in pairs(tags) do
 	    final_filter[tag.name] = string.format("%s%s%s", tag.val, tag_utils.SEPARATOR, tag.op)
 	 end
+
+	 -- tprint({formatEpoch(epoch_begin), formatEpoch(epoch_end), formatEpoch(tonumber(alert.tstamp)), formatEpoch(tonumber(alert.tstamp_end))})
 
 	 -- Return the link augmented with the filter
 	 local res = string.format("%s/lua/pro/nindex_query.lua?epoch_begin=%u&epoch_end=%u&%s",
