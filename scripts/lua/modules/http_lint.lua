@@ -1387,6 +1387,7 @@ local known_parameters = {
    ["version"]                 = validateIpVersion,             -- To specify an IPv4 or IPv6
    ["ip_version"]              = validateListOfTypeInline(validateFilters(validateIpVersion)),             -- To specify an IPv4 or IPv6
    ["vlan"]                    = validateEmptyOr(validateNumber), -- A VLAN id
+   ["vlan_id"]                 = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))), -- A VLAN id
    ["hosts"]                   = validateHostsList,             -- A list of hosts
    ["src2dst_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Client to Server TCP flags
    ["dst2src_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Server to Client TCP flags
