@@ -42,7 +42,6 @@ The ntopng service can be started/stopped using the launchctl command:
 - [Start] :code:`sudo launchctl load /Library/LaunchDaemons/org.ntop.ntopng.plist`
 - [Stop] :code:`sudo launchctl unload /Library/LaunchDaemons/org.ntop.ntopng.plist`
 
-
 Installing on Windows
 ---------------------
 
@@ -85,6 +84,16 @@ it means that your capture drivers have not been properly installed and that you
 
    If during installation the installer complains for missing MSVCR120.DLL or MSVCR120P.DLL please
    download `Visual C++ Redistributable Package <https://support.microsoft.com/en-us/help/3179560/update-for-visual-c-2013-and-visual-c-redistributable-package>`_
+
+Installing on FreeBSD
+---------------------
+
+Installation instructions can be found at http://packages.ntop.org/.
+
+Installing on OPNsense/pfSense
+------------------------------
+
+OPNsense installation instructions are available in the :ref:`OPNsenseIntegration` integration page. pfSense installation instructions are available in the :ref:`pfSenseIntegration` integration page.
 
 Software Updates
 ================
