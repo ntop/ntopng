@@ -3902,6 +3902,7 @@ local lang = {
       ["cli_port"] = "Client Port",
       ["dst2src_tcp_flags"] = "Srv TCP Flags",
       ["flow_risk"] = "Flow Risk",
+      ["ip"] = "IP",
       ["l4proto"] = "Protocol",
       ["l7_proto"] = "Application",
       ["l7cat"] = "Category",
