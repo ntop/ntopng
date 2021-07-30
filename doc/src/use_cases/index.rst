@@ -14,6 +14,7 @@ to setup ntopng to solve it.
     large_networks
     processes_monitoring
     snmp_monitoring
+    infrastructure_monitoring
     netflow_sflow_monitoring
     mirror_tap_monitoring
     multiple_locations_monitoring

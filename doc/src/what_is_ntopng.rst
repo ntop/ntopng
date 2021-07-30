@@ -233,14 +233,10 @@ Alternatively, the license key can be placed in a one-line file
 Geolocation
 ===========
 
-ntopng leverages `MaxMind <https://www.maxmind.com>`_ geolocation
-databases to augment IP addresses with geolocation data as well as
-information on Autonomous Systems.
+ntopng supports geolocation of IP addresses. Databases of multiple vendors can be used interchangeably.
 
 .. note::
 
-   To use geolocation in ntopng it is necessary to register for a free
-   MaxMind account to obtain geolocation databases. Detailed
-   instructions are available at `this page
+   Detailed installation instructions are available at `this page
    <https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md>`_.
 
