@@ -1,0 +1,14 @@
+input: synscan.pcap
+
+options:
+  - -F=nindex
+
+ignore:
+  - date
+  - tstamp
+
+pre: |
+  curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "action": "enable"}' http://localhost:3333/lua/toggle_all_checks.lua
+
+post: |
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "detail_view": "flows", "ts_schema": "host:traffic", "ts_query": "ifid:3", "cli_ip": "172.16.0.8;eq", "l4proto": "TCP;eq", "src2dst_tcp_flags": "2;in", "visible_columns": "cli_ip,srv_ip,vlan_id,cli_port,srv_port,l4proto,l7proto,packets,traffic,throughput,first_seen,last_seen,cli_asn,srv_asn,l7cat,status,flow_risk,src2dst_dscp,info,observation_point_id,probe_ip,extract_flow_info,src2dst_tcp_flags,dst2src_tcp_flags,score", "epoch_begin": 1600000000, "epoch_end": 1800000000, "length": 10}' http://localhost:3333/lua/pro/rest/v2/get/host/flows/flows_info.lua
