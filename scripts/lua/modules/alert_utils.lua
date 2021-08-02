@@ -590,7 +590,13 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	       end
 	    elseif string.contains(name, "tcp_flags") then
 	       -- Assumes IN query
-	       tags[#tags + 1] = {name = name, op = "in", val = tostring(val)}
+	       if val >= 0 then
+		  -- Assumes IN
+		  tags[#tags + 1] = {name = name, op = "in", val = tostring(val)}
+	       else
+		  -- A negative value assumes NOT IN
+		  tags[#tags + 1] = {name = name, op = "nin", val = tostring(-val)}
+	       end
 	    else
 	       -- Fallback, assume equality
 	       tags[#tags + 1] = {name = name, op = "eq", val = tostring(val)}

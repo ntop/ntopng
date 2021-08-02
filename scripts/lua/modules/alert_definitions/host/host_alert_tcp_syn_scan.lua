@@ -74,8 +74,8 @@ function host_alert_tcp_syn_scan.filter_to_past_flows(ifid, alert, alert_type_pa
       res["srv_ip"] = host_key
    end
 
-   res["src2dst_tcp_flags"] = 0x02 -- Has SYN
-   -- res["dst2src_tcp_flags"] = 0x16 -- TODO: Doesn't have ACK
+   res["src2dst_tcp_flags"] = 0x02  -- Has SYN
+   res["dst2src_tcp_flags"] = -0x02 -- Does NOT have SYN
 
    res["l4proto"] = "TCP"
 
