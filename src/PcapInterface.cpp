@@ -357,6 +357,8 @@ static void* packetPollLoop(void* ptr) {
     iface->set_read_from_pcap_dump_done();
   }
 
+  iface->purgeIdle(time(NULL), false, true /* Full scan */);
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
 			       iface->get_description());
 
