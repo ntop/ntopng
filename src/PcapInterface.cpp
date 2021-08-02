@@ -201,6 +201,9 @@ static void* packetPollLoop(void* ptr) {
     /* Execute as Bash script */      
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Pre Script '%s'", test_pre_script_path);
     Utils::exec(test_pre_script_path);
+
+    /* Allow check configs to be re-read */
+    sleep(6);
   }
 
   do {
