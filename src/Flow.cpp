@@ -5698,7 +5698,9 @@ bool Flow::check_swap(u_int32_t tcp_flags) {
   */
   if(get_cli_ip_addr()->isNonEmptyUnicastAddress() /* Don't touch non-unicast addresses */
      && (!isTCP()
-	 || !(tcp_flags & TH_SYN) /* Neither the first SYN nor the second SYN+ACK */)
+	 || !(tcp_flags & TH_SYN) /* No SYN seen, can guess */
+	 || ((tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)) /* SYN+ACK seen but still the initial SYN can be missing */
+	 )
      && get_cli_port() < 1024 && get_cli_port() < get_srv_port())
     swap_requested = true;
 
