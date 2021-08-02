@@ -1257,7 +1257,7 @@ bool Flow::dump(time_t t, bool last_dump_before_free) {
   if(!last_dump_before_free) {
     if((getInterface()->getIfType() == interface_type_PCAP_DUMP
 	&& (!getInterface()->read_from_pcap_dump_done()))
-       || timeToPeriodicDump(t)) {
+       || !timeToPeriodicDump(t)) {
       return(rc); /* Don't call too often periodic flow dump */
     }
   }
