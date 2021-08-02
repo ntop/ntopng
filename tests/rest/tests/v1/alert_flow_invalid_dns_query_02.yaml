@@ -4,6 +4,7 @@ ignore:
   - date
   - duration
   - tstamp
+  - historical_url
 
 pre: |
   # Enable all user scripts
