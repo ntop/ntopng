@@ -75,6 +75,7 @@ the below sections:
 - pre: a bash script with commands to be executed before processing the pcap in ntopng (initialization)
 - post: a bash script with commands to be executed after the pcap has been processed by ntopng and generating some json output (using the Rest API)
 - ignore: fields from the output to be ignored when comparing the output with the old JSON (this is usually used to ignore time, date or other fields that can change over time)
+- options: a list of extra options for the ntopng configuration file
 
 Example:
 
@@ -92,6 +93,9 @@ post: |
 
 ignore:
   - date
+
+options:
+  - -F=nindex
 ```
 
 In order to run a specific test and avoid running all the suite, it is possible to specify -y=<API version>/<test name> when running the run.sh script under ntopng/tests/rest:

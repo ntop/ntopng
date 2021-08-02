@@ -174,7 +174,6 @@ ntopng_init_conf() {
     echo "-r=@${NTOPNG_TEST_REDIS}" >> ${NTOPNG_TEST_CONF}
     echo "-p=${NTOPNG_TEST_CUSTOM_PROTOS}" >> ${NTOPNG_TEST_CONF}
     echo "-N=ntopng_test" >> ${NTOPNG_TEST_CONF}
-    echo "-F=nindex" >> ${NTOPNG_TEST_CONF}
     echo "--http-port=${NTOPNG_TEST_HTTP_PORT}" >> ${NTOPNG_TEST_CONF}
     if [ "${KEEP_RUNNING}" -eq "0" ]; then
         echo "--shutdown-when-done" >> ${NTOPNG_TEST_CONF}
@@ -204,6 +203,7 @@ EOF
 # $4 - Script Output file
 # $5 - ntopng Output file
 # $6 - Local networks
+# $7 - Extra options file
 #
 ntopng_run() {
     if [ ! -z "${1}" ]; then
@@ -224,6 +224,11 @@ ntopng_run() {
 
     if [ ! -z "${6}" ]; then
         echo "-m=${6}" >> ${NTOPNG_TEST_CONF}
+    fi
+
+    if [ ! -z "${7}" ]; then
+        cat "${7}" >> ${NTOPNG_TEST_CONF}
+        cat "${7}" >> /tmp/test.log
     fi
 
     # Start the test
@@ -348,6 +353,7 @@ run_tests() {
         PRE_TEST=${TMP_FILE}.pre
         POST_TEST=${TMP_FILE}.post
         IGNORE=${TMP_FILE}.ignore
+        EXTRA_OPTIONS=${TMP_FILE}.opt
         FORMATTED_OLD_OUT=${TMP_FILE}.new
         FORMATTED_NEW_OUT=${TMP_FILE}.old
 
@@ -357,9 +363,10 @@ run_tests() {
         cat tests/${TEST}.yaml | shyaml -q get-value pre > ${PRE_TEST}
         cat tests/${TEST}.yaml | shyaml -q get-value post > ${POST_TEST}
         cat tests/${TEST}.yaml | shyaml -q get-values ignore > ${IGNORE}
+	cat tests/${TEST}.yaml | shyaml -q get-values options > ${EXTRA_OPTIONS}
 
         # Run the test
-        ntopng_run "${PCAP}" "${PRE_TEST}" "${POST_TEST}" "${SCRIPT_OUT}" "${NTOPNG_LOG}" "${LOCALNET}"
+        ntopng_run "${PCAP}" "${PRE_TEST}" "${POST_TEST}" "${SCRIPT_OUT}" "${NTOPNG_LOG}" "${LOCALNET}" "${EXTRA_OPTIONS}"
 
         # Filter/process ntopng output
         filter_ntopng_log "${NTOPNG_LOG}" "${NTOPNG_FILTERED_LOG}"
