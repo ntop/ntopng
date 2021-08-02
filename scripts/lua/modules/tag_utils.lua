@@ -66,8 +66,8 @@ end
 
 -- This table is done to convert tags to their where 
 tag_utils.nindex_tags_to_where_v4 = {
-   ["srv_ip"]   = "IPV4_DST_ADDR",
-   ["cli_ip"]   = "IPV4_SRC_ADDR",
+   ["srv_ip"]   = {[4] = "IPV4_DST_ADDR", [6] = "IPV6_DST_ADDR"},
+   ["cli_ip"]   = {[4] = "IPV4_SRC_ADDR", [6] = "IPV6_SRC_ADDR"},
    ["cli_port"] = "IP_SRC_PORT",
    ["srv_port"] = "IP_DST_PORT",
    ["vlan_id"]  = "VLAN_ID",
@@ -94,36 +94,6 @@ tag_utils.nindex_tags_to_where_v4 = {
    ["l7proto_master"]  = "L7_PROTO_MASTER",
    ["score"] = "SCORE",
 }
-
--- #####################################
-
-tag_utils.nindex_tags_to_where_v6 = {
-   ["srv_ip"]   = "IPV6_DST_ADDR",
-   ["cli_ip"]   = "IPV6_SRC_ADDR",
-   ["cli_port"] = "IP_SRC_PORT",
-   ["srv_port"] = "IP_DST_PORT",
-   ["vlan_id"]  = "VLAN_ID",
-   ["status"]   = "STATUS",
-   ["l7proto"]  = "L7_PROTO",
-   ["l4proto"]  = "PROTOCOL",
-   ["l7cat"]    = "L7_CATEGORY",
-   ["packets"]      = "PACKETS",
-   ["traffic"]      = "TOTAL_BYTES",
-   ["first_seen"]   = "FIRST_SEEN",
-   ["last_seen"]    = "LAST_SEEN",
-   ["src2dst_dscp"] = "SRC2DST_DSCP",
-   ["dst2src_dscp"] = "DST2SRC_DSCP",
-   ["info"]         = "INFO",
-   ["cli_asn"]      = "SRC_ASN",
-   ["srv_asn"]      = "DST_ASN",
-   ["observation_point_id"] = "OBSERVATION_POINT_ID",
-   ["probe_ip"]     = "PROBE_IP",
-   ["src2dst_tcp_flags"] = "SRC2DST_TCP_FLAGS",
-   ["dst2src_tcp_flags"] = "DST2SRC_TCP_FLAGS",
-   ["l7proto_master"]  = "L7_PROTO_MASTER",
-   ["score"] = "SCORE",
-}
-
 
 -- #####################################
 
