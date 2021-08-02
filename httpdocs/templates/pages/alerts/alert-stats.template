@@ -376,7 +376,10 @@
                     /* Button to jump to flow alerts within the same time period */
                     {% if alert_stats.entity == 'host' then %}
                     {icon: 'fa-stream', title: "{{ i18n('flows') }}", modal: '#flow_alerts', class: "btn-info"},
+		    {% end %}
 
+		    /* Button to jump to historical nIndex flows */
+                    {% if alert_stats.entity == 'host' or alert_stats.entity == 'flow' then %}
                        {% if ntop.isEnterpriseM() and hasNindexSupport() and interface.nIndexEnabled(ifid) then %}
                           {icon: 'fa-search-plus', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows', class: "btn-info"},
                        {% end %}

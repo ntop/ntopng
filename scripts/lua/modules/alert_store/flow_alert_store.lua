@@ -278,6 +278,7 @@ local RNAME = {
    VLAN_ID = { name = "vlan_id", export = true},
    PROTO = { name = "proto", export = true},
    L7_PROTO = { name = "l7_proto", export = true},
+   LINK_TO_PAST_FLOWS = { name = "link_to_past_flows", export = false},
 }
 
 -- ##############################################
@@ -312,26 +313,12 @@ function flow_alert_store:format_record(value, no_html)
    local l7_protocol =  interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]), tonumber(value["l7_proto"]))
    local show_cli_port = (value["cli_port"] ~= '' and value["cli_port"] ~= '0')
    local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= '0')   
-   local msg = alert_utils.formatFlowAlertMessage(ifid, value, alert_info)
+   local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, alert_info)
 
    local active_url = ""
-   local historical_url = ""
 
    local attacker = ""
    local victim = ""
-   
-   -- Add link to historical flow
-   if interfaceHasNindexSupport() and not no_html then
-      local op_suffix = tag_utils.SEPARATOR .. 'eq'
-      local href = string.format('%s/lua/pro/nindex_query.lua?epoch_begin=%u&epoch_end=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%s%s',
-         ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
-         value["cli_ip"], op_suffix,
-         value["srv_ip"], op_suffix,
-         ternary(show_cli_port, tostring(value["cli_port"]), ''), op_suffix,
-         ternary(show_srv_port, tostring(value["srv_port"]), ''), op_suffix,
-         l4_protocol, op_suffix)
-      historical_url = href
-   end
 
    -- Add link to active flow
    local alert_json = json.decode(value.json)
@@ -476,7 +463,6 @@ function flow_alert_store:format_record(value, no_html)
       srv_ip = flow_srv_ip,
       cli_port = flow_cli_port,
       srv_port = flow_srv_port,
-      historical_url = historical_url,
       active_url = active_url
    }
 
@@ -495,6 +481,20 @@ function flow_alert_store:format_record(value, no_html)
       value = ternary(tonumber(value["l7_proto"]) ~= 0, value["l7_proto"], value["l7_master_proto"]),
       label = l4_protocol..":"..l7_protocol
    }
+
+   -- Add link to historical flow
+   if ntop.isEnterpriseM() and hasNindexSupport() and interface.nIndexEnabled(interface.getId()) and not no_html then
+      local op_suffix = tag_utils.SEPARATOR .. 'eq'
+      local href = string.format('%s/lua/pro/nindex_query.lua?epoch_begin=%u&epoch_end=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%s%s',
+         ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
+         value["cli_ip"], op_suffix,
+         value["srv_ip"], op_suffix,
+         ternary(show_cli_port, tostring(value["cli_port"]), ''), op_suffix,
+         ternary(show_srv_port, tostring(value["srv_port"]), ''), op_suffix,
+         l4_protocol, op_suffix)
+
+      record[RNAME.LINK_TO_PAST_FLOWS.name] = href
+   end
 
    return record
 end
