@@ -228,7 +228,6 @@ ntopng_run() {
 
     if [ ! -z "${7}" ]; then
         cat "${7}" >> ${NTOPNG_TEST_CONF}
-        cat "${7}" >> /tmp/test.log
     fi
 
     # Start the test
