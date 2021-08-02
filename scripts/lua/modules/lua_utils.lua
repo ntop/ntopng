@@ -3013,7 +3013,7 @@ end
 -- print TCP flags
 function formatTCPFlags(flags)
    local out = ''
-   flags = 0xff
+
    if(hasbit(flags,0x02)) then out = out .. '<span class="badge bg-info"    title="SYN">S</span> ' end
    if(hasbit(flags,0x10)) then out = out .. '<span class="badge bg-info"    title="ACK">A</span> ' end
    if(hasbit(flags,0x01)) then out = out .. '<span class="badge bg-info"    title="FIN">F</span> ' end
@@ -3022,6 +3022,7 @@ function formatTCPFlags(flags)
    if(hasbit(flags,0x20)) then out = out .. '<span class="badge bg-primary" title="URG">U</span> ' end
    if(hasbit(flags,0x40)) then out = out .. '<span class="badge bg-info"    title="ECE">E</span> ' end
    if(hasbit(flags,0x80)) then out = out .. '<span class="badge bg-info"    title="CWR">C</span> ' end
+
    return out
 end
 
