@@ -4330,17 +4330,22 @@ function builMapHREF(host_address, vlan_id, map, default_page)
 
    -- Getting stats and formatting initial href
    if(stats == nil) then
-      if isMacAddress(host_address) then
+      if not isMacAddress(host_address) then
          stats = interface.getHostMinInfo(host_address, vlan_id)
          host = '<a href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..host_address
       else
          stats = interface.getMacInfo(host_address)
-         host = '<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?host='..host_address
       end
 
       cache[host_address] = { stats = stats }
    else
       stats = stats.stats
+   end
+
+   if not isMacAddress(host_address) then
+      host = '<a href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..host_address
+   else 
+      host = '<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?host='..host_address
    end
 
    -- Adding vlan if present
