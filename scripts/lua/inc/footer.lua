@@ -272,7 +272,7 @@ print[[
 				$('#network-clock').html(`${rsp.localtime}`);
 				$('#network-uptime').html(`${rsp.uptime}`);
 
-				let msg = `<div class='m-2'><div class='d-flex'>`; /* add class flex-wrap to wrap the badges */
+				let msg = `<div class='m-2'><div class='d-flex flex-wrap navbar-main-badges'>`;
 
 				if (rsp.system_host_stats.cpu_states) {
 					const iowait = ']] print(i18n("about.iowait")) print[[: ' + NtopUtils.formatValue(rsp.system_host_stats.cpu_states.iowait) + "%";
@@ -482,6 +482,7 @@ $(document).ajaxError(function(err, response, ajaxSettings, thrownError) {
 });
 
 footerRefresh();  /* call immediately to give the UI a more responsive look */
+
 setInterval(footerRefresh, ]]
 
 local footer_refresh_rate = ntop.getPrefs()["housekeeping_frequency"]

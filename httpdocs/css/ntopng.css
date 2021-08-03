@@ -535,8 +535,16 @@ path.link {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.01), 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Align search to the top */
 .navbar-main-top {
   align-items: flex-start;
+}
+
+/* Control main navbard badges display based on window size */
+@media (max-width: 1080px) {
+  .navbar-main-badges {
+    width: 210px;
+  }
 }
 
 .table:not(.dataTable) td,
