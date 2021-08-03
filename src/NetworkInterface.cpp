@@ -1811,10 +1811,10 @@ u_int16_t NetworkInterface::guessEthType(const u_char *p, u_int len, u_int8_t *i
 
   *is_ethernet = 0;
   
-  if(len >= sizeof(struct ip)) {
-    struct ip *ipv4 = (struct ip*)p;
+  if(len >= sizeof(struct ndpi_iphdr)) {
+    struct ndpi_iphdr*ipv4 = (struct ndpi_iphdr*)p;
 
-    if(ipv4->ip_v == 4)
+    if(ipv4->version == 4)
       return(ETHERTYPE_IP);
   }
 
