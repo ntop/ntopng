@@ -3995,6 +3995,7 @@ void Utils::listInterfaces(lua_State* vm) {
         if(sin.sin_addr.s_addr != 0)
           lua_push_str_table_entry(vm, "ipv4", Utils::intoaV4(ntohl(sin.sin_addr.s_addr), buf, sizeof(buf)));
 
+#ifndef WIN32
         sin6.sin6_family = AF_INET6;
         if(Utils::readIPv6(cur->name, &sin6.sin6_addr)) {
 	  struct ndpi_in6_addr* ip6 = (struct ndpi_in6_addr*)&sin6.sin6_addr;
@@ -4002,6 +4003,7 @@ void Utils::listInterfaces(lua_State* vm) {
 
 	  lua_push_str_table_entry(vm, "ipv6", ip);
         }
+#endif
       }
 
       lua_pushstring(vm, cur->name);
