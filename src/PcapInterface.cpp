@@ -203,7 +203,7 @@ static void* packetPollLoop(void* ptr) {
     Utils::exec(test_pre_script_path);
 
     /* Allow check configs to be re-read */
-    sleep(6);
+    sleep(8);
   }
 
   do {
