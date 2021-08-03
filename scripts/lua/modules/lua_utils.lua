@@ -4320,46 +4320,61 @@ function buildHostHREF(ip_address, vlan_id, page)
    end
 end
 
-function builMapHREF(ip_address, vlan_id, map, default_page)
+function builMapHREF(host_address, vlan_id, map, default_page)
+   -- Getting minimal stats to know if the host is still present in memory
+   local stats = cache[host_address]
+   local name 
+   local res = '<a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/'..map..'_map.lua?host='..host_address
 
-   local stats = cache[ip_address]
+   local host
 
+   -- Getting stats and formatting initial href
    if(stats == nil) then
-      stats = interface.getHostInfo(ip_address, vlan_id)
-      cache[ip_address] = { stats = stats }
+      if isMacAddress(host_address) then
+         stats = interface.getHostMinInfo(host_address, vlan_id)
+         host = '<a href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..host_address
+      else
+         stats = interface.getMacInfo(host_address)
+         host = '<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?host='..host_address
+      end
+
+      cache[host_address] = { stats = stats }
    else
       stats = stats.stats
    end
 
-   if(stats == nil) then
-      return(ip_address)
-   else
-      local hinfo = hostkey2hostinfo(ip_address)
-      local hmininfo = interface.getHostMinInfo(hinfo.host, hinfo.vlan)
-      for key, value in pairs(hmininfo) do
-          hinfo[key] = value
-      end
-      
-      local name  = hostinfo2label(hinfo)
-      local res
-      local host
-
-      if((name == nil) or (name == "")) then name = ip_address end
-      res = '<a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/'..map..'_map.lua?host='..ip_address
-      host = '<a href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..ip_address
-
-      if(vlan_id and (vlan_id ~= 0)) then 
-         res = res .. "@"..vlan_id 
-         host = host .. "@" .. vlan_id
-      end
-
-      res = res  ..'&page='..default_page..'">'..name..'</a>'
-      host = host .. '"><i class="fas fa-laptop"></i></a>'
-
-      res = res .. ' ' .. host
-
-      return(res)
+   -- Adding vlan if present
+   if(vlan_id and (vlan_id ~= 0)) then 
+      res = res .. "@"..vlan_id 
+      host = host .. "@" .. vlan_id
    end
+   host = host .. '">'
+
+   -- Getting the name if present
+   if not isMacAddress(host_address) then
+      local hinfo = hostkey2hostinfo(host_address)
+      name = hostinfo2label(hinfo)
+   else
+      name = mac2label(host_address)
+   end
+
+   if((name == nil) or (name == "")) then name = host_address end
+
+   res = res  ..'&page='..default_page..'">'..name..'</a>'
+   -- Adding the right symbol
+   if stats then
+      if not isMacAddress(host_address) then
+         host = host .. '<i class="fas fa-laptop"></i>'
+      else
+         host = host .. '<i class="fas fa-microchip"></i>'
+      end
+   end
+   host = host .. '</a>'
+
+   -- Concat the two href, the first one for the map, the second one for the stats
+   res = res .. ' ' .. host
+
+   return(res)
 end
 
 -- #####################

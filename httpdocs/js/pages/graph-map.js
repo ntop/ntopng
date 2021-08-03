@@ -105,14 +105,8 @@ function setEventListenersNetwork(network) {
             query = `&unicast_only=true`;
         }
 
-        if (selectedNode !== undefined && host === "") {
+        if (selectedNode !== undefined) {
             window.location.href = http_prefix + `/lua/pro/enterprise/${MAP}_map.lua?page=graph&host=` + selectedNode.id + query;
-        }
-        else if (selectedNode !== undefined && host !== "" && host.match(NtopUtils.REGEXES.macAddress)) {
-            window.location.href = http_prefix + '/lua/mac_details.lua?host=' + selectedNode.id;
-        }
-	else if (selectedNode !== undefined && host !== "") {
-            window.location.href = http_prefix + '/lua/host_details.lua?host=' + selectedNode.id;
         }
 
     });
