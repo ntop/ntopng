@@ -568,7 +568,7 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th>"..i18n("asn").."</th><td>")
 
       print("<A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn .."'>"..host.asname.."</A> [ "..i18n("asn").." <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn.."'>".. host.asn.."</A> ]</td>")
-      print('<td><A HREF="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">'..i18n("details.whois_lookup")..'</A> <i class="fas fa-external-link-alt"></i></td>')
+      print('<td><A title="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">'..i18n("details.whois_lookup")..' <i class="fas fa-external-link-alt"></i></A></td>')
       print("</td></tr>\n")
    end
 
@@ -581,7 +581,7 @@ if(host["ip"] ~= nil) then
       print("<tr><th>"..i18n("name").."</th>")
 
       if(isAdministrator()) then
-	 print("<td colspan=2><A HREF=\"http://" .. getIpUrl(host["ip"]) .. "\"> <span id=name>")
+	 print("<td colspan=2><A title=\"http://" .. getIpUrl(host["ip"]) .. "\"> <span id=name>")
       else
 	 print("<td colspan=2>")
       end
@@ -591,7 +591,7 @@ if(host["ip"] ~= nil) then
       end
 
       -- tprint(host) io.write("\n")
-      print(host_label .. "</span></A> <i class=\"fas fa-external-link-alt\"></i> ")
+      print(host_label .. "</span> <i class=\"fas fa-external-link-alt\"></i> </A>")
 
       print(hostinfo2detailshref(host, {page = "config"}, ' <i class="fas fa-sm fa-cog" aria-hidden="true"></i> '))
 
@@ -608,8 +608,8 @@ if(host["ip"] ~= nil) then
       if(host["systemhost"] == true) then print(' <span class="badge bg-success"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="badge bg-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
       if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
-	 print(' <A HREF="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'
-		  ..ntop.getHttpPrefix()..'/img/virustotal.svg\"></A> <i class=\"fas fa-external-link-alt\"></i>')
+	 print(' <A title="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'
+		  ..ntop.getHttpPrefix()..'/img/virustotal.svg\"> <i class=\"fas fa-external-link-alt\"></i></A>')
       end
 
       print("</td>\n")
@@ -935,7 +935,7 @@ end
 
 
    if(host["ssdp"] ~= nil) then
-      print("<tr><th><A HREF='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)</A></th><td colspan=2><i class=\"fas fa-external-link-alt fa-lg\"></i> <A HREF='"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
+      print("<tr><th><A title='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)<i class=\"fas fa-external-link-alt fa-lg\"></i></A></th><td colspan=2> <A HREF='"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
    end
 
    print("</table>\n")
@@ -1645,7 +1645,7 @@ elseif(page == "http") then
 	    print("<tr><th rowspan="..(num+1).." width=20%>"..i18n("http_page.virtual_hosts").."</th><th>Name</th><th>"..i18n("http_page.traffic_sent").."</th><th>"..i18n("http_page.traffic_received").."</th><th>"..i18n("http_page.requests_served").."</th></tr>\n")
 	    for k,v in pairsByKeys(vh, asc) do
 	       local j = string.gsub(k, "%.", "___")
-	       print("<tr><td><A HREF='http://"..k.."'>"..k.."</A> <i class='fas fa-external-link-alt'></i>")
+	       print("<tr><td><A title='http://"..k.."'>"..k.." <i class='fas fa-external-link-alt'></i></A>")
 	       historicalProtoHostHref(ifId, host, nil, nil, k)
 	       print("</td>")
 	       print("<td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")

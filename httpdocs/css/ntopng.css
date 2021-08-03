@@ -1030,3 +1030,9 @@ td.dashboard-counter {
   background-size: cover;
   background-position: 50% 50%;
 } /* ---- stats.js ---- */
+
+
+.fa-external-link-alt{
+  color: #0d6efd;
+  cursor: pointer;
+}

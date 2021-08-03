@@ -360,7 +360,7 @@ end
 function printASN(asn, asname)
   asname = asname:gsub('"','')
   if(asn > 0) then
-   return("<A HREF='http://as.robtex.com/as"..asn..".html' title='"..asname.."'>"..asname.."</A> <i class='fas fa-external-link-alt fa-lg'></i>")
+   return("<A title='http://as.robtex.com/as"..asn..".html'>"..asname.." <i class='fas fa-external-link-alt fa-lg'></i></A>")
   else
     return(asname)
   end
@@ -2999,7 +2999,7 @@ end
 -- ###############################################
 
 function formatWebSite(site)
-   return("<A target=\"_blank\" HREF=\"http://"..site.."\">"..site.."</A> <i class=\"fas fa-external-link-alt\"></i></th>")
+   return("<A target=\"_blank\" title=\"http://"..site.."\">"..site.." <i class=\"fas fa-external-link-alt\"></i></A></th>")
 end
 
 -- ###############################################

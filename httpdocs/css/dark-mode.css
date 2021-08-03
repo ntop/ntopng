@@ -529,3 +529,8 @@ text, g text.tick {
 summary, .apexcharts-legend-text {
   color: #e2e2e2 !important;
 }
+
+.fa-external-link-alt{
+  color: #ff8a26;
+  cursor: pointer;
+}

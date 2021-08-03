@@ -22,7 +22,7 @@ local auth = require "auth"
 local blog_utils = require("blog_utils")
 local template_utils = require "template_utils"
 local auth = require "auth"
-
+local template_utils = require("template_utils")
 local is_nedge = ntop.isnEdge()
 local is_appliance = ntop.isAppliance()
 local is_admin = isAdministrator()
@@ -1037,6 +1037,7 @@ local context = {
 
 print(template_utils.gen("pages/components/ifaces-dropdown.template", context))
 
+
 -- ##############################################
 -- Up/Down info
 if not is_pcap_dump and not is_system_interface then
@@ -1071,9 +1072,9 @@ if (_POST["ntopng_license"] == nil) and (info["pro.systemid"] and (info["pro.sys
 
    else
       if(not(ntop.getInfo()["pro.forced_community"])) then
-         print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge bg-warning">')
+         print('<li class="nav-item nav-link"><a title="https://shop.ntop.org" class="badge bg-warning text-decoration-none">')
          print(i18n("about.upgrade_to_professional")..' <i class="fas fa-external-link-alt"></i>')
-         print('</span></a></li>')
+         print('</a></li>')
       end
    end
 end
@@ -1271,3 +1272,7 @@ print("</div>")
 if(not is_admin) then
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
+
+
+
+

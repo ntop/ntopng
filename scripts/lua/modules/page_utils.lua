@@ -456,8 +456,7 @@ local function print_submenu(section, container_list_name)
             if section_has_submenu then
                print[[ data-bs-toggle="collapse" ]]
             end
-
-            print[[ href="]]
+            
 	    if section_has_submenu then
 	       local submenu_section_key = section_entry.section.key
 	       local submenu_section_id = submenu_section_key.."-submenu"
@@ -465,10 +464,12 @@ local function print_submenu(section, container_list_name)
 	    else 
                if section_entry.url:starts("http") then
                   -- Absolute (external) url
+                  print[[title="]]
                   print(section_entry.url)
                   external_link = true
                else
                   -- Url relative to ntopng
+                  print[[ href="]]
                   print(ntop.getHttpPrefix()..section_entry.url)
                end
 	    end

@@ -10,7 +10,7 @@ local ts_utils = require("ts_utils_core")
 local template = require "template_utils"
 local stats_utils = require("stats_utils")
 local page_utils = require "page_utils"
-
+local template_utils = require("template_utils")
 local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo(true)
 local is_admin = isAdministrator()
@@ -121,6 +121,8 @@ if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
 			confirm_button = 'btn-danger'
 		}
 	}))
+
+
 
 	print[[
 		<script type="text/javascript">
@@ -567,7 +569,38 @@ if have_nedge then
 		      }
       })
    )
+
+
+
 end
+
+   print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "ext_link_dialog",
+			 title   = i18n("external_link"),
+			 custom_alert_class = "alert alert-danger",
+			 message = i18n("show_alerts.confirm_external_link"),
+			 confirm = i18n("redirect"),
+		      }
+      })
+   )
+
+
+   print[[
+	<script type="text/javascript">
+		$(document).ready(function(){
+		  $(document).on('click','a > i.fa-external-link-alt',function(){
+		      let url=$(this).parent()[0].title;
+		      console.log(url)
+		      document.getElementById("url_ext_link_dialog").innerHTML = url+"<br/>]]print(i18n("are_you_sure"))print[[";
+		      $("#btn-confirm-action_ext_link_dialog").attr('href',url);
+		      $('#ext_link_dialog').modal('show');
+		  });
+		});
+	</script>
+   ]]
+
 
 -- ######################################
 
