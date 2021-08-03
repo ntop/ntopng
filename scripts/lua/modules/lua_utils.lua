@@ -4342,12 +4342,21 @@ function builMapHREF(ip_address, vlan_id, map, default_page)
       
       local name  = hostinfo2label(hinfo)
       local res
+      local host
 
       if((name == nil) or (name == "")) then name = ip_address end
       res = '<a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/'..map..'_map.lua?host='..ip_address
+      host = '<a href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..ip_address
 
-      if(vlan_id and (vlan_id ~= 0)) then res = res .. "@"..vlan_id end
-      res = res  ..'&page='..default_page..'">'..name..'</A>'
+      if(vlan_id and (vlan_id ~= 0)) then 
+         res = res .. "@"..vlan_id 
+         host = host .. "@" .. vlan_id
+      end
+
+      res = res  ..'&page='..default_page..'">'..name..'</a>'
+      host = host .. '"><i class="fas fa-laptop"></i></a>'
+
+      res = res .. ' ' .. host
 
       return(res)
    end
