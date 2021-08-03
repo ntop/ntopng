@@ -743,28 +743,28 @@ end
       print("<tr>")
       print("<th nowrap>"..i18n("if_stats_overview.collected_flows")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:zmq_recv_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
       print("<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.unhandled_flows").."</th><td width=20%><span id=if_zmq_dropped_flows>"..formatValue(ifstats.zmqRecvStats.dropped_flows).."</span></td>")
-      print("<td width=20%></td>")
+      print("<td colspan=2></td>")
       print("</tr>")
 
       print("<tr>")
       print("<th nowrap>"..i18n("if_stats_overview.zmq_message_rcvd")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_rcvd>"..formatValue(ifstats.zmqRecvStats.zmq_msg_rcvd).."</span></td>")
       print("<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.zmq_message_drops")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td>")
-      print("<td nowrap> <b>"..i18n("if_stats_overview.zmq_avg_msg_flows").."</b>: <span id=if_zmq_avg_msg_flows></span></td>")
+      print("<td nowrap colspan=2> <b>"..i18n("if_stats_overview.zmq_avg_msg_flows").."</b>: <span id=if_zmq_avg_msg_flows></span></td>")
       print("</tr>")
 
       print("<tr>")
       print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span></td>")
       print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></td>")
-		print("<td width=20%></td>")
-		print("</tr>")
+      print("<td colspan=2></td>")
+      print("</tr>")
    end
 
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.traffic_statistics").."</th></tr>\n")
 
 
    print("<tr><th nowrap>"..i18n("report.traffic_anomalies")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:hosts_anomalies'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
-   print("<th width=20% nowrap>"..i18n("report.traffic_anomalies_local_hosts").."</th><td><span id=local_hosts_anomalies>"..formatValue(ifstats.anomalies.num_local_hosts_anomalies).."</span> <span id=local_hosts_anomalies_trend></span></td>")
-   print("<th width=20% nowrap>"..i18n("report.traffic_anomalies_remote_hosts").."</th><td><span id=remote_hosts_anomalies>"..formatValue(ifstats.anomalies.num_remote_hosts_anomalies).."</span> <span id=remote_hosts_anomalies_trend></span></td>")
+   print("<th nowrap>"..i18n("report.traffic_anomalies_local_hosts").."</th><td><span id=local_hosts_anomalies>"..formatValue(ifstats.anomalies.num_local_hosts_anomalies).."</span> <span id=local_hosts_anomalies_trend></span></td>")
+   print("<th colspan=2 nowrap>"..i18n("report.traffic_anomalies_remote_hosts").."</th><td><span id=remote_hosts_anomalies>"..formatValue(ifstats.anomalies.num_remote_hosts_anomalies).."</span> <span id=remote_hosts_anomalies_trend></span></td>")
    print("</tr>\n")
 
    
@@ -826,7 +826,7 @@ end
       print("<th nowrap>"..i18n("http_page.traffic_received")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_in_bytes>"..bytesToSize(rx).."</span> [<span id=if_in_pkts>".. formatValue(ifstats.eth.ingress.packets) .. " ".. label .."</span>] <span id=pkts_in_trend></span></td>")
 
 
-      print('<td><div class="progress"><div class="progress-bar bg-warning" style="width: ' .. (tx * 100 / tot) .. '%;">'.. i18n("sent") ..'</div>')
+      print('<td colspan=2><div class="progress"><div class="progress-bar bg-warning" style="width: ' .. (tx * 100 / tot) .. '%;">'.. i18n("sent") ..'</div>')
       print('<div class="progress-bar bg-success" style="width: ' .. (rx * 100 / tot) .. '%;">'.. i18n("received")..'</div></div></td>')
 
 
@@ -1012,7 +1012,7 @@ end
    end
 
    if ntop.isPcapDownloadAllowed() and ifstats.isView == false and ifstats.isDynamic == false and is_packet_interface then
-      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=4>")
+      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=5>")
 
       local live_traffic_utils = require("live_traffic_utils")
       live_traffic_utils.printLiveTrafficForm(interface.getId())
