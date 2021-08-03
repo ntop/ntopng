@@ -3900,22 +3900,20 @@ static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
-    /* This is an IP address */
     const char *addr = lua_tostring(vm, 1);
-    ip = new (std::nothrow) IpAddress();
-    if(ip) ip->set(addr);
+    if(strchr(addr, ':')) { /* This is a MAC address */
+      mac = new (std::nothrow) u_int8_t[6]();
+      if(mac) Utils::parseMac(mac, addr);
+    } else { /* This is an IP address */
+      ip = new (std::nothrow) IpAddress();
+      if(ip) ip->set(addr);
+    }
   }
   if(lua_type(vm, 2) == LUA_TNUMBER)  vlan_id      = (u_int16_t)lua_tonumber(vm, 2);
   if(lua_type(vm, 3) == LUA_TNUMBER)  host_pool_id = (u_int16_t)lua_tonumber(vm, 3);
   if(lua_type(vm, 4) == LUA_TBOOLEAN) unicast      = (bool)lua_toboolean(vm, 4);
   if(lua_type(vm, 5) == LUA_TNUMBER)  first_seen   = (u_int32_t)lua_tonumber(vm, 5);
   if(lua_type(vm, 6) == LUA_TSTRING)  l7_proto     = (char *)lua_tostring(vm, 6);
-  if(lua_type(vm, 7) == LUA_TSTRING) {
-    /* This is a MAC address */
-    const char *addr = lua_tostring(vm, 7);
-    mac = new (std::nothrow) u_int8_t[6]();
-    if(mac) Utils::parseMac(mac, addr);
-  }
 
   if(l7_proto)
     filter_ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
