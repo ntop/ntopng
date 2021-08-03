@@ -418,7 +418,7 @@ local lang = {
     ["maintenance"] = "Maintenance",
     ["maintenance_expired"] = "%{product} maintenance expired",
     ["maintenance_left"] = "Until %{_until} [%{days_left} days left]",
-    ["maxmind"] = "Includes support for <a title=\"%{maxmind_url}\">MaxMind <i style='color:#ff8a26;cursor:pointer;' class=\"fas fa-external-link-alt\"></i></a> and <a title='https://db-ip.com'>DB-IP <i style='color:#ff8a26;cursor:pointer;' class=\"fas fa-external-link-alt\"></i></a> Geolocation databases.",
+    ["maxmind"] = "Includes support for <a title=\"%{maxmind_url}\">MaxMind <i class=\"fas fa-external-link-alt\"></i></a> and <a title='https://db-ip.com'>DB-IP <i class=\"fas fa-external-link-alt\"></i></a> Geolocation databases.",
     ["network_callbacks_directory"] = "Network",
     ["new_major_available"] = "A new %{product} stable version (v.%{version}) is available for <a href=\"%{url}\">download</a>: please upgrade.",
     ["ntop_blog"] = "ntop Blog",

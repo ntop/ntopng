@@ -450,7 +450,7 @@ local function ja3url(what, safety)
    if(what == nil) then
       print("&nbsp;")
    else
-      ret = '<A title="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..' <i style="color:#ff8a26;cursor:pointer;" class="fas fa-external-link-alt"></i></A>'
+      ret = '<A title="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..' <i class="fas fa-external-link-alt"></i></A>'
       if((safety ~= nil) and (safety ~= "safe")) then
 	 ret = ret .. ' [ <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]'
       end
