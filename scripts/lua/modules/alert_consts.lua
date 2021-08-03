@@ -378,6 +378,12 @@ end
 function loadDefinition(def_script, mod_fname, script_path)
    local required_fields = {"alert_key", "i18n_title", "icon"}
 
+   -- Check the required meta table
+   if(def_script.meta == nil) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required table 'meta' in %s from %s", mod_fname, script_path))
+      return(false)
+   end
+
    -- Check the required metadata fields
    for _, k in pairs(required_fields) do
       if(def_script.meta[k] == nil) then
