@@ -387,9 +387,9 @@ function loadDefinition(def_script, mod_fname, script_path)
    end
 
    local alert_entity
-   if script_path:ends("/flow") then
+   if script_path:ends(os_utils.fixPath("/flow")) then
       alert_entity = alert_entities.flow
-   elseif script_path:ends("/host") then
+   elseif script_path:ends(os_utils.fixPath("/host")) then
       alert_entity = alert_entities.host
    else
       -- TODO: migrate all. currently assumes other for non-flow non-host
