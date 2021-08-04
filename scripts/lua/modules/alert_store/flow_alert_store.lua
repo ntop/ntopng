@@ -435,19 +435,21 @@ function flow_alert_store:format_record(value, no_html)
       reference = reference_html
    }
 
-   -- Full, unshortened label
-   flow_cli_ip["label_full"] = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), true --[[ Show VLAN --]], false)
+   -- Long, unshortened label
+   local cli_label_long = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), true --[[ Show VLAN --]], false)
 
    if no_html then
-      flow_cli_ip["label"] = flow_cli_ip["label_full"]
-   else 
+      flow_cli_ip["label"] = cli_label_long
+   else
       -- Shortened label if necessary for UI purposes
-      flow_cli_ip["label"] = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), true --[[ Show VLAN --]], true)
+      local cli_label_short = shortenString(cli_label_long)
+      flow_cli_ip["label"] = cli_label_short
+      flow_cli_ip["label_long"] = cli_label_long
    end
 
    -- Format Server
- 
-   reference_html = "" 
+
+   reference_html = ""
    if not no_html then
       reference_html = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
       if reference_html == href_icon then
@@ -461,15 +463,18 @@ function flow_alert_store:format_record(value, no_html)
       reference = reference_html
    }
 
-   -- Full, unshortened label
-   flow_srv_ip["label_full"] = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), true --[[ Show VLAN --]], false)
+   -- Long, unshortened label
+   local srv_label_long = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), true --[[ Show VLAN --]], false)
 
    if no_html then
-      flow_srv_ip["label"] = flow_srv_ip["label_full"]
+      flow_srv_ip["label"] = srv_label_long
    else
-      flow_srv_ip["label"] = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), true --[[ Show VLAN --]], true)
+      -- Shortened label if necessary for UI purposes
+      local srv_label_short = shortenString(srv_label_long)
+      flow_srv_ip["label"] = srv_label_short
+      flow_srv_ip["label_long"] = srv_label_long
    end
-   
+
    local flow_cli_port = value["cli_port"]
    local flow_srv_port = value["srv_port"]
 

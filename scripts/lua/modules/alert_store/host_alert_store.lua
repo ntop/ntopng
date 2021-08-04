@@ -205,13 +205,15 @@ function host_alert_store:format_record(value, no_html)
       reference = reference_html 
    }
 
-   -- Full, unshortened label
-   record[RNAME.IP.name]["label_full"] = hostinfo2label(self:_alert2hostinfo(value), true --[[ Show VLAN --]], false)
+   -- Long, unshortened label
+   local host_label_long = hostinfo2label(self:_alert2hostinfo(value), true --[[ Show VLAN --]], false)
 
    if no_html then
-      record[RNAME.IP.name]["label"] = record[RNAME.IP.name]["label_full"]
+      record[RNAME.IP.name]["label"] = host_label_long
    else
-      record[RNAME.IP.name]["label"] = hostinfo2label(self:_alert2hostinfo(value), true --[[ Show VLAN --]], true)
+      local host_label_short = shortenString(host_label_long)
+      record[RNAME.IP.name]["label"] = host_label_short
+      record[RNAME.IP.name]["label_long"] = host_label_long
    end
 
    record[RNAME.IS_VICTIM.name] = ""
