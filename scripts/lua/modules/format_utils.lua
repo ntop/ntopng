@@ -392,5 +392,9 @@ function format_utils.formatMainAddressCategory(host)
 
    return addr_category
 end
+
+function format_utils.formatHostNameAndAddress(host_name, address)
+   return host_name .. " (" .. address .. ")"
+end
    
 return format_utils
