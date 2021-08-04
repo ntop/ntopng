@@ -459,7 +459,7 @@ class Flow : public GenericHashEntry {
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
 		    u_int in_fragments, u_int out_fragments,
 		    time_t first_seen, time_t last_seen);
-  bool check_swap(u_int32_t tcp_flags);
+  void check_swap();
 
   inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
   inline bool isDetectionCompleted()     const { return(detection_completed);             };

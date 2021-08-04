@@ -1500,6 +1500,17 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     case IPPROTO_TCP:
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
 
+      /*
+	This is the heuristic "For TCP flows for which the 3WH has not been observed..."
+	at https://github.com/ntop/ntopng/issues/5058
+
+	So, only for the first packet check if this flow is a swap candidate.
+	The only condition that should NOT be checked for swap is when there's a SYN and not an ACK, i.e.,
+	when we see the first packet of the TWH that allows to reliably determine the direction.
+       */
+      if(new_flow && (!(tcp_flags & TH_SYN) || (tcp_flags & TH_ACK)))
+	flow->check_swap();
+
       if((tcp_flags & (TH_RST | TH_FIN)) == 0) {
 	/*
 	  Ignore Zero-window on flow termination as this case
@@ -1523,6 +1534,12 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	flow->setICMPPayloadSize(trusted_l4_packet_len);
 	trusted_payload_len = trusted_l4_packet_len, payload = l4;
       }
+      break;
+    default:
+      /*
+	NOTE: for non TCP-flows, the swap heuristic is always checked on the first packet
+      */
+      if(new_flow) flow->check_swap();
       break;
     }
 

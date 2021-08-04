@@ -674,11 +674,6 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
   bool detected;
   ndpi_protocol proto_id;
 
-  /*
-    Check is flow peers need to be swapped.
-   */
-  check_swap(getTcpFlags());
-
   /* Note: do not call endProtocolDissection before ndpi_detection_process_packet. In case of
    * early giveup (e.g. sampled traffic), nDPI should process at least one packet in order to
    * be able to guess the protocol. */
@@ -5677,34 +5672,10 @@ void Flow::lua_entropy(lua_State* vm) {
 
 /* *************************************** */
 
-bool Flow::check_swap(u_int32_t tcp_flags) {
-  /*
-    Non-packet interfaces, i.e., ZMQ, have the swap checked earlier. This is possible as there is
-    information on both flow directions for those interfaces.
-   */
-  if(!getInterface()->isPacketInterface())
-    return false;
-
-  /*
-    Already checked and already requested. No need to re-check.
-   */
-  if(is_swap_requested())
-    return true;
-
-  /*
-    This is the heuristic "For TCP flows for which the 3WH has not been observed..."
-    at https://github.com/ntop/ntopng/issues/5058
-    NOTE: for non TCP-flows, the heuristic is always applied
-  */
-  if(get_cli_ip_addr()->isNonEmptyUnicastAddress() /* Don't touch non-unicast addresses */
-     && (!isTCP()
-	 || !(tcp_flags & TH_SYN) /* No SYN seen, can guess */
-	 || ((tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)) /* SYN+ACK seen but still the initial SYN can be missing */
-	 )
+void Flow::check_swap() {
+  if(!(get_cli_ip_addr()->isNonEmptyUnicastAddress() && !get_srv_ip_addr()->isNonEmptyUnicastAddress()) /* Everything that is NOT unicast-to-non-unicast needs to be checked */
      && get_cli_port() < 1024 && get_cli_port() < get_srv_port())
     swap_requested = true;
-
-  return swap_requested;
 }
 
 /* *************************************** */
