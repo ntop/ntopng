@@ -1725,7 +1725,8 @@ function getDeviceName(device_mac, skip_manufacturer)
 
       if (info ~= nil) then
          for x, host in pairs(info.hosts) do
-            if not isEmptyString(host.name) and host.name ~= host.ip and host.name ~= "NoIP" then
+	    -- Make sure the IP is in the broadcast domain to avoid setting up names to MACs such as the gateway
+            if host.broadcast_domain_host and not isEmptyString(host.name) and host.name ~= host.ip and host.name ~= "NoIP" then
                name = host.name
             elseif host.ip ~= "0.0.0.0" then
                name = ip2label(host.ip)
@@ -1747,6 +1748,10 @@ function getDeviceName(device_mac, skip_manufacturer)
          -- last resort
          name = device_mac
       end
+   end
+
+   if isEmptyString(name) or name == device_mac then
+      return ''
    end
 
    return name
