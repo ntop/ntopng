@@ -178,6 +178,11 @@ function loadGraph(container) {
     });
 }
 
+function saveScale() {
+    const scale = {width: $(`.resizable-y-container`).width(), height: $(`.resizable-y-container`).height()};
+    NtopUtils.saveElementScale($(this), scale);
+}
+
 function stabilizeNetwork(network) {
     
     if (network === undefined) {
@@ -200,6 +205,12 @@ function stabilizeNetwork(network) {
 (() => {
     // load old scale for resizable containers
     const oldScale = NtopUtils.loadElementScale($(`.resizable-y-container`))
+
+    if(oldScale === undefined) {
+        saveScale();
+        return;
+    }
+
     $(`.resizable-y-container`).width(oldScale.width);
     $(`.resizable-y-container`).height(oldScale.height);
 })();
@@ -207,8 +218,7 @@ function stabilizeNetwork(network) {
 $(function() {
 
     $(`.resizable-y-container`).on('mouseup', function() {
-        const scale = {width: $(this).width(), height: $(this).height()};
-        NtopUtils.saveElementScale($(this), scale);
+        saveScale();
     });
 
     $(`button[data-toggle="tooltip"]`).tooltip();
