@@ -791,7 +791,7 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   num_resolve_attempts++;
 
   getResolvedName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   /* Most relevant names goes first */
@@ -806,27 +806,27 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   }
 
   getMDNSTXTName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   getMDNSName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   getMDNSInfo(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   getNetbiosName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   getTLSName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   getHTTPName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   if(!skip_resolution) {
