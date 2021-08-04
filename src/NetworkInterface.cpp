@@ -644,6 +644,7 @@ NetworkInterface::~NetworkInterface() {
   addRedisSitesKey();
   if(top_sites)       delete top_sites;
   if(top_os)          delete top_os;
+  if(old_os)          free(old_os);
   if(old_sites)       free(old_sites);
 
   if(prev_flow_checks_executor) delete prev_flow_checks_executor;
