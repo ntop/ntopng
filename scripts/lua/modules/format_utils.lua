@@ -393,8 +393,16 @@ function format_utils.formatMainAddressCategory(host)
    return addr_category
 end
 
-function format_utils.formatHostNameAndAddress(host_name, address)
-   return host_name .. " (" .. address .. ")"
+function format_utils.formatHostNameAndAddress(hostname, address)
+   local res = ""
+
+   if address ~= hostname then
+      res = string.format("%s [%s]", address, hostname)
+   else
+      res = hostname
+   end
+
+   return res
 end
    
 return format_utils
