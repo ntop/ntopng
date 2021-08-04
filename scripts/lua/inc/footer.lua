@@ -599,7 +599,6 @@ end
 		  });
 
 		  $(document).on('click','a.ntopng-external-link',function(event){
-		  	console.log('ciao');
 		  	event.preventDefault();
 		  });
 
