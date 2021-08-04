@@ -8951,10 +8951,22 @@ void NetworkInterface::serializeDeserialize(struct tm *t_now, bool do_serialize)
     ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key, 3600);
     ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
     ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED, redis_daily_key, 3600);
+    if(top_sites->getSize()) {
+      char *sites_json = top_sites->json(2*HOST_SITES_TOP_NUMBER);
+      ntop->getRedis()->set(redis_key_current_sites , sites_json, 3600);
+
+      if(sites_json)
+        free(sites_json);
+    }
     if(top_sites->getSize())
-      ntop->getRedis()->set(redis_key_current_sites , top_sites->json(2*HOST_SITES_TOP_NUMBER), 3600);
-    if(top_os->getSize())
-      ntop->getRedis()->set(redis_key_current_os , top_os->json(2*HOST_SITES_TOP_NUMBER), 3600);
+      
+    if(top_os->getSize()) {
+      char *os_json = top_os->json(2*HOST_SITES_TOP_NUMBER);
+      ntop->getRedis()->set(redis_key_current_sites , os_json, 3600);
+
+      if(os_json)
+        free(os_json);
+    }
   }
   else {
     ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key);
