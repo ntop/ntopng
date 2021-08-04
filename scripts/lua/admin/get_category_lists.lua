@@ -150,7 +150,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
     res[#res + 1] = {
       column_name = list.name,
-      column_label = list.name .. ' <a title="'.. list.url ..'" target="_blank"><i  class="fas fa-external-link-alt"></i></a>',
+      column_label = list.name .. ' <a class="ntopng-external-link" href="'.. list.url ..'" target="_blank"><i  class="fas fa-external-link-alt"></i></a>',
       column_status = list.status_label,
       column_url = list.url,
       column_enabled = list.enabled,

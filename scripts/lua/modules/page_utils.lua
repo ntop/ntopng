@@ -437,6 +437,11 @@ local function print_submenu(section, container_list_name)
 	       active = true
 	    end
 
+      if section_entry.url:starts("http") then
+         -- Absolute (external) url
+      
+         external_link = true
+      end
             print[[
          <li class=']]
 	    if active then
@@ -451,34 +456,32 @@ local function print_submenu(section, container_list_name)
 	    if active then
                print[[active ]]
             end
+      if external_link == true then 
+         print[[ntopng-external-link ]]
+      end
 	    print[["]]
 
             if section_has_submenu then
                print[[ data-bs-toggle="collapse" ]]
             end
-            
+       print[[href="]]
 	    if section_has_submenu then
 	       local submenu_section_key = section_entry.section.key
 	       local submenu_section_id = submenu_section_key.."-submenu"
                print("#"..submenu_section_id)
 	    else 
-               if section_entry.url:starts("http") then
-                  -- Absolute (external) url
-                  print[[title="]]
-                  print(section_entry.url)
-                  external_link = true
-               else
-                  -- Url relative to ntopng
-                  print[[ href="]]
-                  print(ntop.getHttpPrefix()..section_entry.url)
-               end
+         if external_link then 
+            print(section_entry.url)
+         else
+            print(ntop.getHttpPrefix()..section_entry.url)
+         end
 	    end
             print[["]]
 
             if section_entry.entry.is_modal then
                print(' data-bs-toggle="modal"')
             end
-
+            
             if external_link then
                -- Open in a new page
                print(' target="_blank"')

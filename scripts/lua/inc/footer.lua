@@ -590,13 +590,20 @@ end
    print[[
 	<script type="text/javascript">
 		$(document).ready(function(){
-		  $(document).on('click','a > i.fa-external-link-alt',function(){
-		      let url=$(this).parent()[0].title;
-		      console.log(url)
+		  $(document).on('click','a > i.fa-external-link-alt',function(event){
+		  		event.preventDefault()
+		      let url=$(this).parent()[0].href;
 		      document.getElementById("url_ext_link_dialog").innerHTML = url+"<br/>]]print(i18n("are_you_sure"))print[[";
 		      $("#btn-confirm-action_ext_link_dialog").attr('href',url);
 		      $('#ext_link_dialog').modal('show');
 		  });
+
+		  $(document).on('click','a.ntopng-external-link',function(event){
+		  	console.log('ciao');
+		  	event.preventDefault();
+		  });
+
+
 		});
 	</script>
    ]]

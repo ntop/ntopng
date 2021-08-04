@@ -47,17 +47,17 @@ if (ndpi_ver ~= nil) then
       local vers = string.split(v_all, ":")
       ndpi_hash = vers[1]
       ndpi_date = vers[2]
-      print("<tr><th><A title=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI <i class='fas fa-external-link-alt'></i></a></th><td colspan=2> <A HREF=\"https://github.com/ntop/nDPI/commit/\"".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
+      print("<tr><th><A class='ntopng-external-link' href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI <i class='fas fa-external-link-alt'></i></a></th><td colspan=2> <A HREF=\"https://github.com/ntop/nDPI/commit/\"".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
    else
-      print("<tr><th><A title=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI </A></th><td colspan=2> <A title=\"https://github.com/ntop/nDPI/\">"..ndpi_ver.." <i class='fas fa-external-link-alt'></i></A></td></tr>\n")
+      print("<tr><th><A class='ntopng-external-link' href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI <i class='fas fa-external-link-alt'></i></A></th><td colspan=2> <A class='ntopng-external-link' href=\"https://github.com/ntop/nDPI/\">"..ndpi_ver.." <i class='fas fa-external-link-alt'></i></A></td></tr>\n")
    end
 end
 
-print("<tr><th><a title=\"https://curl.haxx.se\" target=\"_blank\">cURL <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>"..info["version.curl"].."</td></tr>\n")
+print("<tr><th><a class='ntopng-external-link' href=\"https://curl.haxx.se\" target=\"_blank\">cURL <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>"..info["version.curl"].."</td></tr>\n")
 
-print("<tr><th><a title=\"https://twitter.github.io/\" target=\"_blank\"><i class=\'fab fa-twitter fa-lg'></i> Twitter Bootstrap <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>5.0</td></tr>\n")
-print("<tr><th><a title=\"https://github.com/FortAwesome/Font-Awesome\" target=\"_blank\"><i class=\'fab fa-font-awesome fa-lg'></i> Font Awesome <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>5.11.2</td></tr>\n")
-print("<tr><th><a title=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>"..info["version.rrd"].."</td></tr>\n")
+print("<tr><th><a class='ntopng-external-link' href=\"https://twitter.github.io/\" target=\"_blank\"><i class=\'fab fa-twitter fa-lg'></i> Twitter Bootstrap <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>5.0</td></tr>\n")
+print("<tr><th><a class='ntopng-external-link' href=\"https://github.com/FortAwesome/Font-Awesome\" target=\"_blank\"><i class=\'fab fa-font-awesome fa-lg'></i> Font Awesome <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>5.11.2</td></tr>\n")
+print("<tr><th><a class='ntopng-external-link' href=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>"..info["version.rrd"].."</td></tr>\n")
 
 if(info["version.nindex"] ~= nil) then
    print("<tr><th>ntop nIndex</th><td colspan=2>"..info["version.nindex"].."</td></tr>\n")
@@ -87,21 +87,21 @@ $(function() {
    end
 end
 
-print("<tr><th><a title=\"http://www.redis.io\" target=\"_blank\">Redis Server <i class='fas fa-external-link-alt'></i> </A></th><td colspan=2>"..info["version.redis"].."</td></tr>\n")
-print("<tr><th><a title=\"https://github.com/valenok/mongoose\" target=\"_blank\">Mongoose web server <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>"..info["version.httpd"].."</td></tr>\n")
-print("<tr><th><a title=\"http://www.lua.org\" target=\"_blank\">Lua <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>"..info["version.lua"].."</td></tr>\n")
+print("<tr><th><a class='ntopng-external-link' href=\"http://www.redis.io\" target=\"_blank\">Redis Server <i class='fas fa-external-link-alt'></i> </A></th><td colspan=2>"..info["version.redis"].."</td></tr>\n")
+print("<tr><th><a class='ntopng-external-link' href=\"https://github.com/valenok/mongoose\" target=\"_blank\">Mongoose web server <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>"..info["version.httpd"].."</td></tr>\n")
+print("<tr><th><a class='ntopng-external-link' href=\"http://www.lua.org\" target=\"_blank\">Lua <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>"..info["version.lua"].."</td></tr>\n")
 if info["version.zmq"] ~= nil then
-   print("<tr><th><a title=\"http://www.zeromq.org\" target=\"_blank\">ØMQ <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>"..info["version.zmq"].."</td></tr>\n")
+   print("<tr><th><a class='ntopng-external-link' href=\"http://www.zeromq.org\" target=\"_blank\">ØMQ <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>"..info["version.zmq"].."</td></tr>\n")
 end
 if(info["version.geoip"] ~= nil) then
-print("<tr><th><a title=\"http://www.maxmind.com\" target=\"_blank\">GeoLite <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>"..info["version.geoip"])
+print("<tr><th><a class='ntopng-external-link' href=\"http://www.maxmind.com\" target=\"_blank\">GeoLite <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>"..info["version.geoip"])
 
 print [[ <br><small>]] print(i18n("about.maxmind", {maxmind_url="http://www.maxmind.com/"})) print[[</small>
 ]]
 
 print("</td></tr>\n")
 end
-print("<tr><th><a title=\"http://d3js.org\" target=\"_blank\">Data-Driven Documents (d3js) <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>2.9.1 / 3.0</td></tr>\n")
+print("<tr><th><a class='ntopng-external-link' href=\"http://d3js.org\" target=\"_blank\">Data-Driven Documents (d3js) <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>2.9.1 / 3.0</td></tr>\n")
 
 
 

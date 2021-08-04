@@ -50,7 +50,7 @@ function alert_suspicious_file_transfer.format(ifid, alert, alert_type_params)
 
    if alert_type_params and alert_type_params["protos.http.last_url"] then
       local url = alert_type_params["protos.http.last_url"]
-      local href = '<a title= http://' .. url .. ' ><i  class="fas fa-external-link-alt fa-lg"></i></a>'
+      local href = '<a class="ntopng-external-link" href= http://' .. url .. ' ><i  class="fas fa-external-link-alt fa-lg"></i></a>'
       local type_icon = ''
       local info = ''
 

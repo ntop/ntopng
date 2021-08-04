@@ -450,7 +450,7 @@ local function ja3url(what, safety)
    if(what == nil) then
       print("&nbsp;")
    else
-      ret = '<A title="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..' <i class="fas fa-external-link-alt"></i></A>'
+      ret = '<A class="ntopng-external-link" href="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..' <i class="fas fa-external-link-alt"></i></A>'
       if((safety ~= nil) and (safety ~= "safe")) then
 	 ret = ret .. ' [ <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]'
       end
@@ -902,7 +902,7 @@ else
    end
 
    if(flow.iec104 and (table.len(flow.iec104.typeid) > 0)) then 
-      print("<tr><th rowspan=5 width=30%><A title='https://en.wikipedia.org/wiki/IEC_60870-5'>IEC 60870-5-104  <i class='fas fa-external-link-alt'></i></A></th><th>"..i18n("flow_details.iec104_mask").."</th><td>")
+      print("<tr><th rowspan=5 width=30%><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/IEC_60870-5'>IEC 60870-5-104  <i class='fas fa-external-link-alt'></i></A></th><th>"..i18n("flow_details.iec104_mask").."</th><td>")
       
       total = 0
       for k,v in pairsByKeys(flow.iec104.typeid, rev) do
@@ -1017,7 +1017,7 @@ else
 
 	 if(not(c.is_private and s.is_private)) then
 -- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125
-	 print("<tr><th width=30%><A title=\"https://en.wikipedia.org/wiki/Velocity_factor\">"..i18n("flow_details.rtt_distance").." <i class=\"fas fa-external-link-alt\"></i></A></th><td>")
+	 print("<tr><th width=30%><A class='ntopng-external-link' href=\"https://en.wikipedia.org/wiki/Velocity_factor\">"..i18n("flow_details.rtt_distance").." <i class=\"fas fa-external-link-alt\"></i></A></th><td>")
 	 local c_vacuum_km_s = 299792
 	 local c_vacuum_mi_s = 186000
 	 local fiber_vf      = .67
@@ -1089,7 +1089,7 @@ else
    if(flow["protos.tls.client_requested_server_name"] ~= nil) then
       print("<tr><th width=30%><i class='fas fa-lock'></i> "..i18n("flow_details.tls_certificate").."</th><td>")
       print(i18n("flow_details.client_requested")..":<br>")
-      print("<A title=\"http://"..page_utils.safe_html(flow["protos.tls.client_requested_server_name"]).."\">"..page_utils.safe_html(flow["protos.tls.client_requested_server_name"]).." <i class=\"fas fa-external-link-alt\"></i></A>")
+      print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(flow["protos.tls.client_requested_server_name"]).."\">"..page_utils.safe_html(flow["protos.tls.client_requested_server_name"]).." <i class=\"fas fa-external-link-alt\"></i></A>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.tls.client_requested_server_name"], flow["category"])) end
       historicalProtoHostHref(ifid, nil, nil, nil, page_utils.safe_html(flow["protos.tls.client_requested_server_name"] or ''))
       printAddCustomHostRule(flow["protos.tls.client_requested_server_name"])
@@ -1108,7 +1108,7 @@ else
 	    if starts(server, '*') then
 	       print(server)
 	    else
-	       print("<A title=\"http://"..server.."\">"..server.."<i class=\"fas fa-external-link-alt\"></i></A> ")
+	       print("<A class='ntopng-external-link' href=\"http://"..server.."\">"..server.."<i class=\"fas fa-external-link-alt\"></i></A> ")
 	    end
 	 end
       end
@@ -1165,7 +1165,7 @@ else
 
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
      print("<tr><th width=30%>"..
-     '<a  data-bs-toggle="tooltip" title="https://en.wikipedia.org/wiki/TCP_tuning">'..
+     '<a class="ntopng-external-link"  data-bs-toggle="tooltip" href="https://en.wikipedia.org/wiki/TCP_tuning">'..
      i18n("flow_details.max_estimated_tcp_throughput").." <i class=\"fas fa-external-link-alt\"></i></a><td nowrap> "..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server")..": ")
      print(bitsToSize(flow["tcp.max_thpt.cli2srv"]))
      print("</td><td> "..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server")..": ")
@@ -1385,14 +1385,14 @@ else
    -- ######################################
 
    if(flow.entropy and flow.entropy.client and flow.entropy.server) then
-      print("<tr><th width=30%><A title=\"https://en.wikipedia.org/wiki/Entropy_(information_theory)\">"..i18n("flow_details.entropy").." <i class=\"fas fa-external-link-alt\"></i></A></th>")
+      print("<tr><th width=30%><A class='ntopng-external-link' href=\"https://en.wikipedia.org/wiki/Entropy_(information_theory)\">"..i18n("flow_details.entropy").." <i class=\"fas fa-external-link-alt\"></i></A></th>")
       print("<td>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-right\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.client) .. "</td>")
       print("<td>"..i18n("client").." <i class=\"fas fa-long-arrow-alt-left\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.server) .. "</td>")
       print("</tr>\n")
    end
 
    if((flow.community_id ~= nil) and (flow.community_id ~= "")) then
-      print("<tr><th width=30%><A title=\"https://github.com/corelight/community-id-spec\">CommunityId <i class=\"fas fa-external-link-alt\"></i></A></th><td colspan=2>".. flow.community_id .."</td></tr>\n")
+      print("<tr><th width=30%><A class='ntopng-external-link' href=\"https://github.com/corelight/community-id-spec\">CommunityId <i class=\"fas fa-external-link-alt\"></i></A></th><td colspan=2>".. flow.community_id .."</td></tr>\n")
    end
 
    if((flow.client_process == nil) and (flow.server_process == nil)) then
@@ -1447,7 +1447,7 @@ else
       if(string.ends(flow["protos.dns.last_query"], "arpa")) then
 	 print(shortHostName(flow["protos.dns.last_query"]))
       else
-	 print("<A title=\"http://"..page_utils.safe_html(flow["protos.dns.last_query"]).."\">"..page_utils.safe_html(shortHostName(flow["protos.dns.last_query"])).." <i class='fas fa-external-link-alt'></i></A>")
+	 print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(flow["protos.dns.last_query"]).."\">"..page_utils.safe_html(shortHostName(flow["protos.dns.last_query"])).." <i class='fas fa-external-link-alt'></i></A>")
       end
 
       if(flow["category"] ~= nil) then
@@ -1491,13 +1491,13 @@ else
       if(not isEmptyString(flow["host_server_name"])) then
 	 s = flow["host_server_name"]
       end
-      print("<A title=\"http://"..page_utils.safe_html(s).."\">"..page_utils.safe_html(s).." <i class=\"fas fa-external-link-alt\"></i></A>")
+      print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(s).."\">"..page_utils.safe_html(s).." <i class=\"fas fa-external-link-alt\"></i></A>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
       printAddCustomHostRule(s)
       print("</td></tr>\n")
 
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
-      print("<A title=\"http://")
+      print("<A class='ntopng-external-link' href=\"http://")
       -- if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
 
       local last_url = page_utils.safe_html(flow["protos.http.last_url"])
@@ -1510,7 +1510,7 @@ else
       end
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
-	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A title=\"http://"..page_utils.safe_html(flow["host_server_name"]).."\">"..page_utils.safe_html(flow["host_server_name"]).." <i class=\"fas fa-external-link-alt\"></i></A>")
+	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(flow["host_server_name"]).."\">"..page_utils.safe_html(flow["host_server_name"]).." <i class=\"fas fa-external-link-alt\"></i></A>")
 	 if not isEmptyString(flow["protos.http.server_name"]) then
 	    printAddCustomHostRule(flow["protos.http.server_name"])
 	 end

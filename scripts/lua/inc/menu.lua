@@ -1072,7 +1072,7 @@ if (_POST["ntopng_license"] == nil) and (info["pro.systemid"] and (info["pro.sys
 
    else
       if(not(ntop.getInfo()["pro.forced_community"])) then
-         print('<li class="nav-item nav-link"><a title="https://shop.ntop.org" class="badge bg-warning text-decoration-none">')
+         print('<li class="nav-item nav-link"><a class="ntopng-external-link" href="https://shop.ntop.org" class="badge bg-warning text-decoration-none">')
          print(i18n("about.upgrade_to_professional")..' <i class="fas fa-external-link-alt"></i>')
          print('</a></li>')
       end
