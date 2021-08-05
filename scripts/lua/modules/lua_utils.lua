@@ -4302,14 +4302,11 @@ end
 
 -- ###########################################
 
-local cache = {}
-
 function buildHostHREF(ip_address, vlan_id, page)
-   local stats = cache[ip_address]
+   local stats
 
    if(stats == nil) then
       stats = interface.getHostInfo(ip_address, vlan_id)
-      cache[ip_address] = { stats = stats }
    else
       stats = stats.stats
    end
@@ -4330,66 +4327,45 @@ function buildHostHREF(ip_address, vlan_id, page)
    end
 end
 
-function builMapHREF(host_address, vlan_id, map, default_page)
+function builMapHREF(service_peer, vlan_id, map, default_page)
    -- Getting minimal stats to know if the host is still present in memory
-   local stats = cache[host_address]
    local name 
-   local res = '<a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/'..map..'_map.lua?host='..host_address
-
+   local map_url = ntop.getHttpPrefix()..'/lua/pro/enterprise/'..map..'_map.lua?'..hostinfo2url(service_peer)
    local host
+   local host_url = ''
+   local host_icon
 
    -- Getting stats and formatting initial href
-   if(stats == nil) then
-      if not isMacAddress(host_address) then
-         stats = interface.getHostMinInfo(host_address, vlan_id)
-         host = '<a href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..host_address
-      else
-         stats = interface.getMacInfo(host_address)
+   if service_peer.ip or not service_peer.is_mac then
+      -- Host URL only if the host is active
+      host_url = hostinfo2detailsurl({host = service_peer.ip or service_peer.host, vlan = service_peer.vlan}, nil, true --[[ check of the host is active --]])
+
+      local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, service_peer.vlan)
+      name = hostinfo2label(hinfo or service_peer)
+      host_icon = "fa-laptop"
+   else
+      local minfo = interface.getMacHosts(service_peer.host)
+
+      -- The URL only if the MAC is active
+      if minfo and table.len(minfo) > 0 then
+	 host_url = ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(service_peer)
       end
 
-      cache[host_address] = { stats = stats }
-   else
-      stats = stats.stats
+      name = mac2label(service_peer.host)
+      host_icon = "fa-microchip"
    end
-
-   if not isMacAddress(host_address) then
-      host = '<a href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..host_address
-   else 
-      host = '<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?host='..host_address
-   end
-
-   -- Adding vlan if present
-   if(vlan_id and (vlan_id ~= 0)) then 
-      res = res .. "@"..vlan_id 
-      host = host .. "@" .. vlan_id
-   end
-   host = host .. '">'
 
    -- Getting the name if present
-   if not isMacAddress(host_address) then
-      local hinfo = hostkey2hostinfo(host_address)
-      name = hostinfo2label(hinfo)
+   name = name or service_peer.host
+
+   local res
+   if not isEmptyString(host_url) then
+      res = string.format('<a href="%s">%s</a> <a href="%s"><i class="fas %s"></i></a>', map_url, name, host_url, host_icon)
    else
-      name = mac2label(host_address)
+      res = string.format('<a href="%s">%s</a>', map_url, name)
    end
 
-   if((name == nil) or (name == "")) then name = host_address end
-
-   res = res  ..'&page='..default_page..'">'..name..'</a>'
-   -- Adding the right symbol
-   if stats then
-      if not isMacAddress(host_address) then
-         host = host .. '<i class="fas fa-laptop"></i>'
-      else
-         host = host .. '<i class="fas fa-microchip"></i>'
-      end
-   end
-   host = host .. '</a>'
-
-   -- Concat the two href, the first one for the map, the second one for the stats
-   res = res .. ' ' .. host
-
-   return(res)
+   return res
 end
 
 -- #####################
