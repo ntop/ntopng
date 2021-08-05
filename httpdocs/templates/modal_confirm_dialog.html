@@ -19,9 +19,9 @@
           {*dialog.err_msg*}
         </span>
         {% if dialog.action ~= nil then %}
-          <a  type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</a>
+	  <button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</button>
         {% else %}
-          <a   target="_blank" {% if not dialog.no_confirm_id then %} id="btn-confirm-action_{{dialog.id}}"  {% end %} type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</a>
+	  <button {% if not dialog.no_confirm_id then %} id="btn-confirm-action" {% end %} type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</button>
         {% end %}
       </div>
       {% end %}
