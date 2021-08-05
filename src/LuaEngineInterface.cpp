@@ -4159,11 +4159,12 @@ static int ntop_get_interface_get_host_min_info(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
-  if(!ntop_interface)
+  if(!ntop_interface) {
+    lua_pushnil(vm);
     return(CONST_LUA_ERROR);
-  else {
+  } else {
     if(!ntop_interface->getHostMinInfo(vm, get_allowed_nets(vm), host_ip, vlan_id, false))
-      ntop_get_address_info(vm);
+      lua_pushnil(vm);
 
     return(CONST_LUA_OK);
   }

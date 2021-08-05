@@ -4351,6 +4351,7 @@ function builMapHREF(service_peer, vlan_id, map, default_page)
       if hinfo then
 	 dev_type = hinfo["devtype"]
       end
+
       name = hostinfo2label(hinfo or service_peer)
       host_icon = "fa-laptop"
    else
