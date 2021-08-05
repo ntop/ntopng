@@ -142,6 +142,7 @@
 #define CONST_NTOP_INTERFACE      "ntop_interface"
 
 #define PCAP_MAGIC                0xa1b2c3d4
+#define PCAP_NSEC_MAGIC           0xa1b23c4d
 #define NO_UID                    ((u_int32_t)-1)
 #define NO_PID                    ((u_int32_t)-1)
 #define NO_NDPI_PROTOCOL          ((u_int)-1)
