@@ -1588,7 +1588,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     break;
   }
 
-  if(srv_host && isTLS())
+  if(srv_host && isTLS() && !hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH))
     srv_host->offlineSetTLSName(protos.tls.client_requested_server_name);
 }
 
