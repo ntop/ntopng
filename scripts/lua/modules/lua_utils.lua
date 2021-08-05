@@ -4334,6 +4334,7 @@ function builMapHREF(service_peer, vlan_id, map, default_page)
    local host
    local host_url = ''
    local host_icon
+   local dev_type
 
    -- Getting stats and formatting initial href
    if service_peer.ip or not service_peer.is_mac then
@@ -4341,28 +4342,43 @@ function builMapHREF(service_peer, vlan_id, map, default_page)
       host_url = hostinfo2detailsurl({host = service_peer.ip or service_peer.host, vlan = service_peer.vlan}, nil, true --[[ check of the host is active --]])
 
       local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, service_peer.vlan)
+      if hinfo then
+	 dev_type = hinfo["devtype"]
+      end
       name = hostinfo2label(hinfo or service_peer)
       host_icon = "fa-laptop"
    else
-      local minfo = interface.getMacHosts(service_peer.host)
+      local minfo = interface.getMacInfo(service_peer.host)
 
       -- The URL only if the MAC is active
       if minfo and table.len(minfo) > 0 then
 	 host_url = ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(service_peer)
+	 dev_type = minfo["devtype"]
       end
 
       name = mac2label(service_peer.host)
+      if isMacAddress(name) then
+	 name = get_symbolic_mac(name, true)
+      end
       host_icon = "fa-microchip"
    end
 
    -- Getting the name if present
    name = name or service_peer.host
 
+   -- Add the device type, if detected
+   if not isEmptyString(dev_type) then
+      local discover = require "discover_utils"
+      dev_type = discover.devtype2icon(dev_type)
+   else
+      dev_type = ''
+   end
+
    local res
    if not isEmptyString(host_url) then
-      res = string.format('<a href="%s">%s</a> <a href="%s"><i class="fas %s"></i></a>', map_url, name, host_url, host_icon)
+      res = string.format('<a href="%s">%s</a> %s <a href="%s"><i class="fas %s"></i></a>', map_url, name, dev_type, host_url, host_icon)
    else
-      res = string.format('<a href="%s">%s</a>', map_url, name)
+      res = string.format('<a href="%s">%s</a> %s', map_url, name, dev_type)
    end
 
    return res
