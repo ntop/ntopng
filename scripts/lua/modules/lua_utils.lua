@@ -1640,9 +1640,11 @@ local function hostinfo2label_resolved(host_info, show_vlan, shorten_len)
 
    if isEmptyString(res) then
       -- Try and get the resolved name
-      res = string.lower(ntop.getResolvedName(ip))
+      res = ntop.getResolvedName(ip)
 
-      if isEmptyString(res) then
+      if not isEmptyString(res) then
+         res = string.lower(res)
+      else
 	 -- Nothing found, just fallback to the IP address
 	 res = ip
       end
