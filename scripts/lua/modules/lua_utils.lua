@@ -1881,8 +1881,9 @@ end
 -- @param href_check Performs existance checks on the link to avoid generating links to inactive hosts or hosts without timeseries
 -- @param href_only_with_ts True means that a HREF is geneated only of there are timeseries for this host
 -- @return A string containing the a href link or a plain string without a href
-function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, href_check, href_only_with_ts)
+function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, href_check, href_only_with_ts, show_value_with_no_ref)
    local show_href = false
+   local res = ""
 
    if(href_only_with_ts == true) then
       local detailLevel = ntop.getCache("ntopng.prefs.hosts_ts_creation")
@@ -1900,12 +1901,13 @@ function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, 
 
    if(show_href) then
       local hostdetails_url = hostinfo2detailsurl(host_info, href_params, href_check)
-
-      if not isEmptyString(hostdetails_url) then
-	 res = string.format("<a href='%s' data-bs-toggle='tooltip' title='%s'>%s</a>",
-			     hostdetails_url, href_tooltip or '', href_value or '')
+      if not isEmptyString(hostdetails_url)then
+	      res = string.format("<a href='%s' data-bs-toggle='tooltip' title='%s'>%s</a>",
+			                     hostdetails_url, href_tooltip or '', href_value or '')
       else
-	 res = href_value or ''
+         if show_value_with_no_ref == nil or show_value_with_no_ref == true then
+	         res = href_value or ''
+         end
       end
 
       return res
