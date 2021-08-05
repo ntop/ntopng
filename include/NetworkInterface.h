@@ -624,6 +624,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline float getThroughputBps()            { return bytes_thpt.getThpt(); };
   inline float getThroughputPps()            { return pkts_thpt.getThpt();  };
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  inline bool getServiceMapLearningStatus()  { return(sMap ? sMap->getLearningStatus() : true); }
   inline ServiceMap* getServiceMap()         { return(sMap);           };
   inline bool isServiceMapEnabled()          { return(sMap ? true : false); };
   inline void flushServiceMap()              { if(sMap) sMap->flush(); };

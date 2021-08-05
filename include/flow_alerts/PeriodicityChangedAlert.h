@@ -27,7 +27,7 @@
 class PeriodicityChangedAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { flow_alert_periodicity_changed, alert_category_network }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_NOTICE; };
+  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_WARNING; };
 
   PeriodicityChangedAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) { };
   ~PeriodicityChangedAlert() { };
