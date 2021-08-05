@@ -1557,7 +1557,11 @@ function getHostAltName(host_info)
       alt_name = ntop.getCache(getHostAltNamesKey(host_key))
    end
 
-   return string.lower(alt_name)
+   if not isEmptyString(alt_name) then
+      alt_name = string.lower(alt_name)
+   end
+
+   return alt_name
 end
 
 function setHostAltName(host_info, alt_name)
