@@ -2730,9 +2730,11 @@ end
 
  -- ##############################################
 
-function formatBreed(breed)
+function formatBreed(breed, is_tls)
    if(breed == "Safe") then
-      return("<i class='fas fa-lock' alt='"..i18n("breed.safe").."'></i>")
+      local icon = 'lock'
+      if is_tls ~= nil and not is_tls then icon = 'thumbs-up' end
+      return("<i class='fas fa-"..icon.."' alt='"..i18n("breed.safe").."'></i>")
    elseif(breed == "Acceptable") then
       return("<i class='fas fa-thumbs-up' alt='"..i18n("breed.acceptable").."'></i>")
    elseif(breed == "Fun") then

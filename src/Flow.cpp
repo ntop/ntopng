@@ -4872,6 +4872,7 @@ void Flow::lua_get_protocols(lua_State* vm) const {
   }
 
   lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
+  lua_push_bool_table_entry(vm, "proto.is_tls", isTLS());
 
   lua_push_uint64_table_entry(vm, "proto.ndpi_cat_id", get_protocol_category());
   lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
@@ -5077,6 +5078,7 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
   lua_push_uint64_table_entry(vm, "proto.ndpi_cat_id", get_protocol_category());
   lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
+  lua_push_bool_table_entry(vm, "proto.is_tls", isTLS());
   lua_push_uint64_table_entry(vm, "cli2srv.bytes", get_bytes_cli2srv());
   lua_push_uint64_table_entry(vm, "srv2cli.bytes", get_bytes_srv2cli());
   lua_push_uint64_table_entry(vm, "cli2srv.packets", get_packets_cli2srv());
