@@ -4347,7 +4347,7 @@ function builMapHREF(service_peer, vlan_id, map, default_page)
    local dev_type
 
    -- Getting stats and formatting initial href
-   if service_peer.ip or not service_peer.is_mac then
+   if service_peer.ip and not service_peer.is_mac then
       -- Host URL only if the host is active
       host_url = hostinfo2detailsurl({host = service_peer.ip or service_peer.host, vlan = service_peer.vlan}, nil, true --[[ check of the host is active --]])
 
@@ -4367,10 +4367,17 @@ function builMapHREF(service_peer, vlan_id, map, default_page)
 	 dev_type = minfo["devtype"]
       end
 
-      name = mac2label(service_peer.host)
+      if service_peer.ip and service_peer.is_mac then
+         local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, service_peer.vlan)
+         name = hostinfo2label(hinfo or service_peer)
+      else   
+         name = mac2label(service_peer.host)
+      end
+
       if isMacAddress(name) then
 	 name = get_symbolic_mac(name, true)
       end
+      
       host_icon = "fa-microchip"
    end
 
