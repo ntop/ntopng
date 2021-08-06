@@ -8683,8 +8683,10 @@ void NetworkInterface::checkHostsToRestore() {
 
       /* The host is possibly a LBD host in DHCP range, so also bring up its MAC for the deserialization */
       if((!ntop->getRedis()->get(key, mac_buf, sizeof(mac_buf))) && (mac_buf[0] != '\0')) {
-	 Utils::parseMac(mac_bytes, mac_buf);
-	 mac = getMac(mac_bytes, true /* Create if not present */, true /* inline call */);
+    	  Utils::parseMac(mac_bytes, mac_buf);
+    	  mac = getMac(mac_bytes, true /* Create if not present */, true /* inline call */);
+       } else {
+        goto next_host;
        }
     }
 

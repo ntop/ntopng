@@ -155,7 +155,7 @@ local function printRestoreHostBanner(hidden)
    print[[<input type="hidden" name="mode" value="restore">
    <input type="hidden" name="host" value="]] print(host_info["host"]) print[[">]]
    if((host_info["vlan"] ~= nil) and ifstats.vlan) then
-      print[[<input type="hidden" name="vlan" value="]] print(host_info["vlan"]) print[[">]]
+      print[[<input type="hidden" name="vlan" value="]] print(tostring(host_info["vlan"])) print[[">]]
    end
    print[[</form>]]
    print[[ ]] print(i18n("host_details.restore_from_cache_message_v1",{host=hostinfo2hostkey(host_info), js_code="\"javascript:void(0);\" onclick=\"$(\'#host_restore_form\').submit();\""}))
