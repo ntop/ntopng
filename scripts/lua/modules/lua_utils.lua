@@ -1946,7 +1946,7 @@ function flowinfo2hostname(flow_info, host_type, alerts_view)
    if(flow_info == nil) then return("") end
    
    if(host_type == "srv") then
-      if flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "" and flow_info["host_server_name"]:match("%w") then
+      if flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "" and flow_info["host_server_name"]:match("%w") and not isIPv4(flow_info["host_server_name"]) and not isIPv6(flow_info["host_server_name"]) then
 	 -- remove possible ports from the name
 	 return(flow_info["host_server_name"]:gsub(":%d+$", ""))
       end

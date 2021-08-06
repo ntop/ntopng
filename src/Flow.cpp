@@ -1518,7 +1518,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     }
     /* Don't break, let's process also HTTP_PROXY */
   case NDPI_PROTOCOL_HTTP_PROXY:
-    if(srv_host) {
+    if(srv_host && !Utils::isIPAddress(host_server_name) && hasRisk(NDPI_HTTP_NUMERIC_IP_HOST)) {
       srv_host->offlineSetHTTPName(host_server_name);
 
       if(srv_host->getHTTPstats()
@@ -1588,7 +1588,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     break;
   }
 
-  if(srv_host && isTLS() && !hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH))
+  if(srv_host && isTLS() && !hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH) && !Utils::isIPAddress(protos.tls.client_requested_server_name))
     srv_host->offlineSetTLSName(protos.tls.client_requested_server_name);
 }
 
