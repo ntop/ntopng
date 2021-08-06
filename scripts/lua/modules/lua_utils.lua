@@ -2732,15 +2732,15 @@ end
 
 function formatBreed(breed)
    if(breed == "Safe") then
-      return("<i class='fas fa-lock' alt='Safe Protocol'></i>")
+      return("<i class='fas fa-lock' alt='"..i18n("breed.safe").."'></i>")
    elseif(breed == "Acceptable") then
-      return("<i class='fas fa-thumbs-up' alt='Acceptable Protocol'></i>")
+      return("<i class='fas fa-thumbs-up' alt='"..i18n("breed.acceptable").."'></i>")
    elseif(breed == "Fun") then
-      return("<i class='fas fa-smile' alt='Fun Protocol'></i>")
+      return("<i class='fas fa-smile' alt='"..i18n("breed.fun").."'></i>")
    elseif(breed == "Unsafe") then
-      return("<i class='fas fa-thumbs-down' style='color: red'></i>")
+      return("<i class='fas fa-thumbs-down' style='color: red' alt='"..i18n("breed.unsafe").."'></i>")
    elseif(breed == "Dangerous") then
-      return("<i class='fas fa-exclamation-triangle'></i>")
+      return("<i class='fas fa-exclamation-triangle' alt='"..i18n("breed.dangerous").."'></i>")
    else
       return("")
    end

@@ -39,6 +39,13 @@ local lang = {
   ["begin"] = "Begin",
   ["bind"] = "Bind",
   ["breakdown"] = "Breakdown",
+  ["breed"] = {
+    ["acceptable"] = "Acceptable Protocol",
+    ["dangerous"] = "Dangerous",
+    ["fun"] = "Fun Protocol",
+    ["safe"] = "Safe Protocol",
+    ["unsafe"] = "Unsafe Protocol",
+  },
   ["bridge"] = "Bridge",
   ["broadcast"] = "Broadcast",
   ["broadcast_domain"] = "Broadcast Domain",
