@@ -225,7 +225,7 @@ $(function () {
 	initDeleteAlertExclusionModal(alert_key, script_title, excluded_host);
     });
 
-    $(`#delete-all-modal #btn-confirm-action`).click(async function () {
+    $(`#btn-confirm-action_delete-all-modal`).click(async function () {
 	$(this).attr("disabled", "disabled");
 	$.post(`${http_prefix}/lua/pro/rest/v2/delete/all/alert/exclusions.lua`, {
 	    check_subdir: check_subdir,
