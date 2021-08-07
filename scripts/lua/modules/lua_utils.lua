@@ -2730,22 +2730,26 @@ end
 
  -- ##############################################
 
-function formatBreed(breed, is_tls)
+function formatBreed(breed, is_encrypted)
+   local ret = ""
+   
    if(breed == "Safe") then
-      local icon = 'lock'
-      if is_tls ~= nil and not is_tls then icon = 'thumbs-up' end
-      return("<i class='fas fa-"..icon.."' alt='"..i18n("breed.safe").."'></i>")
+      if(is_encrypted == false) then ret = "<i class='fas fa-thumbs-up' alt='"..i18n("breed.safe").."'></i>" end
    elseif(breed == "Acceptable") then
-      return("<i class='fas fa-thumbs-up' alt='"..i18n("breed.acceptable").."'></i>")
+      if(is_encrypted == false) then ret = "<i class='fas fa-thumbs-up' alt='"..i18n("breed.acceptable").."'></i>" end
    elseif(breed == "Fun") then
-      return("<i class='fas fa-smile' alt='"..i18n("breed.fun").."'></i>")
+      ret = "<i class='fas fa-smile' alt='"..i18n("breed.fun").."'></i>"
    elseif(breed == "Unsafe") then
-      return("<i class='fas fa-thumbs-down' style='color: red' alt='"..i18n("breed.unsafe").."'></i>")
+      ret = "<i class='fas fa-thumbs-down' style='color: red' alt='"..i18n("breed.unsafe").."'></i>"
    elseif(breed == "Dangerous") then
-      return("<i class='fas fa-exclamation-triangle' alt='"..i18n("breed.dangerous").."'></i>")
-   else
-      return("")
+      ret = "<i class='fas fa-exclamation-triangle' alt='"..i18n("breed.dangerous").."'></i>"
    end
+
+   if(is_encrypted == true) then
+      ret = ret .. " <i class='fas fa-lock'></i>"
+   end
+
+   return(ret)
 end
 
 function getFlag(country)

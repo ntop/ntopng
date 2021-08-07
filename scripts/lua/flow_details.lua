@@ -745,7 +745,7 @@ else
       print("(<A HREF=\""..ntop.getHttpPrefix().."/lua/")
       print("flows_stats.lua?category=" .. flow["proto.ndpi_cat"] .. "\">")
       print(getCategoryLabel(flow["proto.ndpi_cat"]))
-      print("</A>) ".. formatBreed(flow["proto.ndpi_breed"]))
+      print("</A>) ".. formatBreed(flow["proto.ndpi_breed"], flow["proto.is_encrypted"]))
    end
    
    if(flow["verdict.pass"] == false) then print("</strike>") end

@@ -333,6 +333,7 @@ class Flow : public GenericHashEntry {
 						   || (ndpiDetectedProtocol.app_protocol == p))
 						  ? true : false); }
   bool isTLS() const;
+  inline bool isEncryptedProto() const { return(ndpi_is_encrypted_proto(iface->get_ndpi_struct(), ndpiDetectedProtocol)); }
   inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
   inline bool isIEC60870()  const { return(isProto(NDPI_PROTOCOL_IEC60870));  }
