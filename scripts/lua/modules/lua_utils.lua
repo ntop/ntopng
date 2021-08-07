@@ -2732,11 +2732,11 @@ end
 
 function formatBreed(breed, is_encrypted)
    local ret = ""
-   
+
    if(breed == "Safe") then
       if(is_encrypted == false) then ret = "<i class='fas fa-thumbs-up' alt='"..i18n("breed.safe").."'></i>" end
    elseif(breed == "Acceptable") then
-      if(is_encrypted == false) then ret = "<i class='fas fa-thumbs-up' alt='"..i18n("breed.acceptable").."'></i>" end
+      -- if(is_encrypted == false) then ret = "<i class='fas fa-thumbs-up' alt='"..i18n("breed.acceptable").."'></i>" end
    elseif(breed == "Fun") then
       ret = "<i class='fas fa-smile' alt='"..i18n("breed.fun").."'></i>"
    elseif(breed == "Unsafe") then
