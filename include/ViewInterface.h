@@ -41,6 +41,8 @@ class ViewInterface : public NetworkInterface {
 
  public:
   ViewInterface(const char *_endpoint);
+  ~ViewInterface();
+  
   bool walker(u_int32_t *begin_slot,
 	      bool walk_all,
 	      WalkerType wtype,

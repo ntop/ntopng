@@ -91,6 +91,16 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 
 /* **************************************************** */
 
+ViewInterface::~ViewInterface() {
+  for(int i = 0; i < num_viewed_interfaces; i++) {
+
+    if(viewed_interfaces_queues[i])
+      delete viewed_interfaces_queues[i];
+  }
+}
+
+/* **************************************************** */
+
 bool ViewInterface::viewEnqueue(time_t t, Flow *f, u_int8_t viewed_interface_id) {
   /*
     Put the element into the right single-producer (the viewed interface) single-consumer (this view interface) queue
