@@ -4,6 +4,7 @@
 
 -- ##############################################
 
+require "lua_utils"
 local flow_alert_keys = require "flow_alert_keys"
 -- Import the classes library.
 local classes = require "classes"
@@ -43,6 +44,15 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
    -- Extracting info field
    local info = ""
    local href = ""
+   local flow_infos = {
+      host = alert["cli_ip"],
+      l7proto = tonumber(alert["l7_master_proto"]),
+      vlan = alert["vlan_id"]
+   }
+
+   if flow_infos["l7proto"] == 0 then
+      flow_infos["l7proto"] = tonumber(alert["l7_proto"])
+   end
 
    if alert.json then
       info = json.decode(alert["json"])
@@ -53,8 +63,10 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
       end   
    end
 
+   flow_infos["l7proto"] = interface.getnDPIProtoName(flow_infos["l7proto"])
+
    if ntop.isAdministrator() then
-      href = '<a href="/lua/pro/enterprise/service_map.lua"><i class="fas fa-lg fa-concierge-bell"></i></a>'
+      href = '<a href="' .. getMapUrl(flow_infos, interface.getId(), 'service_map', 'graph') .. '"><i class="fas fa-lg fa-concierge-bell"></i></a>'
    end
 
    return(i18n("alerts_dashboard.lateral_movement_descr", { info = info, href = href }))
