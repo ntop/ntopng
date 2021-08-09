@@ -3895,6 +3895,7 @@ static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
   char * l7_proto = NULL;
   VLANid vlan_id = 0, host_pool_id = 0, filter_ndpi_proto = 0;
   u_int32_t first_seen = 0;
+  u_int32_t maxHits = (u_int32_t)-1;
   bool unicast = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -3914,15 +3915,16 @@ static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
   if(lua_type(vm, 4) == LUA_TBOOLEAN) unicast      = (bool)lua_toboolean(vm, 4);
   if(lua_type(vm, 5) == LUA_TNUMBER)  first_seen   = (u_int32_t)lua_tonumber(vm, 5);
   if(lua_type(vm, 6) == LUA_TSTRING)  l7_proto     = (char *)lua_tostring(vm, 6);
+  if(lua_type(vm, 7) == LUA_TNUMBER)  maxHits      = (u_int32_t)lua_tonumber(vm, 7);
 
   if(l7_proto)
     filter_ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
 
   if(ntop_interface) {
     if(periodicity) 
-      ntop_interface->luaPeriodicityMap(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto);
+      ntop_interface->luaPeriodicityMap(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto, maxHits);
     else
-      ntop_interface->luaServiceMap(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto);
+      ntop_interface->luaServiceMap(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto, maxHits);
   } else
     lua_pushnil(vm);
 
