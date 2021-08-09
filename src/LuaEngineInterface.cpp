@@ -3920,7 +3920,7 @@ static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
 
   if(ntop_interface) {
     if(periodicity) 
-      ntop_interface->luaPeriodicityStats(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto);
+      ntop_interface->luaPeriodicityMap(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto);
     else
       ntop_interface->luaServiceMap(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto);
   } else
