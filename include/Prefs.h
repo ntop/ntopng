@@ -105,7 +105,7 @@ class Prefs {
   bool enable_runtime_flows_dump; /**< runtime preference to enable/disable flows dump from the UI */
   InterfaceInfo *ifNames;
   char *local_networks;
-  bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans, ignore_macs;
+  bool local_networks_set, shutdown_when_done, simulate_vlans, simulate_macs, ignore_vlans, ignore_macs;
   u_int32_t num_simulated_ips;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
 	  *callbacks_dir, *pcap_dir;
@@ -256,6 +256,7 @@ class Prefs {
   inline bool  do_ignore_vlans()                        { return(ignore_vlans);                     };
   inline bool  do_ignore_macs()                         { return(ignore_macs);                      };
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
+  inline bool  do_simulate_macs()                       { return(simulate_macs);                    };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);            };
   inline char* get_other_cpu_affinity()                 { return(other_cpu_affinity);            };
 #ifdef __linux__

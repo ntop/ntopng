@@ -38,7 +38,7 @@ extern "C" {
 Prefs::Prefs(Ntop *_ntop) {
   num_deferred_interfaces_to_register = 0, cli = NULL;
   ntop = _ntop, pcap_file_purge_hosts_flows = false,
-    ignore_vlans = false, simulate_vlans = false, ignore_macs = false;
+    ignore_vlans = false, simulate_vlans = false, simulate_macs = false, ignore_macs = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
   num_simulated_ips = 0, enable_behaviour_analysis = false;
   local_networks_set = false, shutdown_when_done = false;
@@ -460,6 +460,7 @@ void usage() {
 	 "[--ignore-vlans]                    | Ignore VLAN tags from traffic\n"
 	 "[--pcap-file-purge-flows]           | Enable flow purge with pcap files (debug only)\n"
 	 "[--simulate-vlans]                  | Simulate VLAN traffic (debug only)\n"
+	 "[--simulate-macs]                   | Simulate MACs in the traffic (debug only)\n"
 	 "[--simulate-ips] <num>              | Simulate IPs by choosing clients and servers among <num> random addresses\n"
 	 "[--help|-h]                         | Help\n",
 #ifdef HAVE_NEDGE
@@ -830,6 +831,7 @@ static const struct option long_options[] = {
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "simulate-vlans",                    no_argument,       NULL, 214 },
+  { "simulate-macs",                     no_argument,       NULL, 224 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
 #ifndef HAVE_NEDGE
   { "ignore-macs",                       no_argument,       NULL, 216 },
@@ -1530,6 +1532,10 @@ int Prefs::setOption(int optkey, char *optarg) {
     appliance = true;
     break;
 #endif
+
+  case 224:
+    simulate_macs = true;
+    break;
 
 #ifdef NTOPNG_PRO
 #ifdef __linux__

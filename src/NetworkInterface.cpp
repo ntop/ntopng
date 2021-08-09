@@ -2229,6 +2229,13 @@ datalink_check:
 
       if(ntop->getPrefs()->do_ignore_macs())
 	ethernet = &dummy_ethernet;
+      else if(unlikely(ntop->getPrefs()->do_simulate_macs())) {
+	dummy_ethernet.h_source[0] = 0xb8, dummy_ethernet.h_source[1] = 0x27, dummy_ethernet.h_source[2] = 0xeb,
+	  dummy_ethernet.h_source[3] = 0xfd, dummy_ethernet.h_source[4] = 0x8e, dummy_ethernet.h_source[5] = rand() % 8;
+	dummy_ethernet.h_dest[0] = 0xb8, dummy_ethernet.h_dest[1] = 0x27, dummy_ethernet.h_dest[2] = 0xeb,
+	  dummy_ethernet.h_dest[3] = 0xfd, dummy_ethernet.h_dest[4] = 0x8e, dummy_ethernet.h_dest[5] = rand() % 8;
+	ethernet = &dummy_ethernet;
+      }
 
       try {
 	pass_verdict = processPacket(bridge_iface_idx,
