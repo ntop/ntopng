@@ -39,6 +39,10 @@ flow_risk_utils.risks_by_id = {
    [28] = "ndpi_malicious_ja3",
    [29] = "ndpi_malicious_sha1_certificate",
    [30] = "ndpi_desktop_or_file_sharing_session",
+   [31] = "ndpi_tls_uncommon_alpn",
+   [32] = "ndpi_tls_cert_validity_too_long",
+   [33] = "ndpi_tls_suspicious_extension",
+   [34] = "ndpi_tls_fatal_alert",   
 }
 
 -- ##############################################
