@@ -5676,7 +5676,8 @@ void Flow::lua_entropy(lua_State* vm) {
 
 void Flow::check_swap() {
   if(!(get_cli_ip_addr()->isNonEmptyUnicastAddress() && !get_srv_ip_addr()->isNonEmptyUnicastAddress()) /* Everything that is NOT unicast-to-non-unicast needs to be checked */
-     && get_cli_port() < 1024 && get_cli_port() < get_srv_port())
+     /* && get_cli_port() < 1024 // Relax this constraint and also apply to non-well-known ports such as 8080 */
+     && get_cli_port() < get_srv_port())
     swap_requested = true;
 }
 
