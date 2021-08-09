@@ -926,8 +926,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
     if(content_len > HTTP_MAX_POST_DATA_LEN) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Too much data submitted with the form. [data len: %u][max len: %u]",
-				   content_len, HTTP_MAX_POST_DATA_LEN);
+				   "Too much data submitted with the form. [data len: %u][max len: %u][URI: %s]",
+				   content_len, HTTP_MAX_POST_DATA_LEN, request_info->uri);
       valid_csrf = 0;
     } else if((post_data = (char*)malloc(content_len * sizeof(char))) == NULL
               || (post_data_len = mg_read(conn, post_data, content_len)) == 0) {
