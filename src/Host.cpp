@@ -1611,7 +1611,7 @@ void Host::checkDataReset() {
 /* *************************************** */
 
 char* Host::get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize) {
-  char *k = mac->print(buf, bufsize);
+  char *k = mac ? Utils::formatMac(mac->get_mac(), buf, bufsize) : Utils::formatMac(NULL, buf, bufsize);
 
   /* NOTE: it is important to differentiate between v4 and v6 for macs */
   strncat(buf, get_ip()->isIPv4() ? "_v4" : "_v6", bufsize);
