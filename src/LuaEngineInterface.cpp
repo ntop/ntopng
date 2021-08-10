@@ -3990,7 +3990,7 @@ static int ntop_interface_service_map_set_status(lua_State* vm) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int64_t hash_id;
-  ServiceAcceptance acceptance;
+  ServiceAcceptance status;
   char* buff;
 #endif
 
@@ -4004,10 +4004,10 @@ static int ntop_interface_service_map_set_status(lua_State* vm) {
     hash_id = strtoull(buff, NULL, 10);
 
     if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-    acceptance = (ServiceAcceptance)lua_tonumber(vm, 2);
+    status = (ServiceAcceptance)lua_tonumber(vm, 2);
 
     if(ntop_interface->getServiceMap())
-      ntop_interface->getServiceMap()->setStatus(hash_id, acceptance);
+      ntop_interface->getServiceMap()->setStatus(hash_id, status);
     else
       return(CONST_LUA_ERROR);
 
