@@ -8791,15 +8791,19 @@ void NetworkInterface::luaServiceMap(lua_State* vm,
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
 void NetworkInterface::updateFlowPeriodicity(Flow *f) {
-  if(pMap && f) pMap->updateElement(f, f->get_first_seen());
+  if(isViewed())
+    viewedBy()->updateFlowPeriodicity(f);
+  else if(pMap)
+    pMap->updateElement(f, f->get_first_seen());
 }
-#endif
 
 /* *************************************** */
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
 void NetworkInterface::updateServiceMap(Flow *f) {
-  if(sMap && f) sMap->update(f, f->get_first_seen());
+  if(isViewed())
+    viewedBy()->updateServiceMap(f);
+  else if(sMap)
+    sMap->update(f, f->get_first_seen());
 }
 #endif
 
