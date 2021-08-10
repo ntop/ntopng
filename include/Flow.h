@@ -346,7 +346,7 @@ class Flow : public GenericHashEntry {
   inline bool isHTTP() const { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP() const { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline bool isLateralMovement() const { return(lateral_movement);  }
   inline void setLateralMovement(bool change) { lateral_movement = change;  }
   inline bool isPeriodicityChanged() const { return(periodicity_changed);  }

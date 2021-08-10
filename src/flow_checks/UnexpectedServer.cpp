@@ -63,7 +63,7 @@ bool UnexpectedServer::loadConfiguration(json_object *config) {
   */
 
   if(json_object_object_get_ex(config, "items", &whitelist_json)) {
-    for(u_int i = 0; i < json_object_array_length(whitelist_json); i++) {
+    for(int i = 0; i < json_object_array_length(whitelist_json); i++) {
       IpAddress ip;
       u_int64_t naddr = 1;
       

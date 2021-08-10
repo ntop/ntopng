@@ -68,7 +68,9 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(IECInvalidTransitionAlert::getClassType(),       IECInvalidTransitionAlert::getDefaultScore());
   registerAlert(IECUnexpectedTypeIdAlert::getClassType(),        IECUnexpectedTypeIdAlert::getDefaultScore());
   registerAlert(InvalidDNSQueryAlert::getClassType(),            InvalidDNSQueryAlert::getDefaultScore());
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   registerAlert(LateralMovementAlert::getClassType(),            LateralMovementAlert::getDefaultScore());
+#endif
   registerAlert(PeriodicityChangedAlert::getClassType(),         PeriodicityChangedAlert::getDefaultScore());
   registerAlert(LongLivedFlowAlert::getClassType(),              LongLivedFlowAlert::getDefaultScore());
   registerAlert(LowGoodputFlowAlert::getClassType(),             LowGoodputFlowAlert::getDefaultScore());
