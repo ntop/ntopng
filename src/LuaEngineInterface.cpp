@@ -3893,7 +3893,9 @@ static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
   IpAddress *ip = NULL;
   u_int8_t *mac = NULL;
   char * l7_proto = NULL;
-  VLANid vlan_id = 0, host_pool_id = 0, filter_ndpi_proto = 0;
+  VLANid vlan_id = 0;
+  u_int16_t host_pool_id = (u_int16_t)-1;
+  u_int16_t filter_ndpi_proto = (u_int16_t)-1;
   u_int32_t first_seen = 0;
   u_int32_t maxHits = (u_int32_t)-1;
   bool unicast = false;

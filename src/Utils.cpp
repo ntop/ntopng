@@ -3162,7 +3162,7 @@ bool Utils::isSpecialMac(u_int8_t *mac) {
 
 /* ****************************************************** */
 
-bool Utils::isBroadcastMac(u_int8_t *mac) {
+bool Utils::isBroadcastMac(const u_int8_t *mac) {
   u_int8_t broad[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
   return(memcmp(mac, broad, 6) == 0);
@@ -3934,7 +3934,7 @@ u_int32_t Utils::parsetime(char *str) {
 
 /* ************************************************* */
 
-u_int64_t Utils::mac2int(u_int8_t *mac) {
+u_int64_t Utils::mac2int(const u_int8_t *mac) {
   u_int64_t m = 0;
 
   memcpy(&m, mac, 6);
