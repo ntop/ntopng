@@ -798,7 +798,7 @@ end
         <small>
         <details class='mt-2'>
          <summary>
-            <span data-bs-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
+            <span class="ntop_notes" data-bs-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
                ]]..i18n("notes")..[[ <i class='fas fa-question-circle '></i>
             </span>
          </summary>
@@ -1859,7 +1859,7 @@ function toggle_mirrored_traffic_function_off(){
         <small>
         <details class='mt-2'>
          <summary>
-            <span data-bs-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
+            <span class="ntop_notes" data-bs-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
                ]]..i18n("notes")..[[ <i class='fas fa-question-circle '></i>
             </span>
          </summary>
@@ -2051,7 +2051,7 @@ function toggle_mirrored_traffic_function_off(){
         <small>
         <details class='mt-2'>
          <summary>
-            <span data-bs-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
+            <span class="ntop_notes" data-bs-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
                ]]..i18n("notes")..[[ <i class='fas fa-question-circle '></i>
             </span>
          </summary>
