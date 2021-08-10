@@ -4004,7 +4004,8 @@ static int ntop_interface_service_map_set_status(lua_State* vm) {
     if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
     acceptance = (ServiceAcceptance)lua_tonumber(vm, 2);
 
-    ntop_interface->getServiceMap()->setStatus(hash_id, acceptance);
+    // ntop_interface->getServiceMap()->setStatus(hash_id, acceptance); - TODO FIX without hash
+    #warning "TODO FIX without hash"
   }
 #endif
 
