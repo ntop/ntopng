@@ -44,7 +44,7 @@ local function getMapUrl(flow, ifid, map, page)
    end
 
    if flow["vlan_id"] and tonumber(flow["vlan_id"]) > 0 then
-      url_params["vlan_id"] = flow["vlan_id"]
+      url_params["vlan"] = flow["vlan_id"]
    end
 
    if page then
