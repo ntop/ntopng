@@ -4371,7 +4371,7 @@ function builMapHREF(service_peer, vlan_id, map, default_page)
 	 dev_type = minfo["devtype"]
       end
 
-      if service_peer.ip and service_peer.is_mac then
+      if (service_peer.ip and service_peer.is_mac) or not service_peer.is_mac  then
          local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, service_peer.vlan)
          name = hostinfo2label(hinfo or service_peer)
       else   

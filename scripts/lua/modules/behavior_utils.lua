@@ -82,8 +82,8 @@ function behavior_utils.mapsAvailable()
     local periodic_map_available = false  
 
     if areMapsEnabled() then
-        local service_map = interface.serviceMap(nil, 0, 0, false, 0, '') or {}
-        local periodicity_map = interface.periodicityMap(nil, 0, 0, false, 0, '') or {}
+        local service_map = interface.serviceMap(nil, nil, nil, nil, nil, nil) or {}
+        local periodicity_map = interface.periodicityMap(nil, nil, nil, nil, nil, nil) or {}
 
         if service_map and (table.len(service_map) > 0) then
             service_map_available = true
