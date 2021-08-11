@@ -8731,7 +8731,7 @@ void NetworkInterface::luaAlertedFlows(lua_State* vm) {
 void NetworkInterface::luaPeriodicityFilteringMenu(lua_State* vm) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pMap) {
-    pMap->luaFilteringMenu(vm, this);
+    pMap->luaFilteringMenu(vm, this, true);
     return;
   }
 #endif
@@ -8744,7 +8744,7 @@ void NetworkInterface::luaPeriodicityFilteringMenu(lua_State* vm) {
 void NetworkInterface::luaServiceFilteringMenu(lua_State* vm) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(sMap) {
-    sMap->luaFilteringMenu(vm, this);
+    sMap->luaFilteringMenu(vm, this, false);
     return;
   }
 #endif
