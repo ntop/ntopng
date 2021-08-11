@@ -35,41 +35,29 @@ end
 -- ##############################################
 
 local function getMapUrl(flow, ifid, map, page)
-   local href = '/lua/pro/enterprise/' .. map .. '.lua?'
+   local url_params = {}
+   local base_url = ntop.getHttpPrefix() .. '/lua/pro/enterprise/' .. map .. '.lua'
 
-   if flow["host"] then
-      href = href .. 'host=' .. flow["host"] .. "&"
+   if flow["l7proto"] and tonumber(flow["l7proto"]) then
+      flow["l7proto"] = interface.getnDPIProtoName(tonumber(flow["l7proto"]))
+      url_params["l7proto"] = flow["l7proto"]
    end
 
-   if flow["l7proto"] then
-      href = href .. 'l7proto=' .. flow["l7proto"] .. "&"
+   if flow["vlan_id"] and tonumber(flow["vlan_id"]) > 0 then
+      url_params["vlan_id"] = flow["vlan_id"]
    end
 
-   if flow["host_pool_id"] then
-      href = href .. 'host_pool_id=' .. flow["host_pool_id"] .. "&"
-   end
-
-   if flow["vlan"] then
-      href = href .. 'vlan=' .. flow["vlan"] .. "&"
-   end
-   
-   if flow["unicast_only"] then
-      href = href .. 'unicast_only=' .. flow["unicast_only"] .. "&"
-   end
-
-   if flow["first_seen"] then
-      href = href .. 'first_seen=' .. flow["first_seen"] .. "&"
-   end
-
-   if page then 
-      href = href .. 'page='.. page .. '&'
+   if page then
+      url_params["page"] = page
    end
 
    if ifid then
-      href = href .. 'ifid=' .. ifid
+      url_params["ifid"] = ifid
    end
 
-   return href
+   local params_string = table.tconcat(url_params, "=", "&")
+
+   return string.format("%s?%s", base_url, params_string)
 end
 
 
@@ -86,24 +74,18 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
    local href = ""
    local flow_infos = {
       host = alert["cli_ip"],
-      l7proto = tonumber(alert["l7_master_proto"]),
-      vlan = alert["vlan_id"]
+      l7proto = ternary(tonumber(alert["l7_proto"]) ~= 0, alert["l7_proto"], alert["l7_master_proto"]),
+      vlan_id = alert["vlan_id"]
    }
-
-   if flow_infos["l7proto"] == 0 then
-      flow_infos["l7proto"] = tonumber(alert["l7_proto"])
-   end
 
    if alert.json then
       info = json.decode(alert["json"])
       if not isEmptyString(info["info"]) then
-         info = "[" .. info["info"] .. "]"
+	 info = "[" .. info["info"] .. "]"
       else
-         info = ""
-      end   
+	 info = ""
+      end
    end
-
-   flow_infos["l7proto"] = interface.getnDPIProtoName(flow_infos["l7proto"])
 
    if ntop.isAdministrator() then
       href = '<a href="' .. getMapUrl(flow_infos, interface.getId(), 'service_map', 'graph') .. '"><i class="fas fa-lg fa-concierge-bell"></i></a>'
