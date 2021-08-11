@@ -4,7 +4,6 @@
 
 -- ##############################################
 
-require "lua_utils"
 local flow_alert_keys = require "flow_alert_keys"
 -- Import the classes library.
 local classes = require "classes"
@@ -32,6 +31,47 @@ function alert_lateral_movement:init()
    -- Call the parent constructor
    self.super:init()
 end
+
+-- ##############################################
+
+local function getMapUrl(flow, ifid, map, page)
+   local href = '/lua/pro/enterprise/' .. map .. '.lua?'
+
+   if flow["host"] then
+      href = href .. 'host=' .. flow["host"] .. "&"
+   end
+
+   if flow["l7proto"] then
+      href = href .. 'l7proto=' .. flow["l7proto"] .. "&"
+   end
+
+   if flow["host_pool_id"] then
+      href = href .. 'host_pool_id=' .. flow["host_pool_id"] .. "&"
+   end
+
+   if flow["vlan"] then
+      href = href .. 'vlan=' .. flow["vlan"] .. "&"
+   end
+   
+   if flow["unicast_only"] then
+      href = href .. 'unicast_only=' .. flow["unicast_only"] .. "&"
+   end
+
+   if flow["first_seen"] then
+      href = href .. 'first_seen=' .. flow["first_seen"] .. "&"
+   end
+
+   if page then 
+      href = href .. 'page='.. page .. '&'
+   end
+
+   if ifid then
+      href = href .. 'ifid=' .. ifid
+   end
+
+   return href
+end
+
 
 -- #######################################################
 
