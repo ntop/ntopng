@@ -85,13 +85,13 @@ class HostPools {
 
   inline int32_t getNumPoolHosts(u_int16_t pool_id) {
     if(pool_id >= max_num_pools)
-      return 0;
+      return NO_HOST_POOL_ID;
     return num_active_hosts_inline[pool_id] + num_active_hosts_offline[pool_id];
   }
 
   inline int32_t getNumPoolL2Devices(u_int16_t pool_id) {
     if(pool_id >= max_num_pools)
-      return 0;
+      return NO_HOST_POOL_ID;
 
     return num_active_l2_devices_inline[pool_id] + num_active_l2_devices_offline[pool_id];
   }
