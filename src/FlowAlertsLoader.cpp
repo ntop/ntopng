@@ -70,8 +70,8 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(InvalidDNSQueryAlert::getClassType(),            InvalidDNSQueryAlert::getDefaultScore());
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   registerAlert(LateralMovementAlert::getClassType(),            LateralMovementAlert::getDefaultScore());
-#endif
   registerAlert(PeriodicityChangedAlert::getClassType(),         PeriodicityChangedAlert::getDefaultScore());
+#endif
   registerAlert(LongLivedFlowAlert::getClassType(),              LongLivedFlowAlert::getDefaultScore());
   registerAlert(LowGoodputFlowAlert::getClassType(),             LowGoodputFlowAlert::getDefaultScore());
   registerAlert(NedgeBlockedFlowAlert::getClassType(),           NedgeBlockedFlowAlert::getDefaultScore());
