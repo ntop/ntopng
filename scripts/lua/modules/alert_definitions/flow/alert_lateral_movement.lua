@@ -4,6 +4,8 @@
 
 -- ##############################################
 
+package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
+
 local flow_alert_keys = require "flow_alert_keys"
 -- Import the classes library.
 local classes = require "classes"
@@ -32,35 +34,6 @@ function alert_lateral_movement:init()
    self.super:init()
 end
 
--- ##############################################
-
-local function getMapUrl(flow, ifid, map, page)
-   local url_params = {}
-   local base_url = ntop.getHttpPrefix() .. '/lua/pro/enterprise/' .. map .. '.lua'
-
-   if flow["l7proto"] and tonumber(flow["l7proto"]) then
-      flow["l7proto"] = interface.getnDPIProtoName(tonumber(flow["l7proto"]))
-      url_params["l7proto"] = flow["l7proto"]
-   end
-
-   if flow["vlan_id"] and tonumber(flow["vlan_id"]) > 0 then
-      url_params["vlan"] = flow["vlan_id"]
-   end
-
-   if page then
-      url_params["page"] = page
-   end
-
-   if ifid then
-      url_params["ifid"] = ifid
-   end
-
-   local params_string = table.tconcat(url_params, "=", "&")
-
-   return string.format("%s?%s", base_url, params_string)
-end
-
-
 -- #######################################################
 
 -- @brief Format an alert into a human-readable string
@@ -77,6 +50,8 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
       l7proto = ternary(tonumber(alert["l7_proto"]) ~= 0, alert["l7_proto"], alert["l7_master_proto"]),
       vlan_id = alert["vlan_id"]
    }
+   local graph_map_utils = require("graph_map_utils")
+
 
    if alert.json then
       info = json.decode(alert["json"])
@@ -88,7 +63,7 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
    end
 
    if ntop.isAdministrator() then
-      href = '<a href="' .. getMapUrl(flow_infos, interface.getId(), 'service_map', 'graph') .. '"><i class="fas fa-lg fa-concierge-bell"></i></a>'
+      href = '<a href="' .. graph_map_utils.getMapUrl(flow_infos, interface.getId(), 'service_map', 'graph') .. '"><i class="fas fa-lg fa-concierge-bell"></i></a>'
    end
 
    return(i18n("alerts_dashboard.lateral_movement_descr", { info = info, href = href }))
