@@ -24,35 +24,54 @@
 
 /* ***************************************************** */
 
-bool UnexpectedServer::isAllowedHost(const IpAddress *p) {
-  if((p == NULL) || p->isBroadcastAddress())
-    return(true);
-  else {
-    u_int64_t match_ip;
-    int rc;
-    ndpi_ip_addr_t a;
+bool UnexpectedServer::isAllowedHost(Flow *f) {
+  const IpAddress *p;
+  u_int64_t match_ip;
+  ndpi_ip_addr_t a;
+  int rc;
 
-    memset(&a, 0, sizeof(a));
+  if (!whitelisted_servers)
+    return true;
+
+  p = getServerIP(f);
+
+  if (p == NULL 
+      || p->isBroadcastAddress())
+    return true;
+
+  /* Check IP */
+
+  memset(&a, 0, sizeof(a));
+  if(p->isIPv4())
+    a.ipv4 = p->get_ipv4();
+  else
+    memcpy(&a.ipv6, p->get_ipv6(), sizeof(struct ndpi_in6_addr));
   
-    if(p->isIPv4())
-      a.ipv4 = p->get_ipv4();
-    else
-      memcpy(&a.ipv6, p->get_ipv6(), sizeof(struct ndpi_in6_addr));
+  rc = ndpi_ptree_match_addr(whitelist_ptree, &a, &match_ip);
+  if (rc == 0 && match_ip)
+    return true;
   
-    rc = ndpi_ptree_match_addr(whitelist, &a, &match_ip);
-  
-    if((rc != 0) || (!match_ip))
-      return(false);
-    else
-      return(true);
+  /* Check Domain */
+
+  if(whitelist_automa) {
+    char *server_name = f->getFlowServerInfo();
+
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking server name %s", server_name);
+
+    if (server_name != NULL
+        && strlen(server_name) > 0
+        && ndpi_match_string(whitelist_automa, server_name) == 1)
+      return true;
   }
+
+  return false;
 }
 
 /* ***************************************************** */
 
 bool UnexpectedServer::loadConfiguration(json_object *config) {
   FlowCheck::loadConfiguration(config); /* Parse parameters in common */
-  json_object *whitelist_json, *whitelisted_ip_json;
+  json_object *whitelist_json, *whitelisted_server_json;
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() %s", __FUNCTION__, json_object_to_json_string(config));
 
@@ -64,27 +83,51 @@ bool UnexpectedServer::loadConfiguration(json_object *config) {
 
   if(json_object_object_get_ex(config, "items", &whitelist_json)) {
     for(int i = 0; i < json_object_array_length(whitelist_json); i++) {
-      IpAddress ip;
-      u_int64_t naddr = 1;
+      const char *server_ptr;
       
-      whitelisted_ip_json = json_object_array_get_idx(whitelist_json, i);
+      whitelisted_server_json = json_object_array_get_idx(whitelist_json, i);
+      server_ptr = json_object_get_string(whitelisted_server_json);
 
-      ip.set(json_object_get_string(whitelisted_ip_json));
+      if (Utils::isIPAddress(server_ptr)) {
+        /* IP Address */
+        IpAddress ip;
+        u_int64_t naddr = 1;
 
-      if(!ip.isEmpty()) {
-	ndpi_ip_addr_t a;
+        ip.set(server_ptr);
 
-	memset(&a, 0, sizeof(a));
+        if(!ip.isEmpty()) {
+          ndpi_ip_addr_t a;
+
+	  memset(&a, 0, sizeof(a));
 	
-	if(ip.isIPv4()) {
-	  a.ipv4 = ip.get_ipv4();
+	  if(ip.isIPv4()) {
+	    a.ipv4 = ip.get_ipv4();
 	
-	  ndpi_ptree_insert(whitelist, &a, 32, naddr);
-	} else {
-	  memcpy(&a.ipv6, ip.get_ipv6(), sizeof(struct ndpi_in6_addr));
+	    ndpi_ptree_insert(whitelist_ptree, &a, 32, naddr);
+	  } else {
+	    memcpy(&a.ipv6, ip.get_ipv6(), sizeof(struct ndpi_in6_addr));
 	
-	  ndpi_ptree_insert(whitelist, &a, 128, naddr);
+	    ndpi_ptree_insert(whitelist_ptree, &a, 128, naddr);
+          }
+          whitelisted_servers++;
 	}
+      } else {
+        /* Domain name */
+        char whitelisted_domain[255];
+
+	snprintf(whitelisted_domain, sizeof(whitelisted_domain), "%s", server_ptr);
+	Utils::stringtolower(whitelisted_domain);
+
+	if(!whitelist_automa)
+	  whitelist_automa = ndpi_init_automa();
+
+	if(whitelist_automa) {
+          char *str = strdup(whitelisted_domain);
+          if (str) {
+	    ndpi_add_string_to_automa(whitelist_automa, str);
+            whitelisted_servers++;
+          }
+        }
       }
     }
   }
@@ -97,7 +140,7 @@ bool UnexpectedServer::loadConfiguration(json_object *config) {
 void UnexpectedServer::protocolDetected(Flow *f) {  
   if(!isAllowedProto(f)) return;
   
-  if(!isAllowedHost(getServerIP(f))) {
+  if(!isAllowedHost(f)) {
     FlowAlertType alert_type = getAlertType();
     u_int8_t c_score, s_score;
     risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;

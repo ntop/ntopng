@@ -698,7 +698,7 @@ local function validateIpVersion(p)
    end
 end
 
-local function validateSMTPServer(v)
+local function validateServer(v)
    -- thanks to https://stackoverflow.com/questions/35467680/lua-pattern-to-validate-a-dns-address
    if (isEmptyString(v)) then
       return false
@@ -906,8 +906,11 @@ http_lint.validateNetwork = validateNetwork
 local function validateHost(p)
    local host = hostkey2hostinfo(p)
 
-   if(host.host ~= nil) and (host.vlan ~= nil)
-            and (isIPv4(host.host) or isIPv6(host.host) or isMacAddress(host.host)) then
+   if (host.host ~= nil)
+      and (host.vlan ~= nil)
+      and (isIPv4(host.host) 
+           or isIPv6(host.host) 
+           or isMacAddress(host.host)) then
       return true
    else
       return validateNetwork(p)
@@ -1155,12 +1158,6 @@ end
 
 -- #################################################################
 
-local function validateSNMPhost(m)
-   return validateIpAddress(m) or validateSingleWord(m)
-end
-
--- #################################################################
-
 local function validateSNMPversion(m)
 -- 0 = SNMP v1
 -- 1 = SNMP v2c
@@ -1277,8 +1274,10 @@ local function validateListItems(script, conf, key)
    elseif(item_type == "mac_address") then
       item_validator = validateMac
       err_label = "Bad address"
+   elseif(item_type == "server") then
+      item_validator = validateServer
+      err_label = "Bad server IP or name"
    end
-   
 
    if(type(conf_items) == "table") then
       for _, item in ipairs(conf_items) do
@@ -1559,7 +1558,7 @@ local known_parameters = {
    ["snmp_privacy_passphrase"] = validateSingleWord,
    ["lldp_mode"]               = validateBool,                  -- LLDP mode
    ["default_snmp_community"]  = validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
-   ["snmp_host"]               = validateSNMPhost,              -- Either an IPv4/v6 or a hostname
+   ["snmp_host"]               = validateServer,              -- Either an IPv4/v6 or a hostname
    ["default_snmp_version"]    = validateSNMPversion,           -- Default SNMP protocol version
    ["snmp_version"]            = validateSNMPversion,           -- 0:v1 1:v2c 2:v3
    ["snmp_username"]           = validateSingleWord,            -- SNMP Username
@@ -1771,7 +1770,7 @@ local known_parameters = {
    ["redirection_url"]                             = validateEmptyOr(validateSingleWord),
    ["email_sender"]                                = validateSingleWord,
    ["email_recipient"]                             = validateSingleWord,
-   ["smtp_server"]                                 = validateSMTPServer,
+   ["smtp_server"]                                 = validateServer,
    ["smtp_username"]                               = validateEmptyOr(validateSingleWord),
    ["smtp_password"]                               = validateEmptyOr(validatePassword),
    ["influx_dbname"]                               = validateSingleWord,

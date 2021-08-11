@@ -290,7 +290,7 @@ u_int8_t Utils::queryname2type(const char *name) {
 
 /* ****************************************************** */
 
-bool Utils::isIPAddress(char *ip) {
+bool Utils::isIPAddress(const char *ip) {
   struct in_addr addr4;
   struct in6_addr addr6;
 

@@ -49,7 +49,7 @@ public:
   static char* l4proto2name(u_int8_t proto);
   static u_int8_t l4name2proto(const char *name);
   static u_int8_t queryname2type(const char *name);
-  static bool  isIPAddress(char *name);
+  static bool  isIPAddress(const char *ip);
 #ifdef __linux__ 
   static int   setAffinityMask(char *cores_list, cpu_set_t *mask);
   static int   setThreadAffinityWithMask(pthread_t thread, cpu_set_t *mask);
