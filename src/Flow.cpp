@@ -135,8 +135,6 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&custom_app, 0, sizeof(custom_app));
 
 #ifdef NTOPNG_PRO
-  lateral_movement = false;
-  periodicity_status = periodicity_status_unknown;
   HostPools *hp = iface->getHostPools();
 
   routing_table_id = DEFAULT_ROUTING_TABLE_ID;
@@ -180,6 +178,8 @@ Flow::Flow(NetworkInterface *_iface,
 
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
+  lateral_movement = false;
+  periodicity_status = periodicity_status_unknown;
   trafficProfile = NULL;
 #else
   cli2srv_in = cli2srv_out = srv2cli_in = srv2cli_out = DEFAULT_SHAPER_ID;

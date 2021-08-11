@@ -80,9 +80,9 @@ class Flow : public GenericHashEntry {
 #ifdef NTOPNG_PRO
   bool ingress2egress_direction;
   u_int8_t routing_table_id;
+#ifndef HAVE_NEDGE
   bool lateral_movement;
   PeriodicityStatus periodicity_status;
-#ifndef HAVE_NEDGE
   FlowProfile *trafficProfile;
 #else
   u_int16_t cli2srv_in, cli2srv_out, srv2cli_in, srv2cli_out;

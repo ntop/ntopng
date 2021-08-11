@@ -21,6 +21,8 @@
 
 #include "flow_alerts_includes.h"
 
+#ifndef HAVE_NEDGE
+
 ndpi_serializer* PeriodicityChangedAlert::getAlertJSON(ndpi_serializer* serializer) {
   Flow *f = getFlow();
 
@@ -32,4 +34,6 @@ ndpi_serializer* PeriodicityChangedAlert::getAlertJSON(ndpi_serializer* serializ
 
   return serializer;
 }
+
+#endif
 
