@@ -19,23 +19,17 @@
  *
  */
 
-#ifndef _PERIODICITY_CHANGED_ALERT_H_
-#define _PERIODICITY_CHANGED_ALERT_H_
+#include "flow_alerts_includes.h"
 
-#include "ntop_includes.h"
+ndpi_serializer* PeriodicityChangedAlert::getAlertJSON(ndpi_serializer* serializer) {
+  Flow *f = getFlow();
 
-class PeriodicityChangedAlert : public FlowAlert {
- private:
-  ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
+  if(serializer == NULL)
+    return NULL;
 
- public:
-  static FlowAlertType getClassType() { return { flow_alert_periodicity_changed, alert_category_network }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_WARNING; };
+  ndpi_serialize_string_boolean(serializer, "is_periodic", f->getPeriodicity() == periodicity_status_is_periodic);
+  ndpi_serialize_string_boolean(serializer, "is_aperiodic", f->getPeriodicity() == periodicity_status_is_aperiodic);
 
-  PeriodicityChangedAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) { };
-  ~PeriodicityChangedAlert() { };
+  return serializer;
+}
 
-  FlowAlertType getAlertType() const { return getClassType(); }
-};
-
-#endif /* _PERIODICITY_CHANGED_ALERT_H_ */

@@ -135,7 +135,8 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&custom_app, 0, sizeof(custom_app));
 
 #ifdef NTOPNG_PRO
-  lateral_movement = periodicity_changed = false;
+  lateral_movement = false;
+  periodicity_status = periodicity_status_unknown;
   HostPools *hp = iface->getHostPools();
 
   routing_table_id = DEFAULT_ROUTING_TABLE_ID;
