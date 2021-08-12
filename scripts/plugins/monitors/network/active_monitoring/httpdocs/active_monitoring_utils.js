@@ -287,12 +287,12 @@ $(function() {
             const DEFAULT_HOST          = "";
             const DEFAULT_POOL          = 0;
 
-            const cur_measurement = amData.measurement || DEFAULT_MEASUREMENT;
+            const cur_measurement = amData.measurement_key || DEFAULT_MEASUREMENT;
             const $dialog = $('#am-edit-modal');
             dialogDisableUniqueMeasurements($dialog, cur_measurement);
             // fill input boxes
             $('#input-edit-threshold').val(amData.threshold || DEFAULT_THRESHOLD);
-            $('#select-edit-measurement').val(cur_measurement);
+            $('#select-edit-measurement').val(cur_measurement).change();
             $('#select-edit-granularity').val(amData.granularity || DEFAULT_GRANULARITY);
             $('#input-edit-host').val(amData.host || DEFAULT_HOST);
             $(`#select-edit-pool`).val(amData.pool || DEFAULT_POOL);
@@ -326,7 +326,7 @@ $(function() {
                 action: 'edit',
                 threshold: threshold,
                 am_host: host,
-                measurement: measurement,
+                measurement: measurement_key,
                 old_am_host: amData.host,
                 old_measurement: amData.measurement,
                 granularity: granularity,
