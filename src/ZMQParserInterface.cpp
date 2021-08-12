@@ -1161,8 +1161,8 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 	 && flow->event_type != ebpf_event_type_tcp_connect
 	 && ntohs(flow->src_port) < ntohs(flow->dst_port))
 	flow->swap();
-    } else if(ntohs(flow->src_port) < 1024
-	      && ntohs(flow->src_port) < ntohs(flow->dst_port)
+    } else if(/* ntohs(flow->src_port) < 1024 && Relaxes this condition to also include non-well-known ports (e.g., MySQL 3306) */
+	      ntohs(flow->src_port) < ntohs(flow->dst_port)
 	      // && flow->in_pkts && flow->out_pkts /* Flows can be mono-directional, so can't use this condition */
 	      && (flow->l4_proto != IPPROTO_TCP /* Not TCP or TCP but without SYN (See https://github.com/ntop/ntopng/issues/5058) */
 		  /*
