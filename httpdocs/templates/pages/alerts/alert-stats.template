@@ -312,19 +312,27 @@
         }
 
         async function addFilterTag(tag) {
-            const existingTagElms = tagify.getTagElms();
 
             /* Convert values to string (this avoids issues e.g. with 0) */
             if (typeof tag.realValue == 'number') { tag.realValue = ''+tag.realValue; }
             if (typeof tag.value == 'number') { tag.value = ''+tag.value; }
 
+            const existingTagElms = tagify.getTagElms();
+
+            /* Lookup by key and value (do not add the same key+value multiple times) */
+            const existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('realValue') === tag.realValue);
+            const existingTag = tagify.tagData(existingTagElement);
+            if (existingTag !== undefined) {
+                return;
+            }
+
             {% if false then %}
-            /* Lookup by key (does not allow dup) */
+            /* Lookup by key (does not allow dup, replace the value if key is the same) */
             const existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key);
             const existingTag = tagify.tagData(existingTagElement);
             if (existingTag !== undefined /* && existingTag.realValue !== tag.realValue */) {
             {% else %}   
-            /* Lookup by index (allow dup) */
+            /* Lookup by index (allow key dup, replace the value only if it's the same element index) */
             if (tag.index && existingTagElms.length > tag.index) {
             {% end %}
                 const existingTagElement = existingTagElms[tag.index];
