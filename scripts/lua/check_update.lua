@@ -33,12 +33,14 @@ function version2number(v, rev)
 
   local major = e[1]
   local minor = e[2]
+  local date  = e[3]
 
   if major == nil or tonumber(major) == nil then major = 0 end
   if minor == nil or tonumber(minor) == nil then minor = 0 end
-  if rev   == nil or tonumber(rev)   == nil then rev = 0   end
+  if rev   == nil or tonumber(rev)   == nil then rev   = 0 end
+  if date  == nil or tonumber(date)  == nil then date  = 0 end
 
-  local version = tonumber(major)*1000000 + tonumber(minor)*10000 + tonumber(rev)
+  local version = tonumber(major)*10000000000000 + tonumber(minor)*100000000000 + tonumber(date)*100000 + tonumber(rev)
 
   return version
 end
