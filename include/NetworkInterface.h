@@ -890,16 +890,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id, char *label) { ; };
 #endif
 
-  inline char* mdnsResolveIPv4(u_int32_t ipv4addr /* network byte order */,
-			       char *buf, u_int buf_len, u_int timeout_sec = 2) {
-    if(mdns)
-      return(mdns->resolveIPv4(ipv4addr, buf, buf_len, timeout_sec));
-    else {
-      buf[0] = '\0';
-      return(buf);
-    }
-  }
-
   inline void mdnsSendAnyQuery(char *targetIPv4, char *query) {
     if(mdns) mdns->sendAnyQuery(targetIPv4, query);
   }

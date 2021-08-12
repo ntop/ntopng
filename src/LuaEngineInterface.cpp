@@ -2298,27 +2298,6 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_mdns_resolve_name(lua_State* vm) {
-  char *numIP, symIP[64];
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((numIP = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  lua_pushstring(vm, ntop_interface->mdnsResolveIPv4(inet_addr(numIP),
-						     symIP, sizeof(symIP),
-						     1 /* timeout */));
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_mdns_batch_any_query(lua_State* vm) {
   char *query, *target;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -4485,7 +4464,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   /* Network Discovery */
   { "discoverHosts",                   ntop_discover_iface_hosts       },
   { "arpScanHosts",                    ntop_arpscan_iface_hosts        },
-  { "mdnsResolveName",                 ntop_mdns_resolve_name          },
   { "mdnsQueueNameToResolve",          ntop_mdns_queue_name_to_resolve },
   { "mdnsQueueAnyQuery",               ntop_mdns_batch_any_query       },
   { "mdnsReadQueuedResponses",         ntop_mdns_read_queued_responses },

@@ -295,55 +295,6 @@ char* MDNS::decodeAnyResponse(char *mdnsbuf, u_int mdnsbuf_len,
 
 /* ******************************* */
 
-char* MDNS::resolveIPv4(u_int32_t ipv4addr /* network byte order */,
-			char *buf, u_int buf_len, u_int timeout_sec) {
-  u_int dns_query_len;
-  char mdnsbuf[512];
-  u_int16_t tid = ipv4addr & 0xFFFF;
-  struct sockaddr_in mdns_dest;
-
-  buf[0] = '\0';
-  dns_query_len = prepareIPv4ResolveQuery(ipv4addr, mdnsbuf, sizeof(mdnsbuf), tid);
-
-  if(timeout_sec == 0) timeout_sec = 1;
-
-  mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(5353), mdns_dest.sin_addr.s_addr = ipv4addr;
-  if(sendto(udp_sock, mdnsbuf, dns_query_len, 0, (struct sockaddr *)&mdns_dest, sizeof(struct sockaddr_in)) < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno, strerror(errno));
-    return(buf);
-  }
-
-  while(true) {
-    fd_set rset;
-    struct timeval tv;
-
-    FD_ZERO(&rset);
-    FD_SET(udp_sock, &rset);
-
-    tv.tv_sec = timeout_sec, tv.tv_usec = 0;
-    if(select(udp_sock + 1, &rset, NULL, NULL, &tv) > 0) {
-      struct sockaddr_in from;
-      socklen_t from_len = sizeof(from);
-      int len = recvfrom(udp_sock, mdnsbuf, sizeof(mdnsbuf), 0, (struct sockaddr *)&from, &from_len);
-      struct ndpi_dns_packet_header *dns_h = (struct ndpi_dns_packet_header*)mdnsbuf;
-      u_int32_t resolved_ip;
-      
-      if((len > 0) && (dns_h->tr_id == tid) && (ntohs(dns_h->num_answers) > 0)) {
-	if(!sentAnyQuery)
-	  decodePTRResponse(mdnsbuf, (u_int)len, buf, buf_len, &resolved_ip);
-	else
-	  decodeAnyResponse(mdnsbuf, (u_int)len, buf, buf_len);
-	break;
-      }
-    } else
-      break;
-  }
-
-  return(buf);
-}
-
-/* ******************************* */
-
 bool MDNS::queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS) {
   u_int dns_query_len;
   char mdnsbuf[512], src[32];
