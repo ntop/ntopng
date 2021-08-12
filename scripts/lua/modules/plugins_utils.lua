@@ -808,7 +808,8 @@ local function load_metadata()
 
       if not status then
 	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load plugins metadata file '%s'", PLUGIN_RELATIVE_PATHS.metadata))
-	 tprint(debug.traceback())
+	 local tb = debug.traceback()
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s", tb))
       end
   end
 end
