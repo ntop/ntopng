@@ -30,9 +30,6 @@ bool UnexpectedServer::isAllowedHost(Flow *f) {
   ndpi_ip_addr_t a;
   int rc;
 
-  if (!whitelisted_servers)
-    return true;
-
   p = getServerIP(f);
 
   if (p == NULL 
@@ -109,7 +106,6 @@ bool UnexpectedServer::loadConfiguration(json_object *config) {
 	
 	    ndpi_ptree_insert(whitelist_ptree, &a, 128, naddr);
           }
-          whitelisted_servers++;
 	}
       } else {
         /* Domain name */
@@ -125,7 +121,6 @@ bool UnexpectedServer::loadConfiguration(json_object *config) {
           char *str = strdup(whitelisted_domain);
           if (str) {
 	    ndpi_add_string_to_automa(whitelist_automa, str);
-            whitelisted_servers++;
           }
         }
       }

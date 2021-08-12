@@ -28,7 +28,6 @@ class UnexpectedServer : public FlowCheck {
  private:
   ndpi_ptree_t *whitelist_ptree;
   void *whitelist_automa;
-  u_int32_t whitelisted_servers;
 
   virtual FlowAlertType getAlertType() const = 0;
 
@@ -42,7 +41,6 @@ public:
   UnexpectedServer() : FlowCheck(ntopng_edition_community,
 				  false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
 				  true /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {
-    whitelisted_servers = 0;
     whitelist_automa = NULL;
     if((whitelist_ptree = ndpi_ptree_create()) == NULL)
       throw "Out of memory";
