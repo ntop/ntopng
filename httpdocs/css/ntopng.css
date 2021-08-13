@@ -541,16 +541,21 @@ path.link {
 }
 
 /* Control main navbard badges display based on window size */
-@media (max-width: 1200px) {
+@media (max-width: 1280px) {
   .navbar-main-badges {
-    width: 290px;
+    width: 360px;
   }
 }
 
-/* Control main navbard badges display based on window size */
+@media (max-width: 1200px) {
+  .navbar-main-badges {
+    width: 300px;
+  }
+}
+
 @media (max-width: 1080px) {
   .navbar-main-badges {
-    width: 210px;
+    width: 200px;
   }
 }
 
