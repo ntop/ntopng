@@ -80,6 +80,7 @@ class Prefs {
   bool enable_arp_matrix_generation;
   bool enable_zmq_encryption;
   bool flow_table_time;
+  bool enable_broadcast_domain_too_large;
   u_int32_t max_num_secs_before_delete_alert;
   int32_t max_entity_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
@@ -403,6 +404,8 @@ class Prefs {
   inline bool      isBehavourAnalysisEnabled()   { return(enable_behaviour_analysis);                   };
   inline u_int32_t behaviourAnalysisLearningPeriod() { return behaviour_analysis_learning_period;       };
   
+  inline bool      isBroadcastDomainTooLargeEnabled()     { return(enable_broadcast_domain_too_large);  };
+
   inline bool      isASNBehavourAnalysisEnabled()     { return(enable_asn_behaviour_analysis);               };
   inline bool      isNetworkBehavourAnalysisEnabled() { return(enable_network_behaviour_analysis);           };
   inline bool      isIfaceL7BehavourAnalysisEnabled() { return(enable_iface_l7_behaviour_analysis);          };

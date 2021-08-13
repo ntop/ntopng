@@ -64,6 +64,7 @@ Prefs::Prefs(Ntop *_ntop) {
     override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false;
     hostMask = no_host_mask;
   enable_asn_behaviour_analysis = enable_network_behaviour_analysis = enable_iface_l7_behaviour_analysis = false; 
+  enable_broadcast_domain_too_large = false;
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
   default_l7policy = PASS_ALL_SHAPER_ID;
@@ -668,7 +669,8 @@ void Prefs::reloadPrefsFromRedis() {
     max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN, CONST_DEFAULT_MAX_UI_STRLEN),
     hostMask      = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, no_host_mask),
     flow_table_time      = (bool)getDefaultPrefsValue(CONST_FLOW_TABLE_TIME, flow_table_time),
-    auto_assigned_pool_id = (u_int16_t) getDefaultPrefsValue(CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID);
+    auto_assigned_pool_id = (u_int16_t) getDefaultPrefsValue(CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID),
+    enable_broadcast_domain_too_large = getDefaultBoolPrefsValue(CONST_PREFS_BROADCAST_DOMAIN_TOO_LARGE, false);
 
   getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_TS_DRIVER, &aux, (char*)"rrd");
   if(aux) {

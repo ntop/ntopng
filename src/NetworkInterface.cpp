@@ -5950,10 +5950,10 @@ void NetworkInterface::lua(lua_State *vm) {
   if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
     char *cur_sites = top_sites->json();
 
-    if(top_sites)
-      lua_push_str_table_entry(vm, "sites", cur_sites ? cur_sites : (char*)"{}");
+    if(cur_sites)
+      lua_push_str_table_entry(vm, "sites", cur_sites);
     if(old_sites)
-      lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
+      lua_push_str_table_entry(vm, "sites.old", old_sites);
     if(cur_sites) free(cur_sites);
   }
 
@@ -7634,7 +7634,6 @@ void NetworkInterface::updateBroadcastDomains(VLANid vlan_id,
 
 	  /* NOTE: call this also for existing domains in order to update the hits */
 	  bcast_domains->addAddress(&cur_bcast_domain, cur_cidr);
-
 #ifdef BROADCAST_DOMAINS_DEBUG
 	  char buf1[32], buf2[32], buf3[32];
 
@@ -7645,9 +7644,9 @@ void NetworkInterface::updateBroadcastDomains(VLANid vlan_id,
 					 cur_cidr);
 #endif
 	} else {
-	  getAlertsQueue()->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, src, dst, vlan_id);
-        }
-
+    if(ntop->getPrefs()->isBroadcastDomainTooLargeEnabled()) 
+      getAlertsQueue()->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, src, dst, vlan_id);
+  }
 	break;
       }
     }
