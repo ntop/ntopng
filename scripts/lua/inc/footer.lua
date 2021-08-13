@@ -324,17 +324,17 @@ print[[
 
 					if(rsp.engaged_alerts > 0) {
 						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/alert_stats.lua?ifid=]] print(tostring(ifid)) print[[&status=engaged\">"
-						msg += "<span class=\"badge bg-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.engaged_alerts)+"</span></a>";
+						msg += "<span class=\"badge bg-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.formatValue(rsp.engaged_alerts, 1)+"</span></a>";
 					}
 
 					if(rsp.alerted_flows_warning > 0 && !(systemInterfaceEnabled)) {
 						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?alert_type_severity=warning\">"
-						msg += "<span class=\"badge bg-warning\">"+NtopUtils.addCommas(rsp.alerted_flows_warning)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
+						msg += "<span class=\"badge bg-warning\">"+NtopUtils.formatValue(rsp.alerted_flows_warning, 1)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 					}
 
 					if(rsp.alerted_flows_error > 0 && !(systemInterfaceEnabled)) {
 						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?alert_type_severity=error_or_higher\">"
-						msg += "<span class=\"badge bg-danger\">"+NtopUtils.addCommas(rsp.alerted_flows_error)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
+						msg += "<span class=\"badge bg-danger\">"+NtopUtils.formatValue(rsp.alerted_flows_error, 1)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 					}
 				}
 
@@ -354,7 +354,7 @@ print[[
 				if(rsp.num_local_hosts > 0 && (!systemInterfaceEnabled)) {
 					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=local\">";
 					msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"badge bg-success\">";
-					msg += NtopUtils.addCommas(rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+					msg += NtopUtils.formatValue(rsp.num_local_hosts, 1)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 				}
 
 				const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
@@ -372,7 +372,7 @@ print[[
 						msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge bg-danger\">";
 					}
 
-					msg += NtopUtils.addCommas(num_remote_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+					msg += NtopUtils.formatValue(num_remote_hosts, 1)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 				}
 
 				if(rsp.num_devices > 0 && (!systemInterfaceEnabled)) {
@@ -389,7 +389,7 @@ print[[
 						msg += "<span title=\"" + macs_label +"\" class=\"badge bg-danger\">";
 					}
 
-					msg += NtopUtils.addCommas(rsp.num_devices)+" <i class=\"fas fa-ethernet\"></i></span></a>";
+					msg += NtopUtils.formatValue(rsp.num_devices, 1)+" <i class=\"fas fa-ethernet\"></i></span></a>";
 				}
 
 				if(rsp.num_flows > 0 && (!systemInterfaceEnabled)) {
@@ -405,13 +405,13 @@ print[[
 						msg += "<span class=\"badge bg-danger\">";
 					}
 
-					msg += NtopUtils.addCommas(rsp.num_flows)+" <i class=\"fas fa-stream\"></i>  </span> </a>";
+					msg += NtopUtils.formatValue(rsp.num_flows, 1)+" <i class=\"fas fa-stream\"></i>  </span> </a>";
 
 					if (rsp.flow_export_drops > 0) {
 						const export_pctg = rsp.flow_export_drops / (rsp.flow_export_count + rsp.flow_export_drops + 1);
 						if (export_pctg > ]] print(stats_utils.UPPER_BOUND_INFO_EXPORTS) print[[) {
 							const badge_class = (export_pctg <= ]] print(stats_utils.UPPER_BOUND_WARNING_EXPORTS) print[[) ? 'warning' : 'danger';
-							msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua\"><span class=\"badge bg-"+badge_class+"\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+NtopUtils.addCommas(rsp.flow_export_drops)+" Export drop";
+							msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua\"><span class=\"badge bg-"+badge_class+"\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+NtopUtils.formatValue(rsp.flow_export_drops, 1)+" Export drop";
 							if(rsp.flow_export_drops > 1) msg += "s";
 							msg += "</span></a>";
 						}
