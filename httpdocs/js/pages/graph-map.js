@@ -54,7 +54,134 @@ const defaultOptions = {
         stabilization: {
             onlyDynamicEdges: false
         }
-    }
+    },
+    groups: {
+
+        unknown: {
+            shape: "dot",
+        },
+
+        printer: {
+          shape: "icon",
+          icon: {
+            face: "'Font Awesome 5 Free'",
+            code: "\uf02f",
+            size: 50,
+            weight:"bold",
+          },
+        },
+
+        video: {
+          shape: "icon",
+          icon: {
+            face: "'Font Awesome 5 Free'",
+            code: "\uf03d",
+            size: 50,
+            weight:"bold",
+          },
+        },
+
+        workstation: {
+          shape: "icon",
+          icon: {
+            face: "'Font Awesome 5 Free'",
+            code: "\uf108",
+            size: 50,
+            weight:"bold",
+          },
+        },
+
+        laptop: {
+          shape: "icon",
+          icon: {
+            face: "'Font Awesome 5 Free'",
+            code: "\uf109",
+            size: 50,
+            weight:"bold",
+          },
+        },
+
+        tablet: {
+          shape: "icon",
+          icon: {
+            face: "'Font Awesome 5 Free'",
+            code: "\uf10a",
+            size: 50,
+            weight:"bold",
+          },
+        },
+
+        phone: {
+          shape: "icon",
+          icon: {
+            face: "'Font Awesome 5 Free'",
+            code: "\uf10b",
+            size: 50,
+            weight:"bold",
+          },
+        },
+
+        tv: {
+          shape: "icon",
+          icon: {
+            face: "'Font Awesome 5 Free'",
+            code: "\uf26c",
+            size: 50,
+            weight:"bold",
+          },
+        },
+
+        networking: {
+          shape: "icon",
+          icon: {
+            face: "'Font Awesome 5 Free'",
+            code: "\uf0b2",
+            size: 50,
+            weight:"bold",
+          },
+        },
+
+        wifi: {
+          shape: "icon",
+          icon: {
+            face: "'Font Awesome 5 Free'",
+            code: "\uf1eb",
+            size: 50,
+            weight:"bold",
+          },
+        },
+
+        nas: {
+          shape: "icon",
+          icon: {
+            face: "'Font Awesome 5 Free'",
+            code: "\uf1c0",
+            size: 50,
+            weight:"bold",
+          },
+        },
+
+        multimedia: {
+          shape: "icon",
+          icon: {
+            face: "'Font Awesome 5 Free'",
+            code: "\uf001",
+            size: 50,
+            weight:"bold",
+          },
+        },
+
+        iot: {
+          shape: "icon",
+          icon: {
+            face: "'Font Awesome 5 Free'",
+            code: "\uf491",
+            size: 50,
+            weight:"bold",
+          },
+        },
+
+    },
 };
 
 function getTimestampByTime(time) {
