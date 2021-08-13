@@ -1,5 +1,9 @@
 local lang = {
   ["abort"] = "中止",
+  ["acknowledge"] = "确认的",
+  ["acknowledge_alerts"] = "确认警告",
+  ["acknowledged_all"] = "所有",
+  ["acknowledged_only"] = "仅确认",
   ["action"] = "操作",
   ["actions"] = "操作",
   ["active_flows"] = "活动流",
@@ -4770,6 +4774,8 @@ local lang = {
     ["5_min"] = "5分钟",
     ["6_months"] = "6个月",
     ["alarmable"] = "警告",
+    ["acknowledge_alert"] = "确认警告",
+    ["acknowledged"] = "确认的",
     ["alert_actions"] = "操作",
     ["alert_count"] = "计数",
     ["alert_counts"] = "计数",
@@ -5206,6 +5212,7 @@ local lang = {
     },
   },
   ["tags"] = {
+    ["acknowledged"] = "确认的",
     ["alert_id"] = "警告类型",
     ["begin_time"] = "开始时间",
     ["cli_ip"] = "客户端",
