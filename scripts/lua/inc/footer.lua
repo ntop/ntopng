@@ -490,7 +490,7 @@ setInterval(footerRefresh, ]]
 local footer_refresh_rate = ntop.getPrefs()["housekeeping_frequency"]
 
 print(footer_refresh_rate.."")
-print[[ * 1000);  /* re-schedule every [interface-rate] seconds */
+print[[ * 1000); /* re-schedule every [interface-rate] seconds */
 
 //Automatically open dropdown-menu
 $(document).ready(function(){
