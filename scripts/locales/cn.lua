@@ -1208,7 +1208,7 @@ local lang = {
     ["first_last_seen"] = "首次/最后出现",
     ["flow_peers"] = "流peers",
     ["get_proto_talkers"] = "获取使用此应用程序taker",
-    ["historical_data_explorer"] = "历史探针",
+    ["historical_data_explorer"] = "历史浏览器",
     ["host_name"] = "主机名",
     ["host_talkers"] = "%{host} talker",
     ["hosts_talking_proto_with"] = "主机与%{host}通信%{proto}",
@@ -3306,7 +3306,7 @@ local lang = {
   },
   ["license_page"] = {
     ["agreement"] = "有效License",
-    ["license"] = "Licese",
+    ["license"] = "License",
     ["not_valid"] = "无效",
     ["status"] = "状态",
     ["valid"] = "有效的",
