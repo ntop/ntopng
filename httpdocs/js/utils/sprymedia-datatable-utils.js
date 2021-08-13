@@ -538,7 +538,7 @@ class DataTableUtils {
                     return;
                 }
 
-                columns.push({ index: i, name: this.header().textContent });
+                columns.push({ index: i, name: this.header().textContent, label: this.i18n.name /* Human-readable column name */ });
             });
 
             const $btnGroup = $(`
@@ -553,8 +553,11 @@ class DataTableUtils {
             const $checkboxes = $(`<div class='px-4'></div>`);
 
             for (let i = 0; i < columns.length; i++) {
-
                 const column = columns[i];
+
+		// Prevents columns with no names to be selectively hidden (e.g., the entity under the all alerts page)
+		if(column.name == "")
+		    continue;
 
                 // create a checkbox and delegate a change event
                 const id = `toggle-${column.name.split().join('_')}`; 
