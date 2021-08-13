@@ -35,6 +35,7 @@ HostStats::HostStats(Host *_host) : GenericTrafficElement() {
   total_alerts = 0;
   num_flow_alerts = 0;
   periodicUpdate = 0;
+  periodic_stats_update = 0;
   consecutive_high_score = 0;
   client_flows_anomaly = server_flows_anomaly = client_score_anomaly = server_score_anomaly = 0;
   
@@ -66,7 +67,19 @@ HostStats::~HostStats() {
 /* *************************************** */
 
 void HostStats::updateStats(const struct timeval *tv) {
-  GenericTrafficElement::updateStats(tv);
+  /*
+    Do not update throughput stats too often, use the interface periodic stats update frequency to
+    make sure packet interfaces update faster than ZMQ interfaces.
+   */
+  if(tv->tv_sec >= periodic_stats_update) {
+    GenericTrafficElement::updateStats(tv);
+    periodic_stats_update = tv->tv_sec + getHost()->getInterface()->periodicStatsUpdateFrequency();
+  }
+
+#if 0
+  char buf[64];
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Stats updated [%s][%.5f][last: %u][freq: %u]", getHost()->get_ip()->print(buf, sizeof(buf)), getBytesThpt(), getTh()->get_last_update_time(), getHost()->getInterface()->periodicStatsUpdateFrequency());
+#endif
 
   if(tv->tv_sec >= periodicUpdate) {
     u_int32_t num_anomalies = 0;

@@ -41,7 +41,7 @@ class HostStats: public GenericTrafficElement {
   L4Stats l4stats;
   
   u_int8_t consecutive_high_score;
-  time_t periodicUpdate;
+  time_t periodicUpdate, periodic_stats_update;
 
   /* *************************************** */
   /* Behavioural analysis regarding the host */

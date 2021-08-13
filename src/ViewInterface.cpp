@@ -550,6 +550,20 @@ bool ViewInterface::isSampledTraffic() const {
 
 /* **************************************************** */
 
+u_int32_t ViewInterface::periodicStatsUpdateFrequency() const {
+  u_int32_t freq = 0;
+
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
+    u_int32_t cur_freq = viewed_interfaces[s]->periodicStatsUpdateFrequency();
+
+    if(cur_freq > freq) freq = cur_freq;
+  }
+
+  return freq;
+}
+
+/* **************************************************** */
+
 void ViewInterface::flowPollLoop() {
   while(!ntop->getGlobals()->isShutdownRequested()) {
     while(idle()) sleep(1);
