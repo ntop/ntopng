@@ -1167,13 +1167,13 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 	      && (flow->l4_proto != IPPROTO_TCP /* Not TCP or TCP but without SYN (See https://github.com/ntop/ntopng/issues/5058) */
 		  /*
 		    No SYN (cumulative flow->tcp.tcp_flags are NOT checked as they can contain a SYN but the direction is unknown),
-		    do the swap as it is assumed the beginning of the TCP flow has not been seen
+		    do the swap as it is assumed the beginning of the TCP flow has not been seen.
+
+		    Swap check is performed for TCP flows for all cases other than
+		    when a SYN is seen from client to server and no other flag is seen from server to client.
+		    Indded, in this case, the swap should not be performed as the direction is accurate according to the seen flags.
 		   */
-		  || !((flow->tcp.server_tcp_flags | flow->tcp.client_tcp_flags) & TH_SYN)
-		  /*
-		    The SYN is server to client, swapping is safe
-		  */
-		  || flow->tcp.server_tcp_flags & TH_SYN))
+		  || !(flow->tcp.client_tcp_flags == TH_SYN && flow->tcp.server_tcp_flags == 0)))
       /* Attempt to determine flow client and server using port numbers
 	 useful when exported flows are mono-directional
 	 https://github.com/ntop/ntopng/issues/1978 */
