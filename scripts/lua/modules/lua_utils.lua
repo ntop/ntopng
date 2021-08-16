@@ -4338,7 +4338,7 @@ function builMapHREF(service_peer, vlan_id, map, default_page)
    local dev_type
 
    -- Getting stats and formatting initial href
-   if service_peer.ip and not service_peer.is_mac then
+   if (service_peer.ip or service_peer.host) and not service_peer.is_mac then
       -- Host URL only if the host is active
       host_url = hostinfo2detailsurl({host = service_peer.ip or service_peer.host, vlan = service_peer.vlan}, nil, true --[[ check of the host is active --]])
 
