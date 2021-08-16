@@ -1618,13 +1618,14 @@ local known_parameters = {
    ["bandwidth_threshold"]    = validateNumber,
 
 -- Service Map
-   ["service_id"]            = validateNumber,
-   ["service_state"]         = validateNumber,
-   ["set_service_state"]    = validateNumber,
-   ["service_l7proto"]      = validateSingleWord,
+   ["service_id"]          = validateNumber,
+   ["service_state"]       = validateNumber,
+   ["set_service_state"]   = validateNumber,
+   ["service_l7proto"]     = validateSingleWord,
    ["map"]                 = validateUnquoted,
-   ["age"]          = validateSingleWord,
-   ["first_seen"]    = validateNumber,
+   ["age"]                 = validateSingleWord,
+   ["first_seen"]          = validateNumber,
+   ["only_memory"]         = validateBool,
 
 -- Script editor
    ["plugin_file_path"]         = validateLuaScriptPath,

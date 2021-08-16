@@ -4742,6 +4742,7 @@ local lang = {
     ["status"] = "Status",
     ["table_view"] = "Table View",
     ["undecided"] = "Undecided",
+    ["only_mem_hosts"] = "Only Memory Hosts",
     ["aging"] = {
       ["aging"] = "All Time",
       ["day"] = "Last Day",
