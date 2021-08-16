@@ -231,6 +231,9 @@ function setEventListenersNetwork(network) {
         if (unicastOnly !== "") {
             query = `&unicast_only=true`;
         }
+        if (only_memory !== "") {
+            query = `&only_memory=${only_memory}`;
+        }
 
         if (selectedNode !== undefined) {
             window.location.href = http_prefix + `/lua/pro/enterprise/${MAP}_map.lua?page=graph&host=` + selectedNode.id + query;
@@ -266,7 +269,6 @@ function setEventListenersNetwork(network) {
 }
 
 function loadGraph(container) {
-
     const dataRequest = { ifid: ifid, action: 'load_graph', map: MAP};
     // if an host has been defined inside the URL query then add it to the request
     const url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, {
@@ -275,6 +277,7 @@ function loadGraph(container) {
         vlan: vlanId,
         unicast_only: unicastOnly,
         l7proto: l7proto,
+        only_memory: only_memory,
         first_seen: getTimestampByTime(age)
     });
 
