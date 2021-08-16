@@ -3383,6 +3383,38 @@ static int ntop_get_interface_stats_update_freq(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_secs_to_first_data(lua_State* vm) {
+  NetworkInterface *ntop_interface = NULL;
+  int ifid;
+
+  if(lua_type(vm, 1) == LUA_TNUMBER) {
+    ifid = lua_tointeger(vm, 1);
+    ntop_interface = ntop->getInterfaceById(ifid);
+  } else
+    ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_interface) {
+    /*
+      Compute when the first data is available. Since stats refresh every interface_refresh_rate seconds
+      initial data becomes available after 2 * interface_refresh_rate as two samples are required for deltas (such as throughputs)
+      to be calculated
+    */
+    u_int32_t secs_to_first_data = 0,
+      interface_refresh_rate = ntop_interface->periodicStatsUpdateFrequency(),
+      secs_since_startup = ntop->getGlobals()->getUptime();
+
+    if(interface_refresh_rate * 2 > secs_since_startup)
+      secs_to_first_data = (interface_refresh_rate * 2) - secs_since_startup;
+
+    lua_pushinteger(vm, secs_to_first_data);
+  } else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_hash_tables_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4289,6 +4321,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "hasExternalAlerts",        ntop_interface_has_external_alerts  },
   { "getStats",                 ntop_get_interface_stats },
   { "getStatsUpdateFreq",       ntop_get_interface_stats_update_freq },
+  { "getSecsToFirstData",       ntop_get_secs_to_first_data },
   { "updateDirectionStats",     ntop_update_interface_direction_stats },
   { "updateTopSites",           ntop_update_interface_top_sites},
   { "resetCounters",            ntop_interface_reset_counters },

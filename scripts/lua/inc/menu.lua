@@ -14,6 +14,7 @@ local alerts_api = require("alerts_api")
 local recording_utils = require "recording_utils"
 local telemetry_utils = require "telemetry_utils"
 local ts_utils = require("ts_utils_core")
+local format_utils = require "format_utils"
 local page_utils = require("page_utils")
 local delete_data_utils = require "delete_data_utils"
 local toasts_manager = require("toasts_manager")
@@ -1257,6 +1258,27 @@ print('</div>')
 -- Hidden by default, will be shown by the footer if necessary
 print('<div id="major-release-alert" class="alert alert-info" style="display:none" role="alert"><i class="fas fa-cloud-download-alt" id="alerts-menu-triangle"></i> <span id="ntopng_update_available"></span>')
 print('</div>')
+
+-- See if we are starting up and display an informative message
+local secs_to_first_data = interface.getSecsToFirstData()
+
+if secs_to_first_data > 0 then
+   print[[
+<div class="alert alert-primary" role="alert" id='starting-up-msg'>
+  <div class="spinner-border spinner-border-sm text-primary" role="status">
+    <span class="sr-only">Loading...</span>
+  </div> ]] print(i18n("restart.just_started", {product = info.product, when = format_utils.formatPastEpochShort(os.time() + secs_to_first_data)})) print [[
+</div>
+
+<script type="text/javascript">
+  const msecs_to_first_data = ]] print(string.format("%u", secs_to_first_data * 1000)) print[[;
+  const hide_starting_up_msg = function() {
+    $("#starting-up-msg").hide();
+  };
+  setTimeout(hide_starting_up_msg, msecs_to_first_data);
+</script>
+]]
+end
 
 if(_SESSION["INVALID_CSRF"]) then
   print('<div class="alert alert-warning alert-dismissable" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
