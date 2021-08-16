@@ -216,6 +216,9 @@ let updatingChart_totals = [
 	$(".mobile-menu-stats .network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null})
 ];
 
+const interface_refresh_rate = ]] print(string.format("%u", math.min(interface.getStatsUpdateFreq(), 20 --[[ Don't wait too much or the chart will look buggy --]]))) print[[;
+let   last_interface_load_refresh = 0;
+
 const footerRefresh = function() {
 	$.ajax({
 		type: 'GET',
@@ -228,44 +231,46 @@ const footerRefresh = function() {
 
 			const rsp = content["rsp"];
 
-			try {
-				var values = updatingChart_uploads[0].text().split(",")
-				var values1 = updatingChart_downloads[0].text().split(",")
-				var values2 = updatingChart_totals[0].text().split(",")
+                        try {
+                                var pps = rsp.throughput_pps;
+                                var bps = rsp.throughput_bps * 8;
+                                var bps_upload = rsp.throughput.upload.bps * 8;
+                                var bps_download = rsp.throughput.download.bps * 8;
 
-				var pps = rsp.throughput_pps;
-				var bps = rsp.throughput_bps * 8;
-				var bps_upload = rsp.throughput.upload.bps * 8;
-				var bps_download = rsp.throughput.download.bps * 8;
-
-				values.shift();
-				values.push(bps_upload);
-				updatingChart_uploads[0].text(values.join(",")).change();
-				updatingChart_uploads[1].text(values.join(",")).change();
-				values1.shift();
-				values1.push(-bps_download);
-				updatingChart_downloads[0].text(values1.join(",")).change();
-				updatingChart_downloads[1].text(values1.join(",")).change();
-				values2.shift();
-				values2.push(bps);
-				updatingChart_totals[0].text(values2.join(",")).change();
-				updatingChart_totals[1].text(values2.join(",")).change();
-				var v = bps_upload - bps_download;
-
-]]
+                                if(last_interface_load_refresh + interface_refresh_rate < rsp.epoch) {
+                                  var values = updatingChart_uploads[0].text().split(",")
+                                  var values1 = updatingChart_downloads[0].text().split(",")
+                                  var values2 = updatingChart_totals[0].text().split(",")
+                                  values.shift();
+                                  values.push(bps_upload);
+                                  updatingChart_uploads[0].text(values.join(",")).change();
+                                  updatingChart_uploads[1].text(values.join(",")).change();
+                                  values1.shift();
+                                  values1.push(-bps_download);
+                                  updatingChart_downloads[0].text(values1.join(",")).change();
+                                  updatingChart_downloads[1].text(values1.join(",")).change();
+                                  values2.shift();
+                                  values2.push(bps);
+                                  updatingChart_totals[0].text(values2.join(",")).change();
+                                  updatingChart_totals[1].text(values2.join(",")).change();
+  
+                                  var v = bps_upload - bps_download;
+  ]]
 
 if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
    print[[
-
-				var v = Math.round(Math.min((bps*100)/]] print(string.format("%u", maxSpeed)) print[[, 100));
-				$('.network-load').html(v+"%");
+                                  v = Math.round(Math.min((bps*100)/]] print(string.format("%u", maxSpeed)) print[[, 100));
+                                  $('.network-load').html(v+"%");
 ]]
 end
 
 print[[
-				$('.chart-upload-text:visible').html(NtopUtils.bitsToSize(bps_upload, 1000));
-				$('.chart-download-text:visible').html(NtopUtils.bitsToSize(bps_download, 1000));
-				$('.chart-total-text:visible').html(NtopUtils.bitsToSize(bps_upload + bps_download, 1000));
+                                  $('.chart-upload-text:visible').html(NtopUtils.bitsToSize(bps_upload, 1000));
+                                  $('.chart-download-text:visible').html(NtopUtils.bitsToSize(bps_download, 1000));
+                                  $('.chart-total-text:visible').html(NtopUtils.bitsToSize(bps_upload + bps_download, 1000));
+
+                                  last_interface_load_refresh = rsp.epoch;
+                                } /* Closes network load chart refresh */
      ]]
 
 -- systemInterfaceEnabled is defined inside menu.lua
@@ -484,7 +489,7 @@ $(document).ajaxError(function(err, response, ajaxSettings, thrownError) {
 
 footerRefresh();  /* call immediately to give the UI a more responsive look */
 
-setInterval(footerRefresh, 1000); /* re-schedule every [interface-rate] seconds */
+setInterval(footerRefresh, 2000); /* re-schedule every [interface-rate] seconds */
 
 //Automatically open dropdown-menu
 $(document).ready(function(){
