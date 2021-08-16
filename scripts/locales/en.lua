@@ -4737,7 +4737,7 @@ local lang = {
     ["node_descr"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> hosts and <font color=#8004e0>MAC</font> addresses.<li>Arcs represent a communication between two hosts: <font color=#28a745>allowed</font>, <font color=red>denied</font>, and <font color=#ffc107>undecided</font> service status.<li>Double click on a node to jump to the host page. Use the mouse wheel to zoom in/out.</li>",
     ["note_1"] = "During the <b>learning</b>, a service status cannot be changed.",
     ["note_2"] = "The services with the <b>Undecided</b> (<kbd class='bg-warning text-dark'><i class='fas fa-hourglass-half'></i></kbd>) status require a confirmation by the user. Once a service status has been confirmed it can be <b>Allowed</b> (<kbd class='bg-success'><i class='fas fa-check'></i></kbd>) or <b>Denied</b> (<kbd class='bg-danger'><i class='fas fas fa-times'></i></kbd>).",
-    ["only_mem_hosts"] = "Only Memory Hosts",
+    ["only_mem_hosts"] = "In-memory Hosts",
     ["protocols"] = "All Protocols",
     ["set_state"] = "Set %{label} service(s) status to: ",
     ["status"] = "Status",
