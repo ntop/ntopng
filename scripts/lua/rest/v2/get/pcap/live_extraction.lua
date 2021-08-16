@@ -16,7 +16,7 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-local ifid = tonumber(_GET["ifid"])
+local ifid = _GET["ifid"]
 local filter = _GET["bpf_filter"]
 local time_from = tonumber(_GET["epoch_begin"])
 local time_to = tonumber(_GET["epoch_end"])
@@ -42,6 +42,8 @@ if _GET["epoch_begin"] == nil or _GET["epoch_end"] == nil then
 end
 
 interface.select(ifid)
+
+ifid = tonumber(ifid)
 
 if filter == nil then
    filter = ""
