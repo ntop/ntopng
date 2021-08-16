@@ -74,10 +74,8 @@
 #include "flow_alerts/FlowRiskTLSCertificateSelfSignedAlert.h"
 #include "flow_alerts/DataExfiltrationAlert.h"
 #include "flow_alerts/ElephantFlowAlert.h"
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
 #include "flow_alerts/LateralMovementAlert.h"
 #include "flow_alerts/PeriodicityChangedAlert.h"
-#endif
 #include "flow_alerts/LongLivedFlowAlert.h"
 #include "flow_alerts/DNSDataExfiltrationAlert.h"
 #include "flow_alerts/TCPConnectionRefusedAlert.h"
