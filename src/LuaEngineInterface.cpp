@@ -3364,7 +3364,14 @@ static int ntop_update_interface_top_sites(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_stats_update_freq(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  NetworkInterface *ntop_interface = NULL;
+  int ifid;
+
+  if(lua_type(vm, 1) == LUA_TNUMBER) {
+    ifid = lua_tointeger(vm, 1);
+    ntop_interface = ntop->getInterfaceById(ifid);
+  } else
+    ntop_interface = getCurrentInterface(vm);
 
   if(ntop_interface)
     lua_pushinteger(vm, ntop_interface->periodicStatsUpdateFrequency());

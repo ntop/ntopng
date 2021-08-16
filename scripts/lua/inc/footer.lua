@@ -484,12 +484,7 @@ $(document).ajaxError(function(err, response, ajaxSettings, thrownError) {
 
 footerRefresh();  /* call immediately to give the UI a more responsive look */
 
-setInterval(footerRefresh, ]]
-
-local footer_refresh_rate = ntop.getPrefs()["housekeeping_frequency"]
-
-print(footer_refresh_rate.."")
-print[[ * 1000); /* re-schedule every [interface-rate] seconds */
+setInterval(footerRefresh, 1000); /* re-schedule every [interface-rate] seconds */
 
 //Automatically open dropdown-menu
 $(document).ready(function(){

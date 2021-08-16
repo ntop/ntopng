@@ -657,7 +657,7 @@
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED NTOPNG_PREFS_PREFIX".is_active_local_host_cache_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL NTOPNG_PREFS_PREFIX".active_local_host_cache_interval"
 #define CONST_RUNTIME_PREFS_LOG_TO_FILE                NTOPNG_PREFS_PREFIX".log_to_file"
-#define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY     NTOPNG_PREFS_PREFIX".housekeeping_frequency"
+#define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQ          NTOPNG_PREFS_PREFIX".housekeeping_freq"
 #define CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION     NTOPNG_PREFS_PREFIX".flow_device_port_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_THPT_CONTENT               NTOPNG_PREFS_PREFIX".thpt_content"     /* bps / pps */
 #define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        NTOPNG_PREFS_PREFIX".alerts_global.min.local_hosts"

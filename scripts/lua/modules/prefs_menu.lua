@@ -127,9 +127,6 @@ local menu_subpages = {
     }, flow_max_idle = {
       title       = i18n("prefs.flow_max_idle_title"),
       description = i18n("prefs.flow_max_idle_description"),
-    }, housekeeping_frequency = {
-      title       = i18n("prefs.housekeeping_frequency_title"),
-      description = i18n("prefs.housekeeping_frequency_description", {product=info["product"]}),
     }, toggle_local_host_cache_enabled = {
       title       = i18n("prefs.toggle_local_host_cache_enabled_title"),
       description = i18n("prefs.toggle_local_host_cache_enabled_description"),

@@ -894,10 +894,6 @@ function printInMemory()
 		       "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle, "number", nil, nil, nil,
 		       {min=1, max=3600, tformat="smh"})
 
-  prefsInputFieldPrefs(subpage_active.entries["housekeeping_frequency"].title,
-		       subpage_active.entries["housekeeping_frequency"].description,
-		       "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency, "number", nil, nil, nil, {min = 5, max = 60, step = 5})
-
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />

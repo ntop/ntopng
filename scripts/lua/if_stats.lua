@@ -207,8 +207,6 @@ if (isAdministrator()) then
 	 interface.updateTrafficMirrored()
       end
 
-      setInterfaceRegreshRate(ifstats.id, tonumber(_POST["ifRate"]))
-
       local sf = tonumber(_POST["scaling_factor"])
       if(sf == nil) then sf = 1 end
       ntop.setCache("ntopng.prefs.iface_" .. tostring(ifid)..'.scaling_factor',tostring(sf))
@@ -260,7 +258,7 @@ local url = ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=' .. ifid
 
 --  Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface
-print('\n<script>var refresh = '..getInterfaceRefreshRate(ifstats.id)..' * 1000; /* ms */;</script>\n')
+print('\n<script>var refresh = '..interface.getStatsUpdateFreq(ifstats.id)..' * 1000; /* ms */;</script>\n')
 
 local short_name = getHumanReadableInterfaceName(ifname)
 local title = i18n("interface") .. ": " .. shortenCollapse(short_name)
@@ -1514,7 +1512,7 @@ print [[
 			  }
 			}
 	  });
-}, ]] print(getInterfaceRefreshRate(ifstats.id).."") print[[ * 1000);
+}, ]] print(interface.getStatsUpdateFreq(ifstats.id).."") print[[ * 1000);
 
    </script>
 ]]
@@ -1674,21 +1672,8 @@ elseif(page == "config") then
 	print[[
 	   </td>
 	</tr>]]
+      end
    end
-
-	-- Interface refresh rate
-	print[[
-	<tr>
-	   <th>]] print(i18n("if_stats_config.refresh_rate")) print[[</th>
-	   <td>]]
-	local refreshrate = getInterfaceRefreshRate(ifstats.id)
-	inline_input_form("ifRate", "Refresh Rate",
-	   i18n("if_stats_config.refresh_rate_popup_msg"),
-	   refreshrate, isAdministrator(), 'type="number" min="1"', "d-inline-block", "if_stats_config.referesh_rate_measure_unit")
-	print[[
-	   </td>
-	</tr>]]
-     end
 
    if not have_nedge then
      -- Scaling factor
@@ -2534,7 +2519,7 @@ end
 print [[
 	   }
 	       });
-       }, ]] print(getInterfaceRefreshRate(ifstats.id).."") print[[ * 1000)
+       }, ]] print(interface.getStatsUpdateFreq(ifstats.id).."") print[[ * 1000)
 
 </script>
 

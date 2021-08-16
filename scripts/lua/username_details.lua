@@ -30,7 +30,7 @@ local have_nedge = ntop.isnEdge()
 if have_nedge then
    refresh_rate = 5
 else
-   refresh_rate = getInterfaceRefreshRate(ifstats["id"])
+   refresh_rate = interface.getStatsUpdateFreq(ifstats["id"])
 end
 
 

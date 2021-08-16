@@ -362,7 +362,7 @@ elseif(page == "packets") then
    print[[</table>
 
    <script type='text/javascript'>
-    var refresh = ]] print(getInterfaceRefreshRate(ifstats.id)) print[[ * 1000; /* ms */;
+    var refresh = ]] print(interface.getStatsUpdateFreq(ifstats.id)) print[[ * 1000; /* ms */;
 
 	 window.onload=function() {
        do_pie("#ipverDistro", ']]

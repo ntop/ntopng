@@ -2515,19 +2515,6 @@ function getInterfaceSpeed(ifid)
    return ifspeed
 end
 
-function getInterfaceRefreshRate(ifid)
-   local key = "ntopng.prefs.ifid_"..tostring(ifid)..".refresh_rate"
-   local refreshrate = ntop.getCache(key)
-
-   if isEmptyString(refreshrate) or tonumber(refreshrate) == nil then
-      refreshrate = 3
-   else
-      refreshrate = tonumber(refreshrate)
-   end
-
-   return refreshrate
-end
-
 function setInterfaceRegreshRate(ifid, refreshrate)
    local key = "ntopng.prefs.ifid_"..tostring(ifid)..".refresh_rate"
 
