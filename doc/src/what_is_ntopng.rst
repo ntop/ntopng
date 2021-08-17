@@ -160,8 +160,8 @@ Versions
 
 The ntopng software comes in four versions: Community, Professional, Enterprise M, Enterprise L, and Enterprise L Bundle. Each version unlocks additional features with respect to the smaller one.
 
-A full list of features and a comparison table is available in the ntopng 
-`Product Page <https://www.ntop.org/products/traffic-analysis/ntop/>`_
+The full list of features and differences between versions is available in the ntopng 
+`Product Page <https://www.ntop.org/products/traffic-analysis/ntop/>`_.
 
 ntopng Community
 ----------------
