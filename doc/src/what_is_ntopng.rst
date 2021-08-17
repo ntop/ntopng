@@ -155,8 +155,7 @@ do everything automatically.
 Versions
 ========
 
-The ntopng software comes in four versions: Community, Professional, Enterprise M, Enterprise L
-each version unlocks additional features with respect to the smaller one.
+The ntopng software comes in four versions: Community, Professional, Enterprise M, Enterprise L, and Enterprise L Bundle. Each version unlocks additional features with respect to the smaller one.
 
 A full list of features and a comparison table is available in the ntopng 
 `Product Page <https://www.ntop.org/products/traffic-analysis/ntop/>`_
@@ -180,6 +179,15 @@ ntopng Enterprise L
 -------------------
 
 The Enterprise L version offers some extra features with respect to the Enterprise M version, including Identity Management (the ability to correlate users to traffic). This version also unlocks n2disk 1 Gbit (Continuous Recording) and nProbe Pro (Flow Collection) with no need for additional licenses.
+
+
+ntopng Enterprise L Bundle
+--------------------------
+
+The Enterprise L Bundle unlocks ntopng Enterprise L and nProbe Pro.
+
+.. warning::
+   ntopng and nProbe must be on the same machine to have them unlocked with the ntopng Enterprise L Bundle license. The bundle license must be placed under :code:`/etc/ntopng/ntopng.license`.
 
 Licensing
 =========
