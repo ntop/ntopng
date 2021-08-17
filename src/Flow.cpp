@@ -855,12 +855,6 @@ void Flow::processIEC60870Packet(bool tx_direction,
 /* End the nDPI dissection on a flow. Guess the protocol if not already
  * detected. It is safe to call endProtocolDissection() multiple times. */
 void Flow::endProtocolDissection() {
-  if(getInterface()->getIfType() == interface_type_PCAP_DUMP) {
-    if(((iface->getTimeLastPktRcvd() - get_last_seen()) < 5)
-       && (!getInterface()->read_from_pcap_dump_done()))
-      return;
-  }
-
   if(!detection_completed) {
     u_int8_t proto_guessed;
 
