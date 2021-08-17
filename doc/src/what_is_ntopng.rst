@@ -5,6 +5,9 @@ ntopng is a passive network monitoring tool focused on flows and
 statistics that can be obtained from the traffic captured by the
 server.
 
+It's evolution is continuos and new versions are released cyclically every 6 to 9 months. The history of changes and features is available on its `Changelog <https://github.com/ntop/ntopng/blob/dev/CHANGELOG.md>`_.
+
+
 Installation
 ============
 
