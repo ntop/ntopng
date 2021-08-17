@@ -1267,7 +1267,7 @@ if secs_to_first_data > 0 then
 <div class="alert alert-primary" role="alert" id='starting-up-msg'>
   <div class="spinner-border spinner-border-sm text-primary" role="status">
     <span class="sr-only">Loading...</span>
-  </div> ]] print(i18n("restart.just_started", {product = info.product, when = format_utils.formatPastEpochShort(os.time() + secs_to_first_data)})) print [[
+  </div> ]] print(i18n("restart.just_started", {product = info.product, when = format_utils.formatValue(secs_to_first_data), url = "https://www.ntop.org/guides/ntopng/basic_concepts/stats.html"})) print [[
 </div>
 
 <script type="text/javascript">
