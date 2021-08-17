@@ -1262,12 +1262,13 @@ print('</div>')
 -- See if we are starting up and display an informative message
 local secs_to_first_data = interface.getSecsToFirstData()
 
-if secs_to_first_data > 0 then
+-- Do not show messages that stay too short on screen (5 sec or more)
+if secs_to_first_data > 5 then
    print[[
 <div class="alert alert-primary" role="alert" id='starting-up-msg'>
   <div class="spinner-border spinner-border-sm text-primary" role="status">
     <span class="sr-only">Loading...</span>
-  </div> ]] print(i18n("restart.just_started", {product = info.product, when = format_utils.formatValue(secs_to_first_data), url = "https://www.ntop.org/guides/ntopng/basic_concepts/stats.html"})) print [[
+  </div> ]] print(i18n("restart.just_started", {product = info.product, when = format_utils.secondsToTime(secs_to_first_data), url = "https://www.ntop.org/guides/ntopng/basic_concepts/stats.html"})) print [[
 </div>
 
 <script type="text/javascript">

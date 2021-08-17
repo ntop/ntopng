@@ -3,7 +3,7 @@
 Statistics
 ##########
 
-ntopng computes statistics during its execution. Statisics are then shown in the UI and also written as historical timeseries. Statistics include, but are not limited to
+ntopng computes statistics during its execution. Statistics are then shown in the UI and also written as historical timeseries. They include, but are not limited to
 
   - bytes sent and received
   - throughput

@@ -73,6 +73,8 @@ function format_utils.secondsToTime(seconds)
    msg = msg .. string.format("%02d:", truncate(minutes))
    msg = msg .. string.format("%02d", truncate(sec));
 
+   if(seconds < 60) then msg = msg .. " sec" end
+
    return msg
 end
 
