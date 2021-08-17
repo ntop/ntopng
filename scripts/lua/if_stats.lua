@@ -249,6 +249,7 @@ end
 
 local has_traffic_recording_page =  (recording_utils.isAvailable()
 	  and (is_packet_interface
+		  or (ifstats.isView) -- Allows view interfaces (e.g., views of ZMQ)
 		  or ((recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces)))
 		  or (recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng")))
 
