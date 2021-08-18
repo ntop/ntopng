@@ -163,8 +163,8 @@ do everything automatically.
 
   Automatic Updates Setting
   
-Versions
-========
+Available Versions
+==================
 
 The ntopng software comes in four versions: Community, Professional, Enterprise M, Enterprise L, and Enterprise L Bundle. Each version unlocks additional features with respect to the smaller one.
 
