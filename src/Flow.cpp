@@ -2993,18 +2993,27 @@ void Flow::housekeep(time_t t) {
     /*
       Possibly the time to giveup and end the protocol dissection.
       This happens when a flow with an incomplete TWH stops receiving packets for example.
-     */
-    if(iface->get_ndpi_struct() && get_ndpi_flow()
-       /* 
-	  The 'if' below is necessary as "time_t t" is in local time, whereas 
-	  get_last_seen() is set to the flow time
-       */
-       && (!getInterface()->read_from_pcap_dump())
-       ) {
-      if((t - get_last_seen()) > 5 /* sec */)
-	endProtocolDissection();
+
+      Giveup is handled differently, depending on whether we are processing pcap files or not:
+      - When not reading from pcap files, before giving up, we wait at least 5 seconds since the last flow packet
+      - When reading from pcap files, we wait until all the packets in the file have been processed before ending the dissection
+    */
+    if(iface->get_ndpi_struct() && get_ndpi_flow()) {
+      if(likely(!getInterface()->read_from_pcap_dump())) {
+	/* NOT processing pcap files, at most 5 seconds since the last packet */
+	if((t - get_last_seen()) > 5 /* sec */) endProtocolDissection();
+      } else {
+	/* pcap files - wait until all the file has been processed */
+	if(getInterface()->read_from_pcap_dump_done()) endProtocolDissection();
+      }
     }
-    break;
+
+    /* 
+       If a condition above has determined the flow trasnition to the protocol detected state,
+       don't break, continue so to execute detection completed checks.
+     */
+    if(!isDetectionCompleted())
+      break;
 
   case hash_entry_state_flow_protocoldetected:
     if(!is_swap_requested()) /* The flow will be swapped, hook execution will occur on the swapped flow. */
