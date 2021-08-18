@@ -1,6 +1,6 @@
 # Changelog
 
-#### ntopng 5.0 (July 2021)
+#### ntopng 5.0 (August 2021)
 
 ## Breakthroughs
 
