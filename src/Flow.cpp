@@ -2994,7 +2994,13 @@ void Flow::housekeep(time_t t) {
       Possibly the time to giveup and end the protocol dissection.
       This happens when a flow with an incomplete TWH stops receiving packets for example.
      */
-    if(iface->get_ndpi_struct() && get_ndpi_flow()) {
+    if(iface->get_ndpi_struct() && get_ndpi_flow()
+       /* 
+	  The 'if' below is necessary as "time_t t" is in local time, whereas 
+	  get_last_seen() is set to the flow time
+       */
+       && (!getInterface()->read_from_pcap_dump())
+       ) {
       if((t - get_last_seen()) > 5 /* sec */)
 	endProtocolDissection();
     }
@@ -5456,7 +5462,7 @@ bool Flow::hasDissectedTooManyPackets() {
   num_packets = get_packets();
 #endif
 
-  return(num_packets >= NDPI_MIN_NUM_PACKETS);
+  return((num_packets >= NDPI_MIN_NUM_PACKETS) && (!needsExtraDissection()));
 }
 
 /* ***************************************************** */
