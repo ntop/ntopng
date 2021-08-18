@@ -187,7 +187,7 @@ The Enterprise L version offers some extra features with respect to the Enterpri
 ntopng Enterprise L Bundle
 --------------------------
 
-The Enterprise L Bundle unlocks ntopng Enterprise L and nProbe Pro.
+The Enterprise L Bundle unlocks ntopng Enterprise L, nProbe Pro, and n2disk 1 Gbit.
 
 .. warning::
    ntopng and nProbe must be on the same machine to have them unlocked with the ntopng Enterprise L Bundle license. The bundle license must be placed under :code:`/etc/ntopng/ntopng.license`.
