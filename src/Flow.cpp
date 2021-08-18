@@ -3012,7 +3012,7 @@ void Flow::housekeep(time_t t) {
        If a condition above has determined the flow trasnition to the protocol detected state,
        don't break, continue so to execute detection completed checks.
      */
-    if(!isDetectionCompleted())
+    if(get_state() != hash_entry_state_flow_protocoldetected)
       break;
 
   case hash_entry_state_flow_protocoldetected:
