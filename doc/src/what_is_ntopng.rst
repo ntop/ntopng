@@ -1,11 +1,19 @@
 What is ntopng
 ##############
 
-ntopng is a passive network monitoring tool focused on flows and
-statistics that can be obtained from the traffic captured by the
-server.
+ntopng is a web-based traffic monitoring application able to:
 
-It's evolution is continuos and new versions are released cyclically every 6 to 9 months. The history of changes and features is available on its `Changelog <https://github.com/ntop/ntopng/blob/dev/CHANGELOG.md>`_.
+- Passive monitor traffic by passively capturing network traffic
+- Collect network flows (NetFlow, sFlow and IPFIX)
+- Actively monitor selected network devices
+- Monitor a network infrastructure via SNMP
+
+The main difference between ntopng and a traffic collector, is that ntopng not only reports traffic statistics but it also analizes the traffic, draws conclusions on observed traffic type and reports cybersecurity metrics.
+
+Releases and Features
+---------------------
+
+ntopng development lifecycle is typically 6 to 9 months. The history of changes and features implemented by every release, is available on its `Changelog <https://github.com/ntop/ntopng/blob/dev/CHANGELOG.md>`_.
 
 
 Installation
