@@ -162,6 +162,8 @@ do everything automatically.
   :alt: Automatic Updates
 
   Automatic Updates Setting
+
+.. _AvailableVersions:
   
 Available Versions
 ==================

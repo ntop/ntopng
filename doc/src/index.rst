@@ -10,6 +10,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    use_cases/index
    basic_concepts/index
    how_to_start/index
+   adding_a_license/index
    cli_options
    web_gui/index
    alerts/index
