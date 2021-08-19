@@ -159,20 +159,7 @@ class Mac : public GenericHashEntry, public SerializableElement {
   void periodic_stats_update(const struct timeval *tv);
   inline u_int64_t getNumBytes()              { return(stats->getNumBytes());      }
   inline float getBytesThpt()                 { return(stats->getBytesThpt());     }
-  inline bool  isMulticast() {
-    /*
-      http://h22208.www2.hpe.com/eginfolib/networking/docs/switches/5130ei/5200-3944_ip-multi_cg/content/483573739.htm 
-      https://ipcisco.com/lesson/multicast-mac-addresses/
-    */
-    if(
-       ((mac[0] == 0x33) && (mac[1] == 0x33))
-       ||
-       ((mac[0] == 0x01) && (mac[1] == 0x00) && (mac[2] == 0x5E))
-       )
-      return(true);
-    else
-      return(false);
-  }
+  inline bool  isMulticast() { return Utils::isMulticastMac(mac); }
 
   inline bool isBroadcast() { return(broadcast_mac); }
 };

@@ -141,7 +141,11 @@ public:
   static u_int32_t macHash(const u_int8_t * const mac);
   static bool isEmptyMac(const u_int8_t * const mac);
   static bool isSpecialMac(u_int8_t *mac);
+  inline static bool isBroadMulticastMac(const u_int8_t *mac) {
+    return(isBroadcastMac(mac) || isMulticastMac(mac));
+  }  
   static bool isBroadcastMac(const u_int8_t *mac);
+  static bool isMulticastMac(const u_int8_t *mac);
   static int numberOfSetBits(u_int32_t i);
   static void initRedis(Redis **r, const char *redis_host, const char *redis_password,
 			u_int16_t redis_port, u_int8_t _redis_db_id, bool giveup_on_failure);
