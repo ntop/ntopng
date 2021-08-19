@@ -3171,6 +3171,26 @@ bool Utils::isBroadcastMac(const u_int8_t *mac) {
 
 /* ****************************************************** */
 
+/*
+  http://h22208.www2.hpe.com/eginfolib/networking/docs/switches/5130ei/5200-3944_ip-multi_cg/content/483573739.htm 
+  https://ipcisco.com/lesson/multicast-mac-addresses/
+*/
+bool Utils::isMulticastMac(const u_int8_t *mac) {
+  if(isEmptyMac(mac))
+    return(false);
+  
+  if(
+     ((mac[0] == 0x33) && (mac[1] == 0x33))
+     ||
+     ((mac[0] == 0x01) && (mac[1] == 0x00) && (mac[2] == 0x5E))
+     )
+    return(true);
+  else
+    return(false);
+}
+
+/* ****************************************************** */
+
 void Utils::parseMac(u_int8_t *mac, const char *symMac) {
   int _mac[6] = { 0 };
 
