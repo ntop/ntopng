@@ -318,9 +318,9 @@
             if (typeof tag.value == 'number') { tag.value = ''+tag.value; }
 
             const existingTagElms = tagify.getTagElms();
-
-            /* Lookup by key and value (do not add the same key+value multiple times) */
-            const existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('realValue') === tag.realValue);
+            
+            /* Lookup by key, value and operator (do not add the same key+value multiple times) */
+            const existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('realValue') === tag.realValue && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
             const existingTag = tagify.tagData(existingTagElement);
             if (existingTag !== undefined) {
                 return;
@@ -556,6 +556,7 @@
         });
 
         tagify.on('edit:updated', async function(e) {
+        
             const detail = e.detail;
             if (detail.data === undefined) { return; }
             if (detail.data.key === undefined) {return;}
@@ -608,9 +609,11 @@
             const key = tmp.data('tagKey');
             const label = tmp.data('tagLabel');
             const value = tmp.data('tagValue');
+            const operator = tmp.data('tagOperator') || 'eq';
             const tagTitle = i18n.tags[key];
             
-            const tag = { label: tagTitle, key: key, value: label, realValue: value, title: value};
+            
+            const tag = { label: tagTitle, key: key, value: label, realValue: value, title: value, selectedOperator: operator};
 
             addFilterTag(tag);
         }
