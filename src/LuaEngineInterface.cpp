@@ -2714,6 +2714,27 @@ static int ntop_get_interface_find_host_by_mac(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_multicast_mac(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *mac;
+  u_int8_t _mac[6];
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  mac = (char*)lua_tostring(vm, 1);
+
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+
+  Utils::parseMac(_mac, mac);
+
+  lua_pushboolean(vm, Utils::isMulticastMac(_mac));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_update_ip_reassignment(lua_State* vm) {
   NetworkInterface *ntop_interface;
   int ifid;
@@ -4441,6 +4462,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getMacHosts",                      ntop_get_interface_mac_hosts },
   { "getMacManufacturers",              ntop_get_interface_macs_manufacturers },
   { "getMacDeviceTypes",                ntop_get_mac_device_types },
+  { "isMulticastMac",                   ntop_is_multicast_mac },
 
   /* Anomalies */
   { "getAnomalies",                     ntop_get_interface_anomalies },
