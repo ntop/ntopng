@@ -185,7 +185,7 @@ const defaultOptions = {
 };
 
 function getTimestampByTime(time) {
-    if (time === undefined || time === '') return undefined;
+    if (time === undefined || time === '' || time === 'none') return undefined;
     if (time === 'day') return Math.floor(Date.now() / 1000) - 86400;
     if (time === 'week') return Math.floor(Date.now() / 1000) - 604800;
     if (time === 'month') return Math.floor(Date.now() / 1000) - 2419200;
@@ -222,17 +222,23 @@ function setEventListenersNetwork(network) {
         let query = "";
         // same thing for the host_pool_id
         if (hostPoolId !== "") {
-            query = `&host_pool_id=${hostPoolId}`;
+            query += `&host_pool_id=${hostPoolId}`;
         }
         // for the VLAN id as well
         if (vlanId !== "") {
-            query = `&vlan=${vlanId}`;
+            query += `&vlan=${vlanId}`;
         }
         if (unicastOnly !== "") {
-            query = `&unicast_only=true`;
+            query += `&unicast_only=${unicastOnly}`;
         }
         if (only_memory !== "") {
-            query = `&only_memory=${only_memory}`;
+            query += `&only_memory=${only_memory}`;
+        }
+        if (l7proto !== "") {
+            query += `&l7proto=${l7proto}`;
+        }
+        if (age !== "") {
+            query += `&age=${age}`;
         }
 
         if (selectedNode !== undefined) {

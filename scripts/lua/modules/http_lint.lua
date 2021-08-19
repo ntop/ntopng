@@ -839,6 +839,7 @@ local function validateProtocolIdOrName(p)
       (validateChoice(ndpi_protos, tmp) or
 	  validateChoiceByKeys(L4_PROTO_KEYS, tmp) or
 	  validateChoiceByKeys(ndpi_protos, tmp))
+      or (p == 'none')
 end
 http_lint.validateProtocolIdOrName = validateProtocolIdOrName
 
