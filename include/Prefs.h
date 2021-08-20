@@ -107,6 +107,7 @@ class Prefs {
   InterfaceInfo *ifNames;
   char *local_networks;
   bool local_networks_set, shutdown_when_done, simulate_vlans, simulate_macs, ignore_vlans, ignore_macs;
+  bool insecure_tls; /**< Unsecure TLS connections a-la curl */
   u_int32_t num_simulated_ips;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
 	  *callbacks_dir, *pcap_dir;
@@ -258,8 +259,9 @@ class Prefs {
   inline bool  do_ignore_macs()                         { return(ignore_macs);                      };
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
   inline bool  do_simulate_macs()                       { return(simulate_macs);                    };
-  inline char* get_cpu_affinity()                       { return(cpu_affinity);            };
-  inline char* get_other_cpu_affinity()                 { return(other_cpu_affinity);            };
+  inline bool  do_insecure_tls()                        { return(insecure_tls);                     };
+  inline char* get_cpu_affinity()                       { return(cpu_affinity);                     };
+  inline char* get_other_cpu_affinity()                 { return(other_cpu_affinity);               };
 #ifdef __linux__
   inline cpu_set_t* get_other_cpu_affinity_mask()       { return(&other_cpu_affinity_mask); };
 #endif

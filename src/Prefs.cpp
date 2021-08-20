@@ -39,6 +39,7 @@ Prefs::Prefs(Ntop *_ntop) {
   num_deferred_interfaces_to_register = 0, cli = NULL;
   ntop = _ntop, pcap_file_purge_hosts_flows = false,
     ignore_vlans = false, simulate_vlans = false, simulate_macs = false, ignore_macs = false;
+  insecure_tls = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
   num_simulated_ips = 0, enable_behaviour_analysis = false;
   local_networks_set = false, shutdown_when_done = false;
@@ -345,6 +346,7 @@ void usage() {
 	 "                                    | instead of %s\n"
 	 "[--dont-change-user|-s]             | Do not change user (debug only)\n"
 	 "[--shutdown-when-done]              | Terminate after reading the pcap (debug only)\n"
+	 "[--insecure]                        | Allow connections to TLS sites with invalid certificates \n"
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,1,0)
 	 "[--zmq-encryption]                  | Enable ZMQ encryption\n"
 	 "[--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption secret key (debug only) \n"
@@ -847,6 +849,7 @@ static const struct option long_options[] = {
 #ifndef HAVE_NEDGE
   { "appliance",                         no_argument,       NULL, 223 },
 #endif
+  { "insecure",                          no_argument,       NULL, 225 },
 #ifdef NTOPNG_PRO
   { "vm",                                no_argument,       NULL, 251 }, // --vm no longer used (keeping for backward cmpatibility)
   { "check-maintenance",                 no_argument,       NULL, 252 },
@@ -1537,6 +1540,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 224:
     simulate_macs = true;
+    break;
+
+  case 225:
+    insecure_tls = true;
     break;
 
 #ifdef NTOPNG_PRO

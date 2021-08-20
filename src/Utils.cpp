@@ -1523,7 +1523,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
       curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
     }
 
-    if(!strncmp(url, "https", 5)) {
+    if(!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -1607,7 +1607,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
       curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
     }
 
-    if(!strncmp(url, "https", 5)) {
+    if(!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -1697,7 +1697,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
       curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
     }
 
-    if(!strncmp(url, "https", 5)) {
+    if(!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -1809,6 +1809,10 @@ bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *messag
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_NONE);
     else /* Try using SSL */
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
+
+    if(ntop->getPrefs()->do_insecure_tls())
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L),
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
     curl_easy_setopt(curl, CURLOPT_MAIL_FROM, from);
 
@@ -2038,7 +2042,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url,
       }
     }
 
-    if(!strncmp(url, "https", 5)) {
+    if(!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
@@ -2242,7 +2246,7 @@ long Utils::httpGet(const char * const url,
     if (headers != NULL)
       curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-    if(!strncmp(url, "https", 5)) {
+    if(!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
