@@ -277,10 +277,10 @@ void NetworkInterface::init() {
   dynamic_interface_criteria = 0;
   dynamic_interface_mode = flowhashing_none;
 
-  top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
-  top_os    = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
-  old_sites = shadow_old_sites =NULL;
-  old_os    = shadow_old_os =NULL;
+  top_sites = NULL;
+  top_os    = NULL;
+  old_sites = shadow_old_sites = NULL;
+  old_os    = shadow_old_os    = NULL;
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -5950,17 +5950,20 @@ void NetworkInterface::lua(lua_State *vm) {
   bcast_domains->lua(vm);
 
   if(ntop->getPrefs()->are_top_talkers_enabled()) {
-    if(top_sites) {
-      char *cur_sites = top_sites->json();
+    FrequentStringItems *cur_top_sites = top_sites;
+    char *cur_old_sites = old_sites;
 
-      if(cur_sites) {
-        lua_push_str_table_entry(vm, "sites", cur_sites);
-        free(cur_sites);
+    if(cur_top_sites) {
+      char *cur_top_sites_json = cur_top_sites->json();
+
+      if(cur_top_sites_json) {
+        lua_push_str_table_entry(vm, "sites", cur_top_sites_json);
+        free(cur_top_sites_json);
       }  
     }
 
-    if(old_sites)
-      lua_push_str_table_entry(vm, "sites.old", old_sites);
+    if(cur_old_sites)
+      lua_push_str_table_entry(vm, "sites.old", cur_old_sites);
   }
 
   luaAnomalies(vm);
@@ -6703,6 +6706,9 @@ void NetworkInterface::allocateStructures() {
     dscpStats        = new DSCPStats();
 
     gw_macs          = new MacHash(this, 32, 64);
+
+    top_sites = new FrequentStringItems(HOST_SITES_TOP_NUMBER);
+    top_os    = new FrequentStringItems(HOST_SITES_TOP_NUMBER);
     
     if(!isViewed()) {
       alertStore    = new AlertStore(id, ALERTS_STORE_DB_FILE_NAME);
@@ -8815,20 +8821,16 @@ void NetworkInterface::updateServiceMap(Flow *f) {
 /* *************************************** */
 
 void NetworkInterface::updateSitesStats() {
-  // System Interface, no Network sites for sure
-  if(id == -1)
-    return;
+  // Using a shadow due to a possible segv while freeing 
+  // old_sites and getting stats from lua
+  if(shadow_old_sites) { free(shadow_old_sites); shadow_old_sites = NULL; }
+  // Same as above, for the old_sites
+  if(shadow_old_os)    { free(shadow_old_os); shadow_old_os = NULL; }
 
   if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
     if(old_sites) {
       //Top sites
       this->saveOldSitesAndOs(1);
-
-      // Using a shadow due to a possible segv while freeing 
-      // old_sites and getting stats from lua
-      if(shadow_old_sites)
-        free(shadow_old_sites);
-
       shadow_old_sites = old_sites;
     }
     old_sites = top_sites->json();
@@ -8838,11 +8840,6 @@ void NetworkInterface::updateSitesStats() {
     if(old_os) {
       //Top OS
       this->saveOldSitesAndOs(2);
-
-      // Same as above, for the old_sites
-      if(shadow_old_os)
-        free(shadow_old_os);
-
       shadow_old_os = old_os;
     }
     old_os = top_os->json();
@@ -8984,7 +8981,7 @@ void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do
 void NetworkInterface::serializeDeserialize(struct tm *t_now, bool do_serialize) {
   char redis_hour_key[64], redis_daily_key[64], redis_key_current_sites[64], redis_key_current_os[64];
 
-  if(!ntop->getRedis())
+  if(!top_sites || !top_os)
     return;
 
   snprintf(redis_hour_key, sizeof(redis_hour_key), "%d_%d_%d", id, t_now->tm_mday, t_now->tm_hour);
@@ -9006,7 +9003,6 @@ void NetworkInterface::serializeDeserialize(struct tm *t_now, bool do_serialize)
       if(sites_json)
         free(sites_json);
     }
-    if(top_sites->getSize())
       
     if(top_os->getSize()) {
       char *os_json = top_os->json(2*HOST_SITES_TOP_NUMBER);
