@@ -106,10 +106,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /* Variables used by top sites periodic update */
   u_int8_t current_cycle = 0;
   FrequentStringItems *top_sites;
-  char *old_sites;
+  char *old_sites, *shadow_old_sites;
 
   FrequentStringItems *top_os;
-  char *old_os;
+  char *old_os, *shadow_old_os;
 
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
