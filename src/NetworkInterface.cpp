@@ -279,8 +279,8 @@ void NetworkInterface::init() {
 
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   top_os    = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
-  old_sites = NULL;
-  old_os    = NULL;
+  old_sites = shadow_old_sites =NULL;
+  old_os    = shadow_old_os =NULL;
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -642,10 +642,12 @@ NetworkInterface::~NetworkInterface() {
   if(hostAlertsQueue)       delete hostAlertsQueue;
 
   addRedisSitesKey();
-  if(top_sites)       delete top_sites;
-  if(top_os)          delete top_os;
-  if(old_os)          free(old_os);
-  if(old_sites)       free(old_sites);
+  if(top_sites)        delete top_sites;
+  if(top_os)           delete top_os;
+  if(old_os)           free(old_os);
+  if(shadow_old_os)    free(shadow_old_os);
+  if(old_sites)        free(old_sites);
+  if(shadow_old_sites) free(shadow_old_sites);
 
   if(prev_flow_checks_executor) delete prev_flow_checks_executor;
   if(flow_checks_executor)      delete flow_checks_executor;
@@ -5947,14 +5949,18 @@ void NetworkInterface::lua(lua_State *vm) {
   
   bcast_domains->lua(vm);
 
-  if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
-    char *cur_sites = top_sites->json();
+  if(ntop->getPrefs()->are_top_talkers_enabled()) {
+    if(top_sites) {
+      char *cur_sites = top_sites->json();
 
-    if(cur_sites)
-      lua_push_str_table_entry(vm, "sites", cur_sites);
+      if(cur_sites) {
+        lua_push_str_table_entry(vm, "sites", cur_sites);
+        free(cur_sites);
+      }  
+    }
+
     if(old_sites)
       lua_push_str_table_entry(vm, "sites.old", old_sites);
-    if(cur_sites) free(cur_sites);
   }
 
   luaAnomalies(vm);
@@ -8817,7 +8823,13 @@ void NetworkInterface::updateSitesStats() {
     if(old_sites) {
       //Top sites
       this->saveOldSitesAndOs(1);
-      free(old_sites);
+
+      // Using a shadow due to a possible segv while freeing 
+      // old_sites and getting stats from lua
+      if(shadow_old_sites)
+        free(shadow_old_sites);
+
+      shadow_old_sites = old_sites;
     }
     old_sites = top_sites->json();
   }
@@ -8826,7 +8838,12 @@ void NetworkInterface::updateSitesStats() {
     if(old_os) {
       //Top OS
       this->saveOldSitesAndOs(2);
-      free(old_os);
+
+      // Same as above, for the old_sites
+      if(shadow_old_os)
+        free(shadow_old_os);
+
+      shadow_old_os = old_os;
     }
     old_os = top_os->json();
   }
