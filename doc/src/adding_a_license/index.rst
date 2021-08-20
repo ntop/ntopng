@@ -85,7 +85,7 @@ You can copy the license key in a plain text file :code:`/etc/ntopng.license`, e
 
    # echo "XJQ6U04QIW2ixxzNMfGnWibAySvd8Rd3K4qxymrZNT3DoR0m1K6Ybx1nnG1Y1n+7O4znPE4Zroy+A5EZZfu/i0UzrOhly/HNUgNju+RTP6d/zAvMTs04ZtIG9/BjalrrOfHzw0bU3uTm0z1F+S5N6IFUP6cXzoWP+yrpGmPjzmQHGa5kSw5IJw6YjmPvAgGLHsKn+u2KoA6xP7c4eZ7YGJ/S6MTmYtLFOBse4qoaViSC30RBu54QVG4Zafz4qwhMEnT+hijwbkWJfjZBRzl3eLE05HclnkRWibuYJqKG6c9NRExF0u6a3+P/+ouB7PcczDf8G4O22MWgr2cTNjsmRA==" > /etc/ntopng.license
 
-Alternatively, you can paste the license key straight into the ntopng UI, , page `"Settings -> License"`
+Alternatively, you can paste the license key straight into the ntopng UI, page `"Settings -> License"`
 
 
 .. figure:: ../img/adding_a_license_ui_install.png
@@ -101,7 +101,7 @@ It is recommended to place the license key in the plain text file.
    A restart of ntopng is required after license installation to make sure all the licensed features will be properly unlocked.
 
 Example
--------
+=======
 
 Let's say that we've purchased an ntopng Enterprise L license for:
 
@@ -112,7 +112,9 @@ Let's say that we've purchased an ntopng Enterprise L license for:
    [...]
    System Id:  LA2D7D2FB9206AAF2--UA2D7D2FBDDCCD490--OL
 
-The `Order Id` received after the purchase is 1621231231 and the email is info@ntop.org. The form at https://shop.ntop.org/mkntopng/ will be filled as follow
+The `Order Id` received after the purchase is 1621231231 and the email indicated during the purchase procedure is info@ntop.org.
+
+The form at https://shop.ntop.org/mkntopng/ will be filled as follow
 
 .. figure:: ../img/adding_a_license_example.png
   :align: center
