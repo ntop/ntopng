@@ -133,8 +133,7 @@ local lang = {
   ["flow_search_from_aggregated"] = "(Aggregated)",
   ["flow_search_results"] = "Flow Search Results",
   ["flows"] = "Flows",
-  ["flush_periodicity_map_data"] = "Flush Data",
-  ["flush_service_map_data"] = "Flush Data",
+  ["flush_map_data"] = "Flush Data",
   ["forbidden"] = "Forbidden",
   ["free"] = "Free",
   ["frequency"] = "Frequency",
@@ -3981,10 +3980,6 @@ local lang = {
     ["stats_update.lua"] = "Updates system stats (e.g., CPU load).",
     ["timeseries.lua"] = "Writes timeseries data to InfluxDB. Has no effect when InfluxDB is not used.",
   },
-  ["periodicity_map_page"] = {
-    ["no_periodicity"] = "No <b>hosts</b> were found.",
-    ["node_descr"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> hosts and <font color=#8004e0>MAC</font> addresses.<li>Double click on a node to jump to the host page. Use the mouse wheel to zoom in/out.</li>",
-  },
   ["please_wait_page"] = {
     ["command"] = "Command",
     ["database"] = "Database",
@@ -4725,7 +4720,7 @@ local lang = {
       ["template_not_implemented"] = "The template  was not implemented yet!",
     },
   },
-  ["service_map_page"] = {
+  ["map_page"] = {
     ["allowed"] = "Allowed",
     ["denied"] = "Denied",
     ["fetch_error"] = "Error while fetching Service Map Status.",

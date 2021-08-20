@@ -334,7 +334,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		const char *sortColumn);
 
   /* Functions used to update top sites of the interface */
-  void saveOldSitesAndOs(u_int8_t top);
+  void saveOldSitesAndOs(char *old_data, char *additional_key_info, char *hashkey);
   void getCurrentTime(struct tm *t_now);
   void deserializeTopOsAndSites(char* redis_key_current, bool do_top_sites);
   void serializeDeserialize(struct tm *t_now, bool do_serialize);
