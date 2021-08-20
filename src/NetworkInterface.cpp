@@ -9004,8 +9004,7 @@ void NetworkInterface::serializeDeserialize(struct tm *t_now, bool do_serialize)
       if(sites_json)
         free(sites_json);
     }
-    if(top_sites->getSize()) /* ?????? */
-      
+    
     if(top_os->getSize()) {
       char *os_json = top_os->json(2*HOST_SITES_TOP_NUMBER);
       ntop->getRedis()->set(redis_key_current_sites , os_json, 3600);
