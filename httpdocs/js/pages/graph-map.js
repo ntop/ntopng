@@ -206,7 +206,16 @@ function saveTopologyView(network) {
         }
     };
 
-    $.post(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, { ifid:ifid, JSON: JSON.stringify(info), csrf: VIEW_CSRF, map: MAP, action: 'save_view' });
+    $.post(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, { ifid:ifid, JSON: JSON.stringify(info), csrf: VIEW_CSRF, map: MAP, action: 'save_view', 
+        host: host,
+        host_pool_id: hostPoolId,
+        vlan: vlanId,
+        unicast_only: unicastOnly,
+        l7proto: l7proto,
+        only_memory: only_memory,
+        first_seen: getTimestampByTime(age),
+        age: age,
+     });
 }
 
 function setEventListenersNetwork(network) {
@@ -284,7 +293,8 @@ function loadGraph(container) {
         unicast_only: unicastOnly,
         l7proto: l7proto,
         only_memory: only_memory,
-        first_seen: getTimestampByTime(age)
+        first_seen: getTimestampByTime(age),
+        age: age,
     });
 
     const request = $.get(url, dataRequest);
