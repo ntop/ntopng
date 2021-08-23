@@ -102,14 +102,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /* Behavioural analysis regarding the interface */
   AnalysisBehavior *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
 #endif
-  
-  /* Variables used by top sites periodic update */
-  u_int8_t current_cycle = 0;
-  FrequentStringItems *top_sites;
-  char *old_sites, *shadow_old_sites;
-
-  FrequentStringItems *top_os;
-  char *old_os, *shadow_old_os;
+  MostVisitedList *top_sites;
+  MostVisitedList *top_os;
 
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
@@ -333,13 +327,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		Paginator *p,
 		const char *sortColumn);
 
-  /* Functions used to update top sites of the interface */
-  void saveOldSitesAndOs(char *old_data, char *additional_key_info, char *hashkey);
-  void getCurrentTime(struct tm *t_now);
-  void deserializeTopOsAndSites(char* redis_key_current, bool do_top_sites);
-  void serializeDeserialize(struct tm *t_now, bool do_serialize);
-  void removeRedisSitesKey();
   void addRedisSitesKey();
+  void removeRedisSitesKey();
 
   bool isNumber(const char *str);
   bool checkIdle();

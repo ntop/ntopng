@@ -28,7 +28,7 @@ class LocalHostStats: public HostStats {
   DnsStats *dns;
   HTTPstats *http;
   ICMPstats *icmp;
-  FrequentStringItems *top_sites;
+  MostVisitedList *top_sites;
 
   /* nextPeriodicUpdate done every 5 min */
   time_t nextPeriodicUpdate;
@@ -41,10 +41,6 @@ class LocalHostStats: public HostStats {
   struct ndpi_hll hll_contacted_hosts;
   double old_hll_value, new_hll_value, hll_delta_value;
   DESCounter contacted_hosts;
-  
-  /* Written by NetworkInterface::periodicStatsUpdate thread */
-  char *old_sites;
-  u_int8_t current_cycle;
 
   Cardinality num_contacted_hosts_as_client, /* # of hosts contacted by this host   */
     num_host_contacts_as_server,             /* # of hosts that contacted this host */
@@ -56,12 +52,8 @@ class LocalHostStats: public HostStats {
   PeerStats *peers;
 
   void updateHostContacts();
-  void saveOldSites();
   void removeRedisSitesKey();
   void addRedisSitesKey();
-  void getCurrentTime(struct tm *t_now);
-  void serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize);
-  void deserializeTopSites(char* redis_key_current);
   void updateContactedHostsBehaviour();
 #if defined(NTOPNG_PRO)
   void resetTrafficStats();

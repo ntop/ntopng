@@ -220,6 +220,7 @@ using namespace std;
 #include "ViewScoreStats.h"
 #include "Score.h"
 #include "FrequentStringItems.h"
+#include "MostVisitedList.h"
 #include "Trace.h"
 #include "ProtoStats.h"
 #include "Utils.h"

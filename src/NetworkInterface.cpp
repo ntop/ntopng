@@ -279,8 +279,6 @@ void NetworkInterface::init() {
 
   top_sites = NULL;
   top_os    = NULL;
-  old_sites = shadow_old_sites = NULL;
-  old_os = shadow_old_os = NULL;
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -644,10 +642,6 @@ NetworkInterface::~NetworkInterface() {
   addRedisSitesKey();
   if(top_sites)        delete top_sites;
   if(top_os)           delete top_os;
-  if(old_os)           free(old_os);
-  if(shadow_old_os)    free(shadow_old_os);
-  if(old_sites)        free(old_sites);
-  if(shadow_old_sites) free(shadow_old_sites);
 
   if(prev_flow_checks_executor) delete prev_flow_checks_executor;
   if(flow_checks_executor)      delete flow_checks_executor;
@@ -5949,22 +5943,8 @@ void NetworkInterface::lua(lua_State *vm) {
   
   bcast_domains->lua(vm);
 
-  if(ntop->getPrefs()->are_top_talkers_enabled()) {
-    FrequentStringItems *cur_top_sites = top_sites;
-    char *cur_old_sites = old_sites;
-
-    if(cur_top_sites) {
-      char *cur_top_sites_json = cur_top_sites->json();
-
-      if(cur_top_sites_json) {
-        lua_push_str_table_entry(vm, "sites", cur_top_sites_json);
-        free(cur_top_sites_json);
-      }  
-    }
-
-    if(cur_old_sites)
-      lua_push_str_table_entry(vm, "sites.old", cur_old_sites);
-  }
+  if(ntop->getPrefs()->are_top_talkers_enabled())
+    top_sites->lua(vm, (char *) "sites", (char *) "sites.old");
 
   luaAnomalies(vm);
   luaScore(vm);
@@ -6675,7 +6655,6 @@ bool NetworkInterface::isInterfaceNetwork(const IpAddress * const ipa, int netwo
 /* **************************************** */
 
 void NetworkInterface::allocateStructures() {
-  removeRedisSitesKey();
 
   u_int8_t numNetworks = ntop->getNumLocalNetworks();
   char buf[16];
@@ -6707,8 +6686,8 @@ void NetworkInterface::allocateStructures() {
 
     gw_macs          = new MacHash(this, 32, 64);
 
-    top_sites = new FrequentStringItems(HOST_SITES_TOP_NUMBER);
-    top_os    = new FrequentStringItems(HOST_SITES_TOP_NUMBER);
+    top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
+    top_os    = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
 
     if(!isViewed()) {
       alertStore    = new AlertStore(id, ALERTS_STORE_DB_FILE_NAME);
@@ -6746,6 +6725,7 @@ void NetworkInterface::allocateStructures() {
   snprintf(buf, sizeof(buf), "%d", get_id());
   setEntityValue(buf);
   reloadGwMacs();
+  removeRedisSitesKey();
 }
 
 /* **************************************** */
@@ -8821,236 +8801,22 @@ void NetworkInterface::updateServiceMap(Flow *f) {
 /* *************************************** */
 
 void NetworkInterface::updateSitesStats() {
-  // Using a shadow due to a possible segv while freeing 
-  // old_sites and getting stats from lua
-  if(shadow_old_sites) { free(shadow_old_sites); shadow_old_sites = NULL; }
-  // Same as above, for the old_sites
-  if(shadow_old_os)    { free(shadow_old_os); shadow_old_os = NULL; }
-
   if(ntop->getPrefs()->are_top_talkers_enabled()) {
     /* String used to add extra info to the redis key */
     std::string additional_key_info = "";
     
-    if(top_sites) {
-      if(old_sites) {
-        saveOldSitesAndOs(old_sites, (char *) additional_key_info.c_str(), (char *) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED);
-        shadow_old_sites = old_sites;
-      }
-      old_sites = top_sites->json();
-    }
+    if(top_sites)
+      top_sites->saveOldData(get_id(), (char *) additional_key_info.c_str(), (char *) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED);
 
     if(top_os) {
-      if(old_os) {
-        //Top OS
-        additional_key_info = ".topOs";
-        saveOldSitesAndOs(old_os, (char *) additional_key_info.c_str(), (char *) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED);
-        shadow_old_os = old_os;
-      }
-      old_os = top_os->json();
+      additional_key_info = ".topOs";
+      top_os->saveOldData(get_id(), (char *) additional_key_info.c_str(), (char *) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED);
     }
   }
 }
-
-/* *************************************** */
-
-void NetworkInterface::saveOldSitesAndOs(char *old_data, char *additional_key_info, char *hashkey) {
-  char redis_key[64];
-  int minute = 0;
-  struct tm t_now;
-
-  if(!ntop->getRedis())
-    return;
-
-  if(!old_data)
-    return;
-
-  getCurrentTime(&t_now);
-  minute = t_now.tm_min - (t_now.tm_min % 5);
-
-  snprintf(redis_key, sizeof(redis_key), "%s%s_%d_%d_%d_%d", (char*) NTOPNG_CACHE_PREFIX,
-            additional_key_info, get_id(), t_now.tm_mday, t_now.tm_hour, minute);
-
-  /* String like `ntopng.cache.1_17_11_45` */
-  /* An other way is to use the localtime_r and compose the string like `ntopng.cache_2_1609761600` */
-
-  ntop->getRedis()->set(redis_key , old_data, 7200);
-
-  if(minute == 0 && current_cycle > 0) {
-    char hour_done[64];
-    int hour = 0;
-
-    if(t_now.tm_hour == 0)
-      hour = 23;
-    else
-      hour = t_now.tm_hour - 1;
-
-    /* List key = ntopng.cache.top_sites_hour_done | value = 1_17_11 */
-    /* List key = ntopng.cache.top_os_hour_done    | value = 1_17_11 */
-    snprintf(hour_done, sizeof(hour_done), "%d_%d_%d", id, t_now.tm_mday, hour);
-
-    ntop->getRedis()->lpush(hashkey, hour_done, 3600);
-
-    current_cycle = 0;
-  } else
-    current_cycle++;
-}
-
-/* *************************************** */
-
-void NetworkInterface::getCurrentTime(struct tm *t_now) {
-  time_t now = time(NULL);
-
-  memset(t_now, 0, sizeof(*t_now));
-  localtime_r(&now, t_now);
-}
-
-/* *************************************** */
-
-void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do_top_sites) {
-  char *json;
-  u_int json_len;
-  json_object *j;
-  enum json_tokener_error jerr;
-
-  json_len = ntop->getRedis()->len(redis_key_current);
-  if(json_len == 0) json_len = CONST_MAX_LEN_REDIS_VALUE; else json_len += 8; /* Little overhead */
-
-  if((json = (char*)malloc(json_len)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    return;
-  }
-
-  if((ntop->getRedis()->get(redis_key_current, json, json_len) == -1)
-     || (json[0] == '\0')) {
-    free(json);
-    return; /* Nothing found */
-  }
-
-  j = json_tokener_parse_verbose(json, &jerr);
-
-  if(j != NULL) {
-
-#ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%u]", json, json_len);
-#endif
-
-    if(json_object_get_type(j) == json_type_object) {
-      struct lh_entry *entry = json_object_get_object(j)->head;
-
-      for(; entry != NULL; entry = entry->next) {
-	char *key               = (char*)entry->k;
-	struct json_object *val = (struct json_object*)entry->v;
-	enum json_type type = json_object_get_type(val);
-
-	if(type == json_type_int) {
-	  u_int32_t value = json_object_get_int64(val);
-
-#ifdef DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s = %u", key, value);
-#endif
-
-	  if(do_top_sites)
-	    top_sites->add(key, value);
-	  else
-	    top_os->add(key, value);
-	}
-      }
-    } else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid JSON content for key %s", redis_key_current);
-
-    json_object_put(j); /* Free memory */
-  } else
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);
-
-  free(json);
-}
-
-/* *************************************** */
-
-void NetworkInterface::serializeDeserialize(struct tm *t_now, bool do_serialize) {
-  char redis_hour_key[64], redis_daily_key[64], redis_key_current_sites[64], redis_key_current_os[64];
-
-  if(!top_sites || !top_os)
-    return;
-
-  snprintf(redis_hour_key, sizeof(redis_hour_key), "%d_%d_%d", id, t_now->tm_mday, t_now->tm_hour);
-  snprintf(redis_daily_key, sizeof(redis_daily_key), "%d_%d", id, t_now->tm_mday);
-  snprintf(redis_key_current_sites, sizeof(redis_key_current_sites), "%s.serialized_current_top_sites.%d_%d", (char*) NTOPNG_CACHE_PREFIX,
-            id, t_now->tm_mday);
-  snprintf(redis_key_current_os, sizeof(redis_key_current_os), "%s.serialized_current_top_os.%d_%d", (char*) NTOPNG_CACHE_PREFIX,
-            id, t_now->tm_mday);
-
-  if(do_serialize) {
-    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
-    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key, 3600);
-    ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
-    ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED, redis_daily_key, 3600);
-    if(top_sites->getSize()) {
-      char *sites_json = top_sites->json(2*HOST_SITES_TOP_NUMBER);
-
-      if(sites_json) {
-        ntop->getRedis()->set(redis_key_current_sites, sites_json, 3600);
-        free(sites_json);
-      }
-    }
-    
-    if(top_os->getSize()) {
-      char *os_json = top_os->json(2*HOST_SITES_TOP_NUMBER);
-      ntop->getRedis()->set(redis_key_current_sites , os_json, 3600);
-
-      if(os_json)
-        free(os_json);
-    }
-  }
-  else {
-    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key);
-    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key);
-    ntop->getRedis()->lrem((char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, redis_hour_key);
-    ntop->getRedis()->lrem((char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED, redis_daily_key);
-    deserializeTopOsAndSites(redis_key_current_sites, false);
-    deserializeTopOsAndSites(redis_key_current_os, true);
-    ntop->getRedis()->del(redis_key_current_sites);
-    ntop->getRedis()->del(redis_key_current_os);
-  }
-}
-
-/* *************************************** */
-
-void NetworkInterface::removeRedisSitesKey() {
-  struct tm t_now;
-
-  // System Interface, no Network sites for sure
-  if(id == -1)
-    return;
-
-  getCurrentTime(&t_now);
-  serializeDeserialize(&t_now, false);
-}
-
-/* *************************************** */
-
-void NetworkInterface::addRedisSitesKey() {
-  struct tm t_now;
-
-  // System Interface, no Network sites for sure
-  if(id == -1)
-    return;
-
-  getCurrentTime(&t_now);
-  serializeDeserialize(&t_now, true);
-}
-
-/* *************************************** */
 
 void NetworkInterface::incrVisitedWebSite(char *hostname) {
-  char *firstdot = NULL, *nextdot = NULL;
-
-  firstdot = strchr(hostname, '.');
-
-  if(firstdot)
-    nextdot = strchr(&firstdot[1], '.');
-
-  top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
+  top_sites->incrVisitedData(hostname, 1);
 }
 
 /* *************************************** */
@@ -9063,7 +8829,7 @@ void NetworkInterface::incrOS(char *hostname) {
   if(firstdot)
     nextdot = strchr(&firstdot[1], '.');
 
-  top_os->add(nextdot ? &firstdot[1] : hostname, 1);
+  top_os->incrVisitedData(nextdot ? &firstdot[1] : hostname, 1);
 }
 
 /* *************************************** */
@@ -9195,4 +8961,30 @@ void NetworkInterface::incObservationPointIdFlows(u_int16_t pointId, u_int32_t t
     }
   } else
     o->second->inc(tot_bytes);
+}
+
+/* *************************************** */
+
+void NetworkInterface::removeRedisSitesKey() {
+  // System Interface, no Network sites for sure
+  if(id == -1 || !top_sites || !top_os)
+    return;
+
+  top_sites->serializeDeserialize(id, false, (char *) "", (char *) HASHKEY_TOP_SITES_SERIALIZATION_KEY, 
+    (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED);
+  top_os->serializeDeserialize(id, false, (char *) "", (char *) HASHKEY_TOP_OS_SERIALIZATION_KEY, 
+    (char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, (char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED);
+}
+
+/* *************************************** */
+
+void NetworkInterface::addRedisSitesKey() {
+  // System Interface, no Network sites for sure
+  if(id == -1 || !top_sites || !top_os)
+    return;
+
+  top_sites->serializeDeserialize(id, true, (char *) "", (char *) HASHKEY_TOP_SITES_SERIALIZATION_KEY, 
+    (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED);
+  top_os->serializeDeserialize(id, true, (char *) "", (char *) HASHKEY_TOP_OS_SERIALIZATION_KEY, 
+    (char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, (char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED);
 }

@@ -500,6 +500,8 @@
 #define CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT       5
 #define CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED 0
 #define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
+#define HASHKEY_TOP_SITES_SERIALIZATION_KEY               ".serialized_current_top_sites."
+#define HASHKEY_TOP_OS_SERIALIZATION_KEY                  ".serialized_current_top_os."
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS                "ntopng.cache.top_sites"
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED    "ntopng.cache.top_sites_hour_done"
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED     "ntopng.cache.top_sites_day_done"
