@@ -8987,10 +8987,11 @@ void NetworkInterface::serializeDeserialize(struct tm *t_now, bool do_serialize)
     ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED, redis_daily_key, 3600);
     if(top_sites->getSize()) {
       char *sites_json = top_sites->json(2*HOST_SITES_TOP_NUMBER);
-      ntop->getRedis()->set(redis_key_current_sites , sites_json, 3600);
 
-      if(sites_json)
+      if(sites_json) {
+        ntop->getRedis()->set(redis_key_current_sites, sites_json, 3600);
         free(sites_json);
+      }
     }
     
     if(top_os->getSize()) {

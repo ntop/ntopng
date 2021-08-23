@@ -142,7 +142,8 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
       if(old_sites) {
         if(host != NULL)
           this->saveOldSites();
-	      free(old_sites);
+	free(old_sites);
+        old_sites = NULL;
       }
       if(top_sites->getSize())
         old_sites = top_sites->json();
