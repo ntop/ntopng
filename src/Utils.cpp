@@ -1810,9 +1810,10 @@ bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *messag
     else /* Try using SSL */
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
 
-    if(ntop->getPrefs()->do_insecure_tls())
-      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L),
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    if(ntop->getPrefs()->do_insecure_tls()) {
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    }
 
     curl_easy_setopt(curl, CURLOPT_MAIL_FROM, from);
 

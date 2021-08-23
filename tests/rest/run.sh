@@ -143,7 +143,7 @@ function send_error {
 }
 
 check_connectivity() {
-    URL="https://version.ntop.org"
+    URL="https://packages.ntop.org"
     CURL_FAIL_CODE=6
     CURL_LOG=$(mktemp)
 
