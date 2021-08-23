@@ -21,7 +21,7 @@
         {% if dialog.action ~= nil then %}
 	  <button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</button>
         {% else %}
-	  <button {% if not dialog.no_confirm_id then %} id="btn-confirm-action_{{dialog.id}}" {% end %} type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</button>
+	  <a {% if not dialog.no_confirm_id then %} target="_blank" id="btn-confirm-action_{{dialog.id}}" {% end %} type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</a>
         {% end %}
       </div>
       {% end %}

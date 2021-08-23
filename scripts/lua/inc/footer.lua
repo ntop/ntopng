@@ -587,23 +587,17 @@ end
 
 
    print[[
-	<script type="text/javascript">
-		$(document).ready(function(){
-		  $(document).on('click','a > i.fa-external-link-alt',function(event){
-		  		event.preventDefault()
-		      let url=$(this).parent()[0].href;
-		      document.getElementById("url_ext_link_dialog").innerHTML = url+"<br/>]]print(i18n("are_you_sure"))print[[";
-		      $("#btn-confirm-action_ext_link_dialog").attr('href',url);
-		      $('#ext_link_dialog').modal('show');
-		  });
-
-		  $(document).on('click','a.ntopng-external-link',function(event){
-		  	event.preventDefault();
-		  });
-
-
-		});
-	</script>
+        <script type="text/javascript">
+          $(document).ready(function(){
+            $(document).on('click','a.ntopng-external-link',function(event){
+              event.preventDefault();
+              const url=$(this)[0].href;
+              $("#url_ext_link_dialog").html(url+"<br/>]]print(i18n("are_you_sure"))print[[");
+              $("#btn-confirm-action_ext_link_dialog").attr('href',url);
+              $('#ext_link_dialog').modal('show');
+            });
+          });
+        </script>
    ]]
 
 
