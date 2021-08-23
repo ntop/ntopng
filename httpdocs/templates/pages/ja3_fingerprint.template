@@ -43,7 +43,7 @@ $(document).ready(function() {
 			    } else {
 			      icon = "";
 			    }
-			    data = icon+' <a target="_blank" href="https://sslbl.abuse.ch/ja3-fingerprints/' + data + '">'+data+' <i class="fas fa-external-link-alt"></i></a>';
+			    data = icon+' <a class="ntopng-external-link" target="_blank" href="https://sslbl.abuse.ch/ja3-fingerprints/' + data + '">'+data+' <i class="fas fa-external-link-alt"></i></a>';
 			  }
 			return data;
 		      }
