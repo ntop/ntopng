@@ -85,6 +85,9 @@ These alghoritms have the ability to foresight the future and give a prediction 
 
 The alert is triggered only if the real value is lesser or greater then certain thresholds that nDPI calculates (it gives a lower and upper bound).
 
+.. note::   
+  Behavior Alerts are available only with ntopng Enterprise L license.
+
 .. figure:: ../img/behavior_graph_example.png
   :align: center
   :alt: Timeserie of an ASN with an Unexpected Behavior
