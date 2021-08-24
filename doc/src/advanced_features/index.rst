@@ -16,6 +16,7 @@ section.
     traffic_profiles
     device_protocols
     category_lists
+    behavior_analysis
     bridging_and_policing
     flows_dump
     live_pcap_download
