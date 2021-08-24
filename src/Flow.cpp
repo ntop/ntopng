@@ -88,6 +88,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   last_db_dump.partial = NULL;
   last_db_dump.first_seen = last_db_dump.last_seen = 0;
+  last_db_dump.in_progress = false;
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
 
@@ -1247,18 +1248,11 @@ bool Flow::dump(time_t t, bool last_dump_before_free) {
   if(!last_dump_before_free) {
     if((getInterface()->getIfType() == interface_type_PCAP_DUMP
 	&& (!getInterface()->read_from_pcap_dump_done()))
-       || !timeToPeriodicDump(t)) {
+       || !timeToPeriodicDump(t)
+       || last_db_dump.in_progress) {
       return(rc); /* Don't call too often periodic flow dump */
     }
   }
-
-  if(!update_partial_traffic_stats_db_dump())
-    return(rc); /* Partial stats update has failed */
-
-  /* Check for bytes, and not for packets, as with nprobeagent
-     there are not packet counters, just bytes. */
-  if(!get_partial_bytes())
-    return(rc); /* Nothing to dump */
 
   getInterface()->dumpFlow(get_last_seen(), this);
 

@@ -207,6 +207,7 @@ class Flow : public GenericHashEntry {
     PartializableFlowTrafficStats *partial;
     PartializableFlowTrafficStats delta;
     time_t first_seen, last_seen;
+    bool in_progress; /* Set to true when the flow is enqueued to be dumped */
   } last_db_dump;
 
   /* Lazily initialized and used by a possible view interface */
@@ -505,6 +506,8 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_partial_bytes_srv2cli()   const { return last_db_dump.delta.get_srv2cli_bytes();   };
   inline u_int64_t get_partial_packets_cli2srv() const { return last_db_dump.delta.get_cli2srv_packets(); };
   inline u_int64_t get_partial_packets_srv2cli() const { return last_db_dump.delta.get_srv2cli_packets(); };
+  inline void set_dump_in_progress()                   { last_db_dump.in_progress = true;                 };
+  inline void set_dump_done()                          { last_db_dump.in_progress = false;                };
   bool needsExtraDissection();
   bool hasDissectedTooManyPackets();
   bool get_partial_traffic_stats_view(PartializableFlowTrafficStats *delta, bool *first_partial);

@@ -723,7 +723,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
     /* Last flow dump before delete
      * Note: this never happens in 'direct' mode */
     if(idleFlowsToDump && idleFlowsToDump->enqueue(f, true)) {
-      f->incUses();
+      f->incUses(), f->set_dump_in_progress();
 
       /*
 	Signal there's work to do.
@@ -742,7 +742,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   } else {
     /* Partial dump if active flows */
     if(activeFlowsToDump && activeFlowsToDump->enqueue(f, true)) {
-      f->incUses();
+      f->incUses(), f->set_dump_in_progress();
 
       /*
 	Signal there's work to do.
@@ -2681,12 +2681,16 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
   while(idleFlowsToDump->isNotEmpty()) {
     Flow *f = idleFlowsToDump->dequeue();
     char *json = NULL;
+    bool rc = true;
 
     /* Prepare the JSON - if requested */
     if(flows_dump_json)
       json = f->serialize(flows_dump_json_use_labels);
 
-    int rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
+    f->update_partial_traffic_stats_db_dump(); /* Checkpoint flow traffic counters for the dump */
+
+    if(f->get_partial_bytes()) /* Make sure data is not at zero */
+      rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
 
     if(json) free(json);
 
@@ -2695,6 +2699,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 #endif
     if(!rc) incDBNumDroppedFlows(dumper);
     f->decUses(); /* Job has been done, decrease the reference counter */
+    f->set_dump_done();
     // delete f;
     idle_flows_done++;
     if(idle_flows_budget > 0 /* Budget requested */
@@ -2708,12 +2713,16 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
   while(activeFlowsToDump->isNotEmpty()) {
     Flow *f = activeFlowsToDump->dequeue();
     char *json = NULL;
+    bool rc = true;
 
     /* Prepare the JSON - if requested */
     if(flows_dump_json)
       json = f->serialize(flows_dump_json_use_labels);
 
-    int rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
+    f->update_partial_traffic_stats_db_dump(); /* Checkpoint flow traffic counters for the dump */
+
+    if(f->get_partial_bytes()) /* Make sure data is not at zero */
+      rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
 
     if(json) free(json);
 
@@ -2722,6 +2731,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 #endif
     if(!rc) incDBNumDroppedFlows(dumper);
     f->decUses(); /* Job has been done, decrease the reference counter */
+    f->set_dump_done();
     active_flows_done++;
     if(active_flows_budget > 0 /* Budget requested */
        && active_flows_done >= active_flows_budget /* Budget exceeded */)
