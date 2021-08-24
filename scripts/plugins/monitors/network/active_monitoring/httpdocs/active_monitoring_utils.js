@@ -13,7 +13,7 @@ $(function() {
                 return `${NtopUtils.REGEXES["url"]}`;
             case "icmp":
             case "cicmp":
-                return `${NtopUtils.REGEXES["ipv4"]}|${NtopUtils.REGEXES["ipv6"]}|${NtopUtils.REGEXES["domainName"]}`
+                return `${NtopUtils.REGEXES["ipv4"]}|${NtopUtils.REGEXES["ipv6"]}|${NtopUtils.REGEXES["domainName"]}`;
         }
     }
 
@@ -278,6 +278,7 @@ $(function() {
 
     const $editModalHandler = $(`#am-edit-form`).modalHandler({
         method: 'post',
+        resetAfterSubmit: false,
         endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
         csrf: am_csrf,
         onModalInit: function (amData) {
@@ -289,7 +290,11 @@ $(function() {
 
             const cur_measurement = amData.measurement_key || DEFAULT_MEASUREMENT;
             const $dialog = $('#am-edit-modal');
+            
+            $(`#hostCheck`).hide();
+
             dialogDisableUniqueMeasurements($dialog, cur_measurement);
+            $('#am-edit-modal').modal('show');
             // fill input boxes
             $('#input-edit-threshold').val(amData.threshold || DEFAULT_THRESHOLD);
             $('#select-edit-measurement').val(cur_measurement).change();
@@ -315,12 +320,15 @@ $(function() {
             dialogRefreshPeriodicity($dialog);
         },
         beforeSumbit: function (amData) {
-
-            const host = $("#input-edit-host").val(), measurement = $("#select-edit-measurement").val();
+            const host = $("#input-edit-host").val();
+            const measurement_key = $("#select-edit-measurement").val();
             const granularity = $("#select-edit-granularity").val();
             const threshold = $("#input-edit-threshold").val();
             const pool = $(`#select-edit-pool`).val();
             const iface = $(`#am-edit-form select[name='iface']`).val();
+            $(`#am-edit-modal .invalid-feedback`).hide();
+
+            $(`#hostCheck`).show();
 
             return {
                 action: 'edit',
@@ -328,7 +336,7 @@ $(function() {
                 am_host: host,
                 measurement: measurement_key,
                 old_am_host: amData.host,
-                old_measurement: amData.measurement,
+                old_measurement: amData.measurement_key,
                 granularity: granularity,
                 old_granularity: amData.granularity,
                 ifname: iface,
@@ -336,6 +344,7 @@ $(function() {
             };
         },
         onSubmitSuccess: function (response, dataSent) {
+            $(`#hostCheck`).hide();
             if (response.success) {
 
                 ToastUtils.showToast({
@@ -350,6 +359,8 @@ $(function() {
                 $amTable.ajax.reload();
 
                 return;
+            } else {
+                $(`#am-edit-modal .invalid-feedback`).html(response.error).show();
             }
         }
     });
@@ -558,7 +569,6 @@ $(function() {
     $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
         const amData = getAmData($amTable, $(this));
         $editModalHandler.invokeModalInit(amData);
-	    $(`#input-edit-host`).attr('pattern', getMeasurementRegex(amData.measurement));
     });
 
     $('#am-table').on('click', `a[href='#am-delete-modal']`, function(e) {
@@ -573,7 +583,14 @@ $(function() {
 
         // trigger form validation
         if ($(`#input-edit-host`).val().length > 0) $(`#am-edit-form`)[0].reportValidity();
-
+        if (['icmp', 'cicmp'].includes(selectedMeasurement)) {
+            if (SHOW_IFACE) {
+                $(`#am-edit-form .interface-group`).show();
+            }
+        }
+        else {
+            $(`#am-edit-form .interface-group`).hide();
+        }
         dialogRefreshMeasurement($("#am-edit-modal"));
         dialogRefreshPeriodicity($("#am-edit-modal"));
     });
@@ -627,8 +644,4 @@ $(function() {
         $recipientsInfo.html(i18n.some_recipients.replace('${recipients}', recipientNames));
 
     });
-
-    $(`#input-add-host`).attr('pattern', getMeasurementRegex(DEFAULT_MEASUREMENT));
-    $(`#input-edit-host`).attr('pattern', getMeasurementRegex(DEFAULT_MEASUREMENT));
-
 });

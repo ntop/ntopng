@@ -460,6 +460,7 @@ local lang = {
     ["app_connect_descr"] = "The \"App Connect\" time is the time took to complete the TLS handshake.",
     ["availability"] = "Availability",
     ["bad_action_param"] = "Bad \"action\" paramater",
+    ["checking_host"] = "Checking the host...",
     ["config_reset_confirm"] = "Do you really want to discard the current configuration and reset it to default?",
     ["confirm_delete"] = "Do you want really remove this record?",
     ["default_interface"] = "Default Interface",
