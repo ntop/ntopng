@@ -3977,12 +3977,12 @@ u_int8_t* Utils::int2mac(u_int64_t mac, u_int8_t *buf) {
 
 /* ************************************************* */
 
-void Utils::init_pcap_header(struct pcap_file_header * const h, NetworkInterface * const iface, bool nsec) {
+void Utils::init_pcap_header(struct pcap_file_header * const h, int linktype, int snaplen, bool nsec) {
   /*
    * [0000000] c3d4 a1b2 0002 0004 0000 0000 0000 0000
    * [0000010] 05ea 0000 0001 0000
    */
-  if(!h || !iface)
+  if(!h)
     return;
 
   memset(h, 0, sizeof(*h));
@@ -3992,8 +3992,8 @@ void Utils::init_pcap_header(struct pcap_file_header * const h, NetworkInterface
   h->version_minor = 4;
   h->thiszone = 0;
   h->sigfigs  = 0;
-  h->snaplen  = ntop->getGlobals()->getSnaplen(iface->get_name());
-  h->linktype = (iface->isPacketInterface() && !iface->isView()) ? iface->get_datalink() : DLT_EN10MB;
+  h->snaplen  = snaplen;
+  h->linktype = linktype;
 }
 
 /* ****************************************************** */

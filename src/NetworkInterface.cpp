@@ -7848,7 +7848,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 	 && !c->live_capture.pcaphdr_sent) {
 	struct pcap_file_header pcaphdr;
 
-	Utils::init_pcap_header(&pcaphdr, this);
+	Utils::init_pcap_header(&pcaphdr, get_datalink(), ntop->getGlobals()->getSnaplen(get_name()));
 
 	if((res = mg_write_async(c->conn, &pcaphdr, sizeof(pcaphdr))) < (int)sizeof(pcaphdr))
 	  http_client_disconnected = true;

@@ -230,7 +230,7 @@ public:
   static char* formatPackets(float numPkts, char *buf);
 
   /* Pcap files utiles */
-  static void init_pcap_header(struct pcap_file_header * const h, NetworkInterface * const iface, bool nsec = false);
+  static void init_pcap_header(struct pcap_file_header * const h, int linktype, int snaplen, bool nsec = false);
 
   /* Bitmap functions */
   static bool bitmapIsSet(u_int64_t bitmap, u_int8_t v);  
