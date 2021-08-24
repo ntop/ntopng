@@ -92,7 +92,7 @@
                 self.firstCloseAttempt = false;
                 $(self.element)[0].reportValidity();
                 $(self.dialog).find('.confirm-closing').fadeOut(100, function () {
-                    $(self.dialog).find('button.close').fadeIn(100);
+                    $(self.dialog).find('button.btn-close').fadeIn(100);
                 });
             });
 
@@ -102,7 +102,6 @@
                     event.preventDefault();
                     return;
                 }
-
                 // if the form state hasn't changed then don't show the message
                 if (self.compareFormSnaphsot(self.currentState, self.initialState)) {
                     return;
@@ -116,7 +115,7 @@
                 self.firstCloseAttempt = true;
 
                 // show an alert to inform the user
-                $(self.dialog).find('button.close').fadeOut(100, function () {
+                $(self.dialog).find('button.btn-close').fadeOut(100, function () {
                     $(self.dialog).find('.confirm-closing').fadeIn(100);
                 });
 
@@ -143,7 +142,7 @@
                 self.firstCloseAttempt = false;
 
                 $(self.dialog).find('.confirm-closing').fadeOut(100, function () {
-                    $(self.dialog).find('button.close').fadeIn(100);
+                    $(self.dialog).find('button.btn-close').fadeIn(100);
                 });
 
                 // clean the form when the modal is closed
