@@ -98,6 +98,8 @@ Flow::Flow(NetworkInterface *_iface,
   iface->findFlowHosts(_vlanId, _observation_point_id, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   PROFILING_SUB_SECTION_EXIT(iface, 7);
 
+  char *domain_name = ndpiFlow ? ndpi_get_flow_name(ndpiFlow) : NULL;
+
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
 
@@ -106,6 +108,7 @@ Flow::Flow(NetworkInterface *_iface,
     cli_ip_addr = cli_host->get_ip();
     cli_host->incCliContactedHosts(_srv_ip);
     cli_host->incCliContactedPorts(_srv_port);
+    if(domain_name!=NULL)  cli_host->addContactedDomainName(domain_name);
   } else { /* Client host has not been allocated, let's keep the info in an IpAddress */
     if((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
       cli_ip_addr->reloadBlacklist(iface->get_ndpi_struct());

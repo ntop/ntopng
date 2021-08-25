@@ -482,7 +482,7 @@ typedef enum {
   host_alert_flow_flood                  =  4,
   host_alert_syn_scan                    =  5,
   host_alert_syn_flood                   =  6,
-  host_alert_available_01                =  7, /* Available, can be used */
+  host_alert_domain_names_contacts       =  7, 
   host_alert_p2p_traffic                 =  8,
   host_alert_dns_traffic                 =  9,
   host_alert_flows_anomaly               = 10,
@@ -521,6 +521,7 @@ typedef enum {
   host_check_remote_connection,
   host_check_dangerous_host,
   host_check_ntp_traffic,
+  host_check_domain_names_contacts,
 
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */ 
 } HostCheckID;

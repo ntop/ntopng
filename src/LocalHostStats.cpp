@@ -50,6 +50,7 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
   num_ntp_servers.init(5);
+  num_contacted_domain_names.init(4);
 }
 
 /* *************************************** */
@@ -71,6 +72,7 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
   num_ntp_servers.init(5);
+  num_contacted_domain_names.init(4);
 }
 
 /* *************************************** */
