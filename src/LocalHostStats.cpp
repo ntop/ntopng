@@ -217,11 +217,8 @@ void LocalHostStats::luaCountriesBehaviour(lua_State* vm) {
   lua_newtable(vm);
     
   lua_push_float_table_entry(vm, "value", hll_delta_countries_value);
-  lua_push_bool_table_entry(vm, "anomaly",      countries_contacts.anomalyFound());
-  lua_push_uint64_table_entry(vm, "lower_bound", countries_contacts.getLastLowerBound());
-  lua_push_uint64_table_entry(vm, "upper_bound", countries_contacts.getLastUpperBound());
 
-  lua_pushstring(vm, "countries_contacts_behaviour");
+  lua_pushstring(vm, "countries_contacts");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
@@ -491,6 +488,5 @@ void LocalHostStats::updateCountriesContactsBehaviour() {
   ndpi_hll_reset(&hll_countries_contacts);
   #endif
 
-  countries_contacts.addObservation((u_int64_t)hll_delta_countries_value);
   host->resetCountriesContacts();
 }

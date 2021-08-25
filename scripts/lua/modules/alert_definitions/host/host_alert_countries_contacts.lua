@@ -50,13 +50,11 @@ end
 function host_alert_countries_contacts.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
-  local value = alert_type_params.value
-
-  if(value == nil) then value = 0 end
+  local value = math.ceil(alert_type_params.value or 0)
   
   return i18n("alert_messages.host_alert_countries_contacts", {
     entity = entity,
-    value = string.format("%u", math.ceil(value or 0)),
+    value = value,
     threshold = alert_type_params.threshold or 0,
   })
 end

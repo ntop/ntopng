@@ -48,7 +48,6 @@ class LocalHostStats: public HostStats {
   /* Estimate the number of contacted countries using HyperLogLog */
   struct ndpi_hll hll_countries_contacts;
   u_int8_t old_hll_countries_value, new_hll_countries_value, hll_delta_countries_value;
-  DESCounter countries_contacts;
 
 
   Cardinality num_contacted_hosts_as_client, /* # of hosts contacted by this host   */

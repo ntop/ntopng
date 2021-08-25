@@ -111,7 +111,7 @@ Flow::Flow(NetworkInterface *_iface,
 
     if (cli_host->isLocalHost() && srv_host) {
       srv_host->get_country(country, sizeof(country));
-      cli_host->incCountriesContacts(country);
+      if(country[0] != '\0') cli_host->incCountriesContacts(country);
     }
   } else { /* Client host has not been allocated, let's keep the info in an IpAddress */
     if((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
@@ -130,7 +130,7 @@ Flow::Flow(NetworkInterface *_iface,
     
     if (srv_host->isLocalHost() && cli_host) {
       cli_host->get_country(country, sizeof(country));
-      srv_host->incCountriesContacts(country);
+      if(country[0] != '\0') srv_host->incCountriesContacts(country);
     }
   } else { /* Server host has not been allocated, let's keep the info in an IpAddress */
     if((srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip)))
