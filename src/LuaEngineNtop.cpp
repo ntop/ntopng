@@ -4598,7 +4598,7 @@ static int ntop_get_keys_redis(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_lrange_redis(lua_State* vm) {
-  char *l_name, **l_elements;
+  char *l_name, **l_elements = NULL;
   Redis *redis = ntop->getRedis();
   int start_offset = 0, end_offset = -1;
   int rc;
@@ -4625,10 +4625,10 @@ static int ntop_lrange_redis(lua_State* vm) {
       lua_rawseti(vm, -2, i+1);
       if(l_elements[i]) free(l_elements[i]);
     }
-
-    free(l_elements);
   } else
     lua_pushnil(vm);
+
+  if(l_elements) free(l_elements);
 
   return(CONST_LUA_OK);
 }

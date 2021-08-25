@@ -16,7 +16,7 @@
             <tr>
                 <th>SystemId</th>
                 <td>
-                    <a href="{* license.systemIdHref *}" target="_blank">{{ info["pro.systemid"] }}</a> <i class='fas fa-external-link-alt'></i>
+                    <a class="ntopng-external-link" href="{* license.systemIdHref *}" target="_blank">{{ info["pro.systemid"] }} <i class='fas fa-external-link-alt'></i></a>
                     <br>
                     {% if not(info["pro.forced_community"]) then %}
                     <small>
@@ -66,7 +66,7 @@
             </tr>
             {% end %}
         </table>
-        {* ui_utils.render_notes({{content = i18n("license_page.agreement") .. ': <a target="_blank" href="{{ license.external_link }}">EULA</a> <i class="fas fa-external-link-alt"></i>' }}) *}
+        {* ui_utils.render_notes({{content = i18n("license_page.agreement") .. ': <a class="ntopng-external-link" target="_blank" href="{{ license.external_link }}">EULA <i class="fas fa-external-link-alt"></i></a>' }}) *}
     </div>
 </div>
 <script>

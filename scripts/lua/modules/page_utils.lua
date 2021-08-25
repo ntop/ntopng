@@ -278,8 +278,9 @@ function page_utils.print_header(title)
   local static_file_epoch = ntop.getStaticFileEpoch()..""
 
   local dark_mode = page_utils.is_dark_mode_enabled(_POST["toggle_theme"])
-
   local page_title = i18n("welcome_to", { product=info.product })
+  local favicon_path = nil
+
   if title ~= nil then
     page_title = info.product .. " - " .. title
   end
@@ -306,7 +307,18 @@ function page_utils.print_header(title)
     <link href="]] print(http_prefix) print[[/css/minified/rickshaw.min.css" type="text/css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/dc.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/selectpicker/css/bootstrap-select.min.css" rel="stylesheet">
+    ]]
 
+   if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
+      favicon_path = ntop.getHttpPrefix().."/img/custom_favicon.ico"
+   end
+   if (favicon_path ~= nil) then
+    print[[<link href="]] print(favicon_path) print[[" rel="icon">]]
+   else
+    print[[<link href="]] print(http_prefix) print[[/favicon.ico" rel="icon">]]
+   end
+
+   print[[
    <style>
       .flag {
          width: 16px;
@@ -355,6 +367,20 @@ function page_utils.print_header_minimal(title)
         <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/fontawesome.css" rel="stylesheet">
         <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/brands.css" rel="stylesheet">
         <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/solid.css" rel="stylesheet">
+
+          ]]
+
+         if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
+            favicon_path = ntop.getHttpPrefix().."/img/custom_favicon.ico"
+         end
+         if (favicon_path ~= nil) then
+          print[[<link href="]] print(favicon_path) print[[" rel="icon">]]
+         else
+          print[[<link href="]] print(http_prefix) print[[/favicon.ico" rel="icon">]]
+         end
+
+         print[[
+
         <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(static_file_epoch) print[["></script>
         <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/css/rickshaw.css">
         <script src="]] print(http_prefix) print[[/js/validator.js"></script>
@@ -437,6 +463,11 @@ local function print_submenu(section, container_list_name)
 	       active = true
 	    end
 
+      if section_entry.url:starts("http") then
+         -- Absolute (external) url
+      
+         external_link = true
+      end
             print[[
          <li class=']]
 	    if active then
@@ -451,33 +482,32 @@ local function print_submenu(section, container_list_name)
 	    if active then
                print[[active ]]
             end
+      if external_link == true then 
+         print[[ntopng-external-link ]]
+      end
 	    print[["]]
 
             if section_has_submenu then
                print[[ data-bs-toggle="collapse" ]]
             end
-
-            print[[ href="]]
+       print[[href="]]
 	    if section_has_submenu then
 	       local submenu_section_key = section_entry.section.key
 	       local submenu_section_id = submenu_section_key.."-submenu"
                print("#"..submenu_section_id)
 	    else 
-               if section_entry.url:starts("http") then
-                  -- Absolute (external) url
-                  print(section_entry.url)
-                  external_link = true
-               else
-                  -- Url relative to ntopng
-                  print(ntop.getHttpPrefix()..section_entry.url)
-               end
+         if external_link then 
+            print(section_entry.url)
+         else
+            print(ntop.getHttpPrefix()..section_entry.url)
+         end
 	    end
             print[["]]
 
             if section_entry.entry.is_modal then
                print(' data-bs-toggle="modal"')
             end
-
+            
             if external_link then
                -- Open in a new page
                print(' target="_blank"')

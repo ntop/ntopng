@@ -27,7 +27,7 @@
 					<div class="form-group mb-3  row">
 						<label class="col-sm-3 col-form-label">{{ dialog.am_host }}</label>
 						<div class="col-sm-5">
-							<input placeholder="https://ntop.org" required id="input-edit-host" type="text" name="host"
+							<input placeholder="ntop.org" required id="input-edit-host" type="text" name="host"
 								class="form-select measurement-host" />
 						</div>
 					</div>
@@ -90,6 +90,10 @@
 							</select>
 						</div>
 					</div>
+					<span class="invalid-feedback"></span>
+					<div id="hostCheck">
+					  <span class="spinner-border spinner-border-sm" role="status"></span><span> {{ i18n("active_monitoring_stats.checking_host") }}</span>
+					</div>
 					<div id='script-description' class='notes bg-light border' role='alert'>
 						<b>{{ dialog.notes }}</b>
 						<ul>
@@ -99,7 +103,6 @@
 							<li>{{ dialog.note_periodicity_change }}</li>
 						</ul>
 					</div>
-					<span class="invalid-feedback"></span>
 				</div>
 				<div class="modal-footer">
 					<button id="btn-reset-defaults" type="button"

@@ -14,6 +14,7 @@ local alerts_api = require("alerts_api")
 local recording_utils = require "recording_utils"
 local telemetry_utils = require "telemetry_utils"
 local ts_utils = require("ts_utils_core")
+local format_utils = require "format_utils"
 local page_utils = require("page_utils")
 local delete_data_utils = require "delete_data_utils"
 local toasts_manager = require("toasts_manager")
@@ -22,7 +23,7 @@ local auth = require "auth"
 local blog_utils = require("blog_utils")
 local template_utils = require "template_utils"
 local auth = require "auth"
-
+local template_utils = require("template_utils")
 local is_nedge = ntop.isnEdge()
 local is_appliance = ntop.isAppliance()
 local is_admin = isAdministrator()
@@ -890,8 +891,8 @@ end -- num_ifaces > 0
 -- ##############################################
 
 print([[
-   <nav class="navbar navbar-expand-lg navbar-light fixed-top px-2" id='n-navbar'>
-      <ul class='navbar-nav flex-row flex-wrap'>
+   <nav class="navbar navbar-expand-lg navbar-light fixed-top px-2 navbar-main-top" id='n-navbar'>
+      <ul class='navbar-nav flex-row flex-wrap navbar-main-top'>
          <li class='nav-item'>
             <button class='btn btn-outline-dark border-0 btn-sidebar' data-bs-toggle='sidebar'>
                <i class="fas fa-bars"></i>
@@ -1037,6 +1038,7 @@ local context = {
 
 print(template_utils.gen("pages/components/ifaces-dropdown.template", context))
 
+
 -- ##############################################
 -- Up/Down info
 if not is_pcap_dump and not is_system_interface then
@@ -1071,9 +1073,9 @@ if (_POST["ntopng_license"] == nil) and (info["pro.systemid"] and (info["pro.sys
 
    else
       if(not(ntop.getInfo()["pro.forced_community"])) then
-         print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge bg-warning">')
+         print('<li class="nav-item nav-link"><a class="ntopng-external-link" href="https://shop.ntop.org" class="badge bg-warning text-decoration-none">')
          print(i18n("about.upgrade_to_professional")..' <i class="fas fa-external-link-alt"></i>')
-         print('</span></a></li>')
+         print('</a></li>')
       end
    end
 end
@@ -1257,6 +1259,28 @@ print('</div>')
 print('<div id="major-release-alert" class="alert alert-info" style="display:none" role="alert"><i class="fas fa-cloud-download-alt" id="alerts-menu-triangle"></i> <span id="ntopng_update_available"></span>')
 print('</div>')
 
+-- See if we are starting up and display an informative message
+local secs_to_first_data = interface.getSecsToFirstData()
+
+-- Do not show messages that stay too short on screen (5 sec or more)
+if secs_to_first_data > 5 then
+   print[[
+<div class="alert alert-primary" role="alert" id='starting-up-msg'>
+  <div class="spinner-border spinner-border-sm text-primary" role="status">
+    <span class="sr-only">Loading...</span>
+  </div> ]] print(i18n("restart.just_started", {product = info.product, when = format_utils.secondsToTime(secs_to_first_data), url = "https://www.ntop.org/guides/ntopng/basic_concepts/stats.html"})) print [[
+</div>
+
+<script type="text/javascript">
+  const msecs_to_first_data = ]] print(string.format("%u", secs_to_first_data * 1000)) print[[;
+  const hide_starting_up_msg = function() {
+    $("#starting-up-msg").hide();
+  };
+  setTimeout(hide_starting_up_msg, msecs_to_first_data);
+</script>
+]]
+end
+
 if(_SESSION["INVALID_CSRF"]) then
   print('<div class="alert alert-warning alert-dismissable" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
   print(i18n("expired_csrf"))
@@ -1271,3 +1295,7 @@ print("</div>")
 if(not is_admin) then
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
+
+
+
+

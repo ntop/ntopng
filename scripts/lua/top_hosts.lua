@@ -17,7 +17,7 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.top_hosts)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 interface.select(ifname)
-local interface_refresh_rate = getInterfaceRefreshRate(getInterfaceId(ifname)) or 3
+local interface_refresh_rate = interface.getStatsUpdateFreq(getInterfaceId(ifname))
 
 local hosts_stats = interface.getLocalHostsInfo()
 local hosts_stats = hosts_stats["hosts"]

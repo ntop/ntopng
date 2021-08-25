@@ -201,6 +201,9 @@ static void* packetPollLoop(void* ptr) {
     /* Execute as Bash script */      
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Pre Script '%s'", test_pre_script_path);
     Utils::exec(test_pre_script_path);
+
+    /* Allow check configs to be re-read */
+    sleep(8);
   }
 
   do {
@@ -346,14 +349,14 @@ static void* packetPollLoop(void* ptr) {
     } /* while */
   } while(pcap_list != NULL);
 
-  /* Do two full scans to make sure all stats are updated */
-  for(int i = 0; i < 2; i++)
-    iface->purgeIdle(time(NULL), false, true /* Full scan */);
- 
   if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
     iface->set_read_from_pcap_dump_done();
   }
 
+  /* Do two full scans to make sure all stats are updated */
+  for(int i = 0; i < 2; i++)
+    iface->purgeIdle(time(NULL), false, true /* Full scan */);
+ 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
 			       iface->get_description());
 

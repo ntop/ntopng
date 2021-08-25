@@ -698,7 +698,7 @@ local function validateIpVersion(p)
    end
 end
 
-local function validateSMTPServer(v)
+local function validateServer(v)
    -- thanks to https://stackoverflow.com/questions/35467680/lua-pattern-to-validate-a-dns-address
    if (isEmptyString(v)) then
       return false
@@ -839,6 +839,7 @@ local function validateProtocolIdOrName(p)
       (validateChoice(ndpi_protos, tmp) or
 	  validateChoiceByKeys(L4_PROTO_KEYS, tmp) or
 	  validateChoiceByKeys(ndpi_protos, tmp))
+      or (p == 'none')
 end
 http_lint.validateProtocolIdOrName = validateProtocolIdOrName
 
@@ -906,8 +907,11 @@ http_lint.validateNetwork = validateNetwork
 local function validateHost(p)
    local host = hostkey2hostinfo(p)
 
-   if(host.host ~= nil) and (host.vlan ~= nil)
-            and (isIPv4(host.host) or isIPv6(host.host) or isMacAddress(host.host)) then
+   if (host.host ~= nil)
+      and (host.vlan ~= nil)
+      and (isIPv4(host.host) 
+           or isIPv6(host.host) 
+           or isMacAddress(host.host)) then
       return true
    else
       return validateNetwork(p)
@@ -1155,12 +1159,6 @@ end
 
 -- #################################################################
 
-local function validateSNMPhost(m)
-   return validateIpAddress(m) or validateSingleWord(m)
-end
-
--- #################################################################
-
 local function validateSNMPversion(m)
 -- 0 = SNMP v1
 -- 1 = SNMP v2c
@@ -1277,8 +1275,10 @@ local function validateListItems(script, conf, key)
    elseif(item_type == "mac_address") then
       item_validator = validateMac
       err_label = "Bad address"
+   elseif(item_type == "server") then
+      item_validator = validateServer
+      err_label = "Bad server IP or name"
    end
-   
 
    if(type(conf_items) == "table") then
       for _, item in ipairs(conf_items) do
@@ -1382,12 +1382,16 @@ local known_parameters = {
    ["probe_ip"]                = validateFilters(validateHost),                  --Probe IP, used by nindex query
    ["tot_bytes"]               = validateFilters(validateNumber),                --Total bytes, used by nindex query
    ["src2dst_dscp"]            = validateEmptyOr(validateFilters(validateUnquoted)),                               --Client DSCP, used by nindex query
-   ["flow_status_num"]                  = validateEmptyOr(validateFilters(validateUnquoted)),                               --Flow Status, used by nindex query
+   ["flow_status_num"]         = validateEmptyOr(validateFilters(validateUnquoted)),                               --Flow Status, used by nindex query
    ["vhost"]                   = validateHTTPHost,              -- HTTP server name or IP address
    ["version"]                 = validateIpVersion,             -- To specify an IPv4 or IPv6
    ["ip_version"]              = validateListOfTypeInline(validateFilters(validateIpVersion)),             -- To specify an IPv4 or IPv6
    ["vlan"]                    = validateEmptyOr(validateNumber), -- A VLAN id
+   ["vlan_id"]                 = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))), -- A VLAN id
    ["hosts"]                   = validateHostsList,             -- A list of hosts
+   ["src2dst_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Client to Server TCP flags
+   ["dst2src_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Server to Client TCP flags
+   ["score"]                   = validateListOfTypeInline(validateFilters(validateNumber)), -- Score
 
 -- AUTHENTICATION
    ["username"]                = validateUsername,              -- A ntopng user name, new or existing
@@ -1494,8 +1498,6 @@ local known_parameters = {
 -- OTHER
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
    ["__"]                      = validateUnquoted,              -- see LDAP prefs page
-   ["begin_epoch"]             = validateNumber,
-   ["end_epoch"]               = validateNumber,
    ["ifid"]                    = validateInterface,             -- An ntopng interface ID
    ["observationPointId"]      = validateNumber,
    ["ifname"]                  = validateSingleWord,
@@ -1557,7 +1559,7 @@ local known_parameters = {
    ["snmp_privacy_passphrase"] = validateSingleWord,
    ["lldp_mode"]               = validateBool,                  -- LLDP mode
    ["default_snmp_community"]  = validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
-   ["snmp_host"]               = validateSNMPhost,              -- Either an IPv4/v6 or a hostname
+   ["snmp_host"]               = validateServer,              -- Either an IPv4/v6 or a hostname
    ["default_snmp_version"]    = validateSNMPversion,           -- Default SNMP protocol version
    ["snmp_version"]            = validateSNMPversion,           -- 0:v1 1:v2c 2:v3
    ["snmp_username"]           = validateSingleWord,            -- SNMP Username
@@ -1594,7 +1596,7 @@ local known_parameters = {
    ["check_subdir"]           = validateSingleWord,
    ["script_key"]              = validateSingleWord,
    ["alert_key"]               = validateNumber,
-   ["alert_addr"]              = validateEmptyOr(validateIpAddress),
+   ["alert_addr"]              = validateEmptyOr(validateHost),
    ["search_script"]           = validateSingleWord,
    ["field_alias"]             = validateListOfTypeInline(validateFieldAlias),
    ["dscp_class"]              = validateSingleWord,
@@ -1617,13 +1619,14 @@ local known_parameters = {
    ["bandwidth_threshold"]    = validateNumber,
 
 -- Service Map
-   ["service_id"]            = validateNumber,
-   ["service_state"]         = validateNumber,
-   ["set_service_state"]    = validateNumber,
-   ["service_l7proto"]      = validateSingleWord,
+   ["service_id"]          = validateNumber,
+   ["service_state"]       = validateNumber,
+   ["set_service_state"]   = validateNumber,
+   ["service_l7proto"]     = validateSingleWord,
    ["map"]                 = validateUnquoted,
-   ["age"]          = validateSingleWord,
-   ["first_seen"]    = validateNumber,
+   ["age"]                 = validateSingleWord,
+   ["first_seen"]          = validateNumber,
+   ["only_memory"]         = validateBool,
 
 -- Script editor
    ["plugin_file_path"]         = validateLuaScriptPath,
@@ -1749,7 +1752,6 @@ local known_parameters = {
    ["auth_session_duration"]                       = validateNumber,
    ["local_host_cache_duration"]                   = validateNumber,
    ["local_host_cache_duration"]                   = validateNumber,
-   ["housekeeping_frequency"]                      = validateNumber,
    ["intf_rrd_raw_days"]                           = validateNumber,
    ["intf_rrd_1min_days"]                          = validateNumber,
    ["intf_rrd_1h_days"]                            = validateNumber,
@@ -1769,7 +1771,7 @@ local known_parameters = {
    ["redirection_url"]                             = validateEmptyOr(validateSingleWord),
    ["email_sender"]                                = validateSingleWord,
    ["email_recipient"]                             = validateSingleWord,
-   ["smtp_server"]                                 = validateSMTPServer,
+   ["smtp_server"]                                 = validateServer,
    ["smtp_username"]                               = validateEmptyOr(validateSingleWord),
    ["smtp_password"]                               = validateEmptyOr(validatePassword),
    ["influx_dbname"]                               = validateSingleWord,
@@ -1901,7 +1903,6 @@ local known_parameters = {
    ["trigger_alerts"]          = validateBool,                  -- true if alerts should be active for this entity
    ["show_advanced_prefs"]     = validateBool,                  -- true if advanced preferences should be shown
    ["ifSpeed"]                 = validateEmptyOr(validateNumber), -- interface speed
-   ["ifRate"]                  = validateEmptyOr(validateNumber), -- interface refresh rate
    ["scaling_factor"]          = validateEmptyOr(validateNumber), -- interface scaling factor
    ["drop_host_traffic"]       = validateBool,                  -- to drop an host traffic
    ["lifetime_limited"]        = validateEmptyOr(validateOnOff), -- set if user should have a limited lifetime

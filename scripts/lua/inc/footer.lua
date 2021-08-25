@@ -10,7 +10,7 @@ local ts_utils = require("ts_utils_core")
 local template = require "template_utils"
 local stats_utils = require("stats_utils")
 local page_utils = require "page_utils"
-
+local template_utils = require("template_utils")
 local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo(true)
 local is_admin = isAdministrator()
@@ -122,6 +122,8 @@ if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
 		}
 	}))
 
+
+
 	print[[
 		<script type="text/javascript">
 
@@ -214,6 +216,9 @@ let updatingChart_totals = [
 	$(".mobile-menu-stats .network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null})
 ];
 
+const interface_refresh_rate = ]] print(string.format("%u", math.min(interface.getStatsUpdateFreq(), 20 --[[ Don't wait too much or the chart will look buggy --]]))) print[[;
+let   last_interface_load_refresh = 0;
+
 const footerRefresh = function() {
 	$.ajax({
 		type: 'GET',
@@ -226,44 +231,46 @@ const footerRefresh = function() {
 
 			const rsp = content["rsp"];
 
-			try {
-				var values = updatingChart_uploads[0].text().split(",")
-				var values1 = updatingChart_downloads[0].text().split(",")
-				var values2 = updatingChart_totals[0].text().split(",")
+                        try {
+                                var pps = rsp.throughput_pps;
+                                var bps = rsp.throughput_bps * 8;
+                                var bps_upload = rsp.throughput.upload.bps * 8;
+                                var bps_download = rsp.throughput.download.bps * 8;
 
-				var pps = rsp.throughput_pps;
-				var bps = rsp.throughput_bps * 8;
-				var bps_upload = rsp.throughput.upload.bps * 8;
-				var bps_download = rsp.throughput.download.bps * 8;
-
-				values.shift();
-				values.push(bps_upload);
-				updatingChart_uploads[0].text(values.join(",")).change();
-				updatingChart_uploads[1].text(values.join(",")).change();
-				values1.shift();
-				values1.push(-bps_download);
-				updatingChart_downloads[0].text(values1.join(",")).change();
-				updatingChart_downloads[1].text(values1.join(",")).change();
-				values2.shift();
-				values2.push(bps);
-				updatingChart_totals[0].text(values2.join(",")).change();
-				updatingChart_totals[1].text(values2.join(",")).change();
-				var v = bps_upload - bps_download;
-
-]]
+                                if(last_interface_load_refresh + interface_refresh_rate < rsp.epoch) {
+                                  var values = updatingChart_uploads[0].text().split(",")
+                                  var values1 = updatingChart_downloads[0].text().split(",")
+                                  var values2 = updatingChart_totals[0].text().split(",")
+                                  values.shift();
+                                  values.push(bps_upload);
+                                  updatingChart_uploads[0].text(values.join(",")).change();
+                                  updatingChart_uploads[1].text(values.join(",")).change();
+                                  values1.shift();
+                                  values1.push(-bps_download);
+                                  updatingChart_downloads[0].text(values1.join(",")).change();
+                                  updatingChart_downloads[1].text(values1.join(",")).change();
+                                  values2.shift();
+                                  values2.push(bps);
+                                  updatingChart_totals[0].text(values2.join(",")).change();
+                                  updatingChart_totals[1].text(values2.join(",")).change();
+  
+                                  var v = bps_upload - bps_download;
+  ]]
 
 if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
    print[[
-
-				var v = Math.round(Math.min((bps*100)/]] print(string.format("%u", maxSpeed)) print[[, 100));
-				$('.network-load').html(v+"%");
+                                  v = Math.round(Math.min((bps*100)/]] print(string.format("%u", maxSpeed)) print[[, 100));
+                                  $('.network-load').html(v+"%");
 ]]
 end
 
 print[[
-				$('.chart-upload-text:visible').html(NtopUtils.bitsToSize(bps_upload, 1000));
-				$('.chart-download-text:visible').html(NtopUtils.bitsToSize(bps_download, 1000));
-				$('.chart-total-text:visible').html(NtopUtils.bitsToSize(bps_upload + bps_download, 1000));
+                                  $('.chart-upload-text:visible').html(NtopUtils.bitsToSize(bps_upload, 1000));
+                                  $('.chart-download-text:visible').html(NtopUtils.bitsToSize(bps_download, 1000));
+                                  $('.chart-total-text:visible').html(NtopUtils.bitsToSize(bps_upload + bps_download, 1000));
+
+                                  last_interface_load_refresh = rsp.epoch;
+                                } /* Closes network load chart refresh */
      ]]
 
 -- systemInterfaceEnabled is defined inside menu.lua
@@ -272,7 +279,7 @@ print[[
 				$('#network-clock').html(`${rsp.localtime}`);
 				$('#network-uptime').html(`${rsp.uptime}`);
 
-				let msg = `<div class='m-2'><div class='d-flex flex-wrap'>`;
+				let msg = `<div class='m-2'><div class='d-flex flex-wrap navbar-main-badges'>`;
 
 				if (rsp.system_host_stats.cpu_states) {
 					const iowait = ']] print(i18n("about.iowait")) print[[: ' + NtopUtils.formatValue(rsp.system_host_stats.cpu_states.iowait) + "%";
@@ -315,24 +322,23 @@ print[[
 				   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/system_interfaces_stats.lua?page=internals&tab=periodic_activities&periodic_script_issue=any_issue\">"
 					msg += "<span class=\"badge bg-warning\"><i class=\"fas fa-exclamation-triangle\" title=\"]] print(i18n("internals.degraded_performance")) print[[\"></i></span></a>";
 				}
-
 				if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[) {
 
 					var error_color = "#B94A48";
 
 					if(rsp.engaged_alerts > 0) {
 						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/alert_stats.lua?ifid=]] print(tostring(ifid)) print[[&status=engaged\">"
-						msg += "<span class=\"badge bg-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.engaged_alerts)+"</span></a>";
+						msg += "<span class=\"badge bg-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.formatValue(rsp.engaged_alerts, 1)+"</span></a>";
 					}
 
 					if(rsp.alerted_flows_warning > 0 && !(systemInterfaceEnabled)) {
 						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?alert_type_severity=warning\">"
-						msg += "<span class=\"badge bg-warning\">"+NtopUtils.addCommas(rsp.alerted_flows_warning)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
+						msg += "<span class=\"badge bg-warning\">"+NtopUtils.formatValue(rsp.alerted_flows_warning, 1)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 					}
 
 					if(rsp.alerted_flows_error > 0 && !(systemInterfaceEnabled)) {
 						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?alert_type_severity=error_or_higher\">"
-						msg += "<span class=\"badge bg-danger\">"+NtopUtils.addCommas(rsp.alerted_flows_error)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
+						msg += "<span class=\"badge bg-danger\">"+NtopUtils.formatValue(rsp.alerted_flows_error, 1)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 					}
 				}
 
@@ -352,7 +358,7 @@ print[[
 				if(rsp.num_local_hosts > 0 && (!systemInterfaceEnabled)) {
 					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=local\">";
 					msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"badge bg-success\">";
-					msg += NtopUtils.addCommas(rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+					msg += NtopUtils.formatValue(rsp.num_local_hosts, 1)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 				}
 
 				const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
@@ -370,7 +376,7 @@ print[[
 						msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge bg-danger\">";
 					}
 
-					msg += NtopUtils.addCommas(num_remote_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+					msg += NtopUtils.formatValue(num_remote_hosts, 1)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 				}
 
 				if(rsp.num_devices > 0 && (!systemInterfaceEnabled)) {
@@ -387,7 +393,7 @@ print[[
 						msg += "<span title=\"" + macs_label +"\" class=\"badge bg-danger\">";
 					}
 
-					msg += NtopUtils.addCommas(rsp.num_devices)+" <i class=\"fas fa-ethernet\"></i></span></a>";
+					msg += NtopUtils.formatValue(rsp.num_devices, 1)+" <i class=\"fas fa-ethernet\"></i></span></a>";
 				}
 
 				if(rsp.num_flows > 0 && (!systemInterfaceEnabled)) {
@@ -403,13 +409,13 @@ print[[
 						msg += "<span class=\"badge bg-danger\">";
 					}
 
-					msg += NtopUtils.addCommas(rsp.num_flows)+" <i class=\"fas fa-stream\"></i>  </span> </a>";
+					msg += NtopUtils.formatValue(rsp.num_flows, 1)+" <i class=\"fas fa-stream\"></i>  </span> </a>";
 
 					if (rsp.flow_export_drops > 0) {
 						const export_pctg = rsp.flow_export_drops / (rsp.flow_export_count + rsp.flow_export_drops + 1);
 						if (export_pctg > ]] print(stats_utils.UPPER_BOUND_INFO_EXPORTS) print[[) {
 							const badge_class = (export_pctg <= ]] print(stats_utils.UPPER_BOUND_WARNING_EXPORTS) print[[) ? 'warning' : 'danger';
-							msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua\"><span class=\"badge bg-"+badge_class+"\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+NtopUtils.addCommas(rsp.flow_export_drops)+" Export drop";
+							msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua\"><span class=\"badge bg-"+badge_class+"\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+NtopUtils.formatValue(rsp.flow_export_drops, 1)+" Export drop";
 							if(rsp.flow_export_drops > 1) msg += "s";
 							msg += "</span></a>";
 						}
@@ -482,12 +488,8 @@ $(document).ajaxError(function(err, response, ajaxSettings, thrownError) {
 });
 
 footerRefresh();  /* call immediately to give the UI a more responsive look */
-setInterval(footerRefresh, ]]
 
-local footer_refresh_rate = ntop.getPrefs()["housekeeping_frequency"]
-
-print(footer_refresh_rate.."")
-print[[ * 1000);  /* re-schedule every [interface-rate] seconds */
+setInterval(footerRefresh, 2000); /* re-schedule every [interface-rate] seconds */
 
 //Automatically open dropdown-menu
 $(document).ready(function(){
@@ -566,7 +568,38 @@ if have_nedge then
 		      }
       })
    )
+
+
+
 end
+
+   print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "ext_link_dialog",
+			 title   = i18n("external_link"),
+			 custom_alert_class = "alert alert-danger",
+			 message = i18n("show_alerts.confirm_external_link"),
+			 confirm = i18n("redirect"),
+		      }
+      })
+   )
+
+
+   print[[
+        <script type="text/javascript">
+          $(document).ready(function(){
+            $(document).on('click','a.ntopng-external-link',function(event){
+              event.preventDefault();
+              const url=$(this)[0].href;
+              $("#url_ext_link_dialog").html(url+"<br/>]]print(i18n("are_you_sure"))print[[");
+              $("#btn-confirm-action_ext_link_dialog").attr('href',url);
+              $('#ext_link_dialog').modal('show');
+            });
+          });
+        </script>
+   ]]
+
 
 -- ######################################
 

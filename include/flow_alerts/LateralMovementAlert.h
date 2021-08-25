@@ -27,7 +27,7 @@
 class LateralMovementAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { flow_alert_lateral_movement, alert_category_network }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_NOTICE; };
+  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_WARNING; };
 
   LateralMovementAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) { };
   ~LateralMovementAlert() { };

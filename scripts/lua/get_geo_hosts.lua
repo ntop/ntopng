@@ -65,7 +65,7 @@ local function show_hosts(hosts_count, host_key)
 
    if((host_key == nil) or (host_key == "")) then
       callback_utils.foreachHost(
-	 getInterfaceName(interface.getId()),
+	 tostring(interface.getId()),
 	 function(address, value)
 	    if value["latitude"] ~= 0 or value["longitude"] ~= 0 then
 	       -- set up the host informations

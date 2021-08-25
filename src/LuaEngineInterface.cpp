@@ -2298,27 +2298,6 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_mdns_resolve_name(lua_State* vm) {
-  char *numIP, symIP[64];
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((numIP = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  lua_pushstring(vm, ntop_interface->mdnsResolveIPv4(inet_addr(numIP),
-						     symIP, sizeof(symIP),
-						     1 /* timeout */));
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_mdns_batch_any_query(lua_State* vm) {
   char *query, *target;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -2735,6 +2714,27 @@ static int ntop_get_interface_find_host_by_mac(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_multicast_mac(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *mac;
+  u_int8_t _mac[6];
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  mac = (char*)lua_tostring(vm, 1);
+
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+
+  Utils::parseMac(_mac, mac);
+
+  lua_pushboolean(vm, Utils::isMulticastMac(_mac));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_update_ip_reassignment(lua_State* vm) {
   NetworkInterface *ntop_interface;
   int ifid;
@@ -3119,8 +3119,17 @@ static int ntop_nindex_topk(lua_State* vm) {
 		      max_num_hits, topToBottomSort));
 }
 
+/* ****************************************** */
+
 static int ntop_nindex_enabled(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  NetworkInterface *ntop_interface = NULL;
+  int ifid;
+
+  if(lua_type(vm, 1) == LUA_TNUMBER) {
+    ifid = lua_tointeger(vm, 1);
+    ntop_interface = ntop->getInterfaceById(ifid);
+  } else
+    ntop_interface = getCurrentInterface(vm);
 
   lua_pushboolean(vm, ntop_interface && ntop_interface->getNindex());
 
@@ -3376,11 +3385,50 @@ static int ntop_update_interface_top_sites(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_stats_update_freq(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  NetworkInterface *ntop_interface = NULL;
+  int ifid;
+
+  if(lua_type(vm, 1) == LUA_TNUMBER) {
+    ifid = lua_tointeger(vm, 1);
+    ntop_interface = ntop->getInterfaceById(ifid);
+  } else
+    ntop_interface = getCurrentInterface(vm);
 
   if(ntop_interface)
     lua_pushinteger(vm, ntop_interface->periodicStatsUpdateFrequency());
   else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_secs_to_first_data(lua_State* vm) {
+  NetworkInterface *ntop_interface = NULL;
+  int ifid;
+
+  if(lua_type(vm, 1) == LUA_TNUMBER) {
+    ifid = lua_tointeger(vm, 1);
+    ntop_interface = ntop->getInterfaceById(ifid);
+  } else
+    ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_interface) {
+    /*
+      Compute when the first data is available. Since stats refresh every interface_refresh_rate seconds
+      initial data becomes available after 2 * interface_refresh_rate as two samples are required for deltas (such as throughputs)
+      to be calculated
+    */
+    u_int32_t secs_to_first_data = 0,
+      interface_refresh_rate = ntop_interface->periodicStatsUpdateFrequency(),
+      secs_since_startup = ntop->getGlobals()->getUptime();
+
+    if(interface_refresh_rate * 2 > secs_since_startup)
+      secs_to_first_data = (interface_refresh_rate * 2) - secs_since_startup;
+
+    lua_pushinteger(vm, secs_to_first_data);
+  } else
     lua_pushnil(vm);
 
   return(CONST_LUA_OK);
@@ -3884,15 +3932,17 @@ static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
   IpAddress *ip = NULL;
   u_int8_t *mac = NULL;
   char * l7_proto = NULL;
-  VLANid vlan_id = 0, host_pool_id = 0, filter_ndpi_proto = 0;
+  VLANid vlan_id = 0;
+  u_int16_t host_pool_id = (u_int16_t)-1;
+  u_int16_t filter_ndpi_proto = (u_int16_t)-1;
   u_int32_t first_seen = 0;
+  u_int32_t maxHits = (u_int32_t)-1;
   bool unicast = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
     const char *addr = lua_tostring(vm, 1);
-
     if(strchr(addr, ':')) { /* This is a MAC address */
       mac = new (std::nothrow) u_int8_t[6]();
       if(mac) Utils::parseMac(mac, addr);
@@ -3906,15 +3956,16 @@ static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
   if(lua_type(vm, 4) == LUA_TBOOLEAN) unicast      = (bool)lua_toboolean(vm, 4);
   if(lua_type(vm, 5) == LUA_TNUMBER)  first_seen   = (u_int32_t)lua_tonumber(vm, 5);
   if(lua_type(vm, 6) == LUA_TSTRING)  l7_proto     = (char *)lua_tostring(vm, 6);
+  if(lua_type(vm, 7) == LUA_TNUMBER)  maxHits      = (u_int32_t)lua_tonumber(vm, 7);
 
   if(l7_proto)
     filter_ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
 
   if(ntop_interface) {
     if(periodicity) 
-      ntop_interface->luaPeriodicityStats(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto);
+      ntop_interface->luaPeriodicityMap(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto, maxHits);
     else
-      ntop_interface->luaServiceMap(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto);
+      ntop_interface->luaServiceMap(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto, maxHits);
   } else
     lua_pushnil(vm);
 
@@ -3978,7 +4029,7 @@ static int ntop_interface_service_map_set_status(lua_State* vm) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int64_t hash_id;
-  ServiceAcceptance acceptance;
+  ServiceAcceptance status;
   char* buff;
 #endif
 
@@ -3992,9 +4043,13 @@ static int ntop_interface_service_map_set_status(lua_State* vm) {
     hash_id = strtoull(buff, NULL, 10);
 
     if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-    acceptance = (ServiceAcceptance)lua_tonumber(vm, 2);
+    status = (ServiceAcceptance)lua_tonumber(vm, 2);
 
-    ntop_interface->getServiceMap()->setStatus(hash_id, acceptance);
+    if(ntop_interface->getServiceMap())
+      ntop_interface->getServiceMap()->setStatus(hash_id, status);
+    else
+      return(CONST_LUA_ERROR);
+
   }
 #endif
 
@@ -4151,11 +4206,12 @@ static int ntop_get_interface_get_host_min_info(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
-  if(!ntop_interface)
+  if(!ntop_interface) {
+    lua_pushnil(vm);
     return(CONST_LUA_ERROR);
-  else {
+  } else {
     if(!ntop_interface->getHostMinInfo(vm, get_allowed_nets(vm), host_ip, vlan_id, false))
-      ntop_get_address_info(vm);
+      lua_pushnil(vm);
 
     return(CONST_LUA_OK);
   }
@@ -4286,6 +4342,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "hasExternalAlerts",        ntop_interface_has_external_alerts  },
   { "getStats",                 ntop_get_interface_stats },
   { "getStatsUpdateFreq",       ntop_get_interface_stats_update_freq },
+  { "getSecsToFirstData",       ntop_get_secs_to_first_data },
   { "updateDirectionStats",     ntop_update_interface_direction_stats },
   { "updateTopSites",           ntop_update_interface_top_sites},
   { "resetCounters",            ntop_interface_reset_counters },
@@ -4405,6 +4462,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getMacHosts",                      ntop_get_interface_mac_hosts },
   { "getMacManufacturers",              ntop_get_interface_macs_manufacturers },
   { "getMacDeviceTypes",                ntop_get_mac_device_types },
+  { "isMulticastMac",                   ntop_is_multicast_mac },
 
   /* Anomalies */
   { "getAnomalies",                     ntop_get_interface_anomalies },
@@ -4468,7 +4526,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   /* Network Discovery */
   { "discoverHosts",                   ntop_discover_iface_hosts       },
   { "arpScanHosts",                    ntop_arpscan_iface_hosts        },
-  { "mdnsResolveName",                 ntop_mdns_resolve_name          },
   { "mdnsQueueNameToResolve",          ntop_mdns_queue_name_to_resolve },
   { "mdnsQueueAnyQuery",               ntop_mdns_batch_any_query       },
   { "mdnsReadQueuedResponses",         ntop_mdns_read_queued_responses },

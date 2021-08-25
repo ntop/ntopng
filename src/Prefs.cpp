@@ -38,7 +38,8 @@ extern "C" {
 Prefs::Prefs(Ntop *_ntop) {
   num_deferred_interfaces_to_register = 0, cli = NULL;
   ntop = _ntop, pcap_file_purge_hosts_flows = false,
-    ignore_vlans = false, simulate_vlans = false, ignore_macs = false;
+    ignore_vlans = false, simulate_vlans = false, simulate_macs = false, ignore_macs = false;
+  insecure_tls = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
   num_simulated_ips = 0, enable_behaviour_analysis = false;
   local_networks_set = false, shutdown_when_done = false;
@@ -64,6 +65,7 @@ Prefs::Prefs(Ntop *_ntop) {
     override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false;
     hostMask = no_host_mask;
   enable_asn_behaviour_analysis = enable_network_behaviour_analysis = enable_iface_l7_behaviour_analysis = false; 
+  enable_broadcast_domain_too_large = false;
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
   default_l7policy = PASS_ALL_SHAPER_ID;
@@ -344,6 +346,7 @@ void usage() {
 	 "                                    | instead of %s\n"
 	 "[--dont-change-user|-s]             | Do not change user (debug only)\n"
 	 "[--shutdown-when-done]              | Terminate after reading the pcap (debug only)\n"
+	 "[--insecure]                        | Allow connections to TLS sites with invalid certificates \n"
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,1,0)
 	 "[--zmq-encryption]                  | Enable ZMQ encryption\n"
 	 "[--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption secret key (debug only) \n"
@@ -460,6 +463,7 @@ void usage() {
 	 "[--ignore-vlans]                    | Ignore VLAN tags from traffic\n"
 	 "[--pcap-file-purge-flows]           | Enable flow purge with pcap files (debug only)\n"
 	 "[--simulate-vlans]                  | Simulate VLAN traffic (debug only)\n"
+	 "[--simulate-macs]                   | Simulate MACs in the traffic (debug only)\n"
 	 "[--simulate-ips] <num>              | Simulate IPs by choosing clients and servers among <num> random addresses\n"
 	 "[--help|-h]                         | Help\n",
 #ifdef HAVE_NEDGE
@@ -611,7 +615,7 @@ void Prefs::reloadPrefsFromRedis() {
     auth_session_midnight_expiration = getDefaultBoolPrefsValue(CONST_AUTH_SESSION_MIDNIGHT_EXP_PREFS, HTTP_SESSION_MIDNIGHT_EXPIRATION);
 
   /* Runtime Preferences */
-  housekeeping_frequency      = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY, HOUSEKEEPING_FREQUENCY),
+  housekeeping_frequency      = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQ, HOUSEKEEPING_FREQUENCY),
     local_host_cache_duration = getDefaultPrefsValue(CONST_LOCAL_HOST_CACHE_DURATION_PREFS, LOCAL_HOSTS_CACHE_DURATION),
     local_host_max_idle       = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE),
     non_local_host_max_idle   = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE),
@@ -667,7 +671,8 @@ void Prefs::reloadPrefsFromRedis() {
     max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN, CONST_DEFAULT_MAX_UI_STRLEN),
     hostMask      = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK, no_host_mask),
     flow_table_time      = (bool)getDefaultPrefsValue(CONST_FLOW_TABLE_TIME, flow_table_time),
-    auto_assigned_pool_id = (u_int16_t) getDefaultPrefsValue(CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID);
+    auto_assigned_pool_id = (u_int16_t) getDefaultPrefsValue(CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID),
+    enable_broadcast_domain_too_large = getDefaultBoolPrefsValue(CONST_PREFS_BROADCAST_DOMAIN_TOO_LARGE, false);
 
   getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_TS_DRIVER, &aux, (char*)"rrd");
   if(aux) {
@@ -830,6 +835,7 @@ static const struct option long_options[] = {
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "simulate-vlans",                    no_argument,       NULL, 214 },
+  { "simulate-macs",                     no_argument,       NULL, 224 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
 #ifndef HAVE_NEDGE
   { "ignore-macs",                       no_argument,       NULL, 216 },
@@ -843,6 +849,7 @@ static const struct option long_options[] = {
 #ifndef HAVE_NEDGE
   { "appliance",                         no_argument,       NULL, 223 },
 #endif
+  { "insecure",                          no_argument,       NULL, 225 },
 #ifdef NTOPNG_PRO
   { "vm",                                no_argument,       NULL, 251 }, // --vm no longer used (keeping for backward cmpatibility)
   { "check-maintenance",                 no_argument,       NULL, 252 },
@@ -1530,6 +1537,14 @@ int Prefs::setOption(int optkey, char *optarg) {
     appliance = true;
     break;
 #endif
+
+  case 224:
+    simulate_macs = true;
+    break;
+
+  case 225:
+    insecure_tls = true;
+    break;
 
 #ifdef NTOPNG_PRO
 #ifdef __linux__

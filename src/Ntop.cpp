@@ -621,7 +621,7 @@ void Ntop::start() {
 	runHousekeepingTasks();
 
 	/* Allow host and flow checks to be executed, allow notifications to be processed (notifications.lua) */
-	sleep(3);
+	sleep(8);
 
 	/* Test Script (Post Analysis) */
 	if(ntop->getPrefs()->get_test_post_script_path()) {
@@ -3145,7 +3145,7 @@ struct ndpi_detection_module_struct* Ntop::initnDPIStruct() {
     ndpi_load_protocols_file(ndpi_s, getCustomnDPIProtos());
 
   memset(d_port, 0, sizeof(d_port));
-  ndpi_set_proto_defaults(ndpi_s, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
+  ndpi_set_proto_defaults(ndpi_s, 0, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
 			  (char*)"Operating System",
 			  NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
 

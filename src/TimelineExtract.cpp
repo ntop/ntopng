@@ -202,11 +202,6 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Running live extraction");
 
-  Utils::init_pcap_header(&pcaphdr, iface);
-
-  if (!Utils::mg_write_retry(conn, (u_char *) &pcaphdr, sizeof(pcaphdr)))
-    http_client_disconnected = true;
-
   if(!timeline_path || timeline_path[0] == '\0')
     handle = openTimelineFromInterface(iface, from, to, bpf_filter);
   else
@@ -214,6 +209,13 @@ bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *
 
   if (handle == NULL)
     goto error;
+
+  Utils::init_pcap_header(&pcaphdr,
+    pfring_get_link_type(handle),
+    pfring_get_caplen(handle));
+
+  if (!Utils::mg_write_retry(conn, (u_char *) &pcaphdr, sizeof(pcaphdr)))
+    http_client_disconnected = true;
 
   while (!http_client_disconnected && 
          !ntop->getGlobals()->isShutdown() && 

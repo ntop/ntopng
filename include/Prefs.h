@@ -80,6 +80,7 @@ class Prefs {
   bool enable_arp_matrix_generation;
   bool enable_zmq_encryption;
   bool flow_table_time;
+  bool enable_broadcast_domain_too_large;
   u_int32_t max_num_secs_before_delete_alert;
   int32_t max_entity_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
@@ -105,7 +106,8 @@ class Prefs {
   bool enable_runtime_flows_dump; /**< runtime preference to enable/disable flows dump from the UI */
   InterfaceInfo *ifNames;
   char *local_networks;
-  bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans, ignore_macs;
+  bool local_networks_set, shutdown_when_done, simulate_vlans, simulate_macs, ignore_vlans, ignore_macs;
+  bool insecure_tls; /**< Unsecure TLS connections a-la curl */
   u_int32_t num_simulated_ips;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
 	  *callbacks_dir, *pcap_dir;
@@ -256,8 +258,10 @@ class Prefs {
   inline bool  do_ignore_vlans()                        { return(ignore_vlans);                     };
   inline bool  do_ignore_macs()                         { return(ignore_macs);                      };
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
-  inline char* get_cpu_affinity()                       { return(cpu_affinity);            };
-  inline char* get_other_cpu_affinity()                 { return(other_cpu_affinity);            };
+  inline bool  do_simulate_macs()                       { return(simulate_macs);                    };
+  inline bool  do_insecure_tls()                        { return(insecure_tls);                     };
+  inline char* get_cpu_affinity()                       { return(cpu_affinity);                     };
+  inline char* get_other_cpu_affinity()                 { return(other_cpu_affinity);               };
 #ifdef __linux__
   inline cpu_set_t* get_other_cpu_affinity_mask()       { return(&other_cpu_affinity_mask); };
 #endif
@@ -402,6 +406,8 @@ class Prefs {
   inline bool      isBehavourAnalysisEnabled()   { return(enable_behaviour_analysis);                   };
   inline u_int32_t behaviourAnalysisLearningPeriod() { return behaviour_analysis_learning_period;       };
   
+  inline bool      isBroadcastDomainTooLargeEnabled()     { return(enable_broadcast_domain_too_large);  };
+
   inline bool      isASNBehavourAnalysisEnabled()     { return(enable_asn_behaviour_analysis);               };
   inline bool      isNetworkBehavourAnalysisEnabled() { return(enable_network_behaviour_analysis);           };
   inline bool      isIfaceL7BehavourAnalysisEnabled() { return(enable_iface_l7_behaviour_analysis);          };

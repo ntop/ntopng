@@ -1161,19 +1161,19 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 	 && flow->event_type != ebpf_event_type_tcp_connect
 	 && ntohs(flow->src_port) < ntohs(flow->dst_port))
 	flow->swap();
-    } else if(ntohs(flow->src_port) < 1024
-	      && ntohs(flow->src_port) < ntohs(flow->dst_port)
+    } else if(/* ntohs(flow->src_port) < 1024 && Relaxes this condition to also include non-well-known ports (e.g., MySQL 3306) */
+	      ntohs(flow->src_port) < ntohs(flow->dst_port)
 	      // && flow->in_pkts && flow->out_pkts /* Flows can be mono-directional, so can't use this condition */
 	      && (flow->l4_proto != IPPROTO_TCP /* Not TCP or TCP but without SYN (See https://github.com/ntop/ntopng/issues/5058) */
 		  /*
 		    No SYN (cumulative flow->tcp.tcp_flags are NOT checked as they can contain a SYN but the direction is unknown),
-		    do the swap as it is assumed the beginning of the TCP flow has not been seen
+		    do the swap as it is assumed the beginning of the TCP flow has not been seen.
+
+		    Swap check is performed for TCP flows for all cases other than
+		    when a SYN is seen from client to server and no other flag is seen from server to client.
+		    Indded, in this case, the swap should not be performed as the direction is accurate according to the seen flags.
 		   */
-		  || !((flow->tcp.server_tcp_flags | flow->tcp.client_tcp_flags) & TH_SYN)
-		  /*
-		    The SYN is server to client, swapping is safe
-		  */
-		  || flow->tcp.server_tcp_flags & TH_SYN))
+		  || !(flow->tcp.client_tcp_flags == TH_SYN && flow->tcp.server_tcp_flags == 0)))
       /* Attempt to determine flow client and server using port numbers
 	 useful when exported flows are mono-directional
 	 https://github.com/ntop/ntopng/issues/1978 */

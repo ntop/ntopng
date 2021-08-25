@@ -370,7 +370,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual u_int16_t getNumActiveContactsAsServer()  { return 0; };
   inline TcpPacketStats* getTcpPacketSentStats() { return(stats->getTcpPacketSentStats()); }
   inline TcpPacketStats* getTcpPacketRcvdStats() { return(stats->getTcpPacketRcvdStats()); }
-
+  virtual void addContactedDomainName(char* domain_name) {};       
+  virtual u_int32_t getDomainNamesCardinality()          { return 0; };      
+  virtual void resetDomainNamesCardinality()             {};
   virtual NetworkStats* getNetworkStats(int16_t networkId) { return(NULL);   };
   inline Country* getCountryStats()                        { return country; };
 

@@ -145,7 +145,7 @@ const VIEW_ONLY_TAGS = {* tags.view_only *};
 const input = $(`[name='tags']`)[0];
 
 const tagify = new Tagify(input, {
-    duplicate: false,
+    duplicates: true,
     delimiters : null,
     dropdown : {
         enabled: 1, // suggest tags after a single character input
@@ -179,6 +179,7 @@ const tagify = new Tagify(input, {
 $(document).ready(function() {
     // add existing tags
     tagify.addTags(initialTags);
+
     // intialize tooltip
     $(`.btn-remove-tags`).tooltip();
 });

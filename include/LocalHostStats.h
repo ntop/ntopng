@@ -28,7 +28,7 @@ class LocalHostStats: public HostStats {
   DnsStats *dns;
   HTTPstats *http;
   ICMPstats *icmp;
-  FrequentStringItems *top_sites;
+  MostVisitedList *top_sites;
 
   /* nextPeriodicUpdate done every 5 min */
   time_t nextPeriodicUpdate;
@@ -37,6 +37,9 @@ class LocalHostStats: public HostStats {
   /* Estimate of the number of critical servers used by this host */
   Cardinality num_dns_servers, num_smtp_servers, num_ntp_servers;
 
+  /* Estimate of the number of different Domain Names contacted */
+  Cardinality num_contacted_domain_names;
+ 
   /* Estimate the number of contacted hosts using HyperLogLog */
   struct ndpi_hll hll_contacted_hosts;
   double old_hll_value, new_hll_value, hll_delta_value;
@@ -47,9 +50,6 @@ class LocalHostStats: public HostStats {
   u_int8_t old_hll_countries_value, new_hll_countries_value, hll_delta_countries_value;
   DESCounter countries_contacts;
 
-  /* Written by NetworkInterface::periodicStatsUpdate thread */
-  char *old_sites;
-  u_int8_t current_cycle;
 
   Cardinality num_contacted_hosts_as_client, /* # of hosts contacted by this host   */
     num_host_contacts_as_server,             /* # of hosts that contacted this host */
@@ -61,12 +61,8 @@ class LocalHostStats: public HostStats {
   PeerStats *peers;
 
   void updateHostContacts();
-  void saveOldSites();
   void removeRedisSitesKey();
   void addRedisSitesKey();
-  void getCurrentTime(struct tm *t_now);
-  void serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize);
-  void deserializeTopSites(char* redis_key_current);
   void updateContactedHostsBehaviour();
   void updateCountriesContactsBehaviour();
 #if defined(NTOPNG_PRO)
@@ -90,6 +86,9 @@ class LocalHostStats: public HostStats {
   virtual void deserialize(json_object *obj);
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
   virtual void resetTopSitesData();
+  virtual void addContactedDomainName(char* domain_name)    { num_contacted_domain_names.addElement(domain_name,strlen(domain_name));  }
+  virtual u_int32_t getDomainNamesCardinality()             { return num_contacted_domain_names.getEstimate(); }  
+  virtual void resetDomainNamesCardinality()                { num_contacted_domain_names.reset();              } 
 
   virtual void luaDNS(lua_State *vm, bool verbose)  { if(dns) dns->lua(vm, verbose); }
   virtual void luaHTTP(lua_State *vm)  { if(http) http->lua(vm); }

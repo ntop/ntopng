@@ -49,7 +49,7 @@ public:
   static char* l4proto2name(u_int8_t proto);
   static u_int8_t l4name2proto(const char *name);
   static u_int8_t queryname2type(const char *name);
-  static bool  isIPAddress(char *name);
+  static bool  isIPAddress(const char *ip);
 #ifdef __linux__ 
   static int   setAffinityMask(char *cores_list, cpu_set_t *mask);
   static int   setThreadAffinityWithMask(pthread_t thread, cpu_set_t *mask);
@@ -141,7 +141,11 @@ public:
   static u_int32_t macHash(const u_int8_t * const mac);
   static bool isEmptyMac(const u_int8_t * const mac);
   static bool isSpecialMac(u_int8_t *mac);
-  static bool isBroadcastMac(u_int8_t *mac);
+  inline static bool isBroadMulticastMac(const u_int8_t *mac) {
+    return(isBroadcastMac(mac) || isMulticastMac(mac));
+  }
+  static bool isBroadcastMac(const u_int8_t *mac);
+  static bool isMulticastMac(const u_int8_t *mac);
   static int numberOfSetBits(u_int32_t i);
   static void initRedis(Redis **r, const char *redis_host, const char *redis_password,
 			u_int16_t redis_port, u_int8_t _redis_db_id, bool giveup_on_failure);
@@ -191,7 +195,7 @@ public:
   static void maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb);
   static u_int32_t parsetime(char *str);
   static time_t str2epoch(const char *str);
-  static u_int64_t mac2int(u_int8_t *mac);
+  static u_int64_t mac2int(const u_int8_t *mac);
   static u_int8_t* int2mac(u_int64_t mac, u_int8_t *buf);
   static void listInterfaces(lua_State* vm); 
   static bool validInterface(const ntop_if_t *ntop_if);
@@ -226,7 +230,7 @@ public:
   static char* formatPackets(float numPkts, char *buf);
 
   /* Pcap files utiles */
-  static void init_pcap_header(struct pcap_file_header * const h, NetworkInterface * const iface);
+  static void init_pcap_header(struct pcap_file_header * const h, int linktype, int snaplen, bool nsec = false);
 
   /* Bitmap functions */
   static bool bitmapIsSet(u_int64_t bitmap, u_int8_t v);  

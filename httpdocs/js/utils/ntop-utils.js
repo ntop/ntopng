@@ -456,13 +456,14 @@ class NtopUtils {
 		return [Math.round((val / Math.pow(scale, i)) * factor) / factor, sizes[i]];
 	}
 
-	static formatValue(val) {
+	static formatValue(val, decimals) {
 		var sizes = ['', 'K', 'M', 'G', 'T'];
 		if (val == 0) return '0';
 		if ((val > 0) && (val < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE);
-		var res = NtopUtils.scaleValue(val, sizes, 1000);
+		if (decimals == undefined) decimals = 0;
+		var res = NtopUtils.scaleValue(val, sizes, 1000, decimals);
 
-		return Math.round(res[0]) + res[1];
+		return res[0] + res[1];
 	}
 
 	static formatPackets(n) {

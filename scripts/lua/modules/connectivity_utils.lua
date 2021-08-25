@@ -16,7 +16,7 @@ function connectivity_utils.checkConnectivity()
    local i = 0
    while i < max_retry and not success do   
 
-      local rsp = ntop.httpGet("https://version.ntop.org", "", "", timeout)
+      local rsp = ntop.httpGet("https://packages.ntop.org", "", "", timeout)
 
       if not rsp['RESPONSE_CODE'] or rsp['RESPONSE_CODE'] == 0 then
          -- Timeout

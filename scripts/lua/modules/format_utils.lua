@@ -73,6 +73,8 @@ function format_utils.secondsToTime(seconds)
    msg = msg .. string.format("%02d:", truncate(minutes))
    msg = msg .. string.format("%02d", truncate(sec));
 
+   if(seconds < 60) then msg = msg .. " sec" end
+
    return msg
 end
 
@@ -391,6 +393,18 @@ function format_utils.formatMainAddressCategory(host)
    end
 
    return addr_category
+end
+
+function format_utils.formatHostNameAndAddress(hostname, address)
+   local res = ""
+
+   if address ~= hostname then
+      res = string.format("%s [%s]", address, hostname)
+   else
+      res = hostname
+   end
+
+   return res
 end
    
 return format_utils

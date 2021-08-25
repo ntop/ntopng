@@ -102,14 +102,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /* Behavioural analysis regarding the interface */
   AnalysisBehavior *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
 #endif
-  
-  /* Variables used by top sites periodic update */
-  u_int8_t current_cycle = 0;
-  FrequentStringItems *top_sites;
-  char *old_sites;
-
-  FrequentStringItems *top_os;
-  char *old_os;
+  MostVisitedList *top_sites;
+  MostVisitedList *top_os;
 
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
@@ -333,13 +327,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		Paginator *p,
 		const char *sortColumn);
 
-  /* Functions used to update top sites of the interface */
-  void saveOldSitesAndOs(u_int8_t top);
-  void getCurrentTime(struct tm *t_now);
-  void deserializeTopOsAndSites(char* redis_key_current, bool do_top_sites);
-  void serializeDeserialize(struct tm *t_now, bool do_serialize);
-  void removeRedisSitesKey();
   void addRedisSitesKey();
+  void removeRedisSitesKey();
 
   bool isNumber(const char *str);
   bool checkIdle();
@@ -615,15 +604,16 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void luaNdpiStats(lua_State* vm, bool diff = false);
   void luaPeriodicityFilteringMenu(lua_State* vm);
   void luaServiceFilteringMenu(lua_State* vm);
-  void luaPeriodicityStats(lua_State* vm, const u_int8_t * const mac, IpAddress *ip_address, VLANid vlan_id, u_int16_t host_pool_id, 
-                            bool unicast, u_int32_t first_seen, u_int16_t filter_ndpi_proto);
+  void luaPeriodicityMap(lua_State* vm, const u_int8_t * const mac, IpAddress *ip_address, VLANid vlan_id, u_int16_t host_pool_id, 
+			 bool unicast, u_int32_t first_seen, u_int16_t filter_ndpi_proto, u_int32_t maxHits);
   void luaServiceMap(lua_State* vm, const u_int8_t * const mac, IpAddress *ip_address, VLANid vlan_id, u_int16_t host_pool_id, 
-                      bool unicast, u_int32_t first_seen, u_int16_t filter_ndpi_proto);
+		     bool unicast, u_int32_t first_seen, u_int16_t filter_ndpi_proto, u_int32_t maxHits);
   void luaSubInterface(lua_State *vm);
   void luaServiceMapStatus(lua_State *vm);
   inline float getThroughputBps()            { return bytes_thpt.getThpt(); };
   inline float getThroughputPps()            { return pkts_thpt.getThpt();  };
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  inline bool isServiceMapLearning()   const { return(sMap ? sMap->isLearning() : false); }
   inline ServiceMap* getServiceMap()         { return(sMap);           };
   inline bool isServiceMapEnabled()          { return(sMap ? true : false); };
   inline void flushServiceMap()              { if(sMap) sMap->flush(); };
@@ -888,16 +878,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   virtual void addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) { ; };
   virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id, char *label) { ; };
 #endif
-
-  inline char* mdnsResolveIPv4(u_int32_t ipv4addr /* network byte order */,
-			       char *buf, u_int buf_len, u_int timeout_sec = 2) {
-    if(mdns)
-      return(mdns->resolveIPv4(ipv4addr, buf, buf_len, timeout_sec));
-    else {
-      buf[0] = '\0';
-      return(buf);
-    }
-  }
 
   inline void mdnsSendAnyQuery(char *targetIPv4, char *query) {
     if(mdns) mdns->sendAnyQuery(targetIPv4, query);

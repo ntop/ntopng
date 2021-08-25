@@ -46,7 +46,7 @@ $(function() {
         updateExportLink(key);
     });
 
-    $(`#reset-modal #btn-confirm-action`).click(async function() {
+    $(`#btn-confirm-action_reset-modal`).click(async function() {
 
         $(this).attr("disabled", "disabled");
         const key = $(`input[name='configuration']:checked`).val();

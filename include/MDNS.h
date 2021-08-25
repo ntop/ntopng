@@ -61,9 +61,6 @@ public:
   bool sendAnyQuery(char *targetIPv4, char *query);
   bool queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS);
   void fetchResolveResponses(lua_State* vm, int32_t timeout_sec);  
-  
-  /* Resolve the IPv4 immediately discarding */
-  char* resolveIPv4(u_int32_t ipv4addr /* network byte order */, char *buf, u_int buf_len, u_int timeout_sec);
 };
 
 #endif /* _MDNS_H_ */

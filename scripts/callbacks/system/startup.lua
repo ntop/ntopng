@@ -231,7 +231,7 @@ if(has_pcap_dump_interface) then
 end
 
 -- Create the special drop pool for nProbe IPS
-if(ntop.isPro()) then
+if(ntop.isPro() and not ntop.isnEdge()) then
    local pools = require "pools"
    local host_pools = require "host_pools"
    local policy_utils = require "policy_utils"

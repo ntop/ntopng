@@ -91,6 +91,16 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 
 /* **************************************************** */
 
+ViewInterface::~ViewInterface() {
+  for(int i = 0; i < num_viewed_interfaces; i++) {
+
+    if(viewed_interfaces_queues[i])
+      delete viewed_interfaces_queues[i];
+  }
+}
+
+/* **************************************************** */
+
 bool ViewInterface::viewEnqueue(time_t t, Flow *f, u_int8_t viewed_interface_id) {
   /*
     Put the element into the right single-producer (the viewed interface) single-consumer (this view interface) queue
@@ -473,15 +483,6 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 	findFlowHosts(f->get_vlan_id(), f->get_observation_point_id(),
 		      NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
 		      NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
-
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-	/*
-	  For view interfaces, service and periodicity maps need to be updated there,
-	  only the first time a flow is seen.
-	 */
-	updateFlowPeriodicity(f);
-	updateServiceMap(f);
-#endif
       } else {
 	/* The unsafe pointers can be used here as ViewInterface::viewed_flows_walker is
 	 * called synchronously with the ViewInterface purgeIdle. This also saves some
@@ -545,6 +546,20 @@ bool ViewInterface::isSampledTraffic() const {
     if(viewed_interfaces[s]->isSampledTraffic()) return true;
 
   return false;
+}
+
+/* **************************************************** */
+
+u_int32_t ViewInterface::periodicStatsUpdateFrequency() const {
+  u_int32_t freq = 0;
+
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
+    u_int32_t cur_freq = viewed_interfaces[s]->periodicStatsUpdateFrequency();
+
+    if(cur_freq > freq) freq = cur_freq;
+  }
+
+  return freq;
 }
 
 /* **************************************************** */

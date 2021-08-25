@@ -80,8 +80,9 @@ class Flow : public GenericHashEntry {
 #ifdef NTOPNG_PRO
   bool ingress2egress_direction;
   u_int8_t routing_table_id;
-  bool lateral_movement, periodicity_changed;
 #ifndef HAVE_NEDGE
+  bool lateral_movement;
+  PeriodicityStatus periodicity_status;
   FlowProfile *trafficProfile;
 #else
   u_int16_t cli2srv_in, cli2srv_out, srv2cli_in, srv2cli_out;
@@ -206,6 +207,7 @@ class Flow : public GenericHashEntry {
     PartializableFlowTrafficStats *partial;
     PartializableFlowTrafficStats delta;
     time_t first_seen, last_seen;
+    bool in_progress; /* Set to true when the flow is enqueued to be dumped */
   } last_db_dump;
 
   /* Lazily initialized and used by a possible view interface */
@@ -333,6 +335,7 @@ class Flow : public GenericHashEntry {
 						   || (ndpiDetectedProtocol.app_protocol == p))
 						  ? true : false); }
   bool isTLS() const;
+  inline bool isEncryptedProto() const { return(ndpi_is_encrypted_proto(iface->get_ndpi_struct(), ndpiDetectedProtocol)); }
   inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
   inline bool isIEC60870()  const { return(isProto(NDPI_PROTOCOL_IEC60870));  }
@@ -345,11 +348,11 @@ class Flow : public GenericHashEntry {
   inline bool isHTTP() const { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP() const { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline bool isLateralMovement() const { return(lateral_movement);  }
-  inline void setLateralMovement(bool change) { lateral_movement = change;  }
-  inline bool isPeriodicityChanged() const { return(periodicity_changed);  }
-  inline void setPeriodicityChanged(bool change) { periodicity_changed = change;  }
+  inline void setLateralMovement(bool change) { lateral_movement = change; }
+  PeriodicityStatus getPeriodicity() const { return(periodicity_status);   }
+  inline void setPeriodicity(PeriodicityStatus _periodicity_status) { periodicity_status = _periodicity_status;  }
 #endif
 
   inline bool isCliDeviceAllowedProtocol() const {
@@ -459,7 +462,7 @@ class Flow : public GenericHashEntry {
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
 		    u_int in_fragments, u_int out_fragments,
 		    time_t first_seen, time_t last_seen);
-  bool check_swap(u_int32_t tcp_flags);
+  void check_swap();
 
   inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
   inline bool isDetectionCompleted()     const { return(detection_completed);             };
@@ -503,6 +506,8 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_partial_bytes_srv2cli()   const { return last_db_dump.delta.get_srv2cli_bytes();   };
   inline u_int64_t get_partial_packets_cli2srv() const { return last_db_dump.delta.get_cli2srv_packets(); };
   inline u_int64_t get_partial_packets_srv2cli() const { return last_db_dump.delta.get_srv2cli_packets(); };
+  inline void set_dump_in_progress()                   { last_db_dump.in_progress = true;                 };
+  inline void set_dump_done()                          { last_db_dump.in_progress = false;                };
   bool needsExtraDissection();
   bool hasDissectedTooManyPackets();
   bool get_partial_traffic_stats_view(PartializableFlowTrafficStats *delta, bool *first_partial);
@@ -841,7 +846,8 @@ class Flow : public GenericHashEntry {
   }
 
   inline bool timeToPeriodicDump(u_int sec) {
-    return((sec - get_first_seen() < CONST_DB_DUMP_FREQUENCY) || (sec - get_partial_last_seen() < CONST_DB_DUMP_FREQUENCY));
+    return((sec - get_first_seen()        >= CONST_DB_DUMP_FREQUENCY) &&
+           (sec - get_partial_last_seen() >= CONST_DB_DUMP_FREQUENCY));
   }
 
   u_char* getCommunityId(u_char *community_id, u_int community_id_len);

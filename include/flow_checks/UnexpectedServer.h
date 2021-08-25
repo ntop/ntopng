@@ -26,12 +26,13 @@
 
 class UnexpectedServer : public FlowCheck {
  private:
-  ndpi_ptree_t *whitelist;
+  ndpi_ptree_t *whitelist_ptree;
+  void *whitelist_automa;
 
   virtual FlowAlertType getAlertType() const = 0;
 
 protected:
-  bool isAllowedHost(const IpAddress *p);
+  bool isAllowedHost(Flow *f);
 
   virtual bool isAllowedProto(Flow *f)          { return(false); }
   virtual const IpAddress* getServerIP(Flow *f) { return(f->get_srv_ip_addr()); }
@@ -40,13 +41,16 @@ public:
   UnexpectedServer() : FlowCheck(ntopng_edition_community,
 				  false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
 				  true /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */) {
-    if((whitelist = ndpi_ptree_create()) == NULL)
+    whitelist_automa = NULL;
+    if((whitelist_ptree = ndpi_ptree_create()) == NULL)
       throw "Out of memory";
   };
 
   ~UnexpectedServer() {
-    if(whitelist)
-      ndpi_ptree_destroy(whitelist);
+    if(whitelist_ptree)
+      ndpi_ptree_destroy(whitelist_ptree);
+    if(whitelist_automa)
+      ndpi_free_automa(whitelist_automa);
   };
 
   void protocolDetected(Flow *f);

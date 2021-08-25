@@ -290,8 +290,7 @@ u_int8_t Utils::queryname2type(const char *name) {
 
 /* ****************************************************** */
 
-#ifdef NOTUSED
-bool Utils::isIPAddress(char *ip) {
+bool Utils::isIPAddress(const char *ip) {
   struct in_addr addr4;
   struct in6_addr addr6;
 
@@ -308,7 +307,6 @@ bool Utils::isIPAddress(char *ip) {
 
   return(false);
 }
-#endif
 
 /* ****************************************************** */
 
@@ -1525,7 +1523,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
       curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
     }
 
-    if(!strncmp(url, "https", 5)) {
+    if(!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -1609,7 +1607,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
       curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
     }
 
-    if(!strncmp(url, "https", 5)) {
+    if(!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -1699,7 +1697,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
       curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
     }
 
-    if(!strncmp(url, "https", 5)) {
+    if(!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -1811,6 +1809,11 @@ bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *messag
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_NONE);
     else /* Try using SSL */
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
+
+    if(ntop->getPrefs()->do_insecure_tls()) {
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    }
 
     curl_easy_setopt(curl, CURLOPT_MAIL_FROM, from);
 
@@ -2040,7 +2043,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url,
       }
     }
 
-    if(!strncmp(url, "https", 5)) {
+    if(!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
@@ -2244,7 +2247,7 @@ long Utils::httpGet(const char * const url,
     if (headers != NULL)
       curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-    if(!strncmp(url, "https", 5)) {
+    if(!strncmp(url, "https", 5) && ntop->getPrefs()->do_insecure_tls()) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -3164,11 +3167,31 @@ bool Utils::isSpecialMac(u_int8_t *mac) {
 
 /* ****************************************************** */
 
-bool Utils::isBroadcastMac(u_int8_t *mac) {
+bool Utils::isBroadcastMac(const u_int8_t *mac) {
   u_int8_t broad[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
   return(memcmp(mac, broad, 6) == 0);
 
+}
+
+/* ****************************************************** */
+
+/*
+  http://h22208.www2.hpe.com/eginfolib/networking/docs/switches/5130ei/5200-3944_ip-multi_cg/content/483573739.htm 
+  https://ipcisco.com/lesson/multicast-mac-addresses/
+*/
+bool Utils::isMulticastMac(const u_int8_t *mac) {
+  if(isEmptyMac(mac))
+    return(false);
+  
+  if(
+     ((mac[0] == 0x33) && (mac[1] == 0x33))
+     ||
+     ((mac[0] == 0x01) && (mac[1] == 0x00) && (mac[2] == 0x5E))
+     )
+    return(true);
+  else
+    return(false);
 }
 
 /* ****************************************************** */
@@ -3936,7 +3959,7 @@ u_int32_t Utils::parsetime(char *str) {
 
 /* ************************************************* */
 
-u_int64_t Utils::mac2int(u_int8_t *mac) {
+u_int64_t Utils::mac2int(const u_int8_t *mac) {
   u_int64_t m = 0;
 
   memcpy(&m, mac, 6);
@@ -3954,23 +3977,23 @@ u_int8_t* Utils::int2mac(u_int64_t mac, u_int8_t *buf) {
 
 /* ************************************************* */
 
-void Utils::init_pcap_header(struct pcap_file_header * const h, NetworkInterface * const iface) {
+void Utils::init_pcap_header(struct pcap_file_header * const h, int linktype, int snaplen, bool nsec) {
   /*
    * [0000000] c3d4 a1b2 0002 0004 0000 0000 0000 0000
    * [0000010] 05ea 0000 0001 0000
    */
-  if(!h || !iface)
+  if(!h)
     return;
 
   memset(h, 0, sizeof(*h));
 
-  h->magic = PCAP_MAGIC;
+  h->magic = nsec ? PCAP_NSEC_MAGIC : PCAP_MAGIC;
   h->version_major = 2;
   h->version_minor = 4;
   h->thiszone = 0;
   h->sigfigs  = 0;
-  h->snaplen  = ntop->getGlobals()->getSnaplen(iface->get_name());
-  h->linktype = iface->isPacketInterface() ? iface->get_datalink() : DLT_EN10MB;
+  h->snaplen  = snaplen;
+  h->linktype = linktype;
 }
 
 /* ****************************************************** */
@@ -3995,6 +4018,7 @@ void Utils::listInterfaces(lua_State* vm) {
         if(sin.sin_addr.s_addr != 0)
           lua_push_str_table_entry(vm, "ipv4", Utils::intoaV4(ntohl(sin.sin_addr.s_addr), buf, sizeof(buf)));
 
+#ifndef WIN32
         sin6.sin6_family = AF_INET6;
         if(Utils::readIPv6(cur->name, &sin6.sin6_addr)) {
 	  struct ndpi_in6_addr* ip6 = (struct ndpi_in6_addr*)&sin6.sin6_addr;
@@ -4002,6 +4026,7 @@ void Utils::listInterfaces(lua_State* vm) {
 
 	  lua_push_str_table_entry(vm, "ipv6", ip);
         }
+#endif
       }
 
       lua_pushstring(vm, cur->name);

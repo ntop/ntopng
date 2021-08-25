@@ -510,6 +510,8 @@ void Host::lua_get_min_info(lua_State *vm) {
   lua_push_bool_table_entry(vm, "is_multicast", isMulticastHost());
   lua_push_int32_table_entry(vm, "host_services_bitmap", host_services_bitmap);
   lua_get_geoloc(vm);
+  lua_get_ip(vm);
+  lua_get_mac(vm);
   
 #ifdef HAVE_NEDGE
   lua_push_bool_table_entry(vm, "childSafe", isChildSafe());
@@ -790,7 +792,7 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   num_resolve_attempts++;
 
   getResolvedName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   /* Most relevant names goes first */
@@ -805,27 +807,27 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   }
 
   getMDNSTXTName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   getMDNSName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   getMDNSInfo(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   getNetbiosName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   getTLSName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   getHTTPName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
   if(!skip_resolution) {
@@ -1609,7 +1611,7 @@ void Host::checkDataReset() {
 /* *************************************** */
 
 char* Host::get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize) {
-  char *k = mac->print(buf, bufsize);
+  char *k = mac ? Utils::formatMac(mac->get_mac(), buf, bufsize) : Utils::formatMac(NULL, buf, bufsize);
 
   /* NOTE: it is important to differentiate between v4 and v6 for macs */
   strncat(buf, get_ip()->isIPv4() ? "_v4" : "_v6", bufsize);

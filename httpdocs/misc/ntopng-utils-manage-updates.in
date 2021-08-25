@@ -94,6 +94,7 @@ function print_usage() {
 	echo "`basename $0` -a check-updates"
 	echo "`basename $0` -a check-updates-on-demand"
 	echo "`basename $0` -a handle-upgrade-requests"
+	echo "`basename $0` -a handle-on-demand-requests"
 	echo ""
 	echo "[-a check-updates]"
 	echo "`basename $0` -a check-updates"
@@ -106,6 +107,10 @@ function print_usage() {
 	echo "[-a handle-upgrade-requests]"
 	echo "`basename $0` -a handle-upgrade-requests"
 	echo "Check for update requests and update ${PRODUCT}."
+	echo ""
+	echo "[-a handle-on-demand-requests]"
+	echo "`basename $0` -a handle-on-demand-requests"
+	echo "Check for requests from ${PRODUCT} (same as check-updates-on-demand + handle-upgrade-requests)."
 	echo ""
 }
 
@@ -132,7 +137,7 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-if [[ ( $ACTION != "check-updates" && $ACTION != "check-updates-on-demand" && $ACTION != "handle-upgrade-requests" ) ]]; then
+if [[ ( $ACTION != "check-updates" && $ACTION != "check-updates-on-demand" && $ACTION != "handle-upgrade-requests" && $ACTION != "handle-on-demand-requests" ) ]]; then
 	print_usage
 	exit 1
 fi
@@ -377,6 +382,12 @@ elif [ $ACTION == "check-updates-on-demand" ]; then
 
 elif [ $ACTION == "handle-upgrade-requests" ]; then
 
+	handle_upgrade_requests
+
+elif [ $ACTION == "handle-on-demand-requests" ]; then
+	# Same as check-updates-on-demand + handle-upgrade-requests
+
+	check_updates_on_demand
 	handle_upgrade_requests
 
 else

@@ -360,7 +360,7 @@ end
 function printASN(asn, asname)
   asname = asname:gsub('"','')
   if(asn > 0) then
-   return("<A HREF='http://as.robtex.com/as"..asn..".html' title='"..asname.."'>"..asname.."</A> <i class='fas fa-external-link-alt fa-lg'></i>")
+   return("<A class='ntopng-external-link' href='http://as.robtex.com/as"..asn..".html'>"..asname.." <i class='fas fa-external-link-alt fa-lg'></i></A>")
   else
     return(asname)
   end
@@ -1557,7 +1557,11 @@ function getHostAltName(host_info)
       alt_name = ntop.getCache(getHostAltNamesKey(host_key))
    end
 
-   return string.lower(alt_name)
+   if not isEmptyString(alt_name) then
+      alt_name = string.lower(alt_name)
+   end
+
+   return alt_name
 end
 
 function setHostAltName(host_info, alt_name)
@@ -1591,10 +1595,14 @@ local function label2formattedlabel(alt_name, host_info, show_vlan, shorten_len)
 
       -- Special shorting function for IP addresses
       if res ~= ip then
-         if shorten_len then
-            res = shortenString(res, shorten_len)
-         else
-            res = shortenString(res)
+	 if shorten_len == false then
+	    -- Don't touch the string, requested as-is without shortening
+	 elseif tonumber(shorten_len) then
+	    -- Shorten according to the specified length
+	    res = shortenString(res, shorten_len)
+	 else
+	    -- Use the default system-wide setting for the shortening
+	    res = shortenString(res)
          end
       end
 
@@ -1632,9 +1640,11 @@ local function hostinfo2label_resolved(host_info, show_vlan, shorten_len)
 
    if isEmptyString(res) then
       -- Try and get the resolved name
-      res = string.lower(ntop.getResolvedName(ip))
+      res = ntop.getResolvedName(ip)
 
-      if isEmptyString(res) then
+      if not isEmptyString(res) then
+         res = string.lower(res)
+      else
 	 -- Nothing found, just fallback to the IP address
 	 res = ip
       end
@@ -1676,6 +1686,7 @@ function hostinfo2label(host_info, show_vlan, shorten_len)
 	 end
       end
    end
+
    return label2formattedlabel(res, host_info, show_vlan, shorten_len)
 end
 
@@ -1720,7 +1731,8 @@ function getDeviceName(device_mac, skip_manufacturer)
 
       if (info ~= nil) then
          for x, host in pairs(info.hosts) do
-            if not isEmptyString(host.name) and host.name ~= host.ip and host.name ~= "NoIP" then
+	    -- Make sure the IP is in the broadcast domain to avoid setting up names to MACs such as the gateway
+            if host.broadcast_domain_host and not isEmptyString(host.name) and host.name ~= host.ip and host.name ~= "NoIP" then
                name = host.name
             elseif host.ip ~= "0.0.0.0" then
                name = ip2label(host.ip)
@@ -1742,6 +1754,10 @@ function getDeviceName(device_mac, skip_manufacturer)
          -- last resort
          name = device_mac
       end
+   end
+
+   if isEmptyString(name) or name == device_mac then
+      return ''
    end
 
    return name
@@ -1865,8 +1881,9 @@ end
 -- @param href_check Performs existance checks on the link to avoid generating links to inactive hosts or hosts without timeseries
 -- @param href_only_with_ts True means that a HREF is geneated only of there are timeseries for this host
 -- @return A string containing the a href link or a plain string without a href
-function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, href_check, href_only_with_ts)
+function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, href_check, href_only_with_ts, show_value_with_no_ref)
    local show_href = false
+   local res = ""
 
    if(href_only_with_ts == true) then
       local detailLevel = ntop.getCache("ntopng.prefs.hosts_ts_creation")
@@ -1884,12 +1901,13 @@ function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, 
 
    if(show_href) then
       local hostdetails_url = hostinfo2detailsurl(host_info, href_params, href_check)
-
-      if not isEmptyString(hostdetails_url) then
-	 res = string.format("<a href='%s' data-bs-toggle='tooltip' title='%s'>%s</a>",
-			     hostdetails_url, href_tooltip or '', href_value or '')
+      if not isEmptyString(hostdetails_url)then
+	      res = string.format("<a href='%s' data-bs-toggle='tooltip' title='%s'>%s</a>",
+			                     hostdetails_url, href_tooltip or '', href_value or '')
       else
-	 res = href_value or ''
+         if show_value_with_no_ref == nil or show_value_with_no_ref == true then
+	         res = href_value or ''
+         end
       end
 
       return res
@@ -1928,7 +1946,7 @@ function flowinfo2hostname(flow_info, host_type, alerts_view)
    if(flow_info == nil) then return("") end
    
    if(host_type == "srv") then
-      if flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "" and flow_info["host_server_name"]:match("%w") then
+      if flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "" and flow_info["host_server_name"]:match("%w") and not isIPv4(flow_info["host_server_name"]) and not isIPv6(flow_info["host_server_name"]) then
 	 -- remove possible ports from the name
 	 return(flow_info["host_server_name"]:gsub(":%d+$", ""))
       end
@@ -2497,19 +2515,6 @@ function getInterfaceSpeed(ifid)
    return ifspeed
 end
 
-function getInterfaceRefreshRate(ifid)
-   local key = "ntopng.prefs.ifid_"..tostring(ifid)..".refresh_rate"
-   local refreshrate = ntop.getCache(key)
-
-   if isEmptyString(refreshrate) or tonumber(refreshrate) == nil then
-      refreshrate = 3
-   else
-      refreshrate = tonumber(refreshrate)
-   end
-
-   return refreshrate
-end
-
 function setInterfaceRegreshRate(ifid, refreshrate)
    local key = "ntopng.prefs.ifid_"..tostring(ifid)..".refresh_rate"
 
@@ -2712,20 +2717,26 @@ end
 
  -- ##############################################
 
-function formatBreed(breed)
+function formatBreed(breed, is_encrypted)
+   local ret = ""
+
    if(breed == "Safe") then
-      return("<i class='fas fa-lock' alt='Safe Protocol'></i>")
+      if(is_encrypted == false) then ret = "<i class='fas fa-thumbs-up' alt='"..i18n("breed.safe").."'></i>" end
    elseif(breed == "Acceptable") then
-      return("<i class='fas fa-thumbs-up' alt='Acceptable Protocol'></i>")
+      -- if(is_encrypted == false) then ret = "<i class='fas fa-thumbs-up' alt='"..i18n("breed.acceptable").."'></i>" end
    elseif(breed == "Fun") then
-      return("<i class='fas fa-smile' alt='Fun Protocol'></i>")
+      ret = "<i class='fas fa-smile' alt='"..i18n("breed.fun").."'></i>"
    elseif(breed == "Unsafe") then
-      return("<i class='fas fa-thumbs-down' style='color: red'></i>")
+      ret = "<i class='fas fa-thumbs-down' style='color: red' alt='"..i18n("breed.unsafe").."'></i>"
    elseif(breed == "Dangerous") then
-      return("<i class='fas fa-exclamation-triangle'></i>")
-   else
-      return("")
+      ret = "<i class='fas fa-exclamation-triangle' alt='"..i18n("breed.dangerous").."'></i>"
    end
+
+   if(is_encrypted == true) then
+      ret = ret .. " <i class='fas fa-lock'></i>"
+   end
+
+   return(ret)
 end
 
 function getFlag(country)
@@ -2999,7 +3010,7 @@ end
 -- ###############################################
 
 function formatWebSite(site)
-   return("<A target=\"_blank\" HREF=\"http://"..site.."\">"..site.."</A> <i class=\"fas fa-external-link-alt\"></i></th>")
+   return("<A class='ntopng-external-link' target=\"_blank\" href=\"http://"..site.."\">"..site.." <i class=\"fas fa-external-link-alt\"></i></A></th>")
 end
 
 -- ###############################################
@@ -3011,15 +3022,24 @@ function purgedErrorString()
 end
 
 -- print TCP flags
+function formatTCPFlags(flags)
+   local out = ''
+
+   if(hasbit(flags,0x02)) then out = out .. '<span class="badge bg-info"    title="SYN">S</span> ' end
+   if(hasbit(flags,0x10)) then out = out .. '<span class="badge bg-info"    title="ACK">A</span> ' end
+   if(hasbit(flags,0x01)) then out = out .. '<span class="badge bg-info"    title="FIN">F</span> ' end
+   if(hasbit(flags,0x08)) then out = out .. '<span class="badge bg-info"    title="PSH">P</span> ' end
+   if(hasbit(flags,0x04)) then out = out .. '<span class="badge bg-danger"  title="RST">R</span> ' end
+   if(hasbit(flags,0x20)) then out = out .. '<span class="badge bg-primary" title="URG">U</span> ' end
+   if(hasbit(flags,0x40)) then out = out .. '<span class="badge bg-info"    title="ECE">E</span> ' end
+   if(hasbit(flags,0x80)) then out = out .. '<span class="badge bg-info"    title="CWR">C</span> ' end
+
+   return out
+end
+
+-- print TCP flags
 function printTCPFlags(flags)
-   if(hasbit(flags,0x01)) then print('<span class="badge bg-warning">FIN</span> ') end
-   if(hasbit(flags,0x02)) then print('<span class="badge bg-warning">SYN</span> ')  end
-   if(hasbit(flags,0x04)) then print('<span class="badge bg-danger">RST</span> ') end
-   if(hasbit(flags,0x08)) then print('<span class="badge bg-warning">PUSH</span> ') end
-   if(hasbit(flags,0x10)) then print('<span class="badge bg-warning">ACK</span> ')  end
-   if(hasbit(flags,0x20)) then print('<span class="badge bg-warning">URG</span> ')  end
-   if(hasbit(flags,0x40)) then print('<span class="badge bg-warning">ECE</span> ')  end
-   if(hasbit(flags,0x80)) then print('<span class="badge bg-warning">CWR</span> ')  end
+   print(formatTCPFlags(flags))
 end
 
 -- convert the integer carrying TCP flags in a more convenient lua table
@@ -3058,7 +3078,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
       if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
       print('&nbsp;')
       -- print('<span class="badge bg-info">')
-      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-history fa-lg"></i></a>')
+      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-search-plus fa-lg"></i></a>')
       -- print('</span>')
    end
 end
@@ -4283,14 +4303,11 @@ end
 
 -- ###########################################
 
-local cache = {}
-
 function buildHostHREF(ip_address, vlan_id, page)
-   local stats = cache[ip_address]
+   local stats
 
    if(stats == nil) then
       stats = interface.getHostInfo(ip_address, vlan_id)
-      cache[ip_address] = { stats = stats }
    else
       stats = stats.stats
    end
@@ -4311,37 +4328,69 @@ function buildHostHREF(ip_address, vlan_id, page)
    end
 end
 
-function builMapHREF(ip_address, vlan_id, map, default_page)
+function builMapHREF(service_peer, vlan_id, map, default_page)
+   -- Getting minimal stats to know if the host is still present in memory
+   local name 
+   local map_url = ntop.getHttpPrefix()..'/lua/pro/enterprise/'..map..'_map.lua?'..hostinfo2url(service_peer)
+   local host
+   local host_url = ''
+   local host_icon
+   local dev_type
 
-   local stats = cache[ip_address]
+   -- Getting stats and formatting initial href
+   if (service_peer.ip or service_peer.host) and not service_peer.is_mac then
+      -- Host URL only if the host is active
+      host_url = hostinfo2detailsurl({host = service_peer.ip or service_peer.host, vlan = service_peer.vlan}, nil, true --[[ check of the host is active --]])
 
-   if(stats == nil) then
-      stats = interface.getHostInfo(ip_address, vlan_id)
-      cache[ip_address] = { stats = stats }
+      local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, service_peer.vlan)
+      if hinfo then
+	 dev_type = hinfo["devtype"]
+      end
+
+      name = hostinfo2label(hinfo or service_peer)
+      host_icon = "fa-laptop"
    else
-      stats = stats.stats
-   end
+      local minfo = interface.getMacInfo(service_peer.host)
 
-   if(stats == nil) then
-      return(ip_address)
-   else
-      local hinfo = hostkey2hostinfo(ip_address)
-      local hmininfo = interface.getHostMinInfo(hinfo.host, hinfo.vlan)
-      for key, value in pairs(hmininfo) do
-          hinfo[key] = value
+      -- The URL only if the MAC is active
+      if minfo and table.len(minfo) > 0 then
+	 host_url = ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(service_peer)
+	 dev_type = minfo["devtype"]
+      end
+
+      if (service_peer.ip and service_peer.is_mac) or not service_peer.is_mac  then
+         local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, service_peer.vlan)
+         name = hostinfo2label(hinfo or service_peer)
+      else   
+         name = mac2label(service_peer.host)
+      end
+
+      if isMacAddress(name) then
+	 name = get_symbolic_mac(name, true)
       end
       
-      local name  = hostinfo2label(hinfo)
-      local res
-
-      if((name == nil) or (name == "")) then name = ip_address end
-      res = '<a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/'..map..'_map.lua?host='..ip_address
-
-      if(vlan_id and (vlan_id ~= 0)) then res = res .. "@"..vlan_id end
-      res = res  ..'&page='..default_page..'">'..name..'</A>'
-
-      return(res)
+      host_icon = "fa-microchip"
    end
+
+   -- Getting the name if present
+   name = name or service_peer.host
+
+   -- Add the device type, if detected
+   if not isEmptyString(dev_type) then
+      local discover = require "discover_utils"
+      dev_type = discover.devtype2icon(dev_type)
+   else
+      dev_type = ''
+   end
+
+   local res
+   if not isEmptyString(host_url) then
+      res = string.format('<a href="%s">%s</a> %s <a href="%s"><i class="fas %s"></i></a>', map_url, name, dev_type, host_url, host_icon)
+   else
+      res = string.format('<a href="%s">%s</a> %s', map_url, name, dev_type)
+   end
+
+   return res
 end
 
 -- #####################

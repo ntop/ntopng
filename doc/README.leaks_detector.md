@@ -53,6 +53,21 @@ Direct leak of 8 byte(s) in 1 object(s) allocated from:
     #2 0x6220000041e3  (<unknown module>)
 ```
 
+If the `llvm-symbolizer` is not available in the `PATH`, the the output will only show addresses rather than the actual line numbers useful to track leaks:
+
+```
+Direct leak of 820 byte(s) in 1 object(s) allocated from:
+    #0 0x478ec0  (/home/simone/ntopng/ntopng+0x478ec0)
+    #1 0x8601fb  (/home/simone/ntopng/ntopng+0x8601fb)
+    #2 0xcbe58e  (/home/simone/ntopng/ntopng+0xcbe58e)
+    #3 0xbd2e1d  (/home/simone/ntopng/ntopng+0xbd2e1d)
+```
+
+In this case, it suffices to add `llvm-symbolizer` to the `PATH`, e.g.,
+
+```
+simone@devel:/usr/bin$ sudo ln -s ../lib/llvm-3.8/bin/llvm-symbolizer llvm-symbolizer
+```
 
 ## Notes
 

@@ -1389,11 +1389,16 @@ Add an Host Pool
 
 .. code:: bash
 
-    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themaina", "pool_members": "192.168.2.0/24@0", "confset_id" : 0}' http://localhost:3000/lua/rest/v2/add/host/pool.lua
-    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themainamac", "pool_members": "AA:BB:CC:DD:EE:FF", "confset_id" : 0}' http://localhost:3000/lua/rest/v2/add/host/pool.lua
-    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themainaip", "pool_members": "8.8.8.8/32@2", "confset_id" : 0}' http://localhost:3000/lua/rest/v2/add/host/pool.lua
-    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themainaempty", "pool_members": "", "confset_id" : 0}' http://localhost:3000/lua/rest/v2/add/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themaina", "pool_members": "192.168.2.0/24@0", "recipients":"0"}' http://localhost:3000/lua/rest/v2/add/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themaina", "pool_members": "192.168.2.0/24@0,192.168.3.0/24@0", "recipients":"0"}' http://localhost:3000/lua/rest/v2/add/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themainamac", "pool_members": "AA:BB:CC:DD:EE:FF", "recipients":"0"}' http://localhost:3000/lua/rest/v2/add/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themainaip", "pool_members": "8.8.8.8/32@2", "recipients":"0"}' http://localhost:3000/lua/rest/v2/add/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themainaempty", "pool_members": "", "recipients":"0"}' http://localhost:3000/lua/rest/v2/add/host/pool.lua
 
+- :code:`pool_name` Is the name of the pool.
+- :code:`pool_members` Is a comma-separated list of one or more pool members, either networks expressed as CIDR, IP addresses or MAC addresses. Networks and IP addresses must carry the suffix :code:`@<VLAN_ID>` for the VLAN. If no VLAN is present, use :code:`@0`.
+- :code:`recipients` Is a comma separated list of one or more recipient IDs that to be associated to the pool.
+    
 Edit an Host Pool
 ~~~~~~~~~~~~~~~~~
 
@@ -1401,10 +1406,10 @@ Edit an Host Pool
 
 .. code:: bash
 
-    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 1, "pool_name": "themaina", "pool_members": "192.168.3.0/24@0", "confset_id" : 0}' http://localhost:3000/lua/rest/v2/edit/host/pool.lua
-    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 2, "pool_name": "themainamac", "pool_members": "AA:BB:CC:DD:EE:AA", "confset_id" : 0}' http://localhost:3000/lua/rest/v2/edit/host/pool.lua
-    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 3, "pool_name": "themainaip", "pool_members": "1.1.1.1/32@2", "confset_id" : 0}' http://localhost:3000/lua/rest/v2/edit/host/pool.lua
-    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 4, "pool_name": "themainaempty", "pool_members": "", "confset_id" : 0}' http://localhost:3000/lua/rest/v2/edit/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 1, "pool_name": "themaina", "pool_members": "192.168.3.0/24@0", "recipients":"0"}' http://localhost:3000/lua/rest/v2/edit/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 2, "pool_name": "themainamac", "pool_members": "AA:BB:CC:DD:EE:AA", "recipients":"0"}' http://localhost:3000/lua/rest/v2/edit/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 3, "pool_name": "themainaip", "pool_members": "1.1.1.1/32@2", "recipients":"0"}' http://localhost:3000/lua/rest/v2/edit/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 4, "pool_name": "themainaempty", "pool_members": "", "recipients":"0"}' http://localhost:3000/lua/rest/v2/edit/host/pool.lua
 
 Delete an Host Pool
 ~~~~~~~~~~~~~~~~~~~

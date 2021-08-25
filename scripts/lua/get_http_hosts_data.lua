@@ -116,7 +116,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    local k = string.gsub(key, "%.", "___") -- Needed as JQuery does not like . in id= field
 
 	    print('\"key\" : \"'.. k ..'\",\n')
-	    print(' \"column_http_virtual_host\" : \"<A HREF=\'http://'..key..'\'>'..key.."</A> <i class='fas fa-external-link-alt'></i>")
+	    print(' \"column_http_virtual_host\" : \"<A class="ntopng-external-link" href=\'http://'..key..'\'>'..key.."</A> <i class='fas fa-external-link-alt'></i>")
 
 	    print(" <A HREF='")
 	    local url = ntop.getHttpPrefix().."/lua/flows_stats.lua?vhost="..key

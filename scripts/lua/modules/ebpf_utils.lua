@@ -198,7 +198,7 @@ function ebpf_utils.draw_ndpi_piecharts(ifstats, url, host_info, username, pid_n
    if have_nedge then
       refresh_rate = 5
    else
-      refresh_rate = getInterfaceRefreshRate(ifstats["id"])
+      refresh_rate = interface.getStatsUpdateFreq(ifstats["id"])
    end
 
    print [[

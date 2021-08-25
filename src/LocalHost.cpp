@@ -234,6 +234,7 @@ void LocalHost::lua_contacts_stats(lua_State *vm) const {
   lua_push_uint32_table_entry(vm, "dns",  stats->getDNSContactCardinality());
   lua_push_uint32_table_entry(vm, "smtp", stats->getSMTPContactCardinality());
   lua_push_uint32_table_entry(vm, "ntp",  stats->getNTPContactCardinality());
+  lua_push_uint32_table_entry(vm, "domain_names",  stats->getDomainNamesCardinality());
   
   lua_pushstring(vm, "server_contacts");
   lua_insert(vm, -2);

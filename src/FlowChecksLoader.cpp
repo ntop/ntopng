@@ -108,8 +108,10 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new ElephantFlow()))                                registerCheck(fcb);
   if((fcb = new ExternalAlertCheckPro()))                       registerCheck(fcb);
   if((fcb = new InvalidDNSQuery()))                             registerCheck(fcb);
+#if !defined(HAVE_NEDGE)
   if((fcb = new LateralMovement()))                             registerCheck(fcb);
   if((fcb = new PeriodicityChanged()))                          registerCheck(fcb);
+#endif
   if((fcb = new LongLivedFlow()))                               registerCheck(fcb);
   if((fcb = new TCPConnectionRefused()))                        registerCheck(fcb);
   if((fcb = new FlowRiskTLSCertValidityTooLong()))              registerCheck(fcb);

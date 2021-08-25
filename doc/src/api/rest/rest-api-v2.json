@@ -1061,7 +1061,26 @@
 				}
 			}
 		},
-		"/lua/rest/v2/get/ntopng/interfaces.lua": {
+		"/lua/rest/version.lua": {
+			"get": {
+				"tags": [
+					"REST API"
+				],
+				"summary": "Get supported and current REST API versions",
+				"description": "Return all the supported REST API versions and the current REST API version used",
+				"operationId": "rest_version",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+	        "/lua/rest/v2/get/ntopng/interfaces.lua": {
 			"get": {
 				"tags": [
 					"Interfaces"
@@ -1881,7 +1900,7 @@
 			}
 		},
 		"/lua/rest/v2/add/host/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -1914,7 +1933,7 @@
 			}
 		},
 		"/lua/rest/v2/add/network/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -1947,7 +1966,7 @@
 			}
 		},
 		"/lua/pro/rest/v2/add/snmp/device/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -1980,7 +1999,7 @@
 			}
 		},
 		"/lua/rest/v2/add/active_monitoring/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2013,7 +2032,7 @@
 			}
 		},
 		"/lua/rest/v2/edit/interface/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2047,7 +2066,7 @@
 			}
 		},
 		"/lua/rest/v2/edit/host/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2081,7 +2100,7 @@
 			}
 		},
 		"/lua/rest/v2/edit/network/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2115,7 +2134,7 @@
 			}
 		},
 		"/lua/pro/rest/v2/edit/snmp/device/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2149,7 +2168,7 @@
 			}
 		},
 		"/lua/rest/v2/edit/active_monitoring/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2183,7 +2202,7 @@
 			}
 		},
 		"/lua/rest/v2/edit/flow/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2218,7 +2237,7 @@
 			}
 		},
 		"/lua/rest/v2/edit/mac/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2253,7 +2272,7 @@
 			}
 		},
 		"/lua/rest/v2/edit/host_pool/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2288,7 +2307,7 @@
 			}
 		},
 		"/lua/rest/v2/edit/system/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2323,7 +2342,7 @@
 			}
 		},
 		"/lua/rest/v2/delete/interface/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2354,7 +2373,7 @@
 			}
 		},
 		"/lua/rest/v2/delete/host/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2385,7 +2404,7 @@
 			}
 		},
 		"/lua/rest/v2/delete/network/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2416,7 +2435,7 @@
 			}
 		},
 		"/lua/pro/rest/v2/delete/snmp/device/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2447,7 +2466,7 @@
 			}
 		},
 		"/lua/rest/v2/delete/active_monitoring/pool.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2478,7 +2497,7 @@
 			}
 		},
 		"/lua/rest/v2/delete/pools.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Pools"
 				],
@@ -2498,7 +2517,7 @@
 			}
 		},
 		"/lua/rest/v2/delete/recipients.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Notification Recipients"
 				],
@@ -2518,7 +2537,7 @@
 			}
 		},
 		"/lua/rest/v2/delete/endpoints.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Notification Endpoints"
 				],
@@ -2912,7 +2931,7 @@
 			}
 		},
 		"lua/rest/v2/export/all/config.lua": {
-			"post": {
+			"get": {
 				"tags": [
 					"All"
 				],
@@ -2942,7 +2961,7 @@
 			}
 		},
 		"lua/rest/v2/export/active_monitoring/config.lua": {
-			"post": {
+			"get": {
 				"tags": [
 					"Active Monitoring"
 				],
@@ -2971,7 +2990,7 @@
 			}
 		},
 		"lua/rest/v2/export/notifications/config.lua": {
-			"post": {
+			"get": {
 				"tags": [
 					"Notifications"
 				],
@@ -3000,7 +3019,7 @@
 			}
 		},
 		"lua/rest/v2/export/pool/config.lua": {
-			"post": {
+			"get": {
 				"tags": [
 					"Pools"
 				],
@@ -3029,7 +3048,7 @@
 			}
 		},
 		"lua/rest/v2/export/scripts/config.lua": {
-			"post": {
+			"get": {
 				"tags": [
 					""
 				],
@@ -3058,7 +3077,7 @@
 			}
 		},
 		"lua/rest/v2/export/snmp/config.lua": {
-			"post": {
+			"get": {
 				"tags": [
 					""
 				],
@@ -3351,7 +3370,7 @@
 			}
 		},
 	    "lua/rest/v2/get/ntopng/users.lua": {
-			"post": {
+			"get": {
 				"tags": [
 					"Users"
 				],
@@ -3896,7 +3915,7 @@
 			}
 		},
 		"lua/rest/v2/export/infrastructure/config.lua": {
-			"post": {
+			"get": {
 				"tags": [
 					"Infrastructures"
 				],
@@ -3925,7 +3944,7 @@
 			}
 		},
 		"/lua/rest/v2/enable/check.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Checks"
 				],
@@ -3937,14 +3956,14 @@
 				],
 				"parameters": [{
 						"name": "check_subdir",
-						"in": "query",
+						"in": "form",
 						"description": "The check subdir",
 						"required": true,
 						"type": "string"
 					       },
 					       {
 						"name": "script_key",
-						"in": "query",
+						"in": "form",
 						"description": "The key of the script",
 						"required": true,
 						"type": "string"
@@ -3964,7 +3983,7 @@
 			}
 		},
 		"/lua/rest/v2/disable/check.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Checks"
 				],
@@ -3976,14 +3995,14 @@
 				],
 				"parameters": [{
 						"name": "check_subdir",
-						"in": "query",
+						"in": "form",
 						"description": "The check subdir",
 						"required": true,
 						"type": "string"
 					       },
 					       {
 						"name": "script_key",
-						"in": "query",
+						"in": "form",
 						"description": "The key of the script",
 						"required": true,
 						"type": "string"
@@ -4760,7 +4779,7 @@
 						"format": "int32"
 					      },
 					       {
-						"name": "begin_epoch",
+						"name": "epoch_begin",
 						"in": "query",
 						"description": "Start time (epoch)",
 						"required": true,
@@ -4768,7 +4787,7 @@
 						"format": "int32"
 					       },
 					       {
-						"name": "end_epoch",
+						"name": "epoch_end",
 						"in": "query",
 						"description": "End time (epoch)",
 						"required": true,
@@ -5750,7 +5769,7 @@
 			}
 		},
 		"/lua/rest/v2/edit/ntopng/incr_hosts.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Configuration"
 				],
@@ -5776,7 +5795,7 @@
 			}
 		},
 		"/lua/rest/v2/edit/ntopng/incr_flows.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Configuration"
 				],
@@ -5802,7 +5821,7 @@
 			}
 		},
 		"/lua/rest/v2/set/checks/config.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Checks"
 				],
@@ -5814,7 +5833,7 @@
 				],
 				"parameters": [{
 						"name": "JSON",
-						"in": "query",
+						"in": "form",
 						"description": "Check configuration in JSON",
 						"required": true,
 						"type": "string"
@@ -5854,7 +5873,7 @@
 				               },
 					       {
 						"name": "JSON",
-						"in": "query",
+						"in": "form",
 						"description": "Pool configuration in JSON",
 						"required": true,
 						"type": "string"
@@ -5906,7 +5925,7 @@
 			}
 		},
 		"/lua/rest/v2/import/checks/config.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"Checks"
 				],
@@ -5918,7 +5937,7 @@
 				],
 				"parameters": [{
 						"name": "JSON",
-						"in": "query",
+						"in": "form",
 						"description": "The Checks configuration in JSON",
 						"required": true,
 						"type": "string"
@@ -5953,7 +5972,7 @@
 				],
 				"parameters": [{
 						"name": "pool",
-						"in": "query",
+						"in": "form",
 						"description": "Pool identifier",
 						"required": true,
 						"type": "integer",
@@ -5961,7 +5980,7 @@
 				               },
 					       {
 						"name": "host_pool_members",
-						"in": "query",
+						"in": "form",
 						"description": "A newline-separated list of host pool members",
 						"required": true,
 						"type": "string"
@@ -5981,7 +6000,7 @@
 			}
 		},
 		"/lua/rest/v2/create/ntopng/api_token.lua": {
-			"get": {
+			"post": {
 				"tags": [
 					"User"
 				],
@@ -5993,7 +6012,7 @@
 				],
 				"parameters": [{
 						"name": "username",
-						"in": "query",
+						"in": "form",
 						"description": "An existing ntopng username",
 						"required": true,
 						"type": "string"

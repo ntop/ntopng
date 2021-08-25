@@ -100,39 +100,8 @@ it is possible to:
 - Delete the inactive interfaces data. This can be very useful to free some disk space for old
   interfaces.
 
-Backup Configuration
---------------------
+Backup and Restore
+------------------
 
-The Backup Configuration entry downloads a copy of the ntopng
-configuration, as a compressed tarball (.tar.gz). The following files
-and directories are included in the backup:
+To backup and restore see ConfigurationImportExport_.
 
-- Configuration file (unless command line is used for providing the options)
-- /etc/ntopng folder
-- Runtime configuration (runtimeprefs.json)
-- License file
-
-Please note that on Windows systems the runtime configuration file only is provided.
-
-Restore Configuration
----------------------
-
-ntopng configuration can be restored by placing the compressed tarball
-(downloaded via Backup Configuration) into the ntopng data directory
-and restarting the service. The tarball must be named conf.tar.gz.
-
-For example, assuming the default /var/lib/ntopng data directory has not been changed, one can
-restore a previously backed-up configuration by placing the compressed
-tarball in /var/lib/ntopng/conf.tar.gz and then issuing a
-:code:`systemctl restart ntopng`.
-
-.. note::
-
-   After the restore, the compressed archive into the data directory
-   is automatically deleted.
-
-.. note::
-
-   Restore is only supported for packaged ntopng installations on
-   systems that use :code:`systemd`. Geeks and those who are building
-   ntopng from source should have a look at script :code:`httpdocs/misc/ntopng-utils-manage-config`.

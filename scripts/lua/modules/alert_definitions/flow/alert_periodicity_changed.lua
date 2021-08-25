@@ -4,6 +4,8 @@
 
 -- ##############################################
 
+package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
+
 local flow_alert_keys = require "flow_alert_keys"
 -- Import the classes library.
 local classes = require "classes"
@@ -26,16 +28,12 @@ alert_periodicity_changed.meta = {
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param last_error A table containing the last lateral movement error, e.g.,
---                   {"event":"create","shost":"192.168.2.153","dhost":"224.0.0.68","dport":1968,"vlan_id":0,"l4":17,"l7":0,"first_seen":1602488355,"last_seen":1602488355,"num_uses":1}
 -- @return A table with the alert built
-function alert_periodicity_changed:init(last_error, created_or_removed)
+function alert_periodicity_changed:init()
    -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {
-      error_msg = last_error,
-      created_or_removed = created_or_removed
    }
 end
 
@@ -50,6 +48,12 @@ function alert_periodicity_changed.format(ifid, alert, alert_type_params)
    -- Extracting info field
    local info = ""
    local href = ""
+   local flow_infos = {
+      host = alert["cli_ip"],
+      l7proto = ternary(tonumber(alert["l7_proto"]) ~= 0, alert["l7_proto"], alert["l7_master_proto"]),
+      vlan_id = alert["vlan_id"]
+   }
+   local graph_map_utils = require("graph_map_utils")
 
    if alert.json then
       info = json.decode(alert["json"])
@@ -60,9 +64,15 @@ function alert_periodicity_changed.format(ifid, alert, alert_type_params)
       end   
    end
 
-   href = '<a href="/lua/pro/enterprise/periodicity_map.lua"><i class="fas fa-lg fa-clock"></i></a>'
+   href = '<a href="' .. graph_map_utils.getMapUrl(flow_infos, interface.getId(), 'periodicity_map', 'graph') .. '"><i class="fas fa-lg fa-clock"></i></a>'
 
-   return(i18n("alerts_dashboard.periodicity_changed_descr", { info = info, href = href }))
+   if alert_type_params.is_periodic then
+      return(i18n("alerts_dashboard.periodicity_is_periodic_descr", { info = info, href = href }))
+   elseif alert_type_params.is_aperiodic then
+      return(i18n("alerts_dashboard.periodicity_is_aperiodic_descr", { info = info, href = href }))
+   else
+      return(i18n("alerts_dashboard.periodicity_changed_descr", { info = info, href = href }))
+   end
 end
 
 -- #######################################################

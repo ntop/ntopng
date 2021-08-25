@@ -1,9 +1,20 @@
 What is ntopng
 ##############
 
-ntopng is a passive network monitoring tool focused on flows and
-statistics that can be obtained from the traffic captured by the
-server.
+ntopng is a web-based traffic monitoring application able to:
+
+- Passive monitor traffic by passively capturing network traffic
+- Collect network flows (NetFlow, sFlow and IPFIX)
+- Actively monitor selected network devices
+- Monitor a network infrastructure via SNMP
+
+The main difference between ntopng and a traffic collector, is that ntopng not only reports traffic statistics but it also analizes the traffic, draws conclusions on observed traffic type and reports cybersecurity metrics.
+
+Releases and Features
+---------------------
+
+ntopng development lifecycle is typically 6 to 9 months. The history of changes and features implemented by every release, is available on its `Changelog <https://github.com/ntop/ntopng/blob/dev/CHANGELOG.md>`_.
+
 
 Installation
 ============
@@ -41,7 +52,6 @@ The ntopng service can be started/stopped using the launchctl command:
 
 - [Start] :code:`sudo launchctl load /Library/LaunchDaemons/org.ntop.ntopng.plist`
 - [Stop] :code:`sudo launchctl unload /Library/LaunchDaemons/org.ntop.ntopng.plist`
-
 
 Installing on Windows
 ---------------------
@@ -85,6 +95,16 @@ it means that your capture drivers have not been properly installed and that you
 
    If during installation the installer complains for missing MSVCR120.DLL or MSVCR120P.DLL please
    download `Visual C++ Redistributable Package <https://support.microsoft.com/en-us/help/3179560/update-for-visual-c-2013-and-visual-c-redistributable-package>`_
+
+Installing on FreeBSD
+---------------------
+
+Installation instructions can be found at http://packages.ntop.org/.
+
+Installing on OPNsense/pfSense
+------------------------------
+
+OPNsense installation instructions are available in the :ref:`OPNsenseIntegration` integration page. pfSense installation instructions are available in the :ref:`pfSenseIntegration` integration page.
 
 Software Updates
 ================
@@ -142,15 +162,16 @@ do everything automatically.
   :alt: Automatic Updates
 
   Automatic Updates Setting
+
+.. _AvailableVersions:
   
-Versions
-========
+Available Versions
+==================
 
-The ntopng software comes in four versions: Community, Professional, Enterprise M, Enterprise L
-each version unlocks additional features with respect to the smaller one.
+The ntopng software comes in four versions: Community, Professional, Enterprise M, Enterprise L, and Enterprise L Bundle. Each version unlocks additional features with respect to the smaller one.
 
-A full list of features and a comparison table is available in the ntopng 
-`Product Page <https://www.ntop.org/products/traffic-analysis/ntop/>`_
+The full list of features and differences between versions is available in the ntopng 
+`Product Page <https://www.ntop.org/products/traffic-analysis/ntop/>`_.
 
 ntopng Community
 ----------------
@@ -171,6 +192,15 @@ ntopng Enterprise L
 -------------------
 
 The Enterprise L version offers some extra features with respect to the Enterprise M version, including Identity Management (the ability to correlate users to traffic). This version also unlocks n2disk 1 Gbit (Continuous Recording) and nProbe Pro (Flow Collection) with no need for additional licenses.
+
+
+ntopng Enterprise L Bundle
+--------------------------
+
+The Enterprise L Bundle unlocks ntopng Enterprise L, nProbe Pro, and n2disk 1 Gbit.
+
+.. warning::
+   ntopng and nProbe must be on the same machine to have them unlocked with the ntopng Enterprise L Bundle license. The bundle license must be placed under :code:`/etc/ntopng/ntopng.license`.
 
 Licensing
 =========
@@ -224,14 +254,10 @@ Alternatively, the license key can be placed in a one-line file
 Geolocation
 ===========
 
-ntopng leverages `MaxMind <https://www.maxmind.com>`_ geolocation
-databases to augment IP addresses with geolocation data as well as
-information on Autonomous Systems.
+ntopng supports geolocation of IP addresses. Databases of multiple vendors can be used interchangeably.
 
 .. note::
 
-   To use geolocation in ntopng it is necessary to register for a free
-   MaxMind account to obtain geolocation databases. Detailed
-   instructions are available at `this page
+   Detailed installation instructions are available at `this page
    <https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md>`_.
 

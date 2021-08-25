@@ -1979,7 +1979,7 @@ $(function () {
       });
    });
 
-   $(`#disable-all-modal #btn-confirm-action`).click(async function () {
+   $(`#btn-confirm-action_disable-all-modal`).click(async function () {
 
       $(this).attr("disabled", "disabled");
       $.post(`${http_prefix}/lua/toggle_all_checks.lua`, {

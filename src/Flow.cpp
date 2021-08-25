@@ -88,6 +88,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   last_db_dump.partial = NULL;
   last_db_dump.first_seen = last_db_dump.last_seen = 0;
+  last_db_dump.in_progress = false;
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
 
@@ -147,7 +148,6 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&custom_app, 0, sizeof(custom_app));
 
 #ifdef NTOPNG_PRO
-  lateral_movement = periodicity_changed = false;
   HostPools *hp = iface->getHostPools();
 
   routing_table_id = DEFAULT_ROUTING_TABLE_ID;
@@ -191,6 +191,8 @@ Flow::Flow(NetworkInterface *_iface,
 
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
+  lateral_movement = false;
+  periodicity_status = periodicity_status_unknown;
   trafficProfile = NULL;
 #else
   cli2srv_in = cli2srv_out = srv2cli_in = srv2cli_out = DEFAULT_SHAPER_ID;
@@ -399,6 +401,7 @@ void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
   u_int16_t stats_protocol;
   Host *cli_h = NULL, *srv_h = NULL;
+  char *domain_name = NULL;
 
   /*
     If peers should be swapped, then pointers are inverted.
@@ -453,6 +456,12 @@ void Flow::processDetectedProtocol() {
   default:
     break;
   } /* switch */
+
+  /* Domain Concats Alert */
+  if(ndpiFlow) 
+    domain_name = ndpi_get_flow_name(ndpiFlow);
+  if(cli_h && domain_name && domain_name[0] != '\0')
+    cli_h->addContactedDomainName(domain_name);
 }
 
 /* *************************************** */
@@ -686,11 +695,6 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
   bool detected;
   ndpi_protocol proto_id;
 
-  /*
-    Check is flow peers need to be swapped.
-   */
-  check_swap(getTcpFlags());
-
   /* Note: do not call endProtocolDissection before ndpi_detection_process_packet. In case of
    * early giveup (e.g. sampled traffic), nDPI should process at least one packet in order to
    * be able to guess the protocol. */
@@ -871,12 +875,6 @@ void Flow::processIEC60870Packet(bool tx_direction,
 /* End the nDPI dissection on a flow. Guess the protocol if not already
  * detected. It is safe to call endProtocolDissection() multiple times. */
 void Flow::endProtocolDissection() {
-  if(getInterface()->getIfType() == interface_type_PCAP_DUMP) {
-    if(((iface->getTimeLastPktRcvd() - get_last_seen()) < 5)
-       && (!getInterface()->read_from_pcap_dump_done()))
-      return;
-  }
-
   if(!detection_completed) {
     u_int8_t proto_guessed;
 
@@ -1269,18 +1267,11 @@ bool Flow::dump(time_t t, bool last_dump_before_free) {
   if(!last_dump_before_free) {
     if((getInterface()->getIfType() == interface_type_PCAP_DUMP
 	&& (!getInterface()->read_from_pcap_dump_done()))
-       || timeToPeriodicDump(t)) {
+       || !timeToPeriodicDump(t)
+       || last_db_dump.in_progress) {
       return(rc); /* Don't call too often periodic flow dump */
     }
   }
-
-  if(!update_partial_traffic_stats_db_dump())
-    return(rc); /* Partial stats update has failed */
-
-  /* Check for bytes, and not for packets, as with nprobeagent
-     there are not packet counters, just bytes. */
-  if(!get_partial_bytes())
-    return(rc); /* Nothing to dump */
 
   getInterface()->dumpFlow(get_last_seen(), this);
 
@@ -1535,7 +1526,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     }
     /* Don't break, let's process also HTTP_PROXY */
   case NDPI_PROTOCOL_HTTP_PROXY:
-    if(srv_host) {
+    if(srv_host && !Utils::isIPAddress(host_server_name) && hasRisk(NDPI_HTTP_NUMERIC_IP_HOST)) {
       srv_host->offlineSetHTTPName(host_server_name);
 
       if(srv_host->getHTTPstats()
@@ -1605,7 +1596,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     break;
   }
 
-  if(srv_host && isTLS())
+  if(srv_host && isTLS() && !hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH) && !Utils::isIPAddress(protos.tls.client_requested_server_name))
     srv_host->offlineSetTLSName(protos.tls.client_requested_server_name);
 }
 
@@ -3015,12 +3006,27 @@ void Flow::housekeep(time_t t) {
     /*
       Possibly the time to giveup and end the protocol dissection.
       This happens when a flow with an incomplete TWH stops receiving packets for example.
-     */
+
+      Giveup is handled differently, depending on whether we are processing pcap files or not:
+      - When not reading from pcap files, before giving up, we wait at least 5 seconds since the last flow packet
+      - When reading from pcap files, we wait until all the packets in the file have been processed before ending the dissection
+    */
     if(iface->get_ndpi_struct() && get_ndpi_flow()) {
-      if((t - get_last_seen()) > 5 /* sec */)
-	endProtocolDissection();
+      if(likely(!getInterface()->read_from_pcap_dump())) {
+	/* NOT processing pcap files, at most 5 seconds since the last packet */
+	if((t - get_last_seen()) > 5 /* sec */) endProtocolDissection();
+      } else {
+	/* pcap files - wait until all the file has been processed */
+	if(getInterface()->read_from_pcap_dump_done()) endProtocolDissection();
+      }
     }
-    break;
+
+    /* 
+       If a condition above has determined the flow trasnition to the protocol detected state,
+       don't break, continue so to execute detection completed checks.
+     */
+    if(get_state() != hash_entry_state_flow_protocoldetected)
+      break;
 
   case hash_entry_state_flow_protocoldetected:
     if(!is_swap_requested()) /* The flow will be swapped, hook execution will occur on the swapped flow. */
@@ -4889,6 +4895,7 @@ void Flow::lua_get_protocols(lua_State* vm) const {
   }
 
   lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
+  lua_push_bool_table_entry(vm, "proto.is_encrypted", isEncryptedProto());
 
   lua_push_uint64_table_entry(vm, "proto.ndpi_cat_id", get_protocol_category());
   lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
@@ -5094,6 +5101,7 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
   lua_push_uint64_table_entry(vm, "proto.ndpi_cat_id", get_protocol_category());
   lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
+  lua_push_bool_table_entry(vm, "proto.is_encrypted", isEncryptedProto());
   lua_push_uint64_table_entry(vm, "cli2srv.bytes", get_bytes_cli2srv());
   lua_push_uint64_table_entry(vm, "srv2cli.bytes", get_bytes_srv2cli());
   lua_push_uint64_table_entry(vm, "cli2srv.packets", get_packets_cli2srv());
@@ -5476,7 +5484,7 @@ bool Flow::hasDissectedTooManyPackets() {
   num_packets = get_packets();
 #endif
 
-  return(num_packets >= NDPI_MIN_NUM_PACKETS);
+  return((num_packets >= NDPI_MIN_NUM_PACKETS) && (!needsExtraDissection()));
 }
 
 /* ***************************************************** */
@@ -5657,7 +5665,7 @@ void Flow::luaRetrieveExternalAlert(lua_State *vm) {
   const char *json = external_alert.json ? json_object_to_json_string(external_alert.json) : NULL;
 
   if (json)
-     lua_pushstring(vm, json);
+    lua_pushstring(vm, json);
   else
     lua_pushnil(vm);
 }
@@ -5689,32 +5697,11 @@ void Flow::lua_entropy(lua_State* vm) {
 
 /* *************************************** */
 
-bool Flow::check_swap(u_int32_t tcp_flags) {
-  /*
-    Non-packet interfaces, i.e., ZMQ, have the swap checked earlier. This is possible as there is
-    information on both flow directions for those interfaces.
-   */
-  if(!getInterface()->isPacketInterface())
-    return false;
-
-  /*
-    Already checked and already requested. No need to re-check.
-   */
-  if(is_swap_requested())
-    return true;
-
-  /*
-    This is the heuristic "For TCP flows for which the 3WH has not been observed..."
-    at https://github.com/ntop/ntopng/issues/5058
-    NOTE: for non TCP-flows, the heuristic is always applied
-  */
-  if(get_cli_ip_addr()->isNonEmptyUnicastAddress() /* Don't touch non-unicast addresses */
-     && (!isTCP()
-	 || !(tcp_flags & TH_SYN) /* Neither the first SYN nor the second SYN+ACK */)
-     && get_cli_port() < 1024 && get_cli_port() < get_srv_port())
+void Flow::check_swap() {
+  if(!(get_cli_ip_addr()->isNonEmptyUnicastAddress() && !get_srv_ip_addr()->isNonEmptyUnicastAddress()) /* Everything that is NOT unicast-to-non-unicast needs to be checked */
+     /* && get_cli_port() < 1024 // Relax this constraint and also apply to non-well-known ports such as 8080 */
+     && get_cli_port() < get_srv_port())
     swap_requested = true;
-
-  return swap_requested;
 }
 
 /* *************************************** */

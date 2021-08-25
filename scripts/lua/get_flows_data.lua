@@ -276,7 +276,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    record["column_ndpi"] = app -- can't set the hosts_stats hyperlink for viewed interfaces
    if((not ifstats.isViewed) and (value["proto.ndpi_id"] ~= -1)) then
-      record["column_ndpi"] = "<A HREF='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_id"] .."'>"..app.." " .. formatBreed(value["proto.ndpi_breed"]) .."</A>"
+      record["column_ndpi"] = "<A HREF='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_id"] .."'>"..app.." " .. formatBreed(value["proto.ndpi_breed"], value["proto.is_encrypted"]) .."</A>"
    end
    record["column_duration"] = secondsToTime(value["duration"])
    record["column_bytes"] = value["bytes"]

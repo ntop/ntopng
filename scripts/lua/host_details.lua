@@ -155,7 +155,7 @@ local function printRestoreHostBanner(hidden)
    print[[<input type="hidden" name="mode" value="restore">
    <input type="hidden" name="host" value="]] print(host_info["host"]) print[[">]]
    if((host_info["vlan"] ~= nil) and ifstats.vlan) then
-      print[[<input type="hidden" name="vlan" value="]] print(host_info["vlan"]) print[[">]]
+      print[[<input type="hidden" name="vlan" value="]] print(tostring(host_info["vlan"])) print[[">]]
    end
    print[[</form>]]
    print[[ ]] print(i18n("host_details.restore_from_cache_message_v1",{host=hostinfo2hostkey(host_info), js_code="\"javascript:void(0);\" onclick=\"$(\'#host_restore_form\').submit();\""}))
@@ -568,7 +568,7 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th>"..i18n("asn").."</th><td>")
 
       print("<A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn .."'>"..host.asname.."</A> [ "..i18n("asn").." <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn.."'>".. host.asn.."</A> ]</td>")
-      print('<td><A HREF="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">'..i18n("details.whois_lookup")..'</A> <i class="fas fa-external-link-alt"></i></td>')
+      print('<td><A class="ntopng-external-link" href="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">'..i18n("details.whois_lookup")..' <i class="fas fa-external-link-alt"></i></A></td>')
       print("</td></tr>\n")
    end
 
@@ -581,7 +581,7 @@ if(host["ip"] ~= nil) then
       print("<tr><th>"..i18n("name").."</th>")
 
       if(isAdministrator()) then
-	 print("<td colspan=2><A HREF=\"http://" .. getIpUrl(host["ip"]) .. "\"> <span id=name>")
+	 print("<td colspan=2><A class='ntopng-external-link' href=\"http://" .. getIpUrl(host["ip"]) .. "\"> <span id=name>")
       else
 	 print("<td colspan=2>")
       end
@@ -591,7 +591,7 @@ if(host["ip"] ~= nil) then
       end
 
       -- tprint(host) io.write("\n")
-      print(host_label .. "</span></A> <i class=\"fas fa-external-link-alt\"></i> ")
+      print(host_label .. "</span> <i class=\"fas fa-external-link-alt\"></i> </A>")
 
       print(hostinfo2detailshref(host, {page = "config"}, ' <i class="fas fa-sm fa-cog" aria-hidden="true"></i> '))
 
@@ -608,8 +608,8 @@ if(host["ip"] ~= nil) then
       if(host["systemhost"] == true) then print(' <span class="badge bg-success"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="badge bg-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
       if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
-	 print(' <A HREF="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'
-		  ..ntop.getHttpPrefix()..'/img/virustotal.svg\"></A> <i class=\"fas fa-external-link-alt\"></i>')
+	 print(' <A class="ntopng-external-link" href="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'
+		  ..ntop.getHttpPrefix()..'/img/virustotal.svg\"> <i class=\"fas fa-external-link-alt\"></i></A>')
       end
 
       print("</td>\n")
@@ -935,7 +935,7 @@ end
 
 
    if(host["ssdp"] ~= nil) then
-      print("<tr><th><A HREF='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)</A></th><td colspan=2><i class=\"fas fa-external-link-alt fa-lg\"></i> <A HREF='"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
+      print("<tr><th><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol'>SSDP (UPnP)<i class=\"fas fa-external-link-alt fa-lg\"></i></A></th><td colspan=2> <A HREF='"..host["ssdp"].."'>"..host["ssdp"].."<A></td></tr>\n")
    end
 
    print("</table>\n")
@@ -1238,8 +1238,15 @@ print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostin
 	 </script>
 	]]
 
-     print("<tr><th>"..i18n("protocol").."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th><th>"..i18n("breakdown").."</th><th colspan=2>"..i18n("total").."</th></tr>\n")
-
+   print[[
+     <tr>
+        <th>]] print(i18n("protocol")) print[[</th>
+        <th class="text-end">]] print(i18n("sent")) print[[</th>
+        <th class="text-end">]] print(i18n("received")) print[[</th>
+        <th class="text-center">]] print(i18n("breakdown")) print[[</th>
+        <th colspan=2 class="text-center">]] print(i18n("total")) print[[</th>
+     </tr>
+   ]]
      for id, _ in ipairs(l4_keys) do
 	label = l4_keys[id][1]
 	k = l4_keys[id][2]
@@ -1359,11 +1366,11 @@ elseif((page == "ndpi")) then
        <thead>
 	 <tr>
 	   <th>]] print(i18n("application")) print[[</th>
-	   <th>]] print(i18n("duration")) print[[</th>
-	   <th>]] print(i18n("sent")) print[[</th>
-	   <th>]] print(i18n("received")) print[[</th>
-	   <th>]] print(i18n("breakdown")) print[[</th>
-	   <th colspan=2>]] print(i18n("total")) print[[</th>
+	   <th class="text-end">]] print(i18n("duration")) print[[</th>
+      <th class="text-end">]] print(i18n("sent")) print[[</th>
+      <th class="text-end">]] print(i18n("received")) print[[</th>
+      <th class="text-center">]] print(i18n("breakdown")) print[[</th>
+      <th colspan=2 class="text-center">]] print(i18n("total")) print[[</th>
 	 </tr>
        </thead>
        <tbody id="host_details_ndpi_applications_tbody"></tbody>
@@ -1384,8 +1391,8 @@ elseif((page == "ndpi")) then
 	 <tr>
 	   <th>]] print(i18n("category")) print[[</th>
 	   <th>]] print(i18n("applications")) print[[</th>
-	   <th>]] print(i18n("duration")) print[[</th>
-	   <th colspan=2>]] print(i18n("total")) print[[</th>
+      <th class="text-end">]] print(i18n("duration")) print[[</th>
+      <th colspan=2 class="text-center">]] print(i18n("total")) print[[</th>
 	 </tr>
        </thead>
        <tbody id="host_details_ndpi_categories_tbody"></tbody>
@@ -1494,8 +1501,8 @@ elseif(page == "dns") then
       end
       
       if(host["dns"] ~= nil) then
-	 print("<tr><th>"..i18n("dns_page.dns_breakdown").."</th><th>"..i18n("dns_page.queries").."</th><th>"..i18n("dns_page.positive_replies").."</th><th>"..i18n("dns_page.error_replies").."</th><th colspan=2>"..i18n("dns_page.reply_breakdown").."</th></tr>")
-	 print("<tr><th>"..i18n("sent").."</th><td class=\"text-end\"><span id=dns_sent_num_queries>".. formatValue(host["dns"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
+      	print("<tr><th>"..i18n("dns_page.dns_breakdown").."</th><th class='text-end'>"..i18n("dns_page.queries").."</th><th class='text-end'>"..i18n("dns_page.positive_replies").."</th><th class='text-end'>"..i18n("dns_page.error_replies").."</th><th colspan=2 class='text-center'>"..i18n("dns_page.reply_breakdown").."</th></tr>")
+			print("<tr><th>"..i18n("sent").."</th><td class=\"text-end\"><span id=dns_sent_num_queries>".. formatValue(host["dns"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
 	 
 	 print("<td class=\"text-end\"><span id=dns_sent_num_replies_ok>".. formatValue(host["dns"]["sent"]["num_replies_ok"]) .."</span> <span id=trend_sent_num_replies_ok></span></td>")
 	 print("<td class=\"text-end\"><span id=dns_sent_num_replies_error>".. formatValue(host["dns"]["sent"]["num_replies_error"]) .."</span> <span id=trend_sent_num_replies_error></span></td><td colspan=2>")
@@ -1596,8 +1603,8 @@ elseif(page == "http") then
       print("<table class=\"table table-bordered table-striped\">\n")
 
       if http["sender"]["query"]["total"] > 0 then
-	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods'>"..i18n("http_page.http_queries").."</A></th><th width=20%>"..i18n("http_page.method").."</th><th width=20%>"..i18n("http_page.requests").."</th><th colspan=2>"..i18n("http_page.distribution").."</th></tr>")
-	 print("<tr><th>GET</th><td style=\"text-align: right;\"><span id=http_query_num_get>".. formatValue(http["sender"]["query"]["num_get"]) .."</span> <span id=trend_http_query_num_get></span></td><td colspan=2 rowspan=5>")
+	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods'>"..i18n("http_page.http_queries").."</A></th><th width=20%>"..i18n("http_page.method").."</th><th width=20% class='text-end'>"..i18n("http_page.requests").."</th><th colspan=2 class='text-center'>"..i18n("http_page.distribution").."</th></tr>")
+    print("<tr><th>GET</th><td style=\"text-align: right;\"><span id=http_query_num_get>".. formatValue(http["sender"]["query"]["num_get"]) .."</span> <span id=trend_http_query_num_get></span></td><td colspan=2 rowspan=5>")
 
 	 print [[
 	 <div class="pie-chart" id="httpQueries"></div>
@@ -1617,8 +1624,8 @@ elseif(page == "http") then
       end
 
       if http["receiver"]["response"]["total"] > 0 then
-	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/List_of_HTTP_status_codes'>"..i18n("http_page.http_responses").."</A></th><th width=20%>"..i18n("http_page.response_code").."</th><th width=20%>"..i18n("http_page.responses").."</th><th colspan=2>"..i18n("http_page.distribution").."</th></tr>")
-	 print("<tr><th>"..i18n("http_page.response_code_1xx").."</th><td style=\"text-align: right;\"><span id=http_response_num_1xx>".. formatValue(http["receiver"]["response"]["num_1xx"]) .."</span> <span id=trend_http_response_num_1xx></span></td><td colspan=2 rowspan=5>")
+	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/List_of_HTTP_status_codes'>"..i18n("http_page.http_responses").."</A></th><th width=20%>"..i18n("http_page.response_code").."</th><th width=20% class='text-end'>"..i18n("http_page.responses").."</th><th colspan=2 class='text-center'>"..i18n("http_page.distribution").."</th></tr>")
+    print("<tr><th>"..i18n("http_page.response_code_1xx").."</th><td style=\"text-align: right;\"><span id=http_response_num_1xx>".. formatValue(http["receiver"]["response"]["num_1xx"]) .."</span> <span id=trend_http_response_num_1xx></span></td><td colspan=2 rowspan=5>")
 	 print [[
 	 <div class="pie-chart" id="httpResponses"></div>
 	 <script type='text/javascript'>
@@ -1645,7 +1652,7 @@ elseif(page == "http") then
 	    print("<tr><th rowspan="..(num+1).." width=20%>"..i18n("http_page.virtual_hosts").."</th><th>Name</th><th>"..i18n("http_page.traffic_sent").."</th><th>"..i18n("http_page.traffic_received").."</th><th>"..i18n("http_page.requests_served").."</th></tr>\n")
 	    for k,v in pairsByKeys(vh, asc) do
 	       local j = string.gsub(k, "%.", "___")
-	       print("<tr><td><A HREF='http://"..k.."'>"..k.."</A> <i class='fas fa-external-link-alt'></i>")
+	       print("<tr><td><A class='ntopng-external-link' href='http://"..k.."'>"..k.." <i class='fas fa-external-link-alt'></i></A>")
 	       historicalProtoHostHref(ifId, host, nil, nil, k)
 	       print("</td>")
 	       print("<td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")

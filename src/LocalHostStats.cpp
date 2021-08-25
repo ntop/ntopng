@@ -24,8 +24,7 @@
 /* *************************************** */
 
 LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
-  top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
-  old_sites = NULL;
+  top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
 
   dns  = new (std::nothrow) DnsStats();
   http = new (std::nothrow) HTTPstats(_host);
@@ -34,7 +33,6 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
 
   nextPeriodicUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = 0;
-  current_cycle = 0;
   
   num_contacted_hosts_as_client.init(8);       /* 128 bytes */
   num_host_contacts_as_server.init(8);         /* 128 bytes */
@@ -57,14 +55,14 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
   num_ntp_servers.init(5);
+  num_contacted_domain_names.init(4);
 }
 
 /* *************************************** */
 
 LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
-  top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
+  top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
   peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
-  old_sites = NULL;
   dns = s.getDNSstats() ? new (std::nothrow) DnsStats(*s.getDNSstats()) : NULL;
   http = NULL;
   icmp = NULL;
@@ -85,13 +83,13 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
   num_ntp_servers.init(5);
+  num_contacted_domain_names.init(4);
 }
 
 /* *************************************** */
 
 LocalHostStats::~LocalHostStats() {
   if(top_sites)           delete top_sites;
-  if(old_sites)           free(old_sites);
   if(dns)                 delete dns;
   if(http)                delete http;
   if(icmp)                delete icmp;
@@ -124,10 +122,10 @@ void LocalHostStats::incrVisitedWebSite(char *hostname) {
       firstdot = strchr(hostname, '.');
       
       if(firstdot)
-	nextdot = strchr(&firstdot[1], '.');
+	      nextdot = strchr(&firstdot[1], '.');
       
-      top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
-      iface->incrVisitedWebSite(hostname);
+      top_sites->incrVisitedData(nextdot ? &firstdot[1] : hostname, 1);
+      iface->incrVisitedWebSite(nextdot ? &firstdot[1] : hostname);
     }
   }
 }
@@ -151,16 +149,17 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
     
     /* Contacted peers update */
     updateHostContacts();
-    
-    /* Top Sites update */
-    if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
-      if(old_sites) {
-        if(host != NULL)
-          this->saveOldSites();
-	      free(old_sites);
+
+    if(ntop->getPrefs()->are_top_talkers_enabled()) {      
+      if(top_sites && host) {
+        char additional_key_info[128];
+        if(!host->get_mac() && !host->get_ip())
+          return;
+
+        /* String like `_1.1.1.1@2` */
+        snprintf(additional_key_info, sizeof(additional_key_info), "_%s", host->get_tskey(additional_key_info, sizeof(additional_key_info)));
+        top_sites->saveOldData(host->getInterface()->get_id(), additional_key_info, (char *) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED);
       }
-      if(top_sites->getSize())
-        old_sites = top_sites->json();
     }
 
     nextPeriodicUpdate = tv->tv_sec + HOST_SITES_REFRESH;
@@ -233,13 +232,7 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
   HostStats::lua(vm, mask_host, details_level);
 
   if((!mask_host) && top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
-    if(top_sites) {
-      char *cur_sites = top_sites->json();
-      lua_push_str_table_entry(vm, "sites", cur_sites ? cur_sites : (char*)"{}");
-      if(cur_sites) free(cur_sites);
-    }
-    if(old_sites)
-      lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
+    top_sites->lua(vm, (char *) "sites", (char *) "sites.old");
   }
 
   luaHostBehaviour(vm);
@@ -419,185 +412,38 @@ void LocalHostStats::incStats(time_t when, u_int8_t l4_proto,
 
 /* *************************************** */
 
-void LocalHostStats::getCurrentTime(struct tm *t_now) {
-  time_t now = time(NULL); 
-  memset(t_now, 0, sizeof(*t_now));
-  localtime_r(&now, t_now);
-}
-
-/* *************************************** */
-
-void LocalHostStats::deserializeTopSites(char* redis_key_current) {
-  char *json;
-  u_int json_len;
-  json_object *j;
-  enum json_tokener_error jerr;
-
-  json_len = ntop->getRedis()->len(redis_key_current);
-  if(json_len == 0) json_len = CONST_MAX_LEN_REDIS_VALUE; else json_len += 8; /* Little overhead */
-  
-  if((json = (char*)malloc(json_len)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    return;
-  }
-
-  if((ntop->getRedis()->get(redis_key_current, json, json_len) == -1)
-     || (json[0] == '\0')) {
-    free(json);
-    return; /* Nothing found */
-  }
-
-  j = json_tokener_parse_verbose(json, &jerr);
-
-  if(j != NULL) {    
-#ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%u]", json, json_len);
-#endif
-
-    if(json_object_get_type(j) == json_type_object) {
-      struct lh_entry *entry = json_object_get_object(j)->head;
-
-      for(; entry != NULL; entry = entry->next) {
-	char *key               = (char*)entry->k;
-	struct json_object *val = (struct json_object*)entry->v;
-	enum json_type type = json_object_get_type(val);
-	  
-	if(type == json_type_int) {
-	  u_int32_t value = json_object_get_int64(val);
-	  
-#ifdef DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s = %u", key, value);
-#endif
-	  
-	  top_sites->add(key, value);
-	  
-	}
-      }
-    }
-    
-    json_object_put(j); /* Free memory */
-  } else
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);
-
-  free(json);
-}
-
-/* *************************************** */
-
-void LocalHostStats::serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize) {
-  char redis_hour_key[256], redis_daily_key[256], redis_key_current[256];
-  int iface;
-  
-  if((!host->getInterface()) || (host->isBroadcastHost()))     
-    return;
-
-  iface = host->getInterface()->get_id();
-
-  snprintf(redis_hour_key, sizeof(redis_hour_key)-1, "%s_%u_%d_%u", host_buf, iface, t_now->tm_mday, t_now->tm_hour);
-  snprintf(redis_daily_key, sizeof(redis_daily_key)-1, "%s_%u_%d", host_buf, iface, t_now->tm_mday);
-
-  snprintf(redis_key_current, sizeof(redis_key_current)-1, "%s.serialized_current_top_sites.%s_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
-            host_buf, iface, t_now->tm_mday);
-
-  if(do_serialize) {
-    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
-    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key, 3600);
-    
-    if(top_sites->getSize())
-      ntop->getRedis()->set(redis_key_current , top_sites->json(2*HOST_SITES_TOP_NUMBER), 3600);
-  } else {
-    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key);
-    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key);
-    deserializeTopSites(redis_key_current);
-  }
-}
-
-/* *************************************** */
-
-void LocalHostStats::saveOldSites() {
-  char host_buf[128], redis_key[256];
-  u_int32_t iface;
-  int minute = 0;
-  struct tm t_now;
-
-  if(!old_sites)
-    return;
-  
-  if(!host->getInterface())
-    return;
-
-  if(!host->get_mac() && !host->get_ip())
-    return;
-
-  host->get_tskey(host_buf, sizeof(host_buf));
-
-  getCurrentTime(&t_now);
-
-  minute = t_now.tm_min - (t_now.tm_min % 5);
-  iface  = host->getInterface()->get_id();
-
-  /* String like `ntopng.cache_1.1.1.1@2_1_17_11_45` */
-  /* An other way is to use the localtime_r and compose the string like `ntopng.cache_1.1.1.1@2_1_1609761600` */
-  snprintf(redis_key, sizeof(redis_key), "%s_%s_%d_%d_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
-            host_buf, iface, t_now.tm_mday, t_now.tm_hour, minute);
-  
-  ntop->getRedis()->set(redis_key , old_sites, 7200);
-
-  if (minute == 0 && current_cycle > 0) {
-    char hour_done[256];
-    int hour = 0;
-
-    if (t_now.tm_hour == 0) 
-      hour = 23;
-    else
-      hour = t_now.tm_hour - 1;
-
-    /* List key = ntopng.cache.top_sites_hour_done | value = 1.1.1.1@2_1_17_11 */ 
-    snprintf(hour_done, sizeof(hour_done), "%s_%d_%d_%d", host_buf, iface, t_now.tm_mday, hour);
-    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, hour_done, 3600);
-
-    current_cycle = 0;
-  } else 
-    current_cycle++;
-}
-
-/* *************************************** */
-
 void LocalHostStats::removeRedisSitesKey() {
-  char host_buf[128];
-  struct tm t_now;
+  char additional_key_info[128];
 
   if(!host->get_mac() && !host->get_ip())
     return;
 
-  host->get_tskey(host_buf, sizeof(host_buf));
-
-  getCurrentTime(&t_now);
-  serializeDeserialize(host_buf, &t_now, false);
+  /* String like `_1.1.1.1@2` */
+  snprintf(additional_key_info, sizeof(additional_key_info), "%s_", host->get_tskey(additional_key_info, sizeof(additional_key_info)));
+  /* Deserializing the info */
+  top_sites->serializeDeserialize(host->getInterface()->get_id(), false, additional_key_info, (char *) HASHKEY_TOP_SITES_SERIALIZATION_KEY, 
+    (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED);
 }
 
 /* *************************************** */
   
 void LocalHostStats::addRedisSitesKey() {
-  char host_buf[128];
-  struct tm t_now;
+  char additional_key_info[128];
 
   if(!host->get_mac() && !host->get_ip())
     return;
 
-  host->get_tskey(host_buf, sizeof(host_buf));
-
-  getCurrentTime(&t_now);   
-  serializeDeserialize(host_buf, &t_now, true);
+  /* String like `_1.1.1.1@2` */
+  snprintf(additional_key_info, sizeof(additional_key_info), "%s_", host->get_tskey(additional_key_info, sizeof(additional_key_info)));
+  /* Serializing the info */
+  top_sites->serializeDeserialize(host->getInterface()->get_id(), true, additional_key_info, (char *) HASHKEY_TOP_SITES_SERIALIZATION_KEY, 
+    (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED);
 }
 
 /* *************************************** */
 
 void LocalHostStats::resetTopSitesData() {
-  char host_buf[128], redis_reset_key[256];
-  struct tm t_now;
-  int minute;
-  u_int32_t iface  = host->getInterface()->get_id();
+  char additional_key_info[128];
 
   if(!host->get_mac() && !host->get_ip())
     return;
@@ -605,14 +451,9 @@ void LocalHostStats::resetTopSitesData() {
   if(!host->getInterface())
     return;
 
-  host->get_tskey(host_buf, sizeof(host_buf));
-
-  getCurrentTime(&t_now);   
-
-  minute = t_now.tm_min - (t_now.tm_min % 5);
-
-  snprintf(redis_reset_key, sizeof(redis_reset_key), "%s_%u_%d_%u_%d", host_buf, iface, t_now.tm_mday, t_now.tm_hour, minute);
-  ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_RESET, redis_reset_key, 3600);
+  /* String like `_1.1.1.1@2` */
+  snprintf(additional_key_info, sizeof(additional_key_info), "%s_", host->get_tskey(additional_key_info, sizeof(additional_key_info)));
+  top_sites->resetTopSitesData(host->getInterface()->get_id(), additional_key_info, (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_RESET);
 }
 
 /* *************************************** */

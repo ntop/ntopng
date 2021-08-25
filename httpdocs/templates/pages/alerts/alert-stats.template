@@ -153,6 +153,7 @@
                 if (searchParams.get(key)) {
                     param_value = `${searchParams.get(key)},${param_value}`;
                 }
+
                 searchParams.set(key, param_value);
             }
 
@@ -210,7 +211,16 @@
             return [begin, end];
         }
 
-        function updateNavbarLink(searchParams, element) {
+        function updateNavbarLink(url, begin, end, element) {
+            const searchParams = getSearchParams();
+
+            searchParams.set('epoch_begin', begin.unix());
+            searchParams.set('epoch_end', end.unix());
+            
+            if (url.searchParams.has('status')) {
+                searchParams.set('status', url.searchParams.get('status'));
+            }
+
             /* Read the current href */
             const cur_href = $(element).attr('href');
             let cur_url = new URL(cur_href, location.origin);
@@ -257,7 +267,7 @@
               and status to preserve them when switching between tabs
              */
             $('#navbarNav a').each(function(index, element) {
-                updateNavbarLink(searchParams, element);
+                updateNavbarLink(url, begin, end, element);
             });
 
             /*
@@ -278,6 +288,7 @@
             }
 
             url.search = searchParams.toString();
+
             window.history.pushState({epoch_begin: begin.unix(), epoch_end: end.unix()}, '', url);
         }
 
@@ -301,19 +312,27 @@
         }
 
         async function addFilterTag(tag) {
-            const existingTagElms = tagify.getTagElms();
 
             /* Convert values to string (this avoids issues e.g. with 0) */
             if (typeof tag.realValue == 'number') { tag.realValue = ''+tag.realValue; }
             if (typeof tag.value == 'number') { tag.value = ''+tag.value; }
 
+            const existingTagElms = tagify.getTagElms();
+            
+            /* Lookup by key, value and operator (do not add the same key+value multiple times) */
+            const existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('realValue') === tag.realValue && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
+            const existingTag = tagify.tagData(existingTagElement);
+            if (existingTag !== undefined) {
+                return;
+            }
+
             {% if false then %}
-            /* Lookup by key (does not allow dup) */
+            /* Lookup by key (does not allow dup, replace the value if key is the same) */
             const existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key);
             const existingTag = tagify.tagData(existingTagElement);
             if (existingTag !== undefined /* && existingTag.realValue !== tag.realValue */) {
             {% else %}   
-            /* Lookup by index (allow dup) */
+            /* Lookup by index (allow key dup, replace the value only if it's the same element index) */
             if (tag.index && existingTagElms.length > tag.index) {
             {% end %}
                 const existingTagElement = existingTagElms[tag.index];
@@ -359,28 +378,35 @@
             columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
                 const buttons = [
                     {% if alert_stats.entity ~= 'system' and datatable.show_admin_controls == true then %}
-                    {icon: 'fa fa-cog', label: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-primary'},
+                    {icon: 'fa fa-cog', title: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-primary'},
                     {% end %}
 
                     /* Button to jump to flow alerts within the same time period */
                     {% if alert_stats.entity == 'host' then %}
-                    {icon: 'fa-stream', label: "{{ i18n('flows') }}", modal: '#flow_alerts', class: "btn-info"},
-                    {% end %}
+                    {icon: 'fa-stream', title: "{{ i18n('flows') }}", modal: '#flow_alerts', class: "btn-info"},
+		    {% end %}
+
+		    /* Button to jump to historical nIndex flows */
+                    {% if alert_stats.entity == 'host' or alert_stats.entity == 'flow' then %}
+                       {% if ntop.isEnterpriseM() and hasNindexSupport() and interface.nIndexEnabled(ifid) then %}
+                          {icon: 'fa-search-plus', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows', class: "btn-info"},
+                       {% end %}
+		    {% end %}
 
                     /* Bell button to disable alerts is only supported for hosts and flows */
                     {% if (alert_stats.entity == 'host' or alert_stats.entity == 'flow') and datatable.show_admin_controls == true then %}
-                    {icon: 'fa-bell-slash', label: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning {{ ((alert_stats.entity == 'host' or alert_stats.entity == 'flow') and '' or 'disabled') }}"},
+                    {icon: 'fa-bell-slash', title: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning {{ ((alert_stats.entity == 'host' or alert_stats.entity == 'flow') and '' or 'disabled') }}"},
                     {% end %}
 
                     /* Only not-engaged alerts can be deleted */
                     {% if alert_stats.entity ~= 'all' and datatable.show_admin_controls == true then %}
 
                     {% if alert_stats.status == "historical" then %}
-                    {icon: 'fa fa-user-check', label: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog', class: 'btn-primary'},
+                    {icon: 'fa fa-user-check', title: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog', class: 'btn-primary'},
                     {% end %}
 
                     {% if alert_stats.status ~= "engaged" then %}
-                    {icon: 'fa fa-trash', label: "{{ i18n('remove') }}", modal: '#delete_alert_dialog', class: 'btn-danger'},
+                    {icon: 'fa fa-trash', title: "{{ i18n('remove') }}", modal: '#delete_alert_dialog', class: 'btn-danger'},
                     {% end %}
 
                     {% end %}
@@ -530,6 +556,7 @@
         });
 
         tagify.on('edit:updated', async function(e) {
+        
             const detail = e.detail;
             if (detail.data === undefined) { return; }
             if (detail.data.key === undefined) {return;}
@@ -582,9 +609,11 @@
             const key = tmp.data('tagKey');
             const label = tmp.data('tagLabel');
             const value = tmp.data('tagValue');
+            const operator = tmp.data('tagOperator') || 'eq';
             const tagTitle = i18n.tags[key];
             
-            const tag = { label: tagTitle, key: key, value: label, realValue: value, title: value};
+            
+            const tag = { label: tagTitle, key: key, value: label, realValue: value, title: value, selectedOperator: operator};
 
             addFilterTag(tag);
         }
@@ -679,6 +708,17 @@
 
             flow_alerts_url.search = new URLSearchParams(flow_search_params);
             window.location.href = flow_alerts_url.href;
+        });
+
+        $table.on('click', `a[href='#past_flows']`, function (e) {
+            /* Create and redirect to the past alerts filtered  */
+
+            const alert = $table.row($(this).parent().parent()).data();
+
+    	    if(alert.link_to_past_flows)
+	    	window.location.href = alert.link_to_past_flows;
+	    else
+	    	window.location.href = `${http_prefix}/lua/pro/nindex_query.lua`;
         });
 
         $table.on('click', `a[href='#delete_alert_dialog']`, function (e) {
@@ -1055,7 +1095,7 @@
         /* Cards */
         {% if alert_stats.status ~= "engaged" and ntop.isPro() then %}
         
-        const [begin_epoch, end_epoch] = getTimestampRange();
+        const [epoch_begin, epoch_end] = getTimestampRange();
         let alertCardStats = () => {
             let entity = "{{ alert_stats.entity }}"
             entity = entity.replace("_", "/")

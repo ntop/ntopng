@@ -538,7 +538,7 @@ class DataTableUtils {
                     return;
                 }
 
-                columns.push({ index: i, name: this.header().textContent });
+                columns.push({ index: i, name: this.header().textContent, label: this.i18n.name /* Human-readable column name */ });
             });
 
             const $btnGroup = $(`
@@ -553,8 +553,11 @@ class DataTableUtils {
             const $checkboxes = $(`<div class='px-4'></div>`);
 
             for (let i = 0; i < columns.length; i++) {
-
                 const column = columns[i];
+
+		// Prevents columns with no names to be selectively hidden (e.g., the entity under the all alerts page)
+		if(column.name == "")
+		    continue;
 
                 // create a checkbox and delegate a change event
                 const id = `toggle-${column.name.split().join('_')}`; 
@@ -647,7 +650,11 @@ class DataTableRenders {
     }
 
     static filterize(key, value, label, tag_label, title) {
-        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${label || value}</a>`;
+	let fmt_title = title || value;
+	if(fmt_title && fmt_title != value)
+	    fmt_title = value + " [" + fmt_title + "]";
+
+        return `<a class='tag-filter' data-tag-key='${key}' title='${fmt_title}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${label || value}</a>`;
     }
 
     static formatValueLabel(obj, type, row) {
@@ -672,7 +679,7 @@ class DataTableRenders {
 	   html_ref = obj.reference
 	let label = obj.label;
         
-        label = DataTableRenders.filterize('ip', obj.value, label);
+        label = DataTableRenders.filterize('ip', obj.value, label, label, obj.label_long);
 
         if (row.role && row.role.value == 'attacker')
           label = label + ' ' + DataTableRenders.filterize('role', row.role.value, 
@@ -693,12 +700,11 @@ class DataTableRenders {
 
     static formatFlowTuple(flow, type, row) {
         let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
-        let historical_ref = (flow.historical_url ? `<a href="${flow.historical_url}"><i class="fas fa-search-plus"></i></a>` : "");
 
-        let cliLabel = DataTableRenders.filterize('cli_ip', flow.cli_ip.value, flow.cli_ip.label); 
+        let cliLabel = DataTableRenders.filterize('cli_ip', flow.cli_ip.value, flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label_long); 
         let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('cli_port', flow.cli_port, flow.cli_port) : "");
 
-        let srvLabel = DataTableRenders.filterize('srv_ip', flow.srv_ip.value, flow.srv_ip.label);
+        let srvLabel = DataTableRenders.filterize('srv_ip', flow.srv_ip.value, flow.srv_ip.label, flow.srv_ip.label, flow.srv_ip.label_long);
         let srvPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('srv_port', flow.srv_port, flow.srv_port) : "");
 
         let cliIcons = "";
@@ -717,7 +723,7 @@ class DataTableRenders {
                 srvIcons += DataTableRenders.filterize('role', 'victim',  '<i class="fas fa-sad-tear" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
         }
 
-        return `${active_ref} ${historical_ref} ${cliLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
+        return `${active_ref} ${cliLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
     }
 
     static formatNameDescription(obj, type, row) {

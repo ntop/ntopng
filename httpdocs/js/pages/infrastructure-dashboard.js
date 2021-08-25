@@ -40,7 +40,7 @@ $(function() {
             { width: '15%', data: 'url', render: (url, type, instance) => {     
                 if (type !== 'display') return url;
                 const label = url.replace(/(http(s)?)\:\/\//, '');
-                return `<a href='${url}' target='_self'>${label} </a><i class='fas fas fa-external-link-alt'></i>`;
+                return `<a class="ntopng-external-link" href='${url}' target='_self'>${label} <i class='fas fas fa-external-link-alt'></i></a>`;
             }},
             /* Chart Column */
             { width: '5%', data: 'chart', className: 'text-center', render: (chart, type, instance) => {

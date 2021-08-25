@@ -4,6 +4,8 @@
 
 -- ##############################################
 
+package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
+
 local flow_alert_keys = require "flow_alert_keys"
 -- Import the classes library.
 local classes = require "classes"
@@ -43,18 +45,25 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
    -- Extracting info field
    local info = ""
    local href = ""
+   local flow_infos = {
+      host = alert["cli_ip"],
+      l7proto = ternary(tonumber(alert["l7_proto"]) ~= 0, alert["l7_proto"], alert["l7_master_proto"]),
+      vlan_id = alert["vlan_id"]
+   }
+   local graph_map_utils = require("graph_map_utils")
+
 
    if alert.json then
       info = json.decode(alert["json"])
       if not isEmptyString(info["info"]) then
-         info = "[" .. info["info"] .. "]"
+	 info = "[" .. info["info"] .. "]"
       else
-         info = ""
-      end   
+	 info = ""
+      end
    end
 
    if ntop.isAdministrator() then
-      href = '<a href="/lua/pro/enterprise/service_map.lua"><i class="fas fa-lg fa-concierge-bell"></i></a>'
+      href = '<a href="' .. graph_map_utils.getMapUrl(flow_infos, interface.getId(), 'service_map', 'graph') .. '"><i class="fas fa-lg fa-concierge-bell"></i></a>'
    end
 
    return(i18n("alerts_dashboard.lateral_movement_descr", { info = info, href = href }))

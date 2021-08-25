@@ -25,7 +25,7 @@
                 %}
 
                     <li class='media-body pt-2 pe-2 ps-2 pb-1'>
-                        <a target="_about"
+                        <a class="ntopng-external-link" target="_about"
                             class="blog-notification text-dark"
                             data-read="{{ (user_has_read_post and "true" or "false") }}"
                             data-id="{{ p.id }}"

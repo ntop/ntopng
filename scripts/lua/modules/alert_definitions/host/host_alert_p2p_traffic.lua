@@ -22,7 +22,7 @@ local host_alert_p2p_traffic = classes.class(alert)
 
 host_alert_p2p_traffic.meta = {
   alert_key = host_alert_keys.host_alert_p2p_traffic,
-  i18n_title = "alerts_dashboard.threashold_cross",
+  i18n_title = "alerts_dashboard.host_alert_p2p_traffic",
   icon = "fas fa-fw fa-arrow-circle-up",
 }
 
@@ -58,6 +58,25 @@ function host_alert_p2p_traffic.format(ifid, alert, alert_type_params)
     op = "&".. (alert_type_params.operator or "gt") ..";",
     threshold = alert_type_params.threshold,
   })
+end
+
+-- #######################################################
+
+-- @brief Prepare a table containing a set of filters useful to query historical flows that contributed to the generation of this alert
+-- @param ifid The integer interface id of the generated alert
+-- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
+-- @param alert_type_params Table `alert_type_params` as built in the `:init` method
+-- @return A human-readable string
+function host_alert_p2p_traffic.filter_to_past_flows(ifid, alert, alert_type_params)
+   local res = {}
+   local host_key = hostinfo2hostkey({ip = alert["ip"], vlan = alert["vlan_id"]})
+
+   -- Look for the IP both as client and as server as the alert does not differentiate
+   res["ip"] = host_key
+   -- Category FileSharing, not just a single protocol
+   res["l7cat"] = "FileSharing"
+
+   return res
 end
 
 -- #######################################################

@@ -35,7 +35,8 @@ print(template.gen("modal_confirm_dialog.html", {
     id      = "PcapDownloadDialog",
     title   = i18n("traffic_recording.download"),
     custom_alert_class = "alert alert-info",
-    message = i18n("traffic_recording.multiple_extracted_files", { mb = tostring(math.floor(prefs.max_extracted_pcap_bytes/(1024*1024))) })
+    message = i18n("traffic_recording.multiple_extracted_files", { mb = tostring(math.floor(prefs.max_extracted_pcap_bytes/(1024*1024))) }),
+    confirm = i18n("confirm"),   
  }
 }))
 
@@ -160,7 +161,7 @@ print[[
             if(num_job_files > 1) {
               var links = "<ul>";
 
-              for(var file_id=0; file_id<num_job_files; file_id++)
+              for(var file_id=1; file_id<num_job_files; file_id++)
                 links = links + "<li><a href=\\']] print(ntop.getHttpPrefix())
                 print[[/lua/get_extracted_traffic.lua?job_id=" + job_id + "&file_id=" + file_id + "\\'>" + "]]
                 print(i18n("traffic_recording.download_nth_pcap")) print[[".sformat(file_id) + "</a></li>";
@@ -187,8 +188,9 @@ print[[
   });
 
   function downloadJobFiles(links) {
-    $('#PcapDownloadDialog_more_content').html(links);
+    $('#url_PcapDownloadDialog').html(links);
     $('#PcapDownloadDialog').modal('show');
+    $('#btn-confirm-action_PcapDownloadDialog').css("display", "none");
   }
 
   function deleteJob(job_id) {

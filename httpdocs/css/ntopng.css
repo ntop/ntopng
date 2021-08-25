@@ -535,6 +535,30 @@ path.link {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.01), 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Align search to the top */
+.navbar-main-top {
+  align-items: flex-start;
+}
+
+/* Control main navbard badges display based on window size */
+@media (max-width: 1280px) {
+  .navbar-main-badges {
+    width: 360px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .navbar-main-badges {
+    width: 300px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .navbar-main-badges {
+    width: 200px;
+  }
+}
+
 .table:not(.dataTable) td,
 .table:not(.dataTable) th {
   padding: 0.50rem !important;
@@ -1018,3 +1042,9 @@ td.dashboard-counter {
   background-size: cover;
   background-position: 50% 50%;
 } /* ---- stats.js ---- */
+
+
+.fa-external-link-alt{
+  color: #0d6efd;
+  cursor: pointer;
+}

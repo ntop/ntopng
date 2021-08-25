@@ -16,7 +16,7 @@ local fingerprint_utils = {}
 local available_fingerprints = {
    ja3 = {
       stats_key = "ja3_fingerprint",
-      href = function(fp) return '<A HREF="https://sslbl.abuse.ch/ja3-fingerprints/'..fp..'" target="_blank">'..fp..'</A>  <i class="fas fa-external-link-alt"></i>' end
+      href = function(fp) return '<A class="ntopng-external-link" class="https://sslbl.abuse.ch/ja3-fingerprints/'..fp..'" target="_blank">'..fp..' <i class="fas fa-external-link-alt"></A> </i>' end
    },
    hassh = {
       stats_key = "hassh_fingerprint",

@@ -277,10 +277,8 @@ void NetworkInterface::init() {
   dynamic_interface_criteria = 0;
   dynamic_interface_mode = flowhashing_none;
 
-  top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
-  top_os    = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
-  old_sites = NULL;
-  old_os    = NULL;
+  top_sites = NULL;
+  top_os    = NULL;
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -642,9 +640,8 @@ NetworkInterface::~NetworkInterface() {
   if(hostAlertsQueue)       delete hostAlertsQueue;
 
   addRedisSitesKey();
-  if(top_sites)       delete top_sites;
-  if(top_os)          delete top_os;
-  if(old_sites)       free(old_sites);
+  if(top_sites)        delete top_sites;
+  if(top_os)           delete top_os;
 
   if(prev_flow_checks_executor) delete prev_flow_checks_executor;
   if(flow_checks_executor)      delete flow_checks_executor;
@@ -726,7 +723,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
     /* Last flow dump before delete
      * Note: this never happens in 'direct' mode */
     if(idleFlowsToDump && idleFlowsToDump->enqueue(f, true)) {
-      f->incUses();
+      f->incUses(), f->set_dump_in_progress();
 
       /*
 	Signal there's work to do.
@@ -745,7 +742,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   } else {
     /* Partial dump if active flows */
     if(activeFlowsToDump && activeFlowsToDump->enqueue(f, true)) {
-      f->incUses();
+      f->incUses(), f->set_dump_in_progress();
 
       /*
 	Signal there's work to do.
@@ -1499,6 +1496,17 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     case IPPROTO_TCP:
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
 
+      /*
+	This is the heuristic "For TCP flows for which the 3WH has not been observed..."
+	at https://github.com/ntop/ntopng/issues/5058
+
+	So, only for the first packet check if this flow is a swap candidate.
+	The only condition that should NOT be checked for swap is when there's a SYN and not an ACK, i.e.,
+	when we see the first packet of the TWH that allows to reliably determine the direction.
+       */
+      if(new_flow && (!(tcp_flags & TH_SYN) || (tcp_flags & TH_ACK)))
+	flow->check_swap();
+
       if((tcp_flags & (TH_RST | TH_FIN)) == 0) {
 	/*
 	  Ignore Zero-window on flow termination as this case
@@ -1522,6 +1530,12 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	flow->setICMPPayloadSize(trusted_l4_packet_len);
 	trusted_payload_len = trusted_l4_packet_len, payload = l4;
       }
+      break;
+    default:
+      /*
+	NOTE: for non TCP-flows, the swap heuristic is always checked on the first packet
+      */
+      if(new_flow) flow->check_swap();
       break;
     }
 
@@ -1811,10 +1825,10 @@ u_int16_t NetworkInterface::guessEthType(const u_char *p, u_int len, u_int8_t *i
 
   *is_ethernet = 0;
   
-  if(len >= sizeof(struct ip)) {
-    struct ip *ipv4 = (struct ip*)p;
+  if(len >= sizeof(struct ndpi_iphdr)) {
+    struct ndpi_iphdr*ipv4 = (struct ndpi_iphdr*)p;
 
-    if(ipv4->ip_v == 4)
+    if(ipv4->version == 4)
       return(ETHERTYPE_IP);
   }
 
@@ -2211,6 +2225,13 @@ datalink_check:
 
       if(ntop->getPrefs()->do_ignore_macs())
 	ethernet = &dummy_ethernet;
+      else if(unlikely(ntop->getPrefs()->do_simulate_macs())) {
+	dummy_ethernet.h_source[0] = 0xb8, dummy_ethernet.h_source[1] = 0x27, dummy_ethernet.h_source[2] = 0xeb,
+	  dummy_ethernet.h_source[3] = 0xfd, dummy_ethernet.h_source[4] = 0x8e, dummy_ethernet.h_source[5] = rand() % 8;
+	dummy_ethernet.h_dest[0] = 0xb8, dummy_ethernet.h_dest[1] = 0x27, dummy_ethernet.h_dest[2] = 0xeb,
+	  dummy_ethernet.h_dest[3] = 0xfd, dummy_ethernet.h_dest[4] = 0x8e, dummy_ethernet.h_dest[5] = rand() % 8;
+	ethernet = &dummy_ethernet;
+      }
 
       try {
 	pass_verdict = processPacket(bridge_iface_idx,
@@ -2660,12 +2681,16 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
   while(idleFlowsToDump->isNotEmpty()) {
     Flow *f = idleFlowsToDump->dequeue();
     char *json = NULL;
+    bool rc = true;
 
     /* Prepare the JSON - if requested */
     if(flows_dump_json)
       json = f->serialize(flows_dump_json_use_labels);
 
-    int rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
+    f->update_partial_traffic_stats_db_dump(); /* Checkpoint flow traffic counters for the dump */
+
+    if(f->get_partial_bytes()) /* Make sure data is not at zero */
+      rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
 
     if(json) free(json);
 
@@ -2674,6 +2699,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 #endif
     if(!rc) incDBNumDroppedFlows(dumper);
     f->decUses(); /* Job has been done, decrease the reference counter */
+    f->set_dump_done();
     // delete f;
     idle_flows_done++;
     if(idle_flows_budget > 0 /* Budget requested */
@@ -2687,12 +2713,16 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
   while(activeFlowsToDump->isNotEmpty()) {
     Flow *f = activeFlowsToDump->dequeue();
     char *json = NULL;
+    bool rc = true;
 
     /* Prepare the JSON - if requested */
     if(flows_dump_json)
       json = f->serialize(flows_dump_json_use_labels);
 
-    int rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
+    f->update_partial_traffic_stats_db_dump(); /* Checkpoint flow traffic counters for the dump */
+
+    if(f->get_partial_bytes()) /* Make sure data is not at zero */
+      rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
 
     if(json) free(json);
 
@@ -2701,6 +2731,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 #endif
     if(!rc) incDBNumDroppedFlows(dumper);
     f->decUses(); /* Job has been done, decrease the reference counter */
+    f->set_dump_done();
     active_flows_done++;
     if(active_flows_budget > 0 /* Budget requested */
        && active_flows_done >= active_flows_budget /* Budget exceeded */)
@@ -5922,15 +5953,8 @@ void NetworkInterface::lua(lua_State *vm) {
   
   bcast_domains->lua(vm);
 
-  if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
-    char *cur_sites = top_sites->json();
-
-    if(top_sites)
-      lua_push_str_table_entry(vm, "sites", cur_sites ? cur_sites : (char*)"{}");
-    if(old_sites)
-      lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
-    if(cur_sites) free(cur_sites);
-  }
+  if(ntop->getPrefs()->are_top_talkers_enabled())
+    top_sites->lua(vm, (char *) "sites", (char *) "sites.old");
 
   luaAnomalies(vm);
   luaScore(vm);
@@ -5997,7 +6021,7 @@ void NetworkInterface::luaServiceMapStatus(lua_State *vm) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   lua_newtable(vm);
 
-  if(sMap) lua_push_bool_table_entry(vm, "service_map_learning_status", sMap->getLearningStatus());
+  if(sMap) lua_push_bool_table_entry(vm, "service_map_learning_status", sMap->isLearning());
 #endif
 }
 
@@ -6641,7 +6665,6 @@ bool NetworkInterface::isInterfaceNetwork(const IpAddress * const ipa, int netwo
 /* **************************************** */
 
 void NetworkInterface::allocateStructures() {
-  removeRedisSitesKey();
 
   u_int8_t numNetworks = ntop->getNumLocalNetworks();
   char buf[16];
@@ -6672,7 +6695,10 @@ void NetworkInterface::allocateStructures() {
     dscpStats        = new DSCPStats();
 
     gw_macs          = new MacHash(this, 32, 64);
-    
+
+    top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
+    top_os    = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
+
     if(!isViewed()) {
       alertStore    = new AlertStore(id, ALERTS_STORE_DB_FILE_NAME);
       alertsQueue   = new AlertsQueue(this);
@@ -6709,6 +6735,7 @@ void NetworkInterface::allocateStructures() {
   snprintf(buf, sizeof(buf), "%d", get_id());
   setEntityValue(buf);
   reloadGwMacs();
+  removeRedisSitesKey();
 }
 
 /* **************************************** */
@@ -7609,7 +7636,6 @@ void NetworkInterface::updateBroadcastDomains(VLANid vlan_id,
 
 	  /* NOTE: call this also for existing domains in order to update the hits */
 	  bcast_domains->addAddress(&cur_bcast_domain, cur_cidr);
-
 #ifdef BROADCAST_DOMAINS_DEBUG
 	  char buf1[32], buf2[32], buf3[32];
 
@@ -7620,9 +7646,9 @@ void NetworkInterface::updateBroadcastDomains(VLANid vlan_id,
 					 cur_cidr);
 #endif
 	} else {
-	  getAlertsQueue()->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, src, dst, vlan_id);
-        }
-
+    if(ntop->getPrefs()->isBroadcastDomainTooLargeEnabled()) 
+      getAlertsQueue()->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, src, dst, vlan_id);
+  }
 	break;
       }
     }
@@ -7832,7 +7858,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 	 && !c->live_capture.pcaphdr_sent) {
 	struct pcap_file_header pcaphdr;
 
-	Utils::init_pcap_header(&pcaphdr, this);
+	Utils::init_pcap_header(&pcaphdr, get_datalink(), ntop->getGlobals()->getSnaplen(get_name()));
 
 	if((res = mg_write_async(c->conn, &pcaphdr, sizeof(pcaphdr))) < (int)sizeof(pcaphdr))
 	  http_client_disconnected = true;
@@ -8665,8 +8691,10 @@ void NetworkInterface::checkHostsToRestore() {
 
       /* The host is possibly a LBD host in DHCP range, so also bring up its MAC for the deserialization */
       if((!ntop->getRedis()->get(key, mac_buf, sizeof(mac_buf))) && (mac_buf[0] != '\0')) {
-	 Utils::parseMac(mac_bytes, mac_buf);
-	 mac = getMac(mac_bytes, true /* Create if not present */, true /* inline call */);
+    	  Utils::parseMac(mac_bytes, mac_buf);
+    	  mac = getMac(mac_bytes, true /* Create if not present */, true /* inline call */);
+       } else {
+        goto next_host;
        }
     }
 
@@ -8704,7 +8732,7 @@ void NetworkInterface::luaAlertedFlows(lua_State* vm) {
 void NetworkInterface::luaPeriodicityFilteringMenu(lua_State* vm) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pMap) {
-    pMap->luaFilteringMenu(vm, this);
+    pMap->luaFilteringMenu(vm, this, true);
     return;
   }
 #endif
@@ -8717,7 +8745,7 @@ void NetworkInterface::luaPeriodicityFilteringMenu(lua_State* vm) {
 void NetworkInterface::luaServiceFilteringMenu(lua_State* vm) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(sMap) {
-    sMap->luaFilteringMenu(vm, this);
+    sMap->luaFilteringMenu(vm, this, false);
     return;
   }
 #endif
@@ -8727,14 +8755,15 @@ void NetworkInterface::luaServiceFilteringMenu(lua_State* vm) {
 
 /* *************************************** */
 
-void NetworkInterface::luaPeriodicityStats(lua_State* vm,
-					   const u_int8_t * const mac,
-					   IpAddress *ip_address,
-					   VLANid vlan_id, u_int16_t host_pool_id, bool unicast,
-					   u_int32_t first_seen, u_int16_t filter_ndpi_proto) {
+void NetworkInterface::luaPeriodicityMap(lua_State* vm,
+					 const u_int8_t * const mac,
+					 IpAddress *ip_address,
+					 VLANid vlan_id, u_int16_t host_pool_id, bool unicast,
+					 u_int32_t first_seen, u_int16_t filter_ndpi_proto,
+					 u_int32_t maxHits) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pMap) {
-    pMap->lua(vm, true, this, mac, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen);
+    pMap->lua(vm, true, this, mac, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen, maxHits);
     return;
   }
 #endif
@@ -8748,10 +8777,10 @@ void NetworkInterface::luaServiceMap(lua_State* vm,
 				     const u_int8_t * const mac,
 				     IpAddress *ip_address,
 				     VLANid vlan_id, u_int16_t host_pool_id, bool unicast,
-             u_int32_t first_seen, u_int16_t filter_ndpi_proto) {
+				     u_int32_t first_seen, u_int16_t filter_ndpi_proto, u_int32_t maxHits) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(sMap) {
-    sMap->lua(vm, false, this, mac, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen);
+    sMap->lua(vm, false, this, mac, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen, maxHits);
     return;
   }
 #endif
@@ -8763,248 +8792,41 @@ void NetworkInterface::luaServiceMap(lua_State* vm,
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
 void NetworkInterface::updateFlowPeriodicity(Flow *f) {
-  if(pMap && f) pMap->updateElement(f, f->get_first_seen());
+  if(isViewed())
+    viewedBy()->updateFlowPeriodicity(f);
+  else if(pMap)
+    pMap->updateElement(f, f->get_first_seen());
 }
-#endif
 
 /* *************************************** */
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
 void NetworkInterface::updateServiceMap(Flow *f) {
-  if(sMap && f) sMap->update(f, f->get_first_seen());
+  if(isViewed())
+    viewedBy()->updateServiceMap(f);
+  else if(sMap)
+    sMap->update(f, f->get_first_seen());
 }
 #endif
 
 /* *************************************** */
 
 void NetworkInterface::updateSitesStats() {
-  // System Interface, no Network sites for sure
-  if(id == -1)
-    return;
+  if(ntop->getPrefs()->are_top_talkers_enabled()) {
+    /* String used to add extra info to the redis key */
+    std::string additional_key_info = "";
+    
+    if(top_sites)
+      top_sites->saveOldData(get_id(), (char *) additional_key_info.c_str(), (char *) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED);
 
-  if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
-    if(old_sites) {
-      //Top sites
-      this->saveOldSitesAndOs(1);
-      free(old_sites);
+    if(top_os) {
+      additional_key_info = ".topOs";
+      top_os->saveOldData(get_id(), (char *) additional_key_info.c_str(), (char *) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED);
     }
-    old_sites = top_sites->json();
-  }
-
-  if(top_os && ntop->getPrefs()->are_top_talkers_enabled()) {
-    if(old_os) {
-      //Top OS
-      this->saveOldSitesAndOs(2);
-      free(old_os);
-    }
-    old_os = top_os->json();
   }
 }
-
-/* *************************************** */
-
-void NetworkInterface::saveOldSitesAndOs(u_int8_t top) {
-  char redis_key[64];
-  int minute = 0;
-  /* Using the epoch */
-  struct tm t_now;
-
-  if(!ntop->getRedis())
-    return;
-
-  if(top == 1) {
-    if(!old_sites)
-      return;
-  } else {
-    if(!old_os)
-      return;
-  }
-
-  getCurrentTime(&t_now);
-  minute = t_now.tm_min - (t_now.tm_min % 5);
-
-  if(top == 1)
-    snprintf(redis_key, sizeof(redis_key), "%s_%d_%d_%d_%d", (char*) NTOPNG_CACHE_PREFIX,
-              get_id(), t_now.tm_mday, t_now.tm_hour, minute);
-  else
-    snprintf(redis_key, sizeof(redis_key), "%s.topOs_%d_%d_%d_%d", (char*) NTOPNG_CACHE_PREFIX,
-              get_id(), t_now.tm_mday, t_now.tm_hour, minute);
-
-  /* String like `ntopng.cache.1_17_11_45` */
-  /* An other way is to use the localtime_r and compose the string like `ntopng.cache_2_1609761600` */
-
-  if(top == 1)
-    ntop->getRedis()->set(redis_key , old_sites, 7200);
-  else
-    ntop->getRedis()->set(redis_key , old_os, 7200);
-
-  if(minute == 0 && current_cycle > 0) {
-    char hour_done[64];
-    int hour = 0;
-
-    if(t_now.tm_hour == 0)
-      hour = 23;
-    else
-      hour = t_now.tm_hour - 1;
-
-    /* List key = ntopng.cache.top_sites_hour_done | value = 1_17_11 */
-    /* List key = ntopng.cache.top_os_hour_done    | value = 1_17_11 */
-    snprintf(hour_done, sizeof(hour_done), "%d_%d_%d", id, t_now.tm_mday, hour);
-
-    if(top == 1)
-      ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, hour_done, 3600);
-    else
-      ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, hour_done, 3600);
-
-    current_cycle = 0;
-  } else
-    current_cycle++;
-}
-
-/* *************************************** */
-
-void NetworkInterface::getCurrentTime(struct tm *t_now) {
-  time_t now = time(NULL);
-
-  memset(t_now, 0, sizeof(*t_now));
-  localtime_r(&now, t_now);
-}
-
-/* *************************************** */
-
-void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do_top_sites) {
-  char *json;
-  u_int json_len;
-  json_object *j;
-  enum json_tokener_error jerr;
-
-  json_len = ntop->getRedis()->len(redis_key_current);
-  if(json_len == 0) json_len = CONST_MAX_LEN_REDIS_VALUE; else json_len += 8; /* Little overhead */
-
-  if((json = (char*)malloc(json_len)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    return;
-  }
-
-  if((ntop->getRedis()->get(redis_key_current, json, json_len) == -1)
-     || (json[0] == '\0')) {
-    free(json);
-    return; /* Nothing found */
-  }
-
-  j = json_tokener_parse_verbose(json, &jerr);
-
-  if(j != NULL) {
-
-#ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%u]", json, json_len);
-#endif
-
-    if(json_object_get_type(j) == json_type_object) {
-      struct lh_entry *entry = json_object_get_object(j)->head;
-
-      for(; entry != NULL; entry = entry->next) {
-	char *key               = (char*)entry->k;
-	struct json_object *val = (struct json_object*)entry->v;
-	enum json_type type = json_object_get_type(val);
-
-	if(type == json_type_int) {
-	  u_int32_t value = json_object_get_int64(val);
-
-#ifdef DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s = %u", key, value);
-#endif
-
-	  if(do_top_sites)
-	    top_sites->add(key, value);
-	  else
-	    top_os->add(key, value);
-	}
-      }
-    } else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid JSON content for key %s", redis_key_current);
-
-    json_object_put(j); /* Free memory */
-  } else
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);
-
-  free(json);
-}
-
-/* *************************************** */
-
-void NetworkInterface::serializeDeserialize(struct tm *t_now, bool do_serialize) {
-  char redis_hour_key[64], redis_daily_key[64], redis_key_current_sites[64], redis_key_current_os[64];
-
-  if(!ntop->getRedis())
-    return;
-
-  snprintf(redis_hour_key, sizeof(redis_hour_key), "%d_%d_%d", id, t_now->tm_mday, t_now->tm_hour);
-  snprintf(redis_daily_key, sizeof(redis_daily_key), "%d_%d", id, t_now->tm_mday);
-  snprintf(redis_key_current_sites, sizeof(redis_key_current_sites), "%s.serialized_current_top_sites.%d_%d", (char*) NTOPNG_CACHE_PREFIX,
-            id, t_now->tm_mday);
-  snprintf(redis_key_current_os, sizeof(redis_key_current_os), "%s.serialized_current_top_os.%d_%d", (char*) NTOPNG_CACHE_PREFIX,
-            id, t_now->tm_mday);
-
-  if(do_serialize) {
-    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
-    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key, 3600);
-    ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
-    ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED, redis_daily_key, 3600);
-    if(top_sites->getSize())
-      ntop->getRedis()->set(redis_key_current_sites , top_sites->json(2*HOST_SITES_TOP_NUMBER), 3600);
-    if(top_os->getSize())
-      ntop->getRedis()->set(redis_key_current_os , top_os->json(2*HOST_SITES_TOP_NUMBER), 3600);
-  }
-  else {
-    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key);
-    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key);
-    ntop->getRedis()->lrem((char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, redis_hour_key);
-    ntop->getRedis()->lrem((char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED, redis_daily_key);
-    deserializeTopOsAndSites(redis_key_current_sites, false);
-    deserializeTopOsAndSites(redis_key_current_os, true);
-    ntop->getRedis()->del(redis_key_current_sites);
-    ntop->getRedis()->del(redis_key_current_os);
-  }
-}
-
-/* *************************************** */
-
-void NetworkInterface::removeRedisSitesKey() {
-  struct tm t_now;
-
-  // System Interface, no Network sites for sure
-  if(id == -1)
-    return;
-
-  getCurrentTime(&t_now);
-  serializeDeserialize(&t_now, false);
-}
-
-/* *************************************** */
-
-void NetworkInterface::addRedisSitesKey() {
-  struct tm t_now;
-
-  // System Interface, no Network sites for sure
-  if(id == -1)
-    return;
-
-  getCurrentTime(&t_now);
-  serializeDeserialize(&t_now, true);
-}
-
-/* *************************************** */
 
 void NetworkInterface::incrVisitedWebSite(char *hostname) {
-  char *firstdot = NULL, *nextdot = NULL;
-
-  firstdot = strchr(hostname, '.');
-
-  if(firstdot)
-    nextdot = strchr(&firstdot[1], '.');
-
-  top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
+  top_sites->incrVisitedData(hostname, 1);
 }
 
 /* *************************************** */
@@ -9017,7 +8839,7 @@ void NetworkInterface::incrOS(char *hostname) {
   if(firstdot)
     nextdot = strchr(&firstdot[1], '.');
 
-  top_os->add(nextdot ? &firstdot[1] : hostname, 1);
+  top_os->incrVisitedData(nextdot ? &firstdot[1] : hostname, 1);
 }
 
 /* *************************************** */
@@ -9149,4 +8971,30 @@ void NetworkInterface::incObservationPointIdFlows(u_int16_t pointId, u_int32_t t
     }
   } else
     o->second->inc(tot_bytes);
+}
+
+/* *************************************** */
+
+void NetworkInterface::removeRedisSitesKey() {
+  // System Interface, no Network sites for sure
+  if(id == -1 || !top_sites || !top_os)
+    return;
+
+  top_sites->serializeDeserialize(id, false, (char *) "", (char *) HASHKEY_TOP_SITES_SERIALIZATION_KEY, 
+    (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED);
+  top_os->serializeDeserialize(id, false, (char *) "", (char *) HASHKEY_TOP_OS_SERIALIZATION_KEY, 
+    (char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, (char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED);
+}
+
+/* *************************************** */
+
+void NetworkInterface::addRedisSitesKey() {
+  // System Interface, no Network sites for sure
+  if(id == -1 || !top_sites || !top_os)
+    return;
+
+  top_sites->serializeDeserialize(id, true, (char *) "", (char *) HASHKEY_TOP_SITES_SERIALIZATION_KEY, 
+    (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED);
+  top_os->serializeDeserialize(id, true, (char *) "", (char *) HASHKEY_TOP_OS_SERIALIZATION_KEY, 
+    (char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, (char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED);
 }

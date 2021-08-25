@@ -5,6 +5,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+require "lua_utils"
 local tag_utils = {}
 
 -- Operator Separator in query strings
@@ -14,12 +15,14 @@ tag_utils.SEPARATOR = ';'
 
 -- Supported operators
 tag_utils.tag_operators = {
-    ["eq"] = "=",
+    ["eq"]  = "=",
     ["neq"] = "!=",
-    ["lt"] = "<",
-    ["gt"] = ">",
+    ["lt"]  = "<",
+    ["gt"]  = ">",
     ["gte"] = ">=",
     ["lte"] = "<=",
+    ["in"]  = i18n("has"),
+    ["nin"] = i18n("does_not_have"),
 }
 
 -- ##############################################
@@ -49,6 +52,12 @@ function tag_utils.eval_op(v1, op, v2)
       return v1 >= v2
    elseif op == 'lte' then
       return v1 <= v2
+   elseif op == 'in' then
+      v_and = v1 & v2
+      return v1 == v_and
+   elseif op == 'nin' then
+      v_and = v1 & v2
+      return v1 ~= v_and
    end 
 
    return default_verdict
@@ -58,8 +67,8 @@ end
 
 -- This table is done to convert tags to their where 
 tag_utils.nindex_tags_to_where_v4 = {
-   ["srv_ip"]   = "IPV4_DST_ADDR",
-   ["cli_ip"]   = "IPV4_SRC_ADDR",
+   ["srv_ip"]   = {[4] = "IPV4_DST_ADDR", [6] = "IPV6_DST_ADDR"},
+   ["cli_ip"]   = {[4] = "IPV4_SRC_ADDR", [6] = "IPV6_SRC_ADDR"},
    ["cli_port"] = "IP_SRC_PORT",
    ["srv_port"] = "IP_DST_PORT",
    ["vlan_id"]  = "VLAN_ID",
@@ -81,33 +90,11 @@ tag_utils.nindex_tags_to_where_v4 = {
    ["srv_asn"]      = "DST_ASN",
    ["observation_point_id"] = "OBSERVATION_POINT_ID",
    ["probe_ip"]     = "PROBE_IP",
+   ["src2dst_tcp_flags"] = "SRC2DST_TCP_FLAGS",
+   ["dst2src_tcp_flags"] = "DST2SRC_TCP_FLAGS",
+   ["l7proto_master"]  = "L7_PROTO_MASTER",
+   ["score"] = "SCORE",
 }
-
--- #####################################
-
-tag_utils.nindex_tags_to_where_v6 = {
-   ["srv_ip"]   = "IPV6_DST_ADDR",
-   ["cli_ip"]   = "IPV6_SRC_ADDR",
-   ["cli_port"] = "IP_SRC_PORT",
-   ["srv_port"] = "IP_DST_PORT",
-   ["vlan_id"]  = "VLAN_ID",
-   ["status"]   = "STATUS",
-   ["l7proto"]  = "L7_PROTO",
-   ["l4proto"]  = "PROTOCOL",
-   ["l7cat"]    = "L7_CATEGORY",
-   ["packets"]      = "PACKETS",
-   ["traffic"]      = "TOTAL_BYTES",
-   ["first_seen"]   = "FIRST_SEEN",
-   ["last_seen"]    = "LAST_SEEN",
-   ["src2dst_dscp"] = "SRC2DST_DSCP",
-   ["dst2src_dscp"] = "DST2SRC_DSCP",
-   ["info"]         = "INFO",
-   ["cli_asn"]      = "SRC_ASN",
-   ["srv_asn"]      = "DST_ASN",
-   ["observation_point_id"] = "OBSERVATION_POINT_ID",
-   ["probe_ip"]     = "PROBE_IP",
-}
-
 
 -- #####################################
 

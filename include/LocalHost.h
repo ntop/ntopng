@@ -102,6 +102,9 @@ class LocalHost : public Host, public SerializableElement {
   virtual u_int16_t getNumActiveContactsAsClient() { return stats->getNumActiveContactsAsClient(); };
   virtual u_int16_t getNumActiveContactsAsServer() { return stats->getNumActiveContactsAsServer(); };
   virtual void reloadPrefs();
+  virtual void addContactedDomainName(char* domain_name)    { stats->addContactedDomainName(domain_name);   }         
+  virtual u_int32_t getDomainNamesCardinality()             { return stats->getDomainNamesCardinality();    }      
+  virtual void resetDomainNamesCardinality()                { stats->resetDomainNamesCardinality();         }  
 
   virtual void deserialize(json_object *obj);
   virtual void serialize(json_object *obj, DetailsLevel details_level) { return Host::serialize(obj, details_level); };

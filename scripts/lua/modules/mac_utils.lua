@@ -47,8 +47,17 @@ function macAddIcon(mac, pre)
    return pre
 end
 
-function mac2link(mac)
+function mac2link(mac, cached_name, alt_name)
    local macaddress = mac["mac"]
+
+   if alt_name and not isEmptyString(alt_name) then
+      macaddress = alt_name
+   end
+
+   if cached_name then
+      macaddress = mac2label(macaddress)
+   end
+
    return "<A HREF='"..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(mac).."' title='"..macaddress.."'>"..macaddress..'</A>'
 end
 

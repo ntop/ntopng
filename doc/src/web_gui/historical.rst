@@ -14,20 +14,7 @@ Other than the actual timeseries data, the chart will also show:
 
   - A comparison series with the past. In the picture above, `30m ago` will show the
     interface traffic 30 minutes ago.
-
-  - A trend line, which indicates the trend of the total traffic in the specified period.
-    This is based on the https://github.com/stanford-futuredata/ASAP algorithm.
-
-  - A SMA line, for the `Simple Moving Average`_ of the traffic. This performs an average
-    on the traffic trend by smoothing it.
-
-  - An EMA line, for the `Exponential Moving Average`_ of the traffic. This reacts to
-    trends changes more quickly then the SMA.
-
-  - An RSI line, for the `Relative Strength Index`_ on the difference between now and the
-    past. Usually an RSI value above 70 indicates a major increase of the traffic as compared to the
-    previous period, whereas an RSI value below 30 indicates a major decrease.
-
+  
   - The average line, a straight line outlining the average value for the timeseries.
 
   - 95th percentile, a straight line outlining the 95th `percentile`_ value of the traffic.

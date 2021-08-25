@@ -22,6 +22,7 @@ local telemetry_utils = require "telemetry_utils"
 local tracker = require "tracker"
 local alerts_api = require "alerts_api"
 local icmp_utils = require "icmp_utils"
+local tag_utils = require "tag_utils"
 local checks = require "checks"
 
 local shaper_utils = nil
@@ -38,16 +39,11 @@ local alert_utils = {}
 -- ##############################################
 
 local function alertTypeDescription(alert_key, entity_id)
-
    local alert_id = alert_consts.getAlertType(alert_key, entity_id)
 
    if(alert_id) then
       if alert_consts.alert_types[alert_id].format then
-	 -- New API
 	 return alert_consts.alert_types[alert_id].format
-      else
-	 -- TODO: Possible removed once migration is done
-	 return(alert_consts.alert_types[alert_id].i18n_description)
       end
    end
 
@@ -434,25 +430,28 @@ end
 
 function alert_utils.getConfigsetAlertLink(alert_json, alert --[[ optional --]])
    local info = alert_json.alert_generation or (alert_json.alert_info and alert_json.alert_info.alert_generation)
-
+   
    if(info and isAdministrator()) then
 
       if alert then
-	 -- This piece of code (exception) has been moved here from formatAlertMessage
-	 if(alert_consts.getAlertType(alert.alert_id, alert.entity_id) == "alert_am_threshold_cross") then
-	    local plugins_utils = require "plugins_utils"
-	    local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
-	    local host = json.decode(alert.json)["host"]
+   	 -- This piece of code (exception) has been moved here from formatAlertMessage
+   	 if(alert_consts.getAlertType(alert.alert_id, alert.entity_id) == "alert_am_threshold_cross") then
+   	    local plugins_utils = require "plugins_utils"
+   	    local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+   	    local host = json.decode(alert.json)["host"]
 
-	    if host and host.measurement and not host.is_infrastructure then
-	       return ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/active_monitoring_stats.lua?am_host='
-		  .. host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
-	    end
-	 end
+   	    if host and host.measurement and not host.is_infrastructure then
+   	       return ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/active_monitoring_stats.lua?am_host='
+   		  .. host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
+   	    end
+   	 end
       end
 
       return(' <a href="'..alert_utils.getConfigsetURL(info.script_key, info.subdir)..'">'..
 		'<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>')
+   elseif isAdministrator() then
+      return (' <a href="' .. ntop.getHttpPrefix() .. '/lua/admin/edit_configset.lua?subdir=interface#all">'..
+      '<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>')
    end
 
    return('')
@@ -474,7 +473,7 @@ end
 
 -- #################################
 
-function alert_utils.formatAlertMessage(ifid, alert, alert_json, skip_live_data)
+function alert_utils.formatAlertMessage(ifid, alert, alert_json)
   local msg
 
   if(alert_json == nil) then
@@ -508,7 +507,7 @@ end
 
 -- #################################
 
-function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, skip_live_data)
+function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json)
   local msg
 
   if(alert_json == nil) then
@@ -534,6 +533,108 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, skip_live_d
   end
 
   return msg or ""
+end
+
+-- #################################
+
+function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
+   if not ntop.isEnterpriseM() or not hasNindexSupport() or not interface.nIndexEnabled(ifid) then
+      -- nIndex not enabled or enabled but not available for this particular interface
+      return
+   end
+
+   -- Fetch the alert id
+   local alert_id = alert_consts.getAlertType(alert.alert_id, alert.entity_id)
+   if alert_id then
+      -- If there's a function that generates the filter available for this particular alert,
+      -- then the function is called to fetch the filter for the historical flows
+      if alert_consts.alert_types[alert_id].filter_to_past_flows then
+	 if not alert_json then
+	    alert_json = alert_utils.getAlertInfo(alert)
+	 end
+
+	 -- Fetch the filter
+	 local past_flows_filter = alert_consts.alert_types[alert_id].filter_to_past_flows(ifid, alert, alert_json)
+	 local epoch_begin, epoch_end
+
+	 -- Add a default start time, if no start time has been added by the filter-generation function
+	 if not past_flows_filter["epoch_begin"] then
+	    past_flows_filter["epoch_begin"] = tonumber(alert["tstamp"])
+	 end
+	 epoch_begin = tonumber(past_flows_filter["epoch_begin"])
+	 past_flows_filter["epoch_begin"] = nil
+
+	 -- Add a default end time, if not end time has been added by the filter-generation function
+	 if not past_flows_filter["epoch_end"] then
+	    local duration = tonumber(alert["duration"]) or (tonumber(alert["tstamp_end"]) - tonumber(alert["tstamp"]))
+
+	    past_flows_filter["epoch_end"] = epoch_begin + duration
+	 end
+	 epoch_end = tonumber(past_flows_filter["epoch_end"])
+	 past_flows_filter["epoch_end"] = nil
+
+	 local tags = {}
+	 for name, val in pairs(past_flows_filter) do
+	    local filter_op, filter_val
+
+	    if name == "epoch_end" or name == "epoch_begin" then
+	       -- They are not tags, they will be inserted as-is
+	       goto continue
+	    elseif val == true then
+	       -- Assumes > 0
+	       tags[#tags + 1] = {name = name, op = "gt", val = "0"}
+	    elseif string.contains(name, "ip") then
+	       -- Unpack the hostkey into two separate fields, one for the VLAN (if present and positive) and one for the IP
+	       local host_info = hostkey2hostinfo(val)
+
+	       tags[#tags + 1] = {name = name, op = "eq", val = host_info["host"]}
+	       if host_info["vlan"] > 0 then
+		  tags[#tags + 1] = {name = "vlan_id", op = "eq", val = tostring(host_info["vlan"])}
+	       end
+	    elseif string.contains(name, "tcp_flags") then
+	       -- Assumes IN query
+	       if val >= 0 then
+		  -- Assumes IN
+		  tags[#tags + 1] = {name = name, op = "in", val = tostring(val)}
+	       else
+		  -- A negative value assumes NOT IN
+		  tags[#tags + 1] = {name = name, op = "nin", val = tostring(-val)}
+	       end
+	    else
+	       -- Fallback, assume equality
+	       tags[#tags + 1] = {name = name, op = "eq", val = tostring(val)}
+	    end
+
+	    ::continue::
+	 end
+
+	 -- Look a bit around the epochs...
+	 epoch_begin = epoch_begin - 150
+	 epoch_end = epoch_end + 150
+
+	 -- ... but not too much
+	 if epoch_end - epoch_begin > 600 then
+	    epoch_end = epoch_begin + 600
+	 end
+
+	 -- Join the TAG filters using the predefined operator
+	 local final_filter = {}
+	 for _, tag in pairs(tags) do
+	    final_filter[tag.name] = string.format("%s%s%s", tag.val, tag_utils.SEPARATOR, tag.op)
+	 end
+
+	 -- tprint({formatEpoch(epoch_begin), formatEpoch(epoch_end), formatEpoch(tonumber(alert.tstamp)), formatEpoch(tonumber(alert.tstamp_end))})
+
+	 -- Return the link augmented with the filter
+	 local res = string.format("%s/lua/pro/nindex_query.lua?epoch_begin=%u&epoch_end=%u&%s",
+				   ntop.getHttpPrefix(),
+				   epoch_begin,
+				   epoch_end,
+				   table.tconcat(final_filter, "=", "&"))
+
+	 return res
+      end
+   end
 end
 
 -- #################################

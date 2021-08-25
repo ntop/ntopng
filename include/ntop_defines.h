@@ -32,6 +32,10 @@
 #define	ETHERTYPE_IP		0x0800	/* IP protocol */
 #endif
 
+#ifndef ETHERTYPE_VLAN
+#define ETHERTYPE_VLAN      0x8100
+#endif
+
 #ifndef ETHERTYPE_IPV6
 #define	ETHERTYPE_IPV6		0x86DD	/* IPv6 protocol */
 #endif
@@ -138,6 +142,7 @@
 #define CONST_NTOP_INTERFACE      "ntop_interface"
 
 #define PCAP_MAGIC                0xa1b2c3d4
+#define PCAP_NSEC_MAGIC           0xa1b23c4d
 #define NO_UID                    ((u_int32_t)-1)
 #define NO_PID                    ((u_int32_t)-1)
 #define NO_NDPI_PROTOCOL          ((u_int)-1)
@@ -495,6 +500,8 @@
 #define CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT       5
 #define CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED 0
 #define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
+#define HASHKEY_TOP_SITES_SERIALIZATION_KEY               ".serialized_current_top_sites."
+#define HASHKEY_TOP_OS_SERIALIZATION_KEY                  ".serialized_current_top_os."
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS                "ntopng.cache.top_sites"
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED    "ntopng.cache.top_sites_hour_done"
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED     "ntopng.cache.top_sites_day_done"
@@ -622,6 +629,7 @@
 #define CONST_PREFS_EMIT_FLOW_ALERTS        NTOPNG_PREFS_PREFIX".emit_flow_alerts"
 #define CONST_PREFS_EMIT_HOST_ALERTS        NTOPNG_PREFS_PREFIX".emit_host_alerts"
 
+#define CONST_PREFS_BROADCAST_DOMAIN_TOO_LARGE         NTOPNG_PREFS_PREFIX".is_broadcast_domain_too_large_enabled"
 
 #define CONST_PREFS_ASN_BEHAVIOR_ANALYSIS              NTOPNG_PREFS_PREFIX".is_asn_behavior_analysis_enabled"
 #define CONST_PREFS_NETWORK_BEHAVIOR_ANALYSIS          NTOPNG_PREFS_PREFIX".is_network_behavior_analysis_enabled"
@@ -651,7 +659,7 @@
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED NTOPNG_PREFS_PREFIX".is_active_local_host_cache_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL NTOPNG_PREFS_PREFIX".active_local_host_cache_interval"
 #define CONST_RUNTIME_PREFS_LOG_TO_FILE                NTOPNG_PREFS_PREFIX".log_to_file"
-#define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY     NTOPNG_PREFS_PREFIX".housekeeping_frequency"
+#define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQ          NTOPNG_PREFS_PREFIX".housekeeping_freq"
 #define CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION     NTOPNG_PREFS_PREFIX".flow_device_port_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_THPT_CONTENT               NTOPNG_PREFS_PREFIX".thpt_content"     /* bps / pps */
 #define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        NTOPNG_PREFS_PREFIX".alerts_global.min.local_hosts"
