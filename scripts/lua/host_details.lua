@@ -1237,8 +1237,15 @@ print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostin
          }
 	 </script>
 	]]
-
-     print("<tr><th>"..i18n("protocol").."</th><th>"..i18n("sent").."</th><th>"..i18n("received").."</th><th>"..i18n("breakdown").."</th><th colspan=2>"..i18n("total").."</th></tr>\n")
+	print[[
+	 	<tr>
+		   <th>]] print(i18n("protocol")) print[[</th>
+		   <th class="text-end">]] print(i18n("sent")) print[[</th>
+		   <th class="text-end">]] print(i18n("received")) print[[</th>
+		   <th class="text-center">]] print(i18n("breakdown")) print[[</th>
+		   <th colspan=2 class="text-center">]] print(i18n("total")) print[[</th>
+	 	</tr>
+	]]
 
      for id, _ in ipairs(l4_keys) do
 	label = l4_keys[id][1]
@@ -1359,11 +1366,11 @@ elseif((page == "ndpi")) then
        <thead>
 	 <tr>
 	   <th>]] print(i18n("application")) print[[</th>
-	   <th>]] print(i18n("duration")) print[[</th>
-	   <th>]] print(i18n("sent")) print[[</th>
-	   <th>]] print(i18n("received")) print[[</th>
-	   <th>]] print(i18n("breakdown")) print[[</th>
-	   <th colspan=2>]] print(i18n("total")) print[[</th>
+	   <th class="text-end">]] print(i18n("duration")) print[[</th>
+	   <th class="text-end">]] print(i18n("sent")) print[[</th>
+	   <th class="text-end">]] print(i18n("received")) print[[</th>
+	   <th class="text-center">]] print(i18n("breakdown")) print[[</th>
+	   <th colspan=2 class="text-center">]] print(i18n("total")) print[[</th>
 	 </tr>
        </thead>
        <tbody id="host_details_ndpi_applications_tbody"></tbody>
@@ -1384,8 +1391,8 @@ elseif((page == "ndpi")) then
 	 <tr>
 	   <th>]] print(i18n("category")) print[[</th>
 	   <th>]] print(i18n("applications")) print[[</th>
-	   <th>]] print(i18n("duration")) print[[</th>
-	   <th colspan=2>]] print(i18n("total")) print[[</th>
+	   <th class="text-end">]] print(i18n("duration")) print[[</th>
+	   <th colspan=2 class="text-center">]] print(i18n("total")) print[[</th>
 	 </tr>
        </thead>
        <tbody id="host_details_ndpi_categories_tbody"></tbody>
@@ -1494,7 +1501,7 @@ elseif(page == "dns") then
       end
       
       if(host["dns"] ~= nil) then
-	 print("<tr><th>"..i18n("dns_page.dns_breakdown").."</th><th>"..i18n("dns_page.queries").."</th><th>"..i18n("dns_page.positive_replies").."</th><th>"..i18n("dns_page.error_replies").."</th><th colspan=2>"..i18n("dns_page.reply_breakdown").."</th></tr>")
+	 print("<tr><th>"..i18n("dns_page.dns_breakdown").."</th><th class='text-end'>"..i18n("dns_page.queries").."</th><th class='text-end'>"..i18n("dns_page.positive_replies").."</th><th class='text-end'>"..i18n("dns_page.error_replies").."</th><th colspan=2 class='text-center'>"..i18n("dns_page.reply_breakdown").."</th></tr>")
 	 print("<tr><th>"..i18n("sent").."</th><td class=\"text-end\"><span id=dns_sent_num_queries>".. formatValue(host["dns"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
 	 
 	 print("<td class=\"text-end\"><span id=dns_sent_num_replies_ok>".. formatValue(host["dns"]["sent"]["num_replies_ok"]) .."</span> <span id=trend_sent_num_replies_ok></span></td>")
@@ -1596,11 +1603,11 @@ elseif(page == "http") then
       print("<table class=\"table table-bordered table-striped\">\n")
 
       if http["sender"]["query"]["total"] > 0 then
-	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods'>"..i18n("http_page.http_queries").."</A></th><th width=20%>"..i18n("http_page.method").."</th><th width=20%>"..i18n("http_page.requests").."</th><th colspan=2>"..i18n("http_page.distribution").."</th></tr>")
+	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods'>"..i18n("http_page.http_queries").."</A></th><th width=20%>"..i18n("http_page.method").."</th><th width=20% class='text-end'>"..i18n("http_page.requests").."</th><th colspan=2 class='text-center'>"..i18n("http_page.distribution").."</th></tr>")
 	 print("<tr><th>GET</th><td style=\"text-align: right;\"><span id=http_query_num_get>".. formatValue(http["sender"]["query"]["num_get"]) .."</span> <span id=trend_http_query_num_get></span></td><td colspan=2 rowspan=5>")
 
 	 print [[
-	 <div class="pie-chart" id="httpQueries"></div>
+	 <div class="text-center pie-chart" id="httpQueries"></div>
 	 <script type='text/javascript'>
 
 	     do_pie("#httpQueries", ']]
@@ -1617,7 +1624,7 @@ elseif(page == "http") then
       end
 
       if http["receiver"]["response"]["total"] > 0 then
-	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/List_of_HTTP_status_codes'>"..i18n("http_page.http_responses").."</A></th><th width=20%>"..i18n("http_page.response_code").."</th><th width=20%>"..i18n("http_page.responses").."</th><th colspan=2>"..i18n("http_page.distribution").."</th></tr>")
+	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/List_of_HTTP_status_codes'>"..i18n("http_page.http_responses").."</A></th><th width=20%>"..i18n("http_page.response_code").."</th><th width=20% class='text-end'>"..i18n("http_page.responses").."</th><th colspan=2 class='text-center'>"..i18n("http_page.distribution").."</th></tr>")
 	 print("<tr><th>"..i18n("http_page.response_code_1xx").."</th><td style=\"text-align: right;\"><span id=http_response_num_1xx>".. formatValue(http["receiver"]["response"]["num_1xx"]) .."</span> <span id=trend_http_response_num_1xx></span></td><td colspan=2 rowspan=5>")
 	 print [[
 	 <div class="pie-chart" id="httpResponses"></div>
