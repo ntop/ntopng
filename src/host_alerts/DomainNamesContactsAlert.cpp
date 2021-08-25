@@ -23,8 +23,11 @@
 
 /* ***************************************************** */
 
-DomainNamesContactsAlert::DomainNamesContactsAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int32_t _num_domain_names, u_int16_t _domain_names_threshold) : ServerContactsAlert (c, f, cli_pctg,_num_domain_names,_domain_names_threshold) {
-
+DomainNamesContactsAlert::DomainNamesContactsAlert(HostCheck *c, 
+                                                    Host *f, 
+                                                    risk_percentage cli_pctg, 
+                                                    u_int32_t _num_domain_names, 
+                                                    u_int16_t _domain_names_threshold) : ServerContactsAlert (c, f, cli_pctg,_num_domain_names,_domain_names_threshold) {
   num_domain_names = _num_domain_names;
   domain_names_threshold=_domain_names_threshold;
 };

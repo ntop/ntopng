@@ -639,7 +639,7 @@ local lang = {
     ["too_many_hosts_title"] = "Double Max Hosts",
     ["unknown_contacted_peers"] = "Too many Peers contacted by %{host} %{host_category}.",
     ["x_alerts"] = "%{num} alerts",
-    ["host_alert_domain_names_contacts"]= "Too many Domain Names contacted",
+    ["host_alert_domain_names_contacts"]= "Too many Domain Names contacted [Threshold: %{threshold}][Contacted: %{contacts}]",
   },
   ["alerts_dashboard"] = {
     ["abort_add_filter"] = "Abort add filter?",

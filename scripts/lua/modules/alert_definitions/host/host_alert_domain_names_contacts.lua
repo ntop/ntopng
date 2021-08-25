@@ -47,13 +47,10 @@ end
 function host_alert_domain_names_contacts.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
-  local value = alert_type_params.value
-
-  if(value == nil) then value = 0 end
+  local value = alert_type_params.num_domain_names or 0
 
   return i18n("alert_messages.host_alert_domain_names_contacts", {
-    entity = entity,
-    value = string.format("%u", math.ceil(value or 0)),
+    contacts = math.ceil(value),
     threshold = alert_type_params.threshold or 0,
   })
 end

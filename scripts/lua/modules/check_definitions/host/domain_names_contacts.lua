@@ -25,11 +25,11 @@ local domain_names_contacts = {
       i18n_title = "alerts_thresholds_config.domain_names_contacts_title",
       i18n_description = "alerts_thresholds_config.domain_names_contacts_description",
 
-      -- Specific parameters of this input builder
-      i18n_field_unit = checks.field_units.contacts,
-
       -- The input builder to use to draw the gui
       input_builder = "threshold_cross",
+      
+      -- Specific parameters of this input builder
+      i18n_field_unit = checks.field_units.contacts,
 
       -- max allowed threshold value
       field_max = 65535,
