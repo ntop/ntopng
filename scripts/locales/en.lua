@@ -553,6 +553,7 @@ local lang = {
     ["user"] = "User",
   },
   ["alert_messages"] = {
+    ["host_alert_countries_contacts"] = "Too many countries contacted by %{entity} [%{value} &gt; %{threshold} countries]",
     ["a_new_device_has_connected"] = "New device <a href=\"%{url}\">%{device}</a> has connected to the network.",
     ["anomalous_tcp_flags"] = "%{entity} has %{sent_or_rcvd} too many TCP RST flags vs SYN [Ratio: %{ratio}%%]",
     ["attack_mitigation_via_snmp_failure"] = "Failure to set interface <a href=\"%{port_url}\">%{port}</a> admin status on SNMP device <a href=\"%{url}\">%{device}</a> to %{admin_down}: %{granularity} <b>%{metric}</b> crossed by %{entity} [%{value} %{op} %{threshold}]. Make sure the SNMP device has a (valid) write community configured.",
@@ -642,6 +643,7 @@ local lang = {
     ["host_alert_domain_names_contacts"]= "Too many Domain Names contacted [Threshold: %{threshold}][Contacted: %{contacts}]",
   },
   ["alerts_dashboard"] = {
+    ["host_alert_countries_contacts"] = "Countries Contacts Alert",
     ["abort_add_filter"] = "Abort add filter?",
     ["active_flows_anomaly"] = "Active Flows Anomaly",
     ["add_filter"] = "Add Filter",
@@ -895,6 +897,8 @@ local lang = {
     },
   },
   ["alerts_thresholds_config"] = {
+    ["countries_contacts_title"] = "Countries Contacts Alert",
+    ["countries_contacts_description"] = "Trigger an alert when the number of different countries contacted exceeds the threshold",
     ["active_local_hosts"] = "Local Hosts Alert",
     ["active_local_hosts_threshold_descr"] = "Trigger an alert when the number of Active Local Hosts exceeds the threshold",
     ["activity_time"] = "Activity Time Alert",

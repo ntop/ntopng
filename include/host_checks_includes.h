@@ -25,6 +25,8 @@
 #include "host_alerts_includes.h"
 #include "host_checks_includes.h"
 
+#include "host_checks/CountriesContacts.h"
+
 #include "host_checks/FlowHits.h"
 #include "host_checks/FlowFlood.h"
 #include "host_checks/SYNScan.h"

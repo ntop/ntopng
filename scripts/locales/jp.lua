@@ -430,6 +430,7 @@ local lang = {
     ["timeseries"] = "バッファリングされた時系列データポイントをチェックし、それらをInfluxDBにエクスポートします。",
   },
   ["alert_messages"] = {
+    ["host_alert_countries_contacts"] = "％{entity} [％{value}＆gt;から連絡を受けた国が多すぎます ％{threshold}国]",
     ["a_new_device_has_connected"] = "新規デバイス <a href=\"%{url}\">%{device}</a> がネットワークに接続しました",
     ["anomalous_tcp_flags"] = "\"%{entity} は %{sent_or_rcvd} 多くのTCP RST flags vs SYN [Ratio: %{ratio}%%]",
     ["attack_mitigation_via_snmp_failure"] = "インターフェイスの設定に失敗. <a href=\"%{port_url}\">%{port}</a> SNMPデバイスの管理ステータス <a href=\"%{url}\">%{device}</a> へ %{admin_down}: %{granularity} <b>%{metric}</b> に近い %{entity} [%{value} %{op} %{threshold}]. SNMPデバイスが有効な書き込み権限があるか確認してください.",
@@ -489,6 +490,7 @@ local lang = {
     ["x_alerts"] = "%{num}アラート",
   },
   ["alerts_dashboard"] = {
+    ["host_alert_countries_contacts"] = "国の連絡先アラート",
     ["active_flows_anomaly"] = "アクティブフローの異常",
     ["alert"] = "アラート",
     ["alert_counts"] = "カウント",
@@ -648,6 +650,8 @@ local lang = {
     ["x_retx"] = "%{retx} 再送",
   },
   ["alerts_thresholds_config"] = {
+    ["countries_contacts_title"] = "国の連絡先アラート",
+    ["countries_contacts_description"] = "連絡したさまざまな国の数がしきい値を超えたときにアラートをトリガーします",
     ["active_local_hosts"] = "ローカルホストアラート",
     ["active_local_hosts_threshold_descr"] = "アクティブなローカルホストの数がしきい値を超えたときにアラートをトリガーする",
     ["activity_time"] = "活動時間差分アラート",

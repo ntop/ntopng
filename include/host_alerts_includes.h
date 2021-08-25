@@ -22,6 +22,8 @@
 #ifndef _HOST_ALERTS_INCLUDES_H_
 #define _HOST_ALERTS_INCLUDES_H_
 
+#include "host_alerts/CountriesContactsAlert.h"
+
 #include "host_alerts/FlowHitsAlert.h"
 #include "host_alerts/FlowFloodAlert.h"
 #include "host_alerts/SYNScanAlert.h"

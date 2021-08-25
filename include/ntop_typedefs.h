@@ -491,6 +491,7 @@ typedef enum {
   host_alert_host_log                    = 13,
   host_alert_dangerous_host              = 14,
   host_alert_ntp_traffic                 = 15,
+  host_alert_countries_contacts          = 16,
 
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */ 
   MAX_HOST_ALERT_TYPE = 16 /* Constrained by Bitmap16 engaged_alerts_map inside HostAlertableEntity */
@@ -512,6 +513,7 @@ typedef enum {
   host_check_flow_flood,
   host_check_ntp_server_contacts,
   host_check_smtp_server_contacts,
+  host_check_countries_contacts,
   host_check_dns_server_contacts,
   host_check_score_host,
   host_check_p2p_traffic,

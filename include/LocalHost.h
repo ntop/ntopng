@@ -81,7 +81,7 @@ class LocalHost : public Host, public SerializableElement {
     return(iface->getNetworkStats(networkId));
   };
   virtual u_int32_t getActiveHTTPHosts() { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };
-  virtual HostStats* allocateStats()     { return(new LocalHostStats(this));               };
+  virtual HostStats* allocateStats()     { return(new LocalHostStats(this)); };
 
   virtual bool dropAllTraffic() const { return(drop_all_host_traffic); };
   virtual void inlineSetOSDetail(const char *_os_detail);
@@ -116,6 +116,10 @@ class LocalHost : public Host, public SerializableElement {
 
   virtual void luaHostBehaviour(lua_State* vm)    { if(stats) stats->luaHostBehaviour(vm); }
   virtual void incDohDoTUses(Host *srv_host);
+
+  virtual void incCountriesContacts(char *country)    { stats->incCountriesContacts(country);             }
+  virtual void resetCountriesContacts()               { stats->resetCountriesContacts();                  }
+  virtual u_int8_t getCountriesContactsCardinality()  { return(stats->getCountriesContactsCardinality()); }
 
   virtual void incNTPContactCardinality(Host *h)  { stats->incNTPContactCardinality(h);  }
   virtual void incDNSContactCardinality(Host *h)  { stats->incDNSContactCardinality(h);  }

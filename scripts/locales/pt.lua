@@ -212,6 +212,7 @@ local lang = {
     ["host_activity"] = "Atividade do Host",
   },
   ["alert_messages"] = {
+    ["host_alert_countries_contacts"] = "Muitos países contatados por% {entity} [% {value} & gt; % {threshold} países]",
     ["a_new_device_has_connected"] = "O novo dispositivo <a href=\"%{url}\">%{device} </a> se conectou à rede.",
     ["device_has_connected"] = "O dispositivo <a href=\"%{url}\">%{device}</a> se conectou à rede.",
     ["device_has_disconnected"] = "O dispositivo <a href=\"%{url}\">%{device}</a> foi desconectado da rede.",
@@ -235,6 +236,7 @@ local lang = {
     ["x_alerts"] = "%{num} alertas",
   },
   ["alerts_dashboard"] = {
+    ["host_alert_countries_contacts"] = "Alerta de contatos de países",
     ["active_flows_anomaly"] = "Anomalia de Fluxos Ativos",
     ["alert_counts"] = "Contagens",
     ["alert_duration"] = "Duração",
@@ -306,6 +308,8 @@ local lang = {
     ["web_mining"] = "Mineração na Web",
   },
   ["alerts_thresholds_config"] = {
+    ["countries_contacts_title"] = "Alerta de contatos de países",
+    ["countries_contacts_description"] = "Acionar um alerta quando o número de países diferentes contatados exceder o limite",
     ["active_local_hosts"] = "Hosts locais",
     ["active_local_hosts_threshold_descr"] = "Número de hosts locais ativos",
     ["activity_time"] = "Tempo de atividade",
