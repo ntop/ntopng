@@ -1099,18 +1099,47 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
       if(stats) {
         if(stats.average) {
-          var values = makeFlatLineValues(data.start, data.step, data.count, stats.average);
 
-          res.push({
-            key: graph_i18n.avg,
-            yAxis: 1,
-            values: values,
-            type: "line",
-            classed: "line-dashed line-animated",
-            color: "#AC9DDF",
-            legend_key: "avg",
-            disabled: isLegendDisabled("avg", true),
-          });
+
+          if(!visualization.split_directions) {
+
+            var values = makeFlatLineValues(data.start, data.step, data.count, stats.average);
+
+
+            res.push({
+              key: graph_i18n.avg,
+              yAxis: 1,
+              values: values,
+              type: "line",
+              classed: "line-dashed line-animated",
+              color: "#AC9DDF",
+              legend_key: "avg",
+              disabled: isLegendDisabled("avg", true),
+            });
+          }else{
+            let avg_sent = makeFlatLineValues(data.start, data.step, data.count, stats.by_serie[0]["average"]);
+            let avg_rcvd = makeFlatLineValues(data.start, data.step, data.count, stats.by_serie[1]["average"]);
+            res.push({
+              key: graph_i18n.avg_sent,
+              yAxis: 1,
+              values: avg_sent,
+              type: "line",
+              classed: "line-dashed line-animated",
+              color: "#AC9DDF",
+              legend_key: "avg_sent",
+              disabled: isLegendDisabled("avg_sent", true),
+            });
+            res.push({
+              key: graph_i18n.avg_rcvd,
+              yAxis: 1,
+              values: avg_rcvd,
+              type: "line",
+              classed: "line-dashed line-animated",
+              color: "#AC9DDF",
+              legend_key: "avg_rcvd",
+              disabled: isLegendDisabled("avg_rcvd", true),
+            });
+          }
         }
 
         /* 
@@ -1195,6 +1224,31 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
               disabled: isLegendDisabled("95perc", true),
             });
           }
+          else{
+            let percSent = makeFlatLineValues(data.start, data.step, data.count, stats.by_serie[0]["95th_percentile"]);
+            let percRcvd = makeFlatLineValues(data.start, data.step, data.count, stats.by_serie[1]["95th_percentile"]);
+            res.push({
+              key: graph_i18n["95_perc_sent"],
+              yAxis: 1,
+              values: percSent,
+              type: "line",
+              classed: "line-dashed line-animated",
+              color: "#476DFF",
+              legend_key: "95percSent",
+              disabled: isLegendDisabled("95percSent", true),
+            });
+            res.push({
+              key: graph_i18n["95_perc_rcvd"],
+              yAxis: 1,
+              values: percRcvd,
+              type: "line",
+              classed: "line-dashed line-animated",
+              color: "#476DFF",
+              legend_key: "95percRcvd",
+              disabled: isLegendDisabled("95percRcvd", true),
+            });
+
+          }
         }
 
 
@@ -1209,27 +1263,8 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
           splitSeriesInfo("max_val", max_cell, true, stats_formatter);
         if(stats["95th_percentile"] || perc_cell.is(':visible')) {
           splitSeriesInfo("95th_percentile", perc_cell, false, stats_formatter);
-
-
-
-
-
-          if(!visualization.split_directions) {
-            /* When directions are split, hide the total stat */
-            var values = makeFlatLineValues(data.start, data.step, data.count, stats["95th_percentile"]);
-
-            res.push({
-              key: graph_i18n["95_perc"],
-              yAxis: 1,
-              values: values,
-              type: "line",
-              classed: "line-dashed line-animated",
-              color: "#476DFF",
-              legend_key: "95perc",
-              disabled: isLegendDisabled("95perc", true),
-            });
-          }
         }
+
 
         // check if there are visible elements
         //if(stats_table.find("td").filter(function(){ return $(this).css("display") != "none"; }).length > 0)
