@@ -1236,7 +1236,7 @@ print[[
        <thead>
          <tr>
            <th>]] print(i18n("application")) print[[</th>
-           <th>]] print(i18n("ndpi_page.total_since_startup")) print[[</th>
+           <th class='text-end'>]] print(i18n("ndpi_page.total_since_startup")) print[[</th>
            <th>]] print(i18n("percentage")) print[[</th>
          </tr>
        </thead>
@@ -1255,7 +1255,7 @@ print[[
          <tr>
            <th>]] print(i18n("category")) print[[</th>
            <th>]] print(i18n("applications")) print[[</th>
-           <th>]] print(i18n("ndpi_page.total_since_startup")) print[[</th>
+           <th class='text-end'>]] print(i18n("ndpi_page.total_since_startup")) print[[</th>
            <th>]] print(i18n("percentage")) print[[</th>
          </tr>
        </thead>
