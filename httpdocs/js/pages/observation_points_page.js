@@ -10,7 +10,7 @@ $(function () {
 			}
 		}
     ]);
-    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/pro/rest/v2/get/observation_points/stats.lua`, 'rsp');
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/pro/rest/v2/get/interface/observation_points/stats.lua`, 'rsp');
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
 	columns: [
 	    {
