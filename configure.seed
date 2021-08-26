@@ -68,6 +68,8 @@ BIN_PATH=/usr/bin
 LIBPCAP=-lpcap
 
 if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
+   CFLAGS="${CFLAGS} -I/usr/local/include"
+   LDFLAGS="${LDFLAGS} -L/usr/local/lib"
    dnl> https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
    CC=clang
    CXX=clang++
@@ -120,6 +122,7 @@ if test "x$ac_cv_lib_zmq_zmq_socket_monitor" = xyes; then :
   AC_DEFINE_UNQUOTED(HAVE_ZMQ, 1, [ZMQ is present])
 else
   echo "ZMQ not present or too old (< v. 3.x)"
+  exit
 fi
 
 AC_CHECK_LIB([sodium], [sodium_init], LDFLAGS="$LDFLAGS -lsodium")
