@@ -42,17 +42,23 @@ end
 -- #######################################################
 
 function alert_ndpi_suspicious_dga_domain.format(ifid, alert, alert_type_params)
-   local domain = ''
+   local domain = alert_type_params.dga_domain
    local href = ''
+   local info = ''
 
-   if not isEmptyString(alert_type_params.dga_domain) then
-      domain = string.format("[%s]", alert_type_params.dga_domain)
+   if string.len(domain) > 64 then
+      domain = shortenString(alert_type_params.dga_domain, 64)
+      info = '<i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="'..alert_type_params.dga_domain..'"></i>'
+   end
+
+   if not isEmptyString(domain) then
       href = '<a class="ntopng-external-link fa-sm" href= http://' .. alert_type_params.dga_domain .. ' ><i  class="fas fa-external-link-alt fa-lg"></i></a>'
    end
 
    return i18n("alert_messages.suspicious_dga_domain", {
-		  domain = domain,
-        href = href,
+	   domain = domain,
+      href = href,
+      info = info,
    })
 end
 
