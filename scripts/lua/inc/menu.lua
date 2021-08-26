@@ -983,7 +983,9 @@ for v,k in pairs(iface_names) do
       	 if descr == shortenCollapse(_ifstats.description) then
       	    descr = _ifstats.description
       	 else
-      	    descr = descr .. " (".. _ifstats.description ..")" -- Add description
+            if prefs.is_interface_name_only == false then
+      	      descr = descr .. " (".. _ifstats.description ..")" -- Add description
+            end
       	 end
       end
    end
@@ -1015,8 +1017,6 @@ if ntop.isEnterpriseM() then
       end
    end
 end
-
-
 
 local context = {
    ifnames = ifnames,

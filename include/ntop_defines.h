@@ -655,6 +655,7 @@
 #define CONST_RUNTIME_MAX_UI_STRLEN                    NTOPNG_PREFS_PREFIX".max_ui_strlen"
 #define CONST_RUNTIME_PREFS_TS_DRIVER                  NTOPNG_PREFS_PREFIX".timeseries_driver"
 #define CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED            NTOPNG_PREFS_PREFIX".is_autologon_enabled"
+#define CONST_RUNTIME_IS_INTERFACE_NAME_ONLY           NTOPNG_PREFS_PREFIX".is_interface_name_only"
 #define CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED   NTOPNG_PREFS_PREFIX".is_local_host_cache_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED NTOPNG_PREFS_PREFIX".is_active_local_host_cache_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL NTOPNG_PREFS_PREFIX".active_local_host_cache_interval"

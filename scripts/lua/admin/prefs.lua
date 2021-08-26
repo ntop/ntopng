@@ -459,6 +459,14 @@ function printGUI()
 
   -- #####################
 
+  if prefs.is_autologout_enabled == true then
+    prefsToggleButton(subpage_active, {
+      field = "toggle_interface_name_only",
+      default = "0",
+      pref = "is_interface_name_only",
+    })
+  end
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />

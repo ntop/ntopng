@@ -4461,6 +4461,8 @@ local lang = {
     ["toggle_ids_alert_title"] = "IDS Alerts",
     ["toggle_informative_captive_portal_description"] = "Do not authenticate users. Show only an informative page before letting users access the Internet.",
     ["toggle_informative_captive_portal_title"] = "Informative",
+    ["toggle_interface_name_only_title"] = "Interface Name Only",
+    ["toggle_interface_name_only_description"] = "If enabled, show the interface name only into the dropdown menu.",
     ["toggle_internals_rrds_description"] = "Toggle the creation of <a href=\"%{url}\">internals</a> timeseries, e.g., hash tables entries, periodic activities duration and number of timeseries points written, plugins duration and number of calls.",
     ["toggle_internals_rrds_title"] = "Internals",
     ["toggle_ldap_anonymous_bind_description"] = "Enable anonymous binding.",

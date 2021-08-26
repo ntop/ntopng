@@ -119,6 +119,7 @@ Prefs::Prefs(Ntop *_ntop) {
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
   num_interfaces = 0, enable_auto_logout = true, enable_auto_logout_at_runtime = true;
+  enable_interface_name_only = false;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_syslog = dump_flows_on_nindex = false;
   dump_json_flows_on_disk = load_json_flows_from_disk_to_nindex = dump_ext_json = false;
   routing_mode_enabled = false;
@@ -606,6 +607,7 @@ void Prefs::reloadPrefsFromRedis() {
 
   enable_auto_logout_at_runtime = getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED, CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
 
+  enable_interface_name_only = getDefaultPrefsValue(CONST_RUNTIME_IS_INTERFACE_NAME_ONLY, false);
   // alert preferences
   enable_access_log     = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
   enable_sql_log        = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SQL_LOG, false);
@@ -1880,6 +1882,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled_for_all_hosts", resolve_all_host_ip);
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
   lua_push_bool_table_entry(vm, "is_autologout_enabled", enable_auto_logout);
+  lua_push_bool_table_entry(vm, "is_interface_name_only", enable_interface_name_only);  
   lua_push_uint64_table_entry(vm, "http_port", http_port);
 
   lua_push_uint64_table_entry(vm, "max_num_hosts", max_num_hosts);
