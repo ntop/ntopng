@@ -1581,6 +1581,57 @@ end
 
 -- ##############################################
 
+function getHostNotesKey(host_key)
+   if(host_key == nil) then return(nil) end
+   return "ntopng.cache.host_notes."..host_key
+end
+
+-- ##############################################
+
+function getHostNotes(host_info)
+   local host_key
+
+   if type(host_info) == "table" then
+     host_key = host_info["host"]
+   else
+     host_key = host_info
+   end
+
+   local notes = ntop.getCache(getHostNotesKey(host_key))
+
+   if isEmptyString(notes) and type(host_info) == "table" and host_info["vlan"] then
+      -- Check if there is an alias for the host@vlan
+      host_key = hostinfo2hostkey(host_info)
+      notes = ntop.getCache(getHostNotesKey(host_key))
+   end
+
+   if not isEmptyString(notes) then
+      notes = string.lower(notes)
+   end
+
+   return notes
+end
+
+-- ##############################################
+
+function setHostNotes(host_info, notes)
+   local host_key
+
+   if type(host_info) == "table" then
+     -- Note: we are not using hostinfo2hostkey which includes the
+     -- vlan for backward compatibility, compatibility with
+     -- the backend, and compatibility with the vpn plugins
+     host_key = host_info["host"] -- hostinfo2hostkey(host_info)
+   else
+     host_key = host_info
+   end
+
+   ntop.setCache(getHostNotesKey(host_key), notes)
+end
+
+-- ##############################################
+
+
 function getDhcpNameKey(ifid, mac)
    return string.format("ntopng.dhcp.%d.cache.%s", ifid, mac)
 end

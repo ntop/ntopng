@@ -2816,6 +2816,7 @@ local lang = {
     ["list_of_general_purpose"] = "General purpose devices: %{list}",
     ["list_of_special_purpose"] = "Special purpose devices: %{list}",
     ["multiple_selection"] = "Multiple elements can be selected by pressing the CTRL key",
+    ["notes"] = "Notes",
     ["reset_blacklisted_stats"] = "Reset Blacklisted Hosts Stats",
     ["reset_blacklisted_stats_confirm"] = "Do you really want to reset \"%{host}\" blacklisted stats?",
     ["reset_blacklisted_stats_note"] = "<b>NOTE</b>: these info are visible into the host map 'Flows with Blacklisted Host'",

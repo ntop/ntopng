@@ -274,6 +274,10 @@ else
       setHostAltName(host_info, _POST["custom_name"])
    end
 
+   if(_POST["custom_notes"] ~=nil) and isAdministrator() then
+      setHostNotes(host_info, _POST["custom_notes"])
+   end
+
    host_label = hostinfo2label(host)
 
    if canRestoreHost(ifId, host_info["host"], host_vlan) then
@@ -613,7 +617,19 @@ if(host["ip"] ~= nil) then
       end
 
       print("</td>\n")
-   end
+end
+
+local h_notes = getHostNotes(host_info) or ''
+
+if(not isEmptyString(h_notes)) then
+	print[[
+
+	<tr><th>]] print(i18n("host_details.notes"))
+	print[[</th><td colspan="2"><span id="host_notes">]]print(h_notes)
+	print[[</span><span id="host_notes"></span></td></tr>
+
+	]]
+end
 
 if(host["num_alerts"] > 0) then
    print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "engaged-alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").." <span id=alerts_trend></span></td></tr>\n")
@@ -2075,6 +2091,7 @@ elseif (page == "config") then
 
    -- NOTE: this only configures the alias associated to the IP address, not to the MAC
    local ip_alias = getHostAltName(host_info)
+   local ip_notes = getHostNotes(host_info)
 
    print[[
    <form id="host_config" class="form-inline" method="post">
@@ -2090,6 +2107,20 @@ elseif (page == "config") then
    print [[
          </td>
       </tr>]]
+
+   print[[<tr>
+   			<th>]]
+   				print(i18n("host_notes"))
+   			print[[
+   			</th>
+   		 <td>
+   		 <input type="text" name="custom_notes" class="form-control" placeholder="Custom Notes" style="width: 280px;" value="]]
+
+		   print(ip_notes)
+		   print[["></input> ]]
+
+   		print[[</td>
+   		 </tr>]]
 
    if host_pool_id ~= nil then
       graph_utils.printPoolChangeDropdown(ifId, host_pool_id.."", have_nedge)
