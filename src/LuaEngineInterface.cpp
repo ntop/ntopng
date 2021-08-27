@@ -372,6 +372,21 @@ static int ntop_interface_is_pcap_dump_interface(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_is_zmq_interface(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool rv = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface && ntop_interface->getIfType() == interface_type_ZMQ)
+    rv = true;
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_is_view(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool rv = false;
@@ -4424,6 +4439,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "isDiscoverableInterface",          ntop_interface_is_discoverable_interface },
   { "isBridgeInterface",                ntop_interface_is_bridge_interface },
   { "isPcapDumpInterface",              ntop_interface_is_pcap_dump_interface },
+  { "isZMQInterface",                   ntop_interface_is_zmq_interface },
   { "isView",                           ntop_interface_is_view },
   { "isViewed",                         ntop_interface_is_viewed },
   { "viewedBy",                         ntop_interface_viewed_by },
