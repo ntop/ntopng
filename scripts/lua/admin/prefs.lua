@@ -456,7 +456,7 @@ function printGUI()
   multipleTableButtonPrefs(subpage_active.entries[d_label].title,
          subpage_active.entries[d_label].description,
          d_labels, d_values, "middle_endian", "primary",
-         d_label, "ntopng.user." .. _SESSION["user"] .. ".datetype")
+         d_label, "ntopng.user." .. _SESSION["user"] .. ".date_format")
 
   -- ######################
 

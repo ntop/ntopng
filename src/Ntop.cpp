@@ -2181,6 +2181,9 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
   snprintf(key, sizeof(key), CONST_STR_USER_THEME, username);
   ntop->getRedis()->set(key, "", 0);
 
+  snprintf(key, sizeof(key), CONST_STR_USER_DATE_FORMAT, username);
+  ntop->getRedis()->set(key, "", 0);
+
   if(language && language[0] != '\0') {
     snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, username);
     ntop->getRedis()->set(key, language, 0);
@@ -2281,6 +2284,9 @@ bool Ntop::deleteUser(char *username) {
   ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_THEME, username);
+  ntop->getRedis()->del(key);
+  
+  snprintf(key, sizeof(key), CONST_STR_USER_DATE_FORMAT, username);
   ntop->getRedis()->del(key);
 
   /*

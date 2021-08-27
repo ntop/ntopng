@@ -44,7 +44,6 @@ class Prefs {
   char *https_binding_address1, *https_binding_address2;
   bool enable_client_x509_auth, reproduce_at_original_speed;
   char *lan_interface, *wan_interface, *zmq_publish_events_url;
-  char *toggle_date_type;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, pcap_file_purge_hosts_flows,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
