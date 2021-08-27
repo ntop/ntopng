@@ -34,7 +34,6 @@ $(function () {
         const settings = { title: h.name };
         if (h.isRoot) settings.icon = red_marker;
 
-        debugger;
         const ip = h.ip
         const lat = h.lat;
         const lng = h.lng;
