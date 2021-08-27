@@ -4763,6 +4763,7 @@ local lang = {
     ["graph_view"] = "Graph View",
     ["learning"] = "The Service Map is <b>learning</b>...",
     ["learning_table"] = "The Service Map is <b>learning</b>, click on the reload table button to see new changes...",
+    ["geo_map_notes"] = "The Host details shown by clicking the markers can be modified from the preferences <a href=\"%{prefs_link}\"><i class=\"fas fa-cog\"></i></a>",
     ["no_services"] = "No <b>services</b> were found.",
     ["node_descr"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> hosts and <font color=#8004e0>MAC</font> addresses.<li>Arcs represent a communication between two hosts: <font color=#28a745>allowed</font>, <font color=red>denied</font>, and <font color=#ffc107>undecided</font> service status.<li>Double click on a node to jump to the host page. Use the mouse wheel to zoom in/out.</li>",
     ["note_1"] = "During the <b>learning</b>, a service status cannot be changed.",

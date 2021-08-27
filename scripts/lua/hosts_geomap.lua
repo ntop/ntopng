@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local page_utils = require("page_utils")
+local ui_utils = require("ui_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -66,6 +67,12 @@ if (num > 0) then
   ]])
 else
    print("<div class=\"alert alert-danger\">".. "<i class='fas fa-exclamation-triangle fa-lg' style='color: #B94A48;'></i> " .. i18n("no_results_found") .. "</div>")
+end
+
+if ntop.isPro() then
+  print(ui_utils.render_notes({
+    {content = i18n("map_page.geo_map_notes", { prefs_link = ntop.getHttpPrefix() .. '/lua/admin/prefs.lua?tab=geo_map' })}
+  }))
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
