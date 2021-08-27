@@ -8,22 +8,63 @@ $(function () {
         tooltipAnchor: [16, -28]
     });
 
+    const info_key_names = {
+        "score": i18n.score,
+        "asname": i18n.as,
+        "html": i18n.nation,
+        "active_alerted_flows": i18n.alerted_flows,
+        "num_blacklisted_flows": i18n.blacklisted_flows,
+        "bytes.sent": i18n.traffic_sent,
+        "bytes.rcvd": i18n.traffic_rcvd,
+        "total_flows": i18n.flows,
+    };
+
+    const formatters = {
+        "bytes.sent": NtopUtils.bytesToSize,
+        "bytes.rcvd": NtopUtils.bytesToSize,
+    }
+
     const default_coords = [41.9, 12.4833333];
     const zoom_level = 4;
 
     // initialize alert api
     $('#geomap-alert').alert();
 
-    const create_marker = (title, lat, lng, html, is_red = false) => {
+    const create_marker = (h) => {
+        const settings = { title: h.name };
+        if (h.isRoot) settings.icon = red_marker;
 
-        const settings = { title: title };
-        if (is_red) settings.icon = red_marker;
+        debugger;
+        const ip = h.ip
+        const lat = h.lat;
+        const lng = h.lng;
+        const name = h.name;
+        let name_ip = ip;
+        let extra_info = '';
+
+        h.ip = null;
+        h.lat = null;
+        h.lng = null;
+        h.name = null;
+        h.isRoot = null;
+
+        // Formatting the extra info to print into the Geo Map
+        for (const key in h) {
+            if(formatters[key])
+                h[key] = formatters[key](h[key])
+
+            if(h[key] && info_key_names[key])
+                extra_info = extra_info + info_key_names[key] + ": <b>" + h[key] + "</b></br>";
+        }
+
+        if(name)
+            name_ip = name + "</br>" + name_ip;
 
         return L.marker(L.latLng(lat, lng), settings).bindPopup(`
             <div class='infowin'>
-                <a href='${http_prefix}/lua/host_details.lua?host=${title}'>${title}</a>
+                <a href='${http_prefix}/lua/host_details.lua?host=${ip}'>${name_ip}</a>
                 <hr>
-                ${html}
+                ${extra_info}
             </div>
         `);
     }
@@ -76,7 +117,7 @@ $(function () {
         hosts.forEach(h => {
 
             map_markers.addLayer(
-                create_marker(h.name, h.lat, h.lng, h.html, h.isRoot)
+                create_marker(h)
             );
 
             // make a transitions to the root host

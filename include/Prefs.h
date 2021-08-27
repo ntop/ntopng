@@ -101,6 +101,9 @@ class Prefs {
     dump_json_flows_on_disk, load_json_flows_from_disk_to_nindex, dump_ext_json;
 #ifdef NTOPNG_PRO
   bool dump_flows_direct;
+  bool is_geo_map_score_enabled, is_geo_map_asname_enabled, is_geo_map_alerted_flows_enabled,
+    is_geo_map_blacklisted_flows_enabled, is_geo_map_host_name_enabled, 
+    is_geo_map_rxtx_data_enabled, is_geo_map_num_flows_enabled;
 #endif
   bool read_flows_from_mysql;
   bool enable_runtime_flows_dump; /**< runtime preference to enable/disable flows dump from the UI */

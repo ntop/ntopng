@@ -458,14 +458,12 @@ function printGUI()
 						  attributes = {spellcheck = "false", maxlength = 512, pattern = getACLPattern()}})
 
   -- #####################
-
-  if prefs.is_autologout_enabled == true then
-    prefsToggleButton(subpage_active, {
-      field = "toggle_interface_name_only",
-      default = "0",
-      pref = "is_interface_name_only",
-    })
-  end
+  
+  prefsToggleButton(subpage_active, {
+    field = "toggle_interface_name_only",
+    default = "0",
+    pref = "is_interface_name_only",
+  })
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
@@ -746,6 +744,65 @@ function printAuthentication()
     prefsInformativeField(i18n("notes"), i18n("nedge.authentication_gui_and_captive_portal",
       {product = product, url = ntop.getHttpPrefix() .. "/lua/pro/nedge/system_setup_ui/captive_portal.lua"}))
   end
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  print('</table>')
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />]]
+  print('</form>')
+end
+
+-- #####################
+
+function printGeoMapCustomization()
+  if not ntop.isPro() then return end
+
+  print('<form method="post">')
+  print('<table class="table">')
+
+  -- Note: order must correspond to evaluation order in Ntop.cpp
+  print('<thead class="table-primary"><tr><th class="info" colspan="2">'..i18n("prefs.geo_map.geo_map_customization")..'</th></tr></thead>')
+
+  prefsToggleButton(subpage_active, {
+      field = "toggle_geo_map_score",
+      default = "0",
+      pref = "is_geo_map_score_enabled", -- redis preference
+  })
+
+  prefsToggleButton(subpage_active, {
+      field = "toggle_geo_map_asname",
+      default = "0",
+      pref = "is_geo_map_asname_enabled", -- redis preference
+  })
+
+  prefsToggleButton(subpage_active, {
+      field = "toggle_geo_map_alerted_flows",
+      default = "0",
+      pref = "is_geo_map_alerted_flows_enabled", -- redis preference
+  })
+
+  prefsToggleButton(subpage_active, {
+      field = "toggle_geo_map_blacklisted_flows",
+      default = "0",
+      pref = "is_geo_map_blacklisted_flows_enabled", -- redis preference
+  })
+
+  prefsToggleButton(subpage_active, {
+      field = "toggle_geo_map_host_name",
+      default = "0",
+      pref = "is_geo_map_host_name_enabled", -- redis preference
+  })
+
+  prefsToggleButton(subpage_active, {
+      field = "toggle_geo_map_rxtx_data",
+      default = "0",
+      pref = "is_geo_map_rxtx_data_enabled", -- redis preference
+  })
+
+  prefsToggleButton(subpage_active, {
+      field = "toggle_geo_map_num_flows",
+      default = "0",
+      pref = "is_geo_map_num_flows_enabled", -- redis preference
+  })
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
@@ -1454,6 +1511,10 @@ end
 
 if(tab == "recording") then
    printRecording()
+end
+
+if(tab == "geo_map") then
+  printGeoMapCustomization()
 end
 
 if(tab == "traffic_behaviour") then

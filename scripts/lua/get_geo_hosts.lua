@@ -18,6 +18,28 @@ local host_info = url2hostinfo(_GET)
 
 local MAX_HOSTS = 512
 
+local pref_prefix = "ntopng.prefs."
+
+local bytes_sent = "bytes.sent"
+local bytes_rcvd = "bytes.rcvd"
+
+-- Extra info, enabled by the preferences (Settings->Preferences->Geo Map),
+-- that are going to add more info to the host detailed view into the Geo Map
+local extra_info = {
+	score  						= { pref = ntop.getPref(pref_prefix .. "is_geo_map_score_enabled") },
+	asname					   = { pref = ntop.getPref(pref_prefix .. "is_geo_map_asname_enabled") },
+	active_alerted_flows 	= { pref = ntop.getPref(pref_prefix .. "is_geo_map_alerted_flows_enabled") },
+	num_blacklisted_flows	= { pref = ntop.getPref(pref_prefix .. "is_geo_map_blacklisted_flows_enabled"), values = { "tot_as_server", "tot_as_client" } },
+	name 							= { pref = ntop.getPref(pref_prefix .. "is_geo_map_host_name_enabled") },
+	total_flows 				= { pref = ntop.getPref(pref_prefix .. "is_geo_map_num_flows_enabled"), values = { "as_client", "as_server" } },
+}
+
+-- Adding bytes here because they have the '.' inside the name and cannot added therefore above
+extra_info[bytes_sent] = { pref = ntop.getPref(pref_prefix .. "is_geo_map_rxtx_data_enabled") }
+extra_info[bytes_rcvd] = { pref = ntop.getPref(pref_prefix .. "is_geo_map_rxtx_data_enabled") }
+
+-- ############################################################
+
 local function is_localizable(host)
    return host and host["ip"] and not host["privatehost"] and not host["is_multicast"] and not host["is_broadcast"] and not isBroadMulticast(host["ip"])
 end
@@ -35,6 +57,32 @@ end
 
 -- ############################################################
 
+local function add_extra_info(host_values, host_info)
+	for k, v in pairs(extra_info) do
+		-- Checking the setting
+		if v["pref"] == "1" then
+			if not v["values"] then
+			-- Only a value, that's the key
+				host_info[k] = host_values[k]
+			else
+			-- Multiple values (e.g. client and server)
+				if host_values[k] then
+					host_info[k] = 0
+
+					-- Adding all the values into the host_info used by the geo map
+					for _, value_subname in pairs(v["values"]) do
+						host_info[k] = host_info[k] + host_values[k][value_subname]
+					end
+				end
+			end
+		end
+	end
+
+	return host_info
+end
+
+-- ############################################################
+
 local function handlePeer(prefix, host_key, value)
    if((value[prefix..".latitude"] ~= 0) or (value[prefix..".longitude"] ~= 0)) then
       -- set up the host informations
@@ -44,8 +92,10 @@ local function handlePeer(prefix, host_key, value)
 	 -- isDrawable = not(value[prefix..".private"]),
 	 isRoot = (value[prefix..".ip"] == host_key),
 	 html = getFlag(value[prefix..".country"]),
-	 name = hostinfo2hostkey(value, prefix)
+	 ip = hostinfo2hostkey(value, prefix)
       }
+
+      host = add_extra_info(value, host)
 
       if not isEmptyString(value[prefix..".city"]) then
 	 host["city"] = value[prefix..".city"]
@@ -66,7 +116,7 @@ local function show_hosts(hosts_count, host_key)
    if((host_key == nil) or (host_key == "")) then
       callback_utils.foreachHost(
 	 tostring(interface.getId()),
-	 function(address, value)
+	 function(address, value)	 	
 	    if value["latitude"] ~= 0 or value["longitude"] ~= 0 then
 	       -- set up the host informations
 	       local host = {
@@ -74,12 +124,14 @@ local function show_hosts(hosts_count, host_key)
 		  lng = value["longitude"],
 		  isRoot = false,
 		  html = getFlag(value["country"]),
-		  name = address
+		  ip = address
 	       }
 
 	       if not isEmptyString(value["city"]) then
 		  host["city"] = value["city"]
 	       end
+
+        	 host = add_extra_info(value, host)
 
 	       table.insert(hosts, host)
 	       num_hosts = num_hosts + 1
