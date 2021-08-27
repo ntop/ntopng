@@ -1048,3 +1048,7 @@ td.dashboard-counter {
   color: #0d6efd;
   cursor: pointer;
 }
+
+.leaflet-top.leaflet-left{
+  z-index: auto;
+}

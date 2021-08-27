@@ -19,6 +19,10 @@ code {
   color: white;
 }
 
+.leaflet-top.leaflet-left{
+  z-index: auto;
+}
+
 .btn-primary {
   color: #000;
   background-color: var(--ntop-orange);

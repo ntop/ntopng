@@ -914,6 +914,7 @@ local views = {}
 local drops = {}
 local recording = {}
 local packetinterfaces = {}
+local zmqinterfaces = {}
 local pcapdump = {}
 local ifnames = {}
 local iftype = {}
@@ -934,9 +935,11 @@ for v,k in pairs(iface_names) do
    if(_ifstats.isDynamic == true) then dynamic[k] = true end
    if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
    if(interface.isPacketInterface()) then packetinterfaces[k] = true end
+   if(interface.isZMQInterface()) then zmqinterfaces[k] = true end
    if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
       drops[k] = true
    end
+
    ifCustom[_ifstats.id] = _ifstats.customIftype
 
    local descr = getHumanReadableInterfaceName(v)
@@ -965,7 +968,6 @@ for v,k in pairs(iface_names) do
 	    end
 	 end
       end
-
       if snmp_name then
 	 -- Something has been found in SNMP
 	 local fmt = ""
@@ -1033,6 +1035,7 @@ local context = {
    recording = recording,
    pcapdump = pcapdump,
    packetinterfaces = packetinterfaces,
+   zmqinterfaces = zmqinterfaces,
    drops = drops,
    ifHdescr = ifHdescr,
    ifCustom = ifCustom,

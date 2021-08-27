@@ -47,7 +47,7 @@
               {% icons[#icons + 1] = "<i class='fas fa-file'></i>" %}
             {% elseif packetinterfaces[v] then %}
               {% icons[#icons + 1] = "<i class='fas fa-ethernet'></i>" %}
-            {% else %}
+            {% elseif zmqinterfaces[v] then %}
               {% icons[#icons + 1] = "<i class='fas fa-bezier-curve'></i>" %} {% --broadcast-tower %}
             {% end %}
 
