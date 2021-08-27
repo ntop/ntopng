@@ -448,6 +448,18 @@ function printGUI()
 
   -- ######################
 
+
+  local d_labels = {i18n("little_endian"), i18n("middle_endian"), i18n("big_endian")}
+  local d_values = {"little_endian", "middle_endian", "big_endian"}
+  local d_label = "toggle_date_type"
+
+  multipleTableButtonPrefs(subpage_active.entries[d_label].title,
+         subpage_active.entries[d_label].description,
+         d_labels, d_values, "middle_endian", "primary",
+         d_label, "ntopng.user." .. _SESSION["user"] .. ".datetype")
+
+  -- ######################
+
   prefsInputFieldPrefs(subpage_active.entries["max_ui_strlen"].title, subpage_active.entries["max_ui_strlen"].description,
 		       "ntopng.prefs.", "max_ui_strlen", prefs.max_ui_strlen, "number", nil, nil, nil, {min=3, max=128})
 

@@ -380,7 +380,10 @@ local menu_subpages = {
     },
   }}, {id="gui",          label=i18n("prefs.gui"),                 advanced=false, pro_only=false,  hidden=false, entries={
 
-    toggle_autologout = {
+     toggle_date_type = {
+      title       = i18n("prefs.toggle_date_type_title"),
+      description = i18n("prefs.toggle_date_type_description"),
+    }, toggle_autologout = {
       title       = i18n("prefs.toggle_autologout_title"),
       description = i18n("prefs.toggle_autologout_description"),
     },toggle_interface_name_only = {

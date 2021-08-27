@@ -94,6 +94,7 @@ Prefs::Prefs(Ntop *_ntop) {
   es_index = es_url = es_user = es_pwd = es_host = NULL;
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true;
+  toggle_date_type = NULL;
   user = strdup(CONST_DEFAULT_NTOP_USER);
   user_set = false;
   http_binding_address1 = NULL;
@@ -239,6 +240,7 @@ Prefs::~Prefs() {
   if(https_binding_address1) free(https_binding_address1);
   if(https_binding_address2) free(https_binding_address2);
   if(lan_interface)	free(lan_interface);
+  if(toggle_date_type) free(toggle_date_type);
   if(wan_interface)	free(wan_interface);
   if(ndpi_proto_path)	free(ndpi_proto_path);
   if(test_pre_script_path)  free(test_pre_script_path);
@@ -710,6 +712,12 @@ void Prefs::reloadPrefsFromRedis() {
   getDefaultStringPrefsValue(CONST_GLOBAL_DNS, &aux, DEFAULT_GLOBAL_DNS);
   if(aux) {
     global_primary_dns_ip = Utils::inet_addr(aux);
+    free(aux);
+  }
+
+  getDefaultStringPrefsValue(CONST_GLOBAL_DNS, &aux, DEFAULT_GLOBAL_DNS);
+  if(aux) {
+    toggle_date_type = strdup(aux);
     free(aux);
   }
 
@@ -1925,6 +1933,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "http.port", get_http_port());
 
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
+  lua_push_str_table_entry(vm, "toggle_date_type", toggle_date_type ? toggle_date_type : (char*)"");
 
   /* Command line options */
   lua_push_bool_table_entry(vm, "has_cmdl_trace_lvl", has_cmdl_trace_lvl);

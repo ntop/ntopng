@@ -609,6 +609,7 @@
 #define CONST_OTHER_RRD_1D_DAYS             NTOPNG_PREFS_PREFIX".other_rrd_1d_days"
 #define CONST_SAFE_SEARCH_DNS               NTOPNG_PREFS_PREFIX".safe_search_dns"
 #define CONST_GLOBAL_DNS                    NTOPNG_PREFS_PREFIX".global_dns"
+#define CONST_DATE_TYPE                     NTOPNG_USER_PREFIX".%s.datetype"
 #define CONST_SECONDARY_DNS                 NTOPNG_PREFS_PREFIX".secondary_dns"
 #define CONST_MAX_NUM_SECS_ALERTS_BEFORE_DEL NTOPNG_PREFS_PREFIX".max_num_secs_before_delete_alert"
 #define CONST_MAX_ENTITY_ALERTS     NTOPNG_PREFS_PREFIX".max_entity_alerts"
@@ -889,6 +890,7 @@
 #define STORE_MANAGER_MAX_QUERY              2048
 #define STORE_MANAGER_MAX_KEY                20
 #define DEFAULT_GLOBAL_DNS                   ""
+#define DEFAULT_DATE_TYPE                    "middle_endian"
 #define DEFAULT_SAFE_SEARCH_DNS              "208.67.222.123" /* OpenDNS Family Shield */
 
 #define ALERTS_MANAGER_MAX_AGGR_SECS         300 /* Aggregate equal alerts if generated within this interval */
