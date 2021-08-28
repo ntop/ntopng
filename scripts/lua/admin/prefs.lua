@@ -776,43 +776,43 @@ function printGeoMapCustomization()
 
   prefsToggleButton(subpage_active, {
       field = "toggle_geo_map_score",
-      default = "0",
+      default = "1",
       pref = "is_geo_map_score_enabled", -- redis preference
   })
 
   prefsToggleButton(subpage_active, {
       field = "toggle_geo_map_asname",
-      default = "0",
+      default = "1",
       pref = "is_geo_map_asname_enabled", -- redis preference
   })
 
   prefsToggleButton(subpage_active, {
       field = "toggle_geo_map_alerted_flows",
-      default = "0",
+      default = "1",
       pref = "is_geo_map_alerted_flows_enabled", -- redis preference
   })
 
   prefsToggleButton(subpage_active, {
       field = "toggle_geo_map_blacklisted_flows",
-      default = "0",
+      default = "1",
       pref = "is_geo_map_blacklisted_flows_enabled", -- redis preference
   })
 
   prefsToggleButton(subpage_active, {
       field = "toggle_geo_map_host_name",
-      default = "0",
+      default = "1",
       pref = "is_geo_map_host_name_enabled", -- redis preference
   })
 
   prefsToggleButton(subpage_active, {
       field = "toggle_geo_map_rxtx_data",
-      default = "0",
+      default = "1",
       pref = "is_geo_map_rxtx_data_enabled", -- redis preference
   })
 
   prefsToggleButton(subpage_active, {
       field = "toggle_geo_map_num_flows",
-      default = "0",
+      default = "1",
       pref = "is_geo_map_num_flows_enabled", -- redis preference
   })
 
