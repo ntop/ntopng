@@ -1431,22 +1431,22 @@ const createScriptStatusButton = (row_data) => {
    const { is_enabled } = row_data;
 
    const $button = $(`<button type='button' class='btn btn-sm'></button>`);
-   $button.addClass('btn-success');
+   $button.addClass('btn-danger');
 
    if (!is_enabled && row_data.input_handler) {
-      $button.html(`<i class='fas fa-toggle-on'></i>`);
+      $button.html(`<i class='fas fa-toggle-off'></i>`);
       $button.attr('data-bs-target', '#modal-script');
       $button.attr('data-bs-toggle', 'modal');
       return $button;
    }
 
    if (!is_enabled && !row_data.input_handler) {
-      $button.html(`<i class='fas fa-toggle-on'></i>`);
+      $button.html(`<i class='fas fa-toggle-off'></i>`);
    }
    else {
-
-      $button.html(`<i class='fas fa-toggle-off'></i>`);
-      $button.addClass('btn-danger');
+      $button.removeClass('btn-danger');
+      $button.html(`<i class='fas fa-toggle-on'></i>`);
+      $button.addClass('btn-success');
 
       if (row_data.enabled_hooks.length < 1) {
          $button.addClass('disabled');
