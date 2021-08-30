@@ -175,26 +175,30 @@ if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"
       print [[
       <div class="col-12 p-1">
          <div class="info-stats">
-            <a href="#">
-               <div class="up">
-                  <i class="fas fa-arrow-up" data-original-title="" title=""></i>
-                  <span id="upload-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                  <div class='d-inline-block text-end' style='width: 11ch'>
-                     <span id="upload-filter-traffic-value">0 kbit/s</span> |
+            <ul class="nav-side" style="list-style-type: none;">
+               <li class="nav-item">
+                  <div class="up">
+                     <i class="fas fa-arrow-up" data-original-title="" title=""></i>
+                     <span id="upload-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                     <span class='d-inline-block text-end' style='width: 13ch'>
+                        <span id="upload-filter-traffic-value">0 kbit/s</span> |
+                     </span>
+                     <span id="filtered-flows-tot-bytes">]] print(i18n("flows_page.tot_bytes")) print[[</span>
+                     <span id="filtered-flows-tot-bytes-value">0 B</span>
                   </div>
-                  <span id="filtered-flows-tot-bytes">]] print(i18n("flows_page.tot_bytes")) print[[</span>
-                  <span id="filtered-flows-tot-bytes-value">0 B</span>
-               </div>
-               <div class="down">
-                  <i class="fas fa-arrow-down" data-original-title="" title=""></i>
-                  <span id="download-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                  <div class='d-inline-block text-end' style='width: 11ch'>
-                     <span id="download-filter-traffic-value">0 kbit/s</span> |
+               </li>
+               <li class="nav-item">
+                  <div class="down">
+                     <i class="fas fa-arrow-down" data-original-title="" title=""></i>
+                     <span id="download-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                     <span class='d-inline-block text-end' style='width: 13ch'>
+                        <span id="download-filter-traffic-value">0 kbit/s</span> |
+                     </span>
+                     <span id="filtered-flows-tot-throughput">]] print(i18n("flows_page.tot_throughput")) print[[</span>
+                     <span id="filtered-flows-tot-throughput-value">0 kbit/s</span>
                   </div>
-                  <span id="filtered-flows-tot-throughput">]] print(i18n("flows_page.tot_throughput")) print[[</span>
-                  <span id="filtered-flows-tot-throughput-value">0 kbit/s</span>
-               </div>
-            </a>
+               </li>
+            </ul>
          </div>
       </div>
 ]]
