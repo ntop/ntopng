@@ -1815,6 +1815,8 @@ local known_parameters = {
    ["toggle_emit_flow_alerts"]                     = validateBool,   
    ["toggle_emit_host_alerts"]                     = validateBool,   
    ["telemetry_email"]                             = validateSingleWord,
+   ["toggle_date_type"]                            = validateSingleWord,
+
 
    -- Other
    ["send_test_email"]                             = validateEmpty,

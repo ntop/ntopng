@@ -76,8 +76,18 @@ end
 -- ##############################################
 
 function convertDate(vardate)
-    local m,d,y,h,i,s = string.match(vardate, '(%d+)/(%d+)/(%d+) (%d+):(%d+):(%d+)')
-    return string.format('%s/%s/%s %s:%s:%s', d,m,y,h,i,s)
+   local m,d,y,h,i,s = string.match(vardate, '(%d+)/(%d+)/(%d+) (%d+):(%d+):(%d+)')
+   local key = ntop.getPref('ntopng.user.' .. _SESSION["user"] .. '.date_format')
+   
+   if(key == "little_endian") then
+      return string.format('%s/%s/%s %s:%s:%s', d,m,y,h,i,s)
+   elseif( key == "middle_endian") then
+      return string.format('%s/%s/%s %s:%s:%s', m,d,y,h,i,s) 
+   else
+      return string.format('%s/%s/%s %s:%s:%s', y,m,d,h,i,s)
+   end
+
+   
 end
 
 -- ##############################################
