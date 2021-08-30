@@ -1429,9 +1429,11 @@ const TemplateBuilder = ({ gui, hooks, metadata }, check_subdir, script_key) => 
 const createScriptStatusButton = (row_data) => {
 
    const { is_enabled } = row_data;
-
+   let enable_title = i18n.enable_check_title;
+   let disable_title = i18n.disable_check_title;
    const $button = $(`<button type='button' class='btn btn-sm'></button>`);
    $button.addClass('btn-danger');
+   $button[0].setAttribute('title', enable_title)
 
    if (!is_enabled && row_data.input_handler) {
       $button.html(`<i class='fas fa-toggle-off'></i>`);
@@ -1445,6 +1447,7 @@ const createScriptStatusButton = (row_data) => {
    }
    else {
       $button.removeClass('btn-danger');
+      $button[0].setAttribute('title', disable_title)
       $button.html(`<i class='fas fa-toggle-on'></i>`);
       $button.addClass('btn-success');
 
@@ -1903,8 +1906,7 @@ $(function () {
                const editScriptButtonEnabled = ((!script.input_handler && !isSubdirFlow) || !isScriptEnabled) ? 'disabled' : '';
 
                return DataTableUtils.createActionButtons([
-                  { class: `btn-info ${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit' },
-                  { class: `btn-secondary ${srcCodeButtonEnabled}`, icon: 'fa-file-code', href: data.edit_url }
+                  { class: `btn-info ${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit', title: i18n.edit_check_title },
                ]);
             },
             createdCell: function (td, cellData, row) {

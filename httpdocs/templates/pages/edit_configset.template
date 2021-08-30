@@ -117,7 +117,9 @@ i18n.expired_csrf = "{{ i18n('expired_csrf') }}";
 i18n.filter_categories = "{{ i18n('scripts_list.filter_dropdown') }}";
 i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
 i18n.script_search = "{{ i18n('scripts_list.script_search') }}";
-
+i18n.enable_check_title = "{{ i18n("enable_check_title")}}";
+i18n.disable_check_title = "{{ i18n("disable_check_title")}}";
+i18n.edit_check_title = "{{ i18n("edit_check_title")}}";
 i18n.scripts_list = {};
 i18n.scripts_list.templates = {};
 i18n.scripts_list.templates.excluded_applications = "{{ i18n('scripts_list.templates.excluded_applications') }}";
