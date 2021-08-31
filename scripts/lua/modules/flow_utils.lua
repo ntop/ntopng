@@ -1645,8 +1645,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        for status_key, status in pairsByField(status_stats, "label", asc) do
 	  if status.count > 0 then
 	     if first then
-		entries[#entries + 1] = '<li role="separator" class="divider"></li>'
-		entries[#entries + 1] = '<li class="dropdown-header">'.. i18n("flow_details.alerted_flows") ..'</li>'
+		entries[#entries + 1] = '<li class="dropdown-header" id="alerted-flows-title" style="padding-left: 8px; padding-top: 4px; padding-bottom: 4px">'.. i18n("flow_details.alerted_flows") ..'</li>'
 		first = false
 	     end
 	     entries[#entries + 1] = {string.format("%u", status_key), (status.label) .. " ("..status.count..")"}
