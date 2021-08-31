@@ -1012,6 +1012,15 @@ if((observationPoints == nil) or (table.len(observationPoints) == 0)) then
   -- read the validated observation point
   observationPoints = nil
   observationPointId = nil
+else
+   if(observationPointId == 0) then
+      for k, _ in pairs(observationPoints) do
+	 observationPointId = observationPoints
+	 break
+      end
+
+      ntop.setUserObservationPointId(observationPointId)
+   end
 end
 
 interface.select(ifs.id.."")
