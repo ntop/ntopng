@@ -171,6 +171,8 @@ function pools_rest_utils.bind_member(pools)
    local old_pool_name = _GET["pool_name"]
    local pool_id = _GET["pool"]
    local member = _POST["member"]
+   local action = _POST["action"]
+   local old_member = _POST["old_member"]
 
    if not isAdministrator() then
       rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -188,6 +190,10 @@ function pools_rest_utils.bind_member(pools)
    -- Create the instance
    local s = pools:create()
    local res, err
+
+   if action == 'edit' then
+      res, err = s:bind_member(old_member, s.DEFAULT_POOL_ID)
+   end
 
    if pool_id == s.DEFAULT_POOL_ID then
       -- Always bind the member to the default pool id (possibly removing it from any other pool)

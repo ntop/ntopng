@@ -1367,6 +1367,7 @@ local known_parameters = {
    ["origin"]                  = validateHost,                  -- the source of the alert
    ["target"]                  = validateHost,                  -- the target of the alert
    ["member"]                  = validateMember,                -- an IPv4 (optional @vlan, optional /suffix), IPv6 (optional @vlan, optional /suffix), or MAC address
+   ["old_member"]              = validateMember,
    ["network"]                 = validateNumber,  -- A network ID/name
    ["network_name"]            = validateFilters(validateNetwork),
    ["network_cidr"]            = validateNetwork,               -- A network expressed with the /

@@ -77,6 +77,11 @@
     pool = pool,
 }) *}
 
+{* template_utils.gen("pages/modals/pools/host_pool_member.template", {
+    modal_type = "edit",
+    pool = pool,
+}) *}
+
 {* template_utils.gen("pages/modals/pools/remove_host_pool_member.template") *}
 
 {*

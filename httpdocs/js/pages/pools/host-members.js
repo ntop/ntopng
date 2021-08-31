@@ -99,6 +99,7 @@ $(function () {
                 width: "10%",
                 render: () => {
                     return DataTableUtils.createActionButtons([
+                        { class: 'btn-info',   icon: 'fa-edit', modal: '#edit-member-modal'},
                         { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-member-host-pool'}
                     ]);
                 }
@@ -116,6 +117,11 @@ $(function () {
         filterTitle: i18n.member_type,
         columnIndex: INDEX_MEMBER_FILTER,
     }).init();
+
+    $(`#host-members-table`).on('click', `a[href='#edit-member-modal']`, function (e) {
+        const memberRowData = $hostMembersTable.row($(this).parent().parent()).data();
+        $editModalHandler.invokeModalInit(memberRowData);
+    });
 
     $(`#host-members-table`).on('click', `a[href='#remove-member-host-pool']`, function (e) {
         const memberRowData = $hostMembersTable.row($(this).parent().parent()).data();
@@ -182,6 +188,21 @@ $(function () {
     $(window).on('popstate', function (e) {
         const { state } = e.originalEvent;
         $(`#select-host-pool`).val(state.pool).trigger('change');
+    });
+
+    // on select member type shows only the fields interested
+    $(`#edit-member-modal [name='member_type']`).change(function () {
+        const value = $(this).val();
+        $(`#edit-member-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');
+        $(this).attr('checked', '');
+
+        // clean the members and show the selected one
+        $(`#edit-member-modal [class*='fields']`).hide();
+        $(`#edit-member-modal [class*='fields'] input, #edit-member-modal [class*='fields'] select`).attr("disabled", "disabled");
+        $(`#edit-member-modal #${value}-radio`).attr('checked', '').parent().addClass('active');
+        $(`#edit-member-modal [class='${value}-fields']`).show().find('input,select').removeAttr("disabled");
+
+        modalHandler.toggleFormSubmission();
     });
 
     $(`#add-member-modal form`).modalHandler({
@@ -278,6 +299,80 @@ $(function () {
             }
             $hostMembersTable.ajax.reload();
             $(`#remove-member-host-pool`).modal('hide');
+        }
+    });
+
+    const $editModalHandler = $(`#edit-member-modal form`).modalHandler({
+        method: 'post',
+        csrf: addCsrf,
+        endpoint: `${http_prefix}/lua/rest/v2/bind/host/pool/member.lua`,
+        onModalShow: function () {
+            // hide the fields and select default type entry
+            $(`#edit-modal-feedback`).hide();
+        },
+        onModalInit: function (hostMember, modalHandler) {
+            let typeSelected = hostMember.type;
+            let hiddenFields = "#edit-member-modal .ip-fields, #edit-member-modal .network-fields";
+
+            if (typeSelected == "mac") {
+                $(`#edit-member-modal input[name='mac_address']`).val(hostMember.name);
+            }
+            else if (typeSelected == "ip") {
+                hiddenFields = "#edit-member-modal .mac-fields, #edit-member-modal .network-fields";
+
+                $(`#edit-member-modal input[name='ip_address']`).val(hostMember.name);
+                $(`#edit-member-modal input[name='ip_vlan']`).val(hostMember.vlan);
+            }
+            else {
+                const tmp_info = hostMember.name.split('/')
+                typeSelected = 'network';
+                hiddenFields = "#edit-member-modal .mac-fields, #edit-member-modal .ip-fields";
+
+                $(`#edit-member-modal input[name='network']`).val(tmp_info[0]);
+                $(`#edit-member-modal input[name='cidr']`).val(tmp_info[1]);
+                $(`#edit-member-modal input[name='network_vlan']`).val(hostMember.vlan);
+            }
+
+            $(hiddenFields).hide();     
+            $(`#edit-member-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');   
+            $(`#edit-member-modal #${typeSelected}-radio`).attr('checked', '').parent().addClass('active');        
+            $(`#edit-member-modal [class='${typeSelected}-fields']`).show().find('input,select').removeAttr("disabled");
+            $(`#edit-member-modal submit[class='btn btn-primary']`).removeAttr('disabled');
+            modalHandler.toggleFormSubmission();
+        },
+        beforeSumbit: function (hostMember) {
+            let member;
+            const typeSelected = $(`#edit-member-modal [name='member_type']:checked`).val();
+
+            if (typeSelected == "mac") {
+                member = $(`#edit-member-modal input[name='mac_address']`).val();
+            }
+            else if (typeSelected == "ip") {
+
+                const ipAddress = $(`#edit-member-modal input[name='ip_address']`).val();
+                const vlan = $(`#edit-member-modal input[name='ip_vlan']`).val() || 0;
+                const cidr = NtopUtils.is_good_ipv6(ipAddress) ? 128 : 32;
+                member = `${ipAddress}/${cidr}@${vlan}`;
+            }
+            else {
+
+                const network = $(`#edit-member-modal input[name='network']`).val();
+                const cidr = $(`#edit-member-modal input[name='cidr']`).val();
+                const vlan = $(`#edit-member-modal input[name='network_vlan']`).val() || 0;
+
+                member = `${network}/${cidr}@${vlan}`;
+            }
+
+            return { pool: selectedPool.id, member: member, action: 'edit', old_member: hostMember.member };
+        },
+        onSubmitSuccess: function (response, textStatus, modalHandler) {
+            if (response.rc < 0) {
+                $(`#edit-modal-feedback`).html(i18n.rest[response.rc_str]).show();
+                return;
+            }
+
+            $hostMembersTable.ajax.reload();
+            $(`#edit-member-modal`).modal('hide');
         }
     });
 });
