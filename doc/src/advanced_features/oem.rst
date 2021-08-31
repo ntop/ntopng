@@ -25,7 +25,7 @@ To load a custom favicon, please it under
 
 .. code:: bash
 
-   custom_favicon.ico
+  /etc/ntopng/custom_favicon.ico
 
 To load a custom CSS, place it under
 
