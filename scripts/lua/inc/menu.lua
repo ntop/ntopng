@@ -1008,18 +1008,19 @@ for v,k in pairs(iface_names) do
    end
 end
 
-if((observationPoints == nil) or (table.len(observationPoints) == 0)) then
-  -- read the validated observation point
-  observationPoints = nil
-  observationPointId = nil
+if observationPoints == nil or
+   table.len(observationPoints) == 0 then
+   -- read the validated observation point
+   observationPoints = nil
+   observationPointId = nil
 else
-   if(observationPointId == 0) then
+   if observationPointId == 0 then
       for k, _ in pairs(observationPoints) do
-	 observationPointId = observationPoints
+	 observationPointId = k
 	 break
       end
 
-      ntop.setUserObservationPointId(observationPointId)
+      ntop.setUserObservationPointId(tonumber(observationPointId))
    end
 end
 
