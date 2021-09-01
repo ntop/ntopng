@@ -1513,18 +1513,20 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     }
     /* Don't break, let's process also HTTP_PROXY */
   case NDPI_PROTOCOL_HTTP_PROXY:
-    if(srv_host && !Utils::isIPAddress(host_server_name) && hasRisk(NDPI_HTTP_NUMERIC_IP_HOST)) {
-      srv_host->offlineSetHTTPName(host_server_name);
-    }
-    
-    if(srv_host->getHTTPstats()
-   && host_server_name
-   && isThreeWayHandshakeOK()) {
-  srv_host->getHTTPstats()->updateHTTPHostRequest(tv->tv_sec, host_server_name,
+    if (srv_host) {
+      if(!Utils::isIPAddress(host_server_name) && hasRisk(NDPI_HTTP_NUMERIC_IP_HOST)) {
+        srv_host->offlineSetHTTPName(host_server_name);
+      }
+
+      if(srv_host->getHTTPstats()
+         && host_server_name
+         && isThreeWayHandshakeOK()) {
+        srv_host->getHTTPstats()->updateHTTPHostRequest(tv->tv_sec, host_server_name,
                   partial->get_num_http_requests(),
                   partial->get_cli2srv_bytes(),
                   partial->get_srv2cli_bytes());
       }
+    }
     break;
   case NDPI_PROTOCOL_DNS:
     if(cli_host && cli_host->getDNSstats())
