@@ -2496,7 +2496,6 @@ void Ntop::setLocalNetworks(char *_nets) {
   } else
     nets = strdup(_nets);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting local networks to %s", nets);
   addLocalNetworkList(nets);
   free(nets);
 };
@@ -3340,15 +3339,16 @@ bool Ntop::addLocalNetwork(char *_net) {
 
   // Getting the pointer and the position to the "=" indicator
   position_ptr = strstr(_net, "=");
-	pos = (position_ptr == NULL ? 0 : position_ptr - _net);
+  pos = (position_ptr == NULL ? 0 : position_ptr - _net);
 
   if(pos) {
     // "=" indicator is present inside the string
     // Separating the alias from the network
     net = strndup(_net, pos);
     memcpy(alias, position_ptr + 1, strlen(_net) - pos - 1);
-  } else
+  } else {
     net = strdup(_net);
+  }
 
   if(net == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
@@ -3356,16 +3356,19 @@ bool Ntop::addLocalNetwork(char *_net) {
   }
 
   // Adding the Network to the local Networks
-  local_network_tree.addAddresses(net);
+  if (!local_network_tree.addAddresses(net)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure adding address");
+    free(net);  
+    return(false);
+  }
 
-  local_network_names[id] = strdup(net);
+  local_network_names[id] = net;
 
   // Adding, if available, the alias
   if(pos)
     local_network_aliases[id] = strdup(alias);
 
-  if(net)
-    free(net);  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Added Local Network %s", net);
 
   return(true);
 }

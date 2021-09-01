@@ -211,23 +211,27 @@ bool AddressTree::addAddress(const char * const _what, const int16_t user_data) 
 
 /* ******************************************* */
 
-/* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0 */
+/* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0 
+ * Return true if all provided addresses are added successfully, false if none or partial */
 bool AddressTree::addAddresses(const char *rule, const int16_t user_data) {
   char *tmp, *net;
   char * _rule = strdup(rule);
+  bool rc;
 
   if(!_rule)
     return false;
 
   net = strtok_r(_rule, ",", &tmp);
   
+  rc = true;
   while(net != NULL) {
-    addAddress(net, user_data);
+    if (!addAddress(net, user_data))
+      rc = false;
     net = strtok_r(NULL, ",", &tmp);
   }
 
   free(_rule);
-  return true;
+  return rc;
 }
 
 /* ******************************************* */
