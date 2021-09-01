@@ -317,6 +317,8 @@ else
    	  periodicity_map_link = periodicity_map_link .. "&vlan=" .. host_vlan		
    end
 
+   local ifs = interface.getStats()
+
    page_utils.print_navbar(title, url,
 			   {
 			      {
@@ -981,11 +983,11 @@ end
    end
 
    local has_tcp_distro = (host["tcp.packets.rcvd"] + host["tcp.packets.sent"] > 0)
-   local has_arp_distro = (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00")
+   local has_arp_distro = (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") and (ifs.type ~= "zmq")
 
-if(has_tcp_distro and has_arp_distro) then
-print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_vs_arp_distribution")..'</th><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td><td colspan=1><div class="pie-chart" id="arpDistro"></div></td></tr>')
-else
+   if(has_tcp_distro and has_arp_distro) then
+    print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_vs_arp_distribution")..'</th><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td><td colspan=1><div class="pie-chart" id="arpDistro"></div></td></tr>')
+   else
       if (has_tcp_distro) then
 	 print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_distribution")..'</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
       end
