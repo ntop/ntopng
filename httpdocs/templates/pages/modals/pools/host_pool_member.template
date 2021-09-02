@@ -32,13 +32,13 @@
                         <div class="col-sm-6">
                             <div class="btn-group btn-group-toggle" data-bs-toggle="buttons">
                                 <label class="btn btn-secondary active">
-                                  <input id="ip-radio" class="btn-check" type="radio" name="member_type" value="ip" checked> {{ i18n("host_pools.ip_address") }}
+                                  <input id="ip-radio-{{ modal_type }}" class="btn-check" type="radio" name="member_type" value="ip" checked> {{ i18n("host_pools.ip_address") }}
                                 </label>
                                 <label class="btn btn-secondary">
-                                  <input id="network-radio" class="btn-check"  type="radio" name="member_type" value="network"> {{ i18n("host_pools.network") }}
+                                  <input id="network-radio-{{ modal_type }}" class="btn-check"  type="radio" name="member_type" value="network"> {{ i18n("host_pools.network") }}
                                 </label>
                                 <label class="btn btn-secondary">
-                                  <input id="mac-radio" class="btn-check"  type="radio" name="member_type" value="mac"> {{ i18n("host_pools.mac_address") }}
+                                  <input id="mac-radio-{{ modal_type }}" class="btn-check"  type="radio" name="member_type" value="mac"> {{ i18n("host_pools.mac_address") }}
                                 </label>
                             </div>
                         </div>
@@ -97,7 +97,7 @@
                     <span class="invalid-feedback" id="{{ modal_type }}-modal-feedback"></span>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">
+                    <button id="{{ modal_type }}-confirm-host-pool" type="submit" class="btn btn-primary">
                         {% if modal_type == "add" then %}
                             {{ i18n("add") }}
                         {% else %}
