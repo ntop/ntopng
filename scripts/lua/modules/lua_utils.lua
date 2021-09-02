@@ -1509,6 +1509,24 @@ end
 
 -- ##############################################
 
+function getFirstIpFromMac(host_addr)
+   local mac_resolved = host_addr
+   -- Transforming the MAC into the ip address
+   local mac_hosts = interface.getMacHosts(mac_resolved) or {}
+
+   -- Mapping mac with ip and setting up the right href
+   for _, h in pairsByKeys(mac_hosts, rev) do
+      if (h.broadcast_domain_host) or (table.len(mac_hosts) == 1) then
+         mac_resolved = h.ip
+         break
+      end
+   end
+
+   return mac_resolved
+end
+
+-- ##############################################
+
 function splitNetworkPrefix(net)
    local prefix = tonumber(net:match("/(.+)"))
    local address = net:gsub("/.+","")
