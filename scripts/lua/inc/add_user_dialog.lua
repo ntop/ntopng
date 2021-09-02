@@ -36,7 +36,7 @@ print [[
     <label for="username_input">]] print(i18n("login.username")) print[[</label>
     <div class="input-group mb-6">
 	<span class="input-group-text"><i class="fas fa-user-circle" aria-hidden="true"></i></span>
-      <input id="username_input" type="text" name="username" value="" class="form-control" pattern="^[\w]{1,}$" required>
+      <input id="username_input" type="text" name="username" value="" class="form-control" pattern="]] print(getUsernameInputPattern()) print[[" required>
     </div>
     </div>
     <div class="form-group mb-3">
