@@ -325,22 +325,21 @@ $(function () {
             $(hiddenFields).hide();     
             $(`#edit-member-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');   
             $(`#edit-member-modal #${typeSelected}-radio-edit`).attr('checked', '').parent().addClass('active');        
+            $(`#edit-member-modal [class*='fields'] input, #edit-member-modal [class*='fields'] select`).attr("disabled", "disabled");
             $(`#edit-member-modal [class='${typeSelected}-fields']`).show().find('input,select').removeAttr("disabled");
+
             // on select member type shows only the fields interested
             $(`#edit-member-modal [name='member_type']`).change(function () {
                 const value = $(this).val();
                 $(`#edit-member-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');
                 $(this).attr('checked', '');
-
                 // clean the members and show the selected one
                 $(`#edit-member-modal [class*='fields']`).hide();
                 $(`#edit-member-modal [class*='fields'] input, #edit-member-modal [class*='fields'] select`).attr("disabled", "disabled");
                 $(`#edit-member-modal #${value}-radio-edit`).attr('checked', '').parent().addClass('active');
                 $(`#edit-member-modal [class='${value}-fields']`).show().find('input,select').removeAttr("disabled");
-
                 modalHandler.toggleFormSubmission();
             });
-
 
             modalHandler.toggleFormSubmission();
         },
