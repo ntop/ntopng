@@ -220,7 +220,17 @@ function saveTopologyView(network) {
 
 function setEventListenersNetwork(network) {
 
-    network.on("click", function(e) {
+    network.on("click", function(params) {
+
+        const target = params.nodes[0];
+        const selectedNode = data.nodes.find(n => n.id == target);
+        
+        if(selectedNode) {
+            $(`#host-extra-info`).removeAttr("hidden");
+            document.getElementById('host-extra-info').innerHTML = selectedNode.host_extra_info;
+        }
+        else
+            $(`#host-extra-info`).attr("hidden", "hidden");
     });
 
     network.on("doubleClick", function (params) {

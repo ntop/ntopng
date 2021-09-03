@@ -901,6 +901,16 @@ td.dt-body-right {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
+.extrainfo {
+  position: absolute;
+  z-index: 1;
+  border-radius: 4px;
+  left: 8px;
+  top: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
 footer {
   width: 100%;
   height: var(--footer-height);
