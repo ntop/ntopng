@@ -433,6 +433,22 @@ end
 
 -- #######################
 
+function get_dns_type_label(dns_type)
+   dns_type = tonumber(dns_type)
+
+   if dns_type then 
+      for k, v in pairs(dns_types) do
+	 if v == dns_type then
+	    return k
+	 end
+      end
+   end 
+
+   return string.format("%u", dns_type)
+end
+
+-- #######################
+
 function extractSIPCaller(caller)
    local i
    local j
