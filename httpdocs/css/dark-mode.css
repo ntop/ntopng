@@ -551,3 +551,9 @@ summary, .apexcharts-legend-text {
   color: #ff8a26;
   cursor: pointer;
 }
+
+.btn{
+   -webkit-appearance: none !important;
+   -moz-appearance: none !important;
+   appearance: none !important;
+}

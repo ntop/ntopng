@@ -1062,3 +1062,9 @@ td.dashboard-counter {
 .leaflet-top.leaflet-left{
   z-index: auto;
 }
+
+.btn{
+   -webkit-appearance: none !important;
+   -moz-appearance: none !important;
+   appearance: none !important;
+}
