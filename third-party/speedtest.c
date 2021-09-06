@@ -5,7 +5,7 @@
 
 /*
  * To compile as standalone application:
- * gcc -DTEST_SPEEDTEST -DHAVE_EXPAT -I/usr/include/json-c -ljson-c -lexpat -lcurl -lpthread -lm speedtest.c -o speedtest
+ * gcc -DTEST_SPEEDTEST -DHAVE_EXPAT -I/usr/include/json-c speedtest.c -o speedtest -ljson-c -lexpat -lcurl -lpthread -lm
  * Run:
  * ./speedtest
  */
