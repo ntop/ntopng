@@ -26,6 +26,7 @@
 ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   additional_fields_json = NULL;
   additional_fields_tlv = NULL;
+  l7_info = NULL;
   http_url = http_site = NULL;
   http_method = NDPI_HTTP_METHOD_UNKNOWN;
   dns_query = tls_server_name = NULL;
@@ -54,6 +55,7 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
   else
     additional_fields_json = NULL; 
 
+  if(pf.l7_info)   l7_info = strdup(pf.l7_info); else l7_info = NULL;
   if(pf.http_url)  http_url = strdup(pf.http_url); else http_url = NULL;
   if(pf.http_site) http_site = strdup(pf.http_site); else http_site = NULL;
   http_method = pf.http_method;
@@ -95,6 +97,9 @@ void ParsedFlow::fromLua(lua_State *L, int index) {
 	} else if(!strcmp(key, "http_site")) {
           if(http_site) free(http_site);
           http_site = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "l7_info")) {
+          if(l7_info) free(l7_info);
+          l7_info = strdup(lua_tostring(L, -1));
 	} else if(!strcmp(key, "http_url")) {
           if(http_url) free(http_url);
           http_url = strdup(lua_tostring(L, -1));
@@ -191,7 +196,8 @@ ParsedFlow::~ParsedFlow() {
     free(additional_fields_tlv);
   }
 
-  if(http_url) free(http_url);
+  if(l7_info)   free(l7_info);
+  if(http_url)  free(http_url);
   if(http_site) free(http_site);
   if(dns_query) free(dns_query);
   if(tls_server_name) free(tls_server_name);

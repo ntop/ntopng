@@ -31,6 +31,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   ndpi_serializer *additional_fields_tlv;
 
  public:
+  char *l7_info;
   char *http_url, *http_site;
   ndpi_http_method http_method;
   char *dns_query;

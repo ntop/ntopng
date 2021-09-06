@@ -406,6 +406,28 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 				  zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 				  zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
 
+  /*
+    Parse flow info into the corresponding element (without overriding plugin-generated data:
+    - When nProbe has plugins enabled, plugin data is taken
+    - When nProbe has no plugins enabled, then nDPI data is taken
+   */
+  if(zflow->l7_info && zflow->l7_info[0]) {
+    if(flow->isDNS() && !zflow->dns_query)            zflow->dns_query = zflow->l7_info;
+    else if(flow->isHTTP() && !zflow->http_site)      zflow->http_site = zflow->l7_info;
+    else if(flow->isTLS() && !zflow->tls_server_name) zflow->tls_server_name = zflow->l7_info;
+    else free(zflow->l7_info);
+
+    zflow->l7_info = NULL;
+
+#if 0
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s][%s][%s][%s]",
+				 zflow->dns_query ? zflow->dns_query : "",
+				 zflow->http_url ? zflow->http_url : "",
+				 zflow->http_site ? zflow->http_site : "",
+				 zflow->tls_server_name ? zflow->tls_server_name : "");
+#endif
+  }
+
   if(flow->isDNS())
     flow->updateDNS(zflow);
 

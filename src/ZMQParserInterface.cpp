@@ -71,6 +71,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("PROTOCOL", PROTOCOL);
   addMapping("L7_PROTO", L7_PROTO, NTOP_PEN);
   addMapping("L7_PROTO_NAME", L7_PROTO_NAME, NTOP_PEN);
+  addMapping("L7_INFO", L7_INFO, NTOP_PEN);
   addMapping("IN_BYTES", IN_BYTES);
   addMapping("IN_PKTS", IN_PKTS);
   addMapping("OUT_BYTES", OUT_BYTES);
@@ -613,6 +614,13 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
   case L7_PROTO_NAME:
     break;
     
+  case L7_INFO:
+    if(value->string && value->string[0] && value->string[0] != '\n') {
+      if(flow->l7_info) free(flow->l7_info);
+      flow->l7_info = strdup(value->string);
+    }
+    break;
+    
   case OOORDER_IN_PKTS:
     flow->tcp.ooo_in_pkts = value->int_num;
     break;
@@ -947,6 +955,12 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow * const flow, u_int32_t fi
       u_int16_t app_protocol = ndpi_get_proto_by_name(get_ndpi_struct(), value->string);
       return (flow->l7_proto.app_protocol == app_protocol);
     } else
+      return false;
+
+  case L7_INFO:
+    if(value->string && flow->l7_info)
+      return (strcmp(flow->l7_info, value->string) == 0);
+    else
       return false;
 
   case DNS_QUERY:

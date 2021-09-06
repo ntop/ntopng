@@ -1445,7 +1445,10 @@ else
    if(flow["protos.dns.last_query"] ~= nil) then
       print("<tr><th width=30%>"..i18n("flow_details.dns_query").."</th><td colspan=2>")
 
-      print(string.format('<span class="badge bg-info">%s</span> ', get_dns_type_label(flow["protos.dns.last_query_type"])))
+      if flow["protos.dns.last_query_type"] ~= 0 then
+	 local dns_type_label = get_dns_type_label(flow["protos.dns.last_query_type"])
+	 print(string.format('<span class="badge bg-info">%s</span> ', dns_type_label))
+      end
 
       if(string.ends(flow["protos.dns.last_query"], "arpa")) then
 	 print(shortHostName(flow["protos.dns.last_query"]))
