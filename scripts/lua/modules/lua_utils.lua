@@ -177,6 +177,15 @@ end
 
 -- ##############################################
 
+function hasSoftwareUpdatesSupport()
+   return (not ntop.isOffline() 
+      and isAdministrator()
+      and ntop.isPackage() 
+      and not ntop.isWindows())
+end
+
+-- ##############################################
+
 -- Note that ifname can be set by Lua.cpp so don't touch it if already defined
 if((ifname == nil) and (_GET ~= nil)) then
    ifname = _GET["ifid"]

@@ -29,7 +29,6 @@ local is_appliance = ntop.isAppliance()
 local is_admin = isAdministrator()
 local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
-local updates_supported = (not ntop.isOffline() and is_admin and ntop.isPackage() and not ntop.isWindows())
 local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
 local is_system_interface = page_utils.is_system_view()
 local behavior_utils = require("behavior_utils")
@@ -745,158 +744,6 @@ page_utils.print_menubar()
 -- ##############################################
 -- Interface
 
-if(num_ifaces > 0) then
-
-url = ntop.getHttpPrefix().."/lua/if_stats.lua"
-
--- ##############################################
-
--- Updates submenu
-if updates_supported then
-
--- Updates check
-print[[
-<script type='text/javascript'>
-  $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
-  $('#updates-install-li').hide();
-
-  const updates_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
-
-  /* Updates status */
-  var updatesStatus = '';
-  var updatesLastCheck = 0;
-
-  /* Install latest update */
-  var installUpdate = function() {
-    if (confirm(']] print(i18n("updates.install_confirm"))
-      if info["pro.license_days_left"] ~= nil and info["pro.license_days_left"] <= 0 then
-        -- License is valid, however maintenance is expired: warning the user
-        print(" "..i18n("updates.maintenance_expired"))
-      end
-      print[[')) {
-      $.ajax({
-        type: 'POST',
-        url: ']] print (ntop.getHttpPrefix()) print [[/lua/install_update.lua',
-        data: {
-          csrf: updates_csrf
-        },
-        success: function(rsp) {
-          $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
-          $('#updates-info-li').attr('title', '');
-          $('#updates-install-li').hide();
-          $('#admin-badge').hide();
-	  updatesStatus = 'installing';
-        }
-      });
-    }
-  }
-
-  /* Check for new updates */
-  var checkForUpdates = function() {
-    $.ajax({
-      type: 'POST',
-      url: ']] print (ntop.getHttpPrefix()) print [[/lua/check_update.lua',
-      data: {
-        csrf: updates_csrf,
-        search: 'true'
-      },
-      success: function(rsp) {
-        $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
-        $('#updates-info-li').attr('title', '');
-        $('#updates-install-li').hide();
-        $('#admin-badge').hide();
-	updatesStatus = 'checking';
-      }
-    });
-  }
-
-  /* Update the menu with the current updates status */
-  var updatesRefresh = function() {
-    const now = Date.now()/1000;
-    let check_time_sec = 10;
-
-    if (updatesStatus == 'installing' || updatesStatus == 'checking') {
-        /* Go ahead (frequent update) */
-    } else if (updatesStatus == 'update-avail' || updatesStatus == 'upgrade-failure') {
-        return; /* no need to check again */
-    } else { /* updatesStatus == 'not-avail' || updatesStatus == 'update-failure' || updatesStatus == <other errors> || updatesStatus == '' */
-        check_time_sec = 300;
-    }
-
-    if (now < updatesLastCheck + check_time_sec) return; /* check with low freq */
-    updatesLastCheck = now; 
-
-    $.ajax({
-      type: 'GET',
-        url: ']] print (ntop.getHttpPrefix()) print [[/lua/check_update.lua',
-        data: {},
-        success: function(rsp) {
-          if(rsp && rsp.status) {
-
-	    updatesStatus = rsp.status;
-
-            if (rsp.status == 'installing') {
-              $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
-              $('#updates-info-li').attr('title', '');
-              $('#updates-install-li').hide();
-              $('#admin-badge').hide();
-
-            } else if (rsp.status == 'checking') {
-              $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
-              $('#updates-info-li').attr('title', '');
-              $('#updates-install-li').hide();
-              $('#admin-badge').hide();
-
-            } else if (rsp.status == 'update-avail' || rsp.status == 'upgrade-failure') {
-
-              $('#updates-info-li').html('<span class="badge bg-pill bg-danger">]] print(i18n("updates.available")) print[[</span> ]] print(info["product"]) print[[ ' + rsp.version);
-              $('#updates-info-li').attr('title', '');
-
-              var icon = '<i class="fas fa-download"></i>';
-              $('#updates-install-li').attr('title', '');
-              if (rsp.status !== 'update-avail') {
-                icon = '<i class="fas fa-exclamation-triangle text-danger"></i>';
-                $('#updates-install-li').attr('title', "]] print(i18n("updates.update_failure_message")) print [[: " + rsp.status);
-              }
-              $('#updates-install-li').html(icon + " ]] print(i18n("updates.install")) print[[");
-              $('#updates-install-li').show();
-              $('#updates-install-li').off("click");
-              $('#updates-install-li').click(installUpdate);
-
-              if (rsp.status !== 'update-avail') $('#admin-badge').html('!');
-              else $('#admin-badge').html('1');
-              $('#admin-badge').show();
-
-            } else /* (rsp.status == 'not-avail' || rsp.status == 'update-failure' || rsp.status == <other errors>) */ {
-
-              var icon = '';
-              $('#updates-info-li').attr('title', '');
-              if (rsp.status !== 'not-avail') {
-                icon = '<i class="fas fa-exclamation-triangle text-danger"></i> ';
-                $('#updates-info-li').attr('title', "]] print(i18n("updates.update_failure_message")) print [[: " + rsp.status);
-              }
-              $('#updates-info-li').html(icon + ']] print(i18n("updates.no_updates")) print[[');
-
-              $('#updates-install-li').html("<i class='fas fa-sync'></i> ]] print(i18n("updates.check")) print[[");
-              $('#updates-install-li').show();
-              $('#updates-install-li').off("click");
-              $('#updates-install-li').click(checkForUpdates);
-
-              $('#admin-badge').hide();
-            }
-          }
-        }
-    });
-  }
-  setInterval(updatesRefresh, 1000);
-</script>
-]]
-end
-
-end -- num_ifaces > 0
-
--- ##############################################
-
 print([[
    <nav class="navbar navbar-expand-lg navbar-light fixed-top px-2 navbar-main-top" id='n-navbar'>
       <ul class='navbar-nav flex-row flex-wrap navbar-main-top'>
@@ -1208,7 +1055,7 @@ print([[
 end
 
 -- Render Update Menu
-if updates_supported then
+if hasSoftwareUpdatesSupport() then
 print([[
    <li class="dropdown-divider"></li>
    <li class="dropdown-header" id="updates-info-li">]] .. i18n("updates.no_updates") .. [[.</li>
@@ -1315,7 +1162,4 @@ print("</div>")
 if(not is_admin) then
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
-
-
-
 
