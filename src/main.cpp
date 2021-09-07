@@ -422,6 +422,8 @@ int main(int argc, char *argv[])
      runHousekeepingTasks() is performed within this method untile it has returned. */
   ntop->start();
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating...");
+
   /* Perform all the necessary cleanup and wait for other threads termination */
   ntop->shutdownAll();
 

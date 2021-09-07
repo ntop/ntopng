@@ -74,6 +74,8 @@ typedef struct { HANDLE signal, broadcast; } pthread_cond_t;
 typedef HANDLE pthread_t;
 typedef int mode_t;
 
+#define in_addr_t u_int32_t
+
 #ifdef __cplusplus
 extern "C" {
 #endif

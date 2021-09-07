@@ -23,6 +23,8 @@
 
 
 #include "ntop_win32.h"
+#include <sys/timeb.h>		/* For prototype of "_ftime()" */
+
 #define _CRT_SECURE_NO_WARNINGS 1 /* Avoid Win warnings */
 
 /* **************************************
@@ -1050,6 +1052,44 @@ strptime(const char *buf, const char *format, struct tm *tm)
 	decided = raw;
 	return strptime_internal(buf, format, tm, &decided);
 }
+
+
+
+
+/*
+ * gettimeofday() --  gets the current time in elapsed seconds and
+ *                     microsends since GMT Jan 1, 1970.
+ *
+ * ARGUMENTS: - Pointer to a timeval struct to return the time into
+ *
+ * RETURN CODES: -  0 on success
+ *                 -1 on failure
+ *
+ * http://cs.uccs.edu/~cchow/pub/master/isemwal/new_webstone/WebStone2.5/src/gettimeofday.c
+ */
+int gettimeofday(struct timeval* curTimeP) {
+	struct _timeb  localTime;
+
+	if (curTimeP == (struct timeval*)NULL) {
+		errno = EFAULT;
+		return (-1);
+	}
+
+	/*
+	 *  Compute the elapsed time since Jan 1, 1970 by first
+	 *  obtaining the elapsed time from the system using the
+	 *  _ftime(..) call and then convert to the "timeval"
+	 *  equivalent.
+	 */
+
+	_ftime(&localTime);
+
+	curTimeP->tv_sec = localTime.time + localTime.timezone;
+	curTimeP->tv_usec = localTime.millitm * 1000;
+
+	return(0);
+}
+
 
 #ifdef HAVE_LOCALE_H
 void get_locale_strings(void)
