@@ -27,8 +27,7 @@
 struct ipAddress {
   u_int8_t ipVersion:3 /* Either 4 or 6 */,
     loopbackIP:1, privateIP:1, multicastIP:1, broadcastIP:1,
-    blacklistedIP:1,
-    notUsed:1 /* Future use */;
+    blacklistedIP:1;
 
   union {
     struct ndpi_in6_addr ipv6;

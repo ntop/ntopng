@@ -104,7 +104,11 @@ void IpAddress::checkIP() {
   u_int32_t nmask;
   u_int8_t nmask_bits;
 
-  addr.privateIP = false; /* Default */
+  /* Default */
+  addr.loopbackIP = false;
+  addr.privateIP = false;
+  addr.multicastIP = false;
+  addr.broadcastIP = false; 
 
   if(addr.ipVersion == 4) {
     addr.loopbackIP = addr.ipType.ipv4 == 0x0100007F /* 127.0.0.1 */ ? true : false;
@@ -241,15 +245,25 @@ char* IpAddress::printMask(char *str, u_int str_len, bool isLocalIP) {
 /* ******************************************* */
 
 bool IpAddress::isLocalHost(int16_t *network_id) const {
-  if(addr.broadcastIP || addr.multicastIP) return(true);
-  
-  if(addr.ipVersion == 4) {
+  bool local = false;
+
+  if(addr.broadcastIP || addr.multicastIP) {
+    local = true;
+  } else if(addr.ipVersion == 4) {
     u_int32_t v = /* htonl */(addr.ipType.ipv4);
-    
-    return(ntop->isLocalAddress(AF_INET, (void*)&v, network_id));
+    local = ntop->isLocalAddress(AF_INET, (void*)&v, network_id);
   } else {
-    return(ntop->isLocalAddress(AF_INET6, (void*)&addr.ipType.ipv6, network_id));
+    local = ntop->isLocalAddress(AF_INET6, (void*)&addr.ipType.ipv6, network_id);
   }
+
+#if 0 /* Debug */
+  char buff[64];
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "IP %s is %sLocal [broadcast=%u][multicast=%u]",
+    print(buff, sizeof(buff), 128), local ? "" : "NOT ",
+    addr.broadcastIP, addr.multicastIP);
+#endif
+
+  return local;
 }
 
 /* ******************************************* */
