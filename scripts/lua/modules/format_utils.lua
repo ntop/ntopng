@@ -209,17 +209,21 @@ function format_utils.formatEpoch(epoch)
     return("")
   else
    local t = epoch + getFrontendTzSeconds()
-   local key = ntop.getPref('ntopng.user.' .. _SESSION["user"] .. '.date_format')
+   local key = ""
 
-   if(key == "little_endian") then
+   if _SESSION then
+      key = ntop.getPref('ntopng.user.' .. (_SESSION["user"] or "") .. '.date_format')
+   end
+
+   if(key == "big_endian") then
      -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
-     return(os.date("!%d/%m/%Y %X", t))
+     return(os.date("!%Y/%m/%d %X", t))
    elseif( key == "middle_endian") then
      -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
      return(os.date("!%m/%d/%Y %X", t))
    else
      -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
-     return(os.date("!%Y/%m/%d %X", t))
+     return(os.date("!%d/%m/%Y %X", t))
    end
 
   end
