@@ -340,12 +340,10 @@ local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
       direction = "receivers"
       select_col = "rcvd"
    end
-
    local tophosts = {}
 
    for idx1, vlan in pairs(top_talkers.vlan or {}) do
       for idx2, host in pairs(vlan.hosts[1][direction] or {}) do
-	 if host["local"] == "true" then
 	    -- need to recalculate total value
 	    local host_tags = {ifid=tags.ifid, host=host.address}
 	    local host_partials = ts_utils.queryTotal("host:traffic", tstart, tend, host_tags)
@@ -369,8 +367,7 @@ local function getLocalTopTalkers(schema_id, tags, tstart, tend, options)
 		     visual_addr = host.visual_addr, -- optional
 		  }
 	       }
-	    end
-	 end
+	     end
       end
    end
 
