@@ -2809,6 +2809,12 @@ function hasKey(key, theTable)
       return(true)
    end
 end
+
+function getUsernameInputPattern()
+  -- maximum len must be kept in sync with MAX_PASSWORD_LEN
+  return [[^(?=[a-zA-Z0-9._@!-?]{3,20}$)(?!.*[_.]{2})[^_.].*[^_.]$]]
+end
+
 function getPasswordInputPattern()
   -- maximum len must be kept in sync with MAX_PASSWORD_LEN
   return [[^[\w\$\\!\/\(\)= \?\^\*@_\-\u0000-\u0019\u0021-\u00ff]{5,31}$]]
