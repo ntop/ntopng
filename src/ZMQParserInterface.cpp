@@ -761,7 +761,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
 
   case FLOW_VERDICT:
     flow->flow_verdict = value->int_num;
-    break;
+    return false;
 
   case BITTORRENT_HASH:
     if(value->string && value->string[0] && value->string[0] != '\n') {
