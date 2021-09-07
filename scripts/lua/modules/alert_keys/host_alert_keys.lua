@@ -22,6 +22,7 @@ local host_alert_keys = {
   host_alert_dangerous_host              = 14,
   host_alert_ntp_traffic                 = 15,
   host_alert_countries_contacts          = 16,
+  host_alert_score_threshold             = 17,
    
    -- NOTE: Keep in sync with HostAlertTypeEnum in ntop_typedefs.h
 }
