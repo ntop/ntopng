@@ -1615,7 +1615,7 @@ else
 	 end
       end
 
-      if flow["flow_verdict"] then
+      if not interface.isPacketInterface() and flow["flow_verdict"] then
 	 local flow_verdict = parseFlowVerdict(flow["flow_verdict"])
 	 print("<tr><th width=30%>" .. i18n("details.flow_verdict") .. "</th><td colspan=2>" .. flow_verdict .. "</td></tr>\n")
       end
