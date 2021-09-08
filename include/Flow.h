@@ -46,7 +46,7 @@ class Flow : public GenericHashEntry {
   VLANid vlanId;
   u_int32_t vrfId;
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
-  u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
+  u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags, flow_verdict;
   u_int8_t src2dst_tcp_zero_window:1, dst2src_tcp_zero_window:1, _pad:6;
   u_int16_t flow_score;
   struct ndpi_flow_struct *ndpiFlow;
@@ -316,6 +316,8 @@ class Flow : public GenericHashEntry {
    */
   void enqueuePredominantAlert();
 
+  inline void setFlowVerdict(u_int8_t _flow_verdict) { flow_verdict = _flow_verdict; };
+ 
   inline void setPredominantAlert(FlowAlertType alert_type, u_int16_t score);
   inline FlowAlertType getPredominantAlert() const { return predominant_alert; };
   inline u_int16_t getPredominantAlertScore() const { return predominant_alert_score; };

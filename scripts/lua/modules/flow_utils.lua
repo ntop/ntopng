@@ -22,6 +22,23 @@ end
 
 -- #######################
 
+local flow_verdict_mapping = {
+   "Pass", -- 1
+   "Drop", -- 2
+}
+
+-- #######################
+
+function parseFlowVerdict(flow_verdict)
+   if flow_verdict_mapping[flow_verdict] then
+      return (flow_verdict .. " (" .. flow_verdict_mapping[flow_verdict] .. ")")
+   end
+   
+   return flow_verdict
+end
+
+-- #######################
+
 function formatInterfaceId(id, idx, snmpdevice)
    if(id == 65535) then
       return("Unknown")

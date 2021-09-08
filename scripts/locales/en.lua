@@ -1346,6 +1346,7 @@ local lang = {
     ["flows_dropped_by_bridge"] = "Flows Blocked due to Traffic Policies",
     ["flows_non_packet_iface"] = "Recently Active Flows / Total / Total Alerted",
     ["flows_packet_iface"] = "Flows: Active / Total / Alerted / Port Unreach",
+    ["flow_verdict"] = "Flow Verdict",
     ["fragments"] = "Fragments",
     ["further_host_names_information"] = "Additional Host Names",
     ["goodput"] = "Goodput",

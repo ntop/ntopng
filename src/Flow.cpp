@@ -74,6 +74,7 @@ Flow::Flow(NetworkInterface *_iface,
     host_server_name = NULL;
   bt_hash = NULL;
 
+  flow_verdict = 0;
   operating_system = os_unknown;
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
     top_bytes_thpt = 0, top_pkts_thpt = 0;
@@ -2171,6 +2172,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(!getInterface()->isPacketInterface())
       lua_snmp_info(vm);
 
+    lua_push_int32_table_entry(vm, "flow_verdict", flow_verdict);
+    
     if(get_json_info()) {
       lua_push_str_table_entry(vm, "moreinfo.json", json_object_to_json_string(get_json_info()));
       has_json_info = true;

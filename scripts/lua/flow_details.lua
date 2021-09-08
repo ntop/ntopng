@@ -1614,7 +1614,12 @@ else
 	    printFlowSNMPInfo(snmpdevice, flow["in_index"], flow["out_index"])
 	 end
       end
-      
+
+      if flow["flow_verdict"] then
+	 local flow_verdict = parseFlowVerdict(flow["flow_verdict"])
+	 print("<tr><th width=30%>" .. i18n("details.flow_verdict") .. "</th><td colspan=2>" .. flow_verdict .. "</td></tr>\n")
+      end
+	    
       local num = 0
       for key,value in pairsByKeys(info) do
 	 if(num == 0) then

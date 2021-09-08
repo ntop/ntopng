@@ -399,6 +399,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   }
 #endif
 
+  flow->setFlowVerdict(zflow->flow_verdict);
   flow->setJSONInfo(zflow->getAdditionalFieldsJSON());
   flow->setTLVInfo(zflow->getAdditionalFieldsTLV());
 
