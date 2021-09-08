@@ -1068,3 +1068,13 @@ td.dashboard-counter {
    -moz-appearance: none !important;
    appearance: none !important;
 }
+
+.alert-warning{
+  color: #5f4702;
+  background-color: #fff0a5;
+  border-color: #f7e694;
+}
+
+li > a > .fa-external-link-alt{
+  color: #0091EA;
+}

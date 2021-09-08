@@ -579,7 +579,6 @@ end
 		      dialog={
 			 id      = "ext_link_dialog",
 			 title   = i18n("external_link"),
-			 custom_alert_class = "alert alert-danger",
 			 message = i18n("show_alerts.confirm_external_link"),
 			 confirm = i18n("redirect"),
 		      }
