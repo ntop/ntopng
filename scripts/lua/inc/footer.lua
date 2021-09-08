@@ -137,6 +137,7 @@ if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
 			   },
 			   success: function(rsp) {
 				 alert("]] print(i18n("restart.restarting", {product=info.product})) print[[");
+				 $('#restart-modal').modal('hide');
 			   }
 			 });
 		 }
