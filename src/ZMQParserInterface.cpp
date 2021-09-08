@@ -2057,7 +2057,7 @@ u_int32_t ZMQParserInterface::periodicStatsUpdateFrequency() const {
   u_int32_t update_freq_min = ntop->getPrefs()->get_housekeeping_frequency();
 
   if(zrs)
-    update_freq = max_val(max_val(zrs->remote_lifetime_timeout, zrs->remote_idle_timeout), zrs->remote_collected_lifetime_timeout);
+    update_freq = min_val(max_val(zrs->remote_lifetime_timeout, zrs->remote_idle_timeout), zrs->remote_collected_lifetime_timeout);
   else
     update_freq = update_freq_min;
 
@@ -2153,7 +2153,7 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
     is_sampled_traffic = true;
 
   /* Recalculate the flow max idle according to the timeouts received */
-  flow_max_idle = max(cumulative_zrs->remote_lifetime_timeout, cumulative_zrs->remote_collected_lifetime_timeout) + 10 /* Safe margin */;
+  flow_max_idle = min_val(cumulative_zrs->remote_lifetime_timeout, cumulative_zrs->remote_collected_lifetime_timeout) + 10 /* Safe margin */;
   updateFlowMaxIdle();
   
   if((zmq_initial_pkts == 0) /* ntopng has been restarted */
