@@ -126,8 +126,6 @@ print[[
       <div class="col-lg-12">
         <small>
         <p><a href="]] print(ntop.getHttpPrefix()) print[[logout.lua">]] print(i18n("login.logout")) print[[</a></p>
-      <p>]] print(i18n("login.donation", {product=info["product"], donation_url="http://shop.ntop.org"})) print[[
-          </p>
 
       <p>]] print(info["copyright"]) print [[<br> ]] print(i18n("login.license", {product=info["product"], license="GPLv3", license_url="http://www.gnu.org/copyleft/gpl.html"})) print[[</p>
         </small>
