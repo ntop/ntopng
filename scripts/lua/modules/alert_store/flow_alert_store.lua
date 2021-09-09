@@ -315,6 +315,8 @@ function flow_alert_store:format_record(value, no_html)
    local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= '0')   
    local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, alert_info)
 
+   msg = addScoreToAlertDescr(msg, ntop.getFlowAlertScore((tonumber(value["alert_id"]))))
+
    local active_url = ""
 
    local attacker = ""

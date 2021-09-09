@@ -4551,6 +4551,14 @@ function getFullObsPointName(observation_point_id, compact, add_id)
    return observation_point_id
 end
 
+-- ##############################################
+
+function addScoreToAlertDescr(msg, score)
+   return (msg .. string.format(" [%s: %s]",
+            i18n("score"),
+            format_utils.formatValue(score)))
+end
+
 -- #####################
 
 local iec104_typeids = {
