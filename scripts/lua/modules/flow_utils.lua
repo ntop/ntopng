@@ -27,11 +27,16 @@ local flow_verdict_mapping = {
    "Drop", -- 2
 }
 
+local flow_verdict_icon = {
+   '<i class="fas fa-check"></i>',
+   '<i class="fas fa-ban"></i>',
+}
+
 -- #######################
 
 function parseFlowVerdict(flow_verdict)
    if flow_verdict_mapping[flow_verdict] then
-      return (flow_verdict .. " (" .. flow_verdict_mapping[flow_verdict] .. ")")
+      return (flow_verdict .. " (" .. flow_verdict_mapping[flow_verdict] .. " " .. flow_verdict_icon[flow_verdict] .. ")")
    end
    
    return flow_verdict
