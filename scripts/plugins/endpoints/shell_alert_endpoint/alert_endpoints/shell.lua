@@ -21,6 +21,7 @@ local shell = {
       template_name = "shell_endpoint.template"
     },
     recipient_params = {
+      { param_name = "shell_script_options" },
     },
     recipient_template = {
       plugin_key = endpoint_key,
@@ -45,6 +46,7 @@ end
 local function recipient2sendMessageSettings(recipient)
   local settings = {
     path    = recipient.endpoint_conf.shell_script,
+    options = recipient.recipient_params.shell_script_options,
   }
 
   return settings
@@ -66,6 +68,7 @@ function shell.runScript(alerts, settings)
    local where = { "/usr/share/ntopng/scripts/shell/", dirs.installdir.."/scripts/shell/" }
    local fullpath = nil
    local do_debug = false
+   local options = settings.options
    
    for _,p in ipairs(where) do
       local path = p .. settings.path
@@ -88,7 +91,7 @@ function shell.runScript(alerts, settings)
     local exec_script = fullpath
 
     -- Mask output
-    local cmd = exec_script .. " > /dev/null"
+    local cmd = exec_script .. " " .. options .. " > /dev/null"
 
     -- Running script with the alert (json) as input (stdin)
     sys_utils.execShellCmd(cmd, json.encode(alert))

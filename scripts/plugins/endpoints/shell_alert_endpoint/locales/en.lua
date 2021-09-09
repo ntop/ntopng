@@ -17,7 +17,7 @@ return {
 
     shell_description = {
         path_description = "Note:<ul><li>The script must be stored in \"/usr/share/ntopng/scripts/shell/\"<li>Alert information are provided to the script through the standard input in JSON format.</lu>",
-        option_description = "Instructions<ul><li>Insert here the options you want to pass to the script</ul>",
+        option_description = "Instructions<ul><li>Insert here the options with which the script is going to be executed (e.g. `-i eno1 -p 2220`)</ul>",
      }
  }
  

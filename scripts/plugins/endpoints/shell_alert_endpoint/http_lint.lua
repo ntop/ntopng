@@ -19,7 +19,7 @@ local script = {}
 function script.getAdditionalParameters(http_lint)
    return {
       ["shell_script"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
-      ["shell_options"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
+      ["shell_script_options"] = http_lint.validateEmptyOr(http_lint.validateUnquoted),
    }
 end
 
