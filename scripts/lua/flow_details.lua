@@ -1550,6 +1550,11 @@ else
       print("</tr>\n")
    end
 
+   if not interface.isPacketInterface() and flow["flow_verdict"] then
+      local flow_verdict = parseFlowVerdict(flow["flow_verdict"])
+      print("<tr><th width=30%>" .. i18n("details.flow_verdict") .. "</th><td colspan=2>" .. flow_verdict .. "</td></tr>\n")
+   end
+
    if (flow["moreinfo.json"] ~= nil) then
       local flow_field_value_maps = require "flow_field_value_maps"
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)
@@ -1613,11 +1618,6 @@ else
 	 else
 	    printFlowSNMPInfo(snmpdevice, flow["in_index"], flow["out_index"])
 	 end
-      end
-
-      if not interface.isPacketInterface() and flow["flow_verdict"] then
-	 local flow_verdict = parseFlowVerdict(flow["flow_verdict"])
-	 print("<tr><th width=30%>" .. i18n("details.flow_verdict") .. "</th><td colspan=2>" .. flow_verdict .. "</td></tr>\n")
       end
 	    
       local num = 0
