@@ -2089,7 +2089,14 @@ datalink_check:
 	    eth_type = ntohs(ethernet->h_proto);
 	    goto decode_packet_eth;
 	  } else if(gre.proto == ETH_P_ERSPAN2 /* ERSPAN version 2 (type III) */) {
-	    ; /* TODO: support ERSPAN Type 3 */
+	    if(h->caplen >= offset + sizeof(struct ndpi_ethhdr) + 20) {
+	      offset += 20;
+	      eth_offset = offset;
+	      ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
+	      ip_offset = eth_offset + sizeof(struct ndpi_ethhdr);
+	      eth_type = ntohs(ethernet->h_proto);
+	      goto decode_packet_eth;
+	    }
 	  } else {
 	    /* Unknown encapsulation */
 	  }
