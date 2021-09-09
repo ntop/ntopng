@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-Country::Country(NetworkInterface *_iface, const char *country) : GenericHashEntry(_iface), Score(_iface), dirstats(_iface, 0) {
+Country::Country(NetworkInterface *_iface, const char *country) : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface), dirstats(_iface, 0) {
   country_name = strdup(country);
 
 #ifdef COUNTRY_DEBUG
@@ -59,8 +59,8 @@ void Country::lua(lua_State* vm, DetailsLevel details_level, bool asListElement)
   lua_push_uint64_table_entry(vm, "bytes", getNumBytes());
 
   if(details_level >= details_high) {
-    GenericTrafficElement::lua(vm, true);
     dirstats.lua(vm);
+    GenericTrafficElement::lua(vm, true); /* Must stay after dirstats */
     lua_push_uint64_table_entry(vm, "seen.first", first_seen);
     lua_push_uint64_table_entry(vm, "seen.last", last_seen);
     lua_push_uint64_table_entry(vm, "duration", get_duration());
