@@ -557,3 +557,8 @@ summary, .apexcharts-legend-text {
    -moz-appearance: none !important;
    appearance: none !important;
 }
+
+
+li > a > .fa-external-link-alt{
+  color: #ff8a26;
+}
