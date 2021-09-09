@@ -477,7 +477,7 @@ function alert_store:add_filter_condition(field, op, value, value_type)
       self._where[field] = { all = {}, any = {} }
    end
 
-   if op == 'neq' then
+   if op == 'neq' or field == 'score' then
       self._where[field].all[#self._where[field].all + 1] = cond
    else
       self._where[field].any[#self._where[field].any + 1] = cond
@@ -1055,6 +1055,7 @@ function alert_store:add_request_filters()
    local epoch_end = tonumber(_GET["epoch_end"])
    local alert_id = _GET["alert_id"] or _GET["alert_type"] --[[ compatibility ]]--
    local alert_severity = _GET["severity"] or _GET["alert_severity"]
+   local score = _GET["score"]
    local rowid = _GET["row_id"]
    local status = _GET["status"]
 
@@ -1063,6 +1064,7 @@ function alert_store:add_request_filters()
 
    self:add_filter_condition_list('alert_id', alert_id, 'number')
    self:add_filter_condition_list('severity', alert_severity, 'number')
+   self:add_filter_condition_list('score', score, 'number')
    self:add_filter_condition_list('rowid', rowid, 'number')
 
    self:_add_additional_request_filters()
@@ -1089,6 +1091,10 @@ function alert_store:get_available_filters()
       severity = {
          value_type = 'severity',
 	 i18n_label = i18n('tags.severity'),
+      },
+      score = {
+         value_type = 'score',
+	 i18n_label = i18n('tags.score'),
       },
    }
 

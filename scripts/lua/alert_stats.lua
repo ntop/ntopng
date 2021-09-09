@@ -66,6 +66,7 @@ local time_range_query = "epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
 
 local alert_id = _GET["alert_id"]
 local severity = _GET["severity"]
+local score = _GET["score"]
 local ip_version = _GET["ip_version"]
 local host_ip = _GET["ip"]
 local cli_ip = _GET["cli_ip"]
@@ -250,6 +251,7 @@ widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
         status = status,
         alert_id = alert_id,
         severity = severity,
+	score = score,
         ip_version = ip_version,
         ip = host_ip,
         cli_ip = cli_ip,
@@ -348,6 +350,7 @@ local modals = {
 local operators_by_filter = {
     alert_id = {'eq','neq'},
     severity = {'eq','lte','gte','neq'},
+    score = {'eq','lte','gte'},
     ip_version = {'eq','neq'},
     ip = {'eq','neq'},
     port = {'eq','neq'},
@@ -361,6 +364,7 @@ local defined_tags = {
     ["host"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	score = operators_by_filter.score,
         ip_version = operators_by_filter.ip_version,
         ip = operators_by_filter.ip,
         role = operators_by_filter.role,
@@ -369,14 +373,17 @@ local defined_tags = {
     ["mac"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	score = operators_by_filter.score,
     },
     ["snmp_device"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	score = operators_by_filter.score,
     },
     ["flow"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	score = operators_by_filter.score,
         l7_proto  = operators_by_filter.l7_proto,
         ip_version = operators_by_filter.ip_version,
         ip = operators_by_filter.ip,
@@ -389,23 +396,28 @@ local defined_tags = {
     ["system"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	score = operators_by_filter.score,
     },
     ["am_host"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	score = operators_by_filter.score,
     },
     ["interface"] = {
         alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	score = operators_by_filter.score,
        	subtype = operators_by_filter.text,
     },
     ["user"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	score = operators_by_filter.score,
     },
     ["network"] = {
 	alert_id = operators_by_filter.alert_id,
 	severity = operators_by_filter.severity,
+	score = operators_by_filter.score,
         network_name = operators_by_filter.text,
     }
 }
@@ -474,6 +486,7 @@ local context = {
             i18n = {
 	        alert_id = i18n("tags.alert_id"),
                 severity = i18n("tags.severity"),
+		score = i18n("tags.score"),
                 l7_proto = i18n("tags.l7proto"),
                 cli_ip = i18n("tags.cli_ip"),
                 srv_ip = i18n("tags.srv_ip"),
@@ -514,6 +527,7 @@ local context = {
             status = status,
             alert_id = alert_id,
             severity = severity,
+	    score = score,
             ip_version = ip_version,
             ip = host_ip,
             cli_ip = cli_ip,

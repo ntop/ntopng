@@ -5305,6 +5305,7 @@ local lang = {
     ["role"] = "Role",
     ["role_cli_srv"] = "Client/Server",
     ["severity"] = "Severity",
+    ["score"] = "Score",
     ["srv_ip"] = "Server",
     ["srv_port"] = "Server Port",
     ["subtype"] = "Subject",
