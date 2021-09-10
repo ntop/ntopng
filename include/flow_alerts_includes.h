@@ -52,6 +52,7 @@
 #include "flow_alerts/FlowRiskMalformedPacketAlert.h"
 #include "flow_alerts/FlowRiskSMBInsecureVersionAlert.h"
 #include "flow_alerts/FlowRiskSSHObsoleteServerAlert.h"
+#include "flow_alerts/FlowRiskSSHObsoleteClientAlert.h"
 #include "flow_alerts/FlowRiskSuspiciousDGADomainAlert.h"
 #include "flow_alerts/FlowRiskTLSAlert.h"
 #include "flow_alerts/FlowRiskTLSCertValidityTooLongAlert.h"

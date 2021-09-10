@@ -19,23 +19,12 @@
  *
  */
 
-#ifndef _FLOW_RISK_NDPI_SSH_OBSOLETE_SERVER_H_
-#define _FLOW_RISK_NDPI_SSH_OBSOLETE_SERVER_H_
+#include "flow_alerts_includes.h"
 
-#include "ntop_includes.h"
+ndpi_serializer* FlowRiskSSHObsoleteClientAlert::getAlertJSON(ndpi_serializer* serializer) {
+  if(serializer == NULL)
+    return NULL;
 
-class FlowRiskSSHObsoleteServer : public FlowRisk {
- private:
-  FlowAlertType getAlertType() const { return FlowRiskSSHObsoleteServerAlert::getClassType(); }
+  return serializer;
+}
 
- public:
-  FlowRiskSSHObsoleteServer() : FlowRisk() {};
-  ~FlowRiskSSHObsoleteServer() {};
-
-  FlowAlert *buildAlert(Flow *f)  { return new FlowRiskSSHObsoleteServerAlert(this, f); }
-
-  std::string getName()        const { return(std::string("ndpi_ssh_obsolete_server")); }
-  ndpi_risk_enum handledRisk() { return FlowRiskSSHObsoleteServerAlert::getClassRisk();       }
-};
-
-#endif

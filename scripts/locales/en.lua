@@ -780,6 +780,7 @@ local lang = {
     ["ndpi_risky_domain_title"] = "Risky Domain",
     ["ndpi_smb_insecure_version_title"] = "Insecure SMB Version",
     ["ndpi_ssh_obsolete_server_title"] = "Obsolete Server SSH",
+    ["ndpi_ssh_obsolete_client_title"] = "Obsolete Client SSH",
     ["ndpi_suspicious_dga_domain_title"] = "Suspicious DGA Domain",
     ["ndpi_tls_cert_validity_too_long_title"] = "Too Long TLS Certificate Validity",
     ["ndpi_tls_certificate_expired_title"] = "TLS Certificate Expired",

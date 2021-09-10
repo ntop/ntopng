@@ -78,6 +78,7 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new FlowRiskMalformedPacket()))                     registerCheck(fcb);
   if((fcb = new FlowRiskSMBInsecureVersion()))                  registerCheck(fcb);
   if((fcb = new FlowRiskSSHObsoleteServer()))                   registerCheck(fcb);
+  if((fcb = new FlowRiskSSHObsoleteClient()))                   registerCheck(fcb);
   if((fcb = new FlowRiskSuspiciousDGADomain()))                 registerCheck(fcb);
   if((fcb = new FlowRiskTLSMissingSNI()))                       registerCheck(fcb);
   if((fcb = new FlowRiskTLSNotCarryingHTTPS()))                 registerCheck(fcb);

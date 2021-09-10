@@ -19,23 +19,23 @@
  *
  */
 
-#ifndef _FLOW_RISK_NDPI_SSH_OBSOLETE_SERVER_H_
-#define _FLOW_RISK_NDPI_SSH_OBSOLETE_SERVER_H_
+#ifndef _FLOW_RISK_NDPI_SSH_OBSOLETE_CLIENT_H_
+#define _FLOW_RISK_NDPI_SSH_OBSOLETE_CLIENT_H_
 
 #include "ntop_includes.h"
 
-class FlowRiskSSHObsoleteServer : public FlowRisk {
+class FlowRiskSSHObsoleteClient : public FlowRisk {
  private:
-  FlowAlertType getAlertType() const { return FlowRiskSSHObsoleteServerAlert::getClassType(); }
+  FlowAlertType getAlertType() const { return FlowRiskSSHObsoleteClientAlert::getClassType(); }
 
  public:
-  FlowRiskSSHObsoleteServer() : FlowRisk() {};
-  ~FlowRiskSSHObsoleteServer() {};
+  FlowRiskSSHObsoleteClient() : FlowRisk() {};
+  ~FlowRiskSSHObsoleteClient() {};
 
-  FlowAlert *buildAlert(Flow *f)  { return new FlowRiskSSHObsoleteServerAlert(this, f); }
+  FlowAlert *buildAlert(Flow *f)  { return new FlowRiskSSHObsoleteClientAlert(this, f); }
 
-  std::string getName()        const { return(std::string("ndpi_ssh_obsolete_server")); }
-  ndpi_risk_enum handledRisk() { return FlowRiskSSHObsoleteServerAlert::getClassRisk();       }
+  std::string getName()        const { return(std::string("ndpi_ssh_obsolete_client")); }
+  ndpi_risk_enum handledRisk() { return FlowRiskSSHObsoleteClientAlert::getClassRisk();       }
 };
 
 #endif
