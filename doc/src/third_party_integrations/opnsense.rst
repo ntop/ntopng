@@ -135,4 +135,12 @@ to select a specific interface. Alternatively it is possible to use the *Connect
 switch to collect traffic information from a local nProbe instance (please take a look
 at the *os-nprobe* `nProbe plugin guide <https://www.ntop.org/guides/nprobe/third_party_integrations/opnsense.html>`_).
 
+Common Issues
+=============
+
+A common issue on FreeBSD which is preventing ntopng from running and even 
+showing Version and License information under *Settings* > *License*, is a
+corrupted Redis database. In order to quickly fix this it is required to 
+remove the database files under /var/db/redis/*.rdb and restart the service
+(or reboot the machine).
 
