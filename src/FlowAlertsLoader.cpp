@@ -39,7 +39,7 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(FlowRiskKnownProtocolOnNonStandardPortAlert::getClassType(), FlowRiskKnownProtocolOnNonStandardPortAlert::getDefaultScore());
   registerAlert(FlowRiskMalformedPacketAlert::getClassType(), FlowRiskMalformedPacketAlert::getDefaultScore());
   registerAlert(FlowRiskSMBInsecureVersionAlert::getClassType(), FlowRiskSMBInsecureVersionAlert::getDefaultScore());
-  registerAlert(FlowRiskSSHObsoleteAlert::getClassType(), FlowRiskSSHObsoleteAlert::getDefaultScore());
+  registerAlert(FlowRiskSSHObsoleteServerAlert::getClassType(), FlowRiskSSHObsoleteServerAlert::getDefaultScore());
   registerAlert(FlowRiskSuspiciousDGADomainAlert::getClassType(), FlowRiskSuspiciousDGADomainAlert::getDefaultScore());
   registerAlert(FlowRiskTLSMissingSNIAlert::getClassType(), FlowRiskTLSMissingSNIAlert::getDefaultScore());
   registerAlert(FlowRiskTLSCertValidityTooLongAlert::getClassType(), FlowRiskTLSCertValidityTooLongAlert::getDefaultScore());

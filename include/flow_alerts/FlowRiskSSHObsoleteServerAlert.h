@@ -19,26 +19,26 @@
  *
  */
 
-#ifndef _FR_SSH_OBSOLETE_ALERT_H_
-#define _FR_SSH_OBSOLETE_ALERT_H_
+#ifndef _FR_SSH_OBSOLETE_SERVER_ALERT_H_
+#define _FR_SSH_OBSOLETE_SERVER_ALERT_H_
 
 #include "ntop_includes.h"
 
-class FlowRiskSSHObsoleteAlert : public FlowRiskAlert {
+class FlowRiskSSHObsoleteServerAlert : public FlowRiskAlert {
  private:
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_SSH_OBSOLETE_SERVER_VERSION_OR_CIPHER; }
-  static FlowAlertType getClassType() { return { flow_alert_ndpi_ssh_obsolete, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_ndpi_ssh_obsolete_server, alert_category_security }; }
   static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskSSHObsoleteAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
-  ~FlowRiskSSHObsoleteAlert() { };
+ FlowRiskSSHObsoleteServerAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
+  ~FlowRiskSSHObsoleteServerAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk()  const { return getClassRisk();  }
   u_int8_t       getAlertScore() const { return getDefaultScore(); }
 };
 
-#endif /* _FR_SSH_OBSOLETE_ALERT_H_ */
+#endif /* _FR_SSH_OBSOLETE_SERVER_ALERT_H_ */

@@ -446,7 +446,7 @@ typedef enum {
   flow_alert_ndpi_tls_not_carrying_https      = 46,
   flow_alert_ndpi_suspicious_dga_domain       = 47,
   flow_alert_ndpi_malformed_packet            = 48,
-  flow_alert_ndpi_ssh_obsolete                = 49,
+  flow_alert_ndpi_ssh_obsolete_server         = 49,
   flow_alert_ndpi_smb_insecure_version        = 50,
   flow_alert_ndpi_tls_suspicious_esni_usage   = 51,
   flow_alert_ndpi_unsafe_protocol             = 52,
@@ -458,6 +458,7 @@ typedef enum {
   flow_alert_lateral_movement                 = 58,
   flow_alert_periodicity_changed              = 59,
   flow_alert_ndpi_tls_cert_validity_too_long  = 60,
+  flow_alert_ndpi_ssh_obsolete_client         = 61,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

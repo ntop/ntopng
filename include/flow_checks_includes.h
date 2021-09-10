@@ -38,7 +38,7 @@
 #include "flow_checks/FlowRiskKnownProtocolOnNonStandardPort.h"
 #include "flow_checks/FlowRiskMalformedPacket.h"
 #include "flow_checks/FlowRiskSMBInsecureVersion.h"
-#include "flow_checks/FlowRiskSSHObsolete.h"
+#include "flow_checks/FlowRiskSSHObsoleteServer.h"
 #include "flow_checks/FlowRiskSuspiciousDGADomain.h"
 #include "flow_checks/FlowRiskTLS.h"
 #include "flow_checks/FlowRiskTLSMissingSNI.h"
