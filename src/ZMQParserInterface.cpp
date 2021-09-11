@@ -756,7 +756,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     break;
 
   case L7_PROTO_RISK:
-    flow->ndpi_flow_risk_bitmap = value->int_num;
+    flow->ndpi_flow_risk_bitmap = (ndpi_risk)value->int_num;
     break;
 
   case FLOW_VERDICT:
