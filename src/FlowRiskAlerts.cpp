@@ -24,132 +24,155 @@
 /* **************************************************** */
 
 const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RISK] = {
-  [NDPI_BINARY_APPLICATION_TRANSFER] =
-  {
-    .alert_type.id = flow_alert_suspicious_file_transfer,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = "suspicious_file_transfer"
+  [NDPI_NO_RISK] = {
+    .alert_type = { flow_alert_normal, alert_category_other },
+    .alert_lua_name = ""
   },
   [NDPI_URL_POSSIBLE_XSS] = {
-    .alert_type.id = flow_alert_ndpi_url_possible_xss,
-    .alert_type.category = alert_category_security,
+    .alert_type = { flow_alert_ndpi_url_possible_xss, alert_category_security },
     .alert_lua_name = ""
   },
   [NDPI_URL_POSSIBLE_SQL_INJECTION] = {
-    .alert_type.id = flow_alert_ndpi_url_possible_sql_injection,
-    .alert_type.category = alert_category_security,
+    .alert_type = { flow_alert_ndpi_url_possible_sql_injection, alert_category_security },
     .alert_lua_name = ""
   },
   [NDPI_URL_POSSIBLE_RCE_INJECTION] = {
-    .alert_type.id = flow_alert_ndpi_url_possible_rce_injection,
-    .alert_type.category = alert_category_security,
+    .alert_type = { flow_alert_ndpi_url_possible_rce_injection, alert_category_security },
     .alert_lua_name = ""
   },
-  [NDPI_DNS_SUSPICIOUS_TRAFFIC] = {
-    .alert_type.id = flow_alert_ndpi_dns_suspicious_traffic,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_HTTP_NUMERIC_IP_HOST] = {
-    .alert_type.id = flow_alert_ndpi_http_numeric_ip_host,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_HTTP_SUSPICIOUS_HEADER] = {
-    .alert_type.id = flow_alert_ndpi_http_suspicious_header,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_HTTP_SUSPICIOUS_URL] = {
-    .alert_type.id = flow_alert_ndpi_http_suspicious_url,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_HTTP_SUSPICIOUS_USER_AGENT] = {
-    .alert_type.id = flow_alert_ndpi_http_suspicious_user_agent,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
+  [NDPI_BINARY_APPLICATION_TRANSFER] =
+  {
+    .alert_type = { flow_alert_suspicious_file_transfer, alert_category_security },
+    .alert_lua_name = "suspicious_file_transfer"
   },
   [NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT] = {
-    .alert_type.id = flow_alert_known_proto_on_non_std_port,
-    .alert_type.category = alert_category_security,
+    .alert_type = { flow_alert_known_proto_on_non_std_port, alert_category_security },
     .alert_lua_name = ""
   },
-  [NDPI_MALFORMED_PACKET] = {
-    .alert_type.id = flow_alert_ndpi_malformed_packet,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_SMB_INSECURE_VERSION] = {
-    .alert_type.id = flow_alert_ndpi_smb_insecure_version,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_SSH_OBSOLETE_CLIENT_VERSION_OR_CIPHER] = {
-    .alert_type.id = flow_alert_ndpi_ssh_obsolete_client,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_SSH_OBSOLETE_SERVER_VERSION_OR_CIPHER] = {
-    .alert_type.id = flow_alert_ndpi_ssh_obsolete_server,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_SUSPICIOUS_DGA_DOMAIN] = {
-    .alert_type.id = flow_alert_ndpi_suspicious_dga_domain,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_TLS_CERT_VALIDITY_TOO_LONG] = {
-    .alert_type.id = flow_alert_ndpi_suspicious_dga_domain,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_TLS_MISSING_SNI] = {
-    .alert_type.id = flow_alert_ndpi_tls_missing_sni,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_TLS_CERTIFICATE_EXPIRED] = {
-    .alert_type.id = flow_alert_tls_certificate_expired,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_TLS_CERTIFICATE_MISMATCH] = {
-    .alert_type.id = flow_alert_tls_certificate_mismatch,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_TLS_SELFSIGNED_CERTIFICATE] = {
-    .alert_type.id = flow_alert_tls_certificate_selfsigned,
-    .alert_type.category = alert_category_security,
+    [NDPI_TLS_SELFSIGNED_CERTIFICATE] = {
+    .alert_type = { flow_alert_tls_certificate_selfsigned, alert_category_security },
     .alert_lua_name = ""
   },
   [NDPI_TLS_OBSOLETE_VERSION] = {
-    .alert_type.id = flow_alert_tls_old_protocol_version,
-    .alert_type.category = alert_category_security,
-    .alert_lua_name = ""
-  },
-  [NDPI_TLS_NOT_CARRYING_HTTPS] = {
-    .alert_type.id = flow_alert_ndpi_tls_not_carrying_https,
-    .alert_type.category = alert_category_security,
+    .alert_type = { flow_alert_tls_old_protocol_version, alert_category_security },
     .alert_lua_name = ""
   },
   [NDPI_TLS_WEAK_CIPHER] = {
-    .alert_type.id = flow_alert_tls_unsafe_ciphers,
-    .alert_type.category = alert_category_security,
+    .alert_type = { flow_alert_tls_unsafe_ciphers, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_TLS_CERTIFICATE_EXPIRED] = {
+    .alert_type =  { flow_alert_tls_certificate_expired,  alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_TLS_CERTIFICATE_MISMATCH] = {
+    .alert_type = { flow_alert_tls_certificate_mismatch, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_HTTP_SUSPICIOUS_USER_AGENT] = {
+    .alert_type = { flow_alert_ndpi_http_suspicious_user_agent, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_HTTP_NUMERIC_IP_HOST] = {
+    .alert_type = { flow_alert_ndpi_http_numeric_ip_host, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_HTTP_SUSPICIOUS_URL] = {
+    .alert_type = { flow_alert_ndpi_http_suspicious_url, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_HTTP_SUSPICIOUS_HEADER] = {
+    .alert_type = { flow_alert_ndpi_http_suspicious_header, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_TLS_NOT_CARRYING_HTTPS] = {
+    .alert_type = { flow_alert_ndpi_tls_not_carrying_https, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_SUSPICIOUS_DGA_DOMAIN] = {
+    .alert_type = { flow_alert_ndpi_suspicious_dga_domain, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_MALFORMED_PACKET] = {
+    .alert_type = { flow_alert_ndpi_malformed_packet, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_SSH_OBSOLETE_CLIENT_VERSION_OR_CIPHER] = {
+    .alert_type = { flow_alert_ndpi_ssh_obsolete_client,  alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_SSH_OBSOLETE_SERVER_VERSION_OR_CIPHER] = {
+    .alert_type = { flow_alert_ndpi_ssh_obsolete_server, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_SMB_INSECURE_VERSION] = {
+    .alert_type = { flow_alert_ndpi_smb_insecure_version, alert_category_security },
     .alert_lua_name = ""
   },
   [NDPI_TLS_SUSPICIOUS_ESNI_USAGE] = {
-    .alert_type.id = flow_alert_ndpi_tls_suspicious_esni_usage,
-    .alert_type.category = alert_category_security,
+    .alert_type = { flow_alert_ndpi_tls_suspicious_esni_usage, alert_category_security },
     .alert_lua_name = ""
   },
   [NDPI_UNSAFE_PROTOCOL] = {
-    .alert_type.id = flow_alert_ndpi_unsafe_protocol,
-    .alert_type.category = alert_category_security,
+    .alert_type = { flow_alert_ndpi_unsafe_protocol, alert_category_security },
     .alert_lua_name = ""
-  }
+  },
+  [NDPI_DNS_SUSPICIOUS_TRAFFIC] = {
+    .alert_type = { flow_alert_ndpi_dns_suspicious_traffic, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_TLS_MISSING_SNI] = {
+    .alert_type = { flow_alert_ndpi_tls_missing_sni, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_HTTP_SUSPICIOUS_CONTENT] = { /* Unhandled */
+    .alert_type = { flow_alert_normal, alert_category_other },
+    .alert_lua_name = ""
+  },
+  [NDPI_RISKY_ASN] = { /* Unhandled */
+    .alert_type = { flow_alert_normal, alert_category_other },
+    .alert_lua_name = ""
+  },
+  [NDPI_RISKY_DOMAIN] = { /* Unhandled */
+    .alert_type = { flow_alert_normal, alert_category_other },
+    .alert_lua_name = ""
+  },
+  [NDPI_MALICIOUS_JA3] = { /* Unhandled */
+    .alert_type = { flow_alert_normal, alert_category_other },
+    .alert_lua_name = ""
+  },
+  [NDPI_MALICIOUS_SHA1_CERTIFICATE] = { /* Unhandled */
+    .alert_type = { flow_alert_normal, alert_category_other },
+    .alert_lua_name = ""
+  },
+  [NDPI_DESKTOP_OR_FILE_SHARING_SESSION] = { /* Unhandled */
+    .alert_type = { flow_alert_normal, alert_category_other },
+    .alert_lua_name = ""
+  },
+  [NDPI_TLS_UNCOMMON_ALPN] = { /* Unhandled */
+    .alert_type = { flow_alert_normal, alert_category_other },
+    .alert_lua_name = ""
+  },
+  [NDPI_TLS_CERT_VALIDITY_TOO_LONG] = {
+    .alert_type = { flow_alert_ndpi_suspicious_dga_domain, alert_category_security },
+    .alert_lua_name = ""
+  },
+  [NDPI_TLS_SUSPICIOUS_EXTENSION] = { /* Unhandled */
+    .alert_type = { flow_alert_normal, alert_category_other },
+    .alert_lua_name = ""
+  },
+  [NDPI_TLS_FATAL_ALERT] = { /* Unhandled */
+    .alert_type = { flow_alert_normal, alert_category_other },
+    .alert_lua_name = ""
+  },
+  [NDPI_SUSPICIOUS_ENTROPY] = { /* Unhandled */
+    .alert_type = { flow_alert_normal, alert_category_other },
+    .alert_lua_name = ""
+  },
+  [NDPI_CLEAR_TEXT_CREDENTIALS] = { /* Unhandled */
+    .alert_type = { flow_alert_normal, alert_category_other },
+    .alert_lua_name = ""
+  },
 };
 
 /* **************************************************** */
