@@ -510,6 +510,8 @@ void Ntop::start() {
     pro->printLicenseInfo();
 #endif
 
+  FlowRiskAlerts::checkUnhandledRisks();
+
   prefs->loadInstanceNameDefaults();
 
   loadLocalInterfaceAddress();

@@ -459,6 +459,7 @@ typedef enum {
   flow_alert_periodicity_changed              = 59,
   flow_alert_ndpi_tls_cert_validity_too_long  = 60,
   flow_alert_ndpi_ssh_obsolete_client         = 61,
+  flow_alert_ndpi_clear_text_credentials      = 62,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 
@@ -470,6 +471,10 @@ typedef struct {
   AlertCategory category;
 } FlowAlertType;
 
+typedef struct {
+  FlowAlertType alert_type;
+  const char *alert_lua_name;
+} FlowAlertTypeExtended;
 
 /* 
    Each C++ host check must have an entry here,

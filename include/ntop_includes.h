@@ -223,6 +223,7 @@ using namespace std;
 #include "MostVisitedList.h"
 #include "Trace.h"
 #include "ProtoStats.h"
+#include "FlowRiskAlerts.h"
 #include "Utils.h"
 #include "Bitmap128.h"
 #include "Bitmap16.h"
