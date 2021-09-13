@@ -43,10 +43,13 @@ function alert_tls_old_protocol_version.format(ifid, alert, alert_type_params)
    local msg = ""
 
    if(alert_type_params and alert_type_params.tls_version) then
-      local ver_str = ntop.getTLSVersionName(alert_type_params.tls_version)
+      local tls_version = alert_type_params.tls_version
+      local ver_str
 
-      if(ver_str == nil) then
-	 ver_str = string.format("%u", alert_type_params.tls_version)
+      if tls_version and tls_version > 0 then
+	 ver_str = ntop.getTLSVersionName(tls_version)
+      else
+	 ver_str = string.format("< TLSv1.1")
       end
 
       msg = i18n("alerts_dashboard.tls_old_protocol_version", {version = ver_str})
