@@ -28,7 +28,7 @@ class FlowRiskUnsafeProtocolAlert : public FlowRiskAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_UNSAFE_PROTOCOL; }
   static FlowAlertType getClassType() { return { flow_alert_ndpi_unsafe_protocol, alert_category_security }; }
-  static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
+  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
  FlowRiskUnsafeProtocolAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskUnsafeProtocolAlert() { };

@@ -28,7 +28,7 @@ class FlowRiskTLSUnsafeCiphersAlert : public FlowRiskTLSAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_TLS_WEAK_CIPHER; }
   static FlowAlertType getClassType() { return { flow_alert_tls_unsafe_ciphers, alert_category_security }; }
-  static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
+  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
  FlowRiskTLSUnsafeCiphersAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSUnsafeCiphersAlert() { };

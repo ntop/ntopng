@@ -31,7 +31,7 @@ class FlowRiskTLSOldProtocolVersionAlert : public FlowRiskTLSAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_TLS_OBSOLETE_VERSION; }
   static FlowAlertType getClassType() { return { flow_alert_tls_old_protocol_version, alert_category_security }; }
-  static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
+  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
  FlowRiskTLSOldProtocolVersionAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSOldProtocolVersionAlert() { };

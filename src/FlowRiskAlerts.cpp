@@ -154,7 +154,7 @@ const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RIS
     .alert_lua_name = ""
   },
   [NDPI_TLS_CERT_VALIDITY_TOO_LONG] = {
-    .alert_type = { flow_alert_ndpi_suspicious_dga_domain, alert_category_security },
+    .alert_type = { flow_alert_ndpi_tls_cert_validity_too_long, alert_category_security },
     .alert_lua_name = ""
   },
   [NDPI_TLS_SUSPICIOUS_EXTENSION] = { /* Unhandled */
@@ -174,12 +174,6 @@ const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RIS
     .alert_lua_name = ""
   },
 };
-
-/* **************************************************** */
-
-FlowAlertType FlowRiskAlerts::getFlowRiskAlertType(ndpi_risk_enum risk) {
-  return risk_enum_to_alert_type[risk].alert_type;
-}
 
 /* **************************************************** */
 

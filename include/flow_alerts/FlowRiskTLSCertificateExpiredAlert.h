@@ -30,7 +30,7 @@ class FlowRiskTLSCertificateExpiredAlert : public FlowRiskTLSAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_TLS_CERTIFICATE_EXPIRED; }
   static FlowAlertType getClassType() { return { flow_alert_tls_certificate_expired, alert_category_security }; }
-  static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
+  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
  FlowRiskTLSCertificateExpiredAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSCertificateExpiredAlert() { };

@@ -110,11 +110,6 @@ public:
   static ticks getticks();
   static ticks gettickspersec();
   static char* getURL(char *url, char *buf, u_int buf_len);
-  inline static u_int8_t getFlowRiskScore(ndpi_risk_enum risk) {
-    ndpi_risk r = 0; u_int16_t c, s;
-    ndpi_risk2score(NDPI_SET_BIT(r, risk), &c, &s);
-    return c + s;
-  }
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
   static u_int64_t macaddr_int(const u_int8_t *mac);
   static char *ifname2devname(const char *ifname, char *devname, int devname_size);

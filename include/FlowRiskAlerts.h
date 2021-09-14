@@ -29,7 +29,14 @@ class FlowRiskAlerts {
   static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK];
 
  public:
-  static FlowAlertType getFlowRiskAlertType(ndpi_risk_enum risk);
+  static inline u_int8_t getFlowRiskScore(ndpi_risk_enum risk) {
+    ndpi_risk r = 0; u_int16_t c, s;
+    ndpi_risk2score(NDPI_SET_BIT(r, risk), &c, &s);
+    return c + s;
+  }
+  static inline FlowAlertType getFlowRiskAlertType(ndpi_risk_enum risk) {
+      return risk_enum_to_alert_type[risk].alert_type;
+  }
   static void checkUnhandledRisks();
 };
 

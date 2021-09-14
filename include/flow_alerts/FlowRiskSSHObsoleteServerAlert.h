@@ -31,7 +31,7 @@ class FlowRiskSSHObsoleteServerAlert : public FlowRiskAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_SSH_OBSOLETE_SERVER_VERSION_OR_CIPHER; }
   static FlowAlertType getClassType() { return { flow_alert_ndpi_ssh_obsolete_server, alert_category_security }; }
-  static u_int8_t      getDefaultScore() { return Utils::getFlowRiskScore(getClassRisk()); }
+  static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
  FlowRiskSSHObsoleteServerAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskSSHObsoleteServerAlert() { };
