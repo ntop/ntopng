@@ -27,7 +27,7 @@
 class FlowRiskHTTPSuspiciousUserAgentAlert : public FlowRiskAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_HTTP_SUSPICIOUS_USER_AGENT; }
-  static FlowAlertType getClassType() { return { flow_alert_ndpi_http_suspicious_user_agent, alert_category_security }; }
+  static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
   static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
  FlowRiskHTTPSuspiciousUserAgentAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };

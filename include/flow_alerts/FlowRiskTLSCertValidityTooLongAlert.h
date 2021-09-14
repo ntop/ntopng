@@ -27,7 +27,7 @@
 class FlowRiskTLSCertValidityTooLongAlert : public FlowRiskTLSAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_TLS_CERT_VALIDITY_TOO_LONG; }
-  static FlowAlertType getClassType() { return { flow_alert_ndpi_tls_cert_validity_too_long, alert_category_security }; }
+  static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
   static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
  FlowRiskTLSCertValidityTooLongAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };

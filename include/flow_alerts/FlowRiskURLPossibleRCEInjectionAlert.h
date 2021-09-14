@@ -27,7 +27,7 @@
 class FlowRiskURLPossibleRCEInjectionAlert : public FlowRiskAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_URL_POSSIBLE_RCE_INJECTION; }
-  static FlowAlertType getClassType() { return { flow_alert_ndpi_url_possible_rce_injection, alert_category_security }; }
+  static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
   static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
  FlowRiskURLPossibleRCEInjectionAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) {};
