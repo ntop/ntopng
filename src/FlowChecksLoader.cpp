@@ -46,6 +46,7 @@ void FlowChecksLoader::registerCheck(FlowCheck *cb) {
   if(cb_all.find(cb->getName()) != cb_all.end()) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Ignoring duplicate flow check %s", cb->getName().c_str());
     delete cb;
+    return;
   } else
     cb_all[cb->getName()] = cb;
 
@@ -126,6 +127,15 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new NedgeBlockedFlow()))                            registerCheck(fcb);
 #endif
 #endif
+
+  /* Register all the remaining risk-based checks that haven't been already registered with a dedicated class */
+  for(u_int risk_id = 1; risk_id < NDPI_MAX_RISK; risk_id++) {
+    ndpi_risk_enum risk = (ndpi_risk_enum)risk_id;
+
+    if(isRiskUnhandled(risk)) {
+      if((fcb = new FlowRiskSimple(risk)))                      registerCheck(fcb);
+    }
+  }
 
 #if 0
   if(!(_has_protocol_detected || _has_periodic_update || _has_flow_end)) {
