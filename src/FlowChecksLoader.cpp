@@ -298,3 +298,5 @@ bool FlowChecksLoader::luaCheckInfo(lua_State* vm, std::string check_name) const
 
   return true;
 }
+
+/* **************************************************** */

@@ -41,6 +41,7 @@ class FlowRiskAlerts {
       return risk_enum_to_alert_type[risk].alert_lua_name;
   }
   static void checkUnhandledRisks();
+  static bool lua(lua_State* vm);
 };
 
 #endif /* _FLOW_RISK_ALERTS_H_ */

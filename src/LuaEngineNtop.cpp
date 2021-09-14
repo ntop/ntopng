@@ -733,6 +733,13 @@ static int ntop_get_flow_alert_score(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_flow_risk_alerts(lua_State* vm) {
+  FlowRiskAlerts::lua(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_flow_check_info(lua_State* vm) {
   const char *check_name;
 
@@ -6475,6 +6482,7 @@ static luaL_Reg _ntop_reg[] = {
   { "reloadHostChecks",      ntop_reload_host_checks      },
   { "reloadAlertExclusions", ntop_reload_hosts_control    },
   { "getFlowAlertScore",     ntop_get_flow_alert_score    },
+  { "getFlowRiskAlerts",     ntop_get_flow_risk_alerts    },
   { "getFlowCheckInfo",      ntop_get_flow_check_info     },
   { "getHostCheckInfo",      ntop_get_host_check_info     },
   { "shouldResolveHost",     ntop_should_resolve_host     },

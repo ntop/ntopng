@@ -131,7 +131,7 @@ const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RIS
   },
   [NDPI_RISKY_ASN] = {
     .alert_type = { flow_alert_normal /* Unhandled */, alert_category_other },
-    .alert_lua_name = "nspi_risk_asn"
+    .alert_lua_name = "nspi_risky_asn"
   },
   [NDPI_RISKY_DOMAIN] = {
     .alert_type = { flow_alert_normal /* Unhandled */, alert_category_other },
@@ -184,6 +184,32 @@ void FlowRiskAlerts::checkUnhandledRisks() {
     else
       ntop->getTrace()->traceEvent(TRACE_INFO, "Risk handled [risk: %u/%s]", risk_id, ndpi_risk2str((ndpi_risk_enum)risk_id));
   }
+}
+
+/* **************************************************** */
+
+bool FlowRiskAlerts::lua(lua_State* vm) {
+  lua_newtable(vm);
+
+  for(int risk_id = 1; risk_id < NDPI_MAX_RISK; risk_id++) {
+    ndpi_risk_enum risk = (ndpi_risk_enum)risk_id;
+    FlowAlertType fat = FlowRiskAlerts::getFlowRiskAlertType(risk);
+
+    if(fat.id != flow_alert_normal) {
+      const char *alert_name =  FlowRiskAlerts::getCheckName(risk);
+
+      lua_newtable(vm);
+
+      lua_push_uint64_table_entry(vm, "alert_id", fat.id);
+      lua_push_uint64_table_entry(vm, "category", fat.category);
+
+      lua_pushstring(vm, alert_name);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+  }
+
+  return true;
 }
 
 /* **************************************************** */
