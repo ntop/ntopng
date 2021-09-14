@@ -40,7 +40,7 @@ class FlowRiskHTTPNumericIPHost : public FlowRisk {
     return alert;
   }
 
-  std::string getName()        const { return(std::string("ndpi_http_numeric_ip_host")); }
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskHTTPNumericIPHostAlert::getClassRisk())); }
   ndpi_risk_enum handledRisk()       { return FlowRiskHTTPNumericIPHostAlert::getClassRisk(); };
 };
 

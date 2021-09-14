@@ -46,7 +46,7 @@ class FlowRiskBinaryApplicationTransfer : public FlowRisk {
     return alert;
   }
 
-  std::string getName()        const { return(std::string("suspicious_file_transfer")); }
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskBinaryApplicationTransferAlert::getClassRisk())); }
   ndpi_risk_enum handledRisk()       { return FlowRiskBinaryApplicationTransferAlert::getClassRisk(); };
 };
 

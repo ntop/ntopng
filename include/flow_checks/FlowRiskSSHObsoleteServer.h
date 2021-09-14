@@ -34,7 +34,7 @@ class FlowRiskSSHObsoleteServer : public FlowRisk {
 
   FlowAlert *buildAlert(Flow *f)  { return new FlowRiskSSHObsoleteServerAlert(this, f); }
 
-  std::string getName()        const { return(std::string("ndpi_ssh_obsolete_server")); }
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskSSHObsoleteServerAlert::getClassRisk())); }
   ndpi_risk_enum handledRisk() { return FlowRiskSSHObsoleteServerAlert::getClassRisk();       }
 };
 

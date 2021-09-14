@@ -34,7 +34,7 @@ class FlowRiskTLSNotCarryingHTTPS : public FlowRiskTLS {
 
   FlowAlert *buildAlert(Flow *f)  { return new FlowRiskTLSNotCarryingHTTPSAlert(this, f); }
 
-  std::string getName()        const { return(std::string("ndpi_tls_not_carrying_https")); }
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskTLSNotCarryingHTTPSAlert::getClassRisk())); }
   ndpi_risk_enum handledRisk()       { return FlowRiskTLSNotCarryingHTTPSAlert::getClassRisk(); }
 };
 

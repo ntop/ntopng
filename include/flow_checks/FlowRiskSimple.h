@@ -35,7 +35,7 @@ class FlowRiskSimple : public FlowRisk {
 
   FlowAlert *buildAlert(Flow *f) { return new FlowRiskSimpleAlert(this, f, risk); }
 
-  std::string getName()        const { return(std::string(ndpi_risk2str(risk))); }
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(risk)); }
   ndpi_risk_enum handledRisk() { return risk; }
 };
 

@@ -40,7 +40,7 @@ class FlowRiskTLSSuspiciousESNIUsage : public FlowRiskTLS {
     return alert;
   }
 
-  std::string getName()        const { return(std::string("ndpi_tls_suspicious_esni_usage")); }
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskTLSSuspiciousESNIUsageAlert::getClassRisk())); }
   ndpi_risk_enum handledRisk()       { return FlowRiskTLSSuspiciousESNIUsageAlert::getClassRisk(); }
 };
 

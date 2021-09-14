@@ -38,7 +38,7 @@ class FlowRiskSuspiciousDGADomain : public FlowRisk {
     return alert;
   }
 
-  std::string getName()        const { return(std::string("ndpi_suspicious_dga_domain")); }
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskSuspiciousDGADomainAlert::getClassRisk())); }
   ndpi_risk_enum handledRisk()       { return FlowRiskSuspiciousDGADomainAlert::getClassRisk(); }
 };
 

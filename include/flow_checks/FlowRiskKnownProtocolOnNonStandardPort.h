@@ -45,7 +45,7 @@ class FlowRiskKnownProtocolOnNonStandardPort : public FlowRisk {
     return alert;
   }
 
-  std::string getName()        const { return(std::string("known_proto_on_non_std_port")); }
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskKnownProtocolOnNonStandardPortAlert::getClassRisk())); }
   ndpi_risk_enum handledRisk() { return FlowRiskKnownProtocolOnNonStandardPortAlert::getClassRisk(); }
 };
 

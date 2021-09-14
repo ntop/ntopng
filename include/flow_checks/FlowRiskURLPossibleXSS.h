@@ -40,7 +40,7 @@ class FlowRiskURLPossibleXSS : public FlowRisk {
     return alert;
   }
 
-  std::string getName()        const { return(std::string("ndpi_url_possible_xss")); }
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskURLPossibleXSSAlert::getClassRisk())); }
   ndpi_risk_enum handledRisk()       { return FlowRiskURLPossibleXSSAlert::getClassRisk(); }
 };
 

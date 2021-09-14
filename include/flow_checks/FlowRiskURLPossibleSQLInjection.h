@@ -40,7 +40,7 @@ class FlowRiskURLPossibleSQLInjection : public FlowRisk {
     return alert;
   }
 
-  std::string getName()        const { return(std::string("ndpi_url_possible_sql_injection")); }
+  std::string getName()        const { return(FlowRiskAlerts::getCheckName(FlowRiskURLPossibleSQLInjectionAlert::getClassRisk())); }
   ndpi_risk_enum handledRisk()       { return FlowRiskURLPossibleSQLInjectionAlert::getClassRisk(); }
 };
 
