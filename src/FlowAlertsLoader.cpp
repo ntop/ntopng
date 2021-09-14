@@ -29,34 +29,14 @@ FlowAlertsLoader::FlowAlertsLoader() {
 
   /* TODO: implement dynamic loading */
 
-  /* Risks - Community */
-  registerAlert(FlowRiskBinaryApplicationTransferAlert::getClassType(), FlowRiskBinaryApplicationTransferAlert::getDefaultScore());
-  registerAlert(FlowRiskDNSSuspiciousTrafficAlert::getClassType(), FlowRiskDNSSuspiciousTrafficAlert::getDefaultScore());
-  registerAlert(FlowRiskHTTPNumericIPHostAlert::getClassType(), FlowRiskHTTPNumericIPHostAlert::getDefaultScore());
-  registerAlert(FlowRiskHTTPSuspiciousHeaderAlert::getClassType(), FlowRiskHTTPSuspiciousHeaderAlert::getDefaultScore());
-  registerAlert(FlowRiskHTTPSuspiciousURLAlert::getClassType(), FlowRiskHTTPSuspiciousURLAlert::getDefaultScore());
-  registerAlert(FlowRiskHTTPSuspiciousUserAgentAlert::getClassType(), FlowRiskHTTPSuspiciousUserAgentAlert::getDefaultScore());
-  registerAlert(FlowRiskKnownProtocolOnNonStandardPortAlert::getClassType(), FlowRiskKnownProtocolOnNonStandardPortAlert::getDefaultScore());
-  registerAlert(FlowRiskMalformedPacketAlert::getClassType(), FlowRiskMalformedPacketAlert::getDefaultScore());
-  registerAlert(FlowRiskSMBInsecureVersionAlert::getClassType(), FlowRiskSMBInsecureVersionAlert::getDefaultScore());
-  registerAlert(FlowRiskSSHObsoleteServerAlert::getClassType(), FlowRiskSSHObsoleteServerAlert::getDefaultScore());
-  registerAlert(FlowRiskSSHObsoleteClientAlert::getClassType(), FlowRiskSSHObsoleteClientAlert::getDefaultScore());
-  registerAlert(FlowRiskSuspiciousDGADomainAlert::getClassType(), FlowRiskSuspiciousDGADomainAlert::getDefaultScore());
-  registerAlert(FlowRiskTLSMissingSNIAlert::getClassType(), FlowRiskTLSMissingSNIAlert::getDefaultScore());
-  registerAlert(FlowRiskTLSCertValidityTooLongAlert::getClassType(), FlowRiskTLSCertValidityTooLongAlert::getDefaultScore());
-  registerAlert(FlowRiskTLSNotCarryingHTTPSAlert::getClassType(), FlowRiskTLSNotCarryingHTTPSAlert::getDefaultScore());
-  registerAlert(FlowRiskTLSSuspiciousESNIUsageAlert::getClassType(), FlowRiskTLSSuspiciousESNIUsageAlert::getDefaultScore());
-  registerAlert(FlowRiskURLPossibleRCEInjectionAlert::getClassType(), FlowRiskURLPossibleRCEInjectionAlert::getDefaultScore());
-  registerAlert(FlowRiskURLPossibleSQLInjectionAlert::getClassType(), FlowRiskURLPossibleSQLInjectionAlert::getDefaultScore());
-  registerAlert(FlowRiskURLPossibleXSSAlert::getClassType(), FlowRiskURLPossibleXSSAlert::getDefaultScore());
-  registerAlert(FlowRiskUnsafeProtocolAlert::getClassType(), FlowRiskUnsafeProtocolAlert::getDefaultScore());
+  /* Register all flow-risk based alerts */
+  for(u_int risk_id = 1; risk_id < NDPI_MAX_RISK; risk_id++) {
+    ndpi_risk_enum risk = (ndpi_risk_enum)risk_id;
+    FlowAlertType fat = FlowRiskAlerts::getFlowRiskAlertType(risk);
 
-  /* Risks - PRO */
-  registerAlert(FlowRiskTLSCertificateExpiredAlert::getClassType(), FlowRiskTLSCertificateExpiredAlert::getDefaultScore());
-  registerAlert(FlowRiskTLSCertificateMismatchAlert::getClassType(), FlowRiskTLSCertificateMismatchAlert::getDefaultScore());
-  registerAlert(FlowRiskTLSCertificateSelfSignedAlert::getClassType(), FlowRiskTLSCertificateSelfSignedAlert::getDefaultScore());
-  registerAlert(FlowRiskTLSOldProtocolVersionAlert::getClassType(), FlowRiskTLSOldProtocolVersionAlert::getDefaultScore());
-  registerAlert(FlowRiskTLSUnsafeCiphersAlert::getClassType(), FlowRiskTLSUnsafeCiphersAlert::getDefaultScore());
+    if(fat.id != flow_alert_normal)
+      registerAlert(fat, FlowRiskAlerts::getFlowRiskScore(risk));
+  }
 
   /* Other */
   registerAlert(BlacklistedCountryAlert::getClassType(),         BlacklistedCountryAlert::getDefaultScore());
@@ -91,6 +71,7 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(UnexpectedSMTPServerAlert::getClassType(),       UnexpectedSMTPServerAlert::getDefaultScore());
   registerAlert(WebMiningAlert::getClassType(),                  WebMiningAlert::getDefaultScore());
 }
+
 /* **************************************************** */
 
 FlowAlertsLoader::~FlowAlertsLoader() {
