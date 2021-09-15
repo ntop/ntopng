@@ -126,7 +126,7 @@ const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RIS
     .alert_lua_name = "ndpi_tls_missing_sni"
   },
   [NDPI_HTTP_SUSPICIOUS_CONTENT] = {
-    .alert_type = { flow_alert_normal  /* Unhandled */, alert_category_other },
+    .alert_type = { flow_alert_ndpi_http_suspicious_content, alert_category_security },
     .alert_lua_name = "ndpi_http_suspicious_content"
   },
   [NDPI_RISKY_ASN] = {
@@ -170,7 +170,7 @@ const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RIS
     .alert_lua_name = "ndpi_suspicious_entropy"
   },
   [NDPI_CLEAR_TEXT_CREDENTIALS] = {
-    .alert_type = { flow_alert_ndpi_clear_text_credentials /* Unhandled */, alert_category_security },
+    .alert_type = { flow_alert_ndpi_clear_text_credentials, alert_category_security },
     .alert_lua_name = "ndpi_clear_text_credentials"
   },
 };
