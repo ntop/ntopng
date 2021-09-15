@@ -199,8 +199,7 @@ local function init_runtime_paths()
   RUNTIME_PATHS = {
     -- Definitions
     alert_definitions = os_utils.fixPath(runtime_path .. "/alert_definitions"),
-    status_definitions = os_utils.fixPath(runtime_path .. "/status_definitions"),
-    pro_status_definitions = os_utils.fixPath(runtime_path .. "/status_definitions/pro"),
+    check_definitions = os_utils.fixPath(runtime_path .. "/check_definitions"),
 
     -- Locales
     locales = os_utils.fixPath(runtime_path .. "/locales"),
@@ -279,7 +278,7 @@ end
 
 -- ##############################################
 
-local function load_plugin_alert_definitions(plugin)
+local function load_plugin_definitions(plugin)
   -- Reset all the possibly existing (and loaded) definitions
   -- as new alert definitions are being loaded
   local alert_consts = require "alert_consts"
@@ -602,7 +601,7 @@ function plugins_utils.loadPlugins(community_plugins_only)
   -- alert definitions MUST be loaded before flow status definitions as, flow status definitions,
   -- may depend on alert definitions
   for _, plugin in ipairs(plugins) do
-     load_plugin_alert_definitions(plugin)
+     load_plugin_definitions(plugin)
   end
 
   -- Make sure to invalidate the (possibly) already required alert_consts which depends on alert definitions.

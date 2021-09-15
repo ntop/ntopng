@@ -170,7 +170,7 @@ const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RIS
     .alert_lua_name = "ndpi_suspicious_entropy"
   },
   [NDPI_CLEAR_TEXT_CREDENTIALS] = {
-    .alert_type = { flow_alert_normal /* Unhandled */, alert_category_other },
+    .alert_type = { flow_alert_ndpi_clear_text_credentials /* Unhandled */, alert_category_security },
     .alert_lua_name = "ndpi_clear_text_credentials"
   },
 };
@@ -202,6 +202,7 @@ bool FlowRiskAlerts::lua(lua_State* vm) {
 
       lua_push_uint64_table_entry(vm, "alert_id", fat.id);
       lua_push_uint64_table_entry(vm, "category", fat.category);
+      lua_push_str_table_entry(vm, "risk_name", ndpi_risk2str(risk));
 
       lua_pushstring(vm, alert_name);
       lua_insert(vm, -2);

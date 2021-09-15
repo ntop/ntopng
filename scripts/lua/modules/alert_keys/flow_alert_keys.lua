@@ -67,6 +67,7 @@ local flow_alert_keys = {
    flow_alert_periodicity_changed             = 59,
    flow_alert_ndpi_tls_cert_validity_too_long = 60,
    flow_alert_ndpi_ssh_obsolete_client        = 61,
+   flow_alert_ndpi_clear_text_credentials     = 62,
    -- NOTE: for flow alerts not not go beyond the size of Bitmap alert_map inside Flow.h (currently 128)
 }
 

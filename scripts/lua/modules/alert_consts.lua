@@ -280,8 +280,6 @@ function alert_consts.getDefinititionDirs()
 	 os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/flow"),
 	 os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/host"),
 	 os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/other"),
-	 -- Path for user-defined alerts written in plugins
-	 os_utils.fixPath(plugins_utils.getRuntimePath() .. "/alert_definitions"),
 	  }
    )
 end
@@ -345,6 +343,29 @@ local function loadAlertsDefs()
          end
 
          ::next_script::
+      end
+
+      if defs_dir:ends(os_utils.fixPath("/flow")) then
+	 -- Load flow alerts for flows with nDPI risks that don't have an alert .lua file explicitly defined under alert_definitions/
+	 local flow_risk_alerts = ntop.getFlowRiskAlerts()
+
+	 for mod_fname, flow_risk_alert in pairs(flow_risk_alerts) do
+	    local alert_type = alert_consts.getAlertType(flow_risk_alert.alert_id, alert_entities.flow.entity_id)
+
+	    -- Make sure the alert hasn't already been loaded via a dedicated alert_definition .lua file
+	    if not alert_type then
+	       local def_script = require("flow_risk_simple_alert_definition")
+
+	       -- Add the mandatory fields according to what arrives from C++
+	       def_script.meta.alert_key = flow_risk_alert.alert_id
+	       def_script.meta.i18n_title = flow_risk_alert.risk_name
+
+	       if not loadDefinition(def_script, mod_fname, defs_dir) then
+		  -- Retry reload
+		  package.loaded[mod_fname] = nil
+	       end
+	    end
+	 end
       end
    end
 end
@@ -502,8 +523,13 @@ function alert_consts.getAlertType(alert_key, alert_entity_id)
    alert_key = tonumber(alert_key)
    alert_entity_id = tonumber(alert_entity_id)
 
-   if alert_entity_id and alerts_by_id[alert_entity_id] and alerts_by_id[alert_entity_id][alert_key] then
-      return alerts_by_id[alert_entity_id][alert_key]
+   if alert_entity_id then
+      if alerts_by_id[alert_entity_id] and alerts_by_id[alert_entity_id][alert_key] then
+	 return alerts_by_id[alert_entity_id][alert_key]
+      end
+
+      -- Alert entity explicitly submitted and no alert found. Returning.
+      return
    end
 
    -- TODO: remove fallbacks when all alerts in alert_keys.lua will be migrated and will have their own entity specified

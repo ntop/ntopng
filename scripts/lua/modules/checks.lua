@@ -67,6 +67,8 @@ checks.operator_functions = {
 
 -- ##############################################
 
+-- A default check definition for all checks associated to nDPI risks that don't have an explicitly defined .lua check_definition file
+local FLOW_RISK_SIMPLE_CHECK_DEFINITION_PATH = os_utils.fixPath(string.format("%s/scripts/lua/modules/flow_risk_simple_check_definition.lua", dirs.installdir))
 local NUM_FILTERED_KEY = "ntopng.cache.checks.exclusion_counter.subdir_%s.script_key_%s"
 local REQUEST_PERIODIC_USER_SCRIPTS_RUN_KEY = "ntopng.cache.ifid_%i.checks.request.granularity_%s"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
@@ -701,8 +703,24 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
       end
    end
 
+   if(full_path == FLOW_RISK_SIMPLE_CHECK_DEFINITION_PATH) then
+      -- Loading a check associated to a flow risk without an explicitly defined .lua check_definition file
+      local flow_risk_alerts = ntop.getFlowRiskAlerts()
+      local flow_risk_alert = flow_risk_alerts[mod_fname]
+
+      if not flow_risk_alert then
+	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' is not associated to any known flow risk alert", mod_fname))
+      end
+
+      -- Add the necessary elements as found in C++
+      check.alert_id = flow_risk_alert.alert_id
+      check.category = checkCategory({id = flow_risk_alert.category})
+      check.gui.i18n_title = flow_risk_alert.risk_name
+      check.gui.i18n_description = flow_risk_alert.risk_name
+   end
+
    if((not check.gui) or (not check.gui.i18n_title) or (not check.gui.i18n_description)) then
-      traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' does not define a gui", mod_fname))
+      traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Module '%s' does not define a gui [%s]", mod_fname, full_path))
    end
 
    -- Augument with additional attributes
@@ -735,6 +753,59 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
    end
 
    return(check)
+end
+
+-- ##############################################
+
+-- @brief Get a table with all loadable checks
+-- @param script_type one of checks.script_types
+-- @param subdir the modules subdir. *NOTE* this must be unique as it is used as a key.
+-- @return A table with all loadable checks
+local function get_loadable_checks(script_type, subdir)
+   local loadable_checks = {}
+   local check_dirs = checks.getSubdirectoryPath(script_type, subdir)
+
+   for _, checks_dir in pairs(check_dirs) do
+      for fname in pairs(ntop.readdir(checks_dir)) do
+         if string.ends(fname, ".lua") then
+	    local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
+	    local full_path = os_utils.fixPath(checks_dir .. "/" .. fname)
+	    local plugin = plugins_utils.getUserScriptPlugin(full_path)
+
+	    if not plugin then
+	       --[[ host and flow don't have plugins, they are implemented in C++ so we call the C++ method to get their information --]]
+	       if subdir == "host" then
+		  plugin = ntop.getHostCheckInfo(mod_fname)
+	       elseif subdir == "flow" then
+		  plugin = ntop.getFlowCheckInfo(mod_fname)
+	       else
+		  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Skipping unknown user script '%s'", mod_fname))
+	       end
+	    end
+
+	    loadable_checks[mod_fname] = {full_path = full_path, plugin = plugin}
+	 end
+      end
+   end
+
+   if subdir == "flow" then
+      -- Flow checks associated to nDPI risks don't necessarily have a corresponding .lua file
+      -- For those checks, a builtin default file is loaded instead
+      local flow_risk_alerts = ntop.getFlowRiskAlerts()
+
+      for mod_fname, flow_risk_alert in pairs(flow_risk_alerts) do
+	 if loadable_checks[mod_fname] then
+	    -- There's a .lua file explicity defining the check. Already using it.
+	 else
+	    -- No explicit .lua file defining the check. Loading a default.
+	    local full_path = FLOW_RISK_SIMPLE_CHECK_DEFINITION_PATH
+	    local plugin = ntop.getFlowCheckInfo(mod_fname)
+	    loadable_checks[mod_fname] = {full_path = full_path, plugin = plugin}
+	 end
+      end
+   end
+
+   return loadable_checks
 end
 
 -- ##############################################
@@ -772,60 +843,43 @@ function checks.load(ifid, script_type, subdir, options)
       rv.hooks[hook] = {}
    end
 
-   local check_dirs = checks.getSubdirectoryPath(script_type, subdir)
+   local loadable_checks = get_loadable_checks(script_type, subdir)
 
-   for _, checks_dir in pairs(check_dirs) do
-      for fname in pairs(ntop.readdir(checks_dir)) do
-         if string.ends(fname, ".lua") then
-	    local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-	    local full_path = os_utils.fixPath(checks_dir .. "/" .. fname)
-	    local plugin = plugins_utils.getUserScriptPlugin(full_path)
+   for mod_fname, loadable_check in pairs(loadable_checks) do
+      local full_path = loadable_check.full_path
+      local plugin = loadable_check.plugin
 
-	    if not plugin then
-	       --[[ host and flow don't have plugins, they are implemented in C++ so we call the C++ method to get their information --]]
-	       if subdir == "host" then
-		  plugin = ntop.getHostCheckInfo(mod_fname)
-	       elseif subdir == "flow" then
-		  plugin = ntop.getFlowCheckInfo(mod_fname)
-	       else
-		  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Skipping unknown user script '%s'", mod_fname))
-		  goto next_module
-	       end
-	    end
-
-	    if(rv.modules[mod_fname]) then
-	       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", mod_fname))
-	       goto next_module
-	    end
-
-	    local check = loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir, return_all, scripts_filter, hook_filter)
-
-	    if(not check) then
-	       goto next_module
-	    end
-
-	    -- Checks passed, now load the script information
-
-            -- Populate hooks fast lookup table
-            for hook, hook_fn in pairs(check.hooks or {}) do
-	       -- load previously computed benchmarks (if any)
-	       -- benchmarks are loaded even if their computation is disabled with a do_benchmark ~= true
-               if(rv.hooks[hook] == nil) then
-                  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown hook '%s' in module '%s'", hook, check.key))
-               else
-		  if do_benchmark then
-		     rv.hooks[hook][check.key] = benchmark_init(subdir, check.key, hook, hook_fn)
-		  else
-		     rv.hooks[hook][check.key] = hook_fn
-		  end
-               end
-            end
-
-            rv.modules[check.key] = check
-         end
-
-         ::next_module::
+      if(rv.modules[mod_fname]) then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", mod_fname))
+	 goto next_module
       end
+
+      local check = loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir, return_all, scripts_filter, hook_filter)
+
+      if(not check) then
+	 goto next_module
+      end
+
+      -- Checks passed, now load the script information
+
+      -- Populate hooks fast lookup table
+      for hook, hook_fn in pairs(check.hooks or {}) do
+	 -- load previously computed benchmarks (if any)
+	 -- benchmarks are loaded even if their computation is disabled with a do_benchmark ~= true
+	 if(rv.hooks[hook] == nil) then
+	    traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown hook '%s' in module '%s'", hook, check.key))
+	 else
+	    if do_benchmark then
+	       rv.hooks[hook][check.key] = benchmark_init(subdir, check.key, hook, hook_fn)
+	    else
+	       rv.hooks[hook][check.key] = hook_fn
+	    end
+	 end
+      end
+
+      rv.modules[check.key] = check
+
+      ::next_module::
    end
 
    if(old_ifid ~= ifid) then
@@ -839,6 +893,7 @@ end
 
 -- @brief Convenient method to only load a specific script
 function checks.loadModule(ifid, script_type, subdir, mod_fname)
+   local check
    local check_dirs = checks.getSubdirectoryPath(script_type, subdir)
 
    for _, checks_dir in pairs(check_dirs) do
@@ -846,13 +901,18 @@ function checks.loadModule(ifid, script_type, subdir, mod_fname)
       local plugin = plugins_utils.getUserScriptPlugin(full_path)
 
       if ntop.exists(full_path) then
-	 local check = loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir)
-
-	 return check
+	 check = loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir)
+	 break
       end
    end
 
-   return(nil)
+   -- If this is a flow check, we attempt at locating it among the checks of nDPI flow risks
+   -- To load it, we use the default path for all simple flow check definitions
+   if not check and subdir == "flow" then
+      check = loadAndCheckScript(mod_fname, FLOW_RISK_SIMPLE_CHECK_DEFINITION_PATH, plugin, script_type, subdir)
+   end
+
+   return check
 end
 
 -- ##############################################

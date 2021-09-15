@@ -27,7 +27,8 @@
 class FlowRiskSimpleAlert : public FlowRiskAlert {
  private:
   ndpi_risk_enum risk;
-  
+
+  ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);  
  public:
  FlowRiskSimpleAlert(FlowCheck *c, Flow *f, ndpi_risk_enum _risk) : FlowRiskAlert(c, f) { risk = _risk; };
   ~FlowRiskSimpleAlert() { };
