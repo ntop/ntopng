@@ -348,13 +348,13 @@ local function loadAlertsDefs()
       if defs_dir:ends(os_utils.fixPath("/flow")) then
 	 -- Load flow alerts for flows with nDPI risks that don't have an alert .lua file explicitly defined under alert_definitions/
 	 local flow_risk_alerts = ntop.getFlowRiskAlerts()
-
 	 for mod_fname, flow_risk_alert in pairs(flow_risk_alerts) do
 	    local alert_type = alert_consts.getAlertType(flow_risk_alert.alert_id, alert_entities.flow.entity_id)
 
 	    -- Make sure the alert hasn't already been loaded via a dedicated alert_definition .lua file
 	    if not alert_type then
-	       local def_script = require("flow_risk_simple_alert_definition")
+	       -- Can't use the require. Require always returns the same table and this would result in overwritten alert_key and title
+	       local def_script = dofile(os_utils.fixPath(string.format("%s/scripts/lua/modules/flow_risk_simple_alert_definition.lua", dirs.installdir)))
 
 	       -- Add the mandatory fields according to what arrives from C++
 	       def_script.meta.alert_key = flow_risk_alert.alert_id
