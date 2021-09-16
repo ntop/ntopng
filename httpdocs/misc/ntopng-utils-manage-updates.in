@@ -77,7 +77,13 @@ function logsetup {
 		LOGFILE="${LOGFILE_BASE}-$1.log"
 	fi
 	TMP=$(tail -n $RETAIN_NUM_LINES $LOGFILE 2>/dev/null) && echo "${TMP}" > $LOGFILE
-	exec > >(tee -a $LOGFILE)
+
+	# Log to file and stdout (trigger crontab events, e.g. mail)
+	#exec > >(tee -a $LOGFILE)
+
+	# Log to file only
+	exec > $LOGFILE
+
 	exec 2>&1
 }
 
