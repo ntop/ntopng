@@ -327,6 +327,8 @@ if (_GET["page"] ~= "historical") then
 
    if(show_vlan) then print ('host_rows_option["vlan"] = true;\n') end
 
+   if((custom_key == "") or (custom_key == nil)) then custom_key = "score" end
+
    print [[
 	 host_rows_option["ip"] = true;
          host_rows_option["custom_column"] = "]] print(custom_key) print[[";
