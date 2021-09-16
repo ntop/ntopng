@@ -10,14 +10,7 @@ local graph_utils = require "graph_utils"
 
 local ifid = _GET["ifid"]
 
-if ifid ~= nil and ifid ~= "" then
-   if_name = getInterfaceName(ifid)
-else
-   if_name = ifname
-   ifid = interface.name2id(ifname)
-end
-
-interface.select(if_name)
+interface.select(ifid)
 
 local ifstats = interface.getStats()
 
