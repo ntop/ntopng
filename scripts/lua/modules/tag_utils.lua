@@ -104,6 +104,9 @@ tag_utils.topk_tags_v4 = {
    ["host"]   = {
       "IPV4_DST_ADDR",
       "IPV4_SRC_ADDR",
+   },
+   ["protocol"] = {
+      "L7_PROTO",
    }
 }
 
@@ -113,6 +116,9 @@ tag_utils.topk_tags_v6 = {
    ["host"]   = {
       "IPV6_DST_ADDR",
       "IPV6_SRC_ADDR",
+   },
+   ["protocol"] = {
+      "L7_PROTO",
    }
 }
 
