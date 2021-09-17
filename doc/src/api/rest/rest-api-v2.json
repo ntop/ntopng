@@ -1536,7 +1536,33 @@
                                 }
                         }
                 },
-		"lua/pro/rest/v2/get/snmp/device/interfaces.lua": {
+		"lua/pro/rest/v2/get/snmp/device/system.lua": {
+			"get": {
+				"tags": [
+					"SNMP"
+				],
+				"summary": "Get system information",
+				"description": "Get system information for a single or all SNMP devices",
+				"operationId": "get_snmp_device_system",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "host",
+						"in": "query",
+						"description": "The IP address of the SNMP device (optional, all devices are returned if empty)",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+	        "lua/pro/rest/v2/get/snmp/device/interfaces.lua": {
 			"get": {
 				"tags": [
 					"SNMP"
