@@ -1536,7 +1536,33 @@
                                 }
                         }
                 },
-		"lua/pro/rest/v2/add/snmp/device.lua": {
+		"lua/pro/rest/v2/get/snmp/device/lldp.lua": {
+			"get": {
+				"tags": [
+					"SNMP"
+				],
+				"summary": "Get LLDP adjacency information",
+				"description": "Get LLDP adjacencies for a single or all SNMP devices",
+				"operationId": "get_snmp_device_lldp",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "host",
+						"in": "query",
+						"description": "The IP address of the SNMP device to query for LLDP (optional, all devices are queried if left empty)",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+     	        "lua/pro/rest/v2/add/snmp/device.lua": {
 			"get": {
 				"tags": [
 					"SNMP"
