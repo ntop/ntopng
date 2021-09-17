@@ -1550,7 +1550,33 @@
 				"parameters": [{
 						"name": "host",
 						"in": "query",
-						"description": "The IP address of the SNMP device to query for LLDP (optional, all devices are queried if left empty)",
+						"description": "The IP address of the SNMP device (optional, all devices are returned if empty)",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/pro/rest/v2/get/snmp/device/bridge.lua": {
+			"get": {
+				"tags": [
+					"SNMP"
+				],
+				"summary": "Get bridge MIB information",
+				"description": "Get bridge MIB information for a single or all SNMP devices",
+				"operationId": "get_snmp_device_bridge",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "host",
+						"in": "query",
+						"description": "The IP address of the SNMP device (optional, all devices are returned if empty)",
 						"required": false,
 						"type": "string"
 					}
