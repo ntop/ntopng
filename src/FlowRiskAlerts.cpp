@@ -173,6 +173,14 @@ const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RIS
     .alert_type = { flow_alert_ndpi_clear_text_credentials, alert_category_security },
     .alert_lua_name = "ndpi_clear_text_credentials"
   },
+  [NDPI_DNS_LARGE_PACKET] = {
+    .alert_type = { flow_alert_ndpi_dns_large_packet, alert_category_security },
+    .alert_lua_name = "ndpi_dns_large_packet"
+  },
+  [NDPI_DNS_FRAGMENTED] = {
+    .alert_type = { flow_alert_ndpi_dns_fragmented, alert_category_security },
+    .alert_lua_name = "ndpi_dns_fragmented"
+  },
 };
 
 /* **************************************************** */
