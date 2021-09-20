@@ -4865,6 +4865,7 @@ local lang = {
     ["6_months"] = "6 Months",
     ["acknowledge_alert"] = "Acknowledge Alert",
     ["acknowledged"] = "Acknowledged",
+    ["short_ack"] = "Ack",
     ["alarmable"] = "Alarmable",
     ["alert_actions"] = "Actions",
     ["alert_count"] = "Count",

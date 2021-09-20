@@ -136,10 +136,8 @@
 
         function getSearchParams() {
             const searchParams = new URLSearchParams();
-
             // get all filters tags
             const tags = tagify.getTagElms();
-
             // add the tag filters inside the search params object
             for (const tag of tags) {
                 const tagData = tagify.tagData(tag);
@@ -169,11 +167,9 @@
 
             const [begin, end] = getTimestampRange();
             if (begin == null && end == null) return datasourceParams;
-
             // override the existing timestamps 
             if (datasourceParams.epoch_begin) datasourceParams.epoch_begin = begin.unix();
             if (datasourceParams.epoch_end) datasourceParams.epoch_end = end.unix();
-
             return datasourceParams;
         }
 
@@ -211,9 +207,19 @@
             return [begin, end];
         }
 
+        function getScore() {
+            const score = $(`#input-score-value`)[0].value || 0;
+            if(score == 0)
+                return nil;
+            return score +";gte";
+        }
+
         function updateNavbarLink(url, begin, end, element) {
             const searchParams = getSearchParams();
-
+            const score = getScore();
+            if(score){
+                searchParams.set('score', score);
+            }
             searchParams.set('epoch_begin', begin.unix());
             searchParams.set('epoch_end', end.unix());
             
@@ -254,7 +260,6 @@
             const url = new URL(location);
 
             const searchParams = getSearchParams();
-
             searchParams.set('epoch_begin', begin.unix());
             searchParams.set('epoch_end', end.unix());
             
@@ -288,7 +293,6 @@
             }
 
             url.search = searchParams.toString();
-
             window.history.pushState({epoch_begin: begin.unix(), epoch_end: end.unix()}, '', url);
         }
 
@@ -304,6 +308,7 @@
             const newDownloadURL = new URL(href, location.origin);
             newDownloadURL.search = new URLSearchParams(datasourceParams);
             newDownloadURL.searchParams.set('format', 'txt');
+            newDownloadURL.searchParams.set('score', getScore());
             $(`#btn-download-alerts`).attr('href', newDownloadURL.toString());
 
             if (pushHistroy) {
@@ -312,7 +317,6 @@
         }
 
         async function addFilterTag(tag) {
-
             /* Convert values to string (this avoids issues e.g. with 0) */
             if (typeof tag.realValue == 'number') { tag.realValue = ''+tag.realValue; }
             if (typeof tag.value == 'number') { tag.value = ''+tag.value; }
@@ -490,12 +494,13 @@
 
         // when an user remove the tag
         tagify.on('remove', async function(e) {
-
             const key = e.detail.data.key;
             if (key === undefined) {
                 return;
             }
-
+            if(key == 'score'){
+                $('#input-score-value')[0].value = ""
+            }
             if (datasourceParams[key] !== undefined) {
                 delete datasourceParams[key];
             }
@@ -571,7 +576,6 @@
         });
 
         $(`tags`).on('change', 'select.operator', async function(e) {
-            
             // update the tag and the operator
             const $tag = $(this).parents('tag');
             const tagData = tagify.tagData($tag[0]);
@@ -968,7 +972,6 @@
                 $(`#release_single_alert button[type='submit']`).removeAttr("disabled");
             },
             onSubmitSuccess: function (response) {
-
                 if (response.rc < 0) {
                     $('#release_single_alert .invalid-feedback').html(i18n.rest[response.rc_str]).show();
                 }
@@ -1156,5 +1159,45 @@
     {% end %}
 
 
+    var inputValue = document.getElementById("input-score-value");
+    let currPageUrl = window.location.href;
+    let currScore = "";
+    let position = currPageUrl.indexOf('score');
+    if(position>0){
+        for(i=position;i<currPageUrl.length;i++){
+            if(currPageUrl[i] == "="){
+                position = i;
+                break;
+            }
+        }
+
+        for(i=position+1;i<currPageUrl.length;i++){
+            if(currPageUrl[i] != "%"){
+                currScore += currPageUrl[i];
+            }
+            else{
+                break;
+            }
+        }
+    }
+
+    const maxValue = 250;
+
+    inputValue.value = currScore;
+
+    inputValue.oninput = function(){
+        if(this.value > maxValue){
+            inputValue.value = maxValue;
+        }
+    }
+
+    inputValue.onchange = function(){
+        if(inputValue.value != 0){
+            const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte"};
+
+            addFilterTag(tag);
+        }
+    }
     });
+
 </script>

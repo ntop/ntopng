@@ -89,6 +89,8 @@
             <span class="wrong-ranger invalid-feedback mx-1 my-auto" data-bs-toggle="tooltip" data-placement="bottom" title="{{ i18n('wrong_date_range') }}" style="width: 1rem; display: none;">
                 <i class="fas fa-exclamation-circle"></i>
             </span>
+
+
     
             <div class="controls d-flex flex-wrap">
                 <div class="btn-group me-auto btn-group-sm">
@@ -105,12 +107,27 @@
                         <i class="fas fa-search-minus"></i>
                     </button>
                 </div>
-                <button id="btn-apply" class="btn btn-sm btn-primary m-auto">{{ i18n("apply") }}</button>
             </div>
         </div>
     
+
+                <div class="d-flex align-items-center mx-2 ">
+                    <label for="range-bar" class="form-label m-0 text-nowrap" style="max-width: 6rem;">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Alert Min. Score">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </span>
+                            <input type="text" id="input-score-value" class="form-control">
+                        </div>
+                    </label>
+                <button id="btn-apply" class="btn btn-sm btn-primary m-auto ms-2">{{ i18n("apply") }}</button>
+
+                </div>
+
+
     </div>
     
+
 
     {% if tags.enabled then %}
     <div class="d-flex mt-1">
