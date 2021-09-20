@@ -7,12 +7,24 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 local pools = require "pools"
 local host_pools = require "host_pools"
+local checks = require "checks"
 
 -- Retrieve the info from the pool
 local pool_info = ntop.getDropPoolInfo()
 
+local is_ids_ips_log_enabled = checks.isSystemScriptEnabled("ids_ips_log")
+
 local drop_host_pool_utils = {}
+
+-- A couple of queues keeping events
+drop_host_pool_utils.ids_ips_jail_add_key = "ntopng.cache.ids_ips_jail_add"
+drop_host_pool_utils.ids_ips_jail_remove_key = "ntopng.cache.ids_ips_jail_remove"
+
+drop_host_pool_utils.max_ids_ips_log_queue_len = 1024
+
 local drop_host_pool_id
+
+-- ############################################
 
 -- ############################################
 
@@ -39,6 +51,11 @@ function drop_host_pool_utils.check_pre_banned_hosts_to_add()
          for _, value in pairs(all_pools) do
             if value["name"] == blocked_hosts_pool_name then
                local res, err = host_pool:bind_member(elem, value["pool_id"])
+
+	       if is_ids_ips_log_enabled then
+		  ntop.rpushCache(drop_host_pool_utils.ids_ips_jail_add_key, elem, drop_host_pool_utils.max_ids_ips_log_queue_len)
+	       end
+
                changed = true
                break
             end
@@ -108,6 +125,11 @@ function drop_host_pool_utils.check_periodic_hosts_list()
 	       -- Member found, remove it
 	       if string.find(value, host) then
 		  host_pool:bind_member(value, 0)
+		  
+		  if is_ids_ips_log_enabled then
+		     ntop.rpushCache(drop_host_pool_utils.ids_ips_jail_remove_key, value, drop_host_pool_utils.max_ids_ips_log_queue_len)
+		  end
+
 		  changed = true
 		  goto continue_check
 	       end
