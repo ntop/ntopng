@@ -454,9 +454,7 @@ void ZMQCollectorInterface::collect_flows() {
 
 	  case 'h': /* hello */
 	    recvStats.num_hello++;
-#ifndef HAVE_NEDGE
-	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HELLO] %s", uncompressed);
-#endif
+	    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HELLO] %s", uncompressed); */
 	    ntop->askToRefreshIPSRules();
 	    break;
           }

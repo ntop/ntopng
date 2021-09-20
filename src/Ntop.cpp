@@ -3428,7 +3428,7 @@ bool Ntop::broadcastIPSMessage(char *msg) {
   
   if(prefs->getZMQPublishEventsURL() == NULL)
     return(false);
-  
+
   /* Jeopardized users_m lock :-) */
   users_m.lock(__FILE__, __LINE__);
   
