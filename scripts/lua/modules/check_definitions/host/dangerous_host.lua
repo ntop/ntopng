@@ -9,7 +9,7 @@ local host_alert_keys = require "host_alert_keys"
 
 local dangerous_host = {
    -- Script category
-   category = checks.check_categories.security,
+   category = checks.check_categories.ids_ips,
 
    default_enabled = false,
    alert_id = host_alert_keys.host_alert_dangerous_host,

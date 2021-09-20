@@ -233,6 +233,12 @@ checks.check_categories = {
       icon = "fas fa-server",
       i18n_title = "checks.category_system",
       i18n_descr = "checks.category_system_descr",
+   },
+   ids_ips = {
+      id = 5,
+      icon = "fas fa-user-lock",
+      i18n_title = "checks.category_ids_ips",
+      i18n_descr = "checks.category_ids_ips_descr",
    }
 }
 

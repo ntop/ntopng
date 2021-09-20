@@ -99,7 +99,8 @@ typedef enum {
   check_category_internals = 2,
   check_category_network = 3,
   check_category_system = 4,
-  MAX_NUM_SCRIPT_CATEGORIES = 5
+  check_category_ids_ips = 5, /* Intrusion prevention. Used for checks that add hosts to the jailed pool */
+  MAX_NUM_SCRIPT_CATEGORIES
 } CheckCategory; /* Keep in sync with checks.check_categories in scripts/lua/modules/checks.lua  */
 
 typedef enum {
@@ -108,7 +109,8 @@ typedef enum {
   alert_category_internals = 2,
   alert_category_network = 3,
   alert_category_system = 4,
-  MAX_NUM_ALERT_CATEGORIES = 5
+  alert_category_ids_ips = 5,
+  MAX_NUM_ALERT_CATEGORIES
 } AlertCategory; /* TODO: keep in sync with CheckCategory until we remove CheckCategory */
 
 /*
