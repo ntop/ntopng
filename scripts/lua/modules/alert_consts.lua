@@ -523,7 +523,11 @@ function alert_consts.getAlertType(alert_key, alert_entity_id)
    alert_key = tonumber(alert_key)
    alert_entity_id = tonumber(alert_entity_id)
 
-   if alert_entity_id then
+   -- If the alert entity has been explicity submitted and is one among 'flow' or 'host', then
+   -- this method return if no alert is found. Otherwise, fallbacks are tried.
+   -- NOTE: This is because 'flow' and 'host' alert entities have their explicit alert definitions
+   -- under modules/alert_definitions. All other entities currently fall under the 'other' entity.
+   if alert_entity_id and (alert_entity_id == alert_entities.flow.entity_id or alert_entity_id == alert_entities.host.entity_id) then
       if alerts_by_id[alert_entity_id] and alerts_by_id[alert_entity_id][alert_key] then
 	 return alerts_by_id[alert_entity_id][alert_key]
       end
