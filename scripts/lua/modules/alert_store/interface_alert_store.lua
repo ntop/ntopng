@@ -98,8 +98,8 @@ end
 function interface_alert_store:format_record(value, no_html)
    local record = self:format_json_record_common(value, alert_entities.interface.entity_id, no_html)
 
-   local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.interface.entity_id)
-   local alert_fullname = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true, alert_entities.interface.entity_id)
+   local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html)
+   local alert_fullname = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true)
    local subtype = value.subtype
    local alert_info = alert_utils.getAlertInfo(value)
    local msg = alert_utils.formatAlertMessage(interface.getId(), value, alert_info)
