@@ -51,11 +51,17 @@ traffic policies using the web GUI.
 Traffic policies are automatically exported to nProbe after a change to the policies configuration, or
 when a new nProbe instance connects to ntopng via ZMQ. In order to publish IPS events (including policies)
 an additional ZMQ channel is required. This can be configured using the *--zmq-publish-events* option to 
-configure the ntopng ZMQ endpoint for IPS events. Example:
+configure the ntopng ZMQ endpoint for IPS events. For instance you can start nprobe as follows
 
 .. code:: bash
-
+	  
    nprobe --zmq tcp://*:1234 --ips-mode none --zmq-publish-events tcp://127.0.0.1:5557 -i nf:0
+
+
+and ntopng as:
+
+.. code:: bash
+	  
    ntopng -i tcp://127.0.0.1:1234 --zmq-publish-events tcp://*:5557
 
 Please refer to the `nProbe documentation <https://www.ntop.org/guides/nprobe/ips_mode.html>`_ for more 
