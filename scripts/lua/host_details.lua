@@ -966,17 +966,19 @@ end
       local tots = 0 for key, value in pairs(host["pktStats.sent"]["size"]) do tots = tots + value end
       local totr = 0 for key, value in pairs(host["pktStats.recv"]["size"]) do totr = totr + value end
 
-     print('<tr><th class="text-start">'..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
+     print('<tr>')
      if(tots > 0) then
-       print('<td colspan=1><div class="pie-chart" id="sizeSentDistro"></div></td>')
+			print('<th class="text-start">'..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
+			print('<td colspan=1><div class="pie-chart" id="sizeSentDistro"></div></td>')
      else
-        print('<td colspan=1>~</td>')
+			print('<th class="text-start" style="width: 15rem;"> '..i18n("packets_page.sent_vs_rcvd_distribution")..'</th>')
+			print('<td colspan=1 style="width: 15rem;">~</td>')
      end
 
      if(totr > 0) then
        print('<td colspan=1><div class="pie-chart" id="sizeRecvDistro"></div></td>')
      else
-       print('<td colspan=1>~</td>')
+       print('<td colspan=1 style="width: 15rem;">~</td>')
      end
      print('</tr>')
    
@@ -986,7 +988,7 @@ end
    if(has_tcp_distro and has_arp_distro) then
     	print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_vs_arp_distribution")..'</th><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td><td colspan=1><div class="pie-chart" id="arpDistro"></div></td></tr>')
    else
-      if (has_arp_distro) then
+      if (has_tcp_distro) then
 	 		print('<tr><th class="text-start">'..i18n("packets_page.tcp_flags_distribution")..'</th><td colspan=5><div class="pie-chart" id="flagsDistro"></div></td></tr>')
       elseif (has_arp_distro) then
          if (macinfo ~= nil) and (macinfo["arp_requests.sent"] + macinfo["arp_requests.rcvd"] + macinfo["arp_replies.sent"] + macinfo["arp_replies.rcvd"] > 0) then
