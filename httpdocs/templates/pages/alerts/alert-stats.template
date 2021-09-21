@@ -497,7 +497,8 @@
                 return;
             }
             if(key == 'score'){
-                $('#input-score-value')[0].value = ""
+                $('#input-score-value')[0].value = "";
+                $('#input-score-value')[0].style["max-width"] = "7rem";
             }
             if (datasourceParams[key] !== undefined) {
                 delete datasourceParams[key];
@@ -1183,9 +1184,16 @@
 
     inputValue.value = currScore;
 
+    if(inputValue.value != "" && inputValue.style["max-width"] == "7rem"){
+        inputValue.style["max-width"] = "3.3rem"
+    }
+
     inputValue.oninput = function(){
         if(this.value > maxValue){
             inputValue.value = maxValue;
+        }
+        if(inputValue.style["max-width"] == "7rem"){
+            inputValue.style["max-width"] = "3.3rem"
         }
     }
 
