@@ -1315,7 +1315,7 @@ const EmptyTemplate = (gui = null, hooks = null, check_subdir = null, script_key
 /* ******************************************************* */
 
 // get script key and script name
-const initScriptConfModal = (script_key, script_title, script_desc) => {
+const initScriptConfModal = (script_key, script_subdir, script_title, script_desc) => {
    // change title to modal
    $("#script-name").html(script_title);
    $('#script-description').html(script_desc);
@@ -1330,7 +1330,7 @@ const initScriptConfModal = (script_key, script_title, script_desc) => {
 
    $.get(`${http_prefix}/lua/get_check_config.lua`,
       {
-         check_subdir: check_subdir,
+         check_subdir: script_subdir,
          script_key: script_key,
          factory: false
       }
@@ -1343,13 +1343,16 @@ const initScriptConfModal = (script_key, script_title, script_desc) => {
          // hide previous error
          $("#apply-error").hide();
 
-         const template = TemplateBuilder(data, check_subdir, script_key);
+         const template = TemplateBuilder(data, script_subdir, script_key);
 
          // render template
          template.render();
 
 	 // append the exclusion list 
-	 appendExclusionList(data);
+         if(script_subdir == "flow" || script_subdir == "host")
+  	   appendExclusionList(data);
+         else
+           $(`#exclusion-list-template`).hide();
 
          // bind on_apply event on apply button
          $("#edit-form").off("submit").on('submit', template.apply_click_event);
@@ -1460,7 +1463,7 @@ const createScriptStatusButton = (row_data) => {
    $button.off('click').on('click', function () {
 
       $.post(`${http_prefix}/lua/toggle_check.lua`, {
-         check_subdir: check_subdir,
+         check_subdir: row_data.subdir,
          script_key: row_data.key,
          csrf: pageCsrf,
          action: (is_enabled) ? 'disable' : 'enable'
@@ -1800,7 +1803,7 @@ $(function () {
                this.DataTable().search(title).draw();
 
                if (hasConfigDialog(elem)) {
-                  initScriptConfModal(script_key_filter, title, desc);
+                  initScriptConfModal(script_key_filter, elem.subdir, title, desc);
                   $("#modal-script").modal("show");
                }
             }
@@ -1899,9 +1902,8 @@ $(function () {
             sortable: false,
             width: 'auto',
             render: function (data, type, script) {
-
                const isScriptEnabled = script.is_enabled;
-               const isSubdirFlow = (check_subdir === "flow");
+               const isSubdirFlow = (script.subdir === "flow");
                const srcCodeButtonEnabled = data.edit_url && isScriptEnabled ? '' : 'disabled';
                const editScriptButtonEnabled = ((!script.input_handler && !isSubdirFlow) || !isScriptEnabled) ? 'disabled' : '';
 
@@ -1947,10 +1949,11 @@ $(function () {
 
       const row_data = $script_table.row($(this).parent().parent()).data();
       const script_key = row_data.key;
+      const script_subdir = row_data.subdir;
       const script_title = row_data.title;
       const script_desc = row_data.description;
 
-      initScriptConfModal(script_key, script_title, script_desc);
+      initScriptConfModal(script_key, script_subdir, script_title, script_desc);
    });
 
    /**

@@ -114,6 +114,7 @@ page_utils.menu_entries = {
    manage_users           = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-users"},
    preferences            = {key = "preferences", i18n_title = "prefs.preferences", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#preferences"},
    scripts_config         = {key = "scripts_config", i18n_title = "about.checks", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
+   scripts_config_all     = {key = "scripts_config", subkey="all", i18n_title = "all", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_hosts   = {key = "scripts_config", subkey="hosts", i18n_title = alert_entities.host.i18n_label, section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_interfaces = {key = "scripts_config", subkey="interfaces", i18n_title = alert_entities.interface.i18n_label, section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_networks = {key = "scripts_config", subkey="networks", i18n_title = alert_entities.network.i18n_label, section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},

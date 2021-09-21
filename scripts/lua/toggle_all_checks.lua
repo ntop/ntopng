@@ -28,7 +28,7 @@ if(action == nil) then
 end
 
 local subdirs = {}
-if(subdir == nil) then
+if(subdir == nil or subdir == "all") then
   local all_subdirs = checks.listSubdirs()
   for _, subdir in ipairs(all_subdirs) do
     subdirs[#subdirs+1] = subdir.id

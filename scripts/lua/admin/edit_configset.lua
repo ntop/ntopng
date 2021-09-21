@@ -33,46 +33,45 @@ local script_filter = _GET["check"]
 local search_filter = _GET["search_script"]
 
 local configset = checks.getConfigset()
-local script_type = checks.getScriptType(check_subdir)
-
-local scripts = checks.load(getSystemInterfaceId(), script_type, check_subdir)
 
 if not isAdministratorOrPrintErr() or not configset then
   return
 end
 
-local confset_name = configset.name
-
 -- create a table that holds localization about hooks name
 local titles = checks_utils.load_configset_titles()
 
 local sub_menu_entries = {
-  ['host'] = {
+  ['all'] = {
      order = 0,
+     entry = page_utils.menu_entries.scripts_config_all
+  },
+  ['host'] = {
+     order = 1,
      entry = page_utils.menu_entries.scripts_config_hosts
   },
   ['interface'] = {
-     order = 1, 
+     order = 2, 
      entry = page_utils.menu_entries.scripts_config_interfaces
   },
   ['network'] = {
-     order = 2,
+     order = 3,
      entry = page_utils.menu_entries.scripts_config_networks
   },
   ['snmp_device'] = {
-     order = 3,
+     order = 4,
      entry = page_utils.menu_entries.scripts_config_snmp_devices
   },
   ['flow'] = {
-     order = 4,
+     order = 5,
      entry = page_utils.menu_entries.scripts_config_flows
   },
   ['system'] = {
-     order = 5,
+     order = 6,
      entry = page_utils.menu_entries.scripts_config_system
   },
   ['syslog'] = {
-     order = 6,
+     order = 7,
      entry = page_utils.menu_entries.scripts_config_syslog
   }
 }
@@ -100,17 +99,6 @@ for app, _ in pairsByKeys(interface.getnDPIProtocols(), asc_insensitive) do
 end
 
 apps_and_categories = {cat_groups, app_groups}
-
---tprint(checks.check_categories)
-local check_categories = {}
-for script_name, script in pairs(scripts.modules) do
-   for cat_k, cat_v in pairs(checks.check_categories) do
-      if script["category"]["id"] == cat_v["id"] and not check_categories[cat_k] then
-      check_categories[cat_k] = cat_v
-      break
-      end
-   end
-end
 
 -- Device types
 
@@ -144,14 +132,13 @@ local context = {
       template_utils = template,
       hooks_localizated = titles,
       check_subdir = check_subdir,
-      confset_name = confset_name,
       script_filter = script_filter,
       search_filter = search_filter,
       page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?subdir=%s", check_subdir),
       apps_and_categories = json.encode(apps_and_categories),
       device_types = json.encode(device_types_list),
    },
-   check_categories = check_categories,
+   check_categories = checks.check_categories,
    info = ntop.getInfo(),
    json = json
 }
