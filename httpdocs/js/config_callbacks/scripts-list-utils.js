@@ -2003,4 +2003,18 @@ $(function () {
          })
    })
 
+   $(`#btn-confirm-action_factory-reset-modal`).click(async function () {
+      $.post(`${http_prefix}/lua/rest/v2/reset/checks/config.lua`, {
+         csrf: pageCsrf
+      })
+         .then((result) => {
+            if (result.rc_str == "OK") location.reload();
+         })
+         .catch((error) => {
+            console.error(error);
+         })
+         .always(() => {
+         })
+   })
+
 });

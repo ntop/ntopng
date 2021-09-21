@@ -1,4 +1,3 @@
-
   <div class="row">
     <div class="col-md-12 col-lg-12">
       <div class="alert alert-danger d-none" id='alert-row-buttons' role="alert">
@@ -35,9 +34,15 @@
         </div>
         {% if isEmptyString(script_list.search_filter) then %}
         <div class="card-footer">
-          <button id='btn-disable-all' disabled class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#disable-all-modal">
+
+	  <button id='btn-disable-all' disabled class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#disable-all-modal">
             <i class='fas fa-toggle-off'></i> {{ i18n("checks.disable_all") }}</button>
-        </div>
+
+  	  {% if script_list.check_subdir == "all" then %}
+	  <button id='btn-factory-reset' class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#factory-reset-modal">
+            <i class='fas fa-undo-alt'></i> {{ i18n("factory_reset") }}</button>
+	  {% end %}
+	</div>
         {% end %}
       </div>
     </div>
@@ -63,6 +68,19 @@
           message = i18n('checks.disable_all_message'),
           title = i18n('checks.disable_all_checks'),
           confirm = i18n("checks.disable_all"),
+          custom_alert_class = 'alert alert-danger',
+          confirm_button = 'btn-danger',
+      },
+  })
+*}
+
+{*
+  script_list.template_utils.gen("modal_confirm_dialog.html", {
+      dialog={
+          id = "factory-reset-modal",
+          message = i18n('checks.factory_reset_all_message'),
+          title = i18n('checks.factory_reset_all_checks'),
+          confirm = i18n("factory_reset"),
           custom_alert_class = 'alert alert-danger',
           confirm_button = 'btn-danger',
       },
