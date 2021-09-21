@@ -209,15 +209,13 @@
 
         function getScore() {
             const score = $(`#input-score-value`)[0].value || 0;
-            if(score == 0)
-                return nil;
             return score +";gte";
         }
 
         function updateNavbarLink(url, begin, end, element) {
             const searchParams = getSearchParams();
             const score = getScore();
-            if(score){
+            if(score != '0;gte'){
                 searchParams.set('score', score);
             }
             searchParams.set('epoch_begin', begin.unix());
