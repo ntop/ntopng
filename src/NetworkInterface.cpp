@@ -3217,7 +3217,14 @@ void NetworkInterface::periodicStatsUpdate() {
 #endif
 
 #ifdef NTOPNG_PRO
-  updateBehaviorStats(&tv);
+  if(tv.tv_sec >= nextMinPeriodicUpdate) {
+    /* 5 minute periodic update */
+    if(sMap) sMap->purgeIdle(nextMinPeriodicUpdate);
+    if(pMap) pMap->purgeIdle(nextMinPeriodicUpdate);
+    updateBehaviorStats(&tv);
+
+    nextMinPeriodicUpdate = tv.tv_sec + IFACE_BEHAVIOR_REFRESH;
+  }
 #endif
 }
 
@@ -3227,16 +3234,12 @@ void NetworkInterface::periodicStatsUpdate() {
 
 void NetworkInterface::updateBehaviorStats(const struct timeval *tv) {
   /* 5 Min Update */
-  if(tv->tv_sec >= nextMinPeriodicUpdate) {
-    /* Traffic behavior stats update, currently score, traffic rx and tx */
-    score_behavior->updateBehavior(this, score_as_cli + score_as_srv, "", false);
+  /* Traffic behavior stats update, currently score, traffic rx and tx */
+  score_behavior->updateBehavior(this, score_as_cli + score_as_srv, "", false);
 
-    traffic_tx_behavior->updateBehavior(this, ethStats.getNumEgressBytes(), "", false);
+  traffic_tx_behavior->updateBehavior(this, ethStats.getNumEgressBytes(), "", false);
 
-    traffic_rx_behavior->updateBehavior(this, ethStats.getNumIngressBytes(), "", false);
-
-    nextMinPeriodicUpdate = tv->tv_sec + IFACE_BEHAVIOR_REFRESH;
-  }
+  traffic_rx_behavior->updateBehavior(this, ethStats.getNumIngressBytes(), "", false);
 }
 
 #endif
@@ -6731,9 +6734,8 @@ void NetworkInterface::allocateStructures() {
      && strcmp(ifname, SYSTEM_INTERFACE_NAME)
      && !isViewed() /* Skip for viewed interface, only store service maps in the view to save memory */
      ) {
-    pMap = new (std::nothrow) PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
-    sMap = new (std::nothrow) ServiceMap(this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
-    
+    if(!pMap) pMap = new (std::nothrow) PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
+    if(!sMap) sMap = new (std::nothrow) ServiceMap    (this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
   } else
     pMap = NULL, sMap = NULL;
 #endif
