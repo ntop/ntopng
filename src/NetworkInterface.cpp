@@ -6734,8 +6734,8 @@ void NetworkInterface::allocateStructures() {
      && strcmp(ifname, SYSTEM_INTERFACE_NAME)
      && !isViewed() /* Skip for viewed interface, only store service maps in the view to save memory */
      ) {
-    if(!pMap) pMap = new (std::nothrow) PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
-    if(!sMap) sMap = new (std::nothrow) ServiceMap    (this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
+    pMap = new (std::nothrow) PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
+    sMap = new (std::nothrow) ServiceMap    (this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
   } else
     pMap = NULL, sMap = NULL;
 #endif
