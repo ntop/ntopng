@@ -608,7 +608,7 @@ page_utils.add_menubar_section(
 	    entry = page_utils.menu_entries.scripts_config,
 	    section = page_utils.menu_sections.checks,
 	    hidden = not is_admin or not auth.has_capability(auth.capabilities.checks),
-	    url = '/lua/admin/edit_configset.lua?subdir=host',
+	    url = '/lua/admin/edit_configset.lua?subdir=all',
 	 },
 	 {
 	    entry = page_utils.menu_entries.alert_exclusions,
