@@ -212,11 +212,18 @@
             return score +";gte";
         }
 
+        function getScoreTag() {
+            const existingTagElms = tagify.getTagElms();
+            return existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === 'score' && htmlTag.getAttribute('selectedOperator') === 'gte');
+        }
+
         function updateNavbarLink(url, begin, end, element) {
             const searchParams = getSearchParams();
             const score = getScore();
             if(score != '0;gte'){
                 searchParams.set('score', score);
+            } else {
+                searchParams.delete('score');
             }
             searchParams.set('epoch_begin', begin.unix());
             searchParams.set('epoch_end', end.unix());
@@ -254,12 +261,21 @@
             $(element).attr('href', cur_url.toString());
         }
 
-        function pushNewHistoryState(begin, end, len) {
+        function pushNewHistoryState(begin, end, len, score) {
             const url = new URL(location);
 
             const searchParams = getSearchParams();
             searchParams.set('epoch_begin', begin.unix());
             searchParams.set('epoch_end', end.unix());
+
+            if(score !== '0;gte') 
+                searchParams.set('score', getScore());
+            else {
+                const score_tag = getScoreTag();
+                searchParams.delete('score');
+                if(score_tag)
+                    tagify.removeTags(score_tag);
+            }
             
             if (url.searchParams.has('status')) {
                 searchParams.set('status', url.searchParams.get('status'));
@@ -296,6 +312,7 @@
 
         async function onRangePickerChange(pushHistroy = false) {
             const [begin, end] = getTimestampRange();
+            const score = getScore();
 
             setDatasourceParams();
 
@@ -306,11 +323,16 @@
             const newDownloadURL = new URL(href, location.origin);
             newDownloadURL.search = new URLSearchParams(datasourceParams);
             newDownloadURL.searchParams.set('format', 'txt');
-            newDownloadURL.searchParams.set('score', getScore());
+
+            if(score !== '0;gte') 
+                newDownloadURL.searchParams.set('score', getScore());
+            else
+                newDownloadURL.searchParams.delete('score');
+
             $(`#btn-download-alerts`).attr('href', newDownloadURL.toString());
 
             if (pushHistroy) {
-                pushNewHistoryState(begin, end);
+                pushNewHistoryState(begin, end, null, score);
             }
         }
 
@@ -335,7 +357,6 @@
                 if (existingTag !== undefined) {
             */ 
 
-            debugger;
             existingTagElement = existingTagElms[tag.index] || existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
                 
             /* Lookup by index (allow key dup, replace the value only if it's the same element index) */
