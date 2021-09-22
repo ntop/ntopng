@@ -2202,6 +2202,17 @@ local tags = {
    dscp_class = _GET["dscp_class"],
 }
 
+local items = split(_GET["ts_query"], ",") or {}
+
+for _, concat_tag in pairs(items) do
+	local tag = split(concat_tag, ":")
+	
+	if (tag) and (tag[1] == "dscp_class") then
+		tags["dscp_class"] = tag[2]
+		break
+	end
+end
+
 local url = hostinfo2detailsurl(host, {page = "historical"})
 local show_graph = true
 
