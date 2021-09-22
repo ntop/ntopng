@@ -1657,8 +1657,6 @@ $(function () {
 
    const hide_categories_dropdown = () => {
 
-      // get current category filter
-      const current_category_filter = $script_table.column(CATEGORY_COLUMN_INDEX).search();
       // get alla categories from current datatable instance
       const data_rows = $script_table
          .column(CATEGORY_COLUMN_INDEX)
@@ -1672,11 +1670,8 @@ $(function () {
 
       const enabled_categories = [...categories_set];
 
-      if (enabled_categories.indexOf(current_category_filter) == -1) {
-
-         $('#category-filter-menu button span').text(`${i18n.filter_categories}`);
-         $script_table.column(CATEGORY_COLUMN_INDEX).search('').draw();
-      }
+      $('#category-filter-menu button span').text(`${i18n.filter_categories}`);
+      $script_table.column(CATEGORY_COLUMN_INDEX).search('').draw();
 
       $('#category-filter li').each(function (index, element) {
 
