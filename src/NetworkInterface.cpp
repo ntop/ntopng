@@ -3219,8 +3219,11 @@ void NetworkInterface::periodicStatsUpdate() {
 #ifdef NTOPNG_PRO
   if(tv.tv_sec >= nextMinPeriodicUpdate) {
     /* 5 minute periodic update */
+#if !defined(HAVE_NEDGE)
     if(sMap) sMap->purgeIdle(nextMinPeriodicUpdate);
     if(pMap) pMap->purgeIdle(nextMinPeriodicUpdate);
+#endif
+    
     updateBehaviorStats(&tv);
 
     nextMinPeriodicUpdate = tv.tv_sec + IFACE_BEHAVIOR_REFRESH;
