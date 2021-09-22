@@ -1602,8 +1602,8 @@ function delegateTooltips() {
 
 $(function () {
 
-   const CATEGORY_COLUMN_INDEX = 1;
-   const VALUES_COLUMN_INDEX = 3;
+   const CATEGORY_COLUMN_INDEX = 2;
+   const VALUES_COLUMN_INDEX = 4;
 
    const add_filter_categories_dropdown = () => {
 
@@ -1756,7 +1756,7 @@ $(function () {
          delegateTooltips();
 
          // update the tabs counters
-         const INDEX_SEARCH_COLUMN = 3;
+         const INDEX_SEARCH_COLUMN = 4;
 
          const $disabled_button = $(`#disabled-scripts`);
          const $all_button = $("#all-scripts");
@@ -1809,7 +1809,7 @@ $(function () {
             }
          }
       },
-      order: [[0, "asc"]],
+      order: [[1, "asc"]],
       buttons: {
          buttons: [
             {
@@ -1837,6 +1837,14 @@ $(function () {
          }
       },
       columns: [
+         {
+            data: 'subdir_title',
+            visible: false,
+            render: function (data, type, row) {
+               if (type == 'display') return `${data}`;
+               return data;
+            },
+         },
          {
             data: 'title',
             render: function (data, type, row) {

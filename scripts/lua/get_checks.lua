@@ -89,7 +89,8 @@ for _, subdir in ipairs(subdirs) do
 	    edit_url = checks.getScriptEditorUrl(script),
 	    input_handler = input_handler,
 	    value_description = script.template:describeConfig(hooks),
-	    subdir = subdir
+	    subdir = subdir,
+	    subdir_title = i18n("config_scripts.granularities."..subdir),
 	 }
       end
    end
