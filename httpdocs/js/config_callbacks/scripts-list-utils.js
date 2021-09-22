@@ -1656,12 +1656,12 @@ $(function () {
    }
 
    const hide_categories_dropdown = () => {
-
       // get alla categories from current datatable instance
       const data_rows = $script_table
          .column(CATEGORY_COLUMN_INDEX)
          .search('')
-         .rows({ filter: 'applied' }).data();
+         // .rows({ filter: 'applied' }) /* Causes issues with invalid cats when switching tabs */
+         .data();
       const categories_set = new Set();
 
       for (let i = 0; i < data_rows.length; i++) {
