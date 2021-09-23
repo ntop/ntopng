@@ -430,12 +430,16 @@ void LocalHost::incDohDoTUses(Host *host) {
   it = doh_dot_map.find(key);
 
   if(it == doh_dot_map.end()) {
-    if(doh_dot_map.size() > 8 /* Max # entries */) return;
-    
-    doh_dot_map[key] = new DoHDoTStats(*(host->get_ip()), host->get_vlan_id());
-  }
+    if(doh_dot_map.size() < 8 /* Max # entries */) {
+      DoHDoTStats *doh_dot = new (nothrow) DoHDoTStats(*(host->get_ip()), host->get_vlan_id());
 
-  doh_dot_map[key]->incUses();
+      if(doh_dot) {
+	doh_dot->incUses();
+	doh_dot_map[key] = doh_dot;
+      }
+    }
+  } else
+    it->second->incUses();
 
   m.unlock(__FILE__, __LINE__);
 }
