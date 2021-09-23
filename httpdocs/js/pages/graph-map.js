@@ -24,8 +24,8 @@ const defaultOptions = {
             min: 10,
             max: 30,
             label: {
-                min: 8,
-                max: 30,
+                min: 15,
+                max: 15,
             },
         },
         shadow: false,
@@ -213,6 +213,7 @@ function saveTopologyView(network) {
         unicast_only: unicastOnly,
         l7proto: l7proto,
         only_memory: only_memory,
+        only_alerted_hosts: only_alerted_hosts,
         first_seen: getTimestampByTime(age),
         age: age,
      });
@@ -252,6 +253,9 @@ function setEventListenersNetwork(network) {
         }
         if (only_memory !== "") {
             query += `&only_memory=${only_memory}`;
+        }
+        if (only_alerted_hosts !== "") {
+            query += `&only_alerted_hosts=${only_alerted_hosts}`;
         }
         if (l7proto !== "") {
             query += `&l7proto=${l7proto}`;
@@ -303,6 +307,7 @@ function loadGraph(container) {
         unicast_only: unicastOnly,
         l7proto: l7proto,
         only_memory: only_memory,
+        only_alerted_hosts: only_alerted_hosts,
         first_seen: getTimestampByTime(age),
         age: age,
     });

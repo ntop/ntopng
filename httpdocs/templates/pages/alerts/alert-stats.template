@@ -1224,10 +1224,12 @@
     }
 
     inputValue.onchange = function(){
+        onRangePickerChange(true);
+
         if(inputValue.value != 0){
             const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte"};
 
-            addFilterTag(tag);
+            //addFilterTag(tag);
         }
     }
     });

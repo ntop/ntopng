@@ -1629,6 +1629,7 @@ local known_parameters = {
    ["age"]                 = validateSingleWord,
    ["first_seen"]          = validateNumber,
    ["only_memory"]         = validateBool,
+   ["only_alerted_hosts"]  = validateBool,
 
 -- Script editor
    ["plugin_file_path"]         = validateLuaScriptPath,
