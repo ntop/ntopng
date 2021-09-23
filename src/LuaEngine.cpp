@@ -673,11 +673,11 @@ void LuaEngine::purifyHTTPParameter(char *param) {
 
 /* ****************************************** */
 
-bool LuaEngine::switchInterface(struct lua_State *vm, const char *ifid,
+bool LuaEngine::switchInterface(struct lua_State *vm, const char *ifid, const char *observation_point_id,
 				const char *user, const char *group,
 				const char *session) {
   NetworkInterface *iface = NULL;
-  char iface_key[64], ifname_key[64];
+  char iface_key[64], ifname_key[64], obs_id_key[64];
   char iface_id[16];
 
   iface = ntop->getNetworkInterface(ifid, vm);
@@ -711,6 +711,17 @@ bool LuaEngine::switchInterface(struct lua_State *vm, const char *ifid,
 			       iface->get_name(), user);
 
   getLuaVMUservalue(vm, iface) = iface;
+
+  /* Finally, also set the observation point */
+  if(observation_point_id[0]) {
+    u_int16_t obs_id = (u_int16_t)strtoll(observation_point_id, NULL, 10);
+
+    if(iface->hasObservationPointId(obs_id)) {
+      snprintf(obs_id_key, sizeof(obs_id_key), NTOPNG_PREFS_PREFIX ".%s.observationPointId", user);
+
+      ntop->getRedis()->set(obs_id_key, observation_point_id);
+    }
+  }
 
   return true;
 }
@@ -902,7 +913,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   char switch_interface[2] = { '\0' };
   char addr_buf[64];
   char session_buf[64];
-  char ifid_buf[32], session_key[32];
+  char ifid_buf[32], obs_id_buf[16], session_key[32];
   const char* origin_header;
   bool send_redirect = false;
   IpAddress client_addr;
@@ -1003,10 +1014,12 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       /* Check for interface switch requests */
       mg_get_var(post_data, post_data_len, "switch_interface", switch_interface, sizeof(switch_interface));
       if(strlen(switch_interface) > 0 && request_info->query_string) {
-        mg_get_var(request_info->query_string, strlen(request_info->query_string), "ifid", ifid_buf, sizeof(ifid_buf));
-	
+	/* Read the interface id */
+	mg_get_var(request_info->query_string, strlen(request_info->query_string), "ifid", ifid_buf, sizeof(ifid_buf));
+	/* Read the observation point id */
+	mg_get_var(request_info->query_string, strlen(request_info->query_string), "observationPointId", obs_id_buf, sizeof(obs_id_buf));
         if(strlen(ifid_buf) > 0) {
-          switchInterface(L, ifid_buf, user, group, session_buf);
+          switchInterface(L, ifid_buf, obs_id_buf, user, group, session_buf);
 
 	  /* Sending a redirect is needed to prevent the current lua script
 	   * from receiving the POST request, as it could exchange the request

@@ -88,10 +88,9 @@
 &nbsp;
 
 {% for k, v in pairsByKeys(observationPoints, asc) do %}
-  <form id="switch_interface_form_observation_point_{{ k }}" method="POST" action="{{ ntop.getHttpPrefix() }}/?ifid={{ currentIfaceId }}&observationPointId={{ k }}" >
-    <input name="switch_interface" type="hidden" value="1" />
-    <input name="switch_observation_point" type="hidden" value="{{ k }}" />
-    <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
+<form id="switch_interface_form_observation_point_{{ k }}" method="POST" action="{{ action_urls[interface.getId()] }}&observationPointId={{ k }}" >
+  <input name="switch_interface" type="hidden" value="1" />
+  <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
   </form>
 {% end %}
 
