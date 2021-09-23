@@ -8,5 +8,6 @@ section.
     :maxdepth: 2
 
     nprobe
+    nprobe_ips
     nprobeagent
     n2disk
