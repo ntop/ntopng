@@ -5092,37 +5092,6 @@ static int ntop_service_restart(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_set_user_observation_point_id(lua_State* vm) {
-  char *username;
-
-  if((username = getLuaVMUserdata(vm, user)) == NULL) {
-    lua_pushboolean(vm, false);
-  } else {
-    char key[64], val[16];
-    u_int16_t observationPointId;
-    NetworkInterface *iface = getCurrentInterface(vm);
-    bool rc;
-
-    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-    observationPointId = lua_tointeger(vm, 1);
-
-    if(iface->hasObservationPointId(observationPointId)) {
-      snprintf(key, sizeof(key), NTOPNG_PREFS_PREFIX ".%s.observationPointId", username);
-      snprintf(val, sizeof(val), "%u", observationPointId);
-
-      ntop->getRedis()->set(key, val);
-      rc = true;
-    } else
-      rc = false;
-
-    lua_pushboolean(vm, rc);
-  }
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_get_user_observation_point_id(lua_State* vm) {
   char *username;
 
@@ -6392,7 +6361,6 @@ static luaL_Reg _ntop_reg[] = {
   { "getNetworks",          ntop_get_networks },
   { "isGuiAccessRestricted", ntop_is_gui_access_restricted },
   { "serviceRestart",       ntop_service_restart },
-  { "setUserObservationPointId", ntop_set_user_observation_point_id },
   { "getUserObservationPointId", ntop_get_user_observation_point_id },
 
   /* Security */

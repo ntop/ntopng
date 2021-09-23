@@ -35,7 +35,7 @@ local behavior_utils = require("behavior_utils")
 
 blog_utils.fetchLatestPosts()
 
-observationPointId = ntop.getUserObservationPointId()
+local observationPointId = ntop.getUserObservationPointId()
 
 print([[
    <div class='wrapper'>
@@ -852,22 +852,6 @@ for v,k in pairs(iface_names) do
 
     if(ifs.id == _ifstats.id) then
       observationPoints = interface.getObservationPoints()
-   end
-end
-
-if observationPoints == nil or
-   table.len(observationPoints) == 0 then
-   -- read the validated observation point
-   observationPoints = nil
-   observationPointId = nil
-else
-   if observationPointId == 0 then
-      for k, _ in pairs(observationPoints) do
-	 observationPointId = k
-	 break
-      end
-
-      ntop.setUserObservationPointId(tonumber(observationPointId))
    end
 end
 
