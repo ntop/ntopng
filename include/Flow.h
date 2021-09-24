@@ -421,6 +421,7 @@ class Flow : public GenericHashEntry {
 		      u_int8_t flags, bool src2dst_direction);
   void updateTcpWindow(u_int16_t window, bool src2dst_direction);
   void updateTcpSeqIssues(const ParsedFlow *pf);
+  void updateTLS(ParsedFlow *zflow);
   void updateDNS(ParsedFlow *zflow);
   void updateHTTP(ParsedFlow *zflow);
   void updateSuspiciousDGADomain();

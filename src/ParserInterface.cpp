@@ -435,10 +435,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if(flow->isHTTP())
     flow->updateHTTP(zflow);
 
-  if(zflow->tls_server_name) {
-    flow->setServerName(zflow->tls_server_name);
-    zflow->tls_server_name = NULL;
-  }
+  if(flow->isTLS())
+    flow->updateTLS(zflow);
 
   if(zflow->bittorrent_hash) {
     flow->setBTHash(zflow->bittorrent_hash);

@@ -3975,6 +3975,25 @@ void Flow::updateDNS(ParsedFlow *zflow) {
 
 /* *************************************** */
 
+/*
+  @brief Update TLS stats for flows received via ZMQ
+ */
+void Flow::updateTLS(ParsedFlow *zflow) {
+  if(zflow->tls_server_name) {
+    if(isTLS()) {
+      if(!protos.tls.client_requested_server_name)
+	protos.tls.client_requested_server_name = zflow->tls_server_name;
+      else
+	/* Already set, can be freed */
+	free(zflow->tls_server_name);
+    }
+
+    zflow->tls_server_name = NULL;
+  }
+}
+
+/* *************************************** */
+
 void Flow::dissectDNS(bool src2dst_direction, char *payload, u_int16_t payload_len) {
   struct ndpi_dns_packet_header dns_header;
   u_int8_t payload_offset = get_protocol() == IPPROTO_UDP ? 0 : 2;
