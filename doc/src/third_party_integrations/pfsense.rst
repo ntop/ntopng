@@ -97,8 +97,15 @@ Add a new line with the *--community* option to run ntopng in Community mode.
 Services
 ========
 
+ntopng depends on redis. Both ntopng and the redis service should be enabled:
 
-ntopng depends on redis. To start redis type
+
+.. code:: bash
+
+   sysrc redis_enable="YES"
+   sysrc ntopng_enable="YES"
+
+To start the redis service type:
 
 .. code:: bash
 
@@ -108,14 +115,11 @@ ntopng depends on redis. To start redis type
 
    If redis does not start, check out the Troubleshooting section below.
 
-
-To start the ntopng service run
+To start the ntopng service run:
 
 .. code:: bash
 
    service ntopng start
-
-
 
 Starting Services on Boot
 =========================
