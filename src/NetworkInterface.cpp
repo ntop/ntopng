@@ -8553,7 +8553,34 @@ u_int32_t NetworkInterface::getNumEngagedAlerts() const {
 
 /* *************************************** */
 
+u_int32_t NetworkInterface::getNumEngagedAlerts(AlertLevelGroup alert_level_group) const {
+  u_int32_t tot_engaged_alerts = 0;
+  const u_int32_t (*num_alerts_engaged)[ALERT_ENTITY_MAX_NUM_ENTITIES] = NULL;
+
+  switch(alert_level_group) {
+  case alert_level_group_notice_or_lower:
+    num_alerts_engaged = &num_alerts_engaged_notice;
+    break;
+  case alert_level_group_warning:
+    num_alerts_engaged = &num_alerts_engaged_warning;
+    break;
+  case alert_level_group_error_or_higher:
+    num_alerts_engaged = &num_alerts_engaged_error;
+    break;
+  default:
+    return tot_engaged_alerts;
+  }
+
+  for(int i = 0; i < ALERT_ENTITY_MAX_NUM_ENTITIES; i++)
+    tot_engaged_alerts += (*num_alerts_engaged)[i];
+
+  return tot_engaged_alerts;
+};
+
+/* *************************************** */
+
 void NetworkInterface::luaNumEngagedAlerts(lua_State *vm) const {
+  /* By Entity */
   lua_newtable(vm);
 
   for(int i = 0; i < ALERT_ENTITY_MAX_NUM_ENTITIES; i++) {
@@ -8565,6 +8592,17 @@ void NetworkInterface::luaNumEngagedAlerts(lua_State *vm) const {
   }
   
   lua_pushstring(vm, "num_alerts_engaged_by_entity");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  /* By severity */
+  lua_newtable(vm);
+
+  lua_push_uint64_table_entry(vm, "notice", getNumEngagedAlerts(alert_level_group_notice_or_lower));
+  lua_push_uint64_table_entry(vm, "warning", getNumEngagedAlerts(alert_level_group_warning));
+  lua_push_uint64_table_entry(vm, "error", getNumEngagedAlerts(alert_level_group_error_or_higher));
+  
+  lua_pushstring(vm, "num_alerts_engaged_by_severity");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 };

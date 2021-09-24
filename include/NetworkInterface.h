@@ -973,6 +973,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   virtual bool reproducePcapOriginalSpeed() const         { return(false);             }
   u_int32_t getNumEngagedAlerts() const;
+  u_int32_t getNumEngagedAlerts(AlertLevelGroup alert_level_group) const;
   void luaNumEngagedAlerts(lua_State *vm) const;
   void releaseAllEngagedAlerts();
 

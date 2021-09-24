@@ -121,6 +121,11 @@ function dumpInterfaceStats(ifid)
 	 res["alerted_flows_notice"]  = ifstats["num_alerted_flows_notice"]  or 0
 	 res["alerted_flows_warning"] = ifstats["num_alerted_flows_warning"] or 0
 	 res["alerted_flows_error"]   = ifstats["num_alerted_flows_error"]   or 0
+
+	 -- Engaged alerts: breakdown
+	 res["engaged_alerts_notice"]  = ifstats["num_alerts_engaged_by_severity"]["notice"]
+	 res["engaged_alerts_warning"] = ifstats["num_alerts_engaged_by_severity"]["warning"]
+	 res["engaged_alerts_error"]   = ifstats["num_alerts_engaged_by_severity"]["error"]
       end
 
       if periodic_activities_utils.have_degraded_performance() then

@@ -328,8 +328,13 @@ print[[
 					var error_color = "#B94A48";
 
 					if(rsp.engaged_alerts > 0) {
+                                                let alerts_badge = "bg-info";
+
+                                                if(rsp.engaged_alerts_error > 0) alerts_badge = "bg-danger";
+                                                else if(rsp.engaged_alerts_warning > 0) alerts_badge = "bg-warning";
+
 						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/alert_stats.lua?ifid=]] print(tostring(ifid)) print[[&status=engaged\">"
-						msg += "<span class=\"badge bg-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.formatValue(rsp.engaged_alerts, 1)+"</span></a>";
+						msg += "<span class=\"badge " + alerts_badge + "\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.formatValue(rsp.engaged_alerts, 1)+"</span></a>";
 					}
 
 					if(rsp.alerted_flows_warning > 0 && !(systemInterfaceEnabled)) {
