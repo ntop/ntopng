@@ -294,7 +294,9 @@ void NetworkInterface::init() {
   num_written_alerts = num_alerts_queries = 0;
   score_as_cli = score_as_srv = 0;
   memset(live_captures, 0, sizeof(live_captures));
-  memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
+  memset(&num_alerts_engaged_notice, 0, sizeof(num_alerts_engaged_notice)),
+    memset(&num_alerts_engaged_warning, 0, sizeof(num_alerts_engaged_warning)),
+    memset(&num_alerts_engaged_error, 0, sizeof(num_alerts_engaged_error));
   tot_num_anomalies.local_hosts = tot_num_anomalies.remote_hosts = 0;
   num_active_alerted_flows_notice = 0,
     num_active_alerted_flows_warning = 0,
@@ -8496,20 +8498,46 @@ void NetworkInterface::walkAlertables(AlertEntity alert_entity, const char *enti
 
 /* *************************************** */
 
-void NetworkInterface::incNumAlertsEngaged(AlertEntity alert_entity) {
+void NetworkInterface::incNumAlertsEngaged(AlertEntity alert_entity, AlertLevel alert_severity) {
   u_int i = alert_entity;
 
-  if(i < ALERT_ENTITY_MAX_NUM_ENTITIES)
-    num_alerts_engaged[i]++;
+  if(i < ALERT_ENTITY_MAX_NUM_ENTITIES) {
+    switch(Utils::mapAlertLevelToGroup(alert_severity)) {
+    case alert_level_group_notice_or_lower:
+      num_alerts_engaged_notice[i]++;
+      break;
+    case alert_level_group_warning:
+      num_alerts_engaged_warning[i]++;
+      break;
+    case alert_level_group_error_or_higher:
+      num_alerts_engaged_error[i]++;
+      break;
+    default:
+      break;
+    }
+  }
 }
 
 /* *************************************** */
 
-void NetworkInterface::decNumAlertsEngaged(AlertEntity alert_entity) {
+void NetworkInterface::decNumAlertsEngaged(AlertEntity alert_entity, AlertLevel alert_severity) {
   u_int i = alert_entity;
 
-  if(i < ALERT_ENTITY_MAX_NUM_ENTITIES)
-    num_alerts_engaged[i]--;
+  if(i < ALERT_ENTITY_MAX_NUM_ENTITIES) {
+    switch(Utils::mapAlertLevelToGroup(alert_severity)) {
+    case alert_level_group_notice_or_lower:
+      num_alerts_engaged_notice[i]--;
+      break;
+    case alert_level_group_warning:
+      num_alerts_engaged_warning[i]--;
+      break;
+    case alert_level_group_error_or_higher:
+      num_alerts_engaged_error[i]--;
+      break;
+    default:
+      break;
+    }
+  }
 }
 
 /* *************************************** */
@@ -8518,7 +8546,7 @@ u_int32_t NetworkInterface::getNumEngagedAlerts() const {
   u_int32_t tot_engaged_alerts = 0;
 
   for(int i = 0; i < ALERT_ENTITY_MAX_NUM_ENTITIES; i++)
-    tot_engaged_alerts += num_alerts_engaged[i];
+    tot_engaged_alerts += num_alerts_engaged_notice[i] + num_alerts_engaged_warning[i] + num_alerts_engaged_error[i];
 
   return tot_engaged_alerts;
 };
@@ -8529,7 +8557,7 @@ void NetworkInterface::luaNumEngagedAlerts(lua_State *vm) const {
   lua_newtable(vm);
 
   for(int i = 0; i < ALERT_ENTITY_MAX_NUM_ENTITIES; i++) {
-    u_int32_t num_alerts = num_alerts_engaged[i];
+    u_int32_t num_alerts = num_alerts_engaged_notice[i] + num_alerts_engaged_warning[i] + num_alerts_engaged_error[i];
 
     if(num_alerts)
       /* Use string keys for entity id to avoid confusing lua and treating the table as an array */

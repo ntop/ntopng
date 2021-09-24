@@ -76,7 +76,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   const char *customIftype;
   u_int8_t purgeRuns;  
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
-  u_int32_t num_alerts_engaged[ALERT_ENTITY_MAX_NUM_ENTITIES];
+  u_int32_t num_alerts_engaged_notice[ALERT_ENTITY_MAX_NUM_ENTITIES],
+    num_alerts_engaged_warning[ALERT_ENTITY_MAX_NUM_ENTITIES],
+    num_alerts_engaged_error[ALERT_ENTITY_MAX_NUM_ENTITIES];
   /* Counters for active alerts. Changed by multiple concurrent threads */
   std::atomic<u_int64_t> num_active_alerted_flows_notice;  /* Counts all flow alerts with severity <= notice  */
   std::atomic<u_int64_t> num_active_alerted_flows_warning; /* Counts all flow alerts with severity == warning */
@@ -953,8 +955,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void decNumAlertedFlows(Flow *f, AlertLevel severity);
   virtual u_int64_t getNumActiveAlertedFlows()      const;
   virtual u_int64_t getNumActiveAlertedFlows(AlertLevelGroup alert_level_group) const;
-  void incNumAlertsEngaged(AlertEntity alert_entity);
-  void decNumAlertsEngaged(AlertEntity alert_entity);
+  void incNumAlertsEngaged(AlertEntity alert_entity, AlertLevel alert_severity);
+  void decNumAlertsEngaged(AlertEntity alert_entity, AlertLevel alert_severity);
   void incNumDroppedAlerts(AlertEntity alert_entity);
   inline void incNumWrittenAlerts()			  { num_written_alerts++; }
   inline void incNumAlertsQueries()			  { num_alerts_queries++; }

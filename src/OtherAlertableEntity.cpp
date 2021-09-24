@@ -29,6 +29,20 @@ OtherAlertableEntity::OtherAlertableEntity(NetworkInterface *iface, AlertEntity 
 /* ****************************************** */
 
 OtherAlertableEntity::~OtherAlertableEntity() {
+  std::map<std::string, Alert>::const_iterator alert_it;
+
+  engaged_alerts_lock.wrlock(__FILE__, __LINE__);
+
+  for(u_int p = 0; p < MAX_NUM_PERIODIC_SCRIPTS; p++) {
+    for(alert_it = engaged_alerts[p].begin(); alert_it != engaged_alerts[p].end(); ++alert_it) {
+      /*
+	Decrease instance and instance number of engaged alerts
+      */
+      decNumAlertsEngaged(Utils::mapScoreToSeverity(alert_it->second.score));
+    }
+  }
+
+  engaged_alerts_lock.unlock(__FILE__, __LINE__);
 }
 
 /* ****************************************** */
@@ -76,7 +90,7 @@ bool OtherAlertableEntity::triggerAlert(lua_State* vm, std::string key,
       alert.subtype = subtype;
       alert.json = json;
 
-      incNumAlertsEngaged();
+      incNumAlertsEngaged(Utils::mapScoreToSeverity(score));
 
       engaged_alerts[(u_int)p][key] = alert;
 
@@ -118,7 +132,7 @@ bool OtherAlertableEntity::releaseAlert(lua_State* vm,
       /*
 	Decrease instance and instance number of engaged alerts
        */
-      decNumAlertsEngaged();
+      decNumAlertsEngaged(Utils::mapScoreToSeverity(it->second.score));
 
       engaged_alerts[(u_int)p].erase(it);
 

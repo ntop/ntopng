@@ -36,8 +36,8 @@ class AlertableEntity {
  protected:  
   RwLock engaged_alerts_lock; /* Lock to handle concurrent access from the GUI */
 
-  void incNumAlertsEngaged();
-  void decNumAlertsEngaged();
+  void incNumAlertsEngaged(AlertLevel alert_severity);
+  void decNumAlertsEngaged(AlertLevel alert_severity);
 
  public:
   AlertableEntity(NetworkInterface *alert_iface, AlertEntity entity);

@@ -33,25 +33,25 @@ AlertableEntity::AlertableEntity(NetworkInterface *iface, AlertEntity entity) {
 
 AlertableEntity::~AlertableEntity() {
   /*
-    Decrease (possibly) engaged alerts to keep counters consisten.
+    Cannot destroy an alertable entity with currently engaged alerts
   */
-  while(getNumEngagedAlerts() > 0)
-    decNumAlertsEngaged();
+  if(getNumEngagedAlerts() > 0)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Destroying an alertable with engaged alerts.");
 }
 
 /* ****************************************** */
 
 /* Increase interface and instance number of engaged alerts */
-void AlertableEntity::incNumAlertsEngaged() {
-  alert_iface->incNumAlertsEngaged(getEntityType());
+void AlertableEntity::incNumAlertsEngaged(AlertLevel alert_severity) {
+  alert_iface->incNumAlertsEngaged(getEntityType(), alert_severity);
   num_engaged_alerts++;
 };
 
 /* ****************************************** */
 
 /* Decrease interface and instance number of engaged alerts */
-void AlertableEntity::decNumAlertsEngaged() {
-  alert_iface->decNumAlertsEngaged(getEntityType());
+void AlertableEntity::decNumAlertsEngaged(AlertLevel alert_severity) {
+  alert_iface->decNumAlertsEngaged(getEntityType(), alert_severity);
   num_engaged_alerts--;
 };
 
