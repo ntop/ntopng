@@ -583,6 +583,7 @@
 #define CONST_PREFS_ENABLE_SQL_LOG         NTOPNG_PREFS_PREFIX".enable_sql_log"
 #define CONST_TOP_TALKERS_ENABLED          NTOPNG_PREFS_PREFIX".host_top_sites_creation"
 #define CONST_FLOW_TABLE_TIME              NTOPNG_PREFS_PREFIX".flow_table_time"
+#define CONST_FLOW_TABLE_PROBE_ORDER       NTOPNG_PREFS_PREFIX".flow_table_probe_order"
 #define CONST_MIRRORED_TRAFFIC_PREFS       NTOPNG_PREFS_PREFIX".ifid_%d.is_traffic_mirrored"
 #define CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS NTOPNG_PREFS_PREFIX".ifid_%d.show_dynamic_interface_traffic"
 #define CONST_DISABLED_FLOW_DUMP_PREFS     NTOPNG_PREFS_PREFIX".ifid_%d.is_flow_dump_disabled"

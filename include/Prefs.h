@@ -79,7 +79,7 @@ class Prefs {
   bool device_protocol_policies_enabled, enable_vlan_trunk_bridge;
   bool enable_arp_matrix_generation;
   bool enable_zmq_encryption;
-  bool flow_table_time;
+  bool flow_table_time, flow_table_probe_order;
   bool enable_broadcast_domain_too_large;
   u_int32_t max_num_secs_before_delete_alert;
   int32_t max_entity_alerts;

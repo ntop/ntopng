@@ -533,6 +533,12 @@ function printMisc()
           subpage_active.entries["flow_table_time"].description,
           h_labels, h_values, "0", "primary", "flow_table_time", "ntopng.prefs.flow_table_time")
 
+  h_labels = {i18n("prefs.ip_order"), i18n("prefs.name_order")}
+  
+  multipleTableButtonPrefs(subpage_active.entries["flow_table_probe_order"].title,
+          subpage_active.entries["flow_table_probe_order"].description,
+          h_labels, h_values, "0", "primary", "flow_table_probe_order", "ntopng.prefs.flow_table_probe_order")
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />

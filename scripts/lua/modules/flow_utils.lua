@@ -1522,12 +1522,32 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
    local snmp_cached_dev = require "snmp_cached_dev"
    local flowdevs = interface.getFlowDevices()
    local vlans = interface.getVLANsList()
+   local ordering_fun = pairsByKeys
 
    if flowdevs == nil then flowdevs = {} end
 
    local devips = {}
+   local devips_order = ntop.getPref("ntopng.prefs.flow_table_probe_order") == "1" -- Order by Probe Name
+
    for dip, _ in pairsByValues(flowdevs, asc) do
-      devips[#devips + 1] = dip
+      local cached_device_name = snmp_cached_dev:create(dip)
+
+      if cached_device_name then
+         cached_device_name = cached_device_name["name"]
+      else
+         local hinfo = hostkey2hostinfo(dip)
+         local resname = hostinfo2label(hinfo)
+
+         if not isEmptyString(resname) then
+            cached_device_name = resname
+         end
+      end
+
+      devips[dip] = cached_device_name
+   end
+
+   if devips_order then
+      ordering_fun = pairsByValues
    end
 
    local cur_dev = _GET["deviceIP"]
@@ -1547,20 +1567,13 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
       <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.device_ip")) print[[]] print(cur_dev_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
 	 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
-   for _, dev_ip in ipairs(devips) do
+   for dev_ip, dev_resolved_name in ordering_fun(devips, asc) do
       local dev_name = dev_ip
-      local cached_device = snmp_cached_dev:create(dev_ip)
+      
       dev_params["deviceIP"] = dev_name
 
-      if cached_device and not isEmptyString(cached_device["name"]) then
-	 dev_name = dev_name .. " ["..shortenString(cached_device["name"]).."]"
-      else
-	 local hinfo = hostkey2hostinfo(dev_name)
-	 local resname = hostinfo2label(hinfo)
-
-	 if not isEmptyString(resname) and resname ~= dev_name then
-	    dev_name = dev_name .. " ["..shortenString(resname).."]"
-	 end
+      if not isEmptyString(dev_resolved_name) and dev_resolved_name ~= dev_name then
+         dev_name = dev_name .. " ["..shortenString(dev_resolved_name).."]"
       end
 
       print[[

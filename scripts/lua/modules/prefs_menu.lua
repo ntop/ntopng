@@ -415,6 +415,9 @@ local menu_subpages = {
     }, flow_table_time = {
       title       = i18n("prefs.flow_table_time_title"),
       description = i18n("prefs.flow_table_time_description"),
+    }, flow_table_probe_order = {
+      title       = i18n("prefs.flow_table_probe_order_title"),
+      description = i18n("prefs.flow_table_probe_order_description"),
     },
   }}, {id="updates", label=i18n("prefs.updates"), advanced=false, pro_only=false, hidden=(is_windows or (not ntop.isPackage())), entries={
     toggle_autoupdates = {
