@@ -891,8 +891,8 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per type",
-				"description": "Number of alerts per alert type",
+				"summary": "Get alert counters by type",
+				"description": "Alert type counters indescending order",
 				"operationId": "get_alert_type_counters",
 				"produces": [
 					"application/json"
@@ -927,8 +927,7 @@
 						"required": true,
 						"type": "integer",
 						"format": "int32"
-					}
-				],
+					}],
 				"responses": {
 					"0": {
 						"description": "OK"
@@ -936,11 +935,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
@@ -950,8 +946,8 @@
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Get counters per severity",
-				"description": "Number of alerts per alert severity",
+				"summary": "Get alert counters by severity",
+				"description": "Alert severity counters in descending order",
 				"operationId": "get_alert_severity_counters",
 				"produces": [
 					"application/json"
@@ -967,7 +963,7 @@
 					{
 						"name": "status",
 						"in": "query",
-						"description": "Status filter: 'historical' or 'historical-flows'",
+						"description": "Status filter (historical, historical-flows)",
 						"required": true,
 						"type": "string"
 					},
@@ -986,8 +982,7 @@
 						"required": true,
 						"type": "integer",
 						"format": "int32"
-					}
-				],
+					}],
 				"responses": {
 					"0": {
 						"description": "OK"
@@ -995,11 +990,8 @@
 					"-2": {
 						"description": "INVALID_INTERFACE"
 					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-6": {
-						"description": "INTERNAL_ERROR"
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}
