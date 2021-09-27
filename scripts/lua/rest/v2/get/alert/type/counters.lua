@@ -10,7 +10,6 @@ local auth = require "auth"
 local rest_utils = require "rest_utils"
 local alert_consts = require "alert_consts"
 local all_alert_store = require "all_alert_store".new()
-local alert_entities = require "alert_entities"
 
 --
 -- Read alerts count by time
