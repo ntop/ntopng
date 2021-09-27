@@ -104,6 +104,7 @@ local mac_info = interface.getMacInfo(mac)
 -- tprint(mac_info)
 
 local only_historical = (mac_info == nil) and (page == "historical")
+local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. ifId .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
 
 if(mac_info == nil) and not only_historical then
    print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg fa-ntopng-warning"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
@@ -137,7 +138,7 @@ page_utils.print_navbar(title, url,
 			      label = i18n("host_details.snmp"),
 			   },
 			   {
-			      hidden = not areMacsTimeseriesEnabled(ifId),
+			      hidden = not areMacsTimeseriesEnabled(ifId) and not serialize_by_mac,
 			      active = page == "historical",
 			      page_name = "historical",
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",

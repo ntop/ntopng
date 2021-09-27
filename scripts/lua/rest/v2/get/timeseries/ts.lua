@@ -150,6 +150,18 @@ if starts(ts_schema, "custom:") and graph_utils.performCustomQuery then
   compare_backward = nil
 else
   res = performQuery(tstart, tend)
+
+  -- if Mac address ts is requested, check if the serialize by mac is enabled and if no data is found, use the host timeseries. 
+  if (res.statistics) and (res.statistics.total == 0) then
+    local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. tags.ifid .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
+    local tmp = split(ts_schema, ":")
+
+    if (serialize_by_mac) and (tags.mac) then
+      ts_schema = "host:" .. tmp[2]
+      tags.host = tags.mac .. "_v4"
+      res = performQuery(tstart, tend)
+    end
+  end
 end
 
 if res == nil then
