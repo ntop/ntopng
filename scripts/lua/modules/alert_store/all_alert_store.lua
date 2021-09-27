@@ -196,6 +196,58 @@ end
 
 -- ##############################################
 
+--@brief Performs a query for the top alerts by alert count
+--       NOTE: OVERRIDES alert_store:top_alert_id_historical
+--@param count_by A valid column to be used as group-by criteria along with the entity id
+function all_alert_store:_get_counters(count_by)
+   local res = {}
+   local where_clause = ''
+   local limit_clause = ''
+   local offset_clause = ''
+
+   where_clause = self:build_where_clause()
+
+   -- [OPTIONAL] Add limit for pagination
+   if self._limit then
+      limit_clause = string.format("LIMIT %u", self._limit)
+   end
+
+   -- [OPTIONAL] Add offset for pagination
+   if self._offset then
+      offset_clause = string.format("OFFSET %u", self._offset)
+   end
+
+   -- Prepare the final query
+   -- NOTE: there's a forceful GROUP BY using the entity id
+   -- Groups are those used to group alerts in levels that are coarser than individual severities.
+   -- and are defined in ntop_typedefs.h AlertLevelGroup.
+   local q = string.format(" SELECT entity_id, %s, "..
+			      "COUNT(*) count "..
+			      "FROM `%s` WHERE %s "..
+			      "GROUP BY entity_id, %s ORDER BY count DESC %s %s ",
+			   count_by, self._table_name, where_clause, count_by, limit_clause, offset_clause)
+
+   res = interface.alert_store_query(q)
+
+   return res
+end
+
+-- ##############################################
+
+--@brief Returns alert counters by type in descending order
+function all_alert_store:get_counters_by_type()
+   return self:_get_counters("alert_id")
+end
+
+-- ##############################################
+
+--@brief Returns alert counters by severity, in descending order
+function all_alert_store:get_counters_by_severity()
+   return self:_get_counters("severity")
+end
+
+-- ##############################################
+
 --@brief Handle alerts select request (GET) from memory (engaged) or database (historical)
 --       NOTE: OVERRIDES alert_store:select_request
 --@param filter A filter on the entity value (no filter by default)
