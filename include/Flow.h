@@ -761,6 +761,8 @@ class Flow : public GenericHashEntry {
 			    u_int32_t inidx, u_int32_t outidx) {
     flow_device.device_ip = device_ip, flow_device.observation_point_id = observation_point_id;
     flow_device.in_index = inidx, flow_device.out_index = outidx;
+    if(cli_host) cli_host->setLastDeviceIp(device_ip);
+    if(srv_host) srv_host->setLastDeviceIp(device_ip);
   }
   inline u_int32_t getFlowDeviceIp()           { return flow_device.device_ip;             };
   inline u_int16_t getFlowObservationPointId() { return flow_device.observation_point_id;  };

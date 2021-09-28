@@ -90,6 +90,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt;
 
+  std::set<u_int32_t>  devicesIp;
+
 #ifdef NTOPNG_PRO
   TrafficShaper **host_traffic_shapers;
   bool has_blocking_quota, has_blocking_shaper;
@@ -131,6 +133,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline  bool isDhcpHost()            const { return(is_dhcp_host); };
   inline  void setBroadcastDomainHost()      { is_in_broadcast_domain = true;  };
   inline  void setSystemHost()               { /* TODO: remove */              };
+  inline  void setLastDeviceIp(u_int32_t ip) { if(ip) devicesIp.insert(ip); };
 
   void blacklistedStatsResetRequested();
   inline u_int32_t getCheckpointBlacklistedAsCli() const { return(num_blacklisted_flows.checkpoint_as_client); }

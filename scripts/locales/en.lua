@@ -1347,6 +1347,7 @@ local lang = {
     ["as_server"] = "As Server",
     ["contacts_blacklisted"] = "Total Flows with Blacklisted Hosts",
     ["details"] = "Details",
+    ["probes_ipv4_address"] = "Probe IPv4 Address",
     ["device_port"] = "Device Port",
     ["device_type"] = "Device Type",
     ["first_last_seen"] = "First / Last Seen",

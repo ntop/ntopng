@@ -938,6 +938,13 @@ end
       end
    end
 
+   if host["devices_ip"] then
+	   print('<tr><td width=35% rowspan='..(table.len(host["devices_ip"]) + 1)..'><b>'.. i18n("details.probes_ipv4_address") ..' </a></b></td>')
+	   for _, ip in pairsByValues(host["devices_ip"], asc) do
+			print("<tr><td colspan='2'>"..ip.."</td></tr>\n")
+	   end
+	end
+
    print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td")
    local show_live_capture = ntop.isPcapDownloadAllowed()
    if(not show_live_capture) then print(" colspan=2") end
