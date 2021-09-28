@@ -2715,6 +2715,10 @@ json_object* Flow::flow2JSON() {
       json_object_object_add(my_object, "HTTP_RET_CODE", json_object_new_int((u_int32_t)protos.http.last_return_code));
   }
 
+  if(flow_device.device_ip)
+    json_object_object_add(my_object, "EXPORTER_IPV4_ADDRESS",
+         json_object_new_string(intoaV4(flow_device.device_ip, buf, sizeof(buf))));  
+  
   if(bt_hash)
     json_object_object_add(my_object, "BITTORRENT_HASH", json_object_new_string(bt_hash));
 
