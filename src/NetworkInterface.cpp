@@ -2724,11 +2724,11 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
     char *json = NULL;
     bool rc = true;
 
+    f->update_partial_traffic_stats_db_dump(); /* Checkpoint flow traffic counters for the dump */
+
     /* Prepare the JSON - if requested */
     if(flows_dump_json)
       json = f->serialize(flows_dump_json_use_labels);
-
-    f->update_partial_traffic_stats_db_dump(); /* Checkpoint flow traffic counters for the dump */
 
     if(f->get_partial_bytes()) /* Make sure data is not at zero */
       rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
