@@ -90,7 +90,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     u_int32_t local_hosts, remote_hosts;
   } tot_num_anomalies;
   AlertsQueue *alertsQueue;
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   PeriodicityMap *pMap;
   ServiceMap *sMap;
 #endif
@@ -614,7 +614,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void luaServiceMapStatus(lua_State *vm);
   inline float getThroughputBps()            { return bytes_thpt.getThpt(); };
   inline float getThroughputPps()            { return pkts_thpt.getThpt();  };
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   inline bool isServiceMapLearning()   const { return(sMap ? sMap->isLearning() : false); }
   inline ServiceMap* getServiceMap()         { return(sMap);           };
   inline bool isServiceMapEnabled()          { return(sMap ? true : false); };

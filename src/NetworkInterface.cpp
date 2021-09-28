@@ -6033,7 +6033,7 @@ void NetworkInterface::luaSubInterface(lua_State *vm) {
 /* *************************************** */
 
 void NetworkInterface::luaServiceMapStatus(lua_State *vm) {
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   lua_newtable(vm);
 
   if(sMap) lua_push_bool_table_entry(vm, "service_map_learning_status", sMap->isLearning());
@@ -6730,7 +6730,7 @@ void NetworkInterface::allocateStructures() {
     }
   }
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   if(ntop->getPrefs()
      && ntop->getPro()->has_valid_license()
      && ntop->getPrefs()->isBehavourAnalysisEnabled()
@@ -8821,7 +8821,7 @@ void NetworkInterface::luaPeriodicityFilteringMenu(lua_State* vm) {
 /* *************************************** */
 
 void NetworkInterface::luaServiceFilteringMenu(lua_State* vm) {
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   if(sMap) {
     sMap->luaFilteringMenu(vm, this, false);
     return;
@@ -8856,7 +8856,7 @@ void NetworkInterface::luaServiceMap(lua_State* vm,
 				     IpAddress *ip_address,
 				     VLANid vlan_id, u_int16_t host_pool_id, bool unicast,
 				     u_int32_t first_seen, u_int16_t filter_ndpi_proto, u_int32_t maxHits) {
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   if(sMap) {
     sMap->lua(vm, false, this, mac, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen, maxHits);
     return;
@@ -8868,7 +8868,7 @@ void NetworkInterface::luaServiceMap(lua_State* vm,
 
 /* *************************************** */
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
 void NetworkInterface::updateFlowPeriodicity(Flow *f) {
   if(isViewed())
     viewedBy()->updateFlowPeriodicity(f);

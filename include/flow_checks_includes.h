@@ -73,10 +73,8 @@
 #include "flow_checks/ElephantFlow.h"
 #include "flow_checks/ExternalAlertCheckPro.h"
 #include "flow_checks/InvalidDNSQuery.h"
-#if !defined(HAVE_NEDGE)
 #include "flow_checks/LateralMovement.h"
 #include "flow_checks/PeriodicityChanged.h"
-#endif
 #include "flow_checks/LongLivedFlow.h"
 #include "flow_checks/TCPConnectionRefused.h"
 #include "flow_checks/FlowRiskTLSCertValidityTooLong.h"

@@ -80,9 +80,9 @@ class Flow : public GenericHashEntry {
 #ifdef NTOPNG_PRO
   bool ingress2egress_direction;
   u_int8_t routing_table_id;
-#ifndef HAVE_NEDGE
   bool lateral_movement;
   PeriodicityStatus periodicity_status;
+#ifndef HAVE_NEDGE
   FlowProfile *trafficProfile;
 #else
   u_int16_t cli2srv_in, cli2srv_out, srv2cli_in, srv2cli_out;
@@ -350,7 +350,7 @@ class Flow : public GenericHashEntry {
   inline bool isHTTP() const { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP() const { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   inline bool isLateralMovement() const { return(lateral_movement);  }
   inline void setLateralMovement(bool change) { lateral_movement = change; }
   PeriodicityStatus getPeriodicity() const { return(periodicity_status);   }

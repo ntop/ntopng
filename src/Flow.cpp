@@ -191,9 +191,9 @@ Flow::Flow(NetworkInterface *_iface,
   }
 
 #ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
   lateral_movement = false;
   periodicity_status = periodicity_status_unknown;
+#ifndef HAVE_NEDGE
   trafficProfile = NULL;
 #else
   cli2srv_in = cli2srv_out = srv2cli_in = srv2cli_out = DEFAULT_SHAPER_ID;

@@ -335,7 +335,7 @@ using namespace std;
 #include "RRDTimeseriesExporter.h"
 #include "RecipientQueues.h"
 #include "Recipients.h"
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
 #include "PeriodicityStats.h"
 #include "PeriodicityHash.h"
 #include "ServiceMap.h"
