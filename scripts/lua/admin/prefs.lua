@@ -830,9 +830,6 @@ end
 -- #####################
 
 function printNetworkBehaviour()
-
-   if not ntop.isEnterpriseL() then return end
-   
    local LEARNING_STATUS = { -- Keep it in sync with ntop_typedefs.h ServiceAcceptance
       ALLOWED = "0",
       DENIED = "1",

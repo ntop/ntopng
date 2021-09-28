@@ -240,11 +240,6 @@ else
 
    -- ##############################################
 
-   local service_map_available = false
-   local periodicity_map_available = false
-
-   service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
-
    -- Hosts
    page_utils.add_menubar_section(
       {
@@ -313,35 +308,6 @@ else
       }
    )
 
-  -- ##############################################
-
-  -- Maps
-   page_utils.add_menubar_section({
-      section = page_utils.menu_sections.maps,
-      hidden = is_system_interface or is_viewed,
-      entries = {
-         {
-            entry = page_utils.menu_entries.service_map,
-            hidden = not service_map_available,
-            url = '/lua/pro/enterprise/service_map.lua',
-          },
-          {
-            entry = page_utils.menu_entries.periodicity_map,
-            hidden = not periodicity_map_available,
-            url = '/lua/pro/enterprise/periodicity_map.lua',
-          },
-          {
-             entry = page_utils.menu_entries.geo_map,
-             hidden = interface.isLoopback() or not ntop.hasGeoIP(),
-             url = '/lua/hosts_geomap.lua',
-          },
-          {
-             entry = page_utils.menu_entries.hosts_map,
-             url = '/lua/hosts_map.lua',
-          },
-      }
-   })
-
    -- ##############################################
 
    -- Probes
@@ -374,6 +340,41 @@ else
    )
 
 end
+
+-- ##############################################
+
+-- Maps
+
+local service_map_available = false
+local periodicity_map_available = false
+
+service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
+
+page_utils.add_menubar_section({
+      section = page_utils.menu_sections.maps,
+      hidden = is_system_interface or is_viewed,
+      entries = {
+         {
+            entry = page_utils.menu_entries.service_map,
+            hidden = not service_map_available,
+            url = '/lua/pro/enterprise/service_map.lua',
+	 },
+	 {
+            entry = page_utils.menu_entries.periodicity_map,
+            hidden = not periodicity_map_available,
+            url = '/lua/pro/enterprise/periodicity_map.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.geo_map,
+	    hidden = interface.isLoopback() or not ntop.hasGeoIP(),
+	    url = '/lua/hosts_geomap.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.hosts_map,
+	    url = '/lua/hosts_map.lua',
+	 },
+      }
+})
 
 -- ##############################################
 
@@ -573,6 +574,7 @@ page_utils.add_menubar_section({
 })
 
 -- ##############################################
+
 -- Admin
 page_utils.add_menubar_section(
    {

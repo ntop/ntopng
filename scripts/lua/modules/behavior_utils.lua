@@ -71,7 +71,9 @@ local maps_utils = {}
 -- ##############################################
 
 local function areMapsEnabled()
-    return(ntop.isEnterpriseL() and ntop.isAdministrator() and (ntop.getPref(behavior_maps_key) == "1"))
+   local res = (ntop.isEnterpriseL() or ntop.isnEdgeEnterprise()) and ntop.isAdministrator() and (ntop.getPref(behavior_maps_key) == "1")
+
+   return res
 end
 
 -- ##############################################
