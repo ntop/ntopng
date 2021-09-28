@@ -786,7 +786,7 @@ end
 -- ##############################################
 
 function isScoreEnabled()
-  return(ntop.isEnterpriseM())
+  return(ntop.isEnterpriseM() or ntop.isnEdgeEnterprise())
 end
 
 -- ##############################################
