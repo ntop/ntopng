@@ -208,41 +208,42 @@ const char * const ElasticSearch::get_es_version() {
 					  NULL /* user_header_token */, 5,
 					  buf, buf_len);
       if(http_ret_code == 200) {
-	json_object *o, *obj, *obj2;
-	enum json_tokener_error jerr = json_tokener_success;
+      	json_object *o, *obj, *obj2;
+      	enum json_tokener_error jerr = json_tokener_success;
 
-	ntop->getTrace()->traceEvent(TRACE_INFO, "%s [http return code: %d]", buf, http_ret_code);
+      	ntop->getTrace()->traceEvent(TRACE_INFO, "%s [http return code: %d]", buf, http_ret_code);
 
-	if((o = json_tokener_parse_verbose(buf, &jerr)) == NULL) {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s][%s]",
-				       json_tokener_error_desc(jerr),
-				       buf);
-	}
+      	if((o = json_tokener_parse_verbose(buf, &jerr)) == NULL) {
+          	  ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s][%s]",
+	   			       json_tokener_error_desc(jerr),
+  				       buf);
+      	}
 
-	/* An example json response is:
-	  {
-	  "name" : "node-1",
-	  "cluster_name" : "ntop",
-	  "cluster_uuid" : "GnWshRUvTuePXKMO15gZBg",
-	  "version" : {
-	  "number" : "5.6.5",
-	  "build_hash" : "6a37571",
-	  "build_date" : "2017-12-04T07:50:10.466Z",
-	  "build_snapshot" : false,
-	  "lucene_version" : "6.6.1"
-	  },
-	  "tagline" : "You Know, for Search"
-	  }
-	 */
+      	/* An example json response is:
+      	  {
+      	  "name" : "node-1",
+      	  "cluster_name" : "ntop",
+      	  "cluster_uuid" : "GnWshRUvTuePXKMO15gZBg",
+      	  "version" : {
+      	  "number" : "5.6.5",
+      	  "build_hash" : "6a37571",
+      	  "build_date" : "2017-12-04T07:50:10.466Z",
+      	  "build_snapshot" : false,
+      	  "lucene_version" : "6.6.1"
+      	  },
+      	  "tagline" : "You Know, for Search"
+      	  }
+      	 */
 
-	if(json_object_object_get_ex(o, "version", &obj)
-	   && json_object_object_get_ex(obj, "number", &obj2)) {
-	  const char *ver = json_object_get_string(obj2);
+      	if(json_object_object_get_ex(o, "version", &obj)
+      	   && json_object_object_get_ex(obj, "number", &obj2)) {
+      	  const char *ver = json_object_get_string(obj2);
 
-	  snprintf(es_version, sizeof(es_version), "%c", ver && ver[0] ? ver[0] : '0');
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found Elasticsearch version %s [%s]", es_version, ver);
-	  es_version_inited = true;
-	}
+      	  snprintf(es_version, sizeof(es_version), "%c", ver && ver[0] ? ver[0] : '0');
+      	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found Elasticsearch version %s [%s]", es_version, ver);
+      	  es_version_inited = true;
+      	}
+        if(o) json_object_put(o);
       } else {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to query ES to get its version");
       }
