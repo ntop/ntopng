@@ -146,7 +146,7 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   pMap = NULL, sMap = NULL;
 #endif
 
@@ -603,7 +603,7 @@ NetworkInterface::~NetworkInterface() {
   }
   if(interfaceStats) delete interfaceStats;
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   if(pMap) delete pMap;
   if(sMap) delete sMap;
 
@@ -1798,7 +1798,7 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
 
   checkHostsToRestore();
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   if(pMap) pMap->purgeIdle(when);
   if(sMap) sMap->purgeIdle(when);
 #endif
@@ -3221,10 +3221,8 @@ void NetworkInterface::periodicStatsUpdate() {
 #ifdef NTOPNG_PRO
   if(tv.tv_sec >= nextMinPeriodicUpdate) {
     /* 5 minute periodic update */
-#if !defined(HAVE_NEDGE)
     if(sMap) sMap->purgeIdle(nextMinPeriodicUpdate);
     if(pMap) pMap->purgeIdle(nextMinPeriodicUpdate);
-#endif
     
     updateBehaviorStats(&tv);
 
@@ -6734,7 +6732,7 @@ void NetworkInterface::allocateStructures() {
   if(ntop->getPrefs()
      && ntop->getPro()->has_valid_license()
      && ntop->getPrefs()->isBehavourAnalysisEnabled()
-     && ntop->getPrefs()->is_enterprise_l_edition()
+     && (ntop->getPrefs()->is_enterprise_l_edition() || ntop->getPrefs()->is_nedge_enterprise_edition())
      && ifname
      && strcmp(ifname, SYSTEM_INTERFACE_NAME)
      && !isViewed() /* Skip for viewed interface, only store service maps in the view to save memory */

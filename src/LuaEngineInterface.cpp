@@ -4005,13 +4005,13 @@ static int ntop_get_interface_service_map(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_flush_interface_periodicity_map(lua_State* vm) {
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 #endif
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   ntop_interface->flushPeriodicityMap();
 #endif
 
@@ -4023,13 +4023,13 @@ static int ntop_flush_interface_periodicity_map(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_flush_interface_service_map(lua_State* vm) {
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 #endif
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   ntop_interface->flushServiceMap();
 #endif
 
@@ -4041,7 +4041,7 @@ static int ntop_flush_interface_service_map(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_interface_service_map_set_status(lua_State* vm) {
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int64_t hash_id;
   ServiceAcceptance status;
@@ -4050,7 +4050,7 @@ static int ntop_interface_service_map_set_status(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   if(ntop_interface) {
 
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -4074,7 +4074,7 @@ static int ntop_interface_service_map_set_status(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_interface_service_map_set_multiple_status(lua_State* vm) {
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   ServiceAcceptance current_status = service_unknown, new_status = service_unknown;
   u_int16_t proto_id = 0xFF;
@@ -4083,7 +4083,7 @@ static int ntop_interface_service_map_set_multiple_status(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   if(ntop_interface) {
 
     if(lua_type(vm, 1) == LUA_TSTRING)  l7_proto       = (char*)lua_tostring(vm, 1);
@@ -4102,14 +4102,14 @@ static int ntop_interface_service_map_set_multiple_status(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_interface_service_map_learning_status(lua_State* vm) {
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 #endif
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   if(ntop_interface)
     ntop_interface->luaServiceMapStatus(vm);
   else
@@ -4122,13 +4122,13 @@ static int ntop_interface_service_map_learning_status(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_periodicity_proto_filtering_menu(lua_State* vm) {
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 #endif
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   if(ntop_interface)
     ntop_interface->luaPeriodicityFilteringMenu(vm);
   else
@@ -4141,13 +4141,13 @@ static int ntop_get_interface_periodicity_proto_filtering_menu(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_service_proto_filtering_menu(lua_State* vm) {
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 #endif
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   if(ntop_interface)
     ntop_interface->luaServiceFilteringMenu(vm);
   else

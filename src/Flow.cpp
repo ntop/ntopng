@@ -659,7 +659,7 @@ void Flow::processExtraDissectedInformation() {
     updateSuspiciousDGADomain();
   }
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
   getInterface()->updateFlowPeriodicity(this);
   getInterface()->updateServiceMap(this);
 #endif
