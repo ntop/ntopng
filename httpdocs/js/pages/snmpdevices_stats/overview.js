@@ -258,6 +258,9 @@ $(function () {
                 }
             },
             {
+                data: "column_version",
+            },                
+            {
                 data: "column_pool_name"
             },
             { data: "column_chart", className: "text-center", width: "5%" },
