@@ -938,11 +938,13 @@ end
       end
    end
 
-   if host["devices_ip"] then
+   if host["device_ip"] then
 	   print('<tr><td width=35% rowspan='..(table.len(host["devices_ip"]) + 1)..'><b>'.. i18n("details.probes_ipv4_address") ..' </a></b></td>')
-	   for _, ip in pairsByValues(host["devices_ip"], asc) do
-			print("<tr><td colspan='2'>"..ip.."</td></tr>\n")
-	   end
+	   print("<td colspan='2'>" .. host["device_ip"])
+		if host["more_then_one_device"] then
+			print(i18n("details.more_then_one_device"))
+		end
+		print("</td></tr>\n")
 	end
 
    print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td")

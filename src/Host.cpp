@@ -723,21 +723,10 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_float_table_entry(vm, "bytes_ratio", ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd()));
   lua_push_float_table_entry(vm, "pkts_ratio", ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()));
   
-  if(devicesIp.size() > 0) {
-    lua_newtable(vm);
-    u_int16_t ctr = 0;
-    std::set<u_int32_t>::iterator it = devicesIp.begin();
-    while (it != devicesIp.end()) {
-      lua_pushstring(vm, Utils::intoaV4((*it), buf, sizeof(buf)));
-      lua_rawseti(vm, -2, ++ctr);
-      it++;
-    }
-
-    lua_pushstring(vm, "devices_ip");
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-  }
-
+  if(device_ip)
+    lua_push_str_table_entry(vm, "device_ip", device_ip);
+  if(more_then_one_device)
+    lua_push_bool_table_entry(vm, "more_then_one_device", more_then_one_device);
 
   luaDNS(vm, verbose);
   luaTCP(vm);
