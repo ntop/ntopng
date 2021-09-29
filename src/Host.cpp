@@ -724,7 +724,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_float_table_entry(vm, "pkts_ratio", ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()));
   
   if(device_ip)
-    lua_push_str_table_entry(vm, "device_ip", device_ip);
+    lua_push_uint32_table_entry(vm, "device_ip", device_ip);
+  
   if(more_then_one_device)
     lua_push_bool_table_entry(vm, "more_then_one_device", more_then_one_device);
 
