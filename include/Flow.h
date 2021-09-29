@@ -115,7 +115,6 @@ class Flow : public GenericHashEntry {
     struct {
       char *last_url;
       ndpi_http_method last_method;
-      char *last_content_type;
       u_int16_t last_return_code;
     } http;
 
@@ -695,7 +694,6 @@ class Flow : public GenericHashEntry {
   inline void  setHTTPRetCode(u_int16_t c)  { if(isHTTP()) { protos.http.last_return_code = c; } }
   inline u_int16_t getHTTPRetCode()   const { return isHTTP() ? protos.http.last_return_code : 0;           };
   inline const char* getHTTPMethod()  const { return isHTTP() ? ndpi_http_method2str(protos.http.last_method) : (char*)"";        };
-  inline char* getHTTPContentType()   const { return(isHTTP() ? protos.http.last_content_type : (char*)""); };
 
   void setExternalAlert(json_object *a);
   inline bool hasExternalAlert() const { return external_alert.json != NULL; };
