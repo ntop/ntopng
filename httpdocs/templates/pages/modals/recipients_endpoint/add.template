@@ -75,7 +75,7 @@
                         </label>
                         <div class="col-form-label col-sm-5">
                             <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" name="bind_to_all_pools" id="input-add-to-all">
+                                <input type="checkbox" class="custom-control-input" name="bind_to_all_pools" id="input-add-to-all" checked>
                                 <label class="custom-control-label" for="input-add-to-all"></label>
                             </div>
                         </div>  
