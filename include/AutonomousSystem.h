@@ -36,7 +36,7 @@ private:
   time_t nextMinPeriodicUpdate;
 
   /* Traffic behavior analysis */
-  AnalysisBehavior *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
+  BehaviorAnalysis *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
 #endif
 
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {

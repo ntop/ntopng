@@ -39,7 +39,7 @@ class NetworkStats : public NetworkStatsAlertableEntity, public GenericTrafficEl
 #if defined(NTOPNG_PRO)
   time_t nextMinPeriodicUpdate;
   /* Behavioural analysis regarding the interface */
-  AnalysisBehavior *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;  
+  BehaviorAnalysis *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;  
 #endif
 
   static inline void incTcp(TcpPacketStats *tps, u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {

@@ -52,7 +52,7 @@ class nDPIStats {
  private:
 #ifdef NTOPNG_PRO
   time_t nextMinPeriodicUpdate;
-  AnalysisBehavior **behavior_bytes_traffic;
+  BehaviorAnalysis **behavior_bytes_traffic;
 #endif
   ProtoCounter *counters[MAX_NDPI_PROTOS];
   ThroughputStats **bytes_thpt;

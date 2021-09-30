@@ -34,7 +34,7 @@ nDPIStats::nDPIStats(bool enable_throughput_stats, bool enable_behavior_stats) {
   behavior_bytes_traffic = NULL;
 
   if(enable_behavior_stats)
-    behavior_bytes_traffic = new (std::nothrow)AnalysisBehavior*[MAX_NDPI_PROTOS]();
+    behavior_bytes_traffic = new (std::nothrow)BehaviorAnalysis*[MAX_NDPI_PROTOS]();
 #endif
 
   if(enable_throughput_stats)
@@ -55,7 +55,7 @@ nDPIStats::nDPIStats(const nDPIStats &stats) {
   behavior_bytes_traffic = NULL;
 
   if(stats.behavior_bytes_traffic) {
-    behavior_bytes_traffic = new (std::nothrow)AnalysisBehavior*[MAX_NDPI_PROTOS]();
+    behavior_bytes_traffic = new (std::nothrow)BehaviorAnalysis*[MAX_NDPI_PROTOS]();
   }
 #endif
 
@@ -282,7 +282,7 @@ void nDPIStats::updateStats(const struct timeval *tv) {
         continue;
 
       if(!behavior_bytes_traffic[i])
-        behavior_bytes_traffic[i] = new (std::nothrow)AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
+        behavior_bytes_traffic[i] = new (std::nothrow)BehaviorAnalysis(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
 
       if(behavior_bytes_traffic[i])
         behavior_bytes_traffic[i]->updateBehavior(NULL, counters[i]->bytes.sent + counters[i]->bytes.rcvd, NULL, false);

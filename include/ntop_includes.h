@@ -238,7 +238,7 @@ using namespace std;
 #include "BehaviouralCounter.h"
 
 #ifdef NTOPNG_PRO
-#include "AnalysisBehavior.h"
+#include "BehaviorAnalysis.h"
 #endif
 
 #include "nDPIStats.h"

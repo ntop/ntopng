@@ -37,9 +37,9 @@ NetworkStats::NetworkStats(NetworkInterface *iface, u_int8_t _network_id) : Netw
   traffic_rx_behavior = NULL;
 
   if(ntop->getPrefs()->isNetworkBehavourAnalysisEnabled()) {
-    score_behavior = new AnalysisBehavior();
-    traffic_tx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
-    traffic_rx_behavior = new AnalysisBehavior(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */); 
+    score_behavior = new BehaviorAnalysis();
+    traffic_tx_behavior = new BehaviorAnalysis(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
+    traffic_rx_behavior = new BehaviorAnalysis(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */); 
   }
 #endif
 

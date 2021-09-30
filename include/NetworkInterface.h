@@ -102,7 +102,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #if defined(NTOPNG_PRO)
   time_t nextMinPeriodicUpdate;
   /* Behavioural analysis regarding the interface */
-  AnalysisBehavior *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
+  BehaviorAnalysis *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
 #endif
   MostVisitedList *top_sites;
   MostVisitedList *top_os;
