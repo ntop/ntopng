@@ -72,9 +72,9 @@ end
 -- @param entity_id One of alert_consts.alert_entities
 -- @param pool_id The pool id of an existing entity pool
 -- @param alert_severity An integer alert severity id as found in `alert_severities`
--- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
+-- @param category_id The category for which we want the recipients (one id of checks.check_categories)
 -- @return An array of recipient ids
-function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id, alert_severity, current_script)
+function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id, alert_severity, category_id)
    local res = {}
    local entity = alert_consts.alertEntityById(entity_id)
    -- Obtain the pools instance for the given entity
@@ -105,11 +105,10 @@ function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id, 
 	 for _, recipient in pairs(entity_pool["recipients"]) do
 	    local recipient_ok = false
 
-	    if current_script and current_script.category and current_script.category.id and 
-               recipient["recipient_check_categories"] ~= nil then
+	    if category_id and recipient["recipient_check_categories"] ~= nil then
 	       -- Make sure the user script category belongs to the recipient user script categories
 	       for _, check_category in pairs(recipient["recipient_check_categories"]) do
-		  if check_category == current_script.category.id then
+		  if check_category == category_id then
 		     recipient_ok = true
 		  end
 	       end

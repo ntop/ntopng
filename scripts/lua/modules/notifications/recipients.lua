@@ -8,6 +8,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 local json = require "dkjson"
 local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
+local alert_entities = require "alert_entities"
+local checks = require "checks"
 local alert_severities = require "alert_severities"
 
 local endpoints = require("endpoints")
@@ -657,6 +659,32 @@ end
 
 -- ##############################################
 
+local function get_notification_category(notification, current_script)
+   -- Category is first read from the current_script. If no current_script is found (e.g., for
+   -- alerts cenerated from the C++ core such as start after anomalous termination), the category
+   -- is guessed from the alert entity.
+   local entity_id = notification.entity_id
+
+   local cur_category_id
+   if current_script and current_script.category and current_script.category.id then
+      -- Found in the script
+      cur_category_id = current_script.category.id
+   else
+      --- Determined from the entity
+      if entity_id == alert_entities.system.entity_id then
+	 -- System alert entity becomes system
+	 cur_category_id = checks.check_categories.system.id
+      else
+	 -- All other entities fall into other category
+	 cur_category_id = checks.check_categories.other.id
+      end
+   end
+
+   return cur_category_id or checks.check_categories.other.id
+end
+
+-- ##############################################
+
 -- @brief Dispatches a `notification` to all the interested recipients
 -- @param notification An alert notification
 -- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
@@ -664,14 +692,15 @@ end
 function recipients.dispatch_notification(notification, current_script)
    if(notification) then
       local pools_alert_utils = require "pools_alert_utils"
-      local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.entity_id, notification.pool_id, notification.severity, current_script)
+      local notification_category = get_notification_category(notification, current_script)
+      local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.entity_id, notification.pool_id, notification.severity, notification_category)
 
       if #recipients > 0 then
 	 local json_notification = json.encode(notification)
 	 local is_high_priority = is_notification_high_priority(notification)
 
 	 for _, recipient_id in pairs(recipients) do
-	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification, notification.score, current_script and current_script.category and current_script.category.id)
+	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification, notification.score, notification_category)
 	 end
       end
    else
