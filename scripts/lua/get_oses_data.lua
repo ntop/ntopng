@@ -5,7 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
-local os_utils = require "os_utils"
+local os_data_utils = require "os_data_utils"
 
 local json = require("dkjson")
 
@@ -70,7 +70,7 @@ oses_stats = oses_stats["OSes"]
 local res_formatted = {}
 
 for _, os in ipairs(oses_stats) do
-   local record = os_utils.os2record(getInterfaceId(ifname), os)
+   local record = os_data_utils.os2record(getInterfaceId(ifname), os)
    res_formatted[#res_formatted + 1] = record
 end
 

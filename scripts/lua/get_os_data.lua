@@ -5,7 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
-local os_utils = require "os_utils" -- needed for the function mac2record
+local os_data_utils = require "os_data_utils" -- needed for the function mac2record
 local json = require("dkjson")
 
 sendHTTPContentTypeHeader('text/html')
@@ -21,7 +21,7 @@ local os = interface.getOSInfo(os)
 
 local res = {}
 if os ~= nil then
-   res = os_utils.os2record(getInterfaceId(ifname), os)
+   res = os_data_utils.os2record(getInterfaceId(ifname), os)
 end
 
 print(json.encode(res, nil))
