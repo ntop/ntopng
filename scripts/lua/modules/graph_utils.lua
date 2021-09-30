@@ -11,7 +11,6 @@ require "historical_utils"
 require "rrd_paths"
 
 local dkjson = require("dkjson")
-local host_pools = require "host_pools"
 local top_talkers_utils = require "top_talkers_utils"
 local os_utils = require "os_utils"
 local graph_common = require "graph_common"
@@ -928,6 +927,7 @@ end
 -- #################################################
 
 function graph_utils.poolDropdown(ifId, pool_id, exclude)
+   local host_pools = require "host_pools"
    local host_pools_instance = host_pools:create()
    pool_id = tostring(pool_id)
 
