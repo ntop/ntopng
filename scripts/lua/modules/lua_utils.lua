@@ -26,7 +26,6 @@ locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
 local dscp_consts = require "dscp_consts"
-local tag_utils = require "tag_utils"
 
 -- TODO: replace those globals with locals everywhere
 
@@ -1996,6 +1995,7 @@ end
 -- @param href_check Performs existance checks on the link to avoid generating links to inactive hosts or hosts without timeseries
 -- @return A string containing the url (if available) or an empty string when the url is not available
 function hostinfo2detailsurl(host_info, href_params, href_check)
+   local tag_utils = require "tag_utils"
    local res = ''
 
    if not href_check or hostdetails_exists(host_info, href_params) then
