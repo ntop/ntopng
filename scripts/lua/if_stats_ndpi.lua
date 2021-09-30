@@ -10,9 +10,11 @@ local graph_utils = require "graph_utils"
 
 local ifid = _GET["ifid"]
 
-interface.select(ifid)
-
-local ifstats = interface.getStats()
+local ifstats = {}
+if ifid then
+   ifstats = interface.getStats()
+   interface.select(ifid)
+end
 
 local format = _GET["format"]
 if(format == "json") then
@@ -41,11 +43,14 @@ if(ifstats.stats ~= nil) then
   end
 end
 
-local total = ifstats.stats.bytes
+local total = 0
+if table.len(ifstats) > 0 then
+   total = ifstats.stats.bytes
+end
 
 local vals = {}
 
-for k, v in pairs(ifstats["ndpi"]) do
+for k, v in pairs(ifstats["ndpi"] or {}) do
    -- io.write("->"..k.."\n")
    if v["bytes.rcvd"] > 0 or v["bytes.sent"] > 0 then
     vals[k] = k
@@ -116,3 +121,4 @@ for _k in pairsByKeys(vals, asc) do
 end
 
 if(json_format) then print('\n]\n') end
+::exit::
