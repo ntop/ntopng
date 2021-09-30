@@ -304,6 +304,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		const AddressTree * const cidr_filter,
 		u_int8_t ipver_filter, int proto_filter,
 		TrafficType traffic_type_filter,
+    u_int32_t device_ip,
 		char *sortColumn);
   int sortASes(struct flowHostRetriever *retriever,
 	       char *sortColumn);
@@ -642,7 +643,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 			 u_int16_t pool_filter, bool filtered_hosts,
 			 bool blacklisted_hosts, bool hide_top_hidden,
 			 u_int8_t ipver_filter, int proto_filter,
-			 TrafficType traffic_type_filter, bool tsLua,
+			 TrafficType traffic_type_filter, 
+       u_int32_t device_ip,bool tsLua,
 			 bool anomalousOnly, bool dhcpOnly,
 			 const AddressTree * const cidr_filter,
 			 char *sortColumn, u_int32_t maxHits,

@@ -1526,25 +1526,8 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 
    if flowdevs == nil then flowdevs = {} end
 
-   local devips = {}
+   local devips = getProbesName(flowdevs)
    local devips_order = ntop.getPref("ntopng.prefs.flow_table_probe_order") == "1" -- Order by Probe Name
-
-   for dip, _ in pairsByValues(flowdevs, asc) do
-      local cached_device_name = snmp_cached_dev:create(dip)
-
-      if cached_device_name then
-         cached_device_name = cached_device_name["name"]
-      else
-         local hinfo = hostkey2hostinfo(dip)
-         local resname = hostinfo2label(hinfo)
-
-         if not isEmptyString(resname) then
-            cached_device_name = resname
-         end
-      end
-
-      devips[dip] = cached_device_name
-   end
 
    if devips_order then
       ordering_fun = pairsByValues

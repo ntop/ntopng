@@ -3858,6 +3858,7 @@ struct flowHostRetriever {
   const AddressTree * cidr_filter; /* Not used in flow_search_walker */
   VLANid vlan_id;
   OSType osFilter;
+  u_int32_t device_ip;
   u_int32_t asnFilter;
   u_int32_t uidFilter;
   u_int32_t pidFilter;
@@ -4294,6 +4295,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->hideTopHidden && h->isHiddenFromTop())       ||
      (r->traffic_type == traffic_type_one_way && !h->isOneWayTraffic())         ||
      (r->traffic_type == traffic_type_bidirectional && !h->isTwoWaysTraffic())  ||
+     (r->device_ip && h->getLastDeviceIp() && (r->device_ip != h->getLastDeviceIp())) ||
      (r->dhcpHostsOnly && (!h->isDhcpHost())) ||
 #ifdef NTOPNG_PRO
      (r->filteredHosts && !h->hasBlockedTraffic()) ||
@@ -5008,6 +5010,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				const AddressTree * const cidr_filter,
 				u_int8_t ipver_filter, int proto_filter,
 				TrafficType traffic_type_filter,
+        u_int32_t device_ip,
 				char *sortColumn) {
   u_int8_t macAddr[6];
   int (*sorter)(const void *_a, const void *_b);
@@ -5036,6 +5039,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
     retriever->hideTopHidden = hide_top_hidden,
     retriever->ndpi_proto = proto_filter,
     retriever->traffic_type = traffic_type_filter,
+    retriever->device_ip = device_ip,
     retriever->maxNumEntries = getHostsHashSize();
   retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
@@ -5294,8 +5298,8 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 u_int16_t pool_filter, bool filtered_hosts,
 					 bool blacklisted_hosts, bool hide_top_hidden,
 					 u_int8_t ipver_filter, int proto_filter,
-					 TrafficType traffic_type_filter, bool tsLua,
-					 bool anomalousOnly, bool dhcpOnly,
+					 TrafficType traffic_type_filter, u_int32_t device_ip,
+           bool tsLua, bool anomalousOnly, bool dhcpOnly,
 					 const AddressTree * const cidr_filter,
 					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
@@ -5319,6 +5323,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 	       cidr_filter,
 	       ipver_filter, proto_filter,
 	       traffic_type_filter,
+         device_ip,
 	       sortColumn) < 0) {
     return(-1);
   }

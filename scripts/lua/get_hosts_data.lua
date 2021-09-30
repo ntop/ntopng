@@ -22,6 +22,7 @@ local sortOrder   = _GET["sortOrder"]
 local protocol    = _GET["protocol"]
 local custom_column = _GET["custom_column"]
 local traffic_type = _GET["traffic_type"]
+local device_ip   = _GET["deviceIP"]
 
 -- Host comparison parameters
 local mode        = _GET["mode"]
@@ -132,7 +133,7 @@ local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sO
 					 tonumber(network), mac,
 					 tonumber(pool), tonumber(ipversion),
 					 tonumber(protocol), traffic_type_filter,
-					 filtered_hosts, blacklisted_hosts, top_hidden, anomalous, dhcp_hosts, cidr)
+					 filtered_hosts, blacklisted_hosts, top_hidden, anomalous, dhcp_hosts, cidr, device_ip)
 
 if(hosts_stats == nil) then total = 0 else total = hosts_stats["numHosts"] end
 hosts_stats = hosts_stats["hosts"]

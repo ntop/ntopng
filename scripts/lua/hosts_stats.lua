@@ -53,6 +53,7 @@ local community    = _GET["community"]
 local pool         = _GET["pool"]
 local ipversion    = _GET["version"]
 local traffic_type = _GET["traffic_type"]
+local device_ip    = _GET["deviceIP"]
 
 local base_url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua"
 local page_params = {}
@@ -71,7 +72,7 @@ if ((mode ~= "all") or (not isEmptyString(pool))) then
    hosts_filter = '<span class="fas fa-filter"></span>'
 end
 
-function getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipver_title, os_, country, asninfo, mac, pool_, vlan_title, vlan_alias)
+function getPageTitle(protocol_name, traffic_type_title, device_ip_title, network_name, cidr, ipver_title, os_, country, asninfo, mac, pool_, vlan_title, vlan_alias)
    local mode_label = ""
 
    if mode == "remote" then
@@ -98,6 +99,7 @@ function getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipv
    return i18n("hosts_stats.hosts_page_title", {
         all = isEmptyString(mode_label) and i18n("hosts_stats.all") or "",
         traffic_type = traffic_type_title or "",
+        device_ip = device_ip_title or "",
         local_remote = mode_label,
         protocol = protocol_name or "",
         network = not isEmptyString(network_name) and i18n("hosts_stats.in_network", {network=network_name}) or "",
@@ -120,6 +122,7 @@ local ifstats = interface.getStats()
 local protocol_name = nil
 local network_name = nil
 local traffic_type_title = nil
+local device_ip_title = nil
 local ipver_title = nil
 local asninfo = nil
 local os_title = nil
@@ -135,7 +138,6 @@ end
 
 if(protocol_name == nil) then protocol_name = protocol end
 
-local traffic_type_title
 if not isEmptyString(traffic_type) then
    page_params["traffic_type"] = traffic_type
 
@@ -146,6 +148,12 @@ if not isEmptyString(traffic_type) then
    end
 else
    traffic_type_title = ""
+end
+
+if not isEmptyString(device_ip) then
+   page_params["deviceIP"] = device_ip
+
+   device_ip_title = i18n("hosts_stats.probe_traffic", {device_ip = device_ip})
 end
 
 if(network ~= nil) then
@@ -234,7 +242,7 @@ if(pool ~= nil) then
       "</small>"
 end
 
-page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, network_name, cidr, ipver_title, os_title, country_title, asninfo, mac_title, pool_title, vlan_title,vlan_alias))
+page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, device_ip_title, network_name, cidr, ipver_title, os_title, country_title, asninfo, mac_title, pool_title, vlan_title,vlan_alias))
 
 if (_GET["page"] ~= "historical") then
    if(asn ~= nil) then
@@ -454,6 +462,10 @@ if (_GET["page"] ~= "historical") then
    end
 
    print('</ul></div>\'')
+
+   print[[, '<div class="btn-group float-right">]]
+   printHostsDeviceFilterDropdown(base_url, page_params)
+   print[[</div>']]
 
    print(' ],')
 

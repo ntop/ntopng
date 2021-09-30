@@ -139,6 +139,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
       if(device_ip) more_then_one_device = true; 
       device_ip = ip; 
     }};
+  inline  u_int32_t getLastDeviceIp()        { return(device_ip); };
   void blacklistedStatsResetRequested();
   inline u_int32_t getCheckpointBlacklistedAsCli() const { return(num_blacklisted_flows.checkpoint_as_client); }
   inline u_int32_t getCheckpointBlacklistedAsSrv() const { return(num_blacklisted_flows.checkpoint_as_server); }
