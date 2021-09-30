@@ -183,7 +183,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   host_services_bitmap = 0;
   disabled_alerts_tstamp = 0;
   num_remote_access = 0;
-
+  
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 
 #ifdef NTOPNG_PRO
@@ -212,6 +212,9 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   reloadHostBlacklist();
   is_dhcp_host = false;
   is_in_broadcast_domain = false;
+
+  more_then_one_device = false;
+  device_ip = 0;
 
   PROFILING_SUB_SECTION_ENTER(iface, "Host::initialize: new AlertCounter", 17);
   syn_flood.attacker_counter  = new (std::nothrow) AlertCounter();
@@ -724,7 +727,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_float_table_entry(vm, "pkts_ratio", ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()));
   
   if(device_ip)
-    lua_push_uint32_table_entry(vm, "device_ip", device_ip);
+    lua_push_str_table_entry(vm, "device_ip", Utils::intoaV4(device_ip, buf, sizeof(buf)));
   
   if(more_then_one_device)
     lua_push_bool_table_entry(vm, "more_then_one_device", more_then_one_device);

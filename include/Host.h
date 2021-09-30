@@ -134,7 +134,11 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline  bool isDhcpHost()            const { return(is_dhcp_host); };
   inline  void setBroadcastDomainHost()      { is_in_broadcast_domain = true;  };
   inline  void setSystemHost()               { /* TODO: remove */              };
-  inline  void setLastDeviceIp(u_int32_t ip)         { if(ip && ip != device_ip) device_ip = ip; more_then_one_device = true; };
+  inline  void setLastDeviceIp(u_int32_t ip) { 
+    if(ip && ip != device_ip) { 
+      if(device_ip) more_then_one_device = true; 
+      device_ip = ip; 
+    }};
   void blacklistedStatsResetRequested();
   inline u_int32_t getCheckpointBlacklistedAsCli() const { return(num_blacklisted_flows.checkpoint_as_client); }
   inline u_int32_t getCheckpointBlacklistedAsSrv() const { return(num_blacklisted_flows.checkpoint_as_server); }
