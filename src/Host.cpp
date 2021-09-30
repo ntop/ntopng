@@ -726,7 +726,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_float_table_entry(vm, "bytes_ratio", ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd()));
   lua_push_float_table_entry(vm, "pkts_ratio", ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()));
   
-  if(device_ip)
+  if(device_ip != 0)
     lua_push_str_table_entry(vm, "device_ip", Utils::intoaV4(device_ip, buf, sizeof(buf)));
   
   if(more_then_one_device)
