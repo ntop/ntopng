@@ -149,13 +149,13 @@ if starts(ts_schema, "custom:") and graph_utils.performCustomQuery then
   res = graph_utils.performCustomQuery(ts_schema, tags, tstart, tend, options)
   compare_backward = nil
 else
-  res = performQuery(tstart, tend)
+  res = performQuery(tstart, tend) or {}
 
   -- if Mac address ts is requested, check if the serialize by mac is enabled and if no data is found, use the host timeseries. 
-  if (res.statistics) and (res.statistics.total == 0) then
+  if (table.len(res) == 0) or (res.statistics) and (res.statistics.total == 0) then
     local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. tags.ifid .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
     local tmp = split(ts_schema, ":")
-
+    
     if (serialize_by_mac) and (tags.mac) then
       ts_schema = "host:" .. tmp[2]
       tags.host = tags.mac .. "_v4"
@@ -189,7 +189,7 @@ if not isEmptyString(compare_backward) and compare_backward ~= "1Y" and (res.ste
   local tend_cmp = tstart_cmp + res.step * (res.count - 1)
 
   -- Try to use the same aggregation as the original query
-  local res_cmp = performQuery(tstart_cmp, tend_cmp, true, {target_aggregation=res.source_aggregation})
+  local res_cmp = performQuery(tstart_cmp, tend_cmp, true, {target_aggregation=res.source_aggregation}) or {}
   local total_cmp_serie = nil
 
   if res_cmp and res_cmp.additional_series and res_cmp.additional_series.total and (res_cmp.step) and res_cmp.step >= res.step then
@@ -218,7 +218,7 @@ end
 -- Add layout information
 local layout = graph_utils.get_timeseries_layout(ts_schema)
 
-for _, serie in pairs(res.series) do
+for _, serie in pairs(res.series or {}) do
 
   if not serie.type then
     if layout[serie.label] then
