@@ -4,7 +4,6 @@
 
 -- ##############################################
 
-local dirs = ntop.getDirs()
 local other_alert_keys = require "other_alert_keys"
 -- Import the classes library.
 local classes = require "classes"

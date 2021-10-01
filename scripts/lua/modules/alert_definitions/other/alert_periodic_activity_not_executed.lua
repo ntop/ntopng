@@ -2,7 +2,6 @@
 -- (C) 2019-21 - ntop.org
 --
 
-local dirs = ntop.getDirs()
 -- ##############################################
 
 local other_alert_keys = require "other_alert_keys"
