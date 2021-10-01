@@ -6,7 +6,6 @@ local dirs = ntop.getDirs()
 -- ##############################################
 
 local other_alert_keys = require "other_alert_keys"
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!

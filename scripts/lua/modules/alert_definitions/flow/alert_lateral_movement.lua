@@ -4,7 +4,6 @@
 
 -- ##############################################
 
-package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
 
 local flow_alert_keys = require "flow_alert_keys"
 -- Import the classes library.

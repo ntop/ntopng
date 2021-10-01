@@ -5,7 +5,6 @@
 -- ##############################################
 
 local other_alert_keys = require "other_alert_keys"
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local json = require("dkjson")
 local alert_creators = require "alert_creators"

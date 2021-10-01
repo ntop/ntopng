@@ -5,7 +5,6 @@
 -- ##############################################
 
 local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 local other_alert_keys = require "other_alert_keys"
 -- Import the classes library.
 local classes = require "classes"

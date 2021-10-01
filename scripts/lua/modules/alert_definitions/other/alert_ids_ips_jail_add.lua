@@ -5,7 +5,6 @@
 -- ##############################################
 
 local other_alert_keys = require "other_alert_keys"
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local format_utils = require "format_utils"
 -- Import the classes library.
