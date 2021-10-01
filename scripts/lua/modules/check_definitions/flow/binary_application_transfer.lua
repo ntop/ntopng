@@ -12,7 +12,7 @@ local script = {
    category = checks.check_categories.security, 
 
    -- This script is only for alerts generation
-   alert_id = flow_alert_keys.flow_alert_suspicious_file_transfer,
+   alert_id = flow_alert_keys.flow_alert_binary_application_transfer,
 
    default_enabled = true,
 

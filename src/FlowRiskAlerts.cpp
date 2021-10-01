@@ -42,8 +42,8 @@ const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RIS
   },
   [NDPI_BINARY_APPLICATION_TRANSFER] =
   {
-    .alert_type = { flow_alert_suspicious_file_transfer, alert_category_security },
-    .alert_lua_name = "suspicious_file_transfer"
+    .alert_type = { flow_alert_binary_application_transfer, alert_category_security },
+    .alert_lua_name = "binary_application_transfer"
   },
   [NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT] = {
     .alert_type = { flow_alert_known_proto_on_non_std_port, alert_category_security },

@@ -13,13 +13,13 @@ local alert = require "alert"
 
 -- ##############################################
 
-local alert_suspicious_file_transfer = classes.class(alert)
+local alert_binary_application_transfer = classes.class(alert)
 
 -- ##############################################
 
-alert_suspicious_file_transfer.meta = {
-   alert_key = flow_alert_keys.flow_alert_suspicious_file_transfer,
-   i18n_title = "alerts_dashboard.suspicious_file_transfer",
+alert_binary_application_transfer.meta = {
+   alert_key = flow_alert_keys.flow_alert_binary_application_transfer,
+   i18n_title = "alerts_dashboard.binary_application_transfer",
    icon = "fas fa-fw fa-file-download",
 
    has_victim = true,
@@ -32,7 +32,7 @@ alert_suspicious_file_transfer.meta = {
 -- @param one_flow_param The first alert param
 -- @param another_flow_param The second alert param
 -- @return A table with the alert built
-function alert_suspicious_file_transfer:init()
+function alert_binary_application_transfer:init()
    -- Call the parent constructor
    self.super:init()
 end
@@ -44,8 +44,8 @@ end
 -- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
-function alert_suspicious_file_transfer.format(ifid, alert, alert_type_params)
-   local res = i18n("alerts_dashboard.suspicious_file_transfer")
+function alert_binary_application_transfer.format(ifid, alert, alert_type_params)
+   local res = i18n("alerts_dashboard.binary_application_transfer")
 
    if alert_type_params and alert_type_params["protos.http.last_url"] then
       local url = alert_type_params["protos.http.last_url"]
@@ -65,7 +65,7 @@ function alert_suspicious_file_transfer.format(ifid, alert, alert_type_params)
          url = shortenString(alert_type_params["protos.http.last_url"], 64)
          info = '<i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="'..alert_type_params["protos.http.last_url"]..'"></i>'
       end
-      res = i18n("alerts_dashboard.suspicious_file_transfer_url", { 
+      res = i18n("alerts_dashboard.binary_application_transfer_url", { 
          url = url,
          type_icon = type_icon,
          info = info,
@@ -78,4 +78,4 @@ end
 
 -- #######################################################
 
-return alert_suspicious_file_transfer
+return alert_binary_application_transfer

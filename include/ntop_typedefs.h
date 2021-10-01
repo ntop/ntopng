@@ -428,7 +428,7 @@ typedef enum {
   flow_alert_udp_unidirectional               = 26,
   flow_alert_web_mining_detected              = 27,
   flow_alert_tls_certificate_selfsigned       = 28,
-  flow_alert_suspicious_file_transfer         = 29, /* TODO rename to alert_ndpi_binary_application_transfer */
+  flow_alert_binary_application_transfer      = 29, 
   flow_alert_known_proto_on_non_std_port      = 30, /* TODO rename to alert_ndpi_known_protocol_on_non_standard_port */
   flow_alert_flow_risk                        = 31, /* No longer used, each risk is reported individually */
   flow_alert_unexpected_dhcp_server           = 32,
