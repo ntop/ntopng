@@ -163,6 +163,9 @@ cert:
 	cat privkey.pem cert.pem > httpdocs/ssl/ntopng-cert.pem
 	/bin/rm -f privkey.pem cert.pem
 
+circular_deps:
+	cd ./tools; python3.5 circular_deps.py
+
 veryclean: clean
 	-rm -rf nDPI
 
