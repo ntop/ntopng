@@ -9,7 +9,6 @@ local http_lint = {}
 
 local json = require "dkjson"
 local tracker = require "tracker"
-local tag_utils = require "tag_utils"
 
 -- #################################################################
 
@@ -805,6 +804,7 @@ local function validateApplication(app)
 end
 
 local function validateTagsOperator(p)
+   local tag_utils = require "tag_utils"
    return (tag_utils.tag_operators[p] ~= nil)
 end
 
