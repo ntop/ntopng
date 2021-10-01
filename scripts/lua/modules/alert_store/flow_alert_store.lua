@@ -11,6 +11,7 @@ local classes = require "classes"
 require "lua_utils"
 local alert_store = require "alert_store"
 local format_utils = require "format_utils"
+local flow_risk_utils = require "flow_risk_utils"
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
@@ -360,6 +361,11 @@ function flow_alert_store:format_record(value, no_html)
 		     message = message .. string.format(" [%s: %s]",
 							i18n("score"),
 							format_utils.formatValue(alert_score))
+		  end
+
+		  local alert_risk = ntop.getFlowAlertRisk(alert_id)
+		  if alert_risk > 0 then
+		     message = string.format("%s %s", message, flow_risk_utils.get_documentation_link(alert_risk))
 		  end
 
 		  if not other_alerts_by_score[alert_score] then

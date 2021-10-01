@@ -28,13 +28,18 @@ class FlowAlertsLoader { /* A single instance inside Ntop */
  private:
   /* For each alert, keep the corresponding total score. */
   u_int8_t alert_to_score[MAX_DEFINED_FLOW_ALERT_TYPE];
+  /* For each alert, keep its mapping with an nDPI risk (if any) */
+  ndpi_risk_enum alert_to_risk[MAX_DEFINED_FLOW_ALERT_TYPE];
+
   void registerAlert(FlowAlertType alert_type, u_int8_t alert_score);
+  void registerRisk(FlowAlertType alert_type, ndpi_risk_enum risk);
 
  public:
   FlowAlertsLoader();
   virtual ~FlowAlertsLoader();
 
   u_int8_t getAlertScore(FlowAlertTypeEnum alert_id) const;
+  ndpi_risk_enum getAlertRisk(FlowAlertTypeEnum alert_id) const;
   void printRegisteredAlerts() const;
 };
 

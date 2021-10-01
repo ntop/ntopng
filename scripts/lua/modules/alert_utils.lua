@@ -24,6 +24,7 @@ local alerts_api = require "alerts_api"
 local icmp_utils = require "icmp_utils"
 local tag_utils = require "tag_utils"
 local checks = require "checks"
+local flow_risk_utils = require "flow_risk_utils"
 
 local shaper_utils = nil
 
@@ -508,7 +509,8 @@ end
 -- #################################
 
 function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json)
-  local msg
+   local msg
+   local alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
 
   if(alert_json == nil) then
    alert_json = alert_utils.getAlertInfo(alert)
@@ -530,6 +532,11 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json)
 
   if not isEmptyString(alert["user_label"]) then
      msg = string.format('%s <small><span class="text-muted">%s</span></small>', msg, alert["user_label"])
+  end
+
+  -- Add the link to the documentation
+  if alert_risk > 0 then
+     msg = string.format("%s %s", msg, flow_risk_utils.get_documentation_link(alert_risk))
   end
 
   return msg or ""

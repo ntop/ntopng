@@ -27,6 +27,10 @@
 FlowAlertsLoader::FlowAlertsLoader() {
   memset(&alert_to_score, 0, sizeof(alert_to_score));
 
+  /* Set all alerts to no risk, then initialize risk-based alerts */
+  for(int i = 0; i < MAX_DEFINED_FLOW_ALERT_TYPE; i++)
+    alert_to_risk[i] = NDPI_NO_RISK;
+
   /* TODO: implement dynamic loading */
 
   /* Register all flow-risk based alerts */
@@ -35,7 +39,8 @@ FlowAlertsLoader::FlowAlertsLoader() {
     FlowAlertType fat = FlowRiskAlerts::getFlowRiskAlertType(risk);
 
     if(fat.id != flow_alert_normal)
-      registerAlert(fat, FlowRiskAlerts::getFlowRiskScore(risk));
+      registerAlert(fat, FlowRiskAlerts::getFlowRiskScore(risk)),
+	registerRisk(fat, risk);
   }
 
   /* Other */
@@ -88,11 +93,29 @@ void FlowAlertsLoader::registerAlert(FlowAlertType alert_type, u_int8_t alert_sc
 
 /* **************************************************** */
 
+void FlowAlertsLoader::registerRisk(FlowAlertType alert_type, ndpi_risk_enum risk) {
+  if(alert_type.id >= MAX_DEFINED_FLOW_ALERT_TYPE)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Ignoring alert with unknown id %u", alert_type.id);
+
+  alert_to_risk[alert_type.id] = risk;
+}
+
+/* **************************************************** */
+
 u_int8_t FlowAlertsLoader::getAlertScore(FlowAlertTypeEnum alert_id) const {
   if(alert_id < MAX_DEFINED_FLOW_ALERT_TYPE)
     return alert_to_score[alert_id];
 
   return 0;
+}
+
+/* **************************************************** */
+
+ndpi_risk_enum FlowAlertsLoader::getAlertRisk(FlowAlertTypeEnum alert_id) const {
+  if(alert_id < MAX_DEFINED_FLOW_ALERT_TYPE)
+    return alert_to_risk[alert_id];
+
+  return NDPI_NO_RISK;
 }
 
 /* **************************************************** */

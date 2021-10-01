@@ -16,6 +16,7 @@ local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
 local dscp_consts = require "dscp_consts"
 local tag_utils = require "tag_utils"
+local flow_risk_utils = require "flow_risk_utils"
 require "flow_utils"
 
 if ntop.isPro() then
@@ -1277,6 +1278,7 @@ else
       local alert_label = alert_consts.alertTypeLabel(id, true, alert_entities.flow.entity_id)
       local message = alert_label
       local alert_score = ntop.getFlowAlertScore(id)
+      local alert_risk = ntop.getFlowAlertRisk(id)
 
       if alert_score > 0 then
 	 message = message .. string.format(" [%s: %s]",
@@ -1287,7 +1289,7 @@ else
       if not alerts_by_score[alert_score] then
 	 alerts_by_score[alert_score] = {}
       end
-      alerts_by_score[alert_score][#alerts_by_score[alert_score] + 1] = {message = message, is_predominant = is_predominant, alert_id = id, alert_label = alert_label}
+      alerts_by_score[alert_score][#alerts_by_score[alert_score] + 1] = {message = message, is_predominant = is_predominant, alert_id = id, alert_label = alert_label, alert_risk = alert_risk}
       num_statuses = num_statuses + 1
    end
 
@@ -1308,7 +1310,7 @@ else
 					i18n("score"),
 					i18n("score_not_accounted"))
 
-	 alerts_by_score[unhandled_risk_score][#alerts_by_score[unhandled_risk_score] + 1] = {message = message, is_predominant = false}
+	 alerts_by_score[unhandled_risk_score][#alerts_by_score[unhandled_risk_score] + 1] = {message = message, is_predominant = false, alert_risk = risk_id}
 	 num_statuses = num_statuses + 1
       end
    end
@@ -1337,7 +1339,10 @@ else
 
 	    print(string.format('<tr>'))
 
-	    print(string.format('<td>%s %s</td>', score_alert.message, score_alert.is_predominant and status_icon or ''))
+	    print(string.format('<td>%s %s %s</td>',
+				score_alert.message,
+				score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk) or '',
+				score_alert.is_predominant and status_icon or ''))
 
 	    if score_alert.alert_id then
 	       print('<td>')

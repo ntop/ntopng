@@ -587,6 +587,7 @@ class Ntop {
   inline FlowChecksLoader* getFlowChecksLoader() { return(flow_checks_loader); }
   inline HostChecksLoader* getHostChecksLoader() { return(host_checks_loader); }
   inline u_int8_t getFlowAlertScore(FlowAlertTypeEnum alert_id) const { return flow_alerts_loader.getAlertScore(alert_id); };
+  inline ndpi_risk_enum getFlowAlertRisk(FlowAlertTypeEnum alert_id) const { return flow_alerts_loader.getAlertRisk(alert_id); };
   bool luaFlowCheckInfo(lua_State *vm, std::string check_name) const;
   bool luaHostCheckInfo(lua_State *vm, std::string check_name) const;
   inline ndpi_risk getUnhandledRisks() const { return flow_checks_loader ? flow_checks_loader->getUnhandledRisks() : 0; };
