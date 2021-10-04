@@ -34,10 +34,6 @@ class CircularDeps(object):
         # Iterate over all lua files, both community and pro
         for available_path in ['./../scripts', './../pro/scripts']:
             for path in Path(available_path).rglob('*.lua'):
-                # Exclude REST endpoints
-                if '/rest/' in str(path):
-                    continue
-
                 # Exclude backup files (e.g., starting with #)
                 if path.name.startswith('.') or path.name.startswith('#') or path.name.startswith('~'):
                     continue
@@ -46,10 +42,15 @@ class CircularDeps(object):
                 with path.open('r', encoding="utf-8") as fid:
                     for line in fid:
                         res = [
+                            # require without assignment
                             re.search(r'^require.*\"(.*?)\"' ,line),
                             re.search(r'^require.*\'(.*?)\'' ,line),
+                            # require with assignment to local variables
                             re.search(r'^local.*require.*\"(.*?)\"' ,line),
                             re.search(r'^local.*require.*\'(.*?)\'' ,line),
+                            # require with assignment to global variables
+                            re.search(r'^[^\s].*require.*\"(.*?)\"' ,line),
+                            re.search(r'^[^\s].*require.*\'(.*?)\'' ,line),
                         ]
 
                         # Add requires
