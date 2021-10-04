@@ -643,7 +643,6 @@ end
 -- ##############################################
 
 function printHostsDeviceFilterDropdown(base_url, page_params)
-   local snmp_cached_dev = require "snmp_cached_dev"
    -- Getting probes
    local flowdevs = interface.getFlowDevices() or {}
    local ordering_fun = pairsByKeys
@@ -664,27 +663,33 @@ function printHostsDeviceFilterDropdown(base_url, page_params)
 
    dev_params["deviceIP"] = nil
 
-   print[[
-      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.device_ip")) print[[]] print(cur_dev_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
-      <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
-   
-   for dev_ip, dev_resolved_name in ordering_fun(devips, asc) do
-      local dev_name = dev_ip
-      
-      dev_params["deviceIP"] = dev_name
+   if table.len(devips) > 0 then
+      print[[, '<div class="btn-group float-right">]]
 
-      if not isEmptyString(dev_resolved_name) and dev_resolved_name ~= dev_name then
-         dev_name = dev_name .. " ["..shortenString(dev_resolved_name).."]"
+      print[[
+         <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.device_ip")) print[[]] print(cur_dev_filter) print[[<span class="caret"></span></button>\
+         <ul class="dropdown-menu dropdown-menu-end scrollable-dropdown" role="menu" id="flow_dropdown">\
+         <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
+      
+      for dev_ip, dev_resolved_name in ordering_fun(devips, asc) do
+         local dev_name = dev_ip
+         
+         dev_params["deviceIP"] = dev_name
+
+         if not isEmptyString(dev_resolved_name) and dev_resolved_name ~= dev_name then
+            dev_name = dev_name .. " ["..shortenString(dev_resolved_name).."]"
+         end
+
+         print[[
+         <li><a class="dropdown-item ]] print(dev_ip == cur_dev and 'active' or '') print[[" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.device_ip").." "..dev_name) print[[</a></li>\]]
       end
 
       print[[
-      <li><a class="dropdown-item ]] print(dev_ip == cur_dev and 'active' or '') print[[" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.device_ip").." "..dev_name) print[[</a></li>\]]
-   end
+         </ul>\
+      ]]
 
-   print[[
-      </ul>\
-   ]]
+      print[[</div>']]
+   end
 end
 
 -- ##############################################

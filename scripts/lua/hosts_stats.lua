@@ -463,9 +463,7 @@ if (_GET["page"] ~= "historical") then
 
    print('</ul></div>\'')
 
-   print[[, '<div class="btn-group float-right">]]
    printHostsDeviceFilterDropdown(base_url, page_params)
-   print[[</div>']]
 
    print(' ],')
 
