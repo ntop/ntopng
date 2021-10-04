@@ -349,7 +349,7 @@ static void* packetPollLoop(void* ptr) {
     } /* while */
   } while(pcap_list != NULL);
 
-  if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
+  if(iface->read_from_pcap_dump()) {
     iface->set_read_from_pcap_dump_done();
   }
 
@@ -366,11 +366,6 @@ static void* packetPollLoop(void* ptr) {
 /* **************************************************** */
 
 void PcapInterface::startPacketPolling() {
-  if(reproducePcapOriginalSpeed()) {
-    /* Enable purge */
-    purge_idle_flows_hosts = true;
-  }
-
   pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
   pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
