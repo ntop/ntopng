@@ -48,16 +48,23 @@ class CircularDeps(object):
                             # require with assignment to local variables
                             re.search(r'^local.*require.*\"(.*?)\"' ,line),
                             re.search(r'^local.*require.*\'(.*?)\'' ,line),
-                            # require with assignment to global variables
-                            re.search(r'^[^\s].*require.*\"(.*?)\"' ,line),
-                            re.search(r'^[^\s].*require.*\'(.*?)\'' ,line),
+                            # require with assignment to global variables (also ignore comments)
+                            re.search(r'^[^\s\-].*require.*\"(.*?)\"' ,line),
+                            re.search(r'^[^\s\-].*require.*\'(.*?)\'' ,line),
                         ]
 
                         # Add requires
                         for r in res:
                             if r and r.group:
-                                required = r.group(1)
-                                self._requires.append((path.name.replace('.lua', ''), required))
+                                # Prepare node names
+                                require_node_name = r.group(1)
+
+                                # If the file is under the REST API, an extra folder is added to the node name
+                                # to avoid clashes with names, .e.g., delete/endpoints.lua with get/endpoints.lua
+                                file_node_name = '/'.join(path.parts['/rest/' in str(path) and -2 or -1:])
+                                file_node_name = file_node_name.replace('.lua', '')
+
+                                self._requires.append((file_node_name, require_node_name))
 
     def _build_graph(self):
         self._G = nx.DiGraph()

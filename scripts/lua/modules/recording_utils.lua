@@ -4,7 +4,6 @@
 
 local dirs = ntop.getDirs()
 require "lua_utils"
---require "prefs_utils"
 local json = require("dkjson")
 local os_utils = require("os_utils")
 local scripts_triggers = require "scripts_triggers"
