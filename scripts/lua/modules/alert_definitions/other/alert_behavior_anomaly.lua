@@ -14,13 +14,11 @@ local behavior_utils = require("behavior_utils")
 
 local alert_behavior_anomaly = classes.class(alert)
 
-local i18n_title = i18n("alerts_dashboard.alert_unexpected_behavior_title", {type = ""})
-
 -- ##############################################
 
 alert_behavior_anomaly.meta = {
    alert_key = other_alert_keys.alert_behavior_anomaly,
-   i18n_title = i18n_title,
+   i18n_title = "alerts_dashboard.alert_unexpected_behavior_title",
    icon = "fas fa-fw fa-exclamation",
 }
 
