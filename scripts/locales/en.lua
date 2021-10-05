@@ -1536,7 +1536,7 @@ local lang = {
     ["min_severity"] = "Min. Severity",
     ["categories"] = "Categories",
     ["name"] = "Name",
-    ["no_recipients"] = "<i class='text-danger fas fa-exclamation-triangle'></i> No Recipients configured",
+    ["no_recipients"] = "<i class='text-danger fas fa-exclamation-triangle'></i> No Recipient configured",
     ["notifications"] = "Notifications",
     ["num_drops"] = "Drops",
     ["num_uses"] = "Uses",
