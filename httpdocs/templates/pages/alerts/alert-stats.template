@@ -270,12 +270,6 @@
 
             if(score !== '0;gte') 
                 searchParams.set('score', getScore());
-            else {
-                const score_tag = getScoreTag();
-                searchParams.delete('score');
-                if(score_tag)
-                    tagify.removeTags(score_tag);
-            }
             
             if (url.searchParams.has('status')) {
                 searchParams.set('status', url.searchParams.get('status'));
@@ -313,7 +307,6 @@
         async function onRangePickerChange(pushHistroy = false) {
             const [begin, end] = getTimestampRange();
             const score = getScore();
-
             setDatasourceParams();
 
             await reloadTable($table);
@@ -1184,27 +1177,6 @@
     var inputValue = document.getElementById("input-score-value");
     let currPageUrl = window.location.href;
     let currScore = "";
-    let position = currPageUrl.indexOf('score');
-    if(position>0){
-        for(i=position;i<currPageUrl.length;i++){
-            if(currPageUrl[i] == "="){
-                position = i;
-                break;
-            }
-        }
-
-        for(i=position+1;i<currPageUrl.length;i++){
-            if(currPageUrl[i] != "%"){
-                currScore += currPageUrl[i];
-            }
-            else{
-                if(currPageUrl[i+3] != 'g'){
-                    currScore = ""
-                }
-                break;
-            }
-        }
-    }
 
     const maxValue = 250;
 
@@ -1228,6 +1200,10 @@
             const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte"};
 
             addFilterTag(tag);
+        } else {
+            const score_tag = getScoreTag();
+            if(score_tag)
+                tagify.removeTags(score_tag);
         }
     }
     });
