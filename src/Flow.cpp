@@ -779,27 +779,25 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 	cli_host->incrVisitedWebSite((char*)ndpiFlow->host_server_name);
       }
 
+      char *q = strdup((const char*)ndpiFlow->host_server_name);
+      if(q) {
+	protos.dns.invalid_chars_in_query = false;
 
-      if(ndpiFlow->protos.dns.is_query) {
-	char *q = strdup((const char*)ndpiFlow->host_server_name);
-
-	if(q) {
-	  protos.dns.invalid_chars_in_query = false;
-
-	  for(int i = 0; q[i] != '\0'; i++) {
-	    if(!isprint(q[i])) {
-	      q[i] = '?';
-	      protos.dns.invalid_chars_in_query = true;
-	    }
+	for(int i = 0; q[i] != '\0'; i++) {
+	  if(!isprint(q[i])) {
+	    q[i] = '?';
+	    protos.dns.invalid_chars_in_query = true;
 	  }
-
-	  if(setDNSQuery(q))
-	    protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
-	  else
-	    /* Unable to set the DNS query, must free the memory */
-	    free(q);
 	}
-      } else { /* this is a response... */
+
+	if(!setDNSQuery(q))
+	  /* Unable to set the DNS query, must free the memory */
+	  free(q);
+      }
+
+      if(ndpiFlow->protos.dns.is_query)
+	protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
+      else { /* this is a response... */
 	if(ntop->getPrefs()->decode_dns_responses()) {
 	  char delimiter = '@', *name = NULL;
 	  char *at = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter);
