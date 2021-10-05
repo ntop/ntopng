@@ -35,7 +35,8 @@ local behavior_utils = require("behavior_utils")
 
 blog_utils.fetchLatestPosts()
 
-local observationPointId = ntop.getUserObservationPointId()
+
+local observationPointId = nil
 
 print([[
    <div class='wrapper'>
@@ -855,6 +856,13 @@ for v,k in pairs(iface_names) do
     if(ifs.id == _ifstats.id) then
       observationPoints = interface.getObservationPoints()
    end
+end
+
+-- The observationPoint menu is displayed only for the flow page
+if(_SERVER.URI == "/lua/flows_stats.lua") then
+   observationPointId = ntop.getUserObservationPointId()
+else
+   observationPoints = nil
 end
 
 interface.select(ifs.id.."")
