@@ -334,7 +334,7 @@ else
 				 label = i18n("traffic"),
 			      },
 			      {
-				 hidden = have_nedge or only_historical or (host["packets.sent"] + host["packets.rcvd"] == 0),
+				 hidden = have_nedge or host["is_broadcast"] or host["is_multicast"] or only_historical or (host["packets.sent"] == 0) or(host["packets.rcvd"] == 0),
 				 active = page == "packets",
 				 page_name = "packets",
 				 label = i18n("packets"),
