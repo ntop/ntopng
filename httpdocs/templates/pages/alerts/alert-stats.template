@@ -515,6 +515,11 @@
             if(key == 'score'){
                 $('#input-score-value')[0].value = "";
                 $('#input-score-value')[0].style["max-width"] = "7rem";
+                $.post('{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua', { 
+                    ifid: {{ ifid }},
+                    score: "",
+                    csrf: PAGE_CSRF,
+                });
             }
             if (datasourceParams[key] !== undefined) {
                 delete datasourceParams[key];
@@ -1198,7 +1203,7 @@
         }
     }
 
-    inputValue.onchange = function(){
+    inputValue.onchange = function() {
         if(inputValue.value != 0){
             const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte"};
 
