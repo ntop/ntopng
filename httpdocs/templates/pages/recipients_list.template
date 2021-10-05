@@ -19,6 +19,9 @@
                                 <th>{{ i18n('endpoint_notifications.num_uses') }}</th>
                                 <th>{{ i18n('endpoint_notifications.num_drops') }}</th>
 				                <th>{{ i18n('endpoint_notifications.fill_pct') }}</th>
+                                <th>{{ i18n('endpoint_notifications.categories') }}</th>
+                                <th>{{ i18n('endpoint_notifications.min_severity') }}</th>
+                                <th>{{ i18n('endpoint_notifications.bind_to_pools') }}</th>
                                 <th>{{ i18n('actions') }}</th>
                             </tr>
                         </thead>
@@ -66,6 +69,8 @@
     i18n.endpoint_type = "{{ i18n('endpoint_notifications.type') }}";
     i18n.endpoint_types = {* json.encode(notifications.endpoint_types_labels) *};
     i18n.pool_types = {* json.encode(i18n('pools.pool_name')) *};
+    i18n.endpoint_severities = {* json.encode(i18n('endpoint_notifications.severities')) *};
+    i18n.pools = "{{ i18n('endpoint_notifications.bind_to_num_pools') }}";
 
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/recipients-endpoints.js?{{ ntop.getStaticFileEpoch() }}"></script>

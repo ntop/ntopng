@@ -3,6 +3,16 @@ $(function () {
     const TABLE_DATA_REFRESH = 15000;
     const DEFAULT_RECIPIENT_ID = 0;
     const COLUMN_INDEX_ENDPOINT_TYPE = 1;
+    const SEVERITIES = [
+        'debug',
+        'info',
+        'notice',
+        'warning',
+        'error',
+        'critical',
+        'alert',
+        'emergency'
+    ];
 
     const makeFormData = (formSelector) => {
 
@@ -220,6 +230,37 @@ $(function () {
                     if (type == "display") return NtopUtils.fpercent(data);
                     return data;
                 }
+            },
+            {
+                data: "check_categories",
+                className: "text-right",
+                width: "5%",
+                render: function (data, type) {
+                    if (data.length == 0)
+                        return `<i class='text-danger fas fa-exclamation-triangle'></i> ` + data.length;
+                    else
+                        return data.length;
+                }  
+            },
+            {
+                data: "minimum_severity",
+                className: "text-right text-nowrap",
+                width: "5%",
+                render: function (data, type) {
+                    const min_sev_key = SEVERITIES[data - 1];
+                    return `${i18n.endpoint_severities[min_sev_key]}`;
+                }  
+            },
+            {
+                data: "bind_to_pools",
+                className: "text-right text-nowrap",
+                width: "5%",
+                render: function (data, type) {
+                    if(data)
+                        return data + ` ${i18n.pools}`;
+                    else
+                        return `<i class='text-danger fas fa-exclamation-triangle'></i> 0 ` + `${i18n.pools}`;
+                }  
             },
             {
                 targets: -1,

@@ -71,6 +71,7 @@ print[[
       "warning": "]] print(i18n("warning")) print[[",
       "search": "]] print(i18n("search")) print[[",
       "as": "]] print(i18n("as")) print[[",
+      "no_recipients": "]] print(i18n("endpoint_notifications.no_recipients")) print[[",
       "score": "]] print(i18n("score")) print[[",
       "alerted_flows": "]] print(i18n("flow_details.alerted_flows")) print[[",
       "blacklisted_flows": "]] print(i18n("alerts_dashboard.blacklisted_flow")) print[[",

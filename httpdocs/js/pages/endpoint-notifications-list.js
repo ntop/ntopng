@@ -106,15 +106,20 @@ $(function () {
             {
                 data: 'recipients',
                 render: (recipients, type) => {
-                    if (type == "display")
-                        return NtopUtils.arrayToListString(recipients.map(recipient => {
+                    if (type == "display") {
+                        if (recipients.length == 0) {
+                            return `${i18n.no_recipients}`;
+                        } else {
+                            return NtopUtils.arrayToListString(recipients.map(recipient => {
 
-                            const destPage = NtopUtils.buildURL('/lua/admin/recipients_list.lua', {
-                                recipient_id: recipient.recipient_id,
-                            });
+                                const destPage = NtopUtils.buildURL('/lua/admin/recipients_list.lua', {
+                                    recipient_id: recipient.recipient_id,
+                                });
 
-                            return `<a href='${destPage}'>${recipient.recipient_name}</a>`
-                        }), MAX_ENDPOINTS_COUNT);
+                                return `<a href='${destPage}'>${recipient.recipient_name}</a>`
+                            }), MAX_ENDPOINTS_COUNT);
+                        }
+                    }
                     return recipients;
                 }
             },
