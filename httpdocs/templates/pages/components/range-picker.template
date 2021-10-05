@@ -117,7 +117,7 @@
                     <span class="input-group-text" title="Alert Min. Score">
                         <i class="fas fa-exclamation-triangle"></i>
                     </span>
-                    <input type="text" id="input-score-value" class="form-control" style="max-width: 7rem;" placeholder="Score Filter">
+                    <input type="text" id="input-score-value" class="form-control" value="{{ score }}" name="test" style="max-width: 7rem;" placeholder="Score Filter">
                 </div>
             </label>
             <button id="btn-apply" class="btn btn-sm btn-primary m-auto ms-1">{{ i18n("apply") }}</button>

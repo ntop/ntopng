@@ -22,6 +22,8 @@ local alert_store = require "alert_store"
 
 local ifid = interface.getId()
 
+local alert_score_cached = "ntopng.alert.score.ifid_" .. ifid .. ""
+
 local CHART_NAME = "alert-timeseries"
 
 -- select the default page
@@ -66,7 +68,7 @@ local time_range_query = "epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
 
 local alert_id = _GET["alert_id"]
 local severity = _GET["severity"]
-local score = _GET["score"]
+local score = _GET["score"] or ntop.getCache(alert_score_cached)
 local ip_version = _GET["ip_version"]
 local host_ip = _GET["ip"]
 local cli_ip = _GET["cli_ip"]
@@ -80,6 +82,10 @@ local role_cli_srv = _GET["role_cli_srv"]
 local subtype = _GET["subtype"]
 
 --------------------------------------------------------------
+
+if isEmptyString(score) then
+    score = nil
+end
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -477,6 +483,7 @@ local context = {
     isPro = ntop.isPro(),
     range_picker = {
         default = status ~= "engaged" and "30min" or "1week",
+        score = score,
         tags = {
 	    enabled = (page ~= 'all'),
             tag_operators = tag_utils.tag_operators,

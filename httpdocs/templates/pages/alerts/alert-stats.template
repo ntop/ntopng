@@ -1176,14 +1176,17 @@
 
     var inputValue = document.getElementById("input-score-value");
     let currPageUrl = window.location.href;
-    let currScore = "";
-
+    
     const maxValue = 250;
-
-    inputValue.value = currScore;
 
     if(inputValue.value != "" && inputValue.style["max-width"] == "7rem"){
         inputValue.style["max-width"] = "3.3rem"
+    }
+
+    if(inputValue.value){
+        const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte" };
+
+        addFilterTag(tag);
     }
 
     inputValue.oninput = function(){
@@ -1205,6 +1208,12 @@
             if(score_tag)
                 tagify.removeTags(score_tag);
         }
+        
+        $.post('{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua', { 
+            ifid: {{ ifid }},
+            score: inputValue.value,
+            csrf: PAGE_CSRF,
+        });
     }
     });
 
