@@ -10,7 +10,6 @@ local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 local alert_entities = require "alert_entities"
 local checks = require "checks"
-local alert_severities = require "alert_severities"
 
 local endpoints = require("endpoints")
 
