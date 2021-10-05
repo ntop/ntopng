@@ -618,6 +618,7 @@ end
 -- ##############################################
 
 function getProbesName(flowdevs)
+   local snmp_cached_dev = require "snmp_cached_dev"
    local devips = {}
 
    for dip, _ in pairsByValues(flowdevs, asc) do
