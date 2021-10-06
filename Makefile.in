@@ -28,8 +28,8 @@ MONGOOSE_HOME=${PWD}/third-party/mongoose
 MONGOOSE_INC=-I$(MONGOOSE_HOME)
 ######
 
-LUA_PLATFORM=generi
-LUA_HOME=${PWD}/third-party/lua-5.3.5
+LUA_PLATFORM=generic
+LUA_HOME=${PWD}/third-party/lua-5.4.3
 LUA_INC=-I$(LUA_HOME)/src
 LUA_LIB=$(LUA_HOME)/src/liblua.a
 
