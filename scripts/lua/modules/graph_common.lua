@@ -140,13 +140,13 @@ function graph_common.graphMenuGetActive(schema, params)
       local extra_params = entry.extra_params or {}
 
       if entry.schema == schema and entry.params then
-	 for k, v in pairs(params) do
-	    if (match_tags[k] or extra_params[k]) and tostring(entry.params[k]) ~= tostring(v) then
-	       goto continue
-	    end
-	 end
+      	for k, v in pairs(params) do
+      	   if (match_tags[k] or extra_params[k]) and (entry.params[k]) and (tostring(entry.params[k]) ~= tostring(v)) then
+      	      goto continue
+      	   end
+      	end
 
-	 return entry
+	      return entry
       end
 
       ::continue::
