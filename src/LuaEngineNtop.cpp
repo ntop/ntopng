@@ -733,6 +733,31 @@ static int ntop_get_flow_alert_score(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_risk_list(lua_State* vm) {
+  lua_newtable(vm);
+
+  for(int i = 0; i < NDPI_MAX_RISK; i++) {
+    lua_pushstring(vm, ntop->getRiskStr((ndpi_risk_enum)i));
+    lua_rawseti(vm, -2, i+1);   
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_risk_str(lua_State* vm) {
+  ndpi_risk_enum risk_id;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  risk_id = (ndpi_risk_enum)lua_tonumber(vm, 1);
+
+  lua_pushstring(vm, ntop->getRiskStr(risk_id));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_flow_alert_risk(lua_State* vm) {
   FlowAlertTypeEnum alert_id;
 
@@ -6468,9 +6493,11 @@ static luaL_Reg _ntop_reg[] = {
   { "getHostCheckInfo",      ntop_get_host_check_info     },
   { "shouldResolveHost",     ntop_should_resolve_host     },
   { "setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids },
-  { "getLocalNetworkAlias",  ntop_check_local_network_alias },
-  { "getLocalNetworkID",     ntop_get_local_network_id },
-
+  { "getLocalNetworkAlias",  ntop_check_local_network_alias    },
+  { "getLocalNetworkID",     ntop_get_local_network_id    },
+  { "getRiskStr",            ntop_get_risk_str            },
+  { "getRiskList",           ntop_get_risk_list           },
+  
   /* ASN */
   { "getASName",            ntop_get_asn_name },
 
