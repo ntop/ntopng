@@ -63,6 +63,7 @@ local prefs = ntop.getPrefs()
 local ifstats = interface.getStats()
 
 local duration_or_last_seen = prefs.flow_table_time
+local begin_epoch_set = (ntop.getPref("ntopng.prefs.first_seen_set") == "1")
 
 local flows_filter = getFlowsFilter()
 
@@ -305,7 +306,22 @@ print[[
             whiteSpace: 'nowrap'
          }
 
-      }, ]]
+      },
+]]
+
+if begin_epoch_set == true then
+   print[[
+      {
+         title: "]] print(i18n("first_seen")) print[[",
+         field: "column_first_seen",
+         sortable: true,
+         css: {
+            whiteSpace: 'nowrap',
+            textAlign: 'center',
+         }
+      },
+   ]]
+end
 
 if duration_or_last_seen == false then 
    print[[
@@ -314,6 +330,7 @@ if duration_or_last_seen == false then
          field: "column_duration",
          sortable: true,
          css: {
+            whiteSpace: 'nowrap',
             textAlign: 'center',
          }
       },
@@ -325,6 +342,7 @@ else
          field: "column_last_seen",
          sortable: true,
          css: {
+            whiteSpace: 'nowrap',
             textAlign: 'center'
          }
       },

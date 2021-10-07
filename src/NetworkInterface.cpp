@@ -4424,8 +4424,11 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes();
 	break;
       case column_last_seen:
-	retriever->elems[retriever->actNumEntries++].numericValue = f->get_last_seen();
-	break;
+  retriever->elems[retriever->actNumEntries++].numericValue = f->get_last_seen();
+  break;
+      case column_first_seen:
+  retriever->elems[retriever->actNumEntries++].numericValue = f->get_first_seen();
+  break;
       case column_client_rtt:
 	if((tcp_info = f->getClientTcpInfo()))
 	  retriever->elems[retriever->actNumEntries++].numericValue = (u_int64_t)(tcp_info->rtt * 1000);
@@ -4953,6 +4956,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_score_as_server")) retriever->sorter = column_score_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_last_seen")) retriever->sorter = column_last_seen, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_first_seen")) retriever->sorter = column_first_seen, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_client_rtt")) retriever->sorter = column_client_rtt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_server_rtt")) retriever->sorter = column_server_rtt, sorter = numericSorter;
   else if((!strcmp(sortColumn, "column_bytes")) || (!strcmp(sortColumn, "column_") /* default */)) retriever->sorter = column_bytes, sorter = numericSorter;

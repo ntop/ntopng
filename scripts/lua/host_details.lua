@@ -1756,6 +1756,9 @@ elseif interface.isPcapDumpInterface() then
    active_flows_msg = i18n("flows")
 end
 
+local duration_or_last_seen = prefs.flow_table_time
+local begin_epoch_set = (ntop.getPref("ntopng.prefs.first_seen_set") == "1")
+
 local active_flows_msg = getFlowsTableTitle()
 
 print [[
@@ -1808,11 +1811,11 @@ print[[
             textAlign: 'center'
          }
       },
-]]
+	]]
 
-if(show_vlan) then
-   print('{ title: "'..i18n("vlan")..'",\n')
-   print [[
+	if(show_vlan) then
+	   print('{ title: "'..i18n("vlan")..'",\n')
+	   print [[
          field: "column_vlan",
          sortable: true,
                  css: {
@@ -1820,72 +1823,105 @@ if(show_vlan) then
            }
 
          },
-]]
-end
-print [[
-                             {
-                             title: "]] print(i18n("client")) print[[",
-                                 field: "column_client",
-                                 sortable: true,
-                                 },
-                             {
-                             title: "]] print(i18n("server")) print[[",
-                                 field: "column_server",
-                                 sortable: true,
-                                 },
-                             {
-                             title: "]] print(i18n("duration")) print[[",
-                                 field: "column_duration",
-                                 sortable: true,
-                             css: {
-                                textAlign: 'center'
-                               }
-                               },
-                             {
-                             title: "]] print(i18n("score")) print[[",
-                                 field: "column_score",
-                                 hidden: ]] print(ternary(isScoreEnabled(), "false", "true")) print[[,
-                                 sortable: true,
-                             css: {
-                                textAlign: 'center'
-                               }
-                               },
-                             {
-                             title: "]] print(i18n("breakdown")) print[[",
-                                 field: "column_breakdown",
-                                 sortable: false,
-                             css: {
-                                textAlign: 'center'
-                               }
-                               },
-                             {
-                             title: "]] print(i18n("flows_page.actual_throughput")) print[[",
-                                 field: "column_thpt",
-                                 sortable: true,
-                             css: {
-                                textAlign: 'right'
-                             }
-                                 },
-                             {
-                             title: "]] print(i18n("flows_page.total_bytes")) print[[",
-                                 field: "column_bytes",
-                                 sortable: true,
-                             css: {
-                                textAlign: 'right'
-                             }
+		]]
+	end
+	print [[
+      {
+         title: "]] print(i18n("client")) print[[",
+         field: "column_client",
+         sortable: true,
+      }, {
+	      title: "]] print(i18n("server")) print[[",
+         field: "column_server",
+         sortable: true,
+      },
+	]]
+	if begin_epoch_set == true then
+   	print[[
+	      {
+	         title: "]] print(i18n("first_seen")) print[[",
+	         field: "column_first_seen",
+	         sortable: true,
+	         css: {
+	         	whiteSpace: 'nowrap',
+	            textAlign: 'center',
+	         }
+	      },
+   	]]
+	end
 
-                                 }
-                             ,{
-                             title: "]] print(i18n("info")) print[[",
-                                 field: "column_info",
-                                 sortable: true,
-                             css: {
-                                textAlign: 'left'
-                             }
-                                 }
-                             ]
-               });
-]]
+	if duration_or_last_seen == false then 
+	   print[[
+	      {
+	         title: "]] print(i18n("duration")) print[[",
+	         field: "column_duration",
+	         sortable: true,
+	         css: {
+	         	whiteSpace: 'nowrap',
+	            textAlign: 'center',
+	         }
+	      },
+	   ]]
+	else
+	   print[[
+	      {
+	         title: "]] print(i18n("last_seen")) print[[",
+	         field: "column_last_seen",
+	         sortable: true,
+	         css: {
+	         	whiteSpace: 'nowrap',
+	            textAlign: 'center',
+	         }
+	      },
+	   ]]
+	end   
+   
+   print[[{
+     title: "]] print(i18n("score")) print[[",
+         field: "column_score",
+         hidden: ]] print(ternary(isScoreEnabled(), "false", "true")) print[[,
+         sortable: true,
+     css: {
+        textAlign: 'center'
+       }
+       },
+     {
+     title: "]] print(i18n("breakdown")) print[[",
+         field: "column_breakdown",
+         sortable: false,
+     css: {
+        textAlign: 'center'
+       }
+       },
+     {
+     title: "]] print(i18n("flows_page.actual_throughput")) print[[",
+         field: "column_thpt",
+         sortable: true,
+     css: {
+        textAlign: 'right'
+     }
+         },
+     {
+     title: "]] print(i18n("flows_page.total_bytes")) print[[",
+         field: "column_bytes",
+         sortable: true,
+     css: {
+
+        textAlign: 'right'
+     }
+
+         }
+     ,{
+     title: "]] print(i18n("info")) print[[",
+         field: "column_info",
+         sortable: true,
+     css: {
+        textAlign: 'left'
+     }
+         }
+     ]
+	});
+	]]
 
 if(have_nedge) then
   printBlockFlowJs()

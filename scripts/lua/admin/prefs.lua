@@ -526,6 +526,12 @@ function printMisc()
 
   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.flow_table")..'</th></tr></thead>')
 
+  prefsToggleButton(subpage_active, {
+    field = "toggle_flow_begin",
+    default = "0",
+    pref = "first_seen_set",
+  })
+
   local h_labels = {i18n("prefs.duration"), i18n("prefs.last_seen")}
   local h_values = {"0", "1"}
 

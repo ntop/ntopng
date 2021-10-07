@@ -195,6 +195,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       end
    end
 
+   record["column_first_seen"] = formatEpoch(value["seen.first"])
    record["column_last_seen"] = formatEpoch(value["seen.last"])
 
    if(value["client_tcp_info"] ~= nil) then

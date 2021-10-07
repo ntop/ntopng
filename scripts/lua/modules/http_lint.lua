@@ -1637,6 +1637,7 @@ local known_parameters = {
 
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons
+   ["toggle_flow_begin"]                           = validateBool,
    ["flow_table_time"]                             = validateBool,
    ["flow_table_probe_order"]                      = validateBool,
    ["interface_rrd_creation"]                      = validateBool,
