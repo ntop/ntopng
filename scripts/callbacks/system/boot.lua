@@ -13,6 +13,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+require "lua_trace"
 local prefs_dump_utils = require "prefs_dump_utils"
 
 -- Check connectivity
