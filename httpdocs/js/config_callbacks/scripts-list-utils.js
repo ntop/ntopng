@@ -503,12 +503,13 @@ const ThresholdCross = (gui, hooks, check_subdir, script_key) => {
             $select = $(`<span class='input-group-text'>&${field_operator}</span>`).data('value', field_operator);
          }
 
-         const $field = $(`<div class='input-group template' style='width: 14rem'></div>`);
+         const $field = $(`<div class='input-group template'></div>`);
          $field.append($select);
          $field.append(`<input
                            type='number'
                            class='form-control text-end'
                            required
+                           style='max-width: 7rem;'
                            name='${key}-input'
                            ${hook.enabled ? '' : 'readonly'}
                            value='${hook.script_conf.threshold == undefined ? '' : hook.script_conf.threshold}'
