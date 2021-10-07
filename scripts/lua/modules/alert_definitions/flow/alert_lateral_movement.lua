@@ -49,8 +49,6 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
       vlan_id = alert["vlan_id"]
    }
 
-
-
    if alert.json then
       info = json.decode(alert["json"])
       if not isEmptyString(info["info"]) then

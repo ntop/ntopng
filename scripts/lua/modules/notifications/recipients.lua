@@ -695,12 +695,22 @@ function recipients.dispatch_notification(notification, current_script)
       local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.entity_id, notification.pool_id, notification.severity, notification_category)
 
       if #recipients > 0 then
-	 local json_notification = json.encode(notification)
+	 -- Use pcall to catch possible exceptions, e.g., (string expected, got light userdata)
+	 local status, json_notification = pcall(function() return json.encode(notification) end)
+
+	 -- If an exception occurred, print the notification and exit
+	 if not status then
+	    tprint({notification, json_notification})
+	    return
+	 end
+
 	 local is_high_priority = is_notification_high_priority(notification)
 
 	 for _, recipient_id in pairs(recipients) do
 	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification, notification.score, notification_category)
 	 end
+
+	 ::continue::
       end
    else
       --      traceError(TRACE_ERROR, TRACE_CONSOLE, "Internal error. Empty notification")
