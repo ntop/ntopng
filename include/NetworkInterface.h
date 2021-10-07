@@ -84,6 +84,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int32_t num_host_dropped_alerts, num_flow_dropped_alerts, num_other_dropped_alerts;
   u_int64_t num_written_alerts, num_alerts_queries, score_as_cli, score_as_srv;
   u_int64_t num_new_flows;
+  time_t last_ndpi_reload;
+  bool ndpi_cleanup_needed;
   struct {
     u_int32_t local_hosts, remote_hosts;
   } tot_num_anomalies;
@@ -92,7 +94,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   PeriodicityMap *pMap;
   ServiceMap *sMap;
 #endif
-
+  
+  struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
+  bool ndpiReloadInProgress;
+  
   /* The executor is per-interfaces, and uses the loader to configure itself and execute flow checks */
   FlowChecksExecutor *flow_checks_executor, *prev_flow_checks_executor;
   HostChecksExecutor *host_checks_executor, *prev_host_checks_executor;
@@ -363,7 +368,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   u_int64_t dequeueHostAlerts(u_int budget); /* Same as above but for hosts */
   u_int16_t guessEthType(const u_char *p, u_int len, u_int8_t *is_ethernet);
-    
+  void loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str);
+  
  public:
   /**
   * @brief A Constructor
@@ -473,7 +479,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void setSeenContainers()              { has_seen_containers = true; }
   inline bool hasSeenExternalAlerts() const    { return(has_external_alerts);  }
   inline void setSeenExternalAlerts()          { has_external_alerts = true;   }
-  struct ndpi_detection_module_struct* get_ndpi_struct() const;
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
   bool getHostMinInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id, bool only_ndpi_stats);
@@ -948,7 +953,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   
   inline bool hasConfiguredDhcpRanges()      { return(dhcp_ranges && !dhcp_ranges->last_ip.isEmpty()); };
   inline bool isFlowDumpDisabled()           { return(flow_dump_disabled); }
-  inline struct ndpi_detection_module_struct* initnDPIStruct();
   bool isInDhcpRange(IpAddress *ip);
   void getPodsStats(lua_State* vm);
   void getContainersStats(lua_State* vm, const char *pod_filter);
@@ -1028,6 +1032,24 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void getObservationPoints(lua_State* vm);
   inline bool haveObservationPointsDefined()    { return(observationPoints.size() == 0 ? false : true); }
   inline u_int16_t getFirstObservationPointId() { return(observationPoints.size() == 0 ? 0 : observationPoints.begin()->first); }
+
+  struct ndpi_detection_module_struct* initnDPIStruct();    
+  bool initnDPIReload();
+  void finalizenDPIReload();
+  void cleanShadownDPI();
+  inline bool isnDPIReloadInProgress() { return(ndpiReloadInProgress); }
+  inline struct ndpi_detection_module_struct* get_ndpi_struct() const { return(ndpi_struct); };
+  inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(get_ndpi_struct(), proto)); };
+  ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
+  void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);  
+  void nDPILoadIPCategory(char *what, ndpi_protocol_category_t id);
+  void nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id);
+  int nDPILoadMaliciousJA3Signatures(const char *file_path);
+
+  inline void setLastInterfacenDPIReload(time_t now)      { last_ndpi_reload = now;   }
+  inline bool needsnDPICleanup()                          { return(ndpi_cleanup_needed); }
+  inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }  
+  u_int16_t getnDPIProtoByName(const char *name);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
