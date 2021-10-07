@@ -507,7 +507,7 @@ typedef enum {
   host_alert_icmp_flood                  = 18,
 
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */ 
-  MAX_HOST_ALERT_TYPE = 16 /* Constrained by Bitmap16 engaged_alerts_map inside HostAlertableEntity */
+  MAX_HOST_ALERT_TYPE = 32 /* Constrained by HostAlertBitmap */
 } HostAlertTypeEnum;
 
 typedef struct {
@@ -517,6 +517,7 @@ typedef struct {
 
 class HostAlert;
 typedef std::pair<HostAlert *, bool> HostAlertReleasedPair;
+typedef Bitmap<u_int32_t> HostAlertBitmap;
 
 typedef enum {
   host_check_http_replies_requests_ratio = 0,

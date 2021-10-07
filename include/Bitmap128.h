@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _BITMAP_H_
-#define _BITMAP_H_
+#ifndef _BITMAP128_H_
+#define _BITMAP128_H_
 
 #include "ntop_includes.h"
 
@@ -44,4 +44,4 @@ public:
   const char * const toHexString(char *buf, ssize_t buf_len) const;
 };
 
-#endif /* _BITMAP_H_ */
+#endif /* _BITMAP128_H_ */
