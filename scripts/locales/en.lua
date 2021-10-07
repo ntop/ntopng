@@ -1654,6 +1654,7 @@ local lang = {
     ["flow_sec"] = "Flows/sec",
     ["flows"] = "Flows",
     ["hosts"] = "Hosts",
+    ["icmp_flow_sec"] = "ICMP Flows/sec",
     ["mbits"] = "Mbps",
     ["packets"] = "Packets",
     ["percentage"] = "%%",
