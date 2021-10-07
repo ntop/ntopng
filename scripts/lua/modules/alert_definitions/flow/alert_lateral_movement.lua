@@ -4,7 +4,6 @@
 
 -- ##############################################
 
-
 local flow_alert_keys = require "flow_alert_keys"
 -- Import the classes library.
 local classes = require "classes"
@@ -49,7 +48,7 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
       l7proto = ternary(tonumber(alert["l7_proto"]) ~= 0, alert["l7_proto"], alert["l7_master_proto"]),
       vlan_id = alert["vlan_id"]
    }
-   local graph_map_utils = require("graph_map_utils")
+
 
 
    if alert.json then
@@ -61,7 +60,11 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
       end
    end
 
-   if ntop.isAdministrator() then
+   if ntop.isEnterprise() and ntop.isAdministrator() then
+      local dirs = ntop.getDirs()
+      package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
+      local graph_map_utils = require("graph_map_utils")
+
       href = '<a href="' .. graph_map_utils.getMapUrl(flow_infos, interface.getId(), 'service_map', 'graph') .. '"><i class="fas fa-lg fa-concierge-bell"></i></a>'
    end
 
