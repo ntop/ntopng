@@ -444,17 +444,26 @@
                 await onRangePickerChange();
             }
         });
+        
+        const columns = loadColumns();
+        const column_order_name = "{{ datatable.cached_column }}";
+        let column_order_id = 0;
+        columns.forEach((element, index) => {
+            if(element.data && element.data == column_order_name) {
+                column_order_id = index;
+            }
+        });
 
         let config = DataTableUtils.getStdDatatableConfig(datatableButton);
         config = DataTableUtils.extendConfig(config, {
             serverSide: true,
             searching: false,
+            order: [[ column_order_id, "{* datatable.cached_sorting *}" ]],
             ajax: {
                 method: 'get',
                 url: '{* datatable.datasource.endpoint *}',
                 dataSrc: 'rsp.records',
                 data: (data, settings) => {
-
                     const tableApi = settings.oInstance.api();
                     const orderColumnIndex = data.order[0].column;
                     const orderColumnName = tableApi.column(orderColumnIndex).name() || undefined;
@@ -484,7 +493,7 @@
             },
             lengthMenu: [10, 20, 50, 100, 200],
             pageLength: INITIAL_ROWS_LENGTH,
-            columns: loadColumns()
+            columns: loadColumns(),
         });
 
         const $table = $(`#{{ datatable.name }}`).DataTable(config);

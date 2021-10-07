@@ -24,6 +24,15 @@ local ifid = interface.getId()
 
 local alert_score_cached = "ntopng.alert.score.ifid_" .. ifid .. ""
 
+local user = "no_user"
+
+if (_SESSION) and (_SESSION["user"]) then
+    user = _SESSION["user"]
+end
+
+local ALERT_SORTING_ORDER = "ntopng.cached.alert." .. ifid .. "." .. user .. ".sort_order."
+local ALERT_SORTING_COLUMN = "ntopng.cached.alert." .. ifid .. "." .. user .. ".sort_column."
+
 local CHART_NAME = "alert-timeseries"
 
 -- select the default page
@@ -473,6 +482,20 @@ if page ~= "all" then
    end
 end
 
+ALERT_SORTING_ORDER = ALERT_SORTING_ORDER .. page
+ALERT_SORTING_COLUMN = ALERT_SORTING_COLUMN .. page
+
+local cached_sorting = ntop.getCache(ALERT_SORTING_ORDER)
+local cached_column = ntop.getCache(ALERT_SORTING_COLUMN)
+
+if isEmptyString(cached_sorting) then
+    cached_sorting = "asc"
+end
+
+if isEmptyString(cached_column) then
+    cached_column = "0"
+end
+
 local context = {
     template_utils = template_utils,
     json = json,
@@ -527,6 +550,8 @@ local context = {
 	endpoint_list = endpoint_list,
 	endpoint_delete = endpoint_delete,
 	endpoint_acknowledge = endpoint_acknowledge,
+    cached_column = cached_column,
+    cached_sorting = cached_sorting,
         datasource = Datasource(endpoint_list, {
             ifid = ifid,
             epoch_begin = epoch_begin,
@@ -546,6 +571,7 @@ local context = {
             role = role,
 	    role_cli_srv = role_cli_srv,
 	    subtype = subtype,
+        page = page,
         }),
         actions = {
             disable = (page ~= "host" and page ~= "flow")

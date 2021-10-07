@@ -27,6 +27,15 @@ local alert_store = classes.class()
 local NUM_TIME_SLOTS = 31
 local TOP_LIMIT = 10
 
+local user = "no_user"
+
+if (_SESSION) and (_SESSION["user"]) then
+    user = _SESSION["user"]
+end
+
+local ALERT_SORTING_ORDER = "ntopng.cached.alert.%s.%s.sort_order.%s"
+local ALERT_SORTING_COLUMN = "ntopng.cached.alert.%s.%s.sort_column.%s"
+
 local CSV_SEPARATOR = "|"
 
 -- ##############################################
@@ -550,6 +559,19 @@ end
 --@param sort_order Order, either `asc` or `desc`
 --@return True if set is successful, false otherwise
 function alert_store:add_order_by(sort_column, sort_order)
+   -- Caching the order by depending on the user, the page and the interface id
+   if sort_order and sort_column then
+      local user = "no_user"
+      
+      if (_SESSION) and (_SESSION["user"]) then
+         user = _SESSION["user"]
+      end
+
+      ntop.setCache(string.format(ALERT_SORTING_ORDER, _GET["ifid"] or "0", user, _GET["page"]), sort_order)
+      ntop.setCache(string.format(ALERT_SORTING_COLUMN, _GET["ifid"] or "0", user, _GET["page"]), sort_column)
+   end
+
+   -- Creating the order by if not defined and valid
    if not self._order_by 
       and sort_column and self:_valid_fields(sort_column)
       and (sort_order == "asc" or sort_order == "desc") then
