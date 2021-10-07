@@ -9,7 +9,7 @@ void CountriesContacts::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     HostAlert *alert = engaged_alert;
     u_int8_t contacted_countries = 0;
 
-    if ((contacted_countries = getContactedCountries(h)) >= countries_contacts_threshold) {
+    if ((contacted_countries = getContactedCountries(h)) > countries_contacts_threshold) {
         if (!alert) alert = allocAlert(this, h, CLIENT_FAIR_RISK_PERCENTAGE, contacted_countries, countries_contacts_threshold);
         if (alert) h->triggerAlert(alert);
     }
