@@ -43,7 +43,6 @@ class Ntop {
 #endif
   pthread_t purgeLoop;    /* Loop which iterates on active interfaces to delete idle hash table entries */
   bool purgeLoop_started; /* Flag that indicates whether the purgeLoop has been started */
-  bool ndpiReloadInProgress;
   bool flowChecksReloadInProgress, hostChecksReloadInProgress;
   bool hostPoolsReloadInProgress;
   bool offline;
@@ -65,7 +64,6 @@ class Ntop {
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer to the Redis server. */
   Mutex m, users_m;
-  struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   ZMQPublisher *zmqPublisher;
@@ -83,9 +81,8 @@ class Ntop {
   void *trackers_automa;
   long time_offset;
   time_t start_time; /**< Time when start() was called */
-  time_t last_stats_reset, last_ndpi_reload;
+  time_t last_stats_reset;
   u_int32_t last_modified_static_file_epoch;
-  bool ndpi_cleanup_needed;
   int udp_socket;
   NtopPro *pro;
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
@@ -132,8 +129,6 @@ class Ntop {
 
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
-  void loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str);
-  void cleanShadownDPI();
   void refreshPluginsDir();
 
   bool getUserPasswordHashLocal(const char * const user, char *password_hash) const;
@@ -511,9 +506,6 @@ class Ntop {
   DeviceProtoStatus getDeviceAllowedProtocolStatus(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client);
   void refreshCPULoad();
   bool getCPULoad(float *out);
-  inline void setLastInterfacenDPIReload(time_t now)      { last_ndpi_reload = now;   }
-  inline bool needsnDPICleanup()                          { return(ndpi_cleanup_needed); }
-  inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
   inline FifoSerializerQueue* getInternalAlertsQueue()    { return(internal_alerts_queue);  }
   void lua_alert_queues_stats(lua_State* vm);
   bool   recipients_enqueue(RecipientNotificationPriority prio, AlertFifoItem *notification, AlertEntity alert_entity);
@@ -534,20 +526,8 @@ class Ntop {
   bool isMaliciousJA3Hash(std::string md5_hash);
   struct ndpi_detection_module_struct* initnDPIStruct();    
 
-  inline struct ndpi_detection_module_struct* get_ndpi_struct() const { return(ndpi_struct); };
-  bool initnDPIReload();
-  void finalizenDPIReload();
-  inline bool isnDPIReloadInProgress()  { return(ndpiReloadInProgress);     }
-
   void checkReloadHostsBroadcastDomain();
 
-  void nDPILoadIPCategory(char *what, ndpi_protocol_category_t id);
-  void nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id);
-  int nDPILoadMaliciousJA3Signatures(const char *file_path);
-
-  inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(get_ndpi_struct(), proto)); };
-  ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
-  void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   void reloadPeriodicScripts();
   inline void reloadFlowChecks()   { flowChecksReloadInProgress = true;    };
   inline void reloadHostChecks()   { hostChecksReloadInProgress = true;    };
@@ -600,6 +580,21 @@ class Ntop {
 
   inline bool isOffline() { return offline; }
   inline void toggleOffline(bool off) { offline = off; }
+
+  void cleanShadownDPI();
+  bool initnDPIReload();
+  void finalizenDPIReload();
+  bool isnDPIReloadInProgress();
+  ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto);
+  ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
+  void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);  
+  void nDPILoadIPCategory(char *what, ndpi_protocol_category_t id);
+  void nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id);
+  int nDPILoadMaliciousJA3Signatures(const char *file_path);
+  void setLastInterfacenDPIReload(time_t now);
+  bool needsnDPICleanup();
+  void setnDPICleanupNeeded(bool needed);
+  u_int16_t getnDPIProtoByName(const char *name);
 };
 
 extern Ntop *ntop;

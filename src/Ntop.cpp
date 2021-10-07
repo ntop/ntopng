@@ -71,7 +71,6 @@ Ntop::Ntop(char *appName) {
   iface = NULL;
   start_time = last_modified_static_file_epoch = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
-  ndpiReloadInProgress = false;
   
   /* Checks loader */
   flowChecksReloadInProgress = true; /* Lazy, will be reloaded the first time this condition is evaluated */
@@ -112,11 +111,6 @@ Ntop::Ntop(char *appName) {
   }
 #endif
 
-  /* nDPI handling */
-  last_ndpi_reload = 0;
-  ndpi_struct_shadow = NULL;
-  ndpi_struct = initnDPIStruct();
-  ndpi_finalize_initialization(ndpi_struct);
 
   internal_alerts_queue = new (std::nothrow) FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
 
@@ -321,13 +315,6 @@ Ntop::~Ntop() {
 
   if(resolvedHostsBloom) delete resolvedHostsBloom;
   delete internal_alerts_queue;
-
-  if(ndpi_struct) {
-    ndpi_exit_detection_module(ndpi_struct);
-    ndpi_struct = NULL;
-  }
-
-  cleanShadownDPI();
 
   if(redis)   { delete redis; redis = NULL;     }
   if(prefs)   { delete prefs; prefs = NULL;     }
@@ -3040,7 +3027,9 @@ bool Ntop::addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) {
 
 /* ******************************************* */
 
-DeviceProtoStatus Ntop::getDeviceAllowedProtocolStatus(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client) {
+DeviceProtoStatus Ntop::getDeviceAllowedProtocolStatus(DeviceType dev_type,
+						       ndpi_protocol proto, u_int16_t pool_id,
+						       bool as_client) {
   /* Check if this application protocol is allowd for the specified device type */
   DeviceProtocolBitmask *bitmask = getDeviceAllowedProtocols(dev_type);
   NDPI_PROTOCOL_BITMASK *direction_bitmask = as_client ? (&bitmask->clientAllowed) : (&bitmask->serverAllowed);
@@ -3104,185 +3093,106 @@ bool Ntop::getCPULoad(float *out) {
 
 /* ******************************************* */
 
-void Ntop::loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str) {
-  char **keys, **values;
-  Redis *redis = getRedis();
-  int rc;
+bool Ntop::initnDPIReload() {
+  bool rc = false;
+  
+  for(u_int i = 0; i<get_num_interfaces(); i++)
+    if(getInterface(i)) rc |= getInterface(i)->initnDPIReload();
 
-  if(!redis)
-    return;
-
-  rc = redis->hashGetAll(CUSTOM_NDPI_PROTOCOLS_ASSOCIATIONS_HASH, &keys, &values);
-
-  if(rc > 0) {
-    for(int i = 0; i < rc; i++) {
-      u_int16_t protoId;
-      ndpi_protocol_category_t protoCategory;
-
-      if(keys[i] && values[i]) {
-        protoId = atoi(keys[i]);
-        protoCategory = (ndpi_protocol_category_t) atoi(values[i]);
-
-        ntop->getTrace()->traceEvent(TRACE_INFO, "Loading protocol association: ID %d -> category %d", protoId, protoCategory);
-        ndpi_set_proto_category(ndpi_str, protoId, protoCategory);
-      }
-
-      if(values[i]) free(values[i]);
-      if(keys[i]) free(keys[i]);
-    }
-
-    free(keys);
-    free(values);
-  }
+  return(rc);
 }
 
 /* ******************************************* */
 
-struct ndpi_detection_module_struct* Ntop::initnDPIStruct() {
-  struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module(ndpi_no_prefs);
-  ndpi_port_range d_port[MAX_DEFAULT_PORTS];
-  NDPI_PROTOCOL_BITMASK all;
-
-  if(ndpi_s == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
-    exit(-1);
-  }
-
-  if(getCustomnDPIProtos() != NULL)
-    ndpi_load_protocols_file(ndpi_s, getCustomnDPIProtos());
-
-  memset(d_port, 0, sizeof(d_port));
-  ndpi_set_proto_defaults(ndpi_s, 0, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
-			  (char*)"Operating System",
-			  NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
-
-  // enable all protocols
-  NDPI_BITMASK_SET_ALL(all);
-  ndpi_set_protocol_detection_bitmask2(ndpi_s, &all);
-
-  // load custom protocols
-  loadProtocolsAssociations(ndpi_s);
-
-  return(ndpi_s);
+bool Ntop::isnDPIReloadInProgress()  {
+  bool rc = false;
+  
+  for(u_int i = 0; i<get_num_interfaces(); i++)
+    if(getInterface(i))  rc |= getInterface(i)->isnDPIReloadInProgress();
+  
+  return(rc);
 }
 
-/* **************************************************** */
-
-void Ntop::cleanShadownDPI() {
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
-
-  ndpi_exit_detection_module(ndpi_struct_shadow);
-  ndpi_struct_shadow = NULL;
-}
-
-/* **************************************************** */
-
-/* Operations are performed in the followin order:
- *
- * 1. initnDPIReload()
- * 2. ... nDPILoadIPCategory/nDPILoadHostnameCategory() ...
- * 3. finalizenDPIReload()
- * 4. cleanShadownDPI()
- */
-bool Ntop::initnDPIReload() {
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Started nDPI reload %s",
-			       ndpiReloadInProgress ? "[IN PROGRESS]" : "");
-
-  if(ndpiReloadInProgress) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
-    return(false);
-  }
-
-  ndpiReloadInProgress = true;
-  cleanShadownDPI();
-
-  /* No need to dedicate another variable for the reload, we can use the shadow itself */
-  ndpi_struct_shadow = initnDPIStruct();
-  return(true);
-}
-
-/* **************************************************** */
+/* ******************************************* */
 
 void Ntop::finalizenDPIReload() {
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
-
-  if(!ndpiReloadInProgress) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
-    return;
-  }
-
-  if(ndpi_struct_shadow) {
-    struct ndpi_detection_module_struct *old_struct;
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Going to reload custom categories");
-
-    /* The new categories were loaded on the current ndpi_struct_shadow */
-    ndpi_enable_loaded_categories(ndpi_struct_shadow);
-    ndpi_finalize_initialization(ndpi_struct_shadow);
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI finalizing reload...");
-
-    old_struct = ndpi_struct;
-    ndpi_struct = ndpi_struct_shadow;
-    ndpi_struct_shadow = old_struct;
-
-    /* Need to update the existing hosts */
-    for(u_int i = 0; i<get_num_interfaces(); i++) {
-      if(getInterface(i))
-	getInterface(i)->reloadHostsBlacklist();
-    }
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI reload completed");
-    ndpiReloadInProgress = false;
-  }
+  for(u_int i = 0; i<get_num_interfaces(); i++)
+    if(getInterface(i))  getInterface(i)->finalizenDPIReload();
 }
 
-/* *************************************** */
+/* ******************************************* */
 
 void Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
-
-  if(what && ndpi_struct_shadow)
-    ndpi_load_ip_category(ndpi_struct_shadow, what, id);
+  for(u_int i = 0; i<get_num_interfaces(); i++)
+    if(getInterface(i))  getInterface(i)->nDPILoadIPCategory(what, id);
 }
 
-/* *************************************** */
+/* ******************************************* */
 
 void Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
-
-  if(what && ndpi_struct_shadow)
-    ndpi_load_hostname_category(ndpi_struct_shadow, what, id);
+  for(u_int i = 0; i<get_num_interfaces(); i++)
+    if(getInterface(i))  getInterface(i)->nDPILoadHostnameCategory(what, id);
 }
 
-/* *************************************** */
+/* ******************************************* */
 
 int Ntop::nDPILoadMaliciousJA3Signatures(const char *file_path) {
-  int n = 0;
+  int rc = 0;
+  
+  for(u_int i = 0; i<get_num_interfaces(); i++)
+    if(getInterface(i))  rc = getInterface(i)->nDPILoadMaliciousJA3Signatures(file_path);
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
-
-  if(file_path && ndpi_struct_shadow)
-    n = ndpi_load_malicious_ja3_file(ndpi_struct_shadow, file_path);
-
-  return n;
+  return(rc /* last one returned */);
 }
 
-/* *************************************** */
+/* ******************************************* */
 
 ndpi_protocol_category_t Ntop::get_ndpi_proto_category(u_int protoid) {
-  ndpi_protocol proto;
+  for(u_int i = 0; i<get_num_interfaces(); i++)
+    if(getInterface(i))  return(getInterface(i)->get_ndpi_proto_category(protoid));
 
-  proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
-  proto.master_protocol = protoid;
-  proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
-  return get_ndpi_proto_category(proto);
+  return(NDPI_PROTOCOL_CATEGORY_UNSPECIFIED);
+}
+
+/* ******************************************* */
+  
+void Ntop::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
+  for(u_int i = 0; i<get_num_interfaces(); i++)
+    if(getInterface(i))  getInterface(i)->setnDPIProtocolCategory(protoId, protoCategory);
 }
 
 /* *************************************** */
 
-void Ntop::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
-  ndpi_set_proto_category(get_ndpi_struct(), protoId, protoCategory);
+void Ntop::setLastInterfacenDPIReload(time_t now) {
+  for(u_int i = 0; i<get_num_interfaces(); i++)
+    if(getInterface(i))  getInterface(i)->setLastInterfacenDPIReload(now);
+}
+
+/* *************************************** */
+
+bool Ntop::needsnDPICleanup() {
+  bool rc = false;
+  
+  for(u_int i = 0; i<get_num_interfaces(); i++)
+    if(getInterface(i))  rc |= getInterface(i)->needsnDPICleanup();
+
+  return(rc);
+}
+
+/* *************************************** */
+
+u_int16_t Ntop::getnDPIProtoByName(const char *name) {
+  for(u_int i = 0; i<get_num_interfaces(); i++)
+    if(getInterface(i)) return(getnDPIProtoByName(name));
+
+  return(NDPI_PROTOCOL_UNKNOWN);
+}
+
+/* *************************************** */
+
+void Ntop::setnDPICleanupNeeded(bool needed) {
+  for(u_int i = 0; i<get_num_interfaces(); i++)
+    if(getInterface(i))  getInterface(i)->setnDPICleanupNeeded(needed);
 }
 
 /* *************************************** */
