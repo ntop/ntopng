@@ -416,6 +416,7 @@ class Flow : public GenericHashEntry {
   inline char* getBitTorrentHash() { return(bt_hash);          };
   inline void  setBTHash(char *h)  { if(!h) return; if(bt_hash) free(bt_hash); bt_hash = h; }
   inline void  setServerName(char *v)  { if(host_server_name) free(host_server_name);  host_server_name = v; }
+  void updateICMPFlood(const struct bpf_timeval *when, bool src2dst_direction);
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
   void updateTcpWindow(u_int16_t window, bool src2dst_direction);

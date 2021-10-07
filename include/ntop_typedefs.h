@@ -504,7 +504,8 @@ typedef enum {
   host_alert_ntp_traffic                 = 15,
   host_alert_countries_contacts          = 16,
   host_alert_score_threshold             = 17,
-  
+  host_alert_icmp_flood                  = 18,
+
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */ 
   MAX_HOST_ALERT_TYPE = 16 /* Constrained by Bitmap16 engaged_alerts_map inside HostAlertableEntity */
 } HostAlertTypeEnum;
@@ -537,7 +538,8 @@ typedef enum {
   host_check_ntp_traffic,
   host_check_domain_names_contacts,
   host_check_score_threshold,
-  
+  host_check_icmp_flood,
+
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */ 
 } HostCheckID;
 

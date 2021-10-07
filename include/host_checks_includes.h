@@ -31,6 +31,7 @@
 #include "host_checks/FlowFlood.h"
 #include "host_checks/SYNScan.h"
 #include "host_checks/SYNFlood.h"
+#include "host_checks/ICMPFlood.h"
 
 #include "host_checks/ServerContacts.h"
 #include "host_checks/DNSServerContacts.h"

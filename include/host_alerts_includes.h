@@ -36,6 +36,7 @@
 #include "host_alerts/P2PTrafficAlert.h"
 #include "host_alerts/DNSTrafficAlert.h"
 #include "host_alerts/ScoreThresholdAlert.h"
+#include "host_alerts/ICMPFloodAlert.h"
 
 #include "host_alerts/FlowAnomalyAlert.h"
 #include "host_alerts/DangerousHostAlert.h"

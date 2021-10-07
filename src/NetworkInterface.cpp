@@ -1729,8 +1729,9 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	u_int8_t icmp_code = l4[1];
 
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
-	flow->setICMPPayloadSize(trusted_l4_packet_len);
-	trusted_payload_len = trusted_l4_packet_len, payload = l4;
+        flow->updateICMPFlood(when, src2dst_direction);
+        flow->setICMPPayloadSize(trusted_l4_packet_len);
+	      trusted_payload_len = trusted_l4_packet_len, payload = l4;
       }
       break;
     default:

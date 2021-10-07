@@ -80,6 +80,8 @@ Host::~Host() {
   if(syn_flood.victim_counter)    delete syn_flood.victim_counter;
   if(flow_flood.attacker_counter) delete flow_flood.attacker_counter;
   if(flow_flood.victim_counter)   delete flow_flood.victim_counter;
+  if(icmp_flood.attacker_counter) delete icmp_flood.attacker_counter;
+  if(icmp_flood.victim_counter)   delete icmp_flood.victim_counter;
 
   if(stats)                     delete stats;
   if(stats_shadow)              delete stats_shadow;
@@ -138,6 +140,14 @@ void Host::updateSynAlertsCounter(time_t when, bool syn_sent) {
     syn_scan.syn_sent_last_min++;
   else
     syn_scan.syn_recvd_last_min++;
+}
+
+/* *************************************** */
+
+void Host::updateICMPAlertsCounter(time_t when, bool icmp_sent) {
+  AlertCounter *counter = icmp_sent ? icmp_flood.attacker_counter : icmp_flood.victim_counter;
+
+  counter->inc(when, this);
 }
 
 /* *************************************** */
@@ -221,8 +231,10 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   syn_flood.victim_counter    = new (std::nothrow) AlertCounter();
   flow_flood.attacker_counter = new (std::nothrow) AlertCounter();
   flow_flood.victim_counter   = new (std::nothrow) AlertCounter();
-  syn_scan.syn_sent_last_min = syn_scan.synack_recvd_last_min = 0;
-  syn_scan.syn_recvd_last_min = syn_scan.synack_sent_last_min = 0;
+  icmp_flood.attacker_counter = new (std::nothrow) AlertCounter();
+  icmp_flood.victim_counter   = new (std::nothrow) AlertCounter();
+  syn_scan.syn_sent_last_min  = syn_scan.synack_recvd_last_min = 0;
+  syn_scan.syn_recvd_last_min = syn_scan.synack_sent_last_min  = 0;
   PROFILING_SUB_SECTION_EXIT(iface, 17);
 
   if(ip.getVersion() /* IP is set */) {
