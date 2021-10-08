@@ -253,21 +253,28 @@ static int do_latency(char *p_url)
   CURL *curl;
   CURLcode res;
   long response_code;
+  double v = (double) (rand() % 1000) / 100;
+  char useragent[16];
 
   curl = curl_easy_init();
 
   sprintf(latency_url, "%s%s", p_url, LATENCY_TXT_URL);
+  sprintf(useragent, "curl/%.02f.0", v);
+
   curl_easy_setopt(curl, CURLOPT_URL, latency_url);
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
   curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L);
+
   res = curl_easy_perform(curl);
+
   curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
   curl_easy_cleanup(curl);
 
   if (res != CURLE_OK || response_code != 200) {
 #ifdef DEBUG_SPEEDTEST
-    printf("curl_easy_perform() failed for %s: %s %ld\n", p_url, curl_easy_strerror(res), response_code);
+    printf("curl_easy_perform() failed for %s: '%s' (%ld)\n", p_url, curl_easy_strerror(res), response_code);
 #endif
     return NOK;
   }
