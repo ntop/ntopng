@@ -118,7 +118,7 @@ function getValueFormatter(schema, metric_type, series, custom_formatter, stats)
     } else if(label.contains("packets"))
       return [NtopUtils.fpackets, NtopUtils.formatPackets];
       else if(label.contains("points"))
-      return [NtopUtils.fpoints, formatPoints];
+      return [NtopUtils.fpoints, NtopUtils.formatPoints];
     else if(label.contains("flows")) {
       var as_counter = ((metric_type === "counter") && (schema !== "custom:memory_vs_flows_hosts"));
       return [as_counter ? NtopUtils.fflows : NtopUtils.formatValue, NtopUtils.formatFlows, as_counter ? NtopUtils.fflows : NtopUtils.formatFlows];
