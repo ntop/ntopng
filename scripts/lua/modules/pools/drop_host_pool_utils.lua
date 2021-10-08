@@ -22,44 +22,40 @@ drop_host_pool_utils.ids_ips_jail_remove_key = "ntopng.cache.ids_ips_jail_remove
 
 drop_host_pool_utils.max_ids_ips_log_queue_len = 1024
 
-local drop_host_pool_id
-
--- ############################################
-
 -- ############################################
 
 function drop_host_pool_utils.check_pre_banned_hosts_to_add()
    local queue_name = "ntopng.cache.tmp_add_host_list"
-   local host_pool = nil
    local changed = false
+   local host_pool, jailed_pool
 
    while(true) do
       local elem = ntop.lpopCache(queue_name)
 
-      if(elem == nil) then
-	      break
+      if not elem then
+	 break
       else
-	      if(host_pool == nil) then 
-            host_pool = host_pools:create() 
-         end
+	 if not host_pool then
+	    -- Lazily initialize the jailed pool
+	    host_pool = host_pools:create()
+	    jailed_pool = host_pool:get_pool_by_name(pools.DROP_HOST_POOL_NAME)
 
-         -- io.write("Adding "..elem.." to pool ["..pools.DROP_HOST_POOL_NAME.."]\n")
-         local blocked_hosts_pool_name = pools.DROP_HOST_POOL_NAME
-         local all_pools = host_pool:get_all_pools()
-         
-         -- Check the existance of the pool   
-         for _, value in pairs(all_pools) do
-            if value["name"] == blocked_hosts_pool_name then
-               local res, err = host_pool:bind_member(elem, value["pool_id"])
+	    if not jailed_pool then
+	       -- Jailed pool cannot be found, unable to continue
+	       return
+	    end
+	 end
 
-	       if is_ids_ips_log_enabled then
-		  ntop.rpushCache(drop_host_pool_utils.ids_ips_jail_add_key, elem, drop_host_pool_utils.max_ids_ips_log_queue_len)
-	       end
+	 -- Add elem to the jailed host pool
+	 local res, err = host_pool:bind_member(elem, jailed_pool.pool_id)
 
-               changed = true
-               break
-            end
-         end	 
+	 if is_ids_ips_log_enabled then
+	    ntop.rpushCache(drop_host_pool_utils.ids_ips_jail_add_key, elem, drop_host_pool_utils.max_ids_ips_log_queue_len)
+	 end
+
+	 if not changed then
+	    changed = true
+	 end
       end
    end
 
@@ -67,13 +63,13 @@ function drop_host_pool_utils.check_pre_banned_hosts_to_add()
    -- and push rules to the nProbe listeners
    if(changed) then
       if ntop.isPro() then
-         package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-         local policy_utils = require "policy_utils"
-         
-         local rsp = policy_utils.get_ips_rules()
-         if(rsp ~= nil) then
-            ntop.broadcastIPSMessage(rsp)
-         end
+	 package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+	 local policy_utils = require "policy_utils"
+
+	 local rsp = policy_utils.get_ips_rules()
+	 if(rsp ~= nil) then
+	    ntop.broadcastIPSMessage(rsp)
+	 end
       end
    end
 end
@@ -91,11 +87,14 @@ function drop_host_pool_utils.check_periodic_hosts_list()
       return
    end
 
-   -- Get the pool name
-   local blocked_hosts_pool_name = pools.DROP_HOST_POOL_NAME
+   -- Get the jailed pool
    local host_pool = host_pools:create()
    local jailed_pool = host_pool:get_pool_by_name(pools.DROP_HOST_POOL_NAME)
 
+   if not jailed_pool then
+      return
+   end
+   
    -- Check the hosts inside the list
    while list_len > 0 do
       local data = ntop.lpopCache(pool_info.list_key)
