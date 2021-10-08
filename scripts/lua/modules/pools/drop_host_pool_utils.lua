@@ -86,30 +86,16 @@ function drop_host_pool_utils.check_periodic_hosts_list()
    -- Check the list length
    local list_len = ntop.llenCache(pool_info.list_key)
    local changed = false
-   
+
    if list_len == 0 then
       return
-   end     
+   end
 
-   -- Retrieve the pool
-   local blocked_hosts_pool_id = -2
    -- Get the pool name
    local blocked_hosts_pool_name = pools.DROP_HOST_POOL_NAME
-   local blocked_hosts_pool_members = {}
    local host_pool = host_pools:create()
-   local all_pools = host_pool:get_all_pools()
-   
-   -- Check the existance of the pool   
-   for _, value in pairs(all_pools) do
-      if value["name"] == blocked_hosts_pool_name then
-            blocked_hosts_pool_id = value["pool_id"]
-            blocked_hosts_pool_members = value.members
-            goto continue
-      end
-   end
-   
-   ::continue::
-   
+   local jailed_pool = host_pool:get_pool_by_name(pools.DROP_HOST_POOL_NAME)
+
    -- Check the hosts inside the list
    while list_len > 0 do
       local data = ntop.lpopCache(pool_info.list_key)
@@ -121,7 +107,7 @@ function drop_host_pool_utils.check_periodic_hosts_list()
 	
         -- The host needs to be unbanned
         if curr_time >= tonumber(time) + pool_info.expiration_time then
-            for i, value in pairs(blocked_hosts_pool_members) do
+            for i, value in pairs(jailed_pool.members) do
 	       -- Member found, remove it
 	       if string.find(value, host) then
 		  host_pool:bind_member(value, 0)
