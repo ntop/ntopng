@@ -508,7 +508,8 @@ local context = {
         default = status ~= "engaged" and "30min" or "1week",
         score = score,
         tags = {
-	    enabled = (page ~= 'all'),
+            show_score_filter = true,
+	        enabled = (page ~= 'all'),
             tag_operators = tag_utils.tag_operators,
             view_only = true,
             defined_tags = defined_tags[page],
@@ -516,7 +517,7 @@ local context = {
             i18n = {
 	        alert_id = i18n("tags.alert_id"),
                 severity = i18n("tags.severity"),
-		score = i18n("tags.score"),
+		        score = i18n("tags.score"),
                 l7_proto = i18n("tags.l7proto"),
                 cli_ip = i18n("tags.cli_ip"),
                 srv_ip = i18n("tags.srv_ip"),

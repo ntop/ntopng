@@ -110,7 +110,7 @@
             </div>
         </div>
     
-    {% if tags.enabled then %}
+    {% if tags.enabled and tags.show_score_filter then %}
         <div class="d-flex align-items-center mx-2 ">
             <label for="range-bar" class="form-label m-0 text-nowrap">
                 <div class="input-group">
