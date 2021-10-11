@@ -24,6 +24,7 @@ page_utils.print_page_title(i18n("license_page.license"))
 if(_POST["ntopng_license"] ~= nil) then
     ntop.setCache('ntopng.license', trimSpace(_POST["ntopng_license"]))
     ntop.checkLicense()
+    ntop.setCache('ntopng.cache.force_reload_plugins', '1') -- housekeeping.lua will reload plugins
 end
 
 local info = ntop.getInfo()
