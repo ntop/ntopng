@@ -12,6 +12,7 @@ local persistence = require("persistence")
 local file_utils = require("file_utils")
 local template_utils = require("template_utils")
 local lua_path_utils = require("lua_path_utils")
+local ntop_utils = require "ntop_utils"
 require "lua_trace"
 
 local dirs = ntop.getDirs()

@@ -105,6 +105,33 @@ end
 
 -- ##############################################
 
+-- NOTE: on index based tables using #table is much more performant
+function table.len(tbl)
+ local count = 0
+
+  if(tbl == nil) then return(0) end
+
+  for k,v in pairs(tbl) do
+    count = count + 1
+  end
+
+  return count
+end
+
+-- ##############################################
+
+function table.slice(tbl, first, last, step)
+   local sliced = {}
+
+   for i = first or 1, last or #tbl, step or 1 do
+      sliced[#sliced+1] = tbl[i]
+   end
+
+   return sliced
+end
+
+-- ##############################################
+
 function table.empty(tbl)
   if(tbl == nil) then return true end
 

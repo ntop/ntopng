@@ -2549,29 +2549,6 @@ function hostinfo2jqueryid(host_info,host_type)
   return rsp
 end
 
--- NOTE: on index based tables using #table is much more performant
-function table.len(table)
- local count = 0
-
-  if(table == nil) then return(0) end
-
-  for k,v in pairs(table) do
-    count = count + 1
-  end
-
-  return count
-end
-
-function table.slice(tbl, first, last, step)
-   local sliced = {}
-
-   for i = first or 1, last or #tbl, step or 1 do
-      sliced[#sliced+1] = tbl[i]
-   end
-
-   return sliced
-end
-
 -- ############################################
 -- Redis Utils
 -- ############################################
