@@ -21,11 +21,7 @@ if(scripts_triggers.arePrefsChanged()) then
 end
 
 -- Check and possibly reload plugins
-if(scripts_triggers.checkReloadPlugins(now)) then
-   local plugins_utils = require "plugins_utils"
-   
-   plugins_utils.checkReloadPlugins(now)
-end
+scripts_triggers.checkReloadPlugins(now)
 
 if(scripts_triggers.checkReloadLists()) then
    local lists_utils = require "lists_utils"
