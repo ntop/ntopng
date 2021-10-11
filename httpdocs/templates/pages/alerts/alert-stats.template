@@ -1193,42 +1193,43 @@
     
     const maxValue = 250;
 
-    if(inputValue.value != "" && inputValue.style["max-width"] == "7rem"){
-        inputValue.style["max-width"] = "3.3rem"
-    }
-
-    if(inputValue.value){
-        const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte" };
-
-        addFilterTag(tag);
-    }
-
-    inputValue.oninput = function(){
-        if(this.value > maxValue){
-            inputValue.value = maxValue;
-        }
-        if(inputValue.style["max-width"] == "7rem"){
+    if(inputValue) {
+        if(inputValue.value != "" && inputValue.style["max-width"] == "7rem"){
             inputValue.style["max-width"] = "3.3rem"
         }
-    }
 
-    inputValue.onchange = function() {
-        if(inputValue.value != 0){
-            const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte"};
+        if(inputValue.value){
+            const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte" };
 
             addFilterTag(tag);
-        } else {
-            const score_tag = getScoreTag();
-            if(score_tag)
-                tagify.removeTags(score_tag);
         }
-        
-        $.post('{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua', { 
-            ifid: {{ ifid }},
-            score: inputValue.value,
-            csrf: PAGE_CSRF,
-        });
-    }
-    });
 
+        inputValue.oninput = function(){
+            if(this.value > maxValue){
+                inputValue.value = maxValue;
+            }
+            if(inputValue.style["max-width"] == "7rem"){
+                inputValue.style["max-width"] = "3.3rem"
+            }
+        }
+
+        inputValue.onchange = function() {
+            if(inputValue.value != 0){
+                const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte"};
+
+                addFilterTag(tag);
+            } else {
+                const score_tag = getScoreTag();
+                if(score_tag)
+                    tagify.removeTags(score_tag);
+            }
+            
+            $.post('{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua', { 
+                ifid: {{ ifid }},
+                score: inputValue.value,
+                csrf: PAGE_CSRF,
+            });
+        }
+    }
+});
 </script>
