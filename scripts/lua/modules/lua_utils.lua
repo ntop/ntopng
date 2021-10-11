@@ -618,11 +618,19 @@ end
 -- ##############################################
 
 function getProbesName(flowdevs)
-   local snmp_cached_dev = require "snmp_cached_dev"
    local devips = {}
+   local snmp_cached_dev
+
+   if ntop.isPro() then   
+      snmp_cached_dev = require "snmp_cached_dev"
+   end
 
    for dip, _ in pairsByValues(flowdevs, asc) do
-      local cached_device_name = snmp_cached_dev:create(dip)
+      local cached_device_name 
+
+      if ntop.isPro() then
+         cached_device_name = snmp_cached_dev:create(dip)
+      end
 
       if cached_device_name then
          cached_device_name = cached_device_name["name"]
