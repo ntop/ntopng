@@ -11,6 +11,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" ..
 require "lua_utils"
 local recipients = require "recipients"
 local periodicity = 3
+local is_pro = ntop.isPro()
 
 -- For performace, this script is started in C only one time every hour.
 -- A while-loop is implemented inside this script to process notifications
@@ -34,6 +35,13 @@ while true do
 
    -- Check if it time to exit the loop
    if ntop.isShutdown() or ntop.getDeadline() - now < 60 --[[ less than 60 seconds from the deadline --]] or ntop.isDeadlineApproaching() --[[ just for safety, should not occur --]] then
+      break
+   end
+
+   -- Detect possible license changes
+   local cur_is_pro = ntop.isPro()
+   if is_pro ~= cur_is_pro then
+      is_pro = cur_is_pro
       break
    end
 
