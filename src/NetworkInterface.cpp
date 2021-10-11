@@ -1363,6 +1363,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 				     struct ndpi_iphdr *iph,
 				     struct ndpi_ipv6hdr *ip6,
 				     u_int16_t ip_offset,
+				     u_int16_t encapsulation_overhead,
 				     u_int32_t len_on_wire,
 				     const struct pcap_pkthdr *h,
 				     const u_char *packet,
@@ -1406,6 +1407,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 						eth, vlan_id,
 						iph, ip6,
 						ip_offset,
+						encapsulation_overhead,
 						len_on_wire,
 						h, packet, ndpiProtocol,
 						srcHost, dstHost, hostFlow);
@@ -1425,6 +1427,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 					       eth, vlan_id,
 					       iph, ip6,
 					       ip_offset,
+					       encapsulation_overhead,
 					       len_on_wire,
 					       h, packet, ndpiProtocol,
 					       srcHost, dstHost, hostFlow);
@@ -1565,7 +1568,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   if(trusted_l4_packet_len > frame_padding)
     trusted_l4_packet_len -= frame_padding;
-
+  
   if(l4_proto == IPPROTO_TCP) {
     if(trusted_l4_packet_len >= sizeof(struct ndpi_tcphdr)) {
       u_int tcp_len;
@@ -1731,7 +1734,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
         flow->updateICMPFlood(when, src2dst_direction);
         flow->setICMPPayloadSize(trusted_l4_packet_len);
-	      trusted_payload_len = trusted_l4_packet_len, payload = l4;
+	trusted_payload_len = trusted_l4_packet_len, payload = l4;
       }
       break;
     default:
@@ -1749,11 +1752,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     tv_ts.tv_sec  = h->ts.tv_sec;
     tv_ts.tv_usec = h->ts.tv_usec;
 
-    flow->incStats(src2dst_direction, len_on_wire, payload,
+    flow->incStats(src2dst_direction, len_on_wire - encapsulation_overhead, payload,
 		   trusted_payload_len, l4_proto, is_fragment,
 		   tcp_flags, &tv_ts, fragment_extra_overhead);
 #else
-    flow->incStats(src2dst_direction, len_on_wire, payload,
+    flow->incStats(src2dst_direction, len_on_wire - encapsulation_overhead, payload,
 		   trusted_payload_len, l4_proto, is_fragment,
 		   tcp_flags, &h->ts, fragment_extra_overhead);
 #endif
@@ -2057,7 +2060,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 				     Flow **flow) {
   struct ndpi_ethhdr *ethernet = NULL, dummy_ethernet;
   u_int64_t time;
-  u_int16_t eth_type, ip_offset = 0, vlan_id = 0, eth_offset = 0;
+  u_int16_t eth_type, ip_offset = 0, vlan_id = 0, eth_offset = 0, encapsulation_overhead = 0;
   u_int32_t null_type;
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
@@ -2272,11 +2275,11 @@ datalink_check:
 	    eth_offset = offset;
 	    goto datalink_check;
 	  } else if(gre.proto == ETHERTYPE_IP) {
-	    ip_offset = offset;
+	    ip_offset = offset, encapsulation_overhead = offset;
 	    goto decode_packet_eth;
 	  } else if(gre.proto == ETHERTYPE_IPV6) {
 	    eth_type = ETHERTYPE_IPV6;
-	    ip_offset = offset;
+	    ip_offset = offset, encapsulation_overhead = offset;
 	    goto decode_packet_eth;
 	  }
 	}
@@ -2286,7 +2289,7 @@ datalink_check:
 	if(h->caplen >= offset + sizeof(struct ndpi_ethhdr) + 8) {
 	  if(gre.proto == ETH_P_ERSPAN /* ERSPAN type II */) {
 	    offset += 8;
-	    eth_offset = offset;
+	    eth_offset = offset, encapsulation_overhead = offset;
 	    ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
 	    ip_offset = eth_offset + sizeof(struct ndpi_ethhdr);
 	    eth_type = ntohs(ethernet->h_proto);
@@ -2294,7 +2297,7 @@ datalink_check:
 	  } else if(gre.proto == ETH_P_ERSPAN2 /* ERSPAN version 2 (type III) */) {
 	    if(h->caplen >= offset + sizeof(struct ndpi_ethhdr) + 20) {
 	      offset += 20;
-	      eth_offset = offset;
+	      eth_offset = offset, encapsulation_overhead = offset;
 	      ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
 	      ip_offset = eth_offset + sizeof(struct ndpi_ethhdr);
 	      eth_type = ntohs(ethernet->h_proto);
@@ -2310,6 +2313,7 @@ datalink_check:
 	/* Detunnel 6in4 tunnel */
 	ip_offset += ip_len;
 	eth_type = ETHERTYPE_IPV6;
+	encapsulation_overhead = ip_offset;
 	goto decode_packet_eth;
       } else if(ntop->getGlobals()->decode_tunnels() && (iph->protocol == IPPROTO_UDP)
 		&& ((frag_off & 0x3FFF /* IP_MF | IP_OFFSET */ ) == 0)) {
@@ -2450,6 +2454,7 @@ datalink_check:
 				     vlan_id, iph,
 				     ip6,
 				     ip_offset,
+				     encapsulation_overhead,
 				     len_on_wire,
 				     h, packet, ndpiProtocol, srcHost, dstHost, flow);
       } catch(std::bad_alloc& ba) {
@@ -2500,10 +2505,10 @@ datalink_check:
 	  if(h->caplen >= offset) {
 	    if(gre.proto == ETHERTYPE_IP) {
 	      eth_type = ETHERTYPE_IP;
-	      ip_offset = offset;
+	      ip_offset = offset, encapsulation_overhead = offset;
 	      goto decode_packet_eth;
 	    } else if(gre.proto == ETHERTYPE_IPV6) {
-	      ip_offset = offset;
+	      ip_offset = offset, encapsulation_overhead = offset;
 	      goto decode_packet_eth;
 	    }
 	  }
@@ -2511,7 +2516,7 @@ datalink_check:
 	  if(h->caplen >= offset + sizeof(struct ndpi_ethhdr) + 8  /* ERSPAN Type 2 header */) {
 	    if(gre.proto == ETH_P_ERSPAN) {
 	      offset += 8;
-	      eth_offset = offset;
+	      eth_offset = offset, encapsulation_overhead = offset;
 	      ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
 	      ip_offset = eth_offset + sizeof(struct ndpi_ethhdr);
 	      eth_type = ntohs(ethernet->h_proto);
@@ -2578,6 +2583,7 @@ datalink_check:
 	} else if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_IP_IN_IP)) {
 	  eth_type = ETHERTYPE_IP;
 	  ip_offset += sizeof(struct ndpi_ipv6hdr);
+	  encapsulation_overhead = ip_offset;
 	  goto decode_packet_eth;
 	}
 
@@ -2596,6 +2602,7 @@ datalink_check:
 				       vlan_id,
 				       iph, ip6,
 				       ip_offset,
+				       encapsulation_overhead,
 				       len_on_wire,
 				       h, packet, ndpiProtocol, srcHost, dstHost, flow);
 	} catch(std::bad_alloc& ba) {

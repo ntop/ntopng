@@ -592,6 +592,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		     struct ndpi_iphdr *iph,
 		     struct ndpi_ipv6hdr *ip6,
 		     u_int16_t ip_offset,
+		     u_int16_t encapsulation_overhead,
 		     u_int32_t len_on_wire,
 		     const struct pcap_pkthdr *h,
 		     const u_char *packet,
