@@ -628,7 +628,7 @@ function getProbesName(flowdevs)
    for dip, _ in pairsByValues(flowdevs, asc) do
       local cached_device_name 
 
-      if ntop.isPro() then
+      if snmp_cached_dev then
          cached_device_name = snmp_cached_dev:create(dip)
       end
 
