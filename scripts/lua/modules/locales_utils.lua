@@ -2,13 +2,10 @@
 -- (C) 2014-21 - ntop.org
 --
 
-if(i18n ~= nil) then
-   -- avoid multiple inclusions
-   return
-end
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.path
 
 i18n = require "i18n"
-local dirs = ntop.getDirs()
 
 local locales = {}
 
