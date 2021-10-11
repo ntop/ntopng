@@ -312,24 +312,24 @@ else
 
    -- ##############################################
 
-   -- Probes
+   -- Exporters
    page_utils.add_menubar_section(
       {
 	 section = page_utils.menu_sections.collection,
 	 hidden = ((ifs.type ~= "zmq" and ifs.type ~= "custom") or not ntop.isEnterpriseM()) or is_system_interface,
 	 entries = {
 	    {
-	       entry = page_utils.menu_entries.event_probes,
+	       entry = page_utils.menu_entries.event_exporters,
 	       hidden = not ifs.has_seen_ebpf_events,
 	       url = '/lua/pro/enterprise/event_exporters.lua',
 	    },
 	    {
-	       entry = page_utils.menu_entries.sflow_probes,
+	       entry = page_utils.menu_entries.sflow_exporters,
 	       hidden = table.len(interface.getSFlowDevices() or {}) == 0,
 	       url = '/lua/pro/enterprise/sflowdevices_stats.lua',
 	    },
 	    {
-	       entry = page_utils.menu_entries.probes,
+	       entry = page_utils.menu_entries.exporters,
 	       url = '/lua/pro/enterprise/flowdevices_stats.lua',
 	    },
        {

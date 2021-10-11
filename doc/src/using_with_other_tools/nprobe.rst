@@ -72,17 +72,17 @@ Additional fields can be combined with the macro :code:`@NTOPNG@` to specify ext
 
 	  nprobe --zmq "tcp://*:5556" -i eth1 -n none -T "@NTOPNG@ %FLOW_TO_APPLICATION_ID %FLOW_TO_USER_ID %INITIATOR_GW_IP_ADDR %EXPORTER_IPV4_ADDRESS"
 
-Collecting from Multiple Probes
+Collecting from Multiple Exporters
 ==================================
 
-There are two main ways to gather flows from multiple NetFlow/sFlow probes and visualize data into ntopng:
+There are two main ways to gather flows from multiple NetFlow/sFlow exporters and visualize data into ntopng:
 
-1. By running a single nProbe instance, and directing all the probes to the same nProbe port.
+1. By running a single nProbe instance, and directing all the exporters to the same nProbe port.
    This is the simpler option since adding a new probe does not require any modification of
    the nProbe/ntopng configurations. It is also possible to enable `Dynamic Interfaces Disaggregation`_
-   by Probe IP to separate the probes flows.
+   by Probe IP to separate the exporters flows.
 
-2. By running multiple nProbe instances, one for each probe. This method is the most performant
+2. By running multiple nProbe instances, one for each exporter. This method is the most performant
    because each exported data will be handled by a separate thread into ntopng so it can leverage
    the CPU cores of a multicore system.
 
@@ -94,12 +94,12 @@ Here is an example on how to configure multiple nProbe instances (second approac
     nprobe --zmq "tcp://*:5556" -i none -n none --collector-port 2055
     nprobe --zmq "tcp://*:5557" -i none -n none --collector-port 6343
 
-In this examples two NetFlows probes export flows to ports 2055 and 6343 respectively.
-nProbe uses two separate ZMQ channels to communicate with ntopng. The two probes flows
+In this examples two NetFlows exporters export flows to ports 2055 and 6343 respectively.
+nProbe uses two separate ZMQ channels to communicate with ntopng. The two exporters flows
 will be split into two separate virtual network interfaces into ntopng:
 
-     - `tcp://127.0.0.1:5556`: flows from probe on port 2055
-     - `tcp://127.0.0.1:5557`: flows from probe on port 6343
+     - `tcp://127.0.0.1:5556`: flows from exporter on port 2055
+     - `tcp://127.0.0.1:5557`: flows from exporter on port 6343
 
 .. _`Dynamic Interfaces Disaggregation`: advanced_features/dynamic_interfaces_disaggregation.html
 
@@ -252,7 +252,7 @@ service:
    cp /etc/nprobe/nprobe.conf.ntopng.sample /etc/nprobe/nprobe.conf
    systemctl restart nprobe
 
-Please note that the sample configuration for nProbe assumes that a NetFlow probe is delivering
+Please note that the sample configuration for nProbe assumes that a NetFlow exporter is delivering
 NetFlow to nProbe on port 6363. In this case nProbe acts as a proxy, collecting NetFlow and delivering 
 flows to ntopng over ZMQ. If you need to process live traffic on a physical interface, the interface 
 name should be set in place of :code:`-i=none` and :code:`--collector-port=6363` should be commented out.

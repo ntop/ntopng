@@ -2,7 +2,7 @@ Exporting Data
 ##############
 
 Thanks to the formalization of the data into schemas, ntopng itself can now
-be used as a timeseries probe. The script `scripts/lua/rest/get/timeseries/ts.lua` is the
+be used as a timeseries exporter. The script `scripts/lua/rest/get/timeseries/ts.lua` is the
 endpoint which provides such data.
 
 Let's see how to read a particuar host nDPI traffic by using the provided API.

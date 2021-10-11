@@ -30,7 +30,7 @@ page_utils.menu_sections = {
    flows         = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
    hosts         = {key = "hosts", i18n_title = "hosts", icon = "fas fa-laptop"},
    maps          = {key = "maps", i18n_title = "maps", icon = "fas fa-map"},
-   collection    = {key = "collection", i18n_title = "flow_devices.probes", icon = "fas fa-file-export", zmq_only = true --[[ only for non-packet ZMQ interfaces --]] },
+   collection    = {key = "collection", i18n_title = "flow_devices.exporters", icon = "fas fa-file-export", zmq_only = true --[[ only for non-packet ZMQ interfaces --]] },
    if_stats      = {key = "if_stats", i18n_title = "interface", icon = "fas fa-ethernet"},
    system_stats  = {key = "system_stats", i18n_title = "system", icon = "fas fa-desktop"},
    admin         = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
@@ -97,10 +97,10 @@ page_utils.menu_entries = {
     interfaces_status     = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "health"},
     alerts_status         = {key = "alerts_status", i18n_title = "system_alerts_status", section = "health"},
 
-    -- probes
-    event_probes          = {key = "event_probes", i18n_title = "event_probes.event_probes", section = "collection"},
-    sflow_probes          = {key = "sflow_probes", i18n_title = "flows_page.sflow_devices", section = "collection"},
-    probes                = {key = "probes", i18n_title = "flow_devices.probes", section = "collection", help_link = "https://www.ntop.org"},
+    -- exporters
+    event_exporters       = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "collection"},
+    sflow_exporters       = {key = "sflow_exporters", i18n_title = "flows_page.sflow_devices", section = "collection"},
+    exporters             = {key = "exporters", i18n_title = "flow_devices.exporters", section = "collection", help_link = "https://www.ntop.org"},
     observation_points    = {key = "observation_points", i18n_title = "flow_devices.observation_points", section = "collection", help_link = "https://www.ntop.org"},
 
    -- Map
