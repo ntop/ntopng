@@ -306,7 +306,8 @@ Ntop::~Ntop() {
   if(pa)    delete pa;
   if(geo)   delete geo;
   if(mac_manufacturers) delete mac_manufacturers;
-
+  if(zmqPublisher)      delete zmqPublisher;
+	
 #ifdef NTOPNG_PRO
   if(pro) delete pro;
   if(alert_exclusions)          delete alert_exclusions;
