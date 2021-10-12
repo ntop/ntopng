@@ -233,6 +233,10 @@ for i = #pages, 1, -1 do
    end
 end
 
+if endpoint_list then
+    endpoint_list = ntop.getHttpPrefix() .. endpoint_list
+end
+
 page_utils.set_active_menu_entry(page_utils.menu_entries.detected_alerts)
 
 -- append the menu above the page
