@@ -94,6 +94,9 @@ local subtype = _GET["subtype"]
 
 if isEmptyString(score) then
     score = nil
+else
+    score = split(score, ";")
+    score = score[1]
 end
 
 sendHTTPContentTypeHeader('text/html')

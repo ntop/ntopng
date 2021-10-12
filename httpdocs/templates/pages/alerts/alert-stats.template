@@ -333,7 +333,9 @@
             /* Convert values to string (this avoids issues e.g. with 0) */
             if (typeof tag.realValue == 'number') { tag.realValue = ''+tag.realValue; }
             if (typeof tag.value == 'number') { tag.value = ''+tag.value; }
-            if (tag.key === 'score' && tag.selectedOperator === 'gte') { $('#input-score-value')[0].value = tag.value; $('#input-score-value')[0].style["max-width"] = "3.3rem"}
+            if (tag.key === 'score' && tag.selectedOperator === 'gte') 
+                $('#input-score-value')[0].value = tag.value; 
+
             const existingTagElms = tagify.getTagElms();
             
             /* Lookup by key, value and operator (do not add the same key+value multiple times) */
@@ -523,7 +525,6 @@
             }
             if(key == 'score'){
                 $('#input-score-value')[0].value = "";
-                $('#input-score-value')[0].style["max-width"] = "7rem";
                 $.post('{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua', { 
                     ifid: {{ ifid }},
                     score: "",
