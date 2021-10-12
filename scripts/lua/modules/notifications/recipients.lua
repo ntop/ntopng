@@ -828,7 +828,8 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
       cached_recipients = recipients.get_all_recipients()
    end
    local modules_by_name = endpoints.get_types()
-   local ready_recipients = {}
+   local high_pri_ready_recipients = {}
+   local low_pri_ready_recipients = {}
 
    -- Check, among all available recipients, those that are ready to export, depending on
    -- their EXPORT_FREQUENCY
@@ -838,15 +839,20 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
       if modules_by_name[module_name] then
          local m = modules_by_name[module_name]
 	 if force_export or check_endpoint_export(recipient.recipient_id, m.EXPORT_FREQUENCY, now) then
-	    ready_recipients[#ready_recipients + 1] = {recipient = recipient, recipient_id = recipient.recipient_id, mod = m}
+	    -- This recipient is ready for export...
+	    local ready_recipient = {recipient = recipient, recipient_id = recipient.recipient_id, mod = m}
+
+	    -- Put the recipient into the high and low priority arrays of recipients so that it will be processed
+	    high_pri_ready_recipients[#high_pri_ready_recipients + 1] = ready_recipient
+	    low_pri_ready_recipients[#low_pri_ready_recipients + 1] = ready_recipient
 	 end
       end
    end
 
    -- Use table.clone to pass recipients as the table is modified to only leave, after the call,
    -- only those recipients who didn't complete their job.
-   process_notifications_by_priority(table.clone(ready_recipients), true  --[[ high priority --]], now, deadline, periodic_frequency, force_export)
-   process_notifications_by_priority(table.clone(ready_recipients), false --[[ low priority  --]], now, deadline, periodic_frequency, force_export)
+   process_notifications_by_priority(high_pri_ready_recipients, true  --[[ high priority --]], now, deadline, periodic_frequency, force_export)
+   process_notifications_by_priority(low_pri_ready_recipients, false --[[ low priority  --]], now, deadline, periodic_frequency, force_export)
 end
 
 -- ##############################################
