@@ -232,7 +232,7 @@ $(function () {
             }
         }
     ]);
-    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, '/lua/pro/enterprise/get_snmp_devices_list.lua', 'data');
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, http_prefix + '/lua/pro/enterprise/get_snmp_devices_list.lua', 'data');
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         orderFixed: { post: [[1, "asc"]] },
         columns: [
