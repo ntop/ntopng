@@ -127,6 +127,7 @@ static int ntop_get_first_interface_id(lua_State* vm) {
     return(CONST_LUA_OK);
   }
 
+  lua_pushnil(vm);
   return(CONST_LUA_ERROR);
 }
 
@@ -158,8 +159,10 @@ static int ntop_get_interface_id(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if((iface = getCurrentInterface(vm)) == NULL)
+  if((iface = getCurrentInterface(vm)) == NULL) {
+    lua_pushnil(vm);
     return(CONST_LUA_ERROR);
+  }
 
   lua_pushinteger(vm, iface->get_id());
   return(CONST_LUA_OK);
@@ -172,8 +175,10 @@ static int ntop_get_interface_name(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if((iface = getCurrentInterface(vm)) == NULL)
+  if((iface = getCurrentInterface(vm)) == NULL) {
+    lua_pushnil(vm);
     return(CONST_LUA_ERROR);
+  }
 
   lua_pushstring(vm, iface->get_name());
   return(CONST_LUA_OK);
@@ -259,8 +264,10 @@ static int ntop_interface_get_snmp_stats(lua_State* vm) {
   if(ntop_interface && ntop_interface->getFlowInterfacesStats()) {
     ntop_interface->getFlowInterfacesStats()->lua(vm, ntop_interface);
     return(CONST_LUA_OK);
-  } else
+  } else {
+    lua_pushnil(vm);
     return(CONST_LUA_ERROR);
+  }
 }
 #endif
 
@@ -317,7 +324,10 @@ static int ntop_interface_is_packet_interface(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop_interface) return(CONST_LUA_ERROR);
+  if(!ntop_interface) {
+    lua_pushnil(vm);
+    return(CONST_LUA_ERROR);
+  }
 
   lua_pushboolean(vm, ntop_interface->isPacketInterface());
   return(CONST_LUA_OK);
@@ -331,7 +341,11 @@ static int ntop_interface_is_discoverable_interface(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop_interface) return(CONST_LUA_ERROR);
+  if(!ntop_interface) {
+    lua_pushnil(vm);
+    return(CONST_LUA_ERROR);
+  }
+
   lua_pushboolean(vm, ntop_interface->isDiscoverableInterface());
   return(CONST_LUA_OK);
 }
@@ -473,9 +487,16 @@ static int ntop_interface_set_idle(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop_interface) return(CONST_LUA_ERROR);
+  if(!ntop_interface) {
+    lua_pushnil(vm);
+    return(CONST_LUA_ERROR);
+  }
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK) {
+    lua_pushnil(vm);
+    return(CONST_LUA_ERROR);
+  }
+
   state = lua_toboolean(vm, 1) ? true : false;
 
   ntop_interface->setIdleState(state);
@@ -1002,10 +1023,11 @@ static int ntop_interface_alert_store_query(lua_State* vm) {
      || lua_type(vm, 1) != LUA_TSTRING
      || !(query = (char*)lua_tostring(vm, 1))
      || !iface->alert_store_query(vm, query)) {
-    lua_pushnil(vm);
+    lua_pushboolean(vm, false);
     return(CONST_LUA_ERROR);
   }
 
+  lua_pushboolean(vm, true);
   return(CONST_LUA_OK);
 }
 
