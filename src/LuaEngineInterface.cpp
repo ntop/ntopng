@@ -1023,11 +1023,10 @@ static int ntop_interface_alert_store_query(lua_State* vm) {
      || lua_type(vm, 1) != LUA_TSTRING
      || !(query = (char*)lua_tostring(vm, 1))
      || !iface->alert_store_query(vm, query)) {
-    lua_pushboolean(vm, false);
+    lua_pushnil(vm);
     return(CONST_LUA_ERROR);
   }
 
-  lua_pushboolean(vm, true);
   return(CONST_LUA_OK);
 }
 
