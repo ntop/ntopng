@@ -430,7 +430,7 @@ static int init_instant_speed(double **p_speed, int *p_speed_num)
   memset(*p_speed, 0, (*p_speed_num)*sizeof(double));
   return 0;
 }
-static int test_download(char *p_url, int num_thread, int dsize, char init)
+static double test_download(char *p_url, int num_thread, int dsize, char init)
 {
   struct timeval s_time;
   int time, i;
@@ -443,7 +443,7 @@ static int test_download(char *p_url, int num_thread, int dsize, char init)
   gettimeofday(&s_time, NULL);
   init_instant_speed(&instant_speed, &speed_num);
 
-  for ( i = 0; i < num_thread; i++) {
+  for (i = 0; i < num_thread; i++) {
     //int error;
 
     memset(&paras[i], 0, sizeof(struct thread_para));
@@ -451,7 +451,6 @@ static int test_download(char *p_url, int num_thread, int dsize, char init)
     paras[i].result = 0;
 
     //error = 
-
 #if THREAD_NUM_MAX > 1
     pthread_mutex_init(paras[i].lock, NULL);
 #endif
@@ -461,10 +460,9 @@ static int test_download(char *p_url, int num_thread, int dsize, char init)
     // if ( error != 0) printf("Can't Run thread num %d, error %d\n", i, error);
   }
 
-  if (init != 0)
-    {
-      loop_threads(paras, num_thread, instant_speed, &speed_num);
-    }
+  if (init != 0) {
+    loop_threads(paras, num_thread, instant_speed, &speed_num);
+  }
 
   for (i = 0;i < num_thread; i++) {
     pthread_join(paras[i].tid, NULL);
@@ -472,18 +470,24 @@ static int test_download(char *p_url, int num_thread, int dsize, char init)
   }
 
   if (init != 0) {
-
     speed = calculate_average_speed(instant_speed, speed_num);
-  }else {
 
+#ifdef DEBUG_SPEEDTEST
+    printf("speed = %0.2fMbps (%0.1fBps)\n", (speed*8)/(1024*1024), speed);
+#endif
+  } else {
     struct timeval  e_time;
 
     gettimeofday(&e_time, NULL);
     time = calc_past_time(&s_time, &e_time);
     speed = (sum*1000)/time;
-    //printf("msec = %d speed = %0.2fMbps\n", time, ((sum*8*1000/time))/(1024*1024));
+
+#ifdef DEBUG_SPEEDTEST
+    printf("speed = %0.2fMbps (sum = %f) (msec = %d)\n", (speed*8)/(1024*1024), sum, time);
+#endif
   }
   free(instant_speed);
+  if (!(speed >= 0)) speed = 0;
   return speed;
 }
 
@@ -570,7 +574,7 @@ static void* do_upload(void *p) {
 }
 
 
-static int test_upload(char *p_url, int num_thread, long size,
+static double test_upload(char *p_url, int num_thread, long size,
 		       char *p_ext, char init)
 {
   struct timeval s_time;
@@ -594,27 +598,35 @@ static int test_upload(char *p_url, int num_thread, long size,
     pthread_create(&paras[i].tid, NULL, do_upload, (void*)&paras[i]);
     // if ( error != 0) printf("Can't Run thread num %d, error %d\n", i, error);
   }
-  if (init != 0)
-    {
-      loop_threads(paras, num_thread, instant_speed, &speed_num);
-    }
+  if (init != 0) {
+    loop_threads(paras, num_thread, instant_speed, &speed_num);
+  }
+
   for (i = 0;i < num_thread; i++) {
     pthread_join(paras[i].tid, NULL);
     sum += paras[i].result;
   }
-  if (init != 0) {
 
+  if (init != 0) {
     speed = calculate_average_speed(instant_speed, speed_num);
-  }else {
+
+#ifdef DEBUG_SPEEDTEST
+    printf("speed = %0.2fMbps\n", (speed*8)/(1024*1024));
+#endif
+  } else {
     struct timeval e_time;
     int time;
 
     gettimeofday(&e_time, NULL);
     time = calc_past_time(&s_time, &e_time);
     speed = (sum*1000)/time; //bytes per second
+
+#ifdef DEBUG_SPEEDTEST
+    printf("speed = %0.2fMbps (msec = %d)\n", (speed*8)/(1024*1024), time);
+#endif
   }
-  //printf("msec = %d speed = %0.2fMbps\n", time, ((sum*8*1000/time))/(1024*1024));
   free(instant_speed);
+  if (!(speed >= 0)) speed = 0;
   return speed;
 }
 #endif
@@ -626,13 +638,12 @@ static int get_download_filename(double speed, int num_thread)
   int num_file = ARRAY_SIZE(filelist);
 
   for (i = 1; i < num_file; i++) {
-
-    int time;
+    long long int time;
     float times = (float)filelist[i]/350;
     //printf("time %f speed %lf\n", times, speed);
     times = (times*times);
-    time = (num_thread*times*FILE_350_SIZE)/speed;
-    //printf("%d %d %f\n", filelist[i], time, times);
+    time = (long long int) ((long long int) num_thread*times*FILE_350_SIZE)/speed;
+    //printf("%d %lld %f\n", filelist[i], time, times);
     if (time > SPEEDTEST_TIME_MAX)
       break;
   }
@@ -889,7 +900,7 @@ json_object* speedtest() {
 
   dsize = get_download_filename(speed, num_thread);
 #ifdef DEBUG_SPEEDTEST
-  fprintf(stderr, "Testing download speed");
+  fprintf(stderr, "Testing download speed\n");
 #endif
   download_speed = test_download(server_url, num_thread, dsize, 1);
 
@@ -909,7 +920,7 @@ json_object* speedtest() {
   speed = test_upload(server_url, num_thread, speed, ext, 0);
 
 #ifdef DEBUG_SPEEDTEST
-  fprintf(stderr, "Testing upload speed");
+  fprintf(stderr, "Testing upload speed\n");
 #endif
   upload_speed = test_upload(server_url, num_thread, speed*SPEEDTEST_TIME_MAX, ext, 1);
 
