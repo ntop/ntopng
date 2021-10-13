@@ -19,10 +19,9 @@ local pools = {}
 
 -- ##############################################
 
--- A default pool id value associated to any member without pools
+-- A builtin default pool id value associated to any member without pools
 pools.DEFAULT_POOL_ID = 0           -- Keep in sync with ntop_defines.h NO_HOST_POOL_ID
 pools.DEFAULT_POOL_NAME = "Default" -- Keep in sync with ntop_defines.h DEFAULT_POOL_NAME
-pools.DROP_HOST_POOL_NAME = "Jailed Hosts"
 
 if ntop.isnEdge() then
     -- Compatibility with nEdge pools
@@ -49,7 +48,9 @@ pools.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"]
 -- ##############################################
 
 -- This is the minimum pool id which will be used to create new pools
-pools.MIN_ASSIGNED_POOL_ID = 1
+-- 0: Default pool
+-- 1: Jailed hosts pool
+pools.MIN_ASSIGNED_POOL_ID = 2
 
 -- ##############################################
 
@@ -689,6 +690,7 @@ end
 function pools:cleanup()
     -- Delete pool details
     local cur_pool_ids = self:_get_assigned_pool_ids()
+
     for _, pool_id in pairs(cur_pool_ids) do
        self:delete_pool(pool_id)
     end

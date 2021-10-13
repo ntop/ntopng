@@ -37,7 +37,7 @@ function drop_host_pool_utils.check_pre_banned_hosts_to_add()
       if not host_pool then
 	 -- Lazily initialize the jailed pool
 	 host_pool = host_pools:create()
-	 jailed_pool = host_pool:get_pool_by_name(pools.DROP_HOST_POOL_NAME)
+	 jailed_pool = host_pool:get_pool_by_name(host_pools.DROP_HOST_POOL_NAME)
 
 	 if not jailed_pool then
 	    -- Jailed pool cannot be found, unable to continue
@@ -89,7 +89,7 @@ function drop_host_pool_utils.check_periodic_hosts_list()
 
    -- Get the jailed pool
    local host_pool = host_pools:create()
-   local jailed_pool = host_pool:get_pool_by_name(pools.DROP_HOST_POOL_NAME)
+   local jailed_pool = host_pool:get_pool_by_name(host_pools.DROP_HOST_POOL_NAME)
 
    if not jailed_pool then
       return

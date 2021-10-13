@@ -21,6 +21,12 @@ local host_pools = {}
 
 -- ##############################################
 
+-- A builtin jail for misbehaving hosts
+host_pools.DROP_HOST_POOL_ID = 1                -- Keep in sync
+host_pools.DROP_HOST_POOL_NAME = "Jailed Hosts" -- Keep in sync with ntop_defines.h DROP_HOST_POOL_NAME
+
+-- ##############################################
+
 function host_pools:create(args)
     -- Instance of the base class
     local _host_pools = pools:create()
@@ -31,7 +37,42 @@ function host_pools:create(args)
     -- and this will actually make it possible to override functions
     local _host_pools_instance = _host_pools:create(self)
 
-    -- Compute
+    -- Initialize
+    local locked = self:_lock()
+
+    if locked then
+       -- Init the jail, if not already initialized.
+       -- By default, the jail has always empty members and empty recipients
+       local jailed_hosts_pool = self:get_pool(host_pools.DROP_HOST_POOL_ID)
+
+       if not jailed_hosts_pool then
+	  -- Raw call to persist, no need to go through add_pool as here all the parameters are trusted and
+	  -- there's no need to check.
+	  -- Jail is always created with builtin recipients
+	  self:_persist(host_pools.DROP_HOST_POOL_ID,
+			host_pools.DROP_HOST_POOL_NAME,
+			{} --[[ no members --]] ,
+			recipients_mod.get_builtin_recipients() --[[ builtin recipients --]], nil --[[ policy ]])
+
+	  ntop.setMembersCache(self:_get_pool_ids_key(),
+			       string.format("%d", host_pools.DROP_HOST_POOL_ID))
+
+	  if ntop.isPro() then
+	     -- Add the default drop policy to the pool
+	     package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
+	     local policy_utils = require "policy_utils"
+
+	     -- Add the default drop policy to the pool
+	     policy_utils.set_configuration(host_pools.DROP_HOST_POOL_ID, {
+					       rules = {},
+					       default_policy = 'drop',
+					       pool_id = host_pools.DROP_HOST_POOL_ID,
+	     })
+	  end
+       end
+
+       self:_unlock()
+    end
 
     -- Return the instance
     return _host_pools_instance

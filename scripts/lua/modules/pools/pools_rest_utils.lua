@@ -9,6 +9,7 @@ local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local pools = require "pools"
 local pools_lua_utils = require "pools_lua_utils"
+local host_pools = require "host_pools"
 local tracker = require("tracker")
 local auth = require "auth"
 
@@ -198,7 +199,7 @@ function pools_rest_utils.bind_member(pools)
    if pool_id == s.DEFAULT_POOL_ID then
       -- Always bind the member to the default pool id (possibly removing it from any other pool)
       res, err = s:bind_member(member, pool_id)
-      if old_pool_name == pools.DROP_HOST_POOL_NAME and ntop.isPro() then
+      if old_pool_name == host_pools.DROP_HOST_POOL_NAME and ntop.isPro() then
 	 package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 	 local policy_utils = require "policy_utils"
 

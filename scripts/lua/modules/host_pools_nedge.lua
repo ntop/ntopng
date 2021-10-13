@@ -12,7 +12,7 @@ local os_utils = require "os_utils"
 local host_pools_nedge = {}
 host_pools_nedge.DEFAULT_POOL_ID = "0"
 host_pools_nedge.DEFAULT_ROUTING_POLICY_ID = "1"
-host_pools_nedge.FIRST_AVAILABLE_POOL_ID = "1"
+host_pools_nedge.FIRST_AVAILABLE_POOL_ID = "2" -- 0 is the default, 1 is the jail
 host_pools_nedge.DEFAULT_POOL_NAME = "Not Assigned"
 host_pools_nedge.MAX_NUM_POOLS = 128 -- Note: keep in sync with C
 
