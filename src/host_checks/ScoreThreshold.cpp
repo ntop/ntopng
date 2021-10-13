@@ -35,16 +35,19 @@ void ScoreThreshold::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   risk_percentage cli_pctg = CLIENT_FULL_RISK_PERCENTAGE;
   u_int32_t cli_score = h->getScoreAsClient(), srv_score = h->getScoreAsServer(), value = 0;
 
-  if(cli_score > threshold) 
+  if(cli_score > threshold)
     cli_pctg = CLIENT_FULL_RISK_PERCENTAGE, value = cli_score;
   else if(srv_score > threshold)
     cli_pctg = CLIENT_NO_RISK_PERCENTAGE, value = srv_score;
 
-  if (!alert && value) 
-    alert = allocAlert(this, h, cli_pctg, value, threshold);
-  
-  if (alert) 
-    h->triggerAlert(alert);
+  if(value) {
+    if(!alert)
+      alert = allocAlert(this, h, cli_pctg, value, threshold);
+
+    /* Refresh */
+    if(alert)
+      h->triggerAlert(alert);
+  }
 }
 
 /* ***************************************************** */

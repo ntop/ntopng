@@ -883,10 +883,6 @@ function hasTrafficReport()
    return((not is_pcap_dump) and (ts_utils.getDriverName() == "rrd") and ntop.isEnterpriseM())
 end
 
-function mustScanAlerts(ifstats)
-   return areAlertsEnabled()
-end
-
 function hasAlertsDisabled()
   _POST = _POST or {}
   return ((_POST["disable_alerts_generation"] ~= nil) and (_POST["disable_alerts_generation"] == "1")) or
