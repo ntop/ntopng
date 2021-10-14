@@ -208,7 +208,12 @@
         }
 
         function getScore() {
-            const score = $(`#input-score-value`)[0].value || 0;
+            const htmlScoreInputTag = $(`#input-score-value`);
+            const score = 0;
+
+            if(htmlScoreInputTag.length)
+                score = $(`#input-score-value`)[0].value || 0;
+
             return score +";gte";
         }
 
