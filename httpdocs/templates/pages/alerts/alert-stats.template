@@ -1224,8 +1224,10 @@
                 if(score_tag)
                     tagify.removeTags(score_tag);
             }
+
+            const score_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua'
             
-            $.post('{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua', { 
+            $.post(score_url, { 
                 ifid: {{ ifid }},
                 score: inputValue.value,
                 csrf: PAGE_CSRF,
