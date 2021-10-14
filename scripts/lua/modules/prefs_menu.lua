@@ -243,6 +243,12 @@ local menu_subpages = {
     },toggle_emit_host_alerts = {
       title       = i18n("prefs.toggle_emit_host_alerts_title"),
       description = i18n("prefs.toggle_emit_host_alerts_description"),
+    },alert_page_refresh_rate_enabled = {
+      title       = i18n("prefs.enable_alerts_refresh_title"),
+      description = i18n("prefs.enable_alerts_refresh_description"),
+    },alert_page_refresh_rate = {
+      title       = i18n("prefs.alerts_page_refresh_rate__title"),
+      description = i18n("prefs.alerts_page_refresh_rate_description"),
     }
   }}, 
   { id ="geo_map",

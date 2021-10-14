@@ -23,6 +23,13 @@ local alert_store = require "alert_store"
 local ifid = interface.getId()
 
 local alert_score_cached = "ntopng.alert.score.ifid_" .. ifid .. ""
+local refresh_rate = ntop.getPref("ntopng.prefs.alert_page_refresh_rate")
+
+if refresh_rate and not isEmptyString(refresh_rate) then
+    refresh_rate = tonumber(refresh_rate) * 1000
+else
+    refresh_rate = nil
+end
 
 local user = "no_user"
 
@@ -514,6 +521,7 @@ local context = {
     range_picker = {
         default = status ~= "engaged" and "30min" or "1week",
         score = score,
+        ifid = ifid,
         tags = {
             show_score_filter = true,
 	        enabled = (page ~= 'all'),
@@ -560,6 +568,7 @@ local context = {
 	endpoint_acknowledge = endpoint_acknowledge,
     cached_column = cached_column,
     cached_sorting = cached_sorting,
+    refresh_rate = refresh_rate,
         datasource = Datasource(endpoint_list, {
             ifid = ifid,
             epoch_begin = epoch_begin,

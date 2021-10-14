@@ -613,6 +613,7 @@
 #define CONST_GLOBAL_DNS                    NTOPNG_PREFS_PREFIX".global_dns"
 #define CONST_SECONDARY_DNS                 NTOPNG_PREFS_PREFIX".secondary_dns"
 #define CONST_MAX_NUM_SECS_ALERTS_BEFORE_DEL NTOPNG_PREFS_PREFIX".max_num_secs_before_delete_alert"
+#define CONST_ALERT_PAGE_REFRESH_RATE       NTOPNG_PREFS_PREFIX".alert_page_refresh_rate"
 #define CONST_MAX_ENTITY_ALERTS     NTOPNG_PREFS_PREFIX".max_entity_alerts"
 #define CONST_PROFILES_PREFS                NTOPNG_PREFS_PREFIX".profiles"
 #define CONST_PROFILES_COUNTERS             "ntopng.profiles_counters.ifid_%i"
@@ -904,6 +905,7 @@
 #define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1000000
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
 #define ALERTS_MAX_SECS_BEFORE_PURGE         (365*24*60*60) /* This is seconds! */
+#define ALERTS_PAGE_REFRESH_RATE             (3*60) /* This is seconds! */
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_TABLE_NAME            "alerts"
 #define ALERTS_MANAGER_STORE_NAME            "alerts_v30.db"

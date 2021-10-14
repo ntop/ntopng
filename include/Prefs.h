@@ -81,7 +81,7 @@ class Prefs {
   bool enable_zmq_encryption;
   bool flow_table_time, flow_table_probe_order;
   bool enable_broadcast_domain_too_large;
-  u_int32_t max_num_secs_before_delete_alert;
+  u_int32_t max_num_secs_before_delete_alert, alert_page_refresh_rate;
   int32_t max_entity_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;

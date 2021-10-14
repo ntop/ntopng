@@ -113,7 +113,8 @@
         const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
         const FAMILY = "{{ alert_stats.entity }}"
         const PAGE_CSRF = "{{ ntop.getRandomCSRFValue() }}";
-        
+
+        const MAX_SCORE_VALUE = 250;        
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
 
         const $inputBeginEpoch = $(`#begin-epoch`);
@@ -209,7 +210,7 @@
 
         function getScore() {
             const htmlScoreInputTag = $(`#input-score-value`);
-            const score = 0;
+            let score = 0;
 
             if(htmlScoreInputTag.length)
                 score = $(`#input-score-value`)[0].value || 0;
@@ -502,6 +503,10 @@
             pageLength: INITIAL_ROWS_LENGTH,
             columns: loadColumns(),
         });
+
+        {% if (datatable.refresh_rate) and (datatable.refresh_rate > 0) then %}
+            setInterval(function() { onRangePickerChange(); }, {{ datatable.refresh_rate }});
+        {% end %}
 
         const $table = $(`#{{ datatable.name }}`).DataTable(config);
         DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
@@ -1193,45 +1198,34 @@
         
     {% end %}
 
-
+    /* Score input tag handling */
     var inputValue = document.getElementById("input-score-value");
-    let currPageUrl = window.location.href;
-    
-    const maxValue = 250;
 
+    /* Into the `All` tab, no score input is present, prevent errors */
     if(inputValue) {
-        if(inputValue.value != "" && inputValue.style["max-width"] == "7rem"){
-            inputValue.style["max-width"] = "3.3rem"
-        }
-
         if(inputValue.value){
             const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte" };
-
             addFilterTag(tag);
         }
 
-        inputValue.oninput = function(){
-            if(this.value > maxValue){
-                inputValue.value = maxValue;
-            }
-            if(inputValue.style["max-width"] == "7rem"){
-                inputValue.style["max-width"] = "3.3rem"
-            }
-        }
-
+        /* Max value handling, checking the input value */
+        inputValue.oninput = function() { if(this.value > MAX_SCORE_VALUE) inputValue.value = MAX_SCORE_VALUE; };
+        
+        /* Checking the change */
         inputValue.onchange = function() {
+            /* Update the value */
             if(inputValue.value != 0){
                 const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte"};
-
                 addFilterTag(tag);
-            } else {
+            } 
+            /* Remove the score tag, value removed or no value inserted */
+            else {
                 const score_tag = getScoreTag();
-                if(score_tag)
-                    tagify.removeTags(score_tag);
+                if(score_tag) tagify.removeTags(score_tag);
             }
 
+            /* Do a post to update the new score value and reuse in the next access */
             const score_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua'
-            
             $.post(score_url, { 
                 ifid: {{ ifid }},
                 score: inputValue.value,

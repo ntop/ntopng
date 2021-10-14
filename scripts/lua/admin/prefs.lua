@@ -210,6 +210,7 @@ function printAlerts()
       "row_toggle_emit_flow_alerts", "row_toggle_emit_host_alerts",
       "max_entity_alerts",
       "max_num_secs_before_delete_alert",
+      "row_alert_page_refresh_rate_enabled",
    }
 
    prefsToggleButton(subpage_active, {
@@ -249,6 +250,24 @@ function printAlerts()
 
    prefsInputFieldPrefs(subpage_active.entries["max_num_secs_before_delete_alert"].title, subpage_active.entries["max_num_secs_before_delete_alert"].description,
 			"ntopng.prefs.", "max_num_secs_before_delete_alert", prefs.max_num_secs_before_delete_alert, "number", showElements, false, nil, {min=1, tformat="d"--[[ TODO check min/max ]]})
+
+   prefsToggleButton(subpage_active, {
+      field = "alert_page_refresh_rate_enabled",
+      default = "0",
+      to_switch = { "alert_page_refresh_rate" },
+      on_value = "1", -- Refresh rate set 
+      off_value = "0", -- Refresh rate not set
+      hidden = not showElements,
+   })
+
+   local showRefreshRate = false
+   
+   if ntop.getPref("ntopng.prefs.alert_page_refresh_rate_enabled") == "1" then
+      showRefreshRate = showElements
+   end
+
+   prefsInputFieldPrefs(subpage_active.entries["alert_page_refresh_rate"].title, subpage_active.entries["alert_page_refresh_rate"].description,
+      "ntopng.prefs.", "alert_page_refresh_rate", prefs.alert_page_refresh_rate, "number", showRefreshRate, false, nil, {min=3, tformat="m"--[[ TODO check min/max ]]})
 
    print('<tr><th colspan=2 style="text-align:right;">')
    print('<button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button>')
