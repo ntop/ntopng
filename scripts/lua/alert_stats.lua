@@ -25,10 +25,18 @@ local ifid = interface.getId()
 local alert_score_cached = "ntopng.alert.score.ifid_" .. ifid .. ""
 local refresh_rate = ntop.getPref("ntopng.prefs.alert_page_refresh_rate")
 
-if refresh_rate and not isEmptyString(refresh_rate) then
-    refresh_rate = tonumber(refresh_rate) * 1000
+-- Alert page refresh rate
+if (ntop.getPref("ntopng.prefs.alert_page_refresh_rate_enabled") == '1') 
+    and refresh_rate 
+    and not isEmptyString(refresh_rate) then
+        -- The js function that refresh periodically the page needs the time in microseconds
+        refresh_rate = tonumber(refresh_rate) * 1000
+        -- Refresh rate equals to 0, remove refresh rate
+        if refresh_rate == 0 then
+            refresh_rate = nil
+        end
 else
-    refresh_rate = nil
+        refresh_rate = nil
 end
 
 local user = "no_user"
