@@ -2262,25 +2262,14 @@ void Flow::lua_tos(lua_State* vm) {
 
 void Flow::lua_get_risk_info(lua_State* vm) {
   if(ndpi_flow_risk_bitmap != 0) {
-    u_int i;
-
-    lua_newtable(vm);
-
-    for(i = 0; i < NDPI_MAX_RISK; i++)
-      if(hasRisk((ndpi_risk_enum)i))
-	lua_push_uint64_table_entry(vm, ndpi_risk2str((ndpi_risk_enum)i), i);
-
-    lua_pushstring(vm, "flow_risk");
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-
     ndpi_risk unhandled_ndpi_risks = ntop->getUnhandledRisks();
+
     if(unhandled_ndpi_risks & ndpi_flow_risk_bitmap) {
       /* This flow has some unhandled risks, that is, risks set by nDPI but not handled by flow checks */
 
       lua_newtable(vm);
 
-      for(i = 0; i < NDPI_MAX_RISK; i++)
+      for(u_int i = 0; i < NDPI_MAX_RISK; i++)
 	if(hasRisk((ndpi_risk_enum)i) && NDPI_ISSET_BIT(unhandled_ndpi_risks, (ndpi_risk_enum)i))
 	  lua_push_uint64_table_entry(vm, ndpi_risk2str((ndpi_risk_enum)i), i);
 
