@@ -193,6 +193,34 @@ void LuaEngine::luaRegister(lua_State *L, const char *class_name, luaL_Reg *clas
   lua_setglobal(L, class_name);
 }
 
+/* ******************************* */
+
+int ntop_lua_return_value(lua_State* vm, const char *function_name, int val) {
+  bool show_warning;
+  
+  switch(val) {
+  case CONST_LUA_OK:
+  case CONST_LUA_ERROR:
+    show_warning = true;
+    break;
+    
+  default:
+    show_warning = false; /* CONST_LUA_PARAM_ERROR */
+    break;
+  }
+
+  if(lua_gettop(vm) == 0) {
+    if(show_warning) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "[INTERNAL ERROR] Invalid lua VM state returned by %s()", function_name);
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "[INTERNAL ERROR] Please report it here https://github.com/ntop/ntopng/issues");
+    }
+    
+    lua_pushnil(vm); /* Add dummy push to make sure the stack has a return value */
+  }
+  
+  return(val);
+}
+
 /* ****************************************** */
 
 static int ntop_lua_http_print(lua_State* vm) {
@@ -230,30 +258,30 @@ static int ntop_lua_http_print(lua_State* vm) {
     break;
 
   case LUA_TBOOLEAN:
-  {
-    int v = lua_toboolean(vm, 1);
+    {
+      int v = lua_toboolean(vm, 1);
 
-    mg_printf(conn, "%s", v ? "true" : "false");
-  }
-  break;
+      mg_printf(conn, "%s", v ? "true" : "false");
+    }
+    break;
 
   case LUA_TSTRING:
-  {
-    char *str = (char*)lua_tostring(vm, 1);
+    {
+      char *str = (char*)lua_tostring(vm, 1);
 
-    if(str && (strlen(str) > 0))
-      mg_printf(conn, "%s", str);
-  }
-  break;
+      if(str && (strlen(str) > 0))
+	mg_printf(conn, "%s", str);
+    }
+    break;
 
   case LUA_TNUMBER:
-  {
-    char str[64];
+    {
+      char str[64];
 
-    snprintf(str, sizeof(str), "%f", (float)lua_tonumber(vm, 1));
-    mg_printf(conn, "%s", str);
-  }
-  break;
+      snprintf(str, sizeof(str), "%f", (float)lua_tonumber(vm, 1));
+      mg_printf(conn, "%s", str);
+    }
+    break;
 
   case LUA_TTABLE:
     {
@@ -273,7 +301,7 @@ static int ntop_lua_http_print(lua_State* vm) {
 	lua_pop(vm, 1);
       }
     }
-  break;
+    break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): Lua type %d is not handled",
@@ -294,13 +322,13 @@ int ntop_lua_cli_print(lua_State* vm) {
 
   switch(t = lua_type(vm, 1)) {
   case LUA_TSTRING:
-  {
-    char *str = (char*)lua_tostring(vm, 1);
+    {
+      char *str = (char*)lua_tostring(vm, 1);
 
-    if(str && (strlen(str) > 0))
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", str);
-  }
-  break;
+      if(str && (strlen(str) > 0))
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", str);
+    }
+    break;
 
   case LUA_TNUMBER:
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%f", (float)lua_tonumber(vm, 1));
@@ -376,10 +404,11 @@ static int ntop_lua_require(lua_State* L) {
   }
 
   if(script_path == "" ||
-	  __ntop_lua_handlefile(L, (char *)script_path.c_str(),  false)) {
+     __ntop_lua_handlefile(L, (char *)script_path.c_str(),  false)) {
     if(lua_type(L, -1) == LUA_TSTRING) {
       const char *err = lua_tostring(L, -1);
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path.c_str(), err ? err : "");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]",
+				   script_path.c_str(), err ? err : "");
     }
 
     return 0;
@@ -498,16 +527,22 @@ static int post_iterator(void *cls,
 /* Loads a script into the engine from within ntopng (no HTTP GUI). */
 int LuaEngine::load_script(char *script_path, NetworkInterface *iface) {
   int rc = 0;
-
+  bool initialized;
+  
   if(!L) return(-1);
 
   if(loaded_script_path)
-    free(loaded_script_path);
+    free(loaded_script_path), initialized = true;
+  else
+    initialized = false;
 
   try {
-    luaL_openlibs(L); /* Load base libraries */
-    lua_register_classes(L, false); /* Load custom classes */
-
+    if(!initialized) {
+      luaL_openlibs(L); /* Load base libraries */
+      lua_register_classes(L, false); /* Load custom classes */
+    } else
+      lua_settop(L, lua_gettop(L)); /* Reset the stack */
+    
     if(iface) {
       /* Select the specified inteface */
       getLuaVMUservalue(L, iface) = iface;
@@ -960,7 +995,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	  */
 	  if((strstr(request_info->uri, REST_API_PREFIX) ||
 	      strstr(request_info->uri, REST_API_PRO_PREFIX)) &&
-              strstr(request_info->uri, "/get/")) {
+	     strstr(request_info->uri, "/get/")) {
 	    /*
 	      REST API URI, GET, no CSRF required
 	    */
@@ -989,7 +1024,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	  /*
 	    post_data is assumed to be application/x-www-form-urlencoded
 	    CSRF token is searched and validated using mg_get_var
-	   */
+	  */
 	  mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
 
 	  if(strncmp(session_csrf, csrf, NTOP_CSRF_TOKEN_LENGTH))

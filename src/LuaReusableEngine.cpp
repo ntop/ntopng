@@ -40,7 +40,7 @@ LuaReusableEngine::~LuaReusableEngine() {
 
 /* ******************************* */
 
-void LuaReusableEngine::setNextVmReload(time_t t) {
+void LuaReusableEngine::setNextVMReload(time_t t) {
   /*
     Set the next_reload
    */
@@ -60,7 +60,7 @@ void LuaReusableEngine::setNextVmReload(time_t t) {
 
 /* ******************************* */
 
-void LuaReusableEngine::reloadVm(time_t now) {
+void LuaReusableEngine::reloadVM(time_t now) {
   if(vm) {
     delete vm;
     vm = NULL;
@@ -80,7 +80,7 @@ void LuaReusableEngine::reloadVm(time_t now) {
   }
 
   if(vm->load_script(script_path, iface) == 0) {
-    setNextVmReload(now + reload_interval);
+    setNextVMReload(now + reload_interval);
   } else {
     /* Retry next time */
     delete vm;
@@ -90,9 +90,14 @@ void LuaReusableEngine::reloadVm(time_t now) {
 
 /* ******************************* */
 
-LuaEngine* LuaReusableEngine::getVm(time_t now) {
+LuaEngine* LuaReusableEngine::getVM(time_t now) {
   if((vm == NULL) || (now >= next_reload))
-    reloadVm(now);
+    reloadVM(now);
+  else {
+    lua_State *L = vm->getState();
 
+    lua_settop(L, lua_gettop(L)); /* Reset the stack */
+  }
+  
   return(vm);
 }

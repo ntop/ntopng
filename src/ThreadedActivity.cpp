@@ -457,7 +457,7 @@ LuaEngine* ThreadedActivity::loadVm(char *script_path, NetworkInterface *iface, 
 	Make sure the getVm is locked, as another thread
 	could be accessing the context to set variables
        */
-      l = engine->getVm(when);
+      l = engine->getVM(when);
 
       vms_mutex.unlock(__FILE__, __LINE__);
     } else {
@@ -617,7 +617,7 @@ void ThreadedActivity::setNextVmReload(time_t t) {
   vms_mutex.lock(__FILE__, __LINE__);
 
   for(it = vms.begin(); it != vms.end(); ++it)
-    it->second->setNextVmReload(t);
+    it->second->setNextVMReload(t);
 
   vms_mutex.unlock(__FILE__, __LINE__);
 }

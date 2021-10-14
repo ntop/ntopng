@@ -32,14 +32,14 @@ class LuaReusableEngine {
   int reload_interval;
   time_t next_reload;
 
-  void reloadVm(time_t now);
+  void reloadVM(time_t now);
 
  public:
   LuaReusableEngine(const char *_script_path, NetworkInterface *_iface, int _reload_interval);
   ~LuaReusableEngine();
 
-  void setNextVmReload(time_t t);
-  LuaEngine* getVm(time_t now);
+  void setNextVMReload(time_t t);
+  LuaEngine* getVM(time_t now);
 };
 
 #endif

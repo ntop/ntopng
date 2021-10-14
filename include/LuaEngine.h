@@ -181,7 +181,16 @@ extern void lua_push_bool_table_entry(lua_State *L, const char *key, bool value)
 
 int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type);
 
-void get_host_vlan_info(char* lua_ip, char** host_ip,
+/**
+ * @brief Checks the lua stack after a C function is called
+ * 
+ * @param vm The lua state.
+ * @param function_name The function name that triggered the error
+ * @param val The return value
+ */
+extern int ntop_lua_return_value(lua_State* vm, const char *function_name, int val);
+
+extern void get_host_vlan_info(char* lua_ip, char** host_ip,
 			VLANid* vlan_id, char *buf, u_int buf_len);
 
 #endif /* _LUA_H_ */
