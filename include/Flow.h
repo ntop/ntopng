@@ -438,8 +438,9 @@ class Flow : public GenericHashEntry {
 
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void setDetectedProtocol(ndpi_protocol proto_id);
-  void processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time,
-		     u_int8_t *payload, u_int16_t payload_len);
+  void processPacket(const struct pcap_pkthdr *h,
+		     const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time,
+		     u_int8_t *payload, u_int16_t payload_len, u_int16_t src_port);
   void processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time);
   void processIEC60870Packet(bool src2dst_direction, const u_char *ip_packet, u_int16_t ip_len,
 			     const u_char *payload, u_int16_t payload_len,

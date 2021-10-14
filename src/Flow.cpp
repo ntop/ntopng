@@ -690,8 +690,9 @@ bool Flow::needsExtraDissection() {
 /* *************************************** */
 
 /* Process a packet and advance the flow detection state. */
-void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time,
-			 u_int8_t *payload, u_int16_t payload_len) {
+void Flow::processPacket(const struct pcap_pkthdr *h,
+			 const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time,
+			 u_int8_t *payload, u_int16_t payload_len, u_int16_t src_port) {
   bool detected;
   ndpi_protocol proto_id;
 
@@ -707,8 +708,11 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
   detected = ndpi_is_protocol_detected(iface->get_ndpi_struct(), proto_id);
 
   if(!detected && hasDissectedTooManyPackets()) {
+    /* 
+       Perform a giveup and finalize all additional operations such as 
+       the processing of extra dissection data.
+     */
     endProtocolDissection();
-    return;
   }
 
 #ifdef NTOPNG_PRO
@@ -737,6 +741,21 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
     setRisk(ndpiFlow->risk);
     updateProtocol(proto_id);
     setProtocolDetectionCompleted();
+  }
+
+  /*
+    Perform other protocol-specific processing before marking the detection as completed.
+    For example, for the DNS, additional processing on the query is performed and later used by
+    checks.
+  */
+
+  if(getInterface()->isPacketInterface()) {
+    if(isDNS())
+      processDNSPacket(ip_packet, ip_len, packet_time);
+    else if(isIEC60870())
+      processIEC60870Packet((htons(src_port) == 2404) ? true : false,
+			    ip_packet, ip_len, payload, payload_len,
+			    (struct timeval *)&h->ts);
   }
 
   if(detection_completed && (!needsExtraDissection())) {

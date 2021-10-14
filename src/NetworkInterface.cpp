@@ -1772,21 +1772,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
        || (fragment_offset == 0)
 #endif
        )
-      flow->processPacket(ip, trusted_ip_len, packet_time, payload, trusted_payload_len);
+      flow->processPacket(h, ip, trusted_ip_len, packet_time, payload, trusted_payload_len, src_port);
     else {
       // FIX - only handle unfragmented packets
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");
     }
   }
 
-  if(isPacketInterface()) {
-    if(flow->isDNS())
-      flow->processDNSPacket(ip, trusted_ip_len, packet_time);
-    else if(flow->isIEC60870())
-      flow->processIEC60870Packet((htons(src_port) == 2404) ? true : false,
-				  ip, trusted_ip_len, payload, trusted_payload_len,
-				  (struct timeval *)&h->ts);
-  }
   
   if(flow->isDetectionCompleted()
      && (!isSampledTraffic())) {
