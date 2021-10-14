@@ -215,10 +215,6 @@
 #define TRAFFIC_FILTERING_TO_RESOLVE       "ntopng.trafficfiltering.toresolve"
 #define PREFS_CHANGED            "ntopng.cache.prefs_changed"
 #define DROP_HOST_TRAFFIC        "ntopng.prefs.drop_host_traffic"
-#define DROP_HOST_POOL_NAME      "Jailed Hosts"
-#define DROP_HOST_POOL_LIST      "ntopng.cache.drop_host_list"
-#define DROP_TMP_ADD_HOST_LIST   "ntopng.cache.tmp_add_host_list"
-#define DROP_HOST_POOL_EXPIRATION_TIME    1800 /*  30 m */
 #define HOST_TRAFFIC_QUOTA       "ntopng.prefs.hosts_quota"
 #define HTTP_ACL_MANAGEMENT_PORT "ntopng.prefs.http_acl_management_port"
 #define TEMP_ADMIN_PASSWORD      "ntopng.prefs.temp_admin_password"
@@ -1071,6 +1067,26 @@
 
 #define NO_HOST_POOL_ID                 0          /* Keep in sync with pools.lua pools.DEFAULT_POOL_ID   */
 #define DEFAULT_POOL_NAME               "Default"  /* Keep in sync with pools.lua pools.DEFAULT_POOL_NAME */
+
+#define DROP_HOST_POOL_ID        1               /* Keep in sync with host_pools.lua pools.DROP_HOST_POOL_ID   */
+#define DROP_HOST_POOL_NAME      "Jailed Hosts"  /* Keep in sync with host_pools.lua pools.DROP_HOST_POOL_NAME */
+#define DROP_HOST_POOL_LIST      "ntopng.cache.drop_host_list"
+#define DROP_TMP_ADD_HOST_LIST   "ntopng.cache.tmp_add_host_list"
+#define DROP_HOST_POOL_EXPIRATION_TIME    1800 /*  30 m */
+
+/*
+  A redis key that, if exists, tells the host must be in the jail.
+  The key is always set with a TTL equal to the number of seconds a DangerousHost
+  Must stay in the jail.
+*/
+#define DROP_HOST_POOL_HOST_IN_JAIL  "ntopng.cache.jail.time.%s"
+
+/*
+  A redis key keeping the pool associated to an host that is currently in the jail.
+  This key is used to restore the host in the proper pool after it has been unjailed.
+  Save it as a pref to make sure it is persistent.
+ */
+#define DROP_HOST_POOL_PRE_JAIL_POOL NTOPNG_PREFS_PREFIX".jail.pre_jail_pool.%s"
 
 extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define getLuaVMContext(a)      (a ? getUserdata(a) : NULL)

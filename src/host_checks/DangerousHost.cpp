@@ -39,47 +39,66 @@ void DangerousHost::periodicUpdate(Host *h, HostAlert *engaged_alert) {
     h->incrConsecutiveHighScore();
   else
     h->resetConsecutiveHighScore();
-  
+
   if(h->getConsecutiveHighScore() > NUM_CONSECUTIVE_CHECKS_BEFORE_ALERTING) {
-    if (!alert) { /* Alert not already triggered */
+    if(!alert) { /* Alert not already triggered */
       /* Trigger the alert and add the host to the Default nProbe IPS host pool */
       alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, h->getScore(), h->getConsecutiveHighScore());
+    }
 
 #ifdef NTOPNG_PRO
-      /* Get nProbe IPS host pool ID */
-      char buf[64], redis_host_key[256];
-      struct timeval tp;
+    /* Get nProbe IPS host pool ID */
+    char buf[64], redis_host_key[CONST_MAX_LEN_REDIS_KEY];
+    char host_buf[64], *e;
+    u_int16_t host_pool_id = h->get_host_pool();
 
-      gettimeofday(&tp, NULL);
-  
-      double time = (((double)tp.tv_usec) / (double)1000000) + tp.tv_sec;
+    /*
+      Save the host based on if we have to serialize by Mac (DHCP) or by IP. The pool addition
+      is deferred because pools reload is a costly operation 
+    */
+    if(h->serializeByMac()) {
+      e = h->getMac()->print(buf, sizeof(buf));
 
-      /*
-	Save the host based on if we have to serialize by Mac (DHCP) or by IP. The pool addition
-	is deferred because pools reload is a costly operation 
-      */
-      if(h->serializeByMac()) {
-	char *e = h->getMac()->print(buf, sizeof(buf));
-      
-	ntop->getRedis()->lpush(DROP_TMP_ADD_HOST_LIST, e, 0); /* New member added */
-	snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", e, time);
-      } else {
-	char host_buf[64], *e = h->get_ip()->print(buf, sizeof(buf));
+      /* The MAC as-is */
+      snprintf(host_buf, sizeof(host_buf), "%s", e);
+    } else {
+      e = h->get_ip()->print(buf, sizeof(buf));
 
-	/* For hosts we need to add a VLAN and a subnet */
-
-	snprintf(host_buf, sizeof(host_buf), "%s/%u@%u",
-		 e,  h->get_ip()->isIPv4() ? 32 : 128, h->get_vlan_id());
-	ntop->getRedis()->lpush(DROP_TMP_ADD_HOST_LIST, host_buf, 0);
-	snprintf(redis_host_key, sizeof(redis_host_key), "%s_%lf", e, time);
-      }
-    
-      ntop->getRedis()->rpush((char*) DROP_HOST_POOL_LIST, redis_host_key, 3600);
-#endif
+      /* For hosts we need to add a VLAN and a subnet */
+      snprintf(host_buf, sizeof(host_buf), "%s/%u@%u",
+	       e,  h->get_ip()->isIPv4() ? 32 : 128, h->get_vlan_id());
     }
+
+    /*
+      If the host is not already jailed, ADD it to the queue of hosts that will be added to the jail and save its current pool.
+      NOTE: Add to the queue only if the host is not already jailed to avoid extra unnecessry work.
+     */
+    if(host_pool_id != DROP_HOST_POOL_ID) {
+      ntop->getRedis()->lpush(DROP_TMP_ADD_HOST_LIST, host_buf, 0);
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Pushing to jail %s", host_buf);
+
+      if(host_pool_id != NO_HOST_POOL_ID) {
+	/* Save it's current pool so it will be restored once freed from the jail. Don't use a TTL. */
+	snprintf(redis_host_key, sizeof(redis_host_key), DROP_HOST_POOL_PRE_JAIL_POOL, host_buf);
+	ntop->getRedis()->set(redis_host_key, std::to_string(host_pool_id).c_str());
+
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "Remembering old pool %s", host_buf);
+      }
+    }
+
+    /*
+      Keep the host in jail, refresh it's TTL!
+      NOTE: Refresh is always done, even if the host is already jailed. This is to make sure it will stay
+      in the jail for at least DROP_HOST_POOL_EXPIRATION_TIME.
+    */
+    snprintf(redis_host_key, sizeof(redis_host_key), DROP_HOST_POOL_HOST_IN_JAIL, host_buf);
+    ntop->getRedis()->set(redis_host_key, "1" /* Just a placeholder, TTL is what matters */,  DROP_HOST_POOL_EXPIRATION_TIME);
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Refreshing TTL %s", redis_host_key);
+#endif
     
-    /* Refresh */
-    if (alert) h->triggerAlert(alert);
+    /* Refresh the alert */
+    if(alert) h->triggerAlert(alert);
   }
 }
 

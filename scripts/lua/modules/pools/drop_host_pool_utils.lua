@@ -24,6 +24,11 @@ drop_host_pool_utils.max_ids_ips_log_queue_len = 1024
 
 -- ############################################
 
+local DROP_HOST_POOL_HOST_IN_JAIL = "ntopng.cache.jail.time.%s" -- Sync with ntop_defines.h DROP_HOST_POOL_PRE_JAIL_POOL
+local DROP_HOST_POOL_PRE_JAIL_POOL = "ntopng.prefs.jail.pre_jail_pool.%s" -- Sync with ntop_defines.h DROP_HOST_POOL_PRE_JAIL_POOL
+
+-- ############################################
+
 function drop_host_pool_utils.check_pre_banned_hosts_to_add()
    local queue_name = "ntopng.cache.tmp_add_host_list"
    local changed = false
@@ -79,13 +84,7 @@ end
 -- This function checks if the are banned hosts that need to be unbanned
 
 function drop_host_pool_utils.check_periodic_hosts_list()
-   -- Check the list length
-   local list_len = ntop.llenCache(pool_info.list_key)
    local changed = false
-
-   if list_len == 0 then
-      return
-   end
 
    -- Get the jailed pool
    local host_pool = host_pools:create()
@@ -95,41 +94,39 @@ function drop_host_pool_utils.check_periodic_hosts_list()
       return
    end
 
-   -- Check the hosts inside the list
-   while list_len > 0 do
-      local data = ntop.lpopCache(pool_info.list_key)
-      local curr_time = os.time()
-      local host
-      local time
+   for _, member in pairs(jailed_pool.members) do
+      -- Check if the DROP_HOST_POOL_HOST_IN_JAIL no longer exists
+      local still_jailed_key = string.format(DROP_HOST_POOL_HOST_IN_JAIL, member)
+      local still_jailed = ntop.getCache(still_jailed_key)
 
-      host, time = data:match("(%w+)_(%w+)")
+      -- If the key is nil, it means the TTL has expired and it is time to remove the host from the jail
+      if isEmptyString(still_jailed) then
+	 -- Check if there's a key indicating the host pool before the jail
+	 local pre_jail_pool_key = string.format(DROP_HOST_POOL_PRE_JAIL_POOL, member)
+	 local pre_jail_pool = ntop.getCache(pre_jail_pool_key)
 
-      -- The host needs to be unbanned
-      if curr_time >= tonumber(time) + pool_info.expiration_time then
-	 for i, value in pairs(jailed_pool.members) do
-	    -- Member found, remove it
-	    if string.find(value, host) then
-	       host_pool:bind_member(value, 0)
-
-	       if is_ids_ips_log_enabled then
-		  ntop.rpushCache(drop_host_pool_utils.ids_ips_jail_remove_key, value, drop_host_pool_utils.max_ids_ips_log_queue_len)
-	       end
-
-	       changed = true
-	       goto continue_check
-	    end
+	 local ret = false
+	 if not isEmptyString(pre_jail_pool) then
+	    -- Bind to the old pool. If bind is successful, i.e., pool still exists,
+	    -- then ret becomes true.
+	    ret = host_pool:bind_member(member, pre_jail_pool)
 	 end
-      else
-	 -- The host needs to be added again at the start of the list (ordered by time)
-	 ntop.lpushCache(pool_info.list_key, data)
-	 goto policy_changed
-      end
 
-      ::continue_check::
-      list_len = list_len - 1
+	 if not ret then
+	    -- Bind to the default pool
+	    ret = host_pool:bind_member(member, pools.DEFAULT_POOL_ID)
+	 end
+
+	 if ret then
+	    if is_ids_ips_log_enabled then
+	       ntop.rpushCache(drop_host_pool_utils.ids_ips_jail_remove_key, value, drop_host_pool_utils.max_ids_ips_log_queue_len)
+	    end
+
+	    changed = true
+	 end
+      end
    end
 
-   ::policy_changed::
    -- Read rules from configured pools and policies
    -- and push rules to the nProbe listeners
    if(changed) then
