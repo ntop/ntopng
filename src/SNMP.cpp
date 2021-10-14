@@ -148,13 +148,16 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
 	  if((!isprint(vp->val.string[i]))
 	     && (!isspace(vp->val.string[i]))) {
 	    is_printable = false;
-	    break;
 	  }
 	}
 
 	if(is_printable) {
 	  strncpy(buf, (const char*)vp->val.string, len);
 	  buf[len] = '\0';
+	} else if(len == 4) {
+	  snprintf(buf, sizeof(buf), "%u.%u.%u.%u",
+		   vp->val.string[0], vp->val.string[1],
+		   vp->val.string[2], vp->val.string[3]);
 	} else {
 	  u_int idx = 0;
 
