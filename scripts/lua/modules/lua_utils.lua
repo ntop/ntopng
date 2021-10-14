@@ -619,34 +619,40 @@ end
 
 function getProbesName(flowdevs)
    local devips = {}
+
+   for dip, _ in pairsByValues(flowdevs, asc) do
+      devips[dip] = getProbeName(dip)
+   end
+
+   return devips
+end
+
+-- ##############################################
+
+function getProbeName(exporter_ip)
+   local cached_device_name 
    local snmp_cached_dev
 
    if ntop.isPro() then   
       snmp_cached_dev = require "snmp_cached_dev"
    end
 
-   for dip, _ in pairsByValues(flowdevs, asc) do
-      local cached_device_name 
-
-      if snmp_cached_dev then
-         cached_device_name = snmp_cached_dev:create(dip)
-      end
-
-      if cached_device_name then
-         cached_device_name = cached_device_name["name"]
-      else
-         local hinfo = hostkey2hostinfo(dip)
-         local resname = hostinfo2label(hinfo)
-
-         if not isEmptyString(resname) then
-            cached_device_name = resname
-         end
-      end
-
-      devips[dip] = cached_device_name
+   if snmp_cached_dev then
+      cached_device_name = snmp_cached_dev:create(exporter_ip)
    end
 
-   return devips
+   if cached_device_name then
+      cached_device_name = cached_device_name["name"]
+   else
+      local hinfo = hostkey2hostinfo(exporter_ip)
+      local exporter_label = hostinfo2label(hinfo)
+
+      if not isEmptyString(exporter_label) then
+         cached_device_name = exporter_label
+      end
+   end
+
+   return cached_device_name
 end
 
 -- ##############################################
