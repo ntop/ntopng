@@ -315,8 +315,8 @@ void NetworkInterface::init() {
   /* Behavior init variables */
   nextMinPeriodicUpdate = 0;
   score_behavior = new BehaviorAnalysis();
-  traffic_tx_behavior = new BehaviorAnalysis(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
-  traffic_rx_behavior = new BehaviorAnalysis(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
+  traffic_tx_behavior = new BehaviorAnalysis(0.9 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
+  traffic_rx_behavior = new BehaviorAnalysis(0.9 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
 #endif
   ndpiStats = NULL;
   dscpStats = NULL;

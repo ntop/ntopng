@@ -282,7 +282,7 @@ void nDPIStats::updateStats(const struct timeval *tv) {
         continue;
 
       if(!behavior_bytes_traffic[i])
-        behavior_bytes_traffic[i] = new (std::nothrow)BehaviorAnalysis(0.5 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
+        behavior_bytes_traffic[i] = new (std::nothrow)BehaviorAnalysis(0.9 /* Alpha parameter */, 0.1 /* Beta parameter */, 0.05 /* Significance */, true /* Counter */);
 
       if(behavior_bytes_traffic[i])
         behavior_bytes_traffic[i]->updateBehavior(NULL, counters[i]->bytes.sent + counters[i]->bytes.rcvd, NULL, false);
