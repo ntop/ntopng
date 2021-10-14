@@ -100,7 +100,6 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
     if(!table_added)
       lua_newtable(vm), table_added = true;
 
-
     switch(vp->type) {
     case ASN_INTEGER:
       /* case ASN_GAUGE: */ /* Alias of ASN_INTEGER */
@@ -221,7 +220,8 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
 int asynch_response(int operation, struct snmp_session *sp, int reqid,
 		    struct snmp_pdu *pdu, void *magic) {
   SNMP *s = (SNMP*)magic;
-
+  int rc = 0;
+    
   if(operation == NETSNMP_CALLBACK_OP_RECEIVED_MESSAGE) {
     if(pdu->command == SNMP_MSG_RESPONSE) {
       sockaddr_in *sa = (sockaddr_in*)pdu->transport_data;
@@ -234,11 +234,11 @@ int asynch_response(int operation, struct snmp_session *sp, int reqid,
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing IPv6 support");
       }
 
-      s->handle_async_response(pdu, peer);
+      s->handle_async_response(pdu, peer), rc = 1;
     }
   }
 
-  return(0);
+  return(rc);
 }
 
 /* ******************************* */
@@ -654,11 +654,15 @@ void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout) {
     if(count > 0) {
       vm = _vm;
       snmp_sess_read(snmpSession->session_ptr, &fdset); /* Will trigger asynch_response() */
-      add_nil = false;
+
+      /* Add a nil in case no response was pushed in the stack */
+      if(lua_gettop(vm) > 0)
+	add_nil = false;
     }
   }
 
-  if(add_nil) lua_pushnil(_vm);
+  if(add_nil)
+    lua_pushnil(_vm);
 }
 
 /* ******************************************* */
