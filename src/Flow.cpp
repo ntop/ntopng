@@ -749,14 +749,12 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
     checks.
   */
 
-  if(getInterface()->isPacketInterface()) {
-    if(isDNS())
-      processDNSPacket(ip_packet, ip_len, packet_time);
-    else if(isIEC60870())
-      processIEC60870Packet((htons(src_port) == 2404) ? true : false,
-			    ip_packet, ip_len, payload, payload_len,
-			    (struct timeval *)&h->ts);
-  }
+  if(isDNS())
+    processDNSPacket(ip_packet, ip_len, packet_time);
+  else if(isIEC60870())
+    processIEC60870Packet((htons(src_port) == 2404) ? true : false,
+			  ip_packet, ip_len, payload, payload_len,
+			  (struct timeval *)&h->ts);
 
   if(detection_completed && (!needsExtraDissection())) {
     setExtraDissectionCompleted();
