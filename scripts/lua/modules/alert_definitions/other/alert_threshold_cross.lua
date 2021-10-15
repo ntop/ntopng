@@ -65,7 +65,7 @@ function alert_threshold_cross.format(ifid, alert, alert_type_params)
     granularity = engine_label,
     metric = alert_type_params.metric,
     entity = entity,
-    value = format_utils.formatValue(alert_type_params.value),
+    value = format_utils.formatValue(format_utils.round(alert_type_params.value, 2)),
     op = "&".. (alert_type_params.operator or "gt") ..";",
     threshold = format_utils.formatValue(alert_type_params.threshold),
   })
