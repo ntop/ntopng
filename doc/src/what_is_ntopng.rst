@@ -222,17 +222,6 @@ GPL-v3 License.
 ntopng licenses are generated using the orderId and email you provided
 when the license has been purchased on https://shop.ntop.org/.
 
-.. note::
-
-   if you are using a VM or you plan to move licenses often, and you
-   have installed the software on a server with Internet access, you
-   can add :code:`--online-license-check` to the application command
-   line (example: :code:`ntopng -i eth0 --online-license-check`) so
-   that at startup the license is validated against the license
-   database. The :code:`--online-license-check` option also supports
-   http proxy setting the :code:`http_proxy` environment variable
-   (example: :code:`export http_proxy=http://<ip>:<port>`).
-
 Once the license has been generated, it can be applied to ntopng
 simply by visiting page "Settings"->"License" of the web GUI and
 pasting the license key in the license form.

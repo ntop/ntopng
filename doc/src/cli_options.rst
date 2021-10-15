@@ -161,7 +161,6 @@ ntopng supports a large number of command line parameters. To see what they are,
    [--capture-direction] <dir>         | Specify packet capture direction
                                        | 0=RX+TX (default), 1=RX only, 2=TX only
    [--cluster-id] <cluster id>         | Specify the PF_RING cluster ID on which incoming packets will be bound.
-   [--online-license-check]            | Check the license online
    [--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.
                                        | Useful when using ntopng behind a proxy.
    [--instance-name|-N <name>]         | Assign a name to this ntopng instance.

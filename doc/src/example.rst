@@ -24,7 +24,7 @@ This is an inline |cog_icon| image.
 
 This is inline code
 
-:code:`--online-license-check`
+:code:`--version`
 
 This is a block of bash code:
 

@@ -444,8 +444,6 @@ void usage() {
 #ifdef HAVE_PF_RING
          "[--cluster-id] <cluster id>         | Specify the PF_RING cluster ID on which incoming packets will be bound.\n"
 #endif
-	 /* "--online-check                      | Check the license using the online service\n" */
-	 "[--online-license-check]            | Check the license online\n" /* set as deprecated as soon as --online-check is supported */
 	 "[--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.\n"
 	 "                                    | Useful when using ntopng behind a proxy.\n"
 	 "[--instance-name|-N <name>]         | Assign a name to this ntopng instance.\n"
