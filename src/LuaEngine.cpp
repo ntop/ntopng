@@ -200,12 +200,11 @@ int ntop_lua_return_value(lua_State* vm, const char *function_name, int val) {
   
   switch(val) {
   case CONST_LUA_OK:
-  case CONST_LUA_ERROR:
     show_warning = true;
     break;
     
   default:
-    show_warning = false; /* CONST_LUA_PARAM_ERROR */
+    show_warning = false; /* CONST_LUA_PARAM_ERROR and CONST_LUA_ERROR */
     break;
   }
 
