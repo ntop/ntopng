@@ -605,15 +605,13 @@ void Ntop::start() {
       u_int i;
 
       /* Make sure all the interfaces are done with their respective packets */
-      for(i = 0; i < get_num_interfaces() && getInterface(i)->read_from_pcap_dump_done(); i++) ;
+      for(i = 0; i < get_num_interfaces() && getInterface(i)->read_from_pcap_dump_done(); i++)
+	;
 
       /* When they are done, signal ntopng to shutdown */
       if(i == get_num_interfaces()) {
 	/* One extra housekeeping before executing tests (this assumes all flows have been walked) */
 	runHousekeepingTasks();
-
-	/* Allow host and flow checks to be executed, allow notifications to be processed (notifications.lua) */
-	sleep(8);
 
 	/* Test Script (Post Analysis) */
 	if(ntop->getPrefs()->get_test_post_script_path()) {
