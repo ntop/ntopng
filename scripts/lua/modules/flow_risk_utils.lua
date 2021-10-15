@@ -29,7 +29,6 @@ function flow_risk_utils.get_risks_info()
       res[tostring(risk_id)] = {label = risk_str, id = risk_id}
    end
 
-   tprint(res)
    return res
 end
 
