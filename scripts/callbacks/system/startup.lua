@@ -230,13 +230,6 @@ if(has_pcap_dump_interface) then
   traceError(TRACE_NORMAL, TRACE_CONSOLE, "Loading category lists done")
 end
 
--- Handle nProbe IPS
-if(ntop.isPro() and not ntop.isnEdge()) then
-   local policy_utils = require "policy_utils"
-
-   policy_utils.broadcast_ips_rules()
-end   
-
 -- Show the warning at most 1 time per run
 ntop.delCache("ntopng.cache.rrd_format_change_warning_shown")
 
