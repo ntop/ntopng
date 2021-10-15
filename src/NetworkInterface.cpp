@@ -1676,7 +1676,30 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     if(new_flow)
       flow->setIngress2EgressDirection(ingressPacket);
 #endif
+    /*
+      In case of a traffic mirror with no MAC gatewy address configured
+      the traffic direction is set based on the local (-m) host
+     */
+    if(isTrafficMirrored() && (!isGwMacConfigured())) {
+      int16_t network_id;
+      bool cli_local = flow->get_cli_ip_addr()->isLocalHost(&network_id);
+      bool srv_local = flow->get_srv_ip_addr()->isLocalHost(&network_id);
 
+      if(cli_local && (!srv_local))
+	ingressPacket = false;
+      else if((!cli_local) && srv_local)
+	ingressPacket = true;
+      else
+	; /* Leave as is */
+
+      /*
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s -> %s",
+				   flow->get_cli_ip_addr()->isLocalHost(&network_id) ? "L" : "R",
+				   flow->get_srv_ip_addr()->isLocalHost(&network_id) ? "L" : "R");
+      */
+    }
+
+    
     if(flow->is_swap_requested()
        /* This guarantees that at least a packet has been observed in both directions, and that
 	  we are in the dst->src direction of the flow that is being swapped
@@ -6103,7 +6126,7 @@ void NetworkInterface::lua(lua_State *vm) {
   /* Note: source MAC is now used to get traffic direction when not areTrafficDirectionsSupported() */
   lua_push_bool_table_entry(vm, "has_traffic_directions",
 			    (areTrafficDirectionsSupported() || (!Utils::isEmptyMac(ifMac)))
-			    && (!isLoopback()) && (!isTrafficMirrored() || isGwMacConfigured()));
+			    && (!isLoopback()) /* && (!isTrafficMirrored() || isGwMacConfigured())*/ );
   lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
   lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
   lua_push_bool_table_entry(vm, "has_seen_external_alerts", hasSeenExternalAlerts());

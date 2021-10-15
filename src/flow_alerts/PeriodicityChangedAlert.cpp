@@ -24,8 +24,10 @@
 /* ***************************************************** */
 
 ndpi_serializer* PeriodicityChangedAlert::getAlertJSON(ndpi_serializer* serializer) {
+#ifdef NTOPNG_PRO
   Flow *f = getFlow();
-
+#endif
+  
   if(serializer == NULL)
     return NULL;
 
