@@ -4797,7 +4797,9 @@ ScoreCategory Utils::mapAlertToScoreCategory(AlertCategory alert_category) {
 /* ****************************************************** */
 
 AlertLevel Utils::mapScoreToSeverity(u_int32_t score) {
-  if (score < SCORE_LEVEL_NOTICE)
+  if (score < SCORE_LEVEL_INFO)
+    return alert_level_none;
+  else if(score < SCORE_LEVEL_NOTICE)
     return alert_level_info;
   else if (score < SCORE_LEVEL_WARNING)
     return alert_level_notice;

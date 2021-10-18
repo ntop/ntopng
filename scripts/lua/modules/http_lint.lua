@@ -456,7 +456,7 @@ local function validateAlertType(mode)
 end
 
 local function validateAlertTypeSeverity(mode)
-   local modes = {"notice_or_lower", "warning", "error_or_higher"}
+   local modes = {"group_none", "notice_or_lower", "warning", "error_or_higher"}
 
    return validateChoice(modes, mode)
 end
