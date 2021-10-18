@@ -894,6 +894,7 @@ void Flow::endProtocolDissection() {
     u_int8_t proto_guessed;
 
     updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow, 1, &proto_guessed));
+    ndpi_flow_risk_bitmap |= ndpiFlow->risk;
     setProtocolDetectionCompleted();
   }
 
