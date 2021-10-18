@@ -609,7 +609,7 @@ void Ntop::start() {
 	;
 
       /* When they are done, signal ntopng to shutdown */
-      if(i == get_num_interfaces()) {
+      if(i == get_num_interfaces() && recipients_are_empty()) {
 	/* One extra housekeeping before executing tests (this assumes all flows have been walked) */
 	runHousekeepingTasks();
 
@@ -1041,6 +1041,12 @@ void Ntop::lua_alert_queues_stats(lua_State* vm) {
   lua_pushstring(vm, "alert_queues");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+}
+
+/* ******************************************* */
+
+bool Ntop::recipients_are_empty() {
+  return recipients.empty();
 }
 
 /* ******************************************* */

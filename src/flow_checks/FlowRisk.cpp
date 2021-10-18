@@ -26,6 +26,7 @@
 
 void FlowRisk::protocolDetected(Flow *f) {
   if (f->hasRisk(handledRisk())) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hanlding risk %s", ndpi_risk2str((ndpi_risk_enum)handledRisk()));
     u_int16_t cli_score, srv_score;
     ndpi_risk risk_bitmap = 0;
 

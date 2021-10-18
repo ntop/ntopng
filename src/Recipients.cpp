@@ -213,3 +213,23 @@ time_t Recipients::last_use(u_int16_t recipient_id) {
 
   return res;
 }
+
+/* *************************************** */
+
+bool Recipients::empty() {
+  bool res = true;
+
+  m.lock(__FILE__, __LINE__);
+
+  for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
+    if(recipient_queues[recipient_id])
+    if(!recipient_queues[recipient_id]->empty()) {
+      res = false;
+      break;
+    }
+  }
+
+  m.unlock(__FILE__, __LINE__);
+
+  return res;
+}

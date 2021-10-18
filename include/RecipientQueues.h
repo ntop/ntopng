@@ -97,6 +97,12 @@ class RecipientQueues {
    */
   void lua(lua_State* vm);
   /**
+   * @brief Returns true if the recipient has no notifications enqueued
+   *
+   * @return A boolean
+   */
+  bool empty();
+  /**
    * @brief Returns queue last use
    *
    * @return An epoch with the last use, or 0 if never used.

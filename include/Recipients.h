@@ -105,6 +105,12 @@ class Recipients {
    * @return An epoch with the last use, or 0 if never used.
    */
   time_t last_use(u_int16_t recipient_id);
+  /**
+   * @brief Checks whether there are notifications queued in any of the recipients
+   *
+   * @return true if there are not notifications enqueued, false otherwise
+   */
+  bool empty();
 };
 
 #endif /* _RECIPIENTS_ */

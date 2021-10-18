@@ -117,3 +117,18 @@ void RecipientQueues::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "num_uses", num_uses);
   lua_push_uint64_table_entry(vm, "fill_pct", fill_pct);
 }
+
+/* *************************************** */
+
+bool RecipientQueues::empty() {
+  bool res = true;
+
+  for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++) {
+    if(!queues_by_prio[i]->empty()) {
+      res = false;
+      break;
+    }
+  }
+
+  return res;
+}
