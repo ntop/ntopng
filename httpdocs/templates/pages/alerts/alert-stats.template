@@ -202,9 +202,30 @@
             }
         }
 
-        function getTimestampRange() {
-            const begin = $(`#begin-epoch`).datetimepicker('date').utc();
-            const end = $(`#end-epoch`).datetimepicker('date').utc();
+        function getTimestampRange(updateDatetimeUsingPresets = false) {
+            let begin = 0;
+            let end = 0;
+            const selectPresets = $(`#select-presets`).val();
+
+            if(updateDatetimeUsingPresets && selectPresets) {
+                // getting the current time using presets
+                const [subtract, measure] = selectPresets.split(',');
+                const now = moment();
+                const diff = moment().subtract(parseInt(subtract), measure);
+
+                begin = diff;
+                end = now;
+
+                // update the datetimepickers
+                $inputEndEpoch.datetimepicker('minDate', diff);
+                $inputEndEpoch.datetimepicker('maxDate', now);
+
+                $inputEndEpoch.datetimepicker('date', now);
+                $inputBeginEpoch.datetimepicker('date', diff);
+            } else {
+                begin = $(`#begin-epoch`).datetimepicker('date').utc();
+                end = $(`#end-epoch`).datetimepicker('date').utc();
+            }
             return [begin, end];
         }
 
@@ -310,8 +331,8 @@
             window.history.pushState({epoch_begin: begin.unix(), epoch_end: end.unix()}, '', url);
         }
 
-        async function onRangePickerChange(pushHistroy = false) {
-            const [begin, end] = getTimestampRange();
+        async function onRangePickerChange(pushHistroy = false, updateDatetimeUsingPresets = false) {
+            const [begin, end] = getTimestampRange(updateDatetimeUsingPresets);
             const score = getScore();
             setDatasourceParams();
 
@@ -505,7 +526,7 @@
         });
 
         {% if (datatable.refresh_rate) and (datatable.refresh_rate > 0) then %}
-            setInterval(function() { onRangePickerChange(); }, {{ datatable.refresh_rate }});
+            setInterval(function() { onRangePickerChange(true, true); }, {{ datatable.refresh_rate }});
         {% end %}
 
         const $table = $(`#{{ datatable.name }}`).DataTable(config);
