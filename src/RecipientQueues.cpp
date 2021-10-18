@@ -124,9 +124,11 @@ bool RecipientQueues::empty() {
   bool res = true;
 
   for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++) {
-    if(!queues_by_prio[i]->empty()) {
-      res = false;
-      break;
+    if(queues_by_prio[i]) {
+      if(!queues_by_prio[i]->empty()) {
+	res = false;
+	break;
+      }
     }
   }
 
