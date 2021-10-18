@@ -17,6 +17,9 @@ local is_pro = ntop.isPro()
 -- A while-loop is implemented inside this script to process notifications
 -- every `periodicity` 3 seconds.
 
+local num_loops = 0
+local max_num_loops = 20 -- ~ 1 minute
+
 while true do
    -- Process notifications every three seconds.
 
@@ -45,12 +48,17 @@ while true do
       break
    end
 
+   num_loops = num_loops + 1
+   if(num_loops == max_num_loops) then
+      break
+   end
+   
    -- Check the next VM reload to decide if it is time to exit the loop
    -- A VM reload is triggered when checks have changed, or when recipients have changed.
    -- Recipient changes allow this vm to reload and thus re-read user script configurations.
-   if ntop.getNextVmReload() - now < 1 --[[ less than 1 second from the next vm reload ]] then
-      break
-   end
+   --if ntop.getNextVmReload() - now < 1 --[[ less than 1 second from the next vm reload ]] then
+   --   break
+   --end
 
    -- Sleep for a time which is three seconds minus the amount of time spent processing notifications
    local nap_ms = (periodicity - (end_ms - start_ms)) * 1000
