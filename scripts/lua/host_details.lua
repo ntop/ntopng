@@ -1734,6 +1734,7 @@ local page_params = {
    application = _GET["application"],
    category = _GET["category"],
    alert_type = _GET["alert_type"],
+   alert_type_severity = _GET["alert_type_severity"],
    tcp_flow_state = _GET["tcp_flow_state"],
    flowhosts_type = _GET["flowhosts_type"],
    traffic_type = _GET["traffic_type"],
