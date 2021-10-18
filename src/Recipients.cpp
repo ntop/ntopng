@@ -222,10 +222,11 @@ bool Recipients::empty() {
   m.lock(__FILE__, __LINE__);
 
   for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
-    if(recipient_queues[recipient_id])
-    if(!recipient_queues[recipient_id]->empty()) {
-      res = false;
-      break;
+    if(recipient_queues[recipient_id]) {
+      if(!recipient_queues[recipient_id]->empty()) {
+	res = false;
+	break;
+      }
     }
   }
 
