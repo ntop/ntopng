@@ -2014,7 +2014,7 @@ local lang = {
     ["enable_flow_ratio"] = "Enable Flow/SNMP Ratio",
     ["exporter_devices"] = "Flow Exporter Devices",
     ["exporter_ip"] = "Flow Exporter IP",
-    ["exporters"] = "Exporters",
+    ["exporters"] = "Flow Exp.",
     ["flow_device_x"] = "Flow Exporter %{device}",
     ["flow_device_x_interface_y"] = "Flow Exporter %{device} / %{interface}",
     ["flow_ratio_snmp_instructions"] = "To enable the Flow/SNMP ratio, this flow probe must support SNMP and must be <a href='%{href}'>added</a> to the SNMP devices.",
