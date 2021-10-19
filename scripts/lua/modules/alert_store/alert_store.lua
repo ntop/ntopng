@@ -907,10 +907,6 @@ function alert_store:count_by_severity_and_time_historical()
    local min_slot, max_slot, time_slot_width = self:_count_by_time_get_bounds()
    local where_clause = self:build_where_clause()
 
-   if severity then
-      where_clause = string.format("severity = %u", severity) .. " AND " .. where_clause
-   end
-
    -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
    local q = string.format("SELECT severity, (tstamp - tstamp %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY severity, slot ORDER BY severity, slot ASC",
             time_slot_width, self._table_name, where_clause)
@@ -941,14 +937,10 @@ end
 -- ##############################################
 
 --@brief Performs a query and counts the number of records in multiple time slots using the old response format (CheckMK integration)
-function alert_store:old_timeseries_query_historical()
+function alert_store:count_by_24h_historical()
    local group_by = "hour"
    local time_slot_width = "3600"
    local where_clause = self:build_where_clause()
-
-   if severity then
-      where_clause = string.format("severity = %u", severity) .. " AND " .. where_clause
-   end
 
    -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
    local q = string.format("SELECT (tstamp - tstamp %% %u) as hour, count(*) count FROM %s WHERE %s GROUP BY hour",
@@ -964,7 +956,7 @@ end
 -- ##############################################
 
 --@brief Performs a query and counts the number of records in multiple time slots using the old response format (CheckMK integration)
-function alert_store:old_timeseries_query_engaged(filter, severity)
+function alert_store:count_by_24h_engaged(filter, severity)
    local group_by = "hour"
    local time_slot_width = "3600"
    local where_clause = self:build_where_clause()
@@ -989,16 +981,16 @@ end
 -- Old timeseries --
 --@brief Count from memory (engaged) or database (historical)
 --@return Alert counters divided into severity and time slots
-function alert_store:count_by_severity_and_time_old_ts()
+function alert_store:count_by_24h()
    -- Add filters
    self:add_request_filters()
    -- Add limits and sort criteria
    self:add_request_ranges()
 
    if self._status == alert_consts.alert_status.engaged.alert_status_id then -- Engaged
-      return self:old_timeseries_query_engaged() or {}
+      return self:count_by_24h_engaged() or {}
    else -- Historical
-      return self:old_timeseries_query_historical() or {}
+      return self:count_by_24h_historical() or {}
    end
 end
 
@@ -1073,10 +1065,10 @@ function alert_store:count_by_severity_and_time_request()
    }
 
    local count_data = 0
-   local old_ts = toboolean(_GET["old_alert_ts"]) or false
+   local by_24h = toboolean(_GET["by_24h"]) or false
 
-   if old_ts and old_ts == true then
-      return self:count_by_severity_and_time_old_ts()
+   if by_24h then
+      return self:count_by_24h()
    else
       count_data = self:count_by_severity_and_time()
    end
