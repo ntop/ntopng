@@ -189,6 +189,7 @@ local lang = {
   ["label"] = "Label",
   ["label_alerts"] = "Label Alerts",
   ["language"] = "Language",
+  ["last_http_method"] = "HTTP Method",
   ["last_seen"] = "Last Seen",
   ["layer_2"] = "MAC Addresses",
   ["legenda"] = "Legenda",

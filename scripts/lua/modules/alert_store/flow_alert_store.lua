@@ -317,7 +317,7 @@ function flow_alert_store:format_record(value, no_html)
    local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, alert_info)
 
    msg = addScoreToAlertDescr(msg, ntop.getFlowAlertScore((tonumber(value["alert_id"]))))
-
+   
    local active_url = ""
 
    local attacker = ""
@@ -325,6 +325,9 @@ function flow_alert_store:format_record(value, no_html)
 
    -- Add link to active flow
    local alert_json = json.decode(value.json)
+   
+   msg = addHTTPInfoToAlertDescr(msg, alert_json)
+
    if not no_html and alert_json then
       local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
       if active_flow and active_flow["seen.first"] < tonumber(value["tstamp"]) then

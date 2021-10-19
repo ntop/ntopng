@@ -4624,6 +4624,18 @@ function addScoreToAlertDescr(msg, score)
             format_utils.formatValue(score)))
 end
 
+function addHTTPInfoToAlertDescr(msg, alert_json)
+   if (alert_json) 
+      and (table.len(alert_json["http"]) > 0) 
+      and (alert_json["http"]["protos.http.last_method"])then
+      msg = msg .. string.format(" [%s: %s]", 
+         i18n("last_http_method"), 
+         alert_json["http"]["protos.http.last_method"])
+   end
+
+   return msg
+end
+
 -- #####################
 
 local iec104_typeids = {
