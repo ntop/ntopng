@@ -138,9 +138,27 @@ at the *os-nprobe* `nProbe plugin guide <https://www.ntop.org/guides/nprobe/thir
 Common Issues
 =============
 
+Failure Running ntopng
+~~~~~~~~~~~~~~~~~~~~~~
+
 A common issue on FreeBSD which is preventing ntopng from running and even 
 showing Version and License information under *Settings* > *License*, is a
 corrupted Redis database. In order to quickly fix this it is required to 
 remove the database files under /var/db/redis/*.rdb and restart the service
 (or reboot the machine).
+
+Failure Adding the Repository
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some users experienced issues adding the ntop repository in OPNsense as shown in
+the trace below. This seems to be due to an issue with the ACME plugin. Manually
+importing LE root and intermediate CA chain seems to fix this issue. Please read
+https://forum.opnsense.org/index.php?topic=25178.0 for more info.
+
+.. code:: bash
+
+   pkg add https://packages.ntop.org/FreeBSD/FreeBSD:12:amd64/latest/ntop-1.0.txz
+   Certificate verification failed for /O=Digital Signature Trust Co./CN=DST Root CA X3
+   2275989975040:error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed:/usr/src/crypto/openssl/ssl/statem/statem_clnt.c:1915:
+   pkg: https://packages.ntop.org/FreeBSD/FreeBSD:12:amd64/latest/ntop-1.0.txz: Authentication error
 
