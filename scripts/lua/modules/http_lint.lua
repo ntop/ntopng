@@ -1536,6 +1536,7 @@ local known_parameters = {
    ["severity"]                = validateListOfTypeInline(validateFilters(validateNumber)), -- Same as alert_severity
    ["alert_granularity"]       = validateNumber,                -- An alert granularity
    ["entity"]                  = validateNumber,                -- An alert entity type
+   ["by_24h"]                  = validateBool,                  -- Used to know if the new or the old timeseries format is requested
    ["role"]                    = validateListOfTypeInline(validateFilters(validateSingleWord)), -- attacker/victim
    ["role_cli_srv"]            = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
    ["acknowledged"]            = validateListOfTypeInline(validateFilters(validateSingleWord)), -- acknowledged

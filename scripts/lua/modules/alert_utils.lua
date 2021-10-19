@@ -940,4 +940,50 @@ function alert_utils.formatBehaviorAlert(params, anomalies, stats, id, subtype, 
    end
 end
 
+-- ##############################################
+
+local function addDayEpoch(res, day_epoch)
+   res[day_epoch] = {
+      0, --[[ Counter for alerts between 00:00 and 00:59 UTC --]]
+      0, --[[ Counter for alerts between 01:00 and 01:59 UTC --]]
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 --[[ Counter for alerts in other hours, until 23:00 to 23:59 --]]
+   }
+
+   return res
+end
+
+-- ##############################################
+
+--@brief Function used to format the old timeseries format (CheckMK integration)
+function alert_utils.formatOldTimeseries(q_res, _epoch_begin, _epoch_end)
+   local hour_secs = 60*60
+   local day_secs = 60*60*24
+   local epoch_begin = _epoch_begin - (_epoch_begin % day_secs) -- Round begin to start of day
+   local epoch_end = _epoch_end - (_epoch_end % day_secs) + day_secs -- Round end to end of day
+   local res = {}
+
+   for _, v in ipairs(q_res) do
+      local tstamp = v.hour or v.tstamp
+      -- Midnight UTC of the day containing v.hour
+      local day_epoch = tstamp - (tstamp % day_secs)
+
+      -- Hour of the day containing v.hour, from 0 to 23, inclusive
+      -- NOTE: Use the `floor` to make sure hour is an integer as it will be used to index a Lua array
+      local hour = math.floor((tstamp - day_epoch) / hour_secs) 
+
+      -- Here we add 1 to the hour as Lua array are indexed starting from 1, whereas `hour` is an integer starting from zero
+      if not res[day_epoch] then
+         res = addDayEpoch(res, day_epoch)
+      end
+
+      -- This is done for both, enganged and historical alert, historical have v.hour and v.count, instead engaged
+      -- There is one entry per engaged, reporting the starting time (tstamp), so just add +1 to the hour having that alert 
+      res[day_epoch][hour + 1] = tonumber(--[[ Historical ]]v.count or --[[ Engaged ]]((res[day_epoch][hour + 1] or 0) + 1))
+   end -- for
+
+   return res
+end
+
+-- ##############################################
+
 return alert_utils

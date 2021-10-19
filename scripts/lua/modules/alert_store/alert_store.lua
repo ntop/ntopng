@@ -881,13 +881,9 @@ function alert_store:count_by_severity_and_time_historical()
    local min_slot, max_slot, time_slot_width = self:_count_by_time_get_bounds()
    local where_clause = self:build_where_clause()
 
-   if severity then
-      where_clause = string.format("severity = %u", severity) .. " AND " .. where_clause
-   end
-
    -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
    local q = string.format("SELECT severity, (tstamp - tstamp %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY severity, slot ORDER BY severity, slot ASC",
-			   time_slot_width, self._table_name, where_clause)
+            time_slot_width, self._table_name, where_clause)
 
    local q_res = interface.alert_store_query(q) or {}
 
@@ -904,11 +900,72 @@ function alert_store:count_by_severity_and_time_historical()
       local cur_slot = tonumber(p.slot)
       local cur_count = tonumber(p.count)
       if cur_slot >= min_slot and cur_slot <= max_slot then
-	 all_severities[severity_id].all_slots[cur_slot] = cur_count
+    all_severities[severity_id].all_slots[cur_slot] = cur_count
       end
    end
 
    return self:_prepare_count_by_severity_and_time_series(all_severities, min_slot, max_slot, time_slot_width)
+end
+
+
+-- ##############################################
+
+--@brief Performs a query and counts the number of records in multiple time slots using the old response format (CheckMK integration)
+function alert_store:count_by_24h_historical()
+   local group_by = "hour"
+   local time_slot_width = "3600"
+   local where_clause = self:build_where_clause()
+
+   -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
+   local q = string.format("SELECT (tstamp - tstamp %% %u) as hour, count(*) count FROM %s WHERE %s GROUP BY hour",
+            time_slot_width, self._table_name, where_clause)
+
+   local q_res = interface.alert_store_query(q) or {}
+
+   local res = alert_utils.formatOldTimeseries(q_res, self._epoch_begin, self._epoch_end)
+
+   return res
+end
+
+-- ##############################################
+
+--@brief Performs a query and counts the number of records in multiple time slots using the old response format (CheckMK integration)
+function alert_store:count_by_24h_engaged(filter, severity)
+   local group_by = "hour"
+   local time_slot_width = "3600"
+   local where_clause = self:build_where_clause()
+   local entity_id_filter = tonumber(self._alert_entity and self._alert_entity.entity_id) -- Possibly set in subclasses constructor
+   local entity_value_filter = filter
+   local alert_id_filter = nil
+   local severity_filter = nil
+   local role_filter = nil
+
+   local alerts = interface.getEngagedAlerts(entity_id_filter, entity_value_filter, alert_id_filter, severity_filter)
+
+   q_res = self:filter_alerts(alerts)
+
+   -- Query done, now format the array
+   local res = alert_utils.formatOldTimeseries(q_res, self._epoch_begin, self._epoch_end)
+
+   return res
+end
+
+-- ##############################################
+
+-- Old timeseries --
+--@brief Count from memory (engaged) or database (historical)
+--@return Alert counters divided into severity and time slots
+function alert_store:count_by_24h()
+   -- Add filters
+   self:add_request_filters()
+   -- Add limits and sort criteria
+   self:add_request_ranges()
+
+   if self._status == alert_consts.alert_status.engaged.alert_status_id then -- Engaged
+      return self:count_by_24h_engaged() or {}
+   else -- Historical
+      return self:count_by_24h_historical() or {}
+   end
 end
 
 -- ##############################################
@@ -921,6 +978,7 @@ function alert_store:count_by_severity_and_time()
    -- Add limits and sort criteria
    self:add_request_ranges()
 
+   -- old queries, integration with CheckMK
    if self._status == alert_consts.alert_status.engaged.alert_status_id then -- Engaged
       return self:count_by_severity_and_time_engaged() or 0
    else -- Historical
@@ -980,7 +1038,14 @@ function alert_store:count_by_severity_and_time_request()
       colors = {}
    }
 
-   local count_data = self:count_by_severity_and_time()
+   local count_data = 0
+   local by_24h = toboolean(_GET["by_24h"]) or false
+
+   if by_24h then
+      return self:count_by_24h()
+   else
+      count_data = self:count_by_severity_and_time()
+   end
 
    for _, severity in pairsByField(alert_severities, "severity_id", rev) do
       if(count_data[severity.severity_id] ~= nil) then
