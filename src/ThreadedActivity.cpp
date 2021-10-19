@@ -447,7 +447,7 @@ LuaEngine* ThreadedActivity::loadVm(char *script_path, NetworkInterface *iface, 
       if((it = vms.find(iface->get_id())) != vms.end())
 	engine = it->second;
       else {
-	engine = new LuaReusableEngine(script_path, iface, 300 /* reload interval */);
+	engine = new LuaReusableEngine(script_path, iface, 60 /* reload interval */);
 
 	/* Save the VM for later use */
 	vms[iface->get_id()] = engine;
