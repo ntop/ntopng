@@ -316,17 +316,13 @@ function flow_alert_store:format_record(value, no_html)
    local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= '0')   
    local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, alert_info)
 
-   msg = addScoreToAlertDescr(msg, ntop.getFlowAlertScore((tonumber(value["alert_id"]))))
-   
    local active_url = ""
-
    local attacker = ""
    local victim = ""
-
    -- Add link to active flow
    local alert_json = json.decode(value.json)
    
-   msg = addHTTPInfoToAlertDescr(msg, alert_json)
+   msg = addExtraFlowInfo(msg, alert_json, value)
 
    if not no_html and alert_json then
       local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])

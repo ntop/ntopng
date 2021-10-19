@@ -4624,6 +4624,8 @@ function addScoreToAlertDescr(msg, score)
             format_utils.formatValue(score)))
 end
 
+-- ##############################################
+
 function addHTTPInfoToAlertDescr(msg, alert_json)
    if (alert_json) 
       and (table.len(alert_json["http"]) > 0) 
@@ -4635,6 +4637,35 @@ function addHTTPInfoToAlertDescr(msg, alert_json)
 
    return msg
 end
+
+-- ##############################################
+
+function addBytesInfoToAlertDescr(msg, value)
+   local predominant_bytes = string.format("%s %s", i18n("download"), i18n("download_icon"))
+   if (value["cli2srv_bytes"] or 0) > (value["srv2cli_bytes"] or 0) then
+      predominant_bytes = string.format("%s %s", i18n("upload"), i18n("upload_icon"))
+   end
+
+   msg = msg .. string.format(" [%s: %s]", 
+      i18n("predominant_direction"),
+      predominant_bytes)
+   
+   return msg
+end
+
+-- ##############################################
+
+function addExtraFlowInfo(msg, alert_json, value)
+   msg = addScoreToAlertDescr(msg, ntop.getFlowAlertScore((tonumber(value["alert_id"]))))
+   msg = addHTTPInfoToAlertDescr(msg, alert_json)   
+   msg = addBytesInfoToAlertDescr(msg, value)
+
+   return msg
+end
+
+-- ##############################################
+
+
 
 -- #####################
 
