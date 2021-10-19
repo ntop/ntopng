@@ -518,6 +518,12 @@ if isEmptyString(cached_column) then
     cached_column = "0"
 end
 
+local checkbox_checked = ""
+
+if refresh_rate and refresh_rate > 0 then
+    checkbox_checked = "checked"
+end
+
 local context = {
     template_utils = template_utils,
     json = json,
@@ -530,6 +536,7 @@ local context = {
         default = status ~= "engaged" and "30min" or "1week",
         score = score,
         ifid = ifid,
+        refresh_enabled = checkbox_checked,
         tags = {
             show_score_filter = true,
 	        enabled = (page ~= 'all'),
@@ -538,7 +545,8 @@ local context = {
             defined_tags = defined_tags[page],
             values = initial_tags,
             i18n = {
-	        alert_id = i18n("tags.alert_id"),
+                enable_auto_refresh = auto_refresh_text,
+	            alert_id = i18n("tags.alert_id"),
                 severity = i18n("tags.severity"),
 		        score = i18n("tags.score"),
                 l7_proto = i18n("tags.l7proto"),

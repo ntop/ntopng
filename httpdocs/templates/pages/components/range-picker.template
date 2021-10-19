@@ -123,7 +123,12 @@
             <button id="btn-apply" class="btn btn-sm btn-primary m-auto ms-1">{{ i18n("apply") }}</button>
 
         </div>
-
+        <div class="d-flex align-items-center ms-auto">
+            <div class="form-check form-switch">
+                <input class="form-check-input align-items-center" type="checkbox" id="autoRefreshEnabled" {{ refresh_enabled }}>
+                <a href="{{ ntop.getHttpPrefix }}/lua/admin/prefs.lua?tab=alerts">{{ i18n("enable_auto_refresh") }}</a>
+            </div>
+        </div>
     {% else %}
             <button id="btn-apply" class="btn btn-sm btn-primary m-auto ms-1">{{ i18n("apply") }}</button>
     {% end %}

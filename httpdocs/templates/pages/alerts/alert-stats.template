@@ -122,6 +122,8 @@
         const $btnGetPermaLink = $(`#btn-get-permalink`);
         const alertCard = [$('#alertCard1'),$('#alertCard2')];    
 
+        let intervalId;
+
         /* Show an overlay to hide loading */
         function toggleOverlays(time = 500) {
             $(`.overlay`).toggle(time);
@@ -526,7 +528,7 @@
         });
 
         {% if (datatable.refresh_rate) and (datatable.refresh_rate > 0) then %}
-            setInterval(function() { onRangePickerChange(true, true); }, {{ datatable.refresh_rate }});
+            intervalId = setInterval(function() { onRangePickerChange(true, true); }, {{ datatable.refresh_rate }});
         {% end %}
 
         const $table = $(`#{{ datatable.name }}`).DataTable(config);
@@ -1254,5 +1256,28 @@
             });
         }
     }
+
+    /* Auto-refresh handling */
+    $(`#autoRefreshEnabled`).on('click', async function(e) {
+        const enabled_disabled = $(this).is(":checked");
+        const auto_refresh_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/auto_refresh.lua' 
+
+        $.post(auto_refresh_url, {
+            ifid: {{ ifid }},
+            alert_page_refresh_rate_enabled: enabled_disabled,
+            csrf: PAGE_CSRF,
+        })  
+        .done(function(rsp) {
+            if(enabled_disabled) {
+                if (rsp.rsp.refresh_rate > 0 && !intervalId) 
+                    intervalId = setInterval(function() { onRangePickerChange(true, true); }, rsp.rsp.refresh_rate);
+            }
+            else {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        })
+    });
+
 });
 </script>

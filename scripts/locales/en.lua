@@ -114,6 +114,7 @@ local lang = {
   ["enable"] = "Enable",
   ["enable_check_title"] = "Enable Selected Check",
   ["enable_them"] = "Enable Them",
+  ["enable_auto_refresh"] = "Auto-Refresh",
   ["enabled"] = "Enabled",
   ["end"] = "End",
   ["enterpriseOnly"] = "This feature is only available in the ntopng Enterprise edition",
