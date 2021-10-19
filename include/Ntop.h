@@ -460,6 +460,7 @@ class Ntop {
   void shutdownAll();
   void runHousekeepingTasks();
   void runShutdownTasks();
+  void checkShutdownWhenDone();
   bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr) == -1 ? false : true);    }; 
   void getLocalNetworkIp(int16_t local_network_id, IpAddress **network_ip, u_int8_t *network_prefix);
   void addLocalNetworkList(const char *network);

@@ -601,30 +601,7 @@ void Ntop::start() {
       NOTE: Shutdown when done is only meaningful for pcap-dump interfaces when
       the file has been read.
     */
-    if(ntop->getPrefs()->shutdownWhenDone()) {
-      u_int i;
-
-      /* Make sure all the interfaces are done with their respective packets */
-      for(i = 0; i < get_num_interfaces() && getInterface(i)->read_from_pcap_dump_done(); i++)
-	;
-
-      /* When they are done, signal ntopng to shutdown */
-      if(i == get_num_interfaces() && recipients_are_empty()) {
-	/* One extra housekeeping before executing tests (this assumes all flows have been walked) */
-	runHousekeepingTasks();
-
-	/* Test Script (Post Analysis) */
-	if(ntop->getPrefs()->get_test_post_script_path()) {
-	  const char *test_post_script_path = ntop->getPrefs()->get_test_post_script_path();
-
-	  /* Execute as Bash script */
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "> Running Post Script '%s'", test_post_script_path);
-	  Utils::exec(test_post_script_path);
-	}
-
-	ntop->getGlobals()->shutdown();
-      }
-    }
+    checkShutdownWhenDone();
 
 #ifndef __linux__
     gettimeofday(&end, NULL);
@@ -2799,6 +2776,50 @@ void Ntop::runShutdownTasks() {
   for(int i=0; i<num_defined_interfaces; i++) {
     if(iface[i]->isView())
       iface[i]->runShutdownTasks();
+  }
+}
+
+/* ******************************************* */
+
+
+/*
+  Checks if all the activities are completed (e.g., all packets processed, notifications sent)
+  and possibly sends a shutdown signal to terminate.
+  NOTE: Only effective when ntopng is started with --shutdown-when-done. Without that options
+  ntopng keeps running and doesn't terminate.
+*/
+void Ntop::checkShutdownWhenDone() {
+  if(ntop->getPrefs()->shutdownWhenDone()) {
+    for(int i = 0; i < get_num_interfaces(); i++) {
+      NetworkInterface *iface = getInterface(i);
+
+      /* Check all the interfaces reading from pcap files if they are done with their activities. */
+      if(iface->read_from_pcap_dump() && !iface->read_from_pcap_dump_done())
+	/* iface isn't done yet */
+	return;
+    }
+
+    /* Here all interface reading from pcap files are done. */
+
+    if(!recipients_are_empty())
+      /* Recipients are still processing notifications, wait until they're done. */
+      return;
+
+    /* When they are done, signal ntopng to shutdown */
+
+    /* One extra housekeeping before executing tests (this assumes all flows have been walked) */
+    runHousekeepingTasks();
+
+    /* Test Script (Post Analysis) */
+    if(ntop->getPrefs()->get_test_post_script_path()) {
+      const char *test_post_script_path = ntop->getPrefs()->get_test_post_script_path();
+
+      /* Execute as Bash script */
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "> Running Post Script '%s'", test_post_script_path);
+      Utils::exec(test_post_script_path);
+    }
+
+    ntop->getGlobals()->shutdown();
   }
 }
 
