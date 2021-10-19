@@ -969,7 +969,6 @@ function alert_utils.formatOldTimeseries(q_res, _epoch_begin, _epoch_end)
    local epoch_end = _epoch_end - (_epoch_end % day_secs) + day_secs -- Round end to end of day
    local res = {}
 
-   tprint(q_res)
    for _, v in ipairs(q_res) do
       local tstamp = v.hour or v.tstamp
       -- Midnight UTC of the day containing v.hour
