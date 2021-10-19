@@ -72,6 +72,12 @@ ndpi_serializer* FlowAlert::getSerializedAlert() {
     ndpi_serialize_string_int32(serializer, "code", icmp_code);
     ndpi_serialize_end_of_block(serializer);
   }
+
+  if(flow->isHTTP()) {
+    ndpi_serialize_start_of_block(serializer, "http");
+    flow->getHTTPInfo(serializer);
+    ndpi_serialize_end_of_block(serializer);
+  }
   
   /* Add information relative to this check */
   ndpi_serialize_start_of_block(serializer, "alert_generation");
