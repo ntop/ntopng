@@ -127,7 +127,7 @@
             <div>
                 <i class="fas fa-question-circle" title="{{ i18n("auto_refresh_descr") }}"></i>
             </div>
-            <div class="mx-2" id="autoRefreshEnabled">
+            <div class="mx-2" id="autoRefreshEnabled" style="cursor: pointer;">
                 <i id="autoRefreshIcon" class="fas fa-sync-alt fa-lg btn-link {{ refresh_enabled }}"></i>
             </div>
             <a href="{{ ntop.getHttpPrefix }}/lua/admin/prefs.lua?tab=alerts"><i class="fas fa-cog fa-lg"></i></a>
