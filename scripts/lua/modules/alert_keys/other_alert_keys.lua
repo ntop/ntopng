@@ -84,6 +84,7 @@ local other_alert_keys = {
    alert_behavior_anomaly               =  OTHER_BASE_KEY + 71, -- scripts/lua/modules/alert_definitions/other/alert_behavior_anomaly.lua
    alert_ids_ips_jail_add               =  OTHER_BASE_KEY + 72, -- scripts/lua/modules/alert_definitions/other/alert_ids_ips_jail_add.lua
    alert_ids_ips_jail_remove            =  OTHER_BASE_KEY + 73, -- scripts/lua/modules/alert_definitions/other/alert_ids_ips_jail_remove.lua
+   alert_port_too_many_macs             =  OTHER_BASE_KEY + 74,
 }
 
 -- ##############################################

@@ -32,6 +32,15 @@ end
 
 -- ##############################################
 
+function snmp_device_alert_store:_entity_val_to_ip_and_port(entity_val)
+   local ip_port = string.split(entity_val, "_ifidx")
+   local ip, port = ip_port[1], tonumber(ip_port[2])
+
+   return ip, port
+end
+
+-- ##############################################
+
 function snmp_device_alert_store:insert(alert)
    local device_ip
    local device_name
@@ -46,6 +55,11 @@ function snmp_device_alert_store:insert(alert)
          port = snmp_json.interface
          port_name = snmp_json.interface_name
       end
+   end
+
+   if isEmptyString(device_ip) then
+      -- Extract them from the entity value
+      device_ip, port = self:_entity_val_to_ip_and_port(alert.entity_val)
    end
 
    local insert_stmt = string.format("INSERT INTO %s "..
@@ -94,6 +108,22 @@ end
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function snmp_device_alert_store:format_record(value, no_html)
+   if not value["ip"] then
+      -- This is an in-memory engaged alert, let's extract the ip and the port from the entity_val
+      value["ip"], value["port"] = self:_entity_val_to_ip_and_port(value["entity_val"])
+   end
+
+   -- Suppress zero ports
+   value["port"] = tonumber(value["port"])
+   if value["port"] == 0 then
+      value["port"] = ""
+   end
+
+   -- If there's no port name stored, use the id
+   if isEmptyString(value["port_name"]) then
+      value["port_name"] = value["port"]
+   end
+
    local record = self:format_json_record_common(value, alert_entities.snmp_device.entity_id, no_html)
 
    local alert_info = alert_utils.getAlertInfo(value)
@@ -105,7 +135,7 @@ function snmp_device_alert_store:format_record(value, no_html)
    record[RNAME.NAME.name] = snmp_utils.get_snmp_device_sysname(value["ip"]) or ""
    record[RNAME.PORT.name] = {
       value = value["port"],
-      label = value["port_name"]
+      label = value["port_name"] or value["port"]
    }
 
    record[RNAME.ALERT_NAME.name] = alert_name

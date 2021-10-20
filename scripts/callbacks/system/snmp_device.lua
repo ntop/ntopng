@@ -104,7 +104,8 @@ local function snmp_device_run_checks(cached_device)
 	 end
 
 	 if(conf.enabled) then
-	    local iface_entity = alerts_api.snmpDeviceEntity(device_ip) -- Use the same entity as for the global device
+	    local iface_entity = alerts_api.snmpInterfaceEntity(device_ip, snmp_interface_index)
+
 	    -- Augment data with counters and status
 	    snmp_interface["if_counters"] = cached_device.if_counters[snmp_interface_index]
 	    snmp_interface["bridge"] = cached_device.bridge[snmp_interface_index]
@@ -113,7 +114,7 @@ local function snmp_device_run_checks(cached_device)
 	       granularity = granularity,
 	       alert_entity = iface_entity,
 	       check = script,
-	       conf = conf.script_conf,
+	       check_config = conf.script_conf,
 	       now = now,
 	    }))
 	 end

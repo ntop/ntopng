@@ -53,6 +53,7 @@ checks.field_units = {
   syn_min = "field_units.syn_min",
   contacts = "field_units.contacts",
   score = "field_units.score",
+  macs = "field_units.macs",
 }
 
 -- ##############################################

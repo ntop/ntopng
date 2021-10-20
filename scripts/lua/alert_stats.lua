@@ -164,7 +164,7 @@ local pages = {
 	endpoint_delete = "/lua/rest/v2/delete/interface/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v2/acknowledge/interface/alerts.lua",
 	url = getPageUrl(base_url, {page = "interface"}),
-	hidden = is_system_interface or not require "interface_alert_store".new():has_alerts(),
+	hidden = not require "interface_alert_store".new():has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.interface.entity_id)]
     },
     {
