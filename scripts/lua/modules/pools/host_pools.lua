@@ -103,9 +103,6 @@ function host_pools:end_transaction()
    -- Reload pools
     ntop.reloadHostPools()
 
-    -- Reload periodic scripts
-    ntop.reloadPeriodicScripts()
-
     self.transaction_started = nil
 end
 
@@ -301,9 +298,6 @@ function host_pools:_persist(pool_id, name, members, recipients, policy)
        if recipients then -- safety check
           self:set_host_recipients(recipients)
        end
-
-       -- Reload periodic scripts
-       ntop.reloadPeriodicScripts()
     end
 
     -- Return the assigned pool_id
@@ -346,9 +340,6 @@ function host_pools:delete_pool(pool_id)
 
             -- Reload pools
             ntop.reloadHostPools()
-
-	    -- Reload periodic scripts
-	    ntop.reloadPeriodicScripts()
 
             ret = true
         end
