@@ -1259,7 +1259,7 @@
 
     /* Auto-refresh handling */
     $(`#autoRefreshEnabled`).on('click', async function(e) {
-        const enabled_disabled = $(this).is(":checked");
+        const enabled_disabled = ($(`#autoRefreshIcon`).hasClass('fa-spin') == false);
         const auto_refresh_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/auto_refresh.lua' 
 
         $.post(auto_refresh_url, {
@@ -1269,12 +1269,15 @@
         })  
         .done(function(rsp) {
             if(enabled_disabled) {
-                if (rsp.rsp.refresh_rate > 0 && !intervalId) 
+                if (rsp.rsp.refresh_rate > 0 && !intervalId) {
                     intervalId = setInterval(function() { onRangePickerChange(true, true); }, rsp.rsp.refresh_rate);
+                    $(`#autoRefreshIcon`).addClass('fa-spin');
+                }
             }
             else {
                 clearInterval(intervalId);
                 intervalId = null;
+                $(`#autoRefreshIcon`).removeClass('fa-spin');
             }
         })
     });

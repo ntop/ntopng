@@ -521,7 +521,7 @@ end
 local checkbox_checked = ""
 
 if refresh_rate and refresh_rate > 0 then
-    checkbox_checked = "checked"
+    checkbox_checked = "fa-spin"
 end
 
 local context = {
@@ -545,6 +545,7 @@ local context = {
             defined_tags = defined_tags[page],
             values = initial_tags,
             i18n = {
+                auto_refresh_descr = i18n("auto_refresh_descr"),
                 enable_auto_refresh = auto_refresh_text,
 	            alert_id = i18n("tags.alert_id"),
                 severity = i18n("tags.severity"),
