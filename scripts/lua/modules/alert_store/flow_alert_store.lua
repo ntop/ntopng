@@ -356,16 +356,15 @@ function flow_alert_store:format_record(value, no_html)
 		  local message = alert_consts.alertTypeLabel(alert_id, true, alert_entities.flow.entity_id)
 
 		  local alert_score = ntop.getFlowAlertScore(alert_id)
-		  if alert_score > 0 then
-		     message = message .. string.format(" [%s: %s]",
-							i18n("score"),
-							format_utils.formatValue(alert_score))
-		  end
 
 		  local alert_risk = ntop.getFlowAlertRisk(alert_id)
 		  if alert_risk > 0 then
 		     message = string.format("%s %s", message, flow_risk_utils.get_documentation_link(alert_risk))
 		  end
+        
+        if alert_score > 0 then
+           message = addExtraFlowInfo(message, alert_json, value)
+        end
 
 		  if not other_alerts_by_score[alert_score] then
 		     other_alerts_by_score[alert_score] = {}
