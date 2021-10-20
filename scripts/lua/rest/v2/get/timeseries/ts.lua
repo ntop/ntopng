@@ -64,7 +64,7 @@ if _GET["tskey"] then
     if not isEmptyString(host["host"]) then
       local host_info = interface.getHostInfo(host["host"], host["vlan"])
       local mac_info = split(tskey, "_")
-      if host_info.mac == mac_info[1] then
+      if (host_info) and (host_info.mac == mac_info[1]) then
          tags.host_ip = tags.host;
       end
     end
