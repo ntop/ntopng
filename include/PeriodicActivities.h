@@ -40,7 +40,6 @@ class PeriodicActivities {
   void sendShutdownSignal();
 
   void lua(NetworkInterface *iface, lua_State *vm);
-  void reloadVMs();
 };
 
 #endif /* _PERIODIC_ACTIVITIES_H_ */

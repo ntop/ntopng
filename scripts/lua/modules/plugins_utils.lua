@@ -667,9 +667,6 @@ function plugins_utils.loadPlugins(community_plugins_only)
   ntop.swapPluginsDir()
   deleteCachePattern("ntonpng.cache.checks.available_system_modules.*")
 
-  -- Reload the periodic scripts to load the new plugins
-  ntop.reloadPeriodicScripts()
-
   -- Reload checks with their configurations
   local checks = require "checks"
   checks.initDefaultConfig()

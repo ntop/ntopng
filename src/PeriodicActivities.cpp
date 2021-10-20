@@ -29,7 +29,6 @@ typedef struct _activity_descr {
   bool align_to_localtime;  
   bool exclude_viewed_interfaces;
   bool exclude_pcap_dump_interfaces;
-  bool reuse_vm;
 } activity_descr;
 
 /* ******************************************* */
@@ -141,28 +140,28 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   no_priority_pool           = new (std::nothrow) ThreadPool(false, num_threads_no_priority);
   
   static activity_descr ad[] = {
-    // Script                 Periodicity (s) Max (s)  Pool                        Align  !View  !PCAP  Reuse
-    { SECOND_SCRIPT_PATH,                    1,     2, standard_priority_pool,     false, false, true,  true  },
-    { STATS_UPDATE_SCRIPT_PATH,              5,    10, standard_priority_pool,     false, false, true,  true  },
-    { PERIODIC_CHECKS_PATH,            5,    60, periodic_checks_pool, false, false, true,  true  },
+    // Script                 Periodicity (s) Max (s)  Pool                        Align  !View  !PCAP
+    { SECOND_SCRIPT_PATH,                    1,     2, standard_priority_pool,     false, false, true  },
+    { STATS_UPDATE_SCRIPT_PATH,              5,    10, standard_priority_pool,     false, false, true  },
+    { PERIODIC_CHECKS_PATH,            5,    60, periodic_checks_pool, false, false, true  },
 
-    { HOUSEKEEPING_SCRIPT_PATH,              3,     6, housekeeping_pool,          false, false, false, true  },
+    { HOUSEKEEPING_SCRIPT_PATH,              3,     6, housekeeping_pool,          false, false, false  },
 
-    { MINUTE_SCRIPT_PATH,                   60,    60, no_priority_pool,           false, false, true,  false },
-    { DAILY_SCRIPT_PATH,                 86400,  3600, no_priority_pool,           true,  false, true,  false },
+    { MINUTE_SCRIPT_PATH,                   60,    60, no_priority_pool,           false, false, true },
+    { DAILY_SCRIPT_PATH,                 86400,  3600, no_priority_pool,           true,  false, true },
 #ifdef HAVE_NEDGE
-    { PINGER_SCRIPT_PATH,                    5,     5, no_priority_pool,           false, false, true,  false },
+    { PINGER_SCRIPT_PATH,                    5,     5, no_priority_pool,           false, false, true },
 #endif
     
-    { TIMESERIES_SCRIPT_PATH,                1,  3600, timeseries_pool,            false, false, true,  true  },
-    { NOTIFICATIONS_SCRIPT_PATH,             3,    60, notifications_pool,         false, false, false, true  },
+    { TIMESERIES_SCRIPT_PATH,                1,  3600, timeseries_pool,            false, false, true  },
+    { NOTIFICATIONS_SCRIPT_PATH,             3,    60, notifications_pool,         false, false, false },
 
-    { FIVE_MINUTES_SCRIPT_PATH,            300,   300, longrun_priority_pool,      false, false, true,  false },
-    { HOURLY_SCRIPT_PATH,                 3600,   600, longrun_priority_pool,      false, false, true,  false },
+    { FIVE_MINUTES_SCRIPT_PATH,            300,   300, longrun_priority_pool,      false, false, true },
+    { HOURLY_SCRIPT_PATH,                 3600,   600, longrun_priority_pool,      false, false, true },
 
-    { DISCOVER_SCRIPT_PATH,                  5,  3600, discover_pool,              false, false, true,  true  },
+    { DISCOVER_SCRIPT_PATH,                  5,  3600, discover_pool,              false, false, true  },
 
-    { NULL,                                  0,     0, NULL,                       false, false, false, false }
+    { NULL,                                  0,     0, NULL,                       false, false, false }
   };
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Each periodic activity script will use %u threads", num_threads);
@@ -176,7 +175,6 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 						d->align_to_localtime,
 						d->exclude_viewed_interfaces,
 						d->exclude_pcap_dump_interfaces,
-						d->reuse_vm,
 						d->pool);
     if(ta) {
       activities[num_activities++] = ta;
@@ -187,11 +185,3 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   }
 }
 
-/* ******************************************* */
-
-void PeriodicActivities::reloadVMs() {
-  time_t next_reload = time(NULL) + 1;
-
-  for(int i = 0; i < num_activities; i++)
-    activities[i]->setNextVmReload(next_reload);
-}

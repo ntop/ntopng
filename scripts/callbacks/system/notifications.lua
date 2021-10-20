@@ -33,8 +33,6 @@ while true do
    -- End time, in milliseconds, used to calculate the duration of the processing of notifications
    local end_ms = ntop.gettimemsec()
 
-
-
    -- Check if it time to exit the loop
    if ntop.isShutdown() or ntop.getDeadline() - now < 1 --[[ less than 1 second from the deadline --]] or ntop.isDeadlineApproaching() --[[ just for safety, should not occur --]] then
       break
@@ -47,13 +45,6 @@ while true do
       break
    end
 
-   -- Check the next VM reload to decide if it is time to exit the loop
-   -- A VM reload is triggered when checks have changed, or when recipients have changed.
-   -- Recipient changes allow this vm to reload and thus re-read user script configurations.
-   if ntop.getNextVmReload() - now < 1 --[[ less than 1 second from the next vm reload ]] then
-      break
-   end
-
    -- Sleep for a time which is three seconds minus the amount of time spent processing notifications
    local nap_ms = (periodicity - (end_ms - start_ms)) * 1000
 
@@ -62,4 +53,3 @@ while true do
       ntop.msleep(nap_ms)
    end
 end
-

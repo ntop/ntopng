@@ -643,7 +643,6 @@ void Ntop::start() {
             (void)read(inotify_fd, buffer, sizeof(buffer));
 
             ntop->getTrace()->traceEvent(TRACE_DEBUG, "Directory changed");
-            reloadPeriodicScripts();
           }
         }
       }
@@ -1060,16 +1059,12 @@ time_t Ntop::recipient_last_use(u_int16_t recipient_id) {
 
 void Ntop::recipient_delete(u_int16_t recipient_id) {
   recipients.delete_recipient(recipient_id);
-  /* Trigger a reload of periodic scripts to refresh them with new recipients */
-  reloadPeriodicScripts();
 }
 
 /* ******************************************* */
 
 void Ntop::recipient_register(u_int16_t recipient_id, AlertLevel minimum_severity, u_int8_t enabled_categories) {
   recipients.register_recipient(recipient_id, minimum_severity, enabled_categories);
-  /* Trigger a reload of periodic scripts to refresh them with new recipients */
-  reloadPeriodicScripts();
 }
 
 /* ******************************************* */
@@ -3222,15 +3217,6 @@ void Ntop::setnDPICleanupNeeded(bool needed) {
   for(u_int i = 0; i<get_num_interfaces(); i++)
     if(getInterface(i))  getInterface(i)->setnDPICleanupNeeded(needed);
 }
-
-/* *************************************** */
-
-void Ntop::reloadPeriodicScripts() {
-  /*
-    Request a reload of all the VMs currently executing periodic activities
-   */
-  if(pa) pa->reloadVMs();
-};
 
 /* *************************************** */
 

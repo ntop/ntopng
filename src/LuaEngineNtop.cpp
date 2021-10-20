@@ -688,17 +688,6 @@ static int ntop_is_ipv6(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_reload_periodic_scripts(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  ntop->reloadPeriodicScripts();
-
-  lua_pushnil(vm);
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
 static int ntop_reload_flow_checks(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -1629,16 +1618,6 @@ static int ntop_script_get_deadline(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
 
   lua_pushinteger(vm, ctx && ctx->deadline ? ctx->deadline : 0);
-
-  return CONST_LUA_OK;
-}
-
-/* ****************************************** */
-
-static int ntop_script_get_next_vm_reload(lua_State* vm) {
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
-
-  lua_pushinteger(vm, ctx && ctx->next_reload ? ctx->next_reload : 0);
 
   return CONST_LUA_OK;
 }
@@ -6484,7 +6463,6 @@ static luaL_Reg _ntop_reg[] = {
   { "matchCustomCategory",   ntop_match_custom_category   },
   { "getTLSVersionName",     ntop_get_tls_version_name    },
   { "isIPv6",                ntop_is_ipv6                 },
-  { "reloadPeriodicScripts", ntop_reload_periodic_scripts },
   { "reloadFlowChecks",      ntop_reload_flow_checks      },
   { "reloadHostChecks",      ntop_reload_host_checks      },
   { "reloadAlertExclusions", ntop_reload_hosts_control    },
@@ -6573,7 +6551,6 @@ static luaL_Reg _ntop_reg[] = {
   /* Periodic scripts (ThreadedActivity.cpp) */
   { "isDeadlineApproaching",     ntop_script_is_deadline_approaching },
   { "getDeadline",               ntop_script_get_deadline            },
-  { "getNextVmReload",           ntop_script_get_next_vm_reload      },
 
   /* Speedtest */
   { "hasSpeedtestSupport",       ntop_has_speedtest_support          },
