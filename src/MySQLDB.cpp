@@ -770,7 +770,7 @@ MYSQL* MySQLDB::mysql_try_connect(MYSQL *conn, const char *dbname) {
 			    0, ntop->getPrefs()->get_mysql_host() /* socket */,
 			    flags);
   else {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "ClickHouse Connecting to %s:%u [user: %s][db: %s]",
+    ntop->getTrace()->traceEvent(TRACE_INFO, "ClickHouse Connecting to %s:%u [user: %s][db: %s]",
 				 ntop->getPrefs()->get_mysql_host(),
 				 ntop->getPrefs()->get_mysql_port(),
 				 ntop->getPrefs()->get_mysql_user(),
