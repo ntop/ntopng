@@ -463,3 +463,12 @@ void Mac::deleteMacData() {
 #endif
   first_seen = last_seen;
 }
+
+/* *************************************** */
+
+u_int64_t Mac::get_mac64() {
+  u_int64_t m = 0;
+  
+  memcpy(&m, mac, 6);
+  return(m);
+}
