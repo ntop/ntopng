@@ -414,7 +414,7 @@ void usage() {
 	 "                                    | clickhouse    Dump in ClickHouse database\n"
 	 "                                    |   Format:\n"
 	 "                                    |   clickhouse;<host[@port]|socket>;<dbname>;<table name>;<user>;<pw>\n"
-	 "                                    |   clickhouse;localhost;ntopng;flows;default;\n"
+	 "                                    |   clickhouse;127.0.0.1;ntopng;flows;default;\n"
 	 "                                    |\n"
 #endif
 #ifdef HAVE_MYSQL
@@ -1418,7 +1418,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 					   strerror(errno));
 	    else
 	      mysql_port = (int)l;
-	  }
+	  } else
+	    mysql_port = CONST_DEFAULT_CLICKHOUSE_PORT;
 	} else
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F %s;....", use_clickhouse ? "clickhouse" : "mysql");
       }

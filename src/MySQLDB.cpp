@@ -497,7 +497,9 @@ MySQLDB::MySQLDB(NetworkInterface *_iface, bool _clickhouse_mode) : DB(_iface) {
   db_created = false;
 
   connectToDB(&mysql, false);
-  mysql_alt_connected = connectToDB(&mysql_alt, true);
+
+  if(!clickhouse_mode)
+    mysql_alt_connected = connectToDB(&mysql_alt, true);
 }
 
 /* ******************************************* */
@@ -767,15 +769,22 @@ MYSQL* MySQLDB::mysql_try_connect(MYSQL *conn, const char *dbname) {
 			    dbname,
 			    0, ntop->getPrefs()->get_mysql_host() /* socket */,
 			    flags);
-  else
+  else {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "ClickHouse Connecting to %s:%u [user: %s][db: %s]",
+				 ntop->getPrefs()->get_mysql_host(),
+				 ntop->getPrefs()->get_mysql_port(),
+				 ntop->getPrefs()->get_mysql_user(),
+				 dbname ? dbname : "");
     rc = mysql_real_connect(conn,
 			    ntop->getPrefs()->get_mysql_host(),
 			    ntop->getPrefs()->get_mysql_user(),
 			    ntop->getPrefs()->get_mysql_pw(),
 			    dbname,
 			    ntop->getPrefs()->get_mysql_port(),
-			    NULL /* socket */, flags);
-
+			    NULL /* socket */,
+			    flags);
+  }
+  
   return(rc);
 }
 
