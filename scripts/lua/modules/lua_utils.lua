@@ -4627,12 +4627,20 @@ end
 -- ##############################################
 
 function addHTTPInfoToAlertDescr(msg, alert_json)
-   if (alert_json) 
-      and (table.len(alert_json["http"]) > 0) 
-      and (alert_json["http"]["protos.http.last_method"])then
-      msg = msg .. string.format(" [%s: %s]", 
-         i18n("last_http_method"), 
-         alert_json["http"]["protos.http.last_method"])
+   if ((alert_json) 
+      and (table.len(alert_json["http"]) > 0)) then
+      
+      if alert_json["http"]["protos.http.last_method"] then
+         msg = msg .. string.format(" [%s: %s]", 
+            i18n("last_http_method"), 
+            alert_json["http"]["protos.http.last_method"])
+      end
+
+      if alert_json["http"]["protos.http.last_return_code"] then
+         msg = msg .. string.format(" [%s: %s]", 
+            i18n("last_http_return_code"),
+            alert_json["http"]["protos.http.last_return_code"])
+      end
    end
 
    return msg

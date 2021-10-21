@@ -194,6 +194,7 @@ local lang = {
   ["label_alerts"] = "Label Alerts",
   ["language"] = "Language",
   ["last_http_method"] = "HTTP Method",
+  ["last_http_return_code"] = "HTTP Ret.Code",
   ["last_seen"] = "Last Seen",
   ["layer_2"] = "MAC Addresses",
   ["legenda"] = "Legenda",
