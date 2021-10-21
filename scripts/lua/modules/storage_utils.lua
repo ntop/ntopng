@@ -36,8 +36,8 @@ function storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_
     -- end
 
     if interfaceHasNindexSupport() then
-      local nindex_utils = require "nindex_utils"
-      local flows_storage_info = nindex_utils.storageInfo(ifid, timeout)
+      local flow_db_utils = require "flow_db_utils"
+      local flows_storage_info = flow_db_utils.storageInfo(ifid, timeout)
       info["flows"] = flows_storage_info.total
       info["total"] = info["total"] + flows_storage_info.total
     end

@@ -20,7 +20,7 @@ local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 local influxdb = require("influxdb")
 local plugins_utils = require("plugins_utils")
-local nindex_utils = nil
+local flow_db_utils = nil
 local info = ntop.getInfo()
 local auth = require "auth"
 
@@ -30,7 +30,7 @@ if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
   if hasNindexSupport() then
-     nindex_utils = require("nindex_utils")
+     flow_db_utils = require("flow_db_utils")
   end
 end
 

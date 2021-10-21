@@ -14,8 +14,8 @@ sendHTTPContentTypeHeader('text/html')
 page_utils.print_header(i18n("about.about_x", { product=info.product }))
 
 if ntop.isEnterpriseM() and hasNindexSupport() then
-  local nindex_utils = require "nindex_utils"
-  nindex_utils.deleteOldFLows(true --[[ verbose ]])
+  local flow_db_utils = require "flow_db_utils"
+  flow_db_utils.deleteOldFLows(true --[[ verbose ]])
 else
   print("nIndex delete unsupported")
 end
