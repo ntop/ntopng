@@ -422,32 +422,32 @@ else
 				 hidden = only_historical,
 				 active = page == "flows",
 				 page_name = "flows",
-				 label = '<i class="fas fa-stream"></i>',
+				 label = '<i class="fas fa-stream" title="'..i18n("active_flows")..'"></i>',
 			      },
 			      {
 				 hidden = only_historical or host["is_broadcast"] or host["is_multicast"] or not ntop.hasGeoIP(),
 				 active = page == "geomap",
 				 page_name = "geomap",
-				 label = "<i class='fas fa-lg fa-globe'></i>",
+				 label = "<i class='fas fa-lg fa-globe' title='"..i18n("geo_map.geo_map").."'></i>",
 			      },
 			      {
 				 hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
 				 active = page == "alerts",
 				 page_name = "alerts",
-				 label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
+				 label = "<i class='fas fa-lg fa-exclamation-triangle' title='"..i18n("alerts_dashboard.alerts").."'></i>",
 				 url = hostinfo2detailsurl(host, {page = ternary((host.num_alerts or 0) > 0, "engaged-alerts", "alerts")})
 			      },
 			      {
 				 hidden = not charts_available and not interfaceHasNindexSupport(),
 				 active = page == "historical",
 				 page_name = "historical",
-				 label = "<i class='fas fa-lg fa-chart-area'></i>",
+				 label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
 			      },
 			      {
 				 hidden = only_historical or (not host["localhost"]) or (not hasTrafficReport()),
 				 active = page == "traffic_report",
 				 page_name = "traffic_report",
-				 label = "<i class='fas fa-lg fa-file-alt report-icon'></i>",
+				 label = "<i class='fas fa-lg fa-file-alt report-icon' title='"..i18n("report.traffic_report").."'></i>",
 			      },
 			      {
 				 hidden = only_historical or not ntop.isEnterpriseM() or not ifstats.inline or not host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID,
@@ -474,7 +474,7 @@ else
 				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
 				 active = page == "config",
 				 page_name = "config",
-				 label = "<i class=\"fas fa-lg fa-cog\"></i></a></li>",
+				 label = "<i class='fas fa-lg fa-cog' title='"..i18n("settings").."'></i></a></li>",
 			      },
 			   }
    )

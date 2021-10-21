@@ -157,6 +157,7 @@ local lang = {
   ["hassh_fingerprint"] = "HASSH Fingerprint",
   ["health"] = "Health",
   ["help"] = "Help",
+  ["historical"] = "Historical Data",
   ["host"] = "Host %{host}",
   ["host_address"] = "Host Address",
   ["host_notes"] = "Host Notes",
