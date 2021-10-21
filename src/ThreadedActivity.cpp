@@ -38,7 +38,6 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 				   bool _align_to_localtime,
 				   bool _exclude_viewed_interfaces,
 				   bool _exclude_pcap_dump_interfaces,
-				   bool _reuse_vm,
 				   ThreadPool *_pool) {
   terminating = false;
   periodicity = _periodicity_seconds;
@@ -46,13 +45,6 @@ ThreadedActivity::ThreadedActivity(const char* _path,
   align_to_localtime = _align_to_localtime;
   exclude_viewed_interfaces = _exclude_viewed_interfaces;
   exclude_pcap_dump_interfaces = _exclude_pcap_dump_interfaces;
-#ifndef WIN32
-  reuse_vm = _reuse_vm;
-#else
-  /* Don't reuse the VM in Windows as it seems like some file/error state
-   * is cached causing ntopng script failures on demo expiration. */
-  reuse_vm = false;
-#endif
   thread_started = false;
   path = strdup(_path); /* ntop->get_callbacks_dir() */;
   interfaceTasksRunning = (ThreadedActivityState*) calloc(MAX_NUM_INTERFACE_IDS + 1 /* For the system interface */, sizeof(ThreadedActivityState));
@@ -71,8 +63,6 @@ ThreadedActivity::ThreadedActivity(const char* _path,
 /* ******************************************* */
 
 ThreadedActivity::~ThreadedActivity() {
-  std::map<int, LuaReusableEngine*>::iterator it;
-
   /* NOTE: terminateEnqueueLoop should have already been called by the PeriodicActivities
    * destructor. */
   terminateEnqueueLoop();
@@ -90,9 +80,6 @@ ThreadedActivity::~ThreadedActivity() {
     free(interfaceTasksRunning);
 
   if(path) free(path);
-
-  for(it = vms.begin(); it != vms.end(); ++it)
-    delete(it->second);
 }
 
 /* ******************************************* */
@@ -427,7 +414,7 @@ void ThreadedActivity::runScript(time_t now, char *script_path, NetworkInterface
   if(thstats && isDeadlineApproaching(deadline))
     thstats->setSlowPeriodicActivity(true);
 
-  if(l && !reuse_vm)
+  if(l)
     delete l;
 }
 
@@ -437,30 +424,6 @@ LuaEngine* ThreadedActivity::loadVm(char *script_path, NetworkInterface *iface, 
   LuaEngine *l = NULL;
 
   try {
-    if(reuse_vm) {
-      /* Reuse an existing engine or allocate a new one */
-      LuaReusableEngine *engine;
-      std::map<int, LuaReusableEngine*>::iterator it;
-
-      vms_mutex.lock(__FILE__, __LINE__);
-
-      if((it = vms.find(iface->get_id())) != vms.end())
-	engine = it->second;
-      else {
-	engine = new LuaReusableEngine(script_path, iface, 300 /* reload interval */);
-
-	/* Save the VM for later use */
-	vms[iface->get_id()] = engine;
-      }
-
-      /*
-	Make sure the getVm is locked, as another thread
-	could be accessing the context to set variables
-       */
-      l = engine->getVm(when);
-
-      vms_mutex.unlock(__FILE__, __LINE__);
-    } else {
       /* NOTE: this needs to be deallocated by the caller */
       l = new LuaEngine(NULL);
 
@@ -468,7 +431,6 @@ LuaEngine* ThreadedActivity::loadVm(char *script_path, NetworkInterface *iface, 
 	delete l;
 	l = NULL;
       }
-    }
   } catch(std::bad_alloc& ba) {
     l = NULL;
   }
@@ -607,17 +569,4 @@ void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm) {
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
-}
-
-/* ******************************************* */
-
-void ThreadedActivity::setNextVmReload(time_t t) {
-  std::map<int, LuaReusableEngine*>::iterator it;
-
-  vms_mutex.lock(__FILE__, __LINE__);
-
-  for(it = vms.begin(); it != vms.end(); ++it)
-    it->second->setNextVmReload(t);
-
-  vms_mutex.unlock(__FILE__, __LINE__);
 }

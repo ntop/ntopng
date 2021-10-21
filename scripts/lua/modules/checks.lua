@@ -977,9 +977,6 @@ local function saveConfigset(configset)
    local v = json.encode(configset)
    ntop.setCache(CONFIGSET_KEY, v)
 
-   -- Reload the periodic scripts as the configuration has changed
-   ntop.reloadPeriodicScripts()
-
    -- Reload flow and host callbacks executed in C++
    ntop.reloadFlowChecks()
    ntop.reloadHostChecks()

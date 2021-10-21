@@ -528,7 +528,6 @@ class Ntop {
 
   void checkReloadHostsBroadcastDomain();
 
-  void reloadPeriodicScripts();
   inline void reloadFlowChecks()   { flowChecksReloadInProgress = true;    };
   inline void reloadHostChecks()   { hostChecksReloadInProgress = true;    };
   inline void reloadAlertExclusions() {
