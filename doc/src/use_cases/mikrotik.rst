@@ -7,4 +7,4 @@ ntopng features Mikrotik traffic monitoring. To monitor Mikrotik traffic, ntopng
 
 .. note::
 
-	An nProbe Standard or nProbe Professional license is required.
+	An nProbe license is required.

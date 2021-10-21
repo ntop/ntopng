@@ -7,4 +7,4 @@ To monitor data from Netflow/sFlow-capable devices, refer to :ref:`UsingNtopngWi
 
 .. note::
 
-	An nProbe Standard or nProbe Professional license is required.
+	An nProbe license is required.

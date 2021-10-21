@@ -7,4 +7,4 @@ To monitor data from multiple locations, even geographically distributed, refer 
 
 .. note::
 
-	An nProbe Standard or nProbe Professional license is required for each location.
+	An nProbe license is required for each location.
