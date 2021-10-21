@@ -119,7 +119,7 @@ Prefs::Prefs(Ntop *_ntop) {
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
   num_interfaces = 0, enable_auto_logout = true, enable_auto_logout_at_runtime = true;
-  enable_interface_name_only = false;
+  enable_interface_name_only = false, use_clickhouse = false;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_syslog = dump_flows_on_nindex = false;
   dump_json_flows_on_disk = load_json_flows_from_disk_to_nindex = dump_ext_json = false;
   routing_mode_enabled = false;
@@ -408,6 +408,13 @@ void usage() {
 	 "                                    |   syslog;local3\n"
 	 "                                    |   Notes:\n"
 	 "                                    |   <facility-text> is case-insensitive.\n"
+	 "                                    |\n"
+#endif
+#ifdef HAVE_CLICKHOUSE
+	 "                                    | clickhouse    Dump in ClickHouse database\n"
+	 "                                    |   Format:\n"
+	 "                                    |   clickhouse;<host[@port]|socket>;<dbname>;<table name>;<user>;<pw>\n"
+	 "                                    |   clickhouse;localhost;ntopng;flows;default;\n"
 	 "                                    |\n"
 #endif
 #ifdef HAVE_MYSQL
@@ -1362,13 +1369,18 @@ int Prefs::setOption(int optkey, char *optarg) {
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
     }
-    else if(!strncmp(optarg, "mysql", 5)) {
+    else if(
+	    (!strncmp(optarg, "mysql", 5))
+	    || (!strncmp(optarg, "clickhouse", 10)))
+      {
 #ifdef HAVE_MYSQL
       char *sep = strchr(optarg, ';');
 
       if(!sep) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid --mysql format: ignored");
       } else {
+	use_clickhouse = (optarg[0] == 'c') ? true : false;
+	
 	if(!strncmp(optarg, "mysql-nprobe", 12))
 	  read_flows_from_mysql = true;
 	else
@@ -1380,12 +1392,12 @@ int Prefs::setOption(int optkey, char *optarg) {
 	optarg = Utils::tokenizer(optarg, ';', &mysql_tablename);
 	optarg = Utils::tokenizer(optarg, ';', &mysql_user);
 	mysql_pw = strdup(optarg ? optarg : "");
-
+	
 	if(mysql_host && mysql_user) {
 	  if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))       mysql_dbname  = strdup("ntopng");
 	  if((mysql_tablename == NULL)
 	     || (mysql_tablename[0] == '\0')
-	     || dump_flows_on_mysql /*forcefully defaults the table name*/) {
+	     || dump_flows_on_mysql /* forcefully defaults the table name */) {
 	    if(mysql_tablename) free(mysql_tablename);
 	    mysql_tablename  = strdup("flows");
 	  }
@@ -1393,6 +1405,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 	  /* Check for non-default SQL port on -F line */
 	  char* mysql_port_str;
+	  
 	  if((mysql_port_str = strchr(mysql_host, '@'))) {
 	    *(mysql_port_str++) = '\0';
 
@@ -1407,10 +1420,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 	      mysql_port = (int)l;
 	  }
 	} else
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F %s;....", use_clickhouse ? "clickhouse" : "mysql");
       }
 #else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "-F mysql is not available (missing MySQL support)");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "-F mysql/-F clickhouse is not available (missing MySQL support)");
 #endif
     }
 #ifndef WIN32

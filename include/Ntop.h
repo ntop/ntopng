@@ -596,6 +596,7 @@ class Ntop {
   bool needsnDPICleanup();
   void setnDPICleanupNeeded(bool needed);
   u_int16_t getnDPIProtoByName(const char *name);
+  bool isDbCreated();
 };
 
 extern Ntop *ntop;

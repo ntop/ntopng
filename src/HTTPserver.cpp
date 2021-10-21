@@ -1204,8 +1204,8 @@ static int handle_lua_request(struct mg_connection *conn) {
 #ifdef HAVE_MYSQL
     } else if(!whitelisted /* e.g. login.lua */
         && ntop->getPrefs()->do_dump_flows_on_mysql()
-        && !MySQLDB::isDbCreated()
-        && strcmp(request_info->uri, PLEASE_WAIT_URL)) {
+        && !ntop->isDbCreated()
+	      && strcmp(request_info->uri, PLEASE_WAIT_URL)) {
       redirect_to_please_wait(conn, request_info);
       return(1);
 #endif

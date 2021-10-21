@@ -58,6 +58,7 @@ class DB {
 
   inline void startDBLoop()                                 { running = true; startLoop(); };
   inline int isRunning()                                    { return(running); };
+  virtual bool isDbCreated()                                { return(true); };
   virtual void shutdown();
   virtual void flush() {};
   virtual void lua(lua_State* vm, bool since_last_checkpoint) const;

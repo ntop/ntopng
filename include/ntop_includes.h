@@ -363,6 +363,9 @@ using namespace std;
 #include "TextDump.h"
 #include "NIndexFlowDB.h"
 #endif
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE)
+#include "ClickHouseFlowDB.h"
+#endif
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
 #include "DnsHostMapping.h"

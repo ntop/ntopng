@@ -7982,7 +7982,13 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
        || ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
 #ifdef NTOPNG_PRO
 #ifdef HAVE_MYSQL
-      if(ntop->getPrefs()->is_enterprise_m_edition()
+#ifdef HAVE_CLICKHOUSE
+      if(ntop->getPrefs()->useClickHouse())
+	db = new (std::nothrow) ClickHouseFlowDB(this);      
+#endif
+      
+      if((db == NULL)
+	 && ntop->getPrefs()->is_enterprise_m_edition()
 	 && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql())
 	db = new (std::nothrow) BatchedMySQLDB(this);
 #endif
@@ -7990,7 +7996,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 
 #ifdef HAVE_MYSQL
       if(db == NULL)
-	db = new (std::nothrow) MySQLDB(this);
+	db = new (std::nothrow) MySQLDB(this, false /* !clickhouse */);
 #endif
 
       if(!db) throw "Not enough memory";

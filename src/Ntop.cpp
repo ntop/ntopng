@@ -3345,6 +3345,19 @@ bool Ntop::luaHostCheckInfo(lua_State *vm, std::string check_name) const {
 
 /* ******************************************* */
 
+bool Ntop::isDbCreated() {
+  for(int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
+    NetworkInterface *iface = ntop->getInterface(i);
+
+    if(iface && (!iface->isDbCreated()))
+      return(false);
+  }
+
+  return(true);
+}
+
+/* ******************************************* */
+
 #ifndef HAVE_NEDGE
 
 bool Ntop::broadcastIPSMessage(char *msg) {

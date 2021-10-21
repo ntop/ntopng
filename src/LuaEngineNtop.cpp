@@ -6027,7 +6027,11 @@ static int ntop_exec_single_sql_query(lua_State *vm) {
   if((sql = (char*)lua_tostring(vm, 1)) == NULL)  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
 #ifdef HAVE_MYSQL
-  MySQLDB::exec_single_query(vm, sql);
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  MySQLDB db(ntop_interface, false);
+  
+  db.exec_single_query(vm, sql);
+  
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 #else
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));

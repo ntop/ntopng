@@ -807,6 +807,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   NetworkStats* getNetworkStats(u_int8_t networkId) const;
   void allocateStructures();
   void getsDPIStats(lua_State *vm);
+  inline bool isDbCreated() { return(db ? db->isDbCreated() : true); };
 #ifdef NTOPNG_PRO
   void updateFlowProfiles();
 #ifndef HAVE_NEDGE

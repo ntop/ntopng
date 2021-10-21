@@ -53,7 +53,7 @@ class Prefs {
     service_license_check, enable_sql_log, enable_access_log, log_to_file,
     enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
     enable_asn_behaviour_analysis, enable_network_behaviour_analysis, enable_iface_l7_behaviour_analysis,
-    emit_flow_alerts, emit_host_alerts;
+    emit_flow_alerts, emit_host_alerts, use_clickhouse;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period;
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
@@ -422,6 +422,7 @@ class Prefs {
   inline u_int32_t getIEC60870LearingPeriod()    { return(iec60870_learning_period);                    };
   inline bool      dontEmitFlowAlerts()          { return(!emit_flow_alerts);                           };
   inline bool      dontEmitHostAlerts()          { return(!emit_host_alerts);                           };
+  inline bool      useClickHouse()               { return(use_clickhouse);                              };
   inline char*     getZMQPublishEventsURL()      { return(zmq_publish_events_url);                      };
   void setIEC104AllowedTypeIDs(const char * const protos);
   void validate();
