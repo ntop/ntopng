@@ -1800,7 +1800,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
 /* ******************************************* */
 
 int Prefs::loadFromFile(const char *path) {
-  char buffer[4096], *line, *key, *value;
+  char buffer[16384], *line, *key, *value;
   u_int line_len, opt_name_len;
   FILE *fd;
   const struct option *opt;
