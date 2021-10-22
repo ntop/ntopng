@@ -206,12 +206,12 @@ else
 	    },
 	    {
 	       entry = page_utils.menu_entries.db_explorer,
-	       hidden = not ntop.isPro() or not prefs.is_dump_flows_to_mysql_enabled or ifs.isViewed,
+	       hidden = not ntop.isPro() or not prefs.is_dump_flows_to_mysql_enabled or ifs.isViewed or prefs.is_nindex_enabled or prefs.is_dump_flows_to_clickhouse_enabled,
 	       url = "/lua/pro/db_explorer.lua?ifid="..ifId,
 	    },
 	    {
 	       entry = page_utils.menu_entries.db_explorer,
-	       hidden = not ntop.isPro() or not prefs.is_nindex_enabled or ifs.isViewed or not auth.has_capability(auth.capabilities.historical_flows),
+	       hidden = not ntop.isPro() or (not prefs.is_nindex_enabled and not prefs.is_dump_flows_to_clickhouse_enabled) or ifs.isViewed or not auth.has_capability(auth.capabilities.historical_flows),
 	       url = "/lua/pro/nindex_query.lua",
 	    },
 	 },
