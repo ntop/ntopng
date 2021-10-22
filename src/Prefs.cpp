@@ -1377,51 +1377,66 @@ int Prefs::setOption(int optkey, char *optarg) {
       char *sep = strchr(optarg, ';');
 
       if(!sep) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid --mysql format: ignored");
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid --mysql/--clickhouse format: ignored");
       } else {
+	bool all_good = true;
+	
 	use_clickhouse = (optarg[0] == 'c') ? true : false;
-	
-	if(!strncmp(optarg, "mysql-nprobe", 12))
-	  read_flows_from_mysql = true;
-	else
-	  dump_flows_on_mysql = true;
 
-	/* mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw> */
-	optarg = Utils::tokenizer(sep + 1, ';', &mysql_host);
-	optarg = Utils::tokenizer(optarg, ';', &mysql_dbname);
-	optarg = Utils::tokenizer(optarg, ';', &mysql_tablename);
-	optarg = Utils::tokenizer(optarg, ';', &mysql_user);
-	mysql_pw = strdup(optarg ? optarg : "");
-	
-	if(mysql_host && mysql_user) {
-	  if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))       mysql_dbname  = strdup("ntopng");
-	  if((mysql_tablename == NULL)
-	     || (mysql_tablename[0] == '\0')
-	     || dump_flows_on_mysql /* forcefully defaults the table name */) {
-	    if(mysql_tablename) free(mysql_tablename);
-	    mysql_tablename  = strdup("flows");
+	if(use_clickhouse) {
+	  /* Check if CLICKHOUSE_CLIENT is present */
+	  struct stat buf;
+	  bool client_found = ((stat(CLICKHOUSE_CLIENT, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
+
+	  if(!client_found) {
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "-F clickhouse is not available (ClickHouse client not found)");
+	    all_good = false;
 	  }
-	  if((mysql_pw == NULL) || (mysql_pw[0] == '\0')) mysql_pw  = strdup("");
+	}
 
-	  /* Check for non-default SQL port on -F line */
-	  char* mysql_port_str;
+	if(all_good) {
+	  if(!strncmp(optarg, "mysql-nprobe", 12))
+	    read_flows_from_mysql = true;
+	  else
+	    dump_flows_on_mysql = true;
+
+	  /* mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw> */
+	  optarg = Utils::tokenizer(sep + 1, ';', &mysql_host);
+	  optarg = Utils::tokenizer(optarg, ';', &mysql_dbname);
+	  optarg = Utils::tokenizer(optarg, ';', &mysql_tablename);
+	  optarg = Utils::tokenizer(optarg, ';', &mysql_user);
+	  mysql_pw = strdup(optarg ? optarg : "");
+	
+	  if(mysql_host && mysql_user) {
+	    if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))       mysql_dbname  = strdup("ntopng");
+	    if((mysql_tablename == NULL)
+	       || (mysql_tablename[0] == '\0')
+	       || dump_flows_on_mysql /* forcefully defaults the table name */) {
+	      if(mysql_tablename) free(mysql_tablename);
+	      mysql_tablename  = strdup("flows");
+	    }
+	    if((mysql_pw == NULL) || (mysql_pw[0] == '\0')) mysql_pw  = strdup("");
+
+	    /* Check for non-default SQL port on -F line */
+	    char* mysql_port_str;
 	  
-	  if((mysql_port_str = strchr(mysql_host, '@'))) {
-	    *(mysql_port_str++) = '\0';
+	    if((mysql_port_str = strchr(mysql_host, '@'))) {
+	      *(mysql_port_str++) = '\0';
 
-	    errno = 0;
-	    long l = strtol(mysql_port_str, NULL, 10);
+	      errno = 0;
+	      long l = strtol(mysql_port_str, NULL, 10);
 
-	    if(errno || !l)
-	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid mysql port, using default port %d [%s]",
-					   CONST_DEFAULT_MYSQL_PORT,
-					   strerror(errno));
-	    else
-	      mysql_port = (int)l;
+	      if(errno || !l)
+		ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid mysql port, using default port %d [%s]",
+					     CONST_DEFAULT_MYSQL_PORT,
+					     strerror(errno));
+	      else
+		mysql_port = (int)l;
+	    } else
+	      mysql_port = CONST_DEFAULT_CLICKHOUSE_PORT;
 	  } else
-	    mysql_port = CONST_DEFAULT_CLICKHOUSE_PORT;
-	} else
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F %s;....", use_clickhouse ? "clickhouse" : "mysql");
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F %s;....", use_clickhouse ? "clickhouse" : "mysql");
+	} /* all_good */
       }
 #else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "-F mysql/-F clickhouse is not available (missing MySQL support)");

@@ -1171,6 +1171,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #endif
 
 #define UNKNOWN_FLOW_DIRECTION          2
+#define CLICKHOUSE_CLIENT               "/usr/bin/clickhouse-client"
 
 //#define PROFILING
 #ifdef PROFILING
