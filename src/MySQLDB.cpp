@@ -495,6 +495,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface, bool _clickhouse_mode) : DB(_iface) {
   log_fd = NULL;
   open_log();
   db_created = false;
+  mysql_alt_connected = false;
 
   connectToDB(&mysql, false);
 
