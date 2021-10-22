@@ -921,7 +921,7 @@ end
 
 -- NOTE: global nindex support may be enabled but some disable on some interfaces
 function interfaceHasNindexSupport()
-   return(hasNindexSupport() and (interface.nIndexEnabled() or ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"]))
+   return(hasNindexSupport() and ((interface.nIndexEnabled and interface.nIndexEnabled()) or ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"]))
 end
 
 --for _key, _value in pairsByKeys(vals, rev) do
