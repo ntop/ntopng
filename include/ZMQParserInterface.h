@@ -63,7 +63,7 @@ protected:
   struct {
     u_int32_t num_flows, /* flows processed */
       num_dropped_flows, /* flows unhandles (received but no room in the flow hash) */
-      num_events, num_counters, num_hello,
+      num_events, num_counters, num_hello, num_listening_ports,
       num_templates, num_options, num_network_events,
       zmq_msg_rcvd, zmq_msg_drops;
   } recvStats, recvStatsCheckpoint;
@@ -84,6 +84,7 @@ public:
   u_int8_t parseCounter(const char * const payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseTemplate(const char * const payload, int payload_size, u_int8_t source_id, void *data);
   u_int8_t parseOption(const char * const payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseListeningPorts(const char * const payload, int payload_size, u_int8_t source_id, void *data);
 
   u_int32_t periodicStatsUpdateFrequency() const;
   virtual void setRemoteStats(ZMQ_RemoteStats *zrs);

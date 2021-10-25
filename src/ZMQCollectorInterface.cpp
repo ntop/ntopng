@@ -27,7 +27,9 @@
 
 ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserInterface(_endpoint) {
   char *tmp, *e, *t;
-  const char *topics[] = { "flow", "event", "counter", "template", "option", "hello", NULL };
+  const char *topics[] = { "flow", "event", "counter",
+    "template", "option", "hello",
+    "listening-ports", NULL };
   
   num_subscribers = 0;
   server_secret_key[0] = '\0';
@@ -457,7 +459,12 @@ void ZMQCollectorInterface::collect_flows() {
 	    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HELLO] %s", uncompressed); */
 	    ntop->askToRefreshIPSRules();
 	    break;
-          }
+
+	  case 'l': /* listening-ports */
+	    recvStats.num_listening_ports++;
+	    parseListeningPorts(uncompressed, uncompressed_len, subscriber_id, this);
+	    break;
+	  }
 
 	  /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h->url, uncompressed); */
 

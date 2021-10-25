@@ -1324,7 +1324,7 @@ int ZMQParserInterface::parseSingleJSONFlow(json_object *o, u_int8_t source_id) 
       break;
     }
 
-    if(key != NULL && jvalue != NULL) {
+    if((key != NULL) && (jvalue != NULL)) {
       u_int32_t pen, key_id;
       bool res;
 
@@ -1951,6 +1951,7 @@ u_int8_t ZMQParserInterface::parseOptionFieldMap(json_object * const jo) const {
   int arraylen = json_object_array_length(jo);
   json_object *w, *z;
   ZMQ_FieldMap field_map;
+
   memset(&field_map, 0, sizeof(field_map));
 
   for(int i = 0; i < arraylen; i++) {
@@ -1983,6 +1984,7 @@ u_int8_t ZMQParserInterface::parseOptionFieldMap(json_object * const jo) const {
 u_int8_t ZMQParserInterface::parseOptionFieldValueMap(json_object * const w) const {
   json_object *z;
   ZMQ_FieldValueMap field_value_map;
+
   memset(&field_value_map, 0, sizeof(field_value_map));
 
   if(json_object_object_get_ex(w, "PEN", &z))
@@ -2012,7 +2014,48 @@ u_int8_t ZMQParserInterface::parseOptionFieldValueMap(json_object * const w) con
 
 /* **************************************************** */
 
-u_int8_t ZMQParserInterface::parseOption(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
+u_int8_t ZMQParserInterface::parseListeningPorts(const char * const payload, int payload_size,
+						 u_int8_t source_id, void *data) {
+  enum json_tokener_error jerr = json_tokener_success;
+  json_object *o = json_tokener_parse_verbose(payload, &jerr);
+  
+  if(o != NULL) {
+    json_object *z;
+    ListeningPorts pinfo;
+    
+    if(json_object_object_get_ex(o, "listening-ports", &z)) {
+      enum json_type o_type = json_object_get_type(z);
+
+      if(o_type == json_type_object)
+	pinfo.parsePorts(z);      
+    }
+
+    if(json_object_object_get_ex(o, "ip-addresses", &z)) {
+      enum json_type o_type = json_object_get_type(z);
+
+      if(o_type == json_type_array) {
+	for(u_int i = 0; i < json_object_array_length(z); i++) {
+#if 0
+	  json_object *host = json_object_array_get_idx(z, i);
+	  const char *ip_addr = json_object_to_json_string(host);
+
+	  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "=>> %s", ip_addr);
+	  /* TODO: set ports info */
+#endif
+	}
+      }
+    } /* listening-ports */
+    
+    json_object_put(o); /* Free memory */
+  }   
+
+  return(0);
+}
+
+/* **************************************************** */
+
+u_int8_t ZMQParserInterface::parseOption(const char * const payload, int payload_size,
+					 u_int8_t source_id, void *data) {
   /* The format that is currently defined for options is a JSON as follows:
 
     char opt[] = "
@@ -2036,12 +2079,14 @@ u_int8_t ZMQParserInterface::parseOption(const char * const payload, int payload
     // if o != NULL
     if(!once) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
+				   "Invalid message received: your nProbe sender is outdated, "
+				   "data encrypted or invalid JSON?");
       ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
 				   json_tokener_error_desc(jerr),
 				   payload_size,
 				   payload);
     }
+
     once = true;
     return -1;
   }
