@@ -618,8 +618,10 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
          cli_as = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?asn=" ..flow.cli_as.."\">" .. shortenString( flow.cli_as_name or "", 14 ) .."</A>"
          cli_mac = ""
       else  
-         if cli_mac then
-	   cli_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..cli_mac.."\">" ..cli_mac.."</A>"
+         if cli_mac and (cli_mac ~= "00:00:00:00:00:00") then
+	    cli_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..cli_mac.."\">" ..cli_mac.."</A>"
+	 else
+	    cli_mac = ""
          end
       end
 
@@ -627,8 +629,10 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
          dst_as = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?asn=" ..flow.dst_as.."\">" .. shortenString( flow.dst_as_name or "", 14 ) .."</A>"
 	 srv_mac = ""
       else  
-        if srv_mac then
-  	  srv_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..srv_mac.."\">" ..srv_mac.."</A>"
+        if srv_mac and (srv_mac ~= "00:00:00:00:00:00")then
+	   srv_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..srv_mac.."\">" ..srv_mac.."</A>"
+	else
+	   srv_mac = ""
         end
       end
 
@@ -655,7 +659,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
   if(cli_as ~= nil) then
      label = label.." [ "..cli_as.." ]"
    else
-     if show_macs and cli_mac then
+      if show_macs and cli_mac ~= "" then
         label = label.." [ "..cli_mac.." ]"
      end
    end
@@ -681,7 +685,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
   if(dst_as ~= nil) then
      label = label.." [ "..dst_as.." ]"
   else
-    if show_macs and srv_mac then
+     if show_macs and srv_mac ~= "" then
       label = label.." [ "..srv_mac.." ]"
     end
   end

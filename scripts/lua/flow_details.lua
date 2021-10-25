@@ -838,7 +838,7 @@ else
       local cli_show = (cli_mac and cli_mac.location == "lan" and flow["cli.pool_id"] == 0)
       local srv_show = (srv_mac and srv_mac.location == "lan" and flow["srv.pool_id"] == 0)
       local num_rows = 0
-
+      
       if cli_show then
 	num_rows = num_rows + 1
       end
