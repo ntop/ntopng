@@ -92,10 +92,16 @@ tag_utils.nindex_tags_to_where_v4 = {
    ["srv_asname"]   = "DST_ASNAME",
    ["observation_point_id"] = "OBSERVATION_POINT_ID",
    ["probe_ip"]     = "PROBE_IP",
+   ["throughput"]   = "THROUGHPUT",
    ["src2dst_tcp_flags"] = "SRC2DST_TCP_FLAGS",
    ["dst2src_tcp_flags"] = "DST2SRC_TCP_FLAGS",
    ["l7proto_master"]  = "L7_PROTO_MASTER",
    ["score"] = "SCORE",
+}
+
+tag_utils.orders = {
+   ["asc"]  = "ASC",
+   ["desc"] = "DESC",
 }
 
 -- #####################################
