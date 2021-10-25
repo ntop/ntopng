@@ -2797,11 +2797,13 @@ u_char* Flow::getCommunityId(u_char *community_id, u_int community_id_len) {
       if(get_protocol() == IPPROTO_ICMPV6)
 	icmp_type = protos.icmp.cli2srv.icmp_type, icmp_code = protos.icmp.cli2srv.icmp_code;
 
-      if(ndpi_flowv6_flow_hash(protocol, (struct ndpi_in6_addr*)c->get_ipv6(),
-			       (struct ndpi_in6_addr*)s->get_ipv6(), get_cli_port(), get_srv_port(),
-			       icmp_type, icmp_code,
-			       community_id, community_id_len) == 0)
-	return(community_id);
+      if(c->isIPv6()) {
+	if(ndpi_flowv6_flow_hash(protocol, (struct ndpi_in6_addr*)c->get_ipv6(),
+				 (struct ndpi_in6_addr*)s->get_ipv6(), get_cli_port(), get_srv_port(),
+				 icmp_type, icmp_code,
+				 community_id, community_id_len) == 0)
+	  return(community_id);
+      }
     }
   }
 
