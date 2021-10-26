@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+#ifdef HAVE_MYSQL
+
 class MySQLDB : public DB {
  protected:
   MYSQL mysql;
@@ -63,5 +65,7 @@ class MySQLDB : public DB {
   void shutdown();
   int exec_single_query(lua_State *vm, char *sql);
 };
+
+#endif
 
 #endif /* _MYSQL_DB_CLASS_H_ */

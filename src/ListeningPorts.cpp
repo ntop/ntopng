@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+#ifndef HAVE_NEDGE
+
 /* ************************************************ */
 
 void ListeningPorts::parsePortInfo(json_object *z, std::map <u_int16_t, ListeningPortInfo> *info) {
@@ -70,3 +72,5 @@ void ListeningPorts::parsePorts(json_object *z) {
       parsePortInfo(p, &udp6);
   }
 }
+
+#endif
