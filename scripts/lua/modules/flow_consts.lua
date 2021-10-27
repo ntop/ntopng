@@ -361,6 +361,7 @@ flow_consts.flow_fields_description = {
    -- System process information
    ["SRC_PROC_PID"] = i18n("flow_fields_description.src_proc_pid"),
    ["SRC_PROC_NAME"] = i18n("flow_fields_description.src_proc_name"),
+   ["SRC_PROC_PACKAGE_NAME"] = i18n("flow_fields_description.src_proc_package_name"),
    ["SRC_PROC_UID"] = i18n("flow_fields_description.src_proc_uid"),
    ["SRC_PROC_USER_NAME"] = i18n("flow_fields_description.src_proc_user_name"),
    ["SRC_FATHER_PROC_PID"] = i18n("flow_fields_description.src_father_proc_pid"),
@@ -372,6 +373,7 @@ flow_consts.flow_fields_description = {
    ["SRC_PROC_PCTG_IOWAIT"] = i18n("flow_fields_description.src_proc_pctg_iowait"),
    ["DST_PROC_PID"] = i18n("flow_fields_description.dst_proc_pid"),
    ["DST_PROC_NAME"] = i18n("flow_fields_description.dst_proc_name"),
+   ["DST_PROC_PACKAGE_NAME"] = i18n("flow_fields_description.dst_proc_package_name"),   
    ["DST_PROC_UID"] = i18n("flow_fields_description.dst_proc_uid"),
    ["DST_PROC_USER_NAME"] = i18n("flow_fields_description.dst_proc_user_name"),
    ["DST_FATHER_PROC_PID"] = i18n("flow_fields_description.dst_father_proc_pid"),
