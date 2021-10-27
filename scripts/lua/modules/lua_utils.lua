@@ -920,7 +920,7 @@ function hasNindexSupport()
 end
 
 -- NOTE: global nindex support may be enabled but some disable on some interfaces
-function interfaceHasNindexOrClickhouseSupport()
+function interfaceHasNindexSupport()
    return(hasNindexSupport() and ((interface.nIndexEnabled and interface.nIndexEnabled()) or ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"]))
 end
 
