@@ -99,6 +99,62 @@ tag_utils.nindex_tags_to_where_v4 = {
    ["score"] = "SCORE",
 }
 
+-- #####################################
+
+tag_utils.db_columns = {
+   ["srv_ip"]   = "IPV4_DST_ADDR, IPV6_DST_ADDR",
+   ["cli_ip"]   = "IPV4_SRC_ADDR, IPV6_SRC_ADDR",
+   ["cli_port"] = "IP_SRC_PORT",
+   ["srv_port"] = "IP_DST_PORT",
+   ["status"]   = "STATUS",
+   ["l7proto"]  = "L7_PROTO, L7_PROTO_MASTER",
+   ["l7_proto"] = "L7_PROTO",
+   ["l7proto_master"]  = "L7_PROTO_MASTER",
+   ["l4proto"]  = "PROTOCOL",
+   ["l7cat"]    = "L7_CATEGORY",
+   ["flow_risk"]   = "FLOW_RISK",
+   ["packets"]     = "PACKETS",
+   ["traffic"]     = "TOTAL_BYTES",
+   ["first_seen"]  = "FIRST_SEEN",
+   ["last_seen"]   = "LAST_SEEN",
+   ["src2dst_dscp"] = "SRC2DST_DSCP",
+   ["dst2src_dscp"] = "DST2SRC_DSCP",
+   ["info"]         = "INFO",
+   ["srv_label"]    = "DST_LABEL",
+   ["cli_label"]    = "SRC_LABEL",
+   ["cli_asn"]      = "SRC_ASN",
+   ["cli_asname"]   = "SRC_ASNAME",
+   ["srv_asn"]      = "DST_ASN",
+   ["srv_asname"]   = "DST_ASNAME",
+   ["observation_point_id"] = "OBSERVATION_POINT_ID",
+   ["probe_ip"]     = "PROBE_IP",
+   ["src2dst_tcp_flags"] = "SRC2DST_TCP_FLAGS",
+   ["dst2src_tcp_flags"] = "DST2SRC_TCP_FLAGS",
+   ["score"] = "SCORE",
+}
+
+tag_utils.extra_db_columns = {
+   ["throughput"] = "(LAST_SEEN - FIRST_SEEN) as TIME_DELTA, (TOTAL_BYTES / (TIME_DELTA + 1)) * 8 as THROUGHPUT",
+   ["ip_version"] = "IP_PROTOCOL_VERSION",
+   ["vlan_id"]    = "VLAN_ID",
+   ["src_label"]  = "SRC_LABEL",
+   ["dst_label"]  = "DST_LABEL",
+}
+
+tag_utils.ordering_special_columns = {
+   ["srv_ip"]   = {[4] = "IPv4StringToNum(IPV4_DST_ADDR)", [6] = "IPv6StringToNum(IPV6_DST_ADDR)"},
+   ["cli_ip"]   = {[4] = "IPv4StringToNum(IPV4_SRC_ADDR)", [6] = "IPv6StringToNum(IPV6_SRC_ADDR)"},
+   ["l7proto"]  = "L7_PROTO_MASTER",
+   ["throughput"] = "THROUGHPUT"
+}
+
+tag_utils.extra_where_tags = {
+   ["srv_ip"]   = {[4] = "IPV4_DST_ADDR", [6] = "IPV6_DST_ADDR"},
+   ["cli_ip"]   = {[4] = "IPV4_SRC_ADDR", [6] = "IPV6_SRC_ADDR"},
+}
+
+-- #####################################
+
 tag_utils.orders = {
    ["asc"]  = "ASC",
    ["desc"] = "DESC",
@@ -167,5 +223,7 @@ function tag_utils.add_tag_if_valid(tags, tag_key, operators, formatters, i18n_p
       table.insert(tags, tag)
    end
 end
+
+-- #####################################
 
 return tag_utils
