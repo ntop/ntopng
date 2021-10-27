@@ -132,7 +132,11 @@ void FlowChecksLoader::registerChecks() {
   for(u_int risk_id = 1; risk_id < NDPI_MAX_RISK; risk_id++) {
     ndpi_risk_enum risk = (ndpi_risk_enum)risk_id;
 
-    if(isRiskUnhandled(risk)) {
+    /* The risk is not handled by any of the above dedicated classes */
+    if(isRiskUnhandled(risk)
+       /* The risk is among those supported by class FlowRiskAlerts */
+       && FlowRiskAlerts::getFlowRiskAlertType(risk).id != flow_alert_normal) {
+      /* Instantiate a simple risk class to handle it */
       if((fcb = new FlowRiskSimple(risk)))                      registerCheck(fcb);
     }
   }

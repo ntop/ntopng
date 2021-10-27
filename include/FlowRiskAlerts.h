@@ -27,6 +27,7 @@
 class FlowRiskAlerts {
  private:
   static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK];
+  static bool isRiskUnhanlded(ndpi_risk_enum risk);
 
  public:
   static inline u_int8_t getFlowRiskScore(ndpi_risk_enum risk) {
@@ -41,17 +42,17 @@ class FlowRiskAlerts {
   }
   
   static inline FlowAlertType getFlowRiskAlertType(ndpi_risk_enum risk) {
-    if(risk < NDPI_MAX_RISK)
-      return risk_enum_to_alert_type[risk].alert_type;
+    if(isRiskUnhanlded(risk))
+      return risk_enum_to_alert_type[NDPI_NO_RISK].alert_type;
     else
-      return risk_enum_to_alert_type[0].alert_type;
+      return risk_enum_to_alert_type[risk].alert_type;
   }
   
   static inline const char * const getCheckName(ndpi_risk_enum risk) {
-    if(risk < NDPI_MAX_RISK)
-      return risk_enum_to_alert_type[risk].alert_lua_name;
+    if(isRiskUnhanlded(risk))
+      return risk_enum_to_alert_type[NDPI_NO_RISK].alert_lua_name;
     else
-      return risk_enum_to_alert_type[0].alert_lua_name;
+      return risk_enum_to_alert_type[risk].alert_lua_name;
   }
   static void checkUnhandledRisks();
   static bool lua(lua_State* vm);

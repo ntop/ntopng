@@ -26,7 +26,7 @@
 const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RISK] = {
   [NDPI_NO_RISK] = {
     .alert_type = { flow_alert_normal, alert_category_other },
-    .alert_lua_name = ""
+    .alert_lua_name = "ndpi_no_risk"
   },
   [NDPI_URL_POSSIBLE_XSS] = {
     .alert_type = { flow_alert_ndpi_url_possible_xss, alert_category_security },
@@ -182,6 +182,16 @@ const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RIS
     .alert_lua_name = "ndpi_dns_fragmented"
   },
 };
+
+/* **************************************************** */
+
+bool FlowRiskAlerts::isRiskUnhanlded(ndpi_risk_enum risk) {
+  /*
+    A risk is unhandled by this class if either it exceeds the number of available risks
+    or if it has not been mapped to the risk_enum_to_alert_type array.
+   */
+  return(risk >= NDPI_MAX_RISK || risk_enum_to_alert_type[risk].alert_type.id == flow_alert_normal);
+}
 
 /* **************************************************** */
 
