@@ -38,9 +38,14 @@ class FlowRiskKnownProtocolOnNonStandardPort : public FlowRisk {
     /* Client is an attacker, trying to use a server on a non-std port */
     alert->setCliAttacker();
 
-    /* If the server responds, the server is also an attacker as it is offering a service on a non std-port */
+    /*
+      If the server responds, the server is also an attacker as it is offering a service on a non std-port.
+      NOTE: Currently, we have decided to skip this condition as it may penalize legitimate servers.
+            Discussion at https://github.com/ntop/ntopng/issues/5997.
+
     if(f->get_bytes_srv2cli() > 10)
       alert->setSrvAttacker();
+    */
 
     return alert;
   }
