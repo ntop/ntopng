@@ -181,6 +181,13 @@ else
       }
    })
 
+
+   local db_search_url = "/lua/pro/nindex_query.lua"
+
+   if prefs.is_dump_flows_to_clickhouse_enabled then
+      db_search_url = "/lua/pro/db_search.lua"
+   end
+
    -- Dashboard
    page_utils.add_menubar_section(
       {
@@ -212,7 +219,7 @@ else
 	    {
 	       entry = page_utils.menu_entries.db_explorer,
 	       hidden = not ntop.isPro() or (not prefs.is_nindex_enabled and not prefs.is_dump_flows_to_clickhouse_enabled) or ifs.isViewed or not auth.has_capability(auth.capabilities.historical_flows),
-	       url = "/lua/pro/nindex_query.lua",
+	       url = db_search_url,
 	    },
 	 },
       }
