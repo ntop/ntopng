@@ -507,7 +507,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface, bool _clickhouse_mode) : DB(_iface) {
 
 MySQLDB::~MySQLDB() {
   shutdown();
-  disconnectFromDB(&mysql_alt);
+  if(!clickhouse_mode) disconnectFromDB(&mysql_alt);
   disconnectFromDB(&mysql);
 
   if(log_fd) fclose(log_fd);
@@ -724,8 +724,7 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
      is not an issue and also avoids flows drops due to the redis queue 
      maximum length
     */
-    try_exec_sql_query(&mysql_alt, sql);
-
+    if(mysql_alt_connected) try_exec_sql_query(&mysql_alt, sql);
   } else {
     if (ntop->getRedis()->llen(CONST_SQL_QUEUE) < CONST_MAX_MYSQL_QUEUE_LEN) {
       /* 
