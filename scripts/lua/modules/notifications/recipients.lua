@@ -738,7 +738,7 @@ end
 -- @param force_export A boolean telling to forcefully export dispatched notifications
 -- @return nil
 local function process_notifications_by_priority(ready_recipients, high_priority, now, deadline, periodic_frequency, force_export)
-   -- Total budget availabe, which is a multiple of the periodic_frequency
+   -- Total budget available, which is a multiple of the periodic_frequency
    -- Budget in this case is the maximum number of notifications which can
    -- be processed during this call.
    local total_budget = 1000 * periodic_frequency
@@ -859,8 +859,6 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
       end
    end
 
-   -- Use table.clone to pass recipients as the table is modified to only leave, after the call,
-   -- only those recipients who didn't complete their job.
    process_notifications_by_priority(high_pri_ready_recipients, true  --[[ high priority --]], now, deadline, periodic_frequency, force_export)
    process_notifications_by_priority(low_pri_ready_recipients, false --[[ low priority  --]], now, deadline, periodic_frequency, force_export)
 end
