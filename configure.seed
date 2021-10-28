@@ -70,12 +70,19 @@ LIBPCAP=-lpcap
 if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
    CFLAGS="${CFLAGS} -I/usr/local/include"
    LDFLAGS="${LDFLAGS} -L/usr/local/lib"
+
    dnl> https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
    CC=clang
    CXX=clang++
    if test $SYSTEM = "FreeBSD"; then
     MAKE=gmake
     BIN_PATH=/usr/local/bin
+   else
+     dnl> Adds /opt if MacPorts is installed
+     if [ test -f /opt/local/bin/port ]; then
+       CFLAGS="${CFLAGS} -I/opt/local/include"
+       LDFLAGS="${LDFLAGS} -L/opt/local/lib"
+     fi
    fi
    dnl> CXX=clang++ -fsanitize=address -fsanitize-address-use-after-scope
    OSXV=`sw_vers -productVersion`
