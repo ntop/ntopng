@@ -99,4 +99,16 @@ function dscp_consts.dscp_class_descr(id)
    return dscp_consts.ds_class_descr(class)
 end
 
+function dscp_consts.dscp_class_list()
+   local dscp_list = {}
+
+   for k, v in pairs(DSCP) do 
+      dscp_list[k] = {}
+      dscp_list[k]["id"] = k
+      dscp_list[k]["label"] = v
+   end
+
+   return dscp_list
+end
+
 return dscp_consts

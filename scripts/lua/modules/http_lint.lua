@@ -1384,6 +1384,7 @@ local known_parameters = {
    ["probe_ip"]                = validateFilters(validateHost),                  --Probe IP, used by nindex query
    ["tot_bytes"]               = validateFilters(validateNumber),                --Total bytes, used by nindex query
    ["src2dst_dscp"]            = validateEmptyOr(validateFilters(validateUnquoted)),                               --Client DSCP, used by nindex query
+   ["dst2src_dscp"]            = validateEmptyOr(validateFilters(validateUnquoted)),                               --Client DSCP, used by nindex query
    ["flow_status_num"]         = validateEmptyOr(validateFilters(validateUnquoted)),                               --Flow Status, used by nindex query
    ["vhost"]                   = validateHTTPHost,              -- HTTP server name or IP address
    ["version"]                 = validateIpVersion,             -- To specify an IPv4 or IPv6
