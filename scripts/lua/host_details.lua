@@ -521,7 +521,7 @@ if((page == "overview") or (page == nil)) then
        print(" "..discover.getOsIcon(host.os).." ")
      end
 
-      historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
+     historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
 
       if(host["local_network_name"] ~= nil) then
 	 local network_name = getLocalNetworkAlias(host["local_network_name"] )
