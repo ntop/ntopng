@@ -739,7 +739,7 @@ function host_pools_nedge.migrateHostPools()
 end
 
 function host_pools_nedge.resetPoolsQuotas(pool_filter)
-  local serialized_key = get_pools_serialized_key(tostring(interface.getId()))
+  local serialized_key = get_pools_serialized_key(tostring(interface.getFirstInterfaceId()))
   local keys_to_del
 
   if pool_filter ~= nil then
@@ -755,6 +755,34 @@ function host_pools_nedge.resetPoolsQuotas(pool_filter)
 
   -- Delete the in-memory stats
   interface.resetPoolsQuotas(pool_filter)
+end
+
+-- @brief Performs a daily check and possibly resets host quotas.
+--        NOTE: This function must be called one time per day.
+function host_pools_nedge.dailyCheckResetPoolsQuotas()
+  package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
+  local nf_config = require("nf_config"):create()
+  local shapers_config = nf_config:getShapersConfig()
+  local quotas_control = shapers_config.quotas_control
+  local do_reset = true
+
+  if quotas_control.reset == "monthly" then
+     local day_of_month = os.date("*t").day
+
+     if day_of_month ~= 1 --[[ First day of the month --]] then
+	do_reset = false
+     end
+  elseif quotas_control.reset == "weekly" then
+     local day_of_week = os.date("*t").wday
+
+     if day_of_week ~= 2 --[[ Monday --]] then
+	do_reset = false
+     end
+  end
+
+  if do_reset then
+     host_pools_nedge.resetPoolsQuotas()
+  end
 end
 
 host_pools_nedge.traceHostPoolEvent = traceHostPoolEvent

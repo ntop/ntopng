@@ -1990,6 +1990,7 @@ local known_parameters = {
    ["delete_active_if_data_system"] =   validateEmpty,
    ["reset_quotas"]            = validateEmpty,
    ["bandwidth_allocation"]    = validateChoiceInline({"min_guaranteed", "max_enforced"}),
+   ["quotas_control"]           = validateChoiceInline({"daily", "weekly", "monthly"}),
    ["bind_to"]                 = validateChoiceInline({"lan", "any"}),
    ["slow_pass_shaper_perc"]   = validateNumber,
    ["slower_pass_shaper_perc"] = validateNumber,
