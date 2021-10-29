@@ -88,4 +88,23 @@ they will be guaranteed a 50% minimum share of the *Default* class bandwidth. If
 are three, then a 33% of the class bandwidth will be guaranteed, if they are four a 25%
 and so on.
 
+Quotas
+------
+
+nEdge supports per-user and per-application quotas. Quotas can be configured both in terms of time or in terms of volume of traffic.
+
+When a quota is exceeded, the user is prevented from doing additional traffic. Quotas can be daily, weekly, or monthly:
+
+  - A daily quota is reset every day at midnight
+  - A weekly quota is reset every week on Sunday at midnight
+  - A monthly quota is reset every last day of the month at midnight
+
+Quotas reset can be configured from the System Setup under Bandwidth Control.
+
+.. figure:: img/quotas_time_span.png
+  :align: center
+  :alt: Quotas Configuration
+
+  Quotas Configuration
+
 .. _users: users.html
