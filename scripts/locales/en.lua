@@ -643,7 +643,7 @@ local lang = {
     ["proto_time_quotas"] = "%{proto} time",
     ["remote_to_local_insecure_proto"] = "Remote to Local Insecure Protocol [Category: %{ndpi_category}][Breed: %{ndpi_breed}]",
     ["remote_to_remote"] = "Remote %{entity}%{host_category} contacted a remote host",
-    ["score_number_anomaly"] = "%{role} Score: %{score} [Expected Range: %{lower_bound} ... %{upper_bound}][Cybersecurity Score: %{cat_sec}% | Network Score: %{cat_net}%][Flow Alerts: <a href='%{flow_params}'><i class='fas fa-search-plus fa-lg'></i></a>][Past Host Alerts: <a href='%{host_params_historical}'><i class='fas fa-search-plus fa-lg'></i></a>][Engaged Host Alerts: <a href='%{host_params_engaged}'><i class='fas fa-search-plus fa-lg'></i></a>]",
+    ["score_number_anomaly"] = "%{role} Score: %{score} [Expected Range: %{lower_bound} ... %{upper_bound} <i class='fas fa-question-circle' title='This Behavior is automatically calculated by ntopng by analyzing the host behavior during time, find more at ntopng guide into `Basic Concept->Alerts->Behavior Alerts` section'></i>][Cybersecurity Score: %{cat_sec}% | Network Score: %{cat_net}%][Flow Alerts: <a href='%{flow_params}'><i class='fas fa-search-plus fa-lg'></i></a>][Past Host Alerts: <a href='%{host_params_historical}'><i class='fas fa-search-plus fa-lg'></i></a>][Engaged Host Alerts: <a href='%{host_params_engaged}'><i class='fas fa-search-plus fa-lg'></i></a>]",
     ["score_number_anomaly_threshold"] = "%{metric} exceeded by %{entity} [%{value} > %{threshold}]",
     ["score_threshold"] = "Score exceeded by %{entity} [%{value} > %{threshold}]",
     ["shell_script_executed"] = "Shell script '%{script_exec_comm}' executed in response of an alert: '%{alert_type}'",
