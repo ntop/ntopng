@@ -3055,6 +3055,18 @@ void Flow::housekeep(time_t t) {
       hookPeriodicUpdateCheck(t);
      */
     dumpCheck(t, false /* NOT the last dump before delete */);
+
+    /*
+      Swap requested but not yet performed (no more packets seen).
+      In case of interfaces processing pcap files, if the processing of the pcap file is completed,
+      i.e. read_from_pcap_dump_done() is true, then there will be no more packets so the flow swap won't take
+      place. For this reason, the callbacks are executed on the original flow that should have been swapped but actually it is not.
+     */
+    if(getInterface()->read_from_pcap_dump_done()
+       && is_swap_requested()
+       && !is_swap_done()) 
+      iface->execProtocolDetectedChecks(this);
+
     break;
 
   case hash_entry_state_idle:
