@@ -9,6 +9,7 @@ ignore:
   - extract_flow_info
   - num_records_processed
   - query_duration_msec
+  - query_duration_sec
   - throughput
 
 pre: |
