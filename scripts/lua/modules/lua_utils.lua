@@ -4672,6 +4672,13 @@ function addHTTPInfoToAlertDescr(msg, alert_json)
             i18n("last_http_return_code"),
             alert_json["http"]["protos.http.last_return_code"])
       end
+
+      if alert_json["http"]["protos.http.last_url"] then
+         msg = msg .. string.format(" [%s: %s]", 
+            i18n("last_http_url"),
+            i18n("external_link_url", { url = alert_json["http"]["protos.http.last_url"], 
+                                        url_name = alert_json["http"]["protos.http.last_url"]}))
+      end
    end
 
    return msg
@@ -4680,9 +4687,9 @@ end
 -- ##############################################
 
 function addBytesInfoToAlertDescr(msg, value)
-   local predominant_bytes = string.format("%s %s", i18n("download"), i18n("download_icon"))
+   local predominant_bytes = i18n("traffic_srv_to_cli")
    if (value["cli2srv_bytes"] or 0) > (value["srv2cli_bytes"] or 0) then
-      predominant_bytes = string.format("%s %s", i18n("upload"), i18n("upload_icon"))
+      predominant_bytes = i18n("traffic_cli_to_srv")
    end
 
    msg = msg .. string.format(" [%s: %s]", 
