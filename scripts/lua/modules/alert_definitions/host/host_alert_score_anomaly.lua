@@ -91,6 +91,24 @@ function host_alert_score_anomaly.format(ifid, alert, alert_type_params)
    end
 
    local cat_net, cat_sec = get_problematic_category(alert_type_params, is_both, cli_or_srv)
+   local alert_url = ntop.getHttpPrefix() .. '/lua/alert_stats.lua?'
+   local url_params = {
+      ip = alert["ip"] .. ';eq',
+      page = 'flow',
+      status = 'historical',
+      epoch_begin = (alert["tstamp_end"] or os.time()) - (30 * 10),
+      epoch_end = (alert["tstamp_end"] or os.time()) + (30 * 10)
+   }
+
+   local flow_params = alert_url .. table.tconcat(url_params, "=", "&")
+
+   url_params['page'] = 'host'
+
+   local host_params_historical = alert_url .. table.tconcat(url_params, "=", "&")
+
+   url_params['status'] = 'engaged'
+
+   local host_params_engaged = alert_url .. table.tconcat(url_params, "=", "&")
 
    -- Anomaly due to DES anomaly
    return i18n("alert_messages.score_number_anomaly", {
@@ -101,6 +119,9 @@ function host_alert_score_anomaly.format(ifid, alert, alert_type_params)
 		upper_bound = alert_type_params["upper_bound"],
       cat_net = cat_net,
       cat_sec = cat_sec,
+      flow_params = flow_params,
+      host_params_historical = host_params_historical,
+      host_params_engaged = host_params_engaged,
    })
 end
 
