@@ -161,6 +161,17 @@ possible to set static IP to MAC address mappings.
 
   DHCP static leases configuration
 
+To see all active DHCP leases, including the static ones, visit page "DHCP Active Leases" under System.
+
+
+.. figure:: img/dhcp_active_leases.png
+  :align: center
+  :alt: DHCP active leases
+
+  DHCP active leases
+
+
+
 Port Forwarding
 ---------------
 
