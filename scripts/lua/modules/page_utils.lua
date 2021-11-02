@@ -174,7 +174,8 @@ page_utils.menu_entries = {
    nedge_flows            = {key = "nedge_flows", i18n_title = "flows", section = "hosts"},
    users                  = {key = "users", i18n_title = "users.users", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/authentication.html"},
    system_setup           = {key = "system_setup", i18n_title = "nedge.system_setup", section = "system_stats", help_link = "https://www.ntop.org/guides/nedge/get_started.html"},
-   dhcp_leases            = {key = "dhcp_leases", i18n_title = "nedge.dhcp_leases", section = "system_stats"},
+   dhcp_static_leases     = {key = "dhcp_static_leases", i18n_title = "nedge.static_dhcp_leases", section = "system_stats"},
+   dhcp_active_leases     = {key = "dhcp_active_leases", i18n_title = "nedge.active_dhcp_leases", section = "system_stats"},
    port_forwarding        = {key = "port_forwarding", i18n_title = "nedge.port_forwarding", section = "system_stats"},
 }
 

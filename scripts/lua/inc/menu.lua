@@ -505,9 +505,14 @@ if is_nedge then
 	    url = '/lua/system_setup_ui/interfaces.lua',
 	 },
 	 {
-	    entry = page_utils.menu_entries.dhcp_leases,
+	    entry = page_utils.menu_entries.dhcp_static_leases,
 	    hidden = not is_admin or not ntop.isRoutingMode(),
 	    url = '/lua/pro/nedge/admin/dhcp_leases.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.dhcp_active_leases,
+	    hidden = not is_admin or not ntop.isRoutingMode(),
+	    url = '/lua/pro/nedge/admin/dhcp_active_leases.lua',
 	 },
 	 {
 	    entry = page_utils.menu_entries.port_forwarding,
