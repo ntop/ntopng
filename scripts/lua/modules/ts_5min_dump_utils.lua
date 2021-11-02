@@ -524,18 +524,6 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             packets_rcvd = host["tcp.packets.rcvd"]},
       when)
 
-  -- Total number of alerts
-  ts_utils.append("host:total_alerts", {ifid = ifstats.id, host = hostname,
-					alerts = host["total_alerts"]},
-		  when)
-
-  -- Engaged alerts
-  if host["engaged_alerts"] then
-    ts_utils.append("host:engaged_alerts", {ifid = ifstats.id, host = hostname,
-					   alerts = host["engaged_alerts"]},
-		  when)
-  end
-
   -- Contacts
   if host["contacts.as_client"] then
     ts_utils.append("host:contacts", {ifid=ifstats.id, host=hostname,
@@ -724,12 +712,30 @@ function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
       traceError(TRACE_NORMAL, TRACE_CONSOLE, "@".. when .." Going to update host " .. hostname)
     end
 
+    ------ Light stats ------
+
     -- Traffic stats
     ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
 				     bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when)
 
     -- Score
     ts_utils.append("host:score", {ifid=ifstats.id, host=hostname, score_as_cli = host["score.as_client"], score_as_srv = host["score.as_server"]}, when)
+
+    -- Total number of alerts
+    ts_utils.append("host:total_alerts", {ifid = ifstats.id, host = hostname,
+            alerts = host["total_alerts"]},
+        when)
+
+    -- Engaged alerts
+    if host["engaged_alerts"] then
+      ts_utils.append("host:engaged_alerts", {ifid = ifstats.id, host = hostname,
+               alerts = host["engaged_alerts"]},
+        when)
+    end
+
+    ------------------------
+
+    ------ Full Stats ------
 
     if(config.host_ts_creation == "full") then
       ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
@@ -742,6 +748,8 @@ function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
         ts_dump.host_update_categories_rrds(when, hostname, host, ifstats, verbose)
       end
     end
+    
+    ------------------------
   end
 end
 

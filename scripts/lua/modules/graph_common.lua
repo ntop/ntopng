@@ -221,7 +221,7 @@ end
 
 -- Prints the menu from the populated graph_menu_entries.
 -- The entry_print_callback is called to print the actual entries.
-function graph_common.printGraphMenuEntries(entry_print_callback, active_entry, start_time, end_time)
+function graph_common.printGraphMenuEntries(entry_print_callback, active_entry, start_time, end_time, light_config)
    local active_entries = {}
    local active_idx = 1 -- index in active_entries
    local tdiff = (end_time - start_time)
@@ -232,6 +232,7 @@ function graph_common.printGraphMenuEntries(entry_print_callback, active_entry, 
    local needs_separator = false
    local separator_label = nil
    local first
+
    for _, entry in ipairs(graph_menu_entries) do
      if entry.needs_separator 
         or entry.label == nil -- divider
@@ -269,11 +270,21 @@ function graph_common.printGraphMenuEntries(entry_print_callback, active_entry, 
    -- sort group
    first = true
    for k,v in pairsByKeys(sort_table) do
+      if (light_config == true) 
+         and (v["params"]["host"])
+         and (v["params"]["dscp_class"]) then
+            graph_menu_entries_sorted[#graph_menu_entries_sorted] = nil
+            v["pending"] = 1 -- Skip the record
+            goto continue
+      end
+
       if first then
          v.needs_separator = needs_separator
          v.separator_label = separator_label
          first = false
       end
+      ::continue::
+
       graph_menu_entries_sorted[#graph_menu_entries_sorted+1] = v
    end
 
