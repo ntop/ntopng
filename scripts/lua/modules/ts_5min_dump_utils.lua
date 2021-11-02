@@ -438,20 +438,6 @@ end
 -- ########################################################
 
 function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
-   
-  -- Number of flows
-  if(host["active_flows.as_client"]) then
-    ts_utils.append("host:active_flows", {ifid=ifstats.id, host=hostname,
-				 flows_as_client = host["active_flows.as_client"],
-				 flows_as_server = host["active_flows.as_server"]},
-         when)
-  end
-
-  ts_utils.append("host:total_flows", {ifid=ifstats.id, host=hostname,
-				 flows_as_client = host["total_flows.as_client"],
-				 flows_as_server = host["total_flows.as_server"]},
-         when)
-
   -- Number of alerted flows
   ts_utils.append("host:alerted_flows", {ifid = ifstats.id, host = hostname,
 					   flows_as_client = host["alerted_flows.as_client"],
@@ -703,6 +689,40 @@ function ts_dump.host_update_categories_rrds(when, hostname, host, ifstats, verb
   end
 end
 
+function ts_dump.host_update_categories_rrds(when, hostname, host, ifstats, verbose)
+  -- Traffic stats
+  ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
+           bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when)
+
+  -- Score
+  ts_utils.append("host:score", {ifid=ifstats.id, host=hostname, score_as_cli = host["score.as_client"], score_as_srv = host["score.as_server"]}, when)
+
+  -- Total number of alerts
+  ts_utils.append("host:total_alerts", {ifid = ifstats.id, host = hostname,
+          alerts = host["total_alerts"]},
+      when)
+
+  -- Engaged alerts
+  if host["engaged_alerts"] then
+    ts_utils.append("host:engaged_alerts", {ifid = ifstats.id, host = hostname,
+             alerts = host["engaged_alerts"]},
+      when)
+  end
+  
+  -- Number of flows
+  if(host["active_flows.as_client"] or host["active_flows.as_server"]) then
+    ts_utils.append("host:active_flows", {ifid=ifstats.id, host=hostname,
+         flows_as_client = host["active_flows.as_client"] or 0,
+         flows_as_server = host["active_flows.as_server"] or 0},
+         when)
+  end
+
+  ts_utils.append("host:total_flows", {ifid=ifstats.id, host=hostname,
+         flows_as_client = host["total_flows.as_client"],
+         flows_as_server = host["total_flows.as_server"]},
+         when)
+end
+
 -- ########################################################
 
 function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
@@ -714,24 +734,7 @@ function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
 
     ------ Light stats ------
 
-    -- Traffic stats
-    ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
-				     bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when)
-
-    -- Score
-    ts_utils.append("host:score", {ifid=ifstats.id, host=hostname, score_as_cli = host["score.as_client"], score_as_srv = host["score.as_server"]}, when)
-
-    -- Total number of alerts
-    ts_utils.append("host:total_alerts", {ifid = ifstats.id, host = hostname,
-            alerts = host["total_alerts"]},
-        when)
-
-    -- Engaged alerts
-    if host["engaged_alerts"] then
-      ts_utils.append("host:engaged_alerts", {ifid = ifstats.id, host = hostname,
-               alerts = host["engaged_alerts"]},
-        when)
-    end
+    ts_dump.light_host_update_rrd(when, hostname, host, ifstats, verbose)
 
     ------------------------
 
