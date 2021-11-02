@@ -89,6 +89,10 @@ local rest_utils = {
 
 	 add_pool_failed_too_many_pools = { http_code = 409, rc = -53, str = "ADD_POOL_FAILED_TOO_MANY_POOLS"},
 	 add_pool_failed_too_many_pools_enterprise = { http_code = 409, rc = -54, str = "ADD_POOL_FAILED_TOO_MANY_POOLS_ENTERPRISE"},
+
+	 -- nEdge
+	 dhcp_active_leases_not_nedge        = { http_code = 409, rc = -55, str = "DHCP_ACTIVE_LEASES_NOT_NEDGE"},
+	 dhcp_active_leases_not_routing_mode = { http_code = 409, rc = -56, str = "DHCP_ACTIVE_LEASES_NOT_ROUTING_MODE"},
       },
    }
 }
