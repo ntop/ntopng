@@ -5089,6 +5089,7 @@ local lang = {
     ["presets"] = {
       ["30_min"] = "Last 30 min",
       ["5_min"] = "Last 5 min",
+      ["all"] = "All",
       ["day"] = "Last day",
       ["hour"] = "Last hour",
       ["month"] = "Last month",

@@ -218,6 +218,9 @@
                 begin = diff;
                 end = now;
 
+                if(!measure)
+                    diff = moment(parseInt(subtract));
+
                 // update the datetimepickers
                 $inputEndEpoch.datetimepicker('minDate', diff);
                 $inputEndEpoch.datetimepicker('maxDate', now);

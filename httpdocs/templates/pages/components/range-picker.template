@@ -69,6 +69,8 @@
                                     {% if (presets.year == nil) or presets.year then %}
                                     <option value="1,years">{{ i18n('show_alerts.presets.year') }}</option>
                                     {% end  %}
+
+                                    <option {{ ((presetSelected and default == 'all') and 'selected' or '') }} value="0">{{ i18n('show_alerts.presets.all') }}</option>
                     
                                     <option value="custom" disabled {{ not presetSelected and 'selected' or '' }}>{{ i18n("graphs.custom") }}</option>
                                 </select>
@@ -308,8 +310,11 @@ const endEpoch = {{ (_GET['epoch_end'] or _GET['epoch_end'] or 'undefined') }};
             const [subtract, measure] = $(this).val().split(',');
 
             const now = moment();
-            const diff = moment().subtract(parseInt(subtract), measure);
+            let diff = moment().subtract(parseInt(subtract), measure);
 
+            if(!measure)
+                diff = moment(parseInt(subtract));
+            
             $inputEndEpoch.datetimepicker('minDate', diff);
             $inputEndEpoch.datetimepicker('maxDate', now);
 
