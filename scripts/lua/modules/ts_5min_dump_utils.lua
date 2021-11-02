@@ -689,7 +689,9 @@ function ts_dump.host_update_categories_rrds(when, hostname, host, ifstats, verb
   end
 end
 
-function ts_dump.host_update_categories_rrds(when, hostname, host, ifstats, verbose)
+-- ########################################################
+
+function ts_dump.light_host_update_rrd(when, hostname, host, ifstats, verbose)
   -- Traffic stats
   ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
            bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when)
