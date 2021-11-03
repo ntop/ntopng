@@ -731,6 +731,48 @@ end
 
 -- ##############################################
 
+function alert_utils.formatAlertCulript(notif)
+   local msg
+
+   -- Formatting cli-srv
+   if not isEmptyString(notif.cli_ip) and not isEmptyString(notif.srv_ip) then
+      local client = notif.cli_ip
+      local server = notif.srv_ip
+      local client_port = ''
+      local server_port = ''
+
+      if not isEmptyString(notif.cli_name) then
+         client = notif.cli_name
+      end
+      
+      if not isEmptyString(notif.srv_name) then
+         server = notif.srv_name
+      end
+
+      if notif.cli_port ~= 0 then
+         client_port = ':' .. notif.cli_port
+      end
+      
+      if notif.srv_port ~= 0 then
+         server_port = ':' .. notif.srv_port
+      end
+
+      msg = string.format('%s%s \xE2\x9E\xA1 %s%s', client, client_port, server, server_port)
+   elseif not isEmptyString(notif.entity_val) then
+      msg = notif.entity_val
+
+      if notif.name and not isEmptyString(notif.name) then
+         msg = notif.name
+      end
+   else
+      msg = ''
+   end
+   
+   return msg   
+end
+
+-- ##############################################
+
 -- Processes queued alerts and returns the information necessary to store them.
 -- Alerts are only enqueued by AlertsQueue in C. From lua, the alerts_api
 -- can be called directly as slow operations will be postponed
