@@ -4765,6 +4765,10 @@ local lang = {
     ["traffic_sent"] = "Traffic Sent",
     ["type"] = "Type",
   },
+  ["queries"] = {
+    ["top_l7_contacts"] = "Top L7 Contacts",
+    ["top_clients"] = "Top Clients",
+  },
   ["queue"] = {
     ["activeFlowsToDump"] = "Active flows dump",
     ["hookFlowEnd"] = "flowEnd flow user script hook",

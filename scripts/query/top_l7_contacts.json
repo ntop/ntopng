@@ -1,0 +1,55 @@
+{
+	"name" : "Top L7 Contacts",
+	"i18n-name" : "top_l7_contacts",
+	"data-source" : "flows",
+	"visualization-type" : "table",
+	"select" : {
+		"items" : [
+			{
+				"name" : "IPV4_SRC_ADDR"
+			},
+			{
+				"name" : "IPV4_DST_ADDR"
+			},
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "L7_PROTO"
+			},
+			{
+				"name" : "bytes",
+				"func" : "SUM",
+				"param" : "TOTAL_BYTES"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "IPV4_SRC_ADDR"
+			},
+			{
+				"name" : "IPV4_DST_ADDR"
+			},
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "L7_PROTO"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "bytes",
+				"order" : "DESC"
+			}
+		]
+	}
+}

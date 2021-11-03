@@ -1,0 +1,31 @@
+{
+	"name" : "Top Clients",
+	"i18n-name" : "top_clients",
+	"data-source" : "flows",
+	"visualization-type" : "table",
+	"select" : {
+		"sql" : "IPV4_SRC_ADDR, VLAN_ID, SUM(TOTAL_BYTES) bytes"
+	},
+	"filters" : {
+		"items" : [
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "IPV4_SRC_ADDR"
+			},
+			{
+				"name" : "VLAN_ID"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "bytes",
+				"order" : "DESC"
+			}
+		]
+	}
+}

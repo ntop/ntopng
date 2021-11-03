@@ -1,0 +1,81 @@
+Query Definitions
+-----------------
+
+Place in this directory query definitions in JSON format
+used by the Historical Flow Explorer.
+
+Built-in examples are provided and can be used as starting
+point for building new queries. Please note that:
+
+- The 'select' object can contain a list of items in the 'items'
+  array, or a raw SQL select in the 'sql' string.
+
+- It is possible to use SQL functions as 'select' item as shown
+  in the examples by specifying the 'func' (e.g. SUM) and the
+  parameter (e.g. TOTAL_BYTES)
+
+- The 'filters' object contains a list of items to filter in the
+  'items' array. Defining the 'name' is enough, however additional
+  settings can be configured to overwrite the default (e.g. the
+  operators to be used, the input type, optional field, etc.).
+
+- The interface index, and first/last seen are automatically included
+  by the engine: no need to define them as filters in the query definition.
+
+Examples
+--------
+
+Select example - list of fields:
+
+	"select" : {
+		"items" : [
+			{
+				"name": "IPV4_SRC_ADDR",
+			},
+			{
+				"name": "IPV4_DST_ADDR", 
+			},
+			{
+				"name": "VLAN_ID",
+			},
+			{
+				"name": "L7_PROTO",
+			},
+			{
+				"name": "bytes",
+				"func": "SUM",
+				"param": "TOTAL_BYTES",
+			}
+		]
+	}
+
+Select example - SQL:
+
+	"select" : {
+		"sql": "IPv4NumToString(IPV4_SRC_ADDR) IPV4_SRC_ADDR, IPv4NumToString(IPV4_DST_ADDR) IPV4_DST_ADDR, L7_PROTO, SUM(TOTAL_BYTES) bytes"
+	}
+
+Filters examples:
+
+	"filters" : {
+		"items" : [
+			{
+				"name": "IPV4_SRC_ADDR"
+			},
+			{
+				"name": "TOTAL_BYTES",
+				"op": "gte",
+				"type": "number",
+				"input": "user",
+				"optional": true
+			},
+			{
+				"name": "L7_PROTO",
+				"op": "eq",
+				"type": "l7proto",
+				"input": "fixed",
+				"value": "TLS"
+			}
+		]
+	}
+
