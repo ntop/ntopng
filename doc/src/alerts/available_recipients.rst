@@ -126,6 +126,19 @@ A Shared Secret can be configured in ntopng, which is an arbitrary string includ
 
 A Username and Password can also be used to use HTTP Basic authentication.
 
+.. _Microsoft Teams:
+MS Teams
+-------
+
+Like for the Webhook, Microsoft Teams endpoint can be used to deliver alert information to a MS Teams Channel configuring a Connector in MS Teams and the URL in ntopng. Alert information are provided to MS Teams in Message Card (Specific MS Teams JSON format) by means of POST requests.
+
+To Configure MS Teams to be used by ntopng as an endpoint first it's needed to enable the selected Channel Connector. Go into the Channel Settings and click onto `Connectors`.
+Add `Incoming Webhook` to MS Teams Connectors and then click on `Configure` and then on `Create`. Take the URL given by MS Teams and paste into ntopng endpoint (`Connector`).
+
+Official guide to MS Teams Webhook can be found `Here <https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook>`_
+
+.. figure:: ../img/teams_webhook.png
+
 .. _ElasticsearchAlerts:
 Elasticsearch
 -------------
