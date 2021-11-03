@@ -6,6 +6,11 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
+if(ntop.isPro()) then
+   package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
+   require('minute')
+end
+
 local scripts_triggers = require "scripts_triggers"
 local prefs_dump_utils = require "prefs_dump_utils"
 

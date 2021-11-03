@@ -172,6 +172,7 @@ page_utils.menu_entries = {
    -- nEdge
    gateways_users         = {key = "gateways_users", i18n_title = "dashboard.gateways_users", section = "dashboard"},
    nedge_flows            = {key = "nedge_flows", i18n_title = "flows", section = "hosts"},
+   nedge_interfaces       = {key = "nedge_interfaces", i18n_title = "interfaces", section = "dashboard"},
    users                  = {key = "users", i18n_title = "users.users", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/authentication.html"},
    system_setup           = {key = "system_setup", i18n_title = "nedge.system_setup", section = "system_stats", help_link = "https://www.ntop.org/guides/nedge/get_started.html"},
    dhcp_static_leases     = {key = "dhcp_static_leases", i18n_title = "nedge.static_dhcp_leases", section = "system_stats"},
