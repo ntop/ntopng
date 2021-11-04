@@ -84,6 +84,37 @@ The gateway status can be one:
     gateway IP address. This can be caused by an interface link down or by a
     misconfigured gateway/interface network.
 
+Statistics for individual physical interfaces are available as well. To
+see them, click on the interface name from the above gateways status view. This opens a page with interface details.
+
+
+.. figure:: img/gateways_physical_interface_details.png
+  :align: center
+  :alt: Physical Interface Details
+
+  Physical Interface Details
+
+The page reports interface statistics calculated since the most recent
+reboot of nEdge. Among the statistic show there are bytes and packets
+transmitted and received, as well as the current throughput.
+
+Physical interface statistics are also available as historical timeseries. To access these timeseries, click on the chart icon
+in the navbar.
+
+Available timeseries are:
+
+  - **Traffic** shown in both directions, i.e., sent (TX) and received (RX)
+  - **Traffic Total/Userspace** to show the fraction of the total traffic that has been offloaded to the kernel.
+
+
+.. figure:: img/gateways_physical_interface_timeseries.png
+  :align: center
+  :alt: Physical Interface Timeseries
+
+  Physical Interface Timeseries
+
+
+
 Routing Policies
 ----------------
 
