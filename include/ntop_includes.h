@@ -299,7 +299,7 @@ using namespace std;
 #include "PacketDumperTuntap.h"
 #include "TimelineExtract.h"
 #include "TcpFlowStats.h"
-#include "StoreManager.h"
+#include "SQLiteStoreManager.h"
 #include "StatsManager.h"
 #include "AlertStore.h"
 #include "DB.h"

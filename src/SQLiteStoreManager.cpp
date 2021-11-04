@@ -21,13 +21,17 @@
 
 #include "ntop_includes.h"
 
-StoreManager::StoreManager(int interface_id) {
+/* **************************************************** */
+
+SQLiteStoreManager::SQLiteStoreManager(int interface_id) {
     ifid = interface_id;
     iface = ntop->getInterfaceById(interface_id);
     db = NULL;
 };
 
-int StoreManager::init(const char *db_file_full_path) {
+/* **************************************************** */
+
+int SQLiteStoreManager::init(const char *db_file_full_path) {
   // db_file_full_path = (char*)":memory:"; 
   
   if(sqlite3_open(db_file_full_path, &db)) {
@@ -40,15 +44,21 @@ int StoreManager::init(const char *db_file_full_path) {
   return 0;
 }
 
-NetworkInterface* StoreManager::getNetworkInterface() {
+/* **************************************************** */
+
+NetworkInterface* SQLiteStoreManager::getNetworkInterface() {
   if(!iface)
     iface = ntop->getInterfaceById(ifid);
   return iface;
 }
 
-StoreManager::~StoreManager() {
+/* **************************************************** */
+
+SQLiteStoreManager::~SQLiteStoreManager() {
   if(db) sqlite3_close(db);
 }
+
+/* **************************************************** */
 
 /**
  * @brief Executes a database query on an already opened SQLite3 DB
@@ -64,7 +74,7 @@ StoreManager::~StoreManager() {
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StoreManager::exec_query(const char * const db_query,
+int SQLiteStoreManager::exec_query(const char * const db_query,
                              int (*callback)(void *, int, char **, char **),
                              void *payload) {
   char *zErrMsg = 0;
@@ -91,7 +101,7 @@ int StoreManager::exec_query(const char * const db_query,
 
   See https://www.sqlite.org/rescode.html
 */
-int StoreManager::exec_statement(sqlite3_stmt *stmt) {
+int SQLiteStoreManager::exec_statement(sqlite3_stmt *stmt) {
   int rc;
   int max_retries = 5;
   bool retry = true;
@@ -130,7 +140,7 @@ int StoreManager::exec_statement(sqlite3_stmt *stmt) {
   Should be called as disk space and defragmentation are not run
   automatically by sqlite.
 */
-int StoreManager::optimizeStore() {
+int SQLiteStoreManager::optimizeStore() {
   char query[STORE_MANAGER_MAX_QUERY];
   int step;
   bool rc = false;

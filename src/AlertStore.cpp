@@ -23,7 +23,7 @@
 
 /* **************************************************** */
 
-AlertStore::AlertStore(int interface_id, const char *filename) : StoreManager(interface_id) {
+AlertStore::AlertStore(int interface_id, const char *filename) : SQLiteStoreManager(interface_id) {
   char filePath[MAX_PATH];
 
   /* Create the directories needed to keep the alerts database */

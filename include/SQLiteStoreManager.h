@@ -19,12 +19,12 @@
  *
  */
 
-#ifndef _STORE_MANAGER_H_
-#define _STORE_MANAGER_H_
+#ifndef _SQLITE_STORE_MANAGER_H_
+#define _SQLITE_STORE_MANAGER_H_
 
 #include "ntop_includes.h"
 
-class StoreManager {
+class SQLiteStoreManager {
  private:
  protected:
   int ifid;
@@ -37,12 +37,13 @@ class StoreManager {
 		 int (*callback)(void *, int, char **, char **),
 		 void *payload);
   int exec_statement(sqlite3_stmt *stmt);
+
  public:
-  StoreManager(int interface_id);
-  virtual ~StoreManager();
+  SQLiteStoreManager(int interface_id);
+  virtual ~SQLiteStoreManager();
 
   NetworkInterface* getNetworkInterface(); 
   int optimizeStore();
 };
 
-#endif /* _STORE_MANAGER_H_ */
+#endif /* _SQLITE_STORE_MANAGER_H_ */

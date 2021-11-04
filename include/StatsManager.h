@@ -31,7 +31,7 @@ struct statsManagerRetrieval {
   statsManagerRetrieval(): num_vals(0) {}
 };
 
-class StatsManager : protected StoreManager {
+class StatsManager : protected SQLiteStoreManager {
 public:
     StatsManager(int interface_id, const char *db_filename);
     ~StatsManager() {};

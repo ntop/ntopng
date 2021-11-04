@@ -26,7 +26,7 @@
 
 class Flow;
 
-class AlertStore : public StoreManager {
+class AlertStore : public SQLiteStoreManager {
  private:
   bool store_opened, store_initialized;
   int openStore();

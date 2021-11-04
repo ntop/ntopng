@@ -21,8 +21,9 @@
 
 #include "ntop_includes.h"
 
+/* ******************************************* */
 
-StatsManager::StatsManager(int interface_id, const char *filename) : StoreManager(interface_id) {
+StatsManager::StatsManager(int interface_id, const char *filename) : SQLiteStoreManager(interface_id) {
   char filePath[MAX_PATH], fileFullPath[MAX_PATH], fileName[MAX_PATH];
 
   MINUTE_CACHE_NAME = "MINUTE_STATS";
@@ -46,6 +47,8 @@ StatsManager::StatsManager(int interface_id, const char *filename) : StoreManage
 
   init(fileFullPath);
 }
+
+/* ******************************************* */
 
 /**
  * @brief Opens a new cache to be used to store statistics.
@@ -85,6 +88,8 @@ int StatsManager::openStore(const char *cache_name)
   return rc;
 }
 
+/* ******************************************* */
+
 /**
  * @brief Database interface to implement stats purging.
  * @details This function implements the database-specific code
@@ -119,6 +124,8 @@ int StatsManager::deleteStatsOlderThan(const char * const cache_name, const time
   return rc;
 }
 
+/* ******************************************* */
+
 /**
  * @brief Minute stats interface to database purging.
  * @details This function hides cache-specific details (e.g. building the key
@@ -136,6 +143,8 @@ int StatsManager::deleteMinuteStatsOlderThan(unsigned num_days) {
 
   return deleteStatsOlderThan(MINUTE_CACHE_NAME, rawtime);
 }
+
+/* ******************************************* */
 
 /**
  * @brief Hour stats interface to database purging.
@@ -155,6 +164,8 @@ int StatsManager::deleteHourStatsOlderThan(unsigned num_days) {
   return deleteStatsOlderThan(HOUR_CACHE_NAME, rawtime);
 }
 
+/* ******************************************* */
+
 /**
  * @brief Day stats interface to database purging.
  * @details This function hides cache-specific details (e.g. building the key
@@ -172,6 +183,8 @@ int StatsManager::deleteDayStatsOlderThan(unsigned num_days) {
 
   return deleteStatsOlderThan(DAY_CACHE_NAME, rawtime);
 }
+
+/* ******************************************* */
 
 /**
  * @brief Callback for completion of retrieval of an interval of stats
@@ -194,6 +207,8 @@ static int get_samplings_db(void *data, int argc,
 
   return 0;
 }
+
+/* ******************************************* */
 
 /**
  * @brief Retrieve an interval of samplings from a database
@@ -239,6 +254,8 @@ int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
   return rc;
 }
 
+/* ******************************************* */
+
 /**
  * @brief Retrieve an interval of samplings from the minute stats cache
  * @details This function implements the database-specific code
@@ -260,6 +277,8 @@ int StatsManager::retrieveMinuteStatsInterval(time_t epoch_start,
 
   return retrieveStatsInterval(retvals, MINUTE_CACHE_NAME, epoch_start, epoch_end);
 }
+
+/* ******************************************* */
 
 /**
  * @brief Retrieve an interval of samplings from the hour stats cache
@@ -283,6 +302,8 @@ int StatsManager::retrieveHourStatsInterval(time_t epoch_start,
   return retrieveStatsInterval(retvals, HOUR_CACHE_NAME, epoch_start, epoch_end);
 }
 
+/* ******************************************* */
+
 /**
  * @brief Retrieve an interval of samplings from the day stats cache
  * @details This function implements the database-specific code
@@ -304,6 +325,8 @@ int StatsManager::retrieveDayStatsInterval(time_t epoch_start,
 
   return retrieveStatsInterval(retvals, DAY_CACHE_NAME, epoch_start, epoch_end);
 }
+
+/* ******************************************* */
 
 /**
  * @brief Database interface to add a new stats sampling
@@ -352,6 +375,8 @@ int StatsManager::insertSampling(const char * const sampling, const char * const
   return rc;
 }
 
+/* ******************************************* */
+
 /**
  * @brief Interface function for insertion of a new minute stats sampling
  * @details This public method implements insertion of a new sampling,
@@ -369,6 +394,8 @@ int StatsManager::insertMinuteSampling(time_t epoch, const char * const sampling
   return insertSampling(sampling, MINUTE_CACHE_NAME, static_cast<long int>(epoch));
 }
 
+/* ******************************************* */
+
 /**
  * @brief Interface function for insertion of a new hour stats sampling
  * @details This public method implements insertion of a new sampling,
@@ -385,6 +412,8 @@ int StatsManager::insertHourSampling(time_t epoch, const char * const sampling) 
 
   return insertSampling(sampling, HOUR_CACHE_NAME, static_cast<long int>(epoch));
 }
+
+/* ******************************************* */
 
 /**
  * @brief Interface function for insertion of a new day stats sampling
@@ -428,6 +457,8 @@ static int get_sampling_db_callback(void *data, int argc,
   return 0;
 }
 
+/* ******************************************* */
+
 /**
  * @brief Database interface to retrieve a stats sampling
  * @details This function implements the database-specific layer for
@@ -468,6 +499,8 @@ int StatsManager::getSampling(string * sampling, const char * const cache_name,
   return rc;
 }
 
+/* ******************************************* */
+
 /**
  * @brief Interface function for retrieval of a minute stats sampling
  * @details This public method implements retrieval of an existing
@@ -489,3 +522,5 @@ int StatsManager::getMinuteSampling(time_t epoch, string * sampling) {
   return getSampling(sampling, MINUTE_CACHE_NAME, epoch_start, epoch_end);
 }
 
+
+/* ******************************************* */
