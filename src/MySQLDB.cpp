@@ -757,30 +757,33 @@ void MySQLDB::disconnectFromDB(MYSQL *conn) {
 MYSQL* MySQLDB::mysql_try_connect(MYSQL *conn, const char *dbname) {
   MYSQL *rc;
   unsigned long flags = CLIENT_COMPRESS;
-
-  if(!ntop->getPrefs()->get_mysql_host())
+  char *host = ntop->getPrefs()->get_mysql_host();
+  char *user = ntop->getPrefs()->get_mysql_user();
+  u_int port = ntop->getPrefs()->get_mysql_port();
+    
+  if(!host)
     return(NULL);
 
-  if((!clickhouse_mode) && (ntop->getPrefs()->get_mysql_host()[0] == '/') /* Use socketD */)
+  if((!clickhouse_mode) && (host[0] == '/') /* Use socketD */)
     rc = mysql_real_connect(conn,
 			    NULL, /* Host */
-			    ntop->getPrefs()->get_mysql_user(),
+			    user,
 			    ntop->getPrefs()->get_mysql_pw(),
 			    dbname,
-			    0, ntop->getPrefs()->get_mysql_host() /* socket */,
+			    0, host /* socket */,
 			    flags);
   else {
     ntop->getTrace()->traceEvent(TRACE_INFO, "ClickHouse Connecting to %s:%u [user: %s][db: %s]",
-				 ntop->getPrefs()->get_mysql_host(),
-				 ntop->getPrefs()->get_mysql_port(),
-				 ntop->getPrefs()->get_mysql_user(),
+				 host,
+				 port,
+				 user,
 				 dbname ? dbname : "");
     rc = mysql_real_connect(conn,
-			    ntop->getPrefs()->get_mysql_host(),
-			    ntop->getPrefs()->get_mysql_user(),
+			    host,
+			    user,
 			    ntop->getPrefs()->get_mysql_pw(),
 			    dbname,
-			    ntop->getPrefs()->get_mysql_port(),
+			    port,
 			    NULL /* socket */,
 			    flags);
   }
@@ -832,6 +835,9 @@ void mysql_result_to_lua(lua_State *vm, MYSQL_RES *result, bool limitRows) {
 bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   MYSQL *rc;
   char *dbname = select_db ? ntop->getPrefs()->get_mysql_dbname() : NULL;
+  char *host = ntop->getPrefs()->get_mysql_host();
+  char *user = ntop->getPrefs()->get_mysql_user();
+  u_int port = ntop->getPrefs()->get_mysql_port();
 
   db_operational = false;
 
@@ -850,10 +856,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   if(rc == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to MySQL: %s [%s@%s:%i]\n",
-				 mysql_error(conn),
-				 ntop->getPrefs()->get_mysql_user(),
-				 ntop->getPrefs()->get_mysql_host(),
-				 ntop->getPrefs()->get_mysql_port());
+				 mysql_error(conn), user, host,port);
 
     m.unlock(__FILE__, __LINE__);
     return(db_operational);
@@ -862,10 +865,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   db_operational = true;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to MySQL [%s@%s:%i] for interface %s",
-			       ntop->getPrefs()->get_mysql_user(),
-			       ntop->getPrefs()->get_mysql_host(),
-			       ntop->getPrefs()->get_mysql_port(),
-			       iface->get_name());
+			       user, host, port, iface->get_name());
 
   m.unlock(__FILE__, __LINE__);
   return(db_operational);

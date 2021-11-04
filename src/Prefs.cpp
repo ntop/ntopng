@@ -1402,9 +1402,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 	  /* mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw> */
 	  optarg = Utils::tokenizer(sep + 1, ';', &mysql_host);
-	  optarg = Utils::tokenizer(optarg, ';', &mysql_dbname);
-	  optarg = Utils::tokenizer(optarg, ';', &mysql_tablename);
-	  optarg = Utils::tokenizer(optarg, ';', &mysql_user);
+	  optarg = Utils::tokenizer(optarg, ';',  &mysql_dbname);
+	  optarg = Utils::tokenizer(optarg, ';',  &mysql_tablename);
+	  optarg = Utils::tokenizer(optarg, ';',  &mysql_user);
 	  mysql_pw = strdup(optarg ? optarg : "");
 	
 	  if(mysql_host && mysql_user) {
@@ -1415,6 +1415,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	      if(mysql_tablename) free(mysql_tablename);
 	      mysql_tablename  = strdup("flows");
 	    }
+	      
 	    if((mysql_pw == NULL) || (mysql_pw[0] == '\0')) mysql_pw  = strdup("");
 
 	    /* Check for non-default SQL port on -F line */
@@ -1434,6 +1435,14 @@ int Prefs::setOption(int optkey, char *optarg) {
 		mysql_port = (int)l;
 	    } else
 	      mysql_port = CONST_DEFAULT_CLICKHOUSE_PORT;
+
+	    if(use_clickhouse && mysql_host) {
+	      if(strcmp(mysql_host, "localhost") == 0) {
+		/* Clickhouse does not like localhost */
+		free(mysql_host);
+		mysql_host = strdup("127.0.0.1");
+	      }
+	    }
 	  } else
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F %s;....", use_clickhouse ? "clickhouse" : "mysql");
 	} /* all_good */
