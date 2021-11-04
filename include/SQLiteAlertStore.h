@@ -19,17 +19,24 @@
  *
  */
 
-#ifndef _ALERT_STORE_H_
-#define _ALERT_STORE_H_
+#ifndef _SQLITE_ALERT_STORE_H_
+#define _SQLITE_ALERT_STORE_H_
 
 #include "ntop_includes.h"
 
-class AlertStore {
+class Flow;
+
+class SQLiteAlertStore : virtual public AlertStore, public SQLiteStoreManager {
+ private:
+  bool store_opened, store_initialized;
+  int openStore();
+
  public:
-  AlertStore() { ; };
-  virtual ~AlertStore() { ; };
-  
-  virtual bool query(lua_State *vm, const char * const query) { return false; };;
+  SQLiteAlertStore(int interface_id, const char *db_filename);
+  ~SQLiteAlertStore();
+
+  bool query(lua_State *vm, const char * const query);
+
 };
 
-#endif /* _ALERT_STORE_H_ */
+#endif /* _SQLITE_ALERT_STORE_H_ */

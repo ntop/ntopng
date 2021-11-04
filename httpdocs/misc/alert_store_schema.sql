@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS `flow_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
 `alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
+`interface_id` INTEGER NULL,
 `tstamp` DATETIME NOT NULL,
 `tstamp_end` DATETIME NULL DEFAULT 0,
 `severity` INTEGER NOT NULL CHECK(`severity` >= 0),
@@ -92,6 +93,7 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
 `alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
+`interface_id` INTEGER NULL,
 `ip_version` INTEGER NOT NULL DEFAULT 0 CHECK(`ip_version` = 4 OR `ip_version` = 6),
 `ip` TEXT NOT NULL,
 `vlan_id` INTEGER NULL DEFAULT 0 CHECK(`vlan_id` >= 0),
@@ -130,6 +132,7 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
 `alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
+`interface_id` INTEGER NULL,
 `address` TEXT NULL DEFAULT 0,
 `device_type` INTEGER NULL CHECK(`device_type` >= 0),
 `name` TEXT NULL,
@@ -162,6 +165,7 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
 `alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
+`interface_id` INTEGER NULL,
 `ip` TEXT NOT NULL,
 `port` INTEGER NULL,
 `name` TEXT NULL,
@@ -192,6 +196,7 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `local_network_id` INTEGER NOT NULL CHECK(`local_network_id` >= 0),
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
 `alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
+`interface_id` INTEGER NULL,
 `name` TEXT NULL,
 `alias` TEXT NULL,
 `tstamp` DATETIME NOT NULL,
@@ -219,6 +224,7 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `ifid` INTEGER NOT NULL CHECK(`ifid` >= -1),
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
 `alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
+`interface_id` INTEGER NULL,
 `subtype` TEXT NULL,
 `name` TEXT NULL,
 `alias` TEXT NULL,
@@ -246,6 +252,7 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
 `alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
+`interface_id` INTEGER NULL,
 `user` TEXT NULL,
 `tstamp` DATETIME NOT NULL,
 `tstamp_end` DATETIME NULL DEFAULT 0,
@@ -259,10 +266,10 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 `user_label_tstamp` DATETIME NULL DEFAULT 0
 );
 
-CREATE INDEX IF NOT EXISTS `user_alerts_i_id` ON `interface_alerts`(alert_id);
-CREATE INDEX IF NOT EXISTS `user_alerts_i_severity` ON `interface_alerts`(severity);
-CREATE INDEX IF NOT EXISTS `user_alerts_i_tstamp` ON `interface_alerts`(tstamp);
-CREATE INDEX IF NOT EXISTS `user_alerts_i_alert_status` ON `interface_alerts`(alert_status);
+CREATE INDEX IF NOT EXISTS `user_alerts_i_id` ON `user_alerts`(alert_id);
+CREATE INDEX IF NOT EXISTS `user_alerts_i_severity` ON `user_alerts`(severity);
+CREATE INDEX IF NOT EXISTS `user_alerts_i_tstamp` ON `user_alerts`(tstamp);
+CREATE INDEX IF NOT EXISTS `user_alerts_i_alert_status` ON `user_alerts`(alert_status);
 
 -- -----------------------------------------------------
 -- Table `system_alerts`
@@ -271,6 +278,7 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
 `alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0,
+`interface_id` INTEGER NULL,
 `name` TEXT NULL,
 `tstamp` DATETIME NOT NULL,
 `tstamp_end` DATETIME NULL DEFAULT 0,
@@ -295,21 +303,33 @@ CREATE INDEX IF NOT EXISTS `system_alerts_i_alert_status` ON `system_alerts`(ale
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `all_alerts`;
 CREATE VIEW IF NOT EXISTS `all_alerts` AS
-SELECT 8 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `active_monitoring_alerts`
+SELECT 8 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `active_monitoring_alerts`
 UNION ALL 
-SELECT 4 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `flow_alerts`
+SELECT 4 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `flow_alerts`
 UNION ALL
-SELECT 1 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `host_alerts`
+SELECT 1 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `host_alerts`
 UNION ALL
-SELECT 5 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `mac_alerts`
+SELECT 5 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `mac_alerts`
 UNION ALL
-SELECT 3 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `snmp_alerts`
+SELECT 3 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `snmp_alerts`
 UNION ALL
-SELECT 2 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `network_alerts`
+SELECT 2 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `network_alerts`
 UNION ALL
-SELECT 0 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `interface_alerts`
+SELECT 0 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `interface_alerts`
 UNION ALL
-SELECT 7 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `user_alerts`
+SELECT 7 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `user_alerts`
 UNION ALL
-SELECT 9 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `system_alerts`
+SELECT 9 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `system_alerts`
 ;
+
+-- New field not present in the original table added for compatibility reasons but not used by SQLite
+-- IMPORTANT: leave them at the end and remove in future versions and update SQLiteAlertStore::openStore()
+ALTER TABLE `flow_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `host_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `mac_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `snmp_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `network_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `interface_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `user_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `system_alerts` ADD `interface_id` INTEGER NULL;
+

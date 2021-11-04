@@ -23,7 +23,7 @@
 
 /* **************************************************** */
 
-AlertStore::AlertStore(int interface_id, const char *filename) : SQLiteStoreManager(interface_id) {
+SQLiteAlertStore::SQLiteAlertStore(int interface_id, const char *filename) : SQLiteStoreManager(interface_id) {
   char filePath[MAX_PATH];
 
   /* Create the directories needed to keep the alerts database */
@@ -47,12 +47,12 @@ AlertStore::AlertStore(int interface_id, const char *filename) : SQLiteStoreMana
 
 /* **************************************************** */
 
-AlertStore::~AlertStore() {
+SQLiteAlertStore::~SQLiteAlertStore() {
 }
 
 /* **************************************************** */
 
-int AlertStore::openStore() {
+int SQLiteAlertStore::openStore() {
   int rc;
   char schema_path[MAX_PATH];
 
@@ -76,8 +76,15 @@ int AlertStore::openStore() {
   /* Initialize the database with its schema that has just been read */
   rc = exec_query(schema_contents.c_str(), NULL, NULL);
 
-  if(rc) ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create database schema [%s]", sqlite3_errmsg(db));
+  if(rc) {
+    const char *msg = sqlite3_errmsg(db);
 
+    if(strstr(msg, "duplicate column name: interface_id"))
+      rc = 0; /* Silence ALTER TABLE errors */
+    else
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create database schema [%s]", msg);
+  }
+  
   m.unlock(__FILE__, __LINE__);
 
   if(schema_file.is_open()) schema_file.close();
@@ -98,9 +105,8 @@ static int getAlertsCallback(void *data, int argc, char **argv, char **azColName
 
   lua_newtable(vm);
 
-  for(int i = 0; i < argc; i++){
-    lua_push_str_table_entry(vm, azColName[i], argv[i]);
-  }
+  for(int i = 0; i < argc; i++)
+    lua_push_str_table_entry(vm, azColName[i], argv[i]);  
 
   lua_pushinteger(vm, ++ar->current_offset);
   lua_insert(vm, -2);
@@ -111,7 +117,7 @@ static int getAlertsCallback(void *data, int argc, char **argv, char **azColName
 
 /* **************************************************** */
 
-bool AlertStore::alert_store_query(lua_State *vm, const char * const query) {
+bool SQLiteAlertStore::query(lua_State *vm, const char * const query) {
   int rc = SQLITE_ERROR;
 
   if(!ntop->getPrefs()->are_alerts_disabled()) {

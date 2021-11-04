@@ -24,9 +24,9 @@
 /* **************************************************** */
 
 SQLiteStoreManager::SQLiteStoreManager(int interface_id) {
-    ifid = interface_id;
-    iface = ntop->getInterfaceById(interface_id);
-    db = NULL;
+  ifid = interface_id;
+  iface = ntop->getInterfaceById(interface_id);
+  db = NULL;
 };
 
 /* **************************************************** */
@@ -75,8 +75,8 @@ SQLiteStoreManager::~SQLiteStoreManager() {
  * @return Zero in case of success, nonzero in case of failure.
  */
 int SQLiteStoreManager::exec_query(const char * const db_query,
-                             int (*callback)(void *, int, char **, char **),
-                             void *payload) {
+				   int (*callback)(void *, int, char **, char **),
+				   void *payload) {
   char *zErrMsg = 0;
 
   if(!db) {
@@ -160,7 +160,7 @@ int SQLiteStoreManager::optimizeStore() {
       rc = true;
   }
 
-out:
+ out:
   if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 

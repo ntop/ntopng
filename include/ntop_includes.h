@@ -302,6 +302,7 @@ using namespace std;
 #include "SQLiteStoreManager.h"
 #include "StatsManager.h"
 #include "AlertStore.h"
+#include "SQLiteAlertStore.h"
 #include "DB.h"
 #ifdef HAVE_MYSQL
 #include "MySQLDB.h"
@@ -365,6 +366,7 @@ using namespace std;
 #endif
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE)
 #include "ClickHouseFlowDB.h"
+#include "ClickHouseAlertStore.h"
 #endif
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"

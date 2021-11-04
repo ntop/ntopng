@@ -35,16 +35,26 @@ end
 -- ##############################################
 
 function flow_alert_store:insert(alert)
-   local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
+   local hex_prefix
+   local insert_stmt
+
+   if(ntop.isClickHouseEnabled()) then
+      hex_prefix = ""
+   else
+      hex_prefix = "X"
+   end
+
+   insert_stmt = string.format("INSERT INTO %s "..
+      "(alert_id, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
       "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, "..
       "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, "..
       "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, "..
       "flow_risk_bitmap, alerts_map, json) "..
-      "VALUES (%u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
-      "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, X'%s', '%s'); ",
+      "VALUES (%u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
+      "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', '%s'); ",
       self._table_name, 
       alert.alert_id,
+      interface.getId(),
       alert.tstamp,
       alert.tstamp,
       ntop.mapScoreToSeverity(alert.score),
@@ -76,6 +86,7 @@ function flow_alert_store:insert(alert)
       alert.community_id,
       alert.score,
       alert.flow_risk_bitmap or 0,
+      hex_prefix,
       alert.alerts_map,
       self:_escape(alert.json)
    )
@@ -362,9 +373,9 @@ function flow_alert_store:format_record(value, no_html)
 		     message = string.format("%s %s", message, flow_risk_utils.get_documentation_link(alert_risk))
 		  end
         
-        if alert_score > 0 then
-           message = addExtraFlowInfo(message, alert_json, value)
-        end
+                  if alert_score > 0 then	
+                   message = addExtraFlowInfo(message, alert_json, value)
+                  end
 
 		  if not other_alerts_by_score[alert_score] then
 		     other_alerts_by_score[alert_score] = {}

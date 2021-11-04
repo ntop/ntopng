@@ -37,10 +37,11 @@ function interface_alert_store:insert(alert)
    local subtype = alert.subtype or ''
 
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, tstamp, tstamp_end, severity, score, ifid, subtype, name, alias, granularity, json) "..
-      "VALUES (%u, %u, %u, %u, %u, %d, '%s', '%s', '%s', %u, '%s'); ",
+      "(alert_id, interface_id, tstamp, tstamp_end, severity, score, ifid, subtype, name, alias, granularity, json) "..
+      "VALUES (%u, %u, %u, %u, %u, %u, %d, '%s', '%s', '%s', %u, '%s'); ",
       self._table_name,
       alert.alert_id,
+      interface.getId(),
       alert.tstamp,
       alert.tstamp_end,
       ntop.mapScoreToSeverity(alert.score),

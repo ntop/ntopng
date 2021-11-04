@@ -1651,6 +1651,14 @@ static int ntop_speedtest(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_clickhouse_enabled(lua_State* vm) {
+  lua_pushboolean(vm, ntop->getPrefs()->useClickHouse());
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 // *** API ***
 static int ntop_http_redirect(lua_State* vm) {
   char *url, str[512];
@@ -6560,6 +6568,9 @@ static luaL_Reg _ntop_reg[] = {
   { "hasSpeedtestSupport",       ntop_has_speedtest_support          },
   { "speedtest",                 ntop_speedtest                      },
 
+  /* ClickHouse */
+  { "isClickHouseEnabled",       ntop_clickhouse_enabled             },
+  
   { NULL,          NULL}
 };
 

@@ -65,6 +65,8 @@ function alert_store:init(args)
    --   }
    -- }
    self._where = {}
+
+   -- tprint(debug.traceback())
 end
 
 -- ##############################################
@@ -766,14 +768,22 @@ function alert_store:has_alerts()
       return true
    end
 
-   -- Now check for historical alerts written in the database. Slightly slower.
+      -- Now check for historical alerts written in the database. Slightly slower.
+      
+      -- Fastest way to query SQLite for existance of records. Response will be either a string '1' if records exist,
+      -- or '0' if records don't exist
+   local q, res, has_historical_alerts
 
-   -- Fastest way to query SQLite for existance of records. Response will be either a string '1' if records exist,
-   -- or '0' if records don't exist
-   local q = string.format(" SELECT EXISTS (SELECT 1 FROM `%s`) has_historical_alerts ", self._table_name)
-   local res = interface.alert_store_query(q)
-   local has_historical_alerts = res and res[1] and res[1]["has_historical_alerts"] == "1" or false
-
+   if(ntop.isClickHouseEnabled()) then
+      q = string.format(" SELECT COUNT(*) as num_alerts FROM `%s` ", self._table_name)
+      res = interface.alert_store_query(q)
+      has_historical_alerts = res and res[1] and (tonumber(res[1].num_alerts) > 0) or false
+   else
+      q = string.format(" SELECT EXISTS (SELECT 1 FROM `%s`) has_historical_alerts ", self._table_name)
+      res = interface.alert_store_query(q)
+      has_historical_alerts = res and res[1] and res[1]["has_historical_alerts"] == "1" or false
+   end
+   
    return has_historical_alerts
 end
 
@@ -926,7 +936,7 @@ function alert_store:count_by_severity_and_time_historical()
       local cur_slot = tonumber(p.slot)
       local cur_count = tonumber(p.count)
       if cur_slot >= min_slot and cur_slot <= max_slot then
-    all_severities[severity_id].all_slots[cur_slot] = cur_count
+	 all_severities[severity_id].all_slots[cur_slot] = cur_count
       end
    end
 

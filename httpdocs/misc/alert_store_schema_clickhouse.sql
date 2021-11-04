@@ -1,12 +1,9 @@
--- -----------------------------------------------------
--- Table `active_monitoring_alerts`
--- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
 `resolved_ip` String,
 `resolved_name` String,
-`interface_id` UInt16 NULL,
 `measurement` String,
 `measure_threshold` UInt32 NULL,
 `measure_value` REAL NULL,
@@ -21,12 +18,12 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `user_label_tstamp` DateTime NULL 
 ) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
 
--- -----------------------------------------------------
--- Table `flow_alerts`
--- -----------------------------------------------------
+@
+
 CREATE TABLE IF NOT EXISTS `flow_alerts` (
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
 `tstamp` DateTime NOT NULL,
 `tstamp_end` DateTime,
 `severity` UInt8 NOT NULL,
@@ -60,17 +57,17 @@ CREATE TABLE IF NOT EXISTS `flow_alerts` (
 `first_seen` DateTime NOT NULL,
 `community_id` String,
 `alerts_map` String, -- An HEX bitmap of all flow statuses
-`flow_risk_bitmap` UInt128 NOT NULL,
+`flow_risk_bitmap` UInt64 NOT NULL,
 `user_label` String,
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree PARTITION BY toYYYYMM(first_seen) ORDER BY (first_seen);
 
--- -----------------------------------------------------
--- Table `host_alerts`
--- -----------------------------------------------------
+@
+
 CREATE TABLE IF NOT EXISTS `host_alerts` (
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
 `ip_version` UInt8 NOT NULL,
 `ip` String NOT NULL,
 `vlan_id` UInt16,
@@ -91,12 +88,12 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
 
--- -----------------------------------------------------
--- Table `mac_alerts`
--- -----------------------------------------------------
+@
+
 CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
 `address` String,
 `device_type` UInt8 NULL,
 `name` String,
@@ -114,12 +111,12 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
 
--- -----------------------------------------------------
--- Table `snmp_alerts`
--- -----------------------------------------------------
+@
+
 CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
 `ip` String NOT NULL,
 `port` UInt16,
 `name` String,
@@ -136,13 +133,13 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
 
--- -----------------------------------------------------
--- Table `network_alerts`
--- -----------------------------------------------------
+@
+
 CREATE TABLE IF NOT EXISTS `network_alerts` (
 `local_network_id` UInt16 NOT NULL,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,	
 `name` String,
 `alias` String,
 `tstamp` DateTime NOT NULL,
@@ -157,13 +154,13 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
 
--- -----------------------------------------------------
--- Table `interface_alerts`
--- -----------------------------------------------------
+@
+
 CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `ifid` UInt8 NOT NULL,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
 `subtype` String,
 `name` String,
 `alias` String,
@@ -179,12 +176,12 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
 
--- -----------------------------------------------------
--- Table `user_alerts`
--- -----------------------------------------------------
+@
+
 CREATE TABLE IF NOT EXISTS `user_alerts` (
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
 `user` String,
 `tstamp` DateTime NOT NULL,
 `tstamp_end` DateTime,
@@ -198,12 +195,12 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
 
--- -----------------------------------------------------
--- Table `system_alerts`
--- -----------------------------------------------------
+@
+
 CREATE TABLE IF NOT EXISTS `system_alerts` (
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
 `name` String,
 `tstamp` DateTime NOT NULL,
 `tstamp_end` DateTime,
@@ -217,27 +214,28 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
 
--- -----------------------------------------------------
--- View that merges all tables together
--- NOTE: integer entity_id MUST BE KEPT IN SYNC WITH IDS in alert_entities.lua
--- -----------------------------------------------------
+@
+
 DROP VIEW IF EXISTS `all_alerts`;
+
+@
+
 CREATE VIEW IF NOT EXISTS `all_alerts` AS
-SELECT 8 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `active_monitoring_alerts`
+SELECT 8 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `active_monitoring_alerts`
 UNION ALL 
-SELECT 4 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `flow_alerts`
+SELECT 4 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `flow_alerts`
 UNION ALL
-SELECT 1 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `host_alerts`
+SELECT 1 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `host_alerts`
 UNION ALL
-SELECT 5 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `mac_alerts`
+SELECT 5 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `mac_alerts`
 UNION ALL
-SELECT 3 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `snmp_alerts`
+SELECT 3 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `snmp_alerts`
 UNION ALL
-SELECT 2 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `network_alerts`
+SELECT 2 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `network_alerts`
 UNION ALL
-SELECT 0 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `interface_alerts`
+SELECT 0 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `interface_alerts`
 UNION ALL
-SELECT 7 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `user_alerts`
+SELECT 7 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `user_alerts`
 UNION ALL
-SELECT 9 entity_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `system_alerts`
+SELECT 9 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `system_alerts`
 ;

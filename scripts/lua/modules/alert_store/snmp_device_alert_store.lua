@@ -63,10 +63,11 @@ function snmp_device_alert_store:insert(alert)
    end
 
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, tstamp, tstamp_end, severity, score, ip, name, port, port_name, json) "..
-      "VALUES (%u, %u, %u, %u, %u, '%s', '%s', %u, '%s', '%s'); ",
+      "(alert_id, interface_id, tstamp, tstamp_end, severity, score, ip, name, port, port_name, json) "..
+      "VALUES (%u, %u, %u, %u, %u, %u, '%s', '%s', %u, '%s', '%s'); ",
       self._table_name, 
       alert.alert_id,
+      interface.getId(),
       alert.tstamp,
       alert.tstamp_end,
       ntop.mapScoreToSeverity(alert.score),
