@@ -3159,9 +3159,12 @@ static int ntop_nindex_topk(lua_State* vm) {
 		      max_num_hits, topToBottomSort));
 }
 
+#endif
+
 /* ****************************************** */
 
 static int ntop_nindex_enabled(lua_State* vm) {
+#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
   NetworkInterface *ntop_interface = NULL;
   int ifid;
 
@@ -3174,9 +3177,11 @@ static int ntop_nindex_enabled(lua_State* vm) {
   lua_pushboolean(vm, ntop_interface && ntop_interface->getNindex());
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+#else
+  lua_pushboolean(vm, false);
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+#endif  
 }
-
-#endif
 
 /* ****************************************** */
 
@@ -4579,9 +4584,9 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getSFlowDevices",                 ntop_getsflowdevices            },
   { "getSFlowDeviceInfo",              ntop_getsflowdeviceinfo         },
 
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
   /* nIndex */
   { "nIndexEnabled",                   ntop_nindex_enabled             },
+#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
   { "nIndexSelect",                    ntop_nindex_select              },
   { "nIndexTopK",                      ntop_nindex_topk                },
 #endif
