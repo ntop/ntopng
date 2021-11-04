@@ -806,7 +806,14 @@ end
    end
 
    if interfaceHasNindexSupport() then
-      flows_th = flows_th .. ' <a class="btn btn-sm btn-info" href="?host='..hostinfo2hostkey(host_info)..'&page=historical&detail_view=flows&zoom=1h&alert_type=alerted"><i class="fas fa-search-plus"></i></a>'
+   	local url = ""
+   	if not interface.nIndexEnabled() then
+   		url = ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?cli_ip=' .. hostinfo2hostkey(host_info) .. ';eq&status=46;neq'
+   	else
+   		url = '?host='..hostinfo2hostkey(host_info)..'&page=historical&detail_view=status_overview&zoom=1h'
+   	end
+
+      flows_th = flows_th .. ' <a class="btn btn-sm btn-info" href="' .. url .. '"><i class="fas fa-search-plus"></i></a>'
    end
 
    print("<tr><th></th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
