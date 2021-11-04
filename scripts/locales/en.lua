@@ -127,7 +127,7 @@ local lang = {
   ["expired_csrf"] = "Could not perform the requested action because the page expired. Please reload the page and perform the action again.",
   ["export"] = "Export",
   ["external_link"] = "External Link",
-  ["external_link_url"] = "<a class='ntopng-external-link' href='%{url}' target='_blank'>%{url_name} <i class='fas fa-external-link-alt'></i></a>",
+  ["external_link_url"] = "<a class='ntopng-external-link' href='%{url}' target='_blank'><i class='fas fa-external-link-alt'></i> %{url_name}</a>",
   ["factory_reset"] = "Factory Reset",
   ["filter"] = "Exclude",
   ["filter_by"] = "Filter by",
