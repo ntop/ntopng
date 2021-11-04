@@ -1,8 +1,8 @@
 {
 	"name" : "Top L7 Contacts",
-	"i18n-name" : "top_l7_contacts",
-	"data-source" : "flows",
-	"visualization-type" : "table",
+	"i18n_name" : "top_l7_contacts",
+	"data_source" : "flows",
+	"visualization_type" : "table",
 	"select" : {
 		"items" : [
 			{

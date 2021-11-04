@@ -4767,6 +4767,7 @@ local lang = {
     ["type"] = "Type",
   },
   ["queries"] = {
+    ["custom_query"] = "Custom Query",
     ["top_l7_contacts"] = "Top L7 Contacts",
     ["top_clients"] = "Top Clients",
   },

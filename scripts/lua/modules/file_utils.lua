@@ -4,7 +4,37 @@
 
 local file_utils = {}
 local os_utils = require("os_utils")
+local json = require "dkjson"
 
+-- ##############################################
+
+function file_utils.read_file(file_path)
+   local content = nil
+
+   local file = io.open(file_path, "r")
+
+   if file ~= nil then
+      content = file:read("*all")
+      file:close()
+   end
+
+   return content
+end
+
+-- ##############################################
+
+function file_utils.read_json_file(file_path)
+   local json_content = nil
+
+   local content = file_utils.read_file(file_path)
+
+   if content ~= nil then
+      json_content = json.decode(content)
+   end
+
+   return json_content
+end
+ 
 -- ##############################################
 
 function file_utils.copy_file(fname, src_path, dst_path)

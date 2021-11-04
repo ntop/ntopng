@@ -65,14 +65,14 @@ Filters examples:
 			{
 				"name": "TOTAL_BYTES",
 				"op": "gte",
-				"type": "number",
+				"value_type": "number",
 				"input": "user",
 				"optional": true
 			},
 			{
 				"name": "L7_PROTO",
 				"op": "eq",
-				"type": "l7proto",
+				"value_type": "l7_proto",
 				"input": "fixed",
 				"value": "TLS"
 			}

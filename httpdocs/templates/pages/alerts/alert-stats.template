@@ -207,7 +207,7 @@
         function getTimestampRange(updateDatetimeUsingPresets = false) {
             let begin = 0;
             let end = 0;
-            const selectPresets = $(`#select-presets`).val();
+            const selectPresets = $(`#select-time-presets`).val();
 
             if(updateDatetimeUsingPresets && selectPresets) {
                 // getting the current time using presets
@@ -739,7 +739,7 @@
             const begin = moment(xaxis.min);
             const end = moment(xaxis.max);
 
-            $(`#select-presets`).val('custom');
+            $(`#select-time-presets`).val('custom');
 
             $inputBeginEpoch.datetimepicker('date', begin);
             $inputEndEpoch.datetimepicker('date', end);
