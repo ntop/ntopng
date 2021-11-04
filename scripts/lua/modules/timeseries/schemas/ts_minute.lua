@@ -70,6 +70,11 @@ schema:addTag("ifid")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
+schema = ts_utils.newSchema("iface:nedge_traffic_nfq", {step=60})
+schema:addTag("ifid")
+schema:addMetric("bytes")
+schema:addMetric("bytes_nfq")
+
 -------------------------------------------------------
 -- SUBNETS SCHEMAS
 -------------------------------------------------------
