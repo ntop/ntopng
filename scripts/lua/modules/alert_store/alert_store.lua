@@ -916,10 +916,16 @@ function alert_store:count_by_severity_and_time_historical()
    -- Preserve all the filters currently set
    local min_slot, max_slot, time_slot_width = self:_count_by_time_get_bounds()
    local where_clause = self:build_where_clause()
+   local q
 
    -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
-   local q = string.format("SELECT severity, (tstamp - tstamp %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY severity, slot ORDER BY severity, slot ASC",
-            time_slot_width, self._table_name, where_clause)
+   if(ntop.isClickHouseEnabled()) then
+      q = string.format("SELECT severity, (toUnixTimestamp(tstamp) - toUnixTimestamp(tstamp) %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY severity, slot ORDER BY severity, slot ASC",
+         time_slot_width, self._table_name, where_clause)
+   else
+      q = string.format("SELECT severity, (tstamp - tstamp %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY severity, slot ORDER BY severity, slot ASC",
+         time_slot_width, self._table_name, where_clause)
+   end
 
    local q_res = interface.alert_store_query(q) or {}
 
