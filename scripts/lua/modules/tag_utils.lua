@@ -33,6 +33,11 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.l7_proto'),
       operators = {'eq', 'neq'}
    },
+   l7proto_master = {
+      value_type = 'l7_proto',
+      i18n_label = i18n('db_search.tags.l7_proto'),
+      operators = {'eq', 'neq'}
+   },
    l7cat = {
       value_type = 'l7_category',
       i18n_label = i18n('db_search.tags.l7cat'),
@@ -215,7 +220,7 @@ tag_utils.db_columns_to_tags = {
    ["IP_DST_PORT"] = "srv_port", 
    ["STATUS"] = "status",   
    ["L7_PROTO"] = "l7proto",  
-   ["L7_PROTO_MASTER"] = "l7proto",  
+   ["L7_PROTO_MASTER"] = "l7proto_master",  
    ["PROTOCOL"] = "l4proto",  
    ["L7_CATEGORY"] = "l7cat",    
    ["FLOW_RISK"] = "flow_risk",   
@@ -276,6 +281,7 @@ function tag_utils.get_db_select_by_tag(tag)
    local tags_to_columns = tag_utils.get_db_tags_to_columns()
    local s = ''
 
+   ::next::
    if tags_to_columns[tag] then
       for _, column in ipairs(tags_to_columns[tag]) do
          if isEmptyString(s) then
@@ -283,6 +289,12 @@ function tag_utils.get_db_select_by_tag(tag)
          else
             s = s .. ', ' .. column
          end
+      end
+
+      -- l7proto also includes l7proto_master
+      if tag == 'l7proto' then
+         tag = 'l7proto_master'
+         goto next
       end
    end
 
