@@ -185,6 +185,13 @@ function format_utils.bitsToSize(bits)
    return(bitsToSizeMultiplier(bits, 1000))
 end
 
+-- parse a SQL DATETIME date and convert to epoch
+function format_utils.parseDateTime(tstamp)
+  local year, month, day, hour, min, sec = tstamp:match('^(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)$')
+  local epoch = os.time({month=month, day=day, year=year, hour=hour, min=min, sec=sec})
+  return epoch
+end
+
 -- format an epoch using ISO 8601 format
 function format_utils.formatEpochISO8601(epoch)
   if epoch == nil then

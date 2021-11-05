@@ -687,6 +687,16 @@ function alert_store:select_historical(filter, fields)
 
    res = interface.alert_store_query(q)
 
+   if ntop.isClickHouseEnabled() then
+      -- convert DATETIME to epoch
+      for _, record in ipairs(res or {}) do
+         if record.tstamp then record.tstamp = format_utils.parseDateTime(record.tstamp) end
+         if record.tstamp_end then record.tstamp_end = format_utils.parseDateTime(record.tstamp_end) end
+         if record.first_seen then record.first_seen = format_utils.parseDateTime(record.first_seen) end
+         if record.user_label_tstamp then record.user_label_tstamp = format_utils.parseDateTime(record.user_label_tstamp) end
+      end
+   end
+
    return res
 end
 
