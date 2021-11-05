@@ -90,8 +90,14 @@ function host_alert_store:top_ip_historical()
    -- Preserve all the filters currently set
    local where_clause = self:build_where_clause()
 
-   local q = string.format("SELECT ip, name, vlan_id, count(*) count FROM %s WHERE %s GROUP BY ip ORDER BY count DESC LIMIT %u",
-			   self._table_name, where_clause, self._top_limit)
+   local q
+   if ntop.isClickHouseEnabled() then
+      q = string.format("SELECT ip, name, vlan_id, count(*) count FROM %s WHERE %s GROUP BY ip, vlan_id, name ORDER BY count DESC LIMIT %u",
+         self._table_name, where_clause, self._top_limit)
+   else
+      q = string.format("SELECT ip, name, vlan_id, count(*) count FROM %s WHERE %s GROUP BY ip ORDER BY count DESC LIMIT %u",
+         self._table_name, where_clause, self._top_limit)
+   end
 
    local q_res = interface.alert_store_query(q) or {}
 
