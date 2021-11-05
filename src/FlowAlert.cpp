@@ -73,10 +73,22 @@ ndpi_serializer* FlowAlert::getSerializedAlert() {
     ndpi_serialize_end_of_block(serializer);
   }
 
+  /* HTTP-related information */
   if(flow->isHTTP()) {
     ndpi_serialize_start_of_block(serializer, "http");
     flow->getHTTPInfo(serializer);
     ndpi_serialize_end_of_block(serializer);
+  }
+
+  /* DNS-related information */
+  if(flow->isDNS()) {
+    if(flow->getDNSQuery()) {
+      ndpi_serialize_start_of_block(serializer, "dns");
+      ndpi_serialize_string_int32(serializer, "last_query_type", flow->getLastQueryType());
+      ndpi_serialize_string_int32(serializer, "last_return_code", flow->getDNSRetCode());
+      ndpi_serialize_string_string(serializer, "last_query", flow->getDNSQuery());
+      ndpi_serialize_end_of_block(serializer);
+    }
   }
   
   /* Add information relative to this check */
