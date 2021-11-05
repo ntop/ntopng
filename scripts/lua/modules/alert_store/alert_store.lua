@@ -614,7 +614,12 @@ function alert_store:delete()
    local where_clause = self:build_where_clause()
 
    -- Prepare the final query
-   local q = string.format("DELETE FROM `%s` WHERE %s ", self._table_name, where_clause)
+   local q
+   if ntop.isClickHouseEnabled() then
+      q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", self._table_name, where_clause)
+   else
+      q = string.format("DELETE FROM `%s` WHERE %s ", self._table_name, where_clause)
+   end
 
    local res = interface.alert_store_query(q)
    return res and table.len(res) == 0
@@ -1466,8 +1471,14 @@ function alert_store:housekeeping()
    local max_entity_alerts = prefs.max_entity_alerts
    local limit = math.floor(max_entity_alerts * 0.8) -- deletes 20% more alerts than the maximum number
 
-   local q = string.format("DELETE FROM `%s` WHERE rowid <= (SELECT rowid FROM `%s` ORDER BY rowid DESC LIMIT 1 OFFSET %u)",
-      self._table_name, self._table_name, limit)
+   local q
+   if ntop.isClickHouseEnabled() then
+      q = string.format("ALTER TABLE `%s` DELETE WHERE rowid <= (SELECT rowid FROM `%s` ORDER BY rowid DESC LIMIT 1 OFFSET %u)",
+         self._table_name, self._table_name, limit)
+   else
+      q = string.format("DELETE FROM `%s` WHERE rowid <= (SELECT rowid FROM `%s` ORDER BY rowid DESC LIMIT 1 OFFSET %u)",
+         self._table_name, self._table_name, limit)
+   end
 
    local deleted = interface.alert_store_query(q)
 
@@ -1477,7 +1488,11 @@ function alert_store:housekeeping()
    local max_time_sec = prefs.max_num_secs_before_delete_alert
    local expiration_epoch = now - max_time_sec
 
-   q = string.format("DELETE FROM `%s` WHERE tstamp < %u", self._table_name, expiration_epoch)
+   if ntop.isClickHouseEnabled() then
+      q = string.format("ALTER TABLE `%s` DELETE WHERE tstamp < %u", self._table_name, expiration_epoch)
+   else
+      q = string.format("DELETE FROM `%s` WHERE tstamp < %u", self._table_name, expiration_epoch)
+   end
 
    deleted = interface.alert_store_query(q)
 end
