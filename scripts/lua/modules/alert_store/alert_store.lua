@@ -676,8 +676,14 @@ function alert_store:select_historical(filter, fields)
 
    -- Prepare the final query
    -- NOTE: entity_id is necessary as alert_utils.formatAlertMessage assumes it to always be present inside the alert
-   local q = string.format(" SELECT %u entity_id, (tstamp_end - tstamp) duration, %s FROM `%s` WHERE %s %s %s %s %s",
+   local q
+   if ntop.isClickHouseEnabled() then
+      q = string.format(" SELECT %u entity_id, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp)) duration, %s FROM `%s` WHERE %s %s %s %s %s",
 			   self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
+   else
+      q = string.format(" SELECT %u entity_id, (tstamp_end - tstamp) duration, %s FROM `%s` WHERE %s %s %s %s %s",
+			   self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
+   end
 
    res = interface.alert_store_query(q)
 
@@ -959,8 +965,14 @@ function alert_store:count_by_24h_historical()
    local where_clause = self:build_where_clause()
 
    -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
-   local q = string.format("SELECT (tstamp - tstamp %% %u) as hour, count(*) count FROM %s WHERE %s GROUP BY hour",
-            time_slot_width, self._table_name, where_clause)
+   local q   
+   if ntop.isClickHouseEnabled() then
+      q = string.format("SELECT (toUnixTimestamp(tstamp) - toUnixTimestamp(tstamp) %% %u) as hour, count(*) count FROM %s WHERE %s GROUP BY hour",
+         time_slot_width, self._table_name, where_clause)
+   else
+      q = string.format("SELECT (tstamp - tstamp %% %u) as hour, count(*) count FROM %s WHERE %s GROUP BY hour",
+         time_slot_width, self._table_name, where_clause)
+   end
 
    local q_res = interface.alert_store_query(q) or {}
 
