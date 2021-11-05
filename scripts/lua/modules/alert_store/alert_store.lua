@@ -1165,6 +1165,7 @@ function alert_store:add_request_filters()
    local score = _GET["score"]
    local rowid = _GET["row_id"]
    local status = _GET["status"]
+   local ifid = _GET["ifid"]
 
    self:add_status_filter(status)
    self:add_time_filter(epoch_begin, epoch_end)
@@ -1173,6 +1174,7 @@ function alert_store:add_request_filters()
    self:add_filter_condition_list('severity', alert_severity, 'number')
    self:add_filter_condition_list('score', score, 'number')
    self:add_filter_condition_list('rowid', rowid, 'number')
+   self:add_filter_condition_list('interface_id', ifid, 'number')
 
    self:_add_additional_request_filters()
 end
