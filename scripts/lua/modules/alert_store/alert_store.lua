@@ -1206,12 +1206,15 @@ function alert_store:add_request_filters()
    self:add_filter_condition_list('alert_id', alert_id, 'number')
    self:add_filter_condition_list('severity', alert_severity, 'number')
    self:add_filter_condition_list('score', score, 'number')
-   self:add_filter_condition_list('rowid', rowid, 'string')
 
+   
    if(ntop.isClickHouseEnabled()) then
       -- Clickhouse db has the column 'interface_id', filter by that per interface
       local ifid = _GET["ifid"]
+      self:add_filter_condition_list('rowid', rowid, 'string')
       self:add_filter_condition_list('interface_id', ifid, 'number')
+   else
+      self:add_filter_condition_list('rowid', rowid, 'number')
    end
 
    self:_add_additional_request_filters()
