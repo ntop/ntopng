@@ -6945,7 +6945,7 @@ void NetworkInterface::allocateStructures() {
     top_os    = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
 
     if(!isViewed()) {
-#ifdef HAVE_CLICKHOUSE
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
       if(ntop->getPrefs()->useClickHouse())
 	alertStore    = new ClickHouseAlertStore(this);
 #endif
