@@ -103,8 +103,14 @@ function flow_alert_store:top_cli_ip_historical()
    -- Preserve all the filters currently set
    local where_clause = self:build_where_clause()
 
-   local q = string.format("SELECT cli_ip, vlan_id, cli_name, count(*) count FROM %s WHERE %s GROUP BY cli_ip ORDER BY count DESC LIMIT %u",
-			   self._table_name, where_clause, self._top_limit)
+   local q
+   if ntop.isClickHouseEnabled() then
+      q = string.format("SELECT cli_ip, vlan_id, cli_name, count(*) count FROM %s WHERE %s GROUP BY cli_ip, vlan_id ORDER BY count DESC LIMIT %u",
+         self._table_name, where_clause, self._top_limit)
+   else
+      q = string.format("SELECT cli_ip, vlan_id, cli_name, count(*) count FROM %s WHERE %s GROUP BY cli_ip ORDER BY count DESC LIMIT %u",
+         self._table_name, where_clause, self._top_limit)
+   end
 
    local q_res = interface.alert_store_query(q) or {}
 

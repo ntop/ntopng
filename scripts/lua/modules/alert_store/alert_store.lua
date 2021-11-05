@@ -679,10 +679,10 @@ function alert_store:select_historical(filter, fields)
    local q
    if ntop.isClickHouseEnabled() then
       q = string.format(" SELECT %u entity_id, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp)) duration, %s FROM `%s` WHERE %s %s %s %s %s",
-			   self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
+         self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
    else
       q = string.format(" SELECT %u entity_id, (tstamp_end - tstamp) duration, %s FROM `%s` WHERE %s %s %s %s %s",
-			   self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
+   self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
    end
 
    res = interface.alert_store_query(q)
@@ -754,9 +754,16 @@ end
 
 --@brief Performs a query and counts the number of records
 function alert_store:count()
-   local count_query = self:select_historical(nil, "count(*) as count")
+   local where_clause = ''
+
+   where_clause = self:build_where_clause()
+
+   local q = string.format(" SELECT count(*) as count FROM `%s` WHERE %s",
+      self._table_name, where_clause)
+
+   local count_query = interface.alert_store_query(q)
+
    local num_results = 0
-   
    if count_query then
       num_results = tonumber(count_query[1]["count"])
    end
