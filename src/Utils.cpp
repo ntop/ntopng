@@ -3975,6 +3975,9 @@ void Utils::listInterfaces(lua_State* vm) {
       struct sockaddr_in6 sin6;
       char buf[64];
 
+      if (cur->module)
+        lua_push_str_table_entry(vm, "module", cur->module);
+
       sin.sin_family = AF_INET;
       sin.sin_addr.s_addr = Utils::readIPv4(cur->name);
 
