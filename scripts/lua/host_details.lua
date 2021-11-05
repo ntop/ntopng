@@ -808,7 +808,7 @@ end
    if interfaceHasNindexSupport() then
    	local url = ""
    	if not interface.nIndexEnabled() then
-   		url = ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?cli_ip=' .. hostinfo2hostkey(host_info) .. ';eq&status=46;neq'
+   		url = ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?cli_ip=' .. hostinfo2hostkey(host_info) .. ';eq'
    	else
    		url = '?host='..hostinfo2hostkey(host_info)..'&page=historical&detail_view=status_overview&zoom=1h'
    	end
