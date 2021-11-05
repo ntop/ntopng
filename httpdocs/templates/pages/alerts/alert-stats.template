@@ -207,11 +207,11 @@
         function getTimestampRange(updateDatetimeUsingPresets = false) {
             let begin = 0;
             let end = 0;
-            const selectPresets = $(`#select-time-presets`).val();
+            const selectTimePresets = $(`#select-time-presets`).val();
 
-            if(updateDatetimeUsingPresets && selectPresets) {
+            if(updateDatetimeUsingPresets && selectTimePresets) {
                 // getting the current time using presets
-                const [subtract, measure] = selectPresets.split(',');
+                const [subtract, measure] = selectTimePresets.split(',');
                 const now = moment();
                 const diff = moment().subtract(parseInt(subtract), measure);
 
