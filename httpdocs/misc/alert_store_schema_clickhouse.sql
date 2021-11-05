@@ -1,4 +1,5 @@
 CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
+`rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
 `interface_id` UInt16 NULL,
@@ -21,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 @
 
 CREATE TABLE IF NOT EXISTS `flow_alerts` (
+`rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
 `interface_id` UInt16 NULL,
@@ -65,6 +67,7 @@ CREATE TABLE IF NOT EXISTS `flow_alerts` (
 @
 
 CREATE TABLE IF NOT EXISTS `host_alerts` (
+`rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
 `interface_id` UInt16 NULL,
@@ -91,6 +94,7 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 @
 
 CREATE TABLE IF NOT EXISTS `mac_alerts` (
+`rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
 `interface_id` UInt16 NULL,
@@ -114,6 +118,7 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` (
 @
 
 CREATE TABLE IF NOT EXISTS `snmp_alerts` (
+`rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
 `interface_id` UInt16 NULL,
@@ -136,6 +141,7 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 @
 
 CREATE TABLE IF NOT EXISTS `network_alerts` (
+`rowid` UUID,
 `local_network_id` UInt16 NOT NULL,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
@@ -157,6 +163,7 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 @
 
 CREATE TABLE IF NOT EXISTS `interface_alerts` (
+`rowid` UUID,
 `ifid` UInt8 NOT NULL,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
@@ -179,6 +186,7 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 @
 
 CREATE TABLE IF NOT EXISTS `user_alerts` (
+`rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
 `interface_id` UInt16 NULL,
@@ -198,6 +206,7 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 @
 
 CREATE TABLE IF NOT EXISTS `system_alerts` (
+`rowid` UUID,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
 `interface_id` UInt16 NULL,

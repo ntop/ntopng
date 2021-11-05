@@ -35,24 +35,28 @@ end
 -- ##############################################
 
 function flow_alert_store:insert(alert)
-   local hex_prefix
-   local insert_stmt
+   local hex_prefix = ""
+   local extra_columns = ""
+   local extra_values = ""
 
    if(ntop.isClickHouseEnabled()) then
-      hex_prefix = ""
+      extra_columns = "rowid, "
+      extra_values = "generateUUIDv4(), "
    else
       hex_prefix = "X"
    end
 
-   insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
+   local insert_stmt = string.format("INSERT INTO %s "..
+      "(%salert_id, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
       "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, "..
       "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, "..
       "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, "..
       "flow_risk_bitmap, alerts_map, json) "..
-      "VALUES (%u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
+      "VALUES (%s%u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
       "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', '%s'); ",
-      self._table_name, 
+      self._table_name,
+      extra_columns,
+      extra_values,
       alert.alert_id,
       interface.getId(),
       alert.tstamp,

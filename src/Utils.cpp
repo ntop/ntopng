@@ -3964,41 +3964,40 @@ void Utils::init_pcap_header(struct pcap_file_header * const h, int linktype, in
 void Utils::listInterfaces(lua_State* vm) {
   ntop_if_t *devpointer, *cur;
 
-  if(Utils::ntop_findalldevs(&devpointer)) {
-    ;
-  } else {
-    for(cur = devpointer; cur; cur = cur->next) {
-      lua_newtable(vm);
+  if(Utils::ntop_findalldevs(&devpointer) != 0)
+    return; /* Error */
+  
+  for(cur = devpointer; cur; cur = cur->next) {
+    lua_newtable(vm);
 
-      if(cur->name) {
-        struct sockaddr_in sin;
-        struct sockaddr_in6 sin6;
-	char buf[64];
+    if(cur->name) {
+      struct sockaddr_in sin;
+      struct sockaddr_in6 sin6;
+      char buf[64];
 
-        sin.sin_family = AF_INET;
-	sin.sin_addr.s_addr = Utils::readIPv4(cur->name);
+      sin.sin_family = AF_INET;
+      sin.sin_addr.s_addr = Utils::readIPv4(cur->name);
 
-        if(sin.sin_addr.s_addr != 0)
-          lua_push_str_table_entry(vm, "ipv4", Utils::intoaV4(ntohl(sin.sin_addr.s_addr), buf, sizeof(buf)));
+      if(sin.sin_addr.s_addr != 0)
+        lua_push_str_table_entry(vm, "ipv4", Utils::intoaV4(ntohl(sin.sin_addr.s_addr), buf, sizeof(buf)));
 
 #ifndef WIN32
-        sin6.sin6_family = AF_INET6;
-        if(Utils::readIPv6(cur->name, &sin6.sin6_addr)) {
-	  struct ndpi_in6_addr* ip6 = (struct ndpi_in6_addr*)&sin6.sin6_addr;
-	  char* ip = Utils::intoaV6(*ip6, 128, buf, sizeof(buf));
+      sin6.sin6_family = AF_INET6;
+      if(Utils::readIPv6(cur->name, &sin6.sin6_addr)) {
+        struct ndpi_in6_addr* ip6 = (struct ndpi_in6_addr*)&sin6.sin6_addr;
+        char* ip = Utils::intoaV6(*ip6, 128, buf, sizeof(buf));
 
-	  lua_push_str_table_entry(vm, "ipv6", ip);
-        }
-#endif
+        lua_push_str_table_entry(vm, "ipv6", ip);
       }
-
-      lua_pushstring(vm, cur->name);
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
+#endif
     }
 
-    Utils::ntop_freealldevs(devpointer);
+    lua_pushstring(vm, cur->name);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
+
+  Utils::ntop_freealldevs(devpointer);
 }
 
 /* ****************************************************** */
