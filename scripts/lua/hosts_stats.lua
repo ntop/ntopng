@@ -463,7 +463,9 @@ if (_GET["page"] ~= "historical") then
 
    print('</ul></div>\'')
 
-   printHostsDeviceFilterDropdown(base_url, page_params)
+   if ntop.isPro() then
+      printHostsDeviceFilterDropdown(base_url, page_params)
+   end
 
    print(' ],')
 
