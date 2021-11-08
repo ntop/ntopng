@@ -337,7 +337,9 @@ tag_utils.extra_where_tags = {
    ["ip"]       = { [4] = { "IPV4_DST_ADDR", "IPV4_SRC_ADDR" } , [6] = { "IPV6_DST_ADDR", "IPV6_SRC_ADDR" } },
    ["srv_ip"]   = {[4] = "IPV4_DST_ADDR", [6] = "IPV6_DST_ADDR"},
    ["cli_ip"]   = {[4] = "IPV4_SRC_ADDR", [6] = "IPV6_SRC_ADDR"},
-   ["l7proto"] = { "L7_PROTO_MASTER", "L7_PROTO" }
+   ["l7proto"] = { "L7_PROTO_MASTER", "L7_PROTO" },
+   ["src_label"]  = "SRC_LABEL",
+   ["dst_label"]  = "DST_LABEL",
 }
 
 -- #####################################
