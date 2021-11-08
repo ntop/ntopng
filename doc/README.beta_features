@@ -34,3 +34,6 @@ redis-cli set "ntopng.prefs.periodic_activities_stats_to_stdout" "1"
 
 ## [Debug] Log VPN events from firewalls plugins (2 for more verbosity)
 redis-cli set "ntopng.prefs.vpn_debug_enabled" "1"
+
+## [Feature] SNMP. Control the number of pollers to spawn
+redis-cli set "ntopng.prefs.snmp.num_pollers" "20"
