@@ -46,7 +46,7 @@ tag_utils.defined_tags = {
    flow_risk = {
       value_type = 'flow_risk',
       i18n_label = i18n('db_search.tags.flow_risk'),
-      operators = {'eq', 'neq'}
+      operators = {'eq', 'neq', 'in', 'nin'}
    },
    status = {
       value_type = 'alert_type',
