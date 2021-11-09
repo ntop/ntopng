@@ -27,8 +27,11 @@
 class ZMQParserInterface : public ParserInterface {
  private:
   typedef std::pair<u_int32_t, u_int32_t> pen_value_t;
-  typedef std::map<string, pen_value_t > labels_map_t;
-  labels_map_t labels_map;
+  typedef std::map<string, pen_value_t> labels_map_t;
+  typedef std::map<pen_value_t, string> descriptions_map_t;
+  labels_map_t labels_map; /* Contains mappings between labels and integer IDs (PEN and ID) */
+  descriptions_map_t descriptions_map; /* Contains mappings between integer IDs and descriptions */
+  
   bool once, is_sampled_traffic;
   u_int32_t flow_max_idle, returned_flow_max_idle;
   u_int64_t zmq_initial_bytes, zmq_initial_pkts,
@@ -43,8 +46,7 @@ class ZMQParserInterface : public ParserInterface {
 #endif
 
   bool preprocessFlow(ParsedFlow *flow);
-  bool getKeyId(char *sym, u_int32_t sym_len, u_int32_t * const pen, u_int32_t * const field) const;
-  void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0);
+  void addMapping(const char *sym, u_int32_t num, u_int32_t pen = 0, const char *descr = NULL);
   bool parsePENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
   bool parsePENNtopField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
   bool matchPENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
@@ -76,6 +78,8 @@ public:
   virtual InterfaceType getIfType() const { return(interface_type_ZMQ); }
   virtual bool isSampledTraffic()   const { return(is_sampled_traffic); }
 
+  bool getKeyId(char *sym, u_int32_t sym_len, u_int32_t * const pen, u_int32_t * const field) const;
+  const char* getKeyDescription(u_int32_t pen, u_int32_t field) const;
   bool matchField(ParsedFlow * const flow, const char * const key, ParsedValue * value);
 
   u_int8_t parseJSONFlow(const char * const payload, int payload_size, u_int8_t source_id);

@@ -1078,6 +1078,34 @@ static int ntop_update_syslog_producers(lua_State* vm) {
   lua_pushnil(vm);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
+
+/* ****************************************** */
+
+static int ntop_get_zmq_flow_field_descr(lua_State* vm) {
+#ifdef HAVE_ZMQ
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  ZMQParserInterface *zmq_ntop_interface;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface
+     || !(zmq_ntop_interface = dynamic_cast<ZMQParserInterface*>(ntop_interface)))
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  if((ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK))
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  char *key = (char*)lua_tostring(vm, 1);
+  u_int32_t pen = UNKNOWN_PEN, field = UNKNOWN_FLOW_ELEMENT;
+  const char *descr;
+
+  if(zmq_ntop_interface->getKeyId((char*)key, strlen(key), &pen, &field)
+     && (descr = zmq_ntop_interface->getKeyDescription(pen, field)))
+    lua_pushstring(vm, descr);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+#endif
+}
 #endif
 
 /* ****************************************** */
@@ -4410,6 +4438,7 @@ static luaL_Reg _ntop_interface_reg[] = {
 #ifndef HAVE_NEDGE
   { "processFlow",              ntop_process_flow },
   { "updateSyslogProducers",    ntop_update_syslog_producers },
+  { "getZMQFlowFieldDescr",     ntop_get_zmq_flow_field_descr },
 #endif
 
   { "getActiveFlowsStats",      ntop_get_active_flows_stats },

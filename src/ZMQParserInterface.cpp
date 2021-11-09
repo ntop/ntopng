@@ -145,14 +145,22 @@ ZMQParserInterface::~ZMQParserInterface() {
 
 /* **************************************************** */
 
-void ZMQParserInterface::addMapping(const char *sym, u_int32_t num, u_int32_t pen) {
+void ZMQParserInterface::addMapping(const char *sym, u_int32_t num, u_int32_t pen, const char *descr) {
   string label(sym);
   labels_map_t::iterator it;
+  pen_value_t cur_pair = make_pair(pen, num);
 
   if((it = labels_map.find(label)) == labels_map.end())
-    labels_map.insert(make_pair(label, make_pair(pen, num)));
+    labels_map.insert(make_pair(label, cur_pair));
   else
     it->second.first = pen, it->second.second = num;
+
+  if(descr) {
+    descriptions_map_t::iterator dit;
+
+    if((dit = descriptions_map.find(cur_pair)) == descriptions_map.end())
+       descriptions_map.insert(make_pair(cur_pair, descr));
+  }
 }
 
 /* **************************************************** */
@@ -181,6 +189,17 @@ bool ZMQParserInterface::getKeyId(char *sym, u_int32_t sym_len, u_int32_t * cons
   }
 
   return true;
+}
+
+/* **************************************************** */
+
+const char* ZMQParserInterface::getKeyDescription(u_int32_t pen, u_int32_t field) const {
+  descriptions_map_t::const_iterator it;
+
+  if((it = descriptions_map.find(make_pair(pen, field))) != descriptions_map.end())
+    return it->second.c_str();
+
+  return NULL;
 }
 
 /* **************************************************** */
