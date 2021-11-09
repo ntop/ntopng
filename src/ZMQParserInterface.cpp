@@ -159,7 +159,7 @@ void ZMQParserInterface::addMapping(const char *sym, u_int32_t num, u_int32_t pe
     descriptions_map_t::iterator dit;
 
     if((dit = descriptions_map.find(cur_pair)) == descriptions_map.end())
-       descriptions_map.insert(make_pair(cur_pair, descr));
+      descriptions_map.insert(make_pair(cur_pair, descr));
   }
 }
 
@@ -1901,7 +1901,7 @@ u_int8_t ZMQParserInterface::parseTemplate(const char * const payload, int paylo
 	  zmq_template.descr = json_object_get_string(z);
 
 	if(zmq_template.name) {
-	  addMapping(zmq_template.name, zmq_template.field, zmq_template.pen);
+	  addMapping(zmq_template.name, zmq_template.field, zmq_template.pen, zmq_template.descr);
 
 	  mandatory_fields.erase(zmq_template.name);
 	}

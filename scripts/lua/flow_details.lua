@@ -1575,7 +1575,13 @@ else
 	 if(k ~= nil) then
 	    syminfo[k] = value
 	 else
-	    syminfo[key] = value
+	    local nprobe_description =interface.getZMQFlowFieldDescr(key)
+
+	    if nprobe_description ~= key then
+	       syminfo[nprobe_description] = value
+	    else
+	       syminfo[key] = value
+	    end
 	 end
       end
       info = syminfo
