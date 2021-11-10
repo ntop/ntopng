@@ -34,7 +34,7 @@ end
 function scripts_triggers.isDumpFlowToSQLEnabled(ifstats)
    local prefs = ntop.getPrefs()
 
-   if prefs["is_dump_flows_to_mysql_enabled"] or prefs["is_dump_flows_to_clickhouse_enabled"] then
+   if prefs["is_dump_flows_to_mysql_enabled"] then
       return true
    end
 
