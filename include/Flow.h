@@ -737,6 +737,9 @@ class Flow : public GenericHashEntry {
 
   inline ViewInterfaceFlowStats* getViewInterfaceFlowStats() { return(viewFlowStats); }
 
+  inline u_int32_t getFlowNwLatency(bool client) const {
+    return client ? toMs(&clientNwLatency) : toMs(&serverNwLatency);
+  };
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {
     if(client) {
       memcpy(&clientNwLatency, tv, sizeof(*tv));
