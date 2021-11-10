@@ -1,0 +1,50 @@
+{
+	"name" : "Latency By ASN",
+	"i18n_name" : "latency_by_asn",
+	"data_source" : "flows",
+	"visualization_type" : "table",
+	"select" : {
+		"items" : [
+			{
+				"name" : "SRC_ASN"
+			},
+			{
+				"name" : "DST_ASN"
+			},
+			{
+				"name" : "avg_client_nw_latency_ms",
+				"func" : "AVG",
+				"param" : "CLIENT_NW_LATENCY_MS",
+				"value_type" : "float"
+			},
+			{
+				"name" : "avg_server_nw_latency_ms",
+				"func" : "AVG",
+				"param" : "SERVER_NW_LATENCY_MS",
+				"value_type" : "float"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "SRC_ASN"
+			},
+			{
+				"name" : "DST_ASN"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "avg_server_nw_latency_ms",
+				"order" : "DESC"
+			}
+		]
+	}
+}
