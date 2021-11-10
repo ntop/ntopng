@@ -534,7 +534,7 @@ local function build_datatable_js_column_float(name, data_name, label, order)
       {name: ']] .. name .. [[', data: ']] .. name .. [[', className: 'text-right', render: (]] .. name .. [[, type) => {
         if (type !== 'display') return ]] .. name .. [[;
         if (]] .. name .. [[ !== undefined)
-          return NtopUtils.ffloat(]] .. name .. [[);
+          return (]] .. name .. [[ > 0) ? NtopUtils.ffloat(]] .. name .. [[) : "";
       }}]] }
 end
 
