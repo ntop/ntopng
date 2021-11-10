@@ -415,6 +415,17 @@ end
 
 -- #####################################
 
+local function build_datatable_js_column_default(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '7%', className: 'no-wrap'}]] 
+   }
+end
+
+-- #####################################
+
 local function build_datatable_js_column_ip(name, data_name, label, order)
    return {
       i18n = label,
@@ -515,7 +526,20 @@ end
 
 -- #####################################
 
-tag_utils.datatable_js_columns = {
+tag_utils.datatable_js_column_builder_by_type = {
+   ['default'] = build_datatable_js_column_default,
+   ['ip'] = build_datatable_js_column_ip,
+   ['port'] = build_datatable_js_column_port,
+   ['asn'] = build_datatable_js_column_asn,
+   ['tcp_flags'] = build_datatable_js_column_tcp_flags,
+   ['dscp'] = build_datatable_js_column_dscp,
+   ['packets'] = build_datatable_js_column_packets,
+   ['bytes']   = build_datatable_js_column_bytes,
+}
+
+-- #####################################
+
+tag_utils.datatable_js_columns_by_tag = {
    ['vlan_id'] = {
       i18n = i18n("db_search.vlan_id"),
       order = 1,
@@ -667,9 +691,10 @@ end
 
 function tag_utils.get_datatable_js_columns() 
    local str = "["
-   for _, column in pairsByValues(tag_utils.datatable_js_columns, order_asc) do
+   for _, column in pairsByValues(tag_utils.datatable_js_columns_by_tag, order_asc) do
       str = str .. column.js .. ","
    end
+   str = str:sub(1, -2)
    str = str .. "]"
 
    return str
@@ -678,7 +703,7 @@ end
 function tag_utils.get_datatable_i18n_columns() 
    local columns = {}
 
-   for _, column in pairsByValues(tag_utils.datatable_js_columns, order_asc) do
+   for _, column in pairsByValues(tag_utils.datatable_js_columns_by_tag, order_asc) do
       columns[#columns + 1] = column.i18n
    end
 

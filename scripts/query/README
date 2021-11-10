@@ -8,7 +8,9 @@ Built-in examples are provided and can be used as starting
 point for building new queries. Please note that:
 
 - The 'select' object can contain a list of items in the 'items'
-  array, or a raw SQL select in the 'sql' string.
+  array. A raw SQL select can be defined in the 'sql' string. A
+  list of items is still required to define the columns and value 
+  type (if not a plain column).
 
 - It is possible to use SQL functions as 'select' item as shown
   in the examples by specifying the 'func' (e.g. SUM) and the
@@ -45,6 +47,7 @@ Select example - list of fields:
 				"name": "bytes",
 				"func": "SUM",
 				"param": "TOTAL_BYTES",
+				"value_type": "bytes",
 			}
 		]
 	}

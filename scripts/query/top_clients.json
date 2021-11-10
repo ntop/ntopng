@@ -4,7 +4,19 @@
 	"data_source" : "flows",
 	"visualization_type" : "table",
 	"select" : {
-		"sql" : "IPV4_SRC_ADDR, VLAN_ID, SUM(TOTAL_BYTES) bytes"
+		"sql" : "IPV4_SRC_ADDR, VLAN_ID, SUM(TOTAL_BYTES) bytes",
+		"items" : [
+			{
+				"name" : "IPV4_SRC_ADDR"
+			},
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "bytes",
+				"value_type" : "bytes"
+			}
+		]
 	},
 	"filters" : {
 		"items" : [
