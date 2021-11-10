@@ -35,7 +35,7 @@ local data_retention = data_retention_utils.getDataRetentionDays()
 
 -- ###########################################
 
-if scripts_triggers.isDumbFlowToSQLEnabled(ifstats) then
+if scripts_triggers.isDumpFlowToSQLEnabled(ifstats) then
    local db_utils = require "db_utils"
 
    local mysql_retention = os.time() - 86400 * data_retention

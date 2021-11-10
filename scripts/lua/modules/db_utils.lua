@@ -773,7 +773,7 @@ end
 
 -- ########################################################
 
-function db_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
+local function _harvest_expired_mysql_flows(ifname, mysql_retention, verbose)
    local dbtables = {"flowsv4", "flowsv6"}
 
    if tonumber(ifname) == nil then
@@ -786,6 +786,41 @@ function db_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
       sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
       interface.execSQLQuery(sql)
       if(verbose) then io.write(sql.."\n") end
+   end
+end
+
+-- ########################################################
+
+local function _harvest_expired_clickhouse_flows(ifname, mysql_retention, verbose)
+   local day_aligned_retention = mysql_retention - (mysql_retention % 86400)
+   -- Create a string that identifies the PARTITIONs name of the most recent partition that will be deleted
+   local retention_yyyymmdd = os.date("%Y%m%d", day_aligned_retention)
+
+   -- Deletion is done directly on partitions (Clickhouse database has daily partitions)
+
+   -- Query the partitions that need to be deleted. Convert YYYYMMDD strings into integers so that
+   -- only relevant partitions can be queried and deleted
+   -- The last condition > 999999 prevents old partitions created as YYYMM to be deleted
+   local partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND table='flows' AND database='ntopng' AND drop_part <= %u AND drop_part > 999999", retention_yyyymmdd)
+   local partitions_res = interface.execSQLQuery(partitions_q)
+
+   -- Iterate queried partitions and delete them
+   for _, partition_info in ipairs(partitions_res) do
+      local delete_partition_q = string.format("ALTER TABLE %s.%s DROP PARTITION '%s'",
+					       partition_info["database"], partition_info["table"], partition_info["drop_part"])
+      local delete_partition_res = interface.execSQLQuery(delete_partition_q)
+   end
+end
+
+-- ########################################################
+
+function db_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
+   if ntop.isClickHouseEnabled() then
+      -- Clickhouse
+      return _harvest_expired_clickhouse_flows(ifname, mysql_retention, verbose)
+   else
+      -- Plain MySQL
+      return _harvest_expired_mysql_flows(ifname, mysql_retention, verbose)
    end
 end
 
