@@ -51,17 +51,20 @@ end
 -- ##############################################
 
 -- @brief Call instance:db_cleanup for every available alert_store instance
-function alert_store_utils.housekeeping()
+function alert_store_utils.housekeeping(ifid)
    local all_instances = alert_store_utils.all_instances_factory()
    for _, instance in pairs(all_instances) do
-      instance:housekeeping()
+      instance:housekeeping(ifid)
    end
-   
-   -- Reclaims unused disk space and defragments tables and indices.
-   -- Should be called as disk space and defragmentation are not run
-   -- automatically by sqlite.
-   local q = string.format("VACUUM")
-   local vacuum = interface.alert_store_query(q)
+
+   if not ntop.isClickHouseEnabled() then
+      -- Reclaims unused disk space and defragments tables and indices.
+      -- Should be called as disk space and defragmentation are not run
+      -- automatically by sqlite.
+      -- NOTE: clickhouse doesn't need to reclaim space
+      local q = string.format("VACUUM")
+      local vacuum = interface.alert_store_query(q)
+   end
 end
 
 -- ##############################################

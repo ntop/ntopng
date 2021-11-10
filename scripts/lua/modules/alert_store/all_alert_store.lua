@@ -333,7 +333,7 @@ end
 -- ##############################################
 
 --@brief Deletes old data according to the configuration or up to a safe limit
-function all_alert_store:housekeeping()
+function all_alert_store:housekeeping(ifid)
    -- Nothing do do, nothing do delete or vacuum, this is just a view
 end
 

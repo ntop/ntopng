@@ -1466,7 +1466,7 @@ end
 -- ##############################################
 
 --@brief Deletes old data according to the configuration or up to a safe limit
-function alert_store:housekeeping()
+function alert_store:housekeeping(ifid)
    local prefs = ntop.getPrefs()
 
    -- By Number of records
@@ -1476,11 +1476,11 @@ function alert_store:housekeeping()
 
    local q
    if ntop.isClickHouseEnabled() then
-      q = string.format("ALTER TABLE `%s` DELETE WHERE rowid <= (SELECT rowid FROM `%s` ORDER BY rowid DESC LIMIT 1 OFFSET %u)",
-         self._table_name, self._table_name, limit)
+      q = string.format("ALTER TABLE `%s` DELETE WHERE interface_id = %d AND rowid <= (SELECT rowid FROM `%s` WHERE interface_id = %u ORDER BY rowid DESC LIMIT 1 OFFSET %u)",
+			self._table_name, ifid, self._table_name, ifid, limit)
    else
       q = string.format("DELETE FROM `%s` WHERE rowid <= (SELECT rowid FROM `%s` ORDER BY rowid DESC LIMIT 1 OFFSET %u)",
-         self._table_name, self._table_name, limit)
+			self._table_name, self._table_name, limit)
    end
 
    local deleted = interface.alert_store_query(q)
@@ -1492,7 +1492,7 @@ function alert_store:housekeeping()
    local expiration_epoch = now - max_time_sec
 
    if ntop.isClickHouseEnabled() then
-      q = string.format("ALTER TABLE `%s` DELETE WHERE tstamp < %u", self._table_name, expiration_epoch)
+      q = string.format("ALTER TABLE `%s` DELETE WHERE interface_id = %d AND tstamp < %u", self._table_name, ifid, expiration_epoch)
    else
       q = string.format("DELETE FROM `%s` WHERE tstamp < %u", self._table_name, expiration_epoch)
    end

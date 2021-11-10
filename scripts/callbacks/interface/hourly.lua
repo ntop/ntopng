@@ -10,16 +10,18 @@ if (ntop.isPro()) then
   package.path = dirs.installdir .. "/pro/scripts/callbacks/interface/?.lua;" .. package.path
   require('hourly')
 end
+-- ########################################################
 
 local alert_store_utils = require "alert_store_utils"
 
 -- ########################################################
 
+local ifid = interface.getId()
 local k = string.format("ntopng.cache.ifid_%i.checks.request.granularity_hourly", interface.getId())
 ntop.setCache(k, "1")
 
 -- ########################################################
 
 -- Alerts DB housekeeping (cleanup)
-alert_store_utils.housekeeping()
+alert_store_utils.housekeeping(ifid)
 
