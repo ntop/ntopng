@@ -18,9 +18,6 @@
 				"name" : "L7_PROTO"
 			},
 			{
-				"name" : "L7_PROTO_MASTER"
-			},
-			{
 				"name" : "bytes",
 				"func" : "SUM",
 				"param" : "TOTAL_BYTES",
@@ -45,9 +42,6 @@
 			},
 			{
 				"name" : "L7_PROTO"
-			},
-			{
-				"name" : "L7_PROTO_MASTER"
 			}
 		]
 	},

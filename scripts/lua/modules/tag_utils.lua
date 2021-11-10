@@ -526,6 +526,20 @@ end
 
 -- #####################################
 
+local function build_datatable_js_column_float(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+      {name: ']] .. name .. [[', data: ']] .. name .. [[', className: 'text-right', render: (]] .. name .. [[, type) => {
+        if (type !== 'display') return ]] .. name .. [[;
+        if (]] .. name .. [[ !== undefined)
+          return NtopUtils.ffloat(]] .. name .. [[);
+      }}]] }
+end
+
+-- #####################################
+
 tag_utils.datatable_js_column_builder_by_type = {
    ['default'] = build_datatable_js_column_default,
    ['ip'] = build_datatable_js_column_ip,
@@ -534,7 +548,8 @@ tag_utils.datatable_js_column_builder_by_type = {
    ['tcp_flags'] = build_datatable_js_column_tcp_flags,
    ['dscp'] = build_datatable_js_column_dscp,
    ['packets'] = build_datatable_js_column_packets,
-   ['bytes']   = build_datatable_js_column_bytes,
+   ['bytes'] = build_datatable_js_column_bytes,
+   ['float'] = build_datatable_js_column_float,
 }
 
 -- #####################################
