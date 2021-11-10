@@ -415,6 +415,106 @@ end
 
 -- #####################################
 
+local function build_datatable_js_column_ip(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '12%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+        let html_ref = '';
+        if (type !== 'display') return ]] .. name .. [[;
+        if (]] .. name .. [[ !== undefined) {
+            if (]] .. name .. [[.reference !== undefined)
+                html_ref = ]] .. name .. [[.reference;
+            return `<a class='tag-filter' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a> ${html_ref}`;
+        }}}]] }
+end
+
+-- #####################################
+
+local function build_datatable_js_column_port(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+          if (type !== 'display') return ]] .. name .. [[;
+          if (]] .. name .. [[ !== undefined)
+             return `<a class='tag-filter' data-tag-value='${]] .. name .. [[}' href='#'>${]] .. name .. [[}</a>`;
+      }}]] 
+   }
+end
+
+-- #####################################
+
+local function build_datatable_js_column_asn(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+        if (type !== 'display') return ]] .. name .. [[;
+        if (]] .. name .. [[ !== undefined) {
+          return `<a class='tag-filter' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a>`;
+      }}}]] }
+end
+
+-- #####################################
+
+local function build_datatable_js_column_packets(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+        if (type !== 'display') return ]] .. name .. [[;
+        if (]] .. name .. [[ !== undefined)
+          return NtopUtils.formatPackets(]] .. name .. [[);
+      }}]]
+   }
+end
+
+-- #####################################
+
+local function build_datatable_js_column_bytes(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '7%', className: 'no-wrap'}]] 
+   }
+end
+
+-- #####################################
+
+local function build_datatable_js_column_tcp_flags(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+        {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+          if (type !== 'display') return ]] .. name .. [[;
+          if (]] .. name .. [[ !== undefined)
+            return `<a class='tag-filter' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a>`;
+        }}]] }
+end
+
+-- #####################################
+
+local function build_datatable_js_column_dscp(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+        {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+            if (type !== 'display') return ]] .. name .. [[;
+            if (]] .. name .. [[ !== undefined)
+               return `<a class='tag-filter' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a>`;
+        }}]] }
+end
+
+-- #####################################
+
 tag_utils.datatable_js_columns = {
    ['vlan_id'] = {
       i18n = i18n("db_search.vlan_id"),
@@ -426,48 +526,10 @@ tag_utils.datatable_js_columns = {
             if (vlan_id !== undefined)
                 return `<a class='tag-filter' data-tag-value='${vlan_id.value}' title='${vlan_id.title}' href='#'>${vlan_id.label}</a>`;
         }}]] },
-   ['cli_ip'] = {
-      i18n = i18n("db_search.client"),
-      order = 2,
-      js = [[
-      {name: 'cli_ip', data: 'client', width: '12%', className: 'no-wrap', render: (cli_ip, type) => {
-        let html_ref = '';
-        if (type !== 'display') return cli_ip;
-        if (cli_ip !== undefined) {
-            if (cli_ip.reference !== undefined)
-                html_ref = cli_ip.reference;
-            return `<a class='tag-filter' data-tag-value='${cli_ip.value}' title='${cli_ip.title}' href='#'>${cli_ip.label}</a> ${html_ref}`;
-        }}}]] },
-   ['srv_ip'] = {
-      i18n = i18n("db_search.server"),
-      order = 3,
-      js = [[
-      {name: 'srv_ip', data: 'server', width: '12%', className: 'no-wrap', render: (srv_ip, type) => {
-        let html_ref = '';
-        if (type !== 'display') return srv_ip;
-        if (srv_ip !== undefined) {
-          if (srv_ip.reference !== undefined)
-              html_ref = srv_ip.reference;
-           return `<a class='tag-filter' data-tag-value='${srv_ip.value}' title='${srv_ip.title}' href='#'>${srv_ip.label}</a> ${html_ref}`;
-      }}}]] },
-   ['cli_port'] = {
-      i18n = i18n("db_search.cli_port"),
-      order = 4,
-      js = [[
-      {name: 'cli_port', data: 'cli_port', className: 'no-wrap', render: (cli_port, type) => {
-          if (type !== 'display') return cli_port;
-          if (cli_port !== undefined)
-             return `<a class='tag-filter' data-tag-value='${cli_port}' href='#'>${cli_port}</a>`;
-      }}]] },
-   ['srv_port'] = {
-      i18n = i18n("db_search.srv_port"),
-      order = 5,
-      js = [[
-      {name: 'srv_port', data: 'srv_port', className: 'no-wrap', render: (srv_port, type) => {
-        if (type !== 'display') return srv_port;
-        if (srv_port !== undefined)
-           return `<a class='tag-filter' data-tag-value='${srv_port}' href='#'>${srv_port}</a>`;
-      }}]] },
+   ['cli_ip'] = build_datatable_js_column_ip('cli_ip', 'client', i18n("db_search.client"), 2),
+   ['srv_ip'] = build_datatable_js_column_ip('srv_ip', 'server', i18n("db_search.server"), 3),
+   ['cli_port'] = build_datatable_js_column_port('cli_port', 'cli_port', i18n("db_search.cli_port"), 4),
+   ['srv_port'] = build_datatable_js_column_port('srv_port', 'srv_port', i18n("db_search.srv_port"), 5),
    ['l4proto'] = {
       i18n = i18n("db_search.l4proto"),
       order = 6,
@@ -504,20 +566,8 @@ tag_utils.datatable_js_columns = {
         if (score !== undefined)
           return `<a class='tag-filter' data-tag-value='${score.value}' href='#'><span style='color: ${score.color}'>` + NtopUtils.fint(score.value) + `</span></a>`;
       }}]] },
-   ['packets'] = {
-      i18n = i18n("db_search.packets"),
-      order = 9,
-      js = [[
-      {name: 'packets', data: 'packets', width: '5%', className: 'no-wrap', render: (packets, type) => {
-        if (type !== 'display') return packets;
-        if (packets !== undefined)
-          return NtopUtils.formatPackets(packets);
-      }}]] },
-   ['traffic'] = {
-      i18n = i18n("db_search.bytes"),
-      order = 10,
-      js = [[
-      {name: 'traffic', data: 'traffic', width: '7%', className: 'no-wrap'}]] },
+   ['packets'] = build_datatable_js_column_packets('packets', 'packets', i18n("db_search.packets"), 9),
+   ['traffic'] = build_datatable_js_column_bytes('traffic', 'traffic', i18n("db_search.bytes"), 10),
    ['throughput'] = {
       i18n = i18n("db_search.throughput"),
       order = 11,
@@ -533,24 +583,8 @@ tag_utils.datatable_js_columns = {
       order = 13,
       js = [[
       {name: 'last_seen', data: 'last_seen', width: '7%', className: 'no-wrap'}]] },
-   ['cli_asn'] = {
-      i18n = i18n("db_search.cli_asn"),
-      order = 14,
-      js = [[
-      {name: 'cli_asn', data: 'cli_asn', width: '5%', className: 'no-wrap', render: (cli_asn, type) => {
-        if (type !== 'display') return cli_asn;
-        if (cli_asn !== undefined) {
-          return `<a class='tag-filter' data-tag-value='${cli_asn.value}' title='${cli_asn.title}' href='#'>${cli_asn.label}</a>`;
-      }}}]] },
-   ['srv_asn'] = {
-      i18n = i18n("db_search.srv_asn"),
-      order = 15,
-      js = [[
-      {name: 'srv_asn', data: 'srv_asn', width: '5%', className: 'no-wrap', render: (srv_asn, type) => {
-        if (type !== 'display') return srv_asn;
-        if (srv_asn !== undefined) {
-          return `<a class='tag-filter' data-tag-value='${srv_asn.value}' title='${srv_asn.title}' href='#'>${srv_asn.label}</a>`;
-      }}}]] },
+   ['cli_asn'] = build_datatable_js_column_asn('cli_asn', 'cli_asn', i18n("db_search.cli_asn"), 14),
+   ['srv_asn'] = build_datatable_js_column_asn('srv_asn', 'srv_asn', i18n("db_search.srv_asn"), 15),
    ['l7cat'] = {
       i18n = i18n("db_search.l7cat"),
       order = 16,
@@ -591,42 +625,10 @@ tag_utils.datatable_js_columns = {
            return res.join(', ');
         }
       }}]] },
-   ['src2dst_tcp_flags'] = {
-      i18n = i18n("db_search.src2dst_tcp_flags"),
-      order = 19,
-      js = [[
-        {name: 'src2dst_tcp_flags', data: 'src2dst_tcp_flags', width: '5%', className: 'no-wrap', render: (src2dst_tcp_flags, type) => {
-          if (type !== 'display') return src2dst_tcp_flags;
-          if (src2dst_tcp_flags !== undefined)
-            return `<a class='tag-filter' data-tag-value='${src2dst_tcp_flags.value}' title='${src2dst_tcp_flags.title}' href='#'>${src2dst_tcp_flags.label}</a>`;
-        }}]] },
-   ['dst2src_tcp_flags'] = {
-      i18n = i18n("db_search.dst2src_tcp_flags"),
-      order = 20,
-      js = [[
-        {name: 'dst2src_tcp_flags', data: 'dst2src_tcp_flags', width: '5%', className: 'no-wrap', render: (dst2src_tcp_flags, type) => {
-          if (type !== 'display') return dst2src_tcp_flags;
-          if (dst2src_tcp_flags !== undefined)
-            return `<a class='tag-filter' data-tag-value='${dst2src_tcp_flags.value}' title='${dst2src_tcp_flags.title}' href='#'>${dst2src_tcp_flags.label}</a>`;
-        }}]] },
-   ['src2dst_dscp'] = {
-      i18n = i18n("db_search.src2dst_dscp"),
-      order = 21,
-      js = [[
-        {name: 'src2dst_dscp', data: 'src2dst_dscp', width: '5%', className: 'no-wrap', render: (src2dst_dscp, type) => {
-            if (type !== 'display') return src2dst_dscp;
-            if (src2dst_dscp !== undefined)
-               return `<a class='tag-filter' data-tag-value='${src2dst_dscp.value}' title='${src2dst_dscp.title}' href='#'>${src2dst_dscp.label}</a>`;
-        }}]] },
-   ['dst2src_dscp'] = {
-      i18n = i18n("db_search.dst2src_dscp"),
-      order = 22,
-      js = [[
-        {name: 'dst2src_dscp', data: 'dst2src_dscp', width: '5%', className: 'no-wrap', render: (dst2src_dscp, type) => {
-            if (type !== 'display') return dst2src_dscp;
-            if (dst2src_dscp !== undefined)
-               return `<a class='tag-filter' data-tag-value='${dst2src_dscp.value}' title='${dst2src_dscp.title}' href='#'>${dst2src_dscp.label}</a>`;
-        }}]] },
+   ['src2dst_tcp_flags'] = build_datatable_js_column_tcp_flags('src2dst_tcp_flags', 'src2dst_tcp_flags', i18n("db_search.src2dst_tcp_flags"), 19),
+   ['dst2src_tcp_flags'] = build_datatable_js_column_tcp_flags('dst2src_tcp_flags', 'dst2src_tcp_flags', i18n("db_search.dst2src_tcp_flags"), 20),
+   ['src2dst_dscp'] = build_datatable_js_column_dscp('src2dst_dscp', 'src2dst_dscp', i18n("db_search.src2dst_dscp"), 21),
+   ['dst2src_dscp'] = build_datatable_js_column_dscp('dst2src_dscp', 'dst2src_dscp', i18n("db_search.dst2src_dscp"), 22),
    ['info'] = {
       i18n = i18n("db_search.info"),
       order = 23,
