@@ -181,6 +181,10 @@ const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RIS
     .alert_type = { flow_alert_ndpi_dns_fragmented, alert_category_security },
     .alert_lua_name = "ndpi_dns_fragmented"
   },
+  [NDPI_INVALID_CHARACTERS] = {
+    .alert_type = { flow_alert_ndpi_invalid_characters, alert_category_security },
+    .alert_lua_name = "ndpi_invalid_characters"
+  },
 };
 
 /* **************************************************** */
