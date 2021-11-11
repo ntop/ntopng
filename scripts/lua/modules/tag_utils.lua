@@ -36,7 +36,8 @@ tag_utils.defined_tags = {
    l7proto_master = {
       value_type = 'l7_proto',
       i18n_label = i18n('db_search.tags.l7_proto'),
-      operators = {'eq', 'neq'}
+      operators = {'eq', 'neq'},
+      hide = true,
    },
    l7cat = {
       value_type = 'l7_category',
