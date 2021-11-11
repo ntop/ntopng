@@ -1,0 +1,43 @@
+{
+	"name" : "Top Servers",
+	"i18n_name" : "top_servers",
+	"data_source" : "flows",
+	"visualization_type" : "table",
+	"select" : {
+		"sql" : "IPV4_DST_ADDR, VLAN_ID, SUM(TOTAL_BYTES) bytes",
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "IPV4_DST_ADDR"
+			},
+			{
+				"name" : "bytes",
+				"value_type" : "bytes"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "IPV4_DST_ADDR"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "bytes",
+				"order" : "DESC"
+			}
+		]
+	}
+}

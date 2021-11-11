@@ -1,0 +1,44 @@
+{
+	"name" : "Top Server Ports",
+	"i18n_name" : "top_server_ports",
+	"data_source" : "flows",
+	"visualization_type" : "table",
+	"select" : {
+		"sql" : "IP_DST_PORT, COUNT(*) count",
+		"items" : [
+			{
+				"name" : "IP_DST_PORT"
+			},
+			{
+				"name" : "count",
+				"value_type" : "count"
+			}
+		]
+	},
+	"filters" : {
+	    "items" : [
+	    {
+		"name": "IP_DST_PORT",
+		"op": "gte",
+		"value_type": "number",
+		"input": "fixed",
+	    },
+	    
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "IP_DST_PORT"
+			},
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}
