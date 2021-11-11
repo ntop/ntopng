@@ -468,16 +468,12 @@ function flow_alert_store:format_record(value, no_html)
       reference = reference_html
    }
 
-   -- Long, unshortened label
-   local cli_label_long = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), true --[[ Show VLAN --]], false)
-
    if no_html then
       flow_cli_ip["label"] = cli_label_long
    else
       -- Shortened label if necessary for UI purposes
-      local cli_label_short = shortenString(cli_label_long)
-      flow_cli_ip["label"] = cli_label_short
-      flow_cli_ip["label_long"] = cli_label_long
+       flow_cli_ip["label"] = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), true --[[ Show VLAN --]], true --[[ Shorten --]])
+      flow_cli_ip["label_long"] = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), true --[[ Show VLAN --]], false)
    end
 
    -- Format Server
@@ -496,16 +492,12 @@ function flow_alert_store:format_record(value, no_html)
       reference = reference_html
    }
 
-   -- Long, unshortened label
-   local srv_label_long = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), true --[[ Show VLAN --]], false)
-
    if no_html then
       flow_srv_ip["label"] = srv_label_long
    else
       -- Shortened label if necessary for UI purposes
-      local srv_label_short = shortenString(srv_label_long)
-      flow_srv_ip["label"] = srv_label_short
-      flow_srv_ip["label_long"] = srv_label_long
+      flow_srv_ip["label"] = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), true --[[ Show VLAN --]], true --[[ Shorten --]])
+      flow_srv_ip["label_long"] = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), true --[[ Show VLAN --]], false)
    end
 
    local flow_cli_port = value["cli_port"]
