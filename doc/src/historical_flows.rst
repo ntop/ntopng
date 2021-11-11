@@ -1,7 +1,7 @@
 .. _Historical Flows:
 
-Historical Flows
-================
+Historical Flow Report
+======================
 
 ntopng can dump flows data to a persistent storage and provides view to browse
 recorded flows data in the past.

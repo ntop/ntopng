@@ -117,3 +117,10 @@ current day view, which show the traffic entity during the different hours of th
 
   The report is based on the timeseries data. It is necessary to enable the traffic
   timeseries in order to display it.
+
+Historical Flow Report
+----------------------
+
+Reports can also be generated for historical flows when ntopng is started with option :code:`F` as described in the `Flows Dump documentation`_. Multiple downstream stores are supported. See :ref:`Historical Flows` for additional information.
+
+.. _`Flows Dump documentation` : ../advanced_features/flows_dump.html
