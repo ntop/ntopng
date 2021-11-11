@@ -894,7 +894,7 @@ void Flow::endProtocolDissection() {
     u_int8_t proto_guessed;
 
     updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow, 1, &proto_guessed));
-    ndpi_flow_risk_bitmap |= ndpiFlow->risk;
+    setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
     setProtocolDetectionCompleted();
   }
 
@@ -2301,6 +2301,12 @@ void Flow::lua_get_risk_info(lua_State* vm) {
 /* *************************************** */
 
 void Flow::setRisk(ndpi_risk risk_bitmap) {
+
+  /* Handle OR of risks with no risk */
+  NDPI_CLR_BIT(risk_bitmap, NDPI_NO_RISK);
+  if (risk_bitmap == 0)
+    NDPI_SET_BIT(risk_bitmap, NDPI_NO_RISK);
+
   ndpi_flow_risk_bitmap = risk_bitmap;
 
   has_malicious_cli_signature = NDPI_ISSET_BIT(ndpi_flow_risk_bitmap, NDPI_MALICIOUS_JA3);
