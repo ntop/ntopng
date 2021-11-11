@@ -15,13 +15,13 @@
 				"name" : "avg_client_nw_latency_ms",
 				"func" : "AVG",
 				"param" : "CLIENT_NW_LATENCY_MS",
-				"value_type" : "float"
+				"value_type" : "msec"
 			},
 			{
 				"name" : "avg_server_nw_latency_ms",
 				"func" : "AVG",
 				"param" : "SERVER_NW_LATENCY_MS",
-				"value_type" : "float"
+				"value_type" : "msec"
 			}
 		]
 	},

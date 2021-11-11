@@ -543,6 +543,17 @@ class NtopUtils {
 		return msg_array.join(", ")
 	}
 
+	static msecToTime(msec) {
+
+		if (msec < 1) {
+			return ("< 1 msec")
+		} else if (msec >= 1000) {
+			return secToTime(msec/1000);
+		} else {
+			return NtopUtils.ffloat(msec) + " msec"
+		}
+	}
+
 	static epoch2Seen(epoch) {
 		/* 08/01/13 15:12:37 [18 min, 13 sec ago] */
 		var d = new Date(epoch * 1000);

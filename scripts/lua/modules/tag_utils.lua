@@ -540,6 +540,20 @@ end
 
 -- #####################################
 
+local function build_datatable_js_column_msec(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+      {name: ']] .. name .. [[', data: ']] .. name .. [[', className: 'text-right', render: (]] .. name .. [[, type) => {
+        if (type !== 'display') return ]] .. name .. [[;
+        if (]] .. name .. [[ !== undefined)
+          return (]] .. name .. [[ > 0) ? NtopUtils.msecToTime(]] .. name .. [[) : "";
+      }}]] }
+end
+
+-- #####################################
+
 tag_utils.datatable_js_column_builder_by_type = {
    ['default'] = build_datatable_js_column_default,
    ['ip'] = build_datatable_js_column_ip,
@@ -550,6 +564,7 @@ tag_utils.datatable_js_column_builder_by_type = {
    ['packets'] = build_datatable_js_column_packets,
    ['bytes'] = build_datatable_js_column_bytes,
    ['float'] = build_datatable_js_column_float,
+   ['msec'] = build_datatable_js_column_msec,
 }
 
 -- #####################################
