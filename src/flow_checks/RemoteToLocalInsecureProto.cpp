@@ -81,14 +81,7 @@ FlowAlert *RemoteToLocalInsecureProto::buildAlert(Flow *f) {
   RemoteToLocalInsecureProtoAlert *alert = new RemoteToLocalInsecureProtoAlert(this, f);
 
   /* The remote client is considered the attacker. The victim is the local server */
-  switch(f->get_protocol_category()) {
-  case CUSTOM_CATEGORY_MALWARE:
-  case CUSTOM_CATEGORY_BANNED_SITE:
-    alert->setCliAttacker(), alert->setSrvVictim();
-    break;
-  default:
-    break;
-  }
+  alert->setCliAttacker(), alert->setSrvVictim();
 
   return alert;
 }
