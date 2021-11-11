@@ -234,6 +234,8 @@ function flow_alert_store:_add_additional_request_filters()
    local ip = _GET["ip"]
    local cli_ip = _GET["cli_ip"]
    local srv_ip = _GET["srv_ip"]
+   local cli_name = _GET["cli_name"]
+   local srv_name = _GET["srv_name"]
    local cli_port = _GET["cli_port"]
    local srv_port = _GET["srv_port"]
    local vlan_id = _GET["vlan_id"]
@@ -245,6 +247,8 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('ip', ip)
    self:add_filter_condition_list('cli_ip', cli_ip)
    self:add_filter_condition_list('srv_ip', srv_ip)
+   self:add_filter_condition_list('cli_name', cli_name)
+   self:add_filter_condition_list('srv_name', srv_name)
    self:add_filter_condition_list('cli_port', cli_port, 'number')
    self:add_filter_condition_list('srv_port', srv_port, 'number')
    self:add_filter_condition_list('flow_role', role)
@@ -273,6 +277,14 @@ function flow_alert_store:_get_additional_available_filters()
       srv_ip = {
          value_type = 'ip',
 	 i18n_label = i18n('tags.srv_ip'),
+      },
+      cli_name = {
+         value_type = 'hostname',
+	 i18n_label = i18n('tags.cli_name'),
+      },
+      srv_name = {
+         value_type = 'hostname',
+	 i18n_label = i18n('tags.srv_name'),
       },
       cli_port = {
          value_type = 'port',

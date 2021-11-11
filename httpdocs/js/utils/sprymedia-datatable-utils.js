@@ -678,7 +678,7 @@ class DataTableRenders {
 	if (obj.reference !== undefined)
 	   html_ref = obj.reference
 	let label = obj.label;
-        
+       
         label = DataTableRenders.filterize('ip', obj.value, label, label, obj.label_long);
 
         if (row.role && row.role.value == 'attacker')
@@ -700,11 +700,19 @@ class DataTableRenders {
 
     static formatFlowTuple(flow, type, row) {
         let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
-
-        let cliLabel = DataTableRenders.filterize('cli_ip', flow.cli_ip.value, flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label_long); 
+        
+        let cliLabel = "";
+        if (flow.cli_ip.label && flow.cli_ip.label != flow.cli_ip.value)
+          cliLabel = DataTableRenders.filterize('cli_name', flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label_long); 
+        else
+          cliLabel = DataTableRenders.filterize('cli_ip', flow.cli_ip.value, flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label_long); 
         let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('cli_port', flow.cli_port, flow.cli_port) : "");
 
-        let srvLabel = DataTableRenders.filterize('srv_ip', flow.srv_ip.value, flow.srv_ip.label, flow.srv_ip.label, flow.srv_ip.label_long);
+        let srvLabel = ""
+        if (flow.srv_ip.label && flow.srv_ip.label != flow.srv_ip.value)
+          srvLabel = DataTableRenders.filterize('srv_name', flow.srv_ip.label, flow.srv_ip.label, flow.srv_ip.label, flow.srv_ip.label_long);
+        else
+          srvLabel = DataTableRenders.filterize('srv_ip', flow.srv_ip.value, flow.srv_ip.label, flow.srv_ip.label, flow.srv_ip.label_long);
         let srvPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('srv_port', flow.srv_port, flow.srv_port) : "");
 
         let cliIcons = "";
