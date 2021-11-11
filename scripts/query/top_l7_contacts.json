@@ -6,13 +6,13 @@
 	"select" : {
 		"items" : [
 			{
+				"name" : "VLAN_ID"
+			},
+			{
 				"name" : "IPV4_SRC_ADDR"
 			},
 			{
 				"name" : "IPV4_DST_ADDR"
-			},
-			{
-				"name" : "VLAN_ID"
 			},
 			{
 				"name" : "L7_PROTO"
@@ -32,13 +32,13 @@
 	"groupby" : {
 		"items" : [
 			{
+				"name" : "VLAN_ID"
+			},
+			{
 				"name" : "IPV4_SRC_ADDR"
 			},
 			{
 				"name" : "IPV4_DST_ADDR"
-			},
-			{
-				"name" : "VLAN_ID"
 			},
 			{
 				"name" : "L7_PROTO"

@@ -7,10 +7,10 @@
 		"sql" : "IPV4_SRC_ADDR, VLAN_ID, SUM(TOTAL_BYTES) bytes",
 		"items" : [
 			{
-				"name" : "IPV4_SRC_ADDR"
+				"name" : "VLAN_ID"
 			},
 			{
-				"name" : "VLAN_ID"
+				"name" : "IPV4_SRC_ADDR"
 			},
 			{
 				"name" : "bytes",
@@ -25,10 +25,10 @@
 	"groupby" : {
 		"items" : [
 			{
-				"name" : "IPV4_SRC_ADDR"
+				"name" : "VLAN_ID"
 			},
 			{
-				"name" : "VLAN_ID"
+				"name" : "IPV4_SRC_ADDR"
 			}
 		]
 	},
