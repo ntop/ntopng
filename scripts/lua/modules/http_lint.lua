@@ -1375,6 +1375,7 @@ local known_parameters = {
    ["ip"]                      = validateEmptyOr(validateListOfTypeInline(validateFilters(validateServer))), -- An IPv4 or IPv6 address or an Hostname
    ["cli_ip"]                  = validateEmptyOr(validateListOfTypeInline(validateFilters(validateServer))), -- An IPv4 or IPv6 address or an Hostname
    ["srv_ip"]                  = validateEmptyOr(validateListOfTypeInline(validateFilters(validateServer))), -- An IPv4 or IPv6 address or an Hostname
+   ["name"]                    = validateEmptyOr(validateListOfTypeInline(validateFilters(validateServer))), -- An IPv4 or IPv6 address or an Hostname
    ["cli_name"]                = validateEmptyOr(validateListOfTypeInline(validateFilters(validateServer))), -- An IPv4 or IPv6 address or an Hostname
    ["srv_name"]                = validateEmptyOr(validateListOfTypeInline(validateFilters(validateServer))), -- An IPv4 or IPv6 address or an Hostname
    ["cli_port"]                = validateListOfTypeInline(validateFilters(validatePort)),          --Client port

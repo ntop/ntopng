@@ -128,12 +128,14 @@ function host_alert_store:_add_additional_request_filters()
    local vlan_id = _GET["vlan_id"]
    local ip_version = _GET["ip_version"]
    local ip = _GET["ip"]
+   local name = _GET["name"]
    local role = _GET["role"]
    local role_cli_srv = _GET["role_cli_srv"]
 
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
    self:add_filter_condition_list('ip_version', ip_version)
    self:add_filter_condition_list('ip', ip)
+   self:add_filter_condition_list('name', name)
    self:add_filter_condition_list('host_role', role)
    self:add_filter_condition_list('role_cli_srv', role_cli_srv)
 end
@@ -150,6 +152,10 @@ function host_alert_store:_get_additional_available_filters()
       ip = {
          value_type = 'ip',
 	 i18n_label = i18n('tags.ip'),
+      },
+      name = {
+         value_type = 'hostname',
+	 i18n_label = i18n('tags.name'),
       },
       role = {
 	 value_type = 'role',

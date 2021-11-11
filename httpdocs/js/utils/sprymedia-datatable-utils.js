@@ -677,9 +677,12 @@ class DataTableRenders {
     	let html_ref = '';
 	if (obj.reference !== undefined)
 	   html_ref = obj.reference
-	let label = obj.label;
-       
-        label = DataTableRenders.filterize('ip', obj.value, label, label, obj.label_long);
+	let label = "";
+      
+        if (obj.label && obj.label != obj.value)
+          label = DataTableRenders.filterize('name', obj.label_long, obj.label, obj.label, obj.label_long);
+        else
+          label = DataTableRenders.filterize('ip', obj.value, obj.label, obj.label, obj.label_long);
 
         if (row.role && row.role.value == 'attacker')
           label = label + ' ' + DataTableRenders.filterize('role', row.role.value, 
@@ -703,14 +706,14 @@ class DataTableRenders {
         
         let cliLabel = "";
         if (flow.cli_ip.label && flow.cli_ip.label != flow.cli_ip.value)
-          cliLabel = DataTableRenders.filterize('cli_name', flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label_long); 
+          cliLabel = DataTableRenders.filterize('cli_name', flow.cli_ip.label_long, flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label_long); 
         else
           cliLabel = DataTableRenders.filterize('cli_ip', flow.cli_ip.value, flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label_long); 
         let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('cli_port', flow.cli_port, flow.cli_port) : "");
 
         let srvLabel = ""
         if (flow.srv_ip.label && flow.srv_ip.label != flow.srv_ip.value)
-          srvLabel = DataTableRenders.filterize('srv_name', flow.srv_ip.label, flow.srv_ip.label, flow.srv_ip.label, flow.srv_ip.label_long);
+          srvLabel = DataTableRenders.filterize('srv_name', flow.srv_ip.label_long, flow.srv_ip.label, flow.srv_ip.label, flow.srv_ip.label_long);
         else
           srvLabel = DataTableRenders.filterize('srv_ip', flow.srv_ip.value, flow.srv_ip.label, flow.srv_ip.label, flow.srv_ip.label_long);
         let srvPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('srv_port', flow.srv_port, flow.srv_port) : "");
