@@ -29,7 +29,7 @@ class AlertStore {
   AlertStore() { ; };
   virtual ~AlertStore() { ; };
   
-  virtual bool query(lua_State *vm, const char * const query) { return false; };;
+  virtual bool query(lua_State *vm, const char * const query) { return false; };
 };
 
 #endif /* _ALERT_STORE_H_ */

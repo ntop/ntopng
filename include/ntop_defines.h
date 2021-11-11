@@ -1199,4 +1199,12 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define PROFILING_SUB_SECTION_EXIT(f, i)
 #endif
 
+#define CLICKHOUSE_DUMP_PERF_MAX_RECORDS 1000
+#define CLICKHOUSE_DUMP_PERF_NUM_LOOPS   500000
+#define CLICKHOUSE_DUMP_FREQUENCY        60
+#define CLICKHOUSE_MAX_NUM_DUMPED_LINES  50000
+#define CLICKHOUSE_TMP_DIR               "/var/tmp"
+#define CLICKHOUSE_TMP_TRAILER           ".tmp"
+#define CLICKHOUSE_PREFIX                "clickhouse"
+
 #endif /* _NTOP_DEFINES_H_ */
