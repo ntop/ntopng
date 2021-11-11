@@ -47,6 +47,7 @@
 #include "host_checks/DomainNamesContacts.h"
 #include "host_checks/ScoreThreshold.h"
 
+#include "host_checks/PktThreshold.h"
 
 #ifdef NTOPNG_PRO
 #include "host_checks/ScoreAnomaly.h"

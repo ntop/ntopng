@@ -465,7 +465,6 @@ typedef enum {
   flow_alert_ndpi_http_suspicious_content     = 63,
   flow_alert_ndpi_dns_large_packet            = 64,
   flow_alert_ndpi_dns_fragmented              = 65,
-  flow_alert_ndpi_invalid_characters          = 66,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 
@@ -506,6 +505,7 @@ typedef enum {
   host_alert_countries_contacts          = 16,
   host_alert_score_threshold             = 17,
   host_alert_icmp_flood                  = 18,
+  host_alert_pkt_threshold		 = 19,
 
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */ 
   MAX_HOST_ALERT_TYPE = 32 /* Constrained by HostAlertBitmap */
@@ -541,6 +541,7 @@ typedef enum {
   host_check_domain_names_contacts,
   host_check_score_threshold,
   host_check_icmp_flood,
+  host_check_pkt_threshold,
 
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */ 
 } HostCheckID;
