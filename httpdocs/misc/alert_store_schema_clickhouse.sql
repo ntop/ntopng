@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime NULL 
-) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
+) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `flow_alerts` (
 `flow_risk_bitmap` UInt64 NOT NULL,
 `user_label` String,
 `user_label_tstamp` DateTime 
-) ENGINE = MergeTree PARTITION BY toYYYYMM(first_seen) ORDER BY (first_seen);
+) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(first_seen) ORDER BY (first_seen);
 
 @
 
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime 
-) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
+) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime 
-) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
+) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
@@ -136,7 +136,7 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime 
-) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
+) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime 
-) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
+) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime 
-) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
+) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime 
-) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
+) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
@@ -221,7 +221,7 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime 
-) ENGINE = MergeTree PARTITION BY toYYYYMM(tstamp) ORDER BY (tstamp);
+) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 
 @
 
