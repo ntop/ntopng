@@ -4401,6 +4401,37 @@ static int ntop_interface_is_syslog_interface(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_clickhouse_exec_csv_query(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  const char* sql;
+  struct mg_connection *conn = getLuaVMUserdata(vm, conn);
+  bool use_json = false;
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+
+  sql = lua_tostring(vm, 1);
+
+  if(!ntop_interface)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  if(lua_type(vm, 2) == LUA_TBOOLEAN) /* optional */
+    use_json = lua_toboolean(vm, 2) ? true : false;
+
+#ifdef HAVE_CLICKHOUSE
+  ntop_interface->exec_csv_query(sql, use_json, conn);
+#endif
+
+  lua_pushnil(vm); /* Data is pushed via the HTTP server */
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+
+}
+
+/* ****************************************** */
+
 static luaL_Reg _ntop_interface_reg[] = {
   { "setActiveInterfaceId",     ntop_set_active_interface_id },
   { "getIfNames",               ntop_get_interface_names },
@@ -4659,6 +4690,9 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "isSyslogInterface",      ntop_interface_is_syslog_interface      },
   { "incSyslogStats",         ntop_interface_inc_syslog_stats         },
 
+  /* ClickHouse */
+  { "clickhouseExecCSVQuery", ntop_clickhouse_exec_csv_query          },
+  
   { NULL,                     NULL }
 };
 

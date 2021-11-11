@@ -804,6 +804,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #endif
     return(-1);
   };
+  int exec_csv_query(const char *sql, bool dump_in_json_format, struct mg_connection *conn);
+
   NetworkStats* getNetworkStats(u_int8_t networkId) const;
   void allocateStructures();
   void getsDPIStats(lua_State *vm);

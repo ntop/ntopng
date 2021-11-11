@@ -4868,7 +4868,7 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
     ndpi_protocol_category_t c;
 
     /* Match for custom protocols (protos.txt) */
-    if((rc = ndpi_match_string_subprotocol(ndpi_struct, (char*)dst_name, strlen(dst_name), &tmp, 1 /* host match */)) != 0) {
+    if((rc = ndpi_match_string_subprotocol(ndpi_struct, (char*)dst_name, strlen(dst_name), &tmp)) != 0) {
       if(rc >= NDPI_MAX_SUPPORTED_PROTOCOLS) {
 	/* If the protocol is greater than NDPI_MAX_SUPPORTED_PROTOCOLS, it means it is
            a custom protocol so the application protocol received from nprobe can be

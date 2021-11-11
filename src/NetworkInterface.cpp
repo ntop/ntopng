@@ -9313,3 +9313,13 @@ void NetworkInterface::addRedisSitesKey() {
   top_os->serializeDeserialize(id, true, (char *) "", (char *) HASHKEY_TOP_OS_SERIALIZATION_KEY,
     (char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, (char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED);
 }
+
+/* *************************************** */
+
+int NetworkInterface::exec_csv_query(const char *sql, bool dump_in_json_format, struct mg_connection *conn) {
+#if defined(NTOPNG_PRO) && defined(HAVE_MYSQL) && defined(HAVE_CLICKHOUSE)
+  ((ClickHouseFlowDB*)db)->execCSVQuery(sql, dump_in_json_format, conn);
+  return(0);
+#endif
+  return(-1);
+};
