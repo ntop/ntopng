@@ -241,7 +241,9 @@ tag_utils.db_columns_to_tags = {
    ["OBSERVATION_POINT_ID"] = "observation_point_id", 
    ["PROBE_IP"] = "probe_ip",     
    ["SRC2DST_TCP_FLAGS"] = "src2dst_tcp_flags", 
-   ["DST2SRC_TCP_FLAGS"] = "dst2src_tcp_flags", 
+   ["DST2SRC_TCP_FLAGS"] = "dst2src_tcp_flags",
+   ["CLIENT_NW_LATENCY_MS"] = "cli_nw_latency", 
+   ["SERVER_NW_LATENCY_MS"] = "srv_nw_latency", 
    ["SCORE"] = "score", 
    ["VLAN_ID"] = "vlan_id", 
 
@@ -684,9 +686,11 @@ tag_utils.datatable_js_columns_by_tag = {
    ['dst2src_tcp_flags'] = build_datatable_js_column_tcp_flags('dst2src_tcp_flags', 'dst2src_tcp_flags', i18n("db_search.dst2src_tcp_flags"), 20),
    ['src2dst_dscp'] = build_datatable_js_column_dscp('src2dst_dscp', 'src2dst_dscp', i18n("db_search.src2dst_dscp"), 21),
    ['dst2src_dscp'] = build_datatable_js_column_dscp('dst2src_dscp', 'dst2src_dscp', i18n("db_search.dst2src_dscp"), 22),
+   ['cli_nw_latency'] = build_datatable_js_column_msec('cli_nw_latency', 'cli_nw_latency', i18n("db_search.cli_nw_latency"), 23),
+   ['srv_nw_latency'] = build_datatable_js_column_msec('srv_nw_latency', 'srv_nw_latency', i18n("db_search.srv_nw_latency"), 24),
    ['info'] = {
       i18n = i18n("db_search.info"),
-      order = 23,
+      order = 25,
       js = [[
         {name: 'info', data: 'info', orderable: false, width: '20%', render: (info, type) => {
             if (type !== 'display') return info;
@@ -695,7 +699,7 @@ tag_utils.datatable_js_columns_by_tag = {
         }}]] },
    ['observation_point_id'] = {
       i18n = i18n("db_search.observation_point_id"),
-      order = 24,
+      order = 26,
       js = [[
         {name: 'observation_point_id', data: 'observation_point_id', visible: ]] ..ternary(not interface.isPacketInterface(), "true", "false").. [[, width: '5%', className: 'no-wrap', render: (observation_point_id, type) => {
             if (type !== 'display') return observation_point_id;
@@ -704,7 +708,7 @@ tag_utils.datatable_js_columns_by_tag = {
         }}]] },
    ['probe_ip'] = {
       i18n = i18n("db_search.probe_ip"),
-      order = 25,
+      order = 27,
       js = [[
         {name: 'probe_ip', data: 'probe_ip', visible: ]] ..ternary(not interface.isPacketInterface(), "true", "false").. [[, width: '5%', className: 'no-wrap', render: (probe_ip, type) => {
             if (type !== 'display') return probe_ip;
