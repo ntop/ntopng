@@ -16,21 +16,21 @@
 		]
 	},
 	"filters" : {
-	    "items" : [
-	    {
-		"name": "IP_DST_PORT",
-		"op": "gte",
-		"value_type": "number",
-		"input": "fixed",
-	    },
-	    
+		"items" : [
+			{
+				"name": "IP_DST_PORT",
+				"op": "gt",
+				"value": 0,
+				"value_type": "number",
+				"input": "fixed"
+			}
 		]
 	},
 	"groupby" : {
 		"items" : [
 			{
 				"name" : "IP_DST_PORT"
-			},
+			}
 		]
 	},
 	"sortby" : {
