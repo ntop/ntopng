@@ -242,8 +242,8 @@ tag_utils.db_columns_to_tags = {
    ["PROBE_IP"] = "probe_ip",     
    ["SRC2DST_TCP_FLAGS"] = "src2dst_tcp_flags", 
    ["DST2SRC_TCP_FLAGS"] = "dst2src_tcp_flags",
-   ["CLIENT_NW_LATENCY_MS"] = "cli_nw_latency", 
-   ["SERVER_NW_LATENCY_MS"] = "srv_nw_latency", 
+   ["CLIENT_NW_LATENCY_US"] = "cli_nw_latency", 
+   ["SERVER_NW_LATENCY_US"] = "srv_nw_latency", 
    ["SCORE"] = "score", 
    ["VLAN_ID"] = "vlan_id", 
 

@@ -12,15 +12,15 @@
 				"name" : "DST_ASN"
 			},
 			{
-				"name" : "avg_client_nw_latency_ms",
+				"name" : "avg_client_nw_latency",
 				"func" : "AVG",
-				"param" : "CLIENT_NW_LATENCY_MS",
+				"param" : "CLIENT_NW_LATENCY_US / 1000",
 				"value_type" : "msec"
 			},
 			{
-				"name" : "avg_server_nw_latency_ms",
+				"name" : "avg_server_nw_latency",
 				"func" : "AVG",
-				"param" : "SERVER_NW_LATENCY_MS",
+				"param" : "SERVER_NW_LATENCY_US / 1000",
 				"value_type" : "msec"
 			}
 		]

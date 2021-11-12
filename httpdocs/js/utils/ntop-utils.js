@@ -544,13 +544,10 @@ class NtopUtils {
 	}
 
 	static msecToTime(msec) {
-
-		if (msec < 1) {
-			return ("< 1 msec")
-		} else if (msec >= 1000) {
+		if (msec >= 1000) {
 			return NtopUtils.secondsToTime(msec/1000);
 		} else {
-			return NtopUtils.ffloat(msec) + " msec"
+			return NtopUtils.ffloat(msec) + " ms"
 		}
 	}
 
