@@ -71,6 +71,8 @@ function stats_utils.get_severity_by_export_drops(export_drops, total_exports)
       return "DANGER"
       end
    end
+
+   return "INFO"
 end
 
 -- ###############################################
