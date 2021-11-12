@@ -1038,6 +1038,14 @@ class NtopUtils {
 
 	}
 
+	static copyToClipboard(text, success, failure) {
+		navigator.clipboard.writeText(text).then(function() {
+			alert(success);
+		}, function(err) {
+			alert(failure + ': ' + err);
+		});
+	}
+
 }
 
 $(function () {

@@ -1364,6 +1364,7 @@ local lang = {
     ["packets"] = "Pkts",
     ["probe_ip"] = "Flow Exporter",
     ["query"] = "Query",
+    ["query_copied"] = "Query SQL copied to clipboard!",
     ["query_performed"] = "Query performed in",
     ["run_query"] = "Run query",
     ["select_note"] = "Use * for all fields or a comma-separated list of fields (<field1>,<field2>,...)",
@@ -5679,6 +5680,7 @@ local lang = {
   ["tree_map"] = {
     ["hosts_treemap"] = "Hosts Tree Map",
   },
+  ["unable_to_copy_to_clickboard"] = "Unable to copy to clipboard",
   ["unknown_devices"] = {
     ["active_only"] = "Active Only",
     ["all_devices"] = "All Devices",
