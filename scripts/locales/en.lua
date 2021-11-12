@@ -1363,6 +1363,7 @@ local lang = {
     ["observation_point_id"] = "Obs. Point ID",
     ["packets"] = "Pkts",
     ["probe_ip"] = "Flow Exporter",
+    ["query"] = "Query",
     ["query_performed"] = "Query performed in",
     ["run_query"] = "Run query",
     ["select_note"] = "Use * for all fields or a comma-separated list of fields (<field1>,<field2>,...)",
