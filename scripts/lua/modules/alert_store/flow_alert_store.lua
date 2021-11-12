@@ -481,7 +481,7 @@ function flow_alert_store:format_record(value, no_html)
    }
 
    if no_html then
-      flow_cli_ip["label"] = cli_label_long
+      flow_cli_ip["label"] = cli_name_long
    else
       -- Shortened label if necessary for UI purposes
        flow_cli_ip["label"] = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), true --[[ Show VLAN --]], true --[[ Shorten --]])
@@ -505,7 +505,7 @@ function flow_alert_store:format_record(value, no_html)
    }
 
    if no_html then
-      flow_srv_ip["label"] = srv_label_long
+      flow_srv_ip["label"] = srv_name_long
    else
       -- Shortened label if necessary for UI purposes
       flow_srv_ip["label"] = hostinfo2label(self:_alert2hostinfo(value, false --[[ As server --]]), true --[[ Show VLAN --]], true --[[ Shorten --]])

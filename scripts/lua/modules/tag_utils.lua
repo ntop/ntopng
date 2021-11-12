@@ -74,6 +74,16 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.srv_ip'),
       operators = {'eq', 'neq'}
    },
+   cli_name = {
+      value_type = 'hostname',
+      i18n_label = i18n('db_search.tags.cli_name'),
+      operators = {'eq', 'neq'}
+   },
+   srv_name = {
+      value_type = 'hostname',
+      i18n_label = i18n('db_search.tags.srv_name'),
+      operators = {'eq', 'neq'}
+   },
    src2dst_dscp = {
       value_type = 'dscp_type',
       i18n_label = i18n('db_search.tags.src2dst_dscp'),
@@ -205,8 +215,8 @@ tag_utils.nindex_tags_to_where_v4 = {
    ["src2dst_dscp"] = "SRC2DST_DSCP",
    ["dst2src_dscp"] = "DST2SRC_DSCP",
    ["info"]         = "INFO",
-   ["srv_label"]    = "DST_LABEL",
-   ["cli_label"]    = "SRC_LABEL",
+   ["srv_name"]     = "DST_LABEL",
+   ["cli_name"]     = "SRC_LABEL",
    ["cli_asn"]      = "SRC_ASN",
    ["cli_asname"]   = "SRC_ASNAME",
    ["srv_asn"]      = "DST_ASN",
@@ -242,8 +252,8 @@ tag_utils.db_columns_to_tags = {
    ["SRC2DST_DSCP"] = "src2dst_dscp", 
    ["DST2SRC_DSCP"] = "dst2src_dscp", 
    ["INFO"] = "info",         
-   ["DST_LABEL"] = "srv_label",    
-   ["SRC_LABEL"] = "cli_label",    
+   ["DST_LABEL"] = "srv_name",    
+   ["SRC_LABEL"] = "cli_name",    
    ["SRC_ASN"] = "cli_asn",      
    ["SRC_ASNAME"] = "cli_asname",   
    ["DST_ASN"] = "srv_asn",      
@@ -335,8 +345,8 @@ tag_utils.extra_db_columns = {
    ["throughput"] = "(LAST_SEEN - FIRST_SEEN) as TIME_DELTA, (TOTAL_BYTES / (TIME_DELTA + 1)) * 8 as THROUGHPUT",
    ["ip_version"] = "IP_PROTOCOL_VERSION",
    ["vlan_id"]    = "VLAN_ID",
-   ["src_label"]  = "SRC_LABEL",
-   ["dst_label"]  = "DST_LABEL",
+   ["cli_name"]  = "SRC_LABEL",
+   ["srv_name"]  = "DST_LABEL",
 }
 
 tag_utils.ordering_special_columns = {
@@ -351,8 +361,8 @@ tag_utils.extra_where_tags = {
    ["srv_ip"]   = {[4] = "IPV4_DST_ADDR", [6] = "IPV6_DST_ADDR"},
    ["cli_ip"]   = {[4] = "IPV4_SRC_ADDR", [6] = "IPV6_SRC_ADDR"},
    ["l7proto"] = { "L7_PROTO_MASTER", "L7_PROTO" },
-   ["src_label"]  = "SRC_LABEL",
-   ["dst_label"]  = "DST_LABEL",
+   ["cli_name"]  = "SRC_LABEL",
+   ["srv_name"]  = "DST_LABEL",
 }
 
 -- #####################################
