@@ -50,6 +50,7 @@ Flow::Flow(NetworkInterface *_iface,
   predominant_alert.id = flow_alert_normal, predominant_alert.category = alert_category_other;
   predominant_alert_score = 0;
   ndpi_flow_risk_bitmap = 0;
+  NDPI_SET_BIT(ndpi_flow_risk_bitmap, NDPI_NO_RISK);
   detection_completed = false;
   extra_dissection_completed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
