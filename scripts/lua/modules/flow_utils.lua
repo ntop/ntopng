@@ -659,7 +659,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
   if(cli_as ~= nil) then
      label = label.." [ "..cli_as.." ]"
    else
-      if show_macs and cli_mac ~= "" then
+      if show_macs and not isEmptyString(cli_mac) then
         label = label.." [ "..cli_mac.." ]"
      end
    end
@@ -685,7 +685,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
   if(dst_as ~= nil) then
      label = label.." [ "..dst_as.." ]"
   else
-     if show_macs and srv_mac ~= "" then
+     if show_macs and not isEmptyString(srv_mac) then
       label = label.." [ "..srv_mac.." ]"
     end
   end

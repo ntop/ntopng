@@ -1577,7 +1577,7 @@ else
 	 else
 	    local nprobe_description =interface.getZMQFlowFieldDescr(key)
 
-	    if nprobe_description ~= key then
+	    if not isEmptyString(nprobe_description) and nprobe_description ~= key then
 	       syminfo[nprobe_description] = value
 	    else
 	       syminfo[key] = value
