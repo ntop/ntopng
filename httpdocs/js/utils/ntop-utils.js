@@ -548,7 +548,8 @@ class NtopUtils {
 		if (msec >= 1000) {
 			return NtopUtils.secondsToTime(msec/1000);
 		} else {
-			return NtopUtils.ffloat(msec) + " ms"
+		        var x = Math.round(msec * 1000) / 1000.;
+		        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ms";
 		}
 	}
 
