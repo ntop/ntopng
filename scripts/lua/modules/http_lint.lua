@@ -126,6 +126,20 @@ local function validateNumber(p)
 end
 http_lint.validateNumber = validateNumber
 
+
+-- ##############################################
+
+local function validateFloat(p)
+   -- integer number validation
+   local num = tonumber(p)
+
+   if(num == nil) then
+      return false
+   end
+
+   return true
+end
+
 -- ##############################################
 
 local function validateSyslogFormat(p)
@@ -1389,8 +1403,8 @@ local known_parameters = {
    ["tot_bytes"]               = validateFilters(validateNumber),                --Total bytes, used by nindex query
    ["src2dst_dscp"]            = validateEmptyOr(validateFilters(validateUnquoted)),                               --Client DSCP, used by nindex query
    ["dst2src_dscp"]            = validateEmptyOr(validateFilters(validateUnquoted)),                               --Client DSCP, used by nindex query
-   ["cli_nw_latency"]          = validateEmptyOr(validateFilters(validateNumber)),  --Client network latency
-   ["srv_nw_latency"]          = validateEmptyOr(validateFilters(validateNumber)),  --Server network latency
+   ["cli_nw_latency"]          = validateEmptyOr(validateFilters(validateFloat)),  --Client network latency
+   ["srv_nw_latency"]          = validateEmptyOr(validateFilters(validateFloat)),  --Server network latency
    ["flow_status_num"]         = validateEmptyOr(validateFilters(validateUnquoted)),                               --Flow Status, used by nindex query
    ["vhost"]                   = validateHTTPHost,              -- HTTP server name or IP address
    ["version"]                 = validateIpVersion,             -- To specify an IPv4 or IPv6

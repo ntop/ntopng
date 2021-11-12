@@ -104,6 +104,16 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.srv_asn'),
       operators = {'eq', 'neq'}
    },
+   cli_nw_latency = {
+      value_type = 'nw_latency_type',
+      i18n_label = i18n('db_search.tags.cli_nw_latency'),
+      operators = {'eq', 'lt', 'gt', 'lte', 'gte'}
+   },
+   srv_nw_latency = {
+      value_type = 'nw_latency_type',
+      i18n_label = i18n('db_search.tags.srv_nw_latency'),
+      operators = {'eq', 'lt', 'gt', 'lte', 'gte'}
+   },
    observation_point_id = {
       value_type = 'id',
       i18n_label = i18n('db_search.tags.observation_point_id'),
@@ -461,6 +471,21 @@ end
 
 -- #####################################
 
+local function build_datatable_js_column_nw_latency(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+          if (type !== 'display') return ]] .. name .. [[;
+          if (]] .. name .. [[ !== undefined)
+             return `<a class='tag-filter' data-tag-value='${]] .. name .. [[}' href='#'>${NtopUtils.msecToTime(]] .. name .. [[)}</a>`;
+      }}]] 
+   }
+end
+
+-- #####################################
+
 local function build_datatable_js_column_asn(name, data_name, label, order)
    return {
       i18n = label,
@@ -686,8 +711,8 @@ tag_utils.datatable_js_columns_by_tag = {
    ['dst2src_tcp_flags'] = build_datatable_js_column_tcp_flags('dst2src_tcp_flags', 'dst2src_tcp_flags', i18n("db_search.dst2src_tcp_flags"), 20),
    ['src2dst_dscp'] = build_datatable_js_column_dscp('src2dst_dscp', 'src2dst_dscp', i18n("db_search.src2dst_dscp"), 21),
    ['dst2src_dscp'] = build_datatable_js_column_dscp('dst2src_dscp', 'dst2src_dscp', i18n("db_search.dst2src_dscp"), 22),
-   ['cli_nw_latency'] = build_datatable_js_column_msec('cli_nw_latency', 'cli_nw_latency', i18n("db_search.cli_nw_latency"), 23),
-   ['srv_nw_latency'] = build_datatable_js_column_msec('srv_nw_latency', 'srv_nw_latency', i18n("db_search.srv_nw_latency"), 24),
+   ['cli_nw_latency'] = build_datatable_js_column_nw_latency('cli_nw_latency', 'cli_nw_latency', i18n("db_search.cli_nw_latency"), 23),
+   ['srv_nw_latency'] = build_datatable_js_column_nw_latency('srv_nw_latency', 'srv_nw_latency', i18n("db_search.srv_nw_latency"), 24),
    ['info'] = {
       i18n = i18n("db_search.info"),
       order = 25,
