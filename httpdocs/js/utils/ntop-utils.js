@@ -548,7 +548,7 @@ class NtopUtils {
 		if (msec < 1) {
 			return ("< 1 msec")
 		} else if (msec >= 1000) {
-			return secToTime(msec/1000);
+			return NtopUtils.secondsToTime(msec/1000);
 		} else {
 			return NtopUtils.ffloat(msec) + " msec"
 		}
