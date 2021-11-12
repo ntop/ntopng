@@ -4,7 +4,7 @@
 	"data_source" : "flows",
 	"visualization_type" : "table",
 	"select" : {
-		"sql" : "IPV4_SRC_ADDR, IPV4_DST_ADDR, L7_PROTO, VLAN_ID, SUM(TOTAL_BYTES) bytes",
+		"sql" : "IPV4_SRC_ADDR, IPV4_DST_ADDR, L7_PROTO, L7_PROTO_MASTER, VLAN_ID, SUM(TOTAL_BYTES) bytes",
 		"items" : [
 			{
 				"name" : "VLAN_ID"
@@ -17,6 +17,9 @@
 			},
 			{
 				"name" : "L7_PROTO"
+			},
+			{
+				"name" : "L7_PROTO_MASTER"
 			},
 			{
 				"name" : "bytes",
@@ -35,6 +38,9 @@
 			},
 			{
 				"name" : "L7_PROTO"
+			},
+			{
+				"name" : "L7_PROTO_MASTER"
 			},
 			{
 				"name" : "IPV4_SRC_ADDR"
