@@ -13,6 +13,9 @@
 				"name" : "IPV4_DST_ADDR"
 			},
 			{
+				"name" : "DST_LABEL"
+			},
+			{
 				"name" : "bytes",
 				"value_type" : "bytes"
 			}
@@ -29,6 +32,9 @@
 			},
 			{
 				"name" : "IPV4_DST_ADDR"
+			},
+			{
+				"name" : "DST_LABEL"
 			}
 		]
 	},

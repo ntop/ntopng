@@ -15,6 +15,12 @@
 				"name" : "IPV4_DST_ADDR"
 			},
 			{
+				"name" : "SRC_LABEL"
+			},
+			{
+				"name" : "DST_LABEL"
+			},
+			{
 				"name" : "L7_PROTO"
 			},
 			{
@@ -42,6 +48,12 @@
 			},
 			{
 				"name" : "IPV4_DST_ADDR"
+			},
+			{
+				"name" : "SRC_LABEL"
+			},
+			{
+				"name" : "DST_LABEL"
 			},
 			{
 				"name" : "L7_PROTO"
