@@ -638,15 +638,7 @@ tag_utils.datatable_js_columns_by_tag = {
       {name: 'l7proto', data: 'l7proto', width: '5%', className: 'no-wrap', render: (proto, type, row) => {
         if (type !== 'display') return proto;
         if (proto !== undefined) {
-           let label = '';
-           if (row.l7proto_master !== undefined 
-               && row.l7proto_master.value !== undefined
-               && row.l7proto_master.value !== 0
-               && row.l7proto_master.value != proto.value) {
-             label += row.l7proto_master.label + ".";
-           }
-           label += proto.label;
-           return `<a class='tag-filter' data-tag-value='${proto}' title='${proto.title}' href='#'>${label}</a>`;
+           return `<a class='tag-filter' data-tag-value='${proto}' title='${proto.title}' href='#'>${proto.label}</a>`;
         }
       }}]] },
    ['score'] = {

@@ -855,7 +855,20 @@ local function validateProtocolIdOrName(p)
 	  validateChoiceByKeys(ndpi_protos, tmp))
       or (p == 'none')
 end
+
 http_lint.validateProtocolIdOrName = validateProtocolIdOrName
+
+local function validateDoubleProtocolIdOrName(p)
+   local param = split(p, "|")
+   if param and #param == 2 then
+    return (validateProtocolIdOrName(param[1]) and
+          (validateProtocolIdOrName(param[2])))
+      end
+
+   return (validateProtocolIdOrName(p))
+end
+http_lint.validateProtocolIdOrName = validateProtocolIdOrName
+
 
 function http_lint.validateTrafficProfile(p)
    return validateUnquoted(p)
@@ -1435,7 +1448,7 @@ local known_parameters = {
    ["l4_proto_id"]             = validateProtocolIdOrName,      -- get_historical_data.lua
    ["l7_proto_id"]             = validateProtocolIdOrName,      -- get_historical_data.lua
    ["l4proto"]                 = validateListOfTypeInline(validateFilters(validateProtocolIdOrName)),      -- An nDPI application protocol ID, layer 4
-   ["l7proto"]                 = validateListOfTypeInline(validateFilters(validateProtocolIdOrName)), -- An nDPI application protocol ID, layer 7
+   ["l7proto"]                 = validateListOfTypeInline(validateFilters(validateDoubleProtocolIdOrName)), -- An nDPI application protocol ID, layer 7
    ["l7_proto"]                = validateListOfTypeInline(validateFilters(validateProtocolIdOrName)), -- An nDPI application protocol ID, layer 7
    ["filtered_query"]          = validateBool,            -- Parameter used to download nindex flows
    ["l7cat"]                   = validateListOfTypeInline(validateFilters(validateCategory)), -- An nDPI category, layer 7
