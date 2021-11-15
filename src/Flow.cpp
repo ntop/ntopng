@@ -516,12 +516,12 @@ void Flow::processDetectedProtocolData() {
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_TLS:
   case NDPI_PROTOCOL_QUIC:
-    if(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name[0] != '\0') {
+    if(ndpiFlow->protos.tls_quic.client_requested_server_name[0] != '\0') {
       if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_DOH_DOT
 	 && cli_h && cli_h->isLocalHost())
-	cli_h->incrVisitedWebSite(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
+	cli_h->incrVisitedWebSite(ndpiFlow->protos.tls_quic.client_requested_server_name);
 
-      if(cli_h) cli_h->incContactedService(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
+      if(cli_h) cli_h->incContactedService(ndpiFlow->protos.tls_quic.client_requested_server_name);
     }
     break;
 
@@ -594,43 +594,43 @@ void Flow::processExtraDissectedInformation() {
     case NDPI_PROTOCOL_MAIL_SMTPS:
     case NDPI_PROTOCOL_MAIL_POPS:
     case NDPI_PROTOCOL_QUIC:
-      protos.tls.tls_version = ndpiFlow->protos.tls_quic_stun.tls_quic.ssl_version;
+      protos.tls.tls_version = ndpiFlow->protos.tls_quic.ssl_version;
 
-      protos.tls.notBefore = ndpiFlow->protos.tls_quic_stun.tls_quic.notBefore,
-	protos.tls.notAfter = ndpiFlow->protos.tls_quic_stun.tls_quic.notAfter;
+      protos.tls.notBefore = ndpiFlow->protos.tls_quic.notBefore,
+	protos.tls.notAfter = ndpiFlow->protos.tls_quic.notAfter;
 
       if((protos.tls.client_requested_server_name == NULL)
-	 && (ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name[0] != '\0')) {
-	protos.tls.client_requested_server_name = strdup(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
+	 && (ndpiFlow->protos.tls_quic.client_requested_server_name[0] != '\0')) {
+	protos.tls.client_requested_server_name = strdup(ndpiFlow->protos.tls_quic.client_requested_server_name);
       }
 
       if((protos.tls.server_names == NULL)
-	 && (ndpiFlow->protos.tls_quic_stun.tls_quic.server_names != NULL))
-	protos.tls.server_names = strdup(ndpiFlow->protos.tls_quic_stun.tls_quic.server_names);
+	 && (ndpiFlow->protos.tls_quic.server_names != NULL))
+	protos.tls.server_names = strdup(ndpiFlow->protos.tls_quic.server_names);
 
       if((protos.tls.client_alpn == NULL)
-	 && (ndpiFlow->protos.tls_quic_stun.tls_quic.alpn != NULL))
-	protos.tls.client_alpn = strdup(ndpiFlow->protos.tls_quic_stun.tls_quic.alpn);
+	 && (ndpiFlow->protos.tls_quic.alpn != NULL))
+	protos.tls.client_alpn = strdup(ndpiFlow->protos.tls_quic.alpn);
 
       if((protos.tls.client_tls_supported_versions == NULL)
-	 && (ndpiFlow->protos.tls_quic_stun.tls_quic.tls_supported_versions != NULL))
-	protos.tls.client_tls_supported_versions = strdup(ndpiFlow->protos.tls_quic_stun.tls_quic.tls_supported_versions);
+	 && (ndpiFlow->protos.tls_quic.tls_supported_versions != NULL))
+	protos.tls.client_tls_supported_versions = strdup(ndpiFlow->protos.tls_quic.tls_supported_versions);
 
-      if((protos.tls.issuerDN == NULL) && (ndpiFlow->protos.tls_quic_stun.tls_quic.issuerDN != NULL))
-	protos.tls.issuerDN= strdup(ndpiFlow->protos.tls_quic_stun.tls_quic.issuerDN);
+      if((protos.tls.issuerDN == NULL) && (ndpiFlow->protos.tls_quic.issuerDN != NULL))
+	protos.tls.issuerDN= strdup(ndpiFlow->protos.tls_quic.issuerDN);
 
-      if((protos.tls.subjectDN == NULL) && (ndpiFlow->protos.tls_quic_stun.tls_quic.subjectDN != NULL))
-	protos.tls.subjectDN= strdup(ndpiFlow->protos.tls_quic_stun.tls_quic.subjectDN);
+      if((protos.tls.subjectDN == NULL) && (ndpiFlow->protos.tls_quic.subjectDN != NULL))
+	protos.tls.subjectDN= strdup(ndpiFlow->protos.tls_quic.subjectDN);
 
-      if((protos.tls.ja3.client_hash == NULL) && (ndpiFlow->protos.tls_quic_stun.tls_quic.ja3_client[0] != '\0')) {
-	protos.tls.ja3.client_hash = strdup(ndpiFlow->protos.tls_quic_stun.tls_quic.ja3_client);
+      if((protos.tls.ja3.client_hash == NULL) && (ndpiFlow->protos.tls_quic.ja3_client[0] != '\0')) {
+	protos.tls.ja3.client_hash = strdup(ndpiFlow->protos.tls_quic.ja3_client);
 	updateCliJA3();
       }
 
-      if((protos.tls.ja3.server_hash == NULL) && (ndpiFlow->protos.tls_quic_stun.tls_quic.ja3_server[0] != '\0')) {
-	protos.tls.ja3.server_hash = strdup(ndpiFlow->protos.tls_quic_stun.tls_quic.ja3_server);
-	protos.tls.ja3.server_unsafe_cipher = ndpiFlow->protos.tls_quic_stun.tls_quic.server_unsafe_cipher;
-	protos.tls.ja3.server_cipher = ndpiFlow->protos.tls_quic_stun.tls_quic.server_cipher;
+      if((protos.tls.ja3.server_hash == NULL) && (ndpiFlow->protos.tls_quic.ja3_server[0] != '\0')) {
+	protos.tls.ja3.server_hash = strdup(ndpiFlow->protos.tls_quic.ja3_server);
+	protos.tls.ja3.server_unsafe_cipher = ndpiFlow->protos.tls_quic.server_unsafe_cipher;
+	protos.tls.ja3.server_cipher = ndpiFlow->protos.tls_quic.server_cipher;
 	updateSrvJA3();
       }
       break;
