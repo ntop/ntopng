@@ -382,7 +382,7 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 	       "WHERE TABLE_SCHEMA='%s' "
 	       "AND TABLE_NAME='%sv%hu' "
 	       "AND COLUMN_NAME='%s' "
-	       "AND COLUMN_TYPE NOT LIKE '%%UNSIGNED' ",
+	       "AND lower(COLUMN_TYPE) NOT LIKE '%%unsigned' ",
 	       ntop->getPrefs()->get_mysql_dbname(),
 	       ntop->getPrefs()->get_mysql_tablename(),
 	       ipvers[i], counter_fields[j]);
@@ -409,7 +409,7 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
              "WHERE TABLE_SCHEMA='%s' "
              "AND TABLE_NAME='%sv%hu' "
              "AND COLUMN_NAME='idx' "
-             "AND (COLUMN_TYPE NOT LIKE 'BIGINT%%' OR EXTRA != 'auto_increment') ",
+             "AND (lower(COLUMN_TYPE) NOT LIKE 'bigint%%' OR EXTRA != 'auto_increment') ",
              ntop->getPrefs()->get_mysql_dbname(),
              ntop->getPrefs()->get_mysql_tablename(),
              ipvers[i]);
