@@ -440,28 +440,43 @@ function flow_alert_store:format_record(value, no_html)
    local cli_ip = hostinfo2hostkey(value, "cli")
    local srv_ip = hostinfo2hostkey(value, "srv")
 
+   local shorten_msg
+
+   -- Added max length to reduce graphic bug, overflowing description and overflowing other issues
+   if string.len(noHtml(msg)) > 150 then      
+      msg = noHtml(msg)
+      shorten_msg = shortenString(msg, 150)
+   end
+
+   record[RNAME.ADDITIONAL_ALERTS.name] = {
+      descr = record[RNAME.ADDITIONAL_ALERTS.name],
+   }
+
+   if string.len(record[RNAME.ADDITIONAL_ALERTS.name]["descr"]) > 150 then
+      record[RNAME.ADDITIONAL_ALERTS.name]["shorten_descr"] = shortenString(record[RNAME.ADDITIONAL_ALERTS.name], 150)
+   end
+
    if no_html then
       msg = noHtml(msg)
+   else
+      record[RNAME.DESCRIPTION.name] = {
+         descr = msg,
+         shorten_descr = shorten_msg,
+      }
    end
 
    record[RNAME.ALERT_NAME.name] = alert_name
-
-   record[RNAME.DESCRIPTION.name] = msg
 
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""
    end
 
-   if no_html then
-      msg = noHtml(msg)
-   end
-
    record[RNAME.MSG.name] = {
-     name = noHtml(alert_name),
-     fullname = alert_fullname,
-     value = tonumber(value["alert_id"]),
-     description = msg,
-     configset_ref = alert_utils.getConfigsetAlertLink(alert_info)
+      name = noHtml(alert_name),
+      fullname = alert_fullname,
+      value = tonumber(value["alert_id"]),
+      description = msg,
+      configset_ref = alert_utils.getConfigsetAlertLink(alert_info)
    }
 
    -- Format Client  

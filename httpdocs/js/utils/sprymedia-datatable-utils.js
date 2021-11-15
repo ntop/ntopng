@@ -664,6 +664,18 @@ class DataTableRenders {
         return cell;
     }
 
+    static formatMessage(obj, type, row) {
+        if (type !== "display") return obj.value;
+        const strip_tags = function(html) { let t = document.createElement("div"); t.innerHTML = html; return t.textContent || t.innerText || ""; }
+           
+        let cell = obj.descr;
+        if (obj.shorten_descr)
+            cell = `<span title="${obj.descr}">${obj.shorten_descr}</span>`;
+
+        debugger;
+        return cell;
+    }
+
     static formatSubtype(obj, type, row) {
         if (type !== "display") return obj;
 
