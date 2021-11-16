@@ -84,7 +84,7 @@
                     <option value="1,years">{{ i18n('show_alerts.presets.year') }}</option>
                     {% end  %}
 
-                    <option {{ ((presetSelected and default == 'all') and 'selected' or '') }} value="0">{{ i18n('show_alerts.presets.all') }}</option>
+                    <option {{ ((presetSelected and default == 'all') and 'selected' or '') }} value="{{ (earliest_available_epoch or 0) }}">{{ i18n('show_alerts.presets.all') }}</option>
                     
                     <option value="custom" disabled {{ not presetSelected and 'selected' or '' }}>{{ i18n("graphs.custom") }}</option>
                 </select>
@@ -322,8 +322,8 @@ const endEpoch = {{ (_GET['epoch_end'] or _GET['epoch_end'] or 'undefined') }};
             let diff = moment().subtract(parseInt(subtract), measure);
 
             if(!measure)
-                diff = moment(parseInt(subtract));
-            
+                diff = moment(parseInt(subtract) * 1000);
+
             $inputEndEpoch.datetimepicker('minDate', diff);
             $inputEndEpoch.datetimepicker('maxDate', now);
 
