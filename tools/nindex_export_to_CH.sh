@@ -14,6 +14,7 @@ PWD=""
 DB_NAME="ntopng"
 DB_FLOWS="flows"
 CSV_DELIMITER="\\n"
+MAX_ROW_NUM=100000
 
 DB_COLUMNS="IP_PROTOCOL_VERSION,FLOW_TIME,FIRST_SEEN,LAST_SEEN,VLAN_ID,PACKETS,TOTAL_BYTES,SRC2DST_BYTES,DST2SRC_BYTES,SRC2DST_DSCP,DST2SRC_DSCP,PROTOCOL,IPV4_SRC_ADDR,IPV6_SRC_ADDR,IP_SRC_PORT,IPV4_DST_ADDR,IPV6_DST_ADDR,IP_DST_PORT,L7_PROTO,L7_CATEGORY,FLOW_RISK,INFO,PROFILE,NTOPNG_INSTANCE_NAME,INTERFACE_ID,STATUS,SRC_COUNTRY_CODE,DST_COUNTRY_CODE,SRC_LABEL,DST_LABEL,SRC_MAC,DST_MAC,COMMUNITY_ID,SRC_ASN,DST_ASN,PROBE_IP,OBSERVATION_POINT_ID,SRC2DST_TCP_FLAGS,DST2SRC_TCP_FLAGS,SCORE,L7_PROTO_MASTER,CLIENT_NW_LATENCY_US,SERVER_NW_LATENCY_US"
 
@@ -57,20 +58,32 @@ function exportCSV {
 	for dir in $NTOPNG_DIR/*
 	do
 		dir+="/flows"
+		cur_row=0
 
-		# Checking if the flows directory exists inside the interface
-		if [ -d $dir ]
-		then
-			# Now export nindex values in a csv file
-			$NINDEX_PATH -d "$dir" -f "$csv_file"
-
-			if [ -f $csv_file ]
+		while [ true ] 
+		do
+			# Checking if the flows directory exists inside the interface
+			if [ -d $dir ]
 			then
-				# Import the nindex values into ClickHouse
-				cat $csv_file | $CH_PATH --host "$HOST" --user "$USER" --password "$PWD" -d "$DB_NAME" --format_csv_delimiter="\\n" --query="$DB_QUERY"
-				rm $csv_file
+				# Now export nindex values in a csv file
+				$NINDEX_PATH -d "$dir" -f "$csv_file" -L $cur_row -l $MAX_ROW_NUM
+
+				cur_row+=$MAX_ROW_NUM
+
+				if [ -s $csv_file ]
+				then
+					rm $csv_file
+					break # No more data for this interface					
+				fi
+
+				if [ -f $csv_file ]
+				then
+					# Import the nindex values into ClickHouse
+					cat $csv_file | $CH_PATH --host "$HOST" --user "$USER" --password "$PWD" -d "$DB_NAME" --format_csv_delimiter="\\n" --query="$DB_QUERY"
+					rm $csv_file
+				fi
 			fi
-		fi 
+		done 
 	done
 	}
 }
