@@ -21,6 +21,7 @@ local alert_utils = require "alert_utils"
 local alert_store = require "alert_store"
 
 local ifid = interface.getId()
+local alert_store_instances = alert_store_utils.all_instances_factory()
 
 local alert_score_cached = "ntopng.alert.score.ifid_" .. ifid .. ""
 local refresh_rate = ntop.getPref("ntopng.prefs.alert_page_refresh_rate")
@@ -45,8 +46,8 @@ if (_SESSION) and (_SESSION["user"]) then
     user = _SESSION["user"]
 end
 
-local ALERT_SORTING_ORDER = "ntopng.cached.alert." .. ifid .. "." .. user .. ".sort_order."
-local ALERT_SORTING_COLUMN = "ntopng.cached.alert." .. ifid .. "." .. user .. ".sort_column."
+local ALERT_SORTING_ORDER = "ntopng.cache.alert." .. ifid .. "." .. user .. ".sort_order."
+local ALERT_SORTING_COLUMN = "ntopng.cache.alert." .. ifid .. "." .. user .. ".sort_column."
 
 local CHART_NAME = "alert-timeseries"
 
@@ -501,6 +502,7 @@ local extra_range_buttons = [[
 local available_filter_types = {}
 local all_alert_types = {}
 local extra_tags_buttons = ""
+
 if page ~= "all" then
    extra_tags_buttons = [[
     <button class="btn btn-link" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="alertStats.filterModalShow()"><span><i class="fas fa-plus" data-original-title="" title="]]..i18n("alerts_dashboard.add_filter")..[["></i></span>

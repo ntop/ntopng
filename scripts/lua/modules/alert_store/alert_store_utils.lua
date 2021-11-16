@@ -27,6 +27,11 @@ function alert_store_utils.all_instances_factory()
 	       goto continue
 	    end
 	 end
+
+	 -- Note: skip special instances without a family (e.g. 'all')
+	 if alert_store_file:match("all_alert_store%.lua$") then
+	    goto continue
+	 end
 	    
          local file_info = string.split(alert_store_file, "%.")
          local instance_name = file_info[1]
@@ -35,7 +40,7 @@ function alert_store_utils.all_instances_factory()
 
 	 if instance then
             local family_name = instance:get_family()
-            -- Note: skip special instances without a family (e.g. 'all')
+
             if family_name then
    	       res[family_name] = instance
             end
