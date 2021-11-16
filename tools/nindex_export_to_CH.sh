@@ -20,17 +20,17 @@ DB_COLUMNS="IP_PROTOCOL_VERSION,FLOW_TIME,FIRST_SEEN,LAST_SEEN,VLAN_ID,PACKETS,T
 
 function showHelp {
     {
-    exporting="nIndex to Clickhouse Flow Exporter"
+    exporting="nIndex to ClickHouse Flow Exporter"
 	company="(C) 1998-21 ntop.org\n\n"
 	usage="nindex_export_to_CH -d <base dir> [-u <user>]\n"
 	usage+="                    [-p <pwd>] [-n <name>]\n\n"
 	d_option="[-d] <dir>		| ntopng database root folder.\n"
-	u_option="[-h] <host>		| Clickhouse host. If no host is given\n 			| then the default host is going to be used.\n"
-	u_option="[-u] <user>		| Clickhouse user. If no user is given\n 			| then the default user is going to be used.\n"
-	p_option="[-p] <pwd>		| Clickhouse password. If no password is given\n 			| then the default password is going to be used.\n"
-	n_option="[-n] <name>		| Clickhouse database name. If no name is given\n 			| then the default database name is going to be used.\n\n"
+	u_option="[-h] <host>		| ClickHouse host. If no host is given\n 			| then the default host is going to be used.\n"
+	u_option="[-u] <user>		| ClickHouse user. If no user is given\n 			| then the default user is going to be used.\n"
+	p_option="[-p] <pwd>		| ClickHouse password. If no password is given\n 			| then the default password is going to be used.\n"
+	n_option="[-n] <name>		| ClickHouse database name. If no name is given\n 			| then the default database name is going to be used.\n\n"
 	n_option="[-np] <path>		| nIndex path. If no path is given\n 			| then /usr/bin/nindex is going to be launched.\n\n"
-	n_option="[-cp] <path>		| Clickhouse path. If no path is given\n 			| then /usr/bin/clickhouse-client is going to be launched.\n\n"
+	n_option="[-cp] <path>		| ClickHouse path. If no path is given\n 			| then /usr/bin/clickhouse-client is going to be launched.\n\n"
 	example="Example:\nnindex_export_to_CH -d /var/lib/ntopng/\n"
 
 	help_print=$company
@@ -66,7 +66,7 @@ function exportCSV {
 
 			if [ -f $csv_file ]
 			then
-				# Import the nindex values into clickhouse
+				# Import the nindex values into ClickHouse
 				cat $csv_file | $CH_PATH --host "$HOST" --user "$USER" --password "$PWD" -d "$DB_NAME" --format_csv_delimiter="\\n" --query="$DB_QUERY"
 				rm $csv_file
 			fi
