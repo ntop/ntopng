@@ -23,6 +23,8 @@ local alert_store = classes.class()
 
 -- ##############################################
 
+local EARLIEST_AVAILABLE_EPOCH_CACHE_KEY = "ntopng.cache.alerts.ifid_%d.table_%s.status_%d.earliest_available_epoch"
+
 -- Default number of time slots to be returned when aggregating by time
 local NUM_TIME_SLOTS = 31
 local TOP_LIMIT = 10
@@ -796,18 +798,19 @@ function alert_store:has_alerts()
       return true
    end
 
-      -- Now check for historical alerts written in the database. Slightly slower.
+   -- Now check for historical alerts written in the database. Slightly slower.
       
-      -- Fastest way to query SQLite for existance of records. Response will be either a string '1' if records exist,
-      -- or '0' if records don't exist
+   -- Fastest way to query SQLite for existance of records. Response will be either a string '1' if records exist,
+   -- or '0' if records don't exist
    local q, res, has_historical_alerts
 
    if(ntop.isClickHouseEnabled()) then
-      q = string.format(" SELECT COUNT(*) as num_alerts FROM `%s` ", self._table_name)
+      q = string.format(" SELECT COUNT(*) as num_alerts FROM `%s` WHERE interface_id = %d", self._table_name, _GET["ifid"] or interface.getId())
       res = interface.alert_store_query(q)
+
       has_historical_alerts = res and res[1] and (tonumber(res[1].num_alerts) > 0) or false
    else
-      q = string.format(" SELECT EXISTS (SELECT 1 FROM `%s`) has_historical_alerts ", self._table_name)
+      q = string.format(" SELECT EXISTS (SELECT 1 FROM `%s` WHERE interface_id = %d) has_historical_alerts", self._table_name, _GET["ifid"] or interface.getId())
       res = interface.alert_store_query(q)
       has_historical_alerts = res and res[1] and res[1]["has_historical_alerts"] == "1" or false
    end
@@ -1173,6 +1176,52 @@ function alert_store:select_request(filter, select_fields)
       local res = self:select_historical(filter, select_fields)
       return res, total_row
    end
+end
+
+-- ##############################################
+
+function alert_store:get_earliest_available_epoch(status)   
+   -- Add filters (only needed for the status, must ignore all other filters)
+   self:add_status_filter(status)
+   local cached_epoch_key = string.format(EARLIEST_AVAILABLE_EPOCH_CACHE_KEY, _GET["ifid"] or interface.getId(), self._table_name, self._status)
+   local earliest = 0
+
+   -- Check if epoch has already been cached
+   local cached_epoch = ntop.getCache(cached_epoch_key)
+   if not isEmptyString(cached_epoch) then
+      -- If found in cache, return it
+      return tonumber(cached_epoch)
+   end
+
+   if status == "engaged" then
+      local res = self:select_engaged()
+      for k, v in  pairsByField(res, "tstamp", asc) do
+	 -- Take the first
+	 earliest = v["tstamp"]
+	 break
+      end
+   else -- Historical
+      local q
+      if ntop.isClickHouseEnabled() then
+	 q = string.format(" SELECT toUnixTimestamp(tstamp) earliest_epoch FROM `%s` WHERE interface_id = %d AND alert_status = %d ORDER BY tstamp ASC LIMIT 1",
+			   self._table_name, interface.getId(), self._status)
+      else
+	 q = string.format(" SELECT tstamp earliest_epoch FROM `%s` WHERE interface_id = %d AND alert_status = %d ORDER BY tstamp ASC LIMIT 1",
+			   self._table_name, interface.getId(), self._status)
+      end
+
+      local res = interface.alert_store_query(q)
+      if res and res[1] and tonumber(res[1]["earliest_epoch"]) then
+	 -- Cache and return the number as read from the DB
+	 ntop.setCache(cached_epoch_key, res[1]["earliest_epoch"], 600 --[[ Cache for 5 mins --]])
+	 earliest = tonumber(res[1]["earliest_epoch"])
+      end
+   end
+
+   -- Cache the value
+   ntop.setCache(cached_epoch_key, string.format("%u", earliest), earliest == 0 and 60 or 600)
+
+   return earliest
 end
 
 -- ##############################################

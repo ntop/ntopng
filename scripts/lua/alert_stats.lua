@@ -82,6 +82,16 @@ if not status then
    end
 end
 
+-- Check the earliest alert available
+local alert_store_instance
+if alert_entities[page] and alert_store_instances[alert_entities[page].alert_store_name] then
+   alert_store_instance = alert_store_instances[alert_entities[page].alert_store_name]
+elseif page == "all" then
+   alert_store_instance = require "all_alert_store".new()
+end
+
+local earliest_available_epoch = alert_store_instance:get_earliest_available_epoch(status)
+
 local time = os.time()
 
 -- initial epoch_begin is set as now - 30 minutes for historical, or as 1 week for engaged
@@ -156,7 +166,7 @@ local pages = {
 	endpoint_delete = "/lua/rest/v2/delete/host/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v2/acknowledge/host/alerts.lua",
 	url = getPageUrl(base_url, {page = "host"}),
-	hidden = is_system_interface or not require "host_alert_store".new():has_alerts(),
+	hidden = is_system_interface or not alert_store_instances["host"]:has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.host.entity_id)]
     },
     {
@@ -168,7 +178,7 @@ local pages = {
 	endpoint_delete = "/lua/rest/v2/delete/interface/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v2/acknowledge/interface/alerts.lua",
 	url = getPageUrl(base_url, {page = "interface"}),
-	hidden = not require "interface_alert_store".new():has_alerts(),
+	hidden = not alert_store_instances["interface"]:has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.interface.entity_id)]
     },
     {
@@ -180,7 +190,7 @@ local pages = {
 	endpoint_delete = "/lua/rest/v2/delete/network/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v2/acknowledge/network/alerts.lua",
 	url = getPageUrl(base_url, {page = "network"}),
-	hidden = is_system_interface or not require "network_alert_store".new():has_alerts(),
+	hidden = is_system_interface or not alert_store_instances["network"]:has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.network.entity_id)]
     },
     {
@@ -192,7 +202,7 @@ local pages = {
 	endpoint_delete = "/lua/pro/rest/v2/delete/snmp/device/alerts.lua",
 	endpoint_acknowledge = "/lua/pro/rest/v2/acknowledge/snmp/device/alerts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "snmp_device"}),
-	hidden = not is_system_interface or not ntop.isPro() or not require "snmp_device_alert_store".new():has_alerts(),
+	hidden = not is_system_interface or not ntop.isPro() or not alert_store_instances["snmp_device"]:has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.snmp_device.entity_id)]
     },
     {
@@ -204,7 +214,7 @@ local pages = {
 	endpoint_delete = "/lua/rest/v2/delete/flow/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v2/acknowledge/flow/alerts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "flow"}),
-	hidden = is_system_interface or not require "flow_alert_store".new():has_alerts(),
+	hidden = is_system_interface or not alert_store_instances["flow"]:has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.flow.entity_id)]
     },
     {
@@ -216,7 +226,7 @@ local pages = {
 	endpoint_delete = "/lua/rest/v2/delete/mac/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v2/acknowledge/mac/alerts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "mac"}),
-	hidden = is_system_interface or not require "mac_alert_store".new():has_alerts(),
+	hidden = is_system_interface or not alert_store_instances["mac"]:has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.mac.entity_id)]
     },
     {
@@ -228,7 +238,7 @@ local pages = {
 	endpoint_delete = "/lua/rest/v2/delete/system/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v2/acknowledge/system/alerts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "system"}),
-	hidden = not is_system_interface or not require "system_alert_store".new():has_alerts(),
+	hidden = not is_system_interface or not alert_store_instances["system"]:has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.system.entity_id)]
     },
     {
@@ -240,7 +250,7 @@ local pages = {
 	endpoint_delete = "/lua/rest/v2/delete/am_host/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v2/acknowledge/am_host/alerts.lua",
 	url = getPageUrl(base_url, {page = "am_host"}),
-	hidden = not is_system_interface or not require "am_alert_store".new():has_alerts(),
+	hidden = not is_system_interface or not alert_store_instances["am"]:has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.am_host.entity_id)]
     },
     {
@@ -252,7 +262,7 @@ local pages = {
 	endpoint_delete = "/lua/rest/v2/delete/user/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v2/acknowledge/user/alerts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "user"}),
-	hidden = not is_system_interface or not require "user_alert_store".new():has_alerts(),
+	hidden = not is_system_interface or not alert_store_instances["user_alert_store"]:has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.user.entity_id)]
     }
 }
@@ -509,7 +519,6 @@ if page ~= "all" then
     </button>
    ]]
 
-   local alert_store_instances = alert_store_utils.all_instances_factory()
    if alert_store_instances[alert_entities[page].alert_store_name] then
       local alert_store_instance = alert_store_instances[alert_entities[page].alert_store_name]
       available_filter_types = alert_store_instance:get_available_filters()
@@ -547,6 +556,7 @@ local context = {
     isPro = ntop.isPro(),
     range_picker = {
         default = status ~= "engaged" and "30min" or "1week",
+	earliest_available_epoch = earliest_available_epoch,
         score = score,
         ifid = ifid,
         refresh_enabled = checkbox_checked,
