@@ -55,7 +55,7 @@ end
 
 --@brief Selects engaged alerts from memory
 --@return Selected engaged alerts, and the total number of engaged alerts
-function alert_store:select_engaged(filter)
+function all_alert_store:select_engaged(filter)
    -- No filter, get all active interface alerts
    local alerts = interface.getEngagedAlerts()
    local alerts_by_entity_flat = {}
@@ -279,7 +279,7 @@ local RNAME = {
    COUNT_GROUP_ERROR_OR_HIGHER = { name = "count_group_error_or_higher", export = true},
 }
 
-function alert_store:get_rnames()
+function all_alert_store:get_rnames()
    return RNAME
 end
 
