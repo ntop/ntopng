@@ -37,7 +37,7 @@ void PktThreshold::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   u_int64_t pkt_total = pkt_sent + pkt_rcvd;
   u_int64_t delta;
   u_int64_t value = 0;
-  if((delta = h->cb_status_delta_my_pkt_counter (pkt_total)) > pkt_threshold)  value = delta;
+  if((delta = h->cb_status_delta_pkt_counter (pkt_total)) > pkt_threshold)  value = delta;
   if(value) {
     if(!alert) alert = allocAlert(this, h, CLIENT_FULL_RISK_PERCENTAGE, value/60, pkt_threshold/60);
     if (alert) h->triggerAlert(alert);
