@@ -215,7 +215,8 @@ function host_alert_store:format_record(value, no_html)
       value = host,
       label = host,
       shown_label = host,
-      reference = reference_html 
+      reference = reference_html,
+      country = interface.getHostCountry(host)
    }
 
    -- Long, unshortened label

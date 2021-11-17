@@ -695,6 +695,9 @@ class DataTableRenders {
         else
           label = DataTableRenders.filterize('ip', obj.value, obj.label, obj.label, obj.label_long);
 
+        if (obj.country)
+            label = label + ' <img src="' + http_prefix + '/img/blank.gif" class="flag flag-' + obj.country.toLowerCase() + '"></a> ';
+
         if (row.role && row.role.value == 'attacker')
           label = label + ' ' + DataTableRenders.filterize('role', row.role.value, 
             '<i class="fas fa-skull" title="'+row.role.label+'"></i>', row.role.label);
