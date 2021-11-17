@@ -453,7 +453,7 @@ function flow_alert_store:format_record(value, no_html)
    }
 
    if string.len(record[RNAME.ADDITIONAL_ALERTS.name]["descr"]) > 150 then
-      record[RNAME.ADDITIONAL_ALERTS.name]["shorten_descr"] = shortenString(record[RNAME.ADDITIONAL_ALERTS.name], 150)
+      record[RNAME.ADDITIONAL_ALERTS.name]["shorten_descr"] = shortenString(record[RNAME.ADDITIONAL_ALERTS.name]["descr"], 150)
    end
 
    if no_html then
