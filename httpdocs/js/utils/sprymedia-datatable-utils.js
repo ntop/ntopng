@@ -720,6 +720,12 @@ class DataTableRenders {
           cliLabel = DataTableRenders.filterize('cli_name', flow.cli_ip.label_long, flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label_long); 
         else
           cliLabel = DataTableRenders.filterize('cli_ip', flow.cli_ip.value, flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label_long); 
+
+        let cliFlagLabel= ''
+
+        if (flow.cli_ip.country)
+            cliFlagLabel = ' <img src="' + http_prefix + '/img/blank.gif" class="flag flag-' + flow.cli_ip.country.toLowerCase() + '"></a> ';
+
         let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('cli_port', flow.cli_port, flow.cli_port) : "");
 
         let srvLabel = ""
@@ -728,6 +734,11 @@ class DataTableRenders {
         else
           srvLabel = DataTableRenders.filterize('srv_ip', flow.srv_ip.value, flow.srv_ip.label, flow.srv_ip.label, flow.srv_ip.label_long);
         let srvPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('srv_port', flow.srv_port, flow.srv_port) : "");
+
+        let srvFlagLabel= ''
+
+        if (flow.srv_ip.country)
+            srvFlagLabel = ' <img src="' + http_prefix + '/img/blank.gif" class="flag flag-' + flow.srv_ip.country.toLowerCase() + '"></a> ';
 
         let cliIcons = "";
         let srvIcons = "";
@@ -745,7 +756,7 @@ class DataTableRenders {
                 srvIcons += DataTableRenders.filterize('role', 'victim',  '<i class="fas fa-sad-tear" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
         }
 
-        return `${active_ref} ${cliLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
+        return `${active_ref} ${cliLabel}${cliFlagLabel}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
     }
 
     static formatNameDescription(obj, type, row) {

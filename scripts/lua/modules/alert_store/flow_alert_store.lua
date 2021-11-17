@@ -492,7 +492,8 @@ function flow_alert_store:format_record(value, no_html)
    local flow_cli_ip = {
       value = cli_ip,
       label = cli_ip,
-      reference = reference_html
+      reference = reference_html,
+      country = value["cli_country"]
    }
 
    if no_html then
@@ -516,7 +517,8 @@ function flow_alert_store:format_record(value, no_html)
    local flow_srv_ip = {
       value = srv_ip,
       label = srv_ip,
-      reference = reference_html
+      reference = reference_html,
+      country = value["srv_country"]
    }
 
    if no_html then
