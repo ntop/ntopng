@@ -672,7 +672,6 @@ class DataTableRenders {
         if (obj.shorten_descr)
             cell = `<span title="${obj.descr}">${obj.shorten_descr}</span>`;
 
-        debugger;
         return cell;
     }
 
