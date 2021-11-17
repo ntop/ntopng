@@ -41,3 +41,5 @@ redis-cli set "ntopng.prefs.snmp.num_pollers" "20"
 ## [Feature] SNMP. Disables the polling of fat MIBs (e.g., the bridge MIB)
 redis-cli set "ntopng.prefs.snmp.disable_fat_mibs_polling" "1"
 
+## [Feature] SNMP. Enables SNMP traces. Traces are shown under the SNMP internals page
+redis-cli set "ntopng.prefs.snmp.do_trace" "1"
