@@ -48,10 +48,6 @@ function showHelp {
 
 function exportCSV {
 	{
-	DB_QUERY="INSERT INTO flows ("
-	DB_QUERY+=$DB_COLUMNS
-	DB_QUERY+=") FORMAT CSV"
-
 	csv_file="/tmp/export_tmp.csv"
 	
 	# Getting all interfaces
@@ -75,11 +71,10 @@ function exportCSV {
 				to_row=`expr $cur_row + $MAX_ROW_NUM`
 				echo "Exporting from row: ${cur_row} to row: ${to_row}"
 				
-				#echo "-- DEBUG: $NINDEX_PATH -d $dir -f $csv_file -L $cur_row -l $MAX_ROW_NUM -c -s \"*\""
+				# echo "-- DEBUG: $NINDEX_PATH -d $dir -f $csv_file -L $cur_row -l $MAX_ROW_NUM -c -s \"$DB_COLUMNS\""
 				
 				# Now export nindex values in a csv file
-				$NINDEX_PATH -d $dir -f $csv_file -L $cur_row -l $MAX_ROW_NUM -c -s "*" &> /dev/null
-
+				$NINDEX_PATH -d $dir -f $csv_file -L $cur_row -l $MAX_ROW_NUM -c -s $DB_COLUMNS &> /dev/null
 				cur_row=`expr $cur_row + $MAX_ROW_NUM`		
 
 				if [ -f $csv_file ] && [ ! -s $csv_file ]
@@ -89,16 +84,24 @@ function exportCSV {
 					break # No more data for this interface					
 				fi
 
+				# Get column list
+				db_ch_columns=$(head -n 1 $csv_file)
+				db_ch_columns=${db_ch_columns//"|"/","}
+
+				DB_QUERY="INSERT INTO flows ("
+				DB_QUERY+=$db_ch_columns
+				DB_QUERY+=") FORMAT CSV"
+				
+				# echo $DB_QUERY
 				# Remove first row from file (Column list row)
 				sed -i '1d' $csv_file
 				
-				#echo "-- DEBUG: cat $csv_file | $CH_PATH --host \"$HOST\" --user \"$USER\" --password \"$PWD\" -d \"$DB_NAME\" --format_csv_delimiter=\"$CSV_DELIMITER\" --query=\"$DB_QUERY\""
+				# echo "-- DEBUG: cat $csv_file | $CH_PATH --host \"$HOST\" --user \"$USER\" --password \"$PWD\" -d \"$DB_NAME\" --format_csv_delimiter=\"$CSV_DELIMITER\" --query=\"$DB_QUERY\""
 				
 				# Import the nindex values into ClickHouse
-				cat $csv_file | $CH_PATH --host "$HOST" --user "$USER" --password "$PWD" -d "$DB_NAME" --format_csv_delimiter="$CSV_DELIMITER" --query="$DB_QUERY" &> /dev/null				
-
+				cat $csv_file | $CH_PATH --host "$HOST" --user "$USER" --password "$PWD" -d "$DB_NAME" --format_csv_delimiter="$CSV_DELIMITER" --query="$DB_QUERY" &> /dev/null	
 				ret_val=$?
-
+			 
 				# No data to insert error, skip directly to the subsequent directory
 				if [ $ret_val -eq 108 ]
 				then
