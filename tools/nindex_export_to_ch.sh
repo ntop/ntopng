@@ -33,8 +33,8 @@ function showHelp {
 	n_option="[-n] <name>		| ClickHouse database name. If no name is given\n 			| then the default database name is going to be used.\n\n"
 	n_option="[-np] <path>		| nIndex path. If no path is given\n 			| then /usr/bin/nindex is going to be launched.\n\n"
 	n_option="[-cp] <path>		| ClickHouse path. If no path is given\n 			| then /usr/bin/clickhouse-client is going to be launched.\n\n"
-	important="IMPORTANT: Before running this tool is necessary to run ntopng with ClickHouse at least one time.\n\n"
-	example="Example:\nnindex_export_to_ch -d /var/lib/ntopng/\n"
+	important="IMPORTANT: Before running this tool is necessary to run ntopng with ClickHouse at least one time.\n 	Run this tool if ntopng shutdown.\n\n"
+	example="Example:\nsudo ./nindex_export_to_ch.sh -d /var/lib/ntopng/ -np ../../nIndex/nindex -cp /usr/bin/clickhouse-client\n"
 
 	help_print=$company
 	help_print+=$usage
@@ -52,6 +52,8 @@ function showHelp {
 function exportCSV {
 	{
 	csv_file="/tmp/export_tmp.csv"
+	fault_dir="Error while exporting directory:\n"
+	num_fault_dir=0
 	
 	# Getting all interfaces
 	for dir in $NTOPNG_DIR/*
@@ -116,7 +118,9 @@ function exportCSV {
 				if [ $ret_val -ne 0 ]
 				then
 					echo "Error while exporting directory: ${dir}. Return code n. ${ret_val}"
-					exit -1
+					fault_dir+="${dir} | Return code n. ${ret_val}\n"
+					num_fault_dir=`expr $num_fault_dir + 1`
+					break
 				fi
 			else
 				echo "Done exporting directory: ${dir}"
@@ -125,7 +129,12 @@ function exportCSV {
 		done 
 	done
 
-	echo "Job accomplished, all flows have been exported"
+	if [ $num_fault_dir -ne 0 ] 
+	then
+		printf "$fault_dir"
+	else
+		echo "Job accomplished, all flows have been exported"
+	fi
 	}
 }
 
@@ -172,7 +181,7 @@ fi
 
 if [ ! -f $CH_PATH ] || [ ! -f $NINDEX_PATH ]
 then
-	printf "Clickhouse client or nIndex client not correct. Please specify the right nIndex and ClickHouse paths using -np and -cp options.\n\nExample\nnindex_export_to_ch -d /var/lib/ntopng/ -np ../../nIndex/nindex -ch /usr/bin/clickhouse-client\n"
+	printf "Clickhouse client or nIndex client not correct. Please specify the right nIndex and ClickHouse paths using -np and -cp options.\n\nExample\nsudo ./nindex_export_to_ch.sh -d /var/lib/ntopng/ -np ../../nIndex/nindex -cp /usr/bin/clickhouse-client\n"
 	exit -1
 fi
 
