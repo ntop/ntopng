@@ -3,6 +3,10 @@
 Historical Flow Report
 ======================
 
+.. warning::
+
+  MySQL flow explorer is deprecated and wil be discontinued in favor of the :ref:`ClickHouse` flows explorer. MySQL dump support will be maintained.
+
 ntopng can dump flows data to a persistent storage and provides view to browse
 recorded flows data in the past.
 

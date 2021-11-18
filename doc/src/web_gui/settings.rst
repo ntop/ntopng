@@ -55,7 +55,7 @@ Data retention is expressed in days and it affects:
 
 - Top Talkers stored in sqlite
 - Timeseries
-- Historical Flows dumped with MySQL and nIndex.
+- Historical flows
 
 .. note::
 

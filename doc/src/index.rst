@@ -19,6 +19,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    self_monitoring/index
    using_with_other_tools/index
    historical_flows
+   clickhouse
    advanced_features/index
    operating_ntopng_on_large_networks
    third_party_integrations/index

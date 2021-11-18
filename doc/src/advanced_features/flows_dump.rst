@@ -24,6 +24,11 @@ When flows dump is enabled, a new `Flow Dump Settings` tab appears in the prefer
 
 These settings are effective for all databases.
 
+ClickHouse
+----------
+
+ntopng integrates with ClickHouse to store historical flows and alerts. ClickHouse is an high-performance SQL database. See :ref:`ClickHouse` for a detailed discussion and guide.
+
 nIndex
 ------
 
@@ -40,6 +45,11 @@ in case of an high number of flows per second. In this case the flow dump perfor
 by enabling the *direct* mode. The drawback with this mode is that flows are dumped as soon as they are collected,
 before any processing, thus less flow details will be available in the dump as flows are not augmented by ntopng.
 In order to enable this mode `-F nindex;direct` should be specified.
+
+.. warning::
+
+  nIndex support is deprecated and will be discontinued in favor of ClickHouse. ntopng version 5.1 is the last version supporting nIndex.
+  A tool to migrate nIndex to ClickHouse is available at: https://github.com/ntop/ntopng/blob/dev/tools/nindex_export_to_ch.sh
 
 MySQL
 -----
@@ -72,12 +82,16 @@ IPv4 and IPv6 flows, respectively.
   A MySQL Table with Dumped Flows
 
 
-.. note::
-
-	MySQL flow explorer is non supported in community edition. We suggest you to use nIndex for high cardinality flow instances.
-
 By enabling MySQL integration, it's also possible to inspect the past flows via
 the ntopng Historical Explorer, which provides many filters and drilldown capabilities.
+
+.. note::
+
+  MySQL flow explorer is non supported in community edition. We suggest you to use nIndex for high cardinality flow instances.
+
+.. warning::
+
+  MySQL flow explorer is deprecated and wil be discontinued in favor of the :ref:`ClickHouse` flows explorer. MySQL dump support will be maintained.
 
 .. figure:: ../img/advanced_features_historical_explorer.png
   :align: center

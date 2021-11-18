@@ -132,6 +132,11 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        |   Notes:
                                        |   <facility-text> is case-insensitive.
                                        |
+                                       | clickhouse    Dump in ClickHouse database
+                                       |   Format:
+                                       |   clickhouse;<host[@port]|socket>;<dbname>;<table name>;<user>;<pw>
+                                       |   clickhouse;127.0.0.1;ntopng;flows;default;
+                                       |
                                        | mysql         Dump in MySQL database
                                        |   Format:
                                        |   mysql;<host[@port]|socket>;<dbname>;<table name>;<user>;<pw>

@@ -10,6 +10,3 @@ When ntopng collects flows from nProbe, it is expected to process, without drops
 - 25,5 Kfps per interface with four interfaces (with or without an interface view)
 
 Tests have been executed on an Intel(R) Xeon(R) CPU E3-1230 v5 @ 3.40GHz with 16GB RAM.
-
-When nIndex (:ref:`Flows Dump`) is enabled, expect a decrease of 2-3 Kfps.
-

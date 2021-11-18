@@ -85,7 +85,10 @@ nIndex
 
 The maximum number of interfaces that can be used with nIndex is 16. When more than 16 interfaces are used, those exceeding 16 will work but without nIndex support.
 
+.. warning::
 
+  nIndex support is deprecated and will be discontinued in favor of ClickHouse. ntopng version 5.1 is the last version supporting nIndex.
+  A tool to migrate nIndex to ClickHouse is available at: https://github.com/ntop/ntopng/blob/dev/tools/nindex_export_to_ch.sh
 
 Hardware Sizing
 ===============
