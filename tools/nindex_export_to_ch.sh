@@ -13,10 +13,10 @@ USER="default"
 PWD=""
 DB_NAME="ntopng"
 DB_FLOWS="flows"
-CSV_DELIMITER="\\n"
+CSV_DELIMITER="|"
 MAX_ROW_NUM=100000
 
-DB_COLUMNS="IP_PROTOCOL_VERSION,FLOW_TIME,FIRST_SEEN,LAST_SEEN,VLAN_ID,PACKETS,TOTAL_BYTES,SRC2DST_BYTES,DST2SRC_BYTES,SRC2DST_DSCP,DST2SRC_DSCP,PROTOCOL,IPV4_SRC_ADDR,IPV6_SRC_ADDR,IP_SRC_PORT,IPV4_DST_ADDR,IPV6_DST_ADDR,IP_DST_PORT,L7_PROTO,L7_CATEGORY,FLOW_RISK,INFO,PROFILE,NTOPNG_INSTANCE_NAME,INTERFACE_ID,STATUS,SRC_COUNTRY_CODE,DST_COUNTRY_CODE,SRC_LABEL,DST_LABEL,SRC_MAC,DST_MAC,COMMUNITY_ID,SRC_ASN,DST_ASN,PROBE_IP,OBSERVATION_POINT_ID,SRC2DST_TCP_FLAGS,DST2SRC_TCP_FLAGS,SCORE,L7_PROTO_MASTER,CLIENT_NW_LATENCY_US,SERVER_NW_LATENCY_US"
+DB_COLUMNS="COMMUNITY_ID,DST2SRC_DSCP,DST2SRC_TCP_FLAGS,DST_ASN,DST_COUNTRY_CODE,DST_LABEL,DST_MAC,FLOW_TIME,INFO,INTERFACE_ID,IPV4_DST_ADDR,IPV4_SRC_ADDR,IPV6_DST_ADDR,IPV6_SRC_ADDR,IP_DST_PORT,IP_PROTOCOL_VERSION,L7_CATEGORY,L7_PROTO,L7_PROTO_MASTER,LAST_SEEN,PACKETS,PROFILE,PROTOCOL,SCORE,SRC2DST_DSCP,SRC2DST_TCP_FLAGS,SRC_ASN,SRC_COUNTRY_CODE,SRC_MAC,TOTAL_BYTES,VLAN_ID"
 
 
 function showHelp {
@@ -48,9 +48,9 @@ function showHelp {
 
 function exportCSV {
 	{
-	DB_QUERY="\"INSERT INTO flows ("
+	DB_QUERY="INSERT INTO flows ("
 	DB_QUERY+=$DB_COLUMNS
-	DB_QUERY+=") FORMAT CSV\""
+	DB_QUERY+=") FORMAT CSV"
 
 	csv_file="/tmp/export_tmp.csv"
 	
@@ -60,31 +60,66 @@ function exportCSV {
 		dir+="/flows"
 		cur_row=0
 
+		echo "Exporting directory: ${dir}"
+
 		while [ true ] 
-		do
+		do	
 			# Checking if the flows directory exists inside the interface
 			if [ -d $dir ]
 			then
-				# Now export nindex values in a csv file
-				$NINDEX_PATH -d "$dir" -f "$csv_file" -L $cur_row -l $MAX_ROW_NUM
-
-				cur_row+=$MAX_ROW_NUM
-
-				if [ -s $csv_file ]
+				if [ -f $csv_file ] 
 				then
+					rm $csv_file
+				fi
+
+				to_row=`expr $cur_row + $MAX_ROW_NUM`
+				echo "Exporting from row: ${cur_row} to row: ${to_row}"
+				
+				#echo "-- DEBUG: $NINDEX_PATH -d $dir -f $csv_file -L $cur_row -l $MAX_ROW_NUM -c -s \"*\""
+				
+				# Now export nindex values in a csv file
+				$NINDEX_PATH -d $dir -f $csv_file -L $cur_row -l $MAX_ROW_NUM -c -s "*" &> /dev/null
+
+				cur_row=`expr $cur_row + $MAX_ROW_NUM`		
+
+				if [ -f $csv_file ] && [ ! -s $csv_file ]
+				then
+					echo "File Empty"
+					echo "Done exporting directory: ${dir}"
 					rm $csv_file
 					break # No more data for this interface					
 				fi
 
-				if [ -f $csv_file ]
+				# Remove first row from file (Column list row)
+				sed -i '1d' $csv_file
+				
+				#echo "-- DEBUG: cat $csv_file | $CH_PATH --host \"$HOST\" --user \"$USER\" --password \"$PWD\" -d \"$DB_NAME\" --format_csv_delimiter=\"$CSV_DELIMITER\" --query=\"$DB_QUERY\""
+				
+				# Import the nindex values into ClickHouse
+				cat $csv_file | $CH_PATH --host "$HOST" --user "$USER" --password "$PWD" -d "$DB_NAME" --format_csv_delimiter="$CSV_DELIMITER" --query="$DB_QUERY" &> /dev/null				
+
+				ret_val=$?
+
+				# No data to insert error, skip directly to the subsequent directory
+				if [ $ret_val -eq 108 ]
 				then
-					# Import the nindex values into ClickHouse
-					cat $csv_file | $CH_PATH --host "$HOST" --user "$USER" --password "$PWD" -d "$DB_NAME" --format_csv_delimiter="\\n" --query="$DB_QUERY"
-					rm $csv_file
+					echo "Done exporting directory: ${dir}"
+					break
 				fi
+
+				if [ $ret_val -ne 0 ]
+				then
+					echo "Error while exporting directory: ${dir}. Return code n. ${ret_val}"
+					break
+				fi
+			else
+				echo "Done exporting directory: ${dir}"
+				break
 			fi
 		done 
 	done
+
+	echo "Job accomplished, all flows have been exported"
 	}
 }
 
@@ -127,6 +162,12 @@ if [ "$NTOPNG_DIR" == "" ]
 then
     printf "No ntopng folder provided. Please run this tool with option -d.\n\nExample:\nnindex_export_to_ch -d /var/lib/ntopng/\n"
     exit -1
+fi
+
+if [ ! -f $CH_PATH ] || [ ! -f $NINDEX_PATH ]
+then
+	printf "Clickhouse client or nIndex client not correct. Please specify the right nIndex and ClickHouse paths using -np and -cp options.\n\nExample\nnindex_export_to_ch -d /var/lib/ntopng/ -np ../../nIndex/nindex -ch /usr/bin/clickhouse-client\n"
+	exit -1
 fi
 
 if [ "$EUID" -ne 0 ]
