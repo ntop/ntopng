@@ -84,7 +84,6 @@ function exportCSV {
 
 				if [ -f $csv_file ] && [ ! -s $csv_file ]
 				then
-					echo "File Empty"
 					echo "Done exporting directory: ${dir}"
 					rm $csv_file
 					break # No more data for this interface					
@@ -150,7 +149,7 @@ while [[ "$#" -gt 0 ]]; do
 		-cp) # CH exec path
 		CH_PATH=$2
 		;;
-        *) echo "Unknown parameter passed: $1. Check -h for more infos"; exit 1 ;;
+        *) echo "Unknown parameter given: $1. Check -h for more infos"; exit 1 ;;
     esac
 
     # shift 2 positions
