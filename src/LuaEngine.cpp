@@ -814,7 +814,8 @@ void LuaEngine::setInterface(const char * user, char * const ifname,
 
       if(!iface->hasObservationPointId(observationPointId))
 	observationPointId = iface->getFirstObservationPointId(); /* Not existing */
-    }
+    } else
+      observationPointId = iface->getFirstObservationPointId(); /* Not found */
   }
 
   /* Set the observationPointId in the VM */
