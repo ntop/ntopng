@@ -24,7 +24,8 @@ function showHelp {
     exporting="nIndex to ClickHouse Flow Exporter"
 	company="(C) 1998-21 ntop.org\n\n"
 	usage="nindex_export_to_ch -d <base dir> [-u <user>]\n"
-	usage+="                    [-p <pwd>] [-n <name>]\n\n"
+	usage+="                    [-p <pwd>] [-n <name>]\n"
+	usage+="                    [-np <path>] [-cp <path>]\n\n"
 	d_option="[-d] <dir>		| ntopng database root folder.\n"
 	u_option="[-h] <host>		| ClickHouse host. If no host is given\n 			| then the default host is going to be used.\n"
 	u_option="[-u] <user>		| ClickHouse user. If no user is given\n 			| then the default user is going to be used.\n"
@@ -32,6 +33,7 @@ function showHelp {
 	n_option="[-n] <name>		| ClickHouse database name. If no name is given\n 			| then the default database name is going to be used.\n\n"
 	n_option="[-np] <path>		| nIndex path. If no path is given\n 			| then /usr/bin/nindex is going to be launched.\n\n"
 	n_option="[-cp] <path>		| ClickHouse path. If no path is given\n 			| then /usr/bin/clickhouse-client is going to be launched.\n\n"
+	important="IMPORTANT: Before running this tool is necessary to run ntopng with ClickHouse at least one time.\n\n"
 	example="Example:\nnindex_export_to_ch -d /var/lib/ntopng/\n"
 
 	help_print=$company
@@ -40,6 +42,7 @@ function showHelp {
 	help_print+=$u_option
 	help_print+=$p_option
 	help_print+=$n_option
+	help_print+=$important
 	help_print+=$example
 
 	printf "%b" "$help_print"
@@ -93,6 +96,7 @@ function exportCSV {
 				DB_QUERY+=") FORMAT CSV"
 				
 				# echo $DB_QUERY
+
 				# Remove first row from file (Column list row)
 				sed -i '1d' $csv_file
 				
@@ -112,7 +116,7 @@ function exportCSV {
 				if [ $ret_val -ne 0 ]
 				then
 					echo "Error while exporting directory: ${dir}. Return code n. ${ret_val}"
-					break
+					exit -1
 				fi
 			else
 				echo "Done exporting directory: ${dir}"
