@@ -24,6 +24,7 @@ local host_alert_keys = {
   host_alert_countries_contacts          = 16,
   host_alert_score_threshold             = 17,
   host_alert_icmp_flood                  = 18,
+  host_alert_pkt_threshold               = 19,
    
    -- NOTE: Keep in sync with HostAlertTypeEnum in ntop_typedefs.h
 }

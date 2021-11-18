@@ -20,8 +20,8 @@ local pkt_threshold = {
    },
 
    gui = {
-      i18n_title = "alerts_thresholds_config.pkt_threshold",
-      i18n_description = "alerts_thresholds_config.alert_pkt_threshold_description",
+      i18n_title = "alerts_thresholds_config.alert_pkt_title",
+      i18n_description = "alerts_thresholds_config.alert_pkt_description",
       i18n_field_unit = checks.field_units.packets,
       input_builder = "threshold_cross",
       field_operator = "gt";
