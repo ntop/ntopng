@@ -30,6 +30,12 @@
 	},
 	"filters" : {
 		"items" : [
+			{
+				"name": "IPV4_SRC_ADDR"
+			},
+			{
+				"name": "IPV4_DST_ADDR"
+			}
 		]
 	},
 	"groupby" : {

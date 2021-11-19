@@ -27,6 +27,12 @@
 	},
 	"filters" : {
 		"items" : [
+			{
+				"name" : "SRC_ASN"
+			},
+			{
+				"name" : "DST_ASN"
+			}
 		]
 	},
 	"groupby" : {

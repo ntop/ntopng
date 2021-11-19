@@ -158,6 +158,20 @@ tag_utils.defined_tags = {
 
 -- ##############################################
 
+function tag_utils.get_tag_filters_from_request()
+   local filters = {}
+
+   for key, value in pairs(tag_utils.defined_tags) do
+      if _GET[key] ~= nil then
+         filters[key] = _GET[key]
+      end
+   end
+
+   return filters
+end
+
+-- ##############################################
+
 --@brief Evaluate operator
 function tag_utils.eval_op(v1, op, v2)
    local default_verdict = true
