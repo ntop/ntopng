@@ -87,7 +87,7 @@ function exportCSV {
 				db_ch_columns=${db_ch_columns//"|"/","}
 
 				DB_QUERY="INSERT INTO flows ("
-				DB_QUERY+=$	
+				DB_QUERY+=$db_ch_columns
 				DB_QUERY+=") FORMAT CSV"
 				
 				# echo $DB_QUERY
