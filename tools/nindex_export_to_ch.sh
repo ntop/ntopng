@@ -175,19 +175,34 @@ done
 
 if [ "$NTOPNG_DIR" == "" ]
 then
-    printf "No ntopng folder provided. Please run this tool with option -d.\n\nExample:\nnindex_export_to_ch -d /var/lib/ntopng/\n"
+    printf "ntopng data directory not provided. Please run this tool with option -d.\n\nExample:\nnindex_export_to_ch -d /var/lib/ntopng/\n"
     exit -1
 fi
 
-if [ ! -f $CH_PATH ] || [ ! -f $NINDEX_PATH ]
+if [ ! -f $CH_PATH ]
 then
-	printf "Clickhouse client or nIndex client not correct. Please specify the right nIndex and ClickHouse paths using -np and -cp options.\n\nExample\nsudo ./nindex_export_to_ch.sh -d /var/lib/ntopng/ -np ../../nIndex/nindex -cp /usr/bin/clickhouse-client\n"
+	printf "[ERROR] Missing executable clickhouse-client. Install at https://clickhouse.com/#quick-start\n"
+	exit -1
+fi
+
+if [ ! -f $NINDEX_PATH ]
+then
+	printf "[ERROR] Missing executable nindex. Install the latest packaged ntopng. \n"
 	exit -1
 fi
 
 if [ "$EUID" -ne 0 ]
 then
-    printf "This tool requires root privileges. Try again with \"sudo \" please ...\n"
+    printf "[ERROR] This tool requires root privileges. Try again with \"sudo \" please ...\n"
+    exit -1
+fi
+
+# Executes a SELECT to make sure the database exists
+$CH_PATH --host "${HOST}" --user "${USER}" --password "${PWD}" -d "${DB_NAME}" --query="SELECT 1 from flows limit 1"
+
+if [ "$?" -ne 0 ]
+then
+    printf "[ERROR] Unable to find database ${DB_NAME}. Start ntopng with ClickHouse using option -F=\"clickhouse;<other params>\" to configure the database and then re-run this script. \n"
     exit -1
 fi
 
