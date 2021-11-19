@@ -449,6 +449,21 @@ end
 
 -- #####################################
 
+local function build_datatable_js_column_number(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+        if (type !== 'display') return ]] .. name .. [[;
+        if (]] .. name .. [[ !== undefined)
+          return NtopUtils.formatValue(]] .. name .. [[);
+      }}]]
+   }
+end
+
+-- #####################################
+
 local function build_datatable_js_column_ip(name, data_name, label, order)
    return {
       i18n = label,
@@ -594,6 +609,7 @@ end
 
 tag_utils.datatable_js_column_builder_by_type = {
    ['default'] = build_datatable_js_column_default,
+   ['number'] = build_datatable_js_column_number,
    ['ip'] = build_datatable_js_column_ip,
    ['port'] = build_datatable_js_column_port,
    ['asn'] = build_datatable_js_column_asn,

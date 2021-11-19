@@ -11,7 +11,7 @@
 			},
 			{
 				"name" : "count",
-				"value_type" : "count"
+				"value_type" : "number"
 			}
 		]
 	},

@@ -70,6 +70,7 @@ local lang = {
   ["configure"] = "Configure",
   ["confirm"] = "Confirm",
   ["copied"] = "Copied",
+  ["count"] = "Count",
   ["countries"] = "Countries",
   ["create"] = "Create",
   ["current_filter"] = "Exclude Checks",
