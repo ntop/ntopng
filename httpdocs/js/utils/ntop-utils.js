@@ -1041,11 +1041,27 @@ class NtopUtils {
 	}
 
 	static copyToClipboard(text, success, failure) {
-		navigator.clipboard.writeText(text).then(function() {
-			alert(success);
-		}, function(err) {
-			alert(failure + ': ' + err);
-		});
+		if (navigator.clipboard && window.isSecureContext) {
+			navigator.clipboard.writeText(text).then(function() {
+				alert(success);
+			}, function(err) {
+				alert(failure + ': ' + err);
+			});
+		} else {
+			let textArea = document.createElement("textarea");
+			textArea.value = text;
+			textArea.style.position = "fixed";
+ 			textArea.style.left = "-999999px";
+ 			textArea.style.top = "-999999px";
+			document.body.appendChild(textArea);
+			textArea.focus();
+			textArea.select();
+			return new Promise((res, rej) => {
+				document.execCommand('copy') ? res() : rej();
+				textArea.remove();
+				alert(success);
+			});
+		}
 	}
 
 }
