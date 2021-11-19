@@ -82,13 +82,6 @@ function exportCSV {
 				$NINDEX_PATH -d $dir -f $csv_file -L $cur_row -l $MAX_ROW_NUM -c -s $DB_COLUMNS &> /dev/null
 				cur_row=`expr $cur_row + $MAX_ROW_NUM`		
 
-				if [ -f $csv_file ] && [ ! -s $csv_file ]
-				then
-					echo "Done exporting directory: ${dir}"
-					rm $csv_file
-					break # No more data for this interface					
-				fi
-
 				# Get column list
 				db_ch_columns=$(head -n 1 $csv_file)
 				db_ch_columns=${db_ch_columns//"|"/","}
@@ -101,11 +94,18 @@ function exportCSV {
 
 				# Remove first row from file (Column list row)
 				sed -i '1d' $csv_file
-				
+
+				if [ -f $csv_file ] && [ ! -s $csv_file ]
+				then
+					echo "Done exporting directory: ${dir}"
+					rm $csv_file
+					break # No more data for this interface					
+				fi
+
 				# echo "-- DEBUG: cat $csv_file | $CH_PATH --host \"$HOST\" --user \"$USER\" --password \"$PWD\" -d \"$DB_NAME\" --format_csv_delimiter=\"$CSV_DELIMITER\" --query=\"$DB_QUERY\""
 				
 				# Import the nindex values into ClickHouse
-				cat $csv_file | $CH_PATH --host "$HOST" --user "$USER" --password "$PWD" -d "$DB_NAME" --format_csv_delimiter="$CSV_DELIMITER" --query="$DB_QUERY" &> /dev/null	
+				cat $csv_file | $CH_PATH --host "$HOST" --user "$USER" --password "$PWD" -d "$DB_NAME" --format_csv_delimiter="$CSV_DELIMITER" --query="$DB_QUERY"	
 				ret_val=$?
 			 
 				# No data to insert error, skip directly to the subsequent directory
@@ -118,7 +118,13 @@ function exportCSV {
 				if [ $ret_val -ne 0 ]
 				then
 					echo "Error while exporting directory: ${dir}. Return code n. ${ret_val}"
-					fault_dir+="${dir} | Return code n. ${ret_val}\n"
+					fault_dir+="${dir} | Return code n. ${ret_val}"
+					if [ $ret_val -eq 27 ]
+					then
+						fault_dir+=": nIndex DB data corrupted."
+					fi
+					fault_dir+="\n"
+
 					num_fault_dir=`expr $num_fault_dir + 1`
 					break
 				fi
