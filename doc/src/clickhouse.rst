@@ -7,6 +7,10 @@ ntopng integrates with ClickHouse to store historical flows and alerts. ClickHou
 
 .. _guide: https://clickhouse.com/#quick-start
 
+.. note::
+
+   The ClickHouse database can be executed anywhere, both locally on the machine running ntopng or on a remote machine. However, :code:`clickhouse-client` must always be installed locally as it is used by ntopng to connect to ClickHouse. This installation guide_ explains how to install it.
+
 To connect ntopng to ClickHouse use option :code:`-F`. The format of this option is the following
 
 .. code:: bash
@@ -22,6 +26,7 @@ Where
 - :code:`<pw>` Specifies the password that authenticates :code:`<user>`
 
 Example
+-------
 
 To connect ntopng and ClickHouse, both running on the same machine, the following line can be used
 
