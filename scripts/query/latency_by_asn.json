@@ -42,7 +42,7 @@
 	"sortby" : {
 		"items" : [
 			{
-				"name" : "avg_server_nw_latency_ms",
+				"name" : "avg_server_nw_latency",
 				"order" : "DESC"
 			}
 		]
