@@ -2152,6 +2152,8 @@ local lang = {
     ["timeseries_descr"] = "Flow probes timeseries can be enabled from the <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferences</a>. Few minutes are necessary to see the first data points",
     ["tot_bytes"] = "Total Bytes",
     ["tot_flows"] = "Total Flows",
+    ["tot_traffic"] = "Total Traffic",
+    ["tot_throughput"] = "Total Throughput",
   },
   ["flow_fields_description"] = {
     ["appl_latency_ms"] = "Application latency (msec), a.k.a. server response time",

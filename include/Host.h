@@ -85,6 +85,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   AutonomousSystem *as;
   Country *country;
   VLAN *vlan;
+  ObservationPoint *obs_point;
 
   OperatingSystem *os; /* Pointer to an instance of operating system, used internally to handle operating system statistics    */
   OSType os_type;      /* Operating system type, equivalent to os->get_os_type(), used by operating system setters and getters */
@@ -200,7 +201,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int16_t get_host_pool()         const { return(host_pool_id);                      };
   inline VLANid get_raw_vlan_id()          const { return(vlan_id);                           }; /* vlanId + observationPointId */
   inline VLANid get_vlan_id()              const { return(filterVLANid(vlan_id));             };
-  inline VLANid get_observation_point_id() const { return(observationPointId); };
+  inline u_int16_t get_observation_point_id() const { return(observationPointId); };
   
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
 
@@ -286,6 +287,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t get_asn()             const { return(asn);              }
   inline char*     get_asname()          const { return(asname);           }
   inline AutonomousSystem* get_as()      const { return(as);               }
+
+  inline ObservationPoint* get_obs_point() const { return(obs_point);        }
 
   inline bool isPrivateHost()            const { return(ip.isPrivateAddress()); }
   bool isLocalInterfaceAddress();

@@ -1757,6 +1757,32 @@ static int ntop_get_interface_ases_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_obs_points_info(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  Paginator *p = NULL;
+
+  if(!ntop_interface)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  if((p = new(std::nothrow) Paginator()) == NULL)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  if(lua_type(vm, 1) == LUA_TTABLE)
+    p->readOptions(vm, 1);
+
+  if(ntop_interface->getActiveObsPointsList(vm, p) < 0) {
+    if(p) delete(p);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+
+  if(p) delete(p);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_interface_get_throughput(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -1957,6 +1983,24 @@ static int ntop_get_interface_as_info(lua_State* vm) {
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
+
+/* ****************************************** */
+
+static int ntop_get_interface_obs_point_info(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  u_int16_t obs_point;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  obs_point = (u_int16_t)lua_tonumber(vm, 1);
+
+  if((!ntop_interface)
+     || (!ntop_interface->getObsPointInfo(vm, obs_point)))
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
 
 static int ntop_get_interface_os_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -4577,6 +4621,10 @@ static luaL_Reg _ntop_interface_reg[] = {
   /* Autonomous Systems */
   { "getASesInfo",                      ntop_get_interface_ases_info },
   { "getASInfo",                        ntop_get_interface_as_info },
+  
+  /* Autonomous Systems */
+  { "getObsPointsInfo",                 ntop_get_interface_obs_points_info },
+  { "getObsPointInfo",                  ntop_get_interface_obs_point_info },
 
   /* Operating Systems */
   { "getOSesInfo",                      ntop_get_interface_oses_info },

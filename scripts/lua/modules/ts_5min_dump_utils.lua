@@ -177,11 +177,11 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
 
     -- Save ASN bytes
     ts_utils.append("asn:traffic", {ifid=ifstats.id, asn=asn,
-				    bytes_sent=asn_stats["bytes.sent"], bytes_rcvd=asn_stats["bytes.rcvd"]}, when)
+            bytes_sent=asn_stats["bytes.sent"], bytes_rcvd=asn_stats["bytes.rcvd"]}, when)
 
     ts_utils.append("asn:score",
-		     {ifid=ifstats.id, asn=asn,
-		      score=asn_stats["score"], scoreAsClient=asn_stats["score.as_client"], scoreAsServer=asn_stats["score.as_server"]}, when)
+         {ifid=ifstats.id, asn=asn,
+          score=asn_stats["score"], scoreAsClient=asn_stats["score.as_client"], scoreAsServer=asn_stats["score.as_server"]}, when)
 
 
     ts_utils.append("asn:traffic_sent", {ifid=ifstats.id, asn=asn,
@@ -200,31 +200,31 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
     -- Save ASN RTT stats
     if not ifstats.isViewed and not ifstats.isView then
        ts_utils.append("asn:rtt",
-		       {ifid=ifstats.id, asn=asn,
-			millis_rtt=asn_stats["round_trip_time"]}, when)
+           {ifid=ifstats.id, asn=asn,
+      millis_rtt=asn_stats["round_trip_time"]}, when)
     end
 
     -- Save ASN TCP stats
     if not ifstats.isSampledTraffic then
        ts_utils.append("asn:tcp_retransmissions",
-		       {ifid=ifstats.id, asn=asn,
-			packets_sent=asn_stats["tcpPacketStats.sent"]["retransmissions"],
-			packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["retransmissions"]}, when)
+           {ifid=ifstats.id, asn=asn,
+      packets_sent=asn_stats["tcpPacketStats.sent"]["retransmissions"],
+      packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["retransmissions"]}, when)
 
        ts_utils.append("asn:tcp_out_of_order",
-		       {ifid=ifstats.id, asn=asn,
-			packets_sent=asn_stats["tcpPacketStats.sent"]["out_of_order"],
-			packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["out_of_order"]}, when)
+           {ifid=ifstats.id, asn=asn,
+      packets_sent=asn_stats["tcpPacketStats.sent"]["out_of_order"],
+      packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["out_of_order"]}, when)
 
        ts_utils.append("asn:tcp_lost",
-		       {ifid=ifstats.id, asn=asn,
-			packets_sent=asn_stats["tcpPacketStats.sent"]["lost"],
-			packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["lost"]}, when)
+           {ifid=ifstats.id, asn=asn,
+      packets_sent=asn_stats["tcpPacketStats.sent"]["lost"],
+      packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["lost"]}, when)
 
        ts_utils.append("asn:tcp_keep_alive",
-		       {ifid=ifstats.id, asn=asn,
-			packets_sent=asn_stats["tcpPacketStats.sent"]["keep_alive"],
-			packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["keep_alive"]}, when)
+           {ifid=ifstats.id, asn=asn,
+      packets_sent=asn_stats["tcpPacketStats.sent"]["keep_alive"],
+      packets_rcvd=asn_stats["tcpPacketStats.rcvd"]["keep_alive"]}, when)
     end
 
     if ntop.isPro() then
@@ -275,6 +275,61 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
       anomaly=anomaly}, when)   
 
       ::continue::
+    end
+  end
+end
+
+-- ########################################################
+
+function ts_dump.obs_point_update_rrds(when, ifstats, verbose)
+  local obs_points_info = interface.getObsPointsInfo({detailsLevel = "higher"})
+
+  for _, obs_point_stats in pairs(obs_points_info["ObsPoints"]) do
+    local obs_point = obs_point_stats["obs_point"]
+
+    -- Save ASN bytes
+    ts_utils.append("obs_point:traffic", {ifid=ifstats.id, obs_point=obs_point,
+            bytes_sent=obs_point_stats["bytes.sent"], bytes_rcvd=obs_point_stats["bytes.rcvd"]}, when)
+
+    ts_utils.append("obs_point:score",
+         {ifid=ifstats.id, obs_point=obs_point,
+          score=obs_point_stats["score"], scoreAsClient=obs_point_stats["score.as_client"], scoreAsServer=obs_point_stats["score.as_server"]}, when)
+
+
+    ts_utils.append("obs_point:traffic_sent", {ifid=ifstats.id, obs_point=obs_point,
+              bytes=obs_point_stats["bytes.sent"]}, when)
+
+    ts_utils.append("obs_point:traffic_rcvd", {ifid=ifstats.id, obs_point=obs_point,
+              bytes=obs_point_stats["bytes.rcvd"]}, when)
+    -- Save ASN ndpi stats
+    if obs_point_stats["ndpi"] ~= nil then
+      for proto_name, proto_stats in pairs(obs_point_stats["ndpi"]) do
+        ts_utils.append("obs_point:ndpi", {ifid=ifstats.id, obs_point=obs_point, protocol=proto_name,
+                  bytes_sent=proto_stats["bytes.sent"], bytes_rcvd=proto_stats["bytes.rcvd"]}, when)
+      end
+    end
+
+    -- Save obs_point TCP stats
+    if not ifstats.isSampledTraffic then
+       ts_utils.append("obs_point:tcp_retransmissions",
+           {ifid=ifstats.id, obs_point=obs_point,
+      packets_sent=obs_point_stats["tcpPacketStats.sent"]["retransmissions"],
+      packets_rcvd=obs_point_stats["tcpPacketStats.rcvd"]["retransmissions"]}, when)
+
+       ts_utils.append("obs_point:tcp_out_of_order",
+           {ifid=ifstats.id, obs_point=obs_point,
+      packets_sent=obs_point_stats["tcpPacketStats.sent"]["out_of_order"],
+      packets_rcvd=obs_point_stats["tcpPacketStats.rcvd"]["out_of_order"]}, when)
+
+       ts_utils.append("obs_point:tcp_lost",
+           {ifid=ifstats.id, obs_point=obs_point,
+      packets_sent=obs_point_stats["tcpPacketStats.sent"]["lost"],
+      packets_rcvd=obs_point_stats["tcpPacketStats.rcvd"]["lost"]}, when)
+
+       ts_utils.append("obs_point:tcp_keep_alive",
+           {ifid=ifstats.id, obs_point=obs_point,
+      packets_sent=obs_point_stats["tcpPacketStats.sent"]["keep_alive"],
+      packets_rcvd=obs_point_stats["tcpPacketStats.rcvd"]["keep_alive"]}, when)
     end
   end
 end
@@ -409,6 +464,7 @@ function ts_dump.getConfig()
   config.host_pools_rrd_creation = ntop.getPref("ntopng.prefs.host_pools_rrd_creation")
   config.snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation")
   config.asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
+  config.obs_point_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
   config.country_rrd_creation = ntop.getPref("ntopng.prefs.country_rrd_creation")
   config.os_rrd_creation = ntop.getPref("ntopng.prefs.os_rrd_creation")
   config.vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
@@ -840,6 +896,11 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
   -- create RRD for ASN
   if config.asn_rrd_creation == "1" then
     ts_dump.asn_update_rrds(when, ifstats, verbose)
+  end
+
+  -- create RRD for Observation Points
+  if config.obs_point_rrd_creation == "1" then
+    ts_dump.obs_point_update_rrds(when, ifstats, verbose)
   end
 
   -- Update 5min Network stats

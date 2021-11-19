@@ -238,6 +238,7 @@
 #define VLAN_SERIALIZED_KEY     "ntopng.serialized_vlan.ifid_%u_vlan_%u"
 #define AS_SERIALIZED_KEY       "ntopng.serialized_as.ifid_%u_as_%u"
 #define COUNTRY_SERIALIZED_KEY  "ntopng.serialized_as.ifid_%u_country_%s"
+#define OBS_POINT_SERIALIZED_KEY "ntopng.serialized_as.ifid_%u_obs_point_%u"
 #define SYSLOG_PRODUCERS_MAP_KEY "ntopng.syslog.ifid_%u.producers_map"
 #define NTOPNG_PREFS_PREFIX     "ntopng.prefs"
 #define NTOPNG_CACHE_PREFIX     "ntopng.cache"

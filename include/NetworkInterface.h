@@ -38,6 +38,8 @@ class VLAN;
 class VLANHash;
 class AutonomousSystem;
 class AutonomousSystemHash;
+class ObservationPoint;
+class ObservationPointHash;
 class OperatingSystem;
 class OperatingSystemHash;
 class Country;
@@ -250,6 +252,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /* Autonomous Systems */
   AutonomousSystemHash *ases_hash; /**< Hash used to store Autonomous Systems information. */
 
+  /* Observation Point */
+  ObservationPointHash *obs_hash; /**< Hash used to store Observation Point information. */
+
   /* Operating Systems */
   OperatingSystemHash *oses_hash; /**< Hash used to store Operating Systems information. */
 
@@ -312,7 +317,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     u_int32_t device_ip,
 		char *sortColumn);
   int sortASes(struct flowHostRetriever *retriever,
-	       char *sortColumn);
+         char *sortColumn);
+  int sortObsPoints(struct flowHostRetriever *retriever,
+         char *sortColumn);
   int sortOSes(struct flowHostRetriever *retriever,
          char *sortColumn);
   int sortCountries(struct flowHostRetriever *retriever,
@@ -377,6 +384,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool initHostChecksLoop(); /* Same as above but for hosts */
   bool initFlowDump(u_int8_t num_dump_interfaces);
   u_int32_t getASesHashSize();
+  u_int32_t getObsHashSize();
   u_int32_t getOSesHashSize();
   u_int32_t getCountriesHashSize();
   u_int32_t getVLANsHashSize();
@@ -656,6 +664,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   int getActiveASList(lua_State* vm, const Paginator *p, bool diff = false);
+  int getActiveObsPointsList(lua_State* vm, const Paginator *p);
   int getActiveOSList(lua_State* vm, const Paginator *p);
   int getActiveCountriesList(lua_State* vm, const Paginator *p);
   int getActiveVLANList(lua_State* vm,
@@ -742,6 +751,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void runShutdownTasks();
   VLAN* getVLAN(VLANid vlanId, bool create_if_not_present, bool is_inline_call);
   AutonomousSystem *getAS(IpAddress *ipa, bool create_if_not_present, bool is_inline_call);
+  ObservationPoint *getObsPoint(u_int16_t obs_point, bool create_if_not_present, bool is_inline_call);
   OperatingSystem *getOS(OSType os, bool create_if_not_present, bool is_inline_call);
   Country* getCountry(const char *country_name, bool create_if_not_present, bool is_inline_call);
   virtual Mac*  getMac(u_int8_t _mac[6], bool create_if_not_present, bool is_inline_call);
@@ -876,6 +886,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool resetMacStats(lua_State* vm, char *mac, bool delete_data);
   bool setMacDeviceType(char *strmac, DeviceType dtype, bool alwaysOverwrite);
   bool getASInfo(lua_State* vm, u_int32_t asn);
+  bool getObsPointInfo(lua_State* vm, u_int16_t obs_point);
   bool getOSInfo(lua_State* vm, OSType os_type);
   bool getCountryInfo(lua_State* vm, const char *country);
   bool getVLANInfo(lua_State* vm, VLANid vlan_id);

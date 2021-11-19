@@ -619,7 +619,8 @@ typedef enum {
   column_arp_sent,
   column_arp_rcvd,
   column_last_seen,
-  column_first_seen
+  column_first_seen,
+  column_obs_point
 } sortField;
 
 typedef struct {
@@ -645,7 +646,8 @@ typedef enum {
   walker_ases,
   walker_countries,
   walker_vlans,
-  walker_oses
+  walker_oses,
+  walker_obs
 } WalkerType;
 
 typedef enum {

@@ -60,6 +60,7 @@ Host::~Host() {
   if(as)            as->decUses();
   if(os)            os->decUses();
   if(country)       country->decUses();
+  if(obs_point)     obs_point->decUses();
   if(vlan)          vlan->decUses();
 
 #ifdef NTOPNG_PRO
@@ -105,6 +106,7 @@ u_int16_t Host::incScoreValue(u_int16_t score_incr, ScoreCategory score_category
   if(as)      as->incScoreValue(score_incr, score_category, as_client);
   if(vlan)    vlan->incScoreValue(score_incr, score_category, as_client);
   if(country) country->incScoreValue(score_incr, score_category, as_client);
+  if(obs_point) obs_point->incScoreValue(score_incr, score_category, as_client);
   if(ns)      ns->incScoreValue(score_incr, score_category, as_client);
   if(iface)   iface->incScoreValue(score_incr, as_client);
   score_inc = Score::incScoreValue(score_incr, score_category, as_client);
@@ -122,6 +124,7 @@ u_int16_t Host::decScoreValue(u_int16_t score_decr, ScoreCategory score_category
   if(as)      as->decScoreValue(score_decr, score_category, as_client);
   if(vlan)    vlan->decScoreValue(score_decr, score_category, as_client);
   if(country) country->decScoreValue(score_decr, score_category, as_client);
+  if(obs_point) obs_point->decScoreValue(score_decr, score_category, as_client);
   if(ns)      ns->decScoreValue(score_decr, score_category, as_client);
   if(iface)   iface->decScoreValue(score_decr, as_client);
   
@@ -217,7 +220,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   vlan_id = _vlanId;
   memset(&names, 0, sizeof(names));
   asn = 0, asname = NULL;
-  as = NULL, country = NULL;
+  as = NULL, country = NULL, obs_point = NULL;
   os = NULL, os_type = os_unknown;
   reloadHostBlacklist();
   is_dhcp_host = false;
@@ -250,6 +253,9 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
 
     if((country = iface->getCountry(country_name, true /* Create if missing */, true /* Inline call */ )) != NULL)
       country->incUses();
+
+    if((obs_point = iface->getObsPoint(observation_point_id, true /* Create if missing */, true /* Inline call */ )) != NULL)
+      obs_point->incUses();
   }
 
   inlineSetOS(os_unknown);

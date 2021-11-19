@@ -180,6 +180,80 @@ schema:addMetric("scoreAsClient")
 schema:addMetric("scoreAsServer")
 
 -------------------------------------------------------
+-- OBS POINT SCHEMAS
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("obs_point:traffic", {step=300, rrd_fname="bytes"})
+schema:addTag("ifid")
+schema:addTag("obs_point")
+schema:addMetric("bytes_sent")
+schema:addMetric("bytes_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("obs_point:score", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("obs_point")
+schema:addMetric("score")
+schema:addMetric("scoreAsClient")
+schema:addMetric("scoreAsServer")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("obs_point:traffic_sent", {step=300, rrd_fname="bytes_sent"})
+schema:addTag("ifid")
+schema:addTag("obs_point")
+schema:addMetric("bytes")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("obs_point:traffic_rcvd", {step=300, rrd_fname="bytes_rcvd"})
+schema:addTag("ifid")
+schema:addTag("obs_point")
+schema:addMetric("bytes")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("obs_point:ndpi", {step=300})
+schema:addTag("ifid")
+schema:addTag("obs_point")
+schema:addTag("protocol")
+schema:addMetric("bytes_sent")
+schema:addMetric("bytes_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("obs_point:tcp_retransmissions", {step=300})
+schema:addTag("ifid")
+schema:addTag("obs_point")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("obs_point:tcp_out_of_order", {step=300})
+schema:addTag("ifid")
+schema:addTag("obs_point")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("obs_point:tcp_lost", {step=300})
+schema:addTag("ifid")
+schema:addTag("obs_point")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("obs_point:tcp_keep_alive", {step=300})
+schema:addTag("ifid")
+schema:addTag("obs_point")
+schema:addMetric("packets_sent")
+schema:addMetric("packets_rcvd")
+
+-------------------------------------------------------
 -- OSES SCHEMAS
 -------------------------------------------------------
 

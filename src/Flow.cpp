@@ -1440,6 +1440,20 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 			 partial->get_cli2srv_bytes());
     }
 
+  if(cli_host->get_observation_point_id() && srv_host->get_observation_point_id()) {
+      ObservationPoint *cli_obs_point = cli_host ? cli_host->get_obs_point() : NULL,
+  *srv_obs_point = srv_host ? srv_host->get_obs_point() : NULL;
+
+      if(cli_obs_point)
+  cli_obs_point->incStats(tv->tv_sec, stats_protocol, partial->get_cli2srv_packets(),
+       partial->get_cli2srv_bytes(), partial->get_srv2cli_packets(),
+       partial->get_srv2cli_bytes());
+      if(srv_obs_point)
+  srv_obs_point->incStats(tv->tv_sec, stats_protocol, partial->get_srv2cli_packets(),
+       partial->get_srv2cli_bytes(), partial->get_cli2srv_packets(),
+       partial->get_cli2srv_bytes());
+  }
+
   if(cli_host->getOS() != srv_host->getOS()) {
 	cli_host->incOSStats(tv->tv_sec, stats_protocol, partial->get_cli2srv_packets(),
 			 partial->get_cli2srv_bytes(), partial->get_srv2cli_packets(),
