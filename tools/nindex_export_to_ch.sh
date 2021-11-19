@@ -202,7 +202,7 @@ $CH_PATH --host "${HOST}" --user "${USER}" --password "${PWD}" -d "${DB_NAME}" -
 
 if [ "$?" -ne 0 ]
 then
-    printf "[ERROR] Unable to find database ${DB_NAME}. Start ntopng with ClickHouse using option -F=\"clickhouse;<other params>\" to configure the database and then re-run this script. \n"
+    printf "[ERROR] Unable to find database ${DB_NAME}. Start ntopng with ClickHouse using option -F=\"clickhouse;${HOST};${DB_NAME};flows;${USER};${PW}\" to configure the database and then re-run this script. \n"
     exit -1
 fi
 
