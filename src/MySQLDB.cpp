@@ -23,6 +23,8 @@
 
 #ifdef HAVE_MYSQL
 
+static bool enable_db_traces = true;
+
 /* **************************************************** */
 
 static void* queryLoop(void* ptr) {
@@ -877,7 +879,13 @@ int MySQLDB::exec_single_query(lua_State *vm, char *sql) {
   MYSQL conn;
   MYSQL_RES *result;
   bool result_ok = false;
+  struct timeval begin, end;
 
+  if(enable_db_traces) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql);
+    gettimeofday(&begin, NULL);
+  }
+  
   if(mysql_init(&conn) != NULL) {
     if((mysql_try_connect(&conn, NULL /* no db */) != NULL)
        && (mysql_query(&conn, sql) == 0)
@@ -892,7 +900,12 @@ int MySQLDB::exec_single_query(lua_State *vm, char *sql) {
     
     mysql_close(&conn);
   }
-  
+
+  if(enable_db_traces) {
+    gettimeofday(&end, NULL);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Query completed in %.3f sec", Utils::usecTimevalDiff(&end, &begin)/1000000.);
+  }
+
   if(!result_ok) {
     lua_pushnil(vm);
     return(-1);
@@ -912,13 +925,19 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
 			    bool doLock) {
   int rc;
   MYSQL_RES *result;
+  struct timeval begin, end;
 
+  if(enable_db_traces) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql);
+    gettimeofday(&begin, NULL);
+  }
+  
   /* Don't check db_created here. This method is private
      so hopefully we know what we're doing.
    */
   if(!db_operational)
     return(-2);
-
+  
   if(doLock) m.lock(__FILE__, __LINE__);
   if((rc = mysql_query(conn, sql)) != 0) {
     if(!ignoreErrors)
@@ -959,6 +978,11 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
       mysql_free_result(result);
     }
   }
+  
+  if(enable_db_traces) {
+    gettimeofday(&end, NULL);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Query completed in %.3f sec", Utils::usecTimevalDiff(&end, &begin)/1000000.);
+  }
 
   if(doLock) m.unlock(__FILE__, __LINE__);
 
@@ -970,13 +994,18 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
 int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created) {
   MYSQL_RES *result;
   int rc;
-
+  struct timeval begin, end;
+  
   if((wait_for_db_created && !db_created /* Make sure the db exists before doing queries */)
      || !db_operational)
     return(-2);
 
+  if(enable_db_traces) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql);
+    gettimeofday(&begin, NULL);
+  }
+  
   m.lock(__FILE__, __LINE__);
-
 
   if(ntop->getPrefs()->is_sql_log_enabled() && log_fd && sql) {
 #ifndef WIN32
@@ -1021,6 +1050,11 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
 
     m.unlock(__FILE__, __LINE__);
     return(rc);
+  }
+  
+  if(enable_db_traces) {
+    gettimeofday(&end, NULL);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Query completed in %.3f sec", Utils::usecTimevalDiff(&end, &begin)/1000000.);
   }
 
   if((result == NULL) || (mysql_field_count(&mysql) == 0)) {
