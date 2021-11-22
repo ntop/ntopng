@@ -69,9 +69,19 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.cli_ip'),
       operators = {'eq', 'neq'}
    },
+   cli_location = {
+      value_type = 'location',
+      i18n_label = i18n('db_search.tags.cli_location'),
+      operators = {'eq', 'neq'}
+   },
    srv_ip = {
       value_type = 'ip',
       i18n_label = i18n('db_search.tags.srv_ip'),
+      operators = {'eq', 'neq'}
+   },
+   srv_location = {
+      value_type = 'location',
+      i18n_label = i18n('db_search.tags.srv_location'),
       operators = {'eq', 'neq'}
    },
    cli_name = {
@@ -154,6 +164,12 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.score'),
       operators = {'eq', 'neq','lt', 'gt', 'gte', 'lte'}
    },
+}
+
+tag_utils.ip_location = {
+   { label = "Remote", id = 0 },
+   { label = "Local",  id = 1 },
+   { label = "Multicast", id = 2},
 }
 
 -- ##############################################
@@ -278,6 +294,8 @@ tag_utils.db_columns_to_tags = {
    ["DST2SRC_TCP_FLAGS"] = "dst2src_tcp_flags",
    ["CLIENT_NW_LATENCY_US"] = "cli_nw_latency", 
    ["SERVER_NW_LATENCY_US"] = "srv_nw_latency", 
+   ["CLIENT_LOCATION"] = "cli_location",
+   ["SERVER_LOCATION"] = "srv_location",
    ["SCORE"] = "score", 
    ["VLAN_ID"] = "vlan_id", 
 
@@ -361,6 +379,8 @@ tag_utils.extra_db_columns = {
    ["vlan_id"]    = "VLAN_ID",
    ["cli_name"]  = "SRC_LABEL",
    ["srv_name"]  = "DST_LABEL",
+   ["cli_location"] = "CLIENT_LOCATION",
+   ["srv_location"] = "SERVER_LOCATION",
 }
 
 tag_utils.ordering_special_columns = {
@@ -489,7 +509,8 @@ local function build_datatable_js_column_ip(name, data_name, label, order)
         if (]] .. name .. [[ !== undefined) {
             if (]] .. name .. [[.reference !== undefined)
                 html_ref = ]] .. name .. [[.reference;
-            return `<a class='tag-filter' data-tag-key='${]] .. name .. [[.tag_key}' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a> ${html_ref}`;
+                
+            return `<a class='tag-filter' data-tag-key='${]] .. name .. [[.tag_key}' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a> ${]] .. name .. [[.label}</a> ${]] .. name .. [[.location.label} ${html_ref}`;
         }}}]] }
 end
 
