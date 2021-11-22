@@ -963,6 +963,9 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
 	 && (ndpiDetectedProtocol.app_protocol != proto_id.app_protocol)))
     ndpiDetectedProtocol.app_protocol = proto_id.app_protocol;
 
+  if(ndpiDetectedProtocol.master_protocol == ndpiDetectedProtocol.app_protocol)
+    ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+
   /* NOTE: only overwrite the category if it was not set.
    * This prevents overwriting already determined category (e.g. by IP or Host)
    */
