@@ -1609,31 +1609,31 @@ local function updateCQRetentionPolicies(dbname, url, username, password)
   local res = influx_query(url .. "/query?db=".. dbname, query, username, password)
   local rp_1h_statement = "CREATE"
   local rp_1d_statement = "CREATE"
+  local create_1h, create_1d = true, true
 
   if res and res.series and res.series[1] then
     for _, rp in pairs(res.series[1].values) do
       local rp_name = rp[1]
 
       if rp_name == "1h" then
-        rp_1h_statement = "ALTER"
+	 create_1h = false
       elseif rp_name == "1d" then
-        rp_1d_statement = "ALTER"
+	 create_1d = false
       end
     end
   end
 
-  local queries = {
-    makeRetentionPolicyQuery(rp_1d_statement, "1d", dbname, get1dDatabaseRetentionDays())
-  }
+  local queries = {}
 
-  if(HOURLY_CQ_ENABLED) then
-    queries[#queries + 1] = makeRetentionPolicyQuery(rp_1h_statement, "1h", dbname, get1hDatabaseRetentionDays())
-  else
-    -- Delete existing 1h aggregated data
-    queries[#queries + 1] = "DROP RETENTION POLICY \"1h\" ON \"" .. dbname .. "\""
+  if create_1d then
+     queries[#queries + 1] = makeRetentionPolicyQuery(rp_1d_statement, "1d", dbname, get1dDatabaseRetentionDays())
+  end
+  
+  if create_1h and HOURLY_CQ_ENABLED then
+     queries[#queries + 1] = makeRetentionPolicyQuery(rp_1h_statement, "1h", dbname, get1hDatabaseRetentionDays())
   end
 
-  return multiQueryPost(queries, url, username, password)
+  return #queries > 0 and multiQueryPost(queries, url, username, password) or true
 end
 
 -- ##############################################
