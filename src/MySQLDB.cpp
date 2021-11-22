@@ -23,7 +23,7 @@
 
 #ifdef HAVE_MYSQL
 
-static bool enable_db_traces = true;
+static bool enable_db_traces = false;
 
 /* **************************************************** */
 
