@@ -163,6 +163,8 @@ This allows statistics not to be duplicated when hosts from different Observatio
 Observation Points Charts
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+In the Observation Points Page, 5 columns are shown: the `Observation Points` column, showing the Observation Point number and Alias (e.g. Paris); the `Chart` column, necessary to show the Observation Points graphs; the `Current Hosts` column that shows up the current number of hosts of the Observation Point; the `Current Throughput` that represents the current throughput of the Observation Point; the `Total Traffic` column, showing the total traffic done by an Observation Point (Bytes sent + receved).
+
 To be able to see Observation Points charts it's necessary to enable the corresponding timeseries settings. To do so go to `Settings`, `Timeseries` and scroll down; then enable the `Flow Probes` timeseries.
 
 .. figure:: ../img/flow_probes_timeseries.png
