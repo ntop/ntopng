@@ -86,6 +86,27 @@ get more detailed historical data. This can be configured from the
   "Runtime Status" page.
 
 InfluxDB status can be monitored using the  :ref:`InfluxDB Monitor`.
+
+Authentication
+~~~~~~~~~~~~~~
+
+InfluxDB supports HTTP/HTTPS authentication. To enable HTTP/HTTPS authentication, use the preferences toggle and specify a valid username/password pair.
+
+.. figure:: ../img/basic_concepts_influxdb_settings_auth.png
+  :align: center
+  :alt: InfluxDB Authentication Preferences
+
+  InfluxDB Authentication Preferences
+
+To enable InfluxDB authentication follow the steps highlighted at https://github.com/influxdata/influxdb/issues/8824#issuecomment-329746475.
+
+.. note::
+
+  ntopng creates retention policies and continuous queries. This requires an InfludDB user with admin privileges. It is not possible for non-admin users to create retention policies (https://stackoverflow.com/a/45656074).
+
+  Therefore, an admin user is required the first time ntopng is set up to use InfluxDB to allow creation of retention policies and continuous queries. Once the database has been created, a non-privileged user can used.
+
+
    
 Timeseries Configuration
 ------------------------
