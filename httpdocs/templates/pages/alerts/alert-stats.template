@@ -61,6 +61,9 @@
               {* datatable.table *}
             </thead>
           </table>
+
+          <small id="{{ datatable.name }}-query-time" style="display: none;" class="query">{{ i18n('db_search.query_performed') }} <span class="seconds">{}</span> seconds. <span id="{{ datatable.name }}-query" style="display: none;" class="badge bg-secondary">SQL</span></small>
+
         </div>
       </div>
 
@@ -123,6 +126,10 @@
         const alertCard = [$('#alertCard1'),$('#alertCard2')];    
 
         let intervalId;
+
+        $(`#{{ datatable.name }}-query`).click(function(e) {
+            NtopUtils.copyToClipboard($(e.target).attr('title'), "{{i18n('db_search.query_copied')}}", "{{i18n('unable_to_copy_to_clickboard')}}");
+        })
 
         /* Show an overlay to hide loading */
         function toggleOverlays(time = 500) {
@@ -197,10 +204,12 @@
         function printQueryTime($table) {
             const response = $table.ajax.json();
             // if the response contains the query time period
-            if (response.rsp.stats !== undefined) {
-                const msec = response.rsp.stats.query_duration_msec / 1000.0;
+            if (response.rsp.stats !== undefined && response.rsp.stats.query_duration_msec !== undefined) {
+                const sec = response.rsp.stats.query_duration_msec / 1000.0;
+                $(`#{{ datatable.name }}-query-time`).show();
+                $(`#{{ datatable.name }}-query-time .seconds`).text((sec < 0.01) ? '< 0.01' : NtopUtils.ffloat(sec)); // The time is in sec
                 $(`#{{ datatable.name }}-query`).show();
-                $(`#{{ datatable.name }}-query .seconds`).text((msec < 0.001) ? '< 0.001' : msec); // The time is in msec
+                $(`#{{ datatable.name }}-query`).prop('title', response.rsp.stats.query);
             }
         }
 
