@@ -19,13 +19,27 @@ $(function () {
 	    {
 			data: 'column_chart',
 			className: "text-center",
+			orderable: false,
 			width: "15%",
 	    },
 	    {
-			data: 'column_tot_flows'
+			data: 'column_curr_hosts'
 	    },
 	    {
-			data: 'column_tot_bytes'
+			data: 'column_curr_througput',
+			render: (througput, type) => {
+	        if (type !== 'display') return througput;
+	        if (througput !== undefined) {
+	          return NtopUtils.fbits(througput);
+	      }},
+		},
+	    {
+			data: 'column_tot_bytes',
+			render: (bytes, type) => {
+	        if (type !== 'display') return bytes;
+	        if (bytes !== undefined) {
+	          return NtopUtils.bytesToSize(bytes);
+	      }},
 	    },
 	],
 	initComplete: function (settings, json) {

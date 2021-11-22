@@ -341,7 +341,7 @@ else
 	    },
        {
           entry = page_utils.menu_entries.observation_points,
-          hidden = table.len(interface.getObservationPoints() or {}) == 0,
+          hidden = table.len(interface.getObsPointsInfo() or {}) == 0,
           url = '/lua/pro/enterprise/observation_points.lua',
        },
 	 },
@@ -867,7 +867,7 @@ for v,k in pairs(iface_names) do
     ifHdescr[_ifstats.id] = descr
 
     if(ifs.id == _ifstats.id) then
-      observationPoints = interface.getObservationPoints()
+      observationPoints = interface.getObsPointsInfo()["ObsPoints"] or {}
    end
 end
 

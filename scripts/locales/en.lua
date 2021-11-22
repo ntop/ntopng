@@ -2153,7 +2153,8 @@ local lang = {
     ["tot_bytes"] = "Total Bytes",
     ["tot_flows"] = "Total Flows",
     ["tot_traffic"] = "Total Traffic",
-    ["tot_throughput"] = "Total Throughput",
+    ["curr_throughput"] = "Current Throughput",
+    ["curr_hosts"] = "Current Hosts",
   },
   ["flow_fields_description"] = {
     ["appl_latency_ms"] = "Application latency (msec), a.k.a. server response time",

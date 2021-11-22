@@ -301,7 +301,7 @@ function ts_dump.obs_point_update_rrds(when, ifstats, verbose)
 
     ts_utils.append("obs_point:traffic_rcvd", {ifid=ifstats.id, obs_point=obs_point,
               bytes=obs_point_stats["bytes.rcvd"]}, when)
-    -- Save ASN ndpi stats
+    -- Save Observation Points ndpi stats
     if obs_point_stats["ndpi"] ~= nil then
       for proto_name, proto_stats in pairs(obs_point_stats["ndpi"]) do
         ts_utils.append("obs_point:ndpi", {ifid=ifstats.id, obs_point=obs_point, protocol=proto_name,

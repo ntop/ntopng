@@ -199,15 +199,6 @@ function ts_dump.profiles_update_stats(when, ifstats, verbose)
   end
 end
 
-function ts_dump.observation_points_update_stats_rrds(when, ifstats, verbose)
-  local observation_points = interface.getObservationPoints() or {}
-
-  for id, stats in pairs(observation_points) do
-    ts_utils.append("observation_point:flows",   {ifid=ifstats.id, observation_point_id=id, flows=stats["num_collected_flows"]}, when)
-    ts_utils.append("observation_point:traffic", {ifid=ifstats.id, observation_point_id=id, bytes=stats["total_flow_bytes"]}, when)
-  end
-end 
-
 -- ########################################################
 
 local function update_internals_hash_tables_stats(when, ifstats, verbose)
@@ -427,10 +418,6 @@ function ts_dump.run_min_dump(_ifname, ifstats, config, when)
      ts_dump.update_internals_periodic_activities_stats(when, ifstats, verbose)
   end
 
-  if ntop.isPro() and config.observation_points_rrd_creation ~= "0" then
-    ts_dump.observation_points_update_stats_rrds(when, ifstats, verbose)
-  end
-
   -- Save Profile stats every minute
   if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version
     ts_dump.profiles_update_stats(when, ifstats, verbose)
@@ -459,14 +446,12 @@ function ts_dump.getConfig()
 
   config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
   config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
-  config.observation_points_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
   config.internals_rrd_creation = ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1"
   config.is_dump_flows_enabled = ntop.getPrefs()["is_dump_flows_enabled"]
 
   -- Interface RRD creation is on, with per-protocol nDPI
   if isEmptyString(config.interface_ndpi_timeseries_creation) then config.interface_ndpi_timeseries_creation = "per_protocol" end
-  if isEmptyString(config.observation_points_rrd_creation)    then config.observation_points_rrd_creation = "0" end
-
+  
   return config
 end
 

@@ -87,8 +87,8 @@
 {% if(observationPoints ~= nil) then %}
 &nbsp;
 
-{% for k, v in pairsByKeys(observationPoints, asc) do %}
-<form id="switch_interface_form_observation_point_{{ k }}" method="POST" action="{{ ntop.getHttpPrefix() .. "/lua/flows_stats.lua" .. action_urls[interface.getId()] }}&observationPointId={{ k }}" >
+{% for _, v in pairsByKeys(observationPoints, asc) do %}
+<form id="switch_interface_form_observation_point_{{ v["obs_point"] }}" method="POST" action="{{ ntop.getHttpPrefix() .. "/lua/flows_stats.lua" .. action_urls[interface.getId()] }}&observationPointId={{ v["obs_point"] }}" >
   <input name="switch_interface" type="hidden" value="1" />
   <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
   </form>
@@ -100,10 +100,10 @@
 
     {% -- The Observationpoint optgroup %}
       <optgroup label="{{ i18n('observationpoints') }}">
-     {% for k, v in pairsByKeys(observationPoints, asc) do %}
+     {% for _, v in pairsByKeys(observationPoints, asc) do %}
           {% local selected = '' %}
         {% if((observationPointId ~= nil) and (tostring(k) == tostring(observationPointId))) then selected = 'selected' end %}
-        <option value="{{ k }}" {{ selected }}>{{ getObsPointAlias(k, true) }}</option>
+        <option value="{{ v["obs_point"] }}" {{ selected }}>{{ getObsPointAlias(v["obs_point"], true) }}</option>
      {% end %}
       </optgroup>
     </select>
