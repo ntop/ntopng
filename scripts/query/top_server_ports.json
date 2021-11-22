@@ -4,13 +4,17 @@
 	"data_source" : "flows",
 	"visualization_type" : "table",
 	"select" : {
-		"sql" : "IP_DST_PORT, COUNT(*) count",
 		"items" : [
 			{
 				"name" : "IP_DST_PORT"
 			},
 			{
+				"name" : "PROTOCOL"
+			},
+			{
 				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
 				"value_type" : "number"
 			}
 		]
@@ -30,6 +34,9 @@
 		"items" : [
 			{
 				"name" : "IP_DST_PORT"
+			},
+			{
+				"name" : "PROTOCOL"
 			}
 		]
 	},

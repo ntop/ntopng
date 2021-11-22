@@ -503,7 +503,7 @@ local function build_datatable_js_column_port(name, data_name, label, order)
       {name: ']] .. name .. [[', data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
           if (type !== 'display') return ]] .. name .. [[;
           if (]] .. name .. [[ !== undefined)
-             return `<a class='tag-filter' data-tag-value='${]] .. name .. [[}' href='#'>${]] .. name .. [[}</a>`;
+             return `<a class='tag-filter' data-tag-value='${]] .. name .. [[.value}' href='#'>${]] .. name .. [[.label}</a>`;
       }}]] 
    }
 end
