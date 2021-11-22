@@ -160,6 +160,24 @@ Please pay attention that, while flows are selected by the Observation Point whe
 traffic reported for hosts, ASs, networks etc is merged at the interface level regardless of the that.
 This allows statistics not to be duplicated when hosts from different Observation Points talk together.
 
+Observation Points Charts
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To be able to see Observation Points charts it's necessary to enable the corresponding timeseries settings. To do so go to `Settings`, `Timeseries` and scroll down; then enable the `Flow Probes` timeseries.
+
+.. figure:: ../img/flow_probes_timeseries.png
+   :align: center
+   :alt: Flow Probes Timeseries
+
+After that, all the Observation Points timeseries are going to be available (Traffic, Score and Applications timeseries); go to the Observation Points page and click the charts icon to see them. 
+
+.. figure:: ../img/observation_points_ts.png
+   :align: center
+   :alt: Flow Probes Timeseries
+
+.. note::
+
+   The maximum number of Observation Points is 256 and the timeseries data are going to be updated every 5 minutes. If ntopng is restarted, like other timeseries, these data (during the restart period) are going to be put at 0, after that everything is going to be working like usual.
 
 Using Behind a Firewall
 =======================
