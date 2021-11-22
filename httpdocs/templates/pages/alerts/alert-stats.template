@@ -179,7 +179,7 @@
         async function reloadTable($table, ) {
             const searchParams = new URLSearchParams(Object.entries(datasourceParams));
 
-            toggleOverlays();
+            showOverlays();
             
             // reload the table
             $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
@@ -539,10 +539,11 @@
             $table.ajax.reload();
         });
 
-        // on ajax request complete then print the query time
+        // on ajax request
         $table.on('preXhr', function() {
-            toggleOverlays();
         });
+
+        // on ajax request complete then print the query time
         $table.on('xhr', function() {
             printQueryTime($table);
             hideOverlays();
