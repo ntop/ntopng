@@ -38,7 +38,7 @@ end
 interface.select(ifid)
 
 -- Fetch the results
-local alerts, recordsFiltered = network_alert_store:select_request()
+local alerts, recordsFiltered, info = network_alert_store:select_request()
 
 for _, _value in ipairs(alerts or {}) do
    res[#res + 1] = network_alert_store:format_record(_value, no_html)
@@ -48,7 +48,12 @@ if no_html then
    res = network_alert_store:to_csv(res)   
    rest_utils.vanilla_payload_response(rc, res, "text/csv")
 else
-   rest_utils.extended_answer(rc, {records = res}, {
+   local data = {
+      records = res,
+      stats = info,
+   }
+
+   rest_utils.extended_answer(rc, data, {
       ["draw"] = tonumber(_GET["draw"]),
       ["recordsFiltered"] = recordsFiltered,
       ["recordsTotal"] = #res

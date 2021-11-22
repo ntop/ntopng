@@ -35,7 +35,7 @@ end
 interface.select(getSystemInterfaceId())
 
 -- Fetch the results
-local alerts, recordsFiltered = system_alert_store:select_request()
+local alerts, recordsFiltered, info = system_alert_store:select_request()
 
 for _key,_value in ipairs(alerts or {}) do
    local record = system_alert_store:format_record(_value, no_html)
@@ -46,9 +46,14 @@ if no_html then
    res = system_alert_store:to_csv(res)   
    rest_utils.vanilla_payload_response(rc, res, "text/csv")
 else
-   rest_utils.extended_answer(rc, {records = res}, {
-				 ["draw"] = tonumber(_GET["draw"]),
-				 ["recordsFiltered"] = recordsFiltered,
-				 ["recordsTotal"] = #res
-						   }, format)
+   local data = {
+      records = res,
+      stats = info,
+   }
+
+   rest_utils.extended_answer(rc, data, {
+      ["draw"] = tonumber(_GET["draw"]),
+      ["recordsFiltered"] = recordsFiltered,
+      ["recordsTotal"] = #res
+   }, format)
 end

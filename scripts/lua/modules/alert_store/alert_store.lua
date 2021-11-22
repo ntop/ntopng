@@ -650,6 +650,8 @@ function alert_store:select_historical(filter, fields)
    local limit_clause = ''
    local offset_clause = ''
 
+   local begin_time = ntop.gettimemsec()
+
    -- TODO handle fields (e.g. add entity value to WHERE)
 
    -- Select everything by defaul
@@ -704,7 +706,15 @@ function alert_store:select_historical(filter, fields)
       end
    end
 
-   return res
+   local end_time = ntop.gettimemsec() -- Format: 1637330701.5767
+   local duration = (end_time - begin_time) * 1000
+
+   local info = {
+      query_duration_msec = duration,
+      query = q,
+   }
+
+   return res, info
 end
 
 -- ##############################################
@@ -1164,7 +1174,7 @@ function alert_store:select_request(filter, select_fields)
 
       local alerts, total_rows =  self:select_engaged(filter)
 
-      return alerts, total_rows
+      return alerts, total_rows, {}
    else -- Historical
       
       -- Count
@@ -1173,8 +1183,9 @@ function alert_store:select_request(filter, select_fields)
       -- Add limits and sort criteria only after the count has been done
       self:add_request_ranges()
 
-      local res = self:select_historical(filter, select_fields)
-      return res, total_row
+      local res, info = self:select_historical(filter, select_fields)
+
+      return res, total_row, info
    end
 end
 

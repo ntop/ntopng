@@ -40,10 +40,10 @@ interface.select(ifid)
 -- Fetch the results
 local alerts, recordsFiltered
 if ntop.isClickHouseEnabled() then
-   alerts, recordsFiltered = flow_alert_store:select_request(nil, "*")
+   alerts, recordsFiltered, info = flow_alert_store:select_request(nil, "*")
 else
    -- SQLite need conversion to HEX
-   alerts, recordsFiltered = flow_alert_store:select_request(nil, "*, hex(alerts_map) alerts_map")
+   alerts, recordsFiltered, info = flow_alert_store:select_request(nil, "*, hex(alerts_map) alerts_map")
 end
 
 for _, _value in ipairs(alerts or {}) do
@@ -54,7 +54,12 @@ if no_html then
    res = flow_alert_store:to_csv(res)   
    rest_utils.vanilla_payload_response(rc, res, "text/csv")
 else
-   rest_utils.extended_answer(rc, {records = res}, {
+   local data = {
+      records = res,
+      stats = info,
+   }
+
+   rest_utils.extended_answer(rc, data, {
       ["draw"] = tonumber(_GET["draw"]),
       ["recordsFiltered"] = recordsFiltered,
       ["recordsTotal"] = #res
