@@ -9,8 +9,6 @@ local ts_utils = require "ts_utils_core"
 require "ts_5sec"
 local cpu_utils = require "cpu_utils"
 local ts_dump = require "ts_5sec_dump_utils"
-local when = os.time()
-
 
 -- ########################################################
 
@@ -18,11 +16,13 @@ local when = os.time()
 local num_runs = 12
 
 for i=1,num_runs do
+   local when = os.time()
+   
    cpu_utils.compute_cpu_states()
    
    if(ntop.getPref("ntopng.prefs.system_probes_timeseries") ~= "0") then
       local cpu_load = ntop.refreshCPULoad()
-      
+
       if(cpu_load ~= nil) then
 	 ts_utils.append("system:cpu_load", {ifid = interface.getId(), load_percentage = cpu_load}, when)
       end
