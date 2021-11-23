@@ -1,6 +1,6 @@
 {#
     (C) 2021 - ntop.org    
-    Base template for the alert tables.
+    Base template for datatables.
 #}
 
 <link rel="stylesheet" href='{{ ntop.getHttpPrefix() }}/css/apexcharts.css'/>
@@ -36,7 +36,7 @@
             </div>
           </div>
 
-          {% if alert_stats.status ~= "engaged" and ntop.isPro() then %}
+          {% if show_cards then %}
           <div class="col-2 d-none" id="CardDiv1" style="padding-right: 2px;padding-left: 2px;">
             <div class="card border-primary h-100 mb-2" id="Card1">
               <div class="card-header text-start fs-6 fw-bold" data-bs-custom-class="custom-tooltip" title="Loading..." id="alertCardTitle1"> Loading... </div>
@@ -67,28 +67,33 @@
         </div>
       </div>
 
-      {% if alert_stats.entity ~= 'all' then %}
       <div class="card-footer">
+
+        {% if show_permalink then %}
         <button id="btn-get-permalink" class="btn btn-secondary">
           <i class="fas fa-link"></i> {{ i18n('graphs.get_permanent_link') }}
         </button>
+        {% end %}
+
+        {% if show_download then %}
         <a id="btn-download-alerts" download="alerts.txt" class="btn btn-secondary" href="{{ datatable.endpoint_list }}{{ build_query_params(datatable.datasource.params) }}&format=txt">
           <i class="fas fa-file-download"></i> {{ i18n('show_alerts.download_alerts') }}
         </a>
+        {% end %}
 
-        {% if alert_stats.status == "historical" then %}
+        {% if show_acknowledge_all then %}
         <button id="btn-acknowledge-alerts" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#acknowledge-alerts-modal' data-bs-toggle="modal" class="btn btn-primary">
           <i class="fas fa fa-user-check"></i> {{ i18n("acknowledge_alerts")}}
         </button>
         {% end %}
 
-        {% if alert_stats.status ~= "engaged" then %}
+        {% if show_delete_all then %}
         <button id="btn-delete-alerts" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#delete-alerts-modal' data-bs-toggle="modal" class="btn btn-danger">
           <i class="fas fa fa-trash"></i> {{ i18n("delete_alerts")}}
         </button>
         {% end %}
+
       </div>
-      {% end %}
     </div>
   </div>
 </div>
@@ -102,20 +107,18 @@
 </div>
 {% end %}
 
-{* template_utils.gen("pages/modals/alerts/filters/add.template", filters) *}
-
 <link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 <script type="text/javascript">
     i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
 </script>
 <script type='text/javascript'>
-    let alertStats = {};
+    let pageStats = {};
     let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+    let $table;
 
     $(document).ready(function(){
         const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
-        const FAMILY = "{{ alert_stats.entity }}"
-        const PAGE_CSRF = "{{ ntop.getRandomCSRFValue() }}";
+        const FAMILY = "{{ entity }}"
 
         const MAX_SCORE_VALUE = 250;        
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
@@ -196,8 +199,8 @@
             catch(e) {
                 console.warn(e);
             }
-            {% if alert_stats.status ~= "engaged" and ntop.isPro() then %}
-                alertCardStats();
+            {% if show_cards then %}
+            alertCardStats();
             {% end %} 
         }
 
@@ -435,41 +438,34 @@
             {% end %}
 
             /* Actions Column */
-            {% if alert_stats.entity ~= 'all' then %}
+            {% if show_actions then %}
             columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
                 const buttons = [
-                    {% if alert_stats.entity ~= 'system' and datatable.show_admin_controls == true then %}
+                    {% if actions.show_settings then %}
                     {icon: 'fa fa-cog', title: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-primary'},
                     {% end %}
 
                     /* Button to jump to flow alerts within the same time period */
-                    {% if alert_stats.entity == 'host' then %}
+                    {% if actions.show_flows then %}
                     {icon: 'fa-stream', title: "{{ i18n('flows') }}", modal: '#flow_alerts', class: "btn-info"},
 		    {% end %}
 
 		    /* Button to jump to historical nIndex flows */
-                    {% if alert_stats.entity == 'host' or alert_stats.entity == 'flow' then %}
-                       {% if ntop.isEnterpriseM() and hasNindexSupport() and interface.nIndexEnabled(ifid) then %}
+                    {% if actions.show_historical then %}
                           {icon: 'fa-search-plus', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows', class: "btn-info"},
-                       {% end %}
 		    {% end %}
 
                     /* Bell button to disable alerts is only supported for hosts and flows */
-                    {% if (alert_stats.entity == 'host' or alert_stats.entity == 'flow') and datatable.show_admin_controls == true then %}
-                    {icon: 'fa-bell-slash', title: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning {{ ((alert_stats.entity == 'host' or alert_stats.entity == 'flow') and '' or 'disabled') }}"},
+                    {% if actions.show_disable then %}
+                    {icon: 'fa-bell-slash', title: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning"},
                     {% end %}
 
-                    /* Only not-engaged alerts can be deleted */
-                    {% if alert_stats.entity ~= 'all' and datatable.show_admin_controls == true then %}
-
-                    {% if alert_stats.status == "historical" then %}
+                    {% if actions.show_acknowledge then %}
                     {icon: 'fa fa-user-check', title: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog', class: 'btn-primary'},
                     {% end %}
 
-                    {% if alert_stats.status ~= "engaged" then %}
+                    {% if actions.show_delete then %}
                     {icon: 'fa fa-trash', title: "{{ i18n('remove') }}", modal: '#delete_alert_dialog', class: 'btn-danger'},
-                    {% end %}
-
                     {% end %}
                 ];
 
@@ -543,7 +539,8 @@
             intervalId = setInterval(function() { onRangePickerChange(true, true); }, {{ datatable.refresh_rate }});
         {% end %}
 
-        const $table = $(`#{{ datatable.name }}`).DataTable(config);
+        $table = $(`#{{ datatable.name }}`).DataTable(config);
+
         DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
             $table.ajax.reload();
         });
@@ -574,7 +571,7 @@
                 $.post('{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua', { 
                     ifid: {{ ifid }},
                     score: "",
-                    csrf: PAGE_CSRF,
+                    csrf: pageCsrf,
                 });
             }
             if (datasourceParams[key] !== undefined) {
@@ -613,7 +610,7 @@
 
             const tag = detail.data;
 
-            alertStats.filterModalShow(true);
+            pageStats.filterModalShow(true);
 
             $('#add-alert-filter-modal input[name="index"]').val(detail.index);
             $('#alert-filter-type-select').val(tag.key).change();
@@ -703,7 +700,7 @@
         });
 
         /* Cards */
-        {% if alert_stats.status ~= "engaged" and ntop.isPro() then %}
+        {% if show_cards then %}
 
         alertCard.forEach(element=>{
             const card = "#".concat(element[0].id);
@@ -757,308 +754,6 @@
             await onRangePickerChange(true);
         });
 
-        $table.on('click', `a[href='#check_settings']`, function (e) {
-            const alert = $table.row($(this).parent().parent()).data();
-            const check_settings_href = $(alert.msg.configset_ref).attr('href');
-            window.location.href = check_settings_href;
-        });
-
-        $table.on('click', `a[href='#flow_alerts']`, function (e) {
-            /* Create and redirect to the flow alerts filtered by alert timestamps and alert ip */
-
-            /* Prepare URL params */
-            const alert = $table.row($(this).parent().parent()).data();
-            const alert_tstamp = alert.tstamp.value;
-            const duration = alert.duration;
-            const [epoch_begin, epoch_end] = [alert_tstamp - 300 /* Look a bit before than the timestamp */, alert_tstamp + duration];
-            const alert_ip = alert.ip.value + "{{ require("tag_utils").SEPARATOR }}eq";
-
-            const flow_alerts_url = new URL(location);
-            const flow_search_params = {epoch_begin: epoch_begin, epoch_end: epoch_end, page: "flow"};
-
-            /*
-                For server alerts, we redirect to the flow alerts having this IP as server. For client alert, the
-                redirection is done on the client.
-             */
-            if(alert.is_server) {
-                flow_search_params["srv_ip"] = alert_ip;
-            } else { /* Client alert or unkown cli/srv role */
-                flow_search_params["cli_ip"] = alert_ip;
-            }
-
-            flow_alerts_url.search = new URLSearchParams(flow_search_params);
-            window.location.href = flow_alerts_url.href;
-        });
-
-        $table.on('click', `a[href='#past_flows']`, function (e) {
-            /* Create and redirect to the past alerts filtered  */
-
-            const alert = $table.row($(this).parent().parent()).data();
-
-    	    if(alert.link_to_past_flows)
-	    	window.location.href = alert.link_to_past_flows;
-	    else
-	    	window.location.href = `${http_prefix}/lua/pro/nindex_query.lua`;
-        });
-
-        $table.on('click', `a[href='#delete_alert_dialog']`, function (e) {
-            const alert = $table.row($(this).parent().parent()).data();
-            $deleteAlertModal.invokeModalInit(alert);
-        });
-
-        const $deleteAlertModal = $('#delete_alert_dialog form').modalHandler({
-            method: 'post',
-            csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}{* datatable.endpoint_delete *}`,
-            beforeSumbit: function (alert) {
-                return { ifid: "{{ ifid }}", row_id: alert.row_id, status: "{{ alert_stats.status }}"};
-            },
-            onModalInit: function (alert) {
-                $(`#delete_alert_dialog button[type='submit']`).removeAttr("disabled");
-            },
-            onSubmitSuccess: function (response) {
-
-                if (response.rc < 0) {
-                    $('#delete_alert_dialog .invalid-feedback').html(i18n.rest[response.rc_str]).show();
-                }
-                else {
-                    onRangePickerChange(false);
-                }
-
-                return (response.rc == 0);
-            }
-        });
-
-        $(`#btn-acknowledge-alerts`).on('click', function (e) {
-            $acknowledgeFilteredAlerts.invokeModalInit();
-        });
-
-            const $acknowledgeFilteredAlerts = $('#acknowledge-alerts-modal form').modalHandler({
-            method: 'post',
-            csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}{* datatable.endpoint_acknowledge *}`,
-            beforeSumbit: function (alert) {
-                    let post_params = {};
-                for (let key in datasourceParams) {
-                    post_params[key] = (datasourceParams[key]);
-                }
-
-                /* Read the label from the corresponding form field */
-                post_params["label"] = $("#acknowledge-alerts-modal #alert-label-modal").val();
-
-                return post_params;
-            },
-            onModalInit: function () {
-                $(`#acknowledge-alerts-modal button[type='submit']`).removeAttr("disabled");
-                $('#acknowledge-alerts-modal .filters-list').empty();
-                const tags = tagify.getTagElms();
-
-                const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
-                const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
-
-                const sortedTags = tags.sort((a, b) => {
-                    return i18n.tags[tagify.tagData(a).key].localeCompare(i18n.tags[tagify.tagData(b).key])
-                });
-
-                $('#acknowledge-alerts-modal #end-epoch-acknowledge').val(endEpoch);
-                $('#acknowledge-alerts-modal #begin-epoch-acknowledge').val(beginEpoch);
-
-                for (const tag of sortedTags) {
-                    const { key, selectedOperator, realValue, value } = tagify.tagData(tag);
-                    const label = i18n.tags[key]
-                    const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
-
-                    $('#acknowledge-alerts-modal .filters-list').append(child);
-                }
-            },
-            onSubmitSuccess: function (response) {
-                reloadTable($table);
-                return (response.rc == 0);
-            }
-        });
-
-        const $deleteFilteredAlerts = $('#delete-alerts-modal form').modalHandler({
-            method: 'post',
-            csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}{* datatable.endpoint_delete *}`,
-            beforeSumbit: function (alert) {
-                    let post_params = {};
-                for (let key in datasourceParams) {
-                    post_params[key] = (datasourceParams[key]);
-                }
-                    return post_params;
-            },
-            onModalInit: function () {
-
-                $('#delete-alerts-modal .filters-list').empty();
-                const tags = tagify.getTagElms();
-
-                const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
-                const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
-
-                const sortedTags = tags.sort((a, b) => {
-                    return i18n.tags[tagify.tagData(a).key].localeCompare(i18n.tags[tagify.tagData(b).key])
-                });
-
-                $('#delete-alerts-modal #end-epoch-delete').val(endEpoch);
-                $('#delete-alerts-modal #begin-epoch-delete').val(beginEpoch);
-
-                for (const tag of sortedTags) {
-                    const { key, selectedOperator, realValue, value } = tagify.tagData(tag);
-                    const label = i18n.tags[key]
-                    const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
-
-                    $('#delete-alerts-modal .filters-list').append(child);
-                }
-
-                $('#delete-alerts-modal #btn-delete-alerts').prop('disabled', false);
-            },
-            onSubmitSuccess: function (response) {
-                reloadTable($table);
-                return (response.rc == 0);
-            }
-        });
-
-        $(`#btn-delete-alerts`).on('click', function (e) {
-            $deleteFilteredAlerts.invokeModalInit();
-        });
-
-        $table.on('click', `a[href='#alerts_filter_dialog']`, function (e) {
-            const alert = $table.row($(this).parent().parent()).data();
-            $disableAlert.invokeModalInit(alert);
-        });
-
-        const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
-            method: 'post',
-            csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}/lua/pro/rest/v2/edit/check/filter.lua`,
-            beforeSumbit: function (alert) {
-
-                const data = {
-                    alert_key: alert.alert_id.value,
-                    subdir: FAMILY,
-                    script_key: alert.script_key,
-                    delete_alerts: $(`#delete_alerts_switch`).is(":checked"),
-                    alert_addr: $(`[name='alert_addr']:checked`).val(),
-                };
-
-                return data;
-            },
-            onModalInit: function (alert) {
-
-                const $type = $(`<span>${alert.alert_id.label}</span>`);
-                $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
-
-                if (FAMILY === "host") {
-                    const label = (alert.ip.label) ? `${alert.ip.label} (${alert.ip.value})` : alert.ip.value; 
-                    $(`#srv_addr`).text(label);
-                    $(`#srv_radio`).val(alert.ip.value);
-                    $(`#cli_radio`).parent().hide();
-                }
-                else if (FAMILY === "flow") {
-
-                    const cliLabel = (alert.flow.cli_ip.label) ? `${alert.flow.cli_ip.label} (${alert.flow.cli_ip.value})` : alert.flow.cli_ip.value;
-                    const srvLabel = (alert.flow.srv_ip.label) ? `${alert.flow.srv_ip.label} (${alert.flow.srv_ip.value})` : alert.flow.srv_ip.value;
-
-                    $(`#cli_addr`).text(cliLabel);
-                    $(`#cli_radio`).val(alert.flow.cli_ip.value);
-                    $(`#srv_addr`).text(srvLabel);
-                    $(`#srv_radio`).val(alert.flow.srv_ip.value);
-                }
-                else {
-                    $(`.alert_entity_val`).text("Unexpected alert family")
-                }
-
-            },
-            onSubmitSuccess: function (response, dataSent) {
-
-                if (response.rc < 0) {
-                    $('#alerts_filter_dialog .invalid-feedback').html(i18n.rest[response.rc_str] || response.rc_str).show();
-                }
-                else {
-
-                    if (dataSent.delete_alerts) {
-                        location.reload();
-                    }
-                    else {
-                        onRangePickerChange(false);
-                    }
-                }
-
-                return (response.rc == 0);
-            }
-        });
-
-        $table.on('click', `a[href='#acknowledge_alert_dialog']`, function (e) {
-            const alert = $table.row($(this).parent().parent()).data();
-            $acknowledgeAlert.invokeModalInit(alert);
-        });
-
-        const $acknowledgeAlert = $('#acknowledge_alert_dialog form').modalHandler({
-            method: 'post',
-            csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}{* datatable.endpoint_acknowledge *}`,
-            beforeSumbit: function (alert) {
-                return { ifid: "{{ ifid }}",
-                       row_id: alert.row_id,
-                       label: $(`#acknowledge_alert_dialog #alert-label`).val()};
-            },
-            onModalInit: function (alert) {
-                $(`#acknowledge_alert_dialog button[type='submit']`).removeAttr("disabled");
-                const $type = $(`<span>${alert.alert_id.label}</span>`);
-                $(`#acknowledge_alert_dialog .alert_label`).text($type.text().trim());
-                $(`#acknowledge_alert_dialog #alert-label`).val(alert.user_label);
-            },
-            onSubmitSuccess: function (response, dataSent) {
-
-                if (response.rc < 0) {
-                    $('#acknowledge_alert_dialog .invalid-feedback').html(i18n.rest[response.rc_str] || response.rc_str).show();
-                }
-                else {
-
-                    if (dataSent.delete_alerts) {
-                        location.reload();
-                    }
-                    else {
-                        onRangePickerChange(false);
-                    }
-                }
-
-                return (response.rc == 0);
-            }
-        });
-
-        /**
-         * Release Button Handler
-        $table.on('click', `a[href='#release_single_alert']`, function (e) {
-            const alert = $table.row($(this).parent().parent()).data();
-        });
-
-        const $releaseAlertModal = $('#release_single_alert form').modalHandler({
-            method: 'post',
-            csrf: PAGE_CSRF,
-            endpoint: `${http_prefix}/lua/rest/v2/release/{{ alert_stats.entity }}/alerts.lua`,
-            beforeSumbit: function (alert) {
-                return {
-                    ifid: "{{ ifid }}",
-                    row_id: alert.row_id
-                };
-            },
-            onModalInit: function (alert) {
-                $(`#release_single_alert button[type='submit']`).removeAttr("disabled");
-            },
-            onSubmitSuccess: function (response) {
-                if (response.rc < 0) {
-                    $('#release_single_alert .invalid-feedback').html(i18n.rest[response.rc_str]).show();
-                }
-                else {
-                    onRangePickerChange(false);
-                }
-
-                return (response.rc == 0);
-            }
-        });
-         */
 
         /*** Filters modal ***/
 
@@ -1069,7 +764,7 @@
             /* Here it is where we can load dynamic data on time range change */
         }
 
-        alertStats.filterModalShow = function(edit) {
+        pageStats.filterModalShow = function(edit) {
             $('#add-alert-filter-modal-title').text(edit ? "{{i18n('alerts_dashboard.edit_filter')}}" : "{{i18n('alerts_dashboard.add_filter')}}");
             $('#add-alert-filter-btn').text(edit ? "{{i18n('apply')}}" : "{{i18n('add')}}");
             $('#alert-filter-type-select').prop( "disabled", edit ? true : false);
@@ -1172,11 +867,11 @@
         })
 
         /* Cards */
-        {% if alert_stats.status ~= "engaged" and ntop.isPro() then %}
+        {% if show_cards then %}
         
         const [epoch_begin, epoch_end] = getTimestampRange();
         let alertCardStats = () => {
-            let entity = "{{ alert_stats.entity }}"
+            let entity = "{{ entity }}"
             entity = entity.replace("_", "/")
             let params = (new URLSearchParams(datasourceParams)).toString();
             $.getJSON(`${http_prefix}/lua/pro/rest/v2/get/${entity}/alert/general_stats.lua?${params}`,function (data) {
@@ -1186,7 +881,6 @@
                 let cardBox = [$('#Card1'),$('#Card2')];
                 let alertCardTitle = [$('#alertCardTitle1'),$('#alertCardTitle2')];
                 let numCards = 0;
-                let graphWidth;
 
                 for(i=0;i<alertCard.length;i++){
                     if(data.rsp[i] == undefined){
@@ -1230,6 +924,7 @@
                 });
             });
         }
+
     alertCardStats();
         
     {% end %}
@@ -1265,7 +960,7 @@
             $.post(score_url, { 
                 ifid: {{ ifid }},
                 score: inputValue.value,
-                csrf: PAGE_CSRF,
+                csrf: pageCsrf,
             });
         }
     }
@@ -1289,7 +984,7 @@
         $.post(auto_refresh_url, {
             ifid: {{ ifid }},
             alert_page_refresh_rate_enabled: enabled_disabled,
-            csrf: PAGE_CSRF,
+            csrf: pageCsrf,
         })  
         .done(function(rsp) {
             if(enabled_disabled) {
@@ -1305,5 +1000,8 @@
             }
         })
     });
+
+    {* template_utils.gen(extra_js, extra_js_context) *}
+
 });
 </script>

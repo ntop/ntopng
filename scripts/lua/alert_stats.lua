@@ -23,9 +23,6 @@ local alert_store = require "alert_store"
 local ifid = interface.getId()
 local alert_store_instances = alert_store_utils.all_instances_factory()
 
-local user_alert_store = alert_store_instances["user_alert_store"]
-
-
 local alert_score_cached = "ntopng.alert.score.ifid_" .. ifid .. ""
 local refresh_rate = ntop.getPref("ntopng.prefs.alert_page_refresh_rate")
 
@@ -265,7 +262,7 @@ local pages = {
 	endpoint_delete = "/lua/rest/v2/delete/user/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v2/acknowledge/user/alerts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "user"}),
-	hidden = not is_system_interface or (user_alert_store and (not user_alert_store:has_alerts())),
+	hidden = not is_system_interface or not alert_store_instances["user_alert_store"]:has_alerts(),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.user.entity_id)]
     }
 }
@@ -549,6 +546,49 @@ if refresh_rate and refresh_rate > 0 then
     checkbox_checked = "fa-spin"
 end
 
+local datatable = {
+        show_admin_controls = isAdministrator(),
+	name = page .. "-alerts-table",
+        initialLength = getDefaultTableSize(),
+        table = template_utils.gen(string.format("pages/alerts/families/%s/table.template", page), {}),
+        js_columns = template_utils.gen(string.format("pages/alerts/families/%s/table.js.template", page), {}),
+	endpoint_list = endpoint_list,
+	endpoint_delete = endpoint_delete,
+	endpoint_acknowledge = endpoint_acknowledge,
+        cached_column = cached_column,
+        cached_sorting = cached_sorting,
+        refresh_rate = refresh_rate,
+        datasource = Datasource(endpoint_list, {
+            ifid = ifid,
+            epoch_begin = epoch_begin,
+            epoch_end = epoch_end,
+            status = status,
+            alert_id = alert_id,
+            severity = severity,
+	    score = score,
+            ip_version = ip_version,
+            ip = host_ip,
+            name = host_name,
+            cli_ip = cli_ip,
+            srv_ip = srv_ip,
+            cli_name = cli_name,
+            srv_name = srv_name,
+	    cli_port = cli_port,
+            srv_port = srv_port,
+            l7_proto = l7_proto,
+            network_name = network_name,
+            role = role,
+	    role_cli_srv = role_cli_srv,
+	    subtype = subtype,
+        page = page,
+        }),
+        actions = {
+            disable = (page ~= "host" and page ~= "flow")
+        },
+        modals = modals,
+    }
+
+
 local context = {
     template_utils = template_utils,
     json = json,
@@ -557,15 +597,33 @@ local context = {
     widget_gui_utils = widget_gui_utils,
     ifid = ifid,
     isPro = ntop.isPro(),
+
+    show_cards = (status ~= "engaged") and ntop.isPro(),
+
+    -- buttons
+    show_permalink = (page ~= 'all'),
+    show_download = (page ~= 'all'),
+    show_acknowledge_all =  (page ~= 'all') and (status == "historical"),
+    show_delete_all = (page ~= 'all') and (status ~= "engaged"),
+    show_actions = (page ~= 'all'),
+    actions = {
+        show_settings = (page ~= 'system') and isAdministrator(),
+        show_flows = (page == 'host'),
+        show_historical = ((page == 'host') or (page == 'flow')) and ntop.isEnterpriseM() and hasNindexSupport() and interface.nIndexEnabled(ifid),
+        show_disable = ((page == 'host') or (page == 'flow')) and isAdministrator(),
+        show_acknowledge = (page ~= 'all') and (status == "historical") and isAdministrator(),
+        show_delete = (page ~= 'all') and (status ~= "engaged") and isAdministrator(),
+    },
     range_picker = {
         default = status ~= "engaged" and "30min" or "1week",
 	earliest_available_epoch = earliest_available_epoch,
         score = score,
         ifid = ifid,
+        entity = page,
         refresh_enabled = checkbox_checked,
         tags = {
             show_score_filter = true,
-	        enabled = (page ~= 'all'),
+            enabled = (page ~= 'all'),
             tag_operators = tag_utils.tag_operators,
             view_only = true,
             defined_tags = defined_tags[page],
@@ -603,64 +661,29 @@ local context = {
     chart = {
         name = CHART_NAME
     },
-    datatable = {
-        show_admin_controls = isAdministrator(),
-	name = page .. "-alerts-table",
-        initialLength = getDefaultTableSize(),
-        table = template_utils.gen(string.format("pages/alerts/families/%s/table.template", page), {}),
-        js_columns = template_utils.gen(string.format("pages/alerts/families/%s/table.js.template", page), {}),
-	endpoint_list = endpoint_list,
-	endpoint_delete = endpoint_delete,
-	endpoint_acknowledge = endpoint_acknowledge,
-    cached_column = cached_column,
-    cached_sorting = cached_sorting,
-    refresh_rate = refresh_rate,
-        datasource = Datasource(endpoint_list, {
-            ifid = ifid,
-            epoch_begin = epoch_begin,
-            epoch_end = epoch_end,
-            status = status,
-            alert_id = alert_id,
-            severity = severity,
-	    score = score,
-            ip_version = ip_version,
-            ip = host_ip,
-            name = host_name,
-            cli_ip = cli_ip,
-            srv_ip = srv_ip,
-            cli_name = cli_name,
-            srv_name = srv_name,
-	    cli_port = cli_port,
-            srv_port = srv_port,
-            l7_proto = l7_proto,
-            network_name = network_name,
-            role = role,
-	    role_cli_srv = role_cli_srv,
-	    subtype = subtype,
-        page = page,
-        }),
-        actions = {
-            disable = (page ~= "host" and page ~= "flow")
-        },
-        modals = modals,
-    },
-    alert_stats = {
+    datatable = datatable,
+    extra_js = "pages/alerts/datatable.js.template",
+    extra_js_context = {
+        ifid = ifid,
         entity = page,
-        status = status
-    },
-    filters = { -- Context for pages/modals/alerts/filters/add.template
-       alert_utils = alert_utils,
-       alert_consts = alert_consts,
-       available_types = available_filter_types,
-       severities = alert_severities,
-       alert_types = all_alert_types,
-       l7_protocols = interface.getnDPIProtocols(),
-       operators_by_filter = operators_by_filter,
-       tag_operators = tag_utils.tag_operators,
+        alert_status = status,
+        datatable = datatable,
     }
 }
 
-template_utils.render("pages/alerts/alert-stats.template", context)
+local filters_context = { -- Context for pages/modals/alerts/filters/add.template
+    alert_utils = alert_utils,
+    alert_consts = alert_consts,
+    available_types = available_filter_types,
+    severities = alert_severities,
+    alert_types = all_alert_types,
+    l7_protocols = interface.getnDPIProtocols(),
+    operators_by_filter = operators_by_filter,
+    tag_operators = tag_utils.tag_operators,
+}
+
+template_utils.render("pages/modals/alerts/filters/add.template", filters_context)
+template_utils.render("pages/datatable.template", context)
 
 -- append the menu down below the page
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
