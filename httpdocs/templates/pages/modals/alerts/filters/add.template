@@ -1,9 +1,9 @@
-<div class="modal fade" id="add-alert-filter-modal" tabindex="-1" role="dialog" aria-labelledby="add-alert-filter-modal-title"
+<div class="modal fade" id="dt-add-filter-modal" tabindex="-1" role="dialog" aria-labelledby="dt-add-filter-modal-title"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="add-alert-filter-modal-title">{{ i18n("alerts_dashboard.add_filter") }}</h5>
+                <h5 class="modal-title" id="dt-add-filter-modal-title">{{ i18n("alerts_dashboard.add_filter") }}</h5>
                 <div class="modal-close">
                     <div class="confirm-closing" style="display: none;">
                         <span class='mx-2' style="vertical-align: middle;"><b>{{ i18n("alerts_dashboard.abort_add_filter") }}</b></span>

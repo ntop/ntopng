@@ -368,9 +368,9 @@ local modals = {
             no_confirm_id = true
         }
     }),
-    ["delete-alerts-modal"] = template_utils.gen("pages/modals/alerts/delete_alerts.template", {
+    ["dt-delete-modal"] = template_utils.gen("pages/modals/alerts/delete_alerts.template", {
 	    dialog={
-            id      = "delete-alerts-modal",
+            id      = "dt-delete-modal",
             title   = i18n("delete_alerts"),
             label   = "",
             message = i18n("show_alerts.confirm_delete_alerts"),
@@ -378,9 +378,9 @@ local modals = {
 	        apply   = i18n("delete")
 	    }
     }),
-    ["acknowledge-alerts-modal"] = template_utils.gen("pages/modals/alerts/acknowledge_alerts.template",{
+    ["dt-acknowledge-modal"] = template_utils.gen("pages/modals/alerts/acknowledge_alerts.template",{
 	    dialog={
-            id      = "acknowledge-alerts-modal",
+            id      = "dt-acknowledge-modal",
             title   = i18n("acknowledge_alerts"),
             label   = "",
             message = i18n("show_alerts.confirm_acknowledge_alerts"),
@@ -515,7 +515,7 @@ local extra_tags_buttons = ""
 
 if page ~= "all" then
    extra_tags_buttons = [[
-    <button class="btn btn-link" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="alertStats.filterModalShow()"><span><i class="fas fa-plus" data-original-title="" title="]]..i18n("alerts_dashboard.add_filter")..[["></i></span>
+    <button class="btn btn-link" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="pageStats.filterModalShow()"><span><i class="fas fa-plus" data-original-title="" title="]]..i18n("alerts_dashboard.add_filter")..[["></i></span>
     </button>
    ]]
 

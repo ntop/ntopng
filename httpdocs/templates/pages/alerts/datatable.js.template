@@ -75,11 +75,11 @@ const $deleteAlertModal = $('#delete_alert_dialog form').modalHandler({
     }
 });
 
-$(`#btn-acknowledge-alerts`).on('click', function (e) {
+$(`#dt-btn-acknowledge`).on('click', function (e) {
     $acknowledgeFilteredAlerts.invokeModalInit();
 });
 
-const $acknowledgeFilteredAlerts = $('#acknowledge-alerts-modal form').modalHandler({
+const $acknowledgeFilteredAlerts = $('#dt-acknowledge-modal form').modalHandler({
     method: 'post',
     csrf: pageCsrf,
     endpoint: `${http_prefix}{* datatable.endpoint_acknowledge *}`,
@@ -90,13 +90,13 @@ const $acknowledgeFilteredAlerts = $('#acknowledge-alerts-modal form').modalHand
         }
 
         /* Read the label from the corresponding form field */
-        post_params["label"] = $("#acknowledge-alerts-modal #alert-label-modal").val();
+        post_params["label"] = $("#dt-acknowledge-modal #alert-label-modal").val();
 
         return post_params;
     },
     onModalInit: function () {
-        $(`#acknowledge-alerts-modal button[type='submit']`).removeAttr("disabled");
-        $('#acknowledge-alerts-modal .filters-list').empty();
+        $(`#dt-acknowledge-modal button[type='submit']`).removeAttr("disabled");
+        $('#dt-acknowledge-modal .filters-list').empty();
         const tags = tagify.getTagElms();
 
         const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
@@ -106,15 +106,15 @@ const $acknowledgeFilteredAlerts = $('#acknowledge-alerts-modal form').modalHand
             return i18n.tags[tagify.tagData(a).key].localeCompare(i18n.tags[tagify.tagData(b).key])
         });
 
-        $('#acknowledge-alerts-modal #end-epoch-acknowledge').val(endEpoch);
-        $('#acknowledge-alerts-modal #begin-epoch-acknowledge').val(beginEpoch);
+        $('#dt-acknowledge-modal #end-epoch-acknowledge').val(endEpoch);
+        $('#dt-acknowledge-modal #begin-epoch-acknowledge').val(beginEpoch);
 
         for (const tag of sortedTags) {
             const { key, selectedOperator, realValue, value } = tagify.tagData(tag);
             const label = i18n.tags[key]
             const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
 
-            $('#acknowledge-alerts-modal .filters-list').append(child);
+            $('#dt-acknowledge-modal .filters-list').append(child);
         }
     },
     onSubmitSuccess: function (response) {
@@ -123,7 +123,7 @@ const $acknowledgeFilteredAlerts = $('#acknowledge-alerts-modal form').modalHand
     }
 });
 
-const $deleteFilteredAlerts = $('#delete-alerts-modal form').modalHandler({
+const $deleteFilteredAlerts = $('#dt-delete-modal form').modalHandler({
     method: 'post',
     csrf: pageCsrf,
     endpoint: `${http_prefix}{* datatable.endpoint_delete *}`,
@@ -136,7 +136,7 @@ const $deleteFilteredAlerts = $('#delete-alerts-modal form').modalHandler({
     },
     onModalInit: function () {
 
-        $('#delete-alerts-modal .filters-list').empty();
+        $('#dt-delete-modal .filters-list').empty();
         const tags = tagify.getTagElms();
 
         const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
@@ -146,18 +146,18 @@ const $deleteFilteredAlerts = $('#delete-alerts-modal form').modalHandler({
             return i18n.tags[tagify.tagData(a).key].localeCompare(i18n.tags[tagify.tagData(b).key])
         });
 
-        $('#delete-alerts-modal #end-epoch-delete').val(endEpoch);
-        $('#delete-alerts-modal #begin-epoch-delete').val(beginEpoch);
+        $('#dt-delete-modal #end-epoch-delete').val(endEpoch);
+        $('#dt-delete-modal #begin-epoch-delete').val(beginEpoch);
 
         for (const tag of sortedTags) {
             const { key, selectedOperator, realValue, value } = tagify.tagData(tag);
             const label = i18n.tags[key]
             const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
 
-            $('#delete-alerts-modal .filters-list').append(child);
+            $('#dt-delete-modal .filters-list').append(child);
         }
 
-        $('#delete-alerts-modal #btn-delete-alerts').prop('disabled', false);
+        $('#dt-delete-modal #dt-btn-delete').prop('disabled', false);
     },
     onSubmitSuccess: function (response) {
         reloadTable($table);
@@ -165,7 +165,7 @@ const $deleteFilteredAlerts = $('#delete-alerts-modal form').modalHandler({
     }
 });
 
-$(`#btn-delete-alerts`).on('click', function (e) {
+$(`#dt-btn-delete`).on('click', function (e) {
     $deleteFilteredAlerts.invokeModalInit();
 });
 

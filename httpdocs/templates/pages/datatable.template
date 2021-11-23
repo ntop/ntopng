@@ -24,7 +24,6 @@
         </div>
       </div>
 
-
       <div class="card-body">
         <div class="row">
 
@@ -39,18 +38,18 @@
           {% if show_cards then %}
           <div class="col-2 d-none" id="CardDiv1" style="padding-right: 2px;padding-left: 2px;">
             <div class="card border-primary h-100 mb-2" id="Card1">
-              <div class="card-header text-start fs-6 fw-bold" data-bs-custom-class="custom-tooltip" title="Loading..." id="alertCardTitle1"> Loading... </div>
+              <div class="card-header text-start fs-6 fw-bold" data-bs-custom-class="custom-tooltip" title="Loading..." id="sideCardTitle1"> Loading... </div>
               <div class="card-body ms-1">
-                <span class="card-text text-start fs-6" id="alertCard1">Loading...</span>
+                <span class="card-text text-start fs-6" id="sideCard1">Loading...</span>
               </div>
             </div>
           </div>
 
           <div class="col-2 d-none" id="CardDiv2" style="padding-right: 2px;padding-left: 2px;">
             <div class="card border-success h-100 mb-2" id="Card2">
-              <div class="card-header text-start fs-6 fw-bold" data-bs-custom-class="custom-tooltip"  title="Loading..." id="alertCardTitle2"> Loading...</div>
+              <div class="card-header text-start fs-6 fw-bold" data-bs-custom-class="custom-tooltip"  title="Loading..." id="sideCardTitle2"> Loading...</div>
               <div class="card-body ms-1">
-                <span class="card-text text-start fs-6" id="alertCard2">Loading...</span>
+                <span class="card-text text-start fs-6" id="sideCard2">Loading...</span>
               </div>
             </div>
           </div>
@@ -76,19 +75,19 @@
         {% end %}
 
         {% if show_download then %}
-        <a id="btn-download-alerts" download="alerts.txt" class="btn btn-secondary" href="{{ datatable.endpoint_list }}{{ build_query_params(datatable.datasource.params) }}&format=txt">
+        <a id="dt-btn-download" download="alerts.txt" class="btn btn-secondary" href="{{ datatable.endpoint_list }}{{ build_query_params(datatable.datasource.params) }}&format=txt">
           <i class="fas fa-file-download"></i> {{ i18n('show_alerts.download_alerts') }}
         </a>
         {% end %}
 
         {% if show_acknowledge_all then %}
-        <button id="btn-acknowledge-alerts" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#acknowledge-alerts-modal' data-bs-toggle="modal" class="btn btn-primary">
+        <button id="dt-btn-acknowledge" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#dt-acknowledge-modal' data-bs-toggle="modal" class="btn btn-primary">
           <i class="fas fa fa-user-check"></i> {{ i18n("acknowledge_alerts")}}
         </button>
         {% end %}
 
         {% if show_delete_all then %}
-        <button id="btn-delete-alerts" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#delete-alerts-modal' data-bs-toggle="modal" class="btn btn-danger">
+        <button id="dt-btn-delete" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#dt-delete-modal' data-bs-toggle="modal" class="btn btn-danger">
           <i class="fas fa fa-trash"></i> {{ i18n("delete_alerts")}}
         </button>
         {% end %}
@@ -126,7 +125,7 @@
         const $inputBeginEpoch = $(`#begin-epoch`);
         const $inputEndEpoch = $(`#end-epoch`);
         const $btnGetPermaLink = $(`#btn-get-permalink`);
-        const alertCard = [$('#alertCard1'),$('#alertCard2')];    
+        const sideCard = [$('#sideCard1'),$('#sideCard2')];    
 
         let intervalId;
 
@@ -200,7 +199,7 @@
                 console.warn(e);
             }
             {% if show_cards then %}
-            alertCardStats();
+            updateCardStats();
             {% end %} 
         }
 
@@ -356,7 +355,7 @@
             await reloadTable($table);
 
             // update the link of the download button
-            const href = $(`#btn-download-alerts`).attr('href');
+            const href = $(`#dt-btn-download`).attr('href');
             const newDownloadURL = new URL(href, location.origin);
             newDownloadURL.search = new URLSearchParams(datasourceParams);
             newDownloadURL.searchParams.set('format', 'txt');
@@ -366,7 +365,7 @@
             else
                 newDownloadURL.searchParams.delete('score');
 
-            $(`#btn-download-alerts`).attr('href', newDownloadURL.toString());
+            $(`#dt-btn-download`).attr('href', newDownloadURL.toString());
 
             if (pushHistroy) {
                 pushNewHistoryState(begin, end, null, score);
@@ -612,22 +611,22 @@
 
             pageStats.filterModalShow(true);
 
-            $('#add-alert-filter-modal input[name="index"]').val(detail.index);
+            $('#dt-add-filter-modal input[name="index"]').val(detail.index);
             $('#alert-filter-type-select').val(tag.key).change();
 
             let value = tag.realValue || tag.value;
 
-            let value_select = $('#add-alert-filter-modal select[name="value"]');
+            let value_select = $('#dt-add-filter-modal select[name="value"]');
             if (value_select) {
                 value_select.val(value);
             }
 
-            let value_input = $('#add-alert-filter-modal input[name="value"]');
+            let value_input = $('#dt-add-filter-modal input[name="value"]');
             if (value_input) {
                 value_input.val(value);
             }
 
-            let operator_select = $('#add-alert-filter-modal select[name="operator"]');
+            let operator_select = $('#dt-add-filter-modal select[name="operator"]');
             if (operator_select) {
                 operator_select.val(tag.selectedOperator);
             }
@@ -702,7 +701,7 @@
         /* Cards */
         {% if show_cards then %}
 
-        alertCard.forEach(element=>{
+        sideCard.forEach(element=>{
             const card = "#".concat(element[0].id);
             
             $(card).on('click', `a.tag-filter`, async function (e) {
@@ -765,11 +764,11 @@
         }
 
         pageStats.filterModalShow = function(edit) {
-            $('#add-alert-filter-modal-title').text(edit ? "{{i18n('alerts_dashboard.edit_filter')}}" : "{{i18n('alerts_dashboard.add_filter')}}");
+            $('#dt-add-filter-modal-title').text(edit ? "{{i18n('alerts_dashboard.edit_filter')}}" : "{{i18n('alerts_dashboard.add_filter')}}");
             $('#add-alert-filter-btn').text(edit ? "{{i18n('apply')}}" : "{{i18n('add')}}");
             $('#alert-filter-type-select').prop( "disabled", edit ? true : false);
-            $('#add-alert-filter-modal').modal('show');
-            $('#add-alert-filter-modal input[name="index"]').val('');
+            $('#dt-add-filter-modal').modal('show');
+            $('#dt-add-filter-modal input[name="index"]').val('');
         }
 
         const filterModalMakeTag = (formSelector) => {
@@ -829,25 +828,25 @@
        }
 
        /* bind add filter event */
-       $(`#add-alert-filter-modal form`).modalHandler({
+       $(`#dt-add-filter-modal form`).modalHandler({
            /* Note: no endpoint defined, ajax is not used here */
            resetAfterSubmit: false,
-           onModalInit: () => { filterModalCreateTemplateOnSelect(`#add-alert-filter-modal`); },
+           onModalInit: () => { filterModalCreateTemplateOnSelect(`#dt-add-filter-modal`); },
            onModalShow: () => {
                // load the template of the selected filter
-               const $cloned = filterModalCloneTemplate($(`#add-alert-filter-modal select[name='alert_filter_type'] option:selected`).data('alertFilterKey'));
+               const $cloned = filterModalCloneTemplate($(`#dt-add-filter-modal select[name='alert_filter_type'] option:selected`).data('alertFilterKey'));
                if ($cloned) {
-                   $(`#add-alert-filter-modal form .alert-filter-template-container`).empty().append($(`<hr>`), $cloned).show();
+                   $(`#dt-add-filter-modal form .alert-filter-template-container`).empty().append($(`<hr>`), $cloned).show();
                }
            },
            beforeSumbit: () => {
-               $(`#add-alert-filter-modal form button[type='submit']`).click(function () {
-                   $(`#add-alert-filter-modal form span.invalid-feedback`).hide();
+               $(`#dt-add-filter-modal form button[type='submit']`).click(function () {
+                   $(`#dt-add-filter-modal form span.invalid-feedback`).hide();
                });
 
-               $(`#add-alert-filter-modal .test-feedback`).hide();
+               $(`#dt-add-filter-modal .test-feedback`).hide();
 
-               const tag = filterModalMakeTag(`#add-alert-filter-modal form`);
+               const tag = filterModalMakeTag(`#dt-add-filter-modal form`);
 
                addFilterTag(tag);
 
@@ -855,8 +854,8 @@
            },
            onSubmitSuccess: (response) => {
                // hide modal
-               $(`#add-alert-filter-modal`).modal('hide');
-               $(`#add-alert-filter-modal form .alert-filter-template-container`).hide();
+               $(`#dt-add-filter-modal`).modal('hide');
+               $(`#dt-add-filter-modal form .alert-filter-template-container`).hide();
                return true;
            }
        }).invokeModalInit();
@@ -870,7 +869,7 @@
         {% if show_cards then %}
         
         const [epoch_begin, epoch_end] = getTimestampRange();
-        let alertCardStats = () => {
+        let updateCardStats = () => {
             let entity = "{{ entity }}"
             entity = entity.replace("_", "/")
             let params = (new URLSearchParams(datasourceParams)).toString();
@@ -879,17 +878,17 @@
                 let chartBox = $('#ChartDiv')
                 let divBox = [$('#CardDiv1'),$('#CardDiv2')];
                 let cardBox = [$('#Card1'),$('#Card2')];
-                let alertCardTitle = [$('#alertCardTitle1'),$('#alertCardTitle2')];
+                let sideCardTitle = [$('#sideCardTitle1'),$('#sideCardTitle2')];
                 let numCards = 0;
 
-                for(i=0;i<alertCard.length;i++){
+                for(i=0;i<sideCard.length;i++){
                     if(data.rsp[i] == undefined){
                         divBox[i].attr({
                                 "class" : "col-2 d-none"
                         });
                     }else{
-                        alertCardTitle[i].html(data.rsp[i].label);
-                        alertCardTitle[i].attr({
+                        sideCardTitle[i].html(data.rsp[i].label);
+                        sideCardTitle[i].attr({
                             "title" : data.rsp[i].tooltip                
                         });
                         let cardText = "";
@@ -906,7 +905,7 @@
                                 divBox[i].attr({
                                         "class" : "col-2 mb-2"
                                 });
-                            alertCard[i].html("<small>" + cardText + "</small>");
+                            sideCard[i].html("<small>" + cardText + "</small>");
                             numCards += 1;
                         }else{
                                 divBox[i].attr({
@@ -925,83 +924,82 @@
             });
         }
 
-    alertCardStats();
+        updateCardStats();
         
-    {% end %}
+        {% end %}
 
-    /* Score input tag handling */
-    var inputValue = document.getElementById("input-score-value");
+        /* Score input tag handling */
+        var inputValue = document.getElementById("input-score-value");
 
-    /* Into the `All` tab, no score input is present, prevent errors */
-    if(inputValue) {
-        if(inputValue.value){
-            const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte" };
-            addFilterTag(tag);
-        }
-
-        /* Max value handling, checking the input value */
-        inputValue.oninput = function() { if(this.value > MAX_SCORE_VALUE) inputValue.value = MAX_SCORE_VALUE; };
-        
-        /* Checking the change */
-        inputValue.onchange = function() {
-            /* Update the value */
-            if(inputValue.value != 0){
-                const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte"};
+        /* Into the `All` tab, no score input is present, prevent errors */
+        if(inputValue) {
+            if(inputValue.value){
+                const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte" };
                 addFilterTag(tag);
-            } 
-            /* Remove the score tag, value removed or no value inserted */
-            else {
-                const score_tag = getScoreTag();
-                if(score_tag) tagify.removeTags(score_tag);
             }
 
-            /* Do a post to update the new score value and reuse in the next access */
-            const score_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua'
-            $.post(score_url, { 
-                ifid: {{ ifid }},
-                score: inputValue.value,
-                csrf: pageCsrf,
-            });
-        }
-    }
-
-    /* HTTP copy URL button */
-    $table.on('click', `#copyHttpUrl`, function (e) {
-        let sampleTextarea = document.createElement("textarea");
-        document.body.appendChild(sampleTextarea);
-        sampleTextarea.value = this.parentElement.getElementsByTagName('a')[0].href; //url
-        sampleTextarea.select(); //select textarea content
-        document.execCommand("copy");
-        document.body.removeChild(sampleTextarea);
-    });
-
-
-    /* Auto-refresh handling */
-    $(`#autoRefreshEnabled`).on('click', async function(e) {
-        const enabled_disabled = ($(`#autoRefreshIcon`).hasClass('fa-spin') == false);
-        const auto_refresh_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/auto_refresh.lua' 
-
-        $.post(auto_refresh_url, {
-            ifid: {{ ifid }},
-            alert_page_refresh_rate_enabled: enabled_disabled,
-            csrf: pageCsrf,
-        })  
-        .done(function(rsp) {
-            if(enabled_disabled) {
-                if (rsp.rsp.refresh_rate > 0 && !intervalId) {
-                    intervalId = setInterval(function() { onRangePickerChange(true, true); }, rsp.rsp.refresh_rate);
-                    $(`#autoRefreshIcon`).addClass('fa-spin');
+            /* Max value handling, checking the input value */
+            inputValue.oninput = function() { if(this.value > MAX_SCORE_VALUE) inputValue.value = MAX_SCORE_VALUE; };
+        
+            /* Checking the change */
+            inputValue.onchange = function() {
+                /* Update the value */
+                if(inputValue.value != 0){
+                    const tag = { label: "Score", key: "score", value: inputValue.value, realValue: inputValue.value, title: "Score", selectedOperator: "gte"};
+                    addFilterTag(tag);
+                } 
+                /* Remove the score tag, value removed or no value inserted */
+                else {
+                    const score_tag = getScoreTag();
+                    if(score_tag) tagify.removeTags(score_tag);
                 }
-            }
-            else {
-                clearInterval(intervalId);
-                intervalId = null;
-                $(`#autoRefreshIcon`).removeClass('fa-spin');
-            }
-        })
-    });
 
-    {* template_utils.gen(extra_js, extra_js_context) *}
+                /* Do a post to update the new score value and reuse in the next access */
+                const score_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua'
+                $.post(score_url, { 
+                    ifid: {{ ifid }},
+                    score: inputValue.value,
+                    csrf: pageCsrf,
+                });
+            }
+        }
+
+        /* HTTP copy URL button */
+        $table.on('click', `#copyHttpUrl`, function (e) {
+            let sampleTextarea = document.createElement("textarea");
+            document.body.appendChild(sampleTextarea);
+            sampleTextarea.value = this.parentElement.getElementsByTagName('a')[0].href; //url
+            sampleTextarea.select(); //select textarea content
+            document.execCommand("copy");
+            document.body.removeChild(sampleTextarea);
+        });
+
+        /* Auto-refresh handling */
+        $(`#autoRefreshEnabled`).on('click', async function(e) {
+            const enabled_disabled = ($(`#autoRefreshIcon`).hasClass('fa-spin') == false);
+            const auto_refresh_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/auto_refresh.lua' 
+
+            $.post(auto_refresh_url, {
+                ifid: {{ ifid }},
+                alert_page_refresh_rate_enabled: enabled_disabled,
+                csrf: pageCsrf,
+            })  
+            .done(function(rsp) {
+                if(enabled_disabled) {
+                    if (rsp.rsp.refresh_rate > 0 && !intervalId) {
+                        intervalId = setInterval(function() { onRangePickerChange(true, true); }, rsp.rsp.refresh_rate);
+                        $(`#autoRefreshIcon`).addClass('fa-spin');
+                    }
+                }
+                else {
+                    clearInterval(intervalId);
+                    intervalId = null;
+                    $(`#autoRefreshIcon`).removeClass('fa-spin');
+                }
+            })
+        });
+
+        {* template_utils.gen(extra_js, extra_js_context) *}
 
 });
 </script>
