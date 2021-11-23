@@ -42,6 +42,7 @@ local function run_am_check(params, all_hosts, granularity)
   end
 
   if table.empty(all_hosts) then
+     if(do_trace) then print("[ActiveMonitoring] Nothing to do\n") end
     return
   end
 

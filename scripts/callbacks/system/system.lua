@@ -2,6 +2,8 @@
 -- (C) 2019-21 - ntop.org
 --
 
+-- This script is run by ntop.checkSystemScriptsMin()
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
@@ -24,7 +26,7 @@ local configset = nil
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
-   if do_trace then print("alert.lua:setup("..str_granularity..") called\n") end
+   if do_trace then print("system.lua:setup("..str_granularity..") called\n") end
 
    interface.select(getSystemInterfaceId())
    ifid = interface.getId()
@@ -46,7 +48,7 @@ end
 
 -- The function below ia called once (#pragma once)
 function teardown(str_granularity)
-   if(do_trace) then print("alert.lua:teardown("..str_granularity..") called\n") end
+   if(do_trace) then print("system.lua:teardown("..str_granularity..") called\n") end
 
    checks.teardown(available_modules, do_benchmark, do_print_benchmark)
 end
@@ -55,6 +57,8 @@ end
 
 -- The function below is called once
 function runScripts(granularity)
+   if do_trace then print("system.lua:runScripts("..granularity..") called\n") end
+   
   if table.empty(available_modules.hooks[granularity]) then
     if(do_trace) then print("system:runScripts("..granularity.."): no modules, skipping\n") end
     return
