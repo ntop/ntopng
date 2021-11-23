@@ -49,7 +49,8 @@ const REGEXES = {
 	email: "^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)$",
 	https: "^https?://.+$",
 	token: "^[0-9a-f]{32}",
-        score: "^[0-9]{1,5}"
+    score: "^[0-9]{1,5}",
+    telegram_channel: "^[0-9]{1,15}"
 };
 
 class NtopUtils {
