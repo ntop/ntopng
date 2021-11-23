@@ -475,10 +475,6 @@ function alert_store:add_filter_condition(field, op, value, value_type)
       op = 'eq'
    end
 
-   if field == 'score' then
-      op = 'gte'
-   end
-
    if value_type == 'number' then
      value = tonumber(value)
    end
