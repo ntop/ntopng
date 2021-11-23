@@ -128,8 +128,6 @@ else
     score = score[1]
 end
 
-local show_score_filter = true
-
 sendHTTPContentTypeHeader('text/html')
 
 local is_system_interface = page_utils.is_system_view()
@@ -615,8 +613,6 @@ local context = {
     entity = page,
     isPro = ntop.isPro(),
 
-    show_score_filter = show_score_filter,
-
     show_cards = (status ~= "engaged") and ntop.isPro(),
     endpoint_cards = endpoint_cards,
 
@@ -642,7 +638,6 @@ local context = {
         ifid = ifid,
         refresh_enabled = checkbox_checked,
         tags = {
-            show_score_filter = true,
             enabled = (page ~= 'all'),
             tag_operators = tag_utils.tag_operators,
             view_only = true,
@@ -651,9 +646,9 @@ local context = {
             i18n = {
                 auto_refresh_descr = i18n("auto_refresh_descr"),
                 enable_auto_refresh = auto_refresh_text,
-	            alert_id = i18n("tags.alert_id"),
+	        alert_id = i18n("tags.alert_id"),
                 severity = i18n("tags.severity"),
-		        score = i18n("tags.score"),
+		score = i18n("tags.score"),
                 l7_proto = i18n("tags.l7proto"),
                 cli_ip = i18n("tags.cli_ip"),
                 srv_ip = i18n("tags.srv_ip"),

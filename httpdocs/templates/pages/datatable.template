@@ -248,15 +248,6 @@
         function updateNavbarLink(url, begin, end, element) {
             const searchParams = getSearchParams();
 
-            {% if show_score_filter then %}
-            const score = getScore();
-            if(score != '0;gte'){
-                searchParams.set('score', score);
-            } else {
-                searchParams.delete('score');
-            }
-            {% end %}
-
             searchParams.set('epoch_begin', begin.unix());
             searchParams.set('epoch_end', end.unix());
             
@@ -293,17 +284,12 @@
             $(element).attr('href', cur_url.toString());
         }
 
-        function pushNewHistoryState(begin, end, len, score) {
+        function pushNewHistoryState(begin, end, len) {
             const url = new URL(location);
 
             const searchParams = getSearchParams();
             searchParams.set('epoch_begin', begin.unix());
             searchParams.set('epoch_end', end.unix());
-
-            {% if show_score_filter then %}
-            if(score !== '0;gte') 
-                searchParams.set('score', getScore());
-            {% end %}
 
             if (url.searchParams.has('status')) {
                 searchParams.set('status', url.searchParams.get('status'));
@@ -341,7 +327,6 @@
         async function onRangePickerChange(pushHistroy = false, updateDatetimeUsingPresets = false) {
             const [begin, end] = getTimestampRange(updateDatetimeUsingPresets);
             setDatasourceParams();
-            let score = 0;
 
             await reloadTable($table);
 
@@ -351,18 +336,10 @@
             newDownloadURL.search = new URLSearchParams(datasourceParams);
             newDownloadURL.searchParams.set('format', 'txt');
 
-            {% if show_score_filter then %}
-            score = getScore();
-            if(score !== '0;gte') 
-                newDownloadURL.searchParams.set('score', getScore());
-            else
-                newDownloadURL.searchParams.delete('score');
-            {% end %}
-
             $(`#dt-btn-download`).attr('href', newDownloadURL.toString());
 
             if (pushHistroy) {
-                pushNewHistoryState(begin, end, null, score);
+                pushNewHistoryState(begin, end, null);
             }
         }
 
@@ -370,11 +347,6 @@
             /* Convert values to string (this avoids issues e.g. with 0) */
             if (typeof tag.realValue == 'number') { tag.realValue = ''+tag.realValue; }
             if (typeof tag.value == 'number') { tag.value = ''+tag.value; }
-
-            {% if show_score_filter then %}
-            if (tag.key === 'score' && tag.selectedOperator === 'gte') 
-                $('#input-score-value')[0].value = tag.value; 
-            {% end %}
 
             const existingTagElms = tagify.getTagElms();
             
@@ -395,11 +367,7 @@
             existingTagElement = existingTagElms[tag.index] || existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
                 
             /* Lookup by index (allow key dup, replace the value only if it's the same element index) */
-            if ((tag.index && existingTagElms.length > tag.index)
-                {% if show_score_filter then %}
-                 || (tag.key === 'score' && existingTagElement)
-                {% end %}
-                ) {
+            if ((tag.index && existingTagElms.length > tag.index)) {
                 existingTag = tagify.tagData(existingTagElement);
 
                 // replace the tag!
@@ -566,16 +534,6 @@
             if (key === undefined) {
                 return;
             }
-            {% if show_score_filter then %}
-            if(key == 'score') {
-                $('#input-score-value')[0].value = "";
-                $.post('{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua', { 
-                    ifid: {{ ifid }},
-                    score: "",
-                    csrf: pageCsrf,
-                });
-            }
-            {% end %}
             if (datasourceParams[key] !== undefined) {
                 delete datasourceParams[key];
             }

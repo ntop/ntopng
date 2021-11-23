@@ -124,31 +124,7 @@
             </div>
         </div>
     
-    {% if tags.enabled and tags.show_score_filter then %}
-        <div class="d-flex align-items-center mx-2 ">
-            <label for="range-bar" class="form-label m-0 text-nowrap">
-                <div class="input-group">
-                    <span class="input-group-text" title="Alert Min. Score">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </span>
-                    <input type="text" id="input-score-value" class="form-control" value="{{ score }}" name="test" style="width: 5rem; max-width: 8rem; text-align: center;" placeholder="Score">
-                </div>
-            </label>
-            <button id="btn-apply" class="btn btn-sm btn-primary m-auto ms-1">{{ i18n("apply") }}</button>
-
-        </div>
-        <div class="d-flex align-items-center ms-auto">
-            <div>
-                <i class="fas fa-question-circle" title="{{ i18n("auto_refresh_descr") }}"></i>
-            </div>
-            <div class="mx-2" id="autoRefreshEnabled" style="cursor: pointer;">
-                <i id="autoRefreshIcon" class="fas fa-sync-alt fa-lg btn-link {{ refresh_enabled }}"></i>
-            </div>
-            <a href="{{ ntop.getHttpPrefix }}/lua/admin/prefs.lua?tab=alerts"><i class="fas fa-cog fa-lg"></i></a>
-        </div>
-    {% else %}
-            <button id="btn-apply" class="btn btn-sm btn-primary m-auto ms-1">{{ i18n("apply") }}</button>
-    {% end %}
+        <button id="btn-apply" class="btn btn-sm btn-primary m-auto ms-1">{{ i18n("apply") }}</button>
     </div>
     
 
