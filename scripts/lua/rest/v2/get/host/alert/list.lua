@@ -37,15 +37,6 @@ end
 
 interface.select(ifid)
 
--- Remember the score filter (see also alert_stats.lua)
-local alert_score_cached = "ntopng.alert.score.ifid_" .. ifid .. ""
-local score = _GET["score"]
-if isEmptyString(score) then
-  ntop.delCache(alert_score_cached)
-else
-  ntop.setCache(alert_score_cached, score)
-end
-
 -- Fetch the results
 local alerts, recordsFiltered, info = host_alert_store:select_request()
 

@@ -121,7 +121,7 @@ local subtype = _GET["subtype"]
 
 --------------------------------------------------------------
 
--- Remember the score filter (see also et/host/alert/list.lua)
+-- Remember the score filter (see also alert_store.lua)
 if isEmptyString(score) then
    score = ntop.getCache(alert_score_cached)
    _GET["score"] = score

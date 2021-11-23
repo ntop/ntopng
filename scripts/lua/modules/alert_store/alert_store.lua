@@ -1253,6 +1253,7 @@ end
 
 --@brief Add filters according to what is specified inside the REST API
 function alert_store:add_request_filters()
+   local ifid = _GET["ifid"]
    local epoch_begin = tonumber(_GET["epoch_begin"])
    local epoch_end = tonumber(_GET["epoch_end"])
    local alert_id = _GET["alert_id"] or _GET["alert_type"] --[[ compatibility ]]--
@@ -1260,6 +1261,14 @@ function alert_store:add_request_filters()
    local score = _GET["score"]
    local rowid = _GET["row_id"]
    local status = _GET["status"]
+
+   -- Remember the score filter (see also alert_stats.lua)
+   local alert_score_cached = "ntopng.alert.score.ifid_" .. ifid .. ""
+   if isEmptyString(score) then
+      ntop.delCache(alert_score_cached)
+   else
+      ntop.setCache(alert_score_cached, score)
+   end
 
    self:add_status_filter(status)
    self:add_time_filter(epoch_begin, epoch_end)
@@ -1271,7 +1280,6 @@ function alert_store:add_request_filters()
    
    if(ntop.isClickHouseEnabled()) then
       -- Clickhouse db has the column 'interface_id', filter by that per interface
-      local ifid = _GET["ifid"]
       self:add_filter_condition_list('rowid', rowid, 'string')
       self:add_filter_condition_list('interface_id', ifid, 'number')
    else
