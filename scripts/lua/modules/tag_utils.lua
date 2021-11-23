@@ -510,7 +510,7 @@ local function build_datatable_js_column_ip(name, data_name, label, order)
             if (]] .. name .. [[.reference !== undefined)
                 html_ref = ]] .. name .. [[.reference;
                 
-            return `<a class='tag-filter' data-tag-key='${]] .. name .. [[.tag_key}' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a> ${]] .. name .. [[.label}</a> ${]] .. name .. [[.location.label} ${html_ref}`;
+            return `<a class='tag-filter' data-tag-key='${]] .. name .. [[.tag_key}' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a> ${]] .. name .. [[.location.label} ${html_ref}`;
         }}}]] }
 end
 
