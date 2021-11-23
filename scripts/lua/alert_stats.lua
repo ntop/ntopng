@@ -23,6 +23,9 @@ local alert_store = require "alert_store"
 local ifid = interface.getId()
 local alert_store_instances = alert_store_utils.all_instances_factory()
 
+local user_alert_store = alert_store_instances["user_alert_store"]
+
+
 local alert_score_cached = "ntopng.alert.score.ifid_" .. ifid .. ""
 local refresh_rate = ntop.getPref("ntopng.prefs.alert_page_refresh_rate")
 
@@ -262,7 +265,7 @@ local pages = {
 	endpoint_delete = "/lua/rest/v2/delete/user/alerts.lua",
 	endpoint_acknowledge = "/lua/rest/v2/acknowledge/user/alerts.lua",
 	url = getPageUrl(base_url_historical_only, {page = "user"}),
-	hidden = not is_system_interface or not alert_store_instances["user_alert_store"]:has_alerts(),
+	hidden = not is_system_interface or (user_alert_store and (not user_alert_store:has_alerts())),
 	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.user.entity_id)]
     }
 }
