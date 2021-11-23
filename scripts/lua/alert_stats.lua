@@ -103,7 +103,7 @@ local time_range_query = "epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
 
 local alert_id = _GET["alert_id"]
 local severity = _GET["severity"]
-local score = _GET["score"] or ntop.getCache(alert_score_cached)
+local score = _GET["score"]
 local ip_version = _GET["ip_version"]
 local host_ip = _GET["ip"]
 local host_name = _GET["name"]
@@ -121,11 +121,10 @@ local subtype = _GET["subtype"]
 
 --------------------------------------------------------------
 
+-- Remember the score filter (see also et/host/alert/list.lua)
 if isEmptyString(score) then
-    score = nil
-else
-    score = split(score, ";")
-    score = score[1]
+   score = ntop.getCache(alert_score_cached)
+   _GET["score"] = score
 end
 
 sendHTTPContentTypeHeader('text/html')
@@ -634,7 +633,6 @@ local context = {
     range_picker = {
         default = status ~= "engaged" and "30min" or "1week",
 	earliest_available_epoch = earliest_available_epoch,
-        score = score,
         ifid = ifid,
         refresh_enabled = checkbox_checked,
         tags = {
