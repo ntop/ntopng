@@ -30,17 +30,27 @@ end
 
 -- periodic discovery enabled
 local discovery_enabled = (ntop.getPref("ntopng.prefs.is_periodic_network_discovery_enabled") == "1")
-if discovery_enabled then
-   local discovery_interval = ntop.getPref("ntopng.prefs.network_discovery_interval")
-   if isEmptyString(discovery_interval) then discovery_interval = 15 * 60 --[[ 15 minutes --]] end
+local discovery_interval = ntop.getPref("ntopng.prefs.network_discovery_interval")
 
-   local now = os.time()
-   local diff = now % tonumber(discovery_interval)
+-- io.write("discover.lua ["..os.time().."]\n")
 
-   if diff < 5 then
-      callback_utils.foreachInterface(ifnames, periodic_discovery_condition, discovery_function)
+-- Run this script for a minute before quitting (this reduces load on Lua VM infrastructure)
+local num_runs = 12
+
+for i=1,num_runs do
+   if discovery_enabled then  
+      if isEmptyString(discovery_interval) then discovery_interval = 15 * 60 --[[ 15 minutes --]] end
+
+      local now = os.time()
+      local diff = now % tonumber(discovery_interval)
+      
+      if diff < 5 then
+	 callback_utils.foreachInterface(ifnames, periodic_discovery_condition, discovery_function)
+      end
    end
+   
+   -- discovery requests performed by the user from the GUI
+   callback_utils.foreachInterface(ifnames, oneshot_discovery_condition, discovery_function)
+   
+   ntop.msleep(5000) -- 5 seconds frequency
 end
-
--- discovery requests performed by the user from the GUI
-callback_utils.foreachInterface(ifnames, oneshot_discovery_condition, discovery_function)

@@ -10,7 +10,17 @@ package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" ..
 local recipients = require "recipients"
 local periodicity = 3
 
-local now = os.time()
+-- io.write("notifications.lua ["..os.time().."]["..periodicity.."]\n")
 
--- Do the actual processing
-recipients.process_notifications(now, now + periodicity --[[ deadline --]], periodicity)
+-- Run this script for a minute before quitting (this reduces load on Lua VM infrastructure)
+local num_runs = 60 / periodicity
+local sleep_duration = periodicity * 1000
+
+for i=1,num_runs do
+   local now = os.time()
+   
+   -- Do the actual processing
+   recipients.process_notifications(now, now + periodicity --[[ deadline --]], periodicity)
+
+   ntop.msleep(sleep_duration)
+end
