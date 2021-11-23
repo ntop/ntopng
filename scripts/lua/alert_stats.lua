@@ -686,7 +686,7 @@ local context = {
     }
 }
 
-template_utils.render("pages/datatable.template", context)
+template_utils.render("pages/components/datatable.template", context)
 
 -- append the menu down below the page
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
