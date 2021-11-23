@@ -242,7 +242,11 @@ end
 -- ##############################################
 
 function rev(a,b)
-   return (a > b)
+   if((a == nil) or (b == nil)) then
+      return false
+   else
+      return (a > b)
+   end
 end
 
 -- ##############################################
