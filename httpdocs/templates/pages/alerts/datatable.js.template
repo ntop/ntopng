@@ -305,3 +305,53 @@ const $releaseAlertModal = $('#release_single_alert form').modalHandler({
     }
 });
  */
+
+function getScore() {
+    let score = 0;
+
+    if($(`#input-score-value`).length)
+        score = $(`#input-score-value`)[0].value || 0;
+
+    return score +";gte";
+}
+
+function getScoreTag() {
+    const existingTagElms = tagify.getTagElms();
+    return existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === 'score' && htmlTag.getAttribute('selectedOperator') === 'gte');
+}
+
+/* Score input tag handling */
+if($(`#input-score-value`).length) {
+    let inputValue = $(`#input-score-value`).val();
+    if(inputValue) {
+        const tag = { label: "Score", key: "score", value: inputValue, realValue: inputValue, title: "Score", selectedOperator: "gte" };
+        addFilterTag(tag);
+    }
+
+    /* Max value handling, checking the input value */
+    $(`#input-score-value`).on('input', function() { if(this.value > MAX_SCORE_VALUE) $(`#input-score-value`).val(MAX_SCORE_VALUE); });
+
+    /* Checking the change */
+    $(`#input-score-value`).change(function() {
+        /* Update the value */
+        let inputValue = $(`#input-score-value`).val();
+        if(inputValue != 0) {
+            const tag = { label: "Score", key: "score", value: inputValue, realValue: inputValue, title: "Score", selectedOperator: "gte"};
+            addFilterTag(tag);
+        } 
+        /* Remove the score tag, value removed or no value inserted */
+        else {
+            const score_tag = getScoreTag();
+            if(score_tag) tagify.removeTags(score_tag);
+        }
+
+        /* Do a post to update the new score value and reuse in the next access */
+        const score_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/score.lua'
+        $.post(score_url, { 
+            ifid: {{ ifid }},
+            score: inputValue,
+            csrf: pageCsrf,
+        });
+    });
+}
+
