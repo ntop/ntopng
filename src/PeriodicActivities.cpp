@@ -139,10 +139,10 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   
   static activity_descr ad[] = {
     // Script                 Periodicity (s) Max (s)  Pool                        Align  !View  !PCAP
-    { SECOND_SCRIPT_PATH,                    1,     2, standard_priority_pool,     false, false, true  },
-    { STATS_UPDATE_SCRIPT_PATH,              5,    10, standard_priority_pool,     false, false, true  },
+    { SECOND_SCRIPT_PATH,                    1,    65, standard_priority_pool,     false, false, true  },  /* 60 sec + 5 extra sec (#6091) */
+    { STATS_UPDATE_SCRIPT_PATH,              5,    65, standard_priority_pool,     false, false, true  },  /* 60 sec + 5 extra sec (#6091) */
 
-    { HOUSEKEEPING_SCRIPT_PATH,              3,     6, housekeeping_pool,          false, false, false  },
+    { HOUSEKEEPING_SCRIPT_PATH,              3,    65, housekeeping_pool,          false, false, false }, /* 60 sec + 5 extra sec (#6091) */
 
     { MINUTE_SCRIPT_PATH,                   60,    60, no_priority_pool,           false, false, true },
     { DAILY_SCRIPT_PATH,                 86400,  3600, no_priority_pool,           true,  false, true },
@@ -151,7 +151,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 #endif
     
     { TIMESERIES_SCRIPT_PATH,                1,  3600, timeseries_pool,            false, false, true  },
-    { NOTIFICATIONS_SCRIPT_PATH,             3,     6, notifications_pool,         false, false, false },
+    { NOTIFICATIONS_SCRIPT_PATH,             3,    65, notifications_pool,         false, false, false }, /* 60 sec + 5 extra sec (#6091) */
 
     { FIVE_MINUTES_SCRIPT_PATH,            300,   300, longrun_priority_pool,      false, false, true },
     { HOURLY_SCRIPT_PATH,                 3600,   600, longrun_priority_pool,      false, false, true },
