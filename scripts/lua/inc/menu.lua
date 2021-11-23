@@ -1054,7 +1054,7 @@ print([[
       </a>
    </li>
    <li>
-      <a class="dropdown-item" href="#reboot_dialog" data-bs-toggle="dropdown"e="modal">
+      <a class="dropdown-item" href="#reboot_dialog" data-bs-toggle="modal">
          <i class="fas fa-redo"></i> ]]..i18n("nedge.reboot")..[[
       </a>
    </li>
