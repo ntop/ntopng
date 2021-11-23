@@ -3,10 +3,10 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="dt-add-filter-modal-title">{{ i18n("alerts_dashboard.add_filter") }}</h5>
+                <h5 class="modal-title" id="dt-add-filter-modal-title">{{ i18n("datatable.add_filter") }}</h5>
                 <div class="modal-close">
                     <div class="confirm-closing" style="display: none;">
-                        <span class='mx-2' style="vertical-align: middle;"><b>{{ i18n("alerts_dashboard.abort_add_filter") }}</b></span>
+                        <span class='mx-2' style="vertical-align: middle;"><b>{{ i18n("datatable.abort_add_filter") }}</b></span>
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-secondary cancel" type="button">{{ i18n("cancel") }}</button>
                             <button class="btn btn-danger confirm" data-bs-dismiss="modal">{{ i18n("abort") }}</button>
@@ -19,15 +19,15 @@
             <form autocomplete="off">
                 <div class="modal-body">
                     <div class="form-group row">
-                        <label class="col-form-label col-sm-3" for="alert-filter-type-select">
-                            <b>{{ i18n("alerts_dashboard.select_filter") }}</b>
+                        <label class="col-form-label col-sm-3" for="dt-filter-type-select">
+                            <b>{{ i18n("datatable.select_filter") }}</b>
                         </label>
                         <div class="col-sm-5">
                             <input type="hidden" name="index" />
-                            <select required name="alert_filter_type" class="form-select" id="alert-filter-type-select">
+                            <select required name="filter_type" class="form-select" id="dt-filter-type-select">
                                 {% local first_item = true %}
                                 {% for filter_key, filter_type in pairsByField(available_types, 'i18n_label', asc) do %}
-                                         <option {{ (first_item and "selected" or "") }} data-alert-filter-key="{{ filter_type.value_type }}" value="{{ filter_key }}">
+                                         <option {{ (first_item and "selected" or "") }} data-filter-key="{{ filter_type.value_type }}" value="{{ filter_key }}">
                                              {{ i18n('tags.'..filter_key) }}
                                          </option>
                                    {% first_item = false %}
@@ -35,14 +35,14 @@
                             </select>
                         </div>
                     </div>
-                    <div class="alert-filter-template-container" style="display: none;">
+                    <div class="dt-filter-template-container" style="display: none;">
                     </div>
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">
                     <div class="mr-auto">
                     </div>
-                    <button type="submit" id="add-alert-filter-btn" class="btn btn-primary">{{i18n("add")}}</button>
+                    <button type="submit" id="dt-add-filter-btn" class="btn btn-primary">{{i18n("add")}}</button>
                     <div class="alert alert-info test-feedback w-100" style="display: none;">
                     </div>
                 </div>

@@ -128,6 +128,8 @@ else
     score = score[1]
 end
 
+local show_score_filter = true
+
 sendHTTPContentTypeHeader('text/html')
 
 local is_system_interface = page_utils.is_system_view()
@@ -515,7 +517,7 @@ local extra_tags_buttons = ""
 
 if page ~= "all" then
    extra_tags_buttons = [[
-    <button class="btn btn-link" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="pageStats.filterModalShow()"><span><i class="fas fa-plus" data-original-title="" title="]]..i18n("alerts_dashboard.add_filter")..[["></i></span>
+    <button class="btn btn-link" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="pageStats.filterModalShow()"><span><i class="fas fa-plus" data-original-title="" title="]]..i18n("datatable.add_filter")..[["></i></span>
     </button>
    ]]
 
@@ -546,48 +548,62 @@ if refresh_rate and refresh_rate > 0 then
     checkbox_checked = "fa-spin"
 end
 
-local datatable = {
-        show_admin_controls = isAdministrator(),
-	name = page .. "-alerts-table",
-        initialLength = getDefaultTableSize(),
-        table = template_utils.gen(string.format("pages/alerts/families/%s/table.template", page), {}),
-        js_columns = template_utils.gen(string.format("pages/alerts/families/%s/table.js.template", page), {}),
-	endpoint_list = endpoint_list,
-	endpoint_delete = endpoint_delete,
-	endpoint_acknowledge = endpoint_acknowledge,
-        cached_column = cached_column,
-        cached_sorting = cached_sorting,
-        refresh_rate = refresh_rate,
-        datasource = Datasource(endpoint_list, {
-            ifid = ifid,
-            epoch_begin = epoch_begin,
-            epoch_end = epoch_end,
-            status = status,
-            alert_id = alert_id,
-            severity = severity,
-	    score = score,
-            ip_version = ip_version,
-            ip = host_ip,
-            name = host_name,
-            cli_ip = cli_ip,
-            srv_ip = srv_ip,
-            cli_name = cli_name,
-            srv_name = srv_name,
-	    cli_port = cli_port,
-            srv_port = srv_port,
-            l7_proto = l7_proto,
-            network_name = network_name,
-            role = role,
-	    role_cli_srv = role_cli_srv,
-	    subtype = subtype,
-        page = page,
-        }),
-        actions = {
-            disable = (page ~= "host" and page ~= "flow")
-        },
-        modals = modals,
-    }
+local filters_context = { -- Context for pages/modals/alerts/filters/add.template
+    alert_utils = alert_utils,
+    alert_consts = alert_consts,
+    available_types = available_filter_types,
+    severities = alert_severities,
+    alert_types = all_alert_types,
+    l7_protocols = interface.getnDPIProtocols(),
+    operators_by_filter = operators_by_filter,
+    tag_operators = tag_utils.tag_operators,
+}
 
+template_utils.render("pages/modals/alerts/filters/add.template", filters_context)
+
+local endpoint_cards = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/" .. page .. "/alert/general_stats.lua"
+
+local datatable = {
+    show_admin_controls = isAdministrator(),
+    name = page .. "-alerts-table",
+    initialLength = getDefaultTableSize(),
+    table = template_utils.gen(string.format("pages/alerts/families/%s/table.template", page), {}),
+    js_columns = template_utils.gen(string.format("pages/alerts/families/%s/table.js.template", page), {}),
+    endpoint_list = endpoint_list,
+    endpoint_delete = endpoint_delete,
+    endpoint_acknowledge = endpoint_acknowledge,
+    cached_column = cached_column,
+    cached_sorting = cached_sorting,
+    refresh_rate = refresh_rate,
+    datasource = Datasource(endpoint_list, {
+        ifid = ifid,
+        epoch_begin = epoch_begin,
+        epoch_end = epoch_end,
+        status = status,
+        alert_id = alert_id,
+        severity = severity,
+        score = score,
+        ip_version = ip_version,
+        ip = host_ip,
+        name = host_name,
+        cli_ip = cli_ip,
+        srv_ip = srv_ip,
+        cli_name = cli_name,
+        srv_name = srv_name,
+        cli_port = cli_port,
+        srv_port = srv_port,
+        l7_proto = l7_proto,
+        network_name = network_name,
+        role = role,
+        role_cli_srv = role_cli_srv,
+        subtype = subtype,
+        page = page,
+    }),
+    actions = {
+        disable = (page ~= "host" and page ~= "flow")
+    },
+    modals = modals,
+}
 
 local context = {
     template_utils = template_utils,
@@ -599,7 +615,10 @@ local context = {
     entity = page,
     isPro = ntop.isPro(),
 
+    show_score_filter = show_score_filter,
+
     show_cards = (status ~= "engaged") and ntop.isPro(),
+    endpoint_cards = endpoint_cards,
 
     -- buttons
     show_permalink = (page ~= 'all'),
@@ -615,6 +634,7 @@ local context = {
         show_acknowledge = (page ~= 'all') and (status == "historical") and isAdministrator(),
         show_delete = (page ~= 'all') and (status ~= "engaged") and isAdministrator(),
     },
+
     range_picker = {
         default = status ~= "engaged" and "30min" or "1week",
 	earliest_available_epoch = earliest_available_epoch,
@@ -671,18 +691,6 @@ local context = {
     }
 }
 
-local filters_context = { -- Context for pages/modals/alerts/filters/add.template
-    alert_utils = alert_utils,
-    alert_consts = alert_consts,
-    available_types = available_filter_types,
-    severities = alert_severities,
-    alert_types = all_alert_types,
-    l7_protocols = interface.getnDPIProtocols(),
-    operators_by_filter = operators_by_filter,
-    tag_operators = tag_utils.tag_operators,
-}
-
-template_utils.render("pages/modals/alerts/filters/add.template", filters_context)
 template_utils.render("pages/datatable.template", context)
 
 -- append the menu down below the page
