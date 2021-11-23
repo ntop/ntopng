@@ -38,7 +38,7 @@ PeriodicActivities::PeriodicActivities() {
     activities[i] = NULL;
 
   standard_priority_pool = no_priority_pool = longrun_priority_pool
-    = timeseries_pool = periodic_checks_pool = discover_pool
+    = timeseries_pool = discover_pool
     = housekeeping_pool = notifications_pool = NULL;
 
   num_activities = 0;
@@ -61,7 +61,6 @@ PeriodicActivities::~PeriodicActivities() {
   if(longrun_priority_pool)      delete longrun_priority_pool;
   if(timeseries_pool)            delete timeseries_pool;
   if(notifications_pool)         delete notifications_pool;
-  if(periodic_checks_pool) delete periodic_checks_pool;
   if(discover_pool)              delete discover_pool;
   if(housekeeping_pool)          delete housekeeping_pool;
   if(no_priority_pool)           delete no_priority_pool;
@@ -134,7 +133,6 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   longrun_priority_pool      = new (std::nothrow) ThreadPool(false, num_threads);
   timeseries_pool            = new (std::nothrow) ThreadPool(false, 1);
   notifications_pool         = new (std::nothrow) ThreadPool(false, 1);
-  periodic_checks_pool = new (std::nothrow) ThreadPool(false, 1);
   discover_pool              = new (std::nothrow) ThreadPool(false, 1);
   housekeeping_pool          = new (std::nothrow) ThreadPool(false, 1);
   no_priority_pool           = new (std::nothrow) ThreadPool(false, num_threads_no_priority);
@@ -143,7 +141,6 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     // Script                 Periodicity (s) Max (s)  Pool                        Align  !View  !PCAP
     { SECOND_SCRIPT_PATH,                    1,     2, standard_priority_pool,     false, false, true  },
     { STATS_UPDATE_SCRIPT_PATH,              5,    10, standard_priority_pool,     false, false, true  },
-    { PERIODIC_CHECKS_PATH,            5,    60, periodic_checks_pool, false, false, true  },
 
     { HOUSEKEEPING_SCRIPT_PATH,              3,     6, housekeeping_pool,          false, false, false  },
 
