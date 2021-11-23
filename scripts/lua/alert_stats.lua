@@ -596,6 +596,7 @@ local context = {
     opsep = tag_utils.SEPARATOR,
     widget_gui_utils = widget_gui_utils,
     ifid = ifid,
+    entity = page,
     isPro = ntop.isPro(),
 
     show_cards = (status ~= "engaged") and ntop.isPro(),
@@ -619,7 +620,6 @@ local context = {
 	earliest_available_epoch = earliest_available_epoch,
         score = score,
         ifid = ifid,
-        entity = page,
         refresh_enabled = checkbox_checked,
         tags = {
             show_score_filter = true,
