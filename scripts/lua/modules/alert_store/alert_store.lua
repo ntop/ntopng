@@ -634,7 +634,12 @@ function alert_store:acknowledge(label)
    local where_clause = self:build_where_clause()
 
    -- Prepare the final query
-   local q = string.format("UPDATE `%s` SET `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
+   local q
+   if ntop.isClickHouseEnabled() then
+      q = string.format("ALTER TABLE `%s` UPDATE `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
+   else
+      q = string.format("UPDATE `%s` SET `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
+   end
 
    local res = interface.alert_store_query(q)
    return res and table.len(res) == 0
