@@ -11,7 +11,7 @@ Prerequisites
 - glib2
 - GNU autotools/libtool
 - libmaxminddb
-- libpcap or PF_RING (optional but recommended)
+- libpcap-dev and PF_RING (optional but recommended)
 - redis (redis server) 2.2 or newer
 - wget (for 'make geoip')
 - libxml2-dev
@@ -25,6 +25,8 @@ On Ubuntu/Debian
 ~~~~~~~~~~~~~~~~
 
 apt-get install build-essential git bison flex libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf pkg-config automake autogen redis-server wget libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev zlib1g-dev libssl-dev libcap-dev libnetfilter-conntrack-dev libreadline-dev libjson-c-dev libldap2-dev rename libsnmp-dev libexpat1-dev npm
+libmaxminddb-dev
+
 
 npm install -g uglify-es
 npm install -g clean-css-cli
@@ -38,6 +40,11 @@ On Ubuntu16/18
 
 You also need to do "apt-get install libtool-bin"
 You can decide to use MariaDB (instead of MySQL) do "apt-get install libmariadb-client-lgpl-dev" instead.
+
+On Ubuntu20
+~~~~~~~~~~~~~~
+You also need to do "apt-get install libmariadbclient-dev"
+
 
 On Debian 9/10
 ~~~~~~~~~~~~~~
