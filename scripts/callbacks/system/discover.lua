@@ -6,6 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local discover_utils = require "discover_utils"
 local callback_utils = require "callback_utils"
+local checks = require "checks"
 
 local ifnames = interface.getIfNames()
 
@@ -26,6 +27,14 @@ local discovery_function = function(ifname, ifstats)
       traceError(TRACE_INFO,TRACE_CONSOLE, "[Discover] Completed periodic discovery on interface "..ifname)
       discover_utils.clearNetworkDiscovery(ifstats.id)
    end
+end
+
+local checks_condition = function(ifId)
+   return true
+end
+
+local checks_function = function(ifname, ifstats)
+   checks.runPeriodicScripts()
 end
 
 -- periodic discovery enabled
@@ -51,6 +60,9 @@ for i=1,num_runs do
    
    -- discovery requests performed by the user from the GUI
    callback_utils.foreachInterface(ifnames, oneshot_discovery_condition, discovery_function)
+
+   -- also run interface checks in piggybacking
+   callback_utils.foreachInterface(ifnames, checks_condition, checks_function)
    
    ntop.msleep(5000) -- 5 seconds frequency
 end
