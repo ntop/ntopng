@@ -7343,6 +7343,36 @@
 				}
 			}
 		},
+		"/lua/pro/rest/v2/get/geo_map/hosts.lua": {
+			"get": {
+				"tags": [
+					"Hosts"
+				],
+				"summary": "Get hosts location",
+				"description": "Get hosts location and other info",
+				"operationId": "get_geo_hosts",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					}
+				}
+			}
+		},
 		"/lua/pro/rest/v2/edit/check/filter.lua": {
 			"get": {
 				"tags": [
