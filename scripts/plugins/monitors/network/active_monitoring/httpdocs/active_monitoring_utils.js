@@ -22,10 +22,10 @@ $(function() {
         switch (measurement) {
             default:
             case "throughput":
-                return `https://8.8.8.8  or  ntop.org`;
+                return `http(s)://8.8.8.8  or  ntop.org`;
             case "http":
             case "https":
-                return `https://8.8.8.8`;
+                return `http(s)://8.8.8.8`;
             case "icmp":
             case "cicmp":
                 return `8.8.8.8  or  ntop.org`;
