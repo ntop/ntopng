@@ -3362,6 +3362,18 @@ static int ntop_snmpsetavailable(lua_State* vm) {
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
+static int ntop_snmp_max_num_engines(lua_State* vm) {
+  lua_pushinteger(vm,
+#ifdef HAVE_LIBSNMP
+		 MAX_NUM_ASYNC_SNMP_ENGINES
+#else
+		 0
+#endif
+		 );
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
 /* Synchronous calls */
 static int ntop_snmpget(lua_State* vm)          { SNMP s; return(s.get(vm, false));         }
 static int ntop_snmpgetnext(lua_State* vm)      { SNMP s; return(s.getnext(vm, false));     }
@@ -6425,6 +6437,7 @@ static luaL_Reg _ntop_reg[] = {
   /* SNMP */
   { "snmpv3available",     ntop_snmpv3available              },
   { "snmpsetavailable",    ntop_snmpsetavailable             },
+  { "snmpMaxNumEngines",   ntop_snmp_max_num_engines         },
 
   /* Synchronous */
   { "snmpget",             ntop_snmpget                      },

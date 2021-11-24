@@ -75,7 +75,7 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
 
   while(vp != NULL) {
     /* OID */
-    char rsp_oid[128], buf[128];
+    char rsp_oid[256], buf[256];
     int offset = 0;
 
     switch(vp->type) {
