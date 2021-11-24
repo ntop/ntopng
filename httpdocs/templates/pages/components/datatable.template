@@ -57,7 +57,7 @@
 
           <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'>
             <thead>
-              {* datatable.table *}
+              {* datatable.columns_header *}
             </thead>
           </table>
 
@@ -400,8 +400,8 @@
         function loadColumns() {
 
             let columns = [];
-            {% if datatable.js_columns then %}
-                columns = {* datatable.js_columns *};
+            {% if datatable.columns_js then %}
+                columns = {* datatable.columns_js *};
             {% end %}
 
             /* Actions Column */
