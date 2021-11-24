@@ -123,22 +123,28 @@
     i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
 </script>
 <script type='text/javascript'>
-    let pageStats = {};
+    let pageHandle = {};
     let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
     let $table;
 
     $(document).ready(function(){
         const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
 
-        const MAX_SCORE_VALUE = 250;        
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
 
         const $inputBeginEpoch = $(`#begin-epoch`);
         const $inputEndEpoch = $(`#end-epoch`);
         const $btnGetPermaLink = $(`#btn-get-permalink`);
+        {% if show_cards then %}
         const sideCard = [$('#sideCard1'),$('#sideCard2')];    
+        {% end %}
 
-        let intervalId;
+        let intervalId = 0;
+
+        {% if query_presets ~= nil and query_presets ~= {} then %}
+        const $selectQueryPresets = $(`#select-query-presets`);
+	let currentQueryPresets = $selectQueryPresets.val();
+        {% end %}
 
         $(`#{{ datatable.name }}-query`).click(function(e) {
             NtopUtils.copyToClipboard($(e.target).attr('title'), "{{i18n('db_search.query_copied')}}", "{{i18n('unable_to_copy_to_clickboard')}}");
@@ -157,58 +163,34 @@
             $(`.overlay`).fadeOut(time);
         }
 
-        function getSearchParams() {
-            const searchParams = new URLSearchParams();
-            // get all filters tags
-            const tags = tagify.getTagElms();
-            // add the tag filters inside the search params object
-            for (const tag of tags) {
-                const tagData = tagify.tagData(tag);
+        async function reloadTable($table, begin, end) {
 
-                const key = tagData.key;
-                const selectedOperator = tagData.selectedOperator;
-                const realValue = tagData.realValue;
-                const value = tagData.value;
+            if (begin == null && end == null) return;
 
-                let param_value = `${realValue || value}{{ opsep }}${selectedOperator || 'eq'}`;
-                if (searchParams.get(key)) {
-                    param_value = `${searchParams.get(key)},${param_value}`;
-                }
+            const copyParams = Object.assign(datasourceParams, {});
 
-                searchParams.set(key, param_value);
+            // override the existing timestamps 
+            if (copyParams.epoch_begin) {
+                copyParams.epoch_begin = begin.unix();
+            }
+            if (copyParams.epoch_end) {
+                copyParams.epoch_end = end.unix();
             }
 
-            return searchParams;
-        }
-
-        function setDatasourceParams() {
-            const searchParams = getSearchParams();
-
-            searchParams.forEach(function(value, key) {
-                datasourceParams[key] = value;
-            });
-
-            const [begin, end] = getTimestampRange();
-            if (begin == null && end == null) return datasourceParams;
-            // override the existing timestamps 
-            if (datasourceParams.epoch_begin) datasourceParams.epoch_begin = begin.unix();
-            if (datasourceParams.epoch_end) datasourceParams.epoch_end = end.unix();
-            return datasourceParams;
-        }
-
-        async function reloadTable($table, ) {
-            const searchParams = new URLSearchParams(Object.entries(datasourceParams));
+            const searchParams = new URLSearchParams(Object.entries(copyParams));
 
             showOverlays();
             
             // reload the table
             $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
+
             try {
                 WidgetUtils.getWidgetByName("{{ chart.name }}").update(datasourceParams);
             }
             catch(e) {
                 console.warn(e);
             }
+
             {% if show_cards then %}
             updateCardStats();
             {% end %} 
@@ -223,6 +205,11 @@
                 $(`#{{ datatable.name }}-query-time .seconds`).text((sec < 0.01) ? '< 0.01' : NtopUtils.ffloat(sec)); // The time is in sec
                 $(`#{{ datatable.name }}-query`).show();
                 $(`#{{ datatable.name }}-query`).prop('title', response.rsp.stats.query);
+                if(response.rsp.stats.num_records_processed !== undefined) {
+                    const num_records_processed = response.rsp.stats.num_records_processed;
+                    $(`#{{ datatable.name }}-tot_records`).show();
+                    $(`#{{ datatable.name }}-tot_records .records`).text(num_records_processed);
+                }
             }
         }
 
@@ -254,6 +241,53 @@
                 end = $(`#end-epoch`).datetimepicker('date').utc();
             }
             return [begin, end];
+        }
+
+        function getSearchParams() {
+            const searchParams = new URLSearchParams();
+
+            // get all filters tags
+            const tags = tagify.getTagElms();
+
+            // add the tag filters inside the search params object
+            for (const tag of tags) {
+                const tagData = tagify.tagData(tag);
+
+                const key = tagData.key;
+                const selectedOperator = tagData.selectedOperator;
+                const realValue = tagData.realValue;
+                const value = tagData.value;
+
+                let param_value = `${realValue || value}{{ opsep }}${selectedOperator || 'eq'}`;
+                if (searchParams.get(key)) {
+                    param_value = `${searchParams.get(key)},${param_value}`;
+                }
+
+                searchParams.set(key, param_value);
+            }
+
+            {% if query_presets ~= nil and query_presets ~= {} then %}
+            // add selected query preset
+            searchParams.set('query_preset', $selectQueryPresets.val());
+            {% end %}
+
+            return searchParams;
+        }
+
+        function setDatasourceParams() {
+            const searchParams = getSearchParams();
+
+            searchParams.forEach(function(value, key) {
+                datasourceParams[key] = value;
+            });
+
+            const [begin, end] = getTimestampRange();
+            if (begin == null && end == null) return datasourceParams;
+            // override the existing timestamps 
+            if (datasourceParams.epoch_begin) datasourceParams.epoch_begin = begin.unix();
+            if (datasourceParams.epoch_end) datasourceParams.epoch_end = end.unix();
+
+            return datasourceParams;
         }
 
         function updateNavbarLink(url, begin, end, element) {
@@ -335,19 +369,45 @@
             window.history.pushState({epoch_begin: begin.unix(), epoch_end: end.unix()}, '', url);
         }
 
-        async function onRangePickerChange(pushHistroy = false, updateDatetimeUsingPresets = false) {
-            const [begin, end] = getTimestampRange(updateDatetimeUsingPresets);
-            setDatasourceParams();
+        function getVisibleColumns($tableApi) {
+            const visibleColumns = [];
+            $tableApi.columns().every(function(idx) {   
+                const $column = $tableApi.column(idx);
+                if ($column.visible() && $column.name() !== '') {
+                    visibleColumns.push($column.name());
+                } 
+            });
 
-            await reloadTable($table);
+            return visibleColumns;
+        }
 
+        function updateDownloadButton() {
             // update the link of the download button
             const href = $(`#dt-btn-download`).attr('href');
             const newDownloadURL = new URL(href, location.origin);
-            newDownloadURL.search = new URLSearchParams(datasourceParams);
-            newDownloadURL.searchParams.set('format', 'txt');
-
+            newDownloadURL.search = new URLSearchParams(datasourceParams); 
+            newDownloadURL.searchParams.set("visible_columns", getVisibleColumns($table).join(','));
+            newDownloadURL.searchParams.set("format", "txt");
             $(`#dt-btn-download`).attr('href', newDownloadURL.toString());
+        }
+
+        async function onRangePickerChange(pushHistroy = false, updateDatetimeUsingPresets = false) {
+            const [begin, end] = getTimestampRange(updateDatetimeUsingPresets);
+
+            setDatasourceParams();
+
+	    {% if query_presets ~= nil and query_presets ~= {} then %}
+	    if (currentQueryPresets != $selectQueryPresets.val()) {
+	        pushNewHistoryState(begin, end);
+	        /* Reload the page to change datatable columns */
+	        location.reload();
+	        return;
+	    }
+	    {% end %}
+
+            await reloadTable($table, begin, end);
+
+            updateDownloadButton();
 
             if (pushHistroy) {
                 pushNewHistoryState(begin, end, null);
@@ -514,7 +574,7 @@
             columns: loadColumns(),
         });
 
-        {% if (datatable.refresh_rate) and (datatable.refresh_rate > 0) then %}
+        {% if datatable.refresh_rate and datatable.refresh_rate > 0 then %}
             intervalId = setInterval(function() { onRangePickerChange(true, true); }, {{ datatable.refresh_rate }});
         {% end %}
 
@@ -581,7 +641,7 @@
 
             const tag = detail.data;
 
-            pageStats.filterModalShow(true);
+            pageHandle.filterModalShow(true);
 
             $('#dt-add-filter-modal input[name="index"]').val(detail.index);
             $('#dt-filter-type-select').val(tag.key).change();
@@ -735,7 +795,7 @@
             /* Here it is where we can load dynamic data on time range change */
         }
 
-        pageStats.filterModalShow = function(edit) {
+        pageHandle.filterModalShow = function(edit) {
             $('#dt-add-filter-modal-title').text(edit ? "{{i18n('datatable.edit_filter')}}" : "{{i18n('datatable.add_filter')}}");
             $('#dt-add-filter-btn').text(edit ? "{{i18n('apply')}}" : "{{i18n('add')}}");
             $('#dt-filter-type-select').prop( "disabled", edit ? true : false);

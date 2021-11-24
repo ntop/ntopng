@@ -514,7 +514,7 @@ local extra_tags_buttons = ""
 
 if page ~= "all" then
    extra_tags_buttons = [[
-    <button class="btn btn-link" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="pageStats.filterModalShow()"><span><i class="fas fa-plus" data-original-title="" title="]]..i18n("datatable.add_filter")..[["></i></span>
+    <button class="btn btn-link" aria-controls="]]..page..[[-alerts-table" type="button" id="btn-add-alert-filter" onclick="pageHandle.filterModalShow()"><span><i class="fas fa-plus" data-original-title="" title="]]..i18n("datatable.add_filter")..[["></i></span>
     </button>
    ]]
 
