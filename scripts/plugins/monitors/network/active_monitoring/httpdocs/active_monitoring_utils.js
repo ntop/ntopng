@@ -8,12 +8,27 @@ $(function() {
         switch (measurement) {
             default:
             case "throughput":
+                return `${NtopUtils.REGEXES["url"]}|${NtopUtils.REGEXES["domainName"]}`;
             case "http":
             case "https":
                 return `${NtopUtils.REGEXES["url"]}`;
             case "icmp":
             case "cicmp":
                 return `${NtopUtils.REGEXES["ipv4"]}|${NtopUtils.REGEXES["ipv6"]}|${NtopUtils.REGEXES["domainName"]}`;
+        }
+    }
+
+    const getMeasurementPlaceholder = (measurement) => {
+        switch (measurement) {
+            default:
+            case "throughput":
+                return `https://8.8.8.8  or  ntop.org`;
+            case "http":
+            case "https":
+                return `https://8.8.8.8`;
+            case "icmp":
+            case "cicmp":
+                return `8.8.8.8  or  ntop.org`;
         }
     }
 
@@ -606,6 +621,8 @@ $(function() {
 
         // change the pattern depending on the selected measurement
         $(`#input-add-host`).attr('pattern', getMeasurementRegex(selectedMeasurement));
+        $(`#input-add-host`).attr('placeholder',getMeasurementPlaceholder(selectedMeasurement));
+
         // trigger form validation
         if ($(`#input-add-host`).val().length > 0) $(`#am-add-form`)[0].reportValidity();
 
