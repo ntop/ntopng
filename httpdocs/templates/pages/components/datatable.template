@@ -638,15 +638,24 @@
             const detail = e.detail;
             if (detail.data === undefined) { return; }
 
+            const tag = detail.data;
+
             // let's check if the tag has a key field
-            if (!detail.data.key) {
+            if (!tag.key) {
                 tagify.removeTags([e.detail.tag]);
                 e.preventDefault();
                 e.stopPropagation();
                 return;
             }
 
-            const tag = detail.data;
+            // add/update datasource params, default operator `=`
+            if (!tag.selectedOperator) tag.selectedOperator = 'eq';
+
+	    {% if query_presets ~= nil and query_presets ~= {} then %}
+            // When adding tags in a query page switch to the flows page if the tag is not defined in the query filters
+	    if ($selectQueryPresets.val() != "" && !tag.operators /* No DEFINED_TAGS for this */)
+	       $selectQueryPresets.val("");
+            {% end %}
 
             // trigger request
             await onRangePickerChange(true);
@@ -680,14 +689,15 @@
             }
 
             let operator_select = $('#dt-add-filter-modal select[name="operator"]');
+
             if (operator_select) {
                 operator_select.val(tag.selectedOperator);
             }
         });
 
         tagify.on('edit:updated', async function(e) {
-        
             const detail = e.detail;
+
             if (detail.data === undefined) { return; }
             if (detail.data.key === undefined) {return;}
 
@@ -714,8 +724,8 @@
             await onRangePickerChange(true);
         });
 
-        // clear all the filters on click
         $(".btn-remove-tags").on('click', async function() {
+            // clear all the filters on click
 
             const tags = tagify.getTagElms();
             for (const tag of tags) {
@@ -730,19 +740,41 @@
             await onRangePickerChange(true);
         });
 
-
-        const addFilter = (e, tmp) => {
+        const addFilter = (e, a) => {
             e.preventDefault();
-    
-            // Getting the row data
-            const key = tmp.data('tagKey');
-            const label = tmp.data('tagLabel');
-            const value = tmp.data('tagValue');
-            const operator = tmp.data('tagOperator') || 'eq';
-            const tagTitle = i18n.tags[key];
-            
-            
-            const tag = { label: tagTitle, key: key, value: label, realValue: value, title: value, selectedOperator: operator};
+
+            const colIndex = $table.cell(a.parent()).index().column;
+
+            // Read tag key from the column
+            let key = $table.column(colIndex).name();
+
+	    // Read tag key from the cell if any
+            const data = $table.cell(a.parent()).data();
+            if (data.tag_key)
+               key = data.tag_key;
+
+	    // Read value from the cell
+            let displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
+            displayValue  = NtopUtils.stripTags(displayValue);
+            let realValue = ((data.value != undefined) ? data.value : data);
+            let operator = 'eq';
+
+            // Read tag key and value from the <a> itself if provided
+	    if (a) {
+               if (a.data('tagKey')      != undefined) key          = a.data('tagKey');
+               if (a.data('tagLabel')    != undefined) displayValue = a.data('tagLabel');
+               if (a.data('tagValue')    != undefined) realValue    = a.data('tagValue');
+               if (a.data('tagOperator') != undefined) operator     = a.data('tagOperator');
+            }
+
+            const tag = {
+                label: i18n.tags[key],
+                key: key,
+                value: displayValue,
+                realValue: realValue,
+                title: realValue,
+                selectedOperator: operator
+            };
 
             addFilterTag(tag);
         }
@@ -753,7 +785,6 @@
 
         /* Cards */
         {% if show_cards then %}
-
         sideCard.forEach(element=>{
             const card = "#".concat(element[0].id);
             
@@ -761,7 +792,6 @@
                 addFilter(e, $(this));
             })
         })
-
         {% end %}
         
         // when the user navigates using the browser's arrows
@@ -793,7 +823,6 @@
         });
 
         ChartWidget.registerEventCallback("{{ chart.name }}", 'zoomed', async (chartContext, { xaxis, yaxis }) => {
-           
             // the timestamps are in milliseconds, convert them into seconds
             const begin = moment(xaxis.min);
             const end = moment(xaxis.max);
@@ -812,7 +841,6 @@
         // load data for filters (e.g. alert types in the selected range)
         async function filterModalLoadData() {
             const [begin, end] = getTimestampRange();
-
             /* Here it is where we can load dynamic data on time range change */
         }
 

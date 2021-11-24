@@ -1065,6 +1065,12 @@ class NtopUtils {
 		}
 	}
 
+	static stripTags(html) {
+        	let t = document.createElement("div");
+		t.innerHTML = html;
+		return t.textContent || t.innerText || "";
+	}
+	
 }
 
 $(function () {
