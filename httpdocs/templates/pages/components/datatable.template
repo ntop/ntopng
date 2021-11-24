@@ -890,6 +890,15 @@
            return (null);
        }
 
+       function filterModalSetContent(container, content) {
+           // show the template inside the modal container
+           container.hide().empty();
+           if (content) {
+               container.append($(`<hr>`));
+               container.append(content).show();
+           }
+       }
+
        const filterModalCreateTemplateOnSelect = (formSelector) => {
 
            const $templateContainer = $(`${formSelector} .dt-filter-template-container`);
@@ -898,12 +907,7 @@
            $(`${formSelector} select[name='filter_type']`).change(function (e) {
                const $option = $(this).find(`option[value='${$(this).val()}']`);
                const $cloned = filterModalCloneTemplate($option.data('filterKey'));
-               // show the template inside the modal container
-               $templateContainer.hide().empty();
-               if ($cloned) {
-                   $templateContainer.append($(`<hr>`));
-                   $templateContainer.append($cloned).show();
-               }
+               filterModalSetContent($templateContainer, $cloned);
                $(`${formSelector} span.test-feedback`).fadeOut();
            });
        }
@@ -914,11 +918,10 @@
             resetAfterSubmit: false,
             onModalInit: () => { filterModalCreateTemplateOnSelect(`#dt-add-filter-modal`); },
             onModalShow: () => {
+                const $templateContainer = $(`#dt-add-filter-modal form .dt-filter-template-container`);
                 // load the template of the selected filter
                 const $cloned = filterModalCloneTemplate($(`#dt-add-filter-modal select[name='filter_type'] option:selected`).data('filterKey'));
-                if ($cloned) {
-                    $(`#dt-add-filter-modal form .dt-filter-template-container`).empty().append($(`<hr>`), $cloned).show();
-                }
+                filterModalSetContent($templateContainer, $cloned);
             },
             beforeSumbit: () => {
                 $(`#dt-add-filter-modal form button[type='submit']`).click(function () {

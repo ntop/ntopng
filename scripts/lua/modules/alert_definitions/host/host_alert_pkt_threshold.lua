@@ -21,7 +21,7 @@ local host_alert_pkt_threshold = classes.class(alert)
 
 host_alert_pkt_threshold.meta = {
   alert_key = host_alert_keys.host_alert_pkt_threshold,
-  i18n_title = "alerts_dashboard.host_alert_pkt_threshold",
+  i18n_title = "alerts_thresholds_config.host_alert_pkt_threshold",
   icon = "fas fa-fw fa-arrow-circle-up",
 }
 
