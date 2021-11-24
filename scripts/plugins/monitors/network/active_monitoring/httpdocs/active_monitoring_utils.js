@@ -22,13 +22,13 @@ $(function() {
         switch (measurement) {
             default:
             case "throughput":
-                return `http(s)://8.8.8.8  or  ntop.org`;
+                return `Insert an URL (https://www.google.com)`;
             case "http":
             case "https":
-                return `http(s)://8.8.8.8`;
+                return `Insert an URL (https://www.google.com)`;
             case "icmp":
             case "cicmp":
-                return `8.8.8.8  or  ntop.org`;
+                return `Insert an IP or a Domain Name`;
         }
     }
 
