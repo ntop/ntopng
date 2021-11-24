@@ -3,6 +3,8 @@
  *   Base template for the alert tables.
  */
 
+const FAMILY = "{{ entity }}"
+
 $table.on('click', `a[href='#check_settings']`, function (e) {
     const alert = $table.row($(this).parent().parent()).data();
     const check_settings_href = $(alert.msg.configset_ref).attr('href');

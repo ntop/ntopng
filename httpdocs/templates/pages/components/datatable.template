@@ -117,7 +117,6 @@
 
     $(document).ready(function(){
         const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
-        const FAMILY = "{{ entity }}"
 
         const MAX_SCORE_VALUE = 250;        
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
@@ -826,8 +825,6 @@
         
         const [epoch_begin, epoch_end] = getTimestampRange();
         let updateCardStats = () => {
-            let entity = "{{ entity }}"
-            entity = entity.replace("_", "/")
             let params = (new URLSearchParams(datasourceParams)).toString();
 
             $.getJSON(`{* endpoint_cards *}?${params}`, function (data) {

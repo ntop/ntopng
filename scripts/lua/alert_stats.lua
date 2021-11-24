@@ -609,7 +609,6 @@ local context = {
     opsep = tag_utils.SEPARATOR,
     widget_gui_utils = widget_gui_utils,
     ifid = ifid,
-    entity = page,
     isPro = ntop.isPro(),
 
     show_cards = (status ~= "engaged") and ntop.isPro(),
