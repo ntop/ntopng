@@ -21,6 +21,8 @@ local hosts_stats = interface.getHostsInfo()
 local num = hosts_stats["numHosts"]
 hosts_stats = hosts_stats["hosts"]
 
+local ifid = interface.getId()
+
 if (num > 0) then
 
   print ([[
@@ -63,7 +65,7 @@ if (num > 0) then
           $('#geomap-alert').addClass('alert-info').removeClass('alert-danger').show();
       }
     </script>
-    <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js?]].. ntop.getStaticFileEpoch() ..[[" type='text/javascript'></script>
+    <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js?]] .. ntop.getStaticFileEpoch() ..[[" type='text/javascript'></script>
   ]])
 else
    print("<div class=\"alert alert-danger\">".. "<i class='fas fa-exclamation-triangle fa-lg' style='color: #B94A48;'></i> " .. i18n("no_results_found") .. "</div>")

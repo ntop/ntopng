@@ -160,9 +160,9 @@ $(function () {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(hosts_map);
 
-        $.get(`${http_prefix}/lua/get_geo_hosts.lua?${zoomIP || ''}`)
+        $.get(`${http_prefix}/lua/rest/v2/get/geo_map/get_geo_hosts.lua?ifid=${interfaceID}&${zoomIP || ''}`)
         .then((data) => {
-            draw_markers(data, map_markers, hosts_map);
+            draw_markers(data.rsp, map_markers, hosts_map);
         })
         .fail(({ status, statusText }) => {
             NtopUtils.check_status_code(status, statusText, $("#geomap-alert"));

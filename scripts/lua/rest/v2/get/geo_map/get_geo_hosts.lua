@@ -8,9 +8,18 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require("dkjson")
 local callback_utils = require "callback_utils"
+local rest_utils = require("rest_utils")
 
-sendHTTPHeader('application/json')
-interface.select(ifname)
+local ifid = _GET["ifid"]
+
+if isEmptyString(ifid) then
+   rc = rest_utils.consts.err.invalid_interface
+   rest_utils.answer(rc)
+   return
+end
+
+interface.select(ifid)
+
 
 local response = {}
 local host_key = _GET["host"] or ""
@@ -171,5 +180,6 @@ local function show_hosts(hosts_count, host_key)
    return(hosts)
 end
 
+local rsp = show_hosts(table.len(response["hosts"]), host_key)
 
-print(json.encode(show_hosts(table.len(response["hosts"]), host_key)))
+rest_utils.answer(rest_utils.consts.success.ok, rsp)
