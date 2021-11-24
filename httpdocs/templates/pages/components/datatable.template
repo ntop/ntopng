@@ -742,32 +742,36 @@
             await onRangePickerChange(true);
         });
 
-        const addFilter = (e, a) => {
+        const addFilter = (e, a, from_table) => {
             e.preventDefault();
 
-            const colIndex = $table.cell(a.parent()).index().column;
-
-            // Read tag key from the column
-            let key = $table.column(colIndex).name();
-
-	    // Read tag key from the cell if any
-            const data = $table.cell(a.parent()).data();
-            if (data.tag_key)
-               key = data.tag_key;
-
-	    // Read value from the cell
-            let displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
-            displayValue  = NtopUtils.stripTags(displayValue);
-            let realValue = ((data.value != undefined) ? data.value : data);
+            let key = undefined;
+            let displayValue = undefined;
+            let realValue = undefined;
             let operator = 'eq';
 
-            // Read tag key and value from the <a> itself if provided
-	    if (a) {
-               if (a.data('tagKey')      != undefined) key          = a.data('tagKey');
-               if (a.data('tagLabel')    != undefined) displayValue = a.data('tagLabel');
-               if (a.data('tagValue')    != undefined) realValue    = a.data('tagValue');
-               if (a.data('tagOperator') != undefined) operator     = a.data('tagOperator');
+            if (from_table) {
+                const colIndex = $table.cell(a.parent()).index().column;
+
+                // Read tag key from the column
+                key = $table.column(colIndex).name();
+
+	        // Read tag key from the cell if any
+                const data = $table.cell(a.parent()).data();
+                if (data.tag_key)
+                    key = data.tag_key;
+
+	        // Read value from the cell
+                displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
+                displayValue  = NtopUtils.stripTags(displayValue);
+                realValue = ((data.value != undefined) ? data.value : data);
             }
+
+            // Read tag key and value from the <a> itself if provided
+            if (a.data('tagKey')      != undefined) key          = a.data('tagKey');
+            if (a.data('tagLabel')    != undefined) displayValue = a.data('tagLabel');
+            if (a.data('tagValue')    != undefined) realValue    = a.data('tagValue');
+            if (a.data('tagOperator') != undefined) operator     = a.data('tagOperator');
 
             const tag = {
                 label: i18n.tags[key],
@@ -782,7 +786,7 @@
         }
 
         $table.on('click', `a.tag-filter`, async function (e) {
-            addFilter(e, $(this));
+            addFilter(e, $(this), true);
         });
 
         /* Cards */
@@ -791,7 +795,7 @@
             const card = "#".concat(element[0].id);
             
             $(card).on('click', `a.tag-filter`, async function (e) {
-                addFilter(e, $(this));
+                addFilter(e, $(this), false);
             })
         })
         {% end %}
