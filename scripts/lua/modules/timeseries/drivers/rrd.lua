@@ -269,27 +269,21 @@ end
 
 -- Converts a number (either decimal or integer) to a string
 -- in a format which is friendly for the subsequent call to rrd_update
-local function number_to_rrd_string(what)
+local function number_to_rrd_string(what, schema)
+   local schema_name = schema and schema.name or 'unknown'
+   local err_msg = ''
    what = tonumber(what)
 
    if(what == nil) then
-      return("0")
+      err_msg = "Attempting at converting a nil to number"
    elseif(type(what) ~= "number") then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "number_to_rrd_string got a non-number argument: " .. type(what))
-      traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
-      return("0")
+      err_msg = "number_to_rrd_string got a non-number argument: " .. type(what)
    elseif(what ~= what) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Trying to convert NaN to integer")
-      traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
-      return("0")
+      err_msg = "Trying to convert NaN to integer"
    elseif(what == math.huge) then
-     traceError(TRACE_ERROR, TRACE_CONSOLE, "Trying to convert inf to integer")
-     traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
-     return("0")
+      err_msg = "Trying to convert inf to integer"
    elseif((what >= math.maxinteger) or (what <= math.mininteger)) then
-     traceError(TRACE_ERROR, TRACE_CONSOLE, "Number out of integers range: " .. what)
-     traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
-     return("0")
+     err_msg = "Number out of integers range: " .. what
    elseif what == math.floor(what) then
       -- If the number has no decimal place, print it as a digit
       return(string.format("%d", what))
@@ -298,12 +292,18 @@ local function number_to_rrd_string(what)
       -- (don't touch the precision, let's the rrd do this job if necessary)
       return(string.format("%f", what))
    end
+
+   -- Log the error with the schema name
+   traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s [%s]", err_msg, schema_name))
+   traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
+
+   return("0")
 end
 
 -- ##############################################
 
 local function update_rrd(schema, rrdfile, timestamp, data)
-  local params = { number_to_rrd_string(timestamp), }
+  local params = { number_to_rrd_string(timestamp, schema), }
 
   if isDebugEnabled() then
     traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Going to update %s [%s]", schema.name, rrdfile))
@@ -323,7 +323,7 @@ local function update_rrd(schema, rrdfile, timestamp, data)
   end
 
   for _, metric in ipairs(schema._metrics) do
-     params[#params + 1] = number_to_rrd_string(data[metric])
+     params[#params + 1] = number_to_rrd_string(data[metric], schema)
   end
 
   if isDebugEnabled() then
@@ -339,38 +339,6 @@ local function update_rrd(schema, rrdfile, timestamp, data)
   end
 
   return true
-end
-
--- ##############################################
-
-local function ts2json(rrdfile, schema, timestamp, tags, metrics)
-   local what   = { }
-   local j
-
-   what.file   = rrdfile
-   what.params = { number_to_rrd_string(timestamp) }
-
-   for _, metric in ipairs(schema._metrics) do
-      what.params[#params + 1] = number_to_rrd_string(metrics[metric])
-   end
-   
-   return(json.encode(what))
-end
-
--- ##############################################
-
-local function log_ts(rrdfile, schema, timestamp, tags, metrics)
-   local j = ts2json(rrdfile, schema, timestamp, tags, metrics)
-   
-   if(schema.options.is_critical_ts) then
-      critical = "[Critical]"
-   else
-      critical = ""
-   end
-   
-   io.write("[RRD]"..critical.."[Step: ".. schema.options.step .."]["..j.."]\n")
-
-   return(j)
 end
 
 -- ##############################################
