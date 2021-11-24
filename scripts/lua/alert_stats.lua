@@ -561,6 +561,7 @@ template_utils.render("pages/modals/alerts/filters/add.template", filters_contex
 local endpoint_cards = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/" .. page .. "/alert/general_stats.lua"
 
 local datatable = {
+    pagination = 'full_numbers',
     show_admin_controls = isAdministrator(),
     name = page .. "-alerts-table",
     initialLength = getDefaultTableSize(),

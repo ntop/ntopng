@@ -534,12 +534,16 @@
         config = DataTableUtils.extendConfig(config, {
             serverSide: true,
             searching: false,
+            info: false,
             order: [[ column_order_id, "{* datatable.order_sorting *}" ]],
+            pagingType: '{{ datatable.pagination }}',
+            columnDefs: {},
             ajax: {
                 method: 'get',
                 url: '{* datatable.datasource.endpoint *}',
                 dataSrc: 'rsp.records',
                 data: (data, settings) => {
+
                     const tableApi = settings.oInstance.api();
                     const orderColumnIndex = data.order[0].column;
                     const orderColumnName = tableApi.column(orderColumnIndex).name() || undefined;
@@ -549,31 +553,44 @@
                         data.sort = orderColumnName;
                     }
 
-                    delete data.columns;
-                    delete data.search;
-                   
-                    // create visibleColumns field
-                    const visibleColumns = [];
-                    tableApi.columns().every(function(idx) {
-                        
-                        const $column = tableApi.column(idx);
-                        if ($column.visible() && $column.name() !== '') {
-                            visibleColumns.push($column.name());
-                        } 
-                    });
+                    if (data.columns !== undefined) {
+                        delete data.columns;
+                    }
 
-                    data.visible_columns = visibleColumns.join(',');
+                    if (data.search !== undefined) {
+                        delete data.search;
+                    }
+                   
+                    data.visible_columns = getVisibleColumns(tableApi).join(',');
 
                     return data;
+                },
+                beforeSend: function() {
+                    showOverlays();
+                },
+                complete: function() {
+                    hideOverlays();
                 }
             },
-            lengthMenu: [10, 20, 50, 100, 200],
+            drawCallback: () => {
+                // remove fast forward button from the table
+                $("#ndpi_table_last").remove();
+
+                updateDownloadButton();
+            },
+            //lengthMenu: [10, 20, 50, 100, 200],
+            lengthMenu: [[INITIAL_ROWS_LENGTH, 50, 100, 250, 500], [INITIAL_ROWS_LENGTH, 50, 100, 250, 500]],
             pageLength: INITIAL_ROWS_LENGTH,
             columns: loadColumns(),
         });
 
+        {% if datatable.show_vlan or datatable.show_non_pkts_if_columns then %}
+        let table = $(`ndpi_table`).DataTable(config);
+        table.destroy();
+        {% end %}
+
         {% if datatable.refresh_rate and datatable.refresh_rate > 0 then %}
-            intervalId = setInterval(function() { onRangePickerChange(true, true); }, {{ datatable.refresh_rate }});
+        intervalId = setInterval(function() { onRangePickerChange(true, true); }, {{ datatable.refresh_rate }});
         {% end %}
 
         $table = $(`#{{ datatable.name }}`).DataTable(config);
@@ -589,20 +606,26 @@
         // on ajax request complete then print the query time
         $table.on('xhr', function() {
             printQueryTime($table);
-            hideOverlays();
             filterModalLoadData();
         });
 
+        // on apply button click
         $(`.range-picker`).on('change', async function(e) {
+            await onRangePickerChange(true);
+        });
+
+        $(`#select-len`).on('change', async function() {
             await onRangePickerChange(true);
         });
 
         // when an user remove the tag
         tagify.on('remove', async function(e) {
             const key = e.detail.data.key;
+
             if (key === undefined) {
                 return;
             }
+
             if (datasourceParams[key] !== undefined) {
                 delete datasourceParams[key];
             }
