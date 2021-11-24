@@ -505,12 +505,17 @@ local function build_datatable_js_column_ip(name, data_name, label, order)
       js = [[
       {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '12%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
         let html_ref = '';
+        let location = '';
         if (type !== 'display') return ]] .. name .. [[;
         if (]] .. name .. [[ !== undefined) {
             if (]] .. name .. [[.reference !== undefined)
                 html_ref = ]] .. name .. [[.reference;
+
+            if (]] .. name .. [[.location)
+               location = ]] .. name .. [[.location.label;
+
                 
-            return `<a class='tag-filter' data-tag-key='${]] .. name .. [[.tag_key}' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a> ${]] .. name .. [[.location.label} ${html_ref}`;
+            return `<a class='tag-filter' data-tag-key='${]] .. name .. [[.tag_key}' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a> ${location} ${html_ref}`;
         }}}]] }
 end
 
