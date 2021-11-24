@@ -184,12 +184,14 @@
             // reload the table
             $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
 
+	    {% if chart and chart.name then %}
             try {
                 WidgetUtils.getWidgetByName("{{ chart.name }}").update(datasourceParams);
             }
             catch(e) {
                 console.warn(e);
             }
+	    {% end %}
 
             {% if show_cards then %}
             updateCardStats();
