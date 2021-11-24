@@ -516,12 +516,12 @@ void Flow::processDetectedProtocolData() {
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_TLS:
   case NDPI_PROTOCOL_QUIC:
-    if(ndpiFlow->protos.tls_quic.client_requested_server_name[0] != '\0') {
+    if(ndpiFlow->host_server_name[0] != '\0') {
       if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_DOH_DOT
 	 && cli_h && cli_h->isLocalHost())
-	cli_h->incrVisitedWebSite(ndpiFlow->protos.tls_quic.client_requested_server_name);
+	cli_h->incrVisitedWebSite(ndpiFlow->host_server_name);
 
-      if(cli_h) cli_h->incContactedService(ndpiFlow->protos.tls_quic.client_requested_server_name);
+      if(cli_h) cli_h->incContactedService(ndpiFlow->host_server_name);
     }
     break;
 
@@ -600,8 +600,8 @@ void Flow::processExtraDissectedInformation() {
 	protos.tls.notAfter = ndpiFlow->protos.tls_quic.notAfter;
 
       if((protos.tls.client_requested_server_name == NULL)
-	 && (ndpiFlow->protos.tls_quic.client_requested_server_name[0] != '\0')) {
-	protos.tls.client_requested_server_name = strdup(ndpiFlow->protos.tls_quic.client_requested_server_name);
+	 && (ndpiFlow->host_server_name[0] != '\0')) {
+	protos.tls.client_requested_server_name = strdup(ndpiFlow->host_server_name);
       }
 
       if((protos.tls.server_names == NULL)
