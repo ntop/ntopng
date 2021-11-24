@@ -893,6 +893,7 @@
        function filterModalSetContent(container, content) {
            // show the template inside the modal container
            container.hide().empty();
+
            if (content) {
                container.append($(`<hr>`));
                container.append(content).show();
@@ -1041,7 +1042,9 @@
             })
         });
 
+        {% if extra_js then %}
         {* template_utils.gen(extra_js, extra_js_context) *}
+        {% end %}
 
 });
 </script>
