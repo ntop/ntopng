@@ -51,11 +51,12 @@ function recipients.initialize()
       all_categories[#all_categories + 1] = category.id
    end
 
-   -- Delete (if existing) the old, string-keyed recipient
+   -- Delete (if existing) the old, string-keyed recipient and endpoint
    local sqlite_recipient = recipients.get_recipient_by_name("builtin_recipient_sqlite")
    if sqlite_recipient then
       recipients.delete_recipient(sqlite_recipient.recipient_id)
    end
+   endpoints.delete_config("builtin_config_sqlite")
 
    for endpoint_key, endpoint in pairs(endpoints.get_types()) do
       if endpoint.builtin then
@@ -642,8 +643,8 @@ function recipients.get_builtin_recipients()
    -- Currently, only sqlite is the builtin recipient
    -- created in startup.lua calling recipients.initialize()
    if not builtin_recipients_cache then
-      local sqlite_recipient = recipients.get_recipient_by_name("builtin_recipient_sqlite")
-      builtin_recipients_cache = { sqlite_recipient.recipient_id }
+      local alert_store_db_recipient = recipients.get_recipient_by_name("builtin_recipient_alert_store_db")
+      builtin_recipients_cache = { alert_store_db_recipient.recipient_id }
    end
 
    return builtin_recipients_cache
