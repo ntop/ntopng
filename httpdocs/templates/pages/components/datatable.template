@@ -9,22 +9,26 @@
 <script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
 
 <div class='row'>
+
   <div class='col-12'>
     <div class="mb-2">
       {* ui_utils.render_datetime_range_picker(range_picker) *}
     </div>
   </div>
+
   <div class='col-12'>
     <div class="card card-shadow">
       <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
         <div class="text-center">
-          <div class="spinner-border text-primary" role="status">
-            <span class="sr-only">Loading...</span>
+          <div class="spinner-border text-primary mt-5" role="status">
+            <span class="sr-only position-absolute">Loading...</span>
           </div>
         </div>
       </div>
 
       <div class="card-body">
+
+        {% if show_chart then %}
         <div class="row">
 
           <div class="col-12" id="ChartDiv" style="padding-right: 2px;padding-left: 2px;">
@@ -54,16 +58,24 @@
             </div>
           </div>
           {% end  %}
+      {% end  %}
 
           <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'>
             <thead>
-              {* datatable.columns_header *}
+              <tr>
+                {* datatable.columns_header *}
+              </tr>
             </thead>
           </table>
 
+          {% if show_tot_records then %}
+          <small id="{{ datatable.name }}-tot_records" style="display: none;" class="query text-end"><span class="records">{}</span>.</small>
+          {% end %}
           <small id="{{ datatable.name }}-query-time" style="display: none;" class="query">{{ i18n('db_search.query_performed') }} <span class="seconds">{}</span> seconds. <span id="{{ datatable.name }}-query" style="display: none;" class="badge bg-secondary">SQL</span></small>
 
+      {% if show_chart then %}
         </div>
+      {% end  %}
       </div>
 
       <div class="card-footer">
@@ -75,8 +87,8 @@
         {% end %}
 
         {% if show_download then %}
-        <a id="dt-btn-download" download="alerts.txt" class="btn btn-secondary" href="{{ datatable.endpoint_list }}{{ build_query_params(datatable.datasource.params) }}&format=txt">
-          <i class="fas fa-file-download"></i> {{ i18n('show_alerts.download_alerts') }}
+        <a id="dt-btn-download" download="{{ datatable.download.filename }}" class="btn btn-secondary" href="{{ datatable.download.endpoint }}{{ build_query_params(datatable.datasource.params) }}&format={{ datatable.download.format }}">
+          <i class="fas fa-file-download"></i> {{ datatable.download.i18n }}
         </a>
         {% end %}
 

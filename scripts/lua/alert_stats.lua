@@ -545,7 +545,7 @@ if refresh_rate and refresh_rate > 0 then
     checkbox_checked = "fa-spin"
 end
 
-local filters_context = { -- Context for pages/modals/alerts/filters/add.template
+local filters_context = {
     alert_utils = alert_utils,
     alert_consts = alert_consts,
     available_types = available_filter_types,
@@ -566,7 +566,12 @@ local datatable = {
     initialLength = getDefaultTableSize(),
     columns_header = template_utils.gen(string.format("pages/alerts/families/%s/table.template", page), {}),
     columns_js = template_utils.gen(string.format("pages/alerts/families/%s/table.js.template", page), {}),
-    endpoint_list = endpoint_list,
+    download = {
+       endpoint = endpoint_list,
+       filename = "alerts.txt",
+       format = "txt",
+       i18n = i18n('show_alerts.download_alerts'),
+    },
     endpoint_delete = endpoint_delete,
     endpoint_acknowledge = endpoint_acknowledge,
     cached_column = cached_column,
@@ -610,6 +615,8 @@ local context = {
     widget_gui_utils = widget_gui_utils,
     ifid = ifid,
     isPro = ntop.isPro(),
+
+    show_chart = true,
 
     show_cards = (status ~= "engaged") and ntop.isPro(),
     endpoint_cards = endpoint_cards,
