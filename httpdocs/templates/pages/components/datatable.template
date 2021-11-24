@@ -428,17 +428,15 @@
                 return;
             }
 
-            /*
-                //Lookup by key (does not allow dup, replace the value if key is the same)
-                const existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key);
-                const existingTag = tagify.tagData(existingTagElement);
-                if (existingTag !== undefined) {
-            */ 
+            /* Lookup by key (does not allow dup, replace the value if key is the same) */
+            //existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key);
+            //const existingTag = tagify.tagData(existingTagElement);
+            //if (existingTag !== undefined) {
 
-            existingTagElement = existingTagElms[tag.index] || existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
                 
             /* Lookup by index (allow key dup, replace the value only if it's the same element index) */
-            if ((tag.index && existingTagElms.length > tag.index)) {
+            if (tag.index && existingTagElms.length > tag.index) {
+                existingTagElement = existingTagElms[tag.index] || existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
                 existingTag = tagify.tagData(existingTagElement);
 
                 // replace the tag!
@@ -457,7 +455,7 @@
             } 
 
             // has the tag an operator object?
-            if (!Array.isArray(DEFINED_TAGS[tag.key])) {
+            if (DEFINED_TAGS[tag.key] && !Array.isArray(DEFINED_TAGS[tag.key])) {
                 tag.operators = DEFINED_TAGS[tag.key].operators;
             }
 
@@ -524,7 +522,7 @@
         });
         
         const columns = loadColumns();
-        const column_order_name = "{{ datatable.cached_column }}";
+        const column_order_name = "{{ datatable.order_name }}";
         let column_order_id = 0;
         columns.forEach((element, index) => {
             if(element.data && element.data == column_order_name) {
@@ -536,7 +534,7 @@
         config = DataTableUtils.extendConfig(config, {
             serverSide: true,
             searching: false,
-            order: [[ column_order_id, "{* datatable.cached_sorting *}" ]],
+            order: [[ column_order_id, "{* datatable.order_sorting *}" ]],
             ajax: {
                 method: 'get',
                 url: '{* datatable.datasource.endpoint *}',

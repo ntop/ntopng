@@ -574,8 +574,8 @@ local datatable = {
     },
     endpoint_delete = endpoint_delete,
     endpoint_acknowledge = endpoint_acknowledge,
-    cached_column = cached_column,
-    cached_sorting = cached_sorting,
+    order_name = cached_column,
+    order_sorting = cached_sorting,
     refresh_rate = refresh_rate,
     datasource = Datasource(endpoint_list, {
         ifid = ifid,
