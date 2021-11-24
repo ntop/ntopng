@@ -90,6 +90,12 @@ ndpi_serializer* FlowAlert::getSerializedAlert() {
       ndpi_serialize_end_of_block(serializer);
     }
   }
+
+  if(flow->isTLS()) {
+    ndpi_serialize_start_of_block(serializer, "tls");
+    flow->getTLSInfo(serializer);
+    ndpi_serialize_end_of_block(serializer);
+  }
   
   /* Add information relative to this check */
   ndpi_serialize_start_of_block(serializer, "alert_generation");

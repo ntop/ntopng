@@ -4715,6 +4715,29 @@ end
 
 -- ##############################################
 
+function addTLSInfoToAlertDescr(msg, alert_json)
+   if ((alert_json) 
+      and (table.len(alert_json["tls"] or {}) > 0)) then
+      
+      if alert_json["tls"]["protos.tls.notBefore"] and alert_json["tls"]["protos.tls.notAfter"] then
+         msg = msg .. string.format(" [%s: %s - %s]", 
+            i18n("flow_details.tls_certificate_validity"), 
+            formatEpoch(alert_json["tls"]["protos.tls.notBefore"]),
+            formatEpoch(alert_json["tls"]["protos.tls.notAfter"]))
+      end
+
+      if alert_json["tls"]["protos.tls.version"] then
+         msg = msg .. string.format(" [%s: %s]", 
+            i18n("flow_details.tls_version"), 
+            alert_json["tls"]["protos.tls.version"])
+      end
+   end
+
+   return msg
+end
+
+-- ##############################################
+
 function addBytesInfoToAlertDescr(msg, value)
    local predominant_bytes = i18n("traffic_srv_to_cli")
    if (value["cli2srv_bytes"] or 0) > (value["srv2cli_bytes"] or 0) then
@@ -4734,6 +4757,7 @@ function addExtraFlowInfo(msg, alert_json, value)
    msg = addScoreToAlertDescr(msg, ntop.getFlowAlertScore((tonumber(value["alert_id"]))))
    msg = addHTTPInfoToAlertDescr(msg, alert_json)   
    msg = addDNSInfoToAlertDescr(msg, alert_json)
+   msg = addTLSInfoToAlertDescr(msg, alert_json)
    msg = addBytesInfoToAlertDescr(msg, value)
 
    return msg
