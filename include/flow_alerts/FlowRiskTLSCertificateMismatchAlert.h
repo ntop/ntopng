@@ -24,13 +24,13 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskTLSCertificateMismatchAlert : public FlowRiskTLSAlert {
+class FlowRiskTLSCertificateMismatchAlert : public FlowRiskAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_TLS_CERTIFICATE_MISMATCH; }
   static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
   static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskTLSCertificateMismatchAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
+ FlowRiskTLSCertificateMismatchAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskTLSCertificateMismatchAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

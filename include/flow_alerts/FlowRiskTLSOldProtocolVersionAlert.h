@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskTLSOldProtocolVersionAlert : public FlowRiskTLSAlert {
+class FlowRiskTLSOldProtocolVersionAlert : public FlowRiskAlert {
  private:
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
@@ -33,7 +33,7 @@ class FlowRiskTLSOldProtocolVersionAlert : public FlowRiskTLSAlert {
   static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
   static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskTLSOldProtocolVersionAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
+ FlowRiskTLSOldProtocolVersionAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskTLSOldProtocolVersionAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

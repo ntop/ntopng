@@ -27,8 +27,6 @@ ndpi_serializer* FlowRiskTLSCertificateSelfSignedAlert::getAlertJSON(ndpi_serial
   
   if(!serializer) return(NULL);
 
-  FlowRiskTLSAlert::getAlertJSON(serializer);
-
   if((s = f->getTLSCertificateIssuerDN()) != NULL)
     ndpi_serialize_string_string(serializer, "protos.tls.issuerDN", s);
 

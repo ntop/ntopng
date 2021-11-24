@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskTLSCertificateSelfSignedAlert : public FlowRiskTLSAlert {
+class FlowRiskTLSCertificateSelfSignedAlert : public FlowRiskAlert {
  private:
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
@@ -33,7 +33,7 @@ class FlowRiskTLSCertificateSelfSignedAlert : public FlowRiskTLSAlert {
   static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
   static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskTLSCertificateSelfSignedAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) {};
+ FlowRiskTLSCertificateSelfSignedAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) {};
   ~FlowRiskTLSCertificateSelfSignedAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

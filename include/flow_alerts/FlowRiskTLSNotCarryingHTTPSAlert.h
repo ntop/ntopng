@@ -24,13 +24,13 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskTLSNotCarryingHTTPSAlert : public FlowRiskTLSAlert {
+class FlowRiskTLSNotCarryingHTTPSAlert : public FlowRiskAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_TLS_NOT_CARRYING_HTTPS; }
   static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
   static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskTLSNotCarryingHTTPSAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
+ FlowRiskTLSNotCarryingHTTPSAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskTLSNotCarryingHTTPSAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

@@ -24,13 +24,13 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskTLSMissingSNIAlert : public FlowRiskTLSAlert {
+class FlowRiskTLSMissingSNIAlert : public FlowRiskAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_TLS_MISSING_SNI; }
   static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
   static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskTLSMissingSNIAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
+ FlowRiskTLSMissingSNIAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskTLSMissingSNIAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

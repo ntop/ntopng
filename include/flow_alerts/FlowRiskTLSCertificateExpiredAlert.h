@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskTLSCertificateExpiredAlert : public FlowRiskTLSAlert {
+class FlowRiskTLSCertificateExpiredAlert : public FlowRiskAlert {
  private:
 
  public:
@@ -32,7 +32,7 @@ class FlowRiskTLSCertificateExpiredAlert : public FlowRiskTLSAlert {
   static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
   static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskTLSCertificateExpiredAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
+ FlowRiskTLSCertificateExpiredAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskTLSCertificateExpiredAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

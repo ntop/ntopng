@@ -24,13 +24,13 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskTLSUnsafeCiphersAlert : public FlowRiskTLSAlert {
+class FlowRiskTLSUnsafeCiphersAlert : public FlowRiskAlert {
  public:
   static ndpi_risk_enum getClassRisk() { return NDPI_TLS_WEAK_CIPHER; }
   static FlowAlertType getClassType() { return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk()); }
   static u_int8_t      getDefaultScore() { return FlowRiskAlerts::getFlowRiskScore(getClassRisk()); }
 
- FlowRiskTLSUnsafeCiphersAlert(FlowCheck *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
+ FlowRiskTLSUnsafeCiphersAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) { };
   ~FlowRiskTLSUnsafeCiphersAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

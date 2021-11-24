@@ -27,8 +27,6 @@ ndpi_serializer* FlowRiskTLSOldProtocolVersionAlert::getAlertJSON(ndpi_serialize
   if(serializer == NULL)
     return NULL;
 
-  FlowRiskTLSAlert::getAlertJSON(serializer);
-
   ndpi_serialize_string_int32(serializer, "tls_version", f->getTLSVersion());
   
   return serializer;
