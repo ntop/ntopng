@@ -9,27 +9,27 @@ local json = require "dkjson"
 local alerts_api = require "alerts_api"
 local alert_consts = require "alert_consts"
 
-local sqlite = {
-   name = "SQLite",
-   builtin = true, -- Whether this endpoint can be configured from the UI. Disabled for the builtin SQLite
+local alert_store_db = {
+   name = "Alert Store DB",
+   builtin = true, -- Whether this endpoint can be configured from the UI. Disabled for the builtin alert store
 
    endpoint_params = {
-      -- No params, SQLite is builtin
+      -- No params, alert store is builtin
    },
    endpoint_template = {
-      plugin_key = "sqlite_alert_endpoint",
-      template_name = "sqlite_endpoint.template"
+      plugin_key = "alert_store_db_endpoint",
+      template_name = "alert_store_db_endpoint.template"
    },
    recipient_params = {
    },
    recipient_template = {
-      plugin_key = "sqlite_alert_endpoint",
-      template_name = "sqlite_recipient.template"
+      plugin_key = "alert_store_db_endpoint",
+      template_name = "alert_store_db_recipient.template"
    },
 }
 
-sqlite.EXPORT_FREQUENCY = 1
-sqlite.prio = 400
+alert_store_db.EXPORT_FREQUENCY = 1
+alert_store_db.prio = 400
 
 -- ##############################################
 
@@ -64,13 +64,13 @@ end
 
 -- ##############################################
 
-function sqlite.dequeueRecipientAlerts(recipient, budget, high_priority)
+function alert_store_db.dequeueRecipientAlerts(recipient, budget, high_priority)
    local more_available = true
    local budget_used = 0
 
    -- Now also check for alerts pushed by checks from Lua
    -- Dequeue alerts up to budget
-   -- Note: in this case budget is the number of sqlite alerts to insert into the queue
+   -- Note: in this case budget is the number of alert_store_db alerts to insert into the queue
    while budget_used <= budget and more_available do
       local notifications = {}
 
@@ -115,10 +115,10 @@ end
 
 -- ##############################################
 
-function sqlite.runTest(recipient)
+function alert_store_db.runTest(recipient)
   return false, "Not implemented"
 end
 
 -- ##############################################
 
-return sqlite
+return alert_store_db

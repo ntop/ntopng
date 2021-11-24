@@ -51,6 +51,12 @@ function recipients.initialize()
       all_categories[#all_categories + 1] = category.id
    end
 
+   -- Delete (if existing) the old, string-keyed recipient
+   local sqlite_recipient = recipients.get_recipient_by_name("builtin_recipient_sqlite")
+   if sqlite_recipient then
+      recipients.delete_recipient(sqlite_recipient.recipient_id)
+   end
+
    for endpoint_key, endpoint in pairs(endpoints.get_types()) do
       if endpoint.builtin then
 	 -- Delete (if existing) the old, string-keyed endpoint configuration

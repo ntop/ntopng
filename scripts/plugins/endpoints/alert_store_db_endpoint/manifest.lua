@@ -9,8 +9,8 @@
 -- plugins from http://127.0.0.1:3000/lua/plugins_overview.lua .
 
 return {
-  title = "SQLite Alert Endpoint",
-  description = "Handles SQLite alert notifications for the UI",
+  title = "Alert Store DB Endpoint",
+  description = "Handles alert notifications for the UI",
   author = "ntop",
   dependencies = {},
 }
