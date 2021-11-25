@@ -1242,6 +1242,13 @@ function printStatsTimeseries()
 
   if ntop.isPro() then
     prefsToggleButton(subpage_active, {
+      field = "toggle_observation_points_rrd_creation",
+      default = "0",
+      pref = "observation_points_rrd_creation",
+      disabled = not info["version.enterprise_edition"],
+    })
+
+    prefsToggleButton(subpage_active, {
       field = "toggle_flow_rrds",
       default = "0",
       pref = "flow_device_port_rrd_creation",

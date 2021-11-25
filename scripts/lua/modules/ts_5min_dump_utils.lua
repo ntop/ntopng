@@ -281,9 +281,9 @@ end
 
 -- ########################################################
 
-function ts_dump.obs_point_update_rrds(when, ifstats, verbose)
+function ts_dump.obs_point_update_rrds(when, ifstats, verbose, config)
   local obs_points_info = interface.getObsPointsInfo({detailsLevel = "higher"})
-
+    
   for _, obs_point_stats in pairs(obs_points_info["ObsPoints"]) do
     local obs_point = obs_point_stats["obs_point"]
 
@@ -301,11 +301,14 @@ function ts_dump.obs_point_update_rrds(when, ifstats, verbose)
 
     ts_utils.append("obs_point:traffic_rcvd", {ifid=ifstats.id, obs_point=obs_point,
               bytes=obs_point_stats["bytes.rcvd"]}, when)
-    -- Save Observation Points ndpi stats
-    if obs_point_stats["ndpi"] ~= nil then
-      for proto_name, proto_stats in pairs(obs_point_stats["ndpi"]) do
-        ts_utils.append("obs_point:ndpi", {ifid=ifstats.id, obs_point=obs_point, protocol=proto_name,
-                  bytes_sent=proto_stats["bytes.sent"], bytes_rcvd=proto_stats["bytes.rcvd"]}, when)
+
+    if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation == "both" then
+      -- Save Observation Points ndpi stats
+      if obs_point_stats["ndpi"] ~= nil then
+        for proto_name, proto_stats in pairs(obs_point_stats["ndpi"]) do
+          ts_utils.append("obs_point:ndpi", {ifid=ifstats.id, obs_point=obs_point, protocol=proto_name,
+                    bytes_sent=proto_stats["bytes.sent"], bytes_rcvd=proto_stats["bytes.rcvd"]}, when)
+        end
       end
     end
 
@@ -464,11 +467,12 @@ function ts_dump.getConfig()
   config.host_pools_rrd_creation = ntop.getPref("ntopng.prefs.host_pools_rrd_creation")
   config.snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation")
   config.asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
-  config.obs_point_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
+  config.obs_point_rrd_creation = ntop.getPref("ntopng.prefs.observation_points_rrd_creation")
   config.country_rrd_creation = ntop.getPref("ntopng.prefs.country_rrd_creation")
   config.os_rrd_creation = ntop.getPref("ntopng.prefs.os_rrd_creation")
   config.vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
   config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
+  config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
 
   -- ########################################################
   -- Populate some defaults
@@ -487,6 +491,9 @@ function ts_dump.getConfig()
   -- Devices RRD creation is OFF, as OFF is the nDPI rrd creation
   if isEmptyString(config.l2_device_rrd_creation) then config.l2_device_rrd_creation = "0" end
   if isEmptyString(config.l2_device_ndpi_timeseries_creation) then config.l2_device_ndpi_timeseries_creation = "none" end
+
+  -- Interface RRD creation is on, with per-protocol nDPI, Pref used by Observation Points
+  if isEmptyString(config.interface_ndpi_timeseries_creation) then config.interface_ndpi_timeseries_creation = "per_protocol" end
 
   return config
 end
@@ -900,7 +907,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
 
   -- create RRD for Observation Points
   if config.obs_point_rrd_creation == "1" then
-    ts_dump.obs_point_update_rrds(when, ifstats, verbose)
+    ts_dump.obs_point_update_rrds(when, ifstats, verbose, config)
   end
 
   -- Update 5min Network stats
