@@ -167,9 +167,15 @@ In the Observation Points Page, 5 columns are shown: the `Observation Points` co
 
 To be able to see Observation Points charts it's necessary to enable the corresponding timeseries settings. To do so go to `Settings`, `Timeseries` and scroll down; then enable the `Flow Probes` timeseries.
 
-.. figure:: ../img/flow_probes_timeseries.png
+.. figure:: ../img/observation_points_timeseries.png
    :align: center
-   :alt: Flow Probes Timeseries
+   :alt: Observation Points Timeseries
+
+Other then the base timeseries (like Traffic, Score, ecc.) it is possible to have Applications timeseries. To have them it's needed to activate the Interfaces Application Timeseries (turn the Interface L-7 Application on 'Per Application' or on 'Both').
+
+.. figure:: ../img/interface_l7proto_timeseries.png
+   :align: center
+   :alt: Interface L7 Timeseries
 
 After that, all the Observation Points timeseries are going to be available (Traffic, Score and Applications timeseries); go to the Observation Points page and click the charts icon to see them. 
 
