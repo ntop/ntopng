@@ -872,7 +872,7 @@ for v,k in pairs(iface_names) do
 end
 
 -- The observationPoint menu is displayed only for the flow page
-if(_SERVER.URI == "/lua/flows_stats.lua") then
+if table.len(observationPoints) > 0 and (_SERVER.URI == "/lua/flows_stats.lua") then
    observationPointId = ntop.getUserObservationPointId()
 else
    observationPoints = nil
