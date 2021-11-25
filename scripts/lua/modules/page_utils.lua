@@ -878,6 +878,8 @@ function page_utils.switch_interface_form_action_url(active_ifid, switch_ifid, s
    -- Attach the interface id of the interface that will be switched
    page_params.ifid = switch_ifid
 
+   page_params["observationPointId"] = nil
+
    -- Return the url, preserving all existing page parameters (e.g., host=xx)
    local res = getPageUrl(action_url, page_params)
 

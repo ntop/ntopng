@@ -102,7 +102,7 @@
       <optgroup label="{{ i18n('observationpoints') }}">
      {% for _, v in pairsByKeys(observationPoints, asc) do %}
           {% local selected = '' %}
-        {% if((observationPointId ~= nil) and (tostring(k) == tostring(observationPointId))) then selected = 'selected' end %}
+        {% if((observationPointId ~= nil) and (tostring(v["obs_point"]) == tostring(observationPointId))) then selected = 'selected' end %}
         <option value="{{ v["obs_point"] }}" {{ selected }}>{{ getObsPointAlias(v["obs_point"], true) }}</option>
      {% end %}
       </optgroup>
