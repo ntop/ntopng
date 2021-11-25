@@ -6073,7 +6073,7 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVLANs(bool force_idle, bool fu
       + (ases_hash ? ases_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (oses_hash ? oses_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (countries_hash ? countries_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
-      + (vlans_hash ? vlans_hash->purgeIdle(&tv, force_idle, full_scan) : 0);
+      + (vlans_hash ? vlans_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (obs_hash ? obs_hash->purgeIdle(&tv, force_idle, full_scan) : 0);
 
     next_idle_other_purge = last_packet_time + OTHER_PURGE_FREQUENCY;
