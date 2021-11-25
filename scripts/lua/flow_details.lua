@@ -1508,11 +1508,22 @@ else
       print("</td></tr>\n")
 
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
-      print("<A class='ntopng-external-link' href=\"http://")
+      print("<A class='ntopng-external-link' href=\"")
       -- if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
 
       local last_url = page_utils.safe_html(flow["protos.http.last_url"])
       local last_url_short = shortenString(last_url, 64)
+
+      if(starts(last_url, "http:") == false) then
+	 -- Now we need to check if nttp or https is needed
+	 if(string.contains(last_url, ":443")) then
+	    print("https://")
+	 else
+	    print("http://")
+	 end
+      end
+
+      
       print(last_url.."\">"..last_url_short.." <i class=\"fas fa-external-link-alt\"></i></A>")
       print("</td></tr>\n")
 
