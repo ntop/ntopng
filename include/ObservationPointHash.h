@@ -32,6 +32,11 @@ class ObservationPointHash : public GenericHash {
   ObservationPointHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
   ObservationPoint* get(u_int16_t _obs_point, bool is_inline_call);
+  u_int purgeIdle(const struct timeval * tv, bool force_idle, bool full_scan) {
+    if(force_idle) GenericHash::purgeIdle(tv, force_idle, full_scan);
+    return 0;
+  };
+
 };
 
 #endif /* _OBSERVATION_POINT_HASH_H */

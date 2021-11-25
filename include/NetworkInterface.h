@@ -194,7 +194,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int64_t dynamic_interface_criteria;  /* Criteria identifying this dynamic interface */
   FlowHashingEnum dynamic_interface_mode; /* Mode (e.g., Probe IP, VLAN ID, etc */
 
-
   bool is_traffic_mirrored, is_loopback;
   bool discard_probing_traffic;
   bool flows_only_interface; /* Only allocates flows for the interface (e.g., no hosts, ases, etc) */
@@ -344,6 +343,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   void addRedisSitesKey();
   void removeRedisSitesKey();
+  
+  void FillObsHash();
 
   bool isNumber(const char *str);
   bool checkIdle();

@@ -6073,7 +6073,7 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVLANs(bool force_idle, bool fu
       + (ases_hash ? ases_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (oses_hash ? oses_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (countries_hash ? countries_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
-      + (vlans_hash ? vlans_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
+      + (vlans_hash ? vlans_hash->purgeIdle(&tv, force_idle, full_scan) : 0)  
       + (obs_hash ? obs_hash->purgeIdle(&tv, force_idle, full_scan) : 0);
 
     next_idle_other_purge = last_packet_time + OTHER_PURGE_FREQUENCY;
@@ -7074,6 +7074,61 @@ bool NetworkInterface::isInterfaceNetwork(const IpAddress * const ipa, int netwo
 
 /* **************************************** */
 
+void NetworkInterface::FillObsHash() {
+  /* Adding all observation points to the hash map*/
+  if(obs_hash) {
+    char **keys;
+    char pattern[64];
+    int rc = 0;
+
+    snprintf(pattern, sizeof(pattern), "ntopng.serialized_as.ifid_%u_obs_point_*", get_id()); 
+
+    // ntop->getTrace()->traceEvent(TRACE_INFO, "Pattern: %s", pattern);
+
+    /* Get all Observation Points keys */
+    rc = ntop->getRedis()->keys(pattern, &keys);
+
+    if (rc > 0) {
+      for (int i = 0; i < rc; i++) {
+        if (keys[i]) {
+          char symbol = '_';
+          /* Get last occurrence of _ , because the key is serialized like ntopng.serialized_as.ifid_10_obs_point_1234 */
+          /* In this way it's possible to get all the ids of the Obs. Points */
+          char *obs_point = strrchr(keys[i], symbol); 
+
+          if((obs_point) &&
+            (obs_point = ++obs_point)) {
+            
+            u_int16_t obs_point_id = atoi(obs_point);
+            
+            if(!obs_point_id) {
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to deserialize Observation Point stats: %u", obs_point_id);
+              if(keys[i]) free(keys[i]);
+              continue;
+            }
+
+            /* Found at least one element */
+            /* Create a new observation point with the id found to deserialize stats */
+            ObservationPoint *tmp_obs_point = new ObservationPoint(this, obs_point_id);
+            
+            /* Add to the map */ 
+            if(obs_hash->add(tmp_obs_point, false /* Do lock */))
+              ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found Observation Point: %u; Stats deserialization complete.", obs_point_id);
+            else
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to deserialize Observation Point stats: %u", obs_point_id);
+          }
+        }
+
+        if(keys[i]) free(keys[i]);
+      }
+
+      free(keys);
+    }
+  }
+}
+
+/* **************************************** */
+
 void NetworkInterface::allocateStructures() {
 
   u_int8_t numNetworks = ntop->getNumLocalNetworks();
@@ -7099,6 +7154,8 @@ void NetworkInterface::allocateStructures() {
 	  macs_hash      = new MacHash(this, ndpi_min(num_hashes, 8192), 32768);
       }
     }
+
+    FillObsHash();
 
     networkStats     = new NetworkStats*[numNetworks];
     statsManager     = new StatsManager(id, STATS_MANAGER_STORE_NAME);
