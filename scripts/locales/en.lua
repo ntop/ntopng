@@ -682,6 +682,7 @@ local lang = {
     ["abort_add_filter"] = "Abort add filter?",
     ["add_filter"] = "Add Filter",
     ["edit_filter"] = "Edit Filter",
+    ["no_records"] = "No Records",
     ["select_filter"] = "Filter",
   },
   ["alerts_dashboard"] = {

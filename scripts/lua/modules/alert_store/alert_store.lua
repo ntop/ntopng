@@ -991,7 +991,6 @@ function alert_store:count_by_severity_and_time_historical()
    return self:_prepare_count_by_severity_and_time_series(all_severities, min_slot, max_slot, time_slot_width)
 end
 
-
 -- ##############################################
 
 --@brief Performs a query and counts the number of records in multiple time slots using the old response format (CheckMK integration)
