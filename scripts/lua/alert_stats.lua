@@ -644,7 +644,7 @@ local context = {
    range_picker = {
        ifid = ifid,
        default = status ~= "engaged" and "30min" or "1week",
-	earliest_available_epoch = earliest_available_epoch,
+       earliest_available_epoch = earliest_available_epoch,
        refresh_enabled = checkbox_checked,
        tags = {
            enabled = (page ~= 'all'),
@@ -655,9 +655,9 @@ local context = {
            i18n = {
                auto_refresh_descr = i18n("auto_refresh_descr"),
                enable_auto_refresh = auto_refresh_text,
-	        alert_id = i18n("tags.alert_id"),
+               alert_id = i18n("tags.alert_id"),
                severity = i18n("tags.severity"),
-		score = i18n("tags.score"),
+               score = i18n("tags.score"),
                l7_proto = i18n("tags.l7proto"),
                cli_ip = i18n("tags.cli_ip"),
                srv_ip = i18n("tags.srv_ip"),
@@ -669,9 +669,9 @@ local context = {
                ip = i18n("tags.ip"),
                name = i18n("tags.name"),
                network_name = i18n("tags.network_name"),
-		subtype = i18n("alerts_dashboard.element"),
+               subtype = i18n("alerts_dashboard.element"),
                role = i18n("tags.role"),
-		role_cli_srv = i18n("tags.role_cli_srv"),
+               role_cli_srv = i18n("tags.role_cli_srv"),
            }
        },
        presets = {

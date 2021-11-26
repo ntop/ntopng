@@ -4875,6 +4875,20 @@ function table.slice(t, start_table, end_table)
     return res
 end
 
+function get_html_color(index) 
+   local palette = { 
+      "#CCCCCC",
+      "#FFBF00",
+      "#FF7F50",
+      "#6495ED",
+      "#CCCCFF",
+      "#9FE2BF",
+      "#DE3163",
+   }
+
+   return palette[(index % #palette) + 1]
+end
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

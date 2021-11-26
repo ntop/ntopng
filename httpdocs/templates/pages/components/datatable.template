@@ -966,18 +966,18 @@
                 let sideCardTitle = [$('#sideCardTitle1'),$('#sideCardTitle2')];
                 let numCards = 0;
 
-                for(i=0;i<sideCard.length;i++){
-                    if(data.rsp[i] == undefined){
+                for (i = 0; i < sideCard.length; i++){
+                    if (data.rsp[i] == undefined){
                         divBox[i].attr({
                                 "class" : "col-2 d-none"
                         });
-                    }else{
+                    } else {
                         sideCardTitle[i].html(data.rsp[i].label);
                         sideCardTitle[i].attr({
                             "title" : data.rsp[i].tooltip                
                         });
                         let cardText = "";
-                        for(j=0;j<3;j++){
+                        for (j = 0; j < 3; j++) {
                             // Concat the name with the percentage of the stat
                             // NB: These name should be filters if available
                             if(data.rsp[i].value[0].lenght != 0 && data.rsp[i].value[0][j] != undefined){
@@ -986,13 +986,13 @@
                                 cardText += "<li>" + data.rsp[i].value[0][j].name + restText;
                             }                           
                         }
-                        if(cardText != ""){
+                        if (cardText != ""){
                                 divBox[i].attr({
                                         "class" : "col-2 mb-2"
                                 });
                             sideCard[i].html("<small>" + cardText + "</small>");
                             numCards += 1;
-                        }else{
+                        } else {
                                 divBox[i].attr({
                                         "class" : "col-2 d-none"
                                 });
