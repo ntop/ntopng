@@ -810,7 +810,7 @@ NetworkInterface::~NetworkInterface() {
     delete it->second;
   external_alerts.clear();
 
-  for(it_o = observationPoints.begin(); it_o != observationPoints.end(); ++it)
+  for(it_o = observationPoints.begin(); it_o != observationPoints.end(); ++it_o)
     delete it_o->second;
 
 #ifdef NTOPNG_PRO
