@@ -874,6 +874,10 @@ end
 -- The observationPoint menu is displayed only for the flow page
 if table.len(observationPoints) > 0 and (_SERVER.URI == "/lua/flows_stats.lua") then
    observationPointId = ntop.getUserObservationPointId()
+   
+   if((observationPointId == 0) and (_GET["observationPointId"] ~= 0)) then
+      observationPointId = _GET["observationPointId"]
+   end
 else
    observationPoints = nil
 end

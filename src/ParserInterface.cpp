@@ -288,8 +288,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   }
 
   if(zflow->observationPointId != 0) 
-    incObservationPointIdFlows(zflow->observationPointId,
-			       zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));      
+    incObservationPointIdFlows(zflow->observationPointId, zflow->first_switched, zflow->last_switched);      
 
   if(zflow->l4_proto == IPPROTO_TCP) {
     if(zflow->tcp.client_tcp_flags || zflow->tcp.server_tcp_flags) {

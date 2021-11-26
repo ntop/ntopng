@@ -138,9 +138,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   /* Queue containing the ip@vlan strings of the hosts to restore. */
   StringFifoQueue *hosts_to_restore;
-
-  RwLock observationLock;
-  std::map<u_int16_t /* observationPointId */, ObservationPointIdTrafficStats*> observationPoints;
   
   /* External alerts contain alertable entities other than host/interface/network
    * which are dynamically allocated when an alert for them occurs.
@@ -252,6 +249,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   AutonomousSystemHash *ases_hash; /**< Hash used to store Autonomous Systems information. */
 
   /* Observation Point */
+  u_int16_t last_obs_point_id;
   ObservationPointHash *obs_hash; /**< Hash used to store Observation Point information. */
 
   /* Operating Systems */
@@ -1032,16 +1030,11 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline HostChecksExecutor* getHostCheckExecutor() { return(host_checks_executor); }
   HostCheck *getCheck(HostCheckID t);
 
-  void incObservationPointIdFlows(u_int16_t pointId, u_int32_t tot_bytes);
+  void incObservationPointIdFlows(u_int16_t pointId, time_t first_seen, time_t last_seen);
 
-  inline bool hasObservationPointId(u_int16_t pointId) {
-    /* This is work in progress and it needs to be locked when read */
-    return((observationPoints.find(pointId) == observationPoints.end()) ? false : true);
-  }
-  
-  void getObservationPoints(lua_State* vm);
-  inline bool haveObservationPointsDefined()    { return(observationPoints.size() == 0 ? false : true); }
-  inline u_int16_t getFirstObservationPointId() { return(observationPoints.size() == 0 ? 0 : observationPoints.begin()->first); }
+  bool hasObservationPointId(u_int16_t pointId); 
+  bool haveObservationPointsDefined();
+  u_int16_t getFirstObservationPointId();
 
   struct ndpi_detection_module_struct* initnDPIStruct();    
   bool initnDPIReload();

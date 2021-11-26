@@ -25,6 +25,7 @@
 
 ObservationPoint::ObservationPoint(NetworkInterface *_iface, u_int16_t _obs_point) : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface), dirstats(_iface, 0) {
   obs_point = _obs_point;
+  num_flows = 0;
 
 #ifdef OBS_POINT_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Observation Point %s", obs_point);
@@ -69,6 +70,7 @@ void ObservationPoint::lua(lua_State* vm, DetailsLevel details_level, bool asLis
 
   lua_push_uint64_table_entry(vm, "obs_point", obs_point);
   lua_push_uint64_table_entry(vm, "bytes", getNumBytes());
+  lua_push_uint64_table_entry(vm, "flows", getNumFlows());
 
   lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
   lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());

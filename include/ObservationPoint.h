@@ -33,6 +33,7 @@ class ObservationPoint : public GenericHashEntry, public GenericTrafficElement, 
    */
   u_int16_t obs_point;
   NetworkStats dirstats;
+  u_int64_t num_flows;
 
   
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
@@ -52,12 +53,15 @@ class ObservationPoint : public GenericHashEntry, public GenericTrafficElement, 
   void set_hash_entry_state_idle();
   bool is_hash_entry_state_idle_transition_ready();
 
+  inline u_int64_t getNumFlows()               { return num_flows; }
   inline u_int16_t getNumHosts()               { return getUses(); }
   inline u_int32_t key()                       { return obs_point; }
   inline u_int32_t getObsPoint()               { return obs_point; }
 
   bool equal(u_int16_t _obs_point)                         { return (obs_point == _obs_point);        } 
   inline bool equal(ObservationPoint *_obs_point)          { return (obs_point == _obs_point->key()); }
+
+  inline void incFlows()                       { num_flows++; }
 
   inline void incStats(time_t when, u_int16_t proto_id,
            u_int64_t sent_packets, u_int64_t sent_bytes,
@@ -72,14 +76,17 @@ class ObservationPoint : public GenericHashEntry, public GenericTrafficElement, 
 
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
 
-
   inline void deserialize(json_object *obj) {
+    json_object *o;
     GenericHashEntry::deserialize(obj);
     GenericTrafficElement::deserialize(obj, iface);
-  }
+    if(json_object_object_get_ex(obj, "flows", &o)) 
+      num_flows = json_object_get_int64(o);
+    }
   inline void serialize(json_object *obj, DetailsLevel details_level) {
     GenericHashEntry::getJSONObject(obj, details_level);
     GenericTrafficElement::getJSONObject(obj, iface);
+    json_object_object_add(obj, "flows", json_object_new_int64(num_flows));
   }
   inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, OBS_POINT_SERIALIZED_KEY, iface->get_id(), obs_point); return(buf); }
 };

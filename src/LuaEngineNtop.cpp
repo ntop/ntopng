@@ -5142,17 +5142,17 @@ static int ntop_get_user_observation_point_id(lua_State* vm) {
     
     if(ntop->getRedis()->get(key, val, sizeof(val)) != -1) {
       u_int16_t observationPointId = (u_int16_t)atoi(val);
-      
+
       if(iface->haveObservationPointsDefined()) {
-	if(!iface->hasObservationPointId(observationPointId)) {
-	  observationPointId = iface->getFirstObservationPointId();
-	  snprintf(val, sizeof(val), "%u", observationPointId);
-	  ntop->getRedis()->set(key, val);
-	}
+	      if(!iface->hasObservationPointId(observationPointId)) {
+      	  observationPointId = iface->getFirstObservationPointId();
+      	  snprintf(val, sizeof(val), "%u", observationPointId);
+      	  ntop->getRedis()->set(key, val);
+	      }
 	
-	getLuaVMUservalue(vm, observationPointId) = observationPointId;
-	rc = true;
-	lua_pushinteger(vm, observationPointId);
+      	getLuaVMUservalue(vm, observationPointId) = observationPointId;
+      	rc = true;
+      	lua_pushinteger(vm, observationPointId);
       }
     }
 

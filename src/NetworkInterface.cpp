@@ -267,6 +267,7 @@ void NetworkInterface::init() {
     mdns = NULL, discovery = NULL, ifDescription = NULL,
     flowHashingMode = flowhashing_none;
       num_new_flows = 0;
+    last_obs_point_id = 0;
 
   flows_hash = NULL, hosts_hash = NULL;
   macs_hash = NULL, ases_hash = NULL, oses_hash = NULL, vlans_hash = NULL, obs_hash = NULL;
@@ -809,10 +810,7 @@ NetworkInterface::~NetworkInterface() {
   for(it = external_alerts.begin(); it != external_alerts.end(); ++it)
     delete it->second;
   external_alerts.clear();
-
-  for(it_o = observationPoints.begin(); it_o != observationPoints.end(); ++it_o)
-    delete it_o->second;
-
+  
 #ifdef NTOPNG_PRO
   if(policer)               delete(policer);
 #ifndef HAVE_NEDGE
@@ -6602,6 +6600,7 @@ ObservationPoint* NetworkInterface::getObsPoint(u_int16_t obs_point, bool create
       return(NULL);
     }
   }
+  last_obs_point_id = obs_point;
 
   return(ret);
 }
@@ -7111,6 +7110,7 @@ void NetworkInterface::FillObsHash() {
             /* Create a new observation point with the id found to deserialize stats */
             ObservationPoint *tmp_obs_point = new ObservationPoint(this, obs_point_id);
             
+            last_obs_point_id = obs_point_id;
             /* Add to the map */ 
             if(obs_hash->add(tmp_obs_point, false /* Do lock */))
               ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found Observation Point: %u; Stats deserialization complete.", obs_point_id);
@@ -9530,54 +9530,31 @@ void NetworkInterface::execHostChecks(Host *h) {
 
 /* *************************************** */
 
-void NetworkInterface::getObservationPoints(lua_State* vm) {
-  bool found = false;
+void NetworkInterface::incObservationPointIdFlows(u_int16_t pointId, time_t first_seen, time_t last_seen) {
+  if(first_seen != last_seen) 
+    return; /* Increase the num of flows just the first time the flow is seen */
 
-  observationLock.rdlock(__FILE__, __LINE__);
-
-  for(std::map<u_int16_t, ObservationPointIdTrafficStats*>::iterator it = observationPoints.begin(); it != observationPoints.end(); ++it) {
-    if(!found) {
-      lua_newtable(vm);
-      found = true;
-    }
-
-    lua_newtable(vm);
-
-    it->second->lua(vm);
-
-    lua_pushinteger(vm, it->first);
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-  }
-
-  observationLock.unlock(__FILE__, __LINE__);
-
-  if(!found)
-    lua_pushnil(vm);
+  ObservationPoint *obs_point_stats = obs_hash->get(pointId, true /* Lock */);
+  if(obs_point_stats)
+    obs_point_stats->incFlows();
 }
 
 /* *************************************** */
 
-void NetworkInterface::incObservationPointIdFlows(u_int16_t pointId, u_int32_t tot_bytes) {
-  std::map<u_int16_t,ObservationPointIdTrafficStats*>::iterator o = observationPoints.find(pointId);
+bool NetworkInterface::hasObservationPointId(u_int16_t pointId) {
+  return(((obs_hash) && (obs_hash->get(pointId, false)) ? true : false));
+}
 
-  if(o == observationPoints.end()) {
-    if(observationPoints.size() < MAX_NUM_OBSERVATION_POINTS) {
-      observationLock.wrlock(__FILE__, __LINE__);
-      observationPoints[pointId] = new ObservationPointIdTrafficStats(1, tot_bytes);
-      observationLock.unlock(__FILE__, __LINE__);
-    } else {
-      static bool shown = false;
+/* *************************************** */
+  
+bool NetworkInterface::haveObservationPointsDefined() { 
+  return(((!obs_hash) || (obs_hash->getNumEntries() == 0)) ? false : true); 
+}
 
-      if(!shown) {
-	shown = true;
-	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "Too many observation points %u defined for %s",
-				     observationPoints.size(), get_name());
-      }
-    }
-  } else
-    o->second->inc(tot_bytes);
+/* *************************************** */
+
+u_int16_t NetworkInterface::getFirstObservationPointId() { 
+  return(((!obs_hash) || (obs_hash->getNumEntries() == 0)) ? 0 : last_obs_point_id); 
 }
 
 /* *************************************** */
