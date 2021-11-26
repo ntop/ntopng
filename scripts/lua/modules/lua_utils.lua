@@ -4896,7 +4896,7 @@ function add_historical_flow_explorer_button_ref(extra_params)
       base_url = base_url .. k .. "=" .. v["value"] .. ";" .. v["operator"]
    end
 
-   local button = '<a href="' .. base_url .. '" data-placement="bottom" class="btn btn-sm btn-primary" title="Historical Flow Explorer"><i class="fas fa-search-plus fa-lg"></i></a>'
+   local button = '<a href="' .. base_url .. '" data-placement="bottom" class="btn btn-sm btn-primary" title="Historical Flow Explorer"><i class="fas fa-search-plus"></i></a>'
 
    return button
 end   
