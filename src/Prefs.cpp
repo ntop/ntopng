@@ -81,6 +81,9 @@ Prefs::Prefs(Ntop *_ntop) {
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
+#ifdef NTOPNG_PRO
+  pro_callbacks_dir = strdup(CONST_DEFAULT_PRO_CALLBACKS_DIR);
+#endif
   pcap_dir = NULL;
   test_pre_script_path = test_post_script_path = NULL;
   config_file_path = ndpi_proto_path = NULL;
@@ -207,6 +210,9 @@ Prefs::~Prefs() {
   if(docs_dir)         free(docs_dir);
   if(scripts_dir)      free(scripts_dir);
   if(callbacks_dir)    free(callbacks_dir);
+#ifdef NTOPNG_PRO
+  if(pro_callbacks_dir) free(pro_callbacks_dir);
+#endif
   if(pcap_dir)         free(pcap_dir);
   if(config_file_path) free(config_file_path);
   if(user)             free(user);
@@ -1757,6 +1763,11 @@ int Prefs::checkOptions() {
   scripts_dir   = ntop->getValidPath(scripts_dir);
   callbacks_dir = ntop->getValidPath(callbacks_dir);
 
+#ifdef NTOPNG_PRO
+  pro_callbacks_dir = ntop->getValidPath(pro_callbacks_dir);
+  if(!pro_callbacks_dir) { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate pro callbacks dir"); return(-1); }
+  ntop->removeTrailingSlash(pro_callbacks_dir);
+#endif
   if(!data_dir)         { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate data dir");      return(-1); }
   if(!docs_dir[0])      { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate docs dir");      return(-1); }
   if(!scripts_dir[0])   { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate scripts dir");   return(-1); }

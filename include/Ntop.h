@@ -292,6 +292,9 @@ class Ntop {
   inline const char* get_if_descr(int id)                  { return(prefs->get_if_descr(id));    };
   inline char* get_data_dir()                              { return(prefs->get_data_dir());      };
   inline const char* get_callbacks_dir()                   { return(prefs->get_callbacks_dir()); };
+#ifdef NTOPNG_PRO
+  inline const char* get_pro_callbacks_dir()               { return(prefs->get_pro_callbacks_dir()); };
+#endif
   /**
    * @brief Get the current httpdocs directory.
    *

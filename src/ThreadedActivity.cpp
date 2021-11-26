@@ -522,6 +522,14 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t schedul
   snprintf(script_path, sizeof(script_path), "%s/system/%s",
 	   ntop->get_callbacks_dir(), path);
 
+#ifdef NTOPNG_PRO
+  if(stat(script_path, &buf)) {
+    /* Attempt at locating and executing the callback under the pro callbacks */
+    snprintf(script_path, sizeof(script_path), "%s/system/%s",
+	     ntop->get_pro_callbacks_dir(), path);
+  }
+#endif
+
   if(stat(script_path, &buf) == 0) {
     if(pool->queueJob(this, script_path, ntop->getSystemInterface(), scheduled_time, deadline)) {
 #ifdef THREAD_DEBUG

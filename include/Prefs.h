@@ -113,7 +113,11 @@ class Prefs {
   bool insecure_tls; /**< Unsecure TLS connections a-la curl */
   u_int32_t num_simulated_ips;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
-	  *callbacks_dir, *pcap_dir;
+	  *callbacks_dir, *pcap_dir
+#ifdef NTOPNG_PRO
+    , *pro_callbacks_dir
+#endif
+    ;
   char *categorization_key;
   char *zmq_encryption_pwd;
   char *zmq_encryption_priv_key;
@@ -248,6 +252,9 @@ class Prefs {
   inline const char* get_scripts_dir()                        { return(scripts_dir);    };
   inline const char* get_callbacks_dir()                      { return(callbacks_dir);  };
   inline const char* get_pcap_dir()                           { return(pcap_dir);       };
+#ifdef NTOPNG_PRO
+  inline const char* get_pro_callbacks_dir()                  { return(pro_callbacks_dir); };
+#endif
   inline const char* get_test_pre_script_path()               { return(test_pre_script_path); };
   inline const char* get_test_post_script_path()              { return(test_post_script_path); };
   inline char* get_export_endpoint()                    { return(export_endpoint);};

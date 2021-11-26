@@ -39,7 +39,11 @@ PeriodicActivities::PeriodicActivities() {
 
   standard_priority_pool = no_priority_pool = longrun_priority_pool
     = timeseries_pool = discover_pool
-    = housekeeping_pool = notifications_pool = NULL;
+    = housekeeping_pool = notifications_pool
+#ifdef NTOPNG_PRO
+    = snmp_pool
+#endif
+  = NULL;
 
   num_activities = 0;
 }
@@ -64,6 +68,9 @@ PeriodicActivities::~PeriodicActivities() {
   if(discover_pool)              delete discover_pool;
   if(housekeeping_pool)          delete housekeeping_pool;
   if(no_priority_pool)           delete no_priority_pool;
+#ifdef NTOPNG_PRO
+  if(snmp_pool)                  delete snmp_pool;
+#endif
 
   /* Now it's safe to delete the activities as no other thread is executing
    * their code. */
@@ -136,6 +143,9 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   discover_pool              = new (std::nothrow) ThreadPool(false, 1);
   housekeeping_pool          = new (std::nothrow) ThreadPool(false, 1);
   no_priority_pool           = new (std::nothrow) ThreadPool(false, num_threads_no_priority);
+#ifdef NTOPNG_PRO
+  snmp_pool                  = new (std::nothrow) ThreadPool(false, 1);
+#endif
   
   static activity_descr ad[] = {
     // Script                 Periodicity (s) Max (s)  Pool                        Align  !View  !PCAP
@@ -149,7 +159,6 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 #ifdef HAVE_NEDGE
     { PINGER_SCRIPT_PATH,                    5,     5, no_priority_pool,           false, false, true },
 #endif
-    
     { TIMESERIES_SCRIPT_PATH,                1,  3600, timeseries_pool,            false, false, true  },
     { NOTIFICATIONS_SCRIPT_PATH,             3,    65, notifications_pool,         false, false, false }, /* 60 sec + 5 extra sec (#6091) */
 
@@ -158,6 +167,10 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 
     { DISCOVER_SCRIPT_PATH,                  5,  3600, discover_pool,              false, false, true  },
 
+#ifdef NTOPNG_PRO
+    { SNMP_SCRIPT_PATH,                    300,   900, snmp_pool,                  false, false, true  },
+#endif
+    
     { NULL,                                  0,     0, NULL,                       false, false, false }
   };
 

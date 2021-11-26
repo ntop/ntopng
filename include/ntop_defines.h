@@ -511,6 +511,9 @@
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
+#ifdef NTOPNG_PRO
+#define CONST_DEFAULT_PRO_CALLBACKS_DIR  "pro/scripts/callbacks"
+#endif
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
 #define CONST_DEFAULT_INSTALL_DIR    (DATA_DIR "/ntopng")
 #if defined(__FreeBSD__)
@@ -941,6 +944,8 @@
 #define FIVE_MINUTES_SCRIPT_PATH             "5min.lua"
 #define HOURLY_SCRIPT_PATH                   "hourly.lua"
 #define DAILY_SCRIPT_PATH                    "daily.lua"
+#define SNMP_SCRIPT_PATH                     "snmp.lua"
+
 
 #define CHECKS_CONFIG                        "ntopng.prefs.checks.configset_v1"  /* Sync with checks.lua CONFIGSET_KEY  */
 #define SYSLOG_SCRIPT_PATH                   "callbacks/system/syslog.lua"

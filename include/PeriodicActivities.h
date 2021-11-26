@@ -30,7 +30,11 @@ class PeriodicActivities {
   u_int16_t num_activities;
   ThreadPool *standard_priority_pool, *timeseries_pool,
     *no_priority_pool, *longrun_priority_pool, *discover_pool, *housekeeping_pool,
-    *notifications_pool;
+    *notifications_pool
+#ifdef NTOPNG_PRO
+    , *snmp_pool
+#endif
+    ;
   
  public:
   PeriodicActivities();
