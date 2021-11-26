@@ -131,6 +131,9 @@
         const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
 
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
+	{% if chart and chart.name then %}
+        const chartParams = {* json.encode(chart.params) *};
+        {% end %}
 
         const $inputBeginEpoch = $(`#begin-epoch`);
         const $inputEndEpoch = $(`#end-epoch`);
@@ -186,7 +189,8 @@
 
 	    {% if chart and chart.name then %}
             try {
-                WidgetUtils.getWidgetByName("{{ chart.name }}").update(datasourceParams);
+                let params = {...datasourceParams, ...chartParams};
+                WidgetUtils.getWidgetByName("{{ chart.name }}").update(params);
             }
             catch(e) {
                 console.warn(e);

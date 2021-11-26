@@ -432,7 +432,17 @@ tag_utils.topk_tags_v6 = {
 
 -- #####################################
 
-function tag_utils.add_tag_if_valid(tags, tag_key, operators, formatters, i18n_prefix)
+tag_utils.formatters = {
+   l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end,
+   l7proto  = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end,
+   severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
+   role = function(role) return (i18n(role)) end,
+   role_cli_srv = function(role) return (i18n(role)) end,
+}
+
+-- ######################################
+
+function tag_utils.add_tag_if_valid(tags, tag_key, operators, i18n_prefix)
     
    if isEmptyString(_GET[tag_key]) then
       return
@@ -453,8 +463,8 @@ function tag_utils.add_tag_if_valid(tags, tag_key, operators, formatters, i18n_p
       end
 
       local value = realValue
-      if formatters[tag_key] ~= nil then
-         value = formatters[tag_key](value)
+      if tag_utils.formatters[tag_key] ~= nil then
+         value = tag_utils.formatters[tag_key](value)
       end
 
       tag = {

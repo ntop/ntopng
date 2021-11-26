@@ -1500,6 +1500,7 @@ local known_parameters = {
 
 -- AGGREGATION
    ["grouped_by"]              = validateSingleWord,            -- A group criteria
+   ["count"]                   = validateSingleWord,            -- Sql count parameter
    ["aggregation"]             = validateAggregation,           -- A mode for graphs aggregation
    ["limit"]                   = validateNumber,                -- To limit results
    ["all"]                     = validateEmpty,                 -- To remove limit on results

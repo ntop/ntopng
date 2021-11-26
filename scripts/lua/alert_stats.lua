@@ -482,18 +482,13 @@ local defined_tags = {
 
 local initial_tags = {}
 
-local formatters = {
-   severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
-   role = function(role) return (i18n(role)) end,
-   role_cli_srv = function(role) return (i18n(role)) end,
-}
 if page ~= "all" then
-   formatters.l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end
-   formatters.alert_id = function(alert_id) return (alert_consts.alertTypeLabel(tonumber(alert_id), true, alert_entities[page].entity_id) or alert_id) end
+   tag_utils.formatters.l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end
+   tag_utils.formatters.alert_id = function(alert_id) return (alert_consts.alertTypeLabel(tonumber(alert_id), true, alert_entities[page].entity_id) or alert_id) end
 end
 
 for tag_key, operators in pairs(defined_tags[page] or {}) do
-   tag_utils.add_tag_if_valid(initial_tags, tag_key, operators, formatters, 'tags')
+   tag_utils.add_tag_if_valid(initial_tags, tag_key, operators, 'tags')
 end
 
 local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'}) 

@@ -2,6 +2,14 @@
 	"name" : "Top L7 Contacts",
 	"i18n_name" : "top_l7_contacts",
 	"data_source" : "flows",
+	"chart" : {
+		"chart_type" : "timeseries_area_chart",
+		"params" : {
+			"count" : "TOTAL_BYTES",
+			"groupby" : "L7_PROTO",
+			"limit" : 10
+		}
+	},
 	"visualization_type" : "table",
 	"select" : {
 		"items" : [

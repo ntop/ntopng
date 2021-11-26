@@ -1422,6 +1422,7 @@ local lang = {
       ["srv_name"] = "Server Name",
       ["srv_port"] = "Server Port",
       ["status"] = "Status",
+      ["traffic"] = "Bytes",
       ["vlan_id"] = "VLAN",
     },
   },
