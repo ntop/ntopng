@@ -9530,10 +9530,7 @@ void NetworkInterface::execHostChecks(Host *h) {
 
 /* *************************************** */
 
-void NetworkInterface::incObservationPointIdFlows(u_int16_t pointId, time_t first_seen, time_t last_seen) {
-  if(first_seen != last_seen) 
-    return; /* Increase the num of flows just the first time the flow is seen */
-
+void NetworkInterface::incObservationPointIdFlows(u_int16_t pointId) {
   ObservationPoint *obs_point_stats = obs_hash->get(pointId, true /* Lock */);
   if(obs_point_stats)
     obs_point_stats->incFlows();

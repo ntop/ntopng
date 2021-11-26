@@ -23,6 +23,12 @@ $(function () {
 			width: "10%"
 	    },
 	    {
+	    	data: 'column_tot_flows',
+			className: "text-center",
+			orderable: true,
+			width: "10%",
+	    },
+	    {
 			data: 'column_curr_hosts',
 			className: "text-center",
 			orderable: true,
@@ -57,6 +63,11 @@ $(function () {
 				return NtopUtils.bytesToSize(bytes);
 			    }
 			},
+	    },
+	    {
+	    	data: 'column_actions',
+	    	className: "text-center",
+	    	orderable: false,
 	    },
 	],
 	initComplete: function (settings, json) {

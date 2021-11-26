@@ -285,10 +285,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 			 zflow->pkt_sampling_rate * zflow->out_bytes);
     dstMac->incRcvdStats(getTimeLastPktRcvd(), zflow->pkt_sampling_rate * zflow->in_pkts,
 			 zflow->pkt_sampling_rate * zflow->in_bytes);
-  }
-
-  if(zflow->observationPointId != 0) 
-    incObservationPointIdFlows(zflow->observationPointId, zflow->first_switched, zflow->last_switched);      
+  }    
 
   if(zflow->l4_proto == IPPROTO_TCP) {
     if(zflow->tcp.client_tcp_flags || zflow->tcp.server_tcp_flags) {

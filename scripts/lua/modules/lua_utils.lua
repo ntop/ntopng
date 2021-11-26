@@ -4889,6 +4889,18 @@ function get_html_color(index)
    return palette[(index % #palette) + 1]
 end
 
+function add_historical_flow_explorer_button_ref(extra_params)
+   local base_url = ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?"
+
+   for k, v in pairs(extra_params) do
+      base_url = base_url .. k .. "=" .. v["value"] .. ";" .. v["operator"]
+   end
+
+   local button = '<a href="' .. base_url .. '" data-placement="bottom" class="btn btn-sm btn-primary" title="Historical Flow Explorer"><i class="fas fa-search-plus fa-lg"></i></a>'
+
+   return button
+end   
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

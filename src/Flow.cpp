@@ -102,6 +102,9 @@ Flow::Flow(NetworkInterface *_iface,
 
   char country[64];
 
+  if(_observation_point_id)
+    iface->incObservationPointIdFlows(_observation_point_id);
+
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
 

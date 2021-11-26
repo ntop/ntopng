@@ -1030,7 +1030,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline HostChecksExecutor* getHostCheckExecutor() { return(host_checks_executor); }
   HostCheck *getCheck(HostCheckID t);
 
-  void incObservationPointIdFlows(u_int16_t pointId, time_t first_seen, time_t last_seen);
+  void incObservationPointIdFlows(u_int16_t pointId);
 
   bool hasObservationPointId(u_int16_t pointId); 
   bool haveObservationPointsDefined();
