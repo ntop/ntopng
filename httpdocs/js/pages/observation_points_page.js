@@ -20,26 +20,43 @@ $(function () {
 			data: 'column_chart',
 			className: "text-center",
 			orderable: false,
-			width: "15%",
+			width: "10%"
 	    },
 	    {
-			data: 'column_curr_hosts'
+			data: 'column_curr_hosts',
+			className: "text-center",
+			orderable: true,
+			width: "10%",
+			render: (cur_hosts, type) => {
+			    if (type !== 'display') return cur_hosts;
+			    if (cur_hosts !== undefined && cur_hosts > 0) {
+				return NtopUtils.fint(cur_hosts);
+			    }
+			},
 	    },
 	    {
 			data: 'column_curr_througput',
+			className: "text-center",
+			orderable: true,
+			width: "15%",
 			render: (througput, type) => {
-	        if (type !== 'display') return througput;
-	        if (througput !== undefined) {
-	          return NtopUtils.fbits(througput);
-	      }},
+			    if (type !== 'display') return througput;
+			    if (througput !== undefined && througput > 0) {
+				return NtopUtils.fbits(througput * 8);
+			    }
+			},
 		},
 	    {
 			data: 'column_tot_bytes',
+			className: "text-center",
+			orderable: true,
+			width: "15%",
 			render: (bytes, type) => {
-	        if (type !== 'display') return bytes;
-	        if (bytes !== undefined) {
-	          return NtopUtils.bytesToSize(bytes);
-	      }},
+			    if (type !== 'display') return bytes;
+			    if (bytes !== undefined && bytes > 0) {
+				return NtopUtils.bytesToSize(bytes);
+			    }
+			},
 	    },
 	],
 	initComplete: function (settings, json) {

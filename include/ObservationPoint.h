@@ -50,6 +50,7 @@ class ObservationPoint : public GenericHashEntry, public GenericTrafficElement, 
   ~ObservationPoint();
 
   void set_hash_entry_state_idle();
+  bool is_hash_entry_state_idle_transition_ready();
 
   inline u_int16_t getNumHosts()               { return getUses(); }
   inline u_int32_t key()                       { return obs_point; }

@@ -16,6 +16,8 @@ local ts_dump = require "ts_5sec_dump_utils"
 local num_runs = 12
 
 for i=1,num_runs do
+   if(ntop.isShutdown()) then break end
+
    local when = os.time()
    
    cpu_utils.compute_cpu_states()

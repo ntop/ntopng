@@ -33,11 +33,19 @@ ObservationPoint::ObservationPoint(NetworkInterface *_iface, u_int16_t _obs_poin
   if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
     deserializeFromRedis();
 }
+
 /* *************************************** */
 
 void ObservationPoint::set_hash_entry_state_idle() {
   if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
     serializeToRedis();
+}
+
+/* *************************************** */
+
+bool ObservationPoint::is_hash_entry_state_idle_transition_ready() {
+  /* Observation points always stay in memory */
+  return false;
 }
 
 /* *************************************** */

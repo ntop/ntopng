@@ -14,6 +14,8 @@ local callback_utils = require "callback_utils"
 local num_runs = 60
 
 for i=1,num_runs do
+   if(ntop.isShutdown()) then break end
+
    local now = os.time()
    callback_utils.uploadTSdata()
 

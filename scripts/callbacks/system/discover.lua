@@ -47,6 +47,8 @@ local discovery_interval = ntop.getPref("ntopng.prefs.network_discovery_interval
 local num_runs = 12
 
 for i=1,num_runs do
+   if(ntop.isShutdown()) then break end
+
    if discovery_enabled then  
       if isEmptyString(discovery_interval) then discovery_interval = 15 * 60 --[[ 15 minutes --]] end
 
