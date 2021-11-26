@@ -306,6 +306,7 @@ else
 
    local service_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua?host=" .. host_ip
    local periodicity_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua?ifid="..ifId.."&host=" .. host_ip
+   local historical_flow_link = ntop.getHttpPrefix() .. "/lua/db_search.lua?ifid="..ifId .. ";eq&ip=" .. host_ip .. ";eq"
 
    service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
 
@@ -469,6 +470,13 @@ else
 				 page_name = "service_map",
 				 label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
 				 url = service_map_link
+			      },
+			      {
+				 hidden = not prefs.is_dump_flows_to_clickhouse_enabled,
+				 active = page == "db_search",
+				 page_name = "db_search",
+				 label = "<i class=\"fas fa-search-plus\"></i>",
+				 url = historical_flow_link
 			      },
 			      {
 				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),

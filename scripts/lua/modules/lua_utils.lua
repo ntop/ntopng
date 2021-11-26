@@ -3250,7 +3250,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
 
 	 print('&nbsp;')
 	 -- print('<span class="badge bg-info">')
-	 print('<a href="'..hist_url..url_params..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-search-plus fa-lg"></i></a>')
+	 print('<a href="'..hist_url..url_params..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-search-plus"></i></a>')
 	 -- print('</span>')
 
       elseif prefs.is_dump_flows_to_mysql_enabled then
@@ -3267,7 +3267,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
 
 	 print('&nbsp;')
 	 -- print('<span class="badge bg-info">')
-	 print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-search-plus fa-lg"></i></a>')
+	 print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-search-plus"></i></a>')
 	 -- print('</span>')
       end
    end

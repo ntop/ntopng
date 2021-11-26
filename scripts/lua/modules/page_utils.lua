@@ -59,7 +59,7 @@ page_utils.menu_entries = {
     traffic_dashboard     = {key = "traffic_dashboard", i18n_title = "dashboard.traffic_dashboard", section = "dashboard", help_link = "https://www.ntop.org/guides/ntopng/web_gui/dashboard.html"},
     network_discovery     = {key = "network_discovery", i18n_title = "discover.network_discovery",  section = "dashboard"},
     traffic_report        = {key = "traffic_report",    i18n_title = "report.traffic_report",    section = "dashboard", help_link = "https://www.ntop.org/guides/ntopng/web_gui/report.html"},
-    db_explorer           = {key = "db_explorer", i18n_title = "db_explorer.historical_data_explorer", section = "dashboard"},
+    db_explorer           = {key = "db_explorer", i18n_title = "db_explorer.historical_data_explorer", section = "dashboard", help_link = "https://www.ntop.org/guides/ntopng/clickhouse.html?#historical-flows-explorer"},
 
     -- Alerts
     detected_alerts       = {key = "detected_alerts", i18n_title = "show_alerts.detected_alerts", section = "alerts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/alerts.html"},
