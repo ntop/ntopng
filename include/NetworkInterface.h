@@ -751,6 +751,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   VLAN* getVLAN(VLANid vlanId, bool create_if_not_present, bool is_inline_call);
   AutonomousSystem *getAS(IpAddress *ipa, bool create_if_not_present, bool is_inline_call);
   ObservationPoint *getObsPoint(u_int16_t obs_point, bool create_if_not_present, bool is_inline_call);
+  bool deleteObsPoint(u_int16_t obs_point);
+  bool prepareDeleteObsPoint(u_int16_t obs_point);
   OperatingSystem *getOS(OSType os, bool create_if_not_present, bool is_inline_call);
   Country* getCountry(const char *country_name, bool create_if_not_present, bool is_inline_call);
   virtual Mac*  getMac(u_int8_t _mac[6], bool create_if_not_present, bool is_inline_call);

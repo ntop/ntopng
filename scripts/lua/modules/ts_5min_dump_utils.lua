@@ -282,12 +282,22 @@ end
 -- ########################################################
 
 function ts_dump.obs_point_update_rrds(when, ifstats, verbose, config)
+  -- Update rrd
   local obs_points_info = interface.getObsPointsInfo({detailsLevel = "higher"})
     
   for _, obs_point_stats in pairs(obs_points_info["ObsPoints"]) do
     local obs_point = obs_point_stats["obs_point"]
+    local to_remove = obs_point_stats["to_remove"]
 
-    -- Save ASN bytes
+    -- Remove rrd requested by users
+    if to_remove == true then
+      interface.deleteObsPoint(obs_point)
+      ts_utils.delete("obs_point", { ifid = ifstats.id, obs_point = obs_point })
+      goto continue
+      -- Go to the next observation point
+    end
+
+    -- Save Observation Points stats
     ts_utils.append("obs_point:traffic", {ifid=ifstats.id, obs_point=obs_point,
             bytes_sent=obs_point_stats["bytes.sent"], bytes_rcvd=obs_point_stats["bytes.rcvd"]}, when)
 
@@ -312,28 +322,7 @@ function ts_dump.obs_point_update_rrds(when, ifstats, verbose, config)
       end
     end
 
-    -- Save obs_point TCP stats
-    if not ifstats.isSampledTraffic then
-       ts_utils.append("obs_point:tcp_retransmissions",
-           {ifid=ifstats.id, obs_point=obs_point,
-      packets_sent=obs_point_stats["tcpPacketStats.sent"]["retransmissions"],
-      packets_rcvd=obs_point_stats["tcpPacketStats.rcvd"]["retransmissions"]}, when)
-
-       ts_utils.append("obs_point:tcp_out_of_order",
-           {ifid=ifstats.id, obs_point=obs_point,
-      packets_sent=obs_point_stats["tcpPacketStats.sent"]["out_of_order"],
-      packets_rcvd=obs_point_stats["tcpPacketStats.rcvd"]["out_of_order"]}, when)
-
-       ts_utils.append("obs_point:tcp_lost",
-           {ifid=ifstats.id, obs_point=obs_point,
-      packets_sent=obs_point_stats["tcpPacketStats.sent"]["lost"],
-      packets_rcvd=obs_point_stats["tcpPacketStats.rcvd"]["lost"]}, when)
-
-       ts_utils.append("obs_point:tcp_keep_alive",
-           {ifid=ifstats.id, obs_point=obs_point,
-      packets_sent=obs_point_stats["tcpPacketStats.sent"]["keep_alive"],
-      packets_rcvd=obs_point_stats["tcpPacketStats.rcvd"]["keep_alive"]}, when)
-    end
+  ::continue::
   end
 end
 

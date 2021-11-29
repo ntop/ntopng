@@ -4888,6 +4888,10 @@ function get_html_color(index)
 end
 
 function add_historical_flow_explorer_button_ref(extra_params)
+   if (ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"]) == false then
+      return ''
+   end
+   
    local base_url = ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?"
 
    for k, v in pairs(extra_params) do
@@ -4895,6 +4899,15 @@ function add_historical_flow_explorer_button_ref(extra_params)
    end
 
    local button = '<a href="' .. base_url .. '" data-placement="bottom" class="btn btn-sm btn-primary" title="Historical Flow Explorer"><i class="fas fa-search-plus"></i></a>'
+
+   return button
+end   
+
+function add_delete_obs_point_button()
+   local button = ''
+   if isAdministrator() then
+      button = '<a href="#delete_obs_point_stats" data-placement="bottom" data-bs-toggle="modal" class="btn btn-sm btn-danger" title="Remove"><i class="fas fa fa-trash"></i></a>'
+   end
 
    return button
 end   

@@ -26,6 +26,8 @@
 ObservationPoint::ObservationPoint(NetworkInterface *_iface, u_int16_t _obs_point) : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface), dirstats(_iface, 0) {
   obs_point = _obs_point;
   num_flows = 0;
+  delete_requested = false;
+  remove_entry = false;
 
 #ifdef OBS_POINT_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Observation Point %s", obs_point);
@@ -38,38 +40,50 @@ ObservationPoint::ObservationPoint(NetworkInterface *_iface, u_int16_t _obs_poin
 /* *************************************** */
 
 void ObservationPoint::set_hash_entry_state_idle() {
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
+  if((ntop->getPrefs()->is_idle_local_host_cache_enabled()) && (!delete_requested))
     serializeToRedis();
 }
 
 /* *************************************** */
 
 bool ObservationPoint::is_hash_entry_state_idle_transition_ready() {
-  /* Observation points always stay in memory */
-  return false;
+  /* Observation points always stay in memory if no delete is requested */
+  if(!remove_entry)
+    return false;
+
+  /* Delete requested, purge stats*/
+  return true;
 }
 
 /* *************************************** */
 
 ObservationPoint::~ObservationPoint() {
 #ifdef OBS_POINT_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Observation Point %s", obs_point);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Observation Point");
 #endif
 }
 
 /* *************************************** */
 
 void ObservationPoint::updateStats(const struct timeval *tv)  {
-  GenericTrafficElement::updateStats(tv);
+  if(!remove_entry)
+    GenericTrafficElement::updateStats(tv);
 }
 
 /* *************************************** */
 
 void ObservationPoint::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
+  /* Security check done to prevent race conditions */
+  if(remove_entry) {
+    lua_pushnil(vm);
+    return;
+  }
+
   lua_newtable(vm);
 
   lua_push_uint64_table_entry(vm, "obs_point", obs_point);
   lua_push_uint64_table_entry(vm, "bytes", getNumBytes());
+  lua_push_bool_table_entry(vm, "to_remove", delete_requested);
   lua_push_uint64_table_entry(vm, "flows", getNumFlows());
 
   lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
@@ -85,8 +99,6 @@ void ObservationPoint::lua(lua_State* vm, DetailsLevel details_level, bool asLis
     lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
 
     if(ndpiStats) ndpiStats->lua(iface, vm);
-    tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
-    tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");
   }
 
   Score::lua_get_score(vm);

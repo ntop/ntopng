@@ -2289,6 +2289,40 @@ static int ntop_get_interface_host_country(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_prepare_delete_interface_observation_point(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  u_int16_t obs_point_id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  obs_point_id = ((u_int16_t) lua_tonumber(vm, 1));
+
+  if((!ntop_interface) || !(ntop_interface->prepareDeleteObsPoint(obs_point_id)))
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  else
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_delete_interface_observation_point(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  u_int16_t obs_point_id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  obs_point_id = ((u_int16_t) lua_tonumber(vm, 1));
+
+  if((!ntop_interface) || !(ntop_interface->deleteObsPoint(obs_point_id)))
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  else
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 #ifdef NTOPNG_PRO
 static int ntop_get_flow_devices(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -4609,6 +4643,8 @@ static luaL_Reg _ntop_interface_reg[] = {
   /* Autonomous Systems */
   { "getObsPointsInfo",                 ntop_get_interface_obs_points_info },
   { "getObsPointInfo",                  ntop_get_interface_obs_point_info },
+  { "prepareDeleteObsPoint",            ntop_prepare_delete_interface_observation_point },
+  { "deleteObsPoint",                   ntop_delete_interface_observation_point },
 
   /* Operating Systems */
   { "getOSesInfo",                      ntop_get_interface_oses_info },

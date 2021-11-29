@@ -34,6 +34,8 @@ class ObservationPoint : public GenericHashEntry, public GenericTrafficElement, 
   u_int16_t obs_point;
   NetworkStats dirstats;
   u_int64_t num_flows;
+  std::atomic<bool> delete_requested;
+  bool remove_entry;
 
   
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
@@ -66,10 +68,12 @@ class ObservationPoint : public GenericHashEntry, public GenericTrafficElement, 
   inline void incStats(time_t when, u_int16_t proto_id,
            u_int64_t sent_packets, u_int64_t sent_bytes,
            u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
-    if(ndpiStats || (ndpiStats = new nDPIStats()))
-      ndpiStats->incStats(when, proto_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-    incSentStats(when, sent_packets, sent_bytes);
-    incRcvdStats(when, rcvd_packets, rcvd_bytes);
+    if(!remove_entry) {
+      if(ndpiStats || (ndpiStats = new nDPIStats()))
+        ndpiStats->incStats(when, proto_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+      incSentStats(when, sent_packets, sent_bytes);
+      incRcvdStats(when, rcvd_packets, rcvd_bytes);
+    }
   }
 
   virtual void updateStats(const struct timeval *tv);
@@ -77,18 +81,25 @@ class ObservationPoint : public GenericHashEntry, public GenericTrafficElement, 
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
 
   inline void deserialize(json_object *obj) {
-    json_object *o;
-    GenericHashEntry::deserialize(obj);
-    GenericTrafficElement::deserialize(obj, iface);
-    if(json_object_object_get_ex(obj, "flows", &o)) 
+    if(!remove_entry) {
+      json_object *o;
+      GenericHashEntry::deserialize(obj);
+      GenericTrafficElement::deserialize(obj, iface);
+      if(json_object_object_get_ex(obj, "flows", &o)) 
       num_flows = json_object_get_int64(o);
     }
+  }
   inline void serialize(json_object *obj, DetailsLevel details_level) {
-    GenericHashEntry::getJSONObject(obj, details_level);
-    GenericTrafficElement::getJSONObject(obj, iface);
-    json_object_object_add(obj, "flows", json_object_new_int64(num_flows));
+    if(!remove_entry) {
+      GenericHashEntry::getJSONObject(obj, details_level);
+      GenericTrafficElement::getJSONObject(obj, iface);
+      json_object_object_add(obj, "flows", json_object_new_int64(num_flows));
+    }
   }
   inline char* getSerializationKey(char *buf, uint bufsize) { snprintf(buf, bufsize, OBS_POINT_SERIALIZED_KEY, iface->get_id(), obs_point); return(buf); }
+
+  inline void setDeleteRequested(bool to_be_deleted) { delete_requested = to_be_deleted; }
+  inline void deleteObsStats() { remove_entry = true; }
 };
 
 #endif /* _OBSERVATION_POINT_H */

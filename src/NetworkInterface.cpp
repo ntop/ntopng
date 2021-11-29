@@ -6607,6 +6607,42 @@ ObservationPoint* NetworkInterface::getObsPoint(u_int16_t obs_point, bool create
 
 /* **************************************************** */
 
+bool NetworkInterface::deleteObsPoint(u_int16_t obs_point) {
+  ObservationPoint *ret = NULL;
+
+  /* Invalid args given */
+  if((!obs_point) || (obs_point == (u_int16_t)-1) || (!obs_hash))
+    return(false);
+
+  ret = obs_hash->get(obs_point, true);
+
+  /* Observation Point found, delete it */
+  if(ret != NULL)
+    ret->deleteObsStats();
+  
+  return(true);
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::prepareDeleteObsPoint(u_int16_t obs_point) {
+  ObservationPoint *ret = NULL;
+
+  /* Invalid args given */
+  if((!obs_point) || (obs_point == (u_int16_t)-1) || (!obs_hash))
+    return(false);
+
+  ret = obs_hash->get(obs_point, true);
+
+  /* Observation Point found, delete it */
+  if(ret != NULL)
+    ret->setDeleteRequested(true);
+  
+  return(true);
+}
+
+/* **************************************************** */
+
 OperatingSystem* NetworkInterface::getOS(OSType os_type, bool create_if_not_present, bool is_inline_call) {
   OperatingSystem *ret = NULL;
 
