@@ -221,38 +221,6 @@ schema:addTag("protocol")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
--- ##############################################
-
-schema = ts_utils.newSchema("obs_point:tcp_retransmissions", {step=300})
-schema:addTag("ifid")
-schema:addTag("obs_point")
-schema:addMetric("packets_sent")
-schema:addMetric("packets_rcvd")
-
--- ##############################################
-
-schema = ts_utils.newSchema("obs_point:tcp_out_of_order", {step=300})
-schema:addTag("ifid")
-schema:addTag("obs_point")
-schema:addMetric("packets_sent")
-schema:addMetric("packets_rcvd")
-
--- ##############################################
-
-schema = ts_utils.newSchema("obs_point:tcp_lost", {step=300})
-schema:addTag("ifid")
-schema:addTag("obs_point")
-schema:addMetric("packets_sent")
-schema:addMetric("packets_rcvd")
-
--- ##############################################
-
-schema = ts_utils.newSchema("obs_point:tcp_keep_alive", {step=300})
-schema:addTag("ifid")
-schema:addTag("obs_point")
-schema:addMetric("packets_sent")
-schema:addMetric("packets_rcvd")
-
 -------------------------------------------------------
 -- OSES SCHEMAS
 -------------------------------------------------------
