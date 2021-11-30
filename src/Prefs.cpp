@@ -162,7 +162,7 @@ Prefs::Prefs(Ntop *_ntop) {
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
     es_user = strdup((char*)""), es_pwd = strdup((char*)""), es_host = strdup((char*)"");
 
-  mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
+  mysql_host = mysql_dbname = mysql_user = mysql_pw = NULL;
   mysql_port = CONST_DEFAULT_MYSQL_PORT;
   #ifndef WIN32
   flows_syslog_facility = CONST_DEFAULT_DUMP_SYSLOG_FACILITY;
@@ -234,7 +234,6 @@ Prefs::~Prefs() {
   if(cli)             free(cli);
   if(mysql_host)      free(mysql_host);
   if(mysql_dbname)    free(mysql_dbname);
-  if(mysql_tablename) free(mysql_tablename);
   if(mysql_user)      free(mysql_user);
   if(mysql_pw)        free(mysql_pw);
   if(ls_host)         free(ls_host);
@@ -419,15 +418,17 @@ void usage() {
 #ifdef HAVE_CLICKHOUSE
 	 "                                    | clickhouse    Dump in ClickHouse database\n"
 	 "                                    |   Format:\n"
-	 "                                    |   clickhouse;<host[@port]|socket>;<dbname>;<table name>;<user>;<pw>\n"
-	 "                                    |   clickhouse;127.0.0.1;ntopng;flows;default;\n"
+	 "                                    |   clickhouse;<host[@port]|socket>;<dbname>;<user>;<pw>\n"
+	 "                                    |   clickhouse;127.0.0.1;ntopng;default;\n"
+	 "                                    |   You can also use -F clickhouse as alias of \n"
+	 "                                    |   -F clickhouse;127.0.0.1;ntopng;default;\n"
 	 "                                    |\n"
 #endif
 #ifdef HAVE_MYSQL
 	 "                                    | mysql         Dump in MySQL database\n"
 	 "                                    |   Format:\n"
-	 "                                    |   mysql;<host[@port]|socket>;<dbname>;<table name>;<user>;<pw>\n"
-	 "                                    |   mysql;localhost;ntopng;flows;root;\n"
+	 "                                    |   mysql;<host[@port]|socket>;<dbname><user>;<pw>\n"
+	 "                                    |   mysql;localhost;ntopng;root;\n"
 	 "                                    |\n"
 	 "                                    | mysql-nprobe  Read from an nProbe-generated MySQL database\n"
 	 "                                    |   Format:\n"
@@ -1383,7 +1384,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 #ifdef HAVE_MYSQL
       char *sep = strchr(optarg, ';');
 
-      if(!sep) {
+      if((!sep) && (optarg[0] != 'c')) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid --mysql/--clickhouse format: ignored");
       } else {
 	bool all_good = true;
@@ -1402,26 +1403,44 @@ int Prefs::setOption(int optkey, char *optarg) {
 	}
 
 	if(all_good) {
+	  u_int num_semicolumns = 0;
 	  if(!strncmp(optarg, "mysql-nprobe", 12))
 	    read_flows_from_mysql = true;
 	  else
 	    dump_flows_on_mysql = true;
 
-	  /* mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw> */
-	  optarg = Utils::tokenizer(sep + 1, ';', &mysql_host);
-	  optarg = Utils::tokenizer(optarg, ';',  &mysql_dbname);
-	  optarg = Utils::tokenizer(optarg, ';',  &mysql_tablename);
-	  optarg = Utils::tokenizer(optarg, ';',  &mysql_user);
-	  mysql_pw = strdup(optarg ? optarg : "");
-	
-	  if(mysql_host && mysql_user) {
-	    if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))       mysql_dbname  = strdup("ntopng");
-	    if((mysql_tablename == NULL)
-	       || (mysql_tablename[0] == '\0')
-	       || dump_flows_on_mysql /* forcefully defaults the table name */) {
-	      if(mysql_tablename) free(mysql_tablename);
-	      mysql_tablename  = strdup("flows");
+	  /* 
+	     Old Format: mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw> 
+	     New Format: mysql;<host[@port]|unix socket>;<dbname>;<user>;<pw> 
+	     
+	  */
+
+	  for(u_int i=0; optarg[i] != '\0'; i++)
+	    if(optarg[i] == ';') num_semicolumns++;
+
+	  if((num_semicolumns == 0) && use_clickhouse) {
+	    mysql_host   = (char*)"127.0.0.1";
+	    mysql_dbname = (char*)"ntopng";
+	    mysql_user   = (char*)"default";
+	    mysql_pw     = (char*)"";
+	  } else {	    
+	    optarg = Utils::tokenizer(sep + 1, ';', &mysql_host);
+	    optarg = Utils::tokenizer(optarg, ';',  &mysql_dbname);
+	    
+	    if(num_semicolumns == 5) {
+	      char *mysql_tablename;
+	      
+	      /* Skip it */
+	      optarg = Utils::tokenizer(optarg, ';',  &mysql_tablename);
 	    }
+	    
+	    optarg = Utils::tokenizer(optarg, ';',  &mysql_user);
+	    mysql_pw = strdup(optarg ? optarg : "");
+	  }
+	  
+	  if(mysql_host && mysql_user) {
+	    if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))
+	      mysql_dbname  = strdup("ntopng");
 	      
 	    if((mysql_pw == NULL) || (mysql_pw[0] == '\0')) mysql_pw  = strdup("");
 

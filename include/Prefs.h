@@ -140,7 +140,7 @@ class Prefs {
   int dns_mode;
   bool json_labels_string_format;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd, *es_host;
-  char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
+  char *mysql_host, *mysql_dbname, *mysql_user, *mysql_pw;
 #ifndef WIN32
   int flows_syslog_facility;
 #endif
@@ -337,7 +337,7 @@ class Prefs {
   inline char* get_mysql_host()         { return(mysql_host);            };
   inline int get_mysql_port()           { return(mysql_port);            };
   inline char* get_mysql_dbname()       { return(mysql_dbname);          };
-  inline char* get_mysql_tablename()    { return(mysql_tablename);       };
+  inline char* get_mysql_tablename()    { return((char*)"flows");        };
   inline char* get_mysql_user()         { return(mysql_user);            };
   inline char* get_mysql_pw()           { return(mysql_pw);              };
 #ifndef WIN32

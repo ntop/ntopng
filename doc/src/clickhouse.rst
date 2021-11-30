@@ -15,13 +15,12 @@ To connect ntopng to ClickHouse use option :code:`-F`. The format of this option
 
 .. code:: bash
 
-    clickhouse;<host[@port]|socket>;<dbname>;<table name>;<user>;<pw>
+    clickhouse;<host[@port]|socket>;<dbname>;<user>;<pw>
 
 Where
 
 - :code:`<host[@port]|socket>` Specifies the database :code:`host` or a :code:`socket` file. By default, port :code:`9000` is used for the connection. To use a different port, specify it with :code:`@port`. The host can be a symbolic name or an IP address.
 - :code:`<dbname>` Specifies the name of the database to be used and defaults to :code:`ntopng`
-- :code:`<table name>` Specifies the name of the flows table. Currently, this option is ignored.
 - :code:`<user>` Specifies an user with read and write permissions on :code:`<dbname>`
 - :code:`<pw>` Specifies the password that authenticates :code:`<user>`
 
@@ -32,9 +31,9 @@ To connect ntopng and ClickHouse, both running on the same machine, the followin
 
 .. code:: bash
 
-    ./ntopng -F="clickhouse;127.0.0.1;ntopng;flows;default;default"
+    ./ntopng -F="clickhouse;127.0.0.1;ntopng;default;default"
 
-In the example above, `127.0.0.1` is used to connect using IPv4 (using the symbolic string :code:`localhost` could resolve to an IPv6 address). A user :code:`default`, identified with password :code:`default`, with read and write permissions on database :code:`ntopng` is indicated as well.
+In the example above, `127.0.0.1` is used to connect using IPv4 (using the symbolic string :code:`localhost` could resolve to an IPv6 address). A user :code:`default`, identified with password :code:`default`, with read and write permissions on database :code:`ntopng` is indicated as well. As shortcut you can use :code:`-F clickhouse` for :code:`F="clickhouse;127.0.0.1;ntopng;default;default"`
 
 Stored Information
 ------------------

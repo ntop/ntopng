@@ -843,13 +843,15 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   db_operational = false;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Attempting to connect to MySQL for interface %s...",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Attempting to connect to %s for interface %s...",
+			       ntop->getPrefs()->useClickHouse() ? "ClickHouse" : "MySQL",
 			       iface->get_name());
 
   m.lock(__FILE__, __LINE__);
 
   if(mysql_init(conn) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize %s connection",
+				 ntop->getPrefs()->useClickHouse() ? "ClickHouse" : "MySQL");
     m.unlock(__FILE__, __LINE__);
     return(db_operational);
   }
@@ -857,7 +859,8 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   rc = mysql_try_connect(conn, dbname);
 
   if(rc == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to MySQL: %s [%s@%s:%i]\n",
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to %s: %s [%s@%s:%i]\n",
+				 ntop->getPrefs()->useClickHouse() ? "ClickHouse" : "MySQL",
 				 mysql_error(conn), user, host,port);
 
     m.unlock(__FILE__, __LINE__);
@@ -866,7 +869,8 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   db_operational = true;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to MySQL [%s@%s:%i] for interface %s",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to %s [%s@%s:%i] for interface %s",
+			       ntop->getPrefs()->useClickHouse() ? "ClickHouse" : "MySQL",
 			       user, host, port, iface->get_name());
 
   m.unlock(__FILE__, __LINE__);

@@ -134,13 +134,13 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        |
                                        | clickhouse    Dump in ClickHouse database
                                        |   Format:
-                                       |   clickhouse;<host[@port]|socket>;<dbname>;<table name>;<user>;<pw>
-                                       |   clickhouse;127.0.0.1;ntopng;flows;default;
+                                       |   clickhouse;<host[@port]|socket>;<dbname>;<user>;<pw>
+                                       |   clickhouse;127.0.0.1;ntopng;default;
                                        |
                                        | mysql         Dump in MySQL database
                                        |   Format:
-                                       |   mysql;<host[@port]|socket>;<dbname>;<table name>;<user>;<pw>
-                                       |   mysql;localhost;ntopng;flows;root;
+                                       |   mysql;<host[@port]|socket>;<dbname>;<user>;<pw>
+                                       |   mysql;localhost;ntopng;root;
                                        |
                                        | mysql-nprobe  Read from an nProbe-generated MySQL database
                                        |   Format:
