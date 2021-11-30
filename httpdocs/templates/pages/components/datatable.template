@@ -131,7 +131,7 @@
         const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
 
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
-	{% if chart and chart.name then %}
+	{% if show_chart then %}
         const chartParams = {* json.encode(chart.params) *};
         {% end %}
 
@@ -187,7 +187,7 @@
             // reload the table
             $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
 
-	    {% if chart and chart.name then %}
+	    {% if show_chart then %}
             try {
                 let params = {...datasourceParams, ...chartParams};
                 WidgetUtils.getWidgetByName("{{ chart.name }}").update(params);

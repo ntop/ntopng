@@ -373,14 +373,25 @@ function tag_utils.get_db_column_by_tag(tag, ip_version)
    return nil
 end
 
+tag_utils.min_db_columns = {
+   "FIRST_SEEN",
+   "LAST_SEEN",
+   "VLAN_ID",
+   "IP_PROTOCOL_VERSION",
+   "IPV4_SRC_ADDR",
+   "IPV4_DST_ADDR",
+   "IPV6_SRC_ADDR",
+   "IPV6_DST_ADDR",
+   "IP_SRC_PORT",
+   "IP_DST_PORT",
+   "SRC_LABEL",
+   "DST_LABEL",
+   "CLIENT_LOCATION",
+   "SERVER_LOCATION",
+}
+
 tag_utils.extra_db_columns = {
    ["throughput"] = "(LAST_SEEN - FIRST_SEEN) as TIME_DELTA, (TOTAL_BYTES / (TIME_DELTA + 1)) * 8 as THROUGHPUT",
-   ["ip_version"] = "IP_PROTOCOL_VERSION",
-   ["vlan_id"]    = "VLAN_ID",
-   ["cli_name"]  = "SRC_LABEL",
-   ["srv_name"]  = "DST_LABEL",
-   ["cli_location"] = "CLIENT_LOCATION",
-   ["srv_location"] = "SERVER_LOCATION",
 }
 
 tag_utils.ordering_special_columns = {
@@ -443,7 +454,6 @@ tag_utils.formatters = {
 -- ######################################
 
 function tag_utils.add_tag_if_valid(tags, tag_key, operators, i18n_prefix)
-    
    if isEmptyString(_GET[tag_key]) then
       return
    end
@@ -542,6 +552,18 @@ local function build_datatable_js_column_port(name, data_name, label, order)
              return `<a class='tag-filter' data-tag-value='${]] .. name .. [[.value}' href='#'>${]] .. name .. [[.label}</a>`;
       }}]] 
    }
+end
+
+-- #####################################
+
+local function build_datatable_js_column_flow(name, data_name, label, order)
+   return {
+      i18n = label,
+      order = order,
+      js = [[
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', orderable: false, className: 'text-nowrap', width: '5%', render: DataTableRenders.formatFlowTuple}]] 
+   }
+
 end
 
 -- #####################################
@@ -673,7 +695,8 @@ tag_utils.datatable_js_column_builder_by_type = {
 
 -- #####################################
 
-tag_utils.datatable_js_columns_by_tag = {
+tag_utils.all_datatable_js_columns_by_tag = {
+   ["flow"] = build_datatable_js_column_flow("flow", "flow", i18n("flow"), 0),
    ['vlan_id'] = {
       i18n = i18n("db_search.vlan_id"),
       order = 1,
@@ -813,13 +836,55 @@ tag_utils.datatable_js_columns_by_tag = {
 
 -- #####################################
 
+function tag_utils.get_datatable_js_columns_by_tag(tag)
+   return tag_utils.all_datatable_js_columns_by_tag[tag]
+end
+
+-- #####################################
+
+local function get_js_columns_to_display()
+   -- Display selected columns in the flows table
+   local js_columns = {}
+   js_columns["flow"]       = build_datatable_js_column_flow("flow", "flow", i18n("flow"), 0)
+   js_columns["l4proto"]    = tag_utils.get_datatable_js_columns_by_tag("l4proto")
+   js_columns["l7proto"]    = tag_utils.get_datatable_js_columns_by_tag("l7proto")
+   js_columns["score"]      = tag_utils.get_datatable_js_columns_by_tag("score")
+   js_columns["packets"]    = tag_utils.get_datatable_js_columns_by_tag("packets")
+   js_columns["traffic"]    = tag_utils.get_datatable_js_columns_by_tag("traffic")
+   js_columns["throughput"] = tag_utils.get_datatable_js_columns_by_tag("throughput")
+   js_columns["first_seen"] = tag_utils.get_datatable_js_columns_by_tag("first_seen")
+   js_columns["last_seen"]  = tag_utils.get_datatable_js_columns_by_tag("last_seen")
+   js_columns["l7cat"]      = tag_utils.get_datatable_js_columns_by_tag("l7cat")
+   js_columns["status"]     = tag_utils.get_datatable_js_columns_by_tag("status")
+   js_columns["flow_risk"]  = tag_utils.get_datatable_js_columns_by_tag("flow_risk")
+   js_columns["info"]       = tag_utils.get_datatable_js_columns_by_tag("info")
+   js_columns["cli_asn"]    = tag_utils.get_datatable_js_columns_by_tag("cli_asn")
+   js_columns["srv_asn"]    = tag_utils.get_datatable_js_columns_by_tag("srv_asn")
+   js_columns["src2dst_tcp_flags"] = tag_utils.get_datatable_js_columns_by_tag("src2dst_tcp_flags")
+   js_columns["dst2src_tcp_flags"] = tag_utils.get_datatable_js_columns_by_tag("dst2src_tcp_flags")
+   js_columns["cli_nw_latency"] = tag_utils.get_datatable_js_columns_by_tag("cli_nw_latency")
+   js_columns["srv_nw_latency"] = tag_utils.get_datatable_js_columns_by_tag("srv_nw_latency")
+   js_columns["observation_point_id"] = tag_utils.get_datatable_js_columns_by_tag("observation_point_id")
+   js_columns["probe_ip"]   = tag_utils.get_datatable_js_columns_by_tag("probe_ip")
+   return js_columns
+
+   -- Or print all columns defined
+   --return tag_utils.all_datatable_js_columns_by_tag
+end
+
+-- #####################################
+
 local function order_asc(a, b)
    return asc(a.order, b.order)
 end
 
+-- #####################################
+
 function tag_utils.get_datatable_js_columns() 
    local str = "["
-   for _, column in pairsByValues(tag_utils.datatable_js_columns_by_tag, order_asc) do
+
+   local js_columns = get_js_columns_to_display()
+   for _, column in pairsByValues(js_columns, order_asc) do
       str = str .. column.js .. ","
    end
    str = str:sub(1, -2)
@@ -831,7 +896,8 @@ end
 function tag_utils.get_datatable_i18n_columns() 
    local columns = {}
 
-   for _, column in pairsByValues(tag_utils.datatable_js_columns_by_tag, order_asc) do
+   local js_columns = get_js_columns_to_display()
+   for _, column in pairsByValues(js_columns, order_asc) do
       columns[#columns + 1] = column.i18n
    end
 
