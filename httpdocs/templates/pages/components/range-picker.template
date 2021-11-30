@@ -202,8 +202,8 @@ $(document).ready(function() {
 
 
 <script type="text/javascript">
-const beginEpoch = {{ (_GET['epoch_begin'] or _GET['epoch_begin'] or 'undefined') }};
-const endEpoch = {{ (_GET['epoch_end'] or _GET['epoch_end'] or 'undefined') }};
+const beginEpoch = {{ (epoch_begin or _GET['epoch_begin'] or 'undefined') }};
+const endEpoch = {{ (epoch_end or _GET['epoch_end'] or 'undefined') }};
 </script>
 <script type='text/javascript'>
     $(document).ready(function() {
