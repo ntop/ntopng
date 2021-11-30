@@ -640,6 +640,8 @@ local context = {
        ifid = ifid,
        default = status ~= "engaged" and "30min" or "1week",
        earliest_available_epoch = earliest_available_epoch,
+       epoch_begin = epoch_begin,
+       epoch_end = epoch_end,
        refresh_enabled = checkbox_checked,
        tags = {
            enabled = (page ~= 'all'),
