@@ -1,7 +1,7 @@
 --
 -- (C) 2020-21 - ntop.org
 --
--- This file contains the alert constats
+-- This file contains DSCP constats
 
 local dscp_consts = {}
 
