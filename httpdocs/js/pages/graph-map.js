@@ -314,10 +314,10 @@ function loadGraph(container) {
 
     const request = $.get(url, dataRequest);
     request.then(function(response) {
-        
-        data = response;
-
-        const {nodes, edges} = data;
+        const {nodes, edges, first_entry, last_entry} = response;
+        debugger;
+        const curr_test = $(`#all-time-filter`).text();
+        $(`#all-time-filter`).text(curr_test + " (" + first_entry + " - " + last_entry + ")");
 
         // if there are no nodes then show a simple message
         if (nodes.length === 0) {

@@ -207,7 +207,7 @@ function format_utils.formatEpochISO8601(epoch)
 end
 
 -- format an epoch
-function format_utils.formatEpoch(epoch)
+function format_utils.formatEpoch(epoch, full_time)
   if epoch == nil then
     epoch = os.time()
   end
@@ -217,22 +217,28 @@ function format_utils.formatEpoch(epoch)
   else
    local t = epoch + getFrontendTzSeconds()
    local key = ""
+   local time = ""
 
    if _SESSION then
       key = ntop.getPref('ntopng.user.' .. (_SESSION["user"] or "") .. '.date_format')
    end
 
    if(key == "big_endian") then
-     -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
-     return(os.date("!%Y/%m/%d %X", t))
+      -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
+      time = "!%Y/%m/%d"
    elseif( key == "middle_endian") then
-     -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
-     return(os.date("!%m/%d/%Y %X", t))
+      -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
+      time = "!%m/%d/%Y"
    else
-     -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
-     return(os.date("!%d/%m/%Y %X", t))
+      -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
+      time = "!%d/%m/%Y"
+   end
+   
+   if(full_time == nil) or (full_time == true) then      
+      time = time .. " %X"
    end
 
+   return os.date(time, t)
   end
 end
 

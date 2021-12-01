@@ -1031,8 +1031,8 @@ function tmin(t)
     return argmn, mn
 end
 
-function formatEpoch(epoch)
-   return(format_utils.formatEpoch(epoch))
+function formatEpoch(epoch, full_time)
+   return(format_utils.formatEpoch(epoch, full_time))
 end
 
 function starts(String,Start)
