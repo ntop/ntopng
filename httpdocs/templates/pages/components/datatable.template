@@ -484,6 +484,10 @@
             {% if show_actions then %}
             columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
                 const buttons = [
+                    {% if actions.show_info then %}
+                    {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info', class: 'btn-warning'},
+                    {% end %}
+
                     {% if actions.show_settings then %}
                     {icon: 'fa fa-cog', title: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-primary'},
                     {% end %}
@@ -495,7 +499,7 @@
 
                     {% if actions.show_historical then %}
 		    /* Button to jump to historical nIndex flows */
-                          {icon: 'fa-search-plus', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows', class: "btn-info"},
+                    {icon: 'fa-search-plus', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows', class: "btn-info"},
 		    {% end %}
 
                     {% if actions.show_disable then %}
@@ -513,7 +517,8 @@
                 ];
 
                 return DataTableUtils.createActionButtons(buttons);
-            }});
+              }
+            });
             {% end %}
 
             return columns;

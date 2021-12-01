@@ -362,6 +362,7 @@ class DataTableUtils {
     static createActionButtons(actions = []) {
 
         const buttons = [];
+
         actions.forEach((action) => {
 
             let button = (`

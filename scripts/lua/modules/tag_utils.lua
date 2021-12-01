@@ -497,7 +497,7 @@ local function build_datatable_js_column_default(name, data_name, label, order)
       i18n = label,
       order = order,
       js = [[
-      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '7%', className: 'no-wrap'}]] 
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', width: '7%', className: 'no-wrap'}]] 
    }
 end
 
@@ -508,7 +508,7 @@ local function build_datatable_js_column_number(name, data_name, label, order)
       i18n = label,
       order = order,
       js = [[
-      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
         if (type !== 'display') return ]] .. name .. [[;
         if (]] .. name .. [[ !== undefined)
           return NtopUtils.formatValue(]] .. name .. [[);
@@ -523,7 +523,7 @@ local function build_datatable_js_column_ip(name, data_name, label, order)
       i18n = label,
       order = order,
       js = [[
-      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '12%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', width: '12%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
         let html_ref = '';
         let location = '';
         if (type !== 'display') return ]] .. name .. [[;
@@ -546,7 +546,7 @@ local function build_datatable_js_column_port(name, data_name, label, order)
       i18n = label,
       order = order,
       js = [[
-      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
           if (type !== 'display') return ]] .. name .. [[;
           if (]] .. name .. [[ !== undefined)
              return `<a class='tag-filter' data-tag-value='${]] .. name .. [[.value}' href='#'>${]] .. name .. [[.label}</a>`;
@@ -573,7 +573,7 @@ local function build_datatable_js_column_nw_latency(name, data_name, label, orde
       i18n = label,
       order = order,
       js = [[
-      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
           if (type !== 'display') return ]] .. name .. [[;
           if (]] .. name .. [[ !== undefined)
              return `<a class='tag-filter' data-tag-value='${]] .. name .. [[}' href='#'>${NtopUtils.msecToTime(]] .. name .. [[)}</a>`;
@@ -588,7 +588,7 @@ local function build_datatable_js_column_asn(name, data_name, label, order)
       i18n = label,
       order = order,
       js = [[
-      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
         if (type !== 'display') return ]] .. name .. [[;
         if (]] .. name .. [[ !== undefined) {
           return `<a class='tag-filter' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a>`;
@@ -602,7 +602,7 @@ local function build_datatable_js_column_packets(name, data_name, label, order)
       i18n = label,
       order = order,
       js = [[
-      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
         if (type !== 'display') return ]] .. name .. [[;
         if (]] .. name .. [[ !== undefined)
           return NtopUtils.formatPackets(]] .. name .. [[);
@@ -617,7 +617,7 @@ local function build_datatable_js_column_bytes(name, data_name, label, order)
       i18n = label,
       order = order,
       js = [[
-      {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '7%', className: 'no-wrap'}]] 
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', width: '7%', className: 'no-wrap'}]] 
    }
 end
 
@@ -628,7 +628,7 @@ local function build_datatable_js_column_tcp_flags(name, data_name, label, order
       i18n = label,
       order = order,
       js = [[
-        {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+        {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
           if (type !== 'display') return ]] .. name .. [[;
           if (]] .. name .. [[ !== undefined)
             return `<a class='tag-filter' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a>`;
@@ -642,7 +642,7 @@ local function build_datatable_js_column_dscp(name, data_name, label, order)
       i18n = label,
       order = order,
       js = [[
-        {name: ']] .. name .. [[', data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
+        {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', width: '5%', className: 'no-wrap', render: (]] .. name .. [[, type) => {
             if (type !== 'display') return ]] .. name .. [[;
             if (]] .. name .. [[ !== undefined)
                return `<a class='tag-filter' data-tag-value='${]] .. name .. [[.value}' title='${]] .. name .. [[.title}' href='#'>${]] .. name .. [[.label}</a>`;
@@ -656,7 +656,7 @@ local function build_datatable_js_column_float(name, data_name, label, order)
       i18n = label,
       order = order,
       js = [[
-      {name: ']] .. name .. [[', data: ']] .. name .. [[', className: 'text-right', render: (]] .. name .. [[, type) => {
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. name .. [[', className: 'text-right', render: (]] .. name .. [[, type) => {
         if (type !== 'display') return ]] .. name .. [[;
         if (]] .. name .. [[ !== undefined)
           return (]] .. name .. [[ > 0) ? NtopUtils.ffloat(]] .. name .. [[) : "";
@@ -670,7 +670,7 @@ local function build_datatable_js_column_msec(name, data_name, label, order)
       i18n = label,
       order = order,
       js = [[
-      {name: ']] .. name .. [[', data: ']] .. name .. [[', className: 'text-right', render: (]] .. name .. [[, type) => {
+      {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. name .. [[', className: 'text-right', render: (]] .. name .. [[, type) => {
         if (type !== 'display') return ]] .. name .. [[;
         if (]] .. name .. [[ !== undefined)
           return (]] .. name .. [[ > 0) ? NtopUtils.msecToTime(]] .. name .. [[) : "";
@@ -701,7 +701,7 @@ tag_utils.all_datatable_js_columns_by_tag = {
       i18n = i18n("db_search.vlan_id"),
       order = 1,
       js = [[
-        {name: 'vlan_id', data: 'vlan_id', visible: ]] ..ternary(interface.hasVLANs(), "true", "false").. [[, className: 'no-wrap', render: (vlan_id, type) => {
+        {name: 'vlan_id', responsivePriority: 2, data: 'vlan_id', visible: ]] ..ternary(interface.hasVLANs(), "true", "false").. [[, className: 'no-wrap', render: (vlan_id, type) => {
             if (type !== 'display') 
                 return vlan_id;
             if (vlan_id !== undefined)
@@ -715,7 +715,7 @@ tag_utils.all_datatable_js_columns_by_tag = {
       i18n = i18n("db_search.l4proto"),
       order = 6,
       js = [[
-      {name: 'l4proto', data: 'proto', className: 'no-wrap', render: (l4proto, type) => {
+      {name: 'l4proto', responsivePriority: 2, data: 'proto', className: 'no-wrap', render: (l4proto, type) => {
         if (type !== 'display') return l4proto;
         if (l4proto !== undefined)
            return `<a class='tag-filter' data-tag-value='${l4proto.label}' data-tag-realvalue='${l4proto.value}' title='${l4proto.title}' href='#'>${l4proto.label}</a>`;
@@ -724,7 +724,7 @@ tag_utils.all_datatable_js_columns_by_tag = {
       i18n = i18n("db_search.l7proto"),
       order = 7,
       js = [[
-      {name: 'l7proto', data: 'l7proto', width: '5%', className: 'no-wrap', render: (proto, type, row) => {
+      {name: 'l7proto', responsivePriority: 2, data: 'l7proto', width: '5%', className: 'no-wrap', render: (proto, type, row) => {
         if (type !== 'display') return proto;
         if (proto !== undefined) {
            return `<a class='tag-filter' data-tag-value='${proto}' title='${proto.title}' href='#'>${proto.label}</a>`;
@@ -734,7 +734,7 @@ tag_utils.all_datatable_js_columns_by_tag = {
       i18n = i18n("score"),
       order = 8,
       js = [[
-      {name: 'score', data: 'score', className: 'text-right', render: (score, type) => {
+      {name: 'score', responsivePriority: 2, data: 'score', className: 'text-right', render: (score, type) => {
         if (type !== 'display') return score;
         if (score !== undefined)
           return `<a class='tag-filter' data-tag-value='${score.value}' href='#'><span style='color: ${score.color}'>` + NtopUtils.fint(score.value) + `</span></a>`;
@@ -745,24 +745,24 @@ tag_utils.all_datatable_js_columns_by_tag = {
       i18n = i18n("db_search.throughput"),
       order = 11,
       js = [[
-      {name: 'throughput', data: 'throughput', width: '7%', className: 'no-wrap'}]] },
+      {name: 'throughput', responsivePriority: 2, data: 'throughput', width: '7%', className: 'no-wrap'}]] },
    ['first_seen'] = {
       i18n = i18n("db_search.first_seen"),
       order = 12,
       js = [[
-      {name: 'first_seen', data: 'first_seen', width: '7% no-wrap', className: 'no-wrap'}]] },
+      {name: 'first_seen', responsivePriority: 2, data: 'first_seen', width: '7% no-wrap', className: 'no-wrap'}]] },
    ['last_seen'] = {
       i18n = i18n("db_search.last_seen"),
       order = 13,
       js = [[
-      {name: 'last_seen', data: 'last_seen', width: '7%', className: 'no-wrap'}]] },
+      {name: 'last_seen', responsivePriority: 2, data: 'last_seen', width: '7%', className: 'no-wrap'}]] },
    ['cli_asn'] = build_datatable_js_column_asn('cli_asn', 'cli_asn', i18n("db_search.cli_asn"), 14),
    ['srv_asn'] = build_datatable_js_column_asn('srv_asn', 'srv_asn', i18n("db_search.srv_asn"), 15),
    ['l7cat'] = {
       i18n = i18n("db_search.l7cat"),
       order = 16,
       js = [[
-      {name: 'l7cat', data: 'l7cat', className: 'no-wrap', render: (l7cat, type) => {
+      {name: 'l7cat', responsivePriority: 2, data: 'l7cat', className: 'no-wrap', render: (l7cat, type) => {
         if (type !== 'display') return l7cat;
         if (l7cat !== undefined) {
            const label = (l7cat.label || l7cat.value);
@@ -774,7 +774,7 @@ tag_utils.all_datatable_js_columns_by_tag = {
       i18n = i18n("db_search.status"),
       order = 17,
       js = [[
-      {name: 'status', data: 'status', width: '5%', className: 'no-wrap', render: (status, type) => {
+      {name: 'status', responsivePriority: 2, data: 'status', width: '5%', className: 'no-wrap', render: (status, type) => {
         if (type !== 'display') return status;
         if (status !== undefined)
            return `<a class='tag-filter' data-tag-value='${status.value}' title='${status.title}' href='#'>${status.label}</a>`;
@@ -783,7 +783,7 @@ tag_utils.all_datatable_js_columns_by_tag = {
       i18n = i18n("db_search.flow_risk"),
       order = 18,
       js = [[
-      {name: 'flow_risk', data: 'flow_risk', className: 'no-wrap', render: (flow_risks, type) => {
+      {name: 'flow_risk', responsivePriority: 2, data: 'flow_risk', className: 'no-wrap', render: (flow_risks, type) => {
         if (type !== 'display') return flow_risks;
         if (flow_risks !== undefined) {
            let res = [];
@@ -808,7 +808,7 @@ tag_utils.all_datatable_js_columns_by_tag = {
       i18n = i18n("db_search.info"),
       order = 25,
       js = [[
-        {name: 'info', data: 'info', orderable: false, width: '20%', render: (info, type) => {
+        {name: 'info', responsivePriority: 2, data: 'info', orderable: false, width: '20%', render: (info, type) => {
             if (type !== 'display') return info;
             if (info !== undefined)
                 return `<span title='${info.title}'>${info.label}</span>`
@@ -817,7 +817,7 @@ tag_utils.all_datatable_js_columns_by_tag = {
       i18n = i18n("db_search.observation_point_id"),
       order = 26,
       js = [[
-        {name: 'observation_point_id', data: 'observation_point_id', visible: ]] ..ternary(not interface.isPacketInterface(), "true", "false").. [[, width: '5%', className: 'no-wrap', render: (observation_point_id, type) => {
+        {name: 'observation_point_id', responsivePriority: 2, data: 'observation_point_id', visible: ]] ..ternary(not interface.isPacketInterface(), "true", "false").. [[, width: '5%', className: 'no-wrap', render: (observation_point_id, type) => {
             if (type !== 'display') return observation_point_id;
             if (observation_point_id !== undefined)
                return `<a class='tag-filter' data-tag-value='${observation_point_id.value}' title='${observation_point_id.title}' href='#'>${observation_point_id.label}</a>`;
@@ -826,7 +826,7 @@ tag_utils.all_datatable_js_columns_by_tag = {
       i18n = i18n("db_search.probe_ip"),
       order = 27,
       js = [[
-        {name: 'probe_ip', data: 'probe_ip', visible: ]] ..ternary(not interface.isPacketInterface(), "true", "false").. [[, width: '5%', className: 'no-wrap', render: (probe_ip, type) => {
+        {name: 'probe_ip', responsivePriority: 2, data: 'probe_ip', visible: ]] ..ternary(not interface.isPacketInterface(), "true", "false").. [[, width: '5%', className: 'no-wrap', render: (probe_ip, type) => {
             if (type !== 'display') return probe_ip;
             if (probe_ip !== undefined)
                //return `<span title='${probe_ip.title}'>${probe_ip.label}</span>`;
