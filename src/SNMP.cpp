@@ -650,14 +650,39 @@ void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout) {
     tvp.tv_sec = timeout, tvp.tv_usec = 0;
 
     snmp_sess_select_info(snmpSession->session_ptr, &numfds, &fdset, &tvp, &block);
-    count = select(numfds, &fdset, NULL, NULL, &tvp);
-    if(count > 0) {
-      vm = _vm;
-      snmp_sess_read(snmpSession->session_ptr, &fdset); /* Will trigger asynch_response() */
 
-      /* Add a nil in case no response was pushed in the stack */
-      if(lua_gettop(vm) > 0)
-	add_nil = false;
+    /*
+      Experiments run have shown that:
+
+      1. `tvp` is altered by `snmp_sess_select_info` into something >= 0
+      2. `block`
+          - When there's data, i.e, `count` > 0, then `block` == 0 always
+	  - Then there's  NO data, i.e., `count` == 0 then block == 0 but timeout is set to zero as well.
+
+      So select can safely be called when block == 0 to have it non-blocking for `timeout` == 0.
+      Examples: https://www.itcodet.com/cpp/cpp-snmp_sess_read-function-examples.html
+    */
+
+    if(timeout > 0 /* The caller is willing to wait up to a timeout */
+       || block == 0 /* The caller doesn't want to wait so the select is only performed when it doesn't block */) {
+
+      count = select(numfds, &fdset, NULL, NULL,
+		     block == 1 ? NULL : &tvp /* If timeout would have been passed as NULL, block is instead set to true, and timeout is treated as undefined. */
+		     );
+
+      if(count > 0) {
+	vm = _vm;
+	snmp_sess_read(snmpSession->session_ptr, &fdset); /* Will trigger asynch_response() */
+
+	/* Add a nil in case no response was pushed in the stack */
+	if(lua_gettop(vm) > 0)
+	  add_nil = false;
+      } else {
+	/*
+	  If select(2) times out (that is, it returns zero), snmp_sess_timeout() should be called to see if a timeout has occurred on the SNMP session.
+	*/
+	snmp_sess_timeout(snmpSession->session_ptr);
+      }
     }
   }
 
