@@ -62,18 +62,6 @@ local function colorNotZero(v)
    end
 end
 
-local function cipher2str(c)
-   if(c == nil) then return end
-
-   for s,v in pairs(tls_consts.tls_cipher_suites) do
-      if(v == c) then
-	 return('<A HREF="https://ciphersuite.info/cs/'..s..'">'..s..'</A>')
-      end
-   end
-
-   return(c)
-end
-
 local function drawiecgraph(iec, total)
    local nodes = {}
    local nodes_id = {}
@@ -894,7 +882,7 @@ else
       end
 
       ja3url(flow["protos.tls.ja3.server_hash"], flow["protos.tls.ja3.server_unsafe_cipher"])
-      --print(cipher2str(flow["protos.tls.ja3.server_cipher"]))
+      --print(tls_consts.cipher2str(flow["protos.tls.ja3.server_cipher"]))
       print("</td></tr>")
    end
 

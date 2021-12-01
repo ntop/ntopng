@@ -266,5 +266,17 @@ tls_consts.tls_cipher_suites = {
    SSL2_RC4_64_WITH_MD5=0x080080,
 }
 
+function tls_consts.cipher2str(c)
+   if(c == nil) then return end
+
+   for s,v in pairs(tls_consts.tls_cipher_suites) do
+      if(v == c) then
+	 return('<A HREF="https://ciphersuite.info/cs/'..s..'">'..s..'</A>')
+      end
+   end
+
+   return(c)
+end
+
 
 return tls_consts
