@@ -495,6 +495,16 @@ flow_consts.flow_fields_description = {
    ["SURICATA_FLOW_ID"] = i18n("flow_fields_description.suricata_flow_id"),
    ["SURICATA_APP_PROTO"] = i18n("flow_fields_description.suricata_app_proto"),
 
+   -- Syslog
+   ['DST_OS_NAME']    = i18n("flow_fields_description.dst_os_name"),
+   ['DST_SW_VERSION'] = i18n("flow_fields_description.dst_sw_version"),
+   ['DST_USER']       = i18n("flow_fields_description.dst_user"),
+   ['DST_INTF_NAME']  = i18n("flow_fields_description.dst_intf_name"),
+   ['SRC_USER']       = i18n("flow_fields_description.src_user"),
+   ['SRC_OS_NAME']    = i18n("flow_fields_description.src_os_name"),
+   ['SRC_SW_VERSION'] = i18n("flow_fields_description.src_sw_version"),
+   ['SRC_INTF_NAME']  = i18n("flow_fields_description.src_intf_name"),   
+
    -- Misc
    ["COMMUNITY_ID"] = i18n("flow_fields_description.community_id"),
    ["FLOW_VERDICT"] = i18n("flow_fields_description.flow_verdict"),
@@ -523,7 +533,6 @@ flow_consts.flow_fields_description = {
    ["461"]   =  i18n("flow_fields_description.httpRequestTarget"),
    ["462"]   =  i18n("flow_fields_description.httpMessageVersion"),
    ["468"]   =  i18n("flow_fields_description.httpUserAgent"),
-
 }
 
 -- ################################################################################

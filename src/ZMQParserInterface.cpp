@@ -428,19 +428,27 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
 	flow->dst_ip.set(ntohl(value->int_num));
     } else {
       ip_aux.set((char *) value->string);
-      if(!ip_aux.isEmpty()  && !ntop->getPrefs()->do_override_dst_with_post_nat_dst())
+      if(!ip_aux.isEmpty() && !ntop->getPrefs()->do_override_dst_with_post_nat_dst())
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Attempt to set destination ip multiple times. "
 				     "Check exported fields");
     }
     break;
   case L4_SRC_PORT:
-    if(!flow->src_port)
-      flow->src_port = htons((u_int32_t) value->int_num);
+    if(!flow->src_port) {
+      if(value->string)
+	flow->src_port = atoi(value->string);
+      else
+	flow->src_port = ntohs((u_int32_t) value->int_num);
+    }
     break;
   case L4_DST_PORT:
-    if(!flow->dst_port)
-      flow->dst_port = htons((u_int32_t) value->int_num);
+    if(!flow->dst_port) {
+      if(value->string)
+	flow->dst_port = atoi(value->string);
+      else
+	flow->dst_port = ntohs((u_int32_t) value->int_num);
+    }
     break;
   case SRC_VLAN:
   case DST_VLAN:
@@ -457,7 +465,10 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     }
     break;
   case PROTOCOL:
-    flow->l4_proto = value->int_num;
+    if(value->string)
+      flow->l4_proto = atoi(value->string);
+    else
+      flow->l4_proto = value->int_num;
     break;
   case TCP_FLAGS:
     flow->tcp.tcp_flags = value->int_num;
@@ -466,25 +477,37 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     flow->absolute_packet_octet_counters = true;
     /* Don't break */
   case IN_PKTS:
-    flow->in_pkts = value->int_num;
+    if(value->string != NULL)      
+      flow->in_pkts = atol(value->string);
+    else
+      flow->in_pkts = value->int_num;
     break;
   case INITIATOR_OCTETS:
     flow->absolute_packet_octet_counters = true;
     /* Don't break */
   case IN_BYTES:
-    flow->in_bytes = value->int_num;
+    if(value->string != NULL)      
+      flow->in_bytes = atol(value->string);
+    else
+      flow->in_bytes = value->int_num;
     break;
   case RESPONDER_PKTS:
     flow->absolute_packet_octet_counters = true;
     /* Don't break */
   case OUT_PKTS:
-    flow->out_pkts = value->int_num;
+    if(value->string != NULL)      
+      flow->out_pkts = atol(value->string);
+    else
+      flow->out_pkts = value->int_num;
     break;
   case RESPONDER_OCTETS:
     flow->absolute_packet_octet_counters = true;
     /* Don't break */
   case OUT_BYTES:
-    flow->out_bytes = value->int_num;
+    if(value->string != NULL)      
+      flow->out_bytes = atol(value->string);
+    else
+      flow->out_bytes = value->int_num;
     break;
   case FIRST_SWITCHED:
     if(value->string != NULL)

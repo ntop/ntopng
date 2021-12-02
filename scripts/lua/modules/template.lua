@@ -1,5 +1,5 @@
 --
--- (C) 2013 - ntop.org
+-- (C) 2013-21 - ntop.org
 --
 
 local NTOP_BASE_ID = 57472
@@ -390,8 +390,18 @@ template = {
    -- NetBIOS
    ['NETBIOS_QUERY_NAME'] = NTOP_BASE_ID+464,
    ['NETBIOS_QUERY_TYPE'] = NTOP_BASE_ID+465,
-   ['NETBIOS_RESPONSE'] = NTOP_BASE_ID+466,
-   ['NETBIOS_QUERY_OS'] = NTOP_BASE_ID+467
+   ['NETBIOS_RESPONSE']   = NTOP_BASE_ID+466,
+   ['NETBIOS_QUERY_OS']   = NTOP_BASE_ID+467,
+
+   -- Syslog
+   ['DST_OS_NAME']    = NTOP_BASE_ID+542,
+   ['DST_SW_VERSION'] = NTOP_BASE_ID+543,
+   ['DST_USER']       = NTOP_BASE_ID+544,
+   ['DST_INTF_NAME']  = NTOP_BASE_ID+545,
+   ['SRC_USER']       = NTOP_BASE_ID+546,
+   ['SRC_OS_NAME']    = NTOP_BASE_ID+547,
+   ['SRC_SW_VERSION'] = NTOP_BASE_ID+548,
+   ['SRC_INTF_NAME']  = NTOP_BASE_ID+549,   
 }
 
 -- template id to name
