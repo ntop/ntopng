@@ -221,8 +221,9 @@ int asynch_response(int operation, struct snmp_session *sp, int reqid,
 		    struct snmp_pdu *pdu, void *magic) {
   SNMP *s = (SNMP*)magic;
   int rc = 0;
-    
-  if(operation == NETSNMP_CALLBACK_OP_RECEIVED_MESSAGE) {
+
+  switch(operation) {
+  case NETSNMP_CALLBACK_OP_RECEIVED_MESSAGE:
     if(pdu->command == SNMP_MSG_RESPONSE) {
       sockaddr_in *sa = (sockaddr_in*)pdu->transport_data;
       char buf[32], *peer = sp->peername;
@@ -235,7 +236,13 @@ int asynch_response(int operation, struct snmp_session *sp, int reqid,
       }
 
       s->handle_async_response(pdu, peer), rc = 1;
-    }
+    } else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unhandled pdu command %d", pdu->command);
+    break;
+  case NETSNMP_CALLBACK_OP_TIMED_OUT:
+    /* Reached when snmp_sess_timeout is called due to a timeout */
+  default:
+    break;      
   }
 
   return(rc);
@@ -665,10 +672,7 @@ void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout) {
 
     if(timeout > 0 /* The caller is willing to wait up to a timeout */
        || block == 0 /* The caller doesn't want to wait so the select is only performed when it doesn't block */) {
-
-      count = select(numfds, &fdset, NULL, NULL,
-		     block == 1 ? NULL : &tvp /* If timeout would have been passed as NULL, block is instead set to true, and timeout is treated as undefined. */
-		     );
+      count = select(numfds, &fdset, NULL, NULL, &tvp);
 
       if(count > 0) {
 	vm = _vm;
@@ -677,7 +681,7 @@ void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout) {
 	/* Add a nil in case no response was pushed in the stack */
 	if(lua_gettop(vm) > 0)
 	  add_nil = false;
-      } else {
+      } else if(timeout > 0) {
 	/*
 	  If select(2) times out (that is, it returns zero), snmp_sess_timeout() should be called to see if a timeout has occurred on the SNMP session.
 	*/
