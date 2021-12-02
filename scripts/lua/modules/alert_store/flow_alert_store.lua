@@ -504,7 +504,7 @@ function flow_alert_store:format_record(value, no_html)
       end
 
       -- Shortened label if necessary for UI purposes
-       flow_cli_ip["label"] = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), true --[[ Show VLAN --]], true --[[ Shorten --]])
+      flow_cli_ip["label"] = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), true --[[ Show VLAN --]], true --[[ Shorten --]])
       flow_cli_ip["label_long"] = hostinfo2label(self:_alert2hostinfo(value, true --[[ As client --]]), true --[[ Show VLAN --]], false)
    end
 

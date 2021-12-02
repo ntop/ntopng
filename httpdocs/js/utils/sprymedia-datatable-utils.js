@@ -651,11 +651,7 @@ class DataTableRenders {
     }
 
     static filterize(key, value, label, tag_label, title) {
-	let fmt_title = title || value;
-	if(fmt_title && fmt_title != value)
-	    fmt_title = value + " [" + fmt_title + "]";
-
-        return `<a class='tag-filter' data-tag-key='${key}' title='${fmt_title}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${label || value}</a>`;
+        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${label || value}</a>`;
     }
 
     static formatValueLabel(obj, type, row) {
@@ -720,9 +716,11 @@ class DataTableRenders {
         let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
         
         let cliLabel = "";
-        if (flow.cli_ip.label && flow.cli_ip.label != flow.cli_ip.value)
-          cliLabel = DataTableRenders.filterize('cli_name', flow.cli_ip.name, flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label_long); 
-        else
+        if (flow.cli_ip.label && flow.cli_ip.label != flow.cli_ip.value) {
+          let title = "";
+          if(flow.cli_ip.label_long) title = flow.cli_ip.value + " [" + flow.cli_ip.label_long + "]";
+          cliLabel = DataTableRenders.filterize('cli_name', flow.cli_ip.name, flow.cli_ip.label, flow.cli_ip.label, title); 
+        } else
           cliLabel = DataTableRenders.filterize('cli_ip', flow.cli_ip.value, flow.cli_ip.label, flow.cli_ip.label, flow.cli_ip.label_long); 
 
         let cliFlagLabel= ''
@@ -733,9 +731,11 @@ class DataTableRenders {
         let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('cli_port', flow.cli_port, flow.cli_port) : "");
 
         let srvLabel = ""
-        if (flow.srv_ip.label && flow.srv_ip.label != flow.srv_ip.value)
-          srvLabel = DataTableRenders.filterize('srv_name', flow.srv_ip.name, flow.srv_ip.label, flow.srv_ip.label, flow.srv_ip.label_long);
-        else
+        if (flow.srv_ip.label && flow.srv_ip.label != flow.srv_ip.value) {
+          let title = "";
+          if(flow.srv_ip.label_long) title = flow.srv_ip.value + " [" + flow.srv_ip.label_long + "]";
+          srvLabel = DataTableRenders.filterize('srv_name', flow.srv_ip.name, flow.srv_ip.label, flow.srv_ip.label, title);
+        } else
           srvLabel = DataTableRenders.filterize('srv_ip', flow.srv_ip.value, flow.srv_ip.label, flow.srv_ip.label, flow.srv_ip.label_long);
         let srvPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('srv_port', flow.srv_port, flow.srv_port) : "");
 
