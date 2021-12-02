@@ -30,6 +30,7 @@ local CUSTOM_CATEGORY_ADVERTISEMENT = 101
 local DEFAULT_UPDATE_INTERVAL       = 86400
 local MAX_LIST_ERRORS               = 2
 local MIN_DOWNLOAD_INTERVAL         = 3600
+local SIXH_DOWNLOAD_INTERVAL        = 21600
 
 -- IP addresses have very litte impact on memory/load time.
 -- 150k IP addresses rules can be loaded in 2 seconds
@@ -87,7 +88,7 @@ local BUILTIN_LISTS = {
       category = CUSTOM_CATEGORY_MALWARE,
       format = "ip",
       enabled = true,
-      update_interval = DEFAULT_UPDATE_INTERVAL,
+      update_interval = SIXH_DOWNLOAD_INTERVAL,
    }, ["Anti-WebMiner"] = {
       url = "https://raw.githubusercontent.com/greatis/Anti-WebMiner/master/hosts",
       category = CUSTOM_CATEGORY_MINING,
