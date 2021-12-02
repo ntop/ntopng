@@ -19,6 +19,16 @@ local tls_consts = require "tls_consts"
 local tag_utils = require "tag_utils"
 local flow_risk_utils = require "flow_risk_utils"
 require "flow_utils"
+require "historical_utils"
+require "flow_utils"
+require "voip_utils"
+local template = require "template_utils"
+local categories_utils = require "categories_utils"
+local protos_utils = require("protos_utils")
+local discover = require("discover_utils")
+local json = require ("dkjson")
+local page_utils = require("page_utils")
+local checks = require("checks")
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -41,18 +51,6 @@ function formatASN(v)
 
    print("<td>"..asn.."</td>\n")
 end
-
-require "historical_utils"
-require "flow_utils"
-require "voip_utils"
-
-local template = require "template_utils"
-local categories_utils = require "categories_utils"
-local protos_utils = require("protos_utils")
-local discover = require("discover_utils")
-local json = require ("dkjson")
-local page_utils = require("page_utils")
-local checks = require("checks")
 
 local function colorNotZero(v)
    if(v == 0) then
@@ -98,7 +96,7 @@ local function drawiecgraph(iec, total)
       i = i + 1
    end
 
-print [[
+   print [[
    ];
 
         // create connections between people
@@ -106,8 +104,8 @@ print [[
         edges = [
 ]]
 
-local uni = {}
-local bi = {}
+   local uni = {}
+   local bi = {}
 
    for k,v in pairs(iec) do
       local keys = split(k, ",")
@@ -143,7 +141,7 @@ local bi = {}
       print("{ from: "..nodes_id[keys[1]]..", to: "..nodes_id[keys[2]]..", value: "..v..", title: \""..label.."\", arrows: \"to,from\" },\n")
    end
 
-print [[
+   print [[
         ];
 
         // Instantiate our network object.
@@ -189,6 +187,7 @@ local function ja3url(what, safety)
       print(ret)
    end
 end
+
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -1563,12 +1562,12 @@ print[[
 			   $('#throughput_trend').html("<i class=\"fas fa-minus\"></i>");
 			} ]]
 
-      if(isThereSIP == 1) then
-	updatePrintSip()
-      end
-      if(isThereRTP == 1) then
-	updatePrintRtp()
-      end
+if(isThereSIP == 1) then
+   updatePrintSip()
+end
+if(isThereRTP == 1) then
+   updatePrintRtp()
+end
 print [[			cli2srv_packets = rsp["cli2srv.packets"];
 			srv2cli_packets = rsp["srv2cli.packets"];
 			throughput = rsp["throughput_raw"];

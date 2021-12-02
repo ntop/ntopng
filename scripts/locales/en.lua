@@ -1308,6 +1308,7 @@ local lang = {
     ["flow_peers"] = "Flow Peers",
     ["get_proto_talkers"] = "Get Talkers using this application",
     ["historical_data_explorer"] = "Historical Flow Explorer",
+    ["historical_flow"] = "Historical Flow",
     ["host_name"] = "Host Name",
     ["host_talkers"] = "%{host} talkers",
     ["hosts_talking_proto_with"] = "Hosts talking %{proto} with {host}",
