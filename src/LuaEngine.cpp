@@ -582,7 +582,6 @@ int LuaEngine::load_script(char *script_path, NetworkInterface *iface) {
   multiple times to run the same script again.
 */
 int LuaEngine::run_loaded_script() {
-  int top = lua_gettop(L);
   int rv = 0;
 
   if(!loaded_script_path)
@@ -601,8 +600,7 @@ int LuaEngine::run_loaded_script() {
     rv = -2;
   }
 
-  /* Reset the stack */
-  lua_settop(L, top);
+  lua_pop(L, 1);
 
   return(rv);
 }
