@@ -72,36 +72,6 @@ end
 
 -- ##################################################################
 
--- Migration of maps keys
-for _, ifname in pairs(interface.getIfNames()) do
-   local ifid = getInterfaceId(ifname)
-
-   old = ntop.getHashCache("ntopng.servicemap", ifname)
-   if(old ~= "") then
-      ntop.setHashCache("ntopng.servicemap", ifid)
-      ntop.delHashCache("ntopng.servicemap", ifname)
-   end
-end
-
--- ##################################################################
-
--- Migration from old ntop auth_type to new separeted keys
-local old_auth_val = ntop.getPref("ntopng.prefs.auth_type")
-local new_local_auth = ntop.getPref("ntopng.prefs.local.auth_enabled")
-local new_ldap_auth = ntop.getPref("ntopng.prefs.ldap.auth_enabled")
-
-if((not isEmptyString(old_auth_val)) and isEmptyString(new_ldap_auth) and isEmptyString(new_local_auth)) then
-   if old_auth_val == "ldap" then
-      ntop.setPref("ntopng.prefs.local.auth_enabled", "0")
-      ntop.setPref("ntopng.prefs.ldap.auth_enabled", "1")
-   elseif old_auth_val == "ldap_local" then
-      ntop.setPref("ntopng.prefs.local.auth_enabled", "1")
-      ntop.setPref("ntopng.prefs.ldap.auth_enabled", "1")
-   end
-end
-
--- ##################################################################
-
 local has_pcap_dump_interface = false
 
 local function cleanupIfname(ifname, ifid)
