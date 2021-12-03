@@ -715,7 +715,7 @@ tag_utils.all_datatable_js_columns_by_tag = {
       i18n = i18n("db_search.l4proto"),
       order = 6,
       js = [[
-      {name: 'l4proto', responsivePriority: 2, data: 'proto', className: 'no-wrap', render: (l4proto, type) => {
+      {name: 'l4proto', responsivePriority: 2, data: 'l4proto', className: 'no-wrap', render: (l4proto, type) => {
         if (type !== 'display') return l4proto;
         if (l4proto !== undefined)
            return `<a class='tag-filter' data-tag-value='${l4proto.label}' data-tag-realvalue='${l4proto.value}' title='${l4proto.title}' href='#'>${l4proto.label}</a>`;
@@ -727,7 +727,7 @@ tag_utils.all_datatable_js_columns_by_tag = {
       {name: 'l7proto', responsivePriority: 2, data: 'l7proto', width: '5%', className: 'no-wrap', render: (proto, type, row) => {
         if (type !== 'display') return proto;
         if (proto !== undefined) {
-           return `<a class='tag-filter' data-tag-value='${proto}' title='${proto.title}' href='#'>${proto.label}</a>`;
+           return `<a class='tag-filter' data-tag-value='${proto.value}' title='${proto.title}' href='#'>${proto.label}</a>`;
         }
       }}]] },
    ['score'] = {
