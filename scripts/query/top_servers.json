@@ -12,6 +12,9 @@
 				"name" : "IPV4_DST_ADDR"
 			},
 			{
+				"name" : "IPV6_DST_ADDR"
+			},
+			{
 				"name" : "DST_LABEL"
 			},
 			{
@@ -33,6 +36,9 @@
 			},
 			{
 				"name" : "IPV4_DST_ADDR"
+			},
+			{
+				"name" : "IPV6_DST_ADDR"
 			},
 			{
 				"name" : "DST_LABEL"

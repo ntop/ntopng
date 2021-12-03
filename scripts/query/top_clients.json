@@ -12,6 +12,9 @@
 				"name" : "IPV4_SRC_ADDR"
 			},
 			{
+				"name" : "IPV6_SRC_ADDR"
+			},
+			{
 				"name" : "SRC_LABEL"
 			},
 			{
@@ -33,6 +36,9 @@
 			},
 			{
 				"name" : "IPV4_SRC_ADDR"
+			},
+			{
+				"name" : "IPV6_SRC_ADDR"
 			},
 			{
 				"name" : "SRC_LABEL"
