@@ -120,7 +120,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     exit(0);
   }
 
-  if((startup_activity = new (std::nothrow) ThreadedActivity(STARTUP_SCRIPT_PATH, false))) {
+  if((startup_activity = new (std::nothrow) ThreadedActivity(STARTUP_SCRIPT_PATH))) {
     /*
       Don't call run() as by the time the script will be run
       the delete below will free the memory 

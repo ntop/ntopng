@@ -1851,7 +1851,6 @@ local known_parameters = {
    ["toggle_theme"]                                = validateChoiceInline({"default", "light", "dark"}),
    ["toggle_host_mask"]                            = validateChoiceInline({"0", "1", "2"}),
    ["topk_heuristic_precision"]                    = validateChoiceInline({"disabled", "more_accurate", "accurate", "aggressive"}),
-   ["bridging_policy_target_type"]                 = validateChoiceInline({"per_protocol", "per_category", "both"}),
    ["timeseries_driver"]                           = validateChoiceInline({"rrd", "influxdb", "prometheus"}),
    ["edition"]                                     = validateEmptyOr(validateChoiceInline({"community", "pro", "enterprise", "enterprise_m", "enterprise_l"})),
    ["hosts_ts_creation"]                           = validateChoiceInline({"off", "light", "full"}),
