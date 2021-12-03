@@ -3364,11 +3364,7 @@ static int ntop_snmpsetavailable(lua_State* vm) {
 
 static int ntop_snmp_max_num_engines(lua_State* vm) {
   lua_pushinteger(vm,
-#ifdef HAVE_LIBSNMP
 		 MAX_NUM_ASYNC_SNMP_ENGINES
-#else
-		 0
-#endif
 		 );
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
