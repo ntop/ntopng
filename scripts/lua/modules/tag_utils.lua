@@ -164,6 +164,16 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.score'),
       operators = {'eq', 'neq','lt', 'gt', 'gte', 'lte'}
    },
+   cli_mac = {
+      value_type = 'mac',
+      i18n_label = i18n('db_search.tags.cli_mac'),
+      operators = {'eq', 'neq'}
+   },
+   srv_mac = {
+      value_type = 'mac',
+      i18n_label = i18n('db_search.tags.srv_mac'),
+      operators = {'eq', 'neq'}
+   },
 }
 
 -- #####################################
