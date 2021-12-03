@@ -1430,6 +1430,8 @@ local known_parameters = {
    ["src2dst_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Client to Server TCP flags
    ["dst2src_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Server to Client TCP flags
    ["score"]                   = validateListOfTypeInline(validateFilters(validateNumber)), -- Score
+   ["chart_name"]              = validateUnquoted, -- Chart name 
+
 
 -- AUTHENTICATION
    ["username"]                = validateUsername,              -- A ntopng user name, new or existing

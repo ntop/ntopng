@@ -17,6 +17,7 @@ local lang = {
   ["all"] = "All",
   ["all_hosts"] = "All Hosts",
   ["allowed"] = "Allowed",
+  ["analysis"] = "Analysis",
   ["and"] = "and",
   ["and_x_more"] = "and %{num} more",
   ["any"] = "any",

@@ -3,6 +3,36 @@
  */
 
 const DEFINED_WIDGETS = {};
+/* Used to implement the on click events onto the graph */
+const DEFINED_EVENTS = {
+    /* Standard on click event, redirect to the url */
+    "standard" : function (event, chartContext, config) {
+        const { seriesIndex, dataPointIndex } = config;
+        const { series } = config.config;
+        
+        if (seriesIndex === -1) return;
+        if (series === undefined) return;
+
+        const serie = series[seriesIndex];
+        if (serie.base_url !== undefined) {
+            const search = serie.data[dataPointIndex].meta.url_query;
+            location.href = `${serie.base_url}?${search}`;
+        }
+    },
+
+    /* On click event used by the flow analyze section, redirect to the current url + a single filter */
+    "db_analyze" : function (event, chartContext, config) {
+        const { dataPointIndex } = config;
+        const { filter } = config.w.config;
+        const value = config.w.config.series[dataPointIndex];
+
+        let curr_url = new URLSearchParams(window.location.search);
+        curr_url.set('page', 'map');
+        curr_url.set(filter, value + ';eq');
+        window.history.pushState(null, null, "?"+curr_url.toString());
+        window.location.reload();
+    },
+}
 
 class WidgetTooltips {
     static showXY({ seriesIndex, dataPointIndex, w }) {
@@ -165,7 +195,6 @@ class ChartWidget extends Widget {
             tooltip: {
                 x: {
                     formatter: function (_, opt) {
-
                         const config = opt.w.config;
                         const { series } = config;
                         const { dataPointIndex, seriesIndex } = opt;
@@ -184,28 +213,15 @@ class ChartWidget extends Widget {
             },
             chart: {
                 type: this._chartType,
-                events: {
-                    click: function (event, chartContext, config) {
-                        const { seriesIndex, dataPointIndex } = config;
-                        const { series } = config.config;
-
-                        if (seriesIndex === -1) return;
-                        if (series === undefined) return;
-
-                        const serie = series[seriesIndex];
-                        if (serie.base_url !== undefined) {
-                            const search = serie.data[dataPointIndex].meta.url_query;
-                            location.href = `${serie.base_url}?${search}`;
-                        }
-                    },
-                },
+                events: {},
                 height: '100%',
             },
             xaxis: {
                 tooltip: {
                     enabled: false
                 }
-            }
+            },
+            labels: []
         };
 
         // check if the additionalParams field contains an apex property,
@@ -249,9 +265,9 @@ class ChartWidget extends Widget {
 
         const config = this._generateConfig();
         const rsp = this._fetchedData.rsp;
-
+        
         // add additional params fetched from the datasource
-        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'dataLabels', 'tooltip', 'fill'];
+        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'labels', 'tooltip', 'fill', 'filter'];
         for (const additional of additionals) {
 
             if (rsp[additional] === undefined) continue;
@@ -261,6 +277,14 @@ class ChartWidget extends Widget {
             }
             else {
                 config[additional] = rsp[additional];
+            }
+        }
+
+        /* Changing events if given */
+        if (rsp['events']) {
+            /* Just pass a table of events. e.g. { events = { click = "db_analyze", updated = "standard" } }*/
+            for (const event in rsp['events']) {
+                config['chart']['events'][event] = DEFINED_EVENTS[rsp['events'][event]]
             }
         }
 
@@ -293,10 +317,11 @@ class ChartWidget extends Widget {
         await super.update(datasourceParams);
         if (this._chart != null) {
 	    // expecting that rsp contains an object called series
-        const { colors, series } = this._fetchedData.rsp;
+        const { colors, series, labels } = this._fetchedData.rsp;
 	    // update the colors list
 	    this._chartConfig.colors = colors;
 	    this._chartConfig.series = series;
+        if(labels) this._chartConfig.dataLabels = labels;
 	    this._chart.updateOptions(this._chartConfig, true);
         }
     }
