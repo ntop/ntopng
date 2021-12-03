@@ -264,8 +264,6 @@ bool ThreadedActivity::isDeadlineApproaching(time_t deadline) const {
 void ThreadedActivity::activityBody() {
   if(periodicity == 0)       /* The script is not periodic */
     aperiodicActivityBody();
-  else if(periodicity == 1) /* Accurate time computation with micro-second-accurate sleep */
-    uSecDiffPeriodicActivityBody();
   else
     periodicActivityBody();
 }
@@ -443,32 +441,6 @@ LuaEngine* ThreadedActivity::loadVm(char *script_path, NetworkInterface *iface, 
 void ThreadedActivity::aperiodicActivityBody() {
   if(!isTerminating())
     runSystemScript(time(NULL));
-}
-
-/* ******************************************* */
-
-void ThreadedActivity::uSecDiffPeriodicActivityBody() {
-  struct timeval begin, end;
-
-  while(!isTerminating()) {
-    gettimeofday(&begin, NULL);
-    runSystemScript(begin.tv_sec);
-    gettimeofday(&end, NULL);
-
-    /* We must guarantee that the "now" time, passed to the script,
-     * it's monotonically increasing. */
-    while((u_int32_t)end.tv_sec < (u_int32_t)(begin.tv_sec + periodicity)) {
-      /* Align to the start of the second to avoid crossing second bounds.
-       * Alignment only happens if the script hasn't already crossed
-       * its periodicity bound, otherwise the while is just skipped. */
-      u_long to_sleep = 1e6 - end.tv_usec;
-
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Sleeping %lu us [%lu/%lu]\n", path, to_sleep, end.tv_sec, (begin.tv_sec + periodicity));
-      _usleep(to_sleep);
-
-      gettimeofday(&end, NULL);
-    }
-  }
 }
 
 /* ******************************************* */

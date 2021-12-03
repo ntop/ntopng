@@ -47,7 +47,6 @@ class ThreadedActivity {
   void setDeadlineApproachingSecs();
   void periodicActivityBody();
   void aperiodicActivityBody();
-  void uSecDiffPeriodicActivityBody();
   void schedulePeriodicActivity(ThreadPool *pool, time_t scheduled_time, time_t deadline);
   ThreadedActivityState *getThreadedActivityState(NetworkInterface *iface) const;
   void updateThreadedActivityStatsBegin(NetworkInterface *iface, struct timeval *begin);
