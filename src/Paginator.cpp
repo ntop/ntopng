@@ -44,7 +44,7 @@ Paginator::Paginator() {
   l7proto_filter = l7category_filter = -1;
   port_filter = 0;
   local_network_filter = 0;
-  vlan_id_filter = 0;
+  vlan_id_filter = (VLANid)-1;
   ip_version = 0;
   l4_protocol = 0;
   client_mode = location_all;

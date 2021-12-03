@@ -112,7 +112,7 @@ class Paginator {
   }
 
   inline bool vlanIdFilter(VLANid *f) const {
-    if(vlan_id_filter) { (*f) = vlan_id_filter; return true; } return false;
+    if(vlan_id_filter != (VLANid)-1) { (*f) = vlan_id_filter; return true; } return false;
   }
   
   inline bool ipVersion(u_int8_t *f) const {
