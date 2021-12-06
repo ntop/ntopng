@@ -800,6 +800,7 @@ void mysql_result_to_lua(lua_State *vm, MYSQL_RES *result, bool limitRows) {
   char *fields[MYSQL_MAX_NUM_FIELDS] = { NULL };
   int num_fields = min_val(mysql_num_fields(result), MYSQL_MAX_NUM_FIELDS);
   int num = 0;
+  
   lua_newtable(vm);
 
   while((row = mysql_fetch_row(result))) {
@@ -1065,6 +1066,92 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
     lua_pushnil(vm);
   } else {
     mysql_result_to_lua(vm, result, limitRows);
+    mysql_free_result(result);
+  }
+  
+  m.unlock(__FILE__, __LINE__);
+
+  return(0);
+}
+
+/* ******************************************* */
+
+int MySQLDB::exec_quick_sql_query(char *sql, char *out, u_int out_len) {
+  MYSQL_RES *result;
+  int rc;
+  struct timeval begin, end;
+
+  out[0] = '\0';
+  if((!db_created /* Make sure the db exists before doing queries */)
+     || !db_operational)
+    return(-2);
+
+  if(enable_db_traces) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql);
+    gettimeofday(&begin, NULL);
+  }
+  
+  m.lock(__FILE__, __LINE__);
+
+  if(ntop->getPrefs()->is_sql_log_enabled() && log_fd && sql) {
+#ifndef WIN32
+    char log_date[32];
+    time_t log_time = time(NULL);
+    struct tm result;
+
+    strftime(log_date, sizeof(log_date),
+	     "%d/%b/%Y %H:%M:%S", localtime_r(&log_time, &result));
+    fprintf(log_fd, "%s ", log_date);
+#endif
+
+    fprintf(log_fd, "%s\n", sql);
+    fflush(log_fd);
+  }
+  
+  if((rc = mysql_query(&mysql, sql)) != 0) {
+    /* retry */
+    disconnectFromDB(&mysql);
+    m.unlock(__FILE__, __LINE__);
+    connectToDB(&mysql, true);
+
+    if(!db_operational)
+      return(-2);
+
+    m.lock(__FILE__, __LINE__);
+    rc = mysql_query(&mysql, sql);
+  }
+
+  if((rc != 0)
+     || (((result = mysql_store_result(&mysql)) == NULL)
+	 && mysql_field_count(&mysql) != 0 /* mysql_store_result() returned nothing; should it have? */)) {
+    rc = mysql_errno(&mysql);
+
+    if(rc) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d][%s]",
+				   get_last_db_error(&mysql), rc, sql);
+    }
+
+    m.unlock(__FILE__, __LINE__);
+    return(rc);
+  }
+  
+  if(enable_db_traces) {
+    gettimeofday(&end, NULL);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Query completed in %.3f sec", Utils::usecTimevalDiff(&end, &begin)/1000000.);
+  }
+
+  if((result == NULL) || (mysql_field_count(&mysql) == 0)) {
+    ;
+  } else {
+    MYSQL_ROW row = mysql_fetch_row(result);
+
+    if(row != NULL) {
+      u_int num_fields = mysql_num_fields(result);
+
+      if(num_fields > 0)
+	snprintf(out, out_len, "%s", row[0 /* first field */]);      
+    }
+	  
     mysql_free_result(result);
   }
   

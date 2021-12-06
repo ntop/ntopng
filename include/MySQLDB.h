@@ -48,7 +48,8 @@ class MySQLDB : public DB {
   virtual bool createDBSchema(bool set_db_created = true);
   bool createNprobeDBView();
   MYSQL* mysql_try_connect(MYSQL *conn, const char *dbname);
-
+  int exec_quick_sql_query(char *sql, char *out, u_int out_len);
+  
  public:
   MySQLDB(NetworkInterface *_iface, bool _clickhouse_mode);
   virtual ~MySQLDB();
