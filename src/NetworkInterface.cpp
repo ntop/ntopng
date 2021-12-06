@@ -7131,10 +7131,8 @@ void NetworkInterface::FillObsHash() {
           /* In this way it's possible to get all the ids of the Obs. Points */
           char *obs_point = strrchr(keys[i], symbol); 
 
-          if((obs_point) &&
-            (obs_point = ++obs_point)) {
-            
-            u_int16_t obs_point_id = atoi(obs_point);
+          if(obs_point) {            
+            u_int16_t obs_point_id = atoi(&obs_point[1]);
             
             if(!obs_point_id) {
               ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to deserialize Observation Point stats: %u", obs_point_id);
