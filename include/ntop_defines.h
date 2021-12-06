@@ -1210,6 +1210,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define CLICKHOUSE_DUMP_FREQUENCY        60
 #define CLICKHOUSE_MAX_NUM_DUMPED_LINES  50000
 #define CLICKHOUSE_TMP_DIR               "/var/tmp"
+#define CLICKHOUSE_TRAILER               ".csv"
 #define CLICKHOUSE_TMP_TRAILER           ".tmp"
 #define CLICKHOUSE_PREFIX                "clickhouse"
 
