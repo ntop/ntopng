@@ -497,7 +497,7 @@ class Ntop {
   void loadTrackers();
   bool isATrackerHost(char *host);
   bool isExistingInterface(const char * const name) const;
-  inline NetworkInterface* getFirstInterface()  const { return(iface[0]);         }
+  inline NetworkInterface* getFirstInterface()  const { return(iface ? iface[0] : NULL); }
   inline NetworkInterface* getInterface(int i)  const { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
   inline NetworkInterface* getSystemInterface() const { return(system_interface); }
 #ifdef NTOPNG_PRO

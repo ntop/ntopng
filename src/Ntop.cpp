@@ -3205,8 +3205,10 @@ bool Ntop::needsnDPICleanup() {
 /* *************************************** */
 
 u_int16_t Ntop::getnDPIProtoByName(const char *name) {
-  for(u_int i = 0; i<get_num_interfaces(); i++)
-    if(getInterface(i)) return(getnDPIProtoByName(name));
+  NetworkInterface *iface = getFirstInterface();
+
+  if(iface)
+    return iface->getnDPIProtoByName(name);
 
   return(NDPI_PROTOCOL_UNKNOWN);
 }
