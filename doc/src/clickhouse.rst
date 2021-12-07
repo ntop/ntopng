@@ -63,6 +63,27 @@ The explorer is available from the main menu, under the dashboard section.
 
   Historical Flows Explorer
 
+Health
+------
+
+The health of the currently used ClickHouse database can be checked under the System Interface, "Health" page. The status of the database is shown, along with the space used by flow and alert tables.
+
+
+.. figure:: ./img/clickhouse_health.png
+  :align: center
+  :alt: ClickHouse Health
+
+  ClickHouse Health
+
+Similarly, the number of exported and dropped flows can be checked, on a per-interface basis, under the interface stats page. Flow export drops should normally stay at zero or be a tiny fraction of the total amount of exported flows. Drops can occur due to the database being temporarily unreachable or not able to received additional data.
+
+.. figure:: ./img/clickhouse_exported_flows.png
+  :align: center
+  :alt: ClickHouse Exported Flows
+
+  ClickHouse Exported Flows
+
+
 Migration from nIndex
 ---------------------
 
