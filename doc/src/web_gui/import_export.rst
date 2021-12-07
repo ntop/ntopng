@@ -35,4 +35,31 @@ All this is available from the *Settings* -> *Manage Configurations* menu, as sh
 
   The Manage Configurations Page
 
- 
+
+Import/Export via API
+---------------------
+
+Configuration can also be imported and exported programmatically via API. Following is an example that uses the REST API to export and then import the global ntopng configuration.
+
+
+To export the global ntopng configuration in a local JSON file :code:`all_config.json` from an host :code:`office`, user :code:`admin` (identified with password :code:`admin`) can call the following endpoint
+
+.. code:: bash
+
+  $ curl -u admin:admin1 "http://office:3000/lua/rest/v2/export/all/config.lua?download=1" > all_config.json
+
+
+To import the configuration, the contents of :code:`all_config.json` must be POST-ed as the value of a string :code:`JSON` to the following endpoint:
+
+
+.. code:: bash
+
+  $ curl -uadmin:admin1 -H "Content-Type: application/x-www-form-urlencoded" --data-urlencode "JSON=`cat all_config.json`" "http://office:3000/lua/rest/v2/import/all/config.lua"
+
+A successful POST is confirmed by the following message:
+
+.. code:: bash
+
+  {"rc":0,"rc_str":"OK","rc_str_hr":"Success","rsp":[]}
+
+A restart of ntopng is required after the import of the global configuration.
