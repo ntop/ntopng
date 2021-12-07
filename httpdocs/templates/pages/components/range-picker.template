@@ -159,6 +159,9 @@ const initialTags =  {* json.encode(tags.values) *};
 const VIEW_ONLY_TAGS = {* tags.view_only *};
 const input = $(`[name='tags']`)[0];
 
+const beginEpoch = {{ (epoch_begin or _GET['epoch_begin'] or 'undefined') }};
+const endEpoch = {{ (epoch_end or _GET['epoch_end'] or 'undefined') }};
+
 const tagify = new Tagify(input, {
     duplicates: true,
     delimiters : null,
@@ -197,199 +200,190 @@ $(document).ready(function() {
 
     // intialize tooltip
     $(`.btn-remove-tags`).tooltip();
-});
-</script>
 
+    const rangepickerEvent = new Event('change');
 
-<script type="text/javascript">
-const beginEpoch = {{ (epoch_begin or _GET['epoch_begin'] or 'undefined') }};
-const endEpoch = {{ (epoch_end or _GET['epoch_end'] or 'undefined') }};
-</script>
-<script type='text/javascript'>
-    $(document).ready(function() {
-        const rangepickerEvent = new Event('change');
+    const MAX_ZOOM_IN = {{ (max_delta_in) }}; // 5 minutes
+    const MAX_ZOOM_OUT = {{ (max_delta_out) }}; // 12 hours
 
-        const MAX_ZOOM_IN = {{ (max_delta_in) }}; // 5 minutes
-        const MAX_ZOOM_OUT = {{ (max_delta_out) }}; // 12 hours
+    const now = (endEpoch === undefined) ? moment() : moment(endEpoch, 'X');
+    const prev = (beginEpoch === undefined) ? moment().subtract({{ (default == '30min' and '30' or '10080') }}, 'minutes') : moment(beginEpoch, 'X');
 
-        const now = (endEpoch === undefined) ? moment() : moment(endEpoch, 'X');
-        const prev = (beginEpoch === undefined) ? moment().subtract({{ (default == '30min' and '30' or '10080') }}, 'minutes') : moment(beginEpoch, 'X');
+    const $rangePicker = $(`.range-picker`)[0];
+    const $inputBeginEpoch = $(`#begin-epoch`);
+    const $inputEndEpoch = $(`#end-epoch`);
 
-        const $rangePicker = $(`.range-picker`)[0];
-        const $inputBeginEpoch = $(`#begin-epoch`);
-        const $inputEndEpoch = $(`#end-epoch`);
+    const $btnApply = $(`#btn-apply`);
+    const $btnJumpTimeBack = $(`#btn-jump-time-back`);
+    const $btnJumpTimeAhead = $(`#btn-jump-time-ahead`);
+    const $btnZoomIn = $(`#btn-zoom-in`);
+    const $btnZoomOut = $(`#btn-zoom-out`);
 
-        const $btnApply = $(`#btn-apply`);
-        const $btnJumpTimeBack = $(`#btn-jump-time-back`);
-        const $btnJumpTimeAhead = $(`#btn-jump-time-ahead`);
-        const $btnZoomIn = $(`#btn-zoom-in`);
-        const $btnZoomOut = $(`#btn-zoom-out`);
+    const $selectTimePresets = $(`#select-time-presets`);
 
-        const $selectTimePresets = $(`#select-time-presets`);
+    function calculateHalfZoomIn() {
+        const begin = $inputBeginEpoch.datetimepicker('date');
+        const end = $inputEndEpoch.datetimepicker('date');
 
-        function calculateHalfZoomIn() {
-            const begin = $inputBeginEpoch.datetimepicker('date');
-            const end = $inputEndEpoch.datetimepicker('date');
+        const delta = end.unix() - begin.unix();
+        const zoomIn = delta / 3;
+        const halfZoomIn = (zoomIn) / 2;
+        return [begin, end, delta, halfZoomIn];
+    }
 
-            const delta = end.unix() - begin.unix();
-            const zoomIn = delta / 3;
-            const halfZoomIn = (zoomIn) / 2;
-            return [begin, end, delta, halfZoomIn];
+    function highlightCustomPresetButton() {
+        $(`#select-time-presets`).val('custom');
+    }
+
+    function disableRangePickerButtons() {
+        $('.controls button').attr('disabled', 'disabled');
+    }
+
+    function enableRangePickerButtons() {
+        $('.controls button').removeAttr('disabled');
+    }
+
+    function highlightWrongDate() {
+        $(`.range-picker .input-group`).addClass('border').addClass('rounded').addClass('border-danger');
+        $(`.wrong-ranger`).show();
+    }
+
+    function disableWrongDate() {
+        $(`.range-picker .input-group`).removeClass('border').removeClass('rounded').removeClass('border-danger');
+        $(`.wrong-ranger`).hide();
+    }
+
+    function updateRangePicker(operation, maxDate) {
+
+        // get the selected preset or the first prest available
+        const [delta, measure] = ($selectTimePresets.val() || $(`#select-time-presets option:first`).val()).split(',');
+        const begin = $inputBeginEpoch.datetimepicker('date');
+        const end = $inputEndEpoch.datetimepicker('date');
+
+        $inputEndEpoch.datetimepicker('date', end[operation](parseInt(delta), measure));
+        $inputBeginEpoch.datetimepicker('date', begin[operation](parseInt(delta), measure));
+
+        // if the new end time is less than the max current date then
+        // enable the jump time ahead button, otherwise disable it
+        if (end < maxDate) {
+            $btnJumpTimeAhead.removeClass('disabled');
+        }
+        else {
+            $btnJumpTimeAhead.addClass('disabled');
         }
 
-        function highlightCustomPresetButton() {
-            $(`#select-time-presets`).val('custom');
-        }
+        $rangePicker.dispatchEvent(rangepickerEvent);
+    }
 
-        function disableRangePickerButtons() {
-            $('.controls button').attr('disabled', 'disabled');
-        }
+    $('[data-bs-toggle="tooltip"]').tooltip();
 
-        function enableRangePickerButtons() {
-            $('.controls button').removeAttr('disabled');
-        }
+    // initialize timepickers
+    $inputBeginEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', useCurrent: false});
+    $inputEndEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', useCurrent: false});
+    $inputBeginEpoch.datetimepicker('date', prev);
+    $inputEndEpoch.datetimepicker('date', now);
 
-        function highlightWrongDate() {
-            $(`.range-picker .input-group`).addClass('border').addClass('rounded').addClass('border-danger');
-            $(`.wrong-ranger`).show();
-        }
+    $selectTimePresets.on('change', function(e) {
 
-        function disableWrongDate() {
-            $(`.range-picker .input-group`).removeClass('border').removeClass('rounded').removeClass('border-danger');
-            $(`.wrong-ranger`).hide();
-        }
+        // remove the active class
+        const [subtract, measure] = $(this).val().split(',');
 
-        function updateRangePicker(operation, maxDate) {
+        const now = moment();
+        let diff = moment().subtract(parseInt(subtract), measure);
 
-            // get the selected preset or the first prest available
-            const [delta, measure] = ($selectTimePresets.val() || $(`#select-time-presets option:first`).val()).split(',');
-            const begin = $inputBeginEpoch.datetimepicker('date');
-            const end = $inputEndEpoch.datetimepicker('date');
+        if(!measure)
+            diff = moment(parseInt(subtract) * 1000);
 
-            $inputEndEpoch.datetimepicker('date', end[operation](parseInt(delta), measure));
-            $inputBeginEpoch.datetimepicker('date', begin[operation](parseInt(delta), measure));
+        $inputEndEpoch.datetimepicker('minDate', diff);
+        $inputEndEpoch.datetimepicker('maxDate', now);
 
-            // if the new end time is less than the max current date then
-            // enable the jump time ahead button, otherwise disable it
-            if (end < maxDate) {
-                $btnJumpTimeAhead.removeClass('disabled');
-            }
-            else {
-                $btnJumpTimeAhead.addClass('disabled');
-            }
-
-            $rangePicker.dispatchEvent(rangepickerEvent);
-        }
-
-        $('[data-bs-toggle="tooltip"]').tooltip();
-
-        // initialize timepickers
-        $inputBeginEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', useCurrent: false});
-        $inputEndEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', useCurrent: false});
-        $inputBeginEpoch.datetimepicker('date', prev);
         $inputEndEpoch.datetimepicker('date', now);
+        $inputBeginEpoch.datetimepicker('date', diff);
 
-        $selectTimePresets.on('change', function(e) {
+    });
 
-            // remove the active class
-            const [subtract, measure] = $(this).val().split(',');
+    // travel back in the past by the selected preset
+    $btnJumpTimeBack.on('click', () => {updateRangePicker('subtract', now)});
+    // travel ahead in the future by the selected preset
+    $btnJumpTimeAhead.on('click', () => {updateRangePicker('add', now)});
 
-            const now = moment();
-            let diff = moment().subtract(parseInt(subtract), measure);
+    $btnZoomIn.on('click', function() {
 
-            if(!measure)
-                diff = moment(parseInt(subtract) * 1000);
+        const [begin, end, delta, halfZoomIn] = calculateHalfZoomIn();
 
-            $inputEndEpoch.datetimepicker('minDate', diff);
-            $inputEndEpoch.datetimepicker('maxDate', now);
+        const newBegin = moment(begin.unix() + halfZoomIn, 'X');
+        const newEnd = moment(end.unix() - halfZoomIn, 'X');
 
-            $inputEndEpoch.datetimepicker('date', now);
-            $inputBeginEpoch.datetimepicker('date', diff);
+        $inputBeginEpoch.datetimepicker('date', newBegin);
+        $inputEndEpoch.datetimepicker('date', newEnd);
 
-        });
+        // if delta is lower than 5 minutes then disable the zoom in button
+        if (delta < MAX_ZOOM_IN) {
+            $(this).attr("disabled", "disabled");
+        }
 
-        // travel back in the past by the selected preset
-        $btnJumpTimeBack.on('click', () => {updateRangePicker('subtract', now)});
-        // travel ahead in the future by the selected preset
-        $btnJumpTimeAhead.on('click', () => {updateRangePicker('add', now)});
+        $btnZoomOut.removeAttr("disabled");
+        $rangePicker.dispatchEvent(rangepickerEvent);
+    });
 
-        $btnZoomIn.on('click', function() {
+    $btnZoomOut.on('click', function() {
 
-            const [begin, end, delta, halfZoomIn] = calculateHalfZoomIn();
+        const [begin, end, delta, halfZoomIn] = calculateHalfZoomIn();
 
-            const newBegin = moment(begin.unix() + halfZoomIn, 'X');
-            const newEnd = moment(end.unix() - halfZoomIn, 'X');
+        const newBegin = moment(begin.unix() - halfZoomIn, 'X');
+        const newEnd = moment(end.unix() + halfZoomIn, 'X');
 
-            $inputBeginEpoch.datetimepicker('date', newBegin);
-            $inputEndEpoch.datetimepicker('date', newEnd);
+        $inputBeginEpoch.datetimepicker('date', newBegin);
+        $inputEndEpoch.datetimepicker('date', newEnd);
 
-            // if delta is lower than 5 minutes then disable the zoom in button
-            if (delta < MAX_ZOOM_IN) {
-                $(this).attr("disabled", "disabled");
-            }
+        // if delta is lower than 5 minutes then disable the zoom in button
+        if (delta > MAX_ZOOM_OUT) {
+            $(this).attr("disabled", "disabled");
+        }
 
-            $btnZoomOut.removeAttr("disabled");
-            $rangePicker.dispatchEvent(rangepickerEvent);
-        });
-
-        $btnZoomOut.on('click', function() {
-
-            const [begin, end, delta, halfZoomIn] = calculateHalfZoomIn();
-
-            const newBegin = moment(begin.unix() - halfZoomIn, 'X');
-            const newEnd = moment(end.unix() + halfZoomIn, 'X');
-
-            $inputBeginEpoch.datetimepicker('date', newBegin);
-            $inputEndEpoch.datetimepicker('date', newEnd);
-
-            // if delta is lower than 5 minutes then disable the zoom in button
-            if (delta > MAX_ZOOM_OUT) {
-                $(this).attr("disabled", "disabled");
-            }
-
-            $btnZoomIn.removeAttr("disabled");
-            $rangePicker.dispatchEvent(rangepickerEvent);
-        });
+        $btnZoomIn.removeAttr("disabled");
+        $rangePicker.dispatchEvent(rangepickerEvent);
+    });
 
 	/* Autoselect the 'custom' dropdown entry when clicking any of the buttons */
 	$.each([$btnApply, $btnJumpTimeBack, $btnJumpTimeAhead], function(idx, btn) {
 	    $(btn).on('click', function() {
 		highlightCustomPresetButton();
 		$rangePicker.dispatchEvent(rangepickerEvent);
-            });
+        });
 	});
 
-        $inputBeginEpoch.on("change.datetimepicker", function (e) {
-            
-            const newBegin = e.date;
-            const currentEnd = $inputEndEpoch.datetimepicker('date');
-            
-            // if the begin date is wrong disable the range picker buttons 
-            if (newBegin.isAfter(currentEnd)) {
-                disableRangePickerButtons();
-                highlightWrongDate();
-            }
-            else {
-                enableRangePickerButtons();
-                disableWrongDate();
-            }
-        });
-
-        $inputEndEpoch.on("change.datetimepicker", function (e) {
-            
-            const newEnd = e.date;
-            const currentBegin = $inputBeginEpoch.datetimepicker('date');
-            
-            // if the end date is wrong disable the range picker buttons 
-            if (newEnd.isBefore(currentBegin)) {
-                disableRangePickerButtons();
-                highlightWrongDate();
-            }
-            else {
-                enableRangePickerButtons();
-                disableWrongDate();
-            }
-        });
-
+    $inputBeginEpoch.on("change.datetimepicker", function (e) {
+        
+        const newBegin = e.date;
+        const currentEnd = $inputEndEpoch.datetimepicker('date');
+        
+        // if the begin date is wrong disable the range picker buttons 
+        if (newBegin.isAfter(currentEnd)) {
+            disableRangePickerButtons();
+            highlightWrongDate();
+        }
+        else {
+            enableRangePickerButtons();
+            disableWrongDate();
+        }
     });
+
+    $inputEndEpoch.on("change.datetimepicker", function (e) {
+        
+        const newEnd = e.date;
+        const currentBegin = $inputBeginEpoch.datetimepicker('date');
+        
+        // if the end date is wrong disable the range picker buttons 
+        if (newEnd.isBefore(currentBegin)) {
+            disableRangePickerButtons();
+            highlightWrongDate();
+        }
+        else {
+            enableRangePickerButtons();
+            disableWrongDate();
+        }
+    });
+
+});
 </script>
