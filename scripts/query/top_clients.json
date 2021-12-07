@@ -2,6 +2,7 @@
 	"name" : "Top Clients",
 	"i18n_name" : "top_clients",
 	"data_source" : "flows",
+    "show_in_page" : "overview",
 	"visualization_type" : "table",
 	"select" : {
 		"items" : [

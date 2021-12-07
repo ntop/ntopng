@@ -2,6 +2,7 @@
 	"name" : "Latency By ASN",
 	"i18n_name" : "latency_by_asn",
 	"data_source" : "flows",
+    "show_in_page" : "overview",
 	"visualization_type" : "table",
 	"select" : {
 		"items" : [

@@ -26,25 +26,21 @@
         </div>
       </div>
       <div class="card-body">
-        <div class="row">
-          <div class="col-4" id="ChartDiv1" style="text-align: center;">
-            {* widget_gui_utils.render_chart(chart.name1, {
-              displaying_label = chart.labels[chart.name1],
-              css_styles = chart.css_styles,
-            }) *}
+        <div class="row"  style="text-align: center; justify-content: center; gap: 1.5rem 0%;">
+
+        {% for chart_id, chart_label in pairsByValues(charts, rev) do %}
+          
+          <div class="col-4" id="chart_id">
+          {* 
+            widget_gui_utils.render_chart(chart_id, {
+              displaying_label = chart_label,
+              css_styles = css_styles,
+            }) 
+          *}
           </div>
-          <div class="col-4" id="ChartDiv2" style="text-align: center;">
-            {* widget_gui_utils.render_chart(chart.name2, {
-              displaying_label = chart.labels[chart.name2],
-              css_styles = chart.css_styles,
-            }) *}
-          </div>
-          <div class="col-4" id="ChartDiv3" style="text-align: center;">
-            {* widget_gui_utils.render_chart(chart.name3, {
-              displaying_label = chart.labels[chart.name3],
-              css_styles = chart.css_styles,
-            }) *}
-          </div>
+      
+        {% end %}
+
         </div>
       </div>
     </div>

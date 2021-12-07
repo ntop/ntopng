@@ -24,13 +24,60 @@ const DEFINED_EVENTS = {
     "db_analyze" : function (event, chartContext, config) {
         const { dataPointIndex } = config;
         const { filter } = config.w.config;
-        const value = config.w.config.series[dataPointIndex];
+        const value = config.w.config.true_labels[dataPointIndex];
 
+        debugger;
+
+        if(filter.length == 0)
+            return;
+        
         let curr_url = new URLSearchParams(window.location.search);
-        curr_url.set('page', 'map');
         curr_url.set(filter, value + ';eq');
         window.history.pushState(null, null, "?"+curr_url.toString());
         window.location.reload();
+    },
+
+    "db_analyze_multiple_values": function (event, chartContext, config) {
+        const { dataPointIndex } = config;
+        const { filter } = config.w.config;
+        const value = config.w.config.true_labels[dataPointIndex];
+
+        if(filter.length == 0)
+            return;
+        
+        let curr_url = new URLSearchParams(window.location.search);
+
+        for (let i = filter.length; i >= 0; i--) {
+            debugger
+            curr_url.set(filter[0][i], value[i] + ';eq');
+        }
+        
+        window.history.pushState(null, null, "?"+curr_url.toString());
+        window.location.reload();
+    },
+}
+
+const DEFINED_TOOLTIP = {
+    /* Standard on click event, redirect to the url */
+    "standard" : function (_, opt) {
+        const config = opt.w.config;
+        const { series } = config;
+        const { dataPointIndex, seriesIndex } = opt;
+        const data = series[seriesIndex].data[dataPointIndex];
+
+        if (data.meta !== undefined)
+            return data.meta.label || data.x;
+
+        return data.x;
+    },
+
+    /* On click event used by the flow analyze section, redirect to the current url + a single filter */
+    "format_bytes" : function(value, { config, seriesIndex, dataPointIndex }) {
+        return NtopUtils.bytesToSize(value);
+    },
+
+    "format_pkts" : function(value, { config, seriesIndex, dataPointIndex }) {
+        return NtopUtils.formatPackets(value);
     },
 }
 
@@ -55,7 +102,7 @@ class WidgetTooltips {
         }
 
         return (`
-            <div class='apexcharts-theme-light apexcharts-active'>
+            <div class='apexcharts-theme-light apexcharts-active' id='test'>
                 <div class='apexcharts-tooltip-title' style='font-family: Helvetica, Arial, sans-serif; font-size: 12px;'>
                     ${title}
                 </div>
@@ -193,18 +240,14 @@ class ChartWidget extends Widget {
         const config = {
             series: [],
             tooltip: {
+                enabledOnSeries: [0],
                 x: {
-                    formatter: function (_, opt) {
-                        const config = opt.w.config;
-                        const { series } = config;
-                        const { dataPointIndex, seriesIndex } = opt;
-                        const data = series[seriesIndex].data[dataPointIndex];
-
-                        if (data.meta !== undefined)
-                            return data.meta.label || data.x;
-
-                        return data.x;
-                    }
+                    show: false,
+                    formatter: () => '',
+                },
+                y: {
+                    show: true,
+                    formatter: DEFINED_TOOLTIP["standard"]
                 },
                 z: {
                     formatter: () => '',
@@ -221,7 +264,12 @@ class ChartWidget extends Widget {
                     enabled: false
                 }
             },
-            labels: []
+            labels: [],
+            legend: {
+                show: true,
+                position: 'bottom',
+                horizontalAlign: 'left'
+            }
         };
 
         // check if the additionalParams field contains an apex property,
@@ -267,7 +315,7 @@ class ChartWidget extends Widget {
         const rsp = this._fetchedData.rsp;
         
         // add additional params fetched from the datasource
-        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'labels', 'tooltip', 'fill', 'filter'];
+        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'labels', 'fill', 'filter', 'true_labels'];
         for (const additional of additionals) {
 
             if (rsp[additional] === undefined) continue;
@@ -277,6 +325,13 @@ class ChartWidget extends Widget {
             }
             else {
                 config[additional] = rsp[additional];
+            }
+        }
+
+        /* Changing events if given */
+        if (rsp['tooltip']) {
+            for (const axis in rsp['tooltip']) {
+                config['tooltip'][axis]['formatter'] = DEFINED_TOOLTIP[rsp['tooltip'][axis]['formatter']]
             }
         }
 

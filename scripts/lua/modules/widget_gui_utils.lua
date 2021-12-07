@@ -139,8 +139,8 @@ function widget_gui_utils.register_pie_chart(name, update_time, datasources, add
     widget_gui_utils.register_chart_widget(name, 'pie', update_time, datasources, additional_params)
 end
 
-function widget_gui_utils.register_doughnut_chart(name, update_time, datasources, additional_params)
-    widget_gui_utils.register_chart_widget(name, 'doughnut', update_time, datasources, additional_params)
+function widget_gui_utils.register_donut_chart(name, update_time, datasources, additional_params)
+    widget_gui_utils.register_chart_widget(name, 'donut', update_time, datasources, additional_params)
 end
 
 ---Render all registered chart widgets.
@@ -179,7 +179,6 @@ end
 ---@param additional_params table Additional paramaters used to customize the widgets {css_styles = {...}, displaying_label = '...'}
 ---@return string The chart widget template rendered
 function widget_gui_utils.render_chart(widget_name, additional_params)
-
     local displaying_label = additional_params.displaying_label or widget_name
     local css_styles = additional_params.css_styles or {}
 
