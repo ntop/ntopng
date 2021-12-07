@@ -5369,6 +5369,7 @@ local lang = {
     ["not_configured_as_snmp_device_message"] = "Host %{host_ip} has not been configured as an SNMP device.",
     ["showing_snmp_mib_info_default_community_message"] = "Showing SNMP MIB information retrieved using the default community '%{community}'",
     ["snmp_device_not_found"] = "SNMP device \"%{host}\" cannot be found: perhaps it has been removed from the list of configured SNMP devices ?",
+    ["snmp_device_interface_not_found"] = "SNMP device \"%{host}\" interface \"%{iface}\" cannot be found: perhaps it has been removed from the list of configured SNMP devices ?",
     ["trying_to_retrive_message"] = "Trying to retrieve host SNMP MIB using the default community '%{community}'",
     ["unable_to_retrive_snmp_default_community_message"] = "Unable to retrieve host SNMP MIB using the default community '%{community}'.",
   },
