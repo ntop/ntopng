@@ -7164,7 +7164,6 @@ void NetworkInterface::FillObsHash() {
 /* **************************************** */
 
 void NetworkInterface::allocateStructures() {
-
   u_int8_t numNetworks = ntop->getNumLocalNetworks();
   char buf[16];
 
@@ -7181,12 +7180,12 @@ void NetworkInterface::allocateStructures() {
 	  hosts_hash     = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 	  /* The number of ASes cannot be greater than the number of hosts */
 	  ases_hash      = new AutonomousSystemHash(this, ndpi_min(num_hashes, 4096), 32768);
-    if(!isPacketInterface()) obs_hash = new ObservationPointHash(this, ndpi_min(num_hashes, 4096), 32768);
-    oses_hash      = new OperatingSystemHash(this, ndpi_min(num_hashes, 1024), 32768);
+	  if(!isPacketInterface()) obs_hash = new ObservationPointHash(this, ndpi_min(num_hashes, 4096), 32768);
+	  oses_hash      = new OperatingSystemHash(this, ndpi_min(num_hashes, 1024), 32768);
 	  countries_hash = new CountriesHash(this, ndpi_min(num_hashes, 1024), 32768);
 	  vlans_hash     = new VLANHash(this, 1024, 2048);
 	  macs_hash      = new MacHash(this, ndpi_min(num_hashes, 8192), 32768);
-      }
+	}
     }
 
     FillObsHash();
@@ -7200,6 +7199,24 @@ void NetworkInterface::allocateStructures() {
 
     top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
     top_os    = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
+
+    /* Allocations for the system interface */
+    if(ntop->getSystemInterface() == this) {
+      if(db == NULL) {
+	if(ntop->getPrefs()->do_dump_flows_on_mysql()
+	   || ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
+#ifdef NTOPNG_PRO
+#ifdef HAVE_MYSQL
+#ifdef HAVE_CLICKHOUSE
+	  /* Allocate only the DB connection, not any thread or queue for the export */
+	  if(ntop->getPrefs()->useClickHouse())
+	    db = new (std::nothrow) ClickHouseFlowDB(this);
+#endif
+#endif
+#endif
+	}
+      }
+    }
 
     if(!isViewed()) {
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
