@@ -151,16 +151,26 @@
 <script type="text/javascript" src="{{ ntop.getHttpPrefix }}/js/tagify.min.js"></script>
 <script type="text/javascript">
 
+/* Tags definitions */
 i18n.tags = {* json.encode(tags.localization) *};
-
 const TAG_OPERATORS = {* json.encode(tags.tag_operators) *};
 const DEFINED_TAGS = {* json.encode(tags.defined_tags) *};
-const initialTags =  {* json.encode(tags.values) *};
 const VIEW_ONLY_TAGS = {* tags.view_only *};
-const input = $(`[name='tags']`)[0];
 
+/* Initial Tags */
+const initialTags =  {* json.encode(tags.values) *};
+
+/* Parameters */
 const beginEpoch = {{ (epoch_begin or _GET['epoch_begin'] or 'undefined') }};
 const endEpoch = {{ (epoch_end or _GET['epoch_end'] or 'undefined') }};
+const datasourceParams = {* json.encode(datasource_params) *};
+
+let pageHandle = {};
+const input = $(`[name='tags']`)[0];
+
+{% if query_presets ~= nil and query_presets ~= {} then %}
+let currentQueryPresets = $(`#select-query-presets`).val();
+{% end %}
 
 const tagify = new Tagify(input, {
     duplicates: true,
@@ -195,6 +205,7 @@ const tagify = new Tagify(input, {
 });
 
 $(document).ready(function() {
+
     // add existing tags
     tagify.addTags(initialTags);
 
@@ -385,5 +396,532 @@ $(document).ready(function() {
         }
     });
 
-});
+
+}); /* $(document).ready() */
+
+
+    function getTimestampRange(updateDatetimeUsingPresets = false) {
+        let begin = 0;
+        let end = 0;
+        const selectTimePresets = $(`#select-time-presets`).val();
+
+        if(updateDatetimeUsingPresets && selectTimePresets) {
+            // getting the current time using presets
+            const [subtract, measure] = selectTimePresets.split(',');
+            const now = moment();
+            const diff = moment().subtract(parseInt(subtract), measure);
+
+            begin = diff;
+            end = now;
+
+            if(!measure)
+                diff = moment(parseInt(subtract));
+
+            // update the datetimepickers
+            $inputEndEpoch.datetimepicker('minDate', diff);
+            $inputEndEpoch.datetimepicker('maxDate', now);
+
+            $inputEndEpoch.datetimepicker('date', now);
+            $inputBeginEpoch.datetimepicker('date', diff);
+        } else {
+            begin = $(`#begin-epoch`).datetimepicker('date').utc();
+            end = $(`#end-epoch`).datetimepicker('date').utc();
+        }
+        return [begin, end];
+    }
+
+    function getSearchParams() {
+        const searchParams = new URLSearchParams();
+
+        // get all filters tags
+        const tags = tagify.getTagElms();
+
+        // add the tag filters inside the search params object
+        for (const tag of tags) {
+            const tagData = tagify.tagData(tag);
+
+            const key = tagData.key;
+            const selectedOperator = tagData.selectedOperator;
+            const realValue = tagData.realValue;
+            const value = tagData.value;
+
+            let param_value = `${realValue || value}{{ opsep }}${selectedOperator || 'eq'}`;
+            if (searchParams.get(key)) {
+                param_value = `${searchParams.get(key)},${param_value}`;
+            }
+
+            searchParams.set(key, param_value);
+        }
+
+        {% if query_presets ~= nil and query_presets ~= {} then %}
+        // add selected query preset
+        searchParams.set('query_preset', $(`#select-query-presets`).val());
+        {% end %}
+
+        return searchParams;
+    }
+
+    function setDatasourceParams() {
+        const searchParams = getSearchParams();
+
+        searchParams.forEach(function(value, key) {
+            datasourceParams[key] = value;
+        });
+
+        const [begin, end] = getTimestampRange();
+        if (begin == null && end == null) return datasourceParams;
+        // override the existing timestamps 
+        if (datasourceParams.epoch_begin) datasourceParams.epoch_begin = begin.unix();
+        if (datasourceParams.epoch_end) datasourceParams.epoch_end = end.unix();
+
+        return datasourceParams;
+    }
+
+    function updateNavbarLink(url, begin, end, element) {
+        const searchParams = getSearchParams();
+
+        searchParams.set('epoch_begin', begin.unix());
+        searchParams.set('epoch_end', end.unix());
+        
+        if (url.searchParams.has('status')) {
+            searchParams.set('status', url.searchParams.get('status'));
+        }
+
+        /* Read the current href */
+        const cur_href = $(element).attr('href');
+        let cur_url = new URL(cur_href, location.origin);
+        /* Read current href params and extract the page name */
+        const cur_page = cur_url.searchParams.get('page');
+        if(cur_page) {
+            /* Prepare the new URL which is the page name extracted plus all other params */
+            searchParams.set('page', cur_page);
+            searchParams.delete('alert_id');
+            cur_url.search = searchParams.toString();
+            /* Attach the new URL to the current href */
+            $(element).attr('href', cur_url.toString());
+        }
+    }
+
+    function updateStatusSwitchLink(begin, end, element) {
+        const cur_href = $(element).attr('href');
+        let cur_url = new URL(cur_href, location.origin + location.pathname);
+        let searchParams = new URLSearchParams(cur_url.search);
+
+        /* Set updated epoch */
+        searchParams.set('epoch_begin', begin.unix());
+        searchParams.set('epoch_end',   end.unix());
+
+        /* Attach the new URL to the current href */
+        cur_url.search = searchParams.toString();
+        $(element).attr('href', cur_url.toString());
+    }
+
+    function pushNewHistoryState(begin, end, len) {
+        const url = new URL(location);
+
+        const searchParams = getSearchParams();
+        searchParams.set('epoch_begin', begin.unix());
+        searchParams.set('epoch_end', end.unix());
+
+        if (url.searchParams.has('status')) {
+            searchParams.set('status', url.searchParams.get('status'));
+        }
+
+        /*
+          Update navbar items, e.g., alert entities, with begin/end epochs
+          and status to preserve them when switching between tabs
+         */
+        $('#navbarNav a').each(function(index, element) {
+            updateNavbarLink(url, begin, end, element);
+        });
+
+        /*
+          Update status switch items (Engaged, Acknoledged, Past)
+          with begin/end epochs to preserve them when switching status
+         */
+        $('#statusSwitch a').each(function(index, element) {
+            updateStatusSwitchLink(begin, end, element);
+        });
+
+        /*
+          Other page params are not preserved when switching tabs as they may be not valid across
+          multiple entities
+         */
+        searchParams.delete('page');
+        if (url.searchParams.has('page')) {
+            searchParams.set('page', url.searchParams.get('page'));
+        }
+
+        url.search = searchParams.toString();
+        window.history.pushState({epoch_begin: begin.unix(), epoch_end: end.unix()}, '', url);
+    }
+
+    async function onRangePickerChange(pushHistroy = false, updateDatetimeUsingPresets = false) {
+        const [begin, end] = getTimestampRange(updateDatetimeUsingPresets);
+
+        setDatasourceParams();
+
+	{% if query_presets ~= nil and query_presets ~= {} then %}
+	if (currentQueryPresets != $(`#select-query-presets`).val()) {
+	    pushNewHistoryState(begin, end);
+	    /* Reload the page to change datatable columns */
+	    location.reload();
+	    return;
+	}
+	{% end %}
+
+        /* The reloadTable callback should be defined by the page (e.g. datatable.template) 
+         * to update the content on range or filters update (TODO define a cleaner API for this) */
+        await reloadTable($table, begin, end);
+
+        if (pushHistroy) {
+            pushNewHistoryState(begin, end, null);
+        }
+    }
+
+    async function addFilterTag(tag) {
+        /* Convert values to string (this avoids issues e.g. with 0) */
+        if (typeof tag.realValue == 'number') { tag.realValue = ''+tag.realValue; }
+        if (typeof tag.value == 'number') { tag.value = ''+tag.value; }
+
+        const existingTagElms = tagify.getTagElms();
+        
+        /* Lookup by key, value and operator (do not add the same key+value multiple times) */
+        let existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('realValue') === tag.realValue && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
+        let existingTag = tagify.tagData(existingTagElement);
+        if (existingTag !== undefined) {
+            return;
+        }
+
+        /* Lookup by key (does not allow dup, replace the value if key is the same) */
+        //existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key);
+        //const existingTag = tagify.tagData(existingTagElement);
+        //if (existingTag !== undefined) {
+
+            
+        /* Lookup by index (allow key dup, replace the value only if it's the same element index) */
+        if (tag.index && existingTagElms.length > tag.index) {
+            existingTagElement = existingTagElms[tag.index] || existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
+            existingTag = tagify.tagData(existingTagElement);
+
+            // replace the tag!
+            existingTag.value = tag.value;
+            existingTag.realValue = tag.realValue;
+            if (tag.selectedOperator) {
+                existingTag.selectedOperator = tag.selectedOperator;
+            }
+
+            tagify.replaceTag(existingTagElement, existingTag);
+
+            // update the datasource params
+            await onRangePickerChange(true, false);
+
+            return;
+        } 
+
+        // has the tag an operator object?
+        if (DEFINED_TAGS[tag.key] && !Array.isArray(DEFINED_TAGS[tag.key])) {
+            tag.operators = DEFINED_TAGS[tag.key].operators;
+        }
+
+        if (!tag.selectedOperator) {
+            tag.selectedOperator = 'eq';
+        }
+
+        // add filter!
+        tagify.addTags([tag]);
+    }
+
+    // on apply button click
+    $(`.range-picker`).on('change', async function(e) {
+        await onRangePickerChange(true, false);
+    });
+
+    $(`#select-len`).on('change', async function() {
+        await onRangePickerChange(true, false);
+    });
+
+    // when an user remove the tag
+    tagify.on('remove', async function(e) {
+        const key = e.detail.data.key;
+
+        if (key === undefined) {
+            return;
+        }
+
+        if (datasourceParams[key] !== undefined) {
+            delete datasourceParams[key];
+        }
+
+        await onRangePickerChange(true, false);
+    });
+
+    tagify.on('add', async function(e) {
+
+        const detail = e.detail;
+        if (detail.data === undefined) { return; }
+
+        const tag = detail.data;
+
+        // let's check if the tag has a key field
+        if (!tag.key) {
+            tagify.removeTags([e.detail.tag]);
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+
+        // add/update datasource params, default operator `=`
+        if (!tag.selectedOperator) tag.selectedOperator = 'eq';
+
+        {% if query_presets ~= nil and query_presets ~= {} then %}
+        // When adding tags in a query page switch to the flows page if the tag is not defined in the query filters
+        if ($(`#select-query-presets`).val() != "" && !tag.operators /* No DEFINED_TAGS for this */)
+            $(`#select-query-presets`).val("");
+        {% end %}
+
+        // trigger request
+        await onRangePickerChange(true, false);
+    });
+
+    // Tag 'click' event handler to open the 'Edit' modal. Note: this prevents
+    // inline editing of the tag ('edit:updated' is never called as a consequence)
+    tagify.on('click', async function(e) {
+        const detail = e.detail;
+
+        if (detail.data === undefined) { return; }
+        if (detail.data.key === undefined) {return;}
+
+        const tag = detail.data;
+
+        pageHandle.filterModalShow(true);
+
+        $('#dt-add-filter-modal input[name="index"]').val(detail.index);
+        $('#dt-filter-type-select').val(tag.key).change();
+
+        let value = tag.realValue || tag.value;
+
+        let value_select = $('#dt-add-filter-modal select[name="value"]');
+        if (value_select) {
+            value_select.val(value);
+        }
+
+        let value_input = $('#dt-add-filter-modal input[name="value"]');
+        if (value_input) {
+            value_input.val(value);
+        }
+
+        let operator_select = $('#dt-add-filter-modal select[name="operator"]');
+
+        if (operator_select) {
+            operator_select.val(tag.selectedOperator);
+        }
+    });
+
+    tagify.on('edit:updated', async function(e) {
+        const detail = e.detail;
+
+        if (detail.data === undefined) { return; }
+        if (detail.data.key === undefined) {return;}
+
+        const tag = detail.data;
+        const prevTag = detail.previousData;
+
+        tag.realValue = tag.value;
+
+        // trigger request
+        await onRangePickerChange(true, false);
+    });
+
+    $(`tags`).on('change', 'select.operator', async function(e) {
+        // update the tag and the operator
+        const $tag = $(this).parents('tag');
+        const tagData = tagify.tagData($tag[0]);
+        const selectedOperator = $(this).val();
+
+        $tag.attr("selectedoperator", selectedOperator);
+
+        tagData.selectedOperator = selectedOperator;
+
+        // trigger request
+        await onRangePickerChange(true, false);
+    });
+
+    $(".btn-remove-tags").on('click', async function() {
+        // clear all the filters on click
+
+        const tags = tagify.getTagElms();
+        for (const tag of tags) {
+            const key = tag.getAttribute('key');
+            if (datasourceParams[key]) {
+                delete datasourceParams[key];
+            }
+        }
+
+        tagify.removeAllTags();
+
+        await onRangePickerChange(true, false);
+    });
+
+    const addFilter = (e, a, from_table) => {
+        e.preventDefault();
+
+        let key = undefined;
+        let displayValue = undefined;
+        let realValue = undefined;
+        let operator = 'eq';
+
+        if (from_table) {
+            const colIndex = $table.cell(a.parent()).index().column;
+
+            // Read tag key from the column
+            key = $table.column(colIndex).name();
+
+	        // Read tag key from the cell if any
+            const data = $table.cell(a.parent()).data();
+            if (data.tag_key)
+                key = data.tag_key;
+
+	        // Read value from the cell
+            displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
+            displayValue  = NtopUtils.stripTags(displayValue);
+            realValue = ((data.value != undefined) ? data.value : data);
+        }
+
+        // Read tag key and value from the <a> itself if provided
+        if (a.data('tagKey')      != undefined) key          = a.data('tagKey');
+        if (a.data('tagLabel')    != undefined) displayValue = a.data('tagLabel');
+        if (a.data('tagValue')    != undefined) realValue    = a.data('tagValue');
+        if (a.data('tagOperator') != undefined) operator     = a.data('tagOperator');
+
+        const tag = {
+            label: i18n.tags[key],
+            key: key,
+            value: displayValue,
+            realValue: realValue,
+            title: realValue,
+            selectedOperator: operator
+        };
+
+        addFilterTag(tag);
+    }
+
+    // when the user navigates using the browser's arrows
+    // set the input boxes with their respective values
+    $(window).on('popstate', function(e) {
+        const {state} = e.originalEvent;
+        const {epoch_begin, epoch_end} = state;    
+        $inputBeginEpoch.datetimepicker('date', moment(epoch_begin, 'X'));
+        $inputEndEpoch.datetimepicker('date', moment(epoch_end, 'X'));
+    });
+
+    /*** Filters modal ***/
+
+    // load data for filters (e.g. alert types in the selected range)
+    async function filterModalLoadData() {
+        const [begin, end] = getTimestampRange();
+        /* Here it is where we can load dynamic data on time range change */
+    }
+
+    pageHandle.filterModalShow = function(edit) {
+        $('#dt-add-filter-modal-title').text(edit ? "{{i18n('datatable.edit_filter')}}" : "{{i18n('datatable.add_filter')}}");
+        $('#dt-add-filter-btn').text(edit ? "{{i18n('apply')}}" : "{{i18n('add')}}");
+        $('#dt-filter-type-select').prop( "disabled", edit ? true : false);
+        $('#dt-add-filter-modal').modal('show');
+        $('#dt-add-filter-modal input[name="index"]').val('');
+    }
+
+    const filterModalMakeTag = (formSelector) => {
+       const filter_type = $(`${formSelector} [name='filter_type']`).val();
+
+       let tag = {
+           key: filter_type,             // e.g. l7_proto 
+           label: i18n.tags[filter_type] // e.g. L7 Proto
+       }
+
+       let index = $(`${formSelector} input[name='index']`).val();
+       if (index) {
+           tag.index = index;
+       }
+
+       // load filter params inside the template container
+       const $inputsTemplate = $(`${formSelector} .dt-filter-template-container [name]`);
+       $inputsTemplate.each(function (i, input) {
+           if ($(this).attr('name') == 'operator') {
+               tag.selectedOperator = $(this).val().trim();
+           } else {
+               tag.realValue = $(this).val().trim();
+               tag.value = $('option:selected', this).data('tagLabel');
+               if (!tag.value) tag.value = tag.realValue;
+           }
+       });
+
+       return tag;
+       }
+
+       function filterModalCloneTemplate(type) {
+       const template = $(`template#${type}-filter-template`).html();
+       // if the template is not empty then return a copy of the template content
+       if (template && template.trim() != "") {
+           const $template = $(template);
+           return $template;
+       }
+       return (null);
+       }
+
+       function filterModalSetContent(container, content) {
+       // show the template inside the modal container
+       container.hide().empty();
+
+       if (content) {
+           container.append($(`<hr>`));
+           container.append(content).show();
+       }
+       }
+
+       const filterModalCreateTemplateOnSelect = (formSelector) => {
+
+       const $templateContainer = $(`${formSelector} .dt-filter-template-container`);
+
+       // on filter type Selection load the right template to fill
+       $(`${formSelector} select[name='filter_type']`).change(function (e) {
+           const $option = $(this).find(`option[value='${$(this).val()}']`);
+           const $cloned = filterModalCloneTemplate($option.data('filterKey'));
+           filterModalSetContent($templateContainer, $cloned);
+           $(`${formSelector} span.test-feedback`).fadeOut();
+       });
+       }
+
+    /* bind add filter event */
+    $(`#dt-add-filter-modal form`).modalHandler({
+        /* Note: no endpoint defined, ajax is not used here */
+        resetAfterSubmit: false,
+        onModalInit: () => { filterModalCreateTemplateOnSelect(`#dt-add-filter-modal`); },
+        onModalShow: () => {
+            const $templateContainer = $(`#dt-add-filter-modal form .dt-filter-template-container`);
+            // load the template of the selected filter
+            const $cloned = filterModalCloneTemplate($(`#dt-add-filter-modal select[name='filter_type'] option:selected`).data('filterKey'));
+            filterModalSetContent($templateContainer, $cloned);
+        },
+        beforeSumbit: () => {
+            $(`#dt-add-filter-modal form button[type='submit']`).click(function () {
+                $(`#dt-add-filter-modal form span.invalid-feedback`).hide();
+            });
+
+            $(`#dt-add-filter-modal .test-feedback`).hide();
+
+            const tag = filterModalMakeTag(`#dt-add-filter-modal form`);
+
+            addFilterTag(tag);
+
+            return {};
+        },
+        onSubmitSuccess: (response) => {
+            // hide modal
+            $(`#dt-add-filter-modal`).modal('hide');
+            $(`#dt-add-filter-modal form .dt-filter-template-container`).hide();
+            return true;
+        }
+    }).invokeModalInit();
+
 </script>

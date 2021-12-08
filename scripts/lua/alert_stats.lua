@@ -580,9 +580,11 @@ local datasource_data = {
    page = page,
 }
 
+local datasource = Datasource(endpoint_list, datasource_data)
+
 local datatable = {
    name = page .. "-alerts-table",
-   datasource = Datasource(endpoint_list, datasource_data),
+   datasource = datasource,
    initialLength = getDefaultTableSize(),
    pagination = 'full_numbers',
    show_admin_controls = isAdministrator(),
@@ -642,7 +644,9 @@ local context = {
        earliest_available_epoch = earliest_available_epoch,
        epoch_begin = epoch_begin,
        epoch_end = epoch_end,
+       datasource_params = datasource.params,
        refresh_enabled = checkbox_checked,
+       opsep = tag_utils.SEPARATOR,
        tags = {
            enabled = (page ~= 'all'),
            tag_operators = tag_utils.tag_operators,

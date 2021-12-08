@@ -123,943 +123,413 @@
     i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
 </script>
 <script type='text/javascript'>
-    let pageHandle = {};
     let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
     let $table;
 
-    $(document).ready(function(){
-        const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
+    const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
 
-        const datasourceParams = {* json.encode(datatable.datasource.params) *};
-	{% if show_chart then %}
-        const chartParams = {* json.encode(chart.params) *};
-        {% end %}
+    {% if show_chart then %}
+    const chartParams = {* json.encode(chart.params) *};
+    {% end %}
 
-        const $inputBeginEpoch = $(`#begin-epoch`);
-        const $inputEndEpoch = $(`#end-epoch`);
-        const $btnGetPermaLink = $(`#btn-get-permalink`);
-        {% if show_cards then %}
-        const sideCard = [$('#sideCard1'),$('#sideCard2')];    
-        {% end %}
+    const $inputBeginEpoch = $(`#begin-epoch`);
+    const $inputEndEpoch = $(`#end-epoch`);
+    const $btnGetPermaLink = $(`#btn-get-permalink`);
+    {% if show_cards then %}
+    const sideCard = [$('#sideCard1'),$('#sideCard2')];    
+    {% end %}
 
-        let intervalId = 0;
+    let intervalId = 0;
 
-        {% if query_presets ~= nil and query_presets ~= {} then %}
-        const $selectQueryPresets = $(`#select-query-presets`);
-	let currentQueryPresets = $selectQueryPresets.val();
-        {% end %}
+    $(`#{{ datatable.name }}-query`).click(function(e) {
+        NtopUtils.copyToClipboard($(e.target).attr('title'), "{{i18n('db_search.query_copied')}}", "{{i18n('unable_to_copy_to_clickboard')}}");
+    })
 
-        $(`#{{ datatable.name }}-query`).click(function(e) {
-            NtopUtils.copyToClipboard($(e.target).attr('title'), "{{i18n('db_search.query_copied')}}", "{{i18n('unable_to_copy_to_clickboard')}}");
-        })
+    /* Show an overlay to hide loading */
+    function toggleOverlays(time = 500) {
+        $(`.overlay`).toggle(time);
+    }
 
-        /* Show an overlay to hide loading */
-        function toggleOverlays(time = 500) {
-            $(`.overlay`).toggle(time);
-        }
+    function showOverlays(time = 500) {
+        $(`.overlay`).fadeIn(time);
+    }
 
-        function showOverlays(time = 500) {
-            $(`.overlay`).fadeIn(time);
-        }
+    function hideOverlays(time = 500) {
+        $(`.overlay`).fadeOut(time);
+    }
 
-        function hideOverlays(time = 500) {
-            $(`.overlay`).fadeOut(time);
-        }
+    function updateDownloadButton() {
+        if (!$(`#dt-btn-download`)) return;
 
-        async function reloadTable($table, begin, end) {
+        // update the link of the download button
+        const href = $(`#dt-btn-download`).attr('href');
+        const newDownloadURL = new URL(href, location.origin);
+        newDownloadURL.search = new URLSearchParams(datasourceParams); 
+        newDownloadURL.searchParams.set("visible_columns", getVisibleColumns($table).join(','));
+        newDownloadURL.searchParams.set("format", "txt");
+        $(`#dt-btn-download`).attr('href', newDownloadURL.toString());
+    }
 
-            if (begin == null && end == null) return;
+    /* Cards */
+    {% if show_cards then %}
+    let updateCardStats = () => {
+        let params = (new URLSearchParams(datasourceParams)).toString();
 
-            const copyParams = Object.assign(datasourceParams, {});
+        $.getJSON(`{* endpoint_cards *}?${params}`, function (data) {
 
-            // override the existing timestamps 
-            if (copyParams.epoch_begin) {
-                copyParams.epoch_begin = begin.unix();
+            let chartBox = $('#ChartDiv')
+            let divBox = [$('#CardDiv1'),$('#CardDiv2')];
+            let cardBox = [$('#Card1'),$('#Card2')];
+            let sideCardTitle = [$('#sideCardTitle1'),$('#sideCardTitle2')];
+            let numCards = 0;
+
+            for (i = 0; i < sideCard.length; i++){
+                if (data.rsp[i] == undefined){
+                    divBox[i].attr({
+                            "class" : "col-2 d-none"
+                    });
+                } else {
+                    sideCardTitle[i].html(data.rsp[i].label);
+                    sideCardTitle[i].attr({
+                        "title" : data.rsp[i].tooltip                
+                    });
+                    let cardText = "";
+                    for (j = 0; j < 3; j++) {
+                        // Concat the name with the percentage of the stat
+                        // NB: These name should be filters if available
+                        if(data.rsp[i].value[0].lenght != 0 && data.rsp[i].value[0][j] != undefined){
+                            let restText = " (" + (data.rsp[i].value[0][j].count).toFixed(1) + "%)</li>";
+                            if(data.rsp[i].value[0][j].count != 0 && data.rsp[i].value[0][j].count < 0.1){restText = " (< 0.1%)</li>";}
+                            cardText += "<li>" + data.rsp[i].value[0][j].name + restText;
+                        }                           
+                    }
+                    if (cardText != ""){
+                            divBox[i].attr({
+                                    "class" : "col-2 mb-2"
+                            });
+                        sideCard[i].html("<small>" + cardText + "</small>");
+                        numCards += 1;
+                    } else {
+                            divBox[i].attr({
+                                    "class" : "col-2 d-none"
+                            });
+                    }
+                }
             }
-            if (copyParams.epoch_end) {
-                copyParams.epoch_end = end.unix();
-            }
 
-            const searchParams = new URLSearchParams(Object.entries(copyParams));
+            // Calculating the width of the graph: Tot width (12) - Num of cards (2 per card)
+            graphWidth = (12 - (numCards * 2)).toString();
 
-            showOverlays();
-            
-            // reload the table
-            $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
+            chartBox.attr({
+                "class" : "col-" + graphWidth + " mb-2"
+            });
+        });
+    }
+    {% end %}
+
+    async function reloadTable($table, begin, end) {
+
+        if (begin == null && end == null) return;
+
+        const copyParams = Object.assign(datasourceParams, {});
+
+        // override the existing timestamps 
+        if (copyParams.epoch_begin) {
+            copyParams.epoch_begin = begin.unix();
+        }
+        if (copyParams.epoch_end) {
+            copyParams.epoch_end = end.unix();
+        }
+
+        const searchParams = new URLSearchParams(Object.entries(copyParams));
+
+        showOverlays();
+        
+        // reload the table
+        $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
 
 	    {% if show_chart then %}
-            try {
-                let params = {...datasourceParams, ...chartParams};
-                WidgetUtils.getWidgetByName("{{ chart.name }}").update(params);
-            }
-            catch(e) {
-                console.warn(e);
-            }
+        try {
+            let params = {...datasourceParams, ...chartParams};
+            WidgetUtils.getWidgetByName("{{ chart.name }}").update(params);
+        }
+        catch(e) {
+            console.warn(e);
+        }
 	    {% end %}
 
-            {% if show_cards then %}
-            updateCardStats();
-            {% end %} 
-        }
+        {% if show_cards then %}
+        updateCardStats();
+        {% end %} 
+    }
 
-        function printQueryTime($table) {
-            const response = $table.ajax.json();
-            // if the response contains the query time period
-            if (response.rsp.stats !== undefined && response.rsp.stats.query_duration_msec !== undefined) {
-                const sec = response.rsp.stats.query_duration_msec / 1000.0;
-                $(`#{{ datatable.name }}-query-time`).show();
-                $(`#{{ datatable.name }}-query-time .seconds`).text((sec < 0.01) ? '< 0.01' : NtopUtils.ffloat(sec)); // The time is in sec
-                $(`#{{ datatable.name }}-query`).show();
-                $(`#{{ datatable.name }}-query`).prop('title', response.rsp.stats.query);
-                if(response.rsp.stats.num_records_processed !== undefined) {
-                    const num_records_processed = response.rsp.stats.num_records_processed;
-                    $(`#{{ datatable.name }}-tot_records`).show();
-                    $(`#{{ datatable.name }}-tot_records .records`).text(num_records_processed);
+    function printQueryTime($table) {
+        const response = $table.ajax.json();
+        // if the response contains the query time period
+        if (response.rsp.stats !== undefined && response.rsp.stats.query_duration_msec !== undefined) {
+            const sec = response.rsp.stats.query_duration_msec / 1000.0;
+            $(`#{{ datatable.name }}-query-time`).show();
+            $(`#{{ datatable.name }}-query-time .seconds`).text((sec < 0.01) ? '< 0.01' : NtopUtils.ffloat(sec)); // The time is in sec
+            $(`#{{ datatable.name }}-query`).show();
+            $(`#{{ datatable.name }}-query`).prop('title', response.rsp.stats.query);
+            if(response.rsp.stats.num_records_processed !== undefined) {
+                const num_records_processed = response.rsp.stats.num_records_processed;
+                $(`#{{ datatable.name }}-tot_records`).show();
+                $(`#{{ datatable.name }}-tot_records .records`).text(num_records_processed);
+            }
+        }
+    }
+
+    function getVisibleColumns($tableApi) {
+        const visibleColumns = [];
+        $tableApi.columns().every(function(idx) {   
+            const $column = $tableApi.column(idx);
+            if ($column.visible() && $column.name() !== '') {
+                visibleColumns.push($column.name());
+            } 
+        });
+
+        return visibleColumns;
+    }
+
+    function loadColumns() {
+
+        let columns = [];
+        {% if datatable.columns_js then %}
+            columns = {* datatable.columns_js *};
+        {% end %}
+
+        /* Actions Column */
+        {% if show_actions then %}
+        columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
+            const buttons = [
+                {% if actions.show_info then %}
+                {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info', class: 'btn-warning'},
+                {% end %}
+
+                {% if actions.show_settings then %}
+                {icon: 'fa fa-cog', title: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-primary'},
+                {% end %}
+
+                {% if actions.show_flows then %}
+                /* Button to jump to flow alerts within the same time period */
+                {icon: 'fa-stream', title: "{{ i18n('flows') }}", modal: '#flow_alerts', class: "btn-info"},
+		    {% end %}
+
+                {% if actions.show_historical then %}
+		    /* Button to jump to historical nIndex flows */
+                {icon: 'fa-search-plus', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows', class: "btn-info"},
+		    {% end %}
+
+                {% if actions.show_disable then %}
+                /* Bell button to disable alerts is only supported for hosts and flows */
+                {icon: 'fa-bell-slash', title: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning"},
+                {% end %}
+
+                {% if actions.show_acknowledge then %}
+                {icon: 'fa fa-user-check', title: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog', class: 'btn-primary'},
+                {% end %}
+
+                {% if actions.show_delete then %}
+                {icon: 'fa fa-trash', title: "{{ i18n('remove') }}", modal: '#delete_alert_dialog', class: 'btn-danger'},
+                {% end %}
+            ];
+
+            return DataTableUtils.createActionButtons(buttons);
+          }
+        });
+        {% end %}
+
+        return columns;
+    }
+
+$(document).ready(function(){
+
+    const datatableButton = {* (datatable.buttons or '[]') *};
+    datatableButton.push({
+        text: '<i class="fas fa-sync"></i>',
+        action: async function (e, dt, node, config) {
+            await onRangePickerChange();
+        }
+    });
+    
+    const columns = loadColumns();
+    const column_order_name = "{{ datatable.order_name }}";
+    let column_order_id = 0;
+    columns.forEach((element, index) => {
+        if(element.data && element.data == column_order_name) {
+            column_order_id = index;
+        }
+    });
+
+    let config = DataTableUtils.getStdDatatableConfig(datatableButton);
+    config = DataTableUtils.extendConfig(config, {
+        serverSide: true,
+        searching: false,
+        info: false,
+        order: [[ column_order_id, "{* datatable.order_sorting *}" ]],
+        pagingType: '{{ datatable.pagination }}',
+        columnDefs: {},
+        ajax: {
+            method: 'get',
+            url: '{* datatable.datasource.endpoint *}',
+            dataSrc: 'rsp.records',
+            data: (data, settings) => {
+
+                const tableApi = settings.oInstance.api();
+                const orderColumnIndex = data.order[0].column;
+                const orderColumnName = tableApi.column(orderColumnIndex).name() || undefined;
+                
+                if (data.order) {
+                    data.order = data.order[0].dir;
+                    data.sort = orderColumnName;
                 }
-            }
-        }
 
-        function getTimestampRange(updateDatetimeUsingPresets = false) {
-            let begin = 0;
-            let end = 0;
-            const selectTimePresets = $(`#select-time-presets`).val();
-
-            if(updateDatetimeUsingPresets && selectTimePresets) {
-                // getting the current time using presets
-                const [subtract, measure] = selectTimePresets.split(',');
-                const now = moment();
-                const diff = moment().subtract(parseInt(subtract), measure);
-
-                begin = diff;
-                end = now;
-
-                if(!measure)
-                    diff = moment(parseInt(subtract));
-
-                // update the datetimepickers
-                $inputEndEpoch.datetimepicker('minDate', diff);
-                $inputEndEpoch.datetimepicker('maxDate', now);
-
-                $inputEndEpoch.datetimepicker('date', now);
-                $inputBeginEpoch.datetimepicker('date', diff);
-            } else {
-                begin = $(`#begin-epoch`).datetimepicker('date').utc();
-                end = $(`#end-epoch`).datetimepicker('date').utc();
-            }
-            return [begin, end];
-        }
-
-        function getSearchParams() {
-            const searchParams = new URLSearchParams();
-
-            // get all filters tags
-            const tags = tagify.getTagElms();
-
-            // add the tag filters inside the search params object
-            for (const tag of tags) {
-                const tagData = tagify.tagData(tag);
-
-                const key = tagData.key;
-                const selectedOperator = tagData.selectedOperator;
-                const realValue = tagData.realValue;
-                const value = tagData.value;
-
-                let param_value = `${realValue || value}{{ opsep }}${selectedOperator || 'eq'}`;
-                if (searchParams.get(key)) {
-                    param_value = `${searchParams.get(key)},${param_value}`;
+                if (data.columns !== undefined) {
+                    delete data.columns;
                 }
 
-                searchParams.set(key, param_value);
+                if (data.search !== undefined) {
+                    delete data.search;
+                }
+               
+                data.visible_columns = getVisibleColumns(tableApi).join(',');
+
+                return data;
+            },
+            beforeSend: function() {
+                showOverlays();
+            },
+            complete: function() {
+                hideOverlays();
             }
-
-            {% if query_presets ~= nil and query_presets ~= {} then %}
-            // add selected query preset
-            searchParams.set('query_preset', $selectQueryPresets.val());
-            {% end %}
-
-            return searchParams;
-        }
-
-        function setDatasourceParams() {
-            const searchParams = getSearchParams();
-
-            searchParams.forEach(function(value, key) {
-                datasourceParams[key] = value;
-            });
-
-            const [begin, end] = getTimestampRange();
-            if (begin == null && end == null) return datasourceParams;
-            // override the existing timestamps 
-            if (datasourceParams.epoch_begin) datasourceParams.epoch_begin = begin.unix();
-            if (datasourceParams.epoch_end) datasourceParams.epoch_end = end.unix();
-
-            return datasourceParams;
-        }
-
-        function updateNavbarLink(url, begin, end, element) {
-            const searchParams = getSearchParams();
-
-            searchParams.set('epoch_begin', begin.unix());
-            searchParams.set('epoch_end', end.unix());
-            
-            if (url.searchParams.has('status')) {
-                searchParams.set('status', url.searchParams.get('status'));
-            }
-
-            /* Read the current href */
-            const cur_href = $(element).attr('href');
-            let cur_url = new URL(cur_href, location.origin);
-            /* Read current href params and extract the page name */
-            const cur_page = cur_url.searchParams.get('page');
-            if(cur_page) {
-                /* Prepare the new URL which is the page name extracted plus all other params */
-                searchParams.set('page', cur_page);
-                searchParams.delete('alert_id');
-                cur_url.search = searchParams.toString();
-                /* Attach the new URL to the current href */
-                $(element).attr('href', cur_url.toString());
-            }
-        }
-
-        function updateStatusSwitchLink(begin, end, element) {
-            const cur_href = $(element).attr('href');
-            let cur_url = new URL(cur_href, location.origin + location.pathname);
-            let searchParams = new URLSearchParams(cur_url.search);
-
-            /* Set updated epoch */
-            searchParams.set('epoch_begin', begin.unix());
-            searchParams.set('epoch_end',   end.unix());
-
-            /* Attach the new URL to the current href */
-            cur_url.search = searchParams.toString();
-            $(element).attr('href', cur_url.toString());
-        }
-
-        function pushNewHistoryState(begin, end, len) {
-            const url = new URL(location);
-
-            const searchParams = getSearchParams();
-            searchParams.set('epoch_begin', begin.unix());
-            searchParams.set('epoch_end', end.unix());
-
-            if (url.searchParams.has('status')) {
-                searchParams.set('status', url.searchParams.get('status'));
-            }
-
-            /*
-              Update navbar items, e.g., alert entities, with begin/end epochs
-              and status to preserve them when switching between tabs
-             */
-            $('#navbarNav a').each(function(index, element) {
-                updateNavbarLink(url, begin, end, element);
-            });
-
-            /*
-              Update status switch items (Engaged, Acknoledged, Past)
-              with begin/end epochs to preserve them when switching status
-             */
-            $('#statusSwitch a').each(function(index, element) {
-                updateStatusSwitchLink(begin, end, element);
-            });
-
-            /*
-              Other page params are not preserved when switching tabs as they may be not valid across
-              multiple entities
-             */
-            searchParams.delete('page');
-            if (url.searchParams.has('page')) {
-                searchParams.set('page', url.searchParams.get('page'));
-            }
-
-            url.search = searchParams.toString();
-            window.history.pushState({epoch_begin: begin.unix(), epoch_end: end.unix()}, '', url);
-        }
-
-        function getVisibleColumns($tableApi) {
-            const visibleColumns = [];
-            $tableApi.columns().every(function(idx) {   
-                const $column = $tableApi.column(idx);
-                if ($column.visible() && $column.name() !== '') {
-                    visibleColumns.push($column.name());
-                } 
-            });
-
-            return visibleColumns;
-        }
-
-        function updateDownloadButton() {
-            // update the link of the download button
-            const href = $(`#dt-btn-download`).attr('href');
-            const newDownloadURL = new URL(href, location.origin);
-            newDownloadURL.search = new URLSearchParams(datasourceParams); 
-            newDownloadURL.searchParams.set("visible_columns", getVisibleColumns($table).join(','));
-            newDownloadURL.searchParams.set("format", "txt");
-            $(`#dt-btn-download`).attr('href', newDownloadURL.toString());
-        }
-
-        async function onRangePickerChange(pushHistroy = false, updateDatetimeUsingPresets = false) {
-            const [begin, end] = getTimestampRange(updateDatetimeUsingPresets);
-
-            setDatasourceParams();
-
-	    {% if query_presets ~= nil and query_presets ~= {} then %}
-	    if (currentQueryPresets != $selectQueryPresets.val()) {
-	        pushNewHistoryState(begin, end);
-	        /* Reload the page to change datatable columns */
-	        location.reload();
-	        return;
-	    }
-	    {% end %}
-
-            await reloadTable($table, begin, end);
+        },
+        drawCallback: () => {
+            // remove fast forward button from the table
+            $("#ndpi_table_last").remove();
 
             updateDownloadButton();
+        },
+        //lengthMenu: [10, 20, 50, 100, 200],
+        lengthMenu: [[INITIAL_ROWS_LENGTH, 50, 100, 250, 500], [INITIAL_ROWS_LENGTH, 50, 100, 250, 500]],
+        pageLength: INITIAL_ROWS_LENGTH,
+        columns: loadColumns(),
+    });
 
-            if (pushHistroy) {
-                pushNewHistoryState(begin, end, null);
-            }
-        }
+    {% if datatable.show_vlan or datatable.show_non_pkts_if_columns then %}
+    let table = $(`ndpi_table`).DataTable(config);
+    table.destroy();
+    {% end %}
 
-        async function addFilterTag(tag) {
-            /* Convert values to string (this avoids issues e.g. with 0) */
-            if (typeof tag.realValue == 'number') { tag.realValue = ''+tag.realValue; }
-            if (typeof tag.value == 'number') { tag.value = ''+tag.value; }
+    {% if datatable.refresh_rate and datatable.refresh_rate > 0 then %}
+    intervalId = setInterval(function() { onRangePickerChange(true, true); }, {{ datatable.refresh_rate }});
+    {% end %}
 
-            const existingTagElms = tagify.getTagElms();
-            
-            /* Lookup by key, value and operator (do not add the same key+value multiple times) */
-            let existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('realValue') === tag.realValue && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
-            let existingTag = tagify.tagData(existingTagElement);
-            if (existingTag !== undefined) {
-                return;
-            }
+    $table = $(`#{{ datatable.name }}`).DataTable(config);
 
-            /* Lookup by key (does not allow dup, replace the value if key is the same) */
-            //existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key);
-            //const existingTag = tagify.tagData(existingTagElement);
-            //if (existingTag !== undefined) {
+    DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
+        $table.ajax.reload();
+    });
 
-                
-            /* Lookup by index (allow key dup, replace the value only if it's the same element index) */
-            if (tag.index && existingTagElms.length > tag.index) {
-                existingTagElement = existingTagElms[tag.index] || existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
-                existingTag = tagify.tagData(existingTagElement);
+    // on ajax request
+    $table.on('preXhr', function() {
+    });
 
-                // replace the tag!
-                existingTag.value = tag.value;
-                existingTag.realValue = tag.realValue;
-                if (tag.selectedOperator) {
-                    existingTag.selectedOperator = tag.selectedOperator;
-                }
+    // on ajax request complete then print the query time
+    $table.on('xhr', function() {
+        printQueryTime($table);
+        filterModalLoadData();
+    });
 
-                tagify.replaceTag(existingTagElement, existingTag);
+    $table.on('click', `a.tag-filter`, async function (e) {
+        addFilter(e, $(this), true);
+    });
 
-                // update the datasource params
-                await onRangePickerChange(true);
-
-                return;
-            } 
-
-            // has the tag an operator object?
-            if (DEFINED_TAGS[tag.key] && !Array.isArray(DEFINED_TAGS[tag.key])) {
-                tag.operators = DEFINED_TAGS[tag.key].operators;
-            }
-
-            if (!tag.selectedOperator) {
-                tag.selectedOperator = 'eq';
-            }
-
-            // add filter!
-            tagify.addTags([tag]);
-        }
-
-        function loadColumns() {
-
-            let columns = [];
-            {% if datatable.columns_js then %}
-                columns = {* datatable.columns_js *};
-            {% end %}
-
-            /* Actions Column */
-            {% if show_actions then %}
-            columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
-                const buttons = [
-                    {% if actions.show_info then %}
-                    {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info', class: 'btn-warning'},
-                    {% end %}
-
-                    {% if actions.show_settings then %}
-                    {icon: 'fa fa-cog', title: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-primary'},
-                    {% end %}
-
-                    {% if actions.show_flows then %}
-                    /* Button to jump to flow alerts within the same time period */
-                    {icon: 'fa-stream', title: "{{ i18n('flows') }}", modal: '#flow_alerts', class: "btn-info"},
-		    {% end %}
-
-                    {% if actions.show_historical then %}
-		    /* Button to jump to historical nIndex flows */
-                    {icon: 'fa-search-plus', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows', class: "btn-info"},
-		    {% end %}
-
-                    {% if actions.show_disable then %}
-                    /* Bell button to disable alerts is only supported for hosts and flows */
-                    {icon: 'fa-bell-slash', title: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning"},
-                    {% end %}
-
-                    {% if actions.show_acknowledge then %}
-                    {icon: 'fa fa-user-check', title: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog', class: 'btn-primary'},
-                    {% end %}
-
-                    {% if actions.show_delete then %}
-                    {icon: 'fa fa-trash', title: "{{ i18n('remove') }}", modal: '#delete_alert_dialog', class: 'btn-danger'},
-                    {% end %}
-                ];
-
-                return DataTableUtils.createActionButtons(buttons);
-              }
-            });
-            {% end %}
-
-            return columns;
-        }
-
-        const datatableButton = {* (datatable.buttons or '[]') *};
-        datatableButton.push({
-            text: '<i class="fas fa-sync"></i>',
-            action: async function (e, dt, node, config) {
-                await onRangePickerChange();
-            }
-        });
+    /* Cards */
+    {% if show_cards then %}
+    sideCard.forEach(element=>{
+        const card = "#".concat(element[0].id);
         
-        const columns = loadColumns();
-        const column_order_name = "{{ datatable.order_name }}";
-        let column_order_id = 0;
-        columns.forEach((element, index) => {
-            if(element.data && element.data == column_order_name) {
-                column_order_id = index;
-            }
-        });
-
-        let config = DataTableUtils.getStdDatatableConfig(datatableButton);
-        config = DataTableUtils.extendConfig(config, {
-            serverSide: true,
-            searching: false,
-            info: false,
-            order: [[ column_order_id, "{* datatable.order_sorting *}" ]],
-            pagingType: '{{ datatable.pagination }}',
-            columnDefs: {},
-            ajax: {
-                method: 'get',
-                url: '{* datatable.datasource.endpoint *}',
-                dataSrc: 'rsp.records',
-                data: (data, settings) => {
-
-                    const tableApi = settings.oInstance.api();
-                    const orderColumnIndex = data.order[0].column;
-                    const orderColumnName = tableApi.column(orderColumnIndex).name() || undefined;
-                    
-                    if (data.order) {
-                        data.order = data.order[0].dir;
-                        data.sort = orderColumnName;
-                    }
-
-                    if (data.columns !== undefined) {
-                        delete data.columns;
-                    }
-
-                    if (data.search !== undefined) {
-                        delete data.search;
-                    }
-                   
-                    data.visible_columns = getVisibleColumns(tableApi).join(',');
-
-                    return data;
-                },
-                beforeSend: function() {
-                    showOverlays();
-                },
-                complete: function() {
-                    hideOverlays();
-                }
-            },
-            drawCallback: () => {
-                // remove fast forward button from the table
-                $("#ndpi_table_last").remove();
-
-                updateDownloadButton();
-            },
-            //lengthMenu: [10, 20, 50, 100, 200],
-            lengthMenu: [[INITIAL_ROWS_LENGTH, 50, 100, 250, 500], [INITIAL_ROWS_LENGTH, 50, 100, 250, 500]],
-            pageLength: INITIAL_ROWS_LENGTH,
-            columns: loadColumns(),
-        });
-
-        {% if datatable.show_vlan or datatable.show_non_pkts_if_columns then %}
-        let table = $(`ndpi_table`).DataTable(config);
-        table.destroy();
-        {% end %}
-
-        {% if datatable.refresh_rate and datatable.refresh_rate > 0 then %}
-        intervalId = setInterval(function() { onRangePickerChange(true, true); }, {{ datatable.refresh_rate }});
-        {% end %}
-
-        $table = $(`#{{ datatable.name }}`).DataTable(config);
-
-        DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
-            $table.ajax.reload();
-        });
-
-        // on ajax request
-        $table.on('preXhr', function() {
-        });
-
-        // on ajax request complete then print the query time
-        $table.on('xhr', function() {
-            printQueryTime($table);
-            filterModalLoadData();
-        });
-
-        // on apply button click
-        $(`.range-picker`).on('change', async function(e) {
-            await onRangePickerChange(true);
-        });
-
-        $(`#select-len`).on('change', async function() {
-            await onRangePickerChange(true);
-        });
-
-        // when an user remove the tag
-        tagify.on('remove', async function(e) {
-            const key = e.detail.data.key;
-
-            if (key === undefined) {
-                return;
-            }
-
-            if (datasourceParams[key] !== undefined) {
-                delete datasourceParams[key];
-            }
-
-            await onRangePickerChange(true);
-        });
-
-        tagify.on('add', async function(e) {
-
-            const detail = e.detail;
-            if (detail.data === undefined) { return; }
-
-            const tag = detail.data;
-
-            // let's check if the tag has a key field
-            if (!tag.key) {
-                tagify.removeTags([e.detail.tag]);
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-
-            // add/update datasource params, default operator `=`
-            if (!tag.selectedOperator) tag.selectedOperator = 'eq';
-
-	    {% if query_presets ~= nil and query_presets ~= {} then %}
-            // When adding tags in a query page switch to the flows page if the tag is not defined in the query filters
-	    if ($selectQueryPresets.val() != "" && !tag.operators /* No DEFINED_TAGS for this */)
-	       $selectQueryPresets.val("");
-            {% end %}
-
-            // trigger request
-            await onRangePickerChange(true);
-        });
-
-        // Tag 'click' event handler to open the 'Edit' modal. Note: this prevents
-        // inline editing of the tag ('edit:updated' is never called as a consequence)
-        tagify.on('click', async function(e) {
-            const detail = e.detail;
-
-            if (detail.data === undefined) { return; }
-            if (detail.data.key === undefined) {return;}
-
-            const tag = detail.data;
-
-            pageHandle.filterModalShow(true);
-
-            $('#dt-add-filter-modal input[name="index"]').val(detail.index);
-            $('#dt-filter-type-select').val(tag.key).change();
-
-            let value = tag.realValue || tag.value;
-
-            let value_select = $('#dt-add-filter-modal select[name="value"]');
-            if (value_select) {
-                value_select.val(value);
-            }
-
-            let value_input = $('#dt-add-filter-modal input[name="value"]');
-            if (value_input) {
-                value_input.val(value);
-            }
-
-            let operator_select = $('#dt-add-filter-modal select[name="operator"]');
-
-            if (operator_select) {
-                operator_select.val(tag.selectedOperator);
-            }
-        });
-
-        tagify.on('edit:updated', async function(e) {
-            const detail = e.detail;
-
-            if (detail.data === undefined) { return; }
-            if (detail.data.key === undefined) {return;}
-
-            const tag = detail.data;
-            const prevTag = detail.previousData;
-
-            tag.realValue = tag.value;
-
-            // trigger request
-            await onRangePickerChange(true);
-        });
-
-        $(`tags`).on('change', 'select.operator', async function(e) {
-            // update the tag and the operator
-            const $tag = $(this).parents('tag');
-            const tagData = tagify.tagData($tag[0]);
-            const selectedOperator = $(this).val();
-
-            $tag.attr("selectedoperator", selectedOperator);
-
-            tagData.selectedOperator = selectedOperator;
-
-            // trigger request
-            await onRangePickerChange(true);
-        });
-
-        $(".btn-remove-tags").on('click', async function() {
-            // clear all the filters on click
-
-            const tags = tagify.getTagElms();
-            for (const tag of tags) {
-                const key = tag.getAttribute('key');
-                if (datasourceParams[key]) {
-                    delete datasourceParams[key];
-                }
-            }
-
-            tagify.removeAllTags();
-
-            await onRangePickerChange(true);
-        });
-
-        const addFilter = (e, a, from_table) => {
-            e.preventDefault();
-
-            let key = undefined;
-            let displayValue = undefined;
-            let realValue = undefined;
-            let operator = 'eq';
-
-            if (from_table) {
-                const colIndex = $table.cell(a.parent()).index().column;
-
-                // Read tag key from the column
-                key = $table.column(colIndex).name();
-
-	        // Read tag key from the cell if any
-                const data = $table.cell(a.parent()).data();
-                if (data.tag_key)
-                    key = data.tag_key;
-
-	        // Read value from the cell
-                displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
-                displayValue  = NtopUtils.stripTags(displayValue);
-                realValue = ((data.value != undefined) ? data.value : data);
-            }
-
-            // Read tag key and value from the <a> itself if provided
-            if (a.data('tagKey')      != undefined) key          = a.data('tagKey');
-            if (a.data('tagLabel')    != undefined) displayValue = a.data('tagLabel');
-            if (a.data('tagValue')    != undefined) realValue    = a.data('tagValue');
-            if (a.data('tagOperator') != undefined) operator     = a.data('tagOperator');
-
-            const tag = {
-                label: i18n.tags[key],
-                key: key,
-                value: displayValue,
-                realValue: realValue,
-                title: realValue,
-                selectedOperator: operator
-            };
-
-            addFilterTag(tag);
-        }
-
-        $table.on('click', `a.tag-filter`, async function (e) {
-            addFilter(e, $(this), true);
-        });
-
-        /* Cards */
-        {% if show_cards then %}
-        sideCard.forEach(element=>{
-            const card = "#".concat(element[0].id);
-            
-            $(card).on('click', `a.tag-filter`, async function (e) {
-                addFilter(e, $(this), false);
-            })
+        $(card).on('click', `a.tag-filter`, async function (e) {
+            addFilter(e, $(this), false);
         })
-        {% end %}
+    })
+    {% end %}
+    
+    $btnGetPermaLink.on('click', function() {
+
+        const $this = $(this);
         
-        // when the user navigates using the browser's arrows
-        // set the input boxes with their respective values
-        $(window).on('popstate', function(e) {
-            const {state} = e.originalEvent;
-            const {epoch_begin, epoch_end} = state;    
-            $inputBeginEpoch.datetimepicker('date', moment(epoch_begin, 'X'));
-            $inputEndEpoch.datetimepicker('date', moment(epoch_end, 'X'));
-        });
+        const dummyInput = document.createElement('input');
+        dummyInput.value = location.href;
+        document.body.appendChild(dummyInput);
+        dummyInput.select();
 
-        $btnGetPermaLink.on('click', function() {
+        // copy the url to the clipboard from the dummy input
+        document.execCommand("copy");
+        document.body.removeChild(dummyInput);
 
-            const $this = $(this);
-            
-            const dummyInput = document.createElement('input');
-            dummyInput.value = location.href;
-            document.body.appendChild(dummyInput);
-            dummyInput.select();
+        $this.attr("title", "Copied!")
+            .tooltip("dispose")
+            .tooltip()
+            .tooltip("show");
+    });
 
-            // copy the url to the clipboard from the dummy input
-            document.execCommand("copy");
-            document.body.removeChild(dummyInput);
+    ChartWidget.registerEventCallback("{{ chart.name }}", 'zoomed', async (chartContext, { xaxis, yaxis }) => {
+        // the timestamps are in milliseconds, convert them into seconds
+        const begin = moment(xaxis.min);
+        const end = moment(xaxis.max);
 
-            $this.attr("title", "Copied!")
-                .tooltip("dispose")
-                .tooltip()
-                .tooltip("show");
-        });
+        $(`#select-time-presets`).val('custom');
 
-        ChartWidget.registerEventCallback("{{ chart.name }}", 'zoomed', async (chartContext, { xaxis, yaxis }) => {
-            // the timestamps are in milliseconds, convert them into seconds
-            const begin = moment(xaxis.min);
-            const end = moment(xaxis.max);
+        $inputBeginEpoch.datetimepicker('date', begin);
+        $inputEndEpoch.datetimepicker('date', end);
 
-            $(`#select-time-presets`).val('custom');
+        await onRangePickerChange(true);
+    });
 
-            $inputBeginEpoch.datetimepicker('date', begin);
-            $inputEndEpoch.datetimepicker('date', end);
+    {% if show_cards then %}
+    updateCardStats();
+    {% end %}
 
-            await onRangePickerChange(true);
-        });
+    /* HTTP copy URL button */
+    $table.on('click', `#copyHttpUrl`, function (e) {
+        let sampleTextarea = document.createElement("textarea");
+        document.body.appendChild(sampleTextarea);
+        sampleTextarea.value = this.parentElement.getElementsByTagName('a')[0].href; //url
+        sampleTextarea.select(); //select textarea content
+        document.execCommand("copy");
+        document.body.removeChild(sampleTextarea);
+    });
 
+    /* Auto-refresh handling */
+    $(`#autoRefreshEnabled`).on('click', async function(e) {
+        const enabled_disabled = ($(`#autoRefreshIcon`).hasClass('fa-spin') == false);
+        const auto_refresh_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/auto_refresh.lua' 
 
-        /*** Filters modal ***/
-
-        // load data for filters (e.g. alert types in the selected range)
-        async function filterModalLoadData() {
-            const [begin, end] = getTimestampRange();
-            /* Here it is where we can load dynamic data on time range change */
-        }
-
-        pageHandle.filterModalShow = function(edit) {
-            $('#dt-add-filter-modal-title').text(edit ? "{{i18n('datatable.edit_filter')}}" : "{{i18n('datatable.add_filter')}}");
-            $('#dt-add-filter-btn').text(edit ? "{{i18n('apply')}}" : "{{i18n('add')}}");
-            $('#dt-filter-type-select').prop( "disabled", edit ? true : false);
-            $('#dt-add-filter-modal').modal('show');
-            $('#dt-add-filter-modal input[name="index"]').val('');
-        }
-
-        const filterModalMakeTag = (formSelector) => {
-           const filter_type = $(`${formSelector} [name='filter_type']`).val();
-
-           let tag = {
-               key: filter_type,             // e.g. l7_proto 
-               label: i18n.tags[filter_type] // e.g. L7 Proto
-           }
-
-           let index = $(`${formSelector} input[name='index']`).val();
-           if (index) {
-               tag.index = index;
-           }
-
-           // load filter params inside the template container
-           const $inputsTemplate = $(`${formSelector} .dt-filter-template-container [name]`);
-           $inputsTemplate.each(function (i, input) {
-               if ($(this).attr('name') == 'operator') {
-                   tag.selectedOperator = $(this).val().trim();
-               } else {
-                   tag.realValue = $(this).val().trim();
-                   tag.value = $('option:selected', this).data('tagLabel');
-                   if (!tag.value) tag.value = tag.realValue;
-               }
-           });
-
-           return tag;
-       }
-
-       function filterModalCloneTemplate(type) {
-           const template = $(`template#${type}-filter-template`).html();
-           // if the template is not empty then return a copy of the template content
-           if (template && template.trim() != "") {
-               const $template = $(template);
-               return $template;
-           }
-           return (null);
-       }
-
-       function filterModalSetContent(container, content) {
-           // show the template inside the modal container
-           container.hide().empty();
-
-           if (content) {
-               container.append($(`<hr>`));
-               container.append(content).show();
-           }
-       }
-
-       const filterModalCreateTemplateOnSelect = (formSelector) => {
-
-           const $templateContainer = $(`${formSelector} .dt-filter-template-container`);
-
-           // on filter type Selection load the right template to fill
-           $(`${formSelector} select[name='filter_type']`).change(function (e) {
-               const $option = $(this).find(`option[value='${$(this).val()}']`);
-               const $cloned = filterModalCloneTemplate($option.data('filterKey'));
-               filterModalSetContent($templateContainer, $cloned);
-               $(`${formSelector} span.test-feedback`).fadeOut();
-           });
-       }
-
-        /* bind add filter event */
-        $(`#dt-add-filter-modal form`).modalHandler({
-            /* Note: no endpoint defined, ajax is not used here */
-            resetAfterSubmit: false,
-            onModalInit: () => { filterModalCreateTemplateOnSelect(`#dt-add-filter-modal`); },
-            onModalShow: () => {
-                const $templateContainer = $(`#dt-add-filter-modal form .dt-filter-template-container`);
-                // load the template of the selected filter
-                const $cloned = filterModalCloneTemplate($(`#dt-add-filter-modal select[name='filter_type'] option:selected`).data('filterKey'));
-                filterModalSetContent($templateContainer, $cloned);
-            },
-            beforeSumbit: () => {
-                $(`#dt-add-filter-modal form button[type='submit']`).click(function () {
-                    $(`#dt-add-filter-modal form span.invalid-feedback`).hide();
-                });
-
-                $(`#dt-add-filter-modal .test-feedback`).hide();
-
-                const tag = filterModalMakeTag(`#dt-add-filter-modal form`);
-
-                addFilterTag(tag);
-
-                return {};
-            },
-            onSubmitSuccess: (response) => {
-                // hide modal
-                $(`#dt-add-filter-modal`).modal('hide');
-                $(`#dt-add-filter-modal form .dt-filter-template-container`).hide();
-                return true;
+        $.post(auto_refresh_url, {
+            ifid: {{ ifid }},
+            alert_page_refresh_rate_enabled: enabled_disabled,
+            csrf: pageCsrf,
+        })  
+        .done(function(rsp) {
+            if(enabled_disabled) {
+                if (rsp.rsp.refresh_rate > 0 && !intervalId) {
+                    intervalId = setInterval(function() { onRangePickerChange(true, true); }, rsp.rsp.refresh_rate);
+                    $(`#autoRefreshIcon`).addClass('fa-spin');
+                }
             }
-        }).invokeModalInit();
+            else {
+                clearInterval(intervalId);
+                intervalId = null;
+                $(`#autoRefreshIcon`).removeClass('fa-spin');
+            }
+        })
+    });
 
-        /* Cards */
-        {% if show_cards then %}
-        
-        const [epoch_begin, epoch_end] = getTimestampRange();
-        let updateCardStats = () => {
-            let params = (new URLSearchParams(datasourceParams)).toString();
+    {% if extra_js then %}
+    {* template_utils.gen(extra_js, extra_js_context) *}
+    {% end %}
 
-            $.getJSON(`{* endpoint_cards *}?${params}`, function (data) {
-
-                let chartBox = $('#ChartDiv')
-                let divBox = [$('#CardDiv1'),$('#CardDiv2')];
-                let cardBox = [$('#Card1'),$('#Card2')];
-                let sideCardTitle = [$('#sideCardTitle1'),$('#sideCardTitle2')];
-                let numCards = 0;
-
-                for (i = 0; i < sideCard.length; i++){
-                    if (data.rsp[i] == undefined){
-                        divBox[i].attr({
-                                "class" : "col-2 d-none"
-                        });
-                    } else {
-                        sideCardTitle[i].html(data.rsp[i].label);
-                        sideCardTitle[i].attr({
-                            "title" : data.rsp[i].tooltip                
-                        });
-                        let cardText = "";
-                        for (j = 0; j < 3; j++) {
-                            // Concat the name with the percentage of the stat
-                            // NB: These name should be filters if available
-                            if(data.rsp[i].value[0].lenght != 0 && data.rsp[i].value[0][j] != undefined){
-                                let restText = " (" + (data.rsp[i].value[0][j].count).toFixed(1) + "%)</li>";
-                                if(data.rsp[i].value[0][j].count != 0 && data.rsp[i].value[0][j].count < 0.1){restText = " (< 0.1%)</li>";}
-                                cardText += "<li>" + data.rsp[i].value[0][j].name + restText;
-                            }                           
-                        }
-                        if (cardText != ""){
-                                divBox[i].attr({
-                                        "class" : "col-2 mb-2"
-                                });
-                            sideCard[i].html("<small>" + cardText + "</small>");
-                            numCards += 1;
-                        } else {
-                                divBox[i].attr({
-                                        "class" : "col-2 d-none"
-                                });
-                        }
-                    }
-                }
-
-                // Calculating the width of the graph: Tot width (12) - Num of cards (2 per card)
-                graphWidth = (12 - (numCards * 2)).toString();
-
-                chartBox.attr({
-                    "class" : "col-" + graphWidth + " mb-2"
-                });
-            });
-        }
-
-        updateCardStats();
-        
-        {% end %}
-
-        /* HTTP copy URL button */
-        $table.on('click', `#copyHttpUrl`, function (e) {
-            let sampleTextarea = document.createElement("textarea");
-            document.body.appendChild(sampleTextarea);
-            sampleTextarea.value = this.parentElement.getElementsByTagName('a')[0].href; //url
-            sampleTextarea.select(); //select textarea content
-            document.execCommand("copy");
-            document.body.removeChild(sampleTextarea);
-        });
-
-        /* Auto-refresh handling */
-        $(`#autoRefreshEnabled`).on('click', async function(e) {
-            const enabled_disabled = ($(`#autoRefreshIcon`).hasClass('fa-spin') == false);
-            const auto_refresh_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/auto_refresh.lua' 
-
-            $.post(auto_refresh_url, {
-                ifid: {{ ifid }},
-                alert_page_refresh_rate_enabled: enabled_disabled,
-                csrf: pageCsrf,
-            })  
-            .done(function(rsp) {
-                if(enabled_disabled) {
-                    if (rsp.rsp.refresh_rate > 0 && !intervalId) {
-                        intervalId = setInterval(function() { onRangePickerChange(true, true); }, rsp.rsp.refresh_rate);
-                        $(`#autoRefreshIcon`).addClass('fa-spin');
-                    }
-                }
-                else {
-                    clearInterval(intervalId);
-                    intervalId = null;
-                    $(`#autoRefreshIcon`).removeClass('fa-spin');
-                }
-            })
-        });
-
-        {% if extra_js then %}
-        {* template_utils.gen(extra_js, extra_js_context) *}
-        {% end %}
-
-});
+}); /* $(document).ready() */
 </script>
