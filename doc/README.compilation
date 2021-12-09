@@ -75,11 +75,13 @@ dnf update
 dnf install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect hiredis-devel readline-devel expat-devel npm
 npm install -g uglify-es
 
-On Centos 8
-~~~~~~~~~~~
+On CentOS/Rocky 8
+~~~~~~~~~~~~~~~~~
+
 dnf group install "Development Tools"
 dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-Set "enabled=1" in file /etc/yum.repos.d/CentOS-PowerTools.repo
+Set "enabled=1" in file /etc/yum.repos.d/CentOS-PowerTools.repo [CentOS]
+Set "enabled=1" in file /etc/yum.repos.d/Rocky-PowerTools.repo  [Rocky]
 yum install http://rpms.remirepo.net/enterprise/remi-release-8.rpm
 yum config-manager --set-enabled remi
 yum clean all
@@ -163,6 +165,6 @@ make
 Binary Packages
 ---------------
 
-Debian/CentOS/Windows/MacOS/Raspberry 
+Debian/CentOS/Rocky/Windows/MacOS/Raspberry 
 Go to http://packages.ntop.org
 
