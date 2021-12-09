@@ -3,7 +3,7 @@
 	"i18n_name" : "top_l7_contacts",
 	"data_source" : "flows",
 	"chart" : [{
-		"chart_name" : "top_l7_contacts",
+		"chart_id" : "top_l7_contacts",
 		"chart_type" : "timeseries_area_chart",
 		"params" : {
 			"count" : "TOTAL_BYTES",

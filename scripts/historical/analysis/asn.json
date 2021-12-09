@@ -4,7 +4,7 @@
     "data_source" : "flows",
     "chart" : [{
         "chart_gui_name" : "Top Destination ASN",
-        "chart_name" : "top_srv_asn",
+        "chart_id" : "top_srv_asn",
         "chart_type" : "timeseries_area_chart",
         "events" : {
             "dataPointSelection" : "db_analyze"
@@ -25,7 +25,7 @@
     },
     {
         "chart_gui_name" : "Top Source ASN",
-        "chart_name" : "top_cli_asn",
+        "chart_id" : "top_cli_asn",
         "chart_type" : "timeseries_area_chart",
         "events" : {
             "dataPointSelection" : "db_analyze"
@@ -46,7 +46,7 @@
     },
     {
         "chart_gui_name" : "Top Source ASN L7 Proto",
-        "chart_name" : "top_cli_asn_l7_proto",
+        "chart_id" : "top_cli_asn_l7_proto",
         "chart_type" : "timeseries_area_chart",
         "events" : {
             "dataPointSelection" : "db_analyze"
@@ -67,7 +67,7 @@
     },
     {
         "chart_gui_name" : "Top Destination ASN L7 Proto",
-        "chart_name" : "top_srv_asn_l7_proto",
+        "chart_id" : "top_srv_asn_l7_proto",
         "chart_type" : "timeseries_area_chart",
         "events" : {
             "dataPointSelection" : "db_analyze"
@@ -88,7 +88,7 @@
     },
     {
         "chart_gui_name" : "ASN flows with most Packets",
-        "chart_name" : "asn_flows_with_most_pkts",
+        "chart_id" : "asn_flows_with_most_pkts",
         "chart_type" : "timeseries_area_chart",
         "events" : {
             "dataPointSelection" : "db_analyze_multiple_values"
@@ -110,7 +110,7 @@
         "y_formatter" : "format_pkts",
     },{
         "chart_gui_name" : "Top Source ASN",
-        "chart_name" : "top_cli_asn_2",
+        "chart_id" : "top_cli_asn_2",
         "chart_type" : "timeseries_area_chart",
         "events" : {
             "dataPointSelection" : "db_analyze"
