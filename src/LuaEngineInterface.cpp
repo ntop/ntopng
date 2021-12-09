@@ -3135,125 +3135,6 @@ static int ntop_reload_host_prefs(lua_State* vm) {
 
 /* ****************************************** */
 
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-
-static int ntop_nindex_select(lua_State* vm) {
-  u_int8_t id = 1;
-  char *select = NULL, *where = NULL;
-  bool export_results = false;
-  char *timestamp_begin, *timestamp_end;
-  u_int32_t start_record, end_record, skip_initial_records;
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  NIndexFlowDB *nindex;
-  struct mg_connection *conn;
-
-  if(!ntop_interface)
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  else {
-    nindex = ntop_interface->getNindex();
-    if(!nindex) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  }
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  if((timestamp_begin = (char*)lua_tostring(vm, id++)) == NULL) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  if((timestamp_end = (char*)lua_tostring(vm, id++)) == NULL) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  if((select = (char*)lua_tostring(vm, id++)) == NULL) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  where = (char*)lua_tostring(vm, id++);
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  start_record = (u_int32_t)lua_tonumber(vm, id++);
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  end_record = (u_int32_t)lua_tonumber(vm, id++);
-
-  /* ntop->getTrace()->traceEvent(TRACE_ERROR, "[start_record: %u][end_record: %u]", start_record, end_record); */
-  
-  skip_initial_records = (start_record <= 1) ? 0 : start_record-1;
-
-  if(lua_type(vm, id) == LUA_TBOOLEAN)
-    export_results = lua_toboolean(vm, id++) ? true : false;
-
-  conn = getLuaVMUserdata(vm, conn);
-
-  return(nindex->select(vm,
-			timestamp_begin, timestamp_end, select,
-			where, skip_initial_records, end_record,
-			export_results ? conn : NULL));
-}
-
-/* ****************************************** */
-
-static int ntop_nindex_topk(lua_State* vm) {
-  u_int8_t id = 1;
-  char *select_keys = NULL, *select_values = NULL,*where = NULL;
-  char *timestamp_begin, *timestamp_end;
-  u_int32_t skip_initial_records, max_num_hits;
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  NIndexFlowDB *nindex;
-  char *_topkOperator;
-  TopKSelectOperator topkOperator = topk_select_operator_sum;
-  bool topToBottomSort, useApproxQuery;
-
-  if(!ntop_interface)
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  else {
-    nindex = ntop_interface->getNindex();
-    if(!nindex) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  }
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  if((timestamp_begin = (char*)lua_tostring(vm, id++)) == NULL) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  if((timestamp_end = (char*)lua_tostring(vm, id++)) == NULL) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  if((select_keys = (char*)lua_tostring(vm, id++)) == NULL) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  if((select_values = (char*)lua_tostring(vm, id++)) == NULL) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  where = (char*)lua_tostring(vm, id++);
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  _topkOperator = (char*)lua_tostring(vm, id++);
-
-  if(!strcasecmp(_topkOperator, "sum")) topkOperator = topk_select_operator_sum;
-  else if(!strcasecmp(_topkOperator, "count")) topkOperator = topk_select_operator_count;
-  else if(!strcasecmp(_topkOperator, "min")) topkOperator = topk_select_operator_min;
-  else topkOperator = topk_select_operator_max;
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  skip_initial_records = (u_int32_t)lua_tonumber(vm, id++);
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  max_num_hits = (u_int32_t)lua_tonumber(vm, id++);
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  topToBottomSort = lua_toboolean(vm, id++) ? true : false;
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  useApproxQuery = lua_toboolean(vm, id++) ? true : false;
-
-  return(nindex->topk(vm,
-		      timestamp_begin, timestamp_end,
-		      select_keys, select_values,
-		      where, topkOperator,
-		      useApproxQuery, skip_initial_records,
-		      max_num_hits, topToBottomSort));
-}
-
-#endif
-
-/* ****************************************** */
-
 static void* pcapDumpLoop(void* ptr) {
   struct ntopngLuaContext *c = (struct ntopngLuaContext*)ptr;
   Utils::setThreadName("pcapDumpLoop");
@@ -4689,12 +4570,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   /* sFlow */
   { "getSFlowDevices",                 ntop_getsflowdevices            },
   { "getSFlowDeviceInfo",              ntop_getsflowdeviceinfo         },
-
-  /* nIndex */
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-  { "nIndexSelect",                    ntop_nindex_select              },
-  { "nIndexTopK",                      ntop_nindex_topk                },
-#endif
 
   /* Live Capture */
   { "liveCapture",            ntop_interface_live_capture             },
