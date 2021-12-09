@@ -1430,7 +1430,7 @@ local known_parameters = {
    ["src2dst_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Client to Server TCP flags
    ["dst2src_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Server to Client TCP flags
    ["score"]                   = validateListOfTypeInline(validateFilters(validateNumber)), -- Score
-   ["chart_id"]              = validateUnquoted, -- Chart name 
+   ["chart_id"]                = validateUnquoted, -- Chart id 
 
 
 -- AUTHENTICATION

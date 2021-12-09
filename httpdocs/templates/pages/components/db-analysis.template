@@ -28,13 +28,13 @@
       <div class="card-body">
         <div class="row"  style="text-align: center; justify-content: center; gap: 1.5rem 0%;">
 
-        {% for chart_id, chart_label in pairsByValues(charts, rev) do %}
+        {% for _, chart_opts in ipairs(charts) do %}
           
-          <div class="col-4" id="chart_id">
+          <div class="col-{{ chart_opts.chart_width }}" id="{{ chart_opts.chart_id }}">
           {* 
-            widget_gui_utils.render_chart(chart_id, {
-              displaying_label = chart_label,
-              css_styles = css_styles,
+            widget_gui_utils.render_chart(chart_opts.chart_id, {
+              displaying_label = chart_opts.chart_name,
+              css_styles = chart_opts.css_styles,
             }) 
           *}
           </div>
@@ -52,7 +52,6 @@
     i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
 </script>
 <script type='text/javascript'>
-  let pageHandle = {};
   let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
   
   $(document).ready(function(){

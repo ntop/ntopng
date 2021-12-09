@@ -24,7 +24,7 @@ const DEFINED_EVENTS = {
     "db_analyze" : function (event, chartContext, config) {
         const { dataPointIndex } = config;
         const { filter } = config.w.config;
-        const value = config.w.config.true_labels[dataPointIndex];
+        /*const value = config.w.config.true_labels[dataPointIndex];
 
         debugger;
 
@@ -34,26 +34,7 @@ const DEFINED_EVENTS = {
         let curr_url = new URLSearchParams(window.location.search);
         curr_url.set(filter, value + ';eq');
         window.history.pushState(null, null, "?"+curr_url.toString());
-        window.location.reload();
-    },
-
-    "db_analyze_multiple_values": function (event, chartContext, config) {
-        const { dataPointIndex } = config;
-        const { filter } = config.w.config;
-        const value = config.w.config.true_labels[dataPointIndex];
-
-        if(filter.length == 0)
-            return;
-        
-        let curr_url = new URLSearchParams(window.location.search);
-
-        for (let i = filter.length; i >= 0; i--) {
-            debugger
-            curr_url.set(filter[0][i], value[i] + ';eq');
-        }
-        
-        window.history.pushState(null, null, "?"+curr_url.toString());
-        window.location.reload();
+        window.location.reload();*/
     },
 }
 
@@ -315,7 +296,7 @@ class ChartWidget extends Widget {
         const rsp = this._fetchedData.rsp;
         
         // add additional params fetched from the datasource
-        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'labels', 'fill', 'filter', 'true_labels'];
+        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'labels', 'fill', 'filter'];
         for (const additional of additionals) {
 
             if (rsp[additional] === undefined) continue;

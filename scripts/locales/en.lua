@@ -370,6 +370,7 @@ local lang = {
   ["too_many_flows"] = "Too many flows",
   ["too_many_hosts"] = "Too many hosts",
   ["tools"] = "Tools",
+  ["top_dst_asn"] = "Top Destination ASN",
   ["total"] = "Total",
   ["total_alerts"] = "Total Alerts",
   ["total_incoming_alerted_flows"] = "Total Alerted Flows As Server",

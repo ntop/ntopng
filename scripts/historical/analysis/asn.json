@@ -3,178 +3,40 @@
     "i18n_name" : "top_asn",
     "data_source" : "flows",
     "chart" : [{
-        "chart_gui_name" : "Top Destination ASN",
-        "chart_id" : "top_srv_asn",
-        "chart_type" : "timeseries_area_chart",
-        "events" : {
+        "chart_css_styles" : { // CSS chart styles, optional feature
+            "max-height" : "25rem",
+            "min-height" : "25rem",
+        },
+        "chart_i18n_name" : "top_dst_asn",
+        "chart_id" : "top_dst_asn", // Each id MUST be different
+        "chart_endpoint" : "/lua/rest/v2/get/db/charts.lua",
+        "chart_events" : { // JS Events, optional feature
             "dataPointSelection" : "db_analyze"
         },
-        "filter" : "srv_asn",
-        "value_type" : "bytes",
-        "label" : [ "srv_asn" ],
-        "params" : {
-            "orderby" : "TOTAL_BYTES",
-            "count" : "TOTAL_BYTES",
-            "groupby" : "DST_ASN",
-            "limit" : 10
-        },
-        "select" : {
-            "sql" : "DST_ASN, sum(TOTAL_BYTES) AS bytes"
-        },
-        "y_formatter" : "format_bytes",
+        "chart_gui_filter" : "srv_asn", // Filter displayed in the GUI
+        "chart_gui_label" : [ "srv_asn" ],
+        "chart_sql_query" : "SELECT histogram(5)(PACKETS+1) FROM (SELECT PACKETS FROM flows WHERE $WHERE)",
+        "chart_type" : "donut_apex_chart",
+        "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
+        "chart_y_formatter" : "format_bytes", // JS tooltip event, optional feature
     },
     {
-        "chart_gui_name" : "Top Source ASN",
-        "chart_id" : "top_cli_asn",
-        "chart_type" : "timeseries_area_chart",
-        "events" : {
+        "chart_css_styles" : { // CSS chart styles, optional feature
+            "max-height" : "25rem",
+            "min-height" : "25rem",
+        },
+        "chart_i18n_name" : "top_dst_asn",
+        "chart_id" : "top_dst_asn_2", // Each id MUST be different
+        "chart_endpoint" : "/lua/rest/v2/get/db/charts.lua",
+        "chart_events" : { // JS Events, optional feature
             "dataPointSelection" : "db_analyze"
         },
-        "filter" : [ "cli_asn" ],
-        "value_type" : "bytes",
-        "label" : [ "cli_asn" ],
-        "params" : {
-            "orderby" : "TOTAL_BYTES",
-            "count" : "TOTAL_BYTES",
-            "groupby" : "SRC_ASN",
-            "limit" : 10
-        },
-        "select" : {
-            "sql" : "SRC_ASN, sum(TOTAL_BYTES) AS bytes"
-        },
-        "y_formatter" : "format_bytes",
-    },
-    {
-        "chart_gui_name" : "Top Source ASN L7 Proto",
-        "chart_id" : "top_cli_asn_l7_proto",
-        "chart_type" : "timeseries_area_chart",
-        "events" : {
-            "dataPointSelection" : "db_analyze"
-        },
-        "filter" : "l7proto",
-        "value_type" : "bytes",
-        "label" : [ "l7proto" ],
-        "params" : {
-            "orderby" : "TOTAL_BYTES",
-            "count" : "TOTAL_BYTES",
-            "groupby" : "SRC_ASN, L7_PROTO",
-            "limit" : 10
-        },
-        "select" : {
-            "sql" : "SRC_ASN, L7_PROTO, sum(TOTAL_BYTES) AS bytes"
-        },
-        "y_formatter" : "format_bytes",
-    },
-    {
-        "chart_gui_name" : "Top Destination ASN L7 Proto",
-        "chart_id" : "top_srv_asn_l7_proto",
-        "chart_type" : "timeseries_area_chart",
-        "events" : {
-            "dataPointSelection" : "db_analyze"
-        },
-        "filter" : "l7proto",
-        "value_type" : "bytes",
-        "label" : [ "l7proto" ],
-        "params" : {
-            "orderby" : "TOTAL_BYTES",
-            "count" : "TOTAL_BYTES",
-            "groupby" : "DST_ASN, L7_PROTO",
-            "limit" : 10
-        },
-        "select" : {
-            "sql" : "DST_ASN, L7_PROTO, sum(TOTAL_BYTES) AS bytes"
-        },
-        "y_formatter" : "format_bytes",
-    },
-    {
-        "chart_gui_name" : "ASN flows with most Packets",
-        "chart_id" : "asn_flows_with_most_pkts",
-        "chart_type" : "timeseries_area_chart",
-        "events" : {
-            "dataPointSelection" : "db_analyze_multiple_values"
-        },
-        "filter" : [ "cli_asn", "srv_asn" ],
-        "formatter_fun" : "packets",
-        "label" : [ "cli_asn", "srv_asn" ],
-        "params" : {
-            "orderby" : "TOTAL_BYTES",
-            "count" : "TOTAL_BYTES",
-            "limit" : 10
-        },
-        "select" : {
-            "sql" : "histogram(5)(PACKETS+1)"
-        },
-        "from" : {
-            "sql" : "select PACKETS from flows where $WHERE "
-        },
-        "y_formatter" : "format_pkts",
-    },{
-        "chart_gui_name" : "Top Source ASN",
-        "chart_id" : "top_cli_asn_2",
-        "chart_type" : "timeseries_area_chart",
-        "events" : {
-            "dataPointSelection" : "db_analyze"
-        },
-        "filter" : [ "cli_asn" ],
-        "value_type" : "bytes",
-        "label" : [ "cli_asn" ],
-        "params" : {
-            "orderby" : "TOTAL_BYTES",
-            "count" : "TOTAL_BYTES",
-            "groupby" : "SRC_ASN",
-            "limit" : 10
-        },
-        "select" : {
-            "sql" : "SRC_ASN, sum(TOTAL_BYTES) AS bytes"
-        },
-        "y_formatter" : "format_bytes",
-    },],
-    "select" : {
-        "items" : [
-            {
-                "name" : "L7_PROTO"
-            },
-            {
-                "name" : "L7_PROTO_MASTER"
-            },
-            {
-                "name" : "SRC_ASN"
-            },
-            {
-                "name" : "DST_ASN"
-            },
-            {
-                "name" : "PACKETS"
-            },
-            {
-                "name" : "bytes",
-                "func" : "SUM",
-                "param" : "TOTAL_BYTES",
-                "value_type" : "bytes"
-            }
-        ]
-    },
-    "filters" : {
-        "items" : [
-            {
-                "name": "IPV4_SRC_ADDR"
-            },
-            {
-                "name": "IPV4_DST_ADDR"
-            },
-            {
-                "name" : "IPV6_SRC_ADDR"
-            },
-            {
-                "name" : "IPV6_DST_ADDR"
-            },
-            {
-                "name" : "SRC_LABEL"
-            },
-            {
-                "name" : "DST_LABEL"
-            },
-        ]
-    },
+        "chart_gui_filter" : "srv_asn", // Filter displayed in the GUI
+        "chart_gui_label" : [ "srv_asn" ],
+        "chart_sql_query" : "SELECT DST_ASN,SUM(TOTAL_BYTES) AS bytes FROM flows WHERE ($WHERE) GROUP BY DST_ASN ORDER BY bytes DESC LIMIT 10",
+        "chart_type" : "donut_apex_chart",
+        "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
+        "chart_y_formatter" : "format_bytes", // JS tooltip event, optional feature
+    }],
     "show_in_page" : "analysis",
 }
