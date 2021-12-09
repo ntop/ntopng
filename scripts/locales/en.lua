@@ -253,6 +253,8 @@ local lang = {
   ["observation_point_id"] = "Obs. Point ID",
   ["observationpoints"] = "Observation Points",
   ["observations"] = "Observations",
+  ["obsolete_nindex"] = "nIndex support is deprecated",
+  ["obsolete_nindex_message"] = "ntopng is currently dumping flow data to nIndex, however nIndex support is deprecated. Please <a href=\"https://www.ntop.org/guides/ntopng/clickhouse.html#migration-from-nindex\">migrate flow data</a> to <a href=\"https://www.ntop.org/guides/ntopng/clickhouse.html\">ClickHouse</a>.",
   ["off"] = "Off",
   ["offline"] = "Offline (No Internet Connectivity)",
   ["open_documentation"] = "Open in Documentation",

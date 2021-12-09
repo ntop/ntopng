@@ -9,7 +9,7 @@ local have_nedge = ntop.isnEdge()
 local is_windows = ntop.isWindows()
 local info = ntop.getInfo(false)
 local hasRadius = ntop.hasRadiusSupport()
-local hasNindex = hasNindexSupport()
+local hasClickHouse = hasClickHouseSupport()
 local hasLdap = ntop.hasLdapSupport()
 local max_nindex_retention = 0
 local flow_db_utils = nil
@@ -17,7 +17,7 @@ local flow_db_utils = nil
 if ntop.isPro() then
   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 
-  if hasNindexSupport() then
+  if hasClickHouse then
      flow_db_utils = require("flow_db_utils")
      _, max_nindex_retention = flow_db_utils.getRetention()
   end

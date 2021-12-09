@@ -630,7 +630,7 @@ local context = {
    actions = {
        show_settings = (page ~= 'system') and isAdministrator(),
        show_flows = (page == 'host'),
-       show_historical = ((page == 'host') or (page == 'flow')) and ntop.isEnterpriseM() and hasNindexSupport() and interface.nIndexEnabled(ifid),
+       show_historical = ((page == 'host') or (page == 'flow')) and ntop.isEnterpriseM() and hasClickHouseSupport(),
        show_disable = ((page == 'host') or (page == 'flow')) and isAdministrator(),
        show_acknowledge = (page ~= 'all') and (status == "historical") and isAdministrator(),
        show_delete = (page ~= 'all') and (status ~= "engaged") and isAdministrator(),

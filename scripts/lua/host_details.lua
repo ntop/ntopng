@@ -439,7 +439,7 @@ else
 				 url = hostinfo2detailsurl(host, {page = ternary((host.num_alerts or 0) > 0, "engaged-alerts", "alerts")})
 			      },
 			      {
-				 hidden = not charts_available and not interfaceHasNindexSupport(),
+				 hidden = not charts_available and not interfaceHasClickHouseSupport(),
 				 active = page == "historical",
 				 page_name = "historical",
 				 label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
@@ -813,14 +813,8 @@ end
       flows_th = i18n("details.flows_packet_iface")
    end
 
-   if interfaceHasNindexSupport() then
-   	local url = ""
-   	if not interface.nIndexEnabled() then
-   		url = ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?ip=' .. hostinfo2hostkey(host_info) .. ';eq' 
-   	else
-   		url = '?host='..hostinfo2hostkey(host_info)..'&page=historical&detail_view=status_overview&zoom=1h'
-   	end
-
+   if interfaceHasClickHouseSupport() then
+      local url = ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?ip=' .. hostinfo2hostkey(host_info) .. ';eq' 
       flows_th = flows_th .. ' <a class="btn btn-sm btn-info" href="' .. url .. '"><i class="fas fa-search-plus"></i></a>'
    end
 

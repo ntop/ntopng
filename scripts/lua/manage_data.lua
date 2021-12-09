@@ -147,7 +147,7 @@ local notes = {
   delete = {
     {content = i18n('delete_data.note_persistent_data')},
     {content = i18n('manage_data.system_interface_note')},
-    {content = i18n('delete_data.node_nindex_flows'), hidden = not interfaceHasNindexSupport() }
+    {content = i18n('delete_data.node_nindex_flows'), hidden = not interfaceHasClickHouseSupport() }
   }
 }
 

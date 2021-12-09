@@ -684,4 +684,21 @@ end
 
 -- ###############################################
 
+--- Create an instance for the obsolete nindex support
+function predicates.obsolete_nindex(toast, container)
+    if not IS_ADMIN then return end
+
+    if prefs.is_nindex_enabled then
+
+       local title = i18n("obsolete_nindex")
+       local body = i18n("obsolete_nindex_message")
+       local action = { url = url, title = i18n("configure")}
+
+       local hint = toast_ui:new(toast.id, title, body, ToastLevel.WARNING, nil, toast.dismissable)
+       table.insert(container, hint)
+    end
+end
+
+-- ###############################################
+
 return predicates

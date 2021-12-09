@@ -35,7 +35,7 @@ function storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_
       info["total"] = info["total"] + rrd_storage_info.total
     -- end
 
-    if interfaceHasNindexSupport() then
+    if interfaceHasClickHouseSupport() then
       local flow_db_utils = require "flow_db_utils"
       local flows_storage_info = flow_db_utils.storageInfo(ifid, timeout)
       info["flows"] = flows_storage_info.total

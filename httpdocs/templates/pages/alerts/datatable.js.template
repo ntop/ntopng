@@ -46,7 +46,7 @@ $table.on('click', `a[href='#past_flows']`, function (e) {
     	    if(alert.link_to_past_flows)
 	    	window.location.href = alert.link_to_past_flows;
 	    else
-	    	window.location.href = `${http_prefix}/lua/pro/nindex_query.lua`;
+	    	window.location.href = `${http_prefix}/lua/pro/db_search.lua`;
 });
 
 $table.on('click', `a[href='#delete_alert_dialog']`, function (e) {

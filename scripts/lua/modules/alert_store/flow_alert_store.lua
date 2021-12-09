@@ -565,9 +565,9 @@ function flow_alert_store:format_record(value, no_html)
    }
 
    -- Add link to historical flow
-   if ntop.isEnterpriseM() and hasNindexSupport() and interface.nIndexEnabled(interface.getId()) and not no_html then
+   if ntop.isEnterpriseM() and hasClickHouseSupport() and not no_html then
       local op_suffix = tag_utils.SEPARATOR .. 'eq'
-      local href = string.format('%s/lua/pro/nindex_query.lua?epoch_begin=%u&epoch_end=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%s%s',
+      local href = string.format('%s/lua/pro/db_search.lua?epoch_begin=%u&epoch_end=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%s%s',
          ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
          value["cli_ip"], op_suffix,
          value["srv_ip"], op_suffix,

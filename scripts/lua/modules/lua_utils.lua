@@ -895,7 +895,7 @@ function hasAlertsDisabled()
       ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))
 end
 
-function hasNindexSupport()
+function hasClickHouseSupport()
    local auth = require "auth"
 
    if not ntop.isPro() or ntop.isWindows() then
@@ -912,7 +912,7 @@ function hasNindexSupport()
       prefs = ntop.getPrefs()
    end
 
-   if prefs.is_nindex_enabled or prefs.is_dump_flows_to_clickhouse_enabled then
+   if prefs.is_dump_flows_to_clickhouse_enabled then
       return true
    end
 
@@ -920,8 +920,8 @@ function hasNindexSupport()
 end
 
 -- NOTE: global nindex support may be enabled but some disable on some interfaces
-function interfaceHasNindexSupport()
-   return(hasNindexSupport() and (interface.nIndexEnabled() or ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"]))
+function interfaceHasClickHouseSupport()
+   return(hasClickHouseSupport() and ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"])
 end
 
 --for _key, _value in pairsByKeys(vals, rev) do
@@ -1995,7 +1995,7 @@ local function hostdetails_exists(host_info, hostdetails_params)
       -- If nIndex support is enabled, then there's no need to check for existence of the
       -- schema: nIndex flows must be visible from the historical page even when there's no timeseries
       -- associated
-      if not interfaceHasNindexSupport() and not ts_utils.exists(hostdetails_params["ts_schema"], tags) then
+      if not interfaceHasClickHouseSupport() and not ts_utils.exists(hostdetails_params["ts_schema"], tags) then
 	 -- If here, the requested schema, along with its hostdetails_params doesn't exist
 	 return false
       end
@@ -2114,7 +2114,7 @@ function flowinfo2hostname(flow_info, host_type, alerts_view)
    local name
    local orig_name
 
-   if alerts_view and not hasNindexSupport() then
+   if alerts_view and not hasClickHouseSupport() then
       -- do not return resolved name as it will hide the IP address
       return(flow_info[host_type..".ip"])
    end

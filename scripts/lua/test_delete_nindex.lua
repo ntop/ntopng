@@ -13,7 +13,7 @@ sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header(i18n("about.about_x", { product=info.product }))
 
-if ntop.isEnterpriseM() and hasNindexSupport() then
+if ntop.isEnterpriseM() and hasClickHouseSupport() then
   local flow_db_utils = require "flow_db_utils"
   flow_db_utils.deleteOldFLows(true --[[ verbose ]])
 else

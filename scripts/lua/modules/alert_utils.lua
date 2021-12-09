@@ -545,7 +545,7 @@ end
 -- #################################
 
 function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
-   if not ntop.isEnterpriseM() or not hasNindexSupport() or not interface.nIndexEnabled(ifid) then
+   if not ntop.isEnterpriseM() or not hasClickHouseSupport() then
       -- nIndex not enabled or enabled but not available for this particular interface
       return
    end
@@ -633,7 +633,7 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	 -- tprint({formatEpoch(epoch_begin), formatEpoch(epoch_end), formatEpoch(tonumber(alert.tstamp)), formatEpoch(tonumber(alert.tstamp_end))})
 
 	 -- Return the link augmented with the filter
-	 local res = string.format("%s/lua/pro/nindex_query.lua?epoch_begin=%u&epoch_end=%u&%s",
+	 local res = string.format("%s/lua/pro/db_search.lua?epoch_begin=%u&epoch_end=%u&%s",
 				   ntop.getHttpPrefix(),
 				   epoch_begin,
 				   epoch_end,

@@ -3254,28 +3254,6 @@ static int ntop_nindex_topk(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_nindex_enabled(lua_State* vm) {
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-  NetworkInterface *ntop_interface = NULL;
-  int ifid;
-
-  if(lua_type(vm, 1) == LUA_TNUMBER) {
-    ifid = lua_tointeger(vm, 1);
-    ntop_interface = ntop->getInterfaceById(ifid);
-  } else
-    ntop_interface = getCurrentInterface(vm);
-
-  lua_pushboolean(vm, ntop_interface && ntop_interface->getNindex());
-
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-#else
-  lua_pushboolean(vm, false);
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-#endif  
-}
-
-/* ****************************************** */
-
 static void* pcapDumpLoop(void* ptr) {
   struct ntopngLuaContext *c = (struct ntopngLuaContext*)ptr;
   Utils::setThreadName("pcapDumpLoop");
@@ -4713,7 +4691,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getSFlowDeviceInfo",              ntop_getsflowdeviceinfo         },
 
   /* nIndex */
-  { "nIndexEnabled",                   ntop_nindex_enabled             },
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
   { "nIndexSelect",                    ntop_nindex_select              },
   { "nIndexTopK",                      ntop_nindex_topk                },
