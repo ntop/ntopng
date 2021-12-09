@@ -1419,10 +1419,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    if(optarg[i] == ';') num_semicolumns++;
 
 	  if((num_semicolumns == 0) && use_clickhouse) {
-	    mysql_host   = (char*)"127.0.0.1";
-	    mysql_dbname = (char*)"ntopng";
-	    mysql_user   = (char*)"default";
-	    mysql_pw     = (char*)"";
+	    mysql_host   = strdup((char*)"127.0.0.1");
+	    mysql_dbname = strdup((char*)"ntopng");
+	    mysql_user   = strdup((char*)"default");
+	    mysql_pw     = strdup((char*)"");
 	  } else {	    
 	    optarg = Utils::tokenizer(sep + 1, ';', &mysql_host);
 	    optarg = Utils::tokenizer(optarg, ';',  &mysql_dbname);
