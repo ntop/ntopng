@@ -44,19 +44,13 @@ end
 -- @brief Performs Initialization operations performed during startup
 function recipients.initialize()
    local checks = require "checks"
+
    -- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
    -- For each builtin configuration type, a configuration and a recipient is created
    local all_categories = {}
    for _, category in pairs(checks.check_categories) do
       all_categories[#all_categories + 1] = category.id
    end
-
-   -- Delete (if existing) the old, string-keyed recipient and endpoint
-   local sqlite_recipient = recipients.get_recipient_by_name("builtin_recipient_sqlite")
-   if sqlite_recipient then
-      recipients.delete_recipient(sqlite_recipient.recipient_id)
-   end
-   endpoints.delete_config("builtin_config_sqlite")
 
    for endpoint_key, endpoint in pairs(endpoints.get_types()) do
       if endpoint.builtin then
@@ -86,6 +80,14 @@ function recipients.initialize()
 	 end
       end
    end
+
+   -- Delete (if existing) the old, string-keyed recipient and endpoint
+   local sqlite_recipient = recipients.get_recipient_by_name("builtin_recipient_sqlite")
+   if sqlite_recipient then
+      recipients.delete_recipient(sqlite_recipient.recipient_id)
+   end
+
+   endpoints.delete_config("builtin_config_sqlite")
 
    -- Register all existing recipients in C to make sure ntopng can start with all the
    -- existing recipients properly loaded and ready for notification enqueues/dequeues
