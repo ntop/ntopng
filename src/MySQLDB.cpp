@@ -937,7 +937,8 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
     gettimeofday(&begin, NULL);
   }
   
-  /* Don't check db_created here. This method is private
+  /* 
+     Don't check db_created here. This method is private
      so hopefully we know what we're doing.
    */
   if(!db_operational)
