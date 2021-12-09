@@ -859,7 +859,8 @@ end
 http_lint.validateProtocolIdOrName = validateProtocolIdOrName
 
 local function validateDoubleProtocolIdOrName(p)
-   local param = split(p, "|")
+   local param = string.split(p, "%.")
+
    if param and #param == 2 then
     return (validateProtocolIdOrName(param[1]) and
           (validateProtocolIdOrName(param[2])))
@@ -868,7 +869,6 @@ local function validateDoubleProtocolIdOrName(p)
    return (validateProtocolIdOrName(p))
 end
 http_lint.validateProtocolIdOrName = validateProtocolIdOrName
-
 
 function http_lint.validateTrafficProfile(p)
    return validateUnquoted(p)
