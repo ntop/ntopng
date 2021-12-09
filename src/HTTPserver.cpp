@@ -503,8 +503,13 @@ static int getAuthorizedUser(struct mg_connection *conn,
   mg_get_cookie(conn, session_key, session_id, sizeof(session_id));
 
   if(session_id[0] == '\0') {
-    /* Try also with 'session' in case this comes from the REST API */
-    mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+    /* 
+       Try also with 'session' in case this comes from the REST API 
+       otherwise we need to refresh it by re-logging again
+    */
+    if((strncmp(request_info->uri, "/lua/rest/", 10) == 0)
+       || (strncmp(request_info->uri, "/lua/pro/rest/", 14) == 0))
+      mg_get_cookie(conn, "session", session_id, sizeof(session_id));
   }
 
   if(session_id[0] == '\0') {
