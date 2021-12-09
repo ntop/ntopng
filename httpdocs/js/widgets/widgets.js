@@ -277,7 +277,13 @@ class ChartWidget extends Widget {
                 show: true,
                 position: 'bottom',
                 horizontalAlign: 'center'
-            }
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 4,
+                    horizontal: true,
+                }
+            },
         };
 
         // check if the additionalParams field contains an apex property,
