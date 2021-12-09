@@ -87,12 +87,12 @@ tag_utils.defined_tags = {
    cli_name = {
       value_type = 'hostname',
       i18n_label = i18n('db_search.tags.cli_name'),
-      operators = {'eq', 'neq'}
+      operators = {'eq', 'neq', 'in', 'nin'}
    },
    srv_name = {
       value_type = 'hostname',
       i18n_label = i18n('db_search.tags.srv_name'),
-      operators = {'eq', 'neq'}
+      operators = {'eq', 'neq', 'in', 'nin'}
    },
    src2dst_dscp = {
       value_type = 'dscp_type',
