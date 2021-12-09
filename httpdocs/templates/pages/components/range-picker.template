@@ -791,7 +791,8 @@ $(document).ready(function() {
         // Read tag key and value from the <a> itself if provided
         if (a.data('tagKey')      != undefined) key          = a.data('tagKey');
         if (a.data('tagLabel')    != undefined) displayValue = a.data('tagLabel');
-        if (a.data('tagValue')    != undefined) realValue    = a.data('tagValue');
+        if (a.data('tagRealvalue')    != undefined) realValue    = a.data('tagRealvalue');
+        else if (a.data('tagValue')    != undefined) realValue    = a.data('tagValue');
         if (a.data('tagOperator') != undefined) operator     = a.data('tagOperator');
 
         const tag = {
