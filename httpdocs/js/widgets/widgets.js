@@ -5,6 +5,46 @@
 const DEFINED_WIDGETS = {};
 /* Used to implement the on click events onto the graph */
 const DEFINED_EVENTS = {
+    /* On click event used by the flow analyze section, redirect to the current url + a single filter */
+    "db_analyze" : function (event, chartContext, config) {
+        const { dataPointIndex } = config;
+        const { filter } = config.w.config;
+
+        const value = config.w.config.filtering_labels[dataPointIndex];
+
+        if(filter.length == 0)
+            return;
+        
+        let curr_url = new URLSearchParams(window.location.search);
+        curr_url.set(filter, value + ';eq');
+        window.history.pushState(null, null, "?"+curr_url.toString());
+        window.location.reload();
+    },
+
+    /* On click event used by the flow analyze section, redirect to the current url + a single filter */
+    "db_analyze_multiple_filters" : function (event, chartContext, config) {
+        const { dataPointIndex } = config;
+        const { filter } = config.w.config;
+        const value = config.w.config.true_labels[dataPointIndex];
+
+        if(filter.length == 0)
+            return;
+
+        let curr_url = new URLSearchParams(window.location.search);
+
+        for (let i = filter.length; i >= 0; i--) {
+            debugger
+            curr_url.set(filter[0][i], value[i] + ';eq');
+        }
+
+        window.history.pushState(null, null, "?"+curr_url.toString());
+        window.location.reload();
+    },
+
+    "none" : function (event, chartContext, config) {
+        return;
+    },
+    
     /* Standard on click event, redirect to the url */
     "standard" : function (event, chartContext, config) {
         const { seriesIndex, dataPointIndex } = config;
@@ -19,26 +59,13 @@ const DEFINED_EVENTS = {
             location.href = `${serie.base_url}?${search}`;
         }
     },
-
-    /* On click event used by the flow analyze section, redirect to the current url + a single filter */
-    "db_analyze" : function (event, chartContext, config) {
-        const { dataPointIndex } = config;
-        const { filter } = config.w.config;
-        /*const value = config.w.config.true_labels[dataPointIndex];
-
-        debugger;
-
-        if(filter.length == 0)
-            return;
-        
-        let curr_url = new URLSearchParams(window.location.search);
-        curr_url.set(filter, value + ';eq');
-        window.history.pushState(null, null, "?"+curr_url.toString());
-        window.location.reload();*/
-    },
 }
 
 const DEFINED_TOOLTIP = {
+    "none" : function(value, { config, seriesIndex, dataPointIndex }) {
+        return "";
+    },
+
     /* Standard on click event, redirect to the url */
     "standard" : function (_, opt) {
         const config = opt.w.config;
@@ -223,16 +250,16 @@ class ChartWidget extends Widget {
             tooltip: {
                 enabledOnSeries: [0],
                 x: {
-                    show: false,
-                    formatter: () => '',
+                    show: true,
+                    formatter: DEFINED_TOOLTIP["none"]
                 },
                 y: {
                     show: true,
-                    formatter: DEFINED_TOOLTIP["standard"]
+                    formatter: DEFINED_TOOLTIP["none"]
                 },
                 z: {
-                    formatter: () => '',
-                    title: ''
+                    show: true,
+                    formatter: DEFINED_TOOLTIP["none"]
                 }
             },
             chart: {
@@ -249,7 +276,7 @@ class ChartWidget extends Widget {
             legend: {
                 show: true,
                 position: 'bottom',
-                horizontalAlign: 'left'
+                horizontalAlign: 'center'
             }
         };
 
@@ -296,7 +323,7 @@ class ChartWidget extends Widget {
         const rsp = this._fetchedData.rsp;
         
         // add additional params fetched from the datasource
-        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'labels', 'fill', 'filter'];
+        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'labels', 'fill', 'filter', 'filtering_labels'];
         for (const additional of additionals) {
 
             if (rsp[additional] === undefined) continue;

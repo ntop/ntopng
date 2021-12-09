@@ -26,7 +26,7 @@
         </div>
       </div>
       <div class="card-body">
-        <div class="row"  style="text-align: center; justify-content: center; gap: 1.5rem 0%;">
+        <div class="row"  style="text-align: center; justify-content: center; gap: 3rem 0%; margin: 2rem;">
 
         {% for _, chart_opts in ipairs(charts) do %}
           
@@ -53,6 +53,7 @@
 </script>
 <script type='text/javascript'>
   let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+  let table = undefined;
   
   $(document).ready(function(){
     function showOverlays(time = 500) {

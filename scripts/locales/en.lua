@@ -266,6 +266,7 @@ local lang = {
   ["outgoingflows"] = "Active Outgoing Flows",
   ["overview"] = "Overview",
   ["packets"] = "Packets",
+  ["pkts_distribution"] = "Packets Distribution",
   ["passive"] = "Passive",
   ["peers"] = "Peers",
   ["percentage"] = "Percentage",

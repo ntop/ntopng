@@ -569,14 +569,15 @@ $(document).ready(function() {
 	    return;
 	}
 	{% end %}
-
-        /* The reloadTable callback should be defined by the page (e.g. datatable.template) 
-         * to update the content on range or filters update (TODO define a cleaner API for this) */
-        await reloadTable($table, begin, end);
-
         if (pushHistroy) {
             pushNewHistoryState(begin, end, null);
         }
+        /* The reloadTable callback should be defined by the page (e.g. datatable.template) 
+         * to update the content on range or filters update (TODO define a cleaner API for this) */
+        if(table)
+            await reloadTable($table, begin, end);
+        else
+            window.location.reload();
     }
 
     async function addFilterTag(tag) {
