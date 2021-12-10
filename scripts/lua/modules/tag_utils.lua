@@ -135,7 +135,7 @@ tag_utils.defined_tags = {
       operators = {'eq', 'lt', 'gt', 'lte', 'gte'}
    },
    observation_point_id = {
-      value_type = 'id',
+      value_type = 'observation_point_id',
       i18n_label = i18n('db_search.tags.observation_point_id'),
       operators = {'eq', 'neq'}
    },
@@ -172,6 +172,16 @@ tag_utils.defined_tags = {
    srv_mac = {
       value_type = 'mac',
       i18n_label = i18n('db_search.tags.srv_mac'),
+      operators = {'eq', 'neq'}
+   },
+   cli_network = {
+      value_type = 'network_id',
+      i18n_label = i18n('db_search.tags.cli_network'),
+      operators = {'eq', 'neq'}
+   },
+   srv_network = {
+      value_type = 'network_id',
+      i18n_label = i18n('db_search.tags.srv_network'),
       operators = {'eq', 'neq'}
    },
 }
