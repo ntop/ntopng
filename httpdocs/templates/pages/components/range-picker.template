@@ -574,10 +574,11 @@ $(document).ready(function() {
         }
         /* The reloadTable callback should be defined by the page (e.g. datatable.template) 
          * to update the content on range or filters update (TODO define a cleaner API for this) */
-        if(table)
+        if($table) {
             await reloadTable($table, begin, end);
-        else
+        } else {
             window.location.reload();
+        }
     }
 
     async function addFilterTag(tag) {
@@ -772,14 +773,14 @@ $(document).ready(function() {
         let realValue = undefined;
         let operator = 'eq';
 
-        if (from_table) {
-            const colIndex = $table.cell(a.parent()).index().column;
+        if (from_table != undefined) {
+            const colIndex = from_table.cell(a.parent()).index().column;
 
             // Read tag key from the column
-            key = $table.column(colIndex).name();
+            key = from_table.column(colIndex).name();
 
 	        // Read tag key from the cell if any
-            const data = $table.cell(a.parent()).data();
+            const data = from_table.cell(a.parent()).data();
             if (data.tag_key)
                 key = data.tag_key;
 

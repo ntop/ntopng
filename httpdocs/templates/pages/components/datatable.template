@@ -442,7 +442,7 @@ $(document).ready(function(){
     });
 
     $table.on('click', `a.tag-filter`, async function (e) {
-        addFilter(e, $(this), true);
+        addFilter(e, $(this), $table);
     });
 
     /* Cards */
@@ -451,7 +451,7 @@ $(document).ready(function(){
         const card = "#".concat(element[0].id);
         
         $(card).on('click', `a.tag-filter`, async function (e) {
-            addFilter(e, $(this), false);
+            addFilter(e, $(this));
         })
     })
     {% end %}
