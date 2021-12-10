@@ -1,0 +1,59 @@
+Query Definitions
+-----------------
+
+Place in this directory query definitions in JSON format
+used by the Historical Flow Explorer, Analysis Page.
+
+Built-in examples are provided and can be used as starting
+point for building new queries. Please note that:
+
+- The baseline is the same as for the Querie presets used by the 
+  table page.
+
+- The "chart" is an array of charts, each element is a different chart
+
+- There is no limit to the number of charts, the only limit is that no
+  more then 12 charts can be displayed per row; the row length is 12
+  and you can specify the chart len using the "chart_width" (must be an
+  integer between 1 and 12)
+
+Examples
+--------
+
+Chart example:
+
+    {
+        "chart_id" : "top_dst_asn",              // Chart ID, each ID in the same page must be different
+        
+        "chart_i18n_name" : "top_dst_asn",       // Chart Name, displayed in the GUI, please add the name into the file scripts/locales/en.lua
+
+        "chart_css_styles" : {                   // CSS chart styles, personalize your graphs, optional feature
+            "max-height" : "25rem",
+            "min-height" : "25rem",
+        },
+        
+        "chart_endpoint" : "/lua/rest/v2/get/db/charts/example_asn_pie.lua",    // Chart endpoint
+        
+        "chart_events" : {                        // JS Events, optional feature
+            "dataPointSelection" : "db_analyze"  
+        },
+        
+        "chart_gui_filter" : "srv_asn",           // Filter displayed in the GUI on click if "dataPointSelection" is "db_analyze", if a special on click is needed, please
+                                                  // check widget.js file and add a new array element, like for db_analyze
+        
+        "chart_sql_query" : "SELECT DST_ASN,SUM(TOTAL_BYTES) AS bytes FROM flows WHERE ($WHERE) GROUP BY DST_ASN ORDER BY bytes DESC LIMIT 10",     // SQL query
+
+        "chart_type" : "donut_apex_chart",        // Chart type, currently supported Apex Charts
+
+        "chart_record_value" : "bytes",           // Value of the record given to the chart to be shown, from the endpoint if the default function is used
+
+        "chart_record_label" : "DST_ASN",         // Label(name) of the record given to the chart to be shown, from the endpoint if the default function is used
+
+        "chart_width" : 6,                        // Chart width, it can be a number between 1 and 12, optional feature
+        
+        "chart_y_formatter" : "format_bytes",     // JS tooltip event, optional feature
+    }
+
+SQL example:
+    
+    "chart_sql_query" : "SELECT histogram(5)(PACKETS+1) FROM (SELECT PACKETS FROM flows WHERE $WHERE)",
