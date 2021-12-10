@@ -125,6 +125,9 @@
         </div>
     
         <button id="btn-apply" class="btn btn-sm btn-primary m-auto ms-1">{{ i18n("apply") }}</button>
+        {% if (show_jump) then %}
+            <a class="btn btn-sm btn-primary m-auto ms-1" href="{{ jump_endpoint }}" role="button">{{ show_jump_text or i18n("jump_to_table") }}</a>
+        {% end %}
     </div>
     
 

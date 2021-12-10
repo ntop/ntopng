@@ -196,6 +196,7 @@ local lang = {
   ["ipv6"] = "IPv6",
   ["ja3_client_fingerprint"] = "JA3 Client Fingerprint",
   ["ja3_fingerprint"] = "JA3 Fingerprint",
+  ["jump_to_table"] = 'Go to: Table View',
   ["key"] = "Key",
   ["l7_id"] = "App %{id}",
   ["label"] = "Label",
