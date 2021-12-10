@@ -703,7 +703,7 @@ end
 function predicates.obsolete_mysql(toast, container)
     if not IS_ADMIN then return end
 
-    if prefs.is_dump_flows_to_mysql_enabled then
+    if prefs.is_dump_flows_to_mysql_enabled and not prefs.is_dump_flows_to_clickhouse_enabled then
        local title = i18n("obsolete_mysql")
        local body = i18n("obsolete_mysql_message")
 
