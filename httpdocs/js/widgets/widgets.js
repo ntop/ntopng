@@ -87,6 +87,11 @@ const DEFINED_TOOLTIP = {
     "format_pkts" : function(value, { config, seriesIndex, dataPointIndex }) {
         return NtopUtils.formatPackets(value);
     },
+
+    /* On click event used by the flow analyze section, redirect to the current url + a single filter */
+    "format_value" : function(value, { config, seriesIndex, dataPointIndex }) {
+        return NtopUtils.formatValue(value);
+    },
 }
 
 class WidgetTooltips {
