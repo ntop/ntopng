@@ -3252,23 +3252,6 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
 	 -- print('<span class="badge bg-info">')
 	 print('<a href="'..hist_url..url_params..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-search-plus"></i></a>')
 	 -- print('</span>')
-
-      elseif prefs.is_dump_flows_to_mysql_enabled then
-	 local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifid="..ifId
-	 hist_url = hist_url.."&epoch_end="..tostring(now)
-
-	 if((host ~= nil) and (host ~= "")) then hist_url = hist_url.."&"..hostinfo2url(host) end
-	 if((l4_proto ~= nil) and (l4_proto ~= "")) then
-	    hist_url = hist_url.."&l4proto="..l4_proto
-	 end
-
-	 if((ndpi_proto_id ~= nil) and (ndpi_proto_id ~= "")) then hist_url = hist_url.."&protocol="..ndpi_proto_id end
-	 if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
-
-	 print('&nbsp;')
-	 -- print('<span class="badge bg-info">')
-	 print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-search-plus"></i></a>')
-	 -- print('</span>')
       end
    end
 end

@@ -259,6 +259,16 @@ local defined_toats = {
         excluded_pages = EMPTY_PAGES,
         excluded_subpages = EMPTY_PAGES,
     },
+    {
+        id = 21,
+        dismissable = false,
+        has_priority = true,
+        predicate = predicates.obsolete_mysql,
+        pages = EMPTY_PAGES,
+        subpages = EMPTY_PAGES,
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES,
+    },
 }
 
 return defined_toats
