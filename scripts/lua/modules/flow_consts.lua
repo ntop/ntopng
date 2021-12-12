@@ -504,7 +504,10 @@ flow_consts.flow_fields_description = {
    ['SRC_OS_NAME']    = i18n("flow_fields_description.src_os_name"),
    ['SRC_SW_VERSION'] = i18n("flow_fields_description.src_sw_version"),
    ['SRC_INTF_NAME']  = i18n("flow_fields_description.src_intf_name"),   
-
+   ['POLICY_ID']      = i18n("flow_fields_description.policy_id"),
+   ['POLICY_ACTION']  = i18n("flow_fields_description.policy_action"),
+   ['DEVICE_NAME']    = i18n("flow_fields_description.device_name"),
+   
    -- Misc
    ["COMMUNITY_ID"] = i18n("flow_fields_description.community_id"),
    ["FLOW_VERDICT"] = i18n("flow_fields_description.flow_verdict"),

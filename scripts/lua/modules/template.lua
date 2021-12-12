@@ -386,7 +386,7 @@ template = {
    ['SSDP_SERVER'] = NTOP_BASE_ID+468,
    ['SSDP_TYPE'] = NTOP_BASE_ID+469,
    ['SSDP_METHOD'] = NTOP_BASE_ID+470,
-   
+
    -- NetBIOS
    ['NETBIOS_QUERY_NAME'] = NTOP_BASE_ID+464,
    ['NETBIOS_QUERY_TYPE'] = NTOP_BASE_ID+465,
@@ -401,7 +401,10 @@ template = {
    ['SRC_USER']       = NTOP_BASE_ID+546,
    ['SRC_OS_NAME']    = NTOP_BASE_ID+547,
    ['SRC_SW_VERSION'] = NTOP_BASE_ID+548,
-   ['SRC_INTF_NAME']  = NTOP_BASE_ID+549,   
+   ['SRC_INTF_NAME']  = NTOP_BASE_ID+549,
+   ['POLICY_ID']      = NTOP_BASE_ID+550,
+   ['POLICY_ACTION']  = NTOP_BASE_ID+551,
+   ['DEVICE_NAME']    = NTOP_BASE_ID+552,
 }
 
 -- template id to name
