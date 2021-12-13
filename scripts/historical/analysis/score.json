@@ -14,9 +14,12 @@
         "chart_events" : { // JS Events, optional feature
             "dataPointSelection" : "db_analyze"
         },
-        "chart_sql_query" : "SELECT histogram(6)(SCORE) FROM (SELECT SCORE FROM flows WHERE $WHERE)",
+        "chart_sql_query" : "SELECT histogram(10)(SCORE) FROM (SELECT SCORE FROM flows WHERE $WHERE)",
         "chart_type" : "bar_apex_chart",
         "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
+        "chart_i18n_extra_y_label" : "score",
+        "chart_i18n_extra_x_tooltip_label" : "flows",
+        "chart_series_name" : "score_distribution",
     },
     {
         "chart_id" : "top_dst_score", // Each id MUST be different
@@ -34,7 +37,7 @@
         "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) IPV4_DST_ADDR,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_DST_ADDR ORDER BY tot_score DESC LIMIT 10",
         "chart_type" : "donut_apex_chart",
         "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
-        "chart_y_formatter" : "format_value", // JS tooltip event, optional feature
+        "chart_y_formatter" : "format_bytes", // JS tooltip event, optional feature
     },
     {
         "chart_id" : "top_src_score", // Each id MUST be different
@@ -52,7 +55,7 @@
         "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) IPV4_SRC_ADDR,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_SRC_ADDR ORDER BY tot_score DESC LIMIT 10",
         "chart_type" : "donut_apex_chart",
         "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
-        "chart_y_formatter" : "format_value", // JS tooltip event, optional feature
+        "chart_y_formatter" : "format_bytes", // JS tooltip event, optional feature
     }],
     "show_in_page" : "analysis",
 }

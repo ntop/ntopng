@@ -83,6 +83,7 @@ local lang = {
   ["date_to"] = "End Date/Time:",
   ["day"] = "Day",
   ["default"] = "Default",
+  ["default_serie_name"] = "Series 1",
   ["define"] = "Define",
   ["delete"] = "Delete",
   ["delete_alerts"] = "Delete Alerts",

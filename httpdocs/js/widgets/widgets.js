@@ -12,7 +12,7 @@ const DEFINED_EVENTS = {
 
         const value = config.w.config.filtering_labels[dataPointIndex];
 
-        if(filter.length == 0)
+        if(filter.length == 0 || !value)
             return;
         
         let curr_url = new URLSearchParams(window.location.search);
@@ -27,13 +27,12 @@ const DEFINED_EVENTS = {
         const { filter } = config.w.config;
         const value = config.w.config.true_labels[dataPointIndex];
 
-        if(filter.length == 0)
+        if(filter.length == 0 || !value)
             return;
 
         let curr_url = new URLSearchParams(window.location.search);
 
         for (let i = filter.length; i >= 0; i--) {
-            debugger
             curr_url.set(filter[0][i], value[i] + ';eq');
         }
 
@@ -76,7 +75,9 @@ const DEFINED_TOOLTIP = {
         if (data.meta !== undefined)
             return data.meta.label || data.x;
 
-        return data.x;
+        if (config.extra_x_tooltip_label)
+            return data + " " + config.extra_x_tooltip_label;
+        return data;
     },
 
     /* On click event used by the flow analyze section, redirect to the current url + a single filter */
@@ -271,22 +272,68 @@ class ChartWidget extends Widget {
                 type: this._chartType,
                 events: {},
                 height: '100%',
-            },
-            xaxis: {
-                tooltip: {
-                    enabled: false
+                toolbar: {
+                    show: false,
                 }
             },
-            labels: [],
+            xaxis: {
+                labels: {
+                    style: {
+                        fontSize: '14px',
+                    }
+                },
+                tooltip: {
+                    enabled: false,
+                    formatter: function(value) {
+                        return value;
+                    }
+                }
+            },
+            yaxis: {
+                labels: {
+                    style: {
+                        fontSize: '14px',
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    formatter: function(value) {
+                        return value;
+                    }
+                }
+            },
+            zaxis: {
+                labels: {
+                    tooltip: {
+                        enabled: false,
+                    },
+                    style: {
+                        fontSize: '14px',
+                    }
+                },
+                tooltip: {
+                    enabled: true
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                style: {
+                    fontSize: '14px',
+                }
+            },
             legend: {
                 show: true,
+                fontSize: '14px',
                 position: 'bottom',
-                horizontalAlign: 'center'
+                horizontalAlign: 'center',
+                onItemClick: {
+                    toggleDataSeries: true,
+                },
             },
             plotOptions: {
                 bar: {
                     borderRadius: 4,
-                    horizontal: true,
+                    horizontal: false,
                 }
             },
         };
@@ -334,7 +381,7 @@ class ChartWidget extends Widget {
         const rsp = this._fetchedData.rsp;
         
         // add additional params fetched from the datasource
-        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'labels', 'fill', 'filter', 'filtering_labels'];
+        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'labels', 'fill', 'filter', 'filtering_labels', 'extra_x_tooltip_label'];
         for (const additional of additionals) {
 
             if (rsp[additional] === undefined) continue;
@@ -350,7 +397,9 @@ class ChartWidget extends Widget {
         /* Changing events if given */
         if (rsp['tooltip']) {
             for (const axis in rsp['tooltip']) {
-                config['tooltip'][axis]['formatter'] = DEFINED_TOOLTIP[rsp['tooltip'][axis]['formatter']]
+                if (axis === "x" || axis === "y" || axis === "z") {
+                    config['tooltip'][axis]['formatter'] = DEFINED_TOOLTIP[rsp['tooltip'][axis]['formatter']]
+                }
             }
         }
 
@@ -391,11 +440,12 @@ class ChartWidget extends Widget {
         await super.update(datasourceParams);
         if (this._chart != null) {
 	    // expecting that rsp contains an object called series
-        const { colors, series, labels } = this._fetchedData.rsp;
+        const { colors, series, dataLabels, labels } = this._fetchedData.rsp;
 	    // update the colors list
 	    this._chartConfig.colors = colors;
 	    this._chartConfig.series = series;
-        if(labels) this._chartConfig.dataLabels = labels;
+        this._chartConfig.dataLabels = dataLabels;
+        this._chartConfig.labels = labels;
 	    this._chart.updateOptions(this._chartConfig, true);
         }
     }

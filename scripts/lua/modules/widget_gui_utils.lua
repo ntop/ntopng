@@ -39,6 +39,19 @@ local function check_widget_existance(widgets, name)
     end
 end
 
+local color_palette = { 
+    "#32a0a8",
+    "#fa8072", 
+    "#2E8B57", 
+    "#00FFFF", 
+    "#00FF00", 
+    "#ff00ff", 
+    "#FFA500", 
+    "#FF0000", 
+    "#8F00FF",
+    "#0000FF", 
+}
+
 ---Register a new Chart.js widget to be rendered
 ---@param name any
 ---@param type any
@@ -201,6 +214,10 @@ end
 
 function widget_gui_utils.datasource(name, params)
     return { endpoint = name .. build_query_params(params or {}), name = name, params = params }
+end
+
+function widget_gui_utils.get_color_palette()
+    return color_palette
 end
 
 return widget_gui_utils
