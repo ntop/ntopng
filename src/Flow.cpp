@@ -974,14 +974,6 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
    */
   if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
     ndpiDetectedProtocol.category = proto_id.category;
-
-#ifdef NTOPNG_PRO
-#ifdef HAVE_NEDGE
-  updateFlowShapers(true);
-#else
-  updateProfile();
-#endif
-#endif
 }
 
 /* *************************************** */
@@ -1007,6 +999,14 @@ void Flow::setProtocolDetectionCompleted() {
 	     isBlacklistedClient(), isBlacklistedServer(), get_protocol_category_name());
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
   }
+#endif
+
+#ifdef NTOPNG_PRO
+#ifdef HAVE_NEDGE
+  updateFlowShapers(true);
+#else
+  updateProfile();
+#endif
 #endif
 }
 
