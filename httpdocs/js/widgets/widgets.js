@@ -322,7 +322,7 @@ class ChartWidget extends Widget {
             legend: {
                 show: true,
                 fontSize: '14px',
-                position: 'bottom',
+                position: 'right',
                 onItemClick: {
                     toggleDataSeries: true,
                 },
@@ -333,6 +333,14 @@ class ChartWidget extends Widget {
                     horizontal: true,
                 }
             },
+            noData: {
+                text: 'No Data',
+                align: 'center',
+                verticalAlign: 'middle',
+                style: {
+                    fontSize: '24px'
+                }
+            }
         };
 
         // check if the additionalParams field contains an apex property,

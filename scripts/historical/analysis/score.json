@@ -14,6 +14,7 @@
         "chart_events" : { // JS Events, optional feature
             "dataPointSelection" : "db_analyze"
         },
+        "chart_gui_filter" : "score", // Filter displayed in the GUI
         "chart_sql_query" : "SELECT histogram(10)(SCORE) FROM (SELECT SCORE FROM flows WHERE $WHERE)",
         "chart_type" : "bar_apex_chart",
         "chart_first_value" : 0,
