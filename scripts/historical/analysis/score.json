@@ -16,6 +16,8 @@
         },
         "chart_sql_query" : "SELECT histogram(10)(SCORE) FROM (SELECT SCORE FROM flows WHERE $WHERE)",
         "chart_type" : "bar_apex_chart",
+        "chart_first_value" : 0,
+        "chart_last_value" : 500,
         "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
         "chart_i18n_extra_y_label" : "score",
         "chart_i18n_extra_x_label" : "flows",
@@ -34,7 +36,7 @@
             "dataPointSelection" : "db_analyze"
         },
         "chart_gui_filter" : "srv_ip", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) IPV4_DST_ADDR_FORMATTED,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_DST_ADDR ORDER BY tot_score DESC LIMIT 1000",
+        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) IPV4_DST_ADDR_FORMATTED,DST_LABEL,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_DST_ADDR,DST_LABEL ORDER BY tot_score DESC LIMIT 1000",
         "chart_type" : "donut_apex_chart",
         "chart_record_value" : "tot_score",
         "chart_record_label" : "IPV4_DST_ADDR",
@@ -54,7 +56,7 @@
             "dataPointSelection" : "db_analyze"
         },
         "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) IPV4_SRC_ADDR_FORMATTED,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_SRC_ADDR ORDER BY tot_score DESC LIMIT 1000",
+        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) IPV4_SRC_ADDR_FORMATTED,SRC_LABEL,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_SRC_ADDR,SRC_LABEL ORDER BY tot_score DESC LIMIT 1000",
         "chart_type" : "donut_apex_chart",
         "chart_record_value" : "tot_score",
         "chart_record_label" : "IPV4_SRC_ADDR",

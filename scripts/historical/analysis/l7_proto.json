@@ -37,6 +37,8 @@
         "chart_gui_filter" : "score", // Filter displayed in the GUI
         "chart_sql_query" : "SELECT histogram(10)(SCORE) FROM (SELECT SCORE, L7_PROTO FROM flows WHERE $WHERE GROUP BY L7_PROTO, SCORE)",
         "chart_type" : "bar_apex_chart",
+        "chart_first_value" : 0,
+        "chart_last_value" : 500,
         "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
         "chart_i18n_extra_y_label" : "score",
         "chart_i18n_extra_x_label" : "flows",
