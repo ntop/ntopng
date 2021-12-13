@@ -12,7 +12,7 @@ const DEFINED_EVENTS = {
 
         const value = config.w.config.filtering_labels[dataPointIndex];
 
-        if(filter.length == 0 || !value)
+        if(filter.length == 0 || value === undefined)
             return;
         
         let curr_url = new URLSearchParams(window.location.search);
@@ -75,8 +75,6 @@ const DEFINED_TOOLTIP = {
         if (data.meta !== undefined)
             return data.meta.label || data.x;
 
-        if (config.extra_x_tooltip_label)
-            return data + " " + config.extra_x_tooltip_label;
         return data;
     },
 
@@ -325,7 +323,6 @@ class ChartWidget extends Widget {
                 show: true,
                 fontSize: '14px',
                 position: 'bottom',
-                horizontalAlign: 'center',
                 onItemClick: {
                     toggleDataSeries: true,
                 },
@@ -333,7 +330,7 @@ class ChartWidget extends Widget {
             plotOptions: {
                 bar: {
                     borderRadius: 4,
-                    horizontal: false,
+                    horizontal: true,
                 }
             },
         };
@@ -381,7 +378,7 @@ class ChartWidget extends Widget {
         const rsp = this._fetchedData.rsp;
         
         // add additional params fetched from the datasource
-        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'labels', 'fill', 'filter', 'filtering_labels', 'extra_x_tooltip_label'];
+        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'labels', 'fill', 'filter', 'filtering_labels'];
         for (const additional of additionals) {
 
             if (rsp[additional] === undefined) continue;

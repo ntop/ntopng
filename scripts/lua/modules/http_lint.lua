@@ -824,10 +824,21 @@ end
 
 local function validateFilters(other_validation)
    return function(s)
-      local param = split(s, ";")
+      local param = split(s, ";") or split(s, "-")
+      
+      if param and #param == 1 then
+         param = split(s, "-")
+      end
+      
       if param and #param == 2 then
-	 return (other_validation(param[1]) and
-		    (validateTagsOperator(param[2])))
+         local tmp = split(param[1], "-")
+
+         if tmp and #tmp == 2 then
+            return (other_validation(tmp[1]) and (other_validation(tmp[2])) and(validateTagsOperator(param[2])))
+         else
+            return (other_validation(param[1]) and
+          (validateTagsOperator(param[2])))
+         end
       end
 
       -- Note: comma is deprecated, use ';'

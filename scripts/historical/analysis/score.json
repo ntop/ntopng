@@ -18,7 +18,7 @@
         "chart_type" : "bar_apex_chart",
         "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
         "chart_i18n_extra_y_label" : "score",
-        "chart_i18n_extra_x_tooltip_label" : "flows",
+        "chart_i18n_extra_x_label" : "flows",
         "chart_series_name" : "score_distribution",
     },
     {
@@ -34,10 +34,12 @@
             "dataPointSelection" : "db_analyze"
         },
         "chart_gui_filter" : "srv_ip", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) IPV4_DST_ADDR_FORMATTED,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_DST_ADDR ORDER BY tot_score DESC LIMIT 10",
+        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) IPV4_DST_ADDR_FORMATTED,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_DST_ADDR ORDER BY tot_score DESC LIMIT 1000",
         "chart_type" : "donut_apex_chart",
+        "chart_record_value" : "tot_score",
+        "chart_record_label" : "IPV4_DST_ADDR",
         "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
-        "chart_y_formatter" : "format_bytes", // JS tooltip event, optional feature
+        "chart_y_formatter" : "format_value", // JS tooltip event, optional feature
     },
     {
         "chart_id" : "top_src_score", // Each id MUST be different
@@ -52,10 +54,12 @@
             "dataPointSelection" : "db_analyze"
         },
         "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) IPV4_SRC_ADDR_FORMATTED,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_SRC_ADDR ORDER BY tot_score DESC LIMIT 10",
+        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) IPV4_SRC_ADDR_FORMATTED,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_SRC_ADDR ORDER BY tot_score DESC LIMIT 1000",
         "chart_type" : "donut_apex_chart",
+        "chart_record_value" : "tot_score",
+        "chart_record_label" : "IPV4_SRC_ADDR",
         "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
-        "chart_y_formatter" : "format_bytes", // JS tooltip event, optional feature
+        "chart_y_formatter" : "format_value", // JS tooltip event, optional feature
     }],
     "show_in_page" : "analysis",
 }
