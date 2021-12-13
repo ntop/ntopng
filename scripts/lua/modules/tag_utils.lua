@@ -196,13 +196,6 @@ tag_utils.ip_location = {
 
 -- #####################################
 
-tag_utils.orders = {
-   ["asc"]  = "ASC",
-   ["desc"] = "DESC",
-}
-
--- ##############################################
-
 function tag_utils.get_tag_filters_from_request()
    local filters = {}
 
