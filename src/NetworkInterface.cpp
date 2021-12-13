@@ -7255,7 +7255,9 @@ void NetworkInterface::allocateStructures() {
   } else
     pMap = NULL, sMap = NULL;
 
+#ifndef HAVE_NEDGE
   updateFlowProfiles();
+#endif
 #endif
 
   // Keep format in sync with alerts_api.interfaceAlertEntity(ifid)
