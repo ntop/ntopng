@@ -70,6 +70,20 @@ graph_utils.graph_colors = {
 
 -- ########################################################
 
+function graph_utils.get_html_color(index) 
+   local palette = { 
+      "#CCCCCC", "#FFBF00", "#FF7F50", "#6495ED", "#CCCCFF", "#9FE2BF", "#DE3163",
+      "#ff0000", "#b00000", "#870000", "#550000", "#e4e400", "#baba00", "#878700",
+      "#545400", "#00ff00", "#00b000", "#008700", "#005500", "#00ffff", "#00b0b0",
+      "#008787", "#005555", "#b0b0ff", "#8484ff", "#4949ff", "#0000ff", "#ff00ff",
+      "#b000b0", "#870087", "#550055", "#e4e4e4", "#bababa", "#878787", "#545454",
+   }
+
+   return graph_utils.graph_colors[(index % #graph_utils.graph_colors) + 1]
+end
+
+-- ########################################################
+
 -- @brief Ensure that the provided series have the same number of points. This is a
 -- requirement for the charts.
 -- @param series a list of series to fix. The format of each serie is the one

@@ -4858,18 +4858,6 @@ function table.slice(t, start_table, end_table)
     return res
 end
 
-function get_html_color(index) 
-   local palette = { 
-      "#CCCCCC", "#FFBF00", "#FF7F50", "#6495ED", "#CCCCFF", "#9FE2BF", "#DE3163",
-      "#ff0000", "#b00000", "#870000", "#550000", "#e4e400", "#baba00", "#878700",
-      "#545400", "#00ff00", "#00b000", "#008700", "#005500", "#00ffff", "#00b0b0",
-      "#008787", "#005555", "#b0b0ff", "#8484ff", "#4949ff", "#0000ff", "#ff00ff",
-      "#b000b0", "#870087", "#550055", "#e4e4e4", "#bababa", "#878787", "#545454",
-   }
-
-   return palette[(index % #palette) + 1]
-end
-
 function add_historical_flow_explorer_button_ref(extra_params)
    if (ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"]) == false then
       return ''
