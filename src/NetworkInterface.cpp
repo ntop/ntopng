@@ -7254,6 +7254,8 @@ void NetworkInterface::allocateStructures() {
     sMap = new (std::nothrow) ServiceMap    (this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
   } else
     pMap = NULL, sMap = NULL;
+
+  updateFlowProfiles();
 #endif
 
   // Keep format in sync with alerts_api.interfaceAlertEntity(ifid)
