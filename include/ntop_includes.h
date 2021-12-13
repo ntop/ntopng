@@ -216,6 +216,9 @@ using namespace std;
 #include "TcpPacketStats.h"
 #include "DSCPStats.h"
 #include "Bitmap.h"
+#if defined(NTOPNG_PRO)
+#include "BinAnalysis.h"
+#endif
 #include "ntop_typedefs.h"
 #include "ScoreStats.h"
 #include "ViewScoreStats.h"

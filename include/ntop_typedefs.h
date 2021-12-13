@@ -857,6 +857,10 @@ struct ntopngLuaContext {
   time_t deadline;
   const ThreadedActivity *threaded_activity;
   ThreadedActivityStats *threaded_activity_stats;
+
+#if defined(NTOPNG_PRO)
+  BinAnalysis *bin;
+#endif
 };
 
 typedef enum {

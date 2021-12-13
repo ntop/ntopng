@@ -727,7 +727,7 @@ static int ntop_get_risk_list(lua_State* vm) {
 
   for(int i = 0; i < NDPI_MAX_RISK; i++) {
     lua_pushstring(vm, ntop->getRiskStr((ndpi_risk_enum)i));
-    lua_rawseti(vm, -2, i+1);   
+    lua_rawseti(vm, -2, i+1);
   }
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -5135,7 +5135,7 @@ static int ntop_get_user_observation_point_id(lua_State* vm) {
     bool rc = false;
 
     snprintf(key, sizeof(key), NTOPNG_PREFS_PREFIX ".%s.observationPointId", username);
-    
+
     if(ntop->getRedis()->get(key, val, sizeof(val)) != -1) {
       u_int16_t observationPointId = (u_int16_t)atoi(val);
 
@@ -5145,7 +5145,7 @@ static int ntop_get_user_observation_point_id(lua_State* vm) {
       	  snprintf(val, sizeof(val), "%u", observationPointId);
       	  ntop->getRedis()->set(key, val);
 	      }
-	
+
       	getLuaVMUservalue(vm, observationPointId) = observationPointId;
       	rc = true;
       	lua_pushinteger(vm, observationPointId);
@@ -6045,9 +6045,9 @@ static int ntop_exec_single_sql_query(lua_State *vm) {
 #ifdef HAVE_MYSQL
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   MySQLDB db(ntop_interface, false);
-  
+
   db.exec_single_query(vm, sql);
-  
+
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 #else
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -6205,6 +6205,40 @@ static int ntop_refresh_device_protocols_policies_pref(lua_State* vm) {
 }
 
 #endif
+
+/* **************************************************************** */
+
+static int ntop_add_bin(lua_State* vm) {
+#if defined(NTOPNG_PRO)
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+
+  if(ctx) {
+    if(ctx->bin == NULL)
+      ctx->bin = new (std::nothrow) BinAnalysis();
+
+    if(ctx->bin)
+      return(ctx->bin->addBin(vm));
+  }
+#endif
+
+  lua_pushnil(vm);
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int ntop_find_bin_similarities(lua_State* vm) {
+#if defined(NTOPNG_PRO)
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+
+  if(ctx && ctx->bin) {
+    return(ctx->bin->findSimilarities(vm));
+  }
+#endif
+
+  lua_pushnil(vm);
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
 
 /* **************************************************************** */
 
@@ -6498,7 +6532,7 @@ static luaL_Reg _ntop_reg[] = {
   { "getLocalNetworkID",     ntop_get_local_network_id    },
   { "getRiskStr",            ntop_get_risk_str            },
   { "getRiskList",           ntop_get_risk_list           },
-  
+
   /* ASN */
   { "getASName",            ntop_get_asn_name },
 
@@ -6579,7 +6613,11 @@ static luaL_Reg _ntop_reg[] = {
 
   /* ClickHouse */
   { "isClickHouseEnabled",       ntop_clickhouse_enabled             },
-  
+
+  /* Data Binning */
+  { "addBin",                    ntop_add_bin                        },
+  { "findSimilarities",          ntop_find_bin_similarities          },
+
   { NULL,          NULL}
 };
 

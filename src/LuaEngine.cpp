@@ -157,6 +157,9 @@ LuaEngine::~LuaEngine() {
       if(ctx->sqlite_flows_filter)
 	free(ctx->sqlite_flows_filter);
 
+      if(ctx->bin)
+	delete ctx->bin;
+      
       free(ctx);
     }
 
