@@ -40,16 +40,16 @@ local function check_widget_existance(widgets, name)
 end
 
 local color_palette = { 
-    "#32a0a8",
-    "#fa8072", 
-    "#2E8B57", 
-    "#00FFFF", 
-    "#00FF00", 
-    "#ff00ff", 
-    "#FFA500", 
-    "#FF0000", 
-    "#8F00FF",
-    "#0000FF", 
+    "#EE8434",
+    "#C95D63", 
+    "#AE8799", 
+    "#717EC3", 
+    "#496DDB", 
+    "#5A7ADE", 
+    "#6986E1", 
+    "#7791E4", 
+    "#839BE6",
+    "#8EA4E8", 
 }
 
 ---Register a new Chart.js widget to be rendered
