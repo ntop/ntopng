@@ -161,11 +161,11 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
 	  u_int idx = 0;
 
 	  for(i=0; i<len; i++) {
-	    int left = sizeof(buf)-idx;
+	    int left = sizeof(buf)-idx-1;
 	    int rc;
 
 	    if(left <= 2) break;
-	    rc = snprintf(&buf[idx], sizeof(buf)-idx, "%s%02X",
+	    rc = snprintf(&buf[idx], left, "%s%02X",
 			  (i == 0) ? "" : " ", vp->val.string[i] & 0xFF);
 
 	    if(rc <= 0)
