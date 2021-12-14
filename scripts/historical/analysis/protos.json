@@ -13,7 +13,7 @@
         "chart_events" : { // JS Events, optional feature
             "dataPointSelection" : "db_analyze"
         },
-        "chart_gui_filter" : "l7proto", // Filter displayed in the GUI
+        "chart_gui_filter" : "l7cat", // Filter displayed in the GUI
         "chart_sql_query" : "SELECT L7_CATEGORY,SUM(TOTAL_BYTES) AS bytes FROM flows WHERE ($WHERE) GROUP BY L7_CATEGORY ORDER BY bytes DESC",
         "chart_type" : "donut_apex_chart",
         "chart_record_value" : "bytes",
@@ -94,7 +94,7 @@
             "dataPointSelection" : "db_analyze"
         },
         "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) IPV4_SRC_ADDR,SRC_LABEL,L7_PROTO,COUNT(*) AS flows FROM flows WHERE ($WHERE) GROUP BY L7_PROTO,IPV4_SRC_ADDR,SRC_LABEL ORDER BY flows DESC LIMIT 20",
+        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED,SRC_LABEL,L7_PROTO,COUNT(*) AS flows FROM flows WHERE ($WHERE) GROUP BY L7_PROTO,IPV4_SRC_ADDR_FORMATTED,SRC_LABEL ORDER BY flows DESC LIMIT 20",
         "chart_type" : "bar_apex_chart",
         "horizontal_chart" : false,
         "chart_record_value" : "flows",
