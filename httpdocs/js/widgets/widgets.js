@@ -334,6 +334,7 @@ class ChartWidget extends Widget {
                     fontSize: '14px',
                 }
             },
+	    labels: [],
             legend: {
                 show: true,
                 fontSize: '14px',
@@ -464,12 +465,12 @@ class ChartWidget extends Widget {
         await super.update(datasourceParams);
         if (this._chart != null) {
 	    // expecting that rsp contains an object called series
-        const { colors, series, dataLabels, labels } = this._fetchedData.rsp;
+            const { colors, series, dataLabels, labels } = this._fetchedData.rsp;
 	    // update the colors list
 	    this._chartConfig.colors = colors;
 	    this._chartConfig.series = series;
-        this._chartConfig.dataLabels = dataLabels;
-        this._chartConfig.labels = labels;
+            if(dataLabels) this._chartConfig.dataLabels = dataLabels;
+            if(labels) this._chartConfig.labels = labels;
 	    this._chart.updateOptions(this._chartConfig, true);
         }
     }
