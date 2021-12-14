@@ -54,7 +54,7 @@
 		"dataPointSelection" : "db_analyze"
             },
             "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
-            "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED,any(SRC_LABEL),avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE) GROUP BY IPV4_SRC_ADDR_FORMATTED ORDER BY avg_score DESC LIMIT 15",
+            "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED,any(SRC_LABEL) SRC_LABEL_FORMATTED,avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE) GROUP BY IPV4_SRC_ADDR_FORMATTED ORDER BY avg_score DESC LIMIT 15",
             "chart_type" : "bar_apex_chart",
             "chart_record_value" : "avg_score",
             "chart_record_label" : "IPV4_SRC_ADDR",
@@ -72,7 +72,7 @@
 		"dataPointSelection" : "db_analyze"
             },
             "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
-            "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED,any(DST_LABEL),avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED ORDER BY avg_score DESC LIMIT 15",
+            "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED,any(DST_LABEL) DST_LABEL_FORMATTED,avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED ORDER BY avg_score DESC LIMIT 15",
             "chart_type" : "bar_apex_chart",
             "chart_record_value" : "avg_score",
             "chart_record_label" : "IPV4_DST_ADDR",
