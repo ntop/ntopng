@@ -281,7 +281,7 @@ class ChartWidget extends Widget {
                     }
                 },
                 tooltip: {
-                    enabled: false,
+                    enabled: true,
                     formatter: function(value) {
                         return value;
                     }
@@ -416,6 +416,10 @@ class ChartWidget extends Widget {
             }
         }
 
+        if (rsp['horizontal_chart'] !== undefined) {
+            config['plotOptions']['bar']['horizontal'] = rsp['horizontal_chart'];
+        }
+        
         this._buildTooltipFormatter(config);
         this._buildAxisFormatter(config, 'xaxis');
         this._buildAxisFormatter(config, 'yaxis');
