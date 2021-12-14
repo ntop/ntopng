@@ -31,7 +31,7 @@
             "dataPointSelection" : "db_analyze"
         },
         "chart_gui_filter" : "srv_asn", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT DST_ASN,IPv4NumToString(IPV4_DST_ADDR) as IPV4_DST_ADDR_FORMATTED,SUM(TOTAL_BYTES) AS bytes FROM flows WHERE ($WHERE) GROUP BY DST_ASN,IPV4_DST_ADDR_FORMATTED ORDER BY bytes DESC LIMIT 10",
+        "chart_sql_query" : "SELECT DST_ASN,any(IPv4NumToString(IPV4_DST_ADDR)) as IPV4_DST_ADDR_FORMATTED,SUM(TOTAL_BYTES) AS bytes FROM flows WHERE ($WHERE) GROUP BY DST_ASN ORDER BY bytes DESC LIMIT 10",
         "chart_type" : "donut_apex_chart",
         "chart_record_value" : "bytes",
         "chart_record_label" : "DST_ASN",

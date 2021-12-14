@@ -37,7 +37,7 @@
             "dataPointSelection" : "db_analyze"
         },
         "chart_gui_filter" : "srv_ip", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED,DST_LABEL,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED,DST_LABEL ORDER BY tot_score DESC LIMIT 1000",
+        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED, any(DST_LABEL) DST_LABEL_FORMATTED, SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED ORDER BY tot_score DESC LIMIT 1000",
         "chart_type" : "donut_apex_chart",
         "chart_record_value" : "tot_score",
         "chart_record_label" : "IPV4_DST_ADDR",
@@ -57,7 +57,7 @@
             "dataPointSelection" : "db_analyze"
         },
         "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED,SRC_LABEL,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_SRC_ADDR_FORMATTED,SRC_LABEL ORDER BY tot_score DESC LIMIT 1000",
+        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED, any(SRC_LABEL) SRC_LABEL_FORMATTED,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_SRC_ADDR_FORMATTED ORDER BY tot_score DESC LIMIT 1000",
         "chart_type" : "donut_apex_chart",
         "chart_record_value" : "tot_score",
         "chart_record_label" : "IPV4_SRC_ADDR",
