@@ -2,67 +2,103 @@
     "name" : "Score",
     "i18n_name" : "score_distribution",
     "data_source" : "flows",
-    "chart" : [{
-        "chart_id" : "score_histogram_pkts", // Each id MUST be different
-        "chart_i18n_name" : "score_distribution",
+    "chart" : [
+	{
+	    "chart_id" : "top_src_score", // Each id MUST be different
+	    "chart_i18n_name" : "top_src_score",
 
-        "chart_css_styles" : { // CSS chart styles, optional feature
-            "max-height" : "25rem",
-            "min-height" : "25rem",
-        },
-        "chart_endpoint" : "/lua/rest/v2/get/db/charts/score_histogram_bar.lua",
-        "chart_events" : { // JS Events, optional feature
-            "dataPointSelection" : "db_analyze"
-        },
-        "chart_gui_filter" : "score", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT histogram(10)(SCORE) FROM (SELECT SCORE FROM flows WHERE $WHERE)",
-        "chart_type" : "bar_apex_chart",
-        "chart_first_value" : 0,
-        "chart_last_value" : 500,
-        "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
-        "chart_i18n_extra_y_label" : "score",
-        "chart_i18n_extra_x_label" : "flows",
-        "chart_series_name" : "score_distribution",
-    },
-    {
-        "chart_id" : "top_dst_score", // Each id MUST be different
-        "chart_i18n_name" : "top_dst_score",
+	    "chart_css_styles" : { // CSS chart styles, optional feature
+		"max-height" : "25rem",
+		"min-height" : "25rem",
+	    },
+	    "chart_endpoint" : "/lua/rest/v2/get/db/charts/score_src_addr_pie.lua",
+	    "chart_events" : { // JS Events, optional feature
+		"dataPointSelection" : "db_analyze"
+	    },
+	    "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
+	    "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED, any(SRC_LABEL) SRC_LABEL_FORMATTED,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_SRC_ADDR_FORMATTED ORDER BY tot_score DESC LIMIT 1000",
+	    "chart_type" : "donut_apex_chart",
+	    "chart_record_value" : "tot_score",
+	    "chart_record_label" : "IPV4_SRC_ADDR",
+	    "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
+	    "chart_y_formatter" : "format_value", // JS tooltip event, optional feature
+	},{
+	    "chart_id" : "top_dst_score", // Each id MUST be different
+	    "chart_i18n_name" : "top_dst_score",
 
-        "chart_css_styles" : { // CSS chart styles, optional feature
-            "max-height" : "25rem",
-            "min-height" : "25rem",
-        },
-        "chart_endpoint" : "/lua/rest/v2/get/db/charts/score_dst_addr_pie.lua",
-        "chart_events" : { // JS Events, optional feature
-            "dataPointSelection" : "db_analyze"
-        },
-        "chart_gui_filter" : "srv_ip", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED, any(DST_LABEL) DST_LABEL_FORMATTED, SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED ORDER BY tot_score DESC LIMIT 1000",
-        "chart_type" : "donut_apex_chart",
-        "chart_record_value" : "tot_score",
-        "chart_record_label" : "IPV4_DST_ADDR",
-        "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
-        "chart_y_formatter" : "format_value", // JS tooltip event, optional feature
-    },
-    {
-        "chart_id" : "top_src_score", // Each id MUST be different
-        "chart_i18n_name" : "top_src_score",
+	    "chart_css_styles" : { // CSS chart styles, optional feature
+		"max-height" : "25rem",
+		"min-height" : "25rem",
+	    },
+	    "chart_endpoint" : "/lua/rest/v2/get/db/charts/score_dst_addr_pie.lua",
+	    "chart_events" : { // JS Events, optional feature
+		"dataPointSelection" : "db_analyze"
+	    },
+	    "chart_gui_filter" : "srv_ip", // Filter displayed in the GUI
+	    "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED, any(DST_LABEL) DST_LABEL_FORMATTED, SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED ORDER BY tot_score DESC LIMIT 1000",
+	    "chart_type" : "donut_apex_chart",
+	    "chart_record_value" : "tot_score",
+	    "chart_record_label" : "IPV4_DST_ADDR",
+	    "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
+	    "chart_y_formatter" : "format_value", // JS tooltip event, optional feature
+	},{
+	    "chart_id" : "highest_avg_src_score", // Each id MUST be different
+            "chart_i18n_name" : "highest_avg_src_score",
 
-        "chart_css_styles" : { // CSS chart styles, optional feature
-            "max-height" : "25rem",
-            "min-height" : "25rem",
-        },
-        "chart_endpoint" : "/lua/rest/v2/get/db/charts/score_src_addr_pie.lua",
-        "chart_events" : { // JS Events, optional feature
-            "dataPointSelection" : "db_analyze"
-        },
-        "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED, any(SRC_LABEL) SRC_LABEL_FORMATTED,SUM(SCORE) AS tot_score FROM flows WHERE ($WHERE) GROUP BY IPV4_SRC_ADDR_FORMATTED ORDER BY tot_score DESC LIMIT 1000",
-        "chart_type" : "donut_apex_chart",
-        "chart_record_value" : "tot_score",
-        "chart_record_label" : "IPV4_SRC_ADDR",
-        "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
-        "chart_y_formatter" : "format_value", // JS tooltip event, optional feature
-    }],
+            "chart_css_styles" : { // CSS chart styles, optional feature
+		"max-height" : "25rem",
+		"min-height" : "25rem",
+            },
+            "chart_endpoint" : "/lua/rest/v2/get/db/charts/highest_avg_score.lua",
+            "chart_events" : { // JS Events, optional feature
+		"dataPointSelection" : "db_analyze"
+            },
+            "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
+            "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED,any(SRC_LABEL),avg(SCORE) AS avg_score FROM flows WHERE ($WHERE) GROUP BY IPV4_SRC_ADDR_FORMATTED ORDER BY avg_score DESC LIMIT 20",
+            "chart_type" : "bar_apex_chart",
+            "chart_record_value" : "avg_score",
+            "chart_record_label" : "IPV4_SRC_ADDR",
+            "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
+	},{
+	    "chart_id" : "highest_avg_dst_score", // Each id MUST be different
+            "chart_i18n_name" : "highest_avg_dst_score",
+
+            "chart_css_styles" : { // CSS chart styles, optional feature
+		"max-height" : "25rem",
+		"min-height" : "25rem",
+            },
+            "chart_endpoint" : "/lua/rest/v2/get/db/charts/highest_avg_score.lua",
+            "chart_events" : { // JS Events, optional feature
+		"dataPointSelection" : "db_analyze"
+            },
+            "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
+            "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED,any(DST_LABEL),avg(SCORE) AS avg_score FROM flows WHERE ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED ORDER BY avg_score DESC LIMIT 20",
+            "chart_type" : "bar_apex_chart",
+            "chart_record_value" : "avg_score",
+            "chart_record_label" : "IPV4_DST_ADDR",
+            "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
+	},{
+	    "chart_id" : "score_histogram_pkts", // Each id MUST be different
+	    "chart_i18n_name" : "score_distribution",
+
+	    "chart_css_styles" : { // CSS chart styles, optional feature
+		"max-height" : "25rem",
+		"min-height" : "25rem",
+	    },
+	    "chart_endpoint" : "/lua/rest/v2/get/db/charts/score_histogram_bar.lua",
+	    "chart_events" : { // JS Events, optional feature
+		"dataPointSelection" : "db_analyze"
+	    },
+	    "chart_gui_filter" : "score", // Filter displayed in the GUI
+	    "chart_sql_query" : "SELECT histogram(10)(SCORE) FROM (SELECT SCORE FROM flows WHERE $WHERE)",
+	    "chart_type" : "bar_apex_chart",
+	    "chart_first_value" : 0,
+	    "chart_last_value" : 500,
+	    "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
+	    "chart_i18n_extra_y_label" : "score",
+	    "chart_i18n_extra_x_label" : "flows",
+	    "chart_series_name" : "score_distribution",
+	}
+    ],
     "show_in_page" : "analysis",
 }
