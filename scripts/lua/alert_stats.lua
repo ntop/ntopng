@@ -647,6 +647,7 @@ local context = {
        datasource_params = datasource.params,
        refresh_enabled = checkbox_checked,
        opsep = tag_utils.SEPARATOR,
+       show_auto_refresh = (page ~= 'all'),
        tags = {
            enabled = (page ~= 'all'),
            tag_operators = tag_utils.tag_operators,

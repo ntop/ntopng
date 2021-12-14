@@ -1993,8 +1993,7 @@ elseif page == "geomap" then
       <script type='text/javascript'>
 
         const zoomIP = "ifid=]]..ifId..[[&]].. hostinfo2url(host_info) ..[[";
-         console.log(zoomIP);
-
+         
          const display_localized_error = (error_code) => {
             $('#geomap-alert #error-message').html(`<b>]].. i18n("geo_map.geolocation_warning") ..[[</b>: ]].. i18n("geo_map.using_default_location") ..[[`);
             $('#geomap-alert').removeClass('alert-danger').addClass('alert-warning').show();

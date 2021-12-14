@@ -129,11 +129,17 @@
         </div>
     
         <button id="btn-apply" class="btn btn-sm btn-primary m-auto ms-1">{{ i18n("apply") }}</button>
-        {% if (show_jump) then %}
+    {% if (show_jump) then %}
         <div class="form-group my-auto mx-1">
             <a href="{{ jump_endpoint }}" class="btn btn-sm btn-primary ms-auto"><i class="fas fa-filter"></i> {{ show_jump_text or i18n("jump_to_table") }}</a>
         </div>
-        {% end %}
+    {% end %}
+
+    {% if (show_auto_refresh) then %}
+        <div class="form-group my-auto mx-1">
+            <button class="btn btn-link" id="autoRefreshEnabled" style="box-shadow: none;"><i class="fas fa-sync-alt {{ refresh_enabled }}"></i></button>
+        </div>
+    {% end %}
     </div>
     
 
@@ -834,9 +840,12 @@ $(document).ready(function() {
     // set the input boxes with their respective values
     $(window).on('popstate', function(e) {
         const {state} = e.originalEvent;
-        const {epoch_begin, epoch_end} = state;    
-        $inputBeginEpoch.datetimepicker('date', moment(epoch_begin, 'X'));
-        $inputEndEpoch.datetimepicker('date', moment(epoch_end, 'X'));
+        /* Prevent js error with state === null */
+        if(state) {
+            const {epoch_begin, epoch_end} = state;    
+            $inputBeginEpoch.datetimepicker('date', moment(epoch_begin, 'X'));
+            $inputEndEpoch.datetimepicker('date', moment(epoch_end, 'X'));
+        }
     });
 
     /*** Filters modal ***/

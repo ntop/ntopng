@@ -504,25 +504,26 @@ $(document).ready(function(){
 
     /* Auto-refresh handling */
     $(`#autoRefreshEnabled`).on('click', async function(e) {
-        const enabled_disabled = ($(`#autoRefreshIcon`).hasClass('fa-spin') == false);
+        const auto_refresh_button = $(this);
+        const enable_refresh_rate = (auto_refresh_button.hasClass('fa-spin') == false);
         const auto_refresh_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/auto_refresh.lua' 
 
         $.post(auto_refresh_url, {
             ifid: {{ ifid }},
-            alert_page_refresh_rate_enabled: enabled_disabled,
+            alert_page_refresh_rate_enabled: enable_refresh_rate,
             csrf: pageCsrf,
         })  
         .done(function(rsp) {
-            if(enabled_disabled) {
+            if(enable_refresh_rate) {
                 if (rsp.rsp.refresh_rate > 0 && !intervalId) {
                     intervalId = setInterval(function() { onRangePickerChange(true, true); }, rsp.rsp.refresh_rate);
-                    $(`#autoRefreshIcon`).addClass('fa-spin');
+                    auto_refresh_button.addClass('fa-spin');
                 }
             }
             else {
                 clearInterval(intervalId);
                 intervalId = null;
-                $(`#autoRefreshIcon`).removeClass('fa-spin');
+                auto_refresh_button.removeClass('fa-spin');
             }
         })
     });
