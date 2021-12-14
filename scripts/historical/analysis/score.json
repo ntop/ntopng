@@ -71,7 +71,7 @@
             "chart_events" : { // JS Events, optional feature
 		"dataPointSelection" : "db_analyze"
             },
-            "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
+            "chart_gui_filter" : "srv_ip", // Filter displayed in the GUI
             "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED,any(DST_LABEL) DST_LABEL_FORMATTED,avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED ORDER BY avg_score DESC LIMIT 15",
             "chart_type" : "bar_apex_chart",
             "chart_record_value" : "avg_score",
@@ -107,7 +107,7 @@
             "chart_events" : { // JS Events, optional feature
 		"dataPointSelection" : "db_analyze"
             },
-            "chart_gui_filter" : "protocol", // Filter displayed in the GUI
+            "chart_gui_filter" : "l4proto", // Filter displayed in the GUI
             "chart_sql_query" : "SELECT PROTOCOL, avg(SCORE) AS avg_score FROM flows WHERE SCORE > 0 AND ($WHERE) GROUP BY PROTOCOL ORDER BY avg_score DESC LIMIT 15",
             "chart_type" : "bar_apex_chart",
             "chart_record_value" : "avg_score",

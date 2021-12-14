@@ -235,10 +235,10 @@
 
         // override the existing timestamps 
         if (copyParams.epoch_begin) {
-            copyParams.epoch_begin = begin.unix();
+            copyParams.epoch_begin = begin;
         }
         if (copyParams.epoch_end) {
-            copyParams.epoch_end = end.unix();
+            copyParams.epoch_end = end;
         }
 
         const searchParams = new URLSearchParams(Object.entries(copyParams));

@@ -315,7 +315,6 @@ function loadGraph(container) {
     const request = $.get(url, dataRequest);
     request.then(function(response) {
         const {nodes, edges, first_entry, last_entry} = response;
-        debugger;
         const curr_test = $(`#all-time-filter`).text();
         $(`#all-time-filter`).text(curr_test + " (" + first_entry + " - " + last_entry + ")");
 

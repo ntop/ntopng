@@ -433,8 +433,15 @@ $(document).ready(function() {
             $inputEndEpoch.datetimepicker('date', now);
             $inputBeginEpoch.datetimepicker('date', diff);
         } else {
-            begin = $(`#begin-epoch`).datetimepicker('date').utc();
-            end = $(`#end-epoch`).datetimepicker('date').utc();
+            if(document.getElementById('begin-epoch') && $(`#begin-epoch`)[0].value !== "") 
+                begin = $(`#begin-epoch`).datetimepicker('date').utc().unix();
+            else
+                begin = new Date(Number(datasourceParams.epoch_begin)).getTime();   
+
+            if(document.getElementById('end-epoch') && $(`#end-epoch`)[0].value !== "")   
+                end = $(`#end-epoch`).datetimepicker('date').utc().unix();
+            else
+                end = new Date(Number(datasourceParams.epoch_end)).getTime();
         }
         return [begin, end];
     }
@@ -477,11 +484,11 @@ $(document).ready(function() {
             datasourceParams[key] = value;
         });
 
-        const [begin, end] = getTimestampRange();
+        let [begin, end] = getTimestampRange();
         if (begin == null && end == null) return datasourceParams;
         // override the existing timestamps 
-        if (datasourceParams.epoch_begin) datasourceParams.epoch_begin = begin.unix();
-        if (datasourceParams.epoch_end) datasourceParams.epoch_end = end.unix();
+        if (datasourceParams.epoch_begin) datasourceParams.epoch_begin = begin;
+        if (datasourceParams.epoch_end  ) datasourceParams.epoch_end   = end;
 
         return datasourceParams;
     }
@@ -489,8 +496,8 @@ $(document).ready(function() {
     function updateNavbarLink(url, begin, end, element) {
         const searchParams = getSearchParams();
 
-        searchParams.set('epoch_begin', begin.unix());
-        searchParams.set('epoch_end', end.unix());
+        searchParams.set('epoch_begin', begin);
+        searchParams.set('epoch_end', end);
         
         if (url.searchParams.has('status')) {
             searchParams.set('status', url.searchParams.get('status'));
@@ -517,20 +524,20 @@ $(document).ready(function() {
         let searchParams = new URLSearchParams(cur_url.search);
 
         /* Set updated epoch */
-        searchParams.set('epoch_begin', begin.unix());
-        searchParams.set('epoch_end',   end.unix());
+        searchParams.set('epoch_begin', begin);
+        searchParams.set('epoch_end',   end);
 
         /* Attach the new URL to the current href */
         cur_url.search = searchParams.toString();
         $(element).attr('href', cur_url.toString());
     }
 
-    function pushNewHistoryState(begin, end, len) {
+    function pushNewHistoryState(begin, end, len, dontUpdateNavBar) {
         const url = new URL(location);
-
+        
         const searchParams = getSearchParams();
-        searchParams.set('epoch_begin', begin.unix());
-        searchParams.set('epoch_end', end.unix());
+        searchParams.set('epoch_begin', begin);
+        searchParams.set('epoch_end', end);
 
         if (url.searchParams.has('status')) {
             searchParams.set('status', url.searchParams.get('status'));
@@ -540,9 +547,11 @@ $(document).ready(function() {
           Update navbar items, e.g., alert entities, with begin/end epochs
           and status to preserve them when switching between tabs
          */
-        $('#navbarNav a').each(function(index, element) {
-            updateNavbarLink(url, begin, end, element);
-        });
+        if(dontUpdateNavBar == undefined || dontUpdateNavBar == false) {
+            $('#navbarNav a').each(function(index, element) {
+                updateNavbarLink(url, begin, end, element);
+            });
+        }
 
         /*
           Update status switch items (Engaged, Acknoledged, Past)
@@ -562,31 +571,28 @@ $(document).ready(function() {
         }
 
         url.search = searchParams.toString();
-        window.history.pushState({epoch_begin: begin.unix(), epoch_end: end.unix()}, '', url);
+        window.history.pushState({epoch_begin: begin, epoch_end: end}, '', url);
     }
 
     async function onRangePickerChange(pushHistroy = false, updateDatetimeUsingPresets = false) {
         const [begin, end] = getTimestampRange(updateDatetimeUsingPresets);
-
         setDatasourceParams();
 
 	{% if query_presets ~= nil and query_presets ~= {} then %}
 	if (currentQueryPresets != $(`#select-query-presets`).val()) {
 	    pushNewHistoryState(begin, end);
 	    /* Reload the page to change datatable columns */
-	    location.reload();
+        location.reload();
 	    return;
 	}
 	{% end %}
         if (pushHistroy) {
-            pushNewHistoryState(begin, end, null);
+            pushNewHistoryState(begin, end, null, {{ dont_update_navbar }});
         }
         /* The reloadTable callback should be defined by the page (e.g. datatable.template) 
          * to update the content on range or filters update (TODO define a cleaner API for this) */
         if (typeof $table !== 'undefined') {
             await reloadTable($table, begin, end);
-        } else {
-            window.location.reload();
         }
     }
 
@@ -665,6 +671,12 @@ $(document).ready(function() {
         }
 
         await onRangePickerChange(true, false);
+
+        // This is done because if no table is present in the page then 
+        // the page is not reloaded when removing a tag
+        {% if reload_when_removing then %}
+            window.location.reload();
+        {% end %}
     });
 
     tagify.on('add', async function(e) {
