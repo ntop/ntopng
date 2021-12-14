@@ -276,6 +276,12 @@ class ChartWidget extends Widget {
             },
             xaxis: {
                 labels: {
+                    formatter: function(value) {
+                        if(isNaN(value))
+                            return value;
+
+                        return NtopUtils.formatValue(value);
+                    },
                     style: {
                         fontSize: '14px',
                     }
@@ -289,6 +295,12 @@ class ChartWidget extends Widget {
             },
             yaxis: {
                 labels: {
+                    formatter: function(value) {
+                        if(isNaN(value))
+                            return value;
+
+                        return NtopUtils.formatValue(value);
+                    },
                     style: {
                         fontSize: '14px',
                     }
@@ -315,6 +327,9 @@ class ChartWidget extends Widget {
             },
             dataLabels: {
                 enabled: true,
+                formatter: function (val, opts) {
+                    return NtopUtils.formatValue(val);
+                },
                 style: {
                     fontSize: '14px',
                 }
