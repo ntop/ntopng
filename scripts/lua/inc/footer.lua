@@ -756,7 +756,7 @@ local http_prefix = ntop.getHttpPrefix()
 print[[
 </main>
   </div>
-  <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap/js/bootstrap.min.js?"></script>
+  <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap/js/bootstrap.bundle.min.js?"></script>
   <script type="text/javascript" src="]] print(http_prefix) print[[/selectpicker/js/bootstrap-select.js"></script>
   </body>
 </html> ]]
