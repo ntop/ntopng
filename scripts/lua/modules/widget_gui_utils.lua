@@ -156,6 +156,10 @@ function widget_gui_utils.register_donut_chart(name, update_time, datasources, a
     widget_gui_utils.register_chart_widget(name, 'donut', update_time, datasources, additional_params)
 end
 
+function widget_gui_utils.register_radar_chart(name, update_time, datasources, additional_params)
+    widget_gui_utils.register_chart_widget(name, 'radar', update_time, datasources, additional_params)
+end
+
 ---Render all registered chart widgets.
 ---@return string
 function widget_gui_utils.render_chart_widgets()
