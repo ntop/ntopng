@@ -943,7 +943,7 @@ void Prefs::setCommandLineString(int optkey, const char * optarg){
   if((p = (char*)malloc(len)) != NULL) {
     if(opt) {
       if(optarg && strlen(optarg))
-	snprintf(p, len-1, "--%s \"%s\" ", opt, optarg);
+	snprintf(p, len-1, "--%s \'%s\' ", opt, optarg);
       else
 	snprintf(p, len-1, "--%s ", opt);
     } else {
