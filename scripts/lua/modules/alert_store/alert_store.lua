@@ -805,8 +805,15 @@ end
 function alert_store:has_alerts()
    -- First, check for engaged alerts (fastest)
    local _, num_alerts = self:select_engaged()
+   local ifid = tonumber(_GET["ifid"]) or tonumber(interface.getId())
+
    if num_alerts > 0 then
       return true
+   end
+
+   -- The System Interface has the id -1 and in u_int16_t is 65535 
+   if (ifid == -1) then
+      ifid = 65535
    end
 
    -- Now check for historical alerts written in the database. Slightly slower.
@@ -816,12 +823,12 @@ function alert_store:has_alerts()
    local q, res, has_historical_alerts
 
    if(ntop.isClickHouseEnabled()) then
-      q = string.format(" SELECT COUNT(*) as num_alerts FROM `%s` WHERE interface_id = %d", self._table_name, _GET["ifid"] or interface.getId())
+      q = string.format(" SELECT COUNT(*) as num_alerts FROM `%s` WHERE interface_id = %d", self._table_name, ifid)
       res = interface.alert_store_query(q)
 
       has_historical_alerts = res and res[1] and (tonumber(res[1].num_alerts) > 0) or false
    else
-      q = string.format(" SELECT EXISTS (SELECT 1 FROM `%s` WHERE interface_id = %d) has_historical_alerts", self._table_name, _GET["ifid"] or interface.getId())
+      q = string.format(" SELECT EXISTS (SELECT 1 FROM `%s` WHERE interface_id = %d) has_historical_alerts", self._table_name, ifid)
       res = interface.alert_store_query(q)
       has_historical_alerts = res and res[1] and res[1]["has_historical_alerts"] == "1" or false
    end
@@ -1267,6 +1274,10 @@ function alert_store:add_request_filters()
       ntop.delCache(alert_score_cached)
    else
       ntop.setCache(alert_score_cached, score)
+   end
+
+   if ifid == "-1" then
+      ifid = 65535
    end
 
    self:add_status_filter(status)
