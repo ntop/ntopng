@@ -599,7 +599,7 @@ $(document).ready(function() {
 	}
 	{% end %}
         if (pushHistroy) {
-            pushNewHistoryState(begin, end, null, {{ dont_update_navbar }}, changedTime);
+            pushNewHistoryState(begin, end, null, {{ dont_update_navbar or 'false' }}, changedTime);
         }
         /* The reloadTable callback should be defined by the page (e.g. datatable.template) 
          * to update the content on range or filters update (TODO define a cleaner API for this) */
