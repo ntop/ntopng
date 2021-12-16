@@ -7,6 +7,11 @@ ntopng can be installed on OPNsense as plugin using the Web interface (recommend
 or using the command line. In both cases the ntop repository for FreeBSD should be
 configured as described at https://packages.ntop.org/FreeBSD/.
 
+.. warning::
+
+   ntopng will create files on your OPNsense device to store traffic data. If you have a device with limited disk space, please configure ntopng to store only a few timeseries to disk othewise you might fill all the available disk space and make your system unstable.
+
+
 Repository Configuration
 ========================
 

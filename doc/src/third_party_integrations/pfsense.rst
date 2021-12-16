@@ -1,6 +1,6 @@
    .. _pfSenseIntegration:
 
-pfsense
+pfSense
 ########
 
 ntopng Pro/Enterprise can be installed on pfsense using 
@@ -8,6 +8,10 @@ the command line. This requires the configuration of the FreeBSD
 repository (FreeBSD 11 for pfSense CE 2.4, FreeBSD 12 for 
 pfSense CE 2.5 and pfSense Plus) as described at
 https://packages.ntop.org/FreeBSD/.
+
+.. warning::
+
+   ntopng will create files on your pfSense device to store traffic data. If you have a device with limited disk space, please configure ntopng to store only a few timeseries to disk othewise you might fill all the available disk space and make your system unstable.
 
 Repository Configuration
 ========================
