@@ -105,7 +105,6 @@ class Prefs {
     is_geo_map_blacklisted_flows_enabled, is_geo_map_host_name_enabled, 
     is_geo_map_rxtx_data_enabled, is_geo_map_num_flows_enabled;
 #endif
-  bool read_flows_from_mysql;
   bool enable_runtime_flows_dump; /**< runtime preference to enable/disable flows dump from the UI */
   InterfaceInfo *ifNames;
   char *local_networks;
@@ -224,7 +223,6 @@ class Prefs {
   inline bool is_user_set()                             { return user_set; };
   inline u_int32_t get_num_simulated_ips()        const { return(num_simulated_ips);      };
   inline u_int8_t get_num_user_specified_interfaces()   { return(num_interfaces);         };
-  inline bool  do_read_flows_from_nprobe_mysql()        { return(read_flows_from_mysql);  };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
   inline bool  do_dump_flows_on_syslog()                { return(dump_flows_on_syslog);   };

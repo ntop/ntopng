@@ -7203,8 +7203,7 @@ void NetworkInterface::allocateStructures() {
     /* Allocations for the system interface */
     if(ntop->getSystemInterface() == this) {
       if(db == NULL) {
-	if(ntop->getPrefs()->do_dump_flows_on_mysql()
-	   || ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
+	if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
 #ifdef NTOPNG_PRO
 #ifdef HAVE_MYSQL
 #ifdef HAVE_CLICKHOUSE
@@ -8332,8 +8331,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 #endif
 
   if(db == NULL) {
-    if(ntop->getPrefs()->do_dump_flows_on_mysql()
-       || ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
+    if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
 #ifdef NTOPNG_PRO
 #ifdef HAVE_MYSQL
 #ifdef HAVE_CLICKHOUSE
@@ -8342,8 +8340,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 #endif
 
       if((db == NULL)
-	 && ntop->getPrefs()->is_enterprise_m_edition()
-	 && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql())
+	 && ntop->getPrefs()->is_enterprise_m_edition())
 	db = new (std::nothrow) BatchedMySQLDB(this);
 #endif
 #endif

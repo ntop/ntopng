@@ -133,7 +133,6 @@ Prefs::Prefs(Ntop *_ntop) {
   is_geo_map_blacklisted_flows_enabled = is_geo_map_host_name_enabled = false;
   is_geo_map_rxtx_data_enabled = is_geo_map_num_flows_enabled = false;
 #endif
-  read_flows_from_mysql = false;
   enable_runtime_flows_dump = true;
   enable_activities_debug = false;
 #ifndef HAVE_NEDGE
@@ -430,17 +429,6 @@ void usage() {
 	 "                                    |   mysql;<host[@port]|socket>;<dbname><user>;<pw>\n"
 	 "                                    |   mysql;localhost;ntopng;root;\n"
 	 "                                    |\n"
-	 "                                    | mysql-nprobe  Read from an nProbe-generated MySQL database\n"
-	 "                                    |   Format:\n"
-	 "                                    |   mysql-nprobe;<host|socket>;<dbname>;<prefix>;<user>;<pw>\n"
-	 "                                    |   mysql-nprobe;localhost;ntopng;nf;root;\n"
-	 "                                    |   Notes:\n"
-	 "                                    |    The <prefix> must be the same as used in nProbe.\n"
-	 "                                    |    Only one ntopng -i <interface> is allowed.\n"
-	 "                                    |    Flows are only read. Dump is assumed to be done by nProbe.\n"
-	 "                                    |   Example:\n"
-	 "                                    |     ./nprobe ... --mysql=\"localhost:ntopng:nf:root:root\"\n"
-	 "                                    |     ./ntopng ... --dump-flows=\"mysql-nprobe;localhost;ntopng;nf;root;root\"\n"
 #endif
 #endif
 	 "[--export-flows|-I] <endpoint>      | Export flows with the specified endpoint\n"
@@ -1404,10 +1392,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 	if(all_good) {
 	  u_int num_semicolumns = 0;
-	  if(!strncmp(optarg, "mysql-nprobe", 12))
-	    read_flows_from_mysql = true;
-	  else
-	    dump_flows_on_mysql = true;
+	  dump_flows_on_mysql = true;
 
 	  /* 
 	     Old Format: mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw> 
@@ -1983,7 +1968,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_geo_map_num_flows_enabled", is_geo_map_num_flows_enabled);
 #endif
 
-  lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql || read_flows_from_mysql);
+  lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql);
   if(mysql_dbname) lua_push_str_table_entry(vm, "mysql_dbname", mysql_dbname);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled", dump_flows_on_es);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_syslog_enabled", dump_flows_on_syslog);

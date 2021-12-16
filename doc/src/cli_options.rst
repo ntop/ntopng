@@ -105,12 +105,6 @@ ntopng supports a large number of command line parameters. To see what they are,
    [--pid|-G] <path>                   | Pid file path
    [--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)
    [--dump-flows|-F] <mode>            | Dump expired flows. Mode:
-                                       | nindex        Dump in nIndex (Enterprise only)
-                                       |   Format:
-                                       |   nindex[;direct]
-                                       |   Note: the direct option delivers higher performance
-                                       |   with less detailed flow information (it dumps raw flows)
-                                       |   when collecting from ZMQ.
                                        |
                                        | es            Dump in ElasticSearch database
                                        |   Format:
@@ -142,17 +136,6 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        |   mysql;<host[@port]|socket>;<dbname>;<user>;<pw>
                                        |   mysql;localhost;ntopng;root;
                                        |
-                                       | mysql-nprobe  Read from an nProbe-generated MySQL database
-                                       |   Format:
-                                       |   mysql-nprobe;<host|socket>;<dbname>;<prefix>;<user>;<pw>
-                                       |   mysql-nprobe;localhost;ntopng;nf;root;
-                                       |   Notes:
-                                       |    The <prefix> must be the same as used in nProbe.
-                                       |    Only one ntopng -i <interface> is allowed.
-                                       |    Flows are only read. Dump is assumed to be done by nProbe.
-                                       |   Example:
-                                       |     ./nprobe ... --mysql="localhost:ntopng:nf:root:root"
-                                       |     ./ntopng ... --dump-flows="mysql-nprobe;localhost;ntopng;nf;root;root"
    [--export-flows|-I] <endpoint>      | Export flows with the specified endpoint
                                        | See https://wp.me/p1LxdS-O5 for a -I use case.
    [--hw-timestamp-mode] <mode>        | Enable hw timestamping/stripping.
