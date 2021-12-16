@@ -388,6 +388,20 @@ class ChartWidget extends Widget {
         }
     }
 
+    _buildDataLabels(config, rsp) {
+        if (rsp["dataLabels"]) {
+            for (const [dataLabelsOpts, data] of Object.entries(rsp["dataLabels"])) {
+                config["dataLabels"][dataLabelsOpts] = data;
+            }
+        }   
+
+        let formatter = config["dataLabels"]["formatter"];
+
+        if(formatter && DEFINED_TOOLTIP[formatter]) {
+            config["dataLabels"]["formatter"] = DEFINED_TOOLTIP[formatter];
+        }
+    }
+
     _buildTooltipFormatter(config) {
 	// do we need a custom tooltip?
         if (config.tooltip && config.tooltip.widget_tooltips_formatter) {
@@ -439,6 +453,7 @@ class ChartWidget extends Widget {
         this._buildTooltipFormatter(config);
         this._buildAxisFormatter(config, 'xaxis');
         this._buildAxisFormatter(config, 'yaxis');
+        this._buildDataLabels(config, rsp);
 
         return config;
     }
@@ -446,7 +461,7 @@ class ChartWidget extends Widget {
     _initializeChart() {
         const config = this._buildConfig();
         this._chartConfig = config;
-        this._chart = new ApexCharts(this._$htmlChart, config);
+        this._chart = new ApexCharts(this._$htmlChart, this._chartConfig);
         this._chart.render();
     }
 
@@ -469,8 +484,8 @@ class ChartWidget extends Widget {
 	    // update the colors list
 	    this._chartConfig.colors = colors;
 	    this._chartConfig.series = series;
-            if(dataLabels) this._chartConfig.dataLabels = dataLabels;
-            if(labels) this._chartConfig.labels = labels;
+        if(dataLabels) this._chartConfig.dataLabels = dataLabels;
+        if(labels) this._chartConfig.labels = labels;
 	    this._chart.updateOptions(this._chartConfig, true);
         }
     }

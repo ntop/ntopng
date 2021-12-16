@@ -75,6 +75,7 @@
 	    "chart_gui_filter" : "l7proto", // Filter displayed in the GUI
 	    "chart_sql_query" : "SELECT L7_PROTO,COUNT(*) AS flows FROM flows WHERE ($WHERE) GROUP BY L7_PROTO ORDER BY flows DESC LIMIT 15",
 	    "chart_type" : "bar_apex_chart",
+	    "chart_i18n_extra_x_label" : "flows",
 	    "chart_record_value" : "flows",
 	    "chart_record_label" : "L7_PROTO",
 	    "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
@@ -94,6 +95,7 @@
 	    "chart_gui_filter" : "l7proto", // Filter displayed in the GUI
 	    "chart_sql_query" : "SELECT L7_PROTO,avg(TOTAL_BYTES) AS avg_bytes FROM flows WHERE ($WHERE) GROUP BY L7_PROTO ORDER BY avg_bytes DESC LIMIT 15",
 	    "chart_type" : "bar_apex_chart",
+	    "chart_i18n_extra_x_label" : "flow_size",
 	    "chart_record_value" : "avg_bytes",
 	    "chart_record_label" : "L7_PROTO",
 	    "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
@@ -114,6 +116,7 @@
 	    "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED,any(SRC_LABEL) SRC_LABEL_FORMATTED,L7_PROTO,COUNT(*) AS flows FROM flows WHERE ($WHERE) GROUP BY L7_PROTO,IPV4_SRC_ADDR_FORMATTED ORDER BY flows DESC LIMIT 20",
 	    "chart_type" : "bar_apex_chart",
 	    "horizontal_chart" : false,
+	    "chart_i18n_extra_y_label" : "flows",
 	    "chart_record_value" : "flows",
 	    "chart_record_label" : "IPV4_SRC_ADDR",
 	    "chart_width" : 12, // Chart width, it can be a number between 1 and 12, optional feature

@@ -150,6 +150,7 @@ local lang = {
   ["flow_search_from_aggregated"] = "(Aggregated)",
   ["flow_search_results"] = "Flow Search Results",
   ["flows"] = "Flows",
+  ["flow_size"] = "Flow Size",
   ["flush_map_data"] = "Flush Data",
   ["forbidden"] = "Forbidden",
   ["free"] = "Free",

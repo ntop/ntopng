@@ -485,18 +485,20 @@ $(document).ready(function() {
 
     function setDatasourceParams() {
         const searchParams = getSearchParams();
+        let changedTime = false;
 
         searchParams.forEach(function(value, key) {
             datasourceParams[key] = value;
         });
 
         let [begin, end] = getTimestampRange();
-        if (begin == null && end == null) return datasourceParams;
+        if (begin == null && end == null) return datasourceParams, changedTime;
+        if (datasourceParams.epoch_begin != begin || datasourceParams.epoch_end != end) changedTime = true;
         // override the existing timestamps 
-        if (datasourceParams.epoch_begin) datasourceParams.epoch_begin = begin;
+        if (datasourceParams.epoch_begin) datasourceParams.epoch_begin = begin; 
         if (datasourceParams.epoch_end  ) datasourceParams.epoch_end   = end;
 
-        return datasourceParams;
+        return datasourceParams, changedTime;
     }
 
     function updateNavbarLink(url, begin, end, element) {
@@ -538,9 +540,8 @@ $(document).ready(function() {
         $(element).attr('href', cur_url.toString());
     }
 
-    function pushNewHistoryState(begin, end, len, dontUpdateNavBar) {
+    function pushNewHistoryState(begin, end, len, dontUpdateNavBar, changedTime) {
         const url = new URL(location);
-        
         const searchParams = getSearchParams();
         searchParams.set('epoch_begin', begin);
         searchParams.set('epoch_end', end);
@@ -578,11 +579,16 @@ $(document).ready(function() {
 
         url.search = searchParams.toString();
         window.history.pushState({epoch_begin: begin, epoch_end: end}, '', url);
+
+        if (changedTime === true) {
+            window.location.reload();
+        }
     }
 
     async function onRangePickerChange(pushHistroy = false, updateDatetimeUsingPresets = false) {
         const [begin, end] = getTimestampRange(updateDatetimeUsingPresets);
-        setDatasourceParams();
+        let changedTime = false;
+        datasourceParams, changedTime = setDatasourceParams();
 
 	{% if query_presets ~= nil and query_presets ~= {} then %}
 	if (currentQueryPresets != $(`#select-query-presets`).val()) {
@@ -593,7 +599,7 @@ $(document).ready(function() {
 	}
 	{% end %}
         if (pushHistroy) {
-            pushNewHistoryState(begin, end, null, {{ dont_update_navbar }});
+            pushNewHistoryState(begin, end, null, {{ dont_update_navbar }}, changedTime);
         }
         /* The reloadTable callback should be defined by the page (e.g. datatable.template) 
          * to update the content on range or filters update (TODO define a cleaner API for this) */
