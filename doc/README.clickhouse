@@ -1,7 +1,9 @@
 # ClickHouse
-
 For more information about howto use ClickHouse in ntopng please see
 - https://www.ntop.org/guides/ntopng/clickhouse.html
+
+# Migration nIndex to ClickHouse
+See https://www.ntop.org/guides/ntopng/clickhouse.html#migration-from-nindex
 
 # ClickHouse tips
 - https://alex.dzyoba.com/kb/clickhouse/
