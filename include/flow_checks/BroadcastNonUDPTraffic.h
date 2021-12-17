@@ -19,26 +19,25 @@
  *
  */
 
-#ifndef _FLOW_CHECKS_EXECUTOR_H_
-#define _FLOW_CHECKS_EXECUTOR_H_
+#ifndef _BROADCAST_NON_UDP_TRAFFIC_H
+#define _BROADCAST_NON_UDP_TRAFFIC_H
 
 #include "ntop_includes.h"
 
-class Flow;
 
-class FlowChecksExecutor { /* One instance per ntopng Interface */
+class BroadcastNonUDPTraffic : public FlowCheck {
  private:
-  NetworkInterface *iface;
-  std::list<FlowCheck*> *protocol_detected, *periodic_update, *flow_end, *flow_begin;
-
-  void loadFlowChecksAlerts(std::list<FlowCheck*> *cb_list);
-  void loadFlowChecks(FlowChecksLoader *fcl);
 
  public:
-  FlowChecksExecutor(FlowChecksLoader *fcl, NetworkInterface *_iface);
-  virtual ~FlowChecksExecutor();
+  BroadcastNonUDPTraffic() : FlowCheck(ntopng_edition_community,
+                        false /* All interfaces */, false /* Don't exclude for nEdge */, false /* NOT only for nEdge */,
+                        false /* has_protocol_detected */, false /* has_periodic_update */, false /* has_flow_end */, true /* has_flow_begin */) {};
+  ~BroadcastNonUDPTraffic() {};
 
-  FlowAlert *execChecks(Flow *f, FlowChecks c);
+  void flowBegin(Flow *f);
+  FlowAlert *buildAlert(Flow *f);
+  
+  std::string getName()        const { return(std::string("broadcast_non_udp_traffic")); }
 };
 
-#endif /* _FLOW_CHECKS_EXECUTOR_H_ */
+#endif /* _BROADCAST_NON_UDP_TRAFFIC_H */

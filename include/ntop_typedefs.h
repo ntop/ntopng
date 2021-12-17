@@ -393,7 +393,8 @@ typedef enum {
   flow_check_protocol_detected = 0,
   flow_check_periodic_update,
   flow_check_flow_end,
-  flow_check_flow_none /* Flow check not bound to protoDetected, periodicUpdate, flowEnd */
+  flow_check_flow_begin,
+  flow_check_flow_none /* Flow check not bound to protoDetected, periodicUpdate, flowEnd, flowBegin */
 } FlowChecks;
 
 /* NOTE: Throw modules/alert_keys.lua as it has been merged with modules/alert_keys.lua */
@@ -466,6 +467,7 @@ typedef enum {
   flow_alert_ndpi_dns_large_packet            = 64,
   flow_alert_ndpi_dns_fragmented              = 65,
   flow_alert_ndpi_invalid_characters          = 66,
+  flow_alert_broadcast_non_udp_traffic        = 67,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

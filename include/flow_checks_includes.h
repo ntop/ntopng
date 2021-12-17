@@ -26,6 +26,7 @@
 
 #include "flow_checks/BlacklistedFlow.h"
 #include "flow_checks/BlacklistedCountry.h"
+#include "flow_checks/BroadcastNonUDPTraffic.h"
 #include "flow_checks/DeviceProtocolNotAllowed.h"
 #include "flow_checks/ExternalAlertCheck.h"
 #include "flow_checks/FlowRisk.h"

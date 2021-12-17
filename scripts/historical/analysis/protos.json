@@ -37,6 +37,7 @@
 	    "chart_sql_query" : "SELECT L7_PROTO,SUM(TOTAL_BYTES) AS bytes FROM flows WHERE ($WHERE) GROUP BY L7_PROTO ORDER BY bytes DESC",
 	    "chart_type" : "donut_apex_chart",
 	    "chart_record_value" : "bytes",
+	    "chart_aggregate_low_data" : true,
 	    "chart_record_label" : "L7_PROTO",
 	    "chart_width" : 4, // Chart width, it can be a number between 1 and 12, optional feature
 	    "chart_y_formatter" : "format_bytes", // JS tooltip event, optional feature

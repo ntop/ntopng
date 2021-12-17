@@ -9539,6 +9539,16 @@ void NetworkInterface::execFlowEndChecks(Flow *f) {
 
 /* *************************************** */
 
+void NetworkInterface::execFlowBeginChecks(Flow *f) {
+  if(flow_checks_executor) {
+    FlowAlert *alert = flow_checks_executor->execChecks(f, flow_check_flow_begin);
+    if(alert)
+      enqueueFlowAlert(alert);
+  }
+}
+
+/* *************************************** */
+
 void NetworkInterface::luaScore(lua_State *vm) {
   /* Score */
   lua_newtable(vm);

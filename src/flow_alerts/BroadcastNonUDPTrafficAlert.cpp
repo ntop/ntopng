@@ -19,26 +19,18 @@
  *
  */
 
-#ifndef _FLOW_CHECKS_EXECUTOR_H_
-#define _FLOW_CHECKS_EXECUTOR_H_
+#include "flow_checks_includes.h"
 
-#include "ntop_includes.h"
+ndpi_serializer* BroadcastNonUDPTrafficAlert::getAlertJSON(ndpi_serializer* serializer) {
+  Flow *f = getFlow();
+  char buf[64];
 
-class Flow;
+  if(serializer == NULL)
+    return NULL;
 
-class FlowChecksExecutor { /* One instance per ntopng Interface */
- private:
-  NetworkInterface *iface;
-  std::list<FlowCheck*> *protocol_detected, *periodic_update, *flow_end, *flow_begin;
+  if(f->get_cli_host())
+    ndpi_serialize_string_string(serializer, "cli_mac", Utils::formatMac(f->get_cli_host()->get_mac(), buf, sizeof(buf)));
 
-  void loadFlowChecksAlerts(std::list<FlowCheck*> *cb_list);
-  void loadFlowChecks(FlowChecksLoader *fcl);
+  return serializer;
+}
 
- public:
-  FlowChecksExecutor(FlowChecksLoader *fcl, NetworkInterface *_iface);
-  virtual ~FlowChecksExecutor();
-
-  FlowAlert *execChecks(Flow *f, FlowChecks c);
-};
-
-#endif /* _FLOW_CHECKS_EXECUTOR_H_ */

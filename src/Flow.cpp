@@ -248,6 +248,8 @@ Flow::Flow(NetworkInterface *_iface,
   } else if(isBlacklistedServer()) {
     if(cli_host) cli_host->inc_num_blacklisted_flows(true);
   }
+
+  iface->execFlowBeginChecks(this);
 }
 
 /* *************************************** */

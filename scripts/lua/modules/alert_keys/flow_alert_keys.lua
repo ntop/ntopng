@@ -72,6 +72,7 @@ local flow_alert_keys = {
    flow_alert_ndpi_dns_large_packet           = 64,
    flow_alert_ndpi_dns_fragmented             = 65,
    flow_alert_ndpi_invalid_characters         = 66,
+   flow_alert_broadcast_non_udp_traffic       = 67,
    -- NOTE: for flow alerts not not go beyond the size of Bitmap alert_map inside Flow.h (currently 128)
 }
 

@@ -1012,6 +1012,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void execProtocolDetectedChecks(Flow *f);
   void execPeriodicUpdateChecks(Flow *f);
   void execFlowEndChecks(Flow *f);
+  void execFlowBeginChecks(Flow *f);
   void execHostChecks(Host *h);
   
   inline void incHostAnomalies(u_int32_t local, u_int32_t remote) {

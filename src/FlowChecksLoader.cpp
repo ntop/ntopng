@@ -65,6 +65,7 @@ void FlowChecksLoader::registerChecks() {
 
   if((fcb = new BlacklistedFlow()))                             registerCheck(fcb);
   if((fcb = new BlacklistedCountry()))                          registerCheck(fcb);
+  if((fcb = new BroadcastNonUDPTraffic()))                      registerCheck(fcb);
   if((fcb = new DeviceProtocolNotAllowed()))                    registerCheck(fcb);
 #ifndef NTOPNG_PRO
   if((fcb = new ExternalAlertCheck()))                          registerCheck(fcb);

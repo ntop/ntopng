@@ -25,11 +25,12 @@
 
 FlowCheck::FlowCheck(NtopngEdition _edition,
 		     bool _packet_interface_only, bool _nedge_exclude, bool _nedge_only,
-		     bool _has_protocol_detected, bool _has_periodic_update, bool _has_flow_end)
+		     bool _has_protocol_detected, bool _has_periodic_update, bool _has_flow_end, bool _has_flow_begin)
   : Check(_edition, _packet_interface_only, _nedge_exclude, _nedge_only) {
   has_protocol_detected  = _has_protocol_detected;
   has_periodic_update    = _has_periodic_update;
   has_flow_end           = _has_flow_end;
+  has_flow_begin         = _has_flow_begin;
 };
 
 /* **************************************************** */
@@ -54,9 +55,13 @@ void FlowCheck::addCheck(std::list<FlowCheck*> *l, NetworkInterface *iface, Flow
   case flow_check_flow_end:
     if(has_flow_end) l->push_back(this);
     break;
+    
+  case flow_check_flow_begin:
+    if(has_flow_begin) l->push_back(this);
+    break;
 
   case flow_check_flow_none:
-    if(!(has_protocol_detected || has_periodic_update || has_flow_end))
+    if(!(has_protocol_detected || has_periodic_update || has_flow_end || has_flow_begin))
       l->push_back(this);
     break;
   }

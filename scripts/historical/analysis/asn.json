@@ -17,7 +17,7 @@
             },
             "chart_gui_filter" : "srv_asn", // Filter displayed in the GUI
             "chart_sql_query" : "SELECT SRC_ASN,any(IPv4NumToString(IPV4_SRC_ADDR)) as IPV4_SRC_ADDR_FORMATTED,SUM(TOTAL_BYTES) AS bytes FROM flows WHERE ($WHERE) GROUP BY SRC_ASN ORDER BY bytes DESC LIMIT 10",
-            "chart_type" : "donut_apex_chart",
+            "chart_type" : "radar_apex_chart",
             "chart_record_value" : "bytes",
             "chart_record_label" : "SRC_ASN",
             "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature

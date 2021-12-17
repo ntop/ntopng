@@ -46,6 +46,7 @@ FlowAlertsLoader::FlowAlertsLoader() {
   /* Other */
   registerAlert(BlacklistedCountryAlert::getClassType(),         BlacklistedCountryAlert::getDefaultScore());
   registerAlert(BlacklistedFlowAlert::getClassType(),            BlacklistedFlowAlert::getDefaultScore());
+  registerAlert(BroadcastNonUDPTrafficAlert::getClassType(),     BroadcastNonUDPTrafficAlert::getDefaultScore());
   registerAlert(DNSDataExfiltrationAlert::getClassType(),        DNSDataExfiltrationAlert::getDefaultScore());
   registerAlert(DataExfiltrationAlert::getClassType(),           DataExfiltrationAlert::getDefaultScore());
   registerAlert(DeviceProtocolNotAllowedAlert::getClassType(),   DeviceProtocolNotAllowedAlert::getDefaultScore());

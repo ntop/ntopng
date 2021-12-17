@@ -34,6 +34,7 @@ FlowChecksExecutor::~FlowChecksExecutor() {
   if(protocol_detected) delete protocol_detected;
   if(periodic_update)   delete periodic_update;
   if(flow_end)          delete flow_end;
+  if(flow_begin)        delete flow_begin;
 };
 
 /* **************************************************** */
@@ -42,6 +43,7 @@ void FlowChecksExecutor::loadFlowChecks(FlowChecksLoader *fcl) {
   protocol_detected = fcl->getProtocolDetectedChecks(iface);
   periodic_update   = fcl->getPeriodicUpdateChecks(iface);
   flow_end          = fcl->getFlowEndChecks(iface);
+  flow_begin        = fcl->getFlowBeginChecks(iface);
 }
 
 /* **************************************************** */
@@ -62,6 +64,9 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
     case flow_check_flow_end:
       checks = flow_end;
       break;
+    case flow_check_flow_begin:
+      checks = flow_begin;
+      break;
     default:
       return NULL;
   }
@@ -76,6 +81,9 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
         break;
       case flow_check_flow_end:
         (*it)->flowEnd(f);
+        break;
+      case flow_check_flow_begin:
+        (*it)->flowBegin(f);
         break;
       default:
 	break;
