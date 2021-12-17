@@ -580,7 +580,7 @@ $(document).ready(function() {
         url.search = searchParams.toString();
         window.history.pushState({epoch_begin: begin, epoch_end: end}, '', url);
 
-        if (changedTime === true) {
+        if (changedTime === true && !{{ dont_refresh_full_page or false }}) {
             window.location.reload();
         }
     }
