@@ -9,6 +9,9 @@ ignore: # duration and last seen depend on the current system time, whereas firs
   - throughput_pps
   - throughput_trend_bps
   - throughput_trend_pps
+  - bytes
+  - packets
+  - num_flows
 
 pre: |
   curl -s -u admin:admin -H "Content-Type: application/json" -d '{"host" : "192.168.1.93", "custom_name": "Charles"}' http://localhost:3333/lua/rest/v2/set/host/alias.lua
