@@ -1,4 +1,4 @@
-{
+{/*
     "name" : "Advanced Charts Test",
     "i18n_name" : "advanced_charts_test",
     "data_source" : "flows",
@@ -46,4 +46,4 @@
             "chart_y_formatter" : "format_bytes", // JS tooltip event, optional feature
         }],
     "show_in_page" : "analysis",
-}
+*/}
