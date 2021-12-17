@@ -24,6 +24,7 @@
               <tr>
               <th></th>
 	      <th>{{ i18n("name", {}) }}</th>
+              <th>{{ i18n("interface", {}) }}</th>
               <th>{{ i18n("category", {}) }}</th>
               <th>{{ i18n("description", {}) }}</th>
               <th>{{ i18n("values", {}) }}</th>
@@ -58,6 +59,12 @@
             i18n(cat.i18n_descr, {product=info.product})) *} </li>
           {% end %}
         </ul>
+      </li>
+      <li> {{ i18n('interface') }}
+        <ul>
+	  <li> {* string.format("<i class='fa fa-ethernet'></i>: %s", i18n("scripts_list.note_packet_interface")) *} </li>
+	  <li> {* string.format("<i class='fa fa-bezier-curve'></i>: %s", i18n("scripts_list.note_zmq_interface")) *} </li>
+	</ul>
       </li>
     </ul>
   </div>

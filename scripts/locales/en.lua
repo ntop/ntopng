@@ -4929,6 +4929,8 @@ local lang = {
     ["restarting"] = "Restarting %{product}... (this should take a few seconds)",
   },
   ["scripts_list"] = {
+    ["note_packet_interface"] = "Check Available for packet interfaces",
+    ["note_zmq_interface"] = "Check available for ZMQ interfaces",
     ["alert_severity"] = "Alert Severity",
     ["all"] = "All",
     ["are_you_sure"] = "Your edits are not saved yet! Do you really want to close this dialog?",

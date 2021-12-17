@@ -85,6 +85,7 @@ for _, subdir in ipairs(subdirs) do
 	    category_icon = script.category.icon,
 	    enabled_hooks = enabled_hooks,
 	    all_hooks = all_hooks,
+	    packet_interface_only = script.packet_interface_only == true,
 	    is_enabled = not table.empty(enabled_hooks),
 	    edit_url = checks.getScriptEditorUrl(script),
 	    input_handler = input_handler,

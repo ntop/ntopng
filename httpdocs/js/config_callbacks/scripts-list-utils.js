@@ -1603,8 +1603,8 @@ function delegateTooltips() {
 
 $(function () {
 
-   const CATEGORY_COLUMN_INDEX = 2;
-   const VALUES_COLUMN_INDEX = 4;
+   const CATEGORY_COLUMN_INDEX = 3;
+   const VALUES_COLUMN_INDEX = 5;
 
    const add_filter_categories_dropdown = () => {
 
@@ -1752,7 +1752,7 @@ $(function () {
          delegateTooltips();
 
          // update the tabs counters
-         const INDEX_SEARCH_COLUMN = 4;
+         const INDEX_SEARCH_COLUMN = 5;
 
          const $disabled_button = $(`#disabled-scripts`);
          const $all_button = $("#all-scripts");
@@ -1847,6 +1847,22 @@ $(function () {
                if (type == 'display') return `<b>${data}</b>`;
                return data;
             },
+         },
+         {
+            data: null,
+            sortable: true,
+            searchable: false,
+            className: 'text-center',
+            render: function (data, type, row) {
+               let icon = `<i class='fas fa-ethernet'></i>`;
+
+               if(!row.packet_interface_only) {
+                 icon += ` <i class='fas fa-bezier-curve'></i>`;
+               }
+
+               if (type == "display") return `${icon}`;
+               return row.packet_interface_only;
+            }
          },
          {
             data: null,
