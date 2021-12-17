@@ -3040,10 +3040,16 @@ void Flow::decAllFlowScores() {
 /*
   This method is executed in the thread which processes packets/flows
   so it must be ultra-fast. Do NOT perform any time-consuming operation here.
+
+  This is called by GenericHash::purgeIdle, in some cases there is a state
+  transition after calling this (see purgeIdle), in other cases the transition
+  is done in this class (e.g. set_hash_entry_state_flow_notyetdetected)
  */
 void Flow::housekeep(time_t t) {
   switch(get_state()) {
   case hash_entry_state_allocated:
+    /* This code can be executed multiple times, until there is a call to set_hash_entry_state_flow_notyetdetected */
+
   case hash_entry_state_flow_notyetdetected:
     /*
       Possibly the time to giveup and end the protocol dissection.
@@ -3097,6 +3103,8 @@ void Flow::housekeep(time_t t) {
     break;
 
   case hash_entry_state_idle:
+    /* This code is executed once, as the flow is removed from the hash table after calling housekeep in this state */
+
     if(is_swap_requested() && !is_swap_done()) /* Swap requested but never performed (no more packets seen) */
       iface->execProtocolDetectedChecks(this);
 
