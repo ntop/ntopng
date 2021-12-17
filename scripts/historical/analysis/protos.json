@@ -21,6 +21,7 @@
 	    "chart_record_label" : "L7_CATEGORY",
 	    "chart_width" : 4, // Chart width, it can be a number between 1 and 12, optional feature
 	    "chart_y_formatter" : "format_bytes", // JS tooltip event, optional feature
+	    "chart_aggregate_low_data" : true,
 	},{
 	    "chart_id" : "top_l7_proto", // Each id MUST be different
 	    "chart_i18n_name" : "top_l7_proto",

@@ -41,6 +41,7 @@
             "chart_record_label" : "DST_ASN",
             "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
             "chart_y_formatter" : "format_bytes", // JS tooltip event, optional feature
+            "chart_aggregate_low_data" : true,
         }],
     "show_in_page" : "analysis",
 }

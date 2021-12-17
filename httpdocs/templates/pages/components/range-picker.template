@@ -131,7 +131,7 @@
         <button id="btn-apply" class="btn btn-sm btn-primary m-auto ms-1">{{ i18n("apply") }}</button>
     {% if (show_jump) then %}
         <div class="form-group my-auto mx-1">
-            <a href="{{ jump_endpoint }}" class="btn btn-sm btn-primary ms-auto"><i class="fas fa-filter"></i> {{ show_jump_text or i18n("jump_to_table") }}</a>
+            <a href="{{ jump_endpoint }}" class="btn btn-sm btn-primary ms-auto" id="jumpButton"><i class="fas fa-filter"></i> {{ show_jump_text or i18n("jump_to_table") }}</a>
         </div>
     {% end %}
 
@@ -582,6 +582,12 @@ $(document).ready(function() {
 
         if (changedTime === true && !{{ dont_refresh_full_page or false }}) {
             window.location.reload();
+        }
+
+        if (document.getElementById("jumpButton")) {
+            $('#jumpButton').each(function(index, element) {
+                updateNavbarLink(url, begin, end, element);
+            });
         }
     }
 
