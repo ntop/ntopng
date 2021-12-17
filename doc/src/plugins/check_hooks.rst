@@ -21,6 +21,7 @@ Available hooks for flow checks are the following:
 - :code:`statusChanged`: Called when the internal status of the flow has changed since the previous invocation.
 - :code:`periodicUpdate`: Called every few minutes on long-lived flows.
 - :code:`flowEnd`: Called when the flow is considered finished.
+- :code:`flowBegin`: Called when the flow is seen for the first time.
 - :code:`all`: A special hook which will cause the associated check to be called for all the available hooks.
 
 Flow Check Hooks Parameters

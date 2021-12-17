@@ -33,6 +33,7 @@ Checks execution for flows consists in ntopng calling for every flow:
 - :code:`FlowCheck::protocolDetected` as soon as the Layer-7 is detected
 - :code:`FlowCheck::periodicUpdate` approximately every 300 seconds only for flows with a minimum duration of 300 seconds
 - :code:`FlowCheck::flowEnd` as soon as the flow ends, i.e., when a TCP session is closed or when an UDP flow timeouts
+- :code:`FlowCheck::flowBegin` as soon as the flow is seen for the first time
 
 Every flow check, when subclassing :code:`FlowCheck`, must override one or more of the methods above to implement the desired check behavior.
 
