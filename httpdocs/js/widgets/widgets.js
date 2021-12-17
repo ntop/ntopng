@@ -61,10 +61,6 @@ const DEFINED_EVENTS = {
 }
 
 const DEFINED_TOOLTIP = {
-    "none" : function(value, { config, seriesIndex, dataPointIndex }) {
-        return "";
-    },
-
     /* Standard on click event, redirect to the url */
     "standard" : function (_, opt) {
         const config = opt.w.config;
@@ -90,6 +86,10 @@ const DEFINED_TOOLTIP = {
     /* On click event used by the flow analyze section, redirect to the current url + a single filter */
     "format_value" : function(value, { config, seriesIndex, dataPointIndex }) {
         return NtopUtils.formatValue(value);
+    },
+
+    "format_multiple_date" : function(value, { config, seriesIndex, dataPointIndex }) {
+        return new Date(value[0]) + " - " + new Date(value[1])
     },
 }
 
@@ -255,15 +255,16 @@ class ChartWidget extends Widget {
                 enabledOnSeries: [0],
                 x: {
                     show: true,
-                    formatter: DEFINED_TOOLTIP["none"]
+                    format: 'dd/MM/yyyy HH:mm:ss',
                 },
                 y: {
                     show: true,
-                    formatter: DEFINED_TOOLTIP["none"]
+                    formatter: function(value) {
+                        return value;
+                    }
                 },
                 z: {
-                    show: true,
-                    formatter: DEFINED_TOOLTIP["none"]
+                    show: false,
                 }
             },
             chart: {
@@ -276,12 +277,6 @@ class ChartWidget extends Widget {
             },
             xaxis: {
                 labels: {
-                    formatter: function(value) {
-                        if(isNaN(value))
-                            return value;
-
-                        return NtopUtils.formatValue(value);
-                    },
                     style: {
                         fontSize: '14px',
                     }
@@ -295,12 +290,6 @@ class ChartWidget extends Widget {
             },
             yaxis: {
                 labels: {
-                    formatter: function(value) {
-                        if(isNaN(value))
-                            return value;
-
-                        return NtopUtils.formatValue(value);
-                    },
                     style: {
                         fontSize: '14px',
                     }
@@ -327,9 +316,6 @@ class ChartWidget extends Widget {
             },
             dataLabels: {
                 enabled: true,
-                formatter: function (val, opts) {
-                    return NtopUtils.formatValue(val);
-                },
                 style: {
                     fontSize: '14px',
                 }
@@ -402,14 +388,6 @@ class ChartWidget extends Widget {
         }
     }
 
-    _buildTooltipFormatter(config) {
-	// do we need a custom tooltip?
-        if (config.tooltip && config.tooltip.widget_tooltips_formatter) {
-            const formatterName = config.tooltip.widget_tooltips_formatter;
-            config.tooltip.custom = WidgetTooltips[formatterName] || WidgetTooltips.unknown;
-        }
-    }
-
     _buildConfig() {
 
         const config = this._generateConfig();
@@ -437,7 +415,7 @@ class ChartWidget extends Widget {
                 }
             }
         }
-
+        
         /* Changing events if given */
         if (rsp['events']) {
             /* Just pass a table of events. e.g. { events = { click = "db_analyze", updated = "standard" } }*/
@@ -449,8 +427,7 @@ class ChartWidget extends Widget {
         if (rsp['horizontal_chart'] !== undefined) {
             config['plotOptions']['bar']['horizontal'] = rsp['horizontal_chart'];
         }
-        
-        this._buildTooltipFormatter(config);
+
         this._buildAxisFormatter(config, 'xaxis');
         this._buildAxisFormatter(config, 'yaxis');
         this._buildDataLabels(config, rsp);
