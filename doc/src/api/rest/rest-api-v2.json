@@ -6752,14 +6752,14 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/get/host/flows/flows_info.lua": {
+		"/lua/pro/rest/v2/get/db/historical_db_search.lua": {
 			"get": {
 				"tags": [
 					"Traffic"
 				],
-				"summary": "Get host flows info",
-				"description": "Get host flows info",
-				"operationId": "get_host_flows_flows_info",
+				"summary": "Get historical flows info",
+				"description": "Get historical flows info",
+				"operationId": "get_db_historical_db_search",
 				"produces": [
 					"application/json"
 				],
