@@ -470,7 +470,7 @@ function printVLANFilterDropdown(base_url, page_params)
       vlan_id_params["vlan"] = vid
       print[[
          <li>\
-           <a class="dropdown-item ]] print(vlan_id == tostring(vid) and 'active' or '') print[[" href="]] print(getPageUrl(base_url, vlan_id_params)) print[[">VLAN ]] print(tostring(vid)) print[[</a></li>\]]
+           <a class="dropdown-item ]] print(vlan_id == tostring(vid) and 'active' or '') print[[" href="]] print(getPageUrl(base_url, vlan_id_params)) print[[">VLAN ]] print(tostring(getFullVlanName(vid))) print[[</a></li>\]]
    end
    print[[
 
