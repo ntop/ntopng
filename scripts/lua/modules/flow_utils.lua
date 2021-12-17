@@ -1912,6 +1912,15 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     printHostPoolDropdown(base_url, host_pool_params, flowstats["host_pool_id"] or {})
     print [[</div>']]
 
+    -- Host Pool selector
+    -- table.clone needed to modify some parameters while keeping the original unchanged
+    local local_network_params = table.clone(page_params)
+    local_network_params["network"] = nil
+
+    print[[, '<div class="btn-group float-right">]]
+    printLocalNetworksDropdown(base_url, local_network_params)
+    print [[</div>']]
+
     -- IP version selector
     -- table.clone needed to modify some parameters while keeping the original unchanged
     local ipversion_params = table.clone(page_params)

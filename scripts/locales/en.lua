@@ -2788,6 +2788,8 @@ local lang = {
     ["total_bytes_unknown"] = "Total Unknown Applications Bytes",
     ["udp_only"] = "UDP Only",
     ["vlan"] = "VLAN",
+    ["networks"] = "Networks",
+    ["all_networks"] = "All Networks",
   },
   ["geo_map"] = {
     ["browser_reported_home_map"] = "Browser reported home map location",

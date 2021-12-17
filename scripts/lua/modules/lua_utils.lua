@@ -584,6 +584,44 @@ function printHostPoolDropdown(base_url, page_params, host_pool_list)
    print[[</ul>]]
 end
 
+-- ###################################
+
+function printLocalNetworksDropdown(base_url, page_params)
+   local networks_stats = interface.getNetworksStats()
+
+   local ids = {}
+   for n, local_network in pairs(networks_stats) do
+      local network_name = getFullLocalNetworkName(local_network["network_key"])
+      ids[network_name] = local_network
+   end
+
+   local local_network_id = _GET["network"]
+   local local_network_id_filter = ''
+   if not isEmptyString(local_network_id) then
+      local_network_id_filter = '<span class="fas fa-filter"></span>'
+   end
+
+   -- table.clone needed to modify some parameters while keeping the original unchanged
+   local local_network_id_params = table.clone(page_params)
+   local_network_id_params["network"] = nil
+
+   print[[\
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.networks")) print[[]] print(local_network_id_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
+	 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, local_network_id_params)) print[[">]] print(i18n("flows_page.all_networks")) print[[</a></li>\]]
+
+   for local_network_name, local_network in pairsByKeys(ids) do
+      local cur_id = local_network["network_id"]
+      local_network_id_params["network"] = cur_id
+      print[[
+	 <li>\
+	   <a class="dropdown-item ]] print(local_network_id == tostring(cur_id) and 'active' or '') print[[" href="]] print(getPageUrl(base_url, local_network_id_params)) print[[">]] print(local_network_name) print[[</a></li>\]]
+   end
+   print[[
+
+      </ul>]]
+end
+
 -- ##############################################
 
 function printTrafficTypeFilterDropdown(base_url, page_params)
