@@ -9,6 +9,9 @@ ignore: # duration and last seen depend on the current system time, whereas firs
   - throughput_trend_pps
   - throughput_bps
   - throughput_pps
+  - bytes
+  - packets
+  - num_flows
 
 pre: |
 
