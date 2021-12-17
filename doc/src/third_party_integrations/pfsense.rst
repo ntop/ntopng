@@ -220,5 +220,24 @@ Now, if everything has been set up properly, redis can be started/stopped as
    Waiting for PIDS: 21581.
 
 
+Uninstall
+=========
+
+To uninstall execute
 
 
+.. code:: bash
+
+   pkg remove ntop ntopng
+
+This will remove both the repository and the package. To also wipe data (e.g., host timeseries) execute
+
+.. code:: bash
+
+   rm -rf /var/db/ntopng
+
+Finally, disable Redis if no longer necessary
+
+.. code:: bash
+
+   service redis disable
