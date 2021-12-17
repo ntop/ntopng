@@ -1,6 +1,7 @@
 input: test_01.pcap
 
 ignore:
+  - value
 
 pre: |
 
