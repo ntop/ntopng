@@ -438,6 +438,9 @@ $(document).ready(function() {
 
             $inputEndEpoch.datetimepicker('date', now);
             $inputBeginEpoch.datetimepicker('date', diff);
+
+            begin = begin.unix();
+            end = end.unix();
         } else {
             if(document.getElementById('begin-epoch') && $(`#begin-epoch`)[0].value !== "") 
                 begin = $(`#begin-epoch`).datetimepicker('date').utc().unix();
