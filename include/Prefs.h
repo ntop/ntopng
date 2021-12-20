@@ -171,6 +171,7 @@ class Prefs {
 
   void setTraceLevelFromRedis();
   void parseHTTPPort(char *arg);
+  char *parseLocalNetworks(char *arg);
 
   static inline void set_binding_address(char ** const dest, const char * const addr) {
     if(dest && addr && addr[0] != '\0') {

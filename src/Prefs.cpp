@@ -316,11 +316,14 @@ void usage() {
 	 "[--https-port|-W] <[:]https port>   | HTTPS. See also -w above. Default: %u\n"
 	 "[--local-networks|-m] <local nets>  | Local networks list.\n"
 	 "                                    | <local nets> is a comma-separated list of networks\n"
-	 "                                    | in CIDR format. An optional '=<alias>' is supported\n"
+	 "                                    | in CIDR format or a path to a file.\n"
+	 "                                    | The file accepts multiple lines with networks in CIDR format.\n"
+	 "                                    | An optional '=<alias>' is supported\n"
 	 "                                    | to specify an alias.\n"
 	 "                                    | Examples:\n"
 	 "                                    | -m \"192.168.1.0/24,172.16.0.0/16\"\n"
 	 "                                    | -m \"192.168.1.0/24=LAN_1,192.168.2.0/24=LAN_2,10.0.0.0/8\"\n"
+	 "                                    | -m \"/path/to/local_networks_file\"\n"
 	 "[--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file\n"
 	 "                                    | (eg. protos.txt)\n"
 	 "[--redis|-r] <fmt>                  | Redis connection. <fmt> is specified as\n"
@@ -905,6 +908,44 @@ void Prefs::parseHTTPPort(char *arg) {
 
 /* ******************************************* */
 
+char *Prefs::parseLocalNetworks(char *arg) {
+  struct stat buf;
+  if(stat(arg, &buf) == 0 && S_ISREG(buf.st_mode)) {
+    string res;
+    string line;
+    ifstream fl(arg);
+
+    if(fl.is_open()){
+      /*
+	A file with local networks.
+	Multiple local networks are expressed either using commas and also on multiple lines.
+
+	File example:
+	192.168.2.0/24=office,192.168.2.1/32,8.8.8.8/32
+	9.9.9.9/32
+	10.0.0.0/8
+       */
+      while(getline(fl, line)){
+	/* Append the comma if local networks are specified across multiple file lines */
+	if(res.size() > 0)
+	  res += ",";
+
+	/* Append the current line with one or more local networks */
+	res += line;
+      }
+
+      fl.close();
+    }
+
+    return strdup(res.c_str());
+  }
+
+  /* Assumes local networks are specified as comma-separated straight into `arg` */
+  return strdup(arg);
+}
+
+/* ******************************************* */
+
 void Prefs::setCommandLineString(int optkey, const char * optarg){
   char *p, *opt = NULL;
   int len = 6;
@@ -1055,10 +1096,17 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'm':
-    free(local_networks);
-    local_networks = strdup(optarg);
-    local_networks_set = true;
+    {
+      char *cur_nets = parseLocalNetworks(optarg);
+
+      if(cur_nets) {
+	free(local_networks);
+	local_networks = cur_nets;
+	local_networks_set = true;
+      }
+
     break;
+    }
 
 #ifndef HAVE_NEDGE
   case 'n':
