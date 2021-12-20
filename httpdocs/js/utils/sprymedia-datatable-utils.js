@@ -725,7 +725,7 @@ class DataTableRenders {
 
         let cliFlagLabel= ''
 
-        if (flow.cli_ip.country)
+        if (flow.cli_ip.country && flow.cli_ip.country !== "nil")
             cliFlagLabel = ' <img src="' + http_prefix + '/img/blank.gif" class="flag flag-' + flow.cli_ip.country.toLowerCase() + '"></a> ';
 
         let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('cli_port', flow.cli_port, flow.cli_port) : "");
@@ -741,7 +741,7 @@ class DataTableRenders {
 
         let srvFlagLabel= ''
 
-        if (flow.srv_ip.country)
+        if (flow.srv_ip.country && flow.srv_ip.country !== "nil")
             srvFlagLabel = ' <img src="' + http_prefix + '/img/blank.gif" class="flag flag-' + flow.srv_ip.country.toLowerCase() + '"></a> ';
 
         let cliIcons = "";
@@ -760,7 +760,7 @@ class DataTableRenders {
                 srvIcons += DataTableRenders.filterize('role', 'victim',  '<i class="fas fa-sad-tear" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
         }
 
-        return `${active_ref} ${cliLabel}${cliFlagLabel}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
+        return `${active_ref} ${cliLabel}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
     }
 
     static formatNameDescription(obj, type, row) {

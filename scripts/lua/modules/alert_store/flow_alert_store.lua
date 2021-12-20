@@ -488,12 +488,22 @@ function flow_alert_store:format_record(value, no_html)
 	 reference_html = ""
       end
    end
+
+   -- In case no country is found, let's check if the host is in memory and retrieve country info
+   local country = value["cli_country"]
+
+   if isEmptyString(country) or country == "nil" then
+      local host_info = interface.getHostMinInfo(cli_ip)
+      if host_info then
+         country = host_info["country"] or ""
+      end
+   end
   
    local flow_cli_ip = {
       value = cli_ip,
       label = cli_ip,
       reference = reference_html,
-      country = value["cli_country"]
+      country = country
    }
 
    if no_html then
@@ -518,11 +528,21 @@ function flow_alert_store:format_record(value, no_html)
       end
    end
 
+   -- In case no country is found, let's check if the host is in memory and retrieve country info
+   country = value["srv_country"]
+
+   if isEmptyString(country) or country == "nil" then
+      local host_info = interface.getHostMinInfo(srv_ip)
+      if host_info then
+         country = host_info["country"] or ""
+      end
+   end
+
    local flow_srv_ip = {
       value = srv_ip,
       label = srv_ip,
       reference = reference_html,
-      country = value["srv_country"]
+      country = country
    }
 
    if no_html then
