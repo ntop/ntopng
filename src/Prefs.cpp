@@ -1408,15 +1408,14 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    mysql_dbname = strdup((char*)"ntopng");
 	    mysql_user   = strdup((char*)"default");
 	    mysql_pw     = strdup((char*)"");
-	  } else {	    
+	  } else {
 	    optarg = Utils::tokenizer(sep + 1, ';', &mysql_host);
 	    optarg = Utils::tokenizer(optarg, ';',  &mysql_dbname);
 	    
 	    if(num_semicolumns == 5) {
-	      char *mysql_tablename;
-	      
-	      /* Skip it */
-	      optarg = Utils::tokenizer(optarg, ';',  &mysql_tablename);
+	      char *mysql_tablename = NULL;
+	      optarg = Utils::tokenizer(optarg, ';',  &mysql_tablename); /* Skip it */
+              if (mysql_tablename) free(mysql_tablename);
 	    }
 	    
 	    optarg = Utils::tokenizer(optarg, ';',  &mysql_user);
@@ -1427,7 +1426,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))
 	      mysql_dbname  = strdup("ntopng");
 	      
-	    if((mysql_pw == NULL) || (mysql_pw[0] == '\0')) mysql_pw  = strdup("");
+	    if(mysql_pw == NULL) mysql_pw = strdup("");
 
 	    /* Check for non-default SQL port on -F line */
 	    char* mysql_port_str;
