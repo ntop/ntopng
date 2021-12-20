@@ -16,7 +16,7 @@
 	    },
 	    "chart_gui_filter" : "l7cat", // Filter displayed in the GUI
 	    "chart_sql_query" : "SELECT L7_CATEGORY,SUM(TOTAL_BYTES) AS bytes FROM flows WHERE ($WHERE) GROUP BY L7_CATEGORY ORDER BY bytes DESC",
-	    "chart_type" : "donut_apex_chart",
+	    "chart_type" : "polararea_apex_chart",
 	    "chart_record_value" : "bytes",
 	    "chart_record_label" : "L7_CATEGORY",
 	    "chart_width" : 4, // Chart width, it can be a number between 1 and 12, optional feature
@@ -76,7 +76,7 @@
 	    },
 	    "chart_gui_filter" : "l7proto", // Filter displayed in the GUI
 	    "chart_sql_query" : "SELECT L7_PROTO,COUNT(*) AS flows FROM flows WHERE ($WHERE) GROUP BY L7_PROTO ORDER BY flows DESC LIMIT 15",
-	    "chart_type" : "bar_apex_chart",
+	    "chart_type" : "treemap_apex_chart",
 	    "chart_i18n_extra_x_label" : "flows",
 	    "chart_record_value" : "flows",
 	    "chart_record_label" : "L7_PROTO",

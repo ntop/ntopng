@@ -164,6 +164,22 @@ function widget_gui_utils.register_radar_chart(name, update_time, datasources, a
     widget_gui_utils.register_chart_widget(name, 'radar', update_time, datasources, additional_params)
 end
 
+function widget_gui_utils.register_polararea_chart(name, update_time, datasources, additional_params)
+    widget_gui_utils.register_chart_widget(name, 'polarArea', update_time, datasources, additional_params)
+end
+
+function widget_gui_utils.register_radialbar_chart(name, update_time, datasources, additional_params)
+    widget_gui_utils.register_chart_widget(name, 'radialBar', update_time, datasources, additional_params)
+end
+
+function widget_gui_utils.register_heatmap_chart(name, update_time, datasources, additional_params)
+    widget_gui_utils.register_chart_widget(name, 'heatmap', update_time, datasources, additional_params)
+end
+
+function widget_gui_utils.register_treemap_chart(name, update_time, datasources, additional_params)
+    widget_gui_utils.register_chart_widget(name, 'treemap', update_time, datasources, additional_params)
+end
+
 ---Render all registered chart widgets.
 ---@return string
 function widget_gui_utils.render_chart_widgets()
