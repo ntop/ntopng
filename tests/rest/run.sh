@@ -441,7 +441,7 @@ run_tests() {
         send_error "ntopng TESTS completed with errors" "${NUM_SUCCESS} out of ${NUM_TESTS} completed successfully." ""
     fi
 
-    ntopng_cleanup
+    #ntopng_cleanup
 }
 
 if [ ! -z "${TEST_NAME}" ]; then

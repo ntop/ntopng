@@ -2776,7 +2776,6 @@ void Ntop::runShutdownTasks() {
 
 /* ******************************************* */
 
-
 /*
   Checks if all the activities are completed (e.g., all packets processed, notifications sent)
   and possibly sends a shutdown signal to terminate.
@@ -2804,6 +2803,8 @@ void Ntop::checkShutdownWhenDone() {
 
     /* One extra housekeeping before executing tests (this assumes all flows have been walked) */
     runHousekeepingTasks();
+
+    runShutdownTasks();
 
     /* Test Script (Post Analysis) */
     if(ntop->getPrefs()->get_test_post_script_path()) {
