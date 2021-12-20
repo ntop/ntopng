@@ -247,9 +247,7 @@ char* IpAddress::printMask(char *str, u_int str_len, bool isLocalIP) {
 bool IpAddress::isLocalHost(int16_t *network_id) const {
   bool local = false;
 
-  if(addr.broadcastIP || addr.multicastIP) {
-    local = true;
-  } else if(addr.ipVersion == 4) {
+  if(addr.ipVersion == 4) {
     u_int32_t v = /* htonl */(addr.ipType.ipv4);
     local = ntop->isLocalAddress(AF_INET, (void*)&v, network_id);
   } else {
