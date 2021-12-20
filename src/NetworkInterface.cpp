@@ -4328,11 +4328,15 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
       return(false);
 
     if(retriever->pag
-       && retriever->pag->localNetworkFilter(&local_network_id)
-       && f->get_cli_host() && f->get_srv_host()
-       && f->get_cli_host()->get_local_network_id() != local_network_id
-       && f->get_srv_host()->get_local_network_id() != local_network_id)
-      return(false);
+       && retriever->pag->localNetworkFilter(&local_network_id)) {
+      int16_t cli_local_network_id, srv_local_network_id;
+
+      f->get_cli_ip_addr()->isLocalHost(&cli_local_network_id),
+	f->get_srv_ip_addr()->isLocalHost(&srv_local_network_id);
+
+      if(cli_local_network_id != local_network_id && srv_local_network_id != local_network_id)
+	return(false);
+    }
 
     if(retriever->pag
        && retriever->pag->vlanIdFilter(&vlan_id)
