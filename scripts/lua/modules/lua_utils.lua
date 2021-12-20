@@ -835,7 +835,7 @@ end
 
 function l4_proto_to_id(proto_name)
   for _, proto in pairs(l4_keys) do
-    if proto[2] == proto_name then
+    if proto[1] == proto_name or proto[2] == proto_name then
       return(proto[3])
     end
   end
