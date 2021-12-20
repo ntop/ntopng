@@ -1,7 +1,7 @@
 input: synscan.pcap
 
 options:
-  - -F=nindex
+  - -F="clickhouse;127.0.0.1;ntopngtests;flows;default;"
 
 ignore:
   - date

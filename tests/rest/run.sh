@@ -20,6 +20,7 @@ NTOPNG_TEST_CONF="${NTOPNG_TEST_DATADIR}/ntopng.conf"
 NTOPNG_TEST_CUSTOM_PROTOS="${NTOPNG_TEST_DATADIR}/protos.txt"
 NTOPNG_TEST_REDIS="2"
 NTOPNG_TEST_HTTP_PORT="3333"
+NTOPNG_TEST_DB="ntopngtests"
 
 DEFAULT_PCAP="test_01.pcap"
 
@@ -164,6 +165,11 @@ ntopng_cleanup() {
     # Cleanup old test stuff
     redis-cli -n "${NTOPNG_TEST_REDIS}" "flushdb" > /dev/null 2>&1
     rm -rf "${NTOPNG_TEST_DATADIR}"
+
+    # Cleanup database if any
+    if command -v clickhouse-client &> /dev/null; then
+        clickhouse-client -q "DROP database IF EXISTS ${NTOPNG_TEST_DB}"
+    fi
 }
 
 ntopng_init_conf() {
