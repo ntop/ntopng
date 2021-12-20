@@ -508,8 +508,7 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
 
 <div id="legend"></div>
 <div id="chart_legend"></div>
-<div id="chart" style="margin-right: 50px; margin-left: 10px; display: table-cell"></div>
-<p style='color: lightgray'><small>NOTE: Click on the graph to zoom.</small>
+<div id="chart" style="margin-right: 3rem; margin-left: 1rem; display: table-cell"></div>
 
 </td>
 
@@ -517,7 +516,7 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
 <td rowspan=2>
 <div id="y_axis"></div>
 
-<div style="margin-left: 10px; display: table">
+<div style="margin-left: 1rem; display: table">
 <div id="chart_container" style="display: table-row">
 
    ]]
@@ -571,7 +570,7 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
    end
 
    print [[
-   <table class="table table-bordered table-striped" style="border: 0; margin-right: 10px; display: table-cell">
+   <table class="table table-bordered table-striped" style="border: 1rem; margin-right: 1rem; display: table-cell">
    ]]
 
    print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
@@ -664,9 +663,12 @@ var palette = new Rickshaw.Color.Palette();
 
 var graph = new Rickshaw.Graph( {
 				   element: document.getElementById("chart"),
-				   width: 600,
-				   height: 300,
-				   renderer: 'area',
+				   width: 750,
+               stroke: true,
+               min: 'auto',
+               padding: {top: 0.02, bottom: 0.02},
+               height: 350,
+               renderer: 'area',
 				   series: [
 				]]
 
@@ -698,7 +700,7 @@ var chart_legend = document.querySelector('#chart_legend');
 
 var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
     graph: graph,
-    xFormatter: function(x) { return new Date( x * 1000 ); },
+    xFormatter: function(x) { return NtopUtils.epoch2Seen(x); },
     yFormatter: function(bits) { return(]] print(formatter_fctn) print [[(bits)); },
     render: function(args) {
 		var graph = this.graph;
@@ -707,7 +709,7 @@ var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
 
 		if(point.value.y === null) return;
 
-		var formattedXValue = NtopUtils.fdate(point.value.x); // point.formattedXValue;
+		var formattedXValue = NtopUtils.epoch2Seen(point.value.x); // point.formattedXValue;
 		var formattedYValue = ]]
    print(formatter_fctn)
    print [[(point.value.y); // point.formattedYValue;
@@ -769,6 +771,8 @@ infoHTML += "</ul>";]]
 
 		item.className = 'item';
 		item.innerHTML = this.formatter(point.series, point.value.x, point.value.y, formattedXValue, formattedYValue, point);
+      let tmp = item.innerHTML;
+      item.innerHTML = formattedXValue + "<br>" + tmp;
 		item.style.top = this.graph.y(point.value.y0 + point.value.y) + 'px';
 		this.element.appendChild(item);
 
@@ -809,6 +813,7 @@ var legend = new Rickshaw.Graph.Legend( {
 
 var yAxis = new Rickshaw.Graph.Axis.Y({
     graph: graph,
+    padding: { top: 0.02, bottom: 0.02 },
     tickFormat: ]] print(formatter_fctn) print [[
 });
 
