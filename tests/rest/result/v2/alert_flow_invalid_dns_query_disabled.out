@@ -1,0 +1,3 @@
+{"success":true}
+{"rc":0,"rc_str":"OK","rc_str_hr":"Success","rsp":{"success":true}}
+{"rc":0,"rc_str":"OK","rc_str_hr":"Success","recordsFiltered":0,"recordsTotal":0,"rsp":{"records":[],"stats":{"query":" SELECT 4 entity_id, (tstamp_end - tstamp) duration, *, hex(alerts_map) alerts_map FROM `flow_alerts` WHERE 1 = 1    ","query_duration_msec":0.19383430480957}}}
