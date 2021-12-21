@@ -1017,6 +1017,9 @@ footer {
 .percentage-widget .percentage.negative {
   color: #e93d3d;
 }
+.widget-name {
+  text-align: center;
+}
 .fit-content {
   width: fit-content;
   width: -moz-fit-content;

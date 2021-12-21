@@ -136,6 +136,7 @@
 	    "chart_i18n_extra_y_label" : "score",
 	    "chart_i18n_extra_x_label" : "flows",
 	    "chart_series_name" : "score_distribution",
+        "chart_record_label" : "SCORE",
 	    "chart_y_formatter" : "format_value",
 	}
     ],

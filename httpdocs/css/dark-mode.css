@@ -493,6 +493,10 @@ text, g text.tick {
   stroke: #2C2C2C !important;
 }
 
+.widget-name {
+  align-items: center;
+}
+
 .modal-header .close {
   color: white;
 }

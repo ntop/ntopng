@@ -303,9 +303,6 @@ class ChartWidget extends Widget {
             },
             zaxis: {
                 labels: {
-                    tooltip: {
-                        enabled: false,
-                    },
                     style: {
                         fontSize: '14px',
                     }
