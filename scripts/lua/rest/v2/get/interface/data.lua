@@ -188,6 +188,14 @@ function dumpInterfaceStats(ifid)
 	 },
       }
 
+      local download_stats = ifstats["stats"]["download_stats"]
+      local upload_stats = ifstats["stats"]["upload_stats"]
+
+      res["download_upload_chart"] = {
+         download = download_stats,
+         upload = upload_stats,
+      }
+
       if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
          res["netfilter"] = ifstats.netfilter
       end

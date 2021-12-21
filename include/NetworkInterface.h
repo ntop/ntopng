@@ -147,6 +147,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   std::map<std::pair<AlertEntity, std::string>, AlertableEntity*> external_alerts;
   Mutex external_alerts_lock;
 
+  RoundTripStats *download_stats, *upload_stats;
+
   bool is_view;                  /* Whether this is a view interface */
   ViewInterface *viewed_by;      /* Whether this interface is 'viewed' by a ViewInterface */
   u_int8_t viewed_interface_id;  /* When this is a 'viewed' interface, this id represents a unique interface identifier inside the view */

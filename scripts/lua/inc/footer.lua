@@ -181,7 +181,6 @@ print([[
 ]])
 
 -- End of Toggle System Interface
-
 -- Import the BlogNotification Utils script only
 -- if ntopng is not in OEM version
 if not info.oem then
@@ -243,11 +242,11 @@ const footerRefresh = function() {
                                   var values1 = updatingChart_downloads[0].text().split(",")
                                   var values2 = updatingChart_totals[0].text().split(",")
                                   values.shift();
-                                  values.push(bps_upload);
+                                  values.push(bps_upload.toString());
                                   updatingChart_uploads[0].text(values.join(",")).change();
                                   updatingChart_uploads[1].text(values.join(",")).change();
                                   values1.shift();
-                                  values1.push(-bps_download);
+                                  values1.push((-bps_download).toString());
                                   updatingChart_downloads[0].text(values1.join(",")).change();
                                   updatingChart_downloads[1].text(values1.join(",")).change();
                                   values2.shift();

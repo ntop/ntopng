@@ -65,6 +65,8 @@ class EthStats {
   inline u_int64_t getNumEgressPackets()  { return(rawEgress.getPkts());   };
   inline u_int64_t getNumIngressBytes()   { return(rawIngress.getBytes()); };
   inline u_int64_t getNumEgressBytes()    { return(rawEgress.getBytes());  };
+  inline float getIngressBytesThpt()      { return(ingress_bytes_thpt.getThpt()); };
+  inline float getEgressBytesThpt()       { return(egress_bytes_thpt.getThpt());  };
 
   inline u_int64_t getNumPackets() { return(rawIngress.getPkts() + rawEgress.getPkts());  };
   inline u_int64_t getNumBytes()   { return(rawIngress.getBytes() + rawEgress.getBytes()); };

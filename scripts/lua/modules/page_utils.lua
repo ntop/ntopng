@@ -791,17 +791,31 @@ function page_utils.generate_info_stats()
 
    local _ifstats = interface.getStats()
 
+   local upload_stats = ""
+   local download_stats = ""
+
+   for _, v in pairs(_ifstats["stats"]["download_stats"]) do
+      download_stats = download_stats .. tostring(-v * 1000 * 8) .. "," -- push the values in bit, they are stored as KB in c++
+   end
+   
+   for _, v in pairs(_ifstats["stats"]["upload_stats"]) do
+      upload_stats = upload_stats .. tostring(v * 1000 * 8) .. "," -- push the values in bit, they are stored as KB in c++
+   end
+
+   download_stats = download_stats:sub(1, -2)
+   upload_stats = upload_stats:sub(1, -2)
+
    if _ifstats.has_traffic_directions then
       return ([[
          <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
             <div class='up'>
                <i class="fas fa-arrow-up"></i>
-               <span style='display: none;' class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+               <span style='display: none;' class="network-load-chart-upload">]] .. upload_stats .. [[</span>
                <span class="text-end chart-upload-text"></span>
             </div>
             <div class='down'>
                <i class="fas fa-arrow-down"></i>
-               <span style='display: none;' class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+               <span style='display: none;' class="network-load-chart-download">]] .. download_stats.. [[</span>
                <span class="text-end chart-download-text"></span>
             </div>
          </a>
@@ -809,7 +823,7 @@ function page_utils.generate_info_stats()
    else
       return ([[
          <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
-            <span style='display: none;' class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+            <span style='display: none;' class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0</span>
             <span class="text-end chart-total-text"></span>
          </a>
       ]])

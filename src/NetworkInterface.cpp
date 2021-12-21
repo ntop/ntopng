@@ -306,6 +306,7 @@ void NetworkInterface::init() {
   is_view = false;
   viewed_by = NULL;
   viewed_interface_id = 0;
+  download_stats = upload_stats = NULL;
 
   db = NULL;
 #ifdef NTOPNG_PRO
@@ -738,6 +739,8 @@ void NetworkInterface::deleteDataStructures() {
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
   if(gw_macs)               { delete(gw_macs);    gw_macs = NULL;    }
+  if(download_stats)        { delete(download_stats); download_stats = NULL;   }
+  if(upload_stats)          { delete(upload_stats); upload_stats = NULL;       }
 
   if(companionQueue) {
     for(u_int16_t i = 0; i < COMPANION_QUEUE_LEN; i++)
@@ -3422,6 +3425,9 @@ void NetworkInterface::periodicStatsUpdate() {
   bytes_thpt.updateStats(&tv, getNumBytes());
   pkts_thpt.updateStats(&tv, getNumPackets());
   ethStats.updateStats(&tv);
+
+  download_stats->addPoint((u_int32_t) ethStats.getIngressBytesThpt() / 1000);
+  upload_stats->addPoint((u_int32_t) ethStats.getEgressBytesThpt() / 1000); /* Use KB instead of Bytes */
 
   if(ndpiStats)
     ndpiStats->updateStats(&tv);
@@ -6292,6 +6298,9 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "throughput_trend_pps", pkts_thpt.getTrend());
   l4Stats.luaStats(vm);
 
+  if(download_stats) download_stats->luaRTStats(vm, "download_stats");
+  if(upload_stats)   upload_stats->luaRTStats(vm, "upload_stats");
+
   if(db) db->lua(vm, false /* Overall */);
 
   lua_pushstring(vm, "stats");
@@ -7199,6 +7208,9 @@ void NetworkInterface::allocateStructures() {
     statsManager     = new StatsManager(id, STATS_MANAGER_STORE_NAME);
     ndpiStats        = new nDPIStats(true /* Enable throughput calculation */, ntop->getPrefs()->isIfaceL7BehavourAnalysisEnabled());
     dscpStats        = new DSCPStats();
+
+    download_stats   = new RoundTripStats();
+    upload_stats     = new RoundTripStats();
 
     gw_macs          = new MacHash(this, 32, 64);
 
