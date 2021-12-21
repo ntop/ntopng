@@ -17,6 +17,7 @@ ignore:
   - mem_ntopng_virtual
   - mem_total
   - written_alerts
+  - out_of_maintenance
 
 pre: |
 
