@@ -201,8 +201,7 @@ function format_utils.formatEpochISO8601(epoch)
   if epoch == 0 then
     return("")
   else
-     local t = epoch + getFrontendTzSeconds()
-     return os.date("!%Y-%m-%dT%TZ", t)
+     return os.date("!%Y-%m-%dT%TZ", epoch)
   end
 end
 

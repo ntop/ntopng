@@ -683,7 +683,11 @@ function alert_utils.formatAlertNotification(notif, options)
    if(options.nodate == true) then
       when = ""
    else
-      when = formatEpoch(notif.tstamp_end or notif.tstamp or 0)
+      if options.timezone then
+	 when = format_utils.formatEpochISO8601(notif.tstamp_end or notif.tstamp or 0)
+      else
+	 when = format_utils.formatEpoch(notif.tstamp_end or notif.tstamp or 0)
+      end
 
       if(not options.no_bracket_around_date) then
 	 when = "[" .. when .. "]"

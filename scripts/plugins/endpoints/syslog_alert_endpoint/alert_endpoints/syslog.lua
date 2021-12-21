@@ -98,7 +98,9 @@ function syslog.sendMessage(settings, notif, severity)
       msg = alert_utils.formatAlertNotification(json.decode(notif), {
          nohtml = true,
 	 show_severity = true,
-	 show_entity = true})
+	 show_entity = true,
+	 timezone = true --[[ Epochs adjusted to the server TZ using ISO 8601 date format --]]
+      })
    end
 
    if settings.host == nil then
@@ -121,7 +123,7 @@ function syslog.sendMessage(settings, notif, severity)
          -- <PRIO>VERSION ISOTIMESTAMP HOSTNAME APPLICATION PID MESSAGEID MSG
          -- Example:
          -- <113>1 2020-11-19T18:31:21.003Z 192.168.1.1 ntopng 21365 ID1 -
-         msg = "<"..prio..">1 "..iso_time.." "..host.." "..tag.." "..pid.." - - "..msg
+         msg = "<"..prio..">1 "..iso_time.." "..host.." "..tag.." "..pid.." - - "..msg	 
       else
          -- local log_time = format_utils.formatEpoch() -- "2020-11-09 18:00:00"
          local log_time = os.date("!%b %d %X") -- "Feb 25 09:58:12"
