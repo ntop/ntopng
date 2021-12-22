@@ -4,6 +4,7 @@
 
 -- ##############################################
 
+-- Keep in sync with ntop_typedefs.h FlowAlertTypeEnum
 local flow_alert_keys = {
    flow_alert_normal                          = 0,
    flow_alert_blacklisted                     = 1,

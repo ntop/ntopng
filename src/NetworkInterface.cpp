@@ -8961,6 +8961,11 @@ static void handle_entity_alerts(AlertCheckLuaEngine *acle, AlertableEntity *ent
 
 /* *************************************** */
 
+/*
+  Executes checks for local networks. A Lua interpreter is spawn and then `runScripts`
+  is executed for each local network.
+  See scripts/callbacks/interface/networks.lua for the implementation of `runScripts`
+ */
 void NetworkInterface::checkNetworksAlerts(vector<ScriptPeriodicity> *p, lua_State* vm) {
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
 
@@ -8988,6 +8993,10 @@ void NetworkInterface::checkNetworksAlerts(vector<ScriptPeriodicity> *p, lua_Sta
 
 /* *************************************** */
 
+/*
+  Same as NetworkInterface::checkNetworksAlerts for the interface.
+  See scripts/callbacks/interface/interface.lua
+ */
 void NetworkInterface::checkInterfaceAlerts(vector<ScriptPeriodicity> *p, lua_State* vm) {
   if(!p || p->size() == 0)
     return;

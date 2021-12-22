@@ -4,6 +4,7 @@
 
 -- ##############################################
 
+-- Keep in sync with ntop_typedefs.h HostAlertTypeEnum
 local host_alert_keys = {
   host_alert_normal                      =  0,
   host_alert_smtp_server_contacts        =  1,
