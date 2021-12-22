@@ -225,9 +225,9 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
-
     // Drop old tables (their contents have been transferred)
   }
+  
   snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS  `%sv4_%u` ",
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
   exec_sql_query(&mysql, sql, true, true);
@@ -882,8 +882,11 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
      Don't check db_created here. This method is private
      so hopefully we know what we're doing.
    */
-  if(!db_operational)
-    return(-2);
+  if(!db_operational) {
+    if(!connectToDB(conn, true)
+)
+      return(-3);    
+  }
   
   if(doLock) m.lock(__FILE__, __LINE__);
   if((rc = mysql_query(conn, sql)) != 0) {
@@ -943,9 +946,13 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
   int rc;
   struct timeval begin, end;
   
-  if((wait_for_db_created && !db_created /* Make sure the db exists before doing queries */)
-     || !db_operational)
+  if((wait_for_db_created && !db_created /* Make sure the db exists before doing queries */))
     return(-2);
+  
+  if(!db_operational) {
+    if(!connectToDB(&mysql, true))
+      return(-3);    
+  }
 
   if(enable_db_traces) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql);
@@ -1024,9 +1031,14 @@ int MySQLDB::exec_quick_sql_query(char *sql, char *out, u_int out_len) {
   struct timeval begin, end;
 
   out[0] = '\0';
-  if((!db_created /* Make sure the db exists before doing queries */)
-     || !db_operational)
+
+  if(!db_created /* Make sure the db exists before doing queries */)    
     return(-2);
+  
+  if(!db_operational) {
+    if(!connectToDB(&mysql, true))
+      return(-3);    
+  }
 
   if(enable_db_traces) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql);
