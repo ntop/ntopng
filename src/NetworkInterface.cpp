@@ -9610,7 +9610,7 @@ void NetworkInterface::execHostChecks(Host *h) {
 /* *************************************** */
 
 void NetworkInterface::incObservationPointIdFlows(u_int16_t pointId) {
-  ObservationPoint *obs_point_stats = obs_hash->get(pointId, true /* Lock */);
+  ObservationPoint *obs_point_stats = obs_hash ? obs_hash->get(pointId, true /* Lock */) : NULL;
   if(obs_point_stats)
     obs_point_stats->incFlows();
 }
