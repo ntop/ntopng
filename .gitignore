@@ -99,7 +99,16 @@ tests/rest/conflicts/*.out
 
 # Ignore callback objects
 src/flow_alerts/*.o
+src/flow_checks/*.o
 src/host_alerts/*.o
+src/host_checks/*.o
 src/flow_callbacks/*.o
 src/host_callbacks/*.o
+
+# Ignore config files and tests
 .vscode/
+tests/rest/conflicts/*
+ntopng.pid
+packages/wizard/ntopng-config
+tests/rest/data/*
+tools/tmp.csv
