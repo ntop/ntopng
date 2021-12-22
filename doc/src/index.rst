@@ -5,6 +5,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
 
 .. toctree::
    :maxdepth: 2
+   :caption: User's Guide
 
    what_is_ntopng
    use_cases/index
@@ -25,8 +26,24 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    third_party_integrations/index
    faq
    performances/index
+
+.. toctree::
+   :caption: Developer's Guide
+
    plugins/index
    api/index
+
+.. toctree::
+   :caption: Other Products
+
+   nProbe <https://www.ntop.org/guides/nprobe/>
+   nProbe Cento <https://www.ntop.org/guides/cento/>
+   n2disk <https://www.ntop.org/guides/n2disk/>
+   nDPI <https://www.ntop.org/guides/nDPI/>
+   PF_RING <https://www.ntop.org/guides/pf_ring/>
+   nEdge <https://www.ntop.org/guides/nedge/>
+   nScrub <https://www.ntop.org/guides/nscrub/>
+   nBox <https://www.ntop.org/guides/nbox/>
 
 .. Indices and tables
 .. ==================
