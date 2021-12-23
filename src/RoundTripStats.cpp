@@ -59,3 +59,12 @@ void RoundTripStats::luaRTStats(lua_State* vm, const char *stats_name) {
 }
 
 /* **************************************** */
+
+void RoundTripStats::sum(RoundTripStats *_stats) {
+    u_int32_t *_viewed_stats = _stats->getStats();
+
+    for (int i = 0; i < 10; i++)
+        _viewed_stats[i] += stats[i];
+}
+
+/* **************************************** */

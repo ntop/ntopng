@@ -24,16 +24,17 @@
 
 class RoundTripStats {
  private:
-    u_int32_t stats[10];
-    u_int8_t stats_it;
+   u_int32_t stats[10];
+   u_int8_t stats_it;
 
  public:
-    RoundTripStats();
-    ~RoundTripStats();
+   RoundTripStats();
+   ~RoundTripStats();
     
-    void addPoint(u_int32_t thpt);
-    
-    void luaRTStats(lua_State* vm, const char *stats_name);
+   void addPoint(u_int32_t thpt);
+   void sum(RoundTripStats *_stats);    
+   void luaRTStats(lua_State* vm, const char *stats_name);
+   inline u_int32_t *getStats() { return(stats); };
 };
 
 #endif /* _ROUND_TRIP_STATS_H_ */

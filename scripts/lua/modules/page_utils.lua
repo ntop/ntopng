@@ -794,11 +794,11 @@ function page_utils.generate_info_stats()
    local upload_stats = ""
    local download_stats = ""
 
-   for _, v in pairs(_ifstats["stats"]["download_stats"]) do
+   for _, v in pairs(_ifstats["download_stats"]) do
       download_stats = download_stats .. tostring(-v * 1000 * 8) .. "," -- push the values in bit, they are stored as KB in c++
    end
    
-   for _, v in pairs(_ifstats["stats"]["upload_stats"]) do
+   for _, v in pairs(_ifstats["upload_stats"]) do
       upload_stats = upload_stats .. tostring(v * 1000 * 8) .. "," -- push the values in bit, they are stored as KB in c++
    end
 

@@ -188,8 +188,8 @@ function dumpInterfaceStats(ifid)
 	 },
       }
 
-      local download_stats = ifstats["stats"]["download_stats"]
-      local upload_stats = ifstats["stats"]["upload_stats"]
+      local download_stats = ifstats["download_stats"]
+      local upload_stats = ifstats["upload_stats"]
 
       res["download_upload_chart"] = {
          download = download_stats,

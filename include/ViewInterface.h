@@ -35,7 +35,8 @@ class ViewInterface : public NetworkInterface {
 			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
 			ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats,
-			SyslogStats *_syslogStats) const;
+			SyslogStats *_syslogStats, RoundTripStats *_downloadStats,
+         RoundTripStats *_uploadStats) const;
 
   bool addSubinterface(NetworkInterface *iface);
 

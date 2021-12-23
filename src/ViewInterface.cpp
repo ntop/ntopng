@@ -429,9 +429,10 @@ void ViewInterface::sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 			     LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 			     PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
 			     ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats,
-			     SyslogStats *_syslogStats) const {
+			     SyslogStats *_syslogStats, RoundTripStats *_downloadStats,
+           RoundTripStats *_uploadStats) const {
   for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    viewed_interfaces[s]->sumStats(_tcpFlowStats, _ethStats, _localStats, _ndpiStats, _pktStats, _tcpPacketStats, _discardedProbingStats, _dscpStats, _syslogStats);
+    viewed_interfaces[s]->sumStats(_tcpFlowStats, _ethStats, _localStats, _ndpiStats, _pktStats, _tcpPacketStats, _discardedProbingStats, _dscpStats, _syslogStats, _downloadStats, _uploadStats);
 }
 
 /* **************************************************** */

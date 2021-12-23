@@ -6206,7 +6206,9 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
 				TcpPacketStats *_tcpPacketStats,
 				ProtoStats *_discardedProbingStats,
 				DSCPStats *_dscpStats,
-				SyslogStats *_syslogStats) const {
+				SyslogStats *_syslogStats,
+        RoundTripStats *_downloadStats,
+        RoundTripStats *_uploadStats) const {
   tcpFlowStats.sum(_tcpFlowStats), ethStats.sum(_ethStats), localStats.sum(_localStats),
     pktStats.sum(_pktStats), tcpPacketStats.sum(_tcpPacketStats),
     discardedProbingStats.sum(_discardedProbingStats), syslogStats.sum(_syslogStats);
@@ -6215,6 +6217,11 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
     ndpiStats->sum(_ndpiStats);
   if(dscpStats)
     dscpStats->sum(_dscpStats);
+
+  if(_downloadStats)
+    download_stats->sum(_downloadStats);
+  if(_uploadStats)
+    download_stats->sum(_uploadStats);
 }
 
 /* *************************************** */
@@ -6223,6 +6230,8 @@ void NetworkInterface::lua(lua_State *vm) {
   char buf[32];
   TcpFlowStats _tcpFlowStats;
   EthStats _ethStats;
+  RoundTripStats _downloadStats;
+  RoundTripStats _uploadStats;
   LocalTrafficStats _localStats;
   nDPIStats _ndpiStats;
   PacketStats _pktStats;
@@ -6298,9 +6307,6 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "throughput_trend_pps", pkts_thpt.getTrend());
   l4Stats.luaStats(vm);
 
-  if(download_stats) download_stats->luaRTStats(vm, "download_stats");
-  if(upload_stats)   upload_stats->luaRTStats(vm, "upload_stats");
-
   if(db) db->lua(vm, false /* Overall */);
 
   lua_pushstring(vm, "stats");
@@ -6344,7 +6350,10 @@ void NetworkInterface::lua(lua_State *vm) {
 
   sumStats(&_tcpFlowStats, &_ethStats, &_localStats,
 	   &_ndpiStats, &_pktStats, &_tcpPacketStats, &_discardedProbingStats,
-           &_dscpStats, &_syslogStats);
+           &_dscpStats, &_syslogStats, &_downloadStats, &_uploadStats);
+
+  _downloadStats.luaRTStats(vm, "download_stats");
+  _uploadStats.luaRTStats(vm, "upload_stats");
 
   _tcpFlowStats.lua(vm, "tcpFlowStats");
   _ethStats.lua(vm);
