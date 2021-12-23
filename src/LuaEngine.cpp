@@ -157,9 +157,11 @@ LuaEngine::~LuaEngine() {
       if(ctx->sqlite_flows_filter)
 	free(ctx->sqlite_flows_filter);
 
+#if defined(NTOPNG_PRO)
       if(ctx->bin)
 	delete ctx->bin;
-      
+#endif
+
       free(ctx);
     }
 
