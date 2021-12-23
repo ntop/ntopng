@@ -714,7 +714,7 @@ class DataTableRenders {
 
     static formatFlowTuple(flow, type, row) {
         let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
-        
+
         let cliLabel = "";
         if (flow.cli_ip.name) {
           let title = "";
