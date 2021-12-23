@@ -65,7 +65,7 @@ local DS_class = {
 }
 
 function dscp_consts.dscp_descr(id)
-   local descr = DSCP[id]
+   local descr = DSCP[tonumber(id)]
    if descr == nil then
      descr = "Unknown ["..id.."]"
    end

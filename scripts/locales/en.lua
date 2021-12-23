@@ -1379,6 +1379,7 @@ local lang = {
     ["top_flows_ipv6"] = "Top IPv6 Flows [%{date_from} - %{date_to}]",
     ["top_proto_ipv4_flows"] = "Top %{proto} IPv4 Flows",
     ["top_proto_ipv6_flows"] = "Top %{proto} IPv6 Flows",
+    ["tos"] = "DSCP [ Client / Server ]",
     ["total_flows"] = "Total Flows",
     ["total_packets"] = "Total Packets",
     ["total_traffic"] = "Bytes Total",
