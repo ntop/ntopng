@@ -88,7 +88,7 @@
 &nbsp;
 
 {% for _, v in pairsByKeys(observationPoints, asc) do %}
-<form id="switch_interface_form_observation_point_{{ v["obs_point"] }}" method="POST" action="{{ ntop.getHttpPrefix() .. "/lua/flows_stats.lua" .. action_urls[interface.getId()] }}&observationPointId={{ v["obs_point"] }}" >
+<form id="switch_interface_form_observation_point_{{ v["obs_point"] }}" method="POST" action="{{ ntop.getHttpPrefix() .. "/lua/flows_stats.lua" .. "" }}?ifid={{ interface.getId() }}&observationPointId={{ v["obs_point"] }}" >
   <input name="switch_interface" type="hidden" value="1" />
   <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
   </form>
