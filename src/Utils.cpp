@@ -1445,9 +1445,9 @@ static void readCurlStats(CURL *curl, HTTPTranferStats *stats, lua_State* vm) {
 /* **************************************** */
 
 static void fillcURLProxy(CURL *curl) {
-  if (getenv("HTTP_PROXY")) {
+  if(getenv("HTTP_PROXY")) {
     char proxy[1024];
-    
+
     if(getenv("HTTP_PROXY_PORT"))
       sprintf(proxy, "%s:%s", getenv("HTTP_PROXY"), getenv("HTTP_PROXY_PORT"));
     else
@@ -1455,6 +1455,13 @@ static void fillcURLProxy(CURL *curl) {
 
     curl_easy_setopt(curl, CURLOPT_PROXY, proxy);
     curl_easy_setopt(curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+
+    if(getenv("no_proxy")) {
+      char no_proxy[1024];
+
+      sprintf(no_proxy, "%s", getenv("no_proxy"));
+      curl_easy_setopt(curl, CURLOPT_NOPROXY, no_proxy);
+    }
   }
 }
 
