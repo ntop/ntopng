@@ -468,6 +468,7 @@ typedef enum {
   flow_alert_ndpi_dns_fragmented              = 65,
   flow_alert_ndpi_invalid_characters          = 66,
   flow_alert_broadcast_non_udp_traffic        = 67,
+  flow_alert_ndpi_possible_exploit            = 68,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

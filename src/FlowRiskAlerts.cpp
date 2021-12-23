@@ -185,6 +185,10 @@ const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RIS
     .alert_type = { flow_alert_ndpi_invalid_characters, alert_category_security },
     .alert_lua_name = "ndpi_invalid_characters"
   },
+  [NDPI_POSSIBLE_EXPLOIT] = {
+    .alert_type = { flow_alert_ndpi_possible_exploit, alert_category_security },
+    .alert_lua_name = "ndpi_possible_exploit"
+  },
 };
 
 /* **************************************************** */
