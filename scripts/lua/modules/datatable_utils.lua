@@ -25,7 +25,7 @@ end
 function datatable_utils.save_column_preferences(table_name, columns)
    -- avoid the save of nil value
    if columns == nil then return end
-tprint(columns)
+
    local key = string.format(REDIS_KEY, get_username(), table_name)
    local cols = split(columns, ",")
 
