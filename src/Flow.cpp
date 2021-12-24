@@ -804,15 +804,6 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 
       char *q = strdup((const char*)ndpiFlow->host_server_name);
       if(q) {
-	protos.dns.invalid_chars_in_query = false;
-
-	for(int i = 0; q[i] != '\0'; i++) {
-	  if(!isprint(q[i])) {
-	    q[i] = '?';
-	    protos.dns.invalid_chars_in_query = true;
-	  }
-	}
-
 	if(!setDNSQuery(q))
 	  /* Unable to set the DNS query, must free the memory */
 	  free(q);
@@ -5450,8 +5441,8 @@ void Flow::lua_get_dns_info(lua_State *vm) const {
       lua_push_uint64_table_entry(vm, "protos.dns.last_return_code", protos.dns.last_return_code);
       lua_push_str_table_entry(vm, "protos.dns.last_query", protos.dns.last_query);
 
-      if(protos.dns.invalid_chars_in_query)
-        lua_push_bool_table_entry(vm, "protos.dns.invalid_chars_in_query", protos.dns.invalid_chars_in_query);
+      if(hasInvalidDNSQueryChars())
+        lua_push_bool_table_entry(vm, "protos.dns.invalid_chars_in_query", true);
     }
   }
 }

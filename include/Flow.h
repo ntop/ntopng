@@ -124,7 +124,6 @@ class Flow : public GenericHashEntry {
       time_t last_query_update_time; /* The time when the last query was updated */
       u_int16_t last_query_type;
       u_int16_t last_return_code;
-      bool invalid_chars_in_query;
     } dns;
 
     struct {
@@ -674,7 +673,7 @@ class Flow : public GenericHashEntry {
 
     return 0;
   }
-  inline bool hasInvalidDNSQueryChars()  { return(isDNS() && protos.dns.invalid_chars_in_query); }
+  inline bool hasInvalidDNSQueryChars() const { return(isDNS() && hasRisk(NDPI_INVALID_CHARACTERS)); }
   inline bool hasMaliciousSignature(bool as_client) const { return as_client ? has_malicious_cli_signature : has_malicious_srv_signature; }
 
   void setRisk(ndpi_risk r);
