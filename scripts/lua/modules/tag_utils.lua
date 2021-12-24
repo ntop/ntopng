@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local tag_utils = {}
 
@@ -250,11 +251,18 @@ end
 -- #####################################
 
 tag_utils.formatters = {
+   l4proto = function(proto) return l4_proto_to_string(proto) end,
    l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end,
    l7proto  = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end,
    severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
+   status = function(status) return alert_consts.alertTypeLabel(status, true, alert_entities.flow.entity_id) end,
    role = function(role) return (i18n(role)) end,
    role_cli_srv = function(role) return (i18n(role)) end,
+   flow_risk = function(risk) 
+      local flow_risk_list = ntop.getRiskList() or {}
+      flow_risk_list[0] = i18n("flow_risk.ndpi_no_risk")
+      return flow_risk_list[tonumber(risk)] or risk 
+   end,
 }
 
 -- ######################################
