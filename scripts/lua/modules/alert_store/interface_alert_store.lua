@@ -38,7 +38,7 @@ function interface_alert_store:insert(alert)
 
    local insert_stmt = string.format("INSERT INTO %s "..
       "(alert_id, interface_id, tstamp, tstamp_end, severity, score, ifid, subtype, name, alias, granularity, json) "..
-      "VALUES (%u, %u, %u, %u, %u, %u, %d, '%s', '%s', '%s', %u, '%s'); ",
+      "VALUES (%u, %d, %u, %u, %u, %u, %d, '%s', '%s', '%s', %u, '%s'); ",
       self._table_name,
       alert.alert_id,
       interface.getId(),

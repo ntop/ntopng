@@ -36,7 +36,7 @@ function mac_alert_store:insert(alert)
    local insert_stmt = string.format("INSERT INTO %s "..
       "(alert_id, interface_id, tstamp, tstamp_end, severity, score, address, device_type, name, "..
       "is_attacker, is_victim, json) "..
-      "VALUES (%u, %u, %u, %u, %u, %u, '%s', %u, '%s', %u, %u, '%s'); ",
+      "VALUES (%u, %d, %u, %u, %u, %u, '%s', %u, '%s', %u, %u, '%s'); ",
       self._table_name, 
       alert.alert_id,
       interface.getId(),

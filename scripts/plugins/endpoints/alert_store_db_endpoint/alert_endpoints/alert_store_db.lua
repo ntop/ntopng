@@ -98,6 +98,7 @@ function alert_store_db.dequeueRecipientAlerts(recipient, budget, high_priority)
 	       interface.select(string.format("%d", alert.ifid))
 
                local alert_store = get_alert_store(alert.entity_id)
+
                if alert_store then
                   alert_store:insert(alert)
                end
