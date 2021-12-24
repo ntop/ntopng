@@ -260,8 +260,8 @@ tag_utils.formatters = {
    role_cli_srv = function(role) return (i18n(role)) end,
    flow_risk = function(risk) 
       local flow_risk_list = ntop.getRiskList() or {}
-      flow_risk_list[0] = i18n("flow_risk.ndpi_no_risk")
-      return flow_risk_list[tonumber(risk)] or risk 
+      flow_risk_list[1] = i18n("flow_risk.ndpi_no_risk")
+      return flow_risk_list[tonumber(risk)+1] or risk 
    end,
 }
 
