@@ -253,7 +253,8 @@ end
 tag_utils.formatters = {
    l4proto = function(proto) return l4_proto_to_string(proto) end,
    l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end,
-   l7proto  = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end,
+   l7proto  = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end, 
+   l7cat = function(cat) return interface.getnDPICategoryName(tonumber(cat)) end,
    severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
    status = function(status) return alert_consts.alertTypeLabel(status, true, alert_entities.flow.entity_id) end,
    role = function(role) return (i18n(role)) end,
