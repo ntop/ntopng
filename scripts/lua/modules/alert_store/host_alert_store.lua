@@ -62,7 +62,7 @@ function host_alert_store:insert(alert)
       "VALUES (%u, %d, %u, '%s', %u, '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
       self._table_name, 
       alert.alert_id,
-      interface.getId(),
+      self:_convert_ifid(interface.getId()),
       ip_version,
       ip,
       vlan_id or 0,

@@ -58,7 +58,7 @@ function flow_alert_store:insert(alert)
       extra_columns,
       extra_values,
       alert.alert_id,
-      interface.getId(),
+      self:_convert_ifid(interface.getId()),
       alert.tstamp,
       alert.tstamp,
       ntop.mapScoreToSeverity(alert.score),

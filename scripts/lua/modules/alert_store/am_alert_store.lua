@@ -59,7 +59,7 @@ function am_alert_store:insert(alert)
       "VALUES (%u, %d, %u, %u, %u, %u, '%s', '%s', '%s', %u, %f, '%s'); ",
       self._table_name, 
       alert.alert_id,
-      getSystemInterfaceId(),
+      self:_convert_ifid(getSystemInterfaceId()),
       alert.tstamp,
       alert.tstamp_end,
       ntop.mapScoreToSeverity(alert.score),

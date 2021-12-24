@@ -41,7 +41,7 @@ function network_alert_store:insert(alert)
       "VALUES (%u, %d, %u, %u, %u, %u, %u, '%s', '%s', %u, '%s'); ",
       self._table_name, 
       alert.alert_id,
-      interface.getId(),
+      self:_convert_ifid(interface.getId()),
       alert.tstamp,
       alert.tstamp_end,
       ntop.mapScoreToSeverity(alert.score),

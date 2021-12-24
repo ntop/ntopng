@@ -83,6 +83,16 @@ end
 
 -- ##############################################
 
+--@brief Converts interface IDs into their database type
+--       Normal interface IDs are untouched.
+--       The system interface ID is converted from -1 to (u_int16_t)-1 to handle everything as unsigned integer
+function alert_store:_convert_ifid(ifid)
+   -- The system interface ID becomes (u_int16_t)-1
+   return 0xFFFF & tonumber(ifid)
+end
+
+-- ##############################################
+
 --@brief Check if the submitted fields are avalid (i.e., they are not injection attempts)
 function alert_store:_valid_fields(fields)
    local f = fields:split(",") or { fields }
