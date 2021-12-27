@@ -97,10 +97,10 @@ def doCompare(base_file, cmp_file):
 
       line_info = wrapper.getLineInfo(line.split()[-1])
 
-      print("%d) %s = \"%s\"" % (
+      print(u"%d) %s = \"%s\"" % (
         line_info[1],
         line,
-        line_info[2],
+        line_info[2].encode("utf8"),
       ))
 
 def doMissing(base_file, cmp_file):
