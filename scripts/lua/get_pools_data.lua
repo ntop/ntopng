@@ -62,37 +62,37 @@ local ifid = interface.getId()
 local pools_stats = interface.getHostPoolsStats()
 local total_rows = 0
 
-local sort_helper = {}
+local sortable_pools = {}
 for pool_id, pool_stats in pairs(pools_stats) do
    total_rows = total_rows + 1
 
    if sortColumn == "column_hosts" then
-      sort_helper[pool_id] = pool_stats["num_hosts"]
+      sortable_pools[pool_id] = pool_stats["num_hosts"]
    elseif sortColumn == "column_thpt" then
-      sort_helper[pool_id] = pool_stats["throughput_bps"]
+      sortable_pools[pool_id] = pool_stats["throughput_bps"]
    elseif sortColumn == "column_traffic" then
-      sort_helper[pool_id] = pool_stats["bytes.sent"] + pool_stats["bytes.rcvd"]
+      sortable_pools[pool_id] = pool_stats["bytes.sent"] + pool_stats["bytes.rcvd"]
    else
-      sort_helper[pool_id] = host_pools_instance:get_pool_name(pool_id)
+      sortable_pools[pool_id] = host_pools_instance:get_pool_name(pool_id)
    end
 end
 
 local res_formatted = {}
 local cur_row = 0
-
-for n, _ in pairsByValues(sort_helper, ternary(sOrder, asc, rev)) do
+for n, _ in pairsByValues(sortable_pools, ternary(sOrder, asc, rev)) do
    cur_row = cur_row + 1
 
    if cur_row <= to_skip then
       goto continue
    end
 
+   if cur_row > to_skip + perPage then
+      break
+   end
+
    local record = host_pools_instance:hostpool2record(ifid, n, pools_stats[n])
    res_formatted[#res_formatted + 1] = record
 
-   if cur_row >= perPage then
-      break
-   end
 
    ::continue::
 end
