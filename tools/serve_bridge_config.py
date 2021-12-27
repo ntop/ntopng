@@ -61,7 +61,7 @@ sample_bridge_config = {
 class Handler(BaseHTTPRequestHandler):
     #handle GET command
     def do_GET(self):
-        self.request.sendall(json.dumps(sample_bridge_config))
+        self.request.sendall(json.dumps(sample_bridge_config, ensure_ascii=False).encode("utf-8"))
 #        self.request.sendall(sample_string_config)
         return
 
