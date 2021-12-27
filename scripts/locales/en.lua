@@ -506,6 +506,7 @@ local lang = {
     ["you_have_too_many_flows"] = "Too many flows for %{product} leading to packet drops and high CPU load. Please tune -X or click the button below to double the current number. After that restart %{product}",
     ["you_have_too_many_hosts"] = "Too many hosts for %{product} leading to packet drops and high CPU load. Please tune -x or click the button below to double the current number. After that restart %{product}",
     ["you_need_to_sync_remote_probe_time"] = "You must synchronize the clock of ntopng and remote probe hosts as the <a href=\"%{url}\">clock drift</A> is too large and this will affect collected flow data.",
+    ["remote_probe_times"] = "Local time is %{local_time} and remote probe time is %{remote_time}",
   },
   ["active_monitoring_stats"] = {
     ["active_monitoring"] = "Active Monitoring",

@@ -200,10 +200,12 @@ end
 
 -- ###############################################################
 
-local function create_remote_probe_clock_drift_toast(toast, level)
+local function create_remote_probe_clock_drift_toast(toast, level, local_time, remote_time)
     local title = i18n("remote_probe_clock_drift")
     local desc = i18n("about.you_need_to_sync_remote_probe_time",
                       {url = ntop.getHttpPrefix() .. "/lua/if_stats.lua"})
+    local desc_times = i18n("about.remote_probe_times", {local_time = formatEpoch(local_time), remote_time = formatEpoch(remote_time)})
+    desc = string.format("%s<br>%s.", desc, desc_times)
 
     return toast_ui:new(toast.id, title, desc, level, nil, toast.dismissable)
 end
@@ -415,7 +417,7 @@ function predicates.remote_probe_clock_drift(toast, container)
         end
 
         if (level ~= nil) then
-            table.insert(container, create_remote_probe_clock_drift_toast(toast, level))
+	   table.insert(container, create_remote_probe_clock_drift_toast(toast, level, ifstats["probe.local_time"], ifstats["probe.remote_time"]))
         end
     end
 end
