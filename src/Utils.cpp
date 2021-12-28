@@ -29,6 +29,8 @@
 #include <ifaddrs.h>
 #endif
 
+// #define TRACE_CEPABILITIES
+
 static const char *hex_chars = "0123456789ABCDEF";
 
 static map<string, int> initTcpStatesStr2State() {
@@ -117,9 +119,9 @@ typedef struct {
 #include <sys/prctl.h>
 
 static cap_value_t cap_values[] = {
-				   CAP_DAC_OVERRIDE, /* Bypass file read, write, and execute permission checks  */
-				   CAP_NET_RAW,      /* Use RAW and PACKET sockets */
-				   CAP_NET_ADMIN     /* Perform various network-related operations */
+				   CAP_DAC_OVERRIDE, /* Bypass file read, write, and execute permission checks  */				   
+				   CAP_NET_ADMIN,    /* Perform various network-related operations */
+				   CAP_NET_RAW       /* Use RAW and PACKET sockets */
 };
 
 int num_cap = sizeof(cap_values)/sizeof(cap_value_t);
@@ -748,13 +750,15 @@ int Utils::dropPrivileges() {
     /* Change the working dir ownership */
     rv = chown(ntop->get_working_dir(), pw->pw_uid, pw->pw_gid);
     if(rv != 0)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to change working dir '%s' owner", ntop->get_working_dir());
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to change working dir '%s' owner",
+				   ntop->get_working_dir());
 
     if(ntop->getPrefs()->get_pid_path() != NULL) {
       /* Change PID file ownership to be able to delete it on shutdown */
       rv = chown(ntop->getPrefs()->get_pid_path(), pw->pw_uid, pw->pw_gid);
       if(rv != 0)
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to change owner to PID in file %s", ntop->getPrefs()->get_pid_path());
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to change owner to PID in file %s",
+				     ntop->getPrefs()->get_pid_path());
     }
 
     /* Drop privileges */
@@ -1478,7 +1482,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
     struct curl_slist* headers = NULL;
 
     fillcURLProxy(curl);
-    
+
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -1562,7 +1566,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 			      /* .max_size = */ (size_t)return_data_size};
 
     fillcURLProxy(curl);
-    
+
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -1652,7 +1656,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
     struct curl_slist* headers = NULL;
 
     fillcURLProxy(curl);
-    
+
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -1765,7 +1769,7 @@ bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *messag
 
   if(curl) {
     fillcURLProxy(curl);
-    
+
     if(username != NULL && password != NULL) {
       curl_easy_setopt(curl, CURLOPT_USERNAME, username);
       curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
@@ -1983,7 +1987,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url,
     char ua[64];
 
     fillcURLProxy(curl);
-    
+
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -2196,7 +2200,7 @@ long Utils::httpGet(const char * const url,
 			      /* .max_size = */ resp_len};
 
     fillcURLProxy(curl);
-    
+
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if(user_header_token == NULL) {
@@ -2291,7 +2295,7 @@ char* Utils::urlEncode(const char *url) {
     if(curl) {
       char *escaped = curl_easy_escape(curl, url, strlen(url));
       char *output = strdup(escaped);
-      
+
       curl_free(escaped);
       curl_easy_cleanup(curl);
 
@@ -2612,7 +2616,7 @@ bool Utils::readIPv6(char *ifname, struct in6_addr *sin) {
 
   f = fopen("/proc/net/if_inet6", "r");
   if (f == NULL)
-    return(false);  
+    return(false);
 
   while (19 == fscanf(f,
 		      " %2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx %*x %x %x %*x %s",
@@ -2637,15 +2641,15 @@ bool Utils::readIPv6(char *ifname, struct in6_addr *sin) {
 		      dname)) {
 
     if (strcmp(ifname, dname) != 0)
-      continue;    
-    
+      continue;
+
     if(scope == 0x0000U /* IPV6_ADDR_GLOBAL */) {
       memcpy(sin, ipv6, sizeof(ipv6));
       rc = true;
       break;
     }
   }
-  
+
   fclose(f);
 #endif
 
@@ -3147,13 +3151,13 @@ bool Utils::isBroadcastMac(const u_int8_t *mac) {
 /* ****************************************************** */
 
 /*
-  http://h22208.www2.hpe.com/eginfolib/networking/docs/switches/5130ei/5200-3944_ip-multi_cg/content/483573739.htm 
+  http://h22208.www2.hpe.com/eginfolib/networking/docs/switches/5130ei/5200-3944_ip-multi_cg/content/483573739.htm
   https://ipcisco.com/lesson/multicast-mac-addresses/
 */
 bool Utils::isMulticastMac(const u_int8_t *mac) {
   if(isEmptyMac(mac))
     return(false);
-  
+
   if(
      ((mac[0] == 0x33) && (mac[1] == 0x33))
      ||
@@ -3173,7 +3177,7 @@ void Utils::parseMac(u_int8_t *mac, const char *symMac) {
     sscanf(symMac, "%x:%x:%x:%x:%x:%x",
 	   &_mac[0], &_mac[1], &_mac[2],
 	   &_mac[3], &_mac[4], &_mac[5]);
-  
+
   for(int i = 0; i < 6; i++) mac[i] = (u_int8_t)_mac[i];
 }
 
@@ -3638,19 +3642,33 @@ int Utils::retainWriteCapabilities() {
 
   /* Add the capability of interest to the permitted capabilities  */
   caps = cap_get_proc();
-  cap_set_flag(caps, CAP_PERMITTED, num_cap, cap_values, CAP_SET);
-  cap_set_flag(caps, CAP_EFFECTIVE, num_cap, cap_values, CAP_SET);
-  rc = cap_set_proc(caps);
+  if(cap_set_flag(caps, CAP_PERMITTED, num_cap, cap_values, CAP_SET) == -1)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
 
+  if(cap_set_flag(caps, CAP_INHERITABLE, num_cap, cap_values, CAP_SET) == -1)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
+
+  rc = cap_set_proc(caps);
   if(rc == 0) {
+#ifdef TRACE_CEPABILITIES
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPABILITIES] INITIAL SETUP [%s][num_cap: %u]",
+				 cap_to_text(caps, NULL), num_cap);
+#endif
+
     /* Tell the kernel to retain permitted capabilities */
     if(prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) != 0) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to retain permitted capabilities [%s]\n", strerror(errno));
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Unable to retain permitted capabilities [%s]\n",
+				   strerror(errno));
       rc = -1;
     }
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_proc error: %s", strerror(errno));
   }
 
-  cap_free(caps);
+  if(cap_free(caps) == -1)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_free error: %s", strerror(errno));
+
 #else
 #if !defined(__APPLE__) && !defined(__FreeBSD__)
   rc = -1;
@@ -3665,19 +3683,50 @@ int Utils::retainWriteCapabilities() {
 /* ****************************************************** */
 
 #if !defined(__APPLE__) || !defined(__FreeBSD__)
+
+static Mutex capabilitiesMutex;
+
 static int _setWriteCapabilities(int enable) {
   int rc = 0;
 
 #ifdef HAVE_LIBCAP
   cap_t caps;
 
+  /*
+    NOTE
+
+    The capabilitiesMutex lock is used to avoid that two threads concurrently
+    enable/disable capabilities
+   */
+  if(enable)
+    capabilitiesMutex.lock(__FILE__, __LINE__);
+
   caps = cap_get_proc();
   if(caps) {
-    cap_set_flag(caps, CAP_EFFECTIVE, num_cap, cap_values, enable ? CAP_SET : CAP_CLEAR);
-    rc = cap_set_proc(caps);
-    cap_free(caps);
+#ifdef TRACE_CEPABILITIES
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPABILITIES] BEFORE [enable: %u][%s]",
+				 enable, cap_to_text(caps, NULL));
+#endif
+
+    if(cap_set_flag(caps, CAP_EFFECTIVE, num_cap, cap_values, enable ? CAP_SET : CAP_CLEAR) == -1)
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
+
+    if(cap_set_proc(caps) == -1)
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_proc error: %s", strerror(errno));
+    else {
+#ifdef TRACE_CEPABILITIES
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPABILITIES] Capabilities %s [rc: %d]",
+				   enable ? "ENABLE" : "DISABLE", rc);
+#endif
+    }
+
+    if(cap_free(caps) == -1)
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_free error");
   } else
     rc = -1;
+
+  if(!enable)
+    capabilitiesMutex.unlock(__FILE__, __LINE__);
 #else
   rc = -1;
 #endif
@@ -3973,7 +4022,7 @@ void Utils::listInterfaces(lua_State* vm) {
 
   if(Utils::ntop_findalldevs(&devpointer) != 0)
     return; /* Error */
-  
+
   for(cur = devpointer; cur; cur = cur->next) {
     lua_newtable(vm);
 
@@ -4854,7 +4903,7 @@ AlertLevelGroup Utils::mapAlertLevelToGroup(AlertLevel alert_level) {
 }
 
 /* ****************************************************** */
-  
+
 bool Utils::hasExtension(const char *path, const char *ext) {
   int str_len = strlen(path);
   int ext_len = strlen(ext);
@@ -5018,7 +5067,7 @@ void Utils::make_session_key(char *buf, u_int buf_len) {
 
 /* ****************************************************** */
 
-/* Internal function used to set names to lower 
+/* Internal function used to set names to lower
  * Use this function only if you need to duplicate the string to be lowered
  * otherwise use Utils::stringtolower(name)
  */
@@ -5048,7 +5097,7 @@ bool const Utils::isIpEmpty(ipAddress addr) {
 
 /* ************************************************ */
 
-int8_t Utils::num_files_in_dir(const char * const dir) { 
+int8_t Utils::num_files_in_dir(const char * const dir) {
   DIR *dir_struct;
   struct dirent *ent;
   u_int8_t num_files = 0;
@@ -5084,4 +5133,3 @@ const char* Utils::get_state_label(ThreadedActivityState ta_state) {
     break;
   }
 }
-
