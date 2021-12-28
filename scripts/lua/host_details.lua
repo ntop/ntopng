@@ -320,457 +320,455 @@ else
 
    local ifs = interface.getStats()
 
-   page_utils.print_navbar(title, url,
-			   {
-			      {
-				 hidden = only_historical,
-				 active = page == "overview" or page == nil,
-				 page_name = "overview",
-				 label = "<i class=\"fas fa-lg fa-home\"></i>",
-			      },
-			      {
-				 hidden = only_historical,
-				 active = page == "traffic",
-				 page_name = "traffic",
-				 label = i18n("traffic"),
-			      },
-			      {
-				 hidden = have_nedge or host["is_broadcast"] or host["is_multicast"] or only_historical or (host["packets.sent"] == 0) or(host["packets.rcvd"] == 0),
-				 active = page == "packets",
-				 page_name = "packets",
-				 label = i18n("packets"),
-			      },
-			      {
-				 hidden = only_historical,
-				 active = page == "DSCP",
-				 page_name = "DSCP",
-				 label = i18n("dscp"),
-			      },
-			      {
-				 hidden = only_historical,
-				 active = page == "ports",
-				 page_name = "ports",
-				 label = i18n("ports"),
-			      },
-			      {
-				 hidden = only_historical or interface.isLoopback(),
-				 active = page == "peers",
-				 page_name = "peers",
-				 label = i18n("peers"),
-			      },
-			      {
-				 hidden = have_nedge or only_historical or not(has_icmp),
-				 active = page == "ICMP",
-				 page_name = "ICMP",
-				 label = i18n("icmp"),
-			      },
-			      {
-				 hidden = only_historical,
-				 active = page == "ndpi",
-				 page_name = "ndpi",
-				 label = i18n("applications"),
-			      },
-			      {
-				 hidden = have_nedge or only_historical or not host["localhost"],
-				 active = page == "dns",
-				 page_name = "dns",
-				 label = i18n("dns"),
-			      },
-			      {
-				 hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "ja3"),
-				 active = page == "tls",
-				 page_name = "tls",
-				 label = i18n("tls"),
-			      },
-			      {
-				 hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "hassh"),
-				 active = page == "ssh",
-				 page_name = "ssh",
-				 label = i18n("ssh"),
-			      },
-			      {
-				 hidden = only_historical
-				    or have_nedge
-				    or not host["localhost"]
-				    or not host["http"]
-				    or (host["http"]["sender"]["query"]["total"] == 0
-				           and host["http"]["receiver"]["response"]["total"] == 0
-				           and table.len(host["http"]["virtual_hosts"] or {}) == 0),
-				 active = page == "http",
-				 page_name = "http",
-				 label = i18n("http"),
-				 badge_num = host["active_http_hosts"],
-			      },
-			      {
-				 hidden = only_historical or not host["localhost"] or (table.len(sites_granularities) == 0),
-				 active = page == "sites",
-				 page_name = "sites",
-				 label = i18n("sites_page.sites"),
-			      },
-			      {
-				 hidden = not has_snmp_location,
-				 active = page == "snmp",
-				 page_name = "snmp",
-				 label = i18n("host_details.snmp"),
-			      },
-			      {
-				 hidden = only_historical or not host["systemhost"] or not interface.hasEBPF(),
-				 active = page == "processes",
-				 page_name = "processes",
-				 label = i18n("user_info.processes"),
-			      },
-			      {
-				 hidden = only_historical,
-				 active = page == "flows",
-				 page_name = "flows",
-				 label = '<i class="fas fa-stream" title="'..i18n("active_flows")..'"></i>',
-			      },
-			      {
-				 hidden = only_historical or host["is_broadcast"] or host["is_multicast"] or not ntop.hasGeoIP(),
-				 active = page == "geomap",
-				 page_name = "geomap",
-				 label = "<i class='fas fa-lg fa-globe' title='"..i18n("geo_map.geo_map").."'></i>",
-			      },
-			      {
-				 hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
-				 active = page == "alerts",
-				 page_name = "alerts",
-				 label = "<i class='fas fa-lg fa-exclamation-triangle' title='"..i18n("alerts_dashboard.alerts").."'></i>",
-				 url = hostinfo2detailsurl(host, {page = ternary((host.num_alerts or 0) > 0, "engaged-alerts", "alerts")})
-			      },
-			      {
-				 hidden = not charts_available and not interfaceHasClickHouseSupport(),
-				 active = page == "historical",
-				 page_name = "historical",
-				 label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
-			      },
-			      {
-				 hidden = only_historical or (not host["localhost"]) or (not hasTrafficReport()),
-				 active = page == "traffic_report",
-				 page_name = "traffic_report",
-				 label = "<i class='fas fa-lg fa-file-alt report-icon' title='"..i18n("report.traffic_report").."'></i>",
-			      },
-			      {
-				 hidden = only_historical or not ntop.isEnterpriseM() or not ifstats.inline or not host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID,
-				 active = page == "quotas",
-				 page_name = "quotas",
-				 label = i18n("quotas"),
-			      },
-			      {
-				 hidden = not periodicity_map_available,
-				 active = page == "periodicity_map",
-				 page_name = "periodicity_map",
-				 url = periodicity_map_link,
-				 label = "<i class=\"fas fa-lg fa-clock\"></i>",
-				 badge_num = num_periodicity,
-			      },
-			      {
-				 hidden = not service_map_available,
-				 active = page == "service_map",
-				 page_name = "service_map",
-				 label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
-				 url = service_map_link
-			      },
-			      {
-				 hidden = not prefs.is_dump_flows_to_clickhouse_enabled,
-				 active = page == "db_search",
-				 page_name = "db_search",
-				 label = "<i class=\"fas fa-search-plus\"></i>",
-				 url = historical_flow_link
-			      },
-			      {
-				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
-				 active = page == "config",
-				 page_name = "config",
-				 label = "<i class='fas fa-lg fa-cog' title='"..i18n("settings").."'></i></a></li>",
-			      },
-			   }
-   )
+   page_utils.print_navbar(title, url, {
+      {
+	 hidden = only_historical,
+	 active = page == "overview" or page == nil,
+	 page_name = "overview",
+	 label = "<i class=\"fas fa-lg fa-home\"></i>",
+      },
+      {
+	 hidden = only_historical,
+	 active = page == "traffic",
+	 page_name = "traffic",
+	 label = i18n("traffic"),
+      },
+      {
+	 hidden = have_nedge or host["is_broadcast"] or host["is_multicast"] or only_historical or (host["packets.sent"] == 0) or(host["packets.rcvd"] == 0),
+	 active = page == "packets",
+	 page_name = "packets",
+	 label = i18n("packets"),
+      },
+      {
+	 hidden = only_historical,
+	 active = page == "DSCP",
+	 page_name = "DSCP",
+	 label = i18n("dscp"),
+      },
+      {
+	 hidden = only_historical,
+	 active = page == "ports",
+	 page_name = "ports",
+	 label = i18n("ports"),
+      },
+      {
+	 hidden = only_historical or interface.isLoopback(),
+	 active = page == "peers",
+	 page_name = "peers",
+	 label = i18n("peers"),
+      },
+      {
+	 hidden = have_nedge or only_historical or not(has_icmp),
+	 active = page == "ICMP",
+	 page_name = "ICMP",
+	 label = i18n("icmp"),
+      },
+      {
+	 hidden = only_historical,
+	 active = page == "ndpi",
+	 page_name = "ndpi",
+	 label = i18n("applications"),
+      },
+      {
+	 hidden = have_nedge or only_historical or not host["localhost"],
+	 active = page == "dns",
+	 page_name = "dns",
+	 label = i18n("dns"),
+      },
+      {
+	 hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "ja3"),
+	 active = page == "tls",
+	 page_name = "tls",
+	 label = i18n("tls"),
+      },
+      {
+	 hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "hassh"),
+	 active = page == "ssh",
+	 page_name = "ssh",
+	 label = i18n("ssh"),
+      },
+      {
+	 hidden = only_historical
+	    or have_nedge
+	    or not host["localhost"]
+	    or not host["http"]
+	    or (host["http"]["sender"]["query"]["total"] == 0
+	           and host["http"]["receiver"]["response"]["total"] == 0
+	           and table.len(host["http"]["virtual_hosts"] or {}) == 0),
+	 active = page == "http",
+	 page_name = "http",
+	 label = i18n("http"),
+	 badge_num = host["active_http_hosts"],
+      },
+      {
+	 hidden = only_historical or not host["localhost"] or (table.len(sites_granularities) == 0),
+	 active = page == "sites",
+	 page_name = "sites",
+	 label = i18n("sites_page.sites"),
+      },
+      {
+	 hidden = not has_snmp_location,
+	 active = page == "snmp",
+	 page_name = "snmp",
+	 label = i18n("host_details.snmp"),
+      },
+      {
+	 hidden = only_historical or not host["systemhost"] or not interface.hasEBPF(),
+	 active = page == "processes",
+	 page_name = "processes",
+	 label = i18n("user_info.processes"),
+      },
+      {
+	 hidden = only_historical,
+	 active = page == "flows",
+	 page_name = "flows",
+	 label = '<i class="fas fa-stream" title="'..i18n("active_flows")..'"></i>',
+      },
+      {
+	 hidden = only_historical or host["is_broadcast"] or host["is_multicast"] or not ntop.hasGeoIP(),
+	 active = page == "geomap",
+	 page_name = "geomap",
+	 label = "<i class='fas fa-lg fa-globe' title='"..i18n("geo_map.geo_map").."'></i>",
+      },
+      {
+	 hidden = not areAlertsEnabled() or not auth.has_capability(auth.capabilities.alerts),
+	 active = page == "alerts",
+	 page_name = "alerts",
+	 label = "<i class='fas fa-lg fa-exclamation-triangle' title='"..i18n("alerts_dashboard.alerts").."'></i>",
+	 url = hostinfo2detailsurl(host, {page = ternary((host.num_alerts or 0) > 0, "engaged-alerts", "alerts")})
+      },
+      {
+	 hidden = not charts_available and not interfaceHasClickHouseSupport(),
+	 active = page == "historical",
+	 page_name = "historical",
+	 label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
+      },
+      {
+	 hidden = only_historical or (not host["localhost"]) or (not hasTrafficReport()),
+	 active = page == "traffic_report",
+	 page_name = "traffic_report",
+	 label = "<i class='fas fa-lg fa-file-alt report-icon' title='"..i18n("report.traffic_report").."'></i>",
+      },
+      {
+	 hidden = only_historical or not ntop.isEnterpriseM() or not ifstats.inline or not host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID,
+	 active = page == "quotas",
+	 page_name = "quotas",
+	 label = i18n("quotas"),
+      },
+      {
+	 hidden = not periodicity_map_available,
+	 active = page == "periodicity_map",
+	 page_name = "periodicity_map",
+	 url = periodicity_map_link,
+	 label = "<i class=\"fas fa-lg fa-clock\"></i>",
+	 badge_num = num_periodicity,
+      },
+      {
+	 hidden = not service_map_available,
+	 active = page == "service_map",
+	 page_name = "service_map",
+	 label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
+	 url = service_map_link
+      },
+      {
+	 hidden = not prefs.is_dump_flows_to_clickhouse_enabled,
+	 active = page == "db_search",
+	 page_name = "db_search",
+	 label = "<i class=\"fas fa-search-plus\"></i>",
+	 url = historical_flow_link
+      },
+      {
+	 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
+	 active = page == "config",
+	 page_name = "config",
+	 label = "<i class='fas fa-lg fa-cog' title='"..i18n("settings").."'></i></a></li>",
+      },
+   })
 
    -- tprint(host.bins)
-local macinfo = interface.getMacInfo(host["mac"])
-local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
-   and snmp_location and snmp_location.host_has_snmp_location(host["mac"])
-   and isAllowedSystemInterface()
+   local macinfo = interface.getMacInfo(host["mac"])
+   local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
+      and snmp_location and snmp_location.host_has_snmp_location(host["mac"])
+      and isAllowedSystemInterface()
 
-if((page == "overview") or (page == nil)) then
-   print("<table class=\"table table-bordered table-striped\">\n")
-   if(host["ip"] ~= nil) then
-      if(host["mac"]  ~= "00:00:00:00:00:00") then
-	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], true).. " " .. discover.devtype2icon(host["device_type"]))
-	 print('</td><td>')
-
-	 if(host['localhost'] and (macinfo ~= nil)) then
-	    -- This is a known device type
-	    print(discover.devtype2icon(macinfo.devtype) .. " ")
-	    if macinfo.devtype ~= 0 then
-	       print(discover.devtype2string(macinfo.devtype) .. " ")
-	    else
-	       print(i18n("host_details.unknown_device_type") .. " ")
-	    end
-	    print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(macinfo)..'&page=config"><i class="fas fa-cog"></i></a>\n')
-	 else
-	    print("&nbsp;")
-	 end
-
-	 print('</td></tr>')
-      end
-
-      if has_snmp_location then
-         snmp_location.print_host_snmp_location(host["mac"], hostinfo2detailsurl(host, {page = "snmp"}))
-      end
-
-      print("</tr>")
-
-      print("<tr><th>"..i18n("ip_address").."</th><td colspan=1>" .. host["ip"])
-      if(host.childSafe == true) then print(getSafeChildIcon()) end
-
-     if(host.os ~= 0) then
-       print(" "..discover.getOsIcon(host.os).." ")
-     end
-
-     historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
-
-      if(host["local_network_name"] ~= nil) then
-	 local network_name = getLocalNetworkAlias(host["local_network_name"] )
-
-	 if((network_name == nil) or (network_name == "") or (network_name == host["local_network_name"])) then
-	    network_name = ""
-	 else
-	    network_name = " ("..network_name..")"
-	 end
-	 
-	 print(" [&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..host["local_network_id"].."&page=historical'>".. host["local_network_name"].."</A> "..network_name.." &nbsp;]")
-      end
-
-      if((host["city"] ~= nil) and (host["city"] ~= "")) then
-         print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
-      end
-
-      print[[</td><td><span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_instance:get_pool_name(host_pool_id)) print[[</a></span>]]
-      print[[&nbsp;]]
-      print(hostinfo2detailshref(host, {page = "config"}, '<i class="fas fa-cog" aria-hidden="true"></i>'))
-      print("</td></tr>")
-   else
-      if(host["mac"] ~= nil) then
-	 print("<tr><th>"..i18n("mac_address").."</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
-      end
-   end
-
-   if host["vlan"] and host["vlan"] > 0 then
-      print("<tr><th>")
-      print(i18n("details.vlan_id"))
-      print("</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?vlan="..host["vlan"]..">"..getFullVlanName(host["vlan"]).."</A></td></tr>\n")
-   end
-
-   if(host["os"] ~= "" and host["os"] ~= 0) then
-      print("<tr>")
-      if(host["os"] ~= "") then
-        local os_detail = ""
-        if not isEmptyString(host["os_detail"]) then
-          os_detail = os_detail .. " [" .. host["os_detail"] .. "]"
+   if((page == "overview") or (page == nil)) then
+      print("<table class=\"table table-bordered table-striped\">\n")
+      if(host["ip"] ~= nil) then
+         if(host["mac"]  ~= "00:00:00:00:00:00") then
+   	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], true).. " " .. discover.devtype2icon(host["device_type"]))
+   	 print('</td><td>')
+   
+   	 if(host['localhost'] and (macinfo ~= nil)) then
+   	    -- This is a known device type
+   	    print(discover.devtype2icon(macinfo.devtype) .. " ")
+   	    if macinfo.devtype ~= 0 then
+   	       print(discover.devtype2string(macinfo.devtype) .. " ")
+   	    else
+   	       print(i18n("host_details.unknown_device_type") .. " ")
+   	    end
+   	    print('<a href="'..ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(macinfo)..'&page=config"><i class="fas fa-cog"></i></a>\n')
+   	 else
+   	    print("&nbsp;")
+   	 end
+   
+   	 print('</td></tr>')
+         end
+   
+         if has_snmp_location then
+            snmp_location.print_host_snmp_location(host["mac"], hostinfo2detailsurl(host, {page = "snmp"}))
+         end
+   
+         print("</tr>")
+   
+         print("<tr><th>"..i18n("ip_address").."</th><td colspan=1>" .. host["ip"])
+         if(host.childSafe == true) then print(getSafeChildIcon()) end
+   
+        if(host.os ~= 0) then
+          print(" "..discover.getOsIcon(host.os).." ")
         end
-         print("<th>"..i18n("os").."</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. host["os"] .."'>".. discover.getOsAndIcon(host["os"])  .."</A>".. os_detail .."</td><td></td>\n")
+   
+        historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
+   
+         if(host["local_network_name"] ~= nil) then
+   	 local network_name = getLocalNetworkAlias(host["local_network_name"] )
+   
+   	 if((network_name == nil) or (network_name == "") or (network_name == host["local_network_name"])) then
+   	    network_name = ""
+   	 else
+   	    network_name = " ("..network_name..")"
+   	 end
+   	 
+   	 print(" [&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..host["local_network_id"].."&page=historical'>".. host["local_network_name"].."</A> "..network_name.." &nbsp;]")
+         end
+   
+         if((host["city"] ~= nil) and (host["city"] ~= "")) then
+            print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
+         end
+   
+         print[[</td><td><span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
+         print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_instance:get_pool_name(host_pool_id)) print[[</a></span>]]
+         print[[&nbsp;]]
+         print(hostinfo2detailshref(host, {page = "config"}, '<i class="fas fa-cog" aria-hidden="true"></i>'))
+         print("</td></tr>")
       else
-         print("<th></th><td></td>\n")
+         if(host["mac"] ~= nil) then
+   	 print("<tr><th>"..i18n("mac_address").."</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
+         end
       end
+   
+      if host["vlan"] and host["vlan"] > 0 then
+         print("<tr><th>")
+         print(i18n("details.vlan_id"))
+         print("</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?vlan="..host["vlan"]..">"..getFullVlanName(host["vlan"]).."</A></td></tr>\n")
+      end
+   
+      if(host["os"] ~= "" and host["os"] ~= 0) then
+         print("<tr>")
+         if(host["os"] ~= "") then
+           local os_detail = ""
+           if not isEmptyString(host["os_detail"]) then
+             os_detail = os_detail .. " [" .. host["os_detail"] .. "]"
+           end
+            print("<th>"..i18n("os").."</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. host["os"] .."'>".. discover.getOsAndIcon(host["os"])  .."</A>".. os_detail .."</td><td></td>\n")
+         else
+            print("<th></th><td></td>\n")
+         end
+         print("</tr>")
+      end
+   
+      if((host["asn"] ~= nil) and (host["asn"] > 0)) then
+         print("<tr><th>"..i18n("asn").."</th><td>")
+   
+         print("<A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn .."'>"..host.asname.."</A> [ "..i18n("asn").." <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn.."'>".. host.asn.."</A> ]</td>")
+         print('<td><A class="ntopng-external-link" href="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">'..i18n("details.whois_lookup")..' <i class="fas fa-external-link-alt"></i></A></td>')
+         print("</td></tr>\n")
+      end
+   
+      if((host["observation_point_id"] ~= nil) and (host["observation_point_id"] ~= 0)) then
+         print("<tr><th>"..i18n("details.observation_point_id").."</th>")
+         print("<td colspan=\"2\">"..host["observation_point_id"].."</td></tr>")
+      end
+   
+   if(host["ip"] ~= nil) then
+         print("<tr><th>"..i18n("name").."</th>")
+   
+         if(isAdministrator()) then
+   	 print("<td colspan=2><A class='ntopng-external-link' href=\"http://" .. getIpUrl(host["ip"]) .. "\"> <span id=name>")
+         else
+   	 print("<td colspan=2>")
+         end
+   
+         if ntop.shouldResolveHost(host["ip"]) then
+            print('<div id="throbber" class="spinner-border spinner-border-sm text-primary" role="status"><span class="sr-only">Loading...</span></div> ')
+         end
+   
+         -- tprint(host) io.write("\n")
+         print(host_label .. "</span> <i class=\"fas fa-external-link-alt\"></i> </A>")
+   
+         print(hostinfo2detailshref(host, {page = "config"}, ' <i class="fas fa-sm fa-cog" aria-hidden="true"></i> '))
+   
+         print(format_utils.formatFullAddressCategory(host))
+   
+         if(host.services) then
+   	 if(host.services.dhcp) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
+   	 if(host.services.dns)  then print(' <span class="badge bg-success">'..i18n("details.label_dns_server")..'</span>') end
+   	 if(host.services.smtp) then print(' <span class="badge bg-success">'..i18n("details.label_smtp_server")..'</span>') end
+   	 if(host.services.ntp)  then print(' <span class="badge bg-success">'..i18n("details.label_ntp_server")..'</span>') end
+         end
+   
+         if(host["dhcp_server"] == true) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
+         if(host["systemhost"] == true) then print(' <span class="badge bg-success"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
+         if(host["is_blacklisted"] == true) then print(' <span class="badge bg-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
+         if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
+   	 print(' <A class="ntopng-external-link" href="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'
+   		  ..ntop.getHttpPrefix()..'/img/virustotal.svg\"> <i class=\"fas fa-external-link-alt\"></i></A>')
+         end
+   
+         print("</td>\n")
+   end
+   
+   local h_notes = getHostNotes(host_info) or ''
+   
+   if(not isEmptyString(h_notes)) then
+   	print[[
+   
+   	<tr><th>]] print(i18n("host_details.notes"))
+   	print[[</th><td colspan="2"><span id="host_notes">]]print(h_notes)
+   	print[[</span><span id="host_notes"></span></td></tr>
+   
+   	]]
+   end
+   
+   if(host["num_alerts"] > 0) then
+      print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "engaged-alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").." <span id=alerts_trend></span></td></tr>\n")
+   end
+   
+   if isScoreEnabled() then
+      local score_chart = ""
+   
+      if charts_available then
+         score_chart = hostinfo2detailshref(host, {page = "historical", tskey = tskey, ts_schema = "host:score"}, '<i class="fas fa-chart-area fa-sm"></i>')
+      end
+   
+      print("<tr><th rowspan=2>"..i18n("score").." " .. score_chart .."</th>")
+      print("<th>"..i18n("host_details.client_score").."</th><th>"..i18n("host_details.server_score").."</th></tr>")
+   
+      local c = host.score_pct and host.score_pct["score_breakdown_client"]
+      local s = host.score_pct and host.score_pct["score_breakdown_server"]
+   
+      print("<tr>")
+      print("<td>")
+      print("<div class='d-flex align-items-center'>")
+      print("<span id='score_as_client'>".. (host["score.as_client"] or 0) .."</span> <span class='ms-1' id='client_score_trend'></span>")
+      if c then
+         scoreBreakdown(c)
+      end
+      print("</div>")
+      print("</td>")
+   
+      print("<td>")
+      print("<div class='d-flex align-items-center'>")
+      print("<span id='score_as_server'>".. (host["score.as_server"] or 0).."</span><span class='ms-1' id='server_score_trend'></span>")
+      if s then
+         scoreBreakdown(s)
+      end
+      print("</div>")
+      print("</td>")
+   
+      print("</tr>\n")
+   end
+   
+   -- Active monitoring
+   if am_utils and am_utils.isMeasurementAvailable('icmp') then
+      local icmp = isIPv6(host["ip"]) and 'icmp6' or 'icmp'
+      print([[
+         <tr>
+            <th>]] .. i18n("active_monitoring_stats.active_monitoring") .. [[</th>
+      ]])
+      if (not am_utils.hasHost(host["ip"], icmp)) then
+         print([[
+            <td colspan="2">
+               <a href='#' id='btn-add-am-host'>]].. i18n('active_monitoring_stats.add_icmp') ..[[ <i class='fas fa-plus'></i></a>
+            </td>
+            <script type='text/javascript'>
+               $(document).ready(function() {
+   
+                  let am_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
+                  $('#btn-add-am-host').click(function(e) {
+   
+                     e.preventDefault();
+                     const data_to_send = {
+                        action: 'add',
+                        am_host: ']].. host["ip"] ..[[',
+                        threshold: 100,
+   		     granularity: "min",
+                        measurement: ']].. icmp ..[[',
+                        csrf: am_csrf,
+                     };
+   
+                     $.post(`${http_prefix}/plugins/edit_active_monitoring_host.lua`, data_to_send)
+                     .then((data, result, xhr) => {
+   
+                        const $alert_message = $('<div class="alert"></div>');
+                        if (data.success) {
+                           $alert_message.addClass('alert-success').text(data.message);
+                           $('#n-container').prepend($alert_message);
+   
+                           setTimeout(() => {
+                              location.reload();
+                           }, 1000);
+   
+                           return;
+                        }
+   
+                        $alert_message.addClass('alert-danger').text(data.error);
+                        $('#n-container').prepend($alert_message);
+                        setTimeout(() => {
+                           $alert_message.remove();
+                        }, 5000);
+   
+                     })
+                     .fail(() => {
+                        const $alert_message = $('<div class="alert"></div>');
+                        $alert_message.addClass('alert-danger').text("]].. i18n('expired_csrf') ..[[");
+   
+                     });
+   
+                  });
+               });
+            </script>
+         ]])
+   
+      else
+         local last_update = am_utils.getLastAmUpdate(host['ip'], icmp)
+         local last_rtt = ""
+   
+         if(last_update ~= nil) then
+            last_rtt = last_update.value .. " " .. i18n("active_monitoring_stats.msec")
+         else
+   	 last_rtt = i18n("active_monitoring_stats.no_updates_yet")
+         end
+   
+         print([[
+            <td colspan="2">
+               <a href=']].. ntop.getHttpPrefix() ..[[/plugins/active_monitoring_stats.lua?am_host=]].. host['ip'] ..[[&measurement=]].. icmp ..[['>]].. last_rtt ..[[</a>
+            </td>
+         ]])
+   
+      end
+   
       print("</tr>")
    end
-
-   if((host["asn"] ~= nil) and (host["asn"] > 0)) then
-      print("<tr><th>"..i18n("asn").."</th><td>")
-
-      print("<A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn .."'>"..host.asname.."</A> [ "..i18n("asn").." <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn.."'>".. host.asn.."</A> ]</td>")
-      print('<td><A class="ntopng-external-link" href="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">'..i18n("details.whois_lookup")..' <i class="fas fa-external-link-alt"></i></A></td>')
-      print("</td></tr>\n")
+   
+   if(host["active_alerted_flows"] > 0) then
+      print("<tr><th>"..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..formatValue(host["active_alerted_flows"]) .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
    end
-
-   if((host["observation_point_id"] ~= nil) and (host["observation_point_id"] ~= 0)) then
-      print("<tr><th>"..i18n("details.observation_point_id").."</th>")
-      print("<td colspan=\"2\">"..host["observation_point_id"].."</td></tr>")
+   
+   if(host.score_behaviour.tot_num_anomalies > 0) then
+      -- TODO: Add JSON update
+      print("<tr><th>"..i18n("host_details.behavioural_anomalies").."</th><td colspan=2><span id=beh_anomalies>"..formatValue(host.score_behaviour.tot_num_anomalies).."</span><span id=beh_anomalies_trend></span></td></tr>\n")
    end
-
-if(host["ip"] ~= nil) then
-      print("<tr><th>"..i18n("name").."</th>")
-
-      if(isAdministrator()) then
-	 print("<td colspan=2><A class='ntopng-external-link' href=\"http://" .. getIpUrl(host["ip"]) .. "\"> <span id=name>")
-      else
-	 print("<td colspan=2>")
-      end
-
-      if ntop.shouldResolveHost(host["ip"]) then
-         print('<div id="throbber" class="spinner-border spinner-border-sm text-primary" role="status"><span class="sr-only">Loading...</span></div> ')
-      end
-
-      -- tprint(host) io.write("\n")
-      print(host_label .. "</span> <i class=\"fas fa-external-link-alt\"></i> </A>")
-
-      print(hostinfo2detailshref(host, {page = "config"}, ' <i class="fas fa-sm fa-cog" aria-hidden="true"></i> '))
-
-      print(format_utils.formatFullAddressCategory(host))
-
-      if(host.services) then
-	 if(host.services.dhcp) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
-	 if(host.services.dns)  then print(' <span class="badge bg-success">'..i18n("details.label_dns_server")..'</span>') end
-	 if(host.services.smtp) then print(' <span class="badge bg-success">'..i18n("details.label_smtp_server")..'</span>') end
-	 if(host.services.ntp)  then print(' <span class="badge bg-success">'..i18n("details.label_ntp_server")..'</span>') end
-      end
-
-      if(host["dhcp_server"] == true) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
-      if(host["systemhost"] == true) then print(' <span class="badge bg-success"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
-      if(host["is_blacklisted"] == true) then print(' <span class="badge bg-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
-      if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
-	 print(' <A class="ntopng-external-link" href="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'
-		  ..ntop.getHttpPrefix()..'/img/virustotal.svg\"> <i class=\"fas fa-external-link-alt\"></i></A>')
-      end
-
-      print("</td>\n")
-end
-
-local h_notes = getHostNotes(host_info) or ''
-
-if(not isEmptyString(h_notes)) then
-	print[[
-
-	<tr><th>]] print(i18n("host_details.notes"))
-	print[[</th><td colspan="2"><span id="host_notes">]]print(h_notes)
-	print[[</span><span id="host_notes"></span></td></tr>
-
-	]]
-end
-
-if(host["num_alerts"] > 0) then
-   print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "engaged-alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").." <span id=alerts_trend></span></td></tr>\n")
-end
-
-if isScoreEnabled() then
-   local score_chart = ""
-
-   if charts_available then
-      score_chart = hostinfo2detailshref(host, {page = "historical", tskey = tskey, ts_schema = "host:score"}, '<i class="fas fa-chart-area fa-sm"></i>')
-   end
-
-   print("<tr><th rowspan=2>"..i18n("score").." " .. score_chart .."</th>")
-   print("<th>"..i18n("host_details.client_score").."</th><th>"..i18n("host_details.server_score").."</th></tr>")
-
-   local c = host.score_pct and host.score_pct["score_breakdown_client"]
-   local s = host.score_pct and host.score_pct["score_breakdown_server"]
-
-   print("<tr>")
-   print("<td>")
-   print("<div class='d-flex align-items-center'>")
-   print("<span id='score_as_client'>".. (host["score.as_client"] or 0) .."</span> <span class='ms-1' id='client_score_trend'></span>")
-   if c then
-      scoreBreakdown(c)
-   end
-   print("</div>")
-   print("</td>")
-
-   print("<td>")
-   print("<div class='d-flex align-items-center'>")
-   print("<span id='score_as_server'>".. (host["score.as_server"] or 0).."</span><span class='ms-1' id='server_score_trend'></span>")
-   if s then
-      scoreBreakdown(s)
-   end
-   print("</div>")
-   print("</td>")
-
-   print("</tr>\n")
-end
-
--- Active monitoring
-if am_utils and am_utils.isMeasurementAvailable('icmp') then
-   local icmp = isIPv6(host["ip"]) and 'icmp6' or 'icmp'
-   print([[
-      <tr>
-         <th>]] .. i18n("active_monitoring_stats.active_monitoring") .. [[</th>
-   ]])
-   if (not am_utils.hasHost(host["ip"], icmp)) then
-      print([[
-         <td colspan="2">
-            <a href='#' id='btn-add-am-host'>]].. i18n('active_monitoring_stats.add_icmp') ..[[ <i class='fas fa-plus'></i></a>
-         </td>
-         <script type='text/javascript'>
-            $(document).ready(function() {
-
-               let am_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
-               $('#btn-add-am-host').click(function(e) {
-
-                  e.preventDefault();
-                  const data_to_send = {
-                     action: 'add',
-                     am_host: ']].. host["ip"] ..[[',
-                     threshold: 100,
-		     granularity: "min",
-                     measurement: ']].. icmp ..[[',
-                     csrf: am_csrf,
-                  };
-
-                  $.post(`${http_prefix}/plugins/edit_active_monitoring_host.lua`, data_to_send)
-                  .then((data, result, xhr) => {
-
-                     const $alert_message = $('<div class="alert"></div>');
-                     if (data.success) {
-                        $alert_message.addClass('alert-success').text(data.message);
-                        $('#n-container').prepend($alert_message);
-
-                        setTimeout(() => {
-                           location.reload();
-                        }, 1000);
-
-                        return;
-                     }
-
-                     $alert_message.addClass('alert-danger').text(data.error);
-                     $('#n-container').prepend($alert_message);
-                     setTimeout(() => {
-                        $alert_message.remove();
-                     }, 5000);
-
-                  })
-                  .fail(() => {
-                     const $alert_message = $('<div class="alert"></div>');
-                     $alert_message.addClass('alert-danger').text("]].. i18n('expired_csrf') ..[[");
-
-                  });
-
-               });
-            });
-         </script>
-      ]])
-
-   else
-      local last_update = am_utils.getLastAmUpdate(host['ip'], icmp)
-      local last_rtt = ""
-
-      if(last_update ~= nil) then
-         last_rtt = last_update.value .. " " .. i18n("active_monitoring_stats.msec")
-      else
-	 last_rtt = i18n("active_monitoring_stats.no_updates_yet")
-      end
-
-      print([[
-         <td colspan="2">
-            <a href=']].. ntop.getHttpPrefix() ..[[/plugins/active_monitoring_stats.lua?am_host=]].. host['ip'] ..[[&measurement=]].. icmp ..[['>]].. last_rtt ..[[</a>
-         </td>
-      ]])
-
-   end
-
-   print("</tr>")
-end
-
-if(host["active_alerted_flows"] > 0) then
-   print("<tr><th>"..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..formatValue(host["active_alerted_flows"]) .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
-end
-
-if(host.score_behaviour.tot_num_anomalies > 0) then
-   -- TODO: Add JSON update
-   print("<tr><th>"..i18n("host_details.behavioural_anomalies").."</th><td colspan=2><span id=beh_anomalies>"..formatValue(host.score_behaviour.tot_num_anomalies).."</span><span id=beh_anomalies_trend></span></td></tr>\n")
-end
-
+   
    if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
 
    local msg = ""
@@ -1730,217 +1728,219 @@ elseif(page == "sites") then
       print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
    end
 
-   elseif(page == "flows") then
+elseif(page == "flows") then
 
-      require("flow_utils")
+   require("flow_utils")
 
-print [[
+   print [[
       <div id="table-flows"></div>
 	 <script>
    var url_update = "]]
 
-local page_params = {
-   application = _GET["application"],
-   category = _GET["category"],
-   alert_type = _GET["alert_type"],
-   alert_type_severity = _GET["alert_type_severity"],
-   tcp_flow_state = _GET["tcp_flow_state"],
-   flowhosts_type = _GET["flowhosts_type"],
-   traffic_type = _GET["traffic_type"],
-   version = _GET["version"],
-   l4proto = _GET["l4proto"],
-   dscp_class = _GET["dscp_class"],
-   host = hostinfo2hostkey(host),
-   tskey = _GET["tskey"],
-}
-
-print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
-
-print('";')
-
-if(ifstats.vlan)   then show_vlan = true else show_vlan = false end
-local active_flows_msg = i18n("flows_page.active_flows",{filter=""})
-if not interface.isPacketInterface() then
-   active_flows_msg = i18n("flows_page.recently_active_flows",{filter=""})
-elseif interface.isPcapDumpInterface() then
-   active_flows_msg = i18n("flows")
-end
-
-local duration_or_last_seen = prefs.flow_table_time
-local begin_epoch_set = (ntop.getPref("ntopng.prefs.first_seen_set") == "1")
-
-local active_flows_msg = getFlowsTableTitle()
-
-print [[
-	 $("#table-flows").datatable({
-         url: url_update,
-         buttons: [ ]] printActiveFlowsDropdown("host_details.lua?page=flows", page_params, interface.getStats(), interface.getActiveFlowsStats(hostinfo2hostkey(host_info))) print[[ ],
-         tableCallback: function()  {
-	    ]] initFlowsRefreshRows() print[[
-	 },
-         showPagination: true,
-	       ]]
-
-  print('title: "'..active_flows_msg..'",')
-
--- Set the preference table
-preference = tablePreferences("rows_number",_GET["perPage"])
-if(preference ~= "") then print ('perPage: '..preference.. ",\n") end
-
-
-print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
-
-print[[
-   columns: [
-      {
-         title: "",
-         field: "key",
-         hidden: true,
-      }, {
-         title: "",
-         field: "hash_id",
-         hidden: true,
-      }, {
-         title: "",
-         field: "column_key",
-         css: {
-            textAlign: 'center'
-         }
-      }, {
-         title: "]] print(i18n("application")) print[[",
-         field: "column_ndpi",
-         sortable: true,
-         css: {
-            textAlign: 'center'
-         }
-      }, {
-         title: "]] print(i18n("protocol")) print[[",
-         field: "column_proto_l4",
-         sortable: true,
-         css: {
-            textAlign: 'center'
-         }
-      },
-	]]
-
-	if(show_vlan) then
-	   print('{ title: "'..i18n("vlan")..'",\n')
-	   print [[
-         field: "column_vlan",
-         sortable: true,
-                 css: {
-              textAlign: 'center'
-           }
-
-         },
-		]]
-	end
-	print [[
-      {
-         title: "]] print(i18n("client")) print[[",
-         field: "column_client",
-         sortable: true,
-      }, {
-	      title: "]] print(i18n("server")) print[[",
-         field: "column_server",
-         sortable: true,
-      },
-	]]
-	if begin_epoch_set == true then
-   	print[[
-	      {
-	         title: "]] print(i18n("first_seen")) print[[",
-	         field: "column_first_seen",
-	         sortable: true,
-	         css: {
-	         	whiteSpace: 'nowrap',
-	            textAlign: 'center',
-	         }
-	      },
-   	]]
-	end
-
-	if duration_or_last_seen == false then 
-	   print[[
-	      {
-	         title: "]] print(i18n("duration")) print[[",
-	         field: "column_duration",
-	         sortable: true,
-	         css: {
-	         	whiteSpace: 'nowrap',
-	            textAlign: 'center',
-	         }
-	      },
-	   ]]
-	else
-	   print[[
-	      {
-	         title: "]] print(i18n("last_seen")) print[[",
-	         field: "column_last_seen",
-	         sortable: true,
-	         css: {
-	         	whiteSpace: 'nowrap',
-	            textAlign: 'center',
-	         }
-	      },
-	   ]]
-	end   
+   local page_params = {
+      application = _GET["application"],
+      category = _GET["category"],
+      alert_type = _GET["alert_type"],
+      alert_type_severity = _GET["alert_type_severity"],
+      tcp_flow_state = _GET["tcp_flow_state"],
+      flowhosts_type = _GET["flowhosts_type"],
+      traffic_type = _GET["traffic_type"],
+      version = _GET["version"],
+      l4proto = _GET["l4proto"],
+      dscp_class = _GET["dscp_class"],
+      host = hostinfo2hostkey(host),
+      tskey = _GET["tskey"],
+      host_pool_id = _GET["host_pool_id"],
+   }
+ 
+   print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
    
-   print[[{
-     title: "]] print(i18n("score")) print[[",
-         field: "column_score",
-         hidden: ]] print(ternary(isScoreEnabled(), "false", "true")) print[[,
-         sortable: true,
-     css: {
-        textAlign: 'center'
-       }
-       },
-     {
-     title: "]] print(i18n("breakdown")) print[[",
-         field: "column_breakdown",
-         sortable: false,
-     css: {
-        textAlign: 'center'
-       }
-       },
-     {
-     title: "]] print(i18n("flows_page.actual_throughput")) print[[",
-         field: "column_thpt",
-         sortable: true,
-     css: {
-        textAlign: 'right'
-     }
+   print('";')
+   
+   if(ifstats.vlan)   then show_vlan = true else show_vlan = false end
+   local active_flows_msg = i18n("flows_page.active_flows",{filter=""})
+   if not interface.isPacketInterface() then
+      active_flows_msg = i18n("flows_page.recently_active_flows",{filter=""})
+   elseif interface.isPcapDumpInterface() then
+      active_flows_msg = i18n("flows")
+   end
+   
+   local duration_or_last_seen = prefs.flow_table_time
+   local begin_epoch_set = (ntop.getPref("ntopng.prefs.first_seen_set") == "1")
+   
+   local active_flows_msg = getFlowsTableTitle()
+   
+   print [[
+   	 $("#table-flows").datatable({
+            url: url_update,
+            buttons: [ ]] printActiveFlowsDropdown("host_details.lua?page=flows", page_params, interface.getStats(), interface.getActiveFlowsStats(hostinfo2hostkey(host_info))) print[[ ],
+            tableCallback: function()  {
+   	    ]] initFlowsRefreshRows() print[[
+   	 },
+            showPagination: true,
+   	       ]]
+   
+     print('title: "'..active_flows_msg..'",')
+   
+   -- Set the preference table
+   preference = tablePreferences("rows_number",_GET["perPage"])
+   if(preference ~= "") then print ('perPage: '..preference.. ",\n") end
+   
+   
+   print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
+   
+   print[[
+      columns: [
+         {
+            title: "",
+            field: "key",
+            hidden: true,
+         }, {
+            title: "",
+            field: "hash_id",
+            hidden: true,
+         }, {
+            title: "",
+            field: "column_key",
+            css: {
+               textAlign: 'center'
+            }
+         }, {
+            title: "]] print(i18n("application")) print[[",
+            field: "column_ndpi",
+            sortable: true,
+            css: {
+               textAlign: 'center'
+            }
+         }, {
+            title: "]] print(i18n("protocol")) print[[",
+            field: "column_proto_l4",
+            sortable: true,
+            css: {
+               textAlign: 'center'
+            }
          },
-     {
-     title: "]] print(i18n("flows_page.total_bytes")) print[[",
-         field: "column_bytes",
-         sortable: true,
-     css: {
-
-        textAlign: 'right'
-     }
-
-         }
-     ,{
-     title: "]] print(i18n("info")) print[[",
-         field: "column_info",
-         sortable: true,
-     css: {
-        textAlign: 'left'
-     }
-         }
-     ]
-	});
-	]]
-
-if(have_nedge) then
-  printBlockFlowJs()
-end
-
-print[[
-       </script>
-
-   ]]
+   	]]
+   
+   	if(show_vlan) then
+   	   print('{ title: "'..i18n("vlan")..'",\n')
+   	   print [[
+            field: "column_vlan",
+            sortable: true,
+                    css: {
+                 textAlign: 'center'
+              }
+   
+            },
+   		]]
+   	end
+   	print [[
+         {
+            title: "]] print(i18n("client")) print[[",
+            field: "column_client",
+            sortable: true,
+         }, {
+   	      title: "]] print(i18n("server")) print[[",
+            field: "column_server",
+            sortable: true,
+         },
+   	]]
+   	if begin_epoch_set == true then
+      	print[[
+   	      {
+   	         title: "]] print(i18n("first_seen")) print[[",
+   	         field: "column_first_seen",
+   	         sortable: true,
+   	         css: {
+   	         	whiteSpace: 'nowrap',
+   	            textAlign: 'center',
+   	         }
+   	      },
+      	]]
+   	end
+   
+   	if duration_or_last_seen == false then 
+   	   print[[
+   	      {
+   	         title: "]] print(i18n("duration")) print[[",
+   	         field: "column_duration",
+   	         sortable: true,
+   	         css: {
+   	         	whiteSpace: 'nowrap',
+   	            textAlign: 'center',
+   	         }
+   	      },
+   	   ]]
+   	else
+   	   print[[
+   	      {
+   	         title: "]] print(i18n("last_seen")) print[[",
+   	         field: "column_last_seen",
+   	         sortable: true,
+   	         css: {
+   	         	whiteSpace: 'nowrap',
+   	            textAlign: 'center',
+   	         }
+   	      },
+   	   ]]
+   	end   
+      
+      print[[{
+        title: "]] print(i18n("score")) print[[",
+            field: "column_score",
+            hidden: ]] print(ternary(isScoreEnabled(), "false", "true")) print[[,
+            sortable: true,
+        css: {
+           textAlign: 'center'
+          }
+          },
+        {
+        title: "]] print(i18n("breakdown")) print[[",
+            field: "column_breakdown",
+            sortable: false,
+        css: {
+           textAlign: 'center'
+          }
+          },
+        {
+        title: "]] print(i18n("flows_page.actual_throughput")) print[[",
+            field: "column_thpt",
+            sortable: true,
+        css: {
+           textAlign: 'right'
+        }
+            },
+        {
+        title: "]] print(i18n("flows_page.total_bytes")) print[[",
+            field: "column_bytes",
+            sortable: true,
+        css: {
+   
+           textAlign: 'right'
+        }
+   
+            }
+        ,{
+        title: "]] print(i18n("info")) print[[",
+            field: "column_info",
+            sortable: true,
+        css: {
+           textAlign: 'left'
+        }
+            }
+        ]
+   	});
+   	]]
+   
+   if(have_nedge) then
+     printBlockFlowJs()
+   end
+   
+   print[[
+          </script>
+   
+      ]]
+   
 
 elseif(page == "snmp" and ntop.isEnterpriseM() and isAllowedSystemInterface()) then
    local snmp_config = require "snmp_config"
