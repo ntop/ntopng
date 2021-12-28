@@ -3169,7 +3169,7 @@ void NetworkInterface::startFlowDumping() {
 #ifdef __linux__
       char buf[16];
 
-      snprintf(buf, sizeof(buf), "flowdump ifid %u", get_id());
+      snprintf(buf, sizeof(buf), "%d/flowdump", get_id());
       pthread_setname_np(flowDumpLoop, buf);
 #endif
     } else {
@@ -3194,7 +3194,7 @@ void NetworkInterface::startPacketPolling() {
 
 #ifdef __linux__
     char buf[16];
-    snprintf(buf, sizeof(buf), "inline ifid %u", get_id());
+    snprintf(buf, sizeof(buf), "%u/pkt_poll", get_id());
     pthread_setname_np(pollLoop, buf);
 #endif
   }
@@ -8293,8 +8293,8 @@ bool NetworkInterface::initFlowChecksLoop() {
 #ifdef __linux__
   char buf[16];
 
-  snprintf(buf, sizeof(buf), "hooks ifid %u", get_id());
-  pthread_setname_np(flowChecksLoop, buf);
+  snprintf(buf, sizeof(buf), "%u/flow_checks", get_id());
+  Utils::setThreadName(buf);
 #endif
 
   return true;
@@ -8315,7 +8315,7 @@ bool NetworkInterface::initHostChecksLoop() {
 #ifdef __linux__
   char buf[16];
 
-  snprintf(buf, sizeof(buf), "hooks ifid %u", get_id());
+  snprintf(buf, sizeof(buf), "%u/host_checks", get_id());
   pthread_setname_np(hostChecksLoop, buf);
 #endif
 

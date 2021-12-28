@@ -168,7 +168,7 @@ void* resolveLoop(void* ptr) {
   u_int no_resolution_loops = 0;
   const u_int max_num_idle_loops = 1;
 
-  Utils::setThreadName("resolveLoop");
+  Utils::setThreadName("dns_resolution");
   
   while(!ntop->getGlobals()->isShutdown()) {
     char numeric_ip[64];
