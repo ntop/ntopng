@@ -1491,9 +1491,11 @@ int Prefs::setOption(int optkey, char *optarg) {
 					     strerror(errno));
 	      else
 		mysql_port = (int)l;
-	    } else
-	      mysql_port = CONST_DEFAULT_CLICKHOUSE_PORT;
-
+	    } else {
+	      if(use_clickhouse)
+		mysql_port = CONST_DEFAULT_CLICKHOUSE_PORT;
+	    }
+	    
 	    if(use_clickhouse && mysql_host) {
 	      if(strcmp(mysql_host, "localhost") == 0) {
 		/* Clickhouse does not like localhost */
