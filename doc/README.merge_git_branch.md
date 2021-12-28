@@ -17,7 +17,13 @@ git push -u origin boostrap5
 
 Once all the changes are done it is recommended to rebase `boostrap5` into `dev`. This is to keep the commits history clean, and only add a single commit into `dev`.
 
-The first thing to do is to `squash` all the commits done into `bootstrap5` into a single commit. To know how many commits need to be `squash` ed, the least common commit between `dev` and `bootstrap5` must be found. This is also called the _merge base_ and can be found as follows
+Firstly update the dev branch
+
+```
+git checkout dev
+git pull
+```
+Then `squash` all the commits done into `bootstrap5` into a single commit. To know how many commits need to be `squash` ed, the least common commit between `dev` and `bootstrap5` must be found. This is also called the _merge base_ and can be found as follows
 
 ```
 git merge-base bootstrap5 dev
@@ -104,6 +110,13 @@ Do the merge with
 ```
 git merge boostrap5
 ```
+If a problem arise, remove the last commit
+
+```
+git reset HEAD~1
+```
+Now all the changes are no more committed and everything is kept in local. Then do what's needed and then re-add and commit all the files into a new commit and push.
+(e.g. If a new commit is present and you cannot push, reset the last commit, stash everything, pull, then apply the stash and push)
 
 Now `dev` has all the commits of `boostrap5` squashed into a single commit. 
 
