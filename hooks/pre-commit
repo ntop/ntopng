@@ -1,23 +1,30 @@
 #!/bin/sh
 
-if which lua 2>&1 >/dev/null; then
-	# Sort locales
-	for fname in `ls scripts/locales`; do
-		full_path=scripts/locales/${fname}
+LUA_INTERPR="lua5.3"
+UGLIFY_EXEC="uglifyjs"
 
-		if ! git diff --staged --quiet $full_path; then
-			locale=${fname%%.lua}
-			tools/localization/localize.sh sort $locale
-			git add $full_path
-		fi
-	done
+if hash ${LUA_INTERPR} 2>/dev/null; then
+    # Sort locales
+    for fname in `ls scripts/locales`; do
+	full_path=scripts/locales/${fname}
+
+	if ! git diff --staged --quiet $full_path; then
+	    locale=${fname%%.lua}
+	    tools/localization/localize.sh sort $locale
+	    git add $full_path
+	fi
+    done
+else
+    echo "$0: ${LUA_INTERPR} could not be found"
 fi
 
-if which uglifyjs 2>&1 >/dev/null; then
-	# Minify scripts
-	if ! git diff --staged --quiet httpdocs/js; then
-		make minify
-		git add -u httpdocs/js/*.min.js
-		git add -u httpdocs/js/*.min.js.map
-	fi
+if hash ${UGLIFY_EXEC} 2>/dev/null; then
+    # Minify scripts
+    if ! git diff --staged --quiet httpdocs/js; then
+	make minify
+	git add -u httpdocs/js/*.min.js
+	git add -u httpdocs/js/*.min.js.map
+    fi
+else
+    echo "$0: ${UGLIFY_EXEC} could not be found"
 fi
