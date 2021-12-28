@@ -4,6 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 
 require "lua_utils"
 local page_utils = require("page_utils")
@@ -14,6 +15,10 @@ local template_utils = require "template_utils"
 
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
+local alert_utils = require "alert_utils"
+local alert_store = require "alert_store"
+local alert_store_utils = require "alert_store_utils"
+local alert_store_instances = alert_store_utils.all_instances_factory()
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -25,6 +30,8 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local ifid = interface.getId()
 
+local page = _GET["page"]
+local status = _GET["status"] or "historical"
 local row_id = _GET["row_id"]
 
 -- ######################################
@@ -41,24 +48,24 @@ local pages = {
 
 -- #######################################
 
-local alert = nil -- TODO get alert by row_id
-
 local label = i18n("alerts_dashboard.alert")
-if alert then
-   -- label = label .. ": " .. getAlertLabel(alert)
+local details = {}
+local alert = nil
+
+if page and row_id and alert_entities[page] then
+   local alert_store_instance = alert_store_instances[alert_entities[page].alert_store_name]
+   if alert_store_instance then
+      alerts, recordsFiltered = alert_store_instance:select_request(nil, "*")
+      if #alerts >= 1 then
+         alert = alerts[1]
+         -- formatted_alert = alert_store_instance:format_record(alert, false)
+         details = alert_store_instance:get_alert_details(alert)
+         label = label .. ": " .. alert_store_instance:get_alert_label(alert)
+      end
+   end
 end
 
 page_utils.print_navbar(label, url, pages)
-
--- #######################################
-
-local details = {}
-
-if alert then
-
-   -- TODO fill details
-
-end -- alert
 
 -- #######################################
 

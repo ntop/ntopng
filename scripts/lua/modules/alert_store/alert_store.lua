@@ -1269,7 +1269,7 @@ end
 
 --@brief Add filters according to what is specified inside the REST API
 function alert_store:add_request_filters()
-   local ifid = _GET["ifid"]
+   local ifid = _GET["ifid"] or interface.getId()
    local epoch_begin = tonumber(_GET["epoch_begin"])
    local epoch_end = tonumber(_GET["epoch_end"])
    local alert_id = _GET["alert_id"] or _GET["alert_type"] --[[ compatibility ]]--

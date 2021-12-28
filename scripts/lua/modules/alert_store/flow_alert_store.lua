@@ -603,4 +603,35 @@ end
 
 -- ##############################################
 
+--@brief Convert an alert coming from the DB (value) to a list of items to be printed in the details page
+function flow_alert_store:get_alert_details(value)
+   local details = {}
+
+   --[[
+   details[#details + 1] = {
+      label = "Title",
+      content = "Content"
+   }
+
+   details[#details + 1] = {
+      label = "Title",
+      content = {
+         [1] = "Content 1",
+         [2] = "Content 2",
+      }
+   }
+   --]]
+
+   return details 
+end
+
+-- ##############################################
+
+--@brief Get a label/title for the alert coming from the DB (value)
+function flow_alert_store:get_alert_label(value)
+   return ""
+end
+
+-- ##############################################
+
 return flow_alert_store

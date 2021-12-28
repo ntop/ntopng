@@ -634,7 +634,7 @@ local context = {
        show_disable = ((page == 'host') or (page == 'flow')) and isAdministrator(),
        show_acknowledge = (page ~= 'all') and (status == "historical") and isAdministrator(),
        show_delete = (page ~= 'all') and (status ~= "engaged") and isAdministrator(),
-       -- show_info = (page == 'flow') and (status ~= "engaged"),
+       show_info = (page == 'flow'),
    },
 
    show_tot_records = false,
