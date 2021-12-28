@@ -251,7 +251,7 @@ end
 -- #####################################
 
 tag_utils.formatters = {
-   l4proto = function(proto) return l4_proto_to_string(proto) end,
+   l4proto = function(proto) return l4_proto_to_id(proto) end,
    l7_proto = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end,
    l7proto  = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end, 
    l7cat = function(cat) return interface.getnDPICategoryName(tonumber(cat)) end,
