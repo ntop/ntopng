@@ -65,32 +65,27 @@ Ping::Ping(char *ifname) {
 #ifndef __linux__
   ifname = NULL; /* Too much of a hassle supporting it without capabilities */
 #endif
-  
+
 #ifdef __linux__
   if(Utils::gainWriteCapabilities() == -1)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities [%s]", strerror(errno));
 #endif
 
+  errno = 0;
 #if defined(__APPLE__)
   sd  = socket(AF_INET,  SOCK_DGRAM, IPPROTO_ICMP);
-  sd6 = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
 #else
   sd  = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
-  sd6 = socket(PF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
 #endif
 
-#ifdef __linux
-  Utils::dropWriteCapabilities();
-#endif
-
-  if(sd == -1) {
+  if((sd == -1) && (errno != 0)) {
     if(errno != EPROTONOSUPPORT /* Avoid flooding logs when IPv4 is not supported */)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping IPv4 socket creation error: %s",
 				   strerror(errno));
   } else {
     setOpts(sd);
 
-    if(ifname) {
+    if(ifname && (ifname[0] != '\0')) {
       struct sockaddr_in sin;
 
       sin.sin_family = AF_INET;
@@ -104,7 +99,18 @@ Ping::Ping(char *ifname) {
     }
   }
 
-  if(sd6 == -1) {
+  errno = 0;
+#if defined(__APPLE__)
+  sd6 = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
+#else
+  sd6 = socket(PF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
+#endif
+
+#ifdef __linux
+  Utils::dropWriteCapabilities();
+#endif
+
+  if((sd6 == -1) && (errno != 0)) {
     if(errno != EPROTONOSUPPORT &&
        errno != EAFNOSUPPORT) /* Avoid flooding logs when IPv6 is not supported */
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping IPv6 socket creation error: %s",
@@ -137,7 +143,7 @@ Ping::~Ping() {
     running = false;
     pthread_join(resultPoller, NULL);
   }
-  
+
   if(sd != -1)  close(sd);
   if(sd6 != -1) close(sd6);
 }
@@ -182,7 +188,7 @@ int Ping::ping(char *_addr, bool use_v6) {
     return(-1);
 
   start(); /* In case thread is not started yet */
-  
+
   if(use_v6) {
     bzero(&addr6, sizeof(addr6));
 
