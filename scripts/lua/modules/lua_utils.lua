@@ -845,15 +845,20 @@ function l4_proto_to_string(proto_id)
    if not proto_id then return "" end
    if isEmptyString(proto_id) then return "" end
 
-   proto_id = tonumber(proto_id)
+   proto_id_num = tonumber(proto_id)
+
+   if proto_id_num == nil then
+      -- Already string?
+      return proto_id 
+   end
 
    for _, proto in pairs(l4_keys) do
-      if proto[3] == proto_id then
+      if proto[3] == proto_id_num then
          return proto[1], proto[2]
       end
    end
 
-   return string.format("%d", proto_id)
+   return string.format("%d", proto_id_num)
 end
 
 -- Return the list of L4 proto (key = name, value = id)
