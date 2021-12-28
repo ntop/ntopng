@@ -3648,6 +3648,9 @@ int Utils::retainWriteCapabilities() {
   if(cap_set_flag(caps, CAP_INHERITABLE, num_cap, cap_values, CAP_SET) == -1)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
 
+  if(cap_set_flag(caps, CAP_EFFECTIVE, num_cap, cap_values, CAP_SET) == -1)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
+
   rc = cap_set_proc(caps);
   if(rc == 0) {
 #ifdef TRACE_CEPABILITIES
@@ -3712,7 +3715,8 @@ static int _setWriteCapabilities(int enable) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
 
     if(cap_set_proc(caps) == -1)
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_proc error: %s", strerror(errno));
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_proc error: %s [enable: %u]",
+				   strerror(errno), enable);
     else {
 #ifdef TRACE_CEPABILITIES
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPABILITIES] Capabilities %s [rc: %d]",
