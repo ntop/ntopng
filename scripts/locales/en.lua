@@ -598,6 +598,9 @@ local lang = {
     ["traffic_rx_behavior"] = "Traffic RX",
     ["traffic_tx_behavior"] = "Traffic TX",
   },
+  ["alert_details"] = {
+    ["cannot_be_found_message"] = "This alert cannot be found.",
+  },
   ["alert_entities"] = {
     ["am_host"] = "Active Monitoring",
     ["asn"] = "ASN",

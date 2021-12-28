@@ -634,6 +634,7 @@ local context = {
        show_disable = ((page == 'host') or (page == 'flow')) and isAdministrator(),
        show_acknowledge = (page ~= 'all') and (status == "historical") and isAdministrator(),
        show_delete = (page ~= 'all') and (status ~= "engaged") and isAdministrator(),
+       -- show_info = (page == 'flow') and (status ~= "engaged"),
    },
 
    show_tot_records = false,
@@ -695,6 +696,7 @@ local context = {
        entity = page,
        alert_status = status,
        datatable = datatable,
+       alert_details_url = ntop.getHttpPrefix().."/lua/alert_details.lua",
    }
 }
 
