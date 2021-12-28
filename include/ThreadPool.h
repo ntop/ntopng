@@ -42,7 +42,8 @@ class QueuedThreadData {
 	
 class ThreadPool {
  private:
-  bool terminating, adaptive_pool_size;
+  u_int16_t num_threads;
+  bool terminating;
   pthread_cond_t condvar;
   Mutex *m;
   #ifdef __linux__
@@ -57,10 +58,11 @@ class ThreadPool {
   /*
     Creates and starts a new pool thread
    */
-  void spawn();
+  bool spawn();
+  bool isQueueable(ThreadedActivityState cur_state);
   
  public:
-  ThreadPool(bool _adaptive_pool_size, u_int8_t _pool_size, char *comma_separated_affinity_mask = NULL);
+  ThreadPool(char *comma_separated_affinity_mask = NULL);
   virtual ~ThreadPool();
 
   void shutdown();

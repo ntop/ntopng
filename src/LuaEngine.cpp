@@ -161,7 +161,6 @@ LuaEngine::~LuaEngine() {
       if(ctx->bin)
 	delete ctx->bin;
 #endif
-
       free(ctx);
     }
 

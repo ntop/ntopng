@@ -671,6 +671,7 @@ local function get_notification_category(notification, current_script)
    -- Category is first read from the current_script. If no current_script is found (e.g., for
    -- alerts cenerated from the C++ core such as start after anomalous termination), the category
    -- is guessed from the alert entity.
+   local checks = require "checks"
    local entity_id = notification.entity_id
 
    local cur_category_id
@@ -681,7 +682,7 @@ local function get_notification_category(notification, current_script)
       --- Determined from the entity
       if entity_id == alert_entities.system.entity_id then
 	 -- System alert entity becomes system
-	 cur_category_id = checks.check_categories.system.id
+    cur_category_id = checks.check_categories.system.id
       else
 	 -- All other entities fall into other category
 	 cur_category_id = checks.check_categories.other.id

@@ -39,10 +39,10 @@ local HOURLY_CQ_DISABLED_KEY = "ntopng.prefs.influxdb.1h_cq_disabled"
 local INFLUX_KEY_PREFIX = "ntopng.cache.influxdb."
 
 -- Keep total counters for dropped points
-local INFLUX_KEY_DROPPED_POINTS = INFLUX_KEY_PREFIX.."num_dropped_points"
 local INFLUX_KEY_EXPORTED_POINTS = INFLUX_KEY_PREFIX.."num_exported_points"
 local INFLUX_KEY_EXPORTS = INFLUX_KEY_PREFIX.."num_exports"
 local INFLUX_KEY_FAILED_EXPORTS = INFLUX_KEY_PREFIX.."num_failed_exports"
+local INFLUX_KEY_LAST_ERROR = INFLUX_KEY_PREFIX.."last_error"
 
 -- Use this flag as TTL-based redis keys to check wether the health
 -- of influxdb is OK.
@@ -50,7 +50,6 @@ local INFLUX_FLAGS_TIMEOUT = 60 -- keep the issue for 60 seconds
 local INFLUX_FLAG_DROPPING_POINTS = INFLUX_KEY_PREFIX.."flag_dropping_points"
 local INFLUX_FLAG_FAILING_EXPORTS = INFLUX_KEY_PREFIX.."flag_failing_exports"
 
-local INFLUX_FLAG_IS_CURRENTLY_DROPPING = INFLUX_KEY_PREFIX.."flag_currently_dropping"
 local INFLUX_QUEUE_FULL_FLAG = INFLUX_KEY_PREFIX.."export_queue_full"
 
 -- ##############################################
@@ -93,51 +92,12 @@ end
 
 -- ##############################################
 
-local function inc_dropped_points(num_points)
-   ntop.incrCache(INFLUX_KEY_DROPPED_POINTS, num_points)
-
-   -- Status flag
-   ntop.setCache(INFLUX_FLAG_DROPPING_POINTS, "true", INFLUX_FLAGS_TIMEOUT)
-
-   -- Internal flag
-   ntop.setCache(INFLUX_FLAG_IS_CURRENTLY_DROPPING, "true")
-end
-
--- ##############################################
-
-local function inc_exported_points(num_points)
-  ntop.incrCache(INFLUX_KEY_EXPORTED_POINTS, num_points)
-end
-
--- ##############################################
-
-local function inc_exports()
-   ntop.incrCache(INFLUX_KEY_EXPORTS)
-end
-
--- ##############################################
-
-local function inc_failed_exports()
-   ntop.setCache(INFLUX_FLAG_FAILING_EXPORTS, "true", INFLUX_FLAGS_TIMEOUT)
-   ntop.incrCache(INFLUX_KEY_FAILED_EXPORTS, 1)
-end
-
--- ##############################################
-
 local function del_all_vals()
-   ntop.delCache(INFLUX_KEY_DROPPED_POINTS)
    ntop.delCache(INFLUX_KEY_EXPORTED_POINTS)
    ntop.delCache(INFLUX_KEY_EXPORTS)
    ntop.delCache(INFLUX_KEY_FAILED_EXPORTS)
    ntop.delCache(INFLUX_FLAG_DROPPING_POINTS)
    ntop.delCache(INFLUX_FLAG_FAILING_EXPORTS)
-   ntop.delCache(INFLUX_FLAG_IS_CURRENTLY_DROPPING)
-end
-
--- ##############################################
-
-function driver:get_dropped_points()
-   return tonumber(ntop.getCache(INFLUX_KEY_DROPPED_POINTS)) or 0
 end
 
 -- ##############################################
@@ -168,9 +128,7 @@ end
 
 -- This function is called when the object is destroyed (garbage collected)
 function driver:__gc()
-  if(self.cur_dropped_points > 0) then
-    inc_dropped_points(self.cur_dropped_points)
-  end
+   -- Nothing to do
 end
 
 -- ##############################################
@@ -369,7 +327,7 @@ local function influx_query_multi(base_url, query, username, password, options)
 
   if tdiff >= timeout then
     -- Show the error
-    ntop.setCache("ntopng.cache.influxdb.last_error", i18n("graphs.influxdb_not_responding", {
+    ntop.setCache(INFLUX_KEY_LAST_ERROR, i18n("graphs.influxdb_not_responding", {
       url = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=on_disk_ts#influx_query_timeout",
       flask_icon = '<i class="fas fa-flask"></i>',
     }))
@@ -515,7 +473,7 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
     end
 
     --traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("@ %u = %.2f", cur_t, values[2]))
-    if(false) then -- consinstency check
+    if(false) then -- consistency check
       local expected_t = next_t
       local actual_t = values[1]
 
@@ -902,7 +860,7 @@ function driver:_exportTsFile(exportable)
   local fname = exportable["fname"]
 
   if not ntop.exists(fname) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE,
+     traceError(TRACE_ERROR, TRACE_CONSOLE,
 	       string.format("Cannot find ts file %s. Some timeseries data will be lost.", fname))
     -- The file isn't in place, probably has been manually deleted or a write failure prevented
     -- it from being written. It's safe to remove the corresponding item from the queue as this
@@ -913,16 +871,17 @@ function driver:_exportTsFile(exportable)
 
   -- Delete the file after POST
   local delete_file_after_post = false
+  -- Send data to InfluxDB
   local ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?precision=s&db=" .. self.db, fname, delete_file_after_post, 30 --[[ timeout ]])
 
   if((ret == nil) or ((ret.RESPONSE_CODE ~= 200) and (ret.RESPONSE_CODE ~= 204))) then
     local msg = self:_exportErrorMsg(ret)
-    ntop.setCache("ntopng.cache.influxdb.last_error", msg)
+    ntop.setCache(INFLUX_KEY_LAST_ERROR, msg)
 
     rv = false
   else
     -- Clear last error
-    ntop.delCache("ntopng.cache.influxdb.last_error")
+    ntop.delCache(INFLUX_KEY_LAST_ERROR)
   end
 
   return rv
@@ -948,178 +907,40 @@ end
 
 -- ##############################################
 
-local function deleteExportableFile(exportable)
-   if exportable and exportable["fname"] then
-      if ntop.exists(exportable["fname"]) then
-	 os.remove(exportable["fname"])
-	 traceError(TRACE_INFO, TRACE_CONSOLE, "Removed file "..exportable["fname"])
-      end
-   end
-end
-
--- ##############################################
-
--- When we giveup for a certain exportable, that is, when we are not
--- going to try and export it again, we call this function
-local function dropExportable(exportable)
-   inc_dropped_points(exportable["num_points"])
-   deleteExportableFile(exportable)
-end
-
--- ##############################################
-
-function driver:_droppedPointsAlert()
-   local alert_periodicity = 60
-   local k = "ntopng.cache.influxdb_dropped_points_alert_triggered"
-
-   if ntop.getCache(k) ~= "1" then
-      local alerts_api = require("alerts_api")
-      local alert_severities = require "alert_severities"
-local alert_consts = require "alert_consts"
-
-      local alert = alert_consts.alert_types.alert_influxdb_export_failure.new(
-        self.url
-      )
-
-      alert:set_score_error()
-      alert:set_granularity(alert_consts.alerts_granularities.min)
-
-      alert:store(alerts_api.systemEntity())
-      
-      -- Just to avoid doing :trigger too often
-      ntop.setCache(k, "1", alert_periodicity / 2)
-   end
-end
-
--- ##############################################
-
--- Call this function when an exportable has been sent to InfluxDB
--- with success
-local function exportableSuccess(exportable)
-   inc_exported_points(exportable["num_points"])
-   inc_exports()
-   deleteExportableFile(exportable)
-end
-
--- ##############################################
-
--- Call this function when the export has failed but it is going
--- to be tried again
-local function exportableFailure(exportable)
-   inc_failed_exports()
-end
-
--- ##############################################
-
-function driver:_performExport(exportable)
-   local time_key = "ntopng.cache.influxdb_export_time_" .. self.db .. "_" .. exportable["ifid"]
-   local prev_t = tonumber(ntop.getCache(time_key)) or 0
-
-   local start_t = ntop.gettimemsec()
-   local rv = self:_exportTsFile(exportable)
-   local end_t = ntop.gettimemsec()
-
-   if rv then
-      -- Successfully exported
-      traceError(TRACE_INFO, TRACE_CONSOLE,
-		 string.format("Successfully exported %u points in %.2fs", exportable["num_points"], (end_t - start_t)))
-      ntop.setCache(time_key, tostring(math.max(prev_t, exportable["time_ref"])))
-   end
-
-   return rv
-end
-
--- ##############################################
-
-local function getExportable(item)
-   local parts = split(item, "|")
-   local ifid_str = parts[1]
-   local ifid = tonumber(ifid_str)
-   local time_ref = tonumber(parts[2])
-   local export_id = tonumber(parts[3])
-   local num_points = tonumber(parts[4])
-   local res = {item = item}
-
-   if not ifid or not time_ref or not export_id or not num_points then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing mandatory data from the exportable item "..(item or ''))
-      return res
-   end
-
-   res["item"]       = item
-   res["fname"]      = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/ts_export/" .. export_id .. "_" .. time_ref)
-   res["ifid_str"]   = ifid_str
-   res["ifid"]       = ifid
-   res["num_points"] = num_points
-   res["time_ref"]   = time_ref
-
-   return res
-end
-
--- ##############################################
+-- This is a function called by the periodic script influx.lua
 
 function driver:export()
-   interface.select(getSystemInterfaceId())
+   local base_dir = dirs.workingdir .. "/ts_export"
+   local files = ntop.readdir(base_dir)
+   local num_files = 0
+   local num_files_threshold = 60 -- No more than 60 imports per run
 
-   local num_ifaces = table.len(interface.getIfNames())
-   local high_value = (INFLUX_MAX_EXPORT_QUEUE_LEN_HIGH * num_ifaces)
-   local low_value = (INFLUX_MAX_EXPORT_QUEUE_LEN_LOW * num_ifaces)
-   local max_value = (INFLUX_MAX_EXPORT_QUEUE_TRIM_LEN * num_ifaces)
-   local num_pending = ntop.llenCache(INFLUX_EXPORT_QUEUE)
+   for _,name in pairs(files) do
+      if(ends(name, ".tmp") == false) then
+	 -- skip tmp files
+	 local fname = base_dir.."/"..name
+	 local delete_file_after_post = true
+	 local ret = ntop.postHTTPTextFile(self.username, self.password, self.url .. "/write?precision=s&db=" .. self.db, fname, delete_file_after_post, 30 --[[ timeout ]])
 
-   traceError(TRACE_INFO, TRACE_CONSOLE, "Exporting "..num_pending.." items")
+	 if((ret == nil) or ((ret.RESPONSE_CODE ~= 200) and (ret.RESPONSE_CODE ~= 204))) then
+	    local msg = self:_exportErrorMsg(ret)
+	    ntop.setCache(INFLUX_KEY_LAST_ERROR, msg)
+	 else
+	    -- Clear last error
+	    ntop.delCache(INFLUX_KEY_LAST_ERROR)
+	    ntop.incrCache(INFLUX_KEY_EXPORTS, num_points)
+	 end
 
-   if(num_pending >= high_value) then
-      -- Export is blocked. Inhibit subsequent writes.
-      setExportQueueFull(true)
-   elseif(num_pending <= low_value) then
-      -- The problem was solved
-      setExportQueueFull(false)
-   end
+	 -- io.write("[InfluxDB] Processed file "..fname.."\n")
 
-   if num_pending == 0 then
-      return
-   end
+	 num_files = num_files + 1
 
-   while(num_pending > max_value) do
-      -- NOTE: this should not happen, but if it does we manually trim the queue
-      local being_dropped = ntop.lpopCache(INFLUX_EXPORT_QUEUE)
-      local exportable_to_be_dropped = getExportable(being_dropped)
-
-      dropExportable(exportable_to_be_dropped)
-
-      traceError(TRACE_INFO, TRACE_CONSOLE, "Dropped old item "..(being_dropped or ''))
-
-      num_pending = num_pending - 1
-   end
-
-   if(ntop.getCache(INFLUX_FLAG_IS_CURRENTLY_DROPPING) == "true") then
-      self:_droppedPointsAlert()
-      ntop.delCache(INFLUX_FLAG_IS_CURRENTLY_DROPPING)
-   end
-
-   -- Post the guys using a pretty long timeout
-   local pending_exports = ntop.lrangeCache(INFLUX_EXPORT_QUEUE, 0, -1)
-
-   if not pending_exports then
-      return
-   end
-
-   -- Process pending exports older-to-newer
-   for _, cur_export in ipairs(pending_exports) do
-      local exportable = getExportable(cur_export)
-      local res = self:_performExport(exportable)
-
-      if res then
-	 -- export SUCCEDED
-	 exportableSuccess(exportable)
-	 ntop.lremCache(INFLUX_EXPORT_QUEUE, cur_export)
-      else
-	 -- export FAILED, retry next time
-	 exportableFailure(exportable)
+	 if(num_files > num_files_threshold) then
+	    -- Remaining files will be imported at the next run
+	    break
+	 end
       end
    end
-
-   interface.select(getSystemInterfaceId())
 end
 
 -- ##############################################
@@ -1628,7 +1449,7 @@ local function updateCQRetentionPolicies(dbname, url, username, password)
   if create_1d then
      queries[#queries + 1] = makeRetentionPolicyQuery(rp_1d_statement, "1d", dbname, get1dDatabaseRetentionDays())
   end
-  
+
   if create_1h and HOURLY_CQ_ENABLED then
      queries[#queries + 1] = makeRetentionPolicyQuery(rp_1h_statement, "1h", dbname, get1hDatabaseRetentionDays())
   end
@@ -1674,13 +1495,13 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
   local version, err = getInfluxdbVersion(url, username, password)
 
   if((not version) and (err ~= nil)) then
-    ntop.setCache("ntopng.cache.influxdb.last_error", err)
+    ntop.setCache(INFLUX_KEY_LAST_ERROR, err)
     return false, err
   elseif((not version) or (not isCompatibleVersion(version))) then
     local err = i18n("prefs.incompatible_influxdb_version_found",
       {required=MIN_INFLUXDB_SUPPORTED_VERSION, found=version, url="https://portal.influxdata.com/downloads"})
 
-    ntop.setCache("ntopng.cache.influxdb.last_error", err)
+    ntop.setCache(INFLUX_KEY_LAST_ERROR, err)
     traceError(TRACE_ERROR, TRACE_CONSOLE, err)
     return false, err
   end
@@ -1719,7 +1540,7 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
     if not res or (res.RESPONSE_CODE ~= 200) then
       local err = i18n("prefs.influxdb_create_error", {db=dbname, msg=getResponseError(res)})
 
-      ntop.setCache("ntopng.cache.influxdb.last_error", err)
+      ntop.setCache(INFLUX_KEY_LAST_ERROR, err)
       traceError(TRACE_ERROR, TRACE_CONSOLE, err)
       return false, err
     end
@@ -1745,7 +1566,7 @@ function driver.init(dbname, url, days_retention, username, password, verbose)
     -- NOTE: updateCQRetentionPolicies will be called automatically as driver:setup is triggered after this
   end
 
-  ntop.delCache("ntopng.cache.influxdb.last_error")
+  ntop.delCache(INFLUX_KEY_LAST_ERROR)
   return true, i18n("prefs.successfully_connected_influxdb", {db=dbname, version=version})
 end
 

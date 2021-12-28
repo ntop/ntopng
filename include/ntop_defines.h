@@ -562,7 +562,7 @@
 #define LINE_PROTOCOL_MAX_LINE             512
 
 #define CONST_IEC104_LEARNING_TIME         21600 /* 6 hours */
-#define CONST_INFLUXDB_FILE_QUEUE          "ntopng.influx_file_queue"
+#define CONST_INFLUXDB_KEY_EXPORTED_POINTS "ntopng.cache.influxdb.num_exported_points"
 #define CONST_INFLUXDB_FLUSH_TIME          10 /* sec */
 #define CONST_INFLUXDB_MAX_DUMP_SIZE       4194304 /* 4 MB */
 #define CONST_FLOW_ALERT_EVENT_QUEUE       "ntopng.cache.ifid_%d.flow_alerts_events_queue"
@@ -927,24 +927,28 @@
 #define NTOPNG_WIDGET_KEY                    "ntopng.widgets"
 #define NTOPNG_WIDGET_URL                    "/widgets/"
 
-#define CONST_MAX_NUM_THREADED_ACTIVITIES 64
+#define UPGRADE_SCRIPT_PATH                  "upgrade.lua"
+#define PINGER_SCRIPT_PATH                   "pinger.lua"
+#define STATS_UPDATE_SCRIPT_PATH             "stats_update.lua"
+
 #define STARTUP_SCRIPT_PATH                  "startup.lua"
 #define BOOT_SCRIPT_PATH                     "boot.lua" /* Executed as root before networking is setup */
 #define SHUTDOWN_SCRIPT_PATH                 "shutdown.lua"
+
+
 #define HOUSEKEEPING_SCRIPT_PATH             "housekeeping.lua"
 #define DISCOVER_SCRIPT_PATH                 "discover.lua"
 #define TIMESERIES_SCRIPT_PATH               "timeseries.lua"
 #define NOTIFICATIONS_SCRIPT_PATH            "notifications.lua"
-#define UPGRADE_SCRIPT_PATH                  "upgrade.lua"
-#define PINGER_SCRIPT_PATH                   "pinger.lua"
-#define SECOND_SCRIPT_PATH                   "second.lua"
-#define MINUTE_SCRIPT_PATH                   "minute.lua"
-#define STATS_UPDATE_SCRIPT_PATH             "stats_update.lua"
-#define THIRTY_SECONDS_SCRIPT_PATH           "30sec.lua"
-#define FIVE_MINUTES_SCRIPT_PATH             "5min.lua"
-#define HOURLY_SCRIPT_PATH                   "hourly.lua"
-#define DAILY_SCRIPT_PATH                    "daily.lua"
 #define SNMP_SCRIPT_PATH                     "snmp.lua"
+
+
+#define SECOND_SCRIPT_DIR                   "second"
+#define FIVE_SECOND_SCRIPT_DIR              "5second"
+#define MINUTE_SCRIPT_DIR                   "minute"
+#define FIVE_MINUTES_SCRIPT_DIR             "5minute"
+#define HOURLY_SCRIPT_DIR                   "hourly"
+#define DAILY_SCRIPT_DIR                    "daily"
 
 
 #define CHECKS_CONFIG                        "ntopng.prefs.checks.configset_v1"  /* Sync with checks.lua CONFIGSET_KEY  */
@@ -1142,15 +1146,9 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
   Queue length for view interfaces
  */
 
-#define MAX_VIEW_INTERFACE_QUEUE_LEN       131072
+#define MAX_VIEW_INTERFACE_QUEUE_LEN      131072
 
-#ifdef NTOPNG_EMBEDDED_EDITION
-#define DEFAULT_THREAD_POOL_SIZE     1
-#define MAX_THREAD_POOL_SIZE         1
-#else
-#define DEFAULT_THREAD_POOL_SIZE     2
-#define MAX_THREAD_POOL_SIZE        32
-#endif
+#define CONST_MAX_NUM_THREADED_ACTIVITIES 64
 
 #define DONT_NOT_EXPIRE_BEFORE_SEC        15 /* sec */
 #define MAX_NDPI_IDLE_TIME_BEFORE_GUESS   5 /* sec */
@@ -1212,8 +1210,15 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define CLICKHOUSE_PREFIX                "clickhouse"
 
 /* Trailers must have the same lenght */
-#define CLICKHOUSE_TRAILER               ".csv"
-#define CLICKHOUSE_TMP_TRAILER           ".tmp"
-#define CLICKHOUSE_DISCARD_TRAILER       ".dsc" 
+#define CSV_TRAILER                      ".csv"
+#define TMP_TRAILER                      ".tmp"
+#define LUA_TRAILER                      ".lua"
+#define DISCARD_TRAILER                  ".dsc"
+#define NEDGE_HEADER                     "nedge_" 
+
+#define CLICKHOUSE_TRAILER               CSV_TRAILER
+#define CLICKHOUSE_TMP_TRAILER           TMP_TRAILER
+#define CLICKHOUSE_DISCARD_TRAILER       DISCARD_TRAILER
+
 
 #endif /* _NTOP_DEFINES_H_ */

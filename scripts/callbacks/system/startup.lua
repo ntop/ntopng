@@ -27,10 +27,7 @@ local lists_utils = require "lists_utils"
 local recovery_utils = require "recovery_utils"
 local delete_data_utils = require "delete_data_utils"
 local ts_utils = require "ts_utils"
-local checks = require("checks")
 local presets_utils = require "presets_utils"
-local prefs = ntop.getPrefs()
-local endpoints = require("endpoints")
 
 -- ##################################################################
 
@@ -141,7 +138,6 @@ alert_utils.notify_ntopng_start()
 
 if not recovery_utils.check_clean_shutdown() then
    package.path = dirs.installdir .. "/scripts/callbacks/system/?.lua;" .. package.path
-   require("recovery")
 end
 
 recovery_utils.unmark_clean_shutdown()
@@ -191,6 +187,13 @@ local local_startup_file = "/usr/share/ntopng/local/scripts/callbacks/system/sta
 if(ntop.exists(local_startup_file)) then
    traceError(TRACE_NORMAL, TRACE_CONSOLE, "Running "..local_startup_file)
    dofile(local_startup_file)
+end
+
+if(ntop.isPro()) then
+   -- Import ClickHouse dumps if any
+   local silence_import_warnings = true
+
+   ntop.importClickHouseDumps(silence_import_warnings)
 end
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")

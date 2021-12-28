@@ -8960,68 +8960,6 @@ bool NetworkInterface::dequeueFlowFromCompanion(ParsedFlow **f) {
 
 /* *************************************** */
 
-static void handle_entity_alerts(AlertCheckLuaEngine *acle, AlertableEntity *entity) {
-  lua_State *L = acle->getState();
-
-  lua_getglobal(L, USER_SCRIPTS_RUN_CALLBACK); /* Called function */
-  lua_pushstring(L, acle->getGranularity());  /* push 1st argument */
-  acle->pcall(1 /* num args */, 0);
-}
-
-/* *************************************** */
-
-/*
-  Executes checks for local networks. A Lua interpreter is spawn and then `runScripts`
-  is executed for each local network.
-  See scripts/callbacks/interface/networks.lua for the implementation of `runScripts`
- */
-void NetworkInterface::checkNetworksAlerts(vector<ScriptPeriodicity> *p, lua_State* vm) {
-  u_int8_t num_local_networks = ntop->getNumLocalNetworks();
-
-  if(!p || p->size() == 0)
-    return;
-
-  for(vector<ScriptPeriodicity>::const_iterator it = p->begin(); it != p->end(); ++it) {
-    AlertCheckLuaEngine *acle = new (nothrow) AlertCheckLuaEngine(alert_entity_network, *it, this, vm);
-
-    if(acle) {
-      /* ... then iterate all networks */
-      for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
-	NetworkStats *netstats = getNetworkStats(network_id);
-
-	acle->setNetwork(netstats);
-	handle_entity_alerts(acle, netstats);
-
-	netstats->housekeepAlerts(acle->getPeriodicity());
-      }
-
-      delete acle;
-    }
-  }
-}
-
-/* *************************************** */
-
-/*
-  Same as NetworkInterface::checkNetworksAlerts for the interface.
-  See scripts/callbacks/interface/interface.lua
- */
-void NetworkInterface::checkInterfaceAlerts(vector<ScriptPeriodicity> *p, lua_State* vm) {
-  if(!p || p->size() == 0)
-    return;
-
-  for(vector<ScriptPeriodicity>::const_iterator it = p->begin(); it != p->end(); ++it) {
-    AlertCheckLuaEngine *acle = new (nothrow) AlertCheckLuaEngine(alert_entity_interface, *it, this, vm);
-
-    if(acle) {
-      handle_entity_alerts(acle, this);
-      delete acle;
-    }
-  }
-}
-
-/* *************************************** */
-
 struct alertable_walker_data {
   AddressTree *allowed_nets;
   alertable_callback *callback;
@@ -9228,31 +9166,6 @@ void NetworkInterface::luaNumEngagedAlerts(lua_State *vm) const {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 };
-
-/* *************************************** */
-
-void NetworkInterface::releaseAllEngagedAlerts() {
-  AlertCheckLuaEngine network_script(alert_entity_network, minute_script /* doesn't matter */, this, NULL);
-  u_int8_t num_local_networks = ntop->getNumLocalNetworks();
-
-  /* Interface */
-  if(getNumEngagedAlerts()) {
-    AlertCheckLuaEngine interface_script(alert_entity_interface, minute_script /* doesn't matter */, this, NULL);
-    lua_getglobal(interface_script.getState(), USER_SCRIPTS_RELEASE_ALERTS_CALLBACK);
-    interface_script.pcall(0, 0);
-  }
-
-  /* Networks */
-  for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
-    NetworkStats *stats = getNetworkStats(network_id);
-
-    if(stats->getNumEngagedAlerts()) {
-      lua_getglobal(network_script.getState(), USER_SCRIPTS_RELEASE_ALERTS_CALLBACK);
-      network_script.setNetwork(stats);
-      network_script.pcall(0, 0);
-    }
-  }
-}
 
 /* *************************************** */
 

@@ -79,13 +79,11 @@ function script.getExportStats()
    local influxdb = ts_utils.getQueryDriver()
 
    points_exported = influxdb:get_exported_points()
-   points_dropped = influxdb:get_dropped_points()
    exports = influxdb:get_exports()
 
    local res = {
       health = influxdb:get_health(),
       points_exported = points_exported,
-      points_dropped = points_dropped,
       exports = exports,
    }
 
@@ -113,7 +111,6 @@ function script._exportStats(when, influxdb)
    local ifid = getSystemInterfaceId()
 
    ts_utils.append("influxdb:exported_points", {ifid = ifid, points = stats.points_exported}, when)
-   ts_utils.append("influxdb:dropped_points", {ifid = ifid, points = stats.points_dropped}, when)
    ts_utils.append("influxdb:exports", {ifid = ifid, num_exports = stats.exports}, when)
 end
 

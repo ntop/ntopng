@@ -363,10 +363,8 @@ end
 
 -- ########################################################
 
-function ts_dump.run_min_dump(_ifname, ifstats, config, when)
+function ts_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
   dumpTopTalkers(_ifname, ifstats, verbose)
-
-  checks.schedulePeriodicScripts("min")
 
   local iface_rrd_creation_enabled = areInterfaceTimeseriesEnabled(ifstats.id)
 

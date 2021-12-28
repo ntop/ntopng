@@ -33,7 +33,6 @@ class InfluxDBTimeseriesExporter : public TimeseriesExporter {
   char fbase[PATH_MAX], fname[PATH_MAX+32];
   u_int num_cached_entries; 
   Mutex m;
-  bool dbCreated;
   
   void createDump();
   

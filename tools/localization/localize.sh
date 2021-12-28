@@ -22,6 +22,7 @@ function usage {
 # pro root
 base_path="../tools/localization"
 root_path=".."
+LUA="lua5.3"
 
 if [[ -d src ]]; then
   # ntopng root

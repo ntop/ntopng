@@ -83,11 +83,6 @@ if(page == "overview") then
        print("<td class='text-center' width=5%>")
        print(ternary(charts_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:exported_points'><i class='fas fa-chart-area fa-lg'></i></A>", ""))
        print("</td><td><span id=\"influxdb-exported-points\">".. formatValue(stats.points_exported) .."</span></td></tr>\n")
-
-       print("<tr><td nowrap><b>".. i18n("system_stats.dropped_points") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_dropped_points").."</small></td>")
-       print("<td class='text-center' width=5%>")
-       print(ternary(charts_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:dropped_points'><i class='fas fa-chart-area fa-lg'></i></A>", ""))
-       print("</td><td><span id=\"influxdb-dropped-points\">".. formatValue(stats.points_dropped) .."</span></td></tr>\n")
     end
 
     print("<tr><td nowrap><b>".. i18n("system_stats.series_cardinality") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_cardinality").."</small></td><td></td><td><span id='throbber' class='spinner-border influxdb-info-load spinner-border-sm text-primary' role='status'><span class='sr-only'>Loading...</span></span> <span id=\"influxdb-info-series\"></span><i id=\"high-cardinality-warn\" class=\"fas fa-exclamation-triangle fa-lg\" title=\"".. i18n("system_stats.high_series_cardinality") .."\" style=\"color: orange; display:none\"></td></i></tr>\n")

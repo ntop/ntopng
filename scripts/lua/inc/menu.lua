@@ -207,7 +207,7 @@ else
 	 },
 	 {
 	    entry = page_utils.menu_entries.db_explorer,
-	    hidden = not ntop.isPro() or (not prefs.is_dump_flows_to_clickhouse_enabled) or ifs.isViewed or not auth.has_capability(auth.capabilities.historical_flows),
+	    hidden = not ntop.isEnterprise() or (not prefs.is_dump_flows_to_clickhouse_enabled) or ifs.isViewed or not auth.has_capability(auth.capabilities.historical_flows),
 	    url = "/lua/pro/db_search.lua",
 	 },
       },

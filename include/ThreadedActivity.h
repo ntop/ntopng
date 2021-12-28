@@ -25,37 +25,31 @@
 #include "ntop_includes.h"
 
 class ThreadPool;
+class PeriodicScript;
 
 class ThreadedActivity {
  private:
   bool terminating;
   pthread_t pthreadLoop;
-  char *path;
-  u_int32_t periodicity;
-  u_int32_t max_duration_secs;
   u_int32_t deadline_approaching_secs;
-  bool align_to_localtime;
-  bool exclude_viewed_interfaces;
-  bool exclude_pcap_dump_interfaces;
   bool thread_started;
   bool systemTaskRunning;
-  ThreadedActivityState *interfaceTasksRunning;
   Mutex m;
-  ThreadPool *pool;
-  ThreadedActivityStats **threaded_activity_stats;
-
+  PeriodicScript *periodic_script;
+  std::map<std::string, ThreadedActivityStats*> threaded_activity_stats;
   void setDeadlineApproachingSecs();
   void periodicActivityBody();
   void aperiodicActivityBody();
   void schedulePeriodicActivity(ThreadPool *pool, time_t scheduled_time, time_t deadline);
-  ThreadedActivityState *getThreadedActivityState(NetworkInterface *iface) const;
-  void updateThreadedActivityStatsBegin(NetworkInterface *iface, struct timeval *begin);
-  void updateThreadedActivityStatsEnd(NetworkInterface *iface, u_long latest_duration);
+  ThreadedActivityState getThreadedActivityState(NetworkInterface *iface, char *script_name);
+  void updateThreadedActivityStatsBegin(NetworkInterface *iface, char *script_name, struct timeval *begin);
+  void updateThreadedActivityStatsEnd(NetworkInterface *iface, char *script_name, u_long latest_duration);
   void reloadVm(const char *ifname);
   LuaEngine* loadVm(char *script_path, NetworkInterface *iface, time_t when);
-  void set_state(NetworkInterface *iface, ThreadedActivityState ta_state);
+  void set_state(NetworkInterface *iface, char *script_name, ThreadedActivityState ta_state);
   static const char* get_state_label(ThreadedActivityState ta_state);
-
+  bool isValidScript(char* dir, char *path);
+  
  public:
   ThreadedActivity(const char* _path,		   
 		   u_int32_t _periodicity_seconds = 0,
@@ -66,7 +60,7 @@ class ThreadedActivity {
 		   ThreadPool* _pool = NULL);
   ~ThreadedActivity();
 
-  inline const char *activityPath() const { return path; };
+  const char *activityPath();
   void activityBody();
   void runSystemScript(time_t now);
   void runScript(time_t now, char *script_path, NetworkInterface *iface, time_t deadline);
@@ -76,14 +70,20 @@ class ThreadedActivity {
   bool isTerminating();
 
   void run();
-  void set_state_sleeping(NetworkInterface *iface);
-  void set_state_queued(NetworkInterface *iface);
-  void set_state_running(NetworkInterface *iface);
-  bool isQueueable(NetworkInterface *iface) const;
-  bool isDeadlineApproaching(time_t deadline) const;
-  inline u_int32_t getPeriodicity() { return(periodicity); };
-  ThreadedActivityState get_state(NetworkInterface *iface) const;
-  ThreadedActivityStats *getThreadedActivityStats(NetworkInterface *iface, bool allocate_if_missing);
+  void set_state_sleeping(NetworkInterface *iface, char *script_name);
+  void set_state_queued(NetworkInterface *iface, char *script_name);
+  void set_state_running(NetworkInterface *iface, char *script_name);
+  bool isDeadlineApproaching(time_t deadline);
+  u_int32_t getPeriodicity();
+  u_int32_t getMaxDuration();
+  bool excludePcap();
+  bool excludeViewedIfaces();
+  ThreadPool *getPool();
+  bool alignToLocalTime();
+  ThreadedActivityState get_state(NetworkInterface *iface, char *script_name);
+  ThreadedActivityStats *getThreadedActivityStats(NetworkInterface *iface,
+						  char *script_name,
+						  bool allocate_if_missing);
 
   void lua(NetworkInterface *iface, lua_State *vm);
 };

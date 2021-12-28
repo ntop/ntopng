@@ -28,13 +28,9 @@ class PeriodicActivities {
  private:
   ThreadedActivity *activities[CONST_MAX_NUM_THREADED_ACTIVITIES];
   u_int16_t num_activities;
-  ThreadPool *standard_priority_pool, *timeseries_pool,
-    *no_priority_pool, *longrun_priority_pool, *discover_pool, *housekeeping_pool,
-    *notifications_pool
-#ifdef NTOPNG_PRO
-    , *snmp_pool
-#endif
-    ;
+  ThreadPool *th_pool;
+  
+  u_int8_t getNumThreadsPerPool(const char* path, std::vector<char*> *iface_scripts_list, std::vector<char*> *system_scripts_list);
   
  public:
   PeriodicActivities();
@@ -42,7 +38,6 @@ class PeriodicActivities {
 
   void startPeriodicActivitiesLoop();
   void sendShutdownSignal();
-
   void lua(NetworkInterface *iface, lua_State *vm);
 };
 

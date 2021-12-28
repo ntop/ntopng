@@ -330,7 +330,6 @@ using namespace std;
 #include "LuaEngineFunctions.h"
 #include "LuaEngine.h"
 #include "SPSCQueue.h"
-#include "AlertCheckLuaEngine.h"
 #include "SyslogLuaEngine.h"
 #include "FifoQueue.h"
 #include "StringFifoQueue.h"
@@ -369,6 +368,7 @@ using namespace std;
 #include "NIndexFlowDB.h"
 #endif
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE)
+#include "ClickHouseImport.h"
 #include "ClickHouseFlowDB.h"
 #include "ClickHouseAlertStore.h"
 #endif
@@ -430,6 +430,7 @@ using namespace std;
 #include "ThreadedActivityStats.h"
 #include "ThreadedActivity.h"
 #include "ThreadPool.h"
+#include "PeriodicScript.h"
 #include "PeriodicActivities.h"
 #include "MacManufacturers.h"
 #include "AddressResolution.h"

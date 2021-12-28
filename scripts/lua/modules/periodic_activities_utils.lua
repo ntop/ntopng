@@ -1,7 +1,8 @@
 --
 -- (C) 2020-21 - ntop.org
 --
--- This file contains the check constats
+-- This file contains the check constats used to put alerts and red triangles when periodic activities are slow
+-- NOTE: this file needs some rework as the scripts have been modified in the latest release (TODO)
 
 local periodic_activities_utils = {}
 

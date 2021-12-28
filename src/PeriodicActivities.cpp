@@ -25,11 +25,25 @@ typedef struct _activity_descr {
   const char *path;
   u_int32_t periodicity;
   u_int32_t max_duration_secs;
-  ThreadPool *pool;
-  bool align_to_localtime;  
+  bool align_to_localtime;
   bool exclude_viewed_interfaces;
   bool exclude_pcap_dump_interfaces;
+  ThreadedActivity *ta;
 } activity_descr;
+
+static activity_descr ad[] = {
+  // Script                  Periodicity (s) Max (s) Align  !View  !PCAP NULL
+  { SECOND_SCRIPT_DIR,                    1,     65, false, false, true, NULL },
+  { FIVE_SECOND_SCRIPT_DIR,               5,     65, false, false, true, NULL },
+  { MINUTE_SCRIPT_DIR,                   60,     60, false, false, true, NULL },
+  { FIVE_MINUTES_SCRIPT_DIR,            300,    300, false, false, true, NULL },
+  { HOURLY_SCRIPT_DIR,                 3600,    600, false, false, true, NULL },
+  { DAILY_SCRIPT_DIR,                 86400,   3600, true,  false, true, NULL },
+  
+  /* TODO: remove these two periodic scripts */
+  { HOUSEKEEPING_SCRIPT_PATH,             3,     65, false, false, false, NULL },
+  { NULL,                                 0,      0, false, false, false, NULL }
+};
 
 /* ******************************************* */
 
@@ -37,13 +51,7 @@ PeriodicActivities::PeriodicActivities() {
   for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++)
     activities[i] = NULL;
 
-  standard_priority_pool = no_priority_pool = longrun_priority_pool
-    = timeseries_pool = discover_pool
-    = housekeeping_pool = notifications_pool
-#ifdef NTOPNG_PRO
-    = snmp_pool
-#endif
-  = NULL;
+  th_pool = new ThreadPool();
 
   num_activities = 0;
 }
@@ -60,23 +68,13 @@ PeriodicActivities::~PeriodicActivities() {
       activities[i]->terminateEnqueueLoop();
   }
 
-  /* This will terminate any possibly running activities into the ThreadPool::run */
-  if(standard_priority_pool)     delete standard_priority_pool;
-  if(longrun_priority_pool)      delete longrun_priority_pool;
-  if(timeseries_pool)            delete timeseries_pool;
-  if(notifications_pool)         delete notifications_pool;
-  if(discover_pool)              delete discover_pool;
-  if(housekeeping_pool)          delete housekeeping_pool;
-  if(no_priority_pool)           delete no_priority_pool;
-#ifdef NTOPNG_PRO
-  if(snmp_pool)                  delete snmp_pool;
-#endif
+  delete th_pool;
 
   /* Now it's safe to delete the activities as no other thread is executing
    * their code. */
   for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++) {
     if(activities[i]) {
-      delete activities[i];
+      delete activities[i]; /* This line calls ThreadedActivity::~ThreadedActivity() */
       activities[i] = NULL;
       num_activities--;
     }
@@ -106,8 +104,6 @@ void PeriodicActivities::sendShutdownSignal() {
 void PeriodicActivities::startPeriodicActivitiesLoop() {
   struct stat buf;
   ThreadedActivity *startup_activity;
-  u_int8_t num_threads = ntop->get_num_interfaces() + 1; /* +1 for the system interface */
-  u_int8_t num_threads_no_priority = DEFAULT_THREAD_POOL_SIZE;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started periodic activities loop...");
 
@@ -123,75 +119,28 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   if((startup_activity = new (std::nothrow) ThreadedActivity(STARTUP_SCRIPT_PATH))) {
     /*
       Don't call run() as by the time the script will be run
-      the delete below will free the memory 
+      the delete below will free the memory
     */
     startup_activity->runSystemScript(time(NULL));
     delete startup_activity;
     startup_activity = NULL;
   }
 
-  if(num_threads_no_priority < num_threads)
-    num_threads_no_priority = num_threads;
+  for(u_int i=0; ad[i].path != NULL; i++) {
+    std::vector<char*> iface_scripts_list, system_scripts_list;
 
-  if(num_threads_no_priority > MAX_THREAD_POOL_SIZE)
-    num_threads_no_priority = MAX_THREAD_POOL_SIZE;
-
-  standard_priority_pool     = new (std::nothrow) ThreadPool(false, num_threads);
-  longrun_priority_pool      = new (std::nothrow) ThreadPool(false, num_threads);
-  timeseries_pool            = new (std::nothrow) ThreadPool(false, 1);
-  notifications_pool         = new (std::nothrow) ThreadPool(false, 1);
-  discover_pool              = new (std::nothrow) ThreadPool(false, 1);
-  housekeeping_pool          = new (std::nothrow) ThreadPool(false, 1);
-  no_priority_pool           = new (std::nothrow) ThreadPool(false, num_threads_no_priority);
-#ifdef NTOPNG_PRO
-  snmp_pool                  = new (std::nothrow) ThreadPool(false, 1);
-#endif
-  
-  static activity_descr ad[] = {
-    // Script                 Periodicity (s) Max (s)  Pool                        Align  !View  !PCAP
-    { SECOND_SCRIPT_PATH,                    1,    65, standard_priority_pool,     false, false, true  },  /* 60 sec + 5 extra sec (#6091) */
-    { STATS_UPDATE_SCRIPT_PATH,              5,    65, standard_priority_pool,     false, false, true  },  /* 60 sec + 5 extra sec (#6091) */
-
-    { HOUSEKEEPING_SCRIPT_PATH,              3,    65, housekeeping_pool,          false, false, false }, /* 60 sec + 5 extra sec (#6091) */
-
-    { MINUTE_SCRIPT_PATH,                   60,    60, no_priority_pool,           false, false, true },
-    { DAILY_SCRIPT_PATH,                 86400,  3600, no_priority_pool,           true,  false, true },
-#ifdef HAVE_NEDGE
-    { PINGER_SCRIPT_PATH,                    5,     5, no_priority_pool,           false, false, true },
-#endif
-    { TIMESERIES_SCRIPT_PATH,                1,  3600, timeseries_pool,            false, false, true  },
-    { NOTIFICATIONS_SCRIPT_PATH,             3,    65, notifications_pool,         false, false, false }, /* 60 sec + 5 extra sec (#6091) */
-
-    { FIVE_MINUTES_SCRIPT_PATH,            300,   300, longrun_priority_pool,      false, false, true },
-    { HOURLY_SCRIPT_PATH,                 3600,   600, longrun_priority_pool,      false, false, true },
-
-    { DISCOVER_SCRIPT_PATH,                  5,  3600, discover_pool,              false, false, true  },
-
-#ifdef NTOPNG_PRO
-    { SNMP_SCRIPT_PATH,                    300,   900, snmp_pool,                  false, false, true  },
-#endif
-    
-    { NULL,                                  0,     0, NULL,                       false, false, false }
-  };
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Each periodic activity script will use %u threads", num_threads);
-  
-  activity_descr *d = ad;
-  
-  while(d->path) {
-    ThreadedActivity *ta = new (std::nothrow) ThreadedActivity(d->path,
-						d->periodicity,
-						d->max_duration_secs,
-						d->align_to_localtime,
-						d->exclude_viewed_interfaces,
-						d->exclude_pcap_dump_interfaces,
-						d->pool);
-    if(ta) {
-      activities[num_activities++] = ta;
-      ta->run();
+    ad[i].ta = new (std::nothrow) ThreadedActivity(ad[i].path,
+						   ad[i].periodicity,
+						   ad[i].max_duration_secs,
+						   ad[i].align_to_localtime,
+						   ad[i].exclude_viewed_interfaces,
+						   ad[i].exclude_pcap_dump_interfaces,
+						   th_pool);
+    if(ad[i].ta) {
+      activities[num_activities++] = ad[i].ta;
+      ad[i].ta->run();
     }
-
-    d++;
   }
 }
 
+/* ******************************************* */

@@ -62,7 +62,8 @@ class ThreadedActivityStats {
   time_t scheduled_time, deadline;
   static ticks tickspersec;
   bool not_executed, is_slow;
-
+  ThreadedActivityState state;
+  
   void updateTimeseriesStats(bool write, ticks cur_ticks);
   void luaTimeseriesStats(lua_State *vm);
   
@@ -78,7 +79,7 @@ class ThreadedActivityStats {
   inline bool hasAlertsDrops() const {
     return ta_stats.alerts.has_drops;
   }
-
+  
   /* Timeseries stats and drops for writes */
   void updateTimeseriesWriteStats(ticks cur_ticks);
   void incTimeseriesWriteDrops(u_long num_drops);
@@ -87,7 +88,7 @@ class ThreadedActivityStats {
   void updateStatsBegin(struct timeval *begin);
   void updateStatsEnd(u_long duration_ms);
 
-  void setNotExecutedAttivity(bool _not_executed);
+  void setNotExecutedActivity(bool _not_executed);
   void setSlowPeriodicActivity(bool _slow);
   inline void setScheduledTime(time_t t) { scheduled_time = t; }
   inline void setDeadline(time_t t)      { deadline = t; }
@@ -95,6 +96,9 @@ class ThreadedActivityStats {
   inline void setAlertsDrops()           { ta_stats.alerts.has_drops = true; }
 
   void lua(lua_State *vm);
+
+  inline ThreadedActivityState getState() { return(state); }
+  void setState(ThreadedActivityState s);
 };
 
 #endif /* _THREADED_ACTIVITY_STATS_H_ */

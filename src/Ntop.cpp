@@ -54,10 +54,10 @@ extern struct keyval string_to_replace[]; /* LuaEngine.cpp */
 Ntop::Ntop(char *appName) {
   ntop = this;
   globals = new (std::nothrow) NtopGlobals();
-  extract = new (std::nothrow) TimelineExtract();
-  pa      = new (std::nothrow) PeriodicActivities();
+  extract = new (std::nothrow) TimelineExtract(); 
   address = new (std::nothrow) AddressResolution();
   offline = false;
+  pa = NULL;
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
 #ifndef HAVE_NEDGE
@@ -432,6 +432,9 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 #endif
 #endif
 
+  /* Now we can enable the periodic activities */
+  pa = new (std::nothrow) PeriodicActivities();
+  
   redis->setInitializationComplete();
 }
 
@@ -976,28 +979,6 @@ void Ntop::setCustomnDPIProtos(char *path) {
     if(custom_ndpi_protos != NULL) free(custom_ndpi_protos);
     custom_ndpi_protos = strdup(path);
   }
-}
-
-/* *************************************** */
-
-void Ntop::checkSystemScripts(ScriptPeriodicity p, lua_State *vm) {
-  AlertCheckLuaEngine acle(alert_entity_system, p, NULL, vm);
-  lua_State *L = acle.getState();
-
-  lua_getglobal(L, USER_SCRIPTS_RUN_CALLBACK); /* Called function */
-  lua_pushstring(L, acle.getGranularity());              /* push 1st argument */
-  acle.pcall(1 /* num args */, 0);
-}
-
-/* *************************************** */
-
-void Ntop::checkSNMPDeviceAlerts(ScriptPeriodicity p, lua_State *vm) {
-  AlertCheckLuaEngine acle(alert_entity_snmp_device, p, NULL, vm);
-  lua_State *L = acle.getState();
-
-  lua_getglobal(L, USER_SCRIPTS_RUN_CALLBACK); /* Called function */
-  lua_pushstring(L, acle.getGranularity());              /* push 1st argument */
-  acle.pcall(1 /* num args */, 0);
 }
 
 /* ******************************************* */

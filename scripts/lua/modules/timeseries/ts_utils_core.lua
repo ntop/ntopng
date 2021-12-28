@@ -861,7 +861,6 @@ function ts_utils.getPossiblyChangedSchemas()
       -- Added missing ifid tag
       "influxdb:storage_size",
       "influxdb:exported_points",
-      "influxdb:dropped_points",
       "influxdb:exports",
       "influxdb:rtt",
       "system:cpu_load",

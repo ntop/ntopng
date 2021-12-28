@@ -5045,3 +5045,43 @@ bool const Utils::isIpEmpty(ipAddress addr) {
 
   return false;
 }
+
+/* ************************************************ */
+
+int8_t Utils::num_files_in_dir(const char * const dir) { 
+  DIR *dir_struct;
+  struct dirent *ent;
+  u_int8_t num_files = 0;
+
+  if ((dir_struct = opendir (dir)) != NULL) {
+    while ((ent = readdir (dir_struct)) != NULL) {
+      if (ent->d_name[0] != '.')
+        num_files++;
+    }
+
+    closedir (dir_struct);
+  }
+
+  return (num_files);
+}
+
+/* ******************************************* */
+
+const char* Utils::get_state_label(ThreadedActivityState ta_state) {
+  switch(ta_state) {
+  case threaded_activity_state_sleeping:
+    return("sleeping");
+    break;
+  case threaded_activity_state_queued:
+    return("queued");
+    break;
+  case threaded_activity_state_running:
+    return("running");
+    break;
+  case threaded_activity_state_unknown:
+  default:
+    return("unknown");
+    break;
+  }
+}
+

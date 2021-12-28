@@ -2049,50 +2049,6 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_check_networks_alerts(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  std::vector<ScriptPeriodicity> periodicities;
-
-  if(!ntop_interface) {
-    lua_pushnil(vm);
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  }
-
-  if(lua_type(vm, 1) == LUA_TBOOLEAN && lua_toboolean(vm, 1) == true) periodicities.push_back(minute_script);
-  if(lua_type(vm, 2) == LUA_TBOOLEAN && lua_toboolean(vm, 2) == true) periodicities.push_back(five_minute_script);
-  if(lua_type(vm, 3) == LUA_TBOOLEAN && lua_toboolean(vm, 3) == true) periodicities.push_back(hour_script);
-  if(lua_type(vm, 4) == LUA_TBOOLEAN && lua_toboolean(vm, 4) == true) periodicities.push_back(day_script);
-
-  ntop_interface->checkNetworksAlerts(&periodicities, vm);
-
-  lua_pushnil(vm);
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
-static int ntop_check_interface_alerts(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  std::vector<ScriptPeriodicity> periodicities;
-
-  if(!ntop_interface) {
-    lua_pushnil(vm);
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  }
-
-  if(lua_type(vm, 1) == LUA_TBOOLEAN && lua_toboolean(vm, 1) == true) periodicities.push_back(minute_script);
-  if(lua_type(vm, 2) == LUA_TBOOLEAN && lua_toboolean(vm, 2) == true) periodicities.push_back(five_minute_script);
-  if(lua_type(vm, 3) == LUA_TBOOLEAN && lua_toboolean(vm, 3) == true) periodicities.push_back(hour_script);
-  if(lua_type(vm, 4) == LUA_TBOOLEAN && lua_toboolean(vm, 4) == true) periodicities.push_back(day_script);
-
-  ntop_interface->checkInterfaceAlerts(&periodicities, vm);
-
-  lua_pushnil(vm);
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
 static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64];
@@ -3884,8 +3840,9 @@ static int ntop_interface_release_engaged_alerts(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   if(!iface) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
-  iface->releaseAllEngagedAlerts();
-
+  //iface->releaseAllEngagedAlerts();
+  /* TODO: implement this function in lua for interface and for local networks */
+  
   lua_pushnil(vm);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
@@ -4593,12 +4550,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getAlerts",              ntop_interface_get_alerts               },
   { "releaseEngagedAlerts",   ntop_interface_release_engaged_alerts   },
   { "incTotalHostAlerts",     ntop_interface_inc_total_host_alerts    },
-
-  /* Interface Alerts */
-  { "checkInterfaceAlerts",   ntop_check_interface_alerts             },
-
-  /* Network Alerts */
-  { "checkNetworksAlerts",    ntop_check_networks_alerts              },
 
   /* eBPF, Containers and Companion Interfaces */
   { "getPodsStats",           ntop_interface_get_pods_stats           },

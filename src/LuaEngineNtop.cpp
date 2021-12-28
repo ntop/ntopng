@@ -884,16 +884,26 @@ static int ntop_getservbyport(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_msleep(lua_State* vm) {
-  u_int duration, max_duration = 60000 /* 1 min */;
-
+  u_int ms_duration, max_duration = 60000 /* 1 min */;
+  struct timespec ts;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  duration = (u_int)lua_tonumber(vm, 1);
+  ms_duration = (u_int)lua_tonumber(vm, 1);
 
-  if(duration > max_duration) duration = max_duration;
+  if(ms_duration > max_duration) ms_duration = max_duration;
 
-  _usleep(duration*1000);
+  if(ms_duration >= 1000) {
+    ts.tv_sec = ms_duration / 1000ul;
+    ms_duration -= 1000*ts.tv_sec;
+  } else
+    ts.tv_sec = 0;
+
+  ts.tv_nsec = ms_duration * 1000;
+
+  if(nanosleep(&ts, NULL) != 0)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "nanosleep error: %s", strerror(errno));
 
   lua_pushnil(vm);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -1471,31 +1481,6 @@ static int ntop_has_plugins_reloaded(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_check_system_scripts(lua_State* vm, ScriptPeriodicity p) {
-  ntop->checkSystemScripts(p, vm);
-
-  lua_pushnil(vm);
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-static int ntop_check_system_scripts_min(lua_State* vm)   { return(ntop_check_system_scripts(vm, minute_script)); }
-static int ntop_check_system_scripts_5min(lua_State* vm)  { return(ntop_check_system_scripts(vm, five_minute_script)); }
-static int ntop_check_system_scripts_hour(lua_State* vm)  { return(ntop_check_system_scripts(vm, hour_script)); }
-static int ntop_check_system_scripts_day(lua_State* vm)   { return(ntop_check_system_scripts(vm, day_script)); }
-
-/* ****************************************** */
-
-static int ntop_check_snmp_device_alerts(lua_State* vm, ScriptPeriodicity p) {
-  ntop->checkSNMPDeviceAlerts(p, vm);
-
-  lua_pushnil(vm);
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-static int ntop_check_snmp_device_alerts_5min(lua_State* vm)  { return(ntop_check_snmp_device_alerts(vm, five_minute_script)); }
-
-/* ****************************************** */
-
 static int ntop_set_default_file_permissions(lua_State* vm) {
   char *fpath;
 
@@ -1605,9 +1590,11 @@ static int ntop_send_tcp_data(lua_State* vm) {
 static int ntop_script_is_deadline_approaching(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
 
-  if(ctx && ctx->deadline && ctx->threaded_activity)
-    lua_pushboolean(vm, ctx->threaded_activity->isDeadlineApproaching(ctx->deadline));
-  else
+  if(ctx && ctx->deadline && ctx->threaded_activity) {
+    ThreadedActivity *ta = (ThreadedActivity*)ctx->threaded_activity;
+
+    lua_pushboolean(vm, ta->isDeadlineApproaching(ctx->deadline));
+  } else
     lua_pushboolean(vm, false);
 
   return CONST_LUA_OK;
@@ -1654,6 +1641,25 @@ static int ntop_speedtest(lua_State* vm) {
 
 static int ntop_clickhouse_enabled(lua_State* vm) {
   lua_pushboolean(vm, ntop->getPrefs()->useClickHouse());
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_clickhouse_import_dumps(lua_State* vm) {
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+  bool silence_warnings;
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  else
+    silence_warnings = (bool)lua_toboolean(vm, 1);
+
+  lua_pushinteger(vm, ntop->importClickHouseDumps(silence_warnings));
+#else
+  lua_pushinteger(vm, 0);
+#endif
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
@@ -6597,13 +6603,6 @@ static luaL_Reg _ntop_reg[] = {
   /* nEdge and Appliance */
   { "shutdown",              ntop_shutdown                 },
 
-  /* System User Scripts */
-  { "checkSystemScriptsMin",     ntop_check_system_scripts_min       },
-  { "checkSystemScripts5Min",    ntop_check_system_scripts_5min      },
-  { "checkSystemScriptsHour",    ntop_check_system_scripts_hour      },
-  { "checkSystemScriptsDay",     ntop_check_system_scripts_day       },
-  { "checkSNMPDeviceAlerts5Min", ntop_check_snmp_device_alerts_5min  },
-
   /* Periodic scripts (ThreadedActivity.cpp) */
   { "isDeadlineApproaching",     ntop_script_is_deadline_approaching },
   { "getDeadline",               ntop_script_get_deadline            },
@@ -6614,7 +6613,8 @@ static luaL_Reg _ntop_reg[] = {
 
   /* ClickHouse */
   { "isClickHouseEnabled",       ntop_clickhouse_enabled             },
-
+  { "importClickHouseDumps",     ntop_clickhouse_import_dumps        },
+  
   /* Data Binning */
   { "addBin",                    ntop_add_bin                        },
   { "findSimilarities",          ntop_find_bin_similarities          },

@@ -7,6 +7,12 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local checks = require("checks")
 
+--
+-- This script is used to by the SyslogLuaEngine class to setup syslog collection
+-- and handle incoming events via the handleEvent() callback. This script
+-- lives on a private Lua VM (see lua_pcall in SyslogLuaEngine::SyslogLuaEngine()M
+--
+
 local syslog_modules = nil
 local syslog_conf = nil
 

@@ -68,7 +68,7 @@ Ping::Ping(char *ifname) {
   
 #ifdef __linux__
   if(Utils::gainWriteCapabilities() == -1)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities [%s]", strerror(errno));
 #endif
 
 #if defined(__APPLE__)

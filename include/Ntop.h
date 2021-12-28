@@ -112,6 +112,10 @@ class Ntop {
   bool alertExclusionsReloadInProgress;
   AlertExclusions *alert_exclusions, *alert_exclusions_shadow;
 #endif
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+  ClickHouseImport clickhouseImport;
+#endif
+  
   bool assignUserId(u_int8_t *new_user_id);
 
 #ifndef WIN32
@@ -364,7 +368,7 @@ class Ntop {
     snprintf(ifname, sizeof(ifname), "%d", ifid);
     return getNetworkInterface(ifname, vm /* enforce the check on the allowed interface */);
   };
-
+  
   /**
    * @brief Get the current HTTPserver instance.
    *
@@ -415,8 +419,6 @@ class Ntop {
   char* getIfName(int if_id, char *name, u_int name_len);
 #endif
 #endif
-  void checkSystemScripts(ScriptPeriodicity p, lua_State *vm);
-  void checkSNMPDeviceAlerts(ScriptPeriodicity p, lua_State *vm);
   void lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm);
   void getUsers(lua_State* vm);
   bool getLocalNetworkAlias(lua_State *vm, u_int8_t network_id);
@@ -600,6 +602,10 @@ class Ntop {
   void setnDPICleanupNeeded(bool needed);
   u_int16_t getnDPIProtoByName(const char *name);
   bool isDbCreated();
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+  inline u_int importClickHouseDumps(bool silence_warnings) { return(clickhouseImport.importDumps(silence_warnings)); }
+#endif
+
 };
 
 extern Ntop *ntop;

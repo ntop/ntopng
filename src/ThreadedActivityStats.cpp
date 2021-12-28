@@ -34,6 +34,7 @@ ThreadedActivityStats::ThreadedActivityStats(const ThreadedActivity *ta) {
   num_not_executed = num_is_slow = 0;
   not_executed = is_slow = false;
   progress = 0;
+  state = threaded_activity_state_unknown;
 }
 
 /* ******************************************* */
@@ -129,7 +130,7 @@ void ThreadedActivityStats::luaTimeseriesStats(lua_State *vm) {
 
 /* ******************************************* */
 
-void ThreadedActivityStats::setNotExecutedAttivity(bool _not_executed) {
+void ThreadedActivityStats::setNotExecutedActivity(bool _not_executed) {
   not_executed = _not_executed;
   if(_not_executed)
     num_not_executed++;
@@ -182,4 +183,22 @@ void ThreadedActivityStats::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "scheduled_time", scheduled_time);
   lua_push_uint64_table_entry(vm, "deadline", deadline);
   lua_push_int32_table_entry(vm, "progress", progress);
+}
+
+/* ******************************************* */
+
+void ThreadedActivityStats::setState(ThreadedActivityState next_state) {
+  if(((state == threaded_activity_state_queued) && (next_state != threaded_activity_state_running))
+     || ((state == threaded_activity_state_running) && (next_state != threaded_activity_state_sleeping)))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Invalid state transition: %s -> %s",
+				 Utils::get_state_label(state), Utils::get_state_label(next_state));
+  else {
+#ifdef THREAD_DEBUG
+    /* Everything is OK, let's set the state. */
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "State transition: %s -> %s",
+				 Utils::get_state_label(state), Utils::get_state_label(next_state));
+#endif
+    
+    state = next_state;
+  }
 }
