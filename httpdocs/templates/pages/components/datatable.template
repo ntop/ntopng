@@ -307,27 +307,27 @@
                 {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info', class: 'btn-warning'},
                 {% end %}
 
-                {% if actions.show_settings then %}
-                {icon: 'fa fa-cog', title: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-primary'},
-                {% end %}
-
                 {% if actions.show_flows then %}
                 /* Button to jump to flow alerts within the same time period */
-                {icon: 'fa-stream', title: "{{ i18n('flows') }}", modal: '#flow_alerts', class: "btn-info"},
-		    {% end %}
+                {icon: 'fa-stream', title: "{{ i18n('show_alerts.flow_alerts') }}", modal: '#flow_alerts', class: "btn-warning"},
+		{% end %}
 
                 {% if actions.show_historical then %}
-		    /* Button to jump to historical nIndex flows */
-                {icon: 'fa-search-plus', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows', class: "btn-info"},
-		    {% end %}
+		/* Button to jump to historical nIndex flows */
+                {icon: 'fa-stream', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows', class: "btn-info"},
+		{% end %}
+
+                {% if actions.show_acknowledge then %}
+                {icon: 'fa fa-user-check', title: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog', class: 'btn-primary'},
+                {% end %}
 
                 {% if actions.show_disable then %}
                 /* Bell button to disable alerts is only supported for hosts and flows */
                 {icon: 'fa-bell-slash', title: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning"},
                 {% end %}
 
-                {% if actions.show_acknowledge then %}
-                {icon: 'fa fa-user-check', title: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog', class: 'btn-primary'},
+                {% if actions.show_settings then %}
+                {icon: 'fa fa-cog', title: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-primary'},
                 {% end %}
 
                 {% if actions.show_delete then %}
