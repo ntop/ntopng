@@ -40,6 +40,9 @@ local flows_filter = getFlowsFilter()
 local flows_stats
 local total = 0
 
+-- Add more details (debug only)
+-- flows_filter["detailsLevel"] = "high"
+
 if not flows_to_update then
    flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter)
    total = flows_stats["numFlows"]

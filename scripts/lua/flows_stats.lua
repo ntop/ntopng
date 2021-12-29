@@ -78,216 +78,217 @@ if (page == "flows" or page == nil) then
 
    page_utils.print_page_title(active_msg)
 
-
-if(category ~= nil) then
-   page_params["category"] = category
-end
-
-if(application ~= nil) then
-   page_params["application"] = application
-end
-
-if(host ~= nil) then
-  page_params["host"] = host
-end
-
-if(port ~= nil) then
-  page_params["port"] = port
-end
-
-if(vhost ~= nil) then
-  page_params["vhost"] = vhost
-end
-
-if(hosts ~= nil) then
-  page_params["hosts"] = hosts
-end
-
-if(port ~= nil) then
-  page_params["port"] = port
-end
-
-if(ipversion ~= nil) then
-  page_params["version"] = ipversion
-end
-
-if(l4proto ~= nil) then
-  page_params["l4proto"] = l4proto
-end
-
-if(deviceIP ~= nil) then
-   page_params["deviceIP"] = deviceIP
-end
-
-if(inIfIdx ~= nil) then
-   page_params["inIfIdx"] = inIfIdx
-end
-
-if(outIfIdx ~= nil) then
-   page_params["outIfIdx"] = outIfIdx
-end
-
-if(vlan ~= nil) then
-  page_params["vlan"] = vlan
-end
-
-if(traffic_type ~= nil) then
-   page_params["traffic_type"] = traffic_type
-end
-
-if(alert_type ~= nil) then
-   page_params["alert_type"] = alert_type
-end
-
-if(alert_type_severity ~= nil) then
-   page_params["alert_type_severity"] = alert_type_severity
-end
-
-if(tcp_state ~= nil) then
-   page_params["tcp_flow_state"] = tcp_state
-end
-
-if(network_id ~= nil) then
-  page_params["network"] = network_id
-end
-
-if(flowhosts_type ~= nil) then
-  page_params["flowhosts_type"] = flowhosts_type
-end
-
-if((icmp_type ~= nil) and (icmp_code ~= nil)) then
-  page_params["icmp_type"] = icmp_type
-  page_params["icmp_cod"] = icmp_code
-end
-
-if(dscp_filter ~= nil) then
-   page_params["dscp"] = dscp_filter
-end
-
-if(host_pool ~= nil) then
-   page_params["host_pool_id"] = host_pool
-end
-
-if(traffic_profile ~= nil) then
-  page_params["traffic_profile"] = traffic_profile
-end
-
-if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"])) then
-      print [[
-      <div class="col-12 p-1">
-         <div class="info-stats">
-            <ul class="nav-side" style="list-style-type: none;">
-               <li class="nav-item">
-                  <div class="up">
-                     <i class="fas fa-arrow-up" data-original-title="" title=""></i>
-                     <span id="upload-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                     <span class='d-inline-block text-end' style='width: 13ch'>
-                        <span id="upload-filter-traffic-value">0 kbit/s</span> |
-                     </span>
-                     <span id="filtered-flows-tot-bytes">]] print(i18n("flows_page.tot_bytes")) print[[</span>
-                     <span id="filtered-flows-tot-bytes-value">0 B</span>
-                  </div>
-               </li>
-               <li class="nav-item">
-                  <div class="down">
-                     <i class="fas fa-arrow-down" data-original-title="" title=""></i>
-                     <span id="download-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                     <span class='d-inline-block text-end' style='width: 13ch'>
-                        <span id="download-filter-traffic-value">0 kbit/s</span> |
-                     </span>
-                     <span id="filtered-flows-tot-throughput">]] print(i18n("flows_page.tot_throughput")) print[[</span>
-                     <span id="filtered-flows-tot-throughput-value">0 kbit/s</span>
-                  </div>
-               </li>
-            </ul>
+   if(category ~= nil) then
+      page_params["category"] = category
+   end
+   
+   if(application ~= nil) then
+      page_params["application"] = application
+   end
+   
+   if(host ~= nil) then
+     page_params["host"] = host
+   end
+   
+   if(port ~= nil) then
+     page_params["port"] = port
+   end
+   
+   if(vhost ~= nil) then
+     page_params["vhost"] = vhost
+   end
+   
+   if(hosts ~= nil) then
+     page_params["hosts"] = hosts
+   end
+   
+   if(port ~= nil) then
+     page_params["port"] = port
+   end
+   
+   if(ipversion ~= nil) then
+     page_params["version"] = ipversion
+   end
+   
+   if(l4proto ~= nil) then
+     page_params["l4proto"] = l4proto
+   end
+   
+   if(deviceIP ~= nil) then
+      page_params["deviceIP"] = deviceIP
+   end
+   
+   if(inIfIdx ~= nil) then
+      page_params["inIfIdx"] = inIfIdx
+   end
+   
+   if(outIfIdx ~= nil) then
+      page_params["outIfIdx"] = outIfIdx
+   end
+   
+   if(vlan ~= nil) then
+     page_params["vlan"] = vlan
+   end
+   
+   if(traffic_type ~= nil) then
+      page_params["traffic_type"] = traffic_type
+   end
+   
+   if(alert_type ~= nil) then
+      page_params["alert_type"] = alert_type
+   end
+   
+   if(alert_type_severity ~= nil) then
+      page_params["alert_type_severity"] = alert_type_severity
+   end
+   
+   if(tcp_state ~= nil) then
+      page_params["tcp_flow_state"] = tcp_state
+   end
+   
+   if(network_id ~= nil) then
+     page_params["network"] = network_id
+   end
+   
+   if(flowhosts_type ~= nil) then
+     page_params["flowhosts_type"] = flowhosts_type
+   end
+   
+   if((icmp_type ~= nil) and (icmp_code ~= nil)) then
+     page_params["icmp_type"] = icmp_type
+     page_params["icmp_cod"] = icmp_code
+   end
+   
+   if(dscp_filter ~= nil) then
+      page_params["dscp"] = dscp_filter
+   end
+   
+   if(host_pool ~= nil) then
+      page_params["host_pool_id"] = host_pool
+   end
+   
+   if(traffic_profile ~= nil) then
+     page_params["traffic_profile"] = traffic_profile
+   end
+   
+   if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"])) then
+         print [[
+         <div class="col-12 p-1">
+            <div class="info-stats">
+               <ul class="nav-side" style="list-style-type: none;">
+                  <li class="nav-item">
+                     <div class="up">
+                        <i class="fas fa-arrow-up" data-original-title="" title=""></i>
+                        <span id="upload-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                        <span class='d-inline-block text-end' style='width: 13ch'>
+                           <span id="upload-filter-traffic-value">0 kbit/s</span> |
+                        </span>
+                        <span id="filtered-flows-tot-bytes">]] print(i18n("flows_page.tot_bytes")) print[[</span>
+                        <span id="filtered-flows-tot-bytes-value">0 B</span>
+                     </div>
+                  </li>
+                  <li class="nav-item">
+                     <div class="down">
+                        <i class="fas fa-arrow-down" data-original-title="" title=""></i>
+                        <span id="download-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                        <span class='d-inline-block text-end' style='width: 13ch'>
+                           <span id="download-filter-traffic-value">0 kbit/s</span> |
+                        </span>
+                        <span id="filtered-flows-tot-throughput">]] print(i18n("flows_page.tot_throughput")) print[[</span>
+                        <span id="filtered-flows-tot-throughput-value">0 kbit/s</span>
+                     </div>
+                  </li>
+               </ul>
+            </div>
          </div>
-      </div>
-]]
-end
-
-   print [[
-      <div id="table-flows"></div>
-        <script>
-   var url_update = "]]
-print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
-
-print ('";')
-
-   print [[
-
-	 var table = $("#table-flows").datatable({
-			url: url_update ,
-         tableCallback: function(test_tmp)  {
-            ]] initFlowsRefreshRows() print[[
-         },
-]]
-
-preference = tablePreferences("rows_number",_GET["perPage"])
-if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
-
-print(" title: \"")
-
-
-print [[",
-         showFilter: true,
-         showPagination: true,
-]]
-
--- Automatic default sorted. NB: the column must be exists.
-print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
-
-print ('buttons: [')
-
-printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats)
-
-print(" ],\n")
-
-print[[
-   columns: [
-      {
-         title: "",
-         field: "key",
-         hidden: true,
-      }, {
-         title: "",
-         field: "hash_id",
-         hidden: true,
-      }, {
-         title: "",
-         field: "column_key",
-         css: {
-            textAlign: 'center'
-         }
-      }, {
-         title: "]] print(i18n("application")) print[[",
-         field: "column_ndpi",
-         sortable: true,
-         css: {
-            textAlign: 'center',
-            whiteSpace: 'nowrap'
-         }
-      }, {
-         title: "]] print(i18n("protocol")) print[[",
-         field: "column_proto_l4",
-         sortable: true,
-         css: {
-            textAlign: 'center'
-         }
-      },
-]]
-
-if(ifstats.vlan) then
-   print [[
-      {
-        title: "]] print(i18n("vlan")) print[[",
-        field: "column_vlan",
-        sortable: true,
-        css: {
-           textAlign: 'center'
-        }
-      },
    ]]
-end
+   end
+   
+   print [[
+         <div id="table-flows"></div>
+           <script>
+      var url_update = "]]
+   print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
+   
+   print ('";')
+   
+   print [[
+   
+   	 var table = $("#table-flows").datatable({
+   			url: url_update ,
+            tableCallback: function(test_tmp)  {
+               ]] initFlowsRefreshRows() print[[
+            },
+   ]]
+   
+   preference = tablePreferences("rows_number",_GET["perPage"])
+   if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
+   
+   print(" title: \"")
+   
+   
+   print [[",
+            showFilter: true,
+            showPagination: true,
+   ]]
+   
+   -- Automatic default sorted. NB: the column must be exists.
+   print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
+   
+   print ('buttons: [')
+   
+   printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats)
+   
+   print(" ],\n")
+   
+   print[[
+      columns: [
+         {
+            title: "",
+            field: "key",
+            hidden: true,
+         }, {
+            title: "",
+            field: "hash_id",
+            hidden: true,
+         }, {
+            title: "",
+            field: "column_key",
+            css: {
+               textAlign: 'center'
+            }
+         }, {
+            title: "]] print(i18n("application")) print[[",
+            field: "column_ndpi",
+            sortable: true,
+            css: {
+               textAlign: 'center',
+               whiteSpace: 'nowrap'
+            }
+         }, {
+            title: "]] print(i18n("protocol")) print[[",
+            field: "column_proto_l4",
+            sortable: true,
+            css: {
+               textAlign: 'center'
+            }
+         },
+   ]]
+   
+   if(ifstats.vlan) then
+      print [[
+         {
+           title: "]] print(i18n("vlan")) print[[",
+           field: "column_vlan",
+           sortable: true,
+           css: {
+              textAlign: 'center'
+           }
+         },
+      ]]
+   end
+   
+
 end
 
 print[[
@@ -456,6 +457,5 @@ if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"
       </script>
    ]])
 end
-
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

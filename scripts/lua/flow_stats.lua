@@ -19,14 +19,13 @@ local flow = interface.findFlowByKeyAndHashId(tonumber(flow_key), tonumber(flow_
 local throughput_type = getThroughputType()
 
 sendHTTPContentTypeHeader('text/html')
---sendHTTPHeader('application/json')
 
 if(flow == nil) then
- print('{}')
+   print('{}')
 else
 
- diff0 = os.time()-flow["seen.first"]
- diff = os.time()-flow["seen.last"]
+   diff0 = os.time()-flow["seen.first"]
+   diff = os.time()-flow["seen.last"]
    -- Default values
    thpt = 0
    thpt_display = bitsToSize(0)

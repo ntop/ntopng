@@ -157,7 +157,7 @@ void FlowStats::lua(lua_State* vm) {
   /* Host pool */
   lua_newtable(vm);
 
-  for(int i = 0; i < LIMITED_NUM_HOST_POOLS; i++) {
+  for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
     if(unlikely(host_pools[i] > 0)) {
       lua_newtable(vm);
 

@@ -5132,9 +5132,11 @@ void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *sta
   memset(&retriever, 0, sizeof(retriever));
 
   retriever.pag = p;
-  retriever.host = h, retriever.location = location_all;
+  retriever.host = h;
+  retriever.location = location_all;
   retriever.ndpi_proto = -1;
-  retriever.actNumEntries = 0, retriever.maxNumEntries = getFlowsHashSize();
+  retriever.actNumEntries = 0;
+  retriever.maxNumEntries = getFlowsHashSize();
   retriever.allowed_hosts = allowed_hosts;
   retriever.ndpi_stats = ndpi_stats;
   retriever.stats = stats;
