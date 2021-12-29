@@ -249,8 +249,8 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   local ifid = interface.getId()
 
   if(type_info.granularity == nil) then
-    alertErrorTraceback("Missing mandatory 'granularity'")
-    return(false)
+     alertErrorTraceback("Missing mandatory 'granularity'")
+     return(false)
   end
 
   -- Apply defaults
@@ -550,7 +550,7 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
     threshold_config.operator,
     threshold
   )
-
+  
   alert:set_score_error()
   alert:set_granularity(params.granularity)
   alert:set_subtype(script.key)
@@ -564,9 +564,11 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
   end
 
   if(alarmed) then
-    alert:trigger(params.alert_entity, nil, params.cur_alerts)
+     -- calls Alert:trigger
+     alert:trigger(params.alert_entity, nil, params.cur_alerts)
   else
-    alert:release(params.alert_entity, nil, params.cur_alerts)
+     -- calls Alert:release
+     alert:release(params.alert_entity, nil, params.cur_alerts)
   end
 end
 
