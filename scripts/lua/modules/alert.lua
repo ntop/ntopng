@@ -130,7 +130,12 @@ end
 
 function Alert:set_granularity(granularity)
    local alert_consts = require "alert_consts"
+
    self.granularity = alert_consts.alerts_granularities[granularity]
+   if(self.granularity == nil) then
+      print("[ERROR] Unknown granularity "..granularity.."\n")
+      print(debug.traceback())
+   end
 end
 
 -- ##############################################
