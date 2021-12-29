@@ -786,11 +786,13 @@ function db_utils.clickhouseDeleteOldPartitions(mysql_retention)
    local partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND database='%s' AND drop_part <= %u AND drop_part > 999999", ntop.getPrefs().mysql_dbname or 'ntopng', retention_yyyymmdd)
    local partitions_res = interface.execSQLQuery(partitions_q)
 
-   -- Iterate queried partitions and delete them
-   for _, partition_info in ipairs(partitions_res) do
-      local delete_partition_q = string.format("ALTER TABLE %s.%s DROP PARTITION '%s'",
-					       partition_info["database"], partition_info["table"], partition_info["drop_part"])
-      local delete_partition_res = interface.execSQLQuery(delete_partition_q)
+   if(partitions_res ~= nil) then
+      -- Iterate queried partitions and delete them (nil is returned if there is nothing to delete)
+      for _, partition_info in ipairs(partitions_res) do
+	 local delete_partition_q = string.format("ALTER TABLE %s.%s DROP PARTITION '%s'",
+						  partition_info["database"], partition_info["table"], partition_info["drop_part"])
+	 local delete_partition_res = interface.execSQLQuery(delete_partition_q)
+      end
    end
 end
 
