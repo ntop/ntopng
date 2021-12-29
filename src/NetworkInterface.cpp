@@ -6209,8 +6209,8 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
 				ProtoStats *_discardedProbingStats,
 				DSCPStats *_dscpStats,
 				SyslogStats *_syslogStats,
-        RoundTripStats *_downloadStats,
-        RoundTripStats *_uploadStats) const {
+				RoundTripStats *_downloadStats,
+				RoundTripStats *_uploadStats) const {
   tcpFlowStats.sum(_tcpFlowStats), ethStats.sum(_ethStats), localStats.sum(_localStats),
     pktStats.sum(_pktStats), tcpPacketStats.sum(_tcpPacketStats),
     discardedProbingStats.sum(_discardedProbingStats), syslogStats.sum(_syslogStats);
@@ -6223,7 +6223,7 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
   if(_downloadStats)
     download_stats->sum(_downloadStats);
   if(_uploadStats)
-    download_stats->sum(_uploadStats);
+    upload_stats->sum(_uploadStats);
 }
 
 /* *************************************** */
