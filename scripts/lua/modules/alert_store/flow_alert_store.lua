@@ -581,7 +581,9 @@ function flow_alert_store:format_record(value, no_html)
 
    record[RNAME.L7_PROTO.name] = {
       value = ternary(tonumber(value["l7_proto"]) ~= 0, value["l7_proto"], value["l7_master_proto"]),
-      label = l4_protocol..":"..l7_protocol
+      l4_label = l4_protocol,
+      l7_label = l7_protocol,
+      label = l4_protocol..":"..l7_protocol,
    }
 
    -- Add link to historical flow
@@ -603,16 +605,101 @@ end
 
 -- ##############################################
 
+local function get_label_link(label, tag, value, add_hyperlink)
+   if add_hyperlink then
+     return "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/alert_stats.lua?status=" .. _GET['status'] .. "&page=" .. _GET['page'] .. "&" .. 
+        tag .. "=" .. value .. tag_utils.SEPARATOR .. "eq\" " .. ">" .. label .. "</a>"
+   else
+      return label
+   end
+end
+
+-- ##############################################
+
+local function get_flow_link(fmt, add_hyperlink)
+   local label = ''
+
+   local value = fmt['flow']['cli_ip']['value']
+   local tag = 'cli_ip'
+   if fmt['flow']['cli_ip']['label'] ~= fmt['flow']['cli_ip']['value'] then
+      value = fmt['flow']['cli_ip']['label']
+      tag = 'cli_name'
+   end
+   label = label .. get_label_link(fmt['flow']['cli_ip']['label_long'], tag, value, add_hyperlink)
+
+   if fmt['flow']['cli_port'] then
+      label = label .. ':' .. get_label_link(fmt['flow']['cli_port'], 'cli_port', fmt['flow']['cli_port'], add_hyperlink)
+   end
+
+   label = label .. ' <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> '
+
+   local value = fmt['flow']['srv_ip']['value']
+   local tag = 'srv_ip'
+   if fmt['flow']['srv_ip']['label'] ~= fmt['flow']['srv_ip']['value'] then
+      value = fmt['flow']['srv_ip']['label']
+      tag = 'srv_name'
+   end
+   label = label .. get_label_link(fmt['flow']['srv_ip']['label_long'], tag, value, add_hyperlink)
+
+   if fmt['flow']['srv_port'] then
+      label = label .. ':' .. get_label_link(fmt['flow']['srv_port'], 'srv_port', fmt['flow']['srv_port'], add_hyperlink)
+   end
+
+   return label
+end
+
+-- ##############################################
+
+--@brief Get a label/title for the alert coming from the DB (value)
+function flow_alert_store:get_alert_label(value)
+   local fmt = self:format_record(value, false)
+   return fmt['msg']['name'] .. ' | ' .. get_flow_link(fmt, false)
+end
+
+-- ##############################################
+
 --@brief Convert an alert coming from the DB (value) to a list of items to be printed in the details page
 function flow_alert_store:get_alert_details(value)
    local details = {}
+   local fmt = self:format_record(value, false)
+   local add_hyperlink = true
 
-   --[[
    details[#details + 1] = {
-      label = "Title",
-      content = "Content"
+      label = i18n("alerts_dashboard.alert"),
+      content = get_label_link(fmt['alert_id']['label'], 'alert_id', fmt['alert_id']['value'], add_hyperlink)
    }
 
+   details[#details + 1] = {
+      label = i18n("flow_details.flow_peers_client_server"),
+      content = get_flow_link(fmt, add_hyperlink)
+   }
+
+   details[#details + 1] = {
+      label = i18n("protocol") .. " / " .. i18n("application"),
+      content = get_label_link(fmt['l7_proto']['l4_label'] .. ' / ' .. fmt['l7_proto']['l7_label'], 'l7proto', fmt['l7_proto']['value'], add_hyperlink)
+   }
+
+   details[#details + 1] = {
+      label = i18n("show_alerts.alert_datetime"),
+      content = fmt['tstamp']['label'],
+ 
+  }
+   details[#details + 1] = {
+      label = i18n("score"),
+      content = '<span style="color: ' .. fmt['score']['color'] .. '">' .. fmt['score']['label'] .. '</span>',
+   }
+
+   details[#details + 1] = {
+      label = i18n("description"),
+      content =  fmt['msg']['description'],
+   }
+
+   details[#details + 1] = {
+      label = i18n("flow_details.additional_alert_type"),
+      content = fmt['additional_alerts']['descr'],
+   }
+
+   --[[
    details[#details + 1] = {
       label = "Title",
       content = {
@@ -623,13 +710,6 @@ function flow_alert_store:get_alert_details(value)
    --]]
 
    return details 
-end
-
--- ##############################################
-
---@brief Get a label/title for the alert coming from the DB (value)
-function flow_alert_store:get_alert_label(value)
-   return ""
 end
 
 -- ##############################################
