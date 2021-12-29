@@ -14,7 +14,6 @@ local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
 local alert_entities = require "alert_entities"
-local alert_entities = require "alert_entities"
 
 -- ##############################################
 
