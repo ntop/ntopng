@@ -26,7 +26,7 @@ local checks_var = {
    do_print_benchmark = false
 }
 
-local granularity = "5min"
+local granularity = "5mins" -- See alert_consts.alerts_granularities
 local do_trace = false
 
 -- #################################################################
