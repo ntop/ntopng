@@ -2776,9 +2776,11 @@ void Ntop::checkShutdownWhenDone() {
 
     /* Here all interface reading from pcap files are done. */
 
-    if(!recipients_are_empty())
+    if(!recipients_are_empty()) {
       /* Recipients are still processing notifications, wait until they're done. */
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting for pending notifications..");
       return;
+    }
 
     /* When they are done, signal ntopng to shutdown */
 
