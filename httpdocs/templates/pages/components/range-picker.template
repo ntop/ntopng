@@ -625,7 +625,11 @@ $(document).ready(function() {
         const existingTagElms = tagify.getTagElms();
         
         /* Lookup by key, value and operator (do not add the same key+value multiple times) */
-        let existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('realValue') === tag.realValue && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
+        let existingTagElement = existingTagElms.find(htmlTag => 
+            htmlTag.getAttribute('key') === tag.key
+            && htmlTag.getAttribute('realValue') === tag.realValue 
+            //&& htmlTag.getAttribute('selectedOperator') === tag.selectedOperator
+        );
         let existingTag = tagify.tagData(existingTagElement);
         if (existingTag !== undefined) {
             return;
