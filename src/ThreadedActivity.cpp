@@ -21,7 +21,7 @@
 
 #include "ntop_includes.h"
 
-// #define THREAD_DEBUG
+#define THREAD_DEBUG
 
 /* **************************************************** */
 
@@ -225,10 +225,13 @@ void ThreadedActivity::run() {
     if(iface && iface->getIfType() != interface_type_PCAP_DUMP)
       pcap_dump_only = false;
   }
+
+#if 0
   /* Don't schedule periodic activities it we are processing pcap files only. */
   if(excludePcap() && pcap_dump_only)
     return;
-
+#endif
+  
   if(pthread_create(&pthreadLoop, NULL, startActivity, (void*)this) == 0) {
     thread_started = true;
 #ifdef __linux__
@@ -552,7 +555,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t schedul
 	      NetworkInterface *iface = ntop->getInterface(i);
             
 	      /* Running the script for each interface if it's not a PCAP */
-	      if(iface &&	(iface->getIfType() != interface_type_PCAP_DUMP || !excludePcap())) {      
+	      if(iface && (iface->getIfType() != interface_type_PCAP_DUMP || !excludePcap())) {      
 		char script_path[MAX_PATH];
 	      
 		/* Schedule interface script, one for each interface */
