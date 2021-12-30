@@ -18,6 +18,18 @@ ignore:
   - mem_total
   - written_alerts
   - out_of_maintenance
+  - cpu_load
+  - cpu_states
+  - guest
+  - guest_nice
+  - idle
+  - iowait
+  - irq
+  - nice
+  - softirq
+  - steal
+  - system
+  - user
 
 pre: |
 
