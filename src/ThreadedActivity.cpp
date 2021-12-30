@@ -21,7 +21,7 @@
 
 #include "ntop_includes.h"
 
-#define THREAD_DEBUG
+//#define THREAD_DEBUG
 
 /* **************************************************** */
 

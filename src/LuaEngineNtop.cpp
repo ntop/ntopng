@@ -5916,7 +5916,7 @@ static int ntop_recipient_dequeue(lua_State* vm) {
 
   res = ntop->recipient_dequeue(recipient_id,
 				high_priority ? recipient_notification_priority_high : recipient_notification_priority_low,
-				  &notification);
+				&notification);
 
   if(res && notification.alert) {
     lua_newtable(vm);

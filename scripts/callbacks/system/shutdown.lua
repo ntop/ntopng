@@ -22,6 +22,8 @@ local periodicity = 3
 local now = os.time()
 local ifnames = interface.getIfNames()
 
+-- io.write("shutdown.lua ["..os.time().."]\n")
+
 alert_utils.notify_ntopng_stop()
 
 -- Check and possibly dump preferences to disk
