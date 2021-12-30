@@ -42,5 +42,5 @@ PeriodicScript::PeriodicScript(const char* _path,
 /* ******************************************* */
 
 PeriodicScript::~PeriodicScript() {
-    //if(path) free(path);
+  if(path) free((char *) path);
 }
