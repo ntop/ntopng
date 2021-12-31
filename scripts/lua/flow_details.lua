@@ -1482,7 +1482,9 @@ function update () {
 print (ntop.getHttpPrefix())
 print [[/lua/flow_stats.lua',
 		    data: { ifid: "]] print(tostring(ifid)) print [[", ]]
-print [[flow_key: "]] print(string.format("%u", flow_key)) print [[", ]]
+   if(flow_key ~= nil) then
+      print [[flow_key: "]] print(string.format("%u", flow_key)) print [[", ]]
+   end
 print [[flow_hash_id: "]] print(string.format("%u", flow_hash_id)) print [[", ]]
 print[[ },
 		    success: function(content) {
