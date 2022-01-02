@@ -690,9 +690,11 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
 /* ******************************************* */
 
 void MySQLDB::disconnectFromDB(MYSQL *conn) {
-  mysql_close(conn);
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Disconnected from MySQL for interface %s...",
-			       iface->get_name() ? iface->get_name() : "<unknown>");
+  if(conn != NULL) {
+    mysql_close(conn);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Disconnected from MySQL for interface %s...",
+				 iface->get_name() ? iface->get_name() : "<unknown>");
+  }
 }
 
 /* ******************************************* */
