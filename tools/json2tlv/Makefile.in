@@ -1,7 +1,8 @@
-HAS_JSON=$(shell pkg-config --exists json-c; echo $$?)
+PKG_CONFIG?=pkg-config
+HAS_JSON=$(shell $(PKG_CONFIG) --exists json-c; echo $$?)
 ifeq ($(HAS_JSON), 0)
-	JSON_INC = $(shell pkg-config --cflags json-c)
-	JSON_LIB = $(shell pkg-config --libs json-c)
+	JSON_INC = $(shell $(PKG_CONFIG) --cflags json-c)
+	JSON_LIB = $(shell $(PKG_CONFIG) --libs json-c)
 else
 	JSON_HOME=${PWD}/../../third-party/json-c
 	JSON_INC=-I$(JSON_HOME)
