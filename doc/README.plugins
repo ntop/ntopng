@@ -1,0 +1,83 @@
+Plugins Architecture
+--------------------
+
+ntopng can be extended by means of Lua plugins.
+Lua plugins are also used to implement Checks for instance.
+
+Plugins should be placed under the below folders, divided by family:
+
+- scripts/plugins/
+- pro/scripts/*_plugins/
+
+Families (subfolders):
+- alerts/ - the include checks which are not flow or host checks
+- collectors/ - receive data from syslog
+- endpoints/ - alert endpoints (e.g. discord, slack)
+- monitors/ - system events (active monitoring, influxdb monitor, redis monitor, clickhouse monitor)
+
+Example:
+$ tree scripts/plugins/monitors/system/redis_monitor/
+scripts/plugins/monitors/system/redis_monitor/
+├── checks
+│   └── system
+│       └── redis_monitor.lua
+├── manifest.lua
+├── ts_schemas
+│   └── min.lua
+└── web_gui
+    ├── get_redis_info.lua
+    ├── get_redis_stats.lua
+    ├── menu.lua
+    └── redis_stats.lua
+
+Alert plugins (checks - excluding hosts and flows which are implemented in C) can be placed under alerts/ in subfolders of arbitrary name.
+
+Example:
+scripts/plugins/alerts/security/flow_flood/checks/network/flow_flood_victim.lua
+
+Plugin Lifecycle
+------——————————
+Plugins are loaded by loadPlugins() in plugin_utils.lua 
+
+Plugins can be reloaded at runtime, this is implemented in plugins_utils.lua as below:
+1. load/copy plugins to plugins1 (or plugins0)
+2. swap the plugins path to be used (/var/lib/ntopng/plugins0 / /var/lib/ntopng/plugins1)
+
+Interface Checks
+----------------
+
+scripts/callbacks/interface/network.lua executes checks on local networks (function runScripts), for each network (called by NetworkInterface.cpp::checkNetworksAlerts)
+
+scripts/lua/modules/checks.lua executes checks for interface and local networks (for the specific interface)
+
+this is called by scripts/callbacks/system/discover.lua (TODO move and rename as this is not clear)
+
+AlertCheckLuaEngine.cpp
+
+C -> discover.lua -> C (NetworkInterface.cpp::checkNetworksAlerts) -> network.lua
+
+SNMP Checks
+-----------
+
+scripts/callbacks/system/snmp_device.lua executes checks for SNMP
+
+Other Checks
+------------
+
+Example:
+scripts/plugins/alerts/internals/no_if_activity/checks/interface/no_if_activity.lua <- this triggers the alert
+
+Alert definition:
+scripts/lua/modules/alert_definitions/other/alert_no_if_activity.lua  <- this is the alert definition, implemented as subclass of alert.lua
+
+scripts/lua/modules/alert.lua 
+- the store() method enqueues the notification (alert non engage)
+- the trigger() method stores the engaged alert in the alertable entity (interface or network) and enqueues the notification
+- the release() method releases the engaged alert in the alertable entity and enqueues the notification
+
+Alert IDs define in:
+scripts/lua/modules/alert_keys/
+- flow_alert_keys.lua
+- host_alert_keys.lua
+- other_alert_keys.lua 
+
