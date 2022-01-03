@@ -28,6 +28,7 @@ local recovery_utils = require "recovery_utils"
 local delete_data_utils = require "delete_data_utils"
 local ts_utils = require "ts_utils"
 local presets_utils = require "presets_utils"
+local blog_utils = require("blog_utils")
 
 -- ##################################################################
 
@@ -195,5 +196,7 @@ if(ntop.isPro()) then
 
    ntop.importClickHouseDumps(silence_import_warnings)
 end
+
+blog_utils.fetchLatestPosts()
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")

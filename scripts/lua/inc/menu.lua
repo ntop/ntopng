@@ -33,9 +33,6 @@ local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
 local is_system_interface = page_utils.is_system_view()
 local behavior_utils = require("behavior_utils")
 
-blog_utils.fetchLatestPosts()
-
-
 local observationPointId = nil
 
 print([[
