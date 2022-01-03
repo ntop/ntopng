@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-21 - ntop.org
+ * (C) 2013-22 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -195,7 +195,7 @@
 #define MIN_NUM_VISITED_ENTRIES  1024
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
-#define NTOP_COPYRIGHT          "(C) 1998-21 ntop.org"
+#define NTOP_COPYRIGHT          "(C) 1998-22 ntop.org"
 #define DEFAULT_PID_PATH        "/var/run/ntopng.pid"
 #define SYSTEM_INTERFACE_NAME   "__system__"
 #define SYSTEM_INTERFACE_ID     -1
