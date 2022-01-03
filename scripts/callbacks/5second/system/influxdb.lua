@@ -1,5 +1,5 @@
 --
--- (C) 2013-21 - ntop.org
+-- (C) 2013-22 - ntop.org
 --
 -- This script is used to timeseries-related periodic activities
 -- for example to send data to a remote timeseries collector

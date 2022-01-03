@@ -1,5 +1,5 @@
 --
--- (C) 2017-21 - ntop.org
+-- (C) 2017-22 - ntop.org
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path

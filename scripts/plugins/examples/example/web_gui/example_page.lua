@@ -1,5 +1,5 @@
 --
--- (C) 2013-21 - ntop.org
+-- (C) 2013-22 - ntop.org
 --
 
 -- This an example page provided by this plugin

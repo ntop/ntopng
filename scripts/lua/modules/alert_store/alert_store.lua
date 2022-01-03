@@ -1,5 +1,5 @@
 --
--- (C) 2021-21 - ntop.org
+-- (C) 2021-22 - ntop.org
 --
 -- Module to keep things in common across alert_store of various type
 

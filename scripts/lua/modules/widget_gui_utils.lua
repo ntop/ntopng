@@ -1,5 +1,5 @@
 --
--- (C) 2013-21 - ntop.org
+-- (C) 2013-22 - ntop.org
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path

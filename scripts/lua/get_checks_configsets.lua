@@ -1,5 +1,5 @@
 --
--- (C) 2019-21 - ntop.org
+-- (C) 2019-22 - ntop.org
 --
 
 -- This is deprecated as there is a single configset now
