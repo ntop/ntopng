@@ -5,14 +5,19 @@ labels: bug
 ---
 
 <!--
-Please disclose security related issues privately to https://www.ntop.org/support/need-help-2/contact-us/
--->
+Security Issues:
+- Please disclose security related issues privately to https://www.ntop.org/support/need-help-2/contact-us/
 
-**Pre-Submit Checklist**:
-
-- Check applicable sources for existing issues:
+Pre-Submit Checklist: (check applicable sources for existing issues)
   - [Github Issues](https://github.com/ntop/ntopng/issues?q=is%3Aissue+label%3Abug+)
   - [FAQs](https://www.ntop.org/support/documentation/faq/)
+-->
+
+**Environment**
+* OS name: [e.g. Ubuntu]
+* OS version: [e.g. 18.04]
+* Architecture: [e.g. amd64]
+* ntopng version/revision: [e.g. 5.1.211223]
 
 **What happened**:
 
