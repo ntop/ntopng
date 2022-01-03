@@ -69,7 +69,7 @@ void ThreadedActivity::updateNextSchedule(u_int32_t now) {
 				     alignToLocalTime() ? ntop->get_time_offset() : 0);
 
     if(randomDelaySchedule) {
-      u_int max_randomness = ndpi_min(120 /* 2 mins */, getPeriodicity());
+      u_int max_randomness = ndpi_min(120 /* 2 mins */, 0.75 /* 75% */ * getPeriodicity());
       u_int randomness = rand() % max_randomness;
       /* 
 	 Add some schedule randomness to avoid all scripts 
