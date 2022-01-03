@@ -6,6 +6,10 @@ contact_links:
   url: https://github.com/ntop/nProbe/issues/new
   about: "Create issue for everything connected to the probe (nProbe or Cento) when collecting via ZMQ"
 
+- name: "Create Issue for nDPI"
+  url: https://github.com/ntop/nDPI/issues/new
+  about: "Create issue for everything related to the Application/Layer-7 protocol detection (nDPI)"
+
 - name: "Create Issue for n2disk"
   url: https://github.com/ntop/n2disk/issues/new
   about: "Create issue for everything connected to the continuous recording (n2disk)"
