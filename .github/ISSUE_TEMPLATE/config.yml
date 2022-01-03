@@ -1,0 +1,20 @@
+# Ref: https://help.github.com/en/github/building-a-strong-community/configuring-issue-templates-for-your-repository#configuring-the-template-chooser
+blank_issues_enabled: true
+contact_links:
+
+- name: "Create Issue for nProbe"
+  url: https://github.com/ntop/nProbe/issues/new
+  about: "Create issue for everything connected to the probe (nProbe or Cento) when collecting via ZMQ"
+
+- name: "Create Issue for n2disk"
+  url: https://github.com/ntop/n2disk/issues/new
+  about: "Create issue for everything connected to the continuous recording (n2disk)"
+
+- name: "Contribution Guideline"
+  url: https://github.com/ntop/ntopng/blob/dev/CONTRIBUTING.md
+  about: "Learn how to best contribute and make sure your work does not introduce regressions"
+
+- name: "Community Support"
+  url: https://www.ntop.org/community/
+  about: Ask for support and any questions you might have on Discord (or other Community channels)
+
