@@ -2806,7 +2806,9 @@ void Ntop::checkShutdownWhenDone() {
 
 void Ntop::shutdownPeriodicActivities() {
   if(pa) {
-    delete pa;
+    while(pa->isRunning()) sleep(1);
+    
+    delete pa;    
     pa = NULL;
   }
 }
@@ -2843,10 +2845,6 @@ void Ntop::shutdownInterfaces() {
 
 void Ntop::shutdownAll() {
   ThreadedActivity *shutdown_activity;
-
-  if(pa) pa->sendShutdownSignal();
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating periodic activities");
 
   /* Wait until currently executing periodic activities are completed,
    Periodic activites should not run during interfaces shutdown */

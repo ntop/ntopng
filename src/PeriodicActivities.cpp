@@ -48,58 +48,62 @@ static activity_descr ad[] = {
 /* ******************************************* */
 
 PeriodicActivities::PeriodicActivities() {
-  for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++)
-    activities[i] = NULL;
+  num_activities = 0;
+  memset(activities, 0, sizeof(activities));
 
   th_pool = new ThreadPool();
+  thread_running = false;
+}
+
+/* ******************************************* */
+
+PeriodicActivities::~PeriodicActivities() {
+  delete th_pool;
+
+  /* Now it's safe to delete the activities as no other thread is executing
+   * their code. */
+  for(u_int16_t i = 0; i < num_activities; i++)
+    delete activities[i]; /* This line calls ThreadedActivity::~ThreadedActivity() */
 
   num_activities = 0;
 }
 
 /* ******************************************* */
 
-PeriodicActivities::~PeriodicActivities() {
-  /* Important: destroy the ThreadedActivities only *after* ensuring that both its pthreadLoop
-   * thread and the possibly running activity into the ThreadPool::run thread
-   * have been terminated. */
-  for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++) {
-    /* This will terminate the pthreadLoop of the activities */
-    if(activities[i])
-      activities[i]->terminateEnqueueLoop();
-  }
-
-  delete th_pool;
-
-  /* Now it's safe to delete the activities as no other thread is executing
-   * their code. */
-  for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++) {
-    if(activities[i]) {
-      delete activities[i]; /* This line calls ThreadedActivity::~ThreadedActivity() */
-      activities[i] = NULL;
-      num_activities--;
-    }
-  }
-}
-
-/* ******************************************* */
-
 void PeriodicActivities::lua(NetworkInterface *iface, lua_State *vm) {
-  for(int i = 0; i < num_activities; i++) {
-    if(activities[i])
-      activities[i]->lua(iface, vm);
-  }
+  for(int i = 0; i < num_activities; i++)
+    activities[i]->lua(iface, vm);
 }
+
+/* **************************************************** */
+
+static void* startActivity(void* ptr)  {
+  Utils::setThreadName("PeriodicActivities");
+
+  ((PeriodicActivities*)ptr)->run();
+
+  return(NULL);
+}
+
 
 /* ******************************************* */
 
-void PeriodicActivities::sendShutdownSignal() {
-  for(u_int16_t i = 0; i < CONST_MAX_NUM_THREADED_ACTIVITIES; i++) {
-    if(activities[i])
-      activities[i]->shutdown();
+/* This is the main infinite loop */
+void PeriodicActivities::run() {
+  while(!(ntop->getGlobals()->isShutdownRequested() || ntop->getGlobals()->isShutdown())) {
+    u_int32_t now = (u_int32_t)time(NULL);
+    
+    for(u_int16_t i = 0; i < num_activities; i++)
+      activities[i]->schedule(now);
+    
+    sleep(1);
   }
+
+  thread_running = false;
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated periodic activites...");
 }
 
-/* ******************************************* */
+  /* ******************************************* */
 
 void PeriodicActivities::startPeriodicActivitiesLoop() {
   struct stat buf;
@@ -129,6 +133,12 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   for(u_int i=0; ad[i].path != NULL; i++) {
     std::vector<char*> iface_scripts_list, system_scripts_list;
 
+    if(ad[i].periodicity == 0) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping %s: 0 periodicity",
+				   ad[i].path);
+      continue;
+    }
+    
     ad[i].ta = new (std::nothrow) ThreadedActivity(ad[i].path,
 						   ad[i].periodicity,
 						   ad[i].max_duration_secs,
@@ -138,8 +148,15 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 						   th_pool);
     if(ad[i].ta) {
       activities[num_activities++] = ad[i].ta;
-      ad[i].ta->run();
+      // ad[i].ta->run();
     }
+  }
+
+  if(pthread_create(&pthreadLoop, NULL, startActivity, (void*)this) == 0) {
+    thread_running = true;
+#ifdef __linux__
+    Utils::setThreadAffinityWithMask(pthreadLoop, ntop->getPrefs()->get_other_cpu_affinity_mask());
+#endif
   }
 }
 

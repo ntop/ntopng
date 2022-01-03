@@ -29,23 +29,20 @@ class PeriodicScript;
 
 class ThreadedActivity {
  private:
-  bool terminating;
-  pthread_t pthreadLoop;
   u_int32_t deadline_approaching_secs;
-  bool thread_started;
   bool systemTaskRunning;
   Mutex m;
+  u_int32_t next_schedule;
   PeriodicScript *periodic_script;
   std::map<std::string, ThreadedActivityStats*> threaded_activity_stats;
+
+  void updateNextSchedule(u_int32_t now);
   void setDeadlineApproachingSecs();
-  void periodicActivityBody();
-  void aperiodicActivityBody();
   void schedulePeriodicActivity(ThreadPool *pool, time_t scheduled_time, time_t deadline);
   ThreadedActivityState getThreadedActivityState(NetworkInterface *iface, char *script_name);
   void updateThreadedActivityStatsBegin(NetworkInterface *iface, char *script_name, struct timeval *begin);
   void updateThreadedActivityStatsEnd(NetworkInterface *iface, char *script_name, u_long latest_duration);
-  void reloadVm(const char *ifname);
-  LuaEngine* loadVm(char *script_path, NetworkInterface *iface, time_t when);
+  LuaEngine* loadVM(char *script_path, NetworkInterface *iface, time_t when);
   void set_state(NetworkInterface *iface, char *script_name, ThreadedActivityState ta_state);
   static const char* get_state_label(ThreadedActivityState ta_state);
   bool isValidScript(char* dir, char *path);
@@ -61,15 +58,10 @@ class ThreadedActivity {
   ~ThreadedActivity();
 
   const char *activityPath();
-  void activityBody();
   void runSystemScript(time_t now);
   void runScript(time_t now, char *script_path, NetworkInterface *iface, time_t deadline);
-
-  inline void shutdown()      { terminating = true; };
-  void terminateEnqueueLoop();
   bool isTerminating();
 
-  void run();
   void set_state_sleeping(NetworkInterface *iface, char *script_name);
   void set_state_queued(NetworkInterface *iface, char *script_name);
   void set_state_running(NetworkInterface *iface, char *script_name);
@@ -86,6 +78,7 @@ class ThreadedActivity {
 						  bool allocate_if_missing);
 
   void lua(NetworkInterface *iface, lua_State *vm);
+  void schedule(u_int32_t now);
 };
 
 #endif /* _THREADED_ACTIVITY_H_ */
