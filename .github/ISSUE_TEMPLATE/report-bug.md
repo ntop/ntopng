@@ -13,7 +13,7 @@ Pre-Submit Checklist: (check applicable sources for existing issues)
   - [FAQs](https://www.ntop.org/support/documentation/faq/)
 -->
 
-**Environment**
+**Environment**:
 * OS name: [e.g. Ubuntu]
 * OS version: [e.g. 18.04]
 * Architecture: [e.g. amd64]
@@ -23,11 +23,11 @@ Pre-Submit Checklist: (check applicable sources for existing issues)
 
 
 
-**What did you expect to happen?**:
+**What did you expect to happen?**
 
 
 
-**How did you reproduce it?**:
+**How did you reproduce it?**
 
 
 
