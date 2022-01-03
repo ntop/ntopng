@@ -28,21 +28,18 @@ typedef struct _activity_descr {
   bool align_to_localtime;
   bool exclude_viewed_interfaces;
   bool exclude_pcap_dump_interfaces;
-  ThreadedActivity *ta;
 } activity_descr;
 
 static activity_descr ad[] = {
-  // Script                  Periodicity (s) Max (s) Align  !View  !PCAP NULL
-  { SECOND_SCRIPT_DIR,                    1,     65, false, false, true, NULL },
-  { FIVE_SECOND_SCRIPT_DIR,               5,     65, false, false, true, NULL },
-  { MINUTE_SCRIPT_DIR,                   60,     60, false, false, true, NULL },
-  { FIVE_MINUTES_SCRIPT_DIR,            300,    300, false, false, true, NULL },
-  { HOURLY_SCRIPT_DIR,                 3600,    600, false, false, true, NULL },
-  { DAILY_SCRIPT_DIR,                 86400,   3600, true,  false, true, NULL },
+  // Script                  Periodicity (s) Max (s) Align  !View  !PCAP
+  { SECOND_SCRIPT_DIR,                    1,     65, false, false, true },
+  { FIVE_SECOND_SCRIPT_DIR,               5,     65, false, false, true },
+  { MINUTE_SCRIPT_DIR,                   60,     60, false, false, true },
+  { FIVE_MINUTES_SCRIPT_DIR,            300,    300, false, false, true },
+  { HOURLY_SCRIPT_DIR,                 3600,    600, false, false, true },
+  { DAILY_SCRIPT_DIR,                 86400,   3600, true,  false, true },
   
-  /* TODO: remove these two periodic scripts */
-  { HOUSEKEEPING_SCRIPT_PATH,             3,     65, false, false, false, NULL },
-  { NULL,                                 0,      0, false, false, false, NULL }
+  { NULL,                                 0,      0, false, false, false }
 };
 
 /* ******************************************* */
@@ -131,27 +128,44 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   }
 
   for(u_int i=0; ad[i].path != NULL; i++) {
-    std::vector<char*> iface_scripts_list, system_scripts_list;
-
+    ThreadedActivity *ta;
+    
     if(ad[i].periodicity == 0) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping %s: 0 periodicity",
-				   ad[i].path);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping %s: 0 periodicity", ad[i].path);
       continue;
     }
     
-    ad[i].ta = new (std::nothrow) ThreadedActivity(ad[i].path,
-						   ad[i].periodicity,
-						   ad[i].max_duration_secs,
-						   ad[i].align_to_localtime,
-						   ad[i].exclude_viewed_interfaces,
-						   ad[i].exclude_pcap_dump_interfaces,
-						   th_pool);
-    if(ad[i].ta) {
-      activities[num_activities++] = ad[i].ta;
-      // ad[i].ta->run();
+    ta = new (std::nothrow) ThreadedActivity(ad[i].path,
+					     false, /* Exact */
+					     ad[i].periodicity,
+					     ad[i].max_duration_secs,
+					     ad[i].align_to_localtime,
+					     ad[i].exclude_viewed_interfaces,
+					     ad[i].exclude_pcap_dump_interfaces,
+					     th_pool);
+    if(ta)
+      activities[num_activities++] = ta;
+
+    if(ad[i].periodicity >= 60 /* no delay for sub-minute scripts */) {
+      char script_dir[64];
+      
+      snprintf(script_dir, sizeof(script_dir), "%s%s", ad[i].path, DELAYED_TRAILER);
+      
+      ta = new (std::nothrow) ThreadedActivity(script_dir,
+					       true, /* Delayed */
+					       ad[i].periodicity,
+					       ad[i].max_duration_secs,
+					       ad[i].align_to_localtime,
+					       ad[i].exclude_viewed_interfaces,
+					       ad[i].exclude_pcap_dump_interfaces,
+					       th_pool);
+      if(ta)
+	activities[num_activities++] = ta;      
     }
   }
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found %u activities", num_activities);
+  
   if(pthread_create(&pthreadLoop, NULL, startActivity, (void*)this) == 0) {
     thread_running = true;
 #ifdef __linux__

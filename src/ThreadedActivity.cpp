@@ -21,11 +21,12 @@
 
 #include "ntop_includes.h"
 
-//#define THREAD_DEBUG
+// #define THREAD_DEBUG
 
 /* ******************************************* */
 
 ThreadedActivity::ThreadedActivity(const char* _path,
+				   bool delayed_activity,
 				   u_int32_t _periodicity_seconds,
 				   u_int32_t _max_duration_seconds,
 				   bool _align_to_localtime,
@@ -39,7 +40,7 @@ ThreadedActivity::ThreadedActivity(const char* _path,
                                                       _exclude_viewed_interfaces,
                                                       _exclude_pcap_dump_interfaces,
                                                       _pool);
-
+  randomDelaySchedule = delayed_activity;
   setDeadlineApproachingSecs();
   updateNextSchedule((u_int32_t)time(NULL));
 }
@@ -63,10 +64,22 @@ ThreadedActivity::~ThreadedActivity() {
 /* ******************************************* */
 
 void ThreadedActivity::updateNextSchedule(u_int32_t now) {
-  if(getPeriodicity())
+  if(getPeriodicity()) {
     next_schedule = Utils::roundTime(now, getPeriodicity(),
 				     alignToLocalTime() ? ntop->get_time_offset() : 0);
-  else
+
+    if(randomDelaySchedule) {
+      u_int max_randomness = ndpi_min(120 /* 2 mins */, getPeriodicity());
+      u_int randomness = rand() % max_randomness;
+      /* 
+	 Add some schedule randomness to avoid all scripts 
+	 to be executed at the same time 
+      */
+
+      if(randomness < 5) randomness = 5; /* Add at least 5 sec */
+      next_schedule += randomness;
+    }
+  } else
     next_schedule = 0;
 }
 
@@ -344,9 +357,11 @@ void ThreadedActivity::schedule(u_int32_t now) {
   }
 
 #ifdef THREAD_DEBUG
-  int tdiff = next_schedule-now;
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Next schedule: %d [%s]", tdiff, activityPath());
+  if(1) {
+    int tdiff = next_schedule-now;
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Next schedule: %d [%s]", tdiff, activityPath());
+  }
 #endif
 }
 
@@ -388,9 +403,13 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t schedul
   DIR *dir_struct;
   struct dirent *ent;
 
+#ifdef THREAD_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Scheduling %s", activityPath());
+#endif
+  
   for(u_int i=0; i<2; i++) {
     if(i == 0) {
-/* Schedule system script */
+      /* Schedule system script */
       snprintf(dir_path, sizeof(dir_path), "%s/%s/system/",
 	       ntop->get_callbacks_dir(), activityPath());
     } else {
@@ -514,7 +533,7 @@ void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm) {
 /* ******************************************* */
 
 const char *ThreadedActivity::activityPath() {
-  return (periodic_script ? periodic_script->getPath() : "");
+  return(periodic_script ? periodic_script->getPath() : "");
 }
 
 /* ******************************************* */

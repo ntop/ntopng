@@ -1220,5 +1220,6 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define CLICKHOUSE_TMP_TRAILER           TMP_TRAILER
 #define CLICKHOUSE_DISCARD_TRAILER       DISCARD_TRAILER
 
+#define DELAYED_TRAILER                  "-delayed"
 
 #endif /* _NTOP_DEFINES_H_ */

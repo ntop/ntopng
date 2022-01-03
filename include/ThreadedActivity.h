@@ -30,8 +30,8 @@ class PeriodicScript;
 class ThreadedActivity {
  private:
   u_int32_t deadline_approaching_secs;
-  bool systemTaskRunning;
   Mutex m;
+  bool randomDelaySchedule;
   u_int32_t next_schedule;
   PeriodicScript *periodic_script;
   std::map<std::string, ThreadedActivityStats*> threaded_activity_stats;
@@ -46,9 +46,10 @@ class ThreadedActivity {
   void set_state(NetworkInterface *iface, char *script_name, ThreadedActivityState ta_state);
   static const char* get_state_label(ThreadedActivityState ta_state);
   bool isValidScript(char* dir, char *path);
-  
+
  public:
-  ThreadedActivity(const char* _path,		   
+  ThreadedActivity(const char* _path,
+		   bool delayed_activity = false,
 		   u_int32_t _periodicity_seconds = 0,
 		   u_int32_t _max_duration_seconds = 0,
 		   bool _align_to_localtime = false,
