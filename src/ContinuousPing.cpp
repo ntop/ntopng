@@ -321,7 +321,9 @@ void ContinuousPing::collectProtoResponse(lua_State* vm, std::map<std::string,Co
 
 void ContinuousPing::collectResponses(lua_State* vm, bool v6) {
   std::map<std::string /* IP */, bool> * pinged = v6 ? &v6_pinged : &v4_pinged;
-  lua_newtable(vm);
+
+  /* The lua_newtable() below is added by  Ntop::collectContinuousResponses() */
+  /* lua_newtable(vm); */
 
   m.lock(__FILE__, __LINE__);
 

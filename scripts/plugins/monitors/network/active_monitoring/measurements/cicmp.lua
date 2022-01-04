@@ -1,5 +1,5 @@
 --
--- (C) 2020 - ntop.org
+-- (C) 2020-22 - ntop.org
 --
 
 --
@@ -75,38 +75,36 @@ end
 --	resolved_addr: (optional) the resolved IP address of the host
 --	value: (optional) the measurement numeric value. If unspecified, the host is still considered unreachable.
 local function collect_continuous(measurement, granularity)
-  -- Collect possible ICMP results
-   for _, ipv6_results in ipairs({false --[[ collect IPv4 results --]], true --[[ collect IPv6 results --]]}) do
-      local res = ntop.collectPingResults(ipv6_results, true --[[ continuous ICMP]])
-
-      for host, value in pairs(res or {}) do
-	 local h = am_hosts[measurement][host]
-
-	 if(do_trace) then
-	    print("[cicmp] Reading ICMP response for host ".. host .."\n")
-	 end
-
-	 if h and resolved_hosts[measurement][h.key] then
-	    local v = resolved_hosts[measurement][h.key]
-
-	    -- Report the host as reachable with its value value
-	    v.value = value.response_rate
-
-	    -- Report jitter and mean
-	    if(value.jitter ~= nil) and (value.mean ~= nil) then
-	       ts_utils.append("am_host:jitter_stats_" .. granularity, {
-				  ifid = getSystemInterfaceId(),
-				  host = h.info.host,
-				  metric = h.info.measurement,
+   local res = ntop.collectPingResults(true)
+   
+   for host, value in pairs(res or {}) do
+      local h = am_hosts[measurement][host]
+      
+      if(do_trace) then
+	 print("[cicmp] Reading ICMP response for host ".. host .."\n")
+      end
+      
+      if h and resolved_hosts[measurement][h.key] then
+	 local v = resolved_hosts[measurement][h.key]
+	 
+	 -- Report the host as reachable with its value value
+	 v.value = value.response_rate
+	 
+	 -- Report jitter and mean
+	 if(value.jitter ~= nil) and (value.mean ~= nil) then
+	    ts_utils.append("am_host:jitter_stats_" .. granularity, {
+			       ifid = getSystemInterfaceId(),
+			       host = h.info.host,
+			       metric = h.info.measurement,
 				  latency = value.mean,
 				  jitter = value.jitter,
-	       })
-
-	       v.mean = value.mean
-	       v.jitter = value.jitter
-	    end
-
-	    if((value.min_rtt ~= nil) and (value.max_rtt ~= nil)) then
+	    })
+	    
+	    v.mean = value.mean
+	    v.jitter = value.jitter
+	 end
+	 
+	 if((value.min_rtt ~= nil) and (value.max_rtt ~= nil)) then
 	       ts_utils.append("am_host:cicmp_stats_" .. granularity, {
 				  ifid = getSystemInterfaceId(),
 				  host = h.info.host,
@@ -114,14 +112,13 @@ local function collect_continuous(measurement, granularity)
 				  min_rtt = value.min_rtt,
 				  max_rtt = value.max_rtt,
 	       })
-	    end
 	 end
       end
    end
-
-  -- NOTE: unreachable hosts can still be reported in order to properly
-  -- display their resolved address
-  return resolved_hosts[measurement]
+   
+   -- NOTE: unreachable hosts can still be reported in order to properly
+   -- display their resolved address
+   return resolved_hosts[measurement]
 end
 
 -- #################################################################

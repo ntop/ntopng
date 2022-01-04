@@ -1,5 +1,5 @@
 --
--- (C) 2020 - ntop.org
+-- (C) 2020-22 - ntop.org
 --
 
 --
@@ -73,27 +73,25 @@ end
 --	value: (optional) the measurement numeric value. If unspecified, the host is still considered unreachable.
 local function collect_oneshot(measurement, granularity)
    -- Collect possible ICMP results
-   for _, ipv6_results in ipairs({false --[[ collect IPv4 results --]], true --[[ collect IPv6 results --]]}) do
-      local res = ntop.collectPingResults(ipv6_results, false --[[ one shot ICMP]])
-
-      for host, value in pairs(res or {}) do
-	 local key = am_hosts[measurement][host]
-
-	 if(do_trace) then
-	    print("["..measurement.."] Reading ICMP response for host ".. host .."\n")
-	    print("["..measurement.."] value: ".. value .." key: "..(key or "nil").."\n")
-	 end
-
-	 if resolved_hosts[measurement][key] then
-	    -- Report the host as reachable with its value
-	    resolved_hosts[measurement][key].value = tonumber(value)
-	 end
+   local res = ntop.collectPingResults(false)
+   
+   for host, value in pairs(res or {}) do
+      local key = am_hosts[measurement][host]
+      
+      if(do_trace) then
+	 print("["..measurement.."] Reading ICMP response for host ".. host .."\n")
+	 print("["..measurement.."] value: ".. value .." key: "..(key or "nil").."\n")
+      end
+      
+      if resolved_hosts[measurement][key] then
+	 -- Report the host as reachable with its value
+	 resolved_hosts[measurement][key].value = tonumber(value)
       end
    end
-
-  -- NOTE: unreachable hosts can still be reported in order to properly
-  -- display their resolved address
-  return resolved_hosts[measurement]
+      
+   -- NOTE: unreachable hosts can still be reported in order to properly
+   -- display their resolved address
+   return resolved_hosts[measurement]
 end
 
 -- #################################################################

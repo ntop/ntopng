@@ -93,7 +93,7 @@ Ntop::Ntop(char *appName) {
   system_interface = NULL;
   purgeLoop_started = false;
 #ifndef WIN32
-  cping = NULL, ping = NULL;
+  cping = NULL, default_ping = NULL;
 #endif
   privileges_dropped = false;
   can_send_icmp = Utils::isPingSupported();
@@ -104,13 +104,9 @@ Ntop::Ntop(char *appName) {
 #ifndef WIN32
   if(can_send_icmp) {
     cping = new (std::nothrow) ContinuousPing();
-
-#ifndef __linux__
-    ping = new (std::nothrow)Ping(NULL /* System interface */);
-#endif
+    default_ping = new (std::nothrow)Ping(NULL /* System interface */);
   }
 #endif
-
 
   internal_alerts_queue = new (std::nothrow) FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
 
@@ -294,7 +290,10 @@ Ntop::~Ntop() {
 
 #ifndef WIN32
   if(cping)               delete cping;
-  if(ping)                delete ping;
+  if(default_ping)        delete default_ping;
+
+  for(std::map<std::string /* ifname */, Ping*>::iterator it = ping.begin(); it != ping.end(); ++it)
+    delete it->second;
 #endif
 
   if(udp_socket != -1)    closesocket(udp_socket);
@@ -558,6 +557,7 @@ void Ntop::start() {
     get_HTTPserver()->startCaptiveServer();
 #endif
 
+  initPing();
   checkReloadHostPools();
   checkReloadAlertExclusions();
   checkReloadFlowChecks();
@@ -3377,3 +3377,66 @@ bool Ntop::broadcastIPSMessage(char *msg) {
 
 #endif
 
+/* ******************************************* */
+
+#ifndef WIN32
+
+/* ******************************************* */
+
+Ping* Ntop::getPing(char *ifname) {
+  if(!can_send_icmp) return(NULL);
+
+  if((ifname == NULL) || (ifname[0] == '\0'))
+    return(default_ping);
+  else {
+    std::map<std::string /* ifname */, Ping*>::iterator it = ping.find(ifname);
+
+    if(it == ping.end()) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find ping for interface %s", ifname);
+      return(default_ping);
+    } else
+      return(it->second);    
+  }
+}
+
+/* ******************************************* */
+
+void Ntop::initPing() {
+  if(!can_send_icmp) return;
+  
+  for(int i=0; i<num_defined_interfaces; i++) {
+    char *name = iface[i]->get_name();
+    Ping *p = new (std::nothrow)Ping(name);
+
+    if(p)
+      ping[std::string(name)] = p;
+    else
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Unable to create ping for interface %s", name);
+  }  
+}
+
+/* ******************************************* */
+
+void Ntop::collectResponses(lua_State* vm) {
+  lua_newtable(vm);
+
+  default_ping->collectResponses(vm, false /* IPv4 */);
+  default_ping->collectResponses(vm, true /* IPv6 */);
+
+  for(std::map<std::string /* ifname */, Ping*>::iterator it = ping.begin(); it != ping.end(); ++it) {
+    it->second->collectResponses(vm, false /* IPv4 */);
+    it->second->collectResponses(vm, true /* IPv6 */);
+  }
+}
+
+/* ******************************************* */
+
+void Ntop::collectContinuousResponses(lua_State* vm) {
+  lua_newtable(vm);
+
+  cping->collectResponses(vm, false /* IPv4 */);
+  cping->collectResponses(vm, true /* IPv6 */);
+}
+
+#endif

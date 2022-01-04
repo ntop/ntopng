@@ -120,7 +120,8 @@ class Ntop {
 
 #ifndef WIN32
   ContinuousPing *cping;
-  Ping *ping;
+  Ping *default_ping;
+  std::map<std::string /* ifname */, Ping*> ping;
 #endif
   
 #ifdef __linux__
@@ -144,6 +145,7 @@ class Ntop {
   void checkReloadHostChecks();
   void checkReloadAlertExclusions();
   void checkReloadHostPools();
+  void initPing();
   
  public:
   /**
@@ -550,9 +552,10 @@ class Ntop {
   ndpi_serializer *getAlertSerializer(FlowAlertType fat, Flow *f) const;
   
 #ifndef WIN32
-  inline ContinuousPing* getContinuousPing() { return(cping); }
-  inline Ping*           getPing()           { return(ping);  }
+  inline ContinuousPing* getContinuousPing()   { return(cping); }
+  Ping*  getPing(char *ifname);
 #endif
+  
   inline bool hasDroppedPrivileges()         { return(privileges_dropped); }
   inline void setDroppedPrivileges()         { privileges_dropped = true; }
 
@@ -605,7 +608,8 @@ class Ntop {
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   inline u_int importClickHouseDumps(bool silence_warnings) { return(clickhouseImport.importDumps(silence_warnings)); }
 #endif
-
+  void collectResponses(lua_State* vm);
+  void collectContinuousResponses(lua_State* vm);
 };
 
 extern Ntop *ntop;

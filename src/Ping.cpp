@@ -110,7 +110,7 @@ Ping::Ping(char *ifname) {
   Utils::dropWriteCapabilities();
 #endif
 
-  if((sd6 == -1) && (errno != 0)) {
+  if((sd6 < 0) && (errno != 0)) {
     if(errno != EPROTONOSUPPORT &&
        errno != EAFNOSUPPORT) /* Avoid flooding logs when IPv6 is not supported */
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping IPv6 socket creation error: %s",
@@ -132,7 +132,7 @@ Ping::Ping(char *ifname) {
     }
   }
 
-  if((sd == -1) && (sd6 == -1))
+  if((sd < 0) && (sd6 < 0))
     throw "Socket creation error";
 }
 
@@ -144,8 +144,8 @@ Ping::~Ping() {
     pthread_join(resultPoller, NULL);
   }
 
-  if(sd != -1)  close(sd);
-  if(sd6 != -1) close(sd6);
+  if(sd < 0)  close(sd);
+  if(sd6 < 0) close(sd6);
 }
 
 /* ****************************************** */
@@ -267,17 +267,18 @@ void Ping::pollResults() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started polling...");
 #endif
 
-  while(running&& (!ntop->getGlobals()->isShutdown())) {
+  while(running
+	&& (!ntop->getGlobals()->isShutdown())) {
     FD_ZERO(&mask);
-    if(sd != -1)  FD_SET(sd, &mask);
-    if(sd6 != -1) FD_SET(sd6, &mask);
+    if(sd >= 0)  FD_SET(sd, &mask);
+    if(sd6 >= 0) FD_SET(sd6, &mask);
 
     wait_time.tv_sec = 1, wait_time.tv_usec = 0;
 
     if(select(fd_max+1, &mask, 0, 0, &wait_time) > 0) {
       unsigned char buf[1024];
 
-      if(sd != -1 && FD_ISSET(sd, &mask)) {
+      if((sd >= 0) && FD_ISSET(sd, &mask)) {
 	struct sockaddr_in addr;
 	socklen_t len = sizeof(addr);
 
@@ -285,7 +286,7 @@ void Ping::pollResults() {
 	handleICMPResponse(buf, bytes, &addr.sin_addr, NULL);
       }
 
-      if(sd6 != -1 && FD_ISSET(sd6, &mask)) {
+      if((sd6 >= 0) && FD_ISSET(sd6, &mask)) {
 	struct sockaddr_in6 addr;
 	socklen_t len = sizeof(addr);
 
@@ -373,7 +374,9 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
 void Ping::collectResponses(lua_State* vm, bool v6) {
   std::map<std::string /* IP */, float /* RTT */> *results = v6 ? &results_v6 : &results_v4;
   std::map<std::string /* IP */, bool> *pinged = v6 ? &pinged_v6 : &pinged_v4;
-  lua_newtable(vm);
+
+  /* The lua_newtable() below is added by  Ntop::collectResponses() */
+  /* lua_newtable(vm); */
 
   m.lock(__FILE__, __LINE__);
 

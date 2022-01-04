@@ -815,9 +815,6 @@ struct ntopngLuaContext {
   AddressTree *allowedNets;
   NetworkInterface *iface;
   AddressTree *addr_tree;
-#ifndef WIN32
-  Ping *ping;
-#endif
   SNMP *snmpBatch, *snmpAsyncEngine[MAX_NUM_ASYNC_SNMP_ENGINES];
   Host *host;
   NetworkStats *network;

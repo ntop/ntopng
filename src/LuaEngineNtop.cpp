@@ -654,7 +654,7 @@ static int ntop_get_tls_version_name(lua_State* vm) {
   u_int16_t tls_version;
   u_int8_t unknown_version = 0;
   char buf[32];
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -886,7 +886,7 @@ static int ntop_getservbyport(lua_State* vm) {
 static int ntop_msleep(lua_State* vm) {
   u_int ms_duration, max_duration = 60000 /* 1 min */;
   struct timespec ts;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -1650,7 +1650,7 @@ static int ntop_clickhouse_enabled(lua_State* vm) {
 static int ntop_clickhouse_import_dumps(lua_State* vm) {
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   bool silence_warnings;
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   else
@@ -1905,45 +1905,13 @@ static int ntop_ping_host(lua_State* vm) {
 
   if(!continuous) {
     /* Ping one shot */
-    if(true) { /* Put this to false to try the new ping */
-      if(getLuaVMUservalue(vm, ping) == NULL) {
-        Ping *ping;
-
-  #ifdef __linux__
-        /* We support ICMP over multiple interfaces */
-        try {
-    ping = new Ping(ifname);
-        } catch(...) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ping socket: are you root?");
-    ping = NULL;
-        }
-  #else
-        ping = ntop->getPing();
-  #endif
-
-        if(ping == NULL) {
-    lua_pushnil(vm);
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-        } else
-    getLuaVMUservalue(vm, ping) = ping;
-
-        ping = ntop->getPing();
-      }
-
-      getLuaVMUservalue(vm, ping)->ping(host, is_v6);
-    } else {
-      /* This is the new ping, put the if(true) above to if(false) to trigger this one instead */
-      Ping *c = ntop->getPing(); /* Change the class name accordingly */
-
-      if(c) {
-        c->start(); /* In case not started it will now start */
-        c->ping(host, is_v6);
-      } else {
-        lua_pushnil(vm);
-        return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-      }  
-    }
+    Ping *ping = ntop->getPing(ifname);
     
+    if(ping == NULL) {
+      lua_pushnil(vm);
+      return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+    } else
+      ping->ping(host, is_v6);
   } else {
     /* This is a continuous ping instead */
     ContinuousPing *c = ntop->getContinuousPing();
@@ -1968,32 +1936,21 @@ static int ntop_collect_ping_results(lua_State* vm) {
   lua_pushnil(vm);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 #else
-  bool v6;
   bool continuous = false;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  v6 = lua_toboolean(vm, 1) ? true : false;
-
-  if(lua_type(vm, 2) == LUA_TBOOLEAN)
-    continuous = lua_toboolean(vm, 2) ? true : false;
+	
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  
+  continuous = lua_toboolean(vm, 1) ? true : false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!continuous) {
-    if(true) { /* Put this to false to try the new ping */
-      if(getLuaVMUservalue(vm, ping) == NULL) {
-        lua_pushnil(vm);
-        return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-      } else {
-        getLuaVMUservalue(vm, ping)->collectResponses(vm, v6);
-        return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-      }
-    } else {
-      ntop->getPing()->collectResponses(vm, v6);
-      return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-    }
+    /* Ping one shot */
+    ntop->collectResponses(vm);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));    
   } else {
-    ntop->getContinuousPing()->collectResponses(vm, v6);
+    ntop->collectContinuousResponses(vm);
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
   }
 
@@ -6632,7 +6589,7 @@ static luaL_Reg _ntop_reg[] = {
   /* ClickHouse */
   { "isClickHouseEnabled",       ntop_clickhouse_enabled             },
   { "importClickHouseDumps",     ntop_clickhouse_import_dumps        },
-  
+
   /* Data Binning */
   { "addBin",                    ntop_add_bin                        },
   { "findSimilarities",          ntop_find_bin_similarities          },
