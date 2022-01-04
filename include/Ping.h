@@ -31,7 +31,7 @@ class Ping {
   u_int8_t cnt;
   bool running;
   pthread_t resultPoller;
-  
+  char *ifname;
   Mutex m;
   std::map<std::string /* IP */, float /* RTT */> results_v4, results_v6;
   std::map<std::string /* IP */, bool> pinged_v4, pinged_v6;

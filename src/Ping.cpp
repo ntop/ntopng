@@ -41,8 +41,6 @@ struct ping_packet {
 /* ****************************************** */
 
 static void* resultPollerFctn(void* ptr) {
-  Utils::setThreadName("PingLoop");
-
   ((Ping*)ptr)->pollResults();
   return(NULL);
 }
@@ -58,14 +56,16 @@ void Ping::setOpts(int fd) {
 
 /* ****************************************** */
 
-Ping::Ping(char *ifname) {
+Ping::Ping(char *_ifname) {
   ping_id = rand(), cnt = 0;
   running = false;
 
 #ifndef __linux__
-  ifname = NULL; /* Too much of a hassle supporting it without capabilities */
+  _ifname = NULL; /* Too much of a hassle supporting it without capabilities */
 #endif
 
+  ifname = _ifname ? strdup(_ifname) : NULL;
+  
 #ifdef __linux__
   if(Utils::gainWriteCapabilities() == -1)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities [%s]", strerror(errno));
@@ -85,11 +85,11 @@ Ping::Ping(char *ifname) {
   } else {
     setOpts(sd);
 
-    if(ifname && (ifname[0] != '\0')) {
+    if(_ifname && (_ifname[0] != '\0')) {
       struct sockaddr_in sin;
 
       sin.sin_family = AF_INET;
-      sin.sin_addr.s_addr = Utils::readIPv4(ifname);
+      sin.sin_addr.s_addr = Utils::readIPv4(_ifname);
 
       if(sin.sin_addr.s_addr != 0) {
         if(::bind(sd, (struct sockaddr *) &sin, sizeof(struct sockaddr_in)) == -1)
@@ -118,13 +118,13 @@ Ping::Ping(char *ifname) {
   } else {
     setOpts(sd6);
 
-    if(ifname) {
+    if(_ifname) {
       struct sockaddr_in6 sin;
 
       memset(&sin, 0, sizeof(sin));
       sin.sin6_family = AF_INET6;
 
-      if(Utils::readIPv6(ifname, &sin.sin6_addr)) {
+      if(Utils::readIPv6(_ifname, &sin.sin6_addr)) {
         if(::bind(sd6, (struct sockaddr *) &sin, sizeof(struct sockaddr_in6)) == -1)
           ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to IPv6 Address, error %s",
 				       strerror(errno));
@@ -146,6 +146,8 @@ Ping::~Ping() {
 
   if(sd < 0)  close(sd);
   if(sd6 < 0) close(sd6);
+
+  if(ifname) free(ifname);
 }
 
 /* ****************************************** */
@@ -262,7 +264,15 @@ void Ping::pollResults() {
   int bytes, fd_max = max(sd, sd6);
   fd_set mask;
   struct timeval wait_time;
+  char thread_name[64];
 
+  if(ifname)
+    snprintf(thread_name, sizeof(thread_name), "ping %s", ifname);
+  else
+    snprintf(thread_name, sizeof(thread_name), "ping");
+  
+  Utils::setThreadName(thread_name);
+  
 #ifdef TRACE_PING
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started polling...");
 #endif

@@ -42,7 +42,7 @@
 static void* pollerFctn(void* ptr) {
   ContinuousPing *cp = (ContinuousPing*)ptr;
 
-  Utils::setThreadName("ContinuousPingLoop");
+  Utils::setThreadName("cping");
 
   while((!ntop->getGlobals()->isShutdownRequested())
 	&& (!ntop->getGlobals()->isShutdown()))
@@ -148,6 +148,7 @@ void ContinuousPing::ping(char *_addr, bool use_v6, char *ifname) {
   if (ifname) {
     std::string key = std::string(ifname);
     std::map<std::string, Ping*>::iterator it;
+    
     it = if_pinger.find(key); 
     if(it != if_pinger.end()) {
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using pinger for %s", ifname);
