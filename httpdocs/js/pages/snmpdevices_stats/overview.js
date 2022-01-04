@@ -299,8 +299,8 @@ $(function () {
                     if (!isAdministrator) return "";
 
                     return DataTableUtils.createActionButtons([
-                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-snmp-device-modal' },
-                        { class: 'btn-danger', icon: 'fa-trash', modal: '#delete-snmp-device-modal'}
+                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-snmp-device-modal', title: `${i18n.edit}` },
+                        { class: 'btn-danger', icon: 'fa-trash', modal: '#delete-snmp-device-modal', title: `${i18n.delete}` }
                     ]);
                 }
             }
@@ -421,12 +421,12 @@ $(function () {
     });
 
     $(`#table-devices`).on('click', `a[href='#delete-snmp-device-modal']`, function (e) {
-        const selectedSNMPDevice = $snmpTable.row($(this).parent().parent()).data();
+        const selectedSNMPDevice = $snmpTable.row($(this).parent().parent().parent().parent()).data();
         $deleteModalHandler.invokeModalInit(selectedSNMPDevice);
     });
 
     $(`#table-devices`).on('click', `a[href='#edit-snmp-device-modal']`, function (e) {
-        const selectedSNMPDevice = $snmpTable.row($(this).parent().parent()).data();
+        const selectedSNMPDevice = $snmpTable.row($(this).parent().parent().parent().parent()).data();
         $editModalHandler.invokeModalInit(selectedSNMPDevice);
     });
 

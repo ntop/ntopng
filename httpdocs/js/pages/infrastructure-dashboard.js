@@ -90,8 +90,8 @@ $(function() {
                 className: 'text-center',
                 data: null,
                 render: (_, type, instance) => DataTableUtils.createActionButtons([
-                    { class: 'btn-info', icon: 'fa-edit', modal: '#edit-instance-modal' },
-                    { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-instance-modal' },
+                    { class: 'btn-info', icon: 'fa-edit', modal: '#edit-instance-modal', title: `${i18n.edit}` },
+                    { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-instance-modal', title: `${i18n.delete}` },
                 ])
             }
         ],
@@ -211,12 +211,12 @@ $(function() {
     /* bind edit instance event */
     $(`table#infrastructure-table`).on('click', `a[href='#edit-instance-modal']`, function (e) {
 
-        const selectedInstance = $infrastructureTable.row($(this).parent().parent()).data();
+        const selectedInstance = $infrastructureTable.row($(this).parent().parent().parent().parent()).data();
         $editInstanceModal.invokeModalInit(selectedInstance);
     });
     /* bind remove instance event */
     $(`table#infrastructure-table`).on('click', `a[href='#remove-instance-modal']`, function (e) {
-        const selectedInstance = $infrastructureTable.row($(this).parent().parent()).data();
+        const selectedInstance = $infrastructureTable.row($(this).parent().parent().parent().parent()).data();
         $removeInstanceModal.invokeModalInit(selectedInstance);
     });
 

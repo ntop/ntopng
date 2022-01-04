@@ -1435,7 +1435,7 @@ const createScriptStatusButton = (row_data) => {
    const { is_enabled } = row_data;
    let enable_title = i18n.enable_check_title;
    let disable_title = i18n.disable_check_title;
-   const $button = $(`<button type='button' class='btn btn-sm'></button>`);
+   const $button = $(`<button type='button' class='btn btn-sm' style='margin-right: 0.25rem'></button>`);
    $button.addClass('btn-danger');
    $button[0].setAttribute('title', enable_title)
 
@@ -1920,7 +1920,7 @@ $(function () {
             name: 'actions',
             className: 'text-center',
             sortable: false,
-            width: 'auto',
+            width: '7%',
             render: function (data, type, script) {
                const isScriptEnabled = script.is_enabled;
                const isSubdirFlow = (script.subdir === "flow");
@@ -1967,7 +1967,7 @@ $(function () {
    // load templates for the script
    $('#scripts-config').on('click', '[href="#modal-script"],[data-bs-target="#modal-script"]', function (e) {
 
-      const row_data = $script_table.row($(this).parent().parent()).data();
+      const row_data = $script_table.row($(this).parent().parent().parent().parent()).data();
       const script_key = row_data.key;
       const script_subdir = row_data.subdir;
       const script_title = row_data.title;

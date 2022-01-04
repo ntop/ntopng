@@ -555,7 +555,7 @@ $(function() {
                 data: null,
                 sortable: false,
                 name: 'actions',
-                width: "200px",
+                width: "5%",
 		responsivePriority: 3,
                 class: 'text-center',
                 render: function(_, type, host) {
@@ -563,8 +563,8 @@ $(function() {
                     const disabled = (host.readonly) ? 'disabled' : '';
 
                     return DataTableUtils.createActionButtons([
-                        { class: `btn-info ${disabled}`, icon: 'fa-edit', modal: '#am-edit-modal', },
-                        { class: `btn-danger ${disabled}`, icon: 'fa-trash', modal: '#am-delete-modal', }
+                        { class: `btn-info ${disabled}`, icon: 'fa-edit', modal: '#am-edit-modal', title: `${i18n.edit}` },
+                        { class: `btn-danger ${disabled}`, icon: 'fa-trash', modal: '#am-delete-modal', title: `${i18n.delete}` }
                     ]);
                 }
             },
@@ -582,12 +582,12 @@ $(function() {
     addAlertedFilter($amTable).init();
 
     $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
-        const amData = getAmData($amTable, $(this));
+        const amData = getAmData($amTable, $(this).parent().parent());
         $editModalHandler.invokeModalInit(amData);
     });
 
     $('#am-table').on('click', `a[href='#am-delete-modal']`, function(e) {
-        const amData = getAmData($amTable, $(this));
+        const amData = getAmData($amTable, $(this).parent().parent());
         $removeModalHandler.invokeModalInit(amData);
     });
 

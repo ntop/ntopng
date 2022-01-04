@@ -182,8 +182,9 @@ $(function () {
 		sortable: false,
 		width: '10%',
 		render: function (data, type, script) {
+
 		    return DataTableUtils.createActionButtons([
-			{ class: `btn-danger`, modal: '#modal-script', icon: 'fa-trash' },
+			{ class: `btn-danger`, modal: '#modal-script', icon: 'fa-trash', title: `${i18n.delete}` },
 		    ]);
 		},
 	    }
@@ -217,7 +218,7 @@ $(function () {
     // load templates for the script
     $('#scripts-config').on('click', '[href="#modal-script"],[data-bs-target="#modal-script"]', function (e) {
 
-	const row_data = $script_table.row($(this).parent().parent()).data();
+	const row_data = $script_table.row($(this).parent().parent().parent().parent()).data();
 	const alert_key = row_data.alert_key;
 	const script_title = row_data.title;
 	const excluded_host = row_data.excluded_host;

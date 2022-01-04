@@ -6,13 +6,13 @@
 const FAMILY = "{{ entity }}"
 
 $table.on('click', `a[href='#check_info']`, function (e) {
-    const alert = $table.row($(this).parent().parent()).data();
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
     const href = "{* alert_details_url *}?page={* entity *}&status={* alert_status *}&row_id=" + alert.row_id;
     window.location.href = href;
 });
 
 $table.on('click', `a[href='#check_settings']`, function (e) {
-    const alert = $table.row($(this).parent().parent()).data();
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
     const check_settings_href = $(alert.msg.configset_ref).attr('href');
     window.location.href = check_settings_href;
 });
@@ -21,7 +21,7 @@ $table.on('click', `a[href='#flow_alerts']`, function (e) {
     /* Create and redirect to the flow alerts filtered by alert timestamps and alert ip */
 
     /* Prepare URL params */
-    const alert = $table.row($(this).parent().parent()).data();
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
     const alert_tstamp = alert.tstamp.value;
     const duration = alert.duration;
     const [epoch_begin, epoch_end] = [alert_tstamp - 300 /* Look a bit before than the timestamp */, alert_tstamp + duration];
@@ -47,7 +47,7 @@ $table.on('click', `a[href='#flow_alerts']`, function (e) {
 $table.on('click', `a[href='#past_flows']`, function (e) {
     /* Create and redirect to the past alerts filtered  */
 
-    const alert = $table.row($(this).parent().parent()).data();
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
 
     	    if(alert.link_to_past_flows)
 	    	window.location.href = alert.link_to_past_flows;
@@ -56,7 +56,7 @@ $table.on('click', `a[href='#past_flows']`, function (e) {
 });
 
 $table.on('click', `a[href='#delete_alert_dialog']`, function (e) {
-    const alert = $table.row($(this).parent().parent()).data();
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
     $deleteAlertModal.invokeModalInit(alert);
 });
 
@@ -178,7 +178,7 @@ $(`#dt-btn-delete`).on('click', function (e) {
 });
 
 $table.on('click', `a[href='#alerts_filter_dialog']`, function (e) {
-    const alert = $table.row($(this).parent().parent()).data();
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
     $disableAlert.invokeModalInit(alert);
 });
 
@@ -244,7 +244,7 @@ const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
 });
 
 $table.on('click', `a[href='#acknowledge_alert_dialog']`, function (e) {
-    const alert = $table.row($(this).parent().parent()).data();
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
     $acknowledgeAlert.invokeModalInit(alert);
 });
 
@@ -285,7 +285,7 @@ const $acknowledgeAlert = $('#acknowledge_alert_dialog form').modalHandler({
 /**
  * Release Button Handler
 $table.on('click', `a[href='#release_single_alert']`, function (e) {
-    const alert = $table.row($(this).parent().parent()).data();
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
 });
 
 const $releaseAlertModal = $('#release_single_alert form').modalHandler({

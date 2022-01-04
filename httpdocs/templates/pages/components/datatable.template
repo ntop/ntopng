@@ -304,34 +304,34 @@
         columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
             const buttons = [
                 {% if actions.show_info then %}
-                {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info', class: 'btn-warning'},
+                {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info'},
                 {% end %}
 
                 {% if actions.show_flows then %}
                 /* Button to jump to flow alerts within the same time period */
-                {icon: 'fa-stream', title: "{{ i18n('show_alerts.flow_alerts') }}", modal: '#flow_alerts', class: "btn-warning"},
+                {icon: 'fa-stream', title: "{{ i18n('show_alerts.flow_alerts') }}", modal: '#flow_alerts'},
 		{% end %}
 
                 {% if actions.show_historical then %}
 		/* Button to jump to historical nIndex flows */
-                {icon: 'fa-stream', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows', class: "btn-info"},
+                {icon: 'fa-stream', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows'},
 		{% end %}
 
                 {% if actions.show_acknowledge then %}
-                {icon: 'fa fa-user-check', title: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog', class: 'btn-primary'},
+                {icon: 'fa fa-user-check', title: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog'},
                 {% end %}
 
                 {% if actions.show_disable then %}
                 /* Bell button to disable alerts is only supported for hosts and flows */
-                {icon: 'fa-bell-slash', title: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog', class: "btn-warning"},
+                {icon: 'fa-bell-slash', title: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog'},
                 {% end %}
 
                 {% if actions.show_settings then %}
-                {icon: 'fa fa-cog', title: "{{ i18n('settings') }}", href: '#check_settings', class: 'btn-primary'},
+                {icon: 'fa fa-cog', title: "{{ i18n('settings') }}", href: '#check_settings'},
                 {% end %}
 
                 {% if actions.show_delete then %}
-                {icon: 'fa fa-trash', title: "{{ i18n('remove') }}", modal: '#delete_alert_dialog', class: 'btn-danger'},
+                {icon: 'fa fa-trash', title: "{{ i18n('remove') }}", modal: '#delete_alert_dialog'},
                 {% end %}
             ];
 

@@ -362,22 +362,23 @@ class DataTableUtils {
     static createActionButtons(actions = []) {
 
         const buttons = [];
+        const dropdownButton = '<button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-align-justify"></i></button>'
 
         actions.forEach((action) => {
 
             let button = (`
+            <li>
                 <a
                     ${(action.href || action.modal) ? `href='${action.href || action.modal}'` : ``}
                     ${(action.onclick) ? `onclick='${action.onclick}'` : ``}
-                    data-placement='bottom'
                     ${action.modal ? "data-bs-toggle='modal'" : ``}
-                    class='btn btn-sm ${action.class}'
+                    class='dropdown-item ${action.class}'
                     ${action.hidden ? "style='display: none'" : ``}
                     ${action.external ? "target='_about'" : ``}
-                    ${action.title ? `title='${action.title}'` : ``}
                     >
-                    <i class='fas ${action.icon}'></i>
+                    <i class='fas ${action.icon}'></i> ${action.title || ''}
                 </a>
+            </li>
             `);
 
             // add a wrapper for the disabled button to show a tooltip
@@ -388,7 +389,9 @@ class DataTableUtils {
             buttons.push(button);
         });
 
-        return (`<div class='actions-group' role='group'>${buttons.join('')}</div>`);
+        const list = `<ul class="dropdown-menu">${buttons.join('')}</ul>`
+
+        return (`<div class='dropdown'>${dropdownButton}${list}</div>`);
     }
 
     static setAjaxConfig(config, url, dataSrc = '', method = "get", params = {}) {

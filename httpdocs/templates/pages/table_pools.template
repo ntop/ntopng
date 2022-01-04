@@ -83,6 +83,7 @@ pool = pool
     i18n.others = "{{ i18n('others') }}";
     i18n.other = "{{ i18n('other') }}";
     i18n.and = "{{ i18n('and') }}";
+    i18n.manage = "{{ i18n('host_pools.manage_pool') }}"
     i18n.unbounded_members = "{{ i18n('pools.unbounded_members') }}";
 
     i18n.poolFamilies = {* json.encode(pool.pool_families) *};

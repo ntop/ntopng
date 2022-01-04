@@ -51,6 +51,7 @@
     i18n.search = "{{ i18n('search') }}";
     i18n.edit = "{{ i18n('edit') }}";
     i18n.remove = "{{ i18n('remove') }}";
+    i18n.delete = "{{ i18n('delete') }}";
     i18n.all = "{{ i18n('all') }}";
     i18n.timed_out = "{{ i18n('endpoint_notifications.timed_out') }}";
     i18n.server_error = "{{ i18n('endpoint_notifications.server_error') }}";

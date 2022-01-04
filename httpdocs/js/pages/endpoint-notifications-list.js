@@ -132,8 +132,8 @@ $(function () {
                     const isBuiltin = endpoint.endpoint_conf.builtin || false;
 
                     return DataTableUtils.createActionButtons([
-                        {class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-edit', modal: '#edit-endpoint-modal' },
-                        {class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-endpoint-modal'},
+                        {class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-edit', modal: '#edit-endpoint-modal', title: `${i18n.edit}` },
+                        {class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-endpoint-modal', title: `${i18n.delete}` },
                     ]);
                 }
             }
@@ -280,7 +280,7 @@ $(function () {
     /* bind edit endpoint event */
     $(`table#notification-list`).on('click', `a[href='#edit-endpoint-modal']`, function (e) {
 
-        const endpointSelected = $endpointsTable.row($(this).parent().parent()).data();
+        const endpointSelected = $endpointsTable.row($(this).parent().parent().parent().parent()).data();
 
         // prevent the deleting of a builtin element
         if (endpointSelected.endpoint_conf.builtin) {
@@ -294,7 +294,7 @@ $(function () {
     /* bind remove endpoint event */
     $(`table#notification-list`).on('click', `a[href='#remove-endpoint-modal']`, function (e) {
 
-        const endpointSelected = $endpointsTable.row($(this).parent().parent()).data();
+        const endpointSelected = $endpointsTable.row($(this).parent().parent().parent().parent()).data();
 
         // prevent the deleting of a builtin element
         if (endpointSelected.endpoint_conf.builtin) {

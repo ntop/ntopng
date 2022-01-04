@@ -161,6 +161,7 @@ $(function () {
             },
             {
                 data: `endpoint_key`,
+                width: '15%',
                 render: (endpointType, type, recipient) => {
 
                     if (type == "display") {
@@ -273,9 +274,9 @@ $(function () {
                     const isBuiltin = (recipient.endpoint_conf && recipient.endpoint_conf.builtin) || false;
 
                     return DataTableUtils.createActionButtons([
-                        { class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa fa-users', modal: '#users-recipient-modal' },
-                        { class: 'btn-info' /* Builtins are editable to change theis severity */, icon: 'fa-edit', modal: '#edit-recipient-modal' },
-                        { class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-recipient-modal' },
+                        { class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa fa-users', modal: '#users-recipient-modal', title: `${i18n.recipient}` },
+                        { class: 'btn-info' /* Builtins are editable to change theis severity */, icon: 'fa-edit', modal: '#edit-recipient-modal', title: `${i18n.edit}` },
+                        { class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-recipient-modal', title: `${i18n.delete}` },
                     ]);
                 }
             }
@@ -449,7 +450,7 @@ $(function () {
     /* bind edit recipient event */
     $(`table#recipient-list`).on('click', `a[href='#edit-recipient-modal']`, function (e) {
 
-        const selectedRecipient = $recipientsTable.row($(this).parent().parent()).data();
+        const selectedRecipient = $recipientsTable.row($(this).parent().parent().parent().parent()).data();
 
         $editRecipientModal.invokeModalInit(selectedRecipient);
     });
@@ -457,7 +458,7 @@ $(function () {
     /* bind remove endpoint event */
     $(`table#recipient-list`).on('click', `a[href='#remove-recipient-modal']`, function (e) {
 
-        const selectedRecipient = $recipientsTable.row($(this).parent().parent()).data();
+        const selectedRecipient = $recipientsTable.row($(this).parent().parent().parent().parent()).data();
         // prevent removing builtin
         if (selectedRecipient.endpoint_conf.builtin) {
             e.preventDefault();
@@ -470,7 +471,7 @@ $(function () {
     /* bind recipient users button */
     $(`table#recipient-list`).on('click', `a[href='#users-recipient-modal']`, async function () {
 
-        const { recipient_id, recipient_name } = $recipientsTable.row($(this).parent().parent()).data();
+        const { recipient_id, recipient_name } = $recipientsTable.row($(this).parent().parent().parent().parent()).data();
         $(`.recipient-name`).text(recipient_name);
         $(`.fetch-failed,.zero-user`).hide();
 

@@ -103,8 +103,8 @@ $(function() {
                     if (IS_ALL_POOL) return;
 
                     const buttons = [
-                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-pool' },
-                        { class: `btn-danger ${((pool.pool_id == DEFAULT_POOL_ID || IS_NEDGE) || !changable_pool) ? 'disabled' : '' }`, icon: 'fa-trash', modal: '#remove-pool'}
+                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-pool', title: `${i18n.edit}` },
+                        { class: `btn-danger ${((pool.pool_id == DEFAULT_POOL_ID || IS_NEDGE) || !changable_pool) ? 'disabled' : '' }`, icon: 'fa-trash', modal: '#remove-pool', title: `${i18n.delete}`}
                     ];
 
                     if (poolType == "host") {
@@ -112,7 +112,8 @@ $(function() {
                             {
                                 class: `btn-info ${(pool.pool_id == DEFAULT_POOL_ID) ? 'disabled' : '' }`,
                                 icon: 'fa-layer-group',
-                                href: `${http_prefix}/lua/admin/manage_host_members.lua?pool=${pool.pool_id}`
+                                href: `${http_prefix}/lua/admin/manage_host_members.lua?pool=${pool.pool_id}`,
+                                title: `${i18n.manage}`
                             }
                         );
                     }

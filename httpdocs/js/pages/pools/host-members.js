@@ -99,8 +99,8 @@ $(function () {
                 width: "10%",
                 render: () => {
                     return DataTableUtils.createActionButtons([
-                        { class: 'btn-info',   icon: 'fa-edit', modal: '#edit-member-modal'},
-                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-member-host-pool'}
+                        { class: 'btn-info',   icon: 'fa-edit', modal: '#edit-member-modal', title: `${i18n.edit}` },
+                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-member-host-pool', title: `${i18n.delete}` }
                     ]);
                 }
             }
@@ -119,12 +119,12 @@ $(function () {
     }).init();
 
     $(`#host-members-table`).on('click', `a[href='#edit-member-modal']`, function (e) {
-        const memberRowData = $hostMembersTable.row($(this).parent().parent()).data();
+        const memberRowData = $hostMembersTable.row($(this).parent().parent().parent().parent()).data();
         $editModalHandler.invokeModalInit(memberRowData);
     });
 
     $(`#host-members-table`).on('click', `a[href='#remove-member-host-pool']`, function (e) {
-        const memberRowData = $hostMembersTable.row($(this).parent().parent()).data();
+        const memberRowData = $hostMembersTable.row($(this).parent().parent().parent().parent()).data();
         $removeModalHandler.invokeModalInit(memberRowData);
     });
     

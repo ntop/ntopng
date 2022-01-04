@@ -58,6 +58,7 @@
     i18n.search = "{{ i18n('search') }}";
     i18n.edit = "{{ i18n('edit') }}";
     i18n.remove = "{{ i18n('remove') }}";
+    i18n.delete = "{{ i18n('delete') }}";
     i18n.all = "{{ i18n('all') }}";
     i18n.empty_template = "{{ i18n('endpoint_notifications.empty_template') }}";
     i18n.createEndpointFirst = "{{ (#notifications.endpoint_list > 0 and '' or i18n('endpoint_notifications.create_endpoint_first')) }}";
@@ -71,6 +72,7 @@
     i18n.pool_types = {* json.encode(i18n('pools.pool_name')) *};
     i18n.endpoint_severities = {* json.encode(i18n('endpoint_notifications.severities')) *};
     i18n.pools = "{{ i18n('endpoint_notifications.bind_to_num_pools') }}";
+    i18n.recipient = "{{ i18n('recipient') }}";
 
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/recipients-endpoints.js?{{ ntop.getStaticFileEpoch() }}"></script>
