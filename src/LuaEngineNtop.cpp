@@ -1905,32 +1905,45 @@ static int ntop_ping_host(lua_State* vm) {
 
   if(!continuous) {
     /* Ping one shot */
+    if(true) { /* Put this to false to try the new ping */
+      if(getLuaVMUservalue(vm, ping) == NULL) {
+        Ping *ping;
 
-    if(getLuaVMUservalue(vm, ping) == NULL) {
-      Ping *ping;
+  #ifdef __linux__
+        /* We support ICMP over multiple interfaces */
+        try {
+    ping = new Ping(ifname);
+        } catch(...) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ping socket: are you root?");
+    ping = NULL;
+        }
+  #else
+        ping = ntop->getPing();
+  #endif
 
-#ifdef __linux__
-      /* We support ICMP over multiple interfaces */
-      try {
-	ping = new Ping(ifname);
-      } catch(...) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ping socket: are you root?");
-	ping = NULL;
+        if(ping == NULL) {
+    lua_pushnil(vm);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+        } else
+    getLuaVMUservalue(vm, ping) = ping;
+
+        ping = ntop->getPing();
       }
-#else
-      ping = ntop->getPing();
-#endif
 
-      if(ping == NULL) {
-	lua_pushnil(vm);
-	return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-      } else
-	getLuaVMUservalue(vm, ping) = ping;
+      getLuaVMUservalue(vm, ping)->ping(host, is_v6);
+    } else {
+      /* This is the new ping, put the if(true) above to if(false) to trigger this one instead */
+      Ping *c = ntop->getPing(); /* Change the class name accordingly */
 
-      ping = ntop->getPing();
+      if(c) {
+        c->start(); /* In case not started it will now start */
+        c->ping(host, is_v6);
+      } else {
+        lua_pushnil(vm);
+        return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+      }  
     }
-
-    getLuaVMUservalue(vm, ping)->ping(host, is_v6);
+    
   } else {
     /* This is a continuous ping instead */
     ContinuousPing *c = ntop->getContinuousPing();
@@ -1967,11 +1980,16 @@ static int ntop_collect_ping_results(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!continuous) {
-    if(getLuaVMUservalue(vm, ping) == NULL) {
-      lua_pushnil(vm);
-      return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+    if(true) { /* Put this to false to try the new ping */
+      if(getLuaVMUservalue(vm, ping) == NULL) {
+        lua_pushnil(vm);
+        return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+      } else {
+        getLuaVMUservalue(vm, ping)->collectResponses(vm, v6);
+        return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+      }
     } else {
-      getLuaVMUservalue(vm, ping)->collectResponses(vm, v6);
+      ntop->getPing()->collectResponses(vm, v6);
       return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
     }
   } else {
