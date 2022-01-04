@@ -13,10 +13,11 @@ NDPI_HOME = ../../../nDPI
 NDPI_LIB = $(NDPI_HOME)/src/lib/libndpi.a
 NDPI_INC = -I$(NDPI_HOME)/src/include -I$(NDPI_HOME)/src/lib/third_party/include
 
-FLAGS=-O3
+CXXFLAGS?=-O3 -march=native -Wall -Wextra
+CXXFLAGS+=-std=c++11
 
 json2tlv: json2tlv.cpp
-	$(CXX) -std=c++11 $(FLAGS) -o $@ json2tlv.cpp $(JSON_INC) $(NDPI_INC) -Iinclude -march=native $(JSON_LIB) $(NDPI_LIB) -lzmq -lm -Wall -Wextra
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ json2tlv.cpp $(JSON_INC) $(NDPI_INC) -Iinclude $(JSON_LIB) $(NDPI_LIB) -lzmq -lm
 
 clean:
 	rm -f json2tlv

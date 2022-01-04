@@ -6,7 +6,11 @@ datarootdir = @datarootdir@
 SHELL=/bin/sh
 OS := $(shell uname -s)
 PWD=@PWD@
-GPP=@CXX@ -std=c++0x
+
+CXX=@CXX@
+CXXFLAGS?= -O2
+CXXFLAGS+=-std=c++0x
+
 INSTALL_DIR=$(DESTDIR)$(prefix)
 MAN_DIR=$(DESTDIR)@MAN_DIR@
 
@@ -123,22 +127,22 @@ OBJECTS_NO_MAIN := $(filter-out src/main.o,$(OBJECTS))
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 %.o: %.cpp $(HEADERS) $(INC) Makefile
-	$(GPP) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
 $(TARGET): $(OBJECTS) $(LIB_TARGETS) Makefile
-	$(GPP) $(OBJECTS) -Wall $(LDFLAGS) $(LIBS) -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -Wall $(LIBS) -o $@
 
 test_fifo_queue: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
 	rm src/FifoStringsQueue.o
 	$(MAKE) CPPFLAGS="${CPPFLAGS} -DTEST_FIFO_QUEUE -DDEBUG_FIFO_QUEUE" src/FifoStringsQueue.o
-	$(GPP) $(OBJECTS_NO_MAIN) -Wall $(LIBS) -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS_NO_MAIN) -Wall $(LIBS) -o $@
 
 test_alert_engine: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
 	rm src/AlertCheckLuaEngine.o
 	$(MAKE) CPPFLAGS="${CPPFLAGS} -DTEST_CHECK_ENGINE" src/AlertCheckLuaEngine.o
-	$(GPP) $(OBJECTS_NO_MAIN) -Wall $(LIBS) -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS_NO_MAIN) -Wall $(LIBS) -o $@
 
 $(LUA_LIB):
 	$(MAKE) -C $(LUA_HOME) $(LUA_PLATFORM)

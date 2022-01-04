@@ -121,19 +121,19 @@ fi
 dnl> Remove spaces
 OS="${OS#"${OS%%[![:space:]]*}"}"
 
-AC_CHECK_LIB([gpg-error], [gpg_strerror], [LDFLAGS="${LDFLAGS} -lgpg-error"])
-AC_CHECK_LIB([atomic], [__atomic_exchange_8], [LDFLAGS="${LDFLAGS} -latomic"])
+AC_CHECK_LIB([gpg-error], [gpg_strerror], [LIBS="${LIBS} -lgpg-error"])
+AC_CHECK_LIB([atomic], [__atomic_exchange_8], [LIBS="${LIBS} -latomic"])
 
 AC_CHECK_LIB([zmq], [zmq_socket_monitor])
 if test "x$ac_cv_lib_zmq_zmq_socket_monitor" = xyes; then :
-  LDFLAGS="$LDFLAGS -lzmq"
+  LIBS="${LIBS} -lzmq"
   AC_DEFINE_UNQUOTED(HAVE_ZMQ, 1, [ZMQ is present])
 else
   echo "ZMQ not present or too old (< v. 3.x)"
   exit
 fi
 
-AC_CHECK_LIB([sodium], [sodium_init], LDFLAGS="$LDFLAGS -lsodium")
+AC_CHECK_LIB([sodium], [sodium_init], LIBS="${LIBS} -lsodium")
 
 NEDGE=0
 if test "${with_nedge+set}" = set; then
@@ -156,7 +156,7 @@ if test "${with_nedge+set}" = set; then
     exit 1
   fi
 
-  LDFLAGS="${LDFLAGS} -lnetfilter_queue -lnfnetlink -lnetfilter_conntrack"
+  LIBS="${LIBS} -lnetfilter_queue -lnfnetlink -lnetfilter_conntrack"
 fi
 
 #
@@ -171,7 +171,7 @@ if test -d "/usr/local/include"; then
 fi
 
 if test -d "/usr/local/lib"; then
-  LDFLAGS="${LDFLAGS} -L/usr/local/lib"
+  LIBS="${LIBS} -L/usr/local/lib"
 fi
 
 if test -d /opt/local/include; then :
@@ -180,7 +180,7 @@ if test -d /opt/local/include; then :
 fi
 
 if test -d /opt/local/lib; then :
-  LDFLAGS="${LDFLAGS} -L/opt/local/lib"
+  LIBS="${LIBS} -L/opt/local/lib"
 fi
 
 if [ test -f /usr/bin/lsb_release ]; then
@@ -333,7 +333,7 @@ else
   fi
 fi
 
-AC_CHECK_LIB([gcrypt], [gcry_cipher_checktag], [LDFLAGS="${LDFLAGS} -lgcrypt"])
+AC_CHECK_LIB([gcrypt], [gcry_cipher_checktag], [LIBS="${LIBS} -lgcrypt"])
 
 AC_MSG_CHECKING(for ntopng professional edition)
 
@@ -377,7 +377,7 @@ PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp)) $(patsubst pr
 if test "${with_nedge+set}" != set; then
   if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" || test $MACHINE = "aarch64"; then
     cd ../PF_RING/userland/; ./configure; cd ./nbpf; ${MAKE}; cd ${HERE}
-    LDFLAGS="${LDFLAGS} -L../PF_RING/userland/nbpf -lnbpf"
+    LIBS="${LIBS} -L../PF_RING/userland/nbpf -lnbpf"
   fi
 fi
 
@@ -488,7 +488,7 @@ if test "${with_nedge+set}" != set; then
   if test -f "${PF_RING_HOME}/userland/lib/libpfring.a"; then
      echo "${PF_RING_HOME}/userland/libpcap/libpcap.a"
      if test -f "${PF_RING_HOME}/userland/libpcap/libpcap.a"; then
-       LDFLAGS="${LDFLAGS} ${PF_RING_HOME}/userland/lib/libpfring.a -L${PF_RING_HOME}/userland/libpcap/ `${PF_RING_HOME}/userland/lib/pfring_config --libs`"
+       LIBS="${LIBS} ${PF_RING_HOME}/userland/lib/libpfring.a -L${PF_RING_HOME}/userland/libpcap/ `${PF_RING_HOME}/userland/lib/pfring_config --libs`"
        CPPFLAGS="${CPPFLAGS} -I${PF_RING_HOME}/kernel -I${PF_RING_HOME}/userland/lib -I${PF_RING_HOME}/userland/libpcap"
        echo "Using PF_RING installed in ${PF_RING_HOME}"
      else
@@ -499,13 +499,13 @@ if test "${with_nedge+set}" != set; then
      if test -d "/opt/pfring"; then
        if test -f "/opt/pfring/lib/libpfring.a"; then
          echo "/opt/pfring/lib/libpfring.a"
-         LDFLAGS="${LDFLAGS} /opt/pfring/lib/libpfring.a -L/opt/pfring/lib"
+         LIBS="${LIBS} /opt/pfring/lib/libpfring.a -L/opt/pfring/lib"
          CPPFLAGS="${CPPFLAGS} -I/opt/pfring/include"
          echo "Using PF_RING installed in /opt/pfring"
       else
        if test -f "/usr/local/lib/libpfring.a"; then
         if test -f "/usr/local/lib/libpcap.a"; then
-    	  LDFLAGS="${LDFLAGS} /usr/local/lib/libpfring.a"
+    	  LIBS="${LIBS} /usr/local/lib/libpfring.a"
           echo "Using PF_RING installed in /usr/local/lib"
 	  AC_CHECK_LIB([pcap], [pcap_open_live], pcap=true)
 	  if test x$pcap = x
@@ -521,8 +521,8 @@ if test "${with_nedge+set}" != set; then
       fi
     fi
   else
-  LDFLAGS="${LDFLAGS} -lpfring -lpcap"
-  echo "Compiling ntopng with PF_RING support [${LDFLAGS}]"
+  LIBS="${LIBS} -lpfring -lpcap"
+  echo "Compiling ntopng with PF_RING support [${LIBS}]"
  fi
  fi
 else
@@ -582,12 +582,12 @@ fi
 
 AC_CHECK_LIB([cap], [cap_get_proc], cap=true)
 if test x$cap != x; then
-  LDFLAGS="${LDFLAGS} -lcap"
+  LIBS"${LIBS} -lcap"
   AC_DEFINE([HAVE_LIBCAP],[1],[Support for privilege drop])
 fi
 
 if test "${with_nedge+set}" != set; then
-  AC_CHECK_LIB([ldap], [ldap_initialize], [LDFLAGS="${LDFLAGS} -lldap -llber"])
+  AC_CHECK_LIB([ldap], [ldap_initialize], [LIBS="${LIBS} -lldap -llber"])
   if test "x$ac_cv_lib_ldap_ldap_initialize" = xyes; then
     AC_DEFINE_UNQUOTED(HAVE_LDAP, 1, [LDAP support is present])
   fi
@@ -601,15 +601,15 @@ fi
 
 AC_CHECK_LIB([rrd_th], [rrd_update_r], [LIBRRD_LD_FLAGS=-lrrd_th], [LIBRRD_LD_FLAGS=`pkg-config --libs librrd`])
 
-AC_CHECK_LIB([nl], [nl_handle_alloc], [LDFLAGS="${LDFLAGS} -lnl"])
-AC_CHECK_LIB([rt], [clock_gettime],   [LDFLAGS="${LDFLAGS} -lrt"])
+AC_CHECK_LIB([nl], [nl_handle_alloc], [LIBS="${LIBS} -lnl"])
+AC_CHECK_LIB([rt], [clock_gettime],   [LIBS="${LIBS} -lrt"])
 
-AC_CHECK_LIB([z], [zlibVersion], [LDFLAGS="${LDFLAGS} -lz"; AC_DEFINE_UNQUOTED(HAVE_ZLIB, 1, [zlib is present])])
+AC_CHECK_LIB([z], [zlibVersion], [LIBS="${LIBS} -lz"; AC_DEFINE_UNQUOTED(HAVE_ZLIB, 1, [zlib is present])])
 
 dnl> ldl (used by edjdb)
-AC_CHECK_LIB([dl], [dlopen], [LDFLAGS="${LDFLAGS} -ldl"])
+AC_CHECK_LIB([dl], [dlopen], [LIBS="${LIBS} -ldl"])
 
-AC_CHECK_LIB([curl], [curl_easy_perform], [LDFLAGS="${LDFLAGS} -lcurl"])
+AC_CHECK_LIB([curl], [curl_easy_perform], [LIBS="${LIBS} -lcurl"])
 if test ${ac_cv_lib_curl_curl_easy_perform} = "no"; then
   echo "Please install libcurl(-dev) (http://curl.haxx.se/)"
   exit 1
@@ -883,8 +883,10 @@ fi
 echo "
 This is the ntopng configuration:
 
-C++ Flags         : ${CPPFLAGS}
-System Libs       : ${LDFLAGS}
+Preprocessor Flags: ${CPPFLAGS}
+C++ Flags         : ${CXXFLAGS}
+Linker Flags:     : ${LDFLAGS}
+System Libs       : ${LIBS}
 nDPI Lib:         : ${NDPI_LIB}
 JSON Lib:         : ${JSON_LIB}
 SSL Lib:          : ${SSL_LIB}
@@ -895,7 +897,7 @@ MySQL Lib         : ${MYSQL_LIB}
 PCAP Lib          : ${LIBPCAP}
 Install path      : ${INSTALL_DIR}
 
-You are now ready to compile typing $GMAKE
+You are now ready to compile typing 'make'
 "
 
 if test "$DOWNLOAD_GEOIP" = "1"; then
