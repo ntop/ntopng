@@ -558,7 +558,12 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
      hyperlink_params = hyperlink_suffix
   end
 
-  local host_name = shortenString(flowinfo2hostname(flow,cli_or_srv))
+  local host = flow2hostinfo(flow, cli_or_srv)
+  local host_name = host["name"]
+  
+  if isEmptyString(host_name) then
+      host_name = host["host"]
+  end
 
   if(flow[cli_or_srv .. ".systemhost"] == true) then
      host_name = host_name.." <i class='fas fa-flag' aria-hidden='true'></i>"

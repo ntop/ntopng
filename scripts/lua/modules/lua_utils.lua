@@ -2341,10 +2341,20 @@ end
 -- ##############################################
 
 function flow2hostinfo(host_info, host_type)
+   local host_name
+
    if host_type == "cli" then
-      return({host = host_info["cli.ip"], vlan = host_info["cli.vlan"]})
+      if not host_info["cli.host"] then
+         host_name = interface.getHostMinInfo(host_info["cli.ip"])["name"]
+      end
+
+      return({host = host_info["cli.ip"], vlan = host_info["cli.vlan"], name = host_name})
    elseif host_type == "srv" then
-      return({host = host_info["srv.ip"], vlan = host_info["srv.vlan"]})
+      if not host_info["srv.host"] then
+         host_name = interface.getHostMinInfo(host_info["srv.ip"])["name"]
+      end
+
+      return({host = host_info["srv.ip"], vlan = host_info["srv.vlan"], name = host_name})
    end
 end
 
