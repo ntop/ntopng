@@ -19,6 +19,13 @@
  *
  */
 
+/* 
+   NOTE
+
+   This class is used to connext to a DB using the MySQL protocol
+   hence it is used by both MySQL and ClickHouse
+*/
+
 #include "ntop_includes.h"
 
 #ifdef HAVE_MYSQL
