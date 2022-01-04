@@ -69,6 +69,13 @@ ThreadPool::~ThreadPool() {
 
   threadsState.clear();
 
+  while(!threads.empty()) {
+    QueuedThreadData *q = threads.front();
+    
+    threads.pop();
+    delete q;
+  }
+  
   pthread_cond_destroy(&condvar);
   delete m;
 }
