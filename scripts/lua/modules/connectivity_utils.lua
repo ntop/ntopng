@@ -9,13 +9,12 @@ local connectivity_utils = {}
 -- Check internet connectivity
 -- @return true on success, false otherwise
 function connectivity_utils.checkConnectivity()
-   local max_retry = 3
-   local timeout = 3 -- seconds
-   local success = false
+   local max_retry = 2
+   local timeout   = 3 -- seconds
+   local success   = false
 
    local i = 0
-   while i < max_retry and not success do   
-
+   while i < max_retry and not success do
       local rsp = ntop.httpGet("https://www.google.com", "", "", timeout)
 
       if not rsp['RESPONSE_CODE'] or rsp['RESPONSE_CODE'] == 0 then
@@ -32,4 +31,3 @@ end
 -- #################################
 
 return connectivity_utils
-
