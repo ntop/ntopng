@@ -1,6 +1,4 @@
-odnl> Do not add anything above
-AC_INIT([ntopng],[@VERSION@])
-dnl> Do not add anything above
+AC_INIT([ntopng],[5.1.0])
 
 HERE=`pwd`
 SYSTEM=`uname -s`
@@ -44,8 +42,11 @@ AS_IF([test "${with_sanitizer+set}" = set],[
 dnl> Add /usr/local/ /opt/local
 CFLAGS="${CFLAGS} -I${HERE} -I${HERE}/include"
 CPPFLAGS="${CPPFLAGS} -I${HERE} -I${HERE}/include"
-NTOPNG_VERSION="@VERSION@"
-NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
+
+NTOPNG_MAJOR=`echo "${PACKAGE_VERSION}" | cut -d . -f 1`
+NTOPNG_MINOR=`echo "${PACKAGE_VERSION}" | cut -d . -f 2`
+NTOPNG_PATCH=`echo "${PACKAGE_VERSION}" | cut -d . -f 3`
+NTOPNG_SHORT_VERSION="$NTOPNG_MAJOR.$NTOPNG_MINOR.$NTOPNG_PATCH"
 
 MACHINE=`uname -m`
 SYSTEM=`uname -s`
@@ -802,7 +803,6 @@ AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
-AC_SUBST(PACKAGE_VERSION)
 AC_SUBST(NTOPNG_VERSION)
 AC_SUBST(NTOPNG_SHORT_VERSION)
 AC_SUBST(GIT_RELEASE)
