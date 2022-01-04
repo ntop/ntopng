@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
-require "historical_utils"
 
 sendHTTPContentTypeHeader('text/html')
 

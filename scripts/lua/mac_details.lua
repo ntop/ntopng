@@ -17,7 +17,6 @@ end
 require "lua_utils"
 local graph_utils = require "graph_utils"
 local alert_utils = require "alert_utils"
-require "historical_utils"
 require "discover_utils"
 require "mac_utils"
 

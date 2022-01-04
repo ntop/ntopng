@@ -23,7 +23,6 @@ end
 require "lua_utils"
 local graph_utils = require "graph_utils"
 local alert_utils = require "alert_utils"
-require "historical_utils"
 local json = require ("dkjson")
 local discover = require "discover_utils"
 local ui_utils = require "ui_utils"

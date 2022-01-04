@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local graph_utils = require "graph_utils"
 require "flow_utils"
-require "historical_utils"
 local fingerprint_utils = require "fingerprint_utils"
 local rest_utils = require("rest_utils")
 

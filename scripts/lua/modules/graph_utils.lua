@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 require "lua_utils"
 require "db_utils"
-require "historical_utils"
 require "rrd_paths"
 
 local dkjson = require("dkjson")
@@ -302,23 +301,6 @@ end
 
 -- #################################################
 
-local function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto, vlan)
-   -- Check if the DB is enabled
-   rsp = interface.execSQLQuery("show tables")
-   if(rsp == nil) then return end
-
-   if((epoch == nil) or (epoch == "")) then epoch = os.time() end
-
-   local d = graph_common.getZoomDuration(zoomLevel)
-
-   epoch_end = epoch
-   epoch_begin = epoch-d
-
-   historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, '', '', '', vlan)
-end
-
--- ########################################################
-
 function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options, show_graph)
    local page_utils =require("page_utils") -- Do not require at the top as it could conflict with plugins_utils.getMenuEntries
    local debug_rrd = false
@@ -426,12 +408,6 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
          <ul class="nav nav-tabs card-header-tabs" role="tablist" id="historical-tabs-container">
             <li class="nav-item active"> <a class="nav-link active" href="#historical-tab-chart" role="tab" data-bs-toggle="tab"> Chart </a> </li>
 ]]
-
-   local show_historical_tabs = ntop.getPrefs().is_dump_flows_to_mysql_enabled and options.show_historical
-
-   if show_historical_tabs then
-      print('<li class="nav-item"><a class="nav-link" href="#historical-flows" role="tab" data-bs-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
-   end
 
    print[[
 </ul>
@@ -636,21 +612,6 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
 
     </div> <!-- closes div id "historical-tab-chart "-->
    ]]
-
-   if show_historical_tabs then
-      local host = tags.host -- can be nil
-      local l7proto = tags.protocol or ""
-      local k2info = hostkey2hostinfo(host)
-
-      print('<div class="tab-pane" id="historical-flows">')
-      if tonumber(start_time) ~= nil and tonumber(end_time) ~= nil then
-         -- if both start_time and end_time are vaid epoch we can print finer-grained top flows
-         historicalFlowsTab(ifid, k2info["host"] or '', start_time, end_time, l7proto, '', '', '', k2info["vlan"])
-      else
-         printGraphTopFlows(ifid, k2info["host"] or '', _GET["epoch"], zoomLevel, l7proto, k2info["vlan"])
-      end
-      print('</div>')
-   end
 
    print[[
   </div> <!-- closes div class "tab-content" -->
