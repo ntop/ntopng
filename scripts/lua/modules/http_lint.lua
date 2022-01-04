@@ -602,7 +602,7 @@ end
 
 local function validateSnmpAction(mode)
    local modes = {"delete", "delete_all", "add",
-		  "addNewDevice", "startPolling", "prune"}
+		  "addNewDevice", "startPolling", "prune", "ping_all"}
 
    return validateChoice(modes, mode)
 end
