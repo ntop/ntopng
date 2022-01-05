@@ -321,8 +321,8 @@ $(function() {
             const $editPoolLink = $('#am-add-form .edit-pool');
             $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), amData.pool || DEFAULT_POOL));
             $(`#am-edit-form select[name='pool']`).trigger('change');
-
-            if (SHOW_IFACE && ['icmp', 'cicmp'].includes(amData.measurement)) {
+            
+            if (SHOW_IFACE && ['icmp', 'cicmp'].includes((amData.measurement).toLowerCase())) {
 		const value = (amData.ifname === '') ? $(`#am-edit-form .interface-group [name='iface'] option:first`).val() : amData.ifname;
                 $(`#am-edit-form .interface-group`).show();
                 $(`#am-edit-form .interface-group [name='iface']`).val(value);
