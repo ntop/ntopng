@@ -3405,15 +3405,26 @@ void Ntop::initPing() {
   if(!can_send_icmp) return;
   
   for(int i=0; i<num_defined_interfaces; i++) {
-    char *name = iface[i]->get_name();
-    Ping *p = new (std::nothrow)Ping(name);
+    switch(iface[i]->getIfType()) {
+    case interface_type_PF_RING:
+    case interface_type_PCAP:
+      {
+	char *name = iface[i]->get_name();
+	Ping *p = new (std::nothrow)Ping(name);
+	
+	if(p)
+	  ping[std::string(name)] = p;
+	else
+	  ntop->getTrace()->traceEvent(TRACE_WARNING,
+				       "Unable to create ping for interface %s", name);
+      }
+      break;
 
-    if(p)
-      ping[std::string(name)] = p;
-    else
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Unable to create ping for interface %s", name);
-  }  
+    default:
+      /* Nothing to do for other interface types */
+      break;
+    }
+  }
 }
 
 /* ******************************************* */
