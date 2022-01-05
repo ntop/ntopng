@@ -80,12 +80,8 @@
 								for _, name in pairsByKeys(interface.getIfNames(), asc) do
 									interface.select(name)
 
-									if interface.isPacketInterface() and not interface.isPcapDumpInterface() then
-										local mac_addr = interface.getIfMac()
-										
-										if(mac_addr ~= "") then %}
-											<option value='{{ name }}'>{{ name }} ({{ mac_addr }})</option>
-										{% end %}
+									if interface.isPacketInterface() and not interface.isPcapDumpInterface() then %}
+										<option value='{{ name }}'>{{ name }}</option>
 									{% end %}
 							{% 	end %}
 							</select>
