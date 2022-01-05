@@ -182,15 +182,20 @@ const datasourceParams = {* json.encode(datasource_params) *};
 
 let pageHandle = {};
 
-const input = $(`[name='tags']`)[0];
-/* Reset value - some browsers keep the value on reload (e.g. Firefox) */
-input.value = "";
+const inputTags = $(`[name='tags']`)[0];
+const $inputBeginEpoch = $(`#begin-epoch`);
+const $inputEndEpoch = $(`#end-epoch`);
+
+/* Reset values - some browsers keep the value on reload (e.g. Firefox) */
+inputTags.value = "";
+$inputBeginEpoch.value = "";
+$inputEndEpoch.value = "";
 
 {% if query_presets ~= nil and query_presets ~= {} then %}
 let currentQueryPresets = $(`#select-query-presets`).val();
 {% end %}
 
-const tagify = new Tagify(input, {
+const tagify = new Tagify(inputTags, {
     duplicates: true,
     delimiters : null,
     dropdown : {
@@ -238,8 +243,6 @@ $(document).ready(function() {
     const prev = (beginEpoch === undefined) ? moment().subtract({{ (default == '30min' and '30' or '10080') }}, 'minutes') : moment(beginEpoch, 'X');
 
     const $rangePicker = $(`.range-picker`)[0];
-    const $inputBeginEpoch = $(`#begin-epoch`);
-    const $inputEndEpoch = $(`#end-epoch`);
 
     const $btnApply = $(`#btn-apply`);
     const $btnJumpTimeBack = $(`#btn-jump-time-back`);
