@@ -624,7 +624,29 @@ $(document).ready(function() {
 
         const existingTagElms = tagify.getTagElms();
         
-        /* Lookup by key, value and operator (do not add the same key+value multiple times) */
+        /* Lookup by index (allow key dup, replace the value only if it's the same element index or same key and op) */
+        if (tag.index && existingTagElms.length > tag.index) {
+            let existingTagElement = existingTagElms[tag.index] || existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
+            if (existingTagElement) {
+                let existingTag = tagify.tagData(existingTagElement);
+
+                // replace the tag!
+                existingTag.value = tag.value;
+                existingTag.realValue = tag.realValue;
+                if (tag.selectedOperator) {
+                    existingTag.selectedOperator = tag.selectedOperator;
+                }
+
+                tagify.replaceTag(existingTagElement, existingTag);
+
+                // update the datasource params
+                await onRangePickerChange(true, false);
+
+                return;
+            }
+        } 
+
+        /* Lookup by key, value and operator (do not add the same key and value multiple times) */
         let existingTagElement = existingTagElms.find(htmlTag => 
             htmlTag.getAttribute('key') === tag.key
             && htmlTag.getAttribute('realValue') === tag.realValue 
@@ -634,32 +656,6 @@ $(document).ready(function() {
         if (existingTag !== undefined) {
             return;
         }
-
-        /* Lookup by key (does not allow dup, replace the value if key is the same) */
-        //existingTagElement = existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key);
-        //const existingTag = tagify.tagData(existingTagElement);
-        //if (existingTag !== undefined) {
-
-            
-        /* Lookup by index (allow key dup, replace the value only if it's the same element index) */
-        if (tag.index && existingTagElms.length > tag.index) {
-            existingTagElement = existingTagElms[tag.index] || existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
-            existingTag = tagify.tagData(existingTagElement);
-
-            // replace the tag!
-            existingTag.value = tag.value;
-            existingTag.realValue = tag.realValue;
-            if (tag.selectedOperator) {
-                existingTag.selectedOperator = tag.selectedOperator;
-            }
-
-            tagify.replaceTag(existingTagElement, existingTag);
-
-            // update the datasource params
-            await onRangePickerChange(true, false);
-
-            return;
-        } 
 
         // has the tag an operator object?
         if (DEFINED_TAGS[tag.key] && !Array.isArray(DEFINED_TAGS[tag.key])) {
