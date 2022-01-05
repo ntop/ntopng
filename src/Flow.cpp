@@ -5344,48 +5344,48 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
 
 void Flow::getTLSInfo(ndpi_serializer *serializer) const {
   if(isTLS()) {
-    ndpi_serialize_string_int32(serializer, "protos.tls_version", protos.tls.tls_version);
+    ndpi_serialize_string_int32(serializer, "tls_version", protos.tls.tls_version);
 
     if(protos.tls.server_names)
-      ndpi_serialize_string_string(serializer, "protos.tls.server_names", protos.tls.server_names);
+      ndpi_serialize_string_string(serializer, "server_names", protos.tls.server_names);
 
     if(protos.tls.client_alpn)
-      ndpi_serialize_string_string(serializer, "protos.tls.client_alpn", protos.tls.client_alpn);
+      ndpi_serialize_string_string(serializer, "client_alpn", protos.tls.client_alpn);
 
     if(protos.tls.client_tls_supported_versions)
-      ndpi_serialize_string_string(serializer, "protos.tls.client_tls_supported_versions", protos.tls.client_tls_supported_versions);
+      ndpi_serialize_string_string(serializer, "client_tls_supported_versions", protos.tls.client_tls_supported_versions);
 
     if(protos.tls.issuerDN)
-      ndpi_serialize_string_string(serializer, "protos.tls.issuerDN", protos.tls.issuerDN);
+      ndpi_serialize_string_string(serializer, "issuerDN", protos.tls.issuerDN);
 
     if(protos.tls.subjectDN)
-      ndpi_serialize_string_string(serializer, "protos.tls.subjectDN", protos.tls.subjectDN);
+      ndpi_serialize_string_string(serializer, "subjectDN", protos.tls.subjectDN);
 
     if(protos.tls.client_requested_server_name)
-      ndpi_serialize_string_string(serializer, "protos.tls.client_requested_server_name",
+      ndpi_serialize_string_string(serializer, "client_requested_server_name",
 			           protos.tls.client_requested_server_name);
 
     if(protos.tls.notBefore && protos.tls.notAfter) {
-      ndpi_serialize_string_int32(serializer, "protos.tls.notBefore", protos.tls.notBefore);
-      ndpi_serialize_string_int32(serializer, "protos.tls.notAfter", protos.tls.notAfter);
+      ndpi_serialize_string_int32(serializer, "notBefore", protos.tls.notBefore);
+      ndpi_serialize_string_int32(serializer, "notAfter", protos.tls.notAfter);
     }
 
     if(protos.tls.ja3.client_hash) {     
-      ndpi_serialize_string_string(serializer, "protos.tls.ja3.client_hash", protos.tls.ja3.client_hash);
+      ndpi_serialize_string_string(serializer, "ja3.client_hash", protos.tls.ja3.client_hash);
 
       if(has_malicious_cli_signature)
-	ndpi_serialize_string_boolean(serializer, "protos.tls.ja3.client_malicious", true);
+	ndpi_serialize_string_boolean(serializer, "ja3.client_malicious", true);
     }
 
     if(protos.tls.ja3.server_hash) {
-      ndpi_serialize_string_string(serializer, "protos.tls.ja3.server_hash", protos.tls.ja3.server_hash);
-      ndpi_serialize_string_string(serializer, "protos.tls.ja3.server_unsafe_cipher",
+      ndpi_serialize_string_string(serializer, "ja3.server_hash", protos.tls.ja3.server_hash);
+      ndpi_serialize_string_string(serializer, "ja3.server_unsafe_cipher",
 			           cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher));
-      ndpi_serialize_string_int32(serializer, "protos.tls.ja3.server_cipher",
+      ndpi_serialize_string_int32(serializer, "ja3.server_cipher",
 				  protos.tls.ja3.server_cipher);
 
       if(has_malicious_srv_signature)
-	ndpi_serialize_string_boolean(serializer, "protos.tls.ja3.server_malicious", true);
+	ndpi_serialize_string_boolean(serializer, "ja3.server_malicious", true);
     }
   }
 }
@@ -5399,6 +5399,18 @@ void Flow::lua_get_ssh_info(lua_State *vm) const {
 
     if(protos.ssh.hassh.client_hash) lua_push_str_table_entry(vm, "protos.ssh.hassh.client_hash", protos.ssh.hassh.client_hash);
     if(protos.ssh.hassh.server_hash) lua_push_str_table_entry(vm, "protos.ssh.hassh.server_hash", protos.ssh.hassh.server_hash);
+  }
+}
+
+/* ***************************************************** */
+
+void Flow::getSSHInfo(ndpi_serializer *serializer) const {
+  if(isSSH()) {
+    if(protos.ssh.client_signature) ndpi_serialize_string_string(serializer, "client_signature", protos.ssh.client_signature);
+    if(protos.ssh.server_signature) ndpi_serialize_string_string(serializer, "server_signature", protos.ssh.server_signature);
+
+    if(protos.ssh.hassh.client_hash) ndpi_serialize_string_string(serializer, "hassh.client_hash", protos.ssh.hassh.client_hash);
+    if(protos.ssh.hassh.server_hash) ndpi_serialize_string_string(serializer, "hassh.server_hash", protos.ssh.hassh.server_hash);
   }
 }
 
@@ -5422,13 +5434,13 @@ void Flow::lua_get_http_info(lua_State *vm) const {
 void Flow::getHTTPInfo(ndpi_serializer *serializer) const {
   if(isHTTP()) {
     if(protos.http.last_url) {
-      ndpi_serialize_string_string(serializer, "protos.http.last_method", ndpi_http_method2str(protos.http.last_method));
-      ndpi_serialize_string_uint64(serializer, "protos.http.last_return_code", protos.http.last_return_code);
-      ndpi_serialize_string_string(serializer, "protos.http.last_url", protos.http.last_url);
+      ndpi_serialize_string_string(serializer, "last_method", ndpi_http_method2str(protos.http.last_method));
+      ndpi_serialize_string_uint64(serializer, "last_return_code", protos.http.last_return_code);
+      ndpi_serialize_string_string(serializer, "last_url", protos.http.last_url);
     }
 
     if(host_server_name)
-      ndpi_serialize_string_string(serializer, "protos.http.server_name", host_server_name);
+      ndpi_serialize_string_string(serializer, "server_name", host_server_name);
   }
 }
 
@@ -5444,6 +5456,49 @@ void Flow::lua_get_dns_info(lua_State *vm) const {
       if(hasInvalidDNSQueryChars())
         lua_push_bool_table_entry(vm, "protos.dns.invalid_chars_in_query", true);
     }
+  }
+}
+
+/* ***************************************************** */
+
+void Flow::getDNSInfo(ndpi_serializer *serializer) const {
+  if(isDNS()) {
+    if(protos.dns.last_query) {
+      ndpi_serialize_string_int64(serializer, "last_query_type", protos.dns.last_query_type);
+      ndpi_serialize_string_int64(serializer, "last_return_code", protos.dns.last_return_code);
+      ndpi_serialize_string_string(serializer, "last_query", protos.dns.last_query);
+
+      if(hasInvalidDNSQueryChars())
+        ndpi_serialize_string_boolean(serializer, "invalid_chars_in_query", true);
+    }
+  }
+}
+
+/* ***************************************************** */
+
+void Flow::getICMPInfo(ndpi_serializer *serializer) const {
+  if(isICMP()) {
+    ndpi_serialize_string_int32(serializer, "type", isBidirectional() ? protos.icmp.srv2cli.icmp_type : protos.icmp.cli2srv.icmp_type);
+    ndpi_serialize_string_int32(serializer, "code", isBidirectional() ? protos.icmp.srv2cli.icmp_code : protos.icmp.cli2srv.icmp_code);
+  }
+}
+
+/* ***************************************************** */
+
+void Flow::getMDNSInfo(ndpi_serializer *serializer) const {
+  if(isMDNS()) {
+    ndpi_serialize_string_string(serializer, "answer", protos.mdns.answer);
+    ndpi_serialize_string_string(serializer, "name", protos.mdns.name);
+    ndpi_serialize_string_string(serializer, "name_txt", protos.mdns.name_txt);
+    ndpi_serialize_string_string(serializer, "ssid", protos.mdns.ssid);
+  }
+}
+
+/* ***************************************************** */
+
+void Flow::getNetBiosInfo(ndpi_serializer *serializer) const {
+  if(isNetBIOS()) {
+    ndpi_serialize_string_string(serializer, "name", protos.netbios.name);
   }
 }
 

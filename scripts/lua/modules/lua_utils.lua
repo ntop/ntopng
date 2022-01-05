@@ -4707,25 +4707,26 @@ end
 
 function addHTTPInfoToAlertDescr(msg, alert_json)
    if ((alert_json) 
-      and (table.len(alert_json["http"]) > 0)) then
+      and (table.len(alert_json["proto"] or {}) > 0) 
+      and (table.len(alert_json["proto"]["http"]) > 0)) then
       
-      if alert_json["http"]["protos.http.last_method"] then
+      if alert_json["proto"]["http"]["last_method"] then
          msg = msg .. string.format(" [%s: %s]", 
             i18n("last_method"), 
-            alert_json["http"]["protos.http.last_method"])
+            alert_json["proto"]["http"]["last_method"])
       end
 
-      if alert_json["http"]["protos.http.last_return_code"] then
+      if alert_json["proto"]["http"]["last_return_code"] then
          msg = msg .. string.format(" [%s: %s]", 
             i18n("last_return_code"),
-            alert_json["http"]["protos.http.last_return_code"])
+            alert_json["proto"]["http"]["last_return_code"])
       end
 
-      if alert_json["http"]["protos.http.last_url"] then
+      if alert_json["proto"]["http"]["last_url"] then
          msg = msg .. string.format(" [%s: %s]", 
             i18n("last_url"),
-            i18n("external_link_url", { url = alert_json["http"]["protos.http.last_url"], 
-                                        url_name = alert_json["http"]["protos.http.last_url"]}))
+            i18n("external_link_url", { url = alert_json["proto"]["http"]["last_url"], 
+                                        url_name = alert_json["proto"]["http"]["last_url"]}))
       end
    end
 
@@ -4736,25 +4737,26 @@ end
 
 function addDNSInfoToAlertDescr(msg, alert_json)
    if ((alert_json) 
-      and (table.len(alert_json["dns"] or {}) > 0)) then
+      and (table.len(alert_json["proto"] or {}) > 0) 
+      and (table.len(alert_json["proto"]["dns"] or {}) > 0)) then
       
-      if alert_json["dns"]["last_query_type"] then
+      if alert_json["proto"]["dns"]["last_query_type"] then
          msg = msg .. string.format(" [%s: %s]", 
             i18n("last_query_type"), 
-            alert_json["dns"]["last_query_type"])
+            alert_json["proto"]["dns"]["last_query_type"])
       end
 
-      if alert_json["dns"]["last_return_code"] then
+      if alert_json["proto"]["dns"]["last_return_code"] then
          msg = msg .. string.format(" [%s: %s]", 
             i18n("last_return_code"),
-            alert_json["dns"]["last_return_code"])
+            alert_json["proto"]["dns"]["last_return_code"])
       end
 
-      if alert_json["dns"]["last_query"] then
+      if alert_json["proto"]["dns"]["last_query"] then
          msg = msg .. string.format(" [%s: %s]", 
             i18n("last_url"),
-            i18n("external_link_url", { url = alert_json["dns"]["last_query"], 
-                                        url_name = alert_json["dns"]["last_query"]}))
+            i18n("external_link_url", { url = alert_json["proto"]["dns"]["last_query"], 
+                                        url_name = alert_json["proto"]["dns"]["last_query"]}))
       end
    end
 
@@ -4764,20 +4766,20 @@ end
 -- ##############################################
 
 function addTLSInfoToAlertDescr(msg, alert_json)
-   if ((alert_json) 
-      and (table.len(alert_json["tls"] or {}) > 0)) then
-      
-      if alert_json["tls"]["protos.tls.notBefore"] and alert_json["tls"]["protos.tls.notAfter"] then
+   if ((alert_json)
+      and (table.len(alert_json["proto"] or {}) > 0) 
+      and (table.len(alert_json["proto"]["tls"] or {}) > 0)) then
+      if alert_json["proto"]["tls"]["notBefore"] and alert_json["proto"]["tls"]["notAfter"] then
          msg = msg .. string.format(" [%s: %s - %s]", 
             i18n("flow_details.tls_certificate_validity"), 
-            formatEpoch(alert_json["tls"]["protos.tls.notBefore"]),
-            formatEpoch(alert_json["tls"]["protos.tls.notAfter"]))
+            formatEpoch(alert_json["proto"]["tls"]["notBefore"]),
+            formatEpoch(alert_json["proto"]["tls"]["notAfter"]))
       end
 
-      if alert_json["tls"]["protos.tls.version"] then
+      if alert_json["proto"]["tls"]["version"] then
          msg = msg .. string.format(" [%s: %s]", 
             i18n("flow_details.tls_version"), 
-            alert_json["tls"]["protos.tls.version"])
+            alert_json["proto"]["tls"]["version"])
       end
    end
 

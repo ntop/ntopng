@@ -386,6 +386,8 @@ class Flow : public GenericHashEntry {
   json_object* flow2JSON();
   json_object* flow2es(json_object *flow_object);
 
+  inline u_int16_t getLowerProtocol() { return(ndpi_get_lower_proto(ndpiDetectedProtocol)); }
+
   inline void updateJA3C(char *j) { if(j && (j[0] != '\0') && (protos.tls.ja3.client_hash == NULL)) protos.tls.ja3.client_hash = strdup(j); updateCliJA3(); }
   inline void updateJA3S(char *j) { if(j && (j[0] != '\0') && (protos.tls.ja3.server_hash == NULL)) protos.tls.ja3.server_hash = strdup(j); updateSrvJA3(); }
   
@@ -630,8 +632,13 @@ class Flow : public GenericHashEntry {
   
   void getInfo(ndpi_serializer *serializer);
   void getHTTPInfo(ndpi_serializer *serializer) const;
+  void getDNSInfo(ndpi_serializer *serializer) const;
+  void getICMPInfo(ndpi_serializer *serializer) const;
   void getTLSInfo(ndpi_serializer *serializer) const;
-
+  void getMDNSInfo(ndpi_serializer *serializer) const;
+  void getNetBiosInfo(ndpi_serializer *serializer) const;
+  void getSSHInfo(ndpi_serializer *serializer) const;
+  
   bool equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     VLANid _vlanId, u_int16_t _observation_point_id,

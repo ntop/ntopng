@@ -663,6 +663,8 @@ function flow_alert_store:get_alert_details(value)
    local details = {}
    local fmt = self:format_record(value, false)
    local add_hyperlink = true
+   local json = json.decode(value["json"])
+   local proto_info = json["proto"]
 
    details[#details + 1] = {
       label = i18n("alerts_dashboard.alert"),
@@ -698,6 +700,13 @@ function flow_alert_store:get_alert_details(value)
       label = i18n("flow_details.additional_alert_type"),
       content = fmt['additional_alerts']['descr'],
    }
+
+   for _, info in pairs(proto_info or {}) do
+      details[#details + 1] = {
+         label = i18n("proto_info"),
+         content = info
+      }
+   end
 
    --[[
    details[#details + 1] = {
