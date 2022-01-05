@@ -181,7 +181,10 @@ const endEpoch = {{ (epoch_end or _GET['epoch_end'] or 'undefined') }};
 const datasourceParams = {* json.encode(datasource_params) *};
 
 let pageHandle = {};
+
 const input = $(`[name='tags']`)[0];
+/* Reset value - some browsers keep the value on reload (e.g. Firefox) */
+input.value = "";
 
 {% if query_presets ~= nil and query_presets ~= {} then %}
 let currentQueryPresets = $(`#select-query-presets`).val();
@@ -220,7 +223,6 @@ const tagify = new Tagify(input, {
 });
 
 $(document).ready(function() {
-
     // add existing tags
     tagify.addTags(initialTags);
 
@@ -442,12 +444,12 @@ $(document).ready(function() {
             begin = begin.unix();
             end = end.unix();
         } else {
-            if(document.getElementById('begin-epoch') && $(`#begin-epoch`)[0].value !== "") 
+            if(document.getElementById('begin-epoch') && $(`#begin-epoch`)[0].value !== "")
                 begin = $(`#begin-epoch`).datetimepicker('date').utc().unix();
             else
                 begin = new Date(Number(datasourceParams.epoch_begin)).getTime();   
 
-            if(document.getElementById('end-epoch') && $(`#end-epoch`)[0].value !== "")   
+            if(document.getElementById('end-epoch') && $(`#end-epoch`)[0].value !== "") 
                 end = $(`#end-epoch`).datetimepicker('date').utc().unix();
             else
                 end = new Date(Number(datasourceParams.epoch_end)).getTime();
