@@ -154,6 +154,27 @@ static int ntop_select_interface(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_mac(lua_State* vm) {
+  NetworkInterface *iface;
+  char buf[32];
+  u_int8_t *ifMac;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if((iface = getCurrentInterface(vm)) == NULL) {
+    lua_pushnil(vm);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+
+  ifMac = iface->getIfMac();
+
+  lua_pushstring(vm, Utils::formatMac(ifMac, buf, sizeof(buf)));
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_id(lua_State* vm) {
   NetworkInterface *iface;
 
@@ -4313,6 +4334,7 @@ static int ntop_clickhouse_exec_csv_query(lua_State* vm) {
 static luaL_Reg _ntop_interface_reg[] = {
   { "setActiveInterfaceId",     ntop_set_active_interface_id },
   { "getIfNames",               ntop_get_interface_names },
+  { "getIfMac",                 ntop_get_interface_mac },
   { "getFirstInterfaceId",      ntop_get_first_interface_id },
   { "select",                   ntop_select_interface },
   { "getId",                    ntop_get_interface_id },

@@ -629,6 +629,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		     bool unicast, u_int32_t first_seen, u_int16_t filter_ndpi_proto, u_int32_t maxHits);
   void luaSubInterface(lua_State *vm);
   void luaServiceMapStatus(lua_State *vm);
+  inline u_int8_t* getIfMac()                { return ifMac; };
   inline float getThroughputBps()            { return bytes_thpt.getThpt(); };
   inline float getThroughputPps()            { return pkts_thpt.getThpt();  };
 #if defined(NTOPNG_PRO)
