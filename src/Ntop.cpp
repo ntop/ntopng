@@ -557,7 +557,6 @@ void Ntop::start() {
     get_HTTPserver()->startCaptiveServer();
 #endif
 
-  initPing();
   checkReloadHostPools();
   checkReloadAlertExclusions();
   checkReloadFlowChecks();

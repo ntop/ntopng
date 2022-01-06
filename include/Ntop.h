@@ -145,7 +145,6 @@ class Ntop {
   void checkReloadHostChecks();
   void checkReloadAlertExclusions();
   void checkReloadHostPools();
-  void initPing();
   
  public:
   /**
@@ -412,7 +411,7 @@ class Ntop {
 #endif
 
   inline Prefs*            getPrefs()                { return(prefs);               };
-
+  void initPing();
 #ifndef WIN32
   void  lockNtopInstance();
 #endif

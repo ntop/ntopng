@@ -65,12 +65,14 @@ Ping::Ping(char *_ifname) {
 #endif
 
   ifname = _ifname ? strdup(_ifname) : NULL;
-  
+
+#if 0 /* Not needed as privileges are not yet dropped */
 #ifdef __linux__
   if(Utils::gainWriteCapabilities() == -1)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities [%s]", strerror(errno));
 #endif
-
+#endif
+  
   errno = 0;
 #if defined(__APPLE__)
   sd  = socket(AF_INET,  SOCK_DGRAM, IPPROTO_ICMP);
@@ -106,10 +108,12 @@ Ping::Ping(char *_ifname) {
   sd6 = socket(PF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
 #endif
 
+#if 0 /* Not needed as privileges are not yet dropped */
 #ifdef __linux
   Utils::dropWriteCapabilities();
 #endif
-
+#endif
+  
   if((sd6 < 0) && (errno != 0)) {
     if(errno != EPROTONOSUPPORT &&
        errno != EAFNOSUPPORT) /* Avoid flooding logs when IPv6 is not supported */
