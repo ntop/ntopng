@@ -234,8 +234,8 @@ function graph_utils.stackedProgressBars(total, bars, other_label, formatter, cs
       if bar.class == nil then bar.class = "primary" end
       if bar.style == nil then bar.style = "" end
       if bar.link ~= nil then
-         res[#res + 1] = [[<a href="]] .. bar.link .. [[" style="width:]] .. percentage .. [[%;]] .. bar.style .. [[">
-            <div class="progress-bar bg-]] .. (bar.class) .. [[" role="progressbar" style="width: 100%"></div></a>]]
+         res[#res + 1] = [[<a href="]] .. bar.link .. [[" style="width:]] .. percentage .. [[%;]] .. bar.style .. 
+         [[" class="progress-bar bg-]] .. (bar.class) .. [[" role="progressbar"></a>]]
       else
          res[#res + 1] = [[
             <div class="progress-bar bg-]] .. (bar.class) .. [[" role="progressbar" style="width:]] .. percentage .. [[%;]] .. bar.style .. [["></div></a>]]
