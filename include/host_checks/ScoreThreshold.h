@@ -37,6 +37,8 @@ public:
 
     if(cli_pctg != CLIENT_NO_RISK_PERCENTAGE)
       alert->setAttacker();
+    else
+      alert->setVictim();
 
     return alert;
   };

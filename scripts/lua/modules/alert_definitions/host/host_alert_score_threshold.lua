@@ -50,11 +50,17 @@ function host_alert_score_threshold.format(ifid, alert, alert_type_params)
    local alert_consts = require("alert_consts")
    local host = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
    local threshold = alert_type_params["threshold"] or 0
+   local as_cli_or_srv = i18n("client")
+
+   if alert_type_params["is_client_alert"] == false then
+      as_cli_or_srv = i18n("server")
+   end
 
    if (tonumber(alert_type_params["value"]) > tonumber(threshold)) and (threshold > 0) then
       -- threshold due to threshold crossed
       return i18n("alert_messages.score_threshold", {
          entity = host,
+         cli_or_srv = as_cli_or_srv,
          value = alert_type_params["value"],
          threshold = threshold,
       })
