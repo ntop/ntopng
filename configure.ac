@@ -583,7 +583,7 @@ fi
 
 AC_CHECK_LIB([cap], [cap_get_proc], cap=true)
 if test x$cap != x; then
-  LIBS"${LIBS} -lcap"
+  LIBS="${LIBS} -lcap"
   AC_DEFINE([HAVE_LIBCAP],[1],[Support for privilege drop])
 fi
 
