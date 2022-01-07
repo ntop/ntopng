@@ -43,10 +43,12 @@ dnl> Add /usr/local/ /opt/local
 CFLAGS="${CFLAGS} -I${HERE} -I${HERE}/include"
 CPPFLAGS="${CPPFLAGS} -I${HERE} -I${HERE}/include"
 
+TODAY=`date +%y%m%d`
 NTOPNG_MAJOR=`echo "${PACKAGE_VERSION}" | cut -d . -f 1`
 NTOPNG_MINOR=`echo "${PACKAGE_VERSION}" | cut -d . -f 2`
 NTOPNG_PATCH=`echo "${PACKAGE_VERSION}" | cut -d . -f 3`
 NTOPNG_SHORT_VERSION="$NTOPNG_MAJOR.$NTOPNG_MINOR.$NTOPNG_PATCH"
+NTOPNG_VERSION="$NTOPNG_SHORT_VERSION.$TODAY"
 
 MACHINE=`uname -m`
 SYSTEM=`uname -s`
