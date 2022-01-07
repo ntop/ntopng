@@ -61,7 +61,7 @@ PRO_GIT_RELEASE=""
 PRO_GIT_DATE=""
 fi
 
-sed -i \
+cat configure.ac.in | sed \
     -e "s/@VERSION@/$VERSION/g" \
     -e "s/@SHORT_VERSION@/$SHORT_VERSION/g" \
     -e "s/@GIT_TAG@/$GIT_TAG/g" \
@@ -70,7 +70,7 @@ sed -i \
     -e "s/@GIT_BRANCH@/$GIT_BRANCH/g" \
     -e "s/@PRO_GIT_RELEASE@/$PRO_GIT_RELEASE/g" \
     -e "s/@PRO_GIT_DATE@/$PRO_GIT_DATE/g" \
-    configure.ac
+    > configure.ac
 
 rm -f config.h config.h.in *~ #*
 
