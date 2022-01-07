@@ -6,7 +6,11 @@ datarootdir = @datarootdir@
 SHELL=/bin/sh
 OS := $(shell uname -s)
 PWD=@PWD@
-GPP=@CXX@ -std=c++0x
+
+CXX=@CXX@
+CXXFLAGS?= -O2
+CXXFLAGS+=-std=c++0x
+
 INSTALL_DIR=$(DESTDIR)$(prefix)
 MAN_DIR=$(DESTDIR)@MAN_DIR@
 
@@ -123,32 +127,32 @@ OBJECTS_NO_MAIN := $(filter-out src/main.o,$(OBJECTS))
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 %.o: %.cpp $(HEADERS) $(INC) Makefile
-	$(GPP) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
 $(TARGET): $(OBJECTS) $(LIB_TARGETS) Makefile
-	$(GPP) $(OBJECTS) -Wall $(LDFLAGS) $(LIBS) -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -Wall $(LIBS) -o $@
 
 test_fifo_queue: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
 	rm src/FifoStringsQueue.o
 	$(MAKE) CPPFLAGS="${CPPFLAGS} -DTEST_FIFO_QUEUE -DDEBUG_FIFO_QUEUE" src/FifoStringsQueue.o
-	$(GPP) $(OBJECTS_NO_MAIN) -Wall $(LIBS) -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS_NO_MAIN) -Wall $(LIBS) -o $@
 
 test_alert_engine: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
 	rm src/AlertCheckLuaEngine.o
 	$(MAKE) CPPFLAGS="${CPPFLAGS} -DTEST_CHECK_ENGINE" src/AlertCheckLuaEngine.o
-	$(GPP) $(OBJECTS_NO_MAIN) -Wall $(LIBS) -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS_NO_MAIN) -Wall $(LIBS) -o $@
 
 $(LUA_LIB):
-	cd $(LUA_HOME); @GMAKE@ $(LUA_PLATFORM)
+	$(MAKE) -C $(LUA_HOME) $(LUA_PLATFORM)
 
 $(ZEROMQ_LIB):
-	cd $(ZEROMQ_HOME); ./configure --without-documentation --without-libsodium; @GMAKE@
+	cd $(ZEROMQ_HOME); ./configure --without-documentation --without-libsodium; $(MAKE)
 
 # --disable-rrd_graph
 $(LIBRRDTOOL_LIB):
-	cd $(LIBRRDTOOL_HOME); ./configure --disable-libdbi --disable-libwrap --disable-rrdcgi --disable-libtool-lock --disable-nls --disable-rpath --disable-perl --disable-ruby --disable-lua --disable-tcl --disable-python --disable-dependency-tracking --disable-rrd_graph ; cd src; @GMAKE@ librrd_th.la
+	cd $(LIBRRDTOOL_HOME); ./configure --disable-libdbi --disable-libwrap --disable-rrdcgi --disable-libtool-lock --disable-nls --disable-rpath --disable-perl --disable-ruby --disable-lua --disable-tcl --disable-python --disable-dependency-tracking --disable-rrd_graph ; cd src; $(MAKE) librrd_th.la
 
 hooks/.enabled:
 	git config core.hooksPath hooks || true
@@ -157,7 +161,7 @@ hooks/.enabled:
 clean:
 	-rm -f src/*.o src/*~ src/flow_checks/*.o  src/flow_checks/*~ src/flow_alerts/*.o  src/flow_alerts/*~ src/host_checks/*.o  src/host_checks/*~ src/host_alerts/*.o  src/host_alerts/*~ include/*~ *~ #config.h
 	-rm -f $(TARGET)
-	if [ -d pro ]; then cd pro && make clean; fi
+	if [ -d pro ]; then cd pro && $(MAKE) clean; fi
 
 cert:
 	openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem
@@ -229,8 +233,8 @@ Makefile: configure Makefile.in
 	./configure
 
 minify:
-	cd httpdocs/js; make UGLIFY_VERSION=@UGLIFYJS_MAJOR_VERSION@ minify
-	cd httpdocs/css; make minify
+	$(MAKE) -C httpdocs/js UGLIFY_VERSION=@UGLIFYJS_MAJOR_VERSION@ minify
+	$(MAKE) -C httpdocs/css minify
 
 # Disabled to avoid too many recompilations
 #configure: @GIT_INDEX@
