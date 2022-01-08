@@ -1,4 +1,4 @@
-AC_INIT([ntopng],[5.1.0])
+AC_INIT([ntopng],[@VERSION@])
 
 HERE=`pwd`
 SYSTEM=`uname -s`

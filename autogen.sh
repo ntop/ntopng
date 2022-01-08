@@ -66,6 +66,7 @@ cat configure.ac.in | sed \
     -e "s/@SHORT_VERSION@/$SHORT_VERSION/g" \
     -e "s/@GIT_TAG@/$GIT_TAG/g" \
     -e "s/@GIT_DATE@/$GIT_DATE/g" \
+    -e "s/@TODAY@/$TODAY/g" \
     -e "s/@GIT_RELEASE@/$GIT_RELEASE/g" \
     -e "s/@GIT_BRANCH@/$GIT_BRANCH/g" \
     -e "s/@PRO_GIT_RELEASE@/$PRO_GIT_RELEASE/g" \
