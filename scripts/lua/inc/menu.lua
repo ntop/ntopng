@@ -857,9 +857,10 @@ for v,k in pairs(iface_names) do
 end
 
 -- The observationPoint menu is displayed only for the flow page
-if table.len(observationPoints) > 0 and (page_utils.get_active_section() == "flows" or page_utils.get_active_section() == "hosts") then
+if (table.len(observationPoints) > 0)
+   and ((page_utils.get_active_section() == "flows")
+      or ((page_utils.get_active_section() == "hosts") and (string.contains(_SERVER.QUERY_STRING, "page=flows")))) then
    observationPointId = ntop.getUserObservationPointId()
-   
    if((observationPointId == 0) and (_GET["observationPointId"] ~= 0)) then
       observationPointId = _GET["observationPointId"]
    end
