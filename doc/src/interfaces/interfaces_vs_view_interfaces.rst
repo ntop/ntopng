@@ -11,6 +11,12 @@ In the following example, a :code:`view:` interface is created to aggregate pack
 
 	./ntopng -i zc:eth1@0  -i zc:eth1@1  -i view:zc:eth1@0,zc:eth1@1
 
+If you do not want to list all interfaces you can use the shortcut :code:`view:all` to tell ntopng to create a view interface from all configured interfaces. The above example will then become:
+
+.. code::
+
+	./ntopng -i zc:eth1@0  -i zc:eth1@1  -i view:all
+
 However, view interfaces come with some visibility limitations if compared to other interfaces. This means they don't have all traffic data that is normally available for regular interfaces. For example, view interfaces don't have:
 
   - MAC addresses and everything related to MAC addresses
