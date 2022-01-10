@@ -665,7 +665,12 @@ function alert_store:select_historical(filter, fields)
 
    -- TODO handle fields (e.g. add entity value to WHERE)
 
-   -- Select everything by defaul
+   if ((fields == "*" and not(ntop.isClickHouseEnabled()))) then
+      -- SQLite needs BLOB conversion to HEX
+      fields = "*, hex(alerts_map) alerts_map"
+   end
+
+   -- Select everything by default
    fields = fields or '*'
 
    if not self:_valid_fields(fields) then
