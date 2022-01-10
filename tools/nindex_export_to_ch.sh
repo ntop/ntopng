@@ -92,9 +92,6 @@ function exportCSV {
 				
 				# echo $DB_QUERY
 
-				# Remove first row from file (Column list row)
-				sed -i '1d' $csv_file
-
 				if [ -f $csv_file ] && [ ! -s $csv_file ]
 				then
 					echo "Done exporting directory: ${dir}"
