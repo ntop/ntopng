@@ -94,15 +94,15 @@
                 </select>
             </div>
 
-            <div style="width: 30rem;" class="input-group mx-1">
+            <div style="width: 35rem;" class="input-group mx-1">
 		    <span class="input-group-text">
 		        <i class="fas fa-calendar-alt"></i>
 		    </span>
-                <input id='begin-epoch' type="text" aria-label="Begin" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-right-0" data-target="#begin-epoch">
+                <input id='begin-epoch' type="datetime-local" class="form-control border-right-0">
                     <span class="input-group-text">
                         <i class="fas fa-long-arrow-alt-right"></i>
                     </span>
-                <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker" class="form-control time-input datetimepicker-input border-left-0" data-target="#end-epoch">
+                <input id='end-epoch' type="datetime-local" class="form-control border-left-0">
             </div>
 
             <span class="wrong-ranger invalid-feedback mx-1 my-auto" data-bs-toggle="tooltip" data-placement="bottom" title="{{ i18n('wrong_date_range') }}" style="width: 1rem; display: none;">
@@ -176,9 +176,15 @@ const VIEW_ONLY_TAGS = {* tags.view_only *};
 const initialTags =  {* json.encode(tags.values) *};
 
 /* Parameters */
-const beginEpoch = {{ (epoch_begin or _GET['epoch_begin'] or 'undefined') }};
-const endEpoch = {{ (epoch_end or _GET['epoch_end'] or 'undefined') }};
+let beginEpoch = {{ (epoch_begin or _GET['epoch_begin'] or 'undefined') }};
+let endEpoch = {{ (epoch_end or _GET['epoch_end'] or 'undefined') }};
 const datasourceParams = {* json.encode(datasource_params) *};
+const currentDate = new Date();
+
+/*  If defined, use the standard Date, the Date constructor 
+    needs a unix timestamp * 1000 to get the right date */
+if(beginEpoch) beginEpoch = new Date(beginEpoch * 1000);
+if(endEpoch) endEpoch = new Date(endEpoch * 1000);
 
 let pageHandle = {};
 
@@ -238,9 +244,11 @@ $(document).ready(function() {
 
     const MAX_ZOOM_IN = {{ (max_delta_in) }}; // 5 minutes
     const MAX_ZOOM_OUT = {{ (max_delta_out) }}; // 12 hours
-
-    const now = (endEpoch === undefined) ? moment() : moment(endEpoch, 'X');
-    const prev = (beginEpoch === undefined) ? moment().subtract({{ (default == '30min' and '30' or '10080') }}, 'minutes') : moment(beginEpoch, 'X');
+    
+    const now = (endEpoch === undefined) ? currentDate : endEpoch;
+    
+    const last30Min = new Date(now - (60000 * 30)); // Get Timestamp of the last 30 min in case no other beginEpoch is given
+    const prev = (beginEpoch === undefined) ? last30Min : beginEpoch;
 
     const $rangePicker = $(`.range-picker`)[0];
 
@@ -253,10 +261,10 @@ $(document).ready(function() {
     const $selectTimePresets = $(`#select-time-presets`);
 
     function calculateHalfZoomIn() {
-        const begin = $inputBeginEpoch.datetimepicker('date');
-        const end = $inputEndEpoch.datetimepicker('date');
+        const begin = new Date($inputBeginEpoch.val());
+        const end = new Date($inputEndEpoch.val());
 
-        const delta = end.unix() - begin.unix();
+        const delta = end.getTime() - begin.getTime();
         const zoomIn = delta / 3;
         const halfZoomIn = (zoomIn) / 2;
         return [begin, end, delta, halfZoomIn];
@@ -286,13 +294,14 @@ $(document).ready(function() {
 
     function updateRangePicker(operation, maxDate) {
 
-        // get the selected preset or the first prest available
+        // get the selected preset or the first preset available
         const [delta, measure] = ($selectTimePresets.val() || $(`#select-time-presets option:first`).val()).split(',');
-        const begin = $inputBeginEpoch.datetimepicker('date');
-        const end = $inputEndEpoch.datetimepicker('date');
+        const begin = moment($inputBeginEpoch.value / 1000);
+        const end = moment($inputEndEpoch.value / 1000);
 
-        $inputEndEpoch.datetimepicker('date', end[operation](parseInt(delta), measure));
-        $inputBeginEpoch.datetimepicker('date', begin[operation](parseInt(delta), measure));
+        /* TODO: remove moment.js library dependence */
+        $inputEndEpoch.attr('value', new Date(end[operation](parseInt(delta), measure).unix() * 1000));
+        $inputBeginEpoch.attr('value', new Date(begin[operation](parseInt(delta), measure).unix() * 1000));
 
         // if the new end time is less than the max current date then
         // enable the jump time ahead button, otherwise disable it
@@ -309,28 +318,32 @@ $(document).ready(function() {
     $('[data-bs-toggle="tooltip"]').tooltip();
 
     // initialize timepickers
-    $inputBeginEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', useCurrent: false});
-    $inputEndEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', useCurrent: false});
-    $inputBeginEpoch.datetimepicker('date', prev);
-    $inputEndEpoch.datetimepicker('date', now);
+    // slice the ISO String to match input datetime-local value format
+    $inputBeginEpoch.attr('value', prev.toISOString().slice(0,16));
+    $inputBeginEpoch.attr('max', now.toISOString().slice(0,16));
+    $inputEndEpoch.attr('value', now.toISOString().slice(0,16));
+    $inputEndEpoch.attr('min', prev.toISOString().slice(0,16));
 
     $selectTimePresets.on('change', function(e) {
 
         // remove the active class
         const [subtract, measure] = $(this).val().split(',');
-
-        const now = moment();
-        let diff = moment().subtract(parseInt(subtract), measure);
+        const now = new Date();
+        let diff;
 
         if(!measure)
-            diff = moment(parseInt(subtract) * 1000);
+            diff = new Date(now.getTime() - (subtract * 1000));
+        else /* TODO: remove the dependence from the moment.js library and use just standard Date library */
+            diff = new Date((moment().subtract(parseInt(subtract), measure).unix()) * 1000);
 
-        $inputEndEpoch.datetimepicker('minDate', diff);
-        $inputEndEpoch.datetimepicker('maxDate', now);
+        $inputEndEpoch.attr('min', diff.toISOString().slice(0,16));
+        $inputBeginEpoch.attr('max', now.toISOString().slice(0,16));
 
-        $inputEndEpoch.datetimepicker('date', now);
-        $inputBeginEpoch.datetimepicker('date', diff);
+        $inputEndEpoch.attr('value', now.toISOString().slice(0,16));
+        $inputBeginEpoch.attr('value', diff.toISOString().slice(0,16));
 
+        enableRangePickerButtons();
+        disableWrongDate();
     });
 
     // travel back in the past by the selected preset
@@ -342,11 +355,11 @@ $(document).ready(function() {
 
         const [begin, end, delta, halfZoomIn] = calculateHalfZoomIn();
 
-        const newBegin = moment(begin.unix() + halfZoomIn, 'X');
-        const newEnd = moment(end.unix() - halfZoomIn, 'X');
-
-        $inputBeginEpoch.datetimepicker('date', newBegin);
-        $inputEndEpoch.datetimepicker('date', newEnd);
+        const newBegin = new Date(begin.getTime() + halfZoomIn);
+        const newEnd = new Date(end.getTime() + halfZoomIn);
+        
+        $inputBeginEpoch.attr('value', newBegin.toISOString().slice(0,16));
+        $inputEndEpoch.attr('value', newEnd.toISOString().slice(0,16));
 
         // if delta is lower than 5 minutes then disable the zoom in button
         if (delta < MAX_ZOOM_IN) {
@@ -361,11 +374,11 @@ $(document).ready(function() {
 
         const [begin, end, delta, halfZoomIn] = calculateHalfZoomIn();
 
-        const newBegin = moment(begin.unix() - halfZoomIn, 'X');
-        const newEnd = moment(end.unix() + halfZoomIn, 'X');
-
-        $inputBeginEpoch.datetimepicker('date', newBegin);
-        $inputEndEpoch.datetimepicker('date', newEnd);
+        const newBegin = new Date(begin.getTime() - (halfZoomIn * 1000));
+        const newEnd = new Date(end.getTime() - (halfZoomIn * 1000));
+        
+        $inputBeginEpoch.attr('value', newBegin.toISOString().slice(0,16));
+        $inputEndEpoch.attr('value', newEnd.toISOString().slice(0,16));
 
         // if delta is lower than 5 minutes then disable the zoom in button
         if (delta > MAX_ZOOM_OUT) {
@@ -384,80 +397,77 @@ $(document).ready(function() {
         });
 	});
 
-    $inputBeginEpoch.on("change.datetimepicker", function (e) {
+    /* Change the end epoch minimum */
+    $inputBeginEpoch.on("change", function (e) {
+        const newBegin = new Date($(this).val());
+        const end = new Date($inputEndEpoch.val());
+
+        $inputEndEpoch.attr('min', newBegin.toISOString().slice(0,16));
         
-        const newBegin = e.date;
-        const currentEnd = $inputEndEpoch.datetimepicker('date');
-        
-        // if the begin date is wrong disable the range picker buttons 
-        if (newBegin.isAfter(currentEnd)) {
+        if(newBegin.getTime() > end.getTime()) {
             disableRangePickerButtons();
             highlightWrongDate();
-        }
-        else {
+        } else {
             enableRangePickerButtons();
             disableWrongDate();
         }
     });
 
-    $inputEndEpoch.on("change.datetimepicker", function (e) {
+    $inputEndEpoch.on("change", function (e) {
+        const newEnd = new Date($(this).val());
+        const begin = new Date($inputBeginEpoch.val());
+
+                $inputBeginEpoch.attr('max', newEnd.toISOString().slice(0,16))
         
-        const newEnd = e.date;
-        const currentBegin = $inputBeginEpoch.datetimepicker('date');
-        
-        // if the end date is wrong disable the range picker buttons 
-        if (newEnd.isBefore(currentBegin)) {
+        if(begin.getTime() > newEnd.getTime()) {
             disableRangePickerButtons();
             highlightWrongDate();
-        }
-        else {
+        } else {
             enableRangePickerButtons();
             disableWrongDate();
         }
     });
-
-
 }); /* $(document).ready() */
 
 
+/* Global range picker functions */
     function getTimestampRange(updateDatetimeUsingPresets = false) {
-        let begin = 0;
-        let end = 0;
+        let begin;
+        let end;
         const selectTimePresets = $(`#select-time-presets`).val();
-
         if(updateDatetimeUsingPresets && selectTimePresets) {
             // getting the current time using presets
             const [subtract, measure] = selectTimePresets.split(',');
-            const now = moment();
-            const diff = moment().subtract(parseInt(subtract), measure);
+            const now = new Date();
+            let diff = new Date(moment().subtract(parseInt(subtract), measure).unix() * 1000);
 
             begin = diff;
             end = now;
 
+            /* TODO: remove moment.js library */
             if(!measure)
-                diff = moment(parseInt(subtract));
+                diff = new Date(moment(parseInt(subtract)).unix() * 1000);
+
+            $inputBeginEpoch.attr('max', now.toISOString().slice(0,16));
+            $inputEndEpoch.attr('min', diff.toISOString().slice(0,16));
 
             // update the datetimepickers
-            $inputEndEpoch.datetimepicker('minDate', diff);
-            $inputEndEpoch.datetimepicker('maxDate', now);
-
-            $inputEndEpoch.datetimepicker('date', now);
-            $inputBeginEpoch.datetimepicker('date', diff);
-
-            begin = begin.unix();
-            end = end.unix();
+            $inputEndEpoch.attr('value', now.toISOString().slice(0,16));
+            $inputBeginEpoch.attr('value', diff.toISOString().slice(0,16));
         } else {
-            if(document.getElementById('begin-epoch') && $(`#begin-epoch`)[0].value !== "")
-                begin = $(`#begin-epoch`).datetimepicker('date').utc().unix();
-            else
-                begin = new Date(Number(datasourceParams.epoch_begin)).getTime();   
+            if($inputBeginEpoch.val()) /* the html input tag is defined */
+                begin = new Date($inputBeginEpoch.val());
+            else /* the html input tag is still not loaded */
+                begin = new Date(Number(datasourceParams.epoch_begin) * 1000);   
 
-            if(document.getElementById('end-epoch') && $(`#end-epoch`)[0].value !== "") 
-                end = $(`#end-epoch`).datetimepicker('date').utc().unix();
+            if($inputEndEpoch.val()) 
+                end = new Date($inputEndEpoch.val());
             else
-                end = new Date(Number(datasourceParams.epoch_end)).getTime();
+                end = new Date(Number(datasourceParams.epoch_end) * 1000);
         }
-        return [begin, end];
+
+        /* return the values in timestamp unix format */
+        return [Math.trunc(Number(begin.getTime() / 1000)), Math.trunc(Number(end.getTime() / 1000))];
     }
 
     function getSearchParams() {
@@ -500,6 +510,7 @@ $(document).ready(function() {
         });
 
         let [begin, end] = getTimestampRange();
+        
         if (begin == null && end == null) return datasourceParams, changedTime;
         if (datasourceParams.epoch_begin != begin || datasourceParams.epoch_end != end) changedTime = true;
         // override the existing timestamps 
@@ -603,7 +614,7 @@ $(document).ready(function() {
         const [begin, end] = getTimestampRange(updateDatetimeUsingPresets);
         let changedTime = false;
         datasourceParams, changedTime = setDatasourceParams();
-
+        
 	{% if query_presets ~= nil and query_presets ~= {} then %}
 	if (currentQueryPresets != $(`#select-query-presets`).val()) {
 	    pushNewHistoryState(begin, end);
@@ -863,8 +874,8 @@ $(document).ready(function() {
         /* Prevent js error with state === null */
         if(state) {
             const {epoch_begin, epoch_end} = state;    
-            $inputBeginEpoch.datetimepicker('date', moment(epoch_begin, 'X'));
-            $inputEndEpoch.datetimepicker('date', moment(epoch_end, 'X'));
+            $inputBeginEpoch.attr('value', new Date(epoch_begin * 1000).toISOString().slice(0,16));
+            $inputEndEpoch.attr('value', new Date(epoch_end * 1000).toISOString().slice(0,16));
         }
     });
 
