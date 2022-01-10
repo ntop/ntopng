@@ -105,7 +105,7 @@ function exportCSV {
 				# echo "-- DEBUG: cat $csv_file | $CH_PATH --host \"$HOST\" --user \"$USER\" --password \"$PWD\" -d \"$DB_NAME\" --format_csv_delimiter=\"$CSV_DELIMITER\" --query=\"$DB_QUERY\""
 				
 				# Import the nindex values into ClickHouse
-				cat $csv_file | $CH_PATH --host "$HOST" --user "$USER" --password "$PWD" -d "$DB_NAME" --format_csv_delimiter="$CSV_DELIMITER" --query="$DB_QUERY"	
+				tail -n +2 $csv_file | $CH_PATH --host "$HOST" --user "$USER" --password "$PWD" -d "$DB_NAME" --format_csv_delimiter="$CSV_DELIMITER" --query="$DB_QUERY"	
 				ret_val=$?
 			 
 				# No data to insert error, skip directly to the subsequent directory
