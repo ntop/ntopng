@@ -1259,7 +1259,13 @@ else
       end
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
-	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(flow["host_server_name"]).."\">"..page_utils.safe_html(flow["host_server_name"]).." <i class=\"fas fa-external-link-alt\"></i></A>")
+	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A class='ntopng-external-link' href=\"")
+	 if(starts(flow["proto.ndpi"], "TLS")) then
+	    print("https")
+	 else
+	    print("http")
+	 end
+	 print("://"..page_utils.safe_html(flow["host_server_name"]).."\">"..page_utils.safe_html(flow["host_server_name"]).." <i class=\"fas fa-external-link-alt\"></i></A>")
 	 if not isEmptyString(flow["protos.http.server_name"]) then
 	    printAddCustomHostRule(flow["protos.http.server_name"])
 	 end
