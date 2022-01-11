@@ -1081,3 +1081,9 @@ td.dashboard-counter {
 li > a > .fa-external-link-alt{
   color: #0091EA;
 }
+
+.fix-safari-input {
+  line-height: 1.0 !important;
+  padding-left: .7rem !important;
+  padding-top: .5rem !important;
+}

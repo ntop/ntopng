@@ -98,13 +98,13 @@
                 <span class="input-group-text">
                     <i class="fas fa-calendar-alt"></i>
                 </span>
-                <input id="begin-date" type="date" class="begin-timepicker form-control border-right-0" style="width: 4rem;">
-                <input id="begin-time" type="time" class="begin-timepicker form-control border-right-0" style="width: 3rem;">
+                <input id="begin-date" type="date" class="begin-timepicker form-control border-right-0 fix-safari-input" style="width: 4rem;">
+                <input id="begin-time" type="time" class="begin-timepicker form-control border-right-0 fix-safari-input" style="width: 3rem;">
                 <span class="input-group-text">
                         <i class="fas fa-long-arrow-alt-right"></i>
                     </span>
-                <input id="end-date" type="date" class="end-timepicker form-control border-left-0" style="width: 4rem;">
-                <input id="end-time" type="time" class="end-timepicker form-control border-left-0" style="width: 3rem;">
+                <input id="end-date" type="date" class="end-timepicker form-control border-left-0 fix-safari-input" style="width: 4rem;">
+                <input id="end-time" type="time" class="end-timepicker form-control border-left-0 fix-safari-input" style="width: 3rem;">
             </div>
 
             <span class="wrong-ranger invalid-feedback mx-1 my-auto" data-bs-toggle="tooltip" data-placement="bottom" title="{{ i18n('wrong_date_range') }}" style="width: 1rem; display: none;">
