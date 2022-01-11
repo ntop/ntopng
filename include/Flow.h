@@ -61,7 +61,6 @@ class Flow : public GenericHashEntry {
   FlowAlertType predominant_alert;          /* This is the predominant alert */
   u_int16_t  predominant_alert_score;       /* The score associated to the predominant alert */
 
-  char *custom_flow_info;
   struct {
     struct ndpi_analyze_struct *c2s, *s2c;
   } entropy;
@@ -347,6 +346,7 @@ class Flow : public GenericHashEntry {
   inline bool isSMTP() const { return(isProto(NDPI_PROTOCOL_MAIL_SMTP) || isProto(NDPI_PROTOCOL_MAIL_SMTPS));  }
   inline bool isHTTP() const { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP() const { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
+  inline bool isBittorrent() const { return(isProto(NDPI_PROTOCOL_BITTORRENT)); }
 
 #if defined(NTOPNG_PRO)
   inline bool isLateralMovement() const { return(lateral_movement);  }
@@ -849,14 +849,6 @@ class Flow : public GenericHashEntry {
     struct ndpi_analyze_struct *e = src2dst_direction ? entropy.c2s : entropy.s2c;
 
     return(e ? ndpi_data_entropy(e) : 0);
-  }
-
-  inline void setCustomFlowInfo(char *what) {
-    /* NOTE: this is not a reentrant call */
-    if(what) {
-      if(custom_flow_info) free(custom_flow_info);
-      custom_flow_info = strdup(what);
-    }
   }
 
   inline bool timeToPeriodicDump(u_int sec) {

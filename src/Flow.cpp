@@ -67,12 +67,10 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
-  custom_flow_info = NULL;
   ndpiFlow = NULL, cli_id = srv_id = NULL;
   cli_ebpf = srv_ebpf = NULL;
   json_info = NULL, tlv_info = NULL, twh_over = twh_ok = false,
-    dissect_next_http_packet = false,
-    host_server_name = NULL;
+    dissect_next_http_packet = false, host_server_name = NULL;
   bt_hash = NULL;
 
   flow_verdict = 0;
@@ -324,7 +322,6 @@ Flow::~Flow() {
   if(viewFlowStats)                 delete(viewFlowStats);
   if(periodic_stats_update_partial) delete(periodic_stats_update_partial);
   if(last_db_dump.partial)          delete(last_db_dump.partial);
-  if(custom_flow_info)              free(custom_flow_info);
   if(json_info)                     json_object_put(json_info);
   if(tlv_info) {
     ndpi_term_serializer(tlv_info);
@@ -345,7 +342,7 @@ Flow::~Flow() {
   if(entropy.s2c) ndpi_free_data_analysis(entropy.s2c, 1);
 
   if(isHTTP()) {
-    if(protos.http.last_url)    free(protos.http.last_url);
+    if(protos.http.last_url)         free(protos.http.last_url);
   } else if(isDNS()) {
     if(protos.dns.last_query)        free(protos.dns.last_query);
     if(protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
@@ -3639,13 +3636,10 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
 /* *************************************** */
 
 char* Flow::getFlowInfo(char *buf, u_int buf_len, bool isLuaRequest) {
-  if(custom_flow_info)
-    return(custom_flow_info);
-
-  if(iec104)
-    return(iec104->getFlowInfo(buf, buf_len));
-
   if(!isMaskedFlow()) {
+    if(iec104)
+      return(iec104->getFlowInfo(buf, buf_len));
+
     if(isDNS() && protos.dns.last_query)
       return protos.dns.last_query;
 
@@ -3655,7 +3649,7 @@ char* Flow::getFlowInfo(char *buf, u_int buf_len, bool isLuaRequest) {
     else if(isTLS() && protos.tls.client_requested_server_name)
       return protos.tls.client_requested_server_name;
 
-    else if(bt_hash)
+    else if(isBittorrent() && bt_hash)
       return bt_hash;
 
     else if(host_server_name)
