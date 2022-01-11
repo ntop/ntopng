@@ -3411,15 +3411,18 @@ void Ntop::initPing() {
 	char *name = iface[i]->get_name();
 	Ping *p = new (std::nothrow)Ping(name);
 	
-	if(p)
+	if(p) {
 	  ping[std::string(name)] = p;
-	else
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created pinger for %s", name);
+	} else
 	  ntop->getTrace()->traceEvent(TRACE_WARNING,
 				       "Unable to create ping for interface %s", name);
       }
       break;
 
     default:
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skipping pinger for %s [ifType: %u]",
+				   iface[i]->get_name(), iface[i]->getIfType());
       /* Nothing to do for other interface types */
       break;
     }

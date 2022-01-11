@@ -121,9 +121,7 @@ int main(int argc, char *argv[])
     rc = prefs->loadFromCLI(argc, argv);
 
   if(rc < 0) return(-1);
-
-  ntop->initPing();
-  
+ 
   /* Create the working dir before dropping the provileges, otherwise the
    * user might not be able to create it. Utils::dropPrivileges will move
    * the directory ownership to the user. */
@@ -161,9 +159,6 @@ int main(int argc, char *argv[])
   }
 #endif
  
-  if(prefs->daemonize_ntopng())
-    ntop->daemonize();
-
 #ifndef HAVE_NEDGE
   /* Force ZMQ interface creation */
   ntop->broadcastIPSMessage(NULL);
@@ -208,8 +203,8 @@ int main(int argc, char *argv[])
       } else
 #endif
 	{
-	iface = NULL;
-
+	  iface = NULL;
+	  
 #if defined(NTOPNG_PRO) && !defined(WIN32)
 	if(strncmp(ifName, "bridge:", 7) == 0) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "\n");
@@ -316,6 +311,11 @@ int main(int argc, char *argv[])
     exit(0);
   }
 
+  ntop->initPing();
+  
+  if(prefs->daemonize_ntopng())
+    ntop->daemonize();
+    
 #ifndef WIN32
   if(prefs->get_pid_path() != NULL) {
     FILE *fd;
