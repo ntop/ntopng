@@ -263,8 +263,8 @@ $(document).ready(function() {
     const $selectTimePresets = $(`#select-time-presets`);
 
     function calculateHalfZoomIn() {
-        const begin = new Date($(`#begin-date`).val() + "T" + $(`#begin-time`).val());
-        const end = new Date($(`#end-date`).val() + "T" + $(`#end-time`).val());
+        const begin = new Date($(`#begin-date`).val() + "T" + $(`#begin-time`).val() + "Z");
+        const end = new Date($(`#end-date`).val() + "T" + $(`#end-time`).val() + "Z");
 
         const delta = end.getTime() - begin.getTime();
         const zoomIn = delta / 3;
@@ -298,8 +298,8 @@ $(document).ready(function() {
 
         // get the selected preset or the first preset available
         const [delta, measure] = ($selectTimePresets.val() || $(`#select-time-presets option:first`).val()).split(',');
-        let begin = newDate($(`#begin-date`).val() + "T" + $(`#begin-time`).val())
-        let end = newDate($(`#end-date`).val() + "T" + $(`#end-time`).val())
+        let begin = newDate($(`#begin-date`).val() + "T" + $(`#begin-time`).val() + "Z")
+        let end = newDate($(`#end-date`).val() + "T" + $(`#end-time`).val() + "Z")
         
         end = moment(begin.getTime() / 1000);
         begin = moment(begin.getTime() / 1000);
@@ -449,8 +449,8 @@ $(document).ready(function() {
 
     /* Change the end epoch minimum */
     $inputBeginEpoch.on("change", function (e) {
-        const newBegin = new Date($(`#begin-date`).val() + "T" + $(`#begin-time`).val());
-        const end = new Date($(`#end-date`).val() + "T" + $(`#end-time`).val());
+        const newBegin = new Date($(`#begin-date`).val() + "T" + $(`#begin-time`).val() + "Z");
+        const end = new Date($(`#end-date`).val() + "T" + $(`#end-time`).val() + "Z");
 
         // Set up the minimum end date to the current begin date
         $(`#end-date`).attr('min', $(`#begin-date`).val());
@@ -465,8 +465,8 @@ $(document).ready(function() {
     });
 
     $inputEndEpoch.on("change", function (e) {
-        const newEnd = new Date($(`#end-date`).val() + "T" + $(`#end-time`).val());
-        const begin = new Date($(`#begin-date`).val() + "T" + $(`#begin-time`).val());
+        const newEnd = new Date($(`#end-date`).val() + "T" + $(`#end-time`).val() + "Z");
+        const begin = new Date($(`#begin-date`).val() + "T" + $(`#begin-time`).val() + "Z");
 
         // Set up the minimum end date to the current begin date
         $(`#begin-date`).attr('max', $(`#end-date`).val());
@@ -487,6 +487,7 @@ $(document).ready(function() {
         let begin;
         let end;
         const selectTimePresets = $(`#select-time-presets`).val();
+            
         if(updateDatetimeUsingPresets && selectTimePresets) {
             // getting the current time using presets
             const [subtract, measure] = selectTimePresets.split(',');
@@ -514,12 +515,12 @@ $(document).ready(function() {
             $(`#end-time`).attr('value', now[1]);
         } else {
             if($(`#begin-date`).val() && $(`#begin-time`).val()) /* the html input tag is defined */
-                begin = new Date($(`#begin-date`).val() + "T" + $(`#begin-time`).val());
+                begin = new Date($(`#begin-date`).val() + "T" + $(`#begin-time`).val() + "Z");
             else /* the html input tag is still not loaded */
                 begin = new Date(Number(datasourceParams.epoch_begin) * 1000);   
 
             if($(`#end-date`).val() && $(`#end-time`).val()) /* the html input tag is defined */
-                end = new Date($(`#end-date`).val() + "T" + $(`#end-time`).val());
+                end = new Date($(`#end-date`).val() + "T" + $(`#end-time`).val() + "Z");
             else
                 end = new Date(Number(datasourceParams.epoch_end) * 1000);
         }
