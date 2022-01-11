@@ -560,7 +560,7 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json,
     return -1;
 
   json_buf = escapeAphostrophes((const char*)json);
-  info_buf = escapeAphostrophes((const char*)f->getFlowInfo(buf, sizeof(buf)));
+  info_buf = escapeAphostrophes((const char*)f->getFlowInfo(buf, sizeof(buf), false));
 
   /* Prevents ERROR 1406 (22001): Data too long for column 'INFO' at row 1 */
   if(info_buf && strlen(info_buf) > 254)

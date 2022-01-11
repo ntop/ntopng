@@ -64,7 +64,7 @@ ndpi_serializer* FlowAlert::getSerializedAlert() {
 
   /* Flow info */
   char buf[64];
-  char *info = flow->getFlowInfo(buf, sizeof(buf));
+  char *info = flow->getFlowInfo(buf, sizeof(buf), false);
   u_int16_t l7proto = flow->getLowerProtocol();
 
   ndpi_serialize_string_string(serializer, "info", info ? info : "");

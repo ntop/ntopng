@@ -4513,7 +4513,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 	{
 	  char buf[64];
 
-	  flow_info = f->getFlowInfo(buf, sizeof(buf));
+	  flow_info = f->getFlowInfo(buf, sizeof(buf), false);
 	  retriever->elems[retriever->actNumEntries++].stringValue = flow_info ? flow_info : (char*)"";
 	}
 	break;

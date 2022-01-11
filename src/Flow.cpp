@@ -2148,7 +2148,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(!mask_flow) {
       char buf[64];
-      char *info = getFlowInfo(buf, sizeof(buf));
+      char *info = getFlowInfo(buf, sizeof(buf), true);
 
       if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
       if(bt_hash)          lua_push_str_table_entry(vm, "bittorrent_hash", bt_hash);
@@ -2781,7 +2781,7 @@ json_object* Flow::flow2JSON() {
       }
     }
 
-    info = getFlowInfo(buf, sizeof(buf));
+    info = getFlowInfo(buf, sizeof(buf), false);
 
     if(info)
       json_object_object_add(my_object, "INFO", json_object_new_string(info));
@@ -3638,7 +3638,7 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
 
 /* *************************************** */
 
-char* Flow::getFlowInfo(char *buf, u_int buf_len) {
+char* Flow::getFlowInfo(char *buf, u_int buf_len, bool isLuaRequest) {
   if(custom_flow_info)
     return(custom_flow_info);
 
@@ -3668,7 +3668,7 @@ char* Flow::getFlowInfo(char *buf, u_int buf_len) {
 	return protos.ssh.client_signature;
     }
 
-    else if(hasRisk(NDPI_DESKTOP_OR_FILE_SHARING_SESSION))
+    else if(isLuaRequest && hasRisk(NDPI_DESKTOP_OR_FILE_SHARING_SESSION))
       return((char*)"<i class='fa fa-lg fa-binoculars'></i> Desktop Sharing");
   }
 
@@ -4120,7 +4120,7 @@ void Flow::updateHTTP(ParsedFlow *zflow) {
 
 void Flow::updateSuspiciousDGADomain() {
   if(hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && !suspicious_dga_domain)
-    suspicious_dga_domain = strdup(getFlowInfo(NULL, 0));
+    suspicious_dga_domain = strdup(getFlowInfo(NULL, 0, false));
 }
 
 /* *************************************** */
@@ -5131,7 +5131,7 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
  */
 void Flow::lua_get_min_info(lua_State *vm) {
   char buf[64];
-  char *info = getFlowInfo(buf, sizeof(buf));
+  char *info = getFlowInfo(buf, sizeof(buf), true);
 
   lua_newtable(vm);
 
@@ -5170,7 +5170,7 @@ void Flow::lua_get_min_info(lua_State *vm) {
  */
 void Flow::getInfo(ndpi_serializer *serializer) {
   char buf[64];
-  char *info = getFlowInfo(buf, sizeof(buf));
+  char *info = getFlowInfo(buf, sizeof(buf), true);
 
   ndpi_serialize_string_string(serializer, "cli.ip", get_cli_ip_addr()->print(buf, sizeof(buf)));
   ndpi_serialize_string_string(serializer, "srv.ip", get_srv_ip_addr()->print(buf, sizeof(buf)));
