@@ -1330,15 +1330,15 @@ function alert_store:get_available_filters()
    local filters = {
       alert_id = {
          value_type = 'alert_id',
-	 i18n_label = i18n('tags.alert_id'),
+	 i18n_label = i18n('db_search.tags.alert_id'),
       }, 
       severity = {
          value_type = 'severity',
-	 i18n_label = i18n('tags.severity'),
+	 i18n_label = i18n('db_search.tags.severity'),
       },
       score = {
          value_type = 'score',
-	 i18n_label = i18n('tags.score'),
+	 i18n_label = i18n('db_search.tags.score'),
       },
    }
 

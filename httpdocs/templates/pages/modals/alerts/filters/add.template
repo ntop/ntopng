@@ -28,7 +28,7 @@
                                 {% local first_item = true %}
                                 {% for filter_key, filter_type in pairsByField(available_types, 'i18n_label', asc) do %}
                                          <option {{ (first_item and "selected" or "") }} data-filter-key="{{ filter_type.value_type }}" value="{{ filter_key }}">
-                                             {{ i18n('tags.'..filter_key) }}
+                                             {{ i18n('db_search.tags.'..filter_key) }}
                                          </option>
                                    {% first_item = false %}
                                 {% end %}
@@ -53,7 +53,7 @@
 
 <template id="ip_version-filter-template">
     <div class="form-group row">
-        <label class="col-form-label col-sm-3"><b>{{i18n("tags.ip_version")}}</b></label>
+        <label class="col-form-label col-sm-3"><b>{{i18n("db_search.tags.ip_version")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
@@ -214,7 +214,7 @@
 
 <template id="l7_proto-filter-template">
     <div class="form-group row">
-        <label class="col-form-label col-sm-3"><b>{{i18n("tags.l7proto")}}</b></label>
+        <label class="col-form-label col-sm-3"><b>{{i18n("db_search.tags.l7proto")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
@@ -242,7 +242,7 @@
 
 <template id="role-filter-template">
     <div class="form-group row">
-        <label class="col-form-label col-sm-3"><b>{{i18n("tags.role")}}</b></label>
+        <label class="col-form-label col-sm-3"><b>{{i18n("db_search.tags.role")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
@@ -266,7 +266,7 @@
 
 <template id="role_cli_srv-filter-template">
     <div class="form-group row">
-        <label class="col-form-label col-sm-3"><b>{{i18n("tags.role_cli_srv")}}</b></label>
+        <label class="col-form-label col-sm-3"><b>{{i18n("db_search.tags.role_cli_srv")}}</b></label>
         <div class="col-sm-5">
             <div class="input-group mb-3">
                 <div class="input-group-prepend">

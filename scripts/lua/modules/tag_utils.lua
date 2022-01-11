@@ -186,6 +186,11 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.srv_network'),
       operators = {'eq', 'neq'}
    },
+   info = {
+      value_type = 'text',
+      i18n_label = i18n('db_search.tags.info'),
+      operators = {'eq', 'neq', 'in', 'nin'}
+   },
 }
 
 -- #####################################

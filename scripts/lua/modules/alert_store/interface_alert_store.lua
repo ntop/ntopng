@@ -76,7 +76,7 @@ function interface_alert_store:_get_additional_available_filters()
    local filters = {
       subtype = {
 	 value_type = 'text',
-	 i18n_label = i18n('tags.subtype'),
+	 i18n_label = i18n('db_search.tags.subtype'),
       }
    }
 

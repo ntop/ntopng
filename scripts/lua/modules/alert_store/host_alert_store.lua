@@ -147,23 +147,23 @@ function host_alert_store:_get_additional_available_filters()
    local filters = {
       ip_version = {
          value_type = 'ip_version',
-	 i18n_label = i18n('tags.ip_version'),
+	 i18n_label = i18n('db_search.tags.ip_version'),
       },
       ip = {
          value_type = 'ip',
-	 i18n_label = i18n('tags.ip'),
+	 i18n_label = i18n('db_search.tags.ip'),
       },
       name = {
          value_type = 'hostname',
-	 i18n_label = i18n('tags.name'),
+	 i18n_label = i18n('db_search.tags.name'),
       },
       role = {
 	 value_type = 'role',
-	 i18n_label = i18n('tags.role'),
+	 i18n_label = i18n('db_search.tags.role'),
       },
       role_cli_srv = {
 	 value_type = 'role_cli_srv',
-	 i18n_label = i18n('tags.role_cli_srv'),
+	 i18n_label = i18n('db_search.tags.role_cli_srv'),
       },
    }
 

@@ -78,7 +78,7 @@ function network_alert_store:_get_additional_available_filters()
    local filters = {
       network_name = {
          value_type = 'text',
-        i18n_label = i18n('tags.network_name'),
+        i18n_label = i18n('db_search.tags.network_name'),
       },
    }
 
