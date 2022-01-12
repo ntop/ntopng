@@ -1964,17 +1964,27 @@ $(function () {
          $("#btn-apply").trigger('focus');
       });
 
-   // load templates for the script
-   $('#scripts-config').on('click', '[href="#modal-script"],[data-bs-target="#modal-script"]', function (e) {
-
-      const row_data = $script_table.row($(this).parent().parent().parent().parent()).data();
+   const getCheckData = function(row_data) {
       const script_key = row_data.key;
       const script_subdir = row_data.subdir;
       const script_title = row_data.title;
       const script_desc = row_data.description;
 
       initScriptConfModal(script_key, script_subdir, script_title, script_desc);
+   }
+
+   // load templates for the script
+   $('#scripts-config').on('click', 'button[href="#modal-script"],[data-bs-target="#modal-script"]', function (e) {
+      const row_data = $script_table.row($(this).parent().parent()).data();
+      getCheckData(row_data)
    });
+
+   // load templates for the script
+   $('#scripts-config').on('click', 'a[href="#modal-script"]', function (e) {
+      const row_data = $script_table.row($(this).parent().parent().parent().parent()).data();
+      getCheckData(row_data)
+   });
+
 
    /**
    * Count the scripts that are enabled, disabled inside the script table
