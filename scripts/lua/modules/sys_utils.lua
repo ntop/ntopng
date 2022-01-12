@@ -165,4 +165,15 @@ end
 
 -- ################################################################
 
+function sys_utils.loadConntrack()
+  local info = ntop.getInfo(false)
+  local os = info.OS
+
+  if not string.find(os, "Ubuntu 20%.") then
+    sys_utils.execCmd("modprobe nf_conntrack_ipv4")
+  end
+end
+
+-- ################################################################
+
 return sys_utils
