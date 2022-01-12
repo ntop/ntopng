@@ -126,27 +126,33 @@ $(function () {
         });
     }
 
+    function hideShowSNMPV3Fields(modalSelector, value) {
+        const usernameSelector = `${modalSelector} input[name='snmp_username']`;
+        const privacySelector = `${modalSelector} select[name='snmp_privacy_protocol'], ${modalSelector} input[name='snmp_privacy_passphrase']`;
+        const authSelector = `${modalSelector} input[name='snmp_auth_protocol'], ${modalSelector} select[name='snmp_auth_protocol']`;
+        
+        switch (value) {
+            case "authPriv":
+                $(`.auth-priv`).fadeIn(500);
+                $(`${privacySelector},${usernameSelector},${authSelector}`).removeAttr("disabled");
+                break;
+            case "noAuthNoPriv":
+                $(`.auth-priv`).fadeOut(500, () => { $(`.auth-no-priv`).fadeOut(500); });
+                $(`${authSelector},${privacySelector},${usernameSelector}`).attr("disabled", "disabled");
+                break;
+            case "authNoPriv":
+                $(`.auth-priv`).fadeOut(500);
+                $(`.auth-no-priv`).fadeIn(500);        
+                $(`${authSelector},${usernameSelector}`).removeAttr("disabled");
+                $(`${privacySelector}`).attr("disabled", "disabled");
+                break;
+        }
+    }
+
     function bindSNMPLevelSelect(modalSelector) {
 
         $(`${modalSelector} select[name='snmp_level']`).change(function(e) {
-
-            const usernameSelector = `${modalSelector} input[name='snmp_username']`;
-            const privacySelector = `${modalSelector} select[name='snmp_privacy_protocol'], ${modalSelector} input[name='snmp_privacy_passphrase']`;
-            const authSelector = `${modalSelector} input[name='snmp_auth_protocol'], ${modalSelector} select[name='snmp_auth_protocol']`;
-
-            switch ($(this).val()) {
-                case "authPriv":
-                    $(`${privacySelector},${usernameSelector},${authSelector}`).removeAttr("disabled");
-                    break;
-                case "noAuthNoPriv":
-                    $(`${authSelector},${privacySelector},${usernameSelector}`).attr("disabled", "disabled");
-                    break;
-                case "authNoPriv":
-                    $(`${authSelector},${usernameSelector}`).removeAttr("disabled");
-                    $(privacySelector).attr("disabled", "disabled");
-                    break;
-            }
-
+            hideShowSNMPV3Fields(modalSelector, $(this).val());
         });
     }
 
@@ -166,6 +172,7 @@ $(function () {
                 $(`.community-field`).fadeOut(500, () => { $(`.non-community-field`).fadeIn(500); });
                 requiredFields[modalSelector]['community'].attr("disabled", "disabled");
                 requiredFields[modalSelector]['non-community'].removeAttr("disabled");
+                hideShowSNMPV3Fields(modalSelector, $(`${modalSelector} select[name='snmp_level']`).val());
                 return;
             }
 
@@ -174,7 +181,6 @@ $(function () {
             $(`.non-community-field`).fadeOut(500, () => { $(`.community-field`).fadeIn(500); });
             requiredFields[modalSelector]['non-community'].attr("disabled", "disabled");
             requiredFields[modalSelector]['community'].removeAttr("disabled");
-
         });
     }
 
@@ -398,6 +404,9 @@ $(function () {
 
             // load the recipient lists inside the modal
             $(`#edit-snmp-device-modal select[name='pool']`).trigger('change');
+
+            if(version !== SNMP_VERSION_THREE)
+                hideShowSNMPV3Fields("#edit-snmp-device-modal", $(`#edit-snmp-device-modal select[name='snmp_level']`).val());
         },
         onSubmitSuccess: (response, textStatus, modalHandler) => {
             onRequestSuccess(response, textStatus, modalHandler, '#edit-snmp-device-modal');
