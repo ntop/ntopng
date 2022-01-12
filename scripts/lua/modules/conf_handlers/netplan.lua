@@ -13,9 +13,30 @@ local NEDGE_NETPLAN_CONF = "20-nedge.yaml"
 local CLOUD_DIRECTORY = "/etc/cloud/cloud.cfg.d"
 local CLOUD_DISABLED_FNAME = "99-disable-network-config.cfg"
 
-local start_ethernet_section = true
+local netplan_config = {}
+
+function config._getInterfaceConfig(section, iface)
+  if not netplan_config[section] then
+      netplan_config[section] = {}
+  end
+  if not netplan_config[section][iface] then
+    netplan_config[section][iface] = {}
+  end
+  return netplan_config[section][iface]
+end
+
+function config._setInterfaceConfig(section, iface, if_config)
+  if not netplan_config[section] then
+    netplan_config[section] = {}
+  end
+  netplan_config[section][iface] = if_config
+end
 
 function config.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, bridge_ifaces)
+  local if_config
+  local if_config_section
+  local if_config_iface
+
   if iface == "lo" then
     -- nothing to do for loopback interface
     return
@@ -31,63 +52,84 @@ function config.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, 
   end
 
   if bridge_ifaces ~= nil then
-    f:write("  bridges:\n")
+    if_config_section = "bridges"
+    if_config_iface = iface
+    if_config = config._getInterfaceConfig(if_config_section, if_config_iface)
+
   elseif string.find(iface, ":") then
     -- This is an alias
     local base_iface = split(iface, ":")[1]
+    iface = base_iface
 
     if starts(iface, "br") then
-      -- bridge iface
-      f:write("  bridges:\n")
+      if_config_section = "bridges"
+      if_config_iface = iface
+      if_config = config._getInterfaceConfig(if_config_section, if_config_iface) 
     else
-      f:write("  ethernets:\n")
+      if_config_section = "ethernets"
+      if_config_iface = iface
+      if_config = config._getInterfaceConfig(if_config_section, if_config_iface) 
     end
 
-    iface = base_iface
-  elseif start_ethernet_section then
-    f:write("  ethernets:\n")
-    start_ethernet_section = false
+  elseif vlan_raw_iface then
+    -- create an ethernet with the raw device
+    if_config_section = "ethernets"
+    if_config_iface = vlan_raw_iface
+    if_config = config._getInterfaceConfig(if_config_section, if_config_iface)
+    config._setInterfaceConfig(if_config_section, if_config_iface, if_config)
+    -- create a vlan section
+    if_config_section = "vlans"
+    if_config_iface = iface
+    if_config = config._getInterfaceConfig(if_config_section, if_config_iface)
+
+  else
+    if_config_section = "ethernets"
+    if_config_iface = iface
+    if_config = config._getInterfaceConfig(if_config_section, if_config_iface) 
   end
 
-  if vlan_raw_iface then
-    -- inside ethernet section, write the raw device
-    f:write("    ".. vlan_raw_iface ..":\n")
-    f:write("      addresses: []\n")
-    -- start a vlan section
-    f:write("  vlans:\n")
+  if not if_config then
+    traceError(TRACE_ERROR, TRACE_CONSOLE, "Interface configuration not selected")	  
+    return
   end
-
-  f:write("    ".. iface ..":\n")
 
   if network_conf.mode == "static" then
     cidr = ipv4_utils.netmask(network_conf.netmask)
-    f:write("      addresses: [" .. network_conf.ip .."/".. cidr .."]\n")
+    
+    if not if_config.addresses then 
+      if_config.addresses = {}
+    end
+    if_config.addresses[#if_config.addresses+1] = network_conf.ip .."/".. cidr
 
     if not isEmptyString(network_conf.gateway) then
-      f:write("      gateway4: " .. network_conf.gateway .. "\n")
-      f:write("      nameservers:\n")
-      f:write("        addresses: [" .. table.concat({dns_config.global, dns_config.secondary}, ", ") .. "]\n")
+      if_config.gateway4 = network_conf.gateway
+      if not if_config.nameservers then
+        if_config.nameservers = {}
+      end
+      if_config.nameservers[if_config.nameservers+1] = dns_config.global
+      if_config.nameservers[if_config.nameservers+1] = dns_config.secondary
     end
-  elseif (network_conf.mode == "dhcp") then
-    f:write("      addresses: []\n")
-    f:write("      dhcp4: true\n")
-  else
-    -- e.g. vlan-trunk
-    f:write("      addresses: []\n")
+  elseif network_conf.mode == "dhcp" then
+    if_config.dhcp4 = 'true'
   end
 
   if vlan_raw_iface then
-      f:write("      accept-ra: no\n")
-      f:write("      id: " .. vlan_id .. "\n")
-      f:write("      link: " .. vlan_raw_iface .. "\n")
-      -- end VLAN section and start again the ethernet section
-      start_ethernet_section = true
+    if not if_config.extra_conf then
+      if_config.extra_conf = {}
+    end
+    if_config.extra_conf['accept-ra'] = 'no'
+    if_config.extra_conf['id'] = vlan_id
+    if_config.extra_conf['link'] = vlan_raw_iface
   elseif bridge_ifaces ~= nil then
-    f:write("      interfaces: [".. table.concat(bridge_ifaces, ", ") .."]\n")
-    f:write("      parameters:\n")
-    f:write("        stp: false\n")
-    f:write("        forward-delay: 0\n")
+    if_config.interfaces = bridge_ifaces
+    if not if_config.parameters then
+      if_config.parameters = {}
+    end
+    if_config.parameters['stp'] = 'false'
+    if_config.parameters['forward-delay'] = '0'
   end
+
+  config._setInterfaceConfig(if_config_section, if_config_iface, if_config)
 end
 
 -- ################################################################
@@ -95,15 +137,84 @@ end
 function config.openNetworkInterfacesConfigFile()
   local f = sys_utils.openFile("/etc/netplan/" .. NEDGE_NETPLAN_CONF, "w")
 
-  f:write("network:\n  version: 2\n")
-  start_ethernet_section = true
+  netplan_config.version = 2
 
   return f
 end
 
 -- ################################################################
 
+function config._writeInterfacesConfig(f, interfaces)
+  for iface, if_config in pairs(interfaces) do
+    f:write("    ".. iface ..":\n")
+
+    if if_config.interfaces then
+      -- Sub interfaces (e.g. bridge)
+      f:write("      interfaces: [".. table.concat(if_config.interfaces, ", ") .. "]\n")
+    end
+
+    if not if_config.addresses then
+      f:write("      addresses: []\n")
+    else
+      f:write("      addresses: [" .. table.concat(if_config.addresses, ", ") .. "]\n")
+    end
+
+    if if_config.dhcp4 then
+      f:write("      dhcp4: true\n")
+    end
+
+    if if_config.gateway4 then
+      f:write("      gateway4: " .. if_config.gateway4 .. "\n")
+    end
+
+    if if_config.nameservers then
+      f:write("      nameservers:\n")
+      f:write("        addresses: [" .. table.concat(if_config.nameservers, ", ") .. "]\n")
+    end
+
+    if if_config.parameters then
+      f:write("      parameters:\n")
+      for key, value in pairs(if_config.parameters) do
+	f:write("        " .. key .. ": " .. value .. "\n")
+      end
+    end
+
+    if if_config.extra_conf then
+      for key, value in pairs(if_config.extra_conf) do
+	f:write("      " .. key .. ": " .. value .. "\n")
+      end
+    end
+  end
+end
+
+-- ################################################################
+
+function config._writeNetworkInterfaceConfig(f)
+  f:write("network:\n")
+  f:write("  version: " .. netplan_config.version .. "\n")
+
+  if netplan_config.ethernets then
+    f:write("  ethernets:\n")
+    config._writeInterfacesConfig(f, netplan_config.ethernets)
+  end
+
+  if netplan_config.bridges then
+    f:write("  bridges:\n")
+    config._writeInterfacesConfig(f, netplan_config.bridges)
+  end
+  
+  if netplan_config.vlans then
+    f:write("  vlans:\n")
+    config._writeInterfacesConfig(f, netplan_config.vlans)
+  end
+end
+
+-- ################################################################
+
 function config.closeNetworkInterfacesConfigFile(f)
+
+  config._writeNetworkInterfaceConfig(f)
+
   f:close()
 
   sys_utils.execShellCmd("netplan generate")
