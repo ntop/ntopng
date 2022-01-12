@@ -48,16 +48,18 @@
             {% if query_presets ~= nil and query_presets ~= {} then %}
             <div class="form-group my-auto mx-1">
                 <select class="form-select" id="select-query-presets">
-                {% if query_presets_subtype == "tables" then %}
-                    <option value="">{{ i18n('queries.raw_flows') }}</option>
+                    {% if query_presets_subtype == "tables" then %}
+                        {% for _, preset in ipairs(builtin_presets) do %}
+                        <option {{ preset.selected and 'selected' }} value="{{ preset.name }}">{{ i18n(preset.i18n_name) }}</option>
+                        {% end %}
                     <optgroup label="{{ i18n('queries.queries') }}">
                     {% end %}
-                       {% for id, preset in pairsByKeys(query_presets) do %}
+                    {% for id, preset in pairsByKeys(query_presets) do %}
                         <option {{ preset.selected and 'selected' }} value="{{ id }}">{{ preset.i18n_name and i18n(preset.i18n_name) or preset.name }}</option>      
-                        {% end %}
+                    {% end %}
                     {% if query_presets_subtype == "tables" then %}
                     </optgroup>
-                {% end %}
+                    {% end %}
                 </select>
             </div>   
             {% end %}
