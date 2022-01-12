@@ -19,6 +19,12 @@ $(function () {
         DEFAULT_POOL: 0
     };
 
+    const SNMP_VERSIONS = {
+        v1: 0,
+        v2c: 1,
+        v3: 2,
+    }
+
     // required fields for SNMPv3
     const requiredFields = {};
 
@@ -373,11 +379,12 @@ $(function () {
         onModalInit: (selectedSNMPDevice) => {
 
             // if the version is over SNMP_VERSION_THREE then bind it to the default one
-            const version = (selectedSNMPDevice.column_version > SNMP_VERSION_THREE) ? SNMP_DEFAULTS.VERSION : selectedSNMPDevice.column_version;
+            let version = (selectedSNMPDevice.column_version > "v3") ? "v1" : selectedSNMPDevice.column_version;
+            version = SNMP_VERSIONS[version]
 
             $(`#edit-snmp-device-modal input[name='snmp_read_community']`).val(selectedSNMPDevice.column_community);
 	        $(`#edit-snmp-device-modal input[name='snmp_write_community']`).val(selectedSNMPDevice.column_write_community);
-            $(`#edit-snmp-device-modal select[name='snmp_version']`).val(version);
+            $(`#edit-snmp-device-modal select[name='snmp_version']`).val(version).change();
             $(`#edit-snmp-device-modal select[name='pool']`).val(selectedSNMPDevice.column_pool_id);
             $(`#edit-snmp-device-modal .device-name`).text(selectedSNMPDevice.column_key);
 
