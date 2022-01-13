@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-
 #
-# missing_localization.py                                     Emanuele Faranda
+# (C) 2019-22 - ntop.org
+#
+# missing_localization.py
 # A tool to find missing localization strings
 #
 # Sample invocation:
@@ -105,7 +106,7 @@ def doCompare(base_file, cmp_file):
 
 def doMissing(base_file, cmp_file):
     existing = set([line[0] for line in base_file])
-  
+
     for line in cmp_file:
       stringid = line[0]
 
