@@ -500,7 +500,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 	  network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
 	  if(network_stats) network_stats->incNumFlows(f->get_last_seen(), true);
 	  if(f->getViewInterfaceFlowStats()) f->getViewInterfaceFlowStats()->setClientHost(cli_host);
-    cli_host->setLastDeviceIp(f->getFlowDeviceIp());
+    cli_host->setLastDeviceIp(f->getFlowDeviceIP());
 	}
       }
 
@@ -510,7 +510,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 	  network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
 	  if(network_stats) network_stats->incNumFlows(f->get_last_seen(), false);
 	  if(f->getViewInterfaceFlowStats()) f->getViewInterfaceFlowStats()->setServerHost(srv_host);
-    srv_host->setLastDeviceIp(f->getFlowDeviceIp());
+    srv_host->setLastDeviceIp(f->getFlowDeviceIP());
 	}
       }
 

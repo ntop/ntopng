@@ -4255,7 +4255,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->pag
        && retriever->pag->deviceIpFilter(&deviceIP)) {
-	if(f->getFlowDeviceIp() != deviceIP
+      if((f->getFlowDeviceIP() != deviceIP)
 	   || (retriever->pag->inIndexFilter(&inIndex) && f->getFlowDeviceInIndex() != inIndex)
 	   || (retriever->pag->outIndexFilter(&outIndex) && f->getFlowDeviceOutIndex() != outIndex))
 	  return(false);
