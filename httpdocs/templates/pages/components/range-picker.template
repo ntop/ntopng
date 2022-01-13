@@ -176,6 +176,8 @@ const TAG_OPERATORS = {* json.encode(tags.tag_operators) *};
 const DEFINED_TAGS = {* json.encode(tags.defined_tags) *};
 const VIEW_ONLY_TAGS = {* tags.view_only *};
 
+let page_initialization = true;
+
 /* Initial Tags */
 const initialTags =  {* json.encode(tags.values) *};
 
@@ -238,6 +240,7 @@ const tagify = new Tagify(inputTags, {
 });
 
 $(document).ready(function() {
+
     // add existing tags
     tagify.addTags(initialTags);
 
@@ -441,13 +444,13 @@ $(document).ready(function() {
         $rangePicker.dispatchEvent(rangepickerEvent);
     });
 
-	/* Autoselect the 'custom' dropdown entry when clicking any of the buttons */
-	$.each([$btnApply, $btnJumpTimeBack, $btnJumpTimeAhead], function(idx, btn) {
-	    $(btn).on('click', function() {
-		highlightCustomPresetButton();
-		$rangePicker.dispatchEvent(rangepickerEvent);
+    /* Autoselect the 'custom' dropdown entry when clicking any of the buttons */
+    $.each([$btnApply, $btnJumpTimeBack, $btnJumpTimeAhead], function(idx, btn) {
+        $(btn).on('click', function() {
+            highlightCustomPresetButton();
+            $rangePicker.dispatchEvent(rangepickerEvent);
         });
-	});
+    });
 
     /* Change the end epoch minimum */
     $inputBeginEpoch.on("change", function (e) {
@@ -481,10 +484,14 @@ $(document).ready(function() {
             disableWrongDate();
         }
     });
+
+    page_initialization = false;
+
 }); /* $(document).ready() */
 
 
-/* Global range picker functions */
+    /* Global range picker functions */
+
     function getTimestampRange(updateDatetimeUsingPresets = false) {
         let begin;
         let end;
@@ -692,6 +699,11 @@ $(document).ready(function() {
         if (typeof $table !== 'undefined') {
             await reloadTable($table, begin, end);
         }
+
+        {% if reload_on_change then %}
+        if (!page_initialization)
+            window.location.reload();
+        {% end %}
     }
 
     async function addFilterTag(tag) {
@@ -769,12 +781,6 @@ $(document).ready(function() {
         }
 
         await onRangePickerChange(true, false);
-
-        // This is done because if no table is present in the page then 
-        // the page is not reloaded when removing a tag
-        {% if reload_when_removing then %}
-            window.location.reload();
-        {% end %}
     });
 
     tagify.on('add', async function(e) {
