@@ -126,6 +126,20 @@ $(function () {
         });
     }
 
+
+    function fillSNMPV3Fields(modalSelector, selectedSNMPDevice) {
+        if(selectedSNMPDevice.column_username)
+            $(`${modalSelector} input[name='snmp_username']`).val(selectedSNMPDevice.column_username);
+        if(selectedSNMPDevice.column_auth_protocol)
+            $(`${modalSelector} select[name='snmp_auth_protocol']`).val(selectedSNMPDevice.column_auth_protocol).change();
+        if(selectedSNMPDevice.column_auth_passphrase)    
+            $(`${modalSelector} input[name='snmp_auth_passphrase']`).val(selectedSNMPDevice.column_auth_passphrase);
+        if(selectedSNMPDevice.column_privacy_protocol)
+            $(`${modalSelector} select[name='snmp_privacy_protocol']`).val(selectedSNMPDevice.column_privacy_protocol).change();
+        if(selectedSNMPDevice.column_privacy_passphrase)
+            $(`${modalSelector} input[name='snmp_privacy_passphrase']`).val(selectedSNMPDevice.column_privacy_passphrase);        
+    }
+
     function hideShowSNMPV3Fields(modalSelector, value) {
         const usernameSelector = `${modalSelector} input[name='snmp_username']`;
         const privacySelector = `${modalSelector} select[name='snmp_privacy_protocol'], ${modalSelector} input[name='snmp_privacy_passphrase']`;
@@ -405,8 +419,10 @@ $(function () {
             // load the recipient lists inside the modal
             $(`#edit-snmp-device-modal select[name='pool']`).trigger('change');
 
-            if(version !== SNMP_VERSION_THREE)
+            if(version === SNMP_VERSION_THREE) {
                 hideShowSNMPV3Fields("#edit-snmp-device-modal", $(`#edit-snmp-device-modal select[name='snmp_level']`).val());
+                fillSNMPV3Fields("#edit-snmp-device-modal", selectedSNMPDevice);
+            }
         },
         onSubmitSuccess: (response, textStatus, modalHandler) => {
             onRequestSuccess(response, textStatus, modalHandler, '#edit-snmp-device-modal');
