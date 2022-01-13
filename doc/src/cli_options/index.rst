@@ -276,3 +276,7 @@ Some of the most important parameters are briefly discussed here.
       ntopng/nprobe setup
 
       
+.. toctree::
+    :maxdepth: 2
+
+    cli_options_example

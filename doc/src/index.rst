@@ -12,7 +12,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    basic_concepts/index
    how_to_start/index
    adding_a_license/index
-   cli_options
+   cli_options/index
    web_gui/index
    interfaces/index
    alerts/index
