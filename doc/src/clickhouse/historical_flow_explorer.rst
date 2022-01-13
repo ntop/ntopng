@@ -145,6 +145,10 @@ ntopng uses apexcharts charts, please refer to their official documentation to h
 
 .. note::
 
-   New charts pages are going to be released periodically. If new useful charts are needed please provide us the MySQL query so that all the community can access these new charts
-
+   New charts pages are going to be released periodically. If new useful charts are needed please provide us the MySQL query so that all the community can access these new chart
   
+.. toctree::
+   :maxdepth: 2
+
+   historical_flow_analysis_json_example
+   historical_flow_analysis_endpoint_example

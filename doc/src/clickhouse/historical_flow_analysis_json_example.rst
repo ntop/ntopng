@@ -1,4 +1,4 @@
-.. _ClickHouse:
+.. _Historical Flows Explorer:
 
 Historical Flow Analysis JSON Example
 -------------------------------------

@@ -14,5 +14,3 @@ ntopng integrates with ClickHouse to store historical flows and alerts. ClickHou
 
     clickhouse
     historical_flow_explorer
-    historical_flow_analysis_json_example
-    historical_flow_analysis_endpoint_example
