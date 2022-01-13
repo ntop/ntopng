@@ -1,15 +1,7 @@
 .. _ClickHouse:
 
-ClickHouse
-##########
-
-ntopng integrates with ClickHouse to store historical flows and alerts. ClickHouse is an high-performance SQL database. To install ClickHouse refer to the official guide_.
-
-.. _guide: https://clickhouse.com/#quick-start
-
-.. note::
-
-   The ClickHouse database can be executed anywhere, both locally on the machine running ntopng or on a remote machine. However, :code:`clickhouse-client` must always be installed locally as it is used by ntopng to connect to ClickHouse. This installation guide_ explains how to install it.
+Connect to ClicHouse
+--------------------
 
 To connect ntopng to ClickHouse use option :code:`-F`. The format of this option is the following
 
@@ -44,32 +36,13 @@ IPv4 and IPv6 flows are stored in table :code:`flows`. A column :code:`INTERFACE
 
 Alerts are stored in several tables, all ending with suffix :code:`_alerts`. The table prefix indicates the alert family, e.g. :code:`host_alerts` table contains alerts for hosts, :code:`flow_alerts` table contains alerts for flows, and so on.
 
-
-Historical Flows Explorer
--------------------------
-
-When ClickHouse is enabled, an historical flows explorer becomes available in the ntopng web UI.
-
-.. note::
-
-   ClickHouse support is available on all ntopng versions, however, the historical flows explorer is only available in version Enterprise M or above.
-
-
-The explorer is available from the main menu, under the dashboard section.
-
-.. figure:: ./img/clickhouse_flow_explorer.png
-  :align: center
-  :alt: Historical Flows Explorer
-
-  Historical Flows Explorer
-
 Health
 ------
 
 The health of the currently used ClickHouse database can be checked under the System Interface, "Health" page. The status of the database is shown, along with the space used by flow and alert tables.
 
 
-.. figure:: ./img/clickhouse_health.png
+.. figure:: ../img/clickhouse_health.png
   :align: center
   :alt: ClickHouse Health
 
@@ -77,7 +50,7 @@ The health of the currently used ClickHouse database can be checked under the Sy
 
 Similarly, the number of exported and dropped flows can be checked, on a per-interface basis, under the interface stats page. Flow export drops should normally stay at zero or be a tiny fraction of the total amount of exported flows. Drops can occur due to the database being temporarily unreachable or not able to received additional data.
 
-.. figure:: ./img/clickhouse_exported_flows.png
+.. figure:: ../img/clickhouse_exported_flows.png
   :align: center
   :alt: ClickHouse Exported Flows
 
