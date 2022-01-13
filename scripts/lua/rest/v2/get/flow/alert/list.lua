@@ -22,6 +22,8 @@ local res = {}
 
 local ifid = _GET["ifid"]
 local format = _GET["format"] or "json"
+local epoch_begin = _GET["epoch_begin"]
+local epoch_end   = _GET["epoch_end"]
 local no_html = (format == "txt")
 
 if not auth.has_capability(auth.capabilities.alerts) then
@@ -39,6 +41,15 @@ interface.select(ifid)
 
 -- Fetch the results
 local alerts, recordsFiltered
+
+if((epoch_begin ~= nil) and (epoch_end ~= nil)) then
+   epoch_begin = tonumber(epoch_begin)
+   epoch_end   = tonumber(epoch_end)
+
+   if(epoch_begin <= epoch_end) then
+      flow_alert_store:add_time_filter(epoch_begin, epoch_end)
+   end
+end
 
 alerts, recordsFiltered, info = flow_alert_store:select_request(nil, "*")
 

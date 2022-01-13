@@ -653,6 +653,7 @@ end
 
 -- ##############################################
 
+-- NOTE parameter 'filter' is ignored
 function alert_store:select_historical(filter, fields)
    local res = {}
    local where_clause = ''
