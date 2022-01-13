@@ -24,7 +24,7 @@
 /* ******************************************* */
 
 StatsManager::StatsManager(int interface_id, const char *filename) : SQLiteStoreManager(interface_id) {
-  char filePath[MAX_PATH], fileFullPath[MAX_PATH], fileName[MAX_PATH];
+  char filePath[MAX_PATH+16], fileFullPath[MAX_PATH+162], fileName[MAX_PATH+16];
 
   MINUTE_CACHE_NAME = "MINUTE_STATS";
   HOUR_CACHE_NAME = "HOUR_STATS";

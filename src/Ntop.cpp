@@ -642,8 +642,11 @@ void Ntop::start() {
             char buffer[EVENT_BUF_LEN];
 
             /* Consume the event */
-            (void)read(inotify_fd, buffer, sizeof(buffer));
+            int rc = read(inotify_fd, buffer, sizeof(buffer));
 
+	    if(rc < 0)
+	      ntop->getTrace()->traceEvent(TRACE_DEBUG, "read() returned %d", rc);
+	    
             ntop->getTrace()->traceEvent(TRACE_DEBUG, "Directory changed");
           }
         }

@@ -52,8 +52,8 @@ class Ntop {
   char working_dir[MAX_PATH]; /**< Working directory. */
   char install_dir[MAX_PATH]; /**< Install directory. */
   char startup_dir[MAX_PATH]; /**< Startup directory. */
-  char plugins0_dir[MAX_PATH];
-  char plugins1_dir[MAX_PATH];
+  char plugins0_dir[MAX_PATH+16];
+  char plugins1_dir[MAX_PATH+16];
   char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI. */
   NetworkInterface **iface; /**< Array of network interfaces. */
   NetworkInterface *system_interface; /** The system interface */

@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
   int indexAffinity = 0;
   char *core_id_s = NULL;
   int core_id;
-  char path[MAX_PATH];
+  char path[2*MAX_PATH];
   bool has_view_all = false;
   FILE *fd;
   ThreadedActivity *boot_activity;  
@@ -390,7 +390,7 @@ int main(int argc, char *argv[])
      || prefs->daemonize_ntopng()
 #endif
      ) {
-      char path[MAX_PATH];
+      char path[2*MAX_PATH];
 
       Utils::mkdir_tree(ntop->get_data_dir());
       Utils::mkdir_tree(ntop->get_working_dir());

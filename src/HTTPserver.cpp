@@ -1560,9 +1560,9 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
    * httpdocs directory for the plugins. Need to configure the rewrite for both the
    * plugins0 and plugins1 directories. See plugins_utils.getHttpdocsDir */
   snprintf(plugins_httpdocs_rewrite, sizeof(plugins_httpdocs_rewrite),
-    "/plugins0_httpdocs/=%s/httpdocs/,/plugins1_httpdocs/=%s/httpdocs/",
-    ntop->get_plugins0_dir(), ntop->get_plugins1_dir());
-
+	   "/plugins0_httpdocs/=%s/httpdocs/,/plugins1_httpdocs/=%s/httpdocs/",
+	   ntop->get_plugins0_dir(), ntop->get_plugins1_dir());
+  
   /* HTTP options */
   addHTTPOption("listening_ports", ports);
   addHTTPOption("enable_directory_listing", "no");
@@ -1653,7 +1653,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 
   /* NOTE: requests are still rejected until start_accepting_requests is
    * called. */
-};
+}
 
 /* ****************************************** */
 

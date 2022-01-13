@@ -24,7 +24,7 @@
 /* **************************************************** */
 
 SQLiteAlertStore::SQLiteAlertStore(int interface_id, const char *filename) : SQLiteStoreManager(interface_id) {
-  char filePath[MAX_PATH];
+  char filePath[MAX_PATH+256];
 
   /* Create the directories needed to keep the alerts database */
   snprintf(filePath, sizeof(filePath), "%s/%d/alerts/", ntop->get_working_dir(), ifid);
