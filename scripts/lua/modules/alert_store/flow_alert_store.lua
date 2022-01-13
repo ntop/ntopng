@@ -45,7 +45,7 @@ function flow_alert_store:insert(alert)
    else
       hex_prefix = "X"
    end
-tprint(alert)
+
    local insert_stmt = string.format("INSERT INTO %s "..
       "(%salert_id, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
       "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, "..
