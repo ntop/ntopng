@@ -31,7 +31,7 @@
         {% if show_chart then %}
         <div class="row">
 
-          <div class="col-12" id="ChartDiv" style="padding-right: 2px;padding-left: 2px;">
+          <div class="col-12 mb-2" id="ChartDiv">
             <div class="card h-100 overflow-hidden">
               {* widget_gui_utils.render_chart(chart.name, {
               displaying_label = ""
@@ -68,11 +68,16 @@
             </thead>
           </table>
 
-          {% if show_tot_records then %}
-          <small id="{{ datatable.name }}-tot_records" style="display: none;" class="query text-end"><span class="records">{}</span>.</small>
-          {% end %}
-          <small id="{{ datatable.name }}-query-time" style="display: none;" class="query">{{ i18n('db_search.query_performed') }} <span class="seconds">{}</span> seconds. <span id="{{ datatable.name }}-query" style="display: none;" class="badge bg-secondary">SQL</span></small>
-
+          <div class="mt-2">
+            {% if show_tot_records then %}
+            <div class="text-end">
+                <small id="{{ datatable.name }}-tot_records" style="display: none;" class="query text-end"><span class="records">{}</span>.</small>
+            </div>
+            {% end %}
+            <div class="text-start">
+                <small id="{{ datatable.name }}-query-time" style="display: none;" class="query">{{ i18n('db_search.query_performed') }} <span class="seconds">{}</span> seconds. <span id="{{ datatable.name }}-query" style="display: none;" class="badge bg-secondary">SQL</span></small>
+            </div>
+          </div>
       {% if show_chart then %}
         </div>
       {% end  %}
@@ -360,6 +365,12 @@ $(document).ready(function(){
         }
     });
 
+    /* Ordering the array in order to have the selected row length at the beginning of the array */
+    let length_array = [10, 50, 100, 250, 500];
+    const index = length_array.indexOf(INITIAL_ROWS_LENGTH);
+    length_array.splice(index, 1);
+    length_array.unshift(INITIAL_ROWS_LENGTH);
+
     let config = DataTableUtils.getStdDatatableConfig(datatableButton);
     config = DataTableUtils.extendConfig(config, {
         serverSide: true,
@@ -408,8 +419,7 @@ $(document).ready(function(){
 
             updateDownloadButton();
         },
-        //lengthMenu: [10, 20, 50, 100, 200],
-        lengthMenu: [[INITIAL_ROWS_LENGTH, 50, 100, 250, 500], [INITIAL_ROWS_LENGTH, 50, 100, 250, 500]],
+        lengthMenu: [length_array, length_array],
         pageLength: INITIAL_ROWS_LENGTH,
         columns: loadColumns(),
     });
