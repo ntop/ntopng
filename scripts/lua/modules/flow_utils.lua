@@ -38,7 +38,7 @@ function parseFlowVerdict(flow_verdict)
    if flow_verdict_mapping[flow_verdict] then
       return (flow_verdict .. " (" .. flow_verdict_mapping[flow_verdict] .. " " .. flow_verdict_icon[flow_verdict] .. ")")
    end
-   
+
    return flow_verdict
 end
 
@@ -290,7 +290,7 @@ function getFlowsFilter()
    if not isEmptyString(dscp_filter) then
       pageinfo["dscpFilter"] = tonumber(dscp_filter)
    end
-   
+
    if not isEmptyString(host_pool) then
       pageinfo["poolFilter"] = tonumber(host_pool)
    end
@@ -458,13 +458,13 @@ end
 function get_dns_type_label(dns_type)
    dns_type = tonumber(dns_type)
 
-   if dns_type then 
+   if dns_type then
       for k, v in pairs(dns_types) do
 	 if v == dns_type then
 	    return k
 	 end
       end
-   end 
+   end
 
    return string.format("%u", dns_type)
 end
@@ -536,7 +536,7 @@ function getAlertTimeBounds(alert, engaged)
       epoch_end = alert.last_switched + half_interval
     else
       local tend = ternary(engaged, os.time(), alert.alert_tstamp_end) or alert_tstamp
-      -- tprint(debug.traceback()) 
+      -- tprint(debug.traceback())
       half_interval = math.max(half_interval, (tend - alert_tstamp) / 2) -- at least 1 hour interval
       local middle_time = (tend + alert_tstamp) / 2
 
@@ -560,7 +560,7 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
 
   local host = flow2hostinfo(flow, cli_or_srv)
   local host_name = host["name"]
-  
+
   if isEmptyString(host_name) then
       host_name = host["host"]
   end
@@ -573,7 +573,7 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
   end
   if(flow[cli_or_srv .. ".localhost"] == true) then
      host_name = host_name .. ' <abbr title=\"'.. i18n("details.label_local_host") ..'\"><span class="badge bg-success">'..i18n("details.label_short_local_host")..'</span></abbr>'
-  else 
+  else
      host_name = host_name .. ' <abbr title=\"'.. i18n("details.label_remote") ..'\"><span class="badge bg-secondary">'..i18n("details.label_short_remote")..'</span></abbr>'
   end
 
@@ -594,7 +594,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
 
    local cli_name = flowinfo2hostname(flow, "cli")
    local srv_name = flowinfo2hostname(flow, "srv")
-   local cli_mac = flow["cli.mac"] 
+   local cli_mac = flow["cli.mac"]
    local srv_mac = flow["srv.mac"]
    local cli_as  = nil
    local srv_as  = nil
@@ -622,7 +622,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
       if((flow.cli_as ~= nil) and (flow.cli_as ~= 0)) then
          cli_as = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?asn=" ..flow.cli_as.."\">" .. shortenString( flow.cli_as_name or "", 14 ) .."</A>"
          cli_mac = ""
-      else  
+      else
          if cli_mac and (cli_mac ~= "00:00:00:00:00:00") then
 	    cli_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..cli_mac.."\">" ..cli_mac.."</A>"
 	 else
@@ -633,7 +633,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
       if((flow.dst_as ~= nil) and (flow.dst_as ~= 0)) then
          dst_as = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?asn=" ..flow.dst_as.."\">" .. shortenString( flow.dst_as_name or "", 14 ) .."</A>"
 	 srv_mac = ""
-      else  
+      else
         if srv_mac and (srv_mac ~= "00:00:00:00:00:00")then
 	   srv_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..srv_mac.."\">" ..srv_mac.."</A>"
 	else
@@ -668,7 +668,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
         label = label.." [ "..cli_mac.." ]"
      end
    end
-   
+
    label = label.."&nbsp; <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> &nbsp;"
 
    if not isEmptyString(srv_name) then
@@ -701,7 +701,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
 	 label = label.."  [".. s_info.info .."]"
       end
    end
-   
+
    return label
 end
 
@@ -818,6 +818,8 @@ end
 function getFlowValue(info, field)
    local return_value = "0"
    local value_original = "0"
+
+   if((info == nil) or (table.len(info) == 0)) then return("") end
 
    if(info[field] ~= nil) then
       return_value = handleCustomFlowField(field, info[field])
@@ -1395,7 +1397,7 @@ end
 
 function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
    local printed = false
-   
+
    -- Make sure indices are strings as snmp_utils handles them as strings
    input_idx = tostring(input_idx)
    output_idx = tostring(output_idx)
@@ -1403,8 +1405,8 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
    if ntop.isPro() then
       if not isEmptyString(snmpdevice) then
 	 local snmp_cached_dev = require "snmp_cached_dev"
-	 local cached_device = snmp_cached_dev:create(snmpdevice)  
-	 
+	 local cached_device = snmp_cached_dev:create(snmpdevice)
+
 	 if cached_device and cached_device["interfaces"] and table.len(cached_device["interfaces"]) > 0 then
 	    local snmpurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_details.lua?host="..snmpdevice.. "'>"..snmpdevice.."</A>"
 
@@ -1427,7 +1429,7 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
 	    if input_idx then
 	       inputurl = prepare_interface_url(input_idx, snmp_interfaces[input_idx])
 	    end
-	    
+
 	    if output_idx then
 	       outputurl = prepare_interface_url(output_idx, snmp_interfaces[output_idx])
 	    end
@@ -1561,7 +1563,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 	 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
    for dev_ip, dev_resolved_name in ordering_fun(devips, asc) do
       local dev_name = dev_ip
-      
+
       dev_params["deviceIP"] = dev_name
 
       if not isEmptyString(dev_resolved_name) and dev_resolved_name ~= dev_name then
