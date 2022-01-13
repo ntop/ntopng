@@ -52,9 +52,13 @@ Other actions are possible by clicking the Action button (left most side of the 
 
   Record Example
 
-Different table views are available from the navigation menù to have a better understanding of the network.
+Different table views are available from the navigation menù to have a better understanding of the network (e.g. Top Application Contacts, Top Server Ports, ecc.).
 
+.. figure:: ../img/historical_flow_explorer_top_l7.png
+  :align: center
+  :alt: Historical Flows Explorer
 
+  Top L7 Contacts Table
 
 Historical Flows Explorer Analysis
 ----------------------------------
