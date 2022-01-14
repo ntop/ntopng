@@ -48,18 +48,27 @@ function live_traffic_utils.printLiveTrafficForm(ifid, host_info)
 </form>
 
 <script type='text/javascript'>
+var live_capture_download_show_modal = function() {
+
+  let input = $('#live-capture-bpf-filter');
+  let valid = bpfValidator(input, true);
+  if (!valid) {
+    input.css('border-color', 'red');
+    return false; /* Invalif filter */
+  } else {
+    input.css('border-color', '');
+  }
 ]]
 
    if not has_vlan then
       print[[
-var live_capture_download_show_modal = function() {
+
    /* resume submit */
    return true;
-}
+};
 ]]
    else
       print[[
-var live_capture_download_show_modal = function(){
   if($('#live-capture-bpf-filter').val() == '' || 
      $('#live-capture-bpf-filter').val().includes('vlan')) {
     /* Resume submit, nothing to show (the user didn't specify any BPF or VLAN is specified) */

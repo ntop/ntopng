@@ -75,11 +75,12 @@ function ipAddressValidator(input) {
 
 var filters_to_validate = {};
 
-function bpfValidator(filter_field) {
+function bpfValidator(filter_field, sync = false) {
   var filter = filter_field.val();
 
-  if (filter.trim() === "")
+  if (filter.trim() === "") {
     return true;
+  }
 
   var key = filter_field.attr("name");
   var timeout = 250;
@@ -89,44 +90,47 @@ function bpfValidator(filter_field) {
   var status = filters_to_validate[key];
 
   var sendAjax = function () {
-     status.timer = null;
+    status.timer = null;
 
-     var finally_check = function (valid) {
-    status.ajax_obj = null;
-    status.valid = valid;
-    status.last_val = filter;
-     }
+    var finally_check = function (valid) {
+      status.ajax_obj = null;
+      status.valid = valid;
+      status.last_val = filter;
+    }
 
-     if (status.last_val !== filter) {
-    if (status.ajax_obj)
-       status.ajax_obj.abort();
+    if (status.last_val !== filter) {
+      if (status.ajax_obj)
+        status.ajax_obj.abort();
 
-    status.ajax_obj = $.ajax({
-       type: "GET",
-       url: `${http_prefix}/lua/pro/rest/v2/check/filter.lua`,
-       data: {
-      query: filter,
-       }, error: function() {
+      status.ajax_obj = $.ajax({
+        type: "GET",
+        url: `${http_prefix}/lua/pro/rest/v2/check/filter.lua`,
+        async: !sync,
+        data: {
+          query: filter,
+        }, error: function() {
+          finally_check(status.valid);
+        }, success: function(data) {
+          var valid = data.response ? true : false;
+          finally_check(valid);
+        }
+      });
+    } else {
+      // possibly process the reminder
       finally_check(status.valid);
-       }, success: function(data) {
-      var valid = data.response ? true : false;
-      finally_check(valid);
-       }
-    });
-     } else {
-    // possibly process the reminder
-    finally_check(status.valid);
-     }
+    }
   }
 
-  if (status.last_val === filter) {
-     // Ignoring
+  if (sync) {
+    sendAjax();
+  } else if (status.last_val === filter) {
+    // Ignoring
   } else {
-     if (status.timer) {
-    clearTimeout(status.timer);
-    status.submit_remind = false;
-     }
-     status.timer = setTimeout(sendAjax, timeout);
+    if (status.timer) {
+      clearTimeout(status.timer);
+      status.submit_remind = false;
+    }
+    status.timer = setTimeout(sendAjax, timeout);
   }
 
   return status.valid;
