@@ -1437,7 +1437,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    all_good = use_clickhouse = false;
 	  }
 
-	  if(!(is_enterprise_m_edition() || is_enterprise_l_edition())) {
+	  if(is_enterprise_m_edition() || is_enterprise_l_edition()) {
+	    ; /* All good */
+	  } else {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "-F clickhouse is available only from Enterprise M and up");
 	    all_good = use_clickhouse = false;
 	  }
