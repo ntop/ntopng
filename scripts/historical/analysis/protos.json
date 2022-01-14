@@ -112,9 +112,9 @@
 	    },
 	    "chart_endpoint" : "/lua/rest/v2/get/db/charts/top_cli_per_proto.lua",
 	    "chart_events" : { // JS Events, optional feature
-		"dataPointSelection" : "db_analyze"
+		"dataPointSelection" : "db_analyze_multiple_filters"
 	    },
-	    "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
+	    "chart_gui_filter" : [ "cli_ip", "l7proto" ], // Filter displayed in the GUI
 	    "chart_sql_query" : "SELECT ADDR_FORMATTED, LABEL, L7_PROTO, COUNT(*) as flows FROM (SELECT IPv4NumToString(IPV4_SRC_ADDR) AS ADDR_FORMATTED, SRC_LABEL as LABEL, L7_PROTO FROM flows WHERE ($WHERE) UNION ALL SELECT IPv6NumToString(IPV6_SRC_ADDR) AS ADDR_FORMATTED, SRC_LABEL as LABEL, L7_PROTO FROM flows WHERE ($WHERE) UNION ALL SELECT IPv4NumToString(IPV4_DST_ADDR) AS ADDR_FORMATTED, DST_LABEL as LABEL, L7_PROTO FROM flows WHERE ($WHERE) UNION ALL SELECT IPv6NumToString(IPV6_DST_ADDR) AS ADDR_FORMATTED, DST_LABEL as LABEL, L7_PROTO FROM flows WHERE ($WHERE)) GROUP BY ADDR_FORMATTED, LABEL, L7_PROTO ORDER BY flows DESC LIMIT 50",
 	    "chart_type" : "heatmap_apex_chart",
 	    "horizontal_chart" : false,
