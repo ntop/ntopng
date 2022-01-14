@@ -193,9 +193,8 @@ function getTimestampByTime(time) {
 }
 
 function saveTopologyView(network) {
-
     // get all nodes position
-    const positions = network.getPositions(data.nodes.map(x => x.id));
+    const positions = network.getPositions(network.body.data.nodes.map(x => x.id));
 
     // save the nodes position, the network scale and the network view position
     const info = {
@@ -221,23 +220,11 @@ function saveTopologyView(network) {
 
 function setEventListenersNetwork(network) {
 
-    network.on("click", function(params) {
-
-        const target = params.nodes[0];
-        const selectedNode = data.nodes.find(n => n.id == target);
-        
-        if(selectedNode) {
-            $(`#host-extra-info`).removeAttr("hidden");
-            document.getElementById('host-extra-info').innerHTML = selectedNode.host_extra_info;
-        }
-        else
-            $(`#host-extra-info`).attr("hidden", "hidden");
-    });
-
     network.on("doubleClick", function (params) {
+      debugger;
 
         const target = params.nodes[0];
-        const selectedNode = data.nodes.find(n => n.id == target);
+        const selectedNode = network.clustering.findNode(target);
 
         let query = "";
         // same thing for the host_pool_id
@@ -265,7 +252,7 @@ function setEventListenersNetwork(network) {
         }
 
         if (selectedNode !== undefined) {
-            window.location.href = http_prefix + `/lua/pro/enterprise/${MAP}_map.lua?page=graph&host=` + selectedNode.id + query;
+            window.location.href = http_prefix + `/lua/pro/enterprise/${MAP}_map.lua?page=graph&host=` + selectedNode[0] + query;
         }
 
     });
@@ -298,44 +285,43 @@ function setEventListenersNetwork(network) {
 }
 
 function loadGraph(container) {
-    const dataRequest = { ifid: ifid, action: 'load_graph', map: MAP};
-    // if an host has been defined inside the URL query then add it to the request
-    const url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, {
-        host: host,
-        host_pool_id: hostPoolId,
-        vlan: vlanId,
-        unicast_only: unicastOnly,
-        l7proto: l7proto,
-        only_memory: only_memory,
-        only_alerted_hosts: only_alerted_hosts,
-        first_seen: getTimestampByTime(age),
-        age: age,
-    });
+  const dataRequest = { ifid: ifid, action: 'load_graph', map: MAP};
+  // if an host has been defined inside the URL query then add it to the request
+  const url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, {
+      host: host,
+      host_pool_id: hostPoolId,
+      vlan: vlanId,
+      unicast_only: unicastOnly,
+      l7proto: l7proto,
+      only_memory: only_memory,
+      only_alerted_hosts: only_alerted_hosts,
+      first_seen: getTimestampByTime(age),
+      age: age,
+  });
 
-    const request = $.get(url, dataRequest);
-    request.then(function(response) {
-        const {nodes, edges, first_entry, last_entry} = response;
-        const curr_test = $(`#all-time-filter`).text();
-        $(`#all-time-filter`).text(curr_test + " (" + first_entry + " - " + last_entry + ")");
+  const request = $.get(url, dataRequest, function(response) {
+    const {nodes, edges, first_entry, last_entry} = response;
+    const curr_test = $(`#all-time-filter`).text();
+    $(`#all-time-filter`).text(curr_test + " (" + first_entry + " - " + last_entry + ")");
 
-        // if there are no nodes then show a simple message
-        if (nodes.length === 0) {
-            // hide the spinner and show the message
-            $(`#load-spinner`).fadeOut(function() { 
-                $(this).remove(); 
-                $(`#empty-map-message`).fadeIn();
-            });
-            return;
-        }
+    // if there are no nodes then show a simple message
+    if (nodes.length === 0) {
+        // hide the spinner and show the message
+        $(`#load-spinner`).fadeOut(function() { 
+            $(this).remove(); 
+            $(`#empty-map-message`).fadeIn();
+        });
+        return;
+    }
 
-        nodesDataset = new vis.DataSet(nodes);
-        edgesDataset = new vis.DataSet(edges);
-        const datasets = {nodes: nodesDataset, edges: edgesDataset};
+    nodesDataset = new vis.DataSet(nodes);
+    edgesDataset = new vis.DataSet(edges);
+    const datasets = {nodes: nodesDataset, edges: edgesDataset};
 
-        network = new vis.Network(container, datasets, defaultOptions);
-        saveTopologyView(network);
-        setEventListenersNetwork(network);
-    });
+    network = new vis.Network(container, datasets, defaultOptions);
+    saveTopologyView(network);
+    setEventListenersNetwork(network);
+  });
 }
 
 function saveScale() {
