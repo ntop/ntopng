@@ -4955,7 +4955,7 @@ static int ntop_check_sub_interface_syntax(lua_State* vm) {
 
 #ifndef HAVE_NEDGE
 #ifdef NTOPNG_PRO
-static int ntop_check_profile_syntax(lua_State* vm) {
+static int ntop_check_filter_syntax(lua_State* vm) {
   char *filter;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4964,7 +4964,7 @@ static int ntop_check_profile_syntax(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   filter = (char*)lua_tostring(vm, 1);
 
-  lua_pushboolean(vm, ntop_interface ? ntop_interface->checkProfileSyntax(filter) : false);
+  lua_pushboolean(vm, ntop_interface ? ntop_interface->checkFilterSyntax(filter) : false);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
@@ -6311,8 +6311,8 @@ static luaL_Reg _ntop_reg[] = {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
   { "checkSubInterfaceSyntax", ntop_check_sub_interface_syntax },
-  { "checkProfileSyntax",     ntop_check_profile_syntax    },
-  { "reloadProfiles",         ntop_reload_traffic_profiles },
+  { "checkFilterSyntax",       ntop_check_filter_syntax    },
+  { "reloadProfiles",          ntop_reload_traffic_profiles },
 #endif
 #endif
 

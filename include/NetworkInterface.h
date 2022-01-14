@@ -828,7 +828,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void updateFlowProfiles();
 #ifndef HAVE_NEDGE
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
-  inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
+  inline bool checkFilterSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkFilterSyntax(filter) : false); }
 
   inline bool checkSubInterfaceSyntax(char *filter) { return(sub_interfaces ? sub_interfaces->checkSyntax(filter) : false); }
 #endif
