@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-#  Copyright (C) 2002-20 - ntop.org
+#  Copyright (C) 1998-22 - ntop.org
 #
 #  http://www.ntop.org/
 #
@@ -22,7 +22,7 @@ DB_COLUMNS="COMMUNITY_ID,DST2SRC_DSCP,DST2SRC_TCP_FLAGS,DST_ASN,DST_COUNTRY_CODE
 function showHelp {
     {
     exporting="nIndex to ClickHouse Flow Exporter"
-	company="(C) 1998-21 ntop.org\n\n"
+	company="(C) 1998-22 ntop.org\n\n"
 	usage="nindex_export_to_ch -d <base dir> [-u <user>]\n"
 	usage+="                    [-p <pwd>] [-n <name>]\n"
 	usage+="                    [-np <path>] [-cp <path>]\n\n"
