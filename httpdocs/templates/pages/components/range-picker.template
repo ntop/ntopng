@@ -667,10 +667,6 @@ $(document).ready(function() {
         url.search = searchParams.toString();
         window.history.pushState({epoch_begin: begin, epoch_end: end}, '', url);
 
-        if (changedTime === true && !{{ dont_refresh_full_page or false }}) {
-            window.location.reload();
-        }
-
         if (document.getElementById("jumpButton")) {
             $('#jumpButton').each(function(index, element) {
                 updateNavbarLink(url, begin, end, element);
@@ -678,10 +674,17 @@ $(document).ready(function() {
         }
     }
 
-    async function onRangePickerChange(pushHistroy = false, updateDatetimeUsingPresets = false) {
+    async function onRangePickerChange(pushHistory = false, updateDatetimeUsingPresets = false, pushHash = true) {
         const [begin, end] = getTimestampRange(updateDatetimeUsingPresets);
         let changedTime = false;
         datasourceParams, changedTime = setDatasourceParams();
+
+        if(pushHash == true) {
+            if(location.hash.length <= 3)
+                location.hash = location.hash + '1';
+            else
+                location.hash = '1';
+        }
         
 	{% if query_presets ~= nil and query_presets ~= {} then %}
 	if (currentQueryPresets != $(`#select-query-presets`).val()) {
@@ -691,7 +694,7 @@ $(document).ready(function() {
 	    return;
 	}
 	{% end %}
-        if (pushHistroy) {
+        if (pushHistory) {
             pushNewHistoryState(begin, end, null, {{ dont_update_navbar or 'false' }}, changedTime);
         }
         /* The reloadTable callback should be defined by the page (e.g. datatable.template) 
@@ -699,11 +702,6 @@ $(document).ready(function() {
         if (typeof $table !== 'undefined') {
             await reloadTable($table, begin, end);
         }
-
-        {% if reload_on_change then %}
-        if (!page_initialization)
-            window.location.reload();
-        {% end %}
     }
 
     async function addFilterTag(tag) {
@@ -712,7 +710,6 @@ $(document).ready(function() {
         if (typeof tag.value == 'number') { tag.value = ''+tag.value; }
 
         const existingTagElms = tagify.getTagElms();
-        
         /* Lookup by index (allow key dup, replace the value only if it's the same element index or same key and op) */
         if (tag.index && existingTagElms.length > tag.index) {
             let existingTagElement = existingTagElms[tag.index] || existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);

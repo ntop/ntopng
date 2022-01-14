@@ -65,5 +65,19 @@
     }
 
     hideOverlays();
-  });
+
+    window.addEventListener("hashchange", function() {
+      onRangePickerChange(false, false, false);
+      let params = datasourceParams;
+      let searchParams = new URLSearchParams(window.location.search);
+      searchParams.forEach(function(value, key) {
+        params[key] = value;
+      })
+
+      {% for _, chart_opts in ipairs(charts) do %}
+        params["chart_id"] = "{{ chart_opts.chart_id }}";
+        WidgetUtils.getWidgetByName("{{ chart_opts.chart_id }}").update(params);
+      {% end %}
+    }, false);
+});
 </script>

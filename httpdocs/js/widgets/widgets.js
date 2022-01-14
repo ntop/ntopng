@@ -9,35 +9,45 @@ const DEFINED_EVENTS = {
     "db_analyze" : function (event, chartContext, config) {
         const { dataPointIndex } = config;
         const { filter } = config.w.config;
+        let value, value_label, label;
 
-        const value = config.w.config.filtering_labels[dataPointIndex];
+        if(config.w.config.filtering_labels)
+            value = config.w.config.filtering_labels[dataPointIndex];
+
+        if(config.w.config.labels)
+            value_label = config.w.config.labels[dataPointIndex];
 
         if(filter.length == 0 || value === undefined)
             return;
+
+        if(DEFINED_TAGS[filter[0]])
+            label = DEFINED_TAGS[filter[0]].i18n_label;
         
-        let curr_url = new URLSearchParams(window.location.search);
-        curr_url.set(filter, value + ';eq');
-        window.history.pushState(null, null, "?"+curr_url.toString());
-        window.location.reload();
+        addFilterTag({ value: (value_label || value), realValue: value, selectedOperator: "eq", key: filter[0], title: value, label: label });
     },
 
     /* On click event used by the flow analyze section, redirect to the current url + a single filter */
     "db_analyze_multiple_filters" : function (event, chartContext, config) {
+        debugger;
         const { dataPointIndex } = config;
         const { filter } = config.w.config;
-        const value = config.w.config.true_labels[dataPointIndex];
+        let value, value_label, label;
+
+        if(config.w.config.filtering_labels)
+            value = config.w.config.filtering_labels[dataPointIndex];
+
+        if(config.w.config.labels)
+            value_label = config.w.config.labels[dataPointIndex];
 
         if(filter.length == 0 || !value)
             return;
-
-        let curr_url = new URLSearchParams(window.location.search);
-
+        
         for (let i = filter.length; i >= 0; i--) {
-            curr_url.set(filter[0][i], value[i] + ';eq');
-        }
+            if(DEFINED_TAGS[filter[0][i]])
+                label = DEFINED_TAGS[filter[0][i]].i18n_label;
 
-        window.history.pushState(null, null, "?"+curr_url.toString());
-        window.location.reload();
+            addFilterTag({ value: (value_label || value[i]), realValue: value[i], selectedOperator: "eq", key: filter[0][i], title: value[i], label: label });
+        }
     },
 
     "none" : function (event, chartContext, config) {
@@ -92,6 +102,7 @@ const DEFINED_TOOLTIP = {
         return new Date(value[0]) + " - " + new Date(value[1])
     },
 }
+const DEFAULT_FORMATTER = DEFINED_TOOLTIP["format_value"];
 
 class WidgetTooltips {
     static showXY({ seriesIndex, dataPointIndex, w }) {
@@ -200,6 +211,7 @@ class Widget {
     async update(datasourceParams = {}) {
 	// build the new endpoint
         const u = new URL(`${location.origin}${this._datasource.name}`);
+
         for (const [key, value] of Object.entries(datasourceParams)) {
             u.searchParams.set(key, value);
         }
@@ -379,7 +391,7 @@ class ChartWidget extends Widget {
         }   
 
         let formatter = config["dataLabels"]["formatter"];
-
+        
         if(formatter && DEFINED_TOOLTIP[formatter]) {
             config["dataLabels"]["formatter"] = DEFINED_TOOLTIP[formatter];
         }
@@ -392,6 +404,7 @@ class ChartWidget extends Widget {
         
         // add additional params fetched from the datasource
         const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'labels', 'fill', 'filter', 'filtering_labels'];
+        
         for (const additional of additionals) {
 
             if (rsp[additional] === undefined) continue;
@@ -453,14 +466,31 @@ class ChartWidget extends Widget {
     async update(datasourceParams = {}) {
         await super.update(datasourceParams);
         if (this._chart != null) {
-	    // expecting that rsp contains an object called series
-            const { colors, series, dataLabels, labels } = this._fetchedData.rsp;
-	    // update the colors list
-	    this._chartConfig.colors = colors;
-	    this._chartConfig.series = series;
-        if(dataLabels) this._chartConfig.dataLabels = dataLabels;
-        if(labels) this._chartConfig.labels = labels;
-	    this._chart.updateOptions(this._chartConfig, true);
+            // expecting that rsp contains an object called series
+            const { colors, series, dataLabels, labels, xaxis, filtering_labels } = this._fetchedData.rsp;
+            // update the colors list
+            this._chartConfig.colors = colors;
+            this._chartConfig.series = series;
+            
+            if(xaxis && xaxis.categories)
+                this._chartConfig.xaxis.categories = xaxis.categories;
+            
+            if(filtering_labels)
+                this._chartConfig.filtering_labels = filtering_labels;
+
+            if(dataLabels) {
+                let formatter = this._chartConfig.dataLabels.formatter;
+                this._chartConfig.dataLabels = dataLabels;
+                if(formatter && DEFINED_TOOLTIP[formatter])
+                    this._chartConfig.dataLabels.formatter = DEFINED_TOOLTIP[formatter];
+                else
+                    this._chartConfig.dataLabels.formatter = DEFAULT_FORMATTER;
+            }
+                
+            if(labels) 
+                this._chartConfig.labels = labels;
+
+            this._chart.updateOptions(this._chartConfig, true);
         }
     }
 
