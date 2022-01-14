@@ -302,16 +302,6 @@ function loadGraph(container) {
     const curr_test = $(`#all-time-filter`).text();
     $(`#all-time-filter`).text(curr_test + " (" + first_entry + " - " + last_entry + ")");
 
-    // if there are no nodes then show a simple message
-    if (nodes.length === 0) {
-        // hide the spinner and show the message
-        $(`#load-spinner`).fadeOut(function() { 
-            $(this).remove(); 
-            $(`#empty-map-message`).fadeIn();
-        });
-        return;
-    }
-
     nodesDataset = new vis.DataSet(nodes);
     edgesDataset = new vis.DataSet(edges);
     const datasets = {nodes: nodesDataset, edges: edgesDataset};
