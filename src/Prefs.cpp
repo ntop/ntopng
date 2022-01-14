@@ -1405,17 +1405,11 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "-F clickhouse is not available (ClickHouse client not found)");
 	    all_good = use_clickhouse = false;
 	  }
-
-	  if(is_enterprise_m_edition() || is_enterprise_l_edition()) {
-	    ; /* All good */
-	  } else {
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "-F clickhouse is available only from Enterprise M and up");
-	    all_good = use_clickhouse = false;
-	  }
 	}
 
 	if(all_good) {
 	  u_int num_semicolumns = 0;
+	  
 	  dump_flows_on_mysql = true;
 
 	  /* 
@@ -2253,6 +2247,13 @@ time_t Prefs::pro_edition_demo_ends_at() {
 
 void Prefs::validate() {
   /* Perform here post-initialization validations */
+
+  if(is_enterprise_m_edition() || is_enterprise_l_edition()) {
+    ; /* All good */
+  } else if(use_clickhouse) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "-F clickhouse is available only from Enterprise M and up");
+    use_clickhouse = dump_flows_on_mysql = false;
+  }
 }
 
 /* *************************************** */
