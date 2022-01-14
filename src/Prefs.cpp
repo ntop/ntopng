@@ -418,7 +418,7 @@ void usage() {
 	 "                                    |\n"
 #endif
 #ifdef HAVE_CLICKHOUSE
-	 "                                    | clickhouse    Dump in ClickHouse database\n"
+	 "                                    | clickhouse    Dump in ClickHouse (Enterprise M/L)\n"
 	 "                                    |   Format:\n"
 	 "                                    |   clickhouse;<host[@port]|socket>;<dbname>;<user>;<pw>\n"
 	 "                                    |   clickhouse;127.0.0.1;ntopng;default;\n"
