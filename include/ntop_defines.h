@@ -591,7 +591,6 @@
 #define CONST_LBD_SERIALIZATION_PREFS      NTOPNG_PREFS_PREFIX".ifid_%d.serialize_local_broadcast_hosts_as_macs"
 #define CONST_DISCARD_PROBING_TRAFFIC      NTOPNG_PREFS_PREFIX".ifid_%d.discard_probing_traffic"
 #define CONST_FLOWS_ONLY_INTERFACE         NTOPNG_PREFS_PREFIX".ifid_%d.debug.flows_only_interface"
-#define CONST_USE_NINDEX                   NTOPNG_PREFS_PREFIX".use_nindex"
 #define CONST_NBOX_USER                     NTOPNG_PREFS_PREFIX".nbox_user"
 #define CONST_NBOX_PASSWORD                 NTOPNG_PREFS_PREFIX".nbox_password"
 #define CONST_IFACE_ID_PREFS                NTOPNG_PREFS_PREFIX".iface_id"
@@ -842,10 +841,6 @@
 #define MYSQL_MAX_NUM_FIELDS  255
 #define MYSQL_MAX_NUM_ROWS    1000
 #define MYSQL_MAX_QUEUE_LEN   2048
-// nIndex-related
-#ifdef HAVE_NINDEX
-#define NINDEX_MAX_NUM_INTERFACES 16
-#endif
 
 #ifdef NTOPNG_PRO
 #define MYSQL_TOP_TALKERS_CONSOLIDATION_FREQ 20

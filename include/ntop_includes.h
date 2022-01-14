@@ -315,9 +315,6 @@ using namespace std;
 #include "GenericHash.h"
 #include "GenericHashEntry.h"
 #include "MacHash.h"
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-#include "nindex_api.h"
-#endif
 #ifdef HAVE_RADIUS
 #include <radcli/radcli.h>
 #endif
@@ -362,10 +359,6 @@ using namespace std;
 #ifndef WIN32
 #include "SyslogDump.h"
 #endif
-#endif
-#ifdef HAVE_NINDEX
-#include "TextDump.h"
-#include "NIndexFlowDB.h"
 #endif
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE)
 #include "ClickHouseImport.h"

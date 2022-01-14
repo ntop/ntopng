@@ -3143,16 +3143,6 @@ void NetworkInterface::startFlowDumping() {
   /*
     Precalculate constants that won't change during the execution.
    */
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-  if(ntop->getPrefs()->do_dump_flows_on_nindex() &&
-     !ntop->getPrefs()->do_dump_json_flows_on_disk()) {
-    /* JSON is not generated in case of nindex dump for
-     * performance reason (it actually contains duplicated
-     * information which are useless) */
-    flows_dump_json = false;
-  }
-#endif
-
   if(flows_dump_json) {
     /*
       Use labels for JSON fields when exporting to ElasticSearch or LogStash.
@@ -8122,14 +8112,6 @@ int NetworkInterface::updateHostTrafficPolicy(AddressTree* allowed_networks,
 
 /* *************************************** */
 
-#ifdef HAVE_NINDEX
-NIndexFlowDB* NetworkInterface::getNindex() {
-  return(ntop->getPrefs()->do_dump_flows_on_nindex() ? (NIndexFlowDB*)db : NULL);
-}
-#endif
-
-/* *************************************** */
-
 TimeseriesExporter* NetworkInterface::getInfluxDBTSExporter() {
   if(!influxdb_ts_exporter)
     influxdb_ts_exporter = new (nothrow) InfluxDBTimeseriesExporter(this);
@@ -8337,26 +8319,6 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
   if(isViewed())
     /* No need to allocate databases on view interfaces */
     return(true);
-
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-  if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
-    if(num_dump_interfaces >= NINDEX_MAX_NUM_INTERFACES) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "nIndex cannot be enabled for %s.", get_name());
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "The maximum number of interfaces that can be used with nIndex is %d.",
-				   NINDEX_MAX_NUM_INTERFACES);
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Interface will continue to work without nIndex support.");
-    } else {
-      try {
-        db = new NIndexFlowDB(this);
-      } catch(char const *error) {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure initializing flow dump with nIndex on %s: %s", get_name(), error);
-      }
-    }
-  }
-#endif
 
   if(db == NULL) {
     if(ntop->getPrefs()->do_dump_flows_on_mysql()) {

@@ -398,39 +398,6 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   if(ntop->getRedis()->get((char*)LAST_RESET_TIME, value, sizeof(value)) >= 0)
     last_stats_reset = atol(value);
 
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-#if 0
-  if(ntop->getPro()->is_nindex_in_use()) {
-    for(int i=0; i<NUM_NSERIES; i++) {
-      char path[MAX_PATH];
-      const char *base;
-
-      switch(i) {
-      case 0: base = "sec"; break;
-      case 1: base = "min"; break;
-      case 2: base = "5min"; break;
-      default:
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
-      }
-
-      snprintf(path, sizeof(path), "%s/nseries/%s", ntop->get_working_dir(), base);
-
-      if(!Utils::mkdir_tree(path))
-	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "Unable to create directory %s: nSeries will be disabled", path);
-      else {
-	try {
-	  nseries[i] = new Nseries(path, NSERIES_DATA_RETENTION, true /* readWrite */);
-	} catch(...) {
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate nSeries db %s", path);
-	  nseries[i] = NULL;
-	}
-      }
-    }
-  }
-#endif
-#endif
-
   /* Now we can enable the periodic activities */
   pa = new (std::nothrow) PeriodicActivities();
   

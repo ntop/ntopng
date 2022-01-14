@@ -384,24 +384,6 @@ if test "${with_nedge+set}" != set; then
   fi
 fi
 
-if test "${with_nedge+set}" != set; then
-  NINDEX_HOME=
-  if test -d "${HOME}/nIndex"; then
-    NINDEX_HOME=${HOME}/nIndex
-  else
-    if test -d "${HERE}/../nIndex"; then
-     NINDEX_HOME=${HERE}/../nIndex
-    fi
-  fi
-
-  if test -f "${NINDEX_HOME}/libnindex.a"; then
-    PRO_INCS="${PRO_INCS} -I ${NINDEX_HOME}/include"
-    PRO_LIBS="${PRO_LIBS} ${NINDEX_HOME}/libnindex.a ${NINDEX_HOME}/CRoaring/build/src/libroaring.a"
-    AC_DEFINE_UNQUOTED(HAVE_NINDEX, 1, [nIndex support is present])
-    echo "checking for nIndex... found on ${NINDEX_HOME}"
-  fi
-fi
-
 CFLAGS="${CFLAGS} -I../PF_RING/userland/nbpf"
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"

@@ -382,17 +382,6 @@ void usage() {
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)\n"
 #ifndef HAVE_NEDGE
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
-#ifdef HAVE_NINDEX
-	 "                                    | nindex        Dump in nIndex (Enterprise only)\n"
-	 "                                    |   Format:\n"
-#ifdef NTOPNG_PRO
-	 "                                    |   nindex[;direct]\n"
-	 "                                    |   Note: the direct option delivers higher performance\n"
-	 "                                    |   with less detailed flow information (it dumps raw flows)\n"
-	 "                                    |   when collecting from ZMQ.\n"
-#else
-	 "                                    |   nindex\n"
-#endif
 	 "                                    |\n"
 #endif
 	 "                                    | es            Dump in ElasticSearch database\n"
@@ -432,7 +421,6 @@ void usage() {
 	 "                                    |   mysql;<host[@port]|socket>;<dbname><user>;<pw>\n"
 	 "                                    |   mysql;localhost;ntopng;root;\n"
 	 "                                    |\n"
-#endif
 #endif
 	 "[--export-flows|-I] <endpoint>      | Export flows with the specified endpoint\n"
 	 "                                    | See https://wp.me/p1LxdS-O5 for a -I use case.\n"
@@ -1343,25 +1331,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     if(!optarg)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "No connection specified, -F ignored");
     else
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX) && !defined(HAVE_NEDGE) /* NOTE: currently disable on nEdge */
-    if(strncmp(optarg, "nindex", 2) == 0) {
-      char *nindex_opt = strchr(optarg, ';');
-      if(nindex_opt && strlen(nindex_opt) > 0) {
-#ifdef NTOPNG_PRO
-        if(strncmp(&nindex_opt[1], "direct", 6) == 0)
-          toggle_dump_flows_direct(true);
-        else
-#endif
-        if(strncmp(&nindex_opt[1], "dump", 4) == 0)
-          dump_json_flows_on_disk = dump_ext_json = true;
-        else if(strncmp(&nindex_opt[1], "load", 4) == 0)
-          load_json_flows_from_disk_to_nindex = true;
-        else if(strncmp(&nindex_opt[1], "debug", 5) == 0)
-          dump_ext_json = true;
-      }
-      dump_flows_on_nindex = true;      
-    } else
-#endif
     if((strncmp(optarg, "es", 2) == 0) && (strlen(optarg) > 3)) {
       char *elastic_index_type = NULL, *elastic_index_name = NULL, *tmp = NULL,
 	*elastic_url = NULL, *elastic_user = NULL, *elastic_pwd = NULL;
@@ -2029,9 +1998,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled", dump_flows_on_es);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_syslog_enabled", dump_flows_on_syslog);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_clickhouse_enabled", use_clickhouse);
-#if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
-  lua_push_bool_table_entry(vm, "is_nindex_enabled", do_dump_flows_on_nindex());
-#endif
 
   lua_push_uint64_table_entry(vm, "http.port", get_http_port());
 
@@ -2285,17 +2251,8 @@ time_t Prefs::pro_edition_demo_ends_at() {
 
 /* *************************************** */
 
-/* Perform here post-initialization validations */
-
 void Prefs::validate() {
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-  if(dump_flows_on_nindex) {
-    if(!ntop->getPro()->is_nindex_in_use()) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Ignored '-F nindex' as nIndex is not in use");
-      dump_flows_on_nindex = false;
-    }
-  }
-#endif
+  /* Perform here post-initialization validations */
 }
 
 /* *************************************** */

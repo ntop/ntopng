@@ -60,7 +60,6 @@ class HostChecksExecutor;
 class L7Policer;
 class FlowInterfacesStats;
 class TrafficShaper;
-class NIndexFlowDB;
 #endif
 
 /** @class NetworkInterface
@@ -938,9 +937,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     if (host_pools) host_pools->decNumL2Devices(id, is_inline_call);
   };
   Host* findHostByIP(AddressTree *allowed_hosts, char *host_ip, VLANid vlan_id, u_int16_t observationPointId);
-#ifdef HAVE_NINDEX
-  NIndexFlowDB* getNindex();
-#endif
   TimeseriesExporter* getInfluxDBTSExporter();
   TimeseriesExporter* getRRDTSExporter();
 
