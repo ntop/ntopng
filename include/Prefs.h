@@ -49,7 +49,7 @@ class Prefs {
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
     enable_auto_logout, enable_auto_logout_at_runtime, use_promiscuous_mode,
     enable_ixia_timestamps, enable_vss_apcon_timestamps, enable_interface_name_only,
-    enable_users_login, disable_localhost_login, online_license_check,
+    enable_users_login, disable_localhost_login,
     service_license_check, enable_sql_log, enable_access_log, log_to_file,
     enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
     enable_asn_behaviour_analysis, enable_network_behaviour_analysis, enable_iface_l7_behaviour_analysis,
@@ -321,7 +321,6 @@ class Prefs {
   inline void get_http_binding_addresses(const char** addr1, const char** addr2) { *addr1=http_binding_address1; *addr2=http_binding_address2; };
   inline void get_https_binding_addresses(const char** addr1, const char** addr2) { *addr1=https_binding_address1; *addr2=https_binding_address2; };
 
-  inline bool checkLicenseOnline()               { return(online_license_check);  };
   inline bool checkServiceLicense()              { return(service_license_check); };
   inline void disableServiceLicense()            { service_license_check = false; };
   inline char* get_es_type()  { return(es_type);  };

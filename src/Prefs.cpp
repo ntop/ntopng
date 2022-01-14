@@ -45,7 +45,7 @@ Prefs::Prefs(Ntop *_ntop) {
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
-  resolve_all_host_ip = false, online_license_check = false, service_license_check = false;
+  resolve_all_host_ip = false, service_license_check = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   attacker_max_num_flows_per_sec = victim_max_num_flows_per_sec = CONST_MAX_NEW_FLOWS_SECOND;
   attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
@@ -840,7 +840,7 @@ static const struct option long_options[] = {
   { "original-speed",                    no_argument,       NULL, 208 },
   { "online-check",                      no_argument,       NULL, 209 },
   { "print-ndpi-protocols",              no_argument,       NULL, 210 },
-  { "online-license-check",              no_argument,       NULL, 211 },
+  { "online-license-check",              no_argument,       NULL, 211 }, // deprecated (removed)
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "simulate-vlans",                    no_argument,       NULL, 214 },
@@ -1563,7 +1563,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 211:
-    online_license_check = true;
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Online check no longer supported (please remove --online-license-check from the configuration)");
     break;
 
   case 212:
