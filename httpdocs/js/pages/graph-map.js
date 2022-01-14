@@ -221,8 +221,6 @@ function saveTopologyView(network) {
 function setEventListenersNetwork(network) {
 
     network.on("doubleClick", function (params) {
-      debugger;
-
         const target = params.nodes[0];
         const selectedNode = network.clustering.findNode(target);
 
