@@ -43,8 +43,8 @@ You can decide to use MariaDB (instead of MySQL) do "apt-get install libmariadb-
 
 On Ubuntu20
 ~~~~~~~~~~~~~~
-You also need to do "apt-get install libmariadbclient-dev"
 
+You also need to do "apt-get install libmariadbclient-dev libzmq3-dev"
 
 On Debian 9/10
 ~~~~~~~~~~~~~~
