@@ -1,6 +1,7 @@
 #!/bin/sh
 
 HERE=`pwd`
+VERSION=`freebsd-version -u | cut -d '.' -f 1`
 
 STAGEDIR=${HERE}/stage
 NTOPNG_HOME=${HERE}/../..
@@ -93,6 +94,13 @@ EOF
 rm -f *.txz
 pkg create -m ${STAGEDIR}/ -r ${STAGEDIR}/ -p ${STAGEDIR}/plist -o $HERE
 
-tar -tvf ntopng-@PACKAGE_VERSION@.txz
-/bin/rm -f ~/binary_packages/ntopng-*.txz
-cp ntopng-@PACKAGE_VERSION@.txz ~/binary_packages/
+if test $VERSION -eq "13" ; then
+    PKG_NAME=ntopng-@PACKAGE_VERSION@.pkg
+else
+    PKG_NAME=ntopng-@PACKAGE_VERSION@.txz
+fi
+
+/bin/rm -f ~/binary_packages/ntopng-*
+
+tar -tvf ${PKG_NAME}
+cp ${PKG_NAME} ~/binary_packages/
