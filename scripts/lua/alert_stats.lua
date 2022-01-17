@@ -19,6 +19,7 @@ local Datasource = widget_gui_utils.datasource
 local alert_store_utils = require "alert_store_utils"
 local alert_utils = require "alert_utils"
 local alert_store = require "alert_store"
+local recording_utils = require "recording_utils"
 
 local ifid = interface.getId()
 local alert_store_instances = alert_store_utils.all_instances_factory()
@@ -540,6 +541,17 @@ if refresh_rate and refresh_rate > 0 then
    checkbox_checked = "fa-spin"
 end
 
+--------------------------------------------------------------
+
+-- PCAP modal for alert traffic extraction
+local traffic_extraction_available = recording_utils.isActive(ifid) or recording_utils.isExtractionActive(ifid)
+
+if traffic_extraction_available then 
+   alert_utils.drawAlertPCAPDownloadDialog(ifid)
+end
+
+--------------------------------------------------------------
+
 local filters_context = {
    alert_utils = alert_utils,
    alert_consts = alert_consts,
@@ -552,6 +564,8 @@ local filters_context = {
 }
 
 template_utils.render("pages/modals/alerts/filters/add.template", filters_context)
+
+--------------------------------------------------------------
 
 local endpoint_cards = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/" .. page .. "/alert/general_stats.lua"
 
@@ -631,6 +645,7 @@ local context = {
        show_settings = (page ~= 'system') and isAdministrator(),
        show_flows = (page == 'host'),
        show_historical = ((page == 'host') or (page == 'flow')) and ntop.isEnterpriseM() and hasClickHouseSupport(),
+       show_pcap_download = traffic_extraction_available and page == 'flow',
        show_disable = ((page == 'host') or (page == 'flow')) and isAdministrator(),
        show_acknowledge = (page ~= 'all') and (status == "historical") and isAdministrator(),
        show_delete = (page ~= 'all') and (status ~= "engaged") and isAdministrator(),

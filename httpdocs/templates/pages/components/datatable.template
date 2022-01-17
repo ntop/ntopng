@@ -320,6 +320,11 @@
                 {icon: 'fa-stream', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows'},
 		{% end %}
 
+                {% if actions.show_pcap_download then %}
+		/* Button to open the pcap download dialog */
+                {icon: 'fa-download', title: "{{ i18n('traffic_recording.pcap_download') }}", onclick: 'pcapDownload(' + dataRow.filter.epoch_begin + ', ' + dataRow.filter.epoch_end+ ', "' + dataRow.filter.bpf + '"); return false;'},
+		{% end %}
+
                 {% if actions.show_acknowledge then %}
                 {icon: 'fa fa-user-check', title: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog'},
                 {% end %}
@@ -338,7 +343,7 @@
                 {% end %}
             ];
 
-            return DataTableUtils.createActionButtons(buttons);
+            return DataTableUtils.createActionButtons(buttons, dataRow);
           }
         });
         {% end %}

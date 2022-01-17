@@ -171,11 +171,8 @@ function alert_utils.drawAlertPCAPDownloadDialog(ifid)
       return true;
    }
 
-   function pcapDownload(item) {
+   function pcapDownload(epoch_begin, epoch_end, bpf_filter) {
      var modalID = "]] print(modalID) print [[";
-     var bpf_filter = item.getAttribute('data-filter');
-     var epoch_begin = item.getAttribute('data-epoch-begin');
-     var epoch_end = item.getAttribute('data-epoch-end');
      var date_begin = new Date(epoch_begin * 1000);
      var date_end = new Date(epoch_begin * 1000);
      var epoch_begin_formatted = $.datepicker.formatDate('M dd, yy ', date_begin)+date_begin.getHours()
