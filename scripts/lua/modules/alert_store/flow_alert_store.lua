@@ -604,14 +604,15 @@ function flow_alert_store:format_record(value, no_html)
       record[RNAME.LINK_TO_PAST_FLOWS.name] = href
    end
 
+   -- Add BPF filter
    local bpf = 'host ' .. value["cli_ip"] .. ' and host ' .. value["srv_ip"]
    if value["cli_port"] and tonumber(value["cli_port"]) > 0 then
       bpf = bpf .. ' and port ' .. tostring(value["cli_port"]) .. ' and port ' .. tostring(value["srv_port"])
    end
 
    record['filter'] = {
-      epoch_begin = tonumber(value["tstamp"]), 
-      epoch_end = tonumber(value["tstamp_end"]),
+      epoch_begin = tonumber(value["tstamp"]) - 1, 
+      epoch_end = tonumber(value["tstamp_end"]) + 1,
       bpf = bpf,
    }
 
