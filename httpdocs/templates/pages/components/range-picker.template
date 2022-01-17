@@ -96,16 +96,16 @@
                 </select>
             </div>
 
-            <div style="width: 33rem;" class="input-group mx-1">
+            <div style="width: 38rem;" class="input-group mx-1">
                 <span class="input-group-text">
                     <i class="fas fa-calendar-alt"></i>
                 </span>
-                <input id="begin-date" type="date" class="begin-timepicker form-control border-right-0 fix-safari-input">
+                <input id="begin-date" type="date" class="begin-timepicker form-control border-right-0 fix-safari-input" style="width: 2.5rem;">
                 <input id="begin-time" type="time" class="begin-timepicker form-control border-right-0 fix-safari-input">
                 <span class="input-group-text">
                         <i class="fas fa-long-arrow-alt-right"></i>
                     </span>
-                <input id="end-date" type="date" class="end-timepicker form-control border-left-0 fix-safari-input">
+                <input id="end-date" type="date" class="end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;">
                 <input id="end-time" type="time" class="end-timepicker form-control border-left-0 fix-safari-input">
             </div>
 
