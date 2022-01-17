@@ -1017,37 +1017,58 @@ Get alerts data
 
 .. code:: bash
 
-   curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "0", "status": "historical-flows"}' http://localhost:3000/lua/rest/v2/get/alert/data.lua
+   curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "0"}' http://localhost:3000/lua/rest/v2/get/interface/alert/list.lua
 
 Response:
 
 .. code:: json
 
    {
-     "rsp": [
-       {
-         "entity": "flow",
-         "type": "alert_potentially_dangerous_protocol",
-         "score": 100,
-         "date": "1590742735",
-         "severity": "error",
-         "count": 1,
-         "entity_val": "",
-         "msg": "TLS Certificate Expired [24/08/2019 18:04:13 - 22/11/2019 18:04:13] [Flow: <A HREF='/lua/flow_details.lua?flow_key=2169606404&flow_hash_id=131'><span class='badge badge-info'>Info</span></A> <a href='/lua/host_details.lua?host=192.168.1.93' data-toggle='tooltip' title=''>192.168.1.93</a>:<A HREF=\"/lua/port_details.lua?port=61650\">61650</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=28:37:37:00:6D:C8\">28:37:37:00:6D:C8</A> ] <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> <a href='/lua/host_details.lua?host=192.168.1.176' data-toggle='tooltip' title=''>192.168.1.176</a>:<A HREF=\"/lua/port_details.lua?port=443\">443</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=00:80:8F:9A:AE:BD\">00:80:8F:9A:AE:BD</A> ]] <a href=\"/lua/admin/edit_configset.lua?confset_id=0&subdir=flow&check=tls_certificate_expired#all\"><i class=\"fas fa-cog\" title=\"Edit Configuration\"></i></a>"
-       },
-       {
-         "entity": "flow",
-         "type": "alert_potentially_dangerous_protocol",
-         "score": 50,
-         "date": "1590742735",
-         "severity": "error",
-         "count": 1,
-         "entity_val": "",
-         "msg": "TLS Certificate Mismatch [Client Requested: cdn.gigya.com] [Server Names: a248.e.akamai.net,*.akamaized-staging.net,*.akamaized.net,*.akamaihd-staging.net,*.akamaihd.net] [Flow: <A HREF='/lua/flow_details.lua?flow_key=2027748492&flow_hash_id=118'><span class='badge badge-info'>Info</span></A> <a href='/lua/host_details.lua?host=192.168.1.93' data-toggle='tooltip' title=''>192.168.1.93</a>:<A HREF=\"/lua/port_details.lua?port=61632\">61632</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=28:37:37:00:6D:C8\">28:37:37:00:6D:C8</A> ] <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> <a href='/lua/host_details.lua?host=184.51.127.56' data-toggle='tooltip' title=''>184.51.127.56</a>:<A HREF=\"/lua/port_details.lua?port=443\">443</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=10:13:31:F1:39:76\">10:13:31:F1:39:76</A> ]] <a href=\"/lua/admin/edit_configset.lua?confset_id=0&subdir=flow&check=tls_certificate_mismatch#all\"><i class=\"fas fa-cog\" title=\"Edit Configuration\"></i></a>"
-       }
-     ],
-     "rc": 0,
-     "rc_str": "OK"
+      "rc":0,
+      "rc_str_hr":"Success",
+      "recordsTotal":1,
+      "recordsFiltered":1,
+      "rc_str":"OK",
+      "rsp":{
+         "records":[
+            {
+               "alert_name":"<i class=\"fas fa-fw fa-arrow-circle-up\"></i> Threshold Cross",
+               "duration":156,
+               "row_id":"00000000-0000-0000-0000-000000000000",
+               "user_label":"",
+               "alert_id":{
+                  "label":"<i class=\"fas fa-fw fa-arrow-circle-up\"></i> Threshold Cross",
+                  "value":"4136"
+               },
+               "subtype":"throughput",
+               "family":"interface",
+               "tstamp":{
+                  "value":1642028429,
+                  "label":"13/01/2022 00:00:29",
+                  "highlight":"#ff3231"
+               },
+               "score":{
+                  "value":100,
+                  "label":"100",
+                  "color":"#ff3231"
+               },
+               "script_key":"throughput",
+               "count":1,
+               "severity":{
+                  "value":5,
+                  "label":"<i class='fas fa-fw fa-exclamation-triangle text-danger' style='color: #ff3231!important' title='Error'></i> ",
+                  "color":"#ff3231"
+               },
+               "msg":{
+                  "fullname":"Threshold Cross",
+                  "description":"Minute <b>throughput</b> crossed by interface <a href='/lua/if_stats.lua?ifid=4&page=historical&epoch_begin=1642425875&epoch_end=1642429475'>eno1</a> [22.49 &gt; 1]",
+                  "name":"Threshold Cross",
+                  "value":4136,
+                  "configset_ref":" <a href=\"/lua/admin/edit_configset.lua?subdir=interface&check=throughput#all\"><i class=\"fas fa-cog\" title=\"Edit Configuration\"></i></a>"
+               }
+            },
+         ]
+      }
    }
 
 Get alert severity constants
