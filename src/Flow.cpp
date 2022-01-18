@@ -67,7 +67,7 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
-  ndpiFlow = NULL, cli_id = srv_id = NULL;
+  ndpiFlow = NULL, cli_id = srv_id = NULL, confidence = NDPI_CONFIDENCE_UNKNOWN;
   cli_ebpf = srv_ebpf = NULL;
   json_info = NULL, tlv_info = NULL, twh_over = twh_ok = false,
     dissect_next_http_packet = false, host_server_name = NULL;
@@ -462,7 +462,8 @@ void Flow::processDetectedProtocol() {
 
   /* Domain Concats Alert */
   if(ndpiFlow) 
-    domain_name = ndpi_get_flow_name(ndpiFlow);
+    domain_name = ndpi_get_flow_name(ndpiFlow), confidence = ndpiFlow->confidence;
+
   if(cli_h && domain_name && domain_name[0] != '\0')
     cli_h->addContactedDomainName(domain_name);
 }
@@ -2250,6 +2251,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       }
     }
 
+    lua_push_str_table_entry(vm, "confidence", ndpi_confidence_get_name(confidence));
+    
     lua_get_risk_info(vm);
     lua_entropy(vm);
   }

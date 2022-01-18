@@ -116,6 +116,7 @@ local lang = {
   ["download_icon"] = "<i class='fas fa-arrow-down'></i>",
   ["download_x"] = "%{what} Download",
   ["downloaders"] = "Download Volume",
+  ["ndpi_confidence"] = "Confidence",
   ["drilldown"] = "Drilldown",
   ["dscp"] = "DSCP",
   ["dscp_dst2src"] = "Server DSCP",

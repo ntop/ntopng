@@ -94,6 +94,7 @@ class Flow : public GenericHashEntry {
   void *cli_id, *srv_id;
   json_object *json_info;
   ndpi_serializer *tlv_info;
+  ndpi_confidence_t confidence;
   char *host_server_name, *bt_hash;
   IEC104Stats *iec104;
   char *suspicious_dga_domain; /* Stores the suspicious DGA domain for flows with NDPI_SUSPICIOUS_DGA_DOMAIN */
