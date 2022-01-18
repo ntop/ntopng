@@ -186,7 +186,7 @@ function ui_utils.draw_pcap_download_dialog(ifid)
    </script>
 ]]
 
-  print(template.gen("traffic_extraction_dialog.html", { dialog = {
+  print(template_utils.gen("traffic_extraction_dialog.html", { dialog = {
      id = modalID,
      title = i18n("traffic_recording.pcap_download"),
      message = i18n("traffic_recording.about_to_download_flow", {date_begin = '<span id="'.. modalID ..'_begin">', date_end = '<span id="'.. modalID ..'_end">'}),
@@ -199,7 +199,7 @@ function ui_utils.draw_pcap_download_dialog(ifid)
      extract_now_class = "d-none", -- direct download only
   }}))
 
-   print(template.gen("modal_confirm_dialog.html", { dialog = {
+   print(template_utils.gen("modal_confirm_dialog.html", { dialog = {
       id = "no-recording-data",
       title = i18n("traffic_recording.pcap_download"),
       message = "<span id='no-recording-data-message'></span>",
