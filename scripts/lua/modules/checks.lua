@@ -2174,6 +2174,10 @@ end
 
 -- The function below ia called once (#pragma once)
 local function setupSNMPChecks(str_granularity, checks_var, do_trace)
+   if not ntop.isEnterprise() then
+      return
+   end
+   
    local snmp_device_pools = require "snmp_device_pools"
    
    if do_trace then print("alert.lua:setup("..str_granularity..") called\n") end
