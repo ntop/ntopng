@@ -18,6 +18,8 @@ local sleep_duration = periodicity * 1000
 
 for i=1,num_runs do
    local now = os.time()
+
+   if(ntop.isShutdown()) then break end
    
    -- Do the actual processing
    recipients.process_notifications(now, now + periodicity --[[ deadline --]], periodicity)
