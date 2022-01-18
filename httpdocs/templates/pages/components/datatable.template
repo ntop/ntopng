@@ -269,7 +269,7 @@
     function printQueryTime($table) {
         const response = $table.ajax.json();
         // if the response contains the query time period
-        if (response.rsp.stats !== undefined && response.rsp.stats.query_duration_msec !== undefined) {
+        if (response !== undefined && (response.rsp.stats !== undefined && response.rsp.stats.query_duration_msec !== undefined)) {
             const sec = response.rsp.stats.query_duration_msec / 1000.0;
             $(`#{{ datatable.name }}-query-time`).show();
             $(`#{{ datatable.name }}-query-time .seconds`).text((sec < 0.01) ? '< 0.01' : NtopUtils.ffloat(sec)); // The time is in sec
