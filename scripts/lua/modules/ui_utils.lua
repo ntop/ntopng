@@ -154,7 +154,7 @@ function ui_utils.draw_pcap_download_dialog(ifid)
    function pcapDownload(epoch_begin, epoch_end, bpf_filter) {
      var modalID = "]] print(modalID) print [[";
      var date_begin = new Date(epoch_begin * 1000);
-     var date_end = new Date(epoch_begin * 1000);
+     var date_end = new Date(epoch_end * 1000);
      var epoch_begin_formatted = $.datepicker.formatDate('M dd, yy ', date_begin)+date_begin.getHours()
        +":"+date_begin.getMinutes()+":"+date_begin.getSeconds(); 
      var epoch_end_formatted = $.datepicker.formatDate('M dd, yy ', date_end)
