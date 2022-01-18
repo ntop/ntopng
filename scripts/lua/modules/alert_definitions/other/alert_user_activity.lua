@@ -5,7 +5,7 @@
 -- ##############################################
 
 local other_alert_keys = require "other_alert_keys"
-local format_utils = "format_utils"
+local format_utils = require "format_utils"
 local pools_lua_utils = require "pools_lua_utils"
 -- Import the classes library.
 local classes = require "classes"
