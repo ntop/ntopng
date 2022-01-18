@@ -72,6 +72,7 @@ const DEFINED_EVENTS = {
 const DEFINED_TOOLTIP = {
     /* Standard on click event, redirect to the url */
     "standard" : function (_, opt) {
+        debugger;
         const config = opt.w.config;
         const { series } = config;
         const { dataPointIndex, seriesIndex } = opt;
@@ -269,10 +270,9 @@ class ChartWidget extends Widget {
                     format: 'dd/MM/yyyy HH:mm:ss',
                 },
                 y: {
-                    show: true,
-                    formatter: function(value) {
+                    formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
                         return value;
-                    }
+                    },
                 },
                 z: {
                     show: false,
@@ -363,9 +363,32 @@ class ChartWidget extends Widget {
         return config;
     }
 
+    _buildTooltip(config, rsp) {
+        /* By default the areaChart tooltip[y] is overwritten */
+        config["tooltip"]["y"] = {
+            formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
+                return value;
+            }
+        };
+
+        /* Changing events if given */
+        if (rsp['tooltip']) {
+            for (const axis in rsp['tooltip']) {
+                if (axis === "x" || axis === "y" || axis === "z") {
+                    const formatter = rsp['tooltip'][axis]['formatter'];
+                    if(!config['tooltip'][axis])
+                        config['tooltip'][axis] = {}
+
+                    config['tooltip'][axis]['formatter'] = DEFINED_TOOLTIP[formatter] || NtopUtils[formatter]
+                }
+            }
+        }
+    }
+
     _buildAxisFormatter(config, axisName) {
 
         const axis = config[axisName];
+        
         if (axis === undefined || axis.labels === undefined) return;
         
         // enable formatters
@@ -415,15 +438,6 @@ class ChartWidget extends Widget {
                 config[additional] = rsp[additional];
             }
         }
-
-        /* Changing events if given */
-        if (rsp['tooltip']) {
-            for (const axis in rsp['tooltip']) {
-                if (axis === "x" || axis === "y" || axis === "z") {
-                    config['tooltip'][axis]['formatter'] = DEFINED_TOOLTIP[rsp['tooltip'][axis]['formatter']]
-                }
-            }
-        }
         
         /* Changing events if given */
         if (rsp['events']) {
@@ -437,6 +451,7 @@ class ChartWidget extends Widget {
             config['plotOptions']['bar']['horizontal'] = rsp['horizontal_chart'];
         }
 
+        this._buildTooltip(config, rsp)
         this._buildAxisFormatter(config, 'xaxis');
         this._buildAxisFormatter(config, 'yaxis');
         this._buildDataLabels(config, rsp);
