@@ -59,7 +59,7 @@ function flow_alert_store:insert(alert)
       extra_values,
       alert.alert_id,
       self:_convert_ifid(interface.getId()),
-      alert.tstamp,
+      alert.first_seen,
       alert.tstamp,
       ntop.mapScoreToSeverity(alert.score),
       alert.ip_version,
@@ -369,7 +369,7 @@ function flow_alert_store:format_record(value, no_html)
 
    if not no_html and alert_json then
       local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
-      if active_flow and active_flow["seen.first"] < tonumber(value["tstamp"]) then
+      if active_flow and active_flow["seen.first"] < tonumber(value["tstamp_end"]) then
 	 local href = string.format("%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u",
             ntop.getHttpPrefix(), active_flow["ntopng.key"], active_flow["hash_entry_id"])
          active_url = href
@@ -614,7 +614,7 @@ function flow_alert_store:format_record(value, no_html)
    end
 
    record['filter'] = {
-      epoch_begin = tonumber(value["tstamp"]) - 1, 
+      epoch_begin = tonumber(value["tstamp"]), 
       epoch_end = tonumber(value["tstamp_end"]) + 1,
       bpf = table.concat(rules, " and "),
    }
@@ -703,8 +703,8 @@ function flow_alert_store:get_alert_details(value)
    details[#details + 1] = {
       label = i18n("show_alerts.alert_datetime"),
       content = fmt['tstamp']['label'],
- 
-  }
+   }
+
    details[#details + 1] = {
       label = i18n("score"),
       content = '<span style="color: ' .. fmt['score']['color'] .. '">' .. fmt['score']['label'] .. '</span>',
