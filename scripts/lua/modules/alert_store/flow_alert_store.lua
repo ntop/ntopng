@@ -605,15 +605,18 @@ function flow_alert_store:format_record(value, no_html)
    end
 
    -- Add BPF filter
-   local bpf = 'host ' .. value["cli_ip"] .. ' and host ' .. value["srv_ip"]
+   local rules = {}
+   rules[#rules+1] = 'host ' .. value["cli_ip"]
+   rules[#rules+1] = 'host ' .. value["srv_ip"]
    if value["cli_port"] and tonumber(value["cli_port"]) > 0 then
-      bpf = bpf .. ' and port ' .. tostring(value["cli_port"]) .. ' and port ' .. tostring(value["srv_port"])
+      rules[#rules+1] = 'port ' .. tostring(value["cli_port"])
+      rules[#rules+1] = 'port ' .. tostring(value["srv_port"])
    end
 
    record['filter'] = {
       epoch_begin = tonumber(value["tstamp"]) - 1, 
       epoch_end = tonumber(value["tstamp_end"]) + 1,
-      bpf = bpf,
+      bpf = table.concat(rules, " and "),
    }
 
    return record

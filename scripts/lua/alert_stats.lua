@@ -547,7 +547,7 @@ end
 local traffic_extraction_available = recording_utils.isActive(ifid) or recording_utils.isExtractionActive(ifid)
 
 if traffic_extraction_available then 
-   alert_utils.drawAlertPCAPDownloadDialog(ifid)
+   ui_utils.draw_pcap_download_dialog(ifid)
 end
 
 --------------------------------------------------------------
