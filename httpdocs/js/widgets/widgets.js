@@ -28,7 +28,6 @@ const DEFINED_EVENTS = {
 
     /* On click event used by the flow analyze section, redirect to the current url + a single filter */
     "db_analyze_multiple_filters" : function (event, chartContext, config) {
-        debugger;
         const { dataPointIndex } = config;
         const { filter } = config.w.config;
         let value, value_label, label;
@@ -368,10 +367,10 @@ class ChartWidget extends Widget {
 
         const axis = config[axisName];
         if (axis === undefined || axis.labels === undefined) return;
-
+        
         // enable formatters
         if (axis.labels.ntop_utils_formatter !== undefined && axis.labels.ntop_utils_formatter !== 'none') {
-
+            
             const selectedFormatter = axis.labels.ntop_utils_formatter;
 
             if (NtopUtils[selectedFormatter] === undefined) {
