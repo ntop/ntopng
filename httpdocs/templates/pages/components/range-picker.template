@@ -520,7 +520,6 @@ $(document).ready(function() {
 
         // get all filters tags
         const tags = tagify.getTagElms();
-
         // add the tag filters inside the search params object
         for (const tag of tags) {
             const tagData = tagify.tagData(tag);
@@ -609,10 +608,6 @@ $(document).ready(function() {
         const searchParams = getSearchParams();
         searchParams.set('epoch_begin', begin);
         searchParams.set('epoch_end', end);
-
-        if (url.searchParams.has('status')) {
-            searchParams.set('status', url.searchParams.get('status'));
-        }
 
         /*
           Update navbar items, e.g., alert entities, with begin/end epochs
@@ -745,7 +740,6 @@ $(document).ready(function() {
     // when an user remove the tag
     tagify.on('remove', async function(e) {
         const key = e.detail.data.key;
-
         if (key === undefined) {
             return;
         }

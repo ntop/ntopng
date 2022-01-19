@@ -25,7 +25,7 @@
         "chart_events" : { // JS Events, optional feature
             "dataPointSelection" : "db_analyze"
         },
-        "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
+        "chart_gui_filter" : "l7proto", // Filter displayed in the GUI
         "chart_sql_query" : "SELECT L7_PROTO, COUNT(*) AS flows FROM flows WHERE (STATUS != 0) AND ($WHERE) GROUP BY L7_PROTO ORDER BY flows DESC LIMIT 15",
         "chart_type" : "donut_apex_chart",
         "chart_record_value" : "flows",
@@ -40,7 +40,7 @@
         "chart_events" : { // JS Events, optional feature
             "dataPointSelection" : "db_analyze"
         },
-        "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
+        "chart_gui_filter" : "srv_ip", // Filter displayed in the GUI
         "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED, any(DST_LABEL) DST_LABEL_FORMATTED, STATUS, COUNT(*) AS flows FROM flows WHERE (STATUS != 0) AND ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED, STATUS ORDER BY flows DESC LIMIT 15",
         "chart_type" : "donut_apex_chart",
         "chart_record_value" : "flows",
@@ -56,7 +56,7 @@
 		    "dataPointSelection" : "db_analyze"
 	    },
 	    "chart_gui_filter" : "status", // Filter displayed in the GUI
-	    "chart_sql_query" : "SELECT STATUS,COUNT(*) AS flows FROM flows WHERE ($WHERE) GROUP BY STATUS ORDER BY flows DESC",
+	    "chart_sql_query" : "SELECT STATUS,COUNT(*) AS flows FROM flows WHERE (STATUS != 0) AND ($WHERE) GROUP BY STATUS ORDER BY flows DESC",
 	    "chart_type" : "bar_apex_chart",
 	    "chart_i18n_extra_x_label" : "flows",
 	    "chart_record_value" : "flows",
@@ -71,7 +71,7 @@
             "dataPointSelection" : "db_analyze"
         },
         "chart_gui_filter" : "status", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT STATUS, avg(TOTAL_BYTES) AS avg_bytes FROM flows WHERE TOTAL_BYTES > 0 AND ($WHERE) GROUP BY STATUS ORDER BY avg_bytes DESC",
+        "chart_sql_query" : "SELECT STATUS, avg(TOTAL_BYTES) AS avg_bytes FROM flows WHERE (STATUS != 0) AND (TOTAL_BYTES > 0) AND ($WHERE) GROUP BY STATUS ORDER BY avg_bytes DESC",
         "chart_type" : "bar_apex_chart",
         "chart_record_value" : "avg_bytes",
         "chart_record_label" : "STATUS",

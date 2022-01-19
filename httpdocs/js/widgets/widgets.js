@@ -72,7 +72,6 @@ const DEFINED_EVENTS = {
 const DEFINED_TOOLTIP = {
     /* Standard on click event, redirect to the url */
     "standard" : function (_, opt) {
-        debugger;
         const config = opt.w.config;
         const { series } = config;
         const { dataPointIndex, seriesIndex } = opt;
@@ -494,7 +493,6 @@ class ChartWidget extends Widget {
 
             if(dataLabels) {
                 let formatter = this._chartConfig.dataLabels.formatter;
-                this._chartConfig.dataLabels = dataLabels;
                 if(formatter && DEFINED_TOOLTIP[formatter])
                     this._chartConfig.dataLabels.formatter = DEFINED_TOOLTIP[formatter];
                 else
