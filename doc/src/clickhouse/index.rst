@@ -1,7 +1,7 @@
 ClickHouse
 ##########
 
-ntopng integrates with ClickHouse to store historical flows and alerts. ClickHouse is an high-performance SQL database. To install ClickHouse refer to the official guide_.
+ntopng (Enterprise M/L license is required) integrates with ClickHouse to store historical flows and alerts. ClickHouse is an high-performance SQL database. To install ClickHouse refer to the official guide_.
 
 .. _guide: https://clickhouse.com/#quick-start
 
