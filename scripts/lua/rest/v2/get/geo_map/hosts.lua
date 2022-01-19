@@ -125,7 +125,7 @@ local function show_hosts(hosts_count, host_key)
    if((host_key == nil) or (host_key == "")) then
       callback_utils.foreachHost(
 	 tostring(interface.getId()),
-	 function(address, value)	 	
+	 function(address, value)
 	    if value["latitude"] ~= 0 or value["longitude"] ~= 0 then
 	       -- set up the host informations
 	       local host = {
@@ -133,7 +133,8 @@ local function show_hosts(hosts_count, host_key)
 		  lng = value["longitude"],
 		  isRoot = false,
 		  html = getFlag(value["country"]),
-		  ip = address
+		  ip = address,
+		  isAlert = value["num_alerts"] > 0
 	       }
 
 	       if not isEmptyString(value["city"]) then
