@@ -25,7 +25,7 @@ function live_traffic_utils.printLiveTrafficForm(ifid, host_info)
    end
 
    print[[
-<form id="live-capture-form" class="form-inline" action="]] print(ntop.getHttpPrefix().."/lua/live_traffic.lua") print [[" method="GET">
+<form id="live-capture-form" class="form-inline" action="]] print(ntop.getHttpPrefix().."/lua/rest/v2/get/pcap/live_traffic.lua") print [[" method="GET">
   <input type=hidden id="live-capture-ifid" name=ifid value="]] print(ifid.."") print [[">]]
    if host_info then
       print[[<input type=hidden id="live-capture-host" name=host value="]] print(hostinfo2hostkey(host_info)) print [[">]]

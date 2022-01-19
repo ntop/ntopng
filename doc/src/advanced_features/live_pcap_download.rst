@@ -14,7 +14,7 @@ page. You can control the pcap duration and set an optional BPF filter for furth
   Link for downloading the pcap file
 
 The pcap file can also be downloaded directly through http, using a command line tool such as `wget` or `curl`.
-The direct URL for downloading the pcap is :code:`http://<ntopng IP>:3000/lua/live_traffic.lua?ifid=<interface index>&host=<host IP>`.
+The direct URL for downloading the pcap is :code:`http://<ntopng IP>:3000/lua/rest/v2/get/pcap/live_traffic.lua?ifid=<interface index>&host=<host IP>`.
 
 Please note that you should use cookies for authentication, as explained in the documentation. For example with `curl` you can specify
 username and password with :code:`--cookie "user=<user>; password=<password>"`
@@ -24,11 +24,11 @@ For example, to process the traffic matching host `192.168.2.1` with `wireshark`
 
 .. code:: bash
 	  
-   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/live_traffic.lua?ifid=12&host=192.168.2.1" | wireshark -k -i -
+   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/rest/v2/get/pcap/live_traffic.lua?ifid=12&host=192.168.2.1" | wireshark -k -i -
 
 Similarly, the traffic of the whole interface with id `0` can be sent to `tshark` with
 
 .. code:: bash
 
-  curl --cookie "user=admin; password=admin1"  "http://devel:3000/lua/live_traffic.lua?ifid=0&duration=600&bpf_filter=" | tshark  -i -
+  curl --cookie "user=admin; password=admin1"  "http://devel:3000/lua/rest/v2/get/pcap/live_traffic.lua?ifid=0&duration=600&bpf_filter=" | tshark  -i -
 
