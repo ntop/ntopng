@@ -7,6 +7,8 @@ ignore:
   - duration
   - rowid
   - historical_url
+  - epoch_begin
+  - epoch_end
 
 pre: |
   # Enable all user scripts
