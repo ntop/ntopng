@@ -56,7 +56,9 @@ for i=1,num_runs do
       local diff = now % tonumber(discovery_interval)
       
       if diff < 5 then
-	 callback_utils.foreachInterface(ifnames, periodic_discovery_condition, discovery_function)
+         ntop.setPref("ntopng.prefs.is_periodic_network_discovery_running", "1")
+	      callback_utils.foreachInterface(ifnames, periodic_discovery_condition, discovery_function)
+         ntop.setPref("ntopng.prefs.is_periodic_network_discovery_running", "0")
       end
    end
    
