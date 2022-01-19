@@ -1901,7 +1901,7 @@
 				],
 				"summary": "Live PCAP traffic extraction",
 				"description": "Raw PCAP data is returned",
-				"operationId": "live_traffic_extraction",
+				"operationId": "live_extraction",
 				"produces": [
 					"application/vnd.tcpdump.pcap"
 				],
@@ -1925,6 +1925,58 @@
 						"name": "epoch_end",
 						"in": "query",
 						"description": "Start time (epoch)",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "bpf_filter",
+						"in": "query",
+						"description": "BPF filter",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"FILE": {
+						"description": "OK"
+					},
+					"-1": {
+						"description": "NOT_FOUND"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					},
+					"-7": {
+						"description": "BAD_FORMAT"
+					}
+				}
+			}
+		},
+		"/lua/rest/v2/get/pcap/live_traffic.lua": {
+			"get": {
+				"tags": [
+					"PCAP"
+				],
+				"summary": "Live traffic capture",
+				"description": "Raw PCAP data is returned",
+				"operationId": "live_traffic",
+				"produces": [
+					"application/vnd.tcpdump.pcap"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
 						"required": true,
 						"type": "integer",
 						"format": "int32"

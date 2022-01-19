@@ -8,6 +8,13 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require "dkjson"
 
+--
+-- Run a live traffic capture
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1", "bpf_filter": "" }' http://localhost:3000/lua/rest/v2/get/pcap/traffic_extraction.lua
+--
+-- NOTE: in case of invalid login, no error is returned but redirected to login
+--
+
 local function send_error(error_type)
    local msg = i18n("live_traffic.error_generic")
    if error_type == "not_found" then
