@@ -28,12 +28,17 @@ end
 
 local discovery_function = function(ifname, ifstats)
    if interface.isDiscoverableInterface() then
+      ntop.setPref("ntopng.prefs.is_periodic_network_discovery_running.ifid_" .. interface.getId(), "1")
+      ntop.setCache("ntopng.cache.network_discovery_executed.ifid_" .. interface.getId(), "1", 300)
+	      
       traceError(TRACE_INFO,TRACE_CONSOLE, "[Discover] Started periodic discovery on interface "..ifname)
 
       local res = discover_utils.discover2table(ifname, true --[[ recache --]])
 
       traceError(TRACE_INFO,TRACE_CONSOLE, "[Discover] Completed periodic discovery on interface "..ifname)
       discover_utils.clearNetworkDiscovery(ifstats.id)
+      
+      ntop.setPref("ntopng.prefs.is_periodic_network_discovery_running.ifid_" .. interface.getId(), "0")
    end
 end
 
@@ -56,9 +61,7 @@ for i=1,num_runs do
       local diff = now % tonumber(discovery_interval)
       
       if diff < 5 then
-         ntop.setPref("ntopng.prefs.is_periodic_network_discovery_running", "1")
-	      callback_utils.foreachInterface(ifnames, periodic_discovery_condition, discovery_function)
-         ntop.setPref("ntopng.prefs.is_periodic_network_discovery_running", "0")
+         callback_utils.foreachInterface(ifnames, periodic_discovery_condition, discovery_function)
       end
    end
    
