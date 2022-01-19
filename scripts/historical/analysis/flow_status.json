@@ -1,5 +1,5 @@
 {
-    "name" : "Flow Status",
+    "name" : "Alerted Flows",
     "i18n_name" : "flow_status",
     "data_source" : "flows",
     "chart" : [
