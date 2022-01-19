@@ -837,7 +837,7 @@ else
 	    if starts(server, '*') then
 	       print(server)
 	    else
-	       print("<A class='ntopng-external-link' href=\"http://"..server.."\">"..server.."<i class=\"fas fa-external-link-alt\"></i></A> ")
+	       print("<A class='ntopng-external-link' href=\"http://"..server.."\">"..server.." <i class=\"fas fa-external-link-alt\"></i></A> ")
 	    end
 	 end
       end
