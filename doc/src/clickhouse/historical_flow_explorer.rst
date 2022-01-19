@@ -8,7 +8,7 @@ This page is used to navigate throw the flows seen and stored by ntopng.
 
 .. note::
 
-   ClickHouse support is available on all ntopng versions, however, the historical flows explorer is only available in version Enterprise M or above.
+   ClickHouse support including the Historical Flows Explorer is only available in ntopng Enterprise M or above.
 
 
 The explorer is available from the main menu, under the Dashboard section.
