@@ -24,7 +24,7 @@ load_rc_config $name
 
 : ${ntopng_enable:=NO}
 : ${ntopng_pidfile:=/var/run/ntopng.pid}
-: ${ntopng_config:=/usr/local/etc/ntopng.conf}
+: ${ntopng_config:=/usr/local/etc/ntopng/ntopng.conf}
 
 start_precmd=ntopng_precmd
 command="/usr/local/bin/ntopng"
@@ -39,6 +39,11 @@ ntopng_precmd()
     local ntopng_datadir="/var/db/ntopng-enterprise"
     local rundir=${ntopng_pidfile%/*}
 
+    if [ -f "${ntopng_conf}" ]; then
+	# Using sample file as config file is missing
+	cp /usr/local/etc/ntopng/ntopng.conf.sample /usr/local/etc/ntopng/ntopng.conf
+    fi
+    
     if ! id "${ntopng_user}" >/dev/null 2>&1; then
 	# ntopng user does not exist: create it!
 	pw useradd ${ntopng_user} -s /sbin/nologin -d /nonexistent -c "ntopng user" -w no
