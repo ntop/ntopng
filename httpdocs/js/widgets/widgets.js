@@ -477,32 +477,34 @@ class ChartWidget extends Widget {
     }
 
     async update(datasourceParams = {}) {
-        await super.update(datasourceParams);
-        if (this._chart != null) {
-            // expecting that rsp contains an object called series
-            const { colors, series, dataLabels, labels, xaxis, filtering_labels } = this._fetchedData.rsp;
-            // update the colors list
-            this._chartConfig.colors = colors;
-            this._chartConfig.series = series;
-            
-            if(xaxis && xaxis.categories)
-                this._chartConfig.xaxis.categories = xaxis.categories;
-            
-            if(filtering_labels)
-                this._chartConfig.filtering_labels = filtering_labels;
-
-            if(dataLabels) {
-                let formatter = this._chartConfig.dataLabels.formatter;
-                if(formatter && DEFINED_TOOLTIP[formatter])
-                    this._chartConfig.dataLabels.formatter = DEFINED_TOOLTIP[formatter];
-                else
-                    this._chartConfig.dataLabels.formatter = DEFAULT_FORMATTER;
-            }
+        if(this._chartConfig !== undefined) {
+            await super.update(datasourceParams);
+            if (this._chart != null) {
+                // expecting that rsp contains an object called series
+                const { colors, series, dataLabels, labels, xaxis, filtering_labels } = this._fetchedData.rsp;
+                // update the colors list
+                this._chartConfig.colors = colors;
+                this._chartConfig.series = series;
                 
-            if(labels) 
-                this._chartConfig.labels = labels;
+                if(xaxis && xaxis.categories)
+                    this._chartConfig.xaxis.categories = xaxis.categories;
+                
+                if(filtering_labels)
+                    this._chartConfig.filtering_labels = filtering_labels;
 
-            this._chart.updateOptions(this._chartConfig, true);
+                if(dataLabels) {
+                    let formatter = this._chartConfig.dataLabels.formatter;
+                    if(formatter && DEFINED_TOOLTIP[formatter])
+                        this._chartConfig.dataLabels.formatter = DEFINED_TOOLTIP[formatter];
+                    else
+                        this._chartConfig.dataLabels.formatter = DEFAULT_FORMATTER;
+                }
+                    
+                if(labels) 
+                    this._chartConfig.labels = labels;
+
+                this._chart.updateOptions(this._chartConfig, true);
+            }
         }
     }
 

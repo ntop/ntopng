@@ -172,7 +172,7 @@ local lang = {
   ["gateway"] = "Gateway",
   ["geolocation_unavailable"] = "Please follow these <a href='%{url}' target='%{target}'>instructions <i class='%{icon}'></i></a>.",
   ["geolocation_unavailable_title"] = "Running without Geolocation support",
-  ["geomap_per_status"] = "Alerted Hosts Geomap",
+  ["geomap_per_status"] = "Alerted Flows Hosts Geomap",
   ["granularity"] = "Granularity",
   ["has"] = "contains",
   ["has_attacker"] = "Has Attacker",

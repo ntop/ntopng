@@ -26,6 +26,7 @@ const default_coords = [41.9, 12.4833333];
 const zoom_level = 4;
 let addRefToHost = true;
 let endpoint = http_prefix + "/lua/rest/v2/get/geo_map/hosts.lua?";
+let baseEndpoint = "";
 
 // initialize alert api
 //$('#geomap-alert').alert();
@@ -107,9 +108,10 @@ const display_errors = (errors) => {
     }
 }
 
-const init_map = (newEndpoint = null, addRefToHost = true) => {
+const init_map = (newEndpoint = null, _baseEndpoint = null) => {
     endpoint = newEndpoint || endpoint;
-    
+    baseEndpoint = _baseEndpoint;
+
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(show_positions, display_errors,
 						 {
@@ -139,15 +141,27 @@ let hosts = null;
 let map = null;
 let markers = null;
 
-const redraw_hosts = (show_only_alert_hosts) => {
+const redraw_hosts = (show_only_alert_hosts, redo_query = false, extra_endpoint_params = null) => {
     if (markers == null || map == null || hosts == null) {
 	console.error("map isn't initialized!");
 	return;
     }
     markers.clearLayers();
-    //map.removeLayer(markers);
-    let temp_hosts = hosts.filter((h) => h.isAlert == true || !show_only_alert_hosts);
-    draw_markers(temp_hosts, markers, map);
+
+    if(redo_query == true) {
+        $.get(`${baseEndpoint}?${extra_endpoint_params}&ifid=${interfaceID}&${zoomIP || ''}`)
+            .then((data) => {
+                        hosts = data.rsp;
+                draw_markers(data.rsp, markers, map);
+            })
+            .fail(({ status, statusText }) => {
+                NtopUtils.check_status_code(status, statusText, $("#geomap-alert"));
+            });
+    } else {
+        //map.removeLayer(markers);
+        let temp_hosts = hosts.filter((h) => h.isAlert == true || !show_only_alert_hosts);
+        draw_markers(temp_hosts, markers, map);
+    }
 }
 
 const show_positions = (current_user_position) => {
