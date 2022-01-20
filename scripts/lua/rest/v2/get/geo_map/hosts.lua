@@ -134,7 +134,7 @@ local function show_hosts(hosts_count, host_key)
 		  isRoot = false,
 		  html = getFlag(value["country"]),
 		  ip = address,
-		  isAlert = value["num_alerts"] > 0
+		  isAlert = value["num_alerts"] + value["active_alerted_flows"] > 0
 	       }
 
 	       if not isEmptyString(value["city"]) then
