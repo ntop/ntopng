@@ -6082,6 +6082,32 @@ static int ntop_get_asn_name(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_get_host_geolocation(lua_State *vm) {
+  IpAddress ip;
+  char *continent = NULL, *country_name = NULL, *city = NULL;
+  float latitude = 0, longitude = 0;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+
+  ip.set((char*)lua_tostring(vm, 1));
+
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country_name, &city, &latitude, &longitude);
+
+  lua_newtable(vm);
+  lua_push_str_table_entry(vm,   "continent", continent ? continent : (char*)"");
+  lua_push_str_table_entry(vm,   "country", country_name ? country_name  : (char*)"");
+  lua_push_float_table_entry(vm, "latitude", latitude);
+  lua_push_float_table_entry(vm, "longitude", longitude);
+  lua_push_str_table_entry(vm,   "city", city ? city : (char*)"");
+
+  ntop->getGeolocation()->freeInfo(&continent, &country_name, &city);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_get_ndpi_protocol_category(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int proto;
@@ -6515,6 +6541,7 @@ static luaL_Reg _ntop_reg[] = {
   /* ASN */
   { "getASName",            ntop_get_asn_name },
 
+  { "getHostGeolocation",   ntop_get_host_geolocation },
   /* Mac */
   { "setMacDeviceType",     ntop_set_mac_device_type     },
 

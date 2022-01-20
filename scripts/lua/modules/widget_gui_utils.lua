@@ -180,6 +180,10 @@ function widget_gui_utils.register_treemap_chart(name, update_time, datasources,
     widget_gui_utils.register_chart_widget(name, 'treemap', update_time, datasources, additional_params)
 end
 
+function widget_gui_utils.register_geomap(name, update_time, datasources, additional_params)
+    widget_gui_utils.register_chart_widget(name, 'geomap', update_time, datasources, additional_params)
+end
+
 ---Render all registered chart widgets.
 ---@return string
 function widget_gui_utils.render_chart_widgets()
@@ -218,20 +222,32 @@ end
 function widget_gui_utils.render_chart(widget_name, additional_params)
     local displaying_label = additional_params.displaying_label or widget_name
     local css_styles = additional_params.css_styles or {}
+    local chart_type = additional_params.chart_type
 
     if not (table.has_key(registered_widgets.charts, widget_name)) then
         return string.format("Chart %s not found!", widget_name)
     end
 
+    local rendered_html
     local widget = registered_widgets.charts[widget_name]
 
-    local rendered_html = template_utils.gen("widgets/chart-widget.template", {
-        json = json, 
-        widget_name = widget_name, 
-        widget = widget, 
-        css_styles = build_css_styles(css_styles),
-        displaying_label = displaying_label
-    })
+    if (chart_type) and (chart_type == "geomap") then
+        rendered_html = template_utils.gen("widgets/geomap-widget.template", {
+            json = json, 
+            widget_name = widget_name, 
+            widget = widget, 
+            css_styles = build_css_styles(css_styles),
+            displaying_label = displaying_label
+        })
+    else
+        rendered_html = template_utils.gen("widgets/chart-widget.template", {
+            json = json, 
+            widget_name = widget_name, 
+            widget = widget, 
+            css_styles = build_css_styles(css_styles),
+            displaying_label = displaying_label
+        })
+    end
 
     return rendered_html
 end

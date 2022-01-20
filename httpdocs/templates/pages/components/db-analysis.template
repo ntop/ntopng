@@ -35,6 +35,7 @@
             widget_gui_utils.render_chart(chart_opts.chart_id, {
               displaying_label = chart_opts.chart_name,
               css_styles = chart_opts.css_styles,
+              chart_type = chart_opts.chart_type,
             }) 
           *}
           </div>

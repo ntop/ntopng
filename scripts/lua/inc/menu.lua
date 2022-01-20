@@ -72,6 +72,7 @@ print[[
       "score": "]] print(i18n("score")) print[[",
       "alerted_flows": "]] print(i18n("flow_details.alerted_flows")) print[[",
       "blacklisted_flows": "]] print(i18n("alerts_dashboard.blacklisted_flow")) print[[",
+      "flow_status": "]] print(i18n("graphs.flow_status")) print[[",
       "traffic_rcvd": "]] print(i18n("graphs.traffic_rcvd")) print[[",
       "traffic_sent": "]] print(i18n("graphs.traffic_sent")) print[[",
       "flows": "]] print(i18n("db_explorer.total_flows")) print[[",

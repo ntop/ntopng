@@ -24,6 +24,8 @@ const formatters = {
 
 const default_coords = [41.9, 12.4833333];
 const zoom_level = 4;
+let addRefToHost = true;
+let endpoint = http_prefix + "/lua/rest/v2/get/geo_map/hosts.lua?";
 
 // initialize alert api
 //$('#geomap-alert').alert();
@@ -55,16 +57,33 @@ const create_marker = (h) => {
             extra_info = extra_info + info_key_names[key] + ": <b>" + h[key] + "</b></br>";
     }
 
+    if(h["flow_status"]) {
+        let flow_status = i18n.flow_status + ":</br>";
+        for (const prop in h["flow_status"]) {
+            flow_status = flow_status + "       <b>" + h["flow_status"][prop]["num_flows"] + " Flows, " + h["flow_status"][prop]["label"] + "</b></br>";
+        }
+        extra_info = extra_info + flow_status;
+    }
+
     if(name)
         name_ip = name + "</br>" + name_ip;
 
-    return L.marker(L.latLng(lat, lng), settings).bindPopup(`
-            <div class='infowin'>
-                <a href='${http_prefix}/lua/host_details.lua?host=${ip}'>${name_ip}</a>
-                <hr>
-                ${extra_info}
-            </div>
-        `);
+    let marker;
+
+    if(addRefToHost){
+        marker =   `<div class='infowin'>
+                        <a href='${http_prefix}/lua/host_details.lua?host=${ip}'>${name_ip}</a>
+                        <hr>
+                        ${extra_info}
+                    </div>`
+    } else {
+        marker =   `<div class='infowin'>
+                        ${name_ip}
+                        <hr>
+                        ${extra_info}
+                    </div>`
+    }
+    return L.marker(L.latLng(lat, lng), settings).bindPopup(marker);
 }
 
 // return true if the status code is different from 200
@@ -97,8 +116,10 @@ const display_errors = (errors) => {
     }
 }
 
-const init_map = () => {
-
+const init_map = (newEndpoint = null, addRefToHost = true) => {
+    endpoint = newEndpoint || endpoint;
+    addRefToHost = addRefToHost;
+    
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(show_positions, display_errors,
 						 {
@@ -177,7 +198,8 @@ const show_positions = (current_user_position) => {
         draw_markers(hosts, map_markers, hosts_map);
 	return;
     }
-    $.get(`${http_prefix}/lua/rest/v2/get/geo_map/hosts.lua?ifid=${interfaceID}&${zoomIP || ''}`)
+
+    $.get(`${endpoint}&ifid=${interfaceID}&${zoomIP || ''}`)
         .then((data) => {
 	    hosts = data.rsp;
             draw_markers(data.rsp, map_markers, hosts_map);

@@ -11,7 +11,7 @@
             "dataPointSelection" : "db_analyze"
         },
         "chart_gui_filter" : "cli_ip", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED, any(SRC_LABEL) SRC_LABEL_FORMATTED,COUNT(*) AS flows FROM flows WHERE (STATUS != 0) AND ($WHERE) GROUP BY IPV4_SRC_ADDR_FORMATTED ORDER BY flows DESC LIMIT 15",
+        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED, any(SRC_LABEL) SRC_LABEL_FORMATTED,COUNT(*) AS flows FROM flows WHERE (STATUS != 0) AND ($WHERE) GROUP BY IPV4_SRC_ADDR_FORMATTED ORDER BY flows DESC LIMIT 10",
         "chart_type" : "donut_apex_chart",
         "chart_record_value" : "flows",
         "chart_record_label" : "IPV4_SRC_ADDR",
@@ -26,7 +26,7 @@
             "dataPointSelection" : "db_analyze"
         },
         "chart_gui_filter" : "l7proto", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT L7_PROTO, COUNT(*) AS flows FROM flows WHERE (STATUS != 0) AND ($WHERE) GROUP BY L7_PROTO ORDER BY flows DESC LIMIT 15",
+        "chart_sql_query" : "SELECT L7_PROTO, COUNT(*) AS flows FROM flows WHERE (STATUS != 0) AND ($WHERE) GROUP BY L7_PROTO ORDER BY flows DESC LIMIT 10",
         "chart_type" : "donut_apex_chart",
         "chart_record_value" : "flows",
         "chart_record_label" : "L7_PROTO",
@@ -41,7 +41,7 @@
             "dataPointSelection" : "db_analyze"
         },
         "chart_gui_filter" : "srv_ip", // Filter displayed in the GUI
-        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED, any(DST_LABEL) DST_LABEL_FORMATTED, STATUS, COUNT(*) AS flows FROM flows WHERE (STATUS != 0) AND ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED, STATUS ORDER BY flows DESC LIMIT 15",
+        "chart_sql_query" : "SELECT IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED, any(DST_LABEL) DST_LABEL_FORMATTED, STATUS, COUNT(*) AS flows FROM flows WHERE (STATUS != 0) AND ($WHERE) GROUP BY IPV4_DST_ADDR_FORMATTED, STATUS ORDER BY flows DESC LIMIT 10",
         "chart_type" : "donut_apex_chart",
         "chart_record_value" : "flows",
         "chart_record_label" : "IPV4_DST_ADDR",
@@ -77,6 +77,24 @@
         "chart_record_label" : "STATUS",
         "chart_width" : 12, // Chart width, it can be a number between 1 and 12, optional feature
 	    "chart_y_formatter" : "format_bytes", // JS tooltip event, optional feature
-	}],
+	},{
+	    "chart_id" : "geomap_per_status", // Each id MUST be different
+        "chart_i18n_name" : "geomap_per_status",
+        "chart_endpoint" : "/lua/rest/v2/get/db/charts/default_rest.lua",
+        "chart_events" : { // JS Events, optional feature
+            "dataPointSelection" : "db_analyze"
+        },
+        "chart_css_styles" : { // CSS chart styles, optional feature
+            "max-height" : "49rem",
+            "min-height" : "49rem",
+        },
+        "chart_gui_filter" : "status", // Filter displayed in the GUI
+        "chart_sql_query" : "SELECT STATUS, IPv4NumToString(IPV4_DST_ADDR) AS IPV4_DST_ADDR_FORMATTED, any(DST_LABEL) DST_LABEL_FORMATTED,IPv4NumToString(IPV4_SRC_ADDR) AS IPV4_SRC_ADDR_FORMATTED, any(SRC_LABEL) SRC_LABEL_FORMATTED, COUNT(*) as flows FROM flows WHERE (STATUS != 0) AND ($WHERE) GROUP BY STATUS, IPV4_DST_ADDR_FORMATTED, IPV4_SRC_ADDR_FORMATTED",
+        "chart_type" : "geomap",
+        "chart_record_value" : "flows",
+	    "chart_record_label" : [ "STATUS", "ADDR" ],
+	    "chart_show_label" : [ "LABEL" ],
+        "chart_width" : 12, // Chart width, it can be a number between 1 and 12, optional feature
+    }],
     "show_in_page" : "analysis",
 }
