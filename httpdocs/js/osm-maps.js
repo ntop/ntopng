@@ -60,7 +60,7 @@ const create_marker = (h) => {
     if(h["flow_status"]) {
         let flow_status = i18n.flow_status + ":</br>";
         for (const prop in h["flow_status"]) {
-            flow_status = flow_status + "       <b>" + h["flow_status"][prop]["num_flows"] + " Flows, " + h["flow_status"][prop]["label"] + "</b></br>";
+            flow_status = flow_status + "<b>" + h["flow_status"][prop]["num_flows"] + " Flows, " + h["flow_status"][prop]["label"] + "</b></br>";
         }
         extra_info = extra_info + flow_status;
     }
@@ -68,21 +68,12 @@ const create_marker = (h) => {
     if(name)
         name_ip = name + "</br>" + name_ip;
 
-    let marker;
-
-    if(addRefToHost){
-        marker =   `<div class='infowin'>
+    const marker = `<div class='infowin'>
                         <a href='${http_prefix}/lua/host_details.lua?host=${ip}'>${name_ip}</a>
                         <hr>
                         ${extra_info}
                     </div>`
-    } else {
-        marker =   `<div class='infowin'>
-                        ${name_ip}
-                        <hr>
-                        ${extra_info}
-                    </div>`
-    }
+
     return L.marker(L.latLng(lat, lng), settings).bindPopup(marker);
 }
 
@@ -118,7 +109,6 @@ const display_errors = (errors) => {
 
 const init_map = (newEndpoint = null, addRefToHost = true) => {
     endpoint = newEndpoint || endpoint;
-    addRefToHost = addRefToHost;
     
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(show_positions, display_errors,
