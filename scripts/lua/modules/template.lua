@@ -2,8 +2,8 @@
 -- (C) 2013-22 - ntop.org
 --
 
-local NTOP_BASE_ID = 57472
-local NTOP_BASE_NETFLOW_ID = NTOP_BASE_ID+1024
+NTOP_BASE_ID = 57472
+NTOP_BASE_NETFLOW_ID = NTOP_BASE_ID+1024
 
 -- template name to id
 template = {

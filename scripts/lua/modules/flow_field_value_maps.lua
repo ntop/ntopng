@@ -10,6 +10,8 @@ local json = require "dkjson"
 
 local flow_field_value_maps = {}
 
+local NTOP_PEN = "35632"
+
 local pen_map = {}
 
 local pen_to_map_file = {
@@ -36,6 +38,7 @@ function flow_field_value_maps.key_to_pen_type_and_value(field)
    local pen_type = field:split("%.") or {}
 
    --   tprint({field = field, field_pen = field_pen, field_type = field_type})
+
    return pen_type[1], pen_type[2], pen_type[3]
 end
 
@@ -57,27 +60,34 @@ end
 -- ################################################################################
 
 function flow_field_value_maps.map_field_value(ifid, field, value)
-   local field_pen, field_type = flow_field_value_maps.key_to_pen_type_and_value(field)
-
-   if field_pen ~= nil and field_type ~= nil then
+   local field_pen, field_id, field_type = flow_field_value_maps.key_to_pen_type_and_value(field)
+   
+   if field_pen ~= nil and field_id ~= nil then
       -- if pen or type is nil then
       -- it has not been possible to extract pen and type (string field?)
       -- so no mapping can be found for this value
 
+      field_id = tonumber(field_id)
+      
+      if(field_pen == NTOP_PEN) then
+	 -- ntop
+	 field_id = field_id + NTOP_BASE_ID
+      end
+      
       -- lazy init of the mapping
       init_flow_field_value_map(field_pen)
 
       -- do the actual mapping
       if pen_map[field_pen] then
-	 field, value = pen_map[field_pen].map_field_value(ifid, field_type, value)
-      elseif rtemplate[tonumber(field_type)] then
+	 field, value = pen_map[field_pen].map_field_value(ifid, field_id, value)
+      elseif rtemplate[field_id] then
 	 -- If there's no match on pen_map, attempt at decoding using the nProbe rtemplate
 	 -- NOTE: see function getFlowKey in flow_utils.lua
-	 field = rtemplate[tonumber(field_type)]
+	 field = rtemplate[tonumber(field_id)]
       end
 
       -- override with static mappings with those received from nProbe on the options topic
-      value = flow_field_value_maps.options_topic_field_value_map(ifid, field_pen, field_type, value)
+      value = flow_field_value_maps.options_topic_field_value_map(ifid, field_pen, field_id, value)
    end
 
    return field, value
