@@ -2,6 +2,10 @@
 
 LUA_INTERPR="`which lua5.3`"
 
+if [ -z "$LUA_INTERPR" ]; then
+    LUA_INTERPR="`which lua5.4`"
+fi
+
 function usage {
   echo -e "Usage: `basename $0` action parameters"
   echo
