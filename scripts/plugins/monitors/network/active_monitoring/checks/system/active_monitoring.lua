@@ -41,8 +41,10 @@ local function run_am_check(params, all_hosts, granularity)
      print("[ActiveMonitoring] Script started\n")
   end
 
+  if(do_trace) then io.write(debug.traceback()) end
+
   if table.empty(all_hosts) then
-     if(do_trace) then print("[ActiveMonitoring] Nothing to do\n") end
+     if(do_trace) then print("[ActiveMonitoring] Nothing to do ["..granularity.."]\n") end
     return
   end
 

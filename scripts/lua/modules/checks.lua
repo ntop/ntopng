@@ -859,6 +859,8 @@ function checks.load(ifid, script_type, subdir, options)
       local full_path = loadable_check.full_path
       local plugin = loadable_check.plugin
 
+      -- io.write("Loading "..full_path.."\n")
+      
       if(rv.modules[mod_fname]) then
 	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping duplicate module '%s'", mod_fname))
 	 goto next_module
