@@ -153,12 +153,12 @@ tag_utils.defined_tags = {
    },
    input_snmp = {
       value_type = 'snmp_interface',
-      i18n_label = i18n('db_search.tags.input_snmp_interface'),
+      i18n_label = i18n('db_search.tags.input_snmp'),
       operators = {'eq', 'neq'}
    },
    output_snmp = {
       value_type = 'snmp_interface',
-      i18n_label = i18n('db_search.tags.output_snmp_interface'),
+      i18n_label = i18n('db_search.tags.output_snmp'),
       operators = {'eq', 'neq'}
    },
    src2dst_tcp_flags = {
