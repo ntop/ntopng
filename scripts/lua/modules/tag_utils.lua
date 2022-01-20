@@ -151,6 +151,16 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.vlan_id'),
       operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
    },
+   input_snmp = {
+      value_type = 'snmp_interface',
+      i18n_label = i18n('db_search.tags.input_snmp_interface'),
+      operators = {'eq', 'neq'}
+   },
+   output_snmp = {
+      value_type = 'snmp_interface',
+      i18n_label = i18n('db_search.tags.output_snmp_interface'),
+      operators = {'eq', 'neq'}
+   },
    src2dst_tcp_flags = {
       value_type = 'flags',
       i18n_label = i18n('db_search.src2dst_tcp_flags'),
