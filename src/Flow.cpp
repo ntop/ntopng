@@ -2315,9 +2315,9 @@ void Flow::lua_get_risk_info(lua_State* vm) {
 /* *************************************** */
 
 void Flow::setRisk(ndpi_risk risk_bitmap) {
-
   /* Handle OR of risks with no risk */
   NDPI_CLR_BIT(risk_bitmap, NDPI_NO_RISK);
+  
   if (risk_bitmap == 0)
     NDPI_SET_BIT(risk_bitmap, NDPI_NO_RISK);
 

@@ -123,7 +123,7 @@ local BUILTIN_LISTS = {
       url = "https://sslbl.abuse.ch/blacklist/ja3_fingerprints.csv",
       format = "ja3_suricata_csv",
       category = CUSTOM_CATEGORY_MALWARE,
-      enabled = true,
+      enabled = false,
       update_interval = DEFAULT_UPDATE_INTERVAL,
    }
 }
