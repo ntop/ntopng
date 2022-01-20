@@ -1380,7 +1380,7 @@ local known_parameters = {
    ["webhook_username"]        = validateEmptyOr(validateSingleWord),
    ["webhook_password"]        = validateEmptyOr(validateSingleWord),
 
-   -- nIndex
+   -- DB
    ["select_clause"]           = validateUnquoted,
    ["select_keys_clause"]      = validateUnquoted,
    ["select_values_clause"]    = validateUnquoted,
@@ -1423,7 +1423,6 @@ local known_parameters = {
    ["cli_asn"]                 = validateListOfTypeInline(validateFilters(validateASN)),
    ["srv_asn"]                 = validateListOfTypeInline(validateFilters(validateASN)),
    ["subtype"]                 = validateListOfTypeInline(validateFilters(validateUnquoted)),
-   ["tot_pkts"]                = validateFilters(validateNumber),                --Total packtes, used by nindex query
    ["cli_location"]            = validateFilters(validateNumber),                  --Local or Remote
    ["srv_location"]            = validateFilters(validateNumber),                  --Local or Remote
    ["observation_point_id"]    = validateFilters(validateNumber),                --Observation point ID, used by nindex query
@@ -1642,20 +1641,23 @@ local known_parameters = {
    ["re_arm_minutes"]          = validateEmptyOr(validateNumber),                -- Number of minute before alert re-arm check
    ["device_type"]             = validateNumber,
    ["ewma_alpha_percent"]      = validateNumber,
-   ["sidebar_collapsed"]      = validateNumber,
+   ["sidebar_collapsed"]       = validateNumber,
    ["senders_receivers"]       = validateSendersReceivers,      -- Used in top scripts
    ["fingerprint_type"]        = validateFingerprintType,
    ["granularity"]             = validateSingleWord,
    ["old_granularity"]         = validateSingleWord,
    ["script_type"]             = validateSingleWord,
-   ["check_subdir"]           = validateSingleWord,
+   ["check_subdir"]            = validateSingleWord,
    ["script_key"]              = validateSingleWord,
    ["alert_key"]               = validateNumber,
    ["alert_addr"]              = validateEmptyOr(validateHost),
    ["search_script"]           = validateSingleWord,
    ["field_alias"]             = validateListOfTypeInline(validateFieldAlias),
    ["dscp_class"]              = validateSingleWord,
-   ["host_pool_members"]      = validateUnquoted,
+   ["host_pool_members"]       = validateUnquoted,
+
+   ["bytes"]                   = validateListOfTypeInline(validateFilters(validateNumber)),
+   ["packets"]                 = validateListOfTypeInline(validateFilters(validateNumber)),
 
    -- Widget and Datasources
    ["ds_type"]                 = validateSingleWord,

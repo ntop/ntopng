@@ -191,6 +191,16 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.info'),
       operators = {'eq', 'neq', 'in', 'nin'}
    },
+   bytes = {
+      value_type = 'bytes',
+      i18n_label = i18n('db_search.tags.bytes'),
+      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+   },
+   packets = {
+      value_type = 'packets',
+      i18n_label = i18n('db_search.tags.packets'),
+      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+   },
 }
 
 -- #####################################
