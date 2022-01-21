@@ -152,7 +152,7 @@ else
          },
          {
             entry = page_utils.menu_entries.active_monitoring,
-            url = "/plugins/active_monitoring_stats.lua"
+            url = "/lua/active_monitoring_stats.lua"
          },
          {
             entry = page_utils.menu_entries.divider,
