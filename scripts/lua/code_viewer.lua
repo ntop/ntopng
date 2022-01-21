@@ -13,7 +13,7 @@ local code_editor = require("code_editor")
 
 sendHTTPContentTypeHeader('text/html')
 
-local title = string.gsub(i18n("plugin_browser", {plugin_name = _GET["plugin_path"]}), "/plugins/", "")
+local title = string.gsub(i18n("plugin_browser", {plugin_name = _GET["plugin_path"]}), "/lua/", "")
 local referal_script_page = _GET["referal_url"]
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.plugin_browser, {plugin_name = _GET["plugin_path"]})

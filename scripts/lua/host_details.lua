@@ -750,7 +750,7 @@ else
    
          print([[
             <td colspan="2">
-               <a href=']].. ntop.getHttpPrefix() ..[[/plugins/active_monitoring_stats.lua?am_host=]].. host['ip'] ..[[&measurement=]].. icmp ..[['>]].. last_rtt ..[[</a>
+               <a href=']].. ntop.getHttpPrefix() ..[[/lua/active_monitoring_stats.lua?am_host=]].. host['ip'] ..[[&measurement=]].. icmp ..[['>]].. last_rtt ..[[</a>
             </td>
          ]])
    

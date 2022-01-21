@@ -67,7 +67,7 @@ if auth.has_capability(auth.capabilities.active_monitoring) then
 end
 
 
-local navbar_title = ui_utils.create_navbar_title(title, host_label, "/plugins/active_monitoring_stats.lua")
+local navbar_title = ui_utils.create_navbar_title(title, host_label, "/lua/active_monitoring_stats.lua")
 
 page_utils.print_navbar(navbar_title, url, {
     {
