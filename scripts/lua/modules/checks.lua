@@ -2176,8 +2176,8 @@ end
 
 -- The function below ia called once (#pragma once)
 local function setupSNMPChecks(str_granularity, checks_var, do_trace)
-   if not ntop.isEnterprise() then
-      return
+   if not ntop.isEnterprise() and not ntop.isnEdgeEnterprise() then
+      return false
    end
    
    local snmp_device_pools = require "snmp_device_pools"
@@ -2193,10 +2193,11 @@ local function setupSNMPChecks(str_granularity, checks_var, do_trace)
    checks_var.available_modules = checks.load(ifid, checks.script_types.snmp_device, "snmp_device", {
       do_benchmark = checks_var.do_benchmark,
    })
-
    checks_var.configset = checks.getConfigset()
    -- Instance of snmp device pools to get assigned members
    checks_var.pools_instance = snmp_device_pools:create()
+
+   return true
 end
 
 -- #################################################################
@@ -2381,9 +2382,14 @@ end
 -- #################################################################
 
 function checks.SNMPChecks(granularity, checks_var, do_trace)
-   setupSNMPChecks(granularity, checks_var, do_trace)
+   if not setupSNMPChecks(granularity, checks_var, do_trace) then
+      return false
+   end
+
    runSNMPChecks(granularity, checks_var, do_trace)
    teardownChecks(granularity, checks_var, do_trace)
+
+   return true
 end
 
 -- #################################################################
