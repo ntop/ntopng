@@ -1446,6 +1446,7 @@ local lang = {
     ["observation_point_id"] = "Obs. Point ID",
     ["packets"] = "Pkts",
     ["probe_ip"] = "Flow Exporter",
+    ["processed_records"] = "Processed %{records} records [%{rps} records/sec]",
     ["query"] = "Query",
     ["query_copied"] = "Query SQL copied to clipboard!",
     ["query_performed"] = "Query performed in",

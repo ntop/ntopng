@@ -652,7 +652,7 @@ local context = {
        show_info = (page == 'flow'),
    },
 
-   show_tot_records = false,
+   show_tot_records = true,
 
    range_picker = {
        ifid = ifid,

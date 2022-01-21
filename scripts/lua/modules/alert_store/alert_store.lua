@@ -708,7 +708,7 @@ function alert_store:select_historical(filter, fields)
          self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
    else
       q = string.format(" SELECT %u entity_id, (tstamp_end - tstamp) duration, %s FROM `%s` WHERE %s %s %s %s %s",
-   self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
+         self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
    end
 
    res = interface.alert_store_query(q)
@@ -723,12 +723,26 @@ function alert_store:select_historical(filter, fields)
       end
    end
 
+   -- count records
+   local count_res = 0
+   if isEmptyString(group_by_clause) then
+      local count_q = string.format("SELECT COUNT(*) AS totalRows FROM `%s` WHERE %s", self._table_name, where_clause)
+      local count_r = interface.execSQLQuery(count_q)
+      if table.len(count_r) > 0 then
+         count_res = tonumber(count_r[1]["totalRows"])
+      end
+   else
+      count_res = #res
+   end
+
    local end_time = ntop.gettimemsec() -- Format: 1637330701.5767
    local duration = (end_time - begin_time) * 1000
+   local records_sec = round((count_res / duration)*1000)
 
    local info = {
-      query_duration_msec = duration,
       query = q,
+      query_duration_msec = duration,
+      num_records_processed = i18n("db_search.processed_records", {records=formatValue(count_res), rps=formatValue(records_sec)}),
    }
 
    return res, info
