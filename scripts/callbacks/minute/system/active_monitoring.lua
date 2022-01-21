@@ -9,4 +9,6 @@ local ts_dump = require "ts_min_dump_utils"
 local am_utils = require  "am_utils"
 
 local hosts = am_utils.getHosts(nil, "min")
+
 am_utils.run_am_check(os.time(), hosts, "min")
+

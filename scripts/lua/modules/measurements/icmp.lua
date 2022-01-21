@@ -59,6 +59,10 @@ end
 
 -- @brief Async ping
 local function check_icmp_oneshot(hosts, granularity)
+   if do_trace then
+      print("[check_icmp_oneshot] "..granularity.."\n")
+   end
+
    check_oneshot("icmp", hosts, granularity)
 end
 
@@ -74,7 +78,7 @@ end
 local function collect_oneshot(measurement, granularity)
    -- Collect possible ICMP results
    local res = ntop.collectPingResults(false)
-   
+
    for host, value in pairs(res or {}) do
       local key = am_hosts[measurement][host]
       
@@ -98,6 +102,11 @@ end
 
 -- @brief Collect async ping results (ipv4 icmp)
 local function collect_icmp_oneshot(granularity)
+
+   if do_trace then
+      print("[collect_icmp_oneshot] "..granularity.."\n")
+   end
+
    return collect_oneshot("icmp", granularity)
 end
 

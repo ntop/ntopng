@@ -884,9 +884,11 @@ end
 function am_utils.run_am_check(when, all_hosts, granularity)
   local hosts_am = {}
   local resolved_unreachable_hosts = {}
-  when = when - (when % 60)
   local am_schema = am_utils.getAmSchemaForGranularity(granularity)
-
+  local do_trace = false
+  
+  when = when - (when % 60)
+  
   if(do_trace) then
      print("[ActiveMonitoring] Script started\n")
   end
