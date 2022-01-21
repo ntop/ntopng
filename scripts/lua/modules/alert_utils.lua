@@ -366,7 +366,7 @@ function alert_utils.getConfigsetAlertLink(alert_json, alert --[[ optional --]])
    	 -- This piece of code (exception) has been moved here from formatAlertMessage
    	 if(alert_consts.getAlertType(alert.alert_id, alert.entity_id) == "alert_am_threshold_cross") then
    	    local plugins_utils = require "plugins_utils"
-   	    local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+   	    local active_monitoring_utils = require "am_utils"
    	    local host = json.decode(alert.json)["host"]
 
    	    if host and host.measurement and not host.is_infrastructure then

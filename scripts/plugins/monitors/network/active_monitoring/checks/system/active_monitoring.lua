@@ -5,7 +5,7 @@
 local checks = require("checks")
 local ts_utils = require("ts_utils_core")
 local plugins_utils = require("plugins_utils")
-local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+local am_utils = require  "am_utils"
 
 -- Enable do_trace messages
 local do_trace = false

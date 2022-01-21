@@ -45,7 +45,7 @@
 </div>
 
 {*
-    plugins_utils.renderTemplate("active_monitoring", "am_add_host_modal.html", {
+    template_utils.render("am_add_host_modal.html", {
         pools = am_stats.pools,
         dialog = {
           add_record = i18n("active_monitoring_stats.add_record"),
@@ -66,7 +66,7 @@
 *}
 
 {*
-    plugins_utils.renderTemplate("active_monitoring", "am_edit_host_modal.html", {
+    template_utils.render("am_edit_host_modal.html", {
         pools = am_stats.pools,
         dialog = {
           measurement = i18n("active_monitoring_stats.measurement"),
@@ -90,7 +90,7 @@
 
 {*
 
-    plugins_utils.renderTemplate("active_monitoring", "am_delete_host_modal.html", {
+    template_utils.render("am_delete_host_modal.html", {
         dialog = {
             confirm_delete = i18n("active_monitoring_stats.confirm_delete"),
             delete = i18n("delete"),
@@ -130,4 +130,5 @@
     const poolsFilter = {* json.encode(am_stats.pool_filters)*};
     const SHOW_IFACE = {{ ntop.isPingIfaceAvailable() }};
 </script>
-<script type='text/javascript' src='{{ plugins_utils.getHttpdocsDir("active_monitoring")}}/active_monitoring_utils.js?{{ ntop.getStaticFileEpoch() }}'></script>
+<script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/utils/active_monitoring_utils.js?{{ ntop.getStaticFileEpoch() }}'></script>
+

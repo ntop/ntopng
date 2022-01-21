@@ -102,7 +102,7 @@ end
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function am_alert_store:format_record(value, no_html)
-   local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+   local am_utils = require "am_utils"
    local record = self:format_json_record_common(value, alert_entities.am_host.entity_id, no_html)
 
    local alert_info = alert_utils.getAlertInfo(value)

@@ -11,8 +11,7 @@ local plugins_utils = require("plugins_utils")
 local ui_utils = require("ui_utils")
 local template = require("template_utils")
 local json = require("dkjson")
-local active_monitoring_utils = plugins_utils.loadModule("active_monitoring",
-                                                         "am_utils")
+local active_monitoring_utils = require "am_utils"
 local active_monitoring_pools = require("active_monitoring_pools")
 local am_pool = active_monitoring_pools:create()
 
@@ -152,7 +151,7 @@ if (page == "overview") then
         }
     }
     -- template render
-    print(plugins_utils.renderTemplate("active_monitoring", "active_monitoring_stats.template", context))
+    template.render("active_monitoring_stats.template", context)
 
 elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) then
 

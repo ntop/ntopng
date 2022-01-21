@@ -228,7 +228,7 @@ $(function() {
 
     const $addHostModalHandler = $(`#am-add-form`).modalHandler({
         method: 'post',
-        endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
+        endpoint: `${http_prefix}/lua/edit_active_monitoring_host.lua`,
         resetAfterSubmit: false,
         csrf: am_csrf,
         onModalInit: function () {
@@ -293,7 +293,7 @@ $(function() {
 
     const $editModalHandler = $(`#am-edit-form`).modalHandler({
         method: 'post',
-        endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
+        endpoint: `${http_prefix}/lua/edit_active_monitoring_host.lua`,
         resetAfterSubmit: false,
         csrf: am_csrf,
         onModalInit: function (amData) {
@@ -382,7 +382,7 @@ $(function() {
     const $removeModalHandler = $(`#am-delete-modal form`).modalHandler({
         method: 'post',
         csrf: am_csrf,
-        endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
+        endpoint: `${http_prefix}/lua/edit_active_monitoring_host.lua`,
         dontDisableSubmit: true,
         onModalInit: function(amData) {
             $("#delete-host").html(`<b>${amData.measurement}://${amData.html_label}</b>`);
@@ -428,7 +428,7 @@ $(function() {
             }
         }
     ], );
-    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/plugins/get_active_monitoring_hosts.lua`);
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/get_active_monitoring_hosts.lua`);
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         lengthChange: (get_host === ""),
         paging: (get_host === ""),

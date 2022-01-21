@@ -33,7 +33,7 @@ local companion_interface_utils = require "companion_interface_utils"
 local flow_consts = require "flow_consts"
 local alert_consts = require "alert_consts"
 local plugins_utils = require "plugins_utils"
-local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+local am_utils = require "am_utils"
 local behavior_utils = require "behavior_utils"
 
 local host_pools_nedge
@@ -705,7 +705,7 @@ else
                         csrf: am_csrf,
                      };
    
-                     $.post(`${http_prefix}/plugins/edit_active_monitoring_host.lua`, data_to_send)
+                     $.post(`${http_prefix}/lua/edit_active_monitoring_host.lua`, data_to_send)
                      .then((data, result, xhr) => {
    
                         const $alert_message = $('<div class="alert"></div>');

@@ -56,7 +56,7 @@ local function check(measurement, hosts, granularity)
       -- Check if the result of the measurement has to be saved
       if host.save_result and not isEmptyString(rv.CONTENT) then
 	 local plugins_utils = require "plugins_utils"
-	 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+	 local am_utils = require "am_utils"
 	 am_utils.setLastResult(key, rv.CONTENT)
       end
 

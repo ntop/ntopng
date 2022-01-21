@@ -26,7 +26,7 @@ local resolved_hosts = {}
 -- see (am_utils.key2host for the details on such format).
 local function check_continuous(measurement, hosts, granularity)
   local plugins_utils = require("plugins_utils")
-  local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+  local am_utils = require "am_utils"
 
   am_hosts[measurement] = {}
   resolved_hosts[measurement] = {}

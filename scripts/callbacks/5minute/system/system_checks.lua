@@ -5,6 +5,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+local ts_dump = require "ts_5min_dump_utils"
 local checks = require "checks"
 
 -- #################################################################

@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" ..
 require "lua_utils"
 
 local plugins_utils = require("plugins_utils")
-local am_import_export = plugins_utils.loadModule("active_monitoring", "am_import_export")
+local am_import_export = require "am_import_export"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local import_export_rest_utils = require "import_export_rest_utils"

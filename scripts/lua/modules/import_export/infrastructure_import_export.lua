@@ -15,7 +15,7 @@ local rest_utils = require "rest_utils"
 local pools = require("pools")
 local infrastructure_utils = require("infrastructure_utils")
 local plugins_utils = require("plugins_utils")
-local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+local am_utils = require "am_utils"
 
 -- ##############################################
 

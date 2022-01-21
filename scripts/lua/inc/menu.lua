@@ -428,14 +428,17 @@ local poller_entries = {
       entry = page_utils.menu_entries.infrastructure_dashboard,
       hidden = (not ntop.isEnterpriseL() and not ntop.isnEdgeEnterprise()) or not is_admin,
       url = '/lua/pro/enterprise/infrastructure_dashboard.lua'
+   },
+   {
+      entry = page_utils.menu_entries.snmp,
+      hidden = not is_system_interface or (not ntop.isEnterpriseM() and not ntop.isnEdgeEnterprise()),
+      url = "/lua/pro/enterprise/snmpdevices_stats.lua",
+   },
+   {
+      entry = page_utils.menu_entries.active_monitoring,
+      hidden = not is_system_interface,
+      url = "/lua/active_monitoring_stats.lua",
    }
-}
-
--- Add SNMP to the poller entries
-poller_entries[#poller_entries + 1] = {
-   entry = page_utils.menu_entries.snmp,
-   hidden = not is_system_interface or (not ntop.isEnterpriseM() and not ntop.isnEdgeEnterprise()),
-   url = "/lua/pro/enterprise/snmpdevices_stats.lua",
 }
 
 -- Add plugin entries relative to pollers (e.g., active monitoring) ...

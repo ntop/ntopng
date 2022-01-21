@@ -105,6 +105,19 @@ local function validateEmptyOr(other_validation)
 end
 http_lint.validateEmptyOr = validateEmptyOr
 
+local function validateMeasurement(p)
+  local plugins_utils = require("plugins_utils")
+  local am_utils = require "am_utils"
+
+  if(am_utils) then
+    local available_measurements = am_utils.getMeasurementsInfo()
+
+    return(available_measurements[p] ~= nil)
+  end
+
+  return(false)
+end
+
 -- #################################################################
 
 -- FRONT-END VALIDATORS
@@ -1669,7 +1682,14 @@ local known_parameters = {
 -- Topology SNMP Devices
    ["topology_host"]                   = validateIPV4,
 
--- Infrastructure Dashboard
+   -- Active monitoring
+   ["am_host"]                = { http_lint.webhookCleanup, http_lint.validateUnquoted },
+   ["old_am_host"]            = { http_lint.webhookCleanup, http_lint.validateUnquoted },
+   ["threshold"]              = http_lint.validateEmptyOr(http_lint.validateNumber),
+   ["measurement"]            = validateMeasurement,
+   ["old_measurement"]        = validateMeasurement,
+
+   -- Infrastructure Dashboard
    ["alias"]                  = validateUnquoted,
    ["token"]                  = validateToken,
    ["instance_id"]            = validateSingleWord,

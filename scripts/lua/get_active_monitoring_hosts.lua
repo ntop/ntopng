@@ -10,7 +10,7 @@ require "lua_utils"
 local format_utils = require("format_utils")
 local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
-local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+local am_utils = require "am_utils"
 
 local ui_utils = require("ui_utils")
 

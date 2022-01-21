@@ -12,7 +12,7 @@ local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local plugins_utils = require("plugins_utils")
 local host_pools = require "host_pools"
-local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+local am_utils = require "am_utils"
 
 -- ##############################################
 
