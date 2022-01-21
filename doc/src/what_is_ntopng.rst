@@ -186,18 +186,18 @@ The Professional version offers some extra features with respect to the Communit
 ntopng Enterprise M
 -------------------
 
-The Enterprise M version offers some extra features with respect to the Professional version, which are particularly useful for large organizations, including SNMP support, fast MySQL export, advanced alerts management, high performance flow indexing.
+The Enterprise M version offers some extra features with respect to the Professional version, which are particularly useful for large organizations, including SNMP support, advanced alerts management.
 
 ntopng Enterprise L
 -------------------
 
-The Enterprise L version offers some extra features with respect to the Enterprise M version, including Identity Management (the ability to correlate users to traffic). This version also unlocks n2disk 1 Gbit (Continuous Recording) and nProbe Pro (Flow Collection) with no need for additional licenses.
+The Enterprise L version offers some extra features with respect to the Enterprise M version, including fast ClickHouse export, historical data explorer and analysis, Identity Management (the ability to correlate users to traffic).
 
 
 ntopng Enterprise L Bundle
 --------------------------
 
-The Enterprise L Bundle unlocks ntopng Enterprise L, nProbe Pro, and n2disk 1 Gbit.
+The Enterprise L Bundle unlocks ntopng Enterprise L, nProbe Pro (Flow Collection), and n2disk 1 Gbit (Continuous Recording).
 
 .. warning::
    ntopng and nProbe must be on the same machine to have them unlocked with the ntopng Enterprise L Bundle license. The bundle license must be placed under :code:`/etc/ntopng/ntopng.license`.
