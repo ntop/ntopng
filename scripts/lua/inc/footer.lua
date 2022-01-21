@@ -357,7 +357,7 @@ print[[
 				}
 
 				if(rsp.ts_alerts && rsp.ts_alerts.influxdb && (!systemInterfaceEnabled)) {
-					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/plugins/influxdb_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=alerts#tab-table-engaged-alerts\">"
+					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/monitor/influxdb_monitor.lua?ifid=]] print(tostring(ifid)) print[[&page=alerts#tab-table-engaged-alerts\">"
 					msg += "<span class=\"badge bg-danger\"><i class=\"fas fa-database\"></i></span></a>";
 				}
 

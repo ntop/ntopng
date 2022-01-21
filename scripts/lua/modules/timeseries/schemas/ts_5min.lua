@@ -635,6 +635,12 @@ schema:addMetric("value")
 
 -- ##############################################
 
+-------------------------------------------------------
+-- INFLUXDB SCHEMAS
+-------------------------------------------------------
+
+-- ##############################################
+
 schema = ts_utils.newSchema("am_host:http_stats_5mins", { step = 300, metrics_type = ts_utils.metrics.gauge, aggregation_function = ts_utils.aggregation.max, is_system_schema = true })
 schema:addTag("ifid")
 schema:addTag("host")
@@ -666,6 +672,53 @@ schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("latency")
 
+-------------------------------------------------------
+-- INFLUXDB SCHEMAS
+-------------------------------------------------------
+ 
+-- ##############################################
+
+schema = ts_utils.newSchema("influxdb:storage_size", { metrics_type = ts_utils.metrics.gauge, is_system_schema = true, step = 300 })
+schema:addTag("ifid")
+schema:addMetric("disk_bytes")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("influxdb:exported_points", { metrics_type = ts_utils.metrics.counter, is_system_schema = true, step = 300 })
+schema:addTag("ifid")
+schema:addMetric("points")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("influxdb:dropped_points", { metrics_type = ts_utils.metrics.counter, is_system_schema = true, step = 300 })
+schema:addTag("ifid")
+schema:addMetric("points")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("influxdb:exports", { metrics_type = ts_utils.metrics.counter, is_system_schema = true, step = 300 })
+schema:addTag("ifid")
+schema:addMetric("num_exports")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("influxdb:rtt", { metrics_type = ts_utils.metrics.gauge, is_system_schema = true, step = 300 })
+schema:addTag("ifid")
+schema:addMetric("millis_rtt")
+
+-- ##############################################
+
+-- The following metrics are built-in into influxdb
+schema = ts_utils.newSchema("influxdb:memory_size", { influx_internal_query = ts_utils.get_memory_size_query, is_system_schema = true, metrics_type = ts_utils.metrics.gauge, step = 10 })
+schema:addTag("ifid")
+schema:addMetric("mem_bytes")
+ 
+-- ##############################################
+
+schema = ts_utils.newSchema("influxdb:write_successes", { influx_internal_query = ts_utils.get_write_success_query, is_system_schema = true, metrics_type = ts_utils.metrics.counter, step = 10 })
+schema:addTag("ifid")
+schema:addMetric("points")
+ 
 -------------------------------------------------------
 -- PRO VERSION SCHEMAS
 -------------------------------------------------------

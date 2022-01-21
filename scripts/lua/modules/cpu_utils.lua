@@ -150,5 +150,11 @@ end
 
 -- #################################
 
+function cpu_utils.processTimeseriesEnabled()
+   return(ntop.getPref("ntopng.prefs.system_probes_timeseries") ~= "0")
+end
+
+-- #################################
+
 return cpu_utils
 

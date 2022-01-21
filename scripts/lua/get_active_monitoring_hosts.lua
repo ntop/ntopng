@@ -38,7 +38,7 @@ for key, am_host in pairs(am_hosts) do
     end
 
     if charts_available then
-      chart = plugins_utils.getActiveMonitoringUrl('active_monitoring_stats.lua') .. '?am_host='.. am_host.host ..'&measurement='.. am_host.measurement ..'&page=historical'
+      chart = plugins_utils.getMonitorUrl('active_monitoring_monitor.lua') .. '?am_host='.. am_host.host ..'&measurement='.. am_host.measurement ..'&page=historical'
     end
 
     local column_last_ip = ""

@@ -885,4 +885,33 @@ end
 
 -- ##############################################
 
+function ts_utils.get_memory_size_query(influxdb, schema, tstart, tend, time_step)
+   --[[
+      See comments in function driver:getMemoryUsage() to understand
+      why it is necessary to subtract the HeapReleased from Sys.
+   --]]
+   local q = 'SELECT MEAN(Sys) - MEAN(HeapReleased) as mem_bytes' ..
+      ' FROM "_internal".."runtime"' ..
+      " WHERE time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
+      " GROUP BY TIME(".. time_step .."s)"
+
+   return(q)
+end
+
+-- ##############################################
+
+function ts_utils.get_write_success_query(influxdb, schema, tstart, tend, time_step)
+   local q = 'SELECT SUM(writePointsOk) as points' ..
+      ' FROM (SELECT '..
+      ' (DERIVATIVE(MEAN(writePointsOk)) / '.. time_step ..') as writePointsOk' ..
+      ' FROM "monitor"."shard" WHERE "database"=\''.. influxdb.db ..'\'' ..
+      " AND time >= " .. tstart .. "000000000 AND time <= " .. tend .. "000000000" ..
+      " GROUP BY id)" ..
+      " GROUP BY TIME(".. time_step .."s)"
+
+   return(q)
+end
+
+-- ##############################################
+
 return ts_utils

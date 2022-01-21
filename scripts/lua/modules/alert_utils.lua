@@ -370,7 +370,7 @@ function alert_utils.getConfigsetAlertLink(alert_json, alert --[[ optional --]])
    	    local host = json.decode(alert.json)["host"]
 
    	    if host and host.measurement and not host.is_infrastructure then
-   	       return ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/active_monitoring_stats.lua?am_host='
+   	       return ' <a href="'.. ntop.getHttpPrefix() ..'/lua/monitor/active_monitoring_monitor.lua?am_host='
    		  .. host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
    	    end
    	 end

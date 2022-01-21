@@ -96,7 +96,8 @@ page_utils.menu_entries = {
     system_status         = {key = "system_status", i18n_title = "system_status", section = "health"},
     interfaces_status     = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "health"},
     alerts_status         = {key = "alerts_status", i18n_title = "system_alerts_status", section = "health"},
-
+    influxdb_status       = {key = "influxdb", i18n_title = "InfluxDB", section = "health"},
+    redis_status          = {key = "redis_monitor", i18n_title = "Redis", section = "health"},
     -- exporters
     event_exporters       = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "collection"},
     sflow_exporters       = {key = "sflow_exporters", i18n_title = "flows_page.sflow_devices", section = "collection"},

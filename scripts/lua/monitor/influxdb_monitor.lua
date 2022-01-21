@@ -13,14 +13,12 @@ local alert_consts = require("alert_consts")
 local checks = require("checks")
 local plugins_utils = require("plugins_utils")
 local graph_utils = require("graph_utils")
-local alert_utils = require("alert_utils")
-
-local probe = checks.loadModule(getSystemInterfaceId(), checks.script_types.system, "system", "influxdb_monitor")
+local alert_utils = require "alert_utils"
+local influxdb_export_api = require "influxdb_export_api"
 
 sendHTTPContentTypeHeader('text/html')
 
-
-page_utils.set_active_menu_entry(page_utils.menu_entries.influxdb)
+page_utils.set_active_menu_entry(page_utils.menu_entries.influxdb_status)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -33,7 +31,7 @@ if not isAllowedSystemInterface() or (ts_utils.getDriverName() ~= "influxdb") th
 end
 
 local page = _GET["page"] or "overview"
-local url = plugins_utils.getUrl("influxdb_stats.lua") .. "?ifid=" .. interface.getId()
+local url = plugins_utils.getMonitorUrl("influxdb_monitor.lua") .. "?ifid=" .. interface.getId()
 local title = "InfluxDB"
 
 page_utils.print_navbar(title, url,
@@ -71,8 +69,8 @@ if(page == "overview") then
     print(ternary(charts_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:memory_size'><i class='fas fa-chart-area fa-lg'></i></A>", ""))
     print("</td><td><span id='throbber' class='spinner-border influxdb-info-load spinner-border-sm text-primary' role='status'><span class='sr-only'>Loading...</span></span> <span id=\"influxdb-info-memory\"></span></td></tr>\n")
 
-    if(probe ~= nil) then
-       local stats = probe.getExportStats()
+    if(influxdb_export_api.isInfluxdbChecksEnabled() == true) then
+       local stats = influxdb_export_api.getExportStats()
 
        print("<tr><td nowrap><b>".. i18n("system_stats.exports") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_exports").."</small></td>")
        print("<td class='text-center' width=5%>")

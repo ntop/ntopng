@@ -53,6 +53,24 @@ schema:addMetric("num_idle")
 schema:addMetric("num_active")
 
 -------------------------------------------------------
+-- MEMORY AND ALERT SCHEMAS ('/callbacks/minute/system/timeseries.lua')
+-------------------------------------------------------
+
+-- ################################################
+
+schema = ts_utils.newSchema("process:resident_memory", { step=60, metrics_type=ts_utils.metrics.gauge, is_critical_ts=true })
+schema:addTag("ifid")
+schema:addMetric("resident_bytes")
+
+-- ################################################
+
+schema = ts_utils.newSchema("process:num_alerts", { step = 60 })
+schema:addTag("ifid")
+schema:addMetric("written_alerts")
+schema:addMetric("alerts_queries")
+schema:addMetric("dropped_alerts")
+
+-------------------------------------------------------
 -- PROFILES SCHEMAS
 -------------------------------------------------------
 
@@ -450,3 +468,27 @@ schema:addTag("ifid")
 schema:addTag("pod")
 schema:addMetric("as_client")
 schema:addMetric("as_server")
+
+-- ################################################
+
+-------------------------------------------------------
+-- REDIS SCHEMAS
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("redis:memory", { metrics_type = ts_utils.metrics.gauge, is_system_schema = true, step = 60 })
+schema:addTag("ifid")
+schema:addMetric("resident_bytes")
+
+-- ################################################
+
+schema = ts_utils.newSchema("redis:keys", { metrics_type = ts_utils.metrics.gauge, is_system_schema = true, step = 60 })
+schema:addTag("ifid")
+schema:addMetric("num_keys")
+
+-- ################################################
+
+-- Cache
+schema = ts_utils.newSchema("redis:hits", { metrics_type = ts_utils.metrics.gauge, is_system_schema = true, step = 60 })
+schema:addTag("ifid")
+schema:addTag("command")
+schema:addMetric("num_calls")

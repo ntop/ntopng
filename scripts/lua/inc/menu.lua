@@ -23,7 +23,6 @@ local auth = require "auth"
 local blog_utils = require("blog_utils")
 local template_utils = require "template_utils"
 local auth = require "auth"
-local template_utils = require("template_utils")
 local is_nedge = ntop.isnEdge()
 local is_appliance = ntop.isAppliance()
 local is_admin = isAdministrator()
@@ -32,6 +31,7 @@ local info = ntop.getInfo()
 local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
 local is_system_interface = page_utils.is_system_view()
 local behavior_utils = require("behavior_utils")
+local checks = require "checks"
 
 local observationPointId = nil
 
@@ -107,9 +107,6 @@ print[[
    }
 </script>]]
 
-local template = require "template_utils"
-
-
 prefs = ntop.getPrefs()
 local iface_names = interface.getIfNames()
 
@@ -127,6 +124,7 @@ local ifs = interface.getStats()
 local is_pcap_dump = interface.isPcapDumpInterface()
 local is_packet_interface = interface.isPacketInterface()
 local is_viewed = ifs.isViewed
+local is_influxdb_enabled = false
 ifId = ifs.id
 
 -- NOTE: see sidebar.js for the client logic
@@ -152,8 +150,8 @@ else
          },
          {
             entry = page_utils.menu_entries.active_monitoring,
-            url = "/lua/active_monitoring_stats.lua"
-         },
+            url = "/lua/monitor/active_monitoring_monitor.lua"
+         },         
          {
             entry = page_utils.menu_entries.divider,
             hidden = not ntop.isEnterpriseM(),
@@ -400,6 +398,16 @@ local health_entries = {
          entry = page_utils.menu_entries.alerts_status,
          url = '/lua/system_alerts_stats.lua',
       },
+      {
+         entry = page_utils.menu_entries.influxdb_status,
+         url = '/lua/monitor/influxdb_monitor.lua',
+         hidden = not is_influxdb_enabled,
+      },
+      {
+         entry = page_utils.menu_entries.redis_status,
+         url = '/lua/monitor/redis_monitor.lua',
+         hidden = false, -- TODO: add a check for redis monitoring status
+      }
    }
 
 -- Add plugin entries relative to system health (e.g., redis) ...
@@ -437,7 +445,7 @@ local poller_entries = {
    {
       entry = page_utils.menu_entries.active_monitoring,
       hidden = not is_system_interface,
-      url = "/lua/active_monitoring_stats.lua",
+      url = "/lua/monitor/active_monitoring_monitor.lua",
    }
 }
 
@@ -741,7 +749,6 @@ page_utils.add_menubar_section(
    }
 )
 
-
 -- ##############################################
 
 page_utils.print_menubar()
@@ -970,7 +977,7 @@ print([[
 if (not is_system_interface) then
    print("<li class='nav-item'>")
    print(
-      template.gen("typeahead_input.html", {
+      template_utils.gen("typeahead_input.html", {
             typeahead={
                base_id     = "host_search",
                action      = "", -- see makeFindHostBeforeSubmitCallback

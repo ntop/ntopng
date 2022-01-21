@@ -35,7 +35,7 @@ local host = _GET["am_host"]
 local page = _GET["page"] or ('overview')
 local measurement = _GET["measurement"]
 
-local base_url = plugins_utils.getUrl("active_monitoring_stats.lua") .. "?ifid=" .. getInterfaceId(ifname)
+local base_url = plugins_utils.getUrl("active_monitoring_monitor.lua") .. "?ifid=" .. getInterfaceId(ifname)
 local url = base_url
 local info = ntop.getInfo()
 local measurement_info
@@ -67,7 +67,7 @@ if auth.has_capability(auth.capabilities.active_monitoring) then
 end
 
 
-local navbar_title = ui_utils.create_navbar_title(title, host_label, "/lua/active_monitoring_stats.lua")
+local navbar_title = ui_utils.create_navbar_title(title, host_label, "/lua/monitor/active_monitoring_monitor.lua")
 
 page_utils.print_navbar(navbar_title, url, {
     {

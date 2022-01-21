@@ -27,7 +27,7 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.redis_monitor)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
-local url = plugins_utils.getUrl("redis_stats.lua") .. "?ifid=" .. getInterfaceId(ifname)
+local url = plugins_utils.getMonitorUrl("redis_monitor.lua") .. "?ifid=" .. getInterfaceId(ifname)
 
 page_utils.print_navbar("Redis", url,
 			{
@@ -85,9 +85,11 @@ if(page == "overview") then
  };
 
  function refreshRedisStats() {
-  $.get("]] print(plugins_utils.getUrl("get_redis_info.lua")) print[[", function(info) {
+  $.get("]] print(ntop.getHttpPrefix()) print[[/lua/rest/v2/get/redis/redis_info.lua", function(info) {
      $(".redis-info-load").hide();
 
+     info = info.rsp;
+     
      if(typeof info.health !== "undefined" && health_descr[info.health]) {
        $("#redis-health").html(health_descr[info.health]["status"] + "<br>" + health_descr[info.health]["descr"]);
      }
@@ -123,7 +125,7 @@ $("#table-redis-stats").datatable({
    title: "",
    perPage: 100,
    hidePerPage: true,
-   url: "]] print(plugins_utils.getUrl("get_redis_stats.lua")) print(ntop.getHttpPrefix()) print[[",
+   url: "]] print(ntop.getHttpPrefix()) print("/lua/rest/v2/get/redis/redis_stats.lua") print[[",
    columns: [
      {
        field: "column_key",

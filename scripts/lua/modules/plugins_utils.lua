@@ -760,8 +760,8 @@ end
 
 -- ##############################################
 
-function plugins_utils.getActiveMonitoringUrl(script)
-  return(ntop.getHttpPrefix() .. "/lua/" .. script)
+function plugins_utils.getMonitorUrl(script)
+  return(ntop.getHttpPrefix() .. "/lua/monitor/" .. script)
 end
 
 -- ##############################################

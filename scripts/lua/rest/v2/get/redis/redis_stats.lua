@@ -6,11 +6,8 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-local format_utils = require("format_utils")
-local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
-
-sendHTTPContentTypeHeader('application/json')
+local rest_utils = require("rest_utils")
 
 -- ################################################
 
@@ -117,10 +114,11 @@ end
 -- ################################################
 
 local result = {}
+
 result["perPage"] = perPage
 result["currentPage"] = currentPage
 result["totalRows"] = totalRows
 result["data"] = res
 result["sort"] = {{sortColumn, sortOrder}}
 
-print(json.encode(result))
+rest_utils.answer(rest_utils.consts.success.ok, result)
