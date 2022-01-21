@@ -40,20 +40,6 @@ local url = base_url
 local info = ntop.getInfo()
 local measurement_info
 
-if (not checks.isSystemScriptEnabled("active_monitoring")) then
-    -- The active monitoring is disabled
-    print [[<div class="alert alert-warning" role="alert">]]
-    print(i18n("host_config.active_monitor_enable", {
-        url = ntop.getHttpPrefix() ..
-            '/lua/admin/edit_configset.lua?subdir=system&check=active_monitoring#all'
-    }))
-    print [[</div>]]
-
-    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
-
-    return
-end
-
 if (not isEmptyString(host) and not isEmptyString(measurement)) then
    host = active_monitoring_utils.getHost(host, measurement)
    if host then
