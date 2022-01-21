@@ -145,7 +145,7 @@
     let intervalId = 0;
 
     $(`#{{ datatable.name }}-query`).click(function(e) {
-        NtopUtils.copyToClipboard($(e.target).attr('title'), "{{i18n('db_search.query_copied')}}", "{{i18n('unable_to_copy_to_clickboard')}}");
+        NtopUtils.copyToClipboard($(e.target).attr('title'), "{{i18n('db_search.query_copied')}}", "{{i18n('unable_to_copy_to_clickboard')}}", $(`#{{ datatable.name }}-query`));
     })
 
     /* Show an overlay to hide loading */
@@ -482,7 +482,7 @@ $(document).ready(function(){
         document.execCommand("copy");
         document.body.removeChild(dummyInput);
 
-        $this.attr("title", "Copied!")
+        $this.attr("title", "{{ i18n('copied') }}!")
             .tooltip("dispose")
             .tooltip()
             .tooltip("show");

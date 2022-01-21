@@ -1041,12 +1041,17 @@ class NtopUtils {
 
 	}
 
-	static copyToClipboard(text, success, failure) {
+	static copyToClipboard(text, success, failure, item) {
 		if (navigator.clipboard && window.isSecureContext) {
 			navigator.clipboard.writeText(text).then(function() {
-				alert(success);
+				if (item) {
+					item.attr("title", "Copied!")
+			        	    .tooltip("dispose")
+        				    .tooltip()
+        				    .tooltip("show");
+				}
 			}, function(err) {
-				alert(failure + ': ' + err);
+				//alert(failure + ': ' + err);
 			});
 		} else {
 			let textArea = document.createElement("textarea");
@@ -1060,7 +1065,12 @@ class NtopUtils {
 			return new Promise((res, rej) => {
 				document.execCommand('copy') ? res() : rej();
 				textArea.remove();
-				alert(success);
+				if (item) {
+					item.attr("title", "Copied!")
+			        	    .tooltip("dispose")
+        				    .tooltip()
+        				    .tooltip("show");
+				}
 			});
 		}
 	}
