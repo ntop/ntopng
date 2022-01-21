@@ -760,6 +760,12 @@ end
 
 -- ##############################################
 
+function plugins_utils.getActiveMonitoringUrl(script)
+  return(ntop.getHttpPrefix() .. "/lua/" .. script)
+end
+
+-- ##############################################
+
 function plugins_utils.timeseriesCreationEnabled()
    return areSystemTimeseriesEnabled()
 end
