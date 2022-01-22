@@ -1,5 +1,5 @@
 --
--- (C) 2020 - ntop.org
+-- (C) 2020-22 - ntop.org
 --
 
 --
@@ -10,7 +10,7 @@ local os_utils = require("os_utils")
 local json = require("dkjson")
 local ts_utils = require("ts_utils_core")
 
-local do_trace = false
+local do_trace = true
 local collected_results = {}
 
 -- #################################################################
@@ -20,7 +20,13 @@ local collected_results = {}
 -- the hosts identifiers, whereas the table values contain host information
 -- see (am_utils.key2host for the details on such format).
 local function run_speedtest(hosts, granularity)
-   local rsp = ntop.speedtest()
+   local rsp
+
+   if(trace) then
+      print("[run_speedtest] "..hosts.." ["..granularity.."]\n")
+   end
+   
+   rsp = ntop.speedtest()
 
    if(not rsp) then
       return
@@ -83,6 +89,10 @@ end
 --	resolved_addr: (optional) the resolved IP address of the host
 --	value: (optional) the measurement numeric value. If unspecified, the host is still considered unreachable.
 local function collect_speedtest(granularity)
+   if(trace) then
+      print("[collect_speedtest] called\n")
+   end
+   
    return(collected_results)
 end
 
@@ -90,6 +100,10 @@ end
 
 -- This function checks whether the speedtest support has been compiled and available
 local function check_speedtest_support()
+   if(trace) then
+      print("[check_speedtest_support] called\n")
+   end
+   
    return ntop.hasSpeedtestSupport()
 end
 
