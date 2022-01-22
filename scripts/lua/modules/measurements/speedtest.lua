@@ -10,7 +10,7 @@ local os_utils = require("os_utils")
 local json = require("dkjson")
 local ts_utils = require("ts_utils_core")
 
-local do_trace = true
+local do_trace = false
 local collected_results = {}
 
 -- #################################################################
