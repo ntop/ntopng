@@ -564,6 +564,7 @@ local lang = {
     ["not_alerted"] = "Non Allarmati",
     ["note3"] = "Questo plugin genera traffico verso gli host configurati per misurarne la performance",
     ["note_alert"] = "Un'alert viene generata quando il valore registrato eccede la soglia configurata",
+    ["note_alert_dashed"] = "L'elemento tratteggiato indica l'attuale ora in corso di misurazione",
     ["note_availability"] = "L'availability mostra la frazione del tempo, nell'ultimo giorno, in cui la misura è rientrata entro la soglia configurata.",
     ["note_periodicity_change"] = "Cambiare la periodicità causa la cancellazione delle vecchie serie temporali",
     ["other_http_descr"] = "La somma del \"Name Lookup\" e di \"Altro\" costituisce il tempo totale in di completamento della risposta HTTP.",

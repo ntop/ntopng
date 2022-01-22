@@ -220,8 +220,11 @@ $(function() {
             const colorIndex = (data.length > 0) ? data[x] : 0;
             $rect.attr('fill', colors[colorIndex]);
             if (this_hour == x) {
-		        $rect.attr('stroke', '#000'); /* Add stroke for the current hour */
-	        }
+		$rect.attr('stroke', '#000'); /* Add stroke for the current hour */
+		$rect.attr('stroke-width', '2');
+		$rect.attr('stroke-dasharray', '2'); /* Make line dashed */
+		$rect.attr('opacity', '0.6');
+	    }
             $svg.append($rect);
         }
     }

@@ -132,6 +132,7 @@ if (page == "overview") then
             notes = {
                 i18n("active_monitoring_stats.note3", {product = info.product}),
                 i18n("active_monitoring_stats.note_alert"),
+		i18n("active_monitoring_stats.note_alert_dashed"),
                 i18n("active_monitoring_stats.note_availability")
             }
         }

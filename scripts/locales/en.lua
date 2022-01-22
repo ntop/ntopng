@@ -578,6 +578,7 @@ local lang = {
     ["not_alerted"] = "Not Alerted",
     ["note3"] = "ntopng generates traffic towards the configured hosts in order to perform measurements.",
     ["note_alert"] = "An alert is triggered when the calculated measurement exceeds the threshold set.",
+    ["note_alert_dashed"] = "The dashed element identifies the current measurement hour.",
     ["note_availability"] = "The availability percentage shows the percentage of time that the measurement has been within the configured threshold in the last day.",
     ["note_periodicity_change"] = "Changing Periodicity causes old timeseries data to be deleted.",
     ["other_http_descr"] = "The sum of \"Name Lookup\" and \"Other\" is the total time took to complete the HTTP request.",
