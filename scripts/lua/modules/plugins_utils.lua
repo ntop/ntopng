@@ -754,14 +754,14 @@ end
 
 -- ##############################################
 
-function plugins_utils.getUrl(script)
-  return(ntop.getHttpPrefix() .. "/plugins/" .. script)
+function plugins_utils.getMonitorUrl(script)
+  return(ntop.getHttpPrefix() .. "/lua/monitor/" .. script)
 end
 
 -- ##############################################
 
-function plugins_utils.getMonitorUrl(script)
-  return(ntop.getHttpPrefix() .. "/lua/monitor/" .. script)
+function plugins_utils.getUrl(script)
+  return(plugins_utils.getMonitorUrl(script))
 end
 
 -- ##############################################
