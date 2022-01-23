@@ -26,6 +26,8 @@ local HOUR_STATS_OK = 1
 local HOUR_STATS_EXCEEDED = 2
 local HOUR_STATS_UNREACHABLE = 3
 
+local do_trace = false
+
 -- ##############################################
 
 local am_hosts_key = string.format("ntopng.prefs.ifid_%d.am_hosts", getSystemInterfaceId())
@@ -130,7 +132,7 @@ end
 
 -- Retrieve the per-hour stats of the host.
 -- The returned data has the hour as the table key (0 for midnight).
--- 
+--
 -- Example:
 --
 --  0 table
@@ -194,7 +196,7 @@ function am_utils.getAvailability(host, measurement)
   local tot_available = 0
   local tot_unavailable = 0
   local rc = {}
-  
+
   for i=1,24 do
     local pt = hour_stats.hstats[i]
 
@@ -215,7 +217,7 @@ function am_utils.getAvailability(host, measurement)
       table.insert(rc, color)
     end
   end
-  
+
   return rc, (tot_available * 100 / (tot_available + tot_unavailable))
 end
 
@@ -316,7 +318,7 @@ function am_utils.formatAmHost(host, measurement, isHtml)
   if(host == nil) then
      return(nil)
   end
-  
+
   local res = host
   local is_infr, infr_name = is_infrastructure(host)
 
@@ -327,7 +329,7 @@ function am_utils.formatAmHost(host, measurement, isHtml)
      -- If the am host contains a name for the infrastructure use it
      if isHtml then
       res = infr_name .. " <i class='fas fa-building'></i>"
-     else 
+     else
       res = infr_name .. " [".. i18n("infrastructure_dashboard.infrastructure") .. "]"
     end
   else
@@ -885,10 +887,9 @@ function am_utils.run_am_check(when, all_hosts, granularity)
   local hosts_am = {}
   local resolved_unreachable_hosts = {}
   local am_schema = am_utils.getAmSchemaForGranularity(granularity)
-  local do_trace = false
-  
+
   when = when - (when % 60)
-  
+
   if(do_trace) then
      print("[ActiveMonitoring] Script started\n")
   end
@@ -936,6 +937,11 @@ function am_utils.run_am_check(when, all_hosts, granularity)
     local jitter = tonumber(info.jitter)
     local mean = tonumber(info.mean)
 
+    if(do_trace) then
+       print("[AM result] "..key.."\n")
+       tprint(info)
+    end
+
     if jitter then jitter = round(jitter, 2) end
     if mean then mean = round(mean, 2) end
 
@@ -947,6 +953,11 @@ function am_utils.run_am_check(when, all_hosts, granularity)
        end
 
        local ts_data = {ifid = getSystemInterfaceId(), host = host.host, metric = host.measurement, value = value}
+       if(do_trace) then
+	  print("[Writing AM timeseries ")
+	  tprint(ts_data)
+       end
+
        ts_utils.append(am_schema, ts_data, when)
     end
 

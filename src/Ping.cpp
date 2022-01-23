@@ -29,14 +29,14 @@
 
 #define PACKETSIZE	64
 
+// #define TRACE_PING 1
+
 /* ****************************************** */
 
 struct ping_packet {
   struct ndpi_icmphdr hdr;
   char msg[PACKETSIZE-sizeof(struct ndpi_icmphdr)];
 };
-
-// #define TRACE_PING 1
 
 /* ****************************************** */
 
@@ -380,6 +380,11 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
 #endif
 
     m.unlock(__FILE__, __LINE__);
+  } else {
+#ifdef TRACE_PING
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[pinger: %p] Received unexpected ICMP [echo_id: %u][range: %u...%u]",
+				 this, echo_id, ping_id, (ping_id + cnt));
+#endif
   }
 }
 
@@ -408,7 +413,8 @@ void Ping::collectResponses(lua_State* vm, bool v6) {
 
   pinged->clear();
   results->clear();
-
+  cnt = 0; /* Reset counter */
+  
   m.unlock(__FILE__, __LINE__);
 }
 
