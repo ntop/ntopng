@@ -727,7 +727,7 @@ function alert_store:select_historical(filter, fields)
    local count_res = 0
    if isEmptyString(group_by_clause) then
       local count_q = string.format("SELECT COUNT(*) AS totalRows FROM `%s` WHERE %s", self._table_name, where_clause)
-      local count_r = interface.execSQLQuery(count_q)
+      local count_r = interface.alert_store_query(count_q)
       if table.len(count_r) > 0 then
          count_res = tonumber(count_r[1]["totalRows"])
       end
