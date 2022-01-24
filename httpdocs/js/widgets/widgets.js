@@ -56,8 +56,7 @@ const DEFINED_EVENTS = {
     /* Standard on click event, redirect to the url */
     "standard" : function (event, chartContext, config) {
         const { seriesIndex, dataPointIndex } = config;
-        const { series } = config.config;
-        
+        const { series } = config.w.config;
         if (seriesIndex === -1) return;
         if (series === undefined) return;
 
@@ -70,19 +69,6 @@ const DEFINED_EVENTS = {
 }
 
 const DEFINED_TOOLTIP = {
-    /* Standard on click event, redirect to the url */
-    "standard" : function (_, opt) {
-        const config = opt.w.config;
-        const { series } = config;
-        const { dataPointIndex, seriesIndex } = opt;
-        const data = series[seriesIndex].data[dataPointIndex];
-
-        if (data.meta !== undefined)
-            return data.meta.label || data.x;
-
-        return data;
-    },
-
     /* On click event used by the flow analyze section, redirect to the current url + a single filter */
     "format_bytes" : function(value, { config, seriesIndex, dataPointIndex }) {
         return NtopUtils.bytesToSize(value);
@@ -100,49 +86,40 @@ const DEFINED_TOOLTIP = {
     "format_multiple_date" : function(value, { config, seriesIndex, dataPointIndex }) {
         return new Date(value[0]) + " - " + new Date(value[1])
     },
-}
-const DEFAULT_FORMATTER = DEFINED_TOOLTIP["format_value"];
 
-class WidgetTooltips {
-    static showXY({ seriesIndex, dataPointIndex, w }) {
+    /*
+     *  This formatter is used by the bubble host map, from the y axis,
+     *  used to show the Hosts, with their respective values 
+     */
+    "format_label_from_xy" : function({series, seriesIndex, dataPointIndex, w}) {
+        const serie = w.config.series[seriesIndex]["data"][dataPointIndex];
+        
+        const x_value = serie["x"];
+        const y_value = serie["y"];
+        const host_name = serie["meta"]["label"];
 
-        const defaultFormatter = (x) => x;
-
-        const config = w.config;
-        const xLabel = config.xaxis.title.text || "x";
-        const yLabel = config.yaxis[0].title.text || "y";
-        const serie = config.series[seriesIndex].data[dataPointIndex];
-        const { x, y } = serie;
-        const title = serie.meta.label || serie.x;
-
-        let xFormatter = defaultFormatter, yFormatter = defaultFormatter;
-        if (config.xaxis.labels && config.xaxis.labels.ntop_utils_formatter) {
-            xFormatter = NtopUtils[config.xaxis.labels.ntop_utils_formatter];
-        }
-        if (config.yaxis[0].labels && config.yaxis[0].labels.ntop_utils_formatter) {
-            yFormatter = NtopUtils[config.yaxis[0].labels.ntop_utils_formatter];
-        }
+        const x_axis_title = w.config.xaxis.title.text;
+        const y_axis_title = w.config.yaxis[0].title.text;
 
         return (`
             <div class='apexcharts-theme-light apexcharts-active' id='test'>
                 <div class='apexcharts-tooltip-title' style='font-family: Helvetica, Arial, sans-serif; font-size: 12px;'>
-                    ${title}
+                    ${host_name}
                 </div>
                 <div class='apexcharts-tooltip-series-group apexcharts-active d-block'>
                     <div class='apexcharts-tooltip-text text-left'>
-                        <b>${xLabel}</b>: ${xFormatter(x)}
+                        <b>${x_axis_title}</b>: ${x_value}
                     </div>
                     <div class='apexcharts-tooltip-text text-left'>
-                        <b>${yLabel}</b>: ${yFormatter(y)}
+                        <b>${y_axis_title}</b>: ${y_value}
                     </div>
                 </div>
-            </div>
-        `)
-    }
-    static unknown() {
-        return `<div>Unknown</div>`;
-    }
+            </div>`)
+    },
 }
+
+/* Standard Formatter */
+const DEFAULT_FORMATTER = DEFINED_TOOLTIP["format_value"];
 
 class WidgetUtils {
 
@@ -381,6 +358,10 @@ class ChartWidget extends Widget {
                     config['tooltip'][axis]['formatter'] = DEFINED_TOOLTIP[formatter] || NtopUtils[formatter]
                 }
             }
+
+            /* Customizable tooltip requested */
+            if(rsp['tooltip']['custom'])
+                config['tooltip']['custom'] = DEFINED_TOOLTIP[rsp['tooltip']['custom']] || NtopUtils[rsp['tooltip']['custom']]
         }
     }
 

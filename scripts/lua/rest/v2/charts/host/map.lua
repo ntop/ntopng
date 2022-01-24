@@ -401,45 +401,48 @@ local base_url = ntop.getHttpPrefix() .. "/lua/host_details.lua"
 
 -- Formatting Answer
 rest_utils.answer(rc, {
-    series = {
-       {data = first_host_table, name = first_table_name, base_url = base_url},
-       {data = second_host_table, name = second_table_name, base_url = base_url},
-    },
-    chart = {
-        zoom = {
-            autoScaleYaxis = true
-        }
-    },
-    grid = {
-        padding = {
-            left = 6
-        },
-    },
-    colors = {"rgba(153, 102, 255, 0.45)", "rgba(255, 159, 64, 0.45)"},
-    xaxis = {
-        type = 'numeric',
-        title = {
-            text = MODES[bubble_mode + 1].x_label,
-        },
-        labels = {
-            ntop_utils_formatter = MODES[bubble_mode + 1].x_formatter or 'fnone',
-        }
-    },
-    yaxis = {
-        type = 'numeric',
-        forceNiceScale = true,
-        title = {
-            text = MODES[bubble_mode + 1].y_label,
-            offsetX = 6
-        },
-        labels = {
-            ntop_utils_formatter = MODES[bubble_mode + 1].y_formatter or 'fnone',           
-        }
-    },
-    dataLabels = {
-       enabled = false
-    },
-    tooltip = {
-       widget_tooltips_formatter = "showXY"
-    }
+   series = {
+      {data = first_host_table, name = first_table_name, base_url = base_url},
+      {data = second_host_table, name = second_table_name, base_url = base_url},
+   },
+   chart = {
+      zoom = {
+         autoScaleYaxis = true
+      },
+   },
+   events = {
+      dataPointSelection = "standard", 
+   },
+   grid = {
+      padding = {
+         left = 6
+      },
+   },
+   colors = {"rgba(153, 102, 255, 0.45)", "rgba(255, 159, 64, 0.45)"},
+   xaxis = {
+      type = 'numeric',
+      title = {
+         text = MODES[bubble_mode + 1].x_label,
+      },
+      labels = {
+         ntop_utils_formatter = MODES[bubble_mode + 1].x_formatter or 'fnone',
+      }
+   },
+   yaxis = {
+      type = 'numeric',
+      forceNiceScale = true,
+      title = {
+         text = MODES[bubble_mode + 1].y_label,
+         offsetX = 6
+      },
+      labels = {
+         ntop_utils_formatter = MODES[bubble_mode + 1].y_formatter or 'fnone',           
+      }
+   },
+   dataLabels = {
+      enabled = false
+   },
+   tooltip = {
+      custom = "format_label_from_xy",
+   }
 })
