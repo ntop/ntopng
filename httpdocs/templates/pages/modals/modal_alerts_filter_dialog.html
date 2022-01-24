@@ -46,7 +46,7 @@
 	</div>
         <div class="modal-footer">
 	  <span class="invalid-feedback" id="{{dialog.id}}_error"></span>
-	  {% if ntop.isEnterpriseM() or ntop.getInfo()["oem"] then %}
+	  {% if ntop.isPro() or ntop.getInfo()["oem"] then %}
           <button id="btn-confirm-action" type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</button>
 	  {% else %}
 	  <div id="script-description" class="alert alert-warning border" role="alert">
