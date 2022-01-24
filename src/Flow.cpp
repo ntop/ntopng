@@ -5670,7 +5670,10 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
     return false;
   }
 
-  /* Check host filter */
+  /*
+    Check host filter and if such alert needs to be disabled
+    due to alert exclusions
+  */
   if((cli_h && cli_h->isFlowAlertDisabled(alert_type))
      || (srv_h && srv_h->isFlowAlertDisabled(alert_type))) {
 #ifdef DEBUG_SCORE

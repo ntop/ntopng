@@ -106,6 +106,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   bool is_in_broadcast_domain;
   bool is_dhcp_host;
 
+  /* Alert exclusion handling */
   HostAlertBitmap disabled_host_alerts;
   Bitmap128 disabled_flow_alerts;
   time_t disabled_alerts_tstamp;

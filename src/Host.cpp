@@ -1710,8 +1710,12 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
 void Host::refreshDisabledAlerts() {
 #ifdef NTOPNG_PRO
   AlertExclusions *alert_exclusions = ntop->getAlertExclusions();
-  if(alert_exclusions && alert_exclusions->checkChange(&disabled_alerts_tstamp))
-    alert_exclusions->setDisabledHostAlertsBitmaps(get_ip(), &disabled_host_alerts, &disabled_flow_alerts);
+  
+  if(alert_exclusions && alert_exclusions->checkChange(&disabled_alerts_tstamp)) {
+    /* Set alert exclusion into the host */
+    alert_exclusions->setDisabledHostAlertsBitmaps(get_ip(),
+						   &disabled_host_alerts, &disabled_flow_alerts);
+  }
 #endif
 }
 

@@ -268,6 +268,7 @@ ndpi_patricia_node_t *AddressTree::matchAndGetNode(const char * const addr) {
 
 void *AddressTree::matchAndGetData(const char * const addr) {
   ndpi_patricia_node_t *node = matchAndGetNode(addr);
+  
   if (node) return ndpi_patricia_get_node_data(node);
   else return NULL;
 }
