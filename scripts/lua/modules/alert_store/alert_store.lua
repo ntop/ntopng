@@ -78,7 +78,10 @@ function alert_store:_escape(str)
       return ""
    end
 
-   return str:gsub("'", "''")
+   str = str:gsub("'", "''")
+   if(str == '\\') then str = '' end
+
+   return str
 end
 
 -- ##############################################
