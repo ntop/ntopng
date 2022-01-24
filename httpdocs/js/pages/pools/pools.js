@@ -362,12 +362,12 @@ $(function() {
     });
 
     $(`#table-pools`).on('click', `a[href='#edit-pool']`, function (e) {
-        const selectedPool = $poolTable.row($(this).parent().parent()).data();
+        const selectedPool = $poolTable.row($(this).parent().parent().parent().parent()).data();
         $editModalHandler.invokeModalInit(selectedPool);
     });
 
     $(`#table-pools`).on('click', `a[href='#remove-pool']`, function (e) {
-        const selectedPool = $poolTable.row($(this).parent().parent()).data();
+        const selectedPool = $poolTable.row($(this).parent().parent().parent().parent()).data();
         $removeModalHandler.invokeModalInit(selectedPool);
     });
 
