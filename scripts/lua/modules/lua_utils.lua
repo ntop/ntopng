@@ -3063,6 +3063,20 @@ function getURLPattern()
   return "^https?://.+$"
 end
 
+-- ##############################################
+
+function getRestUrl(script, is_pro, is_enterprise)
+   if is_enterprise then 
+      return(ntop.getHttpPrefix() .. "/lua/enterprise/rest/v2/get/" .. script)
+   elseif is_pro then
+      return(ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/" .. script)
+   else
+      return(ntop.getHttpPrefix() .. "/lua/rest/v2/get/" .. script)
+   end
+end
+
+-- ##############################################
+
 -- get_mac_classification
 function get_mac_classification(m, extended_name)
    local short_extended = ntop.getMacManufacturer(m) or {}

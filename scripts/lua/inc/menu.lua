@@ -407,6 +407,11 @@ local health_entries = {
          entry = page_utils.menu_entries.redis_status,
          url = '/lua/monitor/redis_monitor.lua',
          hidden = false, -- TODO: add a check for redis monitoring status
+      },
+      {
+         entry = page_utils.menu_entries.clickhouse_status,
+         url = '/lua/enterprise/monitor/clickhouse_monitor.lua',
+         hidden = not ntop.getPrefs().is_dump_flows_to_clickhouse_enabled,
       }
    }
 
