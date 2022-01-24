@@ -362,7 +362,13 @@ $(document).ready(function() {
         else 
             diff = moment().subtract(parseInt(subtract), measure);
 
-        /* ISO String format */
+        let first_record = {* earliest_available_epoch *};
+        
+        /* Case with all time preset, if the subtract is more then now, use the 1970 epoch */
+        if(diff < 0 || diff.unix() < first_record)
+            diff = moment(first_record * 1000);
+        
+            /* ISO String format */
         $(`#end-date`).attr('min', diff.format('YYYY-MM-DD'));
         $(`#begin-date`).attr('max', now.format('YYYY-MM-DD'));
 
