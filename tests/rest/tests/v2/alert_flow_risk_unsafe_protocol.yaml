@@ -10,6 +10,7 @@ ignore:
   - epoch_begin
   - epoch_end
   - duration
+  - num_records_processed
 
 pre: |
   curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "action": "enable"}' http://localhost:3333/lua/toggle_all_checks.lua

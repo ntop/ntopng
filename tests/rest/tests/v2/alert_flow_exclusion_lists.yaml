@@ -9,6 +9,7 @@ ignore:
   - historical_url
   - epoch_begin
   - epoch_end
+  - num_records_processed
 
 pre: |
   # Enable all user scripts
