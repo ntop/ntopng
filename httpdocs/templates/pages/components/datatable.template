@@ -482,8 +482,11 @@ $(document).ready(function(){
 
         $(`#select-time-presets`).val('custom');
 
-        $inputBeginEpoch.datetimepicker('date', begin);
-        $inputEndEpoch.datetimepicker('date', end);
+        $(`#begin-date`).attr('value', begin.format('YYYY-MM-DD'));
+        $(`#begin-time`).attr('value', begin.format('HH:mm'));
+        
+        $(`#end-date`).attr('value', end.format('YYYY-MM-DD'));
+        $(`#end-time`).attr('value', end.format('HH:mm'));
 
         await onRangePickerChange(true);
     });
