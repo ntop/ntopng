@@ -636,6 +636,7 @@ local lang = {
   ["alert_entities"] = {
     ["am_host"] = "Active Monitoring",
     ["asn"] = "ASN",
+    ["domain"] = "Domain",
     ["flow"] = "Flow",
     ["host"] = "Host",
     ["host_pool"] = "Host Pool",
@@ -648,6 +649,18 @@ local lang = {
     ["system"] = "System",
     ["test"] = "Test",
     ["user"] = "User",
+  },
+  ["check_exclusion"] = {
+    ["add_exclusion"] = "Add Check Exclusion",
+    ["alert_type"] = "Exclude Alert",
+    ["edit_exclusion"] = "Edit Check Exclusion",
+    ["ip_address"] = "IP Address",
+    ["member_type"] = "Exclude type",
+    ["network"] = "Network",
+    ["validation"] = {
+      ["abort_add_exclusion"] = "Abort Add Exclusion",
+      ["abort_edit_exclusion"] = "Abort Edit Exclusion",
+    },
   },
   ["alert_messages"] = {
     ["a_new_device_has_connected"] = "New device <a href=\"%{url}\">%{device}</a> has connected to the network.",
@@ -1640,6 +1653,7 @@ local lang = {
   ["discover"] = {
     ["device"] = "Device",
     ["discovered_devices"] = "Discovered %{manuf} %{sys} %{dev} Devices",
+    ["discovery_running"] = "If Active Network Discovery is enabled and it's running then the <span class=\"badge bg-warning\"><i class=\"fas fa-project-diagram\"></i></span> icon is going to be displayed close to the Interface Throughput",
     ["err_unable_to_arp_discovery"] = "Unable to start ARP network discovery",
     ["error_no_discovery_cached"] = "No discovery data has been cached yet.",
     ["error_unable_to_decode_json"] = "Unable to decode cache JSON discovery data.",

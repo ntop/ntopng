@@ -249,6 +249,8 @@ if discovered["ghost_found"] or discovered["too_many_devices_discovered"] then
       print('<li>' .. i18n("discover.too_many_devices_descr", {max_devices = discover.MAX_DISCOVERED_DEVICES}) .. '.</li>')
    end
 
+   print('<li>' .. i18n("discover.discovery_running") .. '.</li>')
+
    print('</ul>')
    print("</div>")
 end
