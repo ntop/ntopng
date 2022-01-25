@@ -654,6 +654,7 @@ local lang = {
     ["add_exclusion"] = "Add Check Exclusion",
     ["alert_type"] = "Exclude Alert",
     ["edit_exclusion"] = "Edit Check Exclusion",
+    ["exclude_all_alerts"] = "All Alerts",
     ["ip_address"] = "IP Address",
     ["member_type"] = "Exclude type",
     ["network"] = "Network",
@@ -2750,7 +2751,7 @@ local lang = {
   },
   ["flow_risk"] = {
     ["malicious_signature_detected"] = "Possibly Client Malicious JA3 Signature",
-    ["ndpi_binary_application_transfer"] = "Suspicious File Transfer",
+    ["ndpi_binary_application_transfer"] = "Binary Application Transfer",
     ["ndpi_clear_text_credentials"] = "Clear-text credentials",
     ["ndpi_desktop_or_file_sharing_session"] = "Desktop or File Sharing Session",
     ["ndpi_dns_suspicious_traffic"] = "Suspicious DNS Traffic",
