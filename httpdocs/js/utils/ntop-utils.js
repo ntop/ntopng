@@ -33,6 +33,19 @@ jQuery.fn.extend({
 	}
 });
 
+/* Show an overlay to hide loading */
+function toggleOverlays(time = 500) {
+	$(`.overlay`).toggle(time);
+}
+
+function showOverlays(time = 500) {
+	$(`.overlay`).fadeIn(time);
+}
+
+function hideOverlays(time = 500) {
+	$(`.overlay`).fadeOut(time);
+}
+
 const NTOPNG_MIN_VISUAL_VALUE = 0.005;
 
 const REGEXES = {

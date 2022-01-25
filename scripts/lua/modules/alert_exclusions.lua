@@ -60,7 +60,7 @@ end
 -- ##############################################
 
 local function _check_host_ip_alert_key(host_ip, alert_key)
-   if not isIPv4(host_ip) and not isIPv6(host_ip) then
+   if not isIPv4(host_ip) and not isIPv6(host_ip) and not isIPv4Network(host_ip) then
       -- Invalid host submitted
       return false
    end
@@ -312,6 +312,13 @@ end
 -- @brief Returns all the excluded hosts for the flowt alert identified with `alert_key`
 function alert_exclusions.flow_alerts_get_excluded_hosts(alert_key)
    return _get_excluded_hosts(alert_entities.flow, alert_key) or {}
+end
+
+-- ##############################################
+
+-- @brief Returns all the excluded hosts for the flowt alert identified with `alert_key`
+function alert_exclusions.domain_alerts_get_excluded_hosts(alert_key)
+   return _get_excluded_hosts(alert_entities.domain, alert_key) or {}
 end
 
 -- ##############################################

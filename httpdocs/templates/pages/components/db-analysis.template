@@ -60,14 +60,6 @@
   let table = undefined;
   
   $(document).ready(function(){
-    function showOverlays(time = 500) {
-        $(`.overlay`).fadeIn(time);
-    }
-
-    function hideOverlays(time = 500) {
-        $(`.overlay`).fadeOut(time);
-    }
-
     hideOverlays();
 
     window.addEventListener("hashchange", function() {

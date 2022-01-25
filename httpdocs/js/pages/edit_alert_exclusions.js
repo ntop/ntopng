@@ -84,112 +84,103 @@ const initDeleteAlertExclusionModal = (alert_key, script_title, excluded_host) =
 
 /* ******************************************************* */
 
-$(function () {
-    /* Possibly pass an host when requesting datatable data to have results filtered by host */
-    let ajax_data = {};
-    if(`${host}`)
-	ajax_data = {"host": `${host}`};
+$(function () {    
+	// initialize script table
+    const datatableButton = [];
 
-    // initialize script table
-    const $script_table = $("#scripts-config").DataTable({
-	dom: "Bfrtip",
-	pagingType: 'full_numbers',
-	language: {
-	    info: i18n.showing_x_to_y_rows,
-	    search: i18n.script_search,
-	    infoFiltered: "",
-	    paginate: {
-		previous: '&lt;',
-		next: '&gt;',
-		first: '«',
-		last: '»'
-	    }
-	},
-	lengthChange: false,
-	ajax: {
-	    url: `${http_prefix}/lua/pro/rest/v2/get/${check_subdir}/alert/exclusions.lua`,
-	    type: 'get',
-	    dataSrc: 'rsp',
-	    data: ajax_data,
-	},
-	stateSave: true,
-	initComplete: function (settings, json) {
-	},
-	order: [[0, "asc"]],
-	buttons: {
-	    buttons: [
-		{
-		    text: '<i class="fas fa-sync"></i>',
-		    className: 'btn-link',
-		    action: function (e, dt, node, config) {
-			$script_table.ajax.reload(function () {
-			}, false);
-		    }
+	/* Manage the buttons close to the search box */
+	datatableButton.push({
+		text: '<i class="fas fa-plus"></i>',
+		className: 'btn-link',
+		action: function (e, dt, node, config) {
+			$(`#add-exclusion-modal`).modal('show');
 		}
-	    ],
-	    dom: {
-		button: {
-		    className: 'btn btn-link'
-		},
-		container: {
-		    className: 'border-start ms-1 float-end'
-		}
-	    }
-	},
-	columns: [
-	    {
-		data: 'title',
-		render: function (data, type, row) {
-		    if (type == 'display') return `<b>${data}</b>`;
-		    return data;
-		},
-	    },
-	    {
-		data: null,
-		sortable: true,
-		searchable: true,
-		className: 'text-center',
-		width: '10%',
-		render: function (data, type, row) {
-		    const icon = (!row.category_icon) ? '' : `<i class='fa ${row.category_icon}'></i>`;
-		    if (type == "display") return `${icon}`;
-		    return row.category_title;
-		}
-	    },
-	    {
-		sortable: false,
-		searchable: false,
-		visible: false,
-		data: 'excluded_host',
-		type: 'ip-address',
-	    },
-	    {
-		data: 'excluded_host_label',
-		type: 'ip-address',
-		width: '20%',
-	    },
-	    {
-		data: 'excluded_host_name',
-		sortable: true,
-		searchable: true,
-		width: '20%',
-	    },
-	    {
-		targets: -1,
-		data: null,
-		name: 'actions',
-		className: 'text-center',
-		sortable: false,
-		width: '10%',
-		render: function (data, type, script) {
+	});
 
-		    return DataTableUtils.createActionButtons([
-			{ class: `btn-danger`, modal: '#modal-script', icon: 'fa-trash', title: `${i18n.delete}` },
-		    ]);
-		},
-	    }
-	]
+    datatableButton.push({
+		text: '<i class="fas fa-sync"></i>',
+		className: 'btn-link',
+		action: function (e, dt, node, config) {
+			$script_table.ajax.reload(function () {}, false);
+		}
+	});
+
+	/* Create a datatable with the buttons */
+	let config = DataTableUtils.getStdDatatableConfig(datatableButton);
+	
+	/* Extend the configuration with the desired options */
+    config = DataTableUtils.extendConfig(config, {
+        serverSide: false,
+        searching: true,
+		order: [[0, "asc"]],
+        pagingType: 'full_numbers',
+		columnDefs: {},
+		ajax: {
+			method: 'get',
+			url: `${http_prefix}/lua/pro/rest/v2/get/${check_subdir}/alert/exclusions.lua`,
+			dataSrc: 'rsp',
+            beforeSend: function() {
+                showOverlays();
+            },
+            complete: function() {
+                hideOverlays();
+            }
+        },
+        columns: [
+			{
+				width: '100%',
+				data: 'title',
+				responsivePriority: 1,
+				render: function (data, type, row) {
+					if (type == 'display') return `<b>${data}</b>`;
+					return data;
+				},
+			},{
+				data: null,
+				sortable: true,
+				searchable: true,
+				className: 'text-center text-nowrap',
+				responsivePriority: 2,
+				render: function (data, type, row) {
+					const icon = (!row.category_icon) ? '' : `<i class='fa ${row.category_icon}'></i>`;
+					if (type == "display") return `${icon}`;
+					return row.category_title;
+				}
+			},{
+				sortable: false,
+				searchable: false,
+				visible: false,
+				data: 'excluded_host',
+				type: 'ip-address',
+				responsivePriority: 2,
+			},{
+				data: 'excluded_host_label',
+				type: 'ip-address',
+				className: 'text-nowrap',
+				responsivePriority: 2,
+			},{
+				data: 'excluded_host_name',
+				sortable: true,
+				searchable: true,
+				className: 'text-nowrap',
+				responsivePriority: 2,
+			},{
+				targets: -1,
+				data: null,
+				name: 'actions',
+				className: 'text-center text-nowrap',
+				sortable: false,
+				responsivePriority: 1,
+				render: function (data, type, script) {
+					return DataTableUtils.createActionButtons([
+						{ class: `btn-danger`, modal: '#modal-script', icon: 'fa-trash', title: `${i18n.delete}` },
+					]);
+				},
+			}
+		],
     });
+
+	const $script_table = $("#scripts-config").DataTable(config);
 
     // initialize are you sure
     $("#edit-form").areYouSure({ message: i18n.are_you_sure });
@@ -244,4 +235,77 @@ $(function () {
 		})
     })
 
+	/* ******************************************************* */
+
+	$(`#add-exclusion-modal`).modalHandler({
+		method: 'post',
+		csrf: pageCsrf,
+		resetAfterSubmit: false,
+		endpoint: `${http_prefix}/lua/pro/rest/v2/edit/check/filter.lua`,
+		onModalInit: function (_, modalHandler) {
+			// hide the fields and select default type entry
+			const NetworkFields = "#add-exclusion-modal .network-fields";
+			$(NetworkFields).hide();
+
+			$(`#add-exclusion-modal .ip-fields`).show().find(`input,select`).removeAttr("disabled");
+			$(`#add-modal-feedback`).hide();
+
+			$(`#add-exclusion-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');
+			// show the default view
+			$(`#add-exclusion-modal #ip-radio-add`).attr('checked', '').parent().addClass('active');
+			
+			if(check_subdir == "host") {
+				host_alert_types.forEach(function(element, index) {
+					$('#alert-select').append('<option value="' + element.value + '">' + element.label + '</option>');
+				});
+			} else {
+				flow_alert_types.forEach(function(element, index) {
+					$('#alert-select').append('<option value="' + element.value + '">' + element.label + '</option>');
+				});
+			}
+			// on select member type shows only the fields interested
+			$(`#add-exclusion-modal [name='member_type']`).change(function () {
+				const value = $(this).val();
+				$(`#add-exclusion-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');
+				$(this).attr('checked', '');
+
+				// clean the members and show the selected one
+				$(`#add-exclusion-modal [class*='fields']`).hide();
+				$(`#add-exclusion-modal [class*='fields'] input, #add-exclusion-modal [class*='fields'] select`).attr("disabled", "disabled");
+
+				$(`#add-exclusion-modal [class='${value}-fields']`).show().find('input,select').removeAttr("disabled");
+				$(`#add-exclusion-modal [class='alert-fields']`).show().find('input,select').removeAttr("disabled");
+
+				modalHandler.toggleFormSubmission();
+			});
+		},
+		beforeSumbit: function () {
+			let alert_addr;
+			const alert_key = $(`#alert-select`).val();
+			const typeSelected = $(`#add-exclusion-modal [name='member_type']:checked`).val();
+
+			if (typeSelected == "ip") {
+				const ipAddress = $(`#add-exclusion-modal input[name='ip_address']`).val();
+				alert_addr = `${ipAddress}`;
+			}
+			else {
+				const network = $(`#add-exclusion-modal input[name='network']`).val();
+				const cidr = $(`#add-exclusion-modal input[name='cidr']`).val();
+
+				alert_addr = `${network}/${cidr}`;
+			}
+
+			return { alert_addr: alert_addr, alert_key: alert_key, subdir: check_subdir };
+		},
+		onSubmitSuccess: function (response, textStatus, modalHandler) {
+			if (response.rc < 0) {
+				$(`#add-modal-feedback`).html(i18n.rest[response.rc_str]).show();
+				return;
+			}
+
+			$script_table.ajax.reload();
+			$(`#add-exclusion-modal`).modal('hide');
+		}
+	}).invokeModalInit();
 });
+
