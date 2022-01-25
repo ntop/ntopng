@@ -60,7 +60,7 @@
             "chart_type" : "bar_apex_chart",
             "chart_record_value" : "avg_score",
             "chart_record_label" : "IPV4_SRC_ADDR",
-            "chart_width" : 5, // Chart width, it can be a number between 1 and 12, optional feature
+            "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
 	},{
 	    "chart_id" : "highest_avg_dst_score", // Each id MUST be different
             "chart_i18n_name" : "highest_avg_dst_score",
@@ -78,7 +78,7 @@
             "chart_type" : "bar_apex_chart",
             "chart_record_value" : "avg_score",
             "chart_record_label" : "IPV4_DST_ADDR",
-            "chart_width" : 5, // Chart width, it can be a number between 1 and 12, optional feature
+            "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
 	},{
 	    "chart_id" : "highest_avg_l7_score", // Each id MUST be different
             "chart_i18n_name" : "highest_avg_l7_score",
@@ -96,7 +96,7 @@
             "chart_type" : "bar_apex_chart",
             "chart_record_value" : "avg_score",
             "chart_record_label" : "L7_PROTO",
-            "chart_width" : 5, // Chart width, it can be a number between 1 and 12, optional feature
+            "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
 	},{
 	    "chart_id" : "highest_avg_protocol_score", // Each id MUST be different
             "chart_i18n_name" : "highest_avg_protocol_score",
@@ -114,7 +114,7 @@
             "chart_type" : "bar_apex_chart",
             "chart_record_value" : "avg_score",
             "chart_record_label" : "PROTOCOL",
-            "chart_width" : 5, // Chart width, it can be a number between 1 and 12, optional feature
+            "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
 	},{
 	    "chart_id" : "score_histogram_pkts", // Each id MUST be different
 	    "chart_i18n_name" : "score_distribution",
@@ -132,7 +132,7 @@
 	    "chart_type" : "bar_apex_chart",
 	    "chart_first_value" : 0,
 	    "chart_last_value" : 500,
-	    "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
+	    "chart_width" : 12, // Chart width, it can be a number between 1 and 12, optional feature
 	    "chart_i18n_extra_y_label" : "score",
 	    "chart_i18n_extra_x_label" : "flows",
 	    "chart_series_name" : "score_distribution",
