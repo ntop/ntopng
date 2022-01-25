@@ -1087,3 +1087,14 @@ li > a > .fa-external-link-alt{
   padding-left: .7rem !important;
   padding-top: .5rem !important;
 }
+
+.widget-box-container {
+  background-color: #eff4f7
+}
+
+.widget-box {
+  box-shadow: 0px 1px 22px -12px #607D8B;
+  background-color: #fff;
+  padding: 25px 35px 60px 30px;
+}
+

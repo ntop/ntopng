@@ -308,7 +308,7 @@ class ChartWidget extends Widget {
             legend: {
                 show: true,
                 fontSize: '14px',
-                position: 'right',
+                position: 'bottom',
                 onItemClick: {
                     toggleDataSeries: true,
                 },

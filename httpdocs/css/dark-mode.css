@@ -566,3 +566,8 @@ summary, .apexcharts-legend-text {
 li > a > .fa-external-link-alt{
   color: #ff8a26;
 }
+
+.widget-box {
+  background-color: #1f1f1f;
+}
+

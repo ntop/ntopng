@@ -17,7 +17,7 @@
   </div>
 
   <div class='col-12'>
-    <div class="card card-shadow">
+    <div class="card card-shadow widget-box-container">
       <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
         <div class="text-center">
           <div class="spinner-border text-primary mt-5" role="status">
@@ -30,14 +30,16 @@
 
         {% for _, chart_opts in ipairs(charts) do %}
           
-          <div class="col-{{ chart_opts.chart_width }}" id="{{ chart_opts.chart_id }}">
-          {* 
-            widget_gui_utils.render_chart(chart_opts.chart_id, {
-              displaying_label = chart_opts.chart_name,
-              css_styles = chart_opts.css_styles,
-              chart_type = chart_opts.chart_type,
-            }) 
-          *}
+          <div class="col-{{ chart_opts.chart_width }}">
+            <div class="widget-box" id="{{ chart_opts.chart_id }}">
+            {* 
+              widget_gui_utils.render_chart(chart_opts.chart_id, {
+                displaying_label = chart_opts.chart_name,
+                css_styles = chart_opts.css_styles,
+                chart_type = chart_opts.chart_type,
+              }) 
+            *}
+            </div>
           </div>
       
         {% end %}
