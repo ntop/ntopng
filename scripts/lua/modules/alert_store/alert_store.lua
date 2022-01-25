@@ -1156,6 +1156,33 @@ function alert_store:get_stats()
 end
 
 -- ##############################################
+
+--@brief Format top alerts returned by get_stats() for general_stats.lua
+function alert_store:format_top_alerts(stats)
+   local top_alerts = {}
+
+   for n, value in pairs(stats.top.alert_id) do
+      if self._top_limit > 0 and n > self._top_limit then break end
+
+      local label = shortenString(alert_consts.alertTypeLabel(tonumber(value.alert_id), true, self._alert_entity.entity_id), s_len)
+
+      top_alerts[#top_alerts + 1] = {
+         count = (tonumber(value.count) * 100) / stats.count,
+         name = formatAlertAHref("alert_id", tonumber(value.alert_id), label),
+      }
+   end
+
+   return top_alerts 
+end
+
+-- ##############################################
+
+--@brief Stats used by the dashboard
+function alert_store:get_top_limit()
+   return self._top_limit
+end
+
+-- ##############################################
 -- REST API Utility Functions
 -- ##############################################
 
