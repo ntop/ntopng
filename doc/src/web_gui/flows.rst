@@ -27,6 +27,18 @@ Flows have multiple information fields, namely, Application, Layer-4 Protocol, C
 Duration, Client and Server Breakdown, Current Throughput, Total Bytes, and Additional Information.
 Information fields are briefly discussed below.
 
+Detailed Flow Information
+-------------------------
+
+By clicking the lens image at the beginning of the flow, it's possible to jump to the detailed flow information. Here all the information ntopng has about the flow, are going to be displayed.
+
+.. figure:: ../img/web_gui_flows_details.png
+  :align: center
+  :alt: Flow Details
+
+  Flow Details Page
+
+
 Application
 -----------
 

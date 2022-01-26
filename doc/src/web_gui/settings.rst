@@ -35,8 +35,15 @@ on the Manage button. User preferences include:
 Preferences
 -----------
 
-Preferences menu entry enables the user to change runtime configurations. A thorough help is reported
-below every preference directly into ntopng web GUI.
+Preferences menu entry enables the user to change runtime configurations. There are two types of settings (changeable by clicking the view at the end of the preferences menu) : `Expert View` and `Simple View`. The `Expert View` has all the configurable preferences, instead the `Simple View` only has the basic preferences.
+
+.. figure:: ../img/web_gui_settings_list.png
+  :align: center
+  :alt: Preferences List
+
+  Preferences List
+
+A thorough help is reported below every preference directly into ntopng web GUI.
 
 .. _Data Retention:
 
@@ -103,5 +110,5 @@ it is possible to:
 Backup and Restore
 ------------------
 
-To backup and restore see ConfigurationImportExport_.
+To backup and restore see :doc:`Configuration Import/Export <./import_export>`.
 

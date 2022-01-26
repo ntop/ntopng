@@ -20,9 +20,9 @@ The Service Map is a map containing all the services inside a Local Network, ins
 
 .. figure:: ../img/advanced_features_service_map_graph.png
   :align: center
-  :alt: Device Protocols Configuration
+  :alt: Service Map
 
-  The Device Protocols Configuration Page
+  Service Map
 
 Both of them have a graph and a table view. Regarding the Service Map, it is possible to set a learning period and decide the default status (Allowed, Unknown or Denied) for the flows that show up before and after the learning period ended. 
 

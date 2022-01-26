@@ -60,7 +60,10 @@ Currently, the following views are implemented:
 
   - Top Interfaces: the top interfaces of a SNMP device.
 
+  - Raw Flows (ClickHouse enabled): jump to the Historical Flow Explorer.
+  
   - An overview of the Misbehaving Flows status
+   
 
 .. |permalink_icon| image:: ../img/permalink_icon.png
 .. |pcap_download_icon| image:: ../img/pcap_download_icon.png

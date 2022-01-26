@@ -21,9 +21,6 @@ Host-related information pages available have the following content
   using passive fingerprinting techniques
 - HTTP Servers (Local) page shows monitored HTTP servers, limited to local hosts only
 - Top Hosts Traffic page presents traffic of top hosts in order to typology selected;
-- Geo Map page lays out hosts in a geographic map to give visual insights into the geographical
-  locations of seen hosts
-- The Host Explorer, clusters the active hosts to quickly identify outliers
 
 All Hosts
 ---------
@@ -161,28 +158,3 @@ divided in 5-minute bars and goes backwards in time in a right-to-left fashion, 
   :alt: Top Hosts
 
   The Top Hosts Summary Page
-
-Geo Map
--------
-
-The Hosts Geo Map page provides world map where hosts are arranged according to their
-geographical position. :ref:`Geolocation` must be enabled.
-
-.. figure:: ../img/web_gui_hosts_geomap.png
-  :align: center
-  :alt: Geo Map
-
-  The Hosts Geo Map Summary Page
-
-Host Explorer
--------------
-
-The page shows a bubble chart with visual data clustering, according to a selectable criteria.
-Anomalies can be easily spotted by looking at the groups which are distant from the others.
-
-.. figure:: ../img/web_gui_hosts_explorer.png
-  :align: center
-  :alt: Hosts Explorer
-
-  The Hosts Explorer page
-
