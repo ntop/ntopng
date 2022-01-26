@@ -70,15 +70,15 @@ if not status then
    if page ~= "all" then
      -- If there alert alerts engaged for the selected entity, go to the engaged tab
      if alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)] then
-	 status = "engaged"
+       status = "engaged"
      end
    else
      -- For the 'all' page, the tab 'engaged' is selected if there is at least one entity with engaged alerts
      for _, n in pairs(num_alerts_engaged_by_entity) do
-	 if n > 0 then
-	    status = "engaged"
-	    break
-	 end
+       if n > 0 then
+          status = "engaged"
+          break
+       end
      end
    end
 end
@@ -154,8 +154,8 @@ local pages = {
        label = i18n("all"),
        endpoint_list = "/lua/rest/v2/get/all/alert/list.lua",
        endpoint_ts = "/lua/rest/v2/get/all/alert/ts.lua",
-	url = getPageUrl(base_url, {page = "all"}),
-	badge_num = num_alerts_engaged,
+      url = getPageUrl(base_url, {page = "all"}),
+      badge_num = num_alerts_engaged,
    },
    {
        active = page == "host",
@@ -163,11 +163,11 @@ local pages = {
        label = i18n(alert_entities.host.i18n_label),
        endpoint_list = "/lua/rest/v2/get/host/alert/list.lua",
        endpoint_ts = "/lua/rest/v2/get/host/alert/ts.lua",
-	endpoint_delete = "/lua/rest/v2/delete/host/alerts.lua",
-	endpoint_acknowledge = "/lua/rest/v2/acknowledge/host/alerts.lua",
-	url = getPageUrl(base_url, {page = "host"}),
-	hidden = is_system_interface or not alert_store_instances["host"]:has_alerts(),
-	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.host.entity_id)]
+      endpoint_delete = "/lua/rest/v2/delete/host/alerts.lua",
+      endpoint_acknowledge = "/lua/rest/v2/acknowledge/host/alerts.lua",
+      url = getPageUrl(base_url, {page = "host"}),
+      hidden = is_system_interface or not alert_store_instances["host"]:has_alerts(),
+      badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.host.entity_id)]
    },
    {
        active = page == "interface",
@@ -175,11 +175,11 @@ local pages = {
        label = i18n(alert_entities.interface.i18n_label),
        endpoint_list = "/lua/rest/v2/get/interface/alert/list.lua",
        endpoint_ts = "/lua/rest/v2/get/interface/alert/ts.lua",
-	endpoint_delete = "/lua/rest/v2/delete/interface/alerts.lua",
-	endpoint_acknowledge = "/lua/rest/v2/acknowledge/interface/alerts.lua",
-	url = getPageUrl(base_url, {page = "interface"}),
-	hidden = not alert_store_instances["interface"]:has_alerts(),
-	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.interface.entity_id)]
+      endpoint_delete = "/lua/rest/v2/delete/interface/alerts.lua",
+      endpoint_acknowledge = "/lua/rest/v2/acknowledge/interface/alerts.lua",
+      url = getPageUrl(base_url, {page = "interface"}),
+      hidden = not alert_store_instances["interface"]:has_alerts(),
+      badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.interface.entity_id)]
    },
    {
        active = page == "network",
@@ -187,11 +187,11 @@ local pages = {
        label = i18n(alert_entities.network.i18n_label),
        endpoint_list = "/lua/rest/v2/get/network/alert/list.lua",
        endpoint_ts = "/lua/rest/v2/get/network/alert/ts.lua",
-	endpoint_delete = "/lua/rest/v2/delete/network/alerts.lua",
-	endpoint_acknowledge = "/lua/rest/v2/acknowledge/network/alerts.lua",
-	url = getPageUrl(base_url, {page = "network"}),
-	hidden = is_system_interface or not alert_store_instances["network"]:has_alerts(),
-	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.network.entity_id)]
+      endpoint_delete = "/lua/rest/v2/delete/network/alerts.lua",
+      endpoint_acknowledge = "/lua/rest/v2/acknowledge/network/alerts.lua",
+      url = getPageUrl(base_url, {page = "network"}),
+      hidden = is_system_interface or not alert_store_instances["network"]:has_alerts(),
+      badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.network.entity_id)]
    },
    {
        active = page == "snmp_device",
@@ -199,11 +199,11 @@ local pages = {
        label = i18n(alert_entities.snmp_device.i18n_label),
        endpoint_list = "/lua/pro/rest/v2/get/snmp/device/alert/list.lua",
        endpoint_ts = "/lua/pro/rest/v2/get/snmp/device/alert/ts.lua",
-	endpoint_delete = "/lua/pro/rest/v2/delete/snmp/device/alerts.lua",
-	endpoint_acknowledge = "/lua/pro/rest/v2/acknowledge/snmp/device/alerts.lua",
-	url = getPageUrl(base_url_historical_only, {page = "snmp_device"}),
-	hidden = not is_system_interface or not ntop.isPro() or not alert_store_instances["snmp_device"]:has_alerts(),
-	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.snmp_device.entity_id)]
+      endpoint_delete = "/lua/pro/rest/v2/delete/snmp/device/alerts.lua",
+      endpoint_acknowledge = "/lua/pro/rest/v2/acknowledge/snmp/device/alerts.lua",
+      url = getPageUrl(base_url_historical_only, {page = "snmp_device"}),
+      hidden = not is_system_interface or not ntop.isPro() or not alert_store_instances["snmp_device"]:has_alerts(),
+      badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.snmp_device.entity_id)]
    },
    {
        active = page == "flow",
@@ -211,11 +211,11 @@ local pages = {
        label = i18n(alert_entities.flow.i18n_label),
        endpoint_list = "/lua/rest/v2/get/flow/alert/list.lua",
        endpoint_ts = "/lua/rest/v2/get/flow/alert/ts.lua",
-	endpoint_delete = "/lua/rest/v2/delete/flow/alerts.lua",
-	endpoint_acknowledge = "/lua/rest/v2/acknowledge/flow/alerts.lua",
-	url = getPageUrl(base_url_historical_only, {page = "flow"}),
-	hidden = is_system_interface or not alert_store_instances["flow"]:has_alerts(),
-	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.flow.entity_id)]
+      endpoint_delete = "/lua/rest/v2/delete/flow/alerts.lua",
+      endpoint_acknowledge = "/lua/rest/v2/acknowledge/flow/alerts.lua",
+      url = getPageUrl(base_url_historical_only, {page = "flow"}),
+      hidden = is_system_interface or not alert_store_instances["flow"]:has_alerts(),
+      badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.flow.entity_id)]
    },
    {
        active = page == "mac",
@@ -223,11 +223,11 @@ local pages = {
        label = i18n(alert_entities.mac.i18n_label),
        endpoint_list = "/lua/rest/v2/get/mac/alert/list.lua",
        endpoint_ts = "/lua/rest/v2/get/mac/alert/ts.lua",
-	endpoint_delete = "/lua/rest/v2/delete/mac/alerts.lua",
-	endpoint_acknowledge = "/lua/rest/v2/acknowledge/mac/alerts.lua",
-	url = getPageUrl(base_url_historical_only, {page = "mac"}),
-	hidden = is_system_interface or not alert_store_instances["mac"]:has_alerts(),
-	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.mac.entity_id)]
+      endpoint_delete = "/lua/rest/v2/delete/mac/alerts.lua",
+      endpoint_acknowledge = "/lua/rest/v2/acknowledge/mac/alerts.lua",
+      url = getPageUrl(base_url_historical_only, {page = "mac"}),
+      hidden = is_system_interface or not alert_store_instances["mac"]:has_alerts(),
+      badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.mac.entity_id)]
    },
    {
        active = page == "system",
@@ -235,11 +235,11 @@ local pages = {
        label = i18n(alert_entities.system.i18n_label),
        endpoint_list = "/lua/rest/v2/get/system/alert/list.lua",
        endpoint_ts = "/lua/rest/v2/get/system/alert/ts.lua",
-	endpoint_delete = "/lua/rest/v2/delete/system/alerts.lua",
-	endpoint_acknowledge = "/lua/rest/v2/acknowledge/system/alerts.lua",
-	url = getPageUrl(base_url_historical_only, {page = "system"}),
-	hidden = not is_system_interface or not alert_store_instances["system"]:has_alerts(),
-	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.system.entity_id)]
+      endpoint_delete = "/lua/rest/v2/delete/system/alerts.lua",
+      endpoint_acknowledge = "/lua/rest/v2/acknowledge/system/alerts.lua",
+      url = getPageUrl(base_url_historical_only, {page = "system"}),
+      hidden = not is_system_interface or not alert_store_instances["system"]:has_alerts(),
+      badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.system.entity_id)]
    },
    {
        active = page == "am_host",
@@ -247,11 +247,11 @@ local pages = {
        label = i18n(alert_entities.am_host.i18n_label),
        endpoint_list = "/lua/rest/v2/get/am_host/alert/list.lua",
        endpoint_ts = "/lua/rest/v2/get/am_host/alert/ts.lua",
-	endpoint_delete = "/lua/rest/v2/delete/am_host/alerts.lua",
-	endpoint_acknowledge = "/lua/rest/v2/acknowledge/am_host/alerts.lua",
-	url = getPageUrl(base_url, {page = "am_host"}),
-	hidden = not is_system_interface or not alert_store_instances["am"]:has_alerts(),
-	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.am_host.entity_id)]
+      endpoint_delete = "/lua/rest/v2/delete/am_host/alerts.lua",
+      endpoint_acknowledge = "/lua/rest/v2/acknowledge/am_host/alerts.lua",
+      url = getPageUrl(base_url, {page = "am_host"}),
+      hidden = not is_system_interface or not alert_store_instances["am"]:has_alerts(),
+      badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.am_host.entity_id)]
    },
    {
        active = page == "user",
@@ -259,11 +259,11 @@ local pages = {
        label = i18n(alert_entities.user.i18n_label),
        endpoint_list = "/lua/rest/v2/get/user/alert/list.lua",
        endpoint_ts = "/lua/rest/v2/get/user/alert/ts.lua",
-	endpoint_delete = "/lua/rest/v2/delete/user/alerts.lua",
-	endpoint_acknowledge = "/lua/rest/v2/acknowledge/user/alerts.lua",
-	url = getPageUrl(base_url_historical_only, {page = "user"}),
-	hidden = not is_system_interface or not alert_store_instances["user"]:has_alerts(),
-	badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.user.entity_id)]
+      endpoint_delete = "/lua/rest/v2/delete/user/alerts.lua",
+      endpoint_acknowledge = "/lua/rest/v2/acknowledge/user/alerts.lua",
+      url = getPageUrl(base_url_historical_only, {page = "user"}),
+      hidden = not is_system_interface or not alert_store_instances["user"]:has_alerts(),
+      badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.user.entity_id)]
    }
 }
 
@@ -302,7 +302,7 @@ widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
        status = status,
        alert_id = alert_id,
        severity = severity,
-	score = score,
+      score = score,
        ip_version = ip_version,
        ip = host_ip,
        name = host_name,
@@ -315,8 +315,8 @@ widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
        l7_proto = l7_proto,
        network_name = network_name,
        role = role,
-	role_cli_srv = role_cli_srv,
-	subtype = subtype,
+      role_cli_srv = role_cli_srv,
+      subtype = subtype,
    })
 })
 
@@ -347,7 +347,7 @@ local modals = {
        dialog = {
            id = "alerts_filter_dialog",
            title = i18n("show_alerts.filter_alert"),
-           message	= i18n("show_alerts.confirm_filter_alert"),
+           message      = i18n("show_alerts.confirm_filter_alert"),
            delete_message = i18n("show_alerts.confirm_delete_filtered_alerts"),
            delete_alerts = i18n("delete_disabled_alerts"),
            alert_filter = "default_filter",
@@ -369,24 +369,24 @@ local modals = {
        }
    }),
    ["dt-delete-modal"] = template_utils.gen("pages/modals/alerts/delete_alerts.template", {
-	    dialog={
+          dialog={
            id      = "dt-delete-modal",
            title   = i18n("delete_alerts"),
            label   = "",
            message = i18n("show_alerts.confirm_delete_alerts"),
            cancel  = i18n("cancel"),
-	        apply   = i18n("delete")
-	    }
+              apply   = i18n("delete")
+          }
    }),
    ["dt-acknowledge-modal"] = template_utils.gen("pages/modals/alerts/acknowledge_alerts.template",{
-	    dialog={
+          dialog={
            id      = "dt-acknowledge-modal",
            title   = i18n("acknowledge_alerts"),
            label   = "",
            message = i18n("show_alerts.confirm_acknowledge_alerts"),
            cancel  = i18n("cancel"),
-	    apply   = i18n("acknowledge")
-	    }
+          apply   = i18n("acknowledge")
+          }
    }),
    ["external-link"] = template_utils.gen("pages/modals/alerts/redirect_modal.template", {
        dialog={
@@ -417,67 +417,67 @@ local operators_by_filter = {
 
 local defined_tags = {
    ["host"] = {
-	alert_id = operators_by_filter.alert_id,
-	severity = operators_by_filter.severity,
-	score = operators_by_filter.score,
-       ip_version = operators_by_filter.ip_version,
-       ip = operators_by_filter.ip,
-       name = operators_by_filter.hostname,
-       role = operators_by_filter.role,
-	role_cli_srv = operators_by_filter.role_cli_srv,
+      alert_id = operators_by_filter.alert_id,
+      severity = operators_by_filter.severity,
+      score = operators_by_filter.score,
+      ip_version = operators_by_filter.ip_version,
+      ip = operators_by_filter.ip,
+      name = operators_by_filter.hostname,
+      role = operators_by_filter.role,
+      role_cli_srv = operators_by_filter.role_cli_srv,
    },
    ["mac"] = {
-	alert_id = operators_by_filter.alert_id,
-	severity = operators_by_filter.severity,
-	score = operators_by_filter.score,
+      alert_id = operators_by_filter.alert_id,
+      severity = operators_by_filter.severity,
+      score = operators_by_filter.score,
    },
    ["snmp_device"] = {
-	alert_id = operators_by_filter.alert_id,
-	severity = operators_by_filter.severity,
-	score = operators_by_filter.score,
+      alert_id = operators_by_filter.alert_id,
+      severity = operators_by_filter.severity,
+      score = operators_by_filter.score,
    },
    ["flow"] = {
-	alert_id = operators_by_filter.alert_id,
-	severity = operators_by_filter.severity,
-	score = operators_by_filter.score,
-       l7_proto  = operators_by_filter.l7_proto,
-       ip_version = operators_by_filter.ip_version,
-       ip = operators_by_filter.ip,
-       name = operators_by_filter.hostname,
-       cli_ip = operators_by_filter.ip,
-       srv_ip = operators_by_filter.ip,
-       cli_name = operators_by_filter.hostname,
-       srv_name = operators_by_filter.hostname,
-	cli_port = operators_by_filter.port,
-	srv_port = operators_by_filter.port,
-	role = operators_by_filter.role,
+      alert_id = operators_by_filter.alert_id,
+      severity = operators_by_filter.severity,
+      score = operators_by_filter.score,
+      l7_proto  = operators_by_filter.l7_proto,
+      ip_version = operators_by_filter.ip_version,
+      ip = operators_by_filter.ip,
+      name = operators_by_filter.hostname,
+      cli_ip = operators_by_filter.ip,
+      srv_ip = operators_by_filter.ip,
+      cli_name = operators_by_filter.hostname,
+      srv_name = operators_by_filter.hostname,
+      cli_port = operators_by_filter.port,
+      srv_port = operators_by_filter.port,
+      role = operators_by_filter.role,
    },
    ["system"] = {
-	alert_id = operators_by_filter.alert_id,
-	severity = operators_by_filter.severity,
-	score = operators_by_filter.score,
+      alert_id = operators_by_filter.alert_id,
+      severity = operators_by_filter.severity,
+      score = operators_by_filter.score,
    },
    ["am_host"] = {
-	alert_id = operators_by_filter.alert_id,
-	severity = operators_by_filter.severity,
-	score = operators_by_filter.score,
+      alert_id = operators_by_filter.alert_id,
+      severity = operators_by_filter.severity,
+      score = operators_by_filter.score,
    },
    ["interface"] = {
-       alert_id = operators_by_filter.alert_id,
-	severity = operators_by_filter.severity,
-	score = operators_by_filter.score,
-      	subtype = operators_by_filter.text,
+      alert_id = operators_by_filter.alert_id,
+      severity = operators_by_filter.severity,
+      score = operators_by_filter.score,
+      subtype = operators_by_filter.text,
    },
    ["user"] = {
-	alert_id = operators_by_filter.alert_id,
-	severity = operators_by_filter.severity,
-	score = operators_by_filter.score,
+      alert_id = operators_by_filter.alert_id,
+      severity = operators_by_filter.severity,
+      score = operators_by_filter.score,
    },
    ["network"] = {
-	alert_id = operators_by_filter.alert_id,
-	severity = operators_by_filter.severity,
-	score = operators_by_filter.score,
-       network_name = operators_by_filter.text,
+      alert_id = operators_by_filter.alert_id,
+      severity = operators_by_filter.severity,
+      score = operators_by_filter.score,
+      network_name = operators_by_filter.text,
    }
 }
 
