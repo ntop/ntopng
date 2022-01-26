@@ -58,6 +58,7 @@ Each individual menu bar entry will be discussed below.
     help_menu
     dashboard_menu
     dashboard
+    network_discovery
     historical
     report
     flows

@@ -36,27 +36,6 @@ IPv4 and IPv6 flows are stored in table :code:`flows`. A column :code:`INTERFACE
 
 Alerts are stored in several tables, all ending with suffix :code:`_alerts`. The table prefix indicates the alert family, e.g. :code:`host_alerts` table contains alerts for hosts, :code:`flow_alerts` table contains alerts for flows, and so on.
 
-Health
-------
-
-The health of the currently used ClickHouse database can be checked under the System Interface, "Health" page. The status of the database is shown, along with the space used by flow and alert tables.
-
-
-.. figure:: ../img/clickhouse_health.png
-  :align: center
-  :alt: ClickHouse Health
-
-  ClickHouse Health
-
-Similarly, the number of exported and dropped flows can be checked, on a per-interface basis, under the interface stats page. Flow export drops should normally stay at zero or be a tiny fraction of the total amount of exported flows. Drops can occur due to the database being temporarily unreachable or not able to received additional data.
-
-.. figure:: ../img/clickhouse_exported_flows.png
-  :align: center
-  :alt: ClickHouse Exported Flows
-
-  ClickHouse Exported Flows
-
-
 Migration from nIndex
 ---------------------
 
@@ -67,7 +46,7 @@ The migration script requires as prerequisites executable :code:`clickhouse-clie
 
 Here are the steps to perform the migration.
 
-- Install ClickHouse as described in the guide_. This will automatically pull in :code:`clickhouse-client`.
+- Install ClickHouse as described in the `guide <https://clickhouse.com/#quick-start>`_. This will automatically pull in :code:`clickhouse-client`.
 - Update the installed ntopng with the most recent development package (version :code:`5.1.211119` or above). This will automatically pull in :code:`nindex`. For packages already installed it suffices to run :code:`apt-get update && apt-get install ntopng` (on Debian/Ubuntu) or :code:`yum install ntopng` (on Centos).
 - Open a shell and download the script
 
@@ -105,7 +84,7 @@ An ntopng instance was running with nIndex enabled for interface :code:`eno1`.
 
 To replace nIndex with ClickHouse, the following steps are performed.
 
-- ClickHouse is installed locally following this guide_. :code:`clickhouse-client` can be used to verify connections can be successfully established to the local database
+- ClickHouse is installed locally following this `guide <https://clickhouse.com/#quick-start>`_. :code:`clickhouse-client` can be used to verify connections can be successfully established to the local database
 
 .. code:: bash
 

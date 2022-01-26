@@ -11,3 +11,5 @@ ntopng implements checks for its own status and health as well as for services u
     internals
     redis_monitor
     influxdb_monitor
+    alert_monitor
+    clickhouse_monitor

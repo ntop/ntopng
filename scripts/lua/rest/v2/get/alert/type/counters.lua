@@ -19,7 +19,7 @@ local all_alert_store = require "all_alert_store".new()
 --
 
 local rc = rest_utils.consts.success.ok
-local ifid = _GET["ifid"]
+local ifid = _GET["ifid"] or ""
 
 if not auth.has_capability(auth.capabilities.alerts) then
    rest_utils.answer(rest_utils.consts.err.not_granted)

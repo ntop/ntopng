@@ -36,16 +36,6 @@ What is a Plugin
 
 A plugin is a collection of Lua scripts with a predefined structure. 
 
-Examples
-~~~~~~~~
-
-Examples of plugins are:
-
-- A `monitor for the disk space
-  <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/monitors/system/disk_monitor>`_
-  which continuously observes free disk space and triggers alerts when the
-  space available is below a certain threshold
-
 Availability
 ------------
 
