@@ -445,10 +445,10 @@ $(document).ready(function(){
         $(`#select-time-presets`).val('custom');
 
         $(`#begin-date`).attr('value', begin.format('YYYY-MM-DD'));
-        $(`#begin-time`).attr('value', begin.format('HH:mm'));
+        $(`#begin-time`).attr('value', begin.format('HH:mm:ss'));
         
         $(`#end-date`).attr('value', end.format('YYYY-MM-DD'));
-        $(`#end-time`).attr('value', end.format('HH:mm'));
+        $(`#end-time`).attr('value', end.format('HH:mm:ss'));
 
         await onRangePickerChange(true);
     });

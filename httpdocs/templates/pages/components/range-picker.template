@@ -268,8 +268,8 @@ $(document).ready(function() {
     const $selectTimePresets = $(`#select-time-presets`);
 
     function calculateHalfZoomIn() {
-        const begin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm")
-        const end = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm")
+        const begin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm:ss")
+        const end = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm:ss")
 
         const delta = end.unix() - begin.unix();
         const zoomIn = delta / 3;
@@ -302,8 +302,8 @@ $(document).ready(function() {
     function updateRangePicker(operation, maxDate) {
         // get the selected preset or the first preset available
         const [delta, measure] = ($selectTimePresets.val() || $(`#select-time-presets option:first`).val()).split(',');
-        let begin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm")
-        let end = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm")
+        let begin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm:ss")
+        let end = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm:ss")
         
         begin = begin[operation](parseInt(delta), measure);
         end = end[operation](parseInt(delta), measure);
@@ -313,10 +313,10 @@ $(document).ready(function() {
         $(`#begin-date`).attr('max', end.format('YYYY-MM-DD'));
 
         $(`#begin-date`).attr('value', begin.format('YYYY-MM-DD'));
-        $(`#begin-time`).attr('value', begin.format('HH:mm'));
+        $(`#begin-time`).attr('value', begin.format('HH:mm:ss'));
         
         $(`#end-date`).attr('value', end.format('YYYY-MM-DD'));
-        $(`#end-time`).attr('value', end.format('HH:mm'));
+        $(`#end-time`).attr('value', end.format('HH:mm:ss'));
 
         // if the new end time is less than the max current date then
         // enable the jump time ahead button, otherwise disable it
@@ -345,10 +345,10 @@ $(document).ready(function() {
     $(`#begin-date`).attr('max', now.format('YYYY-MM-DD'));
 
     $(`#begin-date`).attr('value', prev.format('YYYY-MM-DD'));
-    $(`#begin-time`).attr('value', prev.format('HH:mm'));
+    $(`#begin-time`).attr('value', prev.format('HH:mm:ss'));
     
     $(`#end-date`).attr('value', now.format('YYYY-MM-DD'));
-    $(`#end-time`).attr('value', now.format('HH:mm'));
+    $(`#end-time`).attr('value', now.format('HH:mm:ss'));
 
     $selectTimePresets.on('change', function(e) {
 
@@ -373,10 +373,10 @@ $(document).ready(function() {
         $(`#begin-date`).attr('max', now.format('YYYY-MM-DD'));
 
         $(`#begin-date`).attr('value', diff.format('YYYY-MM-DD'));
-        $(`#begin-time`).attr('value', diff.format('HH:mm'));
+        $(`#begin-time`).attr('value', diff.format('HH:mm:ss'));
         
         $(`#end-date`).attr('value', now.format('YYYY-MM-DD'));
-        $(`#end-time`).attr('value', now.format('HH:mm'));
+        $(`#end-time`).attr('value', now.format('HH:mm:ss'));
 
         enableRangePickerButtons();
         disableWrongDate();
@@ -394,10 +394,10 @@ $(document).ready(function() {
         let newEnd = moment((end.unix() + halfZoomIn) * 1000);
 
         $(`#begin-date`).attr('value', newBegin.format('YYYY-MM-DD'));
-        $(`#begin-time`).attr('value', newBegin.format('HH:mm'));
+        $(`#begin-time`).attr('value', newBegin.format('HH:mm:ss'));
         
         $(`#end-date`).attr('value', newEnd.format('YYYY-MM-DD'));
-        $(`#end-time`).attr('value', newEnd.format('HH:mm'));
+        $(`#end-time`).attr('value', newEnd.format('HH:mm:ss'));
         
         // if delta is lower than 5 minutes then disable the zoom in button
         if (delta < MAX_ZOOM_IN) {
@@ -439,8 +439,8 @@ $(document).ready(function() {
 
     /* Change the end epoch minimum */
     $inputBeginEpoch.on("change", function (e) {
-        const newBegin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm");
-        const end = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm");
+        const newBegin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm:ss");
+        const end = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm:ss");
 
         // Set up the minimum end date to the current begin date
         $(`#end-date`).attr('min', $(`#begin-date`).val());
@@ -455,8 +455,8 @@ $(document).ready(function() {
     });
 
     $inputEndEpoch.on("change", function (e) {
-        const begin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm");
-        const newEnd = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm");
+        const begin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm:ss");
+        const newEnd = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm:ss");
 
         // Set up the minimum end date to the current begin date
         $(`#begin-date`).attr('max', $(`#end-date`).val());
@@ -501,18 +501,18 @@ $(document).ready(function() {
             $(`#begin-date`).attr('max', now.format('YYYY-MM-DD'));
 
             $(`#begin-date`).attr('value', diff.format('YYYY-MM-DD'));
-            $(`#begin-time`).attr('value', diff.format('HH:mm'));
+            $(`#begin-time`).attr('value', diff.format('HH:mm:ss'));
             
             $(`#end-date`).attr('value', now.format('YYYY-MM-DD'));
-            $(`#end-time`).attr('value', now.format('HH:mm'));
+            $(`#end-time`).attr('value', now.format('HH:mm:ss'));
         } else {
             if($(`#begin-date`).val() && $(`#begin-time`).val()) /* the html input tag is defined */
-                begin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm");
+                begin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm:ss");
             else /* the html input tag is still not loaded */
                 begin = moment(Number(datasourceParams.epoch_begin) * 1000);   
 
             if($(`#end-date`).val() && $(`#end-time`).val()) /* the html input tag is defined */
-                end = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm");
+                end = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm:ss");
             else
                 end = moment(Number(datasourceParams.epoch_end) * 1000);
         }
@@ -923,10 +923,10 @@ $(document).ready(function() {
             $(`#begin-date`).attr('max', end.format('YYYY-MM-DD'));
 
             $(`#begin-date`).attr('value', begin.format('YYYY-MM-DD'));
-            $(`#begin-time`).attr('value', begin.format('HH:mm'));
+            $(`#begin-time`).attr('value', begin.format('HH:mm:ss'));
             
             $(`#end-date`).attr('value', end.format('YYYY-MM-DD'));
-            $(`#end-time`).attr('value', end.format('HH:mm'));
+            $(`#end-time`).attr('value', end.format('HH:mm:ss'));
         }
     });
 
