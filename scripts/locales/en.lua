@@ -1015,8 +1015,10 @@ local lang = {
     ["tooltips"] = {
       ["top_addresses"] = "Mac Addresses with most alerts",
       ["top_alerts"] = "Most seen alerts",
+      ["top_cli"] = "Hosts as client with most alerts",
       ["top_hosts"] = "Hosts with most alerts",
       ["top_networks"] = "Networks with most alerts",
+      ["top_srv"] = "Hosts as server with most alerts",
     },
   },
   ["alerts_thresholds_config"] = {

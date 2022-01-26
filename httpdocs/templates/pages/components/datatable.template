@@ -117,9 +117,6 @@
     {% end %}
 
     const $btnGetPermaLink = $(`#btn-get-permalink`);
-    {% if show_cards then %}
-    const sideCard = [$('#sideCard1'),$('#sideCard2')];    
-    {% end %}
 
     let intervalId = 0;
 
@@ -140,15 +137,14 @@
     }
 
     /* Cards */
-  {% if show_cards then %}
-  let tableBarMenuHtml = null;
-  let updateCardStats = () => {
+    {% if show_cards then %}
+    let tableBarMenuHtml = null;
+    let updateCardStats = () => {
       let params = (new URLSearchParams(datasourceParams)).toString();
 
       $.getJSON(`{* endpoint_cards *}?${params}`, function (data) {
 	  let menuContent = [];
-	  
-          for (i = 0; i < sideCard.length; i++){
+          for (i = 0; i < data.rsp.length; i++){
               if (data.rsp[i] == null || data.rsp[i].value == null || data.rsp[i].value[0] == null){
 		  continue;
               } else {
@@ -184,8 +180,8 @@
 	  $(".dataTables_wrapper .row .text-end").append(tableBarMenuHtml);
 	  $(".dataTables_wrapper .dropdown .tag-filter" ).addClass("dropdown-item");
       });
-  }
-  {% end %}
+    }
+    {% end %}
 
     async function reloadTable($table, begin, end) {
 

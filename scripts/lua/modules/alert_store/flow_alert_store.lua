@@ -156,6 +156,8 @@ function flow_alert_store:top_ip_merge(top_cli_ip, top_srv_ip)
          name = p.cli_name,
          vlan_id = p.vlan_id,
       }
+      p.name = p.cli_name
+      p.ip = p.cli_ip
    end 
    for _, p in ipairs(top_srv_ip) do
       all_ip[p.srv_ip] = (all_ip[p.srv_ip] or 0) + tonumber(p.count)
@@ -163,6 +165,8 @@ function flow_alert_store:top_ip_merge(top_cli_ip, top_srv_ip)
          name = p.srv_name,
          vlan_id = p.vlan_id,
       }
+      p.name = p.srv_name
+      p.ip = p.srv_ip
    end 
 
    for ip, count in pairsByValues(all_ip, rev) do
