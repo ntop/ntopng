@@ -162,7 +162,7 @@
                                       "' data-tag-label='" + data.rsp[i].value[0][j].label + 
                                       "' href='#'>" + data.rsp[i].value[0][j].label + "" + restText + "</a>";
 
-			  let itemText = '<li class="row">' + a_tag + '</li>';
+			  let itemText = '<li class="dropdown-item pointer">' + a_tag + '</li>';
 			  menuOptions.push(itemText);
                       }
                   }
