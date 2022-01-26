@@ -189,6 +189,10 @@ const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RIS
     .alert_type = { flow_alert_ndpi_possible_exploit, alert_category_security },
     .alert_lua_name = "ndpi_possible_exploit"
   },
+  [NDPI_TLS_CERTIFICATE_ABOUT_TO_EXPIRE] = {
+    .alert_type = { flow_alert_ndpi_tls_certificate_about_to_expire, alert_category_security },
+    .alert_lua_name = "ndpi_tls_certificate_about_to_expire"
+  },
 };
 
 /* **************************************************** */
