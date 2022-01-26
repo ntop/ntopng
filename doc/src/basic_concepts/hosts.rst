@@ -19,9 +19,14 @@ However, not all hosts are handled equally by ntopng. ntopng can be told to trea
 
 Typically, local hosts coincide with the hosts in the Local Area Network (LAN). A network administrator cares most about the hosts he/she is managing, rather than those in the rest of the world. For this reason, a network administrator that is managing a network `10.0.0.0/8` would start ntopng as
 
-
 .. code:: bash
 
    ntopng --local-networks 10.0.0.0/8 <plus other options>
+
+Optionally you can name the local networks in the following way, in order to remember the place those Hosts belongs to.
+
+.. code:: bash
+
+   ntopng --local-networks 10.0.0.0/8=Office,192.168.2.0/24=Home <plus other options>
 
 All hosts that are non-local are defined as `remote hosts`. The following table briefly summarizes the differences between local and remote hosts.
