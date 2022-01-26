@@ -83,10 +83,17 @@ for key, am_host in pairs(am_hosts) do
     else
       pool_id = am_pool.DEFAULT_POOL_ID
     end
+
+    local html_label = am_utils.formatAmHost(am_host.host, am_host.measurement, true)
+
+    if(column_ifname ~= "") then
+       html_label = html_label .. " [ <span class=\"fas fa-ethernet\"></span> "..column_ifname.." ]"
+    end
+    
     res[#res + 1] = {
        key = key,
        label = am_host.label,
-       html_label = am_utils.formatAmHost(am_host.host, am_host.measurement, true),
+       html_label = html_label,
        host = am_host.host,
        alerted = alerted,
        measurement = i18n(m_info.i18n_label),
