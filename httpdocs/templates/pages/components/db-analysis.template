@@ -31,7 +31,7 @@
         {% for _, chart_opts in ipairs(charts) do %}
           
           <div class="col-{{ chart_opts.chart_width }}">
-            <div class="widget-box" id="{{ chart_opts.chart_id }}">
+            <div class="widget-box widget-box-fix" id="{{ chart_opts.chart_id }}">
             {* 
               widget_gui_utils.render_chart(chart_opts.chart_id, {
                 displaying_label = chart_opts.chart_name,
