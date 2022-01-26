@@ -816,19 +816,8 @@ end
 
 -- ########################################################
 
-local function _harvest_expired_clickhouse_flows(ifname, mysql_retention, verbose)
-   local sql = string.format("ALTER TABLE ntopng.flows DELETE WHERE toUnixTimestamp(FIRST_SEEN) < %u AND INTERFACE_ID = %d", mysql_retention, getInterfaceId(ifname))
-   interface.execSQLQuery(sql)
-end
-
--- ########################################################
-
 function db_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
-   if ntop.isClickHouseEnabled() then
-      -- Clickhouse
-      return _harvest_expired_clickhouse_flows(ifname, mysql_retention, verbose)
-   else
-      -- Plain MySQL
+   if not ntop.isClickHouseEnabled() then
       return _harvest_expired_mysql_flows(ifname, mysql_retention, verbose)
    end
 end
