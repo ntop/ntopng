@@ -4647,6 +4647,7 @@ end
 
 -- #####################
 
+-- Used by REST v1
 function formatAlertAHref(key, value, label)
    return "<a class='tag-filter' data-tag-key='" .. key .. "' title='" .. value .. "' data-tag-value='" .. value .. "' data-tag-label='" .. label .. "' href='#'>" .. label .. "</a>"
 end

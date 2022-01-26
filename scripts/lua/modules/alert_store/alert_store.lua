@@ -1164,11 +1164,14 @@ function alert_store:format_top_alerts(stats)
    for n, value in pairs(stats.top.alert_id) do
       if self._top_limit > 0 and n > self._top_limit then break end
 
-      local label = shortenString(alert_consts.alertTypeLabel(tonumber(value.alert_id), true, self._alert_entity.entity_id), s_len)
+      local label = alert_consts.alertTypeLabel(tonumber(value.alert_id), true, self._alert_entity.entity_id)
 
       top_alerts[#top_alerts + 1] = {
          count = (tonumber(value.count) * 100) / stats.count,
-         name = formatAlertAHref("alert_id", tonumber(value.alert_id), label),
+         key = "alert_id",
+         value = tonumber(value.alert_id),
+         label = shortenString(label, s_len),
+         title = label,
       }
    end
 

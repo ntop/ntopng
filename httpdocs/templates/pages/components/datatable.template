@@ -159,7 +159,14 @@
                       if(data.rsp[i].value[0][j] != null){
                           let restText = " (" + (data.rsp[i].value[0][j].count).toFixed(1) + "%)";
                           if(data.rsp[i].value[0][j].count != 0 && data.rsp[i].value[0][j].count < 0.1){restText = " (< 0.1%)";}
-			  let itemText = '<li class="row">' + data.rsp[i].value[0][j].name.replace(/>(.*)</, ">$1" + restText + "<") + '</li>';
+
+                          let a_tag = "<a class='tag-filter' data-tag-key='" + data.rsp[i].value[0][j].key + 
+                                      "' title='" + ( data.rsp[i].value[0][j].title || data.rsp[i].value[0][j].value) + 
+                                      "' data-tag-value='" + data.rsp[i].value[0][j].value + 
+                                      "' data-tag-label='" + data.rsp[i].value[0][j].label + 
+                                      "' href='#'>" + data.rsp[i].value[0][j].label + "" + restText + "</a>";
+
+			  let itemText = '<li class="row">' + a_tag + '</li>';
 			  menuOptions.push(itemText);
                       }
                   }
