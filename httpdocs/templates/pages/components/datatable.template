@@ -27,7 +27,6 @@
       </div>
 
       <div class="card-body">
-
         {% if show_chart then %}
         <div class="row">
 
@@ -38,26 +37,6 @@
               }) *}
             </div>
           </div>
-
-          {% if show_cards then %}
-          <div class="col-2 d-none" id="CardDiv1" style="padding-right: 2px;padding-left: 2px;">
-            <div class="card border-primary h-100 mb-2" id="Card1">
-              <div class="card-header text-start fs-6 fw-bold" data-bs-custom-class="custom-tooltip" title="Loading..." id="sideCardTitle1"> Loading... </div>
-              <div class="card-body ms-1">
-                <span class="card-text text-start fs-6" id="sideCard1">Loading...</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-2 d-none" id="CardDiv2" style="padding-right: 2px;padding-left: 2px;">
-            <div class="card border-success h-100 mb-2" id="Card2">
-              <div class="card-header text-start fs-6 fw-bold" data-bs-custom-class="custom-tooltip"  title="Loading..." id="sideCardTitle2"> Loading...</div>
-              <div class="card-body ms-1">
-                <span class="card-text text-start fs-6" id="sideCard2">Loading...</span>
-              </div>
-            </div>
-          </div>
-          {% end  %}
       {% end  %}
 
           <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'>
@@ -161,61 +140,45 @@
     }
 
     /* Cards */
-    {% if show_cards then %}
-    let updateCardStats = () => {
-        let params = (new URLSearchParams(datasourceParams)).toString();
+  {% if show_cards then %}
+  let tableBarMenuHtml = null;
+  let updateCardStats = () => {
+      let params = (new URLSearchParams(datasourceParams)).toString();
 
-        $.getJSON(`{* endpoint_cards *}?${params}`, function (data) {
-
-            let chartBox = $('#ChartDiv')
-            let divBox = [$('#CardDiv1'),$('#CardDiv2')];
-            let cardBox = [$('#Card1'),$('#Card2')];
-            let sideCardTitle = [$('#sideCardTitle1'),$('#sideCardTitle2')];
-            let numCards = 0;
-
-            for (i = 0; i < sideCard.length; i++){
-                if (data.rsp[i] == undefined){
-                    divBox[i].attr({
-                            "class" : "col-2 d-none"
-                    });
-                } else {
-                    sideCardTitle[i].html(data.rsp[i].label);
-                    sideCardTitle[i].attr({
-                        "title" : data.rsp[i].tooltip                
-                    });
-                    let cardText = "";
-                    for (j = 0; j < 3; j++) {
-                        // Concat the name with the percentage of the stat
-                        // NB: These name should be filters if available
-                        if(data.rsp[i].value[0].lenght != 0 && data.rsp[i].value[0][j] != undefined){
-                            let restText = " (" + (data.rsp[i].value[0][j].count).toFixed(1) + "%)</li>";
-                            if(data.rsp[i].value[0][j].count != 0 && data.rsp[i].value[0][j].count < 0.1){restText = " (< 0.1%)</li>";}
-                            cardText += "<li>" + data.rsp[i].value[0][j].name + restText;
-                        }                           
-                    }
-                    if (cardText != ""){
-                            divBox[i].attr({
-                                    "class" : "col-2 mb-2"
-                            });
-                        sideCard[i].html("<small>" + cardText + "</small>");
-                        numCards += 1;
-                    } else {
-                            divBox[i].attr({
-                                    "class" : "col-2 d-none"
-                            });
-                    }
-                }
-            }
-
-            // Calculating the width of the graph: Tot width (12) - Num of cards (2 per card)
-            graphWidth = (12 - (numCards * 2)).toString();
-
-            chartBox.attr({
-                "class" : "col-" + graphWidth + " mb-2"
-            });
-        });
-    }
-    {% end %}
+      $.getJSON(`{* endpoint_cards *}?${params}`, function (data) {
+	  let menuContent = [];
+	  
+          for (i = 0; i < sideCard.length; i++){
+              if (data.rsp[i] == null || data.rsp[i].value == null || data.rsp[i].value[0] == null){
+		  continue;
+              } else {
+		  let menuOptions = [];		  
+                  for (j = 0; j < data.rsp[i].value[0].length; j++) {
+                      // Concat the name with the percentage of the stat
+                      // NB: These name should be filters if available
+                      if(data.rsp[i].value[0][j] != null){
+                          let restText = " (" + (data.rsp[i].value[0][j].count).toFixed(1) + "%)";
+                          if(data.rsp[i].value[0][j].count != 0 && data.rsp[i].value[0][j].count < 0.1){restText = " (< 0.1%)";}
+			  let itemText = '<li class="row">' + data.rsp[i].value[0][j].name.replace(/>(.*)</, ">$1" + restText + "<") + '</li>';
+			  menuOptions.push(itemText);
+                      }
+                  }
+                  if (menuOptions.length > 0){
+		      let menu = '<div class="btn-group dropdown"> <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown" type="button" title="'+ data.rsp[i].tooltip + '">' + data.rsp[i].label +'</button><ul class="dropdown-menu scrollable-dropdown">' + menuOptions.join("") + '</ul></div>';
+		      menuContent.push(menu);
+                  }
+              }
+          }
+	  if (tableBarMenuHtml == null) {
+	      tableBarMenuHtml = $(".dataTables_wrapper .row .text-end").html();
+	  }
+	  let menuContentHtml = '' + menuContent.join("") + '';
+	  $(".dataTables_wrapper .row .text-end").html(menuContentHtml);
+	  $(".dataTables_wrapper .row .text-end").append(tableBarMenuHtml);
+	  $(".dataTables_wrapper .dropdown .tag-filter" ).addClass("dropdown-item");
+      });
+  }
+  {% end %}
 
     async function reloadTable($table, begin, end) {
 
@@ -424,9 +387,9 @@ $(document).ready(function(){
     {% if datatable.refresh_rate and datatable.refresh_rate > 0 then %}
     intervalId = setInterval(function() { onRangePickerChange(true, true); }, {{ datatable.refresh_rate }});
     {% end %}
-
     $table = $(`#{{ datatable.name }}`).DataTable(config);
 
+    
     DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
         $table.ajax.reload();
     });
@@ -445,15 +408,11 @@ $(document).ready(function(){
         addFilter(e, $(this), $table);
     });
 
-    /* Cards */
+    /* Top Host and Top Alerts filters */
     {% if show_cards then %}
-    sideCard.forEach(element=>{
-        const card = "#".concat(element[0].id);
-        
-        $(card).on('click', `a.tag-filter`, async function (e) {
+    $(".dataTables_wrapper .row .text-end").on("click", "a.tag-filter", async function (e) {
             addFilter(e, $(this));
-        })
-    })
+    });
     {% end %}
     
     $btnGetPermaLink.on('click', function() {
