@@ -360,9 +360,8 @@ function flow_alert_store:format_record(value, no_html)
    local l4_protocol = l4_proto_to_string(value["proto"])
    local l7_protocol =  interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]), tonumber(value["l7_proto"]))
    local show_cli_port = (value["cli_port"] ~= '' and value["cli_port"] ~= '0')
-   local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= '0')   
+   local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= '0') 
    local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, alert_info)
-
    local active_url = ""
    local attacker = ""
    local victim = ""
@@ -450,19 +449,9 @@ function flow_alert_store:format_record(value, no_html)
 
    local shorten_msg
 
-   -- Added max length to reduce graphic bug, overflowing description and overflowing other issues
-   if string.len(noHtml(msg)) > 150 then      
-      msg = noHtml(msg)
-      shorten_msg = shortenString(msg, 150)
-   end
-
    record[RNAME.ADDITIONAL_ALERTS.name] = {
       descr = record[RNAME.ADDITIONAL_ALERTS.name],
    }
-
-   if string.len(record[RNAME.ADDITIONAL_ALERTS.name]["descr"]) > 150 then
-      record[RNAME.ADDITIONAL_ALERTS.name]["shorten_descr"] = shortenString(record[RNAME.ADDITIONAL_ALERTS.name]["descr"], 150)
-   end
 
    if no_html then
       msg = noHtml(msg)
