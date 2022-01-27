@@ -29,7 +29,7 @@ local what = _GET["status"] -- historical, historical-flows
 local epoch_begin = _GET["epoch_begin"]
 local epoch_end = _GET["epoch_end"]
 
-if isEmptyString(ifid) then
+if isEmptyString(ifid) or not interface.isValidIfId(ifid) then
    print(rest_utils.rc(rest_utils.consts.err.invalid_interface))
    return
 end
