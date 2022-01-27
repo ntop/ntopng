@@ -387,7 +387,7 @@ function format_utils.formatFullAddressCategory(host)
       end
       
       if(host["broadcast_domain_host"] == true) then
-         addr_category = addr_category .. " <span class='badge bg-info'><i class='fas fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
+         addr_category = addr_category .. " <span class='badge bg-info' style='cursor: help;'><i class='fas fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
       end
       
       if(host["privatehost"] == true) then 

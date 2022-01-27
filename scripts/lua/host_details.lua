@@ -459,21 +459,21 @@ else
 	 active = page == "periodicity_map",
 	 page_name = "periodicity_map",
 	 url = periodicity_map_link,
-	 label = "<i class=\"fas fa-lg fa-clock\"></i>",
+	 label = "<i class=\"fas fa-lg fa-clock\" title='" .. i18n("periodicity_map") .. "'></i>",
 	 badge_num = num_periodicity,
       },
       {
 	 hidden = not service_map_available,
 	 active = page == "service_map",
 	 page_name = "service_map",
-	 label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
+	 label = "<i class=\"fas fa-lg fa-concierge-bell\" title='" .. i18n("service_map") .. "'\"></i>",
 	 url = service_map_link
       },
       {
 	 hidden = not prefs.is_dump_flows_to_clickhouse_enabled,
 	 active = page == "db_search",
 	 page_name = "db_search",
-	 label = "<i class=\"fas fa-search-plus\"></i>",
+	 label = "<i class=\"fas fa-search-plus\" title='" .. i18n("db_explorer.historical_data_explorer") .. "'\"></i>",
 	 url = historical_flow_link
       },
       {
@@ -615,9 +615,9 @@ else
    	 if(host.services.ntp)  then print(' <span class="badge bg-success">'..i18n("details.label_ntp_server")..'</span>') end
          end
    
-         if(host["dhcp_server"] == true) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
-         if(host["systemhost"] == true) then print(' <span class="badge bg-success"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
-         if(host["is_blacklisted"] == true) then print(' <span class="badge bg-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
+         if(host["dhcp_server"] == true) then print(' <span class="badge bg-success" style="cursor: help;">'..i18n("details.label_dhcp_server")..'</span>') end
+         if(host["systemhost"] == true) then print(' <span class="badge bg-success" style="cursor: help;"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
+         if(host["is_blacklisted"] == true) then print(' <span class="badge bg-danger" style="cursor: help;">'..i18n("details.label_blacklisted_host")..'</span>') end
          if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
    	 print(' <A class="ntopng-external-link" href="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'
    		  ..ntop.getHttpPrefix()..'/img/virustotal.svg\"> <i class=\"fas fa-external-link-alt\"></i></A>')
@@ -812,7 +812,7 @@ else
 
    if interfaceHasClickHouseSupport() then
       local url = ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?ip=' .. hostinfo2hostkey(host_info) .. ';eq' 
-      flows_th = flows_th .. ' <a class="btn btn-sm btn-info" href="' .. url .. '"><i class="fas fa-search-plus"></i></a>'
+      flows_th = flows_th .. ' <a class="btn btn-sm btn-info" href="' .. url .. '" title="' .. i18n("db_explorer.historical_data_explorer") .. '"><i class="fas fa-search-plus"></i></a>'
    end
 
    print("<tr><th></th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
