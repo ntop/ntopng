@@ -1103,6 +1103,9 @@ li > a > .fa-external-link-alt{
 }
 
 .widget-box-main-dashboard {
-  margin-top: 20px;
+  margin-top: 1rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+  padding-bottom: 0.25rem;
 }
 
