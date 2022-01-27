@@ -1436,7 +1436,7 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
 
 	    print("<tr><th rowspan='3'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("snmp.snmp_device").."</th><td>"..snmpurl.."</td></tr>")
 	    print("<tr><th>"..i18n("details.input_device_port").."</th><td>"..(inputurl or "").." (".. input_idx ..")</td></tr>")
-	    print("<tr><th>"..i18n("details.output_device_port").."</th><td>"..(outputurl or "").."(".. output_idx ..")</td></tr>")
+	    print("<tr><th>"..i18n("details.output_device_port").."</th><td>"..(outputurl or "").." (".. output_idx ..")</td></tr>")
 	    printed = true
 	 end
       end
