@@ -156,7 +156,7 @@
                           let restText = " (" + (data.rsp[i].value[0][j].count).toFixed(1) + "%)";
                           if(data.rsp[i].value[0][j].count != 0 && data.rsp[i].value[0][j].count < 0.1){restText = " (< 0.1%)";}
 
-                          let a_tag = "<a class='tag-filter' data-tag-key='" + data.rsp[i].value[0][j].key + 
+                          let a_tag = "<a class='tag-filter dropdown-item' data-tag-key='" + data.rsp[i].value[0][j].key + 
                                       "' title='" + ( data.rsp[i].value[0][j].title || data.rsp[i].value[0][j].value) + 
                                       "' data-tag-value='" + data.rsp[i].value[0][j].value + 
                                       "' data-tag-label='" + data.rsp[i].value[0][j].label + 
@@ -167,8 +167,14 @@
                       }
                   }
                   if (menuOptions.length > 0){
-		      let menu = '<div class="btn-group dropdown"> <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown" type="button" title="'+ data.rsp[i].tooltip + '">' + data.rsp[i].label +'</button><ul class="dropdown-menu scrollable-dropdown">' + menuOptions.join("") + '</ul></div>';
-		      menuContent.push(menu);
+                    let menu = `<div class="btn-group dropdown">
+                                    <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown" type="button" title="`+ data.rsp[i].tooltip + `">` + data.rsp[i].label +
+                                   `</button>
+                                    <ul class="dropdown-menu">`
+                                        + menuOptions.join("") + 
+                                   `</ul>
+                                </div>`;
+                    menuContent.push(menu);
                   }
               }
           }
