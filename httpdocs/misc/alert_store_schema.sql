@@ -297,6 +297,17 @@ CREATE INDEX IF NOT EXISTS `system_alerts_i_severity` ON `system_alerts`(severit
 CREATE INDEX IF NOT EXISTS `system_alerts_i_tstamp` ON `system_alerts`(tstamp);
 CREATE INDEX IF NOT EXISTS `system_alerts_i_alert_status` ON `system_alerts`(alert_status);
 
+-- New field not present in the original table added for compatibility reasons but not used by SQLite
+-- IMPORTANT: leave them at the end and remove in future versions and update SQLiteAlertStore::openStore()
+ALTER TABLE `flow_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `host_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `mac_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `snmp_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `network_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `interface_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `user_alerts` ADD `interface_id` INTEGER NULL;
+ALTER TABLE `system_alerts` ADD `interface_id` INTEGER NULL;
+
 -- -----------------------------------------------------
 -- View that merges all tables together
 -- NOTE: integer entity_id MUST BE KEPT IN SYNC WITH IDS in alert_entities.lua
@@ -321,15 +332,4 @@ SELECT 7 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, se
 UNION ALL
 SELECT 9 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `system_alerts`
 ;
-
--- New field not present in the original table added for compatibility reasons but not used by SQLite
--- IMPORTANT: leave them at the end and remove in future versions and update SQLiteAlertStore::openStore()
-ALTER TABLE `flow_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `host_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `mac_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `snmp_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `network_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `interface_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `user_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `system_alerts` ADD `interface_id` INTEGER NULL;
 
