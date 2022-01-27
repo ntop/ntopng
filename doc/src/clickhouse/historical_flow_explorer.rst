@@ -1,4 +1,4 @@
-.. _ClickHouse:
+.. _Historical Flow Explorer:
 
 Historical Flows Explorer
 -------------------------
@@ -143,16 +143,9 @@ Regarding the Formatting Optional Feature (`chart_y_formatter`) there are differ
 - `format_bytes`, used to format bytes data; 
 
 If a user would like to have a particular chart with a customized endpoint then an specific endpoint needs to be used.
-Create a Lua endpoint in the ntopng directory prefered and change the `chart_endpoint` accordingly.
-Use the `local res, preset = db_search_manager.get_charts_query(chart_id)` to get the results of the query then return the results correctly formatted to ntopng.
-ntopng uses apexcharts charts, please refer to their official documentation to have more information about the results format https://apexcharts.com/javascript-chart-demos/.
+Please contact us in that case and, if possible, we will release the requested chart.
 
-.. note::
-
-   New charts pages are going to be released periodically. If new useful charts are needed please provide us the MySQL query so that all the community can access these new chart
-  
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 1
 
-   historical_flow_analysis_json_example
-   historical_flow_analysis_endpoint_example
+    historical_flow_analysis_json_example
