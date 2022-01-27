@@ -837,8 +837,8 @@ NetworkInterface::~NetworkInterface() {
   if(hostAlertsQueue)       delete hostAlertsQueue;
 
   addRedisSitesKey();
-  if(top_sites)        delete top_sites;
-  if(top_os)           delete top_os;
+  if(top_sites)             delete top_sites;
+  if(top_os)                delete top_os;
 
   if(prev_flow_checks_executor) delete prev_flow_checks_executor;
   if(flow_checks_executor)      delete flow_checks_executor;
@@ -6334,7 +6334,7 @@ void NetworkInterface::lua(lua_State *vm) {
 
   bcast_domains->lua(vm);
 
-  if(ntop->getPrefs()->are_top_talkers_enabled())
+  if(top_sites && ntop->getPrefs()->are_top_talkers_enabled())
     top_sites->lua(vm, (char *) "sites", (char *) "sites.old");
 
   luaAnomalies(vm);
@@ -9397,7 +9397,8 @@ void NetworkInterface::updateSitesStats() {
 }
 
 void NetworkInterface::incrVisitedWebSite(char *hostname) {
-  top_sites->incrVisitedData(hostname, 1);
+  if(top_sites)
+    top_sites->incrVisitedData(hostname, 1);
 }
 
 /* *************************************** */
