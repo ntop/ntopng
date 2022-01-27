@@ -115,7 +115,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       case flowhashing_probe_ip_and_ingress_iface_idx:
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[IP: %u][inIndex: %u]", zflow->device_ip, zflow->inIndex);
 	vIface = getDynInterface((((u_int64_t)zflow->device_ip) << 32) + zflow->inIndex, true);
-      break;
+	break;
       
       case flowhashing_vrfid:
         vIface = getDynInterface((u_int64_t)zflow->vrfId, true);
@@ -260,10 +260,10 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 #ifdef MAC_DEBUG
   char bufm1[32], bufm2[32];
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-      "Processing Flow [src mac: %s][dst mac: %s][src2dst: %i]",
-      Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
-      Utils::formatMac(dstMac->get_mac(), bufm2, sizeof(bufm2)),
-      (src2dst_direction) ? 1 : 0);
+			       "Processing Flow [src mac: %s][dst mac: %s][src2dst: %i]",
+			       Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
+			       Utils::formatMac(dstMac->get_mac(), bufm2, sizeof(bufm2)),
+			       (src2dst_direction) ? 1 : 0);
 #endif
 
   /* Update Mac stats
@@ -412,7 +412,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     Parse flow info into the corresponding element (without overriding plugin-generated data:
     - When nProbe has plugins enabled, plugin data is taken
     - When nProbe has no plugins enabled, then nDPI data is taken
-   */
+  */
   if(zflow->l7_info && zflow->l7_info[0]) {
     if(flow->isDNS() && !zflow->dns_query)            zflow->dns_query = zflow->l7_info;
     else if(flow->isHTTP() && !zflow->http_site)      zflow->http_site = zflow->l7_info;
@@ -478,55 +478,62 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   u_int16_t eth_type = srcIP.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6;
 
 #if 0
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%d) [in: %u][out: %u]",
-				 (zflow->direction == 0 /* RX */) ? "RX" : "TX",
-				 zflow->direction,
-				 zflow->in_bytes, zflow->out_bytes);
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%d) [in: %u][out: %u]",
+			       (zflow->direction == 0 /* RX */) ? "RX" : "TX",
+			       zflow->direction,
+			       zflow->in_bytes, zflow->out_bytes);
 #endif
 
-  if(zflow->direction == UNKNOWN_FLOW_DIRECTION)
-    incStats(true /* ingressPacket */,
-	     now, eth_type,
-	     flow->getStatsProtocol(),
-	     flow->get_protocol_category(),
-	     zflow->l4_proto,
-	     zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
-	     zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts));
-  else {
+#ifdef DEBUG
+  char a[32], b[32];
+  
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Direction: %u [ntop: %s][%s -> %s]",
+			       zflow->direction, flow->isLocalToRemote() ? "L->R" : "R->L",
+			       flow->get_cli_ip_addr()->print(a, sizeof(a)),
+			       flow->get_srv_ip_addr()->print(b, sizeof(b))
+			       );
+#endif
+  
+  if(zflow->direction == UNKNOWN_FLOW_DIRECTION) {
+    if(flow->isLocalToRemote())
+      zflow->direction = 1 /* TX */;
+    else
+      zflow->direction = 0 /* RX */;
+  }
+  
+  if(zflow->direction == 0 /* RX */) {
+    if(zflow->in_pkts)
+      incStats(true /* Ingress */, now, eth_type,
+	       flow->getStatsProtocol(), flow->get_protocol_category(), zflow->l4_proto,
+	       zflow->pkt_sampling_rate * zflow->in_bytes,
+	       zflow->pkt_sampling_rate * zflow->in_pkts);
+    if(zflow->out_pkts)
+      incStats(false /* Egress */, now, eth_type,
+	       flow->getStatsProtocol(), flow->get_protocol_category(), zflow->l4_proto,
+	       zflow->pkt_sampling_rate * zflow->out_bytes,
+	       zflow->pkt_sampling_rate * zflow->out_pkts);
+  } else { /* TX */
+    if(zflow->out_bytes)
+      incStats(true /* Ingress */, now, eth_type,
+	       flow->getStatsProtocol(), flow->get_protocol_category(), zflow->l4_proto,
+	       zflow->pkt_sampling_rate * zflow->out_bytes,
+	       zflow->pkt_sampling_rate * zflow->out_pkts);
+    if(zflow->in_pkts)
+      incStats(false /* Egress */, now, eth_type,
+	       flow->getStatsProtocol(), flow->get_protocol_category(), zflow->l4_proto,
+	       zflow->pkt_sampling_rate * zflow->in_bytes,
+	       zflow->pkt_sampling_rate * zflow->in_pkts);
+  }
     
-    if(zflow->direction == 0 /* RX */) {
-      if(zflow->in_pkts)
-	incStats(true /* Ingress */, now, eth_type,
-		 flow->getStatsProtocol(), flow->get_protocol_category(), zflow->l4_proto,
-		 zflow->pkt_sampling_rate * zflow->in_bytes,
-		 zflow->pkt_sampling_rate * zflow->in_pkts);
-      if(zflow->out_pkts)
-	incStats(false /* Egress */, now, eth_type,
-		 flow->getStatsProtocol(), flow->get_protocol_category(), zflow->l4_proto,
-		 zflow->pkt_sampling_rate * zflow->out_bytes,
-		 zflow->pkt_sampling_rate * zflow->out_pkts);
-    } else { /* TX */
-      if(zflow->out_bytes)
-	incStats(true /* Ingress */, now, eth_type,
-		 flow->getStatsProtocol(), flow->get_protocol_category(), zflow->l4_proto,
-		 zflow->pkt_sampling_rate * zflow->out_bytes,
-		 zflow->pkt_sampling_rate * zflow->out_pkts);
-      if(zflow->in_pkts)
-	incStats(false /* Egress */, now, eth_type,
-		 flow->getStatsProtocol(), flow->get_protocol_category(), zflow->l4_proto,
-		 zflow->pkt_sampling_rate * zflow->in_bytes,
-		 zflow->pkt_sampling_rate * zflow->in_pkts);
-    }
-  }  
 
 #ifdef NTOPNG_PRO
   /* Check if direct flow dump is enabled */
   if(ntop->getPrefs()->do_dump_flows_direct() && (
-     ntop->getPrefs()->is_flows_dump_enabled()
+						  ntop->getPrefs()->is_flows_dump_enabled()
 #ifndef HAVE_NEDGE
-     || ntop->get_export_interface()
+						  || ntop->get_export_interface()
 #endif
-     )) {
+						  )) {
     /* Dump flow */
     flow->dump(zflow->last_switched, true /* last dump before free */);
   }
