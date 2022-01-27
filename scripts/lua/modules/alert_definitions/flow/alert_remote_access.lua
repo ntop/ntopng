@@ -9,6 +9,7 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+require "lua_utils"
 
 -- ##############################################
 
@@ -40,9 +41,11 @@ function alert_remote_access.format(ifid, alert, alert_type_params)
 
    if time == 0 then
       time = "< 1"
+   else
+      time = secondsToTime(time)
    end
 
-   return (i18n("alerts_dashboard.remote_access_alert_descr", { sec = time }))
+   return (i18n("alerts_dashboard.remote_access_alert_descr", { time = time }))
 end
 
 -- #######################################################
