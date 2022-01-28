@@ -160,20 +160,21 @@ end
 -- ##############################################
 
 --@brief Removes all exclusions for a given entity
-local function _enable_all_alerts(is_flow_exclusion, host)
+local function _enable_all_alerts(is_flow_exclusion, host_ip)
    local ret = false
-
+   
    local locked = _lock()
 
    if locked then
-      local exclusions = _get_configured_alert_exclusions()
-
-      if(is_flow_exclusion) then
-	 exclusions[host_ip].flow_alerts = { }
-      else
-	 exclusions[host_ip].host_alerts = { }
-      end
+      local exclusions
       
+      if(host_ip == nil) then
+	 exclusions = {}	 
+      else
+	 exclusions = _get_configured_alert_exclusions()	 
+	 exclusions[host_ip] = nil
+      end
+
       _set_configured_alert_exclusions(exclusions)
 
       ret = true
