@@ -188,13 +188,17 @@ const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
     endpoint: `${http_prefix}/lua/pro/rest/v2/edit/check/filter.lua`,
     beforeSumbit: function (alert) {
 
-        const data = {
-            alert_key: alert.alert_id.value,
+        let data = {
             subdir: FAMILY,
             script_key: alert.script_key,
             delete_alerts: $(`#delete_alerts_switch`).is(":checked"),
             alert_addr: $(`[name='alert_addr']:checked`).val(),
         };
+
+        if(FAMILY === "flow")
+            data["flow_alert_key"] = alert.alert_id.value;
+        else if(FAMILY === "host")
+            data["host_alert_key"] = alert.alert_id.value;
 
         return data;
     },
