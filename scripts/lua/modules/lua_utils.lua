@@ -4264,6 +4264,16 @@ function areHostPoolsTimeseriesEnabled(ifid)
    return(ntop.isPro() and (ntop.getPref("ntopng.prefs.host_pools_rrd_creation") == "1"))
 end
 
+function getPoolName(pool_id)
+ if(pool_id == "0") then
+   return "Default"
+ else
+   local key = "ntopng.prefs.host_pools.details."..pool_id
+
+   return ntop.getHashCache(key, "name")
+ end
+end
+
 function areASTimeseriesEnabled(ifid)
    return(ntop.getPref("ntopng.prefs.asn_rrd_creation") == "1")
 end
