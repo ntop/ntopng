@@ -81,10 +81,18 @@ local ALL_HOOKS_CONFIG_KEY = "all"
 local CONFIGSET_KEY = "ntopng.prefs.checks.configset_v1" -- Keep in sync with ntop_defines.h CHECKS_CONFIG
 checks.DEFAULT_CONFIGSET_ID = 0
 
+checks.HOST_SUBDIR_NAME = "host"
+checks.FLOW_SUBDIR_NAME = "flow"
+checks.INTERFACE_SUBDIR_NAME = "interface"
+checks.NETWORK_SUBDIR_NAME = "network"
+checks.SNMP_DEVICE_SUBDIR_NAME = "snmp_device"
+checks.SYSTEM_SUBDIR_NAME = "system"
+checks.SYSLOG_SUBDIR_NAME = "syslog"
+
 -- NOTE: the subdir id must be unique
 local available_subdirs = {
    {
-      id = "host",
+      id = checks.HOST_SUBDIR_NAME,
       label = "hosts",
       pools = "host_pools",
       filter = {
@@ -98,7 +106,7 @@ local available_subdirs = {
 	 },
       },
    }, {
-      id = "interface",
+      id = checks.INTERFACE_SUBDIR_NAME,
       label = "interfaces",
       pools = "interface_pools",
       filter = {
@@ -126,7 +134,7 @@ local available_subdirs = {
 	 },
       },
    }, {
-      id = "network",
+      id = checks.NETWORK_SUBDIR_NAME,
       label = "networks",
       pools = "local_network_pools",
       filter = {
@@ -154,7 +162,7 @@ local available_subdirs = {
 	 },
       },
    }, {
-      id = "snmp_device",
+      id = checks.SNMP_DEVICE_SUBDIR_NAME,
       label = "host_details.snmp",
       pools = "snmp_device_pools",
       filter = {
@@ -182,7 +190,7 @@ local available_subdirs = {
 	 },
       },     
    }, {
-      id = "flow",
+      id = checks.FLOW_SUBDIR_NAME,
       label = "flows",
       -- User script execution filters (field names are those that arrive from the C Flow.cpp)
       filter = {
@@ -197,10 +205,10 @@ local available_subdirs = {
       },
       -- No pools for flows
    }, {
-      id = "system",
+      id = checks.SYSTEM_SUBDIR_NAME,
       label = "system",
    }, {
-      id = "syslog",
+      id = checks.SYSLOG_SUBDIR_NAME,
       label = "Syslog",
    }
 }

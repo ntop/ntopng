@@ -1,86 +1,36 @@
-// 2020 - ntop.org
+// 2022 - ntop.org
 
 /* ******************************************************* */
 
-const reloadPageAfterPOST = () => {
-    if (location.href.indexOf("check=") > 0) {
-	/* Go back to the alerts page */
-	//location.href = page_url + location.hash;
-	window.history.back();
-    } else {
-	/* The URL is still the same as before, need to force a reload */
-	location.reload();
-    }
-}
+/* Modal handling the delete action on a single exclusion */
+const $deleteAlertExclusion = $('#modal-script form').modalHandler({
+    method: 'post',
+    csrf: pageCsrf,
+    endpoint: `${http_prefix}/lua/pro/rest/v2/delete/alert/exclude_alert.lua`,
+    beforeSumbit: function (exclusionData) {
+		const subdir = exclusionData.subdir;
+		const alert_addr = $('#alert_addr').val();
+		const alert_key = $('#alert_key').val();
 
-/* ******************************************************* */
+        return { ifid: "{{ ifid }}", alert_addr: alert_addr, alert_key: alert_key, subdir: subdir };
+    },
+    onModalInit: function (exclusionData) {
+		const alert_key = exclusionData.alert_key;
+		const script_title = exclusionData.title;
+		const excluded_host = exclusionData.excluded_host;
 
-const apply_delete_alert_exclusion = (event) => {
-    const $apply_btn = $('#btn-apply');
-    const $error_label = $("#apply-error");
+		// change title to modal
+		$("#script-name").html(script_title);
+		$('#script-description').html(excluded_host);
 
-    // remove dirty class from form
-    $('#edit-form').removeClass('dirty')
-    $apply_btn.attr('disabled', '');
-
-    $.post(`${http_prefix}/lua/pro/rest/v2/delete/${check_subdir}/alert/exclusions.lua`, {
-	alert_addr: $("#alert_addr").val(),
-	alert_key: $("#alert_key").val(),
-	csrf: pageCsrf,
-    })
-	.done((d, status, xhr) => {
-	    if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
-
-	    if (d.rc != 0) {
-		$error_label.text(d.error).show();
-		// re enable button
-		$apply_btn.removeAttr('disabled');
-	    }
-
-	    // if the operation was successfull then reload the page
-	    if (d.rc == 0) reloadPageAfterPOST();
-	})
-	.fail(({ status, statusText }, a, b) => {
-
-	    NtopUtils.check_status_code(status, statusText, $error_label);
-
-	    if (status == 200) {
-		$error_label.text(`${i18n.expired_csrf}`).show();
-	    }
-
-	    $apply_btn.removeAttr('disabled');
-	});
-}
-
-/* ******************************************************* */
-
-// get script key and script name
-const initDeleteAlertExclusionModal = (alert_key, script_title, excluded_host) => {
-    // change title to modal
-    $("#script-name").html(script_title);
-    $('#script-description').html(excluded_host);
-
-    // Add alert key and excluded host as hidden values
-    $('#alert_key').val(alert_key);
-    $('#alert_addr').val(excluded_host);
-
-    $("#modal-script form").off('submit');
-    $("#modal-script").on("submit", "form", function (e) {
-	e.preventDefault();
-
-	$('#edit-form').trigger('reinitialize.areYouSure').removeClass('dirty');
-	$("#btn-apply").trigger("click");
-    });
-
-    // hide previous error
-    $("#apply-error").hide();
-
-    // bind on_apply event on apply button
-    $("#edit-form").off("submit").on('submit', apply_delete_alert_exclusion);
-
-    // bind are you sure to form
-    $('#edit-form').trigger('rescan.areYouSure').trigger('reinitialize.areYouSure');
-}
+		// Add alert key and excluded host as hidden values
+		$('#alert_key').val(alert_key);
+		$('#alert_addr').val(excluded_host);
+    },
+    onSubmitSuccess: function (response, dataSent) {
+		location.reload();
+	}
+});
 
 /* ******************************************************* */
 
@@ -117,7 +67,7 @@ $(function () {
 		columnDefs: {},
 		ajax: {
 			method: 'get',
-			url: `${http_prefix}/lua/pro/rest/v2/get/${check_subdir}/alert/exclusions.lua`,
+			url: `${http_prefix}/lua/pro/rest/v2/get/alert/exclusions.lua`,
 			dataSrc: 'rsp',
             beforeSend: function() {
                 showOverlays();
@@ -206,21 +156,15 @@ $(function () {
 	    $("#btn-apply").trigger('focus');
 	});
 
-    // load templates for the script
+    /* Remove a single exclusion */
     $('#scripts-config').on('click', '[href="#modal-script"],[data-bs-target="#modal-script"]', function (e) {
-
-	const row_data = $script_table.row($(this).parent().parent().parent().parent()).data();
-	const alert_key = row_data.alert_key;
-	const script_title = row_data.title;
-	const excluded_host = row_data.excluded_host;
-
-	initDeleteAlertExclusionModal(alert_key, script_title, excluded_host);
+		const exclusionData = $script_table.row($(this).parent().parent().parent().parent()).data();
+		$deleteAlertExclusion.invokeModalInit(exclusionData);
     });
 
     $(`#btn-confirm-action_delete-all-modal`).click(async function () {
 	$(this).attr("disabled", "disabled");
 	$.post(`${http_prefix}/lua/pro/rest/v2/delete/all/alert/exclusions.lua`, {
-	    check_subdir: check_subdir,
 	    csrf: pageCsrf,
 	    host: host, // Can be empty, when no host is selected
 	})
@@ -254,15 +198,6 @@ $(function () {
 			// show the default view
 			$(`#add-exclusion-modal #ip-radio-add`).attr('checked', '').parent().addClass('active');
 			
-			if(check_subdir == "host") {
-				host_alert_types.forEach(function(element, index) {
-					$('#alert-select').append('<option value="' + element.value + '">' + element.label + '</option>');
-				});
-			} else {
-				flow_alert_types.forEach(function(element, index) {
-					$('#alert-select').append('<option value="' + element.value + '">' + element.label + '</option>');
-				});
-			}
 			// on select member type shows only the fields interested
 			$(`#add-exclusion-modal [name='member_type']`).change(function () {
 				const value = $(this).val();
@@ -274,37 +209,35 @@ $(function () {
 				$(`#add-exclusion-modal [class*='fields'] input, #add-exclusion-modal [class*='fields'] select`).attr("disabled", "disabled");
 
 				$(`#add-exclusion-modal [class='${value}-fields']`).show().find('input,select').removeAttr("disabled");
-				$(`#add-exclusion-modal [class='alert-fields']`).show().find('input,select').removeAttr("disabled");
+				$(`#add-exclusion-modal [class='host-alert-fields']`).show().find('input,select').removeAttr("disabled");
+				$(`#add-exclusion-modal [class='flow-alert-fields']`).show().find('input,select').removeAttr("disabled");
 
 				modalHandler.toggleFormSubmission();
 			});
 		},
 		beforeSumbit: function () {
 			let alert_addr;
-			const alert_key = $(`#alert-select`).val();
+			const host_alert_key = $(`#host-alert-select`).val() === "0" ? null : $(`#host-alert-select`).val();
+			const flow_alert_key = $(`#flow-alert-select`).val() === "0" ? null : $(`#flow-alert-select`).val();
 			const typeSelected = $(`#add-exclusion-modal [name='member_type']:checked`).val();
 
 			if (typeSelected == "ip") {
-				const ipAddress = $(`#add-exclusion-modal input[name='ip_address']`).val();
-				alert_addr = `${ipAddress}`;
-			}
-			else {
+				alert_addr = $(`#add-exclusion-modal input[name='ip_address']`).val();
+			} else {
 				const network = $(`#add-exclusion-modal input[name='network']`).val();
 				const cidr = $(`#add-exclusion-modal input[name='cidr']`).val();
 
 				alert_addr = `${network}/${cidr}`;
 			}
 
-			return { alert_addr: alert_addr, alert_key: alert_key, subdir: check_subdir };
+			return { alert_addr: alert_addr, host_alert_key: host_alert_key, flow_alert_key: flow_alert_key };
 		},
 		onSubmitSuccess: function (response, textStatus, modalHandler) {
 			if (response.rc < 0) {
 				$(`#add-modal-feedback`).html(i18n.rest[response.rc_str]).show();
 				return;
 			}
-
-			$script_table.ajax.reload();
-			$(`#add-exclusion-modal`).modal('hide');
+			location.reload();
 		}
 	}).invokeModalInit();
 });
