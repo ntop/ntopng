@@ -172,6 +172,15 @@ $(function () {
 		$deleteAlertExclusion.invokeModalInit(exclusionData);
     });
 
+	$('.alert-select').on('change', null, function() {
+		const host_alert_key = $(`#host-alert-select`).val() === "0" ? null : $(`#host-alert-select`).val();
+		const flow_alert_key = $(`#flow-alert-select`).val() === "0" ? null : $(`#flow-alert-select`).val();
+		if(!host_alert_key && !flow_alert_key)
+			$(`#add-modal-feedback`).html(i18n.select_an_alert).show();
+		else
+			$(`#add-modal-feedback`).hide();
+	});
+
     $(`#btn-confirm-action_delete-all-modal`).click(async function () {
 	$(this).attr("disabled", "disabled");
 	$.post(`${http_prefix}/lua/pro/rest/v2/delete/all/alert/exclusions.lua`, {
@@ -238,6 +247,11 @@ $(function () {
 				const cidr = $(`#add-exclusion-modal input[name='cidr']`).val();
 
 				alert_addr = `${network}/${cidr}`;
+			}
+
+			if(!host_alert_key && !flow_alert_key) {
+				$(`#add-modal-feedback`).html(i18n.select_an_alert).show();
+				return;
 			}
 
 			return { alert_addr: alert_addr, host_alert_key: host_alert_key, flow_alert_key: flow_alert_key };

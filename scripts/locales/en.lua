@@ -667,6 +667,7 @@ local lang = {
     ["validation"] = {
       ["abort_add_exclusion"] = "Abort Add Exclusion",
       ["abort_edit_exclusion"] = "Abort Edit Exclusion",
+      ["select_an_alert"] = "Select at least an alert to exclude",
     },
   },
   ["alert_messages"] = {
