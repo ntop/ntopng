@@ -267,6 +267,7 @@ function asc(a,b)
       return false
    elseif type(a) ~= type(b) then
       traceError(TRACE_WARNING, TRACE_CONSOLE, "Bad types in asc(): " .. a .. " (".. type(a) ..") vs " .. b .. " (".. type(b) .. ")")
+      return false
    end
 
    return (a < b)
@@ -279,6 +280,7 @@ function rev(a,b)
       return false
    elseif type(a) ~= type(b) then
       traceError(TRACE_WARNING, TRACE_CONSOLE, "Bad types in rev(): " .. a .. " (".. type(a) ..") vs " .. b .. " (".. type(b) .. ")")
+      return false
    end
 
    return (a > b)
