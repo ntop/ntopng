@@ -258,7 +258,7 @@
 
         let columns = [];
         {% if datatable.columns_js then %}
-            columns = {* datatable.columns_js *};
+        columns = {* datatable.columns_js *};
         {% end %}
 
         /* Actions Column */
