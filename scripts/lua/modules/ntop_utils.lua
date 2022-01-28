@@ -263,17 +263,25 @@ end
 -- ##############################################
 
 function asc(a,b)
-  return (a < b)
+   if a == nil or b == nil then
+      return false
+   elseif type(a) ~= type(b) then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "Bad types in asc(): " .. a .. " (".. type(a) ..") vs " .. b .. " (".. type(b) .. ")")
+   end
+
+   return (a < b)
 end
 
 -- ##############################################
 
 function rev(a,b)
-   if((a == nil) or (b == nil)) then
+   if a == nil or b == nil then
       return false
-   else
-      return (a > b)
+   elseif type(a) ~= type(b) then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "Bad types in rev(): " .. a .. " (".. type(a) ..") vs " .. b .. " (".. type(b) .. ")")
    end
+
+   return (a > b)
 end
 
 -- ##############################################
