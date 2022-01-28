@@ -106,8 +106,8 @@ function config.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, 
       if not if_config.nameservers then
         if_config.nameservers = {}
       end
-      if_config.nameservers[if_config.nameservers+1] = dns_config.global
-      if_config.nameservers[if_config.nameservers+1] = dns_config.secondary
+      if_config.nameservers[#if_config.nameservers+1] = dns_config.global
+      if_config.nameservers[#if_config.nameservers+1] = dns_config.secondary
     end
   elseif network_conf.mode == "dhcp" then
     if_config.dhcp4 = 'true'
