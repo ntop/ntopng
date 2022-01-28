@@ -7,8 +7,8 @@ ntopng can be used to visualize traffic data that has been generated or collecte
 
 .. note::
 
-   ntopng Enterprise L already includes a nProbe Pro license, there is no need
-   to buy a nProbe license if a ntopng Enterprise L license is installed.
+   ntopng Enterprise L Bundle already includes a nProbe Pro license, there is no need
+   to buy a nProbe license if a ntopng Enterprise L Bundle license is installed.
 
 Using ntopng with nProbe is convenient in several scenarios, including:
 
