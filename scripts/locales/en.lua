@@ -1537,6 +1537,8 @@ local lang = {
       ["subtype"] = "Subject",
       ["traffic"] = "Bytes",
       ["vlan_id"] = "VLAN",
+      ["cli_host_pool_id"] = "Cli Pool Id",
+      ["srv_host_pool_id"] = "Srv Pool Id",
     },
   },
   ["delete_data"] = {
