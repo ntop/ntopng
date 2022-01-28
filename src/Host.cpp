@@ -1713,8 +1713,7 @@ void Host::refreshDisabledAlerts() {
   
   if(alert_exclusions && alert_exclusions->checkChange(&disabled_alerts_tstamp)) {
     /* Set alert exclusion into the host */
-    alert_exclusions->setDisabledHostAlertsBitmaps(get_ip(),
-						   &disabled_host_alerts, &disabled_flow_alerts);
+    alert_exclusions->setDisabledHostAlertsBitmaps(this);
   }
 #endif
 }
@@ -1723,14 +1722,16 @@ void Host::refreshDisabledAlerts() {
 
 bool Host::isHostAlertDisabled(HostAlertType alert_type) {
   refreshDisabledAlerts();
-  return disabled_host_alerts.isSetBit(alert_type.id);
+  
+  return(alert_exclusions.isSetHostExclusionBit(alert_type.id));
 }
 
 /* *************************************** */
 
 bool Host::isFlowAlertDisabled(FlowAlertType alert_type) {
   refreshDisabledAlerts();
-  return disabled_flow_alerts.isSetBit(alert_type.id);
+  
+  return(alert_exclusions.isSetFlowExclusionBit(alert_type.id));
 }
 
 /* *************************************** */

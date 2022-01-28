@@ -267,6 +267,7 @@ using namespace std;
 #include "Profile.h"
 #include "Profiles.h"
 #include "CountMinSketch.h"
+#include "AlertExclusionsInfo.h"
 #include "AlertExclusions.h"
 #ifndef HAVE_NEDGE
 #include "FlowProfile.h"

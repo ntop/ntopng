@@ -87,17 +87,18 @@ end
 
 local function _set_configured_alert_exclusions(exclusions)
    local excl_key = _get_alert_exclusions_prefix_key()
+   local str = json.encode(exclusions)
 
-   ntop.setPref(excl_key, json.encode(exclusions)) -- Add the preference
-   ntop.reloadAlertExclusions()                    -- Tell ntopng to reload
+   ntop.setPref(excl_key, str)   -- Add the preference
+   ntop.reloadAlertExclusions()  -- Tell ntopng to reload
 end
 
 -- ##############################################
 
 --@brief Enables or disables an alert for an `host_ip`
-local function _toggle_alert(alert_entity, host_ip, alert_key, disable)
+local function _toggle_alert(is_flow_exclusion, host_ip, alert_key, enable_exclusion)
    local ret = false
-
+   
    if not _check_host_ip_alert_key(host_ip, alert_key) then
       -- Invalid params submitted
       return false
@@ -106,42 +107,48 @@ local function _toggle_alert(alert_entity, host_ip, alert_key, disable)
    local locked = _lock()
 
    if locked then
-      -- In JSON, keys are always strings
-      alert_key = tostring(alert_key) -- The key of the alert
-      local entity_id = tostring(alert_entity.entity_id) -- The entity of the alert that is being disabled, e.g., "host", or "flow"
-
-      local do_persist = false
+      local id = tonumber(alert_key)
       local exclusions = _get_configured_alert_exclusions()
 
-      -- Add an entry for the current alert entity, if currently exising exclusions don't already have it
-      if not exclusions[entity_id] then
-	 exclusions[entity_id] = {}
-      end
+      if(not enable_exclusion) then
+	 -- disable alert
+	 if exclusions[host_ip] then
+	    local r = {}
+	    
+	    if(is_flow_exclusion) then
+	       t = exclusions[host_ip].flow_alerts
+	    else
+	       t = exclusions[host_ip].host_alerts
+	    end
 
-      -- Add an entry for the current alert key, if currently existing exclusions don't already have it
-      if not exclusions[entity_id][alert_key] then
-	 exclusions[entity_id][alert_key] = {excluded_hosts = {}}
-      end
+	    for i=0,table.len(t) do
+	       if(t[i] ~= id) then
+		  table.insert(r, t[i])
+	       end
+	    end
+	    
+	    if(is_flow_exclusion) then
+	       exclusions[host_ip].flow_alerts = r
+	    else
+	       exclusions[host_ip].host_alerts = r
+	    end
+	 end
+      else
+	 -- enable alert
 
-      -- Add an entry for excluded_hosts, if the currently existing exclusions don't already have it
-      if not exclusions[entity_id][alert_key]["excluded_hosts"] then
-	 exclusions[entity_id][alert_key]["excluded_hosts"] = {}
+	 -- Add an entry for the current alert entity, if currently exising exclusions don't already have it
+	 if(exclusions[host_ip] == nil) then
+	    exclusions[host_ip] = { flow_alerts = {}, host_alerts = {} }
+	 end
+	 
+	 if(is_flow_exclusion) then
+	    table.insert(exclusions[host_ip].flow_alerts, id)
+	 else
+	    table.insert(exclusions[host_ip].host_alerts, id)
+	 end
       end
-
-      -- Now check if there is actually some work to do
-      if not disable and exclusions[entity_id][alert_key]["excluded_hosts"][host_ip] then
-	 -- Enable an host_ip that was disabled
-	 exclusions[entity_id][alert_key]["excluded_hosts"][host_ip] = nil
-	 do_persist = true
-      elseif disable and not exclusions[entity_id][alert_key]["excluded_hosts"][host_ip] then
-	 -- Disable an host_ip that was not already disabled
-	 exclusions[entity_id][alert_key]["excluded_hosts"][host_ip] = { --[[ Currently empty, will possibly contain values in the future, e.g., as_cli, as_srv--]]}
-	 do_persist = true
-      end
-
-      if do_persist then
-	 _set_configured_alert_exclusions(exclusions)
-      end
+      
+      _set_configured_alert_exclusions(exclusions)
 
       ret = true
       _unlock()
@@ -153,37 +160,21 @@ end
 -- ##############################################
 
 --@brief Removes all exclusions for a given entity
-local function _enable_all_alerts(alert_entity, host)
+local function _enable_all_alerts(is_flow_exclusion, host)
    local ret = false
 
    local locked = _lock()
 
    if locked then
-      -- In JSON, keys are always strings
-      local entity_id = tostring(alert_entity.entity_id) -- The entity of the alert that is being disabled, e.g., "host", or "flow"
-
-      local do_persist = false
       local exclusions = _get_configured_alert_exclusions()
 
-      -- Add an entry for the current alert entity, if currently exising exclusions don't already have it
-      if isEmptyString(host) then
-	 if exclusions[entity_id] then
-	    exclusions[entity_id] = nil
-	    do_persist = true
-	 end
+      if(is_flow_exclusion) then
+	 exclusions[host_ip].flow_alerts = { }
       else
-	 for alert_key, cur_exclusions in pairs(exclusions[entity_id] or {}) do
-	    if cur_exclusions["excluded_hosts"] and cur_exclusions["excluded_hosts"][host] then
-	       -- Remove the entry
-	       cur_exclusions["excluded_hosts"][host] = nil
-	       do_persist = true
-	    end
-	 end
+	 exclusions[host_ip].host_alerts = { }
       end
-
-      if do_persist then
-	 _set_configured_alert_exclusions(exclusions)
-      end
+      
+      _set_configured_alert_exclusions(exclusions)
 
       ret = true
       _unlock()
@@ -195,45 +186,62 @@ end
 -- ##############################################
 
 -- @brief Returns true if `host_ip` has the alert identified with `alert_key` disabled
-function _has_disabled_alert(alert_entity, host_ip, alert_key)
+function _has_disabled_alert(is_flow_exclusion, host_ip, alert_key)
    local exclusions = _get_configured_alert_exclusions()
-   alert_key = tostring(alert_key)
-   local entity_id = tostring(alert_entity.entity_id)
+   local id = tonumber(alert_key)
 
-   return not not (exclusions[entity_id]
-		      and exclusions[entity_id][alert_key]
-		      and exclusions[entity_id][alert_key]["excluded_hosts"]
-		      and exclusions[entity_id][alert_key]["excluded_hosts"][host_ip])
+   if(is_flow_exclusion) then
+      if((exclusions[host_ip] == nil) or (exclusions[host_ip].flow_alerts[id] == nil)) then
+	 return false
+      else
+	 return true
+      end
+   else
+      if((exclusions[host_ip] == nil) or (exclusions[host_ip].host_alerts[id] == nil)) then
+	 return false
+      else
+	 return true
+      end
+   end
 end
 
 -- ##############################################
 
--- @brief Returns true if `alert_entity` has one or more disabled alerts
-function alert_exclusions.has_disabled_alerts(alert_entity)
+-- @brief Returns true if `is_flow_exclusion` has one or more disabled alerts
+function alert_exclusions.has_disabled_alerts()
    local exclusions = _get_configured_alert_exclusions()
-   local entity_id = tostring(alert_entity.entity_id)
 
-   for alert_key, alert_exclusions in pairs(exclusions[entity_id] or {}) do
-      if alert_exclusions["excluded_hosts"] and table.len(alert_exclusions["excluded_hosts"]) > 0 then
-	 return true
-      end
+   if(table.len(exclusions) > 0) then 
+      return true
+   else
+      return false
    end
-
-   return false
 end
 
 -- ##############################################
 
 -- @brief Returns all excluded hosts for the given `alert_key` or nil if no excluded host exists
-function _get_excluded_hosts(alert_entity, alert_key)
+function _get_excluded_hosts(is_flow_exclusion, alert_key)
    local exclusions = _get_configured_alert_exclusions()
+   local id = tonumber(alert_key)
+   local ret = {}
 
-   alert_key = tostring(alert_key)
-   local entity_id = tostring(alert_entity.entity_id)
+   for host,v in pairs(exclusions) do
+      if(is_flow_exclusion) then
+	 t = v.flow_alerts
+      else
+	 t = v.host_alerts
+      end
 
-   return exclusions[entity_id]
-      and exclusions[entity_id][alert_key]
-      and exclusions[entity_id][alert_key]["excluded_hosts"]
+      for i=0,table.len(t) do
+	 if(t[i] == id) then
+	    ret[host] = true
+	    break
+	 end
+      end     
+   end
+   
+   return ret
 end
 
 -- ##############################################
@@ -241,7 +249,7 @@ end
 --@brief Marks a flow alert as disabled for a given `host_ip`, considered either as client or server
 --@return True, if alert is disabled with success, false otherwise
 function alert_exclusions.disable_flow_alert(host_ip, alert_key)
-   return _toggle_alert(alert_entities.flow, host_ip, alert_key, true --[[ disable --]])
+   return _toggle_alert(true --[[ flow --]], host_ip, alert_key, true --[[ disable --]])
 end
 
 -- ##############################################
@@ -249,7 +257,7 @@ end
 --@brief Marks a flow alert as enabled for a given `host_ip`, considered either as client or server
 --@return True, if alert is enabled with success, false otherwise
 function alert_exclusions.enable_flow_alert(host_ip, alert_key)
-   return _toggle_alert(alert_entities.flow, host_ip, alert_key, false --[[ enable --]])
+   return _toggle_alert(true --[[ flow --]], host_ip, alert_key, false --[[ enable --]])
 end
 
 -- ##############################################
@@ -258,14 +266,14 @@ end
 --@param host If a valid ip address is specified, then all alerts will be enabled only for `host`, otherwise all alerts will be enabled
 --@return True, if enabled with success, false otherwise
 function alert_exclusions.enable_all_flow_alerts(host)
-   return _enable_all_alerts(alert_entities.flow, host)
+   return _enable_all_alerts(true --[[ flow --]], host)
 end
 
 -- ##############################################
 
 -- @brief Returns true if `host_ip` has the flow alert identified with `alert_key` disabled
 function alert_exclusions.has_disabled_flow_alert(host_ip, alert_key)
-   return _has_disabled_alert(alert_entities.flow, host_ip, alert_key)
+   return _has_disabled_alert(true --[[ flow --]], host_ip, alert_key)
 end
 
 -- ##############################################
@@ -273,7 +281,7 @@ end
 --@brief Marks a host alert as disabled for a given `host_ip`
 --@return True, if alert is disabled with success, false otherwise
 function alert_exclusions.disable_host_alert(host_ip, alert_key)
-   return _toggle_alert(alert_entities.host, host_ip, alert_key, true --[[ disable --]])
+   return _toggle_alert(false --[[ host --]], host_ip, alert_key, true --[[ disable --]])
 end
 
 -- ##############################################
@@ -281,7 +289,7 @@ end
 --@brief Marks a host alert as enabled for a given `host_ip`
 --@return True, if alert is enabled with success, false otherwise
 function alert_exclusions.enable_host_alert(host_ip, alert_key)
-   return _toggle_alert(alert_entities.host, host_ip, alert_key, false --[[ enable --]])
+   return _toggle_alert(false --[[ host --]], host_ip, alert_key, false --[[ enable --]])
 end
 
 -- ##############################################
@@ -290,35 +298,42 @@ end
 --@param host If a valid ip address is specified, then all alerts will be enabled only for `host`, otherwise all alerts will be enabled
 --@return True, if enabled with success, false otherwise
 function alert_exclusions.enable_all_host_alerts(host)
-   return _enable_all_alerts(alert_entities.host, host)
+   return _enable_all_alerts(false --[[ host --]], host)
 end
 
 -- ##############################################
 
 -- @brief Returns true if `host_ip` has the host alert identified with `alert_key` disabled
 function alert_exclusions.has_disabled_host_alert(host_ip, alert_key)
-   return _has_disabled_alert(alert_entities.host, host_ip, alert_key)
+   return _has_disabled_alert(false --[[ host --]], host_ip, alert_key)
 end
 
 -- ##############################################
 
 -- @brief Returns all the excluded hosts for the host alert identified with `alert_key`
 function alert_exclusions.host_alerts_get_excluded_hosts(alert_key)
-   return _get_excluded_hosts(alert_entities.host, alert_key) or {}
+   return _get_excluded_hosts(false --[[ host --]], alert_key) or {}
 end
 
 -- ##############################################
 
 -- @brief Returns all the excluded hosts for the flowt alert identified with `alert_key`
 function alert_exclusions.flow_alerts_get_excluded_hosts(alert_key)
-   return _get_excluded_hosts(alert_entities.flow, alert_key) or {}
+   return _get_excluded_hosts(true --[[ flow --]], alert_key) or {}
 end
 
 -- ##############################################
 
 -- @brief Returns all the excluded hosts for the flowt alert identified with `alert_key`
-function alert_exclusions.domain_alerts_get_excluded_hosts(alert_key)
-   return _get_excluded_hosts(alert_entities.domain, alert_key) or {}
+--function alert_exclusions.domain_alerts_get_excluded_hosts(alert_key)
+--   return _get_excluded_hosts(alert_entities.domain, alert_key) or {}
+--end
+
+-- ##############################################
+
+-- @brief Returns true if `host_ip` has the host alert identified with `alert_key` disabled
+function alert_exclusions.has_disabled_host_alert(host_ip, alert_key)
+   return _has_disabled_alert(false --[[ host --]], host_ip, alert_key)
 end
 
 -- ##############################################
@@ -333,7 +348,7 @@ end
 -- @brief Exports the current configuration
 function alert_exclusions.export()
    local exclusions = _get_configured_alert_exclusions()
-
+  
    return exclusions
 end
 

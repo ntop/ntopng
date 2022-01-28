@@ -107,8 +107,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   bool is_dhcp_host;
 
   /* Alert exclusion handling */
-  HostAlertBitmap disabled_host_alerts;
-  Bitmap128 disabled_flow_alerts;
+#ifdef NTOPNG_PRO
+  AlertExclusionsInfo alert_exclusions;
+#endif
   time_t disabled_alerts_tstamp;
 
   void initialize(Mac *_mac, VLANid _vlan_id, u_int16_t observation_point_id);
@@ -496,6 +497,11 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual u_int32_t getDNSContactCardinality()    { return(0); }
   virtual u_int32_t getSMTPContactCardinality()   { return(0); }
 
+#ifdef NTOPNG_PRO
+  /* Alert Exclusions */
+  inline AlertExclusionsInfo* getAlertExclusions() { return(&alert_exclusions); }
+#endif
+  
   /* Enqueues an alert to all available host recipients. */
   bool enqueueAlertToRecipients(HostAlert *alert, bool released);
   void alert2JSON(HostAlert *alert, bool released, ndpi_serializer *serializer);
@@ -516,6 +522,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t upper_bound_score_anomaly(bool as_client) { return(stats->upper_bound_score_anomaly(as_client)); }
 
   inline void inc_num_blacklisted_flows(bool as_client) { if(as_client) num_blacklisted_flows.as_client++; else num_blacklisted_flows.as_server++; }
+  
 };
 
 #endif /* _HOST_H_ */
