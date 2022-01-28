@@ -378,9 +378,6 @@ $(document).ready(function(){
             }
         },
         drawCallback: () => {
-            // remove fast forward button from the table
-            $("#ndpi_table_last").remove();
-
             updateDownloadButton();
         },
         lengthMenu: [length_array, length_array],
@@ -388,16 +385,10 @@ $(document).ready(function(){
         columns: loadColumns(),
     });
 
-    {% if datatable.show_vlan or datatable.show_non_pkts_if_columns then %}
-    let table = $(`ndpi_table`).DataTable(config);
-    table.destroy();
-    {% end %}
-
     {% if datatable.refresh_rate and datatable.refresh_rate > 0 then %}
     intervalId = setInterval(function() { onRangePickerChange(true, true); }, {{ datatable.refresh_rate }});
     {% end %}
     $table = $(`#{{ datatable.name }}`).DataTable(config);
-
     
     DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
         $table.ajax.reload();
