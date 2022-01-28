@@ -234,11 +234,13 @@
             $(`#{{ datatable.name }}-query-time .seconds`).text((sec < 0.01) ? '< 0.01' : NtopUtils.ffloat(sec)); // The time is in sec
             $(`#{{ datatable.name }}-query`).show();
             $(`#{{ datatable.name }}-query`).prop('title', response.rsp.stats.query);
+            {% if show_tot_records then %}
             if(response.rsp.stats.num_records_processed !== undefined) {
                 const num_records_processed = response.rsp.stats.num_records_processed;
                 $(`#{{ datatable.name }}-tot_records`).show();
                 $(`#{{ datatable.name }}-tot_records .records`).text(num_records_processed);
             }
+            {% end %}
         }
     }
 
