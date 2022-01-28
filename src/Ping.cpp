@@ -217,7 +217,7 @@ int Ping::ping(char *_addr, bool use_v6) {
     each connection must have a unique ID, otherwise some replies
     will not arrive.
   */
-  pckt.hdr.un.echo.id = htons(ping_id + cnt);
+  pckt.hdr.un.echo.id = htons(ping_id);
 
   for(i = 0; i < sizeof(pckt.msg)-1; i++) pckt.msg[i] = i+'0';
 
@@ -322,7 +322,6 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
   struct ndpi_icmphdr *icmp = NULL;
   struct ping_packet *pckt = NULL;
   u_int16_t echo_id;
-  bool overflow = ((u_int16_t)(ping_id + cnt) < ping_id);
 
   if(ip) {
     if(buf_len != sizeof(ndpi_iphdr) + sizeof(ping_packet)) {
@@ -341,23 +340,21 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
 
 #ifdef TRACE_PING
   u_int16_t echo_seq = ntohs(icmp->un.echo.sequence);
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Handling response [pinger: %p][%s][overflow: %u][echo id: %u][sequence: %u][ping_id: %u][cnt: %u]",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Handling response [pinger: %p][%s][overflow: %u][echo id: %u][sequence: %u][ping_id: %u]",
 			       this,
 			       ip ? "ipv4" : "ipv6",
 			       overflow ? 1 : 0,
 			       echo_id,
 			       echo_seq,
-			       ping_id,
-			       cnt);
+			       ping_id);
 #endif
 
   if((ip && (icmp->type != ICMP_ECHOREPLY))
      || (ip6 && (icmp->type != ICMP6_ECHO_REPLY)))
     return;
 
-  /* The PING ID must be between ping_id (inclusive) and ping_id + cnt (exclusive) */
-  if((!overflow && ((echo_id >= ping_id) && (echo_id < (ping_id + cnt)))) ||
-     (overflow && ((echo_id >= ping_id) || (echo_id <= ((u_int16_t)ping_id + cnt))))) {
+  /* The PING ID must have ping_id */
+  if(echo_id == ping_id) {
     float rtt;
     struct timeval end, *begin = (struct timeval*)pckt->msg;
     char *h, buf[64];
@@ -382,8 +379,8 @@ void Ping::handleICMPResponse(unsigned char *buf, u_int buf_len,
     m.unlock(__FILE__, __LINE__);
   } else {
 #ifdef TRACE_PING
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[pinger: %p] Received unexpected ICMP [echo_id: %u][range: %u...%u]",
-				 this, echo_id, ping_id, (ping_id + cnt));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[pinger: %p] Received unexpected ICMP [echo_id: %u]",
+				 this, echo_id);
 #endif
   }
 }
