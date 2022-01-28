@@ -661,6 +661,7 @@ local lang = {
     ["member_type"] = "Exclude type",
     ["network"] = "Network",
     ["none"] = "None",
+    ["spacing_bar"] = "----------------------------------",
     ["validation"] = {
       ["abort_add_exclusion"] = "Abort Add Exclusion",
       ["abort_edit_exclusion"] = "Abort Edit Exclusion",

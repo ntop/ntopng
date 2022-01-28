@@ -86,6 +86,16 @@ $(function () {
 					return data;
 				},
 			},{
+				sortable: true,
+				searchable: true,
+				visible: true,
+				className: 'text-center text-nowrap',
+				data: 'subdir',
+				responsivePriority: 2,
+				render: function (data, type, row) {
+					return `${i18n[row.subdir]}`;
+				}
+			},{
 				data: null,
 				sortable: true,
 				searchable: true,
