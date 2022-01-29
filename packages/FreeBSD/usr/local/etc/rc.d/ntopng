@@ -1,3 +1,4 @@
+
 #!/bin/sh
 #
 # PROVIDE: ntopng
@@ -39,9 +40,10 @@ ntopng_precmd()
     local ntopng_datadir="/var/db/ntopng-enterprise"
     local rundir=${ntopng_pidfile%/*}
 
-    if [ -f "${ntopng_conf}" ]; then
+    if [ ! -f "${ntopng_config}" ]; then
 	# Using sample file as config file is missing
-	cp /usr/local/etc/ntopng/ntopng.conf.sample /usr/local/etc/ntopng/ntopng.conf
+	cp /usr/local/etc/ntopng/ntopng.conf.sample ${ntopng_config}
+	chown ntopng:ntopng ${ntopng_config}
     fi
     
     if ! id "${ntopng_user}" >/dev/null 2>&1; then
