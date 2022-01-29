@@ -95,8 +95,8 @@ Add a new line with the *--community* option to run ntopng in Community mode.
 
 .. code:: bash
 
-   cp /usr/local/etc/ntopng/ntopng.conf.sample /usr/local/etc/ntopng.conf
-   chown ntopng:ntopng /usr/local/etc/ntopng.conf
+   cp /usr/local/etc/ntopng/ntopng.conf.sample /usr/local/etc/ntopng/ntopng.conf
+   chown ntopng:ntopng /usr/local/etc/ntopng/ntopng.conf
 
 Services
 ========
