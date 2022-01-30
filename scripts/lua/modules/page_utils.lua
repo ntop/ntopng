@@ -827,7 +827,7 @@ function page_utils.generate_info_stats()
    else
       return ([[
          <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
-            <span style='display: none;' class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0</span>
+            <span style='display: none;' class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
             <span class="text-end chart-total-text"></span>
          </a>
       ]])

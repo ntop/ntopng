@@ -22,9 +22,11 @@
 #ifndef _ROUND_TRIP_STATS_H_
 #define _ROUND_TRIP_STATS_H_
 
+#define ROUND_TRIP_LENGTH 20
+
 class RoundTripStats {
  private:
-   u_int32_t stats[10];
+   u_int32_t stats[ROUND_TRIP_LENGTH];
    u_int8_t stats_it;
 
  public:
