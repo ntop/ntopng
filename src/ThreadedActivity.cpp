@@ -431,7 +431,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t schedul
       if((dir_struct = opendir(dir_path)) != NULL) {
 	while((ent = readdir(dir_struct)) != NULL) {
 	  if(isValidScript(dir_path, ent->d_name)) {
-	    char script_path[MAX_PATH];
+	    char script_path[2*MAX_PATH];
 
 	    /* Schedule interface script, one for each interface */
 	    snprintf(script_path, sizeof(script_path), "%s%s", dir_path, ent->d_name);
@@ -482,7 +482,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t schedul
 
 	      /* Running the script for each interface if it's not a PCAP */
 	      if(iface && (iface->getIfType() != interface_type_PCAP_DUMP || !excludePcap())) {
-		char script_path[MAX_PATH];
+		char script_path[2*MAX_PATH];
 
 		/* Schedule interface script, one for each interface */
 		snprintf(script_path, sizeof(script_path), "%s%s", dir_path, ent->d_name);

@@ -31,7 +31,7 @@ class PacketDumperTuntap {
   int           fd;
   u_int8_t      mac_addr[6];
   u_int16_t     mtu;
-  char          dev_name[DUMP_IFNAMSIZ];
+  char          dev_name[15];
   bool		init_ok;
   u_int32_t     num_dumped_packets;
 

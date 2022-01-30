@@ -83,9 +83,12 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
   }
 
   /* Store the device name for later reuse */
-  int size = (IFNAMSIZ < DUMP_IFNAMSIZ ? IFNAMSIZ : DUMP_IFNAMSIZ);
-  strncpy(dev_name, ifr.ifr_name, size);
-  dev_name[size-1] = '\0';
+  /* Silence  format-truncation warning */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+  snprintf(dev_name, sizeof(dev_name), "%s", ifr.ifr_name);
+#pragma GCC diagnostic pop
+  
   snprintf(buf, sizeof(buf), "/sbin/ifconfig %s up mtu %d",
            ifr.ifr_name, DUMP_MTU);
   rc = system(buf);
@@ -108,6 +111,7 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
   for (i = 0; i < 255; i++) {
     snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
     fd = open(tap_device, O_RDWR);
+
     if(fd > 0) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully open %s", tap_device);
       snprintf(dev_name, sizeof(dev_name)-1, "%s", tap_device); 
@@ -178,9 +182,8 @@ void PacketDumperTuntap::up() {
     return;
   }
 
-  memset(&ifr, 0, sizeof ifr);
-
-  strncpy(ifr.ifr_name, dev_name, IFNAMSIZ-1);
+  memset(&ifr, 0, sizeof(ifr));
+  strncpy(ifr.ifr_name, dev_name, sizeof(ifr.ifr_name)-1);
 
   ifr.ifr_flags |= IFF_UP;
   if(ioctl(sockfd, SIOCSIFFLAGS, &ifr) < 0)

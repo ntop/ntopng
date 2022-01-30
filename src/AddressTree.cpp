@@ -244,7 +244,7 @@ ndpi_patricia_node_t *AddressTree::matchAndGetNode(const char * const addr) {
   char *net_prefix;
   int bits;
  
-  strncpy(addr_cpy, addr, sizeof(addr_cpy));
+  strncpy(addr_cpy, addr, sizeof(addr_cpy)-1);
 
   net_prefix = strchr(addr_cpy, '/');
   if(net_prefix) {

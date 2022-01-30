@@ -159,7 +159,7 @@ Ntop::Ntop(char *appName) {
 
   for(int i = 0; i < (int)COUNT_OF(dirs); i++) {
     if(dirs[i]) {
-      char path[MAX_PATH];
+      char path[MAX_PATH+32];
       struct stat statbuf;
 
       snprintf(path, sizeof(path), "%s/scripts/lua/index.lua", dirs[i]);
@@ -834,7 +834,7 @@ void Ntop::loadLocalInterfaceAddress() {
 
       memset(&ifr, 0, sizeof(ifr));
       ifr.ifr_addr.sa_family = AF_INET;
-      strncpy(ifr.ifr_name, ifa->ifa_name, sizeof(ifr.ifr_name));
+      strncpy(ifr.ifr_name, ifa->ifa_name, sizeof(ifr.ifr_name)-1);
       ioctl(sock, SIOCGIFNETMASK, &ifr);
       netmask = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr;
 

@@ -1248,7 +1248,7 @@ static int handle_lua_request(struct mg_connection *conn) {
      || (strncmp(request_info->uri, "/plugins/", 9) == 0)
      || (strcmp(request_info->uri, "/") == 0)) {
     /* Lua Script */
-    char path[255] = { 0 }, uri[2048];
+    char path[300] = { 0 }, uri[2048];
     struct stat buf;
     bool found;
 
@@ -1370,9 +1370,10 @@ static int handle_lua_request(struct mg_connection *conn) {
        ) {
       return(redirect_to_error_page(conn, request_info, "forbidden", NULL, NULL));
     } else {
-      char path[256];
+      char path[MAX_PATH+8];
       struct stat s;
-      snprintf(path, sizeof(path)-1, "%s%s",
+      
+      snprintf(path, sizeof(path), "%s%s",
 	       ntop->get_HTTPserver()->get_docs_dir(), request_info->uri);
       
       if(stat(path, &s) == 0) {
@@ -1559,9 +1560,15 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   /* Build the URL rewrite pattern, required to handle the additional
    * httpdocs directory for the plugins. Need to configure the rewrite for both the
    * plugins0 and plugins1 directories. See plugins_utils.getHttpdocsDir */
+
+  /* Silence  format-truncation warning */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+
   snprintf(plugins_httpdocs_rewrite, sizeof(plugins_httpdocs_rewrite),
 	   "/plugins0_httpdocs/=%s/httpdocs/,/plugins1_httpdocs/=%s/httpdocs/",
 	   ntop->get_plugins0_dir(), ntop->get_plugins1_dir());
+#pragma GCC diagnostic pop
   
   /* HTTP options */
   addHTTPOption("listening_ports", ports);

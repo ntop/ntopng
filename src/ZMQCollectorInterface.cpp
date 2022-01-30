@@ -199,8 +199,8 @@ char *ZMQCollectorInterface::generateEncryptionKeys() {
 
   if (Utils::file_read(public_key_path, &public_key) > 0 &&
       Utils::file_read(secret_key_path, &secret_key) > 0) {
-    strncpy(server_public_key, public_key, sizeof(server_public_key));
-    strncpy(server_secret_key, secret_key, sizeof(server_secret_key));
+    strncpy(server_public_key, public_key, sizeof(server_public_key)-1);
+    strncpy(server_secret_key, secret_key, sizeof(server_secret_key)-1);
     server_public_key[sizeof(server_public_key)-1] = '\0';
     server_secret_key[sizeof(server_secret_key)-1] = '\0';
     rc = 0;

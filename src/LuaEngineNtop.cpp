@@ -3264,7 +3264,7 @@ static int ntop_is_local_interface_address(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_resolved_address(lua_State* vm) {
-  char *key, *tmp,rsp[256],value[64];
+  char *key, *tmp,rsp[256], value[280];
   Redis *redis = ntop->getRedis();
   VLANid vlan_id = 0;
   char buf[64];
@@ -4269,14 +4269,14 @@ static bool ntop_delete_old_rrd_files_recursive(const char *dir_name, time_t now
 /* ****************************************** */
 
 static int ntop_delete_old_rrd_files(lua_State *vm) {
-  char path[PATH_MAX];
+  char path[PATH_MAX+8];
   int older_than_seconds;
   time_t now = time(NULL);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  strncpy(path, lua_tostring(vm, 1), sizeof(path));
+  strncpy(path, lua_tostring(vm, 1), sizeof(path)-1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   if((older_than_seconds = lua_tointeger(vm, 2)) < 0) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));

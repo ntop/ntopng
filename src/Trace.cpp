@@ -120,7 +120,7 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
 #endif
 
   if((eventTraceLevel <= traceLevel) && (traceLevel > 0)) {
-    char buf[8100], out_buf[8192];
+    char buf[8100], out_buf[9000];
     char theDate[32], *file = (char*)_file;
     const char *extra_msg = "";
     time_t theTime = time(NULL);

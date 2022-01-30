@@ -472,7 +472,7 @@ MySQLDB::~MySQLDB() {
 /* ******************************************* */
 
 void MySQLDB::open_log() {
-  static char sql_log_path[MAX_PATH];
+  char sql_log_path[512];
 
   if(ntop->getPrefs()->is_sql_log_enabled()) {
     snprintf(sql_log_path, sizeof(sql_log_path)-1, "%s/%d/ntopng_sql.log",

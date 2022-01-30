@@ -2523,7 +2523,7 @@ u_int64_t Utils::macaddr_int(const u_int8_t *mac) {
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
 
 void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
-  char ifname[32];
+  char ifname[15];
   macstr_t mac_addr_buf;
   int res;
 
@@ -2550,11 +2550,11 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
   int _sock;
   struct ifreq ifr;
 
-  memset (&ifr, 0, sizeof(struct ifreq));
+  memset(&ifr, 0, sizeof(struct ifreq));
 
   /* Dummy socket, just to make ioctls with */
   _sock = socket(PF_INET, SOCK_DGRAM, 0);
-  strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
 
   if((res = ioctl(_sock, SIOCGIFHWADDR, &ifr)) >= 0)
     memcpy(mac_addr, ifr.ifr_ifru.ifru_hwaddr.sa_data, 6);
@@ -2697,7 +2697,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *_ifname) {
   struct ifreq ifr;
   struct ethtool_cmd edata;
   u_int32_t ifSpeed = 1000;
-  char ifname[32];
+  char ifname[15];
 
   if(strchr(_ifname, ',')) {
     /* These are interfaces with , (e.g. eth0,eth1) */
@@ -2731,7 +2731,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *_ifname) {
     return(ifSpeed);
   }
 
-  strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
   ifr.ifr_data = (char *) &edata;
 
   // Do the work
@@ -2772,7 +2772,7 @@ int Utils::ethtoolGet(const char *ifname, int cmd, uint32_t *v) {
   if(fd == -1)
     return -1;
 
-  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
 
   ethv.cmd = cmd;
   ifr.ifr_data = (char *) &ethv;
@@ -2806,7 +2806,7 @@ int Utils::ethtoolSet(const char *ifname, int cmd, uint32_t v) {
   if(fd == -1)
     return -1;
 
-  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
 
   ethv.cmd = cmd;
   ethv.data = v;
@@ -3447,7 +3447,7 @@ bool Utils::isInterfaceUp(char *_ifname) {
 #ifdef WIN32
   return(true);
 #else
-  char ifname[32];
+  char ifname[15];
   struct ifreq ifr;
   int sock;
 
@@ -3459,7 +3459,7 @@ bool Utils::isInterfaceUp(char *_ifname) {
   ifname2devname(_ifname, ifname, sizeof(ifname));
 
   memset(&ifr, 0, sizeof(ifr));
-  strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
 
   if(ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
     close(sock);
@@ -4830,7 +4830,7 @@ bool Utils::isPingSupported() {
  * to handle PF_RING interfaces like zc:ens2f1@3
  * (it removes '<module>:' prefix or trailing '@<queue>')
  */
-char *Utils::ifname2devname(const char *ifname, char *devname, int devname_size) {
+char* Utils::ifname2devname(const char *ifname, char *devname, int devname_size) {
   const char *colon;
   char *at;
 
