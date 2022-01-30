@@ -211,6 +211,16 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.packets'),
       operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
    },
+   cli_host_pool_id = {
+      value_type = 'host_pool_id',
+      i18n_label = i18n('db_search.tags.cli_host_pool_id'),
+      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+   },
+   srv_host_pool_id = {
+      value_type = 'host_pool_id',
+      i18n_label = i18n('db_search.tags.srv_host_pool_id'),
+      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+   },
 }
 
 -- #####################################
