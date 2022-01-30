@@ -67,7 +67,7 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
-  ndpiFlow = NULL, cli_id = srv_id = NULL, confidence = NDPI_CONFIDENCE_UNKNOWN;
+  ndpiFlow = NULL, confidence = NDPI_CONFIDENCE_UNKNOWN;
   cli_ebpf = srv_ebpf = NULL;
   json_info = NULL, tlv_info = NULL, twh_over = twh_ok = false,
     dissect_next_http_packet = false, host_server_name = NULL;
@@ -255,20 +255,12 @@ Flow::Flow(NetworkInterface *_iface,
 void Flow::allocDPIMemory() {
   if((ndpiFlow = (ndpi_flow_struct*)calloc(1, iface->get_flow_size())) == NULL)
     throw "Not enough memory";
-
-  if((cli_id = calloc(1, iface->get_size_id())) == NULL)
-    throw "Not enough memory";
-
-  if((srv_id = calloc(1, iface->get_size_id())) == NULL)
-    throw "Not enough memory";
 }
 
 /* *************************************** */
 
 void Flow::freeDPIMemory() {
   if(ndpiFlow)  { ndpi_free_flow(ndpiFlow); ndpiFlow = NULL;  }
-  if(cli_id)    { free(cli_id);             cli_id = NULL;    }
-  if(srv_id)    { free(srv_id);             srv_id = NULL;    }
 }
 
 /* *************************************** */
@@ -705,9 +697,7 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
    * be able to guess the protocol. */
 
   proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
-					   ip_packet, ip_len, packet_time,
-					   (struct ndpi_id_struct*) cli_id,
-					   (struct ndpi_id_struct*) srv_id);
+					   ip_packet, ip_len, packet_time);
 
   detected = ndpi_is_protocol_detected(iface->get_ndpi_struct(), proto_id);
 
@@ -782,8 +772,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
   ndpiFlow->check_extra_packets = 1, ndpiFlow->max_extra_packets_to_check = 10;
 
   proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
-					   ip_packet, ip_len, packet_time,
-					   (struct ndpi_id_struct*) cli_id, (struct ndpi_id_struct*) srv_id);
+					   ip_packet, ip_len, packet_time);
 
   /*
     A DNS flow won't change to a non-DNS flow. However, this check is
