@@ -1,14 +1,14 @@
 [
     /* Date */
-    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '6%', className: 'text-center text-nowrap', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', className: 'text-center text-nowrap', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Score */
-    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', render: DataTableRenders.formatValueLabel},
     /* Duration */
-    {responsivePriority: 2, name: 'duration', data: 'duration', width: '3%', className: 'text-center', render: DataTableRenders.secondsToTime},
+    {responsivePriority: 2, name: 'duration', data: 'duration', className: 'text-center', render: DataTableRenders.secondsToTime},
     /* Alert */
-    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width:'5%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Network */
-    {responsivePriority: 2, name: 'network_name', data: 'network', width: '5%', orderable: false, render: (network, type) => {
+    {responsivePriority: 2, name: 'network_name', data: 'network', orderable: false, render: (network, type) => {
         if (type === "display") return DataTableRenders.filterize('network_name', network, network);
         return network;
     }},

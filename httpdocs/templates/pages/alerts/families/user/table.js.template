@@ -1,12 +1,12 @@
 [
     /* Date */
-    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '8%', className: 'text-center', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', className: 'text-center text-nowrap', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Score */
-    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', render: DataTableRenders.formatValueLabel},
     /* Counts */
-    {responsivePriority: 3, name: 'count', className: 'text-center', width: '5%', data: 'count', visible: false},
+    {responsivePriority: 3, name: 'count', className: 'text-center', data: 'count', visible: false},
     /* Alert */
-    {responsivePriority: 3, name: 'description', data: 'msg', orderable: false, width: '1%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 3, name: 'description', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Description */
     {responsivePriority: 3, name: 'description', data: 'description', orderable: false, width: '100%'},
 ]

@@ -1,18 +1,18 @@
 [
     /* Date */
-    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '8%', className: 'text-center text-nowrap', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', className: 'text-center text-nowrap', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
     /* Score */
-    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', render: DataTableRenders.formatValueLabel},
     /* Alert */
-    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, width:'10%', className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* IP Address */
-    {responsivePriority: 2, name: 'ip', data: 'ip', width:'5%', className: 'text-nowrap'},
+    {responsivePriority: 2, name: 'ip', data: 'ip', className: 'text-nowrap'},
     /* Port */
-    {responsivePriority: 3, name: 'port', className: 'text-nowrap', data: 'port', width: '5%', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 3, name: 'port', className: 'text-nowrap', data: 'port', render: DataTableRenders.formatValueLabel},
     /* Device Name */
-    {responsivePriority: 3, name: 'name', width:'10%', className: 'text-nowrap', data: 'name'},
+    {responsivePriority: 3, name: 'name', className: 'text-nowrap', data: 'name'},
     /* Counts */
-    {responsivePriority: 3, name: 'count', className: 'text-center', width: '5%', data: 'count', visible: false},
+    {responsivePriority: 3, name: 'count', className: 'text-center', data: 'count', visible: false},
     /* Description */
     {responsivePriority: 4, name: 'description', data: 'description', orderable: false, className: 'text-nowrap'},
 ]

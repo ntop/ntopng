@@ -187,9 +187,13 @@ end
 
 -- parse a SQL DATETIME date and convert to epoch
 function format_utils.parseDateTime(tstamp)
-  local year, month, day, hour, min, sec = tstamp:match('^(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)$')
-  local epoch = os.time({month=month, day=day, year=year, hour=hour, min=min, sec=sec})
-  return epoch
+   if tstamp and not isEmptyString(tstamp) then
+      local year, month, day, hour, min, sec = tstamp:match('^(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)$')
+      local epoch = os.time({month=month, day=day, year=year, hour=hour, min=min, sec=sec})
+      return epoch
+   end
+
+   return ""
 end
 
 -- format an epoch using ISO 8601 format

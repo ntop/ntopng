@@ -1,21 +1,21 @@
 [
     /* Date */
-    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', width: '10%', className: 'text-center text-nowrap', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle },
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', className: 'text-center text-nowrap', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle },
     /* Score */
-    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', width: '2%', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', render: DataTableRenders.formatValueLabel},
     /* Application */
-    {responsivePriority: 3, name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center', width: '5%', render: (proto, type, row) => {
+    {responsivePriority: 3, name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center', render: (proto, type, row) => {
         if (type !== "display") return proto.value;
 	return DataTableRenders.filterize('l7_proto', proto.value, proto.label);
     }},
     /* Alert */
-    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', width: '5%', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Flow */
-    {responsivePriority: 2, name: 'flow', data: 'flow', orderable: false, className: 'text-nowrap', width: '5%', render: DataTableRenders.formatFlowTuple},
+    {responsivePriority: 2, name: 'flow', data: 'flow', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatFlowTuple},
     /* Counts */
     {responsivePriority: 3, name: 'count', className: 'text-center', data: 'count', visible: false},
     /* Description */
-    {responsivePriority: 3, name: 'description', data: 'description', orderable: false, width: '100%',  className: 'text-nowrap', render: DataTableRenders.formatMessage},
+    {responsivePriority: 4, name: 'description', data: 'description', width: '100%', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatMessage},
     /* Additional alerts */
-    {responsivePriority: 4, name: 'additional_alerts', data: 'additional_alerts',  orderable: false, className: 'text-nowrap', render: DataTableRenders.formatMessage},
+    {responsivePriority: 3, name: 'additional_alerts', data: 'additional_alerts',  orderable: false, className: 'text-nowrap', render: DataTableRenders.formatMessage},
 ]
