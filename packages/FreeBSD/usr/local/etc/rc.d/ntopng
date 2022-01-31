@@ -33,6 +33,12 @@ pidfile=${ntopng_pidfile}
 required_files=${ntopng_config}
 command_args="${ntopng_config} -G ${ntopng_pidfile} -e"
 
+if [ ! -f "${ntopng_config}" ]; then
+  # Using sample file as config file is missing
+  cp /usr/local/etc/ntopng/ntopng.conf.sample ${ntopng_config}
+  chown ntopng:ntopng ${ntopng_config}
+fi
+    
 ntopng_precmd()
 {
     local ntopng_user="ntopng"
@@ -40,12 +46,6 @@ ntopng_precmd()
     local ntopng_datadir="/var/db/ntopng-enterprise"
     local rundir=${ntopng_pidfile%/*}
 
-    if [ ! -f "${ntopng_config}" ]; then
-	# Using sample file as config file is missing
-	cp /usr/local/etc/ntopng/ntopng.conf.sample ${ntopng_config}
-	chown ntopng:ntopng ${ntopng_config}
-    fi
-    
     if ! id "${ntopng_user}" >/dev/null 2>&1; then
 	# ntopng user does not exist: create it!
 	pw useradd ${ntopng_user} -s /sbin/nologin -d /nonexistent -c "ntopng user" -w no
