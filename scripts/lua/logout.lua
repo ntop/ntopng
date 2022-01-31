@@ -10,6 +10,8 @@ require "lua_utils"
 local host_pools_nedge = require "host_pools_nedge"
 local captive_portal_utils = require("captive_portal_utils")
 
+local prefs = ntop.getPrefs()
+
 captive_portal_utils.print_header()
 
 local info = ntop.getInfo()
@@ -21,15 +23,28 @@ print [[
     <h2 class="form-signin-heading" style="font-weight: bold;">]] print(info["product"]) print [[ Access Portal</h2>
 ]]
 
-if _POST["action"] == "logout" then -- TODO or check if already logged out
+local member = _SERVER["REMOTE_ADDR"]
+local host_info = interface.getHostInfo(member)
 
-  -- TODO get username and MAC address and do the actual logout
-  -- local username = ...
-  -- local mac = ...
+local pool_id = host_pools_nedge.DEFAULT_POOL_ID
+if host_info then
+   pool_id = host_info.host_pool_id
+end
 
-  -- local pool_id = host_pools_nedge.usernameToPoolId(username) or host_pools_nedge.DEFAULT_POOL_ID
-  -- host_pools_nedge.deletePoolMember(pool_id, mac)
-  -- ntop.reloadHostPools()
+if _POST["action"] == "logout" -- logout request
+   or pool_id == host_pools_nedge.DEFAULT_POOL_ID -- already logged out
+   then
+
+  if pool_id ~= host_pools_nedge.DEFAULT_POOL_ID then
+    -- Handle logout request
+
+    if prefs.is_mac_based_captive_portal then
+      member = host_info.mac
+    end
+
+    host_pools_nedge.deletePoolMemberFromAllPools(member)
+    ntop.reloadHostPools()
+  end
 
   print[[
     <div class="row">

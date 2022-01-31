@@ -377,6 +377,13 @@ function host_pools_nedge.getPoolsList(without_info)
   return pools
 end
 
+-- Delete a member (IP or Mac) from all pools if any
+function host_pools_nedge.deletePoolMemberFromAllPools(member)
+  for _, pool in pairs(host_pools_nedge.getPoolsList()) do
+    host_pools_nedge.deletePoolMember(pool.id, member)
+  end
+end
+
 function host_pools_nedge.getPoolMembers(pool_id)
   local members_key = get_pool_members_key(pool_id)
   local members = {}

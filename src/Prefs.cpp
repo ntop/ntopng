@@ -1993,6 +1993,10 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dump_flows_to_syslog_enabled", dump_flows_on_syslog);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_clickhouse_enabled", use_clickhouse);
 
+#ifdef HAVE_NEDGE
+  lua_push_bool_table_entry(vm, "is_mac_based_captive_portal", mac_based_captive_portal);
+#endif
+
   lua_push_uint64_table_entry(vm, "http.port", get_http_port());
 
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
