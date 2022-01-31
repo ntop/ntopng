@@ -4747,6 +4747,12 @@ function addHTTPInfoToAlertDescr(msg, alert_json)
             alert_json["proto"]["http"]["last_return_code"])
       end
 
+      if alert_json["proto"]["http"]["last_user_agent"] then
+         msg = msg .. string.format(" [%s: %s]", 
+            i18n("last_user_agent"),  
+            alert_json["proto"]["http"]["last_user_agent"])
+      end
+
       if alert_json["proto"]["http"]["last_url"] then
          msg = msg .. string.format(" [%s: %s]", 
             i18n("last_url"),

@@ -24,7 +24,7 @@
 {%   else 
          for data, info in pairsByKeys(row.content, asc) do %}
          <tr>
-            <td>{{ i18n(data) or data }}</td>
+            <th>{{ i18n(data) or data }}</th>
             <td>{{ info }}</td>
          </tr> 
 {%       end   

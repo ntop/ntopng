@@ -42,7 +42,7 @@ Flow::Flow(NetworkInterface *_iface,
   periodic_stats_update_partial = NULL;
   viewFlowStats = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
-  flow_device.observation_point_id = _observation_point_id;  
+  flow_device.observation_point_id = _observation_point_id;
   cli_host = srv_host = NULL;
   cli_ip_addr = srv_ip_addr = NULL;
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
@@ -60,7 +60,7 @@ Flow::Flow(NetworkInterface *_iface,
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
   swap_done = swap_requested = false;
   flowCreationTime = iface->getTimeLastPktRcvd();
-  
+
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
@@ -130,7 +130,7 @@ Flow::Flow(NetworkInterface *_iface,
 
     srv_host->incSrvHostContacts(_cli_ip);
     srv_host->incSrvPortsContacts(_cli_port);
-    
+
     if (srv_host->isLocalHost() && cli_host) {
       cli_host->get_country(country, sizeof(country));
       if(country[0] != '\0') srv_host->incCountriesContacts(country);
@@ -335,6 +335,7 @@ Flow::~Flow() {
 
   if(isHTTP()) {
     if(protos.http.last_url)         free(protos.http.last_url);
+    if(protos.http.last_user_agent)  free(protos.http.last_user_agent);
   } else if(isDNS()) {
     if(protos.dns.last_query)        free(protos.dns.last_query);
     if(protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
@@ -453,7 +454,7 @@ void Flow::processDetectedProtocol() {
   } /* switch */
 
   /* Domain Concats Alert */
-  if(ndpiFlow) 
+  if(ndpiFlow)
     domain_name = ndpi_get_flow_name(ndpiFlow), confidence = ndpiFlow->confidence;
 
   if(cli_h && domain_name && domain_name[0] != '\0')
@@ -524,6 +525,10 @@ void Flow::processDetectedProtocolData() {
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(ndpiFlow->http.url) {
       if(!protos.http.last_url) protos.http.last_url = strdup(ndpiFlow->http.url);
+      
+      if((!protos.http.last_user_agent) && ndpiFlow->http.user_agent)
+	protos.http.last_user_agent = strdup(ndpiFlow->http.user_agent);
+      
       setHTTPMethod(ndpiFlow->http.method);
     }
 
@@ -702,8 +707,8 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
   detected = ndpi_is_protocol_detected(iface->get_ndpi_struct(), proto_id);
 
   if(!detected && hasDissectedTooManyPackets()) {
-    /* 
-       Perform a giveup and finalize all additional operations such as 
+    /*
+       Perform a giveup and finalize all additional operations such as
        the processing of extra dissection data.
      */
     endProtocolDissection();
@@ -2065,12 +2070,12 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	lua_push_str_table_entry(vm, "src_as_name", h->get_asname());
       }
     }
-    
+
     if(dstAS)
       lua_push_int32_table_entry(vm, "dst_as", dstAS);
     else {
       Host *h = get_srv_host();
-      
+
       if(h) {
 	lua_push_int32_table_entry(vm, "dst_as", h->get_asn());
 	lua_push_str_table_entry(vm, "dst_as_name", h->get_asname());
@@ -2189,7 +2194,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_snmp_info(vm);
 
     lua_push_int32_table_entry(vm, "flow_verdict", flow_verdict);
-    
+
     if(get_json_info()) {
       lua_push_str_table_entry(vm, "moreinfo.json", json_object_to_json_string(get_json_info()));
       has_json_info = true;
@@ -2241,7 +2246,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     }
 
     lua_push_str_table_entry(vm, "confidence", ndpi_confidence_get_name(confidence));
-    
+
     lua_get_risk_info(vm);
     lua_entropy(vm);
   }
@@ -2306,7 +2311,7 @@ void Flow::lua_get_risk_info(lua_State* vm) {
 void Flow::setRisk(ndpi_risk risk_bitmap) {
   /* Handle OR of risks with no risk */
   NDPI_CLR_BIT(risk_bitmap, NDPI_NO_RISK);
-  
+
   if (risk_bitmap == 0)
     NDPI_SET_BIT(risk_bitmap, NDPI_NO_RISK);
 
@@ -2350,7 +2355,7 @@ u_int32_t Flow::key() {
 #ifdef MAKE_OBSERVATION_POINT_KEY
   k += get_observation_point_id();
 #endif
-  
+
   if(get_cli_ip_addr()) k += get_cli_ip_addr()->key();
   if(get_srv_ip_addr()) k += get_srv_ip_addr()->key();
   if(icmp_info) k += icmp_info->key();
@@ -2365,7 +2370,7 @@ u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
 		    VLANid _vlan_id, u_int16_t _observation_point_id,
 		    u_int16_t _protocol) {
   u_int32_t k = _cli_port + _srv_port + _vlan_id + _protocol;
-  
+
 #ifdef MAKE_OBSERVATION_POINT_KEY
   k += _observation_point_id;
 #endif
@@ -2442,7 +2447,7 @@ bool Flow::is_hash_entry_state_idle_transition_ready() {
   if(ret && ((iface->getTimeLastPktRcvd()-flowCreationTime) < 10 /* sec */)) {
     /*
       Trick to keep flows a minimum amount of time in memory
-      and thus avoid quick purging 
+      and thus avoid quick purging
     */
     ret = false;
   }
@@ -2722,6 +2727,8 @@ json_object* Flow::flow2JSON() {
       json_object_object_add(my_object, "HTTP_HOST", json_object_new_string(host_server_name));
     if(protos.http.last_url && protos.http.last_url[0] != '0')
       json_object_object_add(my_object, "HTTP_URL", json_object_new_string(protos.http.last_url));
+    if(protos.http.last_user_agent && protos.http.last_user_agent[0] != '0')
+      json_object_object_add(my_object, "HTTP_USER_AGENT", json_object_new_string(protos.http.last_user_agent));
     if(protos.http.last_method != NDPI_HTTP_METHOD_UNKNOWN)
       json_object_object_add(my_object, "HTTP_METHOD", json_object_new_string(ndpi_http_method2str(protos.http.last_method)));
     if(protos.http.last_return_code > 0)
@@ -2730,8 +2737,8 @@ json_object* Flow::flow2JSON() {
 
   if(flow_device.device_ip)
     json_object_object_add(my_object, "EXPORTER_IPV4_ADDRESS",
-         json_object_new_string(intoaV4(flow_device.device_ip, buf, sizeof(buf))));  
-  
+         json_object_new_string(intoaV4(flow_device.device_ip, buf, sizeof(buf))));
+
   if(bt_hash)
     json_object_object_add(my_object, "BITTORRENT_HASH", json_object_new_string(bt_hash));
 
@@ -2860,7 +2867,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   /* See VLANAddressTree.h for details */
   ndpi_serialize_string_int32(s, "vlan_id", get_vlan_id());
   ndpi_serialize_string_int32(s, "observation_point_id", get_observation_point_id());
-  
+
   ndpi_serialize_string_int32(s, "proto", get_protocol());
 
   if(hasRisks())
@@ -3051,7 +3058,7 @@ void Flow::housekeep(time_t t) {
       }
     }
 
-    /* 
+    /*
        If a condition above has determined the flow trasnition to the protocol detected state,
        don't break, continue so to execute detection completed checks.
      */
@@ -3079,7 +3086,7 @@ void Flow::housekeep(time_t t) {
      */
     if(getInterface()->read_from_pcap_dump_done()
        && is_swap_requested()
-       && !is_swap_done()) 
+       && !is_swap_done())
       iface->execProtocolDetectedChecks(this);
 
     break;
@@ -3480,7 +3487,7 @@ void Flow::updateICMPFlood(const struct bpf_timeval *when, bool src2dst_directio
   if(srv_host) srv_host->updateICMPAlertsCounter(when->tv_sec, !src2dst_direction);
 }
 
-/* *************************************** */  
+/* *************************************** */
 
 void Flow::updateTcpFlags(const struct bpf_timeval *when,
 			  u_int8_t flags, bool src2dst_direction) {
@@ -4737,7 +4744,7 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 							     protocol,
 							     nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes,
 							     nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts);
-  
+
   if(nf_existing_flow) {
     stats.setStats(true, s2d_pkts, s2d_bytes, 0);
     stats.setStats(false, d2s_pkts, d2s_bytes, 0);
@@ -5356,7 +5363,7 @@ void Flow::getTLSInfo(ndpi_serializer *serializer) const {
       ndpi_serialize_string_int32(serializer, "notAfter", protos.tls.notAfter);
     }
 
-    if(protos.tls.ja3.client_hash) {     
+    if(protos.tls.ja3.client_hash) {
       ndpi_serialize_string_string(serializer, "ja3.client_hash", protos.tls.ja3.client_hash);
 
       if(has_malicious_cli_signature)
@@ -5408,6 +5415,8 @@ void Flow::lua_get_http_info(lua_State *vm) const {
       lua_push_str_table_entry(vm, "protos.http.last_method", ndpi_http_method2str(protos.http.last_method));
       lua_push_uint64_table_entry(vm, "protos.http.last_return_code", protos.http.last_return_code);
       lua_push_str_table_entry(vm, "protos.http.last_url", protos.http.last_url);
+      if(protos.http.last_user_agent)
+	lua_push_str_table_entry(vm, "protos.http.last_user_agent", protos.http.last_user_agent);
     }
 
     if(host_server_name)
@@ -5423,6 +5432,7 @@ void Flow::getHTTPInfo(ndpi_serializer *serializer) const {
       ndpi_serialize_string_string(serializer, "last_method", ndpi_http_method2str(protos.http.last_method));
       ndpi_serialize_string_uint64(serializer, "last_return_code", protos.http.last_return_code);
       ndpi_serialize_string_string(serializer, "last_url", protos.http.last_url);
+      ndpi_serialize_string_string(serializer, "last_user_agent", protos.http.last_user_agent);
     }
 
     if(host_server_name)
