@@ -42,7 +42,13 @@ cp ../../ntopng ${STAGEDIR}/usr/local/bin/
 strip ${STAGEDIR}/usr/local/bin/ntopng
 cp ../wizard/ntopng-config ${STAGEDIR}/usr/local/bin/
 mkdir -p ${STAGEDIR}/usr/local/etc/ntopng
-cp ../etc/ntopng/ntopng.conf ${STAGEDIR}/usr/local/etc/ntopng/ntopng.conf.sample
+
+# Sample configuration file
+CONFIGFILE=${STAGEDIR}/usr/local/etc/ntopng/ntopng.conf.sample
+cp ../etc/ntopng/ntopng.conf ${CONFIGFILE}
+# Add FreeBSD-specific defaults
+echo "-t=/usr/local/share/ntopng/" >> ${CONFIGFILE}
+echo "-d=/var/db/ntopng/" >> ${CONFIGFILE}
 
 mkdir -p ${STAGEDIR}/usr/local/share/man/man8
 cp ${NTOPNG_HOME}/ntopng.8 ${STAGEDIR}/usr/local/share/man/man8
