@@ -308,19 +308,6 @@ static int checkInformativeCaptive(const struct mg_connection *conn,
 
 /* ****************************************** */
 
-static int checkGrafana(const struct mg_connection *conn,
-			const struct mg_request_info *request_info) {
-
-  if(!strcmp(request_info->request_method, "OPTIONS") /* Allow for CORS inflight requests */
-    && !strncmp(request_info->uri, GRAFANA_URL, strlen(GRAFANA_URL)))
-    /* Success */
-    return(1);
-
-  return(0);
-}
-
-/* ****************************************** */
-
 static int isWhitelistedURI(const char * const uri) {
   /* URL whitelist */
   if((!strcmp(uri,    LOGIN_URL))
@@ -448,12 +435,10 @@ static int getAuthorizedUser(struct mg_connection *conn,
       }
     }
   }
-
-  if(checkGrafana(conn, request_info) == 1) {
-    return(1);
-  }
-
-  if(user_login_disabled) {
+ 
+  
+  if((!strcmp(request_info->uri, CAPTIVE_PORTAL_LOGOUT_URL))
+     || (user_login_disabled)) {
     strncpy(username, NTOP_NOLOGIN_USER, NTOP_USERNAME_MAXLEN);
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
     return(1);
