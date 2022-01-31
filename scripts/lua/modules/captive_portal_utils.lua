@@ -19,6 +19,7 @@ local captive_portal_utils = {}
 function captive_portal_utils.is_logged(ip)
    local member = ip
 
+   interface.select("0")
    local host_info = interface.getHostInfo(member)
    if not host_info then
       return false
@@ -39,6 +40,7 @@ end
 function captive_portal_utils.logout(ip)
    local member = ip
 
+   interface.select("0")
    local host_info = interface.getHostInfo(member)
    if not host_info then
       return

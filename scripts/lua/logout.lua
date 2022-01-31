@@ -9,6 +9,10 @@ require "lua_utils"
 
 local captive_portal_utils = require("captive_portal_utils")
 
+if not ntop.isnEdge() then
+   return
+end
+
 captive_portal_utils.print_header()
 
 local info = ntop.getInfo()

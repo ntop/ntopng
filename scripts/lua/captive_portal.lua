@@ -10,6 +10,17 @@ require "lua_utils"
 
 local captive_portal_utils = require("captive_portal_utils")
 
+if not ntop.isnEdge() then
+   return
+end
+
+local remote_addr = _SERVER["REMOTE_ADDR"]
+local is_logged = captive_portal_utils.is_logged(remote_addr)
+
+if is_logged then
+   captive_portal_utils.logout(remote_addr)
+end
+
 captive_portal_utils.print_header()
 
 print [[
