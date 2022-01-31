@@ -6205,14 +6205,16 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
     pktStats.sum(_pktStats), tcpPacketStats.sum(_tcpPacketStats),
     discardedProbingStats.sum(_discardedProbingStats), syslogStats.sum(_syslogStats);
 
-  if(ndpiStats)
+  if(ndpiStats && _ndpiStats)
     ndpiStats->sum(_ndpiStats);
-  if(dscpStats)
+
+  if(dscpStats && _dscpStats)
     dscpStats->sum(_dscpStats);
 
-  if(_downloadStats)
+  if(download_stats && _downloadStats)
     download_stats->sum(_downloadStats);
-  if(_uploadStats)
+
+  if(upload_stats && _uploadStats)
     upload_stats->sum(_uploadStats);
 }
 
