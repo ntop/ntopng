@@ -2331,7 +2331,15 @@ char* Ntop::getValidPath(char *__path) {
 
   /* relative paths */
   for(int i = 0; i < (int)COUNT_OF(dirs); i++) {
-    if(dirs[i]) {
+    if(dirs[i]
+       /* 
+	  Ignore / as when you start ntopng as a
+	  service you might have /scripts or /httpdocs
+	  on your filesystem fooling ntopng
+	  initialization and thus breaking averything
+       */
+       && strcmp(dirs[i], "/")
+       ) {
       char path[2*MAX_PATH];
 
       snprintf(path, sizeof(path), "%s/%s", dirs[i], _path);
