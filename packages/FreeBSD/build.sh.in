@@ -107,10 +107,10 @@ EOF
 rm -f *.txz
 pkg create -m ${STAGEDIR}/ -r ${STAGEDIR}/ -p ${STAGEDIR}/plist -o $HERE
 
-if test $VERSION -eq "11" ; then
-    PKG_NAME=ntopng-@PACKAGE_VERSION@.txz
-else
+if test $VERSION -eq "13" ; then
     PKG_NAME=ntopng-@PACKAGE_VERSION@.pkg
+else
+    PKG_NAME=ntopng-@PACKAGE_VERSION@.txz
 fi
 
 /bin/rm -f ~/binary_packages/ntopng-*
