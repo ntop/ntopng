@@ -1326,7 +1326,7 @@ local lang = {
     ["the_following_url_will_be_added"] = "The following domain will be added:",
   },
   ["dashboard"] = {
-    ["actual_traffic"] = "Actual Traffic",
+    ["actual_traffic"] = "Current Traffic",
     ["community_dashboard"] = "Community Dashboard",
     ["gateways_users"] = "Gateways and Users",
     ["lastday_app_traffic"] = "Top Applications (Last Day)",
