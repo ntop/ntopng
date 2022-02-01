@@ -48,25 +48,23 @@ SQLiteAlertStore::SQLiteAlertStore(int interface_id, const char *filename) : SQL
 /* **************************************************** */
 
 SQLiteAlertStore::~SQLiteAlertStore() {
+  /* Nothing to do so far */
 }
 
 /* **************************************************** */
 
-int SQLiteAlertStore::openStore() {
-  int rc;
+int SQLiteAlertStore::execFile(const char *path) {
   char schema_path[MAX_PATH];
-
-  if(!store_initialized)
-    return 1;
+  int rc;
 
   /* Read the database schema file */
-  snprintf(schema_path, sizeof(schema_path), "%s/misc/%s", ntop->get_docs_dir(), ALERTS_STORE_SCHEMA_FILE_NAME);
+  snprintf(schema_path, sizeof(schema_path), "%s/misc/%s", ntop->get_docs_dir(), path);
   ntop->fixPath(schema_path);
 
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Processing %s", schema_path);
+  
   std::ifstream schema_file(schema_path);
   std::string schema_contents((std::istreambuf_iterator<char>(schema_file)), std::istreambuf_iterator<char>());
-
-  m.lock(__FILE__, __LINE__);
 
   /* Make sure the database is accessible */
   rc = exec_query((char*)"SELECT 1", NULL, NULL);
@@ -78,16 +76,32 @@ int SQLiteAlertStore::openStore() {
 
   if(rc) {
     const char *msg = sqlite3_errmsg(db);
-
+    
     if(strstr(msg, "duplicate column name: interface_id"))
       rc = 0; /* Silence ALTER TABLE errors */
     else
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create database schema [%s]", msg);
   }
-  
-  m.unlock(__FILE__, __LINE__);
 
   if(schema_file.is_open()) schema_file.close();
+    
+  return(rc);
+}
+
+/* **************************************************** */
+
+int SQLiteAlertStore::openStore() {
+  int rc;
+
+  if(!store_initialized)
+    return 1;
+
+  m.lock(__FILE__, __LINE__);
+
+  rc = execFile(ALERTS_STORE_SCHEMA_FILE_NAME);
+  rc |= execFile(ALERTS_VIEW_STORE_SCHEMA_FILE_NAME);
+    
+  m.unlock(__FILE__, __LINE__);
 
   return rc;
 }
