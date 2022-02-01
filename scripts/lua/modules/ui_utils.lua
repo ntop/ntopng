@@ -151,7 +151,7 @@ function ui_utils.draw_pcap_download_dialog(ifid)
       return true;
    }
 
-   function pcapDownload(epoch_begin, epoch_end, bpf_filter) {
+   function pcapShowModal(epoch_begin, epoch_end, bpf_filter) {
      var modalID = "]] print(modalID) print [[";
      var date_begin = new Date(epoch_begin * 1000);
      var date_end = new Date(epoch_end * 1000);
@@ -173,6 +173,31 @@ function ui_utils.draw_pcap_download_dialog(ifid)
 
      $("#]] print(modalID) print [[ form:data(bs.validator)").each(function(){
        $(this).data("bs.validator").validate();
+     });
+   }
+
+   function pcapDownload(epoch_begin, epoch_end, bpf_filter) {
+     $.ajax({
+       type: "GET",
+       url: ']] print(ntop.getHttpPrefix().."/lua/check_recording_data.lua") print [[',
+       data: {
+         epoch_begin: epoch_begin,
+         epoch_end: epoch_end
+       }, error: function(err) {
+         console.error(err);
+       }, success: function(data) {
+         if(!data.available) {
+            if(data.extraction_checks_msg) {
+              $("#no-recording-data-message").html(data.extraction_checks_msg);
+            } else {
+              $("#no-recording-data-message").html(']] print(i18n("traffic_recording.no_recorded_data")) print[[');
+            }
+            $("#no-recording-data").modal("show");
+            return;
+         }
+      
+         pcapShowModal(epoch_begin, epoch_end, bpf_filter);
+       }
      });
    }
 

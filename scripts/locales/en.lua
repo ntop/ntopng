@@ -5750,7 +5750,7 @@ local lang = {
     ["multiple_extracted_files"] = "Traffic extraction generated multiple pcap files of %{mb} MB, it is possible to change this limit from Preferences. Click on the links below to download the pcap files.",
     ["no_data_in_interval"] = "There is no (or partial) pcap data on disk for the selected time interval. Please note that pcap data is dumped every minute (latest minute is not available) and old data is deleted (please check the current dump window in the <A HREF=\"%{page}\">status page</A>). Please try selecting a different time interval.",
     ["no_file"] = "No files dumped yet",
-    ["no_recorded_data"] = "No recorded data in the specified time frame. Traffic recorder needs some time to write recent data.",
+    ["no_recorded_data"] = "No recorded data in the specified time frame. Traffic recorder needs some time to write recent data and deletes old data according to the configured data retention.",
     ["not_found"] = "File not found",
     ["not_granted"] = "Request not granted",
     ["note_dump"] = "In ethernet networks, each packet has an <A HREF=\"https://en.wikipedia.org/wiki/Ethernet_frame\">overhead of 24 bytes</A> [preamble, start of frame, CRC, IFG]. Such overhead is accounted to the interface traffic, but it is not added to the traffic being dumped on disk. For this reason the number of bytes in this page may differ from those reported in the interface chart.",
