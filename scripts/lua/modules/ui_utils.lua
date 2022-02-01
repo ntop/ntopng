@@ -228,6 +228,8 @@ function ui_utils.draw_pcap_download_dialog(ifid)
       id = "no-recording-data",
       title = i18n("traffic_recording.pcap_download"),
       message = "<span id='no-recording-data-message'></span>",
+      confirm = i18n("confirm"),
+      dismiss_on_confirm = true,
    }}))
 
 end
