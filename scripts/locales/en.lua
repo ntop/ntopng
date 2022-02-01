@@ -2236,7 +2236,7 @@ local lang = {
   ["flow_devices"] = {
     ["active_sflow"] = "Active sFlow Exporters",
     ["all_device_ports"] = "All %{device} Ports",
-    ["all_exporters"] = "All Flow Exporters",
+    ["all_exporters"] = "All Flow Exporter Devices",
     ["all_flow_devices"] = "All Flow Exporters",
     ["all_sflow_devices"] = "All sFlow Exporters",
     ["collection"] = "Collection",
@@ -2249,6 +2249,7 @@ local lang = {
     ["exporters"] = "Flow Exp.",
     ["flow_device_x"] = "Flow Exporter %{device}",
     ["flow_device_x_interface_y"] = "Flow Exporter %{device} / %{interface}",
+    ["flow_exporters"] = "Flow Exporter Devices",
     ["flow_ratio_snmp_instructions"] = "To enable the Flow/SNMP ratio, this flow probe must support SNMP and must be <a href='%{href}'>added</a> to the SNMP devices.",
     ["flow_ratio_timeseries_instructions"] = "To enable the Flow/SNMP ratio, <b>SNMP and Flow Probe timeseries</b> must be enabled.",
     ["full_duplex"] = "Full-Duplex",

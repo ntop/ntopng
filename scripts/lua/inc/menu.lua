@@ -857,7 +857,8 @@ for v,k in pairs(iface_names) do
       	    descr = _ifstats.description
       	 else
             if prefs.is_interface_name_only == false then
-      	      descr = descr .. " (".. _ifstats.description ..")" -- Add description
+	       -- Removed description that can be long with ZMQ
+      	      descr = descr -- .. " (".. _ifstats.description ..")" -- Add description
             end
       	 end
       end
