@@ -92,7 +92,6 @@ class Flow : public GenericHashEntry {
 #endif
   ndpi_protocol ndpiDetectedProtocol;
   custom_app_t custom_app;
-  void *cli_id, *srv_id;
   json_object *json_info;
   ndpi_serializer *tlv_info;
   char *host_server_name, *bt_hash;
@@ -477,8 +476,6 @@ class Flow : public GenericHashEntry {
     return !get_cli_ip_addr()->isLocalHost(&network_id) && get_srv_ip_addr()->isLocalHost(&network_id);
   };
   inline bool isUnicast()                const { return (cli_ip_addr && srv_ip_addr && !cli_ip_addr->isBroadMulticastAddress() && !srv_ip_addr->isBroadMulticastAddress()); };
-  inline void* get_cli_id()              const { return(cli_id);                          };
-  inline void* get_srv_id()              const { return(srv_id);                          };
   inline u_int32_t get_cli_ipv4()        const { return(cli_host->get_ip()->get_ipv4());  };
   inline u_int32_t get_srv_ipv4()        const { return(srv_host->get_ip()->get_ipv4());  };
   inline ndpi_protocol get_detected_protocol() const { return(isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol);          };
