@@ -69,6 +69,7 @@ local lang = {
   ["cli_port"] = "Cli Port",
   ["click_to_expand"] = "Click to expand",
   ["client"] = "Client",
+  ["client_alpn"] = "Client ALPN",
   ["client_and_server"] = "Client and Server",
   ["client_requested_server_name"] = "Requested Server Name",
   ["client_tls_supported_versions"] = "Client Supported TLS Protocols",

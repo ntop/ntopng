@@ -412,7 +412,7 @@ local operators_by_filter = {
    role = {'eq'},
    role_cli_srv = {'eq'},
    text = {'eq','neq'},
-   hostname = {'eq','neq'},
+   hostname = {'eq','neq', 'in', 'nin'},
 }
 
 local defined_tags = {
