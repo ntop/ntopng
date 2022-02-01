@@ -1610,7 +1610,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       trusted_payload_len = trusted_l4_packet_len - sizeof(struct ndpi_udphdr);
 
 #ifdef IMPLEMENT_SMART_FRAGMENTS
-      fragment_extra_overhead = ntohs(udph->len) - l4_len + sizeof(struct ndpi_iphdr);
+      if(is_fragment)
+	fragment_extra_overhead = ntohs(udph->len) - l4_len + sizeof(struct ndpi_iphdr);
 #endif
     } else {
       /* Packet too short: this is a faked packet */
