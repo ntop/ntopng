@@ -45,7 +45,7 @@ InfluxDBTimeseriesExporter::InfluxDBTimeseriesExporter(NetworkInterface *_if) : 
   fp = NULL;
 
   /* All interfaces write files into the same directory (as with ClickHouse) */
-  snprintf(fbase, sizeof(fbase), "%s/ts_export/", ntop->get_working_dir());
+  snprintf(fbase, sizeof(fbase), "%s/tmp/influxdb/", ntop->get_working_dir());
   ntop->fixPath(fbase);
 
   if(!Utils::mkdir_tree(fbase)) {

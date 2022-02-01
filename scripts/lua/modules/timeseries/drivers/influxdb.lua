@@ -910,7 +910,7 @@ end
 -- This is a function called by the periodic script influx.lua
 
 function driver:export()
-   local base_dir = dirs.workingdir .. "/ts_export"
+   local base_dir = dirs.workingdir .. "/tmp/influxdb"
    local files = ntop.readdir(base_dir)
    local num_files = 0
    local num_files_threshold = 60 -- No more than 60 imports per run
