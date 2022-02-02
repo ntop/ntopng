@@ -311,8 +311,10 @@ int main(int argc, char *argv[])
     exit(0);
   }
 
+#ifndef WIN32
   ntop->initPing();
-  
+#endif
+
   if(prefs->daemonize_ntopng())
     ntop->daemonize();
     
