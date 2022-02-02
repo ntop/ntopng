@@ -849,7 +849,7 @@ end
 function plugins_utils.getPluginTemplatesDir(plugin_name)
   init_runtime_paths()
 
-  local path = RUNTIME_PATHS.templates .. "/" .. plugin_name
+  local path = dirs.installdir .. "/httpdocs/templates/pages/notifications/" .. (plugin_name or '')
 
   return os_utils.fixPath(path)
 end
@@ -912,10 +912,11 @@ function plugins_utils.getLoadedAlertEndpoints()
 
    local rv = {}
 
-   lua_path_utils.package_path_prepend(RUNTIME_PATHS.alert_endpoints)
-   for fname in pairs(ntop.readdir(RUNTIME_PATHS.alert_endpoints) or {}) do
+   local base_path = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/notifications/endpoints/")
+   lua_path_utils.package_path_prepend(base_path)
+   for fname in pairs(ntop.readdir(base_path)) do
       if fname:ends(".lua") then
-	 local full_path = os_utils.fixPath(RUNTIME_PATHS.alert_endpoints .. "/" .. fname)
+	 local full_path = os_utils.fixPath(base_path .. "/" .. fname)
 	 local key = string.sub(fname, 1, string.len(fname) - 4)
 
 	 local endpoint = require(key)
@@ -928,6 +929,18 @@ function plugins_utils.getLoadedAlertEndpoints()
 	    end
 	 else
 	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load alert endpoint '%s'", full_path))
+	 end
+      end
+   end
+
+   if ntop.isPro() then
+      -- TODO:
+
+      if ntop.isEnterpriseM() then
+      	 -- TODO:
+
+	 if ntop.isEnterpriseL() then
+	 -- TODO:
 	 end
       end
    end
@@ -980,7 +993,7 @@ function plugins_utils.renderTemplate(plugin_name, template_file, context)
   init_runtime_paths()
 
   -- Locate the template file under the plugin directory
-  local full_path = os_utils.fixPath(plugins_utils.getPluginTemplatesDir(plugin_name) .. "/" .. template_file)
+  local full_path = os_utils.fixPath(plugins_utils.getPluginTemplatesDir() .. "/" .. template_file)
 
   -- If no template is found...
   if not ntop.exists(full_path) then
