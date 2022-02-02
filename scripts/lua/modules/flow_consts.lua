@@ -479,10 +479,12 @@ flow_consts.flow_fields_description = {
    ["TLS_CERT_NOT_BEFORE"] = i18n("flow_fields_description.tls_cert_not_before"),
    ["TLS_CERT_AFTER"] = i18n("flow_fields_description.tls_cert_after"),
    ["TLS_CERT_SHA1"] = i18n("flow_fields_description.tls_cert_sha1"),
-   ["TLS_CERT_DN"] = i18n("flow_fields_description.tls_cert_dn"),
-   ["TLS_CERT_SN"] = i18n("flow_fields_description.tls_cert_sn"),
-   ["TLS_CERT_SUBJECT"] = i18n("flow_fields_description.tls_cert_subject"),
-
+   ["TLS_CERT_ISSUER_DN"] = i18n("flow_fields_description.tls_cert_dn"),
+   ["TLS_CERT_SUBJECT_SN"] = i18n("flow_fields_description.tls_cert_sn"),
+   ["TLS_REQUESTED_SNI"] = i18n("flow_fields_description.tls_requested_sni"),
+   ["TLS_SERVER_NAMES"] = i18n("flow_fields_description.tls_server_names"),
+   ["TLS_ALPN"] = i18n("flow_fields_description.client_alpn"),
+   
    -- File Info
    ["FILE_NAME"] = i18n("flow_fields_description.file_name"),
    ["FILE_SIZE"] = i18n("flow_fields_description.file_size"),
