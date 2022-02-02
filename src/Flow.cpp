@@ -4032,7 +4032,7 @@ void Flow::updateTLS(ParsedFlow *zflow) {
   if(zflow->tls_server_name) {
     if(isTLS()) {
       if(!protos.tls.client_requested_server_name)
-	      protos.tls.client_requested_server_name = zflow->tls_server_name;
+	protos.tls.client_requested_server_name = zflow->tls_server_name;
       else
       	/* Already set, can be freed */
       	free(zflow->tls_server_name);
