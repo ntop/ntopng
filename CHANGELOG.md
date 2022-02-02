@@ -1,5 +1,129 @@
 # Changelog
 
+#### ntopng 5.2 (February 2022)
+
+## Breakthroughs
+* New ClickHouse support for storing historical data, replacing nIndex support (data migration available)
+* Advanced Historical Flow Explorer, with the ability to define custom queries using JSON-based configurations
+* New Historical Data Analysis page (including Score, Applications, Alerts, AS analysis), with the ability to define custom reports with charts
+* Enhanced drill down from charts and historical flow data and alerts to PCAP data
+* nEdge support for Ubuntu 20
+* Enhanced support for Observation Points
+
+## Improvements
+* Improve CPU utilization and memory footprint
+* Improve historical data retention management for flows and timeseries
+* Improve periodic activities handling, with support for strict and relaxed (delayed) tasks
+* Improve filtering and analysis of the historical flows
+* Improve alert explorer and filtering
+* Improve Enterprise dashboard look and feel
+* Improve the speedtest support and servers selection
+* Improve support for ping and continuous ping (ICMP) for active monitoring
+* Improve flow-direction handling
+* Improve localization (including DE and IT translations)
+* Improve IPS policies management
+  * Add IPS activities logging (e.g. block, unblock)
+* Improve SNMP support
+  * Optimize polling of SNMP devices
+  * Improve SNMP v3 support
+  * Add more information including version
+  * Stateful SNMP alert to detect too many MACs on non-trunk
+  * Perform fat MIBs poll on average every 15 minutes
+  * Add preference to disable polling of SNMP fat MIBs
+* Add more information to the historical flow data, including Latency, AS, Observation Points, SNMP interface, Host Pools
+* Add detailed view of historical flows and alerts
+* Add support for nProbe field L7_INFO
+* Add ICMP flood alert
+* Add Checks exclusion settings for subnets and for hosts and domains globally
+* Add CDP support
+* Add more regression tests
+* Add support for obsolete client SSH version
+* Add support for ERSPAN version 2 (type III)
+* Add support for all the new nDPI Flow Risks added in nDPI 4.2
+* Add extra info to service and periodicity map hosts
+* Add Top Sites check
+* REST API
+  * Getter for the bridge MIB
+  * Getter for LLDP adjacencies
+  * Check for BPF filters
+  * Score charts timeseries and analysis
+
+## Changes
+* Encapsulated traffic is accounted for the lenght of the encapsulated packet and not of the original packet
+* Remove nIndex support, including the flow explorer
+* Remove MySQL historical flow explorer (export only)
+* Hide LDAP password from logs
+
+## Fixes
+* Fix a few memory leaks, double free, buffer overflow and invalid memory access
+* Fix SQLite initialization
+* Fix support for fragmented packets
+* Fix IP validation in modals
+* Fix netplan configuration manager
+* Fix blog notifications
+* Fix time range picker to support all browsers
+* Fix binary application transfer name in alerts
+* Fix glitches in chart drag operations
+* Fix pools edit/remove
+* Fix InfluxDB timeseries export
+* Fix ELK memory leak
+* Fix TLS version for obsolete TLS alerts when collecting flows
+* Fix fields conversion in timeseries charts filters
+* Fix some invalid nProbe field mapping
+* Fix hosts Geomap
+* Fix slow shutdown termination
+* Fix wrong Call-ID 0 with RTP streams with no SIP stream associated
+* Fix ping support for FreeBSD
+* Fix active monitoring interface list
+* Fix host names not always shown
+* Fix host pools stats
+* Fix UTF8 encoding issues in localization tools
+* Fix time/timezone in forwarded syslog messages
+* Fix unknown process alert
+* Fix nil DOM javascript error
+* Fix country not always shown in flow alerts
+* Fix non-initialized traffic profiles
+* Fix traffic profiles not working over ZMQ
+* Fix syslog collection
+* Fix async SNMP calls blocking the execution
+* Fix CPU stats timeseries
+* Fix InfluxDB attempts to alwa re-create retention policies
+* Fix REST API ts.lua returning 24h data
+* Fix processing of DNS packets under certain conditions
+* Fix invalid space in SNMP Hostnames
+* Fix REST API incompat. (/get/alert/severity/counters.lua, /get/alert/type/counters.lua)
+* Fix map layout not saved correctly
+* Fix LLDP topology for Juniper routers
+* Fix not authorized error when editing SNMP devices
+* Fix double 95perc, splitted avg and 95perc in sent/rcvd in charts
+* Fix inconsistent local/remote timeseries
+* Fix Risks generation in IPS policy configuration
+* Fix deletion of sub-interface
+* Fix deadline not honored when monitoring SNMP devices
+* Fix traffic profiles on L7 protocols
+* Fix TCP connection refused check
+* Fix failures when the DB is not reacheable
+* Fix segfault with View interfaces
+* Fix hosts wrongly detected as Local
+* Fix missing throughputs in countries
+
+## Misc
+* Enforces proxy exclusions with env var `no_proxy`
+* Move Lua engine to 5.4
+* Major code review and cleanup
+
+## nEdge
+* Add support for  Ubuntu 20
+* Add ability to logout when using the Captive Portal
+* Add per egress interface stats and timeseries
+* Add active DHCP leases in UI and REST API
+* Add daily/weekly/monthly quotas
+* Add service and periodicity maps and alerts
+* Fix Captive Portal not working due to invalid allowed interface
+* Fix addition of static DHCP leases
+* Fix factory reset
+* Fix reboot button
+
 #### ntopng 5.0 (August 2021)
 
 ## Breakthroughs
