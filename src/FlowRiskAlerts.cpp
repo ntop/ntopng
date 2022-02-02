@@ -23,7 +23,7 @@
 
 /* **************************************************** */
 
-const FlowAlertTypeExtended FlowRiskAlerts::risk_enum_to_alert_type[NDPI_MAX_RISK] = {
+static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] = {
   [NDPI_NO_RISK] = {
     .alert_type = { flow_alert_normal, alert_category_other },
     .alert_lua_name = "ndpi_no_risk"
@@ -244,3 +244,19 @@ bool FlowRiskAlerts::lua(lua_State* vm) {
 }
 
 /* **************************************************** */
+
+FlowAlertType FlowRiskAlerts::getFlowRiskAlertType(ndpi_risk_enum risk) {
+  if(isRiskUnhanlded(risk))
+    return risk_enum_to_alert_type[NDPI_NO_RISK].alert_type;
+  else
+    return risk_enum_to_alert_type[risk].alert_type;
+}
+
+/* **************************************************** */
+
+const char * const FlowRiskAlerts::getCheckName(ndpi_risk_enum risk) {
+  if(isRiskUnhanlded(risk))
+    return risk_enum_to_alert_type[NDPI_NO_RISK].alert_lua_name;
+  else
+    return risk_enum_to_alert_type[risk].alert_lua_name;
+}
