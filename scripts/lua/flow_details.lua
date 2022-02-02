@@ -1231,7 +1231,6 @@ else
 	 s = flow["host_server_name"]
       end
 
-tprint(flow)
       if(not isEmptyString(flow["protos.http.last_user_agent"])) then
         print("<tr><th>"..i18n("flow_details.user_agent").."</th><td colspan=2>"..flow["protos.http.last_user_agent"].."</td></tr>")
       end
