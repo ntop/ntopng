@@ -633,8 +633,9 @@ local function get_flow_link(fmt, add_hyperlink)
 
    local value = fmt['flow']['cli_ip']['value']
    local tag = 'cli_ip'
-   if fmt['flow']['cli_ip']['label'] ~= fmt['flow']['cli_ip']['value'] then
-      value = fmt['flow']['cli_ip']['label']
+
+   if fmt['flow']['cli_ip']['label_long'] ~= fmt['flow']['cli_ip']['value'] then
+      value = fmt['flow']['cli_ip']['label_long']
       tag = 'cli_name'
    end
    label = label .. get_label_link(fmt['flow']['cli_ip']['label_long'], tag, value, add_hyperlink)
@@ -647,8 +648,8 @@ local function get_flow_link(fmt, add_hyperlink)
 
    local value = fmt['flow']['srv_ip']['value']
    local tag = 'srv_ip'
-   if fmt['flow']['srv_ip']['label'] ~= fmt['flow']['srv_ip']['value'] then
-      value = fmt['flow']['srv_ip']['label']
+   if fmt['flow']['srv_ip']['label_long'] ~= fmt['flow']['srv_ip']['value'] then
+      value = fmt['flow']['srv_ip']['label_long']
       tag = 'srv_name'
    end
    label = label .. get_label_link(fmt['flow']['srv_ip']['label_long'], tag, value, add_hyperlink)
