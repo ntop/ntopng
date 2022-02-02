@@ -1217,7 +1217,9 @@ else
       local rowspan = 2
       if(not isEmptyString(flow["protos.http.last_method"])) then rowspan = rowspan + 1 end
       if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then rowspan = rowspan + 1 end
-
+      if(not isEmptyString(flow["protos.http.last_user_agent"])) then rowspan = rowspan + 1 end
+      if(not isEmptyString(flow["protos.http.last_return_code"])) then rowspan = rowspan + 1 end
+      
       print("<tr><th width=30% rowspan="..rowspan..">"..i18n("http").."</th>")
       if(not isEmptyString(flow["protos.http.last_method"])) then
         print("<th>"..i18n("flow_details.http_method").."</th><td>"..(flow["protos.http.last_method"] or '').."</td>")
@@ -1225,20 +1227,24 @@ else
         print("<tr>")
       end
 
-      print("<th>"..i18n("flow_details.server_name").."</th><td colspan=2>")
+      -- Adding server name column
+      print("<tr><th>"..i18n("flow_details.server_name").."</th><td colspan=2>")
       local s = flowinfo2hostname(flow,"srv")
       if(not isEmptyString(flow["host_server_name"])) then
-	 s = flow["host_server_name"]
+	      s = flow["host_server_name"]
       end
+      print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(s).."\">"..page_utils.safe_html(s).." <i class=\"fas fa-external-link-alt\"></i></A>")
+      
+      if(flow["category"] ~= nil) then 
+         print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) 
+      end
+      -- Adding + with custom host rules next to the server name
+      printAddCustomHostRule(s)
+      print("</td></tr>\n")
 
       if(not isEmptyString(flow["protos.http.last_user_agent"])) then
         print("<tr><th>"..i18n("flow_details.user_agent").."</th><td colspan=2>"..flow["protos.http.last_user_agent"].."</td></tr>")
       end
-
-      print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(s).."\">"..page_utils.safe_html(s).." <i class=\"fas fa-external-link-alt\"></i></A>")
-      if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
-      printAddCustomHostRule(s)
-      print("</td></tr>\n")
 
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
       print("<A class='ntopng-external-link' href=\"")
