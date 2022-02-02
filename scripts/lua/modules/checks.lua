@@ -368,7 +368,7 @@ function checks.getSubdirectoryPath(script_type, subdir)
    local prefix = plugins_utils.getRuntimePath() .. "/callbacks"
    local path
 
-   if subdir == "host" or subdir == "flow" then
+   if subdir == "host" or subdir == "flow" or subdir == "interface" then
       -- host and flow have their callbacks defined under modules/ and implemented in C++
       path = string.format("%s/scripts/lua/modules/check_definitions/%s", dirs.installdir, subdir)
    elseif not isEmptyString(subdir) and subdir ~= "." then
@@ -381,7 +381,7 @@ function checks.getSubdirectoryPath(script_type, subdir)
 
    -- Add pro check_definitions if necessary
    if ntop.isPro() then
-      if subdir == "flow" or subdir == "host" then
+      if subdir == "flow" or subdir == "host" or subdir == "interface" then
 	 local pro_path = string.format("%s/pro/scripts/lua/modules/check_definitions/%s", dirs.installdir, subdir)
 	 res[#res + 1] = os_utils.fixPath(pro_path)
       end
@@ -707,7 +707,7 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
       return(nil)
    end
 
-   if(subdir ~= "flow" and subdir ~= "host" and table.empty(check.hooks)) then
+   if(subdir ~= "flow" and subdir ~= "host" and subdir ~= "interface" and table.empty(check.hooks)) then
       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("No 'hooks' defined in user script '%s', skipping", mod_fname))
       return(nil)
    end
@@ -796,6 +796,9 @@ local function get_loadable_checks(script_type, subdir)
 		  plugin = ntop.getHostCheckInfo(mod_fname)
 	       elseif subdir == "flow" then
 		  plugin = ntop.getFlowCheckInfo(mod_fname)
+	       elseif subdir == "interface" then
+	          -- TODO: determine edition from the path
+	          plugin = {edition = "community", key = fname }
 	       else
 		  traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Skipping unknown user script '%s'", mod_fname))
 	       end
