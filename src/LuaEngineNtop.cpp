@@ -894,16 +894,11 @@ static int ntop_msleep(lua_State* vm) {
 
   if(ms_duration > max_duration) ms_duration = max_duration;
 
-  if(ms_duration >= 1000) {
-    ts.tv_sec = ms_duration / 1000ul;
-    ms_duration -= 1000*ts.tv_sec;
-  } else
-    ts.tv_sec = 0;
-
-  ts.tv_nsec = ms_duration * 1000;
-
-  if(nanosleep(&ts, NULL) != 0)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "nanosleep error: %s", strerror(errno));
+#ifdef WIN32
+  win_usleep(ms_duration * 1000);
+#else
+  usleep(ms_duration * 1000);
+#endif
 
   lua_pushnil(vm);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
