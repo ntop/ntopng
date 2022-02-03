@@ -15,8 +15,6 @@ local script
 -- #################################################################
 
 local function check_allowed_mac(params)
-   -- Holds a per-interface timestamp
-   local prev_first_seen_key = string.format("ntopng.cache.ifid_%d.unexpected_new_device.prev_first_seen", interface.getId())
    local seen_devices_hash = getFirstSeenDevicesHashKey(interface.getId())
    -- Saving the mac address list into a local variable and swapping keys with value due to performance issues
    local mac_list = {}
@@ -29,66 +27,46 @@ local function check_allowed_mac(params)
       mac_list[mac:upper()] = 1
    end
 
-   -- Keep the current time
-   local cur_first_seen = os.time()
+   local macs_stats = interface.getMacsInfo(nil --[[ sortColumn --]], nil --[[ perPage --]], nil --[[ to_skip --]],
+                     nil --[[ sOrder --]], nil --[[ source_macs_only --]], nil --[[ manufacturer --]],
+                     nil, nil --[[ device_type --]], "")
 
-   -- Read the previous time, that is, the time of the previous script execution
-   local prev_first_seen = tonumber(ntop.getCache(prev_first_seen_key))
-   
-   if prev_first_seen then
-      -- If here, this is not the first run
-      local macs_stats = interface.getMacsInfo(nil --[[ sortColumn --]], nil --[[ perPage --]], nil --[[ to_skip --]],
-					       nil --[[ sOrder --]], nil --[[ source_macs_only --]], nil --[[ manufacturer --]],
-					       nil, nil --[[ device_type --]], "", prev_first_seen)
+   for _, mac in pairs(macs_stats["macs"] or {}) do
+      local addr = mac["mac"]:upper()
 
-      -- tprint("processing interface: ".. interface.getId().." prev_first_seen: "..formatEpoch(prev_first_seen).." cur_first_seen: "..formatEpoch(cur_first_seen))
-
-      for _, mac in pairs(macs_stats["macs"] or {}) do
-         local addr = mac["mac"]:upper()
-         -- tprint("processing: ".. addr.. " first_seen: "..formatEpoch(mac["seen.first"]).. " prev_first_seen: "..formatEpoch(prev_first_seen).." cur_first_seen: "..formatEpoch(cur_first_seen))
-
-         if mac["seen.first"] >= cur_first_seen then
-            -- Will be processed during the next execution (this avoids processing items twice)
-            goto continue
-         end
-
-         if mac_list[addr] then
-            -- MAC belongs to the whitelist, no alert
-            goto continue
-         end
-
-         if seen_devices[addr] then
-            -- MAC already seen, no alert
-            goto continue
-         end
-
-         if mac["location"] == "lan" and not mac["special_mac"] then
-            -- This is a LAN MAC address, let's trigger an alert   
-            -- Add this mac to the already seen devices
-            ntop.setHashCache(seen_devices_hash, addr, 1)
-            
-            local device = getDeviceName(addr)
-
-            -- Check if the new mac address is expected or not
-            local alert = alert_consts.alert_types.alert_unexpected_new_device.new(
-               device,
-               addr
-            )
-
-            alert:set_score_warning()
-            alert:set_subtype(device)
-            alert:set_device_type(mac["devtype"])
-            alert:set_device_name(device)
-
-            alert:store(alerts_api.macEntity(addr))
-         end
-
-      ::continue::
+      if mac_list[addr] then
+         -- MAC belongs to the whitelist, no alert
+         goto continue
       end
-   end
 
-   -- Store the current time so that it will be read again during the next execution
-   ntop.setCache(prev_first_seen_key, tostring(cur_first_seen))
+      if seen_devices[addr] then
+         -- MAC already seen, no alert
+         goto continue
+      end
+
+      if mac["location"] == "lan" and not mac["special_mac"] then
+         -- This is a LAN MAC address, let's trigger an alert   
+         -- Add this mac to the already seen devices
+         ntop.setHashCache(seen_devices_hash, addr, 1)
+         
+         local device = getDeviceName(addr)
+
+         -- Check if the new mac address is expected or not
+         local alert = alert_consts.alert_types.alert_unexpected_new_device.new(
+            device,
+            addr
+         )
+
+         alert:set_score_warning()
+         alert:set_subtype(device)
+         alert:set_device_type(mac["devtype"])
+         alert:set_device_name(device)
+
+         alert:store(alerts_api.macEntity(addr))
+      end
+
+   ::continue::
+   end
 end
 
 -- #################################################################
