@@ -76,7 +76,8 @@ local flow_alert_keys = {
    flow_alert_broadcast_non_udp_traffic            = 67,
    flow_alert_ndpi_possible_exploit                = 68,
    flow_alert_ndpi_tls_certificate_about_to_expire = 69,
-   
+   flow_alert_ndpi_punicody_idn                    = 70,
+  
    -- NOTE: for flow alerts not not go beyond the size of Bitmap alert_map inside Flow.h (currently 128)
 }
 

@@ -193,6 +193,10 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
     { flow_alert_ndpi_tls_certificate_about_to_expire, alert_category_security },
      "ndpi_tls_certificate_about_to_expire"
   },
+  /* NDPI_PUNYCODE_IDN */ {
+    { flow_alert_ndpi_punicody_idn, alert_category_security },
+     "flow_alert_ndpi_punicody_idn"
+  },
 };
 
 /* **************************************************** */
