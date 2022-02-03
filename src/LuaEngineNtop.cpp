@@ -885,7 +885,6 @@ static int ntop_getservbyport(lua_State* vm) {
 
 static int ntop_msleep(lua_State* vm) {
   u_int ms_duration, max_duration = 60000 /* 1 min */;
-  struct timespec ts;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
