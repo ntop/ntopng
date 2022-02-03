@@ -27,9 +27,17 @@
 
 ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserInterface(_endpoint) {
   char *tmp, *e, *t;
-  const char *topics[] = { "flow", "event", "counter",
-    "template", "option", "hello",
-    "listening-ports", NULL };
+  const char *topics[] =
+    {
+     "flow",
+     "event",
+     "counter",
+     "template",
+     "option",
+     "hello",
+     "listening-ports",
+     NULL
+    };
   
   num_subscribers = 0;
   server_secret_key[0] = '\0';
@@ -266,7 +274,9 @@ void ZMQCollectorInterface::collect_flows() {
     while(idle()) {
       purgeIdle(time(NULL));
       sleep(1);
+      
       if(ntop->getGlobals()->isShutdown()) {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow collection is over: ntop is shutting down");
 	free(payload);
 	return;
       }
@@ -283,10 +293,11 @@ void ZMQCollectorInterface::collect_flows() {
 
       if((rc < 0) || (!isRunning())) {
 	free(payload);
-	return;
+	
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow collection is over: ntop is shutting down");
       }
       
-      if(rc == 0 || now >= next_purge_idle || zmq_max_num_polls_before_purge == 0) {
+      if((rc == 0) || (now >= next_purge_idle) || (zmq_max_num_polls_before_purge == 0)) {
 	purgeIdle(now);
 	next_purge_idle = now + FLOW_PURGE_FREQUENCY;
 	zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
