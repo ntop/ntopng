@@ -1723,7 +1723,11 @@ void Host::refreshDisabledAlerts() {
 bool Host::isHostAlertDisabled(HostAlertType alert_type) {
   refreshDisabledAlerts();
   
+#ifdef NTOPNG_PRO
   return(alert_exclusions.isSetHostExclusionBit(alert_type.id));
+#else
+  return false
+#endif
 }
 
 /* *************************************** */
@@ -1731,7 +1735,11 @@ bool Host::isHostAlertDisabled(HostAlertType alert_type) {
 bool Host::isFlowAlertDisabled(FlowAlertType alert_type) {
   refreshDisabledAlerts();
   
+#ifdef NTOPNG_PRO
   return(alert_exclusions.isSetFlowExclusionBit(alert_type.id));
+#else
+  return false
+#endif
 }
 
 /* *************************************** */
