@@ -1726,7 +1726,7 @@ bool Host::isHostAlertDisabled(HostAlertType alert_type) {
 #ifdef NTOPNG_PRO
   return(alert_exclusions.isSetHostExclusionBit(alert_type.id));
 #else
-  return false
+  return false;
 #endif
 }
 
@@ -1738,7 +1738,7 @@ bool Host::isFlowAlertDisabled(FlowAlertType alert_type) {
 #ifdef NTOPNG_PRO
   return(alert_exclusions.isSetFlowExclusionBit(alert_type.id));
 #else
-  return false
+  return false;
 #endif
 }
 
