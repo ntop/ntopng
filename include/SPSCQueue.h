@@ -46,7 +46,7 @@ template <typename T> class SPSCQueue {
    * Constructor
    * @param size The queue size (rounded up to the next power of 2)
    */
-  SPSCQueue(u_int32_t size, const char * const _name) {
+  SPSCQueue(u_int32_t size, const char * _name) {
     queue_size = Utils::pow2(size);
     queue.resize(queue_size);
     tail = shadow_tail = queue_size-1;

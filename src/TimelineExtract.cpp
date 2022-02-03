@@ -39,7 +39,7 @@ TimelineExtract::~TimelineExtract() {
 /* ********************************************* */
 
 #ifdef HAVE_PF_RING
-pfring *TimelineExtract::openTimeline(const char * const timeline_path, time_t from, time_t to, const char * const bpf_filter) {
+pfring *TimelineExtract::openTimeline(const char * timeline_path, time_t from, time_t to, const char * bpf_filter) {
   char from_buff[24], to_buff[24];
   pfring *handle = NULL;
   char *filter; 
@@ -105,7 +105,7 @@ error:
 
 /* ********************************************* */
 
-pfring *TimelineExtract::openTimelineFromInterface(NetworkInterface *iface, time_t from, time_t to, const char * const bpf_filter) {
+pfring *TimelineExtract::openTimelineFromInterface(NetworkInterface *iface, time_t from, time_t to, const char * bpf_filter) {
   char timeline_path[MAX_PATH];
 
   snprintf(timeline_path, sizeof(timeline_path), "timeline:%s/%d/timeline", ntop->getPrefs()->get_pcap_dir(), iface->get_id());
@@ -119,7 +119,7 @@ pfring *TimelineExtract::openTimelineFromInterface(NetworkInterface *iface, time
 
 bool TimelineExtract::extractToDisk(u_int32_t id, NetworkInterface *iface,
 				    time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes,
-				    const char * const timeline_path) {
+				    const char * timeline_path) {
   bool completed = false;
 #ifdef HAVE_PF_RING
   char out_path[MAX_PATH];
@@ -186,7 +186,7 @@ bool TimelineExtract::extractToDisk(u_int32_t id, NetworkInterface *iface,
 
 /* ********************************************* */
 
-bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, const char * const timeline_path) {
+bool TimelineExtract::extractLive(struct mg_connection *conn, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, const char * timeline_path) {
   bool completed = false;
 #ifdef HAVE_PF_RING
   pfring  *handle;
@@ -268,7 +268,7 @@ static void *extractionThread(void *ptr) {
 
 /* ********************************************* */
 
-void TimelineExtract::runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes, const char * const timeline_path) {
+void TimelineExtract::runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes, const char * timeline_path) {
 
   running = true;
 

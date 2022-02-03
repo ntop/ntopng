@@ -1332,7 +1332,7 @@ no_restriction:
 
 /* ******************************************* */
 
-bool Ntop::checkUserInterfaces(const char * const user) const {
+bool Ntop::checkUserInterfaces(const char * user) const {
   char ifbuf[MAX_INTERFACE_NAME_LEN];
 
   /* Check if the user has an allowed interface and that interface has not yet been
@@ -1347,7 +1347,7 @@ bool Ntop::checkUserInterfaces(const char * const user) const {
 
 /* ******************************************* */
 
-bool Ntop::getUserPasswordHashLocal(const char * const user, char *password_hash) const {
+bool Ntop::getUserPasswordHashLocal(const char * user, char *password_hash) const {
   char key[64], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
@@ -1362,7 +1362,7 @@ bool Ntop::getUserPasswordHashLocal(const char * const user, char *password_hash
 
 /* ******************************************* */
 
-void Ntop::getUserGroupLocal(const char * const user, char *group) const {
+void Ntop::getUserGroupLocal(const char * user, char *group) const {
   char key[64], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, user);
@@ -1384,7 +1384,7 @@ bool Ntop::isLocalAuthEnabled() const {
 
 /* ******************************************* */
 
-bool Ntop::checkUserPasswordLocal(const char * const user, const char * const password, char *group) const {
+bool Ntop::checkUserPasswordLocal(const char * user, const char * password, char *group) const {
   char val[64], password_hash[33];
 
   if(!isLocalAuthEnabled())
@@ -1417,7 +1417,7 @@ valid_local_user:
 /* ******************************************* */
 
 // Return 1 if username/password is allowed, 0 otherwise.
-bool Ntop::checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const {
+bool Ntop::checkUserPassword(const char * user, const char * password, char *group, bool *localuser) const {
   char val[64];
   *localuser = false;
 
@@ -1763,7 +1763,7 @@ bool Ntop::isBlacklistedLogin(struct mg_connection *conn) const {
 /* ******************************************* */
 
 bool Ntop::checkGuiUserPassword(struct mg_connection *conn,
-          const char * const user, const char * const password,
+          const char * user, const char * password,
           char *group, bool *localuser) const {
   char *remote_ip, ipbuf[64], key[128], val[16];
   int cur_attempts = 0;
@@ -1805,7 +1805,7 @@ bool Ntop::checkGuiUserPassword(struct mg_connection *conn,
 
 /* ******************************************* */
 
-bool Ntop::checkCaptiveUserPassword(const char * const user, const char * const password, char *group) const {
+bool Ntop::checkCaptiveUserPassword(const char * user, const char * password, char *group) const {
   bool localuser = false;
   bool rv;
 
@@ -1861,7 +1861,7 @@ bool Ntop::resetUserPassword(char *username, char *old_password, char *new_passw
 
 /* ******************************************* */
 
-bool Ntop::changeUserFullName(const char * const username, const char * const full_name) const {
+bool Ntop::changeUserFullName(const char * username, const char * full_name) const {
   char key[64];
 
   if (username == NULL || username[0] == '\0' || full_name == NULL ||
@@ -1938,7 +1938,7 @@ bool Ntop::changeAllowedIfname(char *username, char *allowed_ifname) const {
 
 /* ******************************************* */
 
-bool Ntop::changeUserHostPool(const char * const username, const char * const host_pool_id) const {
+bool Ntop::changeUserHostPool(const char * username, const char * host_pool_id) const {
   if (username == NULL || username[0] == '\0')
     return false;
 
@@ -1960,7 +1960,7 @@ bool Ntop::changeUserHostPool(const char * const username, const char * const ho
 
 /* ******************************************* */
 
-bool Ntop::changeUserLanguage(const char * const username, const char * const language) const {
+bool Ntop::changeUserLanguage(const char * username, const char * language) const {
   if (username == NULL || username[0] == '\0')
     return false;
 
@@ -1981,7 +1981,7 @@ bool Ntop::changeUserLanguage(const char * const username, const char * const la
 
 /* ******************************************* */
 
-bool Ntop::changeUserPermission(const char * const username, bool allow_pcap_download) const {
+bool Ntop::changeUserPermission(const char * username, bool allow_pcap_download) const {
   char key[64];
 
   if (username == NULL || username[0] == '\0')
@@ -2003,7 +2003,7 @@ bool Ntop::changeUserPermission(const char * const username, bool allow_pcap_dow
 
 /* ******************************************* */
 
-bool Ntop::getUserPermission(const char * const username, bool *allow_pcap_download) const {
+bool Ntop::getUserPermission(const char * username, bool *allow_pcap_download) const {
   char key[64], val[2];
 
   *allow_pcap_download = false;
@@ -2051,7 +2051,7 @@ bool Ntop::assignUserId(u_int8_t *new_user_id) {
 
 /* ******************************************* */
 
-bool Ntop::existsUser(const char * const username) const {
+bool Ntop::existsUser(const char * username) const {
   char key[CONST_MAX_LEN_REDIS_KEY], val[2] /* Don't care about the content */;
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
@@ -2130,7 +2130,7 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
 
 /* ******************************************* */
 
-bool Ntop::addUserAPIToken(const char * const username, const char *api_token) {
+bool Ntop::addUserAPIToken(const char * username, const char *api_token) {
   char key[CONST_MAX_LEN_REDIS_KEY];
 
   snprintf(key, sizeof(key), CONST_STR_USER_API_TOKEN, username);
@@ -2141,7 +2141,7 @@ bool Ntop::addUserAPIToken(const char * const username, const char *api_token) {
 
 /* ******************************************* */
 
-bool Ntop::isCaptivePortalUser(const char * const username) {
+bool Ntop::isCaptivePortalUser(const char * username) {
   char key[64], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
@@ -2243,7 +2243,7 @@ bool Ntop::getUserHostPool(char *username, u_int16_t *host_pool_id) {
 
 /* ******************************************* */
 
-bool Ntop::getUserAllowedIfname(const char * const username, char *buf, size_t buflen) const {
+bool Ntop::getUserAllowedIfname(const char * username, char *buf, size_t buflen) const {
   char key[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username ? username : "");
@@ -2256,7 +2256,7 @@ bool Ntop::getUserAllowedIfname(const char * const username, char *buf, size_t b
 
 /* ******************************************* */
 
-bool Ntop::getUserAPIToken(const char * const username, char *buf, size_t buflen) const {
+bool Ntop::getUserAPIToken(const char * username, char *buf, size_t buflen) const {
   char key[CONST_MAX_LEN_REDIS_KEY];
 
   snprintf(key, sizeof(key), CONST_STR_USER_API_TOKEN, username);
@@ -2443,7 +2443,7 @@ NetworkInterface* Ntop::getInterfaceById(int if_id) {
 
 /* ******************************************* */
 
-bool Ntop::isExistingInterface(const char * const name) const {
+bool Ntop::isExistingInterface(const char * name) const {
   if(name == NULL) return(false);
 
   for(int i=0; i<num_defined_interfaces; i++) {
@@ -2500,7 +2500,7 @@ NetworkInterface* Ntop::getNetworkInterface(const char *name, lua_State* vm) {
 
 /* ******************************************* */
 
-int Ntop::getInterfaceIdByName(lua_State *vm, const char * const name) {
+int Ntop::getInterfaceIdByName(lua_State *vm, const char * name) {
   NetworkInterface * res = getNetworkInterface(name, vm);
 
   if(res)

@@ -42,7 +42,7 @@ class MacManufacturers {
 
   void init();
  public:
-  MacManufacturers(const char * const mac_file_home);
+  MacManufacturers(const char * mac_file_home);
   ~MacManufacturers();
 
   const char *getManufacturer(u_int8_t mac[]);

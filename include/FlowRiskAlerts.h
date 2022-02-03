@@ -41,7 +41,7 @@ class FlowRiskAlerts {
   }
   
   static FlowAlertType getFlowRiskAlertType(ndpi_risk_enum risk);  
-  static const char * const getCheckName(ndpi_risk_enum risk);
+  static const char * getCheckName(ndpi_risk_enum risk);
   static void checkUnhandledRisks();
   static bool lua(lua_State* vm);
 };

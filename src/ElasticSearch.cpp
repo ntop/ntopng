@@ -192,7 +192,7 @@ void ElasticSearch::indexESdata() {
 /* **************************************** */
 
 /* Send ntopng index template to Elastic Search */
-const char * const ElasticSearch::get_es_version() {
+const char * ElasticSearch::get_es_version() {
   if(!es_version_inited) { /* lazy... */
     u_int buf_len =
 #ifdef HAVE_CURL
@@ -258,7 +258,7 @@ const char * const ElasticSearch::get_es_version() {
 /* **************************************** */
 
 /* Send ntopng index template to Elastic Search */
-const char * const ElasticSearch::get_es_template() {
+const char * ElasticSearch::get_es_template() {
   const char *v = get_es_version();
   int vers = atoi(v ? v : "0");
 

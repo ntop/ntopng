@@ -43,7 +43,7 @@ void HostPoolStats::updateSeen(time_t _last_seen) {
 
 /* ***************************************** */
 
-void HostPoolStats::updateName(const char * const _pool_name) {
+void HostPoolStats::updateName(const char * _pool_name) {
   pool_name.assign(_pool_name ? _pool_name : "");
 }
 

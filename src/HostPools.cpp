@@ -602,7 +602,7 @@ u_int16_t HostPools::getPool(Host *h) {
 /* *************************************** */
 
 /* Returns a pool id, given a pool name. When no pool id is found, the default pool id is returned */
-u_int16_t HostPools::getPoolByName(const char * const pool_name) {
+u_int16_t HostPools::getPoolByName(const char * pool_name) {
   HostPoolStats *hps;
 
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {

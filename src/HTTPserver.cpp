@@ -161,8 +161,8 @@ static void generate_session_id(char *buf, const char *user, const char *group) 
 /* ****************************************** */
 
 // Create a new session generating a Session ID that can be used as Cookie
-static void create_session(const char * const user,
-			   const char * const group,
+static void create_session(const char * user,
+			   const char * group,
 			   bool localuser,
 			   char *session_id,
 			   u_int session_id_size,
@@ -190,10 +190,10 @@ static void create_session(const char * const user,
 
 // Create a new session and set the session Cookie
 static void set_session_cookie(const struct mg_connection * const conn,
-			       const char * const user,
-			       const char * const group,
+			       const char * user,
+			       const char * group,
 			       bool localuser,
-			       const char * const referer) {
+			       const char * referer) {
   char session_id[64], session_key[32];
   u_int session_duration;
 
@@ -308,7 +308,7 @@ static int checkInformativeCaptive(const struct mg_connection *conn,
 
 /* ****************************************** */
 
-static int isWhitelistedURI(const char * const uri) {
+static int isWhitelistedURI(const char * uri) {
   /* URL whitelist */
   if((!strcmp(uri,    LOGIN_URL))
      || (!strcmp(uri, AUTHORIZE_URL))
@@ -635,7 +635,7 @@ static char* make_referer(struct mg_connection *conn, char *buf, int bufsize) {
 // we came from, so that after the authorization we could redirect back.
 static void redirect_to_login(struct mg_connection *conn,
                               const struct mg_request_info *request_info,
-			      const char * const referer, const char * const reason) {
+			      const char * referer, const char * reason) {
   char session_id[NTOP_SESSION_ID_LENGTH], buf[128], session_key[32];
   char *referer_enc = NULL, *reason_enc = NULL;
 
@@ -1416,7 +1416,7 @@ void HTTPserver::parseACL(char * const acl, u_int acl_len) {
   char *net, *net_ctx, *slash, *sign, *acl_key;
   u_int32_t mask, bits, num = 0;
   struct in_addr ipaddr;
-  const char * const comma = ",";
+  const char * comma = ",";
 
   if(!acl || !acl_len)
     return;

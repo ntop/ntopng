@@ -121,7 +121,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void get_quota(u_int16_t protocol, u_int64_t *bytes_quota, u_int32_t *secs_quota, u_int32_t *schedule_bitmap, bool *is_category);
 #endif
   void lua_get_names(lua_State * const vm, char * const buf, ssize_t buf_size);
-  void luaStrTableEntryLocked(lua_State * const vm, const char * const entry_name, const char * const entry);
+  void luaStrTableEntryLocked(lua_State * const vm, const char * entry_name, const char * entry);
   char* printMask(char *str, u_int str_len) { return ip.printMask(str, str_len, isLocalHost()); };
   void freeHostNames();
   void resetHostNames();
@@ -445,14 +445,14 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void housekeep(time_t t); /* Virtual method, called in the datapath from GenericHash::purgeIdle */
   virtual void inlineSetOSDetail(const char *detail) { }
   virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
-  void offlineSetTLSName(const char * const n);
-  void offlineSetHTTPName(const char * const n);
-  void offlineSetNetbiosName(const char * const n);
-  void offlineSetSSDPLocation(const char * const url);
+  void offlineSetTLSName(const char * n);
+  void offlineSetHTTPName(const char * n);
+  void offlineSetNetbiosName(const char * n);
+  void offlineSetSSDPLocation(const char * url);
   void offlineSetMDNSInfo(char * const s);
-  void offlineSetMDNSName(const char * const n);
-  void offlineSetMDNSTXTName(const char * const n);
-  void setResolvedName(const char * const resolved_name);
+  void offlineSetMDNSName(const char * n);
+  void offlineSetMDNSTXTName(const char * n);
+  void setResolvedName(const char * resolved_name);
   inline Fingerprint* getJA3Fingerprint()   { return(&fingerprints.ja3);   }
   inline Fingerprint* getHASSHFingerprint() { return(&fingerprints.hassh); }
 

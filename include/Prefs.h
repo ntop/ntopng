@@ -173,7 +173,7 @@ class Prefs {
   void parseHTTPPort(char *arg);
   char *parseLocalNetworks(char *arg);
 
-  static inline void set_binding_address(char ** const dest, const char * const addr) {
+  static inline void set_binding_address(char ** const dest, const char * addr) {
     if(dest && addr && addr[0] != '\0') {
       if(*dest) free(*dest);
       *dest = strdup(addr);
@@ -314,8 +314,8 @@ class Prefs {
   /* Runtime database dump prefs. Allows the user to toggle flows dump from the UI at runtime. */
   void refreshDbDumpPrefs();
 
-  void bind_http_to_address(const char * const addr1, const char * const addr2);
-  void bind_https_to_address(const char * const addr1, const char * const addr2);
+  void bind_http_to_address(const char * addr1, const char * addr2);
+  void bind_https_to_address(const char * addr1, const char * addr2);
   void bind_http_to_loopback()  { bind_http_to_address((char*)CONST_LOOPBACK_ADDRESS, (char*)CONST_LOOPBACK_ADDRESS);  };
   inline void bind_https_to_loopback() { bind_https_to_address((char*)CONST_LOOPBACK_ADDRESS, (char*)CONST_LOOPBACK_ADDRESS); };
   inline void get_http_binding_addresses(const char** addr1, const char** addr2) { *addr1=http_binding_address1; *addr2=http_binding_address2; };
@@ -388,7 +388,7 @@ class Prefs {
   inline bool isInformativeCaptivePortalEnabled()     const { return(enable_informative_captive_portal && !enable_vlan_trunk_bridge); }
   inline bool isMacBasedCaptivePortal()               const { return(mac_based_captive_portal);  }
   inline bool enableActivitiesDebug()                 const { return(enable_activities_debug);   }
-  const char * const getCaptivePortalUrl();
+  const char * getCaptivePortalUrl();
   const TsDriver getTimeseriesDriver()                const { return(timeseries_driver);         }
 
   inline u_int8_t  getDefaultl7Policy()                  { return(default_l7policy);  }
@@ -430,7 +430,7 @@ class Prefs {
   inline bool      dontEmitHostAlerts()          { return(!emit_host_alerts);                           };
   inline bool      useClickHouse()               { return(use_clickhouse);                              };
   inline char*     getZMQPublishEventsURL()      { return(zmq_publish_events_url);                      };
-  void setIEC104AllowedTypeIDs(const char * const protos);
+  void setIEC104AllowedTypeIDs(const char * protos);
   void validate();
 };
 

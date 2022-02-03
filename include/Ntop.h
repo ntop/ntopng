@@ -136,9 +136,9 @@ class Ntop {
   void initAllowedProtocolPresets();
   void refreshPluginsDir();
 
-  bool getUserPasswordHashLocal(const char * const user, char *password_hash) const;
-  bool checkUserPasswordLocal(const char * const user, const char * const password, char *group) const;
-  bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
+  bool getUserPasswordHashLocal(const char * user, char *password_hash) const;
+  bool checkUserPasswordLocal(const char * user, const char * password, char *group) const;
+  bool checkUserPassword(const char * user, const char * password, char *group, bool *localuser) const;
   bool startPurgeLoop();
 
   void checkReloadFlowChecks();
@@ -337,7 +337,7 @@ class Ntop {
    * @param name Name of network interface.
    * @return The network interface Id if exists, -1 otherwise.
    */
-  int getInterfaceIdByName(lua_State *vm, const char * const name);
+  int getInterfaceIdByName(lua_State *vm, const char * name);
 
   /**
    * @brief Get the network interface with the specified Id
@@ -433,30 +433,30 @@ class Ntop {
   char *preparePcapDownloadFilter(lua_State* vm, char *filter);
   bool isLocalAuthEnabled() const;
   bool isLocalUser(lua_State* vm);
-  bool checkCaptiveUserPassword(const char * const user, const char * const password, char *group) const;
-  bool checkGuiUserPassword(struct mg_connection *conn, const char * const user, const char * const password, char *group, bool *localuser) const;
+  bool checkCaptiveUserPassword(const char * user, const char * password, char *group) const;
+  bool checkGuiUserPassword(struct mg_connection *conn, const char * user, const char * password, char *group, bool *localuser) const;
   bool isBlacklistedLogin(struct mg_connection *conn) const;
-  bool checkUserInterfaces(const char * const user)             const;
+  bool checkUserInterfaces(const char * user)             const;
   bool resetUserPassword(char *username, char *old_password, char *new_password);
   bool mustChangePassword(const char *user);
-  bool changeUserFullName(const char * const username, const char * const full_name) const;
+  bool changeUserFullName(const char * username, const char * full_name) const;
   bool changeUserRole(char *username, char *user_role) const;
   bool changeAllowedNets(char *username, char *allowed_nets)     const;
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;
-  bool changeUserHostPool(const char * const username, const char * const host_pool_id) const;
-  bool changeUserLanguage(const char * const username, const char * const language) const;
-  bool changeUserPermission(const char * const username, bool allow_pcap_download) const;
-  bool getUserPermission(const char * const username, bool *allow_pcap_download) const;
-  bool existsUser(const char * const username) const;
+  bool changeUserHostPool(const char * username, const char * host_pool_id) const;
+  bool changeUserLanguage(const char * username, const char * language) const;
+  bool changeUserPermission(const char * username, bool allow_pcap_download) const;
+  bool getUserPermission(const char * username, bool *allow_pcap_download) const;
+  bool existsUser(const char * username) const;
   bool addUser(char *username, char *full_name, char *password, char *host_role,
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id,
 	       char *language, bool allow_pcap_download);
-  bool addUserAPIToken(const char * const username, const char *api_token);
-  bool isCaptivePortalUser(const char * const username);
+  bool addUserAPIToken(const char * username, const char *api_token);
+  bool isCaptivePortalUser(const char * username);
   bool deleteUser(char *username);
   bool getUserHostPool(char *username, u_int16_t *host_pool_id);
-  bool getUserAllowedIfname(const char * const username, char *buf, size_t buflen) const;
-  bool getUserAPIToken(const char * const username, char *buf, size_t buflen) const;
+  bool getUserAllowedIfname(const char * username, char *buf, size_t buflen) const;
+  bool getUserAPIToken(const char * username, char *buf, size_t buflen) const;
   void setWorkingDir(char *dir);
   void fixPath(char *str, bool replaceDots = true);
   void removeTrailingSlash(char *str);
@@ -499,7 +499,7 @@ class Ntop {
 
   void loadTrackers();
   bool isATrackerHost(char *host);
-  bool isExistingInterface(const char * const name) const;
+  bool isExistingInterface(const char * name) const;
   inline NetworkInterface* getFirstInterface()  const { return(iface ? iface[0] : NULL); }
   inline NetworkInterface* getInterface(int i)  const { return(((i < num_defined_interfaces) && iface[i]) ? iface[i] : NULL); }
   inline NetworkInterface* getSystemInterface() const { return(system_interface); }
@@ -558,8 +558,8 @@ class Ntop {
   inline bool hasDroppedPrivileges()         { return(privileges_dropped); }
   inline void setDroppedPrivileges()         { privileges_dropped = true; }
 
-  void getUserGroupLocal(const char * const user, char *group) const;
-  bool existsUserLocal(const char * const user) { char val[64]; return getUserPasswordHashLocal(user, val); }
+  void getUserGroupLocal(const char * user, char *group) const;
+  bool existsUserLocal(const char * user) { char val[64]; return getUserPasswordHashLocal(user, val); }
   void purgeLoopBody();
 
   /* Local network address list methods */

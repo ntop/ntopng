@@ -428,7 +428,7 @@ char *Utils::trim(char *s) {
 
 /* ****************************************************** */
 
-u_int32_t Utils::hashString(const char * const key) {
+u_int32_t Utils::hashString(const char * key) {
   if(!key)
     return 0;
 
@@ -529,7 +529,7 @@ bool Utils::file_exists(const char *path) {
 
 /* ****************************************************** */
 
-bool Utils::dir_exists(const char * const path) {
+bool Utils::dir_exists(const char * path) {
   struct stat buf;
 
   return !((stat(path, &buf) != 0) || (!S_ISDIR(buf.st_mode)));
@@ -587,7 +587,7 @@ size_t Utils::file_read(const char *path, char **content) {
 
 /* ****************************************************** */
 
-int Utils::remove_recursively(const char * const path) {
+int Utils::remove_recursively(const char * path) {
   DIR *d = opendir(path);
   size_t path_len = strlen(path);
   int r = -1;
@@ -1048,7 +1048,7 @@ char* Utils::sanitizeHostName(char *str) {
 
 /* **************************************************** */
 
-char* Utils::stripHTML(const char * const str) {
+char* Utils::stripHTML(const char * str) {
   if(!str) return NULL;
   int len = strlen(str), j = 0;
   char *stripped_str = NULL;
@@ -2182,9 +2182,9 @@ bool Utils::httpGetPost(lua_State* vm, char *url,
 
 /* **************************************** */
 
-long Utils::httpGet(const char * const url,
+long Utils::httpGet(const char * url,
 		    /* NOTE if user_header_token != NULL, username AND password are ignored, and vice-versa */
-		    const char * const username, const char * const password, const char * const user_header_token,
+		    const char * username, const char * password, const char * user_header_token,
 		    int timeout, char * const resp, const u_int resp_len) {
   CURL *curl = curl_easy_init();
   long response_code = 0;
@@ -3229,7 +3229,7 @@ ndpi_patricia_node_t* Utils::ptree_match(ndpi_patricia_tree_t *tree, int family,
 
 /* ******************************************* */
 
-ndpi_patricia_node_t* Utils::ptree_add_rule(ndpi_patricia_tree_t *ptree, const char * const addr_line) {
+ndpi_patricia_node_t* Utils::ptree_add_rule(ndpi_patricia_tree_t *ptree, const char * addr_line) {
   char *ip, *bits, *slash = NULL, *line = NULL;
   struct in_addr addr4;
   struct in6_addr addr6;
@@ -3333,7 +3333,7 @@ void Utils::initRedis(Redis **r, const char *redis_host, const char *redis_passw
 
 /* ******************************************* */
 
-int Utils::tcpStateStr2State(const char * const state_str) {
+int Utils::tcpStateStr2State(const char * state_str) {
   map<string, int>::const_iterator it;
 
   if((it = tcp_state_str_2_state.find(state_str)) != tcp_state_str_2_state.end())
@@ -3355,7 +3355,7 @@ const char * Utils::tcpState2StateStr(int state) {
 
 /* ******************************************* */
 
-eBPFEventType Utils::eBPFEventStr2Event(const char * const event_str) {
+eBPFEventType Utils::eBPFEventStr2Event(const char * event_str) {
   map<string, eBPFEventType>::const_iterator it;
 
   if((it = ebpf_event_str_2_event.find(event_str)) != ebpf_event_str_2_event.end())
@@ -4635,7 +4635,7 @@ u_int32_t Utils::pow2(u_int32_t v) {
 
 /* ****************************************************** */
 
-int Utils::exec(const char * const command) {
+int Utils::exec(const char * command) {
   int rc = 0;
 
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
@@ -4659,7 +4659,7 @@ int Utils::exec(const char * const command) {
 /* ****************************************************** */
 
 #ifdef __linux__
-void Utils::deferredExec(const char * const command) {
+void Utils::deferredExec(const char * command) {
   char command_buf[256];
   int res;
 
@@ -5101,7 +5101,7 @@ bool const Utils::isIpEmpty(ipAddress addr) {
 
 /* ************************************************ */
 
-int8_t Utils::num_files_in_dir(const char * const dir) {
+int8_t Utils::num_files_in_dir(const char * dir) {
   DIR *dir_struct;
   struct dirent *ent;
   u_int8_t num_files = 0;

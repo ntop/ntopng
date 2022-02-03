@@ -2510,7 +2510,7 @@ static int ntop_resolve_address(lua_State* vm) {
 
 /* ****************************************** */
 
-void lua_push_str_table_entry(lua_State *L, const char * const key, const char * const value) {
+void lua_push_str_table_entry(lua_State *L, const char * key, const char * value) {
   if(L) {
     lua_pushstring(L, key);
     lua_pushstring(L, value);

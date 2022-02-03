@@ -193,7 +193,7 @@ int Redis::expire(char *key, u_int expire_secs) {
 
 /* **************************************** */
 
-bool Redis::isCacheable(const char * const key) {
+bool Redis::isCacheable(const char * key) {
   if((strstr(key, "ntopng.cache."))
      || (strstr(key, "ntopng.prefs."))
      || (strstr(key, "ntopng.user.") && (!strstr(key, ".password"))))
@@ -221,7 +221,7 @@ bool Redis::expireCache(char *key, u_int expire_secs) {
 
 /* **************************************** */
 
-void Redis::checkDumpable(const char * const key) {
+void Redis::checkDumpable(const char * key) {
   if(!initializationCompleted) return;
 
   /* We use this function to check and possibly request a preference dump to a file.
@@ -285,7 +285,7 @@ u_int Redis::dbsize() {
 /* **************************************** */
 
 /* NOTE: We assume that the addToCache() caller locks this instance */
-void Redis::addToCache(const char * const key, const char * const value, u_int expire_secs) {
+void Redis::addToCache(const char * key, const char * value, u_int expire_secs) {
   std::map<std::string, StringCache>::iterator it;
   if(!initializationCompleted) return;
 
@@ -422,7 +422,7 @@ int Redis::del(char *key){
 
 /* **************************************** */
 
-int Redis::hashGet(const char * const key, const char * const field, char * const rsp, u_int rsp_len) {
+int Redis::hashGet(const char * key, const char * field, char * const rsp, u_int rsp_len) {
   int rc;
   redisReply *reply;
 
@@ -445,7 +445,7 @@ int Redis::hashGet(const char * const key, const char * const field, char * cons
 
 /* **************************************** */
 
-int Redis::hashSet(const char * const key, const char * const field, const char * const value) {
+int Redis::hashSet(const char * key, const char * field, const char * value) {
   int rc = 0;
   redisReply *reply;
 
@@ -465,7 +465,7 @@ int Redis::hashSet(const char * const key, const char * const field, const char 
 
 /* **************************************** */
 
-int Redis::hashDel(const char * const key, const char * const field) {
+int Redis::hashDel(const char * key, const char * field) {
   int rc;
   redisReply *reply;
 
@@ -489,7 +489,7 @@ int Redis::hashDel(const char * const key, const char * const field) {
 
 /* **************************************** */
 
-int Redis::_set(bool use_nx, const char * const key, const char * const value, u_int expire_secs) {
+int Redis::_set(bool use_nx, const char * key, const char * value, u_int expire_secs) {
   int rc, ret_code = 0;
   redisReply *reply;
   const char* cmd = use_nx ? "SETNX" : "SET";
@@ -941,7 +941,7 @@ int Redis::smembers(lua_State* vm, char *setName) {
 
 /* **************************************** */
 
-bool Redis::sismember(const char *set_name, const char * const member) {
+bool Redis::sismember(const char *set_name, const char * member) {
   redisReply *reply = NULL;
   bool res = false;
 
@@ -1006,7 +1006,7 @@ int Redis::smembers(const char *set_name, char ***members) {
 /* ******************************************* */
 
 /*  Add at the top of queue */
-int Redis::lpush(const char * const queue_name, const char * const msg, u_int queue_trim_size, bool trace_errors) {
+int Redis::lpush(const char * queue_name, const char * msg, u_int queue_trim_size, bool trace_errors) {
   stats.num_lpush_rpush++;
   return(msg_push("LPUSH", queue_name, msg, queue_trim_size, trace_errors));
 }
@@ -1014,14 +1014,14 @@ int Redis::lpush(const char * const queue_name, const char * const msg, u_int qu
 /* ******************************************* */
 
 /* Add at the bottom of the queue */
-int Redis::rpush(const char * const queue_name, const char * const msg, u_int queue_trim_size) {
+int Redis::rpush(const char * queue_name, const char * msg, u_int queue_trim_size) {
   stats.num_lpush_rpush++;
   return(msg_push("RPUSH", queue_name, msg, queue_trim_size, true, false));
 }
 
 /* ******************************************* */
 
-int Redis::msg_push(const char * const cmd, const char * const queue_name, const char * const msg,
+int Redis::msg_push(const char * cmd, const char * queue_name, const char * msg,
 		    u_int queue_trim_size, bool trace_errors, bool head_trim) {
   redisReply *reply;
   int rc = 0;
@@ -1082,7 +1082,7 @@ int Redis::msg_push(const char * const cmd, const char * const queue_name, const
 
 /* **************************************** */
 
-u_int Redis::len(const char * const key) {
+u_int Redis::len(const char * key) {
   redisReply *reply;
   u_int num = 0;
 
@@ -1109,7 +1109,7 @@ u_int Redis::len(const char * const key) {
 /* **************************************** */
 
 /* Only available since Redis 3.2.0 */
-u_int Redis::hstrlen(const char * const key, const char * const value) {
+u_int Redis::hstrlen(const char * key, const char * value) {
   redisReply *reply;
   u_int num = 0;
   static bool error_sent = false;

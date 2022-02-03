@@ -363,7 +363,7 @@ void Mac::checkDeviceTypeFromManufacturer() {
 
 /* *************************************** */
 
-void Mac::inlineSetModel(const char * const the_model) {
+void Mac::inlineSetModel(const char * the_model) {
   if(!model && the_model && (model = strdup(the_model))) {
     if(strstr(model, "AppleTV") != NULL) setDeviceType(device_multimedia);
     else if(strstr(model, "MacBook") != NULL) setDeviceType(device_laptop);
@@ -374,7 +374,7 @@ void Mac::inlineSetModel(const char * const the_model) {
 }
 /* *************************************** */
 
-bool Mac::inlineSetFingerprint(const char * const f) {
+bool Mac::inlineSetFingerprint(const char * f) {
   if(!fingerprint && f) {
     fingerprint = strdup(f);
     return(true);
@@ -385,14 +385,14 @@ bool Mac::inlineSetFingerprint(const char * const f) {
 
 /* *************************************** */
 
-void Mac::inlineSetSSID(const char * const s) {
+void Mac::inlineSetSSID(const char * s) {
   if(!ssid && s && (ssid = strdup(s)))
     setDeviceType(device_wifi);
 }
 
 /* *************************************** */
 
-void Mac::inlineSetDHCPName(const char * const dhcp_name) {
+void Mac::inlineSetDHCPName(const char * dhcp_name) {
   if(!names.dhcp && dhcp_name && (names.dhcp = Utils::toLowerResolvedNames(dhcp_name)))
     ;
 }

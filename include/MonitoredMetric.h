@@ -88,7 +88,7 @@ public:
     return((float)anomaly_index /* Last computed */);
   }
 
-  const char * const print(char * const buf, ssize_t buf_size) {
+  const char * print(char * const buf, ssize_t buf_size) {
     if(buf && buf_size) {
       snprintf(buf, buf_size, "%s[value: %lu][last_value: %lu][RSI: %lu][gains: %lu][losses: %lu][last_update: %u]\n",
 	       this->is_misbehaving(0) ? "<<<***>>> Anomaly " : "",

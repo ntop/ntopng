@@ -101,7 +101,7 @@ int StatsManager::openStore(const char *cache_name)
  * @param key Key to use as boundary.
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::deleteStatsOlderThan(const char * const cache_name, const time_t key) {
+int StatsManager::deleteStatsOlderThan(const char * cache_name, const time_t key) {
   char query[STORE_MANAGER_MAX_QUERY];
   int rc;
 
@@ -225,7 +225,7 @@ static int get_samplings_db(void *data, int argc,
  * @return Zero in case of success, nonzero in case of error.
  */
 int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
-					const char * const cache_name,
+					const char * cache_name,
                                         const time_t key_start,
 					const time_t key_end) {
   char query[STORE_MANAGER_MAX_QUERY];
@@ -339,7 +339,7 @@ int StatsManager::retrieveDayStatsInterval(time_t epoch_start,
  *
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::insertSampling(const char * const sampling, const char * const cache_name,
+int StatsManager::insertSampling(const char * sampling, const char * cache_name,
                                  long int key) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
@@ -387,7 +387,7 @@ int StatsManager::insertSampling(const char * const sampling, const char * const
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::insertMinuteSampling(time_t epoch, const char * const sampling) {
+int StatsManager::insertMinuteSampling(time_t epoch, const char * sampling) {
   if(!sampling)
     return -1;
 
@@ -406,7 +406,7 @@ int StatsManager::insertMinuteSampling(time_t epoch, const char * const sampling
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::insertHourSampling(time_t epoch, const char * const sampling) {
+int StatsManager::insertHourSampling(time_t epoch, const char * sampling) {
   if(!sampling)
     return -1;
 
@@ -425,7 +425,7 @@ int StatsManager::insertHourSampling(time_t epoch, const char * const sampling) 
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::insertDaySampling(time_t epoch, const char * const sampling) {
+int StatsManager::insertDaySampling(time_t epoch, const char * sampling) {
   if(!sampling)
     return -1;
 
@@ -471,7 +471,7 @@ static int get_sampling_db_callback(void *data, int argc,
  *
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::getSampling(string * sampling, const char * const cache_name,
+int StatsManager::getSampling(string * sampling, const char * cache_name,
                               time_t key_low, time_t key_high) {
 
   char query[STORE_MANAGER_MAX_QUERY];

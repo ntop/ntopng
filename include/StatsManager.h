@@ -35,9 +35,9 @@ class StatsManager : protected SQLiteStoreManager {
 public:
     StatsManager(int interface_id, const char *db_filename);
     ~StatsManager() {};
-    int insertMinuteSampling(time_t epoch, const char * const sampling);
-    int insertHourSampling(time_t epoch, const char * const sampling);
-    int insertDaySampling(time_t epoch, const char * const sampling);
+    int insertMinuteSampling(time_t epoch, const char * sampling);
+    int insertHourSampling(time_t epoch, const char * sampling);
+    int insertDaySampling(time_t epoch, const char * sampling);
     int getMinuteSampling(time_t epoch, string * sampling);
     int openStore(const char *cache_name);
     int retrieveMinuteStatsInterval(time_t epoch_start, time_t epoch_end,
@@ -58,10 +58,10 @@ private:
      */
     std::map<string, bool> caches;
 
-    int insertSampling(const char * const sampling, const char * const cache_name, long int key);
-    int getSampling(string * sampling, const char * const cache_name, time_t key_low, time_t key_high);
-    int deleteStatsOlderThan(const char * const cache_name, const time_t key);
-    int retrieveStatsInterval(struct statsManagerRetrieval *retvals, const char * const cache_name,
+    int insertSampling(const char * sampling, const char * cache_name, long int key);
+    int getSampling(string * sampling, const char * cache_name, time_t key_low, time_t key_high);
+    int deleteStatsOlderThan(const char * cache_name, const time_t key);
+    int retrieveStatsInterval(struct statsManagerRetrieval *retvals, const char * cache_name,
 			      const time_t key_start, const time_t key_end);
 };
 

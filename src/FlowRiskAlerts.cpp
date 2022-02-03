@@ -262,7 +262,7 @@ FlowAlertType FlowRiskAlerts::getFlowRiskAlertType(ndpi_risk_enum risk) {
 
 /* **************************************************** */
 
-const char * const FlowRiskAlerts::getCheckName(ndpi_risk_enum risk) {
+const char * FlowRiskAlerts::getCheckName(ndpi_risk_enum risk) {
   if(isRiskUnhanlded(risk))
     return risk_enum_to_alert_type[NDPI_NO_RISK].alert_lua_name;
   else

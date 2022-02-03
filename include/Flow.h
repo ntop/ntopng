@@ -539,12 +539,12 @@ class Flow : public GenericHashEntry {
   inline ndpi_protocol_breed_t get_protocol_breed() const {
     return(ndpi_get_proto_breed(iface->get_ndpi_struct(), isDetectionCompleted() ? ndpi_get_upper_proto(ndpiDetectedProtocol) : NDPI_PROTOCOL_UNKNOWN));
   };
-  inline const char * const get_protocol_breed_name() const { return(ndpi_get_proto_breed_name(iface->get_ndpi_struct(), get_protocol_breed())); };
+  inline const char * get_protocol_breed_name() const { return(ndpi_get_proto_breed_name(iface->get_ndpi_struct(), get_protocol_breed())); };
   inline ndpi_protocol_category_t get_protocol_category() const {
     return(ndpi_get_proto_category(iface->get_ndpi_struct(),
 				   isDetectionCompleted() ? ndpiDetectedProtocol : ndpiUnknownProtocol));
 };
-  inline const char * const get_protocol_category_name() const {
+  inline const char * get_protocol_category_name() const {
     return(ndpi_category_get_name(iface->get_ndpi_struct(), get_protocol_category()));
   };
   char* get_detected_protocol_name(char *buf, u_int buf_len) const {

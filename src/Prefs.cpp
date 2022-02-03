@@ -1939,7 +1939,7 @@ void Prefs::add_default_interfaces() {
 
 /* *************************************** */
 
-void Prefs::bind_http_to_address(const char * const addr1, const char * const addr2) {
+void Prefs::bind_http_to_address(const char * addr1, const char * addr2) {
   if(http_binding_address1)  free(http_binding_address1);
   http_binding_address1 = strdup(addr1);
 
@@ -1947,7 +1947,7 @@ void Prefs::bind_http_to_address(const char * const addr1, const char * const ad
   http_binding_address2 = strdup(addr2);
 }
 
-void Prefs::bind_https_to_address(const char * const addr1, const char * const addr2) {
+void Prefs::bind_https_to_address(const char * addr1, const char * addr2) {
   if(https_binding_address1) free(https_binding_address1);
   https_binding_address1 = strdup(addr1);
 
@@ -2262,7 +2262,7 @@ void Prefs::validate() {
 
 /* *************************************** */
 
-const char * const Prefs::getCaptivePortalUrl() {
+const char * Prefs::getCaptivePortalUrl() {
 #ifdef NTOPNG_PRO
   if(isInformativeCaptivePortalEnabled())
     return CAPTIVE_PORTAL_INFO_URL;
@@ -2273,7 +2273,7 @@ const char * const Prefs::getCaptivePortalUrl() {
 
 /* *************************************** */
 
-void Prefs::setIEC104AllowedTypeIDs(const char * const protos) {
+void Prefs::setIEC104AllowedTypeIDs(const char * protos) {
   char *p, *buf, *tmp;
   
   if(!protos) return;

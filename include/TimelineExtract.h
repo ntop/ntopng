@@ -47,8 +47,8 @@ class TimelineExtract {
   } extraction;
 
 #ifdef HAVE_PF_RING
-  pfring *openTimeline(const char * const timeline_path, time_t from, time_t to, const char * const bpf_filter);
-  pfring *openTimelineFromInterface(NetworkInterface *iface, time_t from, time_t to, const char * const bpf_filter);
+  pfring *openTimeline(const char * timeline_path, time_t from, time_t to, const char * bpf_filter);
+  pfring *openTimelineFromInterface(NetworkInterface *iface, time_t from, time_t to, const char * bpf_filter);
 #endif
 
  public:
@@ -64,10 +64,10 @@ class TimelineExtract {
   inline bool isRunning() { return running; };
   void stop();
   /* sync */
-  bool extractToDisk(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes, const char * const timeline_path);
-  bool extractLive(struct mg_connection *conn, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, const char * const timeline_path);
+  bool extractToDisk(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes, const char * timeline_path);
+  bool extractLive(struct mg_connection *conn, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, const char * timeline_path);
   /* async */
-  void runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes, const char * const timeline_path);
+  void runExtractionJob(u_int32_t id, NetworkInterface *iface, time_t from, time_t to, const char *bpf_filter, u_int64_t max_bytes, const char * timeline_path);
   void stopExtractionJob(u_int32_t id);
   void cleanupJob();
   void getStatus(lua_State* vm);

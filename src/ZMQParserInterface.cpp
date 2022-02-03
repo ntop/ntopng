@@ -204,7 +204,7 @@ const char* ZMQParserInterface::getKeyDescription(u_int32_t pen, u_int32_t field
 
 /* **************************************************** */
 
-u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_size,
+u_int8_t ZMQParserInterface::parseEvent(const char * payload, int payload_size,
 					u_int8_t source_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
@@ -1047,7 +1047,7 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow * const flow, u_int32_t fi
 
 /* **************************************************** */
 
-bool ZMQParserInterface::matchField(ParsedFlow * const flow, const char * const key, ParsedValue * value) {
+bool ZMQParserInterface::matchField(ParsedFlow * const flow, const char * key, ParsedValue * value) {
   u_int32_t pen, key_id;
   bool res;
 
@@ -1075,7 +1075,7 @@ bool ZMQParserInterface::matchField(ParsedFlow * const flow, const char * const 
 
 /* **************************************************** */
 
-bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const char * const key,
+bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const char * key,
 					       ParsedValue *value, json_object * const jvalue) const {
   bool ret = false;
   json_object *obj;
@@ -1675,7 +1675,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
 /* **************************************************** */
 
-u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int payload_size, u_int8_t source_id) {
+u_int8_t ZMQParserInterface::parseJSONFlow(const char * payload, int payload_size, u_int8_t source_id) {
   json_object *f;
   enum json_tokener_error jerr = json_tokener_success;
 
@@ -1729,7 +1729,7 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int paylo
 
 /* **************************************************** */
 
-u_int8_t ZMQParserInterface::parseTLVFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
+u_int8_t ZMQParserInterface::parseTLVFlow(const char * payload, int payload_size, u_int8_t source_id, void *data) {
   ndpi_deserializer deserializer;
   ndpi_serialization_type kt;
   int n = 0, rc;
@@ -1794,7 +1794,7 @@ bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * con
 
 /* **************************************************** */
 
-u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
+u_int8_t ZMQParserInterface::parseCounter(const char * payload, int payload_size, u_int8_t source_id, void *data) {
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
   sFlowInterfaceStats stats;
@@ -1882,7 +1882,7 @@ static std::string mandatory_template_fields[] = {
   "IN_BYTES", "IN_PKTS", "OUT_BYTES", "OUT_PKTS"
 };
 
-u_int8_t ZMQParserInterface::parseTemplate(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
+u_int8_t ZMQParserInterface::parseTemplate(const char * payload, int payload_size, u_int8_t source_id, void *data) {
   /* The format that is currently defined for templates is a JSON as follows:
 
      [{"PEN":0,"field":1,"len":4,"format":"formatted_uint","name":"IN_BYTES","descr":"Incoming flow bytes (src->dst)"},{"PEN":0,"field":2,"len":4,"format":"formatted_uint","name":"IN_PKTS","descr":"Incoming flow packets (src->dst)"},]
@@ -2056,7 +2056,7 @@ u_int8_t ZMQParserInterface::parseOptionFieldValueMap(json_object * const w) con
 
 /* **************************************************** */
 
-u_int8_t ZMQParserInterface::parseListeningPorts(const char * const payload, int payload_size,
+u_int8_t ZMQParserInterface::parseListeningPorts(const char * payload, int payload_size,
 						 u_int8_t source_id, void *data) {
   enum json_tokener_error jerr = json_tokener_success;
   json_object *o = json_tokener_parse_verbose(payload, &jerr);
@@ -2096,7 +2096,7 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char * const payload, int
 
 /* **************************************************** */
 
-u_int8_t ZMQParserInterface::parseOption(const char * const payload, int payload_size,
+u_int8_t ZMQParserInterface::parseOption(const char * payload, int payload_size,
 					 u_int8_t source_id, void *data) {
   /* The format that is currently defined for options is a JSON as follows:
 

@@ -383,7 +383,7 @@ void Host::lua_get_anomalies(lua_State* vm) const {
 
 /* *************************************** */
 
-void Host::luaStrTableEntryLocked(lua_State * const vm, const char * const entry_name, const char * const entry_value) {
+void Host::luaStrTableEntryLocked(lua_State * const vm, const char * entry_name, const char * entry_value) {
   /* Perform access to const entry values using a lock as entry value can change for example during a data reset */
   if(entry_name) {
     m.lock(__FILE__, __LINE__);
@@ -1379,49 +1379,49 @@ void Host::offlineSetMDNSInfo(char * const str) {
 
 /* *************************************** */
 
-void Host::offlineSetSSDPLocation(const char * const url) {
+void Host::offlineSetSSDPLocation(const char * url) {
   if(!ssdpLocation && url && (ssdpLocation = strdup(url)))
     ;
 }
 
 /* *************************************** */
 
-void Host::offlineSetMDNSName(const char * const mdns_n) {
+void Host::offlineSetMDNSName(const char * mdns_n) {
   if(!names.mdns && mdns_n && (names.mdns = Utils::toLowerResolvedNames(mdns_n)))
     ;
 }
 
 /* *************************************** */
 
-void Host::offlineSetMDNSTXTName(const char * const mdns_n_txt) {  
+void Host::offlineSetMDNSTXTName(const char * mdns_n_txt) {  
   if(!names.mdns_txt && mdns_n_txt && (names.mdns_txt = Utils::toLowerResolvedNames(mdns_n_txt)))
     ;
 }
 
 /* *************************************** */
 
-void Host::offlineSetNetbiosName(const char * const netbios_n) {
+void Host::offlineSetNetbiosName(const char * netbios_n) {
   if(!names.netbios && netbios_n && (names.netbios = Utils::toLowerResolvedNames(netbios_n)))
     ;
 }
 
 /* *************************************** */
 
-void Host::offlineSetTLSName(const char * const tls_n) {
+void Host::offlineSetTLSName(const char * tls_n) {
   if(!names.tls && tls_n && (names.tls = Utils::toLowerResolvedNames(tls_n)))
     ;
 }
 
 /* *************************************** */
 
-void Host::offlineSetHTTPName(const char * const http_n) {
+void Host::offlineSetHTTPName(const char * http_n) {
   if(!names.http && http_n && (names.http = Utils::toLowerResolvedNames(http_n)))
     ;
 }
 
 /* *************************************** */
 
-void Host::setResolvedName(const char * const resolved_name) {
+void Host::setResolvedName(const char * resolved_name) {
   /* Multiple threads can set this so we must lock */
   if(resolved_name && resolved_name[0] != '\0') {
     m.lock(__FILE__, __LINE__);

@@ -1269,7 +1269,7 @@ bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface,  u_int6
   flowHashing[criteria] = sub_iface; /* Add it to the hash */
 
   numSubInterfaces++;
-  ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char * const)"1");
+  ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char *)"1");
 
   return true;
 }
@@ -7034,7 +7034,7 @@ static bool virtual_http_hosts_walker(GenericHashEntry *node, void *data, bool *
 
 /* **************************************** */
 
-bool NetworkInterface::alert_store_query(lua_State *vm, const char * const sql) {
+bool NetworkInterface::alert_store_query(lua_State *vm, const char * sql) {
   if(!alertStore)
     return false;
 

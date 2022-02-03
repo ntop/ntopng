@@ -37,7 +37,7 @@ class SQLiteAlertStore : virtual public AlertStore, public SQLiteStoreManager {
   SQLiteAlertStore(int interface_id, const char *db_filename);
   ~SQLiteAlertStore();
 
-  bool query(lua_State *vm, const char * const query);
+  bool query(lua_State *vm, const char * query);
 
 };
 

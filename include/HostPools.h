@@ -75,7 +75,7 @@ class HostPools {
   void reloadPools();
   u_int16_t getPool(Host *h);
   u_int16_t getPool(Mac *m);
-  u_int16_t getPoolByName(const char * const pool_name);
+  u_int16_t getPoolByName(const char * pool_name);
 
   bool findIpPool(IpAddress *ip, VLANid vlan_id,
 		  u_int16_t *found_pool, ndpi_patricia_node_t **found_node);

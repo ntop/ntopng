@@ -41,7 +41,7 @@ public:
   bool equal(const Bitmap128 *b) const;
   
   void lua(lua_State* vm, const char *label) const;
-  const char * const toHexString(char *buf, ssize_t buf_len) const;
+  const char * toHexString(char *buf, ssize_t buf_len) const;
 };
 
 #endif /* _BITMAP128_H_ */

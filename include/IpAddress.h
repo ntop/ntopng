@@ -70,7 +70,7 @@ class IpAddress {
   inline void set(const IpAddress * const ip)         { memcpy(&addr, &ip->addr, sizeof(struct ipAddress)); ip_key = ip->ip_key; };
   inline void set(const struct ipAddress * const ip)  { memcpy(&addr, ip, sizeof(struct ipAddress)); compute_key(); };
   void set(union usa *ip);
-  void set(const char * const ip);
+  void set(const char * ip);
   void reloadBlacklist(ndpi_detection_module_struct* ndpi_struct);
   inline bool isLoopbackAddress()        const        { return(addr.loopbackIP);    };
   inline bool isPrivateAddress()         const        { return(addr.privateIP);     };

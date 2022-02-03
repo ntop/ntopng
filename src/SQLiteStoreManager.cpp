@@ -74,7 +74,7 @@ SQLiteStoreManager::~SQLiteStoreManager() {
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int SQLiteStoreManager::exec_query(const char * const db_query,
+int SQLiteStoreManager::exec_query(const char * db_query,
 				   int (*callback)(void *, int, char **, char **),
 				   void *payload) {
   char *zErrMsg = 0;

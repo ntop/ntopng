@@ -30,7 +30,7 @@
 
 /* *************************************** */
 
-MacManufacturers::MacManufacturers(const char * const home) {
+MacManufacturers::MacManufacturers(const char * home) {
   snprintf(manufacturers_file, sizeof(manufacturers_file), "%s/other/%s", home ? home : "", "EtherOUI.txt");
   ntop->fixPath(manufacturers_file);
 

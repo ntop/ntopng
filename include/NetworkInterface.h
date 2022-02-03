@@ -769,7 +769,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void setIdleState(bool new_state)         { is_idle = new_state;  };
   inline StatsManager  *getStatsManager()          { return statsManager;  };
   AlertsQueue* getAlertsQueue() const;
-  bool alert_store_query(lua_State *vm, const char * const sql);
+  bool alert_store_query(lua_State *vm, const char * sql);
 
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO

@@ -56,15 +56,15 @@ class Redis {
 
   char* getRedisVersion();
   void reconnectRedis(bool giveup_on_failure);
-  int msg_push(const char * const cmd, const char * const queue_name, const char * const msg, u_int queue_trim_size,
+  int msg_push(const char * cmd, const char * queue_name, const char * msg, u_int queue_trim_size,
 	       bool trace_errors = true, bool head_trim = true);
   int lrpop(const char *queue_name, char *buf, u_int buf_len, bool lpop);
-  void addToCache(const char * const key, const char * const value, u_int expire_secs);
-  bool isCacheable(const char * const key);
+  void addToCache(const char * key, const char * value, u_int expire_secs);
+  bool isCacheable(const char * key);
   bool expireCache(char *key, u_int expire_sec);
 
-  void checkDumpable(const char * const key);
-  int _set(bool use_nx, const char * const key, const char * const value, u_int expire_secs);
+  void checkDumpable(const char * key);
+  int _set(bool use_nx, const char * key, const char * value, u_int expire_secs);
   
  public:
   Redis(const char *redis_host = (char*)"127.0.0.1",
@@ -83,13 +83,13 @@ class Redis {
   u_int dbsize();
   int expire(char *key, u_int expire_sec);
   int get(char *key, char *rsp, u_int rsp_len, bool cache_it = false);
-  int hashGet(const char * const key, const char * const member, char * const rsp, u_int rsp_len);
-  int hashDel(const char * const key, const char * const field);
-  int hashSet(const char * const key, const char * const field, const char * const value);
+  int hashGet(const char * key, const char * member, char * const rsp, u_int rsp_len);
+  int hashDel(const char * key, const char * field);
+  int hashSet(const char * key, const char * field, const char * value);
   int delHash(char *key, char *member);
-  inline int set(const char * const key, const char * const value, u_int expire_secs=0) { return(_set(false, key, value, expire_secs)); }
+  inline int set(const char * key, const char * value, u_int expire_secs=0) { return(_set(false, key, value, expire_secs)); }
   /* setnx = set if not existing */
-  inline int setnx(const char * const key, const char * const value, u_int expire_secs=0) { return(_set(true, key, value, expire_secs)); }
+  inline int setnx(const char * key, const char * value, u_int expire_secs=0) { return(_set(true, key, value, expire_secs)); }
   int keys(const char *pattern, char ***keys_p);
   int hashKeys(const char *pattern, char ***keys_p);
   int hashGetAll(const char *key, char ***keys_p, char ***values_p);
@@ -104,14 +104,14 @@ class Redis {
   int srem(const char *set_name, char *item);
   int smembers(lua_State* vm, char *setName);
   int smembers(const char *set_name, char ***members);
-  bool sismember(const char *set_name, const char * const member);
+  bool sismember(const char *set_name, const char * member);
 
-  int lpush(const char * const queue_name, const char * const msg, u_int queue_trim_size, bool trace_errors = true);
-  int rpush(const char * const queue_name, const char * const msg, u_int queue_trim_size);
+  int lpush(const char * queue_name, const char * msg, u_int queue_trim_size, bool trace_errors = true);
+  int rpush(const char * queue_name, const char * msg, u_int queue_trim_size);
   int lindex(const char *queue_name, int idx, char *buf, u_int buf_len);
   int ltrim(const char *queue_name, int start_idx, int end_idx);
-  u_int hstrlen(const char * const key, const char * const value);
-  u_int len(const char * const key);
+  u_int hstrlen(const char * key, const char * value);
+  u_int len(const char * key);
   u_int llen(const char *queue_name);
   int lset(const char *queue_name, u_int32_t idx, const char *value);
   int lrem(const char *queue_name, const char *value);

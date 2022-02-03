@@ -28,7 +28,7 @@ class Geolocation {
  private:
 #ifdef HAVE_MAXMINDDB
   MMDB_s geo_ip_asn_mmdb, geo_ip_city_mmdb;
-  bool loadGeoDB(const char * const base_path, const char * const db_name, MMDB_s * const mmdb) const;
+  bool loadGeoDB(const char * base_path, const char * db_name, MMDB_s * const mmdb) const;
   bool mmdbs_ok;
 #endif
 

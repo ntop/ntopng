@@ -58,7 +58,7 @@ public:
   static int   setThreadAffinity(pthread_t thread, int core_id);
   static void  setThreadName(const char *name);
   static char* trim(char *s);
-  static u_int32_t hashString(const char * const s);
+  static u_int32_t hashString(const char * s);
   static float timeval2ms(const struct timeval *tv);
   static float msTimevalDiff(const struct timeval *end, const struct timeval *begin);
   static u_int32_t usecTimevalDiff(const struct timeval *end, const struct timeval *begin);
@@ -70,12 +70,12 @@ public:
   };
   static size_t file_write(const char *path, const char *content, size_t content_len);
   static size_t file_read(const char *path, char **content);
-  static bool file_exists(const char * const path);
-  static bool dir_exists(const char * const path);
-  static int8_t num_files_in_dir(const char * const dir);
+  static bool file_exists(const char * path);
+  static bool dir_exists(const char * path);
+  static int8_t num_files_in_dir(const char * dir);
   static bool mkdir_tree(char * const path);
   static int mkdir(const char *pathname, mode_t mode);
-  static int remove_recursively(const char * const path);
+  static int remove_recursively(const char * path);
   static const char* trend2str(ValueTrend t);
   static int dropPrivileges();
   static char* base64_encode(unsigned char const* bytes_to_encode, ssize_t in_len);
@@ -87,7 +87,7 @@ public:
   static char* sanitizeHostName(char *str);
   static char* urlDecode(const char *src, char *dst, u_int dst_len);
   static bool purifyHTTPparam(char * const param, bool strict, bool allowURL, bool allowDots);
-  static char* stripHTML(const char * const str);
+  static char* stripHTML(const char * str);
   static bool sendTCPData(char *host, int port, char *data, int timeout);
   static bool postHTTPJsonData(char *username, char *password, char *url,
 			       char *json, int timeout, HTTPTranferStats *stats);
@@ -103,8 +103,8 @@ public:
 			  int timeout, bool return_content,
 			  bool use_cookie_authentication, HTTPTranferStats *stats, const char *form_data,
 			  char *write_fname, bool follow_redirects, int ip_version);
-  static long httpGet(const char * const url,
-		      const char * const username, const char * const password, const char * const user_header_token,
+  static long httpGet(const char * url,
+		      const char * username, const char * password, const char * user_header_token,
 		      int timeout,
 		      char * const resp, const u_int resp_len);
   static bool progressCanContinue(ProgressState *progressState);
@@ -152,9 +152,9 @@ public:
   static int periodicityToSeconds(ScriptPeriodicity p);
 
   /* eBPF-related */
-  static int tcpStateStr2State(const char * const state_str);
+  static int tcpStateStr2State(const char * state_str);
   static const char * tcpState2StateStr(int state);
-  static eBPFEventType eBPFEventStr2Event(const char * const event_str);
+  static eBPFEventType eBPFEventStr2Event(const char * event_str);
   static const char * eBPFEvent2EventStr(eBPFEventType event);
 
   static bool str2DetailsLevel(const char *details, DetailsLevel *out);
@@ -173,7 +173,7 @@ public:
   /* Patricia Tree */
   static ndpi_patricia_node_t* add_to_ptree(ndpi_patricia_tree_t *tree, int family, void *addr, int bits);
   static ndpi_patricia_node_t* ptree_match(ndpi_patricia_tree_t *tree, int family, const void * const addr, int bits);
-  static ndpi_patricia_node_t* ptree_add_rule(ndpi_patricia_tree_t *ptree, const char * const line);
+  static ndpi_patricia_node_t* ptree_add_rule(ndpi_patricia_tree_t *ptree, const char * line);
   static bool ptree_prefix_print(ndpi_prefix_t *prefix, char *buffer, size_t bufsize);
 
   static inline void update_ewma(u_int32_t sample, u_int32_t *ewma, u_int8_t alpha_percent) {
@@ -240,9 +240,9 @@ public:
   static OSType getOSFromFingerprint(const char *fingerprint, const char*manuf, DeviceType devtype);
   static DeviceType getDeviceTypeFromOsDetail(const char *os_detail);
   static u_int32_t pow2(u_int32_t v);
-  static int exec(const char * const command);
+  static int exec(const char * command);
 #ifdef __linux__
-  static void deferredExec(const char * const command);
+  static void deferredExec(const char * command);
 #endif
   static void tlv2lua(lua_State *vm, ndpi_serializer *serializer);
   static u_int16_t country2u16(const char *country_code);

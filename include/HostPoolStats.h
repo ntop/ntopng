@@ -48,7 +48,7 @@ class HostPoolStats : public GenericTrafficElement {
   virtual ~HostPoolStats() { if(totalStats) delete totalStats; };
 
   void updateSeen(time_t when);
-  void updateName(const char * const _pool_name);
+  void updateName(const char * _pool_name);
 
   void lua(lua_State* vm, NetworkInterface *iface);
   char* serialize(NetworkInterface *iface);

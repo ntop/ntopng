@@ -51,8 +51,8 @@ class AddressTree {
 
   inline ndpi_patricia_tree_t * getTree(bool isV4) const { return(isV4 ? ptree_v4 : ptree_v6); }
 
-  bool addAddress(const char * const _net, const int16_t user_data = -1);
-  bool addAddressAndData(const char * const _what, void *user_data);
+  bool addAddress(const char * _net, const int16_t user_data = -1);
+  bool addAddressAndData(const char * _what, void *user_data);
   ndpi_patricia_node_t* addAddress(const IpAddress * const ipa);
   ndpi_patricia_node_t* addAddress(const IpAddress * const ipa, int network_bits, bool compact_after_add);
   bool addAddresses(const char *net, const int16_t user_data = -1);
@@ -66,9 +66,9 @@ class AddressTree {
   /* Return true on match, false otherwise */
   bool match(char *addr);
   /* Return user data on success, NULL otherwise */
-  void *matchAndGetData(const char * const addr);
+  void *matchAndGetData(const char * addr);
   /* Return node on success, NULL otherwise */
-  ndpi_patricia_node_t *matchAndGetNode(const char * const addr);
+  ndpi_patricia_node_t *matchAndGetNode(const char * addr);
 
   ndpi_patricia_node_t* match(const IpAddress * const ipa, int network_bits) const;
   void *matchAndGetData(const IpAddress * const ipa) const;

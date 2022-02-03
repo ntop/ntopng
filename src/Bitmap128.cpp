@@ -96,7 +96,7 @@ void Bitmap128::lua(lua_State* vm, const char *label) const {
 
 /* ****************************************** */
 
-const char * const Bitmap128::toHexString(char *buf, ssize_t buf_len) const {
+const char * Bitmap128::toHexString(char *buf, ssize_t buf_len) const {
   u_int shifts = 0;
 
   snprintf(buf, buf_len, "%016lX%016lX",

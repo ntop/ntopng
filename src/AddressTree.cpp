@@ -166,7 +166,7 @@ ndpi_patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa,
 
 /* ******************************************* */
 
-bool AddressTree::addAddressAndData(const char * const _what, void *user_data) {
+bool AddressTree::addAddressAndData(const char * _what, void *user_data) {
   ndpi_patricia_node_t *node = Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
 
   if(node)
@@ -181,7 +181,7 @@ bool AddressTree::addAddressAndData(const char * const _what, void *user_data) {
 
 /* ******************************************* */
 
-bool AddressTree::addAddress(const char * const _what, const int16_t user_data) {
+bool AddressTree::addAddress(const char * _what, const int16_t user_data) {
   u_int32_t _mac[6];
   int16_t id = (user_data == -1) ? numAddresses : user_data;
   
@@ -237,7 +237,7 @@ bool AddressTree::addAddresses(const char *rule, const int16_t user_data) {
 /* ******************************************* */
 
 // TODO match MAC
-ndpi_patricia_node_t *AddressTree::matchAndGetNode(const char * const addr) {
+ndpi_patricia_node_t *AddressTree::matchAndGetNode(const char * addr) {
   ndpi_patricia_node_t *node = NULL;
   char addr_cpy[48];
   IpAddress address;
@@ -266,7 +266,7 @@ ndpi_patricia_node_t *AddressTree::matchAndGetNode(const char * const addr) {
 
 /* ******************************************* */
 
-void *AddressTree::matchAndGetData(const char * const addr) {
+void *AddressTree::matchAndGetData(const char * addr) {
   ndpi_patricia_node_t *node = matchAndGetNode(addr);
   
   if (node) return ndpi_patricia_get_node_data(node);

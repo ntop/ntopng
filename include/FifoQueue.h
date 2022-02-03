@@ -85,7 +85,7 @@ template <typename T> class FifoQueue {
   inline u_int32_t getLength()  { return(q.size());               }
   inline bool empty()           { return(q.empty());              }
   inline u_int8_t fillPct()     { return (num_enqueued - num_dequeued) / (float)(max_size + 1) * 100; };
-  inline void lua(lua_State* vm, const char * const table_name) {
+  inline void lua(lua_State* vm, const char * table_name) {
     lua_newtable(vm);
     /* The percentage of not enqueued, with reference to the total number of not enqueued plus enqueued */
     lua_push_uint64_table_entry(vm,  "pct_not_enqueued", num_not_enqueued / (float)(num_not_enqueued + num_enqueued + 1) * 100);

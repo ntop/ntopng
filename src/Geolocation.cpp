@@ -123,7 +123,7 @@ Geolocation::Geolocation() {
 /* *************************************** */
 
 #ifdef HAVE_MAXMINDDB
-bool Geolocation::loadGeoDB(const char * const base_path, const char * const db_name, MMDB_s * const mmdb) const {
+bool Geolocation::loadGeoDB(const char * base_path, const char * db_name, MMDB_s * const mmdb) const {
   char path[MAX_PATH];
   struct stat buf;
   bool found;

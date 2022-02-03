@@ -35,15 +35,15 @@ class ElasticSearch : public DB {
   char *es_template_push_url, *es_version_query_url;
   char es_version[2];
   bool es_version_inited;
-  const char * const get_es_version();
-  const char * const get_es_template();
+  const char * get_es_version();
+  const char * get_es_template();
 
  public:
   ElasticSearch(NetworkInterface *_iface);
   ~ElasticSearch();
 
   inline bool atleast_version_6() {
-    const char * const ver = get_es_version();
+    const char * ver = get_es_version();
     return ver && strcmp(ver, "6") >= 0;
   };
   void pushEStemplate();
