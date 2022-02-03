@@ -1,0 +1,12 @@
+<div class="form-group mb-3 row">
+    <label class="col-form-label col-sm-3">
+        {{ i18n("notification_endpoint.elasticsearch.index") }}
+    </label>
+    <div class="col-sm-5">
+        <input
+	data-validation-message="{{ i18n('notification_endpoint.elasticsearch.validation.invalid_index') }}"
+	data-pattern="singleword" name="elasticsearch_index" type="text" class="form-control" />
+        <small class="text-muted">{{ i18n('notification_endpoint.optional_field') }}</small>
+    </div>
+</div>
+<small>{* i18n('notification_endpoint.elasticsearch.index_description') *}</small>

@@ -19,7 +19,7 @@ local alert_no_if_activity = classes.class(alert)
 
 alert_no_if_activity.meta = {  
    alert_key = other_alert_keys.alert_no_if_activity,
-   i18n_title = "no_if_activity.alert_no_activity_title",
+   i18n_title = "checks.no_if_activity_title",
    icon = "fas fa-fw fa-arrow-circle-up",
    entities = {
       alert_entities.interface
@@ -47,7 +47,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_no_if_activity.format(ifid, alert, alert_type_params)
-  return(i18n("no_if_activity.status_no_activity_description"))
+  return(i18n("checks.no_activity_description"))
 end
 
 -- #######################################################

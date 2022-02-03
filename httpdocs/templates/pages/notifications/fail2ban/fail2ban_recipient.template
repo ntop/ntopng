@@ -1,0 +1,12 @@
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+	<b>{{ i18n("notification_endpoint.fail2ban.jail") }}</b>
+    </label>
+    <div class="col-sm-5">
+	<input
+	data-validation-message="{{ i18n('notification_endpoint.fail2ban.validation.invalid_jail') }}"
+	data-validation-empty-message="{{ i18n('notification_endpoint.fail2ban.validation.empty_jail') }}"
+	data-pattern="singleword" name="fail2ban_jail" type="text" class="form-control" required />
+    </div>
+</div>
+<small>{* i18n('notification_endpoint.fail2ban.jail_description') *}</small>

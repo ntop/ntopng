@@ -1148,6 +1148,12 @@ local lang = {
     ["factory_reset_all_checks"] = "Ripristino Impostazioni Di Fabbrica dei Check",
     ["factory_reset_all_message"] = "Vuoi resettare  la configurazione delle selezioni?",
     ["long_lived_flows_descr"] = "> %{duration}",
+    ["network_discovery_description"] = "Esegue un allarme quando viene eseguita una Scoperta della Rete",
+    ["network_discovery_title"] = "Scoperta della Rete Identificata",
+    ["network_discovery_alert_description"] = "Scoperta della Rete periodica eseguita",
+    ["no_if_activity_description"] = "Attiva un'allerta quando è riscontrata nessuna attività da parte di un'interfaccia di rete",
+    ["no_if_activity_title"] = "Nessuna attività da un'interfaccia",
+    ["no_activity_description"] = "Nessuna attività riportata dall'interfaccia di rete.",   
     ["note_apply_to_default"] = "La configurazione di <b>default</b> è 'Applicata a' ogni pool che non è incluso in ogni altra configurazione più specifica.",
     ["note_configsets"] = "Gli user script sono configurati e abilitati/disabilitati in base alla configurazione. Più configurazioni possono esser create, e ogni configurazione più essere 'Applicata a' pool differenti.",
     ["note_what_are_checks"] = "Gli <a href=\"%{checks_url}\">User Script</a> %{checks_external} sono eseguiti periodicamente oppure quando un certo evento si verifica.",
@@ -5401,6 +5407,45 @@ local lang = {
       ["abort_edit_snmp_devices"] = "Annullare?",
       ["invalid_host"] = "Immettere un indirizzp IPv4/IPv6 valido.",
       ["read_community_empty"] = "La Read Community non può essere vuota.",
+    },
+  },
+  ["notification_endpoint"] = {
+    ["fail2ban"] = {
+      ["jail"] = "Jail",
+      ["validation"] = {
+        ["empty_jail"] = "Fail2Ban JAIL non puo' esser vuoto.",
+        ["invalid_jail"] = "Fail2Ban jail non valido.",
+      },
+      ["fail2ban_send_error"] = "Fail2Ban non funzionante correttamente.",
+      ["description"] = "<ul><li>Fail2Ban è richiesto per poter utilizzare l'Endpoint. Controllare: <a href='https://www.fail2ban.org/wiki/index.php/Downloads' target='_blank'>qui</a> <i class='%{icon}'></i> per maggiori informazioni riguardati l'installazione.<li>L'Endpoint Fail2Ban verrà eseguito solo su specifici allarmi supportati.</ul><ul>Note: l'utente ntopng deve avere i privilegi di sudo.</ul>",
+      ["jail_description"] = "<ul><li>Specificare la JAIL utilizzata per bloccare l'IP. Controllare: <a href='https://www.fail2ban.org/wiki/index.php/MANUAL_0_8#Jails' target='_blank'>qui</a> <i class='%{icon}'></i> per maggiori informazioni riguardanti le JAIL.</ul>Nota, if il controllo dell'Endpoint non va a buon fine, controllare:<ul><li>Che l'utente ntopng abbia i privilegi di sudo.<li>Che la JAIL inserita sia corretta (utilizzare il comando `fail2ban-client status` per controllare le JAIL disponibili).",  
+    },
+    ["shell_alert_endpoint"] = {
+      ["shell_script"] = "Percorso (path) dello Script",
+      ["shell_options"] = "Opzioni",
+      ["validation"] = {
+        ["empty_path"] = "Il percorso di uno script shell non può essere vuoto.",
+        ["invalid_path"] = "Percorso dello script shell non valido. Lo script deve essere nella cartella \"/usr/share/ntopng/scripts/shell/\" e deve avere il suffisso .sh.",
+        ["invalid_script"] = "Script non valido. Script ritenuto non sicuro.",
+      },
+      ["shell_send_error"] = "Errore nell'esecuzione dello script.", 
+      ["shell_description"] = {
+        ["path_description"] = "Note:<ul><li>Lo script deve essere contenuto in \"/usr/share/ntopng/scripts/shell/\"<li>Le opzioni dello script alert.* saranno espanse a runtime con il valore dell'allarme</lu>",
+        ["option_description"] = "Istruzioni<ul><li>Inserire qui le opzioni che si vogliono passare allo script</ul>",
+      },
+    },
+    ["telegram_alert_endpoint"] = {
+      ["telegram_token"] = "Token",
+      ["telegram_channel"] = "Channel Id",
+      ["validation"] = {
+        ["invalid_token"] = "Token di Telegram non valido.",
+        ["invalid_channel_name"] = "Nome del canale non valido.",
+      },
+      ["telegram_send_error"] = "Errore nell'invio del messaggio a Telegram.",
+      ["webhook_description"] = {
+        ["token_description"] = "Istruzioni:<ul><li>Inizia una nuova chat con @BotFather<li>Scrivi nella chat '/newbot'<li>Dai un nome al tuo bot<li>Dai uno username al tuo bot<li>Copia qui il token che @BotFather ti ha fornito</ul>",
+        ["channel_id_description"] = "Istruzioni se vuoi utilizzare il bot in un gruppo:<ul><li>Aggiungi al tuo gruppo il bot che hai creato<li>Aggiungi al tuo gruppo @getidsbot<li>Copia qui l'id che @getidsbot ti ha fornito</ul>Istruzioni se vuoi utilizzare il bot in una chat:<ul><li>Inizia una nuova chat con @getidsbot<li>Copia qui l'id che @getidsbot ti ha fornito</ul>",
+      }
     },
   },
   ["snmp_page"] = {

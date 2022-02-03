@@ -1,0 +1,17 @@
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.slack.sender_username") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input data-pattern="username" name="slack_sender_username" type="text" class="form-control" required />
+    </div>
+</div>
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.slack.notification_webhook") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input data-pattern="https" name="slack_webhook" type="text" class="form-control" required />
+    </div>
+</div>
+<small>{* i18n('notification_endpoint.slack.webhook_description') *}</small>

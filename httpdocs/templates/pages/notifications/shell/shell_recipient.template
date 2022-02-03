@@ -1,0 +1,9 @@
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+	<b>{{ i18n("notification_endpoint.shell.shell_options") }}</b>
+    </label>
+    <div class="col-sm-5">
+	<input data-pattern="^[0-9 a-fA-Z-]{32}" name="shell_script_options" type="text" class="form-control"/>
+    </div>
+</div>
+<small>{* i18n('notification_endpoint.shell.shell_description.option_description') *}</small>

@@ -1074,10 +1074,115 @@ local lang = {
     ["thresholds_single_source"] = "%{source} %{alt_name} Configuration",
     ["throughput"] = "Throughput Alert",
   },
-  ["slack_alert_endpoint"] = {
-    ["notification_webhook"] = "Notification Webhook",
-    ["sender_username"] = "Sender Username",
-    ["webhook_description"] = "Instructions:<ul><li>Create a new channel to be used for notifications<li>Create a Slack app from the <a href='https://api.slack.com/apps?new_app=1' target='_blank'>Slack API page</a><li>Activate Incoming Webhooks<li>Add a new Webhook and select the notifications channel<li>Copy the Webhook URL to <b>Notification Webhook</b></ul>"
+  ["notification_endpoint"] = {
+    ["discord"] = {
+      ["url"] = "WebHook URL",
+      ["username"] = "Username",
+      ["validation"] = {
+        ["empty_url"] = "Discord Webook URL cannot be empty.",
+        ["invalid_url"] = "Invalid Discord Webhook URL. See https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks.",
+        ["invalid_username"] = "Invalid Discord username.",
+      },
+      ["discord_send_error"] = "Error sending message to Discord.",
+      ["message_sender"] = "Nickname of the discord message sender (optional). ",
+      ["webhook_description"] = "Instructions:<ul><li>Open the Discord channel you want to receive ntopng notifications from.<li>From the channel menu, select Edit channel (or click on the wheel icon). <li>Click on Webhooks menu item.<li>Click the Create Webhook button and fill in the name of the bot that will post the messages (note that you can set it on the ntopng recipients page)<li>Note the URL from the WebHook URL field to be copied in the field above. <li>Click the Save button.</ul>"
+    },
+    ["elasticsearch"] = {
+      ["url"] = "URL",
+      ["username"] = "Username",
+      ["password"] = "Password",
+      ["index"] = "Index",
+      ["validation"] = {
+        ["empty_url"] = "Elasticsearch URL cannot be empty.",
+        ["invalid_url"] = "Invalid Elasticsearch URL.",
+        ["invalid_username"] = "Invalid Elasticsearch username.",
+        ["invalid_index"] = "Invalid Elasticsearch index.",
+      },
+      ["description"] = "<ul><li>Specify a URL (including the port) to reach the Elasticsearch instance to use for indexing alerts. Example: http://localhost:9200/.</li><li>Specify a username and password if URL requires authentication.</li></ul>",
+      ["index_description"] = "<b>NOTE</b>:<ul><li>Index specified is automatically suffixed with -%%Y.%%m.%%d, with %%Y, %%m, %%d being the current year, month and day, respectively. This determines a new index to be created daily.</li><li>When no index is specified, default name 'alerts-ntopng' is used.<li>For SecurityOnion please use so-ntopng as index name.</li></ul>",   
+    },
+    ["email"] = {
+      ["carbon_copy"] = "CC",
+      ["email_recipient"] = "Email Recipient",
+      ["email_sender"] = "Email Sender",
+      ["smtp_password"] = "SMTP Password",
+      ["smtp_server"] = "SMTP Server",
+      ["smtp_username"] = "SMTP Username",
+      ["validation"] = {
+        ["empty_SMTP_server"] = "Please insert a IPv4/IPv6/Host address.",
+        ["empty_email"] = "Please insert an email address.",
+        ["invalid_SMTP_server"] = "Please type a valid IPv4/IPv6/Host address.",
+        ["invalid_email"] = "Please type a valid email address (i.e. name@domain.com).",
+      },
+    },
+    ["fail2ban"] = {
+      ["jail"] = "Jail",
+      ["validation"] = {
+        ["empty_jail"] = "Fail2Ban JAIL cannot be empty.",
+        ["invalid_jail"] = "Invalid Fail2Ban jail.",
+      },
+      ["fail2ban_send_error"] = "Fail2Ban not working properly.",
+      ["description"] = "<ul><li>Fail2Ban is required to use the Endpoint. Check: <a href='https://www.fail2ban.org/wiki/index.php/Downloads' target='_blank'>here</a> <i class='%{icon}'></i> for more infos about the installation.<li>Fail2Ban Endpoint will be executed only with specific supported alerts.</ul><ul>Note:<li>ntopng user must have sudo privileges.</ul>",
+      ["jail_description"] = "<ul><li>Specify the JAIL used to ban the IP. Check: <a href='https://www.fail2ban.org/wiki/index.php/MANUAL_0_8#Jails' target='_blank'>here</a> <i class='%{icon}'></i> for more infos about JAIL.</ul>Note, if the check isn't successfull be sure:<ul><li>That ntopng user has sudo privileges.<li>That the JAIL added is a correct one (use the command `fail2ban-client status` to check the available Jails).",   
+    },
+    ["slack"] = {
+      ["notification_webhook"] = "Notification Webhook",
+      ["sender_username"] = "Sender Username",
+      ["webhook_description"] = "Instructions:<ul><li>Create a new channel to be used for notifications<li>Create a Slack app from the <a href='https://api.slack.com/apps?new_app=1' target='_blank'>Slack API page</a><li>Activate Incoming Webhooks<li>Add a new Webhook and select the notifications channel<li>Copy the Webhook URL to <b>Notification Webhook</b></ul>"
+    },
+    ["shell"] = {
+      ["shell_script"] = "Script PATH",
+      ["shell_options"] = "Options",
+      ["validation"] = {
+        ["empty_path"] = "Shell script path cannot be empty.",
+        ["invalid_path"] = "Invalid shell script path. The script must be stored in \"/usr/share/ntopng/scripts/shell/\" and end with .sh.",
+        ["invalid_script"] = "Invalid script. Script not secure.",
+      },
+      ["shell_send_error"] = "Error while trying to run the script.", 
+      ["shell_description"] = {
+        ["path_description"] = "Note:<ul><li>The script must be stored in \"/usr/share/ntopng/scripts/shell/\"<li>Alert information are provided to the script through the standard input in JSON format.</lu>",
+        ["option_description"] = "Instructions<ul><li>Insert here the options with which the script is going to be executed (e.g. `-i eno1 -p 2220`)</ul>",
+      }
+    },
+    ["syslog"] = {
+      ["alert_format"] = "Format",
+      ["content"] = "Content",
+      ["description"] = "Host, Port and Protocol should be specified for remote syslog servers only.",
+      ["description_ecs"] = "ECS (Elasticsearch Common Schema) format is documented <a class='ntopng-external-link' href='%{url}' target='_blank'>here <i class='%{icon}'></i></a>.",
+      ["description_raw_json"] = "Raw JSON format is self-documented in the <a class='ntopng-external-link' href='%{url}' target='_blank'>code <i class='%{icon}'></i></a> and is meant to be used only by programmers who intend to programmatically process notifications.",
+      ["host"] = "Host",
+      ["port"] = "Port",
+      ["protocol"] = "Protocol",
+      ["text"] = "Text",
+      ["validation"] = {
+        ["invalid_host"] = "Invalid Syslog host.",
+        ["invalid_port"] = "Invalid Syslog port.",
+      },
+    },
+    ["teams"] = {
+      ["url"] = "Connector",
+      ["webhook_description"] = "Instructions:<ul><li>Alerts information are delivered to the configured Microsoft Teams Channel as Message Card<li>Brief explanation: open the settings of the channel you want to add the endpoint, click on `Connectors` then on `Incoming WebHook` (add to M.Teams connectors if not added before) and on `Configure`; from there create a new Connector and paste the Connector URL here<li>The official guide to Microsoft Teams Connectors can be found <a class='ntopng-external-link' href='https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook' target='_blank'>Here <i class='fas fa-external-link-alt'></i></a>",  
+    },
+    ["telegram"] = {
+      ["telegram_token"] = "Token",
+      ["telegram_channel"] = "Channel Id",
+      ["validation"] = {
+        ["invalid_token"] = "Invalid Telegram Token.",
+        ["invalid_channel_name"] = "Invalid Telegram Channel Name.",
+      },
+      ["telegram_send_error"] = "Error sending message to Telegram.",
+      ["webhook_description"] = {
+        ["token_description"] = "Instructions:<ul><li>Start a new chat with @BotFather<li>Type and send '/newbot'<li>Give a name to your bot<li>Give a username to your bot<li>Copy here the token the @BotFather gave to you</ul>",
+        ["channel_id_description"] = "Instructions if you want to use the bot in a chat:<ul><li>Start a conversation with the bot in Telegram (a bot can't initiate conversation with a user!)<li>Start a new conversation with @getidsbot<li>Copy here the id the @getidsbot gave to you</ul>Instructions if you want to use the bot in a group:<ul><li>Add to your group the bot you created<li>Add to your group @getidsbot<li>Copy here the id the @getidsbot gave to you</ul>",
+      }
+    },
+    ["webhook"] = {
+      ["password"] = "Password",
+      ["shared_secret"] = "Shared Secret",
+      ["url"] = "URL",
+      ["username"] = "Username",
+      ["webhook_description"] = "Instructions:<ul><li>Alerts information are delivered to the configured URL in JSON format using POST requests.<li>The Shared Secret, when configured, is included in all JSON messages.<li>Username and Password (optional) use HTTP Basic authentication.",
+    },
   },
   ["appliance"] = {
     ["capture_interfaces"] = "Capture Interfaces",
@@ -1193,10 +1298,22 @@ local lang = {
     ["factory_reset_all_checks"] = "Factory Reset All Checks",
     ["factory_reset_all_message"] = "Do you want to reset the checks configuration to the default?",
     ["long_lived_flows_descr"] = "> %{duration}",
+    ["network_discovery_description"] = "Trigger an alert when a Network Discovery is detected",
+    ["network_discovery_title"] = "Network Discovery Detected",
+    ["network_discovery_alert_description"] = "Periodic Network Discovery executed",
+    ["no_if_activity_description"] = "Trigger an alert when no activity from an interface is detected",
+    ["no_if_activity_title"] = "No activity on interface",
+    ["no_activity_description"] = "No activity reported on network interface.",
     ["note_apply_to_default"] = "The <b>Default</b> configuration is also 'Applied to' any pool which is not included in any other configuration.",
     ["note_configsets"] = "Checks are configured and enabled/disabled on a per-configuration basis. Multiple configurations can be created and each configuration can be 'Applied To' multiple pools.",
     ["note_what_are_checks"] = "<a href=\"%{checks_url}\">Checks</a> %{checks_external} are executed periodically or when a certain event occurs. ",
     ["stop_recording_after"] = "Stop recording after %{duration}",
+    ["unexpected_new_device_title"] = "Unexpected Device Connected",
+    ["unexpected_new_device_description"] = "Trigger an alert when an unexpected (i.e. not part of the allowed MAC addresses list) device connects to the network.",
+    ["unexpected_new_device_exclusion_description"] = "Comma separated values of allowed MAC Addresses. Example: FF:FF:FF:FF:FF:FF",
+    ["unexpected_new_device_exclusion_title"] = "Allowed MAC Addresses",
+    ["status_unexpected_new_device_description"] = "Unexpected MAC <a href=\"%{host_url}\">%{mac_address}</a> connected to the network.",
+    ["status_unexpected_new_device_description_pro"] = "Unexpected MAC <a href=\"%{host_url}\">%{mac_address}</a> connected to the network. SNMP Device <a href=\"%{ip_url}\">%{ip}</a> on Port <a href=\"%{port_url}\">%{port}</a> <span class='badge rounded-pill bg-dark'>%{interface_name}</span>",
     ["hint"] = {
       ["body"] = "Configure unexpected <a href='%{link_DHCP}' target='_about'>DHCP</a>, <a href='%{link_SMTP}' target='_about'>SMTP</a>, <a href='%{link_DNS}' target='_about'>DNS</a>, <a href='%{link_NTP}' target='_about'>NTP</a> servers.",
       ["title"] = "Unexpected Servers",
@@ -1725,20 +1842,6 @@ local lang = {
       ["day"] = "Daily",
       ["hour"] = "Hourly",
       ["min"] = "Minute",
-    },
-  },
-  ["email_alert_endpoint"] = {
-    ["carbon_copy"] = "CC",
-    ["email_recipient"] = "Email Recipient",
-    ["email_sender"] = "Email Sender",
-    ["smtp_password"] = "SMTP Password",
-    ["smtp_server"] = "SMTP Server",
-    ["smtp_username"] = "SMTP Username",
-    ["validation"] = {
-      ["empty_SMTP_server"] = "Please insert a IPv4/IPv6/Host address.",
-      ["empty_email"] = "Please insert an email address.",
-      ["invalid_SMTP_server"] = "Please type a valid IPv4/IPv6/Host address.",
-      ["invalid_email"] = "Please type a valid email address (i.e. name@domain.com).",
     },
   },
   ["endpoint_notifications"] = {

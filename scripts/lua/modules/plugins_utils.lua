@@ -905,50 +905,65 @@ end
 
 -- ##############################################
 
+-- This function is going to get the list of available notifications/endpoint
+local function get_available_notification(path, rv)
+  -- Get Endpoints files, like discord.lua, slack.lua ecc.
+  local base_path = os_utils.fixPath(dirs.installdir .. path)
+  lua_path_utils.package_path_prepend(base_path)
+
+  for fname in pairs(ntop.readdir(base_path)) do
+     if fname:ends(".lua") then
+       local full_path = os_utils.fixPath(base_path .. "/" .. fname)
+       local key = string.sub(fname, 1, string.len(fname) - 4)
+
+       -- Check if the endpoint has a valid function to handle the notification
+       local endpoint = require(key)
+       if(endpoint) then
+           if((type(endpoint.isAvailable) ~= "function") or endpoint.isAvailable()) then
+             endpoint.full_path = full_path
+             endpoint.key = key
+
+             rv[#rv + 1] = endpoint
+           end
+       else
+           traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load alert endpoint '%s'", full_path))
+       end
+     end
+  end
+
+  return rv
+end
+
+-- ##############################################
+
 -- @brief Get the available alert endpoints
 -- @return a sorted table, in order of priority, for the alert endpoints
 function plugins_utils.getLoadedAlertEndpoints()
-   init_runtime_paths()
+  init_runtime_paths()
+  local rv = {}
 
-   local rv = {}
+  -- Community endpoints
+  rv = get_available_notification("/scripts/lua/modules/notifications/endpoints/", rv)
+  
+  -- Pro endpoints
+  if ntop.isPro() then
+    rv = get_available_notification("/pro/scripts/lua/notifications/endpoints/", rv)
+    
+    -- Enterprise M endpoints
+    if ntop.isEnterpriseM() then
+      rv = get_available_notification("/pro/scripts/lua/enterprise/enterprise_m/notifications/endpoints/", rv)
 
-   local base_path = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/notifications/endpoints/")
-   lua_path_utils.package_path_prepend(base_path)
-   for fname in pairs(ntop.readdir(base_path)) do
-      if fname:ends(".lua") then
-	 local full_path = os_utils.fixPath(base_path .. "/" .. fname)
-	 local key = string.sub(fname, 1, string.len(fname) - 4)
-
-	 local endpoint = require(key)
-	 if(endpoint) then
-	    if((type(endpoint.isAvailable) ~= "function") or endpoint.isAvailable()) then
-	       endpoint.full_path = full_path
-	       endpoint.key = key
-
-	       rv[#rv + 1] = endpoint
-	    end
-	 else
-	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load alert endpoint '%s'", full_path))
-	 end
+      -- Enterprise L endpoints
+      if ntop.isEnterpriseL() then
+        rv = get_available_notification("/pro/scripts/lua/enterprise/enterprise_l/notifications/endpoints/", rv)
       end
-   end
+    end
+  end
 
-   if ntop.isPro() then
-      -- TODO:
+  -- Sort by priority (higher priority first)
+  table.sort(rv, endpoint_sorter)
 
-      if ntop.isEnterpriseM() then
-      	 -- TODO:
-
-	 if ntop.isEnterpriseL() then
-	 -- TODO:
-	 end
-      end
-   end
-
-   -- Sort by priority (higher priority first)
-   table.sort(rv, endpoint_sorter)
-
-   return(rv)
+  return(rv)
 end
 
 -- ##############################################
@@ -993,7 +1008,8 @@ function plugins_utils.renderTemplate(plugin_name, template_file, context)
   init_runtime_paths()
 
   -- Locate the template file under the plugin directory
-  local full_path = os_utils.fixPath(plugins_utils.getPluginTemplatesDir() .. "/" .. template_file)
+  -- e.g. /home/biscosi/ntopng/httpdocs/templates/pages/notifications/webhook_endpoint.template
+  local full_path = os_utils.fixPath(plugins_utils.getPluginTemplatesDir() .. "/" .. plugin_name .. "/" .. template_file)
 
   -- If no template is found...
   if not ntop.exists(full_path) then

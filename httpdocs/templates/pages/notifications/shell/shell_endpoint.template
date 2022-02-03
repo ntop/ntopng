@@ -1,0 +1,32 @@
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+	    <b>{{ i18n("notification_endpoint.shell.shell_script") }}</b>
+    </label>
+    <div class="col-sm-5">
+    <select name="shell_script" class="form-select" required>
+        {%
+            for key, dir in pairs(ntop.readdir("/usr/share/ntopng/scripts/shell/")) do 
+                if(key:match('^(.*).[sh|py]$'))then   
+        %}
+                    <option value='{{ key }}'>{{ dir }}</option>
+            {%  
+                end  
+            %}
+        {% 
+            end 
+        %}
+        {%
+            for key, dir in pairs(ntop.readdir(dirs.installdir.."/scripts/shell")) do 
+                if(key:match('^(.*).[sh|py]$')) then   
+        %}
+                    <option value='{{ key }}'>{{ dir }}</option>
+            {%  
+                end  
+            %}
+        {% 
+            end 
+        %}
+    </select>
+    </div>
+</div>
+<small>{* i18n('notification_endpoint.shell.shell_description.path_description') *}</small>

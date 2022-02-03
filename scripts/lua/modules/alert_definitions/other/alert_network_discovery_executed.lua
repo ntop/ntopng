@@ -19,7 +19,7 @@ local alert_network_discovery_executed = classes.class(alert)
 
 alert_network_discovery_executed.meta = {  
    alert_key = other_alert_keys.alert_network_discovery_executed,
-   i18n_title = "network_discovery.network_discovery_title",
+   i18n_title = "checks.network_discovery_title",
    icon = "fas fa-fw fa-arrow-circle-up",
    entities = {
       alert_entities.interface
@@ -47,7 +47,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_network_discovery_executed.format(ifid, alert, alert_type_params)
-  return(i18n("network_discovery.network_discovery_alert_description"))
+  return(i18n("checks.network_discovery_alert_description"))
 end
 
 -- #######################################################

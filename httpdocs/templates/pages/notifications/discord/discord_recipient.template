@@ -1,0 +1,11 @@
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        {{ i18n("notification_endpoint.discord.username") }}
+    </label>
+    <div class="col-sm-5">
+        <input
+	data-validation-message="{{ i18n('notification_endpoint.discord.validation.invalid_username') }}"
+	data-pattern="username" name="discord_username" type="text" class="form-control" />
+        <small class="text-muted">{{ i18n('notification_endpoint.discord.message_sender') }}</small>
+    </div>
+</div>

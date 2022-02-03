@@ -1,0 +1,23 @@
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.email.email_recipient") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input
+	data-validation-message="{{ i18n('notification_endpoint.email.validation.invalid_email') }}"
+	data-validation-empty-message="{{ i18n('notification_endpoint.email.validation.empty_email') }}"
+	name="email_recipient" data-pattern="email" class="form-control" required />
+    </div>
+</div>
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        {{ i18n("notification_endpoint.email.carbon_copy") }}
+    </label>
+    <div class="col-sm-5">
+        <input
+	data-validation-message="{{ i18n('notification_endpoint.email.validation.invalid_email') }}"
+	data-validation-empty-message="{{ i18n('notification_endpoint.email.validation.empty_email') }}"
+	name="cc" data-pattern="email" class="form-control" />
+        <small class="text-muted">{{ i18n("optional_field") }}</small>
+    </div>
+</div>

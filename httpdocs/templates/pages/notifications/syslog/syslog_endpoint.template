@@ -1,0 +1,66 @@
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.syslog.alert_format") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <select name="syslog_alert_format" class="form-select" required>
+            <option value="plaintext">{{ i18n("notification_endpoint.syslog.text") }}</option>
+            <option value="plaintextrfc">{{ i18n("notification_endpoint.syslog.text") }} (RFC 5424)</option>
+            <option value="json">Raw JSON</option>
+{%
+  if ntop.isEnterpriseM() then
+%}
+            <option value="ecs">ECS</option>
+{%
+  end
+%}
+        </select>
+    </div>
+</div>
+
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+	{{ i18n("notification_endpoint.syslog.host") }}
+    </label>
+    <div class="col-sm-5">
+	<input
+	data-validation-message="{{ i18n('notification_endpoint.syslog.validation.invalid_host') }}"
+	data-pattern="host" name="syslog_host" type="text" class="form-control" />
+	<small class="text-muted">{{ i18n("notification_endpoint.optional_field") }}</small>
+    </div>
+</div>
+
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+	{{ i18n("notification_endpoint.syslog.port") }}
+    </label>
+    <div class="col-sm-5">
+	<input
+	data-validation-message="{{ i18n('notification_endpoint.syslog.validation.invalid_port') }}"
+	data-pattern="port" name="syslog_port" value="514" type="text" class="form-control" />
+	<small class="text-muted">{{ i18n("notification_endpoint.optional_field") }}</small>
+    </div>
+</div>
+
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.syslog.protocol") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <select name="syslog_protocol" class="form-select">
+            <option value="udp">UDP</option>
+            <option value="tcp">TCP</option>
+        </select>
+	<small class="text-muted">{{ i18n("notification_endpoint.optional_field") }}</small>
+    </div>
+</div>
+
+
+<small>
+<ul>
+  <li> {* i18n('notification_endpoint.syslog.description') *}</li>
+  <li> {* i18n('notification_endpoint.syslog.description_ecs', {url = "https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#elasticsearch", icon = "fas fa-external-link-alt"}) *}</li>
+  <li> {* i18n('notification_endpoint.syslog.description_raw_json', {url = "https://github.com/ntop/ntopng/", icon = "fas fa-external-link-alt"}) *}</li>
+</ul>
+</small>
+

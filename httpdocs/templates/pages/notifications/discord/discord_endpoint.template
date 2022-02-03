@@ -1,0 +1,12 @@
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+	<b>{{ i18n("notification_endpoint.discord.url") }}</b>
+    </label>
+    <div class="col-sm-5">
+	<input
+	data-validation-message="{{ i18n('notification_endpoint.discord.validation.invalid_url') }}"
+	data-validation-empty-message="{{ i18n('notification_endpoint.discord.validation.empty_url') }}"
+	data-pattern="https" name="discord_url" type="text" class="form-control" required />
+    </div>
+</div>
+<small>{* i18n('notification_endpoint.discord.webhook_description') *}</small>
