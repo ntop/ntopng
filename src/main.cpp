@@ -159,6 +159,9 @@ int main(int argc, char *argv[])
   }
 #endif
  
+  if(prefs->daemonize_ntopng())
+    ntop->daemonize();
+  
 #ifndef HAVE_NEDGE
   /* Force ZMQ interface creation */
   ntop->broadcastIPSMessage(NULL);
@@ -315,9 +318,6 @@ int main(int argc, char *argv[])
   ntop->initPing();
 #endif
 
-  if(prefs->daemonize_ntopng())
-    ntop->daemonize();
-    
 #ifndef WIN32
   if(prefs->get_pid_path() != NULL) {
     FILE *fd;
