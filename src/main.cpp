@@ -159,6 +159,10 @@ int main(int argc, char *argv[])
   }
 #endif
  
+#ifndef WIN32
+  ntop->initPing();
+#endif
+
   if(prefs->daemonize_ntopng())
     ntop->daemonize();
   
@@ -313,10 +317,6 @@ int main(int argc, char *argv[])
 
     exit(0);
   }
-
-#ifndef WIN32
-  ntop->initPing();
-#endif
 
 #ifndef WIN32
   if(prefs->get_pid_path() != NULL) {
