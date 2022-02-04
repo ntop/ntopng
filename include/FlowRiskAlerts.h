@@ -23,7 +23,6 @@
 #define _FLOW_RISK_ALERTS_H_
 
 #include "ntop_includes.h"
-
 class FlowRiskAlerts {
  private:
   static bool isRiskUnhanlded(ndpi_risk_enum risk);
@@ -36,8 +35,8 @@ class FlowRiskAlerts {
       ndpi_risk2score(NDPI_SET_BIT(r, risk), &c, &s);
 
       return(c + s);
-    } else
-      return(0);
+    } 
+    return(0);
   }
   
   static FlowAlertType getFlowRiskAlertType(ndpi_risk_enum risk);  
