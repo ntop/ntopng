@@ -77,9 +77,10 @@ bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const AlertFif
      )
     return true; /* Nothing to enqueue */
 
-  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES
-      || (!queues_by_prio[prio] &&
-	  !(queues_by_prio[prio] = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
+  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES)
+    return false; /* Enqueue failed */
+  else if ((!queues_by_prio[prio] &&
+	    !(queues_by_prio[prio] = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
     /* Queue not available */
     drops_by_prio[prio]++;
     return false; /* Enqueue failed */

@@ -88,8 +88,8 @@ FlowAlertsLoader::~FlowAlertsLoader() {
 void FlowAlertsLoader::registerAlert(FlowAlertType alert_type, u_int8_t alert_score) {
   if(alert_type.id >= MAX_DEFINED_FLOW_ALERT_TYPE)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Ignoring alert with unknown id %u", alert_type.id);
-
-  alert_to_score[alert_type.id] = alert_score;
+  else
+    alert_to_score[alert_type.id] = alert_score;
 }
 
 /* **************************************************** */
