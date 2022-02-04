@@ -1,0 +1,494 @@
+{#
+    (C) 2021 - ntop.org    
+    Base template for datatables.
+#}
+
+<link rel="stylesheet" href='{{ ntop.getHttpPrefix() }}/css/apexcharts.css'/>
+
+<script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/apexchart/apexcharts.min.js?{{ ntop.getStaticFileEpoch() }}'></script>
+<script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
+
+<!-- <script src="https://unpkg.com/vue@next"></script> -->
+<!-- <script src="https://unpkg.com/vue3-sfc-loader/dist/vue3-sfc-loader.js"></script> -->
+<script src="{{ ntop.getHttpPrefix() }}/vue/vue-dev.js"></script>
+<script src="{{ ntop.getHttpPrefix() }}/vue/vue3-sfc-loader.js"></script>
+<script src="{{ ntop.getHttpPrefix() }}/vue/ntopng_vue_loader.js"></script>
+<script src="{{ ntop.getHttpPrefix() }}/js/utils/ntopng_globals_services.js"></script>
+
+<div class='row'>
+  <div class='col-12'>
+    <div class="mb-2">
+      <div class="w-100">
+	<div clas="range-container d-flex flex-wrap">
+	  <div class="range-picker d-flex m-auto flex-wrap">
+	    {* ui_utils.render_datetime_range_picker_vue(range_picker) *}
+	  </div>
+	</div>
+      </div>
+    </div>
+  </div>
+
+  <div class='col-12'>
+    <div class="card card-shadow">
+      <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
+        <div class="text-center">
+          <div class="spinner-border text-primary mt-5" role="status">
+            <span class="sr-only position-absolute">Loading...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body">
+        {% if show_chart then %}
+        <div class="row">
+
+          <div class="col-12 mb-2" id="ChartDiv">
+            <div class="card h-100 overflow-hidden">
+              {* widget_gui_utils.render_chart(chart.name, {
+              displaying_label = ""
+              }) *}
+            </div>
+          </div>
+      {% end  %}
+
+          <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'>
+            <thead>
+              <tr>
+                {* datatable.columns_header *}
+              </tr>
+            </thead>
+          </table>
+
+          <div class="mt-2">
+            {% if show_tot_records then %}
+            <div class="text-end">
+                <small id="{{ datatable.name }}-tot_records" style="display: none;" class="query text-end"><span class="records">{}</span>.</small>
+            </div>
+            {% end %}
+            <div class="text-start">
+                <small id="{{ datatable.name }}-query-time" style="display: none;" class="query">{{ i18n('db_search.query_performed') }} <span class="seconds">{}</span> seconds. <span id="{{ datatable.name }}-query" style="display: none;" class="badge bg-secondary">SQL</span></small>
+            </div>
+          </div>
+      {% if show_chart then %}
+        </div>
+      {% end  %}
+      </div>
+
+      <div class="card-footer">
+
+        {% if show_permalink then %}
+        <button id="btn-get-permalink" class="btn btn-secondary">
+          <i class="fas fa-link"></i> {{ i18n('graphs.get_permanent_link') }}
+        </button>
+        {% end %}
+
+        {% if show_download then %}
+        <a id="dt-btn-download" download="{{ datatable.download.filename }}" class="btn btn-secondary" href="{{ datatable.download.endpoint }}{{ build_query_params(datatable.datasource.params) }}&format={{ datatable.download.format }}">
+          <i class="fas fa-file-download"></i> {{ datatable.download.i18n }}
+        </a>
+        {% end %}
+
+        {% if show_acknowledge_all then %}
+        <button id="dt-btn-acknowledge" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#dt-acknowledge-modal' data-bs-toggle="modal" class="btn btn-primary">
+          <i class="fas fa fa-user-check"></i> {{ i18n("acknowledge_alerts")}}
+        </button>
+        {% end %}
+
+        {% if show_delete_all then %}
+        <button id="dt-btn-delete" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#dt-delete-modal' data-bs-toggle="modal" class="btn btn-danger">
+          <i class="fas fa fa-trash"></i> {{ i18n("delete_alerts")}}
+        </button>
+        {% end %}
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{# add modals if defined #}
+{% if datatable.modals then %}
+<div class="modals">
+    {% for _, modal in pairs(datatable.modals) do %}
+        {* modal *}
+    {% end %}
+</div>
+{% end %}
+
+<link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
+<script type="text/javascript">
+    i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+</script>
+<script type='text/javascript'>
+    let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+    let $table;
+
+    const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
+
+    {% if show_chart then %}
+    const chartParams = {* json.encode(chart.params) *};
+    {% end %}
+
+    const $btnGetPermaLink = $(`#btn-get-permalink`);
+
+    let intervalId = 0;
+
+    $(`#{{ datatable.name }}-query`).click(function(e) {
+        NtopUtils.copyToClipboard($(e.target).attr('title'), "{{i18n('db_search.query_copied')}}", "{{i18n('unable_to_copy_to_clickboard')}}", $(`#{{ datatable.name }}-query`));
+    })
+
+    function updateDownloadButton() {
+        if (!$(`#dt-btn-download`)) return;
+
+	let status = ntopng_status_manager.get_status();
+        // update the link of the download button
+        const href = $(`#dt-btn-download`).attr('href');
+        const newDownloadURL = new URL(href, location.origin);
+        newDownloadURL.search = new URLSearchParams(status); 
+        newDownloadURL.searchParams.set("visible_columns", getVisibleColumns($table).join(','));
+        newDownloadURL.searchParams.set("format", "txt");
+        $(`#dt-btn-download`).attr('href', newDownloadURL.toString());
+    }
+
+    /* Cards */
+    {% if show_cards then %}
+    let tableBarMenuHtml = null;
+    let updateCardStats = () => {
+	let status = ntopng_status_manager.get_status();
+      let params = (new URLSearchParams(status)).toString();
+
+      $.getJSON(`{* endpoint_cards *}?${params}`, function (data) {
+	  let menuContent = [];
+          for (i = 0; i < data.rsp.length; i++){
+              if (data.rsp[i] == null || data.rsp[i].value == null || data.rsp[i].value[0] == null){
+		  continue;
+              } else {
+		  let menuOptions = [];		  
+                  for (j = 0; j < data.rsp[i].value[0].length; j++) {
+                      // Concat the name with the percentage of the stat
+                      // NB: These name should be filters if available
+                      if(data.rsp[i].value[0][j] != null){
+                          let restText = " (" + (data.rsp[i].value[0][j].count).toFixed(1) + "%)";
+                          if(data.rsp[i].value[0][j].count != 0 && data.rsp[i].value[0][j].count < 0.1){restText = " (< 0.1%)";}
+
+                          let a_tag = "<a class='tag-filter dropdown-item' data-tag-key='" + data.rsp[i].value[0][j].key + 
+                                      "' title='" + ( data.rsp[i].value[0][j].title || data.rsp[i].value[0][j].value) + 
+                                      "' data-tag-value='" + data.rsp[i].value[0][j].value + 
+                                      "' data-tag-label='" + data.rsp[i].value[0][j].label + 
+                                      "' href='#'>" + data.rsp[i].value[0][j].label + "" + restText + "</a>";
+
+			  let itemText = '<li class="dropdown-item pointer">' + a_tag + '</li>';
+			  menuOptions.push(itemText);
+                      }
+                  }
+                  if (menuOptions.length > 0){
+                    let menu = `<div class="btn-group dropdown">
+                                    <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown" type="button" title="`+ data.rsp[i].tooltip + `">` + data.rsp[i].label +
+                                   `</button>
+                                    <ul class="dropdown-menu">`
+                                        + menuOptions.join("") + 
+                                   `</ul>
+                                </div>`;
+                    menuContent.push(menu);
+                  }
+              }
+          }
+	  if (tableBarMenuHtml == null) {
+	      tableBarMenuHtml = $(".dataTables_wrapper .row .text-end").html();
+	  }
+	  let menuContentHtml = '' + menuContent.join("") + '';
+	  $(".dataTables_wrapper .row .text-end").html(menuContentHtml);
+	  $(".dataTables_wrapper .row .text-end").append(tableBarMenuHtml);
+	  $(".dataTables_wrapper .dropdown .tag-filter" ).addClass("dropdown-item");
+      });
+    }
+    {% end %}
+
+  async function reloadTable($table, new_status) {
+      showOverlays();
+      let paramsString = ntopng_status_manager.obj_to_url_params(new_status);
+      if ($table == null) {
+	  return;
+      }
+        // reload the table
+        $table.ajax.url(`{* datatable.datasource.name *}?` + paramsString).load();
+
+	    {% if show_chart then %}
+        try {
+            WidgetUtils.getWidgetByName("{{ chart.name }}").update(new_status);
+        }
+        catch(e) {
+            console.warn(e);
+        }
+	    {% end %}
+
+        {% if show_cards then %}
+        updateCardStats();
+        {% end %} 
+    }
+
+    function printQueryTime($table) {
+        const response = $table.ajax.json();
+        // if the response contains the query time period
+        if (response !== undefined && (response.rsp.stats !== undefined && response.rsp.stats.query_duration_msec !== undefined)) {
+            const sec = response.rsp.stats.query_duration_msec / 1000.0;
+            $(`#{{ datatable.name }}-query-time`).show();
+            $(`#{{ datatable.name }}-query-time .seconds`).text((sec < 0.01) ? '< 0.01' : NtopUtils.ffloat(sec)); // The time is in sec
+            $(`#{{ datatable.name }}-query`).show();
+            $(`#{{ datatable.name }}-query`).prop('title', response.rsp.stats.query);
+            {% if show_tot_records then %}
+            if(response.rsp.stats.num_records_processed !== undefined) {
+                const num_records_processed = response.rsp.stats.num_records_processed;
+                $(`#{{ datatable.name }}-tot_records`).show();
+                $(`#{{ datatable.name }}-tot_records .records`).text(num_records_processed);
+            }
+            {% end %}
+        }
+    }
+
+    function getVisibleColumns($tableApi) {
+        const visibleColumns = [];
+        $tableApi.columns().every(function(idx) {   
+            const $column = $tableApi.column(idx);
+            if ($column.visible() && $column.name() !== '') {
+                visibleColumns.push($column.name());
+            } 
+        });
+
+        return visibleColumns;
+    }
+
+    function loadColumns() {
+
+        let columns = [];
+        {% if datatable.columns_js then %}
+        columns = {* datatable.columns_js *};
+        {% end %}
+
+        /* Actions Column */
+        {% if show_actions then %}
+        columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
+            const buttons = [
+                {% if actions.show_info then %}
+                {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info'},
+                {% end %}
+
+                {% if actions.show_flows then %}
+                /* Button to jump to flow alerts within the same time period */
+                {icon: 'fa-stream', title: "{{ i18n('show_alerts.flow_alerts') }}", modal: '#flow_alerts'},
+		{% end %}
+
+                {% if actions.show_historical then %}
+		/* Button to jump to historical nIndex flows */
+                {icon: 'fa-stream', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows'},
+		{% end %}
+
+                {% if actions.show_pcap_download then %}
+		/* Button to open the pcap download dialog */
+                {icon: 'fa-download', title: "{{ i18n('traffic_recording.pcap_download') }}", onclick: 'pcapDownload(' + dataRow.filter.epoch_begin + ', ' + dataRow.filter.epoch_end+ ', "' + dataRow.filter.bpf + '"); return false;'},
+		{% end %}
+
+                {% if actions.show_acknowledge then %}
+                {icon: 'fa fa-user-check', title: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog'},
+                {% end %}
+
+                {% if actions.show_disable then %}
+                /* Bell button to disable alerts is only supported for hosts and flows */
+                {icon: 'fa-bell-slash', title: "{{ i18n('disable') }}", modal: '#alerts_filter_dialog'},
+                {% end %}
+
+                {% if actions.show_settings then %}
+                {icon: 'fa fa-cog', title: "{{ i18n('settings') }}", href: '#check_settings'},
+                {% end %}
+
+                {% if actions.show_delete then %}
+                {icon: 'fa fa-trash', title: "{{ i18n('remove') }}", modal: '#delete_alert_dialog'},
+                {% end %}
+            ];
+
+            return DataTableUtils.createActionButtons(buttons, dataRow);
+          }
+        });
+        {% end %}
+
+        return columns;
+    }
+
+$(document).ready(function(){
+
+    const datatableButton = {* (datatable.buttons or '[]') *};
+    datatableButton.push({
+        text: '<i class="fas fa-sync"></i>',
+        action: async function (e, dt, node, config) {
+            await onRangePickerChange();
+        }
+    });
+    
+    const columns = loadColumns();
+    const column_order_name = "{{ datatable.order_name }}";
+    let column_order_id = 0;
+    columns.forEach((element, index) => {
+        if(element.data && element.data == column_order_name) {
+            column_order_id = index;
+        }
+    });
+
+    /* Ordering the array in order to have the selected row length at the beginning of the array */
+    let length_array = [10, 50, 100, 250, 500];
+    const index = length_array.indexOf(INITIAL_ROWS_LENGTH);
+    length_array.splice(index, 1);
+    length_array.unshift(INITIAL_ROWS_LENGTH);
+
+    let config = DataTableUtils.getStdDatatableConfig(datatableButton);
+    config = DataTableUtils.extendConfig(config, {
+        serverSide: true,
+        searching: false,
+        info: false,
+        order: [[ column_order_id, "{* datatable.order_sorting *}" ]],
+        pagingType: '{{ datatable.pagination }}',
+        columnDefs: {},
+        ajax: {
+            method: 'get',
+            url: '{* datatable.datasource.endpoint *}',
+            dataSrc: 'rsp.records',
+            data: (data, settings) => {
+
+                const tableApi = settings.oInstance.api();
+                const orderColumnIndex = data.order[0].column;
+                const orderColumnName = tableApi.column(orderColumnIndex).name() || undefined;
+                
+                if (data.order) {
+                    data.order = data.order[0].dir;
+                    data.sort = orderColumnName;
+                }
+
+                if (data.columns !== undefined) {
+                    delete data.columns;
+                }
+
+                if (data.search !== undefined) {
+                    delete data.search;
+                }
+               
+                data.visible_columns = getVisibleColumns(tableApi).join(',');
+
+                return data;
+            },
+            beforeSend: function() {
+                showOverlays();
+            },
+            complete: function() {
+                hideOverlays();
+            }
+        },
+        drawCallback: () => {
+            updateDownloadButton();
+        },
+        lengthMenu: [length_array, length_array],
+        pageLength: INITIAL_ROWS_LENGTH,
+        columns: loadColumns(),
+    });
+
+    $table = $(`#{{ datatable.name }}`).DataTable(config);
+
+    {% if datatable.refresh_rate and datatable.refresh_rate > 0 then %}
+    intervalId = setInterval(function() { reloadTable($table); }, {{ datatable.refresh_rate }});
+    {% end %}
+    
+    DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
+        $table.ajax.reload();
+    });
+
+    // on ajax request
+    $table.on('preXhr', function() {
+    });
+
+    // on ajax request complete then print the query time
+    $table.on('xhr', function() {
+        printQueryTime($table);
+    });
+
+    $table.on('click', `a.tag-filter`, async function (e) {
+        addFilter(e, $(this), $table);
+    });
+
+    /* Top Host and Top Alerts filters */
+    {% if show_cards then %}
+    $(".dataTables_wrapper .row .text-end").on("click", "a.tag-filter", async function (e) {
+            addFilter(e, $(this));
+    });
+    {% end %}
+    
+    $btnGetPermaLink.on('click', function() {
+
+        const $this = $(this);
+        
+        const dummyInput = document.createElement('input');
+        dummyInput.value = location.href;
+        document.body.appendChild(dummyInput);
+        dummyInput.select();
+
+        // copy the url to the clipboard from the dummy input
+        document.execCommand("copy");
+        document.body.removeChild(dummyInput);
+
+        $this.attr("title", "{{ i18n('copied') }}!")
+            .tooltip("dispose")
+            .tooltip()
+            .tooltip("show");
+    });
+
+    ChartWidget.registerEventCallback("{{ chart.name }}", 'zoomed', async (chartContext, { xaxis, yaxis }) => {
+        // the timestamps are in milliseconds, convert them into seconds
+        const begin = moment(xaxis.min);
+        const end = moment(xaxis.max);
+
+	let new_epoch_status = { epoch_begin: Number.parseInt(begin.unix()), epoch_end: Number.parseInt(end.unix()) }; 
+	ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, new_epoch_status, "range-picker");
+    });
+
+    {% if show_cards then %}
+    updateCardStats();
+    {% end %}
+
+    /* HTTP copy URL button */
+    $table.on('click', `#copyHttpUrl`, function (e) {
+        let sampleTextarea = document.createElement("textarea");
+        document.body.appendChild(sampleTextarea);
+        sampleTextarea.value = this.parentElement.getElementsByTagName('a')[0].href; //url
+        sampleTextarea.select(); //select textarea content
+        document.execCommand("copy");
+        document.body.removeChild(sampleTextarea);
+    });
+
+    /* Auto-refresh handling */
+    $(`#autoRefreshEnabled`).on('click', async function(e) {
+        const auto_refresh_button = $(this);
+        const enable_refresh_rate = (auto_refresh_button.hasClass('fa-spin') == false);
+        const auto_refresh_url = '{{ ntop.getHttpPrefix() }}/lua/rest/v2/set/checks/auto_refresh.lua' 
+
+        $.post(auto_refresh_url, {
+            ifid: {{ ifid }},
+            alert_page_refresh_rate_enabled: enable_refresh_rate,
+            csrf: pageCsrf,
+        })  
+        .done(function(rsp) {
+            if(enable_refresh_rate) {
+                if (rsp.rsp.refresh_rate > 0 && !intervalId) {
+                    intervalId = setInterval(function() { onRangePickerChange(true, true); }, rsp.rsp.refresh_rate);
+                    auto_refresh_button.addClass('fa-spin');
+                }
+            }
+            else {
+                clearInterval(intervalId);
+                intervalId = null;
+                auto_refresh_button.removeClass('fa-spin');
+            }
+        })
+    });
+
+    {% if extra_js then %}
+    {* template_utils.gen(extra_js, extra_js_context) *}
+    {% end %}
+
+}); /* $(document).ready() */
+</script>

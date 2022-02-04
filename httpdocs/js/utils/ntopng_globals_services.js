@@ -1,6 +1,5 @@
 /**
-    (C) 2021 - ntop.org    
-    Base template for datatables.
+    (C) 2022 - ntop.org    
 */
 
 /**
@@ -72,7 +71,8 @@ const ntopng_status_manager = function() {
     };
 
     return {
-
+	obj_to_url_params: obj_to_url_params,
+	
         /**
          * Gets the current global application status.
          * @returns {object}

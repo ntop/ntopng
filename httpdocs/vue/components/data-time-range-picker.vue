@@ -1,0 +1,279 @@
+<!-- (C) 2022 - ntop.org     -->
+
+{-verbatim-}
+<template>
+<div style="height:2rem;vertical-align:middle;" class="input-group mx-1">    
+  <div class="form-group">
+    <div class="controls d-flex flex-wrap">
+      <div class="btn-group me-auto btn-group-sm">
+    <slot></slot>
+    <select v-model="select_time_value" @change="change_select_time" style="min-width:10rem" class="form-select">
+            <option value="min_5">{{context.text.show_alerts_presets.min_5}}</option>
+      
+            <option value="min_30">{{context.text.show_alerts_presets.min_30}}</option>
+      
+            <option value="hour">{{context.text.show_alerts_presets.hour}}</option>
+      
+            <option value="day">{{context.text.show_alerts_presets.day}}</option>
+            <option value="week">{{context.text.show_alerts_presets.week}}</option>
+      
+            <option value="month">{{context.text.show_alerts_presets.month}}</option>
+            <option value="year">{{context.text.show_alerts_presets.year}}</option>
+            <option value="custom">{{context.text.show_alerts_presets.custom}}</option>
+    </select>
+    
+    <span class="input-group-text">
+      <i class="fas fa-calendar-alt"></i>
+    </span>
+    <input ref="begin-date" @change="enable_apply=true" @change="change_begin_date" type="date" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input">
+    <input ref="begin-time" @change="enable_apply=true" type="time" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input">
+    <span class="input-group-text">
+      <i class="fas fa-long-arrow-alt-right"></i>
+    </span>
+    <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;">
+    <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input">
+    <span v-show="wrong_date" :title="context.text.wrong_date" style="margin-left:0.2rem;color:red;">
+          <i class="fas fa-exclamation-circle"></i>
+    </span>
+    
+    <button :disabled="!enable_apply" @click="apply" class="btn btn-sm btn-primary m-auto ms-1">{{context.text.apply}}</button>
+    
+    <button @click="jump_time_back()" class="btn btn-link" ref="btn-jump-time-back">
+      <i class="fas fa-long-arrow-alt-left"></i>
+    </button>
+    <button @click="jump_time_ahead()" class="btn btn-link me-2" ref="btn-jump-time-ahead">
+      <i class="fas fa-long-arrow-alt-right"></i>
+    </button>
+    <button @click="zoom(2)" class="btn btn-link" ref="btn-zoom-in">
+      <i class="fas fa-search-plus"></i>
+    </button>
+    <button @click="zoom(0.5)" class="btn btn-link" ref="btn-zoom-out">
+      <i class="fas fa-search-minus"></i>
+    </button>
+    
+      </div>
+    </div>
+  </div>  
+</div>
+</template>
+{-verbatim-}
+
+<script>
+export default {
+    props: {
+    },
+    emits: ["epoch_change"],
+    /** This method is the first method of the component called, it's called before html template creation. */
+    created() {
+    },
+    /** This method is the first method called after html template creation. */
+    mounted() {
+        ntopng_events_manager.on_event_change(this.status_id, ntopng_events.EPOCH_CHANGE, (new_status) => this.on_status_updated(new_status), true);
+    },
+    /** Methods of the component. */
+    methods: {
+        on_status_updated: function(status) {
+            let end_date_time_utc = Date.now();        
+            // default begin date time now - 30 minutes
+            let begin_date_time_utc = end_date_time_utc - 30 * 60 * 1000;
+            if (status.epoch_end != null && status.epoch_begin != null
+            && status.epoch_end > status.epoch_begin) {
+                end_date_time_utc = status.epoch_end * 1000;
+                begin_date_time_utc = status.epoch_begin * 1000;
+            } else {
+                status.epoch_end = this.get_utc_seconds(end_date_time_utc);
+                status.epoch_begin = this.get_utc_seconds(begin_date_time_utc);
+                this.emit_epoch_change(status, this.status_id);
+            }
+            this.set_date_time("begin-date", begin_date_time_utc);
+            this.set_date_time("begin-time", begin_date_time_utc);
+            this.set_date_time("end-date", end_date_time_utc);
+            this.set_date_time("end-time", end_date_time_utc);
+            this.set_select_time_value(begin_date_time_utc, end_date_time_utc);
+            this.epoch_status = status;
+            this.enable_apply = false;
+        },
+        set_select_time_value: function(begin_utc, end_utc) {
+            let s_values = this.get_select_values();
+            const tolerance = 60;
+            const now = this.get_utc_seconds(Date.now());
+            const end_utc_s = this.get_utc_seconds(end_utc);
+            const begin_utc_s = this.get_utc_seconds(begin_utc);
+            
+            if (this.is_between(end_utc_s, now, tolerance)) {
+                if (this.is_between(begin_utc_s, now - s_values.min_5, tolerance)) {
+                    this.select_time_value = "min_5";
+                } else if (this.is_between(begin_utc_s, now - s_values.min_30, tolerance)) {
+                    this.select_time_value = "min_30";
+                } else if (this.is_between(begin_utc_s, now - s_values.hour, tolerance)) {
+                    this.select_time_value = "hour";
+                } else if (this.is_between(begin_utc_s, now - s_values.day, tolerance)) {
+                    this.select_time_value = "day";
+                } else if (this.is_between(begin_utc_s, now - s_values.week, tolerance)) {
+                    this.select_time_value = "week";
+                } else if (this.is_between(begin_utc_s, now - s_values.month, tolerance)) {
+                    this.select_time_value = "month";
+                } else if (this.is_between(begin_utc_s, now - s_values.year, tolerance)) {
+                    this.select_time_value = "year";
+                } else {
+                    this.select_time_value = "custom";
+                }
+            } else {
+                this.select_time_value = "custom";
+            }
+            
+        },
+        apply: function() {
+            let date_begin = this.$refs["begin-date"].valueAsDate;
+            let d_time_begin = this.$refs["begin-time"].valueAsDate;
+            date_begin.setHours(d_time_begin.getHours());
+            date_begin.setMinutes(d_time_begin.getMinutes() + d_time_begin.getTimezoneOffset());
+            date_begin.setSeconds(d_time_begin.getSeconds());
+            
+            let date_end = this.$refs["end-date"].valueAsDate;
+            let d_time_end = this.$refs["end-time"].valueAsDate;
+            date_end.setHours(d_time_end.getHours());
+            date_end.setMinutes(d_time_end.getMinutes() + d_time_end.getTimezoneOffset());
+            date_end.setSeconds(d_time_end.getSeconds());
+            let epoch_begin = this.get_utc_seconds(date_begin.valueOf());
+            let epoch_end = this.get_utc_seconds(date_end.valueOf());
+            let status = { epoch_begin, epoch_end };
+            this.emit_epoch_change(status);
+        },
+        set_date_time: function(ref_name, utc_ts) {
+            utc_ts = this.get_utc_seconds(utc_ts) * 1000;        
+            let date_time = new Date(utc_ts);
+            date_time.setMinutes(date_time.getMinutes() - date_time.getTimezoneOffset());
+            this.$refs[ref_name].valueAsDate = date_time;
+        },
+        change_select_time: function() {
+            let s_values = this.get_select_values();
+            let interval_s = s_values[this.select_time_value];
+            let epoch_end = this.get_utc_seconds(Date.now());
+            let epoch_begin = epoch_end - interval_s;
+            let status = { epoch_begin: epoch_begin, epoch_end: epoch_end };
+            this.emit_epoch_change(status);
+        },
+        get_select_values: function() {
+            let min = 60;
+            return {
+                min_5: min * 5,
+                min_30: min * 30,
+                hour: min * 60,
+                day: this.get_last_day_seconds(), 
+                week: this.get_last_week_seconds(), 
+                month: this.get_last_month_seconds(), 
+                year: this.get_last_year_seconds(),
+            };
+        },
+        get_utc_seconds: function(utc_ts) {
+            return Number.parseInt(utc_ts / 1000);
+        },
+        is_between: function(x, y, tolerance) {
+            return x >= y - tolerance && x <= y;
+        },
+        get_last_day_seconds: function() {
+            let t = new Date();
+            return this.get_utc_seconds(Date.now() - t.setDate(t.getDate() - 1));
+        },
+        get_last_week_seconds: function() {
+            let t = new Date();
+            return this.get_utc_seconds(Date.now() - t.setDate(t.getDate() - 7));
+        },
+        get_last_month_seconds: function() {
+            let t = new Date();
+            return this.get_utc_seconds(Date.now() - t.setMonth(t.getMonth() - 1));
+        },
+        get_last_year_seconds: function() {
+            let t = new Date();
+            return this.get_utc_seconds(Date.now() - t.setMonth(t.getMonth() - 12));
+        },
+        zoom: function(scale) {
+            if (this.epoch_status == null) { return; }
+            let interval = (this.epoch_status.epoch_end - this.epoch_status.epoch_begin) / scale;
+            let center = (this.epoch_status.epoch_end / 2 + this.epoch_status.epoch_begin / 2);
+            this.epoch_status.epoch_begin = center - interval / 2;
+            this.epoch_status.epoch_end = center + interval / 2;
+            let now = this.get_utc_seconds(Date.now());
+            if (this.epoch_status.epoch_end > now) {
+                this.epoch_status.epoch_end = now;
+            }
+            this.epoch_status.epoch_end = Number.parseInt(this.epoch_status.epoch_end);
+            this.epoch_status.epoch_begin = Number.parseInt(this.epoch_status.epoch_begin);
+            if (this.epoch_status.epoch_begin == this.epoch_status.epoch_end) {
+                this.epoch_status.epoch_begin -= 2;
+            }
+            this.emit_epoch_change(this.epoch_status);
+        },
+        jump_time_back: function() {
+            if (this.epoch_status == null) { return; }
+            const min = 60;
+            this.epoch_status.epoch_begin -= (30 * min);
+            this.epoch_status.epoch_end -= (30 * min);
+            this.emit_epoch_change(this.epoch_status);
+        },
+        jump_time_ahead: function() {
+            if (this.epoch_status == null) { return; }
+            const min = 60;
+            let previous_end = this.epoch_status.epoch_end;
+            let now = this.get_utc_seconds(Date.now());
+            
+            this.epoch_status.epoch_end += (30 * min);
+            if (this.epoch_status.epoch_end > now) {
+                this.epoch_status.epoch_end = now;
+            }
+            this.epoch_status.epoch_begin += (this.epoch_status.epoch_end - previous_end);
+            this.emit_epoch_change(this.epoch_status);
+        },
+        emit_epoch_change: function(epoch_status, id) {
+            if (epoch_status.epoch_end == null || epoch_status.epoch_begin == null) { return; };
+                this.wrong_date = false;
+            if (epoch_status.epoch_begin > epoch_status.epoch_end) {
+                this.wrong_date = true;
+            return;
+            }
+            this.$emit("epoch_change", epoch_status);
+            ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_status, id);
+        },
+        change_begin_date: function() {
+        },
+    },
+    /**
+    Private date of vue component.
+     */
+    data () {
+        return {
+            status_id: "data-time-range-picker" + this._uid,
+            epoch_status: null,
+            enable_apply: false,
+            select_time_value: "min_5",
+            wrong_date: false,
+            context: {
+                text: {
+                    show_alerts_presets: {
+                    min_5: "Last 5 Min",
+                    min_30: "Last 30 Min",
+                    hour: "Last Hour",
+                    day: "Last Day",
+                    week: "Last Week",
+                    month: "Last Month",
+                    year: "Last Year",
+                custom: "Custom",
+                    },
+                wrong_date: "Invalid input date",
+                    apply: "Apply",
+                },
+            },
+        };
+    },
+}
+
+</script>
+
+<style scoped>
+.date_time_input {
+  width: 10.5rem;
+  max-width: 10.5rem;
+  min-width: 10.5rem;
+}
+</style>
