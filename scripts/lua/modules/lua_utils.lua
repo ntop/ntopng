@@ -273,7 +273,7 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_h
       'Cache-Control: max-age=0, no-cache, no-store',
       'Server: ntopng '..info["version"]..' ['.. info["platform"]..']',
       'Set-Cookie: tzname=' .. info.tzname .. '; Max-Age=60',
-      'Set-Cookie: timezone' .. info.timezone .. '; Max-Age=60',
+      'Set-Cookie: timezone=' .. info.timezone .. '; Max-Age=60',
       'Pragma: no-cache',
       'X-Frame-Options: DENY',
       'X-Content-Type-Options: nosniff',
