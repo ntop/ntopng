@@ -72,7 +72,8 @@ static int ntop_network_get_alerts(lua_State* vm) {
 static int ntop_network_check_context(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *entity_val;
-
+  bool ret = false;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -84,11 +85,13 @@ static int ntop_network_check_context(lua_State* vm) {
 
     if(!iface || (network_id == (u_int8_t)-1) || ((c->network = iface->getNetworkStats(network_id)) == NULL)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set context for network %s", entity_val);
-      return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-    }
-  }
+    } else
+      ret = true;
+  } else
+    ret = true;
+  
+  lua_pushboolean(vm, ret);
 
-  lua_pushnil(vm);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 

@@ -3846,10 +3846,11 @@ static int ntop_interface_check_context(lua_State* vm) {
   if((c->iface == NULL) || (strcmp(c->iface->getEntityValue().c_str(), entity_val)) != 0) {
     /* NOTE: settting a context for a differnt interface is currently not supported */
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad context for interface %s", entity_val);
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  }
 
-  lua_pushnil(vm);
+    lua_pushboolean(vm, false);
+  } else
+    lua_pushboolean(vm, true);
+
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 

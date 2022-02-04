@@ -350,11 +350,21 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   local released = nil
 
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
-    interface.checkContext(entity_info.entity_val)
-    released = interface.releaseTriggeredAlert(table.unpack(params))
+     if(interface.checkContext(entity_info.entity_val) == false) then
+	alertErrorTraceback("Invalid interface entity detected "..entity_info.alert_entity.entity_id)
+	tprint(entity_info)
+	return(false)
+     else
+	released = interface.releaseTriggeredAlert(table.unpack(params))
+     end
   elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("network")) then
-    network.checkContext(entity_info.entity_val)
-    released = network.releaseTriggeredAlert(table.unpack(params))
+     if(network.checkContext(entity_info.entity_val) == false) then
+	alertErrorTraceback("Invalid network entity detected "..entity_info.alert_entity.entity_id)
+	tprint(entity_info)
+	return(false)
+     else 
+	released = network.releaseTriggeredAlert(table.unpack(params))
+     end
   else
     released = interface.releaseExternalAlert(entity_info.alert_entity.entity_id, entity_info.entity_val, table.unpack(params))
   end
