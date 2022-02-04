@@ -91,6 +91,8 @@ int main(int argc, char *argv[])
   bool has_view_all = false;
   FILE *fd;
   ThreadedActivity *boot_activity;  
+
+  tzset(); /* Init time and timezone */
   
 #ifdef WIN32
   initWinsock32();
