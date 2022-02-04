@@ -123,6 +123,8 @@ HEADERS = $(wildcard include/*.h) $(wildcard include/flow_checks/*.h) $(wildcard
 INC     = $(wildcard src/*.inc)
 OBJECTS_NO_MAIN := $(filter-out src/main.o,$(OBJECTS))
 
+TEST_FILES = $(wildcard tests/*.c) 
+
 %.o: %.c $(HEADERS) $(INC) Makefile
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
@@ -132,7 +134,10 @@ OBJECTS_NO_MAIN := $(filter-out src/main.o,$(OBJECTS))
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
 $(TARGET): $(OBJECTS) $(LIB_TARGETS) Makefile
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -Wall $(LIBS) -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -lm -Wall $(LIBS) -o $@
+
+unit_test: $(TEST_FILES) $(LIB_TARGETS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(TEST_FILES) -lgtest $(LIBS) -o ./tests/unit_tests
 
 test_fifo_queue: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
 	rm src/FifoStringsQueue.o
