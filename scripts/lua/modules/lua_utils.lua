@@ -272,7 +272,7 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_h
    local lines = {
       'Cache-Control: max-age=0, no-cache, no-store',
       'Server: ntopng '..info["version"]..' ['.. info["platform"]..']',
-      'Set-Cookie: tzname=' .. info.tzname .. '; Max-Age=60',
+      'Set-Cookie: tzname=' .. info.tzname .. '; path=/' .. cookie_attr,
       'Pragma: no-cache',
       'X-Frame-Options: DENY',
       'X-Content-Type-Options: nosniff',
@@ -290,7 +290,7 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_h
    end
 
    if(info.timezone ~= nil) then
-      lines[#lines + 1] = 'Set-Cookie: timezone=' .. info.timezone .. '; Max-Age=60'
+      lines[#lines + 1] = 'Set-Cookie: timezone=' .. info.timezone .. '; path=/' .. cookie_attr
    end
    
    if(content_disposition ~= nil) then
