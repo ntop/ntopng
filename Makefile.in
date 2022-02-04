@@ -134,20 +134,20 @@ TEST_FILES = $(wildcard tests/*.c)
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
 $(TARGET): $(OBJECTS) $(LIB_TARGETS) Makefile
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -lm -Wall $(LIBS) -o $@
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) $(OBJECTS) -lm -Wall $(LIBS) -o $@
 
 unit_test: $(TEST_FILES) $(LIB_TARGETS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(TEST_FILES) -lgtest $(LIBS) -o ./tests/unit_tests
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) $(TEST_FILES) -lgtest $(LIBS) -o ./tests/unit_tests
 
 test_fifo_queue: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
 	rm src/FifoStringsQueue.o
 	$(MAKE) CPPFLAGS="${CPPFLAGS} -DTEST_FIFO_QUEUE -DDEBUG_FIFO_QUEUE" src/FifoStringsQueue.o
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS_NO_MAIN) -Wall $(LIBS) -o $@
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) $(OBJECTS_NO_MAIN) -Wall $(LIBS) -o $@
 
 test_alert_engine: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
 	rm src/AlertCheckLuaEngine.o
 	$(MAKE) CPPFLAGS="${CPPFLAGS} -DTEST_CHECK_ENGINE" src/AlertCheckLuaEngine.o
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS_NO_MAIN) -Wall $(LIBS) -o $@
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) $(OBJECTS_NO_MAIN) -Wall $(LIBS) -o $@
 
 $(LUA_LIB):
 	$(MAKE) -C $(LUA_HOME) $(LUA_PLATFORM)

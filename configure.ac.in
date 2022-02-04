@@ -567,6 +567,9 @@ if test x$UGLIFYJS != x; then
   UGLIFYJS_MAJOR_VERSION="${UGLIFYJS_VERSION%%.*}"
 fi
 
+AC_CHECK_LIB(gtest, main, AC_MSG_RESULT(Please type 'make unit_test' to compile unit tests),
+AC_MSG_RESULT([Please do 'sudo apt-get install libgtest-dev' in order to enable unit tests]))
+
 AC_CHECK_LIB([rrd_th], [rrd_update_r], [LIBRRD_LD_FLAGS=-lrrd_th], [LIBRRD_LD_FLAGS=`pkg-config --libs librrd`])
 
 AC_CHECK_LIB([nl], [nl_handle_alloc], [LIBS="${LIBS} -lnl"])
@@ -607,7 +610,7 @@ if test -f "/etc/centos-release"; then
 fi
 
 AC_CHECK_LIB([maxminddb], [MMDB_lookup_sockaddr])
-AC_HAVE_HEADERS(maxminddb.h)
+AC_CHECK_HEADERS(maxminddb.h)
 if test ".${ac_cv_lib_maxminddb_MMDB_lookup_sockaddr}" = ".yes" &&
    test ".${ac_cv_header_maxminddb_h}" = ".yes"; then
    DOWNLOAD_GEOIP=1
