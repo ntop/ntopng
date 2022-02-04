@@ -199,7 +199,6 @@ static void set_session_cookie(const struct mg_connection * const conn,
 
   if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
      || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, LIVE_TRAFFIC_URL, strlen(LIVE_TRAFFIC_URL))
-     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, GRAFANA_URL, strlen(GRAFANA_URL))
      || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, POOL_MEMBERS_ASSOC_URL, strlen(POOL_MEMBERS_ASSOC_URL)))
     return;
 
