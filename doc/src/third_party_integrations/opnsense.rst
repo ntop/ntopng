@@ -28,7 +28,11 @@ And install the repository using the command provided at https://packages.ntop.o
 
 .. code:: bash
 
-   pkg add https://packages.ntop.org/FreeBSD/FreeBSD:12:amd64/latest/ntop-1.0.txz   
+   pkg add https://packages.ntop.org/FreeBSD/FreeBSD:13:amd64/latest/ntop-1.0.pkg
+
+.. note::
+
+   On older OPNsense versions the package prefix is .txz so the command will be  pkg add https://packages.ntop.org/FreeBSD/FreeBSD:12:amd64/latest/ntop-1.0.txz
 
 The output should look like the below.
 
