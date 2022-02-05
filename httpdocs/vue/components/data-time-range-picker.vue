@@ -25,18 +25,20 @@
     <span class="input-group-text">
       <i class="fas fa-calendar-alt"></i>
     </span>
-    <input ref="begin-date" @change="enable_apply=true" @change="change_begin_date" type="date" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input">
-    <input ref="begin-time" @change="enable_apply=true" type="time" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input">
+    <input  class="flatpickr flatpickr-input" type="text" placeholder="Scegli una data.." data-id="datetime" ref="begin-date">
+    <!-- <input ref="begin-date" @change="enable_apply=true" @change="change_begin_date" type="date" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
+    <!-- <input ref="begin-time" @change="enable_apply=true" type="time" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
     <span class="input-group-text">
       <i class="fas fa-long-arrow-alt-right"></i>
     </span>
-    <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;">
-    <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input">
+    <input  class="flatpickr flatpickr-input" type="text" placeholder="Scegli una data.." data-id="datetime" ref="end-date">
+    <!-- <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;"> -->
+    <!-- <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input"> -->
     <span v-show="wrong_date" :title="context.text.wrong_date" style="margin-left:0.2rem;color:red;">
           <i class="fas fa-exclamation-circle"></i>
     </span>
     
-    <button :disabled="!enable_apply" @click="apply" class="btn btn-sm btn-primary m-auto ms-1">{{context.text.apply}}</button>
+    <button :disabled="!enable_apply || wrong_date" @click="apply" class="btn btn-sm btn-primary m-auto ms-1">{{context.text.apply}}</button>
     
     <button @click="jump_time_back()" class="btn btn-link" ref="btn-jump-time-back">
       <i class="fas fa-long-arrow-alt-left"></i>
@@ -68,8 +70,33 @@ export default {
     },
     /** This method is the first method called after html template creation. */
     mounted() {
+	let me = this;
+	let f_set_picker = (picker, var_name) => {
+	    return $(this.$refs[picker]).flatpickr({
+	 	enableTime: true,
+	 	dateFormat: "d-m-Y H:i",
+		//locale: "it",
+	 	//dateFormat: "Y-m-d H:i",
+	 	time_24hr: true,
+		clickOpens: true,
+		//mode: "range",
+	 	//static: true,
+	 	onChange: function(selectedDates, dateStr, instance) {
+	 	    let utc_s = me.get_utc_seconds(new Date(selectedDates).getTime());
+		    //me[var_name] = utc_s;
+		    me.enable_apply = true;
+		    me.wrong_date = me.flat_begin_date.selectedDates[0].getTime() > me.flat_end_date.selectedDates[0].getTime();
+		    console.log(me.wrong_date);
+	 	    //me.a[data] = d;
+	 	},
+	    });
+	};
+	this.flat_begin_date = f_set_picker("begin-date", "begin_date");
+	this.flat_end_date = f_set_picker("end-date", "end_date");
+	
         ntopng_events_manager.on_event_change(this.status_id, ntopng_events.EPOCH_CHANGE, (new_status) => this.on_status_updated(new_status), true);
     },
+
     /** Methods of the component. */
     methods: {
         on_status_updated: function(status) {
@@ -85,10 +112,12 @@ export default {
                 status.epoch_begin = this.get_utc_seconds(begin_date_time_utc);
                 this.emit_epoch_change(status, this.status_id);
             }
-            this.set_date_time("begin-date", begin_date_time_utc);
-            this.set_date_time("begin-time", begin_date_time_utc);
-            this.set_date_time("end-date", end_date_time_utc);
-            this.set_date_time("end-time", end_date_time_utc);
+	    this.flat_begin_date.setDate(new Date(status.epoch_begin * 1000));
+	    this.flat_end_date.setDate(new Date(status.epoch_end * 1000));
+            // this.set_date_time("begin-date", begin_date_time_utc, false);
+            // this.set_date_time("begin-time", begin_date_time_utc, true);
+            // this.set_date_time("end-date", end_date_time_utc, false);
+            // this.set_date_time("end-time", end_date_time_utc, true);
             this.set_select_time_value(begin_date_time_utc, end_date_time_utc);
             this.epoch_status = status;
             this.enable_apply = false;
@@ -124,27 +153,39 @@ export default {
             
         },
         apply: function() {
-            let date_begin = this.$refs["begin-date"].valueAsDate;
-            let d_time_begin = this.$refs["begin-time"].valueAsDate;
-            date_begin.setHours(d_time_begin.getHours());
-            date_begin.setMinutes(d_time_begin.getMinutes() + d_time_begin.getTimezoneOffset());
-            date_begin.setSeconds(d_time_begin.getSeconds());
+            // let date_begin = this.$refs["begin-date"].valueAsDate;
+            // let d_time_begin = this.$refs["begin-time"].valueAsDate;
+            // date_begin.setHours(d_time_begin.getHours());
+            // date_begin.setMinutes(d_time_begin.getMinutes() + d_time_begin.getTimezoneOffset());
+            // date_begin.setSeconds(d_time_begin.getSeconds());
             
-            let date_end = this.$refs["end-date"].valueAsDate;
-            let d_time_end = this.$refs["end-time"].valueAsDate;
-            date_end.setHours(d_time_end.getHours());
-            date_end.setMinutes(d_time_end.getMinutes() + d_time_end.getTimezoneOffset());
-            date_end.setSeconds(d_time_end.getSeconds());
-            let epoch_begin = this.get_utc_seconds(date_begin.valueOf());
-            let epoch_end = this.get_utc_seconds(date_end.valueOf());
-            let status = { epoch_begin, epoch_end };
+            // let date_end = this.$refs["end-date"].valueAsDate;
+            // let d_time_end = this.$refs["end-time"].valueAsDate;
+            // date_end.setHours(d_time_end.getHours());
+            // date_end.setMinutes(d_time_end.getMinutes() + d_time_end.getTimezoneOffset());
+            // date_end.setSeconds(d_time_end.getSeconds());
+            // let epoch_begin = this.get_utc_seconds(date_begin.valueOf());
+            // let epoch_end = this.get_utc_seconds(date_end.valueOf());
+	    let now_s = this.get_utc_seconds(Date.now());
+	    let begin_date = this.flat_begin_date.selectedDates[0];
+	    let epoch_begin = this.get_utc_seconds(begin_date.getTime());
+	    let end_date = this.flat_end_date.selectedDates[0];
+	    let epoch_end = this.get_utc_seconds(end_date.getTime());
+	    if (epoch_end > now_s) {
+		epoch_end = now_s;
+	    }
+            let status = { epoch_begin , epoch_end };
             this.emit_epoch_change(status);
         },
-        set_date_time: function(ref_name, utc_ts) {
+        set_date_time: function(ref_name, utc_ts, is_time) {
             utc_ts = this.get_utc_seconds(utc_ts) * 1000;        
             let date_time = new Date(utc_ts);
             date_time.setMinutes(date_time.getMinutes() - date_time.getTimezoneOffset());
-            this.$refs[ref_name].valueAsDate = date_time;
+	    if (is_time) {
+		this.$refs[ref_name].value = date_time.toISOString().substring(11,16);
+	    } else {
+		this.$refs[ref_name].value = date_time.toISOString().substring(0,10);
+	    }
         },
         change_select_time: function() {
             let s_values = this.get_select_values();
@@ -248,6 +289,8 @@ export default {
             enable_apply: false,
             select_time_value: "min_5",
             wrong_date: false,
+	    flat_begin_date: null,
+	    flat_end_date: null,
             context: {
                 text: {
                     show_alerts_presets: {
