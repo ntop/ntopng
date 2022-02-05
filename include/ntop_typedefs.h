@@ -476,6 +476,7 @@ typedef enum {
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 
   MAX_FLOW_ALERT_TYPE = 127 /* Constrained by `Bitmap128 alert_map` inside Flow.h */
+  
 } FlowAlertTypeEnum;
 
 typedef struct {

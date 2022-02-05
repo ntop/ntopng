@@ -19,15 +19,17 @@
  *
  */
 
+#ifndef _TEST_ADDRESS_RESOLUTION_H_
+#define _TEST_ADDRESS_RESOLUTION_H_
 #include "ntop_includes.h"
-#ifndef TEST_ADDRESS_RESOLUTION_H
-#define TEST_ADDRESS_RESOLUTION_H
 #include "gtest/gtest.h"
 namespace ntop {
 class AddressResolutionTest : public ::testing::Test {
  protected:
   void SetUp() override {}
   void TearDown() override {}
+  private:
+  AddressResolution resolver_;
 };
 }
 #endif

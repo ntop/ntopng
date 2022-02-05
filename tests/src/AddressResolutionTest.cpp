@@ -19,6 +19,21 @@
  *
  */
 #include "ntop_includes.h"
-#include "AddressTestResolution.h"
+#include "AddressResolutionTest.h"
+TEST_F(AddressResolution, ShouldNotCrashWhenNull) {
+    resolver_.resolveHostName(NULL);
+}
+TEST_F(AddressResolution, ShouldNotCrashWhenNullDestination) {
+    resolver_.resolveHost("www.yahoo.com");
+}
+TEST_F(AddressResolution, ShouldResolveCorrectly) {
+    // A: arrange
+    std::string valueToResolve{"media-router-fp73.prod.media.vip.ne1.yahoo.com"}
+    const char maxIpSize[1024];
+    // A: act
+    resolver_.resolveHost(valueToResolve.c_str(), maxIpSize);
+    // A: assert
+    EXPECT_EQ("74.6.231.20", maxIpSize);
+}
 
 
