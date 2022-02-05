@@ -1,0 +1,1 @@
+{"rc":0,"rc_str":"OK","rc_str_hr":"Success","rsp":{"bcast_domains":{"10.0.0.0/24":{"ghost_network":false,"hits":1},"192.168.2.0/24":{"ghost_network":false,"hits":35}}}}

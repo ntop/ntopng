@@ -1,0 +1,2 @@
+This folder is used to store the ntopng logs for tests which are failing
+due to ntopng errors or warnings (for debugging).

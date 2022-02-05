@@ -1,0 +1,1 @@
+{"rc":0,"rc_str":"OK","rc_str_hr":"Success","rsp":[{"label":"TLS","url":"/lua/flows_stats.lua?application=TLS","value":3145488},{"label":"Facebook","url":"/lua/flows_stats.lua?application=Facebook","value":230327},{"label":"GoogleServices","url":"/lua/flows_stats.lua?application=GoogleServices","value":124664},{"label":"Other","value":124278}]}

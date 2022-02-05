@@ -1,0 +1,8 @@
+input: test_01.pcap
+
+ignore:
+
+pre: |
+
+post: |
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0}' http://localhost:3333/lua/rest/v2/get/flow/l4/counters.lua
