@@ -266,11 +266,11 @@ class Ntop {
    * @param symbolic Symbolic name.
    * @param symbolic_len Length of symbolic name.
    */
-  inline void resolveHostName(char *numeric_ip, char *symbolic, u_int symbolic_len) {
+  inline void resolveHostName(const char *numeric_ip, char *symbolic, u_int symbolic_len) {
     address->resolveHostName(numeric_ip, symbolic, symbolic_len);
   }
 
-  inline bool resolveHost(char *host, char *rsp, u_int rsp_len, bool v4) {
+  inline bool resolveHost(const char *host, char *rsp, u_int rsp_len, bool v4) {
     return address->resolveHost(host, rsp, rsp_len, v4);
   }
 

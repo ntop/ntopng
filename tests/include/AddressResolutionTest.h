@@ -23,13 +23,15 @@
 #define _TEST_ADDRESS_RESOLUTION_H_
 #include "ntop_includes.h"
 #include "gtest/gtest.h"
-namespace ntop {
+namespace ntoptesting {
+
 class AddressResolutionTest : public ::testing::Test {
- protected:
-  void SetUp() override {}
-  void TearDown() override {}
-  private:
+  protected:
   AddressResolution resolver_;
+  static constexpr const char* address_ =  "media-router-fp73.prod.media.vip.ne1.yahoo.com";
 };
 }
+// TODO remove because of linking
+AfterShutdownAction afterShutdownAction = after_shutdown_nop;
+
 #endif

@@ -55,10 +55,13 @@ AddressResolution::~AddressResolution() {
 
 /* ***************************************** */
 
-void AddressResolution::resolveHostName(char *_numeric_ip, char *symbolic, u_int symbolic_len) {
+void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic, u_int symbolic_len) {
   char rsp[128], query[64], *at, *numeric_ip;
   u_int numeric_ip_len;
-
+  
+  if ((numeric_ip == NULL) || (symbolic == NULL)) {
+      return;
+  }
   snprintf(query, sizeof(query), "%s", _numeric_ip);
   if((at = strchr(query, '@')) != NULL) at[0] = '\0';
   numeric_ip = query;
@@ -138,10 +141,13 @@ void AddressResolution::resolveHostName(char *_numeric_ip, char *symbolic, u_int
 
 /* **************************************************** */
 
-bool AddressResolution::resolveHost(char *host, char *rsp, u_int rsp_len, bool v4) {
+bool AddressResolution::resolveHost(const char *host, char *rsp, u_int rsp_len, bool v4) {
   struct addrinfo hints, *servinfo, *rp;
   const char *dst = NULL;
-
+  if ((host == NULL) || (rsp == NULL)) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Error resolution failure: input invalid");
+      return false;
+  }
   memset(&hints, 0, sizeof(hints));
 
   hints.ai_family = v4 ? AF_INET : AF_INET6;

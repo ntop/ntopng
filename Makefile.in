@@ -137,8 +137,8 @@ TEST_HEADERS = $(wildcard tests/include/*.h)
 $(TARGET): $(OBJECTS) $(LIB_TARGETS) Makefile
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) $(OBJECTS) -lm -Wall $(LIBS) -o $@
 
-unit_test: $(TEST_FILES) ${TEST_HEADERS} $(LIB_TARGETS)
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) $(TEST_FILES) -lgtest $(LIBS) -o ./tests/unit_tests
+unit_test: $(TEST_FILES) $(OBJECTS_NO_MAIN) ${TEST_HEADERS} $(LIB_TARGETS)
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) $(TEST_FILES) $(OBJECTS_NO_MAIN) -lm -lgtest $(LIBS) -o ./tests/unit_tests
 
 test_fifo_queue: $(OBJECTS_NO_MAIN) $(LIB_TARGETS)
 	rm src/FifoStringsQueue.o

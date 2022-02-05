@@ -18,22 +18,22 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  */
-#include "ntop_includes.h"
-#include "AddressResolutionTest.h"
-TEST_F(AddressResolution, ShouldNotCrashWhenNull) {
-    resolver_.resolveHostName(NULL);
+#include "../include/AddressResolutionTest.h"
+namespace ntoptesting {
+TEST_F(AddressResolutionTest, ShouldNotCrashWhenNull) {
+    resolver_.resolveHostName(NULL,0, true);
 }
-TEST_F(AddressResolution, ShouldNotCrashWhenNullDestination) {
-    resolver_.resolveHost("www.yahoo.com");
+TEST_F(AddressResolutionTest, ShouldNotCrashWhenNullDestination) {
+    resolver_.resolveHost(address_, NULL, 0, true);
 }
-TEST_F(AddressResolution, ShouldResolveCorrectly) {
+TEST_F(AddressResolutionTest, ShouldResolveCorrectly) {
     // A: arrange
-    std::string valueToResolve{"media-router-fp73.prod.media.vip.ne1.yahoo.com"}
-    const char maxIpSize[1024];
+    char maxIpSize[1024];
     // A: act
-    resolver_.resolveHost(valueToResolve.c_str(), maxIpSize);
+    resolver_.resolveHost(address_, maxIpSize, sizeof(maxIpSize), true);
     // A: assert
     EXPECT_EQ("74.6.231.20", maxIpSize);
+}
 }
 
 
