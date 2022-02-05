@@ -21,7 +21,7 @@
 #include "../include/AddressResolutionTest.h"
 namespace ntoptesting {
 TEST_F(AddressResolutionTest, ShouldNotCrashWhenNull) {
-    resolver_.resolveHostName(NULL,0, true);
+    resolver_.resolveHostName(NULL, NULL, true);
 }
 TEST_F(AddressResolutionTest, ShouldNotCrashWhenNullDestination) {
     resolver_.resolveHost(address_, NULL, 0, true);
