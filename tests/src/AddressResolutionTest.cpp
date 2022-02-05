@@ -20,8 +20,15 @@
  */
 #include "../include/AddressResolutionTest.h"
 namespace ntoptesting {
+    void AddressResolutionTest::SetUp() {
+        const char* appName = "ntopng";
+        ntop_ = std::make_unique<Ntop>(appName);
+    }
+    void AddressResolutionTest::TearDown() {
+    }
+    
 TEST_F(AddressResolutionTest, ShouldNotCrashWhenNull) {
-    resolver_.resolveHostName(NULL, NULL, true);
+    EXPECT_THROW(resolver_.resolveHostName(NULL, NULL, true), std::invalid_argument);
 }
 TEST_F(AddressResolutionTest, ShouldNotCrashWhenNullDestination) {
     resolver_.resolveHost(address_, NULL, 0, true);

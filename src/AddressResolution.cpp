@@ -40,7 +40,6 @@ AddressResolution::AddressResolution() {
 /* **************************************** */
 
 AddressResolution::~AddressResolution() {
-  if (ntop != NULL) {
   if(ntop->getPrefs() && 
   ntop->getPrefs()->is_dns_resolution_enabled()) {
     for(int i = 0; i < num_resolvers; i++) {
@@ -50,8 +49,9 @@ AddressResolution::~AddressResolution() {
   }
 
   free(resolveThreadLoop);
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Address resolution stats [%u resolved][%u failures]",
+  Trace *log = ntop->getTrace(); 
+  if (log != NULL) {
+    log->traceEvent(TRACE_NORMAL, "Address resolution stats [%u resolved][%u failures]",
 			       num_resolved_addresses, num_resolved_fails);
   }
 }
@@ -61,9 +61,10 @@ AddressResolution::~AddressResolution() {
 void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic, u_int symbolic_len) {
   char rsp[128], query[64], *at, *numeric_ip;
   u_int numeric_ip_len;
-  
-  if ((numeric_ip != NULL) && (symbolic != NULL)) {
-    
+ 
+  if ((_numeric_ip == NULL) || (symbolic == NULL)) {
+     throw std::invalid_argument("invalid null arguments");
+  }
   
   snprintf(query, sizeof(query), "%s", _numeric_ip);
   if((at = strchr(query, '@')) != NULL) at[0] = '\0';
@@ -139,7 +140,6 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
     }
   } else {
     if((symbolic != NULL) && (symbolic_len > 0)) snprintf(symbolic, symbolic_len, "%s", rsp);
-  }
   }
 }
 

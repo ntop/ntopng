@@ -154,7 +154,7 @@ class Ntop {
    * @param appName  Describe the application name.
    * @return A new instance of Ntop.
    */
-  Ntop(char *appName);
+  Ntop(const char *appName);
   /**
    * @brief A Destructor.
    *
@@ -403,7 +403,7 @@ class Ntop {
 
   inline Bloom*            getResolutionBloom()      { return(resolvedHostsBloom);  };
   inline NtopGlobals*      getGlobals()              { return(globals);             };
-  inline Trace*            getTrace()                { return(globals->getTrace()); };
+  inline Trace*            getTrace()                { return ((globals!=NULL) ? globals->getTrace() : NULL); };
   inline Redis*            getRedis()                { return(redis);               };
   inline TimelineExtract*  getTimelineExtract()      { return(extract);             };
 #ifndef HAVE_NEDGE
