@@ -1,1 +1,0 @@
-{"rc":0,"rc_str":"OK","rc_str_hr":"Success","recordsFiltered":0,"recordsTotal":0,"rsp":{"records":[],"stats":{"query":" SELECT 5 entity_id, (tstamp_end - tstamp) duration, * FROM `mac_alerts` WHERE 1 = 1    ","query_duration_msec":0.093936920166016}}}
