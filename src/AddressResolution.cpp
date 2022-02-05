@@ -41,7 +41,8 @@ AddressResolution::AddressResolution() {
 
 AddressResolution::~AddressResolution() {
   if (ntop != NULL) {
-  if(ntop->getPrefs() && ntop->getPrefs()->is_dns_resolution_enabled()) {
+  if(ntop->getPrefs() && 
+  ntop->getPrefs()->is_dns_resolution_enabled()) {
     for(int i = 0; i < num_resolvers; i++) {
       if(resolveThreadLoop[i])
         pthread_join(resolveThreadLoop[i], NULL);
@@ -148,7 +149,6 @@ bool AddressResolution::resolveHost(const char *host, char *rsp, u_int rsp_len, 
   struct addrinfo hints, *servinfo, *rp;
   const char *dst = NULL;
   if ((host == NULL) || (rsp == NULL)) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Error resolution failure: input invalid");
       return false;
   }
   memset(&hints, 0, sizeof(hints));
