@@ -123,7 +123,7 @@ HEADERS = $(wildcard include/*.h) $(wildcard include/flow_checks/*.h) $(wildcard
 INC     = $(wildcard src/*.inc)
 OBJECTS_NO_MAIN := $(filter-out src/main.o,$(OBJECTS))
 
-TEST_FILES = $(wildcard tests/src/*.cpp) $(wildcard tests/*.c) 
+TEST_FILES = $(wildcard tests/src/*.cpp) 
 TEST_HEADERS = $(wildcard tests/include/*.h)
 
 %.o: %.c $(HEADERS) $(INC) Makefile
