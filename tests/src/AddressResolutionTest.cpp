@@ -20,13 +20,10 @@
  */
 #include "../include/AddressResolutionTest.h"
 namespace ntoptesting {
-    void AddressResolutionTest::SetUp() {
+void AddressResolutionTest::SetUp() {
         const char* appName = "ntopng";
         ntop_ = std::make_unique<Ntop>(appName);
-    }
-    void AddressResolutionTest::TearDown() {
-    }
-    
+    }    
 TEST_F(AddressResolutionTest, ShouldNotCrashWhenNull) {
     EXPECT_THROW(resolver_.resolveHostName(NULL, NULL, true), std::invalid_argument);
 }
@@ -39,6 +36,7 @@ TEST_F(AddressResolutionTest, ShouldResolveCorrectly) {
     // A: act
     resolver_.resolveHost(address_, maxIpSize, sizeof(maxIpSize), true);
     // A: assert
+    printf("%s", maxIpSize);
     EXPECT_EQ("74.6.231.20", maxIpSize);
 }
 }

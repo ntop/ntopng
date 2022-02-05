@@ -24,18 +24,18 @@
 #include "ntop_includes.h"
 #include <memory>
 #include "gtest/gtest.h"
+// TODO remove because of linking
+AfterShutdownAction afterShutdownAction = after_shutdown_nop;
+
 namespace ntoptesting {
 
 class AddressResolutionTest : public ::testing::Test {
   protected:
   void SetUp() override;
-  void TearDown() override;
   AddressResolution resolver_;
   static constexpr const char* address_ =  "media-router-fp73.prod.media.vip.ne1.yahoo.com";
   std::unique_ptr<Ntop> ntop_;
 };
 }
-// TODO remove because of linking
-AfterShutdownAction afterShutdownAction = after_shutdown_nop;
 
 #endif

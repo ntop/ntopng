@@ -149,7 +149,7 @@ bool AddressResolution::resolveHost(const char *host, char *rsp, u_int rsp_len, 
   struct addrinfo hints, *servinfo, *rp;
   const char *dst = NULL;
   if ((host == NULL) || (rsp == NULL)) {
-      return false;
+      throw std::invalid_argument("invalid host parameters");
   }
   memset(&hints, 0, sizeof(hints));
 
