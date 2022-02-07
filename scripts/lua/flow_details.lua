@@ -173,16 +173,17 @@ draw();
 end
 
    
-local function ja3url(what, safety)
+local function ja3url(what, safety, label)
    if(what == nil) then
       print("&nbsp;")
    else
-      ret = '<A class="ntopng-external-link" href="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..' <i class="fas fa-external-link-alt"></i></A>'
+      print('<A class="ntopng-external-link" href="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..' <i class="fas fa-external-link-alt"></i></A>')
+      
       if((safety ~= nil) and (safety ~= "safe")) then
-	 ret = ret .. ' [ <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]'
+	 print(' [ <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]')
       end
 
-      print(ret)
+      print_copy_button(label, what)
    end
 end
 
@@ -873,13 +874,13 @@ else
 	 print('<font color=red><i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i></font> ')
       end
 
-      ja3url(flow["protos.tls.ja3.client_hash"], nil)
+      ja3url(flow["protos.tls.ja3.client_hash"], nil, 'ja3c')
       print("</td><td>")
       if(flow["protos.tls.ja3.server_malicious"]) then
         print('<font color=red><i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i></font> ')
       end
 
-      ja3url(flow["protos.tls.ja3.server_hash"], flow["protos.tls.ja3.server_unsafe_cipher"])
+      ja3url(flow["protos.tls.ja3.server_hash"], flow["protos.tls.ja3.server_unsafe_cipher"], 'ja3s')
       --print(tls_consts.cipher2str(flow["protos.tls.ja3.server_cipher"]))
       print("</td></tr>")
    end
