@@ -24,4 +24,5 @@ void NtopTestingBase::InitializePreferences() {
         scriptDirectory[sizeof(scriptDirectory)-1]='\0';
         pref_->set_data_dir(dataDirectory);
         pref_->set_callback_dir(scriptDirectory);
+        pref_->set_other_cpu_affinity(NULL);
 }
