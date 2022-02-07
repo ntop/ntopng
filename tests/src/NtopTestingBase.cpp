@@ -6,6 +6,7 @@ NtopTestingBase::NtopTestingBase() {
         pref_ = new Prefs(ntop_); 
         InitializePreferences();
         ntop_->registerPrefs(pref_, false);
+        ntop = ntop_;
 }
 NtopTestingBase::~NtopTestingBase() {
         delete ntop_;
