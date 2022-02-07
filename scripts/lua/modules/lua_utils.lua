@@ -4988,6 +4988,14 @@ function add_delete_obs_point_button()
    return button
 end   
 
+function print_copy_button(id, data)
+   print('<button style="" class="btn btn-sm border ms-1" data-placement="bottom" id="btn-copy-' .. id ..'" data="' .. data .. '"><i class="fas fa-copy"></i></button>')
+end
+
+function print_js_copy_button(id)
+   print("$('#btn-copy-" .. id .. "').click(function(e) { NtopUtils.copyToClipboard($(this).attr('data'), '" .. i18n('copied') .. "', '" .. i18n('request_failed_message') .. "', $(this));});")
+end
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

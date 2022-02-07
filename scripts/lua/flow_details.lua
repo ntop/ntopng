@@ -1125,7 +1125,9 @@ else
    end
 
    if((flow.community_id ~= nil) and (flow.community_id ~= "")) then
-      print("<tr><th width=30%><A class='ntopng-external-link' href=\"https://github.com/corelight/community-id-spec\">CommunityId <i class=\"fas fa-external-link-alt\"></i></A></th><td colspan=2>".. flow.community_id .."</td></tr>\n")
+      print("<tr><th width=30%><A class='ntopng-external-link' href=\"https://github.com/corelight/community-id-spec\">CommunityId <i class=\"fas fa-external-link-alt\"></i></A></th><td colspan=2>".. flow.community_id)
+      print_copy_button('community_id', flow.community_id)
+      print("</td></tr>\n")
    end
 
    if((flow.client_process == nil) and (flow.server_process == nil)) then
@@ -1188,13 +1190,15 @@ else
       else
 	 print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(flow["protos.dns.last_query"]).."\">"..page_utils.safe_html(shortHostName(flow["protos.dns.last_query"])).." <i class='fas fa-external-link-alt'></i></A>")
       end
-
+      
+      
       if(flow["category"] ~= nil) then
 	 print(" "..getCategoryIcon(flow["protos.dns.last_query"], flow["category"]))
       end
 
       printAddCustomHostRule(flow["protos.dns.last_query"])
-
+      
+      print_copy_button('last_query', flow["protos.dns.last_query"])
       print("</td></tr>\n")
    end
 
@@ -1240,6 +1244,7 @@ else
       end
       -- Adding + with custom host rules next to the server name
       printAddCustomHostRule(s)
+      print_copy_button('server_name', s)
       print("</td></tr>\n")
 
       if(not isEmptyString(flow["protos.http.last_user_agent"])) then
@@ -1264,6 +1269,7 @@ else
 
       
       print(last_url.."\">"..last_url_short.." <i class=\"fas fa-external-link-alt\"></i></A>")
+      print_copy_button('url', last_url)
       print("</td></tr>\n")
 
       if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then
@@ -1438,6 +1444,14 @@ print [[
             $('#alerts_filter_dialog').modal('show');
         });
 
+        ]] 
+
+        print_js_copy_button('community_id');
+        print_js_copy_button('last_query');
+        print_js_copy_button('url');
+        print_js_copy_button('server_name');
+
+        print [[
         const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
             method: 'post',
             csrf: "]] print(ntop.getRandomCSRFValue()) print[[",
