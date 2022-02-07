@@ -5,6 +5,7 @@
 class NtopTestingBase {
     public:
     NtopTestingBase();
+    virtual ~NtopTestingBase();
     Prefs* GetPreferences() const;
     private:
     void InitializePreferences();
