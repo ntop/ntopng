@@ -2,7 +2,7 @@
 
 NtopTestingBase::NtopTestingBase() {
         const char* appName = "ntopng";
-        ntop_ = std::make_unique<Ntop>(appName);
+        ntop_ = std::unique_ptr<Ntop>(new Ntop(appName)); 
         pref_ = new Prefs(ntop_.get()); 
         InitializePreferences();
         ntop_->registerPrefs(pref_, false);
