@@ -274,6 +274,7 @@ class Prefs {
   inline bool  do_insecure_tls()                        { return(insecure_tls);                     };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);                     };
   inline char* get_other_cpu_affinity()                 { return(other_cpu_affinity);               };
+  inline void  set_other_cpu_affinity(char *affinity)      {  other_cpu_affinity = affinity;  }
 #ifdef __linux__
   inline cpu_set_t* get_other_cpu_affinity_mask()       { return(&other_cpu_affinity_mask); };
 #endif
