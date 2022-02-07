@@ -160,7 +160,7 @@ $(function() {
             }, 15000);
         },
         ajax: {
-            url: `${http_prefix}/lua/get_syslog_producers.lua`,
+            url: `${http_prefix}/lua/rest/v2/get/syslog/producer/list.lua`,
             type: 'get',
             dataSrc: ''
         },
