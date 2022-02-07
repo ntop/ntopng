@@ -1447,11 +1447,6 @@ print [[
 
         ]] 
 
-        print_js_copy_button('community_id');
-        print_js_copy_button('last_query');
-        print_js_copy_button('url');
-        print_js_copy_button('server_name');
-
         print [[
         const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
             method: 'post',
