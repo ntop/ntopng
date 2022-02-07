@@ -2989,6 +2989,35 @@ local lang = {
     ["udp_only"] = "UDP Only",
     ["vlan"] = "VLAN",
   },
+  ["fortinet_collector"] = {
+    ["title"] = "Fortinet",
+    ["description"] = "Collect logs from Fortinet firewalls: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)",
+  },
+  ["host_log_collector"] = {
+    ["title"] = "Host Log",
+    ["description"] = "Collect syslog logs from hosts and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)", 
+  },
+  ["openvpn_collector"] = {
+    ["title"] = "OpenVPN",
+    ["description"] = "Collect logs from OpenVPN: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)",
+  },
+  ["opnsense_collector"] = {
+    ["title"] = "OPNsense",
+    ["description"] = "Collect logs from OPNsense firewalls: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)", 
+  },
+  ["sonicwall_collector"] = {
+    ["title"] = "SonicWALL",
+    ["description"] = "Collect logs from SonicWALL firewalls: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)", 
+  },
+  ["sophos_collector"] = {
+    ["title"] = "Sophos",
+    ["description"] = "Collect logs from Sophos firewalls: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)", 
+  },
+  ["suricata_collector"] = {
+    ["title"] = "Suricata",
+    ["description"] = "Collect alerts and metadata from Suricata",
+    ["statistics"] = "Suricata Statistics", 
+  },
   ["geo_map"] = {
     ["browser_reported_home_map"] = "Browser reported home map location",
     ["configure_geo_ip"] = "Configure Geo IP",
