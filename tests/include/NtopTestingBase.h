@@ -8,7 +8,8 @@ class NtopTestingBase {
     NtopTestingBase();
     Prefs* GetPreferences() const;
     private:
+    void InitializePreferences();
     std::unique_ptr<Ntop> ntop_;
-    std::unique_ptr<Prefs> pref_;
+    Prefs* pref_;
 };
 #endif

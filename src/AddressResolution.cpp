@@ -79,7 +79,7 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
   // TODO: to be replaced with uniform initialization
   int cachedResult = -1;
   if (redisInstance != NULL) {
-    cachedResult = ntop->getRedis()->getAddress(numeric_ip, rsp, sizeof(rsp), false);
+    cachedResult = redisInstance->getAddress(numeric_ip, rsp, sizeof(rsp), false);
   }
   if(cachedResult < 0) {
     char hostname[NI_MAXHOST];
@@ -95,7 +95,6 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
     if(!isxdigit(numeric_ip[numeric_ip_len]) && (numeric_ip[numeric_ip_len] != ':')) {
       /* This is a symbolic IP -> numeric IP */
       struct hostent *h;
-
       m.lock(__FILE__, __LINE__);
       h = gethostbyname((const char*)numeric_ip); /* Non reentrant call */
 

@@ -20,11 +20,7 @@
  */
 #include "../include/AddressResolutionTest.h"
 namespace ntoptesting {
-TEST_F(AddressResolutionTest, ShouldDNSResolutionEnabled) {
-    Prefs *pref = ntop_.GetPreferences();
-    EXPECT_TRUE(NULL != pref);
-    EXPECT_TRUE(pref->is_dns_resolution_enabled());
-}    
+   
 TEST_F(AddressResolutionTest, ShouldNotCrashWhenResolvingNullHostName) {
     EXPECT_THROW(resolver_.resolveHostName(NULL, NULL, true), std::invalid_argument);
 }
@@ -47,6 +43,11 @@ TEST_F(AddressResolutionTest, ShouldResolveHostCorrectly) {
     // A: assert
     EXPECT_EQ(std::string("74.6.231.20"), std::string(resolvedAddress));
 }
+TEST_F(AddressResolutionTest, ShouldDNSResolutionEnabled) {
+    Prefs *pref = ntop_.GetPreferences();
+    EXPECT_TRUE(NULL != pref);
+    EXPECT_TRUE(pref->is_dns_resolution_enabled());
+} 
 }
 
 

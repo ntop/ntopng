@@ -246,11 +246,12 @@ class Prefs {
   char* get_if_descr(int id);
   inline const char* get_config_file_path()                   { return(config_file_path); };
   inline const char* get_ndpi_proto_file_path()               { return(ndpi_proto_path); };
-  void set_data_dir(char* dir)                          { data_dir = dir; }
+  void set_data_dir(char* path)                          { data_dir = path; }
   inline char* get_data_dir()                                 { return(data_dir);       };
   inline char* get_docs_dir()                                 { return(docs_dir);       }; // HTTP docs
   inline const char* get_scripts_dir()                        { return(scripts_dir);    };
   inline const char* get_callbacks_dir()                      { return(callbacks_dir);  };
+  void set_callback_dir(char *path)                     { callbacks_dir = path;   };
   inline const char* get_pcap_dir()                           { return(pcap_dir);       };
 #ifdef NTOPNG_PRO
   inline const char* get_pro_callbacks_dir()                  { return(pro_callbacks_dir); };
