@@ -368,14 +368,8 @@ function checks.getSubdirectoryPath(script_type, subdir)
    local prefix = plugins_utils.getRuntimePath() .. "/callbacks"
    local path
 
-   if subdir == 'syslog' then
-      -- script_type.parent_dir example: /var/lib/ntopng/plugins0/callbacks/system
-      -- TODO move also those callbacks to a fixed path, similar to check_definitions
-      path = string.format("%s/%s/%s", prefix, script_type.parent_dir, subdir)
-   else
-      -- Checks definition path
-      path = string.format("%s/scripts/lua/modules/check_definitions/%s", dirs.installdir, subdir)
-   end
+   -- Checks definition path
+   path = string.format("%s/scripts/lua/modules/check_definitions/%s", dirs.installdir, subdir)
 
    res[#res + 1] = os_utils.fixPath(path)
 
