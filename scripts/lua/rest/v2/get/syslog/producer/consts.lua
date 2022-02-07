@@ -17,11 +17,8 @@ local checks = require "checks"
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPContentTypeHeader('application/json')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
-
 
 local res = {};
 local syslog_plugins = checks.listScripts(checks.script_types.syslog, "syslog")

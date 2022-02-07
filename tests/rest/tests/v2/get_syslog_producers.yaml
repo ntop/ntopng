@@ -6,4 +6,3 @@ pre: |
 
 post: |
   curl -s -u admin:admin -H "Content-Type: application/json" http://localhost:3333/lua/rest/v2/get/syslog/producer/consts.lua
-  curl -s -u admin:admin -H "Content-Type: application/json" http://localhost:3333/lua/rest/v2/get/syslog/producer/list.lua
