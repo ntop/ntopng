@@ -22,6 +22,7 @@ if scripts_triggers.isDumpFlowToSQLEnabled(ifstats) then
    local mysql_retention = os.time() - 86400 * data_retention
    
    for _,ifname in pairs(iface_names) do
+      io.write("Purging "..data_retention.."+ days old MySQL records ["..ifname.."]\n")
       db_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
    end
 end
