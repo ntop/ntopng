@@ -21,8 +21,7 @@
 
 #ifndef _TEST_ADDRESS_RESOLUTION_H_
 #define _TEST_ADDRESS_RESOLUTION_H_
-#include "ntop_includes.h"
-#include <memory>
+#include "NtopTestingBase.h"
 #include "gtest/gtest.h"
 // TODO remove because of linking
 AfterShutdownAction afterShutdownAction = after_shutdown_nop;
@@ -31,11 +30,9 @@ namespace ntoptesting {
 
 class AddressResolutionTest : public ::testing::Test {
   protected:
-  void SetUp() override;
   AddressResolution resolver_;
   static constexpr const char* address_ =  "media-router-fp73.prod.media.vip.ne1.yahoo.com";
-  std::unique_ptr<Ntop> ntop_;
-  std::unique_ptr<Prefs> pref_;
+  NtopTestingBase ntop_;
 };
 }
 

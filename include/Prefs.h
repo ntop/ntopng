@@ -246,6 +246,7 @@ class Prefs {
   char* get_if_descr(int id);
   inline const char* get_config_file_path()                   { return(config_file_path); };
   inline const char* get_ndpi_proto_file_path()               { return(ndpi_proto_path); };
+  void set_data_dir(char* dir)                          { data_dir = dir; }
   inline char* get_data_dir()                                 { return(data_dir);       };
   inline char* get_docs_dir()                                 { return(docs_dir);       }; // HTTP docs
   inline const char* get_scripts_dir()                        { return(scripts_dir);    };
