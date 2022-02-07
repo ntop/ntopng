@@ -368,7 +368,7 @@ function checks.getSubdirectoryPath(script_type, subdir)
    local prefix = plugins_utils.getRuntimePath() .. "/callbacks"
    local path
 
-   -- Checks standard path
+   -- Checks definition path
    path = string.format("%s/scripts/lua/modules/check_definitions/%s", dirs.installdir, subdir)
 
    res[#res + 1] = os_utils.fixPath(path)
