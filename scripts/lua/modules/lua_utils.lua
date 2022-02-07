@@ -1534,7 +1534,9 @@ end
 function getApplicationLabel(name)
   local icon = getApplicationIcon(name)
 
-  name = name:gsub("^%l", string.upper)
+  -- Do not convert to upper case, keep the nDPI case
+  --name = name:gsub("^%l", string.upper)
+
   return(icon.." "..shortenString(name, 12))
 end
 
