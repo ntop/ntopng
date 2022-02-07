@@ -35,6 +35,7 @@ class AddressResolutionTest : public ::testing::Test {
   AddressResolution resolver_;
   static constexpr const char* address_ =  "media-router-fp73.prod.media.vip.ne1.yahoo.com";
   std::unique_ptr<Ntop> ntop_;
+  std::unique_ptr<Prefs> pref_;
 };
 }
 

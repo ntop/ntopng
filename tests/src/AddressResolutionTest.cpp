@@ -19,25 +19,42 @@
  *
  */
 #include "../include/AddressResolutionTest.h"
+#include <iostream>
+
 namespace ntoptesting {
 void AddressResolutionTest::SetUp() {
         const char* appName = "ntopng";
         ntop_ = std::make_unique<Ntop>(appName);
-    }    
-TEST_F(AddressResolutionTest, ShouldNotCrashWhenNull) {
+        pref_ = std::make_unique<Prefs>(ntop_.get()); 
+        ntop_->registerPrefs(pref_.get(), false);
+    }
+TEST_F(AddressResolutionTest, ShouldDNSResolutionEnabled) {
+    EXPECT_TRUE(pref_->is_dns_resolution_enabled());
+}    
+TEST_F(AddressResolutionTest, ShouldNotCrashWhenResolvingNullHostName) {
     EXPECT_THROW(resolver_.resolveHostName(NULL, NULL, true), std::invalid_argument);
+}
+TEST_F(AddressResolutionTest, ShouldNotCrashWhenResolvingNullHost) {
+    EXPECT_THROW(resolver_.resolveHost(NULL, NULL,0 , true), std::invalid_argument);
 }
 TEST_F(AddressResolutionTest, ShouldNotCrashWhenNullDestination) {
     resolver_.resolveHost(address_, NULL, 0, true);
 }
-TEST_F(AddressResolutionTest, ShouldResolveCorrectly) {
+TEST_F(AddressResolutionTest, ShouldResolveHostNameCorrectly) {
     // A: arrange
-    char maxIpSize[1024];
+    char maxIpSize[64];
     // A: act
-    resolver_.resolveHost(address_, maxIpSize, sizeof(maxIpSize), true);
+    resolver_.resolveHostName("74.6.231.20", maxIpSize, sizeof(maxIpSize));
     // A: assert
     printf("%s", maxIpSize);
-    EXPECT_EQ("74.6.231.20", maxIpSize);
+} 
+TEST_F(AddressResolutionTest, ShouldResolveHostCorrectly) {
+    // A: arrange
+    char resolvedAddress[32];
+    // A: act
+    resolver_.resolveHost(address_, resolvedAddress, sizeof(resolvedAddress), true);
+    // A: assert
+    EXPECT_EQ(std::string("74.6.231.20"), std::string(resolvedAddress));
 }
 }
 

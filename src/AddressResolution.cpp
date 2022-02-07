@@ -73,8 +73,15 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
 
   if((symbolic != NULL) && (symbolic_len > 0)) symbolic[0] = '\0';
   if(numeric_ip[0] == '\0') return;
-
-  if(ntop->getRedis()->getAddress(numeric_ip, rsp, sizeof(rsp), false) < 0) {
+  // in this case we don't crash when redis is not up.
+  // but we don't cache
+  Redis* redisInstance = ntop->getRedis();
+  // TODO: to be replaced with uniform initialization
+  int cachedResult = -1;
+  if (redisInstance != NULL) {
+    cachedResult = ntop->getRedis()->getAddress(numeric_ip, rsp, sizeof(rsp), false);
+  }
+  if(cachedResult < 0) {
     char hostname[NI_MAXHOST];
     struct sockaddr *sa;
     struct sockaddr_in in4;
@@ -93,7 +100,9 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
       h = gethostbyname((const char*)numeric_ip); /* Non reentrant call */
 
       if(symbolic && h) snprintf(symbolic, symbolic_len, "%s",  h->h_name);
-      ntop->getRedis()->setResolvedAddress(numeric_ip, h ? h->h_name : (char*)"");
+      if (redisInstance!=NULL) {
+        redisInstance->setResolvedAddress(numeric_ip, h ? h->h_name : (char*)"");
+      }
       num_resolved_addresses++;
       m.unlock(__FILE__, __LINE__);
       return;
@@ -148,7 +157,7 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
 bool AddressResolution::resolveHost(const char *host, char *rsp, u_int rsp_len, bool v4) {
   struct addrinfo hints, *servinfo, *rp;
   const char *dst = NULL;
-  if ((host == NULL) || (rsp == NULL)) {
+  if (host == NULL) {
       throw std::invalid_argument("invalid host parameters");
   }
   memset(&hints, 0, sizeof(hints));
