@@ -1,9 +1,0 @@
-input: test_01.pcap
-
-ignore:
-  - value
-
-pre: |
-
-post: |
-  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "ndpistats_mode": "sinceStartup", "breed": true}' http://localhost:3333/lua/rest/v2/get/interface/l7/stats.lua

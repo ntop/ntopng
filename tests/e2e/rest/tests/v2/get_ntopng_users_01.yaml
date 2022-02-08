@@ -1,0 +1,8 @@
+input: test_01.pcap
+
+ignore:
+
+pre: |
+
+post: |
+  curl -s -u admin:admin "http://localhost:3333/lua/rest/v2/get/ntopng/users.lua"

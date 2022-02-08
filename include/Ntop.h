@@ -154,7 +154,7 @@ class Ntop {
    * @param appName  Describe the application name.
    * @return A new instance of Ntop.
    */
-  Ntop(char *appName);
+  Ntop(const char *appName);
   /**
    * @brief A Destructor.
    *
@@ -266,11 +266,11 @@ class Ntop {
    * @param symbolic Symbolic name.
    * @param symbolic_len Length of symbolic name.
    */
-  inline void resolveHostName(char *numeric_ip, char *symbolic, u_int symbolic_len) {
+  inline void resolveHostName(const char *numeric_ip, char *symbolic, u_int symbolic_len) {
     address->resolveHostName(numeric_ip, symbolic, symbolic_len);
   }
 
-  inline bool resolveHost(char *host, char *rsp, u_int rsp_len, bool v4) {
+  inline bool resolveHost(const char *host, char *rsp, u_int rsp_len, bool v4) {
     return address->resolveHost(host, rsp, rsp_len, v4);
   }
 
@@ -403,7 +403,7 @@ class Ntop {
 
   inline Bloom*            getResolutionBloom()      { return(resolvedHostsBloom);  };
   inline NtopGlobals*      getGlobals()              { return(globals);             };
-  inline Trace*            getTrace()                { return(globals->getTrace()); };
+  inline Trace*            getTrace()                { return ((globals!=NULL) ? globals->getTrace() : NULL); };
   inline Redis*            getRedis()                { return(redis);               };
   inline TimelineExtract*  getTimelineExtract()      { return(extract);             };
 #ifndef HAVE_NEDGE
