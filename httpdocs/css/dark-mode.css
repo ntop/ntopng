@@ -571,3 +571,45 @@ li > a > .fa-external-link-alt{
   background-color: #1f1f1f;
 }
 
+.flatpickr {
+  color: #d1d1d1 !important;
+  background-color: #181818 !important;
+  border: 1px solid #3c3c3c !important;
+}
+
+.flatpickr-calendar {
+  color: #d1d1d1 !important;
+  background-color: #181818 !important;
+  border: 1px solid #3c3c3c !important;
+}
+
+.flatpickr-weekday {
+  color: #d1d1d1 !important;
+  background-color: #181818 !important;
+}
+
+.flatpickr-month {
+  color: #d1d1d1 !important;
+  background-color: #181818 !important;
+}
+
+.flatpickr-day {
+  color: #d1d1d1 !important;
+  background-color: #181818 !important;
+}
+
+.flatpickr-hour {
+  color: #d1d1d1 !important;
+  background-color: #181818 !important;
+}
+
+.flatpickr-minute {
+  color: #d1d1d1 !important;
+  background-color: #181818 !important;
+}
+
+.flatpickr-time-separator {
+  color: #d1d1d1 !important;
+  background-color: #181818 !important;
+}
+
