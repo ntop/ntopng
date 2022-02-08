@@ -7,7 +7,7 @@
     <div class="controls d-flex flex-wrap">
       <div class="btn-group me-auto btn-group-sm">
         <slot></slot>
-        <select v-model="select_time_value" @change="change_select_time" class="form-select me-1">
+        <select v-model="select_time_value" @change="change_select_time" class="form-select me-2">
                 <option value="min_5">{{context.text.show_alerts_presets.min_5}}</option>
         
                 <option value="min_30">{{context.text.show_alerts_presets.min_30}}</option>
@@ -26,13 +26,13 @@
             <span class="input-group-text">
                 <i class="fas fa-calendar-alt"></i>
             </span>
-            <input  class="flatpickr flatpickr-input" type="text" placeholder="Scegli una data.." data-id="datetime" ref="begin-date">
+            <input  class="flatpickr flatpickr-input" type="text" placeholder="Choose a date.." data-id="datetime" ref="begin-date">
             <!-- <input ref="begin-date" @change="enable_apply=true" @change="change_begin_date" type="date" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
             <!-- <input ref="begin-time" @change="enable_apply=true" type="time" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
             <span class="input-group-text">
                 <i class="fas fa-long-arrow-alt-right"></i>
             </span>
-            <input  class="flatpickr flatpickr-input" type="text" placeholder="Scegli una data.." data-id="datetime" ref="end-date">
+            <input  class="flatpickr flatpickr-input" type="text" placeholder="Choose a date.." data-id="datetime" ref="end-date">
             <!-- <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;"> -->
             <!-- <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input"> -->
             <span v-show="wrong_date" :title="context.text.wrong_date" style="margin-left:0.2rem;color:red;">
@@ -40,7 +40,7 @@
             </span>
         </div>
 
-        <div class="d-flex align-items-center ms-1">
+        <div class="d-flex align-items-center ms-2">
             <button :disabled="!enable_apply || wrong_date" @click="apply" class="btn btn-sm btn-primary">{{context.text.apply}}</button>
                 
             <div class="btn-group">
