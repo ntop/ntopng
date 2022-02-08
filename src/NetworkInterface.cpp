@@ -9199,7 +9199,7 @@ AlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, con
       return(NULL);
     }
 
-    alertable = new (std::nothrow) ExternalAlertableEntity(this, entity);
+    alertable = new (std::nothrow) NetworkInterfaceMemberAlertableEntity(this, entity);
     alertable->setEntityValue(entity_val);
     external_alerts[key] = alertable;
   } else

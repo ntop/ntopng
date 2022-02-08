@@ -286,7 +286,10 @@ Ntop::~Ntop() {
   }
 
   delete []iface;
+
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Deleting System Interface=%s", system_interface->get_name());
   if(system_interface)    delete system_interface;
+
   if(extract)             delete extract;
 
 #ifndef WIN32
