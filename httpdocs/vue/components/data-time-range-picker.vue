@@ -2,57 +2,62 @@
 
 {-verbatim-}
 <template>
-<div style="height:2rem;vertical-align:middle;" class="input-group mx-1">    
+<div style="" class="input-group mx-1">    
   <div class="form-group">
     <div class="controls d-flex flex-wrap">
       <div class="btn-group me-auto btn-group-sm">
-    <slot></slot>
-    <select v-model="select_time_value" @change="change_select_time" style="min-width:10rem" class="form-select">
-            <option value="min_5">{{context.text.show_alerts_presets.min_5}}</option>
-      
-            <option value="min_30">{{context.text.show_alerts_presets.min_30}}</option>
-      
-            <option value="hour">{{context.text.show_alerts_presets.hour}}</option>
-      
-            <option value="day">{{context.text.show_alerts_presets.day}}</option>
-            <option value="week">{{context.text.show_alerts_presets.week}}</option>
-      
-            <option value="month">{{context.text.show_alerts_presets.month}}</option>
-            <option value="year">{{context.text.show_alerts_presets.year}}</option>
-            <option value="custom">{{context.text.show_alerts_presets.custom}}</option>
-    </select>
-    
-    <span class="input-group-text">
-      <i class="fas fa-calendar-alt"></i>
-    </span>
-    <input  class="flatpickr flatpickr-input" type="text" placeholder="Scegli una data.." data-id="datetime" ref="begin-date">
-    <!-- <input ref="begin-date" @change="enable_apply=true" @change="change_begin_date" type="date" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
-    <!-- <input ref="begin-time" @change="enable_apply=true" type="time" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
-    <span class="input-group-text">
-      <i class="fas fa-long-arrow-alt-right"></i>
-    </span>
-    <input  class="flatpickr flatpickr-input" type="text" placeholder="Scegli una data.." data-id="datetime" ref="end-date">
-    <!-- <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;"> -->
-    <!-- <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input"> -->
-    <span v-show="wrong_date" :title="context.text.wrong_date" style="margin-left:0.2rem;color:red;">
-          <i class="fas fa-exclamation-circle"></i>
-    </span>
-    
-    <button :disabled="!enable_apply || wrong_date" @click="apply" class="btn btn-sm btn-primary m-auto ms-1">{{context.text.apply}}</button>
-    
-    <button @click="jump_time_back()" class="btn btn-link" ref="btn-jump-time-back">
-      <i class="fas fa-long-arrow-alt-left"></i>
-    </button>
-    <button @click="jump_time_ahead()" class="btn btn-link me-2" ref="btn-jump-time-ahead">
-      <i class="fas fa-long-arrow-alt-right"></i>
-    </button>
-    <button @click="zoom(2)" class="btn btn-link" ref="btn-zoom-in">
-      <i class="fas fa-search-plus"></i>
-    </button>
-    <button @click="zoom(0.5)" class="btn btn-link" ref="btn-zoom-out">
-      <i class="fas fa-search-minus"></i>
-    </button>
-    
+        <slot></slot>
+        <select v-model="select_time_value" @change="change_select_time" class="form-select me-1">
+                <option value="min_5">{{context.text.show_alerts_presets.min_5}}</option>
+        
+                <option value="min_30">{{context.text.show_alerts_presets.min_30}}</option>
+        
+                <option value="hour">{{context.text.show_alerts_presets.hour}}</option>
+        
+                <option value="day">{{context.text.show_alerts_presets.day}}</option>
+                <option value="week">{{context.text.show_alerts_presets.week}}</option>
+        
+                <option value="month">{{context.text.show_alerts_presets.month}}</option>
+                <option value="year">{{context.text.show_alerts_presets.year}}</option>
+                <option value="custom">{{context.text.show_alerts_presets.custom}}</option>
+        </select>
+        
+        <div class="btn-group">
+            <span class="input-group-text">
+                <i class="fas fa-calendar-alt"></i>
+            </span>
+            <input  class="flatpickr flatpickr-input" type="text" placeholder="Scegli una data.." data-id="datetime" ref="begin-date">
+            <!-- <input ref="begin-date" @change="enable_apply=true" @change="change_begin_date" type="date" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
+            <!-- <input ref="begin-time" @change="enable_apply=true" type="time" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
+            <span class="input-group-text">
+                <i class="fas fa-long-arrow-alt-right"></i>
+            </span>
+            <input  class="flatpickr flatpickr-input" type="text" placeholder="Scegli una data.." data-id="datetime" ref="end-date">
+            <!-- <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;"> -->
+            <!-- <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input"> -->
+            <span v-show="wrong_date" :title="context.text.wrong_date" style="margin-left:0.2rem;color:red;">
+                <i class="fas fa-exclamation-circle"></i>
+            </span>
+        </div>
+
+        <div class="d-flex align-items-center ms-1">
+            <button :disabled="!enable_apply || wrong_date" @click="apply" class="btn btn-sm btn-primary">{{context.text.apply}}</button>
+                
+            <div class="btn-group">
+                <button @click="jump_time_back()" class="btn btn-sm btn-link" ref="btn-jump-time-back">
+                <i class="fas fa-long-arrow-alt-left"></i>
+                </button>
+                <button @click="jump_time_ahead()" class="btn btn-sm btn-link me-2" ref="btn-jump-time-ahead">
+                <i class="fas fa-long-arrow-alt-right"></i>
+                </button>
+                <button @click="zoom(2)" class="btn btn-sm btn-link" ref="btn-zoom-in">
+                <i class="fas fa-search-plus"></i>
+                </button>
+                <button @click="zoom(0.5)" class="btn btn-sm btn-link" ref="btn-zoom-out">
+                <i class="fas fa-search-minus"></i>
+                </button>
+            </div>
+        </div>        
       </div>
     </div>
   </div>  
