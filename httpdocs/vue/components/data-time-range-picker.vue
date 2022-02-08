@@ -2,7 +2,7 @@
 
 {-verbatim-}
 <template>
-<div style="" class="input-group mx-1">    
+<div class="input-group mx-1">    
   <div class="form-group">
     <div class="controls d-flex flex-wrap">
       <div class="btn-group me-auto btn-group-sm">
