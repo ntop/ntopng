@@ -62,7 +62,7 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
   char rsp[128], query[64], *at, *numeric_ip;
   u_int numeric_ip_len;
  
-  if ((_numeric_ip == NULL) || (symbolic == NULL)) {
+  if (_numeric_ip == NULL) {
      throw std::invalid_argument("invalid null arguments");
   }
   
