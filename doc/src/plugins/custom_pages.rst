@@ -67,7 +67,7 @@ a consistent look, custom pages can use the following template:
 
   local subpage = _GET["page"] or "overview"
   local title = i18n("example.custom_page_title")
-  local base_url = plugins_utils.getUrl("example_page.lua") .. "?ifid=" .. getInterfaceId(ifname)
+  local base_url = plugins_utils.getMonitorUrl("example_page.lua") .. "?ifid=" .. getInterfaceId(ifname)
 
   -- Populate the navbar with subpages
   page_utils.print_navbar(title, base_url, {
@@ -86,7 +86,7 @@ a consistent look, custom pages can use the following template:
   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
 Once the plugin is loaded, ntopng will make the above page available through its
-web server. The URL for a given custom page can be obtained by using the `plugins_utils.getUrl(script)`
+web server. The URL for a given custom page can be obtained by using the `plugins_utils.getMonitorUrl(script)`
 Lua function.
 
 .. _`example plugin`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/example/web_gui
