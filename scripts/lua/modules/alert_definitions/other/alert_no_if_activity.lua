@@ -32,11 +32,13 @@ alert_no_if_activity.meta = {
 -- @param one_param The first alert param
 -- @param another_param The second alert param
 -- @return A table with the alert built
-function alert_no_if_activity:init()
+function alert_no_if_activity:init(ifname)
    -- Call the parent constructor
    self.super:init()
 
-   self.alert_type_params = {}
+   self.alert_type_params = {
+      ifname_no_activity = ifname
+   }
 end
 
 -- #######################################################
@@ -47,7 +49,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_no_if_activity.format(ifid, alert, alert_type_params)
-  return(i18n("checks.no_activity_description"))
+  return(i18n("checks.no_activity_description", { ifname = alert_type_params.ifname_no_activity }))
 end
 
 -- #######################################################

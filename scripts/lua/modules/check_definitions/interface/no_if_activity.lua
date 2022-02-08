@@ -19,10 +19,10 @@ local function check_interface_activity(params)
       num_logs = params.entity_info.syslog.tot_events
    end
 
-   local no_if_activity_type = alert_consts.alert_types.alert_no_if_activity.new()
+   local no_if_activity_type = alert_consts.alert_types.alert_no_if_activity.new(params.entity_info.name)
 
    no_if_activity_type:set_score_error()
-   no_if_activity_type:set_subtype(getInterfaceName(interface.getId()))
+   no_if_activity_type:set_subtype(params.entity_info.name)
    no_if_activity_type:set_granularity(params.granularity)
 
    local delta_packets = alerts_api.interface_delta_val(params.check.key..".pkts" --[[ metric name --]], params.granularity, num_packets or 0)
