@@ -187,7 +187,7 @@ fi
 
 if [ test -f /usr/bin/lsb_release ]; then
   CODENAME=`/usr/bin/lsb_release -c|cut -f 2`
-  if [[ $CODENAME == "wheezy" ]]; then :
+  if test $CODENAME = "wheezy" ; then
     CPPFLAGS="${CPPFLAGS} -DOLD_NETFILTER_INTERFACE=1"
   fi
 fi
