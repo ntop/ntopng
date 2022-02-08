@@ -414,6 +414,9 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t schedul
 	       ntop->get_callbacks_dir(), activityPath());
     } else {
 #ifdef NTOPNG_PRO
+      if(!ntop->getPrefs()->is_pro_edition())
+ 	break; /* Skip pro scripts in community edition */
+	    
       /* Attempt to locate and execute the callback under the pro callbacks */
       snprintf(dir_path, sizeof(dir_path), "%s/%s/system/",
 	       ntop->get_pro_callbacks_dir(), activityPath());
