@@ -593,6 +593,14 @@ li > a > .fa-external-link-alt{
   background-color: #181818 !important;
 }
 
+.flatpickr-prev-month {
+  fill: #d1d1d1 !important;
+}
+
+.flatpickr-next-month {
+  fill: #d1d1d1 !important;
+}
+
 .flatpickr-day {
   color: #d1d1d1 !important;
   background-color: #181818 !important;
