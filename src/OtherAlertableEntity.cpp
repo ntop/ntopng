@@ -29,20 +29,6 @@ OtherAlertableEntity::OtherAlertableEntity(NetworkInterface *iface, AlertEntity 
 /* ****************************************** */
 
 OtherAlertableEntity::~OtherAlertableEntity() {
-  std::map<std::string, Alert>::const_iterator alert_it;
-
-  engaged_alerts_lock.wrlock(__FILE__, __LINE__);
-
-  for(u_int p = 0; p < MAX_NUM_PERIODIC_SCRIPTS; p++) {
-    for(alert_it = engaged_alerts[p].begin(); alert_it != engaged_alerts[p].end(); ++alert_it) {
-      /*
-	Decrease instance and instance number of engaged alerts
-      */
-      decNumAlertsEngaged(Utils::mapScoreToSeverity(alert_it->second.score));
-    }
-  }
-
-  engaged_alerts_lock.unlock(__FILE__, __LINE__);
 }
 
 /* ****************************************** */

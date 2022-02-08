@@ -10,3 +10,4 @@ This section includes instructions for integrating ntopng with third-party tools
 
     opnsense
     pfsense
+    suricata

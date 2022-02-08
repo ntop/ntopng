@@ -286,7 +286,9 @@ Ntop::~Ntop() {
   }
 
   delete []iface;
+
   if(system_interface)    delete system_interface;
+
   if(extract)             delete extract;
 
 #ifndef WIN32

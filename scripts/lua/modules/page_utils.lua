@@ -155,7 +155,6 @@ page_utils.menu_entries = {
 
    -- Developer
    directories            = {key = "directories", i18n_title = "about.directories", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/plugins/distributing_plugins.html"},
-   plugins                = {key = "plugins", i18n_title = "plugins", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/basic_concepts/plugins.html"},
    checks_dev             = {key = "checks_dev", i18n_title = "about.checks", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/plugins/checks.html"},
    plugin_browser         = {key = "plugin_browser", i18n_title = "plugin_browser", section = "dev"},
    alert_definitions      = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/plugins/alert_definitions.html"},

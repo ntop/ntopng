@@ -1236,8 +1236,9 @@ else
       print("<tr><th>"..i18n("flow_details.server_name").."</th><td colspan=2>")
       local s = flowinfo2hostname(flow,"srv")
       if(not isEmptyString(flow["host_server_name"])) then
-	      s = flow["host_server_name"]
+	 s = flow["host_server_name"]
       end
+      
       print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(s).."\">"..page_utils.safe_html(s).." <i class=\"fas fa-external-link-alt\"></i></A>")
       
       if(flow["category"] ~= nil) then 
@@ -1288,6 +1289,7 @@ else
 	 if not isEmptyString(flow["protos.http.server_name"]) then
 	    printAddCustomHostRule(flow["protos.http.server_name"])
 	 end
+	 print_copy_button('tls_server_name', flow["host_server_name"])
 	 print("</td></tr>\n")
       end
    end

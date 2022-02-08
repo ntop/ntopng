@@ -1303,7 +1303,7 @@ local lang = {
     ["network_discovery_alert_description"] = "Periodic Network Discovery executed",
     ["no_if_activity_description"] = "Trigger an alert when no activity from an interface is detected",
     ["no_if_activity_title"] = "No activity on interface",
-    ["no_activity_description"] = "No activity reported on network interface.",
+    ["no_activity_description"] = "No activity reported on %{ifname} Network Interface.",
     ["note_apply_to_default"] = "The <b>Default</b> configuration is also 'Applied to' any pool which is not included in any other configuration.",
     ["note_configsets"] = "Checks are configured and enabled/disabled on a per-configuration basis. Multiple configurations can be created and each configuration can be 'Applied To' multiple pools.",
     ["note_what_are_checks"] = "<a href=\"%{checks_url}\">Checks</a> %{checks_external} are executed periodically or when a certain event occurs. ",

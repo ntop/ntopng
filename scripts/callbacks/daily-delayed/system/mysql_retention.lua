@@ -20,9 +20,17 @@ if scripts_triggers.isDumpFlowToSQLEnabled(ifstats) then
    local iface_names = interface.getIfNames()
    local data_retention = data_retention_utils.getDataRetentionDays()
    local mysql_retention = os.time() - 86400 * data_retention
-   
+   local names = ""
+     
    for _,ifname in pairs(iface_names) do
-      io.write("Purging "..data_retention.."+ days old MySQL records ["..ifname.."]\n")
+      if(names == "") then
+	 names = ifname
+      else
+	 names = names .. "," .. ifname
+      end
+      
       db_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
    end
+
+   print("Purging "..data_retention.."+ days old MySQL records [".. names .."]\n")
 end
