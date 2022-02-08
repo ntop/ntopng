@@ -132,7 +132,7 @@ if test "x$ac_cv_lib_zmq_zmq_socket_monitor" = xyes; then :
   AC_DEFINE_UNQUOTED(HAVE_ZMQ, 1, [ZMQ is present])
 else
   echo "ZMQ not present or too old (< v. 3.x)"
-  exit
+  exit 1
 fi
 
 AC_CHECK_LIB([sodium], [sodium_init], LIBS="${LIBS} -lsodium")
