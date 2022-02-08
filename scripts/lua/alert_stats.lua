@@ -495,11 +495,11 @@ end
 local base_url = build_query_url({'status', 'page', 'epoch_begin', 'epoch_end'}) 
 
 local extra_range_buttons = [[
-   <div class='d-flex align-items-center me-1'>
+   <div class='d-flex align-items-center me-2'>
        <div class="btn-group" id="statusSwitch" role="group">
            <a href=']] .. base_url .. [[&]]..time_range_query .. [[&status=historical&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "historical", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.past") .. [[</a>
            <a href=']] .. base_url .. [[&]]..time_range_query .. [[&status=acknowledged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "acknowledged", "btn-primary active", "btn-secondary") ..[[" title=']].. i18n("show_alerts.acknowledged") ..[['>]] .. i18n("show_alerts.short_ack") .. [[</a>
-           <a href=']] .. base_url .. [[&]]..time_range_query .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "engaged", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. ternary(num_alerts_engaged_cur_entity > 0, string.format('<span class="badge rounded-pill bg-dark" style="float:right;margin-bottom:-10px;">%u</span>', num_alerts_engaged_cur_entity), "") .. [[</a>
+           <a href=']] .. base_url .. [[&]]..time_range_query .. [[&status=engaged&page=]].. page ..[[' class="btn btn-sm ]].. ternary(status == "engaged", "btn-primary active", "btn-secondary") ..[[">]] .. i18n("show_alerts.engaged") .. ternary(num_alerts_engaged_cur_entity > 0, string.format('<span class="badge rounded-pill bg-dark" style="position: absolute; float: right; margin-bottom: -10px;">%u</span>', num_alerts_engaged_cur_entity), "") .. [[</a>
        </div>
    </div>
 ]]

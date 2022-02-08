@@ -35,7 +35,7 @@ local host = _GET["am_host"]
 local page = _GET["page"] or ('overview')
 local measurement = _GET["measurement"]
 
-local base_url = plugins_utils.getUrl("active_monitoring_monitor.lua") .. "?ifid=" .. getInterfaceId(ifname)
+local base_url = plugins_utils.getMonitorUrl("active_monitoring_monitor.lua") .. "?ifid=" .. getInterfaceId(ifname)
 local url = base_url
 local info = ntop.getInfo()
 local measurement_info

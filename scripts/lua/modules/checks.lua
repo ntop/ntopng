@@ -616,7 +616,6 @@ local function init_check(check, mod_fname, full_path, plugin, script_type, subd
    check.path = full_path
    check.subdir = subdir
    check.default_enabled = ternary(check.default_enabled == false, false, true --[[ a nil value means enabled ]])
-   check.source_path = plugins_utils.getUserScriptSourcePath(check.path)
    check.plugin = plugin
    check.script_type = script_type
    check.edition = plugin and plugin.edition
@@ -926,8 +925,7 @@ function checks.loadModule(ifid, script_type, subdir, mod_fname)
 
    for _, checks_dir in pairs(check_dirs) do
       local full_path = os_utils.fixPath(checks_dir .. "/" .. mod_fname .. ".lua")
-      local plugin = plugins_utils.getUserScriptPlugin(full_path)
-
+      
       if ntop.exists(full_path) then
 	 check = loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir)
 	 break
@@ -1620,18 +1618,6 @@ end
 
 -- ##############################################
 
-function checks.getScriptEditorUrl(script)
-   if(script.edition == "community" and script.source_path) then
-       local plugin_file_path = string.sub(script.source_path, string.len(dirs.scriptdir) + 1)
-       local plugin_path = string.sub(script.plugin.path, string.len(dirs.scriptdir) + 1)
-       return(string.format("%s/lua/code_viewer.lua?plugin_file_path=%s&plugin_path=%s", ntop.getHttpPrefix(), plugin_file_path, plugin_path))
-   end
-
-   return(nil)
-end
-
--- ##############################################
-
 -- @brief Returns the list of the default filters of a specific alert
 function checks.getFilterPreset(alert, alert_info)
    local alert_generation = alert_info["alert_generation"]
@@ -1926,12 +1912,6 @@ local function printUserScriptsTable()
               available = "Pro"
             else
               available = "Community"
-            end
-
-            local edit_url = checks.getScriptEditorUrl(script)
-
-            if(edit_url) then
-              edit_url = ' <a title="'.. i18n("plugins_overview.action_view") ..'" href="'.. edit_url ..'" class="btn btn-sm btn-secondary" ><i class="fas fa-eye"></i></a>'
             end
 
             print(string.format(([[
