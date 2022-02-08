@@ -720,10 +720,7 @@ fi
 
 AC_DEFINE_UNQUOTED(_CRT_SECURE_NO_WARNINGS, 1, [Disable warning on windows])
 
-GMAKE=`which gmake`
-if test x$GMAKE = x; then
-  GMAKE="make"
-fi
+GMAKE='$(MAKE)'
 
 GIT=`which git`
 if test x$GIT = x; then
