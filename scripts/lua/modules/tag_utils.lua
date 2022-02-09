@@ -59,17 +59,20 @@ tag_utils.defined_tags = {
    l4proto = {
       value_type = 'l4_proto',
       i18n_label = i18n('db_search.tags.l4proto'),
-      operators = {'eq', 'neq'}
+      operators = {'eq', 'neq'},
+      bpf_key = 'ip proto',
    },
    ip = {
       value_type = 'ip',
       i18n_label = i18n('db_search.tags.ip'),
-      operators = {'eq', 'neq'}
+      operators = {'eq', 'neq'},
+      bpf_key = 'ip host',
    },
    cli_ip = {
       value_type = 'ip',
       i18n_label = i18n('db_search.tags.cli_ip'),
-      operators = {'eq', 'neq'}
+      operators = {'eq', 'neq'},
+      bpf_key = 'ip host',
    },
    cli_location = {
       value_type = 'location',
@@ -79,7 +82,8 @@ tag_utils.defined_tags = {
    srv_ip = {
       value_type = 'ip',
       i18n_label = i18n('db_search.tags.srv_ip'),
-      operators = {'eq', 'neq'}
+      operators = {'eq', 'neq'},
+      bpf_key = 'ip host',
    },
    srv_location = {
       value_type = 'location',
@@ -109,12 +113,14 @@ tag_utils.defined_tags = {
    cli_port = {
       value_type = 'port',
       i18n_label = i18n('db_search.tags.cli_port'),
-      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+      bpf_key = 'port',
    },
    srv_port = {
       value_type = 'port',
       i18n_label = i18n('db_search.tags.srv_port'),
-      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+      bpf_key = 'port',
    },
    cli_asn = {
       value_type = 'asn',
@@ -179,12 +185,14 @@ tag_utils.defined_tags = {
    cli_mac = {
       value_type = 'mac',
       i18n_label = i18n('db_search.tags.cli_mac'),
-      operators = {'eq', 'neq'}
+      operators = {'eq', 'neq'},
+      bpf_key = 'ether host',
    },
    srv_mac = {
       value_type = 'mac',
       i18n_label = i18n('db_search.tags.srv_mac'),
-      operators = {'eq', 'neq'}
+      operators = {'eq', 'neq'},
+      bpf_key = 'ether host',
    },
    cli_network = {
       value_type = 'network_id',
@@ -239,6 +247,12 @@ function tag_utils.get_tag_filters_from_request()
    for key, value in pairs(tag_utils.defined_tags) do
       if _GET[key] ~= nil then
          filters[key] = _GET[key]
+      end
+   end
+
+   if not isEmptyString(filters['l7proto']) then
+      if not tonumber(l7proto) then
+         filters['l7proto'] = interface.getnDPIProtoId(filters['l7proto'])
       end
    end
 
@@ -338,6 +352,114 @@ function tag_utils.add_tag_if_valid(tags, tag_key, operators, i18n_prefix)
 
       table.insert(tags, tag)
    end
+end
+
+-- #####################################
+
+function tag_utils.build_bpf(filters)
+   local bpf = ""
+
+   local n = 0
+
+   local and_tags = {}
+   local or_tags = {}
+
+   -- Build 'or' groups (same key)
+   for key, _value in pairs(filters) do
+
+      if not tag_utils.defined_tags[key] then
+         goto skip_filter
+      end
+
+      local bpf_key = tag_utils.defined_tags[key].bpf_key
+
+      if not bpf_key then
+         goto skip_filter
+      end
+
+      local list = split(_value, ',')
+
+      for _,value in ipairs(list) do
+         local version = 4
+         -- tags has value formatted in this way: (e.g.) cli_port = 888,eq
+         -- it means, search for values with port == 888
+         local splitted_value = split(value, tag_utils.SEPARATOR)
+
+         if table.len(splitted_value) ~= 2 then
+            goto continue
+         end
+
+         local op = splitted_value[2]
+         local cond
+         local bpf_val = splitted_value[1]
+
+         if key:ends('ip') then -- either cli_ip, srv_ip or ip (for both)
+            version = isIPv6(bpf_val) and 6 or 4
+         end
+
+         if key == "l4proto" and bpf_val and not tonumber(bpf_val) then
+            bpf_val = l4_proto_to_id(bpf_val)
+         end
+
+         -- Fetch the clickhouse key
+
+         if op ~= "eq" and op ~= "neq" then
+            goto continue
+         end
+
+         cond = bpf_key .. ' ' .. bpf_val
+
+         if op == "neq" then
+            cond = 'not' .. ' ' .. cond
+         end
+
+         if op == "neq" then -- All 'neq' with the same key are in 'and'
+            if and_tags[key] then
+               and_tags[key] = and_tags[key] .. " AND " .. cond
+            else
+               and_tags[key] = cond
+            end
+         else -- All other operators with the same key are in 'or'
+            if or_tags[key] then
+               or_tags[key] = or_tags[key] .. " OR " .. cond
+            else
+               or_tags[key] = cond
+            end
+         end
+
+         n = n + 1
+
+         ::continue::
+      end
+
+      ::skip_filter::
+   end
+
+   if n == 0 then
+      return bpf
+   end
+
+   -- Join all groups with 'and'
+
+   -- AND groups
+   for key, value in pairs(and_tags) do
+      if isEmptyString(bpf) then
+         bpf = "(" .. value .. ")"
+      else
+         bpf = bpf .. " and " .. "(" .. value .. ")"
+      end
+   end
+
+   -- OR groups
+   for key, value in pairs(or_tags) do
+      if isEmptyString(bpf) then
+         bpf = "(" .. value .. ")"
+      else
+         bpf = bpf .. " or " .. "(" .. value .. ")"
+      end
+   end
+
+   return bpf
 end
 
 -- #####################################
