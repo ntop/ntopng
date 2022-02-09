@@ -20,7 +20,39 @@
  */
 #include "../include/ThreadPoolTest.h"
 namespace ntoptesting {
-TEST_F(ThreadPoolTest, Empty) {
-    EXPECT_TRUE(true);
+  static void* doTestRun(void* ptr)  {
+  Utils::setThreadName("TrPoolWorker");
+
+    ((ThreadPool*)ptr)->run();
+  return(NULL);
 }
+
+TEST_F(ThreadPoolTest, ShouldRunAPoolAndTerminateInALoop) {
+    ThreadPool pool;
+    void *res;
+    pthread_t new_thread;
+    for (int i = 0; i < 1000; i++) {
+      int status = pthread_create(&new_thread, NULL, doTestRun, (void*)&pool);
+      EXPECT_EQ(0, status);
+      pool.shutdown();
+      EXPECT_TRUE(pool.isTerminating());
+      pthread_join(new_thread, &res);
+    }
 }
+TEST_F(ThreadPoolTest, ShouldWorkWhenAffinityIsNotCorrect) {
+  char *affinity = static_cast<char *>(calloc(4, sizeof(char)));
+  strcpy(affinity, "AS*");
+  void *res ;
+  pthread_t new_thread;
+    
+  ThreadPool pool(affinity);
+  int status = pthread_create(&new_thread, NULL, doTestRun, (void*)&pool);
+  EXPECT_EQ(0, status);
+  pool.shutdown();
+  EXPECT_TRUE(pool.isTerminating());
+  pthread_join(new_thread, &res);
+  free(affinity);
+}
+
+
+} // namespace ntoptesting

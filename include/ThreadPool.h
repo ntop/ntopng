@@ -39,7 +39,7 @@ class QueuedThreadData {
 
   ~QueuedThreadData() { if(script_path) free(script_path); }
 };
-	
+
 class ThreadPool {
  private:
   u_int16_t num_threads;
@@ -64,10 +64,8 @@ class ThreadPool {
  public:
   ThreadPool(char *comma_separated_affinity_mask = NULL);
   virtual ~ThreadPool();
-
-  void shutdown();
   inline bool isTerminating() { return terminating; };
-
+  void shutdown();
   void run();
   bool queueJob(ThreadedActivity *ta, char *path, NetworkInterface *iface, time_t scheduled_time, time_t deadline);
 };

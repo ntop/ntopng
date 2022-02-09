@@ -27,10 +27,9 @@
 namespace ntoptesting {
 
 class ThreadPoolTest : public ::testing::Test {
-  protected:
-  ThreadPool threadpool_;
+private:
   NtopTestingBase ntop_;
 };
-}
+} // namespace ntoptesting
 
 #endif

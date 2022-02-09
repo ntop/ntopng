@@ -37,16 +37,16 @@ static void* doRun(void* ptr)  {
 
 ThreadPool::ThreadPool(char *comma_separated_affinity_mask) {
   m = new (std::nothrow) Mutex();
-  pthread_cond_init(&condvar, NULL);
   terminating = false;
-
+  Prefs *preferences = ntop->getPrefs();
+  pthread_cond_init(&condvar, NULL);
 #ifdef __linux__
   CPU_ZERO(&affinity_mask);
-
+  
   if(comma_separated_affinity_mask)
     Utils::setAffinityMask(comma_separated_affinity_mask, &affinity_mask);
-  else if(ntop->getPrefs()->get_other_cpu_affinity())
-    Utils::setAffinityMask(ntop->getPrefs()->get_other_cpu_affinity(), &affinity_mask);
+  else if(preferences->get_other_cpu_affinity())
+    Utils::setAffinityMask(preferences->get_other_cpu_affinity(), &affinity_mask);
 #endif
 
   num_threads = 0;
