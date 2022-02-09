@@ -621,8 +621,10 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
       else
          if cli_mac and (cli_mac ~= "00:00:00:00:00:00") and not interface.isView() then
 	    cli_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..cli_mac.."\">" ..cli_mac.."</A>"
-	 else
+         elseif interface.isView() and (cli_mac ~= "00:00:00:00:00:00") then
 	    cli_mac = cli_mac or ""
+      else
+         cli_mac = ""
          end
       end
       
@@ -632,9 +634,11 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
       else
         if srv_mac and (srv_mac ~= "00:00:00:00:00:00") and not interface.isView() then
 	   srv_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..srv_mac.."\">" ..srv_mac.."</A>"
-	else
-	   srv_mac = srv_mac or ""
-        end
+   elseif interface.isView() and (srv_mac ~= "00:00:00:00:00:00") then
+   srv_mac = srv_mac or ""
+else
+   srv_mac = ""
+end
       end
 
    end
