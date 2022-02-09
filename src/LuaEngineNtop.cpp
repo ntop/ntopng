@@ -4924,8 +4924,7 @@ static int ntop_get_local_network_id(lua_State* vm) {
 
   network_id = ntop->getLocalNetworkId(local_network);
 
-  if(network_id != (u_int8_t)-1)
-    lua_pushinteger(vm, network_id);
+  lua_pushinteger(vm, network_id);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
