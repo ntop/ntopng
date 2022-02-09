@@ -166,7 +166,7 @@ function plugins_utils.loadPlugins()
   package.loaded["alert_consts"] = nil
 
   -- Remove the list of system scripts enabled, re-added from the checks.lua file
-  deleteCachePattern("ntonpng.cache.checks.available_system_modules.*")
+  -- deleteCachePattern("ntonpng.cache.checks.available_system_modules.*")
 
   -- Reload checks with their configurations
   local checks = require "checks"

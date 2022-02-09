@@ -329,6 +329,12 @@ void ThreadedActivity::runScript(time_t now, char *script_name, NetworkInterface
 LuaEngine* ThreadedActivity::loadVM(char *script_name, NetworkInterface *iface, time_t when) {
   LuaEngine *l = NULL;
 
+#if defined(NTOPNG_PRO) && defined(TRACE_SCRIPTS)
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running %s [is_pro: %s][demo_end_in: %d]", script_name,
+			       ntop->getPrefs()->is_pro_edition() ? "YES" : "NO",
+			       (ntop->getPro()->demo_ends_at() == 0) ? 0 : (ntop->getPro()->demo_ends_at()-time(NULL)));  
+#endif
+    
   try {
     /* NOTE: this needs to be deallocated by the caller */
     l = new LuaEngine(NULL);
@@ -414,9 +420,16 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t schedul
 	       ntop->get_callbacks_dir(), activityPath());
     } else {
 #ifdef NTOPNG_PRO
-      if(!ntop->getPrefs()->is_pro_edition())
+      if(ntop->getPrefs()->is_pro_edition() == false)
 	break; /* Skip pro scripts in community edition */
-      
+      else {
+	if(ntop->getPro()->demo_ends_at() != 0 /* demo mode */) {
+	  int remaining_time = ntop->getPro()->demo_ends_at() - (u_int32_t)time(NULL);
+
+	  if(remaining_time < 60 /* 1 min */)
+	    break; /* Demo is ending: stop running pro scripts */
+	}
+      }
       /* Attempt to locate and execute the callback under the pro callbacks */
       snprintf(dir_path, sizeof(dir_path), "%s/%s/system/",
 	       ntop->get_pro_callbacks_dir(), activityPath());
