@@ -21,7 +21,7 @@
 #include "../include/ThreadPoolTest.h"
 namespace ntoptesting {
   static void* doTestRun(void* ptr)  {
-  Utils::setThreadName("TrPoolWorker");
+  Utils::setThreadName("TrTestPoolWorker");
 
     ((ThreadPool*)ptr)->run();
   return(NULL);
@@ -43,8 +43,7 @@ TEST_F(ThreadPoolTest, ShouldWorkWhenAffinityIsNotCorrect) {
   char *affinity = static_cast<char *>(calloc(4, sizeof(char)));
   strcpy(affinity, "AS*");
   void *res ;
-  pthread_t new_thread;
-    
+  pthread_t new_thread;   
   ThreadPool pool(affinity);
   int status = pthread_create(&new_thread, NULL, doTestRun, (void*)&pool);
   EXPECT_EQ(0, status);
