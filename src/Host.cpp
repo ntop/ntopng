@@ -196,6 +196,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   host_services_bitmap = 0;
   disabled_alerts_tstamp = 0;
   num_remote_access = 0;
+  memset(view_interface_mac, 0, sizeof(view_interface_mac));
   
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 
@@ -453,7 +454,9 @@ void Host::lua_get_mac(lua_State *vm) const {
   /* Cache macs as they can be swapped/updated */
   Mac *cur_mac = getMac();
 
-  lua_push_str_table_entry(vm, "mac", Utils::formatMac(cur_mac ? cur_mac->get_mac() : NULL, buf, sizeof(buf)));
+  const u_int8_t *mac = cur_mac ? cur_mac->get_mac() : view_interface_mac;
+
+  lua_push_str_table_entry(vm, "mac", Utils::formatMac(mac ? mac : NULL, buf, sizeof(buf)));
   lua_push_uint64_table_entry(vm, "devtype", getDeviceType());
 }
 

@@ -45,6 +45,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   HostStats *stats, *stats_shadow;
   time_t last_stats_reset;
   std::atomic<u_int32_t> active_alerted_flows;
+  u_int8_t view_interface_mac[6];
   
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
@@ -522,7 +523,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t upper_bound_score_anomaly(bool as_client) { return(stats->upper_bound_score_anomaly(as_client)); }
 
   inline void inc_num_blacklisted_flows(bool as_client) { if(as_client) num_blacklisted_flows.as_client++; else num_blacklisted_flows.as_server++; }
-  
+  inline void setViewInterfaceMac(u_int8_t *_view_interface_mac) { if(_view_interface_mac) memcpy(view_interface_mac, _view_interface_mac, sizeof(view_interface_mac)); }  
 };
 
 #endif /* _HOST_H_ */
