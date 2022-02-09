@@ -29,11 +29,12 @@ AfterShutdownAction afterShutdownAction = after_shutdown_nop;
 namespace ntoptesting {
 
 class AddressResolutionTest : public ::testing::Test {
-  protected:
+protected:
   AddressResolution resolver_;
-  static constexpr const char* address_ =  "media-router-fp73.prod.media.vip.ne1.yahoo.com";
+  static constexpr const char *address_ =
+      "media-router-fp73.prod.media.vip.ne1.yahoo.com";
   NtopTestingBase ntop_;
 };
-}
+} // namespace ntoptesting
 
 #endif

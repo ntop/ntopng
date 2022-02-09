@@ -3,13 +3,15 @@
 #include "ntop_includes.h"
 // rule of 0
 class NtopTestingBase {
-    public:
-    NtopTestingBase();
-    virtual ~NtopTestingBase();
-    Prefs* GetPreferences() const;
-    private:
-    void InitializePreferences();
-    Ntop* ntop_;
-    Prefs* pref_;
+public:
+  NtopTestingBase();
+  virtual ~NtopTestingBase();
+  Ntop *GetNtop() const;
+  Prefs *GetPreferences() const;
+
+private:
+  void InitializePreferences();
+  Ntop *ntop_;
+  Prefs *pref_;
 };
 #endif
