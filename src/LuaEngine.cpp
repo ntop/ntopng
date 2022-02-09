@@ -529,7 +529,7 @@ static int post_iterator(void *cls,
 int LuaEngine::load_script(char *script_path, NetworkInterface *iface) {
   int rc = 0;
   bool initialized;
-  
+
   if(!L) return(-1);
 
   if(loaded_script_path)

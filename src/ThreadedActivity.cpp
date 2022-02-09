@@ -71,9 +71,9 @@ void ThreadedActivity::updateNextSchedule(u_int32_t now) {
     if(randomDelaySchedule) {
       u_int max_randomness = ndpi_min(120 /* 2 mins */, 0.75 /* 75% */ * getPeriodicity());
       u_int randomness = rand() % max_randomness;
-      /* 
-	 Add some schedule randomness to avoid all scripts 
-	 to be executed at the same time 
+      /*
+	 Add some schedule randomness to avoid all scripts
+	 to be executed at the same time
       */
 
       if(randomness < 5) randomness = 5; /* Add at least 5 sec */
@@ -289,7 +289,9 @@ void ThreadedActivity::runScript(time_t now, char *script_name, NetworkInterface
 
   l = loadVM(script_name, iface, now);
   if(!l) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s]", iface->get_name(), activityPath());
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s][script: %s]",
+				 iface->get_name(), activityPath(),
+				 script_name);
     return;
   }
 
@@ -332,9 +334,9 @@ LuaEngine* ThreadedActivity::loadVM(char *script_name, NetworkInterface *iface, 
 #if defined(NTOPNG_PRO) && defined(TRACE_SCRIPTS)
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running %s [is_pro: %s][demo_end_in: %d]", script_name,
 			       ntop->getPrefs()->is_pro_edition() ? "YES" : "NO",
-			       (ntop->getPro()->demo_ends_at() == 0) ? 0 : (ntop->getPro()->demo_ends_at()-time(NULL)));  
+			       (ntop->getPro()->demo_ends_at() == 0) ? 0 : (ntop->getPro()->demo_ends_at()-time(NULL)));
 #endif
-    
+
   try {
     /* NOTE: this needs to be deallocated by the caller */
     l = new LuaEngine(NULL);
@@ -365,7 +367,7 @@ void ThreadedActivity::schedule(u_int32_t now) {
 #ifdef THREAD_DEBUG
   if(1) {
     int tdiff = next_schedule-now;
-    
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Next schedule: %d [%s]", tdiff, activityPath());
   }
 #endif
@@ -408,28 +410,36 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t schedul
   struct stat buf;
   DIR *dir_struct;
   struct dirent *ent;
+  u_int num_loops;
 
 #ifdef THREAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Scheduling %s", activityPath());
 #endif
-  
-  for(u_int i=0; i<2; i++) {
-    if(i == 0) {
+
+#ifdef NTOPNG_PRO
+  if(ntop->getPrefs()->is_pro_edition() == false)
+    num_loops = 1; /* Skip pro scripts in community edition */
+  else {
+    num_loops = 2;
+
+    if(ntop->getPro()->demo_ends_at() != 0 /* demo mode */) {
+      int remaining_time = ntop->getPro()->demo_ends_at() - (u_int32_t)time(NULL);
+
+      if(remaining_time < 60 /* 1 min */)
+	num_loops = 1; /* Demo is ending: stop running pro scripts */
+    }
+  }
+#else
+  num_loops = 1;
+#endif
+
+  for(u_int l_i=0; l_i<num_loops; l_i++) {
+    if(l_i == 0) {
       /* Schedule system script */
       snprintf(dir_path, sizeof(dir_path), "%s/%s/system/",
 	       ntop->get_callbacks_dir(), activityPath());
     } else {
 #ifdef NTOPNG_PRO
-      if(ntop->getPrefs()->is_pro_edition() == false)
-	break; /* Skip pro scripts in community edition */
-      else {
-	if(ntop->getPro()->demo_ends_at() != 0 /* demo mode */) {
-	  int remaining_time = ntop->getPro()->demo_ends_at() - (u_int32_t)time(NULL);
-
-	  if(remaining_time < 60 /* 1 min */)
-	    break; /* Demo is ending: stop running pro scripts */
-	}
-      }
       /* Attempt to locate and execute the callback under the pro callbacks */
       snprintf(dir_path, sizeof(dir_path), "%s/%s/system/",
 	       ntop->get_pro_callbacks_dir(), activityPath());
@@ -456,7 +466,8 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t schedul
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing %s", script_path);
 #endif
 
-	    if(pool->queueJob(this, script_path, ntop->getSystemInterface(), scheduled_time, deadline)) {
+	    if(pool->queueJob(this, script_path, ntop->getSystemInterface(),
+			      scheduled_time, deadline)) {
 #ifdef THREAD_DEBUG
 	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s", script_path);
 #endif
@@ -469,8 +480,8 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t schedul
     }
   } /* for */
 
-  for(u_int i=0; i<2; i++) {
-    if(i == 0) {
+  for(u_int l_i=0; l_i<num_loops; l_i++) {
+    if(l_i == 0) {
       /* Schedule interface script, one for each interface */
       snprintf(dir_path, sizeof(dir_path), "%s/%s/interface/",
 	       ntop->get_callbacks_dir(), activityPath());
@@ -493,8 +504,8 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool, time_t schedul
       if((dir_struct = opendir(dir_path)) != NULL) {
 	while((ent = readdir(dir_struct)) != NULL) {
 	  if(isValidScript(dir_path, ent->d_name)) {
-	    for(int i = 0; i < ntop->get_num_interfaces(); i++) {
-	      NetworkInterface *iface = ntop->getInterface(i);
+	    for(int ifId = 0; ifId < ntop->get_num_interfaces(); ifId++) {
+	      NetworkInterface *iface = ntop->getInterface(ifId);
 
 	      /* Running the script for each interface if it's not a PCAP */
 	      if(iface && (iface->getIfType() != interface_type_PCAP_DUMP || !excludePcap())) {
