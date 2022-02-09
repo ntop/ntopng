@@ -246,7 +246,7 @@ else
 	    {
 	       entry = page_utils.menu_entries.devices,
 	       hidden = not ifs.has_macs,
-	       url = '/lua/macs_stats.lua?devices_mode=source_macs_only',
+	       url = '/lua/macs_stats.lua',
 	    },
 	    {
 	       entry = page_utils.menu_entries.networks,

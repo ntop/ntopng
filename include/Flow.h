@@ -49,6 +49,7 @@ class Flow : public GenericHashEntry {
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags, flow_verdict;
   u_int8_t src2dst_tcp_zero_window:1, dst2src_tcp_zero_window:1, _pad:6;
   u_int16_t flow_score;
+  u_int8_t view_cli_mac[6], view_srv_mac[6];
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
   /* The bitmap of all possible flow alerts set by FlowCheck subclasses. When no alert is set, the 
@@ -287,7 +288,8 @@ class Flow : public GenericHashEntry {
        Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
        Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
        const ICMPinfo * const icmp_info,
-       time_t _first_seen, time_t _last_seen);
+       time_t _first_seen, time_t _last_seen, 
+       u_int8_t *_view_cli_mac, u_int8_t *_view_srv_mac);
   ~Flow();
 
   inline Bitmap128 getAlertsBitmap() const { return(alerts_map); }
@@ -857,6 +859,9 @@ class Flow : public GenericHashEntry {
   u_char* getCommunityId(u_char *community_id, u_int community_id_len);
 
   inline FlowTrafficStats* getTrafficStats() { return(&stats); };
+
+  inline u_int8_t *get_view_cli_mac() { return(view_cli_mac); };
+  inline u_int8_t *get_view_srv_mac() { return(view_srv_mac); };
 };
 
 #endif /* _FLOW_H_ */

@@ -38,7 +38,7 @@ Flow::Flow(NetworkInterface *_iface,
 	   Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   const ICMPinfo * const _icmp_info,
-	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
+	   time_t _first_seen, time_t _last_seen, u_int8_t *_view_cli_mac, u_int8_t *_view_srv_mac) : GenericHashEntry(_iface) {
   periodic_stats_update_partial = NULL;
   viewFlowStats = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
@@ -102,6 +102,17 @@ Flow::Flow(NetworkInterface *_iface,
 
   if(_observation_point_id)
     iface->incObservationPointIdFlows(_observation_point_id);
+
+  if(_iface->isViewed()) {
+    memset(view_cli_mac, 0, sizeof(view_cli_mac));
+    memset(view_srv_mac, 0, sizeof(view_srv_mac));
+
+    if(_view_cli_mac)
+      memcpy(view_cli_mac, _view_cli_mac, sizeof(view_cli_mac));
+
+    if(_view_srv_mac)
+      memcpy(view_srv_mac, _view_srv_mac, sizeof(view_srv_mac));
+  }
 
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());

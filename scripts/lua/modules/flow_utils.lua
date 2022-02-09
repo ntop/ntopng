@@ -558,26 +558,22 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
      hyperlink_params = hyperlink_suffix
   end
 
-  local host = flow2hostinfo(flow, cli_or_srv)
+  local host
+   if(cli_or_srv) then
+      host = interface.getHostMinInfo(flow[cli_or_srv .. ".ip"], flow[cli_or_srv .. ".vlan"])
+   else
+      host = interface.getHostMinInfo(flow[cli_or_srv .. ".ip"], flow[cli_or_srv .. ".vlan"])
+   end
+
   local host_name = host["name"]
 
   if isEmptyString(host_name) then
-      host_name = host["host"]
+      host_name = host["ip"]
   end
 
-  if(flow[cli_or_srv .. ".systemhost"] == true) then
-     host_name = host_name.." <i class='fas fa-flag' aria-hidden='true'></i>"
-  end
-  if(flow[cli_or_srv ..  ".blacklisted"] == true) then
-     host_name = host_name.." <i class='fas fa-ban' aria-hidden='true' title='Blacklisted'></i>"
-  end
-  if(flow[cli_or_srv .. ".localhost"] == true) then
-     host_name = host_name .. ' <abbr title=\"'.. i18n("details.label_local_host") ..'\"><span class="badge bg-success">'..i18n("details.label_short_local_host")..'</span></abbr>'
-  else
-     host_name = host_name .. ' <abbr title=\"'.. i18n("details.label_remote") ..'\"><span class="badge bg-secondary">'..i18n("details.label_short_remote")..'</span></abbr>'
-  end
+  host_name = host_name .. format_utils.formatFullAddressCategory(host)
 
-  return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), hyperlink_params, host_name, nil, true --[[ perform link existance checks --]])
+  return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), hyperlink_params, host_name, nil, true --[[ perform link existance checks --]]), host["mac"]
 end
 
 local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
@@ -608,8 +604,8 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
    if flow["srv.port"] and (flow["srv.port"] > 0 or flow["proto.l4"] == "TCP" or flow["proto.l4"] == "UDP") then srv_port = flow["srv.port"] end
 
    if add_hyperlinks then
-      cli_name = formatFlowHost(flow, "cli", historical_bounds, hyperlink_suffix)
-      srv_name = formatFlowHost(flow, "srv", historical_bounds, hyperlink_suffix)
+      cli_name, cli_mac = formatFlowHost(flow, "cli", historical_bounds, hyperlink_suffix)
+      srv_name, srv_mac = formatFlowHost(flow, "srv", historical_bounds, hyperlink_suffix)
 
       if cli_port then
 	 cli_port = formatFlowPort(flow, "cli", cli_port, historical_bounds)
@@ -623,21 +619,21 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
          cli_as = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?asn=" ..flow.cli_as.."\">" .. shortenString( flow.cli_as_name or "", 14 ) .."</A>"
          cli_mac = ""
       else
-         if cli_mac and (cli_mac ~= "00:00:00:00:00:00") then
+         if cli_mac and (cli_mac ~= "00:00:00:00:00:00") and not interface.isView() then
 	    cli_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..cli_mac.."\">" ..cli_mac.."</A>"
 	 else
-	    cli_mac = ""
+	    cli_mac = cli_mac or ""
          end
       end
-
+      
       if((flow.dst_as ~= nil) and (flow.dst_as ~= 0)) then
          dst_as = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?asn=" ..flow.dst_as.."\">" .. shortenString( flow.dst_as_name or "", 14 ) .."</A>"
 	 srv_mac = ""
       else
-        if srv_mac and (srv_mac ~= "00:00:00:00:00:00")then
+        if srv_mac and (srv_mac ~= "00:00:00:00:00:00") and not interface.isView() then
 	   srv_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..srv_mac.."\">" ..srv_mac.."</A>"
 	else
-	   srv_mac = ""
+	   srv_mac = srv_mac or ""
         end
       end
 

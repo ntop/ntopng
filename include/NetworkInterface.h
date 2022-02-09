@@ -295,7 +295,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		bool *src2dst_direction,
 		time_t first_seen, time_t last_seen,
 		u_int32_t len_on_wire,
-		bool *new_flow, bool create_if_missing);
+		bool *new_flow, bool create_if_missing, 
+    u_int8_t *view_cli_mac, u_int8_t *view_srv_mac);
   int sortHosts(u_int32_t *begin_slot,
 		bool walk_all,
 		struct flowHostRetriever *retriever,

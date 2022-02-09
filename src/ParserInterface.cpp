@@ -167,7 +167,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 		 zflow->l4_proto, &src2dst_direction,
 		 zflow->first_switched,
 		 zflow->last_switched,
-		 0, &new_flow, true);
+		 0, &new_flow, true,
+     (u_int8_t*)zflow->src_mac,
+     (u_int8_t*)zflow->dst_mac);
 
   PROFILING_SECTION_EXIT(0);
 

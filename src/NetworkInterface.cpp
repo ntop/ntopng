@@ -1117,7 +1117,8 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				bool *src2dst_direction,
 				time_t first_seen, time_t last_seen,
 				u_int32_t len_on_wire,
-				bool *new_flow, bool create_if_missing) {
+				bool *new_flow, bool create_if_missing,
+        u_int8_t *view_cli_mac, u_int8_t *view_srv_mac) {
   Flow *ret;
   Mac *primary_mac;
   Host *srcHost = NULL, *dstHost = NULL;
@@ -1158,7 +1159,8 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				    srcMac, src_ip, src_port,
 				    dstMac, dst_ip, dst_port,
 				    icmp_info,
-				    first_seen, last_seen);
+				    first_seen, last_seen,
+            view_cli_mac, view_srv_mac);
       PROFILING_SECTION_EXIT(2);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
@@ -1676,7 +1678,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 		 l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
 		 &src_ip, &dst_ip, src_port, dst_port,
 		 l4_proto, &src2dst_direction, last_pkt_rcvd,
-		 last_pkt_rcvd, len_on_wire, &new_flow, true);
+		 last_pkt_rcvd, len_on_wire, &new_flow, true, eth->h_source, eth->h_dest /* Eth lvl, used just in view interfaces to add MAC */);
   PROFILING_SECTION_EXIT(0);
 
   if(flow == NULL) {
@@ -2720,7 +2722,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 		     dequeued->l4_proto,
 		     &src2dst_direction,
 		     0, 0, 0, &new_flow,
-		     true /* create_if_missing */);
+		     true /* create_if_missing */, NULL, NULL);
 
       if(flow) {
 #if 0
@@ -6070,7 +6072,7 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVLANs(bool force_idle, bool fu
     const struct timeval tv = periodicUpdateInitTime();
     u_int n;
     /* If the interface is no longer running it is safe to force all entries as idle */
-
+      
     n = (macs_hash ? macs_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (ases_hash ? ases_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (oses_hash ? oses_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
