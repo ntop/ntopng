@@ -9195,17 +9195,20 @@ InterfaceMemberAlertableEntity* NetworkInterface::lockExternalAlertable(AlertEnt
 
   external_alerts_lock.lock(__FILE__, __LINE__);
 
-  if((it = external_alerts.find(key)) == external_alerts.end()) {
-    if(!create_if_missing) {
-      external_alerts_lock.unlock(__FILE__, __LINE__);
-      return(NULL);
-    }
+  if((it = external_alerts.find(key)) != external_alerts.end())
+    return it->second; /* Already present */
 
-    alertable = new (std::nothrow) InterfaceMemberAlertableEntity(this, entity);
-    alertable->setEntityValue(entity_val);
-    external_alerts[key] = alertable;
-  } else
-    alertable = it->second;
+  if(!create_if_missing) {
+    external_alerts_lock.unlock(__FILE__, __LINE__);
+    return(NULL);
+  }
+
+  /* Create */
+  alertable = new (std::nothrow) InterfaceMemberAlertableEntity(this, entity);
+  alertable->setEntityValue(entity_val);
+
+  /* Add to the map */
+  external_alerts[key] = alertable;
 
   return(alertable);
 }
