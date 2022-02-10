@@ -40,6 +40,7 @@ print([[
 ]])
 
 print[[
+<script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print [[/lua/locale.lua"> </script>
 <script type='text/javascript'>
 
    const isAdministrator = ]] print(is_admin) print[[;
