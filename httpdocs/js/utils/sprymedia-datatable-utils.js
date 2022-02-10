@@ -542,7 +542,7 @@ class DataTableUtils {
                     return;
                 }
 
-                columns.push({ index: i, name: this.header().textContent, label: this.i18n_ext.name /* Human-readable column name */ });
+                columns.push({ index: i, name: this.header().textContent, label: this.i18n.name /* Human-readable column name */ });
             });
 
             const $btnGroup = $(`
