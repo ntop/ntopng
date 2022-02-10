@@ -98,7 +98,7 @@ $(function () {
                             badge = ` <span class='badge bg-dark'>built-in</span>`;
                         }
 
-                        return `${i18n.endpoint_types[key]}${badge}`;
+                        return `${i18n_ext.endpoint_types[key]}${badge}`;
                     }
                     return key;
                 }
@@ -108,7 +108,7 @@ $(function () {
                 render: (recipients, type) => {
                     if (type == "display") {
                         if (recipients.length == 0) {
-                            return `${i18n.no_recipients}`;
+                            return `${i18n_ext.no_recipients}`;
                         } else {
                             return NtopUtils.arrayToListString(recipients.map(recipient => {
 
@@ -132,8 +132,8 @@ $(function () {
                     const isBuiltin = endpoint.endpoint_conf.builtin || false;
 
                     return DataTableUtils.createActionButtons([
-                        {class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-edit', modal: '#edit-endpoint-modal', title: `${i18n.edit}` },
-                        {class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-endpoint-modal', title: `${i18n.delete}` },
+                        {class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-edit', modal: '#edit-endpoint-modal', title: `${i18n_ext.edit}` },
+                        {class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-endpoint-modal', title: `${i18n_ext.delete}` },
                     ]);
                 }
             }
@@ -159,7 +159,7 @@ $(function () {
     DataTableUtils.addToggleColumnsDropdown($endpointsTable);
 
     const endpointTypeFilterMenu = new DataTableFiltersMenu({
-        filterTitle: i18n.endpoint_type,
+        filterTitle: i18n_ext.endpoint_type,
         filters: endpointTypeFilters,
         columnIndex: COLUMN_INDEX_ENDPOINT_TYPE,
         tableAPI: $endpointsTable,
@@ -205,7 +205,7 @@ $(function () {
             }
 
             if (response.result.error) {
-                const localizedString = i18n[response.result.error.type];
+                const localizedString = i18n_ext[response.result.error.type];
                 $(`#add-endpoint-modal form .invalid-feedback`).text(localizedString).show();
             }
 
@@ -319,7 +319,7 @@ $(function () {
         catch (error) {
 
             if (error.message == "Response timed out") {
-                $(`#factory-reset-modal .invalid-feedback`).html(i18n.timed_out);
+                $(`#factory-reset-modal .invalid-feedback`).html(i18n_ext.timed_out);
                 return;
             }
         }

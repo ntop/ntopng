@@ -52,7 +52,7 @@ $(function() {
                 render: function(data, type, row) {
 
                     /* if it's the default pool then show an unbounded members message */
-                    if (type == "display" && row.pool_id == DEFAULT_POOL_ID) return i18n.unbounded_members;
+                    if (type == "display" && row.pool_id == DEFAULT_POOL_ID) return i18n_ext.unbounded_members;
 
                     if (type == "display" && row.members.length == 0) return "";
                     // show only the first 10 members, append some dots
@@ -103,8 +103,8 @@ $(function() {
                     if (IS_ALL_POOL) return;
 
                     const buttons = [
-                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-pool', title: `${i18n.edit}` },
-                        { class: `btn-danger ${((pool.pool_id == DEFAULT_POOL_ID || IS_NEDGE) || !changable_pool) ? 'disabled' : '' }`, icon: 'fa-trash', modal: '#remove-pool', title: `${i18n.delete}`}
+                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-pool', title: `${i18n_ext.edit}` },
+                        { class: `btn-danger ${((pool.pool_id == DEFAULT_POOL_ID || IS_NEDGE) || !changable_pool) ? 'disabled' : '' }`, icon: 'fa-trash', modal: '#remove-pool', title: `${i18n_ext.delete}`}
                     ];
 
                     if (poolType == "host") {
@@ -113,7 +113,7 @@ $(function() {
                                 class: `btn-info ${(pool.pool_id == DEFAULT_POOL_ID) ? 'disabled' : '' }`,
                                 icon: 'fa-layer-group',
                                 href: `${http_prefix}/lua/admin/manage_host_members.lua?pool=${pool.pool_id}`,
-                                title: `${i18n.manage}`
+                                title: `${i18n_ext.manage}`
                             }
                         );
                     }
@@ -128,7 +128,7 @@ $(function() {
             columns.splice(1, 0, {
                 data: 'key',
                 render: (key, type, pool) => {
-                    if (type == "display") return i18n.poolFamilies[key];
+                    if (type == "display") return i18n_ext.poolFamilies[key];
                     return key;
                 }
             });
@@ -304,7 +304,7 @@ $(function() {
                 $(`option[data-pool-id='${oldPoolData.pool_id}']`).each(function() {
                     const value = $(this).val();
                     if (poolType != "host")
-                        $(this).text(`${all_members[value].name || value} (${i18n.used_by} ${newPoolName})`)
+                        $(this).text(`${all_members[value].name || value} (${i18n_ext.used_by} ${newPoolName})`)
                 });
             }
 

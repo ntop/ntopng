@@ -67,7 +67,7 @@ $(function () {
 					const THRESHOLD_VALUE = 0.8;
 
 					if (type == "display" && ratio.value == -1) {
-						return i18n.snmp_ratio_errors[ratio.status];
+						return i18n_ext.snmp_ratio_errors[ratio.status];
 					}
 
 					if (type == "display") {

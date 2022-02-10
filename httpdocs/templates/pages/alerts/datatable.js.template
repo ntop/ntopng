@@ -73,7 +73,7 @@ const $deleteAlertModal = $('#delete_alert_dialog form').modalHandler({
     onSubmitSuccess: function (response) {
 
         if (response.rc < 0) {
-            $('#delete_alert_dialog .invalid-feedback').html(i18n.rest[response.rc_str]).show();
+            $('#delete_alert_dialog .invalid-feedback').html(i18n_ext.rest[response.rc_str]).show();
         }
         else {
             onRangePickerChange(false);
@@ -111,7 +111,7 @@ const $acknowledgeFilteredAlerts = $('#dt-acknowledge-modal form').modalHandler(
         const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
 
         const sortedTags = tags.sort((a, b) => {
-            return i18n.tags[tagify.tagData(a).key].localeCompare(i18n.tags[tagify.tagData(b).key])
+            return i18n_ext.tags[tagify.tagData(a).key].localeCompare(i18n_ext.tags[tagify.tagData(b).key])
         });
 
         $('#dt-acknowledge-modal #end-epoch-acknowledge').val(endEpoch);
@@ -119,7 +119,7 @@ const $acknowledgeFilteredAlerts = $('#dt-acknowledge-modal form').modalHandler(
 
         for (const tag of sortedTags) {
             const { key, selectedOperator, realValue, value } = tagify.tagData(tag);
-            const label = i18n.tags[key]
+            const label = i18n_ext.tags[key]
             const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
 
             $('#dt-acknowledge-modal .filters-list').append(child);
@@ -151,7 +151,7 @@ const $deleteFilteredAlerts = $('#dt-delete-modal form').modalHandler({
         const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
 
         const sortedTags = tags.sort((a, b) => {
-            return i18n.tags[tagify.tagData(a).key].localeCompare(i18n.tags[tagify.tagData(b).key])
+            return i18n_ext.tags[tagify.tagData(a).key].localeCompare(i18n_ext.tags[tagify.tagData(b).key])
         });
 
         $('#dt-delete-modal #end-epoch-delete').val(endEpoch);
@@ -159,7 +159,7 @@ const $deleteFilteredAlerts = $('#dt-delete-modal form').modalHandler({
 
         for (const tag of sortedTags) {
             const { key, selectedOperator, realValue, value } = tagify.tagData(tag);
-            const label = i18n.tags[key]
+            const label = i18n_ext.tags[key]
             const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
 
             $('#dt-delete-modal .filters-list').append(child);
@@ -231,7 +231,7 @@ const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
     onSubmitSuccess: function (response, dataSent) {
 
         if (response.rc < 0) {
-            $('#alerts_filter_dialog .invalid-feedback').html(i18n.rest[response.rc_str] || response.rc_str).show();
+            $('#alerts_filter_dialog .invalid-feedback').html(i18n_ext.rest[response.rc_str] || response.rc_str).show();
         }
         else {
 
@@ -270,7 +270,7 @@ const $acknowledgeAlert = $('#acknowledge_alert_dialog form').modalHandler({
     onSubmitSuccess: function (response, dataSent) {
 
         if (response.rc < 0) {
-            $('#acknowledge_alert_dialog .invalid-feedback').html(i18n.rest[response.rc_str] || response.rc_str).show();
+            $('#acknowledge_alert_dialog .invalid-feedback').html(i18n_ext.rest[response.rc_str] || response.rc_str).show();
         }
         else {
 
@@ -307,7 +307,7 @@ const $releaseAlertModal = $('#release_single_alert form').modalHandler({
     },
     onSubmitSuccess: function (response) {
         if (response.rc < 0) {
-            $('#release_single_alert .invalid-feedback').html(i18n.rest[response.rc_str]).show();
+            $('#release_single_alert .invalid-feedback').html(i18n_ext.rest[response.rc_str]).show();
         }
         else {
             onRangePickerChange(false);

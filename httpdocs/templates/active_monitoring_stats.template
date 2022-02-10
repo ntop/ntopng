@@ -104,24 +104,24 @@
 <link href="{{ ntop.getHttpPrefix()}}/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 <script type="text/javascript">
 
-    i18n.pools = "{{ i18n("pools.pools")}}";
-    i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'})}}";
-    i18n.search = "{{ i18n("search")}}:";
-    i18n.msec = "{{i18n("active_monitoring_stats.msec")}}";
-    i18n.edit = "{{i18n("users.edit")}}";
-    i18n.success = "{{i18n("success")}}";
-    i18n.delete = "{{i18n("delete")}}";
-    i18n.expired_csrf = "{{i18n("expired_csrf")}}";
-    i18n.all = "{{i18n("all")}}";
-    i18n.other = "{{i18n("other")}}";
-    i18n.others = "{{i18n("others")}}";
-    i18n.measurement = "{{i18n("active_monitoring_stats.measurement")}}";
-    i18n.alert_status = "{{ i18n("active_monitoring_stats.alert_status")}}";
-    i18n.alerted = "{{ i18n("active_monitoring_stats.alerted")}}";
-    i18n.not_alerted = "{{ i18n("active_monitoring_stats.not_alerted")}}";
-    i18n.no_recipients = "{{i18n('pools.no_recipients')}}";
-    i18n.some_recipients = "{{i18n('pools.some_recipients')}}";
-    i18n.infrastructure = "{{ i18n('infrastructure_dashboard.infrastructure') }}"
+    i18n_ext.pools = "{{ i18n("pools.pools")}}";
+    i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'})}}";
+    i18n_ext.search = "{{ i18n("search")}}:";
+    i18n_ext.msec = "{{i18n("active_monitoring_stats.msec")}}";
+    i18n_ext.edit = "{{i18n("users.edit")}}";
+    i18n_ext.success = "{{i18n("success")}}";
+    i18n_ext.delete = "{{i18n("delete")}}";
+    i18n_ext.expired_csrf = "{{i18n("expired_csrf")}}";
+    i18n_ext.all = "{{i18n("all")}}";
+    i18n_ext.other = "{{i18n("other")}}";
+    i18n_ext.others = "{{i18n("others")}}";
+    i18n_ext.measurement = "{{i18n("active_monitoring_stats.measurement")}}";
+    i18n_ext.alert_status = "{{ i18n("active_monitoring_stats.alert_status")}}";
+    i18n_ext.alerted = "{{ i18n("active_monitoring_stats.alerted")}}";
+    i18n_ext.not_alerted = "{{ i18n("active_monitoring_stats.not_alerted")}}";
+    i18n_ext.no_recipients = "{{i18n('pools.no_recipients')}}";
+    i18n_ext.some_recipients = "{{i18n('pools.some_recipients')}}";
+    i18n_ext.infrastructure = "{{ i18n('infrastructure_dashboard.infrastructure') }}"
 
     let get_host = "{* am_stats.get_host *}";
     let am_csrf = "{{ ntop.getRandomCSRFValue()}}";

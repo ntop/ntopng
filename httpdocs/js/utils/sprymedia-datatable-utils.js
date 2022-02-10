@@ -210,7 +210,7 @@ class DataTableFiltersMenu {
     _generateAllFilter() {
         return {
             key: 'all',
-            label: i18n.all,
+            label: i18n_ext.all,
             regex: '',
             countable: false,
             callback: () => {
@@ -319,10 +319,10 @@ class DataTableUtils {
         return {
             dom: dom,
             pagingType: 'full_numbers',
-            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, `${i18n.all}`]],
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, `${i18n_ext.all}`]],
             language: {
-                info: i18n.showing_x_to_y_rows,
-                search: i18n.script_search,
+                info: i18n_ext.showing_x_to_y_rows,
+                search: i18n_ext.script_search,
                 infoFiltered: "",
                 paginate: {
                     previous: '&lt;',
@@ -542,7 +542,7 @@ class DataTableUtils {
                     return;
                 }
 
-                columns.push({ index: i, name: this.header().textContent, label: this.i18n.name /* Human-readable column name */ });
+                columns.push({ index: i, name: this.header().textContent, label: this.i18n_ext.name /* Human-readable column name */ });
             });
 
             const $btnGroup = $(`

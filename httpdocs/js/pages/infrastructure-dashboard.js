@@ -51,7 +51,7 @@ $(function() {
             { width: '5%', className: 'text-center', data: 'am_success', render: (am_success, type, instance) => {
                 if (type === "display") {
                     const badgeColor = (am_success && !instance.am_error) ? 'success' : (!am_success && instance.error_message !== undefined) ? 'danger' : 'secondary';
-                    const badgeText = (am_success && !instance.am_error) ? i18n.up : (!am_success && instance.error_message !== undefined) ? i18n.error : i18n.not_polled_yet;
+                    const badgeText = (am_success && !instance.am_error) ? i18n_ext.up : (!am_success && instance.error_message !== undefined) ? i18n_ext.error : i18n_ext.not_polled_yet;
                     return `<span class='badge bg-${badgeColor}'>${badgeText}</span>`;
                 }
                 return am_success;
@@ -90,8 +90,8 @@ $(function() {
                 className: 'text-center',
                 data: null,
                 render: (_, type, instance) => DataTableUtils.createActionButtons([
-                    { class: 'btn-info', icon: 'fa-edit', modal: '#edit-instance-modal', title: `${i18n.edit}` },
-                    { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-instance-modal', title: `${i18n.delete}` },
+                    { class: 'btn-info', icon: 'fa-edit', modal: '#edit-instance-modal', title: `${i18n_ext.edit}` },
+                    { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-instance-modal', title: `${i18n_ext.delete}` },
                 ])
             }
         ],
@@ -108,10 +108,10 @@ $(function() {
 
     const STATUS_COLUMN_INDEX = 3;
     const infrastructureDashboardFilterMenu = new DataTableFiltersMenu({
-        filterTitle: i18n.status,
+        filterTitle: i18n_ext.status,
         filters: [
-           { key: 'up', label: i18n.up, countable: true, regex: true },
-           { key: 'error', label: i18n.error, countable: true, regex: false },
+           { key: 'up', label: i18n_ext.up, countable: true, regex: true },
+           { key: 'error', label: i18n_ext.error, countable: true, regex: false },
         ],
         columnIndex: STATUS_COLUMN_INDEX,
         tableAPI: $infrastructureTable,
@@ -136,7 +136,7 @@ $(function() {
         onSubmitSuccess: (response) => {
 
             if (response.rc < 0) {
-                $(`#add-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
+                $(`#add-modal-feedback`).html(i18n_ext.rest[response.rc_str]).fadeIn();
                 return;
             }
 
@@ -176,7 +176,7 @@ $(function() {
         onSubmitSuccess: (response) => {
         
             if (response.rc < 0) {
-                $(`#edit-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
+                $(`#edit-modal-feedback`).html(i18n_ext.rest[response.rc_str]).fadeIn();
                 return;
             }
 
@@ -199,7 +199,7 @@ $(function() {
         onSubmitSuccess: (response) => {
 
             if (response.rc < 0) {
-                $(`#remove-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
+                $(`#remove-modal-feedback`).html(i18n_ext.rest[response.rc_str]).fadeIn();
                 return;
             }
 
@@ -231,7 +231,7 @@ $(function() {
         $button.attr("disabled", "disabled");
         $button.find('span.spinner-border').fadeIn();
         $feedbackLabel.addClass('alert-info');
-        $feedbackLabel.removeClass(`alert-danger alert-success`).text(`${i18n.testing_authentication}...`).show();
+        $feedbackLabel.removeClass(`alert-danger alert-success`).text(`${i18n_ext.testing_authentication}...`).show();
 
         const remoteUrl = $form.find(`[name='url']`).val().trim();
         const token = $form.find(`[name='token']`).val().trim();
@@ -240,8 +240,8 @@ $(function() {
 
         if (!success) {
             $button.find('span.spinner-border').fadeOut(function () {
-                // TODO: read from i18n
-                $feedbackLabel.removeClass('alert-info').addClass(`alert-danger`).html(i18n.rest[errorMessage]);
+                // TODO: read from i18n_ext
+                $feedbackLabel.removeClass('alert-info').addClass(`alert-danger`).html(i18n_ext.rest[errorMessage]);
             });
             $button.removeAttr("disabled");
             return;
@@ -249,7 +249,7 @@ $(function() {
 
         // show a green label to alert the endpoint message
         $button.find('span.spinner-border').fadeOut(function () {
-            $feedbackLabel.removeClass('alert-info').addClass('alert-success').html(i18n.successfull_login).fadeOut(3000, function() {
+            $feedbackLabel.removeClass('alert-info').addClass('alert-success').html(i18n_ext.successfull_login).fadeOut(3000, function() {
                 $feedbackLabel.removeClass(`alert-success`);
             });
         });

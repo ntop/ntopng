@@ -29,29 +29,25 @@ language = ternary(isEmptyString(admin_lang), "en", admin_lang)
 
 local path = require(language)
 
-print[[const ntop_locale = function() {
-	     const ntop_locale =  ]] print(json.encode(path)) print[[;
-	     return {
-	     locale: ntop_locale,
-	     i18n: 
-	(key) => {
-	  var fields = key.split('.');
-	  var val = null;
-	  
-	  for(var i = 0; i < fields.length; i++) {
-	    if(i == 0) {
-	      val = ntop_locale[ fields[0] ];
-	    } else {
-	      val = val[ fields[i] ];
-	    }
+print[[
+const ntop_locale = ]] print(json.encode(path)) print[[;
 
-	    if(val == null) {
-	      return(null);
-	    }	    
-	  } /* for */
+function i18n(key) { 
+    var fields = key.split('.');
+    var val = null;
+      
+    for(var i = 0; i < fields.length; i++) {
+        if(i == 0) {
+            val = ntop_locale[ fields[0] ];
+        } else {
+            val = val[ fields[i] ];
+        }
 
-	  return(val);
-	}
-	};
-}();
+        if(val == null) {
+            return(null);
+        }
+    } /* for */
+
+    return(val);
+}
 ]]

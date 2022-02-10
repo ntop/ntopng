@@ -73,22 +73,22 @@ pool = pool
     Object.freeze(all_members);
     Object.freeze(endpoints);
 
-    i18n.warning = "{{ i18n('warning', {}) }}";
-    i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
-    i18n.search = "{{ i18n('search') }}";
-    i18n.delete = "{{ i18n('delete') }}";
-    i18n.edit = "{{ i18n('edit') }}";
-    i18n.all = "{{ i18n('all') }}";
-    i18n.used_by = "{{ i18n('used_by') }}";
-    i18n.others = "{{ i18n('others') }}";
-    i18n.other = "{{ i18n('other') }}";
-    i18n.and = "{{ i18n('and') }}";
-    i18n.manage = "{{ i18n('host_pools.manage_pool') }}"
-    i18n.unbounded_members = "{{ i18n('pools.unbounded_members') }}";
+    i18n_ext.warning = "{{ i18n('warning', {}) }}";
+    i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    i18n_ext.search = "{{ i18n('search') }}";
+    i18n_ext.delete = "{{ i18n('delete') }}";
+    i18n_ext.edit = "{{ i18n('edit') }}";
+    i18n_ext.all = "{{ i18n('all') }}";
+    i18n_ext.used_by = "{{ i18n('used_by') }}";
+    i18n_ext.others = "{{ i18n('others') }}";
+    i18n_ext.other = "{{ i18n('other') }}";
+    i18n_ext.and = "{{ i18n('and') }}";
+    i18n_ext.manage = "{{ i18n('host_pools.manage_pool') }}"
+    i18n_ext.unbounded_members = "{{ i18n('pools.unbounded_members') }}";
 
-    i18n.poolFamilies = {* json.encode(pool.pool_families) *};
+    i18n_ext.poolFamilies = {* json.encode(pool.pool_families) *};
 
-    i18n.rest = {
+    i18n_ext.rest = {
         INVALID_HOST: "{{ i18n('rest_consts.INVALID_HOST') }}",
         INVALID_ARGUMENTS: "{{ i18n('rest_consts.INVALID_ARGUMENTS') }}",
         NOT_GRANTED: "{{ i18n('rest_consts.NOT_GRANTED') }}",

@@ -37,7 +37,7 @@ $(function() {
                     return flat.join(', ');
                 }
                 else if (type == 'display' && data.length == 0) {
-                    return `<i>${i18n.no_pools_applied}</i>`
+                    return `<i>${i18n_ext.no_pools_applied}</i>`
                 }
 
                 // return pools as a string
@@ -60,7 +60,7 @@ $(function() {
             render: function(data, type, row) {
 
                 let rv = `
-                    <a class="btn btn-info btn-sm" href='edit_configset.lua?subdir=${subdir}' title='${i18n.edit}'>
+                    <a class="btn btn-info btn-sm" href='edit_configset.lua?subdir=${subdir}' title='${i18n_ext.edit}'>
                         <i class='fas fa-edit'></i>
                     </a>
                 `;
@@ -103,8 +103,8 @@ $(function() {
             $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
         },
         language: {
-            info: i18n.showing_x_to_y_rows,
-            search: i18n.config_search,
+            info: i18n_ext.showing_x_to_y_rows,
+            search: i18n_ext.config_search,
             infoFiltered: "",
             paginate: {
                previous: '&lt;',

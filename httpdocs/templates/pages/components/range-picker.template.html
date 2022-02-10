@@ -92,10 +92,10 @@
       data() {
 	  return {
 	      text: {
-		  alerts_presets: ntop_locale.i18n("show_alerts.presets"),
-		  wrong_date_range: ntop_locale.i18n("wrong_date_range"),
-		  apply: ntop_locale.i18n("apply"),
-		  custom: ntop_locale.i18n("graphs.custom"),
+		  alerts_presets: i18n("show_alerts.presets"),
+		  wrong_date_range: i18n("wrong_date_range"),
+		  apply: i18n("apply"),
+		  custom: i18n("graphs.custom"),
 	      },
 	  };
       },
@@ -109,7 +109,7 @@
 <script type="text/javascript">
 
 /* Tags definitions */
-i18n.tags = {* json.encode(tags.localization) *};
+i18n_ext.tags = {* json.encode(tags.localization) *};
 const TAG_OPERATORS = {* json.encode(tags.tag_operators) *};
 const DEFINED_TAGS = {* json.encode(tags.defined_tags) *};
 const VIEW_ONLY_TAGS = {* tags.view_only *};
@@ -402,7 +402,7 @@ $(document).ready(function() {
       if (a.data('tagOperator')   != undefined) operator     = a.data('tagOperator');
 
       const tag = {
-          label: i18n.tags[key],
+          label: i18n_ext.tags[key],
           key: key,
           value: displayValue,
           realValue: realValue,
@@ -432,7 +432,7 @@ $(document).ready(function() {
 
        let tag = {
            key: filter_type,             // e.g. l7_proto 
-           label: i18n.tags[filter_type] // e.g. L7 Proto
+           label: i18n_ext.tags[filter_type] // e.g. L7 Proto
        }
 
        let index = $(`${formSelector} input[name='index']`).val();
