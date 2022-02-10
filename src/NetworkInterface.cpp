@@ -755,7 +755,7 @@ void NetworkInterface::deleteDataStructures() {
 /* **************************************************** */
 
 NetworkInterface::~NetworkInterface() {
-  std::map<std::pair<AlertEntity, std::string>, AlertableEntity*>::iterator it;
+  std::map<std::pair<AlertEntity, std::string>, InterfaceMemberAlertableEntity*>::iterator it;
   std::map<u_int16_t /* observationPointId */, ObservationPointIdTrafficStats*>::iterator it_o;
 
 #ifdef PROFILING
@@ -8956,7 +8956,7 @@ static bool host_invoke_alertable_callback(GenericHashEntry *entity, void *user_
 void NetworkInterface::walkAlertables(AlertEntity alert_entity, const char *entity_value,
 				      AddressTree *allowed_nets,
 				      alertable_callback *callback, void *user_data) {
-  std::map<std::pair<AlertEntity, std::string>, AlertableEntity*>::iterator it;
+  std::map<std::pair<AlertEntity, std::string>, InterfaceMemberAlertableEntity*>::iterator it;
 
   /* Hosts */
   if(((alert_entity == alert_entity_none) || (alert_entity == alert_entity_host))) {
@@ -9188,10 +9188,10 @@ void NetworkInterface::getEngagedAlerts(lua_State *vm, AlertEntity alert_entity,
 
 /* *************************************** */
 
-AlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing) {
-  std::map<std::pair<AlertEntity, std::string>, AlertableEntity*>::iterator it;
+InterfaceMemberAlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing) {
+  std::map<std::pair<AlertEntity, std::string>, InterfaceMemberAlertableEntity*>::iterator it;
   std::pair<AlertEntity, std::string> key(entity, entity_val);
-  AlertableEntity *alertable;
+  InterfaceMemberAlertableEntity *alertable;
 
   external_alerts_lock.lock(__FILE__, __LINE__);
 
@@ -9201,7 +9201,7 @@ AlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, con
       return(NULL);
     }
 
-    alertable = new (std::nothrow) NetworkInterfaceMemberAlertableEntity(this, entity);
+    alertable = new (std::nothrow) InterfaceMemberAlertableEntity(this, entity);
     alertable->setEntityValue(entity_val);
     external_alerts[key] = alertable;
   } else
@@ -9212,7 +9212,7 @@ AlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, con
 
 /* *************************************** */
 
-void NetworkInterface::unlockExternalAlertable(AlertableEntity *alertable) {
+void NetworkInterface::unlockExternalAlertable(InterfaceMemberAlertableEntity *alertable) {
   if(alertable->getNumEngagedAlerts() == 0) {
     std::pair<AlertEntity, std::string> key(alertable->getEntityType(), alertable->getEntityValue());
 

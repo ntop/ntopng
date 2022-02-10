@@ -143,7 +143,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
    * A lock is necessary to guard the insert/delete operations from lookup operations
    * requested from the GUI and to ensure that a delete operation does generate
    * a use-after-free. */
-  std::map<std::pair<AlertEntity, std::string>, AlertableEntity*> external_alerts;
+  std::map<std::pair<AlertEntity, std::string>, InterfaceMemberAlertableEntity*> external_alerts;
   Mutex external_alerts_lock;
 
   RoundTripStats *download_stats, *upload_stats;
@@ -990,8 +990,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 			AlertLevel alert_severity, AlertRole role_filter, AddressTree *allowed_nets);
 
   /* unlockExternalAlertable must be called after use whenever a non-null reference is returned */
-  AlertableEntity* lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing);
-  void unlockExternalAlertable(AlertableEntity *entity);
+  InterfaceMemberAlertableEntity* lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing);
+  void unlockExternalAlertable(InterfaceMemberAlertableEntity *entity);
 
   virtual bool reproducePcapOriginalSpeed() const         { return(false);             }
   u_int32_t getNumEngagedAlerts() const;

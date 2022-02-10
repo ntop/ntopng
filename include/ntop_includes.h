@@ -236,7 +236,7 @@ using namespace std;
 #include "HostAlertableEntity.h"
 #include "OtherAlertableEntity.h"
 #include "NetworkInterfaceAlertableEntity.h"
-#include "NetworkInterfaceMemberAlertableEntity.h"
+#include "InterfaceMemberAlertableEntity.h"
 #include "BehaviouralCounter.h"
 
 #ifdef NTOPNG_PRO

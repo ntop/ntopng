@@ -389,12 +389,11 @@ static int ntop_is_not_empty_file(lua_State* vm) {
 
 /* ****************************************** */
 
-int ntop_release_triggered_alert(lua_State* vm, AlertableEntity *a, int idx) {
+int ntop_release_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, int idx) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *key;
   ScriptPeriodicity periodicity;
   time_t when;
-  OtherAlertableEntity *alertable = dynamic_cast<OtherAlertableEntity*>(a);
 
   if(!c->iface || !alertable) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
@@ -415,15 +414,14 @@ int ntop_release_triggered_alert(lua_State* vm, AlertableEntity *a, int idx) {
 
 /* ****************************************** */
 
-int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *a, int idx) {
+int ntop_store_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, int idx) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *key, *alert_subtype, *alert_json;
   ScriptPeriodicity periodicity;
   u_int32_t score;
   AlertType alert_type;
-  Host *host;
+  //Host *host;
   bool triggered;
-  OtherAlertableEntity *alertable = dynamic_cast<OtherAlertableEntity*>(a);
 
   if(!alertable || !c->iface) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
@@ -448,8 +446,9 @@ int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *a, int idx) {
   triggered = alertable->triggerAlert(vm, std::string(key), periodicity, time(NULL),
     score, alert_type, alert_subtype, alert_json);
 
-  if(triggered && (host = dynamic_cast<Host*>(alertable)))
-    host->incTotalAlerts();
+  /* This looks like old code, Host Checks are C++ only now */
+  //if(triggered && (host = dynamic_cast<Host*>(alertable)))
+  //  host->incTotalAlerts();
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }

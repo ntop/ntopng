@@ -26,15 +26,15 @@
 
 class NetworkInterface;
 
-class NetworkInterfaceMemberAlertableEntity : public OtherAlertableEntity {
+class InterfaceMemberAlertableEntity : public OtherAlertableEntity {
  private:
 
  protected:
 
 public:
-  NetworkInterfaceMemberAlertableEntity(NetworkInterface *alert_iface, AlertEntity entity) : OtherAlertableEntity(alert_iface, alert_entity_network) {};
+  InterfaceMemberAlertableEntity(NetworkInterface *alert_iface, AlertEntity entity) : OtherAlertableEntity(alert_iface, alert_entity_network) {};
 
-  ~NetworkInterfaceMemberAlertableEntity() {
+  ~InterfaceMemberAlertableEntity() {
     /* Decrease interface number of engaged alerts on the interface */
     std::map<std::string, Alert>::const_iterator alert_it;
     engaged_alerts_lock.wrlock(__FILE__, __LINE__);

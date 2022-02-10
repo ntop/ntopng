@@ -881,7 +881,7 @@ static int ntop_interface_get_alerts(lua_State* vm) {
 static int ntop_interface_store_external_alert(lua_State* vm) {
   AlertEntity entity;
   const char *entity_value;
-  AlertableEntity *alertable;
+  InterfaceMemberAlertableEntity *alertable;
   NetworkInterface *iface = getCurrentInterface(vm);
   int idx = 1;
 
@@ -920,7 +920,7 @@ static int ntop_interface_release_triggered_alert(lua_State* vm) {
 static int ntop_interface_release_external_alert(lua_State* vm) {
   AlertEntity entity;
   const char *entity_value;
-  AlertableEntity *alertable;
+  InterfaceMemberAlertableEntity *alertable;
   NetworkInterface *iface = getCurrentInterface(vm);
   int idx = 1;
 
