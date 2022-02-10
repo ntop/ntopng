@@ -29,10 +29,12 @@ language = ternary(isEmptyString(admin_lang), "en", admin_lang)
 
 local path = require(language)
 
-print("var ntop_locale = "..json.encode(path)..";")
-
-print [[
-	function i18n(key) {
+print[[const ntop_locale = function() {
+	     const ntop_locale =  ]] print(json.encode(path)) print[[;
+	     return {
+	     locale: ntop_locale,
+	     i18n: 
+	(key) => {
 	  var fields = key.split('.');
 	  var val = null;
 	  
@@ -49,5 +51,7 @@ print [[
 	  } /* for */
 
 	  return(val);
-	}	
+	}
+	};
+}();
 ]]
