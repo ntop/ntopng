@@ -9190,13 +9190,14 @@ void NetworkInterface::getEngagedAlerts(lua_State *vm, AlertEntity alert_entity,
 
 InterfaceMemberAlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing) {
   std::map<std::pair<AlertEntity, std::string>, InterfaceMemberAlertableEntity*>::iterator it;
-  std::pair<AlertEntity, std::string> key(entity, entity_val);
+  std::pair<AlertEntity, std::string> key(entity, std::string(entity_val));
   InterfaceMemberAlertableEntity *alertable;
 
   external_alerts_lock.lock(__FILE__, __LINE__);
 
-  if((it = external_alerts.find(key)) != external_alerts.end())
+  if((it = external_alerts.find(key)) != external_alerts.end()) {
     return it->second; /* Already present */
+  }
 
   if(!create_if_missing) {
     external_alerts_lock.unlock(__FILE__, __LINE__);
@@ -9216,6 +9217,7 @@ InterfaceMemberAlertableEntity* NetworkInterface::lockExternalAlertable(AlertEnt
 /* *************************************** */
 
 void NetworkInterface::unlockExternalAlertable(InterfaceMemberAlertableEntity *alertable) {
+
   if(alertable->getNumEngagedAlerts() == 0) {
     std::pair<AlertEntity, std::string> key(alertable->getEntityType(), alertable->getEntityValue());
 

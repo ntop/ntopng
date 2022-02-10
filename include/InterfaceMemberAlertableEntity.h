@@ -32,7 +32,7 @@ class InterfaceMemberAlertableEntity : public OtherAlertableEntity {
  protected:
 
 public:
-  InterfaceMemberAlertableEntity(NetworkInterface *alert_iface, AlertEntity entity) : OtherAlertableEntity(alert_iface, alert_entity_network) {};
+  InterfaceMemberAlertableEntity(NetworkInterface *alert_iface, AlertEntity entity) : OtherAlertableEntity(alert_iface, entity) {};
 
   ~InterfaceMemberAlertableEntity() {
     /* Decrease interface number of engaged alerts on the interface */
