@@ -1,3 +1,4 @@
+
 /*
  *
  * (C) 2013-22 - ntop.org
@@ -18,19 +19,28 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  */
+#ifndef _TEST_SCOPED_THREAD_POOL_H_
+#define _TEST_SCOPED_THREAD_POOL_H_
 
-#ifndef _TEST_THREAD_POOL_H_
-#define _TEST_THREAD_POOL_H_
-#include "NtopTestingBase.h"
-#include "ScopedThreadPool.h"
-#include "gtest/gtest.h"
+#include "ThreadedActivity.h"
+#include "ThreadPool.h"
 
 namespace ntoptesting {
 
-class ThreadPoolTest : public ::testing::Test {
-private:
-  NtopTestingBase ntop_;
-};
-} // namespace ntoptesting
+class ScopedThreadPool {
+public:
+  ScopedThreadPool();
+  void Shutdown();
+  void Run();
+  bool IsActive() const;
+  ThreadPool *GetPool() const;
+  ~ScopedThreadPool();
+  void WaitFor(int seconds);
 
+private:
+  ThreadPool *pool_;
+  pthread_t runThread_;
+  bool isActive_;
+};
+}
 #endif
