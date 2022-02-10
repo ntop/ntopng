@@ -199,11 +199,11 @@ $(document).ready(function() {
                 if (tag.selectedOperator) {
                     existingTag.selectedOperator = tag.selectedOperator;
                 }
-
                 tagify.replaceTag(existingTagElement, existingTag);
-                // update the datasource params
+		let value = createValueFromTag(existingTag);
+		// trigger event
+		ntopng_status_manager.add_value_to_status(tag.key, value);
                 //await onRangePickerChange(true, false);
-
                 return;
             }
         } 
@@ -249,7 +249,6 @@ $(document).ready(function() {
     });
 
     tagify.on('add', async function(e) {
-
         const detail = e.detail;
         if (detail.data === undefined) { return; }
 
@@ -320,12 +319,12 @@ $(document).ready(function() {
 	let value = createValueFromTag(tag);
 
 	// trigger event
-	ntopng_status_manager.value_to_status(tag.key, value);
+	ntopng_status_manager.add_value_to_status(tag.key, value);
         // trigger request
         //await onRangePickerChange(true, false);
     });
 
-    $(`tags`).on('change', 'select.operator', async function(e) {
+  $(`tags`).on('change', 'select.operator', async function(e) {
         // update the tag and the operator
         const $tag = $(this).parents('tag');
         const tagData = tagify.tagData($tag[0]);
@@ -338,7 +337,7 @@ $(document).ready(function() {
       // trigger event
 	ntopng_status_manager.add_value_to_status(tagDate.key, value);
         // trigger request
-        await onRangePickerChange(true, false);
+        //await onRangePickerChange(true, false);
     });
 
     $(".btn-remove-tags").on('click', async function() {
@@ -360,49 +359,49 @@ $(document).ready(function() {
         //await onRangePickerChange(true, false);
     });
 
-    const addFilter = (e, a, from_table) => {
-        e.preventDefault();
+  const addFilter = (e, a, from_table) => {
+      e.preventDefault();
 
-        let key = undefined;
-        let displayValue = undefined;
-        let realValue = undefined;
-        let operator = 'eq';
+      let key = undefined;
+      let displayValue = undefined;
+      let realValue = undefined;
+      let operator = 'eq';
 
-        if (from_table != undefined) {
-            const colIndex = from_table.cell(a.parent()).index().column;
+      if (from_table != undefined) {
+          const colIndex = from_table.cell(a.parent()).index().column;
 
-            // Read tag key from the column
-            key = from_table.column(colIndex).name();
+          // Read tag key from the column
+          key = from_table.column(colIndex).name();
 
-	        // Read tag key from the cell if any
-            const data = from_table.cell(a.parent()).data();
-            if (data.tag_key)
-                key = data.tag_key;
+	  // Read tag key from the cell if any
+          const data = from_table.cell(a.parent()).data();
+          if (data.tag_key)
+              key = data.tag_key;
 
-	        // Read value from the cell
-            displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
-            displayValue  = NtopUtils.stripTags(displayValue);
-            realValue = ((data.value != undefined) ? data.value : data);
-        }
+	  // Read value from the cell
+          displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
+          displayValue  = NtopUtils.stripTags(displayValue);
+          realValue = ((data.value != undefined) ? data.value : data);
+      }
 
-        // Read tag key and value from the <a> itself if provided
-        if (a.data('tagKey')        != undefined) key          = a.data('tagKey');
-        if (a.data('tagLabel')      != undefined) displayValue = a.data('tagLabel');
-        if (a.data('tagRealvalue')  != undefined) realValue    = a.data('tagRealvalue');
-        else if (a.data('tagValue') != undefined) realValue    = a.data('tagValue');
-        if (a.data('tagOperator')   != undefined) operator     = a.data('tagOperator');
+      // Read tag key and value from the <a> itself if provided
+      if (a.data('tagKey')        != undefined) key          = a.data('tagKey');
+      if (a.data('tagLabel')      != undefined) displayValue = a.data('tagLabel');
+      if (a.data('tagRealvalue')  != undefined) realValue    = a.data('tagRealvalue');
+      else if (a.data('tagValue') != undefined) realValue    = a.data('tagValue');
+      if (a.data('tagOperator')   != undefined) operator     = a.data('tagOperator');
 
-        const tag = {
-            label: i18n.tags[key],
-            key: key,
-            value: displayValue,
-            realValue: realValue,
-            title: realValue,
-            selectedOperator: operator
-        };
+      const tag = {
+          label: i18n.tags[key],
+          key: key,
+          value: displayValue,
+          realValue: realValue,
+          title: realValue,
+          selectedOperator: operator
+      };
 
-        addFilterTag(tag);
-    }
+      addFilterTag(tag);
+  }
 
     /*** Filters modal ***/
     // load data for filters (e.g. alert types in the selected range)
