@@ -36,7 +36,7 @@
 </style>
 
 <div class="mb-1" id="data-time-range-picker-vue">
-  <data-time-range-picker>
+  <data-time-range-picker :text="text">
     {% if not isEmptyString(extra_range_buttons) then %}
     {* extra_range_buttons *}
     {% end %}
@@ -88,6 +88,16 @@
   const data_time_range_picker_options = {
       components: {
    	  'data-time-range-picker': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule('{{ ntop.getHttpPrefix() }}/vue/components/data-time-range-picker.vue', ntopng_vue_loader.loadOptions) ),
+      },
+      data() {
+	  return {
+	      text: {
+		  alerts_presets: ntop_locale.i18n("show_alerts.presets"),
+		  wrong_date_range: ntop_locale.i18n("wrong_date_range"),
+		  apply: ntop_locale.i18n("apply"),
+		  custom: ntop_locale.i18n("graphs.custom"),
+	      },
+	  };
       },
   };
   const data_time_range_picker = Vue.createApp(data_time_range_picker_options);

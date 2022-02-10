@@ -320,8 +320,9 @@
   function refreshTime() {
       let epoch_status = ntopng_status_manager.get_status();
       let now = Number.parseInt(Date.now() / 1000);
-      let delta = now - epoch_status.epoch_end;
-      let epoch_begin = epoch_status.epoch_begin + delta;
+      let delta = now - Number.parseInt(epoch_status.epoch_end);
+      if (delta < 0) { return; }
+      let epoch_begin = Number.parseInt(epoch_status.epoch_begin) + delta;
       ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, { epoch_begin, epoch_end: now });
   }
   
