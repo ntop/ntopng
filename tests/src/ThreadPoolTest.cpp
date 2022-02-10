@@ -18,40 +18,72 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  */
+#include "../include/ScopedThreadPool.h"
 #include "../include/ThreadPoolTest.h"
-namespace ntoptesting {
-  static void* doTestRun(void* ptr)  {
-  Utils::setThreadName("TrTestPoolWorker");
 
-    ((ThreadPool*)ptr)->run();
-  return(NULL);
+namespace ntoptesting {
+
+static void *doTestRun(void *ptr) {
+  Utils::setThreadName("TrTestPoolWorker0");
+
+  ((ThreadPool *)ptr)->run();
+  return (NULL);
 }
 
 TEST_F(ThreadPoolTest, ShouldRunAPoolAndTerminateInALoop) {
-    ThreadPool pool;
-    void *res;
-    pthread_t new_thread;
-    for (int i = 0; i < 1000; i++) {
-      int status = pthread_create(&new_thread, NULL, doTestRun, (void*)&pool);
-      EXPECT_EQ(0, status);
-      pool.shutdown();
-      EXPECT_TRUE(pool.isTerminating());
-      pthread_join(new_thread, &res);
-    }
+  ThreadPool pool;
+  void *res;
+  pthread_t new_thread;
+  for (int i = 0; i < 1000; i++) {
+    int status = pthread_create(&new_thread, NULL, doTestRun, (void *)&pool);
+    EXPECT_EQ(0, status);
+    pool.shutdown();
+    EXPECT_TRUE(pool.isTerminating());
+    pthread_join(new_thread, &res);
+  }
 }
+
+TEST_F(ThreadPoolTest, ShouldPoolScheduleACorrectActivity) {
+  bool delayedActivity = false;
+  u_int32_t periodicitySeconds = 0;
+  u_int32_t maxDurationsSeconds = 0;
+  bool alignToLocalTime = false;
+  bool excludeViewedInterfaces = false;
+  bool excludePcap = false;
+  ScopedThreadPool scopedPool;
+  const char *script = "/usr/bin/pwd";
+  // check if it's started
+  EXPECT_EQ(true, scopedPool.IsActive());
+  
+  ThreadedActivity *activity = new ThreadedActivity(script,
+    delayedActivity,
+    periodicitySeconds,
+    maxDurationsSeconds,
+    alignToLocalTime,
+    excludeViewedInterfaces,
+    excludePcap,
+    scopedPool.GetPool());
+  
+  for (int i = 0; i < 10; i++) {
+    activity->schedule(time(NULL));
+  }
+  scopedPool.WaitFor(5);
+
+  delete activity;
+}
+
 TEST_F(ThreadPoolTest, ShouldWorkWhenAffinityIsNotCorrect) {
   char *affinity = static_cast<char *>(calloc(4, sizeof(char)));
   strcpy(affinity, "AS*");
-  void *res ;
-  pthread_t new_thread;   
+  void *res;
+  pthread_t new_thread;
   ThreadPool pool(affinity);
-  int status = pthread_create(&new_thread, NULL, doTestRun, (void*)&pool);
+  int status = pthread_create(&new_thread, NULL, doTestRun, (void *)&pool);
   EXPECT_EQ(0, status);
   pool.shutdown();
   EXPECT_TRUE(pool.isTerminating());
   pthread_join(new_thread, &res);
   free(affinity);
 }
-
 
 } // namespace ntoptesting
