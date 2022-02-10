@@ -30,7 +30,7 @@ class UnexpectedDHCPServer : public UnexpectedServer {
   FlowAlertType getAlertType() const { return UnexpectedDHCPServerAlert::getClassType(); }
 
 protected:
-  bool isAllowedProto(Flow *f)          { return(f->isDHCP()); }
+  bool isAllowedProto(Flow *f)          { return(f->isDHCP() && (f->get_srv_port() == 67 /* Server port */)); }
   const IpAddress* getServerIP(Flow *f) { return(f->get_dhcp_srv_ip_addr()); }
   
  public:
