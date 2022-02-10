@@ -1618,6 +1618,18 @@ end
 
 -- ##############################################
 
+function checks.getScriptEditorUrl(script)
+   if(script.edition == "community" and script.source_path) then
+      local plugin_file_path = string.sub(script.source_path, string.len(dirs.scriptdir) + 1)
+      local plugin_path = string.sub(script.plugin.path, string.len(dirs.scriptdir) + 1)
+      return(string.format("%s/lua/code_viewer.lua?plugin_file_path=%s&plugin_path=%s", ntop.getHttpPrefix(), plugin_file_path, plugin_path))
+   end
+
+   return(nil)
+end
+
+-- ##############################################
+
 -- @brief Returns the list of the default filters of a specific alert
 function checks.getFilterPreset(alert, alert_info)
    local alert_generation = alert_info["alert_generation"]
