@@ -189,6 +189,7 @@ $(document).ready(function() {
   function update_select_query_presets() {
       let value = $(`#select-query-presets`).val();
       ntopng_status_manager.add_value_to_status('query_preset', value);
+      location.reload();
   }
   function createValueFromTag(tag) {
       if (!tag.selectedOperator) tag.selectedOperator = 'eq';
