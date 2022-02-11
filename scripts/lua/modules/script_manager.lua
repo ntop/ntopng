@@ -171,11 +171,8 @@ function script_manager.getMenuEntries()
 
   for fname in pairs(ntop.readdir(RUNTIME_PATHS.menu_items)) do
     local req_name = string.format("%s.%s", MENU_ITEMS_PATH, fname)
-
-    tprint(req_name)
-
     local menu_entry = require(req_name)
-    tprint(menu_entry)
+
     if(menu_entry and ((not menu_entry.is_shown) or menu_entry.is_shown())) then
       -- Don't add any getHttpPrefix to the url here, it's the caller that
       -- can potentially add it
