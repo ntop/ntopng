@@ -7,7 +7,7 @@ local alerts_api = require "alerts_api"
 local alert_consts = require("alert_consts")
 local flow_alert_keys = require "flow_alert_keys"
 
-local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.checks.unexpected_plugins_enabled"
+local UNEXPECTED_SCRIPTS_ENABLED_CACHE_KEY = "ntopng.cache.checks.unexpected_scripts_enabled"
 
 -- #################################################################
 
@@ -39,10 +39,10 @@ local script = {
 -- #################################################################
 
 function script.onEnable(hook, hook_config)
-   -- Set a flag to indicate to the notifications system that an unexpected plugin
+   -- Set a flag to indicate to the notifications system that an unexpected script
    -- has been enabled
-   if isEmptyString(ntop.getCache(UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY)) then
-      ntop.setCache(UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY, "1")
+   if isEmptyString(ntop.getCache(UNEXPECTED_SCRIPTS_ENABLED_CACHE_KEY)) then
+      ntop.setCache(UNEXPECTED_SCRIPTS_ENABLED_CACHE_KEY, "1")
    end
 end
 

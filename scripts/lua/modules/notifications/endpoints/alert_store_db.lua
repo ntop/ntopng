@@ -17,13 +17,13 @@ local alert_store_db = {
       -- No params, alert store is builtin
    },
    endpoint_template = {
-      plugin_key = "alert_store_db",
+      script_key = "alert_store_db",
       template_name = "alert_store_db_endpoint.template"
    },
    recipient_params = {
    },
    recipient_template = {
-      plugin_key = "alert_store_db",
+      script_key = "alert_store_db",
       template_name = "alert_store_db_recipient.template"
    },
 }

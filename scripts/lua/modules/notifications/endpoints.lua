@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/toasts/?.lua;" .. package.path
 
-local plugins_utils = require("plugins_utils")
+local script_manager = require("script_manager")
 local json = require "dkjson"
 
 -- #################################################################
@@ -50,7 +50,7 @@ function endpoints.get_types(exclude_builtin)
    local endpoint_types = {}
 
    -- Currently, we load all the available alert endpoints
-   local available_endpoints = plugins_utils.getLoadedAlertEndpoints()
+   local available_endpoints = script_manager.getLoadedAlertEndpoints()
 
    -- Then, we actually consider vaid types for the notification configs
    -- only those modules that have their `endpoint_params` and `recipient_params`.
@@ -58,7 +58,7 @@ function endpoints.get_types(exclude_builtin)
    -- will be completed, all the available endpoints will have `endpoint_params` and `recipient_params`.
    for _, endpoint in ipairs(available_endpoints) do
       if endpoint.endpoint_params and endpoint.recipient_params and endpoint.endpoint_template and endpoint.recipient_template then
-	 for _, k in pairs({"plugin_key", "template_name"}) do
+	 for _, k in pairs({"script_key", "template_name"}) do
 	    if not endpoint.endpoint_template[k] or not endpoint.recipient_template[k] then
 	       goto continue
 	    end

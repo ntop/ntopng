@@ -24,7 +24,6 @@ local script = {
 
   -- Allow user script configuration from the GUI
   gui = {
-    -- Localization strings, from the "locales" directory of the plugin
     i18n_title = "alerts_dashboard.blacklisted_country",
     i18n_description = "alerts_dashboard.blacklisted_country_descr",
     input_builder = "items_list",

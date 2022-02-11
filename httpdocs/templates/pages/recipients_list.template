@@ -37,7 +37,7 @@
 {# Generate a template for each endpoint entry #}
 {% for endpoint_key, endpoint in pairs(notifications.endpoints) do %}
     <template id="{{ endpoint_key }}-template">
-        {* plugins_utils.renderTemplate(endpoint.recipient_template.plugin_key, endpoint.recipient_template.template_name) *}
+        {* script_manager.renderNotificationTemplate(endpoint.recipient_template.script_key, endpoint.recipient_template.template_name) *}
     </template>
 {% end %}
 

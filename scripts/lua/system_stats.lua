@@ -8,15 +8,13 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 
 require "lua_utils"
 local page_utils = require("page_utils")
-local plugins_utils = require("plugins_utils")
-local alert_consts = require("alert_consts")
+local script_manager = require("script_manager")
 local internals_utils = require "internals_utils"
 local cpu_utils = require("cpu_utils")
 local ts_utils = require "ts_utils"
 local graph_utils = require("graph_utils")
-local alert_utils = require("alert_utils")
 
-local ts_creation = plugins_utils.timeseriesCreationEnabled()
+local ts_creation = script_manager.systemTimeseriesEnabled()
 
 if not isAllowedSystemInterface() then
    return

@@ -15,11 +15,11 @@ local checks = require "checks"
 --
 -- The following checks are loaded
 --
--- /var/lib/ntopng/plugins1/callbacks/system/system/ids_ips_log.lua
--- /var/lib/ntopng/plugins1/callbacks/system/system/dropped_alerts.lua
--- /var/lib/ntopng/plugins1/callbacks/system/system/periodic_activity_not_executed.lua
--- /var/lib/ntopng/plugins1/callbacks/system/system/clickhouse_monitor.lua
--- /var/lib/ntopng/plugins1/callbacks/system/system/slow_periodic_activity.lua
+-- /var/lib/ntopng/scripts/callbacks/system/system/ids_ips_log.lua
+-- /var/lib/ntopng/scripts/callbacks/system/system/dropped_alerts.lua
+-- /var/lib/ntopng/scripts/callbacks/system/system/periodic_activity_not_executed.lua
+-- /var/lib/ntopng/scripts/callbacks/system/system/clickhouse_monitor.lua
+-- /var/lib/ntopng/scripts/callbacks/system/system/slow_periodic_activity.lua
 --
 -- #################################################################
 

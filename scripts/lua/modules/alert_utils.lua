@@ -9,21 +9,16 @@ package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. p
 -- This file contains the description of all functions
 -- used to trigger host alerts
 local verbose = ntop.getCache("ntopng.prefs.alerts.debug") == "1"
-local callback_utils = require "callback_utils"
-local template = require "template_utils"
 local json = require("dkjson")
 local host_pools = require "host_pools"
 local recovery_utils = require "recovery_utils"
-local alert_severities = require "alert_severities"
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
 local telemetry_utils = require "telemetry_utils"
-local tracker = require "tracker"
 local alerts_api = require "alerts_api"
 local icmp_utils = require "icmp_utils"
 local tag_utils = require "tag_utils"
-local checks = require "checks"
 local flow_risk_utils = require "flow_risk_utils"
 
 local shaper_utils = nil
@@ -365,8 +360,6 @@ function alert_utils.getConfigsetAlertLink(alert_json, alert --[[ optional --]])
       if alert then
    	 -- This piece of code (exception) has been moved here from formatAlertMessage
    	 if(alert_consts.getAlertType(alert.alert_id, alert.entity_id) == "alert_am_threshold_cross") then
-   	    local plugins_utils = require "plugins_utils"
-   	    local active_monitoring_utils = require "am_utils"
    	    local host = json.decode(alert.json)["host"]
 
    	    if host and host.measurement and not host.is_infrastructure then

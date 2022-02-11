@@ -15,14 +15,14 @@ local slack = {
       -- TODO: add severity (Errors, Errors and Warnings, All)
    },
    endpoint_template = {
-      plugin_key = "slack",
+      script_key = "slack",
       template_name = "slack_endpoint.template"
    },
    recipient_params = {
       -- TODO: add channel
    },
    recipient_template = {
-      plugin_key = "slack",
+      script_key = "slack",
       template_name = "slack_recipient.template" -- TODO: add template
    },
 }

@@ -16,7 +16,6 @@ local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
 local json = require "dkjson"
-local plugins_utils = require "plugins_utils"
 
 -- ##############################################
 

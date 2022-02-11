@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 local info = ntop.getInfo()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local plugins_utils = require("plugins_utils")
+local script_manager = require("script_manager")
 local template_utils = require("template_utils")
 local recording_utils = require("recording_utils")
 local alert_entities = require("alert_entities")
@@ -140,8 +140,8 @@ page_utils.menu_entries = {
    manage_configurations  = {key = "manage_configurations", i18n_title = "manage_configurations.manage_configurations", section = "admin"},
 
    -- Notifications
-   endpoint_notifications = {key = "endpoint_notifications", i18n_title = "endpoint_notifications.endpoint_list", section="notifications", help_link = "https://www.ntop.org/guides/ntopng/plugins/alert_endpoints.html"},
-   endpoint_recipients    = {key = "endpoint_recipients", i18n_title = "endpoint_notifications.enpoint_recipients_list", section="notifications", help_link = "https://www.ntop.org/guides/ntopng/plugins/alert_endpoints.html"},
+   endpoint_notifications = {key = "endpoint_notifications", i18n_title = "endpoint_notifications.endpoint_list", section="notifications", help_link = "https://www.ntop.org/guides/ntopng/scripts/alert_endpoints.html"},
+   endpoint_recipients    = {key = "endpoint_recipients", i18n_title = "endpoint_notifications.enpoint_recipients_list", section="notifications", help_link = "https://www.ntop.org/guides/ntopng/scripts/alert_endpoints.html"},
 
    -- Tools
    export_data            = {key = "export_data", i18n_title = "manage_data.export", section = "tools"},
@@ -154,10 +154,9 @@ page_utils.menu_entries = {
    live_capture           = {key = "live_capture", i18n_title = "live_capture.active_live_captures", section = "home"},
 
    -- Developer
-   directories            = {key = "directories", i18n_title = "about.directories", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/plugins/distributing_plugins.html"},
-   checks_dev             = {key = "checks_dev", i18n_title = "about.checks", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/plugins/checks.html"},
-   plugin_browser         = {key = "plugin_browser", i18n_title = "plugin_browser", section = "dev"},
-   alert_definitions      = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/plugins/alert_definitions.html"},
+   directories            = {key = "directories", i18n_title = "about.directories", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/scripts/distributing_scripts.html"},
+   checks_dev             = {key = "checks_dev", i18n_title = "about.checks", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/scripts/checks.html"},
+   alert_definitions      = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/scripts/alert_definitions.html"},
    api                    = {key = "api", i18n_title = "lua_c_api", section = "dev"},
    
    -- Help
@@ -183,9 +182,9 @@ page_utils.menu_entries = {
    port_forwarding        = {key = "port_forwarding", i18n_title = "nedge.port_forwarding", section = "system_stats"},
 }
 
--- Extend the menu entries with the plugins
-local menu, entries_data = plugins_utils.getMenuEntries()
-page_utils.plugins_menu = menu or {}
+-- Extend the menu entries with the scripts
+local menu, entries_data = script_manager.getMenuEntries()
+page_utils.scripts_menu = menu or {}
 
 if entries_data then
     for k, v in pairs(entries_data) do
@@ -346,7 +345,7 @@ function page_utils.print_header(title)
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/tempusdominus.min.js?]] print(static_file_epoch) print[["></script>
-  </head>]]
+   </head>]]
   print([[
      <body class="body ]].. (dark_mode and "dark" or "") ..[[">
   ]])

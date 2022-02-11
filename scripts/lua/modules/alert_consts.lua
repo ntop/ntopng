@@ -10,10 +10,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 local alert_severities = require "alert_severities"
 local alert_entities = require "alert_entities"
 local alert_consts = {}
-local alert = require "alert" -- The alert base class
-local format_utils  = require "format_utils"
 local os_utils = require("os_utils")
-local plugins_utils = require("plugins_utils")
 local lua_path_utils = require "lua_path_utils"
 require("ntop_utils")
 
@@ -365,30 +362,6 @@ local function loadAlertsDefs()
 		  package.loaded[mod_fname] = nil
 	       end
 	    end
-	 end
-      end
-   end
-end
-
--- ##############################################
-
--- @brief Cleanup all the currently loaded alert definitions from the current vm.
---        This will cause subsequent new `require`s to be performed.
---        It is only necessary to call this method when alert definitions are changed,
---        i.e., upon plugins reload, or when a license expires.
-function alert_consts.resetDefinitions()
-   alert_consts.alert_types = {}
-   alerts_by_id = {}
-
-   local defs_dirs = alert_consts.getDefinititionDirs()
-
-   for _, defs_dir in pairs(defs_dirs) do
-      lua_path_utils.package_path_prepend(defs_dir)
-
-      for fname in pairs(ntop.readdir(defs_dir)) do
-         if string.ends(fname, ".lua") then
-            local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-	    package.loaded[mod_fname] = nil
 	 end
       end
    end

@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 require "lua_utils"
 local json = require("dkjson")
-local plugins_utils = require("plugins_utils")
 local am_utils = require "am_utils"
 local auth = require "auth"
 

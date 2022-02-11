@@ -9,11 +9,8 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 require "lua_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
-local alert_consts = require("alert_consts")
-local checks = require("checks")
-local plugins_utils = require("plugins_utils")
+local script_manager = require("script_manager")
 local graph_utils = require("graph_utils")
-local alert_utils = require "alert_utils"
 local influxdb_export_api = require "influxdb_export_api"
 
 sendHTTPContentTypeHeader('text/html')
@@ -22,7 +19,7 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.influxdb_status)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local charts_available = plugins_utils.timeseriesCreationEnabled()
+local charts_available = script_manager.systemTimeseriesEnabled()
 
 if not isAllowedSystemInterface() or (ts_utils.getDriverName() ~= "influxdb") then
    local url = ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts"
@@ -31,7 +28,7 @@ if not isAllowedSystemInterface() or (ts_utils.getDriverName() ~= "influxdb") th
 end
 
 local page = _GET["page"] or "overview"
-local url = plugins_utils.getMonitorUrl("influxdb_monitor.lua") .. "?ifid=" .. interface.getId()
+local url = script_manager.getMonitorUrl("influxdb_monitor.lua") .. "?ifid=" .. interface.getId()
 local title = "InfluxDB"
 
 page_utils.print_navbar(title, url,

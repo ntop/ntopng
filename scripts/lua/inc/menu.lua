@@ -416,8 +416,8 @@ local health_entries = {
       }
    }
 
--- Add plugin entries relative to system health (e.g., redis) ...
-for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
+-- Add script entries relative to system health (e.g., redis) ...
+for k, entry in pairsByField(page_utils.scripts_menu, "sort_order", rev) do
    -- NOTE: match on the health key to only pick the right subset of entries
    if entry.menu_entry.section == page_utils.menu_sections.health.key then
       health_entries[#health_entries + 1] = {
@@ -455,8 +455,8 @@ local poller_entries = {
    }
 }
 
--- Add plugin entries relative to pollers (e.g., active monitoring) ...
-for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
+-- Add script entries relative to pollers (e.g., active monitoring) ...
+for k, entry in pairsByField(page_utils.scripts_menu, "sort_order", rev) do
    if entry.menu_entry.section == page_utils.menu_sections.pollers.key then
       poller_entries[#poller_entries + 1] = {
 	 entry = page_utils.menu_entries[entry.menu_entry.key],
@@ -477,8 +477,8 @@ page_utils.add_menubar_section({
 
 local system_entries = {}
 
--- Add plugin entries...
-for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
+-- Add script entries...
+for k, entry in pairsByField(page_utils.scripts_menu, "sort_order", rev) do
    -- Skip pollers, they've already been set under pollers section
    if not entry.menu_entry.section == "pollers" then
       system_entries[#system_entries + 1] = {

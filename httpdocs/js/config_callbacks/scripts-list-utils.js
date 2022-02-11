@@ -1899,7 +1899,7 @@ $(function () {
             render: function (data, type, row) {
 
                // if the type is flter return true if the data length is greather or equal
-               // than 0 so the script table can detect if a plugin is enabled
+               // than 0 so the script table can detect if a script is enabled
                if (data.length <= 0 && type == "filter") return false;
                if (data.length > 0 && type == "filter") return true;
 

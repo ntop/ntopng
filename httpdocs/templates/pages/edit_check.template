@@ -11,17 +11,17 @@
                 <div class="col-12 col-sm-2 category">
                     <b>{{ i18n("edit_check.category") }}</b>
                     <br>
-                    <i class='{{edit_check.plugin.category.icon}}'></i> {{ i18n(edit_check.plugin.category.i18n_title) }}
+                    <i class='{{edit_check.script.category.icon}}'></i> {{ i18n(edit_check.script.category.i18n_title) }}
                 </div>
                 <div class="col-12 col-sm-8 description">
                     <b>{{ i18n("edit_check.description") }}</b>
                     <br>
-                    {{ (i18n(edit_check.plugin.gui.i18n_description) or edit_check.plugin.gui.i18n_description) }}
+                    {{ (i18n(edit_check.script.gui.i18n_description) or edit_check.script.gui.i18n_description) }}
                 </div>
                 <div class="col-12 col-sm-2 author">
                     <b>{{ i18n("edit_check.author") }}</b>
                     <br>
-                    {{ edit_check.plugin.plugin.author }}
+                    {{ edit_check.script.script.author }}
                 </div>
             </div>
         </div>

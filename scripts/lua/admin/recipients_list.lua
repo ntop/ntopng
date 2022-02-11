@@ -11,7 +11,7 @@ local page_utils = require("page_utils")
 local ui_utils = require("ui_utils")
 local template_utils = require "template_utils"
 local json = require "dkjson"
-local plugins_utils = require("plugins_utils")
+local script_manager = require("script_manager")
 local toasts_manager = require("toasts_manager")
 local checks = require("checks")
 local alert_severities = require "alert_severities"
@@ -77,7 +77,7 @@ local context = {
             endpoint_types = endpoint_type_filters
         }
     },
-    plugins_utils = plugins_utils,
+    script_manager = script_manager,
     ui_utils = ui_utils,
     template_utils = template_utils,
     page_utils = page_utils,

@@ -235,7 +235,7 @@ function system_setup_ui_utils.printPageBody(sys_config, print_page_body_callbac
       disable_on_dirty: '.disable-on-dirty',
    });
 
-   /* Use the validator plugin to override default chrome bubble, which is displayed out of window */
+   /* Use the validator to override default chrome bubble, which is displayed out of window */
    $("form[id!='search-host-form']").validator({disable:true});
 </script>]]
 

@@ -19,13 +19,13 @@ local syslog = {
       { param_name = "syslog_port", optional = true },
    },
    endpoint_template = {
-      plugin_key = "syslog",
+      script_key = "syslog",
       template_name = "syslog_endpoint.template"
    },
    recipient_params = {
    },
    recipient_template = {
-      plugin_key = "syslog",
+      script_key = "syslog",
       template_name = "syslog_recipient.template"
    },
 }
