@@ -279,7 +279,6 @@ const $acknowledgeAlert = $('#acknowledge_alert_dialog form').modalHandler({
 /**
  * Release Button Handler
 $table.on('click', `a[href='#release_single_alert']`, function (e) {
-console.log("BUG");
     const alert = $table.row($(this).parent().parent().parent().parent()).data();
 });
 
@@ -288,18 +287,15 @@ const $releaseAlertModal = $('#release_single_alert form').modalHandler({
     csrf: pageCsrf,
     endpoint: `${http_prefix}/lua/rest/v2/release/{{ entity }}/alerts.lua`,
     beforeSumbit: function (alert) {
-console.log("BUG");
         return {
             ifid: "{{ ifid }}",
             row_id: alert.row_id
         };
     },
     onModalInit: function (alert) {
-console.log("BUG");
         $(`#release_single_alert button[type='submit']`).removeAttr("disabled");
     },
     onSubmitSuccess: function (response) {
-console.log("BUG");
         if (response.rc < 0) {
             $('#release_single_alert .invalid-feedback').html(i18n_ext.rest[response.rc_str]).show();
         }
