@@ -206,11 +206,11 @@
     {% end %}
 
   async function reloadTable($table, new_status) {
-      showOverlays();
-      let paramsString = ntopng_status_manager.obj_to_url_params(new_status);
       if ($table == null) {
 	  return;
       }
+      showOverlays();
+      let paramsString = ntopng_utility.obj_to_url_params(new_status);
         // reload the table
         $table.ajax.url(`{* datatable.datasource.name *}?` + paramsString).load();
 
