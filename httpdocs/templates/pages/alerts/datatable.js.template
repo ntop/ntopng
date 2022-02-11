@@ -71,12 +71,11 @@ const $deleteAlertModal = $('#delete_alert_dialog form').modalHandler({
         $(`#delete_alert_dialog button[type='submit']`).removeAttr("disabled");
     },
     onSubmitSuccess: function (response) {
-
         if (response.rc < 0) {
             $('#delete_alert_dialog .invalid-feedback').html(i18n_ext.rest[response.rc_str]).show();
         }
         else {
-            onRangePickerChange(false);
+	    ntopng_status_manager.update_subscribers();
         }
 
         return (response.rc == 0);
@@ -92,10 +91,7 @@ const $acknowledgeFilteredAlerts = $('#dt-acknowledge-modal form').modalHandler(
     csrf: pageCsrf,
     endpoint: `${http_prefix}{* datatable.endpoint_acknowledge *}`,
     beforeSumbit: function (alert) {
-            let post_params = {};
-        for (let key in datasourceParams) {
-            post_params[key] = (datasourceParams[key]);
-        }
+	let post_params = ntopng_status_manager.get_status();
 
         /* Read the label from the corresponding form field */
         post_params["label"] = $("#dt-acknowledge-modal #alert-label-modal").val();
@@ -106,6 +102,7 @@ const $acknowledgeFilteredAlerts = $('#dt-acknowledge-modal form').modalHandler(
         $(`#dt-acknowledge-modal button[type='submit']`).removeAttr("disabled");
         $('#dt-acknowledge-modal .filters-list').empty();
         const tags = tagify.getTagElms();
+	let datasourceParams = ntopng_status_manager.get_status();
 
         const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
         const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
@@ -126,7 +123,7 @@ const $acknowledgeFilteredAlerts = $('#dt-acknowledge-modal form').modalHandler(
         }
     },
     onSubmitSuccess: function (response) {
-        reloadTable($table);
+	ntopng_status_manager.update_subscribers();
         return (response.rc == 0);
     }
 });
@@ -136,16 +133,13 @@ const $deleteFilteredAlerts = $('#dt-delete-modal form').modalHandler({
     csrf: pageCsrf,
     endpoint: `${http_prefix}{* datatable.endpoint_delete *}`,
     beforeSumbit: function (alert) {
-            let post_params = {};
-        for (let key in datasourceParams) {
-            post_params[key] = (datasourceParams[key]);
-        }
-            return post_params;
+	let post_params = ntopng_status_manager.get_status();
+        return post_params;
     },
     onModalInit: function () {
-
         $('#dt-delete-modal .filters-list').empty();
         const tags = tagify.getTagElms();
+	let datasourceParams = ntopng_status_manager.get_status();
 
         const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
         const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
@@ -168,7 +162,7 @@ const $deleteFilteredAlerts = $('#dt-delete-modal form').modalHandler({
         $('#dt-delete-modal #dt-btn-delete').prop('disabled', false);
     },
     onSubmitSuccess: function (response) {
-        reloadTable($table);
+	ntopng_status_manager.update_subscribers();
         return (response.rc == 0);
     }
 });
@@ -187,7 +181,6 @@ const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
     csrf: pageCsrf,
     endpoint: `${http_prefix}/lua/pro/rest/v2/edit/check/filter.lua`,
     beforeSumbit: function (alert) {
-
         let data = {
             subdir: FAMILY,
             script_key: alert.script_key,
@@ -203,7 +196,6 @@ const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
         return data;
     },
     onModalInit: function (alert) {
-
         const $type = $(`<span>${alert.alert_id.label}</span>`);
         $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
 
@@ -229,7 +221,6 @@ const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
 
     },
     onSubmitSuccess: function (response, dataSent) {
-
         if (response.rc < 0) {
             $('#alerts_filter_dialog .invalid-feedback').html(i18n_ext.rest[response.rc_str] || response.rc_str).show();
         }
@@ -239,7 +230,7 @@ const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
                 location.reload();
             }
             else {
-                onRangePickerChange(false);
+		ntopng_status_manager.update_subscribers();
             }
         }
 
@@ -268,7 +259,6 @@ const $acknowledgeAlert = $('#acknowledge_alert_dialog form').modalHandler({
         $(`#acknowledge_alert_dialog #alert-label`).val(alert.user_label);
     },
     onSubmitSuccess: function (response, dataSent) {
-
         if (response.rc < 0) {
             $('#acknowledge_alert_dialog .invalid-feedback').html(i18n_ext.rest[response.rc_str] || response.rc_str).show();
         }
@@ -278,7 +268,7 @@ const $acknowledgeAlert = $('#acknowledge_alert_dialog form').modalHandler({
                 location.reload();
             }
             else {
-                onRangePickerChange(false);
+		ntopng_status_manager.update_subscribers();
             }
         }
 
@@ -289,6 +279,7 @@ const $acknowledgeAlert = $('#acknowledge_alert_dialog form').modalHandler({
 /**
  * Release Button Handler
 $table.on('click', `a[href='#release_single_alert']`, function (e) {
+console.log("BUG");
     const alert = $table.row($(this).parent().parent().parent().parent()).data();
 });
 
@@ -297,15 +288,18 @@ const $releaseAlertModal = $('#release_single_alert form').modalHandler({
     csrf: pageCsrf,
     endpoint: `${http_prefix}/lua/rest/v2/release/{{ entity }}/alerts.lua`,
     beforeSumbit: function (alert) {
+console.log("BUG");
         return {
             ifid: "{{ ifid }}",
             row_id: alert.row_id
         };
     },
     onModalInit: function (alert) {
+console.log("BUG");
         $(`#release_single_alert button[type='submit']`).removeAttr("disabled");
     },
     onSubmitSuccess: function (response) {
+console.log("BUG");
         if (response.rc < 0) {
             $('#release_single_alert .invalid-feedback').html(i18n_ext.rest[response.rc_str]).show();
         }

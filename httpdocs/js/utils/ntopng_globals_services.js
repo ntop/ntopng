@@ -84,6 +84,11 @@ const ntopng_status_manager = function() {
             return params;
         },
 
+	update_subscribers: function() {
+	    const status = this.get_status();
+	    notify_subscribers(status);
+	},
+
         /**
          * Allows to subscribers f_on_change callback on status change event.
          * @param {string} id an identifier of the subscribtion. 
