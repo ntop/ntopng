@@ -1,13 +1,13 @@
-Plugins Architecture
+Scripts Architecture
 --------------------
 
-ntopng can be extended by means of Lua plugins.
-Lua plugins are also used to implement Checks for instance.
+ntopng can be extended by means of Lua scripts.
+Lua scripts are also used to implement Checks for instance.
 
-Plugins should be placed under the below folders, divided by family:
+Scripts should be placed under the below folders, divided by family:
 
-- scripts/plugins/
-- pro/scripts/*_plugins/
+- scripts/scripts/
+- pro/scripts/*_scripts/
 
 Families (subfolders):
 - alerts/ - the include checks which are not flow or host checks
@@ -16,8 +16,8 @@ Families (subfolders):
 - monitors/ - system events (active monitoring, influxdb monitor, redis monitor, clickhouse monitor)
 
 Example:
-$ tree scripts/plugins/monitors/system/redis_monitor/
-scripts/plugins/monitors/system/redis_monitor/
+$ tree scripts/scripts/monitors/system/redis_monitor/
+scripts/scripts/monitors/system/redis_monitor/
 ├── checks
 │   └── system
 │       └── redis_monitor.lua
@@ -30,18 +30,14 @@ scripts/plugins/monitors/system/redis_monitor/
     ├── menu.lua
     └── redis_stats.lua
 
-Alert plugins (checks - excluding hosts and flows which are implemented in C) can be placed under alerts/ in subfolders of arbitrary name.
+Alert scripts (checks - excluding hosts and flows which are implemented in C) can be placed under alerts/ in subfolders of arbitrary name.
 
 Example:
-scripts/plugins/alerts/security/flow_flood/checks/network/flow_flood_victim.lua
+scripts/scripts/alerts/security/flow_flood/checks/network/flow_flood_victim.lua
 
-Plugin Lifecycle
+Scripts Lifecycle
 ------——————————
-Plugins are loaded by loadPlugins() in plugin_utils.lua 
-
-Plugins can be reloaded at runtime, this is implemented in plugins_utils.lua as below:
-1. load/copy plugins to plugins1 (or plugins0)
-2. swap the plugins path to be used (/var/lib/ntopng/plugins0 / /var/lib/ntopng/plugins1)
+Scripts are loaded by loadScripts() in script_utils.lua 
 
 Interface Checks
 ----------------
@@ -65,7 +61,7 @@ Other Checks
 ------------
 
 Example:
-scripts/plugins/alerts/internals/no_if_activity/checks/interface/no_if_activity.lua <- this triggers the alert
+scripts/scripts/alerts/internals/no_if_activity/checks/interface/no_if_activity.lua <- this triggers the alert
 
 Alert definition:
 scripts/lua/modules/alert_definitions/other/alert_no_if_activity.lua  <- this is the alert definition, implemented as subclass of alert.lua

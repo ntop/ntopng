@@ -17,7 +17,7 @@ endpoint logic which is responsible for dequeuing alerts from the queue and proc
 Endpoints Definition
 --------------------
 
-The endpoints are defined into the `./alert_endpoints` subdirectory of the plugin. Let's analyze the
+The endpoints are defined into the `./alert_endpoints` subdirectory of the script. Let's analyze the
 `email_alert_endpoint`_  as an example.
 
 Endpoint Script
@@ -29,7 +29,7 @@ The file `email.lua` contains the actual logic of the endpoint. The module has t
   is fine for most practical cases.
 - :code:`endpoint.prio`: defines the priority for the execution of `endpoint.dequeueRecipientAlerts` in relation to other endpoints.
   Endpoints with higher priority will be invoked first (so they are privileged, in particular when the time is strict).
-- :code:`endpoint.onLoad()`: can be used to programmatically perform certain actions when the plugin is loaded.
+- :code:`endpoint.onLoad()`: can be used to programmatically perform certain actions when the script is loaded.
 - :code:`endpoint.isAvailable()`: can be used to programmatically disable the endpoint (e.g. disable the endpoint on
   some platform). Must return true if the endpoint can be currently used (once the user enables it from the
   endpoints preferences), or false if the endpoint should not be used and its preferences should be hidden.
@@ -57,7 +57,7 @@ at the beginning of the file:
        { param_name = "smtp_password", optional = true },
      },
      endpoint_template = {
-       plugin_key = "email_alert_endpoint",
+       script_key = "email_alert_endpoint",
        template_name = "email_endpoint.template"
      },
      recipient_params = {
@@ -65,7 +65,7 @@ at the beginning of the file:
        { param_name = "cc", optional = true },
      },
      recipient_template = {
-       plugin_key = "email_alert_endpoint",
+       script_key = "email_alert_endpoint",
        template_name = "email_recipient.template"
      },
    }
@@ -85,7 +85,7 @@ Here is a commented snippet for the email endpoint.
       { param_name = "smtp_password", optional = true },
     },
     endpoint_template = {
-      plugin_key = "email_alert_endpoint",
+      script_key = "email_alert_endpoint",
       template_name = "email_endpoint.template"
     },
     recipient_params = {
@@ -93,7 +93,7 @@ Here is a commented snippet for the email endpoint.
       { param_name = "cc", optional = true },
     },
     recipient_template = {
-      plugin_key = "email_alert_endpoint",
+      script_key = "email_alert_endpoint",
       template_name = "email_recipient.template"
     },
   }
@@ -216,13 +216,13 @@ how to log to console `flow flood attackers alerts`_.
     endpoint_params = {
     },
     endpoint_template = {
-      plugin_key = "my_endpoint_alert_endpoint",
+      script_key = "my_endpoint_alert_endpoint",
       template_name = "my_endpoint_endpoint.template"
     },
     recipient_params = {
     },
     recipient_template = {
-      plugin_key = "my_endpoint_alert_endpoint",
+      script_key = "my_endpoint_alert_endpoint",
       template_name = "my_endpoint_recipient.template"
     },
   }
@@ -267,11 +267,11 @@ how to log to console `flow flood attackers alerts`_.
   return my_endpoint
 
 .. _`configured endpoints`: ../web_gui/alerts.html#alert-endopints
-.. _`email_alert_endpoint`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/email_alert_endpoint
+.. _`email_alert_endpoint`: https://github.com/ntop/ntopng/tree/dev/scripts/scripts/email_alert_endpoint
 .. _`prefs_menu.lua`: https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/prefs_menu.lua
-.. _`Localization section`: https://www.ntop.org/guides/ntopng/plugins/localization.html
+.. _`Localization section`: https://www.ntop.org/guides/ntopng/scripts/localization.html
 .. _`prefs_utils.lua`: https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/prefs_utils.lua
-.. _`flow flood attackers alerts`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/flow_flood
+.. _`flow flood attackers alerts`: https://github.com/ntop/ntopng/tree/dev/scripts/scripts/flow_flood
 .. _`alert severity`: https://www.ntop.org/guides/ntopng/basic_concepts/alerts.html#severity
 .. _`alert entity`: https://www.ntop.org/guides/ntopng/basic_concepts/alerts.html#entities
 .. _`alert type`: https://www.ntop.org/guides/ntopng/basic_concepts/alerts.html#type

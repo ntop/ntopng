@@ -1,6 +1,15 @@
 *~
-ntopng.sublime-*
-src/*.o
+
+# Ignoring front end developement directories
+dist/
+node_modules/
+.stylelintrc
+webpack.config.js
+package.json
+package-lock.json
+.eslintrc.json
+
+ntopng.sublime-*src/*.o
 src/*.obj
 third-party/json-c/config.h.in
 third-party/json-c/*
@@ -67,7 +76,6 @@ Makefile
 .DS_Store
 pro
 scripts/lua/pro
-scripts/lua/plugins
 tools/gdbsudo
 nbproject
 .cproject

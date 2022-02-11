@@ -1,9 +1,9 @@
-.. _Plugin Structure:
+.. _Script Structure:
 
-Plugin Structure
+Script Structure
 ================
 
-The most complete example of plugin structure is the following
+The most complete example of script structure is the following
 
 .. code:: bash
 
@@ -35,12 +35,12 @@ The most complete example of plugin structure is the following
        `-- menu.lua
 
 The root directory :code:`example` must have a name which is
-representative for the plugin. Sub-directories contain:
+representative for the script. Sub-directories contain:
 
-- :code:`manifest.lua`: file containing a name and a description of the plugin. See :ref:`Manifest`.
-- :code:`locales` (optional): files for the localization of strings used within the plugin, such as the description of a generated alert. When this directory is omitted, strings found in the plugin will be taken verbatim. See :ref:`Plugin Localization`.
+- :code:`manifest.lua`: file containing a name and a description of the script. See :ref:`Manifest`.
+- :code:`locales` (optional): files for the localization of strings used within the script, such as the description of a generated alert. When this directory is omitted, strings found in the script will be taken verbatim. See :ref:`Script Localization`.
 - :code:`alert_endpoints` (optional): files to create alert endpoints. An alert endpoint is called by ntopng every time an alert is
-  generated. Alert endpoints enable an alert to be post-processed or delivered downstream to an external alert collector. This directory can be omitted when the plugin does not create alert endpoints. See :ref:`Alert Endpoints`.
+  generated. Alert endpoints enable an alert to be post-processed or delivered downstream to an external alert collector. This directory can be omitted when the script does not create alert endpoints. See :ref:`Alert Endpoints`.
 - :code:`checks`: files with the logic necessary to
   perform  custom actions. This directory contains additional
   sub-directories, namely, :code:`interface`, :code:`network`,
@@ -48,7 +48,7 @@ representative for the plugin. Sub-directories contain:
   found under the :code:`interface` directory are be executed for every
   interface; files found under the :code:`network` directory will be executed for every local network; and so on.
   Sub-directories can be missing or empty, depending
-  on whether the plugins wants to perform certain actions or not. See :ref:`Checks`.
+  on whether the scripts wants to perform certain actions or not. See :ref:`Checks`.
 - :code:`ts_schemas`: contains timeseries schemas definitions. See :ref:`Timeseries Schemas`.
 - :code:`web_gui`: file to create custom ntopng pages and link them in
   the main ntopng menu. See :ref:`Custom Pages`.

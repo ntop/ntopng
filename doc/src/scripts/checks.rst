@@ -3,10 +3,10 @@
 Checks
 ============
 
-Checks are the core of plugins. They actually allow certain
+Checks are the core of scripts. They actually allow certain
 actions to be performed periodically, or when a certain event
-occurs. The logic of a plugin is contained in its users
-scripts. A plugin contains zero to many checks.
+occurs. The logic of a script is contained in its users
+scripts. A script contains zero to many checks.
 
 Structure
 ---------

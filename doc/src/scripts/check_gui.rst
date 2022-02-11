@@ -48,9 +48,9 @@ available input builders are:
 
 - :code:`threshold_cross`: allow the user to define a threshold and an operator (">" or "<")
 - :code:`items_list`: allows the user to insert a list of items
-- :code:`long_lived`: template specialized for the long lived flows plugin
-- :code:`elephant_flows`: template specialized for the elephant flows plugin
-- :code:`flow_mud`: template specialized for the `flow MUD plugin`_
+- :code:`long_lived`: template specialized for the long lived flows script
+- :code:`elephant_flows`: template specialized for the elephant flows script
+- :code:`flow_mud`: template specialized for the `flow MUD script`_
 
 Currently the user is limited to the above input builders but in the future it will be
 possible to define new input builders. The input builders backend code can be found in `checks_templates.lua`_
@@ -179,4 +179,4 @@ in :code:`conf.items`.
 
 .. _`scripts-list-utils.js`: https://github.com/ntop/ntopng/blob/dev/httpdocs/js/config_callbacks/scripts-list-utils.js
 .. _`checks_templates.lua`: https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/checks_templates.lua
-.. _`flow MUD plugin`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/mud
+.. _`flow MUD script`: https://github.com/ntop/ntopng/tree/dev/scripts/scripts/mud

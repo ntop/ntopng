@@ -3,14 +3,14 @@
 Alert Definitions
 =================
 
-A plugin enables alerts to be generated. All the alerts a plugin is willing to generate require a file in plugin subdirectory :code:`./alert_definitions/`. The file contains all the necessary information which is required to properly show, localize and format an alert.
+A script enables alerts to be generated. All the alerts a script is willing to generate require a file in script subdirectory :code:`./alert_definitions/`. The file contains all the necessary information which is required to properly show, localize and format an alert.
 
 The file must return a Lua table with the following keys:
 
 - :code:`alert_key`: A constant uniquely identifying this alert.
-- :code:`i18n_title`: A string indicating the title of the alert. ntopng localizes the string as described in :ref:`Plugin Localization`.
+- :code:`i18n_title`: A string indicating the title of the alert. ntopng localizes the string as described in :ref:`Script Localization`.
 - :code:`i18n_description` (optional): Either a string with the alert
-  description or a function returning an alert description string. When :code:`i18n_description` is a string, ntopng localizes as described in :ref:`Plugin Localization`.
+  description or a function returning an alert description string. When :code:`i18n_description` is a string, ntopng localizes as described in :ref:`Script Localization`.
 - :code:`icon`: A Font Awesome 5 icon shown next to the :code:`i18n_title`.
 
 .. _Alert Key:
@@ -23,7 +23,7 @@ The :code:`alert_key` is a constant uniquely identifying the alert. Constants ar
 - :code:`ntopng`
 - :code:`user`
 
-Plugins distributed with ntopng must have their :code:`alert_key` s defined in sub-table :code:`ntopng`. User plugins must have their :code:`alert_key` s defined in sub-table :code:`user`.
+Scripts distributed with ntopng must have their :code:`alert_key` s defined in sub-table :code:`ntopng`. User scripts must have their :code:`alert_key` s defined in sub-table :code:`user`.
 
 Sub-tables can be extended adding new :code:`alert_key` s to either the :code:`ntopng` or the :code:`user` table. Each :code:`alert_key` has an integer number assigned which `must be unique`.
 
@@ -48,7 +48,7 @@ The :code:`status_key` is a constant uniquely identifying the status used only b
 - :code:`ntopng`
 - :code:`user`
 
-Plugins distributed with ntopng must have their :code:`status_key` s defined in sub-table :code:`ntopng`. User plugins must have their :code:`status_key` s defined in sub-table :code:`user`.
+Scripts distributed with ntopng must have their :code:`status_key` s defined in sub-table :code:`ntopng`. User scripts must have their :code:`status_key` s defined in sub-table :code:`user`.
 
 Sub-tables can be extended adding new :code:`status_key` s to either the :code:`ntopng` or the :code:`user` table. Each :code:`status_key` has an integer number assigned which `must be unique`.
 
@@ -69,7 +69,7 @@ Alert description :code:`i18n_description` can be either a string with the alert
 String
 ~~~~~~
 
-When the alert description is string, it is localized as described in :ref:`Plugin Localization`. An :code:`alert_json` table is passed as the parameters table for the localization. Keys and values of :code:`alert_json` can be used to add parameters to the localization string.
+When the alert description is string, it is localized as described in :ref:`Script Localization`. An :code:`alert_json` table is passed as the parameters table for the localization. Keys and values of :code:`alert_json` can be used to add parameters to the localization string.
 
 Function
 ~~~~~~~~
@@ -80,13 +80,13 @@ When the alert description is a function, it gets called with three parameters:
 - :code:`alert`: A Lua table containing the details of the alert.
 - :code:`alert_json`: A Lua table that can be used to add parameters to the localization string.
 
-The function is expected to return a string which is possibly localized. It is up to the plugin to call the :code:`i18n()` localization function to do the actual localization. ntopng will not perform any localization on the returned value of the function.
+The function is expected to return a string which is possibly localized. It is up to the script to call the :code:`i18n()` localization function to do the actual localization. ntopng will not perform any localization on the returned value of the function.
 
 Examples
 --------
 
-The first example considers :ref:`Blacklisted Flows` created in the :ref:`Plugin Examples`. It's
-:code:`./alert_definitions` `blacklisted sub-directory <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/blacklisted/alert_definitions>`_ contains file :code:`alert_flow_blacklisted.lua`. Contents of this file are
+The first example considers :ref:`Blacklisted Flows` created in the :ref:`script Examples`. It's
+:code:`./alert_definitions` `blacklisted sub-directory <https://github.com/ntop/ntopng/tree/dev/scripts/scripts/blacklisted/alert_definitions>`_ contains file :code:`alert_flow_blacklisted.lua`. Contents of this file are
 
 .. code:: lua
 
@@ -102,8 +102,8 @@ This file is very simple as it just :code:`return` s a table with three
 keys. :code:`alert_key` is a constant defined in :code:`alert_keys.ntopng`, :code:`i18n_title` is localized in `en.lua <https://github.com/ntop/ntopng/blob/dev/scripts/locales/en.lua>`_ and other localization files. :code:`icon` is used to select the `warning sign <https://fontawesome.com/icons/exclamation-triangle>`_ which will be printed
 next to the title. :code:`i18n_description` has been omitted as the alert does not need any extra description apart from the title.
 
-Second example considers plugin :ref:`Flow Flooders`.
-It's :code:`./alert_definitions` `flow_flood sub-directory <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/flow_flood/alert_definitions>`_ contains file :code:`alert_flows_flood.lua`. Contents of this file are
+Second example considers script :ref:`Flow Flooders`.
+It's :code:`./alert_definitions` `flow_flood sub-directory <https://github.com/ntop/ntopng/tree/dev/scripts/scripts/flow_flood/alert_definitions>`_ contains file :code:`alert_flows_flood.lua`. Contents of this file are
 
 .. code:: lua
 
