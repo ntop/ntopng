@@ -4551,7 +4551,7 @@ local lang = {
       ["active_monitoring"] = "Active Monitoring Pool",
       ["interface"] = "Пул интерфейсов",
       ["local_network"] = "Пул локальной сети",
-      ["snmp"] = "SNMP Pool",
+      ["snmp"] = "SNMP Пул",
     },
   },
   ["port_details"] = {
