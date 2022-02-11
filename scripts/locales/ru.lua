@@ -4550,7 +4550,7 @@ local lang = {
     ["pool_names_suffix"] = {
       ["active_monitoring"] = "Active Monitoring Pool",
       ["interface"] = "Пул интерфейсов",
-      ["local_network"] = "Local Network Pool",
+      ["local_network"] = "Пул локальной",
       ["snmp"] = "SNMP Pool",
     },
   },
