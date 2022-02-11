@@ -111,6 +111,7 @@ src/host_alerts/*.o
 src/host_checks/*.o
 src/flow_callbacks/*.o
 src/host_callbacks/*.o
+src/*.o
 
 # Ignore config files and tests
 .vscode/

@@ -146,8 +146,6 @@ Ntop::Ntop(const char *appName) {
   else
     snprintf(working_dir, sizeof(working_dir), CONST_DEFAULT_DATA_DIR);
 
-  plugins0_active = 0;
-
   //umask(0);
 
   if(getcwd(startup_dir, sizeof(startup_dir)) == NULL)
@@ -174,7 +172,7 @@ Ntop::Ntop(const char *appName) {
   }
 #endif
 
-  refreshPluginsDir();
+  setScriptsDir();
 
 #ifdef NTOPNG_PRO
   pro = new (std::nothrow) NtopPro();
@@ -931,7 +929,7 @@ void Ntop::loadMacManufacturers(char *dir) {
 void Ntop::setWorkingDir(char *dir) {
   snprintf(working_dir, sizeof(working_dir), "%s", dir);
   removeTrailingSlash(working_dir);
-  refreshPluginsDir();
+  setScriptsDir();
 };
 
 /* ******************************************* */
@@ -3184,13 +3182,11 @@ void Ntop::setnDPICleanupNeeded(bool needed) {
 
 /* *************************************** */
 
-void Ntop::refreshPluginsDir() {
+void Ntop::setScriptsDir() {
 #ifdef WIN32
-  snprintf(plugins0_dir, sizeof(plugins0_dir), "%s\\plugins0", get_working_dir());
-  snprintf(plugins1_dir, sizeof(plugins1_dir), "%s\\plugins1", get_working_dir());
+  snprintf(scripts_dir, sizeof(scripts_dir), "%s\\scripts", get_working_dir());
 #else
-  snprintf(plugins0_dir, sizeof(plugins0_dir), "%s/plugins0", get_working_dir());
-  snprintf(plugins1_dir, sizeof(plugins1_dir), "%s/plugins1", get_working_dir());
+  snprintf(scripts_dir, sizeof(scripts_dir), "%s/scripts", get_working_dir());
 #endif
 }
 

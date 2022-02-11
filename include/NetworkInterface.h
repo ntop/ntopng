@@ -118,9 +118,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   Condvar dump_condition; /* Condition variable used to wait when no flows have been enqueued for dump */
   
 
-  /* Queues for the execution of flow user scripts.
-     See scripts/plugins/examples/example/checks/flow/example.lua for the checks
-   */
+  /* Queues for the execution of flow user scripts */
   SPSCQueue<FlowAlert *> *flowAlertsQueue;
   SPSCQueue<HostAlertReleasedPair> *hostAlertsQueue;
 
