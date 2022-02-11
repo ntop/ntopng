@@ -144,6 +144,7 @@ class Prefs {
   int flows_syslog_facility;
 #endif
   int mysql_port;
+  int clickhouse_tcp_port;
   char *ls_host,*ls_port,*ls_proto;
   bool has_cmdl_trace_lvl; /**< Indicate whether a verbose level 
 			      has been provided on the command line.*/
@@ -334,6 +335,7 @@ class Prefs {
   inline bool use_promiscuous()         { return(use_promiscuous_mode);  };
   inline char* get_mysql_host()         { return(mysql_host);            };
   inline int get_mysql_port()           { return(mysql_port);            };
+  inline int get_clickhouse_tcp_port()  { return(clickhouse_tcp_port);   };
   inline char* get_mysql_dbname()       { return(mysql_dbname);          };
   inline char* get_mysql_tablename()    { return((char*)"flows");        };
   inline char* get_mysql_user()         { return(mysql_user);            };

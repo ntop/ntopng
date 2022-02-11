@@ -163,6 +163,7 @@ Prefs::Prefs(Ntop *_ntop) {
 
   mysql_host = mysql_dbname = mysql_user = mysql_pw = NULL;
   mysql_port = CONST_DEFAULT_MYSQL_PORT;
+  clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
   #ifndef WIN32
   flows_syslog_facility = CONST_DEFAULT_DUMP_SYSLOG_FACILITY;
   #endif
@@ -409,7 +410,7 @@ void usage() {
 #ifdef HAVE_CLICKHOUSE
 	 "                                    | clickhouse    Dump in ClickHouse (Enterprise M/L)\n"
 	 "                                    |   Format:\n"
-	 "                                    |   clickhouse;<host[@port]|socket>;<dbname>;<user>;<pw>\n"
+	 "                                    |   clickhouse;<host[@[<tcpport>,]<mysqlport]|socket>;<dbname>;<user>;<pw>\n"
 	 "                                    |   clickhouse;127.0.0.1;ntopng;default;\n"
 	 "                                    |   You can also use -F clickhouse as alias of \n"
 	 "                                    |   -F clickhouse;127.0.0.1;ntopng;default;\n"
@@ -1414,7 +1415,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 	  /* 
 	     Old Format: mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw> 
-	     New Format: mysql;<host[@port]|unix socket>;<dbname>;<user>;<pw> 
+	     New Format: mysql;<host[@[port,]port]|unix socket>;<dbname>;<user>;<pw> 
 	     
 	  */
 
@@ -1447,24 +1448,46 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    if(mysql_pw == NULL) mysql_pw = strdup("");
 
 	    /* Check for non-default SQL port on -F line */
-	    char* mysql_port_str;
-	  
+	    char *mysql_port_str;
+	
+            /* Default ports */
+            mysql_port = CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT;
+            clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
+            if(!use_clickhouse) mysql_port = CONST_DEFAULT_MYSQL_PORT;
+
+            /* Configured ports, if any*/
 	    if((mysql_port_str = strchr(mysql_host, '@'))) {
+	      char *comma, *clickhouse_tcp_port_str;
+              long l;
+
 	      *(mysql_port_str++) = '\0';
 
+              if((comma = strchr(mysql_port_str, ','))) {
+                clickhouse_tcp_port_str = mysql_port_str;
+                *(comma++) = '\0';
+                mysql_port_str = comma;
+
+	        errno = 0;
+	        l = strtol(clickhouse_tcp_port_str, NULL, 10);
+
+	        if(errno || !l)
+		  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid mysql port, using default port %d [%s]",
+					       clickhouse_tcp_port, strerror(errno));
+	        else
+		  clickhouse_tcp_port = (int)l;
+              }
+
 	      errno = 0;
-	      long l = strtol(mysql_port_str, NULL, 10);
+	      l = strtol(mysql_port_str, NULL, 10);
 
 	      if(errno || !l)
 		ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid mysql port, using default port %d [%s]",
-					     CONST_DEFAULT_MYSQL_PORT,
-					     strerror(errno));
+					     mysql_port, strerror(errno));
 	      else
 		mysql_port = (int)l;
-	    } else {
-	      if(use_clickhouse)
-		mysql_port = CONST_DEFAULT_CLICKHOUSE_PORT;
 	    }
+
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "Using ports %u %u", mysql_port, clickhouse_tcp_port);
 	    
 	    if(use_clickhouse && mysql_host) {
 	      if(strcmp(mysql_host, "localhost") == 0) {
