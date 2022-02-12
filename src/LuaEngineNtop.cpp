@@ -389,12 +389,12 @@ static int ntop_is_not_empty_file(lua_State* vm) {
 
 /* ****************************************** */
 
-int ntop_release_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, int idx) {
+int ntop_release_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, u_int idx) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *key;
   ScriptPeriodicity periodicity;
   time_t when;
-
+  
   if(!c->iface || !alertable) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -414,7 +414,7 @@ int ntop_release_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable,
 
 /* ****************************************** */
 
-int ntop_store_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, int idx) {
+int ntop_store_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, u_int idx) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *key, *alert_subtype, *alert_json;
   ScriptPeriodicity periodicity;
@@ -444,7 +444,7 @@ int ntop_store_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, i
   if((alert_json = (char*)lua_tostring(vm, idx++)) == NULL) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
   triggered = alertable->triggerAlert(vm, std::string(key), periodicity, time(NULL),
-    score, alert_type, alert_subtype, alert_json);
+				      score, alert_type, alert_subtype, alert_json);
 
   /* This looks like old code, Host Checks are C++ only now */
   //if(triggered && (host = dynamic_cast<Host*>(alertable)))

@@ -881,7 +881,6 @@ static int ntop_interface_get_alerts(lua_State* vm) {
 static int ntop_interface_store_external_alert(lua_State* vm) {
   AlertEntity entity;
   const char *entity_value;
-  InterfaceMemberAlertableEntity *alertable;
   NetworkInterface *iface = getCurrentInterface(vm);
   int idx = 1;
 
@@ -894,15 +893,8 @@ static int ntop_interface_store_external_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   entity_value = lua_tostring(vm, idx++);
 
-  alertable = iface->lockExternalAlertable(entity, entity_value, true /* Create if not exists */);
-
-  if(!alertable)
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-
-  ntop_store_triggered_alert(vm, alertable, idx);
-
-  /* End of critical section */
-  iface->unlockExternalAlertable(alertable);
+  iface->processExternalAlertable(entity, entity_value, true /* Create if not exists */,
+				  vm, idx, true /* store alert */);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
@@ -912,7 +904,7 @@ static int ntop_interface_store_external_alert(lua_State* vm) {
 static int ntop_interface_release_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
 
-  return ntop_release_triggered_alert(vm, c->iface);
+  return(ntop_release_triggered_alert(vm, c->iface, 1));
 }
 
 /* ****************************************** */
@@ -920,7 +912,6 @@ static int ntop_interface_release_triggered_alert(lua_State* vm) {
 static int ntop_interface_release_external_alert(lua_State* vm) {
   AlertEntity entity;
   const char *entity_value;
-  InterfaceMemberAlertableEntity *alertable;
   NetworkInterface *iface = getCurrentInterface(vm);
   int idx = 1;
 
@@ -933,17 +924,8 @@ static int ntop_interface_release_external_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   entity_value = lua_tostring(vm, idx++);
 
-  alertable = iface->lockExternalAlertable(entity, entity_value, false /* don't create if not exists */);
-
-  if(!alertable) {
-    lua_pushnil(vm);
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-  }
-
-  ntop_release_triggered_alert(vm, alertable, idx);
-
-  /* End of critical section */
-  iface->unlockExternalAlertable(alertable);
+  iface->processExternalAlertable(entity, entity_value, false /* Don't create if not exists */,
+				  vm, idx, false /* release alert */);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
@@ -3302,12 +3284,12 @@ static int ntop_get_batched_interface_local_hosts_ts(lua_State* vm) {
   return(ntop_get_batched_interface_hosts(vm, location_local_only, true /* timeseries */));
 }
 
-
 /* ****************************************** */
 
 static int ntop_interface_store_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
-  return ntop_store_triggered_alert(vm, c->iface);
+
+  return(ntop_store_triggered_alert(vm, c->iface, 1 /* 1st argument of vm */));
 }
 
 /* ****************************************** */

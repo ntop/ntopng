@@ -987,10 +987,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void getEngagedAlerts(lua_State *vm, AlertEntity alert_entity, const char *entity_value, AlertType alert_type,
 			AlertLevel alert_severity, AlertRole role_filter, AddressTree *allowed_nets);
 
-  /* unlockExternalAlertable must be called after use whenever a non-null reference is returned */
-  InterfaceMemberAlertableEntity* lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing);
-  void unlockExternalAlertable(InterfaceMemberAlertableEntity *entity);
-
+  void processExternalAlertable(AlertEntity entity,
+				const char *entity_val, bool create_if_missing,
+				lua_State* vm, u_int vm_argument_idx,
+				bool do_store_alert);  
   virtual bool reproducePcapOriginalSpeed() const         { return(false);             }
   u_int32_t getNumEngagedAlerts() const;
   u_int32_t getNumEngagedAlerts(AlertLevelGroup alert_level_group) const;
