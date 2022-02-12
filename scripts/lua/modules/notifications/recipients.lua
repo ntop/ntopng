@@ -654,19 +654,6 @@ end
 
 -- ##############################################
 
-local function is_notification_high_priority(notification)
-   local res = true
-
-   if notification.entity_id == alert_consts.alertEntity("flow") then
-      -- Flow alerts are low-priority
-      res = false
-   end
-
-   return res
-end
-
--- ##############################################
-
 local function get_notification_category(notification, current_script)
    -- Category is first read from the current_script. If no current_script is found (e.g., for
    -- alerts cenerated from the C++ core such as start after anomalous termination), the category
@@ -714,10 +701,8 @@ function recipients.dispatch_notification(notification, current_script)
 	    return
 	 end
 
-	 local is_high_priority = is_notification_high_priority(notification)
-
 	 for _, recipient_id in pairs(recipients) do
-	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification, notification.score, notification_category)
+	    ntop.recipient_enqueue(recipient_id, json_notification, notification.score, notification_category)
 	 end
 
 	 ::continue::
@@ -732,12 +717,11 @@ end
 
 -- @brief Processes notifications dispatched to recipients
 -- @param ready_recipients A table with recipients ready to export. Recipients who completed their work are removed from the table
--- @param high_priority A boolean indicating whether to process high- or low-priority notifications
 -- @param now An epoch of the current time
 -- @param periodic_frequency The frequency, in seconds, of this call
 -- @param force_export A boolean telling to forcefully export dispatched notifications
 -- @return nil
-local function process_notifications_by_priority(ready_recipients, high_priority, now, deadline, periodic_frequency, force_export)
+local function process_notifications(ready_recipients, now, deadline, periodic_frequency, force_export)
    -- Total budget available, which is a multiple of the periodic_frequency
    -- Budget in this case is the maximum number of notifications which can
    -- be processed during this call.
@@ -760,10 +744,10 @@ local function process_notifications_by_priority(ready_recipients, high_priority
 	 local recipient = ready_recipient.recipient
 	 local m = ready_recipient.mod
 
-	 if do_trace then tprint("Dequeuing alerts for ready recipient: ".. recipient.recipient_name.. " high_priority: "..tostring(high_priority).." recipient_id: "..recipient.recipient_id) end
+	 if do_trace then tprint("Dequeuing alerts for ready recipient: ".. recipient.recipient_name.. " recipient_id: "..recipient.recipient_id) end
 
 	 if m.dequeueRecipientAlerts then
-	    local rv = m.dequeueRecipientAlerts(recipient, budget_per_iter, high_priority)
+	    local rv = m.dequeueRecipientAlerts(recipient, budget_per_iter)
 
 	    -- If the recipient has failed (not rv.success) or
 	    -- if it has no more work to do (not rv.more_available)
@@ -838,8 +822,7 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
       cached_recipients = recipients.get_all_recipients()
    end
    local modules_by_name = endpoints.get_types()
-   local high_pri_ready_recipients = {}
-   local low_pri_ready_recipients = {}
+   local ready_recipients = {}
 
    -- Check, among all available recipients, those that are ready to export, depending on
    -- their EXPORT_FREQUENCY
@@ -852,15 +835,12 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
 	    -- This recipient is ready for export...
 	    local ready_recipient = {recipient = recipient, recipient_id = recipient.recipient_id, mod = m}
 
-	    -- Put the recipient into the high and low priority arrays of recipients so that it will be processed
-	    high_pri_ready_recipients[#high_pri_ready_recipients + 1] = ready_recipient
-	    low_pri_ready_recipients[#low_pri_ready_recipients + 1] = ready_recipient
+	    ready_recipients[#ready_recipients + 1] = ready_recipient
 	 end
       end
    end
 
-   process_notifications_by_priority(high_pri_ready_recipients, true  --[[ high priority --]], now, deadline, periodic_frequency, force_export)
-   process_notifications_by_priority(low_pri_ready_recipients, false --[[ low priority  --]], now, deadline, periodic_frequency, force_export)
+   process_notifications(ready_recipients, now, deadline, periodic_frequency, force_export)
 end
 
 -- ##############################################

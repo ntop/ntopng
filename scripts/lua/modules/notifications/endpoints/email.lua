@@ -115,7 +115,7 @@ end
 -- ##############################################
 
 -- Dequeue alerts from a recipient queue for sending notifications
-function email.dequeueRecipientAlerts(recipient, budget, high_priority)
+function email.dequeueRecipientAlerts(recipient, budget)
   local sent = 0
   local more_available = true
   local budget_used = 0
@@ -127,7 +127,7 @@ function email.dequeueRecipientAlerts(recipient, budget, high_priority)
 
     local notifications = {}
     for i = 1, MAX_ALERTS_PER_EMAIL do
-       local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
+       local notification = ntop.recipient_dequeue(recipient.recipient_id)
        if notification then 
 	  notifications[#notifications + 1] = notification.alert
        else

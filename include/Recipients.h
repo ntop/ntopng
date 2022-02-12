@@ -30,7 +30,8 @@ class Recipients {
   /* Per-recipient queues */
   RecipientQueues* recipient_queues[MAX_NUM_RECIPIENTS];
   Mutex m;
- public:
+
+public:
   Recipients();
   ~Recipients();
 
@@ -41,7 +42,8 @@ class Recipients {
   *
   * @return Boolean, true if the dequeue was successful and `notification` is populated correctly, false otherwise
   */
-  bool dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio, AlertFifoItem *notification);
+  bool dequeue(u_int16_t recipient_id, AlertFifoItem *notification);
+
   /**
   * @brief Enqueues a notification to a `recipient_id` queue, depending on the priority
   * @param recipient_id An integer recipient identifier
@@ -50,16 +52,17 @@ class Recipients {
   *
   * @return True if the enqueue succeeded, false otherwise
   */
-  bool enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification);
+  bool enqueue(u_int16_t recipient_id, const AlertFifoItem* const notification);
+
   /**
   * @brief Enqueues a notification to all available recipients
-  * @param prio The priority of the notification
   * @param notification The notification to be enqueued
   * @param alert_entity Indicates to enqueue the alert only to recipients responsible for `alert_entity` alerts
   *
   * @return True if the enqueue succeeded, false otherwise
   */
-  bool enqueue(RecipientNotificationPriority prio, const AlertFifoItem* const notification, AlertEntity alert_entity);
+  bool enqueue(const AlertFifoItem* const notification, AlertEntity alert_entity);
+
   /**
   * @brief Registers a recipient identified with `recipient_id` so its notification can be enqueued/dequeued
   * @param recipient_id An integer recipient identifier
@@ -69,6 +72,7 @@ class Recipients {
   * @return
   */
   void register_recipient(u_int16_t recipient_id, AlertLevel minimum_severity, u_int8_t enabled_categories);
+  
   /**
   * @brief Sets all recipients responsible for flow alerts
   * @param flow_recipients A bitmap of recipient ids responsible for flows
@@ -76,6 +80,7 @@ class Recipients {
   * @return
   */
   void set_flow_recipients(u_int64_t flow_recipients);
+  
   /**
   * @brief Sets all recipients responsible for host alerts
   * @param host_recipients A bitmap of recipient ids responsible for hosts
@@ -83,6 +88,7 @@ class Recipients {
   * @return
   */
   void set_host_recipients(u_int64_t host_recipients);
+  
   /**
   * @brief Marks a recipient as deleted
   * @param recipient_id An integer recipient identifier
@@ -90,6 +96,7 @@ class Recipients {
   * @return
   */
   void delete_recipient(u_int16_t recipient_id);
+  
   /**
    * @brief Returns status (drops and uses) of a given recipient
    * @param recipient_id An integer recipient identifier
@@ -98,6 +105,7 @@ class Recipients {
    * @return
    */
   void lua(u_int16_t recipient_id, lua_State* vm);
+  
   /**
    * @brief Returns the last use (i.e., successful dequeue) of a given recipient
    * @param recipient_id An integer recipient identifier
@@ -105,6 +113,7 @@ class Recipients {
    * @return An epoch with the last use, or 0 if never used.
    */
   time_t last_use(u_int16_t recipient_id);
+  
   /**
    * @brief Checks whether there are notifications queued in any of the recipients
    *

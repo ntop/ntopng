@@ -1818,9 +1818,7 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
   notification.alert_severity = Utils::mapScoreToSeverity(notification.score);
   notification.alert_category = alert->getAlertType().category;
 
-  rv = ntop->recipients_enqueue(notification.alert_severity >= alert_level_error ? recipient_notification_priority_high : recipient_notification_priority_low,
-				&notification,
-				alert_entity_host /* Host recipients */);
+  rv = ntop->recipients_enqueue(&notification, alert_entity_host /* Host recipients */);
 
   if(!rv)
     getInterface()->incNumDroppedAlerts(alert_entity_host);

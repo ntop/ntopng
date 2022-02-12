@@ -24,10 +24,7 @@
 /* *************************************** */
 
 RecipientQueues::RecipientQueues() {
-  for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++)
-    queues_by_prio[i] = NULL,
-      drops_by_prio[i] = 0,
-      uses_by_prio[i] = 0;
+  queue = NULL, drops = 0, uses = 0;
   last_use = 0;
 
   /* No minimum severity */
@@ -43,19 +40,17 @@ RecipientQueues::RecipientQueues() {
 /* *************************************** */
 
 RecipientQueues::~RecipientQueues() {
-  for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++)
-    delete queues_by_prio[i];
+  if(queue)
+    delete queue;
 }
 
 /* *************************************** */
 
-bool RecipientQueues::dequeue(RecipientNotificationPriority prio, AlertFifoItem *notification) {
-  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES
-     || !queues_by_prio[prio]
-     || !notification)
+bool RecipientQueues::dequeue(AlertFifoItem *notification) {
+  if(!queue || !notification)
     return false;
 
-  *notification = queues_by_prio[prio]->dequeue();
+  *notification = queue->dequeue();
 
   if(notification->alert) {
     last_use = time(NULL);
@@ -67,7 +62,7 @@ bool RecipientQueues::dequeue(RecipientNotificationPriority prio, AlertFifoItem 
 
 /* *************************************** */
 
-bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const AlertFifoItem* const notification) {
+bool RecipientQueues::enqueue(const AlertFifoItem* const notification) {
   bool res = false;
 
   if(!notification
@@ -77,25 +72,23 @@ bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const AlertFif
      )
     return true; /* Nothing to enqueue */
 
-  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES)
-    return false; /* Enqueue failed */
-  else if ((!queues_by_prio[prio] &&
-	    !(queues_by_prio[prio] = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
+  if ((!queue &&
+       !(queue = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
     /* Queue not available */
-    drops_by_prio[prio]++;
+    drops++;
     return false; /* Enqueue failed */
   }
 
   /* Enqueue the notification (allocate memory for the alert string) */
   AlertFifoItem q = *notification;
   if((q.alert = strdup(notification->alert)))
-    res = queues_by_prio[prio]->enqueue(q);
+    res = queue->enqueue(q);
 
   if(!res) {
-    drops_by_prio[prio]++;
+    drops++;
     if(q.alert) free(q.alert);
   } else
-    uses_by_prio[prio]++;
+    uses++;
 
   return res;
 }
@@ -103,20 +96,11 @@ bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const AlertFif
 /* *************************************** */
 
 void RecipientQueues::lua(lua_State* vm) {
-  u_int64_t num_drops = 0, num_uses = 0;
-  u_int8_t fill_pct = 0; /* Maximum fill pct among all queues */
-  for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++) {
-    num_drops +=  drops_by_prio[i],
-      num_uses += uses_by_prio[i];
-    if(queues_by_prio[i] && queues_by_prio[i]->fillPct() > fill_pct)
-      fill_pct = queues_by_prio[i]->fillPct();
-  }
-
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "last_use", last_use);
-  lua_push_uint64_table_entry(vm, "num_drops", num_drops);
-  lua_push_uint64_table_entry(vm, "num_uses", num_uses);
-  lua_push_uint64_table_entry(vm, "fill_pct", fill_pct);
+  lua_push_uint64_table_entry(vm, "num_drops", drops);
+  lua_push_uint64_table_entry(vm, "num_uses", uses);
+  lua_push_uint64_table_entry(vm, "fill_pct", queue->fillPct());
 }
 
 /* *************************************** */
@@ -124,13 +108,10 @@ void RecipientQueues::lua(lua_State* vm) {
 bool RecipientQueues::empty() {
   bool res = true;
 
-  for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++) {
-    if(queues_by_prio[i]) {
-      if(!queues_by_prio[i]->empty()) {
-	res = false;
-	break;
-      }
-    }
+  if(queue) {
+    if(!queue->empty()) {
+      res = false;
+    }  
   }
 
   return res;

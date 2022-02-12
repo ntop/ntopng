@@ -509,9 +509,9 @@ class Ntop {
   inline FifoSerializerQueue* getInternalAlertsQueue()    { return(internal_alerts_queue);  }
   void lua_alert_queues_stats(lua_State* vm);
   bool   recipients_are_empty();
-  bool   recipients_enqueue(RecipientNotificationPriority prio, AlertFifoItem *notification, AlertEntity alert_entity);
-  bool   recipient_enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification);
-  bool   recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio, AlertFifoItem *notification);
+  bool   recipients_enqueue(AlertFifoItem *notification, AlertEntity alert_entity);
+  bool   recipient_enqueue(u_int16_t recipient_id, const AlertFifoItem* const notification);
+  bool   recipient_dequeue(u_int16_t recipient_id, AlertFifoItem *notification);
   void   recipient_stats(u_int16_t recipient_id, lua_State* vm);
   time_t recipient_last_use(u_int16_t recipient_id);
   void   recipient_delete(u_int16_t recipient_id);

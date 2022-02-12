@@ -978,20 +978,20 @@ bool Ntop::recipients_are_empty() {
 
 /* ******************************************* */
 
-bool Ntop::recipients_enqueue(RecipientNotificationPriority prio, AlertFifoItem *notification, AlertEntity alert_entity) {
-  return recipients.enqueue(prio, notification, alert_entity);
+bool Ntop::recipients_enqueue(AlertFifoItem *notification, AlertEntity alert_entity) {
+  return recipients.enqueue(notification, alert_entity);
 }
 
 /* ******************************************* */
 
-bool Ntop::recipient_enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification) {
-  return recipients.enqueue(recipient_id, prio, notification);
+bool Ntop::recipient_enqueue(u_int16_t recipient_id, const AlertFifoItem* const notification) {
+  return recipients.enqueue(recipient_id, notification);
 }
 
 /* ******************************************* */
 
-bool Ntop::recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio, AlertFifoItem *notification) {
-  return recipients.dequeue(recipient_id, prio, notification);
+bool Ntop::recipient_dequeue(u_int16_t recipient_id, AlertFifoItem *notification) {
+  return recipients.dequeue(recipient_id, notification);
 }
 
 /* ******************************************* */

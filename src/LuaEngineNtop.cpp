@@ -5771,7 +5771,6 @@ static int ntop_pop_internal_alerts(lua_State* vm) {
 static int ntop_recipient_enqueue(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
   u_int16_t recipient_id;
-  bool high_priority;
   const char *alert;
   bool rv = false;
   AlertFifoItem notification;
@@ -5781,26 +5780,21 @@ static int ntop_recipient_enqueue(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   recipient_id = lua_tointeger(vm, 1);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  high_priority = lua_toboolean(vm, 2);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  alert = lua_tostring(vm, 2);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  alert = lua_tostring(vm, 3);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  score = lua_tonumber(vm, 3);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  score = lua_tonumber(vm, 4);
-
-  if(lua_type(vm, 5) == LUA_TNUMBER)
-    alert_category = (AlertCategory)lua_tonumber(vm, 5);
+  if(lua_type(vm, 4) == LUA_TNUMBER)
+    alert_category = (AlertCategory)lua_tonumber(vm, 4);
 
   notification.alert = (char*)alert;
   notification.score = score;
   notification.alert_severity = Utils::mapScoreToSeverity(score);
   notification.alert_category = alert_category;
 
-  rv = ntop->recipient_enqueue(recipient_id,
-			       high_priority ? recipient_notification_priority_high : recipient_notification_priority_low,
-			       &notification);
+  rv = ntop->recipient_enqueue(recipient_id, &notification);
 
   if(!rv) {
     NetworkInterface *iface = getCurrentInterface(vm);
@@ -5821,19 +5815,13 @@ static int ntop_recipient_enqueue(lua_State* vm) {
 
 static int ntop_recipient_dequeue(lua_State* vm) {
   u_int16_t recipient_id;
-  bool high_priority;
   AlertFifoItem notification;
   bool res;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   recipient_id = lua_tointeger(vm, 1);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  high_priority = lua_toboolean(vm, 2);
-
-  res = ntop->recipient_dequeue(recipient_id,
-				high_priority ? recipient_notification_priority_high : recipient_notification_priority_low,
-				&notification);
+  res = ntop->recipient_dequeue(recipient_id, &notification);
 
   if(res && notification.alert) {
     lua_newtable(vm);
