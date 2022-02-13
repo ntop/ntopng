@@ -4286,9 +4286,7 @@ static int ntop_interface_is_syslog_interface(lua_State* vm) {
 
 static int ntop_clickhouse_exec_csv_query(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  const char* sql;
   struct mg_connection *conn = getLuaVMUserdata(vm, conn);
-  bool use_json = false;
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4298,12 +4296,15 @@ static int ntop_clickhouse_exec_csv_query(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
-  sql = lua_tostring(vm, 1);
+#ifdef HAVE_CLICKHOUSE
+
+  bool use_json = false;
+  
+  const char *sql = lua_tostring(vm, 1);
 
   if(lua_type(vm, 2) == LUA_TBOOLEAN) /* optional */
     use_json = lua_toboolean(vm, 2) ? true : false;
 
-#ifdef HAVE_CLICKHOUSE
   ntop_interface->exec_csv_query(sql, use_json, conn);
 #endif
 
