@@ -635,12 +635,12 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
         if srv_mac and (srv_mac ~= "00:00:00:00:00:00") and not interface.isView() then
 	   srv_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..srv_mac.."\">" ..srv_mac.."</A>"
    elseif interface.isView() and (srv_mac ~= "00:00:00:00:00:00") then
-   srv_mac = srv_mac or ""
-else
-   srv_mac = ""
-end
+      srv_mac = srv_mac or ""
+   else
+      srv_mac = ""
+   end
       end
-
+      
    end
 
    local label = ""
@@ -679,7 +679,7 @@ end
       local info = interface.getHostInfo(flow["srv.ip"], flow["srv.vlan"])
 
       if(info ~= nil) then
-         label = label .. getFlag(info["country"])
+         -- label = label .. getFlag(info["country"])
       end
    end
 
