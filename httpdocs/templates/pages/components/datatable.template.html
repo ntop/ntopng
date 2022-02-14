@@ -327,6 +327,11 @@
   
 $(document).ready(function(){
 
+    // register to global event change status
+    ntopng_status_manager.on_status_change("range-picker", (new_status) => {
+	reloadTable($table, new_status);
+    }, true);
+
     const datatableButton = {* (datatable.buttons or '[]') *};
     datatableButton.push({
         text: '<i class="fas fa-sync"></i>',

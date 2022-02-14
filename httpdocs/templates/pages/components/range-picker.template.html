@@ -40,7 +40,10 @@
 
 
 <div class="mb-1" id="data-time-range-picker-vue">
+  <!-- <modal-filters :filters_options="modal_data" :text="text" @apply="apply()" ref="modal1"> -->
+  <!-- </modal-filters> -->
   <data-time-range-picker :text="text">
+    
     {% if not isEmptyString(extra_range_buttons) then %}
     {* extra_range_buttons *}
     {% end %}
@@ -66,11 +69,6 @@
   </data-time-range-picker>
 </div>
 
-
-
-	
-	
-
 {% if tags.enabled then %}
 <div class="d-flex mt-1" style="width:100%">
   {% else %}
@@ -89,20 +87,64 @@
   </div>
 </div>
 <script type="text/javascript">
-  // loads data-time-range-picker.vue component
+  //const base_vue_path = '{{ ntop.getHttpPrefix() }}/vue/';
+  // loads data-time-range-picker.vue component  
   const data_time_range_picker_options = {
       components: {
    	  'data-time-range-picker': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule('{{ ntop.getHttpPrefix() }}/vue/components/data-time-range-picker.vue', ntopng_vue_loader.loadOptions) ),
+	  // 'modal-filters': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule('{{ ntop.getHttpPrefix() }}/vue/components/modal-filters.vue', ntopng_vue_loader.loadOptions) ),
+      },
+      mounted() {
+	  setTimeout(() => {
+	      // this.$refs["modal1"].show();
+	  }, 4000);
       },
       data() {
 	  return {
+	      modal_data: [
+		  {
+		      id: "prova",
+		      label: "PROVA",
+		      value_type:"ip",
+		      value_label:"IP",
+		      operators: [
+			  {
+			      id: "",
+			      label: "",
+			  },
+		      ],
+		      options: [
+			  {
+			      label: "1",
+			      value: "2"
+			  }
+		      ],
+		  },
+		  {
+		      id: "prova2",
+		      label: "PROVA2",
+		      value_type:"ip",
+		      value_label:"IP",
+		      options: [
+			  {
+			      label: "alfredo",
+			      value: "2"
+			  }
+		      ],
+		  }
+	      ],
 	      text: {
+		  close: i18n("close"),
 		  alerts_presets: i18n("show_alerts.presets"),
 		  wrong_date_range: i18n("wrong_date_range"),
 		  apply: i18n("apply"),
 		  custom: i18n("graphs.custom"),
 	      },
 	  };
+      },
+      methods: {
+	  apply: function() {
+	  },
       },
   };
   const data_time_range_picker = Vue.createApp(data_time_range_picker_options);
@@ -116,7 +158,7 @@
 /* Tags definitions */
 i18n_ext.tags = {* json.encode(tags.localization) *};
 const TAG_OPERATORS = {* json.encode(tags.tag_operators) *};
-const DEFINED_TAGS = {* json.encode(tags.defined_tags) *};
+  const DEFINED_TAGS = {* json.encode(tags.defined_tags) *};
 const VIEW_ONLY_TAGS = {* tags.view_only *};
 
 /* Initial Tags */
@@ -139,8 +181,9 @@ inputTags.value = "";
 $inputBeginEpoch.value = "";
 $inputEndEpoch.value = "";
 
+  let currentQueryPresets = null;
 {% if query_presets ~= nil and query_presets ~= {} then %}
-  let currentQueryPresets = $(`#select-query-presets`).val();
+  currentQueryPresets = $(`#select-query-presets`).val();
 {% end %}
 
 const tagify = new Tagify(inputTags, {
@@ -176,11 +219,6 @@ const tagify = new Tagify(inputTags, {
 });
 
 $(document).ready(function() {
-    // register to global event change status
-    ntopng_status_manager.on_status_change("range-picker", (new_status) => {
-	reloadTable($table, new_status);
-    }, true);
-
     // add existing tags
     tagify.addTags(initialTags);
 
@@ -280,11 +318,15 @@ $(document).ready(function() {
             e.stopPropagation();
             return;
         }
-
 	
         // add/update datasource params, default operator `=`
         if (!tag.selectedOperator) tag.selectedOperator = 'eq';
 	let value = createValueFromTag(tag);
+	let status = ntopng_status_manager.get_status();
+	if (DEFINED_TAGS != null && DEFINED_TAGS[tag.key] != null && status['query_preset'] != null && status['query_preset'] != "") {
+	    status['query_preset'] = "";
+	    ntopng_utility.replace_url_and_reload(status);
+	}
 	
         // trigger event
 	ntopng_status_manager.add_value_to_status(tag.key, value);
