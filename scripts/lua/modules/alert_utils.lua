@@ -537,8 +537,8 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	 end
 
 	 -- Look a bit around the epochs...
-	 epoch_begin = epoch_begin - 150
-	 epoch_end = epoch_end + 150
+	 epoch_begin = epoch_begin - (5*60)
+	 epoch_end = epoch_end + (5*60)
 
 	 -- ... but not too much
 	 if epoch_end - epoch_begin > 600 then

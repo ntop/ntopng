@@ -554,7 +554,9 @@ function flow_alert_store:format_record(value, no_html)
    if ntop.isEnterpriseM() and hasClickHouseSupport() and not no_html then
       local op_suffix = tag_utils.SEPARATOR .. 'eq'
       local href = string.format('%s/lua/pro/db_search.lua?epoch_begin=%u&epoch_end=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%s%s',
-         ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
+         ntop.getHttpPrefix(), 
+         tonumber(value["first_seen"]) - (5*60),
+         tonumber(value["tstamp_end"]) + (5*60), 
          value["cli_ip"], op_suffix,
          value["srv_ip"], op_suffix,
          ternary(show_cli_port, tostring(value["cli_port"]), ''), op_suffix,
