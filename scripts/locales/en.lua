@@ -1640,6 +1640,7 @@ local lang = {
       ["l7cat"] = "Category",
       ["l7proto"] = "Application",
       ["name"] = "Hostname",
+      ["network_name"] = "Network Name",
       ["observation_point_id"] = "Observation Point ID",
       ["output_snmp"] = "Output Interface",
       ["packets"] = "Packets",
