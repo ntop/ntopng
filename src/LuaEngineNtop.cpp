@@ -3075,7 +3075,10 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_uint32_table_entry(vm, "http_port", ntop->getPrefs()->get_http_port());
   lua_push_uint32_table_entry(vm, "https_port", ntop->getPrefs()->get_https_port());
 
-  lua_push_str_table_entry(vm, "tzname", tzname[0]);  /* Timezone name */     
+  if (!tzname[0])
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "tzname is not set");
+  else
+    lua_push_str_table_entry(vm, "tzname", tzname[0]);  /* Timezone name */     
 #ifdef linux
   lua_push_int32_table_entry(vm, "timezone", timezone); /* Seconds west of UTC */
 #endif
