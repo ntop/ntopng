@@ -184,7 +184,7 @@ void ICMPstats::getTsStats(ts_icmp_stats *s) {
   u_int16_t echo_reply_key = get_typecode(0, 0);
   std::map<u_int16_t, ICMPstats_t>::const_iterator it;
 
-  s->echo_packets_sent = s->echo_packets_sent = 0;
+  s->echo_packets_sent = s->echo_packets_rcvd = 0;
   
   m.lock(__FILE__, __LINE__);
 
