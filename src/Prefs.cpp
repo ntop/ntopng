@@ -1487,8 +1487,6 @@ int Prefs::setOption(int optkey, char *optarg) {
 		mysql_port = (int)l;
 	    }
 
-            ntop->getTrace()->traceEvent(TRACE_WARNING, "Using ports %u %u", mysql_port, clickhouse_tcp_port);
-	    
 	    if(use_clickhouse && mysql_host) {
 	      if(strcmp(mysql_host, "localhost") == 0) {
 		/* Clickhouse does not like localhost */
