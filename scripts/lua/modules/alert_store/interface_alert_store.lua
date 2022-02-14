@@ -14,6 +14,7 @@ local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
+local tag_utils = require "tag_utils"
 local json = require "dkjson"
 
 -- ##############################################
