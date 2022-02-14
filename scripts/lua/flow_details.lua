@@ -725,11 +725,13 @@ else
       print("</td></tr>\n")
    end
 
-   print("<tr><th width=30%>"..i18n("flow_details.tos").."</th>")
-   print("<td>"..(dscp_consts.dscp_descr(flow.tos.client.DSCP)) .." / ".. (dscp_consts.ecn_descr(flow.tos.client.ECN)) .."</td>")
-   print("<td>"..(dscp_consts.dscp_descr(flow.tos.server.DSCP)) .." / ".. (dscp_consts.ecn_descr(flow.tos.server.ECN)) .."</td>")
-   print("</tr>")
-
+   if((flow.tos.client.ECN ~= 0) or (flow.tos.server.DSCP ~= 0)) then
+      print("<tr><th width=30%>"..i18n("flow_details.tos").."</th>")
+      print("<td>"..(dscp_consts.dscp_descr(flow.tos.client.DSCP)) .." / ".. (dscp_consts.ecn_descr(flow.tos.client.ECN)) .."</td>")
+      print("<td>"..(dscp_consts.dscp_descr(flow.tos.server.DSCP)) .." / ".. (dscp_consts.ecn_descr(flow.tos.server.ECN)) .."</td>")
+      print("</tr>")
+   end
+   
    if(flow["tcp.nw_latency.client"] ~= nil) then
       local rtt = flow["tcp.nw_latency.client"] + flow["tcp.nw_latency.server"]
 
