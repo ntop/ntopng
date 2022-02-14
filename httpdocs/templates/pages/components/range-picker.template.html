@@ -325,6 +325,7 @@ $(document).ready(function() {
 	let status = ntopng_status_manager.get_status();
 	if (DEFINED_TAGS != null && DEFINED_TAGS[tag.key] != null && status['query_preset'] != null && status['query_preset'] != "") {
 	    status['query_preset'] = "";
+	    status[tag.key] = value;
 	    ntopng_utility.replace_url_and_reload(status);
 	}
 	
