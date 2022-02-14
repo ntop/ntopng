@@ -247,11 +247,11 @@ end
 
 -- shorten an epoch when there is a well defined interval
 function format_utils.formatEpochShort(epoch_begin, epoch_end, epoch)
-   local begin_day = os.date("!%d", epoch_begin + getFrontendTzSeconds())
-   local end_day = os.date("!%d", epoch_end + getFrontendTzSeconds())
+   local begin_day = os.date("!%d", (epoch_begin or os.time()) + getFrontendTzSeconds())
+   local end_day = os.date("!%d", (epoch_end or os.time()) + getFrontendTzSeconds())
 
    if begin_day == end_day then
-      return os.date("!%X", epoch + getFrontendTzSeconds())
+      return os.date("!%X", (epoch or os.time()) + getFrontendTzSeconds())
    end
 
    return format_utils.formatEpoch(epoch)
