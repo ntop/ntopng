@@ -1376,18 +1376,9 @@ function alert_store:get_available_filters()
    local additional_filters = self:_get_additional_available_filters()
 
    local filters = {
-      alert_id = {
-         value_type = 'alert_id',
-	 i18n_label = i18n('db_search.tags.alert_id'),
-      }, 
-      severity = {
-         value_type = 'severity',
-	 i18n_label = i18n('db_search.tags.severity'),
-      },
-      score = {
-         value_type = 'score',
-	 i18n_label = i18n('db_search.tags.score'),
-      },
+      alert_id = tag_utils.defined_tags.alert_id,
+      severity = tag_utils.defined_tags.severity,
+      score    = tag_utils.defined_tags.score,
    }
 
    return table.merge(filters, additional_filters)

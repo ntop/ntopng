@@ -74,10 +74,7 @@ end
 --@brief Get info about additional available filters
 function interface_alert_store:_get_additional_available_filters()
    local filters = {
-      subtype = {
-	 value_type = 'text',
-	 i18n_label = i18n('db_search.tags.subtype'),
-      }
+      subtype = tag_utils.defined_tags.subtype,
    }
 
    return filters

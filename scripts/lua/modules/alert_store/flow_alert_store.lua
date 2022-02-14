@@ -266,50 +266,17 @@ end
 --@brief Get info about additional available filters
 function flow_alert_store:_get_additional_available_filters()
    local filters = {
-      ip_version = {
-         value_type = 'ip_version',
-	 i18n_label = i18n('db_search.tags.ip_version'),
-      },
-      ip = {
-         value_type = 'ip',
-	 i18n_label = i18n('db_search.tags.ip'),
-      },
-      cli_ip = {
-         value_type = 'ip',
-	 i18n_label = i18n('db_search.tags.cli_ip'),
-      },
-      srv_ip = {
-         value_type = 'ip',
-	 i18n_label = i18n('db_search.tags.srv_ip'),
-      },
-      cli_name = {
-         value_type = 'hostname',
-	 i18n_label = i18n('db_search.tags.cli_name'),
-      },
-      srv_name = {
-         value_type = 'hostname',
-	 i18n_label = i18n('db_search.tags.srv_name'),
-      },
-      cli_port = {
-         value_type = 'port',
-	 i18n_label = i18n('db_search.tags.cli_port'),
-      }, 
-      srv_port = {
-         value_type = 'port',
-	 i18n_label = i18n('db_search.tags.srv_port'),
-      },
-      role = {
-	 value_type = 'role',
-	 i18n_label = i18n('db_search.tags.role'),
-      },
-      l7_proto = {
-         value_type = 'l7_proto',
-	 i18n_label = i18n('db_search.tags.l7_proto'),
-      }, 
-      info = {
-         value_type = 'text',
-	 i18n_label = i18n('db_search.tags.cli_name'),
-      },
+      ip_version = tag_utils.defined_tags.ip_version,
+      ip         = tag_utils.defined_tags.ip,
+      cli_ip     = tag_utils.defined_tags.cli_ip,
+      srv_ip     = tag_utils.defined_tags.srv_ip,
+      cli_name   = tag_utils.defined_tags.cli_name,
+      srv_name   = tag_utils.defined_tags.srv_name,
+      cli_port   = tag_utils.defined_tags.cli_port,
+      srv_port   = tag_utils.defined_tags.srv_port,
+      role       = tag_utils.defined_tags.role,
+      l7_proto   = tag_utils.defined_tags.l7proto,
+      info       = tag_utils.defined_tags.info,
    }
 
    return filters

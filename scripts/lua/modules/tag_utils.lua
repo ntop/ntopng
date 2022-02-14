@@ -30,6 +30,11 @@ tag_utils.tag_operators = {
 -- #####################################
 
 tag_utils.defined_tags = {
+   alert_id = {
+      value_type = 'alert_id',
+      i18n_label = i18n('db_search.tags.alert_id'),
+      operators = {'eq','neq'}
+   },
    l7proto = {
       value_type = 'l7_proto',
       i18n_label = i18n('db_search.tags.l7_proto'),
@@ -62,6 +67,11 @@ tag_utils.defined_tags = {
       operators = {'eq', 'neq'},
       bpf_key = 'ip proto',
    },
+   ip_version = {
+      value_type = 'ip_version',
+      i18n_label = i18n('db_search.tags.ip_version'),
+      operators = {'eq','neq'},
+   },
    ip = {
       value_type = 'ip',
       i18n_label = i18n('db_search.tags.ip'),
@@ -90,6 +100,11 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.srv_location'),
       operators = {'eq', 'neq'}
    },
+   name = {
+      value_type = 'hostname',
+      i18n_label = i18n('db_search.tags.name'),
+      operators = {'eq','neq', 'in', 'nin'},
+   },
    cli_name = {
       value_type = 'hostname',
       i18n_label = i18n('db_search.tags.cli_name'),
@@ -99,6 +114,11 @@ tag_utils.defined_tags = {
       value_type = 'hostname',
       i18n_label = i18n('db_search.tags.srv_name'),
       operators = {'eq', 'neq', 'in', 'nin'}
+   },
+   network_name = {
+      value_type = 'text',
+      i18n_label = i18n('db_search.tags.network_name'),
+      operators = {'eq','neq'},
    },
    src2dst_dscp = {
       value_type = 'dscp_type',
@@ -177,6 +197,11 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.dst2src_tcp_flags'),
       operators = {'eq', 'neq', 'in', 'nin'}
    },
+   severity = {
+      value_type = 'severity',
+      i18n_label = i18n('db_search.tags.severity'),
+      operators = {'eq','lte','gte','neq'},
+   },
    score = {
       value_type = 'score',
       i18n_label = i18n('db_search.tags.score'),
@@ -228,6 +253,21 @@ tag_utils.defined_tags = {
       value_type = 'host_pool_id',
       i18n_label = i18n('db_search.tags.srv_host_pool_id'),
       operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+   },
+   subtype = {
+      value_type = 'text',
+      i18n_label = i18n('db_search.tags.subtype'),
+      operators = {'eq', 'neq'},
+   },
+   role = {
+      value_type = 'role',
+      i18n_label = i18n('db_search.tags.role'),
+      operators = {'eq'},
+   },
+   role_cli_srv = {
+      value_type = 'role_cli_srv',
+      i18n_label = i18n('db_search.tags.role_cli_srv'),
+      operators = {'eq'},
    },
 }
 

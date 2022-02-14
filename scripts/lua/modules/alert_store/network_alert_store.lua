@@ -76,10 +76,7 @@ end
 --@brief Get info about additional available filters
 function network_alert_store:_get_additional_available_filters()
    local filters = {
-      network_name = {
-         value_type = 'text',
-        i18n_label = i18n('db_search.tags.network_name'),
-      },
+      network_name = tag_utils.defined_tags.network_name,
    }
 
    return filters
