@@ -45,8 +45,8 @@ First of all navigate from the Web GUI into the section Notification->Endpoints;
 
 After that, send the following messages in this order:
   - :code:`/newbot`
-  - :code:`bot_name` (the name that's going to have the bot, e.g. `ntopng_telegram_plugin`)
-  - :code:`bot_username` (the username that's going to have the bot, e.g. `ntopng_telegram_plugin_bot`)
+  - :code:`bot_name` (the name that's going to have the bot, e.g. `ntopng_telegram_script`)
+  - :code:`bot_username` (the username that's going to have the bot, e.g. `ntopng_telegram_script_bot`)
 
 .. figure:: ../img/telegram_full_conversation_botfather.png
 

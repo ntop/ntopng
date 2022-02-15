@@ -206,7 +206,7 @@ int Ping::ping(char *_addr, bool use_v6) {
 
     addr.sin_family = hname->h_addrtype;
     addr.sin_port = 0;
-    addr.sin_addr.s_addr = *(long*)hname->h_addr;
+    memcpy(&addr.sin_addr.s_addr, hname->h_addr_list[0], sizeof(addr.sin_addr.s_addr));;
   }
 
   bzero(&pckt, sizeof(pckt));

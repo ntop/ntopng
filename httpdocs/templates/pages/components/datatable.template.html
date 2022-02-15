@@ -118,7 +118,7 @@
 
 <link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 <script type="text/javascript">
-    i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
 </script>
 <script type='text/javascript'>
     let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
@@ -206,11 +206,11 @@
     {% end %}
 
   async function reloadTable($table, new_status) {
-      showOverlays();
-      let paramsString = ntopng_status_manager.obj_to_url_params(new_status);
       if ($table == null) {
 	  return;
       }
+      showOverlays();
+      let paramsString = ntopng_utility.obj_to_url_params(new_status);
         // reload the table
         $table.ajax.url(`{* datatable.datasource.name *}?` + paramsString).load();
 
@@ -315,13 +315,23 @@
         return columns;
     }
 
+
+  function refreshTime() {
+      let epoch_status = ntopng_status_manager.get_status();
+      let now = Number.parseInt(Date.now() / 1000);
+      let delta = now - Number.parseInt(epoch_status.epoch_end);
+      if (delta < 0) { return; }
+      let epoch_begin = Number.parseInt(epoch_status.epoch_begin) + delta;
+      ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, { epoch_begin, epoch_end: now });
+  }
+  
 $(document).ready(function(){
 
     const datatableButton = {* (datatable.buttons or '[]') *};
     datatableButton.push({
         text: '<i class="fas fa-sync"></i>',
         action: async function (e, dt, node, config) {
-            await onRangePickerChange();
+	    refreshTime();
         }
     });
     
@@ -393,7 +403,9 @@ $(document).ready(function(){
     $table = $(`#{{ datatable.name }}`).DataTable(config);
 
     {% if datatable.refresh_rate and datatable.refresh_rate > 0 then %}
-    intervalId = setInterval(function() { reloadTable($table); }, {{ datatable.refresh_rate }});
+    intervalId = setInterval(function() {
+	refreshTime();
+    }, {{ datatable.refresh_rate }});
     {% end %}
     
     DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
@@ -476,7 +488,10 @@ $(document).ready(function(){
         .done(function(rsp) {
             if(enable_refresh_rate) {
                 if (rsp.rsp.refresh_rate > 0 && !intervalId) {
-                    intervalId = setInterval(function() { onRangePickerChange(true, true); }, rsp.rsp.refresh_rate);
+                    intervalId = setInterval(function() {
+			refreshTime();
+			// onRangePickerChange(true, true);
+		    }, rsp.rsp.refresh_rate);
                     auto_refresh_button.addClass('fa-spin');
                 }
             }

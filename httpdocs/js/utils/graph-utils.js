@@ -69,9 +69,9 @@ function getSerieLabel(schema, serie, visualization, serie_index) {
         return serie.tags.profile;
       else if(data_label == "bytes") {
         if(schema.contains("volume"))
-          return graph_i18n.traffic_volume;
+          return graph_i18n_ext.traffic_volume;
         else
-          return graph_i18n.traffic;
+          return graph_i18n_ext.traffic;
       }
   }
 
@@ -454,7 +454,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   function format_unreachable(formatter) {
     return function(y, d) {
       if(d && unreachable_timestamps[d[0]])
-        return(i18n.unreachable_host);
+        return(i18n_ext.unreachable_host);
 
       // Not unreachable, use the provided formatter
       return(formatter(y));
@@ -689,7 +689,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     if(pending_chart_request) {
       pending_chart_request.abort();
-      chart.noData(i18n.query_was_aborted);
+      chart.noData(i18n_ext.query_was_aborted);
       update_chart_data([]);
     }
 
@@ -791,7 +791,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     query_timer = setInterval(showQuerySlow, seconds_before_query_slow * 1000);
     query_completed = 0;
     query_was_aborted = false;
-    chart.noData(i18n.no_data_available);
+    chart.noData(i18n_ext.no_data_available);
     hideQuerySlow();
 
     var req_params = $.extend({}, params);
@@ -883,7 +883,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
         if(other_serie) {
           res.push({
-            key: graph_i18n.other,
+            key: graph_i18n_ext.other,
             yAxis: 1,
             values: arrayToNvSerie(other_serie, data.start, data.step),
             type: "area",
@@ -972,7 +972,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         var num_smoothed_points = Math.min(Math.max(Math.floor(total_serie.length / 5), 3), 12);
 
         var smooth_functions = {
-          //trend: [graph_i18n.trend, "#62ADF6", smooth, num_smoothed_points],
+          //trend: [graph_i18n_ext.trend, "#62ADF6", smooth, num_smoothed_points],
           //ema: ["EMA", "#F96BFF", exponentialMovingAverageArray, {periods: num_smoothed_points}],
           //sma: ["SMA", "#A900FF", simpleMovingAverageArray, {periods: num_smoothed_points}],
           //rsi: ["RSI cur vs past", "#00FF5D", relativeStrengthIndexArray, {periods: num_smoothed_points}],
@@ -1107,7 +1107,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
 
             res.push({
-              key: graph_i18n.avg,
+              key: graph_i18n_ext.avg,
               yAxis: 1,
               values: values,
               type: "line",
@@ -1120,7 +1120,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
             let avg_sent = makeFlatLineValues(data.start, data.step, data.count, stats.by_serie[0]["average"]);
             let avg_rcvd = makeFlatLineValues(data.start, data.step, data.count, stats.by_serie[1]["average"]);
             res.push({
-              key: graph_i18n.avg_sent,
+              key: graph_i18n_ext.avg_sent,
               yAxis: 1,
               values: avg_sent,
               type: "line",
@@ -1130,7 +1130,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
               disabled: isLegendDisabled("avg_sent", true),
             });
             res.push({
-              key: graph_i18n.avg_rcvd,
+              key: graph_i18n_ext.avg_rcvd,
               yAxis: 1,
               values: avg_rcvd,
               type: "line",
@@ -1471,7 +1471,7 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
     });
 
     columns.push({
-      title: i18n.actions,
+      title: i18n_ext.actions,
       field: "drilldown",
       css: {width: "1%", "text-align": "center"},
     });
@@ -1490,9 +1490,9 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
       perPage: per_page,
       noResultsMessage: function() {
         if(ts_chart.queryWasAborted())
-          return i18n.query_was_aborted;
+          return i18n_ext.query_was_aborted;
         else
-          return i18n.no_results_found;
+          return i18n_ext.no_results_found;
       },
       post: function() {
         var params = $.extend({}, graph_params);

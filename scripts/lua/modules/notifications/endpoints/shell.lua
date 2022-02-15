@@ -17,14 +17,14 @@ local shell = {
       { param_name = "shell_script" },
     },
     endpoint_template = {
-      plugin_key = endpoint_key,
+      script_key = endpoint_key,
       template_name = "shell_endpoint.template"
     },
     recipient_params = {
       { param_name = "shell_script_options" },
     },
     recipient_template = {
-      plugin_key = endpoint_key,
+      script_key = endpoint_key,
       template_name = "shell_recipient.template"
     },
 

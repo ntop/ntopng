@@ -6,7 +6,6 @@
 -- This module implements an internet download bandwidth monitor.
 --
 
-local os_utils = require("os_utils")
 local json = require("dkjson")
 local ts_utils = require("ts_utils_core")
 
@@ -177,6 +176,5 @@ return {
       },
    },
 
-   -- A setup function to possibly disable the plugin
    setup = check_speedtest_support,
 }

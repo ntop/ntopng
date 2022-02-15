@@ -13,6 +13,6 @@ ntopng centers and has been developed around some basic concepts that include in
     stats
     alerts
     timeseries
-    plugins
+    scripts
     local_broadcast_domain
     disk_space

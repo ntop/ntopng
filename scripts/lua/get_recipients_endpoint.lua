@@ -10,7 +10,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" ..
 require "lua_utils"
 
 local pools_lua_utils = require "pools_lua_utils"
-local plugins_utils = require("plugins_utils")
 local recipients = require "recipients"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"

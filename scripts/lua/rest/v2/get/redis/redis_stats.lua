@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-local plugins_utils = require("plugins_utils")
+local script_manager = require("script_manager")
 local rest_utils = require("rest_utils")
 
 -- ################################################
@@ -84,8 +84,7 @@ end
 
 local res = {}
 local i = 0
-local sys_ifaceid = getSystemInterfaceId()
-local charts_available = plugins_utils.timeseriesCreationEnabled()
+local charts_available = script_manager.systemTimeseriesEnabled()
 
 for key in pairsByValues(sort_to_key, sOrder) do
   if i >= to_skip + perPage then

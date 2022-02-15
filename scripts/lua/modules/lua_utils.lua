@@ -1744,7 +1744,7 @@ function setHostAltName(host_info, alt_name)
    if type(host_info) == "table" then
      -- Note: we are not using hostinfo2hostkey which includes the
      -- vlan for backward compatibility, compatibility with
-     -- the backend, and compatibility with the vpn plugins
+     -- the backend, and compatibility with the vpn scripts
      host_key = host_info["host"] -- hostinfo2hostkey(host_info)
    else
      host_key = host_info
@@ -1794,7 +1794,7 @@ function setHostNotes(host_info, notes)
    if type(host_info) == "table" then
      -- Note: we are not using hostinfo2hostkey which includes the
      -- vlan for backward compatibility, compatibility with
-     -- the backend, and compatibility with the vpn plugins
+     -- the backend, and compatibility with the vpn scripts
      host_key = host_info["host"] -- hostinfo2hostkey(host_info)
    else
      host_key = host_info

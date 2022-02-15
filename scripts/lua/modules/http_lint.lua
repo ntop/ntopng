@@ -106,7 +106,6 @@ end
 http_lint.validateEmptyOr = validateEmptyOr
 
 local function validateMeasurement(p)
-  local plugins_utils = require("plugins_utils")
   local am_utils = require "am_utils"
 
   if(am_utils) then
@@ -204,7 +203,7 @@ local function validateLuaScriptPath(p)
    local os_utils = require("os_utils")
 
    if (string.find(p, "'") ~= nil) then return false end
-   return(starts(p, os_utils.getPathDivider() .. "plugins"))
+   return(starts(p, os_utils.getPathDivider() .. "scripts"))
 end
 http_lint.validateLuaScriptPath = validateLuaScriptPath
 
@@ -1739,8 +1738,8 @@ local known_parameters = {
    ["only_alerted_hosts"]  = validateBool,
 
 -- Script editor
-   ["plugin_file_path"]         = validateLuaScriptPath,
-   ["plugin_path"]              = validateLuaScriptPath,
+   ["script_file_path"]         = validateLuaScriptPath,
+   ["script_path"]              = validateLuaScriptPath,
 
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons
@@ -2337,7 +2336,7 @@ end
 -- #################################################################
 
 local function lintParams()
-   local plugins_utils = require("plugins_utils")
+   local script_manager = require("script_manager")
    local params_to_validate = { _GET, _POST }
    local id, _, k, v
 
@@ -2347,8 +2346,8 @@ local function lintParams()
    local relaxPostValidation = false               --[[ To consider empty fields as valid in _POST parameters ]]
    local debug = false                             --[[ To enable validation debug messages ]]
 
-   -- Extend the parameters with validators from the plugins
-   local additional_params = plugins_utils.extendLintParams(http_lint, known_parameters)
+   -- Extend the parameters with validators from the scripts
+   local additional_params = script_manager.extendLintParams(http_lint, known_parameters)
 
    for _,id in pairs(params_to_validate) do
       for k, v in pairs(id) do

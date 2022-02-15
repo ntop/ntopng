@@ -31,9 +31,6 @@ for i=1,num_runs do
       prefs_reload_utils.check_reload_prefs()
    end
 
-   -- Check and possibly reload plugins
-   scripts_triggers.checkReloadPlugins(now)
-
    if(scripts_triggers.checkReloadLists()) then
       local lists_utils = require "lists_utils"
       

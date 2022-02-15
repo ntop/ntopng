@@ -12,8 +12,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 -- Important: load this before any other alert related module
-local plugins_utils = require "plugins_utils"
-plugins_utils.loadPlugins()
+local script_manager = require "script_manager"
+script_manager.loadScripts()
 
 local recipients = require "recipients"
 recipients.initialize()

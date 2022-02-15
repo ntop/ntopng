@@ -145,7 +145,7 @@ void FlowChecksLoader::registerChecks() {
 #if 0
   if(!(_has_protocol_detected || _has_periodic_update || _has_flow_end)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Flow check %s does not define any check: ignored", getName());
-    throw "Invalid plugin definition";
+    throw "Invalid script definition";
   }
 #endif
 
@@ -294,10 +294,7 @@ bool FlowChecksLoader::luaCheckInfo(lua_State* vm, std::string check_name) const
     return false;
 
   lua_newtable(vm);
-  /*
-    Following keys are compatible and interoperable with Lua plugins as found under plugins_utils.lua
-    inside plugin metadata Lua table
-   */
+  
   lua_push_str_table_entry(vm, "edition", Utils::edition2name(it->second->getEdition()));
   lua_push_str_table_entry(vm, "key", it->second->getName().c_str());
 

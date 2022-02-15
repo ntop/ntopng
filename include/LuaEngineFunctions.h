@@ -24,8 +24,8 @@
 
 extern NetworkInterface* getCurrentInterface(lua_State* vm);
 extern int ntop_get_alerts(lua_State* vm, AlertableEntity *entity);
-extern int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable, int idx = 1);
-extern int ntop_release_triggered_alert(lua_State* vm, AlertableEntity *alertable, int idx = 1);
+extern int ntop_store_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, int idx = 1);
+extern int ntop_release_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, int idx = 1);
 extern AddressTree* get_allowed_nets(lua_State* vm); /* LuaEngineInterface.cpp */
 extern int ntop_get_alerts(lua_State* vm, AlertableEntity *entity);
 extern NetworkInterface* getCurrentInterface(lua_State* vm);

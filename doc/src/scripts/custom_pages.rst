@@ -3,11 +3,11 @@
 Custom Pages
 ============
 
-Plugins can provide custom pages to be added to the ntopng menu bar. They are
+Scripts can provide custom pages to be added to the ntopng menu bar. They are
 fully customizable pages, which can define they own style and functionalities.
 
-The custom pages are defined into the `./web_gui` subdirectory of the plugin. Let's analyze the
-`example plugin`_  as an example.
+The custom pages are defined into the `./web_gui` subdirectory of the script. Let's analyze the
+`example script`_  as an example.
 
 Custom Pages Definition
 -----------------------
@@ -20,7 +20,7 @@ The file `menu.lua` is used to define the custom menu entry:
     label = "example.custom_menu_entry",
     script = "example_page.lua",
     sort_order = -1,
-    menu_entry = {key = "example_plugin", i18n_title = "Example Page", section = "system_stats"},
+    menu_entry = {key = "example_script", i18n_title = "Example Page", section = "system_stats"},
     is_shown = function()
       return(true)
     end,
@@ -29,7 +29,7 @@ The file `menu.lua` is used to define the custom menu entry:
 The Lua script returns a table with the following structure:
 
 - :code:`label`: A localized message for the label of the menu entry. The localization strings
-  can be supplied by the plugin as explained in the `Localization section`_.
+  can be supplied by the script as explained in the `Localization section`_.
 - :code:`script`: the unique file name of the script to be visited when the user selects the menu entry.
   The script must be located into the same directory of `menu.lua`.
 - :code:`sort_order`: The sort order in the menu. Entries with higher sort_order are shown
@@ -59,15 +59,15 @@ a consistent look, custom pages can use the following template:
   require "lua_utils"
   local page_utils = require("page_utils")
 
-  -- Setup up the page header. The "example_plugin" key below is taken
+  -- Setup up the page header. The "example_script" key below is taken
   -- from the menu_entry "key" as defined in menu.lua.
   sendHTTPContentTypeHeader('text/html')
-  page_utils.set_active_menu_entry(page_utils.menu_entries.example_plugin)
+  page_utils.set_active_menu_entry(page_utils.menu_entries.example_script)
   dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
   local subpage = _GET["page"] or "overview"
   local title = i18n("example.custom_page_title")
-  local base_url = plugins_utils.getMonitorUrl("example_page.lua") .. "?ifid=" .. getInterfaceId(ifname)
+  local base_url = scripts_utils.getMonitorUrl("example_page.lua") .. "?ifid=" .. getInterfaceId(ifname)
 
   -- Populate the navbar with subpages
   page_utils.print_navbar(title, base_url, {
@@ -85,10 +85,10 @@ a consistent look, custom pages can use the following template:
 
   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
-Once the plugin is loaded, ntopng will make the above page available through its
-web server. The URL for a given custom page can be obtained by using the `plugins_utils.getMonitorUrl(script)`
+Once the script is loaded, ntopng will make the above page available through its
+web server. The URL for a given custom page can be obtained by using the `scripts_utils.getMonitorUrl(script)`
 Lua function.
 
-.. _`example plugin`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/example/web_gui
-.. _`Localization section`: https://www.ntop.org/guides/ntopng/plugins/localization.html
+.. _`example script`: https://github.com/ntop/ntopng/tree/dev/scripts/scripts/example/web_gui
+.. _`Localization section`: https://www.ntop.org/guides/ntopng/scripts/localization.html
 .. _`page_utils.lua`: https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/page_utils.lua

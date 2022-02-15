@@ -2,8 +2,8 @@ $(function() {
 
     const setImportExportButtonLabels = (key) => {
 
-        $(`#btn-import span, #btn-confirm-import`).text((key == 'all') ? i18n.restore : i18n.import);
-        $(`#btn-export span`).text((key == 'all') ? i18n.backup : i18n.export);
+        $(`#btn-import span, #btn-confirm-import`).text((key == 'all') ? i18n_ext.restore : i18n_ext.import);
+        $(`#btn-export span`).text((key == 'all') ? i18n_ext.backup : i18n_ext.export);
 
         if (key == 'all') {
             $(`.import-title`).hide();
@@ -62,13 +62,13 @@ $(function() {
             }
 
             const body = (key == 'all')
-                ? i18n.manage_configurations.messagges.reset_all_success
-                : i18n.manage_configurations.messagges.reset_success;
+                ? i18n_ext.manage_configurations.messagges.reset_all_success
+                : i18n_ext.manage_configurations.messagges.reset_success;
 
             ToastUtils.showToast({
                 id: 'reset-configuration-alert',
                 level: 'success',
-                title: i18n.success,
+                title: i18n_ext.success,
                 body: body,
                 delay: 2000
             });

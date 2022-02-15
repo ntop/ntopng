@@ -46,7 +46,7 @@
       ? this.$element.children()
       : $("<div></div>")
           .addClass("alert alert-danger")
-          .html(i18n.no_results_found);
+          .html(i18n_ext.no_results_found);
 
     this.$element.addClass("clearfix");
 
@@ -340,7 +340,7 @@
 
       $(
         '<div class="text-left"><p>' +
-          i18n.showing_x_to_y_rows.sformat(start, end, o.totalRows) +
+          i18n_ext.showing_x_to_y_rows.sformat(start, end, o.totalRows) +
           "</p></div>"
       ).prependTo(this.$bottom_details);
     },
@@ -936,7 +936,7 @@
 	  .addClass("btn-group")
 	  .append($("<button></button>")
 		  .addClass("btn btn-link dropdown-toggle")
-		  .data("content", i18n.change_number_of_rows + ".")
+		  .data("content", i18n_ext.change_number_of_rows + ".")
 		  .attr("data-bs-toggle", "dropdown")
 		  .html(o.perPage + "&nbsp;")
 		  .append($("<span></span>")

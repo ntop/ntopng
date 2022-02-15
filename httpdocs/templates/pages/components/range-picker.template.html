@@ -35,33 +35,38 @@
 }
 </style>
 
+<!-- <div class="form-group my-auto mx-1"> -->
+<!-- </div>    -->
+
+
 <div class="mb-1" id="data-time-range-picker-vue">
-  <data-time-range-picker>
+  <data-time-range-picker :text="text">
     {% if not isEmptyString(extra_range_buttons) then %}
     {* extra_range_buttons *}
     {% end %}
+
+    {% if query_presets ~= nil and query_presets ~= {} then %}
+    <select class="form-select" id="select-query-presets" onChange="update_select_query_presets()">
+      {% if query_presets_subtype == "tables" then %}
+      {% for _, preset in ipairs(builtin_presets) do %}
+      <option {{ preset.selected and 'selected' }} value="{{ preset.name }}">{{ i18n(preset.i18n_name) }}</option>
+      {% end %}
+      <optgroup label="{{ i18n('queries.queries') }}">
+	{% end %}
+	{% for id, preset in pairsByKeys(query_presets) do %}
+	<option {{ preset.selected and 'selected' }} value="{{ id }}">{{ preset.i18n_name and i18n(preset.i18n_name) or preset.name }}</option>      
+	{% end %}
+	{% if query_presets_subtype == "tables" then %}
+      </optgroup>
+      {% end %}
+    </select>
+    {% end %}
+
+    
   </data-time-range-picker>
 </div>
 
 
-{% if query_presets ~= nil and query_presets ~= {} then %}
-<div class="form-group my-auto mx-1">
-  <select class="form-select" id="select-query-presets">
-    {% if query_presets_subtype == "tables" then %}
-    {% for _, preset in ipairs(builtin_presets) do %}
-    <option {{ preset.selected and 'selected' }} value="{{ preset.name }}">{{ i18n(preset.i18n_name) }}</option>
-    {% end %}
-    <optgroup label="{{ i18n('queries.queries') }}">
-      {% end %}
-      {% for id, preset in pairsByKeys(query_presets) do %}
-      <option {{ preset.selected and 'selected' }} value="{{ id }}">{{ preset.i18n_name and i18n(preset.i18n_name) or preset.name }}</option>      
-      {% end %}
-      {% if query_presets_subtype == "tables" then %}
-    </optgroup>
-    {% end %}
-  </select>
-</div>   
-{% end %}
 
 	
 	
@@ -89,6 +94,16 @@
       components: {
    	  'data-time-range-picker': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule('{{ ntop.getHttpPrefix() }}/vue/components/data-time-range-picker.vue', ntopng_vue_loader.loadOptions) ),
       },
+      data() {
+	  return {
+	      text: {
+		  alerts_presets: i18n("show_alerts.presets"),
+		  wrong_date_range: i18n("wrong_date_range"),
+		  apply: i18n("apply"),
+		  custom: i18n("graphs.custom"),
+	      },
+	  };
+      },
   };
   const data_time_range_picker = Vue.createApp(data_time_range_picker_options);
   // allows to use data-time-range-picker component into data-time-range-picker-vue html dv
@@ -99,7 +114,7 @@
 <script type="text/javascript">
 
 /* Tags definitions */
-i18n.tags = {* json.encode(tags.localization) *};
+i18n_ext.tags = {* json.encode(tags.localization) *};
 const TAG_OPERATORS = {* json.encode(tags.tag_operators) *};
 const DEFINED_TAGS = {* json.encode(tags.defined_tags) *};
 const VIEW_ONLY_TAGS = {* tags.view_only *};
@@ -119,14 +134,13 @@ let pageHandle = {};
 const inputTags = $(`[name='tags']`)[0];
 const $inputBeginEpoch = $(`.begin-timepicker`);
 const $inputEndEpoch = $(`.end-timepicker`);
-
 /* Reset values - some browsers keep the value on reload (e.g. Firefox) */
 inputTags.value = "";
 $inputBeginEpoch.value = "";
 $inputEndEpoch.value = "";
 
 {% if query_presets ~= nil and query_presets ~= {} then %}
-let currentQueryPresets = $(`#select-query-presets`).val();
+  let currentQueryPresets = $(`#select-query-presets`).val();
 {% end %}
 
 const tagify = new Tagify(inputTags, {
@@ -162,7 +176,6 @@ const tagify = new Tagify(inputTags, {
 });
 
 $(document).ready(function() {
-
     // register to global event change status
     ntopng_status_manager.on_status_change("range-picker", (new_status) => {
 	reloadTable($table, new_status);
@@ -173,6 +186,12 @@ $(document).ready(function() {
 
 }); /* $(document).ready() */
 
+  function update_select_query_presets() {
+      let value = $(`#select-query-presets`).val();
+      let status = ntopng_status_manager.get_status();
+      status['query_preset'] = value;
+      ntopng_utility.replace_url_and_reload(status);
+  }
   function createValueFromTag(tag) {
       if (!tag.selectedOperator) tag.selectedOperator = 'eq';
       let val = tag.realValue != null ? tag.realValue : tag.value;
@@ -199,11 +218,11 @@ $(document).ready(function() {
                 if (tag.selectedOperator) {
                     existingTag.selectedOperator = tag.selectedOperator;
                 }
-
                 tagify.replaceTag(existingTagElement, existingTag);
-                // update the datasource params
+		let value = createValueFromTag(existingTag);
+		// trigger event
+		ntopng_status_manager.add_value_to_status(tag.key, value);
                 //await onRangePickerChange(true, false);
-
                 return;
             }
         } 
@@ -249,7 +268,6 @@ $(document).ready(function() {
     });
 
     tagify.on('add', async function(e) {
-
         const detail = e.detail;
         if (detail.data === undefined) { return; }
 
@@ -320,12 +338,12 @@ $(document).ready(function() {
 	let value = createValueFromTag(tag);
 
 	// trigger event
-	ntopng_status_manager.value_to_status(tag.key, value);
+	ntopng_status_manager.add_value_to_status(tag.key, value);
         // trigger request
         //await onRangePickerChange(true, false);
     });
 
-    $(`tags`).on('change', 'select.operator', async function(e) {
+  $(`tags`).on('change', 'select.operator', async function(e) {
         // update the tag and the operator
         const $tag = $(this).parents('tag');
         const tagData = tagify.tagData($tag[0]);
@@ -338,7 +356,7 @@ $(document).ready(function() {
       // trigger event
 	ntopng_status_manager.add_value_to_status(tagDate.key, value);
         // trigger request
-        await onRangePickerChange(true, false);
+        //await onRangePickerChange(true, false);
     });
 
     $(".btn-remove-tags").on('click', async function() {
@@ -360,49 +378,49 @@ $(document).ready(function() {
         //await onRangePickerChange(true, false);
     });
 
-    const addFilter = (e, a, from_table) => {
-        e.preventDefault();
+  const addFilter = (e, a, from_table) => {
+      e.preventDefault();
 
-        let key = undefined;
-        let displayValue = undefined;
-        let realValue = undefined;
-        let operator = 'eq';
+      let key = undefined;
+      let displayValue = undefined;
+      let realValue = undefined;
+      let operator = 'eq';
 
-        if (from_table != undefined) {
-            const colIndex = from_table.cell(a.parent()).index().column;
+      if (from_table != undefined) {
+          const colIndex = from_table.cell(a.parent()).index().column;
 
-            // Read tag key from the column
-            key = from_table.column(colIndex).name();
+          // Read tag key from the column
+          key = from_table.column(colIndex).name();
 
-	        // Read tag key from the cell if any
-            const data = from_table.cell(a.parent()).data();
-            if (data.tag_key)
-                key = data.tag_key;
+	  // Read tag key from the cell if any
+          const data = from_table.cell(a.parent()).data();
+          if (data.tag_key)
+              key = data.tag_key;
 
-	        // Read value from the cell
-            displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
-            displayValue  = NtopUtils.stripTags(displayValue);
-            realValue = ((data.value != undefined) ? data.value : data);
-        }
+	  // Read value from the cell
+          displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
+          displayValue  = NtopUtils.stripTags(displayValue);
+          realValue = ((data.value != undefined) ? data.value : data);
+      }
 
-        // Read tag key and value from the <a> itself if provided
-        if (a.data('tagKey')        != undefined) key          = a.data('tagKey');
-        if (a.data('tagLabel')      != undefined) displayValue = a.data('tagLabel');
-        if (a.data('tagRealvalue')  != undefined) realValue    = a.data('tagRealvalue');
-        else if (a.data('tagValue') != undefined) realValue    = a.data('tagValue');
-        if (a.data('tagOperator')   != undefined) operator     = a.data('tagOperator');
+      // Read tag key and value from the <a> itself if provided
+      if (a.data('tagKey')        != undefined) key          = a.data('tagKey');
+      if (a.data('tagLabel')      != undefined) displayValue = a.data('tagLabel');
+      if (a.data('tagRealvalue')  != undefined) realValue    = a.data('tagRealvalue');
+      else if (a.data('tagValue') != undefined) realValue    = a.data('tagValue');
+      if (a.data('tagOperator')   != undefined) operator     = a.data('tagOperator');
 
-        const tag = {
-            label: i18n.tags[key],
-            key: key,
-            value: displayValue,
-            realValue: realValue,
-            title: realValue,
-            selectedOperator: operator
-        };
+      const tag = {
+          label: i18n_ext.tags[key],
+          key: key,
+          value: displayValue,
+          realValue: realValue,
+          title: realValue,
+          selectedOperator: operator
+      };
 
-        addFilterTag(tag);
-    }
+      addFilterTag(tag);
+  }
 
     /*** Filters modal ***/
     // load data for filters (e.g. alert types in the selected range)
@@ -423,7 +441,7 @@ $(document).ready(function() {
 
        let tag = {
            key: filter_type,             // e.g. l7_proto 
-           label: i18n.tags[filter_type] // e.g. L7 Proto
+           label: i18n_ext.tags[filter_type] // e.g. L7 Proto
        }
 
        let index = $(`${formSelector} input[name='index']`).val();

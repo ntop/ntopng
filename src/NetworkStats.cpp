@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-NetworkStats::NetworkStats(NetworkInterface *iface, u_int8_t _network_id) : NetworkInterfaceMemberAlertableEntity(iface, alert_entity_network), GenericTrafficElement(), Score(iface) {
+NetworkStats::NetworkStats(NetworkInterface *iface, u_int8_t _network_id) : InterfaceMemberAlertableEntity(iface, alert_entity_network), GenericTrafficElement(), Score(iface) {
   const char *netname;
   network_id = _network_id;
   numHosts = 0;

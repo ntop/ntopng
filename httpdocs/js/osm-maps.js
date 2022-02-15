@@ -7,14 +7,14 @@ const red_marker = L.icon({
 });
 
 const info_key_names = {
-    "score": i18n.score,
-    "asname": i18n.as,
-    "html": i18n.nation,
-    "active_alerted_flows": i18n.alerted_flows,
-    "num_blacklisted_flows": i18n.blacklisted_flows,
-    "bytes.sent": i18n.traffic_sent,
-    "bytes.rcvd": i18n.traffic_rcvd,
-    "total_flows": i18n.flows,
+    "score": i18n_ext.score,
+    "asname": i18n_ext.as,
+    "html": i18n_ext.nation,
+    "active_alerted_flows": i18n_ext.alerted_flows,
+    "num_blacklisted_flows": i18n_ext.blacklisted_flows,
+    "bytes.sent": i18n_ext.traffic_sent,
+    "bytes.rcvd": i18n_ext.traffic_rcvd,
+    "total_flows": i18n_ext.flows,
 };
 
 const formatters = {
@@ -59,7 +59,7 @@ const create_marker = (h) => {
     }
 
     if(h["flow_status"]) {
-        let flow_status = i18n.flow_status + ":</br>";
+        let flow_status = i18n_ext.flow_status + ":</br>";
         for (const prop in h["flow_status"]) {
             flow_status = flow_status + "<b>" + h["flow_status"][prop]["num_flows"] + " Flows, " + h["flow_status"][prop]["label"] + "</b></br>";
         }
@@ -84,10 +84,10 @@ const check_status_code = (status_code, status_text, $error_label) => {
     const is_different = (status_code != 200);
 
     if (is_different && $error_label != null) {
-        $error_label.find('p').text(`${i18n.request_failed_message}: ${status_code} - ${status_text}`).show();
+        $error_label.find('p').text(`${i18n_ext.request_failed_message}: ${status_code} - ${status_text}`).show();
     }
     else if (is_different && $error_label == null) {
-        alert(`${i18n.request_failed_message}: ${status_code} - ${status_text}`);
+        alert(`${i18n_ext.request_failed_message}: ${status_code} - ${status_text}`);
     }
 
     return is_different;

@@ -48,6 +48,14 @@ captive portal would be useless. In this case the IP based identification should
 be used, so that the IP address is used in place of the MAC. This assumes each
 device has it's own fixed IP, so it won't work properly with DHCP.
 
+User Logout
+-----------
+
+Disconnecting a device by explicitly logging out is usually not required, however
+in case a nEdge user wants to disassociate himsemf from the device, this is possible
+through the :code:`http://<Captive Portal IP>:3000/lua/logout.lua` page from the
+browser.
+
 Informative Captive Portal
 --------------------------
 

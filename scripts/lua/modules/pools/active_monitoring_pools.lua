@@ -6,7 +6,6 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils" -- needed by am_utils
-local plugins_utils = require "plugins_utils"
 local am_utils = require "am_utils"
 local pools = require "pools"
 

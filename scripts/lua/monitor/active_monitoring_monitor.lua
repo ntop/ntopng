@@ -6,8 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local page_utils = require("page_utils")
-local alert_consts = require("alert_consts")
-local plugins_utils = require("plugins_utils")
+local script_manager = require("script_manager")
 local ui_utils = require("ui_utils")
 local template = require("template_utils")
 local json = require("dkjson")
@@ -16,11 +15,9 @@ local active_monitoring_pools = require("active_monitoring_pools")
 local am_pool = active_monitoring_pools:create()
 
 local graph_utils = require("graph_utils")
-local alert_utils = require("alert_utils")
-local checks = require("checks")
 local auth = require "auth"
 
-local ts_creation = plugins_utils.timeseriesCreationEnabled()
+local ts_creation = script_manager.systemTimeseriesEnabled()
 
 if not isAllowedSystemInterface() then return end
 
@@ -35,7 +32,7 @@ local host = _GET["am_host"]
 local page = _GET["page"] or ('overview')
 local measurement = _GET["measurement"]
 
-local base_url = plugins_utils.getMonitorUrl("active_monitoring_monitor.lua") .. "?ifid=" .. getInterfaceId(ifname)
+local base_url = script_manager.getMonitorUrl("active_monitoring_monitor.lua") .. "?ifid=" .. getInterfaceId(ifname)
 local url = base_url
 local info = ntop.getInfo()
 local measurement_info
@@ -121,7 +118,7 @@ if (page == "overview") then
     local context = {
         json = json,
         template_utils = template,
-        plugins_utils = plugins_utils,
+        script_manager = script_manager,
         generate_select = generate_select,
         ui_utils = ui_utils,
         am_stats = {

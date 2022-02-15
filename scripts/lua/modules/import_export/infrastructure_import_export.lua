@@ -10,12 +10,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 require "lua_utils" 
 local import_export = require "import_export"
-local json = require "dkjson"
 local rest_utils = require "rest_utils"
-local pools = require("pools")
 local infrastructure_utils = require("infrastructure_utils")
-local plugins_utils = require("plugins_utils")
-local am_utils = require "am_utils"
 
 -- ##############################################
 

@@ -20,7 +20,7 @@ local telegram = {
    },
    
    endpoint_template = {
-      plugin_key = endpoint_key, -- Unique string key
+      script_key = endpoint_key, -- Unique string key
 
       -- Filename of the GUI block for this endpoint
       -- relative pathname to httpdocs/templates/page/notifications/telegram/telegram_endpoint.template
@@ -34,7 +34,7 @@ local telegram = {
       { param_name = "telegram_channel"}, -- Name of the channel
    },
    recipient_template = {
-      plugin_key = endpoint_key, -- Unique string key
+      script_key = endpoint_key, -- Unique string key
 
       template_name = "telegram_recipient.template"
    },

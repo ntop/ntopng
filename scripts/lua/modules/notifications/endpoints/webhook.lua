@@ -15,13 +15,13 @@ local webhook = {
       -- TODO: configure severity (Errors, Errors and Warnings, All)
    },
    endpoint_template = {
-      plugin_key = "webhook",
+      script_key = "webhook",
       template_name = "webhook_endpoint.template"
    },
    recipient_params = {
    },
    recipient_template = {
-      plugin_key = "webhook",
+      script_key = "webhook",
       template_name = "webhook_recipient.template"
    },
 }

@@ -2,8 +2,6 @@
 -- (C) 2017-22 - ntop.org
 --
 
-local plugins_utils = require "plugins_utils"
-
 local email = {
    name = "Email",
    endpoint_params = {
@@ -13,7 +11,7 @@ local email = {
       { param_name = "smtp_password", optional = true },
    },
    endpoint_template = {
-      plugin_key = "email",
+      script_key = "email",
       template_name = "email_endpoint.template"
    },
    recipient_params = {
@@ -21,7 +19,7 @@ local email = {
       { param_name = "cc", optional = true },
    },
    recipient_template = {
-      plugin_key = "email",
+      script_key = "email",
       template_name = "email_recipient.template"
    },
 }

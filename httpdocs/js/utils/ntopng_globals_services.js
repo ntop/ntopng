@@ -6,30 +6,10 @@
  * Utility globals functions.
  */
 const ntopng_utility = function() {
-    return {
-        /**
-         * Deep copy of a object.
-         * @param {object} obj 
-         * @returns {object}
-         */
-        clone: function(obj) {
-            if (obj == null) { return null; }
-            return JSON.parse(JSON.stringify(obj));
-        }
-    };
-}();
-
-/**
- * Allows to manage the application global status.
- * The status is incapsulated into the url.
- */
-const ntopng_status_manager = function() {
-    /** @type {{ [id: string]: (status: object) => void}} */
-    let subscribers = {}; // dictionary of { [id: string]: f_on_ntopng_status_change() }
-
     /**
      * Convert js object into a string that represent url params.
-     * @param {object} obj
+     * @param {object} obj.
+     * @returns {string}.
      */
     const obj_to_url_params = function(obj) {
         let s = "";
@@ -44,8 +24,8 @@ const ntopng_status_manager = function() {
 
     /**
      * Gets js object from url params.
-     * @param {*} entries 
-     * @returns {object}
+     * @param {*} entries.
+     * @returns {object}.
      */
     const url_params_to_object = function(entries) {
         const result = {}
@@ -55,8 +35,42 @@ const ntopng_status_manager = function() {
         return result;
     };
 
+    return {
+	obj_to_url_params: obj_to_url_params,
+	url_params_to_object: url_params_to_object,
+	
+        /**
+         * Deep copy of a object.
+         * @param {object} obj.
+         * @returns {object}.
+         */
+        clone: function(obj) {
+            if (obj == null) { return null; }
+            return JSON.parse(JSON.stringify(obj));
+        },
+	replace_url: function(url_params_obj) {
+            let url_params = "?" + obj_to_url_params(url_params_obj);
+            window.history.replaceState({}, null, url_params);
+	},
+	replace_url_and_reload: function(url_params_obj) {
+	    this.replace_url(url_params_obj);
+	    window.location.reload();
+	},
+    };
+}();
+
+/**
+ * Allows to manage the application global status.
+ * The status is incapsulated into the url.
+ */
+const ntopng_status_manager = function() {
+    /** @type {{ [id: string]: (status: object) => void}} */
+    let subscribers = {}; // dictionary of { [id: string]: f_on_ntopng_status_change() }
     const clone = ntopng_utility.clone;
-    
+    const url_params_to_object = ntopng_utility.url_params_to_object;
+    const obj_to_url_params = ntopng_utility.obj_to_url_params;
+    const replace_url = ntopng_utility.replace_url;
+
     /**
      * Notifies the status to all subscribers with id different from skip_id.
      * @param {object} status object that represent the application status.
@@ -71,7 +85,6 @@ const ntopng_status_manager = function() {
     };
 
     return {
-	obj_to_url_params: obj_to_url_params,
 	
         /**
          * Gets the current global application status.
@@ -83,6 +96,11 @@ const ntopng_status_manager = function() {
             const params = url_params_to_object(entries);
             return params;
         },
+
+	update_subscribers: function() {
+	    const status = this.get_status();
+	    notify_subscribers(status);
+	},
 
         /**
          * Allows to subscribers f_on_change callback on status change event.
@@ -105,8 +123,7 @@ const ntopng_status_manager = function() {
          * @param {string} skip_id if != null doesn't notify the subscribers with skip_id identifier.
          */
         replace_status: function(status, skip_id) {
-            let url_params = "?" + obj_to_url_params(status);
-            window.history.replaceState({}, null, url_params);
+	    replace_url(status);
             notify_subscribers(status, skip_id);
         },
 

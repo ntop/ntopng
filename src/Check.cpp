@@ -39,7 +39,7 @@ Check::~Check() {
 /* **************************************************** */
 
 bool Check::isCheckCompatibleWithEdition() const {
-  /* Check first if the license allows plugin to be enabled */
+  /* Check first if the license allows script to be enabled */
   switch(check_edition) {
   case ntopng_edition_community:
     /* Ok */

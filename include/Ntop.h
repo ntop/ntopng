@@ -52,8 +52,7 @@ class Ntop {
   char working_dir[MAX_PATH]; /**< Working directory. */
   char install_dir[MAX_PATH]; /**< Install directory. */
   char startup_dir[MAX_PATH]; /**< Startup directory. */
-  char plugins0_dir[MAX_PATH+16];
-  char plugins1_dir[MAX_PATH+16];
+  char scripts_dir[MAX_PATH+16];
   char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI. */
   NetworkInterface **iface; /**< Array of network interfaces. */
   NetworkInterface *system_interface; /** The system interface */
@@ -88,7 +87,7 @@ class Ntop {
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
   cpu_load_stats cpu_stats;
   float cpu_load;
-  bool plugins0_active, can_send_icmp, privileges_dropped;
+  bool can_send_icmp, privileges_dropped;
 #ifndef HAVE_NEDGE
   bool refresh_ips_rules;
 #endif
@@ -134,8 +133,7 @@ class Ntop {
 
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
-  void refreshPluginsDir();
-
+  
   bool getUserPasswordHashLocal(const char * user, char *password_hash) const;
   bool checkUserPasswordLocal(const char * user, const char * password, char *group) const;
   bool checkUserPassword(const char * user, const char * password, char *group, bool *localuser) const;
@@ -394,13 +392,7 @@ class Ntop {
   inline char* get_install_dir()                     { return(install_dir);         };
   inline void  set_install_dir(char *id)             { snprintf(install_dir, MAX_PATH, "%s", id); };
 
-  inline char* get_plugins_dir()                     { return(plugins0_active ? plugins0_dir : plugins1_dir); };
-  inline char* get_shadow_plugins_dir()              { return(plugins0_active ? plugins1_dir : plugins0_dir); };
-  inline char* get_plugins0_dir()                    { return(plugins0_dir); };
-  inline char* get_plugins1_dir()                    { return(plugins1_dir); };
-  inline bool is_plugins0_dir()                      { return(plugins0_active); };
-  inline void swap_plugins_dir()                     { plugins0_active = !plugins0_active; };
-
+  inline char* get_scripts_dir()                     { return(scripts_dir); };
   inline Bloom*            getResolutionBloom()      { return(resolvedHostsBloom);  };
   inline NtopGlobals*      getGlobals()              { return(globals);             };
   inline Trace*            getTrace()                { return ((globals!=NULL) ? globals->getTrace() : NULL); };
@@ -420,6 +412,7 @@ class Ntop {
   char* getIfName(int if_id, char *name, u_int name_len);
 #endif
 #endif
+  void setScriptsDir();
   void lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm);
   void getUsers(lua_State* vm);
   bool getLocalNetworkAlias(lua_State *vm, u_int8_t network_id);

@@ -37,7 +37,7 @@ $(function() {
         const POOL_COLUMN_INDEX = 8;
 
         return new DataTableFiltersMenu({
-            filterTitle: i18n.pools,
+            filterTitle: i18n_ext.pools,
             tableAPI: tableAPI,
             filters: poolsFilter,
             filterMenuKey: 'pools',
@@ -65,7 +65,7 @@ $(function() {
         filters.sort((a, b) => a.label.localeCompare(b.label));
 
         return new DataTableFiltersMenu({
-            filterTitle: i18n.measurement,
+            filterTitle: i18n_ext.measurement,
             tableAPI: tableAPI,
             filters: filters,
             filterMenuKey: 'measurement',
@@ -79,18 +79,18 @@ $(function() {
         const filters = [
             {
                 key: 'alerted',
-                label: `${i18n.alerted}`,
+                label: `${i18n_ext.alerted}`,
                 regex: `1`
             },
             {
                 key: 'not_alerted',
-                label: `${i18n.not_alerted}`,
+                label: `${i18n_ext.not_alerted}`,
                 regex: `0`
             }
         ];
 
         return new DataTableFiltersMenu({
-            filterTitle: i18n.alert_status,
+            filterTitle: i18n_ext.alert_status,
             tableAPI: tableAPI,
             filters: filters,
             filterMenuKey: 'alert-status',
@@ -145,7 +145,7 @@ $(function() {
         const info = measurements_info[measurement];
 
         $dialog.find(".measurement-operator").html("&" + (info.operator || "gt") + ";");
-        $dialog.find(".measurement-unit").html(info.unit || i18n.msec);
+        $dialog.find(".measurement-unit").html(info.unit || i18n_ext.msec);
 
         // Check if host is forced
         const host = $dialog.find(".measurement-host")
@@ -278,7 +278,7 @@ $(function() {
             if (response.success) {
 
                 ToastUtils.showToast({
-                    title: i18n.success,
+                    title: i18n_ext.success,
                     body: response.message,
                     level: 'success',
                     delay: 3000,
@@ -365,7 +365,7 @@ $(function() {
             if (response.success) {
 
                 ToastUtils.showToast({
-                    title: i18n.success,
+                    title: i18n_ext.success,
                     body: response.message,
                     level: 'success',
                     delay: 3000,
@@ -402,7 +402,7 @@ $(function() {
             if (response.success) {
                 $(`#am-delete-modal`).modal('hide');
                 ToastUtils.showToast({
-                    title: i18n.success,
+                    title: i18n_ext.success,
                     body: response.message,
                     level: 'success',
                     delay: 3000,
@@ -565,8 +565,8 @@ $(function() {
                     const disabled = (host.readonly) ? 'disabled' : '';
 
                     return DataTableUtils.createActionButtons([
-                        { class: `btn-info ${disabled}`, icon: 'fa-edit', modal: '#am-edit-modal', title: `${i18n.edit}` },
-                        { class: `btn-danger ${disabled}`, icon: 'fa-trash', modal: '#am-delete-modal', title: `${i18n.delete}` }
+                        { class: `btn-info ${disabled}`, icon: 'fa-edit', modal: '#am-edit-modal', title: `${i18n_ext.edit}` },
+                        { class: `btn-danger ${disabled}`, icon: 'fa-trash', modal: '#am-delete-modal', title: `${i18n_ext.delete}` }
                     ]);
                 }
             },
@@ -656,12 +656,12 @@ $(function() {
         let recipients = pool.recipients;
 
         if (recipients.length == 0) {
-            $recipientsInfo.html(i18n.no_recipients);
+            $recipientsInfo.html(i18n_ext.no_recipients);
             return;
         }
 
         const recipientNames = NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_RECIPIENTS);
-        $recipientsInfo.html(i18n.some_recipients.replace('${recipients}', recipientNames));
+        $recipientsInfo.html(i18n_ext.some_recipients.replace('${recipients}', recipientNames));
 
     });
 });

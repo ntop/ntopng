@@ -256,7 +256,7 @@ void ZMQCollectorInterface::checkPointCounters(bool drops_only) {
 void ZMQCollectorInterface::collect_flows() {
   struct zmq_msg_hdr_v0 h0;
   struct zmq_msg_hdr *h = (struct zmq_msg_hdr *) &h0; /* NOTE: in network-byte-order format */
-  char *payload;
+  char *payload = NULL;
   const u_int payload_len = 131072;
   zmq_pollitem_t items[MAX_ZMQ_SUBSCRIBERS];
   u_int32_t zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
@@ -276,9 +276,9 @@ void ZMQCollectorInterface::collect_flows() {
       sleep(1);
       
       if(ntop->getGlobals()->isShutdown()) {
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow collection is over: ntop is shutting down");
-	free(payload);
-	return;
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow collection is over: ntop is shutting down");
+        free(payload);
+        return;
       }
     }
 
@@ -291,10 +291,10 @@ void ZMQCollectorInterface::collect_flows() {
       now = (u_int32_t)time(NULL);
       zmq_max_num_polls_before_purge--;
 
-      if((rc < 0) || (!isRunning())) {
-	free(payload);
-	
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow collection is over: ntop is shutting down");
+      if(rc < 0 || !isRunning()) {
+	      if(payload) free(payload);
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow collection is over: ntop is shutting down");
+        return;
       }
       
       if((rc == 0) || (now >= next_purge_idle) || (zmq_max_num_polls_before_purge == 0)) {
@@ -490,7 +490,7 @@ void ZMQCollectorInterface::collect_flows() {
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow collection is over.");
 
-  free(payload);
+  if(payload) free(payload);
 }
 
 /* **************************************************** */

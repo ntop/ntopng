@@ -240,22 +240,22 @@
                     if (validation.data.cannotBeEmpty && validation.isInputEmpty) {
                         // trigger input validation flag
                         input.setCustomValidity("Please fill the input.");
-                        return [false, validation.data.validationEmptyMessage || i18n.missing_field];
+                        return [false, validation.data.validationEmptyMessage || i18n_ext.missing_field];
                     }
 
                     if (input.validity.patternMismatch) {
                         input.setCustomValidity("Pattern mismatch.");
-                        return [false, validation.data.validationMessage || i18n.invalid_field];
+                        return [false, validation.data.validationMessage || i18n_ext.invalid_field];
                     }
 
                     if (input.validity.rangeOverflow) {
                         input.setCustomValidity("Value exceed the maximum value.");
-                        return [false, validation.data.rangeOverflowMessage || i18n.invalid_field];
+                        return [false, validation.data.rangeOverflowMessage || i18n_ext.invalid_field];
                     }
 
                     if (input.validity.rangeUnderflow) {
                         input.setCustomValidity("Value is under the minimum value.");
-                        return [false, validation.data.rangeUnderflowMessage || i18n.invalid_field];
+                        return [false, validation.data.rangeUnderflowMessage || i18n_ext.invalid_field];
                     }
 
                     // set validation to true

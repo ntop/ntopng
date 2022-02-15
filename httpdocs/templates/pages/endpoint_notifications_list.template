@@ -28,7 +28,7 @@
 
 {% for endpoint_key, endpoint in pairsByKeys(notifications.endpoints, asc) do %}
     <template id="{{ endpoint_key }}-template">
-        {* plugins_utils.renderTemplate(endpoint.endpoint_template.plugin_key, endpoint.endpoint_template.template_name) *}
+        {* script_manager.renderNotificationTemplate(endpoint.endpoint_template.script_key, endpoint.endpoint_template.template_name) *}
     </template>
 {% end %}
 
@@ -46,18 +46,18 @@
     let csrf = "{{ ntop.getRandomCSRFValue() }}";
     const endpointTypeFilters = {* json.encode(notifications.filters.endpoint_types) *};
 
-    i18n.warning ="{{ i18n('warning', {}) }}";
-    i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
-    i18n.search = "{{ i18n('search') }}";
-    i18n.edit = "{{ i18n('edit') }}";
-    i18n.remove = "{{ i18n('remove') }}";
-    i18n.delete = "{{ i18n('delete') }}";
-    i18n.all = "{{ i18n('all') }}";
-    i18n.timed_out = "{{ i18n('endpoint_notifications.timed_out') }}";
-    i18n.server_error = "{{ i18n('endpoint_notifications.server_error') }}";
-    i18n.endpoint_config_already_existing = "{{ i18n('endpoint_notifications.endpoint_config_already_existing') }}";
-    i18n.endpoint_type = "{{ i18n('endpoint_notifications.type') }}";
-    i18n.endpoint_types = {* json.encode(notifications.endpoint_types_labels) *};
+    i18n_ext.warning ="{{ i18n('warning', {}) }}";
+    i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    i18n_ext.search = "{{ i18n('search') }}";
+    i18n_ext.edit = "{{ i18n('edit') }}";
+    i18n_ext.remove = "{{ i18n('remove') }}";
+    i18n_ext.delete = "{{ i18n('delete') }}";
+    i18n_ext.all = "{{ i18n('all') }}";
+    i18n_ext.timed_out = "{{ i18n('endpoint_notifications.timed_out') }}";
+    i18n_ext.server_error = "{{ i18n('endpoint_notifications.server_error') }}";
+    i18n_ext.endpoint_config_already_existing = "{{ i18n('endpoint_notifications.endpoint_config_already_existing') }}";
+    i18n_ext.endpoint_type = "{{ i18n('endpoint_notifications.type') }}";
+    i18n_ext.endpoint_types = {* json.encode(notifications.endpoint_types_labels) *};
 
     const endpoints_info = {* json.encode(notifications.endpoints_info) *};
 

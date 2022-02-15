@@ -2,11 +2,6 @@
 -- (C) 2020 - ntop.org
 --
 
---
--- This is the core plugin file where everything 
--- has birth
---
-
 require "lua_utils"
 local json = require "dkjson"
 local alert_utils = require "alert_utils"
@@ -23,7 +18,7 @@ local discord = {
    },
    
    endpoint_template = {
-      plugin_key = endpoint_key, -- Unique string key
+      script_key = endpoint_key, -- Unique string key
 
       -- Filename of the GUI block for this endpoint
       -- relative pathname to discord_alert_endpoint/templates/discord_endpoint.template
@@ -37,7 +32,7 @@ local discord = {
       { param_name = "discord_username" }
    },
    recipient_template = {
-      plugin_key = endpoint_key, -- Unique string key
+      script_key = endpoint_key, -- Unique string key
 
       template_name = "discord_recipient.template"
    },
