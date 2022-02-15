@@ -8,10 +8,13 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
+local alert_severities = require "alert_severities"
+local alert_utils = require "alert_utils"
+
 local tag_utils = {}
 
 -- Operator Separator in query strings
-tag_utils.SEPARATOR = ';'
+tag_utils.SEPARATOR = alert_utils.SEPARATOR
 
 -- #####################################
 
@@ -354,6 +357,71 @@ tag_utils.formatters = {
       return flow_risk_list[tonumber(risk)+1] or risk 
    end,
 }
+
+-- ######################################
+
+function tag_utils.get_tag_info(id)
+   local tag = tag_utils.defined_tags[id]
+
+   if tag == nil then
+     traceError(TRACE_WARNING, TRACE_CONSOLE, "Tag " .. id .. " not found")
+     return nil
+   end
+
+   local filter = {
+      id = id,
+      label = tag.i18n_label,
+      value_type = tag.value_type,
+      value_label = tag.value_i18n_label or tag.i18n_label,
+      operators = {}
+   }
+
+   for _, op in ipairs(tag.operators) do
+      filter.operators[#filter.operators+1] = {
+         id = op,
+         label = tag_utils.tag_operators[op],
+      }
+   end
+
+   -- select (array of values)
+   if tag.value_type == "l7_proto" then
+      filter.value_type = 'array'
+      filter.options = {}
+      local l7_protocols = interface.getnDPIProtocols()
+      for name, id in pairsByKeys(l7_protocols, asc) do
+         filter.options[#filter.options+1] = { value = id, label = name, }
+      end
+   elseif tag.value_type == "ip_version" then
+      filter.value_type = 'array'
+      filter.options = {}
+      filter.options[#filter.options+1] = { value = "4", label = i18n("ipv4"), }
+      filter.options[#filter.options+1] = { value = "6", label = i18n("ipv6"), }
+   elseif tag.value_type == "role" then
+      filter.value_type = 'array'
+      filter.options = {}
+      filter.options[#filter.options+1] = { value = "attacker", label = i18n("attacker"), }
+      filter.options[#filter.options+1] = { value = "victim",   label = i18n("victim"),   }
+      filter.options[#filter.options+1] = { value = "no_attacker_no_victim", label = i18n("no_attacker_no_victim"),
+      }
+   elseif tag.value_type == "role_cli_srv" then
+      filter.value_type = 'array'
+      filter.options = {}
+      filter.options[#filter.options+1] = { value = "client", label = i18n("client"), }
+      filter.options[#filter.options+1] = { value = "server", label = i18n("server"), }
+   elseif tag.value_type == "severity" then
+      filter.value_type = 'array'
+      filter.options = {}
+      local severities = alert_severities
+      for _, severity in pairsByValues(severities, alert_utils.severity_rev) do
+         filter.options[#filter.options+1] = {
+            value = severity.severity_id,
+            label = i18n(severity.i18n_title),
+         }
+      end
+   end
+
+   return filter
+end
 
 -- ######################################
 
