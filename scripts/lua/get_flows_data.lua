@@ -226,7 +226,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local column_client = src_key
 
    if info_cli then
-      column_client = column_client..format_utils.formatMainAddressCategory(info_cli)
+      column_client = column_client .. format_utils.formatMainAddressCategory(info_cli)
    end
 
    column_client = string.format("%s%s%s %s %s",
@@ -243,7 +243,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local column_server = dst_key
 
    if info_srv then
-      column_server = column_server..format_utils.formatMainAddressCategory(info_srv)
+      column_server = column_server .. format_utils.formatMainAddressCategory(info_srv)
    end
 
    column_server = string.format("%s%s%s %s %s",
