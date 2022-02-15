@@ -2,6 +2,7 @@
 -- (C) 2020-22 - ntop.org
 --
 
+require("lua_utils")
 local json = require("dkjson")
 
 local MAX_POSTS = 3
