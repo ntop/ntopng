@@ -2076,7 +2076,8 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char * payload, int paylo
       enum json_type o_type = json_object_get_type(z);
 
       if(o_type == json_type_array) {
-	for(u_int i = 0; i < json_object_array_length(z); i++) {
+	for(u_int i = 0; i < (u_int)json_object_array_length(z); i++) {
+	  /* Dead code */
 #if 0
 	  json_object *host = json_object_array_get_idx(z, i);
 	  const char *ip_addr = json_object_to_json_string(host);

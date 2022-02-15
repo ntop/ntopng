@@ -32,7 +32,7 @@ void ListeningPorts::parsePortInfo(json_object *z, std::map <u_int16_t, Listenin
   enum json_type o_type = json_object_get_type(z);
   
   if(o_type == json_type_array) {
-    for(u_int i = 0; i < json_object_array_length(z); i++) {
+    for(u_int i = 0; i < (u_int)json_object_array_length(z); i++) {
       json_object *e = json_object_array_get_idx(z, i);
       
       if(json_object_object_get_ex(e, "port", &p))
