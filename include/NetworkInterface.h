@@ -809,12 +809,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void addInterfaceAddress(char * const addr);
   void addInterfaceNetwork(char * const net, char * addr);
   bool isInterfaceNetwork(const IpAddress * const ipa, int network_bits) const;
-  inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true) {
-#ifdef HAVE_MYSQL
-    if(dynamic_cast<MySQLDB*>(db) != NULL)
-      return ((MySQLDB*)db)->exec_sql_query(vm, sql, limit_rows, wait_for_db_created);
-#endif
-    return(-1);
+  inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = false) {
+    return(db->exec_sql_query(vm, sql, limit_rows, wait_for_db_created));
   };
   int exec_csv_query(const char *sql, bool dump_in_json_format, struct mg_connection *conn);
 
