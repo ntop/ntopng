@@ -457,6 +457,8 @@ MySQLDB::MySQLDB(NetworkInterface *_iface, bool _clickhouse_mode) : DB(_iface) {
 
   if(!clickhouse_mode)
     mysql_alt_connected = connectToDB(&mysql_alt, true);
+  else 
+    db_created = true;	   
 }
 
 /* ******************************************* */
