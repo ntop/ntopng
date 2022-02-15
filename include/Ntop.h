@@ -599,6 +599,7 @@ class Ntop {
   bool isDbCreated();
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   inline u_int importClickHouseDumps(bool silence_warnings) { return(clickhouseImport.importDumps(silence_warnings)); }
+  u_int64_t getNextFlowId()                                 { return(clickhouseImport.getNextFlowId()); }
 #endif
   void collectResponses(lua_State* vm);
   void collectContinuousResponses(lua_State* vm);
