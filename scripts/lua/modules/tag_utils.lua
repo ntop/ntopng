@@ -478,7 +478,6 @@ function tag_utils.build_bpf(filters)
       if not tag_utils.defined_tags[key] then
          goto skip_filter
       end
-
       local bpf_key = tag_utils.defined_tags[key].bpf_key
 
       if not bpf_key then
@@ -488,19 +487,19 @@ function tag_utils.build_bpf(filters)
       local list = split(_value, ',')
 
       for _,value in ipairs(list) do
-         local version = 4
+         local op = "eq" -- default
+         local bpf_val = value
+
          -- tags has value formatted in this way: (e.g.) cli_port = 888,eq
          -- it means, search for values with port == 888
          local splitted_value = split(value, tag_utils.SEPARATOR)
 
-         if table.len(splitted_value) ~= 2 then
-            goto continue
+         if table.len(splitted_value) == 2 then
+            op = splitted_value[2]
+            bpf_val = splitted_value[1]
          end
 
-         local op = splitted_value[2]
-         local cond
-         local bpf_val = splitted_value[1]
-
+         local version = 4
          if key:ends('ip') then -- either cli_ip, srv_ip or ip (for both)
             version = isIPv6(bpf_val) and 6 or 4
          end
@@ -515,7 +514,7 @@ function tag_utils.build_bpf(filters)
             goto continue
          end
 
-         cond = bpf_key .. ' ' .. bpf_val
+         local cond = bpf_key .. ' ' .. bpf_val
 
          if op == "neq" then
             cond = 'not' .. ' ' .. cond
