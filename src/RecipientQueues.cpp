@@ -100,7 +100,7 @@ void RecipientQueues::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "last_use", last_use);
   lua_push_uint64_table_entry(vm, "num_drops", drops);
   lua_push_uint64_table_entry(vm, "num_uses", uses);
-  lua_push_uint64_table_entry(vm, "fill_pct", queue->fillPct());
+  lua_push_uint64_table_entry(vm, "fill_pct", queue ? queue->fillPct() : 0);
 }
 
 /* *************************************** */
