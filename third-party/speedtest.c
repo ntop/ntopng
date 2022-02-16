@@ -637,6 +637,8 @@ static int get_download_filename(double speed, int num_thread)
   int filelist[] = {350, 500, 750, 1000, 1500, 2000, 3000, 3500, 4000};
   int num_file = ARRAY_SIZE(filelist);
 
+  if(speed == 0) speed = 1;
+  
   for (i = 1; i < num_file; i++) {
     long long int time;
     float times = (float)filelist[i]/350;
