@@ -470,7 +470,7 @@ else
       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/")
       if((flow.client_process ~= nil) or (flow.server_process ~= nil))then	print("s") end
       print("flows_stats.lua?application=" .. flow["proto.ndpi"] .. "\">")
-      print(getApplicationLabel(flow["proto.ndpi"]).."</A> ")
+      print(getApplicationLabel(flow["proto.ndpi"],32).."</A> ")
       print("(<A HREF=\""..ntop.getHttpPrefix().."/lua/")
       print("flows_stats.lua?category=" .. flow["proto.ndpi_cat"] .. "\">")
       print(getCategoryLabel(flow["proto.ndpi_cat"]))
