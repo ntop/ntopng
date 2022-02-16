@@ -99,7 +99,7 @@ Ntop::Ntop(const char *appName) {
   privileges_dropped = false;
   can_send_icmp = Utils::isPingSupported();
 
-  for (int i = 0; i < CONST_MAX_NUM_NETWORKS; i++)
+  for(int i = 0; i < CONST_MAX_NUM_NETWORKS; i++)
     local_network_names[i] = local_network_aliases[i] = NULL;
 
 #ifndef WIN32
@@ -265,7 +265,7 @@ void Ntop::initTimezone() {
 Ntop::~Ntop() {
   int num_local_networks = local_network_tree.getNumAddresses();
 
-  for (int i = 0; i < num_local_networks; i++) {
+  for(int i = 0; i < num_local_networks; i++) {
     if (local_network_names[i] != NULL) free(local_network_names[i]);
     if (local_network_aliases[i] != NULL) free(local_network_aliases[i]);
   }
@@ -303,6 +303,7 @@ Ntop::~Ntop() {
   if(custom_ndpi_protos)  free(custom_ndpi_protos);
 
   delete address;
+  
   if(pa)    delete pa;
   if(geo)   delete geo;
   if(mac_manufacturers) delete mac_manufacturers;
@@ -316,6 +317,11 @@ Ntop::~Ntop() {
   if(alert_exclusions_shadow)   delete alert_exclusions_shadow;
 #endif
 
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+  if(clickhouseImport)
+    delete clickhouseImport;
+#endif
+  
   if(resolvedHostsBloom) delete resolvedHostsBloom;
   delete internal_alerts_queue;
 
@@ -402,7 +408,12 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   /* Now we can enable the periodic activities */
   pa = new (std::nothrow) PeriodicActivities();
-  
+
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+  if(prefs->useClickHouse())
+    clickhouseImport = new (std::nothrow) ClickHouseImport();
+#endif
+
   redis->setInitializationComplete();
 }
 
