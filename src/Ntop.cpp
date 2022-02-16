@@ -342,7 +342,8 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   if(!quick_registration) {
     if(stat(prefs->get_data_dir(), &buf)
        || (!(buf.st_mode & S_IFDIR))  /* It's not a directory */
-       || (!(buf.st_mode & S_IWRITE)) /* It's not writable    */) {
+       // || (!(buf.st_mode & S_IWRITE)) /* It's not writable    */
+       ) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
 				   prefs->get_data_dir());
       exit(-1);
