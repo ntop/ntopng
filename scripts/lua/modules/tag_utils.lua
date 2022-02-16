@@ -364,7 +364,7 @@ function tag_utils.get_tag_info(id)
    local tag = tag_utils.defined_tags[id]
 
    if tag == nil then
-     traceError(TRACE_WARNING, TRACE_CONSOLE, "Tag " .. id .. " not found")
+     -- traceError(TRACE_WARNING, TRACE_CONSOLE, "Tag " .. id .. " not found")
      return nil
    end
 
