@@ -255,10 +255,10 @@ class Flow : public GenericHashEntry {
   void updateSrvJA3();
   void updateHASSH(bool as_client);
   void processExtraDissectedInformation();
-  void processDetectedProtocol();      /* nDPI detected protocol */
+  void processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len); /* nDPI detected protocol */
   void processDetectedProtocolData();  /* nDPI detected protocol data (e.g., ndpiFlow->host_server_name) */
   void setExtraDissectionCompleted();
-  void setProtocolDetectionCompleted();
+  void setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_len);
   void updateProtocol(ndpi_protocol proto_id);
   const char* cipher_weakness2str(ndpi_cipher_weakness w) const;
   bool get_partial_traffic_stats(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *delta, bool *first_partial) const;

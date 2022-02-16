@@ -38,7 +38,8 @@ Flow::Flow(NetworkInterface *_iface,
 	   Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   const ICMPinfo * const _icmp_info,
-	   time_t _first_seen, time_t _last_seen, u_int8_t *_view_cli_mac, u_int8_t *_view_srv_mac) : GenericHashEntry(_iface) {
+	   time_t _first_seen, time_t _last_seen,
+	   u_int8_t *_view_cli_mac, u_int8_t *_view_srv_mac) : GenericHashEntry(_iface) {
   periodic_stats_update_partial = NULL;
   viewFlowStats = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
@@ -404,12 +405,12 @@ u_int16_t Flow::getStatsProtocol() const {
  * completed. See processExtraDissectedInformation for a later check.
  * NOTE: does NOT need ndpiFlow
  */
-void Flow::processDetectedProtocol() {
+void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
   u_int16_t l7proto;
   u_int16_t stats_protocol;
-  Host *cli_h = NULL, *srv_h = NULL;
+  Host *cli_h = NULL, *srv_h = NULL, *real_cli_h, *real_srv_h;
   char *domain_name = NULL;
-
+  
   /*
     If peers should be swapped, then pointers are inverted.
     NOTE: only function pointers are inverted, not pointers in the flow.
@@ -427,13 +428,33 @@ void Flow::processDetectedProtocol() {
 
   switch(l7proto) {
   case NDPI_PROTOCOL_DHCP:
-    if(srv_h) srv_h->setDhcpServer();
+
+    if(cli_port == htons(67)) {
+      /* Server -> Client */
+
+      if(cli_host && (!cli_host->isBroadcastHost())) {
+	cli_host->setDhcpServer();
+      }
+    } else {
+      if(srv_host && (!srv_host->isBroadcastHost()))
+	srv_host->setDhcpServer();
+    }
     break;
 
   case NDPI_PROTOCOL_NTP:
-    if(srv_h) {
-      srv_h->setNtpServer();
-      if(cli_h) cli_h->incNTPContactCardinality(srv_h);
+    real_srv_h = srv_h, real_cli_h = cli_h;
+    
+    /* Check direction first */
+    if(payload && (payload_len > 1)) {
+      u_int8_t mode = payload[0] & 0x07;
+
+      if(mode == 2 /* server -> client */)
+	real_srv_h = cli_h, real_cli_h = srv_h;
+    }
+    
+    if(real_srv_h) {
+      real_srv_h->setNtpServer();
+	if(real_cli_h) real_cli_h->incNTPContactCardinality(real_srv_h);
     }
     break;
 
@@ -446,6 +467,10 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_DNS:
+    /*
+      No need to swap as Flow::processDNSPacket()
+      take care of directions
+    */
     if(srv_h) {
       srv_h->setDnsServer();
       if(cli_h) cli_h->incDNSContactCardinality(srv_h);
@@ -750,7 +775,7 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
 
     setRisk(ndpiFlow->risk);
     updateProtocol(proto_id);
-    setProtocolDetectionCompleted();
+    setProtocolDetectionCompleted(payload, payload_len);
   }
 
   /*
@@ -893,9 +918,10 @@ void Flow::endProtocolDissection() {
   if(!detection_completed) {
     u_int8_t proto_guessed;
 
-    updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow, 1, &proto_guessed));
+    updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(),
+					 ndpiFlow, 1, &proto_guessed));
     setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
-    setProtocolDetectionCompleted();
+    setProtocolDetectionCompleted(NULL, 0);
   }
 
   if(!extra_dissection_completed)
@@ -907,7 +933,7 @@ void Flow::endProtocolDissection() {
 /* Manually set a protocol on the flow and terminate the dissection. */
 void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
   updateProtocol(proto_id);
-  setProtocolDetectionCompleted();
+  setProtocolDetectionCompleted(NULL, 0);
 
   endProtocolDissection();
 }
@@ -976,13 +1002,17 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
 
 /* Called to update the flow protocol and possibly advance the flow to
  * the protocol_detected state. */
-void Flow::setProtocolDetectionCompleted() {
+void Flow::setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_len) {
   if(detection_completed)
     return;
 
   stats.setDetectedProtocol(&ndpiDetectedProtocol);
-  processDetectedProtocol();     /* Process detected protocol and doesn't need ndpiFlow not allocated for non-packet interfaces */
-  processDetectedProtocolData(); /* Process detected protocol data and needs ndpiFlow only allocated for packet interfaces      */
+
+  /* Process detected protocol and doesn't need ndpiFlow not allocated for non-packet interfaces */
+  processDetectedProtocol(payload, payload_len);
+
+  /* Process detected protocol data and needs ndpiFlow only allocated for packet interfaces */
+  processDetectedProtocolData();
 
   detection_completed = true;
 
