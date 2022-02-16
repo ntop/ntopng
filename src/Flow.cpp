@@ -4110,6 +4110,11 @@ void Flow::updateHTTP(ParsedFlow *zflow) {
       zflow->http_url = NULL;
     }
 
+    if(zflow->http_user_agent) {
+      setHTTPUserAgent(zflow->http_user_agent);
+      zflow->http_user_agent = NULL;
+    }
+
     if(zflow->http_site) {
       setServerName(zflow->http_site);
       zflow->http_site = NULL;

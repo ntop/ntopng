@@ -32,7 +32,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
 
  public:
   char *l7_info;
-  char *http_url, *http_site;
+  char *http_url, *http_site, *http_user_agent;
   ndpi_http_method http_method;
   char *dns_query;
   char *tls_server_name, *bittorrent_hash;
