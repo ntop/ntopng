@@ -274,6 +274,11 @@
                 {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info'},
                 {% end %}
 
+                {% if actions.show_alerts then %}
+                /* Button to jump to flow alerts within the same time period */
+                {icon: 'fas fa-exclamation-triangle', title: "{{ i18n('show_alerts.flow_alerts') }}", href: '#check_alerts'},
+		{% end %}
+
                 {% if actions.show_flows then %}
                 /* Button to jump to flow alerts within the same time period */
                 {icon: 'fa-stream', title: "{{ i18n('show_alerts.flow_alerts') }}", modal: '#flow_alerts'},
