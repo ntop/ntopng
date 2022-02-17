@@ -669,7 +669,7 @@ local function get_notification_category(notification, current_script)
       --- Determined from the entity
       if entity_id == alert_entities.system.entity_id then
 	 -- System alert entity becomes system
-    cur_category_id = checks.check_categories.system.id
+         cur_category_id = checks.check_categories.system.id
       else
 	 -- All other entities fall into other category
 	 cur_category_id = checks.check_categories.other.id
