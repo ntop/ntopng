@@ -463,6 +463,7 @@ typedef enum {
   flow_alert_ndpi_tls_certificate_about_to_expire = 69,
   flow_alert_ndpi_punicody_idn                    = 70,
   flow_alert_ndpi_error_code_detected             = 71,
+  flow_alert_ndpi_http_crawler_bot                = 72,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

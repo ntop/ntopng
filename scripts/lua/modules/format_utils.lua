@@ -413,7 +413,12 @@ function format_utils.formatMainAddressCategory(host)
       if(host["is_blacklisted"] == true) then
         addr_category = addr_category .. " <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
       end
+           
+      if(host["crawlerBotScannerHost"] == true) then
+        addr_category = addr_category .. " <i class=\'fas fa-spider fa-sm\' title=\'"..i18n("hosts_stats.crawler_bot_scanner").."\'></i>"
+      end
      
+
       if(host["is_multicast"] == true) then 
          addr_category = addr_category .. " <abbr title=\"".. i18n("multicast") .."\"><span class='badge bg-primary'>" ..i18n("short_multicast").. "</span></abbr>"
       elseif(host["localhost"] == true) then

@@ -452,7 +452,7 @@ else
       print("</th><td colspan=2>" .. getFullVlanName(flow["vlan"]) .. "</td></tr>\n")
    end
 
-   print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, not ifstats.isViewed --[[ don't add hyperlinks, viewed interface don't have hosts --]], nil, nil, true --[[ add flags ]]).."</td></tr>\n")
+   print("<tr><th width=30%>"..i18n("flow_details.flow_peers_client_server").."</th><td colspan=2>"..getFlowLabel(flow, true, not ifstats.isViewed --[[ don't add hyperlinks, viewed interface don't have hosts --]], nil, nil, false --[[ add flags ]]).."</td></tr>\n")
 
    print("<tr><th width=30%>"..i18n("protocol").." / "..i18n("application").."</th>")
    if((ifstats.inline and flow["verdict.pass"]) or (flow.vrfId ~= nil)) then
@@ -973,7 +973,7 @@ else
 	    print(getFlowLabel({
 			["cli.ip"] = icmp["unreach"]["src_ip"], ["srv.ip"] = icmp["unreach"]["dst_ip"],
 			["cli.port"] = icmp["unreach"]["src_port"], ["srv.port"] = icmp["unreach"]["dst_port"]},
-		     false, true))
+		     false, false))
 	 end
 	 print("]")
       end
@@ -1270,14 +1270,18 @@ else
 	    print("http://")
 	 end
       end
-
       
       print(last_url.."\">"..last_url_short.." <i class=\"fas fa-external-link-alt\"></i></A>")
       print_copy_button('url', last_url)
       print("</td></tr>\n")
 
       if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then
-        print("<tr><th>"..i18n("flow_details.response_code").."</th><td colspan=2>"..(flow["protos.http.last_return_code"] or '').."</td></tr>\n")
+	 if(flow["protos.http.last_return_code"] < 400) then
+	    color = "badge bg-success"
+	 else
+	    color = "badge bg-warning"
+	 end
+        print("<tr><th>"..i18n("flow_details.response_code").."</th><td colspan=2><span class='"..color.."'>"..(flow["protos.http.last_return_code"] or '').."</span></td></tr>\n")
       end
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then

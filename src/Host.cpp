@@ -224,9 +224,10 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   as = NULL, country = NULL, obs_point = NULL;
   os = NULL, os_type = os_unknown;
   reloadHostBlacklist();
-  is_dhcp_host = false;
-  is_in_broadcast_domain = false;
-
+  is_dhcp_host = 0;
+  is_crawler_bot_scanner = 0;
+  is_in_broadcast_domain = 0;
+  hidden_from_top = 0;
   more_then_one_device = false;
   device_ip = 0;
 
@@ -528,7 +529,8 @@ void Host::lua_get_min_info(lua_State *vm) {
   lua_push_bool_table_entry(vm, "systemhost", isSystemHost());
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
   lua_push_bool_table_entry(vm, "broadcast_domain_host", isBroadcastDomainHost());
-  lua_push_bool_table_entry(vm, "dhcpHost", isDhcpHost());
+  lua_push_bool_table_entry(vm, "dhcpHost", isDHCPHost());
+  lua_push_bool_table_entry(vm, "crawlerBotScannerHost", isCrawlerBotScannerHost());
   lua_push_bool_table_entry(vm, "is_blacklisted", isBlacklisted());
   lua_push_bool_table_entry(vm, "is_broadcast", isBroadcastHost());
   lua_push_bool_table_entry(vm, "is_multicast", isMulticastHost());

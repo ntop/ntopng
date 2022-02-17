@@ -4554,13 +4554,13 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->osFilter != os_any && (h->getOS() != r->osFilter))     ||
      (r->blacklistedHosts && !h->isBlacklisted())     ||
      (r->anomalousOnly && !h->hasAnomalies())         ||
-     (r->dhcpOnly && !h->isDhcpHost())                ||
+     (r->dhcpOnly && !h->isDHCPHost())                ||
      (r->cidr_filter && !h->match(r->cidr_filter))    ||
      (r->hideTopHidden && h->isHiddenFromTop())       ||
      (r->traffic_type == traffic_type_one_way && !h->isOneWayTraffic())         ||
      (r->traffic_type == traffic_type_bidirectional && !h->isTwoWaysTraffic())  ||
      (r->device_ip && h->getLastDeviceIp() && (r->device_ip != h->getLastDeviceIp())) ||
-     (r->dhcpHostsOnly && (!h->isDhcpHost())) ||
+     (r->dhcpHostsOnly && (!h->isDHCPHost())) ||
 #ifdef NTOPNG_PRO
      (r->filteredHosts && !h->hasBlockedTraffic()) ||
 #endif

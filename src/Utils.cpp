@@ -3685,7 +3685,7 @@ int Utils::retainWriteCapabilities() {
 
 /* ****************************************************** */
 
-#if !defined(__APPLE__) || !defined(__FreeBSD__)
+#if !defined(__APPLE__) && !defined(__FreeBSD__)  
 
 static Mutex capabilitiesMutex;
 
