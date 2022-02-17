@@ -310,8 +310,6 @@ function alert_store:build_where_clause()
       where_clause = "1 = 1"
    end
 
-   -- tprint(where_clause)
-
    return where_clause
 end
 
@@ -483,7 +481,6 @@ end
 --@param value The value
 --@param value_type The value type (e.g. 'number')
 function alert_store:add_filter_condition(field, op, value, value_type)
-
    if not op or not tag_utils.tag_operators[op] then
       op = 'eq'
    end
@@ -529,7 +526,7 @@ end
 --@param value_type The value type (e.g. 'number')
 --@return True if set is successful, false otherwise
 function alert_store:add_filter_condition_list(field, values, values_type)
-   if not values then
+   if not values or isEmptyString(values) then
       return false
    end
 
@@ -537,6 +534,15 @@ function alert_store:add_filter_condition_list(field, values, values_type)
 
    for _, value_op in ipairs(list) do
       local value, op = self:strip_filter_operator(value_op)
+
+      -- Value conversion for exceptions
+      if field == 'l7_proto' then
+         if not tonumber(value) then
+            -- Try converting l7 proto name to number
+            value = interface.getnDPIProtoId(value)
+         end
+      end
+
       if values_type == 'number' then
          value = tonumber(value)
       end

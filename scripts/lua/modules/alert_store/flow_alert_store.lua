@@ -196,35 +196,6 @@ end
 
 -- ##############################################
 
---@brief Add filters on L7 Proto
---@param values The l7 proto comma-separated list
---@return True if set is successful, false otherwise
-function flow_alert_store:add_l7_proto_filter(values)
-   if isEmptyString(values) then
-      return false
-   end
-
-   local list = split(values, ',')
-
-   for _, value_op in ipairs(list) do
-      local l7_proto, op = self:strip_filter_operator(value_op)
-
-      if not tonumber(l7_proto) then
-         -- Try converting l7 proto name to number
-         l7_proto = interface.getnDPIProtoId(l7_proto)
-      end
-
-      if tonumber(l7_proto) then
-         l7_proto = tonumber(l7_proto)
-         self:add_filter_condition('l7_proto', op, l7_proto, 'number')
-      end
-   end
-
-   return false
-end
-
--- ##############################################
-
 --@brief Add ip filter
 function flow_alert_store:add_ip_filter(ip)
    self:add_filter_condition('ip', 'eq', ip);
@@ -256,9 +227,7 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('cli_port', cli_port, 'number')
    self:add_filter_condition_list('srv_port', srv_port, 'number')
    self:add_filter_condition_list('flow_role', role)
-   self:add_filter_condition_list('l7_proto', l7_proto)
-
-   self:add_l7_proto_filter(l7_proto)
+   self:add_filter_condition_list('l7_proto', l7_proto, 'number')
 end
 
 -- ##############################################
