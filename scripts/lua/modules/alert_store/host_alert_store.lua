@@ -57,10 +57,19 @@ function host_alert_store:insert(alert)
       end
    end
 
+   local extra_columns = ""
+   local extra_values = ""
+   if(ntop.isClickHouseEnabled()) then
+      extra_columns = "rowid, "
+      extra_values = "generateUUIDv4(), "
+   end
+
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, interface_id, ip_version, ip, vlan_id, name, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, json) "..
-      "VALUES (%u, %d, %u, '%s', %u, '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
+      "(%salert_id, interface_id, ip_version, ip, vlan_id, name, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, json) "..
+      "VALUES (%s%u, %d, %u, '%s', %u, '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
       self._table_name, 
+      extra_columns,
+      extra_values,
       alert.alert_id,
       self:_convert_ifid(interface.getId()),
       ip_version,

@@ -36,10 +36,19 @@ function interface_alert_store:insert(alert)
    local alias = getHumanReadableInterfaceName(name)
    local subtype = alert.subtype or ''
 
+   local extra_columns = ""
+   local extra_values = ""
+   if(ntop.isClickHouseEnabled()) then
+      extra_columns = "rowid, "
+      extra_values = "generateUUIDv4(), "
+   end
+
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, interface_id, tstamp, tstamp_end, severity, score, ifid, subtype, name, alias, granularity, json) "..
-      "VALUES (%u, %d, %u, %u, %u, %u, %d, '%s', '%s', '%s', %u, '%s'); ",
+      "(%salert_id, interface_id, tstamp, tstamp_end, severity, score, ifid, subtype, name, alias, granularity, json) "..
+      "VALUES (%s%u, %d, %u, %u, %u, %u, %d, '%s', '%s', '%s', %u, '%s'); ",
       self._table_name,
+      extra_columns,
+      extra_values,
       alert.alert_id,
       self:_convert_ifid(interface.getId()),
       alert.tstamp,
