@@ -174,8 +174,10 @@ end
 
 -- Remove notification cache
 local notifications = ntop.getKeysCache("ntopng.cache.alerts.notification.*")
-for k, _ in pairs(notifications) do
-  ntop.delCache(k)
+if notifications then
+  for k, _ in pairs(notifications) do
+    ntop.delCache(k)
+  end
 end
 
 if(has_pcap_dump_interface) then
