@@ -8333,16 +8333,12 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
       if(ntop->getPrefs()->useClickHouse())
 	db = new (std::nothrow) ClickHouseFlowDB(this);
 #endif
-
-      if((db == NULL)
-	 && ntop->getPrefs()->is_enterprise_m_edition())
-	db = new (std::nothrow) BatchedMySQLDB(this);
 #endif
 #endif
 
 #ifdef HAVE_MYSQL
       if(db == NULL)
-	db = new (std::nothrow) MySQLDB(this, false /* !clickhouse */);
+	db = new (std::nothrow) MySQLDB(this);
 #endif
 
       if(!db) throw "Not enough memory";

@@ -29,12 +29,10 @@
 class MySQLDB : public DB {
  protected:
   MYSQL mysql;
-  MYSQL mysql_alt;
-  bool db_operational, mysql_alt_connected;
+  bool db_operational;
   FILE *log_fd;
   u_int32_t mysqlEnqueuedFlows;
   Mutex m;
-  bool clickhouse_mode;
   
   volatile bool db_created;
   pthread_t queryThreadLoop;
@@ -51,7 +49,7 @@ class MySQLDB : public DB {
   int exec_quick_sql_query(char *sql, char *out, u_int out_len);
   
  public:
-  MySQLDB(NetworkInterface *_iface, bool _clickhouse_mode);
+  MySQLDB(NetworkInterface *_iface);
   virtual ~MySQLDB();
 
   virtual void* queryLoop();

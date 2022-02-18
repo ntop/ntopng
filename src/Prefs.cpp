@@ -420,7 +420,7 @@ void usage() {
 	 "                                    | mysql         Dump in MySQL database\n"
 	 "                                    |   Format:\n"
 	 "                                    |   mysql;<host[@port]|socket>;<dbname><user>;<pw>\n"
-	 "                                    |   mysql;localhost;ntopng;root;\n"
+	 "                                    |   mysql;127.0.0.1;ntopng;root;\n"
 	 "                                    |\n"
 #endif
 	 "[--export-flows|-I] <endpoint>      | Export flows with the specified endpoint\n"

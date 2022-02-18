@@ -415,6 +415,8 @@ static double calculate_average_speed(double *p_speed, int num_speed)
   }
   //printf("speed = %0.2lf\n", (sum*8/(end - start))/(1024*1024));
 
+  if(end == start) end++;
+  
   return sum/(end - start);
 }
 

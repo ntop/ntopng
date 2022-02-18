@@ -5929,7 +5929,7 @@ static int ntop_exec_single_sql_query(lua_State *vm) {
 
 #ifdef HAVE_MYSQL
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  MySQLDB db(ntop_interface, false);
+  MySQLDB db(ntop_interface);
 
   db.exec_single_query(vm, sql);
 
