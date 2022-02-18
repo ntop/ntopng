@@ -33,7 +33,8 @@ TEST_F(AddressResolutionTest, ShouldResolveHostNameCorrectly) {
   // A: arrange
   char resolved_host[64];
   // A: act
-  resolver_.resolveHostName("74.6.231.20", resolved_host, sizeof(resolved_host));
+  resolver_.resolveHostName("74.6.231.20", resolved_host,
+                            sizeof(resolved_host));
   // A: assert
   EXPECT_EQ(std::string(address_), std::string(resolved_host));
 }

@@ -1,4 +1,2 @@
 #include "PingTest.h"
-namespace ntoptesting {
-
-}
+namespace ntoptesting {}

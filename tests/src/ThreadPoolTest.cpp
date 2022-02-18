@@ -18,9 +18,9 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  */
-#include "../include/ScopedThreadPool.h"
 #include "../include/ThreadPoolTest.h"
 #include "../include/ScopedPtr.h"
+#include "../include/ScopedThreadPool.h"
 namespace ntoptesting {
 
 static void *doTestRun(void *ptr) {
@@ -29,8 +29,25 @@ static void *doTestRun(void *ptr) {
   ((ThreadPool *)ptr)->run();
   return (NULL);
 }
-void ThreadPoolTest::PopulateScripts(std::vector<std::string>& scripts, int max) const {
-  
+void ThreadPoolTest::CreateScript(const std::string &path,
+                                  const std::string &base, int i) {
+  std::ofstream out(path.c_str(), ios::trunc | ios::write);
+  out << "#!/bin/bash" out << std::string("echo ");
+  out << base;
+  out << i;
+  out << std::string(" >> ");
+  out << path;
+}
+void ThreadPoolTest::PopulateScripts(std::vector<std::string> &scripts,
+                                     int max) const {
+  std::string base("/tmp/activity");
+  for (int i = 0; i < max; i++) {
+    std::ostringstream ostr;
+    ostr << base;
+    ostr << i;
+    ostr << ".sh";
+    CreateScript(ostr.str(), base, i);
+  }
 }
 
 TEST_F(ThreadPoolTest, ShouldRunAPoolAndTerminateInALoop) {
@@ -55,31 +72,22 @@ TEST_F(ThreadPoolTest, ShouldPoolScheduleACorrectActivity) {
   bool exclude_pcap = false;
   // check if it's started
   EXPECT_EQ(true, scoped_pool_.IsActive());
-  std::vector<ThreadActivity*> activites;
+  std::vector<ThreadActivity *> activites;
   activites.resize(10);
   std::vector<std::string> script_names;
-  PopulateScripts(script_names, MaxScripts);
+  PopulateScripts(script_names, ThreadPoolTest::MaxScripts);
   for (int i = 0; i < MaxScripts; i++) {
-    ThreadedActivity *activity = new ThreadedActivity(script_names[i],
-    delayed_activity,
-    periodicity_seconds,
-    max_durations_seconds,
-    align_tolocaltime,
-    exclude_viewed_interfaces,
-    exclude_pcap,
-    scoped_pool.GetPool());
+    ThreadedActivity *activity = new ThreadedActivity(
+        script_names[i], delayed_activity, periodicity_seconds,
+        max_durations_seconds, align_to_localtime, exclude_viewed_interfaces,
+        exclude_pcap, scoped_pool.GetPool());
     activites.push_back(activity);
   }
- for (int i = 0; i < MaxScripts; i++) {
-   delete activites[i];
- }
- activites.clear();
-
-  
-  
-   
-  
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < ThreadPoolTest::MaxScripts; i++) {
+    delete activites[i];
+  }
+  activites.clear();
+  for (int i = 0; i < ThreadPoolTest::MaxScripts; i++) {
     act->schedule(time(NULL));
   }
   scoped_pool.WaitFor(5);

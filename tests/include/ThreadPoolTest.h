@@ -28,9 +28,9 @@
 namespace ntoptesting {
 
 class ThreadPoolTest : public ::testing::Test {
-  private:
-  void PopulateScripts(std::vector<std::string>& scripts, int max) const;
-
+private:
+  void PopulateScripts(std::vector<std::string> &scripts, int max) const;
+  void CreateScript(const std::string &path, const std::string &base, int i);
 
 private:
   NtopTestingBase ntop_;

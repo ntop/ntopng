@@ -22,8 +22,8 @@
 #ifndef _TEST_SCOPED_THREAD_POOL_H_
 #define _TEST_SCOPED_THREAD_POOL_H_
 
-#include "ThreadedActivity.h"
 #include "ThreadPool.h"
+#include "ThreadedActivity.h"
 namespace ntoptesting {
 
 class ScopedThreadPool {
@@ -41,5 +41,5 @@ private:
   pthread_t run_thread_;
   bool is_active_;
 };
-}
+} // namespace ntoptesting
 #endif

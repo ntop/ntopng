@@ -30,7 +30,6 @@ namespace ntoptesting {
 class PingTest : public ::testing::Test {
 private:
   NtopTestingBase ntop_;
-
 };
 } // namespace ntoptesting
 
