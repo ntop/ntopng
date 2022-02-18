@@ -20,7 +20,7 @@
  */
 #include "../include/ScopedThreadPool.h"
 #include "../include/ThreadPoolTest.h"
-
+#include "../include/ScopedPtr.h"
 namespace ntoptesting {
 
 static void *doTestRun(void *ptr) {
@@ -28,6 +28,9 @@ static void *doTestRun(void *ptr) {
 
   ((ThreadPool *)ptr)->run();
   return (NULL);
+}
+void ThreadPoolTest::PopulateScripts(std::vector<std::string>& scripts, int max) const {
+  
 }
 
 TEST_F(ThreadPoolTest, ShouldRunAPoolAndTerminateInALoop) {
@@ -44,32 +47,42 @@ TEST_F(ThreadPoolTest, ShouldRunAPoolAndTerminateInALoop) {
 }
 
 TEST_F(ThreadPoolTest, ShouldPoolScheduleACorrectActivity) {
-  bool delayedActivity = false;
-  u_int32_t periodicitySeconds = 0;
-  u_int32_t maxDurationsSeconds = 0;
-  bool alignToLocalTime = false;
-  bool excludeViewedInterfaces = false;
-  bool excludePcap = false;
-  ScopedThreadPool scopedPool;
-  const char *script = "/usr/bin/pwd";
+  bool delayed_activity = false;
+  u_int32_t periodicity_seconds = 0;
+  u_int32_t max_durations_seconds = 0;
+  bool align_to_localtime = false;
+  bool exclude_viewed_interfaces = false;
+  bool exclude_pcap = false;
   // check if it's started
-  EXPECT_EQ(true, scopedPool.IsActive());
+  EXPECT_EQ(true, scoped_pool_.IsActive());
+  std::vector<ThreadActivity*> activites;
+  activites.resize(10);
+  std::vector<std::string> script_names;
+  PopulateScripts(script_names, MaxScripts);
+  for (int i = 0; i < MaxScripts; i++) {
+    ThreadedActivity *activity = new ThreadedActivity(script_names[i],
+    delayed_activity,
+    periodicity_seconds,
+    max_durations_seconds,
+    align_tolocaltime,
+    exclude_viewed_interfaces,
+    exclude_pcap,
+    scoped_pool.GetPool());
+    activites.push_back(activity);
+  }
+ for (int i = 0; i < MaxScripts; i++) {
+   delete activites[i];
+ }
+ activites.clear();
+
   
-  ThreadedActivity *activity = new ThreadedActivity(script,
-    delayedActivity,
-    periodicitySeconds,
-    maxDurationsSeconds,
-    alignToLocalTime,
-    excludeViewedInterfaces,
-    excludePcap,
-    scopedPool.GetPool());
+  
+   
   
   for (int i = 0; i < 10; i++) {
-    activity->schedule(time(NULL));
+    act->schedule(time(NULL));
   }
-  scopedPool.WaitFor(5);
-
-  delete activity;
+  scoped_pool.WaitFor(5);
 }
 
 TEST_F(ThreadPoolTest, ShouldWorkWhenAffinityIsNotCorrect) {
