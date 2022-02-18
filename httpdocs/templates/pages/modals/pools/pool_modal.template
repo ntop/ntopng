@@ -75,45 +75,6 @@
                     </div>
                     {% end %}
 
-                    <div class="mb-3 row">
-                        <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-recipient-select">
-                            <b>{{ i18n("pools.recipients") }}</b>
-                        </label>
-                        <div class="col-sm-7">
-
-                            {%
-                                local configured_recipients = {}
-                                for key, recipient in pairsByKeys(pool.notification_recipients, asc) do
-
-                                    if (configured_recipients[recipient.endpoint_key] == nil) then
-                                        configured_recipients[recipient.endpoint_key] = {}
-                                    end
-
-                                    configured_recipients[recipient.endpoint_key][key] = recipient
-                                end
-                            %}
-
-                            <select multiple class="selectpicker w-100" name="recipients" id="{{ modal_type }}-pool-recipient-select">
-
-                                {% for group_key, recipients in pairsByKeys(configured_recipients) do %}
-                                    {% for key, recipient in pairsByKeys(recipients, asc) do %}
-                                        {% local is_selected = (recipient.endpoint_conf.builtin and modal_type == "add") %}
-                                        <option
-                                            {{ (is_selected and 'selected' or '') }}
-                                            {% if recipient.recipient_params_fmt and not recipient.endpoint_conf.builtin then %}
-                                                data-subtext="{{ recipient.recipient_params_fmt }}"
-                                            {% elseif recipient.endpoint_conf.builtin then %}
-                                                data-subtext="(built-in)"
-                                            {% end %}
-                                            value="{{ recipient.recipient_id }}"
-                                        >{{ recipient.recipient_name }}</option>
-                                    {% end %}
-                                {% end %}
-
-                            </select>
-                        </div>
-                    </div>
-
                     <span class="invalid-feedback" id="{{ modal_type }}-modal-feedback"></span>
                 </div>
                 <div class="modal-footer">

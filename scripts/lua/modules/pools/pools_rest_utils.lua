@@ -23,7 +23,6 @@ local pools_rest_utils = {}
 function pools_rest_utils.add_pool(pools)
    local name = _POST["pool_name"]
    local members = _POST["pool_members"]
-   local recipients = _POST["recipients"]
 
    if not auth.has_capability(auth.capabilities.pools) then
       rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -49,12 +48,10 @@ function pools_rest_utils.add_pool(pools)
    end
 
    members_list = s:parse_members(members)
-   recipients = s:parse_recipients(recipients)
 
    local new_pool_id = s:add_pool(
       name,
-      members_list --[[ an array of valid interface ids]],
-      recipients --[[ an array of valid recipient ids (names)]]
+      members_list --[[ an array of valid interface ids]]
    )
 
    if not new_pool_id then
@@ -80,7 +77,6 @@ function pools_rest_utils.edit_pool(pools)
    local pool_id = _POST["pool"]
    local name = _POST["pool_name"]
    local members = _POST["pool_members"]
-   local recipients = _POST["recipients"]
 
    if not auth.has_capability(auth.capabilities.pools) then
       rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -96,14 +92,12 @@ function pools_rest_utils.edit_pool(pools)
    local s = pools:create()
 
    members_list = s:parse_members(members)
-   recipients = s:parse_recipients(recipients)
    -- pool_id as number
    pool_id = tonumber(pool_id)
 
    local res = s:edit_pool(pool_id,
       name,
-      members_list --[[ an array of valid interface ids]], 
-      recipients --[[ an array of valid recipient ids (names)]]
+      members_list --[[ an array of valid interface ids]]
    )
 
    if not res then
@@ -259,33 +253,6 @@ function pools_rest_utils.get_pools(pools)
    else
       -- Return all pool ids
       res = s:get_all_pools()
-   end
-
-   local rc = rest_utils.consts.success.ok
-   rest_utils.answer(rc, res)
-end
-
--- ##############################################
-
--- @brief Get all pools of all the available (currently implemented) pool instances matching a given `recipient_id`
-function pools_rest_utils.get_all_instances_pools_by_recipient(recipient_id)
-   local res = {}
-   local all_instances = pools_lua_utils.all_pool_instances_factory()
-
-   for _, instance in pairs(all_instances) do
-      local instance_pools = instance:get_all_pools()
-
-      for _, instance_pool in pairs(instance_pools) do
-	 instance_pool["key"] = instance.key -- e.g., 'interface', 'host', etc.
-	 for _, recipient in pairs(instance_pool["recipients"]) do
-	    if tonumber(recipient.recipient_id) == (recipient_id) then
-	       -- Match, return the recipient
-	       instance_pool["key"] = instance.key -- e.g., 'interface', 'host', etc.
-	       res[#res + 1] = instance_pool
-	       break
-	    end
-	 end
-      end
    end
 
    local rc = rest_utils.consts.success.ok

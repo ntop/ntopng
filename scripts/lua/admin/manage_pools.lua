@@ -12,7 +12,6 @@ local page_utils = require "page_utils"
 local ui_utils = require "ui_utils"
 local json = require "dkjson"
 local template_utils = require "template_utils"
-local endpoints = require("endpoints")
 local alert_entities = require "alert_entities"
 
 local host_pools              = require "host_pools"
@@ -31,10 +30,6 @@ local snmp_device_pools
 if ntop.isPro() then
    snmp_device_pools = require "snmp_device_pools"
 end
-
--- ************************
-
-local recipients = require "recipients"
 
 -- *************** end of requires ***************
 
@@ -146,8 +141,6 @@ local context = {
         all_members = (page ~= "all" and pool_instance:get_all_members() or {}),
         assigned_members = (page ~= "all" and pool_instance:get_assigned_members() or {}),
         endpoints = rest_endpoints,
-        endpoint_types = endpoints.get_types(),
-        notification_recipients = recipients.get_all_recipients()
     }
 }
 

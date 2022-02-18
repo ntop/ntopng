@@ -566,11 +566,6 @@ local function user_has_created_recipient()
     return ntop.getCache(recipients_manager.FIRST_RECIPIENT_CREATED_CACHE_KEY) == "1"
 end
 
---- Did the user bind a recipient to a pool?
-local function user_has_bound_recipient()
-    return ntop.getCache(pools.FIRST_RECIPIENT_BOUND_CACHE_KEY) == "1"
-end
-
 --- Generate a toast to adive the user about toast endpoints
 function predicates.create_endpoint(toast, container)
     if (not IS_ADMIN) then return end
@@ -613,26 +608,6 @@ function predicates.create_recipients_for_endpoint(toast, container)
 
     local hint = toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable)
     table.insert(container, hint)
-end
-
---- Generate a third notificiation to inform the user to bind the new recipients to a pool
-function predicates.bind_recipient_to_pools(toast, container)
-    if (not IS_ADMIN) then return end
-    if (not user_has_created_endpoint()) then return end
-    if (not user_has_created_recipient()) then return end
-    if (user_has_bound_recipient()) then return end
-    if IS_PCAP_DUMP then return end
-
-    local title = i18n("endpoint_notifications.hints.bind_pools.title")
-    local body = i18n("endpoint_notifications.hints.bind_pools.body")
-    local action = {
-        url = ntop.getHttpPrefix() .. "/lua/admin/manage_pools.lua",
-        title = i18n("bind")
-    }
-
-    local hint = toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable)
-    table.insert(container, hint)
-
 end
 
 --- Check if unexpected scripts are disabled and notifiy the user

@@ -75,18 +75,6 @@ $(function() {
                 }
             },
             {
-                data: 'recipients',
-                width: '40%',
-                render: function(recipients, type, row) {
-
-                    if (type == "display") {
-                        return NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_RECIPIENTS_TO_SHOW);
-                    }
-
-                    return recipients;
-                }
-            },
-            {
                 data: null, targets: -1, className: 'text-center',
                 width: "10%",
                 render: function(_, type, pool) {
@@ -178,14 +166,12 @@ $(function() {
         endpoint: endpoints.add_pool,
         beforeSumbit: function() {
             const members = $(`#add-pool form select[name='members']`).val() || [];
-            const recipients = $(`#add-pool form select[name='recipients']`).val() || [];
 
             $(`#add-modal-feedback`).hide();
 
             return {
                 pool_name: $(`#add-pool form input[name='name']`).val().trim(),
-                pool_members: members.join(','),
-                recipients: recipients.join(',')
+                pool_members: members.join(',')
             };
         },
         onSubmitSuccess: function (response, textStatus, modalHandler) {
@@ -261,8 +247,6 @@ $(function() {
             $(`#edit-pool form input[name='name']`).val(pool.name);
             $(`#edit-pool form select[name='members']`).val(pool.members);
             $(`#edit-pool form select[name='members']`).selectpicker('refresh');
-            $(`#edit-pool form select[name='recipients']`).val(pool.recipients.map(r => r.recipient_id) || []);
-            $(`#edit-pool form select[name='recipients']`).selectpicker('refresh');
 
             if (poolType == "host") {
                 const href = $(`#edit-link`).attr('href').replace(/pool\=[0-9]+/, `pool=${pool.pool_id}`);
@@ -272,12 +256,10 @@ $(function() {
         beforeSumbit: (pool) => {
 
             const members = $(`#edit-pool form select[name='members']`).val() || [];
-            const recipients = $(`#edit-pool form select[name='recipients']`).val() || [];
 
             const data = {
                 pool: pool.pool_id,
-                pool_name: $(`#edit-pool form input[name='name']`).val().trim(),
-                recipients: recipients.join(',')
+                pool_name: $(`#edit-pool form input[name='name']`).val().trim()
             };
 
             if (poolType != "host") {

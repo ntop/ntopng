@@ -73,7 +73,6 @@ function recipients.initialize()
 	       "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
 	       all_categories,
 	       default_builtin_minimum_severity,
-	       true, -- Add it to every pool automatically so that after a factory reset all pools gets the default
 	       {} --[[ no recipient params --]]
 	    )
 
@@ -95,6 +94,7 @@ function recipients.initialize()
       ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, _bitmap_from_check_categories(recipient.check_categories))
    end
 
+   --[[
    -- Now specify which recipients are "flow" and "host" recipients and tell this information to C++
 
    local pools_alert_utils = require "pools_alert_utils"
@@ -108,6 +108,7 @@ function recipients.initialize()
    -- Hosts
    local all_host_recipients = pools_alert_utils.get_entity_recipients_by_pool_id(alert_consts.alert_entities.host.entity_id, host_pools.DEFAULT_POOL_ID)
    host_pools:create():set_host_recipients(all_host_recipients)
+   --]]
 end
 
 -- ##############################################
@@ -284,10 +285,9 @@ end
 -- @param endpoint_recipient_name A string with the recipient name
 -- @param check_categories A Lua array with already-validated ids as found in `checks.check_categories` or nil to indicate all categories
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
--- @param bind_to_all_pools A boolean indicating whether this recipient should be bound to all existing pools
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
-function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, minimum_severity, bind_to_all_pools, recipient_params)
+function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, minimum_severity, recipient_params)
    local locked = _lock()
    local res = { 
       status = "failed",
@@ -329,12 +329,6 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
 	       -- Set a flag to indicate that a recipient has been created
 	       if not ec.endpoint_conf.builtin and isEmptyString(ntop.getPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY)) then
 		  ntop.setPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY, "1")
-	       end
-
-	       if bind_to_all_pools then
-		  local pools_lua_utils = require "pools_lua_utils"
-
-		  pools_lua_utils.bind_all_recipient_id(recipient_id)
 	       end
 
 	       res = {
@@ -420,7 +414,6 @@ end
 
 function recipients.delete_recipient(recipient_id)
    recipient_id = tonumber(recipient_id)
-   local pools_lua_utils = require "pools_lua_utils"
    local ret = false
 
    local locked = _lock()
@@ -430,9 +423,6 @@ function recipients.delete_recipient(recipient_id)
       local cur_recipient_details = recipients.get_recipient(recipient_id)
 
       if cur_recipient_details then
-	 -- Unbind the recipient from any assigned pool
-	 pools_lua_utils.unbind_all_recipient_id(recipient_id)
-
 	 -- Remove the key with all the recipient details (e.g., with members)
 	 ntop.delCache(_get_recipient_details_key(recipient_id))
 
@@ -687,9 +677,10 @@ end
 -- @return nil
 function recipients.dispatch_notification(notification, current_script)
    if(notification) then
-      local pools_alert_utils = require "pools_alert_utils"
       local notification_category = get_notification_category(notification, current_script)
-      local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.entity_id, notification.pool_id, notification.severity, notification_category)
+ 
+      -- Using all recipients for the time being (TODO filter by pool selection)
+      local recipients = recipients.get_all_recipients()
 
       if #recipients > 0 then
 	 -- Use pcall to catch possible exceptions, e.g., (string expected, got light userdata)
@@ -701,8 +692,30 @@ function recipients.dispatch_notification(notification, current_script)
 	    return
 	 end
 
-	 for _, recipient_id in pairs(recipients) do
-	    ntop.recipient_enqueue(recipient_id, json_notification, notification.score, notification_category)
+	 for _, recipient in ipairs(recipients) do
+            local recipient_ok = false
+
+            if notification_category and recipient.check_categories ~= nil then
+               -- Make sure the user script category belongs to the recipient user script categories
+               for _, check_category in pairs(recipient.check_categories) do
+                  if check_category == notification_category then
+                     recipient_ok = true
+                  end
+               end
+            else
+               recipient_ok = true
+            end
+
+            if notification.severity and recipient.minimum_severity ~= nil and 
+               notification.severity < recipient.minimum_severity then
+               -- If the current alert severity is less than the minimum requested severity exclude the recipient
+               recipient_ok = false
+            end
+
+            if recipient_ok then
+               -- Enqueue alert
+	       ntop.recipient_enqueue(recipient.recipient_id, json_notification, notification.score, notification_category)
+            end
 	 end
 
 	 ::continue::
