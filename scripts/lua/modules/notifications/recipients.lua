@@ -73,7 +73,6 @@ function recipients.initialize()
 	       "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
 	       all_categories,
 	       default_builtin_minimum_severity,
-	       true, -- Add it to every pool automatically so that after a factory reset all pools gets the default
 	       {} --[[ no recipient params --]]
 	    )
 
@@ -94,20 +93,6 @@ function recipients.initialize()
    for _, recipient in pairs(recipients.get_all_recipients()) do
       ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, _bitmap_from_check_categories(recipient.check_categories))
    end
-
-   -- Now specify which recipients are "flow" and "host" recipients and tell this information to C++
-
-   local pools_alert_utils = require "pools_alert_utils"
-   local flow_pools = require "flow_pools"
-   local host_pools = require "host_pools"
-
-   -- Flows
-   local all_flow_recipients = pools_alert_utils.get_entity_recipients_by_pool_id(alert_consts.alert_entities.flow.entity_id, flow_pools.DEFAULT_POOL_ID)
-   flow_pools:create():set_flow_recipients(all_flow_recipients)
-
-   -- Hosts
-   local all_host_recipients = pools_alert_utils.get_entity_recipients_by_pool_id(alert_consts.alert_entities.host.entity_id, host_pools.DEFAULT_POOL_ID)
-   host_pools:create():set_host_recipients(all_host_recipients)
 end
 
 -- ##############################################
@@ -284,10 +269,9 @@ end
 -- @param endpoint_recipient_name A string with the recipient name
 -- @param check_categories A Lua array with already-validated ids as found in `checks.check_categories` or nil to indicate all categories
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
--- @param bind_to_all_pools A boolean indicating whether this recipient should be bound to all existing pools
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
-function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, minimum_severity, bind_to_all_pools, recipient_params)
+function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, minimum_severity, recipient_params)
    local locked = _lock()
    local res = { 
       status = "failed",
@@ -329,12 +313,6 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
 	       -- Set a flag to indicate that a recipient has been created
 	       if not ec.endpoint_conf.builtin and isEmptyString(ntop.getPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY)) then
 		  ntop.setPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY, "1")
-	       end
-
-	       if bind_to_all_pools then
-		  local pools_lua_utils = require "pools_lua_utils"
-
-		  pools_lua_utils.bind_all_recipient_id(recipient_id)
 	       end
 
 	       res = {
@@ -420,7 +398,6 @@ end
 
 function recipients.delete_recipient(recipient_id)
    recipient_id = tonumber(recipient_id)
-   local pools_lua_utils = require "pools_lua_utils"
    local ret = false
 
    local locked = _lock()
@@ -430,9 +407,6 @@ function recipients.delete_recipient(recipient_id)
       local cur_recipient_details = recipients.get_recipient(recipient_id)
 
       if cur_recipient_details then
-	 -- Unbind the recipient from any assigned pool
-	 pools_lua_utils.unbind_all_recipient_id(recipient_id)
-
 	 -- Remove the key with all the recipient details (e.g., with members)
 	 ntop.delCache(_get_recipient_details_key(recipient_id))
 
@@ -654,19 +628,6 @@ end
 
 -- ##############################################
 
-local function is_notification_high_priority(notification)
-   local res = true
-
-   if notification.entity_id == alert_consts.alertEntity("flow") then
-      -- Flow alerts are low-priority
-      res = false
-   end
-
-   return res
-end
-
--- ##############################################
-
 local function get_notification_category(notification, current_script)
    -- Category is first read from the current_script. If no current_script is found (e.g., for
    -- alerts cenerated from the C++ core such as start after anomalous termination), the category
@@ -682,7 +643,7 @@ local function get_notification_category(notification, current_script)
       --- Determined from the entity
       if entity_id == alert_entities.system.entity_id then
 	 -- System alert entity becomes system
-    cur_category_id = checks.check_categories.system.id
+         cur_category_id = checks.check_categories.system.id
       else
 	 -- All other entities fall into other category
 	 cur_category_id = checks.check_categories.other.id
@@ -700,9 +661,10 @@ end
 -- @return nil
 function recipients.dispatch_notification(notification, current_script)
    if(notification) then
-      local pools_alert_utils = require "pools_alert_utils"
       local notification_category = get_notification_category(notification, current_script)
-      local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.entity_id, notification.pool_id, notification.severity, notification_category)
+ 
+      -- Using all recipients for the time being (TODO filter by pool selection)
+      local recipients = recipients.get_all_recipients()
 
       if #recipients > 0 then
 	 -- Use pcall to catch possible exceptions, e.g., (string expected, got light userdata)
@@ -714,10 +676,30 @@ function recipients.dispatch_notification(notification, current_script)
 	    return
 	 end
 
-	 local is_high_priority = is_notification_high_priority(notification)
+	 for _, recipient in ipairs(recipients) do
+            local recipient_ok = false
 
-	 for _, recipient_id in pairs(recipients) do
-	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification, notification.score, notification_category)
+            if notification_category and recipient.check_categories ~= nil then
+               -- Make sure the user script category belongs to the recipient user script categories
+               for _, check_category in pairs(recipient.check_categories) do
+                  if check_category == notification_category then
+                     recipient_ok = true
+                  end
+               end
+            else
+               recipient_ok = true
+            end
+
+            if notification.severity and recipient.minimum_severity ~= nil and 
+               notification.severity < recipient.minimum_severity then
+               -- If the current alert severity is less than the minimum requested severity exclude the recipient
+               recipient_ok = false
+            end
+
+            if recipient_ok then
+               -- Enqueue alert
+	       ntop.recipient_enqueue(recipient.recipient_id, json_notification, notification.score, notification_category)
+            end
 	 end
 
 	 ::continue::
@@ -732,12 +714,11 @@ end
 
 -- @brief Processes notifications dispatched to recipients
 -- @param ready_recipients A table with recipients ready to export. Recipients who completed their work are removed from the table
--- @param high_priority A boolean indicating whether to process high- or low-priority notifications
 -- @param now An epoch of the current time
 -- @param periodic_frequency The frequency, in seconds, of this call
 -- @param force_export A boolean telling to forcefully export dispatched notifications
 -- @return nil
-local function process_notifications_by_priority(ready_recipients, high_priority, now, deadline, periodic_frequency, force_export)
+local function process_notifications(ready_recipients, now, deadline, periodic_frequency, force_export)
    -- Total budget available, which is a multiple of the periodic_frequency
    -- Budget in this case is the maximum number of notifications which can
    -- be processed during this call.
@@ -760,10 +741,10 @@ local function process_notifications_by_priority(ready_recipients, high_priority
 	 local recipient = ready_recipient.recipient
 	 local m = ready_recipient.mod
 
-	 if do_trace then tprint("Dequeuing alerts for ready recipient: ".. recipient.recipient_name.. " high_priority: "..tostring(high_priority).." recipient_id: "..recipient.recipient_id) end
+	 if do_trace then tprint("Dequeuing alerts for ready recipient: ".. recipient.recipient_name.. " recipient_id: "..recipient.recipient_id) end
 
 	 if m.dequeueRecipientAlerts then
-	    local rv = m.dequeueRecipientAlerts(recipient, budget_per_iter, high_priority)
+	    local rv = m.dequeueRecipientAlerts(recipient, budget_per_iter)
 
 	    -- If the recipient has failed (not rv.success) or
 	    -- if it has no more work to do (not rv.more_available)
@@ -838,8 +819,7 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
       cached_recipients = recipients.get_all_recipients()
    end
    local modules_by_name = endpoints.get_types()
-   local high_pri_ready_recipients = {}
-   local low_pri_ready_recipients = {}
+   local ready_recipients = {}
 
    -- Check, among all available recipients, those that are ready to export, depending on
    -- their EXPORT_FREQUENCY
@@ -852,15 +832,12 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
 	    -- This recipient is ready for export...
 	    local ready_recipient = {recipient = recipient, recipient_id = recipient.recipient_id, mod = m}
 
-	    -- Put the recipient into the high and low priority arrays of recipients so that it will be processed
-	    high_pri_ready_recipients[#high_pri_ready_recipients + 1] = ready_recipient
-	    low_pri_ready_recipients[#low_pri_ready_recipients + 1] = ready_recipient
+	    ready_recipients[#ready_recipients + 1] = ready_recipient
 	 end
       end
    end
 
-   process_notifications_by_priority(high_pri_ready_recipients, true  --[[ high priority --]], now, deadline, periodic_frequency, force_export)
-   process_notifications_by_priority(low_pri_ready_recipients, false --[[ low priority  --]], now, deadline, periodic_frequency, force_export)
+   process_notifications(ready_recipients, now, deadline, periodic_frequency, force_export)
 end
 
 -- ##############################################

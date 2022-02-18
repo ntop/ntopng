@@ -255,10 +255,10 @@ class Flow : public GenericHashEntry {
   void updateSrvJA3();
   void updateHASSH(bool as_client);
   void processExtraDissectedInformation();
-  void processDetectedProtocol();      /* nDPI detected protocol */
+  void processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len); /* nDPI detected protocol */
   void processDetectedProtocolData();  /* nDPI detected protocol data (e.g., ndpiFlow->host_server_name) */
   void setExtraDissectionCompleted();
-  void setProtocolDetectionCompleted();
+  void setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_len);
   void updateProtocol(ndpi_protocol proto_id);
   const char* cipher_weakness2str(ndpi_cipher_weakness w) const;
   bool get_partial_traffic_stats(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *delta, bool *first_partial) const;
@@ -697,6 +697,8 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getDNSRetCode()          { return(isDNS() ? protos.dns.last_return_code : 0); }
   inline char* getHTTPURL()                 { return(isHTTP() ? protos.http.last_url : (char*)"");   }
   inline void  setHTTPURL(char *v)          { if(isHTTP()) { if(!protos.http.last_url) protos.http.last_url = v; } else { if(v) free(v); } }
+  inline char* getHTTPUserAgent()           { return(isHTTP() ? protos.http.last_user_agent : (char*)"");   }
+  inline void  setHTTPUserAgent(char *v)    { if(isHTTP()) { if(!protos.http.last_user_agent) protos.http.last_user_agent = v; } else { if(v) free(v); } }
   void setHTTPMethod(const char* method, ssize_t method_len);
   void setHTTPMethod(ndpi_http_method m);
   inline void  setHTTPRetCode(u_int16_t c)  { if(isHTTP()) { protos.http.last_return_code = c; } }
@@ -860,8 +862,14 @@ class Flow : public GenericHashEntry {
 
   inline FlowTrafficStats* getTrafficStats() { return(&stats); };
 
-  inline u_int8_t *get_view_cli_mac() { return(view_cli_mac); };
-  inline u_int8_t *get_view_srv_mac() { return(view_srv_mac); };
+  inline u_int8_t* getViewCliMac() { return(view_cli_mac); };
+  inline u_int8_t* getViewSrvMac() { return(view_srv_mac); };
+
+  /* Placeholder */
+  inline char* getCliProcessName()     { return((char*)""); }
+  inline char* getSrvProcessName()     { return((char*)""); }
+  inline char* getCliProcessUserName() { return((char*)""); }
+  inline char* getSrvProcessUserName() { return((char*)""); }
 };
 
 #endif /* _FLOW_H_ */

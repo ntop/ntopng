@@ -486,8 +486,8 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 		      NULL /* Mac Address */, (IpAddress*)cli_ip, &cli_host,
 		      NULL /* Mac Address */, (IpAddress*)srv_ip, &srv_host);
 
-          if(cli_host) cli_host->setViewInterfaceMac(f->get_view_cli_mac());
-          if(srv_host) srv_host->setViewInterfaceMac(f->get_view_srv_mac());
+          if(cli_host) cli_host->setViewInterfaceMac(f->getViewCliMac());
+          if(srv_host) srv_host->setViewInterfaceMac(f->getViewSrvMac());
       } else {
 	/* The unsafe pointers can be used here as ViewInterface::viewed_flows_walker is
 	 * called synchronously with the ViewInterface purgeIdle. This also saves some

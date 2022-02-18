@@ -247,11 +247,11 @@ end
 
 -- shorten an epoch when there is a well defined interval
 function format_utils.formatEpochShort(epoch_begin, epoch_end, epoch)
-   local begin_day = os.date("!%d", epoch_begin + getFrontendTzSeconds())
-   local end_day = os.date("!%d", epoch_end + getFrontendTzSeconds())
+   local begin_day = os.date("!%d", (epoch_begin or os.time()) + getFrontendTzSeconds())
+   local end_day = os.date("!%d", (epoch_end or os.time()) + getFrontendTzSeconds())
 
    if begin_day == end_day then
-      return os.date("!%X", epoch + getFrontendTzSeconds())
+      return os.date("!%X", (epoch or os.time()) + getFrontendTzSeconds())
    end
 
    return format_utils.formatEpoch(epoch)
@@ -382,10 +382,6 @@ function format_utils.formatFullAddressCategory(host)
    if host ~= nil then
       addr_category = format_utils.formatMainAddressCategory(host)
       
-      if(host["is_blacklisted"] == true) then
-         addr_category = addr_category .. " <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
-      end
-      
       if(host["is_broadcast"] == true) then 
          addr_category = addr_category .. " <abbr title=\"".. i18n("broadcast") .."\"><span class='badge bg-dark'>" ..i18n("short_broadcast").. "</span></abbr>"
       end
@@ -413,6 +409,15 @@ function format_utils.formatMainAddressCategory(host)
       if(host["country"] and not isEmptyString(host["country"])) then
 	 addr_category = addr_category .. " <a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..host.country.."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(host.country) .."'></a>"
       end
+      
+      if(host["is_blacklisted"] == true) then
+        addr_category = addr_category .. " <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
+      end
+           
+      if(host["crawlerBotScannerHost"] == true) then
+        addr_category = addr_category .. " <i class=\'fas fa-spider fa-sm\' title=\'"..i18n("hosts_stats.crawler_bot_scanner").."\'></i>"
+      end
+     
 
       if(host["is_multicast"] == true) then 
          addr_category = addr_category .. " <abbr title=\"".. i18n("multicast") .."\"><span class='badge bg-primary'>" ..i18n("short_multicast").. "</span></abbr>"

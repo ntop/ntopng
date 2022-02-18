@@ -36,10 +36,19 @@ function network_alert_store:insert(alert)
    local name = alert.entity_val
    local alias = getLocalNetworkAlias(name)
 
+   local extra_columns = ""
+   local extra_values = ""
+   if(ntop.isClickHouseEnabled()) then
+      extra_columns = "rowid, "
+      extra_values = "generateUUIDv4(), "
+   end
+
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, interface_id, tstamp, tstamp_end, severity, score, local_network_id, name, alias, granularity, json) "..
-      "VALUES (%u, %d, %u, %u, %u, %u, %u, '%s', '%s', %u, '%s'); ",
+      "(%salert_id, interface_id, tstamp, tstamp_end, severity, score, local_network_id, name, alias, granularity, json) "..
+      "VALUES (%s%u, %d, %u, %u, %u, %u, %u, '%s', '%s', %u, '%s'); ",
       self._table_name, 
+      extra_columns,
+      extra_values,
       alert.alert_id,
       self:_convert_ifid(interface.getId()),
       alert.tstamp,
@@ -76,10 +85,7 @@ end
 --@brief Get info about additional available filters
 function network_alert_store:_get_additional_available_filters()
    local filters = {
-      network_name = {
-         value_type = 'text',
-        i18n_label = i18n('db_search.tags.network_name'),
-      },
+      network_name = tag_utils.defined_tags.network_name,
    }
 
    return filters

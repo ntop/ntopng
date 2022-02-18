@@ -22,8 +22,8 @@ $(function () {
             recipient_name: $(`${formSelector} [name='recipient_name']`).val(),
             endpoint_id: $(`${formSelector} [name='endpoint']`).val(),
             recipient_minimum_severity: $(`${formSelector} [name='recipient_minimum_severity']`).val(),
-            recipient_check_categories: $(`${formSelector} [name='recipient_check_categories']`).val().join(","),
-            bind_to_all_pools: $(`${formSelector} [name='bind_to_all_pools']`).prop('checked')
+            recipient_check_categories: $(`${formSelector} [name='recipient_check_categories']`).val().join(",")
+            //bind_to_all_pools: $(`${formSelector} [name='bind_to_all_pools']`).prop('checked')
         };
 
         // load each recipient params inside the template container in params
@@ -34,6 +34,7 @@ $(function () {
         return params;
     }
 
+    /*
     const generateUsersList = (pools) => {
 
         const $list = $(`#users-recipient-modal .list-group`);
@@ -50,8 +51,8 @@ $(function () {
             $listEntry.attr('href', `${http_prefix}/lua/admin/manage_pools.lua?page=${pool.key}&pool_id=${pool.pool_id}`);
             $list.append($listEntry);
         }
-
     }
+    */
 
     const testRecipient = async (data, $button, $feedbackLabel) => {
 
@@ -252,6 +253,7 @@ $(function () {
                     return `${i18n_ext.endpoint_severities[min_sev_key]}`;
                 }  
             },
+	    /*
             {
                 data: "bind_to_pools",
                 className: "text-right text-nowrap",
@@ -263,6 +265,7 @@ $(function () {
                         return `<i class='text-danger fas fa-exclamation-triangle'></i> 0 ` + `${i18n_ext.pools}`;
                 }  
             },
+	    */
             {
                 targets: -1,
                 className: 'text-center',
@@ -469,6 +472,7 @@ $(function () {
     });
 
     /* bind recipient users button */
+    /*
     $(`table#recipient-list`).on('click', `a[href='#users-recipient-modal']`, async function () {
 
         const { recipient_id, recipient_name } = $recipientsTable.row($(this).parent().parent().parent().parent()).data();
@@ -494,8 +498,8 @@ $(function () {
             console.warn('Unable to show the recipient users');
             $(`.fetch-failed`).show();
         }
-
     });
+    */
 
     $(`#add-test-recipient`).click(async function (e) {
 

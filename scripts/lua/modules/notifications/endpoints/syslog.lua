@@ -123,15 +123,15 @@ function syslog.sendMessage(settings, notif, severity)
          -- <PRIO>VERSION ISOTIMESTAMP HOSTNAME APPLICATION PID MESSAGEID MSG
          -- Example:
          -- <113>1 2020-11-19T18:31:21.003Z 192.168.1.1 ntopng 21365 ID1 -
-         msg = "<"..prio..">1 "..iso_time.." "..host.." "..tag.." "..pid.." - - "..msg	 
+         msg = "<"..prio..">1 "..iso_time.." "..host.." "..tag.." "..pid.." - - "..msg
       else
          -- local log_time = format_utils.formatEpoch() -- "2020-11-09 18:00:00"
          local log_time = os.date("!%b %d %X") -- "Feb 25 09:58:12"
-	 
+
          -- Unix Format:
          -- <PRIO>DATE TIME DEVICE APPLICATION[PID]: MSG
          -- Example:
-         -- <113>09/11/2020 18:31:21 192.168.1.1 ntopng[21365]: ...  
+         -- <113>09/11/2020 18:31:21 192.168.1.1 ntopng[21365]: ...
          msg = "<"..prio..">"..log_time.." "..host.." "..tag.."["..pid.."]: "..msg
       end
 
@@ -148,13 +148,13 @@ end
 -- ##############################################
 
 -- Dequeue alerts from a recipient queue for sending notifications
-function syslog.dequeueRecipientAlerts(recipient, budget, high_priority)   
+function syslog.dequeueRecipientAlerts(recipient, budget)
    local settings = readSettings(recipient)
    local notifications = {}
 
    for i = 1, budget do
-      local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
-      if notification then 
+      local notification = ntop.recipient_dequeue(recipient.recipient_id)
+      if notification then
          notifications[#notifications + 1] = notification
       else
          break

@@ -133,7 +133,7 @@ $(function () {
 				responsivePriority: 1,
 				render: function (data, type, script) {
 					return DataTableUtils.createActionButtons([
-						{ class: `btn-danger`, modal: '#modal-script', icon: 'fa-trash', title: `${i18n_ext.delete}` },
+						{ class: `btn-danger`, modal: '#modal-script', icon: 'fa-trash', title: `${i18n.delete}` },
 					]);
 				},
 			}
@@ -143,7 +143,7 @@ $(function () {
 	const $script_table = $("#scripts-config").DataTable(config);
 
     // initialize are you sure
-    $("#edit-form").areYouSure({ message: i18n_ext.are_you_sure });
+    $("#edit-form").areYouSure({ message: i18n.are_you_sure });
 
     // handle modal-script close event
     $("#modal-script").on("hide.bs.modal", function (e) {
@@ -153,7 +153,7 @@ $(function () {
 	if ($('#edit-form').hasClass('dirty')) {
 
 	    // ask to user if he REALLY wants close modal
-	    const result = confirm(`${i18n_ext.are_you_sure}`);
+	    const result = confirm(`${i18n.are_you_sure}`);
 	    if (!result) e.preventDefault();
 
 	    // remove dirty class from form
@@ -176,7 +176,7 @@ $(function () {
 		const host_alert_key = $(`#host-alert-select`).val() === "0" ? null : $(`#host-alert-select`).val();
 		const flow_alert_key = $(`#flow-alert-select`).val() === "0" ? null : $(`#flow-alert-select`).val();
 		if(!host_alert_key && !flow_alert_key)
-			$(`#add-modal-feedback`).html(i18n_ext.select_an_alert).show();
+			$(`#add-modal-feedback`).html(i18n.select_an_alert).show();
 		else
 			$(`#add-modal-feedback`).hide();
 	});
@@ -250,7 +250,7 @@ $(function () {
 			}
 
 			if(!host_alert_key && !flow_alert_key) {
-				$(`#add-modal-feedback`).html(i18n_ext.select_an_alert).show();
+				$(`#add-modal-feedback`).html(i18n.select_an_alert).show();
 				return;
 			}
 
@@ -258,7 +258,7 @@ $(function () {
 		},
 		onSubmitSuccess: function (response, textStatus, modalHandler) {
 			if (response.rc < 0) {
-				$(`#add-modal-feedback`).html(i18n_ext.rest[response.rc_str]).show();
+				$(`#add-modal-feedback`).html(i18n.rest[response.rc_str]).show();
 				return;
 			}
 			location.reload();

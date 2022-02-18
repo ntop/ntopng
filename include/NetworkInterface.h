@@ -809,12 +809,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void addInterfaceAddress(char * const addr);
   void addInterfaceNetwork(char * const net, char * addr);
   bool isInterfaceNetwork(const IpAddress * const ipa, int network_bits) const;
-  inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true) {
-#ifdef HAVE_MYSQL
-    if(dynamic_cast<MySQLDB*>(db) != NULL)
-      return ((MySQLDB*)db)->exec_sql_query(vm, sql, limit_rows, wait_for_db_created);
-#endif
-    return(-1);
+  inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = false) {
+    return(db ? db->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) : -1);
   };
   int exec_csv_query(const char *sql, bool dump_in_json_format, struct mg_connection *conn);
 
@@ -987,10 +983,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void getEngagedAlerts(lua_State *vm, AlertEntity alert_entity, const char *entity_value, AlertType alert_type,
 			AlertLevel alert_severity, AlertRole role_filter, AddressTree *allowed_nets);
 
-  /* unlockExternalAlertable must be called after use whenever a non-null reference is returned */
-  InterfaceMemberAlertableEntity* lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing);
-  void unlockExternalAlertable(InterfaceMemberAlertableEntity *entity);
-
+  void processExternalAlertable(AlertEntity entity,
+				const char *entity_val, bool create_if_missing,
+				lua_State* vm, u_int vm_argument_idx,
+				bool do_store_alert);  
   virtual bool reproducePcapOriginalSpeed() const         { return(false);             }
   u_int32_t getNumEngagedAlerts() const;
   u_int32_t getNumEngagedAlerts(AlertLevelGroup alert_level_group) const;

@@ -30,7 +30,7 @@ $(function () {
 
     const addResponsivenessFilter = (tableAPI) => {
         return new DataTableFiltersMenu({
-            filterTitle: i18n_ext.snmp.device_responsiveness,
+            filterTitle: i18n.snmp.device_responsiveness,
             filters: responsivenessFilters,
             columnIndex: RESPONSIVE_COLUMN_INDEX,
             tableAPI: tableAPI,
@@ -41,7 +41,7 @@ $(function () {
     const addPoolFilters = (tableAPI) => {
 
         return new DataTableFiltersMenu({
-            filterTitle: i18n_ext.pools,
+            filterTitle: i18n.pools,
             filters: poolFilters,
             columnIndex: POOL_COLUMN_INDEX,
             tableAPI: tableAPI,
@@ -78,7 +78,7 @@ $(function () {
         if (response.rc < 0) {
             // hide the spinner and show a localized error
             $(`${modalSelector} button[type='submit'] span.spinner-border`).fadeOut(() => {
-                $(`${modalSelector} span.invalid-feedback`).html(i18n_ext.rest[response.rc_str]).fadeIn()
+                $(`${modalSelector} span.invalid-feedback`).html(i18n.rest[response.rc_str]).fadeIn()
             });
             return;
         }
@@ -273,7 +273,7 @@ $(function () {
 
                     if (type == "display" && row.column_device_status == "unreachable") {
                         return (`
-                            <span class='badge bg-warning' title='${i18n_ext.snmp.snmp_device_does_not_respond}'>
+                            <span class='badge bg-warning' title='${i18n.snmp.snmp_device_does_not_respond}'>
                                 <i class="fas fa-exclamation-triangle"></i>
                             </span>
                             ${data}
@@ -325,8 +325,8 @@ $(function () {
                     if (!isAdministrator) return "";
 
                     return DataTableUtils.createActionButtons([
-                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-snmp-device-modal', title: `${i18n_ext.edit}` },
-                        { class: 'btn-danger', icon: 'fa-trash', modal: '#delete-snmp-device-modal', title: `${i18n_ext.delete}` }
+                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-snmp-device-modal', title: `${i18n.edit}` },
+                        { class: 'btn-danger', icon: 'fa-trash', modal: '#delete-snmp-device-modal', title: `${i18n.delete}` }
                     ]);
                 }
             }
@@ -443,7 +443,7 @@ $(function () {
         onSubmitSuccess: function (response, textStatus, modalHandler) {
 
             if (response.rc < 0) {
-                $(`#delete-modal-feedback`).html(i18n_ext.rest[response.rc_str]).fadeIn();
+                $(`#delete-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
                 return;
             }
 
@@ -485,12 +485,12 @@ $(function () {
         let recipients = pool.recipients;
 
         if (recipients.length == 0) {
-            $recipientsInfo.html(i18n_ext.no_recipients);
+            $recipientsInfo.html(i18n.no_recipients);
             return;
         }
 
         const recipientNames = NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_RECIPIENTS);
-        $recipientsInfo.html(i18n_ext.some_recipients.replace('${recipients}', recipientNames));
+        $recipientsInfo.html(i18n.some_recipients.replace('${recipients}', recipientNames));
 
     });
 });

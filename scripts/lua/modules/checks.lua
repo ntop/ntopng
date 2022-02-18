@@ -1061,12 +1061,6 @@ function checks.createOrReplaceConfigset(configset)
       return false
    end
 
-   -- Unbind recipients
-   local existing = checks.getConfigset()
-   if existing then
-      pools_lua_utils.unbind_all_recipient_id(existing.id)
-   end
-
    -- Clone config
    configset = table.clone(configset)
    configset.id = checks.DEFAULT_CONFIGSET_ID

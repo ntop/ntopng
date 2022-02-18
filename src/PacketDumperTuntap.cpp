@@ -86,7 +86,7 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
   /* Silence  format-truncation warning */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-truncation"
-  snprintf(dev_name, sizeof(dev_name), "%s", ifr.ifr_name);
+  strncpy(dev_name, ifr.ifr_name, sizeof(dev_name));
 #pragma GCC diagnostic pop
   
   snprintf(buf, sizeof(buf), "/sbin/ifconfig %s up mtu %d",

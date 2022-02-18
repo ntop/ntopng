@@ -156,6 +156,9 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK]
 
       /* NDPI_ERROR_CODE_DETECTED */      
     { { flow_alert_ndpi_error_code_detected, alert_category_network }, "ndpi_error_code_detected" },
+
+      /* NDPI_HTTP_CRAWLER_BOT */      
+    { { flow_alert_ndpi_http_crawler_bot, alert_category_network }, "ndpi_http_crawler_bot" },
 };
 
 /* **************************************************** */

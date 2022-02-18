@@ -4554,13 +4554,13 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->osFilter != os_any && (h->getOS() != r->osFilter))     ||
      (r->blacklistedHosts && !h->isBlacklisted())     ||
      (r->anomalousOnly && !h->hasAnomalies())         ||
-     (r->dhcpOnly && !h->isDhcpHost())                ||
+     (r->dhcpOnly && !h->isDHCPHost())                ||
      (r->cidr_filter && !h->match(r->cidr_filter))    ||
      (r->hideTopHidden && h->isHiddenFromTop())       ||
      (r->traffic_type == traffic_type_one_way && !h->isOneWayTraffic())         ||
      (r->traffic_type == traffic_type_bidirectional && !h->isTwoWaysTraffic())  ||
      (r->device_ip && h->getLastDeviceIp() && (r->device_ip != h->getLastDeviceIp())) ||
-     (r->dhcpHostsOnly && (!h->isDhcpHost())) ||
+     (r->dhcpHostsOnly && (!h->isDHCPHost())) ||
 #ifdef NTOPNG_PRO
      (r->filteredHosts && !h->hasBlockedTraffic()) ||
 #endif
@@ -9188,7 +9188,10 @@ void NetworkInterface::getEngagedAlerts(lua_State *vm, AlertEntity alert_entity,
 
 /* *************************************** */
 
-InterfaceMemberAlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing) {
+void NetworkInterface::processExternalAlertable(AlertEntity entity,
+						const char *entity_val, bool create_if_missing,
+						lua_State* vm, u_int vm_argument_idx,
+						bool do_store_alert) {
   std::map<std::pair<AlertEntity, std::string>, InterfaceMemberAlertableEntity*>::iterator it;
   std::pair<AlertEntity, std::string> key(entity, std::string(entity_val));
   InterfaceMemberAlertableEntity *alertable;
@@ -9196,31 +9199,36 @@ InterfaceMemberAlertableEntity* NetworkInterface::lockExternalAlertable(AlertEnt
   external_alerts_lock.lock(__FILE__, __LINE__);
 
   if((it = external_alerts.find(key)) != external_alerts.end()) {
-    return it->second; /* Already present */
+    external_alerts_lock.unlock(__FILE__, __LINE__);
+    lua_pushnil(vm);
+    return;
   }
 
   if(!create_if_missing) {
     external_alerts_lock.unlock(__FILE__, __LINE__);
-    return(NULL);
+    lua_pushnil(vm);
+    return;
   }
 
   /* Create */
-  alertable = new (std::nothrow) InterfaceMemberAlertableEntity(this, entity);
+  if((alertable = new (std::nothrow) InterfaceMemberAlertableEntity(this, entity)) == NULL) {
+    external_alerts_lock.unlock(__FILE__, __LINE__);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
+    lua_pushnil(vm);
+    return;
+  }
+  
   alertable->setEntityValue(entity_val);
 
   /* Add to the map */
   external_alerts[key] = alertable;
 
-  return(alertable);
-}
-
-/* *************************************** */
-
-void NetworkInterface::unlockExternalAlertable(InterfaceMemberAlertableEntity *alertable) {
+  if(do_store_alert)
+    ntop_store_triggered_alert(vm, alertable, vm_argument_idx);
+  else
+    ntop_release_triggered_alert(vm, alertable, vm_argument_idx);
 
   if(alertable->getNumEngagedAlerts() == 0) {
-    std::pair<AlertEntity, std::string> key(alertable->getEntityType(), alertable->getEntityValue());
-
     external_alerts.erase(key);
     delete alertable;
   }

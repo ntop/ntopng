@@ -494,7 +494,7 @@ void MySQLDB::startLoop() {
     If mysql flows dump is enabled, then it is necessary to create
     and update the database schema. This must be executed only once.
    */
-  if(!MySQLDB::db_created) {
+  if(!db_created) {
     if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
       if(!createDBSchema()){
 	ntop->getTrace()->traceEvent(TRACE_ERROR,

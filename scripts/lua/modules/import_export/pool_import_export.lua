@@ -10,7 +10,6 @@ local import_export = require "import_export"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local checks = require "checks"
-local recipients_mod = require "recipients"
 
 local host_pools              = require "host_pools":create()
 local flow_pools              = require "flow_pools":create()
@@ -63,35 +62,25 @@ end
 -- @return A table with a key "success" set to true is returned on success. A key "err" is set in case of failure, with one of the errors defined in rest_utils.consts.err.
 function pool_import_export:import(conf)
    local res = {}
-   -- local recipients = recipients_mod.get_all_recipients()
 
    for pool_name, pool_list in pairs(conf) do
       if pool_instances[pool_name] ~= nil then
          local pool_instance = pool_instances[pool_name]
 
          for _, pool_conf in ipairs(pool_list) do
-            -- Recipient lookup to remap the ID
-            local recipients_ids = {}
-            for _, recipient_details in pairs(pool_conf.recipients) do
-               local recipient = recipients_mod.get_recipient_by_name(recipient_details.recipient_name)
-               recipients_ids[#recipients_ids+1] = recipient.recipient_id 
-               --tprint("Recipient "..recipient_details.recipient_name.." with ID "..recipient_details.recipient_id.." mapped to "..recipient.recipient_id)
-            end
 
             -- Add Pool
             local new_pool_id = pool_instance:add_pool(
                pool_conf.name,
-               pool_conf.members,
-               recipients_ids
+               pool_conf.members
             )
 
 	    if not new_pool_id then
 	       -- Pool not created, it is likely it exists already,
-	       -- trying importing/merging members and recipients
+	       -- trying importing/merging members
 	       local ret, err = pool_instance:add_to_pool(
 	          pool_conf.name,
-		  pool_conf.members,
-		  recipients_ids)
+		  pool_conf.members)
 	    end
          end
       end

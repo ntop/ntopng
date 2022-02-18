@@ -112,7 +112,7 @@ class Ntop {
   AlertExclusions *alert_exclusions, *alert_exclusions_shadow;
 #endif
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
-  ClickHouseImport clickhouseImport;
+  ClickHouseImport *clickhouseImport;
 #endif
   
   bool assignUserId(u_int8_t *new_user_id);
@@ -509,16 +509,13 @@ class Ntop {
   inline FifoSerializerQueue* getInternalAlertsQueue()    { return(internal_alerts_queue);  }
   void lua_alert_queues_stats(lua_State* vm);
   bool   recipients_are_empty();
-  bool   recipients_enqueue(RecipientNotificationPriority prio, AlertFifoItem *notification, AlertEntity alert_entity);
-  bool   recipient_enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification);
-  bool   recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio, AlertFifoItem *notification);
+  bool   recipients_enqueue(AlertFifoItem *notification, AlertEntity alert_entity);
+  bool   recipient_enqueue(u_int16_t recipient_id, const AlertFifoItem* const notification);
+  bool   recipient_dequeue(u_int16_t recipient_id, AlertFifoItem *notification);
   void   recipient_stats(u_int16_t recipient_id, lua_State* vm);
   time_t recipient_last_use(u_int16_t recipient_id);
   void   recipient_delete(u_int16_t recipient_id);
   void   recipient_register(u_int16_t recipient_id, AlertLevel minimum_severity, u_int8_t enabled_categories);
-  void   recipient_set_flow_recipients(u_int64_t flow_recipients);
-  void   recipient_set_host_recipients(u_int64_t host_recipients);
-
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return(last_stats_reset); }
@@ -598,7 +595,8 @@ class Ntop {
   u_int16_t getnDPIProtoByName(const char *name);
   bool isDbCreated();
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
-  inline u_int importClickHouseDumps(bool silence_warnings) { return(clickhouseImport.importDumps(silence_warnings)); }
+  inline u_int importClickHouseDumps(bool silence_warnings) { return(clickhouseImport ? clickhouseImport->importDumps(silence_warnings) : 0); }
+  u_int64_t getNextFlowId()                                 { return(clickhouseImport ? clickhouseImport->getNextFlowId() : 0); }
 #endif
   void collectResponses(lua_State* vm);
   void collectContinuousResponses(lua_State* vm);

@@ -6,5 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
+local mac_pools = require "mac_pools"
 local pools_rest_utils = require "pools_rest_utils"
-pools_rest_utils.get_all_instances_pools_by_recipient(tonumber(_GET["recipient_id"]))
+
+pools_rest_utils.add_pool(mac_pools)

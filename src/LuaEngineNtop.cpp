@@ -389,12 +389,12 @@ static int ntop_is_not_empty_file(lua_State* vm) {
 
 /* ****************************************** */
 
-int ntop_release_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, int idx) {
+int ntop_release_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, u_int idx) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *key;
   ScriptPeriodicity periodicity;
   time_t when;
-
+  
   if(!c->iface || !alertable) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -414,14 +414,14 @@ int ntop_release_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable,
 
 /* ****************************************** */
 
-int ntop_store_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, int idx) {
+int ntop_store_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, u_int idx) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *key, *alert_subtype, *alert_json;
   ScriptPeriodicity periodicity;
   u_int32_t score;
   AlertType alert_type;
   //Host *host;
-  bool triggered;
+  /* bool triggered; */
 
   if(!alertable || !c->iface) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
@@ -443,8 +443,8 @@ int ntop_store_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, i
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   if((alert_json = (char*)lua_tostring(vm, idx++)) == NULL) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
-  triggered = alertable->triggerAlert(vm, std::string(key), periodicity, time(NULL),
-    score, alert_type, alert_subtype, alert_json);
+  /* triggered = */ alertable->triggerAlert(vm, std::string(key), periodicity, time(NULL),
+				      score, alert_type, alert_subtype, alert_json);
 
   /* This looks like old code, Host Checks are C++ only now */
   //if(triggered && (host = dynamic_cast<Host*>(alertable)))
@@ -3075,7 +3075,10 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_uint32_table_entry(vm, "http_port", ntop->getPrefs()->get_http_port());
   lua_push_uint32_table_entry(vm, "https_port", ntop->getPrefs()->get_https_port());
 
-  lua_push_str_table_entry(vm, "tzname", tzname[0]);  /* Timezone name */     
+  if (!tzname[0])
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "tzname is not set");
+  else
+    lua_push_str_table_entry(vm, "tzname", tzname[0]);  /* Timezone name */     
 #ifdef linux
   lua_push_int32_table_entry(vm, "timezone", timezone); /* Seconds west of UTC */
 #endif
@@ -5771,7 +5774,6 @@ static int ntop_pop_internal_alerts(lua_State* vm) {
 static int ntop_recipient_enqueue(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
   u_int16_t recipient_id;
-  bool high_priority;
   const char *alert;
   bool rv = false;
   AlertFifoItem notification;
@@ -5781,26 +5783,21 @@ static int ntop_recipient_enqueue(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   recipient_id = lua_tointeger(vm, 1);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  high_priority = lua_toboolean(vm, 2);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  alert = lua_tostring(vm, 2);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  alert = lua_tostring(vm, 3);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  score = lua_tonumber(vm, 3);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  score = lua_tonumber(vm, 4);
-
-  if(lua_type(vm, 5) == LUA_TNUMBER)
-    alert_category = (AlertCategory)lua_tonumber(vm, 5);
+  if(lua_type(vm, 4) == LUA_TNUMBER)
+    alert_category = (AlertCategory)lua_tonumber(vm, 4);
 
   notification.alert = (char*)alert;
   notification.score = score;
   notification.alert_severity = Utils::mapScoreToSeverity(score);
   notification.alert_category = alert_category;
 
-  rv = ntop->recipient_enqueue(recipient_id,
-			       high_priority ? recipient_notification_priority_high : recipient_notification_priority_low,
-			       &notification);
+  rv = ntop->recipient_enqueue(recipient_id, &notification);
 
   if(!rv) {
     NetworkInterface *iface = getCurrentInterface(vm);
@@ -5821,19 +5818,13 @@ static int ntop_recipient_enqueue(lua_State* vm) {
 
 static int ntop_recipient_dequeue(lua_State* vm) {
   u_int16_t recipient_id;
-  bool high_priority;
   AlertFifoItem notification;
   bool res;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   recipient_id = lua_tointeger(vm, 1);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  high_priority = lua_toboolean(vm, 2);
-
-  res = ntop->recipient_dequeue(recipient_id,
-				high_priority ? recipient_notification_priority_high : recipient_notification_priority_low,
-				&notification);
+  res = ntop->recipient_dequeue(recipient_id, &notification);
 
   if(res && notification.alert) {
     lua_newtable(vm);
@@ -5907,36 +5898,6 @@ static int ntop_recipient_register(lua_State* vm) {
   enabled_categories = lua_tointeger(vm, 3);
 
   ntop->recipient_register(recipient_id, minimum_severity, enabled_categories);
-
-  lua_pushnil(vm);
-
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
-static int ntop_recipient_set_flow_recipients(lua_State* vm) {
-  u_int64_t flow_recipients = (u_int64_t)-1; /* MUST be large enough to contain MAX_NUM_RECIPIENTS */
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  flow_recipients = lua_tointeger(vm, 1);
-
-  ntop->recipient_set_flow_recipients(flow_recipients);
-
-  lua_pushnil(vm);
-
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
-static int ntop_recipient_set_host_recipients(lua_State* vm) {
-  u_int64_t host_recipients = (u_int64_t)-1; /* MUST be large enough to contain MAX_NUM_RECIPIENTS */
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  host_recipients = lua_tointeger(vm, 1);
-
-  ntop->recipient_set_host_recipients(host_recipients);
 
   lua_pushnil(vm);
 
@@ -6517,8 +6478,6 @@ static luaL_Reg _ntop_reg[] = {
   { "recipient_last_use",            ntop_recipient_last_use           },
   { "recipient_delete",              ntop_recipient_delete             },
   { "recipient_register",            ntop_recipient_register           },
-  { "recipient_set_flow_recipients", ntop_recipient_set_flow_recipients },
-  { "recipient_set_host_recipients", ntop_recipient_set_host_recipients },
 
   /* nDPI */
   { "getnDPIProtoCategory",   ntop_get_ndpi_protocol_category },

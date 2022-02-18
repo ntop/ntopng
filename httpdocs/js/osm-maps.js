@@ -27,6 +27,7 @@ const zoom_level = 4;
 let addRefToHost = true;
 let endpoint = http_prefix + "/lua/rest/v2/get/geo_map/hosts.lua?";
 let baseEndpoint = "";
+let dbHostRef = false
 
 // initialize alert api
 //$('#geomap-alert').alert();
@@ -42,6 +43,7 @@ const create_marker = (h) => {
     const name = h.name;
     let name_ip = ip;
     let extra_info = '';
+    let hostRef = `${http_prefix}/lua/host_details.lua?host=${ip}`
     
     h.ip = null;
     h.lat = null;
@@ -69,8 +71,14 @@ const create_marker = (h) => {
     if(name)
         name_ip = name + "</br>" + name_ip;
 
+    if(dbHostRef){
+      const searchParams = new URLSearchParams(window.location.search);
+      searchParams.set('ip', `${ip};eq`);
+      hostRef = window.location.href.split('?')[0] + '?' + searchParams.toString()
+    }
+
     const marker = `<div class='infowin'>
-                        <a href='${http_prefix}/lua/host_details.lua?host=${ip}'>${name_ip}</a>
+                        <a href="${hostRef}">${name_ip}</a>
                         <hr>
                         ${extra_info}
                     </div>`
@@ -108,9 +116,10 @@ const display_errors = (errors) => {
     }
 }
 
-const init_map = (newEndpoint = null, _baseEndpoint = null) => {
+const init_map = (newEndpoint = null, _baseEndpoint = null, _dbHostRef = null) => {
     endpoint = newEndpoint || endpoint;
     baseEndpoint = _baseEndpoint;
+    dbHostRef = _dbHostRef
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(show_positions, display_errors,

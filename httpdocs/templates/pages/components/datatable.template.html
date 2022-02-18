@@ -90,6 +90,14 @@
         </a>
         {% end %}
 
+        {% if show_pcap_download then %}
+        <!-- TODO add PCAP download modal converting filters to bpf via rest/v2/get/db/filter/bpf.lua
+        <a id="dt-btn-pcap-download" class="btn btn-secondary" data-bs-target='#dt-pcap-download-modal'>
+          <i class="fas fa-lg fa-download"></i> {{ i18n('traffic_recording.pcap_download') }}
+        </a>
+        -->
+        {% end %}
+
         {% if show_acknowledge_all then %}
         <button id="dt-btn-acknowledge" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#dt-acknowledge-modal' data-bs-toggle="modal" class="btn btn-primary">
           <i class="fas fa fa-user-check"></i> {{ i18n("acknowledge_alerts")}}
@@ -274,6 +282,11 @@
                 {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info'},
                 {% end %}
 
+                {% if actions.show_alerts then %}
+                /* Button to jump to flow alerts within the same time period */
+                {icon: 'fas fa-exclamation-triangle', title: "{{ i18n('show_alerts.flow_alerts') }}", href: '#check_alerts'},
+		{% end %}
+
                 {% if actions.show_flows then %}
                 /* Button to jump to flow alerts within the same time period */
                 {icon: 'fa-stream', title: "{{ i18n('show_alerts.flow_alerts') }}", modal: '#flow_alerts'},
@@ -326,6 +339,11 @@
   }
   
 $(document).ready(function(){
+
+    // register to global event change status
+    ntopng_status_manager.on_status_change("range-picker", (new_status) => {
+	reloadTable($table, new_status);
+    }, true);
 
     const datatableButton = {* (datatable.buttons or '[]') *};
     datatableButton.push({

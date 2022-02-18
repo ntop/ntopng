@@ -159,8 +159,9 @@ end
 
 function pairsByKeys(t, f)
   local a = {}
-
-  -- io.write(debug.traceback().."\n")
+  if t == nil then
+    io.write(debug.traceback().."\n")
+  end
   for n in pairs(t) do table.insert(a, n) end
   table.sort(a, f)
   local i = 0      -- iterator variable
@@ -177,6 +178,9 @@ end
 
 function pairsByValues(t, f)
   local a = {}
+  if t == nil then
+    io.write(debug.traceback().."\n")
+  end
   for n in pairs(t) do table.insert(a, n) end
   table.sort(a, function(x, y) return f(t[x], t[y]) end)
   local i = 0      -- iterator variable

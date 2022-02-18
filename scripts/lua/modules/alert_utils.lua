@@ -18,7 +18,6 @@ local format_utils = require "format_utils"
 local telemetry_utils = require "telemetry_utils"
 local alerts_api = require "alerts_api"
 local icmp_utils = require "icmp_utils"
-local tag_utils = require "tag_utils"
 local flow_risk_utils = require "flow_risk_utils"
 
 local shaper_utils = nil
@@ -31,6 +30,8 @@ end
 -- ##############################################
 
 local alert_utils = {}
+
+alert_utils.SEPARATOR = ';'
 
 -- ##############################################
 
@@ -537,8 +538,8 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	 end
 
 	 -- Look a bit around the epochs...
-	 epoch_begin = epoch_begin - 150
-	 epoch_end = epoch_end + 150
+	 epoch_begin = epoch_begin - (5*60)
+	 epoch_end = epoch_end + (5*60)
 
 	 -- ... but not too much
 	 if epoch_end - epoch_begin > 600 then
@@ -548,7 +549,7 @@ function alert_utils.getLinkToPastFlows(ifid, alert, alert_json)
 	 -- Join the TAG filters using the predefined operator
 	 local final_filter = {}
 	 for _, tag in pairs(tags) do
-	    final_filter[tag.name] = string.format("%s%s%s", tag.val, tag_utils.SEPARATOR, tag.op)
+	    final_filter[tag.name] = string.format("%s%s%s", tag.val, alert_utils.SEPARATOR, tag.op)
 	 end
 
 	 -- tprint({formatEpoch(epoch_begin), formatEpoch(epoch_end), formatEpoch(tonumber(alert.tstamp)), formatEpoch(tonumber(alert.tstamp_end))})

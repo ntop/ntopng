@@ -623,8 +623,8 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
 	    cli_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..cli_mac.."\">" ..cli_mac.."</A>"
          elseif interface.isView() and (cli_mac ~= "00:00:00:00:00:00") then
 	    cli_mac = cli_mac or ""
-      else
-         cli_mac = ""
+	 else
+	    cli_mac = ""
          end
       end
       
@@ -632,15 +632,15 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
          dst_as = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?asn=" ..flow.dst_as.."\">" .. shortenString( flow.dst_as_name or "", 14 ) .."</A>"
 	 srv_mac = ""
       else
-        if srv_mac and (srv_mac ~= "00:00:00:00:00:00") and not interface.isView() then
-	   srv_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..srv_mac.."\">" ..srv_mac.."</A>"
-   elseif interface.isView() and (srv_mac ~= "00:00:00:00:00:00") then
-   srv_mac = srv_mac or ""
-else
-   srv_mac = ""
-end
+	 if srv_mac and (srv_mac ~= "00:00:00:00:00:00") and not interface.isView() then
+	    srv_mac = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" ..srv_mac.."\">" ..srv_mac.."</A>"
+	 elseif interface.isView() and (srv_mac ~= "00:00:00:00:00:00") then
+	    srv_mac = srv_mac or ""
+	 else
+	    srv_mac = ""
+	 end
       end
-
+      
    end
 
    local label = ""
@@ -653,7 +653,7 @@ end
       local info = interface.getHostInfo(flow["cli.ip"], flow["cli.vlan"])
 
       if(info ~= nil) then
-         label = label .. getFlag(info["country"])
+	 label = label .. getFlag(info["country"])
       end
    end
 
@@ -661,12 +661,12 @@ end
       label = label..":"..cli_port
    end
 
-  if(cli_as ~= nil) then
-     label = label.." [ "..cli_as.." ]"
+   if(cli_as ~= nil) then
+      label = label.." [ "..cli_as.." ]"
    else
       if show_macs and not isEmptyString(cli_mac) then
-        label = label.." [ "..cli_mac.." ]"
-     end
+	 label = label.." [ "..cli_mac.." ]"
+      end
    end
 
    label = label.."&nbsp; <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> &nbsp;"
@@ -687,13 +687,13 @@ end
       label = label..":"..srv_port
    end
 
-  if(dst_as ~= nil) then
-     label = label.." [ "..dst_as.." ]"
-  else
-     if show_macs and not isEmptyString(srv_mac) then
-      label = label.." [ "..srv_mac.." ]"
-    end
-  end
+   if(dst_as ~= nil) then
+      label = label.." [ "..dst_as.." ]"
+   else
+      if show_macs and not isEmptyString(srv_mac) then
+	 label = label.." [ "..srv_mac.." ]"
+      end
+   end
 
    local s_info = flow2alertinfo(flow)
    if(s_info ~= nil) then

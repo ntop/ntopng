@@ -1531,13 +1531,17 @@ end
 
 -- #################################
 
-function getApplicationLabel(name)
+function getApplicationLabel(name, maxlen)
   local icon = getApplicationIcon(name)
 
+  if(maxlen == nil) then
+     maxlen = 12
+  end
+  
   -- Do not convert to upper case, keep the nDPI case
   --name = name:gsub("^%l", string.upper)
 
-  return(icon.." "..shortenString(name, 12))
+  return(icon.." "..shortenString(name, maxlen))
 end
 
 -- #################################

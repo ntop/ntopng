@@ -254,9 +254,26 @@ Some of the most important parameters are briefly discussed here.
    
    .. code:: bash
 
-      ntopng -local-networks="192.168.2.0/24,10.0.0.0/8,8.8.8.0/24"
+      ntopng --local-networks="192.168.2.0/24,10.0.0.0/8,8.8.8.0/24"
 
    In the ntopng web interface, local networks and hosts are displayed with green colors while remote networks and hosts hosts with gray colors. Extra information will be available in the contextual menus for local networks.
+
+   Note that you have the option to specify a configuration file that contains the list of networks. Example 
+
+   .. code:: bash
+
+      ntopng --local-networks=/etc/ntopng/localnetworks.txt
+
+      
+  The file format specifies multiple local networks split with commas or on multiple lines. Example:
+
+
+   .. code:: bash
+
+      192.168.2.0/24=office,192.168.2.1/32,8.8.8.8/32
+      9.9.9.9/32
+      10.0.0.0/8
+					    
 
 
 :code:`[—disable-login|-l]`

@@ -154,14 +154,16 @@ static int ntop_network_set_cached_alert_value(lua_State* vm) {
 
 static int ntop_network_store_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
-  return ntop_store_triggered_alert(vm, c->network);
+
+  return(ntop_store_triggered_alert(vm, c->network, 1 /* 1st argument of vm */));
 }
 
 /* ****************************************** */
 
 static int ntop_network_release_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
-  return ntop_release_triggered_alert(vm, c->network);
+  
+  return(ntop_release_triggered_alert(vm, c->network, 1));
 }
 
 /* **************************************************************** */

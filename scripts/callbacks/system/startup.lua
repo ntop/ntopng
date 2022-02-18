@@ -172,6 +172,12 @@ for ifid, ifname in pairs(delete_data_utils.list_all_interfaces()) do
    ntop.delCache("ntopng.dhcp."..ifid..".cache")
 end
 
+-- Remove notification cache
+local notifications = ntop.getKeysCache("ntopng.cache.alerts.notification.*") or {}
+for k, _ in pairs(notifications) do
+  ntop.delCache(k)
+end
+
 if(has_pcap_dump_interface) then
   -- Load the lists at the very beginning in order to avoid misclassification
   -- when reading from PCAP dump. This can take some time.

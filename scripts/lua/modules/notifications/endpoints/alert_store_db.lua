@@ -64,7 +64,7 @@ end
 
 -- ##############################################
 
-function alert_store_db.dequeueRecipientAlerts(recipient, budget, high_priority)
+function alert_store_db.dequeueRecipientAlerts(recipient, budget)
    local more_available = true
    local budget_used = 0
 
@@ -75,7 +75,7 @@ function alert_store_db.dequeueRecipientAlerts(recipient, budget, high_priority)
       local notifications = {}
 
       for i=1, budget do
-         local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
+         local notification = ntop.recipient_dequeue(recipient.recipient_id)
          if notification then
 	    notifications[#notifications + 1] = notification.alert
          else

@@ -270,6 +270,37 @@ void SyslogCollectorInterface::closeConnection(syslog_client *client) {
 
 /* **************************************************** */
 
+int SyslogCollectorInterface::recvLine(int socket, char *buffer, size_t n) {
+  ssize_t num_read;
+  size_t tot_read = 0;
+  char c;
+
+  while (tot_read < n - 1) {
+
+    num_read = read(socket, &c, 1);
+
+    if (num_read == -1) {
+      if (errno == EINTR) continue;
+      else return -1;
+    } else if (num_read == 0) { /* EOF */
+      if (tot_read == 0) return 0;
+      else break;
+    } else {
+      if (tot_read < n - 1) {
+	tot_read++;
+	*buffer++ = c;
+      }
+      if (c == '\n') break;
+    }
+  }
+
+  *buffer = '\0';
+
+  return tot_read;
+}
+
+/* **************************************************** */
+
 int SyslogCollectorInterface::receive(int socket, char *client_ip, bool use_recvfrom) {
   char buffer[8192];
   int len, received_total = 0;
@@ -294,6 +325,10 @@ int SyslogCollectorInterface::receive(int socket, char *client_ip, bool use_recv
 #endif
         , (struct sockaddr *) &client_addr, &client_addr_len);
     else
+#if 1
+      /* Read single line to avoid splitting lines across chunks */
+      len = recvLine(socket, (char *) buffer, buffer_size);
+#else
       len = recv(socket, (char *) buffer, buffer_size, 
 #ifndef WIN32
         MSG_DONTWAIT
@@ -301,6 +336,7 @@ int SyslogCollectorInterface::receive(int socket, char *client_ip, bool use_recv
 	0
 #endif
       );
+#endif
 
     if(len < 0) {
       if(errno == EAGAIN || errno == EWOULDBLOCK) {

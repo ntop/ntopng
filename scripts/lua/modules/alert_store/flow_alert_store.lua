@@ -196,35 +196,6 @@ end
 
 -- ##############################################
 
---@brief Add filters on L7 Proto
---@param values The l7 proto comma-separated list
---@return True if set is successful, false otherwise
-function flow_alert_store:add_l7_proto_filter(values)
-   if isEmptyString(values) then
-      return false
-   end
-
-   local list = split(values, ',')
-
-   for _, value_op in ipairs(list) do
-      local l7_proto, op = self:strip_filter_operator(value_op)
-
-      if not tonumber(l7_proto) then
-         -- Try converting l7 proto name to number
-         l7_proto = interface.getnDPIProtoId(l7_proto)
-      end
-
-      if tonumber(l7_proto) then
-         l7_proto = tonumber(l7_proto)
-         self:add_filter_condition('l7_proto', op, l7_proto, 'number')
-      end
-   end
-
-   return false
-end
-
--- ##############################################
-
 --@brief Add ip filter
 function flow_alert_store:add_ip_filter(ip)
    self:add_filter_condition('ip', 'eq', ip);
@@ -256,9 +227,7 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('cli_port', cli_port, 'number')
    self:add_filter_condition_list('srv_port', srv_port, 'number')
    self:add_filter_condition_list('flow_role', role)
-   self:add_filter_condition_list('l7_proto', l7_proto)
-
-   self:add_l7_proto_filter(l7_proto)
+   self:add_filter_condition_list('l7_proto', l7_proto, 'number')
 end
 
 -- ##############################################
@@ -266,50 +235,17 @@ end
 --@brief Get info about additional available filters
 function flow_alert_store:_get_additional_available_filters()
    local filters = {
-      ip_version = {
-         value_type = 'ip_version',
-	 i18n_label = i18n('db_search.tags.ip_version'),
-      },
-      ip = {
-         value_type = 'ip',
-	 i18n_label = i18n('db_search.tags.ip'),
-      },
-      cli_ip = {
-         value_type = 'ip',
-	 i18n_label = i18n('db_search.tags.cli_ip'),
-      },
-      srv_ip = {
-         value_type = 'ip',
-	 i18n_label = i18n('db_search.tags.srv_ip'),
-      },
-      cli_name = {
-         value_type = 'hostname',
-	 i18n_label = i18n('db_search.tags.cli_name'),
-      },
-      srv_name = {
-         value_type = 'hostname',
-	 i18n_label = i18n('db_search.tags.srv_name'),
-      },
-      cli_port = {
-         value_type = 'port',
-	 i18n_label = i18n('db_search.tags.cli_port'),
-      }, 
-      srv_port = {
-         value_type = 'port',
-	 i18n_label = i18n('db_search.tags.srv_port'),
-      },
-      role = {
-	 value_type = 'role',
-	 i18n_label = i18n('db_search.tags.role'),
-      },
-      l7_proto = {
-         value_type = 'l7_proto',
-	 i18n_label = i18n('db_search.tags.l7_proto'),
-      }, 
-      info = {
-         value_type = 'text',
-	 i18n_label = i18n('db_search.tags.cli_name'),
-      },
+      ip_version = tag_utils.defined_tags.ip_version,
+      ip         = tag_utils.defined_tags.ip,
+      cli_ip     = tag_utils.defined_tags.cli_ip,
+      srv_ip     = tag_utils.defined_tags.srv_ip,
+      cli_name   = tag_utils.defined_tags.cli_name,
+      srv_name   = tag_utils.defined_tags.srv_name,
+      cli_port   = tag_utils.defined_tags.cli_port,
+      srv_port   = tag_utils.defined_tags.srv_port,
+      role       = tag_utils.defined_tags.role,
+      l7_proto   = tag_utils.defined_tags.l7proto,
+      info       = tag_utils.defined_tags.info,
    }
 
    return filters
@@ -587,7 +523,9 @@ function flow_alert_store:format_record(value, no_html)
    if ntop.isEnterpriseM() and hasClickHouseSupport() and not no_html then
       local op_suffix = tag_utils.SEPARATOR .. 'eq'
       local href = string.format('%s/lua/pro/db_search.lua?epoch_begin=%u&epoch_end=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%s%s',
-         ntop.getHttpPrefix(), tonumber(value["first_seen"]), tonumber(value["tstamp_end"]), 
+         ntop.getHttpPrefix(), 
+         tonumber(value["first_seen"]) - (5*60),
+         tonumber(value["tstamp_end"]) + (5*60), 
          value["cli_ip"], op_suffix,
          value["srv_ip"], op_suffix,
          ternary(show_cli_port, tostring(value["cli_port"]), ''), op_suffix,

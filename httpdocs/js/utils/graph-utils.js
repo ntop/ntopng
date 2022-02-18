@@ -69,9 +69,9 @@ function getSerieLabel(schema, serie, visualization, serie_index) {
         return serie.tags.profile;
       else if(data_label == "bytes") {
         if(schema.contains("volume"))
-          return graph_i18n_ext.traffic_volume;
+          return graph_i18n.traffic_volume;
         else
-          return graph_i18n_ext.traffic;
+          return graph_i18n.traffic;
       }
   }
 
@@ -883,7 +883,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
         if(other_serie) {
           res.push({
-            key: graph_i18n_ext.other,
+            key: graph_i18n.other,
             yAxis: 1,
             values: arrayToNvSerie(other_serie, data.start, data.step),
             type: "area",
@@ -972,7 +972,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
         var num_smoothed_points = Math.min(Math.max(Math.floor(total_serie.length / 5), 3), 12);
 
         var smooth_functions = {
-          //trend: [graph_i18n_ext.trend, "#62ADF6", smooth, num_smoothed_points],
+          //trend: [graph_i18n.trend, "#62ADF6", smooth, num_smoothed_points],
           //ema: ["EMA", "#F96BFF", exponentialMovingAverageArray, {periods: num_smoothed_points}],
           //sma: ["SMA", "#A900FF", simpleMovingAverageArray, {periods: num_smoothed_points}],
           //rsi: ["RSI cur vs past", "#00FF5D", relativeStrengthIndexArray, {periods: num_smoothed_points}],
@@ -1107,7 +1107,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
 
             res.push({
-              key: graph_i18n_ext.avg,
+              key: graph_i18n.avg,
               yAxis: 1,
               values: values,
               type: "line",
@@ -1120,7 +1120,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
             let avg_sent = makeFlatLineValues(data.start, data.step, data.count, stats.by_serie[0]["average"]);
             let avg_rcvd = makeFlatLineValues(data.start, data.step, data.count, stats.by_serie[1]["average"]);
             res.push({
-              key: graph_i18n_ext.avg_sent,
+              key: graph_i18n.avg_sent,
               yAxis: 1,
               values: avg_sent,
               type: "line",
@@ -1130,7 +1130,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
               disabled: isLegendDisabled("avg_sent", true),
             });
             res.push({
-              key: graph_i18n_ext.avg_rcvd,
+              key: graph_i18n.avg_rcvd,
               yAxis: 1,
               values: avg_rcvd,
               type: "line",

@@ -99,7 +99,7 @@ Ntop::Ntop(const char *appName) {
   privileges_dropped = false;
   can_send_icmp = Utils::isPingSupported();
 
-  for (int i = 0; i < CONST_MAX_NUM_NETWORKS; i++)
+  for(int i = 0; i < CONST_MAX_NUM_NETWORKS; i++)
     local_network_names[i] = local_network_aliases[i] = NULL;
 
 #ifndef WIN32
@@ -265,7 +265,7 @@ void Ntop::initTimezone() {
 Ntop::~Ntop() {
   int num_local_networks = local_network_tree.getNumAddresses();
 
-  for (int i = 0; i < num_local_networks; i++) {
+  for(int i = 0; i < num_local_networks; i++) {
     if (local_network_names[i] != NULL) free(local_network_names[i]);
     if (local_network_aliases[i] != NULL) free(local_network_aliases[i]);
   }
@@ -303,6 +303,7 @@ Ntop::~Ntop() {
   if(custom_ndpi_protos)  free(custom_ndpi_protos);
 
   delete address;
+  
   if(pa)    delete pa;
   if(geo)   delete geo;
   if(mac_manufacturers) delete mac_manufacturers;
@@ -316,6 +317,11 @@ Ntop::~Ntop() {
   if(alert_exclusions_shadow)   delete alert_exclusions_shadow;
 #endif
 
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+  if(clickhouseImport)
+    delete clickhouseImport;
+#endif
+  
   if(resolvedHostsBloom) delete resolvedHostsBloom;
   delete internal_alerts_queue;
 
@@ -342,7 +348,8 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   if(!quick_registration) {
     if(stat(prefs->get_data_dir(), &buf)
        || (!(buf.st_mode & S_IFDIR))  /* It's not a directory */
-       || (!(buf.st_mode & S_IWRITE)) /* It's not writable    */) {
+       // || (!(buf.st_mode & S_IWRITE)) /* It's not writable    */
+       ) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
 				   prefs->get_data_dir());
       exit(-1);
@@ -401,7 +408,12 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   /* Now we can enable the periodic activities */
   pa = new (std::nothrow) PeriodicActivities();
-  
+
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+  if(prefs->useClickHouse())
+    clickhouseImport = new (std::nothrow) ClickHouseImport();
+#endif
+
   redis->setInitializationComplete();
 }
 
@@ -978,20 +990,20 @@ bool Ntop::recipients_are_empty() {
 
 /* ******************************************* */
 
-bool Ntop::recipients_enqueue(RecipientNotificationPriority prio, AlertFifoItem *notification, AlertEntity alert_entity) {
-  return recipients.enqueue(prio, notification, alert_entity);
+bool Ntop::recipients_enqueue(AlertFifoItem *notification, AlertEntity alert_entity) {
+  return recipients.enqueue(notification, alert_entity);
 }
 
 /* ******************************************* */
 
-bool Ntop::recipient_enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification) {
-  return recipients.enqueue(recipient_id, prio, notification);
+bool Ntop::recipient_enqueue(u_int16_t recipient_id, const AlertFifoItem* const notification) {
+  return recipients.enqueue(recipient_id, notification);
 }
 
 /* ******************************************* */
 
-bool Ntop::recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio, AlertFifoItem *notification) {
-  return recipients.dequeue(recipient_id, prio, notification);
+bool Ntop::recipient_dequeue(u_int16_t recipient_id, AlertFifoItem *notification) {
+  return recipients.dequeue(recipient_id, notification);
 }
 
 /* ******************************************* */
@@ -1016,18 +1028,6 @@ void Ntop::recipient_delete(u_int16_t recipient_id) {
 
 void Ntop::recipient_register(u_int16_t recipient_id, AlertLevel minimum_severity, u_int8_t enabled_categories) {
   recipients.register_recipient(recipient_id, minimum_severity, enabled_categories);
-}
-
-/* ******************************************* */
-
-void Ntop::recipient_set_flow_recipients(u_int64_t flow_recipients) {
-  recipients.set_flow_recipients(flow_recipients);
-}
-
-/* ******************************************* */
-
-void Ntop::recipient_set_host_recipients(u_int64_t host_recipients) {
-  recipients.set_host_recipients(host_recipients);
 }
 
 /* ******************************************* */

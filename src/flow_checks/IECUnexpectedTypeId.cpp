@@ -50,7 +50,7 @@ bool IECUnexpectedTypeId::loadConfiguration(json_object *config) {
     char str[512];
     u_int idx = 0;
     
-    for(u_int i=0; i<json_object_array_length(items); i++) {
+    for(u_int i=0; i<(u_int)json_object_array_length(items); i++) {
       json_object *item = json_object_array_get_idx(items, i);
       u_int32_t id      = json_object_get_int(item);
       int rx = snprintf(&str[idx], sizeof(str)-idx-1, "%s%u",

@@ -117,7 +117,7 @@ end
 -- ##############################################
 
 -- Function called periodically to process queued alerts to be delivered via Discord
-function discord.dequeueRecipientAlerts(recipient, budget, high_priority)
+function discord.dequeueRecipientAlerts(recipient, budget)
   local start_time = os.time()
   local sent = 0
   local more_available = true
@@ -136,7 +136,7 @@ function discord.dequeueRecipientAlerts(recipient, budget, high_priority)
     -- Dequeue max_alerts_per_request notifications
     local notifications = {}
     for i=1, max_alerts_per_request do
-       local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
+       local notification = ntop.recipient_dequeue(recipient.recipient_id)
        if notification then 
 	  notifications[#notifications + 1] = notification.alert
        else

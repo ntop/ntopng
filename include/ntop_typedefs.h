@@ -73,15 +73,6 @@ typedef struct {
   struct timeval *tv;
 } periodic_stats_update_user_data_t;
 
-typedef enum {
-  /*
-    Two queues, one high- and one low-priority
-  */
-  recipient_notification_priority_low = 0,
-  recipient_notification_priority_high = 1,
-  RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES = 2
-} RecipientNotificationPriority;
-
 /* Keep in sync with alert_consts.alerts_granularities and Utils */
 typedef enum {
   no_periodicity = -1,
@@ -472,6 +463,7 @@ typedef enum {
   flow_alert_ndpi_tls_certificate_about_to_expire = 69,
   flow_alert_ndpi_punicody_idn                    = 70,
   flow_alert_ndpi_error_code_detected             = 71,
+  flow_alert_ndpi_http_crawler_bot                = 72,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

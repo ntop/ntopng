@@ -21,7 +21,7 @@
 				                <th>{{ i18n('endpoint_notifications.fill_pct') }}</th>
                                 <th>{{ i18n('endpoint_notifications.categories') }}</th>
                                 <th>{{ i18n('endpoint_notifications.min_severity') }}</th>
-                                <th>{{ i18n('endpoint_notifications.bind_to_pools') }}</th>
+                                <!--th>{{ i18n('endpoint_notifications.bind_to_pools') }}</th-->
                                 <th>{{ i18n('actions') }}</th>
                             </tr>
                         </thead>
