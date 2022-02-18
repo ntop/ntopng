@@ -267,15 +267,6 @@ end
 
 -- ##############################################
 
---- Set a flag to indicate that a pool has been created/edited
-function pools:_set_cache_flag()
-    if isEmptyString(ntop.getPref(pools.FIRST_RECIPIENT_BOUND_CACHE_KEY)) then
-        ntop.setPref(pools.FIRST_RECIPIENT_BOUND_CACHE_KEY, "1")
-    end
-end
-
--- ##############################################
-
 -- Create a new pool (unless it already exists)
 function pools:add_pool(name, members, policy)
     local pool_id
@@ -315,7 +306,6 @@ function pools:add_pool(name, members, policy)
                 -- Now that everything is ok, the id can be assigned and the pool can be persisted with the assigned id
                 pool_id = self:_assign_pool_id()
                 self:_persist(pool_id, name, members, policy)
-                self:_set_cache_flag()
             end
         end
 
@@ -423,7 +413,6 @@ function pools:edit_pool(pool_id, new_name, new_members, new_policy)
             if checks_ok then
                 -- If here, all checks are valid and the pool can be edited
                 self:_persist(pool_id, new_name, new_members, new_policy)
-                self:_set_cache_flag()
                 -- Pool edited successfully
                 ret = true
             end
