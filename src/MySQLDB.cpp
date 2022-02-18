@@ -457,8 +457,6 @@ MySQLDB::MySQLDB(NetworkInterface *_iface, bool _clickhouse_mode) : DB(_iface) {
 
   if(!clickhouse_mode)
     mysql_alt_connected = connectToDB(&mysql_alt, true);
-  else
-    db_created = true;
 }
 
 /* ******************************************* */
@@ -496,7 +494,7 @@ void MySQLDB::startLoop() {
     If mysql flows dump is enabled, then it is necessary to create
     and update the database schema. This must be executed only once.
    */
-  if(!MySQLDB::db_created) {
+  if(!db_created) {
     if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
       if(!createDBSchema()){
 	ntop->getTrace()->traceEvent(TRACE_ERROR,
