@@ -158,6 +158,7 @@ local lang = {
   ["flow_count_per_status"] = "Flow Count (Status)",
   ["flow_dump_not_working"] = "Please check the service logs for more information, it could be there is some issue with the filesystem permissions or available space.",
   ["flow_dump_not_working_title"] = "Flows Dump is not working",
+  ["flow_geomap"] = "Flow Geo-Map",
   ["flow_search_criteria"] = "Flow Search Criteria",
   ["flow_search_from_aggregated"] = "(Aggregated)",
   ["flow_search_results"] = "Flow Search Results",
