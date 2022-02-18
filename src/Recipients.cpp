@@ -95,10 +95,17 @@ bool Recipients::enqueue(const AlertFifoItem* const notification, AlertEntity al
      Perform the actual enqueue to all available recipients
    */
   for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
+
+    /* Enqueue to builtin recipient only at the moment 
+     * (TODO implement filtering based on the pool ID) */
+    if(recipient_id == 0) {
+
     if(recipient_queues[recipient_id]) {
       bool success = recipient_queues[recipient_id]->enqueue(notification);
       
       res &= success;
+    }
+
     }
   }
 
