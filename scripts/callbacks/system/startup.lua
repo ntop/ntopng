@@ -173,11 +173,9 @@ for ifid, ifname in pairs(delete_data_utils.list_all_interfaces()) do
 end
 
 -- Remove notification cache
-local notifications = ntop.getKeysCache("ntopng.cache.alerts.notification.*")
-if notifications then
-  for k, _ in pairs(notifications) do
-    ntop.delCache(k)
-  end
+local notifications = ntop.getKeysCache("ntopng.cache.alerts.notification.*") or {}
+for k, _ in pairs(notifications) do
+  ntop.delCache(k)
 end
 
 if(has_pcap_dump_interface) then
