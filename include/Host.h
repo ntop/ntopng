@@ -513,6 +513,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   void releaseAllEngagedAlerts();
 
+  u_int16_t get_country_code();
   inline bool has_flows_anomaly(bool as_client) { return(stats->has_flows_anomaly(as_client)); }
   inline u_int32_t value_flows_anomaly(bool as_client) { return(stats->value_flows_anomaly(as_client)); }
   inline u_int32_t lower_bound_flows_anomaly(bool as_client) { return(stats->lower_bound_flows_anomaly(as_client)); }

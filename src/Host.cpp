@@ -1928,3 +1928,16 @@ void Host::releaseAlert(HostAlert *alert) {
 }
 
 /* *************************************** */
+
+u_int16_t Host::get_country_code() {
+  if(country) {
+    char *country_name = country->get_country_name();
+
+    if(country_name)
+      return(Utils::country2u16(country_name));
+  } /* No else here */
+  
+  return(0); /* Not found */
+}
+
+/* *************************************** */

@@ -862,8 +862,14 @@ class Flow : public GenericHashEntry {
 
   inline FlowTrafficStats* getTrafficStats() { return(&stats); };
 
-  inline u_int8_t *get_view_cli_mac() { return(view_cli_mac); };
-  inline u_int8_t *get_view_srv_mac() { return(view_srv_mac); };
+  inline u_int8_t* getViewCliMac() { return(view_cli_mac); };
+  inline u_int8_t* getViewSrvMac() { return(view_srv_mac); };
+
+  /* Placeholder */
+  inline char* getCliProcessName()     { return((char*)""); }
+  inline char* getSrvProcessName()     { return((char*)""); }
+  inline char* getCliProcessUserName() { return((char*)""); }
+  inline char* getSrvProcessUserName() { return((char*)""); }
 };
 
 #endif /* _FLOW_H_ */
