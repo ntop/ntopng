@@ -31,20 +31,20 @@ TEST_F(AddressResolutionTest, ShouldNotCrashWhenResolvingNullHost) {
 }
 TEST_F(AddressResolutionTest, ShouldResolveHostNameCorrectly) {
   // A: arrange
-  char resolvedHost[64];
+  char resolved_host[64];
   // A: act
-  resolver_.resolveHostName("74.6.231.20", resolvedHost, sizeof(resolvedHost));
+  resolver_.resolveHostName("74.6.231.20", resolved_host, sizeof(resolved_host));
   // A: assert
-  EXPECT_EQ(std::string(address_), std::string(resolvedHost));
+  EXPECT_EQ(std::string(address_), std::string(resolved_host));
 }
 TEST_F(AddressResolutionTest, ShouldResolveHostCorrectly) {
   // A: arrange
-  char resolvedAddress[32];
+  char resolved_address[32];
   // A: act
-  resolver_.resolveHost(address_, resolvedAddress, sizeof(resolvedAddress),
+  resolver_.resolveHost(address_, resolved_address, sizeof(resolved_address),
                         true);
   // A: assert
-  EXPECT_EQ(std::string("74.6.231.20"), std::string(resolvedAddress));
+  EXPECT_EQ(std::string("74.6.231.20"), std::string(resolved_address));
 }
 TEST_F(AddressResolutionTest, ShouldDNSResolutionEnabled) {
   Prefs *pref = ntop_.GetPreferences();
