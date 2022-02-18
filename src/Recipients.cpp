@@ -101,7 +101,18 @@ bool Recipients::enqueue(const AlertFifoItem* const notification, AlertEntity al
     if(recipient_id == 0) {
 
     if(recipient_queues[recipient_id]) {
-      bool success = recipient_queues[recipient_id]->enqueue(notification);
+      bool success;
+
+      /* TODO check matching pool IDs if any
+      if (alert_entity == alert_entity_flow) {
+        notification->pools.flow.cli_host_pool
+        notification->pools.flow.srv_host_pool
+      } else if (alert_entity == alert_entity_host) {
+        notification->pools.host.host_pool
+      }
+      */
+
+      success = recipient_queues[recipient_id]->enqueue(notification);
       
       res &= success;
     }

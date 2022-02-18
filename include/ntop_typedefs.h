@@ -230,6 +230,17 @@ typedef enum {
 typedef struct {
   AlertLevel alert_severity;
   AlertCategory alert_category;
+  union {
+    /* alert_entity_host */
+    struct {
+      u_int16_t host_pool;
+    } host;
+    /* alert_entity_flow */
+    struct {
+      u_int16_t cli_host_pool;
+      u_int16_t srv_host_pool;
+    } flow;
+  } pools;
   u_int32_t score;
   char *alert;
 } AlertFifoItem;

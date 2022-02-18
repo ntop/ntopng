@@ -3331,13 +3331,12 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
 
   flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
 
-  /* TODO: read all the recipients responsible for flows, and enqueue only to them */
-  /* Currenty, we forcefully enqueue only to the builtin sqlite */
-
   notification.alert = (char*)flow_str;
   notification.score = getPredominantAlertScore();
   notification.alert_severity = Utils::mapScoreToSeverity(notification.score);
   notification.alert_category = alert->getAlertType().category;
+  notification.pools.flow.cli_host_pool = cli_host ? cli_host->get_host_pool() : 0;
+  notification.pools.flow.srv_host_pool = srv_host ? srv_host->get_host_pool() : 0;
 
   rv = ntop->recipients_enqueue(&notification, alert_entity_flow /* Flow recipients */);
 

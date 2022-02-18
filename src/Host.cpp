@@ -1812,13 +1812,11 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
 
   host_str = ndpi_serializer_get_buffer(&host_json, &buflen);
 
-  /* TODO: read all the recipients responsible for hosts, and enqueue only to them */
-  /* Currenty, we forcefully enqueue only to the builtin sqlite */
-    
   notification.alert = (char*)host_str;
   notification.score = alert->getAlertScore();
   notification.alert_severity = Utils::mapScoreToSeverity(notification.score);
   notification.alert_category = alert->getAlertType().category;
+  notification.pools.host.host_pool = get_host_pool();
 
   rv = ntop->recipients_enqueue(&notification, alert_entity_host /* Host recipients */);
 
