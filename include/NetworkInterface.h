@@ -810,7 +810,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void addInterfaceNetwork(char * const net, char * addr);
   bool isInterfaceNetwork(const IpAddress * const ipa, int network_bits) const;
   inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = false) {
-    return(db->exec_sql_query(vm, sql, limit_rows, wait_for_db_created));
+    return(db ? db->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) : -1);
   };
   int exec_csv_query(const char *sql, bool dump_in_json_format, struct mg_connection *conn);
 
