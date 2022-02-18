@@ -19,7 +19,6 @@ local page_utils = require("page_utils")
 local delete_data_utils = require "delete_data_utils"
 local toasts_manager = require("toasts_manager")
 local host_pools = require "host_pools"
-local auth = require "auth"
 local blog_utils = require("blog_utils")
 local template_utils = require "template_utils"
 local auth = require "auth"
