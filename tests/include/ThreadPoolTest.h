@@ -28,8 +28,14 @@
 namespace ntoptesting {
 
 class ThreadPoolTest : public ::testing::Test {
+  private:
+  void PopulateScripts(std::vector<std::string>& scripts, int max) const;
+
+
 private:
   NtopTestingBase ntop_;
+  ScopedThreadPool pool_;
+  static constexpr int MaxScripts = 30;
 };
 } // namespace ntoptesting
 

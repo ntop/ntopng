@@ -24,7 +24,6 @@
 
 #include "ThreadedActivity.h"
 #include "ThreadPool.h"
-
 namespace ntoptesting {
 
 class ScopedThreadPool {
@@ -39,8 +38,8 @@ public:
 
 private:
   ThreadPool *pool_;
-  pthread_t runThread_;
-  bool isActive_;
+  pthread_t run_thread_;
+  bool is_active_;
 };
 }
 #endif
