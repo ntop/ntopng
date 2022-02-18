@@ -44,9 +44,6 @@ class RecipientQueues {
   /* Only enable enqueue/dequeue for notifications falling into these categories */
   u_int8_t enabled_categories; /* MUST be large enough to contain MAX_NUM_SCRIPT_CATEGORIES */
 
-  /* Booleans indicating whether this is a flow/host recipient */
-  bool flow_recipient, host_recipient;
-
  public:
   RecipientQueues();
   ~RecipientQueues();
@@ -85,20 +82,6 @@ class RecipientQueues {
   inline void setEnabledCategories(u_int8_t _enabled_categories) { enabled_categories = _enabled_categories; };
   
   /**
-  * @brief Marks/unmarks this recipient as a flow recipient, depending on the input boolean
-  *
-  * @return
-  */
-  inline void setFlowRecipient(u_int8_t _enabled) { flow_recipient = _enabled; };
-  
-  /**
-  * @brief Marks/unmarks this recipient as a host recipient, depending on the input boolean
-  *
-  * @return
-  */
-  inline void setHostRecipient(u_int8_t _enabled) { host_recipient = _enabled; };
-  
-  /**
    * @brief Returns queue status (drops and uses)
    * @param vm A Lua VM instance
    *
@@ -119,20 +102,6 @@ class RecipientQueues {
    * @return An epoch with the last use, or 0 if never used.
    */
   inline time_t get_last_use() const { return last_use; };
-  
-  /**
-   * @brief Returns true if the recipient is a flow recipient
-   *
-   * @return A boolean
-   */
-  inline bool isFlowRecipient() const { return flow_recipient; };
-  
-  /**
-   * @brief Returns true if the recipient is a host recipient
-   *
-   * @return A boolean
-   */
-  inline bool isHostRecipient() const { return host_recipient; };
 };
 
 #endif /* _RECIPIENT_QUEUES_ */

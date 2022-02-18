@@ -1032,18 +1032,6 @@ void Ntop::recipient_register(u_int16_t recipient_id, AlertLevel minimum_severit
 
 /* ******************************************* */
 
-void Ntop::recipient_set_flow_recipients(u_int64_t flow_recipients) {
-  recipients.set_flow_recipients(flow_recipients);
-}
-
-/* ******************************************* */
-
-void Ntop::recipient_set_host_recipients(u_int64_t host_recipients) {
-  recipients.set_host_recipients(host_recipients);
-}
-
-/* ******************************************* */
-
 void Ntop::getUsers(lua_State* vm) {
   char **usernames;
   char *username;

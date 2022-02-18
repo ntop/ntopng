@@ -95,9 +95,7 @@ bool Recipients::enqueue(const AlertFifoItem* const notification, AlertEntity al
      Perform the actual enqueue to all available recipients
    */
   for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
-    if(recipient_queues[recipient_id]
-       && ((alert_entity == alert_entity_flow && recipient_queues[recipient_id]->isFlowRecipient()) /* The recipient must be a flow recipient */
-	   || (alert_entity == alert_entity_host && recipient_queues[recipient_id]->isHostRecipient()))) {
+    if(recipient_queues[recipient_id]) {
       bool success = recipient_queues[recipient_id]->enqueue(notification);
       
       res &= success;
@@ -125,44 +123,6 @@ void Recipients::register_recipient(u_int16_t recipient_id, AlertLevel minimum_s
       recipient_queues[recipient_id]->setEnabledCategories(enabled_categories);
 
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "registered [%u][%u][%u]", recipient_id, minimum_severity, enabled_categories);
-
-  m.unlock(__FILE__, __LINE__);
-}
-
-/* *************************************** */
-
-void Recipients::set_flow_recipients(u_int64_t flow_recipients) {
-  m.lock(__FILE__, __LINE__);
-
-  for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
-    if(recipient_queues[recipient_id]) {
-      if(flow_recipients & (1 << recipient_id)) 
-	recipient_queues[recipient_id]->setFlowRecipient(true /* This is a flow recipient */);
-      else
-	recipient_queues[recipient_id]->setFlowRecipient(false/* This is NOT a flow recipient */);
-
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Set flow recipient [%u][%u]", recipient_id, flow_recipients & (1 << recipient_id));
-    }
-  }
-
-  m.unlock(__FILE__, __LINE__);
-}
-
-/* *************************************** */
-
-void Recipients::set_host_recipients(u_int64_t host_recipients) {
-  m.lock(__FILE__, __LINE__);
-
-  for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
-    if(recipient_queues[recipient_id]) {
-      if(host_recipients & (1 << recipient_id)) 
-	recipient_queues[recipient_id]->setHostRecipient(true /* This is a host recipient */);
-      else
-	recipient_queues[recipient_id]->setHostRecipient(false/* This is NOT a host recipient */);
-
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Set host recipient [%u][%u]", recipient_id, host_recipients & (1 << recipient_id));
-    }
-  }
 
   m.unlock(__FILE__, __LINE__);
 }
