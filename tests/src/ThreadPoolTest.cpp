@@ -119,6 +119,12 @@ TEST_F(ThreadPoolTest, ShouldRunAPoolAndTerminateInALoop) {
   }
 }
 
+/**
+ * @brief  This test launches MaxScripts activites
+ * each activity create a file on disk  that starts with /tmp/tact
+ * At the end we'd like to check if all activities are executed correctly.
+ */
+
 TEST_F(ThreadPoolTest, ShouldPoolScheduleACorrectActivity) {
 
   bool delayed_activity = false;
@@ -142,14 +148,6 @@ TEST_F(ThreadPoolTest, ShouldPoolScheduleACorrectActivity) {
         exclude_pcap, scoped_pool_.GetPool());
     activites.push_back(activity);
   }
-  ThreadedActivity *act = activites[0];
-  if (act != NULL) {
-    act->schedule(time(NULL));
-  }
-  /*
-  for (int i = 0; i < MaxScripts; i++) {
-    activites[i]->schedule(time(NULL));
-  } */
   scoped_pool_.WaitFor(5);
   for (int i = 0; i < MaxScripts; i++) {
     delete activites[i];
@@ -159,13 +157,18 @@ TEST_F(ThreadPoolTest, ShouldPoolScheduleACorrectActivity) {
   // assert
   std::vector<std::string> results;
   ListActivitiesResult("/tmp", ResultBaseName, results);
-  for (std::vector<std::string>::iterator it = results.begin(),
-                                          it != results.end();
-       it++) {
-    // check the files.
+  for (std::vector<std::string>::const_iterator it = results.begin();
+       it != results.end(); it++) {
+    std::ifstream result(*it);
+    EXPECT_TRUE(result.is_open());
+    std::string line;
+    std::getline(result, line);
+    EXPECT_GE(line.size(), 0);
+    result.close();
   }
   // cleaning up files.
   CleanUp("/tmp", ResultBaseName);
+  CleanUp("/tmp", "act");
 }
 
 TEST_F(ThreadPoolTest, ShouldWorkWhenAffinityIsNotCorrect) {
