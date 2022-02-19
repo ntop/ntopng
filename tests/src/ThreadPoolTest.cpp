@@ -69,14 +69,26 @@ static void *doTestRun(void *ptr) {
 void ThreadPoolTest::CreateScript(const std::string &path,
                                   const std::string &base, int i) const {
   std::ofstream out(path.c_str(), ios::trunc | ios::out);
-  out << "#!/bin/bash\n";
-  out << std::string("echo ");
-  out << base;
-  out << i;
-  out << std::string(" >> ");
-  out << "/tmp/";
-  out << ResultBaseName;
-  out << i;
+  std::ostringstream path_name;
+  path_name << path;
+  path_name << base;
+  path_name << i;
+
+  std::string template = "-- Opens a file\nfile = io.open(\"#1, \"w\")\nio.output(file)\n
+  \nio.write(\"#2\")\nio.close(file)\n";
+  // replace #1 with path anme and #2 with the value of i
+  size_t pos1 = template.find_first_of("#1");
+  size_t pos2 = template.find_first_of("#2");
+  std::string partial1 = template.substr(0, pos1);
+  partial1+=path_name.str();
+  std::string partial2 = template.substr(pos1+2, pos2);
+  std::ostringstream content;
+  content << i;
+  partial2+=content.str();
+  out << partial1;
+  out << partial2;
+  out << template.substr(pos2+2);
+  out.close();
   chmod(path.c_str(), S_IRWXU);
 }
 
@@ -100,8 +112,9 @@ void ThreadPoolTest::PopulateScripts(std::vector<std::string> &scripts,
     std::ostringstream ostr;
     ostr << base;
     ostr << i;
-    ostr << ".sh";
-    CreateScript(ostr.str(), base, i);
+    ostr << ".lua";
+    // resultbasename is the base of the content string.
+    CreateScript(ostr.str(), ResultBaseName, i);
     scripts.push_back(ostr.str());
   }
 }
