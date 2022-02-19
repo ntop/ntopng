@@ -28,22 +28,22 @@
 namespace ntoptesting {
 
 class ThreadPoolTest : public ::testing::Test {
-  public:
+public:
   static constexpr int MaxScripts = 30;
   static const std::string ResultBaseName;
-  
 
 protected:
   void PopulateScripts(std::vector<std::string> &scripts, int max) const;
-  void ListActivitiesResult(const std::string& base, const std::string& startwith, std::vector<std::string>& outfiles) const;
-  void CleanUp(const std::string &base,
-                             const std::string &startwith) const;
+  void ListActivitiesResult(const std::string &base,
+                            const std::string &startwith,
+                            std::vector<std::string> &outfiles) const;
+  void CleanUp(const std::string &base, const std::string &startwith) const;
   NtopTestingBase ntop_;
   ScopedThreadPool scoped_pool_;
 
 private:
-  void CreateScript(const std::string &path, const std::string &base, int i) const;
-  
+  void CreateScript(const std::string &path, const std::string &base,
+                    int i) const;
 };
 } // namespace ntoptesting
 

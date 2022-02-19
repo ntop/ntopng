@@ -45,7 +45,7 @@ private:
 };
 
 static void ListDir(const std::string &base, const std::string &startwith,
-                    DirOp &op)  {
+                    DirOp &op) {
   DIR *dp;
   struct dirent *ep;
   dp = opendir(base.c_str());
@@ -154,11 +154,14 @@ TEST_F(ThreadPoolTest, ShouldPoolScheduleACorrectActivity) {
   for (int i = 0; i < MaxScripts; i++) {
     delete activites[i];
   }
+
   activites.clear();
   // assert
   std::vector<std::string> results;
   ListActivitiesResult("/tmp", ResultBaseName, results);
-  for (std::vector<std::string>::iterator it = results.begin(), it!=results.end(); it++) {
+  for (std::vector<std::string>::iterator it = results.begin(),
+                                          it != results.end();
+       it++) {
     // check the files.
   }
   // cleaning up files.
