@@ -249,7 +249,7 @@ void ThreadedActivity::updateThreadedActivityStatsEnd(NetworkInterface *iface, c
 
 /* Run a one-shot script / accurate (e.g. second) periodic script */
 void ThreadedActivity::runSystemScript(time_t now) {
-  struct stat buf;.
+  struct stat buf;
   char script_path[MAX_PATH];
 
   snprintf(script_path, sizeof(script_path), "%s/system/%s",

@@ -24,12 +24,15 @@
 #include "NtopTestingBase.h"
 #include "Ping.h"
 #include "gtest/gtest.h"
+#include <net/if.h>
 
 namespace ntoptesting {
 
 class PingTest : public ::testing::Test {
 private:
+  void GetAllInterfacesName();
   NtopTestingBase ntop_;
+  std::vector<std::string> interface_names_;
 };
 } // namespace ntoptesting
 

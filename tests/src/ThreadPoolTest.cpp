@@ -19,7 +19,6 @@
  *
  */
 #include "../include/ThreadPoolTest.h"
-#include "../include/ScopedPtr.h"
 #include "../include/ScopedThreadPool.h"
 namespace ntoptesting {
 
@@ -30,9 +29,10 @@ static void *doTestRun(void *ptr) {
   return (NULL);
 }
 void ThreadPoolTest::CreateScript(const std::string &path,
-                                  const std::string &base, int i) {
-  std::ofstream out(path.c_str(), ios::trunc | ios::write);
-  out << "#!/bin/bash" out << std::string("echo ");
+                                  const std::string &base, int i) const {
+  std::ofstream out(path.c_str(), ios::trunc | ios::out);
+  out << "#!/bin/bash"; 
+  out << std::string("echo ");
   out << base;
   out << i;
   out << std::string(" >> ");
@@ -64,6 +64,7 @@ TEST_F(ThreadPoolTest, ShouldRunAPoolAndTerminateInALoop) {
 }
 
 TEST_F(ThreadPoolTest, ShouldPoolScheduleACorrectActivity) {
+  
   bool delayed_activity = false;
   u_int32_t periodicity_seconds = 0;
   u_int32_t max_durations_seconds = 0;
@@ -72,25 +73,27 @@ TEST_F(ThreadPoolTest, ShouldPoolScheduleACorrectActivity) {
   bool exclude_pcap = false;
   // check if it's started
   EXPECT_EQ(true, scoped_pool_.IsActive());
-  std::vector<ThreadActivity *> activites;
+  std::vector<ThreadedActivity*> activites;
   activites.resize(10);
   std::vector<std::string> script_names;
-  PopulateScripts(script_names, ThreadPoolTest::MaxScripts);
+  
+  PopulateScripts(script_names, MaxScripts);
+  
   for (int i = 0; i < MaxScripts; i++) {
     ThreadedActivity *activity = new ThreadedActivity(
-        script_names[i], delayed_activity, periodicity_seconds,
+        script_names[i].c_str(), delayed_activity, periodicity_seconds,
         max_durations_seconds, align_to_localtime, exclude_viewed_interfaces,
-        exclude_pcap, scoped_pool.GetPool());
-    activites.push_back(activity);
+        exclude_pcap, scoped_pool_.GetPool());
+    activites.push_back(activity);q
   }
-  for (int i = 0; i < ThreadPoolTest::MaxScripts; i++) {
+  for (int i = 0; i < MaxScripts; i++) {
+    activites[i]->schedule(time(NULL));
+  }
+  scoped_pool_.WaitFor(5);
+  for (int i = 0; i < MaxScripts; i++) {
     delete activites[i];
   }
   activites.clear();
-  for (int i = 0; i < ThreadPoolTest::MaxScripts; i++) {
-    act->schedule(time(NULL));
-  }
-  scoped_pool.WaitFor(5);
 }
 
 TEST_F(ThreadPoolTest, ShouldWorkWhenAffinityIsNotCorrect) {

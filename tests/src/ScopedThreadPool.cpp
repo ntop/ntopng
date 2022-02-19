@@ -13,17 +13,17 @@ ScopedThreadPool::ScopedThreadPool() {
   pool_ = new ThreadPool();
   Run();
 }
-bool ScopedThreadPool::IsActive() const { return isActive_; }
+bool ScopedThreadPool::IsActive() const { return is_active_; }
 void ScopedThreadPool::Shutdown() { pool_->shutdown(); }
 void ScopedThreadPool::Run() {
-  int status = pthread_create(&runThread_, NULL, doTestRun, (void *)&pool_);
-  isActive_ = (status == 0);
+  int status = pthread_create(&run_thread_, NULL, doTestRun, (void *)&pool_);
+  is_active_ = (status == 0);
 }
 ThreadPool *ScopedThreadPool::GetPool() const { return pool_; }
 void ScopedThreadPool::WaitFor(int seconds) { sleep(seconds); }
 ScopedThreadPool::~ScopedThreadPool() {
   void *res;
   delete pool_;
-  pthread_join(runThread_, &res);
+  pthread_join(run_thread_, &res);
 }
 } // namespace ntoptesting
