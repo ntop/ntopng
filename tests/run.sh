@@ -2,9 +2,10 @@
 #
 # Run all the available tests
 #
-if [ -x unit_test ]; then
+if [ -x unit_tests ]; then
     echo "Executing unit tests."
-    ./unit_test
+    sudo  /etc/init.d/redis-server restart
+    ./unit_tests
 else
     echo "Skipping unit tests. Please compile them."
 fi
