@@ -26,7 +26,6 @@
 
 class ThreadPool;
 class PeriodicScript;
-
 class ThreadedActivity {
  private:
   u_int32_t deadline_approaching_secs;

@@ -30,9 +30,14 @@ namespace ntoptesting {
 class ThreadPoolTest : public ::testing::Test {
   public:
   static constexpr int MaxScripts = 30;
-  void PopulateScripts(std::vector<std::string> &scripts, int max) const;
+  static const std::string ResultBaseName;
+  
 
 protected:
+  void PopulateScripts(std::vector<std::string> &scripts, int max) const;
+  void ListActivitiesResult(const std::string& base, const std::string& startwith, std::vector<std::string>& outfiles) const;
+  void CleanUp(const std::string &base,
+                             const std::string &startwith) const;
   NtopTestingBase ntop_;
   ScopedThreadPool scoped_pool_;
 
