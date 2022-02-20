@@ -22,7 +22,7 @@ prefix:      /
 EOF
 
 echo "deps: {" >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" libgcrypt      >> ${STAGEDIR}/+MANIFEST
+#pkg query "  %n: { version: \"%v\", origin: %o }" libgcrypt      >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" libmaxminddb   >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" libzmq4        >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" rrdtool        >> ${STAGEDIR}/+MANIFEST
