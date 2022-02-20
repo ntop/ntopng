@@ -36,7 +36,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     Fingerprint ja3;
     Fingerprint hassh;
   } fingerprints;
-  
+
   bool stats_reset_requested, name_reset_requested, data_delete_requested;
   u_int16_t host_pool_id, host_services_bitmap;
   VLANid vlan_id;
@@ -46,7 +46,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   time_t last_stats_reset;
   std::atomic<u_int32_t> active_alerted_flows;
   u_int8_t view_interface_mac[6];
-  
+
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
     char *mdns /* name from a MDNS reply of any type */,
@@ -76,7 +76,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   struct {
     u_int32_t syn_sent_last_min, synack_recvd_last_min; /* (attacker) */
     u_int32_t syn_recvd_last_min, synack_sent_last_min; /* (victim) */
-  } syn_scan; 
+  } syn_scan;
   std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server; /* Need atomic as inc/dec done on different threads */
   u_int32_t asn;
   struct {
@@ -90,6 +90,12 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   OperatingSystem *os; /* Pointer to an instance of operating system, used internally to handle operating system statistics    */
   OSType os_type;      /* Operating system type, equivalent to os->get_os_type(), used by operating system setters and getters */
+
+  /*
+    TCP flows with SYN only, resets or unidirectional UDP flows not sent to broad/multicast addresees
+    Counter reset every minute
+  */
+  u_int32_t num_incomplete_flows;
 
   Mutex m;
   u_int32_t mac_last_seen;
@@ -126,7 +132,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void resetHostNames();
   virtual void deleteHostData();
   char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize);
-  
+
  public:
   Host(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId, u_int16_t observation_point_id);
   Host(NetworkInterface *_iface, Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id, IpAddress *_ip);
@@ -142,10 +148,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline  void setCrawlerBotScannerHost()      { is_crawler_bot_scanner = 1;          };
   inline  void setBroadcastDomainHost()        { is_in_broadcast_domain = 1;  };
 
-  inline  void setLastDeviceIp(u_int32_t ip)   { 
-    if(ip && ip != device_ip) { 
-      if(device_ip) more_then_one_device = true; 
-      device_ip = ip; 
+  inline  void setLastDeviceIp(u_int32_t ip)   {
+    if(ip && ip != device_ip) {
+      if(device_ip) more_then_one_device = true;
+      device_ip = ip;
     }};
   inline  u_int32_t getLastDeviceIp()        { return(device_ip); };
   void blacklistedStatsResetRequested();
@@ -166,14 +172,14 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline  void setNtpServer()                { host_services_bitmap |= 1 << HOST_IS_NTP_SERVER;           }
   inline  u_int16_t getServicesMap()         { return(host_services_bitmap);                              }
   /*
-    NOTE: update the fucntion below when a new isXXXServer is added 
-    Return true if this host is a server for known protocols 
+    NOTE: update the fucntion below when a new isXXXServer is added
+    Return true if this host is a server for known protocols
   */
   inline bool  isProtocolServer()     const  { return(isDhcpServer() || isDnsServer() || isSmtpServer() || isNtpServer()); }
   inline void incrRemoteAccess()      { if(num_remote_access == 255) num_remote_access = 0; else num_remote_access++; };
   inline void decrRemoteAccess()      { if(num_remote_access == 0) num_remote_access = 0; else num_remote_access--; };
   inline u_int8_t getRemoteAccess()   { return(num_remote_access); };
-  
+
   bool isBroadcastHost()              const  { return(ip.isBroadcastAddress() || (mac && mac->isBroadcast())); }
   bool isMulticastHost()              const  { return(ip.isMulticastAddress()); }
 
@@ -205,7 +211,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline VLANid get_raw_vlan_id()          const { return(vlan_id);                           }; /* vlanId + observationPointId */
   inline VLANid get_vlan_id()              const { return(filterVLANid(vlan_id));             };
   inline u_int16_t get_observation_point_id() const { return(observationPointId); };
-  
+
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
 
   inline void incSentTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
@@ -225,10 +231,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline void incSentStats(u_int num_pkts, u_int pkt_len)  { stats->incSentStats(num_pkts, pkt_len); };
   inline void incRecvStats(u_int num_pkts, u_int pkt_len)  { stats->incRecvStats(num_pkts, pkt_len); };
 
-  inline void incDSCPStats(u_int8_t ds, u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t rcvd_packets, u_int64_t rcvd_bytes) { 
-    stats->getDSCPStats()->incStats(ds, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes); 
+  inline void incDSCPStats(u_int8_t ds, u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
+    stats->getDSCPStats()->incStats(ds, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
   }
-  
+
   virtual int16_t get_local_network_id() const = 0;
   virtual HTTPstats* getHTTPstats()           { return(NULL);                  };
   virtual DnsStats*  getDNSstats()            { return(NULL);                  };
@@ -303,7 +309,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   bool is_hash_entry_state_idle_transition_ready();
   void periodic_stats_update(const struct timeval *tv);
   virtual void custom_periodic_stats_update(const struct timeval *tv) { ; }
-  
+
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 	   bool verbose, bool returnHost, bool asListElement);
 
@@ -335,7 +341,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void lua_get_fingerprints(lua_State *vm);
   void lua_get_geoloc(lua_State *vm);
   void lua_blacklisted_flows(lua_State* vm) const;
-  
+
   void resolveHostName();
   char *get_host_label(char * const buf, ssize_t buf_size);
   inline int compare(Host *h) { return(ip.compare(&h->ip)); };
@@ -394,8 +400,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual u_int16_t getNumActiveContactsAsServer()  { return 0; };
   inline TcpPacketStats* getTcpPacketSentStats() { return(stats->getTcpPacketSentStats()); }
   inline TcpPacketStats* getTcpPacketRcvdStats() { return(stats->getTcpPacketRcvdStats()); }
-  virtual void addContactedDomainName(char* domain_name) {};       
-  virtual u_int32_t getDomainNamesCardinality()          { return 0; };      
+  virtual void addContactedDomainName(char* domain_name) {};
+  virtual u_int32_t getDomainNamesCardinality()          { return 0; };
   virtual void resetDomainNamesCardinality()             {};
   virtual NetworkStats* getNetworkStats(int16_t networkId) { return(NULL);   };
   inline Country* getCountryStats()                        { return country; };
@@ -492,8 +498,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   virtual void incNTPContactCardinality(Host *h)  { ; }
   virtual void incDNSContactCardinality(Host *h)  { ; }
-  virtual void incSMTPContactCardinality(Host *h) { ; }    
-  
+  virtual void incSMTPContactCardinality(Host *h) { ; }
+
   virtual u_int32_t getNTPContactCardinality()    { return(0); }
   virtual u_int32_t getDNSContactCardinality()    { return(0); }
   virtual u_int32_t getSMTPContactCardinality()   { return(0); }
@@ -502,7 +508,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   /* Alert Exclusions */
   inline AlertExclusionsInfo* getAlertExclusions() { return(&alert_exclusions); }
 #endif
-  
+
   /* Enqueues an alert to all available host recipients. */
   bool enqueueAlertToRecipients(HostAlert *alert, bool released);
   void alert2JSON(HostAlert *alert, bool released, ndpi_serializer *serializer);
@@ -518,13 +524,21 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t value_flows_anomaly(bool as_client) { return(stats->value_flows_anomaly(as_client)); }
   inline u_int32_t lower_bound_flows_anomaly(bool as_client) { return(stats->lower_bound_flows_anomaly(as_client)); }
   inline u_int32_t upper_bound_flows_anomaly(bool as_client) { return(stats->upper_bound_flows_anomaly(as_client)); }
-  
+
   inline bool has_score_anomaly(bool as_client) { return(stats->has_score_anomaly(as_client)); }
   inline u_int32_t lower_bound_score_anomaly(bool as_client) { return(stats->lower_bound_score_anomaly(as_client)); }
   inline u_int32_t upper_bound_score_anomaly(bool as_client) { return(stats->upper_bound_score_anomaly(as_client)); }
 
   inline void inc_num_blacklisted_flows(bool as_client) { if(as_client) num_blacklisted_flows.as_client++; else num_blacklisted_flows.as_server++; }
-  inline void setViewInterfaceMac(u_int8_t *_view_interface_mac) { if(_view_interface_mac) memcpy(view_interface_mac, _view_interface_mac, sizeof(view_interface_mac)); }  
+  inline void setViewInterfaceMac(u_int8_t *_view_interface_mac) { if(_view_interface_mac) memcpy(view_interface_mac, _view_interface_mac, sizeof(view_interface_mac)); }
+
+  inline void incIncompleteFlows()         { num_incomplete_flows++;       }
+  inline u_int32_t getAndResetNumIncompleteFlows() {
+    u_int32_t _num_incomplete_flows = num_incomplete_flows;
+
+    num_incomplete_flows = 0;
+    return(_num_incomplete_flows);
+  }
 };
 
 #endif /* _HOST_H_ */

@@ -46,20 +46,21 @@ Flow::Flow(NetworkInterface *_iface,
   flow_device.observation_point_id = _observation_point_id;
   cli_host = srv_host = NULL;
   cli_ip_addr = srv_ip_addr = NULL;
-  good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
+  flow_dropped_counts_increased = 0, vrfId = 0;
   srcAS = dstAS  = prevAdjacentAS = nextAdjacentAS = 0;
   predominant_alert.id = flow_alert_normal, predominant_alert.category = alert_category_other;
   predominant_alert_score = 0;
   ndpi_flow_risk_bitmap = 0;
   NDPI_SET_BIT(ndpi_flow_risk_bitmap, NDPI_NO_RISK);
-  detection_completed = false;
-  extra_dissection_completed = false;
+  detection_completed = 0;
+  non_zero_payload_observed = 0;
+  extra_dissection_completed = 0;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
   periodic_update_ctr = 0, cli2srv_tos = srv2cli_tos = 0, iec104 = NULL;
   suspicious_dga_domain = NULL;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
-  swap_done = swap_requested = false;
+  swap_done = swap_requested = 0;
   flowCreationTime = iface->getTimeLastPktRcvd();
 
 #ifdef HAVE_NEDGE
@@ -70,8 +71,8 @@ Flow::Flow(NetworkInterface *_iface,
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
   ndpiFlow = NULL, confidence = NDPI_CONFIDENCE_UNKNOWN;
   cli_ebpf = srv_ebpf = NULL;
-  json_info = NULL, tlv_info = NULL, twh_over = twh_ok = false,
-    dissect_next_http_packet = false, host_server_name = NULL;
+  json_info = NULL, tlv_info = NULL, twh_over = twh_ok = 0,
+    dissect_next_http_packet = 0, host_server_name = NULL;
   bt_hash = NULL;
 
   flow_verdict = 0;
@@ -173,8 +174,8 @@ Flow::Flow(NetworkInterface *_iface,
   }
 #endif
 
-  passVerdict = true, quota_exceeded = false;
-  has_malicious_cli_signature = has_malicious_srv_signature = false;
+  passVerdict = 1, quota_exceeded = 0;
+  has_malicious_cli_signature = has_malicious_srv_signature = 0;
 #ifdef ALERTED_FLOWS_DEBUG
   iface_alert_inc = iface_alert_dec = false;
 #endif
@@ -249,7 +250,8 @@ Flow::Flow(NetworkInterface *_iface,
     break;
 
   default:
-    setDetectedProtocol(ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol, 0, 0, 0, 0));
+    setDetectedProtocol(ndpi_guess_undetected_protocol(iface->get_ndpi_struct(),
+						       NULL, protocol, 0, 0, 0, 0));
     break;
   }
 
@@ -760,6 +762,9 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
 #endif
 #endif
 
+  if(payload_len > 0)
+    non_zero_payload_observed = 1;
+  
   if(detected) {
     if(ndpiFlow->risk != 0) {
       if(srv_host) {
@@ -976,7 +981,7 @@ void Flow::setExtraDissectionCompleted() {
 
   processExtraDissectedInformation();
 
-  extra_dissection_completed = true;
+  extra_dissection_completed = 1;
 }
 
 /* *************************************** */
@@ -1022,7 +1027,7 @@ void Flow::setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_le
   /* Process detected protocol data and needs ndpiFlow only allocated for packet interfaces */
   processDetectedProtocolData();
 
-  detection_completed = true;
+  detection_completed = 1;
 
 #ifdef BLACKLISTED_FLOWS_DEBUG
   if(ndpiDetectedProtocol.category == CUSTOM_CATEGORY_MALWARE) {
@@ -1350,11 +1355,11 @@ bool Flow::dump(time_t t, bool last_dump_before_free) {
 
 void Flow::setDropVerdict() {
 #if defined(HAVE_NEDGE)
-  if((iface->getIfType() == interface_type_NETFILTER) && (passVerdict == true))
+  if((iface->getIfType() == interface_type_NETFILTER) && (passVerdict == 1))
     ((NetfilterInterface *) iface)->setPolicyChanged();
 #endif
 
-  passVerdict = false;
+  passVerdict = 0;
 }
 
 /* *************************************** */
@@ -1382,7 +1387,7 @@ void Flow::incFlowDroppedCounters() {
     /* Increasing stats on the server is pointless.
        If a flow is dropped, the server doesn't even see it,
        it is just the client that gets a drop. */
-    flow_dropped_counts_increased = true;
+    flow_dropped_counts_increased = 1;
   }
 }
 #endif
@@ -2181,7 +2186,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(iface->is_bridge_interface())
       lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict() ? 1 : 0);
 #else
-    if(!passVerdict) lua_push_bool_table_entry(vm, "verdict.pass", 0);
+    if(!passVerdict)
+      lua_push_bool_table_entry(vm, "verdict.pass", 0);
 #endif
 
     if(get_protocol() == IPPROTO_TCP)
@@ -3158,6 +3164,32 @@ void Flow::housekeep(time_t t) {
       NOTE: for view interfaces, decrement are performed in ~Flow to avoid races.
      */
     if(!getInterface()->isViewed()) decAllFlowScores();
+
+    switch(protocol) {
+    case IPPROTO_TCP:
+      if(cli_host
+	 && ((getTcpFlagsCli2Srv() == TH_SYN)
+	     || (!non_zero_payload_observed)	     
+	     )
+	 )
+	cli_host->incIncompleteFlows();
+      break;
+
+    case IPPROTO_UDP:
+      if(cli_host
+	 && (get_packets_srv2cli() == 0) /* unidirectional flow */
+	 && srv_ip_addr
+	 && srv_ip_addr->isNonEmptyUnicastAddress())
+	cli_host->incIncompleteFlows();
+      break;
+    }
+
+#ifdef DEBUG_SCAN_DETECTION
+    char buf[64];
+    
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "IDLE %s", print(buf, sizeof(buf)));
+    break;
+#endif
     break;
 
   default:
@@ -3594,7 +3626,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
     if(!twh_over) {
       if((src2dst_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)
 	 && ((dst2src_tcp_flags & (TH_SYN|TH_ACK)) == (TH_SYN|TH_ACK)))
-	twh_ok = twh_over = true,
+	twh_ok = twh_over = 1,
 	  iface->getTcpFlowStats()->incEstablished();
     }
   } else {
@@ -3626,18 +3658,20 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 
 	  setRtt();
 
-	  twh_ok = true;
+	  twh_ok = 1;
 	  iface->getTcpFlowStats()->incEstablished();
 	}
 	goto not_yet;
       } else {
       not_yet:
-	twh_over = true;
+	twh_over = 1;
 
 #if 0
 	if(!twh_ok) {
 	  char buf[256];
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[flags: %u][src2dst: %u] not ok %s", flags, src2dst_direction ? 1 : 0, print(buf, sizeof(buf)));
+	  
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[flags: %u][src2dst: %u] not ok %s",
+				       flags, src2dst_direction ? 1 : 0, print(buf, sizeof(buf)));
 	}
 #endif
 
@@ -4196,7 +4230,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
     if(src2dst_direction) {
     char *space;
-    dissect_next_http_packet = true;
+    dissect_next_http_packet = 1;
 
     /* use memchr to prevent possibly non-NULL terminated HTTP requests */
     if(payload && ((space = (char*)memchr(payload, ' ', payload_len - 1)) != NULL)) {
@@ -4302,7 +4336,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
       char *space;
 
       // payload[10]=0; ntop->getTrace()->traceEvent(TRACE_WARNING, "[len: %u][%s]", payload_len, payload);
-      dissect_next_http_packet = false;
+      dissect_next_http_packet = 0;
 
       if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
 	u_int l = space - payload;
@@ -4678,7 +4712,7 @@ bool Flow::updateDirectionShapers(bool src2dst_direction, TrafficShaper **ingres
 
 void Flow::updateFlowShapers(bool first_update) {
   bool cli2srv_verdict, srv2cli_verdict;
-  bool old_verdict = passVerdict;
+  u_int8_t old_verdict = passVerdict;
   bool new_verdict;
   u_int16_t old_cli2srv_in = cli2srv_in,
     old_cli2srv_out = cli2srv_out,
@@ -4734,7 +4768,7 @@ void Flow::recheckQuota(const struct tm *now) {
     cli_quota_source = cli_src, srv_quota_source = srv_src;
   }
 
-  quota_exceeded = above_quota;
+  quota_exceeded = above_quota ? 1 : 0;
 }
 
 #endif
@@ -5293,7 +5327,7 @@ void Flow::lua_duration_info(lua_State *vm) {
 
   lua_push_uint64_table_entry(vm, "first_seen", get_first_seen());
   lua_push_uint64_table_entry(vm, "last_seen", get_last_seen());
-  lua_push_bool_table_entry(vm, "twh_over", twh_over);
+  lua_push_bool_table_entry(vm, "twh_over", twh_over ? true : false);
 }
 
 /* ***************************************************** */
@@ -5866,7 +5900,7 @@ void Flow::check_swap() {
   if(!(get_cli_ip_addr()->isNonEmptyUnicastAddress() && !get_srv_ip_addr()->isNonEmptyUnicastAddress()) /* Everything that is NOT unicast-to-non-unicast needs to be checked */
      /* && get_cli_port() < 1024 // Relax this constraint and also apply to non-well-known ports such as 8080 */
      && get_cli_port() < get_srv_port())
-    swap_requested = true;
+    swap_requested = 1;
 }
 
 /* *************************************** */

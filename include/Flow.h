@@ -47,7 +47,6 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags, flow_verdict;
-  u_int8_t src2dst_tcp_zero_window:1, dst2src_tcp_zero_window:1, _pad:6;
   u_int16_t flow_score;
   u_int8_t view_cli_mac[6], view_srv_mac[6];
   struct ndpi_flow_struct *ndpiFlow;
@@ -66,13 +65,14 @@ class Flow : public GenericHashEntry {
     struct ndpi_analyze_struct *c2s, *s2c;
   } entropy;
   u_int hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table */
-
-  bool detection_completed, extra_dissection_completed,
-    twh_over, twh_ok, dissect_next_http_packet, passVerdict,
-    l7_protocol_guessed, flow_dropped_counts_increased,
-    good_tls_hs,
-    quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature,
-    swap_done, swap_requested;
+  
+  u_int16_t detection_completed:1, extra_dissection_completed:1,
+    twh_over:1, twh_ok:1, dissect_next_http_packet:1, passVerdict:1,
+    flow_dropped_counts_increased:1, quota_exceeded:1,
+    swap_done:1, swap_requested:1,
+    has_malicious_cli_signature:1, has_malicious_srv_signature:1,
+    src2dst_tcp_zero_window:1, dst2src_tcp_zero_window:1,
+    non_zero_payload_observed:1, _notused:1;
   
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
@@ -471,8 +471,8 @@ class Flow : public GenericHashEntry {
 		    time_t first_seen, time_t last_seen);
   void check_swap();
 
-  inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
-  inline bool isDetectionCompleted()     const { return(detection_completed);             };
+  inline bool isThreeWayHandshakeOK()    const { return(twh_ok ? true : false);                 };
+  inline bool isDetectionCompleted()     const { return(detection_completed ? true : false);    };
   inline bool isOneWay()                 const { return(get_packets() && (!get_packets_cli2srv() || !get_packets_srv2cli())); };
   inline bool isBidirectional()          const { return(get_packets_cli2srv() && get_packets_srv2cli()); };
   inline bool isRemoteToRemote()         const { return (cli_host && srv_host && !cli_host->isLocalHost() && !srv_host->isLocalHost()); };
@@ -572,9 +572,9 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_cli2srv() const;
   u_int64_t get_current_packets_srv2cli() const;
 
-  inline bool is_swap_requested()  const { return swap_requested;  };
-  inline bool is_swap_done()       const { return swap_done;       };
-  inline void set_swap_done()            { swap_done = true;       };
+  inline bool is_swap_requested()  const { return(swap_requested ? true : false);  };
+  inline bool is_swap_done()       const { return(swap_done ? true : false);       };
+  inline void set_swap_done()            { swap_done = 1;                          };
   /*
     Returns actual client and server, that is the client and server as determined after
     the swap heuristic that has taken place.
@@ -680,9 +680,10 @@ class Flow : public GenericHashEntry {
 
     return 0;
   }
+
   inline bool hasInvalidDNSQueryChars() const { return(isDNS() && hasRisk(NDPI_INVALID_CHARACTERS)); }
   inline bool hasMaliciousSignature(bool as_client) const { return as_client ? has_malicious_cli_signature : has_malicious_srv_signature; }
-
+  
   void setRisk(ndpi_risk r);
   void addRisk(ndpi_risk r);
   inline ndpi_risk getRiskBitmap() const { return ndpi_flow_risk_bitmap; }

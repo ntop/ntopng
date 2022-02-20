@@ -197,6 +197,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   disabled_alerts_tstamp = 0;
   num_remote_access = 0;
   memset(view_interface_mac, 0, sizeof(view_interface_mac));
+  num_incomplete_flows = 0;
   
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 
@@ -984,7 +985,7 @@ char * Host::getHTTPName(char * const buf, ssize_t buf_len) {
 
 /* ***************************************** */
 
-const char * Host::getOSDetail(char * const buf, ssize_t buf_len) {
+const char* Host::getOSDetail(char * const buf, ssize_t buf_len) {
   if(buf && buf_len)
     buf[0] = '\0';
 
@@ -1024,7 +1025,8 @@ bool Host::is_hash_entry_state_idle_transition_ready() {
 #if DEBUG_HOST_IDLE_TRANSITION
   char buf[64];
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Idle check [%s][local: %u][get_host_max_idle: %u][last seen: %u][ready: %u]",
-			       ip.print(buf, sizeof(buf)), isLocalHost(), ntop->getPrefs()->get_host_max_idle(isLocalHost()), last_seen, res ? 1 : 0);
+			       ip.print(buf, sizeof(buf)), isLocalHost(),
+			       ntop->getPrefs()->get_host_max_idle(isLocalHost()), last_seen, res ? 1 : 0);
 #endif
 
   return res;
@@ -1054,7 +1056,8 @@ void Host::periodic_stats_update(const struct timeval *tv) {
   if(cur_os_type == os_unknown
      && cur_mac
      && cur_mac->getFingerprint()
-     && (cur_os_from_fingerprint = Utils::getOSFromFingerprint(cur_mac->getFingerprint(), cur_mac->get_manufacturer(), cur_mac->getDeviceType())) != cur_os_type)
+     && (cur_os_from_fingerprint = Utils::getOSFromFingerprint(cur_mac->getFingerprint(),
+							       cur_mac->get_manufacturer(), cur_mac->getDeviceType())) != cur_os_type)
     setOS(cur_os_from_fingerprint);
 
   if(stats)
@@ -1062,6 +1065,15 @@ void Host::periodic_stats_update(const struct timeval *tv) {
 
   GenericHashEntry::periodic_stats_update(tv);
 
+#ifdef DEBUG_SCAN_DETECTION
+  if(num_incomplete_flows > 0) {
+    char buf[64];
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s: %u",
+				 ip.print(buf, sizeof(buf)), num_incomplete_flows);
+  }
+#endif
+  
   custom_periodic_stats_update(tv);
 }
 
