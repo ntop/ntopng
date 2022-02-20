@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-21 - ntop.org
+ * (C) 2013-22 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _DNS_TRAFFIC__ALERT_H_
-#define _DNS_TRAFFIC__ALERT_H_
+#ifndef _DNS_TRAFFIC_ALERT_H_
+#define _DNS_TRAFFIC_ALERT_H_
 
 
 #include "ntop_includes.h"
@@ -42,4 +42,4 @@ class DNSTrafficAlert : public HostAlert {
   u_int8_t getAlertScore()     const { return SCORE_LEVEL_ERROR; };
 };
 
-#endif /* _DNS_TRAFFIC__ALERT_H_ */
+#endif /* _DNS_TRAFFIC_ALERT_H_ */

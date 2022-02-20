@@ -44,6 +44,7 @@
 #include "host_alerts/RemoteConnectionAlert.h"
 #include "host_alerts/ScoreAnomalyAlert.h"
 #include "host_alerts/DomainNamesContactsAlert.h"
+#include "host_alerts/ScanDetectionAlert.h"
 
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */
 

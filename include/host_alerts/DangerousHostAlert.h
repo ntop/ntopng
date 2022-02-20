@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-21 - ntop.org
+ * (C) 2013-22 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _DANGEROUS_HOST__ALERT_H_
-#define _DANGEROUS_HOST__ALERT_H_
+#ifndef _DANGEROUS_HOST_ALERT_H_
+#define _DANGEROUS_HOST_ALERT_H_
 
 
 #include "ntop_includes.h"
@@ -42,4 +42,4 @@ class DangerousHostAlert : public HostAlert {
   u_int8_t getAlertScore()     const { return SCORE_LEVEL_SEVERE; };
 };
 
-#endif /* _DANGEROUS_HOST__ALERT_H_ */
+#endif /* _DANGEROUS_HOST_ALERT_H_ */

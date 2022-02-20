@@ -45,6 +45,7 @@
 #include "host_checks/DangerousHost.h"
 #include "host_checks/RemoteConnection.h"
 #include "host_checks/DomainNamesContacts.h"
+#include "host_checks/ScanDetection.h"
 #include "host_checks/ScoreThreshold.h"
 
 #include "host_checks/PktThreshold.h"
