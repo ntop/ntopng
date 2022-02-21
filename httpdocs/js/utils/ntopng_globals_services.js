@@ -150,7 +150,10 @@ const ntopng_status_manager = function() {
          */
         add_value_to_status: function(key, value, skip_id) {
             let new_status = this.get_status();
-            new_status[key] = value;
+            
+            /* This is needed to have muliple filters for the same key */
+            (new_status[key] && new_status[key] !== value) ? new_status[key] += "," + value : new_status[key] = value
+            
             this.replace_status(new_status, skip_id);
         },
     }
