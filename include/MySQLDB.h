@@ -47,7 +47,9 @@ class MySQLDB : public DB {
   bool createNprobeDBView();
   MYSQL* mysql_try_connect(MYSQL *conn, const char *dbname);
   int exec_quick_sql_query(char *sql, char *out, u_int out_len);
-  
+  void mysql_result_to_lua(lua_State *vm, MYSQL_RES *result,
+			   int num_fields, bool limitRows);
+    
  public:
   MySQLDB(NetworkInterface *_iface);
   virtual ~MySQLDB();
@@ -60,7 +62,7 @@ class MySQLDB : public DB {
   char *escapeAphostrophes(const char *unescaped);
   int flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len);
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created);
-  void startLoop();
+  virtual void startLoop();
   void shutdown();
   int exec_single_query(lua_State *vm, char *sql);
 };

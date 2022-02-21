@@ -19,7 +19,7 @@
  *
  */
 
-/* 
+/*
    NOTE
 
    This class is used to connext to a DB using the MySQL protocol
@@ -234,7 +234,7 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
     exec_sql_query(&mysql, sql, true, true);
     // Drop old tables (their contents have been transferred)
   }
-  
+
   snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS  `%sv4_%u` ",
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
   exec_sql_query(&mysql, sql, true, true);
@@ -439,7 +439,7 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 
   if(set_db_created)
     db_created = true;
-  
+
   return true;
 }
 
@@ -566,7 +566,7 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json,
   packets = f->get_partial_packets();
   first_seen = f->get_partial_first_seen();
   last_seen = f->get_partial_last_seen();
-  
+
   if(f->get_cli_ip_addr()->isIPv4()) {
     len = snprintf(values_buf, values_buf_len,
 		   MYSQL_INSERT_VALUES_V4,
@@ -663,15 +663,15 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
   flow2InsertValues(f, json, &sql[strlen(sql)], sizeof(sql) - strlen(sql) - 1);
 
   if (iface->read_from_pcap_dump()) {
-    /* 
+    /*
      Inserting inline in case of PCAP file as interrupting the datapath
-     is not an issue and also avoids flows drops due to the redis queue 
+     is not an issue and also avoids flows drops due to the redis queue
      maximum length
     */
     try_exec_sql_query(&mysql, sql);
   } else {
     if (ntop->getRedis()->llen(CONST_SQL_QUEUE) < CONST_MAX_MYSQL_QUEUE_LEN) {
-      /* 
+      /*
        We know that we should have locked before evaluating the condition
        above as another thread, via the lpush below, can invalidate the condition.
        However, we prefer to avoid an additional lock as the lpush guarantees
@@ -706,7 +706,7 @@ MYSQL* MySQLDB::mysql_try_connect(MYSQL *conn, const char *dbname) {
   char *host = ntop->getPrefs()->get_mysql_host();
   char *user = ntop->getPrefs()->get_mysql_user();
   u_int port = ntop->getPrefs()->get_mysql_port();
-    
+
   if(!host)
     return(NULL);
 
@@ -733,18 +733,20 @@ MYSQL* MySQLDB::mysql_try_connect(MYSQL *conn, const char *dbname) {
 			    NULL /* socket */,
 			    flags);
   }
-  
+
   return(rc);
 }
 
 /* ******************************************* */
 
-void mysql_result_to_lua(lua_State *vm, MYSQL_RES *result, bool limitRows) {
+void MySQLDB::mysql_result_to_lua(lua_State *vm, MYSQL_RES *result,
+				  int num_fields, bool limitRows) {
   MYSQL_ROW row;
   char *fields[MYSQL_MAX_NUM_FIELDS] = { NULL };
-  int num_fields = min_val(mysql_num_fields(result), MYSQL_MAX_NUM_FIELDS);
   int num = 0;
-  
+
+  num_fields = min_val(num_fields, MYSQL_MAX_NUM_FIELDS);
+
   lua_newtable(vm);
 
   while((row = mysql_fetch_row(result))) {
@@ -758,8 +760,12 @@ void mysql_result_to_lua(lua_State *vm, MYSQL_RES *result, bool limitRows) {
       }
     }
 
-    for(int i = 0; i < num_fields; i++)
+    for(int i = 0; i < num_fields; i++) {
+#ifdef QUERY_TRACE
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[row %u/fields %u] %s=%s", num+1, num_fields, fields[i], row[i] ? row[i] : (char*)"");
+#endif
       lua_push_str_table_entry(vm, (const char*)fields[i], row[i] ? row[i] : (char*)"");
+    }
 
     lua_pushinteger(vm, ++num);
     lua_insert(vm, -2);
@@ -768,12 +774,14 @@ void mysql_result_to_lua(lua_State *vm, MYSQL_RES *result, bool limitRows) {
     if(num > MYSQL_MAX_NUM_ROWS) {
       static bool warning_shown = false;
       if(!warning_shown) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many results returned from MySQL, reduce query result set");
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Too many results returned from MySQL, reduce query result set");
 	warning_shown = true;
       }
     }
 
-    if(limitRows && num >= MYSQL_MAX_NUM_ROWS) break;
+    if(limitRows && num >= MYSQL_MAX_NUM_ROWS)
+      break;
   }
 }
 
@@ -814,9 +822,9 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   db_operational = true;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to %s [%s@%s:%i] for interface %s",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to %s [%s@%s:%i][dname: %s] for interface %s",
 			       ntop->getPrefs()->useClickHouse() ? "ClickHouse" : "MySQL",
-			       user, host, port, iface->get_name());
+			       user, host, port, dbname ? dbname : "", iface->get_name());
 
   m.unlock(__FILE__, __LINE__);
   return(db_operational);
@@ -834,19 +842,21 @@ int MySQLDB::exec_single_query(lua_State *vm, char *sql) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql);
     gettimeofday(&begin, NULL);
   }
-  
+
   if(mysql_init(&conn) != NULL) {
     if((mysql_try_connect(&conn, NULL /* no db */) != NULL)
        && (mysql_query(&conn, sql) == 0)
        && ((result = mysql_store_result(&conn)) != NULL)) {
-      if(mysql_field_count(&conn) != 0) {
-	mysql_result_to_lua(vm, result, false);
+      int num_fields = mysql_field_count(&conn);
+      
+      if(num_fields != 0) {	
+	mysql_result_to_lua(vm, result, num_fields, false);
 	result_ok = true;
       }
-      
+
       mysql_free_result(result);
     }
-    
+
     mysql_close(&conn);
   }
 
@@ -880,18 +890,18 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql);
     gettimeofday(&begin, NULL);
   }
-  
-  /* 
+
+  /*
      Don't check db_created here. This method is private
      so hopefully we know what we're doing.
    */
   if(!db_operational) {
-    if(!connectToDB(conn, true)
-)
-      return(-3);    
+    if(!connectToDB(conn, true))
+      return(-3);
   }
-  
+
   if(doLock) m.lock(__FILE__, __LINE__);
+  
   if((rc = mysql_query(conn, sql)) != 0) {
     if(!ignoreErrors)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%s]",
@@ -931,10 +941,11 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
       mysql_free_result(result);
     }
   }
-  
+
   if(enable_db_traces) {
     gettimeofday(&end, NULL);
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Query completed in %.3f sec", Utils::usecTimevalDiff(&end, &begin)/1000000.);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Query completed in %.3f sec",
+				 Utils::usecTimevalDiff(&end, &begin)/1000000.);
   }
 
   if(doLock) m.unlock(__FILE__, __LINE__);
@@ -944,9 +955,10 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
 
 /* ******************************************* */
 
-int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created) {
+int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows,
+			    bool wait_for_db_created) {
   MYSQL_RES *result;
-  int rc;
+  int rc, num_fields;
   struct timeval begin, end;
 
   if(!ntop->getPrefs()->useClickHouse()) {
@@ -955,17 +967,17 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
       return(-2);
     }
   }
-  
+
   if(!db_operational) {
     if(!connectToDB(&mysql, true))
-      return(-3);    
+      return(-3);
   }
 
   if(enable_db_traces) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql);
     gettimeofday(&begin, NULL);
   }
-  
+
   m.lock(__FILE__, __LINE__);
 
   if(ntop->getPrefs()->is_sql_log_enabled() && log_fd && sql) {
@@ -982,6 +994,10 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
     fprintf(log_fd, "%s\n", sql);
     fflush(log_fd);
   }
+
+#ifdef QUERY_TRACE
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql);
+#endif
   
   if((rc = mysql_query(&mysql, sql)) != 0) {
     /* retry */
@@ -996,35 +1012,53 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
     rc = mysql_query(&mysql, sql);
   }
 
-  if((rc != 0)
-     || (((result = mysql_store_result(&mysql)) == NULL)
-	 && mysql_field_count(&mysql) != 0 /* mysql_store_result() returned nothing; should it have? */)) {
-    rc = mysql_errno(&mysql);
-
-    if(rc) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d][%s]",
-				   get_last_db_error(&mysql), rc, sql);
-      lua_pushstring(vm, get_last_db_error(&mysql));
+  if(rc == 0) {
+    if((result = mysql_store_result(&mysql)) == NULL) {
+      if(mysql_field_count(&mysql) == 0) {
+	/* If mysql_field_count() == 0 this was an INSERT so it's normal that tha result is NULL */
+	if(vm) lua_pushnil(vm);
+	m.unlock(__FILE__, __LINE__);
+	return(0);
+      } else
+	rc = -1;
     } else {
-      lua_pushnil(vm);
-    }
+#ifdef QUERY_TRACE
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%p] %u row(s) found", &mysql, mysql_num_rows(result));
+#endif
+      
+      num_fields = mysql_field_count(&mysql);
 
+      if(num_fields == 0)
+	rc = -2;
+    }
+  }
+
+  if(rc != 0) {
+    lua_pushstring(vm, get_last_db_error(&mysql));
+    
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d][%s]",
+				 get_last_db_error(&mysql), rc, sql);
+    
     m.unlock(__FILE__, __LINE__);
     return(rc);
   }
+
+#ifdef QUERY_TRACE
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "num_fields=%d", num_fields);
+#endif
   
   if(enable_db_traces) {
     gettimeofday(&end, NULL);
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Query completed in %.3f sec", Utils::usecTimevalDiff(&end, &begin)/1000000.);
   }
 
-  if((result == NULL) || (mysql_field_count(&mysql) == 0)) {
-    lua_pushnil(vm);
+  if((result == NULL) || (num_fields == 0)) {
+    if(vm) lua_pushnil(vm);
   } else {
-    mysql_result_to_lua(vm, result, limitRows);
+    if(vm) mysql_result_to_lua(vm, result, num_fields, limitRows);
     mysql_free_result(result);
   }
-  
+
   m.unlock(__FILE__, __LINE__);
 
   return(0);
@@ -1039,19 +1073,19 @@ int MySQLDB::exec_quick_sql_query(char *sql, char *out, u_int out_len) {
 
   out[0] = '\0';
 
-  if(!db_created /* Make sure the db exists before doing queries */)    
+  if(!db_created /* Make sure the db exists before doing queries */)
     return(-2);
-  
+
   if(!db_operational) {
     if(!connectToDB(&mysql, true))
-      return(-3);    
+      return(-3);
   }
 
   if(enable_db_traces) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql);
     gettimeofday(&begin, NULL);
   }
-  
+
   m.lock(__FILE__, __LINE__);
 
   if(ntop->getPrefs()->is_sql_log_enabled() && log_fd && sql) {
@@ -1068,7 +1102,7 @@ int MySQLDB::exec_quick_sql_query(char *sql, char *out, u_int out_len) {
     fprintf(log_fd, "%s\n", sql);
     fflush(log_fd);
   }
-  
+
   if((rc = mysql_query(&mysql, sql)) != 0) {
     /* retry */
     disconnectFromDB(&mysql);
@@ -1095,7 +1129,7 @@ int MySQLDB::exec_quick_sql_query(char *sql, char *out, u_int out_len) {
     m.unlock(__FILE__, __LINE__);
     return(rc);
   }
-  
+
   if(enable_db_traces) {
     gettimeofday(&end, NULL);
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Query completed in %.3f sec", Utils::usecTimevalDiff(&end, &begin)/1000000.);
@@ -1110,12 +1144,12 @@ int MySQLDB::exec_quick_sql_query(char *sql, char *out, u_int out_len) {
       u_int num_fields = mysql_num_fields(result);
 
       if(num_fields > 0)
-	snprintf(out, out_len, "%s", row[0 /* first field */]);      
+	snprintf(out, out_len, "%s", row[0 /* first field */]);
     }
-	  
+
     mysql_free_result(result);
   }
-  
+
   m.unlock(__FILE__, __LINE__);
 
   return(0);
