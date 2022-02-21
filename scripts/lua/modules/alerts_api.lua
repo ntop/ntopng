@@ -716,4 +716,10 @@ end
 
 -- ##############################################
 
+function alerts_api.setCheck(check)
+  current_script = check
+end
+
+-- ##############################################
+
 return(alerts_api)

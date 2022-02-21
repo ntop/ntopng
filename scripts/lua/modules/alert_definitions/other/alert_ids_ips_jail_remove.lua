@@ -6,7 +6,6 @@
 
 local other_alert_keys = require "other_alert_keys"
 
-local format_utils = require "format_utils"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!

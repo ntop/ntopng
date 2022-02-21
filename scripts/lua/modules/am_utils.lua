@@ -5,6 +5,9 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 
+local checks = require("checks")
+local other_alert_keys = require "other_alert_keys"
+
 local am_utils = {}
 local ts_utils = require "ts_utils_core"
 local json = require("dkjson")
@@ -24,6 +27,14 @@ local HOUR_STATS_EXCEEDED = 2
 local HOUR_STATS_UNREACHABLE = 3
 
 local do_trace = false
+
+local active_monitoring = {
+   -- Script category
+   category = checks.check_categories.active_monitoring,
+
+   default_enabled = true,
+   alert_id = other_alert_keys.alert_am_threshold_cross,
+}
 
 -- ##############################################
 
@@ -959,6 +970,7 @@ function am_utils.run_am_check(when, all_hosts, granularity)
     end
 
     am_utils.setLastAmUpdate(key, when, host_value, resolved_host, jitter, mean)
+    alerts_api.setCheck(active_monitoring)
 
     if am_utils.hasExceededThreshold(threshold, operator, host_value) then
       if(do_trace) then print("[TRIGGER] Host "..resolved_host.."/"..key.." [value: "..host_value.."][threshold: "..threshold.."]\n") end
