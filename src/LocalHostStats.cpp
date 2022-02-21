@@ -459,7 +459,7 @@ void LocalHostStats::updateContactedHostsBehaviour() {
   /* Update the old and new hll value and do the delta */
   old_hll_value = new_hll_value;
   new_hll_value = ndpi_hll_count(&hll_contacted_hosts);
-  hll_delta_value = new_hll_value - old_hll_value;
+  hll_delta_value = abs(new_hll_value - old_hll_value);
 
 #ifdef TRACE_ME
   char buf[64];
@@ -479,14 +479,14 @@ void LocalHostStats::updateCountriesContactsBehaviour() {
   new_hll_countries_value = ndpi_hll_count(&hll_countries_contacts);
   hll_delta_countries_value = abs(new_hll_countries_value - old_hll_countries_value);
 
-  #ifdef TRACE_ME
+#ifdef TRACE_ME
   char buf[64];
   
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s / %f contacts",
 			       host->get_ip()->print(buf, sizeof(buf)),
 			       last_hll_countries_contacts_value);
   ndpi_hll_reset(&hll_countries_contacts);
-  #endif
+#endif
 
   host->resetCountriesContacts();
 }
