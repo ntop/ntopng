@@ -41,7 +41,10 @@ private:
 
   bool loadConfiguration(json_object *config);  
 
-  HostCheckID getID()   const { return(host_check_scan_detection); }
+  /* HostCheckID in ntop_typedefs.h */
+  HostCheckID getID()   const { return(host_check_scan_detection);     }
+
+  /* scripts/lua/modules/check_definitions/host/scan_detection.lua */
   std::string getName() const { return(std::string("scan_detection")); }
 };
 

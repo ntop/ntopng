@@ -2,19 +2,18 @@
 -- (C) 2019-22 - ntop.org
 --
 
-local alerts_api = require("alerts_api")
-local alert_consts = require("alert_consts")
 local checks = require("checks")
+local host_alert_keys = require "host_alert_keys"
 
 local script = {
-  packet_interface_only = false,
-
   -- Script category
   category = checks.check_categories.security,
-
+  
   -- This module is disabled by default
   default_enabled = false,
 
+  alert_id = host_alert_keys.host_alert_scan_detected,
+  
   default_value = {
      operator = "gt",
      threshold = 32,
@@ -41,21 +40,6 @@ local script = {
     field_operator = "gt";
   }
 }
-
--- #################################################################
-
--- Defines an hook which is executed every minute
-function script.hooks.min(params)
-  local value = params.entity_info["hits.scan_detected"] or 0
-  local victim = nil
-
-  if value ~= 0 then
-    victim = params.alert_entity.entity_val
-  end
-  
-  -- Check if the configured threshold is crossed by the value and possibly trigger an alert
-  alerts_api.checkThresholdAlert(params, alert_consts.alert_types.host_alert_scan_detected, value, nil, victim)
-end
 
 -- #################################################################
 
