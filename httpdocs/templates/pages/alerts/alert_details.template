@@ -22,13 +22,15 @@
 {%   if not is_content_table then %}
      <td colspan="2">{* row.content *}</td>
 {%   else 
-         for data, info in pairsByKeys(row.content, asc) do %}
-         <tr>
-            <th>{{ i18n(data) or data }}</th>
-            <td>{{ info }}</td>
-         </tr> 
-{%       end   
-     end %}
+        for data, info in pairsByKeys(row.content, asc) do 
+          if i18n(data) then %}
+            <tr>
+              <th>{{ i18n(data) or data }}</th>
+              <td>{{ info }}</td>
+            </tr> 
+       {% end
+        end   
+      end %}
    </tr> 
 {% end %}
 </table>
