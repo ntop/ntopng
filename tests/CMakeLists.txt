@@ -13,21 +13,29 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+set(CURL_LIBRARY "-lcurl") 
 
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(ZeroMQ REQUIRED)
 find_package(PCAP REQUIRED)
 find_package(Ndpi REQUIRED)
+find_package(CURL REQUIRED) 
 find_package(Lua REQUIRED)
 find_package(JsonC REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(Hiredis REQUIRED)
 find_package(Mongoose REQUIRED)
 find_package(MySQL REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(EXPAT REQUIRED)
+find_package(RRDTool REQUIRED)
 
 set(LOCAL_INCLUDE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/../third-party/include)
-include_directories(${LOCAL_INCLUDE} ${CMAKE_SOURCE_DIR}/../include ${MYSQL_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${HIREDIS_INCLUDE_DIR} ${SQLite3_INCLUDE_DIRS} ${ZeroMQ_INCLUDE_DIRS} ${NDPI_INCLUDE_DIR} ${PCAP_INCLUDE_DIR} ${JSONC_INCLUDE_DIR} ${LUA_INCLUDE_DIR} ${MONGOOSE_INCLUDE_DIR})
+set(DEFAULT_DATA_DIR "/usr/local")
+include_directories(${LOCAL_INCLUDE} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../include ${MYSQL_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${HIREDIS_INCLUDE_DIR} ${SQLite3_INCLUDE_DIRS} ${ZeroMQ_INCLUDE_DIRS} ${NDPI_INCLUDE_DIR} ${PCAP_INCLUDE_DIR} ${JSONC_INCLUDE_DIR} ${LUA_INCLUDE_DIR} ${MONGOOSE_INCLUDE_DIR})
+include_directories(${CURL_INCLUDE_DIR} ${RRDTOOL_INCLUDE_DIR} ${EXPAT_INCLUDE_DIRS})
+
 file(GLOB_RECURSE INCLUDE_FILES ${CMAKE_SOURCE_DIR}/include/*.h)
 file(GLOB_RECURSE SOURCE_FILES_NO_MAIN ${CMAKE_SOURCE_DIR}/src/*.cpp ${CMAKE_SOURCE_DIR}/../src/*.cpp)
 list(FILTER SOURCE_FILES_NO_MAIN EXCLUDE REGEX ".*main.cpp$")
@@ -36,6 +44,7 @@ list(FILTER SOURCE_FILES_NO_MAIN EXCLUDE REGEX ".*main.cpp$")
 include(CTest)
 enable_testing()
 add_definitions(-DUNIT_TEST)
+add_definitions(-DDATA_DIR=${DEFAULT_DATA_DIR})
 
 add_executable(
   unit_tests
@@ -46,7 +55,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/ThreadPoolTest.cpp
 
 )
-target_link_libraries( unit_tests gtest_main ${OPENSSL_LIBRARIES} ${ZeroMQ_LIBRARIES}  ${NDPI_LIBRARY} ${PCAP_LIBRARY} ${NDPI_LIBRARY} ${LUA_LIBRARIES}  ${JSONC_LIBRARY} ${SQLite3_LIBRARIES} ${HIREDIS_LIBRARIES} Threads::Threads)
+target_link_libraries( unit_tests gtest_main  ${RRDTOOL_LIBRARIES} ${CURL_LIBRARIES} ${MYSQL_LIB} ${OPENSSL_LIBRARIES} ${ZeroMQ_LIBRARIES}  ${NDPI_LIBRARY} ${PCAP_LIBRARY} ${NDPI_LIBRARY} ${LUA_LIBRARIES}  ${JSONC_LIBRARY} ${SQLite3_LIBRARIES} ${HIREDIS_LIBRARIES} ${ZLIB_LIBRARIES} ${EXPAT_LIBRARIES} Threads::Threads)
 
 
 include(GoogleTest)

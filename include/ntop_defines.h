@@ -516,7 +516,12 @@
 #define CONST_DEFAULT_PRO_CALLBACKS_DIR  "pro/scripts/callbacks"
 #endif
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
+#ifdef UNIT_TEST
+#define CONST_DEFAULT_INSTALL_DIR "/usr/local/ntopng"
+#else 
 #define CONST_DEFAULT_INSTALL_DIR    (DATA_DIR "/ntopng")
+#endif
+
 #if defined(__FreeBSD__)
 #define CONST_BIN_DIR                "/usr/local/bin"
 #define CONST_SHARE_DIR              "/usr/local/share"
