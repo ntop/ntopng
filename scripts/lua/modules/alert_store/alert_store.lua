@@ -871,7 +871,10 @@ function alert_store:has_alerts()
       res = interface.alert_store_query(q)
       has_historical_alerts = res and res[1] and res[1]["has_historical_alerts"] == "1" or false
    end
-   
+ 
+   -- tprint(q)
+   -- tprint(res) 
+ 
    return has_historical_alerts
 end
 
