@@ -368,7 +368,9 @@ function flow_alert_store:format_record(value, no_html)
    -- Add link to active flow
    local alert_json = json.decode(value.json)
    
-   msg = addExtraFlowInfo(msg, alert_json, value)
+   if type(message) == "string" then
+    msg = addExtraFlowInfo(msg, alert_json, value)
+   end
 
    if not no_html and alert_json then
       local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
@@ -408,7 +410,7 @@ function flow_alert_store:format_record(value, no_html)
 		     message = string.format("%s %s", message, flow_risk_utils.get_documentation_link(alert_risk))
 		  end
         
-                  if alert_score > 0 then	
+                  if alert_score > 0 and type(message) == "string" then	
                    message = addExtraFlowInfo(message, alert_json, value)
                   end
 
