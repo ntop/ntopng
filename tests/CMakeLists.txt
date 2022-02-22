@@ -35,6 +35,9 @@ find_package(EXPAT REQUIRED)
 find_package(RRDTool REQUIRED)
 if(MAX_MIND_DB) 
   find_package(MaxMindDB REQUIRED)
+  add_definitions(-DHAVE_MAXMINDDB_H)
+else(MAX_MIND_DB)
+  remove_definitions(-DHAVE_MAXMINDDB_H)
 endif(MAX_MIND_DB)
 
 set(LOCAL_INCLUDE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/../third-party/include)
@@ -50,7 +53,6 @@ list(FILTER SOURCE_FILES_NO_MAIN EXCLUDE REGEX ".*main.cpp$")
 include(CTest)
 enable_testing()
 add_definitions(-DUNIT_TEST)
-add_definitions(-DDATA_DIR=${DEFAULT_DATA_DIR})
 
 # add coverage stuffs
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
