@@ -46,6 +46,40 @@ enable_testing()
 add_definitions(-DUNIT_TEST)
 add_definitions(-DDATA_DIR=${DEFAULT_DATA_DIR})
 
+# add coverage stuffs
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+  add_custom_target("coverage"
+  COMMAND ctest
+  COMMAND "ls *.gcda" --directory . --zerocounters
+  COMMAND "llvm-cov gcov -f -b unit_tests.gcda" --directory .
+  COMMAND "lcov" --directory . --capture --output-file coverage.info --gcov-tool ${GCOV_TOOL}
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+
+  )
+
+  # using Clang
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  # using GCC
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov -coverage")
+  execute_process(COMMAND
+          ${CMAKE_CXX_COMPILER} -dumpversion
+          OUTPUT_VARIABLE GCC_VERSION)
+  string(STRIP ${GCC_VERSION} GCC_VERSION)
+  MESSAGE(STATUS "gcc version: [" ${GCC_VERSION} "]")
+  set(GCOV_TOOL "llvm-gcov.sh")
+  add_custom_target("coverage"
+          COMMAND "lcov" --directory . --zerocounters
+          COMMAND ctest
+          COMMAND "lcov" --directory . --capture --output-file coverage.info --gcov-tool ${GCOV_TOOL}
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+          )
+  add_custom_target("coverage-report"
+          COMMAND "genhtml" -o coverage coverage.info
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+          DEPENDS "coverage")
+endif()
+
 add_executable(
   unit_tests
   ${SOURCE_FILES_NO_MAIN}
@@ -64,3 +98,4 @@ gtest_discover_tests(unit_tests)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
+
