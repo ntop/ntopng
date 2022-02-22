@@ -1155,4 +1155,17 @@ int MySQLDB::exec_quick_sql_query(char *sql, char *out, u_int out_len) {
   return(0);
 }
 
+/* ******************************************* */
+
+int MySQLDB::select_database(char *dbname) {
+  int rc = mysql_select_db(&mysql, (const char*)dbname);
+
+  if(rc) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d][%s]",
+				 get_last_db_error(&mysql), rc, dbname);    
+  }
+  
+  return(rc);
+}
+
 #endif
