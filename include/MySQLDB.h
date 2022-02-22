@@ -43,7 +43,7 @@ class MySQLDB : public DB {
   int exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect = true,
 		     bool ignoreErrors = false, bool doLock = true);
   void try_exec_sql_query(MYSQL *conn, char *sql);
-  virtual bool createDBSchema(bool set_db_created = true);
+  virtual bool createDBSchema();
   bool createNprobeDBView();
   MYSQL* mysql_try_connect(MYSQL *conn, const char *dbname);
   int exec_quick_sql_query(char *sql, char *out, u_int out_len);
