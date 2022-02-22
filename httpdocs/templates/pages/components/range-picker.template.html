@@ -259,7 +259,7 @@ $(document).ready(function() {
                 tagify.replaceTag(existingTagElement, existingTag);
 		let value = createValueFromTag(existingTag);
 		// trigger event
-		ntopng_status_manager.add_value_to_status(tag.key, value);
+		ntopng_status_manager.edit_value_to_status(tag.key, value, null, existingTag);
                 //await onRangePickerChange(true, false);
                 return;
             }
@@ -289,20 +289,12 @@ $(document).ready(function() {
         tagify.addTags([tag]);
     }
 
-    // when an user remove the tag
-  tagify.on('remove', async function(e) {      
-        const key = e.detail.data.key;
-        if (key === undefined) {
-            return;
-        }
-      let datasourceParams = ntopng_status_manager.get_status();
-        if (datasourceParams[key] !== undefined) {
-            delete datasourceParams[key];
-        }
+      // when an user remove the tag
+    tagify.on('remove', async function(e) {      
+      const tag = e.detail.data;
+      const value = createValueFromTag(tag);
 
-      // trigger event
-      ntopng_status_manager.replace_status(datasourceParams);
-        //await onRangePickerChange(true, false);
+	    ntopng_status_manager.remove_value_to_status(tag.key, value);
     });
 
     tagify.on('add', async function(e) {
@@ -323,7 +315,7 @@ $(document).ready(function() {
         if (!tag.selectedOperator) tag.selectedOperator = 'eq';
 	let value = createValueFromTag(tag);
 	let status = ntopng_status_manager.get_status();
-	if (DEFINED_TAGS != null && DEFINED_TAGS[tag.key] == null && status['query_preset'] != null && status['query_preset'] != "") {
+  if (DEFINED_TAGS != null && DEFINED_TAGS[tag.key] == null && status['query_preset'] != null && status['query_preset'] != "") {
 	    status['query_preset'] = "";
 	    status[tag.key] = value;
 	    ntopng_utility.replace_url_and_reload(status);
@@ -378,13 +370,13 @@ $(document).ready(function() {
         const prevTag = detail.previousData;
 
         tag.realValue = tag.value;
-	let value = createValueFromTag(tag);
+        let value = createValueFromTag(tag);
 
-	// trigger event
-	ntopng_status_manager.add_value_to_status(tag.key, value);
-        // trigger request
-        //await onRangePickerChange(true, false);
-    });
+        // trigger event
+        ntopng_status_manager.add_value_to_status(tag.key, value);
+              // trigger request
+              //await onRangePickerChange(true, false);
+          });
 
   $(`tags`).on('change', 'select.operator', async function(e) {
         // update the tag and the operator
