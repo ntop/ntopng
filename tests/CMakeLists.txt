@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(ntoptest VERSION 0.1.0)
 
+
 set(CMAKE_CXX_STANDARD 98)
 
 include(FetchContent)
@@ -14,6 +15,8 @@ FetchContent_MakeAvailable(googletest)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 set(CURL_LIBRARY "-lcurl") 
+
+option(MAX_MIND_DB "MaxMind Database" OFF)
 
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
@@ -30,6 +33,9 @@ find_package(MySQL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(EXPAT REQUIRED)
 find_package(RRDTool REQUIRED)
+if(MAX_MIND_DB) 
+  find_package(MaxMindDB REQUIRED)
+endif(MAX_MIND_DB)
 
 set(LOCAL_INCLUDE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/../third-party/include)
 set(DEFAULT_DATA_DIR "/usr/local")
