@@ -50,13 +50,37 @@
                         </div>
                     </div>
                     <div class="mb-3 row">
-                        <label class="col-form-label col-sm-3" for="recipient-name-input">
+                        <label class="col-form-label col-sm-3" for="edit-recipient-categories-select">
                             <b>{{ i18n("endpoint_notifications.recipient_category") }}</b>
                         </label>
                         <div class="col-sm-5">
                             <select multiple name="recipient_check_categories" class="selectpicker" id="edit-recipient-categories-select">
                                 {% for _, category in pairsByKeys(check_categories) do %}
                                     <option value="{{ category.id }}">{{ i18n(category.i18n_title) }}</option>
+                                {% end %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="col-form-label col-sm-3" for="edit-recipient-host-pools-select">
+                            <b>{{ i18n("host_pools.host_pools") }}</b>
+                        </label>
+                        <div class="col-sm-5">
+                            <select multiple name="recipient_host_pools" class="selectpicker col-sm-12" id="edit-recipient-host-pools-select">
+                                {% for _, pool in pairsByKeys(pools.host_pools) do %}
+                                    <option value="{{ pool.pool_id }}">{{ pool.name }}</option>
+                                {% end %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="col-form-label col-sm-3" for="edit-recipient-host-pools-select">
+                            <b>{{ i18n("pools.interface_pools") }}</b>
+                        </label>
+                        <div class="col-sm-5">
+                            <select multiple name="recipient_interface_pools" class="selectpicker col-sm-12" id="edit-recipient-host-pools-select">
+                                {% for _, pool in pairsByKeys(pools.interface_pools) do %}
+                                    <option value="{{ pool.pool_id }}">{{ pool.name }}</option>
                                 {% end %}
                             </select>
                         </div>

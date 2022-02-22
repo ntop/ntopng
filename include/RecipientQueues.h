@@ -44,6 +44,10 @@ class RecipientQueues {
   /* Only enable enqueue/dequeue for notifications falling into these categories */
   u_int8_t enabled_categories; /* MUST be large enough to contain MAX_NUM_SCRIPT_CATEGORIES */
 
+  /* MUST be large enough to contain MAX_NUM_HOST_POOLS */
+  u_int64_t enabled_host_pools;
+  u_int64_t enabled_interface_pools;
+
  public:
   RecipientQueues();
   ~RecipientQueues();
@@ -80,6 +84,9 @@ class RecipientQueues {
   * @return
   */
   inline void setEnabledCategories(u_int8_t _enabled_categories) { enabled_categories = _enabled_categories; };
+
+  inline void setEnabledHostPools(u_int64_t _enabled_pools)      { enabled_host_pools = _enabled_pools; };
+  inline void setEnabledInterfacePools(u_int64_t _enabled_pools) { enabled_interface_pools = _enabled_pools; };
   
   /**
    * @brief Returns queue status (drops and uses)

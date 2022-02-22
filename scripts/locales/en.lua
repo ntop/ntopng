@@ -4493,6 +4493,7 @@ local lang = {
     ["family"] = "Family",
     ["id"] = "ID",
     ["insert_name"] = "i.e. MyPool",
+    ["interface_pools"] = "Interface Pools",
     ["members"] = "Members",
     ["name"] = "Name",
     ["name_requirements"] = "The name must be longer than 1 character and it can't be empty.",

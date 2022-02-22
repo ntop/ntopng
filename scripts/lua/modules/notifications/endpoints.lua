@@ -469,7 +469,8 @@ function endpoints.add_configs_with_recipients(configs)
 
                ret = recipients.add_recipient(ret.endpoint_id, endpoint_recipient_name,
 					      check_categories, minimum_severity,
-					      false, -- Not necessary to bind to every pool: the restore takes care of tis automatically
+					      {}, -- Host pools - restore should take care of this automatically
+					      {}, -- Interface pools - restore should take care of this automatically
 					      recipient_params)
 
                if not ret or not ret.status or ret.status ~= "OK" then

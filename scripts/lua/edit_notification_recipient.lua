@@ -36,8 +36,9 @@ local response = {}
 local recipient_id = _POST["recipient_id"]
 local recipient_name = _POST["recipient_name"]
 local categories = recipients_rest_utils.parse_check_categories(_POST["recipient_check_categories"])
+local host_pools_ids = recipients_rest_utils.parse_host_pools(_POST["recipient_host_pools"])
+local interface_pools_ids = recipients_rest_utils.parse_interface_pools(_POST["recipient_interface_pools"])
 local minimum_severity = recipients_rest_utils.parse_minimum_severity(_POST["recipient_minimum_severity"])
--- local bind_to_all_pools = _POST["bind_to_all_pools"] == "true"
 
 if (action == "add") then
    local endpoint_id = _POST["endpoint_id"]
@@ -45,13 +46,16 @@ if (action == "add") then
 					      recipient_name,
 					      categories,
 					      minimum_severity,
-					      -- bind_to_all_pools,
+					      host_pools_ids,
+					      interface_pools_ids,
 					      _POST)
 elseif (action == "edit") then
    response.result = recipients.edit_recipient(recipient_id,
 					       recipient_name,
 					       categories,
 					       minimum_severity,
+					       host_pools_ids,
+					       interface_pools_ids,
 					       _POST)
 elseif (action == "remove") then
    response.result = recipients.delete_recipient(recipient_id)

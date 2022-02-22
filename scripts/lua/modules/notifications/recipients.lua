@@ -11,6 +11,9 @@ local alert_consts = require "alert_consts"
 local alert_entities = require "alert_entities"
 local checks = require "checks"
 
+local host_pools = require "host_pools":create()
+local interface_pools = require "interface_pools":create()
+
 local endpoints = require("endpoints")
 
 -- ##############################################
@@ -29,7 +32,7 @@ local default_builtin_minimum_severity = alert_severities.notice.severity_id -- 
 
 -- ##############################################
 
-local function _bitmap_from_check_categories(check_categories)
+local function _bitmap_from_array(check_categories)
    local bitmap = 0
 
    for _, category_id in ipairs(check_categories) do
@@ -50,6 +53,20 @@ function recipients.initialize()
    local all_categories = {}
    for _, category in pairs(checks.check_categories) do
       all_categories[#all_categories + 1] = category.id
+   end
+
+   -- Add host pools
+   local all_host_pools = {}
+   local pools = host_pools:get_all_pools()
+   for _, pool in pairs(pools) do
+      all_host_pools[#all_host_pools + 1] = pool.pool_id
+   end
+
+   -- Add interface pools
+   local all_interface_pools = {}
+   local pools = interface_pools:get_all_pools()
+   for _, pool in pairs(pools) do
+      all_interface_pools[#all_interface_pools + 1] = pool.pool_id
    end
 
    for endpoint_key, endpoint in pairs(endpoints.get_types()) do
@@ -73,6 +90,8 @@ function recipients.initialize()
 	       "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
 	       all_categories,
 	       default_builtin_minimum_severity,
+               all_host_pools, -- host pools
+               all_interface_pools, -- interface pools
 	       {} --[[ no recipient params --]]
 	    )
 
@@ -91,7 +110,11 @@ function recipients.initialize()
    -- Register all existing recipients in C to make sure ntopng can start with all the
    -- existing recipients properly loaded and ready for notification enqueues/dequeues
    for _, recipient in pairs(recipients.get_all_recipients()) do
-      ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, _bitmap_from_check_categories(recipient.check_categories))
+      ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, 
+         _bitmap_from_array(recipient.check_categories),
+         _bitmap_from_array(recipient.host_pools),
+         _bitmap_from_array(recipient.interface_pools)
+      )
    end
 end
 
@@ -249,7 +272,7 @@ end
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param safe_params A table with endpoint recipient params already sanitized
 -- @return nil
-local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, minimum_severity, safe_params)
+local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, interface_pools_ids, safe_params)
    -- Write the endpoint recipient config into another hash
    local k = _get_recipient_details_key(recipient_id)
 
@@ -257,6 +280,8 @@ local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoin
 				 recipient_name = endpoint_recipient_name,
 				 check_categories = check_categories,
 				 minimum_severity = minimum_severity,
+				 host_pools = host_pools_ids,
+				 interface_pools = interface_pools_ids,
 				 recipient_params = safe_params}))
 
    return recipient_id
@@ -271,7 +296,7 @@ end
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
-function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, minimum_severity, recipient_params)
+function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, interface_pools_ids, recipient_params)
    local locked = _lock()
    local res = { 
       status = "failed",
@@ -305,10 +330,14 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
 	       -- Assign the recipient id
 	       local recipient_id = _assign_recipient_id()
 	       -- Persist the configuration
-	       _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, minimum_severity, safe_params)
+	       _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, interface_pools_ids, safe_params)
 
 	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
-	       ntop.recipient_register(recipient_id, minimum_severity, _bitmap_from_check_categories(check_categories))
+	       ntop.recipient_register(recipient_id, minimum_severity, 
+                  _bitmap_from_array(check_categories),
+                  _bitmap_from_array(host_pools_ids),
+                  _bitmap_from_array(interface_pools_ids)
+               )
 
 	       -- Set a flag to indicate that a recipient has been created
 	       if not ec.endpoint_conf.builtin and isEmptyString(ntop.getPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY)) then
@@ -347,7 +376,7 @@ end
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_categories, minimum_severity, recipient_params)
+function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, interface_pools_ids, recipient_params)
    local locked = _lock()
    local res = { status = "failed" }
 
@@ -377,11 +406,17 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
 		  endpoint_recipient_name,
 		  check_categories,
 		  minimum_severity,
+		  host_pools_ids,
+		  interface_pools_ids,
 		  safe_params)
 
 	       -- Finally, register the recipient in C to make sure also the C knows about this edit
 	       -- and periodic scripts can be reloaded
-	       ntop.recipient_register(tonumber(recipient_id), minimum_severity, _bitmap_from_check_categories(check_categories))
+	       ntop.recipient_register(tonumber(recipient_id), minimum_severity, 
+                  _bitmap_from_array(check_categories),
+                  _bitmap_from_array(host_pools_ids),
+                  _bitmap_from_array(interface_pools_ids)
+               )
 
 	       res = {status = "OK"}
 	    end
@@ -545,6 +580,30 @@ function recipients.get_recipient(recipient_id, include_stats)
 	    local checks = require "checks"
 	    for _, category in pairs(checks.check_categories) do
 	       recipient_details["check_categories"][#recipient_details["check_categories"] + 1] = category.id
+	    end
+	 end
+
+	 -- Add host pools
+	 if not recipient_details["host_pools"] or #recipient_details["host_pools"] == 0 then
+	    if not recipient_details["host_pools"] then
+	       recipient_details["host_pools"] = {}
+	    end
+
+	    local pools = host_pools:get_all_pools()
+	    for _, pool in pairs(pools) do
+	       recipient_details["host_pools"][#recipient_details["host_pools"] + 1] = pool.pool_id
+	    end
+	 end
+
+	 -- Add interface pools
+	 if not recipient_details["interface_pools"] or #recipient_details["interface_pools"] == 0 then
+	    if not recipient_details["interface_pools"] then
+	       recipient_details["interface_pools"] = {}
+	    end
+
+	    local pools = interface_pools:get_all_pools()
+	    for _, pool in pairs(pools) do
+	       recipient_details["interface_pools"][#recipient_details["interface_pools"] + 1] = pool.pool_id
 	    end
 	 end
 

@@ -6,6 +6,8 @@ local dirs = ntop.getDirs()
 require "lua_utils"
 local alert_severities = require "alert_severities"
 local checks = require "checks"
+local host_pools = require "host_pools":create()
+local interface_pools = require "interface_pools":create()
 
 -- ##############################################
 
@@ -30,6 +32,62 @@ function recipients_rest_utils.parse_check_categories(categories_string)
        for _, category in pairs(checks.check_categories) do
 	  if category_id == category.id then
 	     res[#res + 1] = category_id
+	     break
+	  end
+       end
+    end
+
+    return res
+end
+
+-- ##############################################
+
+-- @brief Parses and validates a comma-separated list of host pool ids into a lua array
+-- @return A lua array of valid ids
+function recipients_rest_utils.parse_host_pools(pools_string)
+   local pools = host_pools:get_all_pools()
+   local pools_list = {}
+
+    if isEmptyString(pools_string) then return pools_list end
+
+    -- Unfold the pools csv
+    pools_list = pools_string:split(",") or {pools_string}
+
+    local res = {}
+    for _, pool_id in pairs(pools_list) do
+       local pool_id = tonumber(pool_id)
+
+       for _, pool in pairs(pools) do
+	  if pool_id == pool.pool_id then
+	     res[#res + 1] = pool_id
+	     break
+	  end
+       end
+    end
+
+    return res
+end
+
+-- ##############################################
+
+-- @brief Parses and validates a comma-separated list of interface pool ids into a lua array
+-- @return A lua array of valid ids
+function recipients_rest_utils.parse_interface_pools(pools_string)
+   local pools = interface_pools:get_all_pools()
+   local pools_list = {}
+
+    if isEmptyString(pools_string) then return pools_list end
+
+    -- Unfold the pools csv
+    pools_list = pools_string:split(",") or {pools_string}
+
+    local res = {}
+    for _, pool_id in pairs(pools_list) do
+       local pool_id = tonumber(pool_id)
+
+       for _, pool in pairs(pools) do
+	  if pool_id == pool.pool_id then
+	     res[#res + 1] = pool_id
 	     break
 	  end
        end
