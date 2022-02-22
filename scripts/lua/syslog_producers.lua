@@ -6,9 +6,10 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
+
 require "lua_utils"
+
 local checks = require "checks"
-local template = require "template_utils"
 
 if not isAdministrator() then
   return
@@ -22,8 +23,8 @@ elseif not ifid then
 end
 
 local producer_types = {};
-local syslog_plugins = checks.listScripts(checks.script_types.syslog, "syslog")
-for k,v in pairs(syslog_plugins) do
+local syslog_scripts = checks.listScripts(checks.script_types.syslog, "syslog")
+for k,v in pairs(syslog_scripts) do
   table.insert(producer_types, { title = i18n(v.."_collector.title"), value = v  })
 end
 

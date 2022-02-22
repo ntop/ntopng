@@ -51,7 +51,7 @@ void* MySQLDB::queryLoop() {
     sleep(1);
   }
 
-  if(ntop->getGlobals()->isShutdown() || !mysql_alt_connected)
+  if(ntop->getGlobals()->isShutdown())
     return(NULL);
 
   while(isRunning() || queue_not_empty) {
@@ -59,7 +59,7 @@ void* MySQLDB::queryLoop() {
 
     if(rc == 0) {
       queue_not_empty = true;
-      try_exec_sql_query(&mysql_alt, sql);
+      try_exec_sql_query(&mysql, sql);
     } else {
       queue_not_empty = false;
       _usleep(10000);
@@ -445,25 +445,19 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 
 /* ******************************************* */
 
-MySQLDB::MySQLDB(NetworkInterface *_iface, bool _clickhouse_mode) : DB(_iface) {
-  clickhouse_mode = _clickhouse_mode;
+MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   mysqlEnqueuedFlows = 0;
   log_fd = NULL;
   open_log();
   db_created = false;
-  mysql_alt_connected = false;
 
   connectToDB(&mysql, false);
-
-  if(!clickhouse_mode)
-    mysql_alt_connected = connectToDB(&mysql_alt, true);
 }
 
 /* ******************************************* */
 
 MySQLDB::~MySQLDB() {
   shutdown();
-  if(!clickhouse_mode) disconnectFromDB(&mysql_alt);
   disconnectFromDB(&mysql);
 
   if(log_fd) fclose(log_fd);
@@ -494,7 +488,7 @@ void MySQLDB::startLoop() {
     If mysql flows dump is enabled, then it is necessary to create
     and update the database schema. This must be executed only once.
    */
-  if(!MySQLDB::db_created) {
+  if(!db_created) {
     if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
       if(!createDBSchema()){
 	ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -674,7 +668,7 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
      is not an issue and also avoids flows drops due to the redis queue 
      maximum length
     */
-    if(mysql_alt_connected) try_exec_sql_query(&mysql_alt, sql);
+    try_exec_sql_query(&mysql, sql);
   } else {
     if (ntop->getRedis()->llen(CONST_SQL_QUEUE) < CONST_MAX_MYSQL_QUEUE_LEN) {
       /* 
@@ -716,7 +710,7 @@ MYSQL* MySQLDB::mysql_try_connect(MYSQL *conn, const char *dbname) {
   if(!host)
     return(NULL);
 
-  if((!clickhouse_mode) && (host[0] == '/') /* Use socketD */)
+  if((!ntop->getPrefs()->useClickHouse()) && (host[0] == '/') /* Use socketD */)
     rc = mysql_real_connect(conn,
 			    NULL, /* Host */
 			    user,
@@ -954,9 +948,13 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_
   MYSQL_RES *result;
   int rc;
   struct timeval begin, end;
-  
-  if((wait_for_db_created && !db_created /* Make sure the db exists before doing queries */))
-    return(-2);
+
+  if(!ntop->getPrefs()->useClickHouse()) {
+    if(wait_for_db_created && (!db_created /* Make sure the db exists before doing queries */)) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unable to perform query: database being created");
+      return(-2);
+    }
+  }
   
   if(!db_operational) {
     if(!connectToDB(&mysql, true))

@@ -782,6 +782,11 @@ end
 -- ##############################################
 
 function lists_utils.startup()
+   if ntop.isOffline() then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Category lists not loaded (offline)")
+      return
+   end
+
    traceError(TRACE_NORMAL, TRACE_CONSOLE, "Refreshing category lists...")
 
    lists_utils.downloadLists()

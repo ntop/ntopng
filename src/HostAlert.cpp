@@ -67,7 +67,7 @@ ndpi_serializer* HostAlert::getSerializedAlert() {
   ndpi_serialize_string_boolean(serializer, "systemhost", host->isSystemHost());
   ndpi_serialize_string_boolean(serializer, "privatehost", host->isPrivateHost());
   ndpi_serialize_string_boolean(serializer, "broadcast_domain_host", host->isBroadcastDomainHost());
-  ndpi_serialize_string_boolean(serializer, "dhcpHost", host->isDhcpHost());
+  ndpi_serialize_string_boolean(serializer, "dhcpHost", host->isDHCPHost());
   ndpi_serialize_string_boolean(serializer, "is_blacklisted", host->isBlacklisted());
   ndpi_serialize_string_boolean(serializer, "is_broadcast", host->isBroadcastHost());
   ndpi_serialize_string_boolean(serializer, "is_multicast", host->isMulticastHost());

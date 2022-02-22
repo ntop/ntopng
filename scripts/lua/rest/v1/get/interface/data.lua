@@ -7,15 +7,11 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-local alert_utils = require "alert_utils"
-local json = require("dkjson")
 local ts_utils = require("ts_utils_core")
-local plugins_utils = require("plugins_utils")
 local periodic_activities_utils = require "periodic_activities_utils"
 local cpu_utils = require("cpu_utils")
 local callback_utils = require("callback_utils")
 local recording_utils = require("recording_utils")
-local alert_consts = require("alert_consts")
 local rest_utils = require("rest_utils")
 
 --
@@ -113,7 +109,7 @@ function dumpInterfaceStats(ifid)
          res["has_alerts"]         = ifstats["has_alerts"]
          res["ts_alerts"] = {}
 
-         if ts_utils.getDriverName() == "influxdb" and plugins_utils.hasAlerts(getSystemInterfaceId(), {entity = alert_consts.alertEntity("influx_db")}) then
+         if ts_utils.getDriverName() == "influxdb" then
             res["ts_alerts"]["influxdb"] = true
          end
       end

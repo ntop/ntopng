@@ -31,7 +31,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
 .. toctree::
    :caption: Developer's Guide
 
-   plugins/index
+   scripts/index
    api/index
 
 .. toctree::

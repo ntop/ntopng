@@ -15,13 +15,13 @@ local webhook = {
       -- TODO: configure severity (Errors, Errors and Warnings, All)
    },
    endpoint_template = {
-      plugin_key = "webhook",
+      script_key = "webhook",
       template_name = "webhook_endpoint.template"
    },
    recipient_params = {
    },
    recipient_template = {
-      plugin_key = "webhook",
+      script_key = "webhook",
       template_name = "webhook_recipient.template"
    },
 }
@@ -83,7 +83,7 @@ end
 
 -- ##############################################
 
-function webhook.dequeueRecipientAlerts(recipient, budget, high_priority)
+function webhook.dequeueRecipientAlerts(recipient, budget)
   local start_time = os.time()
   local sent = 0
   local more_available = true
@@ -103,7 +103,7 @@ function webhook.dequeueRecipientAlerts(recipient, budget, high_priority)
     -- Dequeue MAX_ALERTS_PER_REQUEST notifications
     local notifications = {}
     for i = 1, MAX_ALERTS_PER_REQUEST do
-       local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
+       local notification = ntop.recipient_dequeue(recipient.recipient_id)
        if notification then 
 	  notifications[#notifications + 1] = notification.alert
        else

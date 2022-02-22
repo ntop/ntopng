@@ -112,6 +112,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("HTTP_SITE", HTTP_SITE, NTOP_PEN);
   addMapping("HTTP_RET_CODE", HTTP_RET_CODE, NTOP_PEN);
   addMapping("HTTP_METHOD", HTTP_METHOD, NTOP_PEN);
+  addMapping("HTTP_USER_AGENT", HTTP_USER_AGENT, NTOP_PEN);
   addMapping("SSL_SERVER_NAME", SSL_SERVER_NAME, NTOP_PEN);
   addMapping("TLS_CIPHER", TLS_CIPHER, NTOP_PEN);
   addMapping("SSL_UNSAFE_CIPHER", SSL_UNSAFE_CIPHER, NTOP_PEN);
@@ -749,6 +750,13 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     }
     break;
     
+  case HTTP_USER_AGENT:
+    if(value->string && value->string[0] && value->string[0] != '\n') {
+      if(flow->http_user_agent) free(flow->http_user_agent);
+      flow->http_user_agent = strdup(value->string);
+    }
+    break;
+    
   case HTTP_SITE:
     if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->http_site) free(flow->http_site);
@@ -1018,6 +1026,12 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow * const flow, u_int32_t fi
   case HTTP_URL:
     if(value->string && flow->http_url)
       return (strcmp(flow->http_url, value->string) == 0);
+    else
+      return false;
+
+  case HTTP_USER_AGENT:
+    if(value->string && flow->http_user_agent)
+      return (strcmp(flow->http_user_agent, value->string) == 0);
     else
       return false;
 
@@ -2076,7 +2090,8 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char * payload, int paylo
       enum json_type o_type = json_object_get_type(z);
 
       if(o_type == json_type_array) {
-	for(u_int i = 0; i < json_object_array_length(z); i++) {
+	for(u_int i = 0; i < (u_int)json_object_array_length(z); i++) {
+	  /* Dead code */
 #if 0
 	  json_object *host = json_object_array_get_idx(z, i);
 	  const char *ip_addr = json_object_to_json_string(host);

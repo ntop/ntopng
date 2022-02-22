@@ -3,7 +3,7 @@
 Check Hooks
 =================
 
-ntopng uses hooks to know when to execute a check. Hooks are string keys of the plugin :code:`hooks` table and have a check function assigned. Hooks are associated to:
+ntopng uses hooks to know when to execute a check. Hooks are string keys of the script :code:`hooks` table and have a check function assigned. Hooks are associated to:
 
 - Predefined events for flows
 - Intervals of time for any other network element such as an host, or a network

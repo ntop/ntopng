@@ -22,17 +22,12 @@ end
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
-local alert_utils = require "alert_utils"
 local json = require ("dkjson")
 local discover = require "discover_utils"
 local ui_utils = require "ui_utils"
 local page_utils = require "page_utils"
 local template = require "template_utils"
 local fingerprint_utils = require "fingerprint_utils"
-local companion_interface_utils = require "companion_interface_utils"
-local flow_consts = require "flow_consts"
-local alert_consts = require "alert_consts"
-local plugins_utils = require "plugins_utils"
 local am_utils = require "am_utils"
 local behavior_utils = require "behavior_utils"
 
@@ -621,6 +616,7 @@ else
          if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
    	 print(' <A class="ntopng-external-link" href="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'
    		  ..ntop.getHttpPrefix()..'/img/virustotal.svg\"> <i class=\"fas fa-external-link-alt\"></i></A>')
+   	 print(' <A class="ntopng-external-link" href="https://www.greynoise.io/viz/ip/'.. host["ip"] ..'" target=_blank><small><b><font color=black>GreyNoise</font></b></small> <i class=\"fas fa-external-link-alt\"></i></A>')
          end
    
          print("</td>\n")
@@ -1475,7 +1471,7 @@ function update_ndpi_table() {
       print [[ },
     success: function(content) {
       $('#host_details_ndpi_applications_tbody').html(content);
-      // Let the TableSorter plugin know that we updated the table
+      // Let the TableSorter script know that we updated the table
       $('#h_ndpi_tbody').trigger("update");
     }
   });
@@ -1492,7 +1488,7 @@ function update_ndpi_categories_table() {
     data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ },
     success: function(content) {
       $('#host_details_ndpi_categories_tbody').html(content);
-      // Let the TableSorter plugin know that we updated the table
+      // Let the TableSorter script know that we updated the table
       $('#h_ndpi_tbody').trigger("update");
     }
   });

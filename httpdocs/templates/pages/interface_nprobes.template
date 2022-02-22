@@ -24,7 +24,7 @@
 <link href="{{ ntop.getHttpPrefix() }}/css/dataTables.bootstrap5.min.css?{{ ntop.getStaticFileEpoch() }}" rel="stylesheet"/>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-ipsorting.js?{{ ntop.getStaticFileEpoch() }}"></script>
 <script type="text/javascript">
-  i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+  i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
   const ifid = {{ interface.getId() }};
 </script>
 <script src="{{ ntop.getHttpPrefix() }}/js/pages/interface_nprobes.js?{{ ntop.getStaticFileEpoch() }}" type="text/javascript">

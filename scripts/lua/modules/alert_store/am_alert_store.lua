@@ -16,7 +16,6 @@ local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
 local json = require "dkjson"
-local plugins_utils = require "plugins_utils"
 
 -- ##############################################
 
@@ -53,11 +52,20 @@ function am_alert_store:insert(alert)
       end
    end
 
+   local extra_columns = ""
+   local extra_values = ""
+   if(ntop.isClickHouseEnabled()) then
+      extra_columns = "rowid, "
+      extra_values = "generateUUIDv4(), "
+   end
+
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, interface_id, tstamp, tstamp_end, severity, score, resolved_ip, resolved_name, "..
+      "(%salert_id, interface_id, tstamp, tstamp_end, severity, score, resolved_ip, resolved_name, "..
       "measurement, measure_threshold, measure_value, json) "..
-      "VALUES (%u, %d, %u, %u, %u, %u, '%s', '%s', '%s', %u, %f, '%s'); ",
+      "VALUES (%s%u, %d, %u, %u, %u, %u, '%s', '%s', '%s', %u, %f, '%s'); ",
       self._table_name, 
+      extra_columns,
+      extra_values,
       alert.alert_id,
       self:_convert_ifid(getSystemInterfaceId()),
       alert.tstamp,

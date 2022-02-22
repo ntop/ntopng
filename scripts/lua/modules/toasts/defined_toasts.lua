@@ -219,21 +219,10 @@ local defined_toats = {
         excluded_subpages = EMPTY_PAGES
     },
     {
-        -- Hint to invite the user to bind the recipients to some pools
-        id = 17,
-        dismissable = true,
-        has_priority = false,
-        predicate = predicates.bind_recipient_to_pools,
-        pages = EMPTY_PAGES,
-        subpages = EMPTY_PAGES,
-        excluded_pages = {pages.manage_pools.key},
-        excluded_subpages = EMPTY_PAGES
-    },
-    {
         id = 18,
         dismissable = true,
         has_priority = false,
-        predicate = predicates.unexpected_plugins,
+        predicate = predicates.unexpected_scripts,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
         excluded_pages = {pages.scripts_config.key, pages.preferences.key},

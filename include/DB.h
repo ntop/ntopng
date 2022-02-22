@@ -56,6 +56,8 @@ class DB {
   virtual bool dumpFlow(time_t when, Flow *f, char *json) = 0;
   virtual void startLoop() = 0;
 
+  virtual int exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created) { return(-1); }
+  
   inline void startDBLoop()                                 { running = true; startLoop(); };
   inline int isRunning()                                    { return(running); };
   virtual bool isDbCreated()                                { return(true); };

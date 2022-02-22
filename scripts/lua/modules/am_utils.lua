@@ -7,10 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. p
 
 local am_utils = {}
 local ts_utils = require "ts_utils_core"
-local format_utils = require "format_utils"
 local json = require("dkjson")
-local plugins_utils = require("plugins_utils")
-local os_utils = require("os_utils")
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
 local lua_path_utils = require("lua_path_utils")
@@ -538,11 +535,11 @@ end
 
 -- ##############################################
 
-local loaded_am_plugins = {}
+local loaded_am_scripts = {}
 local loaded_measurements = {}
 
-local function loadAmPlugins()
-   if not table.empty(loaded_am_plugins) then
+local function loadAmScripts()
+   if not table.empty(loaded_am_scripts) then
       return
    end
 
@@ -555,30 +552,30 @@ local function loadAmPlugins()
       end
 
       local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-      local plugin = require(mod_fname)
+      local script = require(mod_fname)
 
-      if not plugin then
+      if not script then
 	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load '%s'", mod_fname))
 	 package.loaded[mod_fname] = nil
 	 goto continue
       end
 
-      if not plugin.measurements then
+      if not script.measurements then
 	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("'measurements' section missing in '%s'", mod_fname))
 	 package.loaded[mod_fname] = nil
 	 goto continue
       end
 
-      if plugin.setup then
-	 -- A setup function exists, call it to determine if the plugin is available
-	 if(plugin.setup() == false) then
+      if script.setup then
+	 -- A setup function exists, call it to determine if the script is available
+	 if(script.setup() == false) then
 	    package.loaded[mod_fname] = nil
 	    goto continue
 	 end
       end
 
       -- Check that the measurements does not exist
-      for _, measurement in pairs(plugin.measurements) do
+      for _, measurement in pairs(script.measurements) do
 	 if(measurement.check == nil) then
 	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing 'check' function in '%s' measurement", measurement.key))
 	    goto skip
@@ -594,13 +591,13 @@ local function loadAmPlugins()
 	    goto skip
 	 end
 
-	 loaded_measurements[measurement.key] = {plugin=plugin, measurement=measurement}
+	 loaded_measurements[measurement.key] = {script=script, measurement=measurement}
 
 	 ::skip::
       end
 
-      plugin.key = mod_fname
-      loaded_am_plugins[mod_fname] = plugin
+      script.key = mod_fname
+      loaded_am_scripts[mod_fname] = script
 
       ::continue::
    end
@@ -610,11 +607,11 @@ end
 
 --! @brief Splits the hosts list by measurement.
 --! @param all_hosts the host list, whose format matches am_utils.getHosts()
---! @return a table measurement_key -> <plugin, measurement, hosts>
+--! @return a table measurement_key -> <script, measurement, hosts>
 function am_utils.getHostsByMeasurement(all_hosts)
   local hosts_by_measurement = {}
 
-  loadAmPlugins()
+  loadAmScripts()
 
   for key, host in pairs(all_hosts) do
     local measurement = host.measurement
@@ -626,7 +623,7 @@ function am_utils.getHostsByMeasurement(all_hosts)
       local measurement_key = m_info.measurement.key
 
       if not hosts_by_measurement[measurement_key] then
-	hosts_by_measurement[measurement_key] = {plugin = m_info.plugin, measurement = m_info.measurement, hosts = {}}
+	hosts_by_measurement[measurement_key] = {script = m_info.script, measurement = m_info.measurement, hosts = {}}
       end
 
       hosts_by_measurement[measurement_key].hosts[key] = host
@@ -638,12 +635,12 @@ end
 
 -- ##############################################
 
---! @brief Get a list of measurements from the loaded Active Monitoring plugins
+--! @brief Get a list of measurements from the loaded Active Monitoring scripts
 --! @return a list of measurements <title, value> for the gui.
 function am_utils.getAvailableMeasurements()
   local measurements = {}
 
-  loadAmPlugins()
+  loadAmScripts()
 
   for k, v in pairsByKeys(loaded_measurements, asc) do
     local m = v.measurement
@@ -662,7 +659,7 @@ end
 --! @brief Check if the specified measurement is available
 --! @return true if available, false otherwise
 function am_utils.isMeasurementAvailable(measurement)
-  loadAmPlugins()
+  loadAmScripts()
 
   return(loaded_measurements[measurement] ~= nil)
 end
@@ -675,7 +672,7 @@ end
 function am_utils.getAvailableGranularities(measurement)
   local granularities = {}
 
-  loadAmPlugins()
+  loadAmScripts()
 
   local m_info = loaded_measurements[measurement]
 
@@ -703,7 +700,7 @@ end
 --! @param measurement the measurement key
 --! @return the measurement metadata on success, nil on failure
 function am_utils.getMeasurementInfo(measurement)
-  loadAmPlugins()
+  loadAmScripts()
 
   local m_info = loaded_measurements[measurement]
 
@@ -719,7 +716,7 @@ end
 --! @brief Get the metadata of all the loaded measurements
 --! @return a list containing the measurements metadata
 function am_utils.getMeasurementsInfo()
-  loadAmPlugins()
+  loadAmScripts()
 
   local rv = {}
 

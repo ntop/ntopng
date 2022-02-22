@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-local plugins_utils = require("plugins_utils")
 local endpoints = require("endpoints")
 local json = require "dkjson"
 local rest_utils = require "rest_utils"

@@ -1194,8 +1194,8 @@ static int handle_lua_request(struct mg_connection *conn) {
       return(1);
 #ifdef HAVE_MYSQL
     } else if(!whitelisted /* e.g. login.lua */
-        && ntop->getPrefs()->do_dump_flows_on_mysql()
-        && !ntop->isDbCreated()
+	      && ntop->getPrefs()->do_dump_flows_on_mysql()
+	      && (!ntop->isDbCreated())
 	      && strcmp(request_info->uri, PLEASE_WAIT_URL)) {
       redirect_to_please_wait(conn, request_info);
       return(1);
@@ -1229,7 +1229,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
   if((strncmp(request_info->uri, "/lua/", 5) == 0)
      || (strcmp(request_info->uri, "/metrics") == 0)
-     || (strncmp(request_info->uri, "/plugins/", 9) == 0)
+     || (strncmp(request_info->uri, "/scripts/", 9) == 0)
      || (strcmp(request_info->uri, "/") == 0)) {
     /* Lua Script */
     char path[300] = { 0 }, uri[2048];
@@ -1268,9 +1268,10 @@ static int handle_lua_request(struct mg_connection *conn) {
       if(strcmp(request_info->uri, "/metrics") == 0)
 	snprintf(path, sizeof(path), "%s/lua/metrics.lua",
 	  httpserver->get_scripts_dir());
-      else if(strncmp(request_info->uri, "/plugins/", 9) == 0)
+      else if(strncmp(request_info->uri, "/scripts/", 9) == 0)
+  /* TODO: change the path name from scripts to something else, scripts is already used */
 	snprintf(path, sizeof(path), "%s/scripts/%s",
-	  ntop->get_plugins_dir(), request_info->uri + 9);
+	  ntop->get_scripts_dir(), request_info->uri + 9);
       else
 	snprintf(path, sizeof(path), "%s%s%s",
 		 httpserver->get_scripts_dir(),
@@ -1541,24 +1542,16 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 
   cur_http_options = 0;
 
-  /* Build the URL rewrite pattern, required to handle the additional
-   * httpdocs directory for the plugins. Need to configure the rewrite for both the
-   * plugins0 and plugins1 directories. See plugins_utils.getHttpdocsDir */
-
   /* Silence  format-truncation warning */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-truncation"
 
-  snprintf(plugins_httpdocs_rewrite, sizeof(plugins_httpdocs_rewrite),
-	   "/plugins0_httpdocs/=%s/httpdocs/,/plugins1_httpdocs/=%s/httpdocs/",
-	   ntop->get_plugins0_dir(), ntop->get_plugins1_dir());
 #pragma GCC diagnostic pop
   
   /* HTTP options */
   addHTTPOption("listening_ports", ports);
   addHTTPOption("enable_directory_listing", "no");
   addHTTPOption("document_root", _docs_dir);
-  addHTTPOption("url_rewrite_patterns", plugins_httpdocs_rewrite);
   addHTTPOption("access_control_list", acl_management);
   /* (char*)"extra_mime_types", (char*)"" */ /* see mongoose.c */
   addHTTPOption("num_threads", "5");

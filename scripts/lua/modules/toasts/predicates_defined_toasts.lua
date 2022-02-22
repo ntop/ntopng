@@ -28,7 +28,7 @@ local IS_ADMIN = isAdministrator()
 local IS_SYSTEM_INTERFACE = page_utils.is_system_view()
 local IS_PCAP_DUMP = interface.isPcapDumpInterface()
 local IS_PACKET_INTERFACE = interface.isPacketInterface()
-local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.checks.unexpected_plugins_enabled"
+local UNEXPECTED_SCRIPTS_ENABLED_CACHE_KEY = "ntopng.cache.checks.unexpected_scripts_enabled"
 
 local predicates = {}
 
@@ -451,8 +451,7 @@ function predicates.about_page(toast, container)
 
         ntop.setCache('ntopng.license', trimSpace(_POST["ntopng_license"]))
         ntop.checkLicense()
-        ntop.setCache('ntopng.cache.force_reload_plugins', '1') -- housekeeping.lua will reload plugins
-
+        
         info = ntop.getInfo()
 
         if (info["version.enterprise_l_edition"] and info["pro.license"] ~= "") then
@@ -567,11 +566,6 @@ local function user_has_created_recipient()
     return ntop.getCache(recipients_manager.FIRST_RECIPIENT_CREATED_CACHE_KEY) == "1"
 end
 
---- Did the user bind a recipient to a pool?
-local function user_has_bound_recipient()
-    return ntop.getCache(pools.FIRST_RECIPIENT_BOUND_CACHE_KEY) == "1"
-end
-
 --- Generate a toast to adive the user about toast endpoints
 function predicates.create_endpoint(toast, container)
     if (not IS_ADMIN) then return end
@@ -580,7 +574,7 @@ function predicates.create_endpoint(toast, container)
 
     local title = i18n("endpoint_notifications.hints.create_endpoint.title")
     local body = i18n("endpoint_notifications.hints.create_endpoint.body", {
-        link = "https://www.ntop.org/guides/ntopng/plugins/alert_endpoints.html"
+        link = "https://www.ntop.org/guides/ntopng/scripts/alert_endpoints.html"
     })
     local action = {
         title = i18n("endpoint_notifications.hints.create_endpoint.action"),
@@ -605,7 +599,7 @@ function predicates.create_recipients_for_endpoint(toast, container)
 
     local title = i18n("endpoint_notifications.hints.create_recipients.title")
     local body = i18n("endpoint_notifications.hints.create_recipients.body", {
-        link = "https://www.ntop.org/guides/ntopng/plugins/alert_endpoints.html"
+        link = "https://www.ntop.org/guides/ntopng/scripts/alert_endpoints.html"
     })
     local action = {
         url = ntop.getHttpPrefix() .. "/lua/admin/recipients_list.lua",
@@ -616,31 +610,11 @@ function predicates.create_recipients_for_endpoint(toast, container)
     table.insert(container, hint)
 end
 
---- Generate a third notificiation to inform the user to bind the new recipients to a pool
-function predicates.bind_recipient_to_pools(toast, container)
-    if (not IS_ADMIN) then return end
-    if (not user_has_created_endpoint()) then return end
-    if (not user_has_created_recipient()) then return end
-    if (user_has_bound_recipient()) then return end
-    if IS_PCAP_DUMP then return end
-
-    local title = i18n("endpoint_notifications.hints.bind_pools.title")
-    local body = i18n("endpoint_notifications.hints.bind_pools.body")
-    local action = {
-        url = ntop.getHttpPrefix() .. "/lua/admin/manage_pools.lua",
-        title = i18n("bind")
-    }
-
-    local hint = toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable)
-    table.insert(container, hint)
-
-end
-
---- Check if unexpected plugins are disabled and notifiy the user
+--- Check if unexpected scripts are disabled and notifiy the user
 --- about their existance
-function predicates.unexpected_plugins(toast, container)
+function predicates.unexpected_scripts(toast, container)
     if (not IS_ADMIN) then return end
-    if not isEmptyString(ntop.getCache(UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY)) then return end
+    if not isEmptyString(ntop.getCache(UNEXPECTED_SCRIPTS_ENABLED_CACHE_KEY)) then return end
 
     local url = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua?subdir=flow&search_script=unexpected#disabled"
 

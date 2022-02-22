@@ -310,13 +310,13 @@ const get_unit_bytes = (bytes) => {
 const get_unit_times = (seconds) => {
 
    if (seconds < 3600 || seconds == undefined || seconds == null) {
-      return [`${i18n.metrics.minutes}`, seconds / 60, 60];
+      return [`${i18n_ext.metrics.minutes}`, seconds / 60, 60];
    }
    else if (seconds >= 3600 && seconds < 86400) {
-      return [`${i18n.metrics.hours}`, seconds / 3600, 3600];
+      return [`${i18n_ext.metrics.hours}`, seconds / 3600, 3600];
    }
    else if (seconds >= 86400) {
-      return [`${i18n.metrics.days}`, seconds / 86400, 86400];
+      return [`${i18n_ext.metrics.days}`, seconds / 86400, 86400];
    }
 
 };
@@ -383,7 +383,7 @@ const apply_edits_script = (template_data, check_subdir, script_key) => {
          NtopUtils.check_status_code(status, statusText, $error_label);
 
          if (status == 200) {
-            $error_label.text(`${i18n.expired_csrf}`).show();
+            $error_label.text(`${i18n_ext.expired_csrf}`).show();
          }
 
          $apply_btn.removeAttr('disabled');
@@ -558,7 +558,7 @@ const ThresholdCross = (gui, hooks, check_subdir, script_key) => {
       $table_editor.empty();
 
       // append each hooks to the table
-      $table_editor.append(`<tr><th class='text-center'>${i18n.enabled}</th></tr>`)
+      $table_editor.append(`<tr><th class='text-center'>${i18n_ext.enabled}</th></tr>`)
 
       if ("min" in $input_fields) {
          $table_editor.append($input_fields['min']);
@@ -718,7 +718,7 @@ const ItemsList = (gui, hooks, check_subdir, script_key) => {
                   id='itemslist-textarea'
                   class="w-100 form-control"
                   rows='3'>${items_list.length > 0 ? items_list.join(',') : ''}</textarea>
-                  <small>${gui.input_description || i18n.blacklisted_country}</small>
+                  <small>${gui.input_description || i18n_ext.blacklisted_country}</small>
                <div class="invalid-feedback"></div>
                <label></label>
             </div>
@@ -729,7 +729,7 @@ const ItemsList = (gui, hooks, check_subdir, script_key) => {
 
       $table_editor.empty();
 
-      $table_editor.append(`<tr><th class='text-center w-25'>${i18n.enabled}</th><th>${gui.input_title || i18n.scripts_list.templates.blacklisted_country_list}:</th></tr>`)
+      $table_editor.append(`<tr><th class='text-center w-25'>${i18n_ext.enabled}</th><th>${gui.input_title || i18n_ext.scripts_list.templates.blacklisted_country_list}:</th></tr>`)
       $table_editor.append($component_container);
    }
 
@@ -794,7 +794,7 @@ const LongLived = (gui, hooks, check_subdir, script_key) => {
       const current_value = hooks.all.script_conf.min_duration || 60;
       const times_unit = get_unit_times(current_value);
 
-      const max_time = (times_unit[0] == `${i18n.metrics.minutes}` ? 59 : (times_unit[0] == `${i18n.metrics.hours}` ? 23 : 365));
+      const max_time = (times_unit[0] == `${i18n_ext.metrics.minutes}` ? 59 : (times_unit[0] == `${i18n_ext.metrics.hours}` ? 23 : 365));
 
       const input_settings = {
          name: 'duration_value',
@@ -809,14 +809,14 @@ const LongLived = (gui, hooks, check_subdir, script_key) => {
             const $multiselect_ds = generate_multi_select({
                enabled: enabled,
                name: 'item_list',
-               label: `${i18n.scripts_list.templates.excluded_applications}:`,
+               label: `${i18n_ext.scripts_list.templates.excluded_applications}:`,
                selected_values: items_list,
                groups: apps_and_categories
             });
       */
       // time-ds stands for: time duration selection
       const radio_values = {
-         labels: [`${i18n.metrics.minutes}`, `${i18n.metrics.hours}`, `${i18n.metrics.days}`],
+         labels: [`${i18n_ext.metrics.minutes}`, `${i18n_ext.metrics.hours}`, `${i18n_ext.metrics.days}`],
          label: times_unit[0],
          values: [60, 3600, 86400]
       }
@@ -881,7 +881,7 @@ const LongLived = (gui, hooks, check_subdir, script_key) => {
       const $input_container = $(`<td></td>`);
       $input_container.append(
          $time_input_box.prepend($time_radio_buttons).prepend(
-            $(`<div class='col-7'><label class='p-2'>${i18n.scripts_list.templates.flow_duration_threshold}:</label></div>`)
+            $(`<div class='col-7'><label class='p-2'>${i18n_ext.scripts_list.templates.flow_duration_threshold}:</label></div>`)
          ),
          //$multiselect_ds
       );
@@ -894,7 +894,7 @@ const LongLived = (gui, hooks, check_subdir, script_key) => {
 
       $table_editor.append(`
          <tr class='text-center'>
-            <th>${i18n.enabled}</th>
+            <th>${i18n_ext.enabled}</th>
          </tr>
       `);
 
@@ -1011,7 +1011,7 @@ const ElephantFlows = (gui, hooks, check_subdir, script_key) => {
             const $multiselect_bytes = generate_multi_select({
                enabled: enabled,
                name: 'item_list',
-               label: `${i18n.scripts_list.templates.excluded_applications}:`,
+               label: `${i18n_ext.scripts_list.templates.excluded_applications}:`,
                selected_values: items_list,
                groups: apps_and_categories
             });
@@ -1083,10 +1083,10 @@ const ElephantFlows = (gui, hooks, check_subdir, script_key) => {
       $input_container.append(
          $input_box_l2r
             .prepend($radio_button_l2r)
-            .prepend($(`<label class='col'>${i18n.scripts_list.templates.elephant_flows_l2r}</label>`)),
+            .prepend($(`<label class='col'>${i18n_ext.scripts_list.templates.elephant_flows_l2r}</label>`)),
          $input_box_r2l
             .prepend($radio_button_r2l)
-            .prepend($(`<label class='col'>${i18n.scripts_list.templates.elephant_flows_r2l}</label>`)),
+            .prepend($(`<label class='col'>${i18n_ext.scripts_list.templates.elephant_flows_r2l}</label>`)),
          //$multiselect_bytes
       );
 
@@ -1096,7 +1096,7 @@ const ElephantFlows = (gui, hooks, check_subdir, script_key) => {
          $input_container
       );
 
-      $table_editor.append(`<tr class='text-center'><th>${i18n.enabled}</th></tr>`);
+      $table_editor.append(`<tr class='text-center'><th>${i18n_ext.enabled}</th></tr>`);
 
       // append all inside the table
       $table_editor.append($container);
@@ -1220,7 +1220,7 @@ const MultiSelect = (gui, hooks, check_subdir, script_key) => {
          $input_container
       );
 
-      $table_editor.append(`<tr class='text-center'><th>${i18n.enabled}</th></tr>`);
+      $table_editor.append(`<tr class='text-center'><th>${i18n_ext.enabled}</th></tr>`);
 
       // append all inside the table
       $table_editor.append($container);
@@ -1302,7 +1302,7 @@ const EmptyTemplate = (gui = null, hooks = null, check_subdir = null, script_key
 
          // add an info alert to inform the user about the problem
          const $alert = $("<div class='alert alert-info'></div>");
-         $alert.html(i18n.scripts_list.templates.template_not_implemented);
+         $alert.html(i18n_ext.scripts_list.templates.template_not_implemented);
          $tableEditor.append($alert);
          // hide the apply and the reset button because there are no inputs to fill
          $(`#btn-apply,#btn-reset`).hide();
@@ -1433,8 +1433,8 @@ const TemplateBuilder = ({ gui, hooks, metadata }, check_subdir, script_key) => 
 const createScriptStatusButton = (row_data) => {
 
    const { is_enabled } = row_data;
-   let enable_title = i18n.enable_check_title;
-   let disable_title = i18n.disable_check_title;
+   let enable_title = i18n_ext.enable_check_title;
+   let disable_title = i18n_ext.disable_check_title;
    const $button = $(`<button type='button' class='btn btn-sm' style='margin-right: 0.25rem'></button>`);
    $button.addClass('btn-danger');
    $button[0].setAttribute('title', enable_title)
@@ -1520,7 +1520,7 @@ function appendExclusionList(data) {
          /* Only show exclusion lists configuration textarea for those entities that support it */
          let $container;
          const $textarea = $($(`#exclusion-list-template`).html());
-         const label = i18n.scripts_list.exclusion_list_title;
+         const label = i18n_ext.scripts_list.exclusion_list_title;
 
          if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder)) {
             $container = $(`<tr></tr>`);
@@ -1558,11 +1558,11 @@ function delegateActionButton(gui) {
 
          // if the return code is zero then everything went alright
          if (rc == 0) {
-            $alert.removeClass('alert-danger').addClass('alert-success').html(i18n.rest[rc_str]).show().fadeOut(3000);
+            $alert.removeClass('alert-danger').addClass('alert-success').html(i18n_ext.rest[rc_str]).show().fadeOut(3000);
             return;
          }
          // otherwise show an error!
-         $alert.removeClass('alert-success').addClass('alert-danger').html(i18n.rest[rc_str]).show();
+         $alert.removeClass('alert-success').addClass('alert-danger').html(i18n_ext.rest[rc_str]).show();
       });
       req.fail(function (jqXHR) {
          if (jqXHR.status == 404) {
@@ -1570,7 +1570,7 @@ function delegateActionButton(gui) {
             return;
          }
          const { rc_str } = jqXHR.responseJSON;
-         $alert.removeClass('alert-success').addClass('alert-danger').html(i18n.rest[rc_str]).show();
+         $alert.removeClass('alert-success').addClass('alert-danger').html(i18n_ext.rest[rc_str]).show();
       });
       req.always(function () {
          $button.removeAttr("disabled");
@@ -1611,7 +1611,7 @@ $(function () {
       const $dropdown = $(`
          <div id='category-filter-menu' class='dropdown d-inline'>
             <button class='btn btn-link dropdown-toggle' data-bs-toggle='dropdown' type='button'>
-               <span>${i18n.filter_categories}</span>
+               <span>${i18n_ext.filter_categories}</span>
             </button>
             <div id='category-filter' class='dropdown-menu'>
             </div>
@@ -1636,7 +1636,7 @@ $(function () {
                      .column(CATEGORY_COLUMN_INDEX).search('')
                      .column(VALUES_COLUMN_INDEX).search(get_search_toggle_value(location.hash))
                      .draw();
-                  $dropdown.find('button span').text(`${i18n.filter_categories}`);
+                  $dropdown.find('button span').text(`${i18n_ext.filter_categories}`);
                   return;
                }
 
@@ -1671,7 +1671,7 @@ $(function () {
 
       const enabled_categories = [...categories_set];
 
-      $('#category-filter-menu button span').text(`${i18n.filter_categories}`);
+      $('#category-filter-menu button span').text(`${i18n_ext.filter_categories}`);
       $script_table.column(CATEGORY_COLUMN_INDEX).search('').draw();
 
       $('#category-filter li').each(function (index, element) {
@@ -1708,8 +1708,8 @@ $(function () {
       dom: "Bfrtip",
       pagingType: 'full_numbers',
       language: {
-         info: i18n.showing_x_to_y_rows,
-         search: i18n.script_search,
+         info: i18n_ext.showing_x_to_y_rows,
+         search: i18n_ext.script_search,
          infoFiltered: "",
          paginate: {
             previous: '&lt;',
@@ -1758,9 +1758,9 @@ $(function () {
          const $all_button = $("#all-scripts");
          const $enabled_button = $(`#enabled-scripts`);
 
-         $all_button.html(`${i18n.all} (${enabled_count + disabled_count})`)
-         $enabled_button.html(`${i18n.enabled} (${enabled_count})`);
-         $disabled_button.html(`${i18n.disabled} (${disabled_count})`);
+         $all_button.html(`${i18n_ext.all} (${enabled_count + disabled_count})`)
+         $enabled_button.html(`${i18n_ext.enabled} (${enabled_count})`);
+         $disabled_button.html(`${i18n_ext.disabled} (${disabled_count})`);
 
          const filterButonEvent = ($button, searchValue, tab) => {
             $('.filter-scripts-button').removeClass('active');
@@ -1816,9 +1816,9 @@ $(function () {
                      const [enabled_count, disabled_count] = count_scripts();
                      // enable the disable all button if there are more than one enabled scripts
                      if (enabled_count > 0) $(`#btn-disable-all`).removeAttr('disabled');
-                     $("#all-scripts").html(`${i18n.all} (${enabled_count + disabled_count})`)
-                     $(`#enabled-scripts`).html(`${i18n.enabled} (${enabled_count})`);
-                     $(`#disabled-scripts`).html(`${i18n.disabled} (${disabled_count})`);
+                     $("#all-scripts").html(`${i18n_ext.all} (${enabled_count + disabled_count})`)
+                     $(`#enabled-scripts`).html(`${i18n_ext.enabled} (${enabled_count})`);
+                     $(`#disabled-scripts`).html(`${i18n_ext.disabled} (${disabled_count})`);
                   }, false);
                }
             }
@@ -1899,13 +1899,13 @@ $(function () {
             render: function (data, type, row) {
 
                // if the type is flter return true if the data length is greather or equal
-               // than 0 so the script table can detect if a plugin is enabled
+               // than 0 so the script table can detect if a script is enabled
                if (data.length <= 0 && type == "filter") return false;
                if (data.length > 0 && type == "filter") return true;
 
                return (type == 'display') ? `
                   <span
-                     title="${i18n.values}"
+                     title="${i18n_ext.values}"
                      ${row.value_description.length >= 32 ? `data-bs-toggle='popover'  data-placement='top'` : ``}
                      data-content='${row.value_description}'>
                      ${row.value_description.substr(0, 32)}${row.value_description.length >= 32 ? '...' : ''}
@@ -1928,7 +1928,7 @@ $(function () {
                const editScriptButtonEnabled = ((!script.input_handler && !isSubdirFlow) || !isScriptEnabled) ? 'disabled' : '';
 
                return DataTableUtils.createActionButtons([
-                  { class: `btn-info ${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit', title: i18n.edit_check_title },
+                  { class: `btn-info ${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit', title: i18n_ext.edit_check_title },
                ]);
             },
             createdCell: function (td, cellData, row) {
@@ -1941,7 +1941,7 @@ $(function () {
    });
 
    // initialize are you sure
-   $("#edit-form").areYouSure({ message: i18n.are_you_sure });
+   $("#edit-form").areYouSure({ message: i18n_ext.are_you_sure });
 
    // handle modal-script close event
    $("#modal-script").on("hide.bs.modal", function (e) {
@@ -1951,7 +1951,7 @@ $(function () {
       if ($('#edit-form').hasClass('dirty')) {
 
          // ask to user if he REALLY wants close modal
-         const result = confirm(`${i18n.are_you_sure}`);
+         const result = confirm(`${i18n_ext.are_you_sure}`);
          if (!result) e.preventDefault();
 
          // remove dirty class from form

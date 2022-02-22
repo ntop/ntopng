@@ -48,7 +48,8 @@
         const $error = $(`#widget-{{ widget_name }} .widget-error`);
         const endpoint = "{* ntop.getHttpPrefix() *}" + datasource[0]["endpoint"];
         const base_endpoint = "{* ntop.getHttpPrefix() *}" + datasource[0]["name"];
+        const hostEndpoint = ""
 
-        init_map(endpoint, base_endpoint);
+        init_map(endpoint, base_endpoint, true);
     });
 </script>

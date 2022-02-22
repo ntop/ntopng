@@ -38,7 +38,7 @@ Recipients::~Recipients() {
 
 /* *************************************** */
 
-bool Recipients::dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio, AlertFifoItem *notification) {
+bool Recipients::dequeue(u_int16_t recipient_id, AlertFifoItem *notification) {
   bool res = false;
 
   if(recipient_id >= MAX_NUM_RECIPIENTS
@@ -49,9 +49,9 @@ bool Recipients::dequeue(u_int16_t recipient_id, RecipientNotificationPriority p
 
   if(recipient_queues[recipient_id]) {
     /*
-      Dequeue the notification for a given priority
+      Dequeue the notification
     */
-    res = recipient_queues[recipient_id]->dequeue(prio, notification);
+    res = recipient_queues[recipient_id]->dequeue(notification);
   }
 
   m.unlock(__FILE__, __LINE__);
@@ -61,7 +61,7 @@ bool Recipients::dequeue(u_int16_t recipient_id, RecipientNotificationPriority p
 
 /* *************************************** */
 
-bool Recipients::enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification) {
+bool Recipients::enqueue(u_int16_t recipient_id, const AlertFifoItem* const notification) {
   bool res = false;
 
   if(recipient_id >= MAX_NUM_RECIPIENTS
@@ -71,10 +71,10 @@ bool Recipients::enqueue(u_int16_t recipient_id, RecipientNotificationPriority p
   m.lock(__FILE__, __LINE__);
 
   /* 
-     Perform the actual enqueue for the given priority
+     Perform the actual enqueue
    */
   if(recipient_queues[recipient_id])
-    res = recipient_queues[recipient_id]->enqueue(prio, notification);
+    res = recipient_queues[recipient_id]->enqueue(notification);
 
   m.unlock(__FILE__, __LINE__);
 
@@ -83,7 +83,7 @@ bool Recipients::enqueue(u_int16_t recipient_id, RecipientNotificationPriority p
 
 /* *************************************** */
 
-bool Recipients::enqueue(RecipientNotificationPriority prio, const AlertFifoItem* const notification, AlertEntity alert_entity) {
+bool Recipients::enqueue(const AlertFifoItem* const notification, AlertEntity alert_entity) {
   bool res = true; /* Initialized to true so that if no recipient is responsible for the notification, true will be returned. */
 
   if(!notification)
@@ -92,14 +92,31 @@ bool Recipients::enqueue(RecipientNotificationPriority prio, const AlertFifoItem
   m.lock(__FILE__, __LINE__);
 
   /* 
-     Perform the actual enqueue for the given priority to all available recipients
+     Perform the actual enqueue to all available recipients
    */
   for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
-    if(recipient_queues[recipient_id]
-       && ((alert_entity == alert_entity_flow && recipient_queues[recipient_id]->isFlowRecipient()) /* The recipient must be a flow recipient */
-	   || (alert_entity == alert_entity_host && recipient_queues[recipient_id]->isHostRecipient()))) {
-      bool success = recipient_queues[recipient_id]->enqueue(prio, notification);
+
+    /* Enqueue to builtin recipient only at the moment 
+     * (TODO implement filtering based on the pool ID) */
+    if(recipient_id == 0) {
+
+    if(recipient_queues[recipient_id]) {
+      bool success;
+
+      /* TODO check matching pool IDs if any
+      if (alert_entity == alert_entity_flow) {
+        notification->pools.flow.cli_host_pool
+        notification->pools.flow.srv_host_pool
+      } else if (alert_entity == alert_entity_host) {
+        notification->pools.host.host_pool
+      }
+      */
+
+      success = recipient_queues[recipient_id]->enqueue(notification);
+      
       res &= success;
+    }
+
     }
   }
 
@@ -124,44 +141,6 @@ void Recipients::register_recipient(u_int16_t recipient_id, AlertLevel minimum_s
       recipient_queues[recipient_id]->setEnabledCategories(enabled_categories);
 
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "registered [%u][%u][%u]", recipient_id, minimum_severity, enabled_categories);
-
-  m.unlock(__FILE__, __LINE__);
-}
-
-/* *************************************** */
-
-void Recipients::set_flow_recipients(u_int64_t flow_recipients) {
-  m.lock(__FILE__, __LINE__);
-
-  for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
-    if(recipient_queues[recipient_id]) {
-      if(flow_recipients & (1 << recipient_id)) 
-	recipient_queues[recipient_id]->setFlowRecipient(true /* This is a flow recipient */);
-      else
-	recipient_queues[recipient_id]->setFlowRecipient(false/* This is NOT a flow recipient */);
-
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Set flow recipient [%u][%u]", recipient_id, flow_recipients & (1 << recipient_id));
-    }
-  }
-
-  m.unlock(__FILE__, __LINE__);
-}
-
-/* *************************************** */
-
-void Recipients::set_host_recipients(u_int64_t host_recipients) {
-  m.lock(__FILE__, __LINE__);
-
-  for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
-    if(recipient_queues[recipient_id]) {
-      if(host_recipients & (1 << recipient_id)) 
-	recipient_queues[recipient_id]->setHostRecipient(true /* This is a host recipient */);
-      else
-	recipient_queues[recipient_id]->setHostRecipient(false/* This is NOT a host recipient */);
-
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Set host recipient [%u][%u]", recipient_id, host_recipients & (1 << recipient_id));
-    }
-  }
 
   m.unlock(__FILE__, __LINE__);
 }

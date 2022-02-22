@@ -7,14 +7,14 @@ const red_marker = L.icon({
 });
 
 const info_key_names = {
-    "score": i18n.score,
-    "asname": i18n.as,
-    "html": i18n.nation,
-    "active_alerted_flows": i18n.alerted_flows,
-    "num_blacklisted_flows": i18n.blacklisted_flows,
-    "bytes.sent": i18n.traffic_sent,
-    "bytes.rcvd": i18n.traffic_rcvd,
-    "total_flows": i18n.flows,
+    "score": i18n_ext.score,
+    "asname": i18n_ext.as,
+    "html": i18n_ext.nation,
+    "active_alerted_flows": i18n_ext.alerted_flows,
+    "num_blacklisted_flows": i18n_ext.blacklisted_flows,
+    "bytes.sent": i18n_ext.traffic_sent,
+    "bytes.rcvd": i18n_ext.traffic_rcvd,
+    "total_flows": i18n_ext.flows,
 };
 
 const formatters = {
@@ -27,6 +27,7 @@ const zoom_level = 4;
 let addRefToHost = true;
 let endpoint = http_prefix + "/lua/rest/v2/get/geo_map/hosts.lua?";
 let baseEndpoint = "";
+let dbHostRef = false
 
 // initialize alert api
 //$('#geomap-alert').alert();
@@ -42,6 +43,7 @@ const create_marker = (h) => {
     const name = h.name;
     let name_ip = ip;
     let extra_info = '';
+    let hostRef = `${http_prefix}/lua/host_details.lua?host=${ip}`
     
     h.ip = null;
     h.lat = null;
@@ -59,7 +61,7 @@ const create_marker = (h) => {
     }
 
     if(h["flow_status"]) {
-        let flow_status = i18n.flow_status + ":</br>";
+        let flow_status = i18n_ext.flow_status + ":</br>";
         for (const prop in h["flow_status"]) {
             flow_status = flow_status + "<b>" + h["flow_status"][prop]["num_flows"] + " Flows, " + h["flow_status"][prop]["label"] + "</b></br>";
         }
@@ -69,8 +71,14 @@ const create_marker = (h) => {
     if(name)
         name_ip = name + "</br>" + name_ip;
 
+    if(dbHostRef){
+      const searchParams = new URLSearchParams(window.location.search);
+      searchParams.set('ip', `${ip};eq`);
+      hostRef = window.location.href.split('?')[0] + '?' + searchParams.toString()
+    }
+
     const marker = `<div class='infowin'>
-                        <a href='${http_prefix}/lua/host_details.lua?host=${ip}'>${name_ip}</a>
+                        <a href="${hostRef}">${name_ip}</a>
                         <hr>
                         ${extra_info}
                     </div>`
@@ -84,10 +92,10 @@ const check_status_code = (status_code, status_text, $error_label) => {
     const is_different = (status_code != 200);
 
     if (is_different && $error_label != null) {
-        $error_label.find('p').text(`${i18n.request_failed_message}: ${status_code} - ${status_text}`).show();
+        $error_label.find('p').text(`${i18n_ext.request_failed_message}: ${status_code} - ${status_text}`).show();
     }
     else if (is_different && $error_label == null) {
-        alert(`${i18n.request_failed_message}: ${status_code} - ${status_text}`);
+        alert(`${i18n_ext.request_failed_message}: ${status_code} - ${status_text}`);
     }
 
     return is_different;
@@ -108,9 +116,10 @@ const display_errors = (errors) => {
     }
 }
 
-const init_map = (newEndpoint = null, _baseEndpoint = null) => {
+const init_map = (newEndpoint = null, _baseEndpoint = null, _dbHostRef = null) => {
     endpoint = newEndpoint || endpoint;
     baseEndpoint = _baseEndpoint;
+    dbHostRef = _dbHostRef
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(show_positions, display_errors,

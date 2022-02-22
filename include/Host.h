@@ -45,6 +45,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   HostStats *stats, *stats_shadow;
   time_t last_stats_reset;
   std::atomic<u_int32_t> active_alerted_flows;
+  u_int8_t view_interface_mac[6];
   
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
@@ -102,9 +103,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   TrafficShaper **host_traffic_shapers;
   bool has_blocking_quota, has_blocking_shaper;
 #endif
-  bool hidden_from_top;
-  bool is_in_broadcast_domain;
-  bool is_dhcp_host;
+  u_int8_t hidden_from_top:1, is_in_broadcast_domain:1, is_dhcp_host:1, is_crawler_bot_scanner:1, _notused:4;
 
   /* Alert exclusion handling */
 #ifdef NTOPNG_PRO
@@ -136,12 +135,14 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   virtual bool isLocalHost()  const = 0;
   virtual bool isSystemHost() const = 0;
-  inline  bool isBroadcastDomainHost() const { return(is_in_broadcast_domain); };
-  inline  bool serializeByMac()        const { return(isLocalHost() && iface->serializeLbdHostsAsMacs()); }
-  inline  bool isDhcpHost()            const { return(is_dhcp_host); };
-  inline  void setBroadcastDomainHost()      { is_in_broadcast_domain = true;  };
-  inline  void setSystemHost()               { /* TODO: remove */              };
-  inline  void setLastDeviceIp(u_int32_t ip) { 
+  inline  bool isBroadcastDomainHost()   const { return(is_in_broadcast_domain ? true : false); };
+  inline  bool serializeByMac()          const { return(isLocalHost() && iface->serializeLbdHostsAsMacs()); }
+  inline  bool isDHCPHost()              const { return(is_dhcp_host ? true : false); };
+  inline  bool isCrawlerBotScannerHost() const { return(is_crawler_bot_scanner ? true : false); };
+  inline  void setCrawlerBotScannerHost()      { is_crawler_bot_scanner = 1;          };
+  inline  void setBroadcastDomainHost()        { is_in_broadcast_domain = 1;  };
+
+  inline  void setLastDeviceIp(u_int32_t ip)   { 
     if(ip && ip != device_ip) { 
       if(device_ip) more_then_one_device = true; 
       device_ip = ip; 
@@ -423,9 +424,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   char* get_city(char *buf, u_int buf_len);
   void get_geocoordinates(float *latitude, float *longitude);
   void serialize_geocoordinates(ndpi_serializer *s, const char *prefix);
-  inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this); }
-  inline void reloadDhcpHost()    { is_dhcp_host = iface->isInDhcpRange(get_ip()); }
-  inline bool isHiddenFromTop() { return hidden_from_top; }
+  inline void reloadHideFromTop() { hidden_from_top = iface->isHiddenFromTop(this) ? 1 : 0; }
+  inline void reloadDhcpHost()    { is_dhcp_host = iface->isInDhcpRange(get_ip()) ? 1 : 0; }
+  inline bool isHiddenFromTop()   { return(hidden_from_top ? true : false); }
   bool isOneWayTraffic()  const;
   bool isTwoWaysTraffic() const;
   virtual void lua_get_timeseries(lua_State* vm)        { lua_pushnil(vm); };
@@ -512,6 +513,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 
   void releaseAllEngagedAlerts();
 
+  u_int16_t get_country_code();
   inline bool has_flows_anomaly(bool as_client) { return(stats->has_flows_anomaly(as_client)); }
   inline u_int32_t value_flows_anomaly(bool as_client) { return(stats->value_flows_anomaly(as_client)); }
   inline u_int32_t lower_bound_flows_anomaly(bool as_client) { return(stats->lower_bound_flows_anomaly(as_client)); }
@@ -522,7 +524,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t upper_bound_score_anomaly(bool as_client) { return(stats->upper_bound_score_anomaly(as_client)); }
 
   inline void inc_num_blacklisted_flows(bool as_client) { if(as_client) num_blacklisted_flows.as_client++; else num_blacklisted_flows.as_server++; }
-  
+  inline void setViewInterfaceMac(u_int8_t *_view_interface_mac) { if(_view_interface_mac) memcpy(view_interface_mac, _view_interface_mac, sizeof(view_interface_mac)); }  
 };
 
 #endif /* _HOST_H_ */

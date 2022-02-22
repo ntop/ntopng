@@ -1,7 +1,6 @@
 require "lua_utils"
 
 local recording_utils = require "recording_utils"
-local plugins_utils = require("plugins_utils")
 
 local prefs = ntop.getPrefs()
 

@@ -1,6 +1,4 @@
 <!-- (C) 2022 - ntop.org     -->
-
-{-verbatim-}
 <template>
 <div class="input-group mx-1">    
   <div class="form-group">
@@ -8,18 +6,19 @@
       <div class="btn-group me-auto btn-group-sm">
         <slot></slot>
         <select v-model="select_time_value" @change="change_select_time" class="form-select me-2">
-                <option value="min_5">{{context.text.show_alerts_presets.min_5}}</option>
+                <!-- <option value="min_5">{{context.text.show_alerts_presets["5_min"]}}</option> -->
+                <option value="min_5">{{text.alerts_presets["5_min"]}}</option>
         
-                <option value="min_30">{{context.text.show_alerts_presets.min_30}}</option>
+                <option value="min_30">{{text.alerts_presets["30_min"]}}</option>
         
-                <option value="hour">{{context.text.show_alerts_presets.hour}}</option>
+                <option value="hour">{{text.alerts_presets["hour"]}}</option>
         
-                <option value="day">{{context.text.show_alerts_presets.day}}</option>
-                <option value="week">{{context.text.show_alerts_presets.week}}</option>
+                <option value="day">{{text.alerts_presets["day"]}}</option>
+                <option value="week">{{text.alerts_presets["week"]}}</option>
         
-                <option value="month">{{context.text.show_alerts_presets.month}}</option>
-                <option value="year">{{context.text.show_alerts_presets.year}}</option>
-                <option value="custom">{{context.text.show_alerts_presets.custom}}</option>
+                <option value="month">{{text.alerts_presets["month"]}}</option>
+                <option value="year">{{text.alerts_presets["year"]}}</option>
+                <option value="custom">{{text.custom}}</option>
         </select>
         
         <div class="btn-group">
@@ -35,13 +34,13 @@
             <input  class="flatpickr flatpickr-input" type="text" placeholder="Choose a date.." data-id="datetime" ref="end-date">
             <!-- <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;"> -->
             <!-- <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input"> -->
-            <span v-show="wrong_date" :title="context.text.wrong_date" style="margin-left:0.2rem;color:red;">
+            <span v-show="wrong_date" :title="text.wrong_date_range" style="margin-left:0.2rem;color:red;">
                 <i class="fas fa-exclamation-circle"></i>
             </span>
         </div>
 
         <div class="d-flex align-items-center ms-2">
-            <button :disabled="!enable_apply || wrong_date" @click="apply" class="btn btn-sm btn-primary">{{context.text.apply}}</button>
+            <button :disabled="!enable_apply || wrong_date" @click="apply" class="btn btn-sm btn-primary">{{text.apply}}</button>
                 
             <div class="btn-group">
                 <button @click="jump_time_back()" class="btn btn-sm btn-link" ref="btn-jump-time-back">
@@ -63,11 +62,13 @@
   </div>  
 </div>
 </template>
-{-verbatim-}
 
 <script>
 export default {
+    components: {
+    },
     props: {
+	text: Object,
     },
     emits: ["epoch_change"],
     /** This method is the first method of the component called, it's called before html template creation. */
@@ -91,7 +92,6 @@ export default {
 		    //me[var_name] = utc_s;
 		    me.enable_apply = true;
 		    me.wrong_date = me.flat_begin_date.selectedDates[0].getTime() > me.flat_end_date.selectedDates[0].getTime();
-		    console.log(me.wrong_date);
 	 	    //me.a[data] = d;
 	 	},
 	    });
@@ -101,7 +101,7 @@ export default {
 	
         ntopng_events_manager.on_event_change(this.status_id, ntopng_events.EPOCH_CHANGE, (new_status) => this.on_status_updated(new_status), true);
     },
-
+    
     /** Methods of the component. */
     methods: {
         on_status_updated: function(status) {
@@ -109,7 +109,9 @@ export default {
             // default begin date time now - 30 minutes
             let begin_date_time_utc = end_date_time_utc - 30 * 60 * 1000;
             if (status.epoch_end != null && status.epoch_begin != null
-            && status.epoch_end > status.epoch_begin) {
+		&& Number.parseInt(status.epoch_end) > Number.parseInt(status.epoch_begin)) {
+		status.epoch_begin = Number.parseInt(status.epoch_begin);
+		status.epoch_end = Number.parseInt(status.epoch_end);
                 end_date_time_utc = status.epoch_end * 1000;
                 begin_date_time_utc = status.epoch_begin * 1000;
             } else {
@@ -273,10 +275,10 @@ export default {
         },
         emit_epoch_change: function(epoch_status, id) {
             if (epoch_status.epoch_end == null || epoch_status.epoch_begin == null) { return; };
-                this.wrong_date = false;
+            this.wrong_date = false;
             if (epoch_status.epoch_begin > epoch_status.epoch_end) {
                 this.wrong_date = true;
-            return;
+		return;
             }
             this.$emit("epoch_change", epoch_status);
             ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_status, id);
@@ -285,9 +287,9 @@ export default {
         },
     },
     /**
-    Private date of vue component.
-     */
-    data () {
+       Private date of vue component.
+    */
+    data() {
         return {
             status_id: "data-time-range-picker" + this._uid,
             epoch_status: null,
@@ -297,20 +299,6 @@ export default {
 	    flat_begin_date: null,
 	    flat_end_date: null,
             context: {
-                text: {
-                    show_alerts_presets: {
-                    min_5: "Last 5 Min",
-                    min_30: "Last 30 Min",
-                    hour: "Last Hour",
-                    day: "Last Day",
-                    week: "Last Week",
-                    month: "Last Month",
-                    year: "Last Year",
-                custom: "Custom",
-                    },
-                wrong_date: "Invalid input date",
-                    apply: "Apply",
-                },
             },
         };
     },

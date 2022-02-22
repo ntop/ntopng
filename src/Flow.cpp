@@ -38,7 +38,8 @@ Flow::Flow(NetworkInterface *_iface,
 	   Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
 	   Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
 	   const ICMPinfo * const _icmp_info,
-	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
+	   time_t _first_seen, time_t _last_seen,
+	   u_int8_t *_view_cli_mac, u_int8_t *_view_srv_mac) : GenericHashEntry(_iface) {
   periodic_stats_update_partial = NULL;
   viewFlowStats = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
@@ -103,6 +104,17 @@ Flow::Flow(NetworkInterface *_iface,
   if(_observation_point_id)
     iface->incObservationPointIdFlows(_observation_point_id);
 
+  if(_iface->isViewed()) {
+    memset(view_cli_mac, 0, sizeof(view_cli_mac));
+    memset(view_srv_mac, 0, sizeof(view_srv_mac));
+
+    if(_view_cli_mac)
+      memcpy(view_cli_mac, _view_cli_mac, sizeof(view_cli_mac));
+
+    if(_view_srv_mac)
+      memcpy(view_srv_mac, _view_srv_mac, sizeof(view_srv_mac));
+  }
+
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
 
@@ -112,7 +124,7 @@ Flow::Flow(NetworkInterface *_iface,
     cli_host->incCliContactedHosts(_srv_ip);
     cli_host->incCliContactedPorts(_srv_port);
 
-    if (cli_host->isLocalHost() && srv_host) {
+    if(cli_host->isLocalHost() && srv_host) {
       srv_host->get_country(country, sizeof(country));
       if(country[0] != '\0') cli_host->incCountriesContacts(country);
     }
@@ -131,7 +143,7 @@ Flow::Flow(NetworkInterface *_iface,
     srv_host->incSrvHostContacts(_cli_ip);
     srv_host->incSrvPortsContacts(_cli_port);
 
-    if (srv_host->isLocalHost() && cli_host) {
+    if(srv_host->isLocalHost() && cli_host) {
       cli_host->get_country(country, sizeof(country));
       if(country[0] != '\0') srv_host->incCountriesContacts(country);
     }
@@ -393,10 +405,10 @@ u_int16_t Flow::getStatsProtocol() const {
  * completed. See processExtraDissectedInformation for a later check.
  * NOTE: does NOT need ndpiFlow
  */
-void Flow::processDetectedProtocol() {
+void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
   u_int16_t l7proto;
   u_int16_t stats_protocol;
-  Host *cli_h = NULL, *srv_h = NULL;
+  Host *cli_h = NULL, *srv_h = NULL, *real_cli_h, *real_srv_h;
   char *domain_name = NULL;
 
   /*
@@ -416,13 +428,33 @@ void Flow::processDetectedProtocol() {
 
   switch(l7proto) {
   case NDPI_PROTOCOL_DHCP:
-    if(srv_h) srv_h->setDhcpServer();
+
+    if(cli_port == htons(67)) {
+      /* Server -> Client */
+
+      if(cli_host && (!cli_host->isBroadcastHost())) {
+	cli_host->setDhcpServer();
+      }
+    } else {
+      if(srv_host && (!srv_host->isBroadcastHost()))
+	srv_host->setDhcpServer();
+    }
     break;
 
   case NDPI_PROTOCOL_NTP:
-    if(srv_h) {
-      srv_h->setNtpServer();
-      if(cli_h) cli_h->incNTPContactCardinality(srv_h);
+    real_srv_h = srv_h, real_cli_h = cli_h;
+
+    /* Check direction first */
+    if(payload && (payload_len > 1)) {
+      u_int8_t mode = payload[0] & 0x07;
+
+      if(mode == 2 /* server -> client */)
+	real_srv_h = cli_h, real_cli_h = srv_h;
+    }
+
+    if(real_srv_h) {
+      real_srv_h->setNtpServer();
+	if(real_cli_h) real_cli_h->incNTPContactCardinality(real_srv_h);
     }
     break;
 
@@ -435,6 +467,10 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_DNS:
+    /*
+      No need to swap as Flow::processDNSPacket()
+      take care of directions
+    */
     if(srv_h) {
       srv_h->setDnsServer();
       if(cli_h) cli_h->incDNSContactCardinality(srv_h);
@@ -525,10 +561,10 @@ void Flow::processDetectedProtocolData() {
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(ndpiFlow->http.url) {
       if(!protos.http.last_url) protos.http.last_url = strdup(ndpiFlow->http.url);
-      
+
       if((!protos.http.last_user_agent) && ndpiFlow->http.user_agent)
 	protos.http.last_user_agent = strdup(ndpiFlow->http.user_agent);
-      
+
       setHTTPMethod(ndpiFlow->http.method);
     }
 
@@ -725,21 +761,29 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
 #endif
 
   if(detected) {
-    if (srv_host) {
-      /* Ignore unsafe protocols for broadcast packets (e.g. SMBv1) */
-      Mac *srv_mac = srv_host->getMac();
+    if(ndpiFlow->risk != 0) {
+      if(srv_host) {
+	/* Ignore unsafe protocols for broadcast packets (e.g. SMBv1) */
+	Mac *srv_mac = srv_host->getMac();
 
-      if(srv_mac && srv_mac->isBroadcast()) {
-        ndpi_risk r = 2 << (NDPI_UNSAFE_PROTOCOL-1);
+	if(srv_mac && srv_mac->isBroadcast()) {
+	  ndpi_risk r = ((ndpi_risk)1) << NDPI_UNSAFE_PROTOCOL;
 
-        if((ndpiFlow->risk & r) == r)
-	  ndpiFlow->risk &= ~r; /* Clear the bit */
+	  if((ndpiFlow->risk & r) == r)
+	    ndpiFlow->risk &= ~r; /* Clear the bit */
+	}
       }
+
+      if(cli_host) {
+	if(NDPI_ISSET_BIT(ndpiFlow->risk, NDPI_HTTP_CRAWLER_BOT))
+	  cli_host->setCrawlerBotScannerHost();
+      }
+
+      setRisk(ndpiFlow->risk);
     }
 
-    setRisk(ndpiFlow->risk);
     updateProtocol(proto_id);
-    setProtocolDetectionCompleted();
+    setProtocolDetectionCompleted(payload, payload_len);
   }
 
   /*
@@ -882,9 +926,10 @@ void Flow::endProtocolDissection() {
   if(!detection_completed) {
     u_int8_t proto_guessed;
 
-    updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow, 1, &proto_guessed));
+    updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(),
+					 ndpiFlow, 1, &proto_guessed));
     setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
-    setProtocolDetectionCompleted();
+    setProtocolDetectionCompleted(NULL, 0);
   }
 
   if(!extra_dissection_completed)
@@ -896,7 +941,7 @@ void Flow::endProtocolDissection() {
 /* Manually set a protocol on the flow and terminate the dissection. */
 void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
   updateProtocol(proto_id);
-  setProtocolDetectionCompleted();
+  setProtocolDetectionCompleted(NULL, 0);
 
   endProtocolDissection();
 }
@@ -965,13 +1010,17 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
 
 /* Called to update the flow protocol and possibly advance the flow to
  * the protocol_detected state. */
-void Flow::setProtocolDetectionCompleted() {
+void Flow::setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_len) {
   if(detection_completed)
     return;
 
   stats.setDetectedProtocol(&ndpiDetectedProtocol);
-  processDetectedProtocol();     /* Process detected protocol and doesn't need ndpiFlow not allocated for non-packet interfaces */
-  processDetectedProtocolData(); /* Process detected protocol data and needs ndpiFlow only allocated for packet interfaces      */
+
+  /* Process detected protocol and doesn't need ndpiFlow not allocated for non-packet interfaces */
+  processDetectedProtocol(payload, payload_len);
+
+  /* Process detected protocol data and needs ndpiFlow only allocated for packet interfaces */
+  processDetectedProtocolData();
 
   detection_completed = true;
 
@@ -1548,7 +1597,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     }
     /* Don't break, let's process also HTTP_PROXY */
   case NDPI_PROTOCOL_HTTP_PROXY:
-    if (srv_host) {
+    if(srv_host) {
       if(!Utils::isIPAddress(host_server_name) && hasRisk(NDPI_HTTP_NUMERIC_IP_HOST)) {
         srv_host->offlineSetHTTPName(host_server_name);
       }
@@ -2312,7 +2361,7 @@ void Flow::setRisk(ndpi_risk risk_bitmap) {
   /* Handle OR of risks with no risk */
   NDPI_CLR_BIT(risk_bitmap, NDPI_NO_RISK);
 
-  if (risk_bitmap == 0)
+  if(risk_bitmap == 0)
     NDPI_SET_BIT(risk_bitmap, NDPI_NO_RISK);
 
   ndpi_flow_risk_bitmap = risk_bitmap;
@@ -2937,7 +2986,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
 
   ndpi_serialize_string_string(s, "json", alert_json ? alert_json : "");
 
-  if (alert_json_serializer) {
+  if(alert_json_serializer) {
     ndpi_term_serializer(alert_json_serializer);
     free(alert_json_serializer);
   }
@@ -3282,17 +3331,14 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
 
   flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
 
-  /* TODO: read all the recipients responsible for flows, and enqueue only to them */
-  /* Currenty, we forcefully enqueue only to the builtin sqlite */
-
   notification.alert = (char*)flow_str;
   notification.score = getPredominantAlertScore();
   notification.alert_severity = Utils::mapScoreToSeverity(notification.score);
   notification.alert_category = alert->getAlertType().category;
+  notification.pools.flow.cli_host_pool = cli_host ? cli_host->get_host_pool() : 0;
+  notification.pools.flow.srv_host_pool = srv_host ? srv_host->get_host_pool() : 0;
 
-  rv = ntop->recipients_enqueue(notification.alert_severity >= alert_level_error ? recipient_notification_priority_high : recipient_notification_priority_low,
-				&notification,
-				alert_entity_flow /* Flow recipients */);
+  rv = ntop->recipients_enqueue(&notification, alert_entity_flow /* Flow recipients */);
 
   if(!rv)
     getInterface()->incNumDroppedAlerts(alert_entity_flow);
@@ -4071,6 +4117,11 @@ void Flow::updateHTTP(ParsedFlow *zflow) {
       zflow->http_url = NULL;
     }
 
+    if(zflow->http_user_agent) {
+      setHTTPUserAgent(zflow->http_user_agent);
+      zflow->http_user_agent = NULL;
+    }
+
     if(zflow->http_site) {
       setServerName(zflow->http_site);
       zflow->http_site = NULL;
@@ -4134,9 +4185,16 @@ void Flow::setHTTPMethod(const char* method, ssize_t method_len) {
 void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len) {
   ssize_t host_server_name_len = host_server_name && host_server_name[0] != '\0' ? strlen(host_server_name) : 0;
 
+  if((payload == NULL) || (payload_len == 0))
+    return;
+
+#if 0 /* Not sure it this is really necessary */
   if(!isThreeWayHandshakeOK())
     ; /* Useless to compute http stats as client and server could be swapped */
-  else if(src2dst_direction) {
+  else
+#endif
+
+    if(src2dst_direction) {
     char *space;
     dissect_next_http_packet = true;
 
@@ -4715,7 +4773,7 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 
   updateSeen();
 
-  if (last_conntrack_update > 0) {
+  if(last_conntrack_update > 0) {
     float tdiff_msec = (now - last_conntrack_update)*1000;
     updateThroughputStats(tdiff_msec,
       nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
@@ -5101,7 +5159,7 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
       lua_push_bool_table_entry(vm, client ? "cli.systemhost" : "srv.systemhost", h->isSystemHost());
       lua_push_bool_table_entry(vm, client ? "cli.blacklisted" : "srv.blacklisted", client ? isBlacklistedClient() : isBlacklistedServer());
       lua_push_bool_table_entry(vm, client ? "cli.broadcast_domain_host" : "srv.broadcast_domain_host", h->isBroadcastDomainHost());
-      lua_push_bool_table_entry(vm, client ? "cli.dhcpHost" : "srv.dhcpHost", h->isDhcpHost());
+      lua_push_bool_table_entry(vm, client ? "cli.dhcpHost" : "srv.dhcpHost", h->isDHCPHost());
       lua_push_int32_table_entry(vm, client ? "cli.network_id" : "srv.network_id", h->get_local_network_id());
       lua_push_uint64_table_entry(vm, client ? "cli.pool_id" : "srv.pool_id", h->get_host_pool());
       lua_push_uint64_table_entry(vm, client ? "cli.asn" : "srv.asn", h->get_asn());
@@ -5616,7 +5674,7 @@ void Flow::setNormalToAlertedCounters() {
 
 void Flow::setPredominantAlert(FlowAlertType alert_type, u_int16_t score) {
 
-  if (predominant_alert_score) {
+  if(predominant_alert_score) {
     /* Decrease the value previously increased for the previous alert (if not normal) */
     iface->decNumAlertedFlows(this, Utils::mapScoreToSeverity(predominant_alert_score));
   }
@@ -5644,7 +5702,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
   /* Safety checks */
   cli_inc = min_val(cli_inc, SCORE_MAX_VALUE);
   srv_inc = min_val(srv_inc, SCORE_MAX_VALUE);
-  if (cli_inc + srv_inc > SCORE_MAX_VALUE)
+  if(cli_inc + srv_inc > SCORE_MAX_VALUE)
     srv_inc = SCORE_MAX_VALUE - cli_inc;
 
   flow_inc = cli_inc + srv_inc;
@@ -5771,7 +5829,7 @@ void Flow::setExternalAlert(json_object *a) {
 void Flow::luaRetrieveExternalAlert(lua_State *vm) {
   const char *json = external_alert.json ? json_object_to_json_string(external_alert.json) : NULL;
 
-  if (json)
+  if(json)
     lua_pushstring(vm, json);
   else
     lua_pushnil(vm);

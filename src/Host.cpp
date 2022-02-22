@@ -196,6 +196,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   host_services_bitmap = 0;
   disabled_alerts_tstamp = 0;
   num_remote_access = 0;
+  memset(view_interface_mac, 0, sizeof(view_interface_mac));
   
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 
@@ -223,9 +224,10 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   as = NULL, country = NULL, obs_point = NULL;
   os = NULL, os_type = os_unknown;
   reloadHostBlacklist();
-  is_dhcp_host = false;
-  is_in_broadcast_domain = false;
-
+  is_dhcp_host = 0;
+  is_crawler_bot_scanner = 0;
+  is_in_broadcast_domain = 0;
+  hidden_from_top = 0;
   more_then_one_device = false;
   device_ip = 0;
 
@@ -453,7 +455,9 @@ void Host::lua_get_mac(lua_State *vm) const {
   /* Cache macs as they can be swapped/updated */
   Mac *cur_mac = getMac();
 
-  lua_push_str_table_entry(vm, "mac", Utils::formatMac(cur_mac ? cur_mac->get_mac() : NULL, buf, sizeof(buf)));
+  const u_int8_t *mac = cur_mac ? cur_mac->get_mac() : view_interface_mac;
+
+  lua_push_str_table_entry(vm, "mac", Utils::formatMac(mac ? mac : NULL, buf, sizeof(buf)));
   lua_push_uint64_table_entry(vm, "devtype", getDeviceType());
 }
 
@@ -525,7 +529,8 @@ void Host::lua_get_min_info(lua_State *vm) {
   lua_push_bool_table_entry(vm, "systemhost", isSystemHost());
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
   lua_push_bool_table_entry(vm, "broadcast_domain_host", isBroadcastDomainHost());
-  lua_push_bool_table_entry(vm, "dhcpHost", isDhcpHost());
+  lua_push_bool_table_entry(vm, "dhcpHost", isDHCPHost());
+  lua_push_bool_table_entry(vm, "crawlerBotScannerHost", isCrawlerBotScannerHost());
   lua_push_bool_table_entry(vm, "is_blacklisted", isBlacklisted());
   lua_push_bool_table_entry(vm, "is_broadcast", isBroadcastHost());
   lua_push_bool_table_entry(vm, "is_multicast", isMulticastHost());
@@ -1807,17 +1812,13 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
 
   host_str = ndpi_serializer_get_buffer(&host_json, &buflen);
 
-  /* TODO: read all the recipients responsible for hosts, and enqueue only to them */
-  /* Currenty, we forcefully enqueue only to the builtin sqlite */
-    
   notification.alert = (char*)host_str;
   notification.score = alert->getAlertScore();
   notification.alert_severity = Utils::mapScoreToSeverity(notification.score);
   notification.alert_category = alert->getAlertType().category;
+  notification.pools.host.host_pool = get_host_pool();
 
-  rv = ntop->recipients_enqueue(notification.alert_severity >= alert_level_error ? recipient_notification_priority_high : recipient_notification_priority_low,
-				&notification,
-				alert_entity_host /* Host recipients */);
+  rv = ntop->recipients_enqueue(&notification, alert_entity_host /* Host recipients */);
 
   if(!rv)
     getInterface()->incNumDroppedAlerts(alert_entity_host);
@@ -1922,6 +1923,19 @@ void Host::releaseAlert(HostAlert *alert) {
 
   /* Enqueue the released alert to be notified */
   iface->enqueueHostAlert(alert);
+}
+
+/* *************************************** */
+
+u_int16_t Host::get_country_code() {
+  if(country) {
+    char *country_name = country->get_country_name();
+
+    if(country_name)
+      return(Utils::country2u16(country_name));
+  } /* No else here */
+  
+  return(0); /* Not found */
 }
 
 /* *************************************** */

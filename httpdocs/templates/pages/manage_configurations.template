@@ -73,19 +73,19 @@
 
     const importCSRF = "{{ ntop.getRandomCSRFValue() }}";
 
-    i18n.import = "{{ i18n('import') }}";
-    i18n.export = "{{ i18n('export') }}";
-    i18n.invalid_file = "{{ i18n('invalid_file') }}"
+    i18n_ext.import = "{{ i18n('import') }}";
+    i18n_ext.export = "{{ i18n('export') }}";
+    i18n_ext.invalid_file = "{{ i18n('invalid_file') }}"
 
-    i18n.success = "{{ i18n('success') }}";
-    i18n.failure = "{{ i18n('failure') }}";
+    i18n_ext.success = "{{ i18n('success') }}";
+    i18n_ext.failure = "{{ i18n('failure') }}";
 
-    i18n.manage_configurations = { messagges: {}};
+    i18n_ext.manage_configurations = { messagges: {}};
 
-    i18n.manage_configurations.messagges.reset_success = "{{ i18n('manage_configurations.messages.reset_success') }}";
-    i18n.manage_configurations.messagges.reset_all_success = "{* i18n('manage_configurations.messages.reset_all_success', {product=info.product})  *}";
-    i18n.manage_configurations.messagges.import_success = "{{ i18n('manage_configurations.messages.import_success') }}";
-    i18n.manage_configurations.messagges.import_all_success = "{* i18n('manage_configurations.messages.import_all_success', {product=info.product}) *}";
+    i18n_ext.manage_configurations.messagges.reset_success = "{{ i18n('manage_configurations.messages.reset_success') }}";
+    i18n_ext.manage_configurations.messagges.reset_all_success = "{* i18n('manage_configurations.messages.reset_all_success', {product=info.product})  *}";
+    i18n_ext.manage_configurations.messagges.import_success = "{{ i18n('manage_configurations.messages.import_success') }}";
+    i18n_ext.manage_configurations.messagges.import_all_success = "{* i18n('manage_configurations.messages.import_all_success', {product=info.product}) *}";
 
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/manage-configurations.js?{{ ntop.getStaticFileEpoch() }}"></script>

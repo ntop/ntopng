@@ -1,5 +1,3 @@
-.. _CliOptions:
-
 Configuration File Example
 --------------------------
 .. code:: bash

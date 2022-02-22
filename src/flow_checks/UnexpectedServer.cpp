@@ -79,7 +79,7 @@ bool UnexpectedServer::loadConfiguration(json_object *config) {
   */
 
   if(json_object_object_get_ex(config, "items", &whitelist_json)) {
-    for(u_int i = 0; i < json_object_array_length(whitelist_json); i++) {
+    for(u_int i = 0; i < (u_int)json_object_array_length(whitelist_json); i++) {
       const char *server_ptr;
       
       whitelisted_server_json = json_object_array_get_idx(whitelist_json, i);

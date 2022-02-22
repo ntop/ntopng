@@ -95,7 +95,7 @@ function ts_utils.getSchema(name)
 end
 
 function ts_utils.loadSchemas()
-   local plugins_utils = require("plugins_utils")
+   local script_manager = require("script_manager")
 
    -- This should include all the available schemas
    require("ts_second")
@@ -105,7 +105,7 @@ function ts_utils.loadSchemas()
    require("ts_hour")
 
    -- Possibly load more timeseries schemas
-   plugins_utils.loadSchemas()
+   script_manager.loadSchemas()
 
    if(ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_minute_custom.lua")) then
       require("ts_minute_custom")

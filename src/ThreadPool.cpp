@@ -134,16 +134,19 @@ void ThreadPool::run() {
       char name[64], *slash = strrchr(q->script_path, '/');
       
 #ifdef TASK_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "(**) Started task [%s][%s]",  q->script_path, q->iface->get_name());
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "(**) Started task [%s][%s]",
+				   q->script_path, q->iface->get_name());
 #endif
-      snprintf(name, sizeof(name), "%d/%s", q->iface->get_id(), slash ? &slash[1] : q->script_path);
+      snprintf(name, sizeof(name), "%d/%s", q->iface->get_id(),
+	       slash ? &slash[1] : q->script_path);
       Utils::setThreadName(name);
       
       q->j->set_state_running(q->iface, q->script_path);
       q->j->runScript(time(NULL), q->script_path, q->iface, q->deadline);
       q->j->set_state_sleeping(q->iface, q->script_path);
 #ifdef TASK_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "(**) Completed task [%s][%s]",  q->script_path, q->iface->get_name());
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "(**) Completed task [%s][%s]",
+				   q->script_path, q->iface->get_name());
 #endif
 
       delete q;

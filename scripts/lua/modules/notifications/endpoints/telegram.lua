@@ -20,7 +20,7 @@ local telegram = {
    },
    
    endpoint_template = {
-      plugin_key = endpoint_key, -- Unique string key
+      script_key = endpoint_key, -- Unique string key
 
       -- Filename of the GUI block for this endpoint
       -- relative pathname to httpdocs/templates/page/notifications/telegram/telegram_endpoint.template
@@ -34,7 +34,7 @@ local telegram = {
       { param_name = "telegram_channel"}, -- Name of the channel
    },
    recipient_template = {
-      plugin_key = endpoint_key, -- Unique string key
+      script_key = endpoint_key, -- Unique string key
 
       template_name = "telegram_recipient.template"
    },
@@ -111,7 +111,7 @@ end
 -- ##############################################
 
 -- Function called periodically to process queued alerts to be delivered via telegram
-function telegram.dequeueRecipientAlerts(recipient, budget, high_priority)
+function telegram.dequeueRecipientAlerts(recipient, budget)
   local start_time = os.time()
   local sent = 0
   local more_available = true
@@ -130,7 +130,7 @@ function telegram.dequeueRecipientAlerts(recipient, budget, high_priority)
     -- Dequeue max_alerts_per_request notifications
     local notifications = {}
     for i=1, max_alerts_per_request do
-       local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
+       local notification = ntop.recipient_dequeue(recipient.recipient_id)
        if notification then 
 	  notifications[#notifications + 1] = notification.alert
        else

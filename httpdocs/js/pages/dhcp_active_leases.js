@@ -8,8 +8,8 @@ $(function () {
 	dom: "Bfrtip",
 	pagingType: 'full_numbers',
 	language: {
-	    info: i18n.showing_x_to_y_rows,
-	    search: i18n.script_search,
+	    info: i18n_ext.showing_x_to_y_rows,
+	    search: i18n_ext.script_search,
 	    infoFiltered: "",
 	    paginate: {
 		previous: '&lt;',

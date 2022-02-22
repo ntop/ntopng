@@ -13,8 +13,6 @@ local checks = require "checks"
 local ts_utils = require "ts_utils_core"
 local json = require "dkjson"
 
-local recipients_mod = require "recipients"
-
 -- ##############################################
 
 local host_pools = {}
@@ -42,17 +40,16 @@ function host_pools:create(args)
 
     if locked then
        -- Init the jail, if not already initialized.
-       -- By default, the jail has always empty members and empty recipients
+       -- By default, the jail has always empty members
        local jailed_hosts_pool = self:get_pool(host_pools.DROP_HOST_POOL_ID)
 
        if not jailed_hosts_pool then
 	  -- Raw call to persist, no need to go through add_pool as here all the parameters are trusted and
 	  -- there's no need to check.
-	  -- Jail is always created with builtin recipients
 	  self:_persist(host_pools.DROP_HOST_POOL_ID,
 			host_pools.DROP_HOST_POOL_NAME,
 			{} --[[ no members --]] ,
-			recipients_mod.get_builtin_recipients() --[[ builtin recipients --]], nil --[[ policy ]])
+                        nil --[[ policy ]])
 
 	  ntop.setMembersCache(self:_get_pool_ids_key(),
 			       string.format("%d", host_pools.DROP_HOST_POOL_ID))
@@ -89,7 +86,7 @@ end
 
 -- ##############################################
 
--- Overwrite the pool name, members and recipients
+-- Overwrite the pool name, members
 function host_pools:set_pool_policy(pool_id, new_policy)
    return self:edit_pool(pool_id, nil, nil, nil, new_policy)
 end
@@ -240,24 +237,9 @@ end
 
 -- ##############################################
 
---@brief Tells the C++ core about the host recipients
-function host_pools:set_host_recipients(recipients)
-   -- Create a bitmap of all recipients responsible for hosts (pool_id in this case is ignored)
-   local recipients_bitmap = 0
-
-   for _, recipient_id in ipairs(recipients) do
-      recipients_bitmap = recipients_bitmap | (1 << recipient_id)
-   end
-
-   -- Tell the C++ that host recipients have changed
-   ntop.recipient_set_host_recipients(recipients_bitmap)
-end
-
--- ##############################################
-
 -- @brief Persist pool details to disk. Possibly assign a pool id
 -- @param pool_id The pool_id of the pool which needs to be persisted. If nil, a new pool id is assigned
-function host_pools:_persist(pool_id, name, members, recipients, policy)
+function host_pools:_persist(pool_id, name, members, policy)
     -- OVERRIDE
     -- Method must be overridden as host pool details and members are kept as hash caches, which are also used by the C++
 
@@ -278,11 +260,6 @@ function host_pools:_persist(pool_id, name, members, recipients, policy)
         ntop.setMembersCache(pool_members_key, member)
     end
 
-    -- Recipients
-    if recipients then -- safety check
-       ntop.setHashCache(pool_details_key, "recipients", json.encode(recipients));
-    end    
-
     -- Policy
     -- NB: the policy is already a string
     ntop.setHashCache(pool_details_key, "policy", (policy or ""));
@@ -293,11 +270,6 @@ function host_pools:_persist(pool_id, name, members, recipients, policy)
     if not self.transaction_started then
        -- Reload pools
        ntop.reloadHostPools()
-
-       -- Set host recipients in the C++ core
-       if recipients then -- safety check
-          self:set_host_recipients(recipients)
-       end
     end
 
     -- Return the assigned pool_id
@@ -366,10 +338,7 @@ end
    
 -- ##############################################
 
-function host_pools:get_pool(pool_id, recipient_details)
-
-    local recipient_details = recipient_details or true
-
+function host_pools:get_pool(pool_id)
     local pool_name = self:_get_pool_detail(pool_id, "name")
     if pool_name == "" then
         return nil -- Pool not existing
@@ -387,36 +356,6 @@ function host_pools:get_pool(pool_id, recipient_details)
         members = {}
     end
 
-    -- Recipients
-    local recipients = self:_get_pool_detail(pool_id, "recipients")
-    if recipients then
-       recipients = json.decode(recipients) or {}
-
-       local temp_recipients = {}
-       -- get recipient metadata
-       for _, recipient_id in pairs(recipients) do
-	  if tonumber(recipient_id) then -- Handles previously string-keyed recipients
-	     local res = { recipient_id = recipient_id }
-
-	     if recipient_details then
-		local recipient = recipients_mod.get_recipient(recipient_id)
-
-		if recipient and recipient.recipient_name then
-		   res["recipient_name"] = recipient.recipient_name
-		   res["recipient_check_categories"] = recipient.check_categories
-		   res["recipient_minimum_severity"] = recipient.minimum_severity
-		end
-	     end
-
-	     temp_recipients[#temp_recipients + 1] = res
-	  end
-       end
-
-       recipients = temp_recipients
-    else
-        recipients = {}
-    end
-
     local policy = self:_get_pool_detail(pool_id, "policy")
 
     local pool_details = {
@@ -424,7 +363,6 @@ function host_pools:get_pool(pool_id, recipient_details)
         name = pool_name,
         members = members,
         member_details = member_details,
-        recipients = recipients,
 	policy = policy,
     }
 

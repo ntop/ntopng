@@ -15,14 +15,14 @@ local slack = {
       -- TODO: add severity (Errors, Errors and Warnings, All)
    },
    endpoint_template = {
-      plugin_key = "slack",
+      script_key = "slack",
       template_name = "slack_endpoint.template"
    },
    recipient_params = {
       -- TODO: add channel
    },
    recipient_template = {
-      plugin_key = "slack",
+      script_key = "slack",
       template_name = "slack_recipient.template" -- TODO: add template
    },
 }
@@ -82,10 +82,10 @@ end
 -- channel and severity (no more than one message for each, budget is ignored). 
 -- On success, it clears the queue.
 -- On error, it leaves the queue unchagned to retry on next round.
-function slack.dequeueRecipientAlerts(recipient, budget, high_priority)
+function slack.dequeueRecipientAlerts(recipient, budget)
    local notifications = {}
    for i = 1, budget do
-      local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
+      local notification = ntop.recipient_dequeue(recipient.recipient_id)
       if notification then 
 	 notifications[#notifications + 1] = notification.alert
       else

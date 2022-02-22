@@ -22,17 +22,14 @@ require "lua_utils"
 
 local os_utils = require("os_utils")
 local json = require("dkjson")
-local plugins_utils = require("plugins_utils")
+local script_manager = require("script_manager")
 local alert_consts = require "alert_consts"
 local http_lint = require("http_lint")
-local ipv4_utils = require "ipv4_utils"
 local pools_lua_utils = require "pools_lua_utils"
 local alert_exclusions = require "alert_exclusions"
 local alerts_api = require("alerts_api")
 
 local local_network_pools = require "local_network_pools"
-
-local info = ntop.getInfo()
 
 local checks = {}
 
@@ -296,7 +293,7 @@ checks.script_types = {
 -- ##############################################
 
 -- @brief Given a category found in a user script, this method checks whether the category is valid
--- and, if not valid, it assigns to the plugin a default category
+-- and, if not valid, it assigns to the script a default category
 local function checkCategory(category)
    if not category or not category["id"] then
       return checks.check_categories.other
@@ -365,7 +362,7 @@ local benchmarks = {}
 
 function checks.getSubdirectoryPath(script_type, subdir)
    local res = { }
-   local prefix = plugins_utils.getRuntimePath() .. "/callbacks"
+   local prefix = script_manager.getRuntimePath() .. "/callbacks"
    local path
 
    -- Checks definition path
@@ -583,15 +580,15 @@ local function loadAndCheckScriptTemplate(check, check_template)
       check_template = "check_template"
    end
 
-   -- First, try and load the template straight from the plugin templates
+   -- First, try and load the template straight from the script templates
    local template_require
 
-   if check.plugin then
-      template_require = plugins_utils.loadTemplate(check.plugin.key, check_template)
+   if check.script then
+      template_require = script_manager.loadTemplate(check.script.key, check_template)
    end
 
-   -- Then, if no template is found inside the plugin, try and load the template from the ntopng templates
-   -- in modules that can be shared across multiple plugins
+   -- Then, if no template is found inside the script, try and load the template from the ntopng templates
+   -- in modules that can be shared across multiple scripts
    if not template_require then
       -- Attempt at locating the template class under modules (global to ntopng)
       local template_path = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/check_templates/"..check_template..".lua")
@@ -611,14 +608,14 @@ end
 
 -- ##############################################
 
-local function init_check(check, mod_fname, full_path, plugin, script_type, subdir)
+local function init_check(check, mod_fname, full_path, script, script_type, subdir)
    check.key = mod_fname
    check.path = full_path
    check.subdir = subdir
    check.default_enabled = ternary(check.default_enabled == false, false, true --[[ a nil value means enabled ]])
-   check.plugin = plugin
+   check.script = script
    check.script_type = script_type
-   check.edition = plugin and plugin.edition
+   check.edition = script and script.edition
    check.category = checkCategory(check.category)
    -- A user script is assumed to be able to generate alerts if it has a flag or an alert id specified
    check.num_filtered = tonumber(ntop.getCache(string.format(NUM_FILTERED_KEY, subdir, mod_fname))) or 0 -- math.random(1000,2000)
@@ -661,15 +658,15 @@ end
 
 -- ##############################################
 
-local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir, return_all, scripts_filter, hook_filter)
+local function loadAndCheckScript(mod_fname, full_path, script, script_type, subdir, return_all, scripts_filter, hook_filter)
    local setup_ok = true
 
    -- Recheck the edition as the demo mode may expire
-   if plugin then
-      if (plugin.edition == "pro" and not ntop.isPro())
-         or ((plugin.edition == "enterprise_l" or plugin.edition == "enterprise_m") and not ntop.isEnterpriseM())
-         or (plugin.edition == "enterprise_l" and not ntop.isEnterpriseL()) then
-	 traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping user script '%s' with '%s' edition", mod_fname, plugin.edition))
+   if script then
+      if (script.edition == "pro" and not ntop.isPro())
+         or ((script.edition == "enterprise_l" or script.edition == "enterprise_m") and not ntop.isEnterpriseM())
+         or (script.edition == "enterprise_l" and not ntop.isEnterpriseL()) then
+	 traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping user script '%s' with '%s' edition", mod_fname, script.edition))
 	 return(nil)
       end
    end
@@ -733,7 +730,7 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
    end
 
    -- Augument with additional attributes
-   init_check(check, mod_fname, full_path, plugin, script_type, subdir)
+   init_check(check, mod_fname, full_path, script, script_type, subdir)
 
    if(hook_filter ~= nil) then
       -- Only return modules which should be called for the specified hook
@@ -808,7 +805,7 @@ local function get_loadable_checks(script_type, subdir)
             end
             
             -- Add the script to the loadable checks
-            loadable_checks[mod_fname] = {full_path = full_path, plugin = check_info}
+            loadable_checks[mod_fname] = {full_path = full_path, script = check_info}
 	      end
       end
    end
@@ -824,8 +821,8 @@ local function get_loadable_checks(script_type, subdir)
 	 else
 	    -- No explicit .lua file defining the check. Loading a default.
 	    local full_path = FLOW_RISK_SIMPLE_CHECK_DEFINITION_PATH
-	    local plugin = ntop.getFlowCheckInfo(mod_fname)
-	    loadable_checks[mod_fname] = {full_path = full_path, plugin = plugin}
+	    local script = ntop.getFlowCheckInfo(mod_fname)
+	    loadable_checks[mod_fname] = {full_path = full_path, script = script}
 	 end
       end
    end
@@ -853,7 +850,7 @@ function checks.load(ifid, script_type, subdir, options)
    ifid = tonumber(ifid)
 
    -- Load additional schemas
-   plugins_utils.loadSchemas(options.hook_filter)
+   script_manager.loadSchemas(options.hook_filter)
 
    local hook_filter = options.hook_filter
    local do_benchmark = options.do_benchmark
@@ -872,7 +869,7 @@ function checks.load(ifid, script_type, subdir, options)
 
    for mod_fname, loadable_check in pairs(loadable_checks) do
       local full_path = loadable_check.full_path
-      local plugin = loadable_check.plugin
+      local script = loadable_check.script
 
       -- io.write("Loading "..full_path.."\n")
       
@@ -881,7 +878,7 @@ function checks.load(ifid, script_type, subdir, options)
 	 goto next_module
       end
 
-      local check = loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir, return_all, scripts_filter, hook_filter)
+      local check = loadAndCheckScript(mod_fname, full_path, script, script_type, subdir, return_all, scripts_filter, hook_filter)
 
       if(not check) then
 	 goto next_module
@@ -927,7 +924,7 @@ function checks.loadModule(ifid, script_type, subdir, mod_fname)
       local full_path = os_utils.fixPath(checks_dir .. "/" .. mod_fname .. ".lua")
       
       if ntop.exists(full_path) then
-	 check = loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir)
+	 check = loadAndCheckScript(mod_fname, full_path, script, script_type, subdir)
 	 break
       end
    end
@@ -935,7 +932,7 @@ function checks.loadModule(ifid, script_type, subdir, mod_fname)
    -- If this is a flow check, we attempt at locating it among the checks of nDPI flow risks
    -- To load it, we use the default path for all simple flow check definitions
    if not check and subdir == "flow" then
-      check = loadAndCheckScript(mod_fname, FLOW_RISK_SIMPLE_CHECK_DEFINITION_PATH, plugin, script_type, subdir)
+      check = loadAndCheckScript(mod_fname, FLOW_RISK_SIMPLE_CHECK_DEFINITION_PATH, script, script_type, subdir)
    end
 
    return check
@@ -975,7 +972,7 @@ end
 -- ##############################################
 
 -- @brief Reload checks with their existing configurations.
---        Method called as part of plugins reload (during startup or when plugins are reloaded)
+--        Method called as part of scripts reload (during startup or when scripts are reloaded)
 -- @param is_load Boolean, indicating whether callback onLoad/onUnload should be called
 -- @return nil
 function checks.loadUnloadUserScripts(is_load)
@@ -1062,12 +1059,6 @@ function checks.createOrReplaceConfigset(configset)
    -- Skip configurations other then the only one supported (others are deprecated)
    if configset.id and configset.id ~= checks.DEFAULT_CONFIGSET_ID then
       return false
-   end
-
-   -- Unbind recipients
-   local existing = checks.getConfigset()
-   if existing then
-      pools_lua_utils.unbind_all_recipient_id(existing.id)
    end
 
    -- Clone config
@@ -1618,6 +1609,18 @@ end
 
 -- ##############################################
 
+function checks.getScriptEditorUrl(script)
+   if(script.edition == "community" and script.source_path) then
+      local script_file_path = string.sub(script.source_path, string.len(dirs.scriptdir) + 1)
+      local script_path = string.sub(script.script.path, string.len(dirs.scriptdir) + 1)
+      return(string.format("%s/lua/code_viewer.lua?script_file_path=%s&script_path=%s", ntop.getHttpPrefix(), script_file_path, script_path))
+   end
+
+   return(nil)
+end
+
+-- ##############################################
+
 -- @brief Returns the list of the default filters of a specific alert
 function checks.getFilterPreset(alert, alert_info)
    local alert_generation = alert_info["alert_generation"]
@@ -1938,12 +1941,12 @@ function checks.printUserScripts()
                 <table class='table table-bordered table-striped' id='user-scripts'>
                     <thead>
                         <tr>
-                            <th>]].. i18n("plugins_overview.script") ..[[</th>
-                            <th>]].. i18n("plugins_overview.type") ..[[</th>
+                            <th>]].. i18n("scripts_overview.script") ..[[</th>
+                            <th>]].. i18n("scripts_overview.type") ..[[</th>
                             <th>]].. i18n("availability") ..[[</th>
-                            <th>]].. i18n("plugins_overview.hooks") ..[[</th>
-                            <th>]].. i18n("plugins_overview.filters") ..[[</th>
-                            <th>]].. i18n("plugins_overview.filtered") ..[[</th>
+                            <th>]].. i18n("scripts_overview.hooks") ..[[</th>
+                            <th>]].. i18n("scripts_overview.filters") ..[[</th>
+                            <th>]].. i18n("scripts_overview.filtered") ..[[</th>
                             <th>]].. i18n("action") ..[[</th>
                         </tr>
                     </thead>
@@ -2007,7 +2010,7 @@ function checks.printUserScripts()
                 const availability = [... new Set(table.columns(2).data()[0].flat())];
 
                 addFilterDropdown(']].. i18n("availability") ..[[', availability, 2, "#user-scripts_filter", table);
-                addFilterDropdown(']].. i18n("plugins_overview.type") ..[[', types, 1, "#user-scripts_filter", table);
+                addFilterDropdown(']].. i18n("scripts_overview.type") ..[[', types, 1, "#user-scripts_filter", table);
             },
             pageLength: 25,
             language: {

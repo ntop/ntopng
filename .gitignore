@@ -1,6 +1,15 @@
 *~
-ntopng.sublime-*
-src/*.o
+
+# Ignoring front end developement directories
+dist/
+node_modules/
+.stylelintrc
+webpack.config.js
+package.json
+package-lock.json
+.eslintrc.json
+
+ntopng.sublime-*src/*.o
 src/*.obj
 third-party/json-c/config.h.in
 third-party/json-c/*
@@ -67,7 +76,6 @@ Makefile
 .DS_Store
 pro
 scripts/lua/pro
-scripts/lua/plugins
 tools/gdbsudo
 nbproject
 .cproject
@@ -95,7 +103,6 @@ dump.rdb
 packages/FreeBSD/build.sh
 packages/OPNsense/build.sh
 !packages/OPNsense/plugins/net/ntopng-enterprise/src/opnsense/service/templates/OPNsense/Ntopng/ntopng
-tests/rest/conflicts/*.out
 
 # Ignore callback objects
 src/flow_alerts/*.o
@@ -104,11 +111,13 @@ src/host_alerts/*.o
 src/host_checks/*.o
 src/flow_callbacks/*.o
 src/host_callbacks/*.o
+src/*.o
 
 # Ignore config files and tests
 .vscode/
-tests/rest/conflicts/*
+tests/e2e/rest/conflicts/*
 ntopng.pid
 packages/wizard/ntopng-config
-tests/rest/data/*
+tests/e2e/rest/data/*
 tools/tmp.csv
+tests/e2e/rest/logs/*

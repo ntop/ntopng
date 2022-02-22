@@ -44,6 +44,6 @@ Available timeseries are:
 
 Timeseries can be disabled from the :ref:`ntopngPreferences`, tab *Timeseries->System Probes*.
 
-The Redis Monitor is implemented as an ntopng plugin. Source code is available on `gitHub <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/redis_monitor>`_.
+The Redis Monitor is implemented as an ntopng script. Source code is available on `gitHub <https://github.com/ntop/ntopng/tree/dev/scripts/scripts/redis_monitor>`_.
 
 

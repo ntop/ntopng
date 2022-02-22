@@ -150,6 +150,5 @@ return {
        },
     },
  
-    -- A setup function to possibly disable the plugin
     setup = nil,
  }

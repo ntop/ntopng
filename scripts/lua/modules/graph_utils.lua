@@ -302,7 +302,7 @@ end
 -- #################################################
 
 function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options, show_graph)
-   local page_utils =require("page_utils") -- Do not require at the top as it could conflict with plugins_utils.getMenuEntries
+   local page_utils =require("page_utils") -- Do not require at the top as it could conflict with script_manager.getMenuEntries
    local debug_rrd = false
    local is_system_interface = page_utils.is_system_view()
    options = options or {}

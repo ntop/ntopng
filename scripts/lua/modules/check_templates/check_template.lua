@@ -39,7 +39,7 @@ end
 -- @return Rendered templates in a table whose keys are hook names and whose values are rendered templates.
 function check_template:render(hooks_conf)
    local res = {}
-   local plugins_utils = require "plugins_utils"
+   local script_manager = require "script_manager"
 
    -- check if the input_builder is defined
    -- TODO: define empty template for the checks without input_builder/template
@@ -55,7 +55,7 @@ function check_template:render(hooks_conf)
       if hook_conf then
 	      res[#res + 1] = {
             hook = hook, -- Hook Name
-            template = plugins_utils.renderTemplate(self._check.plugin.key, self._check.gui.input_builder..".template", {
+            template = script_manager.renderTemplate(self._check.script.key, self._check.gui.input_builder..".template", {
                hook_conf = hook_conf,
                hook_name = hook,
                check = self._check

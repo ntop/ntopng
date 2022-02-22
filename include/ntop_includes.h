@@ -236,7 +236,7 @@ using namespace std;
 #include "HostAlertableEntity.h"
 #include "OtherAlertableEntity.h"
 #include "NetworkInterfaceAlertableEntity.h"
-#include "NetworkInterfaceMemberAlertableEntity.h"
+#include "InterfaceMemberAlertableEntity.h"
 #include "BehaviouralCounter.h"
 
 #ifdef NTOPNG_PRO
@@ -370,10 +370,6 @@ using namespace std;
 #include "DnsHostMapping.h"
 #include "TrafficShaper.h"
 #include "L7Policer.h"
-#ifdef HAVE_MYSQL
-#include "BatchedMySQLDB.h"
-#include "BatchedMySQLDBEntry.h"
-#endif
 #include "LuaHandler.h"
 #ifdef HAVE_NEDGE
 #include "HwBypass.h"

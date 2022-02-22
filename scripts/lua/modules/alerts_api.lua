@@ -348,7 +348,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   local ifid = interface.getId()
   local params = {alert_key_name, granularity_id, when}
   local released = nil
-
+ 
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
      if(interface.checkContext(entity_info.entity_val) == false) then
 	alertErrorTraceback("Invalid interface entity detected "..entity_info.alert_entity.entity_id)
@@ -371,11 +371,12 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
 
   if(released == nil) then
     if(do_trace) then tprint("[Dont't Release alert (not triggered?) @ "..granularity_sec.."] "..
-      entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
+			     entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
+    
     return(false)
   else
-    if(do_trace) then tprint("[RELEASE alert @ "..granularity_sec.."] "..
-        entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
+     if(do_trace) then tprint("[RELEASE alert @ "..granularity_sec.."] "..
+			      entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
   end
 
   released.ifid = ifid

@@ -2,6 +2,7 @@
 -- (C) 2020-22 - ntop.org
 --
 
+require("lua_utils")
 local json = require("dkjson")
 
 local MAX_POSTS = 3
@@ -133,7 +134,7 @@ function blog_utils.fetchLatestPosts()
    
    local jsonFeed = json.decode(response["CONTENT"])
 
-   if ((jsonFeed == nil) or table.empty(jsonFeed["items"])) then
+   if ((jsonFeed == nil) or table.len(jsonFeed["items"] or {}) == 0) then
       ntop.setPref(BLOG_NEXT_FEED_UPDATE, now+300) -- Try again not less than 5 mins
       return (false)
    end

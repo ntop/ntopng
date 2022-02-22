@@ -755,7 +755,7 @@ void NetworkInterface::deleteDataStructures() {
 /* **************************************************** */
 
 NetworkInterface::~NetworkInterface() {
-  std::map<std::pair<AlertEntity, std::string>, AlertableEntity*>::iterator it;
+  std::map<std::pair<AlertEntity, std::string>, InterfaceMemberAlertableEntity*>::iterator it;
   std::map<u_int16_t /* observationPointId */, ObservationPointIdTrafficStats*>::iterator it_o;
 
 #ifdef PROFILING
@@ -1117,7 +1117,8 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				bool *src2dst_direction,
 				time_t first_seen, time_t last_seen,
 				u_int32_t len_on_wire,
-				bool *new_flow, bool create_if_missing) {
+				bool *new_flow, bool create_if_missing,
+        u_int8_t *view_cli_mac, u_int8_t *view_srv_mac) {
   Flow *ret;
   Mac *primary_mac;
   Host *srcHost = NULL, *dstHost = NULL;
@@ -1158,7 +1159,8 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				    srcMac, src_ip, src_port,
 				    dstMac, dst_ip, dst_port,
 				    icmp_info,
-				    first_seen, last_seen);
+				    first_seen, last_seen,
+            view_cli_mac, view_srv_mac);
       PROFILING_SECTION_EXIT(2);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
@@ -1676,7 +1678,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 		 l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
 		 &src_ip, &dst_ip, src_port, dst_port,
 		 l4_proto, &src2dst_direction, last_pkt_rcvd,
-		 last_pkt_rcvd, len_on_wire, &new_flow, true);
+		 last_pkt_rcvd, len_on_wire, &new_flow, true, eth->h_source, eth->h_dest /* Eth lvl, used just in view interfaces to add MAC */);
   PROFILING_SECTION_EXIT(0);
 
   if(flow == NULL) {
@@ -2720,7 +2722,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 		     dequeued->l4_proto,
 		     &src2dst_direction,
 		     0, 0, 0, &new_flow,
-		     true /* create_if_missing */);
+		     true /* create_if_missing */, NULL, NULL);
 
       if(flow) {
 #if 0
@@ -4552,13 +4554,13 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
      (r->osFilter != os_any && (h->getOS() != r->osFilter))     ||
      (r->blacklistedHosts && !h->isBlacklisted())     ||
      (r->anomalousOnly && !h->hasAnomalies())         ||
-     (r->dhcpOnly && !h->isDhcpHost())                ||
+     (r->dhcpOnly && !h->isDHCPHost())                ||
      (r->cidr_filter && !h->match(r->cidr_filter))    ||
      (r->hideTopHidden && h->isHiddenFromTop())       ||
      (r->traffic_type == traffic_type_one_way && !h->isOneWayTraffic())         ||
      (r->traffic_type == traffic_type_bidirectional && !h->isTwoWaysTraffic())  ||
      (r->device_ip && h->getLastDeviceIp() && (r->device_ip != h->getLastDeviceIp())) ||
-     (r->dhcpHostsOnly && (!h->isDhcpHost())) ||
+     (r->dhcpHostsOnly && (!h->isDHCPHost())) ||
 #ifdef NTOPNG_PRO
      (r->filteredHosts && !h->hasBlockedTraffic()) ||
 #endif
@@ -6070,7 +6072,7 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVLANs(bool force_idle, bool fu
     const struct timeval tv = periodicUpdateInitTime();
     u_int n;
     /* If the interface is no longer running it is safe to force all entries as idle */
-
+      
     n = (macs_hash ? macs_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (ases_hash ? ases_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (oses_hash ? oses_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
@@ -8331,16 +8333,12 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
       if(ntop->getPrefs()->useClickHouse())
 	db = new (std::nothrow) ClickHouseFlowDB(this);
 #endif
-
-      if((db == NULL)
-	 && ntop->getPrefs()->is_enterprise_m_edition())
-	db = new (std::nothrow) BatchedMySQLDB(this);
 #endif
 #endif
 
 #ifdef HAVE_MYSQL
       if(db == NULL)
-	db = new (std::nothrow) MySQLDB(this, false /* !clickhouse */);
+	db = new (std::nothrow) MySQLDB(this);
 #endif
 
       if(!db) throw "Not enough memory";
@@ -8954,7 +8952,7 @@ static bool host_invoke_alertable_callback(GenericHashEntry *entity, void *user_
 void NetworkInterface::walkAlertables(AlertEntity alert_entity, const char *entity_value,
 				      AddressTree *allowed_nets,
 				      alertable_callback *callback, void *user_data) {
-  std::map<std::pair<AlertEntity, std::string>, AlertableEntity*>::iterator it;
+  std::map<std::pair<AlertEntity, std::string>, InterfaceMemberAlertableEntity*>::iterator it;
 
   /* Hosts */
   if(((alert_entity == alert_entity_none) || (alert_entity == alert_entity_host))) {
@@ -9186,34 +9184,47 @@ void NetworkInterface::getEngagedAlerts(lua_State *vm, AlertEntity alert_entity,
 
 /* *************************************** */
 
-AlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing) {
-  std::map<std::pair<AlertEntity, std::string>, AlertableEntity*>::iterator it;
-  std::pair<AlertEntity, std::string> key(entity, entity_val);
-  AlertableEntity *alertable;
+void NetworkInterface::processExternalAlertable(AlertEntity entity,
+						const char *entity_val, bool create_if_missing,
+						lua_State* vm, u_int vm_argument_idx,
+						bool do_store_alert) {
+  std::map<std::pair<AlertEntity, std::string>, InterfaceMemberAlertableEntity*>::iterator it;
+  std::pair<AlertEntity, std::string> key(entity, std::string(entity_val));
+  InterfaceMemberAlertableEntity *alertable;
 
   external_alerts_lock.lock(__FILE__, __LINE__);
 
-  if((it = external_alerts.find(key)) == external_alerts.end()) {
-    if(!create_if_missing) {
-      external_alerts_lock.unlock(__FILE__, __LINE__);
-      return(NULL);
-    }
+  if((it = external_alerts.find(key)) != external_alerts.end()) {
+    external_alerts_lock.unlock(__FILE__, __LINE__);
+    lua_pushnil(vm);
+    return;
+  }
 
-    alertable = new (std::nothrow) NetworkInterfaceMemberAlertableEntity(this, entity);
-    alertable->setEntityValue(entity_val);
-    external_alerts[key] = alertable;
-  } else
-    alertable = it->second;
+  if(!create_if_missing) {
+    external_alerts_lock.unlock(__FILE__, __LINE__);
+    lua_pushnil(vm);
+    return;
+  }
 
-  return(alertable);
-}
+  /* Create */
+  if((alertable = new (std::nothrow) InterfaceMemberAlertableEntity(this, entity)) == NULL) {
+    external_alerts_lock.unlock(__FILE__, __LINE__);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
+    lua_pushnil(vm);
+    return;
+  }
+  
+  alertable->setEntityValue(entity_val);
 
-/* *************************************** */
+  /* Add to the map */
+  external_alerts[key] = alertable;
 
-void NetworkInterface::unlockExternalAlertable(AlertableEntity *alertable) {
+  if(do_store_alert)
+    ntop_store_triggered_alert(vm, alertable, vm_argument_idx);
+  else
+    ntop_release_triggered_alert(vm, alertable, vm_argument_idx);
+
   if(alertable->getNumEngagedAlerts() == 0) {
-    std::pair<AlertEntity, std::string> key(alertable->getEntityType(), alertable->getEntityValue());
-
     external_alerts.erase(key);
     delete alertable;
   }

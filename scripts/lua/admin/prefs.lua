@@ -8,19 +8,14 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
 require "prefs_utils"
-local alert_utils = require "alert_utils"
 local template = require "template_utils"
-local callback_utils = require "callback_utils"
-local lists_utils = require "lists_utils"
 local telemetry_utils = require "telemetry_utils"
-local alert_consts = require "alert_consts"
 local recording_utils = require "recording_utils"
 local data_retention_utils = require "data_retention_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 local influxdb = require("influxdb")
-local plugins_utils = require("plugins_utils")
-local flow_db_utils = nil
+local script_manager = require("script_manager")
 local info = ntop.getInfo()
 local auth = require "auth"
 
@@ -64,7 +59,7 @@ if auth.has_capability(auth.capabilities.preferences) then
   end
 
    if(_GET["tab"] == "ext_alerts") then
-     local available_endpoints = plugins_utils.getLoadedAlertEndpoints()
+     local available_endpoints = script_manager.getLoadedAlertEndpoints()
 
      for _, endpoint in ipairs(available_endpoints) do
        if(endpoint.handlePost) then
@@ -1608,7 +1603,7 @@ aysHandleForm("form", {
   disable_on_dirty: '.disable-on-dirty',
 });
 
-/* Use the validator plugin to override default chrome bubble, which is displayed out of window */
+/* Use the validator script to override default chrome bubble, which is displayed out of window */
 $("form[id!='search-host-form']").validator({disable:true});
 </script>]])
 

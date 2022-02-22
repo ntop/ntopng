@@ -7,20 +7,16 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
-local format_utils = require("format_utils")
 local json = require("dkjson")
-local plugins_utils = require("plugins_utils")
+local script_manager = require("script_manager")
 local am_utils = require "am_utils"
-
-local ui_utils = require("ui_utils")
-
 
 local active_monitoring_pools = require("active_monitoring_pools")
 local am_pool = active_monitoring_pools:create()
 local assigned_members = am_pool:get_assigned_members()
 sendHTTPContentTypeHeader('application/json')
-
-local charts_available = plugins_utils.timeseriesCreationEnabled()
+  
+local charts_available = script_manager.systemTimeseriesEnabled()
 
 -- ################################################
 
@@ -38,7 +34,7 @@ for key, am_host in pairs(am_hosts) do
     end
 
     if charts_available then
-      chart = plugins_utils.getMonitorUrl('active_monitoring_monitor.lua') .. '?am_host='.. am_host.host ..'&measurement='.. am_host.measurement ..'&page=historical'
+      chart = script_manager.getMonitorUrl('active_monitoring_monitor.lua') .. '?am_host='.. am_host.host ..'&measurement='.. am_host.measurement ..'&page=historical'
     end
 
     local column_last_ip = ""

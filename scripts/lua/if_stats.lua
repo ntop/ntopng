@@ -8,6 +8,7 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 
 local top_sites_update
 local snmp_utils
+
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
@@ -15,9 +16,12 @@ if ntop.isPro() then
    top_sites_update = require("host_sites_update")
 end
 
+require "db_utils"
+require "lua_utils"
+require "prefs_utils"
+
 local json = require "dkjson"
 local template = require "template_utils"
-local os_utils = require "os_utils"
 local format_utils  = require "format_utils"
 local top_talkers_utils = require "top_talkers_utils"
 local internals_utils = require "internals_utils"
@@ -26,13 +30,7 @@ local ui_utils = require("ui_utils")
 local interface_pools = require ("interface_pools")
 local auth = require "auth"
 local behavior_utils = require("behavior_utils")
-
-require "lua_utils"
-require "prefs_utils"
 local graph_utils = require "graph_utils"
-local alert_utils = require "alert_utils"
-require "db_utils"
-
 local recording_utils = require "recording_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local storage_utils = require "storage_utils"
@@ -1312,7 +1310,7 @@ function update_ndpi_table() {
     success: function(content) {
       if(content) {
          $('#if_stats_ndpi_tbody').html(content);
-         // Let the TableSorter plugin know that we updated the table
+         // Let the TableSorter script know that we updated the table
          $('#if_stats_ndpi_tbody').trigger("update");
       }
     }
@@ -1331,7 +1329,7 @@ function update_ndpi_categories_table() {
     success: function(content) {
       if(content) {
          $('#if_stats_ndpi_categories_tbody').html(content);
-         // Let the TableSorter plugin know that we updated the table
+         // Let the TableSorter script know that we updated the table
          $('#if_stats_ndpi_categories_tbody').trigger("update");
       }
     }

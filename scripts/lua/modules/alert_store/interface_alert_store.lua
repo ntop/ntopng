@@ -14,6 +14,7 @@ local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
+local tag_utils = require "tag_utils"
 local json = require "dkjson"
 
 -- ##############################################
@@ -36,10 +37,19 @@ function interface_alert_store:insert(alert)
    local alias = getHumanReadableInterfaceName(name)
    local subtype = alert.subtype or ''
 
+   local extra_columns = ""
+   local extra_values = ""
+   if(ntop.isClickHouseEnabled()) then
+      extra_columns = "rowid, "
+      extra_values = "generateUUIDv4(), "
+   end
+
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, interface_id, tstamp, tstamp_end, severity, score, ifid, subtype, name, alias, granularity, json) "..
-      "VALUES (%u, %d, %u, %u, %u, %u, %d, '%s', '%s', '%s', %u, '%s'); ",
+      "(%salert_id, interface_id, tstamp, tstamp_end, severity, score, ifid, subtype, name, alias, granularity, json) "..
+      "VALUES (%s%u, %d, %u, %u, %u, %u, %d, '%s', '%s', '%s', %u, '%s'); ",
       self._table_name,
+      extra_columns,
+      extra_values,
       alert.alert_id,
       self:_convert_ifid(interface.getId()),
       alert.tstamp,
@@ -74,10 +84,7 @@ end
 --@brief Get info about additional available filters
 function interface_alert_store:_get_additional_available_filters()
    local filters = {
-      subtype = {
-	 value_type = 'text',
-	 i18n_label = i18n('db_search.tags.subtype'),
-      }
+      subtype = tag_utils.defined_tags.subtype,
    }
 
    return filters

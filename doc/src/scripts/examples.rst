@@ -1,17 +1,17 @@
-.. _Plugin Examples:
+.. _Script Examples:
 
 Examples
 ========
 
 A couple of examples are presented to give the reader a quick and direct
-overview of ntopng plugins.
+overview of ntopng scripts.
 
 .. _Flow Flooders:
 
 Flow Flooders
 -------------
 
-Aim of this plugin is to trigger an alert when an host or a network is having more
+Aim of this script is to trigger an alert when an host or a network is having more
 than a predefined number of flows over a minute. As an host can be
 either the client or the server of a flow, two types of alerts are meaningful in
 this case, namely, a flow flood attacker alert and a flow flood victim
@@ -20,13 +20,13 @@ network can either be considered a flow flood attacker or a flow flood
 victim, depending on whether its host are the clients or servers of
 the monitored flows. For the sake of this example, only flow flood victim alerts are considered for networks.
 
-This plugin also exposes a threshold so that it can be configured from the :ref:`Web GUI`. The threshold is configurable on an host-by-host or CIDR basis. Indeed, a threshold which
+This script also exposes a threshold so that it can be configured from the :ref:`Web GUI`. The threshold is configurable on an host-by-host or CIDR basis. Indeed, a threshold which
 is meaningful for an host is not necessarily meaningful for another host.
 
-Full plugin sources are available on `GitHub flow flood plugin page
-<https://github.com/ntop/ntopng/tree/dev/scripts/plugins/flow_flood>`_.
+Full script sources are available on `GitHub flow flood script page
+<https://github.com/ntop/ntopng/tree/dev/scripts/scripts/flow_flood>`_.
 
-The complete structure of the plugin is as follows:
+The complete structure of the script is as follows:
 
 .. code:: bash
 
@@ -42,9 +42,9 @@ The complete structure of the plugin is as follows:
 		      `-- flow_flood_victim.lua
 
 
-From the file system tree, it can be seen that the plugin is
+From the file system tree, it can be seen that the script is
 self-contained in :code:`flow_flood`, a directory which carries a name
-representative for the plugin. The :code:`manifest.lua` (see :ref:`Manifest`) script contains basic information and description:
+representative for the script. The :code:`manifest.lua` (see :ref:`Manifest`) script contains basic information and description:
 
 .. code:: lua
 
@@ -59,7 +59,7 @@ representative for the plugin. The :code:`manifest.lua` (see :ref:`Manifest`) sc
      dependencies = {},
    }
 
-However, as this plugin generates alerts,
+However, as this script generates alerts,
 :code:`alert_flows_flood.lua` is needed under
 :code:`alert_definitions` to tell ntopng about this.
 
@@ -128,7 +128,7 @@ ntopng to call this function on every host, *every minute*. The body
 of the function is fairly straightforward. It access a Lua table
 :code:`host`, with several methods available to be called. This Lua
 table contains references and methods that can be called on every host
-of the system. As the aim of this plugin is to determine whether the
+of the system. As the aim of this script is to determine whether the
 host is a flow flooder, method :code:`host.getFlowFlood()` is called
 which contains flooding information. Then, a :code:`value` is read
 from key :code:`hits.flow_flood_attacker` of the returned
@@ -160,7 +160,7 @@ An empty :code:`hooks` table is then
 specified. This table is used by ntopng to determine when a certain
 check needs do be called. Remember the function
 :code:`script.hooks.min`? That actually adds the entry :code:`min` to
-the :code:`hooks` table so this plugin will be executed every minute!
+the :code:`hooks` table so this script will be executed every minute!
 
 Finally, there is a :code:`gui` table to give ntopng instructions on
 how to render the configuration page of this check. Basically, a
@@ -286,11 +286,11 @@ the `egress_delta_bytes` variable.
 SNMP Topology Changed
 ---------------------
 
-The full plugin source is available at the `GitHub SNMP topology change page
-<https://github.com/ntop/ntopng/tree/dev/scripts/plugins/snmp_topology_change>`_.
+The full script source is available at the `GitHub SNMP topology change page
+<https://github.com/ntop/ntopng/tree/dev/scripts/scripts/snmp_topology_change>`_.
 The script requires the ntopng Enterprise M license in order to be run.
 
-The complete structure of the plugin is as follows:
+The complete structure of the script is as follows:
 
 .. code:: bash
 
@@ -302,7 +302,7 @@ The complete structure of the plugin is as follows:
 		  `-- snmp_device
 		      `-- lldp_topology_changed.lua
 
-This plugin uses the `LLDP <https://en.wikipedia.org/wiki/Link_Layer_Discovery_Protocol>`_
+This script uses the `LLDP <https://en.wikipedia.org/wiki/Link_Layer_Discovery_Protocol>`_
 information that ntopng has collected to determine changes in the SNMP network topology.
 When a new link is added or an old link is removed, the `alert_snmp_topology_changed` alert is generated.
 

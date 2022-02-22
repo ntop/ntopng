@@ -62,10 +62,19 @@ function snmp_device_alert_store:insert(alert)
       device_ip, port = self:_entity_val_to_ip_and_port(alert.entity_val)
    end
 
+   local extra_columns = ""
+   local extra_values = ""
+   if(ntop.isClickHouseEnabled()) then
+      extra_columns = "rowid, "
+      extra_values = "generateUUIDv4(), "
+   end
+
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(alert_id, interface_id, tstamp, tstamp_end, severity, score, ip, name, port, port_name, json) "..
-      "VALUES (%u, %d, %u, %u, %u, %u, '%s', '%s', %u, '%s', '%s'); ",
+      "(%salert_id, interface_id, tstamp, tstamp_end, severity, score, ip, name, port, port_name, json) "..
+      "VALUES (%s%u, %d, %u, %u, %u, %u, '%s', '%s', %u, '%s', '%s'); ",
       self._table_name, 
+      extra_columns,
+      extra_values,
       alert.alert_id,
       self:_convert_ifid(interface.getId()),
       alert.tstamp,

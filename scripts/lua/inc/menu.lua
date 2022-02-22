@@ -19,7 +19,6 @@ local page_utils = require("page_utils")
 local delete_data_utils = require "delete_data_utils"
 local toasts_manager = require("toasts_manager")
 local host_pools = require "host_pools"
-local auth = require "auth"
 local blog_utils = require("blog_utils")
 local template_utils = require "template_utils"
 local auth = require "auth"
@@ -39,7 +38,13 @@ print([[
    <div class='wrapper'>
 ]])
 
+local admin_lang = ntop.getPref("ntopng.user.admin.language")
+local language = ternary(isEmptyString(admin_lang), "en", admin_lang)
+local locale_path = dirs.installdir.."/scripts/locales/"..language..".lua"
+local locale_when = ntop.fileLastChange(locale_path)
+
 print[[
+<script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print("/lua/locale.lua?user_language="..language.."&epoch="..locale_when); print[["> </script>
 <script type='text/javascript'>
 
    const isAdministrator = ]] print(is_admin) print[[;
@@ -47,7 +52,7 @@ print[[
    const interfaceID = ]] print(interface.getStats().id) print[[;
 
    /* Some localization strings to pass from lua to javascript */
-   const i18n = {
+   const i18n_ext = {
       "no_results_found": "]] print(i18n("no_results_found")) print[[",
       "are_you_sure": "]] print(i18n("scripts_list.are_you_sure")) print[[",
       "change_number_of_rows": "]] print(i18n("change_number_of_rows")) print[[",
@@ -246,7 +251,7 @@ else
 	    {
 	       entry = page_utils.menu_entries.devices,
 	       hidden = not ifs.has_macs,
-	       url = '/lua/macs_stats.lua?devices_mode=source_macs_only',
+	       url = '/lua/macs_stats.lua',
 	    },
 	    {
 	       entry = page_utils.menu_entries.networks,
@@ -415,8 +420,8 @@ local health_entries = {
       }
    }
 
--- Add plugin entries relative to system health (e.g., redis) ...
-for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
+-- Add script entries relative to system health (e.g., redis) ...
+for k, entry in pairsByField(page_utils.scripts_menu, "sort_order", rev) do
    -- NOTE: match on the health key to only pick the right subset of entries
    if entry.menu_entry.section == page_utils.menu_sections.health.key then
       health_entries[#health_entries + 1] = {
@@ -454,8 +459,8 @@ local poller_entries = {
    }
 }
 
--- Add plugin entries relative to pollers (e.g., active monitoring) ...
-for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
+-- Add script entries relative to pollers (e.g., active monitoring) ...
+for k, entry in pairsByField(page_utils.scripts_menu, "sort_order", rev) do
    if entry.menu_entry.section == page_utils.menu_sections.pollers.key then
       poller_entries[#poller_entries + 1] = {
 	 entry = page_utils.menu_entries[entry.menu_entry.key],
@@ -476,8 +481,8 @@ page_utils.add_menubar_section({
 
 local system_entries = {}
 
--- Add plugin entries...
-for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
+-- Add script entries...
+for k, entry in pairsByField(page_utils.scripts_menu, "sort_order", rev) do
    -- Skip pollers, they've already been set under pollers section
    if not entry.menu_entry.section == "pollers" then
       system_entries[#system_entries + 1] = {

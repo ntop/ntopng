@@ -133,8 +133,8 @@ To replace nIndex with ClickHouse, the following steps are performed.
 
    $ sudo ./nindex_export_to_ch.sh -d /var/lib/ntopng/
    [...]
-   Exporting directory: /var/lib/ntopng//plugins0/flows
-   Done exporting directory: /var/lib/ntopng//plugins0/flows
+   Exporting directory: /var/lib/ntopng/flows
+   Done exporting directory: /var/lib/ntopng/flows
    Job accomplished, all flows have been exported
 
 The migration is now complete and all :code:`/flows` directories in the ntopng data directory can safely be deleted.

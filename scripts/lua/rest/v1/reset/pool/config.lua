@@ -7,13 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" ..
 
 require "lua_utils"
 
-local snmp_import_export = require "snmp_import_export"
-local plugins_utils = require("plugins_utils")
-local am_import_export = require "am_import_export"
-local notifications_import_export = require "notifications_import_export"
-local checks_import_export = require "checks_import_export"
 local pool_import_export = require "pool_import_export"
-local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local import_export_rest_utils = require "import_export_rest_utils"
 local auth = require "auth"

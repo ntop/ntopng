@@ -448,7 +448,8 @@
 #define MAX_NUM_HOST_CONTACTS         16
 #define CONST_DEFAULT_NTOP_PORT     3000
 #define CONST_DEFAULT_MYSQL_PORT    3306
-#define CONST_DEFAULT_CLICKHOUSE_PORT    9004
+#define CONST_DEFAULT_CLICKHOUSE_TCP_PORT 9000
+#define CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT 9004
 #define CONST_DB_DUMP_FREQUENCY      300
 #define CONST_MAX_NUM_NETWORKS       255
 #define CONST_NUM_OPEN_DB_CACHE        8
@@ -1172,7 +1173,12 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #endif
 
 #define UNKNOWN_FLOW_DIRECTION          2
+
+#if defined (__FreeBSD) || defined(__FreeBSD__)
+#define CLICKHOUSE_CLIENT               "/usr/local/bin/clickhouse-client"
+#else
 #define CLICKHOUSE_CLIENT               "/usr/bin/clickhouse-client"
+#endif
 
 //#define PROFILING
 #ifdef PROFILING

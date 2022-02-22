@@ -2,11 +2,6 @@
 -- (C) 2020 - ntop.org
 --
 
---
--- This is the core plugin file where everything 
--- has birth
---
-
 require "lua_utils"
 local json = require "dkjson"
 local alert_utils = require "alert_utils"
@@ -23,7 +18,7 @@ local discord = {
    },
    
    endpoint_template = {
-      plugin_key = endpoint_key, -- Unique string key
+      script_key = endpoint_key, -- Unique string key
 
       -- Filename of the GUI block for this endpoint
       -- relative pathname to discord_alert_endpoint/templates/discord_endpoint.template
@@ -37,7 +32,7 @@ local discord = {
       { param_name = "discord_username" }
    },
    recipient_template = {
-      plugin_key = endpoint_key, -- Unique string key
+      script_key = endpoint_key, -- Unique string key
 
       template_name = "discord_recipient.template"
    },
@@ -122,7 +117,7 @@ end
 -- ##############################################
 
 -- Function called periodically to process queued alerts to be delivered via Discord
-function discord.dequeueRecipientAlerts(recipient, budget, high_priority)
+function discord.dequeueRecipientAlerts(recipient, budget)
   local start_time = os.time()
   local sent = 0
   local more_available = true
@@ -141,7 +136,7 @@ function discord.dequeueRecipientAlerts(recipient, budget, high_priority)
     -- Dequeue max_alerts_per_request notifications
     local notifications = {}
     for i=1, max_alerts_per_request do
-       local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
+       local notification = ntop.recipient_dequeue(recipient.recipient_id)
        if notification then 
 	  notifications[#notifications + 1] = notification.alert
        else

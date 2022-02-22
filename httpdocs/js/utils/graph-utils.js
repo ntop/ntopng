@@ -454,7 +454,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   function format_unreachable(formatter) {
     return function(y, d) {
       if(d && unreachable_timestamps[d[0]])
-        return(i18n.unreachable_host);
+        return(i18n_ext.unreachable_host);
 
       // Not unreachable, use the provided formatter
       return(formatter(y));
@@ -689,7 +689,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     if(pending_chart_request) {
       pending_chart_request.abort();
-      chart.noData(i18n.query_was_aborted);
+      chart.noData(i18n_ext.query_was_aborted);
       update_chart_data([]);
     }
 
@@ -791,7 +791,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
     query_timer = setInterval(showQuerySlow, seconds_before_query_slow * 1000);
     query_completed = 0;
     query_was_aborted = false;
-    chart.noData(i18n.no_data_available);
+    chart.noData(i18n_ext.no_data_available);
     hideQuerySlow();
 
     var req_params = $.extend({}, params);
@@ -1471,7 +1471,7 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
     });
 
     columns.push({
-      title: i18n.actions,
+      title: i18n_ext.actions,
       field: "drilldown",
       css: {width: "1%", "text-align": "center"},
     });
@@ -1490,9 +1490,9 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
       perPage: per_page,
       noResultsMessage: function() {
         if(ts_chart.queryWasAborted())
-          return i18n.query_was_aborted;
+          return i18n_ext.query_was_aborted;
         else
-          return i18n.no_results_found;
+          return i18n_ext.no_results_found;
       },
       post: function() {
         var params = $.extend({}, graph_params);

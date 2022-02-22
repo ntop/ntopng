@@ -6,7 +6,6 @@ Developing Plugins
 
     overview
     structure
-    manifest
     alert_endpoints
     alert_definitions
     checks
@@ -16,5 +15,5 @@ Developing Plugins
     custom_pages
     timeseries_schemas
     examples
-    distributing_plugins
+    distributing_scripts
 

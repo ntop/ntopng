@@ -145,12 +145,12 @@ Periodic activities with issues also have their alerts. Alerts are engaged when 
 
   Internals: Periodic Activities Alerts
 
-Periodic activities are in charge of running plugin checks.
+Periodic activities are in charge of running script checks.
 
 Checks
 ------------
 
-:ref:`Checks` are part of ntopng plugins. They are executed periodically or when a certain event occurs.
+:ref:`Checks` are part of ntopng scripts. They are executed periodically or when a certain event occurs.
 
 Aim of the `Checks` internals table is to monitor the execution of scripts.
 

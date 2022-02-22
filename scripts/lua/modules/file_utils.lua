@@ -62,7 +62,7 @@ function file_utils.copy_file(fname, src_path, dst_path)
 
    if(ntop.exists(dst)) then
       -- NOTE: overwriting is not allowed as it means that a file was already provided by
-      -- another plugin
+      -- another script
       -- io.write(debug.traceback())
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Trying to overwrite existing file %s", dst))
       return(false)

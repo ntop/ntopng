@@ -21,7 +21,6 @@ local domain_names_contacts = {
 
    -- Allow user script configuration from the GUI
    gui = {
-      -- Localization strings, from the "locales" directory of the plugin
       i18n_title = "alerts_thresholds_config.domain_names_contacts_title",
       i18n_description = "alerts_thresholds_config.domain_names_contacts_description",
 

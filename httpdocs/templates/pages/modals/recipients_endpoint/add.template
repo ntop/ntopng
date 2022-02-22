@@ -69,6 +69,7 @@
                             </select>
                         </div>
                     </div>
+		    <!--
                     <div class="mb-3 row">
                         <label class="col-form-label col-sm-3" for="recipient-name-input">
                             <b>{{ i18n("endpoint_notifications.add_to_all") }}</b>
@@ -80,6 +81,7 @@
                             </div>
                         </div>  
                     </div>
+		    -->
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">

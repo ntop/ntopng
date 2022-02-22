@@ -2,8 +2,6 @@
 -- (C) 2017-22 - ntop.org
 --
 
-local plugins_utils = require "plugins_utils"
-
 local email = {
    name = "Email",
    endpoint_params = {
@@ -13,7 +11,7 @@ local email = {
       { param_name = "smtp_password", optional = true },
    },
    endpoint_template = {
-      plugin_key = "email",
+      script_key = "email",
       template_name = "email_endpoint.template"
    },
    recipient_params = {
@@ -21,7 +19,7 @@ local email = {
       { param_name = "cc", optional = true },
    },
    recipient_template = {
-      plugin_key = "email",
+      script_key = "email",
       template_name = "email_recipient.template"
    },
 }
@@ -117,7 +115,7 @@ end
 -- ##############################################
 
 -- Dequeue alerts from a recipient queue for sending notifications
-function email.dequeueRecipientAlerts(recipient, budget, high_priority)
+function email.dequeueRecipientAlerts(recipient, budget)
   local sent = 0
   local more_available = true
   local budget_used = 0
@@ -129,7 +127,7 @@ function email.dequeueRecipientAlerts(recipient, budget, high_priority)
 
     local notifications = {}
     for i = 1, MAX_ALERTS_PER_EMAIL do
-       local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
+       local notification = ntop.recipient_dequeue(recipient.recipient_id)
        if notification then 
 	  notifications[#notifications + 1] = notification.alert
        else

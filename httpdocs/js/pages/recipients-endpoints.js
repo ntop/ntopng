@@ -22,8 +22,8 @@ $(function () {
             recipient_name: $(`${formSelector} [name='recipient_name']`).val(),
             endpoint_id: $(`${formSelector} [name='endpoint']`).val(),
             recipient_minimum_severity: $(`${formSelector} [name='recipient_minimum_severity']`).val(),
-            recipient_check_categories: $(`${formSelector} [name='recipient_check_categories']`).val().join(","),
-            bind_to_all_pools: $(`${formSelector} [name='bind_to_all_pools']`).prop('checked')
+            recipient_check_categories: $(`${formSelector} [name='recipient_check_categories']`).val().join(",")
+            //bind_to_all_pools: $(`${formSelector} [name='bind_to_all_pools']`).prop('checked')
         };
 
         // load each recipient params inside the template container in params
@@ -34,6 +34,7 @@ $(function () {
         return params;
     }
 
+    /*
     const generateUsersList = (pools) => {
 
         const $list = $(`#users-recipient-modal .list-group`);
@@ -46,12 +47,12 @@ $(function () {
         for (const pool of pools) {
 
             const $listEntry = $(`<a class='list-group-item list-group-item-action' href='#'><b>${pool.name}</b></a>`);
-            $listEntry.append($(`<small class='text-muted d-block'>${i18n.pool_types[pool.key]}</small>`));
+            $listEntry.append($(`<small class='text-muted d-block'>${i18n_ext.pool_types[pool.key]}</small>`));
             $listEntry.attr('href', `${http_prefix}/lua/admin/manage_pools.lua?page=${pool.key}&pool_id=${pool.pool_id}`);
             $list.append($listEntry);
         }
-
     }
+    */
 
     const testRecipient = async (data, $button, $feedbackLabel) => {
 
@@ -60,7 +61,7 @@ $(function () {
 
         $button.attr("disabled", "disabled");
         $button.find('span.spinner-border').fadeIn();
-        $feedbackLabel.removeClass(`alert-danger alert-success`).text(`${i18n.testing_recipient}...`).show();
+        $feedbackLabel.removeClass(`alert-danger alert-success`).text(`${i18n_ext.testing_recipient}...`).show();
 
         try {
 
@@ -82,7 +83,7 @@ $(function () {
 
             // show a green label to alert the endpoint message
             $button.find('span.spinner-border').fadeOut(function () {
-                $feedbackLabel.addClass('alert-success').html(i18n.working_recipient).fadeOut(3000);
+                $feedbackLabel.addClass('alert-success').html(i18n_ext.working_recipient).fadeOut(3000);
             });
 
         }
@@ -93,10 +94,10 @@ $(function () {
                 $feedbackLabel.addClass(`alert-danger`);
 
                 if (err.message == "Response timed out") {
-                    $feedbackLabel.html(i18n.timed_out);
+                    $feedbackLabel.html(i18n_ext.timed_out);
                     return;
                 }
-                $feedbackLabel.html(i18n.server_error);
+                $feedbackLabel.html(i18n_ext.server_error);
             });
         }
         finally {
@@ -173,14 +174,14 @@ $(function () {
                             badge = `<span class='badge bg-dark'>built-in</span>`;
                         }
 
-                        return `${i18n.endpoint_types[endpointType]} ${badge}`;
+                        return `${i18n_ext.endpoint_types[endpointType]} ${badge}`;
                     }
 
                     if (type == 'filter') {
                         return endpointType;
                     }
 
-                    return i18n.endpoint_types[endpointType] || ""
+                    return i18n_ext.endpoint_types[endpointType] || ""
                 }
             },
             {
@@ -249,20 +250,22 @@ $(function () {
                 width: "5%",
                 render: function (data, type) {
                     const min_sev_key = SEVERITIES[data - 1];
-                    return `${i18n.endpoint_severities[min_sev_key]}`;
+                    return `${i18n_ext.endpoint_severities[min_sev_key]}`;
                 }  
             },
+	    /*
             {
                 data: "bind_to_pools",
                 className: "text-right text-nowrap",
                 width: "5%",
                 render: function (data, type) {
                     if(data)
-                        return data + ` ${i18n.pools}`;
+                        return data + ` ${i18n_ext.pools}`;
                     else
-                        return `<i class='text-danger fas fa-exclamation-triangle'></i> 0 ` + `${i18n.pools}`;
+                        return `<i class='text-danger fas fa-exclamation-triangle'></i> 0 ` + `${i18n_ext.pools}`;
                 }  
             },
+	    */
             {
                 targets: -1,
                 className: 'text-center',
@@ -274,9 +277,9 @@ $(function () {
                     const isBuiltin = (recipient.endpoint_conf && recipient.endpoint_conf.builtin) || false;
 
                     return DataTableUtils.createActionButtons([
-                        { class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa fa-users', modal: '#users-recipient-modal', title: `${i18n.recipient}` },
-                        { class: 'btn-info' /* Builtins are editable to change theis severity */, icon: 'fa-edit', modal: '#edit-recipient-modal', title: `${i18n.edit}` },
-                        { class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-recipient-modal', title: `${i18n.delete}` },
+                        { class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa fa-users', modal: '#users-recipient-modal', title: `${i18n_ext.recipient}` },
+                        { class: 'btn-info' /* Builtins are editable to change theis severity */, icon: 'fa-edit', modal: '#edit-recipient-modal', title: `${i18n_ext.edit}` },
+                        { class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-recipient-modal', title: `${i18n_ext.delete}` },
                     ]);
                 }
             }
@@ -291,7 +294,7 @@ $(function () {
             if (!CAN_CREATE_RECIPIENT) {
                 // wrap the button inside a span to show tooltip as request by the bootstrap framework
                 $(`#btn-add-recipient`).wrap(function() {
-                    return `<span id='suggest-tooltip' title='${i18n.createEndpointFirst}' class='d-inline-block' data-toggle='tooltip'></span>`;
+                    return `<span id='suggest-tooltip' title='${i18n_ext.createEndpointFirst}' class='d-inline-block' data-toggle='tooltip'></span>`;
                 });
                 $(`#suggest-tooltip`).tooltip();
             }
@@ -314,7 +317,7 @@ $(function () {
     DataTableUtils.addToggleColumnsDropdown($recipientsTable);
 
     const endpointTypeFilterMenu = new DataTableFiltersMenu({
-        filterTitle: i18n.endpoint_type,
+        filterTitle: i18n_ext.endpoint_type,
         filters: endpointTypeFilters,
         columnIndex: COLUMN_INDEX_ENDPOINT_TYPE,
         tableAPI: $recipientsTable,
@@ -469,6 +472,7 @@ $(function () {
     });
 
     /* bind recipient users button */
+    /*
     $(`table#recipient-list`).on('click', `a[href='#users-recipient-modal']`, async function () {
 
         const { recipient_id, recipient_name } = $recipientsTable.row($(this).parent().parent().parent().parent()).data();
@@ -494,8 +498,8 @@ $(function () {
             console.warn('Unable to show the recipient users');
             $(`.fetch-failed`).show();
         }
-
     });
+    */
 
     $(`#add-test-recipient`).click(async function (e) {
 

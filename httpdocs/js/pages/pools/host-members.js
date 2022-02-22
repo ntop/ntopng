@@ -21,21 +21,21 @@ $(function () {
     const filters = [
         {
             regex: NtopUtils.getIPv4RegexWithCIDR(),
-            label: i18n.ipv4,
+            label: i18n_ext.ipv4,
             key: 'ipv4_filter',
             countable: true,
             callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
         },
         {
             regex: NtopUtils.getIPv6RegexWithCIDR(),
-            label: i18n.ipv6,
+            label: i18n_ext.ipv6,
             key: 'ipv6_filter',
             countable: true,
             callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
         },
         {
             regex: NtopUtils.REGEXES.macAddress,
-            label: i18n.mac_filter,
+            label: i18n_ext.mac_filter,
             key: 'mac_filter',
             countable: true,
             callback: () => { currentType = "mac"; $hostMembersTable.rows().invalidate(); }
@@ -99,8 +99,8 @@ $(function () {
                 width: "10%",
                 render: () => {
                     return DataTableUtils.createActionButtons([
-                        { class: 'btn-info',   icon: 'fa-edit', modal: '#edit-member-modal', title: `${i18n.edit}` },
-                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-member-host-pool', title: `${i18n.delete}` }
+                        { class: 'btn-info',   icon: 'fa-edit', modal: '#edit-member-modal', title: `${i18n_ext.edit}` },
+                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-member-host-pool', title: `${i18n_ext.delete}` }
                     ]);
                 }
             }
@@ -114,7 +114,7 @@ $(function () {
         tableAPI: $hostMembersTable,
         filters: filters,
         filterMenuKey: 'host-members',
-        filterTitle: i18n.member_type,
+        filterTitle: i18n_ext.member_type,
         columnIndex: INDEX_MEMBER_FILTER,
     }).init();
 
@@ -158,7 +158,7 @@ $(function () {
 
         const inputFilename = $('#import-input')[0].files[0];
         if (!inputFilename) {
-            $("#import-error").text(`${i18n.no_file}`).show();
+            $("#import-error").text(`${i18n_ext.no_file}`).show();
             $button.removeAttr("disabled");
             return;
         }
@@ -255,7 +255,7 @@ $(function () {
         onSubmitSuccess: function (response, textStatus, modalHandler) {
 
             if (response.rc < 0) {
-                $(`#add-modal-feedback`).html(i18n.rest[response.rc_str]).show();
+                $(`#add-modal-feedback`).html(i18n_ext.rest[response.rc_str]).show();
                 return;
             }
 
@@ -281,7 +281,7 @@ $(function () {
         onSubmitSuccess: function (response, textStatus, modalHandler) {
 
             if (response.rc < 0) {
-                $(`#remove-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
+                $(`#remove-modal-feedback`).html(i18n_ext.rest[response.rc_str]).fadeIn();
                 return;
             }
             $hostMembersTable.ajax.reload();
@@ -370,7 +370,7 @@ $(function () {
         },
         onSubmitSuccess: function (response, textStatus, modalHandler) {
             if (response.rc < 0) {
-                $(`#edit-modal-feedback`).html(i18n.rest[response.rc_str]).show();
+                $(`#edit-modal-feedback`).html(i18n_ext.rest[response.rc_str]).show();
                 return;
             }
 

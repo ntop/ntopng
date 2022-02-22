@@ -420,6 +420,7 @@ local defined_tags = {
       alert_id = operators_by_filter.alert_id,
       severity = operators_by_filter.severity,
       score = operators_by_filter.score,
+
       ip_version = operators_by_filter.ip_version,
       ip = operators_by_filter.ip,
       name = operators_by_filter.hostname,
@@ -440,6 +441,7 @@ local defined_tags = {
       alert_id = operators_by_filter.alert_id,
       severity = operators_by_filter.severity,
       score = operators_by_filter.score,
+
       l7_proto  = operators_by_filter.l7_proto,
       ip_version = operators_by_filter.ip_version,
       ip = operators_by_filter.ip,
@@ -466,6 +468,7 @@ local defined_tags = {
       alert_id = operators_by_filter.alert_id,
       severity = operators_by_filter.severity,
       score = operators_by_filter.score,
+
       subtype = operators_by_filter.text,
    },
    ["user"] = {
@@ -477,6 +480,7 @@ local defined_tags = {
       alert_id = operators_by_filter.alert_id,
       severity = operators_by_filter.severity,
       score = operators_by_filter.score,
+
       network_name = operators_by_filter.text,
    }
 }

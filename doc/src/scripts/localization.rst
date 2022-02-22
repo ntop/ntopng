@@ -1,9 +1,9 @@
-.. _Plugin Localization:
+.. _Script Localization:
 
 Localization
 ============
 
-While developing plugins to be integrated into ntopng, some care should be
+While developing scripts to be integrated into ntopng, some care should be
 taken to provide proper localization support. Consider the following example:
 
 .. code:: lua
@@ -28,21 +28,21 @@ the `entity_thresholds.syn_victim_title` and `entity_thresholds.syn_victim_descr
 are localization keys. ntopng converts that keys to localized strings based on the
 current user language.
 
-All plugin files except :code:`manifest.lua`, which is only meant to be used for background operations, support localization.
+All script files except :code:`manifest.lua`, which is only meant to be used for background operations, support localization.
 
-Plugins and Localization
+Scripts and Localization
 ------------------------
 
-Plugins can put their own localized strings into localization files under the
-`locales` subdirectory of the plugin (see `an example here`_). Each file has
+Scripts can put their own localized strings into localization files under the
+`locales` subdirectory of the script (see `an example here`_). Each file has
 the country code as the file name, e.g. `it.lua` contains localization strings
 in the Italian language. ntopng currently supports the following languages:
 English, Czech, German, Italian, Japanese, Portuguese. Providing the English
-localization file is mandatory for the plugin as it is the fheck
+localization file is mandatory for the script as it is the fheck
 used when a particular string is missing for a specific language.
 
-Here is an example of a `en.lua` localization file for a plugin which
-monitors the room temperature (the plugin directory is named `room_temp_monitor`):
+Here is an example of a `en.lua` localization file for a script which
+monitors the room temperature (the script directory is named `room_temp_monitor`):
 
 .. code:: lua
 
@@ -64,7 +64,7 @@ following contents:
 
 ntopng will now automatically use the Italian localized strings for Italian users.
 
-In the declarative part of the plugins it's not necessary to manually call the `i18n`
+In the declarative part of the scripts it's not necessary to manually call the `i18n`
 function. These keys are identified by a `i18n_` prefix. For example in this code:
 
 .. code:: lua
@@ -95,12 +95,12 @@ Dots :code:`.` are allowed in strings to be localized. Dots are treated as separ
 1. Key :code:`s` is looked up into the localization table. The value of :code:`s` is expected to be another table.
 2. Key :code:`t` is looked up into the table found as the value for key :code:`s`.
 
-A plugin can extend ntopng localization tables. Extension is done using Lua files placed under plugin sub-directory :code:`./locales`. Lua files contain localization tables. Each file must have the name of one of the ntopng supported languages and it must return a Lua table. For example, to extend the ntopng English localization file a plugin can use an :code:`en.lua` file as shown `here <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/example/locales>`_. Plugin localization tables are automatically merged with ntopng localization tables.
+A script can extend ntopng localization tables. Extension is done using Lua files placed under script sub-directory :code:`./locales`. Lua files contain localization tables. Each file must have the name of one of the ntopng supported languages and it must return a Lua table. For example, to extend the ntopng English localization file a script can use an :code:`en.lua` file as shown `here <https://github.com/ntop/ntopng/tree/dev/scripts/scripts/example/locales>`_. Script localization tables are automatically merged with ntopng localization tables.
 
 Parameters
 ^^^^^^^^^^
 
-Localized strings accept parameters. Parameters are not translated. They are passed to the string automatically by ntopng. Parameters are passed to the localized string as a Lua table. The Lua table is passed automatically by ntopng but is specified in the plugin code.
+Localized strings accept parameters. Parameters are not translated. They are passed to the string automatically by ntopng. Parameters are passed to the localized string as a Lua table. The Lua table is passed automatically by ntopng but is specified in the script code.
 
 Parameters in a localized string are expressed as :code:`%{parameter_name}`. Localization replaces the :code:`%{parameter_name}` with the actual parameter value found in key :code:`parameter_name` of the parameters Lua table.
 
@@ -127,4 +127,4 @@ Consider now the entry
 
 Found in file `en.lua <https://github.com/ntop/ntopng/blob/26aa2ebecc3b446119ec981b2454b0ab12d488e2/scripts/locales/en.lua#L105>`_. The localized string contains parameter :code:`%{iface}`. This parameter will be replaced with the value found in key :code:`iface` of the parameters Lua table. So for example if the parameters Lua table is :code:`{iface="eno1"}`, localized string will become :code:`"eno1 download"`.
 
-.. _`an example here`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/examples/example/locales
+.. _`an example here`: https://github.com/ntop/ntopng/tree/dev/scripts/scripts/examples/example/locales

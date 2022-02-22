@@ -5,8 +5,8 @@ Timeseries Schemas
 
 Checks invoked via the `checks hooks`_ can use the `Timeseries
 API`_ to write their own timeseries data and then visualize it in `Custom
-Pages`_. A full example of a plugin specialized in collecting Redis metrics
-is the `Redis monitor plugin`_ .
+Pages`_. A full example of a script specialized in collecting Redis metrics
+is the `Redis monitor script`_ .
 
 In order to write timeseries, it is first necessary to define the timeseries
 schemas.
@@ -14,7 +14,7 @@ schemas.
 Schemas Definition
 ------------------
 
-Custom schemas are defined into the `./ts_schemas` subdirectory of the plugin.
+Custom schemas are defined into the `./ts_schemas` subdirectory of the script.
 The directory can contain one or more of the following files:
 
 - :code:`min.lua`: Define schemas whose points have 1 minute resolution.
@@ -76,5 +76,5 @@ if the timeseries are enabled for the given entity currently processed.
 .. _`checks hooks`: check_hooks.html#user-script-hooks
 .. _`Timeseries API`: ../api/timeseries/index.html
 .. _`Custom Pages`: custom_pages.html
-.. _`Redis monitor plugin`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/redis_monitor
+.. _`Redis monitor script`: https://github.com/ntop/ntopng/tree/dev/scripts/scripts/redis_monitor
 .. _`the relevant page`: check_hooks.html#other-user-script-hooks

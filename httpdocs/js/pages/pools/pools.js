@@ -52,7 +52,7 @@ $(function() {
                 render: function(data, type, row) {
 
                     /* if it's the default pool then show an unbounded members message */
-                    if (type == "display" && row.pool_id == DEFAULT_POOL_ID) return i18n.unbounded_members;
+                    if (type == "display" && row.pool_id == DEFAULT_POOL_ID) return i18n_ext.unbounded_members;
 
                     if (type == "display" && row.members.length == 0) return "";
                     // show only the first 10 members, append some dots
@@ -75,18 +75,6 @@ $(function() {
                 }
             },
             {
-                data: 'recipients',
-                width: '40%',
-                render: function(recipients, type, row) {
-
-                    if (type == "display") {
-                        return NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_RECIPIENTS_TO_SHOW);
-                    }
-
-                    return recipients;
-                }
-            },
-            {
                 data: null, targets: -1, className: 'text-center',
                 width: "10%",
                 render: function(_, type, pool) {
@@ -103,8 +91,8 @@ $(function() {
                     if (IS_ALL_POOL) return;
 
                     const buttons = [
-                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-pool', title: `${i18n.edit}` },
-                        { class: `btn-danger ${((pool.pool_id == DEFAULT_POOL_ID || IS_NEDGE) || !changable_pool) ? 'disabled' : '' }`, icon: 'fa-trash', modal: '#remove-pool', title: `${i18n.delete}`}
+                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-pool', title: `${i18n_ext.edit}` },
+                        { class: `btn-danger ${((pool.pool_id == DEFAULT_POOL_ID || IS_NEDGE) || !changable_pool) ? 'disabled' : '' }`, icon: 'fa-trash', modal: '#remove-pool', title: `${i18n_ext.delete}`}
                     ];
 
                     if (poolType == "host") {
@@ -113,7 +101,7 @@ $(function() {
                                 class: `btn-info ${(pool.pool_id == DEFAULT_POOL_ID) ? 'disabled' : '' }`,
                                 icon: 'fa-layer-group',
                                 href: `${http_prefix}/lua/admin/manage_host_members.lua?pool=${pool.pool_id}`,
-                                title: `${i18n.manage}`
+                                title: `${i18n_ext.manage}`
                             }
                         );
                     }
@@ -128,7 +116,7 @@ $(function() {
             columns.splice(1, 0, {
                 data: 'key',
                 render: (key, type, pool) => {
-                    if (type == "display") return i18n.poolFamilies[key];
+                    if (type == "display") return i18n_ext.poolFamilies[key];
                     return key;
                 }
             });
@@ -178,14 +166,12 @@ $(function() {
         endpoint: endpoints.add_pool,
         beforeSumbit: function() {
             const members = $(`#add-pool form select[name='members']`).val() || [];
-            const recipients = $(`#add-pool form select[name='recipients']`).val() || [];
 
             $(`#add-modal-feedback`).hide();
 
             return {
                 pool_name: $(`#add-pool form input[name='name']`).val().trim(),
-                pool_members: members.join(','),
-                recipients: recipients.join(',')
+                pool_members: members.join(',')
             };
         },
         onSubmitSuccess: function (response, textStatus, modalHandler) {
@@ -261,8 +247,6 @@ $(function() {
             $(`#edit-pool form input[name='name']`).val(pool.name);
             $(`#edit-pool form select[name='members']`).val(pool.members);
             $(`#edit-pool form select[name='members']`).selectpicker('refresh');
-            $(`#edit-pool form select[name='recipients']`).val(pool.recipients.map(r => r.recipient_id) || []);
-            $(`#edit-pool form select[name='recipients']`).selectpicker('refresh');
 
             if (poolType == "host") {
                 const href = $(`#edit-link`).attr('href').replace(/pool\=[0-9]+/, `pool=${pool.pool_id}`);
@@ -272,12 +256,10 @@ $(function() {
         beforeSumbit: (pool) => {
 
             const members = $(`#edit-pool form select[name='members']`).val() || [];
-            const recipients = $(`#edit-pool form select[name='recipients']`).val() || [];
 
             const data = {
                 pool: pool.pool_id,
-                pool_name: $(`#edit-pool form input[name='name']`).val().trim(),
-                recipients: recipients.join(',')
+                pool_name: $(`#edit-pool form input[name='name']`).val().trim()
             };
 
             if (poolType != "host") {
@@ -304,7 +286,7 @@ $(function() {
                 $(`option[data-pool-id='${oldPoolData.pool_id}']`).each(function() {
                     const value = $(this).val();
                     if (poolType != "host")
-                        $(this).text(`${all_members[value].name || value} (${i18n.used_by} ${newPoolName})`)
+                        $(this).text(`${all_members[value].name || value} (${i18n_ext.used_by} ${newPoolName})`)
                 });
             }
 

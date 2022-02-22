@@ -238,7 +238,7 @@ class NtopUtils {
 		if (typeof (exports) === "undefined")
 			return "-";
 
-		var exports_label = i18n.exports.toLowerCase();
+		var exports_label = i18n_ext.exports.toLowerCase();
 
 		var sizes = [exports_label, 'K ' + exports_label];
 		if (exports == 0) return '0';
@@ -751,7 +751,7 @@ class NtopUtils {
 
 		if (is_different && $error_label != null) {
 
-			let message = i18n.request_failed_message;
+			let message = i18n_ext.request_failed_message;
 			if (status_code && status_text) {
 				message += `: ${status_code} - ${status_text}`;
 			}
@@ -759,7 +759,7 @@ class NtopUtils {
 			$error_label.text(message).show();
 		}
 		else if (is_different && $error_label == null) {
-			alert(`${i18n.request_failed_message}: ${status_code} - ${status_text}`);
+			alert(`${i18n_ext.request_failed_message}: ${status_code} - ${status_text}`);
 		}
 
 		return is_different;
@@ -792,7 +792,7 @@ class NtopUtils {
 			const file = $('#import-input')[0].files[0];
 
 			if (!file) {
-				$("#import-error").text(`${i18n.no_file}`).show();
+				$("#import-error").text(`${i18n_ext.no_file}`).show();
 				$button.removeAttr("disabled");
 				return;
 			}
@@ -806,7 +806,7 @@ class NtopUtils {
 				try { jsonConfiguration = JSON.parse(reader.result); } catch (e) { }
 
 				if (!jsonConfiguration) {
-					$("#import-error").text(i18n.rest_consts[responseJSON.rc_str] || 'Not Implemented Yet').show();
+					$("#import-error").text(i18n_ext.rest_consts[responseJSON.rc_str] || 'Not Implemented Yet').show();
 					$button.removeAttr("disabled");
 					return;
 				}
@@ -828,14 +828,14 @@ class NtopUtils {
 					        const key = $(`input[name='configuration']:checked`).val();
 
 					        const body = (key == 'all')
-					                ? i18n.manage_configurations.messagges.import_all_success
-							: i18n.manage_configurations.messagges.import_success;
+					                ? i18n_ext.manage_configurations.messagges.import_all_success
+							: i18n_ext.manage_configurations.messagges.import_success;
 
 						// show a success alert message
 						ToastUtils.showToast({
 							id: 'import-configuration-alert',
 							level: 'success',
-							title: i18n.success,
+							title: i18n_ext.success,
 							body: body,
 							delay: 2000
 						});
@@ -855,7 +855,7 @@ class NtopUtils {
 						if (responseJSON.rc == PARTIAL_IMPORT_RC)
 							$(`#import-error`).removeClass('invalid-feedback').addClass('text-warning');
 
-						$("#import-error").text(i18n.rest_consts[responseJSON.rc_str] || i18n.FAILED_HTTP_REQUEST).show();
+						$("#import-error").text(i18n_ext.rest_consts[responseJSON.rc_str] || i18n_ext.FAILED_HTTP_REQUEST).show();
 
 					})
 					.always(() => {
@@ -943,7 +943,7 @@ class NtopUtils {
 		if (array == undefined) return "";
 
 		if (array.length > limit) {
-			return array.slice(0, limit).join(", ") + ` ${i18n.and_x_more.replace('$num', array.length - limit)}`;
+			return array.slice(0, limit).join(", ") + ` ${i18n_ext.and_x_more.replace('$num', array.length - limit)}`;
 		}
 
 		return array.slice(0, limit).join(", ");

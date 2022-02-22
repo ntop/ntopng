@@ -12,8 +12,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 -- Important: load this before any other alert related module
-local plugins_utils = require "plugins_utils"
-plugins_utils.loadPlugins()
+local script_manager = require "script_manager"
+script_manager.loadScripts()
 
 local recipients = require "recipients"
 recipients.initialize()
@@ -170,6 +170,12 @@ end
 -- Clear the unused DHCP cache keys
 for ifid, ifname in pairs(delete_data_utils.list_all_interfaces()) do
    ntop.delCache("ntopng.dhcp."..ifid..".cache")
+end
+
+-- Remove notification cache
+local notifications = ntop.getKeysCache("ntopng.cache.alerts.notification.*") or {}
+for k, _ in pairs(notifications) do
+  ntop.delCache(k)
 end
 
 if(has_pcap_dump_interface) then

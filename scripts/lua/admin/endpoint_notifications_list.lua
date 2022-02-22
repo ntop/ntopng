@@ -10,7 +10,7 @@ local page_utils = require("page_utils")
 local ui_utils = require("ui_utils")
 local template = require "template_utils"
 local json = require "dkjson"
-local plugins_utils = require("plugins_utils")
+local script_manager = require("script_manager")
 local endpoints = require("endpoints")
 
 sendHTTPContentTypeHeader('text/html')
@@ -84,7 +84,7 @@ local context = {
     },
     ui_utils = ui_utils,
     template_utils = template,
-    plugins_utils = plugins_utils,
+    script_manager = script_manager,
     page_utils = page_utils,
     json = json,
     info = ntop.getInfo()

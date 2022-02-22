@@ -49,6 +49,7 @@ class Flow : public GenericHashEntry {
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags, flow_verdict;
   u_int8_t src2dst_tcp_zero_window:1, dst2src_tcp_zero_window:1, _pad:6;
   u_int16_t flow_score;
+  u_int8_t view_cli_mac[6], view_srv_mac[6];
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
   /* The bitmap of all possible flow alerts set by FlowCheck subclasses. When no alert is set, the 
@@ -254,10 +255,10 @@ class Flow : public GenericHashEntry {
   void updateSrvJA3();
   void updateHASSH(bool as_client);
   void processExtraDissectedInformation();
-  void processDetectedProtocol();      /* nDPI detected protocol */
+  void processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len); /* nDPI detected protocol */
   void processDetectedProtocolData();  /* nDPI detected protocol data (e.g., ndpiFlow->host_server_name) */
   void setExtraDissectionCompleted();
-  void setProtocolDetectionCompleted();
+  void setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_len);
   void updateProtocol(ndpi_protocol proto_id);
   const char* cipher_weakness2str(ndpi_cipher_weakness w) const;
   bool get_partial_traffic_stats(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *delta, bool *first_partial) const;
@@ -287,7 +288,8 @@ class Flow : public GenericHashEntry {
        Mac *_cli_mac, IpAddress *_cli_ip, u_int16_t _cli_port,
        Mac *_srv_mac, IpAddress *_srv_ip, u_int16_t _srv_port,
        const ICMPinfo * const icmp_info,
-       time_t _first_seen, time_t _last_seen);
+       time_t _first_seen, time_t _last_seen, 
+       u_int8_t *_view_cli_mac, u_int8_t *_view_srv_mac);
   ~Flow();
 
   inline Bitmap128 getAlertsBitmap() const { return(alerts_map); }
@@ -695,6 +697,8 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getDNSRetCode()          { return(isDNS() ? protos.dns.last_return_code : 0); }
   inline char* getHTTPURL()                 { return(isHTTP() ? protos.http.last_url : (char*)"");   }
   inline void  setHTTPURL(char *v)          { if(isHTTP()) { if(!protos.http.last_url) protos.http.last_url = v; } else { if(v) free(v); } }
+  inline char* getHTTPUserAgent()           { return(isHTTP() ? protos.http.last_user_agent : (char*)"");   }
+  inline void  setHTTPUserAgent(char *v)    { if(isHTTP()) { if(!protos.http.last_user_agent) protos.http.last_user_agent = v; } else { if(v) free(v); } }
   void setHTTPMethod(const char* method, ssize_t method_len);
   void setHTTPMethod(ndpi_http_method m);
   inline void  setHTTPRetCode(u_int16_t c)  { if(isHTTP()) { protos.http.last_return_code = c; } }
@@ -857,6 +861,15 @@ class Flow : public GenericHashEntry {
   u_char* getCommunityId(u_char *community_id, u_int community_id_len);
 
   inline FlowTrafficStats* getTrafficStats() { return(&stats); };
+
+  inline u_int8_t* getViewCliMac() { return(view_cli_mac); };
+  inline u_int8_t* getViewSrvMac() { return(view_srv_mac); };
+
+  /* Placeholder */
+  inline char* getCliProcessName()     { return((char*)""); }
+  inline char* getSrvProcessName()     { return((char*)""); }
+  inline char* getCliProcessUserName() { return((char*)""); }
+  inline char* getSrvProcessUserName() { return((char*)""); }
 };
 
 #endif /* _FLOW_H_ */

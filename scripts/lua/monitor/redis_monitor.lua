@@ -8,12 +8,10 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 
 require "lua_utils"
 local page_utils = require("page_utils")
-local alert_consts = require("alert_consts")
-local plugins_utils = require("plugins_utils")
+local script_manager = require("script_manager")
 local graph_utils = require("graph_utils")
-local alert_utils = require("alert_utils")
 
-local charts_available = plugins_utils.timeseriesCreationEnabled()
+local charts_available = script_manager.systemTimeseriesEnabled()
 
 if not isAllowedSystemInterface() then
    return
@@ -27,7 +25,7 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.redis_monitor)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local page = _GET["page"] or "overview"
-local url = plugins_utils.getMonitorUrl("redis_monitor.lua") .. "?ifid=" .. getInterfaceId(ifname)
+local url = script_manager.getMonitorUrl("redis_monitor.lua") .. "?ifid=" .. getInterfaceId(ifname)
 
 page_utils.print_navbar("Redis", url,
 			{

@@ -476,14 +476,18 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 
     if(cli_ip && srv_ip) {
       Host *cli_host = NULL, *srv_host = NULL;
-
+      /* Add MAC Addresses to view interfaces, if NULL the don't add */
+      
       /* Important: findFlowHosts can allocate new hosts. The first_partial condition
        * is used to call `incNumFlows` and `incUses` on the hosts below, so it is essential that
        * findFlowHosts is called only when first_partial is true. */
       if(first_partial) {
 	findFlowHosts(f->get_vlan_id(), f->get_observation_point_id(),
-		      NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
-		      NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
+		      NULL /* Mac Address */, (IpAddress*)cli_ip, &cli_host,
+		      NULL /* Mac Address */, (IpAddress*)srv_ip, &srv_host);
+
+          if(cli_host) cli_host->setViewInterfaceMac(f->getViewCliMac());
+          if(srv_host) srv_host->setViewInterfaceMac(f->getViewSrvMac());
       } else {
 	/* The unsafe pointers can be used here as ViewInterface::viewed_flows_walker is
 	 * called synchronously with the ViewInterface purgeIdle. This also saves some

@@ -95,35 +95,6 @@ end
 
 -- ###########################################
 
-function scripts_triggers.checkReloadPlugins(when)
-   local demo_ends_at = ntop.getInfo()["pro.demo_ends_at"]
-   local time_delta = demo_ends_at - when
-   local plugins_reloaded = false
-
-   -- tprint({time_delta = time_delta, demo_ends_at = demo_ends_at, when = when, is_pro = ntop.isPro()})
-
-   if ntop.getCache('ntopng.cache.force_reload_plugins') == '1' then
-      -- Check and possibly reload plugins after a user has changed (e.g., applied or removed) a license
-      -- from the web user interface (page about.lua)
-      local plugins_utils = require "plugins_utils"
-      ntop.delCache('ntopng.cache.force_reload_plugins')
-      plugins_utils.loadPlugins(not ntop.isPro() --[[ reload only community if license is not pro --]])
-      plugins_reloaded = true
-   elseif demo_ends_at and demo_ends_at > 0 and time_delta <= 10 and ntop.isPro() and not ntop.hasPluginsReloaded() then
-      -- Checks and possibly reload plugins for demo licenses. In case of demo licenses,
-      -- if within 10 seconds from the license expirations, a plugin reload is executed only for the community plugins
-      local plugins_utils = require "plugins_utils"
-      plugins_utils.loadPlugins(true --[[ reload only community plugins --]])
-      plugins_reloaded = true
-   end
-
-   if plugins_reloaded then
-      ntop.reloadPlugins()
-   end
-end
-
--- ###########################################
-
 function scripts_triggers.arePrefsChanged()
    local prefs_changed_key = "ntopng.cache.prefs_changed"
    
