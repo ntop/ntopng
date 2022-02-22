@@ -18,8 +18,8 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  */
-#include "../include/ThreadPoolTest.h"
-#include "../include/ScopedThreadPool.h"
+#include "ThreadPoolTest.h"
+#include "ScopedThreadPool.h"
 namespace ntoptesting {
 
 const std::string ThreadPoolTest::ResultBaseName = "testact";

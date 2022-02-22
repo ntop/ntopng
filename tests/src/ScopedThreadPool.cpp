@@ -1,4 +1,4 @@
-#include "../include/ScopedThreadPool.h"
+#include "ScopedThreadPool.h"
 
 namespace ntoptesting {
 

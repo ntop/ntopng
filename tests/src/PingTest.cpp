@@ -1,4 +1,4 @@
-#include "../include/PingTest.h"
+#include "PingTest.h"
 
 namespace ntoptesting {
 void PingTest::GetAllInterfacesName() {

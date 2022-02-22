@@ -1,4 +1,4 @@
-#include "../include/NtopTestingBase.h"
+#include "NtopTestingBase.h"
 
 NtopTestingBase::NtopTestingBase() {
   const char *appName = "ntopng";
