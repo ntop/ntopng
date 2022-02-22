@@ -872,9 +872,6 @@ function alert_store:has_alerts()
       has_historical_alerts = res and res[1] and res[1]["has_historical_alerts"] == "1" or false
    end
  
-   -- tprint(q)
-   -- tprint(res) 
- 
    return has_historical_alerts
 end
 
@@ -1570,7 +1567,7 @@ function alert_store:build_csv_row(rnames, document)
 end
 
 function alert_store:build_csv_row_single_element(value)
-   return CSV_SEPARATOR .. self:escape_csv(tostring(value))
+   return CSV_SEPARATOR .. self:escape_csv(tostring(value or ""))
 end
 
 function alert_store:build_csv_row_multiple_elements(value, elements)
