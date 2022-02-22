@@ -74,20 +74,27 @@ void ThreadPoolTest::CreateScript(const std::string &path,
   path_name << base;
   path_name << i;
 
-  std::string template = "-- Opens a file\nfile = io.open(\"#1, \"w\")\nio.output(file)\n
-  \nio.write(\"#2\")\nio.close(file)\n";
-  // replace #1 with path anme and #2 with the value of i
-  size_t pos1 = template.find_first_of("#1");
-  size_t pos2 = template.find_first_of("#2");
-  std::string partial1 = template.substr(0, pos1);
+  // encode a test lua template
+  std::ostringstream string_template;
+  string_template << "-- Opens a file" << std::endl;
+  string_template << "file  = io.open(\"#1\", \"w\")" << std::endl;
+  string_template << "io.output(file)" << std::endl;
+  string_template << "io.write(\"#2\")" << std::endl;
+  string_template << "io.close(file)" << std::endl;
+  std::string string_template_value = string_template.str();
+  // replace #1 with pathname and #2 with the value of i
+  size_t pos1 = string_template_value.find_first_of("#1");
+  size_t pos2 = string_template_value.find_first_of("#2");
+  std::string partial1 = string_template_value.substr(0, pos1);
   partial1+=path_name.str();
-  std::string partial2 = template.substr(pos1+2, pos2);
+  std::string partial2 = string_template_value.substr(pos1+2, pos2);
+  // write the correct lua code to a file .lua
   std::ostringstream content;
   content << i;
   partial2+=content.str();
   out << partial1;
   out << partial2;
-  out << template.substr(pos2+2);
+  out << string_template_value.substr(pos2+2);
   out.close();
   chmod(path.c_str(), S_IRWXU);
 }
@@ -197,5 +204,4 @@ TEST_F(ThreadPoolTest, ShouldWorkWhenAffinityIsNotCorrect) {
   pthread_join(new_thread, &res);
   free(affinity);
 }
-
 } // namespace ntoptesting

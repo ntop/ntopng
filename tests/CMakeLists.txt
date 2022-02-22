@@ -24,9 +24,10 @@ find_package(JsonC REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(Hiredis REQUIRED)
 find_package(Mongoose REQUIRED)
+find_package(MySQL REQUIRED)
 
 set(LOCAL_INCLUDE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/../include ${CMAKE_SOURCE_DIR}/../third-party/include)
-include_directories(${LOCAL_INCLUDE} ${OPENSSL_INCLUDE_DIR} ${HIREDIS_INCLUDE_DIR} ${SQLite3_INCLUDE_DIRS} ${ZeroMQ_INCLUDE_DIRS} ${NDPI_INCLUDE_DIR} ${PCAP_INCLUDE_DIR} ${JSONC_INCLUDE_DIR} ${LUA_INCLUDE_DIR} ${MONGOOSE_INCLUDE_DIR})
+include_directories(${LOCAL_INCLUDE} ${MYSQL_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${HIREDIS_INCLUDE_DIR} ${SQLite3_INCLUDE_DIRS} ${ZeroMQ_INCLUDE_DIRS} ${NDPI_INCLUDE_DIR} ${PCAP_INCLUDE_DIR} ${JSONC_INCLUDE_DIR} ${LUA_INCLUDE_DIR} ${MONGOOSE_INCLUDE_DIR})
   
 include(CTest)
 enable_testing()
@@ -39,10 +40,9 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/ScopedThreadPool.cpp
   ${CMAKE_SOURCE_DIR}/src/ThreadPoolTest.cpp  
 )
-target_link_libraries(
-  unit_tests
-  gtest_main
-)
+target_link_libraries( unit_tests gtest_main ${OPENSSL_LIBRARIES} ${MYSQL_LIBRARIES} ${ZeroMQ_LIBRARIES}  ${NDPI_LIBRARY} ${PCAP_LIBRARY} ${NDPI_LIBRARY} ${LUA_LIBRARIES}  ${JSONC_LIBRARY} ${SQLite3_LIBRARIES} ${HIREDIS_LIBRARIES} Threads::Threads)
+
+
 include(GoogleTest)
 gtest_discover_tests(unit_tests)
 

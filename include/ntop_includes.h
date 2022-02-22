@@ -151,8 +151,9 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 #pragma comment(lib, "crypt32.lib")
 #pragma comment(lib, "wldap32.lib") 
 #endif
-
+#ifndef UNIT_TEST
 #include "third-party/uthash.h"
+#endif
 
 #ifdef HAVE_MYSQL
 #include <mysql.h>
