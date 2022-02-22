@@ -243,11 +243,24 @@ function alert_store:build_sql_cond(cond)
 
    -- Number
    elseif cond.value_type == 'number' then
-     sql_cond = string.format("%s %s %u", cond.field, sql_op, cond.value)
+      if cond.op == 'in' then
+         sql_cond = 'bitAnd(' .. cond.field .. ', ' .. cond.value .. ') = ' .. cond.value
+      elseif cond.op == 'nin' then
+         sql_cond = cond.field .. '!=' .. cond.value .. '/' .. cond.value
+      else
+         sql_cond = string.format("%s %s %u", cond.field, sql_op, cond.value)
+      end
 
    -- String
    else
-     sql_cond = string.format("%s %s '%s'", cond.field, sql_op, cond.value)
+      if cond.op == 'in' then
+         sql_cond = cond.field .. ' LIKE ' .. string.format("'%%%s%%'", cond.value)
+      elseif cond.op == 'nin' then
+         sql_cond = cond.field .. ' NOT LIKE ' .. string.format("'%%%s%%'", cond.value)
+      else
+         -- Any other operator
+         sql_cond = string.format("%s %s '%s'", cond.field, sql_op, cond.value)
+      end
    end
 
    return sql_cond
