@@ -3312,8 +3312,8 @@ end
 
 -- ##########################################
 
-function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
-   if ntop.isPro() then
+function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info, vlan)
+   if ntop.isEnterpriseM() then
       local now    = os.time()
       local ago1h  = now - 3600
 
@@ -3335,6 +3335,9 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
 	 if ndpi_proto_id then
 	    params["l7proto"] = ndpi_proto_id..";eq"
 	 end
+   if vlan and vlan ~= 0 then
+      params["vlan_id"] = vlan..";eq"
+   end
 
 	 local url_params = table.tconcat(params, "=", "&")
 

@@ -304,6 +304,10 @@ else
 
    service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
 
+   if(host_vlan ~= 0) then
+      historical_flow_link = historical_flow_link .. "&vlan_id=" .. host_vlan .. ";eq"
+   end
+
    if(service_map_available) and (host_vlan ~= 0) then
    	  service_map_link = service_map_link .. "&vlan=" .. host_vlan		
    end
@@ -521,7 +525,7 @@ else
           print(" "..discover.getOsIcon(host.os).." ")
         end
    
-        historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
+        historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil, host_vlan)
    
          if(host["local_network_name"] ~= nil) then
    	 local network_name = getLocalNetworkAlias(host["local_network_name"] )
@@ -807,8 +811,7 @@ else
    end
 
    if interfaceHasClickHouseSupport() then
-      local url = ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?ip=' .. hostinfo2hostkey(host_info) .. ';eq' 
-      flows_th = flows_th .. ' <a class="btn btn-sm btn-info" href="' .. url .. '" title="' .. i18n("db_explorer.historical_data_explorer") .. '"><i class="fas fa-search-plus"></i></a>'
+      flows_th = flows_th .. ' <a class="btn btn-sm btn-info" href="' .. historical_flow_link .. '" title="' .. i18n("db_explorer.historical_data_explorer") .. '"><i class="fas fa-search-plus"></i></a>'
    end
 
    print("<tr><th></th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
@@ -1683,7 +1686,7 @@ elseif(page == "http") then
 	    for k,v in pairsByKeys(vh, asc) do
 	       local j = string.gsub(k, "%.", "___")
 	       print("<tr><td><A class='ntopng-external-link' href='http://"..k.."'>"..k.." <i class='fas fa-external-link-alt'></i></A>")
-	       historicalProtoHostHref(ifId, host, nil, nil, k)
+	       historicalProtoHostHref(ifId, host, nil, nil, k, host_vlan)
 	       print("</td>")
 	       print("<td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
 	       print("<td align=right><span id="..j.."_bytes_vhost_rcvd>"..bytesToSize(vh[k]["bytes.rcvd"]).."</span></td>")
