@@ -285,21 +285,48 @@ tag_utils.ip_location = {
 -- #####################################
 
 function tag_utils.get_tag_filters_from_request()
-   local filters = {}
+  local filters = {}
 
-   for key, value in pairs(tag_utils.defined_tags) do
-      if _GET[key] ~= nil then
-         filters[key] = _GET[key]
+  for key, value in pairs(tag_utils.defined_tags) do
+    if _GET[key] ~= nil then
+        filters[key] = _GET[key]
+    end
+  end
+
+  if not isEmptyString(filters['l7proto']) then
+    local l7proto = ""
+    -- Splitting per multiple l7protos
+    for _, v in pairs(split(filters['l7proto'], ",")) do 
+      local l7string = ""
+      -- Splitting per ; (e.g. 217.16;eq)
+      local tmp_proto = split(v, ";")
+      
+      if tmp_proto[1] then
+        -- Splitting per . , to get both master proto and app proto
+        local app_protos = split(tmp_proto[1], "%%.")
+
+        if not tonumber(app_protos[1]) then
+          app_protos[1] = interface.getnDPIProtoId(app_protos[1])
+        end
+
+        l7string = app_protos[1]
+
+        if app_protos[2] then
+          if not tonumber(app_protos[2]) then
+            app_protos[2] = interface.getnDPIProtoId(app_protos[2])
+          end
+          
+          l7string = l7string .. '.' .. app_protos[2]
+        end
       end
-   end
 
-   if not isEmptyString(filters['l7proto']) then
-      if not tonumber(l7proto) then
-         filters['l7proto'] = interface.getnDPIProtoId(filters['l7proto'])
-      end
-   end
+      l7proto = l7proto .. l7string .. ";" .. tmp_proto[2] .. ","
+    end
 
-   return filters
+    filters['l7proto'] = l7proto:sub(1, -2)
+  end
+
+  return filters
 end
 
 -- ##############################################
