@@ -4,16 +4,12 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
 local script_manager = require("script_manager")
 local am_utils = require "am_utils"
 
-local active_monitoring_pools = require("active_monitoring_pools")
-local am_pool = active_monitoring_pools:create()
-local assigned_members = am_pool:get_assigned_members()
 sendHTTPContentTypeHeader('application/json')
   
 local charts_available = script_manager.systemTimeseriesEnabled()
@@ -73,13 +69,6 @@ for key, am_host in pairs(am_hosts) do
 	column_jitter = string.format("%.1f / %.1f %s", last_update.mean, last_update.jitter, jitter_unit)
     end
 
-    local pool_id
-    if assigned_members[am_host.measurement .. "@" .. am_host.host] ~= nil then
-      pool_id = assigned_members[am_host.measurement .. "@" .. am_host.host].pool_id
-    else
-      pool_id = am_pool.DEFAULT_POOL_ID
-    end
-
     local html_label = am_utils.formatAmHost(am_host.host, am_host.measurement, true)
 
     if(column_ifname ~= "") then
@@ -106,7 +95,6 @@ for key, am_host in pairs(am_hosts) do
        hours = hourly_stats or {},
        unit = i18n(m_info.i18n_unit) or m_info.i18n_unit,
        jitter = column_jitter,
-       pool = pool_id,
        readonly = am_host.readonly
     }
 

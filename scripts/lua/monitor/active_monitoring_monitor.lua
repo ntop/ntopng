@@ -11,8 +11,6 @@ local ui_utils = require("ui_utils")
 local template = require("template_utils")
 local json = require("dkjson")
 local active_monitoring_utils = require "am_utils"
-local active_monitoring_pools = require("active_monitoring_pools")
-local am_pool = active_monitoring_pools:create()
 
 local graph_utils = require("graph_utils")
 local auth = require "auth"
@@ -89,15 +87,6 @@ page_utils.print_navbar(navbar_title, url, {
 -- #######################################################
 
 if (page == "overview") then
-
-    -- Create a filter list to use inside the overview page
-    -- to filter the datatable
-    local pool_filters = {}
-    for key, value in pairs(am_pool:get_all_pools()) do
-        pool_filters[#pool_filters + 1] =
-            {key = "pool-" .. key, label = value.name, regex = tostring(value.pool_id)}
-    end
-
     local measurements_info = {}
 
     -- This information is required in active_monitoring_utils.js in order to properly
@@ -122,10 +111,8 @@ if (page == "overview") then
         generate_select = generate_select,
         ui_utils = ui_utils,
         am_stats = {
-            pool_filters = pool_filters,
             measurements_info = measurements_info,
             get_host = (_GET["am_host"] or ""),
-            pools = am_pool,
             notes = {
                 i18n("active_monitoring_stats.note3", {product = info.product}),
                 i18n("active_monitoring_stats.note_alert"),

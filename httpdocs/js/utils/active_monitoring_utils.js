@@ -32,19 +32,6 @@ $(function() {
         }
     }
 
-    const addPoolFilter = (tableAPI) => {
-
-        const POOL_COLUMN_INDEX = 8;
-
-        return new DataTableFiltersMenu({
-            filterTitle: i18n_ext.pools,
-            tableAPI: tableAPI,
-            filters: poolsFilter,
-            filterMenuKey: 'pools',
-            columnIndex: POOL_COLUMN_INDEX
-        }).init();
-    }
-
     const addMeasurementFilter = (tableAPI) => {
 
         const MEASUREMENT_COLUMN_INDEX = 1;
@@ -246,12 +233,6 @@ $(function() {
             $(`#am-add-modal span.invalid-feedback`).hide();
             $('#am-add-modal').modal('show');
 
-            // set the edit pool link
-            const $editPoolLink = $('#am-add-form .edit-pool');
-            $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), 0));
-
-            $(`#am-add-form select[name='pool']`).trigger('change');
-
             dialogRefreshMeasurement($dialog, null, true /* use defaults */);
             dialogRefreshPeriodicity($dialog);
         },
@@ -259,7 +240,6 @@ $(function() {
             const host = $("#input-add-host").val(), measurement = $("#select-add-measurement").val();
             const granularity = $("#select-add-granularity").val();
             const threshold = $("#input-add-threshold").val();
-            const pool = $(`#select-add-pool`).val();
             const iface = $(`#am-add-form select[name='iface']`).val();
 
             $(`#add-invalid-feedback`).hide();
@@ -270,7 +250,6 @@ $(function() {
                 threshold: threshold,
                 measurement: measurement,
                 granularity: granularity,
-                pool: pool,
                 ifname: iface
             }
         },
@@ -318,12 +297,7 @@ $(function() {
             $('#select-edit-measurement').val(cur_measurement).change();
             $('#select-edit-granularity').val(amData.granularity || DEFAULT_GRANULARITY);
             $('#input-edit-host').val(amData.host || DEFAULT_HOST);
-            $(`#select-edit-pool`).val(amData.pool || DEFAULT_POOL);
 
-            // set the edit pool link
-            const $editPoolLink = $('#am-add-form .edit-pool');
-            $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), amData.pool || DEFAULT_POOL));
-            $(`#am-edit-form select[name='pool']`).trigger('change');
             if (SHOW_IFACE && ['icmp', 'cicmp'].includes(cur_measurement)) {
 		const value = (amData.ifname === '') ? $(`#am-edit-form .interface-group [name='iface'] option:first`).val() : amData.ifname;
                 $(`#am-edit-form .interface-group`).show();
@@ -341,7 +315,6 @@ $(function() {
             const measurement_key = $("#select-edit-measurement").val();
             const granularity = $("#select-edit-granularity").val();
             const threshold = $("#input-edit-threshold").val();
-            const pool = $(`#select-edit-pool`).val();
             const iface = $(`#am-edit-form select[name='iface']`).val();
             $(`#am-edit-modal .invalid-feedback`).hide();
 
@@ -356,8 +329,7 @@ $(function() {
                 old_measurement: amData.measurement_key,
                 granularity: granularity,
                 old_granularity: amData.granularity,
-                ifname: iface,
-                pool: pool
+                ifname: iface
             };
         },
         onSubmitSuccess: function (response, dataSent) {
@@ -543,11 +515,6 @@ $(function() {
                 sortable: false,
             },
             {
-                data: 'pool',
-                visible: false,
-                sortable: false
-            },
-            {
                 data: 'jitter',
                 className: 'dt-body-right dt-head-center no-wrap',
                 sortable: false,
@@ -639,29 +606,5 @@ $(function() {
 
         dialogRefreshMeasurement($("#am-add-modal"));
         dialogRefreshPeriodicity($("#am-add-modal"));
-    });
-
-    // on changing the associated pool updates the link to the edit pool
-    $(`select[name='pool']`).change(async function() {
-
-        const poolId = $(this).val();
-        const $editPoolLink = $(this).parents('.form-group').find('.edit-pool');
-        const $recipientsInfo = $(this).parents('.form-group').find('.recipients-info')
-
-        $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), poolId));
-
-        const [success, pool] = await NtopUtils.getPool('active_monitoring', poolId);
-        if (!success) return;
-
-        let recipients = pool.recipients;
-
-        if (recipients.length == 0) {
-            $recipientsInfo.html(i18n_ext.no_recipients);
-            return;
-        }
-
-        const recipientNames = NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_RECIPIENTS);
-        $recipientsInfo.html(i18n_ext.some_recipients.replace('${recipients}', recipientNames));
-
     });
 });

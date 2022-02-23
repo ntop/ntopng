@@ -106,15 +106,18 @@ end
 http_lint.validateEmptyOr = validateEmptyOr
 
 local function validateMeasurement(p)
+  --[[ FIXX include loop check (pragma_once_checks)
   local am_utils = require "am_utils"
 
-  if(am_utils) then
+  if am_utils then
     local available_measurements = am_utils.getMeasurementsInfo()
 
     return(available_measurements[p] ~= nil)
   end
 
   return(false)
+  --]]
+  return true
 end
 
 -- #################################################################

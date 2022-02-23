@@ -20,7 +20,6 @@
                         <th>{{i18n("system_stats.last_ip")}}</th>
                         <th>{{i18n("active_monitoring_stats.measurement")}}</th>
                         <th>{{i18n("active_monitoring_stats.alerted")}}</th>
-                        <th>{{i18n("active_monitoring_stats.pool")}}</th>
                         <th>{{i18n("active_monitoring_stats.jitter")}}</th>
                         <th>{{i18n("actions")}}</th>
 			<th>{{i18n("active_monitoring_stats.measurement")}}</th>
@@ -46,7 +45,6 @@
 
 {*
     template_utils.render("am_add_host_modal.html", {
-        pools = am_stats.pools,
         dialog = {
           add_record = i18n("active_monitoring_stats.add_record"),
           measurement = i18n("active_monitoring_stats.measurement"),
@@ -67,7 +65,6 @@
 
 {*
     template_utils.render("am_edit_host_modal.html", {
-        pools = am_stats.pools,
         dialog = {
           measurement = i18n("active_monitoring_stats.measurement"),
           edit_measurement_select = generate_select("select-edit-measurement", "measurement", true, false, {}, "measurement-select"),
@@ -104,7 +101,6 @@
 <link href="{{ ntop.getHttpPrefix()}}/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 <script type="text/javascript">
 
-    i18n_ext.pools = "{{ i18n("pools.pools")}}";
     i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'})}}";
     i18n_ext.search = "{{ i18n("search")}}:";
     i18n_ext.msec = "{{i18n("active_monitoring_stats.msec")}}";
@@ -127,7 +123,6 @@
     let am_csrf = "{{ ntop.getRandomCSRFValue()}}";
     let import_csrf = "{{ ntop.getRandomCSRFValue()}}";
     const measurements_info = {*json.encode(am_stats.measurements_info)*};
-    const poolsFilter = {* json.encode(am_stats.pool_filters)*};
     const SHOW_IFACE = {{ ntop.isPingIfaceAvailable() }};
 </script>
 <script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/utils/active_monitoring_utils.js?{{ ntop.getStaticFileEpoch() }}'></script>

@@ -6,7 +6,6 @@
 -- core. Users can provide their own modules to trigger custom alerts,
 -- export data, or perform periodic tasks.
 
-
 -- Hack to avoid include loops
 if(pragma_once_checks == true) then
    -- avoid multiple inclusions
