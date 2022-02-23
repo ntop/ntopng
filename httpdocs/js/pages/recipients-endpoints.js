@@ -391,6 +391,12 @@ $(function () {
                 $(`#edit-recipient-modal form .recipient-template-container`).empty().hide();
             }
 
+	    if (recipient.recipient_id == DEFAULT_RECIPIENT_ID) {
+	       $(`#edit-recipient-modal .hide-on-default-recipient`).hide(); 
+	    } else {
+	       $(`#edit-recipient-modal .hide-on-default-recipient`).show(); 
+	    }
+
             $(`#edit-recipient-name`).text(recipient.recipient_name);
             /* load the values inside the template */
             $(`#edit-recipient-modal form [name='recipient_id']`).val(recipient.recipient_id || DEFAULT_RECIPIENT_ID);
