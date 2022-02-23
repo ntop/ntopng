@@ -717,6 +717,9 @@ class DataTableRenders {
 
     static formatFlowTuple(flow, type, row) {
         let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
+        let vlan = ""
+
+        flow.vlan && flow.vlan.value != 0 ? vlan = "@" + DataTableRenders.filterize('vlan_id', flow.vlan.value, flow.vlan.label, flow.vlan.label, flow.vlan.title) : vlan = "" 
 
         let cliLabel = "";
         if (flow.cli_ip.name) {
@@ -763,7 +766,7 @@ class DataTableRenders {
                 srvIcons += DataTableRenders.filterize('role', 'victim',  '<i class="fas fa-sad-tear" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
         }
 
-        return `${active_ref} ${cliLabel}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
+        return `${active_ref} ${cliLabel}${vlan}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${vlan}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
     }
 
     static formatNameDescription(obj, type, row) {
