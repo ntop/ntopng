@@ -73,18 +73,6 @@
                             </select>
                         </div>
                     </div>
-                    <div class="mb-3 row">
-                        <label class="col-form-label col-sm-3" for="edit-recipient-host-pools-select">
-                            <b>{{ i18n("pools.interface_pools") }}</b>
-                        </label>
-                        <div class="col-sm-5">
-                            <select multiple name="recipient_interface_pools" class="selectpicker col-sm-12" id="edit-recipient-host-pools-select">
-                                {% for _, pool in pairsByKeys(pools.interface_pools) do %}
-                                    <option value="{{ pool.pool_id }}">{{ pool.name }}</option>
-                                {% end %}
-                            </select>
-                        </div>
-                    </div>
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">

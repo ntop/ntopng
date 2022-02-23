@@ -112,20 +112,19 @@ bool Recipients::enqueue(const AlertFifoItem* const notification, AlertEntity al
 /* *************************************** */
 
 void Recipients::register_recipient(u_int16_t recipient_id, AlertLevel minimum_severity, 
-                                    Bitmap128 enabled_categories, Bitmap128 enabled_host_pools, Bitmap128 enabled_interface_pools) {
+                                    Bitmap128 enabled_categories, Bitmap128 enabled_host_pools) {
   if(recipient_id >= MAX_NUM_RECIPIENTS)
     return;
 
   m.lock(__FILE__, __LINE__);
 
   if(!recipient_queues[recipient_id])
-    recipient_queues[recipient_id] = new (nothrow) RecipientQueues();
+    recipient_queues[recipient_id] = new (nothrow) RecipientQueues(recipient_id);
 
   if(recipient_queues[recipient_id]) {
     recipient_queues[recipient_id]->setMinimumSeverity(minimum_severity);
     recipient_queues[recipient_id]->setEnabledCategories(enabled_categories);
     recipient_queues[recipient_id]->setEnabledHostPools(enabled_host_pools);
-    recipient_queues[recipient_id]->setEnabledInterfacePools(enabled_interface_pools);
   }
 
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "registered [%u][%u][%u]", recipient_id, minimum_severity, enabled_categories);

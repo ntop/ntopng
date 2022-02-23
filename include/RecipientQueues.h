@@ -27,6 +27,8 @@
 
 class RecipientQueues {
  private:
+  u_int16_t recipient_id;
+
   AlertFifoQueue *queue;
 
   /* Counters for the number of drops occurred when enqueuing */
@@ -46,10 +48,9 @@ class RecipientQueues {
 
   /* MUST be large enough to contain MAX_NUM_HOST_POOLS */
   Bitmap128 enabled_host_pools;
-  Bitmap128 enabled_interface_pools;
 
  public:
-  RecipientQueues();
+  RecipientQueues(u_int16_t recipient_id);
   ~RecipientQueues();
 
   /**
@@ -85,8 +86,13 @@ class RecipientQueues {
   */
   inline void setEnabledCategories(Bitmap128 _enabled_categories) { enabled_categories = _enabled_categories; };
 
+  /**
+  * @brief Sets enabled host pools to use this recipient
+  * @param enabled_host_pools
+  *
+  * @return
+  */
   inline void setEnabledHostPools(Bitmap128 _enabled_pools)       { enabled_host_pools = _enabled_pools; };
-  inline void setEnabledInterfacePools(Bitmap128 _enabled_pools)  { enabled_interface_pools = _enabled_pools; };
   
   /**
    * @brief Returns queue status (drops and uses)

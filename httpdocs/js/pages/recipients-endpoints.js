@@ -23,8 +23,7 @@ $(function () {
             endpoint_id: $(`${formSelector} [name='endpoint']`).val(),
             recipient_minimum_severity: $(`${formSelector} [name='recipient_minimum_severity']`).val(),
             recipient_check_categories: $(`${formSelector} [name='recipient_check_categories']`).val().join(","),
-            recipient_host_pools: $(`${formSelector} [name='recipient_host_pools']`).val().join(","),
-            recipient_interface_pools: $(`${formSelector} [name='recipient_interface_pools']`).val().join(",")
+            recipient_host_pools: $(`${formSelector} [name='recipient_host_pools']`).val().join(",")
         };
 
         // load each recipient params inside the template container in params
@@ -407,9 +406,6 @@ $(function () {
             $(`#edit-recipient-modal form [name='recipient_host_pools']`).val(recipient.host_pools);
             $(`#edit-recipient-modal form [name='recipient_host_pools']`).selectpicker('refresh');
 
-            $(`#edit-recipient-modal form [name='recipient_interface_pools']`).val(recipient.interface_pools);
-            $(`#edit-recipient-modal form [name='recipient_interface_pools']`).selectpicker('refresh');
-
             $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {
                 $(this).val(recipient.recipient_params[$(this).attr('name')]);
             });
@@ -530,16 +526,6 @@ $(function () {
     });
 
     $(`[name='recipient_host_pools']`).on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
-
-        const lessThanOne = $(this).val().length < 1;
-
-        if (lessThanOne) {
-            $(this).val(previousValue);
-            $(this).selectpicker('refresh');
-        }
-    });
-
-    $(`[name='recipient_interface_pools']`).on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
 
         const lessThanOne = $(this).val().length < 1;
 

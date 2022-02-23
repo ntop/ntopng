@@ -23,7 +23,8 @@
 
 /* *************************************** */
 
-RecipientQueues::RecipientQueues() {
+RecipientQueues::RecipientQueues(u_int16_t _recipient_id) {
+  recipient_id = _recipient_id;
   queue = NULL, drops = 0, uses = 0;
   last_use = 0;
 
@@ -70,15 +71,15 @@ bool RecipientQueues::enqueue(const AlertFifoItem* const notification, AlertEnti
      )
     return true; /* Nothing to enqueue */
 
-  /* TODO check enabled_interface_pools */
-
-  if (alert_entity == alert_entity_flow) {
-    if (!enabled_host_pools.isSetBit(notification->pools.flow.cli_host_pool) &&
-        !enabled_host_pools.isSetBit(notification->pools.flow.srv_host_pool))
-      return true;
-  } else if (alert_entity == alert_entity_host) {
-    if (!enabled_host_pools.isSetBit(notification->pools.host.host_pool))
-      return true;
+  if (recipient_id != 0 /* Do not filter hosts on the default recipient (SQLite/ClickHouse) */) {
+    if (alert_entity == alert_entity_flow) {
+      if (!enabled_host_pools.isSetBit(notification->pools.flow.cli_host_pool) &&
+          !enabled_host_pools.isSetBit(notification->pools.flow.srv_host_pool))
+        return true;
+    } else if (alert_entity == alert_entity_host) {
+      if (!enabled_host_pools.isSetBit(notification->pools.host.host_pool))
+        return true;
+    }
   }
 
   if ((!queue &&
