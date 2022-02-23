@@ -27,9 +27,11 @@
 
 static void* esLoop(void* ptr) {
   Utils::setThreadName("ESLoop");
+  
   ElasticSearch *es = (ElasticSearch *) ptr;
   es->pushEStemplate();  // sends ES ntopng template
   es->indexESdata();
+  
   return(NULL);
 }
 
@@ -55,8 +57,21 @@ ElasticSearch::ElasticSearch(NetworkInterface *_iface) : DB(_iface) {
 /* **************************************** */
 
 ElasticSearch::~ElasticSearch() {
+  shutdown();
   if(es_template_push_url) free(es_template_push_url);
   if(es_version_query_url) free(es_version_query_url);
+}
+
+/* **************************************** */
+
+void ElasticSearch::shutdown() {
+  if(running) {
+    void *res;
+
+    DB::shutdown();
+    
+    pthread_join(esThreadLoop, &res);
+  }
 }
 
 /* **************************************** */
@@ -108,9 +123,14 @@ bool ElasticSearch::dumpFlow(time_t when, Flow *f, char *msg) {
 
 /* **************************************** */
 
-void ElasticSearch::startLoop() {
-  if(ntop->getPrefs()->do_dump_flows_on_es())
+bool ElasticSearch::startQueryLoop() {
+  if(ntop->getPrefs()->do_dump_flows_on_es()) {
     pthread_create(&esThreadLoop, NULL, esLoop, (void*)this);
+
+    return(true);
+  }
+
+  return(false);
 }
 
 

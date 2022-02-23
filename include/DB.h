@@ -54,11 +54,11 @@ class DB {
 
   /* Pure Virtual Functions of a DB flow exporter */
   virtual bool dumpFlow(time_t when, Flow *f, char *json) = 0;
-  virtual void startLoop() = 0;
+  virtual bool startQueryLoop() { return(false); }
 
   virtual int exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created) { return(-1); }
   
-  inline void startDBLoop()                                 { running = true; startLoop(); };
+  inline void startDBLoop()                                 { if(startQueryLoop()) running = true; };
   inline int isRunning()                                    { return(running); };
   virtual bool isDbCreated()                                { return(true); };
   virtual void shutdown();

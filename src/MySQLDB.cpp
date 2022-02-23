@@ -482,7 +482,7 @@ void MySQLDB::open_log() {
 
 /* ******************************************* */
 
-void MySQLDB::startLoop() {
+bool MySQLDB::startQueryLoop() {
   /*
     If mysql flows dump is enabled, then it is necessary to create
     and update the database schema. This must be executed only once.
@@ -498,6 +498,8 @@ void MySQLDB::startLoop() {
   }
 
   pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
+
+  return(true);
 }
 
 /* ******************************************* */
@@ -507,6 +509,7 @@ void MySQLDB::shutdown() {
     void *res;
 
     DB::shutdown();
+    
     pthread_join(queryThreadLoop, &res);
   }
 }

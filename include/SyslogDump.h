@@ -30,7 +30,6 @@ class SyslogDump : public DB {
   virtual ~SyslogDump();
 
   virtual bool dumpFlow(time_t when, Flow *f, char *json);
-  virtual void startLoop() { ; }
 };
 
 

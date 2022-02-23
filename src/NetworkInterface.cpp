@@ -3025,8 +3025,14 @@ void NetworkInterface::flowAlertsDequeueLoop() {
 			       get_description(), get_id());
 
   /* Wait until it starts up */
-  while(!isRunning()) _usleep(10000);
-
+  while(!isRunning()) {
+    /* Control-C during startup */
+    if(ntop->getGlobals()->isShutdownRequested())
+      return;
+    
+    _usleep(10000);
+  }
+  
   /* Now operational */
   while(isRunning()) {
     /*
@@ -3056,8 +3062,14 @@ void NetworkInterface::hostAlertsDequeueLoop() {
 			       get_description(), get_id());
 
   /* Wait until it starts up */
-  while(!isRunning()) _usleep(10000);
-
+  while(!isRunning()) {
+    /* Control-C during startup */
+    if(ntop->getGlobals()->isShutdownRequested())
+      return;
+    
+    _usleep(10000);
+  }
+  
   /* Now operational */
   while(isRunning()) {
     /*
@@ -3087,7 +3099,13 @@ void NetworkInterface::dumpFlowLoop() {
 			       get_description(), get_id());
 
   /* Wait until it starts up */
-  while(!isRunning()) _usleep(10000);
+  while(!isRunning()) {
+    /* Control-C during startup */
+    if(ntop->getGlobals()->isShutdownRequested())
+      return;
+    
+    _usleep(10000);
+  }
 
   /* Now operational */
   while(isRunning()) {

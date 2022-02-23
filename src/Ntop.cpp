@@ -2832,7 +2832,7 @@ void Ntop::shutdownAll() {
   /* Perform shutdown operations on all active interfaces */
   ntop->shutdownInterfaces();
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing shutdown script");
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing shutdown script [%s]", SHUTDOWN_SCRIPT_PATH);
 
   /* Exec shutdown script before shutting down ntopng */
   if((shutdown_activity = new (std::nothrow) ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {

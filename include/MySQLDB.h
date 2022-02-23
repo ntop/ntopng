@@ -62,7 +62,7 @@ class MySQLDB : public DB {
   char *escapeAphostrophes(const char *unescaped);
   int flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len);
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created);
-  virtual void startLoop();
+  virtual bool startQueryLoop();
   void shutdown();
   int exec_single_query(lua_State *vm, char *sql);
   int select_database(char *dbname);

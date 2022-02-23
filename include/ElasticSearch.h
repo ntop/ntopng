@@ -31,26 +31,28 @@ class ElasticSearch : public DB {
   struct string_list *head, *tail;
   Mutex listMutex;
   bool reportDrops;
-
   char *es_template_push_url, *es_version_query_url;
   char es_version[2];
   bool es_version_inited;
+
   const char * get_es_version();
   const char * get_es_template();
-
+  void shutdown();
+  
  public:
   ElasticSearch(NetworkInterface *_iface);
   ~ElasticSearch();
 
   inline bool atleast_version_6() {
     const char * ver = get_es_version();
+    
     return ver && strcmp(ver, "6") >= 0;
   };
   void pushEStemplate();
   void indexESdata();
 
   virtual bool dumpFlow(time_t when, Flow *f, char *json);
-  virtual void startLoop();
+  virtual bool startQueryLoop();
 };
 
 
