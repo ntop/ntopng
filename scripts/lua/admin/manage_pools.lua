@@ -98,7 +98,6 @@ local menu = {
       { key = "active_monitoring", title = i18n(alert_entities.am_host.i18n_label), url = "?page=active_monitoring", hidden = false },
 
    -- Default Only Pools
-      { key = "flow", title = i18n(alert_entities.flow.i18n_label), url = "?page=flow", hidden = false},
       { key = "mac", title = i18n(alert_entities.mac.i18n_label), url = "?page=mac", hidden = false},
 
       -- All Pool
