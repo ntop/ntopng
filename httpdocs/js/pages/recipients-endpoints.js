@@ -278,7 +278,7 @@ $(function () {
                     const isBuiltin = (recipient.endpoint_conf && recipient.endpoint_conf.builtin) || false;
 
                     return DataTableUtils.createActionButtons([
-                        { class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa fa-users', modal: '#users-recipient-modal', title: `${i18n_ext.recipient}` },
+                        //{ class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa fa-users', modal: '#users-recipient-modal', title: `${i18n_ext.recipient}` },
                         { class: 'btn-info' /* Builtins are editable to change theis severity */, icon: 'fa-edit', modal: '#edit-recipient-modal', title: `${i18n_ext.edit}` },
                         { class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-recipient-modal', title: `${i18n_ext.delete}` },
                     ]);
@@ -379,7 +379,6 @@ $(function () {
             return data;
         },
         onModalInit: function (recipient) {
-
             $(`#edit-recipient-modal .test-feedback`).hide();
 
             // if there are no recipients params it means there are no inputs except the recipient's name
@@ -405,10 +404,10 @@ $(function () {
             $(`#edit-recipient-modal form [name='recipient_check_categories']`).val(recipient.check_categories);
             $(`#edit-recipient-modal form [name='recipient_check_categories']`).selectpicker('refresh');
 
-            $(`#edit-recipient-modal form [name='recipient_host_pools']`).val(recipient.interface_pools);
+            $(`#edit-recipient-modal form [name='recipient_host_pools']`).val(recipient.host_pools);
             $(`#edit-recipient-modal form [name='recipient_host_pools']`).selectpicker('refresh');
 
-            $(`#edit-recipient-modal form [name='recipient_interface_pools']`).val(recipient.host_pools);
+            $(`#edit-recipient-modal form [name='recipient_interface_pools']`).val(recipient.interface_pools);
             $(`#edit-recipient-modal form [name='recipient_interface_pools']`).selectpicker('refresh');
 
             $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {

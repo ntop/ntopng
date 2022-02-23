@@ -32,18 +32,6 @@ local default_builtin_minimum_severity = alert_severities.notice.severity_id -- 
 
 -- ##############################################
 
-local function _bitmap_from_array(check_categories)
-   local bitmap = 0
-
-   for _, category_id in ipairs(check_categories) do
-      bitmap = bitmap | (1 << category_id)
-   end
-
-   return bitmap
-end
-
--- ##############################################
-
 -- @brief Performs Initialization operations performed during startup
 function recipients.initialize()
    local checks = require "checks"
@@ -111,9 +99,9 @@ function recipients.initialize()
    -- existing recipients properly loaded and ready for notification enqueues/dequeues
    for _, recipient in pairs(recipients.get_all_recipients()) do
       ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, 
-         _bitmap_from_array(recipient.check_categories),
-         _bitmap_from_array(recipient.host_pools),
-         _bitmap_from_array(recipient.interface_pools)
+         table.concat(recipient.check_categories, ','),
+         table.concat(recipient.host_pools, ','),
+         table.concat(recipient.interface_pools, ',')
       )
    end
 end
@@ -334,9 +322,9 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
 
 	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
 	       ntop.recipient_register(recipient_id, minimum_severity, 
-                  _bitmap_from_array(check_categories),
-                  _bitmap_from_array(host_pools_ids),
-                  _bitmap_from_array(interface_pools_ids)
+                  table.concat(check_categories, ','),
+                  table.concat(host_pools_ids, ','),
+                  table.concat(interface_pools_ids, ',')
                )
 
 	       -- Set a flag to indicate that a recipient has been created
@@ -413,9 +401,9 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
 	       -- Finally, register the recipient in C to make sure also the C knows about this edit
 	       -- and periodic scripts can be reloaded
 	       ntop.recipient_register(tonumber(recipient_id), minimum_severity, 
-                  _bitmap_from_array(check_categories),
-                  _bitmap_from_array(host_pools_ids),
-                  _bitmap_from_array(interface_pools_ids)
+                  table.concat(check_categories, ','),
+                  table.concat(host_pools_ids, ','),
+                  table.concat(interface_pools_ids, ',')
                )
 
 	       res = {status = "OK"}

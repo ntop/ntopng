@@ -108,7 +108,8 @@ $(function () {
                 render: (recipients, type) => {
                     if (type == "display") {
                         if (recipients.length == 0) {
-                            return `${i18n_ext.no_recipients}`;
+                            const destPage = NtopUtils.buildURL('/lua/admin/recipients_list.lua', {});
+                            return `<a href='${destPage}'>${i18n_ext.no_recipients}</a>`;
                         } else {
                             return NtopUtils.arrayToListString(recipients.map(recipient => {
 

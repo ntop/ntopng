@@ -74,7 +74,7 @@ bool Recipients::enqueue(u_int16_t recipient_id, const AlertFifoItem* const noti
      Perform the actual enqueue
    */
   if(recipient_queues[recipient_id])
-    res = recipient_queues[recipient_id]->enqueue(notification);
+    res = recipient_queues[recipient_id]->enqueue(notification, alert_entity_other /* TODO */);
 
   m.unlock(__FILE__, __LINE__);
 
@@ -95,28 +95,12 @@ bool Recipients::enqueue(const AlertFifoItem* const notification, AlertEntity al
      Perform the actual enqueue to all available recipients
    */
   for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
-
-    /* Enqueue to builtin recipient only at the moment 
-     * (TODO implement filtering based on the pool ID) */
-    if(recipient_id == 0) {
-
     if(recipient_queues[recipient_id]) {
       bool success;
 
-      /* TODO check matching pool IDs if any
-      if (alert_entity == alert_entity_flow) {
-        notification->pools.flow.cli_host_pool
-        notification->pools.flow.srv_host_pool
-      } else if (alert_entity == alert_entity_host) {
-        notification->pools.host.host_pool
-      }
-      */
-
-      success = recipient_queues[recipient_id]->enqueue(notification);
+      success = recipient_queues[recipient_id]->enqueue(notification, alert_entity);
       
       res &= success;
-    }
-
     }
   }
 
@@ -127,8 +111,8 @@ bool Recipients::enqueue(const AlertFifoItem* const notification, AlertEntity al
 
 /* *************************************** */
 
-void Recipients::register_recipient(u_int16_t recipient_id, AlertLevel minimum_severity, u_int8_t enabled_categories,
-                                    u_int64_t enabled_host_pools, u_int64_t enabled_interface_pools) {  
+void Recipients::register_recipient(u_int16_t recipient_id, AlertLevel minimum_severity, 
+                                    Bitmap128 enabled_categories, Bitmap128 enabled_host_pools, Bitmap128 enabled_interface_pools) {
   if(recipient_id >= MAX_NUM_RECIPIENTS)
     return;
 

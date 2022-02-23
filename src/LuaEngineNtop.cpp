@@ -5886,8 +5886,8 @@ static int ntop_recipient_delete(lua_State* vm) {
 static int ntop_recipient_register(lua_State* vm) {
   u_int16_t recipient_id;
   AlertLevel minimum_severity = alert_level_none;
-  u_int8_t enabled_categories = 0xFF; /* MUST be large enough to contain MAX_NUM_SCRIPT_CATEGORIES */
-  u_int64_t enabled_host_pools = 0, enabled_interface_pools = 0;
+  char *str_categories, *str_host_pools, *str_interface_pools;
+  Bitmap128 enabled_categories, enabled_host_pools, enabled_interface_pools;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   recipient_id = lua_tointeger(vm, 1);
@@ -5895,14 +5895,25 @@ static int ntop_recipient_register(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   minimum_severity = (AlertLevel)lua_tointeger(vm, 2);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  enabled_categories = lua_tointeger(vm, 3);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  if((str_categories = (char*)lua_tostring(vm, 3)) == NULL)  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  enabled_categories.setBits(str_categories);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  enabled_host_pools = lua_tonumber(vm, 4);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  if((str_host_pools = (char*)lua_tostring(vm, 4)) == NULL)  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  enabled_host_pools.setBits(str_host_pools);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  enabled_interface_pools = lua_tonumber(vm, 5);
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  if((str_interface_pools = (char*)lua_tostring(vm, 5)) == NULL)  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  enabled_interface_pools.setBits(str_interface_pools);
+
+  /*
+  char bitmap_buf[64];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Recipient ID = %u", recipient_id);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Categories bitmap: %s", enabled_categories.toHexString(bitmap_buf, sizeof(bitmap_buf)));
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hosts bitmap: %s", enabled_host_pools.toHexString(bitmap_buf, sizeof(bitmap_buf)));
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interfaces bitmap: %s", enabled_interface_pools.toHexString(bitmap_buf, sizeof(bitmap_buf)));
+  */
 
   ntop->recipient_register(recipient_id, minimum_severity, enabled_categories, enabled_host_pools, enabled_interface_pools);
 

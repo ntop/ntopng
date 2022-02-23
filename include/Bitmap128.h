@@ -30,10 +30,12 @@ private:
 
 public:
   Bitmap128() { reset(); }
+  Bitmap128(char *list) { reset(); setBits(list); };
 
   static inline u_int numBits() { return sizeof(bitmap) * 8; };
   void reset();
   void setBit(u_int8_t id);
+  void setBits(char *list); /* Parse a comma-separate list of bit positions */
   void clearBit(u_int8_t id);
   bool isSetBit(u_int8_t id) const;
   void bitmapOr(const Bitmap128 b);

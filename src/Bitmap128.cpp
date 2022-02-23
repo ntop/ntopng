@@ -21,11 +21,24 @@
 
 #include "ntop_includes.h"
 
-
 /* ****************************************** */
 
 void Bitmap128::reset() {
   memset(bitmap, 0, sizeof(bitmap));
+}
+
+/* ****************************************** */
+
+void Bitmap128::setBits(char *list) {
+  char *item, *tmp = NULL;
+
+  item = strtok_r(list, ",", &tmp);
+
+  while (item) {
+    int id = atoi(item);
+    setBit(id);
+    item = strtok_r(NULL, ",", &tmp);
+  }
 }
 
 /* ****************************************** */

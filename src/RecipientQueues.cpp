@@ -31,7 +31,8 @@ RecipientQueues::RecipientQueues() {
   minimum_severity = alert_level_none;
 
   /* All categories enabled by default */
-  enabled_categories = 0xFF;
+  for (int i=0; i < MAX_NUM_SCRIPT_CATEGORIES; i++)
+    enabled_categories.setBit(i);
 }
 
 /* *************************************** */
@@ -59,15 +60,26 @@ bool RecipientQueues::dequeue(AlertFifoItem *notification) {
 
 /* *************************************** */
 
-bool RecipientQueues::enqueue(const AlertFifoItem* const notification) {
+bool RecipientQueues::enqueue(const AlertFifoItem* const notification, AlertEntity alert_entity) {
   bool res = false;
 
   if(!notification
      || !notification->alert
      || notification->alert_severity < minimum_severity              /* Severity too low for this recipient     */
-     || !(enabled_categories & (1 << notification->alert_category))  /* Category not enabled for this recipient */
+     || !(enabled_categories.isSetBit(notification->alert_category))  /* Category not enabled for this recipient */
      )
     return true; /* Nothing to enqueue */
+
+  /* TODO check enabled_interface_pools */
+
+  if (alert_entity == alert_entity_flow) {
+    if (!enabled_host_pools.isSetBit(notification->pools.flow.cli_host_pool) &&
+        !enabled_host_pools.isSetBit(notification->pools.flow.srv_host_pool))
+      return true;
+  } else if (alert_entity == alert_entity_host) {
+    if (!enabled_host_pools.isSetBit(notification->pools.host.host_pool))
+      return true;
+  }
 
   if ((!queue &&
        !(queue = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
