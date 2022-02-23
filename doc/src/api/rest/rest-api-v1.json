@@ -2681,31 +2681,6 @@
 				}
 			}
 		},
-		"/lua/rest/v1/get/host_pool/pools.lua": {
-			"get": {
-				"tags": [
-					"Pools"
-				],
-				"summary": "Get one or all host pool pools",
-				"description": "Get one or all host pool pools",
-				"operationId": "get_host_pool_pools",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [{
-						"pool": "int32"
-					}
-				],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-16": {
-						"description": "POOL_NOT_FOUND"
-					}
-				}
-			}
-		},
 		"/lua/rest/v1/get/system/pools.lua": {
 			"get": {
 				"tags": [

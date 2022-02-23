@@ -36,11 +36,12 @@ local alert_entities = {
       i18n_label = "alert_entities.mac",
       pools = "mac_pools", -- modules/pools/mac_pools.lua
       alert_store_name = "mac",
-   }, host_pool = {
-      entity_id = 6,
-      i18n_label = "alert_entities.host_pool",
-      pools = "host_pool_pools", -- modules/pools/host_pool_pools.lua
-      alert_store_name = "system",
+   -- Deprecated:
+   --}, host_pool = {
+   --   entity_id = 6,
+   --   i18n_label = "alert_entities.host_pool",
+   --   pools = "host_pool_pools", -- modules/pools/host_pool_pools.lua
+   --   alert_store_name = "system",
    }, user = {
       entity_id = 7,
       i18n_label = "alert_entities.user",

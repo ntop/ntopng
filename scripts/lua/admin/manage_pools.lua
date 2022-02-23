@@ -19,7 +19,6 @@ local flow_pools              = require "flow_pools"
 local system_pools            = require "system_pools"
 local device_pools            = require "mac_pools"
 local interface_pools         = require "interface_pools"
-local host_pool_pools         = require "host_pool_pools"
 local local_network_pools     = require "local_network_pools"
 local active_monitoring_pools = require "active_monitoring_pools"
 
@@ -78,7 +77,6 @@ local pool_types = {
    ["host"] = host_pools,
 
    -- Default Only Pools
-   ["host_pool"] = host_pool_pools,
    ["flow"] = flow_pools,
    ["system"] = system_pools,
    ["mac"] = device_pools
@@ -104,7 +102,6 @@ local menu = {
       { key = "active_monitoring", title = i18n(alert_entities.am_host.i18n_label), url = "?page=active_monitoring", hidden = false },
 
    -- Default Only Pools
-      { key = "host_pool", title = i18n(alert_entities.host_pool.i18n_label), url = "?page=host_pool", hidden = false},
       { key = "flow", title = i18n(alert_entities.flow.i18n_label), url = "?page=flow", hidden = false},
       { key = "mac", title = i18n(alert_entities.mac.i18n_label), url = "?page=mac", hidden = false},
       { key = "system", title = i18n(alert_entities.system.i18n_label), url = "?page=system", hidden = false},
