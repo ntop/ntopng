@@ -15,7 +15,6 @@ local template_utils = require "template_utils"
 local alert_entities = require "alert_entities"
 
 local host_pools              = require "host_pools"
-local device_pools            = require "mac_pools"
 local interface_pools         = require "interface_pools"
 local local_network_pools     = require "local_network_pools"
 local active_monitoring_pools = require "active_monitoring_pools"
@@ -66,16 +65,11 @@ page_utils.print_navbar(i18n("pools.pools"), url, {
 local ALL_POOL_GET_ENDPOINT = '/lua/rest/v2/get/pools.lua'
 
 local pool_types = {
-
-   -- Normal Pools
    ["interface"] = interface_pools,
    ["local_network"] = local_network_pools,
    ["active_monitoring"] = active_monitoring_pools,
    ["snmp_device"] = snmp_device_pools,
    ["host"] = host_pools,
-
-   -- Default Only Pools
-   ["mac"] = device_pools
 }
 
 local pool_instance = (page ~= 'all' and pool_types[page]:create() or {})
@@ -89,16 +83,12 @@ end
 
 local menu = {
    entries = {
-
-      -- Normal Pools
+      -- Pools
       { key = "host", title = i18n(alert_entities.host.i18n_label), url = "?page=host", hidden = false},
       { key = "interface", title = i18n(alert_entities.interface.i18n_label), url = "?page=interface", hidden = false},
       { key = "local_network", title = i18n(alert_entities.network.i18n_label), url = "?page=local_network", hidden = false},
       { key = "snmp_device", title = i18n(alert_entities.snmp_device.i18n_label), url = "?page=snmp_device", hidden = not ntop.isPro() or is_nedge},
       { key = "active_monitoring", title = i18n(alert_entities.am_host.i18n_label), url = "?page=active_monitoring", hidden = false },
-
-   -- Default Only Pools
-      { key = "mac", title = i18n(alert_entities.mac.i18n_label), url = "?page=mac", hidden = false},
 
       -- All Pool
       { key = "all", title = i18n("pools.pool_names.all"), url = "?page=all", hidden = false},
