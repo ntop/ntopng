@@ -12,7 +12,6 @@ local rest_utils = require "rest_utils"
 local checks = require "checks"
 
 local host_pools              = require "host_pools":create()
-local flow_pools              = require "flow_pools":create()
 local mac_pools               = require "mac_pools":create()
 local interface_pools         = require "interface_pools":create()
 local local_network_pools     = require "local_network_pools":create()
@@ -21,7 +20,6 @@ local snmp_device_pools       = require "snmp_device_pools":create()
 
 local pool_instances = {
   ["host"] = host_pools,
-  ["flow"] = flow_pools,
   ["mac"] = mac_pools,
   ["interface"] = interface_pools,
   ["local_network"] = local_network_pools,

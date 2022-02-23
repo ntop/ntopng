@@ -15,7 +15,6 @@ local template_utils = require "template_utils"
 local alert_entities = require "alert_entities"
 
 local host_pools              = require "host_pools"
-local flow_pools              = require "flow_pools"
 local device_pools            = require "mac_pools"
 local interface_pools         = require "interface_pools"
 local local_network_pools     = require "local_network_pools"
@@ -76,7 +75,6 @@ local pool_types = {
    ["host"] = host_pools,
 
    -- Default Only Pools
-   ["flow"] = flow_pools,
    ["mac"] = device_pools
 }
 
