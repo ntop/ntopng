@@ -1,0 +1,219 @@
+<!-- (C) 2022 - ntop.org     -->
+<template>
+<modal :title_text="i18n('alerts_dashboard.add_filter')" :apply_text="i18n('apply')" :id="id_modal"  @apply="apply()" @showed="showed()" ref="modal_id">
+  <!-- <div class="form-group row"> -->
+    <!--   <select ref="select2" name="state" class="select2"> -->
+      <!--     <option value="AL">Alabama</option> -->
+      <!--     <option value="WY">Wyoming</option> -->
+      <!--     <option value="t">asd</option> -->
+      <!--     <option value="u">pp</option> -->
+      <!--     <option value="p">ww</option> -->
+      <!--   </select> -->
+    <!-- </div> -->
+  <form autocomplete="off">
+    <div class="form-group row">
+      <label class="col-form-label col-sm-3" for="dt-filter-type-select">
+	<b>Filter</b>
+      </label>
+      <div class="col-sm-5">
+	<input type="hidden" name="index" />
+	<select @change="change_filter()" v-model="filter_type_selected" required name="filter_type" class="form-select">
+          <option v-for="item in filters_options" :value="item.id">
+	    {{item.label}}
+          </option>	  
+	</select>
+      </div>
+    </div>
+    <hr>
+    <div class="dt-filter-template-container">
+      <div class="form-group row">
+	<div class="col-sm-3">
+	  <label class="col-form-label"><b>{{filter_type_label_selected}}</b></label>
+	</div>
+	<div class="col-sm-5">
+	  <div class="input-group mb-3">
+	    <div  class="input-group-prepend">
+	      <select v-model="operator_selected" class="form-select">
+		<option v-for="item in operators_to_show" :value="item.id">
+		  {{item.label}}
+		</option>	  
+	      </select>
+	    </div>
+	    <div style="max-width:1rem;background:black;" v-show="options_to_show">
+              <select style="width: 18rem" ref="select2" required v-model="option_selected" name="filter_type" class="form-select select2">
+		<option v-for="item in options_to_show" :value="item.value">
+		  {{item.label}}
+		</option>	  
+              </select>
+	    </div>
+	    <!-- <div v-show="!options_to_show" class="input-group"> -->
+	      <input v-show="!options_to_show" v-model="input_value" :pattern="data_pattern_selected" required name="value" type="text" class="form-control">
+	      <!-- <span class="invalid-feedback">Invalid value</span> -->
+	      <span v-show="!options_to_show" style="margin: 0px;padding:0;" class="alert invalid-feedback ">{{i18n('invalid_value')}}</span>
+	    <!-- </div> -->
+	  </div>
+	  <!-- end div input-group mb-3 -->
+	</div>
+      </div>
+      <!-- end div form-group-row -->
+    </div>
+  </form>
+</modal>
+</template>
+
+<script type="text/javascript">
+export default {
+    components: {
+	'modal': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/modal.vue`, ntopng_vue_loader.loadOptions) ),
+    },
+    watch: {
+	"filters_options": function(val, oldVal) {
+	    // if (val == null || val.length == 0) { return; } 
+	    // this.filter_type_selected = val[0].id;
+	    // this.change_filter();
+	}
+    },
+    props: {
+	id: String,
+	apply_text: String,
+	filters_options: Array,
+    },
+    updated() {
+    },
+    data() {
+	return {
+	    i18n: (t) => i18n(t),
+	    id_modal: `modal_${this._uid}`,
+	    filter_type_selected: null,
+	    filter_type_label_selected: null,
+	    operator_selected: null,
+	    option_selected: null,
+	    input_value: null,
+	    data_pattern_selected: null,
+	    
+	    options_to_show: null,
+	    operators_to_show: [],
+	};
+    },
+    emits: ["apply"],
+    created() {
+    },
+    /** This method is the first method called after html template creation. */
+    async mounted() {
+	let me = this;
+	//$("#select2Input").select2({ dropdownParent: "#modal-container" };
+	await ntopng_sync.on_ready(this.id_modal);
+	ntopng_events_manager.on_custom_event(this.$props["id"], ntopng_custom_events.SHOW_MODAL_FILTERS, (filter) => this.show(filter));	
+	// notifies that component is ready
+	ntopng_sync.ready(this.$props["id"]);
+    },
+    methods: {
+	show: function(filter) {
+	    if (filter != null) {
+		this.filter_type_selected = filter.id;
+		let post_change = (filter_def) => {
+		    if (this.option_selected != null) {
+			this.option_selected = filter.value;
+		    } else {
+			this.input_value = filter.value;
+		    }
+		    this.operator_selected = filter.operator;
+		};
+		this.change_filter(post_change);		
+	    }
+	    else {
+		this.filter_type_selected = this.$props.filters_options[0].id;
+		this.change_filter();
+	    }
+	    this.$refs["modal_id"].show();
+	},
+	change_filter: function(post_change) {
+	    this.options_to_show = null;
+	    this.option_selected = null;
+	    // use setTimeout to fix select2 bugs on first element selected
+	    setTimeout(() => {
+		let filters_options = this.$props.filters_options;
+		let filter = filters_options.find((fo) => fo.id == this.filter_type_selected);
+		if (filter == null) { return; }
+		this.input_value = null;
+		
+		this.filter_type_label_selected = filter.label;
+		
+		this.options_to_show = filter.options;
+		this.operators_to_show = filter.operators;
+
+		if (filter.operators != null && filter.operators.length > 0) {
+		    let operator = filter.operators[0].id;
+		    this.operator_selected = filter.operators[0].id;
+		}
+		else {
+		    this.operator_selected = null;
+		}
+		if (filter.options != null && filter.options.length > 0) {
+		    this.option_selected = filter.options[0].value;
+		}
+		else {
+		    this.option_selected = null;
+		    this.data_pattern_selected = this.get_data_pattern(filter.value_type);
+		}
+		if (post_change != null) { post_change(filter); }
+	    }, 0);
+	},
+	get_data_pattern: function(value_type) {
+	    if (value_type == "ip") {
+		return `${REGEXES.ipv4}|${REGEXES.ipv6}`;
+	    } else if (value_type == "hostname") {
+		return `${REGEXES.singleword}`;
+	    }
+	    return REGEXES[value_type];
+	},
+	showed: function() {
+	    let me = this;
+	    // setTimeout(() => {
+	    let select2Div = me.$refs["select2"];
+	    if (!$(select2Div).hasClass("select2-hidden-accessible")) {
+		$(select2Div).select2({
+		    width: 'resolve',
+	            dropdownParent: $(select2Div).parent(),
+		});
+		$(select2Div).on('select2:select', function (e) {
+		    let data = e.params.data;
+		    me.option_selected = data.id
+		});
+	    }
+	},
+	apply: function() {
+	    let value = this.input_value;
+	    let value_label = this.input_value;
+	    if (value == null) {
+		let filter = this.filters_options.find((fo) => fo.id == this.filter_type_selected);
+		let option = filter.options.find((o) => o.value == this.option_selected);
+		value = option.value;
+		value_label = option.value_label;
+	    }
+	    let params = {
+		id: this.filter_type_selected,
+		label: this.filter_type_label_selected,
+		operator: this.operator_selected,
+		value: value,
+		value_label: value_label,
+	    };
+	    //this.$refs["modal_id"].apply();	    
+	    this.$emit("apply", params);
+	    ntopng_events_manager.emit_custom_event(ntopng_custom_events.MODAL_FILTERS_APPLY, params);
+	},
+	close: function() {
+	    this.$refs["modal_id"].close();
+	},
+    },
+}
+</script>
+
+<style scoped>
+input ~ .alert {
+  display: none;
+}
+input:invalid ~ .alert {
+  display: block;
+}
+</style>

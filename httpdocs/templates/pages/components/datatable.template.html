@@ -8,22 +8,39 @@
 <script type='text/javascript' src='{* ntop.getHttpPrefix() *}/js/apexchart/apexcharts.min.js?{{ ntop.getStaticFileEpoch() }}'></script>
 <script type='text/javascript' src='{* ntop.getHttpPrefix() *}/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
 
-<!-- <script src="https://unpkg.com/vue@next"></script> -->
-<!-- <script src="https://unpkg.com/vue3-sfc-loader/dist/vue3-sfc-loader.js"></script> -->
+<!-- vue3 -->
 <script src="{* ntop.getHttpPrefix() *}/vue/vue-dev.js"></script>
 <script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js"></script>
 <script src="{* ntop.getHttpPrefix() *}/vue/ntopng_vue_loader.js"></script>
+
+<!-- ntopng_sync, ntopng_status_manager, ntopng_events_manager, ntopng_url_manager, ntopng_utility -->
 <script src="{* ntop.getHttpPrefix() *}/js/utils/ntopng_globals_services.js"></script>
+
+<!-- flatpickr -->
 <script src="{* ntop.getHttpPrefix() *}/js/flatpickr.js"></script>
 <link rel="stylesheet" href="{* ntop.getHttpPrefix() *}/css/flatpickr.min.css">
+
+<!-- select2 -->
+<script src="{* ntop.getHttpPrefix() *}/js/select2.min.js"></script>
+<link href="{* ntop.getHttpPrefix() *}/css/select2.min.css" rel="stylesheet" />
+
+<!-- tagify -->
+<link rel="stylesheet" href="{* ntop.getHttpPrefix *}/css/tagify.css" />
+<script type="text/javascript" src="{* ntop.getHttpPrefix *}/js/tagify.min.js"></script>
+
+<!-- defines base_path globals const-->
+<script type='text/javascript'>
+  const base_path = '{* ntop.getHttpPrefix() *}';
+  const default_ifid = '{* interface.getId() *}';
+</script>
 
 <div class='row'>
   <div class='col-12'>
     <div class="mb-2">
       <div class="w-100">
 	<div clas="range-container d-flex flex-wrap">
-	  <div class="range-picker d-flex m-auto flex-wrap">
-	    {* ui_utils.render_datetime_range_picker_vue(range_picker) *}
+	  <div class="range-picker d-flex m-auto flex-wrap" id="datatable-vue">
+	    <range-picker ref="range-picker-vue" :id="id_range_picker"></range-picker>
 	  </div>
 	</div>
       </div>
@@ -90,14 +107,6 @@
         </a>
         {% end %}
 
-        {% if show_pcap_download then %}
-        <!-- TODO add PCAP download modal converting filters to bpf via rest/v2/get/db/filter/bpf.lua
-        <a id="dt-btn-pcap-download" class="btn btn-secondary" data-bs-target='#dt-pcap-download-modal'>
-          <i class="fas fa-lg fa-download"></i> {{ i18n('traffic_recording.pcap_download') }}
-        </a>
-        -->
-        {% end %}
-
         {% if show_acknowledge_all then %}
         <button id="dt-btn-acknowledge" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#dt-acknowledge-modal' data-bs-toggle="modal" class="btn btn-primary">
           <i class="fas fa fa-user-check"></i> {{ i18n("acknowledge_alerts")}}
@@ -129,8 +138,9 @@
     i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
 </script>
 <script type='text/javascript'>
-    let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
-    let $table;
+  let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+  let $table;
+  let VUE_APP;
 
     const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
 
@@ -160,12 +170,11 @@
     }
 
     /* Cards */
-    {% if show_cards then %}
+  {% if show_cards then %}
     let tableBarMenuHtml = null;
     let updateCardStats = () => {
-	let status = ntopng_status_manager.get_status();
-      let params = (new URLSearchParams(status)).toString();
-
+	let params = ntopng_url_manager.get_url_params();
+	//let params = (new URLSearchParams(status)).toString();
       $.getJSON(`{* endpoint_cards *}?${params}`, function (data) {
 	  let menuContent = [];
           for (i = 0; i < data.rsp.length; i++){
@@ -213,18 +222,17 @@
     }
     {% end %}
 
-  async function reloadTable($table, new_status) {
+  async function reloadTable($table, url_params) {
       if ($table == null) {
 	  return;
       }
       showOverlays();
-      let paramsString = ntopng_utility.obj_to_url_params(new_status);
-        // reload the table
-        $table.ajax.url(`{* datatable.datasource.name *}?` + paramsString).load();
+      // reload the table
+        $table.ajax.url(`{* datatable.datasource.name *}?` + url_params).load();
 
 	    {% if show_chart then %}
-        try {
-            WidgetUtils.getWidgetByName("{{ chart.name }}").update(new_status);
+      try {
+          WidgetUtils.getWidgetByName("{{ chart.name }}").update(null);
         }
         catch(e) {
             console.warn(e);
@@ -337,12 +345,46 @@
       let epoch_begin = Number.parseInt(epoch_status.epoch_begin) + delta;
       ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, { epoch_begin, epoch_end: now });
   }
-  
-$(document).ready(function(){
+
+  function start_range_picker() {
+      let datatable_vue_options = {
+	  props: {
+	      id: String,
+	  },
+	  components: {	  
+   	      'range-picker': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/range-picker.vue`, ntopng_vue_loader.loadOptions) ),
+	  },
+	  /**
+	   * First method called when the component is created.
+	   */
+	  created() {},
+	  mounted() {},
+	  data() {
+	      return {
+		  id_range_picker: `range_picker_${this._uid}`,
+		  i18n: (t) => { return i18n(t); },
+	      };
+	  },
+	  methods: {},
+      };
+      const datatable_vue = Vue.createApp(datatable_vue_options);
+      const vue_app = datatable_vue.mount("#datatable-vue");
+      return vue_app;
+  }
+
+ 
+  $(document).ready(async function(){
+      if (ntopng_url_manager.get_url_entry("ifid") == null) {
+	  ntopng_url_manager.add_obj_to_url({ifid: default_ifid});
+      }
+      
+      VUE_APP = start_range_picker();
 
     // register to global event change status
-    ntopng_status_manager.on_status_change("range-picker", (new_status) => {
-	reloadTable($table, new_status);
+    await ntopng_sync.on_ready("range-picker");
+    ntopng_status_manager.on_status_change("datatable", (new_status) => {
+	let url_params = ntopng_url_manager.get_url_params();
+	reloadTable($table, url_params);
     }, true);
 
     const datatableButton = {* (datatable.buttons or '[]') *};
@@ -449,6 +491,68 @@ $(document).ready(function(){
             addFilter(e, $(this));
     });
     {% end %}
+
+    const addFilter = (e, a, from_table) => {
+	e.preventDefault();
+
+	let key = undefined;
+	let displayValue = undefined;
+	let realValue = undefined;
+	let operator = 'eq';
+
+	if (from_table != undefined) {
+            const colIndex = from_table.cell(a.parent()).index().column;
+
+            // Read tag key from the column
+            key = from_table.column(colIndex).name();
+
+	    // Read tag key from the cell if any
+            const data = from_table.cell(a.parent()).data();
+            if (data.tag_key)
+		key = data.tag_key;
+
+	    // Read value from the cell
+            displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
+            displayValue  = NtopUtils.stripTags(displayValue);
+            realValue = ((data.value != undefined) ? data.value : data);
+	}
+
+	// Read tag key and value from the <a> itself if provided
+	if (a.data('tagKey')        != undefined) key          = a.data('tagKey');
+	if (a.data('tagLabel')      != undefined) displayValue = a.data('tagLabel');
+	if (a.data('tagRealvalue')  != undefined) realValue    = a.data('tagRealvalue');
+	else if (a.data('tagValue') != undefined) realValue    = a.data('tagValue');
+	if (a.data('tagOperator')   != undefined) operator     = a.data('tagOperator');
+
+	// const tag = {
+        //     label: i18n_ext.tags[key],
+        //     key: key,
+        //     value: displayValue,
+        //     realValue: realValue,
+        //     title: realValue,
+        //     selectedOperator: operator
+	// };
+	//addFilterTag(tag);
+	let filter = {
+	    id: key,
+	    value: realValue,
+	    operator: operator,
+	};
+	if (VUE_APP.$refs["range-picker-vue"].is_filter_defined(filter)) {
+	    ntopng_events_manager.emit_event(ntopng_custom_events.SHOW_MODAL_FILTERS, filter);	    
+	} else {
+	    ntopng_url_manager.set_key_to_url("query_preset", "");
+	    ntopng_url_manager.set_key_to_url(filter.id, `${filter.value};${filter.operator}`);
+	    ntopng_url_manager.reload_url();
+	}
+
+	// let status = ntopng_status_manager.get_status();
+	// let filters = status["filters"] == null ? [] : status["filters"];
+	// filters.push(filter);
+	// // notifies to all the updated status
+	// ntopng_status_manager.add_value_to_status("filters", filters);
+    }
+
     
     $btnGetPermaLink.on('click', function() {
 

@@ -20,33 +20,38 @@ const DEFINED_EVENTS = {
         if(filter.length == 0 || value === undefined)
             return;
 
-        if(DEFINED_TAGS[filter[0]])
-            label = DEFINED_TAGS[filter[0]].i18n_label;
+        // if(DEFINED_TAGS[filter[0]])
+        //     label = DEFINED_TAGS[filter[0]].i18n_labelo;
         
-        addFilterTag({ value: (value_label || value), realValue: value, selectedOperator: "eq", key: filter[0], title: value, label: label });
+	//        addFilterTag({ value: (value_label || value), realValue: value, selectedOperator: "eq", key: filter[0], title: value, label: label });
+	let status = ntopng_status_manager.get_status();
+	let filters = status.filters;
+	filters.push({id: filter[0], operator: "eq", value: value});
+	// notify that filters status is updated
+	ntopng_events_manager.emit_event(ntopng_events.FILTERS_CHANGE, {filters});
     },
 
     /* On click event used by the flow analyze section, redirect to the current url + a single filter */
     "db_analyze_multiple_filters" : function (event, chartContext, config) {
-        const { dataPointIndex } = config;
-        const { filter } = config.w.config;
-        let value, value_label, label;
+        // const { dataPointIndex } = config;
+        // const { filter } = config.w.config;
+        // let value, value_label, label;
 
-        if(config.w.config.filtering_labels)
-            value = config.w.config.filtering_labels[dataPointIndex];
+        // if(config.w.config.filtering_labels)
+        //     value = config.w.config.filtering_labels[dataPointIndex];
 
-        if(config.w.config.labels)
-            value_label = config.w.config.labels[dataPointIndex];
+        // if(config.w.config.labels)
+        //     value_label = config.w.config.labels[dataPointIndex];
 
-        if(filter.length == 0 || !value)
-            return;
+        // if(filter.length == 0 || !value)
+        //     return;
         
-        for (let i = filter.length; i >= 0; i--) {
-            if(DEFINED_TAGS[filter[0][i]])
-                label = DEFINED_TAGS[filter[0][i]].i18n_label;
+        // for (let i = filter.length; i >= 0; i--) {
+        //     if(DEFINED_TAGS[filter[0][i]])
+        //         label = DEFINED_TAGS[filter[0][i]].i18n_label;
 
-            addFilterTag({ value: (value_label || value[i]), realValue: value[i], selectedOperator: "eq", key: filter[0][i], title: value[i], label: label });
-        }
+        //     addFilterTag({ value: (value_label || value[i]), realValue: value[i], selectedOperator: "eq", key: filter[0][i], title: value[i], label: label });
+        // }
     },
 
     "none" : function (event, chartContext, config) {
@@ -183,11 +188,20 @@ class Widget {
         await this.destroy();
         await this.update(datasourceParams);
     }
-
+    async updateByUrl(url) {
+        const u = new URL(`${location.origin}${this._datasource.name}`);
+	let entries = ntopng_url_manager.get_url_entries(url);
+        for (const [key, value] of entries) {
+            u.searchParams.set(key, value);
+        }
+        this._datasource.endpoint = u.pathname + u.search;
+        this._fetchedData = await this._fetchData();
+    }
+    //let datasourceParams = ntopng_url_manager
     async update(datasourceParams = {}) {
 	// build the new endpoint
         const u = new URL(`${location.origin}${this._datasource.name}`);
-
+	
         for (const [key, value] of Object.entries(datasourceParams)) {
             u.searchParams.set(key, value);
         }
@@ -459,7 +473,11 @@ class ChartWidget extends Widget {
 
     async update(datasourceParams = {}) {
         if(this._chartConfig !== undefined) {
-            await super.update(datasourceParams);
+	    if (datasourceParams) {
+		await super.update(datasourceParams);
+	    } else {
+		await super.updateByUrl();
+	    }
             if (this._chart != null) {
                 // expecting that rsp contains an object called series
                 const { colors, series, dataLabels, labels, xaxis, filtering_labels } = this._fetchedData.rsp;

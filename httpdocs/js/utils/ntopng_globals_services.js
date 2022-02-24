@@ -2,43 +2,48 @@
     (C) 2022 - ntop.org    
 */
 
+const ntopng_sync = function() {
+    let components_ready = {};
+    let subscribers = [];
+
+    const start_resolver = function() {
+	let resolver;
+	resolver = setInterval(() => {
+	    for (let i = 0; i < subscribers.length; i += 1) {
+		let s = subscribers[i];
+		if (components_ready[s.component_name] == true) {
+		    s.resolve();
+		    s.completed = true;
+		}
+	    }
+	    subscribers = subscribers.filter((s) => s.completed == false);
+	    if (subscribers.length == 0) { clearInterval(resolver); }
+	}, 300);
+    };
+        
+    return {
+	ready: function(component_name) {
+	    components_ready[component_name] = true;
+	},
+	on_ready: function(component_name) {
+	    return new Promise((resolve, rejevt) => {
+		if (components_ready[component_name]) {
+		    resolve();
+		}
+		const is_first = subscribers.length == 0;
+		subscribers.push({resolve, component_name, completed: false});
+		if (is_first == true) { start_resolver(); }
+	    });
+	},
+    };
+}();
+
 /**
  * Utility globals functions.
  */
 const ntopng_utility = function() {
-    /**
-     * Convert js object into a string that represent url params.
-     * @param {object} obj.
-     * @returns {string}.
-     */
-    const obj_to_url_params = function(obj) {
-        let s = "";
-        for (let key in obj) {
-            if (s != "") {
-                s += "&";
-            }
-            s += (key + "=" + encodeURIComponent(obj[key]));
-        }
-        return s;
-    };
 
-    /**
-     * Gets js object from url params.
-     * @param {*} entries.
-     * @returns {object}.
-     */
-    const url_params_to_object = function(entries) {
-        const result = {}
-        for(const [key, value] of entries) {
-            result[key] = value;
-        }
-        return result;
-    };
-
-    return {
-	obj_to_url_params: obj_to_url_params,
-	url_params_to_object: url_params_to_object,
-	
+    return {	
         /**
          * Deep copy of a object.
          * @param {object} obj.
@@ -48,15 +53,39 @@ const ntopng_utility = function() {
             if (obj == null) { return null; }
             return JSON.parse(JSON.stringify(obj));
         },
-	replace_url: function(url_params_obj) {
-            let url_params = "?" + obj_to_url_params(url_params_obj);
-            window.history.replaceState({}, null, url_params);
+	object_to_array: function(obj) {
+	    if (obj == null) { return []; }
+	    let array = [];
+	    for (let key in obj) {
+		array.push(obj[key]);
+	    }
+	    return array;
 	},
-	replace_url_and_reload: function(url_params_obj) {
-	    this.replace_url(url_params_obj);
-	    window.location.reload();
+	copy_object_keys: function(source_obj, dest_obj, not_replace = false) {
+	    if (source_obj == null) {
+		return;
+	    }
+	    for (let key in source_obj) {
+		if (not_replace == true && dest_obj[key] != null) { continue; }
+		dest_obj[key] = source_obj[key];
+	    }
 	},
-    };
+	http_request: async function(url, options, throw_exception) {
+	    try {
+		let res = await fetch(url, options);
+		if (res.ok == false) {		    
+		    console.error(`http_request ${url}\n ok == false`);
+		    return null;
+		}
+		let json_res = await res.json();
+		return json_res.rsp;
+	    } catch (err) {
+		console.error(err);
+		if (throw_exception == true) { throw err; }
+		return null;
+	    }
+	},
+    }
 }();
 
 /**
@@ -64,13 +93,14 @@ const ntopng_utility = function() {
  * The status is incapsulated into the url.
  */
 const ntopng_status_manager = function() {
+    let gloabal_status = {};
     /** @type {{ [id: string]: (status: object) => void}} */
     let subscribers = {}; // dictionary of { [id: string]: f_on_ntopng_status_change() }
     const clone = ntopng_utility.clone;
-    const url_params_to_object = ntopng_utility.url_params_to_object;
-    const obj_to_url_params = ntopng_utility.obj_to_url_params;
-    const replace_url = ntopng_utility.replace_url;
 
+    const relplace_global_status = function(status) {
+	gloabal_status = status;
+    }
     /**
      * Notifies the status to all subscribers with id different from skip_id.
      * @param {object} status object that represent the application status.
@@ -84,19 +114,15 @@ const ntopng_status_manager = function() {
         }
     };
 
-    return {
-	
+    return {	
         /**
          * Gets the current global application status.
          * @returns {object}
          */
         get_status: function() {
-            const url_params = new URLSearchParams(window.location.search.substring(1));
-            const entries = url_params.entries(); 
-            const params = url_params_to_object(entries);
-            return params;
+	    return clone(gloabal_status);
         },
-
+	
 	update_subscribers: function() {
 	    const status = this.get_status();
 	    notify_subscribers(status);
@@ -123,8 +149,8 @@ const ntopng_status_manager = function() {
          * @param {string} skip_id if != null doesn't notify the subscribers with skip_id identifier.
          */
         replace_status: function(status, skip_id) {
-	        replace_url(status);
-          notify_subscribers(status, skip_id);
+	    relplace_global_status(status);
+            notify_subscribers(status, skip_id);
         },
 
         /**
@@ -134,10 +160,8 @@ const ntopng_status_manager = function() {
          * @param {string} skip_id if != null doesn't notify the subscribers with skip_id identifier.
          */
         add_obj_to_status: function(obj, skip_id) {
-            let new_status = this.get_status();        
-            for (let key in obj) {
-                new_status[key] = obj[key];
-            }
+            let new_status = this.get_status();
+	    ntopng_utility.copy_object_keys(obj, new_status);
             this.replace_status(new_status, skip_id);
         },
 
@@ -150,67 +174,218 @@ const ntopng_status_manager = function() {
          */
         add_value_to_status: function(key, value, skip_id) {
             let new_status = this.get_status();
-            
-            /* This is needed to have muliple filters for the same key */
-            (new_status[key] && new_status[key].search(value) === -1) ? new_status[key] += "," + value : new_status[key] = value
+            new_status[key] = value;
+            // /* This is needed to have muliple filters for the same key */
+            // (new_status[key] && new_status[key].search(value) === -1) ? new_status[key] += "," + value : new_status[key] = value
             
             this.replace_status(new_status, skip_id);
         },
 
-        /**
-         * Adds or replaces the value key to the application status.
-         * Notifies the new status to all subscribers.
-         * @param {string} key key to adds or replaces.
-         * @param {any} value value to adds or replaces.
-         * @param {*} skip_id if != null doesn't notify the subscribers with skip_id identifier.
-         */
-        remove_value_to_status: function(key, value, skip_id) {
-          let new_status = this.get_status();
+        // /**
+        //  * Adds or replaces the value key to the application status.
+        //  * Notifies the new status to all subscribers.
+        //  * @param {string} key key to adds or replaces.
+        //  * @param {any} value value to adds or replaces.
+        //  * @param {*} skip_id if != null doesn't notify the subscribers with skip_id identifier.
+        //  */
+        // remove_value_to_status: function(key, value, skip_id) {
+        //   let new_status = this.get_status();
           
-          new_status[key] = new_status[key].replace(value + ",", '')
-          new_status[key] = new_status[key].replace(value, '')
+        //   new_status[key] = new_status[key].replace(value + ",", '')
+        //   new_status[key] = new_status[key].replace(value, '')
 
-          /* Remove possible , character from begin and end */
-          new_status[key].endsWith(",") ? new_status[key] = new_status[key].slice(0, -1) : new_status[key]
-          new_status[key].startsWith(",") ? new_status[key] = new_status[key].slice(1) : new_status[key]
+        //   /* Remove possible , character from begin and end */
+        //   new_status[key].endsWith(",") ? new_status[key] = new_status[key].slice(0, -1) : new_status[key]
+        //   new_status[key].startsWith(",") ? new_status[key] = new_status[key].slice(1) : new_status[key]
 
-          this.replace_status(new_status, skip_id);
-        },
+        //   this.replace_status(new_status, skip_id);
+        // },
 
-        /**
-         * Adds or replaces the value key to the application status.
-         * Notifies the new status to all subscribers.
-         * @param {string} key key to adds or replaces.
-         * @param {any} value value to adds or replaces.
-         * @param {*} skip_id if != null doesn't notify the subscribers with skip_id identifier.
-         */
-        edit_value_to_status: function(key, value, skip_id, tag /* Tag to add, use if necessary */) {
-            let new_status = this.get_status();
-            const old_value = new_status[key]
-            const position = old_value.search(tag.realValue)
-            const firstString = old_value.substring(0, position)
-            let alteratedString = old_value.substring(position) 
-            const endPosition = alteratedString.search(",")
+    //     /**
+    //      * Adds or replaces the value key to the application status.
+    //      * Notifies the new status to all subscribers.
+    //      * @param {string} key key to adds or replaces.
+    //      * @param {any} value value to adds or replaces.
+    //      * @param {*} skip_id if != null doesn't notify the subscribers with skip_id identifier.
+    //      */
+    //     edit_value_to_status: function(key, value, skip_id, tag /* Tag to add, use if necessary */) {
+    //         let new_status = this.get_status();
+    //         const old_value = new_status[key]
+    //         const position = old_value.search(tag.realValue)
+    //         const firstString = old_value.substring(0, position)
+    //         let alteratedString = old_value.substring(position) 
+    //         const endPosition = alteratedString.search(",")
 
-            endPosition === -1 ? alteratedString = value : alteratedString = alteratedString.substring(endPosition + 1) + "," + value
+    //         endPosition === -1 ? alteratedString = value : alteratedString = alteratedString.substring(endPosition + 1) + "," + value
             
-            /* This is needed to have muliple filters for the same key */
-            new_status[key] = alteratedString + "," + firstString
+    //         /* This is needed to have muliple filters for the same key */
+    //         new_status[key] = alteratedString + "," + firstString
 
-            new_status[key].endsWith(",") ? new_status[key] = new_status[key].slice(0, -1) : new_status[key]
-            new_status[key].startsWith(",") ? new_status[key] = new_status[key].slice(1) : new_status[key]
+    //         new_status[key].endsWith(",") ? new_status[key] = new_status[key].slice(0, -1) : new_status[key]
+    //         new_status[key].startsWith(",") ? new_status[key] = new_status[key].slice(1) : new_status[key]
 
-            this.replace_status(new_status, skip_id);
-        },
+    //         this.replace_status(new_status, skip_id);
+    //     },
     }
 }();
 
+const ntopng_params_url_serializer = {
+    // filters: function(key, filters) {
+    // 	if (filters == null) { return ""; }
+    // 	let filters_groups = {};
+    // 	filters.forEach((f) => {
+    // 	    let group = filters_groups[f.id];
+    // 	    if (group == null) {
+    // 		group = [];
+    // 		filters_groups[f.id] = group;
+    // 	    }
+    // 	    group.push(f);
+    // 	});
+    // 	let url_params_array = [];
+    // 	for (let f_id in filters_groups) {
+    // 	    let group = filters_groups[f_id];
+    // 	    let url_values = group.filter((f) => f.value != null && f.operator != null && f.operator != "").map((f) => `${f.value};${f.operator}`).join(",");
+    // 	    let url_params = ntopng_url_manager.serialize_param(f_id, url_values);
+    // 	    url_params_array.push(url_params);
+    // 	}
+    // 	return url_params_array.join("&");
+    // },
+};
+
+const ntopng_url_manager = function() {
+    /** @type {{ [key: string]: (obj: any) => string}} */
+    let custom_params_serializer = {};
+    ntopng_utility.copy_object_keys(ntopng_params_url_serializer, custom_params_serializer);
+    
+    return {
+	get_url_params: function() {
+	    return window.location.search.substring(1);
+	},
+	get_url_search_params: function(url) {
+	    if (url == null) {
+		url = this.get_url_params();
+	    }
+	    // for(const [key, value] of entries) {
+            const url_params = new URLSearchParams(url);
+	    return url_params;
+	},
+	get_url_entries: function(url) {
+            const url_params = this.get_url_search_params(url);
+            const entries = url_params.entries();
+	    return entries;
+	},	
+	get_url_entry: function(param_name) {
+	    let entries = this.get_url_entries();
+	    for(const [key, value] of entries) {
+		if (key == param_name) { return value; }
+	    }
+	    return null;
+	},
+	get_url_object: function(url) {
+	    let entries = this.get_url_entries(url);
+	    let obj = {};
+	    for (const [key, value] of entries) {
+		obj[key] = value;
+	    }
+	    return obj;
+	},
+	reload_url: function() {
+	    window.location.reload();
+	},
+	replace_url: function(url_params) {
+            window.history.replaceState({}, null, `?${url_params}`);
+	},
+	replace_url_and_reload: function(url_params) {
+	    this.replace_url(url_params);
+	    this.reload_url();
+	},
+	serialize_param: function(key, value) {
+	    if (value == null) {
+		value = "";
+	    }
+	    return `${key}=${encodeURIComponent(value)}`;
+	},	
+	set_custom_key_serializer: function(key, f_get_url_param) {
+	    custom_params_serializer[key] = f_get_url_param;
+	},
+
+	/**
+	 * Convert js object into a string that represent url params.
+	 * Uses custom serializer if set.
+	 * @param {object} obj.
+	 * @returns {string}.
+	 */
+	obj_to_url_params: function(obj) {
+	    let params = [];
+	    const default_serializer = this.serialize_param;
+	    for (let key in obj) {
+		let serializer = custom_params_serializer[key];
+		if (serializer == null) {
+		    serializer = default_serializer;
+		}
+		let param = serializer(key, obj[key]);
+		params.push(param);
+	    }
+	    let url_params = params.join("&");
+            return url_params;
+	},
+	delete_params: function(params_key) {
+	    let search_params = this.get_url_search_params();
+	    params_key.forEach((p) => {
+		search_params.delete(p);
+	    });
+	    this.replace_url(search_params.toString());	    
+	},
+	set_key_to_url: function(key, value) {
+	    let search_params = this.get_url_search_params();
+	    search_params.set(key, value);
+	    this.replace_url(search_params.toString());
+	},
+	add_obj_to_url: function(url_params_obj) {
+	    let new_url_params = this.obj_to_url_params(url_params_obj);
+	    let search_params = this.get_url_search_params();
+	    let new_entries = this.get_url_entries(new_url_params);
+	    for (const [key, value] of new_entries) {
+		search_params.set(key, value);
+	    }
+	    this.replace_url(search_params.toString());
+	},
+    }
+}();
+    
 /**
- * Object that represents a list of prefedefined events
+ * Object that represents a list of prefedefined events that represent the status.
  */
 const ntopng_events = {
-    EPOCH_CHANGE: "epoch_change" // { epoch_begin: number, epoch_end: number }
+    EPOCH_CHANGE: "epoch_change", // { epoch_begin: number, epoch_end: number }
+    FILTERS_CHANGE: "filters_change", // {filters: {id: string, operator: string, value: string}[] }
 };
+
+const ntopng_events_compare = {
+    EPOCH_CHANGE: function(new_status, old_status) {
+	return new_status.epoch_begin != old_status.epoch_begin
+	    || new_status.epoch_end != old_status.epoch_end;
+    },
+    FILTERS_CHANGE: function(new_status, old_status) {	
+	return (new_status.filters == null && old_status.filters != null)
+	    || (new_status.filters != null && old_status.filters == null)
+	    || (new_status.filters != null && old_status.filters != null &&
+		(
+		    (new_status.filters.length != old_status.filters.length)
+			|| (new_status.filters.some((f_new) => old_status.filters.find((f_old) => f_old.id == f_new.id) == null))
+		)
+	       );
+    },
+};
+
+/**
+ * Object that represents a list of prefedefined custom events.
+ */
+const ntopng_custom_events = {
+    SHOW_MODAL_FILTERS: "show_modal_filters", // {id: string, operator: string, value: string}
+    MODAL_FILTERS_APPLY: "modal_filters_apply", // {id: string, label: string, operator: string, value: string, value_label: string}
+};
+
 
 /**
  * A global events service that allows to manage the application global status.
@@ -244,16 +419,43 @@ const ntopng_events_manager = function() {
      * @param {object} new_status 
      */
     const on_status_change = function(new_status) {
-        if (status.epoch_end != new_status.epoch_end || status.epoch_begin != new_status.epoch_begin) {
-            let subscribers = events_subscribers[ntopng_events.EPOCH_CHANGE];
-            notify_subscribers(subscribers, new_status);
-        }
+	for (let event_name in ntopng_events) {
+	    let f_compare = ntopng_events_compare[event_name];
+	    if (f_compare(new_status, status) == true) {
+		let subscribers = events_subscribers[event_name];
+		notify_subscribers(subscribers, new_status);
+	    }
+	}
+	
         status = new_status;
     };
 
     ntopng_status_manager.on_status_change(events_manager_id, on_status_change, true);
 
+    const emit = function(event, params, skip_id) {
+	let subscribers = events_subscribers[event];
+	if (subscribers == null) { return; }
+	notify_subscribers(subscribers, params, skip_id);
+    };
+
+    const on_event = function(id, event, f_on_event, get_init_notify) {
+        if (events_subscribers[event] == null) {
+            events_subscribers[event] = {};        
+        }
+        if (get_init_notify == true) {
+            let status = ntopng_status_manager.get_status();        
+            f_on_event(clone(status));
+        }
+        events_subscribers[event][id] = f_on_event;
+    };
+
     return {
+	emit_custom_event: function(event, params) {
+	    emit(event, params);
+	},
+	on_custom_event: function(id, event, f_on_event) {
+	    on_event(id, event, f_on_event);
+	},
         /**
          * Changes the application status and emits the new status to all subcribers registered to the event. 
          * @param {string} event event name.
@@ -261,29 +463,18 @@ const ntopng_events_manager = function() {
          * @param {string} skip_id if != null doesn't notify the subscribers with skip_id identifier.
          */
         emit_event: function(event, new_status, skip_id) {
+	    emit(event, new_status, skip_id)
             ntopng_status_manager.add_obj_to_status(new_status, events_manager_id);
-            status = ntopng_status_manager.get_status();
-            let subscribers = events_subscribers[event];
-            if (subscribers == null) { return; }
-            notify_subscribers(subscribers, new_status, skip_id);
         },
-    
         /**
          * Allows to subscribers f_on_event callback on status change on event event_name.
          * @param {string} id an identifier of the subscribtion. 
-         * @param {string} event_name event name. 
+         * @param {string} event event name. 
          * @param {(status:object) => void} f_on_event callback that take object status as param.
          * @param {boolean} get_init_notify if true the callback it's immediately called with the last status available.
          */
-        on_event_change: function(id, event_name, f_on_event, get_init_notify) {
-            if (events_subscribers[event_name] == null) {
-                events_subscribers[event_name] = {};        
-            }
-            if (get_init_notify == true) {
-                let status = ntopng_status_manager.get_status();        
-                f_on_event(clone(status));
-            }
-            events_subscribers[event_name][id] = f_on_event;
+        on_event_change: function(id, event, f_on_event, get_init_notify) {
+	    on_event(id, event, f_on_event, get_init_notify);
         },
     }    
 }();

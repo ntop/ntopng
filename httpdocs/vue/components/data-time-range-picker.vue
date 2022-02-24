@@ -7,18 +7,18 @@
         <slot></slot>
         <select v-model="select_time_value" @change="change_select_time" class="form-select me-2">
                 <!-- <option value="min_5">{{context.text.show_alerts_presets["5_min"]}}</option> -->
-                <option value="min_5">{{text.alerts_presets["5_min"]}}</option>
+                <option value="min_5">{{i18n('show_alerts.presets.5_min')}}</option>
         
-                <option value="min_30">{{text.alerts_presets["30_min"]}}</option>
+                <option value="min_30">{{i18n('show_alerts.presets.30_min')}}</option>
         
-                <option value="hour">{{text.alerts_presets["hour"]}}</option>
+                <option value="hour">{{i18n('show_alerts.presets.hour')}}</option>
         
-                <option value="day">{{text.alerts_presets["day"]}}</option>
-                <option value="week">{{text.alerts_presets["week"]}}</option>
+                <option value="day">{{i18n('show_alerts.presets.day')}}</option>
+                <option value="week">{{i18n('show_alerts.presets.week')}}</option>
         
-                <option value="month">{{text.alerts_presets["month"]}}</option>
-                <option value="year">{{text.alerts_presets["year"]}}</option>
-                <option value="custom">{{text.custom}}</option>
+                <option value="month">{{i18n('show_alerts.presets.month')}}</option>
+                <option value="year">{{i18n('show_alerts.presets.year')}}</option>
+                <option value="custom">{{i18n('graphs.custom')}}</option>
         </select>
         
         <div class="btn-group">
@@ -34,13 +34,13 @@
             <input  class="flatpickr flatpickr-input" type="text" placeholder="Choose a date.." data-id="datetime" ref="end-date">
             <!-- <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;"> -->
             <!-- <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input"> -->
-            <span v-show="wrong_date" :title="text.wrong_date_range" style="margin-left:0.2rem;color:red;">
+            <span v-show="wrong_date" :title="i18n('wrong_date_range')" style="margin-left:0.2rem;color:red;">
                 <i class="fas fa-exclamation-circle"></i>
             </span>
         </div>
 
         <div class="d-flex align-items-center ms-2">
-            <button :disabled="!enable_apply || wrong_date" @click="apply" class="btn btn-sm btn-primary">{{text.apply}}</button>
+            <button :disabled="!enable_apply || wrong_date" @click="apply" class="btn btn-sm btn-primary">{{i18n('apply')}}</button>
                 
             <div class="btn-group">
                 <button @click="jump_time_back()" class="btn btn-sm btn-link" ref="btn-jump-time-back">
@@ -69,13 +69,20 @@ export default {
     },
     props: {
 	text: Object,
+	id: String,
     },
     emits: ["epoch_change"],
     /** This method is the first method of the component called, it's called before html template creation. */
-    created() {
+    created() {	
     },
     /** This method is the first method called after html template creation. */
     mounted() {
+	let epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
+	let epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
+	if (epoch_begin != null && epoch_end != null) {
+	    // update the status
+            ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, { epoch_begin: Number.parseInt(epoch_begin), epoch_end: Number.parseInt(epoch_end) }, this.status_id);
+	}
 	let me = this;
 	let f_set_picker = (picker, var_name) => {
 	    return $(this.$refs[picker]).flatpickr({
@@ -100,6 +107,8 @@ export default {
 	this.flat_end_date = f_set_picker("end-date", "end_date");
 	
         ntopng_events_manager.on_event_change(this.status_id, ntopng_events.EPOCH_CHANGE, (new_status) => this.on_status_updated(new_status), true);
+	// notifies that component is ready
+	ntopng_sync.ready(this.$props["id"]);
     },
     
     /** Methods of the component. */
@@ -128,6 +137,7 @@ export default {
             this.set_select_time_value(begin_date_time_utc, end_date_time_utc);
             this.epoch_status = status;
             this.enable_apply = false;
+	    ntopng_url_manager.add_obj_to_url({epoch_begin: status.epoch_begin, epoch_end: status.epoch_end});
         },
         set_select_time_value: function(begin_utc, end_utc) {
             let s_values = this.get_select_values();
@@ -291,6 +301,7 @@ export default {
     */
     data() {
         return {
+	    i18n: (t) => i18n(t),
             status_id: "data-time-range-picker" + this._uid,
             epoch_status: null,
             enable_apply: false,
@@ -298,8 +309,6 @@ export default {
             wrong_date: false,
 	    flat_begin_date: null,
 	    flat_end_date: null,
-            context: {
-            },
         };
     },
 }
