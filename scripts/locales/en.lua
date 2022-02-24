@@ -1012,6 +1012,9 @@ local lang = {
       ["top_srv"] = "Hosts as server with most alerts",
     },
   },
+  ["ecs"] = {
+    ["anomalous_termination"] = "Started after anomalous termination",
+  },
   ["alerts_thresholds_config"] = {
     ["active_local_hosts"] = "Local Hosts Alert",
     ["active_local_hosts_threshold_descr"] = "Trigger an alert when the number of Active Local Hosts exceeds the threshold",
