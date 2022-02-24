@@ -353,28 +353,24 @@ end
 
 -- #################################
 
-function alert_utils.getConfigsetAlertLink(alert_json, alert --[[ optional --]])
-   local info = alert_json.alert_generation or (alert_json.alert_info and alert_json.alert_info.alert_generation)
-   
-   if(info and isAdministrator()) then
-
-      if alert then
-   	 -- This piece of code (exception) has been moved here from formatAlertMessage
-   	 if(alert_consts.getAlertType(alert.alert_id, alert.entity_id) == "alert_am_threshold_cross") then
-   	    local host = json.decode(alert.json)["host"]
-
-   	    if host and host.measurement and not host.is_infrastructure then
-   	       return ' <a href="'.. ntop.getHttpPrefix() ..'/lua/monitor/active_monitoring_monitor.lua?am_host='
-   		  .. host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
-   	    end
-   	 end
-      end
-
-      return(' <a href="'..alert_utils.getConfigsetURL(info.script_key, info.subdir)..'">'..
+function alert_utils.getConfigsetAlertLink(alert_json, alert --[[ optional --]], alert_entity)
+   if isAdministrator() then 
+      local info = alert_json.alert_generation or (alert_json.alert_info and alert_json.alert_info.alert_generation)
+      if alert_entity and alert_entity == alert_entities.am_host.entity_id then
+         local host = json.decode(alert.json)["host"]
+         if host then
+            return ' <a href="'.. ntop.getHttpPrefix() ..'/lua/monitor/active_monitoring_monitor.lua?am_host='
+   		.. host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
+         else
+   	    return ' <a href="'.. ntop.getHttpPrefix() ..'/lua/monitor/active_monitoring_monitor.lua?page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
+         end
+      elseif info then
+         return(' <a href="'..alert_utils.getConfigsetURL(info.script_key, info.subdir)..'">'..
 		'<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>')
-   elseif isAdministrator() then
-      return (' <a href="' .. ntop.getHttpPrefix() .. '/lua/admin/edit_configset.lua?subdir=interface#all">'..
-      '<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>')
+      else
+         return (' <a href="' .. ntop.getHttpPrefix() .. '/lua/admin/edit_configset.lua?subdir=interface#all">'..
+         '<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>')
+      end
    end
 
    return('')
