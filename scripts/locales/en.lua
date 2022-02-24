@@ -1839,6 +1839,9 @@ local lang = {
       ["abort_edit_recipient"] = "Abort edit of the endpoint recipient?",
     },
   },
+  ["ecs"] = {
+    ["anomalous_termination"] = "Started after anomalous termination",
+  },
   ["entity_thresholds"] = {
     ["dns_request_reply_ratio_description"] = "Trigger an alert when the replies/requests ratio is below the threshold",
     ["dns_request_reply_ratio_title"] = "DNS Repls. / Reqs. Ratio",
