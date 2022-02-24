@@ -50,12 +50,12 @@
                 <select class="form-select" id="select-query-presets">
                     {% if query_presets_subtype == "tables" then %}
                         {% for _, preset in ipairs(builtin_presets) do %}
-                        <option {{ preset.selected and 'selected' }} value="{{ preset.name }}">{{ i18n(preset.i18n_name) }}</option>
+                        <option {{ preset.selected and 'selected' }} value="{{ preset.id }}">{{ i18n(preset.i18n_name) }}</option>
                         {% end %}
                     <optgroup label="{{ i18n('queries.queries') }}">
                     {% end %}
                     {% for id, preset in pairsByKeys(query_presets) do %}
-                        <option {{ preset.selected and 'selected' }} value="{{ id }}">{{ preset.i18n_name and i18n(preset.i18n_name) or preset.name }}</option>      
+                        <option {{ preset.selected and 'selected' }} value="{{ id }}">{{ preset.i18n_name and i18n(preset.i18n_name) or preset.name }}</option> 
                     {% end %}
                     {% if query_presets_subtype == "tables" then %}
                     </optgroup>
