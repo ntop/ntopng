@@ -8,7 +8,7 @@
     local presetSelected = (isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"]))
 %}
 
-<link rel="stylesheet" href="{{ ntop.getHttpPrefix }}/css/tagify.css" />
+<link rel="stylesheet" href="{* ntop.getHttpPrefix *}/css/tagify.css" />
 <style>
 .tagify__input {
   min-width: 175px;
@@ -167,7 +167,7 @@
 </div>
   
 
-<script type="text/javascript" src="{{ ntop.getHttpPrefix }}/js/tagify.min.js"></script>
+<script type="text/javascript" src="{* ntop.getHttpPrefix *}/js/tagify.min.js"></script>
 <script type="text/javascript">
 
 /* Tags definitions */

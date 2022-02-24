@@ -8,7 +8,7 @@
     local presetSelected = (isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"]))
 %}
 
-<link rel="stylesheet" href="{{ ntop.getHttpPrefix }}/css/tagify.css" />
+<link rel="stylesheet" href="{* ntop.getHttpPrefix *}/css/tagify.css" />
 <style>
 .tagify__input {
   min-width: 175px;
@@ -87,12 +87,12 @@
   </div>
 </div>
 <script type="text/javascript">
-  //const base_vue_path = '{{ ntop.getHttpPrefix() }}/vue/';
+  //const base_vue_path = '{* ntop.getHttpPrefix() *}/vue/';
   // loads data-time-range-picker.vue component  
   const data_time_range_picker_options = {
       components: {
-   	  'data-time-range-picker': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule('{{ ntop.getHttpPrefix() }}/vue/components/data-time-range-picker.vue', ntopng_vue_loader.loadOptions) ),
-	  // 'modal-filters': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule('{{ ntop.getHttpPrefix() }}/vue/components/modal-filters.vue', ntopng_vue_loader.loadOptions) ),
+   	  'data-time-range-picker': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule('{* ntop.getHttpPrefix() *}/vue/components/data-time-range-picker.vue', ntopng_vue_loader.loadOptions) ),
+	  // 'modal-filters': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule('{* ntop.getHttpPrefix() *}/vue/components/modal-filters.vue', ntopng_vue_loader.loadOptions) ),
       },
       mounted() {
 	  setTimeout(() => {
@@ -152,7 +152,7 @@
   data_time_range_picker.mount("#data-time-range-picker-vue");  
 </script>
 
-<script type="text/javascript" src="{{ ntop.getHttpPrefix }}/js/tagify.min.js"></script>
+<script type="text/javascript" src="{* ntop.getHttpPrefix *}/js/tagify.min.js"></script>
 <script type="text/javascript">
 
 /* Tags definitions */
