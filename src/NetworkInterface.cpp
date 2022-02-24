@@ -9203,48 +9203,63 @@ void NetworkInterface::getEngagedAlerts(lua_State *vm, AlertEntity alert_entity,
 /* *************************************** */
 
 void NetworkInterface::processExternalAlertable(AlertEntity entity,
-						const char *entity_val, bool create_if_missing,
+						const char *entity_val,
 						lua_State* vm, u_int vm_argument_idx,
 						bool do_store_alert) {
   std::map<std::pair<AlertEntity, std::string>, InterfaceMemberAlertableEntity*>::iterator it;
   std::pair<AlertEntity, std::string> key(entity, std::string(entity_val));
-  InterfaceMemberAlertableEntity *alertable;
+  InterfaceMemberAlertableEntity *alertable = NULL;
 
   external_alerts_lock.lock(__FILE__, __LINE__);
 
-  if((it = external_alerts.find(key)) != external_alerts.end()) {
-    external_alerts_lock.unlock(__FILE__, __LINE__);
-    lua_pushnil(vm);
-    return;
-  }
+  /* Lookup */
+  if((it = external_alerts.find(key)) != external_alerts.end())
+    alertable = it->second;
 
-  if(!create_if_missing) {
-    external_alerts_lock.unlock(__FILE__, __LINE__);
-    lua_pushnil(vm);
-    return;
-  }
+  if (alertable) {
+    /* Already present */
 
-  /* Create */
-  if((alertable = new (std::nothrow) InterfaceMemberAlertableEntity(this, entity)) == NULL) {
-    external_alerts_lock.unlock(__FILE__, __LINE__);
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
-    lua_pushnil(vm);
-    return;
+    if (do_store_alert) {
+      /* Nothing to store - return */
+      external_alerts_lock.unlock(__FILE__, __LINE__);
+      lua_pushnil(vm);
+      return;
+    }
+
+  } else {
+    /* Not present */
+
+    if (!do_store_alert) {
+      /* Nothing to release - return */
+      external_alerts_lock.unlock(__FILE__, __LINE__);
+      lua_pushnil(vm);
+      return;
+    }
+
+    /* Create */
+    alertable = new (std::nothrow) InterfaceMemberAlertableEntity(this, entity);
+    if (alertable == NULL) {
+      external_alerts_lock.unlock(__FILE__, __LINE__);
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
+      lua_pushnil(vm);
+      return;
+    }
+
+    alertable->setEntityValue(entity_val);
+
+    /* Add to the map */
+    external_alerts[key] = alertable;
   }
   
-  alertable->setEntityValue(entity_val);
-
-  /* Add to the map */
-  external_alerts[key] = alertable;
-
   if(do_store_alert)
     ntop_store_triggered_alert(vm, alertable, vm_argument_idx);
-  else
+  else {
     ntop_release_triggered_alert(vm, alertable, vm_argument_idx);
 
-  if(alertable->getNumEngagedAlerts() == 0) {
-    external_alerts.erase(key);
-    delete alertable;
+    if(alertable->getNumEngagedAlerts() == 0) {
+      external_alerts.erase(key);
+      delete alertable;
+    }
   }
 
   external_alerts_lock.unlock(__FILE__, __LINE__);

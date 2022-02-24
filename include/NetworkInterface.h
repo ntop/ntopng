@@ -985,7 +985,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 			AlertLevel alert_severity, AlertRole role_filter, AddressTree *allowed_nets);
 
   void processExternalAlertable(AlertEntity entity,
-				const char *entity_val, bool create_if_missing,
+				const char *entity_val,
 				lua_State* vm, u_int vm_argument_idx,
 				bool do_store_alert);  
   virtual bool reproducePcapOriginalSpeed() const         { return(false);             }

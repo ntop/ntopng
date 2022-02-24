@@ -294,12 +294,15 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   end
 
   if(triggered == nil) then
-    if(do_trace) then print("[Don't Trigger alert (already triggered?) @ "..granularity_sec.."] "..
-        entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
+    if(do_trace) then 
+      print("Alert not triggered (already triggered?) @ "..granularity_sec.."] "..
+            entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
+    end
     return(false)
   else
-    if(do_trace) then print("[TRIGGER alert @ "..granularity_sec.."] "..
-        entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
+    if(do_trace) then 
+      print("Alert triggered @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
+    end
   end
 
   triggered.ifid = ifid
@@ -370,13 +373,15 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   end
 
   if(released == nil) then
-    if(do_trace) then tprint("[Dont't Release alert (not triggered?) @ "..granularity_sec.."] "..
-			     entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
-    
+    if(do_trace) then 
+      print("Alert not released (not triggered?) @ "..granularity_sec.." "..
+	    entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n")
+    end
     return(false)
   else
-     if(do_trace) then tprint("[RELEASE alert @ "..granularity_sec.."] "..
-			      entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
+    if(do_trace) then 
+      print("Alert released @ "..granularity_sec.." ".. entity_info.entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") 
+    end
   end
 
   released.ifid = ifid

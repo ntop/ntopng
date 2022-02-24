@@ -893,8 +893,7 @@ static int ntop_interface_store_external_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   entity_value = lua_tostring(vm, idx++);
 
-  iface->processExternalAlertable(entity, entity_value, true /* Create if not exists */,
-				  vm, idx, true /* store alert */);
+  iface->processExternalAlertable(entity, entity_value, vm, idx, true /* store alert */);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
@@ -924,8 +923,7 @@ static int ntop_interface_release_external_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   entity_value = lua_tostring(vm, idx++);
 
-  iface->processExternalAlertable(entity, entity_value, false /* Don't create if not exists */,
-				  vm, idx, false /* release alert */);
+  iface->processExternalAlertable(entity, entity_value, vm, idx, false /* release alert */);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
