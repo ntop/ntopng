@@ -475,16 +475,13 @@ end
 -- @param measurement A string with the type of measurement which will be performed
 -- @param am_value A number used as threshold con consider the measurement failed
 -- @param granularity One of `supported_granularities`, indicating the granularity of the measurement
--- @param pool The pool_id `host` will be associated to
 -- @param token A string with an ntopng `token` used to fetch data from other ntopngs in a federation [optional]
 -- @param save_result Whether the result fetched with the measure should be saved (e.g., the HTTP response) [optional]
 -- @param readonly Bool used by the GUI to know if, when true, an entry is considered read only hence it cannot be modified/deleted [optional]
-function am_utils.addHost(host, ifname, measurement, am_value, granularity, pool, token, save_result, readonly)
+function am_utils.addHost(host, ifname, measurement, am_value, granularity, token, save_result, readonly)
   save_result = save_result or false
   readonly = readonly or false
 
-  local active_monitoring_pools = require("active_monitoring_pools")
-  local am_pool = active_monitoring_pools:create()
   local host_key = am_utils.getAmHostKey(host, measurement)
   local show_iface = ntop.isPingIfaceAvailable()
 
@@ -497,9 +494,6 @@ function am_utils.addHost(host, ifname, measurement, am_value, granularity, pool
     save_result = save_result, -- save the result
     readonly = readonly,
   }))
-
-  -- Bind the host from any existing pool
-  am_pool:bind_member(host_key, pool)
 end
 
 -- ##############################################
@@ -511,8 +505,6 @@ end
 -- ##############################################
 
 function am_utils.deleteHost(host, measurement)
-  local active_monitoring_pools = require("active_monitoring_pools")
-  local am_pool = active_monitoring_pools:create()
   local ts_utils = require("ts_utils")
   local alert_utils = require("alert_utils")
 
@@ -536,9 +528,6 @@ function am_utils.deleteHost(host, measurement)
   am_utils.dropHourStats(host_key)
 
   ntop.delHashCache(am_hosts_key, host_key)
-
-  -- Unbind the host from any existing pool
-  am_pool:bind_member(host_key, am_pool.DEFAULT_POOL_ID)
 
   -- Select the old interface
   interface.select(old_iface)
@@ -846,7 +835,7 @@ end
 
 -- ##############################################
 
-function am_utils.editHost(host, iface, measurement, threshold, granularity, pool, token, save_result, readonly)
+function am_utils.editHost(host, iface, measurement, threshold, granularity, token, save_result, readonly)
   local existing = am_utils.getHost(host, measurement)
 
   if(existing == nil) then
@@ -884,7 +873,7 @@ function am_utils.editHost(host, iface, measurement, threshold, granularity, poo
     end
   end
 
-  am_utils.addHost(host, iface, measurement, threshold, granularity, pool, token, save_result, readonly)
+  am_utils.addHost(host, iface, measurement, threshold, granularity, token, save_result, readonly)
 
   return(true)
 end

@@ -4,7 +4,6 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
@@ -18,7 +17,6 @@ sendHTTPContentTypeHeader('application/json')
 local action      = _POST["action"]
 local host        = _POST["am_host"]
 local measurement = _POST["measurement"]
-local pool        = _POST["pool"]
 local ifname      = _POST["ifname"]
 
 local rv = {}
@@ -109,7 +107,7 @@ if(action == "add") then
       return
    end
 
-   am_utils.addHost(host, ifname, measurement, threshold, granularity, pool)
+   am_utils.addHost(host, ifname, measurement, threshold, granularity)
    rv.message = i18n("active_monitoring_stats.host_add_ok", {host=url})
 
 elseif(action == "edit") then
@@ -162,10 +160,10 @@ elseif(action == "edit") then
       end
 
       am_utils.deleteHost(old_am_host, old_measurement) -- also calls discardHostTimeseries
-      am_utils.addHost(host, ifname, measurement, threshold, granularity, pool)
+      am_utils.addHost(host, ifname, measurement, threshold, granularity)
    else
       -- The key is the same, only update its settings
-      am_utils.editHost(host, ifname, measurement, threshold, granularity, pool)
+      am_utils.editHost(host, ifname, measurement, threshold, granularity)
    end
 
    rv.message = i18n("active_monitoring_stats.host_edit_ok", {host=old_url})

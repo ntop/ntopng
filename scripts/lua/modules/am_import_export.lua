@@ -4,7 +4,6 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" .. package.path
 
 require "lua_utils" 
@@ -52,9 +51,9 @@ function am_import_export:import(conf)
 
       if not host.is_infrastructure then -- Infrastructure is handled separately on another import_export
 	 if old_hosts[host_key] then
-	    am_utils.editHost(host.host, host_conf.ifname, host.measurement, host_conf.threshold, host_conf.granularity, host_pools.DEFAULT_POOL_ID, host_conf.token, host_conf.save_result, host_conf.readonly)
+	    am_utils.editHost(host.host, host_conf.ifname, host.measurement, host_conf.threshold, host_conf.granularity, host_conf.token, host_conf.save_result, host_conf.readonly)
 	 else
-	    am_utils.addHost(host.host, host_conf.ifname, host.measurement, host_conf.threshold, host_conf.granularity, host_pools.DEFAULT_POOL_ID, host_conf.token, host_conf.save_result, host_conf.readonly)
+	    am_utils.addHost(host.host, host_conf.ifname, host.measurement, host_conf.threshold, host_conf.granularity, host_conf.token, host_conf.save_result, host_conf.readonly)
 	 end
       end
    end

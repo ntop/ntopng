@@ -16,7 +16,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 local interface_pools = require "interface_pools"
 local local_network_pools = require "local_network_pools"
 local snmp_device_pools = require "snmp_device_pools"
-local active_monitoring_pools = require "active_monitoring_pools"
 local host_pools = require "host_pools"
 
 -- interface_pools.get_available_members()
@@ -198,12 +197,6 @@ assert(second_pool_id == new_pool_id + 1)
 s:edit_pool(second_pool_id, 'my_snmp_device_second_pool_edited', {"192.168.2.169"}, 0)
 pool_details = s:get_pool(second_pool_id)
 assert(second_pool_id == new_pool_id + 1)
-
--- Cleanup
-s:cleanup()
-
--- TEST active monitoring pools
-local s = active_monitoring_pools:create()
 
 -- Cleanup
 s:cleanup()
