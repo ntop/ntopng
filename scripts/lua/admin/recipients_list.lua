@@ -20,7 +20,6 @@ local endpoint_configs = require("endpoints")
 local endpoints = endpoint_configs.get_configs(true)
 
 local host_pools = require "host_pools":create()
-local interface_pools = require "interface_pools":create()
 
 if not isAdministratorOrPrintErr() then
     return
@@ -78,7 +77,6 @@ local context = {
         check_categories = checks.check_categories,
         pools = {
             host_pools = host_pools:get_all_pools(),
-            interface_pools = interface_pools:get_all_pools(),
         },
         alert_severities = alert_severities,
         filters = {

@@ -1912,39 +1912,6 @@
 				}
 			}
 		},
-		"/lua/rest/v2/add/network/pool.lua": {
-			"post": {
-				"tags": [
-					"Pools"
-				],
-				"summary": "Add a local network pool",
-				"description": "Add a local network pool with members and configuration",
-				"operationId": "add_network_pool",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [{
-						"pool_name": "string",
-						"pool_members": "string",
-						"confset_id": "int32"
-					}
-				],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-3": {
-						"description": "NOT_GRANTED"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-13": {
-						"description": "ADD_POOL_FAILED"
-					}
-				}
-			}
-		},
 		"/lua/rest/v2/edit/interface/pool.lua": {
 			"post": {
 				"tags": [
@@ -1987,40 +1954,6 @@
 				"summary": "Edit an host pool",
 				"description": "Edit an host pool with members and configuration",
 				"operationId": "edit_host_pool",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [{
-						"pool": "int32",
-						"pool_name": "string",
-						"pool_members": "string",
-						"confset_id": "int32"
-					}
-				],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-3": {
-						"description": "NOT_GRANTED"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-14": {
-						"description": "EDIT_POOL_FAILED"
-					}
-				}
-			}
-		},
-		"/lua/rest/v2/edit/network/pool.lua": {
-			"post": {
-				"tags": [
-					"Pools"
-				],
-				"summary": "Edit a local network pool",
-				"description": "Edit a local network pool with members and configuration",
-				"operationId": "edit_network_pool",
 				"produces": [
 					"application/json"
 				],
@@ -2144,37 +2077,6 @@
 				}
 			}
 		},
-		"/lua/rest/v2/delete/network/pool.lua": {
-			"post": {
-				"tags": [
-					"Pools"
-				],
-				"summary": "Delete a local network pool",
-				"description": "Delete a local network pool",
-				"operationId": "delete_network_pool",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [{
-						"pool": "int32"
-					}
-				],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-3": {
-						"description": "NOT_GRANTED"
-					},
-					"-5": {
-						"description": "INVALID_ARGUMENTS"
-					},
-					"-16": {
-						"description": "POOL_NOT_FOUND"
-					}
-				}
-			}
-		},
 		"/lua/rest/v2/delete/pools.lua": {
 			"post": {
 				"tags": [
@@ -2268,31 +2170,6 @@
 				"summary": "Get one or all host pools",
 				"description": "Get one or all host pools",
 				"operationId": "get_host_pools",
-				"produces": [
-					"application/json"
-				],
-				"parameters": [{
-						"pool": "int32"
-					}
-				],
-				"responses": {
-					"0": {
-						"description": "OK"
-					},
-					"-16": {
-						"description": "POOL_NOT_FOUND"
-					}
-				}
-			}
-		},
-		"/lua/rest/v2/get/network/pools.lua": {
-			"get": {
-				"tags": [
-					"Pools"
-				],
-				"summary": "Get one or all local network pools",
-				"description": "Get one or all local network pools",
-				"operationId": "get_network_pools",
 				"produces": [
 					"application/json"
 				],
