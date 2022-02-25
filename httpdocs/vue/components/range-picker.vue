@@ -395,15 +395,15 @@ function create_tagify(range_picker_vue) {
     
     // when an user remove the tag
     tagify.on('remove', async function(e) {
-        const key = e.detail.data.key;
-        if (key === undefined) {
-            return;
-        }
-	let status = ntopng_status_manager.get_status();
-	if (status.filters == null) { return; }
-	let filters = status.filters.filter((f) => f.id != key);
-	// trigger event
-	ntopng_events_manager.emit_event(ntopng_events.FILTERS_CHANGE, {filters});	
+      const key = e.detail.data.key;
+      const value = e.detail.data.realValue;
+      const status = ntopng_status_manager.get_status();
+      
+      if (key === undefined) { return; }
+      if (status.filters == null) { return; }
+
+      const filters = status.filters.filter((f) => (f.id != key || (f.id == key && f.value != value)));
+      ntopng_events_manager.emit_event(ntopng_events.FILTERS_CHANGE, {filters});	
     });
     
     tagify.on('add', async function(e) {
@@ -425,7 +425,6 @@ function create_tagify(range_picker_vue) {
         const detail = e.detail;	
         if (detail.data === undefined) { return; }
         if (detail.data.key === undefined) {return;}
-
         const tag = detail.data;
 	// remember that this tag already exixts
 	range_picker_vue.edit_tag = tag;

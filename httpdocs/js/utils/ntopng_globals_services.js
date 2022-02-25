@@ -180,52 +180,6 @@ const ntopng_status_manager = function() {
             
             this.replace_status(new_status, skip_id);
         },
-
-        // /**
-        //  * Adds or replaces the value key to the application status.
-        //  * Notifies the new status to all subscribers.
-        //  * @param {string} key key to adds or replaces.
-        //  * @param {any} value value to adds or replaces.
-        //  * @param {*} skip_id if != null doesn't notify the subscribers with skip_id identifier.
-        //  */
-        // remove_value_to_status: function(key, value, skip_id) {
-        //   let new_status = this.get_status();
-          
-        //   new_status[key] = new_status[key].replace(value + ",", '')
-        //   new_status[key] = new_status[key].replace(value, '')
-
-        //   /* Remove possible , character from begin and end */
-        //   new_status[key].endsWith(",") ? new_status[key] = new_status[key].slice(0, -1) : new_status[key]
-        //   new_status[key].startsWith(",") ? new_status[key] = new_status[key].slice(1) : new_status[key]
-
-        //   this.replace_status(new_status, skip_id);
-        // },
-
-    //     /**
-    //      * Adds or replaces the value key to the application status.
-    //      * Notifies the new status to all subscribers.
-    //      * @param {string} key key to adds or replaces.
-    //      * @param {any} value value to adds or replaces.
-    //      * @param {*} skip_id if != null doesn't notify the subscribers with skip_id identifier.
-    //      */
-    //     edit_value_to_status: function(key, value, skip_id, tag /* Tag to add, use if necessary */) {
-    //         let new_status = this.get_status();
-    //         const old_value = new_status[key]
-    //         const position = old_value.search(tag.realValue)
-    //         const firstString = old_value.substring(0, position)
-    //         let alteratedString = old_value.substring(position) 
-    //         const endPosition = alteratedString.search(",")
-
-    //         endPosition === -1 ? alteratedString = value : alteratedString = alteratedString.substring(endPosition + 1) + "," + value
-            
-    //         /* This is needed to have muliple filters for the same key */
-    //         new_status[key] = alteratedString + "," + firstString
-
-    //         new_status[key].endsWith(",") ? new_status[key] = new_status[key].slice(0, -1) : new_status[key]
-    //         new_status[key].startsWith(",") ? new_status[key] = new_status[key].slice(1) : new_status[key]
-
-    //         this.replace_status(new_status, skip_id);
-    //     },
     }
 }();
 
