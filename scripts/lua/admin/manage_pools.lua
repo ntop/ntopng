@@ -18,14 +18,6 @@ local host_pools              = require "host_pools"
 local interface_pools         = require "interface_pools"
 local local_network_pools     = require "local_network_pools"
 
--- ****** SNMP Pool ******
-local snmp_device_pools
-
--- load the snmp module only in the pro version
-if ntop.isPro() then
-   snmp_device_pools = require "snmp_device_pools"
-end
-
 -- *************** end of requires ***************
 
 local is_nedge = ntop.isnEdge()
@@ -66,7 +58,6 @@ local ALL_POOL_GET_ENDPOINT = '/lua/rest/v2/get/pools.lua'
 local pool_types = {
    ["interface"] = interface_pools,
    ["local_network"] = local_network_pools,
-   ["snmp_device"] = snmp_device_pools,
    ["host"] = host_pools,
 }
 

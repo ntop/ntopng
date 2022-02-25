@@ -38,17 +38,6 @@ $(function () {
         });
     }
 
-    const addPoolFilters = (tableAPI) => {
-
-        return new DataTableFiltersMenu({
-            filterTitle: i18n.pools,
-            filters: poolFilters,
-            columnIndex: POOL_COLUMN_INDEX,
-            tableAPI: tableAPI,
-            filterMenuKey: 'pool-filters'
-        });
-    }
-
     const toggleSnmpTableButtons = (response) => {
 
         const thereAreUnresponsiveDevices = response.data.some(
@@ -198,41 +187,7 @@ $(function () {
         });
     }
 
-    function bindReloadingPoolsButton(reloadButtonSelector) {
-        $(reloadButtonSelector).click(async function(e) {
-
-            e.preventDefault();
-
-            $(this).attr("disabled", true);
-
-            const request = await fetch(`${http_prefix}/lua/rest/v2/get/snmp/device/pools.lua`);
-            const data = await request.json();
-
-            if (data.rc < 0) {
-                console.warn("Something went wrong when reloading SNMPPools list!");
-                return;
-            }
-
-            // update the select if there are new pools
-            data.rsp.forEach((pool) => {
-
-                const {pool_id, name} = pool;
-                // if there is already the pool then return
-                if ($(`#add-select-pool option[value='${pool_id}']`).length != 0) {
-                    return;
-                }
-
-                $(`#add-select-pool`).append(`<option value='${pool_id}'>${name}</option>`)
-            });
-
-            $(this).removeAttr("disabled");
-        });
-    }
-
     /* ****************************************************************** */
-
-    bindReloadingPoolsButton(`#add-reload-pools`);
-    bindReloadingPoolsButton(`#edit-reload-pools`);
 
     bindSNMPVersionSelect(`#add-snmp-device-modal`);
     bindSNMPVersionSelect(`#edit-snmp-device-modal`);
@@ -286,9 +241,6 @@ $(function () {
             {
                 data: "column_version",
             },                
-            {
-                data: "column_pool_name"
-            },
             { data: "column_chart", className: "text-center", width: "5%" },
             { data: "column_name" },
             { data: "column_descr", width: "20%" },
@@ -356,7 +308,6 @@ $(function () {
     const $snmpTable = $(`#table-devices`).DataTable(dtConfig);
     DataTableUtils.addToggleColumnsDropdown($snmpTable);
 
-    addPoolFilters($snmpTable).init();
     addResponsivenessFilter($snmpTable).init();
 
     $(`#add-snmp-device-modal form`).modalHandler({
@@ -368,18 +319,7 @@ $(function () {
             return buildDataRequest(`#add-snmp-device-modal`);
         },
         onModalShow: () => {
-
             $(`#add-snmp-feedback`).hide();
-            // set the edit pool link to the default one when the modal opens
-            const $editPoolLink = $('#add-snmp-device-modal .edit-pool');
-            const editPoolHref = NtopUtils.buildURL(
-                '/lua/admin/manage_pools.lua?', {pool_id: SNMP_DEFAULTS.DEFAULT_POOL, page: 'snmp_device'},
-                true
-            );
-            $editPoolLink.attr('href', editPoolHref);
-
-            // load the recipient lists inside the modal
-            $(`#add-snmp-device-modal select[name='pool']`).trigger('change');
         },
         onSubmitSuccess: (response, textStatus, modalHandler) => {
             onRequestSuccess(response, textStatus, modalHandler, '#add-snmp-device-modal');
@@ -405,19 +345,7 @@ $(function () {
             $(`#edit-snmp-device-modal input[name='snmp_read_community']`).val(selectedSNMPDevice.column_community);
 	        $(`#edit-snmp-device-modal input[name='snmp_write_community']`).val(selectedSNMPDevice.column_write_community);
             $(`#edit-snmp-device-modal select[name='snmp_version']`).val(version).change();
-            $(`#edit-snmp-device-modal select[name='pool']`).val(selectedSNMPDevice.column_pool_id);
             $(`#edit-snmp-device-modal .device-name`).text(selectedSNMPDevice.column_key);
-
-            // set the edit pool link
-            const $editPoolLink = $('#edit-snmp-device-modal .edit-pool');
-            const editPoolHref = NtopUtils.buildURL(
-                '/lua/admin/manage_pools.lua?', {pool_id: selectedSNMPDevice.column_pool_id, page: 'snmp_device'},
-                true, {column_key: selectedSNMPDevice.column_key}
-            );
-            $editPoolLink.attr('href', editPoolHref);
-
-            // load the recipient lists inside the modal
-            $(`#edit-snmp-device-modal select[name='pool']`).trigger('change');
 
             if(version === SNMP_VERSION_THREE) {
                 hideShowSNMPV3Fields("#edit-snmp-device-modal", $(`#edit-snmp-device-modal select[name='snmp_level']`).val());
@@ -460,37 +388,5 @@ $(function () {
     $(`#table-devices`).on('click', `a[href='#edit-snmp-device-modal']`, function (e) {
         const selectedSNMPDevice = $snmpTable.row($(this).parent().parent().parent().parent()).data();
         $editModalHandler.invokeModalInit(selectedSNMPDevice);
-    });
-
-    // on changing the associated pool updates the link to the edit pool
-    $(`select[name='pool']`).change(async function() {
-
-        const poolId = $(this).val();
-        const $editPoolLink = $(this).parents('.form-group').find('.edit-pool');
-        const $recipientsInfo = $(this).parents('.form-group').find('.recipients-info');
-
-        let url = new URL($editPoolLink.attr('href')).searchParams.get('referer');
-        const columnKey = new URL(url).searchParams.get('column_key');
-
-        const editPoolHref = NtopUtils.buildURL(
-            '/lua/admin/manage_pools.lua?', {pool_id: poolId, page: 'snmp_device'},
-            true, {column_key: columnKey}
-        );
-
-        $editPoolLink.attr('href', editPoolHref);
-
-        const [success, pool] = await NtopUtils.getPool('snmp/device', poolId);
-        if (!success) return;
-
-        let recipients = pool.recipients;
-
-        if (recipients.length == 0) {
-            $recipientsInfo.html(i18n.no_recipients);
-            return;
-        }
-
-        const recipientNames = NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_RECIPIENTS);
-        $recipientsInfo.html(i18n.some_recipients.replace('${recipients}', recipientNames));
-
     });
 });

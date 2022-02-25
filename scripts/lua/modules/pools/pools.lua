@@ -117,7 +117,6 @@ function pools:_get_pools_prefix_key()
     local key = string.format("ntopng.pools.%s_pools", self.key)
     -- e.g.:
     --  ntopng.pools.interface_pools
-    --  ntopng.pools.snmp_device_pools
     --  ntopng.pools.network_pools
 
     return key

@@ -160,7 +160,7 @@ local available_subdirs = {
    }, {
       id = checks.SNMP_DEVICE_SUBDIR_NAME,
       label = "host_details.snmp",
-      pools = "snmp_device_pools",
+      -- pools = "snmp_device_pools",
       filter = {
 	 default_fields = { "alert_entity_val" },
 	 available_fields = {
@@ -2190,8 +2190,6 @@ local function setupSNMPChecks(str_granularity, checks_var, do_trace)
       return false
    end
    
-   local snmp_device_pools = require "snmp_device_pools"
-   
    if do_trace then print("alert.lua:setup("..str_granularity..") called\n") end
    
    checks_var.snmp_device_entity = alert_consts.alert_entities.snmp_device.entity_id
@@ -2204,8 +2202,6 @@ local function setupSNMPChecks(str_granularity, checks_var, do_trace)
       do_benchmark = checks_var.do_benchmark,
    })
    checks_var.configset = checks.getConfigset()
-   -- Instance of snmp device pools to get assigned members
-   checks_var.pools_instance = snmp_device_pools:create()
 
    return true
 end
