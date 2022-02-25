@@ -66,7 +66,7 @@
                             <b>{{ i18n("host_pools.host_pools") }}</b>
                         </label>
                         <div class="col-sm-5">
-                            <select multiple name="recipient_host_pools" class="selectpicker col-sm-12" id="edit-recipient-host-pools-select">
+                            <select multiple name="recipient_host_pools" class="selectpicker allow-no-selection col-sm-12" id="edit-recipient-host-pools-select">
                                 {% for _, pool in pairsByKeys(pools.host_pools) do %}
                                     <option value="{{ pool.pool_id }}">{{ pool.name }}</option>
                                 {% end %}

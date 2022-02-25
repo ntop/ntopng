@@ -532,12 +532,13 @@ $(function () {
     });
 
     $(`[name='recipient_host_pools']`).on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
+        if (!$(this).hasClass("allow-no-selection")) {
+            const lessThanOne = $(this).val().length < 1;
 
-        const lessThanOne = $(this).val().length < 1;
-
-        if (lessThanOne) {
-            $(this).val(previousValue);
-            $(this).selectpicker('refresh');
+            if (lessThanOne) {
+                $(this).val(previousValue);
+                $(this).selectpicker('refresh');
+            }
         }
     });
 

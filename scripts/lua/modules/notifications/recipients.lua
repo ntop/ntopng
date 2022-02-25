@@ -558,11 +558,7 @@ function recipients.get_recipient(recipient_id, include_stats)
 	 end
 
 	 -- Add host pools
-	 if not recipient_details["host_pools"] or #recipient_details["host_pools"] == 0 then
-	    if not recipient_details["host_pools"] then
-	       recipient_details["host_pools"] = {}
-	    end
-
+	 if not recipient_details["host_pools"] then
 	    local pools = host_pools:get_all_pools()
 	    for _, pool in pairs(pools) do
 	       recipient_details["host_pools"][#recipient_details["host_pools"] + 1] = pool.pool_id
