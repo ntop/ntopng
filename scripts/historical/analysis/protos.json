@@ -1,5 +1,6 @@
 {
-    "i18n_name" : "applications_long",
+  "name": "Applications",  
+  "i18n_name" : "applications_long",
     "data_source" : "flows",
     "chart" : [
 	{
