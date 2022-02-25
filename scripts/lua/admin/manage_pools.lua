@@ -34,13 +34,6 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.manage_pools)
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
--- if the selected page is snmp but we aren't in pro version
--- then block the user with an alert
-if page == "snmp" and not ntop.isPro() then
-   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
-   return
-end
-
 local url = ntop.getHttpPrefix() .. "/lua/admin/manage_pools.lua"
 page_utils.print_navbar(i18n("pools.pools"), url, {
     {
@@ -64,9 +57,7 @@ local pool_types = {
 local pool_instance = (page ~= 'all' and pool_types[page]:create() or {})
 local pool_type = page
 
-if pool_type == 'snmp_device' then
-   pool_type = "snmp/device"
-elseif pool_type == 'local_network' then
+if pool_type == 'local_network' then
    pool_type = 'network'
 end
 
@@ -76,7 +67,6 @@ local menu = {
       { key = "host", title = i18n(alert_entities.host.i18n_label), url = "?page=host", hidden = false},
       { key = "interface", title = i18n(alert_entities.interface.i18n_label), url = "?page=interface", hidden = false},
       { key = "local_network", title = i18n(alert_entities.network.i18n_label), url = "?page=local_network", hidden = false},
-      { key = "snmp_device", title = i18n(alert_entities.snmp_device.i18n_label), url = "?page=snmp_device", hidden = not ntop.isPro() or is_nedge},
 
       -- All Pool
       { key = "all", title = i18n("pools.pool_names.all"), url = "?page=all", hidden = false},
