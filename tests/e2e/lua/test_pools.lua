@@ -14,7 +14,6 @@ require "lua_utils"
 
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 local interface_pools = require "interface_pools"
-local local_network_pools = require "local_network_pools"
 local host_pools = require "host_pools"
 
 -- interface_pools.get_available_members()
@@ -107,51 +106,6 @@ assert(not has_member(pool_details["members"], "3"))
 -- tprint(s:get_all_pools())
 
 -- Cleanup
-s:cleanup()
-
--- TEST local network pools
-local s = local_network_pools:create()
-
--- Cleanup
-s:cleanup()
-
--- Creation
-local new_pool_id = s:add_pool('my_local_network_pool', {"127.0.0.0/8"} --[[ an array of valid local networks ]], 0 --[[ a valid configset_id --]], {})
-assert(new_pool_id == s.MIN_ASSIGNED_POOL_ID)
-
--- Getter (by id)
-local pool_details = s:get_pool(new_pool_id)
-assert(pool_details["name"] == "my_local_network_pool")
-
--- Getter (a non-existing id)
-assert(not s:get_pool(999))
-
--- Getter (by name)
-pool_details = s:get_pool_by_name('my_local_network_pool')
-assert(pool_details["name"] == "my_local_network_pool")
-
--- Getter (a non-existing name)
-assert(not s:get_pool_by_name('my_local_network_non_existing_name'))
-
--- Edit
-s:edit_pool(new_pool_id, 'my_local_network_renewed_pool', {"192.168.2.0/24"}, 0)
-pool_details = s:get_pool(new_pool_id)
-assert(pool_details["name"] == "my_local_network_renewed_pool")
-
--- Delete
-s:delete_pool(new_pool_id)
-pool_details = s:get_pool(new_pool_id)
-assert(pool_details == nil)
-
--- Addition of another pool
-local second_pool_id = s:add_pool('my_local_network_second_pool', {"127.0.0.0/8"} --[[ an array of valid local networks ]], 0 --[[ a valid configset_id --]], {})
-assert(second_pool_id == new_pool_id + 1)
-
--- Edit of the second pool
-s:edit_pool(second_pool_id, 'my_local_network_second_pool_edited', {"127.0.0.0/8"}, 0)
-pool_details = s:get_pool(second_pool_id)
-assert(second_pool_id == new_pool_id + 1)
-
 s:cleanup()
 
 -- Creation

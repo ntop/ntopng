@@ -13,12 +13,10 @@ local checks = require "checks"
 
 local host_pools              = require "host_pools":create()
 local interface_pools         = require "interface_pools":create()
-local local_network_pools     = require "local_network_pools":create()
 
 local pool_instances = {
   ["host"] = host_pools,
   ["interface"] = interface_pools,
-  ["local_network"] = local_network_pools,
 }
 
 -- ##############################################

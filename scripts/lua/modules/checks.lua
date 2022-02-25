@@ -28,8 +28,6 @@ local pools_lua_utils = require "pools_lua_utils"
 local alert_exclusions = require "alert_exclusions"
 local alerts_api = require("alerts_api")
 
-local local_network_pools = require "local_network_pools"
-
 local checks = {}
 
 -- ##############################################
@@ -132,7 +130,7 @@ local available_subdirs = {
    }, {
       id = checks.NETWORK_SUBDIR_NAME,
       label = "networks",
-      pools = "local_network_pools",
+      -- pools = "local_network_pools",
       filter = {
 	 default_fields = { "alert_entity_val" },
 	 available_fields = {
@@ -2157,8 +2155,6 @@ local function setupLocalNetworkChecks(str_granularity, checks_var, do_trace)
    })
 
    checks_var.configset = checks.getConfigset()
-   -- Instance of local network pools to get assigned members
-   checks_var.pools_instance = local_network_pools:create()
 end
 
 -- #################################################################
