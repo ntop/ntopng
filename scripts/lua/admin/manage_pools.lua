@@ -15,7 +15,6 @@ local template_utils = require "template_utils"
 local alert_entities = require "alert_entities"
 
 local host_pools              = require "host_pools"
-local interface_pools         = require "interface_pools"
 
 -- *************** end of requires ***************
 
@@ -48,7 +47,6 @@ page_utils.print_navbar(i18n("pools.pools"), url, {
 local ALL_POOL_GET_ENDPOINT = '/lua/rest/v2/get/pools.lua'
 
 local pool_types = {
-   ["interface"] = interface_pools,
    ["host"] = host_pools,
 }
 
@@ -59,10 +57,9 @@ local menu = {
    entries = {
       -- Pools
       { key = "host", title = i18n(alert_entities.host.i18n_label), url = "?page=host", hidden = false},
-      { key = "interface", title = i18n(alert_entities.interface.i18n_label), url = "?page=interface", hidden = false},
 
-      -- All Pool
-      { key = "all", title = i18n("pools.pool_names.all"), url = "?page=all", hidden = false},
+      -- All Pool (Hidden as we only have the host pool now)
+      -- { key = "all", title = i18n("pools.pool_names.all"), url = "?page=all", hidden = false},
    },
    current_page = page
 }

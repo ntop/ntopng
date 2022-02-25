@@ -115,10 +115,6 @@ end
 
 function pools:_get_pools_prefix_key()
     local key = string.format("ntopng.pools.%s_pools", self.key)
-    -- e.g.:
-    --  ntopng.pools.interface_pools
-    --  ntopng.pools.network_pools
-
     return key
 end
 
@@ -126,9 +122,6 @@ end
 
 function pools:_get_pool_ids_key()
     local key = string.format("%s.pool_ids", self:_get_pools_prefix_key())
-    -- e.g.:
-    --  ntopng.pools.interface_pools.pool_ids
-
     return key
 end
 
@@ -136,9 +129,6 @@ end
 
 function pools:_get_next_pool_id_key()
     local key = string.format("%s.next_pool_id", self:_get_pools_prefix_key())
-    -- e.g.:
-    --  ntopng.pools.interface_pools.next_pool_id
-
     return key
 end
 
@@ -146,9 +136,6 @@ end
 
 function pools:_get_pool_lock_key()
     local key = string.format("ntopng.cache.pools.%s.pool_lock", self.key)
-    -- e.g.:
-    --  ntopng.pools.interface_pools.pool_lock
-
     return key
 end
 

@@ -15,7 +15,6 @@ end
 pragma_once_checks = true
 
 local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
 
@@ -24,7 +23,6 @@ local json = require("dkjson")
 local script_manager = require("script_manager")
 local alert_consts = require "alert_consts"
 local http_lint = require("http_lint")
-local pools_lua_utils = require "pools_lua_utils"
 local alert_exclusions = require "alert_exclusions"
 local alerts_api = require("alerts_api")
 
@@ -88,7 +86,6 @@ local available_subdirs = {
    {
       id = checks.HOST_SUBDIR_NAME,
       label = "hosts",
-      pools = "host_pools",
       filter = {
 	 -- Default fields populated automatically when creating filters
 	 default_fields   = { "ip", },
@@ -102,7 +99,6 @@ local available_subdirs = {
    }, {
       id = checks.INTERFACE_SUBDIR_NAME,
       label = "interfaces",
-      pools = "interface_pools",
       filter = {
 	 default_fields = { "alert_entity_val" },
 	 available_fields = {
@@ -130,7 +126,6 @@ local available_subdirs = {
    }, {
       id = checks.NETWORK_SUBDIR_NAME,
       label = "networks",
-      -- pools = "local_network_pools",
       filter = {
 	 default_fields = { "alert_entity_val" },
 	 available_fields = {
@@ -158,7 +153,6 @@ local available_subdirs = {
    }, {
       id = checks.SNMP_DEVICE_SUBDIR_NAME,
       label = "host_details.snmp",
-      -- pools = "snmp_device_pools",
       filter = {
 	 default_fields = { "alert_entity_val" },
 	 available_fields = {
@@ -197,7 +191,6 @@ local available_subdirs = {
 	    },
 	 },
       },
-      -- No pools for flows
    }, {
       id = checks.SYSTEM_SUBDIR_NAME,
       label = "system",

@@ -7,7 +7,6 @@ require "lua_utils"
 local alert_severities = require "alert_severities"
 local checks = require "checks"
 local host_pools = require "host_pools":create()
-local interface_pools = require "interface_pools":create()
 
 -- ##############################################
 

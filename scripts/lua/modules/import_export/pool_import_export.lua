@@ -12,11 +12,9 @@ local rest_utils = require "rest_utils"
 local checks = require "checks"
 
 local host_pools              = require "host_pools":create()
-local interface_pools         = require "interface_pools":create()
 
 local pool_instances = {
   ["host"] = host_pools,
-  ["interface"] = interface_pools,
 }
 
 -- ##############################################

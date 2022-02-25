@@ -15,7 +15,6 @@ local pools_lua_utils = {}
 -- ##############################################
 
 -- @brief Returns an array of pool Lua class instances, for all available pools
---        e.g., {interface_pools:create(), ...}
 function pools_lua_utils.all_pool_instances_factory()
    local pools_dir = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/pools/")
    local res = {}

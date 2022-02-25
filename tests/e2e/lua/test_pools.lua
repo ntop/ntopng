@@ -13,10 +13,7 @@ end
 require "lua_utils"
 
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
-local interface_pools = require "interface_pools"
 local host_pools = require "host_pools"
-
--- interface_pools.get_available_members()
 
 local function has_member(members, member)
    for _, cur_member in pairs(members) do
@@ -27,12 +24,6 @@ local function has_member(members, member)
 
    return false
 end
-
--- TEST interface pools
-local s = interface_pools:create()
-
--- Cleanup
-s:cleanup()
 
 -- Creation
 local new_pool_id = s:add_pool('my_pool', {"5"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]], {})
