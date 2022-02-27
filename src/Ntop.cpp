@@ -412,6 +412,8 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   if(prefs->useClickHouse())
     clickhouseImport = new (std::nothrow) ClickHouseImport();
+  else
+    clickhouseImport = NULL;
 #endif
 
   redis->setInitializationComplete();
