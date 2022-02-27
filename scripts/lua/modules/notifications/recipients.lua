@@ -539,8 +539,8 @@ function recipients.get_recipient(recipient_id, include_stats)
 	 -- Add the integer recipient id
 	 recipient_details["recipient_id"] = tonumber(recipient_id)
 
-    -- Add also the endpoint configuration name
-    -- Use the endpoint id to get the endpoint configuration (use endpoint_conf_name for the old endpoints)
+	 -- Add also the endpoint configuration name
+	 -- Use the endpoint id to get the endpoint configuration (use endpoint_conf_name for the old endpoints)
 	 local ec = endpoints.get_endpoint_config(recipient_details["endpoint_id"] or recipient_details["endpoint_conf_name"])
 	 recipient_details["endpoint_conf_name"] =  ec["endpoint_conf_name"]
 	 recipient_details["endpoint_id"] =  ec["endpoint_id"]
@@ -560,6 +560,11 @@ function recipients.get_recipient(recipient_id, include_stats)
 	 -- Add host pools
 	 if not recipient_details["host_pools"] then
 	    local pools = host_pools:get_all_pools()
+
+	    if(recipient_details["host_pools"] == nil) then
+	       recipient_details["host_pools"] = {}
+	    end
+	    
 	    for _, pool in pairs(pools) do
 	       recipient_details["host_pools"][#recipient_details["host_pools"] + 1] = pool.pool_id
 	    end
