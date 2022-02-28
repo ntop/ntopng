@@ -621,3 +621,29 @@ li > a > .fa-external-link-alt{
   background-color: #181818 !important;
 }
 
+.select2-container--bootstrap-5.select2-container--focus .select2-selection, .select2-container--bootstrap-5.select2-container--open .select2-selection {
+  border-color: rgb(60, 60, 60);
+}
+
+.select2-selection--single {
+  border-color: rgb(60, 60, 60) !important;
+  color:#d1d1d1 !important;
+  background-color:#181818 !important;
+}
+
+.select2-selection__rendered {
+  border-color: rgb(60, 60, 60) !important;
+  color: #d1d1d1 !important;
+}
+
+.select2-dropdown {
+  border-color: rgb(60, 60, 60) !important;
+  color:#d1d1d1 !important;
+  background-color:#181818 !important;  
+}
+
+.select2-search__field {
+  border-color: rgb(60, 60, 60) !important;
+  color:#d1d1d1 !important;
+  background-color:#181818 !important;    
+}

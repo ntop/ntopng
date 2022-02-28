@@ -163,8 +163,6 @@ export default {
 	    if (!$(select2Div).hasClass("select2-hidden-accessible")) {
 		$(select2Div).select2({
       theme: 'bootstrap-5',
-      color: '#d1d1d1',
-      'background-color': '#181818',
       dropdownParent: $(select2Div).parent(),
 		});
 		$(select2Div).on('select2:select', function (e) {

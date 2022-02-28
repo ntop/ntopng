@@ -299,6 +299,8 @@ function page_utils.print_header(title)
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
     <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/select2.min.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/select2-bootstrap-5-theme.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/ntopng.min.css?]] print(static_file_epoch) print[[" rel="stylesheet"> ]]
 
     if (dark_mode) then
@@ -340,6 +342,7 @@ function page_utils.print_header(title)
     <!--[if lt IE 9]>
       <script src="]] print(http_prefix) print[[/js/html5shiv.js"></script>
     <![endif]-->
+    <script type="text/javascript" src="]] print(http_prefix) print[[/js/select2.min.js"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/popper/popper.min.js" crossorigin="anonymous"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(static_file_epoch) print[["></script>
