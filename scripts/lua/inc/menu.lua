@@ -193,6 +193,11 @@ else
 	    entry = page_utils.menu_entries.traffic_dashboard,
 	    url = ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua',
          },
+	 {
+	    entry = page_utils.menu_entries.traffic_analysis,
+	    hidden = not ntop.isEnterprise() or (not prefs.is_dump_flows_to_clickhouse_enabled) or ifs.isViewed or not auth.has_capability(auth.capabilities.historical_flows),
+	    url = "/lua/pro/db_search.lua?page=analysis",
+	 },
          {
             entry = page_utils.menu_entries.divider,
          },
@@ -205,11 +210,6 @@ else
 	    entry = page_utils.menu_entries.traffic_report,
 	    hidden = not ntop.isPro(),
 	    url = "/lua/pro/report.lua",
-	 },
-	 {
-	    entry = page_utils.menu_entries.db_explorer,
-	    hidden = not ntop.isEnterprise() or (not prefs.is_dump_flows_to_clickhouse_enabled) or ifs.isViewed or not auth.has_capability(auth.capabilities.historical_flows),
-	    url = "/lua/pro/db_search.lua",
 	 },
       },
    })
@@ -228,13 +228,21 @@ else
    -- ##############################################
 
    -- Flows
-   page_utils.add_menubar_section(
-      {
-         hidden = is_system_interface,
-	 section = page_utils.menu_sections.flows,
-	 url = "/lua/flows_stats.lua",
+   page_utils.add_menubar_section({
+      section = page_utils.menu_sections.flows,
+      hidden = is_system_interface,
+      entries = {
+	 {
+	    entry = page_utils.menu_entries.active_flows,
+	    url = "/lua/flows_stats.lua",
+	 },
+	 {
+	    entry = page_utils.menu_entries.db_explorer,
+            hidden = not ntop.isEnterprise() or (not prefs.is_dump_flows_to_clickhouse_enabled) or ifs.isViewed or not auth.has_capability(auth.capabilities.historical_flows),
+	    url = "/lua/pro/db_search.lua",
+	 },
       }
-   )
+   })
 
    -- ##############################################
 

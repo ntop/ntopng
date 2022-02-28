@@ -59,7 +59,7 @@ page_utils.menu_entries = {
     traffic_dashboard     = {key = "traffic_dashboard", i18n_title = "dashboard.traffic_dashboard", section = "dashboard", help_link = "https://www.ntop.org/guides/ntopng/web_gui/dashboard.html"},
     network_discovery     = {key = "network_discovery", i18n_title = "discover.network_discovery",  section = "dashboard"},
     traffic_report        = {key = "traffic_report",    i18n_title = "report.traffic_report",    section = "dashboard", help_link = "https://www.ntop.org/guides/ntopng/web_gui/report.html"},
-    db_explorer           = {key = "db_explorer", i18n_title = "db_explorer.historical_data_explorer", section = "dashboard", help_link = "https://www.ntop.org/guides/ntopng/clickhouse.html?#historical-flows-explorer"},
+    traffic_analysis      = {key = "traffic_analysis", i18n_title = "db_explorer.traffic_analysis", section = "dashboard", help_link = "https://www.ntop.org/guides/ntopng/clickhouse.html?#historical-flows-explorer"},
 
     -- Alerts
     detected_alerts       = {key = "detected_alerts", i18n_title = "show_alerts.detected_alerts", section = "alerts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/alerts.html"},
@@ -68,7 +68,9 @@ page_utils.menu_entries = {
 
     -- Flows
     flows                 = {key = "flows", i18n_title = "flows", section = "flows", help_link = "https://www.ntop.org/guides/ntopng/web_gui/flows.html"},
+    active_flows          = {key = "active_flows", i18n_title = "active_flows", section = "flows" },
     flow_details          = {key = "flow_details", i18n_title = "flow_details.flow_details", section = "flows"},
+    db_explorer           = {key = "db_explorer", i18n_title = "db_explorer.historical_data_explorer", section = "flows", help_link = "https://www.ntop.org/guides/ntopng/clickhouse.html?#historical-flows-explorer"},
 
     -- Hosts
     hosts                 = {key = "hosts", i18n_title = "hosts", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html#"},
