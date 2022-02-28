@@ -280,7 +280,7 @@
 
         /* Actions Column */
         {% if show_actions then %}
-        columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
+        columns.unshift({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
             const buttons = [
                 {% if actions.show_info then %}
                 {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info'},
@@ -367,9 +367,9 @@
       const vue_app = datatable_vue.mount("#datatable-vue");
       return vue_app;
   }
-
- 
-  $(document).ready(async function(){
+  
+  
+  $(document).ready(async function(){ 
       if (ntopng_url_manager.get_url_entry("ifid") == null) {
 	  ntopng_url_manager.add_obj_to_url({ifid: default_ifid});
       }
@@ -393,7 +393,7 @@
     
     const columns = loadColumns();
     const column_order_name = "{{ datatable.order_name }}";
-    let column_order_id = 0;
+    let column_order_id = 1;
     columns.forEach((element, index) => {
         if(element.data && element.data == column_order_name) {
             column_order_id = index;
@@ -411,6 +411,7 @@
         serverSide: true,
         searching: false,
         info: false,
+        scrollX: true,
         order: [[ column_order_id, "{* datatable.order_sorting *}" ]],
         pagingType: '{{ datatable.pagination }}',
         columnDefs: {},
@@ -438,7 +439,7 @@
                 }
                
                 data.visible_columns = getVisibleColumns(tableApi).join(',');
-
+                console.log(data.visible_columns)
                 return data;
             },
             beforeSend: function() {
@@ -468,13 +469,14 @@
         $table.ajax.reload();
     });
 
-    // on ajax request
+  // on ajax request
     $table.on('preXhr', function() {
+      $(this).css('table-layout', 'auto')
     });
 
     // on ajax request complete then print the query time
     $table.on('xhr', function() {
-        printQueryTime($table);
+      printQueryTime($table);
     });
 
     $table.on('click', `a.tag-filter`, async function (e) {

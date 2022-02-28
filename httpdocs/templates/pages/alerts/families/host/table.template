@@ -1,10 +1,10 @@
 <tr>
-    <th>{{ i18n("show_alerts.alert_datetime") }}</th>
-    <th>{{ i18n("score") }}</th>
-    <th>{{ i18n("duration") }}</th>
-    <th>{{ i18n("alerts_dashboard.alert") }}</th>
-    <th>{{ i18n("host_details.host") }}</th>
-    <th>{{ i18n("show_alerts.alert_counts") }}</th>
-    <th>{{ i18n("description") }}</th>
-    <th>{{ i18n("actions") }}</th>
+  <th>{{ i18n("actions") }}</th>
+  <th>{{ i18n("show_alerts.alert_datetime") }}</th>
+  <th>{{ i18n("score") }}</th>
+  <th>{{ i18n("duration") }}</th>
+  <th>{{ i18n("alerts_dashboard.alert") }}</th>
+  <th>{{ i18n("host_details.host") }}</th>
+  <th>{{ i18n("show_alerts.alert_counts") }}</th>
+  <th>{{ i18n("description") }}</th>
 </tr>
