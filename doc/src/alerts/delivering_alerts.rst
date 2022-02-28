@@ -20,51 +20,45 @@ An extensive example can bee seen at https://www.ntop.org/ntopng/using-ntopng-re
 Builtin
 -------
 
-A builtin SQLite recipient, along with its builtin SQLite endpoint, is always present. This is used to deliver alerts to the internal database and have them accessible inside the web UI. Engaged alerts are not affected by the builtin pair and are always shown. For example, the following alerts are shown under *Flow Alerts* because they have been delivered to the builtin recipient
-
+A builtin *Alert Store DB* recipient, along with its builtin *Alert Store DB* endpoint, is always present. This is used to deliver alerts to the internal database (SQLite or ClickHouse) and have them accessible inside the web UI. Engaged alerts are not affected by the builtin pair and are always shown. For example, the following alerts are shown under *Flow Alerts* because they have been delivered to the builtin recipient. The builtin recipient cannot be edited or deleted.
 
 .. figure:: ../img/alerts_builtin_historical_flows.png
   :align: center
   :alt: Builtin Recipient - Flow Alerts
 
-
-The builtin recipient cannot be edited or deleted but it can be associated to pools. To continue the example above, alerts shown under *Flow Alerts* have been delivered to the builtin recipient because that recipient was associated to the Default Flow Pool.
-
-
-.. figure:: ../img/alerts_builtin_historical_flows_pool_association.png
-  :align: center
-  :alt: Builtin Recipient for the Default Flow Pool
-
-The builtin recipient, as any other recipient, can be deassociated from pools, too. This will effectively cause alerts not to be delivered to the internal databse. By default, the builtin recipient is associated to all Default pools.
-
 Delivery Criteria
 -----------------
 
-Each recipient can be configured to receive alerts on the basis of two criteria:
+Each recipient can be configured to receive alerts on the basis of a few criteria:
 
-- Severity-based
-- Type-based
+- Severity
+- Alert Category
+- Host Pool
 
-
-Severity-based
-~~~~~~~~~~~~~~
+Severity Criteria
+~~~~~~~~~~~~~~~~~
 
 A minimum severity is indicated when creating/editing the recipient. All alerts having the indicated (or an higher severity) will be delivered to the recipient.
 
-
 .. figure:: ../img/alerts_recipient_criteria_minimum_severity.png
   :align: center
-  :alt: Severity-Based
+  :alt: Severity
 
-
-Type-based
-~~~~~~~~~~
+Alert Category
+~~~~~~~~~~~~~~
 
 Multiple types can be indicated when creating/editing the recipient. All alerts belonging to the indicated types will be delivered to the recipient.
 
-
 .. figure:: ../img/alerts_recipient_criteria_category_filter.png
   :align: center
-  :alt: Severity-Based
+  :alt: Alert Category
 
 
+Host Pool Criteria
+~~~~~~~~~~~~~~~~~~
+
+None or multiple host pools can be configured to filter alerts which are relative to hosts, including Flow and Host alerts.
+ 
+.. figure:: ../img/alerts_recipient_criteria_pool_filter.png
+  :align: center
+  :alt: Host Pool Criteria
