@@ -344,8 +344,8 @@ function page_utils.print_header(title)
     <!--[if lt IE 9]>
       <script src="]] print(http_prefix) print[[/js/html5shiv.js"></script>
     <![endif]-->
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/select2.min.js"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(static_file_epoch) print[["></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/js/select2.min.js"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/popper/popper.min.js" crossorigin="anonymous"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(static_file_epoch) print[["></script>
