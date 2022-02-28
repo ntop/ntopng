@@ -123,7 +123,7 @@ const create_tag_from_filter = function(filter) {
 
 const load_filters_data = async function() {    
     FILTERS_CONST = await get_filter_const(IS_ALERT_STATS_URL, PAGE);
-    FILTERS_CONST.sort((a, b) => a.id.localeCompare(b.id));
+    FILTERS_CONST.sort((a, b) => a.label.localeCompare(b.label));
     i18n_ext.tags = {};
     TAG_OPERATORS = {};
     DEFINED_TAGS = {};
