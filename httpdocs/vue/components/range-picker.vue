@@ -429,7 +429,7 @@ function create_tagify(range_picker_vue) {
 	// remember that this tag already exixts
 	range_picker_vue.edit_tag = tag;
 	// show modal-filters
-	ntopng_events_manager.emit_event(ntopng_custom_events.SHOW_MODAL_FILTERS, {id: tag.key, operator: tag.selectedOperator, value: tag.realValue});
+	ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_MODAL_FILTERS, {id: tag.key, operator: tag.selectedOperator, value: tag.realValue});
     });
     
     tagify.on('edit:updated', async function(e) {

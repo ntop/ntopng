@@ -383,7 +383,7 @@
 
     // register to global event change status
     await ntopng_sync.on_ready("range-picker");
-    ntopng_status_manager.on_status_change("datatable", (new_status) => {
+      ntopng_status_manager.on_status_change("datatable", (new_status) => {
 	let url_params = ntopng_url_manager.get_url_params();
 	reloadTable($table, url_params);
     }, true);
@@ -488,7 +488,7 @@
 
     /* Top Host and Top Alerts filters */
     {% if show_cards then %}
-    $(".dataTables_wrapper .row .text-end").on("click", "a.tag-filter", async function (e) {
+      $(".dataTables_wrapper .row .text-end").on("click", "a.tag-filter", async function (e) {
             addFilter(e, $(this));
     });
     {% end %}
@@ -540,7 +540,7 @@
 	    operator: operator,
 	};
 	if (VUE_APP.$refs["range-picker-vue"].is_filter_defined(filter)) {
-	    ntopng_events_manager.emit_event(ntopng_custom_events.SHOW_MODAL_FILTERS, filter);	    
+	    ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_MODAL_FILTERS, filter);
 	} else {
 	    ntopng_url_manager.set_key_to_url("query_preset", "");
 	    ntopng_url_manager.set_key_to_url(filter.id, `${filter.value};${filter.operator}`);
