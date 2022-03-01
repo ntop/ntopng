@@ -105,30 +105,6 @@ function ui_utils.render_datetime_range_picker(options)
     return template_utils.gen("pages/components/range-picker.template", options)
 end
 
-function ui_utils.render_datetime_range_picker_vue(options)
-
-    local presets = { day = true, week = true, month = true, year = true }
-    local buttons = { permalink = false, download = false }
-    local tags = { enabled = true, values = {}}
-    local tags_localization = {}
-
-    options = options or {}
-
-    options.json = json
-
-    options.default = options.default or "5min"
-
-    options.presets = ternary(options.presets ~= nil, table.merge(presets, options.presets), presets)
-    options.buttons = ternary(options.buttons ~= nil, table.merge(buttons, options.buttons), buttons)
-    options.max_delta_in = ternary(options.max_delta_in ~= nil, options.max_delta_in, 300)
-    options.max_delta_out = ternary(options.max_delta_in ~= nil, options.max_delta_in, 43200)
-    options.tags = ternary(options.tags ~= nil, table.merge(tags, options.tags), tags)
-    options.tags.localization = ternary(options.tags.i18n ~= nil, table.merge(tags_localization, options.tags.i18n), tags_localization)
-    options.tags.view_only = ternary(options.tags.view_only ~= nil, options.tags.view_only, false)
-
-    return template_utils.gen("pages/components/range-picker.template.html", options)
-end
-
 --- Shortcut function to print a togglw switch inside the requested page
 function ui_utils.print_toggle_switch(context)
     print(template_utils.gen("on_off_switch.html", context))
