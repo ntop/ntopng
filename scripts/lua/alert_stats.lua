@@ -539,7 +539,7 @@ local cached_sorting = ntop.getCache(ALERT_SORTING_ORDER)
 local cached_column = ntop.getCache(ALERT_SORTING_COLUMN)
 
 if isEmptyString(cached_sorting) then
-   cached_sorting = "asc"
+   cached_sorting = "desc"
 end
 
 if isEmptyString(cached_column) then

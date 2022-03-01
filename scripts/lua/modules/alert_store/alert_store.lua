@@ -35,8 +35,8 @@ if (_SESSION) and (_SESSION["user"]) then
     user = _SESSION["user"]
 end
 
-local ALERT_SORTING_ORDER = "ntopng.cached.alert.%s.%s.sort_order.%s"
-local ALERT_SORTING_COLUMN = "ntopng.cached.alert.%s.%s.sort_column.%s"
+local ALERT_SORTING_ORDER = "ntopng.cache.alert.%s.%s.sort_order.%s"
+local ALERT_SORTING_COLUMN = "ntopng.cache.alert.%s.%s.sort_column.%s"
 
 local CSV_SEPARATOR = "|"
 
