@@ -439,7 +439,6 @@
                 }
                
                 data.visible_columns = getVisibleColumns(tableApi).join(',');
-                console.log(data.visible_columns)
                 return data;
             },
             beforeSend: function() {
