@@ -35,176 +35,155 @@
 }
 </style>
 
-<div class="w-100">
+<!-- <div class="form-group my-auto mx-1"> -->
+<!-- </div>    -->
 
-    <div class="range-container d-flex flex-wrap">
+
+<div class="mb-1" id="data-time-range-picker-vue">
+  <!-- <modal-filters :filters_options="modal_data" :text="text" @apply="apply()" ref="modal1"> -->
+  <!-- </modal-filters> -->
+  <data-time-range-picker :text="text">
     
-        {% if not isEmptyString(extra_range_buttons) then %}
-            {* extra_range_buttons *}
-        {% end %}
-
-        <div class="range-picker d-flex my-auto flex-wrap">
-
-            {% if query_presets ~= nil and query_presets ~= {} then %}
-            <div class="form-group my-auto mx-1">
-                <select class="form-select" id="select-query-presets">
-                    {% if query_presets_subtype == "tables" then %}
-                        {% for _, preset in ipairs(builtin_presets) do %}
-                        <option {{ preset.selected and 'selected' }} value="{{ preset.id }}">{{ i18n(preset.i18n_name) }}</option>
-                        {% end %}
-                    <optgroup label="{{ i18n('queries.queries') }}">
-                    {% end %}
-                    {% for id, preset in pairsByKeys(query_presets) do %}
-                        <option {{ preset.selected and 'selected' }} value="{{ id }}">{{ preset.i18n_name and i18n(preset.i18n_name) or preset.name }}</option> 
-                    {% end %}
-                    {% if query_presets_subtype == "tables" then %}
-                    </optgroup>
-                    {% end %}
-                </select>
-            </div>   
-            {% end %}
-
-            <div class="form-group my-auto mx-1">
-                <select class="form-select" id="select-time-presets">
-                    {% if (presets.five_mins) or (presets.five_mins ~= false) then %}
-                    <option {{ ((presetSelected and default == '5min') and 'selected' or '') }} value="5,minutes">{{ i18n('show_alerts.presets.5_min') }}</option>
-                    {% end  %}
-                    
-                    <option {{ ((presetSelected and default == '30min') and 'selected' or '') }} value="30,minutes">{{ i18n('show_alerts.presets.30_min') }}</option>
-                    
-                    <option {{ ((presetSelected and default == '1hour') and 'selected' or '') }} value="1,hours">{{ i18n('show_alerts.presets.hour') }}</option>
-                    
-                    {% if (presets.day == nil) or presets.day then %}
-                    <option {{ ((presetSelected and default == '1day') and 'selected' or '') }} value="1,days">{{ i18n('show_alerts.presets.day') }}</option>
-                    {% end  %}
-                    
-                    {% if (presets.week == nil) or presets.week then %}
-                    <option {{ ((presetSelected and default == '1week') and 'selected' or '') }} value="1,weeks">{{ i18n('show_alerts.presets.week') }}</option>
-                    {% end  %}
-                    
-                    {% if (presets.month == nil) or presets.month then %}
-                    <option value="1,months">{{ i18n('show_alerts.presets.month') }}</option>
-                    {% end  %}
-                    
-                    {% if (presets.year == nil) or presets.year then %}
-                    <option value="1,years">{{ i18n('show_alerts.presets.year') }}</option>
-                    {% end  %}
-
-                    <option {{ ((presetSelected and default == 'all') and 'selected' or '') }} value="{{ (earliest_available_epoch or 0) }}">{{ i18n('show_alerts.presets.all') }}</option>
-                    
-                    <option value="custom" disabled {{ not presetSelected and 'selected' or '' }}>{{ i18n("graphs.custom") }}</option>
-                </select>
-            </div>
-
-            <div style="width: 38rem;" class="input-group mx-1">
-                <span class="input-group-text">
-                    <i class="fas fa-calendar-alt"></i>
-                </span>
-                <input id="begin-date" type="date" class="begin-timepicker form-control border-right-0 fix-safari-input" style="width: 2.5rem;">
-                <input id="begin-time" type="time" class="begin-timepicker form-control border-right-0 fix-safari-input">
-                <span class="input-group-text">
-                        <i class="fas fa-long-arrow-alt-right"></i>
-                    </span>
-                <input id="end-date" type="date" class="end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;">
-                <input id="end-time" type="time" class="end-timepicker form-control border-left-0 fix-safari-input">
-            </div>
-
-            <span class="wrong-ranger invalid-feedback mx-1 my-auto" data-bs-toggle="tooltip" data-placement="bottom" title="{{ i18n('wrong_date_range') }}" style="width: 1rem; display: none;">
-                <i class="fas fa-exclamation-circle"></i>
-            </span>
-
-    
-            <div class="controls d-flex flex-wrap">
-                <div class="btn-group me-auto btn-group-sm">
-                    <button class="btn btn-link" id="btn-jump-time-back">
-                        <i class="fas fa-long-arrow-alt-left"></i>
-                    </button>
-                    <button class="btn btn-link me-2" disabled id="btn-jump-time-ahead">
-                        <i class="fas fa-long-arrow-alt-right"></i>
-                    </button>
-                    <button class="btn btn-link" id="btn-zoom-in">
-                        <i class="fas fa-search-plus"></i>
-                    </button>
-                    <button class="btn btn-link" id="btn-zoom-out">
-                        <i class="fas fa-search-minus"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    
-        <button id="btn-apply" class="btn btn-sm btn-primary m-auto ms-1">{{ i18n("apply") }}</button>
-    {% if (show_jump) then %}
-        <div class="form-group my-auto mx-1">
-            <a href="{{ jump_endpoint }}" class="btn btn-sm btn-primary ms-auto" id="jumpButton"><i class="fas fa-filter"></i> {{ show_jump_text or i18n("jump_to_table") }}</a>
-        </div>
+    {% if not isEmptyString(extra_range_buttons) then %}
+    {* extra_range_buttons *}
     {% end %}
 
-    {% if (show_auto_refresh) then %}
-        <div class="form-group my-auto mx-1">
-            <button class="btn btn-link" id="autoRefreshEnabled" style="box-shadow: none;"><i class="fas fa-sync-alt {{ refresh_enabled }}"></i></button>
-        </div>
+    {% if query_presets ~= nil and query_presets ~= {} then %}
+    <select class="form-select" id="select-query-presets" onChange="update_select_query_presets()">
+      {% if query_presets_subtype == "tables" then %}
+      {% for _, preset in ipairs(builtin_presets) do %}
+      <option {{ preset.selected and 'selected' }} value="{{ preset.id }}">{{ i18n(preset.i18n_name) }}</option>
+      {% end %}
+      <optgroup label="{{ i18n('queries.queries') }}">
+	{% end %}
+	{% for id, preset in pairsByKeys(query_presets) do %}
+	<option {{ preset.selected and 'selected' }} value="{{ id }}">{{ preset.i18n_name and i18n(preset.i18n_name) or preset.name }}</option>      
+	{% end %}
+	{% if query_presets_subtype == "tables" then %}
+      </optgroup>
+      {% end %}
+    </select>
     {% end %}
-    </div>
+
     
-
-    {% if tags.enabled then %}
-    <div class="d-flex mt-1">
-    {% else %}
-    <div class="d-none mt-1">
-    {% end %}
-
-        <input class="w-100 form-control h-auto" name="tags" placeholder="{{ i18n('show_alerts.filters') }}">
-
-        {% if not isEmptyString(extra_tags_buttons) then %}
-            {* extra_tags_buttons *}
-        {% end %}
-        
-        <button data-bs-toggle="tooltip" data-placement="bottom" title="{{ i18n('show_alerts.remove_filters') }}" class="btn ms-1 my-auto btn-sm btn-remove-tags">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-
+  </data-time-range-picker>
 </div>
-  
+
+{% if tags.enabled then %}
+<div class="d-flex mt-1" style="width:100%">
+  {% else %}
+  <div class="d-none mt-1">
+    {% end %}
+
+    <input class="w-100 form-control h-auto" name="tags" placeholder="{{ i18n('show_alerts.filters') }}">
+
+    {% if not isEmptyString(extra_tags_buttons) then %}
+    {* extra_tags_buttons *}
+    {% end %}
+    
+    <button data-bs-toggle="tooltip" data-placement="bottom" title="{{ i18n('show_alerts.remove_filters') }}" class="btn ms-1 my-auto btn-sm btn-remove-tags">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>
+<script type="text/javascript">
+  //const base_vue_path = '{* ntop.getHttpPrefix() *}/vue/';
+  // loads data-time-range-picker.vue component  
+  const data_time_range_picker_options = {
+      components: {
+   	  'data-time-range-picker': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule('{* ntop.getHttpPrefix() *}/vue/components/data-time-range-picker.vue', ntopng_vue_loader.loadOptions) ),
+	  // 'modal-filters': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule('{* ntop.getHttpPrefix() *}/vue/components/modal-filters.vue', ntopng_vue_loader.loadOptions) ),
+      },
+      mounted() {
+	  setTimeout(() => {
+	      // this.$refs["modal1"].show();
+	  }, 4000);
+      },
+      data() {
+	  return {
+	      modal_data: [
+		  {
+		      id: "prova",
+		      label: "PROVA",
+		      value_type:"ip",
+		      value_label:"IP",
+		      operators: [
+			  {
+			      id: "",
+			      label: "",
+			  },
+		      ],
+		      options: [
+			  {
+			      label: "1",
+			      value: "2"
+			  }
+		      ],
+		  },
+		  {
+		      id: "prova2",
+		      label: "PROVA2",
+		      value_type:"ip",
+		      value_label:"IP",
+		      options: [
+			  {
+			      label: "alfredo",
+			      value: "2"
+			  }
+		      ],
+		  }
+	      ],
+	      text: {
+		  close: i18n("close"),
+		  alerts_presets: i18n("show_alerts.presets"),
+		  wrong_date_range: i18n("wrong_date_range"),
+		  apply: i18n("apply"),
+		  custom: i18n("graphs.custom"),
+	      },
+	  };
+      },
+      methods: {
+	  apply: function() {
+	  },
+      },
+  };
+  const data_time_range_picker = Vue.createApp(data_time_range_picker_options);
+  // allows to use data-time-range-picker component into data-time-range-picker-vue html dv
+  data_time_range_picker.mount("#data-time-range-picker-vue");  
+</script>
 
 <script type="text/javascript" src="{* ntop.getHttpPrefix *}/js/tagify.min.js"></script>
 <script type="text/javascript">
 
 /* Tags definitions */
-i18n.tags = {* json.encode(tags.localization) *};
+i18n_ext.tags = {* json.encode(tags.localization) *};
 const TAG_OPERATORS = {* json.encode(tags.tag_operators) *};
-const DEFINED_TAGS = {* json.encode(tags.defined_tags) *};
+  const DEFINED_TAGS = {* json.encode(tags.defined_tags) *};
 const VIEW_ONLY_TAGS = {* tags.view_only *};
 
-let page_initialization = true;
-
 /* Initial Tags */
-const initialTags =  {* json.encode(tags.values) *};
-
+  const initialTags = {* json.encode(tags.values) *};
+  
+  
+  
 /* Parameters */
-let beginEpoch = {{ (epoch_begin or _GET['epoch_begin'] or 'undefined') }};
-let endEpoch = {{ (epoch_end or _GET['epoch_end'] or 'undefined') }};
-const datasourceParams = {* json.encode(datasource_params) *};
-const currentDate = moment();
-
-/*  If defined, use the standard Date, the Date constructor 
-    needs a unix timestamp * 1000 to get the right date */
-if(beginEpoch) beginEpoch = moment(beginEpoch * 1000);
-if(endEpoch) endEpoch = moment(endEpoch * 1000);
+  const datasourceParams = {* json.encode(datasource_params) *};
+  ntopng_status_manager.replace_status(datasourceParams, "range-picker");
+  // const datasourceParams = ntopng_status_manager.get_status();
 
 let pageHandle = {};
 
 const inputTags = $(`[name='tags']`)[0];
 const $inputBeginEpoch = $(`.begin-timepicker`);
 const $inputEndEpoch = $(`.end-timepicker`);
-
 /* Reset values - some browsers keep the value on reload (e.g. Firefox) */
 inputTags.value = "";
 $inputBeginEpoch.value = "";
 $inputEndEpoch.value = "";
 
+  let currentQueryPresets = null;
 {% if query_presets ~= nil and query_presets ~= {} then %}
-let currentQueryPresets = $(`#select-query-presets`).val();
+  currentQueryPresets = $(`#select-query-presets`).val();
 {% end %}
 
 const tagify = new Tagify(inputTags, {
@@ -240,448 +219,25 @@ const tagify = new Tagify(inputTags, {
 });
 
 $(document).ready(function() {
-
     // add existing tags
     tagify.addTags(initialTags);
 
-    // intialize tooltip
-    $(`.btn-remove-tags`).tooltip();
-
-    const rangepickerEvent = new Event('change');
-
-    const MAX_ZOOM_IN = {{ (max_delta_in) }}; // 5 minutes
-    const MAX_ZOOM_OUT = {{ (max_delta_out) }}; // 12 hours
-    
-    let now = (endEpoch === undefined) ? currentDate : endEpoch;
-    
-    const last30Min = moment(now - (60000 * 30)); // Get Timestamp of the last 30 min in case no other beginEpoch is given
-    let prev = (beginEpoch === undefined) ? last30Min : beginEpoch;
-
-    const $rangePicker = $(`.range-picker`)[0];
-
-    const $btnApply = $(`#btn-apply`);
-    const $btnJumpTimeBack = $(`#btn-jump-time-back`);
-    const $btnJumpTimeAhead = $(`#btn-jump-time-ahead`);
-    const $btnZoomIn = $(`#btn-zoom-in`);
-    const $btnZoomOut = $(`#btn-zoom-out`);
-
-    const $selectTimePresets = $(`#select-time-presets`);
-
-    function calculateHalfZoomIn() {
-        const begin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm:ss")
-        const end = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm:ss")
-
-        const delta = end.unix() - begin.unix();
-        const zoomIn = delta / 3;
-        const halfZoomIn = (zoomIn) / 2;
-        return [begin, end, delta, halfZoomIn];
-    }
-
-    function highlightCustomPresetButton() {
-        $(`#select-time-presets`).val('custom');
-    }
-
-    function disableRangePickerButtons() {
-        $('.controls button').attr('disabled', 'disabled');
-    }
-
-    function enableRangePickerButtons() {
-        $('.controls button').removeAttr('disabled');
-    }
-
-    function highlightWrongDate() {
-        $(`.range-picker .input-group`).addClass('border').addClass('rounded').addClass('border-danger');
-        $(`.wrong-ranger`).show();
-    }
-
-    function disableWrongDate() {
-        $(`.range-picker .input-group`).removeClass('border').removeClass('rounded').removeClass('border-danger');
-        $(`.wrong-ranger`).hide();
-    }
-
-    function updateRangePicker(operation, maxDate) {
-        // get the selected preset or the first preset available
-        const [delta, measure] = ($selectTimePresets.val() || $(`#select-time-presets option:first`).val()).split(',');
-        let begin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm:ss")
-        let end = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm:ss")
-        
-        begin = begin[operation](parseInt(delta), measure);
-        end = end[operation](parseInt(delta), measure);
-
-        /* Initialize timepickers to ISO String format */
-        $(`#end-date`).attr('min', begin.format('YYYY-MM-DD'));
-        $(`#begin-date`).attr('max', end.format('YYYY-MM-DD'));
-
-        $(`#begin-date`).attr('value', begin.format('YYYY-MM-DD'));
-        $(`#begin-time`).attr('value', begin.format('HH:mm:ss'));
-        
-        $(`#end-date`).attr('value', end.format('YYYY-MM-DD'));
-        $(`#end-time`).attr('value', end.format('HH:mm:ss'));
-
-        // if the new end time is less than the max current date then
-        // enable the jump time ahead button, otherwise disable it
-        if (end < maxDate) {
-            $btnJumpTimeAhead.removeClass('disabled');
-        }
-        else {
-            $btnJumpTimeAhead.addClass('disabled');
-        }
-
-        $rangePicker.dispatchEvent(rangepickerEvent);
-    }
-
-    $('[data-bs-toggle="tooltip"]').tooltip();
-    
-    if(prev > now) {
-        disableRangePickerButtons();
-        highlightWrongDate();
-    } else {
-        enableRangePickerButtons();
-        disableWrongDate();
-    }
-    
-    /* Initialize timepickers to ISO String format */
-    $(`#end-date`).attr('min', prev.format('YYYY-MM-DD'));
-    $(`#begin-date`).attr('max', now.format('YYYY-MM-DD'));
-
-    $(`#begin-date`).attr('value', prev.format('YYYY-MM-DD'));
-    $(`#begin-time`).attr('value', prev.format('HH:mm:ss'));
-    
-    $(`#end-date`).attr('value', now.format('YYYY-MM-DD'));
-    $(`#end-time`).attr('value', now.format('HH:mm:ss'));
-
-    $selectTimePresets.on('change', function(e) {
-
-        // remove the active class
-        const [subtract, measure] = $(this).val().split(',');
-        let now = moment();
-        let diff;
-        
-        if(!measure)
-            diff = moment(now.unix() - (subtract * 1000));
-        else 
-            diff = moment().subtract(parseInt(subtract), measure);
-
-        let first_record = {* earliest_available_epoch *};
-        
-        /* Case with all time preset, if the subtract is more then now, use the 1970 epoch */
-        if(diff < 0 || diff.unix() < first_record)
-            diff = moment(first_record * 1000);
-        
-            /* ISO String format */
-        $(`#end-date`).attr('min', diff.format('YYYY-MM-DD'));
-        $(`#begin-date`).attr('max', now.format('YYYY-MM-DD'));
-
-        $(`#begin-date`).attr('value', diff.format('YYYY-MM-DD'));
-        $(`#begin-time`).attr('value', diff.format('HH:mm:ss'));
-        
-        $(`#end-date`).attr('value', now.format('YYYY-MM-DD'));
-        $(`#end-time`).attr('value', now.format('HH:mm:ss'));
-
-        enableRangePickerButtons();
-        disableWrongDate();
-    });
-
-    // travel back in the past by the selected preset
-    $btnJumpTimeBack.on('click', () => {updateRangePicker('subtract', now)});
-    // travel ahead in the future by the selected preset
-    $btnJumpTimeAhead.on('click', () => {updateRangePicker('add', now)});
-
-    $btnZoomIn.on('click', function() {
-        const [begin, end, delta, halfZoomIn] = calculateHalfZoomIn();
-        
-        let newBegin = moment((begin.unix() + halfZoomIn) * 1000);
-        let newEnd = moment((end.unix() + halfZoomIn) * 1000);
-
-        $(`#begin-date`).attr('value', newBegin.format('YYYY-MM-DD'));
-        $(`#begin-time`).attr('value', newBegin.format('HH:mm:ss'));
-        
-        $(`#end-date`).attr('value', newEnd.format('YYYY-MM-DD'));
-        $(`#end-time`).attr('value', newEnd.format('HH:mm:ss'));
-        
-        // if delta is lower than 5 minutes then disable the zoom in button
-        if (delta < MAX_ZOOM_IN) {
-            $(this).attr("disabled", "disabled");
-        }
-
-        $btnZoomOut.removeAttr("disabled");
-        $rangePicker.dispatchEvent(rangepickerEvent);
-    });
-
-    $btnZoomOut.on('click', function() {
-        const [begin, end, delta, halfZoomIn] = calculateHalfZoomIn();
-
-        let newBegin = moment((begin.unix() - halfZoomIn) * 1000);
-        let newEnd = moment((end.unix() - halfZoomIn) * 1000);
-
-        $(`#begin-date`).attr('value', newBegin[0]);
-        $(`#begin-time`).attr('value', newBegin[1]);
-        
-        $(`#end-date`).attr('value', newEnd[0]);
-        $(`#end-time`).attr('value', newEnd[1]);
-
-        // if delta is lower than 5 minutes then disable the zoom in button
-        if (delta > MAX_ZOOM_OUT) {
-            $(this).attr("disabled", "disabled");
-        }
-
-        $btnZoomIn.removeAttr("disabled");
-        $rangePicker.dispatchEvent(rangepickerEvent);
-    });
-
-    /* Autoselect the 'custom' dropdown entry when clicking any of the buttons */
-    $.each([$btnApply, $btnJumpTimeBack, $btnJumpTimeAhead], function(idx, btn) {
-        $(btn).on('click', function() {
-            highlightCustomPresetButton();
-            $rangePicker.dispatchEvent(rangepickerEvent);
-        });
-    });
-
-    /* Change the end epoch minimum */
-    $inputBeginEpoch.on("change", function (e) {
-        const newBegin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm:ss");
-        const end = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm:ss");
-
-        // Set up the minimum end date to the current begin date
-        $(`#end-date`).attr('min', $(`#begin-date`).val());
-        
-        if(newBegin == "Invalid Date" || end == "Invalid Date" || (newBegin > end)) {
-            disableRangePickerButtons();
-            highlightWrongDate();
-        } else {
-            enableRangePickerButtons();
-            disableWrongDate();
-        }
-    });
-
-    $inputEndEpoch.on("change", function (e) {
-        const begin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm:ss");
-        const newEnd = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm:ss");
-
-        // Set up the minimum end date to the current begin date
-        $(`#begin-date`).attr('max', $(`#end-date`).val());
-        
-        if(begin == "Invalid Date" || newEnd == "Invalid Date" || (begin > newEnd)) {
-            disableRangePickerButtons();
-            highlightWrongDate();
-        } else {
-            enableRangePickerButtons();
-            disableWrongDate();
-        }
-    });
-
-    page_initialization = false;
-
 }); /* $(document).ready() */
 
+  function update_select_query_presets() {
+      let value = $(`#select-query-presets`).val();
+      let status = ntopng_status_manager.get_status();
+      status['query_preset'] = value;
+      ntopng_utility.replace_url_and_reload(status);
+  }
+  function createValueFromTag(tag) {
+      if (!tag.selectedOperator) tag.selectedOperator = 'eq';
+      let val = tag.realValue != null ? tag.realValue : tag.value;
+      let value = `${val};${tag.selectedOperator}`;
+      return value;
+  }
 
     /* Global range picker functions */
-
-    function getTimestampRange(updateDatetimeUsingPresets = false) {
-        let begin;
-        let end;
-        const selectTimePresets = $(`#select-time-presets`).val();
-            
-        if(updateDatetimeUsingPresets && selectTimePresets) {
-            // getting the current time using presets
-            const [subtract, measure] = selectTimePresets.split(',');
-            const now = moment();
-            let diff;
-
-            end = now;
-            begin = diff;
-
-            if(!measure)
-                diff = moment(parseInt(subtract));
-            else
-                diff = moment().subtract(parseInt(subtract), measure);
-
-            /* update the datetimepickers and their maximum / minimum value; ISO String format */
-            $(`#end-date`).attr('min', diff.format('YYYY-MM-DD'));
-            $(`#begin-date`).attr('max', now.format('YYYY-MM-DD'));
-
-            $(`#begin-date`).attr('value', diff.format('YYYY-MM-DD'));
-            $(`#begin-time`).attr('value', diff.format('HH:mm:ss'));
-            
-            $(`#end-date`).attr('value', now.format('YYYY-MM-DD'));
-            $(`#end-time`).attr('value', now.format('HH:mm:ss'));
-        } else {
-            if($(`#begin-date`).val() && $(`#begin-time`).val()) /* the html input tag is defined */
-                begin = moment($(`#begin-date`).val() + " " + $(`#begin-time`).val(), "YYYY-MM-DD HH:mm:ss");
-            else /* the html input tag is still not loaded */
-                begin = moment(Number(datasourceParams.epoch_begin) * 1000);   
-
-            if($(`#end-date`).val() && $(`#end-time`).val()) /* the html input tag is defined */
-                end = moment($(`#end-date`).val() + " " + $(`#end-time`).val(), "YYYY-MM-DD HH:mm:ss");
-            else
-                end = moment(Number(datasourceParams.epoch_end) * 1000);
-        }
-
-        /* return the values in timestamp unix format */
-        return [begin.unix(), end.unix()];
-    }
-
-    function getSearchParams() {
-        const searchParams = new URLSearchParams();
-
-        // get all filters tags
-        const tags = tagify.getTagElms();
-        // add the tag filters inside the search params object
-        for (const tag of tags) {
-            const tagData = tagify.tagData(tag);
-
-            const key = tagData.key;
-            const selectedOperator = tagData.selectedOperator;
-            const realValue = tagData.realValue;
-            const value = tagData.value;
-
-            let param_value = `${realValue || value}{{ opsep }}${selectedOperator || 'eq'}`;
-            if (searchParams.get(key)) {
-                param_value = `${searchParams.get(key)},${param_value}`;
-            }
-
-            searchParams.set(key, param_value);
-        }
-
-        {% if query_presets ~= nil and query_presets ~= {} then %}
-        // add selected query preset
-        searchParams.set('query_preset', $(`#select-query-presets`).val());
-        {% end %}
-
-        return searchParams;
-    }
-
-    function setDatasourceParams() {
-        const searchParams = getSearchParams();
-        let changedTime = false;
-
-        searchParams.forEach(function(value, key) {
-            datasourceParams[key] = value;
-        });
-
-        let [begin, end] = getTimestampRange();
-        
-        if (begin == null && end == null) return datasourceParams, changedTime;
-        if (datasourceParams.epoch_begin != begin || datasourceParams.epoch_end != end) changedTime = true;
-        // override the existing timestamps 
-        if (datasourceParams.epoch_begin) datasourceParams.epoch_begin = begin; 
-        if (datasourceParams.epoch_end  ) datasourceParams.epoch_end   = end;
-
-        return datasourceParams, changedTime;
-    }
-
-    function updateNavbarLink(url, begin, end, element) {
-        const searchParams = getSearchParams();
-
-        searchParams.set('epoch_begin', begin);
-        searchParams.set('epoch_end', end);
-        
-        if (url.searchParams.has('status')) {
-            searchParams.set('status', url.searchParams.get('status'));
-        }
-
-        /* Read the current href */
-        const cur_href = $(element).attr('href');
-        let cur_url = new URL(cur_href, location.origin);
-        /* Read current href params and extract the page name */
-        const cur_page = cur_url.searchParams.get('page');
-        if(cur_page) {
-            /* Prepare the new URL which is the page name extracted plus all other params */
-            searchParams.set('page', cur_page);
-            searchParams.delete('alert_id');
-            cur_url.search = searchParams.toString();
-            /* Attach the new URL to the current href */
-            $(element).attr('href', cur_url.toString());
-        }
-    }
-
-    function updateStatusSwitchLink(begin, end, element) {
-        const cur_href = $(element).attr('href');
-        let cur_url = new URL(cur_href, location.origin + location.pathname);
-        let searchParams = new URLSearchParams(cur_url.search);
-
-        /* Set updated epoch */
-        searchParams.set('epoch_begin', begin);
-        searchParams.set('epoch_end',   end);
-
-        /* Attach the new URL to the current href */
-        cur_url.search = searchParams.toString();
-        $(element).attr('href', cur_url.toString());
-    }
-
-    function pushNewHistoryState(begin, end, len, dontUpdateNavBar, changedTime) {
-        const url = new URL(location);
-        const searchParams = getSearchParams();
-        searchParams.set('epoch_begin', begin);
-        searchParams.set('epoch_end', end);
-
-        /*
-          Update navbar items, e.g., alert entities, with begin/end epochs
-          and status to preserve them when switching between tabs
-         */
-        if(dontUpdateNavBar == undefined || dontUpdateNavBar == false) {
-            $('#navbarNav a').each(function(index, element) {
-                updateNavbarLink(url, begin, end, element);
-            });
-        }
-
-        /*
-          Update status switch items (Engaged, Acknoledged, Past)
-          with begin/end epochs to preserve them when switching status
-         */
-        $('#statusSwitch a').each(function(index, element) {
-            updateStatusSwitchLink(begin, end, element);
-        });
-
-        /*
-          Other page params are not preserved when switching tabs as they may be not valid across
-          multiple entities
-         */
-        searchParams.delete('page');
-        if (url.searchParams.has('page')) {
-            searchParams.set('page', url.searchParams.get('page'));
-        }
-
-        url.search = searchParams.toString();
-        window.history.pushState({epoch_begin: begin, epoch_end: end}, '', url);
-
-        if (document.getElementById("jumpButton")) {
-            $('#jumpButton').each(function(index, element) {
-                updateNavbarLink(url, begin, end, element);
-            });
-        }
-    }
-
-    async function onRangePickerChange(pushHistory = false, updateDatetimeUsingPresets = false, pushHash = true) {
-        const [begin, end] = getTimestampRange(updateDatetimeUsingPresets);
-        let changedTime = false;
-        datasourceParams, changedTime = setDatasourceParams();
-
-        if(pushHash == true) {
-            if(location.hash.length <= 3)
-                location.hash = location.hash + '1';
-            else
-                location.hash = '1';
-        }
-        
-	{% if query_presets ~= nil and query_presets ~= {} then %}
-	if (currentQueryPresets != $(`#select-query-presets`).val()) {
-	    pushNewHistoryState(begin, end);
-	    /* Reload the page to change datatable columns */
-        location.reload();
-	    return;
-	}
-	{% end %}
-        if (pushHistory) {
-            pushNewHistoryState(begin, end, null, {{ dont_update_navbar or 'false' }}, changedTime);
-        }
-        /* The reloadTable callback should be defined by the page (e.g. datatable.template) 
-         * to update the content on range or filters update (TODO define a cleaner API for this) */
-        if (typeof $table !== 'undefined') {
-            await reloadTable($table, begin, end);
-        }
-    }
-
     async function addFilterTag(tag) {
         /* Convert values to string (this avoids issues e.g. with 0) */
         if (typeof tag.realValue == 'number') { tag.realValue = ''+tag.realValue; }
@@ -700,12 +256,11 @@ $(document).ready(function() {
                 if (tag.selectedOperator) {
                     existingTag.selectedOperator = tag.selectedOperator;
                 }
-
                 tagify.replaceTag(existingTagElement, existingTag);
-
-                // update the datasource params
-                await onRangePickerChange(true, false);
-
+		let value = createValueFromTag(existingTag);
+		// trigger event
+		ntopng_status_manager.edit_value_to_status(tag.key, value, null, existingTag);
+                //await onRangePickerChange(true, false);
                 return;
             }
         } 
@@ -734,31 +289,15 @@ $(document).ready(function() {
         tagify.addTags([tag]);
     }
 
-    // on apply button click
-    $(`.range-picker`).on('change', async function(e) {
-        await onRangePickerChange(true, false);
-    });
+      // when an user remove the tag
+    tagify.on('remove', async function(e) {      
+      const tag = e.detail.data;
+      const value = createValueFromTag(tag);
 
-    $(`#select-len`).on('change', async function() {
-        await onRangePickerChange(true, false);
-    });
-
-    // when an user remove the tag
-    tagify.on('remove', async function(e) {
-        const key = e.detail.data.key;
-        if (key === undefined) {
-            return;
-        }
-
-        if (datasourceParams[key] !== undefined) {
-            delete datasourceParams[key];
-        }
-
-        await onRangePickerChange(true, false);
+	    ntopng_status_manager.remove_value_to_status(tag.key, value);
     });
 
     tagify.on('add', async function(e) {
-
         const detail = e.detail;
         if (detail.data === undefined) { return; }
 
@@ -771,18 +310,20 @@ $(document).ready(function() {
             e.stopPropagation();
             return;
         }
-
+	
         // add/update datasource params, default operator `=`
         if (!tag.selectedOperator) tag.selectedOperator = 'eq';
-
-        {% if query_presets ~= nil and query_presets ~= {} then %}
-        // When adding tags in a query page switch to the flows page if the tag is not defined in the query filters
-        if ($(`#select-query-presets`).val() != "" && !tag.operators /* No DEFINED_TAGS for this */)
-            $(`#select-query-presets`).val("");
-        {% end %}
-
-        // trigger request
-        await onRangePickerChange(true, false);
+	let value = createValueFromTag(tag);
+	let status = ntopng_status_manager.get_status();
+  if (DEFINED_TAGS != null && DEFINED_TAGS[tag.key] == null && status['query_preset'] != null && status['query_preset'] != "") {
+	    status['query_preset'] = "";
+	    status[tag.key] = value;
+	    ntopng_utility.replace_url_and_reload(status);
+	}
+	
+        // trigger event
+	ntopng_status_manager.add_value_to_status(tag.key, value);
+        //await onRangePickerChange(true, false);
     });
 
     // Tag 'click' event handler to open the 'Edit' modal. Note: this prevents
@@ -829,12 +370,15 @@ $(document).ready(function() {
         const prevTag = detail.previousData;
 
         tag.realValue = tag.value;
+        let value = createValueFromTag(tag);
 
-        // trigger request
-        await onRangePickerChange(true, false);
-    });
+        // trigger event
+        ntopng_status_manager.add_value_to_status(tag.key, value);
+              // trigger request
+              //await onRangePickerChange(true, false);
+          });
 
-    $(`tags`).on('change', 'select.operator', async function(e) {
+  $(`tags`).on('change', 'select.operator', async function(e) {
         // update the tag and the operator
         const $tag = $(this).parents('tag');
         const tagData = tagify.tagData($tag[0]);
@@ -843,13 +387,16 @@ $(document).ready(function() {
         $tag.attr("selectedoperator", selectedOperator);
 
         tagData.selectedOperator = selectedOperator;
-
+	let value = createValueFromTag(tag);
+      // trigger event
+	ntopng_status_manager.add_value_to_status(tagDate.key, value);
         // trigger request
-        await onRangePickerChange(true, false);
+        //await onRangePickerChange(true, false);
     });
 
     $(".btn-remove-tags").on('click', async function() {
         // clear all the filters on click
+      let datasourceParams = ntopng_status_manager.get_status();
 
         const tags = tagify.getTagElms();
         for (const tag of tags) {
@@ -860,81 +407,59 @@ $(document).ready(function() {
         }
 
         tagify.removeAllTags();
+      // trigger event
+      ntopng_status_manager.replace_status(datasourceParams);
 
-        await onRangePickerChange(true, false);
+        //await onRangePickerChange(true, false);
     });
 
-    const addFilter = (e, a, from_table) => {
-        e.preventDefault();
+  const addFilter = (e, a, from_table) => {
+      e.preventDefault();
 
-        let key = undefined;
-        let displayValue = undefined;
-        let realValue = undefined;
-        let operator = 'eq';
+      let key = undefined;
+      let displayValue = undefined;
+      let realValue = undefined;
+      let operator = 'eq';
 
-        if (from_table != undefined) {
-            const colIndex = from_table.cell(a.parent()).index().column;
+      if (from_table != undefined) {
+          const colIndex = from_table.cell(a.parent()).index().column;
 
-            // Read tag key from the column
-            key = from_table.column(colIndex).name();
+          // Read tag key from the column
+          key = from_table.column(colIndex).name();
 
-	        // Read tag key from the cell if any
-            const data = from_table.cell(a.parent()).data();
-            if (data.tag_key)
-                key = data.tag_key;
+	  // Read tag key from the cell if any
+          const data = from_table.cell(a.parent()).data();
+          if (data.tag_key)
+              key = data.tag_key;
 
-	        // Read value from the cell
-            displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
-            displayValue  = NtopUtils.stripTags(displayValue);
-            realValue = ((data.value != undefined) ? data.value : data);
-        }
+	  // Read value from the cell
+          displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
+          displayValue  = NtopUtils.stripTags(displayValue);
+          realValue = ((data.value != undefined) ? data.value : data);
+      }
 
-        // Read tag key and value from the <a> itself if provided
-        if (a.data('tagKey')        != undefined) key          = a.data('tagKey');
-        if (a.data('tagLabel')      != undefined) displayValue = a.data('tagLabel');
-        if (a.data('tagRealvalue')  != undefined) realValue    = a.data('tagRealvalue');
-        else if (a.data('tagValue') != undefined) realValue    = a.data('tagValue');
-        if (a.data('tagOperator')   != undefined) operator     = a.data('tagOperator');
+      // Read tag key and value from the <a> itself if provided
+      if (a.data('tagKey')        != undefined) key          = a.data('tagKey');
+      if (a.data('tagLabel')      != undefined) displayValue = a.data('tagLabel');
+      if (a.data('tagRealvalue')  != undefined) realValue    = a.data('tagRealvalue');
+      else if (a.data('tagValue') != undefined) realValue    = a.data('tagValue');
+      if (a.data('tagOperator')   != undefined) operator     = a.data('tagOperator');
 
-        const tag = {
-            label: i18n.tags[key],
-            key: key,
-            value: displayValue,
-            realValue: realValue,
-            title: realValue,
-            selectedOperator: operator
-        };
+      const tag = {
+          label: i18n_ext.tags[key],
+          key: key,
+          value: displayValue,
+          realValue: realValue,
+          title: realValue,
+          selectedOperator: operator
+      };
 
-        addFilterTag(tag);
-    }
-
-    // when the user navigates using the browser's arrows
-    // set the input boxes with their respective values
-    $(window).on('popstate', function(e) {
-        const {state} = e.originalEvent;
-        /* Prevent js error with state === null */
-        if(state) {
-            const {epoch_begin, epoch_end} = state;    
-            const begin = moment(epoch_begin * 1000);
-            const end = moment(epoch_end * 1000);            
-
-            /* update the datetimepickers and their maximum / minimum value; ISO String format */
-            $(`#end-date`).attr('min', begin.format('YYYY-MM-DD'));
-            $(`#begin-date`).attr('max', end.format('YYYY-MM-DD'));
-
-            $(`#begin-date`).attr('value', begin.format('YYYY-MM-DD'));
-            $(`#begin-time`).attr('value', begin.format('HH:mm:ss'));
-            
-            $(`#end-date`).attr('value', end.format('YYYY-MM-DD'));
-            $(`#end-time`).attr('value', end.format('HH:mm:ss'));
-        }
-    });
+      addFilterTag(tag);
+  }
 
     /*** Filters modal ***/
-
     // load data for filters (e.g. alert types in the selected range)
     async function filterModalLoadData() {
-        const [begin, end] = getTimestampRange();
         /* Here it is where we can load dynamic data on time range change */
     }
 
@@ -951,7 +476,7 @@ $(document).ready(function() {
 
        let tag = {
            key: filter_type,             // e.g. l7_proto 
-           label: i18n.tags[filter_type] // e.g. L7 Proto
+           label: i18n_ext.tags[filter_type] // e.g. L7 Proto
        }
 
        let index = $(`${formSelector} input[name='index']`).val();
