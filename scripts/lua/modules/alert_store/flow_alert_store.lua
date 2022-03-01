@@ -214,7 +214,7 @@ function flow_alert_store:_add_additional_request_filters()
    local cli_port = _GET["cli_port"]
    local srv_port = _GET["srv_port"]
    local vlan_id = _GET["vlan_id"]
-   local l7_proto = _GET["l7_proto"]
+   local l7proto = _GET["l7proto"]
    local role = _GET["role"]
 
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
@@ -227,7 +227,7 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('cli_port', cli_port, 'number')
    self:add_filter_condition_list('srv_port', srv_port, 'number')
    self:add_filter_condition_list('flow_role', role)
-   self:add_filter_condition_list('l7_proto', l7_proto, 'number')
+   self:add_filter_condition_list('l7proto', l7proto, 'number')
 end
 
 -- ##############################################
@@ -244,7 +244,7 @@ function flow_alert_store:_get_additional_available_filters()
       cli_port   = tag_utils.defined_tags.cli_port,
       srv_port   = tag_utils.defined_tags.srv_port,
       role       = tag_utils.defined_tags.role,
-      l7_proto   = tag_utils.defined_tags.l7proto,
+      l7proto    = tag_utils.defined_tags.l7proto,
       info       = tag_utils.defined_tags.info,
    }
 

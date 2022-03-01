@@ -179,8 +179,8 @@ function alert_store:build_sql_cond(cond)
 
    local sql_op = tag_utils.tag_operators[cond.op]
 
-   -- Special case: l7_proto
-   if cond.field == 'l7_proto' and cond.value ~= 0 then
+   -- Special case: l7proto
+   if cond.field == 'l7proto' and cond.value ~= 0 then
       -- Search also in l7_master_proto, unless value is 0 (Unknown)
       sql_cond = string.format("(l7_proto %s %u %s l7_master_proto %s %u)",
          sql_op, cond.value, ternary(cond.op == 'neq', 'AND', 'OR'), sql_op, cond.value)
@@ -331,8 +331,8 @@ end
 --@brief Filter (engaged) alerts in lua) evaluating self:_where conditions
 function alert_store:eval_alert_cond(alert, cond)
 
-   -- Special case: l7_proto
-   if cond.field == 'l7_proto' and cond.value ~= 0 then
+   -- Special case: l7proto
+   if cond.field == 'l7proto' and cond.value ~= 0 then
       -- Search also in l7_master_proto, unless value is 0 (Unknown)
       if cond.op == 'neq' then
          return tag_utils.eval_op(alert['l7_proto'], cond.op, cond.value) and 
@@ -549,7 +549,7 @@ function alert_store:add_filter_condition_list(field, values, values_type)
       local value, op = self:strip_filter_operator(value_op)
 
       -- Value conversion for exceptions
-      if field == 'l7_proto' then
+      if field == 'l7proto' then
          if not tonumber(value) then
             -- Try converting l7 proto name to number
             value = interface.getnDPIProtoId(value)

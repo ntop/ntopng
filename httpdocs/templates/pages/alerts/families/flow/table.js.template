@@ -6,7 +6,7 @@
     /* Application */
     {responsivePriority: 3, name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center', render: (proto, type, row) => {
         if (type !== "display") return proto.value;
-	return DataTableRenders.filterize('l7_proto', proto.value, proto.label);
+	return DataTableRenders.filterize('l7proto', proto.value, proto.label);
     }},
     /* Alert */
     {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
