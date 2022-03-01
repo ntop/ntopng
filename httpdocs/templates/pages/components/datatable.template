@@ -464,9 +464,11 @@
 	refreshTime();
     }, {{ datatable.refresh_rate }});
     {% end %}
-    
-    DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
-        $table.ajax.reload();
+
+    $table.on("draw", () => {
+        DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
+            $table.ajax.reload();
+        });
     });
 
   // on ajax request
