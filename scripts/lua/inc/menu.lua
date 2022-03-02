@@ -999,7 +999,7 @@ if (not is_system_interface) then
                json_key    = "ip",
                query_field = "host",
                class       = "typeahead-dropdown-right",
-               query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
+               query_url   = ntop.getHttpPrefix() .. "/lua/rest/v2/get/host/find.lua",
                query_title = i18n("search_host"),
                style       = "width: 16em;",
                before_submit = [[NtopUtils.makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],

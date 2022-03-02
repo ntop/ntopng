@@ -43,7 +43,7 @@
       _get["query"] = query;
 
       return $.get("{*typeahead.query_url*}", _get, function (data) {
-        var res = process(data.results);
+        var res = process(data.rsp.results);
         var menu = res.$menu;
 
         menu.click(function (e) { e.preventDefault(); });

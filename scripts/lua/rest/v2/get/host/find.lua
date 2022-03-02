@@ -16,7 +16,16 @@ if ntop.isPro() then
    snmp_location = require "snmp_location"
 end
 
-sendHTTPHeader('application/json')
+local rest_utils = require("rest_utils")
+
+--
+-- Read information about a host
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1", "query" : "192.168.1.1"}' http://localhost:3000/lua/rest/v2/get/host/find.lua
+--
+-- NOTE: in case of invalid login, no error is returned but redirected to login
+--
+
+local rc = rest_utils.consts.success.ok
 
 -- Limits
 local max_group_items = 5
@@ -26,6 +35,13 @@ local cur_results
 local already_printed = {}
 
 local results = {}
+
+if not isEmptyString(_GET["ifid"]) then
+   interface.select(_GET["ifid"])
+else
+   interface.select(ifname)
+end
+
 local query = _GET["query"]
 local hosts_only = _GET["hosts_only"]
 
@@ -42,12 +58,6 @@ else
    -- the substring 'Consiglio Nazionale dei Ministri [xxxx]'
    query = query:gsub("% %[.*%]*", "")
 
-end
-
-if not isEmptyString(_GET["ifid"]) then
-   interface.select(_GET["ifid"])
-else
-   interface.select(ifname)
 end
 
 local ifid = interface.getId()
@@ -284,7 +294,8 @@ for k, v in pairs(res) do
    end -- if
 end
 
-local resp = {interface = ifname,
+local res = {interface = ifname,
 	      results = results}
 
-print(json.encode(resp))
+rest_utils.answer(rc, res)
+

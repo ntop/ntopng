@@ -71,8 +71,8 @@ function prepare_typeahead(host_id, vlan_id, buttons_id) {
 
   $('#' + host_id).typeahead({
     source: function (query, process) {
-      return $.get('{{ ntop.getHttpPrefix() }}//lua/find_host.lua', { query: query, hosts_only: true }, function (data) {
-        return process(data.results);
+      return $.get('{{ ntop.getHttpPrefix() }}/lua/rest/v2/get/host/find.lua', { query: query, hosts_only: true }, function (data) {
+        return process(data.rsp.results);
       });
     },
     afterSelect: function(item) {

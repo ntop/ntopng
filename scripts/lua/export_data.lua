@@ -97,8 +97,8 @@ print [[
        source: function (query, process) {
                return $.get(']]
 print (ntop.getHttpPrefix())
-print [[/lua/find_host.lua', { query: query }, function (data) {
-                     return process(data.results);
+print [[/lua/rest/v2/get/host/find.lua', { query: query }, function (data) {
+        return process(data.rsp.results);
       });
       }, afterSelect: function(item) {
         $('#hostIPSearch').val(item.ip.split("@")[0]);
