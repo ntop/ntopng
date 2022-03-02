@@ -854,7 +854,7 @@ function recording_utils.recommendedSpace(ifid, storage_info)
     avail = 0
   end
 
-  local recommended = avail - (avail*0.2)
+  local recommended = avail - (avail*0.1) -- Leave some room (10%) for index files and other
   return math.floor(recommended)
 end
 
