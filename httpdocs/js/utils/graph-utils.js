@@ -302,7 +302,7 @@ function fixTimeRange(chart, params, align_step, actual_step) {
     params.epoch_begin -= params.epoch_begin % align;
     params.epoch_end -= params.epoch_end % align;
     diff_epoch = (params.epoch_end - params.epoch_begin);
-    params.limit = Math.ceil(diff_epoch / resolution);
+    params.limit = Math.ceil(diff_epoch / resolution) * 2;
 
     // align epoch end wrt params.limit
     params.epoch_end += Math.ceil(diff_epoch / params.limit) * params.limit - diff_epoch;
