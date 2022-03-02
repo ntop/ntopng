@@ -5,65 +5,53 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
-
-local alert_severities = require "alert_severities"
-local alert_consts = require "alert_consts"
+local alert_entities = require "alert_entities"
 local pools = require "pools"
+
+local host_pools_instance = nil
 
 -- ################################################################################
 
 local pools_alert_utils = {}
-local alert_entity_pool_instances = {}
-local alert_entity_all_pools = {}
-
--- ################################################################################
-
--- @brief Returns the pools of a given `entity_id`
-function pools_alert_utils.get_entity_pools_by_id(entity_id)
-   local alert_entity = alert_consts.alertEntityById(entity_id)
-
-   if not alert_entity then
-      return nil
-   end
-
-   if not alert_entity_pool_instances[alert_entity.entity_id] then
-      if not alert_entity.pools then
-         return nil
-      end
-      local pools = require(alert_entity.pools)
-      alert_entity_pool_instances[alert_entity.entity_id] = pools:create()
-   end
-
-   return alert_entity_pool_instances[alert_entity.entity_id]
-end
 
 -- ################################################################################
 
 -- @brief Returns the pool id of a given `entity_info`
-function pools_alert_utils.get_entity_pool_id(entity_info)
+function pools_alert_utils.get_host_pool_id(entity_info)
    local alert_entity = entity_info.alert_entity
-   local pool_member = entity_info.alert_entity_val
-   local res = pools.DEFAULT_POOL_ID
+   local pool_member = entity_info.entity_val
 
    -- There's no pool member or the alert entity is invalid
-   if not pool_member or not alert_entity or not alert_entity.entity_id or not alert_entity.pools then
+   if not pool_member or not alert_entity or not alert_entity.entity_id then
       -- tprint(string.format("skipping %s [%s]", pool_member, alert_entity.label or ''))
-      return pools.DEFAULT_POOL_ID
+      return nil
    end
 
-   if not alert_entity_pool_instances[alert_entity.entity_id] then
-      local pools = require(alert_entity.pools)
-      alert_entity_pool_instances[alert_entity.entity_id] = pools:create()
+   if alert_entity == alert_entities.am_host then
+      local am_host_info = split(pool_member, "@")
+      if #am_host_info == 2 then
+         pool_member = am_host_info[2]
+      end
+   else
+      -- Host pool not supported (note: flow and host alerts are set in C)
+      return nil
    end
 
-   if alert_entity_pool_instances[alert_entity.entity_id] then
-      res = alert_entity_pool_instances[alert_entity.entity_id]:get_pool_id(pool_member)
-      -- tprint(string.format("found pool %u for %s [%s]", res, pool_member, alert_entity.label))
-      return res
+   if not host_pools_instance then
+      local host_pools = require "host_pools"
+      host_pools_instance = host_pools:create()
    end
 
-   -- tprint(string.format("Pool NOT found for %s [%s]", pool_member, alert_entity.label))
-   return pools.DEFAULT_POOL_ID
+   if not host_pools_instance then
+      -- tprint(string.format("Pool NOT found for %s [%s]", pool_member, alert_entity.label))
+      return nil
+   end
+
+   local res = host_pools_instance:get_pool_id(pool_member)
+
+   -- tprint(string.format("Found pool %u for %s", res, pool_member))
+
+   return res
 end
 
 -- ################################################################################

@@ -685,7 +685,6 @@ function recipients.dispatch_notification(notification, current_script)
    if(notification) then
       local notification_category = get_notification_category(notification, current_script)
  
-      -- Using all recipients for the time being (TODO filter by pool selection)
       local recipients = recipients.get_all_recipients()
 
       if #recipients > 0 then
@@ -701,6 +700,7 @@ function recipients.dispatch_notification(notification, current_script)
 	 for _, recipient in ipairs(recipients) do
             local recipient_ok = false
 
+            -- Check Category
             if notification_category and recipient.check_categories ~= nil then
                -- Make sure the user script category belongs to the recipient user script categories
                for _, check_category in pairs(recipient.check_categories) do
@@ -712,10 +712,27 @@ function recipients.dispatch_notification(notification, current_script)
                recipient_ok = true
             end
 
-            if notification.severity and recipient.minimum_severity ~= nil and 
-               notification.severity < recipient.minimum_severity then
-               -- If the current alert severity is less than the minimum requested severity exclude the recipient
-               recipient_ok = false
+            -- Check Severity
+            if recipient_ok then
+               if notification.severity and recipient.minimum_severity ~= nil and 
+                  notification.severity < recipient.minimum_severity then
+                  -- If the current alert severity is less than the minimum requested severity exclude the recipient
+                  recipient_ok = false
+               end
+            end
+
+            -- Check Pool
+            if recipient_ok then
+               if notification.host_pool_id then
+                  if not recipient.recipient_name == "builtin_recipient_alert_store_db" 
+                     and recipient.host_pools 
+                     and not recipient.host_pools[notification.host_pool_id] then
+                     recipient_ok = false
+                     -- tprint(string.format("Notification NOT delivered to recipient %s (notification pool %s)", recipient.recipient_name, notification.host_pool_id))
+                  else
+                     -- tprint(string.format("Notification delivered to recipient %s (notification pool %s)", recipient.recipient_name, notification.host_pool_id))
+                  end
+               end
             end
 
             if recipient_ok then

@@ -382,13 +382,14 @@ end
 
 -- @param member a valid pool member
 -- @return The pool_id found for the currently selected host.
---         `member` here is IGNORED: argument is just kept to
---         preserve method fingerprint.
 function host_pools:get_pool_id(member)
-    -- OVERRIDE
-    local res = host.getPoolId()
+    local address = member
+    local vlan = 0 -- TODO
+    local is_mac = false -- TODO
 
-    if res and res["host_pool_id"] then return res["host_pool_id"] end
+    local res = interface.findMemberPool(address, vlan, is_mac)
+
+    if res and res.pool_id then return res.pool_id end
 
     return host_pools.DEFAULT_POOL_ID
 end
