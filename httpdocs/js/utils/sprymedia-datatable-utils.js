@@ -332,7 +332,7 @@ class DataTableUtils {
                 }
             },
             saveState: true,
-            responsive: false,
+            responsive: true,
             buttons: {
                 buttons: dtButtons,
                 dom: {
