@@ -1,5 +1,4 @@
 <tr>
-  <th>{{ i18n("actions") }}</th>
   <th>{{ i18n("show_alerts.alert_datetime") }}</th>
   <th>{{ i18n("score") }}</th>
   <th>{{ i18n("alerts_dashboard.alert") }}</th>
@@ -8,4 +7,5 @@
   <th>{{ i18n("flow_devices.snmp_devname") }}</th>
   <th>{{ i18n("show_alerts.alert_counts") }}</th>
   <th>{{ i18n("description") }}</th>
+  <th>{{ i18n("actions") }}</th>
 </tr>

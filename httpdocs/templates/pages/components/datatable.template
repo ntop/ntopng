@@ -280,7 +280,7 @@
 
         /* Actions Column */
         {% if show_actions then %}
-        columns.unshift({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
+        columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, render: (_, type, dataRow) => {
             const buttons = [
                 {% if actions.show_info then %}
                 {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info'},
@@ -408,10 +408,12 @@
 
     let config = DataTableUtils.getStdDatatableConfig(datatableButton);
     config = DataTableUtils.extendConfig(config, {
+        autowidth: true,
         serverSide: true,
         searching: false,
         info: false,
         scrollX: true,
+        responsive: true,
         order: [[ column_order_id, "{* datatable.order_sorting *}" ]],
         pagingType: '{{ datatable.pagination }}',
         columnDefs: {},
