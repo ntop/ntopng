@@ -1282,84 +1282,87 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria, bool par
   NetworkInterface *sub_iface = NULL;
 #ifndef HAVE_NEDGE
   std::map<u_int64_t, NetworkInterface*>::iterator subIface = flowHashing.find(criteria);
+  char buf[64], buf1[48];
+  const char *vIface_type;
 
   if(subIface != flowHashing.end()) {
     sub_iface = subIface->second;
-  } else {
-    /* Interface not found */
+    return sub_iface;
+  }
 
-    if((numSubInterfaces < MAX_NUM_VIRTUAL_INTERFACES) &&
-       (ntop->get_num_interfaces() < MAX_NUM_DEFINED_INTERFACES)) {
-      char buf[64], buf1[48];
-      const char *vIface_type;
+  /* Interface not found */
 
-      switch(flowHashingMode) {
-	case flowhashing_vlan:
-	  vIface_type = CONST_INTERFACE_TYPE_VLAN;
-	  snprintf(buf, sizeof(buf), "%s [VLAN Id: %u]", ifname, (unsigned int)criteria);
-	  break;
+  if((numSubInterfaces >= MAX_NUM_VIRTUAL_INTERFACES) ||
+     (ntop->get_num_interfaces() >= MAX_NUM_DEFINED_INTERFACES)) {
+    static bool too_many_interfaces_error = false;
 
-	case flowhashing_probe_ip:
-	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	  snprintf(buf, sizeof(buf), "%s [Probe IP: %s]", ifname, Utils::intoaV4((unsigned int)criteria, buf1, sizeof(buf1)));
-	  break;
-
-	case flowhashing_iface_idx:
-	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	  snprintf(buf, sizeof(buf), "%s [IfIdx: %u]", ifname, (unsigned int)criteria);
-	  break;
-
-	case flowhashing_ingress_iface_idx:
-	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	  snprintf(buf, sizeof(buf), "%s [InIfIdx: %u]", ifname, (unsigned int)criteria);
-	  break;
-
-	case flowhashing_probe_ip_and_ingress_iface_idx:
-	  {
-	    /* 64 bit value: upper 32 bit is nProbe IP, lower 32 bit ifIdx */
-	    u_int32_t nprobe_ip = (u_int32_t)(criteria >> 32);
-	    u_int32_t if_id     = (u_int32_t)(criteria & 0xFFFFFFFF);
-
-	    vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	    snprintf(buf, sizeof(buf), "%s [Probe IP: %s][InIfIdx: %u]", ifname,
-		     Utils::intoaV4(nprobe_ip, buf1, sizeof(buf1)), if_id);
-	  }
-	  break;
-
-	case flowhashing_vrfid:
-	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	  snprintf(buf, sizeof(buf), "%s [VRF Id: %u]", ifname, (unsigned int)criteria);
-	  break;
-
-	default:
-	  return(NULL);
-	  break;
-      }
-
-      if(dynamic_cast<ZMQParserInterface*>(this))
-        sub_iface = new (std::nothrow) ZMQParserInterface(buf, vIface_type);
-      else if(dynamic_cast<SyslogParserInterface*>(this))
-        sub_iface = new (std::nothrow) SyslogParserInterface(buf, vIface_type);
-      else
-        sub_iface = new (std::nothrow) NetworkInterface(buf, vIface_type);
-
-      if(sub_iface) {
-        if(!this->registerSubInterface(sub_iface, criteria)) {
-          ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure registering sub-interface");
-
-	  /* NOTE: interface deleted by registerSubInterface */
-          sub_iface = NULL;
-        }
-      } else
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure allocating interface: not enough memory?");
-    } else {
-      static bool too_many_interfaces_error = false;
-
-      if(!too_many_interfaces_error) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many subinterfaces defined");
-	too_many_interfaces_error = true;
-      }
+    if(!too_many_interfaces_error) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many subinterfaces defined");
+      too_many_interfaces_error = true;
     }
+
+    return NULL;
+  }
+
+  switch(flowHashingMode) {
+    case flowhashing_vlan:
+      vIface_type = CONST_INTERFACE_TYPE_VLAN;
+      snprintf(buf, sizeof(buf), "%s [VLAN Id: %u]", ifname, (unsigned int)criteria);
+    break;
+
+    case flowhashing_probe_ip:
+      vIface_type = CONST_INTERFACE_TYPE_FLOW;
+      snprintf(buf, sizeof(buf), "%s [Probe IP: %s]", ifname, Utils::intoaV4((unsigned int)criteria, buf1, sizeof(buf1)));
+    break;
+
+    case flowhashing_iface_idx:
+      vIface_type = CONST_INTERFACE_TYPE_FLOW;
+      snprintf(buf, sizeof(buf), "%s [IfIdx: %u]", ifname, (unsigned int)criteria);
+    break;
+
+    case flowhashing_ingress_iface_idx:
+      vIface_type = CONST_INTERFACE_TYPE_FLOW;
+      snprintf(buf, sizeof(buf), "%s [InIfIdx: %u]", ifname, (unsigned int)criteria);
+    break;
+
+    case flowhashing_probe_ip_and_ingress_iface_idx:
+    {
+      /* 64 bit value: upper 32 bit is nProbe IP, lower 32 bit ifIdx */
+      u_int32_t nprobe_ip = (u_int32_t)(criteria >> 32);
+      u_int32_t if_id     = (u_int32_t)(criteria & 0xFFFFFFFF);
+
+      vIface_type = CONST_INTERFACE_TYPE_FLOW;
+      snprintf(buf, sizeof(buf), "%s [Probe IP: %s][InIfIdx: %u]", ifname,
+               Utils::intoaV4(nprobe_ip, buf1, sizeof(buf1)), if_id);
+    }
+    break;
+
+    case flowhashing_vrfid:
+      vIface_type = CONST_INTERFACE_TYPE_FLOW;
+      snprintf(buf, sizeof(buf), "%s [VRF Id: %u]", ifname, (unsigned int)criteria);
+    break;
+
+    default:
+      return(NULL);
+    break;
+  }
+
+  if(dynamic_cast<ZMQParserInterface*>(this))
+    sub_iface = new (std::nothrow) ZMQParserInterface(buf, vIface_type);
+  else if(dynamic_cast<SyslogParserInterface*>(this))
+    sub_iface = new (std::nothrow) SyslogParserInterface(buf, vIface_type);
+  else
+    sub_iface = new (std::nothrow) NetworkInterface(buf, vIface_type);
+
+  if(sub_iface == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure allocating interface: not enough memory?");
+    return NULL;
+  }
+
+  if(!this->registerSubInterface(sub_iface, criteria)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure registering sub-interface");
+    sub_iface = NULL; /* NOTE: interface deleted by registerSubInterface */
+    return NULL;
   }
 #endif
 
