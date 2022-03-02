@@ -271,31 +271,45 @@ end
 
 cur_results = 0
 
+local function build_result(name, value, value_type, links)
+
+   if value_type == 'ip' and isIPv6(name) and not string.contains(name, "%[IPv6%]") then
+      name = name .. " [IPv6]"
+   end
+
+   local r = {
+      name = name,
+      ip = value,
+      type = value_type,
+      links = links or {},
+   }
+   return r
+end
+
 for k, v in pairs(res) do
    if((cur_results >= max_group_items) or (#results >= max_total_items)) then
       break
    end
 
-   if isIPv6(v) and (not string.contains(v, "%[IPv6%]")) then
-      v = v.." [IPv6]"
-   end
-
    if((v ~= "") and (already_printed[v] == nil)) then
+      already_printed[v] = true
+
       if isMacAddress(v) then
-	 results[#results + 1] = {name = v, ip = v, type = "mac"}
+	 results[#results + 1] = build_result(v, v, "mac")
       elseif isMacAddress(k) then
-	 results[#results + 1] = {name = v, ip = k, type = "mac"}
+	 results[#results + 1] = build_result(v, k, "mac")
       else
-	 results[#results + 1] = {name = v, ip = k, type = "ip"}
+	 results[#results + 1] = build_result(v, k, "ip")
       end
 
-      already_printed[v] = true
       cur_results = cur_results + 1
    end -- if
 end
 
-local res = {interface = ifname,
-	      results = results}
+local res = {
+   interface = ifname,
+   results = results,
+}
 
 rest_utils.answer(rc, res)
 
