@@ -228,18 +228,24 @@ function _get_excluded_hosts(is_flow_exclusion, alert_key)
    local ret = {}
 
    for host,v in pairs(exclusions) do
+      local t
+
       if(is_flow_exclusion) then
 	 t = v.flow_alerts
       else
 	 t = v.host_alerts
       end
 
-      for i=0,table.len(t) do
-	 if(t[i] == id) then
-	    ret[host] = true
-	    break
-	 end
-      end     
+      if not t then
+         traceError(TRACE_INFO,TRACE_CONSOLE, "Failure checking exclusions for host")
+      else
+         for i=0,table.len(t) do
+	    if(t[i] == id) then
+	       ret[host] = true
+   	    break
+   	 end
+         end     
+      end
    end
    
    return ret
