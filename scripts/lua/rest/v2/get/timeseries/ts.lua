@@ -17,11 +17,9 @@ local graph_common = require "graph_common"
 local graph_utils = require "graph_utils"
 local ts_utils = require("ts_utils")
 local ts_common = require("ts_common")
-local json = require("dkjson")
 local rest_utils = require("rest_utils")
 
 local ts_schema = _GET["ts_schema"]
-local query     = _GET["ts_query"]
 local tstart    = _GET["epoch_begin"]
 local tend      = _GET["epoch_end"]
 local compare_backward = _GET["ts_compare"]
@@ -73,8 +71,6 @@ if _GET["tskey"] then
   tags.host = tskey
 end
 
-local driver = ts_utils.getQueryDriver()
-
 local options = {
   max_num_points = tonumber(_GET["limit"]) or 60,
   initial_point = toboolean(_GET["initial_point"]),
@@ -85,22 +81,6 @@ local options = {
 if(no_fill == 1) then
   options.fill_value = 0/0 -- NaN
 end
-
--- Not necessary anymore as the influxdb driver:query method uses the
--- series last timestamp to avoid going in the future
---[[
--- Check end time bound and realign if necessary
-local latest_tstamp = driver:getLatestTimestamp(tags.ifid or -1)
-
-if (tend > latest_tstamp) and ((tend - latest_tstamp) <= ts_utils.MAX_EXPORT_TIME) then
-  local delta = tend - latest_tstamp
-  local alignment = (tend - tstart) / options.max_num_points
-
-  delta = delta + (alignment - delta % alignment)
-  tend = math.floor(tend - delta)
-  tstart = math.floor(tstart - delta)
-end
-]]
 
 if tags.ifid then
   interface.select(tags.ifid)
