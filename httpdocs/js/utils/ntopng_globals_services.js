@@ -18,7 +18,7 @@ const ntopng_sync = function() {
 	    }
 	    subscribers = subscribers.filter((s) => s.completed == false);
 	    if (subscribers.length == 0) { clearInterval(resolver); }
-	}, 300);
+	}, 250);
     };
         
     return {
