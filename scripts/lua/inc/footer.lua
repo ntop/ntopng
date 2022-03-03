@@ -499,7 +499,7 @@ $(document).ajaxError(function(err, response, ajaxSettings, thrownError) {
 
 footerRefresh();  /* call immediately to give the UI a more responsive look */
 
-setInterval(footerRefresh, 2000); /* re-schedule every [interface-rate] seconds */
+setInterval(footerRefresh, 4000); /* re-schedule every [interface-rate] seconds */
 
 //Automatically open dropdown-menu
 $(document).ready(function(){
