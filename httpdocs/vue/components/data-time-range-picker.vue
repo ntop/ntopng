@@ -68,7 +68,6 @@ export default {
     components: {
     },
     props: {
-	text: Object,
 	id: String,
     },
     emits: ["epoch_change"],

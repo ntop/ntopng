@@ -29,10 +29,10 @@
   <div v-if="page != 'all'" class="d-flex mt-1" style="width:100%">
     <input class="w-100 form-control h-auto" name="tags" ref="tagify" :placeholder="i18n('show_alerts.filters')">
     
-    <button class="btn btn-link" aria-controls="flow-alerts-table" type="button" id="btn-add-alert-filter" @click="show_modal_filters"><span><i class="fas fa-plus" data-original-title="" title="Add Filter"></i></span>
+    <button v-show="modal_data && modal_data.length > 0" class="btn btn-link" aria-controls="flow-alerts-table" type="button" id="btn-add-alert-filter" @click="show_modal_filters"><span><i class="fas fa-plus" data-original-title="" title="Add Filter"></i></span>
     </button>
     
-    <button data-bs-toggle="tooltip" data-placement="bottom" title="{{ i18n('show_alerts.remove_filters') }}" @click="remove_filters" class="btn ms-1 my-auto btn-sm btn-remove-tags">
+    <button v-show="modal_data && modal_data.length > 0" data-bs-toggle="tooltip" data-placement="bottom" title="{{ i18n('show_alerts.remove_filters') }}" @click="remove_filters" class="btn ms-1 my-auto btn-sm btn-remove-tags">
       <i class="fas fa-times"></i>
     </button>
   </div>
@@ -216,16 +216,19 @@ export default {
 	let dt_range_picker_mounted = ntopng_sync.on_ready(this.id_data_time_range_picker);
 	let modal_filters_mounted = ntopng_sync.on_ready(this.id_modal_filters);
 	await dt_range_picker_mounted;
+
+	if (this.enable_query_preset) {
+	    await set_query_preset(this);
+	}
 	if (this.page != 'all') {
 	    let filters = await load_filters_data();
+	    
 	    TAGIFY = create_tagify(this);
 	    ntopng_events_manager.emit_event(ntopng_events.FILTERS_CHANGE, {filters});
 	    ntopng_events_manager.on_event_change(this.$props["id"], ntopng_events.FILTERS_CHANGE, (status) => this.reload_status(status), true);
 	}
-	if (this.enable_query_preset) {
-	    await set_query_preset(this);
-	}
 	this.modal_data = FILTERS_CONST;
+	
 	await modal_filters_mounted;
 	ntopng_sync.ready("range-picker");
     },

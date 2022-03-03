@@ -98,6 +98,7 @@ export default {
     },
     methods: {
 	show: function(filter) {
+	    if (this.$props.filters_options == null || this.$props.filters_options.length == 0) { return; }
 	    if (filter != null) {
 		this.filter_type_selected = filter.id;
 		let post_change = (filter_def) => {
