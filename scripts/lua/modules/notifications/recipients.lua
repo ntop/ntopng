@@ -728,9 +728,6 @@ function recipients.dispatch_notification(notification, current_script)
                      and recipient.host_pools 
                      and not recipient.host_pools[notification.host_pool_id] then
                      recipient_ok = false
-                     -- tprint(string.format("Notification NOT delivered to recipient %s (notification pool %s)", recipient.recipient_name, notification.host_pool_id))
-                  else
-                     -- tprint(string.format("Notification delivered to recipient %s (notification pool %s)", recipient.recipient_name, notification.host_pool_id))
                   end
                end
             end

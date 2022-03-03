@@ -3636,15 +3636,20 @@ static int ntop_reset_pools_quotas(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_find_member_pool(lua_State *vm) {
+  NetworkInterface *ntop_interface;
   char *address;
   VLANid vlan_id = 0;
   bool is_mac;
   ndpi_patricia_node_t *target_node = NULL;
-  u_int16_t pool_id;
+  u_int16_t pool_id = 0;
   bool pool_found;
   char buf[64];
 
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  /* Note: pools are global, selecting the current interface prvents
+   * this from working on the system interface, thus we are selecting
+   * the first interface */
+  //ntop_interface = getCurrentInterface(vm);
+  ntop_interface = ntop->getFirstInterface();
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
   if((address = (char*)lua_tostring(vm, 1)) == NULL)  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));

@@ -382,16 +382,17 @@ end
 
 -- @param member a valid pool member
 -- @return The pool_id found for the currently selected host.
-function host_pools:get_pool_id(member)
-    local address = member
-    local vlan = 0 -- TODO
-    local is_mac = false -- TODO
+function host_pools:get_pool_id(member, is_mac)
+   local host_info = hostkey2hostinfo(member)
+   local address = host_info['host']
+   local vlan = host_info['vlan']
+   local is_mac = is_mac or false
 
-    local res = interface.findMemberPool(address, vlan, is_mac)
+   local res = interface.findMemberPool(address, vlan, is_mac)
 
-    if res and res.pool_id then return res.pool_id end
+   if res and res.pool_id then return res.pool_id end
 
-    return host_pools.DEFAULT_POOL_ID
+   return host_pools.DEFAULT_POOL_ID
 end
 
 -- ##############################################
