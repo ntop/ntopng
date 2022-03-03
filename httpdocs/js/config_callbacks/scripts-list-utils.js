@@ -1870,7 +1870,7 @@ $(function () {
             searchable: true,
             className: 'text-center',
             render: function (data, type, row) {
-               const icon = (!row.category_icon) ? '' : `<i class='fa ${row.category_icon}'></i>`;
+               const icon = (!row.category_icon) ? '' : `<i class='fa ${row.category_icon}' title='${row.category_title}'></i>`;
                if (type == "display") return `${icon}`;
                return row.category_title;
             }
