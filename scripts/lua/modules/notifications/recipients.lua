@@ -724,10 +724,11 @@ function recipients.dispatch_notification(notification, current_script)
             -- Check Pool
             if recipient_ok then
                if notification.host_pool_id then
-                  if not recipient.recipient_name == "builtin_recipient_alert_store_db" 
-                     and recipient.host_pools 
-                     and not recipient.host_pools[notification.host_pool_id] then
-                     recipient_ok = false
+                  if recipient.recipient_name ~= "builtin_recipient_alert_store_db" and recipient.host_pools then
+                     local host_pools_map = swapKeysValues(recipient.host_pools)
+                     if not host_pools_map[notification.host_pool_id] then
+                        recipient_ok = false
+                     end
                   end
                end
             end
