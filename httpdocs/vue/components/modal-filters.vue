@@ -72,7 +72,7 @@ export default {
     data() {
 	return {
 	    i18n: (t) => i18n(t),
-	    id_modal: `modal_${this._uid}`,
+	    id_modal: `${this.$props.id}_modal`,
 	    filter_type_selected: null,
 	    filter_type_label_selected: null,
 	    operator_selected: null,

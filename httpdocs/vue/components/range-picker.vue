@@ -230,13 +230,13 @@ export default {
 	this.modal_data = FILTERS_CONST;
 	
 	await modal_filters_mounted;
-	ntopng_sync.ready("range-picker");
+	ntopng_sync.ready(this.$props["id"]);
     },
     data() {
 	return {
 	    i18n: i18n,
-	    id_modal_filters: `modal_filters_${this._uid}`,
-	    id_data_time_range_picker: `data-time-range-picker_${this._uid}`,
+	    id_modal_filters: `${this.$props.id}_modal_filters`,
+	    id_data_time_range_picker: `${this.$props.id}_data-time-range-picker`,
 	    show_filters: false,
 	    edit_tag: null,
 	    is_alert_stats_url: IS_ALERT_STATS_URL,
@@ -352,26 +352,6 @@ function create_tagify(range_picker_vue) {
         if (typeof tag.value == 'number') { tag.value = ''+tag.value; }
 	
         const existingTagElms = tagify.getTagElms();
-        /* Lookup by index (allow key dup, replace the value only if it's the same element index or same key and op) */
-        if (tag.index && existingTagElms.length > tag.index) {
-            let existingTagElement = existingTagElms[tag.index] || existingTagElms.find(htmlTag => htmlTag.getAttribute('key') === tag.key && htmlTag.getAttribute('selectedOperator') === tag.selectedOperator);
-            if (existingTagElement) {
-                let existingTag = tagify.tagData(existingTagElement);
-		
-                // replace the tag!
-                existingTag.value = tag.value;
-                existingTag.realValue = tag.realValue;
-                if (tag.selectedOperator) {
-                    existingTag.selectedOperator = tag.selectedOperator;
-                }
-                tagify.replaceTag(existingTagElement, existingTag);
-		//todo fix key=key+operator, value=value
-		let value = createValueFromTag(existingTag);
-		// trigger event
-		ntopng_status_manager.add_value_to_status(tag.key, value);
-                return;
-            }
-        } 
 	
         /* Lookup by key, value and operator (do not add the same key and value multiple times) */
         let existingTagElement = existingTagElms.find(htmlTag => 

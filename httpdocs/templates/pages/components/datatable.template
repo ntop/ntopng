@@ -357,7 +357,7 @@
 	  mounted() {},
 	  data() {
 	      return {
-		  id_range_picker: `range_picker_${this._uid}`,
+		  id_range_picker: `range_picker`,
 		  i18n: (t) => { return i18n(t); },
 	      };
 	  },
@@ -368,19 +368,30 @@
       return vue_app;
   }
   
-  
   $(document).ready(async function(){ 
       if (ntopng_url_manager.get_url_entry("ifid") == null) {
-	  ntopng_url_manager.add_obj_to_url({ifid: default_ifid});
+	  ntopng_url_manager.set_key_to_url("ifid", default_ifid);
       }
-      
+      if (ntopng_url_manager.get_url_entry("epoch_begin") == null
+      	 || ntopng_url_manager.get_url_entry("epoch_end") == null) {
+	 let default_epoch_begin = Number.parseInt((Date.now() - 1000 * 30 * 60) / 1000);
+	 let default_epoch_end = Number.parseInt(Date.now() / 1000);
+	 ntopng_url_manager.set_key_to_url("epoch_begin", default_epoch_begin);
+	 ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
+      }
       VUE_APP = start_range_picker();
 
     // register to global event change status
-    await ntopng_sync.on_ready("range-picker");
+    //await ntopng_sync.on_ready("range_picker_data-time-range-picker");
+    let range_picker_is_ready = false;
+    let first_load_table = true;
+    ntopng_sync.on_ready("range_picker").then(() => { range_picker_is_ready = true; });
+    
       ntopng_status_manager.on_status_change("datatable", (new_status) => {
+      if (!first_load_table && !range_picker_is_ready) { return; }
 	let url_params = ntopng_url_manager.get_url_params();
 	reloadTable($table, url_params);
+	first_load_table = false;
     }, true);
 
     const datatableButton = {* (datatable.buttons or '[]') *};

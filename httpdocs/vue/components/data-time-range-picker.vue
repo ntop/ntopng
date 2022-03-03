@@ -80,7 +80,7 @@ export default {
 	let epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
 	if (epoch_begin != null && epoch_end != null) {
 	    // update the status
-            ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, { epoch_begin: Number.parseInt(epoch_begin), epoch_end: Number.parseInt(epoch_end) }, this.status_id);
+            ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, { epoch_begin: Number.parseInt(epoch_begin), epoch_end: Number.parseInt(epoch_end) }, this.$props.id);
 	}
 	let me = this;
 	let f_set_picker = (picker, var_name) => {
@@ -104,8 +104,7 @@ export default {
 	};
 	this.flat_begin_date = f_set_picker("begin-date", "begin_date");
 	this.flat_end_date = f_set_picker("end-date", "end_date");
-	
-        ntopng_events_manager.on_event_change(this.status_id, ntopng_events.EPOCH_CHANGE, (new_status) => this.on_status_updated(new_status), true);
+        ntopng_events_manager.on_event_change(this.$props.id, ntopng_events.EPOCH_CHANGE, (new_status) => this.on_status_updated(new_status), true);
 	// notifies that component is ready
 	ntopng_sync.ready(this.$props["id"]);
     },
@@ -125,7 +124,7 @@ export default {
             } else {
                 status.epoch_end = this.get_utc_seconds(end_date_time_utc);
                 status.epoch_begin = this.get_utc_seconds(begin_date_time_utc);
-                this.emit_epoch_change(status, this.status_id);
+                this.emit_epoch_change(status, this.$props.id);
             }
 	    this.flat_begin_date.setDate(new Date(status.epoch_begin * 1000));
 	    this.flat_end_date.setDate(new Date(status.epoch_end * 1000));
@@ -301,7 +300,7 @@ export default {
     data() {
         return {
 	    i18n: (t) => i18n(t),
-            status_id: "data-time-range-picker" + this._uid,
+            //status_id: "data-time-range-picker" + this.$props.id,
             epoch_status: null,
             enable_apply: false,
             select_time_value: "min_5",
