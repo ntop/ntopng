@@ -9,7 +9,7 @@
 <script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
 
 <!-- vue3 -->
-<script src="{* ntop.getHttpPrefix() *}/vue/vue-dev.js"></script>
+<script src="{* ntop.getHttpPrefix() *}/vue/vue-prod.js"></script>
 <script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js"></script>
 <script src="{* ntop.getHttpPrefix() *}/vue/ntopng_vue_loader.js"></script>
 
@@ -106,7 +106,7 @@
 	  mounted() {},
 	  data() {
 	      return {
-		  id_range_picker: `range_picker_${this._uid}`,
+		  id_range_picker: `range_picker`,
 		  i18n: (t) => { return i18n(t); },
 	      };
 	  },
@@ -129,7 +129,8 @@
 	 ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
       }
       VUE_APP = start_range_picker();
-      //await ntopng_sync.on_ready("range-picker");
+      
+      await ntopng_sync.on_ready("range_picker");
 
       hideOverlays();
 

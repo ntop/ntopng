@@ -9,7 +9,7 @@
 <script type='text/javascript' src='{* ntop.getHttpPrefix() *}/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
 
 <!-- vue3 -->
-<script src="{* ntop.getHttpPrefix() *}/vue/vue-dev.js"></script>
+<script src="{* ntop.getHttpPrefix() *}/vue/vue-prod.js"></script>
 <script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js"></script>
 <script src="{* ntop.getHttpPrefix() *}/vue/ntopng_vue_loader.js"></script>
 
