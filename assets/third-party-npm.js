@@ -45,6 +45,7 @@ window.dc = dc
 window.cubism = cubism
 
 import 'vis-network'
+import 'select2'
 /* 
   Must be included here, otherwise it's not going to work, in fact some 
   external libraries have been changed and added this ntop util functions 
