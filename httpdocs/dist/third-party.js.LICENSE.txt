@@ -270,19 +270,19 @@
  */
 
 /*! *****************************************************************************
-	Copyright (c) Microsoft Corporation.
+Copyright (c) Microsoft Corporation.
 
-	Permission to use, copy, modify, and/or distribute this software for any
-	purpose with or without fee is hereby granted.
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
 
-	THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-	REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-	AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-	INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-	LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-	OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-	PERFORMANCE OF THIS SOFTWARE.
-	***************************************************************************** */
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
 
 /*! ../../http_src/utilities/graph/graph-utils */
 
@@ -315,6 +315,8 @@
 /*! ../http_src/utilities/datatable/datatable-plugins/api-extension */
 
 /*! ../http_src/utilities/datatable/datatable-plugins/jquery-extension */
+
+/*! ../http_src/utilities/datatable/sprymedia-datatable-utils.js */
 
 /*! ../http_src/utilities/ntop-utils */
 
@@ -1333,11 +1335,11 @@
  */
 
 /*! Hammer.JS - v2.0.17-rc - 2019-12-16
-	 * http://naver.github.io/egjs
-	 *
-	 * Forked By Naver egjs
-	 * Copyright (c) hammerjs
-	 * Licensed under the MIT license */
+ * http://naver.github.io/egjs
+ *
+ * Forked By Naver egjs
+ * Copyright (c) hammerjs
+ * Licensed under the MIT license */
 
 /*! apexcharts */
 
@@ -1458,9 +1460,7 @@
 * https://github.com/wout/svg.filter.js
 * Copyright (c) 2016 Wout Fierens; Licensed MIT */
 
-/*! vis-data/peer/umd/vis-data.js */
-
-/*! vis-network */
+/*! vis-network/dist/vis-network.esm */
 
 /*!*******************************!*\
   !*** ./assets/third-party.js ***!
@@ -2154,10 +2154,6 @@
   !*** ./node_modules/jquery-ui-bundle/jquery-ui.js ***!
   \****************************************************/
 
-/*!****************************************************!*\
-  !*** ./node_modules/vis-data/peer/umd/vis-data.js ***!
-  \****************************************************/
-
 /*!*****************************************************!*\
   !*** ./assets/scripts/vendors/tagify/tagify.min.js ***!
   \*****************************************************/
@@ -2368,6 +2364,10 @@
 
 /*!**********************************************************!*\
   !*** ./node_modules/leaflet/dist/images/marker-icon.png ***!
+  \**********************************************************/
+
+/*!**********************************************************!*\
+  !*** ./node_modules/vis-network/dist/vis-network.esm.js ***!
   \**********************************************************/
 
 /*!***********************************************************!*\
@@ -3026,10 +3026,6 @@
   !*** ./node_modules/dc/node_modules/d3-zoom/src/constant.js ***!
   \**************************************************************/
 
-/*!**************************************************************!*\
-  !*** ./node_modules/vis-network/peer/umd/vis-network.min.js ***!
-  \**************************************************************/
-
 /*!***************************************************************!*\
   !*** ./node_modules/dc/node_modules/d3-array/src/bisector.js ***!
   \***************************************************************/
@@ -3548,6 +3544,10 @@
 
 /*!*******************************************************************!*\
   !*** ./assets/scripts/vendors/datatables/datatable-macsorting.js ***!
+  \*******************************************************************/
+
+/*!*******************************************************************!*\
+  !*** ./http_src/utilities/datatable/sprymedia-datatable-utils.js ***!
   \*******************************************************************/
 
 /*!*******************************************************************!*\
@@ -4515,39 +4515,13 @@
   \*******************************************************************************************/
 
 /**
- * vis-data
- * http://visjs.org/
- *
- * Manage unstructured data using DataSet. Add, update, and remove data, and listen for changes in the data.
- *
- * @version 7.1.2
- * @date    2021-01-08T20:37:11.601Z
- *
- * @copyright (c) 2011-2017 Almende B.V, http://almende.com
- * @copyright (c) 2017-2019 visjs contributors, https://github.com/visjs
- *
- * @license
- * vis.js is dual licensed under both
- *
- *   1. The Apache 2.0 License
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *   and
- *
- *   2. The MIT License
- *      http://opensource.org/licenses/MIT
- *
- * vis.js may be distributed under either license.
- */
-
-/**
  * vis-network
  * https://visjs.github.io/vis-network/
  *
  * A dynamic, browser-based visualization library.
  *
  * @version 9.1.0
- * @date    2021-08-29T08:43:14.666Z
+ * @date    2021-08-29T08:47:25.454Z
  *
  * @copyright (c) 2011-2017 Almende B.V, http://almende.com
  * @copyright (c) 2017-2019 visjs contributors, https://github.com/visjs

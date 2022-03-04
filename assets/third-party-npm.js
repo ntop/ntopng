@@ -44,7 +44,10 @@ window.crossfilter = crossfilter
 window.dc = dc
 window.cubism = cubism
 
-import 'vis-network'
+import * as vis from 'vis-network/dist/vis-network.esm'
+
+window.vis = vis
+
 import 'select2'
 /* 
   Must be included here, otherwise it's not going to work, in fact some 
@@ -57,11 +60,19 @@ import ToastUtils from '../http_src/utilities/toast-utils'
 import NtopUtils from '../http_src/utilities/ntop-utils'
 import '../http_src/utilities/string-utils'
 
+/* Generic ntopng Utils */
 window.regeneratorRuntime = regeneratorRuntime
 window.ToastUtils = ToastUtils
 window.NtopUtils = NtopUtils
 
 /* datatables.net extensions */
+import { DataTableFiltersMenu, DataTableRangeFiltersMenu, DataTableUtils, DataTableRenders } from '../http_src/utilities/datatable/sprymedia-datatable-utils.js'
+
+window.DataTableUtils = DataTableUtils
+window.DataTableRangeFiltersMenu = DataTableRangeFiltersMenu
+window.DataTableFiltersMenu = DataTableFiltersMenu
+window.DataTableRenders = DataTableRenders
+
 import '../http_src/utilities/datatable/datatable-plugins/api-extension'
 import '../http_src/utilities/datatable/datatable-plugins/jquery-extension'
 

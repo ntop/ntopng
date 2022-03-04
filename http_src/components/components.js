@@ -6,7 +6,6 @@ import './components.scss'
 //import './charts/cal-heatmap'
 
 //import './charts/heatmap'
-import './iface-dropdown/ifaces-dropdown'
 import { ChartWidget, WidgetUtils } from './widget/widgets'
 import './sidebar/sidebar'
 
