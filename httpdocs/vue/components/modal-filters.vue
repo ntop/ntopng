@@ -151,11 +151,11 @@ export default {
 	},
 	get_data_pattern: function(value_type) {
 	    if (value_type == "ip") {
-		return `${REGEXES.ipv4}|${REGEXES.ipv6}`;
+		return `${NtopUtils.REGEXES.ipv4}|${NtopUtils.REGEXES.ipv6}`;
 	    } else if (value_type == "hostname") {
-		return `${REGEXES.singleword}`;
+		return `${NtopUtils.REGEXES.singleword}`;
 	    }
-	    return REGEXES[value_type];
+	    return NtopUtils.REGEXES[value_type];
 	},
 	showed: function() {
 	    let me = this;
