@@ -144,14 +144,27 @@ https://github.com/rgl/redis/downloads
 Additional Notes
 ~~~~~~~~~~~~~~~~
 
-- Compilation of Javascript/CSS scripts to produce httpdocs/dist require npm and the installation of npm packages defined in package.json (devDependencies).
+Compilation of Javascript/CSS scripts to produce httpdocs/dist require npm and the installation of 
+npm packages defined in package.json (devDependencies). npm 12 or later is required and can be installed
+by configuring the repository:
 
-sudo apt install npm
-rm -f package-lock.json
+curl -sL https://deb.nodesource.com/setup_12.x | sudo bash -
+sudo apt install -y nodejs npm
+npm rebuild node-sass
+
+Installation of the required npm packages:
+
+npm install --save-dev @babel/core
 jq -c '.devDependencies' package.json | jq -r -M | grep ':' | sed 's/:/@/' | sed 's|[", ^]||g' | xargs -L1 npm install --save-dev 
+
+Building JS/CSS in dist:
+
 npm run build:dev
 
-- You can use ZMQ 4.x as alternative to 3.x (but not 2.x)
+ZMQ Version
+~~~~~~~~~~~
+
+You can use ZMQ 4.x as alternative to 3.x (but not 2.x)
 
 Source Code Compilation
 -----------------------
