@@ -95,6 +95,7 @@ pool = pool
         DELETE_POOL_FAILED: "{{ i18n('rest_consts.DELETE_POOL_FAILED') }}",
     };
     
+    
     const MAX_RECIPIENTS_TO_SHOW = 10;
 
     const renableDisabledOptions = (selector, members) => {
@@ -162,18 +163,6 @@ pool = pool
                     if (type == "display") {
                         return NtopUtils.arrayToListString(memberNames, MAX_RECIPIENTS_TO_SHOW);
                     }
-                }
-            },
-            {
-                data: 'recipients',
-                width: '40%',
-                render: function(recipients, type, row) {
-
-                    if (type == "display") {
-                        return NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_RECIPIENTS_TO_SHOW);
-                    }
-
-                    return recipients;
                 }
             },
             {
@@ -268,14 +257,12 @@ pool = pool
         endpoint: endpoints.add_pool,
         beforeSumbit: function() {
             const members = $(`#add-pool form select[name='members']`).val() || [];
-            const recipients = $(`#add-pool form select[name='recipients']`).val() || [];
 
             $(`#add-modal-feedback`).hide();
 
             return {
                 pool_name: $(`#add-pool form input[name='name']`).val().trim(),
-                pool_members: members.join(','),
-                recipients: recipients.join(',')
+                pool_members: members.join(',')
             };
         },
         onSubmitSuccess: function (response, textStatus, modalHandler) {
@@ -351,8 +338,6 @@ pool = pool
             $(`#edit-pool form input[name='name']`).val(pool.name);
             $(`#edit-pool form select[name='members']`).val(pool.members);
             $(`#edit-pool form select[name='members']`).selectpicker('refresh');
-            $(`#edit-pool form select[name='recipients']`).val(pool.recipients.map(r => r.recipient_id) || []);
-            $(`#edit-pool form select[name='recipients']`).selectpicker('refresh');
 
             if (poolType == "host") {
                 const href = $(`#edit-link`).attr('href').replace(/pool\=[0-9]+/, `pool=${pool.pool_id}`);
@@ -362,12 +347,10 @@ pool = pool
         beforeSumbit: (pool) => {
 
             const members = $(`#edit-pool form select[name='members']`).val() || [];
-            const recipients = $(`#edit-pool form select[name='recipients']`).val() || [];
 
             const data = {
                 pool: pool.pool_id,
-                pool_name: $(`#edit-pool form input[name='name']`).val().trim(),
-                recipients: recipients.join(',')
+                pool_name: $(`#edit-pool form input[name='name']`).val().trim()
             };
 
             if (poolType != "host") {
@@ -460,4 +443,5 @@ pool = pool
         const selectedPool = $poolTable.row($(this).parent().parent().parent().parent()).data();
         $removeModalHandler.invokeModalInit(selectedPool);
     });
+
 </script>
