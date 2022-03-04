@@ -13,16 +13,16 @@
     <div id="canvas-widget-{{widget_name}}"></div>
 </div>
 <script type="text/javascript">
-$(document).ready(async function() {
-    const datasource = {* json.encode(widget.datasources) *};
-    const additionalParams = {* json.encode(widget.additional_params) *};
-    const $error = $(`#widget-{{ widget_name }} .widget-error`);
-    try {
-        await new ChartWidget("{{ widget_name }}", "{{ widget.type }}", datasource[0], {{ widget.update_time }}, additionalParams).init();
-    }
-    catch (e) {
-        console.error("Something went wrong when loading the chart!", e);
-        $error.show();
-    }
-});
+  $(document).ready(async function() {
+      const datasource = {* json.encode(widget.datasources) *};
+      const additionalParams = {* json.encode(widget.additional_params) *};
+      const $error = $(`#widget-{{ widget_name }} .widget-error`);
+      try {
+          await new ChartWidget("{{ widget_name }}", "{{ widget.type }}", datasource[0], {{ widget.update_time }}, additionalParams).init();
+      }
+      catch (e) {
+          console.error("Something went wrong when loading the chart!", e);
+          $error.show();
+      }
+  });
 </script>

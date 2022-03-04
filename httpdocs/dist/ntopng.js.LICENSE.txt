@@ -1,0 +1,191 @@
+/*!
+ * Sizzle CSS Selector Engine v2.3.6
+ * https://sizzlejs.com/
+ *
+ * Copyright JS Foundation and other contributors
+ * Released under the MIT license
+ * https://js.foundation/
+ *
+ * Date: 2021-02-16
+ */
+
+/*!
+ * jQuery JavaScript Library v3.6.0
+ * https://jquery.com/
+ *
+ * Includes Sizzle.js
+ * https://sizzlejs.com/
+ *
+ * Copyright OpenJS Foundation and other contributors
+ * Released under the MIT license
+ * https://jquery.org/license
+ *
+ * Date: 2021-03-02T17:08Z
+ */
+
+/*!
+ * jQuery Plugin: Are-You-Sure (Dirty Form Detection)
+ * https://github.com/codedance/jquery.AreYouSure/
+ *
+ * Copyright (c) 2012-2014, Chris Dance and PaperCut Software http://www.papercut.com/
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * Author:  chris.dance@papercut.com
+ * Version: 1.9.0
+ * Date:    13th August 2014
+ */
+
+/*! ../../http_src/utilities/datatable/sprymedia-datatable-utils.js */
+
+/*! ./are-you-sure-utils */
+
+/*! ./charts/pie-chart */
+
+/*! ./components.scss */
+
+/*! ./components/components */
+
+/*! ./context/ntopng_globals_services */
+
+/*! ./datatable/bootstrap-datatable-utils */
+
+/*! ./ebpf-utils */
+
+/*! ./graph/graph-utils */
+
+/*! ./iface-dropdown/ifaces-dropdown */
+
+/*! ./modal/modal-utils */
+
+/*! ./ntopng-validators-utils */
+
+/*! ./ntopng.scss */
+
+/*! ./public/blog/blog-notification-utils */
+
+/*! ./routes/routes */
+
+/*! ./sequence_sunburst */
+
+/*! ./services/services */
+
+/*! ./sidebar/sidebar */
+
+/*! ./utilities/utilities */
+
+/*! ./validators/validators */
+
+/*! ./views/views */
+
+/*! ./widget/widgets */
+
+/*! d3 */
+
+/*! jquery */
+
+/*! jquery.are-you-sure */
+
+/*!****************************!*\
+  !*** ./http_src/ntopng.js ***!
+  \****************************/
+
+/*!******************************!*\
+  !*** ./http_src/ntopng.scss ***!
+  \******************************/
+
+/*!*******************************!*\
+  !*** ./node_modules/d3/d3.js ***!
+  \*******************************/
+
+/*!*********************************!*\
+  !*** ./http_src/views/views.js ***!
+  \*********************************/
+
+/*!***********************************!*\
+  !*** ./http_src/routes/routes.js ***!
+  \***********************************/
+
+/*!***************************************!*\
+  !*** ./http_src/services/services.js ***!
+  \***************************************/
+
+/*!*****************************************!*\
+  !*** ./http_src/utilities/utilities.js ***!
+  \*****************************************/
+
+/*!******************************************!*\
+  !*** ./http_src/utilities/ebpf-utils.js ***!
+  \******************************************/
+
+/*!*******************************************!*\
+  !*** ./http_src/components/components.js ***!
+  \*******************************************/
+
+/*!*******************************************!*\
+  !*** ./http_src/validators/validators.js ***!
+  \*******************************************/
+
+/*!********************************************!*\
+  !*** ./node_modules/jquery/dist/jquery.js ***!
+  \********************************************/
+
+/*!*********************************************!*\
+  !*** ./http_src/components/components.scss ***!
+  \*********************************************/
+
+/*!***********************************************!*\
+  !*** ./http_src/components/widget/widgets.js ***!
+  \***********************************************/
+
+/*!************************************************!*\
+  !*** ./http_src/components/sidebar/sidebar.js ***!
+  \************************************************/
+
+/*!*************************************************!*\
+  !*** ./http_src/components/charts/pie-chart.js ***!
+  \*************************************************/
+
+/*!*************************************************!*\
+  !*** ./http_src/utilities/graph/graph-utils.js ***!
+  \*************************************************/
+
+/*!*************************************************!*\
+  !*** ./http_src/utilities/modal/modal-utils.js ***!
+  \*************************************************/
+
+/*!*************************************************!*\
+  !*** ./http_src/utilities/sequence_sunburst.js ***!
+  \*************************************************/
+
+/*!**************************************************!*\
+  !*** ./http_src/utilities/are-you-sure-utils.js ***!
+  \**************************************************/
+
+/*!********************************************************!*\
+  !*** ./http_src/validators/ntopng-validators-utils.js ***!
+  \********************************************************/
+
+/*!**************************************************************!*\
+  !*** ./http_src/services/context/ntopng_globals_services.js ***!
+  \**************************************************************/
+
+/*!***************************************************************!*\
+  !*** ./http_src/components/iface-dropdown/ifaces-dropdown.js ***!
+  \***************************************************************/
+
+/*!***************************************************************!*\
+  !*** ./http_src/views/public/blog/blog-notification-utils.js ***!
+  \***************************************************************/
+
+/*!*****************************************************************!*\
+  !*** ./node_modules/jquery.are-you-sure/jquery.are-you-sure.js ***!
+  \*****************************************************************/
+
+/*!*******************************************************************!*\
+  !*** ./http_src/utilities/datatable/bootstrap-datatable-utils.js ***!
+  \*******************************************************************/
+
+/*!*******************************************************************!*\
+  !*** ./http_src/utilities/datatable/sprymedia-datatable-utils.js ***!
+  \*******************************************************************/

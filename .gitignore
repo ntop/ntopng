@@ -1,13 +1,8 @@
 *~
 
 # Ignoring front end developement directories
-dist/
 node_modules/
-.stylelintrc
-webpack.config.js
-package.json
-package-lock.json
-.eslintrc.json
+.history/
 
 ntopng.sublime-*src/*.o
 src/*.obj

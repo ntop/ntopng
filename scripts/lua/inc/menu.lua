@@ -1033,10 +1033,10 @@ local is_no_login_user = isNoLoginUser()
 
 print([[
    <li class="nav-item dropdown">
-      <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" id='navbar-user-dropdown-link' role="button" data-bs-reference="parent" data-bs-toggle="dropdown" aria-expanded="false">
+      <a href='#' class="nav-link dropdown-toggle dark-gray" id='manage-user-dropdown' role="button" data-bs-toggle="dropdown" aria-expanded="false">
          <i class='fas fa-user'></i>
       </a>
-      <ul class="dropdown-menu dropdown-menu-lg-end" aria-labelledby='navbar-user-dropdown-link'>]])
+      <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-lg-end" aria-labelledby='manage-user-dropdown'>]])
 
 if (not _SESSION["localuser"] or not is_admin) and (not is_no_login_user) then
    print[[

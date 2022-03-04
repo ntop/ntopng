@@ -1,11 +1,6 @@
 {#
     (C) 2021 - ntop.org
 #}
-<script type='text/javascript' src='/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
-
-<link rel="stylesheet" href='{{ ntop.getHttpPrefix() }}/css/apexcharts.css'/>
-<script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/apexchart/apexcharts.min.js?{{ ntop.getStaticFileEpoch() }}'></script>
-
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -40,7 +35,7 @@ $(document).ready(function() {
     const widget = WidgetUtils.getWidgetByName(WIDGET_NAME);
 
     $(`#btn-reload-map`).on('click', async function() {
-        await widget.update({bubble_mode: BUBBLE_MODE});
+        await widget.update({bubble_mode: BUBBLE_MODE, ifid: {{ ifid }}});
     });
 
 });

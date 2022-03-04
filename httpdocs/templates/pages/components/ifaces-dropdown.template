@@ -18,7 +18,7 @@
 {% -- Print out the interfaces dropdown %}
 
 <li class="nav-item d-none d-sm-flex align-items-center">
-  <select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker" 
+  <select name="interfaces-dropdown" id="interfaces-dropdown" class="form-select" 
     data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
 
     {% if isAdministrator() then %}
@@ -96,7 +96,7 @@
 
 
     <li class="nav-item d-none d-sm-flex align-items-center">
-     <select name="observationpoint-dropdown" id="observationpoint-dropdown" class="selectpicker" data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
+     <select name="observationpoint-dropdown" id="observationpoint-dropdown" class="form-select" data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
 
     {% -- The Observationpoint optgroup %}
       <optgroup label="{{ i18n('observationpoints') }}">
@@ -109,7 +109,3 @@
     </select>
    </li>
 {% end %}
-
-
-
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/components/ifaces-dropdown.js?{{ ntop.getStaticFileEpoch() }}"></script>

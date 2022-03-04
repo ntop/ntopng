@@ -407,7 +407,7 @@ function format_utils.formatMainAddressCategory(host)
 
    if host ~= nil then      
       if(host["country"] and not isEmptyString(host["country"])) then
-	 addr_category = addr_category .. " <a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..host.country.."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(host.country) .."'></a>"
+	 addr_category = addr_category .. " <a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..host.country.."'><img src='".. ntop.getHttpPrefix() .. "/dist/images/blank.gif' class='flag flag-".. string.lower(host.country) .."'></a>"
       end
       
       if(host["is_blacklisted"] == true) then

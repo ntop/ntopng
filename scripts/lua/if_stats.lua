@@ -213,8 +213,6 @@ end
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.interface, { ifname=getHumanReadableInterfaceName(if_name) })
 
-print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">")
-
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print(msg)
@@ -1267,7 +1265,6 @@ print[[
 ]]
 
 print [[
-<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js?]] print(ntop.getStaticFileEpoch()) print[["></script>
 	<script type='text/javascript'>
 	 window.onload=function() {]]
 
@@ -2508,7 +2505,6 @@ print [[
 ]]
 
 print [[
-	 <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js?]] print(ntop.getStaticFileEpoch()) print[["></script>
 <script>
 $(document).ready(function()
     {

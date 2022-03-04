@@ -631,9 +631,20 @@ if (_GET["page"] ~= "historical") then
    if(asn ~= nil) then
       print [[
 </div>
-
-
-<script src="/js/ripe_widget_api.js"></script>
+<script>
+  let STAT_WIDGET_API_URL = 'https://stat.ripe.net/widgets/';
+  let STAT_DATA_API_URL = 'https://stat.ripe.net/data/';
+  let STAT_OTHER_API_URL = 'https://stat.ripe.net/api/';
+  let STAT_HOME = "https://stat.ripe.net/";
+  // DOM class for auto linking to div element
+  let STAT_DOM_CLASS_NAME = 'statwdgtauto';
+  // how many seconds to wait for scripts to load
+  // 0 ... disables the timeout
+  let STAT_REQUIRE_TIMEOUT = 120;
+</script>
+<script src="https://stat.ripe.net/widget-api-config"></script>
+<script src="https://stat.ripe.net/widgets/js/version.js"></script>
+<script src="https://stat.ripe.net/widgets/js/widget_api_main.js"></script>
 
 <div id="asinfo" class="tab-pane"></div>
 <div id="aspath" class="tab-pane"></div>

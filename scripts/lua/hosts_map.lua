@@ -69,6 +69,7 @@ widget_gui_utils.register_bubble_chart(widget_name, 0, {
 
 template_utils.render("pages/hosts_map.template", {
 	widget_gui_utils = widget_gui_utils,
+  ifid = ifid,
 	hosts_map = {
 	   select_options = table.concat(select_options, ''),
 	   bubble_mode = bubble_mode,

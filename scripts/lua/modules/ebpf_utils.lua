@@ -17,7 +17,7 @@ function ebpf_utils.draw_processes_graph(host_info)
 <div align="center" id="chart"></div>
 
 <script>
-draw_processes_graph(']] print(ntop.getHttpPrefix()) print[[',']] print("chart") print[[',']] print(hostinfo2hostkey(host_info)) print[[');
+  ebpfUtils.draw_processes_graph(']] print(ntop.getHttpPrefix()) print[[',']] print("chart") print[[',']] print(hostinfo2hostkey(host_info)) print[[');
 </script>
 ]]
 end

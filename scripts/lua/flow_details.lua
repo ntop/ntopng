@@ -1136,18 +1136,18 @@ else
    if((flow.client_process == nil) and (flow.server_process == nil)) then
       print("<tr><th width=30%>"..i18n("flow_details.actual_peak_throughput").."</th><td width=20%>")
       if (throughput_type == "bps") then
-	 print("<span id=throughput>" .. bitsToSize(8*flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
+	 print("<span id='flow-throughput' class='peity'>" .. bitsToSize(8*flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
       elseif (throughput_type == "pps") then
-	 print("<span id=throughput>" .. pktsToSize(flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
+	 print("<span id='flow-throughput' class='peity'>" .. pktsToSize(flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
       end
 
       if (throughput_type == "bps") then
-	 print(" / <span id=top_throughput>" .. bitsToSize(8*flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
+	 print(" / <span id=top-flow-throughput>" .. bitsToSize(8*flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
       elseif (throughput_type == "pps") then
-	 print(" / <span id=top_throughput>" .. pktsToSize(flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
+	 print(" / <span id=top-flow-throughput>" .. pktsToSize(flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
       end
 
-      print("</td><td><span id=thpt_load_chart>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>")
+      print("</td><td><span id=thpt-load-chart>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>")
       print("</td></tr>\n")
    end
 
@@ -1435,16 +1435,15 @@ local alerts_filter_dialog = template.gen(
       }
 })
 
+local traffic_peity_width = "64"
+
 print [[
 <div class="modals">
 ]] print(alerts_filter_dialog) print[[
 </div>
 <script>
-/*
-      $(document).ready(function() {
-	      $('.progress .bar').progressbar({ use_percentage: true, display_text: 1 });
-   });
-*/
+  const thptChart = $("#thpt-load-chart").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null })
+
         $(`a[href='#alerts_filter_dialog']`).click( function (e) {
             const alert_id = e.target.closest('a').attributes.alert_id.value;
             const alert_label = e.target.closest('a').attributes.alert_label.value;
@@ -1490,8 +1489,6 @@ print [[
               return (response.rc == 0);
             }
         });
-
-var thptChart = $("#thpt_load_chart").peity("line", { width: 64 });
 ]]
 
 if(flow ~= nil) then
@@ -1548,7 +1545,7 @@ print[[
 			$('#goodput_percentage').html(pctg);
 			$('#cli2srv').html(NtopUtils.addCommas(rsp["cli2srv.packets"])+" Pkts / " + NtopUtils.addCommas(NtopUtils.bytesToVolume(rsp["cli2srv.bytes"])));
 			$('#srv2cli').html(NtopUtils.addCommas(rsp["srv2cli.packets"])+" Pkts / " + NtopUtils.addCommas(NtopUtils.bytesToVolume(rsp["srv2cli.bytes"])));
-			$('#throughput').html(rsp.throughput);
+			$('#flow-throughput').html(rsp.throughput);
 
 			if(typeof rsp["c2sOOO"] !== "undefined") {
 			   $('#c2sOOO').html(NtopUtils.formatPackets(rsp["c2sOOO"]));
@@ -1593,7 +1590,7 @@ print[[
 			   $('#throughput_trend').html("<i class=\"fas fa-arrow-down\"></i>");
 			} else if(throughput < rsp["throughput_raw"]) {
 			   $('#throughput_trend').html("<i class=\"fas fa-arrow-up\"></i>");
-			   $('#top_throughput').html(rsp["top_throughput_display"]);
+			   $('#top-flow-throughput').html(rsp["top_throughput_display"]);
 			} else {
 			   $('#throughput_trend').html("<i class=\"fas fa-minus\"></i>");
 			} ]]
@@ -1624,7 +1621,7 @@ print [[			cli2srv_packets = rsp["cli2srv.packets"];
 
 			/* **************************************** */
 
-			var values = thptChart.text().split(",");
+			let values = thptChart.text().split(",");
 			values.shift();
 			values.push(rsp.throughput_raw);
 			thptChart.text(values.join(",")).change();

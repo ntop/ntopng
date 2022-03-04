@@ -300,23 +300,13 @@ function page_utils.print_header(title)
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/select2.min.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/select2-bootstrap-5-theme.min.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/minified/ntopng.min.css?]] print(static_file_epoch) print[[" rel="stylesheet"> ]]
-
+    <link href="]] print(http_prefix) print[[/dist/third-party.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/dist/ntopng.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/dist/white-mode.css" rel="stylesheet">]]
+    
     if (dark_mode) then
-      print[[<link href="]] print(http_prefix) print[[/css/minified/dark-mode.min.css?]] print(static_file_epoch) print[[" rel="stylesheet">]]
+      print[[<link href="]] print(http_prefix) print[[/dist/dark-mode.css?]] print(static_file_epoch) print[[" rel="stylesheet">]]
     end
-
-    print[[
-    <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/all.min.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/minified/tempusdominus.min.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/minified/heatmap.min.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/minified/rickshaw.min.css" type="text/css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/dc.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/selectpicker/css/bootstrap-select.min.css" rel="stylesheet">
-    ]]
 
    if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
       favicon_path = ntop.getHttpPrefix().."/img/custom_favicon.ico"
@@ -328,29 +318,22 @@ function page_utils.print_header(title)
    end
 
    print[[
-   <style>
+    <style>
       .flag {
-         width: 16px;
-         height: 11px;
-         margin-top: -5px;
-         background:url(]] print(http_prefix) print[[/img/flags.png) no-repeat
+        width: 16px;
+        height: 11px;
+        margin-top: -5px;
+        background:url(]] print(http_prefix) print[[/dist/images/flags.png) no-repeat
       }
-   </style>
-    <link href="]] print(http_prefix) print[[/css/flags.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/pie-chart.css" rel="stylesheet">
-    <!-- http://kamisama.github.io/cal-heatmap/v2/ -->
-    <link href="]] print(http_prefix) print[[/css/nv.d3.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/custom_theme.css?]] print(static_file_epoch) print[[" rel="stylesheet">
-    <!--[if lt IE 9]>
-      <script src="]] print(http_prefix) print[[/js/html5shiv.js"></script>
-    <![endif]-->
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(static_file_epoch) print[["></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/select2.min.js"></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/popper/popper.min.js" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(static_file_epoch) print[["></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(static_file_epoch) print[["></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/tempusdominus.min.js?]] print(static_file_epoch) print[["></script>
-   </head>]]
+    </style>
+
+    <link href="]] print(http_prefix) print[[/dist/custom-theme.css?]] print(static_file_epoch) print[[" rel="stylesheet">
+    
+    <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js"></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/tmp/rickshaw/rickshaw.js"></script>
+   
+    </head>]]
   print([[
      <body class="body ]].. (dark_mode and "dark" or "") ..[[">
   ]])
@@ -373,11 +356,10 @@ function page_utils.print_header_minimal(title)
         <title>]] print(page_title) print[[</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <link href="]] print(http_prefix) print[[/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-        <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/fontawesome.css" rel="stylesheet">
-        <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/brands.css" rel="stylesheet">
-        <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/solid.css" rel="stylesheet">
 
+        <link href="]] print(http_prefix) print[[/dist/third-party-npm.css" rel="stylesheet">
+        <link href="]] print(http_prefix) print[[/dist/third-party.css" rel="stylesheet">
+        <link href="]] print(http_prefix) print[[/dist/ntopng.css" rel="stylesheet">
           ]]
 
          if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
@@ -390,19 +372,18 @@ function page_utils.print_header_minimal(title)
          end
 
          print[[
+          <style>
+          .flag {
+            width: 16px;
+            height: 11px;
+            margin-top: -5px;
+            background:url(]] print(http_prefix) print[[/dist/images/flags.png) no-repeat
+          }
 
-        <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(static_file_epoch) print[["></script>
-        <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/css/rickshaw.css">
-        <script src="]] print(http_prefix) print[[/js/validator.js"></script>
-        <style>
-        .flag {
-          width: 16px;
-          height: 11px;
-          margin-top: -5px;
-          background:url(]] print(http_prefix) print[[/img/flags.png) no-repeat
-        }
-        </style>
-        <link href="]] print(http_prefix) print[[/css/ntopng.css" rel="stylesheet">
+          <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
+          <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js"></script>
+          <script type="text/javascript" src="]] print(http_prefix) print[[/tmp/rickshaw/rickshaw.js"></script>
+          
       </head>
       <body>
 

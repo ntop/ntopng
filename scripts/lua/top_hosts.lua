@@ -42,12 +42,6 @@ if(found) then
 page_utils.print_page_title(i18n("top_hosts.top_hosts_local"))
 
 print [[
-
-<script type="text/javascript">
-  var http_prefix = "]] print(ntop.getHttpPrefix()) print [[";
-</script>
-
-<script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism_ntop.v1.js"></script>
 <div class='card'>
 <div class='card-body'>
 <div id="tophosts"></div>

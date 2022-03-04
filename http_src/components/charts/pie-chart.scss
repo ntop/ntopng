@@ -1,0 +1,50 @@
+.pie-chart-box-left {
+  width: 500px;
+  margin-left: auto;
+  margin-right: 20px;
+}
+
+.pie-chart-box-right {
+  width: 500px;
+  margin-left: 20px;
+  margin-right: auto;
+}
+
+.pie-chart {
+  background-color: #FFFFFF;
+  border: 0px dotted #DDDDDD;
+  font: 10px sans-serif;
+  height: 325px;
+  text-shadow: none;
+  width: 500px;
+  box-sizing: border-box;
+}
+
+.pie-chart-small {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pie-chart-small svg g.label_group text {
+  font-size: 1.15rem;
+}
+
+.pie-chart .total{
+  font-size: 18px;
+}
+
+.pie-chart .units{
+  fill: #808080;
+  font-size: 12px;
+}
+
+.pie-chart .label{
+  fill: #CCCCCC;
+  font-size: 12px;
+}
+
+.pie-chart .value{
+  font-size: 12px;
+}

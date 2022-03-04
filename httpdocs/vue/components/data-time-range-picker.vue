@@ -84,23 +84,23 @@ export default {
 	}
 	let me = this;
 	let f_set_picker = (picker, var_name) => {
-	    return $(this.$refs[picker]).flatpickr({
-	 	enableTime: true,
-	 	dateFormat: "d-m-Y H:i",
-		//locale: "it",
-	 	//dateFormat: "Y-m-d H:i",
-	 	time_24hr: true,
-		clickOpens: true,
-		//mode: "range",
-	 	//static: true,
-	 	onChange: function(selectedDates, dateStr, instance) {
-	 	    let utc_s = me.get_utc_seconds(new Date(selectedDates).getTime());
-		    //me[var_name] = utc_s;
-		    me.enable_apply = true;
-		    me.wrong_date = me.flat_begin_date.selectedDates[0].getTime() > me.flat_end_date.selectedDates[0].getTime();
-	 	    //me.a[data] = d;
-	 	},
-	    });
+    return flatpickr($(this.$refs[picker]), {
+      enableTime: true,
+      dateFormat: "d-m-Y H:i",
+      //locale: "it",
+      //dateFormat: "Y-m-d H:i",
+      time_24hr: true,
+      clickOpens: true,
+      //mode: "range",
+      //static: true,
+      onChange: function(selectedDates, dateStr, instance) {
+          let utc_s = me.get_utc_seconds(new Date(selectedDates).getTime());
+          //me[var_name] = utc_s;
+          me.enable_apply = true;
+          me.wrong_date = me.flat_begin_date.selectedDates[0].getTime() > me.flat_end_date.selectedDates[0].getTime();
+          //me.a[data] = d;
+      },
+    });
 	};
 	this.flat_begin_date = f_set_picker("begin-date", "begin_date");
 	this.flat_end_date = f_set_picker("end-date", "end_date");

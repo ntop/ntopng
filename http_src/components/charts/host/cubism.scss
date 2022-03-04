@@ -1,0 +1,45 @@
+svg {
+  font: 10px sans-serif;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000000;
+  shape-rendering: crispEdges;
+}
+
+.axis {
+  font: 10px sans-serif;
+}
+
+.axis text {
+  -webkit-transition: fill-opacity 250ms linear;
+}
+
+.axis path {
+  display: none;
+}
+
+.axis line {
+  stroke: #000000;
+  shape-rendering: crispEdges;
+}
+
+.horizon {
+  border-top: solid 1px #000000;
+  border-bottom: solid 1px #000000;
+  border-top: none;
+  bottom: 0;
+  line-height: 30px;
+  margin: 0 6px;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+}
+
+.line {
+  background: #000000;
+  opacity: 0.2;
+  z-index: 2;
+}

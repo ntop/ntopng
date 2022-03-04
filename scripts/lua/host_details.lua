@@ -241,7 +241,6 @@ else
 
    page_utils.set_active_menu_entry(page_utils.menu_entries.hosts, nil, i18n("host", { host = host_info["host"] }))
 
-   print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">\n")
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
    --   Added global javascript variable, in order to disable the refresh of pie chart in case
@@ -1981,12 +1980,6 @@ elseif page == "geomap" then
             </div> 
           </div>
         </div>
-      <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.css"/>
-      <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.Default.css"/>
-      <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.css"/>
-      <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.js?]] .. ntop.getStaticFileEpoch() ..[[" type="text/javascript"></script>
-      <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.curve.js?]] .. ntop.getStaticFileEpoch() ..[[" type="text/javascript"></script>
-      <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.markercluster.js?]] .. ntop.getStaticFileEpoch() ..[[" type="text/javascript"></script>
       <script type='text/javascript'>
 
         const zoomIP = "ifid=]]..ifId..[[&]].. hostinfo2url(host_info) ..[[";
@@ -2003,7 +1996,6 @@ elseif page == "geomap" then
 
         }
       </script>
-      <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js?]] .. ntop.getStaticFileEpoch() ..[["  type='text/javascript'></script>
    ]])
 
 
@@ -2324,8 +2316,6 @@ end
 end
 
 if(not only_historical) and (host ~= nil) then
-   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js?]] print(ntop.getStaticFileEpoch().."") print[["></script>]]
-
    print [[
    <script>
 

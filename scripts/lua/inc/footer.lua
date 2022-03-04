@@ -180,16 +180,6 @@ print([[
 	</script>
 ]])
 
--- End of Toggle System Interface
--- Import the BlogNotification Utils script only
--- if ntopng is not in OEM version
-if not info.oem then
-	-- Create a CSRF Token to handle the blog notifications
-	print([[
-		<script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/utils/blog-notification-utils.js?]].. ntop.getStaticFileEpoch() ..[['></script>
-	]])
-end
-
 print [[
 <script type="text/javascript">
 ]]
@@ -758,9 +748,7 @@ local http_prefix = ntop.getHttpPrefix()
 
 -- close wrapper
 print[[
-</main>
-  </div>
-  <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap/js/bootstrap.bundle.min.js?"></script>
-  <script type="text/javascript" src="]] print(http_prefix) print[[/selectpicker/js/bootstrap-select.js"></script>
+      </main>
+    </div>
   </body>
 </html> ]]
