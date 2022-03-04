@@ -10,7 +10,7 @@ local json = require "dkjson"
 
 --
 -- Run a live traffic capture
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1", "bpf_filter": "" }' http://localhost:3000/lua/rest/v2/get/pcap/traffic_extraction.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1", "duration": 10, "bpf_filter": "" }' http://localhost:3000/lua/rest/v2/get/pcap/live_traffic.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
