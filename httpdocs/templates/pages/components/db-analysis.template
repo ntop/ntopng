@@ -8,10 +8,6 @@
 <script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js"></script>
 <script src="{* ntop.getHttpPrefix() *}/vue/ntopng_vue_loader.js"></script>
 
-<!-- select2 -->
-<script src="{* ntop.getHttpPrefix() *}/js/select2.min.js"></script>
-<link href="{* ntop.getHttpPrefix() *}/css/select2.min.css" rel="stylesheet" />
-
 <!-- defines base_path globals const-->
 <script type='text/javascript'>
   const base_path = '{* ntop.getHttpPrefix() *}';
@@ -114,7 +110,7 @@
       
       await ntopng_sync.on_ready("range_picker");
 
-      hideOverlays();
+      NtopUtils.hideOverlays();
 
     ntopng_status_manager.on_status_change("datatable", (new_status) => {
 	let url_params = ntopng_url_manager.get_url_params();

@@ -413,6 +413,7 @@
 
                 const tableApi = settings.oInstance.api();
                 const orderColumnIndex = data.order[0].column;
+                const orderColumnName = tableApi.column(orderColumnIndex).header().textContent || undefined;
                 
                 if (data.order) {
                     data.order = data.order[0].dir;
