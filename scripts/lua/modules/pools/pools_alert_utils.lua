@@ -27,10 +27,17 @@ function pools_alert_utils.get_host_pool_id(entity_info)
       return nil
    end
 
+   -- Active Monitoring alert to Host
    if alert_entity == alert_entities.am_host then
       local am_host_info = split(pool_member, "@")
       if #am_host_info == 2 then
          pool_member = am_host_info[2]
+      end
+   -- SNMP alert to Host
+   elseif alert_entity == alert_entities.snmp_device then
+      local snmp_device_info = split(pool_member, "_")
+      if #snmp_device_info >= 1 then
+         pool_member = snmp_device_info[1]
       end
    else
       -- Host pool not supported (note: flow and host alerts are set in C)
