@@ -18,17 +18,16 @@
 {% -- Print out the interfaces dropdown %}
 
 <li class="nav-item d-none d-sm-flex align-items-center">
-  <select name="interfaces-dropdown" id="interfaces-dropdown" class="select2 form-select" 
+  <select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker form-select-lg" 
     data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
 
     {% if isAdministrator() then %}
-    <optgroup label="{{ i18n('system') }}">
-      <option value="{{ getSystemInterfaceId() }}" {{ selected }} data-content="{{ i18n('system') }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;">{{ i18n('system') }}</option>
-    </optgroup>
+    <option disabled>{{ i18n('system') }}</option>
+    <option class="ms-3" value="{{ getSystemInterfaceId() }}" {{ selected }} data-content="{{ i18n('system') }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;">{{ i18n('system') }}</option>
     {% end %}
 
     {% -- The Interfaces optgroup %}
-  <optgroup label="{{ i18n('interfaces') }}">
+  <option disabled>{{ i18n('interfaces') }}</option>
 
     {% for round = 1, 2 do -- First round: only physical interfaces, second round: only virtual interfaces %}
       {% for k, v in pairsByValues(ifnames, asc) do %}
@@ -67,17 +66,15 @@
               {% icons[#icons + 1] = "<i class='fas fa-hdd'></i>" %}
             {% end %}
 
-            <option data-tokens="{{ k }}" value="{{ k }}" {{ selected }} data-content="{{ table.concat(icons, ' ')}} {{ shortenCollapse(ifHdescr[k]) }}">{{ ifHdescr[k] }}</option>
+            <option class="ms-3" data-tokens="{{ k }}" value="{{ k }}" {{ selected }} data-content="{{ table.concat(icons, ' ')}} {{ shortenCollapse(ifHdescr[k]) }}">{{ ifHdescr[k] }}</option>
           {% end %}
         {% end %}
       {% end %}
-    </optgroup>
   {% if ntop.isPro() and isAdministrator() and (table.len(infrastructures) > 0) then %}  
-    <optgroup id="optInf" label="{{ i18n('infrastructure_dashboard.infrastructure') }}">
+    <option disabled>{{ i18n('infrastructure_dashboard.infrastructure') }}</option>
     {% for k,v in pairs(infrastructures or {}) do %}
       <option value="{{ v }}" href="#" data-content="{{ "<i class='fas fa-building'></i> "..k }}"> {{ v }}</option>
     {% end %} 
-    </optgroup>
   {% end %}
   </select>
 </li>
@@ -111,13 +108,8 @@
 {% end %}
 
 <script type="text/javascript">
-  $(`interfaces-dropdown`).select2({
-    theme: 'bootstrap-5',
-  });
-
-  $(`interfaces-dropdown`).on('select2:select', function (e) {
-    debugger;
-  });
+  // initialize the selectpicker
+  $('#interfaces-dropdown').selectpicker();
 
   const toggleObservationPoint = ($form = null) => {
     if($form != null) {

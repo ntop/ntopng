@@ -3587,7 +3587,7 @@
         Plugin.call($selectpicker, $selectpicker.data());
       })
     });
-  })(jQuery);
+  })(window.jQuery);
   
   
   }));

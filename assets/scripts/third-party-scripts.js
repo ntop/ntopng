@@ -7,6 +7,8 @@ import './vendors/html5/html5shiv'
 import './vendors/gauge.coffee/gauge'
 import './vendors/jquery/jquery.tablesorter'
 
+import './vendors/bootstrap-select/bootstrap-select'
+
 /* Todo: remove nvd3 from here, too huge non minified */
 import nv from './vendors/nvd3/nv.d3'
 import Tagify from './vendors/tagify/tagify.min.js'

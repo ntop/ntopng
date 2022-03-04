@@ -56,6 +56,13 @@
  */
 
 /*!
+ * Bootstrap-select v1.14.0-beta2 (https://developer.snapappointments.com/bootstrap-select)
+ *
+ * Copyright 2012-2021 SnapAppointments, LLC
+ * Licensed under MIT (https://github.com/snapappointments/bootstrap-select/blob/master/LICENSE)
+ */
+
+/*!
  * Sizzle CSS Selector Engine v2.3.6
  * https://sizzlejs.com/
  *
@@ -1273,6 +1280,8 @@ PERFORMANCE OF THIS SOFTWARE.
 /*! ./variance.js */
 
 /*! ./vendors/asap/ASAP */
+
+/*! ./vendors/bootstrap-select/bootstrap-select */
 
 /*! ./vendors/bootstrap/bootstrap-datatable */
 
@@ -3681,6 +3690,10 @@ PERFORMANCE OF THIS SOFTWARE.
 /*!********************************************************************!*\
   !*** ./node_modules/dc/node_modules/d3-shape/src/symbol/square.js ***!
   \********************************************************************/
+
+/*!*********************************************************************!*\
+  !*** ./assets/scripts/vendors/bootstrap-select/bootstrap-select.js ***!
+  \*********************************************************************/
 
 /*!*********************************************************************!*\
   !*** ./node_modules/dc/node_modules/d3-format/src/defaultLocale.js ***!

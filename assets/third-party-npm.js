@@ -33,7 +33,10 @@ L.Marker.prototype.options.icon = iconDefault;
 window.L = L
 
 import 'flatpickr'
-import 'bootstrap/dist/js/bootstrap.bundle'
+import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle'
+
+window.bootstrap = bootstrap
+
 import crossfilter from 'crossfilter2'
 import * as dc from 'dc'
 import * as cubism from 'cubism'

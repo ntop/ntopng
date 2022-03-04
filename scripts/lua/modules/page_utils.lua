@@ -328,7 +328,6 @@ function page_utils.print_header(title)
     </style>
 
     <link href="]] print(http_prefix) print[[/dist/custom-theme.css?]] print(static_file_epoch) print[[" rel="stylesheet">
-    
     <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/tmp/rickshaw/rickshaw.js"></script>
