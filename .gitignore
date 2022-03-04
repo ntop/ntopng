@@ -3,6 +3,7 @@
 # Ignoring front end developement directories
 node_modules/
 .history/
+package-lock.json
 
 ntopng.sublime-*src/*.o
 src/*.obj

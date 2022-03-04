@@ -17,7 +17,7 @@
 
 {% -- Print out the interfaces dropdown %}
 
-<li class="nav-item d-none d-sm-flex align-items-center">
+<li class="nav-item d-sm-flex pe-2">
   <select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker form-select-lg" 
     data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
 
