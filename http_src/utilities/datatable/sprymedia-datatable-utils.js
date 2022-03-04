@@ -3,23 +3,6 @@
  * This file contains utilities used by the *new* datatables.
  */
 'use strict';
-/*
-
-//https://datatables.net/forums/discussion/44885
-$.fn.dataTable.Api.registerPlural( 'columns().names()', 'column().name()', function ( setter ) {
-    return this.iterator( 'column', function ( settings, column ) {
-        var col = settings.aoColumns[column];
- 
-        if ( setter !== undefined ) {
-            col.sName = setter;
-            return this;
-        }
-        else {
-            return col.sName;
-        }
-    }, 1 );
-} );
-*/
 
 export class DataTableFiltersMenu {
 

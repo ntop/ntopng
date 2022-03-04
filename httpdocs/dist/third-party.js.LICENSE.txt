@@ -312,6 +312,10 @@
 
 /*! ../deviation.js */
 
+/*! ../http_src/utilities/datatable/datatable-plugins/api-extension */
+
+/*! ../http_src/utilities/datatable/datatable-plugins/jquery-extension */
+
 /*! ../http_src/utilities/ntop-utils */
 
 /*! ../http_src/utilities/string-utils */
@@ -3905,6 +3909,10 @@
   \************************************************************************/
 
 /*!*************************************************************************!*\
+  !*** ./http_src/utilities/datatable/datatable-plugins/api-extension.js ***!
+  \*************************************************************************/
+
+/*!*************************************************************************!*\
   !*** ./node_modules/dc/node_modules/d3-geo/src/projection/albersUsa.js ***!
   \*************************************************************************/
 
@@ -4115,6 +4123,10 @@
 /*!***************************************************************************!*\
   !*** ./node_modules/dc/node_modules/d3-transition/src/transition/text.js ***!
   \***************************************************************************/
+
+/*!****************************************************************************!*\
+  !*** ./http_src/utilities/datatable/datatable-plugins/jquery-extension.js ***!
+  \****************************************************************************/
 
 /*!****************************************************************************!*\
   !*** ./node_modules/dc/node_modules/d3-geo/src/projection/orthographic.js ***!
