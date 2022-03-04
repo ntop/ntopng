@@ -125,13 +125,18 @@ function syslog.sendMessage(settings, notif, severity)
          -- <113>1 2020-11-19T18:31:21.003Z 192.168.1.1 ntopng 21365 ID1 -
          msg = "<"..prio..">1 "..iso_time.." "..host.." "..tag.." "..pid.." - - "..msg
       else
-         -- local log_time = format_utils.formatEpoch() -- "2020-11-09 18:00:00"
          local log_time = os.date("!%b %d %X") -- "Feb 25 09:58:12"
+
+         -- Convert day according to RFC3164
+         local log_time_arr = split(log_time, ' ')
+         local day = tonumber(log_time_arr[2])
+         log_time_arr[2] = string.format(ternary(day < 10, ' ', '') .. '%u', day)
+         log_time = table.concat(log_time_arr, ' ')
 
          -- Unix Format:
          -- <PRIO>DATE TIME DEVICE APPLICATION[PID]: MSG
          -- Example:
-         -- <113>09/11/2020 18:31:21 192.168.1.1 ntopng[21365]: ...
+         -- <113>Feb 25 09:58:12 192.168.1.1 ntopng[21365]: ...
          msg = "<"..prio..">"..log_time.." "..host.." "..tag.."["..pid.."]: "..msg
       end
 
