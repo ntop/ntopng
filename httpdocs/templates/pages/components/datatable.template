@@ -244,6 +244,12 @@
 
     function getVisibleColumns($tableApi) {
         const visibleColumns = [];
+        $tableApi.columns().every(function(idx) {   
+            const $column = $tableApi.column(idx);
+            if ($column.visible() && $column.name() !== '') {
+                visibleColumns.push($column.name());
+            } 
+        });
 
         return visibleColumns;
     }
@@ -400,8 +406,8 @@
         serverSide: true,
         searching: false,
         info: false,
-        scrollX: false,
-        responsive: true,
+        scrollX: true,
+        responsive: false,
         order: [[ column_order_id, "{* datatable.order_sorting *}" ]],
         pagingType: '{{ datatable.pagination }}',
         columnDefs: {},
