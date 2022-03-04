@@ -406,8 +406,6 @@
         serverSide: true,
         searching: false,
         info: false,
-        scrollX: true,
-        responsive: false,
         order: [[ column_order_id, "{* datatable.order_sorting *}" ]],
         pagingType: '{{ datatable.pagination }}',
         columnDefs: {},

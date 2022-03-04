@@ -72,7 +72,7 @@
     i18n_ext.pools = "{{ i18n('endpoint_notifications.bind_to_num_pools') }}";
     i18n_ext.recipient = "{{ i18n('recipient') }}";
 
-    const TABLE_DATA_REFRESH = 15000;
+  const TABLE_DATA_REFRESH = 15000;
     const DEFAULT_RECIPIENT_ID = 0;
     const COLUMN_INDEX_ENDPOINT_TYPE = 1;
     const SEVERITIES = [

@@ -12,7 +12,16 @@ window.moment = moment
 window.ApexCharts = ApexCharts
 
 import 'jquery-ui-bundle'
-import 'datatables.net-dt'
+
+/* See https://datatables.net/forums/discussion/comment/103356 */
+import 'datatables.net'
+import dt from 'datatables.net-dt'
+
+window.dt = dt
+
+import 'datatables.net-buttons'
+import 'datatables.net-responsive'
+
 import 'peity'
 import * as L from 'leaflet'
 import 'leaflet.markercluster'
