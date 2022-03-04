@@ -20,6 +20,7 @@ Prerequisites
 - libcurl-dev
 - libmysqlclient-dev
 - uglify-es
+- npm (optional - JS/CSS compilation)
 
 On Ubuntu/Debian
 ~~~~~~~~~~~~~~~~
@@ -143,10 +144,14 @@ https://github.com/rgl/redis/downloads
 Additional Notes
 ~~~~~~~~~~~~~~~~
 
-- you can use ZMQ 4.x in addition to 3.x (but not 2.x)
-- make sure nobody owns /var/lib/ntopng
-- make sure to have uglify-es to minify JavaScript code, just type, in the command line, `npm install -g uglify-es` to install it (`./autogen.sh && ./configure` is required after installing uglify-es, before running `make minify`)
-- make sure to have clean-css-cli to minify and optimize the CSS code, just type, in the command line, `npm install -g clean-css-cli`
+- Compilation of Javascript/CSS scripts to produce httpdocs/dist require npm and the installation of npm packages defined in package.json (devDependencies).
+
+sudo apt install npm
+rm -f package-lock.json
+jq -c '.devDependencies' package.json | jq -r -M | grep ':' | sed 's/:/@/' | sed 's|[", ^]||g' | xargs -L1 npm install --save-dev 
+npm run build:dev
+
+- You can use ZMQ 4.x as alternative to 3.x (but not 2.x)
 
 Source Code Compilation
 -----------------------
