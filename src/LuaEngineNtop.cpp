@@ -666,6 +666,24 @@ static int ntop_get_tls_version_name(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_mac_64(lua_State* vm) {
+  char *mac_str;
+  u_int8_t mac[6];
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  mac_str = (char*)lua_tostring(vm, 1);
+
+  Utils::parseMac(mac, mac_str);
+
+  lua_pushnumber(vm, Mac::to64(mac));
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_is_ipv6(lua_State* vm) {
   char *ip;
   struct in6_addr addr6;
@@ -6437,6 +6455,7 @@ static luaL_Reg _ntop_reg[] = {
   { "matchCustomCategory",   ntop_match_custom_category   },
   { "getTLSVersionName",     ntop_get_tls_version_name    },
   { "isIPv6",                ntop_is_ipv6                 },
+  { "getMac64",              ntop_get_mac_64              },
   { "reloadFlowChecks",      ntop_reload_flow_checks      },
   { "reloadHostChecks",      ntop_reload_host_checks      },
   { "reloadAlertExclusions", ntop_reload_hosts_control    },

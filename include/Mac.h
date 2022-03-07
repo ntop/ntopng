@@ -84,7 +84,10 @@ class Mac : public GenericHashEntry, public SerializableElement {
   MacLocation locate();
   inline u_int32_t key()                       { return(Utils::macHash(mac)); }
   inline const u_int8_t* const get_mac() const { return(mac);                 }
+
+  static u_int64_t to64(u_int8_t mac[6]);
   u_int64_t get_mac64();
+
   inline const char * get_manufacturer() { return manuf ? manuf : NULL; }
   bool isNull() const;
 

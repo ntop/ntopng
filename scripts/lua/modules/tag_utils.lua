@@ -210,6 +210,12 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.score'),
       operators = {'eq', 'neq','lt', 'gt', 'gte', 'lte'}
    },
+   mac = {
+      value_type = 'mac',
+      i18n_label = i18n('db_search.tags.mac'),
+      operators = {'eq', 'neq'},
+      bpf_key = 'ether host',
+   },
    cli_mac = {
       value_type = 'mac',
       i18n_label = i18n('db_search.tags.cli_mac'),

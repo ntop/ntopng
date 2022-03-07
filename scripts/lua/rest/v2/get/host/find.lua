@@ -215,10 +215,13 @@ local hosts = {}
 local res = interface.findHost(query)
 
 for k, v in pairs(res) do
+tprint(k .. " - " ..v)
    local links = {}
    local historical_flows_url
-   if k == v then -- IP
-      historical_flows_url = build_historical_flows_url('ip', k)
+   if isMacAddress(v) then -- MAC
+      historical_flows_url = build_historical_flows_url('mac', v)
+   elseif k == v or isIPv6(v) then -- IP
+      historical_flows_url = build_historical_flows_url('ip', v)
    else -- Name
       historical_flows_url = build_historical_flows_url('name', v)
    end

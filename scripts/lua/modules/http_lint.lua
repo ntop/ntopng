@@ -1414,7 +1414,9 @@ local known_parameters = {
 -- HOST SPECIFICATION
    ["host"]                    = validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
    ["versus_host"]             = validateHost,                  -- an host for comparison
-   ["mac"]                     = validateMac,                   -- a MAC address
+   ["mac"]                     = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))),                   -- a MAC address
+   ["cli_mac"]                 = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))),                   -- a MAC address
+   ["srv_mac"]                 = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))),                   -- a MAC address
    ["tskey"]                   = validateSingleWord,            -- host identifier for timeseries
    ["peer1"]                   = validateHost,                  -- a Peer in a connection
    ["peer2"]                   = validateHost,                  -- another Peer in a connection

@@ -1540,6 +1540,7 @@ local lang = {
       ["l7_proto"] = "Application",
       ["l7cat"] = "Category",
       ["l7proto"] = "Application",
+      ["mac"] = "MAC",
       ["name"] = "Hostname",
       ["network_name"] = "Network Name",
       ["observation_point_id"] = "Observation Point ID",
