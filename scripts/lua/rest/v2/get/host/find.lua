@@ -311,7 +311,6 @@ for ip,name in pairs(ip_to_name) do
             url = historical_flows_url,
          }
       end
-
       hosts[ip] = {
          label = hostinfo2label({host = ip, name = name}),
          ip = ip,
@@ -323,13 +322,19 @@ end
 -- Also look at the DHCP cache
 local key_prefix_offset = string.len(getDhcpNameKey(getInterfaceId(ifname), "")) + 1
 local mac_to_name = ntop.getKeysCache(getDhcpNameKey(getInterfaceId(ifname), "*")) or {}
-
 for k in pairs(mac_to_name) do
    local mac = string.sub(k, key_prefix_offset)
    local name = ntop.getCache(k)
 
    if not isEmptyString(name) and string.contains(string.lower(name), string.lower(query)) then
       local links = {}
+
+      local historical_flows_url = build_historical_flows_url('mac', mac)
+      links[#links + 1] = {
+         icon = historical_flows_icon,
+         url = historical_flows_url,
+      }
+
       hosts[mac] = {
          label = hostinfo2label({host = mac, mac = mac, name = name}),
          mac = mac,
@@ -338,6 +343,8 @@ for k in pairs(mac_to_name) do
       }
    end
 end
+
+-- Build final array with results
 
 res_count = 0
 
@@ -367,7 +374,7 @@ for k, v in pairs(hosts) do
       already_printed[v] = true
 
       if v.mac then
-	 results[#results + 1] = build_result(v.label, v.mac, "mac")
+	 results[#results + 1] = build_result(v.label, v.mac, "mac", v.links)
       elseif v.ip then
 	 results[#results + 1] = build_result(v.label, v.ip, "ip", v.links)
       end
