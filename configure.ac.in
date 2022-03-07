@@ -123,7 +123,6 @@ fi
 dnl> Remove spaces
 OS="${OS#"${OS%%[![:space:]]*}"}"
 
-AC_CHECK_LIB([gpg-error], [gpg_strerror], [LIBS="${LIBS} -lgpg-error"])
 AC_CHECK_LIB([atomic], [__atomic_exchange_8], [LIBS="${LIBS} -latomic"])
 
 AC_CHECK_LIB([zmq], [zmq_socket_monitor])
