@@ -284,6 +284,12 @@ tag_utils.ip_location = {
 
 -- #####################################
 
+function tag_utils.build_request_filter(key, op, value)
+  return key .. '=' .. value .. tag_utils.SEPARATOR .. op
+end
+
+-- #####################################
+
 function tag_utils.get_tag_filters_from_request()
   local filters = {}
 

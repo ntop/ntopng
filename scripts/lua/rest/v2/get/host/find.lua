@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require "dkjson"
+local tag_utils = require "tag_utils"
 local snmp_utils
 local snmp_location
 
@@ -31,7 +32,7 @@ local rc = rest_utils.consts.success.ok
 local max_group_items = 5
 local max_total_items = 20
 
-local cur_results
+local res_count
 local already_printed = {}
 
 local results = {}
@@ -62,13 +63,17 @@ end
 
 local ifid = interface.getId()
 
+local function build_historical_flows_url(key, value)
+   return ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?ifid=' .. ifid .. '&' .. tag_utils.build_request_filter(key, 'eq', value)
+end
+
 if not hosts_only then
    -- Look by network
    local network_stats = interface.getNetworksStats()
-   cur_results = 0
+   res_count = 0
 
    for network, stats in pairs(network_stats) do
-      if((cur_results >= max_group_items) or (#results >= max_total_items)) then
+      if((res_count >= max_group_items) or (#results >= max_total_items)) then
          break
       end
 
@@ -79,18 +84,19 @@ if not hosts_only then
 
          results[#results + 1] = {
 	    name = name,
-            type="network", network = network_id,
+            type="network",
+            network = network_id,
          }
-         cur_results = cur_results + 1
+         res_count = res_count + 1
       end
    end
 
    -- Look by AS
    local as_info = interface.getASesInfo() or {}
-   cur_results = 0
+   res_count = 0
 
    for _, as in pairs(as_info.ASes or {}) do
-      if((cur_results >= max_group_items) or (#results >= max_total_items)) then
+      if((res_count >= max_group_items) or (#results >= max_total_items)) then
          break
       end
 
@@ -101,19 +107,21 @@ if not hosts_only then
       if string.contains(string.lower(as_name), string.lower(query)) then
          results[#results + 1] = {
 	    name = string.format("%s [%s]", as_name, asn),
-            type="asn", asn = as.asn,
+            type="asn",
+            asn = as.asn,
          }
 	 found = true
       elseif string.contains(string.lower(asn), string.lower(query)) then
          results[#results + 1] = {
             name = asn,
-	    type="asn", asn = as.asn,
+	    type="asn",
+            asn = as.asn,
          }
 	 found = true
       end
 
       if found then
-	 cur_results = cur_results + 1
+	 res_count = res_count + 1
       end
    end
 
@@ -126,10 +134,10 @@ if not hosts_only then
    if ntop.isEnterpriseM() and snmp_location and not query:find("%.") then
       local mac = string.upper(query)
       local matches = snmp_location.find_mac_snmp_ports(mac, true)
-      cur_results = 0
+      res_count = 0
 
       for _, snmp_port in ipairs(matches) do
-         if((cur_results >= max_group_items) or (#results >= max_total_items)) then
+         if((res_count >= max_group_items) or (#results >= max_total_items)) then
 	    break
          end
 
@@ -141,12 +149,12 @@ if not hosts_only then
          local title = snmp_utils.get_snmp_device_and_interface_label(snmp_device_ip, {index = snmp_port_idx, name = snmp_port_name})
 
          results[#results + 1] = {
-            type = "snmp",
 	    name = matching_mac .. ' '..title,
+            type = "snmp",
 	    ip = snmp_device_ip,
             snmp_port_idx = snmp_port_idx
          }
-         cur_results = cur_results + 1
+         res_count = res_count + 1
       end
    end
 
@@ -154,10 +162,10 @@ if not hosts_only then
    if ntop.isEnterpriseM() then
       local name = string.upper(query)
       local matches = snmp_utils.find_snmp_ports_by_name(name, true)
-      cur_results = 0
+      res_count = 0
 
       for _, snmp_port in ipairs(matches) do
-         if cur_results >= max_group_items or #results >= max_total_items then
+         if res_count >= max_group_items or #results >= max_total_items then
 	    break
          end
 
@@ -169,12 +177,12 @@ if not hosts_only then
          local title = snmp_utils.get_snmp_device_and_interface_label(snmp_device_ip, {index = snmp_port_idx, name = ternary(snmp_port_index_match, nil, snmp_port_name) })
 
          results[#results + 1] = {
-            type = "snmp",
 	    name = title,
+            type = "snmp",
 	    ip = snmp_device_ip,
             snmp_port_idx = snmp_port_idx
          }
-         cur_results = cur_results + 1
+         res_count = res_count + 1
       end
    end
 
@@ -182,27 +190,52 @@ if not hosts_only then
    if ntop.isEnterpriseM() then
       local name = string.upper(query)
       local matches = snmp_utils.find_snmp_devices(name, true)
-      cur_results = 0
+      res_count = 0
 
       for _, snmp_device in ipairs(matches) do
-         if cur_results >= max_group_items or #results >= max_total_items then
+         if res_count >= max_group_items or #results >= max_total_items then
 	    break
          end
 
          local title = snmp_utils.get_snmp_device_label(snmp_device["ip"])
          results[#results + 1] = {
-            type = "snmp_device",
 	    name = title.." ["..i18n("snmp.snmp_device").."]",
+            type = "snmp_device",
 	    ip = snmp_device["ip"]
          }
-         cur_results = cur_results + 1
+         res_count = res_count + 1
       end
    end
 
 end -- not hosts only
 
+local hosts = {}
+
 -- Active Hosts
 local res = interface.findHost(query)
+
+for k, v in pairs(res) do
+   local links = {}
+   local historical_flows_url
+   if k == v then -- IP
+      historical_flows_url = build_historical_flows_url('ip', k)
+   else -- Name
+      historical_flows_url = build_historical_flows_url('name', v)
+   end
+   if historical_flows_url then
+      links[#links + 1] = {
+         icon = 'stream',
+         url = historical_flows_url,
+      }
+   end
+
+   hosts[k] = {
+      label = v,
+      name = v,
+      ip = v,
+      links = links,
+   }
+end
 
 -- Inactive hosts (by MAC)
 local key_to_ip_offset = string.len(string.format("ntopng.ip_to_mac.ifid_%u__", ifid)) + 1
@@ -211,9 +244,13 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.ip_to_mac.ifid_%u__%s*", 
    -- Serialization by MAC address found
    local h = hostkey2hostinfo(string.sub(k, key_to_ip_offset))
 
-   if(not res[h.host]) then
+   if(not hosts[h.host]) then
       -- Do not override active hosts
-      res[h.host] = i18n("host_details.inactive_host_x", {host = hostinfo2hostkey({host=h.host, vlan=h.vlan})})
+      hosts[h.host] = {
+         label = i18n("host_details.inactive_host_x", {host = hostinfo2hostkey({host=h.host, vlan=h.vlan})}),
+         ip = h.host,
+         name = h.host,
+      }
    end
 end
 
@@ -223,9 +260,13 @@ local key_to_ip_offset = string.len(string.format("ntopng.serialized_hosts.ifid_
 for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u__%s*", ifid, query)) or {}) do
    local h = hostkey2hostinfo(string.sub(k, key_to_ip_offset))
 
-   if(not res[h.host]) then
+   if(not hosts[h.host]) then
       -- Do not override active hosts / hosts by MAC
-      res[h.host] = i18n("host_details.inactive_host_x", {host = hostinfo2hostkey({host=h.host, vlan=h.vlan})})
+      hosts[h.host] = {
+         label = i18n("host_details.inactive_host_x", {host = hostinfo2hostkey({host=h.host, vlan=h.vlan})}),
+         ip = h.host,
+         name = h.host,
+      }
    end
 end
 
@@ -252,7 +293,26 @@ end
 
 for ip,name in pairs(ip_to_name) do
    if string.contains(string.lower(name), string.lower(query)) then
-      res[ip] = hostinfo2label({host = ip, name = name})
+      local links = {}
+
+      local historical_flows_url
+      if name == value then -- IP
+         historical_flows_url = build_historical_flows_url('ip', value)
+      else -- Name
+         historical_flows_url = build_historical_flows_url('name', value)
+      end
+      if historical_flows_url then
+         links[#links + 1] = {
+            icon = 'stream',
+            url = historical_flows_url,
+         }
+      end
+
+      hosts[ip] = {
+         label = hostinfo2label({host = ip, name = name}),
+         ip = ip,
+         name = name,
+      }
    end
 end
 
@@ -265,51 +325,57 @@ for k in pairs(mac_to_name) do
    local name = ntop.getCache(k)
 
    if not isEmptyString(name) and string.contains(string.lower(name), string.lower(query)) then
-      res[mac] = hostinfo2label({host = mac, mac = mac, name = name})
+      local links = {}
+      hosts[mac] = {
+         label = hostinfo2label({host = mac, mac = mac, name = name}),
+         mac = mac,
+         name = name,
+         links = links,
+      }
    end
 end
 
-cur_results = 0
+res_count = 0
 
-local function build_result(name, value, value_type, links)
+local function build_result(label, value, value_type, links)
 
-   if value_type == 'ip' and isIPv6(name) and not string.contains(name, "%[IPv6%]") then
-      name = name .. " [IPv6]"
+   if value_type == 'ip' and isIPv6(value) and not string.contains(label, "%[IPv6%]") then
+      label = label .. " [IPv6]"
    end
 
    local r = {
-      name = name,
+      name = label,
       ip = value,
       type = value_type,
-      links = links or {},
+      links = links or {
+         -- { icon = nil, url = nil },
+      },
    }
    return r
 end
 
-for k, v in pairs(res) do
-   if((cur_results >= max_group_items) or (#results >= max_total_items)) then
+for k, v in pairs(hosts) do
+   if((res_count >= max_group_items) or (#results >= max_total_items)) then
       break
    end
 
-   if((v ~= "") and (already_printed[v] == nil)) then
+   if((v.label ~= "") and (already_printed[v.label] == nil)) then
       already_printed[v] = true
 
-      if isMacAddress(v) then
-	 results[#results + 1] = build_result(v, v, "mac")
-      elseif isMacAddress(k) then
-	 results[#results + 1] = build_result(v, k, "mac")
-      else
-	 results[#results + 1] = build_result(v, k, "ip")
+      if v.mac then
+	 results[#results + 1] = build_result(v.label, v.mac, "mac")
+      elseif v.ip then
+	 results[#results + 1] = build_result(v.label, v.ip, "ip", v.links)
       end
 
-      cur_results = cur_results + 1
+      res_count = res_count + 1
    end -- if
 end
 
-local res = {
+local data = {
    interface = ifname,
    results = results,
 }
 
-rest_utils.answer(rc, res)
+rest_utils.answer(rc, data)
 
