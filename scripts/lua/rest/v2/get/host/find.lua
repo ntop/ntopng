@@ -63,6 +63,8 @@ end
 
 local ifid = interface.getId()
 
+local historical_flows_icon = 'stream'
+
 local function build_historical_flows_url(key, value)
    return ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?ifid=' .. ifid .. '&' .. tag_utils.build_request_filter(key, 'eq', value)
 end
@@ -215,7 +217,6 @@ local hosts = {}
 local res = interface.findHost(query)
 
 for k, v in pairs(res) do
-tprint(k .. " - " ..v)
    local links = {}
    local historical_flows_url
    if isMacAddress(v) then -- MAC
@@ -227,7 +228,7 @@ tprint(k .. " - " ..v)
    end
    if historical_flows_url then
       links[#links + 1] = {
-         icon = 'stream',
+         icon = historical_flows_icon,
          url = historical_flows_url,
       }
    end
@@ -306,7 +307,7 @@ for ip,name in pairs(ip_to_name) do
       end
       if historical_flows_url then
          links[#links + 1] = {
-            icon = 'stream',
+            icon = historical_flows_icon,
             url = historical_flows_url,
          }
       end
