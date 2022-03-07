@@ -8,8 +8,7 @@ Install
 -------
 npm is a module of NodeJS, so other then npm, NodeJS is required to operate with npm.
 
-`sudo apt-get install nodejs` (in Ubuntu)<br />
-`sudo apt-get install npm` (in Ubuntu)
+`sudo apt-get install nodejs npm jq` (in Ubuntu/Debian)
 
 After installing npm, all the npm modules used by ntopng front-end need to be downloaded.
 
