@@ -94,9 +94,7 @@ ${linksButtonsHtml}
         var menu = res.$menu;
 
         menu.click(function (e) { e.preventDefault(); });
-
-        if (data.results && data.results.length > 0) {
-          /* Fix for empty item appearing in the list */
+        if (data.rsp && data.rsp.results && data.rsp.results.length > 0) {
           $("li:last a:empty", menu).remove();
         } else {
           $("li:last", menu)
