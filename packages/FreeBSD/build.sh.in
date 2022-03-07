@@ -71,7 +71,7 @@ find . -name "*#" -exec /bin/rm {} ';'
 find . -name "*~" -exec /bin/rm {} ';'
 
 # Add GeoIP files
-
+mkdir -p ${STAGEDIR}/usr/local/share/ntopng/httpdocs/geoip
 cp ~/dat_files/dbip-asn-lite-*.mmdb ${STAGEDIR}/usr/local/share/ntopng/httpdocs/geoip/dbip-asn-lite.mmdb
 cp ~/dat_files/dbip-city-lite-*.mmdb ${STAGEDIR}/usr/local/share/ntopng/httpdocs/geoip/dbip-city-lite.mmdb
 cp ~/dat_files/dbip-country-lite-*.mmdb ${STAGEDIR}/usr/local/share/ntopng/httpdocs/geoip/dbip-country-lite.mmdb
