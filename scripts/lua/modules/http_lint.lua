@@ -1703,6 +1703,7 @@ local known_parameters = {
    ["field_alias"]             = validateListOfTypeInline(validateFieldAlias),
    ["dscp_class"]              = validateSingleWord,
    ["host_pool_members"]       = validateUnquoted,
+   ["type"]                    = validateSingleWord,
 
    ["bytes"]                   = validateListOfTypeInline(validateFilters(validateNumber)),
    ["packets"]                 = validateListOfTypeInline(validateFilters(validateNumber)),
@@ -1878,7 +1879,6 @@ local known_parameters = {
    ["flow_max_idle"]                               = validateNumber,
    ["active_local_host_cache_interval"]            = validateNumber,
    ["auth_session_duration"]                       = validateNumber,
-   ["local_host_cache_duration"]                   = validateNumber,
    ["local_host_cache_duration"]                   = validateNumber,
    ["intf_rrd_raw_days"]                           = validateNumber,
    ["intf_rrd_1min_days"]                          = validateNumber,

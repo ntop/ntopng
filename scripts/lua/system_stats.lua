@@ -74,16 +74,24 @@ if(page == "overview") then
 
    if system_host_stats["cpu_load"] ~= nil then
       local chart_available = ts_utils.exists("system:cpu_load", {ifid = getSystemInterfaceId()})
-      print("<tr><th nowrap>"..i18n("about.cpu_load").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=system:cpu_load'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='cpu-load-pct'>...</span></td></tr>\n")
+      print("<tr><th nowrap>"..i18n("about.cpu_load").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=system:cpu_load'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='cpu-load-pct'>" .. round(system_host_stats["cpu_load"], 2) .. "</span></td></tr>\n")
    end
 
    if system_host_stats["cpu_states"] and system_host_stats["cpu_states"]["iowait"] then
       local chart_available = ts_utils.exists("system:cpu_states", {ifid = getSystemInterfaceId()})
-      print("<tr><th nowrap>"..i18n("about.cpu_states").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=system:cpu_states'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='cpu-states'></span></td></tr>\n")
+      local iowait = i18n("about.iowait") .. ": " .. round(formatValue(system_host_stats["cpu_states"]["iowait"]), 2) .. "%"
+      local active = i18n("about.active") .. ": " .. round(formatValue(system_host_stats["cpu_states"]["user"] + system_host_stats["cpu_states"]["system"] + system_host_stats["cpu_states"]["nice"] + system_host_stats["cpu_states"]["irq"] + system_host_stats["cpu_states"]["softirq"] + system_host_stats["cpu_states"]["guest"] + system_host_stats["cpu_states"]["guest_nice"]), 2) .. "%"
+      local idle = i18n("about.idle") .. ": " .. round(formatValue(system_host_stats["cpu_states"]["idle"] + system_host_stats["cpu_states"]["steal"]), 2) .. "%"
+      print("<tr><th nowrap>"..i18n("about.cpu_states").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=system:cpu_states'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='cpu-states'>" .. iowait .. " / " .. active .. " / " .. idle .. "</span></td></tr>\n")
    end
 
    if system_host_stats["mem_total"] ~= nil then
-      print("<tr><th nowrap>"..i18n("about.ram_memory").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:resident_memory'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='ram-used'></span></td></tr>\n")
+    local ram_used = system_host_stats["mem_used"]
+    local ram_used_ratio = i18n("ram_used") .. ": " .. tostring(round((ram_used / system_host_stats["mem_total"]) * 100 * 100) / 100) .. "%";
+    local ram_available = i18n("ram_available") .. ": " .. bytesToSize((system_host_stats["mem_total"] - ram_used) * 1024)
+    local ram_total = i18n("ram_total") .. ": " .. bytesToSize(system_host_stats["mem_total"] * 1024)
+
+    print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-used'>" .. ram_used_ratio .. " / " .. ram_available .. " / " .. ram_total .. "</span></td></tr>\n")
    end
 
    print("<tr><th rowspan=".. ntopng_rowspan ..">"..info["product"].."</th>")
@@ -93,12 +101,12 @@ if(page == "overview") then
    end
    if system_host_stats["mem_ntopng_resident"] ~= nil then
       local chart_available = ts_utils.exists("process:resident_memory", {ifid = getSystemInterfaceId()})
-      print("<tr><th nowrap>"..i18n("about.ram_memory").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:resident_memory'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='ram-process-used'></span></td></tr>\n")
+      print("<tr><th nowrap>"..i18n("about.ram_memory").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:resident_memory'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='ram-process-used'>" .. i18n("ram_used") .. ": " .. bytesToSize(system_host_stats["mem_ntopng_resident"] * 1024) .. "</span></td></tr>\n")
    end
 
    if areAlertsEnabled() then
       local chart_available = ts_utils.exists("process:num_alerts", {ifid = getSystemInterfaceId()})
-      print("<tr><th nowrap>"..i18n("details.alerts").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:num_alerts'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td>"..i18n("about.alert_queries")..": <span id='alerts-queries'>...</span> / "..i18n("about.alerts_stored")..": <span id='stored-alerts'>...</span> / "..i18n("about.alerts_dropped")..": <span id='dropped-alerts'>...</span></td></tr>\n")
+      print("<tr><th nowrap>"..i18n("details.alerts").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:num_alerts'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td>"..i18n("about.alert_queries")..": <span id='alerts-queries'>" .. round(system_host_stats["alerts_queries"]) .. "</span> / "..i18n("about.alerts_stored")..": <span id='stored-alerts'>" .. round(system_host_stats["written_alerts"]) .. "</span> / "..i18n("about.alerts_dropped")..": <span id='dropped-alerts'>" .. round(system_host_stats["dropped_alerts"]) .. "</span></td></tr>\n")
    end
 
    print("<tr id='storage-info-tr'><th>"..i18n("traffic_recording.storage_utilization").."</th><td>")

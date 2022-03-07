@@ -10,7 +10,6 @@ local ts_utils = require("ts_utils_core")
 local template = require "template_utils"
 local stats_utils = require("stats_utils")
 local page_utils = require "page_utils"
-local template_utils = require("template_utils")
 local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo(true)
 local is_admin = isAdministrator()
@@ -206,14 +205,11 @@ let updatingChart_totals = [
 	$(".mobile-menu-stats .network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null})
 ];
 
-const interface_refresh_rate = ]] print(string.format("%u", math.min(interface.getStatsUpdateFreq(), 20 --[[ Don't wait too much or the chart will look buggy --]]))) print[[;
-let   last_interface_load_refresh = 0;
-
 const footerRefresh = function() {
 	$.ajax({
 		type: 'GET',
 		url: ']]print (ntop.getHttpPrefix()) print [[/lua/rest/v2/get/interface/data.lua',
-		data: { ifid: ]] print(tostring(ifid)) print[[ },
+		data: { ifid: ]] print(tostring(ifid)) print[[, type: 'summary' },
 		success: function(content) {
 			if(content["rc_str"] != "OK") {
 				return;
@@ -221,89 +217,41 @@ const footerRefresh = function() {
 
 			const rsp = content["rsp"];
 
-                        try {
-                                var pps = rsp.throughput_pps;
-                                var bps = rsp.throughput_bps * 8;
-                                var bps_upload = rsp.throughput.upload.bps * 8;
-                                var bps_download = rsp.throughput.download.bps * 8;
+      try {
+        let bps_upload = rsp.throughput.upload * 8;
+        let bps_download = rsp.throughput.download * 8;
 
-                                if(last_interface_load_refresh + interface_refresh_rate < rsp.epoch) {
-                                  var values = updatingChart_uploads[0].text().split(",")
-                                  var values1 = updatingChart_downloads[0].text().split(",")
-                                  var values2 = updatingChart_totals[0].text().split(",")
-                                  values.shift();
-                                  values.push(bps_upload.toString());
-                                  updatingChart_uploads[0].text(values.join(",")).change();
-                                  updatingChart_uploads[1].text(values.join(",")).change();
-                                  values1.shift();
-                                  values1.push((-bps_download).toString());
-                                  updatingChart_downloads[0].text(values1.join(",")).change();
-                                  updatingChart_downloads[1].text(values1.join(",")).change();
-                                  values2.shift();
-                                  values2.push(bps);
-                                  updatingChart_totals[0].text(values2.join(",")).change();
-                                  updatingChart_totals[1].text(values2.join(",")).change();
-  
-                                  var v = bps_upload - bps_download;
+        /* Upload chart */
+        let values = updatingChart_uploads[0].text().split(",")
+        values.shift();
+        values.push(bps_upload.toString());
+        updatingChart_uploads[0].text(values.join(",")).change();
+        updatingChart_uploads[1].text(values.join(",")).change();
+        $('.chart-upload-text:visible').html(NtopUtils.bitsToSize(bps_upload, 1000));
+        
+        /* Download chart */
+        values = updatingChart_downloads[0].text().split(",")
+        values.shift();
+        values.push((-bps_download).toString());
+        updatingChart_downloads[0].text(values.join(",")).change();
+        updatingChart_downloads[1].text(values.join(",")).change();
+        $('.chart-download-text:visible').html(NtopUtils.bitsToSize(bps_download, 1000));
   ]]
 
 if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
    print[[
-                                  v = Math.round(Math.min((bps*100)/]] print(string.format("%u", maxSpeed)) print[[, 100));
-                                  $('.network-load').html(v+"%");
+        const v = Math.round(Math.min((rsp.throughput_bps * 8 *100)/]] print(string.format("%u", maxSpeed)) print[[, 100));
+        $('.network-load').html(v+"%");
 ]]
 end
 
-print[[
-                                  $('.chart-upload-text:visible').html(NtopUtils.bitsToSize(bps_upload, 1000));
-                                  $('.chart-download-text:visible').html(NtopUtils.bitsToSize(bps_download, 1000));
-                                  $('.chart-total-text:visible').html(NtopUtils.bitsToSize(bps_upload + bps_download, 1000));
-
-                                  last_interface_load_refresh = rsp.epoch;
-                                } /* Closes network load chart refresh */
-     ]]
-
 -- systemInterfaceEnabled is defined inside menu.lua
-
 print[[
 				$('#network-clock').html(`${rsp.localtime}`);
 				$('#network-uptime').html(`${rsp.uptime}`);
 
 				let msg = `<div class='m-2'><div class='d-flex flex-wrap navbar-main-badges'>`;
-
-				if (rsp.system_host_stats.cpu_states) {
-					const iowait = ']] print(i18n("about.iowait")) print[[: ' + NtopUtils.formatValue(rsp.system_host_stats.cpu_states.iowait) + "%";
-					const active = ']] print(i18n("about.active")) print[[: ' + NtopUtils.formatValue(rsp.system_host_stats.cpu_states.user + rsp.system_host_stats.cpu_states.system  + rsp.system_host_stats.cpu_states.nice + rsp.system_host_stats.cpu_states.irq + rsp.system_host_stats.cpu_states.softirq + rsp.system_host_stats.cpu_states.guest + rsp.system_host_stats.cpu_states.guest_nice) + "%";
-					const idle = ']] print(i18n("about.idle")) print[[: ' + NtopUtils.formatValue(rsp.system_host_stats.cpu_states.idle + rsp.system_host_stats.cpu_states.steal) + "%";
-					$('#cpu-states').html(iowait + " / " + active + " / " + idle);
-				}
-
-				if (rsp.system_host_stats.mem_total != undefined) {
-					var mem_total = rsp.system_host_stats.mem_total;
-					var mem_used = rsp.system_host_stats.mem_used;
-					var mem_used_ratio = mem_used / mem_total;
-
-					mem_used_ratio = mem_used_ratio * 100;
-					mem_used_ratio = Math.round(mem_used_ratio * 100) / 100;
-					mem_used_ratio = mem_used_ratio + "%";
-
-					$('#ram-used').html(']] print(i18n("ram_used")) print[[: ' + mem_used_ratio + ' / ]] print(i18n("ram_available")) print[[: ' + NtopUtils.bytesToSize((mem_total - mem_used) * 1024) + ' / ]] print(i18n("ram_total")) print[[: ' + NtopUtils.bytesToSize(mem_total * 1024));
-					$('#ram-process-used').html(']] print(i18n("ram_used")) print[[: ' + NtopUtils.bytesToSize(rsp.system_host_stats.mem_ntopng_resident * 1024));
-				}
-
-				if (rsp.system_host_stats.dropped_alerts) {
-					const drop_pct = rsp.system_host_stats.dropped_alerts / (rsp.system_host_stats.dropped_alerts + rsp.system_host_stats.written_alerts) * 100;
-					$('#dropped-alerts').html(NtopUtils.fint(rsp.system_host_stats.dropped_alerts) + " [" + NtopUtils.fpercent(drop_pct) + "]");
-				}
-				else {
-					$('#dropped-alerts').html("0");
-				}
-
-				$('#stored-alerts').html(rsp.system_host_stats.written_alerts ? NtopUtils.fint(rsp.system_host_stats.written_alerts) : "0");
-				$('#alerts-queries').html(rsp.system_host_stats.alerts_queries ? NtopUtils.fint(rsp.system_host_stats.alerts_queries) : "0");
-
-				if (rsp.system_host_stats.cpu_load !== undefined) $('#cpu-load-pct').html(NtopUtils.ffloat(rsp.system_host_stats.cpu_load));
-
+				
 				if(rsp.out_of_maintenance) {
 					msg += "<a href=\"https://www.ntop.org/support/faq/how-can-i-renew-maintenance-for-commercial-products/\" target=\"_blank\"><span class=\"badge bg-warning\">]] print(i18n("about.maintenance_expired", {product=info["product"]})) print[[ <i class=\"fas fa-external-link-alt\"></i></span></a> ";
 				}
@@ -312,6 +260,7 @@ print[[
 				   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/system_interfaces_stats.lua?page=internals&tab=periodic_activities&periodic_script_issue=any_issue\">"
 					msg += "<span class=\"badge bg-warning\"><i class=\"fas fa-exclamation-triangle\" title=\"]] print(i18n("internals.degraded_performance")) print[[\"></i></span></a>";
 				}
+
 				if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[) {
 
 					var error_color = "#B94A48";
@@ -489,7 +438,7 @@ $(document).ajaxError(function(err, response, ajaxSettings, thrownError) {
 
 footerRefresh();  /* call immediately to give the UI a more responsive look */
 
-setInterval(footerRefresh, 4000); /* re-schedule every [interface-rate] seconds */
+setInterval(footerRefresh, 5000); /* re-schedule every [interface-rate] seconds */
 
 //Automatically open dropdown-menu
 $(document).ready(function(){
