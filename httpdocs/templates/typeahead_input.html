@@ -36,10 +36,9 @@
       window.location.replace(url);
       //ntopng_url_manager.replace_url_and_reload(url);
   }
-
   $('#{{typeahead.base_id}}_search_field').typeahead({
       items: {*typeahead.max_items or 8*}, /* Max num of items, use "'all'" for unlimited */
-      //item: '<li><a href="#" class="dropdown-item"></a> <div>asd</div></li>'.
+      //item: "<li class='dropdown-item'></li>",
       highlighter: function (item) {
 	  // <a href="#" class="dropdown-item">${item}</a>
 	  if (item == null || item == "") { return ""; }
@@ -55,18 +54,20 @@
 		  if (l.icon != null) {
 		      icon = `fa fas fa-${l.icon}`;		      
 		  }
-		  let b = `<button type="button" class="btn btn-sm btn-link float-end" style="text-align:right;" onClick="linkButtonClicked('${l.url}')"><i class="${icon}"></i></button>`;
+		  let b = `<button style="" type="button" class="btn btn-sm btn-link" onClick="linkButtonClicked('${l.url}')"><i class="${icon}"></i></button>`;
 		  linksButtons.push(b);
 	      });
 	      return linksButtons.join("");
 	  };
 	  let linksButtonsHtml = printLinksButtons(this.linksElementsDict[item]);
-	  let html = `<li>
-<div class="display:inline-block:">
+	  let html = `
+<div class="" style="">
 <label><a href="#" class="dropdown-item">${itemHtml}</a></label>
+<div class="btn-group float-end">
 ${linksButtonsHtml}
 </div>
-</li>`;
+</div>
+`;
           return html;
       },
       linksElementsDict: {},
@@ -83,16 +84,20 @@ ${linksButtonsHtml}
 	  return $.get("{*typeahead.query_url*}", _get, function (data) {
 	      let elements = data.rsp.results;
 	      me.linksElementsDict = {};
+	      let maxLinks = 0;
 	      elements.forEach((e) => {
 		  if (e.links != null) {
 		      //e.links.push({icon: "fas fa-search-minus", url: "ntop.org"});
+		      if (e.links.length > maxLinks) { maxLinks = e.links.length; }
 		      me.linksElementsDict[e.name] = e.links;
-		  }
+		  } else { }
 	      });
               var res = process(data.rsp.results);
 	      
               var menu = res.$menu;
               menu.click(function (e) { e.preventDefault(); });
+	      let currentWidth = $("li", menu).width();
+	      $("li", menu).width(currentWidth + 36 * maxLinks);
 	      if (data.rsp && data.rsp.results && data.rsp.results.length > 0) {
 		  $("li:last > a:empty", menu).remove();
 	      } else {
