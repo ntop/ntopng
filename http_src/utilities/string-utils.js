@@ -25,12 +25,11 @@ String.prototype.startsWith = function (string) {
 
 // "{0} to {1}".sformat(1, 10) -> "1 to 10"
 String.prototype.sformat = function () {
-    var args = arguments;
-    return this.replace(/\%{(\d+)}/g, function (match, number) {
-	return typeof args[number] != 'undefined'
-	    ? args[number]
-	    : match
-	;
+    let args = arguments;
+    let curr_arg = -1;
+    return this.replace(/(\%\{.*?\})/gi, function (match) {
+      curr_arg = curr_arg + 1;
+	    return typeof args[curr_arg] != 'undefined' ? args[curr_arg] : match;
     });
 };
 
