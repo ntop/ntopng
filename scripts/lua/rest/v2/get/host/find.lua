@@ -218,19 +218,22 @@ local res = interface.findHost(query)
 
 for k, v in pairs(res) do
    local links = {}
-   local historical_flows_url
-   if isMacAddress(v) then -- MAC
-      historical_flows_url = build_historical_flows_url('mac', v)
-   elseif k == v or isIPv6(v) then -- IP
-      historical_flows_url = build_historical_flows_url('ip', v)
-   else -- Name
-      historical_flows_url = build_historical_flows_url('name', v)
-   end
-   if historical_flows_url then
-      links[#links + 1] = {
-         icon = historical_flows_icon,
-         url = historical_flows_url,
-      }
+
+   if hasClickHouseSupport() then
+      local historical_flows_url
+      if isMacAddress(v) then -- MAC
+         historical_flows_url = build_historical_flows_url('mac', v)
+      elseif k == v or isIPv6(v) then -- IP
+         historical_flows_url = build_historical_flows_url('ip', v)
+      else -- Name
+         historical_flows_url = build_historical_flows_url('name', v)
+      end
+      if historical_flows_url then
+         links[#links + 1] = {
+            icon = historical_flows_icon,
+            url = historical_flows_url,
+         }
+      end
    end
 
    hosts[k] = {
@@ -299,18 +302,21 @@ for ip,name in pairs(ip_to_name) do
    if string.contains(string.lower(name), string.lower(query)) then
       local links = {}
 
-      local historical_flows_url
-      if name == value then -- IP
-         historical_flows_url = build_historical_flows_url('ip', value)
-      else -- Name
-         historical_flows_url = build_historical_flows_url('name', value)
+      if hasClickHouseSupport() then
+         local historical_flows_url
+         if name == value then -- IP
+            historical_flows_url = build_historical_flows_url('ip', value)
+         else -- Name
+            historical_flows_url = build_historical_flows_url('name', value)
+         end
+         if historical_flows_url then
+            links[#links + 1] = {
+               icon = historical_flows_icon,
+               url = historical_flows_url,
+            }
+         end
       end
-      if historical_flows_url then
-         links[#links + 1] = {
-            icon = historical_flows_icon,
-            url = historical_flows_url,
-         }
-      end
+
       hosts[ip] = {
          label = hostinfo2label({host = ip, name = name}),
          ip = ip,
@@ -329,11 +335,13 @@ for k in pairs(mac_to_name) do
    if not isEmptyString(name) and string.contains(string.lower(name), string.lower(query)) then
       local links = {}
 
-      local historical_flows_url = build_historical_flows_url('mac', mac)
-      links[#links + 1] = {
-         icon = historical_flows_icon,
-         url = historical_flows_url,
-      }
+      if hasClickHouseSupport() then
+         local historical_flows_url = build_historical_flows_url('mac', mac)
+         links[#links + 1] = {
+            icon = historical_flows_icon,
+            url = historical_flows_url,
+         }
+      end
 
       hosts[mac] = {
          label = hostinfo2label({host = mac, mac = mac, name = name}),
