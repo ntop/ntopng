@@ -3,7 +3,7 @@
   <div class="input-group">
       <button class="input-group-text"><i class="fas fa-search" aria-hidden="true"></i></button>
   {% for k,v in pairs(typeahead.parameters or {}) do %}
-    <input type="hidden" name="{{k}}" value="{{v}}" />
+      <input type="hidden" name="{{k}}" value="{{v}}" />
   {% end %}
     <input id="{{typeahead.base_id}}_query" type="hidden" name="{{typeahead.query_field}}" data-ays-ignore="true"/>
     <input id="{{typeahead.base_id}}_search_field" type="text" data-minlength="1" class="form-control search-query span2" placeholder="{{typeahead.query_title}}" data-provide="typeahead" autocomplete="off"/>
@@ -17,6 +17,9 @@
     "select": null,
   }
 
+  function linkButtonClicked(url) {
+      ntopng_url_manager.replace_url_and_reload(url);
+  }
   /* Temporary override the typeahead click callback */
   for (var callback_name in _typeahead_overridden_callbacks) {
     /* Dump original callback */
@@ -31,19 +34,58 @@
   }
 
   $('#{{typeahead.base_id}}_search_field').typeahead({
-    items: {*typeahead.max_items or 8*}, /* Max num of items, use "'all'" for unlimited */
-    source: function (query, process) {
+      items: {*typeahead.max_items or 8*}, /* Max num of items, use "'all'" for unlimited */
+      //item: '<li><a href="#" class="dropdown-item"></a> <div>asd</div></li>'.
+      highlighter: function (item) {
+	  // <a href="#" class="dropdown-item">${item}</a>
+	  let query = `(${this.$element.val()})`;
+	  let regex = new RegExp(query, "gi");
+	  let itemHtml = item.replace(regex, "<strong>$1</strong>");
+          var parts = item.split('#');
+	  let printLinksButtons = (links) => {
+	      if (links == null) { return ""; }
+	      let linksButtons = [];
+	      links.forEach((l) => {
+		  let icon = "fa fas fa-link";
+		  if (l.icon != null) {
+		      icon = `fa fas ${l.icon}`;		      
+		  }
+		  let b = `<button type="button" class="btn btn-sm btn-link" style="text-align:right;" onClick="linkButtonClicked('${l.url}')"><i class="${icon}"></i></button>`;
+		  linksButtons.push(b);
+	      });
+	      return linksButtons.join("");
+	  };
+	  let linksButtonsHtml = printLinksButtons(this.linksElementsDict[item]);
+	  let html = `<li>
+<div class="display:inline-block:">
+<label><a href="#" class="dropdown-item">${itemHtml}</a></label>
+${linksButtonsHtml}
+</div>
+</li>`;
+          return html;
+      },
+      linksElementsDict: {},
+      source: function (query, process) {
       /* Avoid this kind of queries which generates file path warnings into the ntopng log */
       if (query.startsWith(".")) return;
+	  let me = this;
 
       var _get = {};
     {% for k,v in pairs(typeahead.parameters or {}) do %}
       _get["{{k}}"] = "{{v}}";
     {% end %}
       _get["query"] = query;
-
-      return $.get("{*typeahead.query_url*}", _get, function (data) {
-        var res = process(data.rsp ? data.rsp.results : data.results);
+	  return $.get("{*typeahead.query_url*}", _get, function (data) {
+	      let elements = data.rsp.results;
+	      me.linksElementsDict = {};
+	      elements.forEach((e) => {
+		  if (e.links != null) {
+		      //e.links.push({icon: "fas fa-search-minus", url: "ntop.org"});
+		      me.linksElementsDict[e.name] = e.links;
+		  }
+	      });
+              var res = process(data.rsp.results);
+	      
         var menu = res.$menu;
 
         menu.click(function (e) { e.preventDefault(); });
@@ -59,7 +101,7 @@
 
         return res;
       });
-    }, afterSelect: function(item) {
+      }, afterSelect: function(item) {
       if (! item.no_results) {
         var form = $("#{{typeahead.base_id}}_query")
           .val(item["{{typeahead.json_key}}"])
