@@ -17,13 +17,13 @@
 
 {% -- Print out the interfaces dropdown %}
 
-<li class="nav-item d-sm-flex pe-2">
-  <select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker form-select-lg" 
+<li class="nav-item d-sm-flex">
+  <select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker form-select-lg ifaces-dropdown" 
     data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
 
     {% if isAdministrator() then %}
     <option disabled>{{ i18n('system') }}</option>
-    <option class="ms-3" value="{{ getSystemInterfaceId() }}" {{ selected }} data-content="{{ i18n('system') }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;">{{ i18n('system') }}</option>
+    <option value="{{ getSystemInterfaceId() }}" {{ selected }} data-content="{{ i18n('system') }}" style="padding-left: 2rem !important;">{{ i18n('system') }}</option>
     {% end %}
 
     {% -- The Interfaces optgroup %}
@@ -66,7 +66,7 @@
               {% icons[#icons + 1] = "<i class='fas fa-hdd'></i>" %}
             {% end %}
 
-            <option class="ms-3" data-tokens="{{ k }}" value="{{ k }}" {{ selected }} data-content="{{ table.concat(icons, ' ')}} {{ shortenCollapse(ifHdescr[k]) }}">{{ ifHdescr[k] }}</option>
+            <option data-tokens="{{ k }}" value="{{ k }}" {{ selected }} data-content="{{ table.concat(icons, ' ')}} {{ shortenCollapse(ifHdescr[k]) }}" style="padding-left: 2rem !important;">{{ ifHdescr[k] }}</option>
           {% end %}
         {% end %}
       {% end %}
