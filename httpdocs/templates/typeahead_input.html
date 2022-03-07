@@ -17,9 +17,6 @@
     "select": null,
   }
 
-  function linkButtonClicked(url) {
-      ntopng_url_manager.replace_url_and_reload(url);
-  }
   /* Temporary override the typeahead click callback */
   for (var callback_name in _typeahead_overridden_callbacks) {
     /* Dump original callback */
@@ -31,6 +28,13 @@
         _typeahead_overridden_callbacks[callback_name].apply(this, arguments);
       }
     };
+  }
+  let isButtonLinkClicked = false;
+
+  function linkButtonClicked(url) {
+      isButtonLinkClicked = true;
+      window.location = url;
+      //ntopng_url_manager.replace_url_and_reload(url);
   }
 
   $('#{{typeahead.base_id}}_search_field').typeahead({
@@ -48,7 +52,7 @@
 	      links.forEach((l) => {
 		  let icon = "fa fas fa-link";
 		  if (l.icon != null) {
-		      icon = `fa fas ${l.icon}`;		      
+		      icon = `fa fas fa-${l.icon}`;		      
 		  }
 		  let b = `<button type="button" class="btn btn-sm btn-link" style="text-align:right;" onClick="linkButtonClicked('${l.url}')"><i class="${icon}"></i></button>`;
 		  linksButtons.push(b);
@@ -65,6 +69,7 @@ ${linksButtonsHtml}
           return html;
       },
       linksElementsDict: {},
+      isButtonClicked: false,
       source: function (query, process) {
       /* Avoid this kind of queries which generates file path warnings into the ntopng log */
       if (query.startsWith(".")) return;
@@ -102,6 +107,9 @@ ${linksButtonsHtml}
         return res;
       });
       }, afterSelect: function(item) {
+	  if (isButtonLinkClicked == true) {
+	      return;
+	  }
       if (! item.no_results) {
         var form = $("#{{typeahead.base_id}}_query")
           .val(item["{{typeahead.json_key}}"])
