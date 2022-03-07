@@ -38,13 +38,7 @@ print([[
    <div class='wrapper'>
 ]])
 
-local admin_lang = ntop.getPref("ntopng.user.admin.language")
-local language = ternary(isEmptyString(admin_lang), "en", admin_lang)
-local locale_path = dirs.installdir.."/scripts/locales/"..language..".lua"
-local locale_when = ntop.fileLastChange(locale_path)
-
 print[[
-<script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print("/lua/locale.lua?user_language="..language.."&epoch="..locale_when); print[["> </script>
 <script type='text/javascript'>
 
    const isAdministrator = ]] print(is_admin) print[[;

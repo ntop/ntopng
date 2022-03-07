@@ -115,6 +115,7 @@ local lang = {
   ["sent"] = "gesendet",
   ["server"] = "Server",
   ["similarity"] = "Ähnlichkeit",
+  ["showing_x_to_y_rows"] = "Showing %{x} to %{y} of %{tot} rows",
   ["speed"] = "Geschwindigkeit",
   ["status"] = "Status",
   ["summary"] = "Zusammenfassung",

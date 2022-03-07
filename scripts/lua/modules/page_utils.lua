@@ -288,6 +288,11 @@ function page_utils.print_header(title)
   local page_title = i18n("welcome_to", { product=info.product })
   local favicon_path = nil
 
+  local admin_lang = ntop.getPref("ntopng.user.admin.language")
+  local language = ternary(isEmptyString(admin_lang), "en", admin_lang)
+  local locale_path = dirs.installdir.."/scripts/locales/"..language..".lua"
+  local locale_when = ntop.fileLastChange(locale_path)
+
   if title ~= nil then
     page_title = info.product .. " - " .. title
   end
@@ -328,6 +333,7 @@ function page_utils.print_header(title)
     </style>
 
     <link href="]] print(http_prefix) print[[/dist/custom-theme.css?]] print(static_file_epoch) print[[" rel="stylesheet">
+    <script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print("/lua/locale.lua?user_language="..language.."&epoch="..locale_when); print[["> </script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/tmp/rickshaw/rickshaw.js"></script>
@@ -347,7 +353,12 @@ function page_utils.print_header_minimal(title)
   if title ~= nil then
     page_title = info.product .. " - " .. title
   end
-
+  
+  local admin_lang = ntop.getPref("ntopng.user.admin.language")
+  local language = ternary(isEmptyString(admin_lang), "en", admin_lang)
+  local locale_path = dirs.installdir.."/scripts/locales/"..language..".lua"
+  local locale_when = ntop.fileLastChange(locale_path)
+  
   print [[
     <!DOCTYPE html>
     <html>
@@ -378,7 +389,8 @@ function page_utils.print_header_minimal(title)
             margin-top: -5px;
             background:url(]] print(http_prefix) print[[/dist/images/flags.png) no-repeat
           }
-
+  
+          <script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print("/lua/locale.lua?user_language="..language.."&epoch="..locale_when); print[["> </script>
           <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
           <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js"></script>
           <script type="text/javascript" src="]] print(http_prefix) print[[/tmp/rickshaw/rickshaw.js"></script>

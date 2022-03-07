@@ -31,6 +31,8 @@
     this.rows = [];
     this.buttons = [];
 
+    const no_results_found = (i18n) ? i18n("no_results_found") : "No Results Found"
+
     // this needs to be handled better
     this.localStorageId =
       "datatable_" + (options.id || options.url.replace(/\W/gi, "_"));
@@ -46,7 +48,7 @@
       ? this.$element.children()
       : $("<div></div>")
           .addClass("alert alert-danger")
-          .html(i18n("no_results_found"));
+          .html(no_results_found);
 
     this.$element.addClass("clearfix");
 
@@ -332,6 +334,8 @@
         end = 0,
         that = this;
 
+      const showing_x_to_y_rows = (i18n) ? i18n("showing_x_to_y_rows") : "Showing %{x} to %{y} of %{tot} rows"
+
       start = o.currentPage * o.perPage - o.perPage + 1;
       if (start < 1) start = 1;
 
@@ -340,7 +344,7 @@
 
       $(
         '<div class="text-left"><p>' +
-          i18n("showing_x_to_y_rows").sformat(start, end, o.totalRows) +
+          showing_x_to_y_rows.sformat(start, end, o.totalRows) +
           "</p></div>"
       ).prependTo(this.$bottom_details);
     },
@@ -930,13 +934,14 @@
       var o = this.options,
 	  $e = this.$element,
 	  that = this;
+    const change_number_of_rows = (i18n) ? i18n("change_number_of_rows") : "Change the number of rows per page"
 
       // per page options and current filter/sorting
       var $perpage_select = $("<div></div>")
 	  .addClass("btn-group")
 	  .append($("<button></button>")
 		  .addClass("btn btn-link dropdown-toggle")
-		  .data("content", i18n("change_number_of_rows") + ".")
+		  .data("content", change_number_of_rows + ".")
 		  .attr("data-bs-toggle", "dropdown")
 		  .html(o.perPage + "&nbsp;")
 		  .append($("<span></span>")
