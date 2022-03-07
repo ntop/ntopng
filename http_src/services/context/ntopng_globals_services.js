@@ -3,39 +3,22 @@
 */
 
 export const ntopng_sync = function() {
-  let components_ready = {};
-  let subscribers = [];
-
-  const start_resolver = function() {
-let resolver;
-resolver = setInterval(() => {
-    for (let i = 0; i < subscribers.length; i += 1) {
-  let s = subscribers[i];
-  if (components_ready[s.component_name] == true) {
-      s.resolve();
-      s.completed = true;
-  }
-    }
-    subscribers = subscribers.filter((s) => s.completed == false);
-    if (subscribers.length == 0) { clearInterval(resolver); }
-}, 250);
-  };
-      
-  return {
-ready: function(component_name) {
-    components_ready[component_name] = true;
-},
-on_ready: function(component_name) {
-    return new Promise((resolve, rejevt) => {
-  if (components_ready[component_name]) {
-      resolve();
-  }
-  const is_first = subscribers.length == 0;
-  subscribers.push({resolve, component_name, completed: false});
-  if (is_first == true) { start_resolver(); }
-    });
-},
-  };
+    let components_ready = {};
+    let subscribers = [];        
+    return {
+	ready: function(component_name) {
+	    components_ready[component_name] = true;
+	    let subs = subscribers.filter((s) => s.component_name == component_name).forEach((s) => s.resolve());
+	},
+	on_ready: function(component_name) {
+	    return new Promise((resolve, rejevt) => {
+		if (components_ready[component_name]) {
+		    resolve();
+		}
+		subscribers.push({resolve, component_name, completed: false});
+	    });
+	},
+    };
 }();
 
 /**
