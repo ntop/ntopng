@@ -683,3 +683,11 @@ li > a > .fa-external-link-alt{
   color: #D1D1D1 !important;
   background-color: #181818 !important;  
 }
+
+/* Datatables.net pagination button */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current, .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+  background-color: #FF7500 !important;
+  background: none;
+  color: #FFFFFF !important;
+  border: 1px solid #262626;
+}
