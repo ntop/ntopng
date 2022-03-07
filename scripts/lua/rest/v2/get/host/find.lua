@@ -63,10 +63,20 @@ end
 
 local ifid = interface.getId()
 
-local historical_flows_icon = 'stream'
-
 local function build_historical_flows_url(key, value)
    return ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?ifid=' .. ifid .. '&' .. tag_utils.build_request_filter(key, 'eq', value)
+end
+
+local function add_historical_flows_link(links, key, value)
+   if hasClickHouseSupport() then
+      local historical_flows_icon = 'stream'
+      local historical_flows_url = build_historical_flows_url(key, value)
+
+      links[#links + 1] = {
+         icon = historical_flows_icon,
+         url = historical_flows_url,
+      }
+   end
 end
 
 if not hosts_only then
@@ -219,21 +229,12 @@ local res = interface.findHost(query)
 for k, v in pairs(res) do
    local links = {}
 
-   if hasClickHouseSupport() then
-      local historical_flows_url
-      if isMacAddress(v) then -- MAC
-         historical_flows_url = build_historical_flows_url('mac', v)
-      elseif k == v or isIPv6(v) then -- IP
-         historical_flows_url = build_historical_flows_url('ip', v)
-      else -- Name
-         historical_flows_url = build_historical_flows_url('name', v)
-      end
-      if historical_flows_url then
-         links[#links + 1] = {
-            icon = historical_flows_icon,
-            url = historical_flows_url,
-         }
-      end
+   if isMacAddress(v) then -- MAC
+      add_historical_flows_link(links, 'mac', v)
+   elseif k == v or isIPv6(v) then -- IP
+      add_historical_flows_link(links, 'ip', v)
+   else -- Name
+      add_historical_flows_link(links, 'name', v)
    end
 
    hosts[k] = {
@@ -253,10 +254,13 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.ip_to_mac.ifid_%u__%s*", 
 
    if(not hosts[h.host]) then
       -- Do not override active hosts
+      local links = {}
+      add_historical_flows_link(links, 'ip', h.host)
       hosts[h.host] = {
          label = i18n("host_details.inactive_host_x", {host = hostinfo2hostkey({host=h.host, vlan=h.vlan})}),
          ip = h.host,
          name = h.host,
+         links = links,
       }
    end
 end
@@ -269,10 +273,13 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u_
 
    if(not hosts[h.host]) then
       -- Do not override active hosts / hosts by MAC
+      local links = {}
+      add_historical_flows_link(links, 'ip', h.host)
       hosts[h.host] = {
          label = i18n("host_details.inactive_host_x", {host = hostinfo2hostkey({host=h.host, vlan=h.vlan})}),
          ip = h.host,
          name = h.host,
+         links = links,
       }
    end
 end
@@ -302,25 +309,17 @@ for ip,name in pairs(ip_to_name) do
    if string.contains(string.lower(name), string.lower(query)) then
       local links = {}
 
-      if hasClickHouseSupport() then
-         local historical_flows_url
-         if name == value then -- IP
-            historical_flows_url = build_historical_flows_url('ip', value)
-         else -- Name
-            historical_flows_url = build_historical_flows_url('name', value)
-         end
-         if historical_flows_url then
-            links[#links + 1] = {
-               icon = historical_flows_icon,
-               url = historical_flows_url,
-            }
-         end
+      if name == value then -- IP
+         add_historical_flows_link(links, 'ip', value)
+      else -- Name
+         add_historical_flows_link(links, 'name', value)
       end
 
       hosts[ip] = {
          label = hostinfo2label({host = ip, name = name}),
          ip = ip,
          name = name,
+         links = links,
       }
    end
 end
@@ -335,13 +334,7 @@ for k in pairs(mac_to_name) do
    if not isEmptyString(name) and string.contains(string.lower(name), string.lower(query)) then
       local links = {}
 
-      if hasClickHouseSupport() then
-         local historical_flows_url = build_historical_flows_url('mac', mac)
-         links[#links + 1] = {
-            icon = historical_flows_icon,
-            url = historical_flows_url,
-         }
-      end
+      add_historical_flows_link(links, 'mac', mac)
 
       hosts[mac] = {
          label = hostinfo2label({host = mac, mac = mac, name = name}),
