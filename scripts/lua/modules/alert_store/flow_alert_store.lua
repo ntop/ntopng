@@ -601,6 +601,26 @@ end
 
 -- ##############################################
 
+--@brief Edit specifica proto info, like converting 
+--       timestamp to date/time for TLS Certificate Validity
+local function editProtoDetails(proto_info)
+  for proto, info in pairs(proto_info) do
+    if proto == "tls" then
+      if info.notBefore then
+        info.notBefore = formatEpoch(info.notBefore)
+      end
+
+      if info.notAfter then
+        info.notAfter = formatEpoch(info.notAfter)
+      end      
+    end
+  end
+
+  return proto_info
+end
+
+-- ##############################################
+
 --@brief Get a label/title for the alert coming from the DB (value)
 function flow_alert_store:get_alert_label(value)
    local fmt = self:format_record(value, false)
@@ -651,6 +671,8 @@ function flow_alert_store:get_alert_details(value)
       label = i18n("flow_details.additional_alert_type"),
       content = fmt['additional_alerts']['descr'],
    }
+
+   proto_info = editProtoDetails(proto_info)
 
    for _, info in pairs(proto_info or {}) do
       details[#details + 1] = {
