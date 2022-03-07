@@ -42,6 +42,7 @@
       //item: '<li><a href="#" class="dropdown-item"></a> <div>asd</div></li>'.
       highlighter: function (item) {
 	  // <a href="#" class="dropdown-item">${item}</a>
+	  if (item == null || item == "") { return ""; }
 	  let query = `(${this.$element.val()})`;
 	  let regex = new RegExp(query, "gi");
 	  let itemHtml = item.replace(regex, "<strong>$1</strong>");
@@ -69,7 +70,6 @@ ${linksButtonsHtml}
           return html;
       },
       linksElementsDict: {},
-      isButtonClicked: false,
       source: function (query, process) {
       /* Avoid this kind of queries which generates file path warnings into the ntopng log */
       if (query.startsWith(".")) return;
@@ -91,17 +91,16 @@ ${linksButtonsHtml}
 	      });
               var res = process(data.rsp.results);
 	      
-        var menu = res.$menu;
+              var menu = res.$menu;
+              menu.click(function (e) { e.preventDefault(); });
+	      if (data.rsp && data.rsp.results && data.rsp.results.length > 0) {
+		  $("li:last > a:empty", menu).remove();
+	      } else {
+		  $("li:last", menu)
+		      .attr("data-no-results", "")
+		      .html("<span style='padding-left:1em; cursor:default;'>No results found</span>");
 
-        menu.click(function (e) { e.preventDefault(); });
-        if (data.rsp && data.rsp.results && data.rsp.results.length > 0) {
-          $("li:last a:empty", menu).remove();
-        } else {
-          $("li:last", menu)
-            .attr("data-no-results", "")
-            .html("<span style='padding-left:1em; cursor:default;'>No results found</span>");
-        }
-
+              }
         return res;
       });
       }, afterSelect: function(item) {
