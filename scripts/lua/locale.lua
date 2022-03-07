@@ -25,10 +25,22 @@ print("HTTP/1.1 200 OK\r\n" .. table.concat(lines, "\r\n") .. "\r\n\r\n")
 
 local language = _GET["user_language"] or "en"
 
-local path = require(language)
+local main_language_path = require(language)
 
-print[[
-const ntop_locale = ]] print(json.encode(path)) print[[;
+if(language ~= "en") then
+   local alt_language_path = require("en")
+
+   -- Add missing strings using defaults (English)
+   for k, v in pairs(alt_language_path) do
+      if(main_language_path[k] == nil) then
+	 main_language_path[k] = alt_language_path[k]
+      end
+   end  
+end
+
+print[[ const ntop_locale = ]] print(json.encode(main_language_path))
+
+print[[;
 
 function i18n(key) { 
     var fields = key.split('.');
