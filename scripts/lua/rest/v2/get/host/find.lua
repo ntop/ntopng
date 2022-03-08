@@ -325,8 +325,13 @@ for k, v in pairs(res) do
       add_historical_flows_link(links, 'name', v)
    end
 
+   local label = v
+   if v ~= k then
+      label = label .. " · " .. k
+   end
+
    hosts[k] = {
-      label = v,
+      label = label,
       name = v,
       ip = v,
       links = links,
@@ -442,12 +447,11 @@ for k in pairs(mac_to_name) do
 
    if not isEmptyString(name) and string.contains(string.lower(name), string.lower(query)) then
       local links = {}
-
       add_device_link(links)
       add_historical_flows_link(links, 'mac', mac)
 
       hosts[mac] = {
-         label = hostinfo2label({host = mac, mac = mac, name = name}),
+         label = hostinfo2label({host = mac, mac = mac, name = name}) .. " · " .. mac,
          mac = mac,
          name = name,
          links = links,
