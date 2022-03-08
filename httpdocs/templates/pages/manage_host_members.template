@@ -332,9 +332,13 @@
             $(`#add-member-modal #ip-radio-add`).attr('checked', '').parent().addClass('active');
         },
         onModalInit: function (_, modalHandler) {
+            $(`#add-member-modal [class*='fields']`).hide();
+            $(`#add-member-modal [class*='fields'] input, #add-member-modal [class*='fields'] select`).attr("disabled", "disabled");
+
+            $(`#add-member-modal [class='ip-fields']`).show().find('input,select').removeAttr("disabled");
+        
             // on select member type shows only the fields interested
             $(`#add-member-modal [name='member_type']`).change(function () {
-
                 const value = $(this).val();
                 $(`#add-member-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');
                 $(this).attr('checked', '');
@@ -344,13 +348,13 @@
                 $(`#add-member-modal [class*='fields'] input, #add-member-modal [class*='fields'] select`).attr("disabled", "disabled");
 
                 $(`#add-member-modal [class='${value}-fields']`).show().find('input,select').removeAttr("disabled");
+            $(`#add-member-modal #${value}-radio-add`).attr('checked', '').parent().addClass('active');
 
                 modalHandler.toggleFormSubmission();
             });
 
         },
         beforeSumbit: function () {
-
             let member;
             const typeSelected = $(`#add-member-modal [name='member_type']:checked`).val();
 
