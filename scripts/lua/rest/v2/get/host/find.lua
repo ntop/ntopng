@@ -79,6 +79,42 @@ local function add_historical_flows_link(links, key, value)
    end
 end
 
+local function add_icon_link(links, icon, url)
+   -- table.insert(links, 1, link)
+   links[#links + 1] = {
+      icon = icon,
+      url = url,
+   }
+end
+
+local function add_asn_link(links)
+   add_icon_link(links, 'cloud')
+end
+
+local function add_network_link(links)
+   add_icon_link(links, 'network-wired')
+end
+
+local function add_inactive_link(links)
+   add_icon_link(links, 'moon')
+end
+
+local function add_device_link(links)
+   add_icon_link(links, 'plug')
+end
+
+local function add_host_link(links)
+   add_icon_link(links, 'desktop')
+end
+
+local function add_snmp_device_link(links, ip)
+   add_icon_link(links, 'server')
+end
+
+local function add_snmp_interface_link(links, ip, index)
+   add_icon_link(links, 'ethernet')
+end
+
 if not hosts_only then
    -- Look by network
    local network_stats = interface.getNetworksStats()
@@ -93,11 +129,14 @@ if not hosts_only then
 
       if string.contains(string.lower(name), string.lower(query)) then
          local network_id = stats.network_id
+         local links = {}
+         add_network_link(links)
 
          results[#results + 1] = {
 	    name = name,
             type="network",
             network = network_id,
+            links = links,
          }
          res_count = res_count + 1
       end
@@ -115,12 +154,15 @@ if not hosts_only then
       local asn = "AS" .. as.asn
       local as_name = as.asname
       local found = false
+      local links = {}
+      add_asn_link(links)
 
       if string.contains(string.lower(as_name), string.lower(query)) then
          results[#results + 1] = {
 	    name = string.format("%s [%s]", as_name, asn),
             type="asn",
             asn = as.asn,
+            links = links,
          }
 	 found = true
       elseif string.contains(string.lower(asn), string.lower(query)) then
@@ -128,6 +170,7 @@ if not hosts_only then
             name = asn,
 	    type="asn",
             asn = as.asn,
+            links = links,
          }
 	 found = true
       end
@@ -158,13 +201,19 @@ if not hosts_only then
          local snmp_port_idx = snmp_port["id"]
          local snmp_port_name = snmp_port["name"]
 
-         local title = snmp_utils.get_snmp_device_and_interface_label(snmp_device_ip, {index = snmp_port_idx, name = snmp_port_name})
+         local title = i18n("snmp.snmp_interface_x", { interface = shortenString(snmp_utils.get_snmp_interface_label({index = snmp_port_idx, name = snmp_port_name}))})
+
+         title = title .. " [" .. snmp_utils.get_snmp_device_label(snmp_device_ip) .. "]"
+
+         local links = {}
+         add_snmp_interface_link(links, snmp_device_ip, snmp_port_idx)
 
          results[#results + 1] = {
 	    name = matching_mac .. ' '..title,
             type = "snmp",
 	    ip = snmp_device_ip,
-            snmp_port_idx = snmp_port_idx
+            snmp_port_idx = snmp_port_idx,
+            links = links,
          }
          res_count = res_count + 1
       end
@@ -186,13 +235,19 @@ if not hosts_only then
          local snmp_port_name = snmp_port["name"]
          local snmp_port_index_match = snmp_port["index_match"]
 
-         local title = snmp_utils.get_snmp_device_and_interface_label(snmp_device_ip, {index = snmp_port_idx, name = ternary(snmp_port_index_match, nil, snmp_port_name) })
+         local title = i18n("snmp.snmp_interface_x", { interface = shortenString(snmp_utils.get_snmp_interface_label({index = snmp_port_idx, name = snmp_port_name}))})
+
+         title = title .. " [" .. snmp_utils.get_snmp_device_label(snmp_device_ip) .. "]"
+
+         local links = {}
+         add_snmp_interface_link(links, snmp_device_ip, snmp_port_idx)
 
          results[#results + 1] = {
 	    name = title,
             type = "snmp",
 	    ip = snmp_device_ip,
-            snmp_port_idx = snmp_port_idx
+            snmp_port_idx = snmp_port_idx,
+            links = links,
          }
          res_count = res_count + 1
       end
@@ -210,10 +265,15 @@ if not hosts_only then
          end
 
          local title = snmp_utils.get_snmp_device_label(snmp_device["ip"])
+
+         local links = {}
+         add_snmp_device_link(links, snmp_device["ip"])
+
          results[#results + 1] = {
-	    name = title.." ["..i18n("snmp.snmp_device").."]",
+	    name = title,
             type = "snmp_device",
-	    ip = snmp_device["ip"]
+	    ip = snmp_device["ip"],
+            links = links,
          }
          res_count = res_count + 1
       end
@@ -230,10 +290,13 @@ for k, v in pairs(res) do
    local links = {}
 
    if isMacAddress(v) then -- MAC
+      add_device_link(links)
       add_historical_flows_link(links, 'mac', v)
    elseif k == v or isIPv6(v) then -- IP
+      add_host_link(links)
       add_historical_flows_link(links, 'ip', v)
    else -- Name
+      add_host_link(links)
       add_historical_flows_link(links, 'name', v)
    end
 
@@ -255,9 +318,11 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.ip_to_mac.ifid_%u__%s*", 
    if(not hosts[h.host]) then
       -- Do not override active hosts
       local links = {}
+      add_inactive_link(links)
+      add_host_link(links)
       add_historical_flows_link(links, 'ip', h.host)
       hosts[h.host] = {
-         label = i18n("host_details.inactive_host_x", {host = hostinfo2hostkey({host=h.host, vlan=h.vlan})}),
+         label = hostinfo2hostkey({host=h.host, vlan=h.vlan}),
          ip = h.host,
          name = h.host,
          links = links,
@@ -274,9 +339,11 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u_
    if(not hosts[h.host]) then
       -- Do not override active hosts / hosts by MAC
       local links = {}
+      add_inactive_link(links)
+      add_host_link(links)
       add_historical_flows_link(links, 'ip', h.host)
       hosts[h.host] = {
-         label = i18n("host_details.inactive_host_x", {host = hostinfo2hostkey({host=h.host, vlan=h.vlan})}),
+         label = hostinfo2hostkey({host=h.host, vlan=h.vlan}),
          ip = h.host,
          name = h.host,
          links = links,
@@ -310,8 +377,10 @@ for ip,name in pairs(ip_to_name) do
       local links = {}
 
       if name == value then -- IP
+         add_host_link(links)
          add_historical_flows_link(links, 'ip', value)
       else -- Name
+         add_host_link(links)
          add_historical_flows_link(links, 'name', value)
       end
 
@@ -334,6 +403,7 @@ for k in pairs(mac_to_name) do
    if not isEmptyString(name) and string.contains(string.lower(name), string.lower(query)) then
       local links = {}
 
+      add_device_link(links)
       add_historical_flows_link(links, 'mac', mac)
 
       hosts[mac] = {
@@ -350,6 +420,7 @@ end
 res_count = 0
 
 local function build_result(label, value, value_type, links)
+   local links = links or {}
 
    if value_type == 'ip' and isIPv6(value) and not string.contains(label, "%[IPv6%]") then
       label = label .. " [IPv6]"
@@ -359,9 +430,7 @@ local function build_result(label, value, value_type, links)
       name = label,
       ip = value,
       type = value_type,
-      links = links or {
-         -- { icon = nil, url = nil },
-      },
+      links = links,
    }
    return r
 end
