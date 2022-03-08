@@ -60,7 +60,7 @@
 		  }
 		  let title = "";
 		  if (l.title != null) {
-		      l.title = "title='${l.title}'"
+		      title = `title='${l.title}'`
 		  }
 		  let b = `<button style="" ${title} type="button" class="btn btn-sm btn-link" onClick="linkButtonClicked('${l.url}')"><i class="${icon}"></i></button>`;
 		  linksButtons.push(b);
@@ -71,19 +71,30 @@
 	      if (badges == null) { return ""; }
 	      let badgesButtons = [];
 	      badges.forEach((bg) => {
-		  let b = `<span class="badge bg-secondary">${bg.label} </span>`;
+		  let title = "";
+		  if (bg.title != null) {
+		      title = `title='${bg.title}'`
+		  }
+		  let b = `<span ${title} class="badge bg-secondary">${bg.label} </span>`;
 		  badgesButtons.push(b);
 	      });
 	      return badgesButtons.join("");
 	  }
-	  let linksButtonsHtml = printLinksButtons(this.linksElementsDict[item]);
+	  let allLinksButtons = this.linksElementsDict[item];
+	  let linksRight = allLinksButtons.filter((l) => l.url != null);
+	  let linksLeft = allLinksButtons.filter((l) => l.url == null);
+	  let linksRightButtonsHtml = printLinksButtons(linksRight);
+	  let linksLeftButtonsHtml = printLinksButtons(linksLeft);
 	  let badgesHtml = printBadges(this.badgesElementsDict[item]);
 	  let html = `
 <div class="" style="">
+<div style="margin-left:-16px;margin-right:-22px;"class="btn-group float-begin">
+${linksLeftButtonsHtml}
+</div>
 <label style="margin-right:-16px;"><a href="#" class="dropdown-item">${itemHtml}</a></label>
 ${badgesHtml}
-<div class="btn-group float-end">
-${linksButtonsHtml}
+<div style="margin-right:-16px;"class="btn-group float-end">
+${linksRightButtonsHtml}
 </div>
 </div>
 `;
@@ -112,7 +123,7 @@ ${linksButtonsHtml}
 		      if (e.links.length > maxLinks) { maxLinks = e.links.length; }
 		      me.linksElementsDict[e.name] = e.links;
 		  } else { }
-		  //e.badges = [{label: "ipv6"}];
+		  //e.badges = [{label: "ipv6", title: "lkasd"}];
 		  if (e.badges != null) {
 		      me.badgesElementsDict[e.name] = e.badges;
 		  }
