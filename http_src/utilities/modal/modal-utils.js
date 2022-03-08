@@ -171,7 +171,7 @@ class ModalHandler {
         this.initialState = this.createFormSnapshot();
         this.currentState = null;
 
-        this.delegateResetButton();
+        this.delegateResetButton();   
     }
 
     delegateSubmit() {

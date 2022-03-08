@@ -320,7 +320,7 @@ export class DataTableUtils {
                     ${(action.href || action.modal) ? `href='${action.href || action.modal}'` : ``}
                     ${(action.onclick) ? `onclick='${action.onclick}'` : ``}
                     ${action.modal ? "data-bs-toggle='modal'" : ``}
-                    class='dropdown-item ${action.class}'
+                    class='dropdown-item ${action.class ? action.class : ``}'
                     ${action.hidden ? "style='display: none'" : ``}
                     ${action.external ? "target='_about'" : ``}
                     >
@@ -328,11 +328,6 @@ export class DataTableUtils {
                 </a>
             </li>
             `);
-
-            // add a wrapper for the disabled button to show a tooltip
-            // if (action.class.contains("disabled")) {
-            //    button = `<span class='d-inline-block' data-placement='bottom' ${action.title ? `title='${action.title}'` : ""}>${button}</span>`;
-            //}
 
             buttons.push(button);
         });

@@ -244,11 +244,13 @@
     $(`#host-members-table`).on('click', `a[href='#edit-member-modal']`, function (e) {
         const memberRowData = $hostMembersTable.row($(this).parent().parent().parent().parent()).data();
         $editModalHandler.invokeModalInit(memberRowData);
+        $(`#edit-member-modal`).modal('show')
     });
 
     $(`#host-members-table`).on('click', `a[href='#remove-member-host-pool']`, function (e) {
         const memberRowData = $hostMembersTable.row($(this).parent().parent().parent().parent()).data();
         $removeModalHandler.invokeModalInit(memberRowData);
+        $(`#remove-member-host-pool`).modal('show')
     });
     
     $(`#select-host-pool`).change(function () {
@@ -310,7 +312,8 @@
 
     $(window).on('popstate', function (e) {
         const { state } = e.originalEvent;
-        $(`#select-host-pool`).val(state.pool).trigger('change');
+        if(state) 
+          $(`#select-host-pool`).val(state.pool).trigger('change');
     });
 
 
