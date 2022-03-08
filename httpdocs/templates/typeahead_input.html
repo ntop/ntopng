@@ -32,6 +32,7 @@
   let isButtonLinkClicked = false;
 
   function linkButtonClicked(url) {
+      if (url == null || url == "") { return; }
       isButtonLinkClicked = true;
       window.location.replace(url);
       //ntopng_url_manager.replace_url_and_reload(url);
@@ -54,15 +55,33 @@
 		  if (l.icon != null) {
 		      icon = `fa fas fa-${l.icon}`;		      
 		  }
-		  let b = `<button style="" type="button" class="btn btn-sm btn-link" onClick="linkButtonClicked('${l.url}')"><i class="${icon}"></i></button>`;
+		  if (l.url == null) {
+		      l.url = "";
+		  }
+		  let title = "";
+		  if (l.title != null) {
+		      l.title = "title='${l.title}'"
+		  }
+		  let b = `<button style="" ${title} type="button" class="btn btn-sm btn-link" onClick="linkButtonClicked('${l.url}')"><i class="${icon}"></i></button>`;
 		  linksButtons.push(b);
 	      });
 	      return linksButtons.join("");
 	  };
+	  let printBadges = (badges) => {
+	      if (badges == null) { return ""; }
+	      let badgesButtons = [];
+	      badges.forEach((bg) => {
+		  let b = `<span class="badge bg-secondary">${bg.label} </span>`;
+		  badgesButtons.push(b);
+	      });
+	      return badgesButtons.join("");
+	  }
 	  let linksButtonsHtml = printLinksButtons(this.linksElementsDict[item]);
+	  let badgesHtml = printBadges(this.badgesElementsDict[item]);
 	  let html = `
 <div class="" style="">
-<label><a href="#" class="dropdown-item">${itemHtml}</a></label>
+<label style="margin-right:-16px;"><a href="#" class="dropdown-item">${itemHtml}</a></label>
+${badgesHtml}
 <div class="btn-group float-end">
 ${linksButtonsHtml}
 </div>
@@ -71,6 +90,7 @@ ${linksButtonsHtml}
           return html;
       },
       linksElementsDict: {},
+      badgesElementsDict: {},
       source: function (query, process) {
       /* Avoid this kind of queries which generates file path warnings into the ntopng log */
       if (query.startsWith(".")) return;
@@ -84,6 +104,7 @@ ${linksButtonsHtml}
 	  return $.get("{*typeahead.query_url*}", _get, function (data) {
 	      let elements = data.rsp.results;
 	      me.linksElementsDict = {};
+	      me.badgesElementsDict = {};
 	      let maxLinks = 0;
 	      elements.forEach((e) => {
 		  if (e.links != null) {
@@ -91,6 +112,10 @@ ${linksButtonsHtml}
 		      if (e.links.length > maxLinks) { maxLinks = e.links.length; }
 		      me.linksElementsDict[e.name] = e.links;
 		  } else { }
+		  //e.badges = [{label: "ipv6"}];
+		  if (e.badges != null) {
+		      me.badgesElementsDict[e.name] = e.badges;
+		  }
 	      });
               var res = process(data.rsp.results);
 	      
