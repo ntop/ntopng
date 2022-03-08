@@ -121,6 +121,8 @@ lists_utils.startup()
 
 -- ##################################################################
 
+traceError(TRACE_NORMAL, TRACE_CONSOLE, "Initializing device polices...")
+
 -- Initialize device policies (presets)
 -- NOTE: Must go after lists_utils initialization and reload
 -- as new custom protocols can be set by lists utils
@@ -135,6 +137,7 @@ if  ntop.isnEdge() then
    http_bridge_conf_utils.configureBridge()
 end
 
+traceError(TRACE_NORMAL, TRACE_CONSOLE, "Initializing alerts...")
 alert_utils.notify_ntopng_start()
 
 if not recovery_utils.check_clean_shutdown() then
@@ -143,6 +146,7 @@ end
 
 recovery_utils.unmark_clean_shutdown()
 
+traceError(TRACE_NORMAL, TRACE_CONSOLE, "Initializing timeseries...")
 -- Need to run setup at startup since the schemas may be changed
 ts_utils.setupAgain()
 
@@ -197,11 +201,15 @@ if(ntop.exists(local_startup_file)) then
 end
 
 if(ntop.isPro()) then
-   -- Import ClickHouse dumps if any
-   local silence_import_warnings = true
-
-   ntop.importClickHouseDumps(silence_import_warnings)
+   if ntop.isClickHouseEnabled() then
+      -- Import ClickHouse dumps if any
+      local silence_import_warnings = true
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Importing ClickHouse dumps...")
+      ntop.importClickHouseDumps(silence_import_warnings)
+   end
 end
+
+traceError(TRACE_NORMAL, TRACE_CONSOLE, "Fetching latest ntop blog posts...")
 
 blog_utils.fetchLatestPosts()
 
