@@ -271,7 +271,7 @@ else
       setHostNotes(host_info, _POST["custom_notes"])
    end
 
-   host_label = hostinfo2label(host)
+   host_label = hostinfo2label(host, false, false)
 
    if canRestoreHost(ifId, host_info["host"], host_vlan) then
       printRestoreHostBanner(true --[[ hidden ]])
@@ -598,7 +598,7 @@ else
          if ntop.shouldResolveHost(host["ip"]) then
             print('<div id="throbber" class="spinner-border spinner-border-sm text-primary" role="status"><span class="sr-only">Loading...</span></div> ')
          end
-   
+
          -- tprint(host) io.write("\n")
          print(host_label .. "</span> <i class=\"fas fa-external-link-alt\"></i> </A>")
    
