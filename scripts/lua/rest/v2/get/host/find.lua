@@ -74,45 +74,47 @@ local function add_historical_flows_link(links, key, value)
 
       links[#links + 1] = {
          icon = historical_flows_icon,
+         title = i18n('db_explorer.historical_data_explorer'),
          url = historical_flows_url,
       }
    end
 end
 
-local function add_icon_link(links, icon, url)
+local function add_icon_link(links, icon, title, url)
    -- table.insert(links, 1, link)
    links[#links + 1] = {
       icon = icon,
+      title = title,
       url = url,
    }
 end
 
 local function add_asn_link(links)
-   add_icon_link(links, 'cloud')
+   add_icon_link(links, 'cloud', i18n('as_details.as'))
 end
 
 local function add_network_link(links)
-   add_icon_link(links, 'network-wired')
+   add_icon_link(links, 'network-wired', i18n('network'))
 end
 
 local function add_inactive_link(links)
-   add_icon_link(links, 'moon')
+   add_icon_link(links, 'moon', i18n('inactive'))
 end
 
 local function add_device_link(links)
-   add_icon_link(links, 'plug')
+   add_icon_link(links, 'plug', i18n('device'))
 end
 
 local function add_host_link(links)
-   add_icon_link(links, 'desktop')
+   add_icon_link(links, 'desktop', i18n('host_details.host'))
 end
 
 local function add_snmp_device_link(links, ip)
-   add_icon_link(links, 'server')
+   add_icon_link(links, 'server', i18n('snmp.snmp_device'))
 end
 
 local function add_snmp_interface_link(links, ip, index)
-   add_icon_link(links, 'ethernet')
+   add_icon_link(links, 'ethernet', i18n('snmp.snmp_interface'))
 end
 
 local function add_badge(badges, label)
