@@ -213,7 +213,7 @@ if not hosts_only then
 
          local title = i18n("snmp.snmp_interface_x", { interface = shortenString(snmp_utils.get_snmp_interface_label({index = snmp_port_idx, name = snmp_port_name}))})
 
-         title = title .. " [" .. snmp_utils.get_snmp_device_label(snmp_device_ip) .. "]"
+         title = title .. " · " .. snmp_utils.get_snmp_device_label(snmp_device_ip)
 
          local links = {}
          add_snmp_interface_link(links, snmp_device_ip, snmp_port_idx)
@@ -247,7 +247,7 @@ if not hosts_only then
 
          local title = i18n("snmp.snmp_interface_x", { interface = shortenString(snmp_utils.get_snmp_interface_label({index = snmp_port_idx, name = snmp_port_name}))})
 
-         title = title .. " [" .. snmp_utils.get_snmp_device_label(snmp_device_ip) .. "]"
+         title = title .. " · " .. snmp_utils.get_snmp_device_label(snmp_device_ip)
 
          local links = {}
          add_snmp_interface_link(links, snmp_device_ip, snmp_port_idx)
