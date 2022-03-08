@@ -33,6 +33,7 @@ private:
   virtual u_int32_t getContactedServers(Host *h) const = 0;
   virtual HostAlertType getAlertType() const = 0;
   virtual HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _contacts, u_int64_t _contacts_threshold) = 0;
+  virtual bool isServer(Host *h) { return true; };
 
  public:
   ServerContacts();

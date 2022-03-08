@@ -29,6 +29,7 @@ private:
   u_int32_t getContactedServers(Host *h) const { return h->getSMTPContactCardinality(); };
   HostAlertType getAlertType() const { return SMTPServerContactsAlert::getClassType(); };
   HostAlert *allocAlert(HostCheck *c, Host *f, risk_percentage cli_pctg, u_int64_t _contacts, u_int64_t _contacts_threshold) { return new SMTPServerContactsAlert(c, f, cli_pctg, _contacts, _contacts_threshold); };
+  bool isServer(Host *h) { return h->isSmtpServer(); };
 
  public:
   SMTPServerContacts();
