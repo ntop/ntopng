@@ -62,9 +62,9 @@
 		  if (l.title != null) {
 		      title = `title='${l.title}'`
 		  }
-		  let b = `<button style="" ${title} type="button" class="btn btn-sm btn-link" onClick="linkButtonClicked('${l.url}')"><i style="" class="${icon}"></i></button>`;
+		  let b = `<button ${title} type="button" class="btn btn-sm btn-link" onClick="linkButtonClicked('${l.url}')"><i class="${icon}"></i></button>`;
 		  if (l.url == "") {
-		      b = `<span ${title}><i style="color:grey;" class="${icon}"></i></span>`;
+		      b = `<span ${title}><i class="text-muted ${icon}"></i></span>`;
 		  }
 		  linksButtons.push(b);
 	      });
@@ -80,7 +80,7 @@
 		  }
 		  let icon = "";
 		  if (bg.icon != null) {
-		      icon = `<i style="margin-right:4px;" class="fa fas fa-${bg.icon}"></i>`;
+		      icon = `<i class="fa fas fa-${bg.icon}"></i>`;
 		  }
 		  let label = "";
 		  if (bg.label != null) {
@@ -104,15 +104,17 @@ ${label}
 	  // <div style="margin-left:-12px;margin-right:-22px;"class="btn-group float-begin">
 
 	  let html = `
-<div class="" style="">
-<div style="margin-left:-6px;margin-right:-16px;" class="btn-group float-begin">
-${linksLeftButtonsHtml}
-</div>
-<label style="margin-right:-16px;"><a href="#" class="dropdown-item">${itemHtml}</a></label>
-${badgesHtml}
-<div style="margin-right:-12px"class="btn-group float-end">
-${linksRightButtonsHtml}
-</div>
+<div>
+  <div class="btn-group float-begin">
+    ${linksLeftButtonsHtml}
+  </div>
+  <label>
+    <a href="#" class="p-0 dropdown-item">${itemHtml}</a>
+  </label>
+  ${badgesHtml}
+  <div class="btn-group float-end">
+    ${linksRightButtonsHtml}
+  </div>
 </div>
 `;
           return html;
