@@ -236,11 +236,7 @@ path.link {
 }
 
 .dt-search {
-  display: inline-block;
-}
-.dt-search label {
-  margin-right: 0.5rem;
-  margin-top: 0.25rem;
+  display: inline !important;
 }
 
 /* Container */
