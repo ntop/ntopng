@@ -62,7 +62,10 @@
 		  if (l.title != null) {
 		      title = `title='${l.title}'`
 		  }
-		  let b = `<button style="" ${title} type="button" class="btn btn-sm btn-link" onClick="linkButtonClicked('${l.url}')"><i class="${icon}"></i></button>`;
+		  let b = `<button style="" ${title} type="button" class="btn btn-sm btn-link" onClick="linkButtonClicked('${l.url}')"><i style="" class="${icon}"></i></button>`;
+		  if (l.url == "") {
+		      b = `<span ${title}><i style="color:grey;" class="${icon}"></i></span>`;
+		  }
 		  linksButtons.push(b);
 	      });
 	      return linksButtons.join("");
@@ -75,7 +78,19 @@
 		  if (bg.title != null) {
 		      title = `title='${bg.title}'`
 		  }
-		  let b = `<span ${title} class="badge bg-secondary">${bg.label} </span>`;
+		  let icon = "";
+		  if (bg.icon != null) {
+		      icon = `<i style="margin-right:4px;" class="fa fas fa-${bg.icon}"></i>`;
+		  }
+		  let label = "";
+		  if (bg.label != null) {
+		      label = `<span ${title} class="badge bg-secondary">${icon}${bg.label} </span>`;
+		  } else {
+		      label = `<span ${title} class="badge bg-secondary">${icon}</span>`
+		  }
+		  let b = `
+${label}
+`;
 		  badgesButtons.push(b);
 	      });
 	      return badgesButtons.join("");
@@ -86,14 +101,16 @@
 	  let linksRightButtonsHtml = printLinksButtons(linksRight);
 	  let linksLeftButtonsHtml = printLinksButtons(linksLeft);
 	  let badgesHtml = printBadges(this.badgesElementsDict[item]);
+	  // <div style="margin-left:-12px;margin-right:-22px;"class="btn-group float-begin">
+
 	  let html = `
 <div class="" style="">
-<div style="margin-left:-16px;margin-right:-22px;"class="btn-group float-begin">
+<div style="margin-left:-6px;margin-right:-16px;" class="btn-group float-begin">
 ${linksLeftButtonsHtml}
 </div>
 <label style="margin-right:-16px;"><a href="#" class="dropdown-item">${itemHtml}</a></label>
 ${badgesHtml}
-<div style="margin-right:-16px;"class="btn-group float-end">
+<div style="margin-right:-12px"class="btn-group float-end">
 ${linksRightButtonsHtml}
 </div>
 </div>
@@ -123,7 +140,7 @@ ${linksRightButtonsHtml}
 		      if (e.links.length > maxLinks) { maxLinks = e.links.length; }
 		      me.linksElementsDict[e.name] = e.links;
 		  } else { }
-		  //e.badges = [{label: "ipv6", title: "lkasd"}];
+		  //e.badges = [{label: "ipv6", title: "lkasd", icon: "laptop"}];
 		  if (e.badges != null) {
 		      me.badgesElementsDict[e.name] = e.badges;
 		  }
