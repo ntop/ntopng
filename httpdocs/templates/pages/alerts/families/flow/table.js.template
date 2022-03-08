@@ -11,7 +11,7 @@
     /* Alert */
     {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
     /* Flow */
-    {responsivePriority: 2, name: 'flow', data: 'flow', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatFlowTuple},
+    {responsivePriority: 2, name: 'flow', data: 'flow', width: '100%', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatFlowTuple},
     /* Counts */
     {responsivePriority: 3, name: 'count', className: 'text-center', data: 'count', visible: false},
     /* Description */
