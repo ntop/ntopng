@@ -874,16 +874,15 @@ end
 
    if prefs.is_dump_flows_enabled and not ifstats.isViewed then
       local dump_to = ""
-      if prefs.is_dump_flows_to_mysql_enabled then
+      
+      if prefs.is_dump_flows_to_clickhouse_enabled then
+	 dump_to = "ClickHouse"
+      elseif prefs.is_dump_flows_to_mysql_enabled then
          dump_to = "MySQL"
       elseif prefs.is_dump_flows_to_es_enabled == true then
 	 dump_to = "ElasticSearch"
       elseif prefs.is_dump_flows_to_syslog_enabled == true then
 	 dump_to = "Syslog"
-      elseif prefs.is_nindex_enabled == true then
-	 dump_to = "nIndex"
-      elseif prefs.is_dump_flows_to_clickhouse_enabled then
-	 dump_to = "ClickHouse"
       end
 
       local export_count     = ifstats.stats.flow_export_count
