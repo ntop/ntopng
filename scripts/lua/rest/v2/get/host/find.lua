@@ -471,7 +471,7 @@ local function build_result(label, value, value_type, links, badges)
    return r
 end
 
-for k, v in pairs(hosts) do
+for k, v in pairsByField(hosts, 'name', asc) do
    if((res_count >= max_group_items) or (#results >= max_total_items)) then
       break
    end
@@ -493,6 +493,8 @@ local data = {
    interface = ifname,
    results = results,
 }
+
+-- tprint(results)
 
 rest_utils.answer(rc, data)
 
