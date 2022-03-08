@@ -81,8 +81,8 @@
 	      return badgesButtons.join("");
 	  }
 	  let allLinksButtons = this.linksElementsDict[item];
-	  let linksRight = allLinksButtons.filter((l) => l.url != null);
-	  let linksLeft = allLinksButtons.filter((l) => l.url == null);
+	  let linksRight = allLinksButtons.filter((l) => l.url != null && l.url != "");
+	  let linksLeft = allLinksButtons.filter((l) => l.url == null || l.url == "");
 	  let linksRightButtonsHtml = printLinksButtons(linksRight);
 	  let linksLeftButtonsHtml = printLinksButtons(linksLeft);
 	  let badgesHtml = printBadges(this.badgesElementsDict[item]);

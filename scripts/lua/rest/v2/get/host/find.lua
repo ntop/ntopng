@@ -63,6 +63,8 @@ end
 
 local ifid = interface.getId()
 
+--- Links
+
 local function build_historical_flows_url(key, value)
    return ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?ifid=' .. ifid .. '&' .. tag_utils.build_request_filter(key, 'eq', value)
 end
@@ -113,6 +115,8 @@ local function add_snmp_interface_link(links, ip, index)
    add_icon_link(links, 'ethernet', i18n('snmp.snmp_interface'))
 end
 
+--- Badges
+
 local function add_badge(badges, label, icon, title)
    badges[#badges + 1] = {
       label = label,
@@ -124,6 +128,8 @@ end
 local function add_inactive_badge(badges)
    add_badge(badges, nil, 'moon', i18n('inactive'))
 end
+
+---
 
 if not hosts_only then
    -- Look by network
@@ -307,10 +313,13 @@ for k, v in pairs(res) do
    if isMacAddress(v) then -- MAC
       add_device_link(links)
       add_historical_flows_link(links, 'mac', v)
-   elseif k == v or isIPv6(v) then -- IP
+   elseif isIPv6(v) then -- IP
       add_host_link(links)
       add_historical_flows_link(links, 'ip', v)
       add_badge(badges, 'IPv6')
+   elseif k == v then -- IP
+      add_host_link(links)
+      add_historical_flows_link(links, 'ip', v)
    else -- Name
       add_host_link(links)
       add_historical_flows_link(links, 'name', v)
@@ -335,10 +344,15 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.ip_to_mac.ifid_%u__%s*", 
    if(not hosts[h.host]) then
       -- Do not override active hosts
       local links = {}
-      local badges = {}
-      add_inactive_badge(badges)
       add_host_link(links)
       add_historical_flows_link(links, 'ip', h.host)
+
+      local badges = {}
+      if isIPv6(h.host) then -- IP
+         add_badge(badges, 'IPv6')
+      end
+      add_inactive_badge(badges)
+
       hosts[h.host] = {
          label = hostinfo2hostkey({host=h.host, vlan=h.vlan}),
          ip = h.host,
@@ -358,10 +372,15 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u_
    if(not hosts[h.host]) then
       -- Do not override active hosts / hosts by MAC
       local links = {}
-      local badges = {}
-      add_inactive_badge(badges)
       add_host_link(links)
       add_historical_flows_link(links, 'ip', h.host)
+
+      local badges = {}
+      if isIPv6(h.host) then -- IP
+         add_badge(badges, 'IPv6')
+      end
+      add_inactive_badge(badges)
+
       hosts[h.host] = {
          label = hostinfo2hostkey({host=h.host, vlan=h.vlan}),
          ip = h.host,
