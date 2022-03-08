@@ -115,6 +115,12 @@ local function add_snmp_interface_link(links, ip, index)
    add_icon_link(links, 'ethernet')
 end
 
+local function add_badge(badges, label)
+   badges[#badges + 1] = {
+      label = label,
+   }
+end
+
 if not hosts_only then
    -- Look by network
    local network_stats = interface.getNetworksStats()
@@ -155,14 +161,17 @@ if not hosts_only then
       local as_name = as.asname
       local found = false
       local links = {}
+      local badges = {}
       add_asn_link(links)
 
       if string.contains(string.lower(as_name), string.lower(query)) then
+         add_badge(badges, asn)
          results[#results + 1] = {
-	    name = string.format("%s [%s]", as_name, asn),
+	    name = as_name,
             type="asn",
             asn = as.asn,
             links = links,
+            badges = badges,
          }
 	 found = true
       elseif string.contains(string.lower(asn), string.lower(query)) then
@@ -171,6 +180,7 @@ if not hosts_only then
 	    type="asn",
             asn = as.asn,
             links = links,
+            badges = badges,
          }
 	 found = true
       end
@@ -287,6 +297,7 @@ local hosts = {}
 local res = interface.findHost(query)
 
 for k, v in pairs(res) do
+   local badges = {}
    local links = {}
 
    if isMacAddress(v) then -- MAC
@@ -295,6 +306,7 @@ for k, v in pairs(res) do
    elseif k == v or isIPv6(v) then -- IP
       add_host_link(links)
       add_historical_flows_link(links, 'ip', v)
+      add_badge(badges, 'IPv6')
    else -- Name
       add_host_link(links)
       add_historical_flows_link(links, 'name', v)
@@ -305,6 +317,7 @@ for k, v in pairs(res) do
       name = v,
       ip = v,
       links = links,
+      badges = badges,
    }
 end
 
@@ -419,19 +432,15 @@ end
 
 res_count = 0
 
-local function build_result(label, value, value_type, links)
-   local links = links or {}
-
-   if value_type == 'ip' and isIPv6(value) and not string.contains(label, "%[IPv6%]") then
-      label = label .. " [IPv6]"
-   end
-
+local function build_result(label, value, value_type, links, badges)
    local r = {
       name = label,
       ip = value,
       type = value_type,
       links = links,
+      badges = badges,
    }
+
    return r
 end
 
@@ -444,9 +453,9 @@ for k, v in pairs(hosts) do
       already_printed[v] = true
 
       if v.mac then
-	 results[#results + 1] = build_result(v.label, v.mac, "mac", v.links)
+	 results[#results + 1] = build_result(v.label, v.mac, "mac", v.links, v.badges)
       elseif v.ip then
-	 results[#results + 1] = build_result(v.label, v.ip, "ip", v.links)
+	 results[#results + 1] = build_result(v.label, v.ip, "ip", v.links, v.badges)
       end
 
       res_count = res_count + 1
