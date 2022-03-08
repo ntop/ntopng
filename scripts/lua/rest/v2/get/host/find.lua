@@ -97,10 +97,6 @@ local function add_network_link(links)
    add_icon_link(links, 'network-wired', i18n('network'))
 end
 
-local function add_inactive_link(links)
-   add_icon_link(links, 'moon', i18n('inactive'))
-end
-
 local function add_device_link(links)
    add_icon_link(links, 'plug', i18n('device'))
 end
@@ -117,10 +113,16 @@ local function add_snmp_interface_link(links, ip, index)
    add_icon_link(links, 'ethernet', i18n('snmp.snmp_interface'))
 end
 
-local function add_badge(badges, label)
+local function add_badge(badges, label, icon, title)
    badges[#badges + 1] = {
       label = label,
+      icon = icon,
+      title = title,
    }
+end
+
+local function add_inactive_badge(badges)
+   add_badge(badges, nil, 'moon', i18n('inactive'))
 end
 
 if not hosts_only then
@@ -333,7 +335,8 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.ip_to_mac.ifid_%u__%s*", 
    if(not hosts[h.host]) then
       -- Do not override active hosts
       local links = {}
-      add_inactive_link(links)
+      local badges = {}
+      add_inactive_badge(badges)
       add_host_link(links)
       add_historical_flows_link(links, 'ip', h.host)
       hosts[h.host] = {
@@ -341,6 +344,7 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.ip_to_mac.ifid_%u__%s*", 
          ip = h.host,
          name = h.host,
          links = links,
+         badges = badges,
       }
    end
 end
@@ -354,7 +358,8 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u_
    if(not hosts[h.host]) then
       -- Do not override active hosts / hosts by MAC
       local links = {}
-      add_inactive_link(links)
+      local badges = {}
+      add_inactive_badge(badges)
       add_host_link(links)
       add_historical_flows_link(links, 'ip', h.host)
       hosts[h.host] = {
@@ -362,6 +367,7 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u_
          ip = h.host,
          name = h.host,
          links = links,
+         badges = badges,
       }
    end
 end
