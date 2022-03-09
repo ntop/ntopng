@@ -2395,12 +2395,17 @@ end
 function hostkey2hostinfo(key)
   local host = {}
   local info = split(key,"@")
-  if(info[1] ~= nil) then host["host"] = info[1]           end
+
+  if(info[1] ~= nil) then
+    host["host"] = info[1]
+  end
+
   if(info[2] ~= nil) then
     host["vlan"] = tonumber(info[2])
   else
     host["vlan"] = 0
   end
+
   return host
 end
 

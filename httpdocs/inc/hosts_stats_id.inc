@@ -38,37 +38,28 @@ function host_table_setID (row) {
 
 }
 
-function row_update(host_key) {
-   var hostInfo = NtopUtils.hostkey2hostInfo(host_key);
+function get_row_key(host_key) {
+  var hostInfo = NtopUtils.hostkey2hostInfo(host_key);
 
-   var vlan = "";
-   if (hostInfo[1])
-     vlan = "&vlan=" + hostInfo[1];
+  let host_key_lua = hostInfo[0];
 
-   var custom_column = "";
-   if(host_rows_option["custom_column"])
-     custom_column = "&custom_column=" + host_rows_option["custom_column"];
+  var vlan = "";
+  if (hostInfo[1]) {
+    host_key_lua += "@" + hostInfo[1];
+  }
+  
+  return host_key_lua;
+}
 
-   var url = "@HTTP_PREFIX@/lua/get_host_data.lua?host=" + hostInfo[0] + vlan + custom_column;
-  $.ajax({
-    type: 'GET',
-    url: url,
-    cache: false,
-    success: function(data) {
-      // console.log(url);
-      // console.log(data);
-      $('td[id="'+host_key+'_since"]').html(data.column_since);
-      $('td[id="'+host_key+'_breakdown"]').html(data.column_breakdown);
-      $('td[id="'+host_key+'_throughput"]').html(data.column_thpt);
-      $('td[id="'+host_key+'_traffic"]').html(data.column_traffic);
-      $('td[id="'+host_key+'_num_flows"]').html(data.column_num_flows);
-      $('td[id="'+host_key+'_num_dropped_flows"]').html(data.column_num_dropped_flows);
-      $('td[id="'+host_key+'_custom"]').html(data.column_custom);
-    },
-    error: function(content) {
-      console.log("error");
-    }
-  });
+function row_update(host_key, data) {
+  if (!data) return;
+  $('td[id="'+host_key+'_since"]').html(data.column_since);
+  $('td[id="'+host_key+'_breakdown"]').html(data.column_breakdown);
+  $('td[id="'+host_key+'_throughput"]').html(data.column_thpt);
+  $('td[id="'+host_key+'_traffic"]').html(data.column_traffic);
+  $('td[id="'+host_key+'_num_flows"]').html(data.column_num_flows);
+  $('td[id="'+host_key+'_num_dropped_flows"]').html(data.column_num_dropped_flows);
+  $('td[id="'+host_key+'_custom"]').html(data.column_custom);
 }
 
 // Updating function
@@ -77,10 +68,33 @@ function host_table_update () {
   var $dt = $("#table-hosts").data("datatable");
   var rows = $dt.rows;
 
-  for (var row in rows){
-    var host_key = rows[row][0].id;
-    row_update(host_key);
+  var custom_column = "";
+  if(host_rows_option["custom_column"])
+    custom_column = "custom_column=" + host_rows_option["custom_column"];
+
+  let url = "@HTTP_PREFIX@/lua/get_hosts_stats.lua?" + custom_column + "&hosts=";
+
+  for (var row in rows) {
+    let host_key = rows[row][0].id;
+    let host_key_lua = get_row_key(host_key);
+    url += host_key_lua + ",";
   }
+
+  $.ajax({
+    type: 'GET',
+    url: url,
+    cache: false,
+    success: function(data) {
+      for (var row in rows) {
+         let host_key = rows[row][0].id;
+         let host_key_lua = get_row_key(host_key);
+         row_update(host_key, data[host_key_lua]);
+      }
+    },
+    error: function(content) {
+      console.log("error");
+    }
+  });
 }
 
 // Refresh Interval (10 sec)

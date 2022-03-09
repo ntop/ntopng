@@ -51,25 +51,10 @@ function getNetworkStats(network)
    return(my_network)
 end
 
-local host_info = url2hostinfo(_GET)
+local function get_host_data(host) 
 
-local criteria = _GET["criteria"]
-if(criteria == nil) then criteria = "" end
+   local res = {}
 
-if(host_info["host"] ~= nil) then
-   if(string.contains(host_info["host"], "/")) then
-      -- This is a network
-      host = getNetworkStats(host_info["host"])
-   else
-      host = interface.getHostInfo(host_info["host"], host_info["vlan"])
-   end
-else
-   host = interface.getAggregatedHostInfo(host_info["host"])
-end
-
-local res = {}
-
-if host then
    local now = os.time()
    -- Get from redis the throughput type bps or pps
    local throughput_type = getThroughputType()
@@ -124,6 +109,43 @@ if host then
    if(sent2rcvd == nil) then sent2rcvd = 0 end
    res["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
 	  .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
+
+   return res
+end
+
+---
+
+local hosts = _GET["hosts"]
+
+local criteria = _GET["criteria"]
+if criteria == nil then criteria = "" end
+
+local res = {}
+
+if not isEmptyString(hosts) then
+
+   local items = split(hosts, ',')
+
+   for _, item in pairs(items) do
+      local host_info = hostkey2hostinfo(item)
+      local host 
+
+      if host_info["host"] ~= nil then
+         if(string.contains(host_info["host"], "/")) then
+            -- This is a network
+            host = getNetworkStats(host_info["host"])
+         else
+            host = interface.getHostInfo(host_info["host"], host_info["vlan"])
+         end
+      else
+         host = interface.getAggregatedHostInfo(host_info["host"])
+      end
+
+      if host then
+         res[item] = get_host_data(host)
+      end
+
+   end
 
 end
 
