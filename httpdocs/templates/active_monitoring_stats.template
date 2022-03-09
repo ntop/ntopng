@@ -143,7 +143,7 @@
       const POOL_COLUMN_INDEX = 8;
 
       return new DataTableFiltersMenu({
-          filterTitle: i18n_ext.pools,
+          filterTitle: i18n('pools.pools'),
           tableAPI: tableAPI,
           filters: poolsFilter,
           filterMenuKey: 'pools',
@@ -171,7 +171,7 @@
       filters.sort((a, b) => a.label.localeCompare(b.label));
 
       return new DataTableFiltersMenu({
-          filterTitle: i18n_ext.measurement,
+          filterTitle: i18n('active_monitoring_stats.measurement'),
           tableAPI: tableAPI,
           filters: filters,
           filterMenuKey: 'measurement',
@@ -185,18 +185,18 @@
       const filters = [
           {
               key: 'alerted',
-              label: `${i18n_ext.alerted}`,
+              label: `${i18n('active_monitoring_stats.alerted')}`,
               regex: `1`
           },
           {
               key: 'not_alerted',
-              label: `${i18n_ext.not_alerted}`,
+              label: `${i18n('active_monitoring_stats.not_alerted')}`,
               regex: `0`
           }
       ];
 
       return new DataTableFiltersMenu({
-          filterTitle: i18n_ext.alert_status,
+          filterTitle: i18n('active_monitoring_stats.alert_status'),
           tableAPI: tableAPI,
           filters: filters,
           filterMenuKey: 'alert-status',
@@ -251,7 +251,7 @@ sorted_measurements.sort(function(a, b){
       const info = measurements_info[measurement];
 
       $dialog.find(".measurement-operator").html("&" + (info.operator || "gt") + ";");
-      $dialog.find(".measurement-unit").html(info.unit || i18n_ext.msec);
+      $dialog.find(".measurement-unit").html(info.unit || i18n("active_monitoring_stats.msec"));
 
       // Check if host is forced
       const host = $dialog.find(".measurement-host")
@@ -384,7 +384,7 @@ sorted_measurements.sort(function(a, b){
           if (response.success) {
 
               ToastUtils.showToast({
-                  title: i18n_ext.success,
+                  title: i18n("success"),
                   body: response.message,
                   level: 'success',
                   delay: 3000,
@@ -471,7 +471,7 @@ sorted_measurements.sort(function(a, b){
           if (response.success) {
 
               ToastUtils.showToast({
-                  title: i18n_ext.success,
+                  title: i18n('success'),
                   body: response.message,
                   level: 'success',
                   delay: 3000,
@@ -508,7 +508,7 @@ sorted_measurements.sort(function(a, b){
           if (response.success) {
               $(`#am-delete-modal`).modal('hide');
               ToastUtils.showToast({
-                  title: i18n_ext.success,
+                  title: i18n('success'),
                   body: response.message,
                   level: 'success',
                   delay: 3000,
@@ -671,8 +671,8 @@ sorted_measurements.sort(function(a, b){
                   const disabled = (host.readonly) ? 'disabled' : '';
 
                   return DataTableUtils.createActionButtons([
-                      { class: `btn-info ${disabled}`, icon: 'fa-edit', modal: '#am-edit-modal', title: `${i18n_ext.edit}` },
-                      { class: `btn-danger ${disabled}`, icon: 'fa-trash', modal: '#am-delete-modal', title: `${i18n_ext.delete}` }
+                      { class: `btn-info ${disabled}`, icon: 'fa-edit', modal: '#am-edit-modal', title: `${i18n("users.edit")}` },
+                      { class: `btn-danger ${disabled}`, icon: 'fa-trash', modal: '#am-delete-modal', title: `${i18n("delete")}` }
                   ]);
               }
           },
@@ -762,12 +762,12 @@ sorted_measurements.sort(function(a, b){
       let recipients = pool.recipients;
 
       if (recipients.length == 0) {
-          $recipientsInfo.html(i18n_ext.no_recipients);
+          $recipientsInfo.html(i18n('pools.no_recipients'));
           return;
       }
 
       const recipientNames = NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_RECIPIENTS);
-      $recipientsInfo.html(i18n_ext.some_recipients.replace('${recipients}', recipientNames));
+      $recipientsInfo.html(i18n('pools.some_recipients').replace('${recipients}', recipientNames));
 
   });
 </script>
