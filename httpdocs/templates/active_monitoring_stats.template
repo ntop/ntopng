@@ -554,7 +554,7 @@ sorted_measurements.sort(function(a, b){
       columns: [
           {
               data: 'html_label',
-              width: '20%',
+              width: '100%',
           render: function(html_label, type, row) {
                   
                   if (type === 'display') {
@@ -572,12 +572,11 @@ sorted_measurements.sort(function(a, b){
           },
           {
               data: 'measurement',
-              width: "100px",
+              class: 'text-nowrap',
           },
           {
               data: 'chart',
               class: 'text-center',
-              width: "100px",
               sortable: false,
                 render: function(href, type, row) {
                   if(type === 'display') {
@@ -620,12 +619,12 @@ sorted_measurements.sort(function(a, b){
           },
           {
               data: 'last_mesurement_time',
-              className: 'text-center',
+              className: 'text-center text-nowrap',
   render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS,
           },
           {
               data: 'last_ip',
-              className: 'dt-body-right dt-head-center'
+              className: 'dt-body-right dt-head-center text-nowrap'
           },
           {
               data: 'last_measure',
@@ -663,8 +662,7 @@ sorted_measurements.sort(function(a, b){
               data: null,
               sortable: false,
               name: 'actions',
-              width: "5%",
-  responsivePriority: 3,
+              responsivePriority: 3,
               class: 'text-center',
               render: function(_, type, host) {
 
