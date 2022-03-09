@@ -813,7 +813,7 @@ NetworkInterface::~NetworkInterface() {
   for(it = external_alerts.begin(); it != external_alerts.end(); ++it)
     delete it->second;
   external_alerts.clear();
-  
+
 #ifdef NTOPNG_PRO
   if(policer)               delete(policer);
 #ifndef HAVE_NEDGE
@@ -1694,29 +1694,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     if(new_flow)
       flow->setIngress2EgressDirection(ingressPacket);
 #endif
-    /*
-      In case of a traffic mirror with no MAC gatewy address configured
-      the traffic direction is set based on the local (-m) host
-     */
-    if(isTrafficMirrored() && (!isGwMacConfigured())) {
-      int16_t network_id;
-      bool cli_local = flow->get_cli_ip_addr()->isLocalHost(&network_id);
-      bool srv_local = flow->get_srv_ip_addr()->isLocalHost(&network_id);
-
-      if(cli_local && (!srv_local))
-	ingressPacket = false;
-      else if((!cli_local) && srv_local)
-	ingressPacket = true;
-      else
-	; /* Leave as is */
-
-      /*
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s -> %s",
-				   flow->get_cli_ip_addr()->isLocalHost(&network_id) ? "L" : "R",
-				   flow->get_srv_ip_addr()->isLocalHost(&network_id) ? "L" : "R");
-      */
-    }
-
 
     if(flow->is_swap_requested()
        /* This guarantees that at least a packet has been observed in both directions, and that
@@ -1804,6 +1781,34 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
   }
 
+  /*
+    In case of a traffic mirror with no MAC gateway address configured
+    the traffic direction is set based on the local (-m) host
+  */
+  if(isTrafficMirrored() && (!isGwMacConfigured())) {
+    int16_t network_id;
+    bool cli_local = src_ip.isLocalHost(&network_id);
+    bool srv_local = dst_ip.isLocalHost(&network_id);
+
+    if(cli_local && (!srv_local))
+      ingressPacket = false;
+    else if((!cli_local) && srv_local)
+      ingressPacket = true;
+    else
+      ; /* Leave as is */
+
+#if 0
+    char a[32], b[32];
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s (%s) -> %s (%s) [%s]",
+				 src_ip.print(a, sizeof(a)),
+				 src_ip.isLocalHost(&network_id) ? "L" : "R",
+				 dst_ip.print(b, sizeof(b)),
+				 dst_ip.isLocalHost(&network_id) ? "L" : "R",
+				 ingressPacket ? "IN" : "OUT");
+#endif
+  }
+
   /* Protocol Detection */
   flow->updateInterfaceLocalStats(src2dst_direction, 1, len_on_wire);
 
@@ -1819,7 +1824,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");
     }
   }
-
 
   if(flow->isDetectionCompleted()
      && (!isSampledTraffic())) {
@@ -3012,7 +3016,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 #endif
 
 #ifdef NTOPNG_PRO
-  /* Flush possibly pending flows (avoids interfaces with almost no traffic 
+  /* Flush possibly pending flows (avoids interfaces with almost no traffic
   to have their flows waiting in dump queues for too long) */
   //flushFlowDump();
 #endif
@@ -3032,10 +3036,10 @@ void NetworkInterface::flowAlertsDequeueLoop() {
     /* Control-C during startup */
     if(ntop->getGlobals()->isShutdownRequested())
       return;
-    
+
     _usleep(10000);
   }
-  
+
   /* Now operational */
   while(isRunning()) {
     /*
@@ -3069,10 +3073,10 @@ void NetworkInterface::hostAlertsDequeueLoop() {
     /* Control-C during startup */
     if(ntop->getGlobals()->isShutdownRequested())
       return;
-    
+
     _usleep(10000);
   }
-  
+
   /* Now operational */
   while(isRunning()) {
     /*
@@ -3106,7 +3110,7 @@ void NetworkInterface::dumpFlowLoop() {
     /* Control-C during startup */
     if(ntop->getGlobals()->isShutdownRequested())
       return;
-    
+
     _usleep(10000);
   }
 
@@ -6093,12 +6097,12 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVLANs(bool force_idle, bool fu
     const struct timeval tv = periodicUpdateInitTime();
     u_int n;
     /* If the interface is no longer running it is safe to force all entries as idle */
-      
+
     n = (macs_hash ? macs_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (ases_hash ? ases_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (oses_hash ? oses_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (countries_hash ? countries_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
-      + (vlans_hash ? vlans_hash->purgeIdle(&tv, force_idle, full_scan) : 0)  
+      + (vlans_hash ? vlans_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
       + (obs_hash ? obs_hash->purgeIdle(&tv, force_idle, full_scan) : 0);
 
     next_idle_other_purge = last_packet_time + OTHER_PURGE_FREQUENCY;
@@ -6660,7 +6664,7 @@ bool NetworkInterface::deleteObsPoint(u_int16_t obs_point) {
   /* Observation Point found, delete it */
   if(ret != NULL)
     ret->deleteObsStats();
-  
+
   return(true);
 }
 
@@ -6678,7 +6682,7 @@ bool NetworkInterface::prepareDeleteObsPoint(u_int16_t obs_point) {
   /* Observation Point found, delete it */
   if(ret != NULL)
     ret->setDeleteRequested(true);
-  
+
   return(true);
 }
 
@@ -7157,7 +7161,7 @@ void NetworkInterface::FillObsHash() {
     char pattern[64];
     int rc = 0;
 
-    snprintf(pattern, sizeof(pattern), "ntopng.serialized_as.ifid_%u_obs_point_*", get_id()); 
+    snprintf(pattern, sizeof(pattern), "ntopng.serialized_as.ifid_%u_obs_point_*", get_id());
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Pattern: %s", pattern);
 
@@ -7170,11 +7174,11 @@ void NetworkInterface::FillObsHash() {
           char symbol = '_';
           /* Get last occurrence of _ , because the key is serialized like ntopng.serialized_as.ifid_10_obs_point_1234 */
           /* In this way it's possible to get all the ids of the Obs. Points */
-          char *obs_point = strrchr(keys[i], symbol); 
+          char *obs_point = strrchr(keys[i], symbol);
 
-          if(obs_point) {            
+          if(obs_point) {
             u_int16_t obs_point_id = atoi(&obs_point[1]);
-            
+
             if(!obs_point_id) {
               ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to deserialize Observation Point stats: %u", obs_point_id);
               if(keys[i]) free(keys[i]);
@@ -7184,9 +7188,9 @@ void NetworkInterface::FillObsHash() {
             /* Found at least one element */
             /* Create a new observation point with the id found to deserialize stats */
             ObservationPoint *tmp_obs_point = new ObservationPoint(this, obs_point_id);
-            
+
             last_obs_point_id = obs_point_id;
-            /* Add to the map */ 
+            /* Add to the map */
             if(obs_hash->add(tmp_obs_point, false /* Do lock */))
               ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found Observation Point: %u; Stats deserialization complete.", obs_point_id);
             else
@@ -9253,7 +9257,7 @@ void NetworkInterface::processExternalAlertable(AlertEntity entity,
     /* Add to the map */
     external_alerts[key] = alertable;
   }
-  
+
   if(do_store_alert)
     ntop_store_triggered_alert(vm, alertable, vm_argument_idx);
   else {
@@ -9568,15 +9572,15 @@ bool NetworkInterface::hasObservationPointId(u_int16_t pointId) {
 }
 
 /* *************************************** */
-  
-bool NetworkInterface::haveObservationPointsDefined() { 
-  return(((!obs_hash) || (obs_hash->getNumEntries() == 0)) ? false : true); 
+
+bool NetworkInterface::haveObservationPointsDefined() {
+  return(((!obs_hash) || (obs_hash->getNumEntries() == 0)) ? false : true);
 }
 
 /* *************************************** */
 
-u_int16_t NetworkInterface::getFirstObservationPointId() { 
-  return(((!obs_hash) || (obs_hash->getNumEntries() == 0)) ? 0 : last_obs_point_id); 
+u_int16_t NetworkInterface::getFirstObservationPointId() {
+  return(((!obs_hash) || (obs_hash->getNumEntries() == 0)) ? 0 : last_obs_point_id);
 }
 
 /* *************************************** */
