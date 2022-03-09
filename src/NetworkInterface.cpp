@@ -1689,29 +1689,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     if(new_flow)
       flow->setIngress2EgressDirection(ingressPacket);
 #endif
-    /*
-      In case of a traffic mirror with no MAC gatewy address configured
-      the traffic direction is set based on the local (-m) host
-     */
-    if(isTrafficMirrored() && (!isGwMacConfigured())) {
-      int16_t network_id;
-      bool cli_local = flow->get_cli_ip_addr()->isLocalHost(&network_id);
-      bool srv_local = flow->get_srv_ip_addr()->isLocalHost(&network_id);
-
-      if(cli_local && (!srv_local))
-	ingressPacket = false;
-      else if((!cli_local) && srv_local)
-	ingressPacket = true;
-      else
-	; /* Leave as is */
-
-      /*
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s -> %s",
-				   flow->get_cli_ip_addr()->isLocalHost(&network_id) ? "L" : "R",
-				   flow->get_srv_ip_addr()->isLocalHost(&network_id) ? "L" : "R");
-      */
-    }
-
 
     if(flow->is_swap_requested()
        /* This guarantees that at least a packet has been observed in both directions, and that
@@ -1799,6 +1776,34 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
   }
 
+    /*
+    In case of a traffic mirror with no MAC gateway address configured
+    the traffic direction is set based on the local (-m) host
+  */
+  if(isTrafficMirrored() && (!isGwMacConfigured())) {
+    int16_t network_id;
+    bool cli_local = src_ip.isLocalHost(&network_id);
+    bool srv_local = dst_ip.isLocalHost(&network_id);
+
+    if(cli_local && (!srv_local))
+      ingressPacket = false;
+    else if((!cli_local) && srv_local)
+      ingressPacket = true;
+    else
+      ; /* Leave as is */
+
+#if 0
+    char a[32], b[32];
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s (%s) -> %s (%s) [%s]",
+				 src_ip.print(a, sizeof(a)),
+				 src_ip.isLocalHost(&network_id) ? "L" : "R",
+				 dst_ip.print(b, sizeof(b)),
+				 dst_ip.isLocalHost(&network_id) ? "L" : "R",
+				 ingressPacket ? "IN" : "OUT");
+#endif
+  }
+  
   /* Protocol Detection */
   flow->updateInterfaceLocalStats(src2dst_direction, 1, len_on_wire);
 
