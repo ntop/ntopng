@@ -205,12 +205,16 @@ let updatingChart_totals = [
 	$(".mobile-menu-stats .network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null})
 ];
 
+let isFooterRefreshInProcess = false;
 const footerRefresh = function() {
+	if (isFooterRefreshInProcess == true) { return; }
+	isFooterRefreshInProcess = true;
 	$.ajax({
 		type: 'GET',
 		url: ']]print (ntop.getHttpPrefix()) print [[/lua/rest/v2/get/interface/data.lua',
 		data: { ifid: ]] print(tostring(ifid)) print[[, type: 'summary' },
 		success: function(content) {
+			isFooterRefreshInProcess = false;
 			if(content["rc_str"] != "OK") {
 				return;
 			}
