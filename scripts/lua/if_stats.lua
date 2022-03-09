@@ -755,7 +755,6 @@ end
 
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.traffic_statistics").."</th></tr>\n")
 
-
    print("<tr><th nowrap>"..i18n("report.traffic_anomalies")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:hosts_anomalies'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
    print("<th nowrap>"..i18n("report.traffic_anomalies_local_hosts").."</th><td><span id=local_hosts_anomalies>"..formatValue(ifstats.anomalies.num_local_hosts_anomalies).."</span> <span id=local_hosts_anomalies_trend></span></td>")
    print("<th colspan=2 nowrap>"..i18n("report.traffic_anomalies_remote_hosts").."</th><td><span id=remote_hosts_anomalies>"..formatValue(ifstats.anomalies.num_remote_hosts_anomalies).."</span> <span id=remote_hosts_anomalies_trend></span></td>")
@@ -960,6 +959,41 @@ end
    end
 
    if isAdministrator() and ifstats.isView == false then
+
+      -- Traffic recording
+
+      if has_traffic_recording_page then
+         print("<tr><th colspan=7 nowrap>"..i18n("traffic_recording.traffic_recording").."</th></tr>\n")
+
+         local stats = recording_utils.stats(ifstats.id)
+
+         local first_epoch = stats['FirstDumpedEpoch']
+         local last_epoch = stats['LastDumpedEpoch']
+         local start_time = stats['StartEpoch']
+
+         if first_epoch ~= nil then
+            print("<tr><th>"..i18n("traffic_recording.dump_window").."</th><td colspan=5>")
+            if first_epoch ~= nil and last_epoch ~= nil and 
+               first_epoch > 0 and last_epoch > 0 then
+               print(formatEpoch(first_epoch).." - "..formatEpoch(last_epoch))
+            else
+               print(i18n("traffic_recording.no_file"))
+            end
+            print("</td></tr>\n")
+         end
+
+         if start_time ~= nil then
+            print("<tr><th>"..i18n("traffic_recording.active_since").."</th><td colspan=5>"..formatEpoch(start_time))
+            if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > first_epoch) then
+               print(' - <i class="fas fa-exclamation-triangle"></i> ')
+               print(i18n("traffic_recording.missing_data_msg"))
+            end
+            print("</td></tr>\n")
+         end
+      end
+
+      -- Storage utilization
+
       local ts_utils = require "ts_utils_core"
       local storage_info = storage_utils.interfaceStorageInfo(ifid)
       local storage_items = {}
@@ -1003,11 +1037,12 @@ end
 	    print(graph_utils.stackedProgressBars(storage_info.total, storage_items, nil, bytesToSize))
 	    print("</td></tr>\n")
 	 end
+
       end
    end
 
    if ntop.isPcapDownloadAllowed() and ifstats.isView == false and ifstats.isDynamic == false and is_packet_interface then
-      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=5>")
+      print("<tr><th>"..i18n("live_capture.live_capture").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=5>")
 
       local live_traffic_utils = require("live_traffic_utils")
       live_traffic_utils.printLiveTrafficForm(interface.getId())

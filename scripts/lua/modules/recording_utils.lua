@@ -815,6 +815,20 @@ function recording_utils.stats(ifid)
       end
    end
 
+   if stats['FirstDumpedEpoch'] ~= nil then
+      stats['FirstDumpedEpoch'] = tonumber(stats['FirstDumpedEpoch'])
+   end
+
+   if stats['LastDumpedEpoch'] ~= nil then
+      stats['LastDumpedEpoch'] = tonumber(stats['LastDumpedEpoch'])
+   end
+
+   if stats['Duration'] ~= nil then
+      local u = split(stats['Duration'], ':');
+      stats['DurationEpoch'] = tonumber(u[1])*24*60*60+tonumber(u[2])*60*60+tonumber(u[3])*60+u[4]
+      stats['StartEpoch'] = os.time() - stats['DurationEpoch']
+   end
+
    return stats
 end
 

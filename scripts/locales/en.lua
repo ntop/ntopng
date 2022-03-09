@@ -3690,6 +3690,7 @@ local lang = {
   },
   ["live_capture"] = {
     ["active_live_captures"] = "Live Captures",
+    ["live_capture"] = "Live Capture",
     ["note"] = "Capture live traffic for host %{hostinfo}. The stream will automatically stop after 1 minute or 100k packets.",
   },
   ["live_traffic"] = {

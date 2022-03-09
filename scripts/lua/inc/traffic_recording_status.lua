@@ -68,49 +68,36 @@ print("</td></tr>\n")
 
 local stats = recording_utils.stats(ifstats.id)
 
-if stats ~= nil then
-  local first_epoch = nil
-  local last_epoch = nil
-  local start_time = nil
+local first_epoch = stats['FirstDumpedEpoch']
+local last_epoch = stats['LastDumpedEpoch']
+local start_time = stats['StartEpoch']
 
-  if stats['FirstDumpedEpoch'] ~= nil and stats['LastDumpedEpoch'] ~= nil then
-    first_epoch = tonumber(stats['FirstDumpedEpoch'])
-    last_epoch = tonumber(stats['LastDumpedEpoch'])
-  end
-
-  if stats['Duration'] ~= nil then
-    local u = split(stats['Duration'], ':');
-    local uptime = tonumber(u[1])*24*60*60+tonumber(u[2])*60*60+tonumber(u[3])*60+u[4]
-    start_time = os.time()-uptime
-  end
-
-  if stats['FirstDumpedEpoch'] ~= nil then
-    print("<tr><th width='15%' nowrap>"..i18n("traffic_recording.dump_window").."</th><td>")
-    if first_epoch ~= nil and last_epoch ~= nil and 
-       first_epoch > 0 and last_epoch > 0 then
+if first_epoch ~= nil then
+   print("<tr><th width='15%' nowrap>"..i18n("traffic_recording.dump_window").."</th><td>")
+   if first_epoch ~= nil and last_epoch ~= nil and 
+      first_epoch > 0 and last_epoch > 0 then
       print(formatEpoch(first_epoch).." - "..formatEpoch(last_epoch))
-    else
+   else
       print(i18n("traffic_recording.no_file"))
-    end
-    print("</td></tr>\n")
-  end
+   end
+   print("</td></tr>\n")
+end
 
-  if start_time ~= nil then
-    print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time))
-    if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > first_epoch) then
+if start_time ~= nil then
+   print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time))
+   if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > first_epoch) then
       print(' - <i class="fas fa-exclamation-triangle"></i> ')
       print(i18n("traffic_recording.missing_data_msg"))
-    end
-    print("</td></tr>\n")
-  end
+   end
+   print("</td></tr>\n")
+end
 
-  if stats['Bytes'] ~= nil and stats['Packets'] ~= nil then
-    print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td>"..bytesToSize(stats['Bytes']).." ["..formatValue(stats['Packets']).." "..i18n("pkts").."]</td></tr>\n")
-  end
+if stats['Bytes'] ~= nil and stats['Packets'] ~= nil then
+   print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td>"..bytesToSize(stats['Bytes']).." ["..formatValue(stats['Packets']).." "..i18n("pkts").."]</td></tr>\n")
+end
 
-  if stats['Dropped'] ~= nil then
-    print("<tr><th nowrap>"..i18n("if_stats_overview.dropped_packets").."</th><td>"..stats['Dropped'].." "..i18n("pkts").."</td></tr>\n")
-  end
+if stats['Dropped'] ~= nil then
+   print("<tr><th nowrap>"..i18n("if_stats_overview.dropped_packets").."</th><td>"..stats['Dropped'].." "..i18n("pkts").."</td></tr>\n")
 end
 
 if custom_provider and running then
