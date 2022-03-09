@@ -2,12 +2,21 @@
 -- (C) 2013-22 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local rest_utils = require("rest_utils")
 
-sendHTTPContentTypeHeader('text/html')
+--
+-- Read list of active hosts
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1", "host": "192.168.1.1", "vlan": "1"}' http://localhost:3000/lua/rest/v2/get/host/active.lua
+--
+-- NOTE: in case of invalid login, no error is returned but redirected to login
+--
+
+local rc = rest_utils.consts.success.ok
+local rsp = {}
 
 interface.select(ifname)
 

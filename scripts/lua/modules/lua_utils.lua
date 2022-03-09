@@ -3312,39 +3312,43 @@ end
 
 -- ##########################################
 
-function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info, vlan)
+function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info, vlan, no_print)
    if ntop.isEnterpriseM() then
-      local now    = os.time()
-      local ago1h  = now - 3600
+    local now    = os.time()
+    local ago1h  = now - 3600
 
-      local prefs = ntop.getPrefs()
-      if prefs.is_dump_flows_to_clickhouse_enabled then
-	 local hist_url = ntop.getHttpPrefix().."/lua/pro/db_search.lua?"
-	 local params = {epoch_end = now, epoch_begin = ago1h, ifid = ifId}
+    local prefs = ntop.getPrefs()
+    if prefs.is_dump_flows_to_clickhouse_enabled then
+      local hist_url = ntop.getHttpPrefix().."/lua/pro/db_search.lua?"
+      local params = {epoch_end = now, epoch_begin = ago1h, ifid = ifId}
 
-	 if host then
-	    local host_k = hostinfo2hostkey(host)
-	    if isEmptyString(host_k) then
-	       host_k = host
-	    end
-	    params["ip"] = host_k..";eq"
-	 end
-	 if l4_proto then
-	    params["l4proto"] = l4_proto..";eq"
-	 end
-	 if ndpi_proto_id then
-	    params["l7proto"] = ndpi_proto_id..";eq"
-	 end
-   if vlan and vlan ~= 0 then
-      params["vlan_id"] = vlan..";eq"
-   end
+        if host then
+            local host_k = hostinfo2hostkey(host)
+            if isEmptyString(host_k) then
+              host_k = host
+            end
+            params["ip"] = host_k..";eq"
+        end
+        if l4_proto then
+            params["l4proto"] = l4_proto..";eq"
+        end
+        if ndpi_proto_id then
+            params["l7proto"] = ndpi_proto_id..";eq"
+        end
+        if vlan and vlan ~= 0 then
+            params["vlan_id"] = vlan..";eq"
+        end
 
-	 local url_params = table.tconcat(params, "=", "&")
+        local url_params = table.tconcat(params, "=", "&")
 
-	 print('&nbsp;')
-	 -- print('<span class="badge bg-info">')
-	 print('<a href="'..hist_url..url_params..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-search-plus"></i></a>')
-	 -- print('</span>')
+        if not no_print then
+          print('&nbsp;')
+          -- print('<span class="badge bg-info">')
+          print('<a href="'..hist_url..url_params..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-search-plus"></i></a>')
+          -- print('</span>')
+        else
+          return '<a href="'..hist_url..url_params..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-search-plus"></i></a>'
+        end
       end
    end
 end

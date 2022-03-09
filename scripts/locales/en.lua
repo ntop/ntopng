@@ -477,6 +477,13 @@ local lang = {
   ["welcome_to"] = "Welcome to %{product}",
   ["wrong_date_range"] = "Invalid range date, please change it.",
   ["yes"] = "Yes",
+  ["traffic_labels"] = {
+    ["bytes_sent"] = "Bytes Sent",
+    ["bytes_rcvd"] = "Bytes Received",
+    ["breakdown"]  = "Breakedown",
+    ["total_bytes"] = "Total (Bytes)",
+    ["total_percentage"] = "Total (%)",
+  },
   ["about"] = {
     ["about"] = "About",
     ["about_x"] = "About %{product}",
@@ -5821,6 +5828,10 @@ local lang = {
     ["undecided"] = "Undecided",
   },
   ["traffic_page"] = {
+    ["bytes_sent"] = "Bytes Sent",
+    ["bytes_rcvd"] = "Bytes Received",
+    ["bytes_sent_vs_rcvd"] = "Bytes Sent VS Rcvd",
+    ["contacts"] = "Host Contacts",
     ["flow_distribution"] = "Flow Distribution",
     ["flow_duration"] = "Total Flow Duration",
     ["flow_frequency"] = "New Flow Creation Frequency",
@@ -5828,7 +5839,7 @@ local lang = {
     ["l4_proto_overview"] = "Protocol Overview",
     ["no_traffic_observed_message"] = "No traffic has been observed for the specified host",
     ["num_contacted_hosts_as_client"] = "Hosts Contacted (as Client)",
-    ["num_host_contacts_as_server"] = "Hosts Contacts (as Server)",
+    ["num_contacted_hosts_as_server"] = "Hosts Contacts (as Server)",
     ["rcvd"] = "Rcvd",
   },
   ["traffic_profiles"] = {

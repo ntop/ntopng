@@ -46,13 +46,9 @@ local have_nedge = ntop.isnEdge()
 local debug_hosts = false
 
 local page        = _GET["page"]
-local protocol_id = _GET["protocol"]
-local application = _GET["application"]
-local category    = _GET["category"]
 local host_info   = url2hostinfo(_GET)
 local host_ip     = host_info["host"]
 local host_vlan   = host_info["vlan"] or 0
-local always_show_hist = _GET["always_show_hist"]
 local format_utils = require("format_utils")
 
 local ntopinfo    = ntop.getInfo()
@@ -1229,83 +1225,8 @@ else
    print("<disv class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("peers_page.no_active_flows_message").."</div>")
 end
    elseif((page == "traffic")) then
-     total = 0
-     for id, _ in ipairs(l4_keys) do
-	k = l4_keys[id][2]
-	if(host[k..".bytes.sent"] ~= nil) then total = total + host[k..".bytes.sent"] end
-	if(host[k..".bytes.rcvd"] ~= nil) then total = total + host[k..".bytes.rcvd"] end
-     end
-
-     if(total == 0) then
-	print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("traffic_page.no_traffic_observed_message").."</div>")
-     else
-      print [[
-      <table class="table table-bordered table-striped">]]
-
-      if(host.cardinality) then
-	 print('<tr><th colspan="2" class="text-start">'..i18n("traffic_page.hosts_contacts_cardinality")..'</th>')
-	 print('<th class="text-start">'..i18n("traffic_page.num_contacted_hosts_as_client")..'</th><td><span id="num_contacted_hosts_as_client">'
-		  .. formatValue(host.cardinality.num_contacted_hosts_as_client) ..'</span> <span id="num_contacted_hosts_as_client_trend"></span></td>')
-	 print('<th class="text-start">'..i18n("traffic_page.num_host_contacts_as_server")..'</th><td><span id="num_host_contacts_as_server">'..
-		  formatValue(host.cardinality.num_host_contacts_as_server) ..'</span> <span id="num_host_contacts_as_server_trend"></span></td>')
-	 print('</tr>')
-      end
-
-      print [[
-      	<tr><th colspan="2" class="text-start">]] print(i18n("traffic_page.l4_proto_overview"))
-        print[[</th><td colspan=4><div class="pie-chart" id="topApplicationProtocols"></div></td></tr>
-
-	</div>
-
-        <script type='text/javascript'>
-          window.onload=function() {
-
-  	   do_pie("#topApplicationProtocols", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-
-	print [[
-         }
-	 </script>
-	]]
-
-   print[[
-     <tr>
-        <th>]] print(i18n("protocol")) print[[</th>
-        <th class="text-end">]] print(i18n("sent")) print[[</th>
-        <th class="text-end">]] print(i18n("received")) print[[</th>
-        <th class="text-center">]] print(i18n("breakdown")) print[[</th>
-        <th colspan=2 class="text-center">]] print(i18n("total")) print[[</th>
-     </tr>
-   ]]
-     for id, _ in ipairs(l4_keys) do
-	label = l4_keys[id][1]
-	k = l4_keys[id][2]
-	sent = host[k..".bytes.sent"]
-	if(sent == nil) then sent = 0 end
-	rcvd = host[k..".bytes.rcvd"]
-	if(rcvd == nil) then rcvd = 0 end
-
-	if((sent > 0) or (rcvd > 0)) then
-	    print("<tr><th>")
-	    if(charts_available) then
-	       print(hostinfo2detailshref(host, {page = "historical", ts_schema = "host:l4protos", l4proto = k}, label))
-	    else
-	       print(label)
-	    end
-	    t = sent+rcvd
-	    historicalProtoHostHref(ifId, host, l4_keys[id][3], nil, nil)
-	    print("</th><td class=\"text-end\">" .. bytesToSize(sent) .. "</td><td class=\"text-end\">" .. bytesToSize(rcvd) .. "</td><td>")
-	    graph_utils.breakdownBar(sent, i18n("sent"), rcvd, i18n("traffic_page.rcvd"), 0, 100)
-	    print("</td><td class=\"text-end\">" .. bytesToSize(t).. "</td><td class=\"text-end\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
-	 end
-      end
-      print("</table></tr>\n")
-
-      print("</table>\n")
-   end
-
-
+    -- template render
+    template.render("htmlPages/hostDetails/hosttraffic.html", {})
 elseif((page == "ICMP")) then
 
   print [[
@@ -2315,7 +2236,7 @@ elseif(page == "traffic_report") then
 end
 end
 
-if(not only_historical) and (host ~= nil) then
+if(not only_historical) and (host ~= nil) and (page ~= "traffic") then
    print [[
    <script>
 

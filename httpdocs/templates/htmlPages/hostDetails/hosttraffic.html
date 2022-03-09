@@ -1,0 +1,223 @@
+{#
+  (C) 2022 - ntop.org
+
+  This is the template for the active monitoring stats page. I
+#}
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card card-shadow">
+      <div class="card-body">
+
+        <div class="row"  style="justify-content: space-evenly; gap: 5rem 0%; margin: 2rem;">
+          <div class="col-4">
+            <div class="widget-box widget-box-fix">
+              <div class="widget chart-widget" id="chart-l4proto-distribution" style="max-height:25rem;min-height:25rem">
+                <div class="widget-error text-center text-danger" style="display: none; height: 100%; margin-top: 2rem">
+                  Something went wrong when loading this chart.
+                </div>
+                  <h3 class="widget-name">{{i18n("traffic_page.l4_proto_overview")}}</h3>
+                <div id="canvas-widget-{{widget_name}}"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="widget-box widget-box-fix">
+              <div class="widget chart-widget" id="chart-contacted-hosts" style="max-height:25rem;min-height:25rem">
+                <div class="widget-error text-center text-danger" style="display: none; height: 100%; margin-top: 2rem">
+                  Something went wrong when loading this chart.
+                </div>
+                  <h3 class="widget-name">{{i18n("traffic_page.contacts")}}</h3>
+                <div id="canvas-widget-{{widget_name}}"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="widget-box widget-box-fix">
+              <div class="widget chart-widget" id="chart-bytes-sent-vs-rcvd" style="max-height:25rem;min-height:25rem">
+                <div class="widget-error text-center text-danger" style="display: none; height: 100%; margin-top: 2rem">
+                  Something went wrong when loading this chart.
+                </div>
+                  <h3 class="widget-name">{{i18n("traffic_page.bytes_sent_vs_rcvd")}}</h3>
+                <div id="canvas-widget-{{widget_name}}"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <table class="table w-100 table-striped table-hover table-bordered" id="host-traffic-table">
+          <thead>
+            <tr>
+              <th>{{i18n("protocol")}}</th>
+              <th>{{i18n("chart")}}</th>
+              <th>{{i18n("traffic_labels.bytes_sent")}}</th>
+              <th>{{i18n("traffic_labels.bytes_rcvd")}}</th>
+              <th>{{i18n("traffic_labels.breakdown")}}</th>
+              <th>{{i18n("traffic_labels.total_bytes")}}</th>
+              <th>{{i18n("traffic_labels.total_percentage")}}</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  $(document).ready(async function() {
+    const url = new URLSearchParams(window.location.search)
+    const host = url.get('host')
+    const vlan = url.get('vlan') || ""
+    const ifid = url.get('ifid') || ""
+
+    /* Loading the table */
+    let dtConfig = DataTableUtils.getStdDatatableConfig([]);
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
+      pagingType: 'full_numbers',
+      ajax: {
+        method: 'get',
+        url: `${http_prefix}/lua/rest/v2/get/host/stats/l4_traffic.lua?host=${host}&vlan=${vlan}`,
+        dataSrc: 'rsp.records',
+        beforeSend: function() {
+          NtopUtils.showOverlays();
+        },
+        complete: function() {
+          NtopUtils.hideOverlays();
+        }
+      },
+      columns: [
+        {
+          data: 'protocol',
+          className: 'text-nowrap',
+          sortable: true,
+        },
+        {
+          data: 'historical',
+          className: 'text-center text-nowrap',
+          sortable: false
+        },
+        {
+          data: 'bytesSent',
+          className: 'dt-body-right dt-head-center text-nowrap',
+          sortable: true,
+          render: function(data) {
+            return NtopUtils.bytesToSize(data)
+          }
+        },
+        {
+          data: 'bytesRcvd',
+          className: 'dt-body-right dt-head-center text-nowrap',
+          sortable: true,
+          render: function(data) {
+            return NtopUtils.bytesToSize(data)
+          }
+        },
+        {
+          data: 'breakdown',
+          className: 'text-center text-nowrap',
+          sortable: false,
+          render: function(data) {    
+            const progressBar = `<div class="progress">
+              <div class="progress-bar bg-warning" role="progressbar" style="width: ${data}%" aria-valuenow="${data}" aria-valuemin="0" aria-valuemax="100">Sent</div>
+              <div class="progress-bar bg-success" role="progressbar" style="width: ${100 - data}%" aria-valuenow="${100 - data}" aria-valuemin="0" aria-valuemax="100">Rcvd</div>
+            </div>`
+
+            return progressBar
+          }
+        },
+        {
+          data: 'totalBytes',
+          className: 'dt-body-right dt-head-center text-nowrap',
+          sortable: true,
+          render: function(data) {
+            return NtopUtils.bytesToSize(data)
+          }
+        },
+        {
+          data: 'totalPctg',
+          className: 'dt-body-right dt-head-center text-nowrap',
+          sortable: true,
+          render: function(data) {
+            return (data + "%")
+          }
+        },
+      ],
+    });
+
+    const $hostTraffic = $("#host-traffic-table").DataTable(dtConfig);
+    DataTableUtils.addToggleColumnsDropdown($hostTraffic);
+    const datasource = { 
+      endpoint: `${http_prefix}/lua/rest/v2/get/host/stats/charts/l4_stats.lua?ifid=${ifid}&host=${host}&vlan=${vlan}`,
+      name: `${http_prefix}/lua/rest/v2/get/host/stats/charts/l4_stats.lua`,
+      params: {
+        host: host,
+        vlan: vlan,
+        ifid: ifid
+      }
+    }
+
+    /* Loading the Chart */
+
+    const req = await fetch(`${http_prefix}/lua/rest/v2/get/host/stats/charts/l4_stats.lua?ifid=${ifid}&host=${host}&vlan=${vlan}`);
+    const data = await req.json();
+
+    let options = {
+      chart: {
+        type: "polarArea"
+      },
+      dataLabels: {
+        enabled: true,
+        style: {
+          fontSize: '14px',
+        }
+      },
+      series: data.rsp.serie1.series,
+      colors: data.rsp.serie1.colors,
+      labels: data.rsp.serie1.labels,
+      legend: {
+        show: true,
+        fontSize: '16px',
+        position: 'bottom',
+        onItemClick: {
+          toggleDataSeries: true,
+        },
+      },
+      yaxis: {
+        show: false
+      },
+      tooltip: {
+        y: {
+          formatter: function(value) {
+            return NtopUtils.bytesToSize(value)
+          }
+        }
+      },
+      yaxis: {
+        labels: {
+          style: {
+            fontSize: '14px',
+          },
+          formatter: function(value) {
+            return NtopUtils.bytesToSize(value)
+          }
+        },
+      },
+    }
+
+    new ApexCharts(document.querySelector("#chart-l4proto-distribution"), options).render();
+    
+    options.series = data.rsp.serie3.series
+    options.colors = data.rsp.serie3.colors
+    options.labels = data.rsp.serie3.labels
+    
+    new ApexCharts(document.querySelector("#chart-bytes-sent-vs-rcvd"), options).render();
+
+    options.series = data.rsp.serie2.series
+    options.colors = data.rsp.serie2.colors
+    options.labels = data.rsp.serie2.labels
+    options.tooltip.y.formatter = (value)=> { return NtopUtils.formatValue(value, 0) }
+    options.yaxis[0].labels.formatter = (value) => { return NtopUtils.formatValue(value, 0) }
+    
+    new ApexCharts(document.querySelector("#chart-contacted-hosts"), options).render();
+  })
+</script>  
