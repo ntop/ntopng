@@ -26,8 +26,8 @@ local ifstats = interface.getStats()
 local window_info = recording_utils.isDataAvailable(ifstats.id, epoch_begin, epoch_end)
 
 if window_info.epoch_begin and window_info.epoch_end then
-  window_info.epoch_begin_formatted = format_utils.formatEpochShort(window_info.epoch_begin, window_info.epoch_end, window_info.epoch_begin)
-  window_info.epoch_end_formatted = format_utils.formatEpochShort(window_info.epoch_begin, window_info.epoch_end, window_info.epoch_end)
+  window_info.epoch_begin_formatted = format_utils.formatPastEpochShort(window_info.epoch_begin)
+  window_info.epoch_end_formatted = format_utils.formatPastEpochShort(window_info.epoch_end)
 end
 
 print(json.encode(window_info))
