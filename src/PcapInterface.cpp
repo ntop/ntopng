@@ -101,8 +101,10 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterfac
       if(pcap_setdirection(pcap_handle, ntop->getPrefs()->getCaptureDirection()) != 0)
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");
 
-      if(Utils::readInterfaceStats(ifname, &prev_stats_in, &prev_stats_out))
-	emulate_traffic_directions = true;
+      if(!isTrafficMirrored()) {
+	if(Utils::readInterfaceStats(ifname, &prev_stats_in, &prev_stats_out))
+	  emulate_traffic_directions = true;
+      }
 #endif
     } else
       throw errno;
