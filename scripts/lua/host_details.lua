@@ -152,14 +152,11 @@ local function printRestoreHostBanner(hidden)
    print("</div>")
 end
 
-local top_sites     = ((host ~= nil) and host["sites"] and json.decode(host["sites"])) or {}
-local top_sites_old = ((host ~= nil) and host["sites.old"] and json.decode(host["sites.old"])) or {}
-local labelKey      = host_info["host"].."@"..host_info["vlan"]
 local host_pool_id  = nil
 
 if (host ~= nil) then
-   charts_available = charts_available and host["localhost"]
-
+   charts_available = charts_available and host["localhost"] and not host["is_multicast"]
+   
    if (isAdministrator() and (_POST["pool"] ~= nil)) then
       host_pool_id = _POST["pool"]
       local prev_pool = tostring(host["host_pool_id"])
@@ -431,7 +428,7 @@ else
 	 url = hostinfo2detailsurl(host, {page = ternary((host.num_alerts or 0) > 0, "engaged-alerts", "alerts")})
       },
       {
-	 hidden = not charts_available and not interfaceHasClickHouseSupport(),
+	 hidden = not charts_available,
 	 active = page == "historical",
 	 page_name = "historical",
 	 label = "<i class='fas fa-lg fa-chart-area' title='"..i18n("historical").."'></i>",
