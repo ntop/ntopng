@@ -928,7 +928,7 @@ print(template_utils.gen("pages/components/ifaces-dropdown.template", context))
 if not is_pcap_dump and not is_system_interface then
 
    print([[
-      <li class='nav-item d-none d-sm-done d-md-flex d-lg-flex py-2 ps-2'>
+      <li class='nav-item d-none d-sm-done d-md-flex d-lg-flex py-2 ps-5 pe-2'>
          <div class='info-stats'>
             ]].. page_utils.generate_info_stats() ..[[
          </div>
@@ -975,7 +975,7 @@ print([[
 print('</ul>')
 
 print([[
-<ul class='navbar-nav flex-row ms-auto'>
+<ul class='navbar-nav flex-row ms-auto my-2'>
 ]])
 
 -- ########################################
@@ -995,7 +995,7 @@ if (not is_system_interface) then
                class       = "typeahead-dropdown-right",
                query_url   = ntop.getHttpPrefix() .. "/lua/rest/v2/get/host/find.lua",
                query_title = i18n("search_host"),
-               style       = "width: 16em;",
+               style       = "width: 20rem",
                before_submit = [[NtopUtils.makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
                max_items   = "'all'" --[[ let source script decide ]],
                parameters  = { ifid = ternary(is_system_interface, getSystemInterfaceId(), ifId) },

@@ -65,7 +65,7 @@ else -- info.oem
 </div>]]
 end
 
-local traffic_peity_width = "64"
+local traffic_peity_width = "96"
 
 if ts_utils.getDriverName() == "influxdb" then
 
