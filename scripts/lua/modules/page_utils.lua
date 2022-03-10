@@ -280,7 +280,7 @@ end
 
 -- #################################
 
-function page_utils.print_header(title)
+function page_utils.print_header(title, addLoginJS)
   local http_prefix = ntop.getHttpPrefix()
   local static_file_epoch = ntop.getStaticFileEpoch()..""
 
@@ -332,6 +332,14 @@ function page_utils.print_header(title)
       }
     </style>
 
+    ]]
+          
+    if addLoginJS then
+      tprint("ciaoooooooooo")
+      print[[<script type="text/javascript" src="]] print(http_prefix) print[[/dist/login.js"></script>]]
+    end
+
+    print[[
     <link href="]] print(http_prefix) print[[/dist/custom-theme.css?]] print(static_file_epoch) print[[" rel="stylesheet">
     <script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print("/lua/locale.lua?user_language="..language.."&epoch="..locale_when); print[["> </script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
@@ -345,7 +353,7 @@ end
 
 -- #################################
 
-function page_utils.print_header_minimal(title)
+function page_utils.print_header_minimal(title, addLoginJS)
   local http_prefix = ntop.getHttpPrefix()
 
   local page_title = i18n("welcome_to", { product=info.product })
@@ -366,7 +374,6 @@ function page_utils.print_header_minimal(title)
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-        <link href="]] print(http_prefix) print[[/dist/third-party-npm.css" rel="stylesheet">
         <link href="]] print(http_prefix) print[[/dist/third-party.css" rel="stylesheet">
         <link href="]] print(http_prefix) print[[/dist/ntopng.css" rel="stylesheet">
           ]]
@@ -388,7 +395,6 @@ function page_utils.print_header_minimal(title)
             margin-top: -5px;
             background:url(]] print(http_prefix) print[[/dist/images/flags.png) no-repeat
           }
-  
           <script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print("/lua/locale.lua?user_language="..language.."&epoch="..locale_when); print[["> </script>
           <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
           <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js"></script>
