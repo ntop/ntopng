@@ -336,7 +336,6 @@ function page_utils.print_header(title)
     <script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print("/lua/locale.lua?user_language="..language.."&epoch="..locale_when); print[["> </script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js"></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/tmp/rickshaw/rickshaw.js"></script>
    
     </head>]]
   print([[
@@ -393,7 +392,6 @@ function page_utils.print_header_minimal(title)
           <script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print("/lua/locale.lua?user_language="..language.."&epoch="..locale_when); print[["> </script>
           <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
           <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js"></script>
-          <script type="text/javascript" src="]] print(http_prefix) print[[/tmp/rickshaw/rickshaw.js"></script>
           
       </head>
       <body>
