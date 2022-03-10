@@ -335,7 +335,6 @@ function page_utils.print_header(title, addLoginJS)
     ]]
           
     if addLoginJS then
-      tprint("ciaoooooooooo")
       print[[<script type="text/javascript" src="]] print(http_prefix) print[[/dist/login.js"></script>]]
     end
 
