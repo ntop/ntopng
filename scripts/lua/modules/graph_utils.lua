@@ -489,7 +489,7 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
 
 <div id="legend"></div>
 <div id="chart_legend"></div>
-<div id="chart" style="margin-right: 3rem; margin-left: 1rem; display: table-cell"></div>
+<div id="chart"></div>
 </td>
 
 
@@ -536,10 +536,10 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
       formatter_fctn = "NtopUtils.fmillis"
       format_as_bytes = false
       format_as_bps = false
-   elseif string.contains(label, "packets") or string.contains(label, "flows") or label:starts("num_") or label:contains("alerts") then
-      formatter_fctn = "NtopUtils.fint"
-      format_as_bytes = false
-      format_as_bps = false
+    elseif string.contains(label, "packets") or string.contains(label, "flows") or label:starts("num_") or label:contains("alerts") or label:contains("score") then
+       formatter_fctn = "NtopUtils.fint"
+       format_as_bytes = false
+       format_as_bps = false
    elseif formatter then
       -- The formatter specified in the options
       formatter_fctn = formatter
@@ -623,189 +623,109 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
 
    print[[
 <script>
-
-var palette = new Rickshaw.Color.Palette();
-
-var graph = new Rickshaw.Graph( {
-				   element: document.getElementById("chart"),
-				   width: 750,
-               stroke: true,
-               min: 'auto',
-               padding: {top: 0.02, bottom: 0.02},
-				   height: 350,
-				   renderer: 'area',
-				   series: [
-				]]
-
-   for serie_idx, serie in ipairs(data.series) do
-      print("{name: \"" .. serie.label .. "\"")
-      print("\n, color: '".. graph_utils.graph_colors[serie_idx] .."', data: [")
-
-      local t = data.start
-
-      for i, val in ipairs(serie.data) do
-         print("{x: " .. t)
-         if (format_as_bps) then
-            print(",y: " .. (val*8) .. "},\n")
-         else
-            print(",y: " .. val .. "},\n")
-         end
-         t = t + data.step
-      end
-
-      print("]},")
-   end
-
-   print [[
-				]} );
-
-graph.render();
-
-var chart_legend = document.querySelector('#chart_legend');
-
-var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
-    graph: graph,
-    xFormatter: function(x) { return NtopUtils.epoch2Seen(x); },
-    yFormatter: function(bits) { return(]] print(formatter_fctn) print [[(bits)); },
-    render: function(args) {
-		var graph = this.graph;
-		var points = args.points;
-		var point = points.filter( function(p) { return p.active } ).shift();
-      if(point.value.y === null) return;
-
-		var formattedXValue = NtopUtils.epoch2Seen(point.value.x); // point.formattedXValue;
-		var formattedYValue = ]]
-   print(formatter_fctn)
-   print [[(point.value.y); // point.formattedYValue;
-		var infoHTML = "";
+let colors = []
+let series = []
+let labels = []
 ]]
 
-   print[[
+local formatter = "value"
+local colors = {}
+local num_series = 0
+-- Setting up data in timeframe
+for _, serie in ipairs(data.series) do
+  num_series = num_series + 1
+  print[[ series.push({
+    data: [
+  ]]
+  local t = data.start
+  for i, val in ipairs(serie.data) do
+    print("[" .. t * 1000 .. ", ")
+    if (format_as_bps) then
+      formatter = "bps"
+      print((val*8) .. "],")
+    else
+      print(val .. "],")
+    end
+    t = t + data.step
+  end
+  print("],")
+  print("name: '" .. serie.label .. "'})\n")
+  print('colors.push("' .. graph_utils.get_html_color(num_series)  .. '")\n')
+end
 
-infoHTML += "<ul>";
-$.ajax({
-	  type: 'GET',
-	  url: ']]
-   print(ntop.getHttpPrefix().."/lua/get_top_talkers.lua?epoch='+point.value.x+'&addvlan=true")
-   print [[',
-		  data: { epoch: point.value.x },
-		  async: false,
-		  success: function(content) {
-		   var info = jQuery.parseJSON(content);
-		   $.each(info, function(i, n) {
-		     if (n.length > 0)
-		       infoHTML += "<li>"+NtopUtils.capitaliseFirstLetter(i)+" [Avg Traffic/sec]<ol>";
-		     var items = 0;
-		     var other_traffic = 0;
-		     $.each(n, function(j, m) {
-		       if((items < 3) && (m.address != "Other")) {
-			 infoHTML += "<li><a href='host_details.lua?host="+m.address+"'>"+NtopUtils.abbreviateString(m.label ? m.label : m.address,24);
-		       infoHTML += "</a>";
-		       if (m.vlan != "0") infoHTML += " ("+m.vlanm+")";
-		       infoHTML += " ("+NtopUtils.fbits((m.value*8)/60)+")</li>";
-			 items++;
-		       } else
-			 other_traffic += m.value;
-		     });
-		     if (other_traffic > 0)
-			 infoHTML += "<li>Other ("+NtopUtils.fbits((other_traffic*8)/60)+")</li>";
-		     if (n.length > 0)
-		       infoHTML += "</ol></li>";
-		   });
-		   infoHTML += "</ul></li></li>";
-	   }
-   });
-infoHTML += "</ul>";]]
+if formatter == "value" then
+  print('const formatter = NtopUtils.formatValue\n')
+else
+  print('const formatter = NtopUtils.bitsToSize\n')  
+end
 
-   print [[
-		this.element.innerHTML = '';
-		this.element.style.left = graph.x(point.value.x) + 'px';
+print [[
+const options = {
+  series: series,
+  chart: {
+    id: 'area-datetime',
+    type: 'area',
+    height: 350,
+    width: 1000,
+    toolbar: {
+        show: false,
+    },
+    zoom: {
+      enabled: false
+    }
+  },
+  dataLabels: {
+    enabled: false
+  },
+  xaxis: {
+    tooltip: {
+      enabled: false
+    },
+    type: 'datetime',
+    tickAmount: 6,
+  },
+  yaxis: {
+    labels: {
+      formatter: function(data) {
+        return formatter(data)
+      }
+    }
+  },
+  tooltip: {
+    x: {
+      format: 'dd MMM yyyy hh:mm'
+    },
+    y: {
+      formatter: function(data) {
+        return formatter(data)
+      }
+    }
+  },
+}
 
-		/*var xLabel = document.createElement('div');
-		xLabel.setAttribute("style", "opacity: 0.5; background-color: #EEEEEE; filter: alpha(opacity=0.5)");
-		xLabel.className = 'x_label';
-		xLabel.innerHTML = formattedXValue + infoHTML;
-		this.element.appendChild(xLabel);
-		*/
-		$('#when').html(formattedXValue);
-		$('#talkers').html(infoHTML);
+const graph = new ApexCharts(document.querySelector("#chart"), options).render();
 
-
-		var item = document.createElement('div');
-
-		item.className = 'item';
-		item.innerHTML = this.formatter(point.series, point.value.x, point.value.y, formattedXValue, formattedYValue, point);
-      let tmp = item.innerHTML;
-      item.innerHTML = formattedXValue + "<br>" + tmp;
-		item.style.top = this.graph.y(point.value.y0 + point.value.y) + 'px';
-		this.element.appendChild(item);
-
-		var dot = document.createElement('div');
-		dot.className = 'dot';
-		dot.style.top = item.style.top;
-		dot.style.borderColor = point.series.color;
-		this.element.appendChild(dot);
-
-		if(point.active) {
-			item.className = 'item active';
-			dot.className = 'dot active';
-		}
-
-		this.show();
-
-		if(typeof this.onRender == 'function') {
-			this.onRender(args);
-		}
-
-		// Put the selected graph epoch into the legend
-		//chart_legend.innerHTML = point.value.x; // Epoch
-
-		this.selected_epoch = point.value.x;
-
-		//event
-	}
-} );
-
-var hover = new Hover( { graph: graph } );
-
-var legend = new Rickshaw.Graph.Legend( {
-					   graph: graph,
-					   element: document.getElementById('legend')
-					} );
-
-//var axes = new Rickshaw.Graph.Axis.Time( { graph: graph } ); axes.render();
-
-var yAxis = new Rickshaw.Graph.Axis.Y({
-    graph: graph,
-    padding: { top: 0.02, bottom: 0.02 },
-    tickFormat: ]] print(formatter_fctn) print [[
-});
-
-yAxis.render();
-
+let chart_legend = document.querySelector('#chart_legend');
 ]]
-   if zoomLevel ~= nextZoomLevel then
-      print[[
-$("#chart").click(function() {
-  if(hover.selected_epoch)
-    window.location.href = ']]
-      print(baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. nextZoomLevel)
+  if zoomLevel ~= nextZoomLevel then
+  print[[
+  $("#chart").click(function() {
+    if(hover.selected_epoch)
+      window.location.href = ']]
+        print(baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. nextZoomLevel)
 
-      if tags.protocol ~= nil then
-         print("&protocol=" .. tags.protocol)
-      elseif tags.category ~= nil then
-         print("&category=" .. tags.category)
-      end
+        if tags.protocol ~= nil then
+          print("&protocol=" .. tags.protocol)
+        elseif tags.category ~= nil then
+          print("&category=" .. tags.category)
+        end
 
-      print('&epoch=')
-      print[['+hover.selected_epoch;
-});]]
-   end
-
-   print[[
-</script>
-
-]]
+        print('&epoch=')
+        print[['+hover.selected_epoch;
+  });
+  ]]
+  end
+print[[ </script> ]]
    else
       print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> No data found</div>")
    end -- if(data)

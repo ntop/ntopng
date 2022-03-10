@@ -47,7 +47,7 @@ for id, _ in ipairs(l4_keys) do
       proto_stats["bytesRcvd"] = host[k..".bytes.rcvd"] or 0
     end
 
-    proto_stats["protocol"] = l4_keys[id][1] .. " " .. historicalProtoHostHref(ifid, host_ip, l4_keys[id][1], nil, nil, host_vlan, true)
+    proto_stats["protocol"] = l4_keys[id][1] or "" .. " " .. historicalProtoHostHref(ifid, host_ip, l4_keys[id][1], nil, nil, host_vlan, true) or ""
     proto_stats["totalBytes"] = (host[k..".bytes.sent"] or 0) + (host[k..".bytes.rcvd"] or 0)
     proto_stats["totalPctg"] = round((proto_stats["totalBytes"] * 100) / total, 2)
     proto_stats["breakdown"] = round((proto_stats["bytesSent"] * 100) / (proto_stats["bytesSent"] + proto_stats["bytesRcvd"]), 0)

@@ -79,7 +79,6 @@
     "postcss-loader": "^6.2.1",
     "postcss-scss": "^4.0.3",
     "regenerator-runtime": "^0.13.9",
-    "rickshaw": "^1.7.1",
     "sass-loader": "^12.5.0",
     "select2": "^4.1.0-rc.0",
     "source-map-loader": "^3.0.1",
