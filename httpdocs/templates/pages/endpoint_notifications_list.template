@@ -249,6 +249,8 @@
         },
         onModalInit: () => {
             createTemplateOnSelect(`#add-endpoint-modal`);
+            // trigger a change event to the select so the template will be loaded
+            $(`#add-endpoint-modal select[name='type']`).trigger('change');
         },
         onModalShow: () => {
             // trigger a change event to the select so the template will be loaded

@@ -106,26 +106,6 @@
         return params;
     }
 
-    /*
-    const generateUsersList = (pools) => {
-
-        const $list = $(`#users-recipient-modal .list-group`);
-        // clean the list
-        $list.empty();
-        // show the list
-        $list.show();
-
-        // add a pool link for each pool
-        for (const pool of pools) {
-
-            const $listEntry = $(`<a class='list-group-item list-group-item-action' href='#'><b>${pool.name}</b></a>`);
-            $listEntry.append($(`<small class='text-muted d-block'>${i18n_ext.pool_types[pool.key]}</small>`));
-            $listEntry.attr('href', `${http_prefix}/lua/admin/manage_pools.lua?page=${pool.key}&pool_id=${pool.pool_id}`);
-            $list.append($listEntry);
-        }
-    }
-    */
-
     const testRecipient = async (data, $button, $feedbackLabel) => {
 
         const body = { action: 'test', csrf: pageCsrf };
@@ -415,7 +395,14 @@
 
             return data;
         },
-        onModalInit: () => { createTemplateOnSelect(`#add-recipient-modal`); },
+        onModalInit: () => { 
+          createTemplateOnSelect(`#add-recipient-modal`);
+          // load the template of the selected endpoint
+          const $cloned = cloneTemplate($(`#add-recipient-modal select[name='endpoint'] option:selected`).data('endpointKey'));
+          if ($cloned) {
+            $(`#add-recipient-modal form .recipient-template-container`).empty().append($(`<hr>`), $cloned).show();
+          }
+        },
         onModalShow: () => {
             // load the template of the selected endpoint
             const $cloned = cloneTemplate($(`#add-recipient-modal select[name='endpoint'] option:selected`).data('endpointKey'));
