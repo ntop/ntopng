@@ -16,7 +16,7 @@ local reason = _GET["reason"]
 local favicon_path
 local page_title = i18n("welcome_to", { product=info.product })
 local http_prefix = ntop.getHttpPrefix()
-local static_file_epoch = ntop.getStaticFileEpoch()..""
+
 print[[
   <!DOCTYPE html>
   <html>
