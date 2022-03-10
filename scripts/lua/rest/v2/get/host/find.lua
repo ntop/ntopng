@@ -151,7 +151,7 @@ if not hosts_only then
          break
       end
 
-      local name = getFullLocalNetworkName(network)
+      local name = getLocalNetworkLabel(network)
 
       if string.contains(string.lower(name), string.lower(query)) then
          local network_id = stats.network_id

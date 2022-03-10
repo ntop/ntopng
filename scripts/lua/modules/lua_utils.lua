@@ -2282,6 +2282,18 @@ end
 
 -- ##############################################
 
+function getLocalNetworkLabel(network)
+   local alias = getLocalNetworkAlias(network)
+
+   if alias ~= network then
+      return string.format("%s  · %s", alias, network)
+   end
+
+   return network
+end
+
+-- ##############################################
+
 function getFullLocalNetworkName(network)
    local alias = getLocalNetworkAlias(network)
 
