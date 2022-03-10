@@ -320,6 +320,14 @@ for k, v in pairs(res) do
    local badges = {}
    local links = {}
 
+   local name = v
+   local ip = v
+
+   local label = v
+   if v ~= k then
+      label = label .. " · " .. k
+   end
+
    if isMacAddress(v) then -- MAC
       add_device_link(links)
       add_historical_flows_link(links, 'mac', v)
@@ -333,17 +341,13 @@ for k, v in pairs(res) do
    else -- Name
       add_host_link(links)
       add_historical_flows_link(links, 'name', v)
-   end
-
-   local label = v
-   if v ~= k then
-      label = label .. " · " .. k
+      ip = k
    end
 
    hosts[k] = {
       label = label,
       name = v,
-      ip = v,
+      ip = ip,
       links = links,
       badges = badges,
    }
