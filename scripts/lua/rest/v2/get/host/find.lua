@@ -500,6 +500,16 @@ for k, v in pairsByField(hosts, 'name', asc) do
       if v.mac then
 	 results[#results + 1] = build_result(v.label, v.mac, "mac", v.links, v.badges)
       elseif v.ip then
+
+         -- Add badge for services
+         local info = interface.getHostMinInfo(v.ip)
+         if info and info.services then
+            if not v.badges then v.badges = {} end
+            for s,_ in pairs(info.services) do
+               add_badge(v.badges, s:upper())
+            end
+         end
+
 	 results[#results + 1] = build_result(v.label, v.ip, "ip", v.links, v.badges)
       end
 

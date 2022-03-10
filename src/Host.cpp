@@ -536,6 +536,7 @@ void Host::lua_get_min_info(lua_State *vm) {
   lua_push_bool_table_entry(vm, "is_broadcast", isBroadcastHost());
   lua_push_bool_table_entry(vm, "is_multicast", isMulticastHost());
   lua_push_int32_table_entry(vm, "host_services_bitmap", host_services_bitmap);
+  lua_get_services(vm);
   lua_get_geoloc(vm);
   lua_get_ip(vm);
   lua_get_mac(vm);
