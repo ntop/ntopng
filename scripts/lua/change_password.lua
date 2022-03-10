@@ -35,15 +35,14 @@ end
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.print_header()
+page_utils.print_header(nil, true)
 
 info = ntop.getInfo()
 
 print [[
+
+  <div id="particles-js"></div>
   <div class="container-narrow">
-
-
-
  <style type="text/css">
       body {
         padding-top: 40px;
@@ -78,7 +77,7 @@ print [[
 
     </style>
 
-<div class="container">
+<div class="container input-group">
 
 	 <form role="form" data-bs-toggle="validator" class="form-signin" method="POST">
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(i18n("login.change_password")) print[[</h2>
@@ -134,6 +133,8 @@ print[[
   </form>
 
 <script>
+particlesJS("particles-js", {"particles":{"number":{"value":20,"density":{"enable":true,"value_area":500}},"color":{"value":"#ccc"},"shape":{"type":"circle","stroke":{"width":0,"color":"#000000"},"polygon":{"nb_sides":5},"image":{"src":"img/github.svg","width":100,"height":100}},"opacity":{"value":1,"random":false,"anim":{"enable":false,"speed":1,"opacity_min":0.1,"sync":false}},"size":{"value":3,"random":true,"anim":{"enable":false,"speed":40,"size_min":0.1,"sync":false}},"line_linked":{"enable":true,"distance":150,"color":"#6e6e6e","opacity":0.4,"width":1},"move":{"enable":true,"speed":1,"direction":"none","random":false,"straight":false,"out_mode":"out","bounce":false,"attract":{"enable":false,"rotateX":600,"rotateY":1200}}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":false,"mode":"repulse"},"onclick":{"enable":false,"mode":"push"},"resize":true},"modes":{"grab":{"distance":400,"line_linked":{"opacity":1}},"bubble":{"distance":400,"size":40,"duration":2,"opacity":8,"speed":3},"repulse":{"distance":200,"duration":0.4},"push":{"particles_nb":4},"remove":{"particles_nb":2}}},"retina_detect":true});
+/* This is done in order to be sure that jQuery is correctly loaded */
   $("input:text:visible:first").focus();
   $('#form_add_user').validator()
 </script>
