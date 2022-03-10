@@ -66,10 +66,20 @@ local ifid = interface.getId()
 --- Links
 
 local function build_historical_flows_url(key, value)
-   return ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?ifid=' .. ifid .. '&' .. tag_utils.build_request_filter(key, 'eq', value)
+   local url = ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?ifid=' .. ifid
+
+   local host_info = hostkey2hostinfo(value)
+   if host_info['host'] then
+      url = url .. '&' .. tag_utils.build_request_filter(key, 'eq', host_info['host'])
+   end
+   if host_info['vlan'] and host_info['vlan'] ~= 0 then
+      url = url .. '&' .. tag_utils.build_request_filter('vlan_id', 'eq', host_info['vlan'])
+   end
+
+   return url
 end
 
-local function add_historical_flows_link(links, key, value)
+local function add_historical_flows_link(links, key --[[ ip, mac, name --]], value --[[ actual ip or mac or name (including vlan) --]])
    if hasClickHouseSupport() then
       local historical_flows_icon = 'stream'
       local historical_flows_url = build_historical_flows_url(key, value)
