@@ -279,9 +279,9 @@ end
 --@param as_client A boolean indicating whether the hostinfo should be build for the client or for the server
 function flow_alert_store:_alert2hostinfo(value, as_client)
    if as_client then
-      return {ip = value["cli_ip"], vlan = value["vlan_id"], name = value["cli_name"]}
+      return {ip = value["cli_ip"], name = value["cli_name"]}
    else
-      return {ip = value["srv_ip"], vlan = value["vlan_id"], name = value["srv_name"]}
+      return {ip = value["srv_ip"], name = value["srv_name"]}
    end
 end
 
@@ -417,7 +417,7 @@ function flow_alert_store:format_record(value, no_html)
  
    local reference_html = "" 
    if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
+      reference_html = hostinfo2detailshref({ip = value["cli_ip"]}, nil, href_icon, "", true)
       if reference_html == href_icon then
 	 reference_html = ""
       end
@@ -456,7 +456,7 @@ function flow_alert_store:format_record(value, no_html)
 
    reference_html = ""
    if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
+      reference_html = hostinfo2detailshref({ip = value["srv_ip"]}, nil, href_icon, "", true)
       if reference_html == href_icon then
 	 reference_html = ""
       end
@@ -494,12 +494,22 @@ function flow_alert_store:format_record(value, no_html)
    local flow_cli_port = value["cli_port"]
    local flow_srv_port = value["srv_port"]
 
+   local vlan 
+   if value["vlan_id"] and tonumber(value["vlan_id"]) ~= 0 then
+      vlan = {
+         label = value["vlan_id"],
+         title = value["vlan_id"],
+         value = tonumber(value["vlan_id"]),
+      }
+   end
+
    record[RNAME.FLOW.name] = {
+      vlan = vlan,
       cli_ip = flow_cli_ip,
       srv_ip = flow_srv_ip,
       cli_port = flow_cli_port,
       srv_port = flow_srv_port,
-      active_url = active_url
+      active_url = active_url,
    }
 
    record[RNAME.VLAN_ID.name] = value["vlan_id"]
