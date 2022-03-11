@@ -2297,6 +2297,7 @@ local lang = {
     ["observation_point_x"] = "Observation Point %{observation_point}",
     ["observation_points"] = "Observation Points",
     ["out_errors"] = "Out Errors",
+    ["probe_ip"] = "Probe IP",
     ["promisc"] = "Promisc",
     ["ratio_not_ready"] = "Computing flow ratio...",
     ["remember_counter_ratio"] = "The Counters/SNMP Ratio can be enabled following these steps:",
