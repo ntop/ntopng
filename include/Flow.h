@@ -484,6 +484,10 @@ class Flow : public GenericHashEntry {
     int16_t network_id;
     return !get_cli_ip_addr()->isLocalHost(&network_id) && get_srv_ip_addr()->isLocalHost(&network_id);
   };
+  inline bool isLocalToLocal()           const { 
+    int16_t network_id;
+    return get_cli_ip_addr()->isLocalHost(&network_id) && get_srv_ip_addr()->isLocalHost(&network_id);
+  };
   inline bool isUnicast()                const { return (cli_ip_addr && srv_ip_addr && !cli_ip_addr->isBroadMulticastAddress() && !srv_ip_addr->isBroadMulticastAddress()); };
   inline u_int32_t get_cli_ipv4()        const { return(cli_host->get_ip()->get_ipv4());  };
   inline u_int32_t get_srv_ipv4()        const { return(srv_host->get_ip()->get_ipv4());  };

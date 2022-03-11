@@ -584,7 +584,12 @@ local function get_flow_link(fmt, add_hyperlink)
    local label = ''
 
    local value = fmt['flow']['cli_ip']['value']
+   local vlan = ''
    local tag = 'cli_ip'
+
+   if fmt['flow']['vlan'] and fmt['flow']['vlan']["value"] ~= 0 then
+    vlan = '@' .. get_label_link(fmt['flow']['vlan']['label'], 'vlan_id', fmt['flow']['vlan']["value"], add_hyperlink)
+   end
 
    if fmt['flow']['cli_ip']['label_long'] ~= fmt['flow']['cli_ip']['value'] then
       value = fmt['flow']['cli_ip']['label_long']
@@ -593,7 +598,7 @@ local function get_flow_link(fmt, add_hyperlink)
    label = label .. get_label_link(fmt['flow']['cli_ip']['label_long'], tag, value, add_hyperlink)
 
    if fmt['flow']['cli_port'] then
-      label = label .. ':' .. get_label_link(fmt['flow']['cli_port'], 'cli_port', fmt['flow']['cli_port'], add_hyperlink)
+      label = label .. vlan .. ':' .. get_label_link(fmt['flow']['cli_port'], 'cli_port', fmt['flow']['cli_port'], add_hyperlink)
    end
 
    label = label .. ' <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> '
@@ -607,7 +612,7 @@ local function get_flow_link(fmt, add_hyperlink)
    label = label .. get_label_link(fmt['flow']['srv_ip']['label_long'], tag, value, add_hyperlink)
 
    if fmt['flow']['srv_port'] then
-      label = label .. ':' .. get_label_link(fmt['flow']['srv_port'], 'srv_port', fmt['flow']['srv_port'], add_hyperlink)
+      label = label .. vlan .. ':' .. get_label_link(fmt['flow']['srv_port'], 'srv_port', fmt['flow']['srv_port'], add_hyperlink)
    end
 
    return label
