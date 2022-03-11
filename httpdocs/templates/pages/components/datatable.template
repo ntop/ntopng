@@ -445,11 +445,14 @@
 	refreshTime();
     }, {{ datatable.refresh_rate }});
     {% end %}
-    
+
+    let toggleColumnsDropdownAlreadyAdded = false;
     $table.on("draw", () => {
+    if (toggleColumnsDropdownAlreadyAdded == true) { return; }
         DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
             $table.ajax.reload();
         });
+	toggleColumnsDropdownAlreadyAdded = true;
     });
 
   // on ajax request
