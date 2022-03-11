@@ -3172,12 +3172,17 @@ function get_symbolic_mac(mac_address, no_href, add_extra_info)
 	    else
 	       return '<a href="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='..mac_address..'">' .. get_mac_classification(m) .. ":" .. t .. '</a>'
 	    end
-	 else
-	    if(add_extra_info == true) then
-	       return(get_mac_classification(m).."_"..t.." ("..macInfo(mac_address)..")")
-	    else
-	       return(get_mac_classification(m).."_"..t)
-	    end
+	 else                                                                                                                                                                                      
+    local href = ""                                                                                                                                                                                            
+    if not no_href then                                                                                                                                                                                        
+      href = '<a href="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='..mac_address..'">'                                                                                                              
+    end    
+	  
+    if(add_extra_info == true) then
+      return(href .. get_mac_classification(m).."_"..t.." ("..macInfo(mac_address)..")" .. "</a>")
+    else
+      return(href .. get_mac_classification(m).."_"..t  .. "</a>")
+    end
 	 end
       end
    end
