@@ -28,6 +28,15 @@
 				"value": 0,
 				"value_type": "number",
 				"input": "fixed"
+			},
+			{
+				"name": "PROBE_IP"
+			},
+			{
+				"name": "INPUT_SNMP"
+			},
+			{
+				"name": "OUTPUT_SNMP"
 			}
 		]
 	},

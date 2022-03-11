@@ -2,7 +2,7 @@
 	"name" : "Top Servers",
 	"i18n_name" : "top_servers",
 	"data_source" : "flows",
-    "show_in_page" : "overview",
+	"show_in_page" : "overview",
 	"visualization_type" : "table",
 	"select" : {
 		"items" : [
@@ -28,6 +28,15 @@
 	},
 	"filters" : {
 		"items" : [
+			{
+				"name": "PROBE_IP"
+			},
+			{
+				"name": "INPUT_SNMP"
+			},
+			{
+				"name": "OUTPUT_SNMP"
+			}
 		]
 	},
 	"groupby" : {
