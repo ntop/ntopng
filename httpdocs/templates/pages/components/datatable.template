@@ -26,7 +26,7 @@
 	    <range-picker ref="range-picker-vue" :id="id_range_picker">
 	    <template v-slot:extra_range_buttons>
 	    <button v-if="show_permalink" class="btn btn-link btn-sm" @click="get_permanent_link" :title="i18n('graphs.get_permanent_link')" ref="permanet_link_button"><i class="fas fa-lg fa-link"></i></button>
-	    <a v-if="show_download" class="btn btn-link btn-sm" id="dt-btn-download" :title="i18n('download_chart_data')" ><i class="fas fa-lg fa-chart-area"></i></a>
+	    <a v-if="show_download" class="btn btn-link btn-sm" id="dt-btn-download" :title="i18n('graphs.download_records')" ><i class="fas fa-lg fa-file"></i></a>
 	    </template>
 	    </range-picker>
 	  </div>
