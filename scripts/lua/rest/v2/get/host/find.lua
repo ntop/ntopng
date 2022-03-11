@@ -65,6 +65,20 @@ local ifid = interface.getId()
 
 --- Links
 
+local function build_flow_alerts_url(key, value)
+   local url = ntop.getHttpPrefix() .. '/lua/alert_stats.lua?ifid=' .. ifid .. "&status=historical&page=flow"
+
+   local host_info = hostkey2hostinfo(value)
+   if host_info['host'] then
+      url = url .. '&' .. tag_utils.build_request_filter(key, 'eq', host_info['host'])
+   end
+   if host_info['vlan'] and host_info['vlan'] ~= 0 then
+      url = url .. '&' .. tag_utils.build_request_filter('vlan_id', 'eq', host_info['vlan'])
+   end
+
+   return url
+end
+
 local function build_historical_flows_url(key, value)
    local url = ntop.getHttpPrefix() .. '/lua/pro/db_search.lua?ifid=' .. ifid
 
@@ -80,10 +94,19 @@ local function build_historical_flows_url(key, value)
 end
 
 local function add_historical_flows_link(links, key --[[ ip, mac, name --]], value --[[ actual ip or mac or name (including vlan) --]])
+   -- Alerts
+   local flow_alerts_icon = 'exclamation-triangle'
+   local flow_alerts_url = build_flow_alerts_url(key, value)
+   links[#links + 1] = {
+      icon = flow_alerts_icon,
+      title = i18n('alerts_dashboard.alerts'),
+      url = flow_alerts_url,
+   }
+
    if hasClickHouseSupport() then
+      -- Historical flows
       local historical_flows_icon = 'stream'
       local historical_flows_url = build_historical_flows_url(key, value)
-
       links[#links + 1] = {
          icon = historical_flows_icon,
          title = i18n('db_explorer.historical_data_explorer'),
