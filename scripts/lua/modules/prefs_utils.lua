@@ -671,10 +671,11 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
         end
         type_button = "btn-"..color.."  active"
       end
-      print('<button id="id_'..submit_field..'_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" type="button" class="btn btn-sm '..type_button..' ' .. disabled .. '"'.. disabled_attr ..' data-bs-toggle="button">'..array_labels[nameCount]..'</button>\n')
+
+      print('<input type="radio" name="'..submit_field..'" id="id_'..submit_field..'_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" class="btn-check btn-primary" autocomplete="off" '.. disabled_attr ..'>\n')
+      print('<label class="btn btn-sm '..type_button..'"  for="id_'..submit_field..'_'..array_values[nameCount]..'">' .. array_labels[nameCount] .. '</label>\n')
     end
     print('</div>\n')
-    print('<input type="hidden" id="id-toggle-'..submit_field..'" name="'..submit_field..'" value="'..value..'" />\n')
     print('<script>\n')
 
     -- showElementArray can be either:
@@ -689,7 +690,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
     end
 
     for nameCount = 1, #array_labels do
-      print('$("#id_'..submit_field..'_'..array_values[nameCount]..'").click(function() {\n')
+      print('$(`label[for="id_'..submit_field..'_'..array_values[nameCount]..'"`).click(function() {\n')
       print(' var field = $(\'#id-toggle-'..submit_field..'\');\n')
       print(' var oldval = field.val(); ')
       print(' field.val("'..array_values[nameCount]..'").trigger("change");\n')
@@ -702,12 +703,12 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
           color = selected_color
         end
 
-        print[[ var class_]] print(array_values[indexLabel]) print[[ = document.getElementById("id_]] print(submit_field..'_') print(array_values[indexLabel]) print [[");
-        class_]] print(array_values[indexLabel]) print[[.removeAttribute("class");]]
+        print[[ let class_]] print(array_values[indexLabel]) print[[ = $(`label[for="id_]] print(submit_field..'_') print(array_values[indexLabel]) print [["`);
+        class_]] print(array_values[indexLabel]) print[[.removeAttr("class");]]
         if(array_values[indexLabel] == array_values[nameCount]) then
-          print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-]]print(color) print[[ active");]]
+          print[[class_]] print(array_values[indexLabel]) print[[.attr("class", "btn btn-sm btn-]]print(color) print[[ active");]]
         else
-          print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-secondary");]]
+          print[[class_]] print(array_values[indexLabel]) print[[.attr("class", "btn btn-sm btn-secondary");]]
         end
       end
 
