@@ -658,7 +658,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
   end
   if(value ~= nil) then
     if(label ~= "") then print('<tr id="row_'..submit_field..'"'..objRow..'><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
-    print('<div class="btn-group" data-bs-toggle="buttons-radio" data-bs-toggle-name="'..submit_field..'">')
+    print('<div class="btn-group" role="group">')
 
     for nameCount = 1, #array_labels do
       local type_button = "btn-secondary"
@@ -672,7 +672,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
         type_button = "btn-"..color.."  active"
       end
 
-      print('<input type="radio" name="'..submit_field..'" id="id_'..submit_field..'_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" class="btn-check btn-primary" autocomplete="off" '.. disabled_attr ..'>\n')
+      print('<input type="radio" name="'..submit_field..'" id="id_'..submit_field..'_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" class="btn-check btn-primary" '.. disabled_attr ..'>\n')
       print('<label class="btn btn-sm '..type_button..'"  for="id_'..submit_field..'_'..array_values[nameCount]..'">' .. array_labels[nameCount] .. '</label>\n')
     end
     print('</div>\n')
