@@ -95,9 +95,8 @@ if auth.has_capability(auth.capabilities.preferences) then
          local ok, message = influxdb.init(_POST["influx_dbname"], url, tonumber(_POST["influx_retention"]),
             username, password, false --[[verbose]])
          if not ok then
-            -- NOTE: already logged
-            --~ message_info = message
-            --~ message_severity = "alert-danger"
+            message_info = message
+            message_severity = "alert-danger"
 
             -- reset driver to the old one
             _POST["timeseries_driver"] = nil
