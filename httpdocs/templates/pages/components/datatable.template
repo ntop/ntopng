@@ -211,7 +211,8 @@
 
 	    {% if show_chart then %}
       try {
-          WidgetUtils.getWidgetByName("{{ chart.name }}").update(null);
+	  let widget = WidgetUtils.getWidgetByName("{{ chart.name }}");
+          widget.update(null);
         }
         catch(e) {
             console.warn(e);
@@ -364,19 +365,6 @@
       }
       VUE_APP = start_range_picker();
 
-    // register to global event change status
-    //await ntopng_sync.on_ready("range_picker_data-time-range-picker");
-    let range_picker_is_ready = false;
-    let first_load_table = true;
-    ntopng_sync.on_ready("range_picker").then(() => { range_picker_is_ready = true; });
-    
-      ntopng_status_manager.on_status_change("datatable", (new_status) => {
-      if (!first_load_table && !range_picker_is_ready) { return; }
-	let url_params = ntopng_url_manager.get_url_params();
-	reloadTable($table, url_params);
-	first_load_table = false;
-    }, true);
-
     const datatableButton = {* (datatable.buttons or '[]') *};
     datatableButton.push({
         text: '<i class="fas fa-sync"></i>',
@@ -457,7 +445,7 @@
 	refreshTime();
     }, {{ datatable.refresh_rate }});
     {% end %}
-
+    
     $table.on("draw", () => {
         DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
             $table.ajax.reload();
@@ -546,6 +534,18 @@
 	// ntopng_status_manager.add_value_to_status("filters", filters);
     }
 
+    // register to global event change status
+    await ntopng_sync.on_ready("range_picker");
+    let range_picker_is_ready = false;
+    let first_load_table = true;
+    ntopng_sync.on_ready("range_picker").then(() => { range_picker_is_ready = true; });
+    
+      ntopng_status_manager.on_status_change("datatable", (new_status) => {
+      if (!first_load_table && !range_picker_is_ready) { return; }
+	let url_params = ntopng_url_manager.get_url_params();
+	reloadTable($table, url_params);
+	first_load_table = false;
+    }, true);
     
     $btnGetPermaLink.on('click', function() {
 
