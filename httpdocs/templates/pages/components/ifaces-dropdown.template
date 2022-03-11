@@ -18,7 +18,8 @@
 {% -- Print out the interfaces dropdown %}
 
 <li class="nav-item d-sm-flex">
-  <select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker form-select-lg ifaces-dropdown" 
+  <div class="d-flex" style="min-width: 6rem;">
+  <select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker form-select-lg pb-0" 
     data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
 
     {% if isAdministrator() then %}
@@ -77,6 +78,7 @@
     {% end %} 
   {% end %}
   </select>
+</div>
 </li>
 
 

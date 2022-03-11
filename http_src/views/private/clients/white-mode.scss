@@ -775,6 +775,6 @@ li > a > .fa-external-link-alt{
   align-items: center;
 }
 
-.ifaces-dropdown {
+.bootstrap-select:not([class *= 'col-']):not([class *= 'form-control']):not(.input-group-btn) {
   min-width: 10rem !important;
 }

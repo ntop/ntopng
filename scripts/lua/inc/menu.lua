@@ -928,7 +928,7 @@ print(template_utils.gen("pages/components/ifaces-dropdown.template", context))
 if not is_pcap_dump and not is_system_interface then
 
    print([[
-      <li class='nav-item d-none d-sm-done d-md-flex d-lg-flex py-2 ps-5 pe-2'>
+      <li class='nav-item d-none d-sm-done d-md-flex d-lg-flex p-2'>
          <div class='info-stats'>
             ]].. page_utils.generate_info_stats() ..[[
          </div>

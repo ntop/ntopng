@@ -517,8 +517,6 @@ else
           print(" "..discover.getOsIcon(host.os).." ")
         end
    
-        historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil, host_vlan)
-   
          if(host["local_network_name"] ~= nil) then
    	 local network_name = getLocalNetworkAlias(host["local_network_name"] )
    
@@ -799,10 +797,6 @@ else
    local flows_th = i18n("details.flows_non_packet_iface")
    if interface.isPacketInterface() then
       flows_th = i18n("details.flows_packet_iface")
-   end
-
-   if interfaceHasClickHouseSupport() then
-      flows_th = flows_th .. ' <a class="btn btn-sm btn-info" href="' .. historical_flow_link .. '" title="' .. i18n("db_explorer.historical_data_explorer") .. '"><i class="fas fa-search-plus"></i></a>'
    end
 
    print("<tr><th></th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
