@@ -381,8 +381,11 @@ function flow_alert_store:format_record(value, no_html)
    end
 
    -- Host reference
-   local cli_ip = hostinfo2hostkey(value, "cli")
-   local srv_ip = hostinfo2hostkey(value, "srv")
+   --local cli_ip = hostinfo2hostkey(value, "cli")
+   --local srv_ip = hostinfo2hostkey(value, "srv")
+   -- Handle VLAN as a separate field
+   local cli_ip = value["cli_ip"]
+   local srv_ip = value["srv_ip"]
 
    local shorten_msg
 
