@@ -4,24 +4,29 @@
     <modal-filters :filters_options="modal_data" @apply="apply_modal" ref="modal_filters" :id="id_modal_filters">
     </modal-filters>
     <data-time-range-picker :id="id_data_time_range_picker">
-      <div v-if="is_alert_stats_url" class="d-flex align-items-center me-2">
-	<div class="btn-group" id="statusSwitch" role="group">
-          <a href="#" @click="update_status_view('historical')" class="btn btn-sm" :class="{'active': status_view == 'historical', 'btn-seconday': status_view != 'historical', 'btn-primary': status_view == 'historical'}">Past</a>
-          <a href="#" @click="update_status_view('acknowledged')" class="btn btn-sm" :class="{'active': status_view == 'acknowledged', 'btn-seconday': status_view != 'acknowledged', 'btn-primary': status_view == 'acknowledged'}">Ack</a>
-          <a href="#" @click="update_status_view('engaged')" class="btn btn-sm" :class="{'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged'}">Engaged</a>
+      <template v-slot:begin>
+	<div v-if="is_alert_stats_url" class="d-flex align-items-center me-2">
+	  <div class="btn-group" id="statusSwitch" role="group">
+            <a href="#" @click="update_status_view('historical')" class="btn btn-sm" :class="{'active': status_view == 'historical', 'btn-seconday': status_view != 'historical', 'btn-primary': status_view == 'historical'}">Past</a>
+            <a href="#" @click="update_status_view('acknowledged')" class="btn btn-sm" :class="{'active': status_view == 'acknowledged', 'btn-seconday': status_view != 'acknowledged', 'btn-primary': status_view == 'acknowledged'}">Ack</a>
+            <a href="#" @click="update_status_view('engaged')" class="btn btn-sm" :class="{'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged'}">Engaged</a>
+	  </div>
 	</div>
-      </div>
-      <select v-if="enable_query_preset" class="me-2 form-select" v-model="query_presets"  @change="update_select_query_presets()">
-	<template v-for="item in query_preset">
-	  <option v-if="item.builtin == true" :value="item.value">{{ item.name }}</option>
-	</template>
-	<optgroup v-if="page != 'analysis'" :label="i18n('queries.queries')">
+	<select v-if="enable_query_preset" class="me-2 form-select" v-model="query_presets"  @change="update_select_query_presets()">
 	  <template v-for="item in query_preset">
-	    
-    	    <option v-if="!item.builtin" :value="item.value">{{ item.name }}</option>
+	    <option v-if="item.builtin == true" :value="item.value">{{ item.name }}</option>
 	  </template>
-      </optgroup>
-      </select>
+	  <optgroup v-if="page != 'analysis'" :label="i18n('queries.queries')">
+	    <template v-for="item in query_preset">
+	      
+    	      <option v-if="!item.builtin" :value="item.value">{{ item.name }}</option>
+	    </template>
+	  </optgroup>
+	</select>
+      </template>
+      <template v-slot:extra_buttons>
+	<slot name="extra_range_buttons"></slot>
+      </template>
     </data-time-range-picker>
   </div>
 

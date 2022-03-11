@@ -12,6 +12,9 @@
 <script type='text/javascript'>
   const base_path = '{* ntop.getHttpPrefix() *}';
   const default_ifid = '{* interface.getId() *}';
+  const show_permalink = '{* show_permalink *}';
+  const show_download = '{* show_download *}';
+  const download_endpoint = '{* datatable.download.endpoint *}';
 </script>
 
 <div class='row'>
@@ -20,7 +23,12 @@
       <div class="w-100">
 	<div clas="range-container d-flex flex-wrap">
 	  <div class="range-picker d-flex m-auto flex-wrap" id="datatable-vue">
-	    <range-picker ref="range-picker-vue" :id="id_range_picker"></range-picker>
+	    <range-picker ref="range-picker-vue" :id="id_range_picker">
+	    <template v-slot:extra_range_buttons>
+	    <button v-if="show_permalink" class="btn btn-link btn-sm" @click="get_permanent_link" :title="i18n('graphs.get_permanent_link')" ref="permanet_link_button"><i class="fas fa-lg fa-link"></i></button>
+	    <a v-if="show_download" class="btn btn-link btn-sm" id="dt-btn-download" :title="i18n('download_chart_data')" ><i class="fas fa-lg fa-chart-area"></i></a>
+	    </template>
+	    </range-picker>
 	  </div>
 	</div>
       </div>
@@ -75,18 +83,6 @@
 
       <div class="card-footer">
 
-        {% if show_permalink then %}
-        <button id="btn-get-permalink" class="btn btn-secondary">
-          <i class="fas fa-link"></i> {{ i18n('graphs.get_permanent_link') }}
-        </button>
-        {% end %}
-
-        {% if show_download then %}
-        <a id="dt-btn-download" download="{{ datatable.download.filename }}" class="btn btn-secondary" href="{{ datatable.download.endpoint }}{{ build_query_params(datatable.datasource.params) }}&format={{ datatable.download.format }}">
-          <i class="fas fa-file-download"></i> {{ datatable.download.i18n }}
-        </a>
-        {% end %}
-
         {% if show_acknowledge_all then %}
         <button id="dt-btn-acknowledge" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#dt-acknowledge-modal' data-bs-toggle="modal" class="btn btn-primary">
           <i class="fas fa fa-user-check"></i> {{ i18n("acknowledge_alerts")}}
@@ -127,8 +123,6 @@
     const chartParams = {* json.encode(chart.params) *};
     {% end %}
 
-    const $btnGetPermaLink = $(`#btn-get-permalink`);
-
     let intervalId = 0;
 
     $(`#{{ datatable.name }}-query`).click(function(e) {
@@ -138,11 +132,11 @@
     function updateDownloadButton() {
         if (!$(`#dt-btn-download`)) return;
 
-	let status = ntopng_status_manager.get_status();
+	let dataSourceParams = ntopng_url_manager.get_url_object();
         // update the link of the download button
-        const href = $(`#dt-btn-download`).attr('href');
-        const newDownloadURL = new URL(href, location.origin);
-        newDownloadURL.search = new URLSearchParams(status); 
+        //const href = $(`#dt-btn-download`).attr('href');
+        const newDownloadURL = new URL(download_endpoint, location.origin);
+        newDownloadURL.search = new URLSearchParams(dataSourceParams); 
         newDownloadURL.searchParams.set("visible_columns", getVisibleColumns($table).join(','));
         newDownloadURL.searchParams.set("format", "txt");
         $(`#dt-btn-download`).attr('href', newDownloadURL.toString());
@@ -341,11 +335,32 @@
 	  mounted() {},
 	  data() {
 	      return {
+		  show_download: show_download,
+		  show_permalink: show_permalink,
 		  id_range_picker: `range_picker`,
 		  i18n: (t) => { return i18n(t); },
 	      };
 	  },
-	  methods: {},
+	  methods: {
+	  get_permanent_link: function() {
+	  const $this = $(this.$refs['permanet_link_button']);
+	  const dummyInput = document.createElement('input');
+	  dummyInput.value = location.href;
+	  document.body.appendChild(dummyInput);
+	  dummyInput.select();
+
+	  // copy the url to the clipboard from the dummy input
+	  document.execCommand("copy");
+	  document.body.removeChild(dummyInput);
+
+	  $this.attr("title", "{{ i18n('copied') }}!")
+	  .tooltip("dispose")
+	  .tooltip()
+	  .tooltip("show");
+	  },
+	  download_chart_data: function() {
+	  }
+	  },
       };
       const datatable_vue = Vue.createApp(datatable_vue_options);
       const vue_app = datatable_vue.mount("#datatable-vue");
@@ -550,24 +565,6 @@
 	first_load_table = false;
     }, true);
     
-    $btnGetPermaLink.on('click', function() {
-
-        const $this = $(this);
-        
-        const dummyInput = document.createElement('input');
-        dummyInput.value = location.href;
-        document.body.appendChild(dummyInput);
-        dummyInput.select();
-
-        // copy the url to the clipboard from the dummy input
-        document.execCommand("copy");
-        document.body.removeChild(dummyInput);
-
-        $this.attr("title", "{{ i18n('copied') }}!")
-            .tooltip("dispose")
-            .tooltip()
-            .tooltip("show");
-    });
 
     ChartWidget.registerEventCallback("{{ chart.name }}", 'zoomed', async (chartContext, { xaxis, yaxis }) => {
         // the timestamps are in milliseconds, convert them into seconds

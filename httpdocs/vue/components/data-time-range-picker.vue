@@ -4,7 +4,7 @@
   <div class="form-group">
     <div class="controls d-flex flex-wrap">
       <div class="btn-group me-auto btn-group-sm">
-        <slot></slot>
+        <slot name="begin"></slot>
         <select v-model="select_time_value" @change="change_select_time" class="form-select me-2">
                 <!-- <option value="min_5">{{context.text.show_alerts_presets["5_min"]}}</option> -->
                 <option value="min_5">{{i18n('show_alerts.presets.5_min')}}</option>
@@ -55,8 +55,9 @@
                 <button @click="zoom(0.5)" class="btn btn-sm btn-link" ref="btn-zoom-out">
                 <i class="fas fa-search-minus"></i>
                 </button>
+		<slot name="extra_buttons"></slot>
             </div>
-        </div>        
+        </div>
       </div>
     </div>
   </div>  
