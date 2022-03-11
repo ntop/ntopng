@@ -1,52 +1,54 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
 <modal :title_text="i18n('alerts_dashboard.add_filter')" :apply_text="i18n('apply')" :id="id_modal"  @apply="apply()" @showed="showed()" ref="modal_id">
-  <form autocomplete="off">
-    <div class="form-group row">
-      <label class="col-form-label col-sm-3" for="dt-filter-type-select">
-	      <b>Filter</b>
-      </label>
-      <div class="col-sm-5">
-        <input type="hidden" name="index" />
-        <select @change="change_filter()" v-model="filter_type_selected" required name="filter_type" class="form-select">
-          <option v-for="item in filters_options" :value="item.id">
-            {{item.label}}
-          </option>	  
-        </select>
+  <template v-slot:body>
+    <form autocomplete="off">
+      <div class="form-group row">
+	<label class="col-form-label col-sm-3" for="dt-filter-type-select">
+	  <b>Filter</b>
+	</label>
+	<div class="col-sm-8">
+          <input type="hidden" name="index" />
+          <select @change="change_filter()" v-model="filter_type_selected" required name="filter_type" class="form-select">
+            <option v-for="item in filters_options" :value="item.id">
+              {{item.label}}
+            </option>	  
+          </select>
+	</div>
       </div>
-    </div>
-    <hr>
-    <div class="dt-filter-template-container form-group row">
-      <label class="col-form-label col-sm-3">
-        <b>{{filter_type_label_selected}}</b>
-      </label>
-      <div class="col-sm-5">
-        <div class="input-group mb-3">
-          <div class="input-group-prepend col-sm-3">
-            <select class="form-select" v-model="operator_selected">
-              <option v-for="item in operators_to_show" :value="item.id">
-                {{item.label}}
-              </option>	  
-            </select>
+      <hr>
+      <div class="dt-filter-template-container form-group row">
+	<label class="col-form-label col-sm-3">
+          <b>{{filter_type_label_selected}}</b>
+	</label>
+	<div class="col-sm-8">
+          <div class="input-group mb-3">
+            <div class="input-group-prepend col-sm-3">
+              <select class="form-select" v-model="operator_selected">
+		<option v-for="item in operators_to_show" :value="item.id">
+                  {{item.label}}
+		</option>	  
+              </select>
+            </div>
+            <div class="col-sm-9" v-show="options_to_show">
+              <select class="select2 form-select" ref="select2" required v-model="option_selected" name="filter_type">
+		<option v-for="item in options_to_show" :value="item.value">
+                  {{item.label}}
+		</option>	  
+              </select>
+            </div>
+            <!-- <div v-show="!options_to_show" class="input-group"> -->
+              <input v-show="!options_to_show" v-model="input_value" :pattern="data_pattern_selected" required name="value" type="text" class="form-control">
+              <!-- <span class="invalid-feedback">Invalid value</span> -->
+              <span v-show="!options_to_show" style="margin: 0px;padding:0;" class="alert invalid-feedback ">{{i18n('invalid_value')}}</span>
+              <!-- </div> -->
           </div>
-          <div class="col-sm-9" v-show="options_to_show">
-            <select class="select2 form-select" ref="select2" required v-model="option_selected" name="filter_type">
-              <option v-for="item in options_to_show" :value="item.value">
-                {{item.label}}
-              </option>	  
-            </select>
-          </div>
-          <!-- <div v-show="!options_to_show" class="input-group"> -->
-          <input v-show="!options_to_show" v-model="input_value" :pattern="data_pattern_selected" required name="value" type="text" class="form-control">
-          <!-- <span class="invalid-feedback">Invalid value</span> -->
-          <span v-show="!options_to_show" style="margin: 0px;padding:0;" class="alert invalid-feedback ">{{i18n('invalid_value')}}</span>
-          <!-- </div> -->
-        </div>
-        <!-- end div input-group mb-3 -->
+          <!-- end div input-group mb-3 -->
+	</div>
+	<!-- end div form-group-row -->
       </div>
-      <!-- end div form-group-row -->
-    </div>
-  </form>
+    </form>
+  </template>
 </modal>
 </template>
 
@@ -163,6 +165,7 @@ export default {
 	    let select2Div = me.$refs["select2"];
 	    if (!$(select2Div).hasClass("select2-hidden-accessible")) {
 		$(select2Div).select2({
+		    width: '100%',
       theme: 'bootstrap-5',
       dropdownParent: $(select2Div).parent(),
 		});

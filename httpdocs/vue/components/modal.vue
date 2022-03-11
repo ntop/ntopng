@@ -12,7 +12,7 @@
         </div>
       </div>
       <div class="modal-body">
-	<slot></slot>
+	<slot name="body"></slot>
       </div>
       <div class="modal-footer">
         <div class="mr-auto">
