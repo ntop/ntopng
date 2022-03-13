@@ -5,7 +5,7 @@
       <span class="help-block">Click on the port for more information.</span>
    </div>
    <div class='col'>
-      <h4>Top Client Ports</h4>
+      <h4>Top Server Ports</h4>
       <div class="pie-chart m-auto" id="topServerPorts"></div>
       <span class="help-block">Click on the port for more information.</span>
    </div>
