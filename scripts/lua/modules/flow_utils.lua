@@ -1572,15 +1572,16 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 
       print[[
 	 <li>\
-	   <a class="dropdown-item ]] print(dev_ip == cur_dev and 'active' or '') print[[" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.device_ip").." "..dev_name) print[[</a></li>\]]
+	   <a class="dropdown-item ]] print(dev_ip == cur_dev and 'active' or '') print[[" href="]] print(getPageUrl(base_url, dev_params)) print[[" title="]] print(dev_ip) print[[">]] print(i18n("flows_page.device_ip").." "..dev_name) print[[</a></li>\]]
    end
    print[[
       </ul>\
 </div>']]
 
-   if cur_dev ~= nil then -- also print dropddowns for input and output interface index
+  if cur_dev ~= nil then -- also print dropddowns for input and output interface index
       local ports = interface.getFlowDeviceInfo(cur_dev)
-
+      local cached_dev = snmp_cached_dev:create(cur_dev)
+    
       for _, direction in pairs({"outIfIdx", "inIfIdx"}) do
 	 local cur_if = _GET[direction]
 	 local cur_if_filter = ''
@@ -1599,10 +1600,11 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 
 	    for portidx, _ in pairsByKeys(ports, asc) do
 	       if_params[direction] = portidx
+         local idx_name = get_idx_name(cached_dev, portidx)
 
-	       print[[
+         print[[
 	 <li>\
-	   <a class="dropdown-item ]] print(cur_if == tostring(portidx) and 'active' or '') print[[" href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(i18n("flows_page."..direction).." "..tostring(portidx)) print[[</a></li>\]]
+	   <a class="dropdown-item ]] print(cur_if == tostring(portidx) and 'active' or '') print[[" href="]] print(getPageUrl(base_url, if_params)) print[[">]] print(i18n("flows_page."..direction).." "..idx_name) print[[</a></li>\]]
 	    end
 	    print[[
       </ul>\
