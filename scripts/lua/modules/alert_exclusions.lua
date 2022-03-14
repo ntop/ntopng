@@ -228,6 +228,8 @@ function _get_excluded_hosts(is_flow_exclusion, alert_key)
    local ret = {}
 
    for host,v in pairs(exclusions) do
+    local t
+    
       if(is_flow_exclusion) then
 	 t = v.flow_alerts
       else
