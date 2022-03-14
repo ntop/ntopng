@@ -420,7 +420,7 @@ function flow_alert_store:format_record(value, no_html)
  
    local reference_html = "" 
    if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["cli_ip"]}, nil, href_icon, "", true)
+      reference_html = hostinfo2detailshref({ip = value["cli_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true, nil, false)
       if reference_html == href_icon then
 	 reference_html = ""
       end
