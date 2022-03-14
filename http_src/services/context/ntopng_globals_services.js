@@ -8,12 +8,14 @@ export const ntopng_sync = function() {
     return {
 	ready: function(component_name) {
 	    components_ready[component_name] = true;
-	    let subs = subscribers.filter((s) => s.component_name == component_name).forEach((s) => s.resolve());
+	    subscribers.filter((s) => s.component_name == component_name).forEach((s) => s.resolve());
+	    subscribers = subscribers.filter((s) => s.component_name != component_name);
 	},
 	on_ready: function(component_name) {
 	    return new Promise((resolve, rejevt) => {
 		if (components_ready[component_name]) {
 		    resolve();
+		    return;
 		}
 		subscribers.push({resolve, component_name, completed: false});
 	    });
