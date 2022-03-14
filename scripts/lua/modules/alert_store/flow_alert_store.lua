@@ -34,6 +34,12 @@ end
 
 -- ##############################################
 
+function alert_store:_get_tstamp_column_name()
+   return "first_seen"
+end
+
+-- ##############################################
+
 function flow_alert_store:insert(alert)
    local hex_prefix = ""
    local extra_columns = ""

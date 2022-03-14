@@ -149,6 +149,13 @@ end
 
 -- ##############################################
 
+--@brief Return the indexed tstamp column (for flow alerts this is first_seen)
+function alert_store:_get_tstamp_column_name()
+   return "tstamp"
+end
+
+-- ##############################################
+
 --@brief Add filters on time
 --@param epoch_begin The start timestamp
 --@param epoch_end The end timestamp
@@ -161,8 +168,12 @@ function alert_store:add_time_filter(epoch_begin, epoch_end)
       self._epoch_begin = tonumber(epoch_begin)
       self._epoch_end = tonumber(epoch_end)
 
-      self:add_filter_condition_raw('tstamp',
-        string.format("tstamp >= %u AND tstamp <= %u", self._epoch_begin, self._epoch_end))
+      local tstamp_column = self:_get_tstamp_column_name()
+
+      self:add_filter_condition_raw(tstamp_column,
+        string.format("%s >= %u AND %s <= %u", 
+          tstamp_column, self._epoch_begin,
+          tstamp_column, self._epoch_end))
    end
 
    return true
