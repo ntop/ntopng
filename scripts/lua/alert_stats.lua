@@ -119,6 +119,7 @@ local network_name = _GET["network_name"]
 local role = _GET["role"]
 local role_cli_srv = _GET["role_cli_srv"]
 local subtype = _GET["subtype"]
+local vlan_id = _GET["vlan_id"]
 
 --------------------------------------------------------------
 
@@ -304,6 +305,7 @@ page_utils.print_navbar(i18n("alerts_dashboard.alerts"), url, pages)
 widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
    Datasource(endpoint_ts, {
        ifid = ifid,
+       vlan_id = vlan_id,
        epoch_begin = epoch_begin,
        epoch_end = epoch_end,
        status = status,
