@@ -18,7 +18,6 @@ local graph_utils = require "graph_utils"
 require "flow_utils"
 
 local page_utils = require("page_utils")
-local tcp_flow_state_utils = require("tcp_flow_state_utils")
 local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
@@ -38,7 +37,6 @@ local flowhosts_type = _GET["flowhosts_type"]
 local ipversion = _GET["version"]
 local l4proto = _GET["l4proto"]
 local vlan = _GET["vlan"]
-local port = _GET["port"]
 local icmp_type = _GET["icmp_type"]
 local icmp_code = _GET["icmp_cod"]
 local dscp_filter = _GET["dscp"]
@@ -56,8 +54,6 @@ local alert_type_severity  = _GET["alert_type_severity"]
 local tcp_state    = _GET["tcp_flow_state"]
 local port         = _GET["port"]
 local network_id   = _GET["network"]
-local client_asn   = _GET["client_asn"]
-local server_asn   = _GET["server_asn"]
 
 local prefs = ntop.getPrefs()
 local ifstats = interface.getStats()
