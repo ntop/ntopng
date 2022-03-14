@@ -88,7 +88,7 @@ end
 
 -- Overwrite the pool name, members
 function host_pools:set_pool_policy(pool_id, new_policy)
-   return self:edit_pool(pool_id, nil, nil, nil, new_policy)
+   return self:edit_pool(pool_id, nil, nil, new_policy)
 end
    
 -- ##############################################
