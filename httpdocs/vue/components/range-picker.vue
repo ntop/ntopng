@@ -145,7 +145,10 @@ const load_filters_data = async function() {
     	    let options_string = value.split(",");
 	    options_string.forEach((opt_stirng) => {
     		let [value, operator] = opt_stirng.split(";");
-		if (operator == null || value == null || operator == "") {
+		if (
+		    operator == null || value == null || operator == ""
+		    || (filter_def.options != null && filter_def.options.find((opt) => opt.value == value) == null)
+		   ) {
 		    return;
 		}
 		filters.push({id: filter_def.id, operator: operator, value: value});
@@ -197,7 +200,7 @@ async function set_query_preset(range_picker_vue) {
 	});
     }
     if (range_picker_vue.query_presets == null || range_picker_vue.query_presets == "") {
-	range_picker_vue.query_presets = query_preset[0].value;
+	range_picker_vue.query_presets = query_preset[0].value;	
 	ntopng_url_manager.set_key_to_url("query_preset", query_preset[0].value);
     }
     range_picker_vue.query_preset = query_preset;
@@ -278,7 +281,7 @@ export default {
 	    let filters = status.filters;
 	    if (filters == null) { return; }
 	    // delete all previous filter
-	    ntopng_url_manager.delete_params(this.last_filters.map((f) => f.id));
+	    ntopng_url_manager.delete_params(FILTERS_CONST.map((f) => f.id));
 	    TAGIFY.tagify.removeAllTags();
 	    let filters_object = get_filters_object(filters);
 	    ntopng_url_manager.add_obj_to_url(filters_object);

@@ -300,7 +300,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?"
 
-page_utils.print_navbar(i18n("alerts_dashboard.alerts"), url, pages)
+-- page_utils.print_navbar(i18n("alerts_dashboard.alerts"), url, pages)
 
 widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
    Datasource(endpoint_ts, {
@@ -718,6 +718,7 @@ local context = {
        name = CHART_NAME
    },
    datatable = datatable,
+   navbar = json.encode(page_utils.get_navbar_context(i18n("alerts_dashboard.alerts"), url, pages)),
    extra_js = "pages/alerts/datatable.js.template",
    extra_js_context = {
        ifid = ifid,

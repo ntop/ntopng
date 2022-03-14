@@ -12,7 +12,20 @@
 <script type='text/javascript'>
   const base_path = '{* ntop.getHttpPrefix() *}';
   const default_ifid = '{* interface.getId() *}';
+  const navbar_context = {* navbar *};
 </script>
+
+<div id="navbar">
+<page-navbar
+	id="page_navbar"
+	:main_icon="navbar_context.main_icon"
+	:main_title="navbar_context.main_title"
+	:base_url="navbar_context.base_url"
+	:help_link="navbar_context.help_link"
+	:items_table="navbar_context.items_table"
+	@click_item="click_item">
+</page-navbar>
+</div>
 
 <div class='row'>
 
@@ -21,7 +34,7 @@
       <div class="w-100">
 	<div clas="range-container d-flex flex-wrap">
 	  <div class="range-picker d-flex m-auto flex-wrap" id="datatable-vue">
-	    <range-picker ref="range-picker-vue" :id="id_range_picker"></range-picker>
+	    <range-picker ref="range-picker-vue" id="range_picker"></range-picker>
 	  </div>
 	</div>
       </div>
@@ -69,6 +82,35 @@
   let table = undefined;
   let VUE_APP;
 
+  function start_navbar() {
+      let navbar_vue_options = {
+	  components: {	  
+   	      'page-navbar': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/page-navbar.vue`, ntopng_vue_loader.loadOptions) ),
+	  },
+	  /**
+	   * First method called when the component is created.
+	   */
+	  created() {},
+	  mounted() {
+	  },
+	  data() {
+	      return {
+		  navbar_context: navbar_context,
+	      };
+	  },
+	  methods: {
+	      click_item: function(item) {
+	      ntopng_url_manager.set_key_to_url('page', item.page_name);
+	      ntopng_url_manager.set_key_to_url('query_preset', '');
+	      ntopng_url_manager.reload_url();
+	      },
+	  },
+      };
+      const navbar_vue = Vue.createApp(navbar_vue_options);
+      const vue_app = navbar_vue.mount("#navbar");
+      return vue_app;
+      }
+
   function start_range_picker() {
       let datatable_vue_options = {
 	  props: {
@@ -84,8 +126,6 @@
 	  mounted() {},
 	  data() {
 	      return {
-		  id_range_picker: `range_picker`,
-		  i18n: (t) => { return i18n(t); },
 	      };
 	  },
 	  methods: {},
@@ -96,6 +136,7 @@
   }
 
   $(document).ready(async function(){
+      setTimeout(() => start_navbar(), 0);
       if (ntopng_url_manager.get_url_entry("ifid") == null) {
 	  ntopng_url_manager.add_obj_to_url({ifid: default_ifid});
       }
@@ -109,7 +150,6 @@
       VUE_APP = start_range_picker();
       
       await ntopng_sync.on_ready("range_picker");
-
       NtopUtils.hideOverlays();
 
     ntopng_status_manager.on_status_change("datatable", (new_status) => {

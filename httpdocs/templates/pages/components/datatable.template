@@ -15,7 +15,19 @@
   const show_permalink = '{* show_permalink *}';
   const show_download = '{* show_download *}';
   const download_endpoint = '{* datatable.download.endpoint *}';
+  const navbar_context = {* navbar *};
 </script>
+<div id="navbar">
+<page-navbar
+	id="page_navbar"
+	:main_icon="navbar_context.main_icon"
+	:main_title="navbar_context.main_title"
+	:base_url="navbar_context.base_url"
+	:help_link="navbar_context.help_link"
+	:items_table="navbar_context.items_table"
+	@click_item="click_item">
+</page-navbar>
+</div>
 
 <div class='row'>
   <div class='col-12'>
@@ -319,6 +331,43 @@
       let epoch_begin = Number.parseInt(epoch_status.epoch_begin) + delta;
       ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, { epoch_begin, epoch_end: now });
   }
+  function start_navbar() {
+      let navbar_vue_options = {
+	  components: {	  
+   	      'page-navbar': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/page-navbar.vue`, ntopng_vue_loader.loadOptions) ),
+	  },
+	  /**
+	   * First method called when the component is created.
+	   */
+	  created() {},
+	  mounted() {
+	  },
+	  data() {
+	      return {
+		  navbar_context: navbar_context,
+	      };
+	  },
+	  methods: {
+	      remove_filters_from_url: function() {
+	        let status = ntopng_status_manager.get_status();
+		let filters = status.filters;
+		if (filters == null) { return; }		
+		ntopng_url_manager.delete_params(filters.map((f) => f.id));
+	      },
+	      click_item: function(item) {
+	        ntopng_url_manager.set_key_to_url('page', item.page_name);
+	        let is_alert_stats_url = window.location.toString().match(/alert_stats.lua/) != null;
+	        if (is_alert_stats_url) {
+	          this.remove_filters_from_url();
+	        }
+		ntopng_url_manager.reload_url();
+	      },
+	  },
+      };
+      const navbar_vue = Vue.createApp(navbar_vue_options);
+      const vue_app = navbar_vue.mount("#navbar");
+      return vue_app;
+      }
 
   function start_range_picker() {
       let datatable_vue_options = {
@@ -367,7 +416,8 @@
       return vue_app;
   }
   
-  $(document).ready(async function(){ 
+  $(document).ready(async function(){
+  setTimeout(() => start_navbar(), 0);
       if (ntopng_url_manager.get_url_entry("ifid") == null) {
 	  ntopng_url_manager.set_key_to_url("ifid", default_ifid);
       }
@@ -550,21 +600,7 @@
 	// filters.push(filter);
 	// // notifies to all the updated status
 	// ntopng_status_manager.add_value_to_status("filters", filters);
-    }
-
-    // register to global event change status
-    await ntopng_sync.on_ready("range_picker");
-    let range_picker_is_ready = false;
-    let first_load_table = true;
-    ntopng_sync.on_ready("range_picker").then(() => { range_picker_is_ready = true; });
-    
-      ntopng_status_manager.on_status_change("datatable", (new_status) => {
-      if (!first_load_table && !range_picker_is_ready) { return; }
-	let url_params = ntopng_url_manager.get_url_params();
-	reloadTable($table, url_params);
-	first_load_table = false;
-    }, true);
-    
+    }    
 
     ChartWidget.registerEventCallback("{{ chart.name }}", 'zoomed', async (chartContext, { xaxis, yaxis }) => {
         // the timestamps are in milliseconds, convert them into seconds
@@ -617,6 +653,19 @@
             }
         })
     });
+
+    // register to global event change status
+    await ntopng_sync.on_ready("range_picker");
+    let range_picker_is_ready = false;
+    let first_load_table = true;
+    //ntopng_sync.on_ready("range_picker").then(() => { range_picker_is_ready = true; });
+    
+    ntopng_status_manager.on_status_change("datatable", (new_status) => {
+      //if (!first_load_table && !range_picker_is_ready) { return; }
+	let url_params = ntopng_url_manager.get_url_params();
+	reloadTable($table, url_params);
+	first_load_table = false;
+    }, false);
 
     {% if extra_js then %}
     {* template_utils.gen(extra_js, extra_js_context) *}
