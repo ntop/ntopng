@@ -96,7 +96,7 @@ local earliest_available_epoch = alert_store_instance:get_earliest_available_epo
 local time = os.time()
 
 -- initial epoch_begin is set as now - 30 minutes for historical, or as 1 week for engaged
-local epoch_begin = _GET["epoch_begin"] or time - (status ~= "engaged" and 1800 or 60 * 60 * 24 * 7)
+local epoch_begin = _GET["epoch_begin"] or time - (1800) -- 30 minutes
 local epoch_end = _GET["epoch_end"] or time
 local time_range_query = "epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
 
