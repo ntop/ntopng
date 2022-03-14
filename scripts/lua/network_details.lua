@@ -12,11 +12,8 @@ end
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
-local alert_utils = require "alert_utils"
 local tag_utils = require("tag_utils")
 local page_utils = require("page_utils")
-local ts_utils = require("ts_utils")
-local ui_utils = require("ui_utils")
 local auth = require "auth"
 
 local network        = _GET["network"]
@@ -27,7 +24,6 @@ local network_behavior_update_freq = 300 -- Seconds
 
 local ifstats = interface.getStats()
 local ifId = ifstats.id
-local have_nedge = ntop.isnEdge()
 
 if(not isEmptyString(network_name)) then
   network = ntop.getNetworkIdByName(network_name)
