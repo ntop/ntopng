@@ -1386,7 +1386,7 @@ static int ntop_zmq_receive(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   void *subscriber;
   int size;
-  struct zmq_msg_hdr h;
+  struct zmq_msg_hdr_v1 h;
   char *payload;
   int payload_len;
   zmq_pollitem_t item;

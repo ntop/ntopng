@@ -113,7 +113,7 @@ ExportInterface::~ExportInterface() {
 
 void ExportInterface::export_data(char *json) {
   if(publisher) {
-    struct zmq_msg_hdr msg_hdr;
+    struct zmq_msg_hdr_v1 msg_hdr;
 
     snprintf(msg_hdr.url, sizeof(msg_hdr.url), "%s", topic);
     msg_hdr.version = ZMQ_MSG_VERSION, msg_hdr.size = (u_int32_t)strlen(json);

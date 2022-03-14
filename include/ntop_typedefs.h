@@ -251,11 +251,18 @@ struct zmq_msg_hdr_v0 {
   u_int32_t size;
 };
 
-struct zmq_msg_hdr {
+struct zmq_msg_hdr_v1 {
   char url[16];
   u_int8_t version, source_id;
   u_int16_t size;
   u_int32_t msg_id;
+};
+
+struct zmq_msg_hdr_v2 {
+  char url[16];
+  u_int8_t version;
+  u_int16_t size;
+  u_int32_t msg_id, source_id;
 };
 
 typedef u_int8_t dump_mac_t[DUMP_MAC_SIZE];

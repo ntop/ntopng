@@ -165,7 +165,7 @@ void ZMQPublisher::xor_encdec(u_char *data, int data_len, u_char *key) {
  * @param str The message.
  */
 bool ZMQPublisher::sendMessage(const char * topic, char * str) {
-  struct zmq_msg_hdr msg_hdr;
+  struct zmq_msg_hdr_v1 msg_hdr;
   int len = strlen(str), rc;
 #ifdef HAVE_ZLIB
   char *compressed;
