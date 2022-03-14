@@ -255,7 +255,6 @@ if (_GET["page"] ~= "historical") then
 	 print [[
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#asinfo">]] print(i18n("hosts_stats.as_info")) print[[</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#aspath">]] print(i18n("hosts_stats.as_path")) print[[</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#geoloc">]] print(i18n("hosts_stats.as_geolocation")) print[[</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#prefix">]] print(i18n("hosts_stats.as_prefixes")) print[[</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#bgp">]] print(i18n("hosts_stats.bgp_updates")) print[[</a></li>
 ]]
@@ -647,7 +646,6 @@ if (_GET["page"] ~= "historical") then
 
 <div id="asinfo" class="tab-pane"></div>
 <div id="aspath" class="tab-pane"></div>
-<div id="geoloc" class="tab-pane"></div>
 <div id="prefix" class="tab-pane"></div>
 <div id="bgp" class="tab-pane"></div>
 ]]
@@ -664,7 +662,6 @@ print[[
       var tab_id_to_widget = {
          "#asinfo": "iana-registry-info",
          "#aspath": "as-path-length",
-         "#geoloc": "geoloc",
          "#prefix": "announced-prefixes",
          "#bgp": "bgp-update-activity",
       };
