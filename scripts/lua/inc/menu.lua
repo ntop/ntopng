@@ -94,11 +94,8 @@ print[[
       'Jailed Hosts'
    ]
 
-
-   window.__IS_PRO__ = ]] print(ntop.isPro()) print[[;
    window.__CSRF_DATATABLE__ = `]] print(ntop.getRandomCSRFValue()) print[[`;
    window.__BLOG_NOTIFICATION_CSRF__ = `]] print(ntop.getRandomCSRFValue()) print[[`;
-
 
    if (document.cookie.indexOf("tzoffset=") < 0) {
       // Tell the server the client timezone

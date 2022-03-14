@@ -180,11 +180,14 @@
             }
         });
 
-	if(__IS_PRO__ && changable_pool)
+        {% if ntop.isPro() then %}
+	if(changable_pool) {
 	    buttons.push({
 	    text: '<i class="fas fa-key"></i>',
             action: () => { location.href = `${http_prefix}/lua/pro/policy.lua?pool=${selectedPool.id}`; }
 	    });
+        }
+        {% end %}
 
 	return buttons;
     }
