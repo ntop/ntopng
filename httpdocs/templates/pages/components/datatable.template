@@ -4,9 +4,9 @@
 #}
 
 <!-- vue3 -->
-<script src="{* ntop.getHttpPrefix() *}/vue/vue-prod.js"></script>
-<script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js"></script>
-<script src="{* ntop.getHttpPrefix() *}/vue/ntopng_vue_loader.js"></script>
+<script src="{* ntop.getHttpPrefix() *}/vue/vue-prod.js?{* ntop.getStaticFileEpoch() *}"></script>
+<script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js?{* ntop.getStaticFileEpoch() *}"></script>
+<script src="{* ntop.getHttpPrefix() *}/vue/ntopng_vue_loader.js?{* ntop.getStaticFileEpoch() *}"></script>
 
 <!-- defines base_path globals const-->
 <script type='text/javascript'>

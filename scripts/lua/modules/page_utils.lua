@@ -305,9 +305,9 @@ function page_utils.print_header(title, addLoginJS)
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <link href="]] print(http_prefix) print[[/dist/third-party.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/dist/ntopng.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/dist/white-mode.css" rel="stylesheet">]]
+    <link href="]] print(http_prefix) print[[/dist/third-party.css?]] print(static_file_epoch) print[[" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/dist/ntopng.css?]] print(static_file_epoch) print[[" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/dist/white-mode.css?]] print(static_file_epoch) print[[" rel="stylesheet">]]
     
     if (dark_mode) then
       print[[<link href="]] print(http_prefix) print[[/dist/dark-mode.css?]] print(static_file_epoch) print[[" rel="stylesheet">]]
@@ -335,14 +335,14 @@ function page_utils.print_header(title, addLoginJS)
     ]]
           
     if addLoginJS then
-      print[[<script type="text/javascript" src="]] print(http_prefix) print[[/dist/login.js"></script>]]
+      print[[<script type="text/javascript" src="]] print(http_prefix) print[[/dist/login.js?]] print(static_file_epoch) print[["></script>]]
     end
 
     print[[
     <link href="]] print(http_prefix) print[[/dist/custom-theme.css?]] print(static_file_epoch) print[[" rel="stylesheet">
     <script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print("/lua/locale.lua?user_language="..language.."&epoch="..locale_when); print[["> </script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js"></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js?]] print(static_file_epoch) print[["></script>
    
     </head>]]
   print([[
@@ -364,6 +364,7 @@ function page_utils.print_header_minimal(title, addLoginJS)
   local language = ternary(isEmptyString(admin_lang), "en", admin_lang)
   local locale_path = dirs.installdir.."/scripts/locales/"..language..".lua"
   local locale_when = ntop.fileLastChange(locale_path)
+  local static_file_epoch = ntop.getStaticFileEpoch()..""
   
   print [[
     <!DOCTYPE html>
@@ -373,8 +374,8 @@ function page_utils.print_header_minimal(title, addLoginJS)
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-        <link href="]] print(http_prefix) print[[/dist/third-party.css" rel="stylesheet">
-        <link href="]] print(http_prefix) print[[/dist/ntopng.css" rel="stylesheet">
+        <link href="]] print(http_prefix) print[[/dist/third-party.css?]] print(static_file_epoch) print[[" rel="stylesheet">
+        <link href="]] print(http_prefix) print[[/dist/ntopng.css?]] print(static_file_epoch) print[[" rel="stylesheet">
           ]]
 
          if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
@@ -395,8 +396,8 @@ function page_utils.print_header_minimal(title, addLoginJS)
             background:url(]] print(http_prefix) print[[/dist/images/flags.png) no-repeat
           }
           <script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print("/lua/locale.lua?user_language="..language.."&epoch="..locale_when); print[["> </script>
-          <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js"></script>
-          <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js"></script>
+          <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
+          <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js?]] print(static_file_epoch) print[["></script>
           
       </head>
       <body>
