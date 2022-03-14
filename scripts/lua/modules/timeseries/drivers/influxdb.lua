@@ -373,7 +373,7 @@ end
 
 local function influx_query(base_url, query, username, password, options)
   local jres = influx_query_multi(base_url, query, username, password, options)
-
+  
   if jres and jres.results then
     if not jres.results[1].series then
       -- no results found
@@ -664,6 +664,11 @@ function driver:query(schema, tstart, tend, tags, options)
   tend = fixTendForRetention(tend, retention_policy)
   local time_step = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
 
+  if time_step >= 3600 then
+    time_step = math.floor((time_step / 2) +0.5)
+    options.max_num_points = options.max_num_points * 2
+  end
+
   -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
   local unaligned_offset = raw_step - 1
 
@@ -685,7 +690,7 @@ function driver:query(schema, tstart, tend, tags, options)
     GROUP BY TIME(60s)
   ]]
   local query = self:_makeSeriesQuery(query_schema, metrics, tags, tstart, tend + unaligned_offset, time_step, schema)
-
+  
   local url = self.url
   local data = {}
   local series, count
