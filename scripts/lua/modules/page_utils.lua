@@ -314,7 +314,7 @@ function page_utils.print_header(title, addLoginJS)
     end
 
    if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
-      favicon_path = ntop.getHttpPrefix().."/img/custom_favicon.ico"
+      favicon_path = http_prefix.."/img/custom_favicon.ico"
    end
    if (favicon_path ~= nil) then
     print[[<link href="]] print(favicon_path) print[[" rel="icon">]]
@@ -340,7 +340,7 @@ function page_utils.print_header(title, addLoginJS)
 
     print[[
     <link href="]] print(http_prefix) print[[/dist/custom-theme.css?]] print(static_file_epoch) print[[" rel="stylesheet">
-    <script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print("/lua/locale.lua?user_language="..language.."&epoch="..locale_when); print[["> </script>
+    <script type="text/javascript" src="]] print(http_prefix) print("/lua/locale.lua?"..locale_when .. "&user_language=" ..language); print[["> </script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js?]] print(static_file_epoch) print[["></script>
    
@@ -379,7 +379,7 @@ function page_utils.print_header_minimal(title, addLoginJS)
           ]]
 
          if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_favicon.ico") then
-            favicon_path = ntop.getHttpPrefix().."/img/custom_favicon.ico"
+            favicon_path = http_prefix.."/img/custom_favicon.ico"
          end
          if (favicon_path ~= nil) then
           print[[<link href="]] print(favicon_path) print[[" rel="icon">]]
@@ -395,7 +395,7 @@ function page_utils.print_header_minimal(title, addLoginJS)
             margin-top: -5px;
             background:url(]] print(http_prefix) print[[/dist/images/flags.png) no-repeat
           }
-          <script type="text/javascript" src="]] print (ntop.getHttpPrefix()) print("/lua/locale.lua?user_language="..language.."&epoch="..locale_when); print[["> </script>
+          <script type="text/javascript" src="]] print(http_prefix) print("/lua/locale.lua?"..locale_when .. "&user_language=" ..language); print[["> </script>
           <script type="text/javascript" src="]] print(http_prefix) print[[/dist/third-party.js?]] print(static_file_epoch) print[["></script>
           <script type="text/javascript" src="]] print(http_prefix) print[[/dist/ntopng.js?]] print(static_file_epoch) print[["></script>
           
