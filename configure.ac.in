@@ -161,12 +161,6 @@ if test "${with_nedge+set}" = set; then
   LIBS="${LIBS} -lnetfilter_queue -lnfnetlink -lnetfilter_conntrack"
 fi
 
-#
-# On CentOS 6 `git rev-list HEAD --count` does not work
-#
-#
-REVISION=`git log --pretty=oneline | wc -l`
-
 if test -d "/usr/local/include"; then
   CFLAGS="${CFLAGS} -I/usr/local/include"
   CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
@@ -390,6 +384,7 @@ else
 fi
 
 GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[[:space:]]'`
+REVISION=${GIT_COMMITS}
 AC_DEFINE_UNQUOTED(PACKAGE_REVISION, "${GIT_COMMITS}", [Package Revision])
 
 AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "${GIT_BRANCH}:${GIT_RELEASE}", [GIT Release])
