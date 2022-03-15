@@ -11,6 +11,7 @@ local alert_consts = require "alert_consts"
 local alert_severities = require "alert_severities"
 local alert_utils = require "alert_utils"
 local host_pools = require "host_pools"
+local dscp_consts = require "dscp_consts"
 
 local tag_utils = {}
 
@@ -436,6 +437,14 @@ function tag_utils.get_tag_info(id, entity)
       filter.options = {}
       local alert_types = alert_consts.getAlertTypesInfo(entity.entity_id)
       for id, info in pairsByField(alert_types, 'label', asc) do
+         filter.options[#filter.options+1] = { value = id, label = info.label }
+      end
+
+   elseif tag.value_type == "dscp_type" then
+      filter.value_type = 'array'
+      filter.options = {}
+      local dscp_types = dscp_consts.dscp_class_list()
+      for id, info in pairsByField(dscp_types, 'label', asc) do
          filter.options[#filter.options+1] = { value = id, label = info.label }
       end
 
