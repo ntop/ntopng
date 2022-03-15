@@ -509,6 +509,18 @@ function tag_utils.get_tag_info(id, entity)
          filter.options[#filter.options+1] = { value = ns.network_id, label = getFullLocalNetworkName(ns.network_key) }
       end
 
+   elseif tag.value_type == "observation_point_id" then
+      filter.value_type = 'array'
+      filter.options = {}
+      local obs_points = interface.getObsPointsInfo()
+      local obs_points_list = {}
+      for _, stats in pairs(obs_points["ObsPoints"] or {}) do
+         obs_points_list[#obs_points_list + 1] = { alias = getFullObsPointName(stats["obs_point"]), id = stats["obs_point"] }
+      end
+      for  _, v in pairsByField(obs_points_list, 'alias', asc) do
+         filter.options[#filter.options+1] = { value = v.id, label = v.alias }
+      end
+
    elseif tag.value_type == "ip_version" then
       filter.value_type = 'array'
       filter.options = {}
