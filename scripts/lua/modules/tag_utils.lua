@@ -430,7 +430,19 @@ function tag_utils.get_tag_info(id)
    end
 
    -- select (array of values)
-   if tag.value_type == "host_pool_id" then
+
+   if tag.value_type == "flow_risk" then
+      filter.value_type = 'array'
+      filter.options = {}
+      local flow_risk_list = ntop.getRiskList() or {}
+      if table.len(flow_risk_list) > 0 then
+         flow_risk_list[1] = i18n("flow_risk.ndpi_no_risk")
+      end
+      for id, info in pairsByValues(flow_risk_list, asc) do
+         filter.options[#filter.options+1] = { value = id-1, label = info, }
+      end
+
+   elseif tag.value_type == "host_pool_id" then
       filter.value_type = 'array'
       filter.options = {}
       local host_pools_instance = host_pools:create()
