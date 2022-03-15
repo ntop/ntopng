@@ -441,6 +441,14 @@ function tag_utils.get_tag_info(id)
          filter.options[#filter.options+1] = { value = pool_id, label = label, }
       end
 
+   elseif tag.value_type == "l4_proto" then
+      filter.value_type = 'array'
+      filter.options = {}
+      local l4_protocols = l4_proto_list()
+      for name, id in pairsByKeys(l4_protocols, asc) do
+         filter.options[#filter.options+1] = { value = id, label = name, }
+      end
+
    elseif tag.value_type == "l7_proto" then
       filter.value_type = 'array'
       filter.options = {}
