@@ -435,23 +435,34 @@ function tag_utils.get_tag_info(id)
       for name, id in pairsByKeys(l7_protocols, asc) do
          filter.options[#filter.options+1] = { value = id, label = name, }
       end
+
+   elseif tag.value_type == "l7_category" then
+      filter.value_type = 'array'
+      filter.options = {}
+      local l7_protocols = interface.getnDPICategories()
+      for name, id in pairsByKeys(l7_protocols, asc) do
+         filter.options[#filter.options+1] = { value = id, label = name, }
+      end
+
    elseif tag.value_type == "ip_version" then
       filter.value_type = 'array'
       filter.options = {}
       filter.options[#filter.options+1] = { value = "4", label = i18n("ipv4"), }
       filter.options[#filter.options+1] = { value = "6", label = i18n("ipv6"), }
+
    elseif tag.value_type == "role" then
       filter.value_type = 'array'
       filter.options = {}
       filter.options[#filter.options+1] = { value = "attacker", label = i18n("attacker"), }
       filter.options[#filter.options+1] = { value = "victim",   label = i18n("victim"),   }
-      filter.options[#filter.options+1] = { value = "no_attacker_no_victim", label = i18n("no_attacker_no_victim"),
-      }
+      filter.options[#filter.options+1] = { value = "no_attacker_no_victim", label = i18n("no_attacker_no_victim"), }
+
    elseif tag.value_type == "role_cli_srv" then
       filter.value_type = 'array'
       filter.options = {}
       filter.options[#filter.options+1] = { value = "client", label = i18n("client"), }
       filter.options[#filter.options+1] = { value = "server", label = i18n("server"), }
+
    elseif tag.value_type == "severity" then
       filter.value_type = 'array'
       filter.options = {}
