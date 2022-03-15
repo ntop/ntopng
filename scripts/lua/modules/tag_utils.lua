@@ -180,6 +180,11 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.vlan_id'),
       operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
    },
+   snmp_interface = {
+      value_type = 'snmp_interface',
+      i18n_label = i18n('db_search.tags.snmp_interface'),
+      operators = {'eq', 'neq'}
+   },
    input_snmp = {
       value_type = 'snmp_interface',
       i18n_label = i18n('db_search.tags.input_snmp'),

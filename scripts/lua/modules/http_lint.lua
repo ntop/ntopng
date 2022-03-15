@@ -1457,6 +1457,7 @@ local known_parameters = {
    ["vlan_id"]                 = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))), -- A VLAN id
    ["input_snmp"]              = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))),
    ["output_snmp"]             = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))),
+   ["snmp_interface"]          = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))),
    ["hosts"]                   = validateHostsList,             -- A list of hosts
    ["src2dst_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Client to Server TCP flags
    ["dst2src_tcp_flags"]       = validateListOfTypeInline(validateFilters(validateNumber)), -- Server to Client TCP flags
