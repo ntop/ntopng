@@ -10,6 +10,7 @@ local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local alert_severities = require "alert_severities"
 local alert_utils = require "alert_utils"
+local host_pools = require "host_pools"
 
 local tag_utils = {}
 
@@ -405,6 +406,7 @@ tag_utils.formatters = {
 -- ######################################
 
 function tag_utils.get_tag_info(id)
+
    local tag = tag_utils.defined_tags[id]
 
    if tag == nil then
@@ -428,7 +430,18 @@ function tag_utils.get_tag_info(id)
    end
 
    -- select (array of values)
-   if tag.value_type == "l7_proto" then
+   if tag.value_type == "host_pool_id" then
+      filter.value_type = 'array'
+      filter.options = {}
+      local host_pools_instance = host_pools:create()
+      local host_pools_stats = interface.getHostPoolsStats()
+      local host_pool_list = {}
+      for pool_id, _ in pairs(host_pools_stats) do
+         local label = host_pools_instance:get_pool_name(pool_id)
+         filter.options[#filter.options+1] = { value = pool_id, label = label, }
+      end
+
+   elseif tag.value_type == "l7_proto" then
       filter.value_type = 'array'
       filter.options = {}
       local l7_protocols = interface.getnDPIProtocols()
