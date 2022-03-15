@@ -67,7 +67,7 @@ const create_marker = (h) => {
     const settings = { title: h.name };
     if (h.isRoot) settings.icon = red_marker;
 
-    const ip = h.ip
+    let ip = h.ip
     const lat = h.lat;
     const lng = h.lng;
     const name = h.name;
@@ -101,6 +101,10 @@ const create_marker = (h) => {
         name_ip = name + "</br>" + name_ip;
 
     analysisPage = new URLSearchParams(window.location.search)
+    let alreadyFilteredIp = analysisPage.get('ip')
+
+    if(alreadyFilteredIp) ip = alreadyFilteredIp + "," + ip
+
     analysisPage.set('ip', ip + ";eq")
 
     let hostDetails = ""
