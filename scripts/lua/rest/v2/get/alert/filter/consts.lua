@@ -39,7 +39,7 @@ for id, v in pairs(tags) do
    -- FIXX rename l7_proto to l7proto in flow alert store for consistency
    if id == "l7_proto" then id = "l7proto" end
 
-   local filter = tag_utils.get_tag_info(id)
+   local filter = tag_utils.get_tag_info(id, alert_entities[page])
 
    -- select (array of values)
    if filter.value_type == "alert_id" then
