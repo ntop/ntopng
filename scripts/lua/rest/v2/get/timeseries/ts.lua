@@ -75,7 +75,7 @@ local options = {
   max_num_points = tonumber(_GET["limit"]) or 60,
   initial_point = toboolean(_GET["initial_point"]),
   with_series = true,
-  target_aggregation = ts_aggregation,
+  target_aggregation = ts_aggregation or "raw",
 }
 
 if(no_fill == 1) then
