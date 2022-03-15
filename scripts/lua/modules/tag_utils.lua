@@ -470,6 +470,13 @@ function tag_utils.get_tag_info(id, entity)
          filter.options[#filter.options+1] = { value = pool_id, label = label }
       end
 
+   elseif tag.value_type == "location" then
+      filter.value_type = 'array'
+      filter.options = {}
+      for  _, v in pairsByField(tag_utils.ip_location, 'label', asc) do
+         filter.options[#filter.options+1] = { value = v.id, label = v.label }
+      end
+
    elseif tag.value_type == "l4_proto" then
       filter.value_type = 'array'
       filter.options = {}
