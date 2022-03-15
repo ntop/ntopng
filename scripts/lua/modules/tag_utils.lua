@@ -444,6 +444,14 @@ function tag_utils.get_tag_info(id)
          filter.options[#filter.options+1] = { value = id, label = name, }
       end
 
+   elseif tag.value_type == "network_id" then
+      filter.value_type = 'array'
+      filter.options = {}
+      local networks_stats = interface.getNetworksStats()
+      for n, ns in pairs(networks_stats) do
+         filter.options[#filter.options+1] = { value = ns.network_id, label = getFullLocalNetworkName(ns.network_key), }
+      end
+
    elseif tag.value_type == "ip_version" then
       filter.value_type = 'array'
       filter.options = {}
