@@ -101,6 +101,8 @@ Note: if log messages from the IDS are printed to the console by journalctl
 as broadcast messages, you probably want to suppress them by setting 
 :code:`ForwardToWall=no` in */etc/systemd/journald.conf*.
 Please remember to *restart* the *systemd-journald* service to apply the change.
+It may be also required to edit */etc/rsyslog.d/50-default.conf* commenting out
+lines containing :code:`:omusrmsg:*`.
 
 Hosts Log Ingestion
 ~~~~~~~~~~~~~~~~~~~
