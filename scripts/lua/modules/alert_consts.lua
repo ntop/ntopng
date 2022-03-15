@@ -601,7 +601,7 @@ end
 function alert_consts.alertSeverityById(severity_id)
    local key = alert_consts.alertSeverityRaw(severity_id)
    if key == nil then 
-      return alert_severities.error
+      return alert_severities.debug
    end
    return(alert_severities[key])
 end
