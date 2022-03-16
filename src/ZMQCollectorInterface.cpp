@@ -356,7 +356,7 @@ void ZMQCollectorInterface::collect_flows() {
 	*/
 	
 	if(source_id_last_msg_id.find(source_id) == source_id_last_msg_id.end())
-	  source_id_last_msg_id[source_id] = 0;
+	  source_id_last_msg_id[source_id] = msg_id;
 
 	last_msg_id = source_id_last_msg_id[source_id];
 	
@@ -367,24 +367,23 @@ void ZMQCollectorInterface::collect_flows() {
 				     subscriber_id, source_id, msg_id, last_msg_id, msg_id - last_msg_id - 1);
 #endif
 	
-	if(msg_id > 0) {
-	  if(msg_id < last_msg_id) ; /* Start over */
-	  else if(last_msg_id > 0) {
-	    int32_t diff = msg_id - last_msg_id;
-
-	    if(diff > 1) {
-	      recvStats.zmq_msg_drops += diff - 1;
-
+	if(msg_id < last_msg_id)
+	  ; /* Start over */
+	else if(last_msg_id > 0) {
+	  int32_t diff = msg_id - last_msg_id;
+	  
+	  if(diff > 1) {
+	    recvStats.zmq_msg_drops += diff - 1;
+	      
 #ifdef ZMQ_DEBUG
 	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
 					   msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops, diff-1);
 #endif
-	    }
 	  }
-
-	  source_id_last_msg_id[source_id] = msg_id;
-	}       
-
+	}
+	
+	source_id_last_msg_id[source_id] = msg_id;	       
+	
 	/*
           The zmq_recv() function shall return number of bytes in the message if successful.
           Note that the value can exceed the value of the len parameter in case the message was truncated.
