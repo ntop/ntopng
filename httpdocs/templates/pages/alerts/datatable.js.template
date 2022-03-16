@@ -40,6 +40,10 @@ $table.on('click', `a[href='#flow_alerts']`, function (e) {
         flow_search_params["cli_ip"] = alert_ip;
     }
 
+    if(alert.vlan_id && alert.vlan_id != "") {
+        flow_search_params["vlan_id"] = alert.vlan_id + "{{ require("tag_utils").SEPARATOR }}eq";
+    }
+
     flow_alerts_url.search = new URLSearchParams(flow_search_params);
     window.location.href = flow_alerts_url.href;
 });
