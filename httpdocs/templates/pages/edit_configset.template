@@ -711,7 +711,7 @@ const render_template = () => {
       // append label and checkbox inside the row
       $input_container.append(
          $(`<td class='text-center align-middle'></td>`).append($checkbox),
-         $(`<td class='align-middle'>${(hook.label ? hook.label.titleCase() : "")}</td>`),
+         $(`<td class='align-middle'>${hook.label ? hook.label.titleCase() : ""}</td>`),
          $(`<td></td>`).append($field)
       );
 
