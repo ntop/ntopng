@@ -35,7 +35,11 @@ end
 -- ##############################################
 
 function alert_store:_get_tstamp_column_name()
-   return "tstamp"
+   if ntop.isClickHouseEnabled() then
+      return "first_seen"
+   else
+      return "tstamp"
+   end
 end
 
 -- ##############################################
