@@ -1,6 +1,7 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-<modal :title_text="i18n('alerts_dashboard.add_filter')" :apply_text="i18n('apply')" :id="id_modal"  @apply="apply()" @showed="showed()" ref="modal_id">
+<modal :id="id_modal"  @showed="showed()" ref="modal">
+  <template v-slot:title>{{i18n('alerts_dashboard.add_filter')}}</template>
   <template v-slot:body>
     <form autocomplete="off">
       <div class="form-group row">
@@ -48,6 +49,9 @@
 	<!-- end div form-group-row -->
       </div>
     </form>
+  </template>  
+  <template v-slot:footer>
+    <button type="btn btn-primary" @click="apply" class="btn btn-primary">{{i18n('apply')}}</button>
   </template>
 </modal>
 </template>
@@ -66,7 +70,6 @@ export default {
     },
     props: {
 	id: String,
-	apply_text: String,
 	filters_options: Array,
     },
     updated() {
@@ -117,7 +120,7 @@ export default {
 		this.filter_type_selected = this.$props.filters_options[0].id;
 		this.change_filter();
 	    }
-	    this.$refs["modal_id"].show();
+	    this.$refs["modal"].show();
 	},
 	change_filter: function(post_change) {
 	    this.options_to_show = null;
@@ -191,12 +194,12 @@ export default {
 		value: value,
 		value_label: value_label,
 	    };
-	    //this.$refs["modal_id"].apply();	    
 	    this.$emit("apply", params);
 	    ntopng_events_manager.emit_custom_event(ntopng_custom_events.MODAL_FILTERS_APPLY, params);
+	    this.close();
 	},
 	close: function() {
-	    this.$refs["modal_id"].close();
+	    this.$refs["modal"].close();
 	},
     },
 }

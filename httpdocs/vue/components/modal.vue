@@ -5,7 +5,9 @@
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">{{title_text}}</h5>
+        <h5 class="modal-title">
+	  <slot name="title"></slot>
+	</h5>
         <div class="modal-close">
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
           </button>
@@ -17,8 +19,7 @@
       <div class="modal-footer">
         <div class="mr-auto">
         </div>
-        <!-- <button type="btn btn-primary" @click="close()" class="btn btn-primary">{{text.close}}</button> -->
-	<button type="btn btn-primary" @click="apply()" class="btn btn-primary">{{apply_text}}</button>
+	<slot name="footer"></slot>
         <div class="alert alert-info test-feedback w-100" style="display: none;">
         </div>
       </div>
@@ -33,8 +34,6 @@ export default {
     },
     props: {
 	id: String,
-	title_text: String,
-	apply_text: String,
     },
     emits: ["apply", "hidden", "showed"],
     /** This method is the first method of the component called, it's called before html template creation. */
