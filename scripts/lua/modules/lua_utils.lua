@@ -5027,9 +5027,14 @@ function format_portidx_name(cached_dev, portidx)
   if (cached_dev) and (cached_dev["interfaces"]) then                                                                                                                                                                    
     local port_info = cached_dev["interfaces"][tostring(portidx)]                                                                                                                                                   
                                                                                                                                                                                                                     
-    if port_info then   
-      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-      snmp_location = require "snmp_location"
+    if port_info then                                                                                                                                                                                             
+      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path                                                                                                                          
+      snmp_location = require "snmp_location"                                                                                                                                                                      
+                                                                                                                                                                                                                   
+      if not port_info["id"] then                                                                                                                                                                                   
+        port_info["id"] = port_info["index"]                                                                                                                                                                          
+        port_info["snmp_device_ip"] = cached_dev["host_ip"]                                                                                                                                                           
+      end   
                                                                                                                                                                                                   
       idx_name = snmp_location.snmp_port_link(port_info)                                                                                                                                                                 
     end               
