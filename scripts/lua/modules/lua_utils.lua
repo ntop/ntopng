@@ -5021,13 +5021,16 @@ function add_delete_obs_point_button()
    return button
 end   
 
-function format_portidx_name(cached_dev, portidx)                                                                                                                                                                         
-  local port_info = cached_dev["interfaces"][tostring(portidx)]                                                                                                                                                   
+function format_portidx_name(cached_dev, portidx)     
   local idx_name = portidx                                                                                                                                                                                        
-                                                                                                                                                                                                                  
-  if port_info then                                                                                                                                                                                               
-     idx_name = portidx .. " [" .. shortenString(port_info["name"]) .. "]"                                                                                                                                                                   
-  end                                                                                                                                                                                                             
+    
+  if (cached_dev) and (cached_dev["interfaces"]) then                                                                                                                                                                    
+    local port_info = cached_dev["interfaces"][tostring(portidx)]                                                                                                                                                   
+                                                                                                                                                                                                                    
+    if port_info then                                                                                                                                                                                               
+      idx_name = portidx .. " [" .. shortenString(port_info["name"]) .. "]"                                                                                                                                                                   
+    end               
+  end                                                                                                                                                                                              
                                                                                                                                                                                                                   
   return idx_name                                                                                                                                                                                                 
 end   
