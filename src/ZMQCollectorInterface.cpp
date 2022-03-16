@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+// #define MSG_DEBUG
+
 #ifndef HAVE_NEDGE
 
 /* **************************************************** */
@@ -356,28 +358,36 @@ void ZMQCollectorInterface::collect_flows() {
 	*/
 	
 	if(source_id_last_msg_id.find(source_id) == source_id_last_msg_id.end())
-	  source_id_last_msg_id[source_id] = msg_id;
-
-	last_msg_id = source_id_last_msg_id[source_id];
+	  last_msg_id = msg_id;
+	else
+	  last_msg_id = source_id_last_msg_id[source_id];
 	
 #ifdef ZMQ_DEBUG
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[topic: %s]", h->url);
+#endif
+
+#ifdef MSG_DEBUG
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[subscriber_id: %u][message source: %u]"
 				     "[msg_id: %u][last_msg_id: %u][lost: %i]",
 				     subscriber_id, source_id, msg_id, last_msg_id, msg_id - last_msg_id - 1);
 #endif
 	
-	if(msg_id < last_msg_id)
+	if(msg_id < last_msg_id) {
+#ifdef MSG_DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "ROLLBACK [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u]", 
+				       subscriber_id, msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops);
+#endif
+
 	  ; /* Start over */
-	else if(last_msg_id > 0) {
+	} else if(last_msg_id > 0) {
 	  int32_t diff = msg_id - last_msg_id;
 	  
 	  if(diff > 1) {
 	    recvStats.zmq_msg_drops += diff - 1;
 	      
-#ifdef ZMQ_DEBUG
-	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
-					   msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops, diff-1);
+#ifdef MSG_DEBUG
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "DROP [subscriber_id: %u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
+					 subscriber_id, msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops, diff-1);
 #endif
 	  }
 	}
