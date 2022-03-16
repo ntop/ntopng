@@ -117,3 +117,4 @@ packages/wizard/ntopng-config
 tests/e2e/rest/data/*
 tools/tmp.csv
 tests/e2e/rest/logs/*
+httpdocs/img/custom_logo.png
