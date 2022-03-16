@@ -429,7 +429,6 @@
 	 ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
       }
       VUE_APP = start_range_picker();
-
     const datatableButton = {* (datatable.buttons or '[]') *};
     datatableButton.push({
         text: '<i class="fas fa-sync"></i>',
@@ -452,7 +451,7 @@
     const index = length_array.indexOf(INITIAL_ROWS_LENGTH);
     length_array.splice(index, 1);
     length_array.unshift(INITIAL_ROWS_LENGTH);
-
+    let url_params = ntopng_url_manager.get_url_params();
     let config = DataTableUtils.getStdDatatableConfig(datatableButton);
     config = DataTableUtils.extendConfig(config, {
         autowidth: true,
@@ -464,7 +463,7 @@
         columnDefs: {},
         ajax: {
             method: 'get',
-            url: '{* datatable.datasource.endpoint *}',
+            url: '{* datatable.datasource.name *}?' + url_params,
             dataSrc: 'rsp.records',
             data: (data, settings) => {
 
