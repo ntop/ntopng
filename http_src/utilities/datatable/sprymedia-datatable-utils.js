@@ -640,6 +640,9 @@ export class DataTableRenders {
         else
           label = DataTableRenders.filterize('ip', obj.value, obj.label, obj.label, obj.label_long);
 
+        if (row.vlan_id && row.vlan_id != "")
+            label = label + "@" + DataTableRenders.filterize('vlan_id', row.vlan_id, row.vlan_id, row.vlan_id, row.vlan_id);
+
         if (obj.country)
             label = label + ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + obj.country.toLowerCase() + '"></a> ';
 

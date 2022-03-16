@@ -289,7 +289,11 @@ function host_alert_store:format_record(value, no_html)
       record[RNAME.IS_SERVER.name] = tostring(false)  -- when no_html is enabled a default value must be present
    end
 
-   record[RNAME.VLAN_ID.name] = value["vlan_id"] or 0
+   if value["vlan_id"] and tonumber(value["vlan_id"]) ~= 0 then
+      record[RNAME.VLAN_ID.name] = value["vlan_id"]
+   else
+      record[RNAME.VLAN_ID.name] = ""
+   end
 
    record[RNAME.ALERT_NAME.name] = alert_name
 
