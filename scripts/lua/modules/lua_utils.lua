@@ -5027,8 +5027,11 @@ function format_portidx_name(cached_dev, portidx)
   if (cached_dev) and (cached_dev["interfaces"]) then                                                                                                                                                                    
     local port_info = cached_dev["interfaces"][tostring(portidx)]                                                                                                                                                   
                                                                                                                                                                                                                     
-    if port_info then                                                                                                                                                                                               
-      idx_name = portidx .. " [" .. shortenString(port_info["name"]) .. "]"                                                                                                                                                                   
+    if port_info then   
+      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+      snmp_location = require "snmp_location"
+                                                                                                                                                                                                  
+      idx_name = snmp_location.snmp_port_link(port_info)                                                                                                                                                                 
     end               
   end                                                                                                                                                                                              
                                                                                                                                                                                                                   
