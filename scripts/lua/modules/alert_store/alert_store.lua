@@ -744,8 +744,6 @@ function alert_store:select_historical(filter, fields)
          self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
    end
 
-tprint(q)
-
    res = interface.alert_store_query(q)
 
    if ntop.isClickHouseEnabled() then
