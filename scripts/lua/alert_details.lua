@@ -33,6 +33,7 @@ local ifid = interface.getId()
 local page = _GET["page"]
 local status = _GET["status"] or "historical"
 local row_id = _GET["row_id"]
+local tstamp = _GET["tstamp"]
 
 -- ######################################
 
@@ -52,7 +53,7 @@ local label = i18n("alerts_dashboard.alert")
 local details = {}
 local alert = nil
 
-if page and row_id and alert_entities[page] then
+if page and row_id and tstamp and alert_entities[page] then
    local alert_store_instance = alert_store_instances[alert_entities[page].alert_store_name]
    if alert_store_instance then
       alerts, recordsFiltered = alert_store_instance:select_request(nil, "*")

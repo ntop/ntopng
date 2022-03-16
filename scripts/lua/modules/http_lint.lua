@@ -1518,6 +1518,7 @@ local known_parameters = {
    ["exporter_ifname"]         = validateSingleWord,            -- an interface name on the probe system
 
 -- TIME SPECIFICATION
+   ["tstamp"]                  = validateNumber,                -- A timestamp value
    ["epoch"]                   = validateNumber,                -- A timestamp value
    ["epoch_begin"]             = validateNumber,                -- A timestamp value to indicate start time
    ["epoch_end"]               = validateNumber,                -- A timestamp value to indicate end time

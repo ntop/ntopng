@@ -35,7 +35,7 @@ end
 -- ##############################################
 
 function alert_store:_get_tstamp_column_name()
-   return "first_seen"
+   return "tstamp"
 end
 
 -- ##############################################

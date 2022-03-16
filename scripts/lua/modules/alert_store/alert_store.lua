@@ -149,7 +149,7 @@ end
 
 -- ##############################################
 
---@brief Return the indexed tstamp column (for flow alerts this is first_seen)
+--@brief Return the indexed tstamp column
 function alert_store:_get_tstamp_column_name()
    return "tstamp"
 end
@@ -743,6 +743,8 @@ function alert_store:select_historical(filter, fields)
       q = string.format(" SELECT %u entity_id, (tstamp_end - tstamp) duration, %s FROM `%s` WHERE %s %s %s %s %s",
          self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
    end
+
+tprint(q)
 
    res = interface.alert_store_query(q)
 
@@ -1359,6 +1361,7 @@ function alert_store:add_request_filters()
    local alert_severity = _GET["severity"] or _GET["alert_severity"]
    local score = _GET["score"]
    local rowid = _GET["row_id"]
+   local tstamp = _GET["tstamp"]
    local status = _GET["status"]
 
    -- Remember the score filter (see also alert_stats.lua)
@@ -1379,12 +1382,12 @@ function alert_store:add_request_filters()
    self:add_filter_condition_list('alert_id', alert_id, 'number')
    self:add_filter_condition_list('severity', alert_severity, 'number')
    self:add_filter_condition_list('score', score, 'number')
-
+   self:add_filter_condition_list('tstamp', tstamp, 'number')
    
    if(ntop.isClickHouseEnabled()) then
       -- Clickhouse db has the column 'interface_id', filter by that per interface
-      self:add_filter_condition_list('rowid', rowid, 'string')
       self:add_filter_condition_list('interface_id', ifid, 'number')
+      self:add_filter_condition_list('rowid', rowid, 'string')
    else
       self:add_filter_condition_list('rowid', rowid, 'number')
    end
