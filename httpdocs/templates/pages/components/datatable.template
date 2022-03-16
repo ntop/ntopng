@@ -283,7 +283,7 @@
 
                 {% if actions.show_flows then %}
                 /* Button to jump to flow alerts within the same time period */
-                {icon: 'fa-stream', title: "{{ i18n('show_alerts.flow_alerts') }}", modal: '#flow_alerts'},
+                {icon: 'fa-exclamation-triangle', title: "{{ i18n('show_alerts.flow_alerts') }}", modal: '#flow_alerts'},
 		{% end %}
 
                 {% if actions.show_historical then %}
