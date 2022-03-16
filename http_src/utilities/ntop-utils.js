@@ -1053,38 +1053,19 @@ export default class NtopUtils {
 
 	}
 
-	static copyToClipboard(text, success, failure, item) {
-		if (navigator.clipboard && window.isSecureContext) {
-			navigator.clipboard.writeText(text).then(function() {
-				if (item) {
-					item.attr("title", "Copied!")
-			        	    .tooltip("dispose")
-        				    .tooltip()
-        				    .tooltip("show");
-				}
-			}, function(err) {
-				//alert(failure + ': ' + err);
-			});
-		} else {
-			let textArea = document.createElement("textarea");
-			textArea.value = text;
-			textArea.style.position = "fixed";
- 			textArea.style.left = "-999999px";
- 			textArea.style.top = "-999999px";
-			document.body.appendChild(textArea);
-			textArea.focus();
-			textArea.select();
-			return new Promise((res, rej) => {
-				document.execCommand('copy') ? res() : rej();
-				textArea.remove();
-				if (item) {
-					item.attr("title", "Copied!")
-			        	    .tooltip("dispose")
-        				    .tooltip()
-        				    .tooltip("show");
-				}
-			});
-		}
+	static copyToClipboard(text, item) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    $(item).attr("title", "Copied!").tooltip("dispose").tooltip().tooltip("show");
+    $(item).removeAttr("data-bs-original-title")
+    $(item).attr("title", text)
 	}
 
 	static stripTags(html) {

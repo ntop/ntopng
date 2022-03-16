@@ -85,7 +85,7 @@
             </div>
             {% end %}
             <div class="text-start">
-                <small id="{{ datatable.name }}-query-time" style="display: none;" class="query">{{ i18n('db_search.query_performed') }} <span class="seconds">{}</span> seconds. <span id="{{ datatable.name }}-query" style="display: none;" class="badge bg-secondary">SQL</span></small>
+                <small id="{{ datatable.name }}-query-time" style="display: none;" class="query">{{ i18n('db_search.query_performed') }} <span class="seconds">{}</span> seconds. <span id="{{ datatable.name }}-query" style="display: none; cursor: pointer;" class="badge bg-secondary">SQL</span></small>
             </div>
           </div>
       {% if show_chart then %}
@@ -138,7 +138,7 @@
     let intervalId = 0;
 
     $(`#{{ datatable.name }}-query`).click(function(e) {
-        NtopUtils.copyToClipboard($(e.target).attr('title'), "{{i18n('db_search.query_copied')}}", "{{i18n('unable_to_copy_to_clickboard')}}", $(`#{{ datatable.name }}-query`));
+        NtopUtils.copyToClipboard($(e.target).attr('title'), this);
     })
 
     function updateDownloadButton() {
