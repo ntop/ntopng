@@ -9,7 +9,7 @@
 	  <div class="btn-group" id="statusSwitch" role="group">
             <a href="#" @click="update_status_view('historical')" class="btn btn-sm" :class="{'active': status_view == 'historical', 'btn-seconday': status_view != 'historical', 'btn-primary': status_view == 'historical'}">Past</a>
             <a href="#" @click="update_status_view('acknowledged')" class="btn btn-sm" :class="{'active': status_view == 'acknowledged', 'btn-seconday': status_view != 'acknowledged', 'btn-primary': status_view == 'acknowledged'}">Ack</a>
-            <a href="#" @click="update_status_view('engaged')" class="btn btn-sm" :class="{'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged'}">Engaged</a>
+            <a v-if="page != 'flow'" href="#" @click="update_status_view('engaged')" class="btn btn-sm" :class="{'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged'}">Engaged</a>
 	  </div>
 	</div>
 	<select v-if="enable_query_preset" class="me-2 form-select" v-model="query_presets"  @change="update_select_query_presets()">
