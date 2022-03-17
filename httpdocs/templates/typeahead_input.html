@@ -96,6 +96,7 @@ ${label}
 	      return badgesButtons.join("");
 	  }
 	  let allLinksButtons = this.linksElementsDict[item];
+	  if (allLinksButtons == null) { allLinksButtons = []; }
 	  let linksRight = allLinksButtons.filter((l) => l.url != null && l.url != "");
 	  let linksLeft = allLinksButtons.filter((l) => l.url == null || l.url == "");
 	  let linksRightButtonsHtml = printLinksButtons(linksRight);
