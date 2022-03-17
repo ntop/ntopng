@@ -545,17 +545,22 @@ end
 if #results == 0 and not isEmptyString(query) then
    -- No results - add shortcut to search in historical data
    if hasClickHouseSupport() then
-      local label = i18n("db_search.find_in_historical", {query=query})
+      local label = ""
+      local what = ""
       if isIPv6(query) or isIPv4(query) then
+         what = "ip"
+         label = i18n("db_search.find_in_historical", {what=what, query=query})
          query = query .. tag_utils.SEPARATOR .. "eq"
-         results[#results + 1] = build_result(label, query, "ip", nil, nil, "historical")
       elseif isMacAddress(query) then
+         what = "mac"
+         label = i18n("db_search.find_in_historical", {what=what, query=query})
          query = query .. tag_utils.SEPARATOR .. "eq"
-         results[#results + 1] = build_result(label, query, "mac", nil, nil, "historical")
       else
+         what = "hostname"
+         label = i18n("db_search.find_in_historical", {what=what, query=query})
          query = query .. tag_utils.SEPARATOR .. "in"
-         results[#results + 1] = build_result(label, query, "hostname", nil, nil, "historical")
       end
+      results[#results + 1] = build_result(label, query, what, nil, nil, "historical")
    end
 end
 
