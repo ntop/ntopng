@@ -706,6 +706,11 @@ function flow_alert_store:get_alert_details(value)
       content = fmt['additional_alerts']['descr'],
    }
 
+   details[#details + 1] = {
+      label = i18n("alerts_dashboard.flow_related_info"),
+      content = fmt['flow_related_info']['descr'],
+   }
+
    proto_info = editProtoDetails(proto_info)
 
    for _, info in pairs(proto_info or {}) do
