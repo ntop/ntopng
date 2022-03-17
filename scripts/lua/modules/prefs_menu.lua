@@ -315,14 +315,10 @@ local menu_subpages = {
       title       = i18n("prefs.iec60870_learning_period_title"),
       description = i18n("prefs.iec60870_learning_period_description"),
     },
-  }, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=true,  hidden=false, entries={
+  }, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  hidden=false, entries={
     toggle_top_sites = {
       title       = i18n("prefs.toggle_top_sites_title"),
       description = i18n("prefs.toggle_top_sites_description", {url="https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf"})},
-    ewma_alpha_percent = {
-      title       = i18n("prefs.ewma_alpha_percent_title"),
-      description = i18n("prefs.ewma_alpha_percent_description"),
-    },
   }}, {id="logging",       label=i18n("prefs.logging"),  advanced=false, pro_only=false,  hidden=(prefs.has_cmdl_trace_lvl == true), entries={
     toggle_logging_level = {
       title       = i18n("prefs.toggle_logging_level_title"),
