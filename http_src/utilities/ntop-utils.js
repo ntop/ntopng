@@ -678,22 +678,33 @@ export default class NtopUtils {
 	/* Used while searching hosts a and macs with typeahead */
 	static makeFindHostBeforeSubmitCallback(http_prefix) {
 		return function (form, data) {
-			if (data.type == "mac") {
-				form.attr("action", http_prefix + "/lua/mac_details.lua");
-			} else if (data.type == "network") {
-				form.attr("action", http_prefix + "/lua/hosts_stats.lua");
-				NtopUtils._add_find_host_link(form, "network", data.network);
-			} else if (data.type == "snmp") {
-				form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_interface_details.lua");
-				NtopUtils._add_find_host_link(form, "snmp_port_idx", data.snmp_port_idx);
-			} else if (data.type == "snmp_device") {
-				form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_device_details.lua");
-			} else if (data.type == "asn") {
-				form.attr("action", http_prefix + "/lua/hosts_stats.lua");
-				NtopUtils._add_find_host_link(form, "asn", data.asn);
+			if (data.context && data.context == "historical") {
+				form.attr("action", http_prefix + "/lua/pro/db_search.lua");
+				if (data.type == "ip") {
+					NtopUtils._add_find_host_link(form, "ip", data.ip);
+				} else if (data.type == "mac") {
+					NtopUtils._add_find_host_link(form, "mac", data.mac);
+				} else {
+					NtopUtils._add_find_host_link(form, "name", data.name);
+				}
 			} else {
-				form.attr("action", http_prefix + "/lua/host_details.lua");
-				NtopUtils._add_find_host_link(form, "mode", "restore");
+				if (data.type == "mac") {
+					form.attr("action", http_prefix + "/lua/mac_details.lua");
+				} else if (data.type == "network") {
+					form.attr("action", http_prefix + "/lua/hosts_stats.lua");
+					NtopUtils._add_find_host_link(form, "network", data.network);
+				} else if (data.type == "snmp") {
+					form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_interface_details.lua");
+					NtopUtils._add_find_host_link(form, "snmp_port_idx", data.snmp_port_idx);
+				} else if (data.type == "snmp_device") {
+					form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_device_details.lua");
+				} else if (data.type == "asn") {
+					form.attr("action", http_prefix + "/lua/hosts_stats.lua");
+					NtopUtils._add_find_host_link(form, "asn", data.asn);
+				} else {
+					form.attr("action", http_prefix + "/lua/host_details.lua");
+					NtopUtils._add_find_host_link(form, "mode", "restore");
+				}
 			}
 
 			return true;

@@ -500,14 +500,16 @@ end
 
 res_count = 0
 
-local function build_result(label, value, value_type, links, badges)
+local function build_result(label, value, value_type, links, badges, context)
    local r = {
       name = label,
-      ip = value,
       type = value_type,
       links = links,
       badges = badges,
+      context = context,
    }
+
+   r[value_type] = value
 
    return r
 end
@@ -538,6 +540,23 @@ for k, v in pairsByField(hosts, 'name', asc) do
 
       res_count = res_count + 1
    end -- if
+end
+
+if #results == 0 and not isEmptyString(query) then
+   -- No results - add shortcut to search in historical data
+   if hasClickHouseSupport() then
+      local label = i18n("db_search.find_in_historical", {query=query})
+      if isIPv6(query) or isIPv4(query) then
+         query = query .. tag_utils.SEPARATOR .. "eq"
+         results[#results + 1] = build_result(label, query, "ip", nil, nil, "historical")
+      elseif isMacAddress(query) then
+         query = query .. tag_utils.SEPARATOR .. "eq"
+         results[#results + 1] = build_result(label, query, "mac", nil, nil, "historical")
+      else
+         query = query .. tag_utils.SEPARATOR .. "in"
+         results[#results + 1] = build_result(label, query, "name", nil, nil, "historical")
+      end
+   end
 end
 
 local data = {

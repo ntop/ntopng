@@ -1494,6 +1494,7 @@ local lang = {
     ["dst2src_dscp"] = "Server DSCP",
     ["dst2src_tcp_flags"] = "Server TCP Flags",
     ["extract_flow_info"] = "Actions",
+    ["find_in_historical"] = "Search '%{query}' in Historical Data",
     ["first_seen"] = "Begin",
     ["flow_risk"] = "Flow Risk",
     ["info"] = "Info",
