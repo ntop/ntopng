@@ -684,8 +684,8 @@ export default class NtopUtils {
 					NtopUtils._add_find_host_link(form, "ip", data.ip);
 				} else if (data.type == "mac") {
 					NtopUtils._add_find_host_link(form, "mac", data.mac);
-				} else {
-					NtopUtils._add_find_host_link(form, "name", data.name);
+				} else /* "hostname" */ {
+					NtopUtils._add_find_host_link(form, "name", data.hostname ? data.hostname : data.name);
 				}
 			} else {
 				if (data.type == "mac") {

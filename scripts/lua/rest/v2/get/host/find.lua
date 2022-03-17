@@ -554,7 +554,7 @@ if #results == 0 and not isEmptyString(query) then
          results[#results + 1] = build_result(label, query, "mac", nil, nil, "historical")
       else
          query = query .. tag_utils.SEPARATOR .. "in"
-         results[#results + 1] = build_result(label, query, "name", nil, nil, "historical")
+         results[#results + 1] = build_result(label, query, "hostname", nil, nil, "historical")
       end
    end
 end
