@@ -240,6 +240,13 @@ const footerRefresh = function() {
         updatingChart_downloads[0].text(values.join(",")).change();
         updatingChart_downloads[1].text(values.join(",")).change();
         $('.chart-download-text:visible').html(NtopUtils.bitsToSize(bps_download, 1000));
+
+        /* Disaggregate interface chart */
+        values = updatingChart_totals[0].text().split(",")
+        values.shift();
+        values.push(rsp.throughput_bps * 8);
+        updatingChart_totals[0].text(values.join(",")).change();
+        updatingChart_totals[1].text(values.join(",")).change();
   ]]
 
 if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
