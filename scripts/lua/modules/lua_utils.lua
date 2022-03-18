@@ -5024,7 +5024,7 @@ function add_delete_obs_point_button()
    return button
 end   
 
-function format_portidx_name(cached_dev, portidx)     
+function format_portidx_name(cached_dev, portidx, short_version)     
   local idx_name = portidx                                                                                                                                                                                        
     
   if (cached_dev) and (cached_dev["interfaces"]) then                                                                                                                                                                    
@@ -5038,9 +5038,13 @@ function format_portidx_name(cached_dev, portidx)
         port_info["id"] = port_info["index"]                                                                                                                                                                          
         port_info["snmp_device_ip"] = cached_dev["host_ip"]                                                                                                                                                           
       end   
-                                                                                                                                                                                                  
-      idx_name = string.format('%s', i18n("snmp.interface_device", {interface=snmp_location.snmp_port_link(port_info), device=snmp_location.snmp_device_link(cached_dev["host_ip"])}))                                                                                                                                                                
-    end               
+                         
+      if short_version then
+        idx_name = string.format('%s [%s]', port_info["index"], port_info["name"]) 
+      else
+        idx_name = string.format('%s', i18n("snmp.interface_device", {interface=snmp_location.snmp_port_link(port_info), device=snmp_location.snmp_device_link(cached_dev["host_ip"])}))                                                                                                                                                                
+      end               
+    end
   end                                                                                                                                                                                              
                                                                                                                                                                                                                   
   return idx_name                                                                                                                                                                                                 

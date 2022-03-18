@@ -1600,7 +1600,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 
 	    for portidx, _ in pairsByKeys(ports, asc) do
 	       if_params[direction] = portidx
-         local idx_name = format_portidx_name(cached_dev, portidx)
+         local idx_name = format_portidx_name(cached_dev, portidx, true)
 
          print[[
 	 <li>\
