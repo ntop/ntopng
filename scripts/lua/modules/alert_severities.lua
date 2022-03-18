@@ -15,15 +15,23 @@ local dirs = ntop.getDirs()
 -- each table entry is an array as:
 -- {"alert html string", "alert C enum value", "plain string", "syslog severity"}
 local alert_severities = {
-   debug = {
-      severity_id = 1,
-      label = "bg-info",
-      icon = "fas fa-fw fa-bug text-info",
-      color = "#a8e4ef",
-      i18n_title = "alerts_dashboard.debug",
-      syslog_severity = 7,
-      emoji = "\xE2\x84\xB9"
-   },
+  none = {
+    severity_id = 0,
+    label = "bg-info",
+    color = "#a8e4ef",
+    icon = "",
+    i18n_title = "alerts_dashboard.none",
+    syslog_severity = 10,
+  },
+  debug = {
+     severity_id = 1,
+     label = "bg-info",
+     icon = "fas fa-fw fa-bug text-info",
+     color = "#a8e4ef",
+     i18n_title = "alerts_dashboard.debug",
+     syslog_severity = 7,
+     emoji = "\xE2\x84\xB9"
+  },
    info = {
       severity_id = 2,
       label = "bg-info",

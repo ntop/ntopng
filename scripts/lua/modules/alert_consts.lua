@@ -121,25 +121,27 @@ local alerts_granularities_id_to_key = {}
 local alerts_granularities_seconds_to_key = {}
 
 local function initMappings()
-   -- alert_entities_id_to_key
-   for key, entity_info in pairs(alert_consts.alert_entities) do
-      alert_entities_id_to_key[entity_info.entity_id] = key
-   end
+  -- alert_entities_id_to_key
+  for key, entity_info in pairs(alert_consts.alert_entities) do
+    alert_entities_id_to_key[entity_info.entity_id] = key
+  end
 
-   -- alert_severities_id_to_key 
-   for key, severity_info in pairs(alert_severities) do
+  -- alert_severities_id_to_key 
+  for key, severity_info in pairs(alert_severities) do
+    if severity_info.severity_id ~= 0 then
       alert_severities_id_to_key[severity_info.severity_id] = key
-   end
+    end
+  end
 
-   -- alerts_granularities_id_to_key 
-   for key, granularity_info in pairs(alert_consts.alerts_granularities) do
-     alerts_granularities_id_to_key[granularity_info.granularity_id] = key
-   end
+  -- alerts_granularities_id_to_key 
+  for key, granularity_info in pairs(alert_consts.alerts_granularities) do
+    alerts_granularities_id_to_key[granularity_info.granularity_id] = key
+  end
 
-   -- alerts_granularities_seconds_to_key
-   for key, granularity_info in pairs(alert_consts.alerts_granularities) do
-     alerts_granularities_seconds_to_key[granularity_info.granularity_seconds] = key
-   end
+  -- alerts_granularities_seconds_to_key
+  for key, granularity_info in pairs(alert_consts.alerts_granularities) do
+    alerts_granularities_seconds_to_key[granularity_info.granularity_seconds] = key
+  end
 end
 
 -- ##############################################
@@ -601,7 +603,7 @@ end
 function alert_consts.alertSeverityById(severity_id)
    local key = alert_consts.alertSeverityRaw(severity_id)
    if key == nil then 
-      return alert_severities.error
+      return alert_severities.none
    end
    return(alert_severities[key])
 end
