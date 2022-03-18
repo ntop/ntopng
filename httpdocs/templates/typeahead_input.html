@@ -123,12 +123,18 @@ ${label}
       linksElementsDict: {},
       badgesElementsDict: {},
       lastQueryValue: null,
+      queryInProcess: false,
       delay: 300,
       source: function (query, process) {
+	  if (query == null || query == "" || query.startsWith("."))  {
+	      this.lastQueryValue = query;
+	      return;
+	  }
       /* Avoid this kind of queries which generates file path warnings into the ntopng log */
-      if (query.startsWith(".")) return;
 	  let me = this;
-	  if (this.lastQueryValue == query) { return; }
+	  if (this.lastQueryValue == query && this.query.length > 1) { return; }
+	  if (this.queryInProcess == true) { return; }
+	  this.queryInProcess = true;
 	  this.lastQueryValue = query;
       var _get = {};
     {% for k,v in pairs(typeahead.parameters or {}) do %}
@@ -165,6 +171,7 @@ ${label}
 		      .html("<span style='padding-left:1em; cursor:default;'>No results found</span>");
 
               }
+	      me.queryInProcess = false;
         return res;
       });
       }, afterSelect: function(item) {
