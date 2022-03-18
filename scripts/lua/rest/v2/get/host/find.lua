@@ -61,6 +61,19 @@ else
 
 end
 
+-- Empty query
+if(isEmptyString(query)) then
+   local data = {
+      interface = ifname,
+      results = {},
+   }
+   
+   -- tprint(results)
+   
+   rest_utils.answer(rc, data)
+   return
+end
+
 local ifid = interface.getId()
 
 --- Links
