@@ -146,20 +146,22 @@ end
 -- ###################################################
 
 local function synDistribution(hostname, host, label)
-   local line
-   local stats = interface.getHostInfo(host["ip"], host["vlan"])
+  local line
+  local stats = interface.getHostInfo(host["ip"], host["vlan"])
    
-   line = {
+  if stats ~= nil then
+    line = {
       meta = {
-	 url_query = "host="..hostname,
-	 label = label,
+    url_query = "host="..hostname,
+    label = label,
       },
       x = stats["pktStats.sent"]["tcp_flags"]["syn"],
       y = stats["pktStats.recv"]["tcp_flags"]["syn"],
       z = host["active_flows.as_client"] + host["active_flows.as_server"]
-   }
+    }
+  end
 
-   return line
+  return line
 end
 
 -- ###################################################
@@ -168,6 +170,7 @@ local function synVsRst(hostname, host, label)
    local line
    local stats = interface.getHostInfo(host["ip"], host["vlan"])
    
+  if stats ~= nil then
    line = {
       meta = {
 	 url_query = "host="..hostname,
@@ -177,6 +180,7 @@ local function synVsRst(hostname, host, label)
       y = stats["pktStats.recv"]["tcp_flags"]["rst"],
       z = host["active_flows.as_client"] + host["active_flows.as_server"]
    }
+  end
 
    return line
 end
@@ -187,6 +191,7 @@ local function synVsSynack(hostname, host, label)
    local line
    local stats = interface.getHostInfo(host["ip"], host["vlan"])
    
+  if stats ~= nil then
    line = {
       meta = {
 	 url_query = "host="..hostname,
@@ -196,6 +201,7 @@ local function synVsSynack(hostname, host, label)
       y = stats["pktStats.recv"]["tcp_flags"]["synack"],
       z = host["active_flows.as_client"] + host["active_flows.as_server"]
    }
+  end
 
    return line
 end
@@ -206,6 +212,7 @@ local function tcpPktsSentVsRcvd(hostname, host, label)
    local line
    local stats = interface.getHostInfo(host["ip"], host["vlan"])
    
+  if stats ~= nil then
    line = {
       meta = {
 	 url_query = "host="..hostname,
@@ -215,7 +222,8 @@ local function tcpPktsSentVsRcvd(hostname, host, label)
       y = stats["tcp.packets.rcvd"],
       z = stats["tcp.bytes.sent"] + stats["tcp.bytes.rcvd"]
    }
-
+  end
+  
    return line
 end
 
@@ -225,6 +233,7 @@ local function tcpBytesSentVsRcvd(hostname, host, label)
    local line
    local stats = interface.getHostInfo(host["ip"], host["vlan"])
 
+   if stats ~= nil then
    line = {
       meta = {
 	 url_query = "host="..hostname,
@@ -234,7 +243,8 @@ local function tcpBytesSentVsRcvd(hostname, host, label)
       y = stats["tcp.bytes.rcvd"],
       z = stats["tcp.bytes.sent"] + stats["tcp.bytes.rcvd"]
    }
-   
+  end
+  
    return line
 end
 
