@@ -67,6 +67,10 @@ if not status then
    -- Default to historical
    status = "historical"
 
+   -- Always show the historical page to avoid flapping when reloading the alerts page
+   -- which is confusing for the user. This also prevents syncronization issues between
+   -- lua and js (as they do not currently share the 'status').
+   --[[
    if page ~= "all" then
      -- If there alert alerts engaged for the selected entity, go to the engaged tab
      if alert_entities[page] and num_alerts_engaged_by_entity[tostring(alert_entities[page].entity_id)] then
@@ -81,6 +85,7 @@ if not status then
        end
      end
    end
+   --]]
 end
 
 -- Check the earliest alert available
@@ -633,7 +638,7 @@ local datatable = {
        disable = (page ~= "host" and page ~= "flow")
    },
 }
-
+   
 local context = {
    ifid = ifid,
    ui_utils = ui_utils,
