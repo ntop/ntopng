@@ -1404,7 +1404,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
 					   traffic_type_filter, 
-             0 /* probe ip */, tsLua /* host->tsLua | host->lua */,
+					   0 /* probe ip */, tsLua /* host->tsLua | host->lua */,
 					   anomalousOnly, dhcpOnly,
 					   NULL /* cidr filter */,
 					   sortColumn, maxHits,
