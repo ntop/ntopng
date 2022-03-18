@@ -5039,7 +5039,7 @@ function format_portidx_name(cached_dev, portidx)
         port_info["snmp_device_ip"] = cached_dev["host_ip"]                                                                                                                                                           
       end   
                                                                                                                                                                                                   
-      idx_name = string.format('%s', i18n("snmp.interface_device", {interface=snmp_location.snmp_port_link(port_info), device=cached_dev["host_ip"]}))                                                                                                                                                                
+      idx_name = string.format('%s', i18n("snmp.interface_device", {interface=snmp_location.snmp_port_link(port_info), device=snmp_location.snmp_device_link(cached_dev["host_ip"])}))                                                                                                                                                                
     end               
   end                                                                                                                                                                                              
                                                                                                                                                                                                                   
