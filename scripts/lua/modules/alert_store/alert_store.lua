@@ -1187,7 +1187,7 @@ end
 
 -- ##############################################
 
---@brief Format top alerts returned by get_stats() for general_stats.lua
+--@brief Format top alerts returned by get_stats() for top.lua
 function alert_store:format_top_alerts(stats)
    local top_alerts = {}
 

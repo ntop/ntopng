@@ -5694,14 +5694,14 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/get/interface/alert/general_stats.lua": {
+		"/lua/pro/rest/v2/get/interface/alert/top.lua": {
 			"get": {
 				"tags": [
 					"Alerts"
 				],
 				"summary": "Get interface alert stats",
 				"description": "Get interface alert stats",
-				"operationId": "get_interface_alert_general_stats",
+				"operationId": "get_interface_alert_top",
 				"produces": [
 					"application/json"
 				],
@@ -5836,14 +5836,14 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/get/host/alert/general_stats.lua": {
+		"/lua/pro/rest/v2/get/host/alert/top.lua": {
 			"get": {
 				"tags": [
 					"Alerts"
 				],
 				"summary": "Get host alert stats",
 				"description": "Get host alert stats",
-				"operationId": "get_host_alert_general_stats",
+				"operationId": "get_host_alert_top",
 				"produces": [
 					"application/json"
 				],
@@ -5938,14 +5938,14 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/get/snmp/device/alert/general_stats.lua": {
+		"/lua/pro/rest/v2/get/snmp/device/alert/top.lua": {
 			"get": {
 				"tags": [
 					"Alerts"
 				],
 				"summary": "Get SNMP device alert stats",
 				"description": "Get SNMP device alert stats",
-				"operationId": "get_snmp_device_alert_general_stats",
+				"operationId": "get_snmp_device_alert_top",
 				"produces": [
 					"application/json"
 				],
@@ -6004,14 +6004,14 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/get/network/alert/general_stats.lua": {
+		"/lua/pro/rest/v2/get/network/alert/top.lua": {
 			"get": {
 				"tags": [
 					"Alerts"
 				],
 				"summary": "Get network alert stats",
 				"description": "Get network alert stats",
-				"operationId": "get_network_alert_general_stats",
+				"operationId": "get_network_alert_top",
 				"produces": [
 					"application/json"
 				],
@@ -6082,14 +6082,14 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/get/all/alert/general_stats.lua": {
+		"/lua/pro/rest/v2/get/all/alert/top.lua": {
 			"get": {
 				"tags": [
 					"Alerts"
 				],
 				"summary": "Get all alert stats",
 				"description": "Get all alert stats",
-				"operationId": "get_all_alert_general_stats",
+				"operationId": "get_all_alert_top",
 				"produces": [
 					"application/json"
 				],
@@ -6115,14 +6115,14 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/get/am_host/alert/general_stats.lua": {
+		"/lua/pro/rest/v2/get/am_host/alert/top.lua": {
 			"get": {
 				"tags": [
 					"Alerts"
 				],
 				"summary": "Get Active Monitoring alert stats",
 				"description": "Get Active Monitoring alert stats",
-				"operationId": "get_active_monitoring_alert_general_stats",
+				"operationId": "get_active_monitoring_alert_top",
 				"produces": [
 					"application/json"
 				],
@@ -6148,14 +6148,14 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/get/user/alert/general_stats.lua": {
+		"/lua/pro/rest/v2/get/user/alert/top.lua": {
 			"get": {
 				"tags": [
 					"Alerts"
 				],
 				"summary": "Get user alert stats",
 				"description": "Get user alert stats",
-				"operationId": "get_user_alert_general_stats",
+				"operationId": "get_user_alert_top",
 				"produces": [
 					"application/json"
 				],
@@ -6181,14 +6181,14 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/get/mac/alert/general_stats.lua": {
+		"/lua/pro/rest/v2/get/mac/alert/top.lua": {
 			"get": {
 				"tags": [
 					"Alerts"
 				],
 				"summary": "Get MAC alert stats",
 				"description": "Get MAC alert stats",
-				"operationId": "get_mac_alert_general_stats",
+				"operationId": "get_mac_alert_top",
 				"produces": [
 					"application/json"
 				],
@@ -6214,14 +6214,14 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/get/system/alert/general_stats.lua": {
+		"/lua/pro/rest/v2/get/system/alert/top.lua": {
 			"get": {
 				"tags": [
 					"Alerts"
 				],
 				"summary": "Get system alert stats",
 				"description": "Get system alert stats",
-				"operationId": "get_system_alert_general_stats",
+				"operationId": "get_system_alert_top",
 				"produces": [
 					"application/json"
 				],
@@ -6397,14 +6397,14 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/get/flow/alert/general_stats.lua": {
+		"/lua/pro/rest/v2/get/flow/alert/top.lua": {
 			"get": {
 				"tags": [
 					"Alerts"
 				],
 				"summary": "Get flow alert stats",
 				"description": "Get flow alert stats",
-				"operationId": "get_flow_alert_general_stats",
+				"operationId": "get_flow_alert_top",
 				"produces": [
 					"application/json"
 				],

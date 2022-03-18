@@ -580,7 +580,7 @@ template_utils.render("pages/modals/alerts/filters/add.template", filters_contex
 
 --------------------------------------------------------------
 
-local endpoint_cards = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/" .. page .. "/alert/general_stats.lua"
+local endpoint_cards = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/" .. page .. "/alert/top.lua"
 
 local datasource_data = {
    ifid = ifid,
