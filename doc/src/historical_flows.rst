@@ -5,35 +5,21 @@ Historical Flow Report
 
 .. warning::
 
-  MySQL flow explorer is deprecated and wil be discontinued in favor of the :ref:`ClickHouse` flows explorer. MySQL dump support will be maintained.
+  MySQL flow explorer is deprecated and it has ben discontinued in favor of the :ref:`ClickHouse` flows explorer.
 
 ntopng can dump flows data to a persistent storage and provides view to browse
-recorded flows data in the past.
-
-Traditionally, in order to provide historical data, ntopng required a connected
-MySQL database. Check out the `Flows Dump documentation`_ for more details on
+recorded flows data in the past. Check out the `Flows Dump documentation`_ for more details on
 how to setup the connection and the historical views available for this mode.
 
-However, due to the users feedback on the MySQL low performance with high flow
-insertion rates, ntopng now integrates a specialized flows
-dump database called nIndex which overcomes the limits of MySQL. This is currently
-available only in the enterprise version of ntopng for Linux/x86_64 architectures.
-
-.. note::
-
-  The historical views provided with the MySQL integration (like the "Historical Explorer")
-  are *not* compatible with nIndex.
 
 .. warning::
 
-  nIndex is only available on Linux/x86_64 architectures.
-
-The rest of this page documents the use of nIndex as flows storage.
+  ClickHouse support is not available on Windows and embedded architectures.
 
 Enabling Flow Dump
 ------------------
 
-In order to dump flows to disk ntopng requires the `-F nindex` option to be
+In order to dump flows to disk ntopng requires the `-F clickhouse` option to be
 specified as described in the `Flows Dump documentation`_. After this is enabled,
 new "Flows" entries will appear into the historical charts `tabular view`_ dropdown:
 

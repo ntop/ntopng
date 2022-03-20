@@ -3,7 +3,11 @@
 Flows Dump
 ==========
 
-Ntopng supports flows dump towards multiple downstream databases, namely MySQL, Elasticsearch, Syslog and nIndex. Flows dump is enabled using option :code:`-F`.
+Ntopng supports flows dump towards multiple downstream databases, namely MySQL, Elasticsearch, Syslog and ClickHouse. Flows dump is enabled using option :code:`-F`.
+
+.. note::
+
+  ClickHouse support is the recommended database backend used to dump flows and alerts.
 
 When flows dump is enabled, a new `Flow Dump Settings` tab appears in the preferences.
 
@@ -29,30 +33,12 @@ ClickHouse
 
 ntopng integrates with ClickHouse to store historical flows and alerts. ClickHouse is an high-performance SQL database. See :ref:`ClickHouse` for a detailed discussion and guide.
 
-nIndex
-------
-
-In order to dump flows to disk using the nIndex support ntopng requires the `-F nindex` option to be specified.
-No additional configuration is required as this is natively supported, and flows are stored locally, thus no
-endpoint is required. The nIndex flows dump and instructions to extract data are described in detail in the 
-:ref:`Historical Flows` section.
-
-nIndex is an high-performance file-based network-oriented database, that stores data into the ntopng data directory (e.g. /var/lib/ntopng).
-When enabling it please make sure you have enough disk space on the partition where such directory resides.
-Flows are dumped on the ntopng end, meaning that in case they are receoved on a ZMQ interface, flows are processed by ntopng before dumping them to disk,
-and this is sometimes limiting the performance
-in case of an high number of flows per second. In this case the flow dump performance can be further increased
-by enabling the *direct* mode. The drawback with this mode is that flows are dumped as soon as they are collected,
-before any processing, thus less flow details will be available in the dump as flows are not augmented by ntopng.
-In order to enable this mode `-F nindex;direct` should be specified.
-
-.. warning::
-
-  nIndex support is deprecated and will be discontinued in favor of ClickHouse. ntopng version 5.1 is the last version supporting nIndex.
-  A tool to migrate nIndex to ClickHouse is available at: https://github.com/ntop/ntopng/blob/dev/tools/nindex_export_to_ch.sh
-
 MySQL
 -----
+
+.. note::
+
+  MySQL is not recommended as when data cardinality increases the database backend is very slow and it leads to drops. Please consider using ClickHouse instead.
 
 In order to dump flows to MySQL ntopng requires the -F modifier followed by a string in the following format:
 
@@ -84,14 +70,6 @@ IPv4 and IPv6 flows, respectively.
 
 By enabling MySQL integration, it's also possible to inspect the past flows via
 the ntopng Historical Explorer, which provides many filters and drilldown capabilities.
-
-.. note::
-
-  MySQL flow explorer is non supported in community edition. We suggest you to use nIndex for high cardinality flow instances.
-
-.. warning::
-
-  MySQL flow explorer is deprecated and wil be discontinued in favor of the :ref:`ClickHouse` flows explorer. MySQL dump support will be maintained.
 
 .. figure:: ../img/advanced_features_historical_explorer.png
   :align: center
