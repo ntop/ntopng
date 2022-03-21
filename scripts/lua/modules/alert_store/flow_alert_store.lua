@@ -711,7 +711,7 @@ function flow_alert_store:get_alert_details(value)
       content = fmt['flow_related_info']['descr'],
    }
 
-   proto_info = editProtoDetails(proto_info)
+   proto_info = editProtoDetails(proto_info or {})
 
    for _, info in pairs(proto_info or {}) do
       details[#details + 1] = {
