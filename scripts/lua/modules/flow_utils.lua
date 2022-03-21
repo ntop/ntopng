@@ -1532,7 +1532,6 @@ end
 local function printFlowDevicesFilterDropdown(base_url, page_params)
    local snmp_cached_dev = require "snmp_cached_dev"
    local flowdevs = interface.getFlowDevices()
-   local vlans = interface.getVLANsList()
    local ordering_fun = pairsByKeys
 
    if flowdevs == nil then flowdevs = {} end
