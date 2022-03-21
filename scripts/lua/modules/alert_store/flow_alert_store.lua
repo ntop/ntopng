@@ -469,7 +469,7 @@ function flow_alert_store:format_record(value, no_html)
    if no_html then
       flow_cli_ip["label"] = cli_name_long
    else
-      if not isEmptyString(value["cli_name"]) then
+      if not isEmptyString(value["cli_name"]) and value["cli_name"] ~= flow_cli_ip["value"] then
          flow_cli_ip["name"] = value["cli_name"]
       end
 
@@ -508,7 +508,7 @@ function flow_alert_store:format_record(value, no_html)
    if no_html then
       flow_srv_ip["label"] = srv_name_long
    else
-      if not isEmptyString(value["srv_name"]) then
+      if not isEmptyString(value["srv_name"]) and value["srv_name"] ~= flow_srv_ip["value"] then
          flow_srv_ip["name"] = value["srv_name"]
       end
       
