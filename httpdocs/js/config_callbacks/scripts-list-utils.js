@@ -1539,7 +1539,7 @@ function appendExclusionList(data) {
 
 function delegateActionButton(gui) {
 
-   const $button = $(`#btn-action`);
+   const $button = $(`#btn-action-config`);
    $button.text(gui.input_action_i18n);
    $button.off('click').click(function (e) {
 
