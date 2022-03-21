@@ -5640,6 +5640,7 @@ local lang = {
     ["in_discards"] = "In Discards",
     ["in_errors"] = "In Errors",
     ["interface_device"] = "Interface %{interface} [ %{device} ]",
+    ["interface_device_2"] = "%{interface} [ %{device} ]",
     ["interfaces_with_discards"] = "Interfaces With Discards",
     ["interfaces_with_errors"] = "Interfaces With Errors",
     ["interfaces_with_errors_or_discards"] = "Interfaces With Errors/Discards",
