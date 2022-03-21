@@ -737,7 +737,7 @@ function alert_store:select_historical(filter, fields)
    -- NOTE: entity_id is necessary as alert_utils.formatAlertMessage assumes it to always be present inside the alert
    local q
    if ntop.isClickHouseEnabled() then
-      q = string.format(" SELECT %u entity_id, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp)) duration, %s FROM `%s` WHERE %s %s %s %s %s",
+      q = string.format(" SELECT %u entity_id, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp)) duration, toUnixTimestamp(tstamp) as tstamp_epoch, toUnixTimestamp(tstamp_end) as tstamp_end_epoch, %s FROM `%s` WHERE %s %s %s %s %s",
          self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
    else
       q = string.format(" SELECT %u entity_id, (tstamp_end - tstamp) duration, %s FROM `%s` WHERE %s %s %s %s %s",
@@ -749,9 +749,16 @@ function alert_store:select_historical(filter, fields)
    if ntop.isClickHouseEnabled() then
       -- convert DATETIME to epoch
       for _, record in ipairs(res or {}) do
-         if record.tstamp then record.tstamp = format_utils.parseDateTime(record.tstamp) end
-         if record.tstamp_end then record.tstamp_end = format_utils.parseDateTime(record.tstamp_end) end
-         if record.first_seen then record.first_seen = format_utils.parseDateTime(record.first_seen) end
+         if record.tstamp_epoch then record.tstamp = record.tstamp_epoch
+         elseif record.tstamp then record.tstamp = format_utils.parseDateTime(record.tstamp) end
+
+         if record.tstamp_end_epoch then record.tstamp_end = record.tstamp_end_epoch
+         elseif record.tstamp_end then record.tstamp_end = format_utils.parseDateTime(record.tstamp_end) end
+
+         -- first_seen is only used in where conditions as it is indexed,  
+         -- using tstamp in select as it is commong to all alert tables
+         -- if record.first_seen then record.first_seen = format_utils.parseDateTime(record.first_seen) end
+
          if record.user_label_tstamp then record.user_label_tstamp = format_utils.parseDateTime(record.user_label_tstamp) end
       end
    end

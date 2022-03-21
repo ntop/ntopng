@@ -62,6 +62,7 @@ function flow_alert_store:insert(alert)
    -- - tstamp and first_seen contains the same value alert.first_seen
    -- - tstamp_end is set to alert.tstamp (which is the time the alert has been emitted as there is no engage on flows)
    -- - first_seen is used to lookups as this is the indexed field
+   -- - tstamp (instead of first_seen) is used in select and for visualization as it's in common to all tables
 
    local insert_stmt = string.format("INSERT INTO %s "..
       "(%salert_id, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
@@ -560,7 +561,7 @@ function flow_alert_store:format_record(value, no_html)
       local op_suffix = tag_utils.SEPARATOR .. 'eq'
       local href = string.format('%s/lua/pro/db_search.lua?epoch_begin=%u&epoch_end=%u&cli_ip=%s%s&srv_ip=%s%s&cli_port=%s%s&srv_port=%s%s&l4proto=%s%s',
          ntop.getHttpPrefix(), 
-         tonumber(value["first_seen"]) - (5*60),
+         tonumber(value["tstamp"]) - (5*60),
          tonumber(value["tstamp_end"]) + (5*60), 
          value["cli_ip"], op_suffix,
          value["srv_ip"], op_suffix,
