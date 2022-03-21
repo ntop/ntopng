@@ -1138,7 +1138,6 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
 char* Host::get_visual_name(char *buf, u_int buf_len) {
   bool mask_host = Utils::maskHost(isLocalHost());
   char buf2[64];
-  char ipbuf[64];
   char *sym_name;
 
   buf[0] = '\0';
