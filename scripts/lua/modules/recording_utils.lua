@@ -575,6 +575,8 @@ function recording_utils.createConfig(ifid, params)
   f:write("--max-file-duration="..config.max_file_duration.."\n")
   f:write("--disk-limit="..config.max_disk_space.."\n")
   f:write("--snaplen="..config.snaplen.."\n")
+
+  -- CPU Core affinity
   f:write("--writer-cpu-affinity="..config.writer_core.."\n")
   f:write("--reader-cpu-affinity="..config.reader_core.."\n")
   f:write("--compressor-cpu-affinity=")
@@ -583,11 +585,15 @@ function recording_utils.createConfig(ifid, params)
   end
   f:write("\n")
   f:write("--index-on-compressor-threads\n")
+
+  -- User
   if not isEmptyString(prefs.user) then
     f:write("-u="..prefs.user.."\n");
   else
     f:write("--dont-change-user\n");
   end
+
+  -- Capture direction
   if interface.isPacketInterface() then
     if prefs.capture_direction == "in" then
       f:write("--capture-direction=1\n")
@@ -597,11 +603,17 @@ function recording_utils.createConfig(ifid, params)
       f:write("--capture-direction=0\n")
     end
   end
+
+  -- ZMQ
   if config.zmq_endpoint ~= nil then
     f:write("--zmq="..config.zmq_endpoint.."\n")
     f:write("--zmq-probe-mode\n")
     f:write("--zmq-export-flows\n")
   end
+
+  -- Index tunneled traffic to reflect what ntopng shows
+  f:write("--index-tunnel-content=2\n")
+
   -- Ignored by systemd, required by init.d
   f:write("--daemon\n")
   f:write("-P=/var/run/n2disk-"..ifname..".pid\n")
