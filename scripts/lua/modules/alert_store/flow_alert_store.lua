@@ -366,9 +366,9 @@ function flow_alert_store:format_record(value, no_html)
 		     message = string.format("%s %s", message, flow_risk_utils.get_documentation_link(alert_risk))
 		  end
 
-      if alert_score > 0 then
-        message = addScoreToAlertDescr(message, alert_score)
-      end
+		  if alert_score > 0 then
+		     message = addScoreToAlertDescr(message, alert_score)
+		  end
 
 		  if not other_alerts_by_score[alert_score] then
 		     other_alerts_by_score[alert_score] = {}

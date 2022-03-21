@@ -1141,20 +1141,18 @@ char* Host::get_visual_name(char *buf, u_int buf_len) {
   char ipbuf[64];
   char *sym_name;
 
-  if(!mask_host) {
-    sym_name = get_name(buf2, sizeof(buf2), false);
+  buf[0] = '\0';
 
-    if(sym_name && sym_name[0]) {
-      if(ip.isIPv6() && strcmp(ip.print(ipbuf, sizeof(ipbuf)), sym_name)) {
-	snprintf(buf, buf_len, "%s [IPv6]", sym_name);
-      } else {
-	strncpy(buf, sym_name, buf_len);
-	buf[buf_len-1] = '\0';
-      }
-    } else
-      buf[0] = '\0';
-  } else
-    buf[0] = '\0';
+  if(mask_host)
+    return buf;
+
+  sym_name = get_name(buf2, sizeof(buf2), false);
+
+  if(sym_name == NULL || !sym_name[0])
+    return buf;
+ 
+  strncpy(buf, sym_name, buf_len);
+  buf[buf_len-1] = '\0';
 
   return buf;
 }
