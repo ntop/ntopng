@@ -15,9 +15,9 @@
     /* Counts */
     {responsivePriority: 3, name: 'count', className: 'text-center', data: 'count', visible: false},
     /* Description */
-    {responsivePriority: 4, name: 'description', data: 'description', width: '100%', orderable: false, className: 'none', render: DataTableRenders.formatMessage},
+    {responsivePriority: 4, name: 'description', data: 'description', width: '100%', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatMessage},
     /* Additional alerts */
-    {responsivePriority: 4, name: 'additional_alerts', data: 'additional_alerts',  orderable: false, className: 'none', render: DataTableRenders.formatMessage},
+    {responsivePriority: 4, name: 'additional_alerts', data: 'additional_alerts',  orderable: false, className: 'text-nowrap', render: DataTableRenders.formatMessage},
     /* Flow related info */
-    {responsivePriority: 4, name: 'flow_related_info', data: 'flow_related_info',  orderable: false, className: 'none', render: DataTableRenders.formatMessage},
+    {responsivePriority: 5, name: 'flow_related_info', data: 'flow_related_info',  orderable: false, className: 'none', render: DataTableRenders.formatMessage},
 ]
