@@ -641,3 +641,21 @@ void ViewInterface::lua_queues_stats(lua_State* vm) {
   for(int i = 0; i < num_viewed_interfaces; i++)
     viewed_interfaces_queues[i]->lua(vm);
 }
+
+/* **************************************************** */
+
+#ifdef NTOPNG_PRO
+void ViewInterface::getFlowDevices(lua_State *vm) {
+  for(int i = 0; i < num_viewed_interfaces; i++)
+      viewed_interfaces[i]->getFlowDevices(vm);
+}
+
+/* **************************************************** */
+
+void ViewInterface::getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+  for(int i = 0; i < num_viewed_interfaces; i++)
+      viewed_interfaces[i]->getFlowDeviceInfo(vm, deviceIP);
+}
+#endif
+
+/* **************************************************** */

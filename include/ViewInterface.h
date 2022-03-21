@@ -89,6 +89,11 @@ class ViewInterface : public NetworkInterface {
 
   virtual bool hasSeenVLANTaggedPackets() const;
 
+#ifdef NTOPNG_PRO
+  virtual void getFlowDevices(lua_State *vm);
+  virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP);
+#endif
+
   virtual u_int32_t getFlowsHashSize();
   virtual Flow* findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts);
   virtual Flow* findFlowByTuple(VLANid vlan_id,

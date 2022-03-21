@@ -838,10 +838,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 #ifdef NTOPNG_PRO
   void updateBehaviorStats(const struct timeval *tv);
 
-  void getFlowDevices(lua_State *vm) {
+  virtual void getFlowDevices(lua_State *vm) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);
   };
-  void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+  virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceInfo(vm, deviceIP, this); else lua_newtable(vm);
   };
 #endif
