@@ -1601,7 +1601,7 @@ const createScriptStatusButton = (row_data) => {
 const { is_enabled } = row_data;
 let enable_title = i18n_ext.enable_check_title;
 let disable_title = i18n_ext.disable_check_title;
-const $button = $(`<button type='button' class='btn btn-sm' style='margin-right: 0.25rem'></button>`);
+const $button = $(`<button type='button' class='btn btn-sm' style='margin: 0.25rem'></button>`);
 $button.addClass('btn-danger');
 $button[0].setAttribute('title', enable_title)
 
