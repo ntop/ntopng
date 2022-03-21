@@ -1509,7 +1509,7 @@ $.get(`${http_prefix}/lua/get_check_config.lua`,
 
       // hide previous error
       $("#apply-error").hide();
-
+      
       const template = TemplateBuilder(data, script_subdir, script_key);
 
       // render template
@@ -1705,7 +1705,7 @@ if (scriptConfExList) {
 
 function delegateActionButton(gui) {
 
-const $button = $(`#btn-action`);
+const $button = $(`#btn-action-config`);
 $button.text(gui.input_action_i18n);
 $button.off('click').click(function (e) {
 
