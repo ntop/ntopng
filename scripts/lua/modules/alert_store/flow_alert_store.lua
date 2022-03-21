@@ -56,6 +56,13 @@ function flow_alert_store:insert(alert)
       hex_prefix = "X"
    end
 
+   -- Note
+   -- The database contains first_seen, tstamp, tstamp_end for historical reasons.
+   -- The time index is set on first_seen, thus:
+   -- - tstamp and first_seen contains the same value alert.first_seen
+   -- - tstamp_end is set to alert.tstamp (which is the time the alert has been emitted as there is no engage on flows)
+   -- - first_seen is used to lookups as this is the indexed field
+
    local insert_stmt = string.format("INSERT INTO %s "..
       "(%salert_id, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
       "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, "..
