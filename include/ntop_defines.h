@@ -325,7 +325,7 @@
 #define HOST_MAX_SCORE                 500
 #define FLOW_MAX_SCORE_BREAKDOWN       8 /* Maximum number of alerts for the flow score breadkown. Additional alerts will fall under 'other' */
 
-#define CONST_MAX_NUM_NETWORKS         255
+#define CONST_MAX_NUM_NETWORKS         512
 #define CONST_MAX_NUM_CHECKPOINTS      4
 
 #define HOST_IS_DHCP_SERVER            0x01
@@ -451,7 +451,6 @@
 #define CONST_DEFAULT_CLICKHOUSE_TCP_PORT 9000
 #define CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT 9004
 #define CONST_DB_DUMP_FREQUENCY      300
-#define CONST_MAX_NUM_NETWORKS       255
 #define CONST_NUM_OPEN_DB_CACHE        8
 #define CONST_NUM_CONTACT_DBS          8
 #define MAX_ZMQ_SUBSCRIBERS           32
