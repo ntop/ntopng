@@ -26,7 +26,7 @@
 
 class NetworkStats : public InterfaceMemberAlertableEntity, public GenericTrafficElement, public Score {
  private:
-  u_int8_t network_id;
+  u_int16_t network_id;
   u_int32_t numHosts;
   TrafficStats ingress, ingress_broadcast; /* outside -> network */
   TrafficStats egress, egress_broadcast;   /* network -> outside */
@@ -54,7 +54,7 @@ class NetworkStats : public InterfaceMemberAlertableEntity, public GenericTraffi
 #endif
 
  public:
-  NetworkStats(NetworkInterface *iface, u_int8_t _network_id);
+  NetworkStats(NetworkInterface *iface, u_int16_t _network_id);
   virtual ~NetworkStats();
 
   inline bool trafficSeen(){

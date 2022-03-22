@@ -415,7 +415,7 @@ class Ntop {
   void setScriptsDir();
   void lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm);
   void getUsers(lua_State* vm);
-  bool getLocalNetworkAlias(lua_State *vm, u_int8_t network_id);
+  bool getLocalNetworkAlias(lua_State *vm, u_int16_t network_id);
   bool isUserAdministrator(lua_State* vm);
   void getAllowedInterface(lua_State* vm);
   void getAllowedNetworks(lua_State* vm);

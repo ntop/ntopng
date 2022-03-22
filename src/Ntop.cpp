@@ -3219,7 +3219,7 @@ bool Ntop::addLocalNetwork(char *_net) {
   char alias[64] = "";
 
   int id = local_network_tree.getNumAddresses(), pos = 0;
-
+    
   if(id >= CONST_MAX_NUM_NETWORKS) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s",
 				 id, _net);
@@ -3273,7 +3273,7 @@ bool Ntop::addLocalNetwork(char *_net) {
 
 /* ******************************************* */
 
-bool Ntop::getLocalNetworkAlias(lua_State *vm, u_int8_t network_id) {
+bool Ntop::getLocalNetworkAlias(lua_State *vm, u_int16_t network_id) {
   char *alias = local_network_aliases[network_id];
 
   // Checking if the network has an alias
