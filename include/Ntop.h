@@ -554,12 +554,12 @@ class Ntop {
   void purgeLoopBody();
 
   /* Local network address list methods */
-  inline u_int8_t getNumLocalNetworks()       { return local_network_tree.getNumAddresses();    };
+  inline u_int16_t getNumLocalNetworks()       { return local_network_tree.getNumAddresses();    };
   inline const char* getLocalNetworkName(int16_t local_network_id) {
-    return(((u_int8_t)local_network_id < local_network_tree.getNumAddresses()) ? local_network_names[(u_int8_t)local_network_id] : NULL);
+    return(((u_int16_t)local_network_id < local_network_tree.getNumAddresses()) ? local_network_names[(u_int16_t)local_network_id] : NULL);
   };
   
-  u_int8_t getLocalNetworkId(const char *network_name);
+  u_int16_t getLocalNetworkId(const char *network_name);
   
   //void getLocalAddresses(lua_State* vm) { return(local_network_tree.getAddresses(vm)); };
 

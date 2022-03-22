@@ -3201,15 +3201,15 @@ inline int16_t Ntop::localNetworkLookup(int family, void *addr, u_int8_t *networ
 
 /* **************************************** */
 
-u_int8_t Ntop::getLocalNetworkId(const char *address_str) {
-  u_int8_t i;
+u_int16_t Ntop::getLocalNetworkId(const char *address_str) {
+  u_int16_t i;
 
   for(i = 0; i< local_network_tree.getNumAddresses(); i++) {
     if(!strcmp(address_str, local_network_names[i]))
       return(i);
   }
 
-  return((u_int8_t)-1);
+  return((u_int16_t)-1);
 }
 
 /* ******************************************* */

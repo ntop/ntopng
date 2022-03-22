@@ -81,9 +81,9 @@ static int ntop_network_check_context(lua_State* vm) {
 
   if((c->network == NULL) || (strcmp(c->network->getEntityValue().c_str(), entity_val)) != 0) {
     NetworkInterface *iface = getCurrentInterface(vm);
-    u_int8_t network_id = ntop->getLocalNetworkId(entity_val);
+    u_int16_t network_id = ntop->getLocalNetworkId(entity_val);
 
-    if(!iface || (network_id == (u_int8_t)-1) || ((c->network = iface->getNetworkStats(network_id)) == NULL)) {
+    if(!iface || (network_id == (u_int16_t)-1) || ((c->network = iface->getNetworkStats(network_id)) == NULL)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set context for network %s", entity_val);
     } else
       ret = true;

@@ -815,7 +815,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   };
   int exec_csv_query(const char *sql, bool dump_in_json_format, struct mg_connection *conn);
 
-  NetworkStats* getNetworkStats(u_int8_t networkId) const;
+  NetworkStats* getNetworkStats(u_int16_t networkId) const;
   void allocateStructures();
   void getsDPIStats(lua_State *vm);
   inline bool isDbCreated() { return(db ? db->isDbCreated() : true); };

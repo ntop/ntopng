@@ -4860,7 +4860,7 @@ static int ntop_add_local_network(lua_State* vm) {
 
 static int ntop_check_local_network_alias(lua_State* vm) {
   char *local_network;
-  u_int8_t network_id = (u_int8_t)-1;
+  u_int16_t network_id = (u_int16_t)-1;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4869,7 +4869,7 @@ static int ntop_check_local_network_alias(lua_State* vm) {
 
   network_id = ntop->getLocalNetworkId(local_network);
 
-  if(network_id != (u_int8_t)-1) {
+  if(network_id != (u_int16_t)-1) {
     if(!ntop->getLocalNetworkAlias(vm, network_id)) {
       lua_pushnil(vm);
       return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -4883,7 +4883,7 @@ static int ntop_check_local_network_alias(lua_State* vm) {
 
 static int ntop_get_local_network_id(lua_State* vm) {
   char *local_network;
-  u_int8_t network_id = (u_int8_t)-1;
+  u_int16_t network_id = (u_int16_t)-1;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5735,7 +5735,7 @@ static int ntop_network_name_by_id(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_network_id_by_name(lua_State* vm) {
-  u_int8_t num_local_networks = ntop->getNumLocalNetworks();
+  u_int16_t num_local_networks = ntop->getNumLocalNetworks();
   int found_id = -1;
   char *name;
 
@@ -5744,7 +5744,7 @@ static int ntop_network_id_by_name(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   name = (char*)lua_tostring(vm, 1);
 
-  for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
+  for(u_int16_t network_id = 0; network_id < num_local_networks; network_id++) {
     if(!strcmp(ntop->getLocalNetworkName(network_id), name)) {
       found_id = network_id;
       break;
@@ -5758,13 +5758,13 @@ static int ntop_network_id_by_name(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_networks(lua_State* vm) {
-  u_int8_t num_local_networks = ntop->getNumLocalNetworks();
+  u_int16_t num_local_networks = ntop->getNumLocalNetworks();
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   lua_newtable(vm);
 
-  for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++)
+  for(u_int16_t network_id = 0; network_id < num_local_networks; network_id++)
     lua_push_uint64_table_entry(vm, ntop->getLocalNetworkName(network_id), network_id);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
