@@ -587,7 +587,8 @@ void Flow::processDetectedProtocolData() {
 	  cli_h->incrVisitedWebSite(host_server_name);
       }
 
-      if(srv_h) srv_h->setResolvedName((char*)ndpiFlow->host_server_name);
+      if(srv_h && (ndpiFlow->protos.dns.reply_code == 0 /* No Error */))
+	srv_h->setResolvedName((char*)ndpiFlow->host_server_name);
     }
     break;
   } /* switch */
@@ -838,7 +839,8 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
     ndpiDetectedProtocol = proto_id; /* Override! */
 
     if(ndpiFlow->host_server_name[0] != '\0') {
-      if(cli_host) {
+      if(cli_host
+	 && (ndpiFlow->protos.dns.reply_code == 0 /* no Error */)) {
 	cli_host->incContactedService((char*)ndpiFlow->host_server_name);
 	cli_host->incrVisitedWebSite((char*)ndpiFlow->host_server_name);
       }
@@ -857,6 +859,8 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 	  char delimiter = '@', *name = NULL;
 	  char *at = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter);
 
+	  protos.dns.last_return_code = ndpiFlow->protos.dns.reply_code;
+	  
 	  /* Consider only positive DNS replies */
 	  if(at != NULL)
 	    name = &at[1], at[0] = '\0';
@@ -873,9 +877,9 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 					 ndpiFlow->protos.dns.is_query ? 1 : 0,
 					 ndpiFlow->protos.dns.num_queries,
 					 ndpiFlow->protos.dns.num_answers);
-	    protos.dns.last_return_code = ndpiFlow->protos.dns.reply_code;
 #endif
 
+	    
 	    if(ndpiFlow->protos.dns.reply_code == 0) {
 	      if(ndpiFlow->protos.dns.num_answers > 0) {
 		if(at != NULL) {

@@ -40,7 +40,7 @@ end
 
 function formatASN(v)
    local asn
-   
+
    if(v == 0) then
       asn = "&nbsp;"
    else
@@ -61,7 +61,7 @@ end
 local function drawiecgraph(iec, total)
    local nodes = {}
    local nodes_id = {}
-   
+
    -- tprint(iec)
 
    for k,v in pairs(iec) do
@@ -70,7 +70,7 @@ local function drawiecgraph(iec, total)
       nodes[keys[1]] = true
       nodes[keys[2]] = true
    end
-      
+
    print [[ <script type="text/javascript" src="/js/vis-network.min.js?]] print(ntop.getStaticFileEpoch()) print[["></script>
 
       <div style="width:100%; height:30vh; " id="myiecflow"></div>
@@ -122,7 +122,7 @@ local function drawiecgraph(iec, total)
    for k,v in pairs(uni) do
       local keys = split(k, ",")
       local label = string.format("%.3f %%", (v*100)/total)
-      
+
       nodes[keys[1]] = true
       nodes[keys[2]] = true
 
@@ -132,7 +132,7 @@ local function drawiecgraph(iec, total)
    for k,v in pairs(bi) do
       local keys = split(k, ",")
       local label = string.format("%.3f %%", (v*100)/total)
-      
+
       nodes[keys[1]] = true
       nodes[keys[2]] = true
 
@@ -172,13 +172,13 @@ draw();
        ]]
 end
 
-   
+
 local function ja3url(what, safety, label)
    if(what == nil) then
       print("&nbsp;")
    else
       print('<A class="ntopng-external-link" href="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..' <i class="fas fa-external-link-alt"></i></A>')
-      
+
       if((safety ~= nil) and (safety ~= "safe")) then
 	 print(' [ <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]')
       end
@@ -477,7 +477,7 @@ else
       print("</A>) ".. formatBreed(flow["proto.ndpi_breed"], flow["proto.is_encrypted"]))
       print(" ["..i18n("ndpi_confidence")..": "..flow.confidence.."]")
    end
-   
+
    if(flow["verdict.pass"] == false) then print("</strike>") end
    historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.tls.certificate"] or ''))
 
@@ -567,7 +567,7 @@ else
       local cli_show = (cli_mac and cli_mac.location == "lan" and flow["cli.pool_id"] == 0)
       local srv_show = (srv_mac and srv_mac.location == "lan" and flow["srv.pool_id"] == 0)
       local num_rows = 0
-      
+
       if cli_show then
 	num_rows = num_rows + 1
       end
@@ -631,9 +631,9 @@ else
       print("</td></tr>\n")
    end
 
-   if(flow.iec104 and (table.len(flow.iec104.typeid) > 0)) then 
+   if(flow.iec104 and (table.len(flow.iec104.typeid) > 0)) then
       print("<tr><th rowspan=5 width=30%><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/IEC_60870-5'>IEC 60870-5-104  <i class='fas fa-external-link-alt'></i></A></th><th>"..i18n("flow_details.iec104_mask").."</th><td>")
-      
+
       total = 0
       for k,v in pairsByKeys(flow.iec104.typeid, rev) do
 	 total = total + v
@@ -646,17 +646,17 @@ else
 
 	 print(string.format("<th>%s</th><td align=right>%.3f %%</td></tr>\n", key, pctg))
       end
-      
+
       print("</table>\n")
       print("</td></tr>\n")
-      
+
       -- #########################
 
       total = 0
       for k,v in pairsByValues(flow.iec104.typeid_transitions, rev) do
 	 total = total+v
       end
-      
+
       print("<tr><th>".. i18n("flow_details.iec104_transitions"))
       drawiecgraph(flow.iec104.typeid_transitions, total)
       print("</th><td>")
@@ -674,15 +674,15 @@ else
 	 end
 
 	 key = key .. iec104_typeids2str(tonumber(keys[2]))
-	 
+
 	 print(string.format("<tr><th>%s</th><td align=right>%.3f %%</td></tr>\n", key, pctg))
       end
-      
+
       print("</table>\n")
       print("</td></tr>\n")
 
       -- #########################
-	 
+
       print("<tr><th>"..i18n("flow_details.iec104_latency").."</th><td>")
       if(flow.iec104.ack_time.stddev > flow.iec104.ack_time.average) then
 	 on = "<font color=red>"
@@ -704,9 +704,9 @@ else
 
       if(flow["srv.port"] == 2404) then
 	 -- we need to swap directions
-	 pctg = 100-pctg	 
+	 pctg = 100-pctg
       end
-      
+
       print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. pctg .. '%;">'..pctg..'% </div>')
       pctg = 100-pctg
       print('<div class="progress-bar bg-success" style="width: ' .. pctg .. '%;">'..pctg..'% </div></div>')
@@ -731,7 +731,7 @@ else
       print("<td>"..(dscp_consts.dscp_descr(flow.tos.server.DSCP)) .." / ".. (dscp_consts.ecn_descr(flow.tos.server.ECN)) .."</td>")
       print("</tr>")
    end
-   
+
    if(flow["tcp.nw_latency.client"] ~= nil) then
       local rtt = flow["tcp.nw_latency.client"] + flow["tcp.nw_latency.server"]
 
@@ -1181,11 +1181,26 @@ else
    end
 
    if(flow["protos.dns.last_query"] ~= nil) then
+      local dns_utils = require "dns_utils"
+
       print("<tr><th width=30%>"..i18n("flow_details.dns_query").."</th><td colspan=2>")
 
-      if flow["protos.dns.last_query_type"] ~= 0 then
-	 local dns_type_label = get_dns_type_label(flow["protos.dns.last_query_type"])
+      if(flow["protos.dns.last_query_type"] ~= 0) then
+	 local dns_type_label = dns_utils.getQueryType(flow["protos.dns.last_query_type"])
 	 print(string.format('<span class="badge bg-info">%s</span> ', dns_type_label))
+      end
+
+      if(flow["protos.dns.last_return_code"] ~= nil) then
+	 local dns_ret_code = dns_utils.getResponseStatusCode(flow["protos.dns.last_return_code"])
+	 local c
+
+	 if(flow["protos.dns.last_return_code"] == 0) then
+	    c = "success"
+	 else
+	    c = "danger"
+	 end
+
+	 print(string.format('<span class="badge bg-%s">%s</span> ', c, dns_ret_code))
       end
 
       if(string.ends(flow["protos.dns.last_query"], "arpa")) then
@@ -1193,14 +1208,14 @@ else
       else
 	 print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(flow["protos.dns.last_query"]).."\">"..page_utils.safe_html(shortHostName(flow["protos.dns.last_query"])).." <i class='fas fa-external-link-alt'></i></A>")
       end
-      
-      
+
+
       if(flow["category"] ~= nil) then
 	 print(" "..getCategoryIcon(flow["protos.dns.last_query"], flow["category"]))
       end
 
       printAddCustomHostRule(flow["protos.dns.last_query"])
-      
+
       print_copy_button('last_query', flow["protos.dns.last_query"])
       print("</td></tr>\n")
    end
@@ -1226,7 +1241,7 @@ else
       if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then rowspan = rowspan + 1 end
       if(not isEmptyString(flow["protos.http.last_user_agent"])) then rowspan = rowspan + 1 end
       if(not isEmptyString(flow["protos.http.last_return_code"])) then rowspan = rowspan + 1 end
-      
+
       print("<tr><th width=30% rowspan="..rowspan..">"..i18n("http").."</th>")
       if(not isEmptyString(flow["protos.http.last_method"])) then
         print("<th>"..i18n("flow_details.http_method").."</th><td>"..(flow["protos.http.last_method"] or '').."</td>")
@@ -1240,11 +1255,11 @@ else
       if(not isEmptyString(flow["host_server_name"])) then
 	 s = flow["host_server_name"]
       end
-      
+
       print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(s).."\">"..page_utils.safe_html(s).." <i class=\"fas fa-external-link-alt\"></i></A>")
-      
-      if(flow["category"] ~= nil) then 
-         print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) 
+
+      if(flow["category"] ~= nil) then
+         print(" "..getCategoryIcon(flow["host_server_name"], flow["category"]))
       end
       -- Adding + with custom host rules next to the server name
       printAddCustomHostRule(s)
@@ -1270,7 +1285,7 @@ else
 	    print("http://")
 	 end
       end
-      
+
       print(last_url.."\">"..last_url_short.." <i class=\"fas fa-external-link-alt\"></i></A>")
       print_copy_button('url', last_url)
       print("</td></tr>\n")
@@ -1306,7 +1321,7 @@ else
 
    if(flow.src_as and flow.src_as ~= 0) or (flow.dst_as and flow.dst_as ~= 0) then
       local asn
-      
+
       print("<tr>")
       print("<th width=30%>"..i18n("flow_details.as_src_dst").."</th>")
 
@@ -1319,7 +1334,7 @@ else
    if(flow.prev_adjacent_as or flow.next_adjacent_as) then
       print("<tr>")
       print("<th width=30%>"..i18n("flow_details.as_prev_next").."</th>")
-      
+
       formatASN(flow.prev_adjacent_as)
       formatASN(flow.next_adjacent_as)
 
@@ -1393,7 +1408,7 @@ else
 	 print("<tr><th>"..i18n("details.observation_point_id").."</th>")
 	 print("<td colspan=\"2\">"..custom_name.."</td></tr>")
       end
-      
+
       if(flow["in_index"] or flow["out_index"]) then
 	 if((flow["in_index"] == flow["out_index"]) and (flow["in_index"] == 0)) then
 	    -- nothing to do (they are likely to be not initialized)
@@ -1401,7 +1416,7 @@ else
 	    printFlowSNMPInfo(snmpdevice, flow["in_index"], flow["out_index"])
 	 end
       end
-	    
+
       local num = 0
       for key,value in pairsByKeys(info) do
 	 if(num == 0) then
@@ -1452,7 +1467,7 @@ print [[
             $('#alerts_filter_dialog').modal('show');
         });
 
-        ]] 
+        ]]
 
         print [[
         const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
