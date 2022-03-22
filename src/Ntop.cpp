@@ -3254,9 +3254,14 @@ bool Ntop::addLocalNetwork(char *_net) {
   local_network_names[id] = net;
 
   // Adding, if available, the alias
-  if(pos)
+  if(pos) {
+    // Remove the \r from the end of a string read from a local network file
+    if(alias[strlen(alias) - 1] == '\r') 
+      alias[strlen(alias) - 1] = '\0' ;
+    
     local_network_aliases[id] = strdup(alias);
-
+  }
+    
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Added Local Network %s", net);
 
   return(true);
