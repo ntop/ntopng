@@ -272,7 +272,7 @@ page_utils.print_navbar(title, url,
 				 label = "<i class=\"fas fa-lg fa-home\"></i>",
 			      },
 			      {
-				 hidden = is_packet_interface or ntop.isnEdge(),
+				 hidden = is_packet_interface or ntop.isnEdge() or  interface.isView(),
 				 active = page == "nprobe",
 				 page_name = "nprobe",
 				 label = "nProbe",
@@ -1094,7 +1094,7 @@ end
    print("</table>\n")
    print("</div>") -- close of table responsive
 
-elseif page == "nprobe" and not is_packet_interface then
+elseif page == "nprobe" and not is_packet_interface and not interface.isView() then
    local context = {
    }
    print(template.gen("pages/interface_nprobes.template", context))
