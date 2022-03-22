@@ -478,8 +478,7 @@ function recording_utils.createConfig(ifid, params)
   local mem_info = memInfo()
   local mem_available_mb = mem_info['MemAvailable']
 
-  -- Computing file and buffer size
-
+  -- Computing file and buffer size based on link speed
   local num_buffered_files = 4
   local min_file_size = 16 
   if ifspeed > 10000 then -- 40/100G
@@ -494,8 +493,8 @@ function recording_utils.createConfig(ifid, params)
     defaults.max_file_size = 64
     num_buffered_files = 2
   end
-  defaults.buffer_size = num_buffered_files * defaults.max_file_size
 
+  defaults.buffer_size = num_buffered_files * defaults.max_file_size
   local total_n2disk_mem = defaults.buffer_size * 2 -- pcap + index buffer
 
   if mem_available_mb ~= nil and mem_available_mb < total_n2disk_mem then
@@ -506,8 +505,13 @@ function recording_utils.createConfig(ifid, params)
       return false
     end
     defaults.buffer_size = (mem_available_mb/2) -- leave some room for index memory and other processes
-    defaults.max_file_size = math.floor(defaults.buffer_size/num_buffered_files)
+    local recomputed_max_file_size = math.floor(defaults.buffer_size/num_buffered_files)
+    if defaults.max_file_size > recomputed_max_file_size then
+      defaults.max_file_size = recomputed_max_file_size
+    end
   end
+
+  -- Checking disk space
 
   -- Computing core affinity
 
@@ -548,6 +552,11 @@ function recording_utils.createConfig(ifid, params)
   end 
 
   local config = table.merge(defaults, params)
+
+  -- Recomputing file size based on disk space (2 files + index should fit min)
+  if (config.max_file_size*4) > config.max_disk_space then
+    config.max_file_size = config.max_disk_space/4
+  end
 
   -- Writing configuration file
 
