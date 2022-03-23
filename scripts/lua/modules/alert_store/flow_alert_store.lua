@@ -17,6 +17,8 @@ local alert_entities = require "alert_entities"
 local tag_utils = require "tag_utils"
 local json = require "dkjson"
 
+local href_icon = "<i class='fas fa-laptop'></i>"
+
 -- ##############################################
 
 local flow_alert_store = classes.class(alert_store)
@@ -306,7 +308,6 @@ end
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function flow_alert_store:format_record(value, no_html)
-   local href_icon = "<i class='fas fa-laptop'></i>"
    local record = self:format_json_record_common(value, alert_entities.flow.entity_id, no_html)
    local alert_info = alert_utils.getAlertInfo(value)
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, alert_entities.flow.entity_id)
@@ -441,7 +442,7 @@ function flow_alert_store:format_record(value, no_html)
  
    local reference_html = "" 
    if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["cli_ip"]}, nil, href_icon, "", true, nil, false)
+      reference_html = hostinfo2detailshref({ip = value["cli_ip"], value["vlan_id"]}, nil, href_icon, "", true, nil, false)
       if reference_html == href_icon then
 	 reference_html = ""
       end
@@ -480,7 +481,7 @@ function flow_alert_store:format_record(value, no_html)
 
    reference_html = ""
    if not no_html then
-      reference_html = hostinfo2detailshref({ip = value["srv_ip"]}, nil, href_icon, "", true)
+      reference_html = hostinfo2detailshref({ip = value["srv_ip"], vlan = value["vlan_id"]}, nil, href_icon, "", true)
       if reference_html == href_icon then
 	 reference_html = ""
       end
@@ -607,16 +608,22 @@ local function get_flow_link(fmt, add_hyperlink)
    local value = fmt['flow']['cli_ip']['value']
    local vlan = ''
    local tag = 'cli_ip'
+   local vlan_id = 0
 
    if fmt['flow']['vlan'] and fmt['flow']['vlan']["value"] ~= 0 then
+    vlan_id = tonumber(fmt['flow']['vlan']["value"])
     vlan = '@' .. get_label_link(fmt['flow']['vlan']['label'], 'vlan_id', fmt['flow']['vlan']["value"], add_hyperlink)
    end
+
+   local reference = hostinfo2detailshref({ip = fmt['flow']['cli_ip']['value'], vlan = vlan_id}, nil, href_icon, "", true)
 
    local cli_ip = "" 
    local srv_ip = ""
 
    if fmt['flow']['cli_ip']['label_long'] ~= fmt['flow']['cli_ip']['value'] then
-    cli_ip = " [ " .. get_label_link(fmt['flow']['cli_ip']['value'], 'cli_ip', value, add_hyperlink) .. " ]"
+    if add_hyperlink then
+      cli_ip = " [ " .. get_label_link(fmt['flow']['cli_ip']['value'], 'cli_ip', value, add_hyperlink) .. " ]"
+    end
     value = fmt['flow']['cli_ip']['label_long']
     tag = 'cli_name'
    end
@@ -626,19 +633,30 @@ local function get_flow_link(fmt, add_hyperlink)
       label = label .. vlan .. ':' .. get_label_link(fmt['flow']['cli_port'], 'cli_port', fmt['flow']['cli_port'], add_hyperlink)
    end
 
+   if add_hyperlink then
+    label = label .. " " .. reference
+   end
+
    label = label .. ' <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> '
 
+   reference = hostinfo2detailshref({ip = fmt['flow']['srv_ip']['value'], vlan = vlan_id}, nil, href_icon, "", true)
    local value = fmt['flow']['srv_ip']['value']
    local tag = 'srv_ip'
    if fmt['flow']['srv_ip']['label_long'] ~= fmt['flow']['srv_ip']['value'] then
+    if add_hyperlink then
       srv_ip = " [ " .. get_label_link(fmt['flow']['srv_ip']['value'], 'srv_ip', value, add_hyperlink) .. " ]"
-       value = fmt['flow']['srv_ip']['label_long']
-      tag = 'srv_name'
+    end   
+    value = fmt['flow']['srv_ip']['label_long']
+    tag = 'srv_name'
    end
    label = label .. get_label_link(fmt['flow']['srv_ip']['label_long'], tag, value, add_hyperlink) .. srv_ip
 
    if fmt['flow']['srv_port'] then
       label = label .. vlan .. ':' .. get_label_link(fmt['flow']['srv_port'], 'srv_port', fmt['flow']['srv_port'], add_hyperlink)
+   end
+
+   if add_hyperlink then
+    label = label .. " " .. reference
    end
 
    return label
