@@ -694,7 +694,7 @@ function tag_utils.build_bpf(filters)
       if isEmptyString(bpf) then
          bpf = "(" .. value .. ")"
       else
-         bpf = bpf .. " or " .. "(" .. value .. ")"
+         bpf = bpf .. " and " .. "(" .. value .. ")"
       end
    end
 
