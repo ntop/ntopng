@@ -612,11 +612,15 @@ local function get_flow_link(fmt, add_hyperlink)
     vlan = '@' .. get_label_link(fmt['flow']['vlan']['label'], 'vlan_id', fmt['flow']['vlan']["value"], add_hyperlink)
    end
 
+   local cli_ip = "" 
+   local srv_ip = ""
+
    if fmt['flow']['cli_ip']['label_long'] ~= fmt['flow']['cli_ip']['value'] then
-      value = fmt['flow']['cli_ip']['label_long']
-      tag = 'cli_name'
+    cli_ip = " [ " .. get_label_link(fmt['flow']['cli_ip']['value'], 'cli_ip', value, add_hyperlink) .. " ]"
+    value = fmt['flow']['cli_ip']['label_long']
+    tag = 'cli_name'
    end
-   label = label .. get_label_link(fmt['flow']['cli_ip']['label_long'], tag, value, add_hyperlink)
+   label = label .. get_label_link(fmt['flow']['cli_ip']['label_long'], tag, value, add_hyperlink) .. cli_ip
 
    if fmt['flow']['cli_port'] then
       label = label .. vlan .. ':' .. get_label_link(fmt['flow']['cli_port'], 'cli_port', fmt['flow']['cli_port'], add_hyperlink)
@@ -627,10 +631,11 @@ local function get_flow_link(fmt, add_hyperlink)
    local value = fmt['flow']['srv_ip']['value']
    local tag = 'srv_ip'
    if fmt['flow']['srv_ip']['label_long'] ~= fmt['flow']['srv_ip']['value'] then
-      value = fmt['flow']['srv_ip']['label_long']
+      srv_ip = " [ " .. get_label_link(fmt['flow']['srv_ip']['value'], 'srv_ip', value, add_hyperlink) .. " ]"
+       value = fmt['flow']['srv_ip']['label_long']
       tag = 'srv_name'
    end
-   label = label .. get_label_link(fmt['flow']['srv_ip']['label_long'], tag, value, add_hyperlink)
+   label = label .. get_label_link(fmt['flow']['srv_ip']['label_long'], tag, value, add_hyperlink) .. srv_ip
 
    if fmt['flow']['srv_port'] then
       label = label .. vlan .. ':' .. get_label_link(fmt['flow']['srv_port'], 'srv_port', fmt['flow']['srv_port'], add_hyperlink)
