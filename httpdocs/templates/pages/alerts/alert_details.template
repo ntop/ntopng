@@ -15,18 +15,18 @@
    
    -- If the content is a table then use a rowspan
    if is_content_table then
-      rowspan = #row.content
+      rowspan = table.len(row.content) + 1
    end
    %}
-   <tr><th width=30% rowspan="{* rowspan *}">{{ row.label }}</th>
+   <tr><th class="no-wrap" rowspan="{{ rowspan }}">{{ row.label }}</th>
 {%   if not is_content_table then %}
      <td colspan="2">{* row.content *}</td>
 {%   else 
       for data, info in pairsByKeys(row.content, asc) do 
         if not isEmptyString(info) then %}
           <tr>
-            <th>{{ i18n(data) or data }}</th>
-            <td>{{ info }}</td>
+            <th class="no-wrap">{{ i18n(data) or data }}</th>
+            <td style="width: 100%">{* info *}</td>
           </tr> 
 {%      end
       end    

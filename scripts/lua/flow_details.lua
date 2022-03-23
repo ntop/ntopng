@@ -1185,9 +1185,13 @@ else
 
       print("<tr><th width=30%>"..i18n("flow_details.dns_query").."</th><td colspan=2>")
 
-      if(flow["protos.dns.last_query_type"] ~= 0) then
-	 local dns_type_label = dns_utils.getQueryType(flow["protos.dns.last_query_type"])
-	 print(string.format('<span class="badge bg-info">%s</span> ', dns_type_label))
+      local dns_info = format_dns_query_info({ last_query_type = flow["protos.dns.last_query_type"], last_return_code = flow["protos.dns.last_return_code"]})
+      if dns_info["last_query_type"] ~= 0 then
+        print(dns_info["last_query_type"] .. " ")
+      end
+
+      if dns_info["last_return_code"] ~= 0 then
+        print(dns_info["last_return_code"] .. " ")
       end
 
       if(flow["protos.dns.last_return_code"] ~= nil) then

@@ -10,12 +10,10 @@ local classes = require "classes"
 
 require "lua_utils"
 local alert_store = require "alert_store"
-local format_utils = require "format_utils"
 local flow_risk_utils = require "flow_risk_utils"
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
-local alert_roles = require "alert_roles"
 local tag_utils = require "tag_utils"
 local json = require "dkjson"
 
@@ -645,16 +643,14 @@ end
 
 --@brief Edit specifica proto info, like converting 
 --       timestamp to date/time for TLS Certificate Validity
-local function editProtoDetails(proto_info)
+local function editProtoDetails(alert, proto_info)
   for proto, info in pairs(proto_info) do
     if proto == "tls" then
-      if info.notBefore then
-        info.notBefore = formatEpoch(info.notBefore)
-      end
-
-      if info.notAfter then
-        info.notAfter = formatEpoch(info.notAfter)
-      end      
+      info = format_tls_info(info)
+    elseif proto == "dns" then
+      info = format_dns_query_info(info)
+    elseif proto == "http" then
+      info = format_http_info(info)
     end
   end
 
@@ -678,6 +674,7 @@ function flow_alert_store:get_alert_details(value)
    local add_hyperlink = true
    local json = json.decode(value["json"])
    local proto_info = json["proto"]
+   local traffic_info = {}
 
    details[#details + 1] = {
       label = i18n("alerts_dashboard.alert"),
@@ -714,16 +711,17 @@ function flow_alert_store:get_alert_details(value)
       content = fmt['additional_alerts']['descr'],
    }
 
-   details[#details + 1] = {
-      label = i18n("alerts_dashboard.flow_related_info"),
-      content = fmt['flow_related_info']['descr'],
-   }
+   proto_info = editProtoDetails(value, proto_info or {})
+   traffic_info = format_common_info(value, traffic_info)
 
-   proto_info = editProtoDetails(proto_info or {})
+   details[#details + 1] = {
+      label = i18n("flow_details.traffic_info"),
+      content = traffic_info
+   }
 
    for _, info in pairs(proto_info or {}) do
       details[#details + 1] = {
-         label = i18n("proto_info"),
+         label = i18n("alerts_dashboard.flow_related_info"),
          content = info
       }
    end
