@@ -620,8 +620,8 @@ function recording_utils.createConfig(ifid, params)
     f:write("--zmq-export-flows\n")
   end
 
-  -- Index tunneled traffic to reflect what ntopng shows
-  f:write("--index-tunnel-content=2\n")
+  -- Index both outer header and tunneled traffic to reflect what ntopng shows
+  f:write("--index-tunnel-content=1\n")
 
   -- Ignored by systemd, required by init.d
   f:write("--daemon\n")
