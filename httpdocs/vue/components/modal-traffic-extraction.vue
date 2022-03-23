@@ -75,8 +75,15 @@ export default {
     mounted() {
     },
     methods: {
+	pad2_number: function(number) {
+	    return String(number).padStart(2, '0');
+	},
 	format_date: function(d) {
-	    let s = `${d.getDate()}/${d.getMonth()}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}`;
+	    let day = this.pad2_number(d.getDate());
+	    let month = this.pad2_number(d.getMonth());
+	    let hours = this.pad2_number(d.getHours());
+	    let minutes = this.pad2_number(d.getMinutes());
+	    let s = `${day}/${month}/${d.getFullYear()} ${hours}:${minutes}`;
 	    return s;
 	},
 	apply: async function() {
