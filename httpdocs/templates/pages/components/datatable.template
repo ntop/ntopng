@@ -16,6 +16,7 @@
   const show_download = '{* show_download *}';
   const download_endpoint = '{* datatable.download.endpoint *}';
   const navbar_context = {* navbar *};
+  const show_pcap_download = '{* show_pcap_download *}';
 </script>
 <div id="navbar">
 <page-navbar
@@ -35,10 +36,13 @@
       <div class="w-100">
 	<div clas="range-container d-flex flex-wrap">
 	  <div class="range-picker d-flex m-auto flex-wrap" id="datatable-vue">
+	  <alert-info id="alert_info" ref="alert_info"></alert-info>
+	  <modal-traffic-extraction id="modal_traffic_extraction" ref="modal_traffic_extraction"></modal-traffic-extraction>
 	    <range-picker ref="range-picker-vue" :id="id_range_picker">
 	    <template v-slot:extra_range_buttons>
 	    <button v-if="show_permalink" class="btn btn-link btn-sm" @click="get_permanent_link" :title="i18n('graphs.get_permanent_link')" ref="permanet_link_button"><i class="fas fa-lg fa-link"></i></button>
 	    <a v-if="show_download" class="btn btn-link btn-sm" id="dt-btn-download" :title="i18n('graphs.download_records')" ><i class="fas fa-lg fa-file"></i></a>
+	    <button v-if="show_pcap_download" class="btn btn-link btn-sm" @click="show_modal_traffic_extraction" :title="i18n('traffic_recording.pcap_download')"><i class="fas fa-lg fa-download"></i></button>
 	    </template>
 	    </range-picker>
 	  </div>
@@ -374,8 +378,10 @@
 	  props: {
 	      id: String,
 	  },
-	  components: {	  
+	  components: {
    	      'range-picker': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/range-picker.vue`, ntopng_vue_loader.loadOptions) ),
+   	      'modal-traffic-extraction': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/modal-traffic-extraction.vue`, ntopng_vue_loader.loadOptions) ),
+   	      'alert-info': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/alert-info.vue`, ntopng_vue_loader.loadOptions) ),
 	  },
 	  /**
 	   * First method called when the component is created.
@@ -386,11 +392,15 @@
 	      return {
 		  show_download: show_download,
 		  show_permalink: show_permalink,
+		  show_pcap_download: show_pcap_download,
 		  id_range_picker: `range_picker`,
 		  i18n: (t) => { return i18n(t); },
 	      };
 	  },
 	  methods: {
+	  show_modal_traffic_extraction: async function() {
+	  this.$refs["modal_traffic_extraction"].show();
+	  },
 	  get_permanent_link: function() {
 	  const $this = $(this.$refs['permanet_link_button']);
 	  const dummyInput = document.createElement('input');

@@ -55,7 +55,7 @@ copy_object_keys: function(source_obj, dest_obj, not_replace = false) {
   dest_obj[key] = source_obj[key];
     }
 },
-http_request: async function(url, options, throw_exception) {
+http_request: async function(url, options, throw_exception, not_unwrap) {
     try {
   let res = await fetch(url, options);
   if (res.ok == false) {		    
@@ -63,6 +63,7 @@ http_request: async function(url, options, throw_exception) {
       return null;
   }
   let json_res = await res.json();
+	if (not_unwrap == true) { return json_res; }
   return json_res.rsp;
     } catch (err) {
   console.error(err);
@@ -324,6 +325,7 @@ return (new_status.filters == null && old_status.filters != null)
 export const ntopng_custom_events = {
   SHOW_MODAL_FILTERS: "show_modal_filters", // {id: string, operator: string, value: string}
   MODAL_FILTERS_APPLY: "modal_filters_apply", // {id: string, label: string, operator: string, value: string, value_label: string}
+    SHOW_GLOBAL_ALERT_INFO: "show_global_alert_info", // html_text: string
 };
 
 

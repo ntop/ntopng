@@ -29,7 +29,7 @@
  */
 
 /*!
- * ApexCharts v3.33.1
+ * ApexCharts v3.33.2
  * (c) 2018-2022 ApexCharts
  * Released under the MIT License.
  */
