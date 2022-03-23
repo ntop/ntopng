@@ -5130,8 +5130,12 @@ function format_tls_info(tls_info)
     tls_info["ja3.server_hash"] = i18n("copy_button", { full_name = tls_info["ja3.server_hash"], name = tls_info["ja3.server_hash"] })
   end
 
+  if tls_info["ja3.client_hash"] then
+    tls_info["ja3.client_hash"] = i18n("copy_button", { full_name = tls_info["ja3.client_hash"], name = tls_info["ja3.client_hash"] })
+  end
+
   if tls_info["server_names"] then
-    tls_info["server_names"] = string.format('<span title="%s">%s</span>', tls_info["server_names"], shortenString(tls_info["server_names"],128))
+    tls_info["server_names"] = i18n("copy_button", { full_name = tls_info["server_names"], name = shortenString(tls_info["server_names"],128) })
   end
 
   return tls_info

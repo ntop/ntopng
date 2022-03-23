@@ -148,7 +148,7 @@ local lang = {
   ["export"] = "Export",
   ["external_link"] = "External Link",
   ["external_link_url"] = "<button data-to-copy='https://%{url}' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button>  <a class='ntopng-external-link' href='https://%{url}' target='_blank'><i class='fas fa-external-link-alt'></i> %{url_name}</a>",
-  ["copy_button"] = "<button data-to-copy='%{full_name}' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button>  <span href='%{full_name}'>%{name}</span>",
+  ["copy_button"] = "<button data-to-copy='%{full_name}' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button>  <span title='%{full_name}'>%{name}</span>",
   ["factory_reset"] = "Factory Reset",
   ["filter"] = "Exclude",
   ["filter_by"] = "Filter by",
