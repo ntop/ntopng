@@ -63,14 +63,17 @@ for n, ns in pairs(networks_stats) do
 
    if sortColumn == "column_hosts" then
       sort_helper[n] = ns["num_hosts"]
-   elseif sortColumn == "column_thpt" then
+    elseif sortColumn == "column_thpt" then
       sort_helper[n] = ns["throughput_bps"]
-   elseif sortColumn == "column_traffic" then
+    elseif sortColumn == "column_score" then
+      sort_helper[n] = ns["score"]
+    elseif sortColumn == "column_traffic" then
       sort_helper[n] = ns["bytes.sent"] + ns["bytes.rcvd"]
-   else
+    else
       sort_helper[n] = getLocalNetworkAlias(ns["network_key"])
-   end
+    end
 end
+
 
 local res_formatted = {}
 local cur_row = 0
