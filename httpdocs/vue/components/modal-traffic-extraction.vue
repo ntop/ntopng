@@ -1,5 +1,5 @@
 <template>
-<modal :id="id_modal" @apply="apply" ref="modal_id">
+<modal :id="id_modal" @apply="apply" ref="modal">
   <template v-slot:title>{{i18n('traffic_recording.pcap_extract')}}</template>
   <template v-slot:body>
     
@@ -111,6 +111,7 @@ export default {
 		alert_text_html = alert_text_html.replace('%{page}', href);
 		ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_GLOBAL_ALERT_INFO, alert_text_html);
 	    }
+	    this.$refs["modal"].close();
 	},
 	show: async function(bpf_filter) {
 	    if (bpf_filter == null) {
@@ -141,7 +142,7 @@ export default {
 	    // let res = await ntopng_utility.http_request(url_request);
 	    // this.bpf_filter = res.bpf;
 	    this.bpf_filter = bpf_filter;
-	    this.$refs["modal_id"].show();
+	    this.$refs["modal"].show();
 	},
 	show_hide_menu: function() {
 	    this.show_menu = !this.show_menu;
