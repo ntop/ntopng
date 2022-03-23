@@ -114,8 +114,9 @@ export default {
 		let alert_text_html = i18n('traffic_recording.extraction_scheduled');
 		let page_name = i18n('traffic_recording.traffic_extraction_jobs');
 		let ifid = ntopng_url_manager.get_url_entry("ifid");
-		let href = `<a href="/lua/if_stats.lua?ifid=${ifid}page=traffic_recording&tab=jobs&job_id=${job_id}">${page_name}</a>`; 
+		let href = `<a href="/lua/if_stats.lua?ifid=${ifid}&page=traffic_recording&tab=jobs&job_id=${job_id}">${page_name}</a>`; 
 		alert_text_html = alert_text_html.replace('%{page}', href);
+		alert_text_html = `${alert_text_html} ${job_id}`;
 		ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_GLOBAL_ALERT_INFO, alert_text_html);
 	    }
 	    this.$refs["modal"].close();
