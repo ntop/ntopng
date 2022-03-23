@@ -711,7 +711,7 @@ function flow_alert_store:get_alert_details(value)
 
    details[#details + 1] = {
       label = i18n("protocol") .. " / " .. i18n("application"),
-      content = get_label_link(fmt['l7_proto']['l4_label'] .. ' / ' .. fmt['l7_proto']['l7_label'], 'l7proto', fmt['l7_proto']['value'], add_hyperlink)
+      content = get_label_link(fmt['l7_proto']['l4_label'] .. ':' .. fmt['l7_proto']['l7_label'], 'l7proto', fmt['l7_proto']['value'], add_hyperlink)
    }
 
    details[#details + 1] = {
