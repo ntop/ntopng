@@ -1186,25 +1186,13 @@ else
       print("<tr><th width=30%>"..i18n("flow_details.dns_query").."</th><td colspan=2>")
 
       local dns_info = format_dns_query_info({ last_query_type = flow["protos.dns.last_query_type"], last_return_code = flow["protos.dns.last_return_code"]})
+      
       if dns_info["last_query_type"] ~= 0 then
         print(dns_info["last_query_type"] .. " ")
       end
 
       if dns_info["last_return_code"] ~= 0 then
         print(dns_info["last_return_code"] .. " ")
-      end
-
-      if(flow["protos.dns.last_return_code"] ~= nil) then
-	 local dns_ret_code = dns_utils.getResponseStatusCode(flow["protos.dns.last_return_code"])
-	 local c
-
-	 if(flow["protos.dns.last_return_code"] == 0) then
-	    c = "success"
-	 else
-	    c = "danger"
-	 end
-
-	 print(string.format('<span class="badge bg-%s">%s</span> ', c, dns_ret_code))
       end
 
       if(string.ends(flow["protos.dns.last_query"], "arpa")) then

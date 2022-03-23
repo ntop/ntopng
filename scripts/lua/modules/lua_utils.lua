@@ -5061,10 +5061,26 @@ function format_portidx_name(cached_dev, portidx, short_version)
   return idx_name                                                                                                                                                                                                 
 end   
 
+-- ##############################################
+
 function print_copy_button(id, data)
    print('<button style="" class="btn btn-sm border ms-1" data-placement="bottom" id="btn-copy-' .. id ..'" data="' .. data .. '"><i class="fas fa-copy"></i></button>')
    print("<script>$('#btn-copy-" .. id .. "').click(function(e) { NtopUtils.copyToClipboard($(this).attr('data'), '" .. i18n('copied') .. "', '" .. i18n('request_failed_message') .. "', $(this));});</script>")   
 end
+
+-- ##############################################
+
+function get_badge(info)
+  local badge = 'success'
+
+  if info ~= true and info ~= 0 then
+    badge = 'danger'
+  end
+
+  return badge
+end
+
+-- ##############################################
 
 -- @brief Given a table of values, if available, it's going to format the values with the standard
 --        info and then return the same table formatted
@@ -5074,7 +5090,8 @@ function format_dns_query_info(dns_info)
   end
 
   if dns_info.last_return_code then
-    dns_info.last_return_code = string.format('<span class="badge bg-danger">%s</span>', dns_utils.getResponseStatusCode(dns_info.last_return_code))
+    local badge = get_badge(dns_info.last_return_code)
+    dns_info.last_return_code = string.format('<span class="badge bg-%s">%s</span>', badge, dns_utils.getResponseStatusCode(dns_info.last_return_code))
   end
 
   if dns_info.last_query then
@@ -5108,7 +5125,8 @@ function format_tls_info(tls_info)
   end
 
   if tls_info["ja3.server_unsafe_cipher"] then
-    tls_info["ja3.server_unsafe_cipher"] = string.format('<span class="badge bg-success">%s</span>', tls_info["ja3.server_unsafe_cipher"])
+    local badge = get_badge(tls_info["ja3.server_unsafe_cipher"] == "safe")
+    tls_info["ja3.server_unsafe_cipher"] = string.format('<span class="badge bg-%s">%s</span>', badge, tls_info["ja3.server_unsafe_cipher"])
   end
 
   return tls_info
@@ -5118,7 +5136,8 @@ end
 
 function format_http_info(http_info)
   if http_info["last_return_code"] then
-    http_info["last_return_code"] = string.format('<span class="badge bg-success">%s</span>', http_utils.getResponseStatusCode(http_info["last_return_code"]))
+    local badge = get_badge(http_info.last_return_code == 200)
+    http_info["last_return_code"] = string.format('<span class="badge bg-%s">%s</span>', badge, http_utils.getResponseStatusCode(http_info["last_return_code"]))
   end
 
   if http_info["last_method"] then
