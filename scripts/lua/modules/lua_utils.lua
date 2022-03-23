@@ -4845,12 +4845,8 @@ function addTLSInfoToAlertDescr(msg, alert_json)
                                           client_requested_server_name = alert_json["proto"]["tls"]["client_requested_server_name"],
                                           ['ja3.server_unsafe_cipher'] = alert_json["proto"]["tls"]["ja3.server_unsafe_cipher"] })
 
-      if tls_info["notBefore"] and tls_info["notAfter"] then
-         msg = msg .. string.format(" [ %s: %s - %s ]", i18n("flow_details.tls_certificate_validity"), tls_info["notBefore"], tls_info["notAfter"])
-      end
-
-      if tls_info["flow_details.tls_certificate_validity"] then
-        msg = msg .. string.format(" [ %s: %s - %s ]", i18n("flow_details.tls_certificate_validity"), tls_info["flow_details.tls_certificate_validity"])
+      if tls_info["tls_certificate_validity"] then
+        msg = msg .. string.format(" [ %s: %s ]", i18n("tls_certificate_validity"), tls_info["tls_certificate_validity"])
       end
 
       if tls_info["ja3.server_unsafe_cipher"] then
@@ -5108,6 +5104,7 @@ function format_tls_info(tls_info)
   end     
 
   if tls_info.notBefore and tls_info.notAfter then
+    tprint(tls_info)
     tls_info["tls_certificate_validity"] = string.format("%s - %s", tls_info.notBefore, tls_info.notAfter)
     tls_info.notBefore = nil
     tls_info.notAfter = nil
@@ -5155,6 +5152,10 @@ function format_http_info(http_info)
 
   if http_info["last_url"] then
     http_info["last_url"] = i18n("external_link_url", { url = http_info["last_url"], url_name = http_info["last_url"]})
+  end
+
+  if http_info["server_name"] then
+    http_info["server_name"] = i18n("copy_button", { full_name = http_info["server_name"], name = shortenString(http_info["server_name"], 32)})
   end
 
   return http_info
