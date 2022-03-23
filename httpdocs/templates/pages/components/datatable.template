@@ -625,10 +625,10 @@
     {% end %}
 
     /* HTTP copy URL button */
-    $table.on('click', `#copyHttpUrl`, function (e) {
+    $table.on('click', `.copy-http-url`, function (e) {
         let sampleTextarea = document.createElement("textarea");
         document.body.appendChild(sampleTextarea);
-        sampleTextarea.value = this.parentElement.getElementsByTagName('a')[0].href; //url
+        sampleTextarea.value = $(this).attr('data-to-copy'); //url
         sampleTextarea.select(); //select textarea content
         document.execCommand("copy");
         document.body.removeChild(sampleTextarea);

@@ -205,6 +205,15 @@ let updatingChart_totals = [
 	$(".mobile-menu-stats .network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null})
 ];
 
+$(`.copy-http-url`).on('click', function() {
+  let sampleTextarea = document.createElement("textarea");
+  document.body.appendChild(sampleTextarea);
+  sampleTextarea.value = $(this).attr('data-to-copy');
+  sampleTextarea.select(); //select textarea content
+  document.execCommand("copy");
+  document.body.removeChild(sampleTextarea);
+})
+
 let isFooterRefreshInProcess = false;
 const footerRefresh = function() {
 	if (isFooterRefreshInProcess == true) { return; }
