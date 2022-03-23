@@ -51,7 +51,7 @@ function alert_ndpi_suspicious_dga_domain.format(ifid, alert, alert_type_params)
    end
 
    if not isEmptyString(domain) then
-      href = '<a class="ntopng-external-link fa-sm" href= http://' .. alert_type_params.dga_domain .. ' ><i  class="fas fa-external-link-alt fa-lg"></i></a>'
+      href = i18n('external_link_url', { url = 'https://' .. alert_type_params.dga_domain, url_name = shortenString(alert_type_params.dga_domain, 32)})
    end
 
    return i18n("alert_messages.suspicious_dga_domain", {
