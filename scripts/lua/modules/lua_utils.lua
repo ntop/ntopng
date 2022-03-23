@@ -5104,7 +5104,6 @@ function format_tls_info(tls_info)
   end     
 
   if tls_info.notBefore and tls_info.notAfter then
-    tprint(tls_info)
     tls_info["tls_certificate_validity"] = string.format("%s - %s", tls_info.notBefore, tls_info.notAfter)
     tls_info.notBefore = nil
     tls_info.notAfter = nil
