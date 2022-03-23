@@ -643,7 +643,7 @@ end
 
 --@brief Edit specifica proto info, like converting 
 --       timestamp to date/time for TLS Certificate Validity
-local function editProtoDetails(alert, proto_info)
+local function editProtoDetails(proto_info)
   for proto, info in pairs(proto_info) do
     if proto == "tls" then
       info = format_tls_info(info)
@@ -711,7 +711,7 @@ function flow_alert_store:get_alert_details(value)
       content = fmt['additional_alerts']['descr'],
    }
 
-   proto_info = editProtoDetails(value, proto_info or {})
+   proto_info = editProtoDetails(proto_info or {})
    traffic_info = format_common_info(value, traffic_info)
 
    details[#details + 1] = {

@@ -4843,7 +4843,6 @@ function addTLSInfoToAlertDescr(msg, alert_json)
       local tls_info = format_tls_info({ notBefore = alert_json["proto"]["tls"]["notBefore"], 
                                           notAfter = alert_json["proto"]["tls"]["notAfter"],
                                           client_requested_server_name = alert_json["proto"]["tls"]["client_requested_server_name"],
-                                          version = alert_json["proto"]["tls"]["version"],
                                           ['ja3.server_unsafe_cipher'] = alert_json["proto"]["tls"]["ja3.server_unsafe_cipher"] })
 
       if tls_info["notBefore"] and tls_info["notAfter"] then
@@ -4852,10 +4851,6 @@ function addTLSInfoToAlertDescr(msg, alert_json)
 
       if tls_info["flow_details.tls_certificate_validity"] then
         msg = msg .. string.format(" [ %s: %s - %s ]", i18n("flow_details.tls_certificate_validity"), tls_info["flow_details.tls_certificate_validity"])
-      end
-
-      if tls_info["version"] then
-         msg = msg .. string.format(" [ %s: %s ]", i18n("flow_details.tls_version"), tls_info["version"])
       end
 
       if tls_info["ja3.server_unsafe_cipher"] then
@@ -5114,10 +5109,12 @@ function format_tls_info(tls_info)
 
   if tls_info.notBefore and tls_info.notAfter then
     tls_info["tls_certificate_validity"] = string.format("%s - %s", tls_info.notBefore, tls_info.notAfter)
+    tls_info.notBefore = nil
+    tls_info.notAfter = nil
   end
 
-  if tls_info.version then
-    tls_info["tls_version"] = tls_info.version
+  if tls_info.tls_version then
+    tls_info["tls_version"] = ntop.getTLSVersionName(tls_info.tls_version)
   end
 
   if tls_info.client_requested_server_name then
