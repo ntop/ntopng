@@ -391,7 +391,7 @@ function flow_alert_store:format_record(value, no_html)
 	 local cur_msg = ''
 	 if cur_additional_alert > 0 then
 	    -- Every 4 issues print a newline
-	    cur_msg = cur_additional_alert % 4 ~= 0 and ", " or "<br>"
+	    cur_msg = cur_additional_alert and "<br>"
 	 end
 	 cur_additional_alert = cur_additional_alert + 1
 

@@ -5110,7 +5110,11 @@ function format_tls_info(tls_info)
   end
 
   if tls_info.tls_version then
-    tls_info["tls_version"] = ntop.getTLSVersionName(tls_info.tls_version)
+    if tls_info.tls_version > 0 then
+      tls_info["tls_version"] = ntop.getTLSVersionName(tls_info.tls_version)
+    else
+      tls_info["tls_version"] = nil
+    end
   end
 
   if tls_info.client_requested_server_name then
