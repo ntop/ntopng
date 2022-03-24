@@ -431,7 +431,15 @@ else
 fi
 
 if test "${with_nedge+set}" != set; then
- PF_RING_HOME=${HOME}/PF_RING
+  if test -d "${HOME}/PF_RING" ; then :
+     PF_RING_HOME=${HOME}/PF_RING
+  elif test -d "../PF_RING" ; then :
+     PF_RING_HOME=../PF_RING
+  elif test -d "./PF_RING" ; then :
+     PF_RING_HOME=./PF_RING
+  else
+     PF_RING_HOME=${HOME}/PF_RING
+  fi
 
   if test $SYSTEM = "FreeBSD"; then
      LIBPCAP="${PF_RING_HOME}/userland/libpcap/libpcap.a"
