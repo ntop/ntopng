@@ -1,5 +1,9 @@
+--
+-- (C) 2013-22 - ntop.org
+--
+
 require "lua_utils"
-local graph_utils = require "graph_utils"
+local format_utils = require "format_utils"
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
@@ -14,7 +18,7 @@ function as2record(ifId, as)
    record["column_asn"] = as_link
 
    record["column_asname"] = printASN(as["asn"], as["asname"])
-   record["column_score"] = as["score"]
+   record["column_score"] = format_utils.formatValue(as["score"] or 0)
    record["column_hosts"] = as["num_hosts"]..""
    record["column_since"] = secondsToTime(now - as["seen.first"] + 1)
 

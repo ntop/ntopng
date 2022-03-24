@@ -1,10 +1,12 @@
+--
+-- (C) 2013-22 - ntop.org
+--
+
 require "lua_utils"
-local graph_utils = require "graph_utils"
+local format_utils = require "format_utils"
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
-
-local now = os.time()
 
 function network2record(ifId, network)
    local record = {}
@@ -12,7 +14,7 @@ function network2record(ifId, network)
 
    local network_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?network='..network["network_id"].."' title='"..network["network_key"].."'>"..getFullLocalNetworkName(network["network_key"])..'</A>'
    record["column_id"] = network_link
-   record["column_score"] = network["score"] or 0
+   record["column_score"] = format_utils.formatValue(network["score"] or 0)
    record["column_hosts"] = (network["num_hosts"] or 0)..""
 
    local sent2rcvd = round((network["bytes.sent"] * 100) / (network["bytes.sent"] + network["bytes.rcvd"]), 0)
