@@ -1036,7 +1036,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows,
   }
 
   if(rc != 0) {
-    lua_pushstring(vm, get_last_db_error(&mysql));
+    if(vm) lua_pushstring(vm, get_last_db_error(&mysql));
     
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d][%s]",
 				 get_last_db_error(&mysql), rc, sql);
