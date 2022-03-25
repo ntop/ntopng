@@ -6,12 +6,14 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+require "country_utils"
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local alert_severities = require "alert_severities"
 local alert_utils = require "alert_utils"
 local host_pools = require "host_pools"
 local dscp_consts = require "dscp_consts"
+local country_codes = require "country_codes"
 
 local tag_utils = {}
 
@@ -146,6 +148,16 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.srv_port'),
       operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
       bpf_key = 'port',
+   },
+   cli_country = {
+      value_type = 'country',
+      i18n_label = i18n('db_search.tags.cli_country'),
+      operators = {'eq', 'neq'}
+   },
+   srv_country = {
+      value_type = 'country',
+      i18n_label = i18n('db_search.tags.srv_country'),
+      operators = {'eq', 'neq'}
    },
    cli_asn = {
       value_type = 'asn',
@@ -519,6 +531,13 @@ function tag_utils.get_tag_info(id, entity)
       end
       for  _, v in pairsByField(obs_points_list, 'alias', asc) do
          filter.options[#filter.options+1] = { value = v.id, label = v.alias }
+      end
+
+   elseif tag.value_type == "country" then
+      filter.value_type = 'array'
+      filter.options = {}
+      for  code, label in pairsByValue(country_codes, asc) do
+         filter.options[#filter.options+1] = { value = interface.convertCountryCode2U16(code), label = label }
       end
 
    elseif tag.value_type == "ip_version" then
