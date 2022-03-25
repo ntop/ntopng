@@ -914,7 +914,7 @@ local function validateCountry(p)
    if string.len(p) == 2 then
       return true
    else
-      return false
+      return validateNumber(p)
    end
 end
 
@@ -1606,7 +1606,9 @@ local known_parameters = {
    ["device_responsiveness"]   = validateDeviceResponsiveness,  -- Device responsiveness
    ["counters_since"]          = validateCounterSince,          -- Select actual or absolute counters
    ["err_counters_filter"]     = validateErrorsFilter,          -- Filter by errrrs, discards, both
-   ["country"]                 = validateCountry,               -- Country code
+   ["country"]                 = validateListOfTypeInline(validateFilters(validateCountry)),               -- Country code
+   ["cli_country"]             = validateListOfTypeInline(validateFilters(validateCountry)),               -- Country code
+   ["srv_country"]             = validateListOfTypeInline(validateFilters(validateCountry)),               -- Country code
    ["flow_key"]                = validateNumber,                -- The key of the flow
    ["flow_hash_id"]            = validateNumber,                -- The ID uniquely identifying the flow in the hash table
    ["user"]                    = validateSingleWord,            -- The user ID

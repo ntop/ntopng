@@ -1710,6 +1710,7 @@ local lang = {
       ["cli_network"] = "Client Network",
       ["cli_nw_latency"] = "Cli Network Latency",
       ["cli_port"] = "Client Port",
+      ["country"] = "Country",
       ["dscp_id"] = "DSCP ID",
       ["dst2src_dscp"] = "Server DSCP",
       ["dst2src_tcp_flags"] = "Srv TCP Flags",
