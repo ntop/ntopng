@@ -3916,52 +3916,98 @@ static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
+static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  IpAddress *ip = NULL;
-  u_int8_t *mac = NULL;
   char * l7_proto = NULL;
-  VLANid vlan_id = 0;
-  u_int16_t host_pool_id = (u_int16_t)-1;
-  u_int16_t filter_ndpi_proto = (u_int16_t)-1;
-  u_int32_t first_seen = 0;
-  u_int32_t maxHits = (u_int32_t)-1;
-  bool unicast = false;
+  filters->iface = ntop_interface;
+  filters->ip = NULL;
+  filters->mac = NULL;
+  filters->vlan_id = 0;
+  filters->host_pool_id = (u_int16_t)-1;
+  filters->ndpi_proto = (u_int16_t)-1;
+  filters->first_seen = 0;
+  filters->maxHits = (u_int32_t)-1;
+  filters->unicast = false;
+
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
     const char *addr = lua_tostring(vm, 1);
     if(strchr(addr, ':')) { /* This is a MAC address */
-      mac = new (std::nothrow) u_int8_t[6]();
-      if(mac) Utils::parseMac(mac, addr);
+      filters->mac = new (std::nothrow) u_int8_t[6]();
+      if(filters->mac) Utils::parseMac(filters->mac, addr);
     } else { /* This is an IP address */
-      ip = new (std::nothrow) IpAddress();
-      if(ip) ip->set(addr);
+      filters->ip = new (std::nothrow) IpAddress();
+      if(filters->ip) filters->ip->set(addr);
     }
   }
-  if(lua_type(vm, 2) == LUA_TNUMBER)  vlan_id      = (u_int16_t)lua_tonumber(vm, 2);
-  if(lua_type(vm, 3) == LUA_TNUMBER)  host_pool_id = (u_int16_t)lua_tonumber(vm, 3);
-  if(lua_type(vm, 4) == LUA_TBOOLEAN) unicast      = (bool)lua_toboolean(vm, 4);
-  if(lua_type(vm, 5) == LUA_TNUMBER)  first_seen   = (u_int32_t)lua_tonumber(vm, 5);
-  if(lua_type(vm, 6) == LUA_TSTRING)  l7_proto     = (char *)lua_tostring(vm, 6);
-  if(lua_type(vm, 7) == LUA_TNUMBER)  maxHits      = (u_int32_t)lua_tonumber(vm, 7);
+  if(lua_type(vm, 2) == LUA_TNUMBER)  filters->vlan_id      = (u_int16_t)lua_tonumber(vm, 2);
+  if(lua_type(vm, 3) == LUA_TNUMBER)  filters->host_pool_id = (u_int16_t)lua_tonumber(vm, 3);
+  if(lua_type(vm, 4) == LUA_TBOOLEAN) filters->unicast      = (bool)lua_toboolean(vm, 4);
+  if(lua_type(vm, 5) == LUA_TNUMBER)  filters->first_seen   = (u_int32_t)lua_tonumber(vm, 5);
+  if(lua_type(vm, 6) == LUA_TSTRING)  l7_proto             = (char *)lua_tostring(vm, 6);
+  if(lua_type(vm, 7) == LUA_TNUMBER)  filters->maxHits      = (u_int32_t)lua_tonumber(vm, 7);
 
   if(l7_proto)
-    filter_ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
+    filters->ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
+}
 
-  if(ntop_interface) {
-    if(periodicity) 
-      ntop_interface->luaPeriodicityMap(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto, maxHits);
-    else
-      ntop_interface->luaServiceMap(vm, mac, ip, vlan_id, host_pool_id, unicast, first_seen, filter_ndpi_proto, maxHits);
+/* ****************************************** */
+
+static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
+  MapsFilters filters;
+  ntop_get_maps_filters(vm, &filters);
+
+  if(filters.iface) {
+    if(periodicity) {
+      filters.periodicity_or_service = true;
+      filters.iface->luaPeriodicityMap(vm, &filters);
+    } else {
+      filters.periodicity_or_service = false;
+      filters.iface->luaServiceMap(vm, &filters);
+    }
   } else
     lua_pushnil(vm);
 
-  if(ip)  delete ip;
-  if(mac) delete [] mac;
+  if(filters.ip)  delete filters.ip;
+  if(filters.mac) delete [] filters.mac;
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_get_interface_map_filter_list(lua_State* vm, bool periodicity) {
+  MapsFilters filters;
+  filters.periodicity_or_service = periodicity;
+  ntop_get_maps_filters(vm, &filters);
+
+  if(filters.iface) {
+    if(periodicity) {
+      filters.iface->luaPeriodicityFilteringMenu(vm, &filters);
+    } else {
+      filters.iface->luaServiceFilteringMenu(vm, &filters);
+    }
+  } else
+    lua_pushnil(vm);
+
+  if(filters.ip)  delete filters.ip;
+  if(filters.mac) delete [] filters.mac;
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_get_interface_periodicity_map_filter_list(lua_State* vm) {
+  return ntop_get_interface_map_filter_list(vm, true /* periodicity */);
+}
+
+/* ****************************************** */
+
+static int ntop_get_interface_service_map_filter_list(lua_State* vm) {
+  return ntop_get_interface_map_filter_list(vm, false /* service */);
 }
 
 /* ****************************************** */
@@ -4086,44 +4132,6 @@ static int ntop_interface_service_map_learning_status(lua_State* vm) {
 #if defined(NTOPNG_PRO)
   if(ntop_interface)
     ntop_interface->luaServiceMapStatus(vm);
-  else
-    lua_pushnil(vm);
-#endif
-
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
-static int ntop_get_interface_periodicity_proto_filtering_menu(lua_State* vm) {
-#if defined(NTOPNG_PRO)
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-#endif
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-#if defined(NTOPNG_PRO)
-  if(ntop_interface)
-    ntop_interface->luaPeriodicityFilteringMenu(vm);
-  else
-    lua_pushnil(vm);
-#endif
-
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
-static int ntop_get_interface_service_proto_filtering_menu(lua_State* vm) {
-#if defined(NTOPNG_PRO)
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-#endif
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-#if defined(NTOPNG_PRO)
-  if(ntop_interface)
-    ntop_interface->luaServiceFilteringMenu(vm);
   else
     lua_pushnil(vm);
 #endif
@@ -4465,12 +4473,12 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "periodicityMap",                   ntop_get_interface_periodicity_map },
   { "flushPeriodicityMap",              ntop_flush_interface_periodicity_map },
   { "serviceMap",                       ntop_get_interface_service_map },
+  { "periodicityMapFilterList",         ntop_get_interface_periodicity_map_filter_list },
+  { "serviceMapFilterList",             ntop_get_interface_service_map_filter_list },
   { "flushServiceMap",                  ntop_flush_interface_service_map },
   { "serviceMapLearningStatus",         ntop_interface_service_map_learning_status },
   { "serviceMapSetStatus",              ntop_interface_service_map_set_status },
   { "serviceMapSetMultipleStatus",      ntop_interface_service_map_set_multiple_status },
-  { "periodicityFilteringMenu",         ntop_get_interface_periodicity_proto_filtering_menu },
-  { "serviceFilteringMenu",             ntop_get_interface_service_proto_filtering_menu },
   { "getThroughput",                    ntop_interface_get_throughput },
   
   /* Addresses */

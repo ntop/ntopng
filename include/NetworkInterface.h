@@ -618,12 +618,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void luaAlertedFlows(lua_State* vm);
   void luaAnomalies(lua_State* vm);
   void luaNdpiStats(lua_State* vm, bool diff = false);
-  void luaPeriodicityFilteringMenu(lua_State* vm);
-  void luaServiceFilteringMenu(lua_State* vm);
-  void luaPeriodicityMap(lua_State* vm, const u_int8_t * const mac, IpAddress *ip_address, VLANid vlan_id, u_int16_t host_pool_id, 
-			 bool unicast, u_int32_t first_seen, u_int16_t filter_ndpi_proto, u_int32_t maxHits);
-  void luaServiceMap(lua_State* vm, const u_int8_t * const mac, IpAddress *ip_address, VLANid vlan_id, u_int16_t host_pool_id, 
-		     bool unicast, u_int32_t first_seen, u_int16_t filter_ndpi_proto, u_int32_t maxHits);
+  void luaPeriodicityFilteringMenu(lua_State* vm, MapsFilters *filters);
+  void luaServiceFilteringMenu(lua_State* vm, MapsFilters *filters);
+  void luaPeriodicityMap(lua_State* vm, MapsFilters *filters);
+  void luaServiceMap(lua_State* vm, MapsFilters *filters);
   void luaSubInterface(lua_State *vm);
   void luaServiceMapStatus(lua_State *vm);
   inline u_int8_t* getIfMac()                { return ifMac; };

@@ -9354,10 +9354,10 @@ void NetworkInterface::luaAlertedFlows(lua_State* vm) {
 
 /* *************************************** */
 
-void NetworkInterface::luaPeriodicityFilteringMenu(lua_State* vm) {
+void NetworkInterface::luaPeriodicityFilteringMenu(lua_State* vm, MapsFilters *filters) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pMap) {
-    pMap->luaFilteringMenu(vm, this, true);
+    pMap->luaFilteringMenu(vm, this, true, filters);
     return;
   }
 #endif
@@ -9367,10 +9367,10 @@ void NetworkInterface::luaPeriodicityFilteringMenu(lua_State* vm) {
 
 /* *************************************** */
 
-void NetworkInterface::luaServiceFilteringMenu(lua_State* vm) {
+void NetworkInterface::luaServiceFilteringMenu(lua_State* vm, MapsFilters *filters) {
 #if defined(NTOPNG_PRO)
   if(sMap) {
-    sMap->luaFilteringMenu(vm, this, false);
+    sMap->luaFilteringMenu(vm, this, false, filters);
     return;
   }
 #endif
@@ -9380,15 +9380,10 @@ void NetworkInterface::luaServiceFilteringMenu(lua_State* vm) {
 
 /* *************************************** */
 
-void NetworkInterface::luaPeriodicityMap(lua_State* vm,
-					 const u_int8_t * const mac,
-					 IpAddress *ip_address,
-					 VLANid vlan_id, u_int16_t host_pool_id, bool unicast,
-					 u_int32_t first_seen, u_int16_t filter_ndpi_proto,
-					 u_int32_t maxHits) {
+void NetworkInterface::luaPeriodicityMap(lua_State* vm, MapsFilters *filters) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pMap) {
-    pMap->lua(vm, true, this, mac, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen, maxHits);
+    pMap->lua(vm, filters);
     return;
   }
 #endif
@@ -9398,14 +9393,10 @@ void NetworkInterface::luaPeriodicityMap(lua_State* vm,
 
 /* *************************************** */
 
-void NetworkInterface::luaServiceMap(lua_State* vm,
-				     const u_int8_t * const mac,
-				     IpAddress *ip_address,
-				     VLANid vlan_id, u_int16_t host_pool_id, bool unicast,
-				     u_int32_t first_seen, u_int16_t filter_ndpi_proto, u_int32_t maxHits) {
+void NetworkInterface::luaServiceMap(lua_State* vm, MapsFilters *filters) {
 #if defined(NTOPNG_PRO)
   if(sMap) {
-    sMap->lua(vm, false, this, mac, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen, maxHits);
+    sMap->lua(vm, filters);
     return;
   }
 #endif

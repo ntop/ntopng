@@ -1033,4 +1033,38 @@ typedef enum {
   ntopng_edition_enterprise_l
 } NtopngEdition;
 
+typedef struct _MapsFilters {
+  bool periodicity_or_service;
+  NetworkInterface *iface;
+  u_int8_t *mac;
+  IpAddress *ip;  
+  bool unicast;
+  u_int16_t vlan_id;
+  u_int16_t host_pool_id;
+  u_int16_t port;
+  u_int16_t ndpi_proto;
+  u_int32_t first_seen;
+  u_int32_t maxHits;
+} MapsFilters;
+
+typedef struct _MapsFilteringMenu {
+  std::set<u_int16_t> *proto_map; 
+  std::set<u_int16_t> *vlan_map; 
+  std::set<u_int16_t> *pool_map;
+} MapsFilteringMenu;
+
+typedef struct {
+  union {
+    ipAddress ip;
+    u_int8_t mac[6];
+  } addr;
+  u_int8_t by_mac:1, not_used:7;
+} PeriodicityStatsPeerKey;
+
+typedef struct {
+  PeriodicityStatsPeerKey src, dst;
+  u_int16_t vlan_id, server_port;
+  u_int8_t l4_proto;
+} PeriodicityStatsKey;
+
 #endif /* _NTOP_TYPEDEFS_H_ */
