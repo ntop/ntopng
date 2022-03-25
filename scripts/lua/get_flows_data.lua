@@ -224,7 +224,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    if (value["in_index"] ~= nil and value["out_index"] ~= nil) then
       --record["column_in_index"] = tostring(value["in_index"])..'&nbsp;'
       --record["column_out_index"] = tostring(value["out_index"])..'&nbsp;'
-      record["column_device_id"] = value["device_ip"]
+      record["column_device_ip"] = value["device_ip"]
       record["in_index"] = value["in_index"]
       record["out_index"] = value["out_index"]
    end

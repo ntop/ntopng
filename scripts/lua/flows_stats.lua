@@ -390,7 +390,7 @@ if interface.isPacketInterface() == false then
    print[[
       {
          title: "]] print(i18n('snmp.device_ip')) print[[",
-         field: "column_device_id",
+         field: "column_device_ip",
          sortable: true,
          css: {
             textAlign: 'left',

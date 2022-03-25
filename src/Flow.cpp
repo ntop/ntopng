@@ -5337,7 +5337,7 @@ void Flow::lua_duration_info(lua_State *vm) {
 /* ***************************************************** */
 
 void Flow::lua_snmp_info(lua_State *vm) {
-  char str[12];
+  char str[16];
   u_int32_t device_ip = htonl(flow_device.device_ip);
   inet_ntop(AF_INET, &(device_ip), str, INET_ADDRSTRLEN);
   lua_push_str_table_entry(vm, "device_ip", str);
