@@ -345,6 +345,7 @@ else
       },
    ]]
 end   
+
 print[[{
          title: "]] print(i18n("score")) print[[",
          field: "column_score",
@@ -384,7 +385,37 @@ print[[{
             textAlign: 'left',
             whiteSpace: 'nowrap'
          }
-      }
+      },]]
+if interface.isPacketInterface() == false then
+   print[[
+      {
+         title: "]] print(i18n('snmp.device_ip')) print[[",
+         field: "column_device_id",
+         sortable: true,
+         css: {
+            textAlign: 'left',
+            whiteSpace: 'nowrap'
+         }
+      }, {
+         title: "]] print(i18n('flows_page.inIfIdx')) print[[",
+         field: "column_in_index",
+         sortable: true,
+         css: {
+            textAlign: 'left',
+            whiteSpace: 'nowrap'
+         }
+      }, {
+         title: "]] print(i18n('flows_page.outIfIdx')) print[[",
+         field: "column_out_index",
+         sortable: true,
+         css: {
+            textAlign: 'left',
+            whiteSpace: 'nowrap'
+         }
+      },
+   ]]
+end
+print[[
       ]
    });
 ]]
@@ -392,14 +423,13 @@ print[[{
 if(have_nedge) then
   printBlockFlowJs()
 end
-
 print[[
 </script>
 ]]
-
 if (table.len(page_params) > 0) and (not isEmptyString(page_params["application"])) then
    print([[
       <script type='text/javascript'>
+
          let old_totBytesSent = 0;
          let old_totBytesRcvd = 0;
          let refresh_rate     = 5; /* seconds */

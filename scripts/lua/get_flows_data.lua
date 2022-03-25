@@ -114,7 +114,6 @@ for key, value in ipairs(flows_stats) do
 end
 
 local formatted_res = {}
-
 for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local record = {}
    local key = value["ntopng.key"]
@@ -222,6 +221,13 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    record["key"] = string.format("%u", value["ntopng.key"])
    record["hash_id"] = string.format("%u", value["hash_entry_id"])
    record["key_and_hash"] = string.format("%s@%s", record["key"], record["hash_id"])
+   if (value["in_index"] ~= nil and value["out_index"] ~= nil) then
+      --record["column_in_index"] = tostring(value["in_index"])..'&nbsp;'
+      --record["column_out_index"] = tostring(value["out_index"])..'&nbsp;'
+      record["column_device_id"] = value["device_ip"]
+      record["in_index"] = value["in_index"]
+      record["out_index"] = value["out_index"]
+   end
 
    local column_client = src_key
 
