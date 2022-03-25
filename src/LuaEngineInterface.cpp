@@ -1888,6 +1888,35 @@ static int ntop_get_interface_countries_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_convert_country_code_to_u16(lua_State* vm) {
+  const char* country_code;
+  u_int16_t country_u16;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  country_code = lua_tostring(vm, 1);
+
+  country_u16 = Utils::countryCode2U16(country_code);
+  lua_pushinteger(vm, country_u16);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_convert_country_u16_to_code(lua_State* vm) {
+  char country_code[3];
+  u_int16_t country_u16;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  country_u16 = lua_tonumber(vm, 1);
+
+  lua_pushstring(vm, Utils::countryU162Code(country_u16, country_code, sizeof(country_code)));
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_country_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   const char* country;
@@ -4476,6 +4505,8 @@ static luaL_Reg _ntop_interface_reg[] = {
   /* Countries */
   { "getCountriesInfo",                 ntop_get_interface_countries_info },
   { "getCountryInfo",                   ntop_get_interface_country_info },
+  { "convertCountryCode2U16",           ntop_convert_country_code_to_u16 },
+  { "convertCountryU162Code",           ntop_convert_country_u16_to_code },
 
   /* VLANs */
   { "getVLANsList",                     ntop_get_interface_vlans_list },

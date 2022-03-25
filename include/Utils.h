@@ -245,7 +245,8 @@ public:
   static void deferredExec(const char * command);
 #endif
   static void tlv2lua(lua_State *vm, ndpi_serializer *serializer);
-  static u_int16_t country2u16(const char *country_code);
+  static u_int16_t countryCode2U16(const char *country_code);
+  static char *countryU162Code(u_int16_t country_u16, char *country_code, size_t country_code_size);
   static bool isNumber(const char *s, unsigned int s_len, bool *is_float);
   static bool isPingSupported();
   static ScoreCategory mapAlertToScoreCategory(AlertCategory check_category);

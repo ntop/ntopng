@@ -4780,9 +4780,18 @@ void Utils::tlv2lua(lua_State *vm, ndpi_serializer *serializer) {
 
 /* ****************************************************** */
 
-u_int16_t Utils::country2u16(const char *country_code) {
+u_int16_t Utils::countryCode2U16(const char *country_code) {
   if(country_code == NULL || strlen(country_code) < 2) return 0;
   return ((((u_int16_t) country_code[0]) << 8) | ((u_int16_t) country_code[1]));
+}
+
+/* ****************************************************** */
+
+char *Utils::countryU162Code(u_int16_t country_u16, char *country_code, size_t country_code_size) {
+  country_code[0] = (country_u16 >> 8) & 0xFF;
+  country_code[1] = country_u16 & 0xFF;
+  country_code[2] = '\0';
+  return country_code;
 }
 
 /* ****************************************************** */
