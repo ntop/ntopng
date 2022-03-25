@@ -598,8 +598,8 @@ export class DataTableRenders {
         return seconds;
     }
 
-    static filterize(key, value, label, tag_label, title) {
-        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${label || value}</a>`;
+    static filterize(key, value, label, tag_label, title, html) {
+        return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='#'>${html || label || value}</a>`;
     }
 
     static formatValueLabel(obj, type, row) {
@@ -644,7 +644,7 @@ export class DataTableRenders {
             label = label + "@" + DataTableRenders.filterize('vlan_id', row.vlan_id, row.vlan_id, row.vlan_id, row.vlan_id);
 
         if (obj.country)
-            label = label + ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + obj.country.toLowerCase() + '"></a> ';
+            label = label + DataTableRenders.filterize('country', obj.country, obj.country, obj.country, obj.country, ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + obj.country.toLowerCase() + '"></a> ');
 
         if (row.role && row.role.value == 'attacker')
           label = label + ' ' + DataTableRenders.filterize('role', row.role.value, 
@@ -680,7 +680,7 @@ export class DataTableRenders {
         let cliFlagLabel= ''
 
         if (flow.cli_ip.country && flow.cli_ip.country !== "nil")
-            cliFlagLabel = ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + flow.cli_ip.country.toLowerCase() + '"></a> ';
+            cliFlagLabel = DataTableRenders.filterize('cli_country', flow.cli_ip.country, flow.cli_ip.country, flow.cli_ip.country, flow.cli_ip.country, ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + flow.cli_ip.country.toLowerCase() + '"></a> ');
 
         let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('cli_port', flow.cli_port, flow.cli_port) : "");
 
@@ -696,7 +696,7 @@ export class DataTableRenders {
         let srvFlagLabel= ''
 
         if (flow.srv_ip.country && flow.srv_ip.country !== "nil")
-            srvFlagLabel = ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + flow.srv_ip.country.toLowerCase() + '"></a> ';
+            srvFlagLabel = DataTableRenders.filterize('srv_country', flow.srv_ip.country, flow.srv_ip.country, flow.srv_ip.country, flow.srv_ip.country, ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + flow.srv_ip.country.toLowerCase() + '"></a> ');
 
         let cliIcons = "";
         let srvIcons = "";

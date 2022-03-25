@@ -541,7 +541,11 @@ function tag_utils.get_tag_info(id, entity)
       filter.value_type = 'array'
       filter.options = {}
       for code, label in pairsByValues(country_codes, asc) do
-         filter.options[#filter.options+1] = { value = interface.convertCountryCode2U16(code), label = label }
+         local id = code
+         -- if entity == nil then -- historical flows
+         --   id = interface.convertCountryCode2U16(code)
+         -- end
+         filter.options[#filter.options+1] = { value = id, label = label }
       end
 
    elseif tag.value_type == "ip_version" then

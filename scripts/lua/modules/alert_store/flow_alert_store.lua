@@ -234,6 +234,8 @@ function flow_alert_store:_add_additional_request_filters()
    local vlan_id = _GET["vlan_id"]
    local l7proto = _GET["l7proto"]
    local role = _GET["role"]
+   local cli_country = _GET["cli_country"]
+   local srv_country = _GET["srv_country"]
 
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
    self:add_filter_condition_list('ip_version', ip_version)
@@ -242,6 +244,8 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('srv_ip', srv_ip)
    self:add_filter_condition_list('cli_name', cli_name)
    self:add_filter_condition_list('srv_name', srv_name)
+   self:add_filter_condition_list('cli_country', cli_country)
+   self:add_filter_condition_list('srv_country', srv_country)
    self:add_filter_condition_list('cli_port', cli_port, 'number')
    self:add_filter_condition_list('srv_port', srv_port, 'number')
    self:add_filter_condition_list('flow_role', role)
@@ -262,6 +266,8 @@ function flow_alert_store:_get_additional_available_filters()
       srv_name   = tag_utils.defined_tags.srv_name,
       cli_port   = tag_utils.defined_tags.cli_port,
       srv_port   = tag_utils.defined_tags.srv_port,
+      cli_country = tag_utils.defined_tags.cli_country,
+      srv_country = tag_utils.defined_tags.srv_country,
       role       = tag_utils.defined_tags.role,
       l7proto    = tag_utils.defined_tags.l7proto,
       info       = tag_utils.defined_tags.info,
