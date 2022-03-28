@@ -32,6 +32,14 @@ end
 
 -- ##############################################
 
+--@brief ifid
+function am_alert_store:get_ifid()
+   -- The System Interface has the id -1 and in u_int16_t is 65535 
+   return 65535
+end
+
+-- ##############################################
+
 function am_alert_store:insert(alert)
    local resolved_ip
    local resolved_name

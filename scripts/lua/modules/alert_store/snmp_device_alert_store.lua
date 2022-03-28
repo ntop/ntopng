@@ -33,6 +33,14 @@ end
 
 -- ##############################################
 
+--@brief ifid
+function snmp_device_alert_store:get_ifid()
+   -- The System Interface has the id -1 and in u_int16_t is 65535 
+   return 65535
+end
+
+-- ##############################################
+
 function snmp_device_alert_store:_entity_val_to_ip_and_port(entity_val)
    local ip_port = string.split(entity_val, "_ifidx")
    local ip, port = ip_port[1], tonumber(ip_port[2])

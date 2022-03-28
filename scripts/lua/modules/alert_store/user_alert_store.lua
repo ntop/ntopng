@@ -31,6 +31,14 @@ end
 
 -- ##############################################
 
+--@brief ifid
+function user_alert_store:get_ifid()
+   -- The System Interface has the id -1 and in u_int16_t is 65535 
+   return 65535
+end
+
+-- ##############################################
+
 function user_alert_store:insert(alert)
    local extra_columns = ""
    local extra_values = ""

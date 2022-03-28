@@ -35,8 +35,9 @@ if (_SESSION) and (_SESSION["user"]) then
     user = _SESSION["user"]
 end
 
-local ALERT_SORTING_ORDER = "ntopng.cache.alert.%s.%s.sort_order.%s"
-local ALERT_SORTING_COLUMN = "ntopng.cache.alert.%s.%s.sort_column.%s"
+local ALERT_SORTING_ORDER = "ntopng.cache.alert.%d.%s.sort_order.%s"
+local ALERT_SORTING_COLUMN = "ntopng.cache.alert.%d.%s.sort_column.%s"
+local ALERT_SCORE_FILTER_KEY = "ntopng.alert.score.ifid_%d"
 
 local CSV_SEPARATOR = "|"
 
@@ -109,6 +110,22 @@ function alert_store:_valid_fields(fields)
    end
 
    return true
+end
+
+-- ##############################################
+
+--@brief ifid
+function alert_store:get_ifid()
+   local ifid = _GET["ifid"] or interface.getId()
+
+   ifid = tonumber(ifid)
+
+   -- The System Interface has the id -1 and in u_int16_t is 65535 
+   if ifid == -1 then
+      ifid = 65535
+   end
+
+   return ifid
 end
 
 -- ##############################################
@@ -614,8 +631,8 @@ function alert_store:add_order_by(sort_column, sort_order)
          user = _SESSION["user"]
       end
 
-      ntop.setCache(string.format(ALERT_SORTING_ORDER, _GET["ifid"] or "0", user, _GET["page"]), sort_order)
-      ntop.setCache(string.format(ALERT_SORTING_COLUMN, _GET["ifid"] or "0", user, _GET["page"]), sort_column)
+      ntop.setCache(string.format(ALERT_SORTING_ORDER,  self:get_ifid(), user, _GET["page"]), sort_order)
+      ntop.setCache(string.format(ALERT_SORTING_COLUMN, self:get_ifid(), user, _GET["page"]), sort_column)
    end
 
    -- Creating the order by if not defined and valid
@@ -875,15 +892,10 @@ end
 function alert_store:has_alerts()
    -- First, check for engaged alerts (fastest)
    local _, num_alerts = self:select_engaged()
-   local ifid = tonumber(_GET["ifid"]) or tonumber(interface.getId())
+   local ifid = tonumber(self:get_ifid())
 
    if num_alerts > 0 then
       return true
-   end
-
-   -- The System Interface has the id -1 and in u_int16_t is 65535 
-   if (ifid == -1) then
-      ifid = 65535
    end
 
    -- Now check for historical alerts written in the database. Slightly slower.
@@ -1301,7 +1313,7 @@ end
 function alert_store:get_earliest_available_epoch(status)   
    -- Add filters (only needed for the status, must ignore all other filters)
    self:add_status_filter(status)
-   local cached_epoch_key = string.format(EARLIEST_AVAILABLE_EPOCH_CACHE_KEY, _GET["ifid"] or interface.getId(), self._table_name, self._status)
+   local cached_epoch_key = string.format(EARLIEST_AVAILABLE_EPOCH_CACHE_KEY, self:get_ifid(), self._table_name, self._status)
    local earliest = 0
 
    -- Check if epoch has already been cached
@@ -1359,7 +1371,7 @@ end
 
 --@brief Add filters according to what is specified inside the REST API
 function alert_store:add_request_filters()
-   local ifid = _GET["ifid"] or interface.getId()
+   local ifid = self:get_ifid()
    local epoch_begin = tonumber(_GET["epoch_begin"])
    local epoch_end = tonumber(_GET["epoch_end"])
    local alert_id = _GET["alert_id"] or _GET["alert_type"] --[[ compatibility ]]--
@@ -1370,15 +1382,12 @@ function alert_store:add_request_filters()
    local status = _GET["status"]
 
    -- Remember the score filter (see also alert_stats.lua)
-   local alert_score_cached = "ntopng.alert.score.ifid_" .. ifid .. ""
+   local alert_score_cached = string.format(ALERT_SCORE_FILTER_KEY, self:get_ifid())
+
    if isEmptyString(score) then
       ntop.delCache(alert_score_cached)
    else
       ntop.setCache(alert_score_cached, score)
-   end
-
-   if ifid == "-1" then
-      ifid = 65535
    end
 
    self:add_status_filter(status)
