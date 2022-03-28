@@ -244,7 +244,7 @@ local pages = {
       endpoint_delete = "/lua/rest/v2/delete/system/alerts.lua",
       endpoint_acknowledge = "/lua/rest/v2/acknowledge/system/alerts.lua",
       url = getPageUrl(base_url_historical_only, {page = "system"}),
-      hidden = not is_system_interface or not alert_store_instances["system"]:has_alerts(),
+      hidden = --[[ not is_system_interface or --]] not alert_store_instances["system"]:has_alerts(),
       badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.system.entity_id)]
    },
    {
@@ -268,7 +268,7 @@ local pages = {
       endpoint_delete = "/lua/rest/v2/delete/user/alerts.lua",
       endpoint_acknowledge = "/lua/rest/v2/acknowledge/user/alerts.lua",
       url = getPageUrl(base_url_historical_only, {page = "user"}),
-      hidden = not is_system_interface or not alert_store_instances["user"]:has_alerts(),
+      hidden = --[[ not is_system_interface or --]] not alert_store_instances["user"]:has_alerts(),
       badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.user.entity_id)]
    }
 }
