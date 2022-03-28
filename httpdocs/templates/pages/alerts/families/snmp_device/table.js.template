@@ -4,11 +4,11 @@
     /* Score */
     {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', render: DataTableRenders.formatValueLabel},
     /* Alert */
-    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription},
     /* IP Address */
-    {responsivePriority: 2, name: 'ip', data: 'ip', className: 'text-nowrap'},
+    {responsivePriority: 2, name: 'ip', className: 'text-nowrap', data: 'ip', render: DataTableRenders.formatSNMPIP},
     /* Port */
-    {responsivePriority: 3, name: 'port', className: 'text-nowrap', data: 'port', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 3, name: 'port', className: 'text-nowrap', data: 'port', render: DataTableRenders.formatSNMPInterface},
     /* Device Name */
     {responsivePriority: 3, name: 'name', className: 'text-nowrap', data: 'name'},
     /* Counts */

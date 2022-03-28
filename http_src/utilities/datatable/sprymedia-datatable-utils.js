@@ -626,6 +626,18 @@ export class DataTableRenders {
         return label; 
     }
 
+    static formatSNMPInterface(obj, type, row) {
+        if (type !== "display") return obj.value;
+        let cell = DataTableRenders.filterize('snmp_interface', obj.value, obj.label, obj.label, obj.label);
+        if (obj.color) cell = `<span class='font-weight-bold' style='color: ${obj.color}'>${cell}</span>`;
+        return cell;
+    }
+
+    static formatSNMPIP(obj, type, row) {
+        if (type !== "display") return obj;
+        return DataTableRenders.filterize('ip', obj, obj, obj, obj);
+    }
+
     static formatHost(obj, type, row) {
         if (type !== "display") return obj;
     	let html_ref = '';
