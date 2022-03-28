@@ -267,11 +267,9 @@ export class DataTableUtils {
         return {
             dom: dom,
             pagingType: 'full_numbers',
-            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, `${i18n_ext.all}`]],
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, `${i18n.all}`]],
             language: {
-                info: i18n_ext.showing_x_to_y_rows,
-                search: i18n_ext.script_search,
-                infoFiltered: "",
+                search: i18n.script_search,
                 paginate: {
                     previous: '&lt;',
                     next: '&gt;',
