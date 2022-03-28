@@ -15,6 +15,7 @@ local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
 local snmp_utils = require "snmp_utils"
+local tag_utils = require "tag_utils"
 local json = require "dkjson"
 
 -- ##############################################
@@ -96,8 +97,24 @@ end
 
 --@brief Add filters according to what is specified inside the REST API
 function snmp_device_alert_store:_add_additional_request_filters()
-   -- Add filters specific to the snmp family
+   local ip = _GET["ip"]
+   local port = _GET["snmp_interface"]
+
+   self:add_filter_condition_list('ip', ip)
+   self:add_filter_condition_list('port', port, 'number')
 end
+
+-- ##############################################
+
+--@brief Get info about additional available filters
+function snmp_device_alert_store:_get_additional_available_filters()
+   local filters = {
+      ip             = tag_utils.defined_tags.ip,
+      snmp_interface = tag_utils.defined_tags.snmp_interface,
+   }
+
+   return filters
+end 
 
 -- ##############################################
 
