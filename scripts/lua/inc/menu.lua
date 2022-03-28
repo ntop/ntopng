@@ -762,7 +762,7 @@ page_utils.print_menubar()
 -- Interface
 
 print([[
-   <nav class="navbar navbar-expand-lg navbar-light fixed-top px-2 navbar-main-top" id='n-navbar'>
+   <nav style="margin-top:-4.5rem;margin-right:5rem;" class="navbar navbar-expand-lg navbar-light px-2 navbar-main-top" id='n-navbar'>
       <ul class='navbar-nav flex-row flex-wrap navbar-main-top'>
          <li class='nav-item'>
             <button class='btn btn-outline-dark border-0 btn-sidebar' data-bs-toggle='sidebar'>
