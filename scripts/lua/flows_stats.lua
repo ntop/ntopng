@@ -389,7 +389,7 @@ print[[{
 if interface.isPacketInterface() == false then
    print[[
       {
-         title: "]] print(i18n('snmp.device_ip')) print[[",
+         title: "]] print(i18n('flow_devices.exporter_ip')) print[[",
          field: "column_device_ip",
          sortable: true,
          css: {

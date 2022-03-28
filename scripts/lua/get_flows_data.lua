@@ -13,6 +13,7 @@ local alert_consts = require "alert_consts"
 local flow_utils = require "flow_utils"
 local icmp_utils = require "icmp_utils"
 local json = require "dkjson"
+local snmp_cached_dev = require "snmp_cached_dev"
 
 local have_nedge = ntop.isnEdge()
 
@@ -222,11 +223,13 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    record["hash_id"] = string.format("%u", value["hash_entry_id"])
    record["key_and_hash"] = string.format("%s@%s", record["key"], record["hash_id"])
    if (value["in_index"] ~= nil and value["out_index"] ~= nil) then
-      --record["column_in_index"] = tostring(value["in_index"])..'&nbsp;'
-      --record["column_out_index"] = tostring(value["out_index"])..'&nbsp;'
+      local device_ip = value["device_ip"]
+      local cached_dev = snmp_cached_dev:create(device_ip)
+      local idx_name_in = format_portidx_name(cached_dev, value["in_index"], true)
+      local idx_name_out = format_portidx_name(cached_dev, value["out_index"], true)
       record["column_device_ip"] = value["device_ip"]
-      record["in_index"] = value["in_index"]
-      record["out_index"] = value["out_index"]
+      record["column_in_index"] = idx_name_in
+      record["column_out_index"] = idx_name_out
    end
 
    local column_client = src_key

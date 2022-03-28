@@ -4535,6 +4535,15 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 	  retriever->elems[retriever->actNumEntries++].stringValue = flow_info ? flow_info : (char*)"";
 	}
 	break;
+    case column_device_ip:      
+      retriever->elems[retriever->actNumEntries++].numericValue = f->getFlowDeviceIP();
+      break;
+    case column_in_index:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->getFlowDeviceInIndex();
+      break;
+    case column_out_index:
+      retriever->elems[retriever->actNumEntries++].numericValue = f->getFlowDeviceOutIndex();
+      break;
       default:
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
 	break;
@@ -5101,6 +5110,9 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_server_rtt")) retriever->sorter = column_server_rtt, sorter = numericSorter;
   else if((!strcmp(sortColumn, "column_bytes")) || (!strcmp(sortColumn, "column_") /* default */)) retriever->sorter = column_bytes, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_info")) retriever->sorter = column_info, sorter = stringSorter;
+  else if(!strcmp(sortColumn, "column_device_ip")) retriever->sorter = column_device_ip, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_in_index")) retriever->sorter = column_in_index, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_out_index")) retriever->sorter = column_out_index, sorter = numericSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
     retriever->sorter = column_bytes, sorter = numericSorter;

@@ -597,6 +597,9 @@ typedef enum {
   column_info,
   column_client_rtt,
   column_server_rtt,
+  column_device_ip,
+  column_in_index,
+  column_out_index,
   /* Hosts */
   column_ip,
   column_alerts,
