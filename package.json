@@ -65,7 +65,7 @@
     "jquery": "^3.6.0",
     "jquery-ui-bundle": "^1.12.1-migrate",
     "jquery.are-you-sure": "^1.9.0",
-    "leaflet": "^1.7.1",
+    "leaflet": "^1.6.0",
     "leaflet.markercluster": "^1.5.3",
     "mini-css-extract-plugin": "^2.5.3",
     "moment": "^2.29.1",
