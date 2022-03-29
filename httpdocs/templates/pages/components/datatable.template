@@ -636,49 +636,42 @@
 
     /* Auto-refresh handling */
     $(`#autoRefreshEnabled`).on('click', async function(e) {
-        const auto_refresh_button = $(this);
-        const enable_refresh_rate = (auto_refresh_button.hasClass('fa-spin') == false);
-        const auto_refresh_url = '{* ntop.getHttpPrefix() *}/lua/rest/v2/set/checks/auto_refresh.lua' 
+      const auto_refresh_button = $(this);
+      const enable_refresh_rate = (auto_refresh_button.hasClass('fa-spin') == false);
+      const auto_refresh_url = '{* ntop.getHttpPrefix() *}/lua/rest/v2/set/checks/auto_refresh.lua' 
 
-        $.post(auto_refresh_url, {
-            ifid: {{ ifid }},
-            alert_page_refresh_rate_enabled: enable_refresh_rate,
-            csrf: pageCsrf,
-        })  
-        .done(function(rsp) {
-            if(enable_refresh_rate) {
-                if (rsp.rsp.refresh_rate > 0 && !intervalId) {
-                    intervalId = setInterval(function() {
-			refreshTime();
-			// onRangePickerChange(true, true);
-		    }, rsp.rsp.refresh_rate);
-                    auto_refresh_button.addClass('fa-spin');
-                }
-            }
-            else {
-                clearInterval(intervalId);
-                intervalId = null;
-                auto_refresh_button.removeClass('fa-spin');
-            }
-        })
+      $.post(auto_refresh_url, {
+        ifid: {{ ifid }},
+        alert_page_refresh_rate_enabled: enable_refresh_rate,
+        csrf: pageCsrf,
+      })  
+      .done(function(rsp) {
+        if(enable_refresh_rate) {
+          if (rsp.rsp.refresh_rate > 0 && !intervalId) {
+            intervalId = setInterval(function() {
+              refreshTime();
+            }, rsp.rsp.refresh_rate);
+            auto_refresh_button.addClass('fa-spin');
+          }
+        } else {
+          clearInterval(intervalId);
+          intervalId = null;
+          auto_refresh_button.removeClass('fa-spin');
+        }
+      })
     });
 
     // register to global event change status
     await ntopng_sync.on_ready("range_picker");
-    let range_picker_is_ready = false;
-    let first_load_table = true;
-    //ntopng_sync.on_ready("range_picker").then(() => { range_picker_is_ready = true; });
     
     ntopng_status_manager.on_status_change("datatable", (new_status) => {
-      //if (!first_load_table && !range_picker_is_ready) { return; }
-	let url_params = ntopng_url_manager.get_url_params();
-	reloadTable($table, url_params);
-	first_load_table = false;
+      let url_params = ntopng_url_manager.get_url_params();
+      reloadTable($table, url_params);
     }, false);
 
     {% if extra_js then %}
-    {* template_utils.gen(extra_js, extra_js_context) *}
+      {* template_utils.gen(extra_js, extra_js_context) *}
     {% end %}
 
-}); /* $(document).ready() */
+}); 
 </script>

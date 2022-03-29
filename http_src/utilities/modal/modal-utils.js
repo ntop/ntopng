@@ -398,7 +398,12 @@ class ModalHandler {
                 const success = self.options.onSubmitSuccess(response, dataToSend, self);
                 // if the submit return a true boolean then close the modal
                 if (success) {
-                    self.dialog.modal('hide');
+                  if(self.dialog.modal)
+                    self.dialog.modal('hide')
+                  else {
+                    self.dialog[0].hidden = true;
+                    $(`.modal-backdrop.fade.show`).remove()
+                  }
                 }
 
                 /* unbind the old closure on submit event and bind a new one */
@@ -430,7 +435,10 @@ class ModalHandler {
                 const success = self.options.onSubmitSuccess({}, dataToSend, self);
                 // if the submit return a true boolean then close the modal
                 if (success) {
-                    self.dialog.modal('hide');
+                  if(self.dialog.modal)
+                    self.dialog.modal('hide')
+                  else
+                    self.dialog[0].hidden = true;
                 }
 
                 /* unbind the old closure on submit event and bind a new one */

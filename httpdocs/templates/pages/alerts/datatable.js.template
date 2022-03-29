@@ -95,35 +95,35 @@ const $acknowledgeFilteredAlerts = $('#dt-acknowledge-modal form').modalHandler(
     csrf: pageCsrf,
     endpoint: `${http_prefix}{* datatable.endpoint_acknowledge *}`,
     beforeSumbit: function (alert) {
-	let post_params = ntopng_status_manager.get_status();
+      let post_params = formatFilteredParams()
 
-        /* Read the label from the corresponding form field */
-        post_params["label"] = $("#dt-acknowledge-modal #alert-label-modal").val();
+      /* Read the label from the corresponding form field */
+      post_params["label"] = $("#dt-acknowledge-modal #alert-label-modal").val();
 
-        return post_params;
+      return post_params;
     },
     onModalInit: function () {
         $(`#dt-acknowledge-modal button[type='submit']`).removeAttr("disabled");
         $('#dt-acknowledge-modal .filters-list').empty();
-        const tags = tagify.getTagElms();
-	let datasourceParams = ntopng_status_manager.get_status();
-
+        let datasourceParams = ntopng_status_manager.get_status();
+        const tags = datasourceParams.filters
+      
         const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
         const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
-
+        
         const sortedTags = tags.sort((a, b) => {
-            return i18n_ext.tags[tagify.tagData(a).key].localeCompare(i18n_ext.tags[tagify.tagData(b).key])
+          return i18n_ext.tags[a.id].localeCompare(i18n_ext.tags[b.id])
         });
 
         $('#dt-acknowledge-modal #end-epoch-acknowledge').val(endEpoch);
         $('#dt-acknowledge-modal #begin-epoch-acknowledge').val(beginEpoch);
 
         for (const tag of sortedTags) {
-            const { key, selectedOperator, realValue, value } = tagify.tagData(tag);
-            const label = i18n_ext.tags[key]
-            const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
+          const { id, operator, value } = tag;
+          const label = i18n_ext.tags[key]
+          const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
 
-            $('#dt-acknowledge-modal .filters-list').append(child);
+          $('#dt-acknowledge-modal .filters-list').append(child);
         }
     },
     onSubmitSuccess: function (response) {
@@ -137,33 +137,32 @@ const $deleteFilteredAlerts = $('#dt-delete-modal form').modalHandler({
     csrf: pageCsrf,
     endpoint: `${http_prefix}{* datatable.endpoint_delete *}`,
     beforeSumbit: function (alert) {
-	let post_params = ntopng_status_manager.get_status();
-        return post_params;
+      return formatFilteredParams()
     },
     onModalInit: function () {
-        $('#dt-delete-modal .filters-list').empty();
-        const tags = tagify.getTagElms();
-	let datasourceParams = ntopng_status_manager.get_status();
+      $('#dt-delete-modal .filters-list').empty();
+      
+      let datasourceParams = ntopng_status_manager.get_status();
+      const tags = datasourceParams.filters
+      const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
+      const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
 
-        const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
-        const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
+      const sortedTags = tags.sort((a, b) => {
+        return i18n_ext.tags[a.id].localeCompare(i18n_ext.tags[b.id])
+      });
 
-        const sortedTags = tags.sort((a, b) => {
-            return i18n_ext.tags[tagify.tagData(a).key].localeCompare(i18n_ext.tags[tagify.tagData(b).key])
-        });
+      $('#dt-delete-modal #end-epoch-delete').val(endEpoch);
+      $('#dt-delete-modal #begin-epoch-delete').val(beginEpoch);
 
-        $('#dt-delete-modal #end-epoch-delete').val(endEpoch);
-        $('#dt-delete-modal #begin-epoch-delete').val(beginEpoch);
+      for (const tag of sortedTags) {
+        const { id, operator, value } = tag;
+        const label = i18n_ext.tags[id]
+        const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
 
-        for (const tag of sortedTags) {
-            const { key, selectedOperator, realValue, value } = tagify.tagData(tag);
-            const label = i18n_ext.tags[key]
-            const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
+        $('#dt-delete-modal .filters-list').append(child);
+      }
 
-            $('#dt-delete-modal .filters-list').append(child);
-        }
-
-        $('#dt-delete-modal #dt-btn-delete').prop('disabled', false);
+      $('#dt-delete-modal #dt-btn-delete').prop('disabled', false);
     },
     onSubmitSuccess: function (response) {
 	ntopng_status_manager.update_subscribers();
@@ -309,6 +308,25 @@ const $releaseAlertModal = $('#release_single_alert form').modalHandler({
 
         return (response.rc == 0);
     }
-});
- */
+});*/
 
+function formatFilteredParams() {
+  const currentUrl = new URLSearchParams(window.location.search);
+  let datasourceParams = ntopng_status_manager.get_status();
+  let params = {}    
+  debugger;
+
+  /* Cycling the filters */
+  for (const tag of datasourceParams.filters) {
+    params[tag.id] = tag.value
+  }
+
+  /* Cycling other params not in filters, e.g. Epoch Begin-End */
+  for (const item in datasourceParams) {
+    if(typeof datasourceParams[item] !== 'object') params[item] = datasourceParams[item]
+  }
+
+  params['ifid'] = currentUrl.get('ifid');
+
+  return params;
+}
