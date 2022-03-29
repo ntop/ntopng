@@ -278,7 +278,7 @@ void ZMQCollectorInterface::collect_flows() {
       sleep(1);
       
       if(ntop->getGlobals()->isShutdown()) {
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow collection is over: ntop is shutting down");
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow collection on %s is over: ntop is shutting down", ifname);
         free(payload);
         return;
       }
