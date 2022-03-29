@@ -5026,8 +5026,16 @@ function add_delete_obs_point_button()
    return button
 end   
 
-function format_portidx_name(cached_dev, portidx, short_version)     
-  local idx_name = portidx                                                                                                                                                                                        
+-- ##############################################
+
+-- @brief This function format the SNMP interface name.
+-- @params device_ip: snmp device ip
+--         portidx:   number or string, interface index to format
+--         short_version: boolean, long formatting version (e.g. flow info) or short version (e.g. dropdown menu)
+function format_portidx_name(device_ip, portidx, short_version)     
+  local idx_name = portidx                           
+  local snmp_cached_dev = require "snmp_cached_dev"                                                                                                                                                             
+  local cached_dev = snmp_cached_dev:create(device_ip)
     
   if (cached_dev) and (cached_dev["interfaces"]) then                                                                                                                                                                    
     local port_info = cached_dev["interfaces"][tostring(portidx)]                                                                                                                                                   

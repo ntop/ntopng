@@ -1401,6 +1401,8 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
    -- Make sure indices are strings as snmp_utils handles them as strings
    input_idx = tostring(input_idx)
    output_idx = tostring(output_idx)
+   local inputidx_name = format_portidx_name(snmpdevice, input_idx)
+   local outputidx_name = format_portidx_name(snmpdevice, input_idx)
 
    if ntop.isPro() then
       if not isEmptyString(snmpdevice) then
@@ -1434,17 +1436,17 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
 	       outputurl = prepare_interface_url(output_idx, snmp_interfaces[output_idx])
 	    end
 
-	    print("<tr><th rowspan='3'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("snmp.snmp_device").."</th><td>"..snmpurl.."</td></tr>")
-	    print("<tr><th>"..i18n("details.input_device_port").."</th><td>"..(inputurl or "").." (".. input_idx ..")</td></tr>")
-	    print("<tr><th>"..i18n("details.output_device_port").."</th><td>"..(outputurl or "").." (".. output_idx ..")</td></tr>")
+	    print("<tr><th rowspan='3'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("snmp.device_ip").."</th><td>"..snmpurl.."</td></tr>")
+	    print("<tr><th>"..i18n("flows_page.inIfIdx").."</th><td>"..(inputurl or "").." (".. inputidx_name ..")</td></tr>")
+	    print("<tr><th>"..i18n("flows_page.outIfIdx").."</th><td>"..(outputurl or "").." (".. outputidx_name ..")</td></tr>")
 	    printed = true
 	 end
       end
    end
 
    if(printed == false) then
-      print("<tr><th rowspan='2'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("details.input_device_port").."</th><td>"..(input_idx or "").."</td></tr>")
-      print("<tr><th>"..i18n("details.output_device_port").."</th><td>"..(output_idx or "").."</td></tr>")
+      print("<tr><th rowspan='2'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("flows_page.inIfIdx").."</th><td>"..(inputidx_name or "").."</td></tr>")
+      print("<tr><th>"..i18n("flows_page.outIfIdx").."</th><td>"..(outputidx_name or "").."</td></tr>")
    end
 end
 
@@ -1579,8 +1581,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 
   if cur_dev ~= nil then -- also print dropddowns for input and output interface index
       local ports = interface.getFlowDeviceInfo(cur_dev)
-      local cached_dev = snmp_cached_dev:create(cur_dev)
-    
+      
       for _, direction in pairs({"outIfIdx", "inIfIdx"}) do
 	 local cur_if = _GET[direction]
 	 local cur_if_filter = ''
@@ -1599,7 +1600,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 
 	    for portidx, _ in pairsByKeys(ports, asc) do
 	       if_params[direction] = portidx
-         local idx_name = format_portidx_name(cached_dev, portidx, true)
+         local idx_name = format_portidx_name(cur_dev, portidx, true)
 
          print[[
 	 <li>\
