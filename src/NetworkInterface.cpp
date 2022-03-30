@@ -6420,6 +6420,9 @@ void NetworkInterface::lua(lua_State *vm) {
 
   if(custom_app_stats)
     custom_app_stats->lua(vm);
+
+  if(pMap) pMap->lua(vm, "periodicity_map");
+  if(sMap) sMap->lua(vm, "service_map");
 #endif
 }
 

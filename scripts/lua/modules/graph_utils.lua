@@ -952,6 +952,7 @@ local default_timeseries = {
    {schema="iface:packets_vs_drops",      label=i18n("graphs.packets_vs_drops")},
    {schema="iface:nfq_pct",               label=i18n("graphs.num_nfq_pct"), nedge_only=1},
    {schema="iface:hosts_anomalies",       label=i18n("graphs.hosts_anomalies"), layout={ ["num_local_hosts_anomalies"] = "area", ["num_remote_hosts_anomalies"] = "area" }, metrics_labels = { i18n("graphs.loc_host_anomalies"), i18n("graphs.rem_host_anomalies")}  },
+   {schema="iface:behavioural_maps",      label=i18n("graphs.behavioural_maps"), layout={ ["periodicity_map_entries"] = "area", ["service_map_entries"] = "area" }, metrics_labels = { i18n("graphs.periodicity_map_entries"), i18n("graphs.service_map_entries")}  },
       
    {schema="iface:disc_prob_bytes",       label=i18n("graphs.discarded_probing_bytes"), nedge_exclude=1},
    {schema="iface:disc_prob_pkts",        label=i18n("graphs.discarded_probing_packets"), nedge_exclude=1},

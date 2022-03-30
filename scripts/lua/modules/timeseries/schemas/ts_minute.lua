@@ -347,6 +347,13 @@ schema:addMetric("num_remote_hosts_anomalies")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:behavioural_maps", {step=60, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addMetric("periodicity_map_entries")
+schema:addMetric("service_map_entries")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("am_host:val_min", {
   step = 60,
   metrics_type = ts_utils.metrics.gauge,
