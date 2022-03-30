@@ -2268,6 +2268,26 @@ end
 
 -- ##############################################
 
+function getLocalNetworkAliasById(network)
+   local networks_stats = interface.getNetworksStats()
+
+   -- If network is (u_int8_t)-1 then return an empty value
+   if network == "65535" then
+     return ''
+   end
+
+   local label = ''
+   for n, ns in pairs(networks_stats) do
+      if ns.network_id == tonumber(network) then
+         label = getFullLocalNetworkName(ns.network_key)
+      end
+   end
+
+   return label
+end
+
+-- ##############################################
+
 function getLocalNetworkAlias(network)
    local alias = ntop.getLocalNetworkAlias(network) or nil
 

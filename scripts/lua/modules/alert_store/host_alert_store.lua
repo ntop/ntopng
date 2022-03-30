@@ -65,8 +65,8 @@ function host_alert_store:insert(alert)
    end
 
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(%salert_id, interface_id, ip_version, ip, vlan_id, name, country, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, json) "..
-      "VALUES (%s%u, %d, %u, '%s', %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
+      "(%salert_id, interface_id, ip_version, ip, vlan_id, name, country, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, host_pool_id, network, json) "..
+      "VALUES (%s%u, %d, %u, '%s', %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
       self._table_name, 
       extra_columns,
       extra_values,
@@ -86,6 +86,8 @@ function host_alert_store:insert(alert)
       ntop.mapScoreToSeverity(alert.score),
       alert.score,
       alert.granularity,
+      alert.host_pool_id,
+      alert.network,
       self:_escape(alert.json))
 
    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_stmt)
@@ -141,6 +143,8 @@ function host_alert_store:_add_additional_request_filters()
    local name = _GET["name"]
    local role = _GET["role"]
    local role_cli_srv = _GET["role_cli_srv"]
+   local host_pool_id = _GET["host_pool_id"]
+   local network = _GET["network"]
 
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
    self:add_filter_condition_list('ip_version', ip_version)
@@ -148,6 +152,8 @@ function host_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('name', name)
    self:add_filter_condition_list('host_role', role)
    self:add_filter_condition_list('role_cli_srv', role_cli_srv)
+   self:add_filter_condition_list('host_pool_id', host_pool_id)
+   self:add_filter_condition_list('network', network)
 end
 
 -- ##############################################
@@ -179,6 +185,8 @@ local RNAME = {
    DESCRIPTION = { name = "description", export = true},
    MSG = { name = "msg", export = true, elements = {"name", "value", "description"}},
    LINK_TO_PAST_FLOWS = { name = "link_to_past_flows", export = false},
+   HOST_POOL_ID = { name = "host_pool_id", export = false },
+   NETWORK = { name = "network", export = false },
 }
 
 function host_alert_store:get_rnames()
@@ -296,6 +304,18 @@ function host_alert_store:format_record(value, no_html)
    else
       record[RNAME.VLAN_ID.name] = ""
    end
+
+   local network = RNAME.NETWORK.name
+   record[network] = {
+     value = value['network'],
+     label = getLocalNetworkAliasById(value['network']),
+   }
+
+   local host_pool_id = RNAME.HOST_POOL_ID.name
+   record[host_pool_id] = {
+     value = value['host_pool_id'],
+     label = getPoolName(tonumber(value['host_pool_id'])),
+   }
 
    record[RNAME.ALERT_NAME.name] = alert_name
 

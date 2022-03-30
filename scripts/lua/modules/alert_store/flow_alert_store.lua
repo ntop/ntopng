@@ -69,9 +69,9 @@ function flow_alert_store:insert(alert)
       "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, "..
       "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, "..
       "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, "..
-      "flow_risk_bitmap, alerts_map, json) "..
+      "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, json) "..
       "VALUES (%s%u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
-      "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', '%s'); ",
+      "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s'); ",
       self._table_name,
       extra_columns,
       extra_values,
@@ -110,6 +110,10 @@ function flow_alert_store:insert(alert)
       alert.flow_risk_bitmap or 0,
       hex_prefix,
       alert.alerts_map,
+      alert.cli_host_pool_id,
+      alert.srv_host_pool_id,
+      alert.cli_network,
+      alert.srv_network,
       self:_escape(alert.json)
    )
 
@@ -237,6 +241,11 @@ function flow_alert_store:_add_additional_request_filters()
    local cli_country = _GET["cli_country"]
    local srv_country = _GET["srv_country"]
 
+   local cli_host_pool_id = _GET["cli_host_pool_id"]
+   local srv_host_pool_id = _GET["srv_host_pool_id"]
+   local cli_network = _GET["cli_network"]
+   local srv_network = _GET["srv_network"]
+
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
    self:add_filter_condition_list('ip_version', ip_version)
    self:add_filter_condition_list('ip', ip)
@@ -250,6 +259,12 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('srv_port', srv_port, 'number')
    self:add_filter_condition_list('flow_role', role)
    self:add_filter_condition_list('l7proto', l7proto, 'number')
+
+   self:add_filter_condition_list('cli_host_pool_id', cli_host_pool_id, 'number')
+   self:add_filter_condition_list('srv_host_pool_id', srv_host_pool_id, 'number')
+   self:add_filter_condition_list('cli_network', cli_network, 'number')
+   self:add_filter_condition_list('srv_network', srv_network, 'number')
+
 end
 
 -- ##############################################
@@ -271,6 +286,11 @@ function flow_alert_store:_get_additional_available_filters()
       role       = tag_utils.defined_tags.role,
       l7proto    = tag_utils.defined_tags.l7proto,
       info       = tag_utils.defined_tags.info,
+
+      cli_host_pool_id       = tag_utils.defined_tags.cli_host_pool_id,
+      srv_host_pool_id       = tag_utils.defined_tags.srv_host_pool_id,
+      cli_network       = tag_utils.defined_tags.cli_network,
+      srv_network       = tag_utils.defined_tags.srv_network,
    }
 
    return filters
@@ -285,10 +305,16 @@ local RNAME = {
    FLOW_RELATED_INFO = { name = "flow_related_info", export = true },
    MSG = { name = "msg", export = true, elements = {"name", "value", "description"}},
    FLOW = { name = "flow", export = true, elements = {"srv_ip.label", "srv_ip.value", "srv_port", "cli_ip.label", "cli_ip.value", "cli_port"}},
+
    VLAN_ID = { name = "vlan_id", export = true},
    PROTO = { name = "proto", export = true},
    L7_PROTO = { name = "l7_proto", export = true},
    LINK_TO_PAST_FLOWS = { name = "link_to_past_flows", export = false},
+
+   CLI_HOST_POOL_ID = { name = "cli_host_pool_id", export = false },
+   SRV_HOST_POOL_ID = { name = "srv_host_pool_id", export = false },
+   CLI_NETWORK = { name = "cli_network", export = false },
+   SRV_NETWORK = { name = "srv_network", export = false },
 }
 
 -- ##############################################
@@ -431,6 +457,30 @@ function flow_alert_store:format_record(value, no_html)
   }
 
    record[RNAME.ALERT_NAME.name] = alert_name
+
+   local cli_host_pool_id = RNAME.CLI_HOST_POOL_ID.name
+   record[cli_host_pool_id] = {
+     value = value['cli_host_pool_id'],
+     label = getPoolName(value['cli_host_pool_id']),
+   }
+
+   local srv_host_pool_id = RNAME.SRV_HOST_POOL_ID.name
+   record[srv_host_pool_id] = {
+     value = value['srv_host_pool_id'],
+     label = getPoolName(value['srv_host_pool_id']),
+   }
+
+   local cli_network = RNAME.CLI_NETWORK.name
+   record[cli_network] = {
+     value = value['cli_network'],
+     label = getLocalNetworkAliasById(value['cli_network']),
+   }
+
+   local srv_network = RNAME.SRV_NETWORK.name
+   record[srv_network] = {
+     value = value['srv_network'],
+     label = getLocalNetworkAliasById(value['srv_network']),
+   }
 
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""

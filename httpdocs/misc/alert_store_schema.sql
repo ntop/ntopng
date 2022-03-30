@@ -308,3 +308,11 @@ ALTER TABLE `interface_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `user_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `system_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `host_alerts` ADD `country` TEXT NULL;
+
+ALTER TABLE `flow_alerts` ADD `cli_host_pool_id` INTEGER NULL;
+ALTER TABLE `flow_alerts` ADD `srv_host_pool_id` INTEGER NULL;
+ALTER TABLE `flow_alerts` ADD `cli_network` INTEGER NULL;
+ALTER TABLE `flow_alerts` ADD `srv_network` INTEGER NULL;
+
+ALTER TABLE `host_alerts` ADD `host_pool_id` INTEGER NULL;
+ALTER TABLE `host_alerts` ADD `network` INTEGER NULL;

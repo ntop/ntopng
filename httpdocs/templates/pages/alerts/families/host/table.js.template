@@ -13,5 +13,9 @@
     {responsivePriority: 3, name: 'count', className: 'text-center', data: 'count', visible: false},
     /* Description */
     {responsivePriority: 3, name: 'description', data: 'description', orderable: false, className: 'text-nowrap', width:'100%'},
+    /* Host Pool Id */
+    {responsivePriority: 4, name: 'host_pool_id', data: 'host_pool_id',  orderable: false, className: 'none', render: DataTableRenders.formatValueLabel},
+    /* Network */
+    {responsivePriority: 5, name: 'network', data: 'network',  orderable: false, className: 'none', render: DataTableRenders.formatValueLabel},
 
 ]

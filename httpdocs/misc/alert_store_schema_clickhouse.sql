@@ -66,6 +66,22 @@ CREATE TABLE IF NOT EXISTS `flow_alerts` (
 
 @
 
+ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS cli_host_pool_id UInt16;
+
+@
+
+ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS srv_host_pool_id UInt16;
+
+@
+
+ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS cli_network UInt16;
+
+@
+
+ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS srv_network UInt16;
+
+@
+
 CREATE TABLE IF NOT EXISTS `host_alerts` (
 `rowid` UUID,
 `alert_id` UInt32 NOT NULL,
@@ -90,6 +106,14 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 `user_label` String,
 `user_label_tstamp` DateTime 
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+
+@
+
+ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS host_pool_id UInt16;
+
+@
+
+ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS network UInt16;
 
 @
 
