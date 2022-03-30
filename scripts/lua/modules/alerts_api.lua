@@ -267,7 +267,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
 
   local alert_json = json.encode(type_info.alert_type_params)
 
-  local triggered
+  local triggered = nil
   local alert_key_name = get_alert_triggered_key(type_info.alert_type.alert_key, subtype)
 
   if not type_info.score then
@@ -282,11 +282,13 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   }
 
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
-    interface.checkContext(entity_info.entity_val)
-    triggered = interface.storeTriggeredAlert(table.unpack(params))
+    if interface.checkContext(entity_info.entity_val) then
+      triggered = interface.storeTriggeredAlert(table.unpack(params))
+    end
   elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("network")) then
-    network.checkContext(entity_info.entity_val)
-    triggered = network.storeTriggeredAlert(table.unpack(params))
+    if network.checkContext(entity_info.entity_val) then
+       triggered = network.storeTriggeredAlert(table.unpack(params))
+    end
   else
     triggered = interface.triggerExternalAlert(entity_info.alert_entity.entity_id, entity_info.entity_val, table.unpack(params))
   end
