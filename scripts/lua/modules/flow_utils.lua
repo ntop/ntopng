@@ -1410,7 +1410,10 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
 	 local cached_device = snmp_cached_dev:create(snmpdevice)
 
 	 if cached_device and cached_device["interfaces"] and table.len(cached_device["interfaces"]) > 0 then
-	    local snmpurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_details.lua?host="..snmpdevice.. "'>"..snmpdevice.."</A>"
+      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path                                                                                                                          
+      local snmp_location = require "snmp_location"                 
+                                                                                                                                                           
+      local snmpurl = snmp_location.snmp_device_link(snmpdevice, format_device_name(snmpdevice, false))
 
 	    local snmp_interfaces = cached_device["interfaces"]
 	    local inputurl, outputurl
