@@ -65,8 +65,8 @@ function host_alert_store:insert(alert)
    end
 
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(%salert_id, interface_id, ip_version, ip, vlan_id, name, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, json) "..
-      "VALUES (%s%u, %d, %u, '%s', %u, '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
+      "(%salert_id, interface_id, ip_version, ip, vlan_id, name, country, is_attacker, is_victim, is_client, is_server, tstamp, tstamp_end, severity, score, granularity, json) "..
+      "VALUES (%s%u, %d, %u, '%s', %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
       self._table_name, 
       extra_columns,
       extra_values,
@@ -76,6 +76,7 @@ function host_alert_store:insert(alert)
       ip,
       vlan_id or 0,
       self:_escape(alert.name),
+      alert.country_name,
       is_attacker,
       is_victim,
       is_client,

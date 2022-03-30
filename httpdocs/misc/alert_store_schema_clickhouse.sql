@@ -225,6 +225,10 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 
 @
 
+ALTER TABLE host_alerts ADD COLUMN IF NOT EXISTS `country` String
+
+@
+
 DROP VIEW IF EXISTS `all_alerts`;
 
 @

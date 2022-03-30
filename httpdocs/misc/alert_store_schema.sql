@@ -307,4 +307,4 @@ ALTER TABLE `network_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `interface_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `user_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `system_alerts` ADD `interface_id` INTEGER NULL;
-
+ALTER TABLE `host_alerts` ADD `country` TEXT NULL;

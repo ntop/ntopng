@@ -1503,27 +1503,27 @@ void Host::serialize_geocoordinates(ndpi_serializer *s, const char *prefix) {
   ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
 
   if(city) {
-    snprintf(buf, sizeof(buf), "%s_city_name", prefix);
+    snprintf(buf, sizeof(buf), "%scity_name", prefix);
     ndpi_serialize_string_string(s, buf, city);
   }
 
   if(country) {
-    snprintf(buf, sizeof(buf), "%s_country_name", prefix);
+    snprintf(buf, sizeof(buf), "%scountry_name", prefix);
     ndpi_serialize_string_string(s, buf, country);
   }
 
   if(continent) {
-    snprintf(buf, sizeof(buf), "%s_continent_name", prefix);
+    snprintf(buf, sizeof(buf), "%scontinent_name", prefix);
     ndpi_serialize_string_string(s, buf, continent);
   }
 
   if(longitude) {
-    snprintf(buf, sizeof(buf), "%s_location_lon", prefix);
+    snprintf(buf, sizeof(buf), "%slocation_lon", prefix);
     ndpi_serialize_string_float(s, buf, longitude, "%f");
   }
 
   if(latitude) {
-    snprintf(buf, sizeof(buf), "%s_location_lat", prefix);
+    snprintf(buf, sizeof(buf), "%slocation_lat", prefix);
     ndpi_serialize_string_float(s, buf, latitude, "%f");
   }
 
@@ -1788,6 +1788,8 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
   ndpi_serialize_string_boolean(s, "is_victim", alert->isVictim());
   ndpi_serialize_string_boolean(s, "is_client", alert->isClient());
   ndpi_serialize_string_boolean(s, "is_server", alert->isServer());
+
+  serialize_geocoordinates(s, "");
 
   HostCheck *cb = getInterface()->getCheck(alert->getCheckType());
   ndpi_serialize_string_int32(s, "granularity", cb ? cb->getPeriod() : 0);

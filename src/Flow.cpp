@@ -2957,7 +2957,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_int32(s, "cli_port", get_cli_port());
 
   if(cli_host) {
-    cli_host->serialize_geocoordinates(s, "cli");
+    cli_host->serialize_geocoordinates(s, "cli_");
     ndpi_serialize_string_string(s, "cli_name", cli_host->get_visual_name(buf, sizeof(buf)));
     ndpi_serialize_string_string(s, "cli_os", cli_host->getOSDetail(buf, sizeof(buf)));
     ndpi_serialize_string_int32(s, "cli_asn", cli_host->get_asn());
@@ -2969,7 +2969,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_int32(s, "srv_port", get_srv_port());
 
   if(srv_host) {
-    srv_host->serialize_geocoordinates(s, "srv");
+    srv_host->serialize_geocoordinates(s, "srv_");
     ndpi_serialize_string_string(s, "srv_name", srv_host->get_visual_name(buf, sizeof(buf)));
     ndpi_serialize_string_string(s, "srv_os", srv_host->getOSDetail(buf, sizeof(buf)));
     ndpi_serialize_string_int32(s, "srv_asn", srv_host->get_asn());
