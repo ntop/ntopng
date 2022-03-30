@@ -5026,6 +5026,26 @@ function add_delete_obs_point_button()
    return button
 end   
 
+function format_device_name(device_ip, short_version)
+  local device_name = device_ip
+  
+  if ntop.isPro() then
+    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path                                                                                                                          
+    snmp_location = require "snmp_location"                                                                                                                                                                      
+    device_name = hostinfo2label(hostkey2hostinfo(device_ip))
+    
+    if device_name ~= device_ip then
+      if short_version then
+        device_name = shortenString(device_name, 32)
+      end
+      device_name = string.format('%s [%s]', device_ip, device_name)
+      device_name = snmp_location.snmp_device_link(device_ip, device_name)
+    end
+  end
+
+  return device_name
+end
+
 -- ##############################################
 
 -- @brief This function format the SNMP interface name.
