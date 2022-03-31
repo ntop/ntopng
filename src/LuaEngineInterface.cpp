@@ -4312,6 +4312,20 @@ static int ntop_get_l7_policy_info(lua_State* vm) {
 /* ****************************************** */
 
 // *** API ***
+static int ntop_interface_is_sub_interface(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  lua_pushboolean(vm, ntop_interface->isSubInterface());
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+// *** API ***
 static int ntop_interface_is_syslog_interface(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4607,6 +4621,9 @@ static luaL_Reg _ntop_interface_reg[] = {
   /* Syslog */
   { "isSyslogInterface",      ntop_interface_is_syslog_interface      },
   { "incSyslogStats",         ntop_interface_inc_syslog_stats         },
+
+  /* SubInterface (disaggregation) */
+  { "isSubInterface",         ntop_interface_is_sub_interface      },
 
   /* ClickHouse */
   { "clickhouseExecCSVQuery", ntop_clickhouse_exec_csv_query          },

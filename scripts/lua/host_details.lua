@@ -942,7 +942,7 @@ else
    if(not show_live_capture) then print(" colspan=2") end
    print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/v2/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
    print [[<td>]]
-   if (show_live_capture and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
+   if (show_live_capture and ifstats.isView == false and not interface.isSubInterface() and interface.isPacketInterface()) then
       local live_traffic_utils = require("live_traffic_utils")
       live_traffic_utils.printLiveTrafficForm(ifId, host_info)
    end

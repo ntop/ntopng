@@ -796,7 +796,7 @@ for v,k in pairs(iface_names) do
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
    if interface.isPcapDumpInterface() then pcapdump[k] = true end
    if(_ifstats.isView == true) then views[k] = true end
-   if(_ifstats.isDynamic == true) then dynamic[k] = true end
+   if(interface.isSubInterface()) then dynamic[k] = true end
    if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
    if(interface.isPacketInterface()) then packetinterfaces[k] = true end
    if(interface.isZMQInterface()) then zmqinterfaces[k] = true end
@@ -810,7 +810,7 @@ for v,k in pairs(iface_names) do
 
    if ntop.isWindows() and string.contains(descr, "{") then -- Windows
       descr = _ifstats.description
-   elseif ntop.isEnterpriseM() and _ifstats.isDynamic and _ifstats.dynamic_interface_probe_ip then
+   elseif ntop.isEnterpriseM() and interface.isSubInterface() and _ifstats.dynamic_interface_probe_ip then
       -- Attempt at printing SNMP information rather than plain disaggregated IPs
       local snmp_utils = require "snmp_utils"
       local snmp_cached_dev = require "snmp_cached_dev"

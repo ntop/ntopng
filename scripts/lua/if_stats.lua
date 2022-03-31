@@ -67,6 +67,7 @@ local is_packet_interface = interface.isPacketInterface()
 local is_pcap_dump = interface.isPcapDumpInterface()
 
 local ifstats = interface.getStats()
+local is_sub_interface = interface.isSubInterface()
 
 if page == "syslog_producers" and not ifstats.isSyslog then
    page = "overview"
@@ -361,7 +362,7 @@ page_utils.print_navbar(title, url,
 				 label = "<i class='fas fa-lg fa-wrench' title='"..i18n("status").."'></i>",
 			      },
 			      {
-				 hidden = have_nedge or not isAdministrator() or not ntop.isEnterpriseM() or ifstats.isDynamic or ifstats.isView,
+				 hidden = have_nedge or not isAdministrator() or not ntop.isEnterpriseM() or is_sub_interface or ifstats.isView,
 				 active = page == "sub_interfaces",
 				 page_name = "sub_interfaces",
 				 label = "<i class='fas fa-lg fa-code-branch' title='"..i18n("sub_interfaces.disaggregation").."'></i>",
@@ -765,7 +766,7 @@ end
 
    print("<span id=pkts_trend></span></td>")
 
-   if not ifstats.isDynamic then
+   if not is_sub_interface then
       print("<th width=20%><span id='if_packet_drops_drop'><i class='fas fa-tint' aria-hidden='true'></i></span> ")
 
       print(i18n("if_stats_overview.dropped_packets")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:packets_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
@@ -1041,7 +1042,7 @@ end
       end
    end
 
-   if ntop.isPcapDownloadAllowed() and ifstats.isView == false and ifstats.isDynamic == false and is_packet_interface then
+   if ntop.isPcapDownloadAllowed() and ifstats.isView == false and not is_sub_interface and is_packet_interface then
       print("<tr><th>"..i18n("live_capture.live_capture").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=5>")
 
       local live_traffic_utils = require("live_traffic_utils")
@@ -1933,7 +1934,7 @@ function toggle_mirrored_traffic_function_off(){
       </tr>]]
    end
 
-   if not ifstats.isDynamic then
+   if not is_sub_interface then
       local cur_companion = companion_interface_utils.getCurrentCompanion(ifstats.id)
       local companions = companion_interface_utils.getAvailableCompanions()
 
@@ -1996,7 +1997,7 @@ function toggle_mirrored_traffic_function_off(){
       end
    end
 
-   if not ifstats.isDynamic and not have_nedge then
+   if not is_sub_interface and not have_nedge then
       local cur_mode = ntop.getCache(disaggregation_criterion_key)
       if isEmptyString(cur_mode) then
          cur_mode = "none"

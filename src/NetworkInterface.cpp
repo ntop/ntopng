@@ -6284,7 +6284,6 @@ void NetworkInterface::lua(lua_State *vm) {
   if(customIftype) lua_push_str_table_entry(vm, "customIftype", (char*)customIftype);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_bool_table_entry(vm, "isViewed", isViewed()); /* Viewed interface */
-  lua_push_bool_table_entry(vm, "isDynamic", isSubInterface()); /* An runtime-instantiated interface */
   lua_push_bool_table_entry(vm, "isSampledTraffic", isSampledTraffic()); /* Whether this interface has sampled traffic */
   if(isSubInterface())
     luaSubInterface(vm);

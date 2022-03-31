@@ -730,7 +730,7 @@ function page_utils.get_interface_list()
       ifdescr[_ifstats.id] = _ifstats.description
       --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
       if(_ifstats.isView == true) then views[k] = true end
-      if(_ifstats.isDynamic == true) then dynamic[k] = true end
+      if(interface.isSubInterface()) then dynamic[k] = true end
       if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
       if(interface.isPacketInterface()) then packetinterfaces[k] = true end
       if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
