@@ -208,11 +208,14 @@ function alert_store:build_sql_cond(cond)
    local sql_op = tag_utils.tag_operators[cond.op]
 
    -- Special case: l7proto
-   if cond.field == 'l7proto' and cond.value ~= 0 then
+   if cond.field == 'l7proto' then
+      local and_cond = 'neq'
+      if tonumber(cond.value) == 0 --[[ Unknown --]] then and_cond = 'eq' end
+
       -- Search also in l7_master_proto, unless value is 0 (Unknown)
       sql_cond = string.format("(l7_proto %s %u %s l7_master_proto %s %u)",
-         sql_op, cond.value, ternary(cond.op == 'neq', 'AND', 'OR'), sql_op, cond.value)
-   
+         sql_op, cond.value, ternary(cond.op == and_cond, 'AND', 'OR'), sql_op, cond.value)
+ 
    -- Special case: ip (with vlan)
    elseif cond.field == 'ip' or
           cond.field == 'cli_ip' or 
@@ -362,7 +365,10 @@ function alert_store:eval_alert_cond(alert, cond)
    -- Special case: l7proto
    if cond.field == 'l7proto' and cond.value ~= 0 then
       -- Search also in l7_master_proto, unless value is 0 (Unknown)
-      if cond.op == 'neq' then
+      local and_cond = 'neq'
+      if tonumber(cond.value) == 0 --[[ Unknown --]] then and_cond = 'eq' end
+
+      if cond.op == and_cond then
          return tag_utils.eval_op(alert['l7_proto'], cond.op, cond.value) and 
                 tag_utils.eval_op(alert['l7_master_proto'], cond.op, cond.value)
       else
