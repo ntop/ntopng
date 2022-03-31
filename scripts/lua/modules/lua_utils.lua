@@ -2273,7 +2273,7 @@ function getLocalNetworkAliasById(network)
 
    -- If network is (u_int8_t)-1 then return an empty value
    if network == "65535" then
-     return ''
+     return ' '
    end
 
    local label = ''
@@ -2282,7 +2282,6 @@ function getLocalNetworkAliasById(network)
          label = getFullLocalNetworkName(ns.network_key)
       end
    end
-
    return label
 end
 

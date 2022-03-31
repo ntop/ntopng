@@ -21,11 +21,11 @@
     /* Flow related info */
     {responsivePriority: 5, name: 'flow_related_info', data: 'flow_related_info',  orderable: false, className: 'none', render: DataTableRenders.formatMessage},
     /* Client Host Pool Id */
-    {responsivePriority: 6, name: 'cli_host_pool_id', data: 'cli_host_pool_id',  orderable: false, className: 'none', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 6, name: 'cli_host_pool_id', data: 'cli_host_pool_id',  orderable: false, className: 'none', render: DataTableRenders.getFormatGenericField('cli_host_pool_id')},
     /* Server Host Pool Id */
-    {responsivePriority: 7, name: 'srv_host_pool_id', data: 'srv_host_pool_id',  orderable: false, className: 'none', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 7, name: 'srv_host_pool_id', data: 'srv_host_pool_id',  orderable: false, className: 'none', render: DataTableRenders.getFormatGenericField('srv_host_pool_id')},
     /* Client Network */
-    {responsivePriority: 8, name: 'cli_network', data: 'cli_network',  orderable: false, className: 'none', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 8, name: 'cli_network', data: 'cli_network',  orderable: false, className: 'none', render: DataTableRenders.getFormatGenericField('cli_network')},
     /* Server Network */
-    {responsivePriority: 9, name: 'srv_network', data: 'srv_network',  orderable: false, className: 'none', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 9, name: 'srv_network', data: 'srv_network',  orderable: false, className: 'none', render: DataTableRenders.getFormatGenericField('srv_network')},
 ]

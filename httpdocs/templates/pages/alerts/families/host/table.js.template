@@ -14,8 +14,8 @@
     /* Description */
     {responsivePriority: 3, name: 'description', data: 'description', orderable: false, className: 'text-nowrap', width:'100%'},
     /* Host Pool Id */
-    {responsivePriority: 4, name: 'host_pool_id', data: 'host_pool_id',  orderable: false, className: 'none', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 4, name: 'host_pool_id', data: 'host_pool_id',  orderable: false, className: 'none', render: DataTableRenders.getFormatGenericField('host_pool_id')},
     /* Network */
-    {responsivePriority: 5, name: 'network', data: 'network',  orderable: false, className: 'none', render: DataTableRenders.formatValueLabel},
+    {responsivePriority: 5, name: 'network', data: 'network',  orderable: false, className: 'none', render: DataTableRenders.getFormatGenericField('network')},
 
 ]

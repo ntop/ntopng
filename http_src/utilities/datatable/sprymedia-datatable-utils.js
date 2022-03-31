@@ -638,6 +638,18 @@ export class DataTableRenders {
         return DataTableRenders.filterize('ip', obj, obj, obj, obj);
     }
 
+    static getFormatGenericField(field) {
+	return function(obj, type, row) {
+            if (type !== "display") return obj.value;
+    	    let html_ref = '';
+	    if (obj.reference !== undefined)
+		html_ref = obj.reference
+	    let label = "";
+            label = label + "@" + DataTableRenders.filterize(field, row[field].value, row[field].label, row[field].label, row[field].label);
+            return label + ' ' + html_ref;
+	}
+    }
+    
     static formatHost(obj, type, row) {
         if (type !== "display") return obj;
     	let html_ref = '';

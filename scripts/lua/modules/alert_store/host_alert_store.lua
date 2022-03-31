@@ -167,6 +167,8 @@ function host_alert_store:_get_additional_available_filters()
       name = tag_utils.defined_tags.name,
       role = tag_utils.defined_tags.role,
       role_cli_srv = tag_utils.defined_tags.role_cli_srv,
+      host_pool_id = tag_utils.defined_tags.host_pool_id,
+      network = tag_utils.defined_tags.network,
    }
 
    return filters
