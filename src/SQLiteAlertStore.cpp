@@ -77,7 +77,7 @@ int SQLiteAlertStore::execFile(const char *path) {
   if(rc) {
     const char *msg = sqlite3_errmsg(db);
     
-    if(strstr(msg, "duplicate column name: interface_id"))
+    if(strstr(msg, "duplicate column name"))
       rc = 0; /* Silence ALTER TABLE errors */
     else
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create database schema [%s]", msg);

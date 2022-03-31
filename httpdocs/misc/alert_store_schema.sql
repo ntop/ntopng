@@ -297,6 +297,18 @@ CREATE INDEX IF NOT EXISTS `system_alerts_i_severity` ON `system_alerts`(severit
 CREATE INDEX IF NOT EXISTS `system_alerts_i_tstamp` ON `system_alerts`(tstamp);
 CREATE INDEX IF NOT EXISTS `system_alerts_i_alert_status` ON `system_alerts`(alert_status);
 
+/* NOTE: add new ALTER TABLE statements before any pre existing ALTER TABLE statement,
+ * this because SQLite does not support IF NOT EXISTS on ALTER TABLE, thus they will fail
+ * on the second execution, preventing any subsequent statement to be executed.  */
+
+ALTER TABLE `flow_alerts` ADD `cli_host_pool_id` INTEGER NULL;
+ALTER TABLE `flow_alerts` ADD `srv_host_pool_id` INTEGER NULL;
+ALTER TABLE `flow_alerts` ADD `cli_network` INTEGER NULL;
+ALTER TABLE `flow_alerts` ADD `srv_network` INTEGER NULL;
+
+ALTER TABLE `host_alerts` ADD `host_pool_id` INTEGER NULL;
+ALTER TABLE `host_alerts` ADD `network` INTEGER NULL;
+
 -- New field not present in the original table added for compatibility reasons but not used by SQLite
 -- IMPORTANT: leave them at the end and remove in future versions and update SQLiteAlertStore::openStore()
 ALTER TABLE `flow_alerts` ADD `interface_id` INTEGER NULL;
@@ -309,10 +321,3 @@ ALTER TABLE `user_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `system_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `host_alerts` ADD `country` TEXT NULL;
 
-ALTER TABLE `flow_alerts` ADD `cli_host_pool_id` INTEGER NULL;
-ALTER TABLE `flow_alerts` ADD `srv_host_pool_id` INTEGER NULL;
-ALTER TABLE `flow_alerts` ADD `cli_network` INTEGER NULL;
-ALTER TABLE `flow_alerts` ADD `srv_network` INTEGER NULL;
-
-ALTER TABLE `host_alerts` ADD `host_pool_id` INTEGER NULL;
-ALTER TABLE `host_alerts` ADD `network` INTEGER NULL;
