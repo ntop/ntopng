@@ -274,9 +274,11 @@ void NetworkInterface::init() {
   countries_hash = NULL;
   gw_macs = NULL;
 
-  is_dynamic_interface = false, show_dynamic_interface_traffic = false;
+  is_dynamic_interface = false;
+  dynamic_interface_master = NULL;
   dynamic_interface_criteria = 0;
   dynamic_interface_mode = flowhashing_none;
+  show_dynamic_interface_traffic = false;
 
   top_sites = NULL;
   top_os    = NULL;
@@ -1244,10 +1246,11 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
 /* **************************************************** */
 
-void NetworkInterface::setSubInterface(FlowHashingEnum mode, u_int64_t criteria) {
-  is_dynamic_interface = true,
-    dynamic_interface_mode = mode,
-    dynamic_interface_criteria = criteria;
+void NetworkInterface::setSubInterface(NetworkInterface *master_iface, FlowHashingEnum mode, u_int64_t criteria) {
+  dynamic_interface_mode = mode;
+  dynamic_interface_criteria = criteria;
+  dynamic_interface_master = master_iface;
+  is_dynamic_interface = true;
 };
 
 /* **************************************************** */
@@ -1258,7 +1261,7 @@ bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface,  u_int6
   if(!ntop->registerInterface(sub_iface))
     return false;
 
-  sub_iface->setSubInterface(flowHashingMode, criteria);
+  sub_iface->setSubInterface(this, flowHashingMode, criteria);
 
   /* allocateStructures must be called after registering the interface.
    * This is needed because StoreManager calles ntop->getInterfaceById. */

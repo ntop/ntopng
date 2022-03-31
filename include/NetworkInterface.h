@@ -189,6 +189,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   bool show_dynamic_interface_traffic;   /* Show traffic of this dynamic interface */
   u_int64_t dynamic_interface_criteria;  /* Criteria identifying this dynamic interface */
   FlowHashingEnum dynamic_interface_mode; /* Mode (e.g., Probe IP, VLAN ID, etc */
+  NetworkInterface *dynamic_interface_master; /* Main interface */
 
   bool is_traffic_mirrored, is_loopback;
   bool discard_probing_traffic;
@@ -913,7 +914,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   }
 
   inline bool isSubInterface()                { return(is_dynamic_interface);            };
-  void setSubInterface(FlowHashingEnum mode, u_int64_t criteria);
+  void setSubInterface(NetworkInterface *master_iface, FlowHashingEnum mode, u_int64_t criteria);
+  NetworkInterface *getMasterInterface() { return dynamic_interface_master; };
+
   bool isLocalBroadcastDomainHost(Host * const h, bool is_inline_call);
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }

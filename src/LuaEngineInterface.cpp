@@ -191,6 +191,26 @@ static int ntop_get_interface_id(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_master_interface_id(lua_State* vm) {
+  NetworkInterface *iface;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if((iface = getCurrentInterface(vm)) == NULL) {
+    lua_pushnil(vm);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+
+  if (iface->isSubInterface())
+    lua_pushinteger(vm, iface->getMasterInterface()->get_id());
+  else
+    lua_pushinteger(vm, iface->get_id());
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_name(lua_State* vm) {
   NetworkInterface *iface;
 
@@ -4623,7 +4643,8 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "incSyslogStats",         ntop_interface_inc_syslog_stats         },
 
   /* SubInterface (disaggregation) */
-  { "isSubInterface",         ntop_interface_is_sub_interface      },
+  { "isSubInterface",         ntop_interface_is_sub_interface         },
+  { "getMasterInterfaceId",   ntop_get_master_interface_id            },
 
   /* ClickHouse */
   { "clickhouseExecCSVQuery", ntop_clickhouse_exec_csv_query          },
