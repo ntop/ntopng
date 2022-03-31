@@ -14,7 +14,7 @@ local interface_id = interface.getId()
 
 -- ########################################################
 
-local data_retention = data_retention_utils.getDataRetentionDays()
+local data_retention = data_retention_utils.getTSAndStatsDataRetentionDays()
 
 -- ###########################################
 

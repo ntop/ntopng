@@ -413,9 +413,13 @@ function printDataRetention()
 
   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..i18n("prefs.data_retention")..'</th></tr></thead>')
 
-  prefsInputFieldPrefs(subpage_active.entries["data_retention"].title,
-		       subpage_active.entries["data_retention"].description,
-		       "ntopng.prefs.", "data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil, {min=1, max=365 * 10})
+  prefsInputFieldPrefs(subpage_active.entries["flow_data_retention"].title,
+		       subpage_active.entries["flow_data_retention"].description,
+		       "ntopng.prefs.", "flows_and_alerts_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil, {min=1, max=365 * 10})
+
+  prefsInputFieldPrefs(subpage_active.entries["ts_data_retention"].title,
+		       subpage_active.entries["ts_data_retention"].description,
+		       "ntopng.prefs.", "ts_and_stats_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil, {min=1, max=365 * 10})
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')

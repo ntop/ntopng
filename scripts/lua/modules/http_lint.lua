@@ -1864,7 +1864,8 @@ local known_parameters = {
 
    -- Input fields
    ["companion_interface"]                         = validateEmptyOr(validateInterface),
-   ["data_retention_days"]                         = validateNumber,
+   ["flows_and_alerts_data_retention_days"]        = validateNumber,
+   ["ts_and_stats_data_retention_days"]            = validateNumber,
    ["max_entity_alerts"]                           = validateNumber,
    ["max_num_secs_before_delete_alert"]            = validateNumber,
    ["alert_page_refresh_rate"]                     = validateNumber,

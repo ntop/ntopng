@@ -378,9 +378,13 @@ local menu_subpages = {
       description = i18n("traffic_recording.max_extracted_pcap_bytes_description"),
     },
   }}, {id="retention", label=i18n("prefs.data_retention"), advanced=true, pro_only=false, hidden=false, entries={
-    data_retention = {
-      title       = i18n("prefs.data_retention"),
-      description = i18n("prefs.data_retention_descr"),
+    flow_data_retention = {
+      title       = i18n("prefs.flows_and_alerts_data_retention"),
+      description = i18n("prefs.flows_and_alerts_data_retention_descr"),
+    },
+    ts_data_retention = {
+      title       = i18n("prefs.ts_and_stats_data_retention"),
+      description = i18n("prefs.ts_and_stats_data_retention_descr"),
     },
   }}, {id="gui",          label=i18n("prefs.gui"),                 advanced=false, pro_only=false,  hidden=false, entries={
 

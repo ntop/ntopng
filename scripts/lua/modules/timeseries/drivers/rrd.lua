@@ -999,7 +999,7 @@ end
 function driver:deleteOldData(ifid)
   local paths = getRRDPaths()
   local dirs = ntop.getDirs()
-  local retention_days = data_retention_utils.getDataRetentionDays()
+  local retention_days = data_retention_utils.getTSAndStatsDataRetentionDays()
 
   for _, path in pairs(paths) do
     local ifpath = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")

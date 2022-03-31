@@ -18,7 +18,7 @@ if scripts_triggers.isDumpFlowToSQLEnabled(ifstats) then
    local db_utils = require "db_utils"
    local data_retention_utils = require "data_retention_utils"
    local iface_names = interface.getIfNames()
-   local data_retention = data_retention_utils.getDataRetentionDays()
+   local data_retention = data_retention_utils.getFlowsAndAlertsDataRetentionDays()
    local mysql_retention = os.time() - 86400 * data_retention
    local names = ""
      

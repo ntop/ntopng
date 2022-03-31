@@ -181,7 +181,7 @@ end
 
 local function getDatabaseRetentionDays()
    local data_retention_utils = require "data_retention_utils"
-   return data_retention_utils.getDataRetentionDays()
+   return data_retention_utils.getTSAndStatsDataRetentionDays()
 end
 
 local function get1dDatabaseRetentionDays()
@@ -1601,6 +1601,7 @@ end
 function driver:deleteOldData(ifid)
   -- NOTE: retention is perfomed automatically based on the database retention policy,
   -- no need for manual intervention
+  -- check https://docs.influxdata.com/influxdb/v1.7/query_language/database_management/#create-retention-policies-with-create-retention-policy
   return true
 end
 
