@@ -251,6 +251,11 @@ tag_utils.defined_tags = {
       operators = {'eq', 'neq'},
       bpf_key = 'ether host',
    },
+   network = {
+      value_type = 'network_id',
+      i18n_label = i18n('db_search.tags.cli_network'),
+      operators = {'eq', 'neq'}
+   },
    cli_network = {
       value_type = 'network_id',
       i18n_label = i18n('db_search.tags.cli_network'),
@@ -274,6 +279,11 @@ tag_utils.defined_tags = {
    packets = {
       value_type = 'packets',
       i18n_label = i18n('db_search.tags.packets'),
+      operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+   },
+   host_pool_id = {
+      value_type = 'host_pool_id',
+      i18n_label = i18n('db_search.tags.host_pool_id'),
       operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
    },
    cli_host_pool_id = {
