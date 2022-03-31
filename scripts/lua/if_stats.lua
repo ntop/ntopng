@@ -1550,6 +1550,8 @@ print [[
 ]]
 
 elseif(page == "traffic_recording" and has_traffic_recording_page) then
+   local master_ifid = interface.getMasterInterfaceId()
+
    if not dismiss_recording_providers_reminder then
       print('<div id="traffic-recording-providers-detected" class="alert alert-info alert-dismissable">'..i18n('traffic_recording.msg_external_providers_detected', {url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"})..'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
 
@@ -1561,7 +1563,7 @@ elseif(page == "traffic_recording" and has_traffic_recording_page) then
           url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/traffic_recording_config.lua',
-          data: { ifid: ]] print(tostring(ifstats.id)) print[[,
+          data: { ifid: ]] print(tostring(master_ifid)) print[[,
                   dismiss_external_providers_reminder: true,
                   csrf: "]] print(ntop.getRandomCSRFValue()) print[["},
           success: function()  {},
@@ -1574,10 +1576,10 @@ elseif(page == "traffic_recording" and has_traffic_recording_page) then
    end
 
    local tab = _GET["tab"] or "config"
-   local recording_enabled = recording_utils.isEnabled(ifstats.id)
+   local recording_enabled = recording_utils.isEnabled(master_ifid)
    -- config tab is only shown when the recording service is managed by ntopng
    -- otherwise it is assumed that the user is managing the service manually with n2disk
-   local config_enabled  = (recording_utils.getCurrentTrafficRecordingProvider(ifstats.id) == "ntopng")
+   local config_enabled  = (recording_utils.getCurrentTrafficRecordingProvider(master_ifid) == "ntopng")
 
    if tab == "config" and not config_enabled then
       if recording_enabled then tab = "status" else tab = "" end

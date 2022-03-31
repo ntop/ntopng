@@ -7,7 +7,7 @@ local dirs = ntop.getDirs()
 require "lua_utils"
 local template = require "template_utils"
 local recording_utils = require "recording_utils"
-local ifid = getInterfaceId(ifname)
+local master_ifid = interface.getMasterInterfaceId()
 
 if((not isAdministrator()) or (not recording_utils.isAvailable()) or (not ntop.isEnterpriseM())) then
   return
@@ -23,7 +23,7 @@ if not isEmptyString(_POST["job_action"]) then
   else
     -- no job id
     if _POST["job_action"] == "delete" then
-      recording_utils.deleteAndStopAllJobs(ifid)
+      recording_utils.deleteAndStopAllJobs(master_ifid)
     end
   end
 end

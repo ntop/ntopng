@@ -12,10 +12,11 @@ if((not isAdministrator()) or (not recording_utils.isAvailable())) then
 end
 
 local ifstats = interface.getStats()
+local master_ifid = interface.getMasterInterfaceId()
 local enabled = false
 local running = false
 local restart_req = false
-local custom_provider = (recording_utils.getCurrentTrafficRecordingProvider(ifstats.id) ~= "ntopng")
+local custom_provider = (recording_utils.getCurrentTrafficRecordingProvider(master_ifid) ~= "ntopng")
 local extraction_checks_ok, extraction_checks_msg
 
 if _POST["action"] ~= nil and _POST["action"] == "restart" then
@@ -24,16 +25,16 @@ end
 
 if custom_provider then
    enabled = true
-   running = recording_utils.isActive(ifstats.id)
-   extraction_checks_ok, extraction_checks_msg = recording_utils.checkExtraction(ifstats.id)
+   running = recording_utils.isActive(master_ifid)
+   extraction_checks_ok, extraction_checks_msg = recording_utils.checkExtraction(master_ifid)
 
-elseif recording_utils.isEnabled(ifstats.id) then
+elseif recording_utils.isEnabled(master_ifid) then
   enabled = true
-  if recording_utils.isActive(ifstats.id) then
+  if recording_utils.isActive(master_ifid) then
     running = true
   else -- failure
     if restart_req then
-      recording_utils.restart(ifstats.id)
+      recording_utils.restart(master_ifid)
     end
   end
 end
@@ -66,7 +67,7 @@ end
 
 print("</td></tr>\n")
 
-local stats = recording_utils.stats(ifstats.id)
+local stats = recording_utils.stats(master_ifid)
 
 local first_epoch = stats['FirstDumpedEpoch']
 local last_epoch = stats['LastDumpedEpoch']
@@ -112,7 +113,7 @@ end
 
 print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
 
-local log = recording_utils.log(ifstats.id, 32)
+local log = recording_utils.log(master_ifid, 32)
 local logs = split(log, "\n")
 for i = 1, #logs do
   local row = split(logs[i], "]: ")
