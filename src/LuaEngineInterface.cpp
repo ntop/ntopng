@@ -192,11 +192,23 @@ static int ntop_get_interface_id(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_master_interface_id(lua_State* vm) {
-  NetworkInterface *iface;
+  NetworkInterface *iface = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if((iface = getCurrentInterface(vm)) == NULL) {
+  if(lua_type(vm, 1) == LUA_TSTRING) {
+    const char *ifname = lua_tostring(vm, 1);
+    iface = ntop->getNetworkInterface(ifname, vm);
+
+  } else if(lua_type(vm, 1) == LUA_TNUMBER) {
+    int ifid = lua_tointeger(vm, 1);
+    iface = ntop->getNetworkInterface(vm, ifid);
+
+  } else {
+    iface = getCurrentInterface(vm);
+  }
+
+  if(iface == NULL) {
     lua_pushnil(vm);
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }

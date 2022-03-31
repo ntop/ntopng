@@ -562,10 +562,11 @@ end
 --------------------------------------------------------------
 
 -- PCAP modal for alert traffic extraction
-local traffic_extraction_available = recording_utils.isActive(ifid) or recording_utils.isExtractionActive(ifid)
+local master_ifid = interface.getMasterInterfaceId()
+local traffic_extraction_available = recording_utils.isActive(master_ifid) or recording_utils.isExtractionActive(master_ifid)
 
 if traffic_extraction_available then 
-   ui_utils.draw_pcap_download_dialog(ifid)
+   ui_utils.draw_pcap_download_dialog(master_ifid)
 end
 
 --------------------------------------------------------------
