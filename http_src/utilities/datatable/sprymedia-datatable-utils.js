@@ -644,8 +644,7 @@ export class DataTableRenders {
     	    let html_ref = '';
 	    if (obj.reference !== undefined)
 		html_ref = obj.reference
-	    let label = "";
-            label = label + "@" + DataTableRenders.filterize(field, row[field].value, row[field].label, row[field].label, row[field].label);
+            let label = DataTableRenders.filterize(field, row[field].value, row[field].label, row[field].label, row[field].label);
             return label + ' ' + html_ref;
 	}
     }
