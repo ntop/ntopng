@@ -4326,7 +4326,7 @@ function areHostPoolsTimeseriesEnabled(ifid)
 end
 
 function getPoolName(pool_id)
- if(pool_id == "0") then
+ if isEmptyString(pool_id) or pool_id == "0" then
    return "Default"
  else
    local key = "ntopng.prefs.host_pools.details."..pool_id
