@@ -663,7 +663,7 @@
 
     // register to global event change status
     await ntopng_sync.on_ready("range_picker");
-    
+    updateDownloadButton();
     ntopng_status_manager.on_status_change("datatable", (new_status) => {
       let url_params = ntopng_url_manager.get_url_params();
       reloadTable($table, url_params);
