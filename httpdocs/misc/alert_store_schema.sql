@@ -308,6 +308,7 @@ ALTER TABLE `flow_alerts` ADD `srv_network` INTEGER NULL;
 
 ALTER TABLE `host_alerts` ADD `host_pool_id` INTEGER NULL;
 ALTER TABLE `host_alerts` ADD `network` INTEGER NULL;
+ALTER TABLE `host_alerts` ADD `country` TEXT NULL;
 
 -- New field not present in the original table added for compatibility reasons but not used by SQLite
 -- IMPORTANT: leave them at the end and remove in future versions and update SQLiteAlertStore::openStore()
@@ -319,5 +320,4 @@ ALTER TABLE `network_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `interface_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `user_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `system_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `host_alerts` ADD `country` TEXT NULL;
 
