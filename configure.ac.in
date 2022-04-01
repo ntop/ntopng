@@ -10,32 +10,48 @@ AC_PROG_CXX
 dnl> On Ubuntu do sudo apt-get install -y clang-10  clang-tools-10
 AC_ARG_WITH(leak-sanitizer,     [  --with-leak-sanitizer   Build with support for the LLVM address leak and sanitizer])
 AS_IF([test "${with_leak_sanitizer+set}" = set],[
-     CFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
-     CPPFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
-     LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak"
-     if test $SYSTEM = "Darwin"; then
-      CC=clang
-      CXX=clang++
+    CFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
+    CPPFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
+    LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak"
+    if test $SYSTEM = "Darwin"; then
+        CC=clang
+        CXX=clang++
     else
-     CC=clang-10
-     CXX=clang++-10
-   fi
+       if test -x "/usr/bin/clang-10"; then
+           CC=clang-10
+           CXX=clang++-10
+       elif test -x "/usr/bin/clang-11"; then
+           CC=clang-11
+           CXX=clang++-11
+       else
+           echo "Could not find clang"
+           exit 1
+       fi
+    fi
     CPP=$CC
 ])
 
 dnl> On Ubuntu do sudo apt-get install -y clang-10  clang-tools-10
 AC_ARG_WITH(sanitizer,     [  --with-sanitizer   Build with support for the LLVM address sanitizer])
 AS_IF([test "${with_sanitizer+set}" = set],[
-     CFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
-     CPPFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
-     LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment"
-     if test $SYSTEM = "Darwin"; then
-      CC=clang
-      CXX=clang++
+    CFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
+    CPPFLAGS="-g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
+    LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment"
+    if test $SYSTEM = "Darwin"; then
+        CC=clang
+        CXX=clang++
     else
-     CC=clang-10
-     CXX=clang++-10
-   fi
+       if test -x "/usr/bin/clang-10"; then
+           CC=clang-10
+           CXX=clang++-10
+       elif test -x "/usr/bin/clang-11"; then
+           CC=clang-11
+           CXX=clang++-11
+       else
+           echo "Could not find clang"
+           exit 1
+       fi
+    fi
     CPP=$CC
 ])
 
@@ -852,6 +868,7 @@ fi
 echo "
 This is the ntopng configuration:
 
+Compiler          : ${CPP}
 Preprocessor Flags: ${CPPFLAGS}
 C++ Flags         : ${CXXFLAGS}
 Linker Flags:     : ${LDFLAGS}
