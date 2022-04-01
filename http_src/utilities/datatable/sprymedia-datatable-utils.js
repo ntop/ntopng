@@ -10,16 +10,19 @@ export class DataTableFiltersMenu {
      *
      * @param {options}
      */
-    constructor({ tableAPI, filterMenuKey, filterTitle, filters, columnIndex }) {
+    constructor({ tableAPI, filterMenuKey, filterTitle, filters, columnIndex, icon = null, extraAttributes = "", id = null }) {
         this.rawFilters = filters;
         this.tableAPI = tableAPI;
         this.filterTitle = filterTitle;
+        this.icon = icon;
         this.filterMenuKey = filterMenuKey;
         this.columnIndex = columnIndex;
         this.preventUpdate = false;
         this.currentFilterSelected = undefined;
         this.$datatableWrapper = $(tableAPI.context[0].nTableWrapper);
-    }
+        this.extraAttributes = extraAttributes;
+        this.id = id
+      }
 
     get selectedFilter() {
         return this.currentFilterSelected;
@@ -31,12 +34,12 @@ export class DataTableFiltersMenu {
 
         // when the datatable has been initialized render the dropdown
         this.$datatableWrapper.on('init.dt', function () {
-            self._render(self.rawFilters);
+          self._render(self.rawFilters);
         });
 
         // on ajax reload then update the datatable entries
         this.tableAPI.on('draw', function () {
-            self._update();
+          self._update();
         });
 
         return self;
@@ -112,7 +115,9 @@ export class DataTableFiltersMenu {
     }
 
     _render(filters) {
-
+      if(typeof this.columnIndex == 'undefined') {
+        $(`<span id="${this.id}" ${this.extraAttributes} title="${this.filterTitle}">${this.icon || this.filterTitle}</span>`).insertBefore(this.$datatableWrapper.find('.dataTables_filter').parent());
+      } else {
         const $dropdownContainer = $(`<div id='${this.filterMenuKey}-filters' class='dropdown d-inline'></div>`);
         const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-bs-toggle="dropdown" type='button'></button>`);
         const $dropdownTitle = $(`<span class='filter-title'>${this.filterTitle}</span>`);
@@ -143,6 +148,7 @@ export class DataTableFiltersMenu {
         $dropdownContainer.insertBefore(this.$datatableWrapper.find('.dataTables_filter').parent());
 
         this._selectFilterFromState(this.filterMenuKey);
+      }
     }
 
     _selectFilterFromState(filterKey) {

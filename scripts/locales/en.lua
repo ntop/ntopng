@@ -385,6 +385,7 @@ local lang = {
   ["service"] = "Service",
   ["service_acceptance"] = "Service Status",
   ["service_map"] = "Service Map",
+  ["max_entries_reached"] = "Warning: The entries of the Maps are too many, limited to %{entries} entries.",
   ["set"] = "Set",
   ["settings"] = "Settings",
   ["server_traffic"] = "Server to Client Traffic",
