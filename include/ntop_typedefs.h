@@ -1037,7 +1037,7 @@ typedef enum {
 } NtopngEdition;
 
 typedef enum {
-  map_column_protocol = 0,
+  map_column_l7_protocol = 0,
   map_column_client,
   map_column_server,
   map_column_vlan,
