@@ -4,6 +4,8 @@ After=@SERVICE_AFTER@
 Requires=@SERVICE_REQUIRES@
 Wants=@SERVICE_WANTS@
 PartOf=@SERVICE_WANTS@
+Required-Start=
+Required-Stop=
 
 [Service]
 Type=simple
