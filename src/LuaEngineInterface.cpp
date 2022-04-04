@@ -3961,7 +3961,8 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
   filters->first_seen = 0;
   filters->maxHits = (u_int32_t)-1;
   filters->unicast = false;
-
+  filters->sort_column = (mapSortingColumn)map_column_last_seen;
+  filters->sort_order = (sortingOrder)desc;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -3979,8 +3980,10 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
   if(lua_type(vm, 3) == LUA_TNUMBER)  filters->host_pool_id = (u_int16_t)lua_tonumber(vm, 3);
   if(lua_type(vm, 4) == LUA_TBOOLEAN) filters->unicast      = (bool)lua_toboolean(vm, 4);
   if(lua_type(vm, 5) == LUA_TNUMBER)  filters->first_seen   = (u_int32_t)lua_tonumber(vm, 5);
-  if(lua_type(vm, 6) == LUA_TSTRING)  l7_proto             = (char *)lua_tostring(vm, 6);
+  if(lua_type(vm, 6) == LUA_TSTRING)  l7_proto              = (char *)lua_tostring(vm, 6);
   if(lua_type(vm, 7) == LUA_TNUMBER)  filters->maxHits      = (u_int32_t)lua_tonumber(vm, 7);
+  if(lua_type(vm, 8) == LUA_TNUMBER)  filters->sort_column  = (mapSortingColumn)lua_tonumber(vm, 8);
+  if(lua_type(vm, 9) == LUA_TNUMBER)  filters->sort_order   = (sortingOrder)lua_tonumber(vm, 9);
 
   if(l7_proto)
     filters->ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);

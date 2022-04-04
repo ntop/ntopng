@@ -1036,6 +1036,23 @@ typedef enum {
   ntopng_edition_enterprise_l
 } NtopngEdition;
 
+typedef enum {
+  map_column_protocol = 0,
+  map_column_client,
+  map_column_server,
+  map_column_vlan,
+  map_column_port,
+  map_column_contacts,
+  map_column_last_seen,
+  map_column_observations,
+  map_column_frequency
+} mapSortingColumn;
+
+typedef enum {
+  asc = 0,
+  desc
+} sortingOrder;
+
 typedef struct _MapsFilters {
   bool periodicity_or_service;
   NetworkInterface *iface;
@@ -1048,6 +1065,8 @@ typedef struct _MapsFilters {
   u_int16_t ndpi_proto;
   u_int32_t first_seen;
   u_int32_t maxHits;
+  mapSortingColumn sort_column;
+  sortingOrder sort_order;
 } MapsFilters;
 
 typedef struct _MapsFilteringMenu {
