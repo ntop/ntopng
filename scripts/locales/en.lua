@@ -5834,6 +5834,7 @@ local lang = {
     ["confirm_delete"] = "Are you sure you want to delete ",
     ["delete"] = "Delete Sub-Interface",
     ["disaggregation"] = "Custom Traffic Disaggregation",
+    ["edit_sub_if"] = "Edit Sub-Interface",
     ["empty_filter"] = "Filter not specified",
     ["filter_description"] = "An extended nBPF format is supported. In addition to the standard BPF syntax, it is possible to use special keyworks like <i>local</i> and <i>remote</i> (combined with <i>src</i> and <i>dst</i> qualifiers).",
     ["filter_examples"] = "Filter examples",
