@@ -48,7 +48,7 @@ class Ntop {
   bool offline;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   AddressTree local_interface_addresses;
-  char epoch_buf[11];
+  char epoch_buf[11], *zoneinfo;
   char working_dir[MAX_PATH]; /**< Working directory. */
   char install_dir[MAX_PATH]; /**< Install directory. */
   char startup_dir[MAX_PATH]; /**< Startup directory. */
@@ -143,7 +143,8 @@ class Ntop {
   void checkReloadHostChecks();
   void checkReloadAlertExclusions();
   void checkReloadHostPools();
-  
+  void setZoneInfo();
+    
  public:
   /**
    * @brief A Constructor
@@ -601,6 +602,7 @@ class Ntop {
 #endif
   void collectResponses(lua_State* vm);
   void collectContinuousResponses(lua_State* vm);
+  inline char *getZoneInfo() { return(zoneinfo); }
 };
 
 extern Ntop *ntop;

@@ -72,7 +72,9 @@ Ntop::Ntop(const char *appName) {
   iface = NULL;
   start_time = last_modified_static_file_epoch = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
-  
+
+  setZoneInfo();
+    
   /* Checks loader */
   flowChecksReloadInProgress = true; /* Lazy, will be reloaded the first time this condition is evaluated */
   hostChecksReloadInProgress = true;
@@ -283,6 +285,8 @@ Ntop::~Ntop() {
     }
   }
 
+  if(zoneinfo) free(zoneinfo);
+  
   delete []iface;
 
   if(system_interface)    delete system_interface;
@@ -3439,6 +3443,34 @@ void Ntop::collectContinuousResponses(lua_State* vm) {
 
   cping->collectResponses(vm, false /* IPv4 */);
   cping->collectResponses(vm, true /* IPv6 */);
+}
+
+/* ******************************************* */
+
+void Ntop::setZoneInfo() {
+  char buf[64];
+  ssize_t rc = readlink("/etc/localtime", buf, sizeof(buf));
+  u_int num_slash = 0;
+
+  if(rc <= 0) return; else rc--;
+  
+  while(rc > 0) {
+    if(buf[rc] == '/') {
+      if(++num_slash == 2)
+	break;
+    }
+
+    rc--;
+  }
+
+  if(num_slash == 2) {
+    rc++;
+    zoneinfo = strdup(&buf[rc]);   
+  } else
+    zoneinfo = NULL;
+
+  if(zoneinfo)
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Timezone set to %s", zoneinfo);
 }
 
 #endif

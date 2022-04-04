@@ -3041,7 +3041,7 @@ static int ntop_get_info(lua_State* vm) {
   int major, minor, patch;
 #endif
   bool verbose = true;
-  char** my_tz;
+  char** my_tz, *zoneinfo = ntop->getZoneInfo();
 
 #ifdef WIN32
   my_tz = _tzname;
@@ -3094,6 +3094,7 @@ static int ntop_get_info(lua_State* vm) {
 			   (char*)PACKAGE_OS
 #endif
     );
+
   lua_push_uint64_table_entry(vm, "bits", (sizeof(void*) == 4) ? 32 : 64);
   lua_push_uint64_table_entry(vm, "uptime", ntop->getGlobals()->getUptime());
   lua_push_str_table_entry(vm, "command_line", ntop->getPrefs()->get_command_line());
@@ -3105,6 +3106,9 @@ static int ntop_get_info(lua_State* vm) {
   else
     lua_push_str_table_entry(vm, "tzname", my_tz[0]);  /* Timezone name */
 
+  if(zoneinfo)
+    lua_push_str_table_entry(vm, "zoneinfo", zoneinfo);
+  
 #ifdef linux
   lua_push_int32_table_entry(vm, "timezone", timezone); /* Seconds west of UTC */
 #endif
