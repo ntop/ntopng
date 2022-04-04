@@ -96,6 +96,11 @@ do
     esac
 done
 
+if ! command -v shyaml &> /dev/null; then
+    echo "Please install shyaml"
+    exit 0
+fi
+
 if [ "${NOTIFICATIONS_ON}" = true ]; then
     if [ -z "$MAIL_FROM" ] || [ -z "$MAIL_TO" ] ; then
         echo "Warning: please specify -f=<from> -t=<to> to send alerts by mail"
