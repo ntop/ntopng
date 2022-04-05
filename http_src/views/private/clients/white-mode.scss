@@ -780,23 +780,23 @@ li > a > .fa-external-link-alt{
 }
 
 table.dataTable thead th.sorting::after {
-  content: '\f0dc';
+  font-family: "FontAwesome";
+  content: '';
   color: #000000;
   font-size: 0.8em;
   padding-top: 0.12em;
-  font-family: FontAwesome;
   padding-left: inherit;
   opacity: 0.2;
 }
 table.dataTable thead th.sorting_asc::after {
-  content: '\f0de';
-  font-family: FontAwesome;
+  font-family: "FontAwesome";
+  content: '\25BC';
   padding-left: inherit;
   opacity: 1;
 }
 table.dataTable thead th.sorting_desc::after {
-  content: '\f0dd';
-  font-family: FontAwesome;
+  font-family: "FontAwesome";
+  content: '\25B2';
   padding-left: inherit;
   opacity: 1;
 }
