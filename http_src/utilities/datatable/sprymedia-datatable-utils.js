@@ -10,7 +10,7 @@ export class DataTableFiltersMenu {
      *
      * @param {options}
      */
-    constructor({ tableAPI, filterMenuKey, filterTitle, filters, columnIndex, icon = null, extraAttributes = "", id = null }) {
+    constructor({ tableAPI, filterMenuKey, filterTitle, filters, columnIndex, icon = null, extraAttributes = "", id = null, url = null, urlParams = null }) {
         this.rawFilters = filters;
         this.tableAPI = tableAPI;
         this.filterTitle = filterTitle;
@@ -21,7 +21,9 @@ export class DataTableFiltersMenu {
         this.currentFilterSelected = undefined;
         this.$datatableWrapper = $(tableAPI.context[0].nTableWrapper);
         this.extraAttributes = extraAttributes;
-        this.id = id
+        this.id = id;
+        this.url = url;
+        this.urlParams;
       }
 
     get selectedFilter() {
@@ -58,10 +60,11 @@ export class DataTableFiltersMenu {
     _createMenuEntry(filter) {
 
         const self = this;
-        const $entry = $(`<li class='dropdown-item pointer'>${filter.label} </li>`);
-
-        if (filter.countable === undefined || filter.countable) {
-
+        let $entry = $(`<li class='dropdown-item pointer'>${filter.label} </li>`);
+        
+        if(self.url) {
+          $entry = $(`<li class='dropdown-item pointer'><a href=# class='dropdown-item'>${filter.label} </li>`)
+        } else if (filter.regex !== undefined && (filter.countable === undefined || filter.countable)) {
             const data = this.tableAPI.columns(this.columnIndex).data()[0];
             const count = this._countEntries(filter.regex, data);
             const $counter = $(`<span class='counter'>(${count})</span>`);
@@ -74,7 +77,7 @@ export class DataTableFiltersMenu {
         }
 
         $entry.click(function (e) {
-
+          if(!self.url) {
             self.preventUpdate = true;
 
             // set active filter title and key
@@ -94,6 +97,16 @@ export class DataTableFiltersMenu {
             self.tableAPI.column(self.columnIndex).search(filter.regex, true, false).draw();
             // set current filter
             self.currentFilterSelected = filter;
+          } else {
+            self.urlParams = window.location.search
+            const newUrlParams = new URLSearchParams(self.urlParams)
+            newUrlParams.set(self.filterMenuKey, filter.id || '')
+            const newUrl = self.url + '?' + newUrlParams.toString()
+
+            window.history.pushState('', '', window.location.pathname + '?' + newUrlParams.toString())
+
+            self.tableAPI.ajax.url(newUrl).load()
+          }
         });
 
         return $entry;
@@ -184,7 +197,7 @@ export class DataTableFiltersMenu {
         }
 
         for (const [_, filter] of Object.entries(this.filters)) {
-            if (filter.countable == false) continue;
+            if (filter.countable == false || filter.filter.countable == false) continue;
 
             const data = this.tableAPI.columns(this.columnIndex).data()[0];
             const count = this._countEntries(filter.filter.regex, data);

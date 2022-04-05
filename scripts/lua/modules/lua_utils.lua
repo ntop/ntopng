@@ -4651,69 +4651,55 @@ function buildHostHREF(ip_address, vlan_id, page)
    end
 end
 
-function builMapHREF(service_peer, vlan_id, map, default_page)
-   -- Getting minimal stats to know if the host is still present in memory
-   local name 
-   local map_url = ntop.getHttpPrefix()..'/lua/pro/enterprise/'..map..'_map.lua?'..hostinfo2url(service_peer)
-   local host
-   local host_url = ''
-   local host_icon
-   local dev_type
+function builMapHREF(service_peer, map)
+  -- Getting minimal stats to know if the host is still present in memory
+  local name 
+  local map_url = ntop.getHttpPrefix()..'/lua/pro/enterprise/'..map..'_map.lua?'..hostinfo2url(service_peer)
+  local host_url = ''
+  local host_icon
+  
+  -- Getting stats and formatting initial href
+  if (service_peer.ip or service_peer.host) and not service_peer.is_mac then
+    -- Host URL only if the host is active
+    host_url = hostinfo2detailsurl({host = service_peer.ip or service_peer.host, vlan = service_peer.vlan}, nil, true --[[ check of the host is active --]])
 
-   -- Getting stats and formatting initial href
-   if (service_peer.ip or service_peer.host) and not service_peer.is_mac then
-      -- Host URL only if the host is active
-      host_url = hostinfo2detailsurl({host = service_peer.ip or service_peer.host, vlan = service_peer.vlan}, nil, true --[[ check of the host is active --]])
+    local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, service_peer.vlan)
 
-      local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, service_peer.vlan)
-      if hinfo then
-	 dev_type = hinfo["devtype"]
-      end
+    name = hostinfo2label(hinfo or service_peer)
+    host_icon = "fa-laptop"
+  else
+    local minfo = interface.getMacInfo(service_peer.host)
 
-      name = hostinfo2label(hinfo or service_peer)
-      host_icon = "fa-laptop"
-   else
-      local minfo = interface.getMacInfo(service_peer.host)
+    -- The URL only if the MAC is active
+    if minfo and table.len(minfo) > 0 then
+      host_url = ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(service_peer)
+    end
 
-      -- The URL only if the MAC is active
-      if minfo and table.len(minfo) > 0 then
-	 host_url = ntop.getHttpPrefix()..'/lua/mac_details.lua?'..hostinfo2url(service_peer)
-	 dev_type = minfo["devtype"]
-      end
+    if (service_peer.ip and service_peer.is_mac) or not service_peer.is_mac  then
+        local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, service_peer.vlan)
+        name = hostinfo2label(hinfo or service_peer)
+    else   
+        name = mac2label(service_peer.host)
+    end
 
-      if (service_peer.ip and service_peer.is_mac) or not service_peer.is_mac  then
-         local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, service_peer.vlan)
-         name = hostinfo2label(hinfo or service_peer)
-      else   
-         name = mac2label(service_peer.host)
-      end
+    if isMacAddress(name) then
+      name = get_symbolic_mac(name, true)
+    end
+    
+    host_icon = "fa-microchip"
+  end
 
-      if isMacAddress(name) then
-	 name = get_symbolic_mac(name, true)
-      end
-      
-      host_icon = "fa-microchip"
-   end
+  -- Getting the name if present
+  name = name or service_peer.host
 
-   -- Getting the name if present
-   name = name or service_peer.host
+  local res
+  if not isEmptyString(host_url) then
+    res = string.format('<a href="%s">%s</a> <a href="%s"><i class="fas %s"></i></a>', map_url, name, host_url, host_icon)
+  else
+    res = string.format('<a href="%s">%s</a>', map_url, name)
+  end
 
-   -- Add the device type, if detected
-   if not isEmptyString(dev_type) then
-      local discover = require "discover_utils"
-      dev_type = discover.devtype2icon(dev_type)
-   else
-      dev_type = ''
-   end
-
-   local res
-   if not isEmptyString(host_url) then
-      res = string.format('<a href="%s">%s</a> %s <a href="%s"><i class="fas %s"></i></a>', map_url, name, dev_type, host_url, host_icon)
-   else
-      res = string.format('<a href="%s">%s</a> %s', map_url, name, dev_type)
-   end
-
-   return res
+  return res
 end
 
 -- #####################
