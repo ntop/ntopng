@@ -3989,6 +3989,8 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
 
   if(l7_proto)
     filters->ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
+
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "l7 proto: %u", filters->ndpi_proto);
 }
 
 /* ****************************************** */

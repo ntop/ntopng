@@ -104,8 +104,7 @@ export class DataTableFiltersMenu {
             const newUrl = self.url + '?' + newUrlParams.toString()
 
             window.history.pushState('', '', window.location.pathname + '?' + newUrlParams.toString())
-
-            self.tableAPI.ajax.url(newUrl).load()
+            location.reload()
           }
         });
 
