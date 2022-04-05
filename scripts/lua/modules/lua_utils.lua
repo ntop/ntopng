@@ -2366,20 +2366,25 @@ end
 -- ##############################################
 
 function getFullVlanName(vlan_id, compact)
-   local alias = getVlanAlias(vlan_id)
+  local alias = getVlanAlias(vlan_id)
 
-   if not isEmptyString(alias) then
-      if not isEmptyString(alias) and alias ~= tostring(vlan_id) then
-	 if compact then
-	    alias = shortenString(alias)
-	    return string.format("%s", alias)
-	 else
-	    return string.format("%u [%s]", vlan_id, alias)
-	 end
-      end
-   end
+  -- In case of vlan 0, return empty string as name
+  if tonumber(vlan_id) == 0 then
+    return ''
+  end
 
-   return vlan_id
+  if not isEmptyString(alias) then
+    if not isEmptyString(alias) and alias ~= tostring(vlan_id) then
+  if compact then
+    alias = shortenString(alias)
+    return string.format("%s", alias)
+  else
+    return string.format("%u [%s]", vlan_id, alias)
+  end
+    end
+  end
+
+  return vlan_id
 end
 
 -- ##############################################
