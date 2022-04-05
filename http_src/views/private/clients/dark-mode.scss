@@ -705,3 +705,7 @@ li > a > .fa-external-link-alt{
 .infowin {
   color: #181818 !important;
 }
+
+table.dataTable thead th.sorting::after {
+  color: #DDDDDD;
+}
