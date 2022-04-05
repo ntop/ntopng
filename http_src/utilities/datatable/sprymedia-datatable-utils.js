@@ -63,7 +63,21 @@ export class DataTableFiltersMenu {
         let $entry = $(`<li class='dropdown-item pointer'>${filter.label} </li>`);
         
         if(self.url) {
-          $entry = $(`<li class='dropdown-item pointer'><a href=# class='dropdown-item'>${filter.label} </li>`)
+          $entry = $(`<li class='dropdown-item pointer'><a href=# class='p-1' style="color: #e2e2e2 !important;">${filter.label} </li>`)
+
+          if(filter.currently_active == true) {
+            // set active filter title and key
+            if (self.$dropdown.title.parent().find(`i.fas`).length == 0) {
+              self.$dropdown.title.parent().prepend(`<i class='fas fa-filter'></i>`);
+            }
+
+            const newContent = $entry.html();
+            self.$dropdown.title.html(newContent);
+            // remove the active class from the li elements
+            self.$dropdown.container.find('li').removeClass(`active`);
+            // add active class to current entry
+            $entry.addClass(`active`);
+          }
         } else if (filter.regex !== undefined && (filter.countable === undefined || filter.countable)) {
             const data = this.tableAPI.columns(this.columnIndex).data()[0];
             const count = this._countEntries(filter.regex, data);
@@ -135,13 +149,13 @@ export class DataTableFiltersMenu {
         const $dropdownTitle = $(`<span class='filter-title'>${this.filterTitle}</span>`);
         $dropdownButton.append($dropdownTitle);
 
-        this.filters = this._createFilters(filters);
-
         this.$dropdown = {
-            container: $dropdownContainer,
-            title: $dropdownTitle,
-            button: $dropdownButton
+          container: $dropdownContainer,
+          title: $dropdownTitle,
+          button: $dropdownButton
         };
+
+        this.filters = this._createFilters(filters);
 
         const $menuContainer = $(`<ul class='dropdown-menu dropdown-menu-lg-end scrollable-dropdown' id='${this.filterMenuKey}-filter-menu'></ul>`);
         for (const [_, filter] of Object.entries(this.filters)) {
