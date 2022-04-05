@@ -780,8 +780,6 @@ li > a > .fa-external-link-alt{
 }
 
 table.dataTable thead th.sorting::after {
-  font-family: "FontAwesome";
-  content: '';
   color: #000000;
   font-size: 0.8em;
   padding-top: 0.12em;
@@ -789,14 +787,12 @@ table.dataTable thead th.sorting::after {
   opacity: 0.2;
 }
 table.dataTable thead th.sorting_asc::after {
-  font-family: "FontAwesome";
-  content: '\25BC';
+  content: '\25B4';
   padding-left: inherit;
   opacity: 1;
 }
 table.dataTable thead th.sorting_desc::after {
-  font-family: "FontAwesome";
-  content: '\25B2';
+  content: '\25BE';
   padding-left: inherit;
   opacity: 1;
 }
