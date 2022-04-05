@@ -4,6 +4,7 @@
 node_modules/
 .history/
 package-lock.json
+httpdocs/dist/*.map
 
 ntopng.sublime-*src/*.o
 src/*.obj

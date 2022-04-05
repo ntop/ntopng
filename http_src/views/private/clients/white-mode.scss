@@ -778,3 +778,22 @@ li > a > .fa-external-link-alt{
 .bootstrap-select:not([class *= 'col-']):not([class *= 'form-control']):not(.input-group-btn) {
   min-width: 10rem !important;
 }
+
+table.dataTable thead th.sorting::after {
+  content: '\f0dc';
+  color: #DDDDDD;
+  font-size: 0.8em;
+  padding-top: 0.12em;
+  font-family: FontAwesome;
+  padding-left: inherit;
+}
+table.dataTable thead th.sorting_asc::after {
+  content: '\f0de';
+  font-family: FontAwesome;
+  padding-left: inherit;
+}
+table.dataTable thead th.sorting_desc::after {
+  content: '\f0dd';
+  font-family: FontAwesome;
+  padding-left: inherit;
+}
