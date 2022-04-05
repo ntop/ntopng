@@ -1065,6 +1065,7 @@ typedef struct _MapsFilters {
   u_int16_t ndpi_proto;
   u_int32_t first_seen;
   u_int32_t maxHits;
+  u_int32_t startingHit;
   mapSortingColumn sort_column;
   sortingOrder sort_order;
 } MapsFilters;

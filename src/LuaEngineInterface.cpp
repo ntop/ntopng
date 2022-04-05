@@ -3960,6 +3960,7 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
   filters->ndpi_proto = (u_int16_t)-1;
   filters->first_seen = 0;
   filters->maxHits = (u_int32_t)-1;
+  filters->startingHit = (u_int32_t)0;
   filters->unicast = false;
   filters->sort_column = (mapSortingColumn)map_column_last_seen;
   filters->sort_order = (sortingOrder)desc;
@@ -3982,8 +3983,9 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
   if(lua_type(vm, 5) == LUA_TNUMBER)  filters->first_seen   = (u_int32_t)lua_tonumber(vm, 5);
   if(lua_type(vm, 6) == LUA_TSTRING)  l7_proto              = (char *)lua_tostring(vm, 6);
   if(lua_type(vm, 7) == LUA_TNUMBER)  filters->maxHits      = (u_int32_t)lua_tonumber(vm, 7);
-  if(lua_type(vm, 8) == LUA_TNUMBER)  filters->sort_column  = (mapSortingColumn)lua_tonumber(vm, 8);
-  if(lua_type(vm, 9) == LUA_TNUMBER)  filters->sort_order   = (sortingOrder)lua_tonumber(vm, 9);
+  if(lua_type(vm, 8) == LUA_TNUMBER)  filters->startingHit  = (u_int32_t)lua_tonumber(vm, 8);
+  if(lua_type(vm, 9) == LUA_TNUMBER)  filters->sort_column  = (mapSortingColumn)lua_tonumber(vm, 9);
+  if(lua_type(vm, 10) == LUA_TNUMBER) filters->sort_order   = (sortingOrder)lua_tonumber(vm, 10);
 
   if(l7_proto)
     filters->ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
