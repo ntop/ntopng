@@ -23,6 +23,7 @@ local ifid = _GET["ifid"]
 local host_info = url2hostinfo(_GET)
 local breed = _GET["breed"]
 local ndpi_category = _GET["ndpi_category"]
+local collapse_stats = (_GET["collapse_stats"] or "true")
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts.err.invalid_interface
@@ -80,6 +81,8 @@ for key, value in pairsByValues(_ifstats, rev) do
 
 end
 
-local collapsed = stats_utils.collapse_stats(res, 1, 3 --[[ threshold ]])
+if collapse_stats == "true" then
+  res = stats_utils.collapse_stats(res, 1, 3 --[[ threshold ]])
+end
 
-rest_utils.answer(rc, collapsed)
+rest_utils.answer(rc, res)
