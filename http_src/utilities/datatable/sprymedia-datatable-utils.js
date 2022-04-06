@@ -63,7 +63,7 @@ export class DataTableFiltersMenu {
         let $entry = $(`<li class='dropdown-item pointer'>${filter.label} </li>`);
         
         if(self.url) {
-          $entry = $(`<li class='dropdown-item pointer'><a href=# class='p-1' style="color: #e2e2e2 !important;">${filter.label} </li>`)
+          $entry = $(`<li class='dropdown-item pointer'><a href=# class='p-1 standard-color'>${filter.label} </li>`)
 
           if(filter.currently_active == true) {
             // set active filter title and key

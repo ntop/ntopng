@@ -781,7 +781,7 @@ li > a > .fa-external-link-alt{
 
 /* Using the unicode as content, fontawesome icons are not working */
 table.dataTable thead th.sorting::after {
-  color: #000000;
+  color: #111111;
   font-size: 1em;
   padding-left: inherit;
   opacity: 0.2;
@@ -798,3 +798,11 @@ table.dataTable thead th.sorting_desc::after {
   padding-left: inherit;
   opacity: 1;
 }
+
+.standard-color {
+  color: #111111 !important;
+}
+
+
+
+
