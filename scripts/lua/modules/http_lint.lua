@@ -1473,7 +1473,9 @@ local known_parameters = {
    ["confirm_password"]        = { passwordCleanup, validatePassword },              -- Confirm user password
    ["user_role"]               = validateUserRole,              -- User role
    ["user_language"]           = validateUserLanguage,          -- User language
+   ["add_user_language"]       = validateUserLanguage,          -- User language in add modal
    ["allow_pcap_download"]     = validateEmptyOr(validateBool),
+   ["allow_historical_flow"]   = validateBool,
 
 -- NDPI
    ["application"]             = validateApplication,           -- An nDPI application protocol name
@@ -1748,10 +1750,10 @@ local known_parameters = {
    ["first_seen"]          = validateNumber,
    ["only_memory"]         = validateBool,
    ["only_alerted_hosts"]  = validateBool,
+   ["map_search"]          = validateUnquoted,
 
 -- Script editor
    ["script_file_path"]         = validateLuaScriptPath,
-   ["script_path"]              = validateLuaScriptPath,
 
 -- PREFERENCES - see prefs.lua for details
    -- Toggle Buttons
