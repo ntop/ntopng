@@ -185,6 +185,27 @@
 						"description": "Show nDPI category",
 						"required": false,
 						"type": "boolean"
+					},
+					{
+						"name": "all_values",
+						"in": "query",
+						"description": "Return all the values available",
+						"required": false,
+						"type": "boolean"
+					},
+					{
+						"name": "max_values",
+						"in": "query",
+						"description": "Get at most max_values, by default 5",
+						"required": false,
+						"type": "int16"
+					},
+					{
+						"name": "collapse_stats",
+						"in": "query",
+						"description": "Collapse the returned stats into 'Other' stats if bytes/flows are too low (< 3%)",
+						"required": false,
+						"type": "boolean"
 					}
 				],
 				"responses": {
@@ -525,6 +546,13 @@
 						"name": "ndpi_category",
 						"in": "query",
 						"description": "Show nDPI category",
+						"required": false,
+						"type": "boolean"
+					},
+					{
+						"name": "collapse_stats",
+						"in": "query",
+						"description": "Collapse the returned stats into 'Other' stats if bytes/flows are too low (< 3%)",
 						"required": false,
 						"type": "boolean"
 					}
