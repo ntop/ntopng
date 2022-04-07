@@ -44,12 +44,18 @@ if(isAdministratorOrPrintErr()) then
 	       value["language"] = locales_utils.default_locale
 	    end
 	 end
-	 print(' "language": "'..value["language"]..'",\n')
-         if value["allow_pcap_download"] then
-           print(' "allow_pcap_download": true,\n')
-         end
+  print(' "language": "'..value["language"]..'",\n')
+  if value["allow_pcap_download"] then
+    print(' "allow_pcap_download": true,\n')
+  end
 		
-	local api_token = ntop.getUserAPIToken(key) or ""
+
+	print(' "language": "'..value["language"]..'",\n')
+  if value["allow_historical_flow"] then
+    print(' "allow_historical_flow": true,\n')
+  end
+	
+  local api_token = ntop.getUserAPIToken(key) or ""
 
 	 print(' "username": "'..key..'",\n')
 	 print(' "api_token": "' ..api_token.. '",\n')

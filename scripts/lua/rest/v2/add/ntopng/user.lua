@@ -33,9 +33,14 @@ local confirm_password = _POST["confirm_password"]
 local host_role = _POST["user_role"]
 local networks = _POST["allowed_networks"]
 local allowed_interface = _POST["allowed_interface"]
-local language = _POST["user_language"]
+local allow_historical_flow = _POST["allow_historical_flow"] or false
+local language = _POST["add_user_language"]
 local allow_pcap_download = _POST["allow_pcap_download"]
 local host_pool_id = _POST["host_pool_id"]
+
+if allow_historical_flow == "1" then
+  allow_historical_flow = true
+end
 
 if username == nil or full_name == nil or password == nil or
    confirm_password == nil or host_role == nil or networks == nil or
@@ -67,7 +72,7 @@ if _POST["allow_pcap_download"] and _POST["allow_pcap_download"] == "1" then
 end
 
 if not ntop.addUser(username, full_name, password, host_role, networks, 
-		    getInterfaceName(allowed_interface), host_pool_id, language, allow_pcap_download_enabled) then
+		    getInterfaceName(allowed_interface), host_pool_id, language, allow_pcap_download_enabled, allow_historical_flow) then
    rest_utils.answer(rest_utils.consts.err.add_user_failed, res)
    return
 end

@@ -1097,6 +1097,10 @@ void Ntop::getUsers(lua_State* vm) {
     if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_bool_table_entry(vm, "allow_pcap_download", true);
 
+    snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_ALLOW_HISTORICAL_FLOW, username);
+    if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
+      lua_push_bool_table_entry(vm, "allow_historical_flow", true);
+
     snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_NETS, username);
     if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_str_table_entry(vm, CONST_ALLOWED_NETS, val);
@@ -2009,6 +2013,29 @@ bool Ntop::changeUserPermission(const char * username, bool allow_pcap_download)
   return(true);
 }
 
+
+/* ******************************************* */
+
+bool Ntop::changeUserHistoricalFlowPermission(const char * username, bool allow_historical_flow) const {
+  char key[64];
+
+  if (username == NULL || username[0] == '\0')
+    return false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+			       "Changing user permission [allow-historical-flow: %s] for %s",
+			       allow_historical_flow ? "true" : "false", username);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, username);
+
+  if(allow_historical_flow)
+    return (ntop->getRedis()->set(key, "1", 0) >= 0);
+  else
+    ntop->getRedis()->del(key);
+
+  return(true);
+}
+
 /* ******************************************* */
 
 bool Ntop::getUserPermission(const char * username, bool *allow_pcap_download) const {
@@ -2073,7 +2100,7 @@ bool Ntop::existsUser(const char * username) const {
 
 bool Ntop::addUser(char *username, char *full_name, char *password, char *host_role,
 		   char *allowed_networks, char *allowed_ifname, char *host_pool_id,
-		   char *language, bool allow_pcap_download) {
+		   char *language, bool allow_pcap_download, bool allow_historical_flow) {
   char key[CONST_MAX_LEN_REDIS_KEY];
   char password_hash[33];
   char new_user_id_buf[8];
@@ -2117,6 +2144,11 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
 
   if(allow_pcap_download) {
     snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, username);
+    ntop->getRedis()->set(key, "1", 0);
+  }
+
+  if(allow_historical_flow) {
+    snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, username);
     ntop->getRedis()->set(key, "1", 0);
   }
 

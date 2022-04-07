@@ -1,0 +1,247 @@
+<!--
+  (C) 2022 - ntop.org
+
+  Dialog used to add a new user in ntopng
+-->
+
+
+<div id="add_user_dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add_user_dialog_label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+	      <h5 class='modal-title' id="add_user_dialog_label">{* messages.ntopng *}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <form data-bs-toggle="validator" id="form_add_user" method="post" accept-charset="UTF-8">
+    
+        <div class="modal-body">
+          <div id="add_user_alert_placeholder"></div>
+          <input name="csrf" type="hidden" value="{* csrf *}"/>
+          <div class="form-group mb-3">
+            <label for="username_input">{* messages.username *}</label>
+            <div class="input-group mb-6">
+              <span class="input-group-text"><i class="fas fa-user-circle" aria-hidden="true"></i></span>
+              <input id="username_input" type="text" name="username" value="" class="form-control" data-pattern="username" required>
+            </div>
+          </div>
+      
+          <div class="form-group mb-3">
+            <label for="full_name_input">{* messages.full_name *}</label>
+            <div class="input-group mb-6">
+              <span class="input-group-text"><i class="fas fa-user" aria-hidden="true"></i></span>
+              <input id="full_name_input" type="text" name="full_name" value="" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="password_input">{* messages.password *}</label>
+            <div class="input-group mb-6">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input id="password_input" type="password" name="password" value="" class="form-control"  data-pattern="password" required>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="confirm_password_input">{* messages.confirm_password *}</label>
+            <div class="input-group mb-6">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" data-pattern="password" required>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="user_role">{* messages.user_role *}</label>
+            <div class="input-group mb-6">
+              <select id="user_role" name="user_role" class="form-select" style="width:100%;">
+                <option value="unprivileged">{* messages.non_privileged_user *}</option>
+                <option value="administrator">{* messages.administrator *}</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="unprivileged_input">
+            <div class="form-group mb-3">
+              <label for="allowed_interface_input">{* messages.allowed_interface *}</label>
+              <div class="input-group mb-6">
+                <select id="allowed_interface_input" name="allowed_interface" class="form-select ">
+                  <option value="">{* messages.any_interface *}</option>
+                  {% for _, interface in pairsByKeys(interfaces_names, asc) do %}
+                      <option value="{* interface.id *}">{* interface.label *}</option>
+                  {% end %}
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group mb-3">
+              <label for="allowed_networks_input">{* messages.allowed_networks *}</label>
+              <div class="input-group mb-6">
+                <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
+                <small>{* messages.allowed_networks_descr *}</small>
+              </div>
+            </div>
+          
+            {% if clickhouse_enabled then %}
+            
+            <div class="form-group mb-3">
+              <label for="allow_historical_flow">{* messages.allow_historical_flow *}</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="allow_historical_flow" value="1">
+                <small>{* messages.allow_historical_flow_descr *}</small>
+              </div>
+            </div>
+            
+            {% end %}
+
+            {% if is_pcap_download_available then %}
+
+            <div class="form-group mb-3">
+              <label for="allow_pcap_download">{* messages.allow_pcap_download *}</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="allow_pcap_download" value="1">
+                <small>{* messages.allow_pcap_download_descr *}</small>
+              </div>
+            </div>
+
+            {% end %}
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="add_user_language">{* messages.language *}</label>
+            <div class="input-group mb-3">
+              <span class="input-group-text"><i class="fas fa-language" aria-hidden="true"></i></span>
+              <select id="add_user_language" name="add_user_language" class="form-select">
+                {% for _, lang in ipairs(available_locales) do %}
+                    <option value="{* lang.code *}">{* lang.label *}</option>
+                {% end %}
+              </select>
+            </div>
+          </div>
+
+        </div> <!-- modal-body -->
+        <div class='modal-footer'>
+          <button id="add_user_submit" class="btn btn-primary btn-block">{* messages.add_new_user *}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div> <!-- add_user_dialog -->
+
+
+<script type="text/javascript">  
+  const add_user_alert = {
+    error: function(message, no_close) { 
+      $('#add_user_alert_placeholder').html('<div class="alert alert-dismissible alert-danger">' + message + (no_close ? '' : '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>') + '</div>'); 
+    },
+    success: function(message) { 
+      $('#add_user_alert_placeholder').html('<div class="alert alert-success">' + message); 
+    }
+  }
+
+  $("#user_role").change(function() {
+    if ($(this).val() == "unprivileged")
+      $('#unprivileged_input').show();
+    else
+      $('#unprivileged_input').hide();
+  });
+
+
+  $("#add_lifetime_selection_table label").attr("disabled", "disabled");
+  $("#add_lifetime_selection_table input").attr("disabled", "disabled");
+
+  $("#add_lifetime_unlimited").click(function(){
+    $("#add_lifetime_selection_table label").attr("disabled", "disabled");
+    $("#add_lifetime_selection_table input").attr("disabled", "disabled");
+    $("#add_lifetime_limited").removeAttr("checked").prop("checked", false);
+  });
+
+  $("#add_lifetime_limited").click(function() {
+    $("#add_lifetime_selection_table label").removeAttr("disabled");
+    $("#add_lifetime_selection_table input").removeAttr("disabled");
+    $("#add_lifetime_unlimited").removeAttr("checked").prop("checked", false);
+  });
+
+  var frmadduser = $('#form_add_user');
+
+  function resetAddUserForm() {
+    $("#username_input").val("");
+    $("#full_name_input").val("");
+    $("#password_input").val("");
+    $("#confirm_password_input").val("");
+    $("#allowed_networks_input").val("0.0.0.0/0,::/0");
+  }
+
+  resetAddUserForm();
+
+  $(`#add_user_submit`).on('click', function () {
+    if(!isValidPassword($("#password_input").val())) {
+      add_user_alert.error("Password contains invalid chars. Please use valid ISO8859-1 (latin1) letters and numbers.");
+      return(false);
+    }
+
+    if(isDefaultPassword($("#password_input").val())) {
+      add_user_alert.error("Password is weak. Please choose a stronger password.");
+      return(false);
+    }
+
+    if(!isValid($("#username_input").val())) {
+      add_user_alert.error("Username must contain only letters and numbers");
+      return(false);
+    }
+
+    if($("#username_input").val().length < 5) {
+      add_user_alert.error("Username too short (5 or more characters)");
+      return(false);
+    }
+
+    if($("#full_name_input").val().length < 5) {
+      add_user_alert.error("Username too short (5 or more characters)");
+      return(false);
+    }
+
+    if($("#password_input").val().length < 5) {
+      add_user_alert.error("Password too short (5 or more characters)");
+      return(false);
+    }
+
+    if($("#password_input").val() !=  $("#confirm_password_input").val()) {
+      add_user_alert.error("Password don't match");
+      return(false);
+    }
+
+    if($("#allowed_networks_input").val().length == 0) {
+      add_user_alert.error("Network list not specified");
+      return(false);
+    } else {
+      var arrayOfStrings = $("#allowed_networks_input").val().split(",");
+      for (var i=0; i < arrayOfStrings.length; i++) {
+        if(!NtopUtils.is_network_mask(arrayOfStrings[i])) {
+          add_user_alert.error("Invalid network list specified ("+arrayOfStrings[i]+")");
+          return(false);
+        }
+      }
+    }
+
+    $.getJSON('{* http_prefix *}/lua/admin/validate_new_user.lua?username='+$("#username_input").val()+"&allowed_networks="+$("#allowed_networks_input").val(), function(data){
+      if (!data.valid) {
+      	add_user_alert.error(data.msg);
+      } else {
+        $.ajax({
+          type: frmadduser.attr('method'),
+          url: '{* add_user_endpoint *}',
+          data: frmadduser.serialize(),
+          success: function (data) {
+            const tmp = '{* location_href *}'
+            frmadduser[0].reset();
+            window.location.href = tmp;
+          },
+          error: function (data) {
+            add_user_alert.error("Error while adding the user, please check again the informations and retry.");
+          }
+        });
+      }
+    });
+    
+    return false;
+  });
+</script>

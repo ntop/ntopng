@@ -274,6 +274,7 @@
 #define CONST_STR_USER_HOST_POOL_ID    NTOPNG_USER_PREFIX".%s.host_pool_id"
 #define CONST_STR_USER_LANGUAGE        NTOPNG_USER_PREFIX".%s.language"
 #define CONST_STR_USER_ALLOW_PCAP      NTOPNG_USER_PREFIX".%s.allow_pcap"
+#define CONST_STR_USER_ALLOW_HISTORICAL_FLOW NTOPNG_USER_PREFIX".%s.allow_historical_flow"
 #define CONST_STR_USER_EXPIRE          NTOPNG_USER_PREFIX".%s.expire"
 #define CONST_STR_USER_CAPABILITIES    NTOPNG_USER_PREFIX".%s.capabilities"
 #define CONST_STR_USER_API_TOKEN       NTOPNG_USER_PREFIX".%s.api_token"

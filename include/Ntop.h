@@ -440,11 +440,12 @@ class Ntop {
   bool changeUserHostPool(const char * username, const char * host_pool_id) const;
   bool changeUserLanguage(const char * username, const char * language) const;
   bool changeUserPermission(const char * username, bool allow_pcap_download) const;
+  bool changeUserHistoricalFlowPermission(const char * username, bool allow_historical_flow) const;
   bool getUserPermission(const char * username, bool *allow_pcap_download) const;
   bool existsUser(const char * username) const;
   bool addUser(char *username, char *full_name, char *password, char *host_role,
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id,
-	       char *language, bool allow_pcap_download);
+	       char *language, bool allow_pcap_download, bool allow_historical_flow);
   bool addUserAPIToken(const char * username, const char *api_token);
   bool isCaptivePortalUser(const char * username);
   bool deleteUser(char *username);

@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
-local json = require ("dkjson")
 local rest_utils = require("rest_utils")
 
 --
@@ -33,6 +32,7 @@ local networks = _POST["allowed_networks"]
 local allowed_interface = _POST["allowed_interface"]
 local language = _POST["user_language"]
 local allow_pcap_download = _POST["allow_pcap_download"]
+local allow_historical_flow = _POST["allow_historical_flow"]
 local password = _POST["password"]
 local confirm_password = _POST["confirm_password"]
 
@@ -42,14 +42,15 @@ if username == nil then
 end
 
 if host_role == nil and
-   networks == nil and
-   allowed_interface == nil and
-   allow_pcap_download == nil and 
-   language == nil and
-   full_name == nil and
-   (password == nil or confirm_password == nil) and
-   host_pool_id == nil then
-   rest_utils.answer(rest_utils.consts.err.invalid_args, res)
+    networks == nil and
+    allowed_interface == nil and
+    allow_pcap_download == nil and 
+    language == nil and
+    full_name == nil and
+    (password == nil or confirm_password == nil) and
+    host_pool_id == nil and
+    allow_historical_flow == nil then
+    rest_utils.answer(rest_utils.consts.err.invalid_args, res)
    return
 end
 
@@ -126,6 +127,17 @@ if(password ~= nil and confirm_password ~= nil) then
    if(ntop.resetUserPassword(_SESSION["user"], username, "", password)) then
       rest_utils.answer(rest_utils.consts.err.edit_user_failed, res)
    end
+end
+
+if(allow_historical_flow ~= nil) then
+  local allow_historical_flow_enabled = false
+  if(tonumber(allow_historical_flow) == 1) then
+     allow_historical_flow_enabled = true;
+  end
+  if(not ntop.changeHistoricalFlowPermission(username, allow_historical_flow_enabled)) then
+    rest_utils.answer(rest_utils.consts.err.edit_user_failed, res)
+    return
+  end
 end
 
 rest_utils.answer(rc, res)

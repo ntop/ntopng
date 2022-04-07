@@ -30,7 +30,7 @@ print [[
           // set the preference tab
           $(`#change-password-dialog`).removeClass('active');
           $(`a[href='#change-password-dialog']`).removeClass('active');
-          $(`#li_change_prefs > a`).addClass('active');
+          $(`#li_change_prefs > a`).addClass('active');add_user_dialog
           $(`#change-prefs-dialog`).tab('show');
           // show the modal
           $(`#password_dialog`).modal('show');

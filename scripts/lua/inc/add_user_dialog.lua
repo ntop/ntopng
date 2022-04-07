@@ -1,263 +1,72 @@
-require("lua_utils")
-local template = require "template_utils"
-require("prefs_utils")
+--
+-- (C) 2022 - ntop.org
+--
 
-local messages = {ntopng=ternary(ntop.isnEdge(), i18n("nedge.add_system_user"), i18n("login.add_web_user"))}
+require "lua_utils"
+local locales_utils = require "locales_utils"
+local template_utils = require "template_utils"
+local recording_utils = require "recording_utils"
+
+local messages = {
+  ntopng = ternary(ntop.isnEdge(), i18n("nedge.add_system_user"), i18n("login.add_web_user")),
+  username = i18n("login.username"),
+  full_name = i18n("users.full_name"),
+  password = i18n("login.password"),
+  confirm_password = i18n("login.confirm_password"),
+  user_role = i18n("manage_users.user_role"),
+  non_privileged_user = i18n("manage_users.non_privileged_user"),
+  administrator = i18n("manage_users.administrator"),
+  allowed_interface = i18n("manage_users.allowed_interface"),
+  any_interface = i18n("manage_users.any_interface"),
+  allowed_networks = i18n("manage_users.allowed_networks"),
+  allowed_networks_descr = i18n("manage_users.allowed_networks_descr") .. " 192.168.1.0/24,172.16.0.0/16",
+  language = i18n("language"),
+  add_new_user = i18n("manage_users.add_new_user"),
+  allow_historical_flow = i18n("manage_users.allow_historical_flow"),
+  allow_historical_flow_descr = i18n("manage_users.allow_historical_flow_descr"),
+  allow_pcap_download = i18n("manage_users.allow_pcap_download"),
+  allow_pcap_download_descr = i18n("manage_users.allow_pcap_download_descr"),
+}
+
+local interfaces_names = {}
+
+for _, interface in pairs(interface.getIfNames()) do
+  interfaces_names["interface"] = {
+    label = getHumanReadableInterfaceName(interface),
+    id = getInterfaceId(interface)
+  }
+end
 
 local add_user_msg = messages["ntopng"]
+local http_prefix = ntop.getHttpPrefix()
+local csrf = ntop.getRandomCSRFValue()
+local available_locales = {}
 
-print [[
-<div id="add_user_dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add_user_dialog_label" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-	<h5 class='modal-title' id="add_user_dialog_label">]]print(add_user_msg)print[[</h5>
-  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form data-bs-toggle="validator" id="form_add_user" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/rest/v2/add/ntopng/user.lua" accept-charset="UTF-8">
-<div class="modal-body">
-
-  <div id="add_user_alert_placeholder"></div>
-
-<script type="text/javascript">
-  add_user_alert = function() {}
-  add_user_alert.error =   function(message, no_close) { $('#add_user_alert_placeholder').html('<div class="alert alert-dismissible alert-danger">' + message + (no_close ? '' : '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>') + '</div>');
- }
-  add_user_alert.success = function(message) { $('#add_user_alert_placeholder').html('<div class="alert alert-success">' + message); }
-
-</script>
-
-			   ]]
-
-print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-
-print [[
-  <div class="form-group mb-3">
-    <label for="username_input">]] print(i18n("login.username")) print[[</label>
-    <div class="input-group mb-6">
-	<span class="input-group-text"><i class="fas fa-user-circle" aria-hidden="true"></i></span>
-      <input id="username_input" type="text" name="username" value="" class="form-control" pattern="]] print(getUsernameInputPattern()) print[[" required>
-    </div>
-    </div>
-    <div class="form-group mb-3">
-
-    <label for="full_name_input">]] print(i18n("users.full_name")) print[[</label>
-    <div class="input-group mb-6">
-	<span class="input-group-text"><i class="fas fa-user" aria-hidden="true"></i></span>
-      <input id="full_name_input" type="text" name="full_name" value="" class="form-control">
-    </div>
-</div>
-
-<div class="form-group mb-3">
-    <label for="password_input">]] print(i18n("login.password")) print[[</label>
-    <div class="input-group mb-6">
-	<span class="input-group-text"><i class="fas fa-lock"></i></span>
-      <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="]] print(getPasswordInputPattern()) print[[" required>
-    </div>
-</div>
-
-<div class="form-group mb-3">
-    <label for="confirm_password_input">]] print(i18n("login.confirm_password")) print[[</label>
-    <div class="input-group mb-6">
-	<span class="input-group-text"><i class="fas fa-lock"></i></span>
-      <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
-    </div>
-</div>
-
-<div class="form-group mb-3">
-    <label for="user_role">]] print(i18n("manage_users.user_role")) print[[</label>
-    <div class="input-group mb-6">
-	<select id="user_role" name="user_role" class="form-select" style="width:100%;">
-	  <option value="unprivileged">]] print(i18n("manage_users.non_privileged_user")) print[[</option>
-	  <option value="administrator">]] print(i18n("manage_users.administrator")) print[[</option>
-	</select>
-    </div>
-  </div>
-
-    <div id="unprivileged_input">
-
-  <div class="form-group mb-3">
-    <label for="allowed_interface_input">]] print(i18n("manage_users.allowed_interface")) print[[</label>
-    <div class="input-group mb-6">
-	<select id="allowed_interface_input" name="allowed_interface" class="form-select ">
-	  <option value="">]] print(i18n("manage_users.any_interface")) print[[</option>
-]]
-
-   for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
-      print('<option value="'..getInterfaceId(interface_name)..'"> '..getHumanReadableInterfaceName(interface_name)..'</option>')
-   end
-   print[[
-	</select>
-    </div>
-    </div>
-
-  <div class="form-group mb-3">
-    <label for="allowed_networks_input">]] print(i18n("manage_users.allowed_networks")) print[[</label>
-    <div class="input-group mb-6">
-      <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
-      <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[: 192.168.1.0/24,172.16.0.0/16</small>
-    </div>
-  </div>
-
-    <div class="form-group mb-3">
-      <div class="form-check">]]
-
-   print(template.gen("on_off_switch.html", {
-     id = "allow_pcap_download",
-     label = i18n("manage_users.allow_pcap_download_descr"),
-   }))
-
-   print[[
-      </div>
-    </div>
-
-    </div>
-
-    <script>
-    $("#user_role").change(function() {
-      if ($(this).val() == "unprivileged")
-        $('#unprivileged_input').show();
-      else
-        $('#unprivileged_input').hide();
-    });
-    </script>
-]]
-
-  print[[
-    <div class="form-group mb-3">
-
-    <label for="user_language">]] print(i18n("language")) print[[</label>
-    <div class="input-group mb-3">
-      <span class="input-group-text"><i class="fas fa-language" aria-hidden="true"></i></span>
-      <select id="user_language" name="user_language" class="form-select">]]
-
-  for _, lang in ipairs(locales_utils.getAvailableLocales()) do
-     print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
-  end
-
-  print[[
-      </select>
-    </div>
-    </div>
-]]
-
-print[[    
-
-<script>
-
-  $("#add_lifetime_selection_table label").attr("disabled", "disabled");
-  $("#add_lifetime_selection_table input").attr("disabled", "disabled");
-
-  $("#add_lifetime_unlimited").click(function(){
-    $("#add_lifetime_selection_table label").attr("disabled", "disabled");
-    $("#add_lifetime_selection_table input").attr("disabled", "disabled");
-    $("#add_lifetime_limited").removeAttr("checked").prop("checked", false);
-  });
-
-  $("#add_lifetime_limited").click(function() {
-    $("#add_lifetime_selection_table label").removeAttr("disabled");
-    $("#add_lifetime_selection_table input").removeAttr("disabled");
-    $("#add_lifetime_unlimited").removeAttr("checked").prop("checked", false);
-  });
-
-  var frmadduser = $('#form_add_user');
-
-  function resetAddUserForm() {
-	$("#username_input").val("");
-	$("#full_name_input").val("");
-	$("#password_input").val("");
-	$("#confirm_password_input").val("");
-	$("#allowed_networks_input").val("0.0.0.0/0,::/0");
+for _, lang in pairs(locales_utils.getAvailableLocales()) do
+  available_locales[#available_locales + 1] = {
+    code = lang["code"],
+    label = i18n("locales." .. lang["code"]),
   }
+end
 
-  resetAddUserForm();
-
-  frmadduser.submit(function () {
-    /* Avoid submitting an invalid form */
-    if(!$("#form_add_user")[0].checkValidity())
-      return(false);
-
-    if(!isValidPassword($("#password_input").val())) {
-      add_user_alert.error("Password contains invalid chars. Please use valid ISO8859-1 (latin1) letters and numbers.");
-      return(false);
-    }
-
-    if(isDefaultPassword($("#password_input").val())) {
-      add_user_alert.error("Password is weak. Please choose a stronger password.");
-      return(false);
-    }
-
-    if(!isValid($("#username_input").val())) {
-      add_user_alert.error("Username must contain only letters and numbers");
-      return(false);
-    }
-
-    if($("#username_input").val().length < 5) {
-      add_user_alert.error("Username too short (5 or more characters)");
-      return(false);
-    }
-
-    if($("#password_input").val().length < 5) {
-      add_user_alert.error("Password too short (5 or more characters)");
-      return(false);
-    }
-
-    if($("#password_input").val() !=  $("#confirm_password_input").val()) {
-      add_user_alert.error("Password don't match");
-      return(false);
-    }
-
-    // Don't do any escape, form contain Unicode UTF-8 encoded chars
-    // ('#password_input').val(escape($('#password_input').val()))
-    // $('#confirm_password_input').val(escape($('#confirm_password_input').val()))
-    if($("#allowed_networks_input").val().length == 0) {
-      add_user_alert.error("Network list not specified");
-      return(false);
-    } else {
-      var arrayOfStrings = $("#allowed_networks_input").val().split(",");
-      for (var i=0; i < arrayOfStrings.length; i++) {
-	if(!NtopUtils.is_network_mask(arrayOfStrings[i])) {
-	  add_user_alert.error("Invalid network list specified ("+arrayOfStrings[i]+")");
-	  return(false);
-	}
-      }
-    }]]
-
-
+local add_user = http_prefix .. '/lua/rest/v2/add/ntopng/user.lua'
+local clickhouse_enabled = interfaceHasClickHouseSupport()
 local location_href = ntop.getHttpPrefix().."/lua/admin/users.lua"
+local is_pcap_download_available = true or recording_utils.isAvailable()
 
-print[[
-    $.getJSON(']]  print(ntop.getHttpPrefix())  print[[/lua/admin/validate_new_user.lua?username='+$("#username_input").val()+"&allowed_networks="+$("#allowed_networks_input").val(), function(data){
-      if (!data.valid) {
-	add_user_alert.error(data.msg);
-      } else {
-	$.ajax({
-	  type: frmadduser.attr('method'),
-	  url: frmadduser.attr('action'),
-	  data: frmadduser.serialize(),
-	  success: function (data) {
-	  if (data.rc == 0) {
-	    add_user_alert.success(data.rc_str);
-	    window.location.href = ']] print(location_href) print[[';
-	  } else {
-	    add_user_alert.error(data.rc_str);
-	  }
-	  frmadduser[0].reset();
-	}
-      });
-     }
-   });
-   return false;
-});
-</script>
+template_utils.render("pages/components/add-user-dialog.template", {
+  add_user_endpoint = add_user,
+  available_locales = available_locales,
+  csrf = csrf,
+  add_user_msg = add_user_msg,
+  http_prefix = http_prefix,
+  interfaces_names = interfaces_names,
+  messages = messages,
+  template_utils = template_utils,
+  location_href = location_href,
+  clickhouse_enabled = clickhouse_enabled,
+  is_pcap_download_available = is_pcap_download_available
+})
 
-</div> <!-- modal-body -->
-<div class='modal-footer'>
-      <button type="submit" id="add_user_submit" class="btn btn-primary btn-block">]] print(i18n("manage_users.add_new_user")) print[[</button>
-</div>
-</form>
-</div>
-</div>
-</div> <!-- add_user_dialog -->
 
-		      ]]
+

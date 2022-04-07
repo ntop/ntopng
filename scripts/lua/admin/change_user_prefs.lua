@@ -13,6 +13,7 @@ local host_role = _POST["user_role"]
 local networks  = _POST["allowed_networks"]
 local allowed_interface = _POST["allowed_interface"]
 local allow_pcap_download = _POST["allow_pcap_download"]
+local allow_historical_flow = _POST["allow_historical_flow"]
 local language  = _POST["user_language"]
 
 -- for captive portal users
@@ -61,6 +62,15 @@ if allow_pcap_download and allow_pcap_download == "1" then
 end
 if(not ntop.changeUserPermission(username, allow_pcap_download_enabled)) then
    print ("{ \"result\" : -1, \"message\" : \"Error in changing user permission\" }")
+   return
+end
+
+local allow_historical_flow_enabled = false
+if allow_historical_flow and allow_historical_flow == "1" then
+  allow_historical_flow_enabled = true;
+end
+if(not ntop.changeHistoricalFlowPermission(username, allow_historical_flow_enabled)) then
+   print ("{ \"result\" : -1, \"message\" : \"Error in changing user historical flow permission\" }")
    return
 end
 

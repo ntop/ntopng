@@ -31,6 +31,7 @@ local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
 local is_system_interface = page_utils.is_system_view()
 local behavior_utils = require("behavior_utils")
 local checks = require "checks"
+local session_user = _SESSION['user']
 
 local observationPointId = nil
 
@@ -172,7 +173,7 @@ else
          },
       }
    })
-
+   
    -- Dashboard
    page_utils.add_menubar_section(
    {
@@ -186,7 +187,12 @@ else
          },
 	 {
 	    entry = page_utils.menu_entries.traffic_analysis,
-	    hidden = not ntop.isEnterprise() or (not prefs.is_dump_flows_to_clickhouse_enabled) or ifs.isViewed or not auth.has_capability(auth.capabilities.historical_flows),
+	    hidden = not ntop.isEnterprise() or 
+                not prefs.is_dump_flows_to_clickhouse_enabled or 
+                ifs.isViewed or not 
+                (auth.has_capability(auth.capabilities.historical_flows) and not 
+                  ntop.getPref("ntopng.user." .. session_user .. ".allow_historical_flow") == "1" and not 
+                  is_admin),
 	    url = "/lua/pro/db_search.lua?page=analysis",
 	 },
          {
@@ -229,7 +235,9 @@ else
 	 },
 	 {
 	    entry = page_utils.menu_entries.db_explorer,
-            hidden = not ntop.isEnterprise() or (not prefs.is_dump_flows_to_clickhouse_enabled) or ifs.isViewed or not auth.has_capability(auth.capabilities.historical_flows),
+      hidden = not ntop.isEnterprise() or (not prefs.is_dump_flows_to_clickhouse_enabled) or ifs.isViewed or 
+                not auth.has_capability(auth.capabilities.historical_flows) or 
+                not (ntop.getPref("ntopng.user." .. session_user .. ".allow_historical_flow") == "1" or is_admin),
 	    url = "/lua/pro/db_search.lua",
 	 },
       }
@@ -1019,7 +1027,6 @@ if (not info.oem) then
    })
 end
 
-local session_user = _SESSION['user']
 local is_no_login_user = isNoLoginUser()
 
 print([[
