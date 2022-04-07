@@ -2270,15 +2270,16 @@ end
 
 function getLocalNetworkAliasById(network)
    local networks_stats = interface.getNetworksStats()
+   local network_id = tonumber(network)
 
    -- If network is (u_int8_t)-1 then return an empty value
-   if network == "65535" then
+   if network == nil or network == 65535 then
      return ' '
    end
 
    local label = ''
    for n, ns in pairs(networks_stats) do
-      if ns.network_id == tonumber(network) then
+      if ns.network_id == network_id then
          label = getFullLocalNetworkName(ns.network_key)
       end
    end

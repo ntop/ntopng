@@ -2964,7 +2964,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
     ndpi_serialize_string_boolean(s, "cli_localhost", cli_host->isLocalHost());
 
     ndpi_serialize_string_int32(s, "cli_host_pool_id", cli_host->get_host_pool());
-    ndpi_serialize_string_int32(s, "cli_network", cli_host->get_local_network_id());
+    ndpi_serialize_string_int32(s, "cli_network", (u_int16_t) cli_host->get_local_network_id());
   }
 
   ndpi_serialize_string_string(s, "srv_ip", get_srv_ip_addr()->print(buf, sizeof(buf)));
@@ -2979,7 +2979,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
     ndpi_serialize_string_boolean(s, "srv_localhost", srv_host->isLocalHost());
 
     ndpi_serialize_string_int32(s, "srv_host_pool_id", srv_host->get_host_pool());
-    ndpi_serialize_string_int32(s, "srv_network", srv_host->get_local_network_id());
+    ndpi_serialize_string_int32(s, "srv_network", (u_int16_t) srv_host->get_local_network_id());
   }
 
   ndpi_serialize_string_string(s, "community_id",

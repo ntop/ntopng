@@ -1789,7 +1789,7 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
   ndpi_serialize_string_boolean(s, "is_client", alert->isClient());
   ndpi_serialize_string_boolean(s, "is_server", alert->isServer());
   ndpi_serialize_string_int32(s, "host_pool_id", get_host_pool());
-  ndpi_serialize_string_int32(s, "network", get_local_network_id());
+  ndpi_serialize_string_int32(s, "network", (u_int16_t) get_local_network_id());
 
   serialize_geocoordinates(s, "");
 
