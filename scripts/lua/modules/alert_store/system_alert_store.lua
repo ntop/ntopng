@@ -46,6 +46,8 @@ function system_alert_store:insert(alert)
       extra_columns = "rowid, "
       extra_values = "generateUUIDv4(), "
    end
+   local interface_id = self:get_ifid() -- interface.getId()
+   interface_id = self:_convert_ifid(interface_id)
 
    local insert_stmt = string.format("INSERT INTO %s "..
       "(%salert_id, interface_id, tstamp, tstamp_end, severity, score, name, granularity, json) "..
@@ -54,7 +56,7 @@ function system_alert_store:insert(alert)
       extra_columns,
       extra_values,
       alert.alert_id,
-      self:_convert_ifid(interface.getId()),
+      interface_id,
       alert.tstamp,
       alert.tstamp_end,
       ntop.mapScoreToSeverity(alert.score),
