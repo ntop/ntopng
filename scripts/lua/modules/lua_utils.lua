@@ -217,12 +217,12 @@ l4_keys = {
    { "IGMP",      "igmp",        2 },
    { "TCP",       "tcp",         6 },
    { "UDP",       "udp",        17 },
-
    { "IPv6",      "ipv6",       41 },
    { "RSVP",      "rsvp",       46 },
    { "GRE",       "gre",        47 },
    { "ESP",       "esp",        50 },
    { "IPv6-ICMP", "ipv6icmp",   58 },
+   { "EIGRP",     "eigrp",      88 },
    { "OSPF",      "ospf",       89 },
    { "PIM",       "pim",       103 },
    { "VRRP",      "vrrp",      112 },
@@ -236,6 +236,7 @@ L4_PROTO_KEYS = {
    tcp=6,
    udp=17,
    icmp=1,
+   eigrp=88,
    other_ip=-1
 }
 
