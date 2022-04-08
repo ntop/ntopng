@@ -588,6 +588,10 @@ template_utils.render("pages/modals/alerts/filters/add.template", filters_contex
 
 local endpoint_cards = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/" .. page .. "/alert/top.lua"
 
+if page == 'snmp_device' then
+  endpoint_cards = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/snmp/device/alert/top.lua"
+end
+
 local datasource_data = {
    ifid = ifid,
    epoch_begin = epoch_begin,

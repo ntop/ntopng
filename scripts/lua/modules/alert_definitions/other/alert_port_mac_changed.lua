@@ -18,10 +18,12 @@ local alert_port_mac_changed = classes.class(alert)
 -- ##############################################
 
 alert_port_mac_changed.meta = {
-   alert_key = other_alert_keys.alert_port_mac_changed,
-   i18n_title = "alerts_dashboard.alert_snmp_interface_mac_changed_title",
-   icon = "fas fa-fw fa-exclamation",
-   entities = {},
+  alert_key = other_alert_keys.alert_port_mac_changed,
+  i18n_title = "alerts_dashboard.alert_snmp_interface_mac_changed_title",
+  icon = "fas fa-fw fa-exclamation",
+  entities = {
+    alert_entities.snmp_device
+  },
 }
 
 -- ##############################################
