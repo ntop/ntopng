@@ -176,6 +176,7 @@
     }
 
     function cloneTemplate(type) {
+        if(!type) return "";
 
         const template = $(`template#${type}-template`).html();
         // if the template is not empty then return a copy of the template content
