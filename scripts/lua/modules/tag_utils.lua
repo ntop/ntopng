@@ -587,6 +587,35 @@ function tag_utils.get_tag_info(id, entity)
             label = i18n(severity.i18n_title),
          }
       end
+
+   elseif tag.value_type == "snmp_interface" then
+
+      if ntop.isPro() then
+         filter.value_type = 'array'
+         filter.options = {}
+
+         local snmp_config = require "snmp_config"
+         local devices = snmp_config.get_all_configured_devices()
+         local snmp_cached_dev = require "snmp_cached_dev"
+
+         -- use pairsByKeys to impose order
+         for probe_ip, _ in pairsByKeys(devices) do
+            local cached_device = snmp_cached_dev:create(probe_ip)
+            if cached_device and cached_device["interfaces"] then
+               local interfaces = cached_device["interfaces"]
+               for interface_id, interface_info in pairs(interfaces) do
+                  local label = probe_ip .. ' · ' .. interface_info.name 
+                  --local label = format_portidx_name(probe_ip, tostring(interface_id))
+                  filter.options[#filter.options+1] = { 
+                     value = probe_ip .. "_" ..interface_id, 
+                     label = label,
+                  }
+               end 
+
+            end
+         end
+      end
+
    end
 
    return filter
