@@ -67,7 +67,9 @@ function system_alert_store:insert(alert)
 
    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_stmt)
 
-   return interface.alert_store_query(insert_stmt)
+   local ret = ntop.alert_store_query(insert_stmt, -1 --[[ System ifid --]])
+
+   return ret
 end
 
 -- ##############################################

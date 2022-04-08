@@ -697,6 +697,7 @@ function recipients.dispatch_notification(notification, current_script)
 	    return
 	 end
 
+
 	 for _, recipient in ipairs(recipients) do
             local recipient_ok = false
 

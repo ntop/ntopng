@@ -389,6 +389,45 @@ static int ntop_is_not_empty_file(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_alert_store_query(lua_State* vm) {
+  NetworkInterface *iface = NULL;
+  char *query;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) != LUA_TSTRING
+     || !(query = (char*)lua_tostring(vm, 1))) {
+    lua_pushnil(vm);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+
+  if(lua_type(vm, 2) == LUA_TSTRING) {
+    const char *ifname = lua_tostring(vm, 1);
+    iface = ntop->getNetworkInterface(ifname, vm);
+
+  } else if(lua_type(vm, 2) == LUA_TNUMBER) {
+    int ifid = lua_tointeger(vm, 2);
+    iface = ntop->getNetworkInterface(vm, ifid);
+
+  } else {
+    iface = getCurrentInterface(vm);
+  }
+
+  if(iface == NULL) {
+    lua_pushnil(vm);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+
+  if(!iface->alert_store_query(vm, query)) {
+    lua_pushnil(vm);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 int ntop_release_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable, u_int idx) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *key;
@@ -6537,6 +6576,9 @@ static luaL_Reg _ntop_reg[] = {
   /* Score */
   { "mapScoreToSeverity",    ntop_map_score_to_severity },
   { "mapSeverityToScore",    ntop_map_severity_to_score },
+
+  /* Alerts */
+  { "alert_store_query",      ntop_alert_store_query    },
 
   /* Alerts queues */
   { "popInternalAlerts",     ntop_pop_internal_alerts         },
