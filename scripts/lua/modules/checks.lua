@@ -2071,7 +2071,7 @@ local function snmp_device_run_checks(cached_device, checks_var)
    for mod_key, hook_fn in pairs(checks_var.available_modules.hooks["snmpDeviceInterface"] or {}) do
       local script = all_modules[mod_key]
       local conf = checks.getTargetHookConfig(device_conf, script)
-
+      
       -- For each interface of the current device...
       for snmp_interface_index, snmp_interface in pairs(cached_device.interfaces) do
 	 if(script.skip_virtual_interfaces
@@ -2091,6 +2091,7 @@ local function snmp_device_run_checks(cached_device, checks_var)
 	       alert_entity = iface_entity,
 	       check = script,
 	       check_config = conf.script_conf,
+	       cached_device = cached_device,
 	       now = now,
 	    }))
 	 end

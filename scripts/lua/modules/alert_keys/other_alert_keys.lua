@@ -86,6 +86,8 @@ local other_alert_keys = {
    alert_ids_ips_jail_remove            =  OTHER_BASE_KEY + 73, 
    alert_port_too_many_macs             =  OTHER_BASE_KEY + 74,
    alert_network_discovery_executed     =  OTHER_BASE_KEY + 75,
+   alert_port_mac_appeared              =  OTHER_BASE_KEY + 76,
+   alert_port_mac_disappeared           =  OTHER_BASE_KEY + 77,
 }
 
 -- ##############################################
