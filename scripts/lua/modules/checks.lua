@@ -2038,7 +2038,7 @@ end
 
 local function snmp_device_run_checks(cached_device, checks_var)
    local snmp_consts = require "snmp_consts"
-
+   local snmp_utils  = require "snmp_utils"
    local granularity = checks_var.cur_granularity
    local device_ip  = cached_device["host_ip"]
    local snmp_device_entity = alerts_api.snmpDeviceEntity(device_ip)
@@ -2074,10 +2074,8 @@ local function snmp_device_run_checks(cached_device, checks_var)
 
       -- For each interface of the current device...
       for snmp_interface_index, snmp_interface in pairs(cached_device.interfaces) do
-	 local if_type = snmp_consts.snmp_iftype(snmp_interface.type)
-
-	 if(script.skip_virtual_interfaces and
-	       ((if_type == "propVirtual") or (if_type == "softwareLoopback"))) then
+	 if(script.skip_virtual_interfaces
+	    and snmp_utils.isVirtualInterfaceType(snmp_interface.type)) then
 	    goto continue
 	 end
 

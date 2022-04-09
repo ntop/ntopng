@@ -37,7 +37,8 @@ alert_port_mac_changed.meta = {
 -- @param prev_seen_device A string with the ip address of the previous snmp device
 -- @param prev_seen_port The index of the previous port
 -- @return A table with the alert built
-function alert_port_mac_changed:init(device_ip, device_name, if_index, interface_name, mac, prev_seen_device, prev_seen_port)
+function alert_port_mac_changed:init(device_ip, device_name, if_index, interface_name, mac,
+				     prev_seen_device, prev_seen_port, prev_seen_port_name)
    -- Call the parent constructor
    self.super:init()
 
@@ -49,6 +50,7 @@ function alert_port_mac_changed:init(device_ip, device_name, if_index, interface
       mac = mac,
       prev_seen_device = prev_seen_device,
       prev_seen_port = prev_seen_port,
+      prev_seen_port_name = prev_seen_port_name,
    }
 end
 
@@ -64,13 +66,16 @@ function alert_port_mac_changed.format(ifid, alert, alert_type_params)
 	       {mac_url = getMacUrl(alert_type_params.mac),
 		mac = alert_type_params.mac,
 		device = alert_type_params.device,
-		port = alert_type_params.interface_name or alert_type_params.interface,
+		port = alert_type_params.interface,
+		port_name = alert_type_params.interface_name or alert_type_params.interface,
 		url = snmpDeviceUrl(alert_type_params.device),
 		port_url = snmpIfaceUrl(alert_type_params.device, alert_type_params.interface),
 		prev_device_url = snmpDeviceUrl(alert_type_params.prev_seen_device),
 		prev_device = alert_type_params.prev_seen_device,
 		prev_port_url = snmpIfaceUrl(alert_type_params.prev_seen_device, alert_type_params.prev_seen_port),
-		prev_port = alert_type_params.prev_seen_port}))
+		prev_port = alert_type_params.prev_seen_port,
+		prev_port_name = alert_type_params.prev_seen_port_name or "",
+   }))
 end
 
 -- #######################################################
