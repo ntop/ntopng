@@ -617,10 +617,13 @@ local function init_check(check, mod_fname, full_path, script, script_type, subd
    check.default_enabled = ternary(check.default_enabled == false, false, true --[[ a nil value means enabled ]])
    check.script = script
    check.script_type = script_type
-   check.edition = script and script.edition
    check.category = checkCategory(check.category)
    -- A user script is assumed to be able to generate alerts if it has a flag or an alert id specified
    check.num_filtered = tonumber(ntop.getCache(string.format(NUM_FILTERED_KEY, subdir, mod_fname))) or 0 -- math.random(1000,2000)
+
+   if script then
+    check.edition = check.edition or script.edition or ""
+   end
 
    if subdir == "host" then
       check.hooks = {min = true}
