@@ -585,6 +585,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 				AddressTree *allowed_hosts) const;
   bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
   bool findHostsByMac(lua_State* vm, u_int8_t *mac);
+  Host* findHostByMac(u_int8_t *mac);
+
   bool dissectPacket(u_int32_t bridge_iface_idx,
 		     bool ingressPacket,
 		     u_int8_t *sender_mac, /* Non NULL only for NFQUEUE interfaces */

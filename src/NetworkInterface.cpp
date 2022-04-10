@@ -6851,6 +6851,13 @@ struct search_mac_info {
 
 /* **************************************************** */
 
+struct search_bost_by_mac {
+  u_int8_t *mac;
+  Host *match;
+};
+
+/* **************************************************** */
+
 static bool macs_search_walker(GenericHashEntry *h, void *user_data, bool *matched) {
   Host *host = (Host*)h;
   struct search_mac_info *info = (struct search_mac_info*)user_data;
@@ -6862,6 +6869,19 @@ static bool macs_search_walker(GenericHashEntry *h, void *user_data, bool *match
 
   /* Stop after CONST_MAX_NUM_FIND_HITS matches */
   return((info->num_matches > CONST_MAX_NUM_FIND_HITS) ? true /* stop */ : false /* keep walking */);
+}
+
+/* **************************************************** */
+
+static bool first_mac_search_walker(GenericHashEntry *h, void *user_data, bool *matched) {
+  Host *host = (Host*)h;
+  struct search_bost_by_mac *info = (struct search_bost_by_mac*)user_data;
+
+  if(memcmp(info->mac, host->get_mac(), 6) == 0) {
+    info->match = host;
+    return(true /* stop */);
+  } else
+    return(false);
 }
 
 /* *************************************** */
@@ -6880,6 +6900,30 @@ bool NetworkInterface::findHostsByMac(lua_State* vm, u_int8_t *mac) {
 
 /* **************************************************** */
 
+Host* NetworkInterface::findHostByMac(u_int8_t *mac) {
+  struct search_bost_by_mac info;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  info.mac = mac, info.match = NULL;
+
+  walker(&begin_slot, walk_all, walker_hosts, first_mac_search_walker, (void*)&info);
+
+#if 0
+  if(info.match) {
+    char buf[64], buf1[64];
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** %s %s ***",
+				 info.match->get_visual_name(buf, sizeof(buf)),
+				 info.match->printMask(buf1, sizeof(buf1)));
+  }
+#endif
+  
+  return(info.match);
+}
+
+/* **************************************************** */
+
 bool NetworkInterface::findHostsByName(lua_State* vm,
 				       AddressTree *allowed_hosts,
 				       char *key) {
@@ -6891,7 +6935,7 @@ bool NetworkInterface::findHostsByName(lua_State* vm,
     info.allowed_hosts = allowed_hosts;
 
   lua_newtable(vm);
-  walker(&begin_slot, walk_all,  walker_hosts, hosts_search_walker, (void*)&info);
+  walker(&begin_slot, walk_all, walker_hosts, hosts_search_walker, (void*)&info);
   return(info.num_matches > 0);
 }
 

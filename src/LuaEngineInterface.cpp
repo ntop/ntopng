@@ -3951,11 +3951,10 @@ static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
 
 static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char * l7_proto = NULL;
+  
   filters->iface = ntop_interface;
   filters->ip = NULL;
   filters->mac = NULL;
-  filters->host_to_search = NULL;
   filters->vlan_id = 0;
   filters->host_pool_id = (u_int16_t)-1;
   filters->ndpi_proto = (u_int16_t)-1;
@@ -3982,21 +3981,31 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
   if(lua_type(vm, 3) == LUA_TNUMBER)  filters->host_pool_id = (u_int16_t)lua_tonumber(vm, 3);
   if(lua_type(vm, 4) == LUA_TBOOLEAN) filters->unicast      = (bool)lua_toboolean(vm, 4);
   if(lua_type(vm, 5) == LUA_TNUMBER)  filters->first_seen   = (u_int32_t)lua_tonumber(vm, 5);
-  if(lua_type(vm, 6) == LUA_TSTRING)  l7_proto              = (char *)lua_tostring(vm, 6);
-  if(lua_type(vm, 7) == LUA_TSTRING)  filters->host_to_search = (char *)lua_tostring(vm, 7);
+
+  if(lua_type(vm, 6) == LUA_TSTRING)
+    filters->ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(),
+					       (char *)lua_tostring(vm, 6));
+
+  if(lua_type(vm, 7) == LUA_TSTRING)  {
+    char *str = (char *)lua_tostring(vm, 7);
+
+    if(str)
+      snprintf(filters->host_to_search, sizeof(filters->host_to_search), "%s", str);
+  }
+  
   if(lua_type(vm, 8) == LUA_TNUMBER)  filters->maxHits      = (u_int32_t)lua_tonumber(vm, 8);
   if(lua_type(vm, 9) == LUA_TNUMBER)  filters->startingHit  = (u_int32_t)lua_tonumber(vm, 9);
-  if(lua_type(vm, 10) == LUA_TNUMBER)  filters->sort_column = (mapSortingColumn)lua_tonumber(vm, 10);
+  if(lua_type(vm, 10) == LUA_TNUMBER) filters->sort_column  = (mapSortingColumn)lua_tonumber(vm, 10);
   if(lua_type(vm, 11) == LUA_TNUMBER) filters->sort_order   = (sortingOrder)lua_tonumber(vm, 11);
-
-  if(l7_proto)
-    filters->ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
 }
 
 /* ****************************************** */
 
 static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
   MapsFilters filters;
+
+  memset(&filters, 0, sizeof(filters));
+  
   ntop_get_maps_filters(vm, &filters);
 
   if(filters.iface) {
@@ -4012,7 +4021,7 @@ static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
 
   if(filters.ip)  delete filters.ip;
   if(filters.mac) delete [] filters.mac;
-
+  
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 

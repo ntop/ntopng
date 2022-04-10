@@ -127,7 +127,6 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
 #endif
   void lua_get_names(lua_State * const vm, char * const buf, ssize_t buf_size);
   void luaStrTableEntryLocked(lua_State * const vm, const char * entry_name, const char * entry);
-  char* printMask(char *str, u_int str_len) { return ip.printMask(str, str_len, isLocalHost()); };
   void freeHostNames();
   void resetHostNames();
   virtual void deleteHostData();
@@ -183,6 +182,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   bool isBroadcastHost()              const  { return(ip.isBroadcastAddress() || (mac && mac->isBroadcast())); }
   bool isMulticastHost()              const  { return(ip.isMulticastAddress()); }
 
+  char* printMask(char *str, u_int str_len)  { return ip.printMask(str, str_len, isLocalHost()); };
   inline nDPIStats* get_ndpi_stats()   const { return(stats->getnDPIStats()); };
 
   inline bool isChildSafe() const {

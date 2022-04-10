@@ -169,13 +169,11 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 
   stats->lua(vm, show_details);
 
-  lua_push_str_table_entry(vm, "fingerprint", fingerprint ? fingerprint : (char*)"");
+  lua_push_str_table_entry(vm,    "fingerprint", fingerprint ? fingerprint : (char*)"");
   lua_push_uint64_table_entry(vm, "seen.first", first_seen);
   lua_push_uint64_table_entry(vm, "seen.last", last_seen);
   lua_push_uint64_table_entry(vm, "duration", get_duration());
-
   lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
-
   lua_push_uint64_table_entry(vm, "pool", get_host_pool());
 
   if(asListElement) {
@@ -477,4 +475,3 @@ u_int64_t Mac::to64(u_int8_t mac[6]) {
 u_int64_t Mac::get_mac64() {
   return Mac::to64(mac);
 }
-
