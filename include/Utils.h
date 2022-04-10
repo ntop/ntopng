@@ -58,7 +58,7 @@ public:
   static int   setThreadAffinity(pthread_t thread, int core_id);
   static void  setThreadName(const char *name);
   static char* trim(char *s);
-  static u_int32_t hashString(const char * s);
+  static u_int32_t hashString(const char * s, u_int32_t len = 0 /* automatically computed */);
   static float timeval2ms(const struct timeval *tv);
   static float msTimevalDiff(const struct timeval *end, const struct timeval *begin);
   static u_int32_t usecTimevalDiff(const struct timeval *end, const struct timeval *begin);

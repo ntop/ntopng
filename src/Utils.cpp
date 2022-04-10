@@ -429,12 +429,14 @@ char *Utils::trim(char *s) {
 
 /* ****************************************************** */
 
-u_int32_t Utils::hashString(const char * key) {
+u_int32_t Utils::hashString(const char * key, u_int32_t len) {
   if(!key)
     return 0;
 
-  u_int32_t hash = 0, len = (u_int32_t)strlen(key);
+  u_int32_t hash = 0;
 
+  if(len == 0) len = (u_int32_t)strlen(key);
+  
   for(u_int32_t i = 0; i < len; i++)
     hash += ((u_int32_t)key[i]) * i;
 
