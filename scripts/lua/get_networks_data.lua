@@ -5,7 +5,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
-require "network_utils"
+local network_utils = require "network_utils"
 
 local json = require("dkjson")
 
@@ -86,7 +86,7 @@ for n, _ in pairsByValues(sort_helper, ternary(sOrder, asc, rev)) do
       goto continue
    end
 
-   local record = network2record(interface.getId(), networks_stats[n])
+   local record = network_utils.network2record(interface.getId(), networks_stats[n])
    res_formatted[#res_formatted + 1] = record
 
    tot_row_in_page = tot_row_in_page + 1

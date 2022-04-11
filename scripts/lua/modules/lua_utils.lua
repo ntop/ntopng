@@ -28,6 +28,7 @@ local format_utils = require "format_utils"
 local dscp_consts = require "dscp_consts"
 local http_utils = require "http_utils"
 local dns_utils = require "dns_utils"
+local network_utils = require "network_utils"
 
 -- TODO: replace those globals with locals everywhere
 
@@ -2260,7 +2261,7 @@ function getLocalNetworkAliasById(network)
    local network_id = tonumber(network)
 
    -- If network is (u_int8_t)-1 then return an empty value
-   if network == nil or network == 65535 then
+   if network == nil or network == network_utils.UNKNOWN_NETWORK then
      return ' '
    end
 
@@ -2699,11 +2700,8 @@ function isPausedInterface(current_ifname)
 end
 
 function getThroughputType()
-  throughput_type = ntop.getCache("ntopng.prefs.thpt_content")
-
-  if(throughput_type == "") then
-    throughput_type = "bps"
-  end
+  local throughput_type = ntop.getCache("ntopng.prefs.thpt_content")
+  if throughput_type == "" then throughput_type = "bps" end
   return throughput_type
 end
 
