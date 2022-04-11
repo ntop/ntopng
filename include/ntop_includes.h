@@ -130,7 +130,7 @@ extern "C" {
 #endif
 #include "json.h"
 #include <sqlite3.h>
-#include "hiredis.h"
+#include <hiredis.h>
 #ifdef HAVE_LDAP
 #include <ldap.h>
 #endif
