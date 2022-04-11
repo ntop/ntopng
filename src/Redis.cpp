@@ -21,12 +21,6 @@
 
 #include "ntop_includes.h"
 
-#if !defined(HAVE_HIREDIS) && !defined(WIN32)
-#include "third-party/hiredis/hiredis.c"
-#include "third-party/hiredis/net.c"
-#include "third-party/hiredis/sds.c"
-#endif
-
 // #define CACHE_DEBUG 1
 
 /* **************************************** */
