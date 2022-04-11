@@ -737,6 +737,10 @@ export class DataTableRenders {
 
         let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('cli_port', flow.cli_port, flow.cli_port) : "");
 
+        let cliBlacklisted =''
+        if(flow.cli_ip.blacklisted == true) 
+          cliBlacklisted = " <i class=\'fas fa-ban fa-sm\' title=\'" + i18n("hosts_stats.blacklisted") + "\'></i>"
+
         let srvLabel = ""
         if (flow.srv_ip.name) {
           let title = "";
@@ -751,6 +755,10 @@ export class DataTableRenders {
         if (flow.srv_ip.country && flow.srv_ip.country !== "nil")
             srvFlagLabel = DataTableRenders.filterize('srv_country', flow.srv_ip.country, flow.srv_ip.country, flow.srv_ip.country, flow.srv_ip.country, ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + flow.srv_ip.country.toLowerCase() + '"></a> ');
 
+        let srvBlacklisted =''
+        if(flow.srv_ip.blacklisted == true) 
+          srvBlacklisted = " <i class=\'fas fa-ban fa-sm\' title=\'" + i18n("hosts_stats.blacklisted") + "\'></i>"
+    
         let cliIcons = "";
         let srvIcons = "";
         if (row.cli_role) {
@@ -767,7 +775,7 @@ export class DataTableRenders {
                 srvIcons += DataTableRenders.filterize('role', 'victim',  '<i class="fas fa-sad-tear" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
         }
 
-        return `${active_ref} ${cliLabel}${vlan}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${vlan}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
+        return `${active_ref} ${cliLabel}${vlan}${cliBlacklisted}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${vlan}${srvBlacklisted}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
     }
 
     static formatNameDescription(obj, type, row) {

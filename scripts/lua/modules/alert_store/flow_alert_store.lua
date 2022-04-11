@@ -518,7 +518,8 @@ function flow_alert_store:format_record(value, no_html)
       value = cli_ip,
       label = cli_ip,
       reference = reference_html,
-      country = country
+      country = country,
+      blacklisted = value["cli_blacklisted"]
    }
 
    if no_html then
@@ -557,7 +558,8 @@ function flow_alert_store:format_record(value, no_html)
       value = srv_ip,
       label = srv_ip,
       reference = reference_html,
-      country = country
+      country = country,
+      blacklisted = value["srv_blacklisted"]
    }
 
    if no_html then
