@@ -352,37 +352,37 @@ local hosts = {}
 -- Active Hosts
 local res = interface.findHost(query)
 
-for k, v in pairs(res) do
+for k, host_key in pairs(res) do
    local badges = {}
    local links = {}
 
-   local name = v
-   local ip = v
+   local name = host_key
+   local ip = host_key
 
-   local label = v
-   if v ~= k then
+   local label = host_key
+   if host_key ~= k then
       label = label .. " · " .. k
    end
 
-   if isMacAddress(v) then -- MAC
+   if isMacAddress(host_key) then -- MAC
       add_device_link(links)
-      add_historical_flows_link(links, 'mac', v)
-   elseif isIPv6(v) then -- IP
+      add_historical_flows_link(links, 'mac', host_key)
+   elseif isIPv6(host_key) then -- IP
       add_host_link(links)
-      add_historical_flows_link(links, 'ip', v)
+      add_historical_flows_link(links, 'ip', host_key)
       add_badge(badges, 'IPv6')
-   elseif k == v then -- IP
+   elseif k == host_key then -- IP
       add_host_link(links)
-      add_historical_flows_link(links, 'ip', v)
+      add_historical_flows_link(links, 'ip', host_key)
    else -- Name
       add_host_link(links)
-      add_historical_flows_link(links, 'name', v)
+      add_historical_flows_link(links, 'name', host_key)
       ip = k
    end
 
    hosts[k] = {
       label = label,
-      name = v,
+      name = host_key,
       ip = ip,
       links = links,
       badges = badges,
@@ -422,13 +422,15 @@ end
 local key_to_ip_offset = string.len(string.format("ntopng.serialized_hosts.ifid_%u__", ifid)) + 1
 
 for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u__%s*", ifid, query)) or {}) do
-   local h = hostkey2hostinfo(string.sub(k, key_to_ip_offset))
+   local host_key = string.sub(k, key_to_ip_offset)
 
-   if(not hosts[h.host]) then
+   if not hosts[host_key] then
+      local h = hostkey2hostinfo(host_key)
+
       -- Do not override active hosts / hosts by MAC
       local links = {}
       add_host_link(links)
-      add_historical_flows_link(links, 'ip', h.host)
+      add_historical_flows_link(links, 'ip', host_key)
 
       local badges = {}
       if isIPv6(h.host) then -- IP
@@ -436,10 +438,10 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u_
       end
       add_inactive_badge(badges)
 
-      hosts[h.host] = {
-         label = hostinfo2hostkey({host=h.host, vlan=h.vlan}),
-         ip = h.host,
-         name = h.host,
+      hosts[host_key] = {
+         label = host_key,
+         name = host_key,
+         ip = host_key,
          links = links,
          badges = badges,
       }
