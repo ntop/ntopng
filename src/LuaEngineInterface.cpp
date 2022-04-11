@@ -4029,6 +4029,9 @@ static int ntop_get_interface_map(lua_State* vm, bool periodicity) {
 
 static int ntop_get_interface_map_filter_list(lua_State* vm, bool periodicity) {
   MapsFilters filters;
+
+  memset(&filters, 0, sizeof(filters));
+  
   filters.periodicity_or_service = periodicity;
   ntop_get_maps_filters(vm, &filters);
 
