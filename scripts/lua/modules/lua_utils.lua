@@ -1549,19 +1549,9 @@ end
 
 -- #################################
 
-function getCategoryLabel(cat_name)
-  if isEmptyString(cat_name) then
-   return("")
-  end
-
-  local v = i18n("ndpi_categories." .. cat_name)
-  if v then
-   -- Localized string found
-   return(v)
-  end
-
-  cat_name = cat_name:gsub("^%l", string.upper)
-  return(cat_name)
+function getCategoryLabel(cat_name, cat_id)
+  local categories_utils = require 'categories_utils'
+  return categories_utils.getCustomCategoryName(cat_id, cat_name)
 end
 
 -- ###########################################

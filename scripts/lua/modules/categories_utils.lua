@@ -14,6 +14,12 @@ end
 
 -- ##############################################
 
+local function getCategoryNameKey()
+  return "ntopng.prefs.category_name"
+end
+
+-- ##############################################
+
 function categories_utils.updateCustomCategoryHosts(category_id, hosts)
   local k = getCustomCategoryKey()
 
@@ -24,6 +30,41 @@ function categories_utils.updateCustomCategoryHosts(category_id, hosts)
   end
 
   return true
+end
+
+-- ##############################################
+
+function categories_utils.updateCategoryName(category_id, category_alias)
+  local k = getCategoryNameKey()
+
+  if not isEmptyString(category_alias) then
+    ntop.setHashCache(k, tostring(category_id), category_alias)
+  end
+
+  return true
+end
+
+-- ##############################################
+
+function categories_utils.getCustomCategoryName(category_id, category_name)
+  local k = getCategoryNameKey()
+  local alias = ''
+
+  if category_id then
+    alias = ntop.getHashCache(k, tostring(category_id))
+  end
+
+  if isEmptyString(alias) then
+    alias = i18n("ndpi_categories." .. category_name)
+    if alias then
+     -- Localized string found
+     return alias
+    end
+  
+    alias = category_name:gsub("^%l", string.upper)
+  end
+
+  return alias
 end
 
 -- ##############################################

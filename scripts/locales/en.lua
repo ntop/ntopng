@@ -1363,6 +1363,7 @@ local lang = {
     ["option_needed"] = "Custom applications configuration is currently disabled as the <i>%{option}</i> parameter is missing from the configuration. Check out <a href=\"%{url}\">the documentation</a> for more details.",
     ["protos_reboot_necessary"] = "Application rules have been written. Please restart %{product} to apply them.",
     ["protos_unexpected_error"] = "Unexpected error while updating the applications rules. Check out the %{product} log for more details.",
+    ["category_name"] = "Category Name",
     ["select_url_category"] = "Please select where the domain will be added:",
     ["similar_host_found"] = "a rule similar to \"%{host}\" is already contained into the %{category} category",
     ["the_following_is_a_list_of_hosts"] = "The following is a list of custom rules for the %{category} category",
