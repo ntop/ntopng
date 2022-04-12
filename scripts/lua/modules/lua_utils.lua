@@ -58,6 +58,12 @@ end
 
 -- ##############################################
 
+function string.containsIgnoreCase(str, start, is_plain)
+   return string.contains(string.lower(str), string.lower(start), is_plain)
+end
+
+-- ##############################################
+
 function shortenString(name, max_len)
    local ellipsis = "\u{2026}" -- The unicode ellipsis (takes less space than three separate dots)
    if(name == nil) then return("") end

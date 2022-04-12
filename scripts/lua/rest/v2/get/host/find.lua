@@ -194,7 +194,7 @@ if not is_system_interface and not hosts_only then
 
       local name = getLocalNetworkLabel(network)
 
-      if string.contains(string.lower(name), string.lower(query)) then
+      if string.containsIgnoreCase(name, query) then
          local network_id = stats.network_id
          local links = {}
          add_network_link(links)
@@ -227,7 +227,7 @@ if not is_system_interface and not hosts_only then
       local badges = {}
       add_asn_link(links)
 
-      if string.contains(string.lower(as_name), string.lower(query)) then
+      if string.containsIgnoreCase(as_name, query) then
          add_badge(badges, asn)
          results[#results + 1] = {
 	    name = as_name,
@@ -237,7 +237,7 @@ if not is_system_interface and not hosts_only then
             badges = badges,
          }
 	 found = true
-      elseif string.contains(string.lower(asn), string.lower(query)) then
+      elseif string.containsIgnoreCase(asn, query) then
          results[#results + 1] = {
             name = asn,
 	    type="asn",
@@ -489,7 +489,7 @@ if not is_system_interface then
    end
 
    for ip,name in pairs(ip_to_name) do
-      if string.contains(string.lower(name), string.lower(query)) then
+      if string.containsIgnoreCase(name, query) then
          local links = {}
 
          if name == value then -- IP
@@ -516,7 +516,7 @@ if not is_system_interface then
       local mac = string.sub(k, key_prefix_offset)
       local name = ntop.getCache(k)
 
-      if not isEmptyString(name) and string.contains(string.lower(name), string.lower(query)) then
+      if not isEmptyString(name) and string.containsIgnoreCase(name, query) then
          local links = {}
          add_device_link(links)
          add_historical_flows_link(links, 'mac', mac)
