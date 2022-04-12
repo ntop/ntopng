@@ -987,28 +987,25 @@ print([[
 -- Searchbox hosts
 -- append searchbox
 
-
-if (not is_system_interface) then
-   print("<li class='nav-item'>")
-   print(
-      template_utils.gen("typeahead_input.html", {
-            typeahead={
-               base_id     = "host_search",
-               action      = "", -- see makeFindHostBeforeSubmitCallback
-               json_key    = "ip",
-               query_field = "host",
-               class       = "typeahead-dropdown-right",
-               query_url   = ntop.getHttpPrefix() .. "/lua/rest/v2/get/host/find.lua",
-               query_title = i18n("search_host"),
-               style       = "width: 20rem",
-               before_submit = [[NtopUtils.makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
-               max_items   = "'all'" --[[ let source script decide ]],
-               parameters  = { ifid = ternary(is_system_interface, getSystemInterfaceId(), ifId) },
-            }
-      })
-   )
-   print("</li>")
-end
+print("<li class='nav-item'>")
+print(
+    template_utils.gen("typeahead_input.html", {
+        typeahead={
+            base_id     = "host_search",
+            action      = "", -- see makeFindHostBeforeSubmitCallback
+            json_key    = "ip",
+            query_field = "host",
+            class       = "typeahead-dropdown-right",
+            query_url   = ntop.getHttpPrefix() .. "/lua/rest/v2/get/host/find.lua",
+            query_title = i18n("search_host"),
+            style       = "width: 20rem",
+            before_submit = [[NtopUtils.makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
+            max_items   = "'all'" --[[ let source script decide ]],
+            parameters  = { ifid = ternary(is_system_interface, getSystemInterfaceId(), ifId) },
+        }
+    })
+)
+print("</li>")
 
 -- #########################################
 -- User Navbar Menu

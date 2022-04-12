@@ -46,6 +46,11 @@ end
 local query = _GET["query"]
 local hosts_only = _GET["hosts_only"]
 
+local is_system_interface = false
+if interface.getId() == tonumber(getSystemInterfaceId()) then
+   is_system_interface = true
+end
+
 if (isEmptyString(query)) then
    query = ""
 else
@@ -177,8 +182,8 @@ end
 
 ---
 
-if not hosts_only then
-   -- Look by network
+-- Look by network
+if not is_system_interface and not hosts_only then
    local network_stats = interface.getNetworksStats()
    res_count = 0
 
@@ -203,8 +208,10 @@ if not hosts_only then
          res_count = res_count + 1
       end
    end
+end
 
-   -- Look by AS
+-- Look by AS
+if not is_system_interface and not hosts_only then
    local as_info = interface.getASesInfo() or {}
    res_count = 0
 
@@ -245,7 +252,10 @@ if not hosts_only then
 	 res_count = res_count + 1
       end
    end
+end
 
+-- Look by MAC - SNMP
+if not hosts_only then
    -- Check also in the mac addresses of snmp devices
    -- The query can be partial so we can't use functions to
    -- test if it'a an IPv4, an IPv6, or a mac as they would yield
@@ -284,8 +294,10 @@ if not hosts_only then
          res_count = res_count + 1
       end
    end
+end
 
-   -- Look by SNMP interface name
+-- Look by interface name - SNMP
+if not hosts_only then
    if ntop.isEnterpriseM() then
       local name = string.upper(query)
       local matches = snmp_utils.find_snmp_ports_by_name(name, true)
@@ -318,8 +330,10 @@ if not hosts_only then
          res_count = res_count + 1
       end
    end
+end
 
-   -- Look by SNMP device
+-- Look by SNMP device
+if not hosts_only then
    if ntop.isEnterpriseM() then
       local name = string.upper(query)
       local matches = snmp_utils.find_snmp_devices(name, true)
@@ -347,237 +361,244 @@ if not hosts_only then
 
 end -- not hosts only
 
+-- Hosts
+
 local hosts = {}
 
--- Active Hosts
-local res = interface.findHost(query)
+if not is_system_interface then
 
-for k, host_key in pairs(res) do
-   local badges = {}
-   local links = {}
+   -- Active Hosts
+   local res = interface.findHost(query)
 
-   local name = host_key
-   local ip = host_key
-
-   local label = host_key
-   if host_key ~= k then
-      label = label .. " · " .. k
-   end
-
-   if isMacAddress(host_key) then -- MAC
-      add_device_link(links)
-      add_historical_flows_link(links, 'mac', host_key)
-   elseif isIPv6(host_key) then -- IP
-      add_host_link(links)
-      add_historical_flows_link(links, 'ip', host_key)
-      add_badge(badges, 'IPv6')
-   elseif k == host_key then -- IP
-      add_host_link(links)
-      add_historical_flows_link(links, 'ip', host_key)
-   else -- Name
-      add_host_link(links)
-      add_historical_flows_link(links, 'name', host_key)
-      ip = k
-   end
-
-   hosts[k] = {
-      label = label,
-      name = host_key,
-      ip = ip,
-      links = links,
-      badges = badges,
-   }
-end
-
--- Inactive hosts (by MAC)
-local key_to_ip_offset = string.len(string.format("ntopng.ip_to_mac.ifid_%u__", ifid)) + 1
-
-for k in pairs(ntop.getKeysCache(string.format("ntopng.ip_to_mac.ifid_%u__%s*", ifid, query)) or {}) do
-   -- Serialization by MAC address found
-   local h = hostkey2hostinfo(string.sub(k, key_to_ip_offset))
-
-   if(not hosts[h.host]) then
-      -- Do not override active hosts
-      local links = {}
-      add_host_link(links)
-      add_historical_flows_link(links, 'ip', h.host)
-
+   for k, host_key in pairs(res) do
       local badges = {}
-      if isIPv6(h.host) then -- IP
-         add_badge(badges, 'IPv6')
-      end
-      add_inactive_badge(badges)
-
-      hosts[h.host] = {
-         label = hostinfo2hostkey({host=h.host, vlan=h.vlan}),
-         ip = h.host,
-         name = h.host,
-         links = links,
-         badges = badges,
-      }
-   end
-end
-
--- Inactive hosts (by IP)
-local key_to_ip_offset = string.len(string.format("ntopng.serialized_hosts.ifid_%u__", ifid)) + 1
-
-for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u__%s*", ifid, query)) or {}) do
-   local host_key = string.sub(k, key_to_ip_offset)
-
-   if not hosts[host_key] then
-      local h = hostkey2hostinfo(host_key)
-
-      -- Do not override active hosts / hosts by MAC
-      local links = {}
-      add_host_link(links)
-      add_historical_flows_link(links, 'ip', host_key)
-
-      local badges = {}
-      if isIPv6(h.host) then -- IP
-         add_badge(badges, 'IPv6')
-      end
-      add_inactive_badge(badges)
-
-      hosts[host_key] = {
-         label = host_key,
-         name = host_key,
-         ip = host_key,
-         links = links,
-         badges = badges,
-      }
-   end
-end
-
--- Also look at the custom names
--- Note: inefficient, so a limit on the maximum number must be enforced.
-local name_prefix = getHostAltNamesKey("")
-local name_keys = ntop.getKeysCache(getHostAltNamesKey("*")) or {}
-local ip_to_name = {}
-
-local max_num_names = 100 -- Avoid doing too many searches
-for k, _ in pairs(name_keys) do
-   local name = ntop.getCache(k)
-
-   if not isEmptyString(name) then
-      local ip = k:gsub(name_prefix, "")
-      ip_to_name[ip] = name
-   end
-
-   max_num_names = max_num_names - 1
-   if max_num_names == 0 then
-      break
-   end
-end
-
-for ip,name in pairs(ip_to_name) do
-   if string.contains(string.lower(name), string.lower(query)) then
       local links = {}
 
-      if name == value then -- IP
+      local name = host_key
+      local ip = host_key
+
+      local label = host_key
+      if host_key ~= k then
+         label = label .. " · " .. k
+      end
+
+      if isMacAddress(host_key) then -- MAC
+         add_device_link(links)
+         add_historical_flows_link(links, 'mac', host_key)
+      elseif isIPv6(host_key) then -- IP
          add_host_link(links)
-         add_historical_flows_link(links, 'ip', value)
+         add_historical_flows_link(links, 'ip', host_key)
+         add_badge(badges, 'IPv6')
+      elseif k == host_key then -- IP
+         add_host_link(links)
+         add_historical_flows_link(links, 'ip', host_key)
       else -- Name
          add_host_link(links)
-         add_historical_flows_link(links, 'name', value)
+         add_historical_flows_link(links, 'name', host_key)
+         ip = k
       end
 
-      hosts[ip] = {
-         label = hostinfo2label({host = ip, name = name}),
+      hosts[k] = {
+         label = label,
+         name = host_key,
          ip = ip,
-         name = name,
          links = links,
+         badges = badges,
       }
    end
-end
 
--- Also look at the DHCP cache
-local key_prefix_offset = string.len(getDhcpNameKey(getInterfaceId(ifname), "")) + 1
-local mac_to_name = ntop.getKeysCache(getDhcpNameKey(getInterfaceId(ifname), "*")) or {}
-for k in pairs(mac_to_name) do
-   local mac = string.sub(k, key_prefix_offset)
-   local name = ntop.getCache(k)
+   -- Inactive hosts - by MAC
+   local key_to_ip_offset = string.len(string.format("ntopng.ip_to_mac.ifid_%u__", ifid)) + 1
 
-   if not isEmptyString(name) and string.contains(string.lower(name), string.lower(query)) then
-      local links = {}
-      add_device_link(links)
-      add_historical_flows_link(links, 'mac', mac)
+   for k in pairs(ntop.getKeysCache(string.format("ntopng.ip_to_mac.ifid_%u__%s*", ifid, query)) or {}) do
+      -- Serialization by MAC address found
+      local h = hostkey2hostinfo(string.sub(k, key_to_ip_offset))
 
-      hosts[mac] = {
-         label = hostinfo2label({host = mac, mac = mac, name = name}) .. " · " .. mac,
-         mac = mac,
-         name = name,
-         links = links,
-      }
-   end
-end
+      if(not hosts[h.host]) then
+         -- Do not override active hosts
+         local links = {}
+         add_host_link(links)
+         add_historical_flows_link(links, 'ip', h.host)
 
--- Build final array with results
+         local badges = {}
+         if isIPv6(h.host) then -- IP
+            add_badge(badges, 'IPv6')
+         end
+         add_inactive_badge(badges)
 
-res_count = 0
-
-local function build_result(label, value, value_type, links, badges, context)
-   local r = {
-      name = label,
-      type = value_type,
-      links = links,
-      badges = badges,
-      context = context,
-   }
-
-   r[value_type] = value
-
-   return r
-end
-
-for k, v in pairsByField(hosts, 'name', asc) do
-   if((res_count >= max_group_items) or (#results >= max_total_items)) then
-      break
+         hosts[h.host] = {
+            label = hostinfo2hostkey({host=h.host, vlan=h.vlan}),
+            ip = h.host,
+            name = h.host,
+            links = links,
+            badges = badges,
+         }
+      end
    end
 
-   if((v.label ~= "") and (already_printed[v.label] == nil)) then
-      already_printed[v] = true
 
-      if v.mac then
-	 results[#results + 1] = build_result(v.label, v.mac, "mac", v.links, v.badges)
-      elseif v.ip then
+   -- Inactive hosts - by IP
+   local key_to_ip_offset = string.len(string.format("ntopng.serialized_hosts.ifid_%u__", ifid)) + 1
 
-         -- Add badge for services
-         local info = interface.getHostMinInfo(v.ip)
-         if info and info.services then
-            if not v.badges then v.badges = {} end
-            for s,_ in pairs(info.services) do
-               add_badge(v.badges, s:upper())
-            end
+   for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u__%s*", ifid, query)) or {}) do
+      local host_key = string.sub(k, key_to_ip_offset)
+
+      if not hosts[host_key] then
+         local h = hostkey2hostinfo(host_key)
+
+         -- Do not override active hosts / hosts by MAC
+         local links = {}
+         add_host_link(links)
+         add_historical_flows_link(links, 'ip', host_key)
+
+         local badges = {}
+         if isIPv6(h.host) then -- IP
+            add_badge(badges, 'IPv6')
+         end
+         add_inactive_badge(badges)
+
+         hosts[host_key] = {
+            label = host_key,
+            name = host_key,
+            ip = host_key,
+            links = links,
+            badges = badges,
+         }
+      end
+   end
+
+   -- Also look at the custom names
+   -- Note: inefficient, so a limit on the maximum number must be enforced.
+   local name_prefix = getHostAltNamesKey("")
+   local name_keys = ntop.getKeysCache(getHostAltNamesKey("*")) or {}
+   local ip_to_name = {}
+
+   local max_num_names = 100 -- Avoid doing too many searches
+   for k, _ in pairs(name_keys) do
+      local name = ntop.getCache(k)
+
+      if not isEmptyString(name) then
+         local ip = k:gsub(name_prefix, "")
+         ip_to_name[ip] = name
+      end
+
+      max_num_names = max_num_names - 1
+      if max_num_names == 0 then
+         break
+      end
+   end
+
+   for ip,name in pairs(ip_to_name) do
+      if string.contains(string.lower(name), string.lower(query)) then
+         local links = {}
+
+         if name == value then -- IP
+            add_host_link(links)
+            add_historical_flows_link(links, 'ip', value)
+         else -- Name
+            add_host_link(links)
+            add_historical_flows_link(links, 'name', value)
          end
 
-	 results[#results + 1] = build_result(v.label, v.ip, "ip", v.links, v.badges)
+         hosts[ip] = {
+            label = hostinfo2label({host = ip, name = name}),
+            ip = ip,
+            name = name,
+            links = links,
+         }
       end
-
-      res_count = res_count + 1
-   end -- if
-end
-
-if #results == 0 and not isEmptyString(query) then
-   -- No results - add shortcut to search in historical data
-   if hasClickHouseSupport() then
-      local label = ""
-      local what = ""
-      if isIPv6(query) or isIPv4(query) then
-         what = "ip"
-         label = i18n("db_search.find_in_historical", {what=what, query=query})
-         query = query .. tag_utils.SEPARATOR .. "eq"
-      elseif isMacAddress(query) then
-         what = "mac"
-         label = i18n("db_search.find_in_historical", {what=what, query=query})
-         query = query .. tag_utils.SEPARATOR .. "eq"
-      else
-         what = "hostname"
-         label = i18n("db_search.find_in_historical", {what=what, query=query})
-         query = query .. tag_utils.SEPARATOR .. "in"
-      end
-      results[#results + 1] = build_result(label, query, what, nil, nil, "historical")
    end
-end
+
+   -- Also look at the DHCP cache
+   local key_prefix_offset = string.len(getDhcpNameKey(getInterfaceId(ifname), "")) + 1
+   local mac_to_name = ntop.getKeysCache(getDhcpNameKey(getInterfaceId(ifname), "*")) or {}
+   for k in pairs(mac_to_name) do
+      local mac = string.sub(k, key_prefix_offset)
+      local name = ntop.getCache(k)
+
+      if not isEmptyString(name) and string.contains(string.lower(name), string.lower(query)) then
+         local links = {}
+         add_device_link(links)
+         add_historical_flows_link(links, 'mac', mac)
+
+         hosts[mac] = {
+            label = hostinfo2label({host = mac, mac = mac, name = name}) .. " · " .. mac,
+            mac = mac,
+            name = name,
+            links = links,
+         }
+      end
+   end
+
+   -- Build final array with results
+
+   res_count = 0
+
+   local function build_result(label, value, value_type, links, badges, context)
+      local r = {
+         name = label,
+         type = value_type,
+         links = links,
+         badges = badges,
+         context = context,
+      }
+
+      r[value_type] = value
+
+      return r
+   end
+
+   for k, v in pairsByField(hosts, 'name', asc) do
+      if((res_count >= max_group_items) or (#results >= max_total_items)) then
+         break
+      end
+
+      if((v.label ~= "") and (already_printed[v.label] == nil)) then
+         already_printed[v] = true
+
+         if v.mac then
+            results[#results + 1] = build_result(v.label, v.mac, "mac", v.links, v.badges)
+         elseif v.ip then
+
+            -- Add badge for services
+            local info = interface.getHostMinInfo(v.ip)
+            if info and info.services then
+               if not v.badges then v.badges = {} end
+               for s,_ in pairs(info.services) do
+                  add_badge(v.badges, s:upper())
+               end
+            end
+
+            results[#results + 1] = build_result(v.label, v.ip, "ip", v.links, v.badges)
+         end
+
+         res_count = res_count + 1
+      end -- if
+   end
+
+   if #results == 0 and not isEmptyString(query) then
+      -- No results - add shortcut to search in historical data
+      if hasClickHouseSupport() then
+         local label = ""
+         local what = ""
+         if isIPv6(query) or isIPv4(query) then
+            what = "ip"
+            label = i18n("db_search.find_in_historical", {what=what, query=query})
+            query = query .. tag_utils.SEPARATOR .. "eq"
+         elseif isMacAddress(query) then
+            what = "mac"
+            label = i18n("db_search.find_in_historical", {what=what, query=query})
+            query = query .. tag_utils.SEPARATOR .. "eq"
+         else
+            what = "hostname"
+            label = i18n("db_search.find_in_historical", {what=what, query=query})
+            query = query .. tag_utils.SEPARATOR .. "in"
+         end
+         results[#results + 1] = build_result(label, query, what, nil, nil, "historical")
+      end
+   end
+
+end -- hosts - not is_system_interface
 
 local data = {
    interface = ifname,
