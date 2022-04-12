@@ -109,7 +109,14 @@ function email.sendEmail(subject, message_body, settings)
   end
 
   local message = buildMessageHeader(os.time(), settings.from_addr, settings.to_addr, settings.cc_addr, subject, message_body)
-  return ntop.sendMail(from, to, cc, message, smtp_server, settings.username, settings.password)
+
+  -- Pass nil username and password when auth is not required
+  local username = nil
+  local password = nil
+  if not isEmptyString(settings.username) then username = settings.username end
+  if not isEmptyString(settings.password) then password = settings.password end
+
+  return ntop.sendMail(from, to, cc, message, smtp_server, username, password)
 end
 
 -- ##############################################
