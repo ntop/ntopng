@@ -1488,6 +1488,7 @@ local known_parameters = {
    ["l7_proto_id"]             = validateProtocolIdOrName,      -- get_historical_data.lua
    ["l4proto"]                 = validateListOfTypeInline(validateFilters(validateProtocolIdOrName)),      -- An nDPI application protocol ID, layer 4
    ["l7proto"]                 = validateListOfTypeInline(validateFilters(validateDoubleProtocolIdOrName)), -- An nDPI application protocol ID, layer 7
+   ["l7proto_master"]          = validateListOfTypeInline(validateFilters(validateDoubleProtocolIdOrName)), -- An nDPI application protocol ID, layer 7
    ["l7_proto"]                = validateListOfTypeInline(validateFilters(validateProtocolIdOrName)), -- An nDPI application protocol ID, layer 7
    ["filtered_query"]          = validateBool,            -- Parameter used to download nindex flows
    ["l7cat"]                   = validateListOfTypeInline(validateFilters(validateCategory)), -- An nDPI category, layer 7
