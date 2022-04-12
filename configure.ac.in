@@ -15,14 +15,14 @@ AS_IF([test "${with_leak_sanitizer+set}" = set],[
     LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak"
     if test $SYSTEM = "Darwin"; then
         CC=clang
-        CXX=clang++
+        CXX="clang++ -fPIE"
     else
        if test -x "/usr/bin/clang-10"; then
            CC=clang-10
-           CXX=clang++-10
+           CXX="clang++-10 -fPIE"
        elif test -x "/usr/bin/clang-11"; then
            CC=clang-11
-           CXX=clang++-11
+           CXX="clang++-11 -fPIE"
        else
            echo "Could not find clang"
            exit 1
@@ -39,14 +39,14 @@ AS_IF([test "${with_sanitizer+set}" = set],[
     LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment"
     if test $SYSTEM = "Darwin"; then
         CC=clang
-        CXX=clang++
+        CXX="clang++ -fPIE"
     else
        if test -x "/usr/bin/clang-10"; then
            CC=clang-10
-           CXX=clang++-10
+           CXX="clang++-10 -fPIE"
        elif test -x "/usr/bin/clang-11"; then
            CC=clang-11
-           CXX=clang++-11
+           CXX="clang++-11 -fPIE"
        else
            echo "Could not find clang"
            exit 1
@@ -93,7 +93,7 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
 
    dnl> https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
    CC=clang
-   CXX=clang++
+   CXX="clang++ -fPIE"
    if test $SYSTEM = "FreeBSD"; then
     MAKE=gmake
     BIN_PATH=/usr/local/bin
@@ -113,7 +113,6 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
    fi
    if test $MACHINE = "x86_64"; then
       LDFLAGS="${LDFLAGS} -L/usr/local/opt/ntopng"
-      #LINK_OPTS="-pagezero_size 10000 -image_base 100000000 -image_base 7fff04c4a000"
       RES=`g++ -Wall -fno-color-diagnostics Prefs.cpp 2>&1 | grep "unrecognized command line option "|wc -l`
       if test $RES -eq 0; then
             CFLAGS="-fno-color-diagnostics $CFLAGS"
@@ -123,7 +122,7 @@ else
   if test $SYSTEM = "Linux"; then
     if [ test -f /usr/bin/clang++ ]; then
       CC=clang
-      CXX=clang++
+      CXX="clang++ -fPIE"
       AC_MSG_RESULT(Using clang++ compiler)
     fi
 
@@ -867,7 +866,7 @@ fi
 echo "
 This is the ntopng configuration:
 
-Compiler          : ${CPP}
+Compiler          : ${CXX}
 Preprocessor Flags: ${CPPFLAGS}
 C++ Flags         : ${CXXFLAGS}
 Linker Flags:     : ${LDFLAGS}
