@@ -47,7 +47,7 @@ bitsToSizeMultiplier = format_utils.bitsToSizeMultiplier
 
 -- Note: Regexs are applied by default. Pass plain=true to disable them.
 function string.contains(str, start, is_plain)
-   if type(str) ~= 'string' or type(start) ~= 'string' then
+   if type(str) ~= 'string' or type(start) ~= 'string' or isEmptyString(str) or isEmptyString(start) then
       return false
    end
 
