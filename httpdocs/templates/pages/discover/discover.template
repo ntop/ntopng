@@ -1,0 +1,143 @@
+<!--
+  (C) 2013-22 - ntop.org
+
+  Discovery Network page
+-->
+
+<div class="row">
+  <div class="col-12">
+    <div class="card card-shadow">
+      <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
+        <div class="text-center">
+          <div class="spinner-border text-primary mt-5" role="status">
+            <span class="sr-only position-absolute">Loading...</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-danger" role="alert" id='error-alert' style="display: none">
+        {{ i18n("map_page.fetch_error") }}
+        </div>
+      {% if discover_check.DISCOVERY_REQUESTED  then %}
+        <div class="alert alert-info alert-dismissable">
+          <span class="spinner-border spinner-border-sm text-info"></span>
+          {* messages.discovery_not_enabled *}
+          <span id="discovery-progress"></span>
+        </div>
+      {% elseif discover_check.NOCHECK then %}
+        <div class="alert alert-info alert-dismissable">
+          <i class="fas fa-info-circle fa-lg"></i>
+          {* messages.discover_message *}
+        </div>
+      {% elseif discover_check.ERROR then %}
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle fa-lg"></i>
+          {* messages.discover_message *}
+        </div>
+      {% elseif discover_check.OK then %}
+        <table id='discovery-table' class='table table-striped table-bordered w-100'>
+          <thead>
+            <tr>
+              <th>{{ i18n("ip_address") }}</th>
+              <th>{{ i18n("name") }}</th>
+              <th>{{ i18n("mac_stats.manufacturer") }}</th>
+              <th>{{ i18n("mac_address") }}</th>
+              <th>{{ i18n("os") }}</th>
+              <th>{{ i18n("info") }}</th>
+              <th>{{ i18n("discover.device") }}</th>
+            </tr>
+          </thead>
+        </table>
+      {% end %}
+
+        <div class='notes border bg-light'>
+          <b>{* messages.notes *}</b>
+          <ul>
+            {% if discover_check.GHOST_FOUND then %}
+              <li>{* messages.ghost_descr *}</li>
+            {% end %}
+            {% if discover_check.MANY_DEVICES then %}
+              <li>{* messages.many_devices_descr *}</li>
+            {% end %}
+            <li>{* messages.discovery_running *}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="p-1">{* messages.datetime *}</div>
+
+<script type="text/javascript">
+  $(document).ready(async function () {
+    let timeoutId;
+    let discoveryRequested = false;
+
+    /* Request if a network discovery is running*/
+    const checkDiscovery = function() {
+      $.ajax({
+        type: 'GET',
+        url: '{* http_prefix *}/lua/get_discover_progress.lua?ifid={* ifid *}',
+        complete: function() {},
+        error: function() {},
+        success: function(msg) {
+          if(msg.discovery_requested == true) {
+            discoveryRequested = true
+            if(msg.progress != "")
+              $('#discovery-progress').html(" " + msg.progress);
+          } else {
+            if(discoveryRequested)
+              window.location.href = '{* http_prefix *}/lua/discover.lua'
+            clearTimeout(timeoutId)
+          }
+        }
+      });
+    }
+
+    timeoutId = setInterval(checkDiscovery, 3000)
+
+    /* Run the ajax request to check the network discovery */
+    checkDiscovery()
+    const url = "{* url *}"
+    const standardSortingColumn = 0 /* Column Ip */
+    const columns = [
+      { name: 'ip_address', data: 'column_ip', className: 'text-nowrap'},
+      { name: 'name', data: 'column_name', className: 'text-nowrap' },
+      { name: 'manufacturer', data: 'column_manufacturer', className: 'text-nowrap' },
+      { name: 'mac_address', data: 'column_mac', className: 'text-nowrap' },
+      { name: 'os', data: 'column_os', className: 'text-nowrap'},
+      { name: 'info', data: 'column_info' },
+      { name: 'device', data: 'column_device', className: 'text-nowrap' },
+    ];
+
+    let config = DataTableUtils.getStdDatatableConfig([{
+      text: '{* messages.start_discovery *} <i class="fa-solid fa-play"></i>',
+      action: function(e, dt, node, config) {
+        /* Reloading with the descovery requested set to true */
+        window.location.href = "{* page_url *}?request_discovery=true";
+      }
+    }])
+    config = DataTableUtils.extendConfig(config, {
+      serverSide: false,
+      searching: true,
+      order: [[ standardSortingColumn, 'asc' ]],
+      ajax: {
+        method: 'get',
+        url: url,
+        dataSrc: 'rsp',
+        beforeSend: function() {
+          NtopUtils.showOverlays();
+        },
+        complete: function() {
+          NtopUtils.hideOverlays();
+        }
+      },
+      columns: columns,
+      lengthMenu: [10, 50, 100, 250],
+    });
+    
+    const $table = $('#discovery-table').DataTable(config);
+  })
+</script>
+

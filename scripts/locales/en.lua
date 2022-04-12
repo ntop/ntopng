@@ -1735,6 +1735,7 @@ local lang = {
     ["network_discovery"] = "Network Discovery",
     ["network_discovery_datetime"] = "Last Network Discovery",
     ["network_discovery_not_enabled"] = "Network discovery in progress",
+    ["start_discovery"] = "Run Discovery",
     ["too_many_devices_descr"] = "Too many devices discovered. Results have been trimmed at %{max_devices} devices",
   },
   ["dns_info"] = {

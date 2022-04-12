@@ -8,20 +8,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require "dkjson"
 local discover = require "discover_utils"
-
-sendHTTPContentTypeHeader('text/json')
-
--- Table parameters
-local currentPage = _GET["currentPage"]
-local perPage     = _GET["perPage"]
-local sortColumn  = _GET["sortColumn"]
-local sortOrder   = _GET["sortOrder"]
+local rest_utils = require "rest_utils"
 
 local os_filter = tonumber(_GET["operating_system"])
 local devtype_filter = tonumber(_GET["device_type"])
 local manuf_filter = _GET["manufacturer"]
-
-local sortPrefs = "discovery_sort_col"
 
 -- ################################################
 
@@ -37,58 +28,9 @@ end
 
 -- ################################################
 
-if isEmptyString(sortColumn) or sortColumn == "column_" then
-   sortColumn = getDefaultTableSort(sortPrefs)
-else
-   if((sortColumn ~= "column_")
-    and (sortColumn ~= "")) then
-      tablePreferences("sort_"..sortPrefs, sortColumn)
-   end
-end
-
-if isEmptyString(_GET["sortColumn"]) then
-  sortOrder = getDefaultTableSortOrder(sortPrefs, true)
-end
-
-if((_GET["sortColumn"] ~= "column_")
-  and (_GET["sortColumn"] ~= "")) then
-    tablePreferences("sort_order_"..sortPrefs, sortOrder, true)
-end
-
-if(currentPage == nil) then
-   currentPage = 1
-else
-   currentPage = tonumber(currentPage)
-end
-
-if(perPage == nil) then
-   perPage = 10
-else
-   perPage = tonumber(perPage)
-   tablePreferences("rows_number_discovery", perPage)
-end
-
--- ################################################
-
 interface.select(ifname)
 
-local to_skip = (currentPage-1) * perPage
-
-if(sortOrder == "desc") then
-  if sortColumn == "column_ip" then
-    sOrder = ip_address_rev
-  else
-    sOrder = rev_insensitive
-  end
-else
-  if sortColumn == "column_ip" then
-    sOrder = ip_address_asc
-  else
-    sOrder = asc_insensitive
-  end
-end
-
-local res = {data={}}
+local res = {}
 
 local discovered = discover.discover2table(ifname)
 
@@ -98,26 +40,9 @@ if(enable_doa_ox) then
   doa_ox.header(doa_ox_fd)
 end
 
-local sort_2_field = {
-  column_ip = "ip",
-  column_name = "name",
-  column_manufacturer = "manufacturer",
-  column_os = "os",
-  column_info = "info",
-  column_device = "device_type",
-}
-
-local sorted = {}
-local sort_field = "mac"
-
-if sort_2_field[sortColumn] then
-  sort_field = sort_2_field[sortColumn]
-end
-
-local tot_rows = 0
 discovered["devices"] = discovered["devices"] or {}
 
-for el_idx, el in pairs(discovered["devices"]) do
+for _, el in pairs(discovered["devices"]) do
   -- Manufacturer
   local manufacturer = ""
   if el["manufacturer"] then
@@ -187,33 +112,8 @@ for el_idx, el in pairs(discovered["devices"]) do
     goto continue
   end
 
-  sorted[el_idx] = el[sort_field]
-  tot_rows = tot_rows + 1
-
-  ::continue::
-end
-
-if(enable_doa_ox) then
-  doa_ox.term(doa_ox_fd)
-end
-
--- ################################################
-
-local cur_num = 0
-
--- Sort
-for idx, _ in pairsByValues(sorted, sOrder) do
-  el = discovered["devices"][idx]
-
-  cur_num = cur_num + 1
-  if cur_num <= to_skip then
-    goto continue
-  elseif cur_num > to_skip + perPage then
-    break
-  end
-
   local rec = {}
-
+  
   rec.column_ip = ip2detailshref(el["ip"], nil, nil, el["ip"])
     ..ternary(el["icon"], "&nbsp;" ..(el["icon"] or "").. "&nbsp;", "")
     ..ternary(el["ghost"], " <font color=red>" ..(discover.ghost_icon or "").. "</font>", "")
@@ -225,13 +125,18 @@ for idx, _ in pairsByValues(sorted, sOrder) do
   rec.column_manufacturer = el.manufacturer
   rec.column_os = el.os
 
-  res.data[#res.data + 1] = rec
-  ::continue::
+  res[#res + 1] = rec
+
+::continue::
 end
 
-res["perPage"] = perPage
-res["currentPage"] = currentPage
-res["totalRows"] = tot_rows
+if(enable_doa_ox) then
+  doa_ox.term(doa_ox_fd)
+end
 
-res["sort"] = {{sortColumn, sortOrder}}
-print(json.encode(res))
+-- ################################################
+
+rest_utils.extended_answer(rest_utils.consts.success.ok, res, {
+  ["recordsFiltered"] = #res,
+  ["recordsTotal"] = #res
+})
