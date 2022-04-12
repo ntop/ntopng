@@ -122,7 +122,6 @@ Flow::Flow(NetworkInterface *_iface,
     cli_host->incUses(), cli_host->incNumFlows(last_seen, true);
     if(network_stats) network_stats->incNumFlows(last_seen, true);
     cli_ip_addr = cli_host->get_ip();
-    cli_host->incCliContactedHosts(_srv_ip);
     cli_host->incCliContactedPorts(_srv_port);
 
     if(cli_host->isLocalHost() && srv_host) {
@@ -456,7 +455,6 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
 
     if(real_srv_h) {
       real_srv_h->setNtpServer();
-	if(real_cli_h) real_cli_h->incNTPContactCardinality(real_srv_h);
     }
     break;
 
@@ -464,7 +462,6 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
   case NDPI_PROTOCOL_MAIL_SMTP:
     if(srv_h) {
       srv_h->setSmtpServer();
-      if(cli_h) cli_h->incSMTPContactCardinality(srv_h);
     }
     break;
 
@@ -475,7 +472,6 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
     */
     if(srv_h) {
       srv_h->setDnsServer();
-      if(cli_h) cli_h->incDNSContactCardinality(srv_h);
     }
     break;
 
@@ -1423,6 +1419,9 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     if(cli_network_id >= 0 && (cli_network_id == srv_network_id))
       cli_and_srv_in_same_subnet = true;
 
+    cli_host->incCliContactedHosts(srv_host->get_ip());
+    srv_host->incSrvHostContacts(cli_host->get_ip());
+
     if(iface && (vl = iface->getVLAN(vlanId, false, false /* NOT an inline call */))) {
       /* Note: source and destination hosts have, by definition, the same VLAN so the increase is done only one time. */
       /* Note: vl will never be null as we're in a flow with that vlan. Hence, it is guaranteed that at least
@@ -1626,6 +1625,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       cli_host->getDNSstats()->incStats(true  /* Client */, partial->get_flow_dns_stats());
     if(srv_host && srv_host->getDNSstats())
       srv_host->getDNSstats()->incStats(false /* Server */, partial->get_flow_dns_stats());
+    if(cli_host && srv_host)
+      cli_host->incDNSContactCardinality(srv_host);
     break;
 
   case NDPI_PROTOCOL_MDNS:
@@ -1643,6 +1644,11 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
   case NDPI_PROTOCOL_NETBIOS:
     if(cli_host) {
       if(protos.netbios.name) cli_host->offlineSetNetbiosName(protos.netbios.name);
+    }
+    break;
+  case NDPI_PROTOCOL_NTP:
+	  if(cli_host && srv_host) {
+      cli_host->incNTPContactCardinality(srv_host);
     }
     break;
   case NDPI_PROTOCOL_IP_ICMP:
@@ -1673,6 +1679,11 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       }
     }
 
+    break;
+  case NDPI_PROTOCOL_MAIL_SMTPS:
+  case NDPI_PROTOCOL_MAIL_SMTP:
+    if(cli_host && srv_host)
+      cli_host->incSMTPContactCardinality(srv_host);
     break;
   default:
     break;
