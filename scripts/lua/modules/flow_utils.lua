@@ -1402,7 +1402,7 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
    input_idx = tostring(input_idx)
    output_idx = tostring(output_idx)
    local inputidx_name = format_portidx_name(snmpdevice, input_idx)
-   local outputidx_name = format_portidx_name(snmpdevice, input_idx)
+   local outputidx_name = format_portidx_name(snmpdevice, output_idx)
 
    if ntop.isPro() then
       if not isEmptyString(snmpdevice) then
