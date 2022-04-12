@@ -1665,7 +1665,7 @@ local lang = {
     ["label_system_ip"] = "System IP",
     ["lost"] = "Lost",
     ["misbehaving_flows_reasons"] = "Mibehaving Flows Reasons",
-    ["more_then_one_device"] = " (More then one Probe has detected this Host)",
+    ["more_then_one_device"] = " (More than one Probe has detected this Host)",
     ["note"] = "NOTE",
     ["note_hosts_located_snmp_device"] = "Hosts are located in SNMP devices using the <A HREF=%{url}>Bridge MIB</A>.",
     ["observation_point_id"] = "Observation Point Id",
