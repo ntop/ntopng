@@ -409,7 +409,7 @@ u_int16_t Flow::getStatsProtocol() const {
 void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
   u_int16_t l7proto;
   u_int16_t stats_protocol;
-  Host *cli_h = NULL, *srv_h = NULL, *real_cli_h, *real_srv_h;
+  Host *cli_h = NULL, *srv_h = NULL, /* *real_cli_h, */ *real_srv_h;
   char *domain_name = NULL;
 
   /*
@@ -443,14 +443,14 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
     break;
 
   case NDPI_PROTOCOL_NTP:
-    real_srv_h = srv_h, real_cli_h = cli_h;
+    real_srv_h = srv_h /* , real_cli_h = cli_h */;
 
     /* Check direction first */
     if(payload && (payload_len > 1)) {
       u_int8_t mode = payload[0] & 0x07;
 
       if(mode == 2 /* server -> client */)
-	real_srv_h = cli_h, real_cli_h = srv_h;
+	real_srv_h = cli_h /* , real_cli_h = srv_h */;
     }
 
     if(real_srv_h) {
@@ -4218,8 +4218,12 @@ void Flow::updateHTTP(ParsedFlow *zflow) {
 /* *************************************** */
 
 void Flow::updateSuspiciousDGADomain() {
-  if(hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && !suspicious_dga_domain)
-    suspicious_dga_domain = strdup(getFlowInfo(NULL, 0, false));
+  if(hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && !suspicious_dga_domain) {
+    char *domain = getFlowInfo(NULL, 0, false);
+
+    if(domain)
+      suspicious_dga_domain = strdup(domain);
+  }
 }
 
 /* *************************************** */
