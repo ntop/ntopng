@@ -244,6 +244,36 @@ function alert_store:build_sql_cond(cond)
          end
       end
 
+   -- Special case: name (with vlan)
+   elseif (cond.field == 'name' or
+           cond.field == 'cli_name' or 
+           cond.field == 'srv_name') and
+           (cond.op == 'eq' or cond.op == 'neq') then
+      local host = hostkey2hostinfo(cond.value)
+      if not isEmptyString(host["host"]) then
+         if not host["vlan"] or host["vlan"] == 0 then
+            if cond.field == 'name' and self._alert_entity == alert_entities.flow then
+               sql_cond = string.format("(%s %s '%s' %s %s %s '%s')",
+                  'cli_name', sql_op, host["host"],
+                  ternary(cond.op == 'neq', 'AND', 'OR'), 
+                  'srv_name', sql_op, host["host"])
+            else
+               sql_cond = string.format("%s %s '%s'", cond.field, sql_op, host["host"])
+            end
+         else
+            if cond.field == 'name' and self._alert_entity == alert_entities.flow then
+               sql_cond = string.format("((%s %s '%s' %s %s %s '%s') %s vlan_id %s %u)",
+                  'cli_name', sql_op, host["host"], 
+                  ternary(cond.op == 'neq', 'AND', 'OR'),
+                  'srv_name', sql_op, host["host"], 
+                  ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
+            else
+               sql_cond = string.format("(%s %s '%s' %s vlan_id %s %u)", cond.field, sql_op, 
+                  host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
+            end
+         end
+      end
+
    -- Special case: role (host)
    elseif cond.field == 'host_role' then
       if cond.value == 'attacker' then
