@@ -156,9 +156,13 @@ export default {
 	},
 	get_data_pattern: function(value_type) {
 	    if (value_type == "ip") {
-		return `${NtopUtils.REGEXES.ipv4}|${NtopUtils.REGEXES.ipv6}`;
+		let r_ipv4 = NtopUtils.REGEXES.ipv4;
+		let r_ipv4_vlan = r_ipv4.replace("$", "@[0-9]{0,5}$");
+		let r_ipv6 = NtopUtils.REGEXES.ipv6;
+		let r_ipv6_vlan = r_ipv6.replaceAll("$", "@[0-9]{0,5}$");
+		return `(${r_ipv4})|(${r_ipv4_vlan})|(${r_ipv6})|(${r_ipv6_vlan})`;
 	    } else if (value_type == "hostname") {
-		return `${NtopUtils.REGEXES.singleword}`;
+		return `${NtopUtils.REGEXES.singleword}|[a-zA-Z0-9._\-]{3,250}@[0-9]{0,5}$`;
 	    }
 	    return NtopUtils.REGEXES[value_type];
 	},
