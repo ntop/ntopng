@@ -24,7 +24,7 @@ Currently available Endpoints/Recipients and license required are:
 +----------------+-----------+-----+--------------+--------------+
 | Elasticsearch  |           | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
-| MS Teams       |           |     |              | x            |
+| MS Teams       |           | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
 
 Below a guide on how to configure each Endpoint/Recipient.
