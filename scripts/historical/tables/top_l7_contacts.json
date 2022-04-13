@@ -43,7 +43,7 @@
 				"name" : "L7_PROTO_MASTER"
 			},
 			{
-				"name" : "number",
+				"name" : "count",
 				"func" : "COUNT",
 				"param" : "*",
 				"value_type" : "number"
