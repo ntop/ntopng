@@ -484,6 +484,17 @@ function flow_alert_store:format_record(value, no_html)
      label = getLocalNetworkAliasById(value['srv_network']),
    }
 
+   -- Removing the server network if the host has no network
+   if value['srv_network'] == '65535' then
+    record[srv_network]['label'] = ''
+    record[srv_network]['value'] = ''
+   end
+
+   if value['cli_network'] == '65535' then
+    record[cli_network]['label'] = ''
+    record[cli_network]['value'] = ''
+   end
+
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""
    end
