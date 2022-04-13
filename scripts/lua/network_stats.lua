@@ -101,8 +101,7 @@ print [[
 				 sortable: true,
                              css: {
 			        textAlign: 'center'
-			     }
-
+			     },
 				 },
 ]]
 

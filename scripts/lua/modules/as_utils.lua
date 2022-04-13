@@ -19,6 +19,9 @@ function as2record(ifId, as)
 
    record["column_asname"] = printASN(as["asn"], as["asname"])
    record["column_score"] = format_utils.formatValue(as["score"] or 0)
+   if record["column_score"] == '0' then
+    record["column_score"] = ''
+   end
    record["column_hosts"] = as["num_hosts"]..""
    record["column_since"] = secondsToTime(now - as["seen.first"] + 1)
 

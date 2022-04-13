@@ -25,6 +25,9 @@ function network_utils.network2record(ifId, network)
    local network_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?network='..network["network_id"].."' title='"..network["network_key"].."'>"..getFullLocalNetworkName(network["network_key"])..'</A>'
    record["column_id"] = network_link
    record["column_score"] = format_utils.formatValue(network["score"] or 0)
+   if record["column_score"] == '0' then
+    record["column_score"] = ''
+   end
    record["column_hosts"] = (network["num_hosts"] or 0)..""
 
    local sent2rcvd = round((network["bytes.sent"] * 100) / (network["bytes.sent"] + network["bytes.rcvd"]), 0)
