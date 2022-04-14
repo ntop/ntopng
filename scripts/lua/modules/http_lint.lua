@@ -1744,7 +1744,7 @@ local known_parameters = {
 
 -- Service Map
    ["service_id"]          = validateNumber,
-   ["service_state"]       = validateNumber,
+   ["service_status"]      = validateNumber,
    ["set_service_state"]   = validateNumber,
    ["service_l7proto"]     = validateSingleWord,
    ["map"]                 = validateUnquoted,

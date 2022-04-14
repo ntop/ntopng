@@ -2061,40 +2061,40 @@ end
 -- @param href_check Performs existance checks on the link to avoid generating links to inactive hosts or hosts without timeseries
 -- @return A string containing the url (if available) or an empty string when the url is not available
 function hostinfo2detailsurl(host_info, href_params, href_check)
-   local tag_utils = require "tag_utils"
-   local res = ''
+  local tag_utils = require "tag_utils"
+  local res = ''
 
-   if not href_check or hostdetails_exists(host_info, href_params) then
-      local auth = require "auth"
-      local url_params = table.tconcat(href_params or {}, "=", "&")
+  if not href_check or hostdetails_exists(host_info, href_params) then
+    local auth = require "auth"
+    local url_params = table.tconcat(href_params or {}, "=", "&")
 
-      -- Alerts pages for the host are in alert_stats.lua (Alerts menu)
-      if href_params and href_params.page == "engaged-alerts" then
-	 if auth.has_capability(auth.capabilities.alerts) then
-	    res = string.format("%s/lua/alert_stats.lua?page=host&status=engaged&ip=%s%s%s",
-				ntop.getHttpPrefix(),
-				hostinfo2hostkey(host_info),
-                                tag_utils.SEPARATOR, "eq")
-	 end
-      elseif href_params and href_params.page == "alerts" then
-	 if auth.has_capability(auth.capabilities.alerts) then
-	    res = string.format("%s/lua/alert_stats.lua?page=host&status=historical&ip=%s%s%s",
-				ntop.getHttpPrefix(),
-				hostinfo2hostkey(host_info),
-                                tag_utils.SEPARATOR, "eq")
-	 end
-      -- All other pages are in host_details.lua
-      else
-         res = string.format("%s/lua/host_details.lua?%s%s%s",
-			  ntop.getHttpPrefix(),
-			  hostinfo2url(host_info),
-			  isEmptyString(url_params) and '' or '&',
-			  url_params,
-			  href_value)
+    -- Alerts pages for the host are in alert_stats.lua (Alerts menu)
+    if href_params and href_params.page == "engaged-alerts" then
+      if auth.has_capability(auth.capabilities.alerts) then
+        res = string.format("%s/lua/alert_stats.lua?page=host&status=engaged&ip=%s%s%s",
+          ntop.getHttpPrefix(),
+          hostinfo2hostkey(host_info),
+          tag_utils.SEPARATOR, "eq")
       end
-   end
+    elseif href_params and href_params.page == "alerts" then
+      if auth.has_capability(auth.capabilities.alerts) then
+          res = string.format("%s/lua/alert_stats.lua?page=host&status=historical&ip=%s%s%s",
+            ntop.getHttpPrefix(),
+            hostinfo2hostkey(host_info),
+            tag_utils.SEPARATOR, "eq")
+      end
+    -- All other pages are in host_details.lua
+    else
+      res = string.format("%s/lua/host_details.lua?%s%s%s",
+        ntop.getHttpPrefix(),
+        hostinfo2url(host_info),
+        isEmptyString(url_params) and '' or '&',
+        url_params,
+        href_value)
+    end
+  end
 
-   return res
+  return res
 end
 
 -- ##############################################
@@ -4688,6 +4688,10 @@ function builMapHREF(service_peer, map)
 
   -- Getting the name if present
   name = name or service_peer.host
+
+  if service_peer.vlan and tonumber(service_peer.vlan) ~= 0 then
+    name = name .. '@' .. getFullVlanName(service_peer.vlan)
+  end
 
   local res
   if not isEmptyString(host_url) then

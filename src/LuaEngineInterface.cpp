@@ -3959,6 +3959,7 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
   filters->host_pool_id = (u_int16_t)-1;
   filters->ndpi_proto = (u_int16_t)-1;
   filters->first_seen = 0;
+  filters->status = (ServiceAcceptance)service_unknown;
   filters->maxHits = (u_int32_t)-1;
   filters->startingHit = (u_int32_t)0;
   filters->unicast = false;
@@ -3977,26 +3978,28 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
       if(filters->ip) filters->ip->set(addr);
     }
   }
+
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Test %d", lua_type(vm, 6) == LUA_TNUMBER);
   if(lua_type(vm, 2) == LUA_TNUMBER)  filters->vlan_id      = (u_int16_t)lua_tonumber(vm, 2);
   if(lua_type(vm, 3) == LUA_TNUMBER)  filters->host_pool_id = (u_int16_t)lua_tonumber(vm, 3);
   if(lua_type(vm, 4) == LUA_TBOOLEAN) filters->unicast      = (bool)lua_toboolean(vm, 4);
   if(lua_type(vm, 5) == LUA_TNUMBER)  filters->first_seen   = (u_int32_t)lua_tonumber(vm, 5);
-
   if(lua_type(vm, 6) == LUA_TSTRING)
     filters->ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(),
 					       (char *)lua_tostring(vm, 6));
 
-  if(lua_type(vm, 7) == LUA_TSTRING)  {
-    char *str = (char *)lua_tostring(vm, 7);
+  if(lua_type(vm, 7) == LUA_TNUMBER)  filters->status       = (ServiceAcceptance)lua_tonumber(vm, 7);
+  if(lua_type(vm, 8) == LUA_TSTRING)  {
+    char *str = (char *)lua_tostring(vm, 8);
 
     if(str)
       snprintf(filters->host_to_search, sizeof(filters->host_to_search), "%s", str);
   }
   
-  if(lua_type(vm, 8) == LUA_TNUMBER)  filters->maxHits      = (u_int32_t)lua_tonumber(vm, 8);
-  if(lua_type(vm, 9) == LUA_TNUMBER)  filters->startingHit  = (u_int32_t)lua_tonumber(vm, 9);
-  if(lua_type(vm, 10) == LUA_TNUMBER) filters->sort_column  = (mapSortingColumn)lua_tonumber(vm, 10);
-  if(lua_type(vm, 11) == LUA_TNUMBER) filters->sort_order   = (sortingOrder)lua_tonumber(vm, 11);
+  if(lua_type(vm, 9) == LUA_TNUMBER)  filters->maxHits      = (u_int32_t)lua_tonumber(vm, 9);
+  if(lua_type(vm, 10) == LUA_TNUMBER)  filters->startingHit  = (u_int32_t)lua_tonumber(vm, 10);
+  if(lua_type(vm, 11) == LUA_TNUMBER) filters->sort_column  = (mapSortingColumn)lua_tonumber(vm, 11);
+  if(lua_type(vm, 12) == LUA_TNUMBER) filters->sort_order   = (sortingOrder)lua_tonumber(vm, 12);
 }
 
 /* ****************************************** */

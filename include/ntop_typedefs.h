@@ -1064,6 +1064,7 @@ typedef struct _MapsFilters {
   u_int16_t port;
   u_int16_t ndpi_proto;
   u_int32_t first_seen;
+  ServiceAcceptance status;
   char host_to_search[32];
   u_int32_t maxHits;
   u_int32_t startingHit;
