@@ -433,7 +433,7 @@ int ntop_release_triggered_alert(lua_State* vm, OtherAlertableEntity *alertable,
   char *key;
   ScriptPeriodicity periodicity;
   time_t when;
-  
+
   if(!c->iface || !alertable) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -1695,6 +1695,14 @@ static int ntop_clickhouse_import_dumps(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_clickhouse_stats(lua_State* vm) {
+  ntop->luaClickHouseStats(vm);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 // *** API ***
 static int ntop_http_redirect(lua_State* vm) {
   char *url, str[512];
@@ -1935,7 +1943,7 @@ static int ntop_ping_host(lua_State* vm) {
   if(!continuous) {
     /* Ping one shot */
     Ping *ping = ntop->getPing(ifname);
-    
+
     if(ping == NULL) {
       lua_pushnil(vm);
       return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -1966,10 +1974,10 @@ static int ntop_collect_ping_results(lua_State* vm) {
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 #else
   bool continuous = false;
-	
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  
+
   continuous = lua_toboolean(vm, 1) ? true : false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1977,7 +1985,7 @@ static int ntop_collect_ping_results(lua_State* vm) {
   if(!continuous) {
     /* Ping one shot */
     ntop->collectResponses(vm);
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));    
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
   } else {
     ntop->collectContinuousResponses(vm);
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -3172,11 +3180,11 @@ static int ntop_get_info(lua_State* vm) {
 
   if(zoneinfo)
     lua_push_str_table_entry(vm, "zoneinfo", zoneinfo);
-  
+
 #ifdef linux
   lua_push_int32_table_entry(vm, "timezone", timezone); /* Seconds west of UTC */
 #endif
-  
+
   if(verbose) {
     lua_push_str_table_entry(vm, "version.rrd", rrd_strversion());
     lua_push_str_table_entry(vm, "version.redis", ntop->getRedis()->getVersion());
@@ -6624,6 +6632,7 @@ static luaL_Reg _ntop_reg[] = {
   /* ClickHouse */
   { "isClickHouseEnabled",       ntop_clickhouse_enabled             },
   { "importClickHouseDumps",     ntop_clickhouse_import_dumps        },
+  { "getClickHouseStats",        ntop_get_clickhouse_stats           },
 
   /* Data Binning */
   { "addBin",                    ntop_add_bin                        },

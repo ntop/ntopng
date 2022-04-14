@@ -604,6 +604,8 @@ class Ntop {
   void collectResponses(lua_State* vm);
   void collectContinuousResponses(lua_State* vm);
   inline char *getZoneInfo() { return(zoneinfo); }
+
+  void luaClickHouseStats(lua_State *vm) const;
 };
 
 extern Ntop *ntop;

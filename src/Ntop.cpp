@@ -3344,6 +3344,19 @@ bool Ntop::luaFlowCheckInfo(lua_State *vm, std::string check_name) const {
 
 /* ******************************************* */
 
+void Ntop::luaClickHouseStats(lua_State *vm) const {
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+  if(clickhouseImport) {
+    clickhouseImport->lua(vm);
+    return;
+  }  
+#endif
+
+  lua_pushnil(vm);
+}
+
+/* ******************************************* */
+
 bool Ntop::luaHostCheckInfo(lua_State *vm, std::string check_name) const {
   HostChecksLoader *hcl = host_checks_loader;
   if(hcl) return hcl->luaCheckInfo(vm, check_name);
