@@ -4073,8 +4073,8 @@ local lang = {
   },
   ["map_page"] = {
     ["alerted_view"] = "Alerted View",
-    ["allowed"] = "Allowed",
-    ["denied"] = "Denied",
+    ["allowed"] = "<i class=\"fas fa-check\"></i> Allowed",
+    ["denied"] = "<i class=\"fas fa-times\"></i> Denied",
     ["fetch_error"] = "Error while fetching Service Map Status.",
     ["filter_hosts"] = "Filters",
     ["geo_map_notes"] = "The Host details shown by clicking the markers can be modified from the preferences <a href=\"%{prefs_link}\"><i class=\"fas fa-cog\"></i></a>",
@@ -4091,7 +4091,7 @@ local lang = {
     ["standard_view"] = "Standard View",
     ["status"] = "Status",
     ["table_view"] = "Table View",
-    ["undecided"] = "Undecided",
+    ["undecided"] = "<i class=\"fas fa-hourglass-half\"></i> Undecided",
     ["aging"] = {
       ["aging"] = "All Time",
       ["day"] = "Last Day",

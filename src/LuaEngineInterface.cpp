@@ -3979,7 +3979,6 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
     }
   }
 
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Test %d", lua_type(vm, 6) == LUA_TNUMBER);
   if(lua_type(vm, 2) == LUA_TNUMBER)  filters->vlan_id      = (u_int16_t)lua_tonumber(vm, 2);
   if(lua_type(vm, 3) == LUA_TNUMBER)  filters->host_pool_id = (u_int16_t)lua_tonumber(vm, 3);
   if(lua_type(vm, 4) == LUA_TBOOLEAN) filters->unicast      = (bool)lua_toboolean(vm, 4);
