@@ -1,0 +1,81 @@
+{
+	"name" : "Top Services",
+	"i18n_name" : "top_services",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"select" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "IPV4_SRC_ADDR"
+			},
+			{
+				"name" : "IPV4_DST_ADDR"
+			},
+			{
+				"name" : "IPV6_SRC_ADDR"
+			},
+			{
+				"name" : "IPV6_DST_ADDR"
+			},
+			{
+				"name" : "SRC_LABEL"
+			},
+			{
+				"name" : "DST_LABEL"
+			},
+			{
+				"name" : "IP_DST_PORT"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "IPV4_SRC_ADDR"
+			},
+			{
+				"name" : "IPV4_DST_ADDR"
+			},
+			{
+				"name" : "IPV6_SRC_ADDR"
+			},
+			{
+				"name" : "IPV6_DST_ADDR"
+			},
+			{
+				"name" : "SRC_LABEL"
+			},
+			{
+				"name" : "DST_LABEL"
+			},
+			{
+				"name" : "IP_DST_PORT"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}
