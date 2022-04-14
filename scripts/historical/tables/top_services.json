@@ -28,6 +28,9 @@
 				"name" : "DST_LABEL"
 			},
 			{
+				"name" : "PROTOCOL"
+			},
+			{
 				"name" : "IP_DST_PORT"
 			},
 			{
@@ -64,6 +67,9 @@
 			},
 			{
 				"name" : "DST_LABEL"
+			},
+			{
+				"name" : "PROTOCOL"
 			},
 			{
 				"name" : "IP_DST_PORT"
