@@ -4648,19 +4648,25 @@ function buildHostHREF(ip_address, vlan_id, page)
    end
 end
 
-function builMapHREF(service_peer, map)
+function builMapHREF(service_peer, map, page)
   -- Getting minimal stats to know if the host is still present in memory
   local name 
-  local map_url = ntop.getHttpPrefix()..'/lua/pro/enterprise/'..map..'_map.lua?'..hostinfo2url(service_peer)
+  local vlan = service_peer.vlan
+  service_peer.vlan = nil
+  local map_url = ntop.getHttpPrefix()..'/lua/pro/enterprise/network_maps.lua?map=' .. map .. '&page=' .. page .. '&' ..hostinfo2url(service_peer)
   local host_url = ''
   local host_icon
+
+  if vlan then
+    map_url = map_url .. '&vlan_id=' .. vlan
+  end
   
   -- Getting stats and formatting initial href
   if (service_peer.ip or service_peer.host) and not service_peer.is_mac then
     -- Host URL only if the host is active
-    host_url = hostinfo2detailsurl({host = service_peer.ip or service_peer.host, vlan = service_peer.vlan}, nil, true --[[ check of the host is active --]])
+    host_url = hostinfo2detailsurl({host = service_peer.ip or service_peer.host, vlan = vlan}, nil, true --[[ check of the host is active --]])
 
-    local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, service_peer.vlan)
+    local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, vlan)
 
     name = hostinfo2label(hinfo or service_peer)
     host_icon = "fa-laptop"
@@ -4673,7 +4679,7 @@ function builMapHREF(service_peer, map)
     end
 
     if (service_peer.ip and service_peer.is_mac) or not service_peer.is_mac  then
-        local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, service_peer.vlan)
+        local hinfo = interface.getHostMinInfo(service_peer.ip or service_peer.host, vlan)
         name = hostinfo2label(hinfo or service_peer)
     else   
         name = mac2label(service_peer.host)
@@ -4689,8 +4695,8 @@ function builMapHREF(service_peer, map)
   -- Getting the name if present
   name = name or service_peer.host
 
-  if service_peer.vlan and tonumber(service_peer.vlan) ~= 0 then
-    name = name .. '@' .. getFullVlanName(service_peer.vlan)
+  if vlan and tonumber(vlan) ~= 0 then
+    name = name .. '@' .. getFullVlanName(vlan)
   end
 
   local res
