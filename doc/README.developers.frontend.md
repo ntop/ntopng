@@ -12,8 +12,7 @@ npm is a module of NodeJS, so other then npm, NodeJS is required to operate with
 
 After installing npm, all the npm modules used by ntopng front-end need to be downloaded.
 
-`npm install --save-dev @babel/core` <br />
-`jq -c '.devDependencies' package.json | jq -r -M | grep ':' | sed 's/:/@/' | sed 's|[", ^]||g' | xargs -L1 npm install --save-dev` (Install all the modules read from the package.json file).
+`npm install` <br />
 
 Now all the required packages are ready.
 
