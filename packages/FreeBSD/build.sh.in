@@ -22,15 +22,10 @@ prefix:      /
 EOF
 
 echo "deps: {" >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" libmaxminddb   >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" libzmq4        >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" rrdtool        >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" lua53          >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" libsodium      >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" sqlite3        >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" redis          >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" zstd           >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" hiredis        >> ${STAGEDIR}/+MANIFEST
+for i in "json-c" "libmaxminddb" "libzmq4" "libpcap" "rrdtool" "lua53" "libsodium" "sqlite3" "redis" "zstd" "hiredis"
+do
+    pkg query "  %n: { version: \"%v\", origin: %o }" "$i" >> ${STAGEDIR}/+MANIFEST
+done
 echo "}" >> ${STAGEDIR}/+MANIFEST
 
 # Add files
