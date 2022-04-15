@@ -9,4 +9,4 @@ else
     echo "Skipping unit tests. Please compile them."
 fi
 echo "Executing integration tests."
-cd ./e2e/rest; ./run.sh
+cd ./ntopng-e2e-tests/rest; ./run.sh
