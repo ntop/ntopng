@@ -1045,7 +1045,8 @@ typedef enum {
   map_column_contacts,
   map_column_last_seen,
   map_column_observations,
-  map_column_frequency
+  map_column_frequency,
+  map_column_info
 } mapSortingColumn;
 
 typedef enum {
