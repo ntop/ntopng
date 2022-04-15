@@ -125,12 +125,15 @@ ${label}
       lastQueryValue: null,
       queryInProcess: false,
       delay: 300,
+      matcher: function(item) {
+	  return item != null && item != "";
+      },
       source: function (query, process) {
 	  if (query == null || query == "" || query.startsWith("."))  {
 	      this.lastQueryValue = query;
 	      return;
 	  }
-      /* Avoid this kind of queries which generates file path warnings into the ntopng log */
+	  /* Avoid this kind of queries which generates file path warnings into the ntopng log */
 	  let me = this;
 	  if (this.lastQueryValue == query && this.query.length > 1) { return; }
 	  if (this.queryInProcess == true) { return; }
