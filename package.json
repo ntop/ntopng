@@ -13,8 +13,8 @@
     "watch:css": "onchange './http_src/**/*.scss' -- npm run css:lint && webpack --mode=development --config webpack.prod.js",
     "watch:js": "onchange './http_src/**/*.js' -- webpack --mode=development --config webpack.prod.js",
     "watch": "run-p watch:*",
-    "build": "npm run css:lint && webpack --mode=production --config webpack.prod.js",
-    "build:dev": "npm run css:lint && webpack --mode=development --config webpack.prod.js"
+    "build": "npm run css:lint && webpack --mode=production --config webpack.prod.js; cp -R httpdocs/tmp-dist/* httpdocs/dist",
+    "build:dev": "npm run css:lint && webpack --mode=development --config webpack.prod.js; cp -R httpdocs/tmp-dist/* httpdocs/dist"
   },
   "repository": {
     "type": "git",
@@ -54,7 +54,7 @@
     "eslint": "^8.9.0",
     "eslint-config-google": "^0.14.0",
     "file-loader": "^6.2.0",
-    "flatpickr": "^4.6.9",
+    "flatpickr": "^4.6.11",
     "i": "^0.3.7",
     "image-minimizer-webpack-plugin": "^3.2.3",
     "image-webpack-loader": "^8.1.0",
@@ -96,6 +96,7 @@
     "d3-shape": "^3.1.0",
     "dc": "^4.2.7",
     "jquery": "^3.6.0",
+    "moment-timezone": "^0.5.34",
     "peity": "^3.3.0",
     "popper.js": "^1.16.1"
   }
