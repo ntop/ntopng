@@ -597,15 +597,17 @@ class Ntop {
   void setnDPICleanupNeeded(bool needed);
   u_int16_t getnDPIProtoByName(const char *name);
   bool isDbCreated();
-#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
-  inline u_int importClickHouseDumps(bool silence_warnings) { return(clickhouseImport ? clickhouseImport->importDumps(silence_warnings) : 0); }
-  u_int64_t getNextFlowId()                                 { return(clickhouseImport ? clickhouseImport->getNextFlowId() : 0); }
-#endif
   void collectResponses(lua_State* vm);
   void collectContinuousResponses(lua_State* vm);
   inline char *getZoneInfo() { return(zoneinfo); }
 
   void luaClickHouseStats(lua_State *vm) const;
+
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+  inline u_int importClickHouseDumps(bool silence_warnings) { return(clickhouseImport ? clickhouseImport->importDumps(silence_warnings) : 0); }
+  u_int64_t getNextFlowId()                                 { return(clickhouseImport ? clickhouseImport->getNextFlowId() : 0); }
+  inline ClickHouseImport* getClickHouseImport()            { return(clickhouseImport); }
+#endif  
 };
 
 extern Ntop *ntop;
