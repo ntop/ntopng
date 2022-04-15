@@ -388,13 +388,13 @@ page_utils.print_navbar(title, url,
                {
                   hidden = (not periodicity_map_available),
                   page_name = "periodicity_map",
-                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua",
+                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=periodicity_map",
                   label = "<i class=\"fas fa-lg fa-clock\"></i>",
                },
                {
                   hidden = (not service_map_available),
                   page_name = "service_map",
-                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua",
+                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=service_map",
                   label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
                },
               

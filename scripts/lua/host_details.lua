@@ -290,22 +290,22 @@ else
    local service_map_available = false
    local num_periodicity = 0
 
-   local service_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua?host=" .. host_ip
-   local periodicity_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua?ifid="..ifId.."&host=" .. host_ip
+   local service_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=service_map&ifid="..ifId.."&host=" .. host_ip
+   local periodicity_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/network_maps.lua?map=periodicity_map&ifid="..ifId.."&host=" .. host_ip
    local historical_flow_link = ntop.getHttpPrefix() .. "/lua/db_search.lua?ifid="..ifId .. ";eq&ip=" .. host_ip .. ";eq"
 
    service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
 
-   if(host_vlan ~= 0) then
-      historical_flow_link = historical_flow_link .. "&vlan_id=" .. host_vlan .. ";eq"
-   end
+  if(host_vlan ~= 0) then
+    historical_flow_link = historical_flow_link .. "&vlan_id=" .. host_vlan .. ";eq"
+  end
 
-   if(service_map_available) and (host_vlan ~= 0) then
-   	  service_map_link = service_map_link .. "&vlan=" .. host_vlan		
-   end
+  if(service_map_available) and (host_vlan ~= 0) then
+    service_map_link = service_map_link .. "&vlan_id=" .. host_vlan
+  end
 
    if(periodicity_map_available) and (host_vlan ~= 0) then
-   	  periodicity_map_link = periodicity_map_link .. "&vlan=" .. host_vlan		
+   	  periodicity_map_link = periodicity_map_link .. "&vlan_id=" .. host_vlan		
    end
 
    local ifs = interface.getStats()
