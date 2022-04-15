@@ -17,7 +17,7 @@ module.exports = {
     'third-party': "./assets/third-party.js",
   },
   output: {
-    path: __dirname + '/httpdocs/dist',
+    path: __dirname + '/httpdocs/tmp-dist',
     filename: '[name].js'
   },
   optimization: {
