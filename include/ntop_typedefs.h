@@ -1046,7 +1046,10 @@ typedef enum {
   map_column_last_seen,
   map_column_observations,
   map_column_frequency,
-  map_column_info
+  map_column_info,
+  map_column_in_edges,
+  map_column_out_edges,
+  map_column_host
 } mapSortingColumn;
 
 typedef enum {
