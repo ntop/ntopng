@@ -13,8 +13,8 @@
     "watch:css": "onchange './http_src/**/*.scss' -- npm run css:lint && webpack --mode=development --config webpack.prod.js",
     "watch:js": "onchange './http_src/**/*.js' -- webpack --mode=development --config webpack.prod.js",
     "watch": "run-p watch:*",
-    "build": "npm run css:lint && webpack --mode=production --config webpack.prod.js; cp -R httpdocs/tmp-dist/* httpdocs/dist",
-    "build:dev": "npm run css:lint && webpack --mode=development --config webpack.prod.js; cp -R httpdocs/tmp-dist/* httpdocs/dist"
+    "build": "npm run css:lint && webpack --mode=production --config webpack.prod.js; rm -fr httpdocs/dist/*; mv httpdocs/tmp-dist/* httpdocs/dist",
+    "build:dev": "npm run css:lint && webpack --mode=development --config webpack.prod.js; rm -fr httpdocs/dist/*; mv httpdocs/tmp-dist/* httpdocs/dist"
   },
   "repository": {
     "type": "git",
