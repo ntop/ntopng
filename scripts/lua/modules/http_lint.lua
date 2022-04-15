@@ -1753,6 +1753,7 @@ local known_parameters = {
    ["only_memory"]         = validateBool,
    ["only_alerted_hosts"]  = validateBool,
    ["map_search"]          = validateUnquoted,
+   ["view"]                = validateSingleWord,
 
 -- Script editor
    ["script_file_path"]         = validateLuaScriptPath,

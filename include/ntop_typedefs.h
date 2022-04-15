@@ -1070,6 +1070,7 @@ typedef struct _MapsFilters {
   u_int32_t startingHit;
   mapSortingColumn sort_column;
   sortingOrder sort_order;
+  bool standard_view;
 } MapsFilters;
 
 typedef struct _MapsFilteringMenu {

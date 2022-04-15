@@ -3965,6 +3965,7 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
   filters->unicast = false;
   filters->sort_column = (mapSortingColumn)map_column_last_seen;
   filters->sort_order = (sortingOrder)desc;
+  filters->standard_view = true;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -3996,9 +3997,10 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
   }
   
   if(lua_type(vm, 9) == LUA_TNUMBER)  filters->maxHits      = (u_int32_t)lua_tonumber(vm, 9);
-  if(lua_type(vm, 10) == LUA_TNUMBER)  filters->startingHit  = (u_int32_t)lua_tonumber(vm, 10);
+  if(lua_type(vm, 10) == LUA_TNUMBER)  filters->startingHit = (u_int32_t)lua_tonumber(vm, 10);
   if(lua_type(vm, 11) == LUA_TNUMBER) filters->sort_column  = (mapSortingColumn)lua_tonumber(vm, 11);
   if(lua_type(vm, 12) == LUA_TNUMBER) filters->sort_order   = (sortingOrder)lua_tonumber(vm, 12);
+  if(lua_type(vm, 13) == LUA_TBOOLEAN) filters->standard_view  = (bool)lua_toboolean(vm, 13);
 }
 
 /* ****************************************** */
