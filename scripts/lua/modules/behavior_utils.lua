@@ -71,9 +71,7 @@ local maps_utils = {}
 -- ##############################################
 
 local function areMapsEnabled()
-   local res = (ntop.isEnterpriseL() or ntop.isnEdgeEnterprise()) and (ntop.getPref(behavior_maps_key) == "1")
-
-   return res
+   return interface.isBehaviourAnalysisAvailable()
 end
 
 -- ##############################################
@@ -83,17 +81,12 @@ function behavior_utils.mapsAvailable()
     local service_map_available = false
     local periodic_map_available = false  
 
-    if areMapsEnabled() then
-        local service_map = interface.serviceMap(nil, nil, nil, nil, nil, nil) or {}
-        local periodicity_map = interface.periodicityMap(nil, nil, nil, nil, nil, nil) or {}
-
-        if service_map and (table.len(service_map) > 0) then
-            service_map_available = true
-        end
-
-        if periodicity_map and (table.len(periodicity_map) > 0) then
-            periodic_map_available = true
-        end
+    if interface.isBehaviourAnalysisAvailable() then
+       service_map_available = true
+       periodic_map_available = true
+    else
+       service_map_available = false
+       periodic_map_available = false       
     end
 
     return service_map_available, periodic_map_available

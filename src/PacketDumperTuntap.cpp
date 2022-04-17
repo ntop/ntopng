@@ -70,9 +70,12 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
   }
   memset(&ifr, 0, sizeof(ifr));
   ifr.ifr_flags = IFF_TAP|IFF_NO_PI; /* Want a TAP device for layer 2 frames. */
-  if(dev)
-    strncpy(ifr.ifr_name, dev, IFNAMSIZ-1);
 
+  if(dev) {
+    strncpy(ifr.ifr_name, dev, IFNAMSIZ-1);
+    snprintf(dev_name, sizeof(dev_name), "%s", dev);
+  }
+  
   rc = ioctl(fd, TUNSETIFF, (void *)&ifr);
   if(rc < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "ioctl(%s) [%d/%s]\n",
@@ -81,13 +84,6 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
     close(fd);
     return -1;
   }
-
-  /* Store the device name for later reuse */
-  /* Silence  format-truncation warning */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-  strncpy(dev_name, ifr.ifr_name, sizeof(dev_name));
-#pragma GCC diagnostic pop
   
   snprintf(buf, sizeof(buf), "/sbin/ifconfig %s up mtu %d",
            ifr.ifr_name, DUMP_MTU);

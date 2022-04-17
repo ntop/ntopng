@@ -1049,6 +1049,7 @@ typedef enum {
   map_column_info,
   map_column_in_edges,
   map_column_out_edges,
+  map_column_total_edges,
   map_column_host
 } mapSortingColumn;
 

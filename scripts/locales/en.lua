@@ -4095,6 +4095,7 @@ local lang = {
     ["set_state"] = "Set %{label} service(s) status to: ",
     ["status"] = "Status",
     ["table_view"] = "Table View",
+    ["total_edges"] = "Total Edges",
     ["undecided"] = "<i class=\"fas fa-hourglass-half\"></i> Undecided",
     ["vlan_id"] = "Vlan Id",
     ["aging"] = {

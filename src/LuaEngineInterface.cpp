@@ -4197,6 +4197,21 @@ static int ntop_interface_service_map_learning_status(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_behaviour_analysis_available(lua_State* vm) {
+#if defined(NTOPNG_PRO)
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  lua_pushboolean(vm, ntop_interface->isPeriodicityMapEnabled()
+		  || ntop_interface->isServiceMapEnabled());
+#else
+  lua_pushboolean(vm false);
+#endif
+  
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));	   
+}
+
+/* ****************************************** */
+
 static int ntop_get_address_info(lua_State* vm) {
   char *addr;
   IpAddress ip;
@@ -4544,6 +4559,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "flushPeriodicityMap",              ntop_flush_interface_periodicity_map },
   { "serviceMap",                       ntop_get_interface_service_map },
   { "periodicityMapFilterList",         ntop_get_interface_periodicity_map_filter_list },
+  { "isBehaviourAnalysisAvailable",     ntop_is_behaviour_analysis_available },
   { "serviceMapFilterList",             ntop_get_interface_service_map_filter_list },
   { "flushServiceMap",                  ntop_flush_interface_service_map },
   { "serviceMapLearningStatus",         ntop_interface_service_map_learning_status },
