@@ -4082,6 +4082,7 @@ local lang = {
     ["graph_view"] = "Graph View",
     ["host"] = "Host",
     ["in_edges"] = "Incoming Edges",
+    ["rank"] = "Rank",
     ["learning"] = "The Service Map is <b>learning</b>...",
     ["learning_table"] = "The Service Map is <b>learning</b>, click on the reload table button to see new changes...",
     ["no_services"] = "No <b>services</b> were found.",
