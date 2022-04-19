@@ -637,6 +637,14 @@ void Flow::processExtraDissectedInformation() {
       if((protos.tls.client_requested_server_name == NULL)
 	 && (ndpiFlow->host_server_name[0] != '\0')) {
 	protos.tls.client_requested_server_name = strdup(ndpiFlow->host_server_name);
+
+	/* Now some minor cleanup */
+	char *c;
+	
+	if((c = strchr(protos.tls.client_requested_server_name, ',')) != NULL)
+	  c[0] = '\0';
+	else if((c = strchr(protos.tls.client_requested_server_name, ' ')) != NULL)
+	  c[0] = '\0';	
       }
 
       if((protos.tls.server_names == NULL)
