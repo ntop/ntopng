@@ -60,6 +60,7 @@
               <li>{* messages.many_devices_descr *}</li>
             {% end %}
             <li>{* messages.discovery_running *}</li>
+            <li>{* messages.protocols_note *}</li>
           </ul>
         </div>
       </div>

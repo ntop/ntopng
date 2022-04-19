@@ -13,8 +13,8 @@ Network Discovery is available under the Dashboard sub-menu.
     Network Discovery
 
 
-By clicking the `reload` button next to the page name, a Network Discovery is going to be launched. 
-ntopng now tries to contact all the available devices inside the `local network` by using different protocols (like `SSDP`, `MDNS` and other discovery protocols) and after few seconds, all the available devices are going to be displayed into the table.
+By clicking `Run Discovery` button next to the Search box, above the table, a Network Discovery is going to be launched. 
+ntopng now tries to contact all the available devices inside the `local network` by using different protocols (The following protocols are used to discover the devices: ARP, SSDP, MDNS, SNMP) and after few seconds, all the available devices are going to be displayed into the table.
 The table contains:
 
 - `IP Address`: The IP Address of the device.

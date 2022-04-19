@@ -1735,6 +1735,7 @@ local lang = {
     ["network_discovery"] = "Network Discovery",
     ["network_discovery_datetime"] = "Last Network Discovery",
     ["network_discovery_not_enabled"] = "Network discovery in progress",
+    ["protocols_note"] = "The following protocols are used to discover the devices: ARP, SSDP, MDNS, SNMP. For more info <a target=\"_blank\" href=\"https://www.ntop.org/guides/ntopng/web_gui/network_discovery.html\">Network Discovery</a>",
     ["start_discovery"] = "Run Discovery",
     ["too_many_devices_descr"] = "Too many devices discovered. Results have been trimmed at %{max_devices} devices",
   },

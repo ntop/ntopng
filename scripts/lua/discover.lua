@@ -78,6 +78,7 @@ local messages = {
   notes = i18n("notes"),
   ghost_descr = i18n("discover.ghost_icon_descr", {ghost_icon='<font color=red>'..discover.ghost_icon..'</font>'}),
   many_devices_descr = i18n("discover.too_many_devices_descr", {max_devices = discover.MAX_DISCOVERED_DEVICES}),
+  protocols_note = i18n("discover.protocols_note"),
 }
 
 local discover_check = {
