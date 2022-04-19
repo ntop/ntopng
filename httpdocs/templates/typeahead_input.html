@@ -44,8 +44,12 @@
 	  // <a href="#" class="dropdown-item">${item}</a>
 	  if (item == null || item == "") { return ""; }
 	  let query = `(${this.$element.val()})`;
-	  let regex = new RegExp(query, "gi");
-	  let itemHtml = item.replace(regex, "<strong>$1</strong>");
+	  let format = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+	  let itemHtml = item;
+	  if (format.test(query) == false) {
+	      let regex = new RegExp(query, "gi");
+	      item.replace(regex, "<strong>$1</strong>");
+	  }
           var parts = item.split('#');
 	  let printLinksButtons = (links) => {
 	      if (links == null) { return ""; }
@@ -128,7 +132,7 @@ ${label}
       matcher: function(item) {
 	  return item != null && item != "";
       },
-      source: function (query, process) {
+      source: async function (query, process) {
 	  if (query == null || query == "" || query.startsWith("."))  {
 	      this.lastQueryValue = query;
 	      return;
@@ -143,8 +147,20 @@ ${label}
     {% for k,v in pairs(typeahead.parameters or {}) do %}
       _get["{{k}}"] = "{{v}}";
     {% end %}
-      _get["query"] = query;
-	  $.get("{*typeahead.query_url*}", _get, function (data) {
+	  _get["query"] = query;
+	  let data = null;
+	  let addEmptyElement = (data, menu) => {
+	      if (data && data.rsp && data.rsp.results && data.rsp.results.length > 0) {
+		  $("li:last > a:empty", menu).remove();
+	      } else {
+		  $("li:last", menu)
+		      .attr("data-no-results", "")
+		      .html("<span style='padding-left:1em; cursor:default;'>No results found</span>");
+
+              }
+	  };
+	  try {
+	      data = await $.get("{*typeahead.query_url*}", _get);
 	      let elements = data.rsp.results;
 	      me.linksElementsDict = {};
 	      me.badgesElementsDict = {};
@@ -166,17 +182,15 @@ ${label}
               menu.click(function (e) { e.preventDefault(); });
 	      let currentWidth = $("li", menu).width();
 	      $("li", menu).width(currentWidth + 36 * maxLinks);
-	      if (data.rsp && data.rsp.results && data.rsp.results.length > 0) {
-		  $("li:last > a:empty", menu).remove();
-	      } else {
-		  $("li:last", menu)
-		      .attr("data-no-results", "")
-		      .html("<span style='padding-left:1em; cursor:default;'>No results found</span>");
-
-              }
-	      me.queryInProcess = false;
-        return res;
-      });
+	      addEmptyElement(data, menu);
+	  } catch(err) {
+	      let res = process([]);
+	      let menu = res.$menu;
+	      addEmptyElement([], menu);
+	  }
+	  me.queryInProcess = false;
+	  // $.get("{*typeahead.query_url*}", _get, function (data) {
+	  // });
       }, afterSelect: function(item) {
 	  if (isButtonLinkClicked == true) {
 	      return;
