@@ -4204,7 +4204,7 @@ static int ntop_is_behaviour_analysis_available(lua_State* vm) {
   lua_pushboolean(vm, ntop_interface->isPeriodicityMapEnabled()
 		  || ntop_interface->isServiceMapEnabled());
 #else
-  lua_pushboolean(vm false);
+  lua_pushboolean(vm, false);
 #endif
   
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));	   
