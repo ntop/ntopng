@@ -1468,7 +1468,16 @@ print[[
        <table class="table">
          <col width="20%">
          <col width="80%">
-         <tr><td style="padding-right: 20px;">
+         <tr><td style="padding-right: 20px;">]]
+
+print(
+  template.gen("prefs_search.template", {
+    http_prefix = ntop.getHttpPrefix(),
+    placeholder = i18n("prefs.search_preferences")
+  })
+)
+
+print[[
            <div class="list-group">]]
 
 printMenuSubpages(tab)
