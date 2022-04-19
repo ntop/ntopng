@@ -442,6 +442,34 @@ function alert_store:eval_alert_cond(alert, cond)
          end
       end
 
+   -- Special case: hostname (with vlan)
+   elseif (cond.field == 'name' or
+           cond.field == 'cli_name' or 
+           cond.field == 'srv_name') and
+           (cond.op == 'eq' or cond.op == 'neq') then
+      local host = hostkey2hostinfo(cond.value)
+      if not isEmptyString(host["host"]) then
+         if not host["vlan"] or host["vlan"] == 0 then
+            if cond.field == 'name' and self._alert_entity == alert_entities.flow then
+               return tag_utils.eval_op(alert['cli_name'], cond.op, host["host"]) or
+                      tag_utils.eval_op(alert['srv_name'], cond.op, host["host"]) or
+                      tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
+            else
+               return tag_utils.eval_op(alert[cond.field], cond.op, host["host"]) or
+                      tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
+            end
+         else
+            if cond.field == 'name' and self._alert_entity == alert_entities.flow then
+               return (tag_utils.eval_op(alert['cli_name'], cond.op, host["host"]) or
+                       tag_utils.eval_op(alert['srv_name'], cond.op, host["host"])) and
+                      tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
+            else
+               return tag_utils.eval_op(alert[cond.field], cond.op, host["host"]) and
+                      tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
+            end
+         end
+      end
+
    -- Special case: role (host)
    elseif cond.field == 'host_role' then
       if cond.value == 'attacker' then
