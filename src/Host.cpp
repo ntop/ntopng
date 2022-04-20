@@ -812,7 +812,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 /* ***************************************** */
 
 char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found) {
-  char *addr = NULL, name_buf[96];
+  char *addr = NULL, name_buf[128];
   int rc = -1;
   time_t now = time(NULL);
   bool skip_resolution = false;
@@ -852,10 +852,6 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
-  getNetbiosName(name_buf, sizeof(name_buf));
-  if(name_buf[0] && !Utils::isIPAddress(name_buf))
-    goto out;
-
   getTLSName(name_buf, sizeof(name_buf));
   if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
@@ -869,6 +865,13 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
     rc = ntop->getRedis()->getAddress(addr, name_buf, sizeof(name_buf),
 				      force_resolution_if_not_found);
   }
+/*
+  NetBIOS name should not address an IP, see https://github.com/ntop/ntopng/issues/6509
+
+  getNetbiosName(name_buf, sizeof(name_buf));
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
+    goto out;
+*/
 
   if(rc == 0 && strcmp(addr, name_buf))
     setResolvedName(name_buf);
@@ -953,11 +956,11 @@ char * Host::getMDNSInfo(char * const buf, ssize_t buf_len) {
 char * Host::getNetbiosName(char * const buf, ssize_t buf_len) {
   if(buf && buf_len) {
     m.lock(__FILE__, __LINE__);
-    snprintf(buf, buf_len, "%s", names.netbios ? names.netbios : "");
+    snprintf(buf, buf_len, "%s", names.netbios ? Utils::stringtolower(names.netbios) : "");
     m.unlock(__FILE__, __LINE__);
   }
 
-  return Utils::stringtolower(buf);
+  return buf;
 }
 
 /* ***************************************** */
