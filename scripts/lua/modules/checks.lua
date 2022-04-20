@@ -48,6 +48,7 @@ checks.field_units = {
   syn_min = "field_units.syn_min",
   contacts = "field_units.contacts",
   score = "field_units.score",
+  per_host_score = "field_units.per_host_score",
   macs = "field_units.macs",
 }
 
