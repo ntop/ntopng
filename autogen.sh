@@ -76,7 +76,7 @@ cat configure.ac.in | sed \
 rm -f config.h config.h.in *~ #*
 
 git submodule init
-git submodule update
+git submodule update --remote
 
 echo "Wait please..."
 autoreconf -if
