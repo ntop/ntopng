@@ -31,7 +31,7 @@ function flow_alert_store:init(args)
    self.super:init()
 
    self._table_name = "flow_alerts"
-   --self._table_name = "flow_alerts_view"
+   -- self._table_name = "flow_alerts_view"
    self._alert_entity = alert_entities.flow
 end
 

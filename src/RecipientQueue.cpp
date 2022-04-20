@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-RecipientQueues::RecipientQueues(u_int16_t _recipient_id) {
+RecipientQueue::RecipientQueue(u_int16_t _recipient_id) {
   recipient_id = _recipient_id;
   queue = NULL, drops = 0, uses = 0;
   last_use = 0;
@@ -38,14 +38,14 @@ RecipientQueues::RecipientQueues(u_int16_t _recipient_id) {
 
 /* *************************************** */
 
-RecipientQueues::~RecipientQueues() {
+RecipientQueue::~RecipientQueue() {
   if(queue)
     delete queue;
 }
 
 /* *************************************** */
 
-bool RecipientQueues::dequeue(AlertFifoItem *notification) {
+bool RecipientQueue::dequeue(AlertFifoItem *notification) {
   if(!queue || !notification)
     return false;
 
@@ -61,7 +61,7 @@ bool RecipientQueues::dequeue(AlertFifoItem *notification) {
 
 /* *************************************** */
 
-bool RecipientQueues::enqueue(const AlertFifoItem* const notification, AlertEntity alert_entity) {
+bool RecipientQueue::enqueue(const AlertFifoItem* const notification, AlertEntity alert_entity) {
   bool res = false;
 
   if(!notification
@@ -105,7 +105,7 @@ bool RecipientQueues::enqueue(const AlertFifoItem* const notification, AlertEnti
 
 /* *************************************** */
 
-void RecipientQueues::lua(lua_State* vm) {
+void RecipientQueue::lua(lua_State* vm) {
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "last_use", last_use);
   lua_push_uint64_table_entry(vm, "num_drops", drops);
@@ -115,7 +115,7 @@ void RecipientQueues::lua(lua_State* vm) {
 
 /* *************************************** */
 
-bool RecipientQueues::empty() {
+bool RecipientQueue::empty() {
   bool res = true;
 
   if(queue) {

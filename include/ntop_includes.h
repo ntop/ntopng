@@ -333,7 +333,7 @@ using namespace std;
 #include "AlertFifoQueue.h"
 #include "FifoSerializerQueue.h"
 #include "RRDTimeseriesExporter.h"
-#include "RecipientQueues.h"
+#include "RecipientQueue.h"
 #include "Recipients.h"
 #if defined(NTOPNG_PRO)
 #include "PeriodicityStats.h"

@@ -119,7 +119,7 @@ void Recipients::register_recipient(u_int16_t recipient_id, AlertLevel minimum_s
   m.lock(__FILE__, __LINE__);
 
   if(!recipient_queues[recipient_id])
-    recipient_queues[recipient_id] = new (nothrow) RecipientQueues(recipient_id);
+    recipient_queues[recipient_id] = new (nothrow) RecipientQueue(recipient_id);
 
   if(recipient_queues[recipient_id]) {
     recipient_queues[recipient_id]->setMinimumSeverity(minimum_severity);

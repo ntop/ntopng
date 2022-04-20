@@ -28,7 +28,7 @@
 class Recipients {
  private:
   /* Per-recipient queues */
-  RecipientQueues* recipient_queues[MAX_NUM_RECIPIENTS];
+  RecipientQueue* recipient_queues[MAX_NUM_RECIPIENTS];
   Mutex m;
 
 public:

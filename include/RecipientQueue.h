@@ -25,7 +25,7 @@
 
 #include "ntop_includes.h"
 
-class RecipientQueues {
+class RecipientQueue {
  private:
   u_int16_t recipient_id;
 
@@ -50,8 +50,8 @@ class RecipientQueues {
   Bitmap128 enabled_host_pools;
 
  public:
-  RecipientQueues(u_int16_t recipient_id);
-  ~RecipientQueues();
+  RecipientQueue(u_int16_t recipient_id);
+  ~RecipientQueue();
 
   /**
   * @brief Dequeues a notification from a `recipient_id` queue
