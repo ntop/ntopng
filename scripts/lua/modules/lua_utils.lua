@@ -277,12 +277,12 @@ local http_status_code_map = {
 
 function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers, status_code)
    info = ntop.getInfo(false)
-   -- tprint(info)
+   local tzname = info.tzname or ''
    local cookie_attr = ntop.getCookieAttributes()
    local lines = {
       'Cache-Control: max-age=0, no-cache, no-store',
       'Server: ntopng '..info["version"]..' ['.. info["platform"]..']',
-      'Set-Cookie: tzname=' .. info.tzname .. '; path=/' .. cookie_attr,
+      'Set-Cookie: tzname=' .. tzname .. '; path=/' .. cookie_attr,
       'Pragma: no-cache',
       'X-Frame-Options: DENY',
       'X-Content-Type-Options: nosniff',
