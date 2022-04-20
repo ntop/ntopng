@@ -31,6 +31,7 @@ function flow_alert_store:init(args)
    self.super:init()
 
    self._table_name = "flow_alerts"
+   --self._table_name = "flow_alerts_view"
    self._alert_entity = alert_entities.flow
 end
 
@@ -248,6 +249,9 @@ function flow_alert_store:_add_additional_request_filters()
    local cli_network = _GET["cli_network"]
    local srv_network = _GET["srv_network"]
 
+   -- Filter out flows with no alert
+   self:add_filter_condition_list('alert_id', "0"..tag_utils.SEPARATOR.."neq", 'number')
+
    self:add_filter_condition_list('vlan_id', vlan_id, 'number')
    self:add_filter_condition_list('ip_version', ip_version)
    self:add_filter_condition_list('ip', ip)
@@ -359,7 +363,7 @@ function flow_alert_store:format_record(value, no_html)
    
    local flow_related_info = addExtraFlowInfo(alert_json, value)
 
-    msg = addScoreToAlertDescr(msg, ntop.getFlowAlertScore(tonumber(value["alert_id"])))
+   msg = addScoreToAlertDescr(msg, ntop.getFlowAlertScore(tonumber(value["alert_id"])))
     
    if not no_html and alert_json then
       local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])

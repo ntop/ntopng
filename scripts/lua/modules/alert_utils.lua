@@ -430,34 +430,33 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json)
    local msg
    local alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
 
-  if(alert_json == nil) then
-   alert_json = alert_utils.getAlertInfo(alert)
-  end
+   if(alert_json == nil) then
+      alert_json = alert_utils.getAlertInfo(alert)
+   end
 
-  msg = alert_json
-  local description = alertTypeDescription(alert.alert_id, alert_entities.flow.entity_id)
+   local description = alertTypeDescription(alert.alert_id, alert_entities.flow.entity_id)
 
-  if(type(description) == "string") then
-     -- localization string
-     msg = i18n(description, msg)
-  elseif(type(description) == "function") then
-     msg = description(ifid, alert, msg)
-  end
+   if(type(description) == "string") then
+      -- localization string
+      msg = i18n(description, alert_json)
+   elseif(type(description) == "function") then
+      msg = description(ifid, alert, alert_json)
+   end
 
-  if isEmptyString(msg) then
-    msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]], alert_entities.flow.entity_id)
-  end
+   if isEmptyString(msg) then
+      msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]], alert_entities.flow.entity_id)
+   end
 
-  if not isEmptyString(alert["user_label"]) then
-     msg = string.format('%s <small><span class="text-muted">%s</span></small>', msg, alert["user_label"])
-  end
+   if not isEmptyString(alert["user_label"]) then
+      msg = string.format('%s <small><span class="text-muted">%s</span></small>', msg, alert["user_label"])
+   end
 
-  -- Add the link to the documentation
-  if alert_risk > 0 then
-     msg = string.format("%s %s", msg, flow_risk_utils.get_documentation_link(alert_risk))
-  end
+   -- Add the link to the documentation
+   if alert_risk > 0 then
+      msg = string.format("%s %s", msg, flow_risk_utils.get_documentation_link(alert_risk))
+   end
 
-  return msg or ""
+   return msg or ""
 end
 
 -- #################################
