@@ -50,6 +50,11 @@ Flow::Flow(NetworkInterface *_iface,
   srcAS = dstAS  = prevAdjacentAS = nextAdjacentAS = 0;
   predominant_alert.id = flow_alert_normal, predominant_alert.category = alert_category_other;
   predominant_alert_score = 0;
+  predominant_alert_info.is_cli_attacker = 0;
+  predominant_alert_info.is_cli_victim = 0;
+  predominant_alert_info.is_srv_attacker = 0;
+  predominant_alert_info.is_srv_victim = 0;
+  predominant_alert_info.json = NULL;
   ndpi_flow_risk_bitmap = 0;
   NDPI_SET_BIT(ndpi_flow_risk_bitmap, NDPI_NO_RISK);
   detection_completed = 0;
@@ -382,6 +387,7 @@ Flow::~Flow() {
 
   freeDPIMemory();
   if(icmp_info) delete(icmp_info);
+  if(predominant_alert_info.json) free(predominant_alert_info.json);
   if(external_alert.json) json_object_put(external_alert.json);
   if(external_alert.source) free(external_alert.source);
 }
@@ -5739,6 +5745,35 @@ void Flow::setNormalToAlertedCounters() {
 #ifdef ALERTED_FLOWS_DEBUG
   iface_alert_inc = true;
 #endif
+}
+
+/* ***************************************************** */
+
+void Flow::setPredominantAlertInfo(FlowAlert *alert) {
+  ndpi_serializer *alert_json_serializer = NULL;
+  char *alert_json = NULL;
+  u_int32_t alert_json_len = 0;
+
+  if (!alert) return;
+
+  predominant_alert_info.is_cli_attacker = alert->isCliAttacker();
+  predominant_alert_info.is_cli_victim = alert->isCliVictim();
+  predominant_alert_info.is_srv_attacker = alert->isSrvAttacker();
+  predominant_alert_info.is_srv_victim = alert->isSrvVictim();
+
+  /* Serialize alert JSON */
+  alert_json_serializer = alert->getSerializedAlert();
+
+  if(alert_json_serializer)
+    alert_json = ndpi_serializer_get_buffer(alert_json_serializer, &alert_json_len);
+
+  if (predominant_alert_info.json != NULL) free(predominant_alert_info.json);
+  predominant_alert_info.json = strdup(alert_json ? alert_json : "");
+
+  if(alert_json_serializer) {
+    ndpi_term_serializer(alert_json_serializer);
+    free(alert_json_serializer);
+  }
 }
 
 /* ***************************************************** */

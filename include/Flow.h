@@ -60,6 +60,13 @@ class Flow : public GenericHashEntry {
   Bitmap128 alerts_map;
   FlowAlertType predominant_alert;          /* This is the predominant alert */
   u_int16_t  predominant_alert_score;       /* The score associated to the predominant alert */
+  struct {
+    u_int8_t is_cli_attacker:1, 
+             is_cli_victim:1,
+             is_srv_attacker:1,
+             is_srv_victim:1;
+    char *json = NULL;
+  } predominant_alert_info;
 
   struct {
     struct ndpi_analyze_struct *c2s, *s2c;
@@ -322,6 +329,13 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getPredominantAlertScore() const { return predominant_alert_score; };
   inline AlertLevel getPredominantAlertSeverity() const { return Utils::mapScoreToSeverity(predominant_alert_score); };
   inline bool isFlowAlerted()    const { return(predominant_alert.id != flow_alert_normal); };
+
+  void setPredominantAlertInfo(FlowAlert *alert);
+  inline u_int8_t isClientAttacker() { return predominant_alert_info.is_cli_attacker; };
+  inline u_int8_t isClientVictim() { return predominant_alert_info.is_cli_victim; };
+  inline u_int8_t isServerAttacker() { return predominant_alert_info.is_srv_attacker; };
+  inline u_int8_t isServerVictim() { return predominant_alert_info.is_srv_victim; };
+  inline char *getPredominantAlertJSON() { return predominant_alert_info.json; };
  
   inline char* getJa3CliHash() { return(protos.tls.ja3.client_hash); }
   

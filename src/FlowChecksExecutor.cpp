@@ -52,7 +52,7 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
   FlowAlertType predominant_alert = f->getPredominantAlert();
   FlowCheck *predominant_check = NULL;
   std::list<FlowCheck*> *checks = NULL;
-  FlowAlert *alert;
+  FlowAlert *alert = NULL;
 
   switch (c) {
     case flow_check_protocol_detected:
@@ -99,8 +99,12 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
   /* Do NOT allocate any alert, there is nothing left to do as flow alerts don't have to be emitted */
   if(ntop->getPrefs()->dontEmitFlowAlerts()) return(NULL);
 
-  /* Allocate the alert */
-  alert = predominant_check ? predominant_check->buildAlert(f) : NULL;
+  if (predominant_check) {
+    /* Allocate the alert */
+    alert = predominant_check->buildAlert(f);
+
+    f->setPredominantAlertInfo(alert);
+  }
 
   return alert;
 }
