@@ -892,8 +892,12 @@ function alert_store:select_engaged(filter)
    for idx, alert in pairs(alerts) do
       -- Exclude alerts falling outside requested time ranges
       local tstamp = tonumber(alert.tstamp)
+
+      -- Engaged alerts are currently active, ignore begin epoch
       if self._epoch_begin and tstamp < self._epoch_begin then goto continue end
+
       if self._epoch_end and tstamp > self._epoch_end then goto continue end
+
       if self._subtype and alert.subtype ~= self._subtype then goto continue end
 
       if self._order_by and self._order_by.sort_column and alert[self._order_by.sort_column] ~= nil then
