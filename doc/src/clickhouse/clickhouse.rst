@@ -1,6 +1,6 @@
 .. _ClickHouse:
 
-Connect to ClicHouse
+Connect to ClickHouse
 --------------------
 
 To connect ntopng to ClickHouse use option :code:`-F`. The format of this option is the following
