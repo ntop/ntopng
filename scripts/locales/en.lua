@@ -3113,6 +3113,7 @@ local lang = {
     ["host_unreachable_flows"] = "Total Host Unreachable Flows",
     ["hosts_anomalies"] = "Hosts Anomalies",
     ["http_stats"] = "HTTP Stats",
+    ["iface_active_local_hosts"] = "Active Local Hosts",
     ["iface_score_anomalies"] = "Anomalies: Score",
     ["iface_score_behavior"] = "Behaviour: Score",
     ["iface_traffic_anomalies"] = "Anomalies: Traffic RX/TX",
