@@ -133,8 +133,14 @@ export default {
 		this.input_value = null;
 		
 		this.filter_type_label_selected = filter.label;
-		
 		this.options_to_show = filter.options;
+		if (filter.options != null) {
+		    this.options_to_show = filter.options.sort((a, b) => {
+			if (a == null || a.label == null) { return -1; }
+			if (b == null || b.label == null) { return 1; }
+			return a.label.localeCompare(b.label);
+		    });
+		}
 		this.operators_to_show = filter.operators;
 
 		if (filter.operators != null && filter.operators.length > 0) {
