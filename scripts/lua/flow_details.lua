@@ -479,7 +479,7 @@ else
    end
 
    if(flow["verdict.pass"] == false) then print("</strike>") end
-   historicalProtoHostHref(ifid, flow["cli.ip"], flow[], flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.tls.certificate"] or ''))
+   historicalProtoHostHref(ifid, flow["cli.ip"], flow["proto.l4"], flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.tls.certificate"] or ''))
 
    if((flow["protos.tls_version"] ~= nil)
       and (flow["protos.tls_version"] ~= 0)) then
