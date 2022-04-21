@@ -1201,6 +1201,8 @@ else
 	 print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(flow["protos.dns.last_query"]).."\">"..page_utils.safe_html(shortHostName(flow["protos.dns.last_query"])).." <i class='fas fa-external-link-alt'></i></A>")
       end
 
+      historicalProtoHostHref(ifid, flow["cli.ip"], flow["proto.l4"], flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.dns.last_query"] or ''))
+
 
       if(flow["category"] ~= nil) then
 	 print(" "..getCategoryIcon(flow["protos.dns.last_query"], flow["category"]))
