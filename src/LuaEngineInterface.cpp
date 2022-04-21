@@ -577,6 +577,7 @@ static int ntop_interface_live_capture(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   struct ntopngLuaContext *c;
   int capture_id, duration;
+  char *host = NULL;
   char *bpf = NULL;
   NetworkInterface *iface = getCurrentInterface(vm);
 
@@ -592,25 +593,30 @@ static int ntop_interface_live_capture(lua_State* vm) {
   if(!ntop->isPcapDownloadAllowed(vm, ntop_interface->get_name()))
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
-  if(lua_type(vm, 1) == LUA_TSTRING) /* Host */ {
-    Host *h;
-    char host_ip[64];
-    char *key;
-    VLANid vlan_id = 0;
-
-    get_host_vlan_info((char*)lua_tostring(vm, 1), &key, &vlan_id, host_ip, sizeof(host_ip));
-
-    if((!ntop_interface) || ((h = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId))) == NULL))
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s", host_ip);
-    else
-      c->live_capture.matching_host = h;
-  }
+  if(lua_type(vm, 1) == LUA_TSTRING) /* Host provided */
+    host = (char*)lua_tostring(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   duration = (u_int32_t)lua_tonumber(vm, 2);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   bpf = (char*)lua_tostring(vm, 3);
+
+  if(host != NULL && strlen(host) > 0) {
+    Host *h;
+    char host_ip[64];
+    char *key;
+    VLANid vlan_id = 0;
+
+    get_host_vlan_info(host, &key, &vlan_id, host_ip, sizeof(host_ip));
+
+    if((!ntop_interface) || ((h = ntop_interface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId))) == NULL)) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s", host_ip);
+      return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+    } else {
+      c->live_capture.matching_host = h;
+    }
+  }
 
   c->live_capture.capture_until = time(NULL)+duration;
   c->live_capture.capture_max_pkts = CONST_MAX_NUM_PACKETS_PER_LIVE;
