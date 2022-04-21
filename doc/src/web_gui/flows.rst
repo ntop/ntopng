@@ -147,6 +147,17 @@ known malware signatures to identify known threats.
 
 .. _`HASSH`: https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c
 
+DNS Signature
+-------------
+
+ntopng also extracts and visualizes information regarding DNS application.
+It reports, in the following order, the DNS query type, the DNS query error and DNS query,
+following the standard classification (`RFC1035`_).
+
+.. figure:: ../img/web_gui_flows_dns_information.png
+  :align: center
+  :alt: DNS information
+
 Info
 ----
 
@@ -156,7 +167,19 @@ may include URLs, traffic profiles (in the Professional Version), contents of DN
 .. [1] Actually, flows may also exist between a host and a multicast group, as well as a broadcast domain.
 .. [2] https://github.com/ntop/nDPI
 .. [3] These data are based on MaxMind databases.
+
+Issues:
+-------
+
+A flow could have some issues (reported in the :ref:`BasicConceptAlerts`).
+All the issues of the flow are reported in the Detailed Flow Information page.
+
+.. figure:: ../img/web_gui_flows_issues_information.png
+  :align: center
+  :alt: DNS information
+
 .. _`JA3`: https://github.com/salesforce/ja3
 .. _`TLS ALPN`: https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation
 .. _`blog post`: https://www.ntop.org/ndpi/effective-tls-fingerprinting-beyond-ja3
 .. _`abuse.ch database`: https://sslbl.abuse.ch/ja3-fingerprints
+.. _`RFC1035`: https://datatracker.ietf.org/doc/html/rfc1035

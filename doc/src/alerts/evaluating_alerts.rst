@@ -1,3 +1,5 @@
+.. _EvaluatingAlerts:
+
 Evaluating Alerts
 =================
 

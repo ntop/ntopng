@@ -12,3 +12,4 @@ ntopng alerts are:
     evaluating_alerts
     delivering_alerts
     available_recipients
+    risk_and_check_exclusion
