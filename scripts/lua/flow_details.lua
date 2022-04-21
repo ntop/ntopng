@@ -479,7 +479,7 @@ else
    end
 
    if(flow["verdict.pass"] == false) then print("</strike>") end
-   historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.tls.certificate"] or ''))
+   historicalProtoHostHref(ifid, flow["cli.ip"], flow[], flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.tls.certificate"] or ''))
 
    if((flow["protos.tls_version"] ~= nil)
       and (flow["protos.tls_version"] ~= 0)) then
@@ -823,7 +823,7 @@ else
       print(i18n("flow_details.client_requested")..":<br>")
       print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(flow["protos.tls.client_requested_server_name"]).."\">"..page_utils.safe_html(flow["protos.tls.client_requested_server_name"]).." <i class=\"fas fa-external-link-alt\"></i></A>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.tls.client_requested_server_name"], flow["category"])) end
-      historicalProtoHostHref(ifid, nil, nil, nil, page_utils.safe_html(flow["protos.tls.client_requested_server_name"] or ''))
+      historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.tls.client_requested_server_name"] or ''), flow["vlan"])
       printAddCustomHostRule(flow["protos.tls.client_requested_server_name"])
       print("</td>")
 
