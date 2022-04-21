@@ -30,8 +30,10 @@ local flow_alert_store = classes.class(alert_store)
 function flow_alert_store:init(args)
    self.super:init()
 
-   self._table_name = "flow_alerts"
-   -- self._table_name = "flow_alerts_view"
+   -- self._table_name = "flow_alerts"
+   -- Alerts from historical flows (see also RecipientQueue::enqueue)
+   self._table_name = "flow_alerts_view"
+
    self._alert_entity = alert_entities.flow
 end
 
@@ -51,6 +53,9 @@ function flow_alert_store:insert(alert)
    local hex_prefix = ""
    local extra_columns = ""
    local extra_values = ""
+
+   -- Note: this is no longer called when ClickHouse is enabled
+   -- as a view on the historical is used. See RecipientQueue::enqueue
 
    if(ntop.isClickHouseEnabled()) then
       extra_columns = "rowid, "
@@ -360,7 +365,7 @@ function flow_alert_store:format_record(value, no_html)
    local victim = ""
    -- Add link to active flow
    local alert_json = json.decode(value.json)
-   
+  
    local flow_related_info = addExtraFlowInfo(alert_json, value)
 
    msg = addScoreToAlertDescr(msg, ntop.getFlowAlertScore(tonumber(value["alert_id"])))

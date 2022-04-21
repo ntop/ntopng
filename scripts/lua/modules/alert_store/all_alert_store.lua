@@ -29,7 +29,7 @@ function all_alert_store:init(args)
    self.super:init()
 
    -- This is a VIEW, not a table, but still available in SQL
-   self._table_name = "all_alerts"
+   self._table_name = "all_alerts_view"
    self._alert_entity = nil -- No entity
 end
 

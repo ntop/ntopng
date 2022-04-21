@@ -71,7 +71,14 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification, AlertEntit
      )
     return true; /* Nothing to enqueue */
 
-  if (recipient_id != 0 /* Do not filter hosts on the default recipient (SQLite/ClickHouse) */) {
+  if (recipient_id == 0) {
+    /* Default recipient (SQLite / ClickHouse DB) - do not filter alerts by host */
+    if (alert_entity == alert_entity_flow &&
+        ntop->getPrefs()->useClickHouse()) {
+      return true; /* Do not store flow alert - a view on historical flows is used */
+    }
+  } else { 
+    /* Other recipients (notifications) */
     if (alert_entity == alert_entity_flow) {
       if (!enabled_host_pools.isSetBit(notification->pools.flow.cli_host_pool) &&
           !enabled_host_pools.isSetBit(notification->pools.flow.srv_host_pool))
