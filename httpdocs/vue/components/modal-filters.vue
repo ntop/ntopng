@@ -138,7 +138,7 @@ export default {
 		    this.options_to_show = filter.options.sort((a, b) => {
 			if (a == null || a.label == null) { return -1; }
 			if (b == null || b.label == null) { return 1; }
-			return a.label.localeCompare(b.label);
+			return a.label.toString().localeCompare(b.label.toString());
 		    });
 		}
 		this.operators_to_show = filter.operators;
