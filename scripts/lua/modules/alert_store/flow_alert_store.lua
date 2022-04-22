@@ -371,8 +371,6 @@ function flow_alert_store:format_record(value, no_html)
    local alert_json = json.decode(value.json)
   
    local flow_related_info = addExtraFlowInfo(alert_json, value)
-
-   msg = addScoreToAlertDescr(msg, ntop.getFlowAlertScore(tonumber(value["alert_id"])))
     
    if not no_html and alert_json then
       local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
@@ -410,10 +408,6 @@ function flow_alert_store:format_record(value, no_html)
 		  local alert_risk = ntop.getFlowAlertRisk(alert_id)
 		  if alert_risk > 0 then
 		     message = string.format("%s %s", message, flow_risk_utils.get_documentation_link(alert_risk))
-		  end
-
-		  if alert_score > 0 then
-		     message = addScoreToAlertDescr(message, alert_score)
 		  end
 
 		  if not other_alerts_by_score[alert_score] then

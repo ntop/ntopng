@@ -259,6 +259,7 @@ local lang = {
   ["local_traffic"] = "Local Traffic",
   ["lua_c_api"] = "Lua/C API",
   ["mac_address"] = "MAC Address",
+  ["main_issue"] = "Main Issue",
   ["maps"] = "Maps",
   ["max_entries_reached"] = "Warning: The entries of the Maps are too many, limited to %{entries} flows.",
   ["max_rate"] = "Max Rate",
