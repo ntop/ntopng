@@ -250,16 +250,15 @@ static int checkCaptive(const struct mg_connection *conn,
       This user logged onto ntopng via the captive portal
     */
     u_int16_t host_pool_id;
-
-#ifdef DEBUG
+//#ifdef DEBUG
     char buf[32];
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPTIVE] %s @ %s/%08X [Redirecting to %s%s]",
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[CAPTIVE] %s @ %s/%08X [Redirecting to %s%s]",
 				 username, Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
 				 (unsigned int)conn->request_info.remote_ip,
 				 mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
 				 request_info->uri);
-#endif
+//#endif
 
     char bridge_interface[32];
 
@@ -418,23 +417,22 @@ static int getAuthorizedUser(struct mg_connection *conn,
     } else {
       /* Here the captive portal is not just informative; it requires authentication.
          For this reason it is necessary to check submitted username and password. */
-        if(!strcmp(request_info->request_method, "POST")) {
-          char post_data[1024];
-          char label[128];
-          int post_data_len = mg_read(conn, post_data, sizeof(post_data));
+      if(!strcmp(request_info->request_method, "POST")) {
+        char post_data[1024];
+        char label[128];
+        int post_data_len = mg_read(conn, post_data, sizeof(post_data));
 
-          label[0] = '\0';
+        label[0] = '\0';
 
-          mg_get_var(post_data, post_data_len, "username", username, username_len);
-          mg_get_var(post_data, post_data_len, "password", password, sizeof(password));
-          mg_get_var(post_data, post_data_len, "label", label, sizeof(label));
+        mg_get_var(post_data, post_data_len, "username", username, username_len);
+        mg_get_var(post_data, post_data_len, "password", password, sizeof(password));
+        mg_get_var(post_data, post_data_len, "label", label, sizeof(label));
 
-	return(ntop->checkCaptiveUserPassword(username, password, group)
+        return(ntop->checkCaptiveUserPassword(username, password, group)
 	     && checkCaptive(conn, request_info, username, password, label));
       }
     }
   }
- 
   
   if((!strcmp(request_info->uri, CAPTIVE_PORTAL_LOGOUT_URL))
      || (user_login_disabled)) {
@@ -443,7 +441,7 @@ static int getAuthorizedUser(struct mg_connection *conn,
     return(1);
   }
 
-  #ifdef NO_SSL_DL
+#ifdef NO_SSL_DL
   /* Try to authenticate using client TLS/SSL certificate */
   if(request_info->is_ssl
      && ntop->getPrefs()->is_client_x509_auth_enabled()

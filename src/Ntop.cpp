@@ -2617,7 +2617,7 @@ void Ntop::addToPool(char *host_or_mac, u_int16_t user_pool_id) {
   char key[128], pool_buf[16];
 
 #ifdef HOST_POOLS_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+  ntop->getTrace()->traceEvent(TRACE_INFO,
 			       "Adding %s as host pool member [pool id: %i]",
 			       host_or_mac,
 			       user_pool_id);
