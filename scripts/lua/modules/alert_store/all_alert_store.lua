@@ -26,10 +26,16 @@ local all_alert_store = classes.class(alert_store)
 -- ##############################################
 
 function all_alert_store:init(args)
+   local table_name = "all_alerts"
+
    self.super:init()
 
-   -- This is a VIEW, not a table, but still available in SQL
-   self._table_name = "all_alerts_view"
+   if ntop.isClickHouseEnabled() then
+      table_name = "all_alerts_view"
+   end
+
+   -- This is a VIEW, not a real table, but still available in SQL
+   self._table_name = table_name
    self._alert_entity = nil -- No entity
 end
 

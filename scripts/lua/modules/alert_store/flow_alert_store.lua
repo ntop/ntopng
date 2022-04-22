@@ -28,12 +28,16 @@ local flow_alert_store = classes.class(alert_store)
 -- ##############################################
 
 function flow_alert_store:init(args)
+   local table_name = "flow_alerts"
+
    self.super:init()
 
-   -- self._table_name = "flow_alerts"
-   -- Alerts from historical flows (see also RecipientQueue::enqueue)
-   self._table_name = "flow_alerts_view"
+   if ntop.isClickHouseEnabled() then
+      -- Alerts from historical flows (see also RecipientQueue::enqueue)
+      table_name = "flow_alerts_view"
+   end
 
+   self._table_name = table_name
    self._alert_entity = alert_entities.flow
 end
 
