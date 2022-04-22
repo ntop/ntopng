@@ -7309,18 +7309,6 @@ void NetworkInterface::allocateStructures() {
     top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
     top_os    = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
 
-    //if(!isViewed()) {
-#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
-    if(ntop->getPrefs()->useClickHouse())
-      alertStore    = new ClickHouseAlertStore(this);
-#endif
-
-    if(alertStore == NULL)
-      alertStore    = new SQLiteAlertStore(id, ALERTS_STORE_DB_FILE_NAME);
-
-    alertsQueue   = new AlertsQueue(this);
-    //}
-
     /* Allocations for the system interface */
     if(ntop->getSystemInterface() == this) {
       if(db == NULL) {
@@ -7334,6 +7322,18 @@ void NetworkInterface::allocateStructures() {
 #endif
 	}
       }
+    }
+
+    if(!isViewed()) {
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+      if(ntop->getPrefs()->useClickHouse())
+        alertStore = new ClickHouseAlertStore(this);
+#endif
+
+      if(alertStore == NULL)
+        alertStore    = new SQLiteAlertStore(id, ALERTS_STORE_DB_FILE_NAME);
+
+      alertsQueue   = new AlertsQueue(this);
     }
 
     for(u_int16_t i = 0; i < numNetworks; i++)
@@ -8412,11 +8412,9 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
   if(db == NULL) {
     if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
 #ifdef NTOPNG_PRO
-#ifdef HAVE_MYSQL
-#ifdef HAVE_CLICKHOUSE
+#if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
       if(ntop->getPrefs()->useClickHouse())
 	db = new (std::nothrow) ClickHouseFlowDB(this);
-#endif
 #endif
 #endif
 
