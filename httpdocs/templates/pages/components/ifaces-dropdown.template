@@ -18,7 +18,7 @@
 {% -- Print out the interfaces dropdown %}
 
 <li class="nav-item d-sm-flex">
-  <div class="d-flex" style="min-width: 6rem;">
+  <div class="d-flex">
   <select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker form-select-lg pb-0" 
     data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
 
@@ -84,43 +84,32 @@
 
 {% -- Print the observation point dropdown %}
 {% if(observationPoints ~= nil) then %}
-&nbsp;
-
-{% for _, v in pairsByKeys(observationPoints, asc) do %}
-<form id="switch_interface_form_observation_point_{{ v["obs_point"] }}" method="POST" action="{{ ntop.getHttpPrefix() .. "/lua/flows_stats.lua" .. "" }}?ifid={{ interface.getId() }}&observationPointId={{ v["obs_point"] }}" >
-  <input name="switch_interface" type="hidden" value="1" />
-  <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
+  {% for _, v in pairsByKeys(observationPoints, asc) do %}
+  <form id="switch_interface_form_observation_point_{{ v["obs_point"] }}" method="POST" action="{{ ntop.getHttpPrefix() .. "/lua/flows_stats.lua" .. "" }}?ifid={{ interface.getId() }}&observationPointId={{ v["obs_point"] }}" >
+    <input name="switch_interface" type="hidden" value="1" />
+    <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
   </form>
-{% end %}
+  {% end %}
 
-
-    <li class="nav-item d-none d-sm-flex align-items-center">
-     <select name="observationpoint-dropdown" id="observationpoint-dropdown" class="form-select" data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
-
-    {% -- The Observationpoint optgroup %}
-      <optgroup label="{{ i18n('observationpoints') }}">
-     {% for _, v in pairsByKeys(observationPoints, asc) do %}
-          {% local selected = '' %}
+  <li class="nav-item d-sm-flex">
+    <div class="d-flex">
+      <select name="observationpoint-dropdown" id="observationpoint-dropdown" class="selectpicker form-select-lg pb-0" data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
+      {% for _, v in pairsByKeys(observationPoints, asc) do %}
+        {% local selected = '' %}
         {% if((observationPointId ~= nil) and (tostring(v["obs_point"]) == tostring(observationPointId))) then selected = 'selected' end %}
         <option value="{{ v["obs_point"] }}" {{ selected }}>{{ getObsPointAlias(v["obs_point"], true) }}</option>
-     {% end %}
-      </optgroup>
-    </select>
-   </li>
+      {% end %}
+        </optgroup>
+      </select>
+    </div>
+  </li>
 {% end %}
 
 <script type="text/javascript">
   // initialize the selectpicker
   $('#interfaces-dropdown').selectpicker();
-
-  const toggleObservationPoint = ($form = null) => {
-    if($form != null) {
-        $form.submit();
-    } else {
-        console.error("An error has occurred when switching interface!");
-    }
-  }
-      
+  $('#observationpoint-dropdown').selectpicker();
+   
   $(`#observationpoint-dropdown`).on('change', function(e) {
     const selectedValue = $(this).val();
     $('#switch_interface_form_observation_point_'+ selectedValue).submit();
@@ -132,7 +121,12 @@
     if(isNaN(Number(selectedValue)) ){
       window.location.replace(selectedValue);
     }else{
-      toggleSystemInterface($('#switch_interface_form_' + selectedValue));
-    }
-   });
+      toggleSystemInterface($('#switch_interface_form_' + selectedValue)); }
+  });
+
+  const toggleObservationPoint = ($form = null) => {
+    if($form != null) 
+      $form.submit();
+  }
+
 </script>

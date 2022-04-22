@@ -2356,7 +2356,12 @@ static int ntop_get_flow_devices(lua_State* vm) {
   if(!ntop_interface)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   else {
-    ntop_interface->getFlowDevices(vm);
+    u_int16_t ObservationPointId = u_int16_t (-1);
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+    if((ObservationPointId = (u_int16_t) lua_tonumber(vm, 1)) == NULL)  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+    
+    /* REMOVE THE COMMENT TO USE THE OBS POINT */
+    ntop_interface->getFlowDevices(vm/*, ObservationPointId*/);
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
   }
 }

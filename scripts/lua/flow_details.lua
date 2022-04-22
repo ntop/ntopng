@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local shaper_utils
 require "lua_utils"
-local alert_utils = require "alert_utils"
 local format_utils = require "format_utils"
 local have_nedge = ntop.isnEdge()
 local nf_config = nil
@@ -15,7 +14,6 @@ local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
 local dscp_consts = require "dscp_consts"
-local tls_consts = require "tls_consts"
 local tag_utils = require "tag_utils"
 local flow_risk_utils = require "flow_risk_utils"
 require "flow_utils"
@@ -26,7 +24,6 @@ local protos_utils = require("protos_utils")
 local discover = require("discover_utils")
 local json = require ("dkjson")
 local page_utils = require("page_utils")
-local checks = require("checks")
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
