@@ -47,6 +47,12 @@ On Ubuntu20
 
 You also need to do "apt-get install libmariadbclient-dev libzmq3-dev"
 
+On Ubuntu22
+~~~~~~~~~~~~~~
+
+You need to do "apt-get install libmariadb-dev"
+
+
 On Debian 9/10
 ~~~~~~~~~~~~~~
 
