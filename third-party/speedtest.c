@@ -300,28 +300,44 @@ static void* do_download(void* data)
   CURL *curl;
   CURLcode res;
   struct thread_para* p_para = (struct thread_para*)data;
-  double length = 0;
+  double size = 0;
   double time = 0, time1 = 0, time2;
-
+  char useragent[16];
+  double v = (double) (rand() % 1000) / 100;
+  
   curl = curl_easy_init();
-
-  //printf("image url = %s\n", p_para->url);
+  sprintf(useragent, "curl/%.02f.0", v);
+  
+#ifdef DEBUG_SPEEDTEST
+  printf("image url = %s\n", p_para->url);
+#endif
   curl_easy_setopt(curl, CURLOPT_URL, p_para->url);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, p_para);
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
+  
+#ifdef DEBUG_SPEEDTEST
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+  
   res = curl_easy_perform(curl);
+
   if (res != CURLE_OK) {
-    // printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-    curl_easy_cleanup(curl);
-    return NULL;
+#ifdef DEBUG_SPEEDTEST
+    printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+#endif
+  } else {
+    curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &size);
+    curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &time);
+    curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &time1);
+    curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &time2);
+#ifdef DEBUG_SPEEDTEST
+    printf("Completed: [Size: %lf][TotalTime: %lf][ConnectTime: %lf][TransferTime: %lf]\n", size, time, time1, time2);
+#endif
+    p_para->result = size;
+    p_para->finish = 1;
   }
-  curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &length);
-  curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &time);
-  curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &time1);
-  curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &time2);
-  //printf("Length is %lf %lf %lf %lf\n", length, time, time1, time2);
-  p_para->result = length;
-  p_para->finish = 1;
+  
   curl_easy_cleanup(curl);
   return NULL;
 }
@@ -398,7 +414,7 @@ static double calculate_average_speed(double *p_speed, int num_speed)
     }
 
   }
-#if 0
+#ifdef DEBUG_SPEEDTEST
   for (i = 0; i < num_speed; i++) {
     printf("%0.2lf ", p_speed[i]*8/(1024*1024));
     if (i%10 == 0)
@@ -415,6 +431,8 @@ static double calculate_average_speed(double *p_speed, int num_speed)
   }
   //printf("speed = %0.2lf\n", (sum*8/(end - start))/(1024*1024));
 
+  if(end == start) end++;
+  
   return sum/(end - start);
 }
 
@@ -430,6 +448,7 @@ static int init_instant_speed(double **p_speed, int *p_speed_num)
   memset(*p_speed, 0, (*p_speed_num)*sizeof(double));
   return 0;
 }
+
 static double test_download(char *p_url, int num_thread, int dsize, char init)
 {
   struct timeval s_time;
@@ -533,21 +552,24 @@ static void* do_upload(void *p) {
   CURLcode res;
   long size = para->upload_size;
   int loop = 1;
-
+  char useragent[16];
+  double v = (double) (rand() % 1000) / 100;
+  
   if (size > UPLOAD_CHRUNK_SIZE_MAX)
     loop = (size / UPLOAD_CHRUNK_SIZE_MAX) + 1;
 
   curl = curl_easy_init();
-
+  sprintf(useragent, "curl/%.02f.0", v);
+  
   curl_easy_setopt(curl, CURLOPT_URL, para->url);
   curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_data);
   curl_easy_setopt(curl, CURLOPT_READDATA, para);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, NULL);
-
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
+  
   while (loop) {
-
     double size_upload;
 
     para->chunk_size = size - para->result> UPLOAD_CHRUNK_SIZE_MAX ?
@@ -568,8 +590,10 @@ static void* do_upload(void *p) {
 
   curl_easy_cleanup(curl);
   para->finish = 1;
-  //printf("size upload = %lf\n", size_upload);
-
+#ifdef DEBUG_SPEEDTEST
+  printf("size upload = %lu\n", para->result);
+#endif
+  
   return(NULL);
 }
 
@@ -593,11 +617,16 @@ static double test_upload(char *p_url, int num_thread, long size,
     paras[i].result = 0;
     paras[i].finish = 0;
     paras[i].upload_size = size/num_thread;
+#ifdef DEBUG_SPEEDTEST
+    printf("[thread %u] Upload size: %lu\n", i, paras[i].upload_size);
+#endif
+    
     //printf("szeleft = %ld\n", paras[i].upload_size);
     //int error = 
     pthread_create(&paras[i].tid, NULL, do_upload, (void*)&paras[i]);
     // if ( error != 0) printf("Can't Run thread num %d, error %d\n", i, error);
   }
+  
   if (init != 0) {
     loop_threads(paras, num_thread, instant_speed, &speed_num);
   }
@@ -606,6 +635,10 @@ static double test_upload(char *p_url, int num_thread, long size,
     pthread_join(paras[i].tid, NULL);
     sum += paras[i].result;
   }
+
+#ifdef DEBUG_SPEEDTEST
+  printf("Total size upload = %lf\n", sum);
+#endif
 
   if (init != 0) {
     speed = calculate_average_speed(instant_speed, speed_num);
@@ -637,6 +670,8 @@ static int get_download_filename(double speed, int num_thread)
   int filelist[] = {350, 500, 750, 1000, 1500, 2000, 3000, 3500, 4000};
   int num_file = ARRAY_SIZE(filelist);
 
+  if(speed == 0) speed = 1;
+  
   for (i = 1; i < num_file; i++) {
     long long int time;
     float times = (float)filelist[i]/350;
@@ -742,16 +777,19 @@ static int get_closest_server()
   struct web_buffer web;
   struct server_info server;
   int rv = NOK;
-
+  char useragent[16];
+  double v = (double) (rand() % 1000) / 100;
+  
   memset(&web, 0, sizeof(web));
-
+  sprintf(useragent, "curl/%.02f.0", v);
+  
   curl = curl_easy_init();
 
   curl_easy_setopt(curl, CURLOPT_URL, "http://www.speedtest.net/speedtest-servers.php");
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_web_buf);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &web);
-  curl_easy_setopt(curl, CURLOPT_USERAGENT, "ntopng");
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
   //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
   res = curl_easy_perform(curl);
   curl_easy_cleanup(curl);
@@ -800,14 +838,14 @@ static int get_best_server(int *p_index)
     latency = test_latency(server);
 
 #ifdef DEBUG_SPEEDTEST
-    //printf("Measured latency for %s is %0.3fms\n", server, latency);
+    printf("Measured latency for %s is %0.3fms\n", server, latency);
 #endif
 
     if (minimum > latency ) {
       minimum = latency;
       *p_index = i;
 #ifdef DEBUG_SPEEDTEST
-      //printf("Best server set to %u (%s)\n", i, server);
+      printf("Best server set to %u (%s)\n", i, server);
 #endif
     }
   }
