@@ -589,6 +589,7 @@ local lang = {
     ["invalid_host"] = "Invalid host specified",
     ["jitter"] = "Mean RTT / Jitter",
     ["last_measurement"] = "Last Measurement",
+    ["last_24_hours"] = "Last 24 Hours",
     ["measurement"] = "Measurement",
     ["measurement_time"] = "Measurement Time",
     ["msec"] = "ms",

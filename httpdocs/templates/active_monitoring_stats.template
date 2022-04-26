@@ -12,17 +12,17 @@
                     <thead>
                         <tr>
                         <th>{{i18n("flow_details.url")}}</th>
-			<th>{{i18n("active_monitoring_stats.measurement")}}</th>
+			                  <th>{{i18n("active_monitoring_stats.measurement")}}</th>
                         <th>{{i18n("chart")}}</th>
                         <th>{{i18n("threshold")}}</th>
-                        <th>{{i18n("active_monitoring.24h")}}</th>
+                        <th>{{i18n("active_monitoring_stats.last_24_hours")}}</th>
                         <th>{{i18n("active_monitoring_stats.last_measurement")}}</th>
                         <th>{{i18n("system_stats.last_ip")}}</th>
                         <th>{{i18n("active_monitoring_stats.measurement")}}</th>
                         <th>{{i18n("active_monitoring_stats.alerted")}}</th>
+                        <th>{{i18n("active_monitoring_stats.pool")}}</th>
                         <th>{{i18n("active_monitoring_stats.jitter")}}</th>
                         <th>{{i18n("actions")}}</th>
-			<th>{{i18n("active_monitoring_stats.measurement")}}</th>
                         </tr>
                     </thead>
                     </table>

@@ -44,39 +44,35 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_flow_blacklisted.format(ifid, alert, alert_type_params)
-   local who = {}
+  local who = {}
 
-   if not alert_type_params then
-      return i18n("flow_details.blacklisted_flow")
-   end
+  if alert["cli_blacklisted"] and alert["cli_blacklisted"] ~= "0" then
+    who[#who + 1] = i18n("client")
+  end
 
-   if alert_type_params["cli_blacklisted"] then
-      who[#who + 1] = i18n("client")
-   end
+  if alert["srv_blacklisted"] and alert["srv_blacklisted"] ~= "0" then
+    who[#who + 1] = i18n("server")
+  end
 
-   if alert_type_params["srv_blacklisted"] then
-      who[#who + 1] = i18n("server")
-   end
+  -- if either the client or the server is blacklisted
+  -- then also the category is blacklisted so there's no need
+  -- to check it.
+  -- Domain is basically the union of DNS names, SSL CNs and HTTP hosts.
+  if alert["cat_blacklisted"] then
+    who[#who + 1] = i18n("domain")
+  end
 
-   -- if either the client or the server is blacklisted
-   -- then also the category is blacklisted so there's no need
-   -- to check it.
-   -- Domain is basically the union of DNS names, SSL CNs and HTTP hosts.
-   if #who == 0 and alert_type_params["cat_blacklisted"] then
-      who[#who + 1] = i18n("domain")
-   end
+  if alert["custom_cat_file"] then
+    who[#who + 1] = "('"..alert["custom_cat_file"].."' blacklist)"
+  end
 
-   if #who == 0 then
-      return i18n("flow_details.blacklisted_flow")
-   end
+  if #who == 0 then
+    return i18n("flow_details.blacklisted_flow")
+  end
+  
+  local res = i18n("flow_details.blacklisted_flow_detailed", {who = table.concat(who, ", ")})
 
-   if alert_type_params["custom_cat_file"] then
-      who[#who + 1] = "('"..alert_type_params["custom_cat_file"].."' blacklist)"
-   end
-   
-   local res = i18n("flow_details.blacklisted_flow_detailed", {who = table.concat(who, ", ")})
-
-   return res
+  return res
 end
 
 -- #######################################################
