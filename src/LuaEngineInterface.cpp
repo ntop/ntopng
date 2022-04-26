@@ -2356,13 +2356,7 @@ static int ntop_get_flow_devices(lua_State* vm) {
   if(!ntop_interface)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   else {
-    u_int16_t observationPointId = (u_int16_t)-1;
-    
-    if(lua_type(vm, 1) == LUA_TNUMBER)
-      observationPointId = (u_int16_t)lua_tonumber(vm, 1);
-    
-    /* REMOVE THE COMMENT BELOW TO USE THE OBS POINT */
-    ntop_interface->getFlowDevices(vm /*, observationPointId */);
+    ntop_interface->getFlowDevices(vm);
 
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
   }
