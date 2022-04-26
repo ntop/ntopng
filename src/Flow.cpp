@@ -5076,8 +5076,8 @@ void Flow::lua_get_protocols(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "proto.ndpi_cat_id", get_protocol_category());
   lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
 
-  if(ndpiDetectedProtocol.custom_category_userdata)
-    lua_push_str_table_entry(vm, "proto.ndpi_cat_file", (char*)ndpiDetectedProtocol.custom_category_userdata);
+  if(get_custom_category_file())
+    lua_push_str_table_entry(vm, "proto.ndpi_cat_file", get_custom_category_file());
 }
 
 /* ***************************************************** */

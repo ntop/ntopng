@@ -70,6 +70,10 @@ function alert_flow_blacklisted.format(ifid, alert, alert_type_params)
       return i18n("flow_details.blacklisted_flow")
    end
 
+   if alert_type_params["custom_cat_file"] then
+      who[#who + 1] = "('"..alert_type_params["custom_cat_file"].."' blacklist)"
+   end
+   
    local res = i18n("flow_details.blacklisted_flow_detailed", {who = table.concat(who, ", ")})
 
    return res
