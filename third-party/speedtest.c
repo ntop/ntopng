@@ -19,12 +19,11 @@
 #include <curl/curl.h>
 #include "json.h"
 #define _usleep usleep
-#define DEBUG_SPEEDTEST
 #endif
 
-//#ifdef DEBUG_SPEEDTEST
+#ifdef DEBUG_SPEEDTEST
 #define INFO_SPEEDTEST
-//#endif
+#endif
 
 #ifdef HAVE_EXPAT
 

@@ -9,7 +9,7 @@
 local json = require("dkjson")
 local ts_utils = require("ts_utils_core")
 
-local do_trace = true
+local do_trace = false
 local collected_results = {}
 
 -- #################################################################
@@ -133,7 +133,7 @@ return {
 	 -- The function responsible for collecting the results
 	 collect_results = collect_speedtest,
 	 -- The granularities allowed for the probe. See supported_granularities in am_utils.lua
-	 granularities = { "min" },
+	 granularities = { "hour" },
 	 -- The localization string for the measurement unit (e.g. "ms", "Mbits")
 	 i18n_unit = "field_units.mbits",
 	 -- The localization string for the Jitter unit (e.g. "ms", "Mbits")
