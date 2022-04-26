@@ -1512,7 +1512,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 					   network_filter, pool_filter, filtered_hosts, blacklisted_hosts, hide_top_hidden,
 					   ipver_filter, proto_filter,
 					   traffic_type_filter, 
-             device_ip, false /* host->lua */,
+					   device_ip, false /* host->lua */,
 					   anomalousOnly, dhcpOnly,
 					   cidr_filter_enabled ? &cidr_filter : NULL,
 					   sortColumn, maxHits,
