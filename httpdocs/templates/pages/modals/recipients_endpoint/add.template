@@ -41,7 +41,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="recipient-template-container" style="display: none;">
+                    <div class="recipient-template-container" id="recipient-template-container-add-id" style="display: none;">
 
                     </div>
                     <hr>

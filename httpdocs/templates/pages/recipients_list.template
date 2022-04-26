@@ -197,6 +197,14 @@
             },
             enabled: CAN_CREATE_RECIPIENT,
             action: function (e, dt, node, config) {
+                $("#recipient-name-input").val("");
+                $("#recipient-severity-select").val($("#recipient-severity-select option:first").val());
+                $("#endpoint-select").val($("#endpoint-select option:first").val());
+                $("#recipient-template-container-add-id input").val("");
+		$('#add-recipient-categories-select').selectpicker('selectAll');
+		$('#add-recipient-categories-select').selectpicker('refresh');
+		$('#add-recipient-host-pools-select').selectpicker('selectAll');
+		$('#add-recipient-host-pools-select').selectpicker('refresh');
                 $('#add-recipient-modal').modal('show');
             }
         },
