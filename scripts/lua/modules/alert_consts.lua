@@ -468,7 +468,6 @@ function alert_consts.alertTypeIcon(alert_info, alerted_severity)
    local severity = alert_consts.alertSeverityById(alerted_severity)
 
    if severity then
-      local alert_consts = require "alert_consts"
       return "<i class='"..severity.icon.."' title='"..noHtml(alert_consts.alertTypeLabel(alert_info, true)) .."'></i> "
    end
 

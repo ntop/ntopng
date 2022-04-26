@@ -59,17 +59,6 @@ else
    end
 end
 
--- Prepare host
-local host_list = {}
-local num_host_list = 0
-local single_host = 0
-
-if(hosts ~= nil) then host_list, num_host_list = getHostCommaSeparatedList(hosts) end
-if(host ~= nil) then
-   single_host = 1
-   num_host_list = 1
-end
-
 if(flows_stats == nil) then flows_stats = { } end
 
 for key, value in ipairs(flows_stats) do
@@ -263,9 +252,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    local column_proto_l4 = ''
+   
    if value["predominant_alert"] then
-      local alert_info = alert_consts.alertTypeLabel(value["predominant_alert"], true)
-      column_proto_l4 = alert_consts.alertTypeIcon(value["predominant_alert"], value["alerted_severity"]) -- "<i class='fas fa-exclamation-triangle' style=' title='"..noHtml(alert_info) .."'></i> "
+      column_proto_l4 = alert_consts.alertTypeIcon(value["predominant_alert"], ntop.mapScoreToSeverity(value["predominant_alert_score"]))
    end
 
    column_proto_l4 = column_proto_l4..value["proto.l4"]
