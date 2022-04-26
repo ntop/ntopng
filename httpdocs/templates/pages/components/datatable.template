@@ -2,7 +2,6 @@
     (C) 2021 - ntop.org    
     Base template for datatables.
 #}
-
 <!-- vue3 -->
 <script src="{* ntop.getHttpPrefix() *}/vue/vue-prod.js?{* ntop.getStaticFileEpoch() *}"></script>
 <script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js?{* ntop.getStaticFileEpoch() *}"></script>
@@ -35,7 +34,7 @@
     <div class="mb-2">
       <div class="w-100">
 	<div clas="range-container d-flex flex-wrap">
-	  <div class="range-picker d-flex m-auto flex-wrap" id="datatable-vue">
+	  <div class="range-picker d-flex m-auto flex-wrap" id="rangepicker">
 	  <alert-info id="alert_info" ref="alert_info"></alert-info>
 	  <modal-traffic-extraction id="modal_traffic_extraction" ref="modal_traffic_extraction"></modal-traffic-extraction>
 	    <range-picker ref="range-picker-vue" :id="id_range_picker">
@@ -62,14 +61,14 @@
       </div>
 
       <div class="card-body">
+
         {% if show_chart then %}
         <div class="row">
 
-          <div class="col-12 mb-2" id="ChartDiv">
+          <div class="col-12 mb-2" id="chart-vue">
             <div class="card h-100 overflow-hidden">
-              {* widget_gui_utils.render_chart(chart.name, {
-              displaying_label = ""
-              }) *}
+	    <chart id="chart_0" :base_url_request="chart_base_url_request">
+	    </chart>
             </div>
           </div>
       {% end  %}
@@ -131,7 +130,8 @@
 <script type='text/javascript'>
   let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
   let $table;
-  let VUE_APP;
+  let RANGEPICKER_APP;
+  let CHART_APP;
 
     const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
 
@@ -220,13 +220,15 @@
         $table.ajax.url(`{* datatable.datasource.name *}?` + url_params).load();
 
 	    {% if show_chart then %}
-      try {
+/*
+        try {
 	  let widget = WidgetUtils.getWidgetByName("{{ chart.name }}");
           widget.update(null);
         }
         catch(e) {
             console.warn(e);
         }
+*/
 	    {% end %}
 
         {% if show_cards then %}
@@ -292,7 +294,7 @@
 
                 {% if actions.show_historical then %}
 		/* Button to jump to historical nIndex flows */
-                {icon: 'fa-stream', title: "{{ i18n('db_explorer.historical_data_explorer') }}", modal: '#past_flows'},
+                {icon: 'fa-stream', title: "{{ i18n('db_explorer.historical_data') }}", modal: '#past_flows'},
 		{% end %}
 
                 {% if actions.show_pcap_download then %}
@@ -373,8 +375,38 @@
       return vue_app;
       }
 
+  function start_chart() {
+    let is_alert_stats_url = window.location.toString().match(/alert_stats.lua/) != null;
+    let chart_data_url = `${base_path}/lua/pro/rest/v2/get/db/ts.lua`;
+    if (is_alert_stats_url) {
+      chart_data_url = `${base_path}/lua/rest/v2/get/flow/alert/ts.lua`;
+    }
+
+    let chart_vue_options = {
+    	components: {
+   	      'chart': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/chart.vue`, ntopng_vue_loader.loadOptions) ),
+	  },
+	  /**
+	   * First method called when the component is created.
+	   */
+	  created() {},
+	  mounted() {},
+	  data() {
+	      return {
+		  chart_base_url_request: chart_data_url,
+		  i18n: (t) => { return i18n(t); },
+	      };
+	  },
+	  methods: {
+	  },
+      }; 
+      const chart_vue = Vue.createApp(chart_vue_options);
+      const vue_app = chart_vue.mount("#chart-vue");
+      return vue_app;
+  }
+
   function start_range_picker() {
-      let datatable_vue_options = {
+      let rangepicker_vue_options = {
 	  props: {
 	      id: String,
 	  },
@@ -390,6 +422,7 @@
 	  mounted() {},
 	  data() {
 	      return {
+		  chart_base_url_request: `${base_path}/lua/rest/v2/get/flow/alert/ts.lua`,
 		  show_download: show_download,
 		  show_permalink: show_permalink,
 		  show_pcap_download: show_pcap_download,
@@ -420,9 +453,9 @@
 	  download_chart_data: function() {
 	  }
 	  },
-      };
-      const datatable_vue = Vue.createApp(datatable_vue_options);
-      const vue_app = datatable_vue.mount("#datatable-vue");
+      }; 
+      const rangepicker_vue = Vue.createApp(rangepicker_vue_options);
+      const vue_app = rangepicker_vue.mount("#rangepicker");
       return vue_app;
   }
   
@@ -437,8 +470,9 @@
 	 let default_epoch_end = Number.parseInt(Date.now() / 1000);
 	 ntopng_url_manager.set_key_to_url("epoch_begin", default_epoch_begin);
 	 ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
-      }
-      VUE_APP = start_range_picker();
+      }      
+      CHART_APP = start_chart();
+      RANGEPICKER_APP = start_range_picker();
     const datatableButton = {* (datatable.buttons or '[]') *};
     datatableButton.push({
         text: '<i class="fas fa-sync"></i>',
@@ -596,7 +630,7 @@
 	    value: realValue,
 	    operator: operator,
 	};
-	if (VUE_APP.$refs["range-picker-vue"].is_filter_defined(filter)) {
+	if (RANGEPICKER_APP.$refs["range-picker-vue"].is_filter_defined(filter)) {
 	    ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_MODAL_FILTERS, filter);
 	} else {
 	    ntopng_url_manager.set_key_to_url("query_preset", "");
@@ -610,16 +644,17 @@
 	// // notifies to all the updated status
 	// ntopng_status_manager.add_value_to_status("filters", filters);
     }    
-
+    /*
     ChartWidget.registerEventCallback("{{ chart.name }}", 'zoomed', async (chartContext, { xaxis, yaxis }) => {
         // the timestamps are in milliseconds, convert them into seconds
         const begin = moment(xaxis.min);
         const end = moment(xaxis.max);
 
-	let new_epoch_status = { epoch_begin: Number.parseInt(begin.unix()), epoch_end: Number.parseInt(end.unix()) }; 
-	ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, new_epoch_status, "range-picker");
+	let new_epoch_status = { epoch_begin: Number.parseInt(begin.unix()), epoch_end: Number.parseInt(end.unix()) };
+	console.log("emit events");
+	ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, new_epoch_status, "range-picker11");
     });
-
+    */
     {% if show_cards then %}
     updateCardStats();
     {% end %}

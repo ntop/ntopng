@@ -4,7 +4,8 @@ import $ from 'jquery'
 window.jQuery = $
 window.$ = $
 
-import moment from 'moment'
+//import moment from 'moment'
+import moment from 'moment-timezone'
 import ApexCharts from 'apexcharts'
 
 

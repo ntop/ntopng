@@ -7,5 +7,8 @@ import './components.scss'
 import { ChartWidget, WidgetUtils } from './widget/widgets'
 import './sidebar/sidebar'
 
-window.ChartWidget = ChartWidget
-window.WidgetUtils = WidgetUtils
+import { ntopChartApex } from "./ntopChartApex";
+
+window.ChartWidget = ChartWidget;
+window.WidgetUtils = WidgetUtils;
+window.ntopChartApex = ntopChartApex;

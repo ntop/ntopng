@@ -307,32 +307,32 @@ local url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?"
 
 -- page_utils.print_navbar(i18n("alerts_dashboard.alerts"), url, pages)
 
-widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
-   Datasource(endpoint_ts, {
-       ifid = ifid,
-       vlan_id = vlan_id,
-       epoch_begin = epoch_begin,
-       epoch_end = epoch_end,
-       status = status,
-       alert_id = alert_id,
-       severity = severity,
-      score = score,
-       ip_version = ip_version,
-       ip = host_ip,
-       name = host_name,
-       cli_ip = cli_ip,
-       srv_ip = srv_ip,
-       cli_name = cli_name,
-       srv_name = srv_name,
-       cli_port = cli_port,
-       srv_port = srv_port,
-       l7_proto = l7_proto,
-       network_name = network_name,
-       role = role,
-      role_cli_srv = role_cli_srv,
-      subtype = subtype,
-   })
-})
+-- widget_gui_utils.register_timeseries_area_chart(CHART_NAME, 0, {
+--    Datasource(endpoint_ts, {
+--        ifid = ifid,
+--        vlan_id = vlan_id,
+--        epoch_begin = epoch_begin,
+--        epoch_end = epoch_end,
+--        status = status,
+--        alert_id = alert_id,
+--        severity = severity,
+--       score = score,
+--        ip_version = ip_version,
+--        ip = host_ip,
+--        name = host_name,
+--        cli_ip = cli_ip,
+--        srv_ip = srv_ip,
+--        cli_name = cli_name,
+--        srv_name = srv_name,
+--        cli_port = cli_port,
+--        srv_port = srv_port,
+--        l7_proto = l7_proto,
+--        network_name = network_name,
+--        role = role,
+--       role_cli_srv = role_cli_srv,
+--       subtype = subtype,
+--    })
+-- })
 
 local modals = {
    ["delete_alert_dialog"] = template_utils.gen("modal_confirm_dialog_form.template", {
@@ -648,7 +648,7 @@ local context = {
    ifid = ifid,
    ui_utils = ui_utils,
    template_utils = template_utils,
-   widget_gui_utils = widget_gui_utils,
+   -- widget_gui_utils = widget_gui_utils,
    json = json,
    opsep = tag_utils.SEPARATOR,
    isPro = ntop.isPro(),

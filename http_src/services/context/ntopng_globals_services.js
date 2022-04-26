@@ -46,20 +46,38 @@ object_to_array: function(obj) {
     }
     return array;
 },
-copy_object_keys: function(source_obj, dest_obj, not_replace = false) {
-    if (source_obj == null) {
-  return;
-    }
+      from_utc_to_server_date_format: function(utc_ms, format) {
+	  if (format == null) { format = "DD/MMM/YYYY HH:mm"; }
+	  let m = moment.tz(utc_ms, ntop_zoneinfo);
+	  let m_local = moment(utc_ms);
+	  let tz_local = m_local.format(format);
+	  let tz_server = m.format(format);
+	  return tz_server;
+      },
+is_object: function(e) {
+  return typeof e === 'object'
+    && !Array.isArray(e)
+    && e !== null;
+},
+copy_object_keys: function(source_obj, dest_obj, recursive_object = false) {
+  if (source_obj == null) {
+    return;
+  }
     for (let key in source_obj) {
-  if (not_replace == true && dest_obj[key] != null) { continue; }
-  dest_obj[key] = source_obj[key];
+	if (source_obj[key] == null) { continue; }
+    if (recursive_object == true && this.is_object(source_obj[key]) && this.is_object(dest_obj[key])) {
+      this.copy_object_keys(source_obj[key], dest_obj[key], recursive_object);
+    } else {
+      dest_obj[key] = source_obj[key];
     }
+  }
 },
 http_request: async function(url, options, throw_exception, not_unwrap) {
     try {
   let res = await fetch(url, options);
-  if (res.ok == false) {		    
+  if (res.ok == false) {
       console.error(`http_request ${url}\n ok == false`);
+      console.error(res);
       return null;
   }
   let json_res = await res.json();

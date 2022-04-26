@@ -81,22 +81,23 @@ export default {
 	let epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
 	if (epoch_begin != null && epoch_end != null) {
 	    // update the status
+	    
             ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, { epoch_begin: Number.parseInt(epoch_begin), epoch_end: Number.parseInt(epoch_end) }, this.$props.id);
 	}
 	let me = this;
 	let f_set_picker = (picker, var_name) => {
-    return flatpickr($(this.$refs[picker]), {
-      enableTime: true,
-      dateFormat: "d-m-Y H:i",
-      //locale: "it",
-      //dateFormat: "Y-m-d H:i",
-      time_24hr: true,
-      clickOpens: true,
-      //mode: "range",
-      //static: true,
-      onChange: function(selectedDates, dateStr, instance) {
-          let utc_s = me.get_utc_seconds(new Date(selectedDates).getTime());
-          //me[var_name] = utc_s;
+	    return flatpickr($(this.$refs[picker]), {
+		enableTime: true,
+		dateFormat: "d/m/Y H:i",
+		//altInput: true,
+		//dateFormat: "YYYY-MM-DD HH:mm",
+		//altFormat: "d-m-Y H:i",
+		//locale: "it",
+		time_24hr: true,
+		clickOpens: true,		
+		//mode: "range",
+		//static: true,
+		onChange: function(selectedDates, dateStr, instance) {
           me.enable_apply = true;
           me.wrong_date = me.flat_begin_date.selectedDates[0].getTime() > me.flat_end_date.selectedDates[0].getTime();
           //me.a[data] = d;
@@ -107,11 +108,31 @@ export default {
 	this.flat_end_date = f_set_picker("end-date", "end_date");
         ntopng_events_manager.on_event_change(this.$props.id, ntopng_events.EPOCH_CHANGE, (new_status) => this.on_status_updated(new_status), true);
 	// notifies that component is ready
+	//console.log(this.$props["id"]);
 	ntopng_sync.ready(this.$props["id"]);
     },
     
     /** Methods of the component. */
     methods: {
+	utc_s_to_server_date: function(utc_seconds) {
+	    let utc = utc_seconds * 1000;
+	    let d_local = new Date(utc);
+	    let local_offset = d_local.getTimezoneOffset();
+	    let server_offset = moment.tz(utc, ntop_zoneinfo)._offset;
+	    let offset_minutes =  server_offset + local_offset;
+	    let offset_ms = offset_minutes * 1000 * 60;
+	    var d_server = new Date(utc + offset_ms);
+	    return d_server;
+	},
+	server_date_to_date: function(date, format) {
+	    let utc = date.getTime();
+	    let local_offset = date.getTimezoneOffset();
+	    let server_offset = moment.tz(utc, ntop_zoneinfo)._offset;
+	    let offset_minutes =  server_offset + local_offset;
+	    let offset_ms = offset_minutes * 1000 * 60;
+	    var d_local = new Date(utc - offset_ms);
+	    return d_local;
+	},
         on_status_updated: function(status) {
             let end_date_time_utc = Date.now();        
             // default begin date time now - 30 minutes
@@ -127,8 +148,10 @@ export default {
                 status.epoch_begin = this.get_utc_seconds(begin_date_time_utc);
                 this.emit_epoch_change(status, this.$props.id);
             }
-	    this.flat_begin_date.setDate(new Date(status.epoch_begin * 1000));
-	    this.flat_end_date.setDate(new Date(status.epoch_end * 1000));
+	    // this.flat_begin_date.setDate(new Date(status.epoch_begin * 1000));
+	    // this.flat_end_date.setDate(new Date(status.epoch_end * 1000));
+	    this.flat_begin_date.setDate(this.utc_s_to_server_date(status.epoch_begin));
+	    this.flat_end_date.setDate(this.utc_s_to_server_date(status.epoch_end));
             // this.set_date_time("begin-date", begin_date_time_utc, false);
             // this.set_date_time("begin-time", begin_date_time_utc, true);
             // this.set_date_time("end-date", end_date_time_utc, false);
@@ -183,9 +206,9 @@ export default {
             // let epoch_begin = this.get_utc_seconds(date_begin.valueOf());
             // let epoch_end = this.get_utc_seconds(date_end.valueOf());
 	    let now_s = this.get_utc_seconds(Date.now());
-	    let begin_date = this.flat_begin_date.selectedDates[0];
+	    let begin_date = this.server_date_to_date(this.flat_begin_date.selectedDates[0]);
 	    let epoch_begin = this.get_utc_seconds(begin_date.getTime());
-	    let end_date = this.flat_end_date.selectedDates[0];
+	    let end_date = this.server_date_to_date(this.flat_end_date.selectedDates[0]);
 	    let epoch_end = this.get_utc_seconds(end_date.getTime());
 	    if (epoch_end > now_s) {
 		epoch_end = now_s;
@@ -193,16 +216,16 @@ export default {
             let status = { epoch_begin , epoch_end };
             this.emit_epoch_change(status);
         },
-        set_date_time: function(ref_name, utc_ts, is_time) {
-            utc_ts = this.get_utc_seconds(utc_ts) * 1000;        
-            let date_time = new Date(utc_ts);
-            date_time.setMinutes(date_time.getMinutes() - date_time.getTimezoneOffset());
-	    if (is_time) {
-		this.$refs[ref_name].value = date_time.toISOString().substring(11,16);
-	    } else {
-		this.$refs[ref_name].value = date_time.toISOString().substring(0,10);
-	    }
-        },
+        // set_date_time: function(ref_name, utc_ts, is_time) {
+        //     utc_ts = this.get_utc_seconds(utc_ts) * 1000;        
+        //     let date_time = new Date(utc_ts);
+        //     date_time.setMinutes(date_time.getMinutes() - date_time.getTimezoneOffset());
+	//     if (is_time) {
+	// 	this.$refs[ref_name].value = date_time.toISOString().substring(11,16);
+	//     } else {
+	// 	this.$refs[ref_name].value = date_time.toISOString().substring(0,10);
+	//     }
+        // },
         change_select_time: function() {
             let s_values = this.get_select_values();
             let interval_s = s_values[this.select_time_value];
