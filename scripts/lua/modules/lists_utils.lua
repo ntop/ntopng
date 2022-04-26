@@ -509,7 +509,7 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
 	   if((host == "0.0.0.0") or (host == "0.0.0.0/0") or (host == "255.255.255.255")) then
 	     loadWarning(string.format("Bad IPv4 address '%s' in list '%s'", host, list.name))
 	   else
-	     ntop.loadCustomCategoryIp(host, category)
+	     ntop.loadCustomCategoryIp(host, category, list.name)
 	     return "ip"
 	   end
 	 else
@@ -521,7 +521,7 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
       else
 	 -- Domain
 	 if((not list) or (list.format ~= "ip")) then
-	    ntop.loadCustomCategoryHost(host, category)
+	    ntop.loadCustomCategoryHost(host, category, list.name)
 	    return "domain"
 	 else
 	   loadWarning(string.format("Invalid domain '%s' in list '%s'", host, list.name))

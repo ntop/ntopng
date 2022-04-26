@@ -3144,16 +3144,24 @@ void Ntop::finalizenDPIReload() {
 
 /* ******************************************* */
 
-void Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
-  for(u_int i = 0; i<get_num_interfaces(); i++)
-    if(getInterface(i))  getInterface(i)->nDPILoadIPCategory(what, id);
+void Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id, char *list_name) {
+  char *persistent_name = getPersistentCustomListName(list_name);
+  
+  for(u_int i = 0; i<get_num_interfaces(); i++) {
+    if(getInterface(i))
+      getInterface(i)->nDPILoadIPCategory(what, id, persistent_name);
+  }
 }
 
 /* ******************************************* */
 
-void Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
-  for(u_int i = 0; i<get_num_interfaces(); i++)
-    if(getInterface(i))  getInterface(i)->nDPILoadHostnameCategory(what, id);
+void Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name) {
+  char *persistent_name = getPersistentCustomListName(list_name);
+  
+  for(u_int i = 0; i<get_num_interfaces(); i++) {
+    if(getInterface(i))
+      getInterface(i)->nDPILoadHostnameCategory(what, id, persistent_name);
+  }
 }
 
 /* ******************************************* */
@@ -3488,6 +3496,25 @@ void Ntop::collectContinuousResponses(lua_State* vm) {
 
   cping->collectResponses(vm, false /* IPv4 */);
   cping->collectResponses(vm, true /* IPv6 */);
+}
+
+/* ******************************************* */
+
+/*
+  This method is needed to have a string that is not deallocated
+  after a call, but that is persistent inside nDPI
+*/
+char* Ntop::getPersistentCustomListName(char *list_name) {
+  std::string key(list_name);
+  std::map<std::string, bool>::iterator it = cachedCustomLists.find(key);
+
+  if(it == cachedCustomLists.end()) {
+    /* Not found */
+    cachedCustomLists[key] = true;
+    it = cachedCustomLists.find(key);
+  }
+
+  return((char*)it->first.c_str());
 }
 
 /* ******************************************* */

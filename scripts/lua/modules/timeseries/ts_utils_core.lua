@@ -880,7 +880,7 @@ function ts_utils.getPossiblyChangedSchemas()
       "am_host:val_5mins",
       "am_host:http_stats_hour",
       "am_host:https_stats_hour",
-      "am_host:val_hour",
+      "am_host:val_hour"
    }
 end
 

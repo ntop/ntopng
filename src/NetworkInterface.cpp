@@ -500,16 +500,16 @@ void NetworkInterface::loadProtocolsAssociations(struct ndpi_detection_module_st
 
 /* *************************************** */
 
-void NetworkInterface::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id) {
+void NetworkInterface::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id, char *list_name) {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
 
   if(what && ndpi_struct_shadow)
-    ndpi_load_ip_category(ndpi_struct_shadow, what, id);
+    ndpi_load_ip_category(ndpi_struct_shadow, what, id, (void*)list_name);
 }
 
 /* *************************************** */
 
-void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
+void NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name /* NOT used */) {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
 
   if(what && ndpi_struct_shadow)
@@ -537,7 +537,8 @@ ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid
   proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
   proto.master_protocol = protoid;
   proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
-  return get_ndpi_proto_category(proto);
+  
+  return(get_ndpi_proto_category(proto));
 }
 
 /* *************************************** */

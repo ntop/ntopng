@@ -63,6 +63,7 @@ class Ntop {
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer to the Redis server. */
   Mutex m, users_m;
+  std::map<std::string, bool>cachedCustomLists;
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   ZMQPublisher *zmqPublisher;
@@ -144,8 +145,9 @@ class Ntop {
   void checkReloadAlertExclusions();
   void checkReloadHostPools();
   void setZoneInfo();
+  char* getPersistentCustomListName(char *name);
     
- public:
+public:
   /**
    * @brief A Constructor
    * @details Creating a new Ntop.
@@ -589,8 +591,8 @@ class Ntop {
   ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto);
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);  
-  void nDPILoadIPCategory(char *what, ndpi_protocol_category_t id);
-  void nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id);
+  void nDPILoadIPCategory(char *what, ndpi_protocol_category_t id, char *list_name);
+  void nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name);
   int nDPILoadMaliciousJA3Signatures(const char *file_path);
   void setLastInterfacenDPIReload(time_t now);
   bool needsnDPICleanup();

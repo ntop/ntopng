@@ -24,8 +24,7 @@
 /* static so default is zero-initialization, let's just define it */
 
 const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
-						  NDPI_PROTOCOL_UNKNOWN,
-						  NDPI_PROTOCOL_CATEGORY_UNSPECIFIED };
+  NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, NULL };
 // #define DEBUG_DISCOVERY
 // #define DEBUG_UA
 // #define DEBUG_SCORE
@@ -5076,6 +5075,9 @@ void Flow::lua_get_protocols(lua_State* vm) const {
 
   lua_push_uint64_table_entry(vm, "proto.ndpi_cat_id", get_protocol_category());
   lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
+
+  if(ndpiDetectedProtocol.custom_category_userdata)
+    lua_push_str_table_entry(vm, "proto.ndpi_cat_file", (char*)ndpiDetectedProtocol.custom_category_userdata);
 }
 
 /* ***************************************************** */

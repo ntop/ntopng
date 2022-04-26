@@ -78,6 +78,8 @@ rm -f config.h config.h.in *~ #*
 git submodule init
 git submodule update --remote
 
+# git submodule update --init --recursive
+
 echo "Wait please..."
 autoreconf -if
 echo ""

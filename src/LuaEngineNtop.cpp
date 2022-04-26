@@ -616,16 +616,21 @@ static int ntop_initnDPIReload(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_loadCustomCategoryIp(lua_State* vm) {
-  char *net;
+  char *net, *listname;
   ndpi_protocol_category_t catid;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   net = (char*)lua_tostring(vm, 1);
+  
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   catid = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
-  ntop->nDPILoadIPCategory(net, catid);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  listname = (char*)lua_tostring(vm, 3);
+  
+  ntop->nDPILoadIPCategory(net, catid, listname);
 
   lua_pushnil(vm);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -634,16 +639,21 @@ static int ntop_loadCustomCategoryIp(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_loadCustomCategoryHost(lua_State* vm) {
-  char *host;
+  char *host, *listname;
   ndpi_protocol_category_t catid;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   host = (char*)lua_tostring(vm, 1);
+  
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   catid = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
-  ntop->nDPILoadHostnameCategory(host, catid);
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  listname = (char*)lua_tostring(vm, 3);
+  
+  ntop->nDPILoadHostnameCategory(host, catid, listname);
 
   lua_pushnil(vm);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
