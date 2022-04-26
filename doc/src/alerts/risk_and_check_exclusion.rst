@@ -1,7 +1,7 @@
 .. _RiskAndCheckExclusion:
 
-Check Exclusion
-===============
+Check Exclusions
+================
 
 In ntopng it's possible to exclude Hosts from specific alerts.
 
@@ -13,7 +13,7 @@ In ntopng it's possible to exclude Hosts from specific alerts.
   :align: center
   :alt: Check Exclusion Page
 
-  Check Exclusion Page
+  Check Exclusions Page
 
 By clicking the `+` close to the Search above the table, it's possible to add a new host or network to exclude for an Host and a Flow Alert.
 Excluded Hosts/Networks will not trigger the specified alert.
