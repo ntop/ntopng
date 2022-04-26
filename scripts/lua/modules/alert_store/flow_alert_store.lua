@@ -773,7 +773,7 @@ function flow_alert_store:get_alert_details(value)
    local details = {}
    local fmt = self:format_record(value, false)
    local add_hyperlink = true
-   local json = json.decode(value["json"])
+   local json = json.decode(value["json"]) or {}
    local proto_info = json["proto"]
    local traffic_info = {}
 
