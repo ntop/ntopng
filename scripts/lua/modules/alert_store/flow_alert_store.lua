@@ -35,6 +35,7 @@ function flow_alert_store:init(args)
    if ntop.isClickHouseEnabled() then
       -- Alerts from historical flows (see also RecipientQueue::enqueue)
       table_name = "flow_alerts_view"
+      self._write_table_name = "flows"
    end
 
    self._table_name = table_name
@@ -42,6 +43,32 @@ function flow_alert_store:init(args)
 end
 
 -- ##############################################
+
+--@brief Labels alerts according to specified filters
+function alert_store:acknowledge(label)
+   local where_clause = self:build_where_clause()
+
+   -- TODO add tstamp in addition to FLOW_ID/rowid to optimize the lookup
+
+   -- Prepare the final query
+   local q
+   if ntop.isClickHouseEnabled() then
+      if self._write_table_name then
+         -- This is using the historical 'flows' table
+         q = string.format("ALTER TABLE `%s` UPDATE `ALERT_STATUS` = %u, `USER_LABEL` = '%s', `USER_LABEL_TSTAMP` = %u WHERE FLOW_ID = '%s'", self._write_table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), self._where.rowid.any[1].value)
+      else
+         q = string.format("ALTER TABLE `%s` UPDATE `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
+      end
+   else
+      q = string.format("UPDATE `%s` SET `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
+   end
+
+   local res = interface.alert_store_query(q)
+   return res and table.len(res) == 0
+end
+
+-- ##############################################
+
 
 function alert_store:_get_tstamp_column_name()
    if ntop.isClickHouseEnabled() then
