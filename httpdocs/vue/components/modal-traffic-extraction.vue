@@ -79,12 +79,13 @@ export default {
 	    return String(number).padStart(2, '0');
 	},
 	format_date: function(d) {
-	    let day = this.pad2_number(d.getDate());
-	    let month = this.pad2_number(d.getMonth());
-	    let hours = this.pad2_number(d.getHours());
-	    let minutes = this.pad2_number(d.getMinutes());
-	    let s = `${day}/${month}/${d.getFullYear()} ${hours}:${minutes}`;
-	    return s;
+	    // let day = this.pad2_number(d.getDate());
+	    // let month = this.pad2_number(d.getMonth());
+	    // let hours = this.pad2_number(d.getHours());
+	    // let minutes = this.pad2_number(d.getMinutes());
+	    // let s = `${day}/${month}/${d.getFullYear()} ${hours}:${minutes}`;
+	    let d_ms = d.valueOf();
+	    return ntopng_utility.from_utc_to_server_date_format(d_ms);
 	},
 	apply: async function() {
 	    if (this.bpf_filter != null && this.bpf_filter != "") {
