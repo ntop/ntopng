@@ -470,7 +470,12 @@
 	 let default_epoch_end = Number.parseInt(Date.now() / 1000);
 	 ntopng_url_manager.set_key_to_url("epoch_begin", default_epoch_begin);
 	 ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
-      }      
+      }
+      if (ntopng_url_manager.get_url_entry("page") == "flow"
+      	 && ntopng_url_manager.get_url_entry("status") == "engaged") {
+	 ntopng_url_manager.set_key_to_url("status", "historical");
+      }
+      
       CHART_APP = start_chart();
       RANGEPICKER_APP = start_range_picker();
     const datatableButton = {* (datatable.buttons or '[]') *};
