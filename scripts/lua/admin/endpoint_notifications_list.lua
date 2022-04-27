@@ -43,8 +43,6 @@ local function get_max_configs_available()
     return availables
 end
 
-
-
 local sub_menu_entries = {
   ['endpoint'] = {
      order = 0,
@@ -63,11 +61,11 @@ page_utils.set_active_menu_entry(active_entry)
 
 for key, sub_menu in pairsByField(sub_menu_entries, 'order', asc) do
   navbar_menu[#navbar_menu+1] = {
-     active = (check_subdir == key),
-     page_name = key,
-     label = i18n(sub_menu.entry.i18n_title),
-     url = NOTIFICATION_URL .. "?subdir=" .. key
- }
+    active = (check_subdir == key),
+    page_name = key,
+    label = i18n(sub_menu.entry.i18n_title),
+    url = NOTIFICATION_URL .. "?subdir=" .. key
+  }
 end
 
 
@@ -124,7 +122,8 @@ end
 local context = {
   notifications = {
     endpoint_types_labels = endpoint_types_labels,
-    endpoint_list = endpoints,
+    endpoint_template = endpoints,
+    endpoint_list = endpoints.get_configs(true),
     can_create_recipient = can_create_recipient,
     check_categories = checks.check_categories,
     alert_severities = alert_severities,
