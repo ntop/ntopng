@@ -9725,7 +9725,7 @@ int NetworkInterface::walkActiveHosts(lua_State* vm,
 
     lua_newtable(vm);
 
-    for(it = m.info.begin(); (num < maxHits) && (it != m.info.end()); ++it) {
+    for(it = m.info.begin(); (num < maxHits) && (it != m.info.end()); ++it, num++) {
       it->lua(vm);
 
       lua_rawseti(vm, -2, num + 1); /* Array */
