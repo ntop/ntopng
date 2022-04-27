@@ -25,7 +25,7 @@ extern "C" {
 #include "rrd.h"
 };
 
-#define DEBUG_SPEEDTEST /* Remove */
+// #define DEBUG_SPEEDTEST /* Remove */
 #include "../third-party/speedtest.c"
 
 static int live_extraction_num = 0;

@@ -791,7 +791,7 @@ static int get_closest_server()
   struct server_info server;
   int rv = NOK;
   char useragent[16];
-  const char *url = "http://www.speedtest.net/speedtest-servers.php";
+  const char *url = "https://www.speedtest.net/speedtest-servers.php";
   double v = (double) (rand() % 1000) / 100;
   
   memset(&web, 0, sizeof(web));
@@ -854,10 +854,14 @@ static int get_best_server(int *p_index)
     if (minimum != DBL_MAX && i >= MIN_SERVERS_TO_CHECK)
       break; /* MIN_SERVERS_TO_CHECK evaluated and at least one found */
 
-    if (strlen(servers[i].url) == 0)
+    if((strlen(servers[i].url) == 0))
       continue;
 
     sscanf(servers[i].url, "http://%[^/]speedtest/upload.%*s", server);
+
+    if(server[0] == '\0')
+      continue;
+    
     latency = test_latency(server);
 
 #ifdef DEBUG_SPEEDTEST
