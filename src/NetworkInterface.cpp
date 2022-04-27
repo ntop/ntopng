@@ -537,7 +537,7 @@ ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid
   proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
   proto.master_protocol = protoid;
   proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
-  
+
   return(get_ndpi_proto_category(proto));
 }
 
@@ -1803,7 +1803,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 #if 0
     char a[32], b[32];
-    
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s (%s) -> %s (%s) [%s]",
 				 src_ip.print(a, sizeof(a)),
 				 src_ip.isLocalHost(&network_id) ? "L" : "R",
@@ -4539,7 +4539,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 	  retriever->elems[retriever->actNumEntries++].stringValue = flow_info ? flow_info : (char*)"";
 	}
 	break;
-    case column_device_ip:      
+    case column_device_ip:
       retriever->elems[retriever->actNumEntries++].numericValue = f->getFlowDeviceIP();
       break;
     case column_in_index:
@@ -5372,7 +5372,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				const AddressTree * const cidr_filter,
 				u_int8_t ipver_filter, int proto_filter,
 				TrafficType traffic_type_filter,
-        u_int32_t device_ip,
+				u_int32_t device_ip,
 				char *sortColumn) {
   u_int8_t macAddr[6];
   int (*sorter)(const void *_a, const void *_b);
@@ -6913,13 +6913,13 @@ Host* NetworkInterface::findHostByMac(u_int8_t *mac) {
 #if 0
   if(info.match) {
     char buf[64], buf1[64];
-    
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** %s %s ***",
 				 info.match->get_visual_name(buf, sizeof(buf)),
 				 info.match->printMask(buf1, sizeof(buf1)));
   }
 #endif
-  
+
   return(info.match);
 }
 
@@ -9663,7 +9663,74 @@ void NetworkInterface::addRedisSitesKey() {
 int NetworkInterface::exec_csv_query(const char *sql, bool dump_in_json_format, struct mg_connection *conn) {
 #if defined(NTOPNG_PRO) && defined(HAVE_MYSQL) && defined(HAVE_CLICKHOUSE)
   ((ClickHouseFlowDB*)db)->execCSVQuery(sql, dump_in_json_format, conn);
+
   return(0);
 #endif
   return(-1);
 };
+
+/* *************************************** */
+
+struct host_walker_metadata {
+  std::vector<ActiveHostWalkerInfo> info;
+  HostWalkMode mode;
+  bool localHostsOnly;
+};
+
+static bool active_hosts_walker(GenericHashEntry *h, void *user_data, bool *matched) {
+  Host *host = (Host*)h;
+  struct host_walker_metadata *m = (struct host_walker_metadata*)user_data;
+  bool isLocal;
+
+  if(!host) return(false);
+
+  isLocal = host->isLocalHost() || host->isSystemHost();
+
+  if((m->localHostsOnly && isLocal)
+     || ((m->localHostsOnly == false) && (!isLocal)))
+    host->visit(&m->info, m->mode);
+
+  return(false); /* false = keep on walking */
+}
+
+/* *************************************** */
+
+static bool walkerSort(const ActiveHostWalkerInfo &a,
+		       const ActiveHostWalkerInfo &b) {
+  return(a.getZ() < b.getZ());
+}
+/* *************************************** */
+
+int NetworkInterface::walkActiveHosts(lua_State* vm,
+				      HostWalkMode mode,
+				      u_int32_t maxHits,
+				      bool localHostsOnly) {
+  u_int32_t begin_slot = 0;
+  struct host_walker_metadata m;
+  int rc;
+  std::vector<ActiveHostWalkerInfo>::iterator it;
+
+  m.mode = mode, m.localHostsOnly = localHostsOnly;
+
+  rc = walker(&begin_slot, true /* walk_all */, walker_hosts, active_hosts_walker, (void*)&m);
+
+  if((rc != 0) || (m.info.size() == 0)) {
+    lua_pushnil(vm);
+
+    return(-1);
+  } else {
+    u_int num = 0;
+
+    std::sort(m.info.begin(), m.info.end(), walkerSort);
+
+    lua_newtable(vm);
+
+    for(it = m.info.begin(); (num < maxHits) && (it != m.info.end()); ++it) {
+      it->lua(vm);
+
+      lua_rawseti(vm, -2, num + 1); /* Array */
+    }
+
+    return(m.info.size());
+  }
+}

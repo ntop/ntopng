@@ -919,6 +919,23 @@ typedef enum {
   os_any
 } OSType;
 
+/* Keep in sync with hosts_map_utils.lua */
+typedef enum {
+  ALL_FLOWS = 0,
+  UNREACHABLE_FLOWS  = 1,
+  ALERTED_FLOWS = 2,
+  DNS_QUERIES = 3,
+  SYN_DISTRIBUTION = 4,
+  SYN_VS_RST = 5,
+  SYN_VS_SYNACK = 6,
+  TCP_PKTS_SENT_VS_RCVD = 7,
+  TCP_BYTES_SENT_VS_RCVD = 8,
+  ACTIVE_ALERT_FLOWS = 9,
+  TRAFFIC_RATIO = 10,
+  SCORE = 11,
+  BLACKLISTED_FLOWS_HOSTS = 12,
+} HostWalkMode;
+
 /* Action to be performed after ntopng shutdown*/
 typedef enum {
   after_shutdown_nop = 0,

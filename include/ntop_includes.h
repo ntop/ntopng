@@ -403,6 +403,7 @@ using namespace std;
 #include "FlowTrafficStats.h"
 #include "HostStats.h"
 #include "HostChecksStatus.h"
+#include "ActiveHostWalkerInfo.h"
 #include "Host.h"
 #include "LocalHostStats.h"
 #include "LocalHost.h"

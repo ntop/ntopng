@@ -75,7 +75,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int8_t ifMac[6];
   bpf_u_int32 ipv4_network_mask, ipv4_network;
   const char *customIftype;
-  u_int8_t purgeRuns;  
+  u_int8_t purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
   u_int32_t num_alerts_engaged_notice[ALERT_ENTITY_MAX_NUM_ENTITIES],
     num_alerts_engaged_warning[ALERT_ENTITY_MAX_NUM_ENTITIES],
@@ -97,10 +97,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   PeriodicityMap *pMap;
   ServiceMap *sMap;
 #endif
-  
+
   struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
   bool ndpiReloadInProgress;
-  
+
   /* The executor is per-interfaces, and uses the loader to configure itself and execute flow checks */
   FlowChecksExecutor *flow_checks_executor, *prev_flow_checks_executor;
   HostChecksExecutor *host_checks_executor, *prev_host_checks_executor;
@@ -116,7 +116,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
   Condvar dump_condition; /* Condition variable used to wait when no flows have been enqueued for dump */
-  
+
 
   /* Queues for the execution of flow user scripts */
   SPSCQueue<FlowAlert *> *flowAlertsQueue;
@@ -135,7 +135,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   /* Queue containing the ip@vlan strings of the hosts to restore. */
   StringFifoQueue *hosts_to_restore;
-  
+
   /* External alerts contain alertable entities other than host/interface/network
    * which are dynamically allocated when an alert for them occurs.
    * A lock is necessary to guard the insert/delete operations from lookup operations
@@ -169,7 +169,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int16_t next_compq_remove_idx;
   ParsedFlow **companionQueue;
   bool enable_ip_reassignment_alerts;
-  
+
   /* Live Capture */
   Mutex active_captures_lock;
   u_int8_t num_live_captures;
@@ -294,7 +294,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		bool *src2dst_direction,
 		time_t first_seen, time_t last_seen,
 		u_int32_t len_on_wire,
-		bool *new_flow, bool create_if_missing, 
+		bool *new_flow, bool create_if_missing,
     u_int8_t *view_cli_mac, u_int8_t *view_srv_mac);
   int sortHosts(u_int32_t *begin_slot,
 		bool walk_all,
@@ -342,7 +342,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
   void addRedisSitesKey();
   void removeRedisSitesKey();
-  
+
   void FillObsHash();
 
   bool isNumber(const char *str);
@@ -368,7 +368,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int64_t dequeueHostAlerts(u_int budget); /* Same as above but for hosts */
   u_int16_t guessEthType(const u_char *p, u_int len, u_int8_t *is_ethernet);
   void loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str);
-  
+
  public:
   /**
   * @brief A Constructor
@@ -543,15 +543,15 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   };
   inline void incnDPIFlows(u_int16_t l7_protocol)    { ndpiStats->incFlowsStats(l7_protocol); }
 
-  inline void incDSCPStats(u_int8_t ds, u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t rcvd_packets, u_int64_t rcvd_bytes) { 
-    dscpStats->incStats(ds, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes); 
+  inline void incDSCPStats(u_int8_t ds, u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
+    dscpStats->incStats(ds, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
   }
 
   virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
 			ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats,
-			SyslogStats *_syslogStats, RoundTripStats *_downloadStats, 
+			SyslogStats *_syslogStats, RoundTripStats *_downloadStats,
       RoundTripStats *_uploadStats) const;
   inline DB *getDB() const         { return db;                  };
   inline EthStats* getStats()      { return(&ethStats);          };
@@ -639,7 +639,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline bool isPeriodicityMapEnabled()      { return(pMap ? true : false); };
   inline void flushPeriodicityMap()          { if(pMap) pMap->flush(); };
   void updateFlowPeriodicity(Flow *f);
-  void updateServiceMap(Flow *f);  
+  void updateServiceMap(Flow *f);
 #endif
   void lua_hash_tables_stats(lua_State* vm);
   void lua_periodic_activities_stats(lua_State* vm);
@@ -658,7 +658,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 			 u_int16_t pool_filter, bool filtered_hosts,
 			 bool blacklisted_hosts, bool hide_top_hidden,
 			 u_int8_t ipver_filter, int proto_filter,
-			 TrafficType traffic_type_filter, 
+			 TrafficType traffic_type_filter,
        u_int32_t device_ip,bool tsLua,
 			 bool anomalousOnly, bool dhcpOnly,
 			 const AddressTree * const cidr_filter,
@@ -957,7 +957,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   /* Used to give the interface a new check loader to be used */
   void reloadFlowChecks(FlowChecksLoader *fcbl);
   void reloadHostChecks(HostChecksLoader *hcbl);
-  
+
   inline bool hasConfiguredDhcpRanges()      { return(dhcp_ranges && !dhcp_ranges->last_ip.isEmpty()); };
   inline bool isFlowDumpDisabled()           { return(flow_dump_disabled); }
   bool isInDhcpRange(IpAddress *ip);
@@ -990,16 +990,16 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void processExternalAlertable(AlertEntity entity,
 				const char *entity_val,
 				lua_State* vm, u_int vm_argument_idx,
-				bool do_store_alert);  
+				bool do_store_alert);
   virtual bool reproducePcapOriginalSpeed() const         { return(false);             }
   u_int32_t getNumEngagedAlerts() const;
   u_int32_t getNumEngagedAlerts(AlertLevelGroup alert_level_group) const;
   void luaNumEngagedAlerts(lua_State *vm) const;
   void releaseAllEngagedAlerts();
-
+  int  walkActiveHosts(lua_State* vm, HostWalkMode mode, u_int32_t maxHits, bool localHostsOnly);
   virtual void flowAlertsDequeueLoop(); /* Body of the loop that dequeues flows for the execution of user script hooks */
   virtual void hostAlertsDequeueLoop(); /* Same as above but for hosts */
-  
+
   virtual void dumpFlowLoop(); /* Body of the loop that dequeues flows for the database dump */
   void incNumQueueDroppedFlows(u_int32_t num);
   /*
@@ -1012,11 +1012,11 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void execFlowEndChecks(Flow *f);
   void execFlowBeginChecks(Flow *f);
   void execHostChecks(Host *h);
-  
+
   inline void incHostAnomalies(u_int32_t local, u_int32_t remote) {
     tot_num_anomalies.local_hosts += local, tot_num_anomalies.remote_hosts += remote;
   };
-  
+
   /*
     Dequeues enqueued flows to execute user script checks.
     Budgets indicate how many flows should be dequeued (if available) to perform protocol detected, active,
@@ -1025,19 +1025,18 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int64_t dequeueFlowAlertsFromChecks(u_int budget);
   inline FlowChecksExecutor* getFlowCheckExecutor() { return(flow_checks_executor); }
 
-  /*
-    Same as above but for hosts */
+  /* Same as above but for hosts */
   u_int64_t dequeueHostAlertsFromChecks(u_int budget);
   inline HostChecksExecutor* getHostCheckExecutor() { return(host_checks_executor); }
   HostCheck *getCheck(HostCheckID t);
 
   void incObservationPointIdFlows(u_int16_t pointId);
 
-  bool hasObservationPointId(u_int16_t pointId); 
+  bool hasObservationPointId(u_int16_t pointId);
   bool haveObservationPointsDefined();
   u_int16_t getFirstObservationPointId();
 
-  struct ndpi_detection_module_struct* initnDPIStruct();    
+  struct ndpi_detection_module_struct* initnDPIStruct();
   bool initnDPIReload();
   void finalizenDPIReload();
   void cleanShadownDPI();
@@ -1045,14 +1044,14 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline struct ndpi_detection_module_struct* get_ndpi_struct() const { return(ndpi_struct); };
   inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(get_ndpi_struct(), proto)); };
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
-  void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);  
+  void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   void nDPILoadIPCategory(char *what, ndpi_protocol_category_t id, char *list_name);
   void nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name);
   int nDPILoadMaliciousJA3Signatures(const char *file_path);
 
   inline void setLastInterfacenDPIReload(time_t now)      { last_ndpi_reload = now;   }
   inline bool needsnDPICleanup()                          { return(ndpi_cleanup_needed); }
-  inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }  
+  inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
   u_int16_t getnDPIProtoByName(const char *name);
 };
 

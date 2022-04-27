@@ -51,6 +51,12 @@ class PacketStats {
   void deserialize(json_object *o);
   json_object* getJSONObject();
   void lua(lua_State* vm, const char *label);
+
+  inline u_int64_t getNumSYN()    { return(syn);    }
+  inline u_int64_t getNumSYNACK() { return(synack); }
+  inline u_int64_t getNumFINACK() { return(finack); }
+  inline u_int64_t getNumRST()    { return(rst);    }
+  
   inline void sum(PacketStats *s) const {
     s->upTo64 += upTo64, s->upTo128 += upTo128,
       s->upTo128 += upTo128, s->upTo256 += upTo256,

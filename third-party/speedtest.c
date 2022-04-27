@@ -10,7 +10,6 @@
  * ./speedtest
  */
 
-#ifdef TEST_SPEEDTEST
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -18,8 +17,6 @@
 #include <math.h>
 #include <curl/curl.h>
 #include "json.h"
-#define _usleep usleep
-#endif
 
 #ifdef DEBUG_SPEEDTEST
 #define INFO_SPEEDTEST
@@ -367,7 +364,7 @@ static void loop_threads(struct thread_para *p_thread,
       //printf("p_thread[i].now = %lf\n", p_thread[i].now);
     }
 
-    _usleep(RECORED_EVERY_SEC*1000*1000); //0.2s
+    usleep(RECORED_EVERY_SEC*1000*1000); //0.2s
     if (sum == 0 && num_speed == 0)
       continue;
 

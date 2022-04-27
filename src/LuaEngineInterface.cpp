@@ -1402,6 +1402,27 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
 
 /* ****************************************** */
 
+/* This function is used by lua/rest/v2/charts/host/map.lua */
+
+static int ntop_get_interface_hosts(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  HostWalkMode host_walk_mode = ALL_FLOWS;
+  u_int32_t maxHits = CONST_MAX_NUM_HITS;
+  bool localHostsOnly = true;
+  
+  if(lua_type(vm, 1) == LUA_TNUMBER)  host_walk_mode = (HostWalkMode)lua_tonumber(vm, 1);
+  if(lua_type(vm, 2) == LUA_TNUMBER)  maxHits        = (u_int32_t)lua_tonumber(vm, 2);
+  if(lua_type(vm, 3) == LUA_TBOOLEAN) localHostsOnly = lua_toboolean(vm, 3) ? true : false;
+
+  if((ntop_interface != NULL)
+     && (ntop_interface->walkActiveHosts(vm, host_walk_mode, maxHits, localHostsOnly) >= 0))
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+  else
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR)); 
+}
+
+/* ****************************************** */
+
 static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy location, bool tsLua=false) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool show_details = true, filtered_hosts = false, blacklisted_hosts = false, hide_top_hidden = false;
@@ -4508,7 +4529,8 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getBatchedHostsInfo",         ntop_get_batched_interface_hosts_info },
   { "getBatchedLocalHostsInfo",    ntop_get_batched_interface_local_hosts_info },
   { "getBatchedRemoteHostsInfo",   ntop_get_batched_interface_remote_hosts_info },
-  { "getBatchedLocalHostsTs",   ntop_get_batched_interface_local_hosts_ts },
+  { "getBatchedLocalHostsTs",      ntop_get_batched_interface_local_hosts_ts },
+  { "getInterfaceHosts",        ntop_get_interface_hosts },
   { "getHostInfo",              ntop_get_interface_host_info },
   { "getHostMinInfo",           ntop_get_interface_get_host_min_info },
   { "getHostCountry",           ntop_get_interface_host_country },

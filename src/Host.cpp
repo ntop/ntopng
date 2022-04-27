@@ -127,7 +127,7 @@ u_int16_t Host::decScoreValue(u_int16_t score_decr, ScoreCategory score_category
   if(obs_point) obs_point->decScoreValue(score_decr, score_category, as_client);
   if(ns)      ns->decScoreValue(score_decr, score_category, as_client);
   if(iface)   iface->decScoreValue(score_decr, as_client);
-  
+
   return Score::decScoreValue(score_decr, score_category, as_client);
 }
 
@@ -168,7 +168,7 @@ void Host::updateSynAckAlertsCounter(time_t when, bool synack_sent) {
   This method is executed in the thread which processes packets/flows
   so it must be ultra-fast. Do NOT perform any time-consuming operation here.
  */
-void Host::housekeep(time_t t) {  
+void Host::housekeep(time_t t) {
   switch(get_state()) {
   case hash_entry_state_active:
     iface->execHostChecks(this);
@@ -186,7 +186,7 @@ void Host::housekeep(time_t t) {
 void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id) {
   char buf[64];
   u_int16_t masked_vlanId = filterVLANid(_vlanId); /* Cleanup any possible junk */
-  
+
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
@@ -198,7 +198,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   num_remote_access = 0;
   memset(view_interface_mac, 0, sizeof(view_interface_mac));
   num_incomplete_flows = 0;
-  
+
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 
 #ifdef NTOPNG_PRO
@@ -210,7 +210,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
     mac->incUses();
 
   observationPointId = observation_point_id;
-  
+
   if((vlan = iface->getVLAN(masked_vlanId, true, true /* Inline call */)) != NULL)
     vlan->incUses();
 
@@ -245,7 +245,7 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
 
   if(ip.getVersion() /* IP is set */) {
     char country_name[64];
-    
+
     if((as = iface->getAS(&ip, true /* Create if missing */, true /* Inline call */)) != NULL) {
       as->incUses();
       asn = as->get_asn();
@@ -277,19 +277,19 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
 char* Host::get_hostkey(char *buf, u_int buf_len, bool force_vlan) {
   char ipbuf[64];
   char *key = ip.print(ipbuf, sizeof(ipbuf));
-  
+
   if((vlan_id > 0) || force_vlan) {
     char obsBuf[16] = { '\0' };
 
     /*
       Uncomment to add observationPointId in the host name
-      
+
       if(observationPointId == 0)
         obsBuf[0] = '\0';
       else
         snprintf(obsBuf, sizeof(obsBuf), " (%u)", observationPointId);
     */
-    
+
     if(get_vlan_id())
       snprintf(buf, buf_len, "%s@%u%s", key, get_vlan_id(), obsBuf);
     else
@@ -519,7 +519,7 @@ void Host::lua_get_ndpi_info(lua_State *vm) {
   else
     lua_pushnil(vm);
 }
-  
+
 /* ***************************************************** */
 
 void Host::lua_get_min_info(lua_State *vm) {
@@ -540,7 +540,7 @@ void Host::lua_get_min_info(lua_State *vm) {
   lua_get_geoloc(vm);
   lua_get_ip(vm);
   lua_get_mac(vm);
-  
+
 #ifdef HAVE_NEDGE
   lua_push_bool_table_entry(vm, "childSafe", isChildSafe());
   lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);
@@ -597,7 +597,7 @@ void Host::lua_get_services(lua_State *vm) const {
   if(isDnsServer()) lua_push_bool_table_entry(vm,  "dns",  true);
   if(isSmtpServer()) lua_push_bool_table_entry(vm, "smtp", true);
   if(isNtpServer()) lua_push_bool_table_entry(vm,  "ntp",  true);
-  
+
   lua_pushstring(vm, "services");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -662,9 +662,9 @@ void Host::lua_get_num_flows(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", getTotalNumHostUnreachableOutgoingFlows());
 
   lua_blacklisted_flows(vm);
-  
+
   if(stats)
-    stats->luaHostBehaviour(vm); 
+    stats->luaHostBehaviour(vm);
 }
 
 /* ***************************************************** */
@@ -698,8 +698,8 @@ void Host::lua_blacklisted_flows(lua_State* vm) const {
   lua_push_uint32_table_entry(vm, "as_server", getNumBlacklistedAsSrvReset());
   /* All data, without considering the reset. This is done for rrd. */
   lua_push_uint32_table_entry(vm, "tot_as_client", num_blacklisted_flows.as_client);
-  lua_push_uint32_table_entry(vm, "tot_as_server", num_blacklisted_flows.as_server); 
-  
+  lua_push_uint32_table_entry(vm, "tot_as_server", num_blacklisted_flows.as_server);
+
   lua_pushstring(vm, "num_blacklisted_flows");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -750,21 +750,21 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_float_table_entry(vm, "bytes_ratio", ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd()));
   lua_push_float_table_entry(vm, "pkts_ratio", ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()));
-  
+
   if(device_ip != 0)
     lua_push_str_table_entry(vm, "device_ip", Utils::intoaV4(device_ip, buf, sizeof(buf)));
-  
+
   if(more_then_one_device)
     lua_push_bool_table_entry(vm, "more_then_one_device", more_then_one_device);
 
   luaDNS(vm, verbose);
   luaTCP(vm);
   luaICMP(vm, get_ip()->isIPv4(), false);
- 
+
   if(host_details) {
     lua_get_score_breakdown(vm);
     lua_blacklisted_flows(vm);
-    
+
     /*
       This has been disabled as in case of an attack, most hosts do not have a name and we will waste
       a lot of time doing activities that are not necessary
@@ -1072,12 +1072,12 @@ void Host::periodic_stats_update(const struct timeval *tv) {
 #ifdef DEBUG_SCAN_DETECTION
   if(num_incomplete_flows > 0) {
     char buf[64];
-    
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s: %u",
 				 ip.print(buf, sizeof(buf)), num_incomplete_flows);
   }
 #endif
-  
+
   custom_periodic_stats_update(tv);
 }
 
@@ -1094,7 +1094,7 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto,
       stats->incStats(when, l4_proto, ndpi_proto, ndpi_category, custom_app,
 		      sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
 		      rcvd_bytes, rcvd_goodput_bytes, peer_is_unicast);
-    
+
     updateSeen();
   }
 }
@@ -1127,7 +1127,7 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     json_object_object_add(my_object, "broadcastDomainHost", json_object_new_boolean(isBroadcastDomainHost()));
     json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
     json_object_object_add(my_object, "host_services_bitmap", json_object_new_int(host_services_bitmap));
-    
+
     /* Generic Host */
     json_object_object_add(my_object, "num_alerts", json_object_new_int(getNumEngagedAlerts()));
   }
@@ -1152,7 +1152,7 @@ char* Host::get_visual_name(char *buf, u_int buf_len) {
 
   if(sym_name == NULL || !sym_name[0])
     return buf;
- 
+
   strncpy(buf, sym_name, buf_len);
   buf[buf_len-1] = '\0';
 
@@ -1302,7 +1302,7 @@ bool Host::checkQuota(ndpi_protocol ndpiProtocol, L7PolicySource_t *quota_source
     is_above = policer->checkQuota(get_host_pool(), stats->getQuotaEnforcementStats(), ndpiProtocol, quota_source, now);
   else
     is_above = false;
-  
+
 #ifdef SHAPER_DEBUG
   char buf[128], protobuf[32];
 
@@ -1322,7 +1322,7 @@ bool Host::checkQuota(ndpi_protocol ndpiProtocol, L7PolicySource_t *quota_source
 void Host::luaUsedQuotas(lua_State* vm) {
   if(stats) {
     HostPoolStats *quota_stats = stats->getQuotaEnforcementStats();
-    
+
     if(quota_stats)
       quota_stats->lua(vm, iface);
     else
@@ -1411,7 +1411,7 @@ void Host::offlineSetMDNSName(const char * mdns_n) {
 
 /* *************************************** */
 
-void Host::offlineSetMDNSTXTName(const char * mdns_n_txt) {  
+void Host::offlineSetMDNSTXTName(const char * mdns_n_txt) {
   if(!names.mdns_txt && mdns_n_txt && (names.mdns_txt = Utils::toLowerResolvedNames(mdns_n_txt)))
     ;
 }
@@ -1502,7 +1502,7 @@ void Host::get_geocoordinates(float *latitude, float *longitude) {
 void Host::serialize_geocoordinates(ndpi_serializer *s, const char *prefix) {
   char *continent = NULL, *country = NULL, *city = NULL, buf[64];
   float latitude = 0, longitude = 0;
-  
+
   ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
 
   if(city) {
@@ -1530,14 +1530,14 @@ void Host::serialize_geocoordinates(ndpi_serializer *s, const char *prefix) {
     ndpi_serialize_string_float(s, buf, latitude, "%f");
   }
 
-  ntop->getGeolocation()->freeInfo(&continent, &country, &city);  
+  ntop->getGeolocation()->freeInfo(&continent, &country, &city);
 }
 
 /* *************************************** */
 
 bool Host::isOneWayTraffic() const {
   /* When both directions are at zero, it means no periodic update has visited the host yet,
-     so nothing can be said about its traffic directions. One way is only returned when 
+     so nothing can be said about its traffic directions. One way is only returned when
      exactly one direction is greater than zero. */
   return(stats ? stats->getNumBytes() && !(stats->getNumBytesRcvd() && stats->getNumBytesSent()) : false);
 };
@@ -1589,7 +1589,7 @@ void Host::checkStatsReset() {
     stats = new_stats;
     stats_shadow->resetTopSitesData();
     blacklistedStatsResetRequested();
-    
+
     /* Reset internal state */
 #ifdef NTOPNG_PRO
     has_blocking_quota = false;
@@ -1719,7 +1719,7 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
     k = get_mac_based_tskey(cur_mac, buf, bufsize);
   else
     k = get_hostkey(buf, bufsize);
-  
+
   return(k);
 }
 
@@ -1728,7 +1728,7 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
 void Host::refreshDisabledAlerts() {
 #ifdef NTOPNG_PRO
   AlertExclusions *alert_exclusions = ntop->getAlertExclusions();
-  
+
   if(alert_exclusions && alert_exclusions->checkChange(&disabled_alerts_tstamp)) {
     /* Set alert exclusion into the host */
     alert_exclusions->setDisabledHostAlertsBitmaps(this);
@@ -1740,7 +1740,7 @@ void Host::refreshDisabledAlerts() {
 
 bool Host::isHostAlertDisabled(HostAlertType alert_type) {
   refreshDisabledAlerts();
-  
+
 #ifdef NTOPNG_PRO
   return(alert_exclusions.isSetHostExclusionBit(alert_type.id));
 #else
@@ -1752,7 +1752,7 @@ bool Host::isHostAlertDisabled(HostAlertType alert_type) {
 
 bool Host::isFlowAlertDisabled(FlowAlertType alert_type) {
   refreshDisabledAlerts();
-  
+
 #ifdef NTOPNG_PRO
   return(alert_exclusions.isSetFlowExclusionBit(alert_type.id));
 #else
@@ -1805,7 +1805,7 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
     alert_json = ndpi_serializer_get_buffer(alert_json_serializer, &alert_json_len);
 
   ndpi_serialize_string_string(s, "json", alert_json ? alert_json : "");
- 
+
   if(alert_json_serializer) {
     ndpi_term_serializer(alert_json_serializer);
     free(alert_json_serializer);
@@ -1951,8 +1951,155 @@ u_int16_t Host::get_country_code() {
     if(country_name)
       return(Utils::countryCode2U16(country_name));
   } /* No else here */
-  
+
   return(0); /* Not found */
+}
+
+/* *************************************** */
+
+/* Visit the host and add it to the vector */
+void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
+  char buf[64], key[96], *label =  get_visual_name(buf, sizeof(buf));
+
+  if(get_vlan_id() == 0)
+    snprintf(key, sizeof(key), "%s", printMask(buf, sizeof(buf)));
+  else
+    snprintf(key, sizeof(key), "%s@%u", printMask(buf, sizeof(buf)), get_vlan_id());
+
+  if(label[0] == '\0') label = key;
+  
+  switch(mode) {
+  case ALL_FLOWS:
+    v->push_back(ActiveHostWalkerInfo(key,label,
+				      getNumIncomingFlows(),
+				      getNumOutgoingFlows(),
+				      getNumBytesSent()+getNumBytesRcvd()));
+    break;
+    
+  case UNREACHABLE_FLOWS:
+    v->push_back(ActiveHostWalkerInfo(key,label,
+				      getTotalNumUnreachableIncomingFlows(),
+				      getTotalNumUnreachableOutgoingFlows(),
+				      getNumBytesSent()+getNumBytesRcvd()));
+    break;
+
+  case ALERTED_FLOWS:
+    v->push_back(ActiveHostWalkerInfo(key,label,
+				      getTotalNumAlertedIncomingFlows(),
+				      getTotalNumAlertedOutgoingFlows(),
+				      getTotalNumAlertedIncomingFlows() + getTotalNumAlertedOutgoingFlows()));
+    break;
+    
+  case DNS_QUERIES:
+    {
+      DnsStats *dns = getDNSstats();
+    
+      if(dns)
+	v->push_back(ActiveHostWalkerInfo(key,label,
+					  dns->getRcvdNumRepliesOk(),
+					  dns->getSentNumQueries(),
+					  dns->getRcvdNumRepliesOk() + dns->getSentNumQueries()));
+    }
+    break;
+    
+  case SYN_DISTRIBUTION:
+    {
+      HostStats *stats = getStats();
+
+      if(stats)
+	v->push_back(ActiveHostWalkerInfo(key,label,
+					  stats->getSentStats()->getNumSYN(),
+					  stats->getRecvStats()->getNumSYN(),
+					  getNumOutgoingFlows() + getNumIncomingFlows()));
+    }
+    break;
+    
+  case SYN_VS_RST:
+    {
+      HostStats *stats = getStats();
+
+      if(stats)
+	v->push_back(ActiveHostWalkerInfo(key,label,
+					  stats->getSentStats()->getNumSYN(),
+					  stats->getRecvStats()->getNumRST(),
+					  getNumOutgoingFlows() + getNumIncomingFlows()));
+    }
+    break;
+
+  case SYN_VS_SYNACK:
+    {
+      HostStats *stats = getStats();
+
+      if(stats)    
+	v->push_back(ActiveHostWalkerInfo(key,label,
+					  stats->getSentStats()->getNumSYN(),
+					  stats->getRecvStats()->getNumSYNACK(),
+					  getNumOutgoingFlows() + getNumIncomingFlows()));
+    }
+    break;
+
+  case TCP_PKTS_SENT_VS_RCVD:
+    {
+      HostStats *stats = getStats();
+
+      if(stats) {
+	L4Stats *l4 = stats->getL4Stats();
+
+	if(l4) {
+	  v->push_back(ActiveHostWalkerInfo(key,label,
+					    l4->getTCPSent()->getNumPkts(),
+					    l4->getTCPRcvd()->getNumPkts(),
+					    l4->getTCPSent()->getNumBytes() + l4->getTCPRcvd()->getNumBytes()));
+	}
+      }
+    }
+    break;
+
+  case TCP_BYTES_SENT_VS_RCVD:
+    {
+      HostStats *stats = getStats();
+      
+      if(stats) {
+	L4Stats *l4 = stats->getL4Stats();
+
+	if(l4) {
+	  v->push_back(ActiveHostWalkerInfo(key,label,
+					    l4->getTCPSent()->getNumBytes(),
+					    l4->getTCPRcvd()->getNumBytes(),
+					    l4->getTCPSent()->getNumBytes() + l4->getTCPRcvd()->getNumBytes()));
+	}
+      }
+    }
+    break;
+
+  case ACTIVE_ALERT_FLOWS:
+    v->push_back(ActiveHostWalkerInfo(key,label,
+				      getNumIncomingFlows(),
+				      getNumOutgoingFlows(),
+				      getNumAlertedFlows()));
+    break;
+
+  case TRAFFIC_RATIO:
+    v->push_back(ActiveHostWalkerInfo(key,label,
+				      ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd()),
+				      ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()),
+				      getNumBytesSent()+getNumBytesRcvd()));
+    break;
+
+  case SCORE:
+    v->push_back(ActiveHostWalkerInfo(key,label,
+				      getScoreAsClient(),
+				      getScoreAsServer(),
+				      getScoreAsClient()+getScoreAsServer()));
+    break;
+
+  case BLACKLISTED_FLOWS_HOSTS:
+    v->push_back(ActiveHostWalkerInfo(key,label,
+				      num_blacklisted_flows.as_client,
+				      num_blacklisted_flows.as_server,
+				      num_blacklisted_flows.as_client+num_blacklisted_flows.as_server));
+    break;
+  }
 }
 
 /* *************************************** */

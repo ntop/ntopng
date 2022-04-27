@@ -63,7 +63,7 @@ class Ntop {
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer to the Redis server. */
   Mutex m, users_m;
-  std::map<std::string, bool>cachedCustomLists;
+  std::map<std::string, bool> cachedCustomLists; /* Cache of lists filenames */
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
   ZMQPublisher *zmqPublisher;

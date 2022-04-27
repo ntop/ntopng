@@ -184,6 +184,11 @@ class HostStats: public GenericTrafficElement {
   inline bool has_score_anomaly(bool as_client) { return(as_client ? client_score_anomaly : server_score_anomaly); }
   inline u_int64_t lower_bound_score_anomaly(bool as_client) { return(as_client ? score_cli.getLastLowerBound() : score_srv.getLastLowerBound()); }
   inline u_int64_t upper_bound_score_anomaly(bool as_client) { return(as_client ? score_cli.getLastUpperBound() : score_srv.getLastUpperBound()); }
+
+  inline PacketStats* getSentStats() { return(&sent_stats); }
+  inline PacketStats* getRecvStats() { return(&recv_stats); }
+  inline L4Stats*    getL4Stats()    { return(&l4stats);    }
+
 };
 
 #endif

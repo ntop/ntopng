@@ -357,17 +357,18 @@ page_utils.add_menubar_section({
       entry = page_utils.menu_entries.periodicity_map,
       hidden = not periodicity_map_available,
       url = '/lua/pro/enterprise/network_maps.lua?map=periodicity_map',
-	 },
-	 {
-	    entry = page_utils.menu_entries.geo_map,
-	    hidden = interface.isLoopback() or not ntop.hasGeoIP(),
-	    url = '/lua/hosts_geomap.lua',
-	 },
-	 {
-	    entry = page_utils.menu_entries.hosts_map,
-	    url = '/lua/hosts_map.lua',
-	 },
-      }
+   },
+   {
+      entry = page_utils.menu_entries.geo_map,
+      hidden = interface.isLoopback() or not ntop.hasGeoIP(),
+      url = '/lua/hosts_geomap.lua',
+   },
+   {
+      entry = page_utils.menu_entries.hosts_map,
+      hidden = not ntop.isEnterprise(),
+      url = '/lua/pro/enterprise/hosts_map.lua',
+   },
+  }
 })
 
 -- ##############################################

@@ -4,7 +4,10 @@
 
 local hosts_map_utils = {}
 
+--
 -- Simple Lua "enumerator" to improve code readability
+-- Keep in sync with ntop_get_interface_hosts_info (LuaEngineInterface.cpp)
+--
 hosts_map_utils.HostsMapMode = {
     ALL_FLOWS = 0,
     UNREACHABLE_FLOWS  = 1,

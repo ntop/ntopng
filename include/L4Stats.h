@@ -16,6 +16,15 @@ class L4Stats {
   void incStats(time_t when, u_int8_t l4_proto,
         u_int64_t rcvd_packets, u_int64_t rcvd_bytes,
         u_int64_t sent_packets, u_int64_t sent_bytes);
+
+  inline TrafficStats* getTCPSent()     { return(&tcp_sent);      }
+  inline TrafficStats* getTCPRcvd()     { return(&tcp_rcvd);      }
+  inline TrafficStats* getUDPSent()     { return(&udp_sent);      }
+  inline TrafficStats* getUDPRcvd()     { return(&udp_rcvd);      }
+  inline TrafficStats* getICMPSent()    { return(&icmp_sent);     }
+  inline TrafficStats* getICMPRcvd(  )  { return(&icmp_rcvd);     }
+  inline TrafficStats* getOtherIPSent() { return(&other_ip_sent); }
+  inline TrafficStats* getOtherIPRcvd() { return(&other_ip_rcvd); }
 };
 
 #endif
