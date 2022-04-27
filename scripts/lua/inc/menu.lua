@@ -10,15 +10,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/toasts/?.lua;" .. packag
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
 
-local alerts_api = require("alerts_api")
 local recording_utils = require "recording_utils"
-local telemetry_utils = require "telemetry_utils"
-local ts_utils = require("ts_utils_core")
 local format_utils = require "format_utils"
 local page_utils = require("page_utils")
-local delete_data_utils = require "delete_data_utils"
 local toasts_manager = require("toasts_manager")
-local host_pools = require "host_pools"
 local blog_utils = require("blog_utils")
 local template_utils = require "template_utils"
 local auth = require "auth"
@@ -30,7 +25,6 @@ local info = ntop.getInfo()
 local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
 local is_system_interface = page_utils.is_system_view()
 local behavior_utils = require("behavior_utils")
-local checks = require "checks"
 local session_user = _SESSION['user']
 
 local observationPointId = nil
@@ -162,14 +156,9 @@ else
             entry = page_utils.menu_entries.divider,
          },
          {
-            entry = page_utils.menu_entries.endpoint_notifications,
+            entry = page_utils.menu_sections.notifications,
             hidden = not is_admin,
             url = '/lua/admin/endpoint_notifications_list.lua',
-         },
-         {
-            entry = page_utils.menu_entries.endpoint_recipients,
-            hidden = not is_admin,
-            url = '/lua/admin/recipients_list.lua',
          },
       }
    })
@@ -584,26 +573,15 @@ page_utils.add_menubar_section({
 
 -- ##############################################
 
-page_utils.add_menubar_section({
-   section = page_utils.menu_sections.notifications,
-   hidden = not is_system_interface,
-   entries = {
-      {
-         entry = page_utils.menu_entries.endpoint_notifications,
-         hidden = not is_admin,
-         url = '/lua/admin/endpoint_notifications_list.lua',
-      },
-      {
-         entry = page_utils.menu_entries.endpoint_recipients,
-         hidden = not is_admin,
-         url = '/lua/admin/recipients_list.lua',
-      }
-   }
-})
+-- Notifications
+page_utils.add_menubar_section(
+  {
+    section = page_utils.menu_sections.notifications,
+    hidden = not is_system_interface or not is_admin,
+    url = '/lua/admin/endpoint_notifications_list.lua',
+  }
+)
 
--- ##############################################
-
--- Admin
 page_utils.add_menubar_section(
    {
       section = page_utils.menu_sections.admin,

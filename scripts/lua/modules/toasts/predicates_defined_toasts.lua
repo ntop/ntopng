@@ -602,7 +602,7 @@ function predicates.create_recipients_for_endpoint(toast, container)
         link = "https://www.ntop.org/guides/ntopng/scripts/alert_endpoints.html"
     })
     local action = {
-        url = ntop.getHttpPrefix() .. "/lua/admin/recipients_list.lua",
+        url = ntop.getHttpPrefix() .. "/lua/admin/endpoint_notifications_list.lua?subdir=recipient",
         title = i18n("create")
     }
 

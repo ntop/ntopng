@@ -8,12 +8,18 @@ require "lua_utils"
 
 local page_utils = require("page_utils")
 local ui_utils = require("ui_utils")
-local template = require "template_utils"
+local template_utils = require "template_utils"
 local json = require "dkjson"
 local script_manager = require("script_manager")
 local endpoints = require("endpoints")
+local checks = require("checks")
+local alert_severities = require "alert_severities"
+local host_pools = require "host_pools":create()
 
 sendHTTPContentTypeHeader('text/html')
+
+local NOTIFICATION_URL = "/lua/admin/endpoint_notifications_list.lua"
+local check_subdir = _GET["subdir"] or "endpoint"
 
 if not isAdministratorOrPrintErr() then
     return
@@ -37,21 +43,38 @@ local function get_max_configs_available()
 end
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.endpoint_notifications)
+
+local sub_menu_entries = {
+  ['endpoint'] = {
+     order = 0,
+     entry = page_utils.menu_entries.endpoint_notifications
+  },
+  ['recipient'] = {
+     order = 1,
+     entry = page_utils.menu_entries.endpoint_recipients
+  },
+}
+
+local active_entry = sub_menu_entries[check_subdir].entry or page_utils.menu_entries.endpoint_notifications
+local navbar_menu = {}
+
+page_utils.set_active_menu_entry(active_entry)
+
+for key, sub_menu in pairsByField(sub_menu_entries, 'order', asc) do
+  navbar_menu[#navbar_menu+1] = {
+     active = (check_subdir == key),
+     page_name = key,
+     label = i18n(sub_menu.entry.i18n_title),
+     url = NOTIFICATION_URL .. "?subdir=" .. key
+ }
+end
+
 
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local url = ntop.getHttpPrefix() .. "/lua/admin/endpoint_notifications_list.lua"
-page_utils.print_navbar(i18n("endpoint_notifications.endpoint_list"), url, {
-    {
-        active = true,
-        page_name = "home",
-        label = "<i class=\"fas fa-lg fa-home\"></i>",
-        url = url
-    }
-})
-
+page_utils.print_navbar(i18n("endpoint_notifications.notifications"), '#', navbar_menu)
 
 -- localize endpoint name types in a table
 local endpoints_types = endpoints.get_types(false)
@@ -72,26 +95,45 @@ for endpoint_key, endpoint in pairs(endpoints_types) do
 
 end
 
+local endpoint_list = endpoints.get_types(true --[[ exclude builtin --]])
+
+local can_create_recipient = not table.all(endpoint_list,
+    function(endpoint)
+        return (endpoint.builtin ~= nil)
+    end
+)
+
 -- Prepare the response
 local context = {
-    notifications = {
-        endpoints = endpoints.get_types(true --[[ exclude builtin --]]),
-        endpoints_info = get_max_configs_available(),
-        endpoint_types_labels = endpoint_types_labels,
-        filters = {
-            endpoint_types = endpoint_type_filters
-        }
+  notifications = {
+    endpoint_types_labels = endpoint_types_labels,
+    endpoint_list = endpoints,
+    can_create_recipient = can_create_recipient,
+    check_categories = checks.check_categories,
+    alert_severities = alert_severities,
+    endpoints = endpoint_list,
+    endpoints_info = get_max_configs_available(),
+    filters = {
+        endpoint_types = endpoint_type_filters
     },
-    ui_utils = ui_utils,
-    template_utils = template,
-    script_manager = script_manager,
-    page_utils = page_utils,
-    json = json,
-    info = ntop.getInfo()
+    pools = {
+        host_pools = host_pools:get_all_pools(),
+    },
+  },
+  ui_utils = ui_utils,
+  template_utils = template_utils,
+  script_manager = script_manager,
+  page_utils = page_utils,
+  json = json,
+  info = ntop.getInfo()
 }
 
 -- print config_list.html template
-print(template.gen("pages/endpoint_notifications_list.template", context))
+if check_subdir == "endpoint" then
+  template_utils.render("pages/endpoint_notifications_list.template", context)
+else
+  template_utils.render("pages/recipients_list.template", context)
+end
 
 -- append the menu below the page
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

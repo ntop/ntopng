@@ -171,12 +171,12 @@
                 render: (recipients, type) => {
                     if (type == "display") {
                         if (recipients.length == 0) {
-                            const destPage = NtopUtils.buildURL('/lua/admin/recipients_list.lua', {});
+                            const destPage = NtopUtils.buildURL('/lua/admin/endpoint_notifications_list.lua?subdir=recipient', {});
                             return `<a href='${destPage}'>${i18n_ext.no_recipients}</a>`;
                         } else {
                             return NtopUtils.arrayToListString(recipients.map(recipient => {
 
-                                const destPage = NtopUtils.buildURL('/lua/admin/recipients_list.lua', {
+                                const destPage = NtopUtils.buildURL('/lua/admin/endpoint_notifications_list.lua?subdir=recipient', {
                                     recipient_id: recipient.recipient_id,
                                 });
 
