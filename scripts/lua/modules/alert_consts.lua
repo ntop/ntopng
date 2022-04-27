@@ -464,14 +464,16 @@ end
 -- @param `status info`, A human readable (localized) status info
 -- @param `alerted_severity`, Integer severity of the alert associated to this status
 -- @return The HTML with icon and ALT text, or empty if no icon is available
-function alert_consts.alertTypeIcon(alert_info, alerted_severity)
-   local severity = alert_consts.alertSeverityById(alerted_severity)
+function alert_consts.alertTypeIcon(alert_info, alerted_severity, icon_size)
+  local severity = alert_consts.alertSeverityById(alerted_severity)
+  local icon = ''
 
-   if severity then
-      return "<i class='"..severity.icon.."' title='"..noHtml(alert_consts.alertTypeLabel(alert_info, true)) .."'></i> "
-   end
+  if severity then
+    local severity_icon = (icon_size or 'fa-fw') .. " " .. severity.icon
+    icon = "<i class='"..severity_icon.."' title='"..noHtml(alert_consts.alertTypeLabel(alert_info, true)) .."'></i> "
+  end
 
-   return ""
+  return icon
 end
 
 -- ##############################################

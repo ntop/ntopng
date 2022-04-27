@@ -191,7 +191,6 @@ sendHTTPContentTypeHeader('text/html')
 warn_shown = 0
 
 local alert_banners = {}
-local status_icon = "<span class='text-danger'><i class=\"fas fa-lg fa-exclamation-triangle\"></i></span>"
 
 if isAdministrator() then
    if _POST["custom_hosts"] and _POST["l7proto"] then
@@ -1068,12 +1067,16 @@ else
 	       first = false
 	    end
 
+      local status_icon = alert_consts.alertTypeIcon(score_alert.alert_id, ntop.mapScoreToSeverity(score_alert.alert_id), 'fa-lg')
+
 	    print(string.format('<tr>'))
 
-	    print(string.format('<td>%s %s %s</td>',
+	    local msg = string.format('<td>%s %s %s</td>',
 				score_alert.message,
-				score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk) or '',
-				score_alert.is_predominant and status_icon or ''))
+				(score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk)) or '',
+				status_icon or '')
+
+      print(msg)
 
 	    if score_alert.alert_id then
 	       print('<td>')
