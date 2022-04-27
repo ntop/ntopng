@@ -14,6 +14,7 @@ local script_manager = require("script_manager")
 local endpoints = require("endpoints")
 local checks = require("checks")
 local alert_severities = require "alert_severities"
+local am_utils = require "am_utils"
 local host_pools = require "host_pools":create()
 
 sendHTTPContentTypeHeader('text/html')
@@ -103,6 +104,22 @@ local can_create_recipient = not table.all(endpoint_list,
     end
 )
 
+local am_hosts = am_utils.getHosts()
+local am_hosts_list = {}
+
+for key, am_host in pairs(am_hosts) do
+   local label = am_host.label
+   local m_info = am_utils.getMeasurementInfo(am_host.measurement)
+   if m_info then
+      label = label .. ' · ' .. i18n(m_info.i18n_label)
+   end
+
+   am_hosts_list[#am_hosts_list+1] = {
+      id = key,
+      name = label,
+   }
+end
+
 -- Prepare the response
 local context = {
   notifications = {
@@ -113,6 +130,7 @@ local context = {
     alert_severities = alert_severities,
     endpoints = endpoint_list,
     endpoints_info = get_max_configs_available(),
+    am_hosts = am_hosts_list,
     filters = {
         endpoint_types = endpoint_type_filters
     },
