@@ -198,7 +198,7 @@
             enabled: CAN_CREATE_RECIPIENT,
             action: function (e, dt, node, config) {
                 $("#recipient-name-input").val("");
-                $("#recipient-severity-select").val($("#recipient-severity-select option:first").val());
+                $("#recipient-severity-select").val($("#recipient-severity-select option[value='5']").val());
                 $("#endpoint-select").val($("#endpoint-select option:first").val());
                 $("#recipient-template-container-add-id input").val("");
 		$('#add-recipient-categories-select').selectpicker('selectAll');
