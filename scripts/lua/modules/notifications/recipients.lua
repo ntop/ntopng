@@ -49,6 +49,9 @@ function recipients.initialize()
       all_host_pools[#all_host_pools + 1] = pool.pool_id
    end
 
+   -- Add active monitoring hosts
+   local all_am_hosts = {} -- No hosts by default
+
    for endpoint_key, endpoint in pairs(endpoints.get_types()) do
       if endpoint.builtin then
 	 -- Delete (if existing) the old, string-keyed endpoint configuration
@@ -71,6 +74,7 @@ function recipients.initialize()
 	       all_categories,
 	       default_builtin_minimum_severity,
                all_host_pools, -- host pools
+               all_am_hosts, -- active monitoring hosts
 	       {} --[[ no recipient params --]]
 	    )
 
@@ -250,7 +254,7 @@ end
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param safe_params A table with endpoint recipient params already sanitized
 -- @return nil
-local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, safe_params)
+local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, am_hosts_ids, safe_params)
    -- Write the endpoint recipient config into another hash
    local k = _get_recipient_details_key(recipient_id)
 
@@ -259,6 +263,7 @@ local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoin
 				 check_categories = check_categories,
 				 minimum_severity = minimum_severity,
 				 host_pools = host_pools_ids,
+				 am_hosts = am_hosts_ids,
 				 recipient_params = safe_params}))
 
    return recipient_id
@@ -273,7 +278,7 @@ end
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
-function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, recipient_params)
+function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, am_hosts_ids, recipient_params)
    local locked = _lock()
    local res = { 
       status = "failed",
@@ -307,7 +312,7 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
 	       -- Assign the recipient id
 	       local recipient_id = _assign_recipient_id()
 	       -- Persist the configuration
-	       _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, safe_params)
+	       _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, am_hosts_ids, safe_params)
 
 	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
 	       ntop.recipient_register(recipient_id, minimum_severity, 
@@ -352,7 +357,7 @@ end
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, recipient_params)
+function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_categories, minimum_severity, host_pools_ids, am_hosts_ids, recipient_params)
    local locked = _lock()
    local res = { status = "failed" }
 
@@ -383,6 +388,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
 		  check_categories,
 		  minimum_severity,
 		  host_pools_ids,
+                  am_hosts_ids,
 		  safe_params)
 
 	       -- Finally, register the recipient in C to make sure also the C knows about this edit
@@ -570,6 +576,12 @@ function recipients.get_recipient(recipient_id, include_stats)
 	    end
 	 end
 
+	 -- Add active monitoring hosts
+	 if not recipient_details["am_hosts"] then
+            -- No hosts by default
+	    recipient_details["am_hosts"] = {}
+	 end
+
 	 -- Add minimum alert severity. nil or empty minimum severity assumes a minimum severity of notice
 	 if not tonumber(recipient_details["minimum_severity"]) then
 	    recipient_details["minimum_severity"] = default_builtin_minimum_severity
@@ -728,6 +740,17 @@ function recipients.dispatch_notification(notification, current_script)
                   if recipient.recipient_name ~= "builtin_recipient_alert_store_db" and recipient.host_pools then
                      local host_pools_map = swapKeysValues(recipient.host_pools)
                      if not host_pools_map[notification.host_pool_id] then
+                        recipient_ok = false
+                     end
+                  end
+               end
+            end
+
+            if recipient_ok then
+               if notification.entity_id == alert_entities.am_host.entity_id and notification.entity_val then
+                  if recipient.recipient_name ~= "builtin_recipient_alert_store_db" and recipient.am_hosts then
+                     local am_hosts_map = swapKeysValues(recipient.am_hosts)
+                     if not am_hosts_map[notification.entity_val] then
                         recipient_ok = false
                      end
                   end

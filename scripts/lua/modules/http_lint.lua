@@ -1564,6 +1564,7 @@ local known_parameters = {
    ["recipient_id"]           = validateNumber,
    ["recipient_check_categories"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
    ["recipient_host_pools"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
+   ["recipient_am_hosts"] = validateEmptyOr(validateListOfTypeInline(validateUnquoted)),
    ["recipient_interface_pools"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
    ["recipient_minimum_severity"]       = validateNumber,
    ["endpoint_conf_name"]     = validateUnquoted,

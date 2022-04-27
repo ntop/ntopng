@@ -95,7 +95,8 @@
             endpoint_id: $(`${formSelector} [name='endpoint']`).val(),
             recipient_minimum_severity: $(`${formSelector} [name='recipient_minimum_severity']`).val(),
             recipient_check_categories: $(`${formSelector} [name='recipient_check_categories']`).val().join(","),
-            recipient_host_pools: $(`${formSelector} [name='recipient_host_pools']`).val().join(",")
+            recipient_host_pools: $(`${formSelector} [name='recipient_host_pools']`).val().join(","),
+            recipient_am_hosts: $(`${formSelector} [name='recipient_am_hosts']`).val().join(",")
         };
 
         // load each recipient params inside the template container in params
@@ -205,6 +206,8 @@
 		$('#add-recipient-categories-select').selectpicker('refresh');
 		$('#add-recipient-host-pools-select').selectpicker('selectAll');
 		$('#add-recipient-host-pools-select').selectpicker('refresh');
+		$('#add-recipient-am-hosts-select').selectpicker('selectAll');
+		$('#add-recipient-am-hosts-select').selectpicker('refresh');
                 $('#add-recipient-modal').modal('show');
             }
         },
@@ -480,6 +483,9 @@
             $(`#edit-recipient-modal form [name='recipient_host_pools']`).val(recipient.host_pools);
             $(`#edit-recipient-modal form [name='recipient_host_pools']`).selectpicker('refresh');
 
+            $(`#edit-recipient-modal form [name='recipient_am_hosts']`).val(recipient.am_hosts);
+            $(`#edit-recipient-modal form [name='recipient_am_hosts']`).selectpicker('refresh');
+
             $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {
                 $(this).val(recipient.recipient_params[$(this).attr('name')]);
             });
@@ -600,6 +606,17 @@
     });
 
     $(`[name='recipient_host_pools']`).on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
+        if (!$(this).hasClass("allow-no-selection")) {
+            const lessThanOne = $(this).val().length < 1;
+
+            if (lessThanOne) {
+                $(this).val(previousValue);
+                $(this).selectpicker('refresh');
+            }
+        }
+    });
+
+    $(`[name='recipient_am_hosts']`).on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
         if (!$(this).hasClass("allow-no-selection")) {
             const lessThanOne = $(this).val().length < 1;
 

@@ -1914,6 +1914,7 @@ local lang = {
     ["fill_pct"] = "Fill",
     ["get_users_recipient_failed"] = "Sorry, but the recipient users loading has failed. Please try later.",
     ["internal_error"] = "Internal error",
+    ["message_am_hosts"] = "Filter alerts matching the selected Active Monitoring entries.",
     ["message_host_pools"] = "Filter alerts matching the selected pools, whenever possible (e.g. Flow and Host alerts).",
     ["min_severity"] = "Min. Severity",
     ["name"] = "Name",

@@ -7,6 +7,7 @@ require "lua_utils"
 local alert_severities = require "alert_severities"
 local checks = require "checks"
 local host_pools = require "host_pools":create()
+local am_utils = require "am_utils"
 
 -- ##############################################
 
@@ -61,6 +62,33 @@ function recipients_rest_utils.parse_host_pools(pools_string)
 	     res[#res + 1] = pool_id
 	     break
 	  end
+       end
+    end
+
+    return res
+end
+
+-- ##############################################
+
+-- @brief Parses and validates a comma-separated list of active monitoring hosts into a lua array
+-- @return A lua array of valid ids
+function recipients_rest_utils.parse_am_hosts(hosts_string)
+   local hosts_list = {}
+
+    if isEmptyString(hosts_string) then return hosts_list end
+
+    -- Unfold the hosts csv
+    hosts_list = hosts_string:split(",") or {hosts_string}
+
+    local am_hosts = am_utils.getHosts()
+
+    local res = {}
+    for _, host_id in pairs(hosts_list) do
+       if am_hosts[host_id] then
+	  res[#res + 1] = host_id
+       else
+          -- Debug
+          tprint(host_id .. " AM host not found")
        end
     end
 

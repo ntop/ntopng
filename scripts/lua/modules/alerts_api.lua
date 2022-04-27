@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
 
-
 local json = require("dkjson")
 local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")

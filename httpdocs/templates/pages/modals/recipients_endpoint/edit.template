@@ -70,11 +70,24 @@
                         </label>
                         <div class="col-sm-5">
                             <select multiple name="recipient_host_pools" class="selectpicker allow-no-selection col-sm-12" id="edit-recipient-host-pools-select">
-                                {% for _, pool in pairsByKeys(pools.host_pools) do %}
+                                {% for _, pool in pairsByField(pools.host_pools, "name", asc) do %}
                                     <option value="{{ pool.pool_id }}">{{ pool.name }}</option>
                                 {% end %}
                             </select>
                             <small class="text-muted">{{ i18n('endpoint_notifications.message_host_pools') }}</small>
+                        </div>
+                    </div>
+                    <div class="mb-3 row hide-on-default-recipient">
+                        <label class="col-form-label col-sm-3" for="edit-recipient-am-hosts-select">
+                            <b>{{ i18n("active_monitoring_stats.active_monitoring") }}</b>
+                        </label>
+                        <div class="col-sm-5">
+                            <select multiple name="recipient_am_hosts" class="selectpicker allow-no-selection col-sm-12" id="edit-recipient-am-hosts-select">
+                                {% for _, host in pairsByField(am_hosts, "name", asc) do %}
+                                    <option value="{{ host.id }}">{{ host.name }}</option>
+                                {% end %}
+                            </select>
+                            <small class="text-muted">{{ i18n('endpoint_notifications.message_am_hosts') }}</small>
                         </div>
                     </div>
                     <span class="invalid-feedback"></span>
