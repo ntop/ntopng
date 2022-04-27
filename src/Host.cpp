@@ -1960,7 +1960,8 @@ u_int16_t Host::get_country_code() {
 /* Visit the host and add it to the vector */
 void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
   char buf[64], key[96], *label =  get_visual_name(buf, sizeof(buf));
-
+  u_int64_t tot;
+  
   if(get_vlan_id() == 0)
     snprintf(key, sizeof(key), "%s", printMask(buf, sizeof(buf)));
   else
@@ -1984,21 +1985,28 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
     break;
 
   case ALERTED_FLOWS:
-    v->push_back(ActiveHostWalkerInfo(key,label,
-				      getTotalNumAlertedIncomingFlows(),
-				      getTotalNumAlertedOutgoingFlows(),
-				      getTotalNumAlertedIncomingFlows() + getTotalNumAlertedOutgoingFlows()));
+    tot = getTotalNumAlertedIncomingFlows() + getTotalNumAlertedOutgoingFlows();
+
+    if(tot > 0)
+      v->push_back(ActiveHostWalkerInfo(key,label,
+					getTotalNumAlertedIncomingFlows(),
+					getTotalNumAlertedOutgoingFlows(),
+					tot));
     break;
     
   case DNS_QUERIES:
     {
       DnsStats *dns = getDNSstats();
     
-      if(dns)
-	v->push_back(ActiveHostWalkerInfo(key,label,
-					  dns->getRcvdNumRepliesOk(),
-					  dns->getSentNumQueries(),
-					  dns->getRcvdNumRepliesOk() + dns->getSentNumQueries()));
+      if(dns) {
+	tot = dns->getRcvdNumRepliesOk() + dns->getSentNumQueries();
+
+	if(tot > 0)
+	  v->push_back(ActiveHostWalkerInfo(key,label,
+					    dns->getRcvdNumRepliesOk(),
+					    dns->getSentNumQueries(),
+					    tot));
+      }
     }
     break;
     
@@ -2006,11 +2014,15 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
     {
       HostStats *stats = getStats();
 
-      if(stats)
-	v->push_back(ActiveHostWalkerInfo(key,label,
-					  stats->getSentStats()->getNumSYN(),
-					  stats->getRecvStats()->getNumSYN(),
-					  getNumOutgoingFlows() + getNumIncomingFlows()));
+      if(stats) {
+	tot = getNumOutgoingFlows() + getNumIncomingFlows();
+
+	if(tot > 0)
+	  v->push_back(ActiveHostWalkerInfo(key,label,
+					    stats->getSentStats()->getNumSYN(),
+					    stats->getRecvStats()->getNumSYN(),
+					    tot));
+      }
     }
     break;
     
@@ -2018,11 +2030,15 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
     {
       HostStats *stats = getStats();
 
-      if(stats)
-	v->push_back(ActiveHostWalkerInfo(key,label,
-					  stats->getSentStats()->getNumSYN(),
-					  stats->getRecvStats()->getNumRST(),
-					  getNumOutgoingFlows() + getNumIncomingFlows()));
+      if(stats) {
+	tot = getNumOutgoingFlows() + getNumIncomingFlows();
+
+	if(tot > 0)
+	  v->push_back(ActiveHostWalkerInfo(key,label,
+					    stats->getSentStats()->getNumSYN(),
+					    stats->getRecvStats()->getNumRST(),
+					    tot));
+      }
     }
     break;
 
@@ -2030,11 +2046,15 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
     {
       HostStats *stats = getStats();
 
-      if(stats)    
-	v->push_back(ActiveHostWalkerInfo(key,label,
-					  stats->getSentStats()->getNumSYN(),
-					  stats->getRecvStats()->getNumSYNACK(),
-					  getNumOutgoingFlows() + getNumIncomingFlows()));
+      if(stats) {
+	tot = getNumOutgoingFlows() + getNumIncomingFlows();
+
+	if(tot > 0)
+	  v->push_back(ActiveHostWalkerInfo(key,label,
+					    stats->getSentStats()->getNumSYN(),
+					    stats->getRecvStats()->getNumSYNACK(),
+					    tot));
+      }
     }
     break;
 
@@ -2046,10 +2066,13 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 	L4Stats *l4 = stats->getL4Stats();
 
 	if(l4) {
-	  v->push_back(ActiveHostWalkerInfo(key,label,
-					    l4->getTCPSent()->getNumPkts(),
-					    l4->getTCPRcvd()->getNumPkts(),
-					    l4->getTCPSent()->getNumBytes() + l4->getTCPRcvd()->getNumBytes()));
+	  tot = l4->getTCPSent()->getNumBytes() + l4->getTCPRcvd()->getNumBytes();
+
+	  if(tot > 0)
+	    v->push_back(ActiveHostWalkerInfo(key,label,
+					      l4->getTCPSent()->getNumPkts(),
+					      l4->getTCPRcvd()->getNumPkts(),
+					      tot));
 	}
       }
     }
@@ -2063,41 +2086,58 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 	L4Stats *l4 = stats->getL4Stats();
 
 	if(l4) {
-	  v->push_back(ActiveHostWalkerInfo(key,label,
-					    l4->getTCPSent()->getNumBytes(),
-					    l4->getTCPRcvd()->getNumBytes(),
-					    l4->getTCPSent()->getNumBytes() + l4->getTCPRcvd()->getNumBytes()));
+	  tot = l4->getTCPSent()->getNumBytes() + l4->getTCPRcvd()->getNumBytes();
+
+	  if(tot > 0)
+	    v->push_back(ActiveHostWalkerInfo(key,label,
+					      l4->getTCPSent()->getNumBytes(),
+					      l4->getTCPRcvd()->getNumBytes(),
+					      tot));
 	}
       }
     }
     break;
 
   case ACTIVE_ALERT_FLOWS:
-    v->push_back(ActiveHostWalkerInfo(key,label,
-				      getNumIncomingFlows(),
-				      getNumOutgoingFlows(),
-				      getNumAlertedFlows()));
+    if(getNumAlertedFlows() > 0)
+      v->push_back(ActiveHostWalkerInfo(key,label,
+					getNumIncomingFlows(),
+					getNumOutgoingFlows(),
+					getNumAlertedFlows()));
     break;
 
   case TRAFFIC_RATIO:
-    v->push_back(ActiveHostWalkerInfo(key,label,
-				      ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd()),
-				      ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()),
-				      getNumBytesSent()+getNumBytesRcvd()));
+    {
+      float bytes_ratio = ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd())*100.;
+      float pkts_ratio = ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd())*100.;
+
+      tot = getNumBytesSent()+getNumBytesRcvd();
+      
+      if(tot > 0)
+	v->push_back(ActiveHostWalkerInfo(key, label,
+					  bytes_ratio, pkts_ratio,
+					  tot));
+    }
     break;
 
   case SCORE:
-    v->push_back(ActiveHostWalkerInfo(key,label,
-				      getScoreAsClient(),
-				      getScoreAsServer(),
-				      getScoreAsClient()+getScoreAsServer()));
+    tot = getScoreAsClient()+getScoreAsServer();
+
+    if(tot > 0)
+      v->push_back(ActiveHostWalkerInfo(key,label,
+					getScoreAsClient(),
+					getScoreAsServer(),
+					tot));
     break;
 
   case BLACKLISTED_FLOWS_HOSTS:
-    v->push_back(ActiveHostWalkerInfo(key,label,
-				      num_blacklisted_flows.as_client,
-				      num_blacklisted_flows.as_server,
-				      num_blacklisted_flows.as_client+num_blacklisted_flows.as_server));
+    tot = num_blacklisted_flows.as_client+num_blacklisted_flows.as_server;
+
+    if(tot > 0)
+      v->push_back(ActiveHostWalkerInfo(key,label,
+					num_blacklisted_flows.as_client,
+					num_blacklisted_flows.as_server,
+					tot));
     break;
   }
 }

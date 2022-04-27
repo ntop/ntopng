@@ -38,7 +38,7 @@ void ActiveHostWalkerInfo::lua(lua_State* vm) {
 
   /* ********** */
   
-  lua_push_uint32_table_entry(vm, "x", x);
-  lua_push_uint32_table_entry(vm, "y", y);
+  lua_push_int64_table_entry(vm, "x", x);
+  lua_push_int64_table_entry(vm, "y", y);
   lua_push_uint64_table_entry(vm, "z", z);
 }  

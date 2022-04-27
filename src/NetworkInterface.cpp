@@ -9697,8 +9697,9 @@ static bool active_hosts_walker(GenericHashEntry *h, void *user_data, bool *matc
 
 static bool walkerSort(const ActiveHostWalkerInfo &a,
 		       const ActiveHostWalkerInfo &b) {
-  return(a.getZ() < b.getZ());
+  return(a.getZ() > b.getZ());
 }
+
 /* *************************************** */
 
 int NetworkInterface::walkActiveHosts(lua_State* vm,
@@ -9728,6 +9729,8 @@ int NetworkInterface::walkActiveHosts(lua_State* vm,
     for(it = m.info.begin(); (num < maxHits) && (it != m.info.end()); ++it, num++) {
       it->lua(vm);
 
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %u", num+1, it->getZ());
+      
       lua_rawseti(vm, -2, num + 1); /* Array */
     }
 

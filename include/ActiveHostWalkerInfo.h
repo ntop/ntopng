@@ -27,12 +27,14 @@
 class ActiveHostWalkerInfo {
 private:
   std::string name, label;
-  u_int32_t x, y;
+  int64_t x, y;
+  
   u_int64_t z;
 
 public:
-  ActiveHostWalkerInfo(char* _name, char* _label, u_int32_t _x,
-		       u_int32_t _y, u_int64_t _z) {
+  ActiveHostWalkerInfo(char* _name, char* _label,
+		       int64_t _x, int64_t _y,
+		       u_int64_t _z) {
     name.assign(_name), label.assign(_label), x = _x, y = _y, z = _z;    
   }
 

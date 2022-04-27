@@ -3402,7 +3402,7 @@ local lang = {
     ["labels"] = {
       ["af_c"] = "Alerted Flows as Client",
       ["af_s"] = "Alerted Flows as Server",
-      ["b_ratio"] = "Bytes Ratio [-1 = Download, 0 = Mixed, 1 = Upload]",
+      ["b_ratio"] = "Bytes Ratio [-100 = Download, 0 = Mixed, 100 = Upload]",
       ["blacklisted_as_client"] = "Num Client Flows with Blacklisted Hosts",
       ["blacklisted_as_server"] = "Num Server Flows with Blacklisted Hosts",
       ["client_score"] = "Score as Attacker",

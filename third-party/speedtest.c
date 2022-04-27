@@ -257,11 +257,19 @@ static int do_latency(char *p_url)
   sprintf(latency_url, "%s%s", p_url, LATENCY_TXT_URL);
   sprintf(useragent, "curl/%.02f.0", v);
 
+#ifdef DEBUG_SPEEDTEST
+  printf("Calling %s\n", latency_url);  
+#endif
+  
   curl_easy_setopt(curl, CURLOPT_URL, latency_url);
   curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
   curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L);
+
+#ifdef DEBUG_SPEEDTEST
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
 
   res = curl_easy_perform(curl);
 
@@ -564,7 +572,11 @@ static void* do_upload(void *p) {
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, NULL);
   curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
-  
+
+#ifdef DEBUG_SPEEDTEST
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+
   while (loop) {
     double size_upload;
 
@@ -737,9 +749,14 @@ static int get_client_info(struct client_info *p_client)
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &web);
   curl_easy_setopt(curl, CURLOPT_USERAGENT, "haibbo speedtest-cli");
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-  //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+#ifdef DEBUG_SPEEDTEST
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+
   res = curl_easy_perform(curl);
   curl_easy_cleanup(curl);
+  
   if (res != CURLE_OK) {
 #ifdef DEBUG_SPEEDTEST
     printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
@@ -774,6 +791,7 @@ static int get_closest_server()
   struct server_info server;
   int rv = NOK;
   char useragent[16];
+  const char *url = "http://www.speedtest.net/speedtest-servers.php";
   double v = (double) (rand() % 1000) / 100;
   
   memset(&web, 0, sizeof(web));
@@ -781,14 +799,23 @@ static int get_closest_server()
   
   curl = curl_easy_init();
 
-  curl_easy_setopt(curl, CURLOPT_URL, "http://www.speedtest.net/speedtest-servers.php");
+#ifdef DEBUG_SPEEDTEST
+  printf("Retrieving servers list %s\n", url);
+#endif
+
+  curl_easy_setopt(curl, CURLOPT_URL, url);
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_web_buf);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &web);
   curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
-  //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+#ifdef DEBUG_SPEEDTEST
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+  
   res = curl_easy_perform(curl);
   curl_easy_cleanup(curl);
+  
   if (res != CURLE_OK) {
 #ifdef DEBUG_SPEEDTEST
     printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));

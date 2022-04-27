@@ -133,6 +133,15 @@ extern void lua_push_nil_table_entry(lua_State *L, const char *key);
 extern void lua_push_uint64_table_entry(lua_State *L, const char *key, u_int64_t value);
 
 /**
+ * @brief Push int64 value to table entry specify the key.
+ * 
+ * @param L The lua state.
+ * @param key The key of hash table.
+ * @param value The value of hash table.
+ */
+void lua_push_int64_table_entry(lua_State *L, const char *key, int64_t value);
+
+/**
  * @brief Push int32 value to table entry specify the key.
  * 
  * @param L The lua state.
