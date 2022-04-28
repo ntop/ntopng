@@ -3520,26 +3520,55 @@ char* Ntop::getPersistentCustomListName(char *list_name) {
 /* ******************************************* */
 
 void Ntop::setZoneInfo() {
+
+  
+#ifdef __FreeBSD__
+  FILE *fd = fopen("/var/db/zoneinfo", "r");
+
+  zoneinfo = NULL;
+
+  if(fd != NULL) {
+    char timezone[64];
+
+    if(fgets(timezone, sizeof(timezone), fd)) {
+      int len = strlen(timezone);
+
+      if(len > 0) timezone[len-1] = '\0';
+      zoneinfo = strdup(timezone);
+    }
+    
+    fclose(fd);
+  }
+
+#else
   char buf[64];
   ssize_t rc = readlink("/etc/localtime", buf, sizeof(buf));
   u_int num_slash = 0;
 
   zoneinfo = NULL;
-
-  if(rc <= 0) return; else rc--;
   
-  while(rc > 0) {
-    if(buf[rc] == '/') {
-      if(++num_slash == 2)
-	break;
+  if(rc > 0) {
+    rc--;
+  
+    while(rc > 0) {
+      if(buf[rc] == '/') {
+	if(++num_slash == 2)
+	  break;
+      }
+
+      rc--;
     }
 
-    rc--;
+    if(num_slash == 2) {
+      rc++;
+      zoneinfo = strdup(&buf[rc]);   
+    }
   }
+#endif
 
-  if(num_slash == 2) {
-    rc++;
-    zoneinfo = strdup(&buf[rc]);   
+  if(zoneinfo == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find timezone: using UTC");
+    zoneinfo = strdup("Europe/London"); /* UTC */
   }
 
   if(zoneinfo)
