@@ -98,15 +98,20 @@ struct server_info
   double distance;
 };
 
-int depth;
-struct client_info client;
-struct server_info servers[MAX_CLOSEST_SERVER_NUM];
-int num_servers = 0;
+static int depth;
+static struct client_info client;
+static struct server_info servers[MAX_CLOSEST_SERVER_NUM];
+static int num_servers = 0;
+static pthread_mutex_t the_mutex;
+
+/* ***************************************** */
 
 static int calc_past_time(struct timeval* start, struct timeval* end)
 {
   return (end->tv_sec - start->tv_sec) * 1000 + (end->tv_usec - start->tv_usec)/1000;
 }
+
+/* ***************************************** */
 
 static size_t write_data(void* ptr, size_t size, size_t nmemb, void *stream)
 {
@@ -124,6 +129,7 @@ static size_t write_data(void* ptr, size_t size, size_t nmemb, void *stream)
   return size * nmemb;
 }
 
+/* ***************************************** */
 
 size_t
 write_web_buf(void *ptr, size_t size, size_t nmemb, void *data)
@@ -140,10 +146,13 @@ write_web_buf(void *ptr, size_t size, size_t nmemb, void *data)
   return realsize;
 }
 
-double radian(double d)
-{
+/* ***************************************** */
+
+double radian(double d) {
   return d * PI / 180.0;
 }
+
+/* ***************************************** */
 
 double get_distance(double lat1, double lng1, double lat2, double lng2)
 {
@@ -158,6 +167,8 @@ double get_distance(double lat1, double lng1, double lat2, double lng2)
   dst= round(dst * 10000) / 10000;
   return dst;
 }
+
+/* ***************************************** */
 
 static void XMLCALL start_element(void *userData, const char *el, const char **atts)
 {
@@ -202,6 +213,8 @@ static void XMLCALL start_element(void *userData, const char *el, const char **a
   depth++;
 }
 
+/* ***************************************** */
+
 static void XMLCALL end_element(void *userData, const char *name)
 {
   depth--;
@@ -242,6 +255,8 @@ static void XMLCALL end_element(void *userData, const char *name)
     memset(p_server, 0, sizeof(struct server_info));
   }
 }
+
+/* ***************************************** */
 
 static int do_latency(char *p_url)
 {
@@ -285,6 +300,8 @@ static int do_latency(char *p_url)
   return OK;
 }
 
+/* ***************************************** */
+
 static double test_latency(char *p_url)
 {
   struct timeval s_time, e_time;
@@ -298,6 +315,8 @@ static double test_latency(char *p_url)
   latency = calc_past_time(&s_time, &e_time);
   return latency;
 }
+
+/* ***************************************** */
 
 static void* do_download(void* data)
 {
@@ -345,6 +364,8 @@ static void* do_download(void* data)
   curl_easy_cleanup(curl);
   return NULL;
 }
+
+/* ***************************************** */
 
 static void loop_threads(struct thread_para *p_thread,
 			 int num_thread, double *speed, int *p_num_speed)
@@ -394,6 +415,8 @@ static void loop_threads(struct thread_para *p_thread,
   return;
 }
 
+/* ***************************************** */
+
 static double calculate_average_speed(double *p_speed, int num_speed)
 {
 
@@ -440,6 +463,8 @@ static double calculate_average_speed(double *p_speed, int num_speed)
   return sum/(end - start);
 }
 
+/* ***************************************** */
+
 static int init_instant_speed(double **p_speed, int *p_speed_num)
 {
   *p_speed_num    = SPEEDTEST_TIME_MAX/RECORED_EVERY_SEC + 1;
@@ -452,6 +477,8 @@ static int init_instant_speed(double **p_speed, int *p_speed_num)
   memset(*p_speed, 0, (*p_speed_num)*sizeof(double));
   return 0;
 }
+
+/* ***************************************** */
 
 static double test_download(char *p_url, int num_thread, int dsize, char init)
 {
@@ -514,6 +541,8 @@ static double test_download(char *p_url, int num_thread, int dsize, char init)
   return speed;
 }
 
+/* ***************************************** */
+
 #ifdef FULL_REPORT
 static size_t read_data(void* ptr, size_t size, size_t nmemb, void *userp)
 {
@@ -549,6 +578,8 @@ static size_t read_data(void* ptr, size_t size, size_t nmemb, void *userp)
   //printf("length = %d\n", length);
   return  length;
 }
+
+/* ***************************************** */
 
 static void* do_upload(void *p) {
   struct thread_para* para = (struct thread_para*)p;
@@ -605,6 +636,7 @@ static void* do_upload(void *p) {
   return(NULL);
 }
 
+/* ***************************************** */
 
 static double test_upload(char *p_url, int num_thread, long size,
 		       char *p_ext, char init)
@@ -672,6 +704,8 @@ static double test_upload(char *p_url, int num_thread, long size,
 }
 #endif
 
+/* ***************************************** */
+
 static int get_download_filename(double speed, int num_thread)
 {
   int i;
@@ -690,10 +724,14 @@ static int get_download_filename(double speed, int num_thread)
     if (time > SPEEDTEST_TIME_MAX)
       break;
   }
+
   if (i < num_file)
     return filelist[i - 1];
+
   return filelist[num_file - 1];
 }
+
+/* ***************************************** */
 
 static int get_upload_extension(char *server, char *p_ext)
 {
@@ -732,6 +770,8 @@ cleanup:
   // printf("Upload extension: %s\n", p_ext);
   return rv;
 }
+
+/* ***************************************** */
 
 static int get_client_info(struct client_info *p_client)
 {
@@ -781,6 +821,8 @@ cleanup:
 
   return rv;
 }
+
+/* ***************************************** */
 
 static int get_closest_server()
 {
@@ -842,6 +884,8 @@ cleanup:
   return rv;
 }
 
+/* ***************************************** */
+
 static int get_best_server(int *p_index)
 {
   int     i;
@@ -858,7 +902,9 @@ static int get_best_server(int *p_index)
       continue;
 
     sscanf(servers[i].url, "http://%[^/]speedtest/upload.%*s", server);
-
+    if(server[0] == '\0')
+      sscanf(servers[i].url, "https://%[^/]speedtest/upload.%*s", server);
+    
     if(server[0] == '\0')
       continue;
     
@@ -867,7 +913,7 @@ static int get_best_server(int *p_index)
 #ifdef DEBUG_SPEEDTEST
     printf("Measured latency for %s is %0.3fms\n", server, latency);
 #endif
-
+    
     if (minimum > latency ) {
       minimum = latency;
       *p_index = i;
@@ -875,13 +921,15 @@ static int get_best_server(int *p_index)
       printf("Best server set to %u (%s)\n", i, server);
 #endif
     }
-  }
+  } /* for */
 
   if (minimum == DBL_MAX)
     return NOK;
 
   return OK;
 }
+
+/* ***************************************** */
 
 json_object* speedtest() {
   int     num_thread;
@@ -937,8 +985,13 @@ json_object* speedtest() {
   }
   
   sscanf(servers[sindex].url, "http://%[^/]/speedtest/upload.%4s", server_url, ext);
+
+  if(server_url[0] == '\0')
+    sscanf(servers[sindex].url, "https://%[^/]/speedtest/upload.%4s", server_url, ext);
+  
 #ifdef DEBUG_SPEEDTEST
-  printf("Best server: %s(%0.2fKM)\n", server_url, servers[sindex].distance);
+  printf("Best server: %s (%0.2fKM) [index: %u][%s]\n",
+	 server_url, servers[sindex].distance, sindex, servers[sindex].url);
 #endif
   json_object_object_add(rc, "server.url", json_object_new_string(server_url));
   json_object_object_add(rc, "server.distance", json_object_new_double(servers[sindex].distance));
