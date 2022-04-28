@@ -39,18 +39,10 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   num_contacted_services_as_client.init(8);    /* 128 bytes */
   num_contacted_ports_as_client.init(4);       /* 16 bytes  */
   num_host_contacted_ports_as_server.init(4);  /* 16 bytes  */
+  num_contacted_hosts.init(4);                 /* 16 bytes  */
+  num_contacted_countries.init(4);             /* 16 bytes  */
   contacts_as_cli.init(4);                     /* 16 bytes  */
   contacts_as_srv.init(4);                     /* 16 bytes  */
-
-  /* hll init, 8 bits -> 256 bytes per LocalHost */
-  if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
-    throw "Failed HLL initialization";  
-  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
-
-  /* hll init, 5 bits -> 32 bytes per LocalHost */
-  if(ndpi_hll_init(&hll_countries_contacts, 5) != 0)
-    throw "Failed HLL initialization";  
-  old_hll_countries_value = 0, new_hll_countries_value = 0, hll_delta_countries_value = 0;
 
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
@@ -68,18 +60,17 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   icmp = NULL;
   nextPeriodicUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = 0;
-
-  /* hll init, 8 bits -> 256 bytes per LocalHost */
-  if(ndpi_hll_init(&hll_contacted_hosts, 8))
-    throw "Failed HLL initialization";
-  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
-
-  /* hll init, 5 bits -> 32 bytes per LocalHost */
-  if(ndpi_hll_init(&hll_countries_contacts, 5) != 0)
-    throw "Failed HLL initialization";
-  old_hll_countries_value = 0, new_hll_countries_value = 0, hll_delta_countries_value = 0;  
   
-  
+  num_contacted_hosts_as_client.init(8);       /* 128 bytes */
+  num_host_contacts_as_server.init(8);         /* 128 bytes */
+  num_contacted_services_as_client.init(8);    /* 128 bytes */
+  num_contacted_ports_as_client.init(4);       /* 16 bytes  */
+  num_host_contacted_ports_as_server.init(4);  /* 16 bytes  */
+  num_contacted_hosts.init(4);                 /* 16 bytes  */
+  num_contacted_countries.init(4);             /* 16 bytes  */
+  contacts_as_cli.init(4);                     /* 16 bytes  */
+  contacts_as_srv.init(4);                     /* 16 bytes  */
+
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
   num_ntp_servers.init(5);
@@ -94,9 +85,6 @@ LocalHostStats::~LocalHostStats() {
   if(http)                delete http;
   if(icmp)                delete icmp;
   if(peers)               delete(peers);
-
-  ndpi_hll_destroy(&hll_contacted_hosts);
-  ndpi_hll_destroy(&hll_countries_contacts);
 }
 
 /* *************************************** */
@@ -108,8 +96,7 @@ void LocalHostStats::incrVisitedWebSite(char *hostname) {
   if((strstr(hostname, "in-addr.arpa") == NULL)
      && (sscanf(hostname, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) != 4)
      ) {
-    /* HyperLogLog update regarding visited sites */
-    ndpi_hll_add(&hll_contacted_hosts, hostname, strlen(hostname));
+    incContactedHosts(hostname);
     
     /* Top Sites update, done only if the preference is enabled */
     if(top_sites
@@ -141,11 +128,12 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
 
   /* 5 Min Update */
   if(tv->tv_sec >= nextPeriodicUpdate) {
-    /* hll visited sites update */
-    updateContactedHostsBehaviour();
+    /* visited sites update */
+    contacted_hosts.addObservation(getContactedHostsCardinality());
+    resetContactedHosts();
 
-    /* hll countries contacts update */
-    updateCountriesContactsBehaviour();
+    /* countries contacts update */
+    resetCountriesContacts();;
     
     /* Contacted peers update */
     updateHostContacts();
@@ -199,26 +187,12 @@ void LocalHostStats::luaHostBehaviour(lua_State* vm) {
   
   lua_newtable(vm);
     
-  lua_push_float_table_entry(vm, "value", hll_delta_value);
+  lua_push_uint32_table_entry(vm, "value", getContactedHostsCardinality());
   lua_push_bool_table_entry(vm, "anomaly",      contacted_hosts.anomalyFound());
   lua_push_uint64_table_entry(vm, "lower_bound", contacted_hosts.getLastLowerBound());
   lua_push_uint64_table_entry(vm, "upper_bound", contacted_hosts.getLastUpperBound());
 
   lua_pushstring(vm, "contacted_hosts_behaviour");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-}
-
-/* *************************************** */
-
-void LocalHostStats::luaCountriesBehaviour(lua_State* vm) {
-  HostStats::luaHostBehaviour(vm);
-  
-  lua_newtable(vm);
-    
-  lua_push_float_table_entry(vm, "value", hll_delta_countries_value);
-
-  lua_pushstring(vm, "countries_contacts");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
@@ -234,8 +208,6 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
 
   luaHostBehaviour(vm);
 
-  luaCountriesBehaviour(vm);
-  
   if(details_level >= details_high) {
     luaICMP(vm,host->get_ip()->isIPv4(),true);
     luaDNS(vm, true);
@@ -366,7 +338,6 @@ void LocalHostStats::lua_get_timeseries(lua_State* vm) {
   }
 
   luaHostBehaviour(vm);
-  luaCountriesBehaviour(vm);
 }
 
 /* *************************************** */
@@ -451,42 +422,4 @@ void LocalHostStats::resetTopSitesData() {
   /* String like `_1.1.1.1@2` */
   snprintf(additional_key_info, sizeof(additional_key_info), "%s_", host->get_tskey(additional_key_info, sizeof(additional_key_info)));
   top_sites->resetTopSitesData(host->getInterface()->get_id(), additional_key_info, (char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_RESET);
-}
-
-/* *************************************** */
-
-void LocalHostStats::updateContactedHostsBehaviour() {
-  /* Update the old and new hll value and do the delta */
-  old_hll_value = new_hll_value;
-  new_hll_value = ndpi_hll_count(&hll_contacted_hosts);
-  hll_delta_value = abs(new_hll_value - old_hll_value);
-
-#ifdef TRACE_ME
-  char buf[64];
-  
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s / %f contacts",
-			       host->get_ip()->print(buf, sizeof(buf)),
-			       last_hll_contacted_hosts_value);
-  ndpi_hll_reset(&hll_contacted_hosts);
-#endif
-  
-  contacted_hosts.addObservation((u_int64_t)hll_delta_value);
-}
-
-void LocalHostStats::updateCountriesContactsBehaviour() {
-  /* Update the old and new hll value and do the delta */
-  old_hll_countries_value = new_hll_countries_value;
-  new_hll_countries_value = ndpi_hll_count(&hll_countries_contacts);
-  hll_delta_countries_value = abs(new_hll_countries_value - old_hll_countries_value);
-
-#ifdef TRACE_ME
-  char buf[64];
-  
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s / %f contacts",
-			       host->get_ip()->print(buf, sizeof(buf)),
-			       last_hll_countries_contacts_value);
-  ndpi_hll_reset(&hll_countries_contacts);
-#endif
-
-  host->resetCountriesContacts();
 }
