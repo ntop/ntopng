@@ -1408,14 +1408,20 @@ static int ntop_get_interface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   HostWalkMode host_walk_mode = ALL_FLOWS;
   u_int32_t maxHits = CONST_MAX_NUM_HITS;
-  bool localHostsOnly = true;
+  bool localHostsOnly = true, treeMapMode = false;
+  int16_t networkIdFilter = -1 /* All networks */;
   
-  if(lua_type(vm, 1) == LUA_TNUMBER)  host_walk_mode = (HostWalkMode)lua_tonumber(vm, 1);
-  if(lua_type(vm, 2) == LUA_TNUMBER)  maxHits        = (u_int32_t)lua_tonumber(vm, 2);
-  if(lua_type(vm, 3) == LUA_TBOOLEAN) localHostsOnly = lua_toboolean(vm, 3) ? true : false;
-
+  if(lua_type(vm, 1) == LUA_TNUMBER)  host_walk_mode  = (HostWalkMode)lua_tonumber(vm, 1);
+  if(lua_type(vm, 2) == LUA_TNUMBER)  maxHits         = (u_int32_t)lua_tonumber(vm, 2);
+  if(lua_type(vm, 3) == LUA_TNUMBER)  networkIdFilter = (int16_t)lua_tonumber(vm, 3);
+  if(lua_type(vm, 4) == LUA_TBOOLEAN) localHostsOnly  = lua_toboolean(vm, 4) ? true : false;
+  if(lua_type(vm, 5) == LUA_TBOOLEAN) treeMapMode     = lua_toboolean(vm, 5) ? true : false;
+  
   if((ntop_interface != NULL)
-     && (ntop_interface->walkActiveHosts(vm, host_walk_mode, maxHits, localHostsOnly) >= 0))
+     && (ntop_interface->walkActiveHosts(vm, host_walk_mode,
+					 maxHits, networkIdFilter,
+					 localHostsOnly,
+					 treeMapMode) >= 0))
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
   else
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR)); 

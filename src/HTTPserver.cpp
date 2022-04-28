@@ -1542,12 +1542,6 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 
   cur_http_options = 0;
 
-  /* Silence  format-truncation warning */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-
-#pragma GCC diagnostic pop
-  
   /* HTTP options */
   addHTTPOption("listening_ports", ports);
   addHTTPOption("enable_directory_listing", "no");

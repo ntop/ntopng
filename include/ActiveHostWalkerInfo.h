@@ -40,7 +40,7 @@ public:
 
   inline u_int64_t getZ() const { return(z); }
   
-  void lua(lua_State* vm);
+  void lua(lua_State* vm, bool treeMapMode);
 };
   
 #endif /* __ACTIVE_HOST_WALKER_INFO__ */

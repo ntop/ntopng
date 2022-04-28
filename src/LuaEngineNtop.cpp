@@ -25,9 +25,6 @@ extern "C" {
 #include "rrd.h"
 };
 
-// #define DEBUG_SPEEDTEST /* Remove */
-#include "../third-party/speedtest.c"
-
 static int live_extraction_num = 0;
 static Mutex live_extraction_num_lock;
 
@@ -1666,14 +1663,8 @@ static int ntop_has_speedtest_support(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_speedtest(lua_State* vm) {
-  json_object *rc = speedtest();
-
-  if(rc) {
-    lua_pushstring(vm, json_object_to_json_string(rc));
-    json_object_put(rc);
-  } else
-    lua_pushnil(vm);
-
+  ntop->speedtest(vm);
+  
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 

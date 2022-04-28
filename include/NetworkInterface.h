@@ -996,7 +996,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int32_t getNumEngagedAlerts(AlertLevelGroup alert_level_group) const;
   void luaNumEngagedAlerts(lua_State *vm) const;
   void releaseAllEngagedAlerts();
-  int  walkActiveHosts(lua_State* vm, HostWalkMode mode, u_int32_t maxHits, bool localHostsOnly);
+  int  walkActiveHosts(lua_State* vm, HostWalkMode mode,
+		       u_int32_t maxHits,
+		       int16_t networkIdFilter,
+		       bool localHostsOnly, bool treeMapMode);
   virtual void flowAlertsDequeueLoop(); /* Body of the loop that dequeues flows for the execution of user script hooks */
   virtual void hostAlertsDequeueLoop(); /* Same as above but for hosts */
 

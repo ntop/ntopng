@@ -62,7 +62,7 @@ class Ntop {
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer to the Redis server. */
-  Mutex m, users_m;
+  Mutex m, users_m, speedtest_m;
   std::map<std::string, bool> cachedCustomLists; /* Cache of lists filenames */
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
@@ -604,6 +604,7 @@ public:
   inline char *getZoneInfo() { return(zoneinfo); }
 
   void luaClickHouseStats(lua_State *vm) const;
+  void speedtest(lua_State *vm);
 
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   inline u_int importClickHouseDumps(bool silence_warnings) { return(clickhouseImport ? clickhouseImport->importDumps(silence_warnings) : 0); }

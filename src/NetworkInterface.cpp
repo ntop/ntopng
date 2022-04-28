@@ -9673,6 +9673,7 @@ int NetworkInterface::exec_csv_query(const char *sql, bool dump_in_json_format, 
 
 struct host_walker_metadata {
   std::vector<ActiveHostWalkerInfo> info;
+  int16_t networkIdFilter;
   HostWalkMode mode;
   bool localHostsOnly;
 };
@@ -9682,7 +9683,11 @@ static bool active_hosts_walker(GenericHashEntry *h, void *user_data, bool *matc
   struct host_walker_metadata *m = (struct host_walker_metadata*)user_data;
   bool isLocal;
 
-  if(!host) return(false);
+  if((host == NULL)
+     || ((m->networkIdFilter != -1 /* -1 == all networks */)
+	 && (host->get_local_network_id() != m->networkIdFilter))
+     )
+    return(false);
 
   isLocal = host->isLocalHost() || host->isSystemHost();
 
@@ -9705,13 +9710,15 @@ static bool walkerSort(const ActiveHostWalkerInfo &a,
 int NetworkInterface::walkActiveHosts(lua_State* vm,
 				      HostWalkMode mode,
 				      u_int32_t maxHits,
-				      bool localHostsOnly) {
+				      int16_t networkIdFilter, /* -1 = means any network */				      
+				      bool localHostsOnly,
+				      bool treeMapMode) {
   u_int32_t begin_slot = 0;
   struct host_walker_metadata m;
   int rc;
   std::vector<ActiveHostWalkerInfo>::iterator it;
 
-  m.mode = mode, m.localHostsOnly = localHostsOnly;
+  m.mode = mode, m.localHostsOnly = localHostsOnly, m.networkIdFilter = networkIdFilter;;
 
   rc = walker(&begin_slot, true /* walk_all */, walker_hosts, active_hosts_walker, (void*)&m);
 
@@ -9727,7 +9734,7 @@ int NetworkInterface::walkActiveHosts(lua_State* vm,
     lua_newtable(vm);
 
     for(it = m.info.begin(); (num < maxHits) && (it != m.info.end()); ++it, num++) {
-      it->lua(vm);
+      it->lua(vm, treeMapMode);
 
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %u", num+1, it->getZ());
       

@@ -21,24 +21,29 @@
 
 #include "ntop_includes.h"
   
-void ActiveHostWalkerInfo::lua(lua_State* vm) {
+void ActiveHostWalkerInfo::lua(lua_State* vm, bool treeMapMode) {
   char buf[64];
     
   lua_newtable(vm);
 
-  /* meta */
-  lua_newtable(vm);
-  lua_push_str_table_entry(vm, "label", label.c_str());
-  snprintf(buf, sizeof(buf), "host=%s", name.c_str());
-  lua_push_str_table_entry(vm, "url_query", buf);
+  if(treeMapMode) {
+    lua_push_str_table_entry(vm, "x", name.c_str());
+    lua_push_int64_table_entry(vm, "y", z);
+  } else {
+    /* meta */
+    lua_newtable(vm);
+    lua_push_str_table_entry(vm, "label", label.c_str());
+    snprintf(buf, sizeof(buf), "host=%s", name.c_str());
+    lua_push_str_table_entry(vm, "url_query", buf);
     
-  lua_pushstring(vm, "meta");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-
-  /* ********** */
+    lua_pushstring(vm, "meta");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+    
+    /* ********** */
   
-  lua_push_int64_table_entry(vm, "x", x);
-  lua_push_int64_table_entry(vm, "y", y);
-  lua_push_uint64_table_entry(vm, "z", z);
+    lua_push_int64_table_entry(vm, "x", x);
+    lua_push_int64_table_entry(vm, "y", y);
+    lua_push_uint64_table_entry(vm, "z", z);
+  }
 }  

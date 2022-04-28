@@ -3519,9 +3519,7 @@ char* Ntop::getPersistentCustomListName(char *list_name) {
 
 /* ******************************************* */
 
-void Ntop::setZoneInfo() {
-
-  
+void Ntop::setZoneInfo() {  
 #ifdef __FreeBSD__
   FILE *fd = fopen("/var/db/zoneinfo", "r");
 
@@ -3576,3 +3574,32 @@ void Ntop::setZoneInfo() {
 }
 
 #endif
+
+/* ******************************************* */
+
+// #define DEBUG_SPEEDTEST
+#include "../third-party/speedtest.c"
+
+void Ntop::speedtest(lua_State *vm) {
+  json_object *rc;
+
+  /* 
+     We need to make sure that only one caller
+     at time calls speedtest as
+     - the speedtest code is not reentrant
+     - running multiple tests concurrently reports wrong results
+       as clients compete for the same bandwidth
+  */
+  
+  speedtest_m.lock(__FILE__, __LINE__);
+
+  rc = ::speedtest();
+
+  if(rc) {
+    lua_pushstring(vm, json_object_to_json_string(rc));
+    json_object_put(rc); /* Free memory */
+  } else
+    lua_pushnil(vm);
+  
+  speedtest_m.unlock(__FILE__, __LINE__);
+}
