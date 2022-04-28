@@ -1223,7 +1223,12 @@ int Prefs::setOption(int optkey, char *optarg) {
       snprintf(buf, sizeof(buf), "%s", optarg);
       r = strrchr(buf, '@');
       if(r) {
-	redis_db_id = atoi((const char*)&r[1]);
+        int id = atoi((const char*)&r[1]);
+        if (id < 0 || id > 0xff) {
+           ntop->getTrace()->traceEvent(TRACE_WARNING, "Redis DB ID provided with --redis|-r cannot be bigger than %u", 0xff);
+        } else {
+          redis_db_id = id;
+        }
 	(*r) = '\0';
       }
 
