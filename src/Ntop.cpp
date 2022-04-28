@@ -3524,6 +3524,8 @@ void Ntop::setZoneInfo() {
   ssize_t rc = readlink("/etc/localtime", buf, sizeof(buf));
   u_int num_slash = 0;
 
+  zoneinfo = NULL;
+
   if(rc <= 0) return; else rc--;
   
   while(rc > 0) {
@@ -3538,8 +3540,7 @@ void Ntop::setZoneInfo() {
   if(num_slash == 2) {
     rc++;
     zoneinfo = strdup(&buf[rc]);   
-  } else
-    zoneinfo = NULL;
+  }
 
   if(zoneinfo)
     ntop->getTrace()->traceEvent(TRACE_INFO, "Timezone set to %s", zoneinfo);
