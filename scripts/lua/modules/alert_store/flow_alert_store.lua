@@ -69,6 +69,27 @@ end
 
 -- ##############################################
 
+--@brief Deletes data according to specified filters
+function alert_store:delete()
+   local where_clause = self:build_where_clause()
+
+   -- Prepare the final query
+   local q
+   if ntop.isClickHouseEnabled() then
+      if self._write_table_name then
+         q = string.format("ALTER TABLE `%s` DELETE WHERE FLOW_ID = '%s' ", self._write_table_name, self._where.rowid.any[1].value) 
+      else
+         q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", self._table_name, where_clause)
+      end
+   else
+      q = string.format("DELETE FROM `%s` WHERE %s ", self._table_name, where_clause)
+   end
+
+   local res = interface.alert_store_query(q)
+   return res and table.len(res) == 0
+end
+
+-- ##############################################
 
 function alert_store:_get_tstamp_column_name()
    if ntop.isClickHouseEnabled() then
