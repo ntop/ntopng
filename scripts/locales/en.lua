@@ -3697,6 +3697,7 @@ local lang = {
   ["login"] = {
     ["add_captive_portal_user"] = "Add Captive Portal User",
     ["add_web_user"] = "Add Web User",
+    ["already_logged"] = "Already logged in.",
     ["auth_success"] = "Authentication Successful",
     ["auth_token"] = "User Authentication Token",
     ["blacklisted_ip_notice"] = "Too many failed authentication attempts. Please retry in 5 minutes.",
