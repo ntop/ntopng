@@ -68,8 +68,7 @@ local function drawiecgraph(iec, total)
       nodes[keys[2]] = true
    end
 
-   print [[ <script type="text/javascript" src="/js/vis-network.min.js?]] print(ntop.getStaticFileEpoch()) print[["></script>
-
+   print[[
       <div style="width:100%; height:30vh; " id="myiecflow"></div>
 
   <script type="text/javascript">
@@ -146,7 +145,7 @@ local function drawiecgraph(iec, total)
           edges: edges,
         };
         var options = {
-autoResize: true,
+          autoResize: true,
           nodes: {
             shape: "dot",
             scaling: {
@@ -154,9 +153,27 @@ autoResize: true,
                 min: 2,
                 max: 80,
               },
-             shadow: true,
-             smooth: true,
             },
+          },
+          edges: {
+              width: 0.15,
+              color: { inherit: "from" },
+              smooth: {
+                  type: "continuous",
+                  roundness: 0
+              },
+          },
+          physics: {
+              barnesHut: {
+                  springConstant: 0,
+                  avoidOverlap: 0.3,
+                  gravitationalConstant: -1000,
+                  damping: 0.65,
+                  centralGravity: 0
+              },
+              stabilization: {
+                  onlyDynamicEdges: false
+              }
           },
         };
         network = new vis.Network(container, data, options);
