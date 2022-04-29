@@ -3546,8 +3546,10 @@ void Ntop::setZoneInfo() {
   zoneinfo = NULL;
   
   if(rc > 0) {
+    buf[rc] = '\0';
+    
     rc--;
-  
+    
     while(rc > 0) {
       if(buf[rc] == '/') {
 	if(++num_slash == 2)
