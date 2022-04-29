@@ -287,6 +287,8 @@ const char * ElasticSearch::get_es_template() {
     return NTOP_ES6_TEMPLATE;
   case 7:
     return NTOP_ES7_TEMPLATE;
+  case 8:
+    return NTOP_ES8_TEMPLATE;
   default:
     return NTOP_ES_TEMPLATE;
   }

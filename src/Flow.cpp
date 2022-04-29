@@ -2584,62 +2584,276 @@ char* Flow::serialize(bool use_labels) {
 
 /* *************************************** */
 
-json_object* Flow::flow2JSON() {
-  json_object *my_object;
-  char buf[64], jsonbuf[64], *c;
-  u_char community_id[200];
+void Flow::formatECSObserver(json_object *my_object) {
+  json_object *observer_object;
+  if((observer_object = json_object_new_object()) != NULL) {
+    json_object_object_add(observer_object, "product", json_object_new_string("ntopng"));
+    json_object_object_add(observer_object, "vendor", json_object_new_string("ntop"));
+    
+    if(ntop->getPrefs() && ntop->getPrefs()->get_instance_name())
+      json_object_object_add(observer_object, "name", json_object_new_string(ntop->getPrefs()->get_instance_name()));
+    
+    json_object_object_add(my_object, "observer", observer_object);
+  }
+}
+
+/* *************************************** */
+
+void Flow::formatECSInterface(json_object *my_object) {
+  json_object *interface_object;
+  if((interface_object = json_object_new_object()) != NULL) {
+    json_object_object_add(interface_object, "id", json_object_new_int(iface->get_id()));
+    
+    if(iface && iface->get_name())
+      json_object_object_add(interface_object, "name", json_object_new_string(iface->get_name()));
+
+    json_object_object_add(my_object, "interface", interface_object);
+  }
+}
+
+/* *************************************** */
+
+void Flow::formatECSExtraInfo(json_object *my_object) {
+  json_object *interface_object;
+  if((interface_object = json_object_new_object()) != NULL) {
+    if(ntop->getPrefs()->do_dump_extended_json()) {
+      json_object_object_add(my_object, "flow_time", json_object_new_int(last_seen));
+      
+  #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+      json_object_object_add(my_object, "profile", json_object_new_string(get_profile_name()));
+  #endif
+
+      json_object_object_add(my_object, "interface", interface_object);
+    }
+  }
+}
+
+/* *************************************** */
+
+void Flow::formatECSAppProto(json_object *my_object) {
+  json_object *application_object;
+  if((application_object = json_object_new_object()) != NULL) {
+    if(isDNS() && protos.dns.last_query) {
+      json_object_object_add(application_object, "question.name", json_object_new_string(protos.dns.last_query));
+      json_object_object_add(my_object, "dns", application_object);
+    }
+
+    if(isTLS() && protos.tls.client_requested_server_name) {
+      json_object_object_add(application_object, "server_name", json_object_new_string(protos.tls.client_requested_server_name));
+      json_object_object_add(my_object, "tls", application_object);
+    }
+
+    if(isHTTP()) {
+      if(protos.http.last_url && protos.http.last_url[0] != '0')
+        json_object_object_add(application_object, "request.url", json_object_new_string(protos.http.last_url));
+      if(protos.http.last_user_agent && protos.http.last_user_agent[0] != '0')
+        json_object_object_add(application_object, "user_agent", json_object_new_string(protos.http.last_user_agent));
+      if(protos.http.last_method != NDPI_HTTP_METHOD_UNKNOWN)
+        json_object_object_add(application_object, "request.method", json_object_new_string(ndpi_http_method2str(protos.http.last_method)));
+      if(protos.http.last_return_code > 0)
+        json_object_object_add(application_object, "response.status_code", json_object_new_int((u_int32_t)protos.http.last_return_code));
+
+      json_object_object_add(my_object, "http", application_object);
+    }
+
+    if(bt_hash) {
+      json_object_object_add(application_object, "hash", json_object_new_string(bt_hash));
+      json_object_object_add(my_object, "bittorrent", application_object);
+    }
+  }
+}
+
+/* *************************************** */
+
+void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
+  json_object *network_object;
+  if((network_object = json_object_new_object()) != NULL) {
+    char buf[64], jsonbuf[64];
+    u_char community_id[200];
+    const char *info;
+
+    json_object_object_add(network_object, Utils::jsonLabel(PROTOCOL, "iana_number", jsonbuf, sizeof(jsonbuf)), json_object_new_int(protocol));
+
+    if(((get_packets_cli2srv() + get_packets_srv2cli()) > NDPI_MIN_NUM_PACKETS) || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN))
+      json_object_object_add(network_object, Utils::jsonLabel(L7_PROTO_NAME, "protocol", jsonbuf, sizeof(jsonbuf)), json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
+
+    if(protocol == IPPROTO_TCP) 
+      json_object_object_add(network_object, Utils::jsonLabel(TCP_FLAGS, "tcp_flags", jsonbuf, sizeof(jsonbuf)), json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
+
+    json_object_object_add(network_object, Utils::jsonLabel(FIRST_SWITCHED, "first_seen", jsonbuf, sizeof(jsonbuf)), json_object_new_int((u_int32_t)get_partial_first_seen()));
+    json_object_object_add(network_object, Utils::jsonLabel(LAST_SWITCHED, "last_seen", jsonbuf, sizeof(jsonbuf)), json_object_new_int((u_int32_t)get_partial_last_seen()));
+    json_object_object_add(my_object, "community_id", json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
+
+  #ifdef NTOPNG_PRO
+  #ifndef HAVE_NEDGE
+    // Traffic profile information, if any
+    if(trafficProfile && trafficProfile->getName()) 
+      json_object_object_add(network_object, "profile", json_object_new_string(trafficProfile->getName()));
+  #endif
+  #endif
+
+  #ifdef HAVE_NEDGE
+    if(iface && iface->is_bridge_interface())
+      json_object_object_add(my_object, "verdict.pass", json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
+  #else
+    if(!passVerdict) json_object_object_add(my_object, "pass_verdict", json_object_new_boolean((json_bool)0));
+  #endif
+
+    if(addr)
+      json_object_object_add(network_object, Utils::jsonLabel(IP_PROTOCOL_VERSION, "type", jsonbuf, sizeof(jsonbuf)), json_object_new_string(addr->isIPv4() ? "ipv4" : "ipv6"));
+  
+    if(flow_device.device_ip)
+      json_object_object_add(network_object, "exporter", json_object_new_string(intoaV4(flow_device.device_ip, buf, sizeof(buf))));
+
+    info = getFlowInfo(buf, sizeof(buf), false);
+    if(info)
+      json_object_object_add(network_object, "info", json_object_new_string(info));
+
+    json_object_object_add(my_object, "network", network_object);
+  }
+}
+
+/* *************************************** */
+
+void Flow::formatECSHost(json_object *my_object, bool is_client, const IpAddress *addr, Host *host) {
+  json_object *host_object;
+  
+  if((host_object = json_object_new_object()) != NULL) {
+    char buf[64], jsonbuf[64], *c;
+
+    /* Adding MAC */
+    if(host && host->getMac() && !host->getMac()->isNull())
+      json_object_object_add(host_object, Utils::jsonLabel(is_client ? IN_SRC_MAC : IN_DST_MAC, "mac", jsonbuf, sizeof(jsonbuf)), json_object_new_string(Utils::formatMac(host ? host->get_mac() : NULL, buf, sizeof(buf))));
+
+    /* Adding IP */
+    if(addr) {
+      json_object_object_add(host_object, Utils::jsonLabel(is_client ? (addr->isIPv4() ? IPV4_SRC_ADDR : IPV6_SRC_ADDR) : (addr->isIPv4() ? IPV4_DST_ADDR : IPV6_DST_ADDR) , "ip", jsonbuf, sizeof(jsonbuf)), json_object_new_string(addr->print(buf, sizeof(buf))));
+
+      /* Custom information elements, Local, Blacklisted, Has Services and domain name */
+      int16_t cli_network_id = 0;
+      json_object_object_add(host_object, Utils::jsonLabel(is_client ? SRC_ADDR_LOCAL : DST_ADDR_LOCAL, "is_local", jsonbuf, sizeof(jsonbuf)), json_object_new_boolean(addr->isLocalHost(&cli_network_id)));
+      json_object_object_add(host_object, Utils::jsonLabel(is_client ? SRC_ADDR_BLACKLISTED : DST_ADDR_BLACKLISTED, "is_blacklisted", jsonbuf, sizeof(jsonbuf)), json_object_new_boolean(addr->isBlacklistedAddress()));
+
+      if(get_cli_host()) {
+        json_object_object_add(host_object, Utils::jsonLabel(is_client ? SRC_ADDR_SERVICES : DST_ADDR_SERVICES, "has_services", jsonbuf, sizeof(jsonbuf)), json_object_new_int(get_cli_host()->getServicesMap()));
+        json_object_object_add(host_object, Utils::jsonLabel(is_client ? SRC_NAME : DST_NAME, "domain", jsonbuf, sizeof(jsonbuf)), json_object_new_string(get_cli_host()->get_visual_name(buf, sizeof(buf))));
+      }
+    }
+
+    /* Geolocation info */
+    c = host ? host->get_country(buf, sizeof(buf)) : NULL;
+    if(c) {
+      json_object *geo = json_object_new_object();
+      json_object *location = json_object_new_object();
+
+      if(geo) {
+        json_object_object_add(geo, "country_name", json_object_new_string(c));
+        
+        if(host && location) {
+          float latitude, longitude;
+
+          host->get_geocoordinates(&latitude, &longitude);
+          json_object_object_add(location, "lon", json_object_new_double(longitude));
+          json_object_object_add(location, "lat", json_object_new_double(latitude));
+          json_object_object_add(geo, "location", location);
+        }
+
+        json_object_object_add(host_object, "geo", geo);
+      }
+    }
+
+    /* Type of Service */
+    json_object_object_add(host_object, Utils::jsonLabel(is_client ? SRC_TOS : DST_TOS, "tos", jsonbuf, sizeof(jsonbuf)), json_object_new_int(getTOS(true)));
+    json_object_object_add(host_object, Utils::jsonLabel(is_client ? L4_SRC_PORT : L4_DST_PORT, "port", jsonbuf, sizeof(jsonbuf)), json_object_new_int(is_client ? get_cli_port() : get_srv_port()));
+    json_object_object_add(host_object, Utils::jsonLabel(is_client ? IN_PKTS : OUT_PKTS, "packets", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? get_partial_packets_cli2srv() : get_partial_packets_srv2cli()));
+    json_object_object_add(host_object, Utils::jsonLabel(is_client ? IN_BYTES : OUT_BYTES, "bytes", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? get_partial_packets_cli2srv() : get_partial_bytes_srv2cli()));
+    json_object_object_add(host_object, Utils::jsonLabel(TCP_FLAGS, "packtes_retrasmissions", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? stats.get_cli2srv_tcp_retr() : stats.get_srv2cli_tcp_retr()));
+    json_object_object_add(host_object, Utils::jsonLabel(TCP_FLAGS, "packtes_out_of_order", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? stats.get_cli2srv_tcp_ooo() : stats.get_srv2cli_tcp_ooo()));
+    json_object_object_add(host_object, Utils::jsonLabel(TCP_FLAGS, "packtes_lost", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? stats.get_cli2srv_tcp_lost() : stats.get_srv2cli_tcp_lost()));
+
+    if(vlanId > 0) 
+      json_object_object_add(host_object, Utils::jsonLabel(is_client ? SRC_VLAN : DST_VLAN, "vlan", jsonbuf, sizeof(jsonbuf)), json_object_new_int(vlanId));
+
+    if(protocol == IPPROTO_TCP)
+      json_object_object_add(host_object, Utils::jsonLabel(is_client ? CLIENT_NW_LATENCY_MS : SERVER_NW_LATENCY_MS, "latency", jsonbuf, sizeof(jsonbuf)), json_object_new_double(toMs(&clientNwLatency)));
+  
+    json_object_object_add(my_object, is_client ? "client" : "server", host_object);
+  }
+}
+
+/* *************************************** */
+
+void Flow::formatECSFlow(json_object *my_object) {
+  char buf[64];
   time_t t;
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
+  struct tm* tm_info;
 
-  if((my_object = json_object_new_object()) == NULL) return(NULL);
+  t = last_seen;
+  tm_info = gmtime(&t);
 
-  if(ntop->getPrefs()->do_dump_flows_on_es()) {
-    struct tm* tm_info;
+  /*
+    strftime in the VS2013 library and earlier are not C99-conformant,
+    as they do not accept that format-specifier: MSDN VS2013 strftime page
 
-    t = last_seen;
-    tm_info = gmtime(&t);
+    https://msdn.microsoft.com/en-us/library/fe06s4ak.aspx
+  */
+  strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S.0Z", tm_info);
 
-    /*
-      strftime in the VS2013 library and earlier are not C99-conformant,
-      as they do not accept that format-specifier: MSDN VS2013 strftime page
+  /* 
+    Dumping flows, using ECS Format 
+    https://www.elastic.co/guide/en/ecs/current/index.html 
+  */
 
-      https://msdn.microsoft.com/en-us/library/fe06s4ak.aspx
-    */
-    strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S.0Z", tm_info);
+  json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
+  json_object_object_add(my_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
+ 
+  /* Formatting Client */
+  formatECSHost(my_object, true, cli_ip, cli_host);
+  
+  /* Formatting Server */
+  formatECSHost(my_object, false, srv_ip, srv_host);
 
-    if(ntop->getPrefs()->do_dump_flows_on_es()) {
-      json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
-      json_object_object_add(my_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
-    }
-    /* json_object_object_add(my_object, "@version", json_object_new_int(1)); */
+  formatECSNetwork(my_object, cli_ip);
+  formatECSInterface(my_object);
+  formatECSObserver(my_object);
+  formatECSAppProto(my_object);
+  formatECSExtraInfo(my_object);
 
-    // MAC addresses are set only when dumping to ES to optimize space consumption
-    if(cli_host && cli_host->getMac() && !cli_host->getMac()->isNull())
-      json_object_object_add(my_object, Utils::jsonLabel(IN_SRC_MAC, "IN_SRC_MAC", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(Utils::formatMac(cli_host ? cli_host->get_mac() : NULL, buf, sizeof(buf))));
+  if(json_info && json_object_object_length(json_info) > 0) 
+    json_object_object_add(my_object, "json", json_object_get(json_info));
+}
 
-    if(srv_host && srv_host->getMac() && !srv_host->getMac()->isNull())
-      json_object_object_add(my_object, Utils::jsonLabel(OUT_DST_MAC, "OUT_DST_MAC", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(Utils::formatMac(srv_host ? srv_host->get_mac() : NULL, buf, sizeof(buf))));
-  }
+/* *************************************** */
 
-  if(ntop->getPrefs()->do_dump_flows_on_syslog()) {
-    if(cli_host && cli_host->getMac() && !cli_host->getMac()->isNull())
-      json_object_object_add(my_object, Utils::jsonLabel(IN_SRC_MAC, "IN_SRC_MAC", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(Utils::formatMac(cli_host ? cli_host->get_mac() : NULL, buf, sizeof(buf))));
+void Flow::formatSyslogFlow(json_object *my_object) {
+  char buf[64], jsonbuf[64];
 
-    if(srv_host && srv_host->getMac() && !srv_host->getMac()->isNull())
-      json_object_object_add(my_object, Utils::jsonLabel(OUT_DST_MAC, "OUT_DST_MAC", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(Utils::formatMac(srv_host ? srv_host->get_mac() : NULL, buf, sizeof(buf))));
+  if(cli_host && cli_host->getMac() && !cli_host->getMac()->isNull())
+    json_object_object_add(my_object, Utils::jsonLabel(IN_SRC_MAC, "IN_SRC_MAC", jsonbuf, sizeof(jsonbuf)),
+          json_object_new_string(Utils::formatMac(cli_host ? cli_host->get_mac() : NULL, buf, sizeof(buf))));
 
-    if(isTLS() && protos.tls.ja3.client_hash)
-      json_object_object_add(my_object, Utils::jsonLabel(JA3C_HASH, "JA3C_HASH", jsonbuf, sizeof(jsonbuf)),
-           json_object_new_string(protos.tls.ja3.client_hash));
+  if(srv_host && srv_host->getMac() && !srv_host->getMac()->isNull())
+    json_object_object_add(my_object, Utils::jsonLabel(OUT_DST_MAC, "OUT_DST_MAC", jsonbuf, sizeof(jsonbuf)),
+          json_object_new_string(Utils::formatMac(srv_host ? srv_host->get_mac() : NULL, buf, sizeof(buf))));
 
-    if(isSSH() && protos.ssh.hassh.client_hash)
-      json_object_object_add(my_object, Utils::jsonLabel(HASSHC_HASH, "HASSHC_HASH", jsonbuf, sizeof(jsonbuf)),
-           json_object_new_string(protos.ssh.hassh.client_hash));
-  }
+  if(isTLS() && protos.tls.ja3.client_hash)
+    json_object_object_add(my_object, Utils::jsonLabel(JA3C_HASH, "JA3C_HASH", jsonbuf, sizeof(jsonbuf)),
+          json_object_new_string(protos.tls.ja3.client_hash));
+
+  if(isSSH() && protos.ssh.hassh.client_hash)
+    json_object_object_add(my_object, Utils::jsonLabel(HASSHC_HASH, "HASSHC_HASH", jsonbuf, sizeof(jsonbuf)),
+          json_object_new_string(protos.ssh.hassh.client_hash));
+
+  formatGenericFlow(my_object);
+}
+
+/* *************************************** */
+
+void Flow::formatGenericFlow(json_object *my_object) {
+  char buf[64], jsonbuf[64], *c;
+  u_char community_id[200];
+  const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
 
   if(cli_ip) {
     if(cli_ip->isIPv4()) {
@@ -2804,7 +3018,7 @@ json_object* Flow::flow2JSON() {
     json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(protos.dns.last_query));
 
   json_object_object_add(my_object, "COMMUNITY_ID", json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
-
+  
   if(isHTTP()) {
     if(host_server_name && host_server_name[0] != '\0')
       json_object_object_add(my_object, "HTTP_HOST", json_object_new_string(host_server_name));
@@ -2871,6 +3085,23 @@ json_object* Flow::flow2JSON() {
 
     json_object_object_add(my_object, "INTERFACE_ID", json_object_new_int(iface->get_id()));
     json_object_object_add(my_object, "STATUS", json_object_new_int((u_int8_t)getPredominantAlert().id));
+  }
+
+}
+
+/* *************************************** */
+
+json_object* Flow::flow2JSON() {
+  json_object *my_object;
+
+  if((my_object = json_object_new_object()) == NULL) return(NULL);
+
+  if(ntop->getPrefs()->do_dump_flows_on_es()) {
+    formatECSFlow(my_object);
+  } else if(ntop->getPrefs()->do_dump_flows_on_syslog()) {
+    formatSyslogFlow(my_object);
+  } else {
+    formatGenericFlow(my_object);
   }
 
   return(my_object);

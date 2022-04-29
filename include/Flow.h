@@ -401,6 +401,15 @@ class Flow : public GenericHashEntry {
   void alert2JSON(FlowAlert *alert, ndpi_serializer *serializer);
   json_object* flow2JSON();
   json_object* flow2es(json_object *flow_object);
+  void formatECSInterface(json_object *my_object);
+  void formatECSNetwork(json_object *my_object, const IpAddress *addr);
+  void formatECSHost(json_object *my_object, bool is_client, const IpAddress *addr, Host *host);
+  void formatECSFlow(json_object *my_object);
+  void formatSyslogFlow(json_object *my_object);
+  void formatGenericFlow(json_object *my_object);
+  void formatECSExtraInfo(json_object *my_object);
+  void formatECSAppProto(json_object *my_object);
+  void formatECSObserver(json_object *my_object);
 
   inline u_int16_t getLowerProtocol() { return(ndpi_get_lower_proto(ndpiDetectedProtocol)); }
 

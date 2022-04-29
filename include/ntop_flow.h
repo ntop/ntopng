@@ -505,5 +505,6 @@
 #define SRC_ASN               NTOP_BASE_ID+525
 #define DST_ASN               NTOP_BASE_ID+526
 #define PROBE_IP              NTOP_BASE_ID+527
+#define L4_PROTO_NAME         NTOP_BASE_ID+528
 
 #endif /* _NTOP_FLOW_H_ */
