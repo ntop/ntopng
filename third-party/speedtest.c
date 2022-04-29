@@ -102,7 +102,6 @@ static int depth;
 static struct client_info client;
 static struct server_info servers[MAX_CLOSEST_SERVER_NUM];
 static int num_servers = 0;
-static pthread_mutex_t the_mutex;
 
 /* ***************************************** */
 
