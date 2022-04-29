@@ -77,7 +77,26 @@ function alert_store:delete()
    local q
    if ntop.isClickHouseEnabled() then
       if self._write_table_name then
-         q = string.format("ALTER TABLE `%s` DELETE WHERE FLOW_ID = '%s' ", self._write_table_name, self._where.rowid.any[1].value) 
+         local where_clause = ''
+
+         -- Used by 'Remove'
+         if self._where.rowid then
+           where_clause = string.format("%s %s FLOW_ID = '%s' ", where_clause, ternary(isEmptyString(where_clause), '', 'AND'), self._where.rowid.any[1].value)
+         end
+
+         -- Used by 'Exclude Checks'
+         if self._where.alert_id then
+           where_clause = string.format("%s %s STATUS = %u ", where_clause, ternary(isEmptyString(where_clause), '', 'AND'), self._where.alert_id.any[1].value)
+         end
+         if self._where.ip then
+           if isIPv4(self._where.ip.any[1].value) then
+             where_clause = string.format("%s %s (IPV4_SRC_ADDR = IPv4StringToNum('%s') OR IPV4_DST_ADDR = IPv4StringToNum('%s')) ", where_clause, ternary(isEmptyString(where_clause), '', 'AND'), self._where.ip.any[1].value, self._where.ip.any[1].value)
+           else
+             where_clause = string.format("%s %s (IPV6_SRC_ADDR = IPv6StringToNum('%s') OR IPV6_DST_ADDR = IPv6StringToNum('%s')) ", where_clause, ternary(isEmptyString(where_clause), '', 'AND'), self._where.ip.any[1].value, self._where.ip.any[1].value)
+           end
+         end
+
+         q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", self._write_table_name, where_clause) 
       else
          q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", self._table_name, where_clause)
       end
