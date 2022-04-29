@@ -7481,7 +7481,7 @@ void NetworkInterface::reloadGwMacs() {
 
     if(!mac) continue;
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading Gw MAC %s", mac);
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading Gw MAC %s", mac);
     
     Utils::parseMac(addr, mac);
 
