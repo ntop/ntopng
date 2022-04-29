@@ -50,8 +50,7 @@ local info = ntop.getInfo()
 print[[" method="POST">
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(info["product"]) print [[ Access Portal</h2>
   <div class="form-group mb-3 has-feedback">
-      <input type="hidden" class="form-control" name="username">
-      <input type="text" class="form-control" name="_username" placeholder="]] print(i18n("login.username")) print[[" pattern="^[\w\.%]{1,}$" required>
+      <input type="text" class="form-control" name="username" placeholder="]] print(i18n("login.username")) print[[" pattern="^[\w\.%]{1,}$" required>
       <input type="password" class="form-control" name="password" placeholder="]] print(i18n("login.password")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
       <input type="text" class="form-control" name="label" placeholder="]] print(i18n("login.device_label")) print[[" pattern="^[ \w\.%]{1,}$" required>
 </div>
@@ -76,9 +75,7 @@ print[[" method="POST">
 
   function makeUsernameLowercase() {
     var target = $('#form_add_user input[name="username"]');
-    var origin = $('#form_add_user input[name="_username"]');
-    target.val(origin.val().toLowerCase());
-    origin.removeAttr("name");
+    target.val(target.val().toLowerCase());
     return true;
   }
 </script>
