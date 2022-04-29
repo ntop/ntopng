@@ -26,8 +26,7 @@ function captive_portal_utils.is_logged(ip)
    end
 
    local pool_id = host_info.host_pool_id
-   if pool_id == host_pools_nedge.DEFAULT_POOL_ID then
-tprint(pool_id)
+   if tonumber(pool_id) == tonumber(host_pools_nedge.DEFAULT_POOL_ID) then
       -- already logged out
       return false
    end

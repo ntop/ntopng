@@ -15,13 +15,42 @@ if not ntop.isnEdge() then
 end
 
 local remote_addr = _SERVER["REMOTE_ADDR"]
-local is_logged = captive_portal_utils.is_logged(remote_addr)
+local method = _SERVER["REQUEST_METHOD"]
 
-if is_logged then
-   captive_portal_utils.logout(remote_addr)
+local is_logged = captive_portal_utils.is_logged(remote_addr)
+if method == "POST" then
+   if is_logged then
+      captive_portal_utils.logout(remote_addr)
+      is_logged = false
+   end
 end
 
 captive_portal_utils.print_header()
+
+if is_logged then
+  print [[
+   <form role="form" class="form-signin" action="]] print(ntop.getHttpPrefix()) print[[/lua/captive_portal.lua" method="POST">
+	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(info["product"]) print [[ Access Portal</h2>
+    <div class="form-group mb-3 has-feedback">
+       <input type="hidden" class="form-control" name="action" value="logout" />
+       <input type="hidden" class="form-control" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+        <small>
+          <p>]] print(i18n("login.already_logged")) print(" ") print(i18n("login.logout_message")) print [[
+        </small>
+    </div>
+    <button class="w-100 btn btn-lg btn-primary" type="submit">]] print(i18n("login.logout")) print[[</button>
+  	<div class="row">
+      <div >&nbsp;</div>
+      <div class="col-lg-12">
+        <small>
+          <p>]] print(info["copyright"]) print [[
+        </small>
+      </div>
+    </div>
+  </form>
+]]
+
+else
 
 print [[
 	 <form id="form_add_user" role="form" data-bs-toggle="validator" class="form-signin" onsubmit="return makeUsernameLowercase();" action="]] print(ntop.getHttpPrefix()) print[[/lua/authorize_captive.lua]]
@@ -59,11 +88,8 @@ print[[" method="POST">
       <div >&nbsp;</div>
       <div class="col-lg-12">
         <small>
-      <p>]] print(i18n("login.enter_credentials")) print[[
-          </p>
-
-      <p>]] print(info["copyright"]) print [[
-
+          <p>]] print(i18n("login.enter_credentials")) print[[</p>
+          <p>]] print(info["copyright"]) print [[</p>
         </small>
       </div>
     </div>
@@ -81,5 +107,6 @@ print[[" method="POST">
 </script>
 
 ]]
+end
 
 captive_portal_utils.print_footer()
