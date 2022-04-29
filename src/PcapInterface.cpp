@@ -36,7 +36,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterfac
   pcap_handle = NULL, pcap_list = NULL;
   memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));
   emulate_traffic_directions = false;
-  read_pkts_from_pcap_dump = read_pkts_from_pcap_dump_done = false;
+  read_pkts_from_pcap_dump = read_pkts_from_pcap_dump_done = false, read_from_stdin_pipe = false;;
 
   if((stat(name, &buf) == 0) || (name[0] == '-') || !strncmp(name, "stdin", 5)) {
     /*
@@ -49,6 +49,9 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterfac
       pcap_handle = pcap_fopen_offline(stdin, pcap_error_buffer);
       pcap_datalink_type = pcap_datalink(pcap_handle);
       read_pkts_from_pcap_dump = false;
+      is_traffic_mirrored = true;
+      emulate_traffic_directions = true;
+      read_from_stdin_pipe = true;
     } else if((pcap_handle = pcap_open_offline(ifname, pcap_error_buffer)) != NULL) {
       char *slash = strrchr(ifname, '/');
 

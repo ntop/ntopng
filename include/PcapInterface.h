@@ -27,7 +27,7 @@
 class PcapInterface : public NetworkInterface {
  private:
   pcap_t *pcap_handle;
-  bool read_pkts_from_pcap_dump, read_pkts_from_pcap_dump_done, emulate_traffic_directions;
+  bool read_pkts_from_pcap_dump, read_pkts_from_pcap_dump_done, emulate_traffic_directions, read_from_stdin_pipe;
   ProtoStats prev_stats_in, prev_stats_out;
   FILE *pcap_list;
 
@@ -37,7 +37,7 @@ class PcapInterface : public NetworkInterface {
 
   virtual void incEthStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
 			   u_int32_t num_bytes, u_int pkt_overhead) {
-    if(!emulate_traffic_directions)
+    if(read_from_stdin_pipe || (!emulate_traffic_directions))
       ethStats.incStats(ingressPacket, num_pkts, num_bytes, pkt_overhead);
 
     ethStats.incProtoStats(proto, num_pkts, num_bytes);

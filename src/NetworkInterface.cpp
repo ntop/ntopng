@@ -1993,6 +1993,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     flow->updateCommunityIdFlowHash();
 #endif
 
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "direction: %s / len: %u", ingressPacket ? "IN" : "OUT", len_on_wire);
+  
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->getStatsProtocol(), flow->get_protocol_category(),
 	   l4_proto, len_on_wire, 1);
@@ -7479,6 +7481,8 @@ void NetworkInterface::reloadGwMacs() {
 
     if(!mac) continue;
 
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading Gw MAC %s", mac);
+    
     Utils::parseMac(addr, mac);
 
     try {
