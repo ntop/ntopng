@@ -21,9 +21,11 @@ local active_section = nil
 local active_entry = nil
 local active_sub_entry = nil
 
-local zoneinfo = "'".. ntop.getInfo().zoneinfo .."'"
-if zoneinfo == nil then
-   zoneinfo = "null"
+
+local zoneinfo = 'null'
+local temp_zoneinfo = ntop.getInfo().zoneinfo
+if temp_zoneinfo ~= nil then
+   zoneinfo = "( /^[\\x00-\\xFF]*$/.test('" .. temp_zoneinfo .."') && moment.tz.zone('" .. temp_zoneinfo .."') != null ? '".. temp_zoneinfo .. "' : function() { console.warn('zoneinfo not valid:' + (/^[\\x00-\\xFF]*$/.test('" .. temp_zoneinfo .."') ? '" .. temp_zoneinfo .."' : 'Invalid string') ); return null; }())"
 end
 
 -- #################################
