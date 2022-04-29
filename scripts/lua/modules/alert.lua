@@ -133,7 +133,7 @@ function Alert:set_granularity(granularity)
 
    self.granularity = alert_consts.alerts_granularities[granularity]
    if(self.granularity == nil) then
-      print("[ERROR] Unknown granularity "..granularity.."\n")
+      print("[ERROR] Unknown granularity "..(granularity or '').."\n")
       print(debug.traceback())
    end
 end
