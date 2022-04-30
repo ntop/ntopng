@@ -1,7 +1,7 @@
 ## Introduction
 
 ntopng includes Geolocation support provided by the following companies
-- MaxMind https://maxmind.com
+- MaxMind https://www.maxmind.com
 - DB-IP https://db-ip.com
 
 ntopng geolocation is based on a database file stored locally with no cloud access whatsoever.
