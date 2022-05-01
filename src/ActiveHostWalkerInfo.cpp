@@ -29,6 +29,7 @@ void ActiveHostWalkerInfo::lua(lua_State* vm, bool treeMapMode) {
   if(treeMapMode) {
     lua_push_str_table_entry(vm, "x", name.c_str());
     lua_push_int64_table_entry(vm, "y", z);
+    lua_push_str_table_entry(vm, "label", label.c_str());
   } else {
     /* meta */
     lua_newtable(vm);

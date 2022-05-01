@@ -30,6 +30,19 @@ end
 
 page_utils.print_page_title(getPageTitle())
 
+-- ##############################
+
+if(ntop.isPro()) then
+   local template_utils = require "template_utils"
+
+   template_utils.render("pages/networks_map.html", {
+			    url = ntop.getHttpPrefix()..'/lua/pro/rest/v2/get/host/top/network_hosts_score.lua',
+			    prefix = ntop.getHttpPrefix()
+   })
+end
+
+-- ##############################
+
 print [[
       <div id="table-network"></div>
 	 <script>
