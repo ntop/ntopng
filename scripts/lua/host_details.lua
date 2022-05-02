@@ -156,7 +156,7 @@ local host_pool_id  = nil
 
 if (host ~= nil) then
    charts_available = charts_available and host["localhost"] and not host["is_multicast"]
-   
+
    if (isAdministrator() and (_POST["pool"] ~= nil)) then
       host_pool_id = _POST["pool"]
       local prev_pool = tostring(host["host_pool_id"])
@@ -305,7 +305,7 @@ else
   end
 
    if(periodicity_map_available) and (host_vlan ~= 0) then
-   	  periodicity_map_link = periodicity_map_link .. "&vlan_id=" .. host_vlan		
+   	  periodicity_map_link = periodicity_map_link .. "&vlan_id=" .. host_vlan
    end
 
    local ifs = interface.getStats()
@@ -487,7 +487,7 @@ else
          if(host["mac"]  ~= "00:00:00:00:00:00") then
    	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], false).. " " .. discover.devtype2icon(host["device_type"]))
    	 print('</td><td>')
-   
+
    	 if(host['localhost'] and (macinfo ~= nil)) then
    	    -- This is a known device type
    	    print(discover.devtype2icon(macinfo.devtype) .. " ")
@@ -500,39 +500,39 @@ else
    	 else
    	    print("&nbsp;")
    	 end
-   
+
    	 print('</td></tr>')
          end
-   
+
          if has_snmp_location then
             snmp_location.print_host_snmp_location(host["mac"], hostinfo2detailsurl(host, {page = "snmp"}))
          end
-   
+
          print("</tr>")
-   
+
          print("<tr><th>"..i18n("ip_address").."</th><td colspan=1>" .. host["ip"])
          if(host.childSafe == true) then print(getSafeChildIcon()) end
-   
+
         if(host.os ~= 0) then
           print(" "..discover.getOsIcon(host.os).." ")
         end
-   
+
          if(host["local_network_name"] ~= nil) then
    	 local network_name = getLocalNetworkAlias(host["local_network_name"] )
-   
+
    	 if((network_name == nil) or (network_name == "") or (network_name == host["local_network_name"])) then
    	    network_name = ""
    	 else
    	    network_name = " ("..network_name..")"
    	 end
-   	 
+
    	 print(" [&nbsp;<A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..host["local_network_id"].."&page=historical'>".. host["local_network_name"].."</A> "..network_name.." &nbsp;]")
          end
-   
+
          if((host["city"] ~= nil) and (host["city"] ~= "")) then
             print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
          end
-   
+
          print[[</td><td><span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
          print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_instance:get_pool_name(host_pool_id)) print[[</a></span>]]
          print[[&nbsp;]]
@@ -543,13 +543,13 @@ else
    	 print("<tr><th>"..i18n("mac_address").."</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
          end
       end
-   
+
       if host["vlan"] and host["vlan"] > 0 then
          print("<tr><th>")
          print(i18n("details.vlan_id"))
          print("</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?vlan="..host["vlan"]..">"..getFullVlanName(host["vlan"]).."</A></td></tr>\n")
       end
-   
+
       if(host["os"] ~= "" and host["os"] ~= 0) then
          print("<tr>")
          if(host["os"] ~= "") then
@@ -563,47 +563,55 @@ else
          end
          print("</tr>")
       end
-   
+
       if((host["asn"] ~= nil) and (host["asn"] > 0)) then
          print("<tr><th>"..i18n("asn").."</th><td>")
-   
+
          print("<A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn .."'>"..host.asname.."</A> [ "..i18n("asn").." <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn.."'>".. host.asn.."</A> ]</td>")
          print('<td><A class="ntopng-external-link" href="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">'..i18n("details.whois_lookup")..' <i class="fas fa-external-link-alt"></i></A></td>')
          print("</td></tr>\n")
       end
-   
+
       if((host["observation_point_id"] ~= nil) and (host["observation_point_id"] ~= 0)) then
          print("<tr><th>"..i18n("details.observation_point_id").."</th>")
          print("<td colspan=\"2\">"..host["observation_point_id"].."</td></tr>")
       end
-   
+
    if(host["ip"] ~= nil) then
          print("<tr><th>"..i18n("name").."</th>")
-   
+
          if(isAdministrator()) then
-   	 print("<td colspan=2><A class='ntopng-external-link' href=\"http://" .. getIpUrl(host["ip"]) .. "\"> <span id=name>")
+	    local n
+
+	    if(host.names.resolved ~= nil) then
+	       n = host.names.resolved
+	    else
+	       n = getIpUrl(host["ip"])
+	    end
+
+	    print("<td colspan=2><A class='ntopng-external-link' href=\"http://" .. n .. "\"> <span id=name>")
          else
-   	 print("<td colspan=2>")
+	    print("<td colspan=2>")
          end
-   
+
          if ntop.shouldResolveHost(host["ip"]) then
             print('<div id="throbber" class="spinner-border spinner-border-sm text-primary" role="status"><span class="sr-only">Loading...</span></div> ')
          end
 
          -- tprint(host) io.write("\n")
          print(host_label .. "</span> <i class=\"fas fa-external-link-alt\"></i> </A>")
-   
+
          print(hostinfo2detailshref(host, {page = "config"}, ' <i class="fas fa-sm fa-cog" aria-hidden="true"></i> '))
-   
+
          print(format_utils.formatFullAddressCategory(host))
-   
+
          if(host.services) then
    	 if(host.services.dhcp) then print(' <span class="badge bg-success">'..i18n("details.label_dhcp_server")..'</span>') end
    	 if(host.services.dns)  then print(' <span class="badge bg-success">'..i18n("details.label_dns_server")..'</span>') end
    	 if(host.services.smtp) then print(' <span class="badge bg-success">'..i18n("details.label_smtp_server")..'</span>') end
    	 if(host.services.ntp)  then print(' <span class="badge bg-success">'..i18n("details.label_ntp_server")..'</span>') end
          end
-   
+
          if(host["dhcp_server"] == true) then print(' <span class="badge bg-success" style="cursor: help;">'..i18n("details.label_dhcp_server")..'</span>') end
          if(host["systemhost"] == true) then print(' <span class="badge bg-success" style="cursor: help;"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
          if(host["is_blacklisted"] == true) then print(' <span class="badge bg-danger" style="cursor: help;">'..i18n("details.label_blacklisted_host")..'</span>') end
@@ -611,39 +619,39 @@ else
    	 print(' <A class="ntopng-external-link" href="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><small>VirusTotal</small> <i class=\"fas fa-external-link-alt\"></i></A>')
    	 print(' <A class="ntopng-external-link" href="https://www.greynoise.io/viz/ip/'.. host["ip"] ..'" target=_blank><small>GreyNoise</small> <i class=\"fas fa-external-link-alt\"></i></A>')
          end
-   
+
          print("</td>\n")
    end
-   
+
    local h_notes = getHostNotes(host_info) or ''
-   
+
    if(not isEmptyString(h_notes)) then
    	print[[
-   
+
    	<tr><th>]] print(i18n("host_details.notes"))
    	print[[</th><td colspan="2"><span id="host_notes">]]print(h_notes)
    	print[[</span><span id="host_notes"></span></td></tr>
-   
+
    	]]
    end
-   
+
    if(host["num_alerts"] > 0) then
       print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "engaged-alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").." <span id=alerts_trend></span></td></tr>\n")
    end
-   
+
    if isScoreEnabled() then
       local score_chart = ""
-   
+
       if charts_available then
          score_chart = hostinfo2detailshref(host, {page = "historical", tskey = tskey, ts_schema = "host:score"}, '<i class="fas fa-chart-area fa-sm"></i>')
       end
-   
+
       print("<tr><th rowspan=2>"..i18n("score").." " .. score_chart .."</th>")
       print("<th>"..i18n("host_details.client_score").."</th><th>"..i18n("host_details.server_score").."</th></tr>")
-   
+
       local c = host.score_pct and host.score_pct["score_breakdown_client"]
       local s = host.score_pct and host.score_pct["score_breakdown_server"]
-   
+
       print("<tr>")
       print("<td>")
       print("<div class='d-flex align-items-center'>")
@@ -653,7 +661,7 @@ else
       end
       print("</div>")
       print("</td>")
-   
+
       print("<td>")
       print("<div class='d-flex align-items-center'>")
       print("<span id='score_as_server'>".. (host["score.as_server"] or 0).."</span><span class='ms-1' id='server_score_trend'></span>")
@@ -662,10 +670,10 @@ else
       end
       print("</div>")
       print("</td>")
-   
+
       print("</tr>\n")
    end
-   
+
    -- Active monitoring
    if am_utils and am_utils.isMeasurementAvailable('icmp') then
       local icmp = isIPv6(host["ip"]) and 'icmp6' or 'icmp'
@@ -680,10 +688,10 @@ else
             </td>
             <script type='text/javascript'>
                $(document).ready(function() {
-   
+
                   let am_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
                   $('#btn-add-am-host').click(function(e) {
-   
+
                      e.preventDefault();
                      const data_to_send = {
                         action: 'add',
@@ -693,70 +701,70 @@ else
                         measurement: ']].. icmp ..[[',
                         csrf: am_csrf,
                      };
-   
+
                      $.post(`${http_prefix}/lua/edit_active_monitoring_host.lua`, data_to_send)
                      .then((data, result, xhr) => {
-   
+
                         const $alert_message = $('<div class="alert"></div>');
                         if (data.success) {
                            $alert_message.addClass('alert-success').text(data.message);
                            $('#n-container').prepend($alert_message);
-   
+
                            setTimeout(() => {
                               location.reload();
                            }, 1000);
-   
+
                            return;
                         }
-   
+
                         $alert_message.addClass('alert-danger').text(data.error);
                         $('#n-container').prepend($alert_message);
                         setTimeout(() => {
                            $alert_message.remove();
                         }, 5000);
-   
+
                      })
                      .fail(() => {
                         const $alert_message = $('<div class="alert"></div>');
                         $alert_message.addClass('alert-danger').text("]].. i18n('expired_csrf') ..[[");
-   
+
                      });
-   
+
                   });
                });
             </script>
          ]])
-   
+
       else
          local last_update = am_utils.getLastAmUpdate(host['ip'], icmp)
          local last_rtt = ""
-   
+
          if(last_update ~= nil) then
             last_rtt = last_update.value .. " " .. i18n("active_monitoring_stats.msec")
          else
    	 last_rtt = i18n("active_monitoring_stats.no_updates_yet")
          end
-   
+
          print([[
             <td colspan="2">
                <a href=']].. ntop.getHttpPrefix() ..[[/lua/monitor/active_monitoring_monitor.lua?am_host=]].. host['ip'] ..[[&measurement=]].. icmp ..[['>]].. last_rtt ..[[</a>
             </td>
          ]])
-   
+
       end
-   
+
       print("</tr>")
    end
-   
+
    if(host["active_alerted_flows"] > 0) then
       print("<tr><th>"..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..formatValue(host["active_alerted_flows"]) .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
    end
-   
+
    if(host.score_behaviour.tot_num_anomalies > 0) then
       -- TODO: Add JSON update
       print("<tr><th>"..i18n("host_details.behavioural_anomalies").."</th><td colspan=2><span id=beh_anomalies>"..formatValue(host.score_behaviour.tot_num_anomalies).."</span><span id=beh_anomalies_trend></span></td></tr>\n")
    end
-   
+
    if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
 
    local msg = ""
@@ -836,7 +844,7 @@ else
       print("<b>SMTP</b>: "..formatContacts(host.server_contacts.smtp).." / ");
       print("<b>NTP</b>: "..formatContacts(host.server_contacts.ntp).."</td></tr>");
    end
-   
+
    if host["tcp.packets.seq_problems"] == true then
       local tcp_seq_label = "TCP: "..i18n("details.retransmissions").." / "..i18n("details.out_of_order").." / "..i18n("details.lost").." / "..i18n("details.keep_alive")
 
@@ -868,7 +876,7 @@ else
        }
      })
    )
-   
+
    -- Stats reset
    print(
      template.gen("modal_confirm_dialog.html", {
@@ -894,7 +902,7 @@ else
    </form>
    <button class="btn btn-secondary" onclick="$('#reset_host_stats_dialog').modal('show')">]] print(i18n("host_details.reset_host_stats")) print[[</button>
    <button class="btn btn-secondary" onclick="$('#reset_blacklisted_stats_dialog').modal('show')">]] print(i18n("host_details.reset_blacklisted_stats")) print[[</button>
-   
+
    </td></tr>]]
 
    local num_extra_names = 0
@@ -980,7 +988,7 @@ else
        print('<td colspan=1 style="width: 15rem;">~</td>')
      end
      print('</tr>')
-   
+
    local has_tcp_distro = (host["tcp.packets.rcvd"] + host["tcp.packets.sent"] > 0)
    local has_arp_distro = (not isEmptyString(host["mac"])) and (host["mac"] ~= "00:00:00:00:00:00") and (ifs.type ~= "zmq")
 
@@ -1432,21 +1440,21 @@ setInterval(update_ndpi_categories_table, 5000);
 elseif(page == "dns") then
    if((host.DoH_DoT ~= nil) or (host["dns"] ~= nil)) then
       print("<table class=\"table table-bordered table-striped\">\n")
-      
+
       if(host.DoH_DoT ~= nil) then
 	 print("<tr><th>"..i18n("dns_page.doh_dot_servers").."</th><th colspan=4>"..i18n("dns_page.doh_dot_server_uses").."</th></tr>")
-	 
+
 	 for _, v in pairs(host.DoH_DoT) do
 	    print("<tr><th>"..buildHostHREF(v.ip, v.vlan_id, "overview").."</th><td colspan=4 align=right>"..formatValue(v.num_uses) .."</td>")
 	 end
 
 	 print("</td></tr>\n")
       end
-      
+
       if(host["dns"] ~= nil) then
       	print("<tr><th>"..i18n("dns_page.dns_breakdown").."</th><th class='text-end'>"..i18n("dns_page.queries").."</th><th class='text-end'>"..i18n("dns_page.positive_replies").."</th><th class='text-end'>"..i18n("dns_page.error_replies").."</th><th colspan=2 class='text-center'>"..i18n("dns_page.reply_breakdown").."</th></tr>")
 			print("<tr><th>"..i18n("sent").."</th><td class=\"text-end\"><span id=dns_sent_num_queries>".. formatValue(host["dns"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
-	 
+
 	 print("<td class=\"text-end\"><span id=dns_sent_num_replies_ok>".. formatValue(host["dns"]["sent"]["num_replies_ok"]) .."</span> <span id=trend_sent_num_replies_ok></span></td>")
 	 print("<td class=\"text-end\"><span id=dns_sent_num_replies_error>".. formatValue(host["dns"]["sent"]["num_replies_error"]) .."</span> <span id=trend_sent_num_replies_error></span></td><td colspan=2>")
 	 graph_utils.breakdownBar(host["dns"]["sent"]["num_replies_ok"], "OK", host["dns"]["sent"]["num_replies_error"], "Error", 0, 100)
@@ -1507,7 +1515,7 @@ elseif(page == "dns") then
 	    end
 	    print("</tr>")
 	 end
-	 
+
 	 print[[
         </table>
        <small><b>]] print(i18n("dns_page.note")) print[[:</b><br>]] print(i18n("dns_page.note_dns_ratio")) print[[
@@ -1525,7 +1533,7 @@ elseif(page == "tls") then
          endpoint = endpoint,
       }
    }
-   
+
 print(template.gen("pages/ja3_fingerprint.template", context))
 
 elseif(page == "ssh") then
@@ -1538,7 +1546,7 @@ elseif(page == "ssh") then
          endpoint = endpoint,
       }
    }
-   
+
 print(template.gen("pages/hassh_fingerprint.template", context))
 elseif(page == "http") then
    local http = host["http"]
@@ -1660,11 +1668,11 @@ elseif(page == "flows") then
       tskey = _GET["tskey"],
       host_pool_id = _GET["host_pool_id"],
    }
- 
+
    print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
-   
+
    print('";')
-   
+
    if(ifstats.vlan)   then show_vlan = true else show_vlan = false end
    local active_flows_msg = i18n("flows_page.active_flows",{filter=""})
    if not interface.isPacketInterface() then
@@ -1672,12 +1680,12 @@ elseif(page == "flows") then
    elseif interface.isPcapDumpInterface() then
       active_flows_msg = i18n("flows")
    end
-   
+
    local duration_or_last_seen = prefs.flow_table_time
    local begin_epoch_set = (ntop.getPref("ntopng.prefs.first_seen_set") == "1")
-   
+
    local active_flows_msg = getFlowsTableTitle()
-   
+
    print [[
    	 $("#table-flows").datatable({
             url: url_update,
@@ -1687,16 +1695,16 @@ elseif(page == "flows") then
    	 },
             showPagination: true,
    	       ]]
-   
+
      print('title: "'..active_flows_msg..'",')
-   
+
    -- Set the preference table
    preference = tablePreferences("rows_number",_GET["perPage"])
    if(preference ~= "") then print ('perPage: '..preference.. ",\n") end
-   
-   
+
+
    print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
-   
+
    print[[
       columns: [
          {
@@ -1729,7 +1737,7 @@ elseif(page == "flows") then
             }
          },
    	]]
-   
+
    	if(show_vlan) then
    	   print('{ title: "'..i18n("vlan")..'",\n')
    	   print [[
@@ -1738,7 +1746,7 @@ elseif(page == "flows") then
                     css: {
                  textAlign: 'center'
               }
-   
+
             },
    		]]
    	end
@@ -1766,8 +1774,8 @@ elseif(page == "flows") then
    	      },
       	]]
    	end
-   
-   	if duration_or_last_seen == false then 
+
+   	if duration_or_last_seen == false then
    	   print[[
    	      {
    	         title: "]] print(i18n("duration")) print[[",
@@ -1791,8 +1799,8 @@ elseif(page == "flows") then
    	         }
    	      },
    	   ]]
-   	end   
-      
+   	end
+
       print[[{
         title: "]] print(i18n("score")) print[[",
             field: "column_score",
@@ -1823,10 +1831,10 @@ elseif(page == "flows") then
             field: "column_bytes",
             sortable: true,
         css: {
-   
+
            textAlign: 'right'
         }
-   
+
             }
         ,{
         title: "]] print(i18n("info")) print[[",
@@ -1839,16 +1847,16 @@ elseif(page == "flows") then
         ]
    	});
    	]]
-   
+
    if(have_nedge) then
      printBlockFlowJs()
    end
-   
+
    print[[
           </script>
-   
+
       ]]
-   
+
 
 elseif(page == "snmp" and ntop.isEnterpriseM() and isAllowedSystemInterface()) then
    local snmp_config = require "snmp_config"
@@ -1889,7 +1897,7 @@ elseif page == "geomap" then
                <div class="spinner-border text-primary" role="status">
                   <span class="sr-only">Loading...</span>
                </div>
-            </div> 
+            </div>
           </div>
         </div>
       <script type='text/javascript'>
@@ -1899,12 +1907,12 @@ elseif page == "geomap" then
           $('#geomap-alert #error-message').html(`<b>]]) print(i18n("geo_map.geolocation_warning")) print[[</b>: ]] print(i18n("geo_map.using_default_location")) print[[`);
           $('#geomap-alert').removeClass('alert-danger').addClass('alert-warning').show();
       }
-  
+
       const display_localized_no_geolocation_msg = () => {
           $('#geomap-alert p').html(`{* i18n("geo_map.unavailable_geolocation") .. ' ' .. i18n("geo_map.using_default_location") *}`);
           $('#geomap-alert').addClass('alert-info').removeClass('alert-danger').show();
       }
-  
+
       const red_marker = L.icon({
       iconUrl: `${http_prefix}/leaflet/images/marker-icon-red.png`,
       shadowUrl: '${http_prefix}/leaflet/images/marker-shadow.png',
@@ -1912,7 +1920,7 @@ elseif page == "geomap" then
       popupAnchor: [1, -34],
       tooltipAnchor: [16, -28]
   });
-  
+
   const info_key_names = {
       "score": i18n_ext.score,
       "asname": i18n_ext.as,
@@ -1923,45 +1931,45 @@ elseif page == "geomap" then
       "bytes.rcvd": i18n_ext.traffic_rcvd,
       "total_flows": i18n_ext.flows,
   };
-  
+
   const formatters = {
       "bytes.sent": NtopUtils.bytesToSize,
       "bytes.rcvd": NtopUtils.bytesToSize,
   }
-  
+
   const default_coords = [41.9, 12.4833333];
   const zoom_level = 4;
   let addRefToHost = true;
   let endpoint = http_prefix + "/lua/rest/v2/get/geo_map/hosts.lua?";
   let baseEndpoint = "";
-  
-  const create_marker = (h) => {    
+
+  const create_marker = (h) => {
       h = JSON.parse(JSON.stringify(h));
       const settings = { title: h.name };
       if (h.isRoot) settings.icon = red_marker;
-  
+
       const ip = h.ip
       const lat = h.lat;
       const lng = h.lng;
       const name = h.name;
       let name_ip = ip;
       let extra_info = '';
-      
+
       h.ip = null;
       h.lat = null;
       h.lng = null;
       h.name = null;
       h.isRoot = null;
-  
+
       // Formatting the extra info to print into the Geo Map
       for (const key in h) {
           if(formatters[key])
               h[key] = formatters[key](h[key])
-  
+
           if(h[key] && info_key_names[key])
               extra_info = extra_info + info_key_names[key] + ": <b>" + h[key] + "</b></br>";
       }
-  
+
       if(h["flow_status"]) {
           let flow_status = i18n_ext.flow_status + ":</br>";
           for (const prop in h["flow_status"]) {
@@ -1969,42 +1977,42 @@ elseif page == "geomap" then
           }
           extra_info = extra_info + flow_status;
       }
-  
+
       if(name)
           name_ip = name + "</br>" + name_ip;
-  
+
       analysisPage = new URLSearchParams(window.location.search)
       analysisPage.set('ip', ip + ";eq")
-  
+
       let hostDetails = ""
-  
+
       h.host_in_memory ? hostDetails = `<a href='${http_prefix}/lua/host_details.lua?host=${ip}'> <i class="fas fa-laptop"></i></a>` : ``
-  
+
       const marker = `<div class='infowin'>
                           <a href='${http_prefix}/lua/pro/db_search.lua?${analysisPage.toString()}'>${name_ip}</a>
                           ${hostDetails}
                           <hr>
                           ${extra_info}
                       </div>`
-  
+
       return L.marker(L.latLng(lat, lng), settings).bindPopup(marker);
   }
-  
+
   // return true if the status code is different from 200
   const check_status_code = (status_code, status_text, $error_label) => {
-  
+
       const is_different = (status_code != 200);
-  
+
       if (is_different && $error_label != null) {
           $error_label.find('p').text(`${i18n_ext.request_failed_message}: ${status_code} - ${status_text}`).show();
       }
       else if (is_different && $error_label == null) {
           alert(`${i18n_ext.request_failed_message}: ${status_code} - ${status_text}`);
       }
-  
+
       return is_different;
   }
-  
+
   const display_errors = (errors) => {
       const error_messages = {
           1: 'Permission denied',
@@ -2012,18 +2020,18 @@ elseif page == "geomap" then
           3: 'Request timeout'
       };
       const error_code = error_messages[errors.code];
-  
+
       show_positions({ coords: { latitude: 0, longitude: 0 }});
-  
+
       if (errors.code != 1) {
           display_localized_error(error_code);
       }
   }
-  
+
   const init_map = (newEndpoint = null, _baseEndpoint = null) => {
       endpoint = newEndpoint || endpoint;
       baseEndpoint = _baseEndpoint;
-  
+
       if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(show_positions, display_errors,
                {
@@ -2034,13 +2042,13 @@ elseif page == "geomap" then
               );
       }
   }
-  
+
   const draw_markers = (hosts, map_markers, map) => {
       hosts.forEach(h => {
           map_markers.addLayer(
               create_marker(h)
           );
-  
+
           // make a transitions to the root host
           if (h.isRoot) {
               map.flyTo([h.lat, h.lng], zoom_level);
@@ -2048,18 +2056,18 @@ elseif page == "geomap" then
       });
       map.addLayer(map_markers);
   }
-  
+
   let hosts = null;
   let map = null;
   let markers = null;
-  
+
   const redraw_hosts = (show_only_alert_hosts, redo_query = false, extra_endpoint_params = null) => {
       if (markers == null || map == null || hosts == null) {
     console.error("map isn't initialized!");
     return;
       }
       markers.clearLayers();
-  
+
       if(redo_query == true) {
           $.get(`${baseEndpoint}?${extra_endpoint_params}&ifid=${interfaceID}&${zoomIP || ''}`)
               .then((data) => {
@@ -2075,7 +2083,7 @@ elseif page == "geomap" then
           draw_markers(temp_hosts, markers, map);
       }
   }
-  
+
   const show_positions = (current_user_position) => {
       // these are two map providers provided by: https://leaflet-extras.github.io/leaflet-providers/preview/
       const layers = {
@@ -2085,13 +2093,13 @@ elseif page == "geomap" then
       // select the right layer
       const layer = layers.light;
       const user_coords = [current_user_position.coords.latitude, current_user_position.coords.longitude];
-  
+
       if (user_coords[0] == 0 && user_coords[1] == 0) {
           /* Do not even report the info/error to the user, this is
            * not relevant as the map functionality is not impacted */
           //display_localized_no_geolocation_msg();
           console.log("Geolocation unavailable, using default location");
-  
+
           user_coords[0] = default_coords[0], user_coords[1] = default_coords[1];
       }
       //document.getElementById('map-canvas').innerHTML = "<div id='map' style='width: 100%; height: 100%;'></div>";
@@ -2105,16 +2113,16 @@ elseif page == "geomap" then
       });
       markers = map_markers;
       map = hosts_map;
-  
+
       L.tileLayer(layer, {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(hosts_map);
-  
+
       if (hosts != null) {
           draw_markers(hosts, map_markers, hosts_map);
     return;
       }
-  
+
       $.get(`${endpoint}&ifid=${interfaceID}&${zoomIP || ''}`)
           .then((data) => {
         hosts = data.rsp;
@@ -2123,21 +2131,21 @@ elseif page == "geomap" then
           .fail(({ status, statusText }) => {
               NtopUtils.check_status_code(status, statusText, $("#geomap-alert"));
           });
-  
+
   }
-  
-      
+
+
 
   $(document).ready(function() {
     init_map();
     $("#hosts-geomap-active-hosts").on("click", function(t) {
   $("#hosts-geomap-default-hosts").text(" Active Hosts ")
   redraw_hosts(false);
-    });	
+    });
     $("#hosts-geomap-alerted-hosts").on("click", function(t) {
   $("#hosts-geomap-default-hosts").text(" Alerted Hosts ")
   redraw_hosts(true);
-    });	
+    });
 
 });
       </script>
@@ -2394,7 +2402,7 @@ local items = split(_GET["ts_query"], ",") or {}
 
 for _, concat_tag in pairs(items) do
 	local tag = split(concat_tag, ":")
-	
+
 	if (tag) and (tag[1] == "dscp_class") then
 		tags["dscp_class"] = tag[2]
 		break
@@ -2404,8 +2412,8 @@ end
 local url = hostinfo2detailsurl(host, {page = "historical"})
 local show_graph = true
 
-if not host["localhost"] or 
-	(host["localhost"] == false or 
+if not host["localhost"] or
+	(host["localhost"] == false or
 	 host["is_multicast"] == true) then
 	show_graph = false
 end

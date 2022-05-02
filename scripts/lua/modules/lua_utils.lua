@@ -2127,6 +2127,7 @@ function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, 
 
    if(show_href) then
       local hostdetails_url = hostinfo2detailsurl(host_info, href_params, href_check)
+
       if not isEmptyString(hostdetails_url)then
 	      res = string.format("<a href='%s' data-bs-toggle='tooltip' title='%s'>%s</a>",
 			                     hostdetails_url, href_tooltip or '', href_value or '')
