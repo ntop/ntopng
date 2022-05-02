@@ -992,6 +992,8 @@ void Flow::setExtraDissectionCompleted() {
     }
   }
 
+  if(ndpiFlow) setErrorCode(ndpi_get_flow_error_code(ndpiFlow));
+  
   processExtraDissectedInformation();
 
   extra_dissection_completed = 1;
@@ -1039,7 +1041,7 @@ void Flow::setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_le
 
   /* Process detected protocol data and needs ndpiFlow only allocated for packet interfaces */
   processDetectedProtocolData();
-
+ 
   detection_completed = 1;
 
 #ifdef BLACKLISTED_FLOWS_DEBUG
@@ -2276,6 +2278,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(!getInterface()->isPacketInterface())
       lua_snmp_info(vm);
 
+    lua_push_int32_table_entry(vm, "l7_error_code", getErrorCode());
     lua_push_int32_table_entry(vm, "flow_verdict", flow_verdict);
 
     if(get_json_info()) {

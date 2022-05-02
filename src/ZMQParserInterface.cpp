@@ -72,6 +72,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("L7_PROTO", L7_PROTO, NTOP_PEN);
   addMapping("L7_PROTO_NAME", L7_PROTO_NAME, NTOP_PEN);
   addMapping("L7_INFO", L7_INFO, NTOP_PEN);
+  addMapping("L7_ERROR_CODE", L7_ERROR_CODE, NTOP_PEN);
   addMapping("IN_BYTES", IN_BYTES);
   addMapping("IN_PKTS", IN_PKTS);
   addMapping("OUT_BYTES", OUT_BYTES);
@@ -664,6 +665,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     }
     break;
     
+  case L7_ERROR_CODE:
+    flow->l7_error_code = value->int_num;
+    break;
+    
   case OOORDER_IN_PKTS:
     flow->tcp.ooo_in_pkts = value->int_num;
     break;
@@ -1012,6 +1017,9 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow * const flow, u_int32_t fi
       return (strcmp(flow->l7_info, value->string) == 0);
     else
       return false;
+    
+  case L7_ERROR_CODE:
+    return (flow->l7_error_code == value->int_num);
 
   case DNS_QUERY:
     if(value->string && flow->dns_query)
@@ -1133,12 +1141,12 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const ch
     //				 flow->process_info.father_gid,
     //				 flow->process_info.father_process_name);
   } else if(strlen(key) >= 7 && !strncmp(&key[strlen(key) - 7], "PROCESS", 7)) {
-    if(json_object_object_get_ex(jvalue, "PID", &obj))   flow->process_info.pid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "UID", &obj))      flow->process_info.uid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "UID_NAME", &obj))    flow->process_info.uid_name = (char*)json_object_get_string(obj);
-    if(json_object_object_get_ex(jvalue, "GID", &obj))     flow->process_info.gid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))     flow->process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))     flow->process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "PID", &obj))          flow->process_info.pid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UID", &obj))          flow->process_info.uid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "UID_NAME", &obj))     flow->process_info.uid_name = (char*)json_object_get_string(obj);
+    if(json_object_object_get_ex(jvalue, "GID", &obj))          flow->process_info.gid = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))      flow->process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
+    if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))      flow->process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->process_info.process_name = (char*)json_object_get_string(obj);
     if(!flow->process_info_set) flow->process_info_set = true;
     ret = true;

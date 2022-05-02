@@ -46,6 +46,7 @@ class Flow : public GenericHashEntry {
   VLANid vlanId;
   u_int32_t vrfId;
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
+  u_int32_t protocolErrorCode;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags, flow_verdict;
   u_int16_t flow_score;
   u_int8_t view_cli_mac[6], view_srv_mac[6];
@@ -894,6 +895,9 @@ class Flow : public GenericHashEntry {
   inline u_int8_t* getViewCliMac() { return(view_cli_mac); };
   inline u_int8_t* getViewSrvMac() { return(view_srv_mac); };
 
+  inline u_int32_t getErrorCode()        { return(protocolErrorCode); }
+  inline void setErrorCode(u_int32_t rc) { protocolErrorCode = rc;    }
+  
   /* Placeholder */
   inline char* getCliProcessName()     { return((char*)""); }
   inline char* getSrvProcessName()     { return((char*)""); }

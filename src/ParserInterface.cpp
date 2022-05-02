@@ -432,6 +432,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 #endif
   }
 
+  flow->setErrorCode(zflow->l7_error_code);
+  
   if(flow->isDNS())
     flow->updateDNS(zflow);
 

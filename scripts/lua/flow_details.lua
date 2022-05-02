@@ -1153,6 +1153,10 @@ else
       print("</td></tr>\n")
    end
 
+   if((flow.l7_error_code ~= nil) and (flow.l7_error_code ~= 0)) then
+      print("<tr><th width=30%>Error Code</th><td colspan=2><span class=\"badge bg-danger\">".. flow.l7_error_code .. "</span></td></tr>\n")
+   end
+
    if((flow.client_process == nil) and (flow.server_process == nil)) then
       print("<tr><th width=30%>"..i18n("flow_details.actual_peak_throughput").."</th><td width=20%>")
       if (throughput_type == "bps") then
@@ -1206,7 +1210,7 @@ else
       print("<tr><th width=30%>"..i18n("flow_details.dns_query").."</th><td colspan=2>")
 
       local dns_info = format_dns_query_info({ last_query_type = flow["protos.dns.last_query_type"], last_return_code = flow["protos.dns.last_return_code"]})
-      
+
       if dns_info["last_query_type"] ~= 0 then
         print(dns_info["last_query_type"] .. " ")
       end
