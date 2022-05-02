@@ -69,8 +69,8 @@ for key, value in pairsByValues(proto_stats, rev) do
 end
 
 if(host.cardinality) then
-  series2[#series2 + 1] = formatValue(host.cardinality.num_contacted_hosts_as_client) or 0
-  series2[#series2 + 1] = formatValue(host.cardinality.num_contacted_hosts_as_server) or 0
+  series2[#series2 + 1] = tonumber(host.cardinality.num_contacted_hosts_as_client or 0)
+  series2[#series2 + 1] = tonumber(host.cardinality.num_contacted_hosts_as_server or 0)
 else
   series2[#series2 + 1] = {}
   series2[#series2 + 1] = {}
