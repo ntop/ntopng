@@ -55,6 +55,7 @@ local alert = nil
 
 if page and row_id and tstamp and alert_entities[page] then
    local alert_store_instance = alert_store_instances[alert_entities[page].alert_store_name]
+
    if alert_store_instance then
       alerts, recordsFiltered = alert_store_instance:select_request(nil, "*")
       if #alerts >= 1 then

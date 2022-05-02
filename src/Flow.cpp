@@ -3251,6 +3251,9 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
     ndpi_serialize_string_string(s, "ja3_server_hash",
 				 protos.tls.ja3.server_hash);
 
+  if(getErrorCode() != 0)
+    ndpi_serialize_string_uint32(s, "l7_error_code", getErrorCode());
+
    /* Serialize alert JSON */
 
   alert_json_serializer = alert->getSerializedAlert();

@@ -235,6 +235,7 @@ local lang = {
   ["jump_to_chart"] = "Chart View",
   ["jump_to_table"] = "Table View",
   ["key"] = "Key",
+  ["l7_error_code"] = "Error Code",
   ["l7_id"] = "App %{id}",
   ["l7_proto"] = "L7 Proto",
   ["label"] = "Label",

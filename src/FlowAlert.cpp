@@ -122,6 +122,9 @@ ndpi_serializer* FlowAlert::getSerializedAlert() {
       break;
   }
 
+  if(flow->getErrorCode() != 0)
+    ndpi_serialize_string_uint32(serializer, "l7_error_code", flow->getErrorCode());
+
   ndpi_serialize_end_of_block(serializer); /* proto block */
 
   /* This call adds check-specific information to the serializer */

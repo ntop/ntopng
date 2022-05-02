@@ -387,7 +387,7 @@ local RNAME = {
    FLOW_RELATED_INFO = { name = "flow_related_info", export = true },
    MSG = { name = "msg", export = true, elements = {"name", "value", "description"}},
    FLOW = { name = "flow", export = true, elements = {"srv_ip.label", "srv_ip.value", "srv_port", "cli_ip.label", "cli_ip.value", "cli_port"}},
-
+   
    VLAN_ID = { name = "vlan_id", export = true},
    PROTO = { name = "proto", export = true},
    L7_PROTO = { name = "l7_proto", export = true},
@@ -842,8 +842,8 @@ function flow_alert_store:get_alert_details(value)
    local add_hyperlink = true
    local json = json.decode(value["json"]) or {}
    local proto_info = json["proto"]
-   local traffic_info = {}
-
+   local traffic_info = {}   
+   
    details[#details + 1] = {
       label = i18n("alerts_dashboard.alert"),
       content = get_label_link(fmt['alert_id']['label'], 'alert_id', fmt['alert_id']['value'], add_hyperlink)
@@ -879,6 +879,15 @@ function flow_alert_store:get_alert_details(value)
       content = fmt['additional_alerts']['descr'],
    }
 
+   if((proto_info.l7_error_code ~= nil) and (proto_info.l7_error_code ~= 0)) then
+      details[#details + 1] = {
+	 label = i18n("l7_error_code"),
+	 content = proto_info.l7_error_code
+      }
+      
+      proto_info.l7_error_code = nil -- Avoid to print it twice in the flow details section
+   end
+   
    proto_info = editProtoDetails(proto_info or {})
    traffic_info = format_common_info(value, traffic_info)
 
@@ -887,7 +896,7 @@ function flow_alert_store:get_alert_details(value)
       content = traffic_info
    }
 
-   for _, info in pairs(proto_info or {}) do
+   for k, info in pairs(proto_info or {}) do
       details[#details + 1] = {
          label = i18n("alerts_dashboard.flow_related_info"),
          content = info

@@ -5187,7 +5187,7 @@ end
 
 -- ##############################################
 
-function format_http_info(http_info)
+function format_http_info(http_info)   
   if http_info["last_return_code"] then
     local badge = get_badge(http_info.last_return_code == 200)
     http_info["last_return_code"] = string.format('<span class="badge bg-%s">%s</span>', badge, http_utils.getResponseStatusCode(http_info["last_return_code"]))
