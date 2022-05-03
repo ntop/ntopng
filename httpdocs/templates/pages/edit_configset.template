@@ -1978,7 +1978,7 @@ const $script_table = $("#scripts-config").DataTable({
       buttons: [
          {
             text: '<i class="fas fa-sync"></i>',
-            className: 'btn-link',
+            className: 'btn-link no-wrap',
             action: function (e, dt, node, config) {
                $script_table.ajax.reload(function () {
                   const [enabled_count, disabled_count] = count_scripts();
@@ -2086,7 +2086,7 @@ const $script_table = $("#scripts-config").DataTable({
          targets: -1,
          data: null,
          name: 'actions',
-         className: 'text-center',
+         className: 'text-center no-wrap',
          sortable: false,
          width: '7%',
          render: function (data, type, script) {
