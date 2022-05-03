@@ -66,12 +66,28 @@ ICMPinfo::~ICMPinfo() {
 u_int32_t ICMPinfo::key() const {
   u_int32_t k = 0;
 
-  if(unreach) {
-    k += unreach->src_ip.key() + unreach->dst_ip.key() + unreach->src_port + unreach->dst_port + unreach->protocol;
-  }
+  if(unreach)
+    k += unreach->src_ip.key() + unreach->dst_ip.key()
+      + unreach->src_port + unreach->dst_port + unreach->protocol;  
 
+#ifdef DONT_MERGE_ICMP_FLOWS
+  /*
+    We ignore the ICMP Id so that multiple ping's
+    with different Ids fall into the same flow and thus
+    ot cam ne used to spot ICMP exfiltration
+  */
   if(icmp_identifier)
     k += icmp_identifier;
+#endif
+
+  /*
+    NOTE:
+
+    We do not add ICMP type/code into the key
+    as they are different in request and response
+    thus diverting request/respomse in two
+    different flows
+  */
 
   return k;
 }

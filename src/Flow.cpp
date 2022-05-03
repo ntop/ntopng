@@ -2012,9 +2012,11 @@ bool Flow::equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
   if(_protocol != protocol)
     return(false);
 
+#ifdef DONT_MERGE_ICMP_FLOWS
   if(icmp_info && !icmp_info->equal(_icmp_info))
     return(false);
-
+#endif
+  
   if(cli_ip && cli_ip->equal(_cli_ip)
      && srv_ip && srv_ip->equal(_srv_ip)
      && _cli_port == cli_port && _srv_port == srv_port) {
@@ -2444,7 +2446,7 @@ u_int32_t Flow::key() {
 
   if(get_cli_ip_addr()) k += get_cli_ip_addr()->key();
   if(get_srv_ip_addr()) k += get_srv_ip_addr()->key();
-  if(icmp_info) k += icmp_info->key();
+  if(icmp_info)         k += icmp_info->key();
 
   return(k);
 }

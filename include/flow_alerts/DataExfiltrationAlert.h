@@ -27,7 +27,7 @@
 class DataExfiltrationAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { flow_alert_data_exfiltration, alert_category_security }; }
-  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_WARNING; };
+  static u_int8_t      getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
  DataExfiltrationAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) { };
   ~DataExfiltrationAlert() { };

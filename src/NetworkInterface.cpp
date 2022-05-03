@@ -4340,6 +4340,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     if(retriever->pag
        && retriever->pag->icmpValue(&icmp_type, &icmp_code)) {
       u_int8_t cur_type, cur_code;
+      
       f->getICMP(&cur_code, &cur_type);
 
       if((!f->isICMP()) || (cur_type != icmp_type) || (cur_code != icmp_code))
