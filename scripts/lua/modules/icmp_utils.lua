@@ -78,15 +78,16 @@ end
 
 -- #######################
 
-function icmp_utils.get_icmp_label(icmp_type, icmp_code)
+function icmp_utils.get_icmp_label(ip_version, icmp_type, icmp_code)
   if not icmp_locale_loaded then
     load_icmp_locale()
   end
 
-  local type_label = icmp_utils.get_icmp_type_label(icmp_type)
-  local code_label = icmp_utils.get_icmp_code_label(icmp_type, icmp_code)
+  -- local type_label = icmp_utils.get_icmp_type_label(icmp_type)
+  -- local code_label = icmp_utils.get_icmp_code_label(icmp_type, icmp_code)
+  -- return string.format("%s, %s", type_label, code_label)
 
-  return string.format("%s, %s", type_label, code_label)
+  return(icmp_utils.get_icmp_type(icmp_type))
 end
 
 

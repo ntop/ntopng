@@ -69,7 +69,8 @@ for key, value in ipairs(flows_stats) do
       info = flows_stats[key]["info"]
       italic = false
    elseif(not isEmptyString(flows_stats[key]["icmp"])) then
-      info = icmp_utils.get_icmp_label(ternary(isIPv4(flows_stats[key]["cli.ip"]), 4, 6), flows_stats[key]["icmp"]["type"], flows_stats[key]["icmp"]["code"])
+      local icmp = flows_stats[key]["icmp"]
+      info = icmp_utils.get_icmp_label(ternary(isIPv4(flows_stats[key]["cli.ip"]), 4, 6), icmp["type"], icmp["code"])
    elseif(flows_stats[key]["proto.ndpi"] == "SIP") then
       info = getSIPInfo(flows_stats[key])
    elseif(flows_stats[key]["proto.ndpi"] == "RTP") then
