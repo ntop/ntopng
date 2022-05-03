@@ -8522,11 +8522,12 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
     if(live_captures[i] != NULL) {
       struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
       bool http_client_disconnected = false;
+      int disconnect_stage = 0;
 
       num_found++;
 
       if(c->live_capture.capture_until < h->ts.tv_sec || c->live_capture.stopped)
-	http_client_disconnected = true;
+	http_client_disconnected = true, disconnect_stage = 1;
 
       /* The header is always sent even when there is never a match with matchLiveCapture,
          as otherwise some browsers may end up in hangning. Hanging has been
@@ -8540,7 +8541,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 	Utils::init_pcap_header(&pcaphdr, get_datalink(), ntop->getGlobals()->getSnaplen(get_name()));
 
 	if((res = mg_write_async(c->conn, &pcaphdr, sizeof(pcaphdr))) < (int)sizeof(pcaphdr))
-	  http_client_disconnected = true;
+	  http_client_disconnected = true, disconnect_stage = 2;
 
 	c->live_capture.pcaphdr_sent = true;
       }
@@ -8557,18 +8558,20 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 	   ((res = mg_write_async(c->conn, &pkthdr, sizeof(pkthdr))) < (int)sizeof(pkthdr))
 	   || ((res = mg_write_async(c->conn, packet, h->caplen)) < (int)h->caplen)
 	   )
-	  http_client_disconnected = true;
+	  http_client_disconnected = true, disconnect_stage = 3;
 	else {
 	  c->live_capture.num_captured_packets++;
 
 	  if((c->live_capture.capture_max_pkts != 0)
 	     && (c->live_capture.num_captured_packets == c->live_capture.capture_max_pkts))
-	    http_client_disconnected = true;
+	    http_client_disconnected = true, disconnect_stage = 4;
 	}
       }
 
-      if(http_client_disconnected)
+      if(http_client_disconnected) {
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Client disconnected or socket for live capture is busy, stopping capture (%d)", disconnect_stage);
 	deregisterLiveCapture(c); /* (*) */
+      }
     }
   }
 }
@@ -8616,9 +8619,9 @@ void NetworkInterface::dumpLiveCaptures(lua_State* vm) {
 /* *************************************** */
 
 bool NetworkInterface::stopLiveCapture(int capture_id) {
-  /* Administrative privileges checked by the caller */
-
   bool rc = false;
+
+  /* Administrative privileges checked by the caller */
 
   if((capture_id >= 0) && (capture_id < MAX_NUM_PCAP_CAPTURES)) {
     active_captures_lock.lock(__FILE__, __LINE__);
