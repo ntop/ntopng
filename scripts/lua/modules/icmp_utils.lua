@@ -38,7 +38,7 @@ end
 
 -- #######################
 
-function icmp_utils.get_icmp_type_label(icmp_type)
+function icmp_utils.get_icmp_type(icmp_type)
   local icmp_type_string = i18n("icmp_info.type." .. tostring(icmp_type) .. ".info") or ""
 
   if isEmptyString(icmp_type_string) then
@@ -47,12 +47,18 @@ function icmp_utils.get_icmp_type_label(icmp_type)
     icmp_type_string = string.format("%s (%u)", icmp_type_string, icmp_type)
   end
 
-  return string.format("%s: %s", i18n("icmp_page.icmp_type"), icmp_type_string) 
+  return icmp_type_string 
 end
 
 -- #######################
 
-function icmp_utils.get_icmp_code_label(icmp_type, icmp_code)
+function icmp_utils.get_icmp_type_label(icmp_type)
+  return string.format("%s: %s", i18n("icmp_page.icmp_type"), icmp_utils.get_icmp_type(icmp_type)) 
+end
+
+-- #######################
+
+function icmp_utils.get_icmp_code(icmp_type, icmp_code)
   local icmp_code_string = i18n("icmp_info.type." .. tostring(icmp_type) .. ".code." .. tostring(icmp_code)) or ""
 
   if isEmptyString(icmp_code_string) then
@@ -61,7 +67,13 @@ function icmp_utils.get_icmp_code_label(icmp_type, icmp_code)
     icmp_code_string = string.format("%s (%u)", icmp_code_string, icmp_type)
   end
 
-  return string.format("%s: %s", i18n("icmp_page.icmp_code"), icmp_code_string) 
+  return icmp_code_string 
+end
+
+-- #######################
+
+function icmp_utils.get_icmp_code_label(icmp_type, icmp_code)
+  return string.format("%s: %s", i18n("icmp_page.icmp_code"), icmp_utils.get_icmp_code(icmp_type, icmp_code)) 
 end
 
 -- #######################

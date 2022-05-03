@@ -819,6 +819,8 @@ local function editProtoDetails(proto_info)
       info = format_dns_query_info(info)
     elseif proto == "http" then
       info = format_http_info(info)
+    elseif proto == "icmp" then
+      info = format_icmp_info(info)
     end
   end
 
@@ -879,10 +881,10 @@ function flow_alert_store:get_alert_details(value)
       content = fmt['additional_alerts']['descr'],
    }
 
-   if((proto_info.l7_error_code ~= nil) and (proto_info.l7_error_code ~= 0)) then
+   if(proto_info and (proto_info.l7_error_code ~= nil) and (proto_info.l7_error_code ~= 0)) then
       details[#details + 1] = {
-	 label = i18n("l7_error_code"),
-	 content = proto_info.l7_error_code
+        label = i18n("l7_error_code"),
+        content = proto_info.l7_error_code
       }
       
       proto_info.l7_error_code = nil -- Avoid to print it twice in the flow details section

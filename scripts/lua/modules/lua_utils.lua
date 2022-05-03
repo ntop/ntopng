@@ -4879,6 +4879,29 @@ end
 
 -- ##############################################
 
+function addICMPInfoToAlertDescr(msg, alert_json)
+   if ((alert_json)
+      and (table.len(alert_json["proto"] or {}) > 0) 
+      and (table.len(alert_json["proto"]["icmp"] or {}) > 0)) then
+
+      local icmp_info = format_icmp_info({ code = alert_json["proto"]["icmp"]["code"], 
+                                           type = alert_json["proto"]["icmp"]["type"] })
+
+      -- Already formatted by the function
+      if icmp_info["type"] then
+        msg = msg .. string.format(" [ %s: %s ]", i18n("icmp_type"), icmp_info["type"])
+      end
+
+      if icmp_info["code"] then
+        msg = msg .. string.format(" [ %s: %s ]", i18n("icmp_code"), icmp_info["code"])
+      end
+   end
+
+   return msg
+end
+
+-- ##############################################
+
 function addBytesInfoToAlertDescr(msg, value)
   local predominant_bytes = i18n("traffic_srv_to_cli")
 
@@ -4900,6 +4923,7 @@ function addExtraFlowInfo(alert_json, value)
   msg = addHTTPInfoToAlertDescr(msg, alert_json)   
   msg = addDNSInfoToAlertDescr(msg, alert_json)
   msg = addTLSInfoToAlertDescr(msg, alert_json)
+  msg = addICMPInfoToAlertDescr(msg, alert_json)
   msg = addBytesInfoToAlertDescr(msg, value)
 
   return msg
@@ -5183,6 +5207,22 @@ function format_tls_info(tls_info)
   end
 
   return tls_info
+end
+
+-- ##############################################
+
+function format_icmp_info(icmp_info)
+  local icmp_utils = require "icmp_utils"
+
+  if icmp_info.code then
+    icmp_info.code = icmp_utils.get_icmp_code(icmp_info.type, icmp_info.code)
+  end
+
+  if icmp_info.type then
+    icmp_info.type = icmp_utils.get_icmp_type(icmp_info.type)
+  end     
+
+  return icmp_info
 end
 
 -- ##############################################
