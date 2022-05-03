@@ -3477,6 +3477,94 @@ local lang = {
     ["user_title"] = "for User %{poolname}",
     ["vlan_title"] = "VLAN %{vlan}",
   },
+  ["icmp_info"] = {
+    ["type"] = {
+      ["0"] = {
+        ["info"] = "Echo reply",
+        ["code"] = {},
+      },
+      ["3"] = {
+        ["info"] = "Destination unreachable",
+        ["code"] = {
+          ["0"] = "Net unreachable",
+          ["1"] = "Host unreachable",
+          ["2"] = "Protocol unreachable",
+          ["3"] = "Port unreachable",
+          ["4"] = "Fragmentation needed and DF set",
+          ["5"] = "Source route failed",
+        },
+      },
+      ["4"] = {
+        ["info"] = "Source quench",
+        ["code"] = {},
+      },
+      ["5"] = {
+        ["info"] = "Redirect",
+        ["code"] = {
+          ["0"] = "Redirect datagrams for the Network",
+          ["1"] = "Redirect datagrams for the Host",
+          ["2"] = "Redirect datagrams for the Type of Service and Network",
+          ["3"] = "Redirect datagrams for the Type of Service and Host",
+        },
+      },
+      ["8"] = {
+        ["info"] = "Echo",
+        ["code"] = {},
+      },
+      ["9"] = {
+        ["info"] = "Router advertisement",
+        ["code"] = {},
+      },
+      ["10"] = {
+        ["info"] = "Router selection",
+        ["code"] = {},
+      },
+      ["11"] = {
+        ["info"] = "Time exceeded",
+        ["code"] = {
+          ["0"] = "Time to live exceeded in transit",
+          ["1"] = "Fragment reassembly time exceeded",
+        },
+      },
+      ["12"] = {
+        ["info"] = "Parameter problem",
+        ["code"] = {
+          ["0"] = "Pointer indicates the error",
+        },
+      },
+      ["13"] = {
+        ["info"] = "Timestamp",
+        ["code"] = {},
+      },
+      ["14"] = {
+        ["info"] = "Timestamp reply",
+        ["code"] = {},
+      },
+      ["15"] = {
+        ["info"] = "Information request",
+        ["code"] = {},
+      },
+      ["16"] = {
+        ["info"] = "Information reply",
+        ["code"] = {},
+      },
+      ["17"] = {
+        ["info"] = "Address mask request",
+        ["code"] = {},
+      },
+      ["18"] = {
+        ["info"] = "Address mask reply",
+        ["code"] = {},
+      },
+      ["30"] = {
+        ["info"] = "Traceroute",
+        ["code"] = {
+          ["0"] = "Outbound Packet successfully forwarded",
+          ["1"] = "No route for Outbound Packet; packet discarded",
+        },
+      }
+    }
+  },
   ["http_info"] = {
     ["return_codes"] = {
       ["100"] = "Continue",
