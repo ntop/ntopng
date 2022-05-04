@@ -22,8 +22,10 @@
 #include "ntop_includes.h"
 #include "flow_alerts_includes.h"
 
-// #define DEBUG_IEC60870
-// #define IEC60870_TRACE
+/*
+#define DEBUG_IEC60870
+#define IEC60870_TRACE
+*/
 
 /* *************************************** */
 

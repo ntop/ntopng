@@ -469,7 +469,7 @@ class Flow : public GenericHashEntry {
 		     const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time,
 		     u_int8_t *payload, u_int16_t payload_len, u_int16_t src_port);
   void processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time);
-  void processIEC60870Packet(bool src2dst_direction, const u_char *ip_packet, u_int16_t ip_len,
+  void processIEC60870Packet(bool tx_direction,
 			     const u_char *payload, u_int16_t payload_len,
 			     struct timeval *packet_time);
   

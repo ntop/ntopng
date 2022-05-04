@@ -811,7 +811,7 @@ void Flow::processPacket(const struct pcap_pkthdr *h,
     processDNSPacket(ip_packet, ip_len, packet_time);
   else if(isIEC60870())
     processIEC60870Packet((htons(src_port) == 2404) ? true : false,
-			  ip_packet, ip_len, payload, payload_len,
+			  payload, payload_len,
 			  (struct timeval *)&h->ts);
 
   if(detection_completed && (!needsExtraDissection())) {
@@ -920,9 +920,9 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 
 /* Special handling of IEC60870 which is always performed. */
 void Flow::processIEC60870Packet(bool tx_direction,
-				 const u_char *ip_packet, u_int16_t ip_len,
 				 const u_char *payload, u_int16_t payload_len,
 				 struct timeval *packet_time) {
+ 
   /* Exits if the flow isn't IEC60870 or it the interface is not a packet-interface */
   if(!isIEC60870()
      || (!getInterface()->isPacketInterface())
@@ -933,7 +933,7 @@ void Flow::processIEC60870Packet(bool tx_direction,
     iec104 = new (std::nothrow) IEC104Stats();
 
   if(iec104)
-    iec104->processPacket(this, tx_direction, payload, payload_len, packet_time);
+    iec104->processPacket(this, tx_direction, payload, payload_len, packet_time);  
 }
 
 /* *************************************** */

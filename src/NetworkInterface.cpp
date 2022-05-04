@@ -1950,6 +1950,14 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
       break;
 
+    case NDPI_PROTOCOL_IEC60870:
+      if((trusted_payload_len > 0) && payload) {
+	flow->processIEC60870Packet((htons(src_port) == 2404) ? true : false,
+				    payload, trusted_payload_len,
+				    (struct timeval *)&h->ts);	
+      }
+      break;
+	
     case NDPI_PROTOCOL_MDNS:
 #ifdef MDNS_TEST
       extern void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len);
