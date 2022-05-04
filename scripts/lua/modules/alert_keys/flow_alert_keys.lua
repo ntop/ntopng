@@ -79,6 +79,7 @@ local flow_alert_keys = {
    flow_alert_ndpi_punicody_idn                    = 70,
    flow_alert_ndpi_error_code_detected             = 71,
    flow_alert_ndpi_http_crawler_bot                = 72,
+   flow_alert_ndpi_suspicious_entropy              = 73,
    
    -- NOTE: for flow alerts not not go beyond the size of Bitmap alert_map inside Flow.h (currently 128)
 }

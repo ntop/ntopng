@@ -47,6 +47,7 @@
 #include "flow_checks/FlowRiskTLSMissingSNI.h"
 #include "flow_checks/FlowRiskTLSNotCarryingHTTPS.h"
 #include "flow_checks/FlowRiskTLSSuspiciousESNIUsage.h"
+#include "flow_checks/FlowRiskSuspiciousEntropy.h"
 #include "flow_checks/FlowRiskUnsafeProtocol.h"
 #include "flow_checks/FlowRiskURLPossibleXSS.h"
 #include "flow_checks/FlowRiskURLPossibleRCEInjection.h"
