@@ -8576,7 +8576,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 	  res = mg_write_async(c->conn, c->live_capture.send_buffer, c->live_capture.data_not_yet_sent_len);
 
 	  if(res > 0) {
-	    if(res == c->live_capture.data_not_yet_sent_len) {
+	    if(res == (int)c->live_capture.data_not_yet_sent_len) {
 	      c->live_capture.data_not_yet_sent_len = 0; /* We've sent everything that was in queue */
 	    } else {
 	      u_int leftover = c->live_capture.data_not_yet_sent_len - res;
@@ -8617,7 +8617,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sent %d / %u bytes", res, c->live_capture.data_not_yet_sent_len);
 #endif
 	
-	if(res == c->live_capture.data_not_yet_sent_len) {
+	if(res == (int)c->live_capture.data_not_yet_sent_len) {
 	  c->live_capture.data_not_yet_sent_len = 0; /* All sent */
 	  
 	  c->live_capture.num_captured_packets++;
@@ -8652,11 +8652,10 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
       }
 
       if(http_client_disconnected) {
-#ifdef TRACE_DOWNLOAD
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+	ntop->getTrace()->traceEvent(TRACE_INFO,
 				     "Client disconnected or socket for live capture is busy, stopping capture (%d)",
 				     disconnect_stage);
-#endif
+
 	deregisterLiveCapture(c); /* (*) */
       }	
     }
