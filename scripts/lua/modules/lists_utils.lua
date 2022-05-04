@@ -509,8 +509,11 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
 	   if((host == "0.0.0.0") or (host == "0.0.0.0/0") or (host == "255.255.255.255")) then
 	     loadWarning(string.format("Bad IPv4 address '%s' in list '%s'", host, list.name))
 	   else
-	     ntop.loadCustomCategoryIp(host, category, list.name)
-	     return "ip"
+       if list then
+	      ntop.loadCustomCategoryIp(host, category, list.name)
+	     end
+       
+       return "ip"
 	   end
 	 else
 	   loadWarning(string.format("Invalid IPv4 address '%s' in list '%s'", host, list.name))
