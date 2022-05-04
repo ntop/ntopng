@@ -1038,7 +1038,6 @@ else
       alerts_by_score[alert_score][#alerts_by_score[alert_score] + 1] = {message = message, is_predominant = is_predominant, alert_id = id, alert_label = alert_label, alert_risk = alert_risk}
       num_statuses = num_statuses + 1
    end
-
    -- ######################################
 
    -- Unhandled flow risk as 'fake' alerts with a 'fake' score of zero
@@ -1083,7 +1082,11 @@ else
 	       first = false
 	    end
 
-      local status_icon = alert_consts.alertTypeIcon(score_alert.alert_id, ntop.mapScoreToSeverity(score_alert.alert_id), 'fa-lg')
+      local status_icon = ""
+      
+      if score_alert.alert_id then 
+        alert_consts.alertTypeIcon(score_alert.alert_id, ntop.mapScoreToSeverity(score_alert.alert_id), 'fa-lg')
+      end
 
 	    print(string.format('<tr>'))
 
