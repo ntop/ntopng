@@ -24,14 +24,14 @@
 		]
 	},
 	"filters" : {
-	    "items" : [
-		{
-		    "name": "INFO",
-		    "op": "ne",
-		    "value_type": "text",
-		    "value", "",
-		    "input": "fixed",
-		},
+		"items" : [
+			{
+				"name": "INFO",
+				"op": "neq",
+				"value": "",
+				"value_type": "text",
+				"input": "fixed"
+			}
 		]
 	},
 	"groupby" : {
