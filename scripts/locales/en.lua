@@ -192,6 +192,7 @@ local lang = {
   ["highest_avg_protocol_score"] = "Top Average Flow Score (Protocols)",
   ["highest_avg_src_score"] = "Top Average Flow Score (Clients)",
   ["historical"] = "Historical Data",
+  ["hits"] = "Hits",
   ["host"] = "Host %{host}",
   ["host_address"] = "Host Address",
   ["host_notes"] = "Host Notes",
@@ -204,10 +205,10 @@ local lang = {
   ["http_s"] = "HTTP(S)",
   ["https"] = "HTTPS",
   ["icmp"] = "ICMP",
-  ["icmpv4"] = "ICMPv4",
-  ["icmpv6"] = "ICMPv6",
   ["icmp_code"] = "ICMP Code",
   ["icmp_type"] = "ICMP Type",
+  ["icmpv4"] = "ICMPv4",
+  ["icmpv6"] = "ICMPv6",
   ["id"] = "ID",
   ["if_id"] = "SNMP Interface",
   ["iface_download"] = "%{iface} download",
@@ -447,6 +448,8 @@ local lang = {
   ["top_l7_cat"] = "Top Categories",
   ["top_l7_proto"] = "Top Applications",
   ["top_proto_per_flow_status"] = "Top Alerted Applications",
+  ["top_sites_hits"] = "Top Sites (Hits)",
+  ["top_sites_volume"] = "Top Sites (Volume)",
   ["top_src_asn"] = "Top Autonomous Systems (Clients)",
   ["top_src_flow_status"] = "Top Alerted Clients",
   ["top_src_score"] = "Top Total Score (Clients)",
@@ -591,8 +594,8 @@ local lang = {
     ["invalid_combination"] = "Invalid measurement/host combination",
     ["invalid_host"] = "Invalid host specified",
     ["jitter"] = "Mean RTT / Jitter",
-    ["last_measurement"] = "Last Measurement",
     ["last_24_hours"] = "Last 24 Hours",
+    ["last_measurement"] = "Last Measurement",
     ["measurement"] = "Measurement",
     ["measurement_time"] = "Measurement Time",
     ["msec"] = "ms",
@@ -1223,8 +1226,8 @@ local lang = {
     ["exceptions"] = "Exceptions: %{exceptions}",
     ["factory_reset_all_checks"] = "Factory Reset All Checks",
     ["factory_reset_all_message"] = "Do you want to reset the checks configuration to the default?",
-    ["high_network_score_title"] = "High Network Score",
     ["high_network_score_description"] = "Depending on the number of hosts in a Network, if total score exceeds the threshold per host configured, triggers an alert (e.g. 500 host, threshold 10, if the Network Score exceeds 5000 then trigger the alert)",
+    ["high_network_score_title"] = "High Network Score",
     ["long_lived_flows_descr"] = "> %{duration}",
     ["network_discovery_alert_description"] = "Periodic Network Discovery executed",
     ["network_discovery_description"] = "Trigger an alert when a Network Discovery is detected",
@@ -2042,8 +2045,8 @@ local lang = {
     ["macs"] = "MACs",
     ["mbits"] = "Mbps",
     ["packets"] = "Packets",
-    ["percentage"] = "%%",
     ["per_host_score"] = "Max Score per Host",
+    ["percentage"] = "%%",
     ["score"] = "Score",
     ["seconds"] = "sec",
     ["syn_min"] = "SYNs/min",
@@ -3479,94 +3482,6 @@ local lang = {
     ["user_title"] = "for User %{poolname}",
     ["vlan_title"] = "VLAN %{vlan}",
   },
-  ["icmp_info"] = {
-    ["type"] = {
-      ["0"] = {
-        ["info"] = "Echo reply",
-        ["code"] = {},
-      },
-      ["3"] = {
-        ["info"] = "Destination unreachable",
-        ["code"] = {
-          ["0"] = "Net unreachable",
-          ["1"] = "Host unreachable",
-          ["2"] = "Protocol unreachable",
-          ["3"] = "Port unreachable",
-          ["4"] = "Fragmentation needed and DF set",
-          ["5"] = "Source route failed",
-        },
-      },
-      ["4"] = {
-        ["info"] = "Source quench",
-        ["code"] = {},
-      },
-      ["5"] = {
-        ["info"] = "Redirect",
-        ["code"] = {
-          ["0"] = "Redirect datagrams for the Network",
-          ["1"] = "Redirect datagrams for the Host",
-          ["2"] = "Redirect datagrams for the Type of Service and Network",
-          ["3"] = "Redirect datagrams for the Type of Service and Host",
-        },
-      },
-      ["8"] = {
-        ["info"] = "Echo",
-        ["code"] = {},
-      },
-      ["9"] = {
-        ["info"] = "Router advertisement",
-        ["code"] = {},
-      },
-      ["10"] = {
-        ["info"] = "Router selection",
-        ["code"] = {},
-      },
-      ["11"] = {
-        ["info"] = "Time exceeded",
-        ["code"] = {
-          ["0"] = "Time to live exceeded in transit",
-          ["1"] = "Fragment reassembly time exceeded",
-        },
-      },
-      ["12"] = {
-        ["info"] = "Parameter problem",
-        ["code"] = {
-          ["0"] = "Pointer indicates the error",
-        },
-      },
-      ["13"] = {
-        ["info"] = "Timestamp",
-        ["code"] = {},
-      },
-      ["14"] = {
-        ["info"] = "Timestamp reply",
-        ["code"] = {},
-      },
-      ["15"] = {
-        ["info"] = "Information request",
-        ["code"] = {},
-      },
-      ["16"] = {
-        ["info"] = "Information reply",
-        ["code"] = {},
-      },
-      ["17"] = {
-        ["info"] = "Address mask request",
-        ["code"] = {},
-      },
-      ["18"] = {
-        ["info"] = "Address mask reply",
-        ["code"] = {},
-      },
-      ["30"] = {
-        ["info"] = "Traceroute",
-        ["code"] = {
-          ["0"] = "Outbound Packet successfully forwarded",
-          ["1"] = "No route for Outbound Packet; packet discarded",
-        },
-      }
-    }
-  },
   ["http_info"] = {
     ["return_codes"] = {
       ["100"] = "Continue",
@@ -3670,6 +3585,105 @@ local lang = {
     ["not_found"] = "The requested page cannot be found",
     ["pro_only"] = "Professional/Enterprise edition license required",
     ["shut_start"] = "Unable to serve requests at this time, possibly starting up or shutting down",
+  },
+  ["icmp_info"] = {
+    ["type"] = {
+      ["0"] = {
+        ["info"] = "Echo reply",
+        ["code"] = {
+        },
+      },
+      ["10"] = {
+        ["info"] = "Router selection",
+        ["code"] = {
+        },
+      },
+      ["11"] = {
+        ["info"] = "Time exceeded",
+        ["code"] = {
+          ["0"] = "Time to live exceeded in transit",
+          ["1"] = "Fragment reassembly time exceeded",
+        },
+      },
+      ["12"] = {
+        ["info"] = "Parameter problem",
+        ["code"] = {
+          ["0"] = "Pointer indicates the error",
+        },
+      },
+      ["13"] = {
+        ["info"] = "Timestamp",
+        ["code"] = {
+        },
+      },
+      ["14"] = {
+        ["info"] = "Timestamp reply",
+        ["code"] = {
+        },
+      },
+      ["15"] = {
+        ["info"] = "Information request",
+        ["code"] = {
+        },
+      },
+      ["16"] = {
+        ["info"] = "Information reply",
+        ["code"] = {
+        },
+      },
+      ["17"] = {
+        ["info"] = "Address mask request",
+        ["code"] = {
+        },
+      },
+      ["18"] = {
+        ["info"] = "Address mask reply",
+        ["code"] = {
+        },
+      },
+      ["3"] = {
+        ["info"] = "Destination unreachable",
+        ["code"] = {
+          ["0"] = "Net unreachable",
+          ["1"] = "Host unreachable",
+          ["2"] = "Protocol unreachable",
+          ["3"] = "Port unreachable",
+          ["4"] = "Fragmentation needed and DF set",
+          ["5"] = "Source route failed",
+        },
+      },
+      ["30"] = {
+        ["info"] = "Traceroute",
+        ["code"] = {
+          ["0"] = "Outbound Packet successfully forwarded",
+          ["1"] = "No route for Outbound Packet; packet discarded",
+        },
+      },
+      ["4"] = {
+        ["info"] = "Source quench",
+        ["code"] = {
+        },
+      },
+      ["5"] = {
+        ["info"] = "Redirect",
+        ["code"] = {
+          ["0"] = "Redirect datagrams for the Network",
+          ["1"] = "Redirect datagrams for the Host",
+          ["2"] = "Redirect datagrams for the Type of Service and Network",
+          ["3"] = "Redirect datagrams for the Type of Service and Host",
+        },
+      },
+      ["8"] = {
+        ["info"] = "Echo",
+        ["code"] = {
+        },
+      },
+      ["9"] = {
+        ["info"] = "Router advertisement",
+        ["code"] = {
+        },
+      },
+    },
   },
   ["icmp_page"] = {
     ["icmp_code"] = "Code",
@@ -4182,7 +4196,6 @@ local lang = {
     ["graph_view"] = "Graph View",
     ["host"] = "Host",
     ["in_edges"] = "Incoming Edges",
-    ["rank"] = "Rank",
     ["learning"] = "The Service Map is <b>learning</b>...",
     ["learning_table"] = "The Service Map is <b>learning</b>, click on the reload table button to see new changes...",
     ["no_services"] = "No <b>services</b> were found.",
@@ -4192,6 +4205,7 @@ local lang = {
     ["only_mem_hosts"] = "Active Hosts Only",
     ["out_edges"] = "Outgoing Edges",
     ["protocols"] = "All Protocols",
+    ["rank"] = "Rank",
     ["service_view"] = "Service Analysis",
     ["set_state"] = "Set %{label} service(s) status to: ",
     ["status"] = "Status",

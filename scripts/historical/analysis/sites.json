@@ -1,0 +1,49 @@
+{
+  "name": "Sites",  
+  "i18n_name" : "applications_long",
+    "data_source" : "flows",
+    "chart" : [
+	{
+	    "chart_id" : "top_sites_volume", // Each id MUST be different
+	    "chart_i18n_name" : "top_sites_volume",
+
+	    "chart_css_styles" : { // CSS chart styles, optional feature
+		"max-height" : "35rem",
+		"min-height" : "35rem",
+	    },
+	    "chart_endpoint" : "/lua/rest/v2/get/db/charts/l7_proto_per_flow.lua",
+	    "chart_events" : { // JS Events, optional feature
+		"dataPointSelection" : "db_analyze"
+	    },
+	    "chart_gui_filter" : "l7proto", // Filter displayed in the GUI
+	    "chart_sql_query" : "SELECT INFO,SUM(TOTAL_BYTES) AS total_bytes FROM flows WHERE ($WHERE) AND (INFO <> '') GROUP BY INFO ORDER BY total_bytes DESC LIMIT 15",
+	    "chart_type" : "bar_apex_chart",
+	    "chart_i18n_extra_x_label" : "volume",
+	    "chart_record_value" : "total_bytes",
+	    "chart_record_label" : "INFO",
+	    "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
+	    "chart_y_formatter" : "format_bytes", // JS tooltip event, optional feature
+	},
+    	{
+	    "chart_id" : "top_sites_hits", // Each id MUST be different
+	    "chart_i18n_name" : "top_sites_hits",
+
+	    "chart_css_styles" : { // CSS chart styles, optional feature
+		"max-height" : "35rem",
+		"min-height" : "35rem",
+	    },
+	    "chart_endpoint" : "/lua/rest/v2/get/db/charts/l7_proto_per_flow.lua",
+	    "chart_events" : { // JS Events, optional feature
+		"dataPointSelection" : "db_analyze"
+	    },
+	    "chart_gui_filter" : "l7proto", // Filter displayed in the GUI
+	    "chart_sql_query" : "SELECT INFO,COUNT(*) AS total_hits FROM flows WHERE ($WHERE) AND (INFO <> '') GROUP BY INFO ORDER BY total_hits DESC LIMIT 15",
+	    "chart_type" : "bar_apex_chart",
+	    "chart_i18n_extra_x_label" : "hits",
+	    "chart_record_value" : "total_hits",
+	    "chart_record_label" : "INFO",
+	    "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
+	    "chart_y_formatter" : "format_value", // JS tooltip event, optional feature
+	}],
+    "show_in_page" : "analysis",
+}

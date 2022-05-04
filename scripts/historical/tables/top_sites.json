@@ -1,0 +1,56 @@
+{
+	"name" : "Top Sites",
+	"i18n_name" : "top_sites",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"select" : {
+		"items" : [
+			{
+				"name" : "INFO"
+			},
+			{
+				"name" : "Volume",
+				"func" : "SUM",
+				"param" : "TOTAL_BYTES",
+				"value_type" : "number"
+			},
+			{
+				"name" : "Hits",
+				"func" : "count",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+	    "items" : [
+		{
+		    "name": "INFO",
+		    "op": "ne",
+		    "value_type": "text",
+		    "value", "",
+		    "input": "fixed",
+		},
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "INFO"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "Hits",
+				"order" : "DESC"
+			},
+			{
+				"name" : "Volume",
+				"order" : "DESC"
+			}
+		]
+	}
+}
