@@ -863,6 +863,14 @@ struct ntopngLuaContext {
     /* Status */
     bool pcaphdr_sent;
     bool stopped;
+
+    /* Partial sends */
+    char send_buffer[1600];
+    u_int data_not_yet_sent_len; /* 
+				    Amount of data that was 
+				    not sent mostly due to 
+				    socket buffering 
+				 */
   } live_capture;
 
   /* 

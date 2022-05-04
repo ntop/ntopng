@@ -8535,11 +8535,15 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 
       num_found++;
 
-      if(c->live_capture.capture_until < h->ts.tv_sec || c->live_capture.stopped)
+      if((c->live_capture.capture_until < h->ts.tv_sec) || c->live_capture.stopped)
 	http_client_disconnected = true, disconnect_stage = 1;
 
+#ifdef TRACE_DOWNLOAD
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%d seconds left", c->live_capture.capture_until - h->ts.tv_sec);
+#endif
+      
       /* The header is always sent even when there is never a match with matchLiveCapture,
-         as otherwise some browsers may end up in hangning. Hanging has been
+         as otherwise some browsers may end up in hanging. Hanging has been
          verified with Safari Version 12.0 (13606.2.11)
 	 but not with Chrome Version 68.0.3440.106 (Official Build) (64-bit) */
       if(!http_client_disconnected
@@ -8558,29 +8562,103 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
       if(!http_client_disconnected
 	 && c->conn
 	 && matchLiveCapture(c, h, packet, f)) {
-	struct pcap_disk_pkthdr pkthdr; /* Cannot use h as the format on disk differs */
+	struct pcap_disk_pkthdr *pkthdr; /* Cannot use h as the format on disk differs */
+	
+	if(c->live_capture.data_not_yet_sent_len > 0) {
+	  /* We have some leftover from the previous send,
+	     so let's try to send this data first 
+	  */
 
-	pkthdr.ts.tv_sec = h->ts.tv_sec, pkthdr.ts.tv_usec = h->ts.tv_usec,
-	  pkthdr.caplen = h->caplen, pkthdr.len = h->len;
+#ifdef TRACE_DOWNLOAD
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Resending data [%u bytes left]", c->live_capture.data_not_yet_sent_len);
+#endif
+	  
+	  res = mg_write_async(c->conn, c->live_capture.send_buffer, c->live_capture.data_not_yet_sent_len);
 
-	if(
-	   ((res = mg_write_async(c->conn, &pkthdr, sizeof(pkthdr))) < (int)sizeof(pkthdr))
-	   || ((res = mg_write_async(c->conn, packet, h->caplen)) < (int)h->caplen)
-	   )
-	  http_client_disconnected = true, disconnect_stage = 3;
-	else {
+	  if(res > 0) {
+	    if(res == c->live_capture.data_not_yet_sent_len) {
+	      c->live_capture.data_not_yet_sent_len = 0; /* We've sent everything that was in queue */
+	    } else {
+	      u_int leftover = c->live_capture.data_not_yet_sent_len - res;
+	      
+	      memmove(c->live_capture.send_buffer, &c->live_capture.send_buffer[res], leftover);
+
+	      c->live_capture.data_not_yet_sent_len = leftover;
+
+#ifdef TRACE_DOWNLOAD
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Partial send [%u bytes left]", c->live_capture.data_not_yet_sent_len);
+#endif
+	      return; /* The current packet is dropped */
+	    }
+	  }	
+	}
+
+	/* If we're here all the previous data has been sent out */
+	pkthdr = (struct pcap_disk_pkthdr*)c->live_capture.send_buffer;
+
+	pkthdr->ts.tv_sec = h->ts.tv_sec, pkthdr->ts.tv_usec = h->ts.tv_usec,
+	  pkthdr->caplen = ndpi_min(h->caplen, sizeof(c->live_capture.send_buffer)-sizeof(struct pcap_disk_pkthdr)),
+	  pkthdr->len = h->len;
+
+	memcpy(&c->live_capture.send_buffer[sizeof(struct pcap_disk_pkthdr)],
+	       packet, pkthdr->caplen);
+	c->live_capture.data_not_yet_sent_len = pkthdr->caplen + sizeof(struct pcap_disk_pkthdr);
+	
+	/* Now send data */
+#ifdef TRACE_DOWNLOAD
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "About to send %u bytes [%d sec left]",
+				     c->live_capture.data_not_yet_sent_len,
+				     c->live_capture.capture_until - h->ts.tv_sec);
+#endif
+	
+	res = mg_write_async(c->conn, &c->live_capture.send_buffer, c->live_capture.data_not_yet_sent_len);
+
+#ifdef TRACE_DOWNLOAD
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sent %d / %u bytes", res, c->live_capture.data_not_yet_sent_len);
+#endif
+	
+	if(res == c->live_capture.data_not_yet_sent_len) {
+	  c->live_capture.data_not_yet_sent_len = 0; /* All sent */
+	  
 	  c->live_capture.num_captured_packets++;
-
+	  
 	  if((c->live_capture.capture_max_pkts != 0)
-	     && (c->live_capture.num_captured_packets == c->live_capture.capture_max_pkts))
+	     && (c->live_capture.num_captured_packets == c->live_capture.capture_max_pkts)) {
 	    http_client_disconnected = true, disconnect_stage = 4;
+	  }
+	} else if(res >= 0) {
+#ifdef TRACE_DOWNLOAD
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Partial send: %u bytes sent", res);
+#endif
+	  
+	  if(res > 0) {
+	    /* Some data has been sent */
+	    u_int leftover = c->live_capture.data_not_yet_sent_len - res;
+	  
+	    memmove(c->live_capture.send_buffer, &c->live_capture.send_buffer[res], leftover);
+	  
+	    c->live_capture.data_not_yet_sent_len = leftover;
+
+#ifdef TRACE_DOWNLOAD
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Partial send [%u bytes left]", c->live_capture.data_not_yet_sent_len);
+#endif
+	  }
+	
+	  return; /* The current packet is dropped */	
+	} else {
+	  /* An error occurred */
+	  http_client_disconnected = true, disconnect_stage = 3;
 	}
       }
 
       if(http_client_disconnected) {
-        ntop->getTrace()->traceEvent(TRACE_INFO, "Client disconnected or socket for live capture is busy, stopping capture (%d)", disconnect_stage);
+#ifdef TRACE_DOWNLOAD
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Client disconnected or socket for live capture is busy, stopping capture (%d)",
+				     disconnect_stage);
+#endif
 	deregisterLiveCapture(c); /* (*) */
-      }
+      }	
     }
   }
 }
