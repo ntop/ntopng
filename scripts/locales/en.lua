@@ -1550,6 +1550,8 @@ local lang = {
     ["status"] = "Status",
     ["throughput"] = "Thpt",
     ["time_range"] = "Time Range",
+    ["top_l7proto"] = "Top Application",
+    ["top_info"] = "Top Info",
     ["vlan_id"] = "VLAN",
     ["where_note"] = "Use &lt;field&gt; &lt;operator&gt; &lt;value&gt; conditions, where &lt;operator&gt; could be &lt;, &gt;, =, !=. AND/OR operators are also allowed to combine conditions. Please use quotes for string fields (e.g. INFO='www.ntop.org')",
     ["tags"] = {

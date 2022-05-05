@@ -158,50 +158,90 @@
         $(`#dt-btn-download`).attr('href', newDownloadURL.toString());
     }
 
-    const updateCardStatsContent = function() {
+    // define a globals cache for cards
+    let globalCardsCache = { cardsData: null, requestDictionary: {} };
+
+    const updateCardsCache = function(cache) {
+      return (cardsData) => {
+        if (cache.cardsData == null) { cache.cardsData = cardsData; }
+	for (let i = 0; i < cardsData.length; i += 1) {
+	  let newTopData = cardsData[i];
+	  if (newTopData.value == null || newTopData.value[0] == null || newTopData.value[0].length == 0) {
+	    continue;
+	  }
+	  // update cache
+	  cache.cardsData[i] = newTopData;
+	}
+      }
+    }(globalCardsCache);
+
+    const getTopCardsData = function(cache) {
+      return async (endpoint_url, action) => {
+	// check if we have cards requested in cache
+        if (cache.requestDictionary[action] == null) {
+	  let res = await $.getJSON(`${endpoint_url}`);
+	  let cardsData = res.rsp;
+	  cache.requestDictionary[action] = true;
+	  updateCardsCache(cardsData);
+	}
+	return cache.cardsData;
+      };
+    }(globalCardsCache);
+
+    const updateCardStatsContent = function(cache) {
       let lastUrlParams = null;
-      return async (cardId) => {
+      return async (cardId, action) => {
         let params = ntopng_url_manager.get_url_params();
-	if (lastUrlParams == params) { return; }
+	// check if we must reset cache 
+	if (lastUrlParams != params) { cache.requestDictionary = {}; }
+	lastUrlParams = params;
+	// check if we have already data in cache
+	if (cache.requestDictionary[action] == true) { return; }
         if ($(`#${cardId}`).dropdown().hasClass("show")) {
 	  $(`#${cardId}`).dropdown("hide");
 	}
 	$(`#${cardId} > .spinner-border`).show();
-	lastUrlParams = params;
-	await updateCardStats();
+	await updateCardStats(action);
 	$(`#${cardId} > .spinner-border`).hide();
 	$(`#${cardId}`).dropdown("show");
-      }
-    }();
+      };
+    }(globalCardsCache);
     
     /* Cards */
   {% if show_cards then %}
     let tableBarMenuHtml = null;
-    let updateCardStats = async (onlyOverview) => {
-    	let paramOverview = "";
-	// if onlyOverview == true we ask only the names of the menu (avoiding queries for menu content) 
-	if (onlyOverview == true) { paramOverview = "&action=overview"; }
+    let updateCardStats = async (action) => {
+	// if action == 'overview' we ask only the names of the menu (avoiding queries for menu content) 
+    	let paramAction = "";
+	if (action != null) { paramAction = `&action=${action}`; }
 	let params = ntopng_url_manager.get_url_params();
-        let data = await $.getJSON(`{* endpoint_cards *}?${params}${paramOverview}`);
+	let cardsData;
+	try {
+          // data = await $.getJSON(`{* endpoint_cards *}?${params}${paramAction}`);
+	  let endpoint_url = `{* endpoint_cards *}?${params}${paramAction}`;
+          cardsData = await getTopCardsData(endpoint_url, action);
+	} catch(e) {
+	  console.error(e); return;
+	}
 	let menuContent = [];
-	for (i = 0; i < data.rsp.length; i++){
-	  if (data.rsp[i] == null || data.rsp[i].value == null){
+	for (i = 0; i < cardsData.length; i++){
+	  if (cardsData[i] == null || cardsData[i].value == null){
 	  continue;
 	} else {
 	    let menuOptions = [];
-	    if (data.rsp[i].value[0] != null) {
-	      for (j = 0; j < data.rsp[i].value[0].length; j++) {
+	    if (cardsData[i].value[0] != null) {
+	      for (j = 0; j < cardsData[i].value[0].length; j++) {
 	        // Concat the name with the percentage of the stat
 	        // NB: These name should be filters if available
-	        if(data.rsp[i].value[0][j] != null){
-	          let restText = " (" + (data.rsp[i].value[0][j].count).toFixed(1) + "%)";
-	          if(data.rsp[i].value[0][j].count != 0 && data.rsp[i].value[0][j].count < 0.1){restText = " (< 0.1%)";}
+	        if(cardsData[i].value[0][j] != null){
+	          let restText = " (" + (cardsData[i].value[0][j].count).toFixed(1) + "%)";
+	          if(cardsData[i].value[0][j].count != 0 && cardsData[i].value[0][j].count < 0.1){restText = " (< 0.1%)";}
 
-	          let a_tag = "<a class='tag-filter dropdown-item' data-tag-key='" + data.rsp[i].value[0][j].key + 
-	            "' title='" + ( data.rsp[i].value[0][j].title || data.rsp[i].value[0][j].value) +
-		    "' data-tag-value='" + data.rsp[i].value[0][j].value + 
-		    "' data-tag-label='" + data.rsp[i].value[0][j].label + 
-		    "' href='#'>" + data.rsp[i].value[0][j].label + "" + restText + "</a>";
+	          let a_tag = "<a class='tag-filter dropdown-item' data-tag-key='" + cardsData[i].value[0][j].key + 
+	            "' title='" + ( cardsData[i].value[0][j].title || cardsData[i].value[0][j].value) +
+		    "' data-tag-value='" + cardsData[i].value[0][j].value + 
+		    "' data-tag-label='" + cardsData[i].value[0][j].label + 
+		    "' href='#'>" + cardsData[i].value[0][j].label + "" + restText + "</a>";
 
                   let itemText = '<li class="dropdown-item pointer">' + a_tag + '</li>';
 		  menuOptions.push(itemText);
@@ -210,13 +250,14 @@
 	    }
 	    //if (menuOptions.length > 0){
 	      let cardId = `card_id_${i}`;
+	      let cardAction = cardsData[i].action;
 	      let menu = `<div class="btn-group dropdown">
-	      <button id="${cardId}" onClick="updateCardStatsContent('${cardId}')" class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown" type="button" title="`+ data.rsp[i].tooltip + `">
+	      <button id="${cardId}" onClick="updateCardStatsContent('${cardId}', '${cardAction}')" class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown" type="button" title="`+ cardsData[i].tooltip + `">
 	      <div class="spinner-border spinner-border-sm" style="display:none;" role="status">
 	      <span class="visually-hidden">Loading...</span>
 	      </div>	      
 
-	      ` + data.rsp[i].label +
+	      ` + cardsData[i].label +
 	      `</button>
 	      <ul class="dropdown-menu">`
 	    	+ menuOptions.join("") + 
@@ -685,7 +726,7 @@
     });
     */
     {% if show_cards then %}
-    updateCardStats(true);
+    updateCardStats('overview');
     {% end %}
 
     /* HTTP copy URL button */
