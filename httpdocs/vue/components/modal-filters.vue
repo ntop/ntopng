@@ -49,9 +49,9 @@
 	<!-- end div form-group-row -->
       </div>
     </form>
-  </template>  
+  </template>
   <template v-slot:footer>
-    <button type="btn btn-primary" :disabled="jQuery('input:invalid ~ .alert').length > 0" @click="apply" class="btn btn-primary">{{i18n('apply')}}</button>
+    <button type="btn btn-primary" :disabled="check_disable_apply()" @click="apply" class="btn btn-primary">{{i18n('apply')}}</button>
   </template>
 </modal>
 </template>
@@ -177,8 +177,16 @@ export default {
 	    }
 	    return NtopUtils.REGEXES[value_type];
 	},
+	check_disable_apply: function() {
+	    let regex = new RegExp(this.data_pattern_selected);
+	    let disable_apply = !this.options_to_show && (
+		(this.input_required && (this.input_value == null || this.input_value == ""))
+		    || (regex.test(this.input_value) == false)
+		);
+	    return disable_apply;
+	},
 	showed: function() {
-	    let me = this;
+	    let me = this;;
 	    // setTimeout(() => {
 	    let select2Div = me.$refs["select2"];
 	    if (!$(select2Div).hasClass("select2-hidden-accessible")) {
