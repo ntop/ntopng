@@ -120,7 +120,8 @@ const create_tag_from_filter = function(filter) {
 	title: `${f_const.label}${filter.operator}${value_label}`,
 	selectedOperator: filter.operator,
     };
-    if (tag.realValue == null || tag.realValue == "" || tag.selectedOperator == null || tag.selectedOperator == "") {
+    if (tag.value == "") { tag.value = "''" }
+    if (tag.realValue == null || tag.selectedOperator == null || tag.selectedOperator == "") {
 	return null;
     }
     return tag;
@@ -380,7 +381,6 @@ function create_tagify(range_picker_vue) {
         if (!tag.selectedOperator) {
             tag.selectedOperator = 'eq';
         }
-	
         // add filter!
         tagify.addTags([tag]);
     }

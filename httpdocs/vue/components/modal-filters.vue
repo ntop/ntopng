@@ -39,9 +39,9 @@
               </select>
             </div>
             <!-- <div v-show="!options_to_show" class="input-group"> -->
-              <input v-show="!options_to_show" v-model="input_value" :pattern="data_pattern_selected" required name="value" type="text" class="form-control">
+              <input v-show="!options_to_show" v-model="input_value" :pattern="data_pattern_selected" name="value" :required="input_required" type="text" class="form-control">
               <!-- <span class="invalid-feedback">Invalid value</span> -->
-              <span v-show="!options_to_show" style="margin: 0px;padding:0;" class="alert invalid-feedback ">{{i18n('invalid_value')}}</span>
+              <span v-show="!options_to_show" style="margin: 0px;padding:0;" class="alert invalid-feedback">{{i18n('invalid_value')}}</span>
               <!-- </div> -->
           </div>
           <!-- end div input-group mb-3 -->
@@ -51,7 +51,7 @@
     </form>
   </template>  
   <template v-slot:footer>
-    <button type="btn btn-primary" @click="apply" class="btn btn-primary">{{i18n('apply')}}</button>
+    <button type="btn btn-primary" :disabled="jQuery('input:invalid ~ .alert').length > 0" @click="apply" class="btn btn-primary">{{i18n('apply')}}</button>
   </template>
 </modal>
 </template>
@@ -77,6 +77,7 @@ export default {
     data() {
 	return {
 	    i18n: (t) => i18n(t),
+	    jQuery: $,
 	    id_modal: `${this.$props.id}_modal`,
 	    filter_type_selected: null,
 	    filter_type_label_selected: null,
@@ -84,7 +85,7 @@ export default {
 	    option_selected: null,
 	    input_value: null,
 	    data_pattern_selected: null,
-	    
+	    input_required: false,
 	    options_to_show: null,
 	    operators_to_show: [],
 	};
@@ -161,7 +162,11 @@ export default {
 	    }, 0);
 	},
 	get_data_pattern: function(value_type) {
-	    if (value_type == "ip") {
+	    this.input_required = true;
+	    if (value_type == "text") {
+		this.input_required = false;
+		return `.*`;
+	    } else if (value_type == "ip") {
 		let r_ipv4 = NtopUtils.REGEXES.ipv4;
 		let r_ipv4_vlan = r_ipv4.replace("$", "@[0-9]{0,5}$");
 		let r_ipv6 = NtopUtils.REGEXES.ipv6;
@@ -191,11 +196,13 @@ export default {
 	apply: function() {
 	    let value = this.input_value;
 	    let value_label = this.input_value;
-	    if (value == null) {
+	    if (value == null && this.option_selected != null) {
 		let filter = this.filters_options.find((fo) => fo.id == this.filter_type_selected);
 		let option = filter.options.find((o) => o.value == this.option_selected);
 		value = option.value;
 		value_label = option.value_label;
+	    } else if (value == null) {
+		value = "";
 	    }
 	    let params = {
 		id: this.filter_type_selected,
