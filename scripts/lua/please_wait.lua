@@ -22,9 +22,7 @@ local res = ntop.execSingleSQLQuery("show full processlist")
 print [[
   <div class="container-narrow">
 
-
-
- <style type="text/css">
+  <style type="text/css">
       body {
         padding-top: 40px;
         padding-bottom: 40px;
@@ -60,7 +58,12 @@ print[[
 <br>
 ]]
 
-print(" "..i18n("please_wait_page.waiting_for_db_msg", {dbname=dbname}))
+if(ntop.isClickHouseEnabled()) then
+ print(" "..i18n("please_wait_page.waiting_for_clickhouse_msg", {dbname=dbname}))
+else
+ print(" "..i18n("please_wait_page.waiting_for_db_msg", {dbname=dbname}))
+end
+
 print[[
   </div>
 <br>

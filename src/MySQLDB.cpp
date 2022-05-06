@@ -78,19 +78,19 @@ bool MySQLDB::createDBSchema() {
     disconnectFromDB(&mysql);
     if(connectToDB(&mysql, false) == false){
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect: %s\n", get_last_db_error(&mysql));
-      return false;
+      return(false);
     }
 
     /* 1 - Create database if missing */
     snprintf(sql, sizeof(sql), "CREATE DATABASE IF NOT EXISTS `%s`", ntop->getPrefs()->get_mysql_dbname());
     if(exec_sql_query(&mysql, sql, true) < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
-      return false;
+      return(false);
     }
 
     if(mysql_select_db(&mysql, ntop->getPrefs()->get_mysql_dbname())) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
-      return false;
+      return(false);
     }
 
     /* 2.1 - Create table if missing [IPv6] */
@@ -128,7 +128,7 @@ bool MySQLDB::createDBSchema() {
 
     if(exec_sql_query(&mysql, sql, true) < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
-      return false;
+      return(false);
     }
 
     /* 2.2 - Create table if missing [IPv4] */
@@ -166,7 +166,7 @@ bool MySQLDB::createDBSchema() {
 
     if(exec_sql_query(&mysql, sql, true) < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
-      return false;
+      return(false);
     }
 
     // the remainder of this method has the purpose of MIGRATING old table structures to
@@ -798,6 +798,11 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   db_operational = false;
 
+  if((host == NULL) || (user == NULL)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "MySQL not configured: connection failed");
+    return(db_operational);
+  }
+  
   ntop->getTrace()->traceEvent(TRACE_INFO, "Attempting to connect to %s for interface %s...",
 			       ntop->getPrefs()->useClickHouse() ? "ClickHouse" : "MySQL",
 			       iface->get_name());
@@ -816,7 +821,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   if(rc == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to %s: %s [%s@%s:%i]\n",
 				 ntop->getPrefs()->useClickHouse() ? "ClickHouse" : "MySQL",
-				 mysql_error(conn), user, host,port);
+				 mysql_error(conn), user, host, port);
 
     m.unlock(__FILE__, __LINE__);
     return(db_operational);

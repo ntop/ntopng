@@ -4758,6 +4758,7 @@ local lang = {
     ["user"] = "User",
     ["waiting_for_db_msg"] = "Database schema migration in progress, waiting for database <b>%{dbname}</b> to become operational. You will be redirected as soon as the database is ready. Depending on the size of the existing database, this operation can take a long time. Migrations are performed only once and only during major version upgrades. If in doubt, please contact the developers at <a href='mailto:info@ntop.org'>info@ntop.org</a>.",
   },
+    ["waiting_for_clickhouse_msg"] = "ClicHouse database did not start correctly: please check the ntopng startup log and fix the reported problems.",
   ["policy"] = {
     ["abort_add_rule"] = "Abort add rule?",
     ["add_rule"] = "Add Rule",

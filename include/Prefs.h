@@ -433,6 +433,7 @@ class Prefs {
   inline bool      dontEmitFlowAlerts()          { return(!emit_flow_alerts);                           };
   inline bool      dontEmitHostAlerts()          { return(!emit_host_alerts);                           };
   inline bool      useClickHouse()               { return(use_clickhouse);                              };
+  inline void      dontUseClickHouse()           { use_clickhouse = dump_flows_on_mysql = false;        };
   inline char*     getZMQPublishEventsURL()      { return(zmq_publish_events_url);                      };
   void setIEC104AllowedTypeIDs(const char * protos);
   void validate();

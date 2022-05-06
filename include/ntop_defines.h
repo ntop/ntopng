@@ -1175,11 +1175,11 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 
 #define UNKNOWN_FLOW_DIRECTION          2
 
-#if defined (__FreeBSD) || defined(__FreeBSD__)
-#define CLICKHOUSE_CLIENT               "/usr/local/bin/clickhouse-client"
-#else
+/*
+  Also on FreeBSD the tool is installed on /usr/bin and not /usr/local/bin
+  when installed as specified on https://clickhouse.com/#quick-start
+*/
 #define CLICKHOUSE_CLIENT               "/usr/bin/clickhouse-client"
-#endif
 
 //#define PROFILING
 #ifdef PROFILING

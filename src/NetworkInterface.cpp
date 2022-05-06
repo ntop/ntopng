@@ -1954,10 +1954,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       if((trusted_payload_len > 0) && payload) {
 	flow->processIEC60870Packet((htons(src_port) == 2404) ? true : false,
 				    payload, trusted_payload_len,
-				    (struct timeval *)&h->ts);	
+				    (struct timeval *)&h->ts);
       }
       break;
-	
+
     case NDPI_PROTOCOL_MDNS:
 #ifdef MDNS_TEST
       extern void _dissectMDNS(u_char *buf, u_int buf_len, char *out, u_int out_len);
@@ -2002,7 +2002,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 #endif
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "direction: %s / len: %u", ingressPacket ? "IN" : "OUT", len_on_wire);
-  
+
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->getStatsProtocol(), flow->get_protocol_category(),
 	   l4_proto, len_on_wire, 1);
@@ -4348,7 +4348,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     if(retriever->pag
        && retriever->pag->icmpValue(&icmp_type, &icmp_code)) {
       u_int8_t cur_type, cur_code;
-      
+
       f->getICMP(&cur_code, &cur_type);
 
       if((!f->isICMP()) || (cur_type != icmp_type) || (cur_code != icmp_code))
@@ -7328,8 +7328,15 @@ void NetworkInterface::allocateStructures() {
 #ifdef NTOPNG_PRO
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
 	  /* Allocate only the DB connection, not any thread or queue for the export */
-	  if(ntop->getPrefs()->useClickHouse())
-	    db = new (std::nothrow) ClickHouseFlowDB(this);
+	  if(ntop->getPrefs()->useClickHouse()) {
+	    try {
+	      db = new ClickHouseFlowDB(this);
+	    } catch(const std::invalid_argument& e) {
+	      db = NULL;
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Leaving due to failed ClickHouse initialization");
+	      exit(-1);
+	    }
+	  }
 #endif
 #endif
 	}
@@ -7343,9 +7350,9 @@ void NetworkInterface::allocateStructures() {
 #endif
 
       if(alertStore == NULL)
-        alertStore    = new SQLiteAlertStore(id, ALERTS_STORE_DB_FILE_NAME);
+        alertStore = new SQLiteAlertStore(id, ALERTS_STORE_DB_FILE_NAME);
 
-      alertsQueue   = new AlertsQueue(this);
+      alertsQueue = new AlertsQueue(this);
     }
 
     for(u_int16_t i = 0; i < numNetworks; i++)
@@ -7491,7 +7498,7 @@ void NetworkInterface::reloadGwMacs() {
     if(!mac) continue;
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading Gw MAC %s", mac);
-    
+
     Utils::parseMac(addr, mac);
 
     try {
@@ -8427,17 +8434,23 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
     if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
 #ifdef NTOPNG_PRO
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
-      if(ntop->getPrefs()->useClickHouse())
+      if(ntop->getPrefs()->useClickHouse()) {
 	db = new (std::nothrow) ClickHouseFlowDB(this);
+
+	if((db == NULL) || (db->isDbCreated() == false)) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Leaving due to failed ClickHouse initialization");
+	  exit(-1);
+	}
+      }
 #endif
 #endif
 
 #ifdef HAVE_MYSQL
-      if(db == NULL)
+      if(db == NULL) {
 	db = new (std::nothrow) MySQLDB(this);
+	if(!db) throw "Not enough memory";
+      }
 #endif
-
-      if(!db) throw "Not enough memory";
     }
 #ifndef HAVE_NEDGE
     else if(ntop->getPrefs()->do_dump_flows_on_es())
@@ -8541,7 +8554,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 #ifdef TRACE_DOWNLOAD
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%d seconds left", c->live_capture.capture_until - h->ts.tv_sec);
 #endif
-      
+
       /* The header is always sent even when there is never a match with matchLiveCapture,
          as otherwise some browsers may end up in hanging. Hanging has been
          verified with Safari Version 12.0 (13606.2.11)
@@ -8563,16 +8576,16 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 	 && c->conn
 	 && matchLiveCapture(c, h, packet, f)) {
 	struct pcap_disk_pkthdr *pkthdr; /* Cannot use h as the format on disk differs */
-	
+
 	if(c->live_capture.data_not_yet_sent_len > 0) {
 	  /* We have some leftover from the previous send,
-	     so let's try to send this data first 
+	     so let's try to send this data first
 	  */
 
 #ifdef TRACE_DOWNLOAD
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Resending data [%u bytes left]", c->live_capture.data_not_yet_sent_len);
 #endif
-	  
+
 	  res = mg_write_async(c->conn, c->live_capture.send_buffer, c->live_capture.data_not_yet_sent_len);
 
 	  if(res > 0) {
@@ -8580,7 +8593,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 	      c->live_capture.data_not_yet_sent_len = 0; /* We've sent everything that was in queue */
 	    } else {
 	      u_int leftover = c->live_capture.data_not_yet_sent_len - res;
-	      
+
 	      memmove(c->live_capture.send_buffer, &c->live_capture.send_buffer[res], leftover);
 
 	      c->live_capture.data_not_yet_sent_len = leftover;
@@ -8590,7 +8603,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 #endif
 	      return; /* The current packet is dropped */
 	    }
-	  }	
+	  }
 	}
 
 	/* If we're here all the previous data has been sent out */
@@ -8603,25 +8616,25 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 	memcpy(&c->live_capture.send_buffer[sizeof(struct pcap_disk_pkthdr)],
 	       packet, pkthdr->caplen);
 	c->live_capture.data_not_yet_sent_len = pkthdr->caplen + sizeof(struct pcap_disk_pkthdr);
-	
+
 	/* Now send data */
 #ifdef TRACE_DOWNLOAD
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "About to send %u bytes [%d sec left]",
 				     c->live_capture.data_not_yet_sent_len,
 				     c->live_capture.capture_until - h->ts.tv_sec);
 #endif
-	
+
 	res = mg_write_async(c->conn, &c->live_capture.send_buffer, c->live_capture.data_not_yet_sent_len);
 
 #ifdef TRACE_DOWNLOAD
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sent %d / %u bytes", res, c->live_capture.data_not_yet_sent_len);
 #endif
-	
+
 	if(res == (int)c->live_capture.data_not_yet_sent_len) {
 	  c->live_capture.data_not_yet_sent_len = 0; /* All sent */
-	  
+
 	  c->live_capture.num_captured_packets++;
-	  
+
 	  if((c->live_capture.capture_max_pkts != 0)
 	     && (c->live_capture.num_captured_packets == c->live_capture.capture_max_pkts)) {
 	    http_client_disconnected = true, disconnect_stage = 4;
@@ -8630,21 +8643,21 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 #ifdef TRACE_DOWNLOAD
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Partial send: %u bytes sent", res);
 #endif
-	  
+
 	  if(res > 0) {
 	    /* Some data has been sent */
 	    u_int leftover = c->live_capture.data_not_yet_sent_len - res;
-	  
+
 	    memmove(c->live_capture.send_buffer, &c->live_capture.send_buffer[res], leftover);
-	  
+
 	    c->live_capture.data_not_yet_sent_len = leftover;
 
 #ifdef TRACE_DOWNLOAD
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Partial send [%u bytes left]", c->live_capture.data_not_yet_sent_len);
 #endif
 	  }
-	
-	  return; /* The current packet is dropped */	
+
+	  return; /* The current packet is dropped */
 	} else {
 	  /* An error occurred */
 	  http_client_disconnected = true, disconnect_stage = 3;
@@ -8657,7 +8670,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr * const h,
 				     disconnect_stage);
 
 	deregisterLiveCapture(c); /* (*) */
-      }	
+      }
     }
   }
 }
@@ -9803,7 +9816,7 @@ static bool walkerSort(const ActiveHostWalkerInfo &a,
 int NetworkInterface::walkActiveHosts(lua_State* vm,
 				      HostWalkMode mode,
 				      u_int32_t maxHits,
-				      int16_t networkIdFilter, /* -1 = means any network */				      
+				      int16_t networkIdFilter, /* -1 = means any network */
 				      bool localHostsOnly,
 				      bool treeMapMode) {
   u_int32_t begin_slot = 0;
@@ -9830,7 +9843,7 @@ int NetworkInterface::walkActiveHosts(lua_State* vm,
       it->lua(vm, treeMapMode);
 
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %u", num+1, it->getZ());
-      
+
       lua_rawseti(vm, -2, num + 1); /* Array */
     }
 
