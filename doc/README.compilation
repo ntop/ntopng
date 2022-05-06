@@ -129,7 +129,7 @@ sudo port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig
 On FreeBSD
 ~~~~~~~~~~
 
-sudo pkg install gcc git autoconf automake libtool pkgconf gmake sudo libmaxminddb libsodium mysql56-client rrdtool lua53 zip json-c libzmq4 sqlite3 libgcrypt librdkafka bison flex libpcap rename cmake redis
+sudo pkg install gcc git autoconf automake libtool pkgconf gmake sudo libmaxminddb libsodium mysql56-client rrdtool lua53 zip json-c libzmq4 sqlite3 libgcrypt librdkafka bison flex libpcap rename cmake redis hiredis
 
 On Cubro EXA8
 ~~~~~~~~~~~~~

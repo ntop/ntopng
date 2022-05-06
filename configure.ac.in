@@ -366,8 +366,13 @@ PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp)) $(patsubst pr
 
 if test "${with_nedge+set}" != set; then
   if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" || test $MACHINE = "aarch64"; then
-    cd ../PF_RING/userland/; ./configure; cd ./nbpf; ${MAKE}; cd ${HERE}
-    LIBS="${LIBS} -L../PF_RING/userland/nbpf -lnbpf"
+  if test -d "../PF_RING"; then
+      cd ../PF_RING/userland/; ./configure; cd ./nbpf; ${MAKE}; cd ${HERE}
+      LIBS="${LIBS} -L../PF_RING/userland/nbpf -lnbpf"
+   else
+      echo "Missing ../PF_RING: please fetch PF_RING code from https://github.com/ntop/PF_RING and try again"
+      exit
+   fi
   fi
 fi
 
