@@ -829,7 +829,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   db_operational = true;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to %s [%s@%s:%i][dname: %s] for interface %s",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully connected to %s [%s@%s:%i][dbname: %s] for interface %s",
 			       ntop->getPrefs()->useClickHouse() ? "ClickHouse" : "MySQL",
 			       user, host, port, dbname ? dbname : "", iface->get_name());
 

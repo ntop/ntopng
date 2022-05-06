@@ -1180,6 +1180,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
   when installed as specified on https://clickhouse.com/#quick-start
 */
 #define CLICKHOUSE_CLIENT               "/usr/bin/clickhouse-client"
+#define CLICKHOUSE_ALT_CLIENT           "/usr/local/bin/clickhouse-client"
 
 //#define PROFILING
 #ifdef PROFILING

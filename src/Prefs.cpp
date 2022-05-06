@@ -39,7 +39,7 @@ Prefs::Prefs(Ntop *_ntop) {
   num_deferred_interfaces_to_register = 0, cli = NULL;
   ntop = _ntop, pcap_file_purge_hosts_flows = false,
     ignore_vlans = false, simulate_vlans = false, simulate_macs = false, ignore_macs = false;
-  insecure_tls = false;
+  insecure_tls = false, clickhouse_client = NULL;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
   num_simulated_ips = 0, enable_behaviour_analysis = false;
   local_networks_set = false, shutdown_when_done = false;
@@ -1408,8 +1408,15 @@ int Prefs::setOption(int optkey, char *optarg) {
 	  bool client_found = ((stat(CLICKHOUSE_CLIENT, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
 
 	  if(!client_found) {
+	    client_found = ((stat(CLICKHOUSE_ALT_CLIENT, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
+	    if(client_found)
+	      clickhouse_client = CLICKHOUSE_ALT_CLIENT;
+	  } else
+	    clickhouse_client = CLICKHOUSE_CLIENT;
+	  
+	  if(!client_found) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "-F clickhouse is not available (ClickHouse client not found)");
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Expected %s", CLICKHOUSE_CLIENT);
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Expected %sor %s", CLICKHOUSE_CLIENT, CLICKHOUSE_ALT_CLIENT);
 	    all_good = use_clickhouse = false;
 	  }
 	}
