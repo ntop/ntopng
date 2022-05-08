@@ -648,7 +648,7 @@ else
    end
 
    if(flow.iec104 and (table.len(flow.iec104.typeid) > 0)) then
-      print("<tr><th rowspan=5 width=30%><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/IEC_60870-5'>IEC 60870-5-104  <i class='fas fa-external-link-alt'></i></A></th><th>"..i18n("flow_details.iec104_mask").."</th><td>")
+      print("<tr><th rowspan=6 width=30%><A class='ntopng-external-link' href='https://en.wikipedia.org/wiki/IEC_60870-5'>IEC 60870-5-104  <i class='fas fa-external-link-alt'></i></A></th><th>"..i18n("flow_details.iec104_mask").."</th><td>")
 
       total = 0
       for k,v in pairsByKeys(flow.iec104.typeid, rev) do
@@ -737,8 +737,12 @@ else
       else
 	 print(colorNotZero(flow.iec104.stats.retransmitted_msgs))
       end
+      
       print(" Retransmitted")
       print("</td></tr>\n")
+
+      local url = "/lua/rest/v2/get/flow/l7/iec104.lua?flow_key="..flow_key.."&flow_hash_id="..flow_hash_id.."&ifid="..ifid
+      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td><A HREF=\""..url.."\" download=\"iec104-".. flow_key ..".json\">JSON</A></td></tr>")
    end
 
    if((flow.tos.client.ECN ~= 0) or (flow.tos.server.DSCP ~= 0)) then
