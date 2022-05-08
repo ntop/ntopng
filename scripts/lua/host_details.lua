@@ -948,7 +948,7 @@ else
    print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td")
    local show_live_capture = ntop.isPcapDownloadAllowed()
    if(not show_live_capture) then print(" colspan=2") end
-   print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/v2/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
+   print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/v2/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."' download='host-".. host_ip ..".json'>JSON</A></td>")
    print [[<td>]]
    if (show_live_capture and ifstats.isView == false and not interface.isSubInterface() and interface.isPacketInterface()) then
       local live_traffic_utils = require("live_traffic_utils")
