@@ -146,15 +146,18 @@ end
 --@brief Add filters on status (engaged, historical, or acknowledged, one of `alert_consts.alert_status`)
 --@param status A key of `alert_consts.alert_status`
 --@return True if set is successful, false otherwise
-function alert_store:add_status_filter(status)
+function alert_store:add_status_filter(status, is_write)
    if not self._status then
       if alert_consts.alert_status[status] then
 	 self._status = alert_consts.alert_status[status].alert_status_id
 
 	 -- Engaged alerts don't add a database filter as they are in-memory only
 	 if status ~= "engaged" then
+            local field = 'alert_status'
+            field = self:get_column_name(field, is_write)
+
 	    self:add_filter_condition_raw('alert_status',
-					  string.format(" alert_status = %u ", self._status))
+               string.format(" %s = %u ", field, self._status))
 	 end
       end
 
@@ -177,7 +180,7 @@ end
 --@param epoch_begin The start timestamp
 --@param epoch_end The end timestamp
 --@return True if set is successful, false otherwise
-function alert_store:add_time_filter(epoch_begin, epoch_end)
+function alert_store:add_time_filter(epoch_begin, epoch_end, is_write)
    if not self._epoch_begin and 
       tonumber(epoch_begin) and 
       tonumber(epoch_end) then
@@ -187,10 +190,13 @@ function alert_store:add_time_filter(epoch_begin, epoch_end)
 
       local tstamp_column = self:_get_tstamp_column_name()
 
+      local field = tstamp_column
+      field = self:get_column_name(field, is_write)
+
       self:add_filter_condition_raw(tstamp_column,
         string.format("%s >= %u AND %s <= %u", 
-          tstamp_column, self._epoch_begin,
-          tstamp_column, self._epoch_end))
+          field, self._epoch_begin,
+          field, self._epoch_end))
    end
 
    return true
@@ -200,18 +206,14 @@ end
 
 -- Get the 'real' field name (used by flow alerts where the flow table is a view
 -- and we write to the real table which has different column names)
-function alert_store:get_write_field(field)
+function alert_store:get_column_name(field, is_write)
   return field 
 end
 
 -- ##############################################
 
 function alert_store:build_sql_cond(cond, is_write)
-   local real_field = cond.field
-
-   if is_write then
-      real_field = self:get_write_field(cond.field)
-   end
+   local real_field = self:get_column_name(cond.field, is_write)
 
    if cond.sql then
       return cond.sql -- special condition
@@ -228,10 +230,10 @@ function alert_store:build_sql_cond(cond, is_write)
 
       -- Search also in l7_master_proto, unless value is 0 (Unknown)
       sql_cond = string.format("(%s %s %u %s %s %s %u)",
-         self:get_write_field('l7_proto'),
+         self:get_column_name('l7_proto', is_write),
          sql_op, cond.value,
          ternary(cond.op == and_cond, 'AND', 'OR'), 
-         self:get_write_field('l7_master_proto'),
+         self:get_column_name('l7_master_proto', is_write),
          sql_op, cond.value)
  
    -- Special case: ip (with vlan)
@@ -243,24 +245,24 @@ function alert_store:build_sql_cond(cond, is_write)
          if not host["vlan"] or host["vlan"] == 0 then
             if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
                sql_cond = string.format("(%s %s '%s' %s %s %s '%s')",
-                  self:get_write_field('cli_ip'), sql_op, cond.value,
+                  self:get_column_name('cli_ip', is_write), sql_op, cond.value,
                   ternary(cond.op == 'neq', 'AND', 'OR'), 
-                  self:get_write_field('srv_ip'), sql_op, cond.value)
+                  self:get_column_name('srv_ip', is_write), sql_op, cond.value)
             else
                sql_cond = string.format("%s %s '%s'", real_field, sql_op, cond.value)
             end
          else
             if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
                sql_cond = string.format("((%s %s '%s' %s %s %s '%s') %s %s %s %u)",
-                  self:get_write_field('cli_ip'), sql_op, host["host"], 
+                  self:get_column_name('cli_ip', is_write), sql_op, host["host"], 
                   ternary(cond.op == 'neq', 'AND', 'OR'),
-                  self:get_write_field('srv_ip'), sql_op, host["host"],
-                  self:get_write_field('vlan_id'),
+                  self:get_column_name('srv_ip', is_write), sql_op, host["host"],
+                  self:get_column_name('vlan_id', is_write),
                   ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
             else
                sql_cond = string.format("(%s %s '%s' %s %s %s %u)", 
                  real_field, sql_op, host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), 
-                 self:get_write_field('vlan_id'),
+                 self:get_column_name('vlan_id', is_write),
                  sql_op, host["vlan"])
             end
          end
@@ -276,26 +278,26 @@ function alert_store:build_sql_cond(cond, is_write)
          if not host["vlan"] or host["vlan"] == 0 then
             if cond.field == 'name' and self._alert_entity == alert_entities.flow then
                sql_cond = string.format("(%s %s '%s' %s %s %s '%s')",
-                  self:get_write_field('cli_name'), sql_op, host["host"],
+                  self:get_column_name('cli_name', is_write), sql_op, host["host"],
                   ternary(cond.op == 'neq', 'AND', 'OR'), 
-                  self:get_write_field('srv_name'), sql_op, host["host"])
+                  self:get_column_name('srv_name', is_write), sql_op, host["host"])
             else
                sql_cond = string.format("%s %s '%s'", real_field, sql_op, host["host"])
             end
          else
             if cond.field == 'name' and self._alert_entity == alert_entities.flow then
                sql_cond = string.format("((%s %s '%s' %s %s %s '%s') %s %s %s %u)",
-                  self:get_write_field('cli_name'), sql_op, host["host"], 
+                  self:get_column_name('cli_name', is_write), sql_op, host["host"], 
                   ternary(cond.op == 'neq', 'AND', 'OR'),
-                  self:get_write_field('srv_name'), sql_op, host["host"], 
+                  self:get_column_name('srv_name', is_write), sql_op, host["host"], 
                   ternary(cond.op == 'neq', 'OR', 'AND'),
-                  self:get_write_field('vlan_id'),
+                  self:get_column_name('vlan_id', is_write),
                   sql_op, host["vlan"])
             else
                sql_cond = string.format("(%s %s '%s' %s %s %s %u)", real_field, sql_op, 
                   host["host"],
                   ternary(cond.op == 'neq', 'OR', 'AND'),
-                  self:get_write_field('vlan_id'),
+                  self:get_column_name('vlan_id', is_write),
                   sql_op, host["vlan"])
             end
          end
@@ -304,33 +306,33 @@ function alert_store:build_sql_cond(cond, is_write)
    -- Special case: role (host)
    elseif cond.field == 'host_role' then
       if cond.value == 'attacker' then
-         sql_cond = string.format("%s = 1", self:get_write_field('is_attacker'))
+         sql_cond = string.format("%s = 1", self:get_column_name('is_attacker', is_write))
       elseif cond.value == 'victim' then
-         sql_cond = string.format("%s = 1", self:get_write_field('is_victim'))
+         sql_cond = string.format("%s = 1", self:get_column_name('is_victim', is_write))
       else -- 'no_attacker_no_victim'
-         sql_cond = string.format("(%s = 0 AND %s = 0)", self:get_write_field('is_attacker'), self:get_write_field('is_victim'))
+         sql_cond = string.format("(%s = 0 AND %s = 0)", self:get_column_name('is_attacker', is_write), self:get_column_name('is_victim', is_write))
       end
 
    -- Special case: role (flow)
    elseif cond.field == 'flow_role' then
       if cond.value == 'attacker' then
          sql_cond = string.format("(%s = 1 OR %s = 1)", 
-           self:get_write_field('is_cli_attacker'), self:get_write_field('is_srv_attacker'))
+           self:get_column_name('is_cli_attacker', is_write), self:get_column_name('is_srv_attacker', is_write))
       elseif cond.value == 'victim' then
          sql_cond = string.format("(%s = 1 OR %s = 1)", 
-           self:get_write_field('is_cli_victim'), self:get_write_field('is_srv_victim'))
+           self:get_column_name('is_cli_victim', is_write), self:get_column_name('is_srv_victim', is_write))
       else -- 'no_attacker_no_victim'
          sql_cond = string.format("(%s = 0 AND %s = 0 AND %s = 0 AND %s = 0)",
-           self:get_write_field('is_cli_attacker'), self:get_write_field('is_srv_attacker'),
-           self:get_write_field('is_cli_victim'),   self:get_write_field('is_srv_victim'))
+           self:get_column_name('is_cli_attacker', is_write), self:get_column_name('is_srv_attacker', is_write),
+           self:get_column_name('is_cli_victim', is_write),   self:get_column_name('is_srv_victim', is_write))
       end
 
    -- Special case: role_cli_srv)
    elseif cond.field == 'role_cli_srv' then
       if cond.value == 'client' then
-         sql_cond = string.format("%s = 1", self:get_write_field('is_client'))
+         sql_cond = string.format("%s = 1", self:get_column_name('is_client', is_write))
       else -- 'server'
-         sql_cond = string.format("%s = 1", self:get_write_field('is_server'))
+         sql_cond = string.format("%s = 1", self:get_column_name('is_server', is_write))
       end
 
    -- Number
@@ -1469,7 +1471,7 @@ end
 -- ##############################################
 
 --@brief Add filters according to what is specified inside the REST API
-function alert_store:add_request_filters()
+function alert_store:add_request_filters(is_write)
    local ifid = self:get_ifid()
    local epoch_begin = tonumber(_GET["epoch_begin"])
    local epoch_end = tonumber(_GET["epoch_end"])
@@ -1489,8 +1491,8 @@ function alert_store:add_request_filters()
       ntop.setCache(alert_score_cached, score)
    end
 
-   self:add_status_filter(status)
-   self:add_time_filter(epoch_begin, epoch_end)
+   self:add_status_filter(status, is_write)
+   self:add_time_filter(epoch_begin, epoch_end, is_write)
 
    self:add_filter_condition_list('alert_id', alert_id, 'number')
    self:add_filter_condition_list('severity', alert_severity, 'number')

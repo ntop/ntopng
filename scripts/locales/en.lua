@@ -1507,6 +1507,7 @@ local lang = {
     ["vlan_id"] = "VLAN Id",
   },
   ["db_search"] = {
+    ["alert_id"] = "Status",
     ["bytes"] = "Bytes",
     ["cli_asn"] = "Cli ASN",
     ["cli_host_pool_id"] = "Cli Pool",
@@ -1547,7 +1548,6 @@ local lang = {
     ["srv_location"] = "Server Location",
     ["srv_nw_latency"] = "Server Network Latency",
     ["srv_port"] = "Srv Port",
-    ["status"] = "Status",
     ["throughput"] = "Thpt",
     ["time_range"] = "Time Range",
     ["top_l7proto"] = "Top Application",

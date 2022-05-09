@@ -38,7 +38,7 @@ end
 interface.select(ifid)
 
 -- Add filters
-interface_alert_store:add_request_filters()
+interface_alert_store:add_request_filters(true)
 
 interface_alert_store:delete()
 

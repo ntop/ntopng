@@ -33,7 +33,7 @@ end
 interface.select(ifid)
 
 -- Add filters
-network_alert_store:add_request_filters()
+network_alert_store:add_request_filters(true)
 
 network_alert_store:acknowledge(_GET["label"])
 

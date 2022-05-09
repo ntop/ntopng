@@ -62,9 +62,9 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.flow_risk'),
       operators = {'eq', 'neq', 'in', 'nin'}
    },
-   status = {
+   alert_id = {
       value_type = 'alert_type',
-      i18n_label = i18n('db_search.tags.status'),
+      i18n_label = i18n('db_search.tags.alert_id'),
       operators = {'eq', 'neq'}
    },
    l4proto = {
@@ -425,7 +425,7 @@ tag_utils.formatters = {
    l7proto  = function(proto) return interface.getnDPIProtoName(tonumber(proto)) end, 
    l7cat = function(cat) return interface.getnDPICategoryName(tonumber(cat)) end,
    severity = function(severity) return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title)) end,
-   status = function(status) return alert_consts.alertTypeLabel(status, true, alert_entities.flow.entity_id) end,
+   alert_id = function(status) return alert_consts.alertTypeLabel(status, true, alert_entities.flow.entity_id) end,
    role = function(role) return (i18n(role)) end,
    role_cli_srv = function(role) return (i18n(role)) end,
    flow_risk = function(risk) 

@@ -18,6 +18,7 @@ local tag_utils = require "tag_utils"
 local network_utils = require "network_utils"
 local json = require "dkjson"
 local pools = require "pools"
+local historical_flow_utils = require "historical_flow_utils"
 
 local href_icon = "<i class='fas fa-laptop'></i>"
 
@@ -46,8 +47,15 @@ end
 
 -- Get the 'real' field name (used by flow alerts where the flow table is a view
 -- and we write to the real table which has different column names)
-function alert_store:get_write_field(field)
-  return field 
+function alert_store:get_column_name(field, is_write)
+   local col = field
+   if is_write then
+      col = historical_flow_utils.get_flow_column_by_tag(field) 
+      if col then
+         return col
+      end
+   end
+   return field
 end
 
 -- ##############################################
@@ -56,17 +64,24 @@ end
 function alert_store:acknowledge(label)
    local where_clause = self:build_where_clause(true)
 
-   -- TODO add tstamp in addition to FLOW_ID/rowid to optimize the lookup
-
    -- Prepare the final query
    local q
    if ntop.isClickHouseEnabled() then
+      local table_name = self._table_name
       if self._write_table_name then
-         -- This is using the historical 'flows' table
-         q = string.format("ALTER TABLE `%s` UPDATE `ALERT_STATUS` = %u, `USER_LABEL` = '%s', `USER_LABEL_TSTAMP` = %u WHERE FLOW_ID = '%s'", self._write_table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), self._where.rowid.any[1].value)
-      else
-         q = string.format("ALTER TABLE `%s` UPDATE `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
+         table_name = self._write_table_name
       end
+
+      -- This is using the historical 'flows' table
+      q = string.format("ALTER TABLE `%s` UPDATE `%s` = %u, `%s` = '%s', `%s` = %u WHERE %s", 
+         table_name,
+         self:get_column_name('alert_status', true),
+         alert_consts.alert_status.acknowledged.alert_status_id, 
+         self:get_column_name('user_label', true),
+         self:_escape(label), 
+         self:get_column_name('user_label_tstamp', true),
+         os.time(), 
+         where_clause)
    else
       q = string.format("UPDATE `%s` SET `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
    end
@@ -84,30 +99,12 @@ function alert_store:delete()
    -- Prepare the final query
    local q
    if ntop.isClickHouseEnabled() then
+      local table_name = self._table_name
       if self._write_table_name then
-         local where_clause = ''
-
-         -- Used by 'Remove'
-         if self._where.rowid then
-            where_clause = string.format("%s %s FLOW_ID = '%s' ", where_clause, ternary(isEmptyString(where_clause), '', 'AND'), self._where.rowid.any[1].value)
-         else
-            -- Used by 'Exclude Checks'
-            if self._where.alert_id then
-              where_clause = string.format("%s %s STATUS = %u ", where_clause, ternary(isEmptyString(where_clause), '', 'AND'), self._where.alert_id.any[1].value)
-            end
-            if self._where.ip then
-               if isIPv4(self._where.ip.any[1].value) then
-                  where_clause = string.format("%s %s (IPV4_SRC_ADDR = IPv4StringToNum('%s') OR IPV4_DST_ADDR = IPv4StringToNum('%s')) ", where_clause, ternary(isEmptyString(where_clause), '', 'AND'), self._where.ip.any[1].value, self._where.ip.any[1].value)
-               else
-                  where_clause = string.format("%s %s (IPV6_SRC_ADDR = IPv6StringToNum('%s') OR IPV6_DST_ADDR = IPv6StringToNum('%s')) ", where_clause, ternary(isEmptyString(where_clause), '', 'AND'), self._where.ip.any[1].value, self._where.ip.any[1].value)
-               end
-            end
-         end
-
-         q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", self._write_table_name, where_clause) 
-      else
-         q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", self._table_name, where_clause)
+         table_name = self._write_table_name
       end
+
+      q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", table_name, where_clause)
    else
       q = string.format("DELETE FROM `%s` WHERE %s ", self._table_name, where_clause)
    end

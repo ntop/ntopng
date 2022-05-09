@@ -25,7 +25,7 @@ local res = {}
 interface.select(getSystemInterfaceId())
 
 -- Add filters
-am_alert_store:add_request_filters()
+am_alert_store:add_request_filters(true)
 
 am_alert_store:acknowledge(_GET["label"])
 

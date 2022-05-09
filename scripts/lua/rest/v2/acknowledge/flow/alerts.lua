@@ -33,7 +33,7 @@ end
 interface.select(ifid)
 
 -- Add filters
-flow_alert_store:add_request_filters()
+flow_alert_store:add_request_filters(true)
 
 
 flow_alert_store:acknowledge(_GET["label"])

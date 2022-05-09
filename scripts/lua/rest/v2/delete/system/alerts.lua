@@ -30,7 +30,7 @@ end
 interface.select(getSystemInterfaceId())
 
 -- Add filters
-system_alert_store:add_request_filters()
+system_alert_store:add_request_filters(true)
 
 system_alert_store:delete()
 

@@ -40,7 +40,7 @@ interface.select(ifid)
 
 local all_instances = alert_store_utils.all_instances_factory()
 for _, instance in pairs(all_instances) do
-   instance:add_request_filters()
+   instance:add_request_filters(true)
    instance:delete() 
 end
 
