@@ -101,7 +101,11 @@ function alert_store:delete()
    if ntop.isClickHouseEnabled() then
       local table_name = self._table_name
       if self._write_table_name then
+         -- TODO do not delete the entry, use a flag in case of a view
          table_name = self._write_table_name
+
+         -- Fix column type conversion
+         where_clause = historical_flow_utils.fixWhereTypes(where_clause)
       end
 
       q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", table_name, where_clause)

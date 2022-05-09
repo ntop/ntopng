@@ -17,6 +17,22 @@ local historical_flow_utils = {}
 
 -- #####################################
 
+function historical_flow_utils.fixWhereTypes(query)
+   local result = query
+
+   local flow_columns = historical_flow_utils.get_flow_columns()
+   for column, info in pairs(flow_columns) do
+      if info.where_func then
+         result = result:gsub(column ..  "=", column ..  "=" .. info.where_func)
+         result = result:gsub(column .. "!=", column .. "!=" .. info.where_func)
+      end
+   end
+
+   return result
+end
+
+-- #####################################
+
 -- Converting l4_proto and l7proto to their IDs
 function historical_flow_utils.parse_asn(asn)
    if not isEmptyString(asn) then
