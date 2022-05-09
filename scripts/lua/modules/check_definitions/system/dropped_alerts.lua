@@ -15,7 +15,7 @@ local script = {
   hooks = {},
 
   gui = {
-    i18n_title = "internals.alert_drops",
+    i18n_title = "internals.system_alert_drops",
     i18n_description = "internals.system_alert_drops_descr",
   },
 }
