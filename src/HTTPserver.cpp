@@ -1265,13 +1265,10 @@ static int handle_lua_request(struct mg_connection *conn) {
       if(original_uri) request_info->uri  = original_uri;
       return(0);
     } else {
-      if(strcmp(request_info->uri, "/metrics") == 0)
-	snprintf(path, sizeof(path), "%s/lua/metrics.lua",
-	  httpserver->get_scripts_dir());
-      else if(strncmp(request_info->uri, "/scripts/", 9) == 0)
-  /* TODO: change the path name from scripts to something else, scripts is already used */
+      if(strncmp(request_info->uri, "/scripts/", 9) == 0)
+	/* TODO: change the path name from scripts to something else, scripts is already used */
 	snprintf(path, sizeof(path), "%s/scripts/%s",
-	  ntop->get_scripts_dir(), request_info->uri + 9);
+		 ntop->get_scripts_dir(), request_info->uri + 9);
       else
 	snprintf(path, sizeof(path), "%s%s%s",
 		 httpserver->get_scripts_dir(),
