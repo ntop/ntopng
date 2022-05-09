@@ -129,10 +129,7 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK]
       
       /* NDPI_TLS_FATAL_ALERT */
     { { flow_alert_normal /* Unhandled */, alert_category_other }, "ndpi_tls_fatal_alert" },
-      
-      /* NDPI_SUSPICIOUS_ENTROPY */
-    { { flow_alert_normal /* Unhandled */, alert_category_other }, "ndpi_suspicious_entropy" },
-      
+            
       /* NDPI_CLEAR_TEXT_CREDENTIALS */
     { { flow_alert_ndpi_clear_text_credentials, alert_category_security }, "ndpi_clear_text_credentials" },
       
