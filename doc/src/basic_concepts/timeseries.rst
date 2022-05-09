@@ -42,7 +42,7 @@ on an external host.
 
 .. note::
 
-   The minimum supported InfluxDB version is 1.5.1
+   ntopng supports InfluxDB version 1.x (no 2.x series) and the minimum supported version is 1.5.1
 
 .. figure:: ../img/basic_concepts_influxdb_settings.png
   :align: center

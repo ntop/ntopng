@@ -80,16 +80,6 @@ Limits above also apply when disaggregated interfaces are used. For example, the
 - A single interface is configured with disaggregation resulting in 31 disaggregated sub-interfaces
 - Two interfaces are configured with disaggregation resulting in 15 and 16 disaggregated sub-interfaces, respectively
 
-nIndex
-------
-
-The maximum number of interfaces that can be used with nIndex is 16. When more than 16 interfaces are used, those exceeding 16 will work but without nIndex support.
-
-.. warning::
-
-  nIndex support is deprecated and will be discontinued in favor of ClickHouse. ntopng version 5.1 is the last version supporting nIndex.
-  A tool to migrate nIndex to ClickHouse is available at: https://github.com/ntop/ntopng/blob/dev/tools/nindex_export_to_ch.sh
-
 Hardware Sizing
 ===============
 
