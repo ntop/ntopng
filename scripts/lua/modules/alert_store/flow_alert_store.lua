@@ -44,9 +44,17 @@ end
 
 -- ##############################################
 
+-- Get the 'real' field name (used by flow alerts where the flow table is a view
+-- and we write to the real table which has different column names)
+function alert_store:get_write_field(field)
+  return field 
+end
+
+-- ##############################################
+
 --@brief Labels alerts according to specified filters
 function alert_store:acknowledge(label)
-   local where_clause = self:build_where_clause()
+   local where_clause = self:build_where_clause(true)
 
    -- TODO add tstamp in addition to FLOW_ID/rowid to optimize the lookup
 
@@ -71,7 +79,7 @@ end
 
 --@brief Deletes data according to specified filters
 function alert_store:delete()
-   local where_clause = self:build_where_clause()
+   local where_clause = self:build_where_clause(true)
 
    -- Prepare the final query
    local q

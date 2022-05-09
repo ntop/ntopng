@@ -198,7 +198,21 @@ end
 
 -- ##############################################
 
-function alert_store:build_sql_cond(cond)
+-- Get the 'real' field name (used by flow alerts where the flow table is a view
+-- and we write to the real table which has different column names)
+function alert_store:get_write_field(field)
+  return field 
+end
+
+-- ##############################################
+
+function alert_store:build_sql_cond(cond, is_write)
+   local real_field = cond.field
+
+   if is_write then
+      real_field = self:get_write_field(cond.field)
+   end
+
    if cond.sql then
       return cond.sql -- special condition
    end
@@ -213,8 +227,12 @@ function alert_store:build_sql_cond(cond)
       if tonumber(cond.value) == 0 --[[ Unknown --]] then and_cond = 'eq' end
 
       -- Search also in l7_master_proto, unless value is 0 (Unknown)
-      sql_cond = string.format("(l7_proto %s %u %s l7_master_proto %s %u)",
-         sql_op, cond.value, ternary(cond.op == and_cond, 'AND', 'OR'), sql_op, cond.value)
+      sql_cond = string.format("(%s %s %u %s %s %s %u)",
+         self:get_write_field('l7_proto'),
+         sql_op, cond.value,
+         ternary(cond.op == and_cond, 'AND', 'OR'), 
+         self:get_write_field('l7_master_proto'),
+         sql_op, cond.value)
  
    -- Special case: ip (with vlan)
    elseif cond.field == 'ip' or
@@ -225,21 +243,25 @@ function alert_store:build_sql_cond(cond)
          if not host["vlan"] or host["vlan"] == 0 then
             if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
                sql_cond = string.format("(%s %s '%s' %s %s %s '%s')",
-                  'cli_ip', sql_op, cond.value,
+                  self:get_write_field('cli_ip'), sql_op, cond.value,
                   ternary(cond.op == 'neq', 'AND', 'OR'), 
-                  'srv_ip', sql_op, cond.value)
+                  self:get_write_field('srv_ip'), sql_op, cond.value)
             else
-               sql_cond = string.format("%s %s '%s'", cond.field, sql_op, cond.value)
+               sql_cond = string.format("%s %s '%s'", real_field, sql_op, cond.value)
             end
          else
             if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
-               sql_cond = string.format("((%s %s '%s' %s %s %s '%s') %s vlan_id %s %u)",
-                  'cli_ip', sql_op, host["host"], 
+               sql_cond = string.format("((%s %s '%s' %s %s %s '%s') %s %s %s %u)",
+                  self:get_write_field('cli_ip'), sql_op, host["host"], 
                   ternary(cond.op == 'neq', 'AND', 'OR'),
-                  'srv_ip', sql_op, host["host"], 
+                  self:get_write_field('srv_ip'), sql_op, host["host"],
+                  self:get_write_field('vlan_id'),
                   ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
             else
-               sql_cond = string.format("(%s %s '%s' %s vlan_id %s %u)", cond.field, sql_op, host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
+               sql_cond = string.format("(%s %s '%s' %s %s %s %u)", 
+                 real_field, sql_op, host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), 
+                 self:get_write_field('vlan_id'),
+                 sql_op, host["vlan"])
             end
          end
       end
@@ -254,22 +276,27 @@ function alert_store:build_sql_cond(cond)
          if not host["vlan"] or host["vlan"] == 0 then
             if cond.field == 'name' and self._alert_entity == alert_entities.flow then
                sql_cond = string.format("(%s %s '%s' %s %s %s '%s')",
-                  'cli_name', sql_op, host["host"],
+                  self:get_write_field('cli_name'), sql_op, host["host"],
                   ternary(cond.op == 'neq', 'AND', 'OR'), 
-                  'srv_name', sql_op, host["host"])
+                  self:get_write_field('srv_name'), sql_op, host["host"])
             else
-               sql_cond = string.format("%s %s '%s'", cond.field, sql_op, host["host"])
+               sql_cond = string.format("%s %s '%s'", real_field, sql_op, host["host"])
             end
          else
             if cond.field == 'name' and self._alert_entity == alert_entities.flow then
-               sql_cond = string.format("((%s %s '%s' %s %s %s '%s') %s vlan_id %s %u)",
-                  'cli_name', sql_op, host["host"], 
+               sql_cond = string.format("((%s %s '%s' %s %s %s '%s') %s %s %s %u)",
+                  self:get_write_field('cli_name'), sql_op, host["host"], 
                   ternary(cond.op == 'neq', 'AND', 'OR'),
-                  'srv_name', sql_op, host["host"], 
-                  ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
+                  self:get_write_field('srv_name'), sql_op, host["host"], 
+                  ternary(cond.op == 'neq', 'OR', 'AND'),
+                  self:get_write_field('vlan_id'),
+                  sql_op, host["vlan"])
             else
-               sql_cond = string.format("(%s %s '%s' %s vlan_id %s %u)", cond.field, sql_op, 
-                  host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
+               sql_cond = string.format("(%s %s '%s' %s %s %s %u)", real_field, sql_op, 
+                  host["host"],
+                  ternary(cond.op == 'neq', 'OR', 'AND'),
+                  self:get_write_field('vlan_id'),
+                  sql_op, host["vlan"])
             end
          end
       end
@@ -277,50 +304,54 @@ function alert_store:build_sql_cond(cond)
    -- Special case: role (host)
    elseif cond.field == 'host_role' then
       if cond.value == 'attacker' then
-         sql_cond = "is_attacker = 1"
+         sql_cond = string.format("%s = 1", self:get_write_field('is_attacker'))
       elseif cond.value == 'victim' then
-         sql_cond = "is_victim = 1"
+         sql_cond = string.format("%s = 1", self:get_write_field('is_victim'))
       else -- 'no_attacker_no_victim'
-         sql_cond = "(is_attacker = 0 AND is_victim = 0)"
+         sql_cond = string.format("(%s = 0 AND %s = 0)", self:get_write_field('is_attacker'), self:get_write_field('is_victim'))
       end
 
    -- Special case: role (flow)
    elseif cond.field == 'flow_role' then
       if cond.value == 'attacker' then
-         sql_cond = "(is_cli_attacker = 1 OR is_srv_attacker = 1)"
+         sql_cond = string.format("(%s = 1 OR %s = 1)", 
+           self:get_write_field('is_cli_attacker'), self:get_write_field('is_srv_attacker'))
       elseif cond.value == 'victim' then
-         sql_cond = "(is_cli_victim = 1 OR is_srv_victim = 1)"
+         sql_cond = string.format("(%s = 1 OR %s = 1)", 
+           self:get_write_field('is_cli_victim'), self:get_write_field('is_srv_victim'))
       else -- 'no_attacker_no_victim'
-         sql_cond = "(is_cli_attacker = 0 AND is_srv_attacker = 0 AND is_srv_victim = 0 AND is_cli_victim = 0)"
+         sql_cond = string.format("(%s = 0 AND %s = 0 AND %s = 0 AND %s = 0)",
+           self:get_write_field('is_cli_attacker'), self:get_write_field('is_srv_attacker'),
+           self:get_write_field('is_cli_victim'),   self:get_write_field('is_srv_victim'))
       end
 
    -- Special case: role_cli_srv)
    elseif cond.field == 'role_cli_srv' then
       if cond.value == 'client' then
-         sql_cond = "is_client = 1"
+         sql_cond = string.format("%s = 1", self:get_write_field('is_client'))
       else -- 'server'
-         sql_cond = "is_server = 1"
+         sql_cond = string.format("%s = 1", self:get_write_field('is_server'))
       end
 
    -- Number
    elseif cond.value_type == 'number' then
       if cond.op == 'in' then
-         sql_cond = 'bitAnd(' .. cond.field .. ', ' .. cond.value .. ') = ' .. cond.value
+         sql_cond = 'bitAnd(' .. real_field .. ', ' .. cond.value .. ') = ' .. cond.value
       elseif cond.op == 'nin' then
-         sql_cond = cond.field .. '!=' .. cond.value .. '/' .. cond.value
+         sql_cond = real_field .. '!=' .. cond.value .. '/' .. cond.value
       else
-         sql_cond = string.format("%s %s %u", cond.field, sql_op, cond.value)
+         sql_cond = string.format("%s %s %u", real_field, sql_op, cond.value)
       end
 
    -- String
    else
       if cond.op == 'in' then
-         sql_cond = cond.field .. ' LIKE ' .. string.format("'%%%s%%'", cond.value)
+         sql_cond = real_field .. ' LIKE ' .. string.format("'%%%s%%'", cond.value)
       elseif cond.op == 'nin' then
-         sql_cond = cond.field .. ' NOT LIKE ' .. string.format("'%%%s%%'", cond.value)
+         sql_cond = real_field .. ' NOT LIKE ' .. string.format("'%%%s%%'", cond.value)
       else
          -- Any other operator
-         sql_cond = string.format("%s %s '%s'", cond.field, sql_op, cond.value)
+         sql_cond = string.format("%s %s '%s'", real_field, sql_op, cond.value)
       end
    end
 
@@ -331,7 +362,7 @@ end
 
 --@brief Build where string from filters
 --@return the where condition in SQL syntax
-function alert_store:build_where_clause()
+function alert_store:build_where_clause(is_write)
    local where_clause = ""
    local and_clauses = {}
    local or_clauses = {}
@@ -339,7 +370,7 @@ function alert_store:build_where_clause()
    for name, groups in pairs(self._where) do
      -- Build AND clauses for all fields
      for _, cond in ipairs(groups.all) do
-        local sql_cond = self:build_sql_cond(cond)
+        local sql_cond = self:build_sql_cond(cond, is_write)
 
         if and_clauses[name] then
            and_clauses[name] = and_clauses[name] .. " AND " .. sql_cond
@@ -350,7 +381,7 @@ function alert_store:build_where_clause()
 
      -- Build OR clauses for all fields
      for _, cond in ipairs(groups.any) do
-        local sql_cond = self:build_sql_cond(cond)
+        local sql_cond = self:build_sql_cond(cond, is_write)
 
         if or_clauses[name] then
            or_clauses[name] = or_clauses[name] .. " OR " .. sql_cond
