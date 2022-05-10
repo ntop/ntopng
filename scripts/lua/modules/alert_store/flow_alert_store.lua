@@ -214,6 +214,21 @@ end
 
 -- ##############################################
 
+--@brief Performs a query for the top l7_proto by alert count
+function flow_alert_store:top_l7_proto_historical()
+   -- Preserve all the filters currently set
+   local where_clause = self:build_where_clause()
+
+   local q = string.format("SELECT l7_proto, count(*) count FROM %s WHERE %s GROUP BY l7_proto ORDER BY count DESC LIMIT %u",
+         self._table_name, where_clause, self._top_limit)
+   local q_res = interface.alert_store_query(q) or {}
+
+   return q_res
+end
+
+
+-- ##############################################
+
 --@brief Performs a query for the top client hosts by alert count
 function flow_alert_store:top_cli_ip_historical()
    -- Preserve all the filters currently set
@@ -303,6 +318,11 @@ function flow_alert_store:_get_additional_stats()
    stats.top.cli_ip = self:top_cli_ip_historical()
    stats.top.srv_ip = self:top_srv_ip_historical()
    stats.top.ip = self:top_ip_merge(stats.top.cli_ip, stats.top.srv_ip)
+   if ntop.isClickHouseEnabled() then
+      stats.top.l7_proto = self:top_l7_proto_historical()
+   else
+      stats.top.l7_proto = {}
+   end
    return stats
 end
 
