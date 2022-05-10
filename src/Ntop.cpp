@@ -2407,14 +2407,23 @@ void Ntop::daemonize() {
 
   signal(SIGPIPE, SIG_IGN);
   signal(SIGHUP,  SIG_IGN);
-  signal(SIGCHLD, SIG_IGN);
+  /*
+    IMPORTANT
+    
+    SIGCHLD should NOT be masked as otherwise
+    with popen()/pclose() we receive an error
+    when closing the pipe on FreeBSD
+
+    signal(SIGCHLD, SIG_IGN); 
+  */
   signal(SIGQUIT, SIG_IGN);
 
   if((childpid = fork()) < 0)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Occurred while daemonizing (errno=%d)",
 				 errno);
   else {
-    if(!childpid) { /* child */
+    if(!childpid) {
+      /* child */
       int rc;
 
       //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Bye bye: I'm becoming a daemon...");
