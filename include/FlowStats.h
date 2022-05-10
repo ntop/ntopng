@@ -33,17 +33,21 @@ class FlowStats {
   u_int32_t alert_levels[ALERT_LEVEL_MAX_LEVEL];
   u_int32_t dscps[64]; // 64 values available for dscp
   u_int32_t host_pools[UNLIMITED_NUM_HOST_POOLS];
-  
+  std::map< std::string, u_int16_t > talking_hosts;
+
  public:
   FlowStats();
   ~FlowStats();
 
   void incStats(Bitmap128 alert_bitmap, u_int8_t l4_protocol, AlertLevel alert_level, 
 		u_int8_t dscp_cli2srv, u_int8_t dscp_srv2cli, Flow *flow);
-
+  
+  void updateTalkingHosts(Flow *f);
+  
   void lua(lua_State* vm);
 
   void resetStats();
+  void resetTalkingHosts() { talking_hosts.clear(); };
 };
 
 #endif /* _FLOW_STATUS_STATS_H_ */

@@ -124,6 +124,7 @@ function getFlowsFilter()
    local outIfIdx     = _GET["outIfIdx"]
    local asn          = _GET["asn"]
    local tcp_state    = _GET["tcp_flow_state"]
+   local talking_with = _GET["talking_with"]
 
    if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
       sortColumn = getDefaultTableSort("flows")
@@ -288,8 +289,12 @@ function getFlowsFilter()
    pageinfo["icmp_code"] = tonumber(icmp_code)
 
    if not isEmptyString(dscp_filter) then
-      pageinfo["dscpFilter"] = tonumber(dscp_filter)
-   end
+    pageinfo["dscpFilter"] = tonumber(dscp_filter)
+ end
+
+ if not isEmptyString(talking_with) then
+    pageinfo["talkingWith"] = talking_with
+ end
 
    if not isEmptyString(host_pool) then
       pageinfo["poolFilter"] = tonumber(host_pool)
@@ -1648,23 +1653,49 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     -- Local / Remote hosts selector
     -- table.clone needed to modify some parameters while keeping the original unchanged
     local flowhosts_type_params = table.clone(page_params)
-    flowhosts_type_params["flowhosts_type"] = nil
-
+    
     print[['\
        <div class="btn-group">\
 	  <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.hosts")) print(getParamFilter(page_params, "flowhosts_type")) print[[<span class="caret"></span></button>\
 	  <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
 	     <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, flowhosts_type_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
        printDropdownEntries({
-	  {"local_only", i18n("flows_page.local_only")},
-	  {"remote_only", i18n("flows_page.remote_only")},
-	  {"local_origin_remote_target", i18n("flows_page.local_cli_remote_srv")},
-	  {"remote_origin_local_target", i18n("flows_page.local_srv_remote_cli")}
+          {"local_only", i18n("flows_page.local_only")},
+          {"remote_only", i18n("flows_page.remote_only")},
+          {"local_origin_remote_target", i18n("flows_page.local_cli_remote_srv")},
+          {"remote_origin_local_target", i18n("flows_page.local_srv_remote_cli")},
        }, base_url, flowhosts_type_params, "flowhosts_type", page_params.flowhosts_type)
     print[[\
 	  </ul>\
        </div>\
     ']]
+
+    local talking_with_params = table.clone(page_params)
+    talking_with_params["talking_with"] = nil
+    if talking_with_params["host"] then
+      local talking_with_list = {}
+        for host, num_flows in pairs(flowstats["talking_with"] or {}) do
+        if talking_with_params["host"] ~= host then
+          local hinfo = hostkey2hostinfo(host)
+          
+          talking_with_list[#talking_with_list + 1] = {
+            host,
+            hostinfo2label(hinfo) .. " (" .. tostring(num_flows) .. ")"
+          }
+        end
+      end
+
+      print[[, '\
+         <div class="btn-group">\
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.talking_with")) print(getParamFilter(page_params, "talking_with")) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu scrollable-dropdown" role="menu">\
+      <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, talking_with_params)) print[[">]] print(i18n("flows_page.all_hosts")) print[[</a></li>\]]
+         printDropdownEntries(talking_with_list, base_url, talking_with_params, "talking_with", page_params.talking_with)
+         print[[\
+      </ul>\
+         </div>\
+      ']]
+    end
 
     -- Status selector
     -- table.clone needed to modify some parameters while keeping the original unchanged

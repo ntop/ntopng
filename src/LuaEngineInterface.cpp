@@ -2145,9 +2145,9 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
 static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char buf[64];
-  char *host_ip = NULL;
+  char *host_ip = NULL, *talking_with_ip = NULL;
   VLANid vlan_id = 0;
-  Host *host = NULL;
+  Host *host = NULL, *talking_with_host = NULL;
   Paginator *p = NULL;
   u_int32_t begin_slot = 0;
   bool walk_all = true;
@@ -2170,9 +2170,16 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
   if(lua_type(vm, 2) == LUA_TTABLE)
     p->readOptions(vm, 2);
   
+  if(lua_type(vm, 3) == LUA_TSTRING) {
+    get_host_vlan_info((char*)lua_tostring(vm, 3), &talking_with_ip, &vlan_id, buf, sizeof(buf));
+    talking_with_host = ntop_interface->getHost(talking_with_ip, vlan_id,
+				   getLuaVMUservalue(vm, observationPointId),
+				   false /* Not an inline call */);
+  }
+
   if(ntop_interface
      && (!host_ip || host))
-    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, p);
+    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, talking_with_host, p);
   else
     lua_pushnil(vm);
 
@@ -2203,7 +2210,7 @@ static int ntop_get_batched_interface_flows_info(lua_State* vm) {
     p->readOptions(vm, 2);
 
   if(ntop_interface)
-    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), NULL, p);
+    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), NULL, NULL, p);
   else
     lua_pushnil(vm);
 
@@ -3558,11 +3565,11 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats ndpi_stats;
   FlowStats stats;
-  char *host_ip = NULL;
+  char *host_ip = NULL, *talking_with_ip = NULL, *tmp = NULL;
   VLANid vlan_id = 0;
   char buf[64];
   bool only_traffic_stats = false;
-  Host *host = NULL;
+  Host *host = NULL, *talking_with_host = NULL;
   Paginator *p = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -3582,8 +3589,17 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
   if(lua_type(vm, 3) == LUA_TBOOLEAN)
     only_traffic_stats = (bool)lua_toboolean(vm, 3);
   
+  /* Optional talking with host, available only for the host flows */
+  if(lua_type(vm, 4) == LUA_TSTRING) {
+    tmp = (char*)lua_tostring(vm, 4);
+    if(strlen(tmp)> 0) {
+      get_host_vlan_info(tmp, &talking_with_ip, &vlan_id, buf, sizeof(buf));
+      talking_with_host = ntop_interface->getHost(talking_with_ip, vlan_id, getLuaVMUservalue(vm, observationPointId), false /* Not an inline call */);
+    }
+  }
+
   if(ntop_interface) {
-    ntop_interface->getActiveFlowsStats(&ndpi_stats, &stats, get_allowed_nets(vm), host, p, vm, only_traffic_stats);
+    ntop_interface->getActiveFlowsStats(&ndpi_stats, &stats, get_allowed_nets(vm), host, talking_with_host, p, vm, only_traffic_stats);
   } else
     lua_pushnil(vm);
 

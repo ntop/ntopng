@@ -3034,6 +3034,7 @@ local lang = {
     ["server_as"] = "Server AS",
     ["sflow_devices"] = "sFlow Probes",
     ["source_id"] = "Source Id",
+    ["talking_with"] = "Talking With",
     ["tcp_only"] = "TCP Only",
     ["tcp_state"] = "TCP State",
     ["tcp_state_closed"] = "Closed",

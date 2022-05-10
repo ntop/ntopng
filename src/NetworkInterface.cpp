@@ -4133,7 +4133,7 @@ struct flowHostRetrieveList {
 struct flowHostRetriever {
   /* Search criteria */
   AddressTree *allowed_hosts;
-  Host *host;
+  Host *host, *talking_with_host;
   u_int16_t observationPointId;
   u_int8_t *mac, bridge_iface_idx;
   char *manufacturer;
@@ -4174,7 +4174,7 @@ struct flowHostRetriever {
   FlowStats *stats;
 
   /* Paginator */
-  Paginator *pag;
+  Paginator *pag; 
 };
 
 /* **************************************************** */
@@ -4212,6 +4212,19 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 #ifdef HAVE_NEDGE
   bool filtered_flows;
 #endif
+
+  if(retriever->talking_with_host) {
+    if(!f->getInterface()->isViewed()) {
+      if(retriever->talking_with_host != f->get_cli_host()
+        && retriever->talking_with_host != f->get_srv_host()) {
+          return(false);
+        }
+    } else {
+    if(!(retriever->talking_with_host->get_ip()->equal(f->get_cli_ip_addr()) && retriever->talking_with_host->get_vlan_id() == f->get_vlan_id())
+        &&!(retriever->talking_with_host->get_ip()->equal(f->get_srv_ip_addr()) && retriever->talking_with_host->get_vlan_id() == f->get_vlan_id()))
+        return(false);
+    }
+  }
 
   if(f && (!f->idle())) {
     if(f->get_observation_point_id() != retriever->observationPointId) {
@@ -5134,7 +5147,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   }
 
   // make sure the caller has disabled the purge!!
-  walker(begin_slot, walk_all,  walker_flows, flow_search_walker, (void*)retriever);
+  walker(begin_slot, walk_all, walker_flows, flow_search_walker, (void*)retriever);
 
   qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
@@ -5150,10 +5163,11 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matche
   Flow *f = (Flow*)flow;
 
   if(flow_matches(f, retriever)) {
+    stats->updateTalkingHosts(f);
     retriever->totBytesSent += f->get_bytes_cli2srv();
     retriever->totBytesRcvd += f->get_bytes_srv2cli();
     retriever->totThpt      += f->get_bytes_thpt();
-
+    
     if(!retriever->only_traffic_stats)
       f->sumStats(ndpi_stats, stats);
 
@@ -5167,7 +5181,8 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matche
 
 void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *stats,
 					   AddressTree *allowed_hosts,
-					   Host *h, Paginator *p,
+					   Host *h, Host *talking_with_host,
+             Paginator *p,
 					   lua_State *vm,
 					   bool only_traffic_stats) {
   flowHostRetriever retriever;
@@ -5178,6 +5193,7 @@ void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *sta
 
   retriever.pag = p;
   retriever.host = h;
+  retriever.talking_with_host = talking_with_host;
   retriever.location = location_all;
   retriever.ndpi_proto = -1;
   retriever.actNumEntries = 0;
@@ -5203,6 +5219,8 @@ void NetworkInterface::getActiveFlowsStats(nDPIStats *ndpi_stats, FlowStats *sta
     ndpi_stats->lua(this, vm);
     stats->lua(vm);
   }
+
+  retriever.stats->resetTalkingHosts();
 }
 
 /* **************************************************** */
@@ -5212,6 +5230,7 @@ int NetworkInterface::getFlows(lua_State* vm,
 			       bool walk_all,
 			       AddressTree *allowed_hosts,
 			       Host *host,
+			       Host *talking_with_host,
 			       Paginator *p) {
   struct flowHostRetriever retriever;
   char sortColumn[32];
@@ -5233,6 +5252,7 @@ int NetworkInterface::getFlows(lua_State* vm,
     highDetails = p->detailedResults() ? details_high : (local_hosts || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? details_high : details_normal;
 
   retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
+  retriever.talking_with_host = talking_with_host;
 
   if(sortFlows(begin_slot, walk_all, &retriever, allowed_hosts, host, p, sortColumn) < 0) {
     return(-1);

@@ -202,6 +202,34 @@ void FlowStats::lua(lua_State* vm) {
   lua_pushstring(vm, "alert_levels");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
+  lua_newtable(vm);
+
+  std::map< std::string, u_int16_t >::iterator it;
+  for(it = talking_hosts.begin(); it != talking_hosts.end(); it++)
+    lua_push_uint32_table_entry(vm, it->first.c_str(), it->second);
+
+  lua_pushstring(vm, "talking_with");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
+void FlowStats::updateTalkingHosts(Flow *f) {
+  char buf[64];
+  std::pair< std::map< std::string, u_int16_t >::iterator, bool > ret;
+  ret = talking_hosts.insert(std::pair< std::string, u_int16_t >(
+      f->get_cli_ip_addr()->print(buf, sizeof(buf)), 1));
+
+  if(!ret.second)
+    ret.first->second++;
+
+  ret = talking_hosts.insert(std::pair< std::string, u_int16_t >(
+      f->get_srv_ip_addr()->print(buf, sizeof(buf)), 1));
+
+  if(!ret.second)
+    ret.first->second++;
 }
 
 /* *************************************** */
@@ -212,6 +240,7 @@ void FlowStats::resetStats() {
   memset(alert_levels, 0, sizeof(alert_levels));
   memset(dscps, 0, sizeof(dscps));
   memset(host_pools, 0, sizeof(host_pools));
+  talking_hosts.clear();
 }
 
 /* *************************************** */

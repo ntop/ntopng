@@ -1653,21 +1653,22 @@ elseif(page == "flows") then
 	 <script>
    var url_update = "]]
 
-   local page_params = {
-      application = _GET["application"],
-      category = _GET["category"],
-      alert_type = _GET["alert_type"],
-      alert_type_severity = _GET["alert_type_severity"],
-      tcp_flow_state = _GET["tcp_flow_state"],
-      flowhosts_type = _GET["flowhosts_type"],
-      traffic_type = _GET["traffic_type"],
-      version = _GET["version"],
-      l4proto = _GET["l4proto"],
-      dscp_class = _GET["dscp_class"],
-      host = hostinfo2hostkey(host),
-      tskey = _GET["tskey"],
-      host_pool_id = _GET["host_pool_id"],
-   }
+  local page_params = {
+    application = _GET["application"],
+    category = _GET["category"],
+    alert_type = _GET["alert_type"],
+    alert_type_severity = _GET["alert_type_severity"],
+    tcp_flow_state = _GET["tcp_flow_state"],
+    flowhosts_type = _GET["flowhosts_type"],
+    traffic_type = _GET["traffic_type"],
+    version = _GET["version"],
+    l4proto = _GET["l4proto"],
+    dscp_class = _GET["dscp_class"],
+    host = hostinfo2hostkey(host),
+    tskey = _GET["tskey"],
+    host_pool_id = _GET["host_pool_id"],
+    talking_with = _GET["talking_with"],
+  }
 
    print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
 
@@ -1689,7 +1690,7 @@ elseif(page == "flows") then
    print [[
    	 $("#table-flows").datatable({
             url: url_update,
-            buttons: [ ]] printActiveFlowsDropdown("host_details.lua?page=flows", page_params, interface.getStats(), interface.getActiveFlowsStats(hostinfo2hostkey(host_info))) print[[ ],
+            buttons: [ ]] printActiveFlowsDropdown("host_details.lua?page=flows", page_params, interface.getStats(), interface.getActiveFlowsStats(hostinfo2hostkey(host_info), nil, nil, page_params["talking_with"] or nil)) print[[ ],
             tableCallback: function()  {
    	    ]] initFlowsRefreshRows() print[[
    	 },
