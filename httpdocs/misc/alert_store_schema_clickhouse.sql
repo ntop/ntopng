@@ -109,6 +109,8 @@ ALTER TABLE flows ADD COLUMN IF NOT EXISTS `USER_LABEL` String
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `USER_LABEL_TSTAMP` DateTime 
 @
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `ALERT_JSON` String
+@
+ALTER TABLE flows ADD COLUMN IF NOT EXISTS `IS_ALERT_DELETED` UInt8
 
 @
 
@@ -158,7 +160,8 @@ IS_SRV_VICTIM AS is_srv_victim,
 IS_CLI_BLACKLISTED AS cli_blacklisted,
 IS_SRV_BLACKLISTED AS srv_blacklisted,
 ALERTS_MAP AS alerts_map
-FROM `flows`;
+FROM `flows`
+WHERE STATUS != 0 AND IS_ALERT_DELETED != 1;
 
 @
 
@@ -407,7 +410,7 @@ DROP VIEW IF EXISTS `all_alerts`;
 CREATE VIEW IF NOT EXISTS `all_alerts_view` AS
 SELECT 8 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `active_monitoring_alerts`
 UNION ALL 
-SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, 0 AS alert_status, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score FROM `flows` WHERE STATUS != 0
+SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, 0 AS alert_status, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score FROM `flows` WHERE STATUS != 0 AND IS_ALERT_DELETED != 1
 UNION ALL
 SELECT 1 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `host_alerts`
 UNION ALL

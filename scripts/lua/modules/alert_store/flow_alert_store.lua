@@ -106,9 +106,11 @@ function alert_store:delete()
 
          -- Fix column type conversion
          where_clause = historical_flow_utils.fixWhereTypes(where_clause)
-      end
 
-      q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", table_name, where_clause)
+         q = string.format("ALTER TABLE `%s` UPDATE `IS_ALERT_DELETED` = 1 WHERE %s", table_name, where_clause)
+      else
+         q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", table_name, where_clause)
+      end
    else
       q = string.format("DELETE FROM `%s` WHERE %s ", self._table_name, where_clause)
    end
