@@ -318,11 +318,7 @@ function flow_alert_store:_get_additional_stats()
    stats.top.cli_ip = self:top_cli_ip_historical()
    stats.top.srv_ip = self:top_srv_ip_historical()
    stats.top.ip = self:top_ip_merge(stats.top.cli_ip, stats.top.srv_ip)
-   if ntop.isClickHouseEnabled() then
-      stats.top.l7_proto = self:top_l7_proto_historical()
-   else
-      stats.top.l7_proto = {}
-   end
+   stats.top.l7_proto = self:top_l7_proto_historical()
    return stats
 end
 
