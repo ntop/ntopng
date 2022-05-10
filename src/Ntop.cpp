@@ -55,7 +55,7 @@ Ntop::Ntop(const char *appName) {
   // WTF: it's weird why do you want a global instance of ntop.
   ntop = this;
   globals = new (std::nothrow) NtopGlobals();
-  extract = new (std::nothrow) TimelineExtract(); 
+  extract = new (std::nothrow) TimelineExtract();
   address = new (std::nothrow) AddressResolution();
   offline = false;
   pa = NULL;
@@ -74,7 +74,7 @@ Ntop::Ntop(const char *appName) {
   last_stats_reset = 0;
 
   setZoneInfo();
-    
+
   /* Checks loader */
   flowChecksReloadInProgress = true; /* Lazy, will be reloaded the first time this condition is evaluated */
   hostChecksReloadInProgress = true;
@@ -189,7 +189,7 @@ Ntop::Ntop(const char *appName) {
 #ifndef HAVE_NEDGE
   refresh_ips_rules = false;
 #endif
-  
+
   // printf("--> %s [%s]\n", startup_dir, appName);
 
   initTimezone();
@@ -286,7 +286,7 @@ Ntop::~Ntop() {
   }
 
   if(zoneinfo) free(zoneinfo);
-  
+
   delete []iface;
 
   if(system_interface)    delete system_interface;
@@ -307,7 +307,7 @@ Ntop::~Ntop() {
   if(custom_ndpi_protos)  free(custom_ndpi_protos);
 
   delete address;
-  
+
   if(pa)    delete pa;
   if(geo)   delete geo;
   if(mac_manufacturers) delete mac_manufacturers;
@@ -325,7 +325,7 @@ Ntop::~Ntop() {
   if(clickhouseImport)
     delete clickhouseImport;
 #endif
-  
+
   if(resolvedHostsBloom) delete resolvedHostsBloom;
   delete internal_alerts_queue;
 
@@ -632,7 +632,7 @@ void Ntop::start() {
 
 	    if(rc < 0)
 	      ntop->getTrace()->traceEvent(TRACE_DEBUG, "read() returned %d", rc);
-	    
+
             ntop->getTrace()->traceEvent(TRACE_DEBUG, "Directory changed");
           }
         }
@@ -2243,7 +2243,7 @@ bool Ntop::deleteUser(char *username) {
 
   snprintf(key, sizeof(key), CONST_STR_USER_THEME, username);
   ntop->getRedis()->del(key);
-  
+
   snprintf(key, sizeof(key), CONST_STR_USER_DATE_FORMAT, username);
   ntop->getRedis()->del(key);
 
@@ -2372,7 +2372,7 @@ char* Ntop::getValidPath(char *__path) {
   /* relative paths */
   for(int i = 0; i < (int)COUNT_OF(dirs); i++) {
     if(dirs[i]
-       /* 
+       /*
 	  Ignore / as when you start ntopng as a
 	  service you might have /scripts or /httpdocs
 	  on your filesystem fooling ntopng
@@ -2409,12 +2409,12 @@ void Ntop::daemonize() {
   signal(SIGHUP,  SIG_IGN);
   /*
     IMPORTANT
-    
+
     SIGCHLD should NOT be masked as otherwise
     with popen()/pclose() we receive an error
     when closing the pipe on FreeBSD
 
-    signal(SIGCHLD, SIG_IGN); 
+    signal(SIGCHLD, SIG_IGN);
   */
   signal(SIGQUIT, SIG_IGN);
 
@@ -2644,7 +2644,7 @@ void Ntop::addToPool(char *host_or_mac, u_int16_t user_pool_id) {
 void Ntop::checkReloadHostPools() {
   if(hostPoolsReloadInProgress /* Check if a reload has been requested */) {
     /* Leave this BEFORE the actual swap and new allocation to guarantee changes are always seen */
-    hostPoolsReloadInProgress = false; 
+    hostPoolsReloadInProgress = false;
 
     for(int i = 0; i < get_num_interfaces(); i++) {
       NetworkInterface *iface;
@@ -2833,8 +2833,8 @@ void Ntop::checkShutdownWhenDone() {
 void Ntop::shutdownPeriodicActivities() {
   if(pa) {
     while(pa->isRunning()) sleep(1);
-    
-    delete pa;    
+
+    delete pa;
     pa = NULL;
   }
 }
@@ -3126,7 +3126,7 @@ bool Ntop::getCPULoad(float *out) {
 
 bool Ntop::initnDPIReload() {
   bool rc = false;
-  
+
   for(u_int i = 0; i<get_num_interfaces(); i++)
     if(getInterface(i)) rc |= getInterface(i)->initnDPIReload();
 
@@ -3137,10 +3137,10 @@ bool Ntop::initnDPIReload() {
 
 bool Ntop::isnDPIReloadInProgress()  {
   bool rc = false;
-  
+
   for(u_int i = 0; i<get_num_interfaces(); i++)
     if(getInterface(i))  rc |= getInterface(i)->isnDPIReloadInProgress();
-  
+
   return(rc);
 }
 
@@ -3155,7 +3155,7 @@ void Ntop::finalizenDPIReload() {
 
 void Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id, char *list_name) {
   char *persistent_name = getPersistentCustomListName(list_name);
-  
+
   for(u_int i = 0; i<get_num_interfaces(); i++) {
     if(getInterface(i))
       getInterface(i)->nDPILoadIPCategory(what, id, persistent_name);
@@ -3166,7 +3166,7 @@ void Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id, char *lis
 
 void Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name) {
   char *persistent_name = getPersistentCustomListName(list_name);
-  
+
   for(u_int i = 0; i<get_num_interfaces(); i++) {
     if(getInterface(i))
       getInterface(i)->nDPILoadHostnameCategory(what, id, persistent_name);
@@ -3177,7 +3177,7 @@ void Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, cha
 
 int Ntop::nDPILoadMaliciousJA3Signatures(const char *file_path) {
   int rc = 0;
-  
+
   for(u_int i = 0; i<get_num_interfaces(); i++)
     if(getInterface(i))  rc = getInterface(i)->nDPILoadMaliciousJA3Signatures(file_path);
 
@@ -3194,7 +3194,7 @@ ndpi_protocol_category_t Ntop::get_ndpi_proto_category(u_int protoid) {
 }
 
 /* ******************************************* */
-  
+
 void Ntop::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
   for(u_int i = 0; i<get_num_interfaces(); i++)
     if(getInterface(i))  getInterface(i)->setnDPIProtocolCategory(protoId, protoCategory);
@@ -3211,7 +3211,7 @@ void Ntop::setLastInterfacenDPIReload(time_t now) {
 
 bool Ntop::needsnDPICleanup() {
   bool rc = false;
-  
+
   for(u_int i = 0; i<get_num_interfaces(); i++)
     if(getInterface(i))  rc |= getInterface(i)->needsnDPICleanup();
 
@@ -3272,7 +3272,7 @@ bool Ntop::addLocalNetwork(char *_net) {
   char alias[64] = "";
 
   int id = local_network_tree.getNumAddresses(), pos = 0;
-    
+
   if(id >= CONST_MAX_NUM_NETWORKS) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s",
 				 id, _net);
@@ -3300,7 +3300,7 @@ bool Ntop::addLocalNetwork(char *_net) {
   // Adding the Network to the local Networks
   if (!local_network_tree.addAddresses(net)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure adding address");
-    free(net);  
+    free(net);
     return(false);
   }
 
@@ -3318,7 +3318,7 @@ bool Ntop::addLocalNetwork(char *_net) {
 
     local_network_aliases[id] = strdup(out);
   }
-    
+
   ntop->getTrace()->traceEvent(TRACE_INFO, "Added Local Network %s", net);
 
   return(true);
@@ -3366,7 +3366,7 @@ void Ntop::luaClickHouseStats(lua_State *vm) const {
   if(clickhouseImport) {
     clickhouseImport->lua(vm);
     return;
-  }  
+  }
 #endif
 
   lua_pushnil(vm);
@@ -3400,13 +3400,13 @@ bool Ntop::isDbCreated() {
 
 bool Ntop::broadcastIPSMessage(char *msg) {
   bool rc = false;
-  
+
   if(prefs->getZMQPublishEventsURL() == NULL)
     return(false);
 
   /* Jeopardized users_m lock :-) */
   users_m.lock(__FILE__, __LINE__);
-  
+
   if(zmqPublisher == NULL) {
     try {
       zmqPublisher = new ZMQPublisher(prefs->getZMQPublishEventsURL());
@@ -3414,7 +3414,7 @@ bool Ntop::broadcastIPSMessage(char *msg) {
       zmqPublisher = NULL;
     }
   }
-  
+
   if(!zmqPublisher) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create ZMQ publisher");
     users_m.unlock(__FILE__, __LINE__);
@@ -3423,7 +3423,7 @@ bool Ntop::broadcastIPSMessage(char *msg) {
 
   if(msg)
     rc = zmqPublisher->sendIPSMessage(msg);
-  
+
   users_m.unlock(__FILE__, __LINE__);
 
   return(rc);
@@ -3449,7 +3449,7 @@ Ping* Ntop::getPing(char *ifname) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find ping for interface %s", ifname);
       return(default_ping);
     } else
-      return(it->second);    
+      return(it->second);
   }
 }
 
@@ -3457,7 +3457,7 @@ Ping* Ntop::getPing(char *ifname) {
 
 void Ntop::initPing() {
   if(!can_send_icmp) return;
-  
+
   for(int i=0; i<num_defined_interfaces; i++) {
     switch(iface[i]->getIfType()) {
     case interface_type_PF_RING:
@@ -3465,7 +3465,7 @@ void Ntop::initPing() {
       {
 	char *name = iface[i]->get_name();
 	Ping *p = new (std::nothrow)Ping(name);
-	
+
 	if(p) {
 	  ping[std::string(name)] = p;
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created pinger for %s", name);
@@ -3528,7 +3528,7 @@ char* Ntop::getPersistentCustomListName(char *list_name) {
 
 /* ******************************************* */
 
-void Ntop::setZoneInfo() {  
+void Ntop::setZoneInfo() {
 #ifdef __FreeBSD__
   FILE *fd = fopen("/var/db/zoneinfo", "r");
 
@@ -3543,8 +3543,21 @@ void Ntop::setZoneInfo() {
       if(len > 0) timezone[len-1] = '\0';
       zoneinfo = strdup(timezone);
     }
-    
+
     fclose(fd);
+  } else {
+    /* Last resort */
+    const char *command_buf = "find /usr/share/zoneinfo -type f | xargs md5sum | grep `md5sum -q /etc/localtime` | tail -1 | cut -d '/' -f 5-";
+    FILE *fp;
+
+    if((fp = popen(command_buf, "r")) != NULL) {
+      char line[256];
+
+      if(fgets(line, sizeof(line), fp) != NULL)
+	zoneinfo = strdup(line);
+
+      pclose(fp);
+    }
   }
 
 #else
@@ -3553,12 +3566,12 @@ void Ntop::setZoneInfo() {
   u_int num_slash = 0;
 
   zoneinfo = NULL;
-  
+
   if(rc > 0) {
     buf[rc] = '\0';
-    
+
     rc--;
-    
+
     while(rc > 0) {
       if(buf[rc] == '/') {
 	if(++num_slash == 2)
@@ -3570,7 +3583,7 @@ void Ntop::setZoneInfo() {
 
     if(num_slash == 2) {
       rc++;
-      zoneinfo = strdup(&buf[rc]);   
+      zoneinfo = strdup(&buf[rc]);
     }
   }
 #endif
@@ -3594,14 +3607,14 @@ void Ntop::setZoneInfo() {
 void Ntop::speedtest(lua_State *vm) {
   json_object *rc;
 
-  /* 
+  /*
      We need to make sure that only one caller
      at time calls speedtest as
      - the speedtest code is not reentrant
      - running multiple tests concurrently reports wrong results
        as clients compete for the same bandwidth
   */
-  
+
   speedtest_m.lock(__FILE__, __LINE__);
 
   rc = ::speedtest();
@@ -3611,6 +3624,6 @@ void Ntop::speedtest(lua_State *vm) {
     json_object_put(rc); /* Free memory */
   } else
     lua_pushnil(vm);
-  
+
   speedtest_m.unlock(__FILE__, __LINE__);
 }
