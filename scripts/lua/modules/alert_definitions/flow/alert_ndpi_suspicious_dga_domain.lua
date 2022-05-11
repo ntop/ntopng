@@ -52,12 +52,13 @@ function alert_ndpi_suspicious_dga_domain.format(ifid, alert, alert_type_params)
 
    if not isEmptyString(domain) then
     -- URL check
-    local link = 'https://' .. alert_type_params.dga_domain
-    if string.find(alert_type_params.dga_domain, 'http') then
-      link = alert_type_params.dga_domain
+    local url = alert_type_params.dga_domain
+    if string.find(url, 'https') then
+      url = url:gsub('://', '')
+      url = url:gsub('https', '')
     end
 
-      href = i18n('external_link_url', { url = link, url_name = shortenString(alert_type_params.dga_domain, 32)})
+      href = i18n('external_link_url', { url = url, url_name = shortenString(url, 32)})
    end
 
    return i18n("alert_messages.suspicious_dga_domain", {
