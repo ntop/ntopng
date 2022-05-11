@@ -43,7 +43,8 @@ class Prefs {
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
   bool enable_client_x509_auth, reproduce_at_original_speed;
-  char *lan_interface, *wan_interface, *zmq_publish_events_url, *clickhouse_client;
+  char *lan_interface, *wan_interface, *zmq_publish_events_url;
+  const char *clickhouse_client;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, pcap_file_purge_hosts_flows,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
@@ -430,12 +431,12 @@ class Prefs {
   inline ServiceAcceptance behaviourAnalysisStatusPostLearning()   { return behaviour_analysis_learning_status_post_learning;   };
   inline u_int64_t* getIEC104AllowedTypeIDs()    { return(iec104_allowed_typeids);                      };
   inline u_int32_t getIEC60870LearingPeriod()    { return(iec60870_learning_period);                    };
-  inline bool      dontEmitFlowAlerts()          { return(!emit_flow_alerts);                           };
-  inline bool      dontEmitHostAlerts()          { return(!emit_host_alerts);                           };
-  inline bool      useClickHouse()               { return(use_clickhouse);                              };
-  inline void      dontUseClickHouse()           { use_clickhouse = dump_flows_on_mysql = false;        };
-  inline char*     getZMQPublishEventsURL()      { return(zmq_publish_events_url);                      };
-  inline char*     getClickHouseClientPath()     { return(clickhouse_client);                           };
+  inline bool        dontEmitFlowAlerts()        { return(!emit_flow_alerts);                           };
+  inline bool        dontEmitHostAlerts()        { return(!emit_host_alerts);                           };
+  inline bool        useClickHouse()             { return(use_clickhouse);                              };
+  inline void        dontUseClickHouse()         { use_clickhouse = dump_flows_on_mysql = false;        };
+  inline char*       getZMQPublishEventsURL()    { return(zmq_publish_events_url);                      };
+  inline const char* getClickHouseClientPath()   { return(clickhouse_client);                           };
   void setIEC104AllowedTypeIDs(const char * protos);
   void validate();
 };

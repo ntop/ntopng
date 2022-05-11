@@ -27,6 +27,9 @@
 #define IEC60870_TRACE
 */
 
+#define CLIENT_ALERT_SCORE  90
+#define SERVER_ALERT_SCORE  10
+
 /* *************************************** */
 
 IEC104Stats::IEC104Stats() {
@@ -36,6 +39,7 @@ IEC104Stats::IEC104Stats() {
   memset(&stats, 0, sizeof(stats));
   i_s_apdu = ndpi_alloc_data_analysis(32 /* sliding window side */);
   tx_seq_num = rx_seq_num = 0, infobuf[0] = '\0';
+  invalid_command_transition_detected = false;
 }
 
 /* *************************************** */
@@ -216,7 +220,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	  u_int8_t  negative = ((payload[offset+1] & 0x40) == 0x40) ? true : false;
 	  u_int16_t asdu;
 	  u_int64_t bit;
-	  bool alerted = false;
+	  bool unexpected_typeid_alerted = false;
 
 	  offset += len + 2 /* magic and len */;
 
@@ -267,6 +271,26 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	      type_i_transitions[transition] = it->second + 1;
 	  }
 
+	  if((invalid_command_transition_detected == false) && (!initial_run)) {
+	    if(
+	       (isMonitoringTypeId(last_type_i) && isCommandTypeId(type_id))
+	       || (isCommandTypeId(last_type_i) && isMonitoringTypeId(type_id))
+	       || (isCommandTypeId(last_type_i) && isCommandTypeId(type_id))
+	       ) {
+	      FlowAlert *alert;
+	      u_int16_t c_score = CLIENT_ALERT_SCORE, s_score = SERVER_ALERT_SCORE;
+	      
+	      alert = new IECInvalidCommandTransitionAlert(NULL, f, packet_time, last_type_i, type_id);
+	      
+	      if(alert)
+		f->triggerAlertSync(alert, c_score, s_score);
+
+	      // ntop->getTrace()->traceEvent(TRACE_WARNING, "*** INVALID TRANSITION %u -> %u", last_type_i, type_id);
+		
+	      invalid_command_transition_detected = true;
+	    }
+	  }
+
 	  last_type_i = type_id;
 
 	  it = typeid_uses.find(type_id);
@@ -278,24 +302,23 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
 	  if(type_id < 64) {
 	    bit = ((u_int64_t)1) << type_id;
-	    if((allowedTypeIDs[0] & bit) == 0) alerted = true;
+	    if((allowedTypeIDs[0] & bit) == 0) unexpected_typeid_alerted = true;
 	  } else if(type_id < 128) {
 	    bit = ((u_int64_t)1) << (type_id-64);
 
-	    if((allowedTypeIDs[1] & bit) == 0) alerted = true;
+	    if((allowedTypeIDs[1] & bit) == 0) unexpected_typeid_alerted = true;
 	  }
 
-	  if(alerted) {
+	  if(unexpected_typeid_alerted) {
 	    FlowAlert *alert;
-            u_int16_t c_score = 50, s_score = 10;
+            u_int16_t c_score = CLIENT_ALERT_SCORE, s_score = SERVER_ALERT_SCORE;
 
 	    alert = new IECUnexpectedTypeIdAlert(NULL, f, type_id, asdu, cause_tx, negative);
 	
 	    if(alert)
 	      f->triggerAlertSync(alert, c_score, s_score);
 	    
-	  } /* alerted  */
-
+	  } /* unexpected_typeid_alerted */
 	  /* Discard typeIds 127..255 */
 	} else /* payload_len < len */
 	  break;
@@ -409,3 +432,23 @@ char* IEC104Stats::getFlowInfo(char *buf, u_int buf_len) {
 
   return(buf);
 }
+
+/* *************************************** */
+
+bool IEC104Stats::isMonitoringTypeId(u_int16_t tid) {
+  return(((tid <= 40) || (tid == 70)) ? true : false);
+}
+
+/* *************************************** */
+
+bool IEC104Stats::isCommandTypeId(u_int16_t tid) {
+  if(
+     ((tid >= 45) && (tid <= 64))
+     || ((tid >= 100) && (tid <= 107))
+     )
+    return(true);
+  else
+    return(false);
+}
+
+/* *************************************** */

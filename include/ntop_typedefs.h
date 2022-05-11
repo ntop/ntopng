@@ -446,7 +446,7 @@ typedef enum {
   flow_alert_unexpected_smtp_server               = 34,
   flow_alert_unexpected_ntp_server                = 35,
   flow_alert_zero_tcp_window                      = 36,
-  flow_alert_iec_invalid_transition               = 37, /* To be implemented */
+  flow_alert_iec_invalid_transition               = 37,
   flow_alert_remote_to_local_insecure_proto       = 38,
   flow_alert_ndpi_url_possible_xss                = 39,
   flow_alert_ndpi_url_possible_sql_injection      = 40,
@@ -483,6 +483,7 @@ typedef enum {
   flow_alert_ndpi_error_code_detected             = 71,
   flow_alert_ndpi_http_crawler_bot                = 72,
   flow_alert_ndpi_suspicious_entropy              = 73,
+  flow_alert_iec_invalid_command_transition       = 74,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

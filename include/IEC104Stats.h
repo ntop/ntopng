@@ -43,7 +43,11 @@ class IEC104Stats {
   struct timeval last_i_apdu;
   struct ndpi_analyze_struct *i_s_apdu;
   u_int16_t tx_seq_num, rx_seq_num;
+  bool invalid_command_transition_detected;
 
+  bool isMonitoringTypeId(u_int16_t tid);
+  bool isCommandTypeId(u_int16_t tid);
+  
  public:
   IEC104Stats();
   ~IEC104Stats();

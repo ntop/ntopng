@@ -53,6 +53,7 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(ElephantFlowAlert::getClassType(),               ElephantFlowAlert::getDefaultScore());
   registerAlert(ExternalAlertCheckAlert::getClassType(),         ExternalAlertCheckAlert::getDefaultScore());
   registerAlert(IECInvalidTransitionAlert::getClassType(),       IECInvalidTransitionAlert::getDefaultScore());
+  registerAlert(IECInvalidCommandTransitionAlert::getClassType(),IECInvalidCommandTransitionAlert::getDefaultScore());
   registerAlert(IECUnexpectedTypeIdAlert::getClassType(),        IECUnexpectedTypeIdAlert::getDefaultScore());
   registerAlert(InvalidDNSQueryAlert::getClassType(),            InvalidDNSQueryAlert::getDefaultScore());
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
