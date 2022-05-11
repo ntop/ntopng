@@ -1683,7 +1683,7 @@ local all_datatable_js_columns_by_tag = {
       order = 25,
       visible_by_default = true,
       js = [[
-        {name: 'info', responsivePriority: 2, data: 'info', orderable: false, render: (info, type) => {
+        {name: 'info', responsivePriority: 2, data: 'info', orderable: true, render: (info, type) => {
             if (type !== 'display') return info;
             if (info !== undefined)
                 return `<a class='tag-filter' data-tag-value='${info.title}' title='${info.title}' href='#'>${info.label}</a>`;
