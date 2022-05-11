@@ -132,9 +132,9 @@ end
 -- ##############################################
 
 function flow_alert_store:insert(alert)
-   local hex_prefix = ""
-   local extra_columns = ""
-   local extra_values = ""
+   local hex_prefix = ''
+   local extra_columns = ''
+   local extra_values = ''
 
    -- Note: this is no longer called when ClickHouse is enabled
    -- as a view on the historical is used. See RecipientQueue::enqueue
@@ -159,9 +159,9 @@ function flow_alert_store:insert(alert)
       "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, "..
       "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, "..
       "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, "..
-      "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, json) "..
+      "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, json, info) "..
       "VALUES (%s%u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
-      "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s'); ",
+      "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', '%s'); ",
       self._table_name,
       extra_columns,
       extra_values,
@@ -204,7 +204,8 @@ function flow_alert_store:insert(alert)
       alert.srv_host_pool_id or pools.DEFAULT_POOL_ID,
       alert.cli_network or network_utils.UNKNOWN_NETWORK,
       alert.srv_network or network_utils.UNKNOWN_NETWORK,
-      self:_escape(alert.json)
+      self:_escape(alert.json),
+      self:_escape(alert.info or '')
    )
 
    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_stmt)

@@ -159,7 +159,8 @@ IS_SRV_ATTACKER AS is_srv_attacker,
 IS_SRV_VICTIM AS is_srv_victim,
 IS_CLI_BLACKLISTED AS cli_blacklisted,
 IS_SRV_BLACKLISTED AS srv_blacklisted,
-ALERTS_MAP AS alerts_map
+ALERTS_MAP AS alerts_map,
+INFO AS info
 FROM `flows`
 WHERE STATUS != 0 AND IS_ALERT_DELETED != 1;
 
@@ -238,6 +239,8 @@ ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS srv_host_pool_id UInt16;
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS cli_network UInt16;
 @
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS srv_network UInt16;
+@
+ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS info String;
 
 @
 

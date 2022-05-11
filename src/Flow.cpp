@@ -3157,6 +3157,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   char buf[64];
   u_char community_id[200];
   time_t now = time(NULL);
+  const char *info;
 
   /*
     If the interface is viewed, the id of the view interface is specified as ifid. This ensures
@@ -3256,7 +3257,10 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   if(getErrorCode() != 0)
     ndpi_serialize_string_uint32(s, "l7_error_code", getErrorCode());
 
-   /* Serialize alert JSON */
+  info = getFlowInfo(buf, sizeof(buf), false);
+  ndpi_serialize_string_string(s, "info", (char*) (info ? info : ""));
+
+  /* Serialize alert JSON */
 
   alert_json_serializer = alert->getSerializedAlert();
 
