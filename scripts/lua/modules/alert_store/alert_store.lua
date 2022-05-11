@@ -213,11 +213,11 @@ end
 -- ##############################################
 
 function alert_store:build_sql_cond(cond, is_write)
-   local real_field = self:get_column_name(cond.field, is_write)
-
    if cond.sql then
       return cond.sql -- special condition
    end
+
+   local real_field = self:get_column_name(cond.field, is_write, cond.value)
 
    local sql_cond
 
@@ -245,18 +245,18 @@ function alert_store:build_sql_cond(cond, is_write)
          if not host["vlan"] or host["vlan"] == 0 then
             if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
                sql_cond = string.format("(%s %s ('%s') %s %s %s ('%s'))",
-                  self:get_column_name('cli_ip', is_write), sql_op, cond.value,
+                  self:get_column_name('cli_ip', is_write, cond.value), sql_op, cond.value,
                   ternary(cond.op == 'neq', 'AND', 'OR'), 
-                  self:get_column_name('srv_ip', is_write), sql_op, cond.value)
+                  self:get_column_name('srv_ip', is_write, cond.value), sql_op, cond.value)
             else
                sql_cond = string.format("%s %s ('%s')", real_field, sql_op, cond.value)
             end
          else
             if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
                sql_cond = string.format("((%s %s ('%s') %s %s %s ('%s')) %s %s %s %u)",
-                  self:get_column_name('cli_ip', is_write), sql_op, host["host"], 
+                  self:get_column_name('cli_ip', is_write, cond.value), sql_op, host["host"], 
                   ternary(cond.op == 'neq', 'AND', 'OR'),
-                  self:get_column_name('srv_ip', is_write), sql_op, host["host"],
+                  self:get_column_name('srv_ip', is_write, cond.value), sql_op, host["host"],
                   self:get_column_name('vlan_id', is_write),
                   ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
             else

@@ -47,14 +47,32 @@ end
 
 -- Get the 'real' field name (used by flow alerts where the flow table is a view
 -- and we write to the real table which has different column names)
-function alert_store:get_column_name(field, is_write)
+function alert_store:get_column_name(field, is_write, value)
    local col = field
-   if is_write then
-      col = historical_flow_utils.get_flow_column_by_tag(field) 
+   if is_write and self._write_table_name then
+      -- This is using the flow table, in write mode we have to remap columns
+
+      if field == 'cli_ip' or field == 'srv_ip' then
+         -- Note: there are separate V4 and V6 columns in the flow table,
+         -- we need to use the correct one based on the value
+         if string.match(value, ':') then
+            -- IPv6
+            if field == 'cli_ip' then col = 'IPV6_SRC_ADDR'
+            else                      col = 'IPV6_DST_ADDR' end
+         else
+            --IPv4
+            if field == 'cli_ip' then col = 'IPV4_SRC_ADDR'
+            else                      col = 'IPV4_DST_ADDR' end
+         end
+      else
+         col = historical_flow_utils.get_flow_column_by_tag(field)
+      end
+
       if col then
          return col
       end
    end
+
    return field
 end
 
@@ -101,7 +119,6 @@ function alert_store:delete()
    if ntop.isClickHouseEnabled() then
       local table_name = self._table_name
       if self._write_table_name then
-         -- TODO do not delete the entry, use a flag in case of a view
          table_name = self._write_table_name
 
          -- Fix column type conversion
