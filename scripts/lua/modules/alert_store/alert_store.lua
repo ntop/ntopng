@@ -244,23 +244,23 @@ function alert_store:build_sql_cond(cond, is_write)
       if not isEmptyString(host["host"]) then
          if not host["vlan"] or host["vlan"] == 0 then
             if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
-               sql_cond = string.format("(%s %s '%s' %s %s %s '%s')",
+               sql_cond = string.format("(%s %s ('%s') %s %s %s ('%s'))",
                   self:get_column_name('cli_ip', is_write), sql_op, cond.value,
                   ternary(cond.op == 'neq', 'AND', 'OR'), 
                   self:get_column_name('srv_ip', is_write), sql_op, cond.value)
             else
-               sql_cond = string.format("%s %s '%s'", real_field, sql_op, cond.value)
+               sql_cond = string.format("%s %s ('%s')", real_field, sql_op, cond.value)
             end
          else
             if cond.field == 'ip' and self._alert_entity == alert_entities.flow then
-               sql_cond = string.format("((%s %s '%s' %s %s %s '%s') %s %s %s %u)",
+               sql_cond = string.format("((%s %s ('%s') %s %s %s ('%s')) %s %s %s %u)",
                   self:get_column_name('cli_ip', is_write), sql_op, host["host"], 
                   ternary(cond.op == 'neq', 'AND', 'OR'),
                   self:get_column_name('srv_ip', is_write), sql_op, host["host"],
                   self:get_column_name('vlan_id', is_write),
                   ternary(cond.op == 'neq', 'OR', 'AND'), sql_op, host["vlan"])
             else
-               sql_cond = string.format("(%s %s '%s' %s %s %s %u)", 
+               sql_cond = string.format("(%s %s ('%s') %s %s %s %u)", 
                  real_field, sql_op, host["host"], ternary(cond.op == 'neq', 'OR', 'AND'), 
                  self:get_column_name('vlan_id', is_write),
                  sql_op, host["vlan"])
@@ -353,7 +353,7 @@ function alert_store:build_sql_cond(cond, is_write)
          sql_cond = real_field .. ' NOT LIKE ' .. string.format("'%%%s%%'", cond.value)
       else
          -- Any other operator
-         sql_cond = string.format("%s %s '%s'", real_field, sql_op, cond.value)
+         sql_cond = string.format("%s %s ('%s')", real_field, sql_op, cond.value)
       end
    end
 

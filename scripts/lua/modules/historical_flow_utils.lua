@@ -23,8 +23,11 @@ function historical_flow_utils.fixWhereTypes(query)
    local flow_columns = historical_flow_utils.get_flow_columns()
    for column, info in pairs(flow_columns) do
       if info.where_func then
-         result = result:gsub(column ..  "=", column ..  "=" .. info.where_func)
-         result = result:gsub(column .. "!=", column .. "!=" .. info.where_func)
+         result = result:gsub(column ..   "=" , column ..   "="  .. info.where_func)
+         result = result:gsub(column ..  " = ", column ..  " = " .. info.where_func)
+
+         result = result:gsub(column ..  "!=" , column ..  "!="  .. info.where_func)
+         result = result:gsub(column .. " != ", column .. " != " .. info.where_func)
       end
    end
 
