@@ -445,7 +445,9 @@
     let is_alert_stats_url = window.location.toString().match(/alert_stats.lua/) != null;
     let chart_data_url = `${base_path}/lua/pro/rest/v2/get/db/ts.lua`;
     if (is_alert_stats_url) {
-      chart_data_url = `${base_path}/lua/rest/v2/get/flow/alert/ts.lua`;
+      let page = ntopng_url_manager.get_url_entry("page");
+      if (page == null) { page = "all"; }
+      chart_data_url = `${base_path}/lua/rest/v2/get/${page}/alert/ts.lua`;
     }
 
     let chart_vue_options = {
