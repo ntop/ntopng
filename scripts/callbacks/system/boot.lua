@@ -17,11 +17,13 @@ require "lua_trace"
 local prefs_dump_utils = require "prefs_dump_utils"
 
 -- Check connectivity
-local connectivity_utils = require "connectivity_utils"
-local online = connectivity_utils.checkConnectivity()
-if not online then
-   traceError(TRACE_WARNING, TRACE_CONSOLE, "No connectivity detected, ntopng will run in offline mode")
-   ntop.setOffline()
+if not ntop.isOffline() then -- Check if forced to offline by arg
+   local connectivity_utils = require "connectivity_utils"
+   local online = connectivity_utils.checkConnectivity()
+   if not online then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "No connectivity detected, ntopng will run in offline mode")
+      ntop.setOffline()
+   end
 end
 
 -- Check and possibly restore preferences dumped to file
