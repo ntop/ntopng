@@ -358,6 +358,7 @@ void usage() {
 	 "                                    | instead of %s\n"
 	 "[--dont-change-user|-s]             | Do not change user (debug only)\n"
 	 "[--shutdown-when-done]              | Terminate after reading the pcap (debug only)\n"
+	 "[--offline]                         | Run in offline mode (avoid contacting remote sites, including blacklists) \n"
 	 "[--insecure]                        | Allow connections to TLS sites with invalid certificates \n"
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4,1,0)
 	 "[--zmq-encryption]                  | Enable ZMQ encryption\n"
@@ -845,7 +846,6 @@ static const struct option long_options[] = {
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "simulate-vlans",                    no_argument,       NULL, 214 },
-  { "simulate-macs",                     no_argument,       NULL, 224 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
 #ifndef HAVE_NEDGE
   { "ignore-macs",                       no_argument,       NULL, 216 },
@@ -859,7 +859,9 @@ static const struct option long_options[] = {
 #ifndef HAVE_NEDGE
   { "appliance",                         no_argument,       NULL, 223 },
 #endif
+  { "simulate-macs",                     no_argument,       NULL, 224 },
   { "insecure",                          no_argument,       NULL, 225 },
+  { "offline",                           no_argument,       NULL, 226 },
 #ifdef NTOPNG_PRO
   { "vm",                                no_argument,       NULL, 251 }, // --vm no longer used (keeping for backward cmpatibility)
   { "check-maintenance",                 no_argument,       NULL, 252 },
@@ -1661,6 +1663,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 225:
     insecure_tls = true;
+    break;
+
+  case 226:
+    ntop->toggleOffline(true);
     break;
 
 #ifdef NTOPNG_PRO
