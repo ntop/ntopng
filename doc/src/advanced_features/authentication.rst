@@ -224,8 +224,22 @@ Right after comes the verification – by checking inserted credentials, the sys
 In the end the server generates a secured, signed token for the user for unlimited duration.
 Once the token has been issued, it can be used instead of usual login credentials, also,in case of necessity it can be offered to other users. Does not require providing others with personal passwords and can be considered a better security measure. Moreover, token authentication uses encrypted, machine- generated code to verify the user identity.
 
+The token in ntopng can be generated following these steps:
+
+1. Open the settings 
+2. Go to User
+3. Click Edit
+4. Choose User Authentication Token
+5. Generate Token
 
 
+.. figure:: ../img/advanced_features_authentication_token.png
+  :align: center
+  :alt: ntopng Authentication Token
+
+.. _token: https://www.ntop.org/guides/ntopng/api/rest/api_v2.html
+
+Please check the API documentation for further information about token_ usage.
 
 
 
