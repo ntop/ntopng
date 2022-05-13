@@ -212,3 +212,20 @@ Instructions on how to recover after being locked out of the ntopng GUI can be f
 in the `FAQ page`_.
 
 .. _`FAQ page`: ../faq.html#cannot-login-into-the-gui
+
+Token based authentication
+##########################
+
+A security token is a “trusted tool“ to enter a restricted resource. It can be seen as a key that allows a user to authenticate and prove it’s identity.
+The logic behind the token - based authentication is simple.
+Token based authentication is a protocol which allow users to enter their username and password to verify their identity and in return to obtain an access token.
+At first,there is a request to the server that the user makes inserting login credentials.
+Right after comes the verification – by checking inserted credentials, the system (server) determines if the user could obtain the permission to have the access to the resource.
+In the end the server generates a secured, signed token for the user for unlimited duration.
+Once the token has been issued, it can be used instead of usual login credentials, also,in case of necessity it can be offered to other users. Does not require providing others with personal passwords and can be considered a better security measure. Moreover, token authentication uses encrypted, machine- generated code to verify the user identity.
+
+
+
+
+
+
