@@ -445,10 +445,10 @@ DATE=`date +"%Y-%m-%d"`
 pkg-config --exists hiredis
 if test "$?" -ne 1; then
   HIREDIS_INC="`pkg-config --cflags hiredis` -I/usr/include/hiredis"
-  if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
+  if test $SYSTEM = "FreeBSD"; then
      HIREDIS_LIB="/usr/local/lib/libhiredis.a"
    else
-     IREDIS_LIB="`pkg-config --libs hiredis` -lhiredis"
+     HIREDIS_LIB="`pkg-config --libs hiredis`"
   fi
 else
   echo "Please install hiredis package prerequisite"
