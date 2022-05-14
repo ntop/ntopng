@@ -403,6 +403,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 		      bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched),
 		      void *user_data);
 
+  int countActiveLocalHosts(lua_State* vm, bool treeMapMode);
+
   void checkDisaggregationMode();
   void incrVisitedWebSite(char *hostname);
   void incrOS(char *hostname);

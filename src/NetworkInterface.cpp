@@ -6344,6 +6344,8 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_seen_external_alerts", hasSeenExternalAlerts());
   lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
 
+  countActiveLocalHosts(vm, true);
+
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
   luaNumEngagedAlerts(vm);
   luaAlertedFlows(vm);
@@ -9869,4 +9871,56 @@ int NetworkInterface::walkActiveHosts(lua_State* vm,
 
     return(m.info.size());
   }
+}
+
+/* *************************************** */
+
+static bool active_localhosts_walker(GenericHashEntry *h, void *user_data, bool *matched) {
+  Host *host = (Host*)h;
+  localhost_walker *m = (localhost_walker*)user_data;
+  bool isLocal;
+
+  if(host == NULL)
+    return(false);
+
+  isLocal = host->isLocalHost() || host->isSystemHost();
+
+  if(isLocal) {
+  
+    if ((host->getNumPktsSent() == 0) and (host->isBroadcastHost() or host->isMulticastHost())) {
+      m->numberBroadOrMulti++;
+    } else {
+      if (host->getNumPktsSent()>0 and host->getNumPktsRcvd()>0) {
+        m->numberActive++;
+      } else {
+        m->numberPassive++;
+      }
+    }
+  }
+
+  return(false); //false = keep on walking
+}
+
+/* *************************************** */
+
+int NetworkInterface::countActiveLocalHosts(lua_State* vm, bool treeMapMode) {
+
+  u_int32_t begin_slot = 0;
+  localhost_walker m;
+  int rc;
+
+  m.numberActive= 0;
+  m.numberBroadOrMulti= 0;
+  m.numberPassive= 0;
+
+  rc = walker(&begin_slot, true, walker_hosts, active_localhosts_walker, (void*)&m);
+
+  lua_push_int32_table_entry(vm, "active", m.numberActive);
+  lua_push_int32_table_entry(vm, "broadormulti", m.numberBroadOrMulti);
+  lua_push_int32_table_entry(vm, "passive", m.numberPassive);
+  
+  if (rc != 0)
+    return (-1);
+  else
+    return 1;
 }

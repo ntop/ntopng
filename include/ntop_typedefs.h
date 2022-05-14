@@ -1126,4 +1126,10 @@ typedef struct {
   u_int8_t l4_proto;
 } PeriodicityStatsKey;
 
+typedef struct _localhost_walker{
+  int16_t numberActive;
+  int16_t numberBroadOrMulti;
+  int16_t numberPassive;
+} localhost_walker;
+
 #endif /* _NTOP_TYPEDEFS_H_ */
