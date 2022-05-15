@@ -725,7 +725,7 @@ local lang = {
     ["ip_outsite_dhcp_range"] = "Device <a href=\"%{client_url}\">%{client_mac}</a> got the IP address <a href=\"%{client_ip_url}\">%{client_ip}</a> which is outside the <a href=\"%{dhcp_url}\">configured DHCP range</a>. [Sender: <a href=\"%{sender_url}\">%{sender_mac}</a>]",
     ["lldp_arc_added"] = "New link added between SNMP devices <a href=\"%{url1}\">%{node1}</a> and <a href=\"%{url2}\">%{node2}</a>",
     ["lldp_arc_removed"] = "Removed link between between SNMP devices <a href=\"%{url1}\">%{node1}</a> and <a href=\"%{url2}\">%{node2}</a>",
-    ["mac_ip_association_change"] = "IP %{ip} changed association from <a href=\"%{old_mac_url}\">%{old_mac}</a> to <a href=\"%{new_mac_url}\">%{new_mac}</a>",
+    ["mac_ip_association_change"] = "IP %{ip} changed association from <a href=\"%{old_mac_url}\">%{old_mac}</a> to <a href=\"%{new_mac_url}\">%{new_mac}</a>: MITM (Man In The Middle) attack?",
     ["measurement_too_high_msg"] = "Measurement too high for %{host} %{numeric_ip} [%{am_value} %{unit} > %{threshold} %{unit}].",
     ["measurement_too_low_msg"] = "Measurement too low for %{host} %{numeric_ip} [%{am_value} %{unit} < %{threshold} %{unit}].",
     ["misbehaving_flows_ratio"] = "%{entity} has %{sent_or_rcvd} too many misbehaving flows vs total flows [Ratio: %{ratio}%%]",
