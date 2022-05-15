@@ -37,6 +37,8 @@ IEC104Stats::IEC104Stats() {
   last_type_i = 0;
   memset(&last_i_apdu, 0, sizeof(last_i_apdu));
   memset(&stats, 0, sizeof(stats));
+  memset(&transitions, 0, sizeof(transitions));
+
   i_s_apdu = ndpi_alloc_data_analysis(32 /* sliding window side */);
   tx_seq_num = rx_seq_num = 0, infobuf[0] = '\0';
   invalid_command_transition_detected = false;
@@ -271,20 +273,32 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	      type_i_transitions[transition] = it->second + 1;
 	  }
 
-	  if((invalid_command_transition_detected == false) && (!initial_run)) {
-	    if(
-	       (isMonitoringTypeId(last_type_i) && isCommandTypeId(type_id))
-	       || (isCommandTypeId(last_type_i) && isMonitoringTypeId(type_id))
-	       || (isCommandTypeId(last_type_i) && isCommandTypeId(type_id))
-	       ) {
+	  if(!initial_run) {
+	    if(isMonitoringTypeId(last_type_i) && isMonitoringTypeId(type_id))
+	      transitions.m_to_m++;
+	    else if(isMonitoringTypeId(last_type_i) && isCommandTypeId(type_id))
+	      transitions.m_to_c++;
+	    else if(isCommandTypeId(last_type_i) && isMonitoringTypeId(type_id))
+	      transitions.c_to_m++;
+	    else if(isCommandTypeId(last_type_i) && isCommandTypeId(type_id))
+	      transitions.c_to_c++;	  
+	  
+	    if((invalid_command_transition_detected == false)
+	       && ((transitions.m_to_c > 20)
+		   || (transitions.c_to_m > 20)
+		   || (transitions.c_to_c > 5))) { 
+	      /* https://github.com/ntop/ntopng/issues/6598 */
 	      FlowAlert *alert;
 	      u_int16_t c_score = CLIENT_ALERT_SCORE, s_score = SERVER_ALERT_SCORE;
 	      
-	      alert = new IECInvalidCommandTransitionAlert(NULL, f, packet_time, last_type_i, type_id);
+	      alert = new IECInvalidCommandTransitionAlert(NULL, f, packet_time,
+							   transitions.m_to_c,
+							   transitions.c_to_m,
+							   transitions.c_to_c);
 	      
 	      if(alert)
 		f->triggerAlertSync(alert, c_score, s_score);
-
+	      
 	      // ntop->getTrace()->traceEvent(TRACE_WARNING, "*** INVALID TRANSITION %u -> %u", last_type_i, type_id);
 		
 	      invalid_command_transition_detected = true;

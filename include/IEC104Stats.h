@@ -32,10 +32,17 @@ class IEC104Stats {
   struct {
     u_int32_t tx, rx;
   } pkt_lost; /* Counter for packet loss sequences */
+
   struct {
     u_int32_t type_i, type_s, type_u, type_other;
     u_int32_t forward_msgs, reverse_msgs, retransmitted_msgs;
   } stats;
+
+  struct {
+    /* m = monitoring, c = command */
+    u_int32_t m_to_m, c_to_m, m_to_c, c_to_c;
+  } transitions;
+  
   char infobuf[32];
   std::unordered_map<u_int16_t, u_int32_t> type_i_transitions;
   std::unordered_map<u_int16_t, u_int32_t> typeid_uses;

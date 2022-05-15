@@ -43,8 +43,11 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_iec_invalid_command_transition.format(ifid, alert, alert_type_params)
-   local rsp = "[TypeId: ".. iec104_typeids2str(alert_type_params.from) .. " -> ".. iec104_typeids2str(alert_type_params.to) .. "]"
+   local rsp = "Transitions [Cmd-to-Measurement: ".. formatValue(alert_type_params.transitions_c_to_m) .. "]"
 
+   rsp = rsp .. "[Measurement-to-Cmd: ".. formatValue(alert_type_params.transitions_m_to_c) .. "]"
+   rsp = rsp .. "[Cmd-to-Cmd: ".. formatValue(alert_type_params.transitions_c_to_c) .. "]"
+   
    -- tprint(rsp)
    
    return(rsp)

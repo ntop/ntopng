@@ -6358,16 +6358,16 @@ void NetworkInterface::lua(lua_State *vm) {
 
   /* .stats */
   lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "packets",     getNumPackets());
-  lua_push_uint64_table_entry(vm, "bytes",       getNumBytes());
-  lua_push_uint64_table_entry(vm, "flows",       getNumFlows());
-  lua_push_uint64_table_entry(vm, "hosts",       getNumHosts());
-  lua_push_uint64_table_entry(vm, "local_hosts", getNumLocalHosts());
-  lua_push_uint64_table_entry(vm, "http_hosts",  getNumHTTPHosts());
-  lua_push_uint64_table_entry(vm, "drops",       getNumPacketDrops());
-  lua_push_uint64_table_entry(vm, "new_flows",   getNumNewFlows());
-  lua_push_uint64_table_entry(vm, "devices",     getNumL2Devices());
-  lua_push_uint64_table_entry(vm, "current_macs",  getNumMacs());
+  lua_push_uint64_table_entry(vm, "packets",      getNumPackets());
+  lua_push_uint64_table_entry(vm, "bytes",        getNumBytes());
+  lua_push_uint64_table_entry(vm, "flows",        getNumFlows());
+  lua_push_uint64_table_entry(vm, "hosts",        getNumHosts());
+  lua_push_uint64_table_entry(vm, "local_hosts",  getNumLocalHosts());
+  lua_push_uint64_table_entry(vm, "http_hosts",   getNumHTTPHosts());
+  lua_push_uint64_table_entry(vm, "drops",        getNumPacketDrops());
+  lua_push_uint64_table_entry(vm, "new_flows",    getNumNewFlows());
+  lua_push_uint64_table_entry(vm, "devices",      getNumL2Devices());
+  lua_push_uint64_table_entry(vm, "current_macs", getNumMacs());
   lua_push_uint64_table_entry(vm, "num_live_captures", num_live_captures);
   lua_push_float_table_entry(vm, "throughput_bps", bytes_thpt.getThpt());
   lua_push_uint64_table_entry(vm, "throughput_trend_bps", bytes_thpt.getTrend());

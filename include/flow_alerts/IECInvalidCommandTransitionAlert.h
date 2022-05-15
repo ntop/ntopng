@@ -27,17 +27,23 @@
 class IECInvalidCommandTransitionAlert : public FlowAlert {
  private:
   u_int32_t packet_epoch;
-  u_int16_t prev_type_id, curr_type_id;
+  u_int32_t transitions_m_to_c, transitions_c_to_m, transitions_c_to_c;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { flow_alert_iec_invalid_command_transition, alert_category_security }; }
+  static FlowAlertType getClassType() {
+    return { flow_alert_iec_invalid_command_transition, alert_category_security };
+  }
   static u_int8_t      getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
-  IECInvalidCommandTransitionAlert(FlowCheck *c, Flow *f, struct timeval *_time, u_int16_t _prev_type_id, u_int16_t _curr_type_id) : FlowAlert(c, f) {
-    prev_type_id = _prev_type_id;
-    curr_type_id = _curr_type_id;
+  IECInvalidCommandTransitionAlert(FlowCheck *c, Flow *f, struct timeval *_time,
+				   u_int32_t _transitions_m_to_c,
+				   u_int32_t _transitions_c_to_m,
+				   u_int32_t _transitions_c_to_c) : FlowAlert(c, f) {
+    transitions_m_to_c = _transitions_m_to_c;
+    transitions_c_to_m = _transitions_c_to_m;
+    transitions_c_to_c = _transitions_c_to_c;
     packet_epoch = _time->tv_sec;
   };
   ~IECInvalidCommandTransitionAlert() { };
