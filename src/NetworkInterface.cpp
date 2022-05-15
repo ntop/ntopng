@@ -249,7 +249,7 @@ void NetworkInterface::init() {
     discard_probing_traffic = false;
     flows_only_interface = false;
     numSubInterfaces = 0;
-    enable_ip_reassignment_alerts = false;
+    ip_reassignment_alerts_enabled = false;
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
@@ -663,16 +663,6 @@ bool NetworkInterface::getInterfaceBooleanPref(const char *pref_key, bool defaul
 #endif
 
   return interface_pref;
-}
-
-/* **************************************************** */
-
-void NetworkInterface::updateIPReassignment(bool enabled) {
-  enable_ip_reassignment_alerts = enabled;
-
-#if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "enable_ip_reassignment_alerts [%u][ifid: %s]", enable_ip_reassignment_alerts ? 1 : 0, get_name());
-#endif
 }
 
 /* **************************************************** */

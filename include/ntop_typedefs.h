@@ -564,7 +564,8 @@ typedef enum {
   host_check_icmp_flood,
   host_check_pkt_threshold,
   host_check_scan_detection,
-
+  host_check_mac_reassociation,
+  
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */ 
 } HostCheckID;
 

@@ -168,7 +168,7 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int16_t next_compq_insert_idx;
   u_int16_t next_compq_remove_idx;
   ParsedFlow **companionQueue;
-  bool enable_ip_reassignment_alerts;
+  bool ip_reassignment_alerts_enabled;
 
   /* Live Capture */
   Mutex active_captures_lock;
@@ -410,7 +410,8 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline void decScoreValue(u_int16_t score_incr, bool as_client)  { as_client ? score_as_cli -= score_incr : score_as_srv -= score_incr; };
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
-  inline bool are_ip_reassignment_alerts_enabled()       { return(enable_ip_reassignment_alerts); };
+  inline bool are_ip_reassignment_alerts_enabled()       { return(ip_reassignment_alerts_enabled);  };
+  inline void enable_ip_reassignment_alerts(bool status) { ip_reassignment_alerts_enabled = status; };
   inline AddressTree* getInterfaceNetworks()   { return(&interface_networks); };
   virtual void startPacketPolling();
   virtual void startFlowDumping();
@@ -563,7 +564,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   inline bool showDynamicInterfaceTraffic() const { return show_dynamic_interface_traffic; };
   inline bool discardProbingTraffic()       const { return discard_probing_traffic;        };
   inline bool flowsOnlyInterface()          const { return flows_only_interface;           };
-  void updateIPReassignment(bool enabled);
   void updateTrafficMirrored();
   void updateDynIfaceTrafficPolicy();
   void updateFlowDumpDisabled();

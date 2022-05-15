@@ -723,7 +723,8 @@ local function processStoreAlertFromQueue(alert)
 	 alert.old_mac,
 	 alert.new_mac
       )
-      type_info:set_score_warning()
+
+      type_info:set_score(100)
       type_info:set_subtype(string.format("%s_%s_%s", alert.ip, alert.old_mac, alert.new_mac))
    elseif(alert.alert_id == "login_failed") then
       entity_info = alerts_api.userEntity(alert.user)

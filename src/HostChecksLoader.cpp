@@ -71,6 +71,7 @@ void HostChecksLoader::registerChecks() {
 #ifdef NTOPNG_PRO
   if((fcb = new ScoreAnomaly()))               registerCheck(fcb);
   if((fcb = new FlowAnomaly()))                registerCheck(fcb);
+  if((fcb = new HostMACReassociation()))       registerCheck(fcb);
 #endif
 
   // printChecks();
@@ -145,12 +146,12 @@ void HostChecksLoader::loadConfiguration() {
 	    enabled = json_object_get_boolean(json_enabled);
 	  else
 	    enabled = false;
-
+	  
 	  if(!enabled) {
 	    ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping check not enabled [check: %s]", check_key);
 	    continue;
 	  }
-
+	  
 	  /* Script enabled */
 	  if(json_object_object_get_ex(json_hook_all, "script_conf", &json_script_conf)) {
 	    if(cb->loadConfiguration(json_script_conf)) {
@@ -168,7 +169,7 @@ void HostChecksLoader::loadConfiguration() {
 	    cb->scriptDisable(); 
 	  }
 	} else {
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to find host check %s", check_key);
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find host check %s", check_key);
 	}
       }
     }

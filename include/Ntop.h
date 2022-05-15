@@ -349,6 +349,14 @@ public:
   NetworkInterface* getInterfaceById(int if_id);
 
   /**
+   * @brief Get the network interface at the specified position
+   *
+   * @param id Position of network interface.
+   * @return Pointer to the network interface, NULL otherwise.
+   */
+  inline NetworkInterface* getInterfaceAtId(u_int8_t id) { return((id < num_defined_interfaces) ? iface[id] : NULL); }
+
+  /**
    * @brief Register the HTTP server.
    *
    * @param h HTTP server instance.
