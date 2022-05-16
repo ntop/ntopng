@@ -1710,6 +1710,7 @@ local lang = {
     ["tcp_packets_sent_analysis"] = "TCP Packets Sent Analysis",
     ["total_traffic"] = "Total Traffic",
     ["traffic_sent_received"] = "Traffic Sent / Received",
+    ["dhcp_sent_received"] = "DHCP Sent / Received",
     ["vlan_id"] = "VLAN ID",
     ["whois_lookup"] = "Whois Lookup",
   },

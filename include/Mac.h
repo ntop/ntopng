@@ -166,6 +166,9 @@ class Mac : public GenericHashEntry, public SerializableElement {
   inline bool  isMulticast() { return Utils::isMulticastMac(mac); }
 
   inline bool isBroadcast() { return(broadcast_mac); }
+
+  inline void incNumDHCPRequests() { stats->incNumDHCPRequests(); }
+  inline void incNumDHCPReplies()  { stats->incNumDHCPReplies();  }
 };
 
 #endif /* _MAC_H_ */

@@ -1829,12 +1829,15 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	if(mac && (trusted_payload_len > 240)) {
 	  struct dhcp_packet *dhcpp = (struct dhcp_packet*)payload;
 
-	  if(dhcpp->msgType == 0x01) /* Request */
-	    ;//mac->setDhcpHost();
-	  else if(dhcpp->msgType == 0x02) { /* Reply */
+	  if(dhcpp->msgType == 0x01) {
+	    /* Request */
+	    ; // mac->setDhcpHost();
+	    mac->incNumDHCPRequests();
+	  } else if(dhcpp->msgType == 0x02) { /* Reply */
 	    checkMacIPAssociation(false, dhcpp->chaddr, dhcpp->yiaddr, mac);
 	    checkDhcpIPRange(mac, dhcpp, vlan_id);
 	    setDHCPAddressesSeen();
+	    mac->incNumDHCPReplies();
 	  }
 
 	  for(u_int32_t i = 240; i<trusted_payload_len; ) {

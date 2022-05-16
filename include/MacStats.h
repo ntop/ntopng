@@ -26,6 +26,9 @@ class MacStats: public GenericTrafficElement {
  protected:
   NetworkInterface *iface;
   struct {
+    u_int32_t num_req_sent, num_rep_rcvd;
+  } dhcp_stats;
+  struct {
     struct {
       MonitoredCounter<u_int32_t> requests, replies;
     } sent, rcvd;
@@ -58,6 +61,9 @@ class MacStats: public GenericTrafficElement {
 				  sent_bytes, rcvd_bytes);
     }
   }
+
+  inline void incNumDHCPRequests() { dhcp_stats.num_req_sent++; }
+  inline void incNumDHCPReplies()  { dhcp_stats.num_rep_rcvd++; }
 };
 
 #endif

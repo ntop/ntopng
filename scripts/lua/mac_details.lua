@@ -274,6 +274,8 @@ if((page == "overview") or (page == nil)) then
 
    print("<tr><th>" .. i18n("details.traffic_sent_received") .. "</th><td><span id=pkts_sent>" .. formatPackets(mac_info["packets.sent"]) .. "</span> / <span id=bytes_sent>".. bytesToSize(mac_info["bytes.sent"]) .. "</span> <span id=sent_trend></span></td><td><span id=pkts_rcvd>" .. formatPackets(mac_info["packets.rcvd"]) .. "</span> / <span id=bytes_rcvd>".. bytesToSize(mac_info["bytes.rcvd"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
 
+   print("<tr><th>" .. i18n("details.dhcp_sent_received") .. "</th><td><span id=dhcp_sent>" .. formatPackets(mac_info["dhcp.sent"]) .. "</span> <span id=dhcp_sent_trend></span></td><td><span id=dhcp_pkts_rcvd>" .. formatPackets(mac_info["dhcp.rcvd"]) .. "</span> <span id=dhcp_rcvd_trend></span></td></tr>\n")
+
 if not have_nedge then
    print([[
 <tr>
@@ -314,6 +316,9 @@ end
    print("var last_pkts_sent = " .. mac_info["packets.sent"] .. ";\n")
    print("var last_pkts_rcvd = " .. mac_info["packets.rcvd"] .. ";\n")
 
+   print("var last_dhcp_pkts_sent = " .. mac_info["dhcp.sent"] .. ";\n")
+   print("var last_dhcp_pkts_rcvd = " .. mac_info["dhcp.rcvd"] .. ";\n")
+
    print [[
 
 var host_details_interval = window.setInterval(function() {
@@ -329,12 +334,24 @@ var host_details_interval = window.setInterval(function() {
       $('#last_seen').html(NtopUtils.epoch2Seen(host["seen.last"]));
       $('#pkts_sent').html(NtopUtils.formatPackets(host["packets.sent"]));
       $('#pkts_rcvd').html(NtopUtils.formatPackets(host["packets.rcvd"]));
+      $('#dhcp_pkts_sent').html(NtopUtils.formatPackets(host["dhcp.sent"]));
+      $('#dhcp_pkts_rcvd').html(NtopUtils.formatPackets(host["dhcp.rcvd"]));
       $('#bytes_sent').html(NtopUtils.bytesToVolume(host["bytes.sent"]));
       $('#bytes_rcvd').html(NtopUtils.bytesToVolume(host["bytes.rcvd"]));
       $('#arp_requests_sent').html(NtopUtils.addCommas(host["arp_requests.sent"]));
       $('#arp_requests_rcvd').html(NtopUtils.addCommas(host["arp_requests.rcvd"]));
       $('#arp_replies_sent').html(NtopUtils.addCommas(host["arp_replies.sent"]));
       $('#arp_replies_rcvd').html(NtopUtils.addCommas(host["arp_replies.rcvd"]));
+
+     $('#sent_trend').html(NtopUtils.drawTrend(host["packets.sent"], last_pkts_sent, " style=\"color: #B94A48;\""));
+     $('#rcvd_trend').html(NtopUtils.drawTrend(host["packets.rcvd"], last_pkts_rcvd, " style=\"color: #B94A48;\""));
+     $('#dhcp_sent_trend').html(NtopUtils.drawTrend(host["dhcp.sent"], last_dhcp_pkts_sent, " style=\"color: #B94A48;\""));
+     $('#dhcp_rcvd_trend').html(NtopUtils.drawTrend(host["dhcp.rcvd"], last_dhcp_pkts_rcvd, " style=\"color: #B94A48;\""));
+
+     last_pkts_sent = host["packets.sent"];
+     last_pkts_rcvd = host["packets.rcvd"];
+     last_dhcp_pkts_sent = host["dhcp.sent"];
+     last_dhcp_pkts_rcvd = host["dhcp.rcvd"];
 ]]
    if interface.isBridgeInterface(ifstats) then
 print[[

@@ -28,6 +28,8 @@ MacStats::MacStats(NetworkInterface *_iface) {
   arp_stats.sent.requests.reset(), arp_stats.sent.replies.reset(),
     arp_stats.rcvd.requests.reset(), arp_stats.rcvd.replies.reset();
 
+  memset(&dhcp_stats, 0, sizeof(dhcp_stats));
+  
   /* NOTE: ndpiStats: allocated dynamically and deleted by ~GenericTrafficElement */
   ndpiStats = NULL;
 }
@@ -41,6 +43,9 @@ void MacStats::lua(lua_State* vm, bool show_details) {
     lua_push_uint64_table_entry(vm, "arp_replies.sent", arp_stats.sent.replies.get());
     lua_push_uint64_table_entry(vm, "arp_replies.rcvd", arp_stats.rcvd.replies.get());
 
+    lua_push_uint32_table_entry(vm, "dhcp.sent", dhcp_stats.num_req_sent);
+    lua_push_uint32_table_entry(vm, "dhcp.rcvd", dhcp_stats.num_rep_rcvd);
+    
     if(ndpiStats) ndpiStats->lua(iface, vm, true);
   }
 
