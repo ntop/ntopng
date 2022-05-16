@@ -4903,13 +4903,7 @@ end
 -- ##############################################
 
 function addBytesInfoToAlertDescr(msg, value)
-  local predominant_bytes = i18n("traffic_srv_to_cli")
-
-  if (tonumber(value["cli2srv_bytes"] or 0)) > (tonumber(value["srv2cli_bytes"] or 0)) then
-    predominant_bytes = i18n("traffic_cli_to_srv")
-  end
-
-  msg = string.format("%s [ %s: %s | %s: %s | %s: %s ]", msg, i18n("predominant_direction"), predominant_bytes, 
+  msg = string.format("%s [ %s: %s | %s: %s ]", msg, 
                       i18n("server_traffic"), bytesToSize(value["srv2cli_bytes"] or 0),
                       i18n("client_traffic"), bytesToSize(value["cli2srv_bytes"] or 0))
    
@@ -5238,7 +5232,12 @@ function format_http_info(http_info)
   end
 
   if http_info["last_url"] then
-    http_info["last_url"] = i18n("external_link_url", { url = http_info["last_url"], url_name = http_info["last_url"]})
+    local url = http_info["last_url"]
+
+    if string.find(http_info["last_url"], '^/') then
+      url = (http_info["server_name"] or "") .. http_info["last_url"]
+    end
+    http_info["last_url"] = i18n("external_link_url", { url = url, url_name = url})
   end
 
   if http_info["server_name"] then
