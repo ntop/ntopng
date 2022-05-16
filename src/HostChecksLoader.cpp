@@ -54,6 +54,7 @@ void HostChecksLoader::registerChecks() {
   if((fcb = new FlowFlood()))                  registerCheck(fcb);
   if((fcb = new SYNScan()))                    registerCheck(fcb);
   if((fcb = new SYNFlood()))                   registerCheck(fcb);
+  if((fcb = new FINScan()))                    registerCheck(fcb);
   if((fcb = new DNSServerContacts()))          registerCheck(fcb);
   if((fcb = new SMTPServerContacts()))         registerCheck(fcb);
   if((fcb = new NTPServerContacts()))          registerCheck(fcb);
@@ -67,7 +68,7 @@ void HostChecksLoader::registerChecks() {
   if((fcb = new ICMPFlood()))                  registerCheck(fcb);
   if((fcb = new PktThreshold()))               registerCheck(fcb);
   if((fcb = new ScanDetection()))              registerCheck(fcb);
-
+  
 #ifdef NTOPNG_PRO
   if((fcb = new ScoreAnomaly()))               registerCheck(fcb);
   if((fcb = new FlowAnomaly()))                registerCheck(fcb);

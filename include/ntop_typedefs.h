@@ -525,8 +525,9 @@ typedef enum {
   host_alert_countries_contacts          = 16,
   host_alert_score_threshold             = 17,
   host_alert_icmp_flood                  = 18,
-  host_alert_pkt_threshold		 = 19,
+  host_alert_pkt_threshold		           = 19,
   host_alert_scan_detected               = 20,
+  host_alert_fin_scan                    = 21,
 
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */ 
   MAX_HOST_ALERT_TYPE = 32 /* Constrained by HostAlertBitmap */
@@ -565,6 +566,7 @@ typedef enum {
   host_check_pkt_threshold,
   host_check_scan_detection,
   host_check_mac_reassociation,
+  host_check_fin_scan,
   
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */ 
 } HostCheckID;

@@ -30,6 +30,7 @@
 #include "host_checks/FlowHits.h"
 #include "host_checks/FlowFlood.h"
 #include "host_checks/SYNScan.h"
+#include "host_checks/FINScan.h"
 #include "host_checks/SYNFlood.h"
 #include "host_checks/ICMPFlood.h"
 

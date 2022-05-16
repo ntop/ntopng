@@ -46,6 +46,7 @@ checks.field_units = {
   icmp_flow_sec = "field_units.icmp_flow_sec",
   percentage = "field_units.percentage",
   syn_min = "field_units.syn_min",
+  fin_min = "field_units.fin_min",
   contacts = "field_units.contacts",
   score = "field_units.score",
   per_host_score = "field_units.per_host_score",

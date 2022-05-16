@@ -77,6 +77,12 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     u_int32_t syn_sent_last_min, synack_recvd_last_min; /* (attacker) */
     u_int32_t syn_recvd_last_min, synack_sent_last_min; /* (victim) */
   } syn_scan;
+  
+  struct {
+    u_int32_t fin_sent_last_min, finack_recvd_last_min; /* (attacker) */
+    u_int32_t fin_recvd_last_min, finack_sent_last_min; /* (victim) */
+  } fin_scan;
+
   std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server; /* Need atomic as inc/dec done on different threads */
   u_int32_t asn;
   struct {
@@ -329,6 +335,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void lua_get_flow_flood(lua_State*vm)     const;
   void lua_get_services(lua_State *vm)      const;
   void lua_get_syn_scan(lua_State* vm)      const;
+  void lua_get_fin_scan(lua_State* vm)      const;
   void lua_get_anomalies(lua_State* vm)     const;
   void lua_get_num_alerts(lua_State* vm)    const;
   void lua_get_num_total_flows(lua_State* vm) const;
@@ -358,8 +365,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
   bool addIfMatching(lua_State* vm, u_int8_t *mac);
   void updateSynAlertsCounter(time_t when, bool syn_sent);
+  void updateFinAlertsCounter(time_t when, bool fin_sent);
   void updateICMPAlertsCounter(time_t when, bool icmp_sent);
   void updateSynAckAlertsCounter(time_t when, bool synack_sent);
+  void updateFinAckAlertsCounter(time_t when, bool finack_sent);
   inline void updateRoundTripTime(u_int32_t rtt_msecs) {
     if(as) as->updateRoundTripTime(rtt_msecs);
   }
@@ -380,6 +389,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t syn_scan_attacker_hits() const { return syn_scan.syn_sent_last_min > syn_scan.synack_recvd_last_min ? syn_scan.syn_sent_last_min - syn_scan.synack_recvd_last_min : 0; };
   inline void reset_syn_scan_hits() { syn_scan.syn_sent_last_min = syn_scan.synack_recvd_last_min = syn_scan.syn_recvd_last_min = syn_scan.synack_sent_last_min = 0; };
 
+  inline u_int32_t fin_scan_victim_hits()   const { return fin_scan.fin_recvd_last_min > fin_scan.finack_sent_last_min ? fin_scan.fin_recvd_last_min - fin_scan.finack_sent_last_min : 0; };
+  inline u_int32_t fin_scan_attacker_hits() const { return fin_scan.fin_sent_last_min > fin_scan.finack_recvd_last_min ? fin_scan.fin_sent_last_min - fin_scan.finack_recvd_last_min : 0; };
+  inline void reset_fin_scan_hits() { fin_scan.fin_sent_last_min = fin_scan.finack_recvd_last_min = fin_scan.fin_recvd_last_min = fin_scan.finack_sent_last_min = 0; };
+  
   void incNumFlows(time_t t, bool as_client);
   void decNumFlows(time_t t, bool as_client);
   inline void incNumAlertedFlows(bool as_client) { active_alerted_flows++; if(stats) stats->incNumAlertedFlows(as_client); }

@@ -3890,8 +3890,17 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
   if((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST))
     iface->getTcpFlowStats()->incReset();
 
-  if((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN))
+  if((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN)) {
+    if(cli_host) cli_host->updateFinAlertsCounter(when->tv_sec, src2dst_direction);
+    if(srv_host) srv_host->updateFinAlertsCounter(when->tv_sec, !src2dst_direction);
     iface->getTcpFlowStats()->incFin();
+  }
+
+  if((flags & (TH_FIN|TH_ACK)) && (((src2dst_tcp_flags | dst2src_tcp_flags) & (TH_FIN|TH_ACK)) != (TH_FIN|TH_ACK))) {
+    if(cli_host) cli_host->updateFinAckAlertsCounter(when->tv_sec, src2dst_direction);
+    if(srv_host) srv_host->updateFinAckAlertsCounter(when->tv_sec, !src2dst_direction);
+    iface->getTcpFlowStats()->incFin();
+  }
 
   /* The update below must be after the above check */
   if(src2dst_direction)

@@ -131,7 +131,6 @@ u_int16_t Host::decScoreValue(u_int16_t score_decr, ScoreCategory score_category
   return Score::decScoreValue(score_decr, score_category, as_client);
 }
 
-
 /* *************************************** */
 
 void Host::updateSynAlertsCounter(time_t when, bool syn_sent) {
@@ -143,6 +142,18 @@ void Host::updateSynAlertsCounter(time_t when, bool syn_sent) {
     syn_scan.syn_sent_last_min++;
   else
     syn_scan.syn_recvd_last_min++;
+}
+
+/* *************************************** */
+
+void Host::updateFinAlertsCounter(time_t when, bool fin_sent) {
+  fin_sent ? fin_scan.fin_sent_last_min++ : fin_scan.fin_recvd_last_min++;
+}
+
+/* *************************************** */
+
+void Host::updateFinAckAlertsCounter(time_t when, bool finack_sent) {
+  finack_sent ? fin_scan.finack_sent_last_min++ : fin_scan.finack_recvd_last_min++;
 }
 
 /* *************************************** */
@@ -241,6 +252,8 @@ void Host::initialize(Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id)
   icmp_flood.victim_counter   = new (std::nothrow) AlertCounter();
   syn_scan.syn_sent_last_min  = syn_scan.synack_recvd_last_min = 0;
   syn_scan.syn_recvd_last_min = syn_scan.synack_sent_last_min  = 0;
+  fin_scan.fin_sent_last_min  = fin_scan.finack_recvd_last_min = 0;
+  fin_scan.fin_recvd_last_min = fin_scan.finack_sent_last_min  = 0;
   PROFILING_SUB_SECTION_EXIT(iface, 17);
 
   if(ip.getVersion() /* IP is set */) {
@@ -619,6 +632,24 @@ void Host::lua_get_syn_scan(lua_State *vm) const {
     hits = syn_scan.syn_recvd_last_min - syn_scan.synack_sent_last_min;
   if(hits)
     lua_push_uint64_table_entry(vm, "hits.syn_scan_victim", hits);
+}
+
+/* ***************************************************** */
+
+void Host::lua_get_fin_scan(lua_State *vm) const {
+  u_int32_t hits;
+
+  hits = 0;
+  if(fin_scan.fin_sent_last_min > fin_scan.finack_recvd_last_min)
+    hits = fin_scan.fin_sent_last_min - fin_scan.finack_recvd_last_min;
+  if(hits)
+    lua_push_uint64_table_entry(vm, "hits.fin_scan_attacker", hits);
+
+  hits = 0;
+  if(fin_scan.fin_recvd_last_min > fin_scan.finack_sent_last_min)
+    hits = fin_scan.fin_recvd_last_min - fin_scan.finack_sent_last_min;
+  if(hits)
+    lua_push_uint64_table_entry(vm, "hits.fin_scan_victim", hits);
 }
 
 /* ***************************************************** */

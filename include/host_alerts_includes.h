@@ -27,6 +27,7 @@
 #include "host_alerts/FlowHitsAlert.h"
 #include "host_alerts/FlowFloodAlert.h"
 #include "host_alerts/SYNScanAlert.h"
+#include "host_alerts/FINScanAlert.h"
 #include "host_alerts/SYNFloodAlert.h"
 #include "host_alerts/ServerContactsAlert.h"
 #include "host_alerts/DNSServerContactsAlert.h"
