@@ -132,6 +132,7 @@
   let $table;
   let RANGEPICKER_APP;
   let CHART_APP;
+  const ifid = {{ ifid }}
 
     const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
 
