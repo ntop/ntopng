@@ -1388,6 +1388,7 @@ static int handle_http_message(const struct mg_connection *conn, const char *mes
 bool HTTPserver::check_ssl_cert(char *ssl_cert_path, size_t ssl_cert_path_len) {
   struct stat s;
   int stat_rc;
+  
   ssl_cert_path[0] = '\0';
 
   snprintf(ssl_cert_path, ssl_cert_path_len, "%s/ssl/%s",
@@ -1396,14 +1397,14 @@ bool HTTPserver::check_ssl_cert(char *ssl_cert_path, size_t ssl_cert_path_len) {
   stat_rc = stat(ssl_cert_path, &s);
 
   if(stat_rc == 0) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Found SSL certificate %s", ssl_cert_path);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found TLS certificate %s", ssl_cert_path);
     return true;
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "HTTPS Disabled: missing SSL certificate %s", ssl_cert_path);
+			       "HTTPS Disabled: missing TLS certificate %s", ssl_cert_path);
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "Please read https://github.com/ntop/ntopng/blob/dev/doc/README.SSL if you want to enable SSL.");
+			       "Please read https://github.com/ntop/ntopng/blob/dev/doc/README.SSL if you want to enable TLS.");
 
   return false;
 }
