@@ -80,6 +80,8 @@ local lang = {
   ["clone"] = "Clone",
   ["close"] = "Close",
   ["code"] = "ICMP Code",
+  ["check_mirrored_traffic"] = "RX only traffic detected. Perhaps do you need to activate Mirrorer Traffic option in the <a href='/lua/if_stats.lua?ifid=%{id}&page=config'>Interface options</a>?",
+  ["mirrored_traffic"] = "Mirrored Traffic",
   ["comment"] = "Comment",
   ["configure"] = "Configure",
   ["confirm"] = "Confirm",

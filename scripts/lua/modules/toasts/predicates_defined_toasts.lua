@@ -145,6 +145,13 @@ end
 
 -- ###############################################################
 
+local function create_mirrored_traffic_toast(toast, body)
+  local title = i18n("mirrored_traffic")
+  return toast_ui:new(toast.id, title, body, ToastLevel.INFO, nil, toast.dismissable)
+end
+
+-- ###############################################################
+
 local function create_too_many_flows_toast(toast, level)
     local info = ntop.getInfo()
     local title = i18n("too_many_flows")
@@ -345,6 +352,31 @@ function predicates.update_ntopng(toast, container)
 
     if is_not_oem_and_administrator and not isEmptyString(message) then
         table.insert(container, create_update_ntopng_toast(toast, message))
+    end
+end
+
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.mirrored_traffic(toast, container)
+   if not IS_ADMIN or not IS_PACKET_INTERFACE or ntop.isWindows() then return end
+
+    -- check if ntopng is oem and the user is an Administrator
+    local is_not_oem_and_administrator = IS_ADMIN and not info.oem
+    local ifstats = interface.getStats()
+    local message = i18n('check_mirrored_traffic', { id = ifstats.id })
+    local upload_traffic = 0
+    local download_traffic = 0
+
+    for _, traffic in pairs(ifstats.download_stats) do
+      download_traffic = download_traffic + traffic
+    end
+
+    for _, traffic in pairs(ifstats.upload_stats) do
+      upload_traffic = upload_traffic + traffic
+    end
+ 
+    if is_not_oem_and_administrator and not isEmptyString(message) and (upload_traffic == 0 and download_traffic > 0) then
+        table.insert(container, create_mirrored_traffic_toast(toast, message))
     end
 end
 
