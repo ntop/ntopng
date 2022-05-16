@@ -7331,27 +7331,24 @@ void NetworkInterface::allocateStructures() {
     top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
     top_os    = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
 
-    /* Allocations for the system interface */
-    if(ntop->getSystemInterface() == this) {
-      if(db == NULL) {
-	if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
+    if(db == NULL) {
+      if(ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
 #ifdef NTOPNG_PRO
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
-	  /* Allocate only the DB connection, not any thread or queue for the export */
-	  if(ntop->getPrefs()->useClickHouse()) {
-	    try {
-	      db = new ClickHouseFlowDB(this);
-	    } catch(const std::invalid_argument& e) {
-	      db = NULL;
-	      ntop->getTrace()->traceEvent(TRACE_WARNING, "Leaving due to failed ClickHouse initialization");
-	      exit(-1);
-	    }
+	/* Allocate only the DB connection, not any thread or queue for the export */
+	if(ntop->getPrefs()->useClickHouse()) {
+	  try {
+	    db = new ClickHouseFlowDB(this);
+	  } catch(const std::invalid_argument& e) {
+	    db = NULL;
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Leaving due to failed ClickHouse initialization");
+	    exit(-1);
 	  }
-#endif
-#endif
 	}
+#endif
+#endif
       }
-    }
+    }  
 
     if(!isViewed()) {
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
@@ -8441,7 +8438,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
     return(true);
 
   if(db == NULL) {
-    if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
+    if(ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
 #ifdef NTOPNG_PRO
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
       if(ntop->getPrefs()->useClickHouse()) {

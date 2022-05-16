@@ -145,39 +145,8 @@ void PcapInterface::cleanupPcapDumpDir() {
   char base_dir[MAX_PATH];
 
   if(snprintf(base_dir, sizeof(base_dir), "%s/%d", ntop->get_working_dir(), get_id()) < (int)sizeof(base_dir)) {
-    ntop->fixPath(base_dir);
-
-    if(!ntop->getPrefs()->do_dump_flows_on_nindex()) {
-      // Simple cleanup, remove everything
-      Utils::remove_recursively(base_dir);
-    } else {
-      // Specific clenaup, avoid removing flows
-      char sub_dir[MAX_PATH];
-      DIR *d = opendir(base_dir);
-
-      if(d) {
-	while (1) {
-	  struct dirent *entry;
-	  const char *d_name;
-
-	  entry = readdir(d);
-	  if(!entry) break;
-
-	  d_name = entry->d_name;
-
-	  if((strcmp(d_name, "..") != 0) &&
-	     (strcmp(d_name, ".") != 0) &&
-	     (strcmp(d_name, "flows") != 0)) {
-	    if(snprintf(sub_dir, sizeof(base_dir), "%s/%s", base_dir, d_name) < (int)sizeof(base_dir)) {
-	      ntop->fixPath(sub_dir);
-	      Utils::remove_recursively(sub_dir);
-	    }
-	  }
-	}
-
-	closedir(d);
-      }
-    }
+    ntop->fixPath(base_dir);    
+    Utils::remove_recursively(base_dir);
   }
 }
 

@@ -123,8 +123,8 @@ Prefs::Prefs(Ntop *_ntop) {
   packet_filter = NULL;
   num_interfaces = 0, enable_auto_logout = true, enable_auto_logout_at_runtime = true;
   enable_interface_name_only = false, use_clickhouse = false;
-  dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_syslog = dump_flows_on_nindex = false;
-  dump_json_flows_on_disk = load_json_flows_from_disk_to_nindex = dump_ext_json = false;
+  dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_syslog = false;
+  dump_json_flows_on_disk = dump_ext_json = false;
   routing_mode_enabled = false;
   global_dns_forging_enabled = false;
 #ifdef NTOPNG_PRO
@@ -1513,6 +1513,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F %s;....", use_clickhouse ? "clickhouse" : "mysql");
 	} /* all_good */
       }
+
+      if(use_clickhouse)
+	dump_flows_on_mysql = false;
 #else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "-F mysql/-F clickhouse is not available (missing MySQL support)");
 #endif

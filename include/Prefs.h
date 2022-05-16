@@ -98,8 +98,8 @@ class Prefs {
   u_int http_port, https_port;
   u_int8_t num_interfaces;
   u_int16_t auto_assigned_pool_id;
-  bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_syslog, dump_flows_on_nindex,
-    dump_json_flows_on_disk, load_json_flows_from_disk_to_nindex, dump_ext_json;
+  bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_syslog,
+    dump_json_flows_on_disk, dump_ext_json;
 #ifdef NTOPNG_PRO
   bool dump_flows_direct;
   bool is_geo_map_score_enabled, is_geo_map_asname_enabled, is_geo_map_alerted_flows_enabled,
@@ -228,12 +228,11 @@ class Prefs {
   inline u_int8_t get_num_user_specified_interfaces()   { return(num_interfaces);         };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
+  inline bool  do_dump_flows_on_clickhouse()            { return(use_clickhouse);         };
   inline bool  do_dump_flows_on_syslog()                { return(dump_flows_on_syslog);   };
-  inline bool  do_dump_flows_on_nindex()                { return(dump_flows_on_nindex);   };
   inline bool  do_dump_extended_json()                  { return(dump_ext_json);          };
   inline bool  do_dump_json_flows_on_disk()             { return(dump_json_flows_on_disk);};
-  inline bool  do_load_json_flows_from_disk_to_nindex() { return(load_json_flows_from_disk_to_nindex); };
-  inline bool  do_dump_flows() const                    { return(dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_syslog || dump_flows_on_nindex); };
+  inline bool  do_dump_flows() const                    { return(dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_syslog); };
 
 #ifdef NTOPNG_PRO
   inline void  toggle_dump_flows_direct(bool enable)    { dump_flows_direct = enable; };
