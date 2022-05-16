@@ -39,6 +39,14 @@ if [ $(getent group n2disk) ] && [ $(getent passwd ntopng) ]; then
     fi
 fi
 
+TLS_DIR="/usr/share/ntopng/httpdocs/ssl"
+TLS_CERT_PATH="$TLS_DIR/ntopng-cert.pem"
+if [ ! -f "$TLS_CERT_PATH" ]; then
+    openssl req -new -x509 -sha1 -extensions v3_ca -nodes -days 365 -out $TLS_DIR/cert.pem -subj "/CN=ntopng.local"
+    cat $TLS_DIR/privkey.pem $TLS_DIR/cert.pem > $TLS_CERT_PATH
+fi
+
+
 DATA_DIR=/var/lib/ntopng
 if [ ! -d "$DATA_DIR" ]; then
     mkdir $DATA_DIR
