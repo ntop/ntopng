@@ -45,7 +45,7 @@ function alert_ndpi_suspicious_dga_domain.format(ifid, alert, alert_type_params)
    local href = ''
    local info = ''
 
-   if string.len(domain) > 64 then
+   if domain and string.len(domain) > 64 then
       domain = shortenString(alert_type_params.dga_domain, 64)
       info = '<i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="'..alert_type_params.dga_domain..'"></i>'
    end
