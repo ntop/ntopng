@@ -6344,8 +6344,6 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_seen_external_alerts", hasSeenExternalAlerts());
   lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
 
-  countActiveLocalHosts(vm, true);
-
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
   luaNumEngagedAlerts(vm);
   luaAlertedFlows(vm);
@@ -6376,6 +6374,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_float_table_entry(vm, "throughput_pps", pkts_thpt.getThpt());
   lua_push_uint64_table_entry(vm, "throughput_trend_pps", pkts_thpt.getTrend());
   l4Stats.luaStats(vm);
+  countActiveLocalHosts(vm);
 
   if(db) db->lua(vm, false /* Overall */);
 
@@ -9887,13 +9886,13 @@ static bool active_localhosts_walker(GenericHashEntry *h, void *user_data, bool 
 
   if(isLocal) {
   
-    if ((host->getNumPktsSent() == 0) and (host->isBroadcastHost() or host->isMulticastHost())) {
+    if (host->isBroadcastHost() or host->isMulticastHost()) {
       m->numberBroadOrMulti++;
     } else {
-      if (host->getNumPktsSent()>0 and host->getNumPktsRcvd()>0) {
-        m->numberActive++;
-      } else {
+      if (host->getNumPktsSent() == 0) {
         m->numberPassive++;
+      } else {
+        m->numberActive++;
       }
     }
   }
@@ -9903,7 +9902,7 @@ static bool active_localhosts_walker(GenericHashEntry *h, void *user_data, bool 
 
 /* *************************************** */
 
-int NetworkInterface::countActiveLocalHosts(lua_State* vm, bool treeMapMode) {
+int NetworkInterface::countActiveLocalHosts(lua_State* vm) {
 
   u_int32_t begin_slot = 0;
   localhost_walker m;
@@ -9914,13 +9913,23 @@ int NetworkInterface::countActiveLocalHosts(lua_State* vm, bool treeMapMode) {
   m.numberPassive= 0;
 
   rc = walker(&begin_slot, true, walker_hosts, active_localhosts_walker, (void*)&m);
-
-  lua_push_int32_table_entry(vm, "active", m.numberActive);
-  lua_push_int32_table_entry(vm, "broadormulti", m.numberBroadOrMulti);
-  lua_push_int32_table_entry(vm, "passive", m.numberPassive);
   
-  if (rc != 0)
+  if (rc != 0) {
+    lua_pushnil(vm);
+
     return (-1);
-  else
+  }
+  else {
+    lua_newtable(vm);
+
+    lua_push_uint64_table_entry(vm, "active", m.numberActive);
+    lua_push_uint64_table_entry(vm, "broadormulti", m.numberBroadOrMulti);
+    lua_push_uint64_table_entry(vm, "passive", m.numberPassive);
+    
+    lua_pushstring(vm, "count_localhost");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+
     return 1;
+  }
 }

@@ -1127,9 +1127,9 @@ typedef struct {
 } PeriodicityStatsKey;
 
 typedef struct _localhost_walker{
-  int16_t numberActive;
-  int16_t numberBroadOrMulti;
-  int16_t numberPassive;
+  u_int64_t numberActive;
+  u_int64_t numberBroadOrMulti;
+  u_int64_t numberPassive;
 } localhost_walker;
 
 #endif /* _NTOP_TYPEDEFS_H_ */
