@@ -88,6 +88,7 @@ local other_alert_keys = {
    alert_network_discovery_executed     =  OTHER_BASE_KEY + 75,
    alert_port_mac_appeared              =  OTHER_BASE_KEY + 76,
    alert_port_mac_disappeared           =  OTHER_BASE_KEY + 77,
+   alert_network_score_per_host         =  OTHER_BASE_KEY + 78,
 }
 
 -- ##############################################
