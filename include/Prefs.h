@@ -54,7 +54,7 @@ class Prefs {
     service_license_check, enable_sql_log, enable_access_log, log_to_file,
     enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
     enable_asn_behaviour_analysis, enable_network_behaviour_analysis, enable_iface_l7_behaviour_analysis,
-    emit_flow_alerts, emit_host_alerts, use_clickhouse;
+    emit_flow_alerts, emit_host_alerts, dump_flows_on_clickhouse;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period;
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
@@ -228,11 +228,11 @@ class Prefs {
   inline u_int8_t get_num_user_specified_interfaces()   { return(num_interfaces);         };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
-  inline bool  do_dump_flows_on_clickhouse()            { return(use_clickhouse);         };
+  inline bool  do_dump_flows_on_clickhouse()            { return(dump_flows_on_clickhouse);         };
   inline bool  do_dump_flows_on_syslog()                { return(dump_flows_on_syslog);   };
   inline bool  do_dump_extended_json()                  { return(dump_ext_json);          };
   inline bool  do_dump_json_flows_on_disk()             { return(dump_json_flows_on_disk);};
-  inline bool  do_dump_flows() const                    { return(dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_syslog); };
+  inline bool  do_dump_flows() const                    { return(dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_clickhouse || dump_flows_on_syslog); };
 
 #ifdef NTOPNG_PRO
   inline void  toggle_dump_flows_direct(bool enable)    { dump_flows_direct = enable; };
@@ -432,8 +432,8 @@ class Prefs {
   inline u_int32_t getIEC60870LearingPeriod()    { return(iec60870_learning_period);                    };
   inline bool        dontEmitFlowAlerts()        { return(!emit_flow_alerts);                           };
   inline bool        dontEmitHostAlerts()        { return(!emit_host_alerts);                           };
-  inline bool        useClickHouse()             { return(use_clickhouse);                              };
-  inline void        dontUseClickHouse()         { use_clickhouse = dump_flows_on_mysql = false;        };
+  inline bool        useClickHouse()             { return(dump_flows_on_clickhouse);                              };
+  inline void        dontUseClickHouse()         { dump_flows_on_clickhouse = dump_flows_on_mysql = false;        };
   inline char*       getZMQPublishEventsURL()    { return(zmq_publish_events_url);                      };
   inline const char* getClickHouseClientPath()   { return(clickhouse_client);                           };
   void setIEC104AllowedTypeIDs(const char * protos);

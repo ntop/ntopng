@@ -8430,7 +8430,7 @@ bool NetworkInterface::initHostChecksLoop() {
 
 /*
   Put here all the code that is executed when the NIC initialization
-  is succesful
+  is successful
  */
 bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
   startFlowDumping();

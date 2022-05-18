@@ -122,7 +122,7 @@ Prefs::Prefs(Ntop *_ntop) {
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
   num_interfaces = 0, enable_auto_logout = true, enable_auto_logout_at_runtime = true;
-  enable_interface_name_only = false, use_clickhouse = false;
+  enable_interface_name_only = false, dump_flows_on_clickhouse = false;
   dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_syslog = false;
   dump_json_flows_on_disk = dump_ext_json = false;
   routing_mode_enabled = false;
@@ -1402,9 +1402,9 @@ int Prefs::setOption(int optkey, char *optarg) {
       } else {
 	bool all_good = true;
 	
-	use_clickhouse = (optarg[0] == 'c') ? true : false;
+	dump_flows_on_clickhouse = (optarg[0] == 'c') ? true : false;
 
-	if(use_clickhouse) {
+	if(dump_flows_on_clickhouse) {
 	  /* Check if CLICKHOUSE_CLIENT is present */
 	  struct stat buf;
 	  bool client_found = ((stat(CLICKHOUSE_CLIENT, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
@@ -1419,7 +1419,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	  if(!client_found) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "-F clickhouse is not available (ClickHouse client not found)");
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Expected %sor %s", CLICKHOUSE_CLIENT, CLICKHOUSE_ALT_CLIENT);
-	    all_good = use_clickhouse = false;
+	    all_good = dump_flows_on_clickhouse = false;
 	  }
 	}
 
@@ -1437,7 +1437,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	  for(u_int i=0; optarg[i] != '\0'; i++)
 	    if(optarg[i] == ';') num_semicolumns++;
 
-	  if((num_semicolumns == 0) && use_clickhouse) {
+	  if((num_semicolumns == 0) && dump_flows_on_clickhouse) {
 	    mysql_host   = strdup((char*)"127.0.0.1");
 	    mysql_dbname = strdup((char*)"ntopng");
 	    mysql_user   = strdup((char*)"default");
@@ -1468,7 +1468,7 @@ int Prefs::setOption(int optkey, char *optarg) {
             /* Default ports */
             mysql_port = CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT;
             clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
-            if(!use_clickhouse) mysql_port = CONST_DEFAULT_MYSQL_PORT;
+            if(!dump_flows_on_clickhouse) mysql_port = CONST_DEFAULT_MYSQL_PORT;
 
             /* Configured ports, if any*/
 	    if((mysql_port_str = strchr(mysql_host, '@'))) {
@@ -1502,7 +1502,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 		mysql_port = (int)l;
 	    }
 
-	    if(use_clickhouse && mysql_host) {
+	    if(dump_flows_on_clickhouse && mysql_host) {
 	      if(strcmp(mysql_host, "localhost") == 0) {
 		/* Clickhouse does not like localhost */
 		free(mysql_host);
@@ -1510,11 +1510,11 @@ int Prefs::setOption(int optkey, char *optarg) {
 	      }
 	    }
 	  } else
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F %s;....", use_clickhouse ? "clickhouse" : "mysql");
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F %s;....", dump_flows_on_clickhouse ? "clickhouse" : "mysql");
 	} /* all_good */
       }
 
-      if(use_clickhouse)
+      if(dump_flows_on_clickhouse)
 	dump_flows_on_mysql = false;
 #else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "-F mysql/-F clickhouse is not available (missing MySQL support)");
@@ -2034,7 +2034,7 @@ void Prefs::lua(lua_State* vm) {
   if(mysql_dbname) lua_push_str_table_entry(vm, "mysql_dbname", mysql_dbname);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled", dump_flows_on_es);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_syslog_enabled", dump_flows_on_syslog);
-  lua_push_bool_table_entry(vm, "is_dump_flows_to_clickhouse_enabled", use_clickhouse);
+  lua_push_bool_table_entry(vm, "is_dump_flows_to_clickhouse_enabled", dump_flows_on_clickhouse);
 
 #ifdef HAVE_NEDGE
   lua_push_bool_table_entry(vm, "is_mac_based_captive_portal", mac_based_captive_portal);
@@ -2297,9 +2297,9 @@ void Prefs::validate() {
 
   if(is_enterprise_m_edition() || is_enterprise_l_edition()) {
     ; /* All good */
-  } else if(use_clickhouse) {
+  } else if(dump_flows_on_clickhouse) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "-F clickhouse is available only from Enterprise M and up");
-    use_clickhouse = dump_flows_on_mysql = false;
+    dump_flows_on_clickhouse = dump_flows_on_mysql = false;
   }
 }
 
