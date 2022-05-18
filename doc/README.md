@@ -110,7 +110,7 @@ Example:
 
 If you start ntopng from systemd you need to edit /etc/systemd/system.conf and set:
 - `DefaultEnvironment="http_proxy=http://127.0.0.1:1234"`
-- `DefaultEnvironment="https_proxy=https://127.0.0.1:1235"`
+- `DefaultEnvironment="https_proxy=http://127.0.0.1:1235"`
 
 If you do not wanto to configure a proxy globally, you can do it for a specific service editing ntopng.service as follows:
 
@@ -118,7 +118,7 @@ If you do not wanto to configure a proxy globally, you can do it for a specific 
 [Service]
 Type=simple
 Environment="http_proxy=http://127.0.0.1:1234"
-Environment="https_proxy=httpa://127.0.0.1:1235"
+Environment="https_proxy=http://127.0.0.1:1235"
 .....
 ```
 
