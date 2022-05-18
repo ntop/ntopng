@@ -59,6 +59,11 @@ Ntop::Ntop(const char *appName) {
   address = new (std::nothrow) AddressResolution();
   offline = false;
   pa = NULL;
+#ifdef WIN32
+  myTZname = strdup(_tzname ? _tzname[0] : "CET");
+#else
+  myTZname = strdup(tzname ? tzname[0] : "CET");
+#endif  
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
 #ifndef HAVE_NEDGE

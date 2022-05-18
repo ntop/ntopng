@@ -3135,13 +3135,7 @@ static int ntop_get_info(lua_State* vm) {
   int major, minor, patch;
 #endif
   bool verbose = true;
-  char** my_tz, *zoneinfo = ntop->getZoneInfo();
-
-#ifdef WIN32
-  my_tz = _tzname;
-#else
-  my_tz = tzname;
-#endif
+  char *zoneinfo = ntop->getZoneInfo();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -3195,10 +3189,7 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_uint32_table_entry(vm, "http_port", ntop->getPrefs()->get_http_port());
   lua_push_uint32_table_entry(vm, "https_port", ntop->getPrefs()->get_https_port());
 
-  if (!my_tz[0])
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "tzname is not set");
-  else
-    lua_push_str_table_entry(vm, "tzname", my_tz[0]);  /* Timezone name */
+  lua_push_str_table_entry(vm, "tzname", ntop->getTZname());  /* Timezone name */
 
   if(zoneinfo)
     lua_push_str_table_entry(vm, "zoneinfo", zoneinfo);

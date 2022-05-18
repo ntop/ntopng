@@ -48,7 +48,7 @@ class Ntop {
   bool offline;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   AddressTree local_interface_addresses;
-  char epoch_buf[11], *zoneinfo;
+  char epoch_buf[11], *zoneinfo, *myTZname;
   char working_dir[MAX_PATH]; /**< Working directory. */
   char install_dir[MAX_PATH]; /**< Install directory. */
   char startup_dir[MAX_PATH]; /**< Startup directory. */
@@ -619,6 +619,7 @@ public:
   u_int64_t getNextFlowId()                                 { return(clickhouseImport ? clickhouseImport->getNextFlowId() : 0); }
   inline ClickHouseImport* getClickHouseImport()            { return(clickhouseImport); }
 #endif  
+  inline char* getTZname()                                  { return(myTZname);         }
 };
 
 extern Ntop *ntop;
