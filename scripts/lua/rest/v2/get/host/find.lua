@@ -458,7 +458,7 @@ if not is_system_interface then
          add_inactive_badge(badges)
 
          hosts[host_key] = {
-            label = host_key,
+            label = hostinfo2hostkey({host=h.host, vlan=h.vlan}),
             name = host_key,
             ip = host_key,
             links = links,
