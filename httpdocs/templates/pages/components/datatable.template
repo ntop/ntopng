@@ -438,7 +438,7 @@
 	      },
 	  },
       };
-      const navbar_vue = Vue.createApp(navbar_vue_options);
+      const navbar_vue = ntopVue.Vue.createApp(navbar_vue_options);
       const vue_app = navbar_vue.mount("#navbar");
       return vue_app;
       }
@@ -471,7 +471,7 @@
 	  methods: {
 	  },
       }; 
-      const chart_vue = Vue.createApp(chart_vue_options);
+      const chart_vue = ntopVue.Vue.createApp(chart_vue_options);
       const vue_app = chart_vue.mount("#chart-vue");
       return vue_app;
   }
@@ -528,7 +528,7 @@
 	  }
 	  },
       }; 
-      const rangepicker_vue = Vue.createApp(rangepicker_vue_options);
+      const rangepicker_vue = ntopVue.Vue.createApp(rangepicker_vue_options);
       const vue_app = rangepicker_vue.mount("#rangepicker");
       return vue_app;
   }

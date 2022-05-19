@@ -1,5 +1,5 @@
 import * as Vue from "vue";
-window.Vue = Vue;
+// window.Vue = Vue;
 
 import { default as DateTimeRangePicker } from "./data-time-range-picker.vue";
 import { default as Chart } from "./chart.vue";
@@ -19,5 +19,7 @@ let ntopVue = {
     RangePicker: RangePicker,
     ModalTrafficExtraction: ModalTrafficExtraction,
     PageNavbar: PageNavbar,
+
+    Vue: Vue,
 };
 window.ntopVue = ntopVue;
