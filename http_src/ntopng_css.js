@@ -1,2 +1,2 @@
-@import './ntopng.scss'
-@import './components/components.scss'
+import './ntopng.scss'
+import './components/components.scss'
