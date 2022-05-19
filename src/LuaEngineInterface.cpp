@@ -3987,6 +3987,7 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
   filters->maxHits = (u_int32_t)-1;
   filters->startingHit = (u_int32_t)0;
   filters->unicast = false;
+  filters->network_id = (int16_t) -1;
   filters->sort_column = (mapSortingColumn)map_column_last_seen;
   filters->sort_order = (sortingOrder)desc;
   filters->standard_view = true;
@@ -4012,19 +4013,20 @@ static void ntop_get_maps_filters(lua_State* vm, MapsFilters *filters) {
     filters->ndpi_proto = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(),
 					       (char *)lua_tostring(vm, 6));
 
-  if(lua_type(vm, 7) == LUA_TNUMBER)  filters->status       = (ServiceAcceptance)lua_tonumber(vm, 7);
-  if(lua_type(vm, 8) == LUA_TSTRING)  {
-    char *str = (char *)lua_tostring(vm, 8);
+  if(lua_type(vm, 7) == LUA_TNUMBER)  filters->network_id       = (int16_t)lua_tonumber(vm, 7);
+  if(lua_type(vm, 8) == LUA_TNUMBER)  filters->status       = (ServiceAcceptance)lua_tonumber(vm, 8);
+  if(lua_type(vm, 9) == LUA_TSTRING)  {
+    char *str = (char *)lua_tostring(vm, 9);
 
     if(str)
       snprintf(filters->host_to_search, sizeof(filters->host_to_search), "%s", str);
   }
   
-  if(lua_type(vm, 9) == LUA_TNUMBER)  filters->maxHits      = (u_int32_t)lua_tonumber(vm, 9);
-  if(lua_type(vm, 10) == LUA_TNUMBER)  filters->startingHit = (u_int32_t)lua_tonumber(vm, 10);
-  if(lua_type(vm, 11) == LUA_TNUMBER) filters->sort_column  = (mapSortingColumn)lua_tonumber(vm, 11);
-  if(lua_type(vm, 12) == LUA_TNUMBER) filters->sort_order   = (sortingOrder)lua_tonumber(vm, 12);
-  if(lua_type(vm, 13) == LUA_TBOOLEAN) filters->standard_view  = (bool)lua_toboolean(vm, 13);
+  if(lua_type(vm, 10) == LUA_TNUMBER)  filters->maxHits      = (u_int32_t)lua_tonumber(vm, 10);
+  if(lua_type(vm, 11) == LUA_TNUMBER)  filters->startingHit = (u_int32_t)lua_tonumber(vm, 11);
+  if(lua_type(vm, 12) == LUA_TNUMBER) filters->sort_column  = (mapSortingColumn)lua_tonumber(vm, 12);
+  if(lua_type(vm, 13) == LUA_TNUMBER) filters->sort_order   = (sortingOrder)lua_tonumber(vm, 13);
+  if(lua_type(vm, 14) == LUA_TBOOLEAN) filters->standard_view  = (bool)lua_toboolean(vm, 14);
 }
 
 /* ****************************************** */

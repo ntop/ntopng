@@ -90,7 +90,7 @@ export class DataTableFiltersMenu {
             $entry.append($counter);
         }
 
-        $entry.click(function (e) {
+        $entry.on('click', function (e) {
           if(!self.url) {
             self.preventUpdate = true;
 
@@ -114,7 +114,7 @@ export class DataTableFiltersMenu {
           } else {
             self.urlParams = window.location.search
             const newUrlParams = new URLSearchParams(self.urlParams)
-            newUrlParams.set(self.filterMenuKey, filter.id || '')
+            newUrlParams.set(self.filterMenuKey, (typeof(filter.id) != undefined) ? filter.id : '')
             const newUrl = self.url + '?' + newUrlParams.toString()
 
             window.history.pushState('', '', window.location.pathname + '?' + newUrlParams.toString())
