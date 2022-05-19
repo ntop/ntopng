@@ -11,6 +11,11 @@ import PostCSS from 'rollup-plugin-postcss';
 
 const argv = minimist(process.argv.slice(2));
 
+let vue_path = 'node_modules/vue/dist/vue.esm-browser.js';
+if (argv && argv.prod) {
+    vue_path = 'node_modules/vue/dist/vue.esm-browser.prod.js'
+}
+
 let buildFormat = {
     input: './http_src/ntopng.js',
     plugins: [
@@ -32,7 +37,7 @@ let buildFormat = {
 	PostCSS({ include: /(?<!&module=.*)\.css$/ }),
 	alias({
 	    entries: [
-		{ find: "vue", replacement: 'node_modules/vue/dist/vue.esm-browser.js' }
+		{ find: "vue", replacement: vue_path }
 	    ]
 	}),
 
