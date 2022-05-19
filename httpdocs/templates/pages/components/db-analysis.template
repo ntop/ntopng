@@ -4,9 +4,11 @@
 #}
 
 <!-- vue3 -->
+<!--
 <script src="{* ntop.getHttpPrefix() *}/vue/vue-prod.js"></script>
 <script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js"></script>
 <script src="{* ntop.getHttpPrefix() *}/vue/ntopng_vue_loader.js"></script>
+-->
 
 <!-- defines base_path globals const-->
 <script type='text/javascript'>
@@ -85,7 +87,8 @@
   function start_navbar() {
       let navbar_vue_options = {
 	  components: {	  
-   	      'page-navbar': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/page-navbar.vue`, ntopng_vue_loader.loadOptions) ),
+   	      // 'page-navbar': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/page-navbar.vue`, ntopng_vue_loader.loadOptions) ),
+   	      'page-navbar': ntopVue.PageNavbar,
 	  },
 	  /**
 	   * First method called when the component is created.

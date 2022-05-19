@@ -90,3 +90,13 @@ import '../http_src/utilities/datatable/datatable-plugins/api-extension'
 import '../http_src/utilities/datatable/datatable-plugins/jquery-extension'
 
 import './third-party-npm.scss'
+
+/* Must add it here otherwise a package error is going to be release */
+import 'jquery.are-you-sure'
+import { aysGetDirty, aysHandleForm, aysResetForm, aysUpdateForm, aysRecheckForm } from '../http_src/utilities/are-you-sure-utils'
+
+window.aysGetDirty = aysGetDirty
+window.aysHandleForm = aysHandleForm
+window.aysResetForm = aysResetForm
+window.aysUpdateForm = aysUpdateForm
+window.aysRecheckForm = aysRecheckForm

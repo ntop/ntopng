@@ -8,13 +8,13 @@ const webpack = require("webpack")
 module.exports = {
   devtool: "source-map",
   entry: { 
-    'custom-theme': './http_src/views/private/clients/custom_theme.js',
-    'dark-mode': './http_src/views/private/clients/dark-mode.js',
-    'white-mode': './http_src/views/private/clients/white-mode.js',
-    'images': './assets/images/images.js', 
-    'login': './assets/scripts/login.js',
-    'ntopng': "./http_src/ntopng.js", 
-    'third-party': "./assets/third-party.js",
+      'custom-theme': './http_src/views/private/clients/custom_theme.js',
+      'dark-mode': './http_src/views/private/clients/dark-mode.js',
+      'white-mode': './http_src/views/private/clients/white-mode.js',
+      'images': './assets/images/images.js', 
+      'login': './assets/scripts/login.js',      
+      'ntopng': "./http_src/ntopng_css.js",
+      'third-party': "./assets/third-party.js",
   },
   output: {
     path: __dirname + '/httpdocs/tmp-dist',

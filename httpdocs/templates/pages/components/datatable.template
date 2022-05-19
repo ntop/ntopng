@@ -3,10 +3,10 @@
     Base template for datatables.
 #}
 <!-- vue3 -->
-<script src="{* ntop.getHttpPrefix() *}/vue/vue-prod.js?{* ntop.getStaticFileEpoch() *}"></script>
+<!-- <script src="{* ntop.getHttpPrefix() *}/vue/vue-dev.js?{* ntop.getStaticFileEpoch() *}"></script> 
 <script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js?{* ntop.getStaticFileEpoch() *}"></script>
 <script src="{* ntop.getHttpPrefix() *}/vue/ntopng_vue_loader.js?{* ntop.getStaticFileEpoch() *}"></script>
-
+-->
 <!-- defines base_path globals const-->
 <script type='text/javascript'>
   const base_path = '{* ntop.getHttpPrefix() *}';
@@ -407,7 +407,8 @@
   function start_navbar() {
       let navbar_vue_options = {
 	  components: {	  
-   	      'page-navbar': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/page-navbar.vue`, ntopng_vue_loader.loadOptions) ),
+   	      // 'page-navbar': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/page-navbar.vue`, ntopng_vue_loader.loadOptions) ),
+   	      'page-navbar': ntopVue.PageNavbar,	      
 	  },
 	  /**
 	   * First method called when the component is created.
@@ -453,7 +454,8 @@
 
     let chart_vue_options = {
     	components: {
-   	      'chart': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/chart.vue`, ntopng_vue_loader.loadOptions) ),
+   	      // 'chart': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/chart.vue`, ntopng_vue_loader.loadOptions) ),
+   	      'chart': ntopVue.Chart,
 	  },
 	  /**
 	   * First method called when the component is created.
@@ -480,9 +482,12 @@
 	      id: String,
 	  },
 	  components: {
-   	      'range-picker': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/range-picker.vue`, ntopng_vue_loader.loadOptions) ),
-   	      'modal-traffic-extraction': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/modal-traffic-extraction.vue`, ntopng_vue_loader.loadOptions) ),
-   	      'alert-info': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/alert-info.vue`, ntopng_vue_loader.loadOptions) ),
+   	      // 'range-picker': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/range-picker.vue`, ntopng_vue_loader.loadOptions) ),
+   	      // 'modal-traffic-extraction': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/modal-traffic-extraction.vue`, ntopng_vue_loader.loadOptions) ),
+   	      // 'alert-info': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/alert-info.vue`, ntopng_vue_loader.loadOptions) ),
+   	      'range-picker': ntopVue.RangePicker,
+   	      'modal-traffic-extraction': ntopVue.ModalTrafficExtraction,
+   	      'alert-info': ntopVue.AlertInfo,
 	  },
 	  /**
 	   * First method called when the component is created.

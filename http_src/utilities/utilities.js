@@ -24,17 +24,6 @@ import modalHandler from './modal/modal-utils'
 
 window.$.fn.modalHandler = modalHandler
 
-
-/* Must add it here otherwise a package error is going to be release */
-import 'jquery.are-you-sure'
-import { aysGetDirty, aysHandleForm, aysResetForm, aysUpdateForm, aysRecheckForm } from './are-you-sure-utils'
-
-window.aysGetDirty = aysGetDirty
-window.aysHandleForm = aysHandleForm
-window.aysResetForm = aysResetForm
-window.aysUpdateForm = aysUpdateForm
-window.aysRecheckForm = aysRecheckForm
-
 import './sequence_sunburst'
 import * as ebpfUtils from './ebpf-utils'
 
