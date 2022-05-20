@@ -9,11 +9,24 @@ local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
 local flow_risk_utils = require "flow_risk_utils"
 local country_codes = require "country_codes"
+local historical_flow_details_formatter = require "historical_flow_details_formatter"
 
 local historical_flow_utils = {}
 
 ------------------------------------------------------------------------
 -- Utility Functions
+
+-- #####################################
+
+function historical_flow_utils.formatHistoricalFlowDetails(flow)
+  local flow_details = {}
+
+  if flow then
+    flow_details = historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
+  end
+
+  return flow_details
+end
 
 -- #####################################
 
@@ -925,6 +938,15 @@ local flow_columns = {
    ['OUTPUT_SNMP'] =          { tag = "output_snmp", dt_func = dt_format_snmp_interface },
    ['SRC_HOST_POOL_ID'] =     { tag = "cli_host_pool_id", dt_func = dt_format_pool_id },
    ['DST_HOST_POOL_ID'] =     { tag = "srv_host_pool_id", dt_func = dt_format_pool_id },
+   ['ALERTS_MAP'] =           { tag = "alerts_map" },
+   ['SEVERITY'] =             { tag = "severity" },
+   ['IS_CLI_ATTACKER'] =      { tag = "is_cli_attacker" },
+   ['IS_CLI_VICTIM'] =        { tag = "is_cli_victim" },
+   ['IS_CLI_BLACKLISTED'] =   { tag = "is_cli_blacklisted" },
+   ['IS_SRV_ATTACKER'] =      { tag = "is_srv_attacker" },
+   ['IS_SRV_VICTIM'] =        { tag = "is_srv_victim" },
+   ['IS_SRV_BLACKLISTED'] =   { tag = "is_srv_blacklisted" },
+   ['ALERT_JSON'] =           { tag = "alert_json" },
 
    -- Alert data
    ['ALERT_STATUS'] =         { tag = "alert_status" },
@@ -1827,14 +1849,14 @@ end
 
 -- #####################################
 
-local function get_historical_url(label, tag, value, add_hyperlink, title)
+function historical_flow_utils.get_historical_url(label, tag, value, add_hyperlink, title)
    if not add_hyperlink then 
       return label
    else
       return "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?" .. 
          tag .. "=" .. value .. tag_utils.SEPARATOR .. "eq\" " .. 
          ternary(title ~= nil, "title=\"" .. (title or "") .."\"", "") .. 
-         ">" .. label .. "</a>"
+         " target='_blank'>" .. label .. "</a>"
    end
 end
 
@@ -1849,40 +1871,64 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks)
       return label
    end
 
-   label = label .. get_historical_url(info.cli_ip.label, ternary(info.cli_ip.label ~= info.cli_ip.ip, "cli_name", "cli_ip"), info.cli_ip.label, add_hyperlinks, ternary(info.cli_ip.label ~= info.cli_ip.ip, info.cli_ip.ip, nil))
+   label = label ..historical_flow_utils.get_historical_url(info.cli_ip.label, ternary(info.cli_ip.label ~= info.cli_ip.ip, "cli_name", "cli_ip"), info.cli_ip.label, add_hyperlinks, ternary(info.cli_ip.label ~= info.cli_ip.ip, info.cli_ip.ip, nil))
 
    if add_hyperlinks and info.cli_location and not isEmptyString(info.cli_location.label) then
       label = label .. " " .. info.cli_location.label
    end
 
    if info.cli_port and not isEmptyString(info.cli_port.label) then
-      label = label .. ":" .. get_historical_url(info.cli_port.label, "cli_port", info.cli_port.value, add_hyperlinks)
+      label = label .. ":" ..historical_flow_utils.get_historical_url(info.cli_port.label, "cli_port", info.cli_port.value, add_hyperlinks)
    end
 
+   if info.IS_CLI_ATTACKER and info.IS_CLI_ATTACKER == '1' then
+    label = label .. ' <i class="fas fa-skull" title="' .. i18n('db_explorer.is_attacker') .. '"></i> '
+   end
+   
+   if info.IS_CLI_VICTIM and info.IS_CLI_VICTM == '1' then
+    label = label .. ' <i class="fas fa-sad-tear" title="' .. i18n('db_explorer.is_victim') .. '"></i> '
+   end
+   
+   if info.IS_CLI_BLACKLISTED and info.IS_CLI_BLACKLISTED == '1' then
+    label = label .. ' <i class="fas fa-ban fa-sm" title="' .. i18n('db_explorer.is_blacklisted') .. '"></i> '
+   end
+   
    if add_hyperlinks then
       if info.cli_asn and info.cli_asn.value > 0 and not isEmptyString(info.cli_asn.title) then
-         label = label .. " [ " .. get_historical_url(info.cli_asn.title, "cli_asn", info.cli_asn.value, add_hyperlinks) .. " ]"
-      elseif not isEmptyString(info.cli_mac) then
+         label = label .. " [ " ..historical_flow_utils.get_historical_url(info.cli_asn.title, "cli_asn", info.cli_asn.value, add_hyperlinks) .. " ]"
+      elseif not isEmptyString(info.cli_mac) and (info.cli_mac ~= '00:00:00:00:00:00') then
          label = label .. " [ " .. info. cli_mac .. " ]"
       end
    end
    
    label = label .. "&nbsp; <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> &nbsp;"
 
-   label = label .. get_historical_url(info.srv_ip.label, ternary(info.srv_ip.label ~= info.srv_ip.ip, "srv_name", "srv_ip"), info.srv_ip.label,add_hyperlinks,  ternary(info.srv_ip.label ~= info.srv_ip.ip, info.srv_ip.ip, nil))
+   label = label ..historical_flow_utils.get_historical_url(info.srv_ip.label, ternary(info.srv_ip.label ~= info.srv_ip.ip, "srv_name", "srv_ip"), info.srv_ip.label,add_hyperlinks,  ternary(info.srv_ip.label ~= info.srv_ip.ip, info.srv_ip.ip, nil))
 
    if add_hyperlinks and info.srv_location and not isEmptyString(info.srv_location.label) then
       label = label .. " " .. info.srv_location.label
    end
 
    if info.srv_port and not isEmptyString(info.srv_port.label) then
-      label = label .. ":" .. get_historical_url(info.srv_port.label, "srv_port", info.srv_port.value, add_hyperlinks)
+      label = label .. ":" ..historical_flow_utils.get_historical_url(info.srv_port.label, "srv_port", info.srv_port.value, add_hyperlinks)
+   end
+
+   if info.IS_SRV_ATTACKER and info.IS_SRV_ATTACKER == '1' then
+    label = label .. ' <i class="fas fa-skull" title="' .. i18n('db_explorer.is_attacker') .. '"></i> '
+   end
+   
+   if info.IS_SRV_VICTIM and info.IS_SRV_VICTIM == '1' then
+    label = label .. ' <i class="fas fa-sad-tear" title="' .. i18n('db_explorer.is_victim') .. '"></i> '
+   end
+   
+   if info.IS_SRV_BLACKLISTED and info.IS_SRV_BLACKLISTED == '1' then
+    label = label .. ' <i class="fas fa-ban fa-sm" title="' .. i18n('db_explorer.is_blacklisted') .. '"></i> '
    end
 
    if add_hyperlinks then
       if info.srv_asn and info.srv_asn.value > 0 and not isEmptyString(info.srv_asn.title) then
-         label = label .. " [ " .. get_historical_url(info.srv_asn.title, "srv_asn", info.srv_asn.value, add_hyperlinks) .. " ]"
-      elseif not isEmptyString(info.srv_mac) then
+         label = label .. " [ " ..historical_flow_utils.get_historical_url(info.srv_asn.title, "srv_asn", info.srv_asn.value, add_hyperlinks) .. " ]"
+      elseif not isEmptyString(info.srv_mac) and (info.srv_mac ~= '00:00:00:00:00:00') then
          label = label .. " [ " .. info. srv_mac .. " ]"
       end
    end
@@ -1898,17 +1944,17 @@ function historical_flow_utils.getHistoricalProtocolLabel(record, add_hyperlinks
    local info = historical_flow_utils.format_clickhouse_record(record)
 
    if info.l4proto then
-      label = label .. get_historical_url(info.l4proto.label, "l4proto", info.l4proto.value, add_hyperlinks)
+      label = label ..historical_flow_utils.get_historical_url(info.l4proto.label, "l4proto", info.l4proto.value, add_hyperlinks)
    end
 
    label = label .. " / "
 
    if info.l7proto then
-      label = label .. get_historical_url(info.l7proto.label, "l7proto", info.l7proto.value, add_hyperlinks)
+      label = label ..historical_flow_utils.get_historical_url(info.l7proto.label, "l7proto", info.l7proto.value, add_hyperlinks)
    end
 
    if info.l7cat then
-      label = label .. " (" .. get_historical_url(info.l7cat.label, "l7cat", info.l7cat.value, add_hyperlinks) .. ")"
+      label = label .. " (" ..historical_flow_utils.get_historical_url(info.l7cat.label, "l7cat", info.l7cat.value, add_hyperlinks) .. ")"
    end
 
    return label

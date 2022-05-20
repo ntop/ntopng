@@ -395,6 +395,7 @@ end
 function alert_utils.formatAlertMessage(ifid, alert, alert_json)
   local msg
 
+  tprint(alert_json)
   if(alert_json == nil) then
    alert_json = alert_utils.getAlertInfo(alert)
   end
@@ -953,6 +954,57 @@ function alert_utils.formatOldTimeseries(q_res, _epoch_begin, _epoch_end)
    end -- for
 
    return res
+end
+
+-- ##############################################
+
+
+function alert_utils.format_other_alerts(alert_bitmap, predominant_alert)
+  -- Unpack all flow alerts, iterating the alerts_map. The alerts_map is stored as an HEX.
+  local other_alerts_by_score = {} -- Table used to keep messages ordered by score
+  local additional_alerts = {}
+  local nibble_num = 0 -- Current nibble being processed
+  for alerts_map_nibble_id = #alert_bitmap, 1, -1 do
+    -- Extract the nibble
+    local alerts_map_hex_nibble = alert_bitmap:sub(alerts_map_nibble_id, alerts_map_nibble_id)
+    -- Convert the HEX nibble into a decimal value
+    local alerts_map_nibble = tonumber(alerts_map_hex_nibble, 16)
+
+    if alerts_map_nibble > 0 then
+      for bit_num = 0, 7 do
+        -- Checks the bits set in this current nibble
+        local has_bit = alerts_map_nibble & (1 << bit_num) == (1 << bit_num)
+
+        if has_bit then -- The bit is set
+          -- The actual alert id is the bit number times the current byte multiplied by 8
+          local alert_id = math.floor(8 * nibble_num / 2) + bit_num
+
+          if alert_id ~= tonumber(predominant_alert) then -- Do not add the predominant alert to the list of additional alerts
+            local message = alert_consts.alertTypeLabel(alert_id, true, alert_entities.flow.entity_id)
+
+            local alert_score = ntop.getFlowAlertScore(alert_id)
+
+            local alert_risk = ntop.getFlowAlertRisk(alert_id)
+            if alert_risk > 0 then
+                message = string.format("%s %s", message, flow_risk_utils.get_documentation_link(alert_risk))
+            end
+
+            if not other_alerts_by_score[alert_score] then
+                other_alerts_by_score[alert_score] = {}
+            end
+
+            other_alerts_by_score[alert_score][#other_alerts_by_score[alert_score] + 1] = message
+            additional_alerts[#additional_alerts + 1] = message
+          end
+        end
+      end
+    end
+
+    -- Increment the nibble
+    nibble_num = nibble_num + 1
+  end
+
+  return other_alerts_by_score, additional_alerts
 end
 
 -- ##############################################

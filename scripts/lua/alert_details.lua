@@ -8,14 +8,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. p
 
 require "lua_utils"
 local page_utils = require("page_utils")
-local ui_utils = require "ui_utils"
 local json = require "dkjson"
-local dscp_consts = require "dscp_consts"
 local template_utils = require "template_utils"
 
 local alert_entities = require "alert_entities"
-local alert_consts = require "alert_consts"
-local alert_utils = require "alert_utils"
 local alert_store = require "alert_store"
 local alert_store_utils = require "alert_store_utils"
 local alert_store_instances = alert_store_utils.all_instances_factory()

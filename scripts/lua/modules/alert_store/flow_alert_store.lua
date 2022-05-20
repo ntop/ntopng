@@ -493,48 +493,10 @@ function flow_alert_store:format_record(value, no_html)
       end
    end
 
-   -- Unpack all flow alerts, iterating the alerts_map. The alerts_map is stored as an HEX.
    local other_alerts_by_score = {} -- Table used to keep messages ordered by score
    local additional_alerts = {}
-   local nibble_num = 0 -- Current nibble being processed
-   for alerts_map_nibble_id = #value.alerts_map, 1, -1 do
-      -- Extract the nibble
-      local alerts_map_hex_nibble = value.alerts_map:sub(alerts_map_nibble_id, alerts_map_nibble_id)
-      -- Convert the HEX nibble into a decimal value
-      local alerts_map_nibble = tonumber(alerts_map_hex_nibble, 16)
-
-      if alerts_map_nibble > 0 then
-	 for bit_num = 0, 7 do
-	    -- Checks the bits set in this current nibble
-	    local has_bit = alerts_map_nibble & (1 << bit_num) == (1 << bit_num)
-
-	    if has_bit then -- The bit is set
-	       -- The actual alert id is the bit number times the current byte multiplied by 8
-	       local alert_id = math.floor(8 * nibble_num / 2) + bit_num
-
-	       if alert_id ~= tonumber(value["alert_id"]) then -- Do not add the predominant alert to the list of additional alerts
-		  local message = alert_consts.alertTypeLabel(alert_id, true, alert_entities.flow.entity_id)
-
-		  local alert_score = ntop.getFlowAlertScore(alert_id)
-
-		  local alert_risk = ntop.getFlowAlertRisk(alert_id)
-		  if alert_risk > 0 then
-		     message = string.format("%s %s", message, flow_risk_utils.get_documentation_link(alert_risk))
-		  end
-
-		  if not other_alerts_by_score[alert_score] then
-		     other_alerts_by_score[alert_score] = {}
-		  end
-		  other_alerts_by_score[alert_score][#other_alerts_by_score[alert_score] + 1] = message
-		  additional_alerts[#additional_alerts + 1] = message
-	       end
-	    end
-	 end
-      end
-
-      -- Increment the nibble
-      nibble_num = nibble_num + 1
-   end
+  
+   other_alerts_by_score, additional_alerts = alert_utils.format_other_alerts(value.alerts_map, value['alert_id'])
 
    -- Print additional issues, sorted by score
    record[RNAME.ADDITIONAL_ALERTS.name] = ''
@@ -874,6 +836,18 @@ end
 
 -- ##############################################
 
+local function add_historical_link(value, flow_link)
+  local historical_href = ""
+  
+  if ntop.isClickHouseEnabled() then
+    historical_href = "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/pro/db_flow_details.lua?row_id=" .. value["rowid"] .. "&tstamp=" .. value["tstamp_epoch"] .. "\" title='" .. i18n('alert_details.flow_details') .. "' target='_blank'> <i class='fas fa fa-search-plus'></i> </a>"
+  end
+
+  return flow_link .. " " ..historical_href
+end
+
+-- ##############################################
+
 --@brief Get a label/title for the alert coming from the DB (value)
 function flow_alert_store:get_alert_label(value)
    local fmt = self:format_record(value, false)
@@ -884,7 +858,7 @@ end
 
 --@brief Convert an alert coming from the DB (value) to a list of items to be printed in the details page
 function flow_alert_store:get_alert_details(value)
-   local details = {}
+  local details = {}
    local fmt = self:format_record(value, false)
    local add_hyperlink = true
    local json = json.decode(value["json"]) or {}
@@ -898,7 +872,7 @@ function flow_alert_store:get_alert_details(value)
 
    details[#details + 1] = {
       label = i18n("flow_details.flow_peers_client_server"),
-      content = get_flow_link(fmt, add_hyperlink)
+      content = add_historical_link(value, get_flow_link(fmt, add_hyperlink))
    }
 
    details[#details + 1] = {

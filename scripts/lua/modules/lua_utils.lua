@@ -5265,6 +5265,24 @@ end
 
 -- ##############################################
 
+function format_proto_info(proto_info)
+  for proto, info in pairs(proto_info) do
+    if proto == "tls" then
+      info = format_tls_info(info)
+    elseif proto == "dns" then
+      info = format_dns_query_info(info)
+    elseif proto == "http" then
+      info = format_http_info(info)
+    elseif proto == "icmp" then
+      info = format_icmp_info(info)
+    end
+  end
+
+  return proto_info
+end
+
+-- ##############################################
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions
