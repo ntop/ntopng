@@ -2,3 +2,6 @@
 	path = tests/e2e
 	url = https://github.com/ntop/ntopng-e2e-tests.git
 	branch = dev
+[submodule "dist"]
+	path = httpdocs/dist
+	url = https://github.com/ntop/ntopng-dist.git
