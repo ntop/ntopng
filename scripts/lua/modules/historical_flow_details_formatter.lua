@@ -182,7 +182,6 @@ end
 local function format_historical_info(flow)
   local historical_flow_utils = require "historical_flow_utils"
 
-  tprint(flow["INFO"])
   return {
     label = i18n("db_explorer.info"),
     content = historical_flow_utils.get_historical_url(flow["INFO"], "info", flow["INFO"], true, flow["INFO"]),
