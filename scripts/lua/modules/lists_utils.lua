@@ -137,6 +137,12 @@ local BUILTIN_LISTS = {
       category = CUSTOM_CATEGORY_MALWARE,
       enabled = false,
       update_interval = DEFAULT_UPDATE_INTERVAL,
+   }, ["ThreatFox"] = {
+      url = "https://threatfox.abuse.ch/downloads/hostfile/",
+      format = "hosts",
+      category = CUSTOM_CATEGORY_MALWARE,
+      enabled = true,
+      update_interval = DEFAULT_UPDATE_INTERVAL,
    }
 }
 
