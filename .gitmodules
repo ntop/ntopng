@@ -5,3 +5,4 @@
 [submodule "dist"]
 	path = httpdocs/dist
 	url = https://github.com/ntop/ntopng-dist.git
+	branch = dev
