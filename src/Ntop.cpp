@@ -341,6 +341,8 @@ Ntop::~Ntop() {
   if(flow_checks_loader)     delete flow_checks_loader;
   if(host_checks_loader)     delete host_checks_loader;
 
+  if(myTZname) free(myTZname);
+
 #ifdef __linux__
   if(inotify_fd > 0)  close(inotify_fd);
 #endif
