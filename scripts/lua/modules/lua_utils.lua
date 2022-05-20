@@ -5183,6 +5183,10 @@ function format_tls_info(tls_info)
     tls_info["client_requested_server_name"] = i18n("external_link_url", { url = tls_info["client_requested_server_name"], url_name = tls_info["client_requested_server_name"]})
   end
 
+  if tls_info["ja3.server_cipher"] then
+    tls_info["ja3.server_cipher"] = nil
+  end
+
   if tls_info["ja3.server_unsafe_cipher"] then
     local badge = get_badge(tls_info["ja3.server_unsafe_cipher"] == "safe")
     tls_info["ja3.server_unsafe_cipher"] = string.format('<span class="badge bg-%s">%s</span>', badge, tls_info["ja3.server_unsafe_cipher"])
@@ -5266,6 +5270,10 @@ end
 -- ##############################################
 
 function format_proto_info(proto_info)
+  if proto_info.l7_error_code then
+    proto_info.l7_error_code = nil
+  end
+
   for proto, info in pairs(proto_info) do
     if proto == "tls" then
       info = format_tls_info(info)

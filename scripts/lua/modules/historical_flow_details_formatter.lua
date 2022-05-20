@@ -149,12 +149,27 @@ end
 -- ###############################################
 
 local function format_historical_issue_description(flow)
+  local alert_store_utils = require "alert_store_utils"
+  local alert_entities = require "alert_entities"
+  local alert_store_instances = alert_store_utils.all_instances_factory()
   local alert_utils = require "alert_utils"
   local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
-    
+  
+  local details, alert 
+  
+  local alert_store_instance = alert_store_instances[alert_entities["flow"].alert_store_name]
+
+  if alert_store_instance then
+    local alerts, _ = alert_store_instance:select_request(nil, "*")
+    if #alerts >= 1 then
+      alert = alerts[1]
+      details = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_json)
+    end
+  end
+ 
   return {
     label = i18n('db_explorer.issue_description'),
-    content = alert_utils.formatFlowAlertMessage(interface.getId(), { alert_id = flow['STATUS'] }, alert_json)
+    content = details
   }
 end
 
@@ -181,10 +196,11 @@ end
 
 local function format_historical_info(flow)
   local historical_flow_utils = require "historical_flow_utils"
-
+  local info_field = historical_flow_utils.get_historical_url(shortenString(flow["INFO"], 64), "info", flow["INFO"], true, flow["INFO"])
+  
   return {
     label = i18n("db_explorer.info"),
-    content = historical_flow_utils.get_historical_url(flow["INFO"], "info", flow["INFO"], true, flow["INFO"]),
+    content = info_field,
   }
 end
 
@@ -248,7 +264,7 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
     end
 
     flow_details[#flow_details + 1] = format_historical_score(flow)
-    -- flow_details[#flow_details + 1] = format_historical_issue_description(flow)
+    flow_details[#flow_details + 1] = format_historical_issue_description(flow)
 
     -- Formatting other issues, this is the only feasible way
     local other_issues = format_historical_other_issues(flow)

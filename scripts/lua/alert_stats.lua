@@ -592,6 +592,15 @@ if page == 'snmp_device' then
   endpoint_cards = ntop.getHttpPrefix() .. "/lua/pro/rest/v2/get/snmp/device/alert/top.lua"
 end
 
+local alert_details_url = ntop.getHttpPrefix().."/lua/alert_details.lua"
+
+-- ClickHouse enabled, redirect to the pro details page
+if ((page == 'host') or (page == 'flow')) and 
+    ntop.isEnterpriseM() and 
+    hasClickHouseSupport() then
+  alert_details_url = ntop.getHttpPrefix().."/lua/pro/db_flow_details.lua"
+end
+
 local datasource_data = {
    ifid = ifid,
    epoch_begin = epoch_begin,
@@ -735,7 +744,7 @@ local context = {
        entity = page,
        alert_status = status,
        datatable = datatable,
-       alert_details_url = ntop.getHttpPrefix().."/lua/alert_details.lua",
+       alert_details_url = alert_details_url,
    }
 }
 

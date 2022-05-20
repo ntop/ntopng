@@ -12,7 +12,6 @@ local json = require "dkjson"
 local template_utils = require "template_utils"
 
 local alert_entities = require "alert_entities"
-local alert_store = require "alert_store"
 local alert_store_utils = require "alert_store_utils"
 local alert_store_instances = alert_store_utils.all_instances_factory()
 
