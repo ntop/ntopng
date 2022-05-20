@@ -7,6 +7,7 @@
   <th>{{ i18n("show_alerts.alert_counts") }}</th>
   <th>{{ i18n("main_issue") }}</th>
   <th>{{ i18n("flow_details.additional_alert_type") }}</th>
+  <th>{{ i18n("datatable.fields.info") }}</th>
   <th>{{ i18n("alerts_dashboard.flow_related_info") }}</th>
   <th>{{ i18n("db_search.tags.cli_host_pool_id") }}</th>
   <th>{{ i18n("db_search.tags.srv_host_pool_id") }}</th>

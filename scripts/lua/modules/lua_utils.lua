@@ -5291,6 +5291,24 @@ end
 
 -- ##############################################
 
+-- @brief This function format the info field used in tables
+-- @params info: A string containing the info field
+--         no_html: A boolean, true if no_html is requested (e.g. Download in CSV format), 
+--                  false otherwise
+-- @return A string containing the info field formatted
+function format_info_field(info, no_html)
+  local info_field = info
+  if no_html == false then
+    if not isEmptyString(info) then
+      info_field = i18n("external_link_url", { url = info, url_name = info})
+    end
+  end
+
+  return info_field
+end
+
+-- ##############################################
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

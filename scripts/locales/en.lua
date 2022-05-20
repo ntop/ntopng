@@ -1449,6 +1449,9 @@ local lang = {
     ["no_records"] = "No Records",
     ["number_of_records"] = "Number of records",
     ["select_filter"] = "Filter",
+    ["fields"] = {
+      ["info"] = "Info",
+    },
   },
   ["db_explorer"] = {
     ["abort"] = "Abort",

@@ -21,11 +21,10 @@ local function format_historical_main_issue(flow)
   end
   
   local alert_href = "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/alert_stats.lua?status=historical&page=flow&alert_id=" .. alert_id .. ";eq\">" .. alert_label .. "</a>"
-  local alert_details_href =  "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/alert_details.lua?status=historical&page=flow&row_id=" .. flow["FLOW_ID"] .. "&tstamp=" .. flow["FIRST_SEEN"] .. "\" title='" .. i18n('db_explorer.alert_details') .. "'> <i class='fas fa fa-search-plus'></i> </a>"
-
+  
   return {
     label = i18n("alerts_dashboard.alert"),
-    content = alert_href .. "  " .. alert_details_href
+    content = alert_href
   }
 end
 

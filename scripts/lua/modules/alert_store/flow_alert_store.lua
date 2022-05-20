@@ -442,6 +442,8 @@ local RNAME = {
    SRV_HOST_POOL_ID = { name = "srv_host_pool_id", export = false },
    CLI_NETWORK = { name = "cli_network", export = false },
    SRV_NETWORK = { name = "srv_network", export = false },
+
+   INFO = { name = "info", export = true },
 }
 
 -- ##############################################
@@ -534,6 +536,11 @@ function flow_alert_store:format_record(value, no_html)
          shorten_descr = shorten_msg,
       }
    end
+   
+   local info = format_info_field(value["info"], no_html)
+   record[RNAME.INFO.name] = {
+     descr = info
+   }
 
    record[RNAME.FLOW_RELATED_INFO.name] = {
     descr = flow_related_info

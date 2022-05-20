@@ -622,18 +622,18 @@ function alert_store:add_filter_condition(field, op, value, value_type)
    if not op or not tag_utils.tag_operators[op] then
       op = 'eq'
    end
-
+  
    if value_type == 'number' then
      value = tonumber(value)
    end
-
+  
    local cond = {
       field = field,
       op = op,
       value = value,
       value_type = value_type,
    }
-
+  
    if not self._where[field] then
       self._where[field] = { all = {}, any = {} }
    end
@@ -1481,6 +1481,7 @@ function alert_store:add_request_filters(is_write)
    local rowid = _GET["row_id"]
    local tstamp = _GET["tstamp"]
    local status = _GET["status"]
+   local info = _GET["info"]
 
    -- Remember the score filter (see also alert_stats.lua)
    local alert_score_cached = string.format(ALERT_SCORE_FILTER_KEY, self:get_ifid())
@@ -1498,6 +1499,7 @@ function alert_store:add_request_filters(is_write)
    self:add_filter_condition_list('severity', alert_severity, 'number')
    self:add_filter_condition_list('score', score, 'number')
    self:add_filter_condition_list('tstamp', tstamp, 'number')
+   self:add_filter_condition_list('info', info, 'string')
    
    if(ntop.isClickHouseEnabled()) then
       -- Clickhouse db has the column 'interface_id', filter by that per interface

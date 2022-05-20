@@ -19,6 +19,8 @@
     /* Additional alerts */
     {responsivePriority: 4, name: 'additional_alerts', data: 'additional_alerts',  orderable: false, className: 'none', render: DataTableRenders.formatMessage},
     /* Flow related info */
+    {responsivePriority: 5, name: 'info', data: 'info',  orderable: true, className: 'none', render: DataTableRenders.formatMessage},
+    /* Flow related info */
     {responsivePriority: 5, name: 'flow_related_info', data: 'flow_related_info',  orderable: false, className: 'none', render: DataTableRenders.formatMessage},
     /* Client Host Pool Id */
     {responsivePriority: 4, name: 'cli_host_pool_id', data: 'cli_host_pool_id',  orderable: false, className: 'text-nowrap', render: DataTableRenders.getFormatGenericField('cli_host_pool_id')},
