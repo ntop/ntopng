@@ -366,16 +366,22 @@ function predicates.mirrored_traffic(toast, container)
     local message = i18n('check_mirrored_traffic', { id = ifstats.id })
     local upload_traffic = 0
     local download_traffic = 0
+    local num_tot_traffic_points = 0
 
     for _, traffic in pairs(ifstats.download_stats) do
       download_traffic = download_traffic + traffic
+      if traffic > 0 then
+        num_tot_traffic_points = num_tot_traffic_points + 1
+      end
     end
 
     for _, traffic in pairs(ifstats.upload_stats) do
       upload_traffic = upload_traffic + traffic
     end
  
-    if is_not_oem_and_administrator and not isEmptyString(message) and (upload_traffic == 0 and download_traffic > 0) then
+    if is_not_oem_and_administrator and not isEmptyString(message) and 
+      (num_tot_traffic_points > 10) and 
+      (upload_traffic == 0 and download_traffic > 0) then
         table.insert(container, create_mirrored_traffic_toast(toast, message))
     end
 end
