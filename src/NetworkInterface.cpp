@@ -9922,9 +9922,9 @@ int NetworkInterface::countActiveLocalHosts(lua_State* vm) {
   else {
     lua_newtable(vm);
 
-    lua_push_uint64_table_entry(vm, "active", m.numberActive);
-    lua_push_uint64_table_entry(vm, "broadormulti", m.numberBroadOrMulti);
-    lua_push_uint64_table_entry(vm, "passive", m.numberPassive);
+    lua_push_uint32_table_entry(vm, "active", m.numberActive);
+    lua_push_uint32_table_entry(vm, "broadormulti", m.numberBroadOrMulti);
+    lua_push_uint32_table_entry(vm, "passive", m.numberPassive);
     
     lua_pushstring(vm, "count_localhost");
     lua_insert(vm, -2);
