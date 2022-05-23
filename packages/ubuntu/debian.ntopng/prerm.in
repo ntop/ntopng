@@ -17,7 +17,7 @@ check_upgrade_declined()
 	fi
 }
 
-promt_license_expired()
+prompt_license_expired()
 {
     local NOW=`date +'%s'`
     local EXPIRY_EPOCH=`/usr/bin/@APP@ --check-maintenance | cut -d' ' -f 1`
@@ -29,7 +29,7 @@ promt_license_expired()
 	# Permanent licenses are always valid even when the maintenance is expired.
 	:
     elif echo "${EXPIRY_EPOCH}${NOW}" | grep -q "^[0-9]\+$"; then
-	if [ "${EXPIRY_EPOCH}" -lt "${NOW}" ]; then
+	if [ "${EXPIRY_EPOCH}" -gt "0" ] && [ "${EXPIRY_EPOCH}" -lt "${NOW}" ]; then
 	    db_input high ntopng/license_expired_continue_installation || true
 	    db_go || true
 	    check_upgrade_declined
@@ -46,7 +46,7 @@ case "$1" in
 	;;
 
 	*)
-	if [ "$1" = "upgrade" ]; then promt_license_expired; fi
+	if [ "$1" = "upgrade" ]; then prompt_license_expired; fi
 	echo "Stopping @APP@ services..."
 	if hash systemctl 2>/dev/null; then
 	    if hash deb-systemd-invoke 2>/dev/null; then
