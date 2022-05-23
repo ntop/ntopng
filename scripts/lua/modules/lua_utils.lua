@@ -5291,7 +5291,7 @@ end
 
 -- ##############################################
 
--- @brief This function format the info field used in tables
+-- @brief  This function format the info field used in tables
 -- @params info: A string containing the info field
 --         no_html: A boolean, true if no_html is requested (e.g. Download in CSV format), 
 --                  false otherwise
@@ -5305,6 +5305,22 @@ function format_info_field(info, no_html)
   end
 
   return info_field
+end
+
+-- ##############################################
+
+-- @brief  This function, given an IP and a vlan return the concat of host@vlan
+-- @params host_ip: A string containing the IP
+--         vlan:    A string or a number containing the vlan id
+-- @return A string IP@vlan
+function format_ip_vlan(ip, vlan)
+  local host = ip
+  
+  if (vlan) and (tonumber(vlan) ~= 0) then
+    host = host .. '@' .. tonumber(vlan)
+  end
+
+  return host
 end
 
 -- ##############################################
