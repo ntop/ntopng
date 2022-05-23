@@ -21,28 +21,29 @@ Flow
 ====
 ____________________
 
-1. **Blacklisted Flow**
------------------------
+**Blacklisted Flow**
+~~~~~~~~~~~~~~~~~~~~~~
+
 The system sends you an alert when a blacklisted host or domain is detected.
 
 A Domain Name System Blacklist is a list that allows Internet Service Providers to block potentially malicious traffic - a blacklist contains domains, email addresses and IP addresses.
 If one of them is blacklisted ,it might have bad reputation and be insecure.
 
 In case of domain -it might be suspicious website
-In case of email – it might send spam
+In case of email- it might send spam
 In case of host- it might conduct  suspicious activity
 
 The goal of the check is to notify that one of above cases has been verified.
 
-*Cybersecurity*
+*Category: Cybersecurity*
 
-*By Default*
-
-
+*Enabled by Default*
 
 
-2. **Clear-Text Credentials**
------------------------------
+
+
+**Clear-Text Credentials**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Points out the unsafe application for you credentials.
 
@@ -51,14 +52,14 @@ Instead of using HTTPS some applications transmit passwords over the unencrypted
 
 The warning appears when the credentials have been inserted on the unsafe/encrypted channel.
 
-*Cybersecurity*
 
-*By Default*
+*Category: Cybersecurity*
+
+*Enabled by Default*
 
 
-
-3. **DNS fragmented messages**
-------------------------------
+**DNS fragmented messages**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Notifies that the message was fragmented.
 
@@ -66,12 +67,13 @@ DNS messages are sent via UDP. Even when fragmentation works, it may not be secu
 
 The UDP protocol is effective and efficient with small responses. In the case of large packers, DNS resolvers should switch from using from UDP to TCP.
   
-*Cybersecurity*
+*Category: Cybersecurity*
 
-*By Default*
+*Enabled by Default*
 
-4. **Malformed packets**
-------------------------
+
+**Malformed packets**
+~~~~~~~~~~~~~~~~~~~~~
 
 The alert is sent when it’s not possible dissect the contents of the packet.
 
@@ -79,13 +81,15 @@ Maliciously malformed packets take advantage of vulnerabilities in operating sys
 
 When malformed packets are seen by ntopng ,the system warns with alert.
 
-*Cybersecurity*
 
-*By Default*
+*Category: Cybersecurity*
+
+*Enabled by Default*
 
 
-5. **External Alert** 
----------------------
+**External Alert** 
+~~~~~~~~~~~~~~~~~~
+
 
 It’s a notification of External alerts from other devices,for example,logs from a firewall.
 
@@ -93,14 +97,14 @@ For a more complete and detailed overview of the activity involved in inspection
 
 External sources offer a deeper understanding and  more complete view of what’s going on your network or device.
 
-*Cybersecurity*
+*Category: Cybersecurity*
 
-*By default*
+*Enabled by Default*
 
  
 
-6. **Suspicious User Agent**
----------------------------
+**Suspicious User Agent**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The alert is sent when a suspicious User Agent is seen.
 
@@ -115,26 +119,27 @@ User Agents are just "free-text" and might be used with malicious intentions
 The goal is to notify by making sure all the countermeasures are implemented.
 
 
-*Cybersecurity*
 
+*Category: Cybersecurity*
 
-*By Default*
+*Enabled by Default*
 
-7. **Suspicious HTTP header**
------------------------------
+**Suspicious HTTP header**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 HTTP Host header attacks exploit vulnerable websites that handle the value of the Host header in an unsafe way. If the server implicitly trusts the Host header, and fails to validate it properly, an attacker may be able to use this input to inject harmful payloads that manipulate server-side behavior. Attacks that involve injecting a payload directly into the Host header are often known as "Host header injection" attacks. 
 
 The system notifies of suspicious HTTP header inserted.
 
-*Cybrsecurity*
+*Category: Cybersecurity*
 
-*By Default*
+*Enabled by Default*
 
 
 
-8. **Suspicious HTTP URL**
----------------------------
+**Suspicious HTTP URL**
+~~~~~~~~~~~~~~~~~~~~~~~
 
 
 A warning about clicked unsafe URL.
@@ -146,15 +151,15 @@ Malicius URL -The simple act of clicking on a malicious URL, opening an attachme
 The Alert is sent in order to raise the awareness on this type of URL and to pay attention on final httpS URLs
 
 
-*Cybersecurity*
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
 
 
-*By Default*
 
-
-
-9. **Malicious DNS query**
---------------------------
+**Malicious DNS query**
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 The system detects that the DNS which is not correctly resolved.
@@ -171,13 +176,15 @@ Malicious DNS, include:
     
 The Alert is sent in order to notify that the system might have been compromised and changed the DNS server
 
-*Cybersecurity*
+*Category: Cybersecurity*
 
-*By Default*
+*Enabled by Default*
 
 
-10. **IDN Domain Name**
------------------------
+
+**IDN Domain Name**
+~~~~~~~~~~~~~~~~~~~
+
 
 The domain has been converted in Ponycode to latin version.
 
@@ -188,13 +195,14 @@ there is a system called Punycode. When you wish to register an IDN domain, you 
 The alert notifies that the website domain name was written in non latin script.
 
 
-*Cybersecurity*
+*Category: Cybersecurity*
+
+*Enabled by Default*
 
 
-*By Default*
+**ICMP Data Exfiltration**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-11. **ICMP Data Exfiltration**
--------------------------------
 
 
 Checks data Exfiltration by using ping.
@@ -205,14 +213,14 @@ Attackers can exploit this design choice to obfuscate malicious network behavior
 
 The system sends an alert when detects a ICMP data exfiltration.
 
-*Cybersecurity*
+*Category: Cybersecurity*
 
-*By Default*
+*Enabled by Default*
 
 
+**Known Application on Non-Standard Port**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-12. **Known Application on Non-Standard Port**
----------------------------------------------
 
 
 Checks if all the apps are on the right port.
@@ -224,15 +232,14 @@ This is the strategy of ‘security through obscurity’ . While it may keep cyb
 Sends a notification in case the system detects an application is on unusual port.
 
 
-*Cybersecurity*
+*Category: Cybersecurity*
+
+*Enabled by Default*
 
 
-*By Default*
 
-
-
-13. **Deprecated SSH protocol**
--------------------------------
+**Deprecated SSH protocol**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Warns about an outdated Secure Shell protocol.
@@ -242,12 +249,13 @@ In terms of security if the target is using deprecated SSH cryptographic setting
 
 Notifies that SSH protocol is obsolete.
 
-*Cybersecurity*
+*Category: Cybersecurity*
 
-*By Default*
+*Enabled by Default*
 
-14. **Outdated TLS versions**
------------------------------
+
+**Outdated TLS versions**
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Warns about an old version of TLS.
 
@@ -255,13 +263,14 @@ Sensitive data always require robust protection. TLS protocols provide confident
 
 Alerts when a new version of TLS is needed.
 
-*Cybersecurity*
 
-*By Default*
+*Category: Cybersecurity*
+
+*Enabled by Default*
 
 
-15. **Domain Generation Algorithm (DGA)**
-----------------------------------------
+**Domain Generation Algorithm (DGA)**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Warns about a suspicious domain that could be used with the scope to make survive the malware.
 
@@ -270,26 +279,28 @@ Changing continously domain names help hackers to prevent their servers from bei
 
 The goal is notify that the system has detected a malware.
 
-*Cybersecurity*
+*Category: Cybersecurity*
 
-*By Default*
+*Enabled by Default*
 
 
 
-16. **Remote Code Execution**
------------------------------
+
+**Remote Code Execution**
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 The system sees RCE that consist in Allowing an attacker to remotely execute malicious code on a computer.
 
 Remote code execution RCE is a type of software security vulnerabilitity. RCE vulnerabilities will allow a malicious actor to execute a code on a remote machine over LAN, WAN, or internet. An attacker can gain a full control over the compromised machine.
 
-*Cybersecurity*
 
-*By Default*
+*Category: Cybersecurity*
 
+*Enabled by Default*
 
-17. **Missing TLS SNI**
------------------------
+**Missing TLS SNI**
+~~~~~~~~~~~~~~~~~~~~
 
 
 Inspects if SNI is missed.
@@ -300,30 +311,32 @@ But in HTTPS, a TLS handshake takes place first, before the HTTP conversation ca
 
 Alert is sent to notify that TLS SNI is missing.
 
-Cybersecurity
+*Category: Cybersecurity*
 
-By Default
+*Enabled by Default*
 
-18. **Unidirectional network**
------------------------------
+
+**Unidirectional network**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Checks for “one way” data flow.
       
       
 There are many situations in which a computer does not require a bidirectional flow
- A connection on which a device may only transmit data or only receive data, but not both. That is, a source can transmit data to one or many destinations, but the destination(s) cannot transmit data back to the source because it is unable to receive.
+A connection on which a device may only transmit data or only receive data, but not both. That is, a source can transmit data to one or many destinations, but the destination(s) cannot transmit data back to the source because it is unable to receive.
 
 The system sends a notification when detects in and out going data flows.
 
 
-*Cybersecurity*
+*Category: Cybersecurity*
 
-*By Default*
+*Enabled by Default*
 
 
-19. **TCP connection refused**
-------------------------------
+
+**TCP connection refused**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Check a TCP connection.
 
@@ -331,13 +344,13 @@ In general, connection refused - errors are generated during a connect system ca
 
 Sends an alert in case the port is closed or other errors.
 
-*Cybersecurity*
+*Category: Cybersecurity*
 
-*By Default*
+*Enabled by Default*
 
 
-20. **Non-printable characters**
---------------------------------
+**Non-printable characters**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for non printable characters.
 
@@ -347,13 +360,14 @@ For traslating it’s  suggested to substitute  non-ASCII characters with ASCII 
 
 Sends an alert in case of suspect non printable characters
 
-*Cybersecurity*
 
-*By default*
+*Category: Cybersecurity*
+
+*Enabled by Default*
 
 
-21. **The Remote desktop session has ended**
---------------------------------------------
+**The Remote desktop session has ended**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks the stability of the remote desktop session
 
@@ -365,13 +379,13 @@ The connection to the remote computer was lost, possibly due to network connecti
       
 Sends an alert in case the remote desktop session is ended.
 
-*Cybersecurity*
+*Category: Cybersecurity*
 
-*By Default*
+*Enabled by Default*
 
 
-22. **Possible SQL Injection**
---------------------
+**Possible SQL Injection**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for possible sql injections
 
@@ -379,13 +393,14 @@ SQL injection, also known as SQLI, is a common attack vector that uses malicious
 
 Sends an alert when SQL might have occurred.
 
-*Cybersecurity*
+*Category: Cybersecurity*
 
-*By Default*
+*Enabled by Default*
 
 
-23. **Possible XSS**
--------------------
+**Possible XSS**
+~~~~~~~~~~~~~~~~
+
 
 The check verifies a possible XSS attack.
 
@@ -393,10 +408,9 @@ Cross-site Scripting (XSS) is a client-side code attack .The attacker aims to ex
 
 The system sends an alert in case it has detected a possible XSS attack on the website.
 
-*Cybersecurity*
+*Category: Cybersecurity*
 
-*By Default*
- 
+*Enabled by Default*
 
 
 
