@@ -292,11 +292,7 @@ if endpoint_list then
 end
 
 local prefs = ntop.getPrefs()
-if ((page == "flow") and prefs.is_dump_flows_to_clickhouse_enabled) then   
-   download_endpoint_list = ntop.getHttpPrefix() .. "/lua/rest/v2/get/alert/download_alerts.lua"
-else
-   download_endpoint_list = endpoint_list
-end
+local download_endpoint_list = endpoint_list
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.detected_alerts)
 

@@ -22,7 +22,7 @@ local res = {}
 
 local ifid = _GET["ifid"]
 local format = _GET["format"] or "json"
-local no_html = (format == "txt")
+local no_html = (format == "csv")
 
 if not auth.has_capability(auth.capabilities.alerts) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
