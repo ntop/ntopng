@@ -1072,7 +1072,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     *attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
 
   if(send_redirect) {
-    char buf[512], uri[512];
+    char buf[2048], uri[512];
     
     snprintf(uri, sizeof(uri), "%s%s", ntop->getPrefs()->get_http_prefix(), request_info->uri);
     build_redirect(uri, request_info->query_string, buf, sizeof(buf));

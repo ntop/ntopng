@@ -60,9 +60,9 @@ Ntop::Ntop(const char *appName) {
   offline = false;
   pa = NULL;
 #ifdef WIN32
-  myTZname = strdup(_tzname ? _tzname[0] : "CET");
+  myTZname = strdup(_tzname[0] ? _tzname[0] : "CET");
 #else
-  myTZname = strdup(tzname ? tzname[0] : "CET");
+  myTZname = strdup(tzname[0] ? tzname[0] : "CET");
 #endif  
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
@@ -1213,7 +1213,7 @@ bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
     return false;
   }
 
-  strncpy(ifname, allowed_ifname, MAX_INTERFACE_NAME_LEN);
+  strncpy(ifname, allowed_ifname, MAX_INTERFACE_NAME_LEN-1);
   ifname[MAX_INTERFACE_NAME_LEN - 1] = '\0';
   return true;
 }
