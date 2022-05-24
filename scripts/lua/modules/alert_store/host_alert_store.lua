@@ -86,7 +86,7 @@ function host_alert_store:insert(alert)
       ntop.mapScoreToSeverity(alert.score),
       alert.score,
       alert.granularity,
-      alert.host_pool_id,
+      alert.host_pool_id or 0,
       alert.network,
       self:_escape(alert.json))
 
