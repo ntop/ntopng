@@ -135,6 +135,13 @@ end
 
 -- ##############################################
 
+--@brief Add vlan filter
+function host_alert_store:add_vlan_filter(vlan_id)
+  self:add_filter_condition('vlan_id', 'eq', vlan_id);
+end
+
+-- ##############################################
+
 --@brief Add filters according to what is specified inside the REST API
 function host_alert_store:_add_additional_request_filters()
    local vlan_id = _GET["vlan_id"]

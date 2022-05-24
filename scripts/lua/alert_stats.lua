@@ -293,6 +293,7 @@ end
 
 local prefs = ntop.getPrefs()
 local download_endpoint_list = endpoint_list
+local download_file_name = 'alerts-' .. os.time()
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.detected_alerts)
 
@@ -637,8 +638,8 @@ local datatable = {
    modals = modals,
    download = {
       endpoint = download_endpoint_list,
-      filename = "alerts.txt",
-      format = "txt",
+      filename = "download_file_name.csv",
+      format = "csv",
       i18n = i18n('show_alerts.download_alerts'),
    },
    endpoint_delete = endpoint_delete,

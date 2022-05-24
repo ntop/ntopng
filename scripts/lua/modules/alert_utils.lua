@@ -58,32 +58,42 @@ end
 
 --@brief Deletes all stored alerts matching an host and an IP
 -- @return nil
-function alert_utils.deleteFlowAlertsMatching(host_ip, alert_id)
-   local flow_alert_store = require("flow_alert_store").new()
+function alert_utils.deleteFlowAlertsMatching(host_ip, vlan_id, alert_id)
+  local flow_alert_store = require("flow_alert_store").new()
 
-   if not isEmptyString(host_ip) then
-      flow_alert_store:add_ip_filter(hostkey2hostinfo(host_ip)["host"])
-   end
-   flow_alert_store:add_alert_id_filter(alert_id)
+  if not isEmptyString(host_ip) then
+    flow_alert_store:add_ip_filter(hostkey2hostinfo(host_ip)["host"])
+  end
 
-   -- Perform the actual deletion
-   flow_alert_store:delete()
+  if (vlan_id) and (tonumber(vlan_id) ~= 0) then
+    flow_alert_store:add_vlan_filter(vlan_id)
+  end
+  
+  flow_alert_store:add_alert_id_filter(alert_id)
+
+  -- Perform the actual deletion
+  flow_alert_store:delete()
 end
 
 -- #################################
 
 --@brief Deletes all stored alerts matching an host and an IP
 -- @return nil
-function alert_utils.deleteHostAlertsMatching(host_ip, alert_id)
-   local host_alert_store = require("host_alert_store").new()
+function alert_utils.deleteHostAlertsMatching(host_ip, vlan_id, alert_id)
+  local host_alert_store = require("host_alert_store").new()
 
-   if not isEmptyString(host_ip) then
-      host_alert_store:add_ip_filter(hostkey2hostinfo(host_ip)["host"])
-   end
-   host_alert_store:add_alert_id_filter(alert_id)
+  if not isEmptyString(host_ip) then
+    host_alert_store:add_ip_filter(hostkey2hostinfo(host_ip)["host"])
+  end
 
-   -- Perform the actual deletion
-   host_alert_store:delete()
+  if (vlan_id) and (tonumber(vlan_id) ~= 0) then
+    host_alert_store:add_vlan_filter(vlan_id)
+  end
+
+  host_alert_store:add_alert_id_filter(alert_id)
+
+  -- Perform the actual deletion
+  host_alert_store:delete()
 end
 
 -- #################################

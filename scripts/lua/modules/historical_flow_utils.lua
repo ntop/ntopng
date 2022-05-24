@@ -1206,7 +1206,6 @@ function historical_flow_utils.format_record(record, csv_format, formatted_recor
          
    ----------------------------------
    -- Need to do this in order to remove unnecessary frontend data
-
    if csv_format == true then
       processed_record = ""
 

@@ -5149,3 +5149,17 @@ const char* Utils::get_state_label(ThreadedActivityState ta_state) {
     break;
   }
 }
+
+/* ******************************************* */
+
+void Utils::splitAddressAndVlan(char *addr, VLANid *vlan_id) {
+	char *at = NULL;
+
+  if((at = strchr(addr, '@'))) {
+	  *vlan_id = atoi(at + 1);
+	  *at = '\0';
+	} else
+	  vlan_id = 0;
+}
+
+/* ******************************************* */

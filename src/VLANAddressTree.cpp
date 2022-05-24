@@ -49,6 +49,15 @@ bool VLANAddressTree::addAddress(VLANid vlan_id, char *_net, const int16_t user_
 
 /* **************************************** */
 
+bool VLANAddressTree::addVLANAddressAndData(VLANid vlan_id, const char *_what, void *user_data) {
+  if(tree[vlan_id] || (tree[vlan_id] = new (std::nothrow) AddressTree()))
+    return tree[vlan_id]->addAddressAndData(_what, user_data);
+
+  return false;
+}
+
+/* **************************************** */
+
 bool VLANAddressTree::addAddresses(VLANid vlan_id, char *net, const int16_t user_data) {
   if(tree[vlan_id] || (tree[vlan_id] = new (std::nothrow) AddressTree()))
     return tree[vlan_id]->addAddresses(net, user_data);
@@ -69,3 +78,12 @@ int16_t VLANAddressTree::findMac(VLANid vlan_id, const u_int8_t addr[]) {
   if(! tree[vlan_id]) return -1;
   return tree[vlan_id]->findMac(addr);
 }
+
+/* **************************************** */
+
+void *VLANAddressTree::findAndGetData(VLANid vlan_id, const IpAddress * const ipa) const {
+  if(! tree[vlan_id]) return NULL;
+  return tree[vlan_id]->matchAndGetData(ipa);
+}
+
+/* **************************************** */

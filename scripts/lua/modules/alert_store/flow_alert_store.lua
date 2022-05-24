@@ -344,7 +344,14 @@ end
 
 --@brief Add ip filter
 function flow_alert_store:add_ip_filter(ip)
-   self:add_filter_condition('ip', 'eq', ip);
+  self:add_filter_condition('ip', 'eq', ip);
+end
+
+-- ##############################################
+
+--@brief Add ip filter
+function flow_alert_store:add_vlan_filter(vlan_id)
+  self:add_filter_condition('vlan_id', 'eq', vlan_id);
 end
 
 -- ##############################################

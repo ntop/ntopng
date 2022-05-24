@@ -52,6 +52,8 @@ class VLANAddressTree {
 
   int16_t findAddress(VLANid vlan_id, int family, void *addr, u_int8_t *network_mask_bits = NULL);
   int16_t findMac(VLANid vlan_id, const u_int8_t addr[]);
+  void *findAndGetData(VLANid vlan_id, const IpAddress * const ipa) const;
+  bool addVLANAddressAndData(VLANid vlan_id, const char *_what, void *user_data);
 
   inline AddressTree *getAddressTree(VLANid vlan_id) { return tree[vlan_id]; };
 };

@@ -1903,12 +1903,12 @@ function hostinfo2label(host_info, show_vlan, shorten_len)
       res = getHostAltName(ip)
 
       if isEmptyString(res) then
-	 -- Read what is found inside host `name`, e.g., name as found by dissected traffic such as DHCP
-	 res = host_info["name"]
+	      -- Read what is found inside host `name`, e.g., name as found by dissected traffic such as DHCP
+	      res = host_info["name"]
 
-	 if isEmptyString(res) then
-	    return hostinfo2label_resolved(host_info, show_vlan, shorten_len)
-	 end
+        if isEmptyString(res) then
+            return hostinfo2label_resolved(host_info, show_vlan, shorten_len)
+        end
       end
    end
 
