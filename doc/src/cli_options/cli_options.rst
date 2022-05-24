@@ -165,7 +165,9 @@ ntopng supports a large number of command line parameters. To see what they are,
    [--pcap-file-purge-flows]           | Enable flow purge with pcap files (debug only)
    [--simulate-vlans]                  | Simulate VLAN traffic (debug only)
    [--simulate-ips] <num>              | Simulate IPs by choosing clients and servers among <num> random addresses
+   [--offline]                         | Run in offline mode (avoid contacting remote sites, including blacklists)
    [--help|-h]                         | Help
+   
 
    Available interfaces (-i <interface index>):
       1. lo
@@ -273,7 +275,8 @@ Some of the most important parameters are briefly discussed here.
       192.168.2.0/24=office,192.168.2.1/32,8.8.8.8/32
       9.9.9.9/32
       10.0.0.0/8
-					    
+
+
 
 
 :code:`[—disable-login|-l]`
@@ -291,4 +294,24 @@ Some of the most important parameters are briefly discussed here.
       :alt: ntopng/nprobe setup
 
       ntopng/nprobe setup
+      
+
+:code:`[--offline]`   
+
+.. code:: bash
+
+In case Ntopng is placed in a protected environment.The firewall may cause a slower performance of the dashboard.It's possible to improve it's performance by adding --offline option and stopping from contacing any external services. However,Ntopng needs to perform periodically some active traffic to operate . For this reason,knowing the list of IP/hosts there is a necessity to allow to connect to these resources:
+
+google.com 
+
+packages.ntop.org.
+
+blog.ntop.org 
+
+downloads blacklists (menu Settings -> Category Lists)
+
+
+In order to update and make it work properly ,without slowing down the dashboard. 
+
+
 
