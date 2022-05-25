@@ -285,6 +285,22 @@ Some of the most important parameters are briefly discussed here.
 
    As mentioned above, a configuration file can be used in order to start ntopng. All the command line options can be reported in the configuration file, one per line. Options must be separated from their values using a :code:`=` sign. Comment lines starting with a :code:`#` sign are allowed as well.
 
+
+:code:`[--offline]`
+
+   In case Ntopng is placed in a protected environment.The firewall may cause a slower performance of the dashboard.It's possible to improve it's performance by adding --offline option and stopping from contacing any external services. However,Ntopng needs to perform periodically some active traffic to operate . For this reason,knowing the list of IP/hosts there is a necessity to allow to connect to these resources:
+
+      google.com 
+
+      packages.ntop.org.
+
+      blog.ntop.org 
+
+      downloads blacklists (menu Settings -> Category Lists)
+
+
+   In order to update and make it work properly ,without slowing down the dashboard. 
+
 .. warning::
    Unlike its predecessor, ntopng is not itself a Netflow collector. It can act as Netflow collector combined with nProbe. To perform this connection start nProbe with the :code:`--zmq` parameter and point ntopng interface parameter to the nProbe ZMQ endpoint. Using this configuration give the admin the possibility to use ntopng as collector GUI to display data either from nProbe captured traffic and Netflow enabled devices as displayed in the following picture.
 
@@ -295,23 +311,6 @@ Some of the most important parameters are briefly discussed here.
 
       ntopng/nprobe setup
       
-
-:code:`[--offline]`   
-
-.. code:: bash
-
-In case Ntopng is placed in a protected environment.The firewall may cause a slower performance of the dashboard.It's possible to improve it's performance by adding --offline option and stopping from contacing any external services. However,Ntopng needs to perform periodically some active traffic to operate . For this reason,knowing the list of IP/hosts there is a necessity to allow to connect to these resources:
-
-google.com 
-
-packages.ntop.org.
-
-blog.ntop.org 
-
-downloads blacklists (menu Settings -> Category Lists)
-
-
-In order to update and make it work properly ,without slowing down the dashboard. 
 
 
 
