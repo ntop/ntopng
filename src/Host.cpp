@@ -860,6 +860,10 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
+  getServerName(name_buf, sizeof(name_buf));
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
+    goto out;
+
   /* Most relevant names goes first */
   if(isBroadcastDomainHost()) {
     Mac *cur_mac = getMac(); /* Cache it as it can change */
@@ -951,6 +955,18 @@ char * Host::getMDNSName(char * const buf, ssize_t buf_len) {
   if(buf && buf_len) {
     m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_len, "%s", names.mdns ? names.mdns : "");
+    m.unlock(__FILE__, __LINE__);
+  }
+
+  return Utils::stringtolower(buf);
+}
+
+/* ***************************************** */
+
+char * Host::getServerName(char * const buf, ssize_t buf_len) {
+  if(buf && buf_len) {
+    m.lock(__FILE__, __LINE__);
+    snprintf(buf, buf_len, "%s", names.server_name ? names.server_name : "");
     m.unlock(__FILE__, __LINE__);
   }
 
@@ -1470,6 +1486,13 @@ void Host::offlineSetHTTPName(const char * http_n) {
 
 /* *************************************** */
 
+void Host::setServerName(const char * server_n) {
+  if(!names.server_name && server_n && (names.server_name = Utils::toLowerResolvedNames(server_n)))
+    ;
+}
+
+/* *************************************** */
+
 void Host::setResolvedName(const char * resolved_name) {
   /* Multiple threads can set this so we must lock */
   if(resolved_name && resolved_name[0] != '\0') {
@@ -1642,13 +1665,14 @@ void Host::checkBroadcastDomain() {
 
 void Host::freeHostNames() {
   if(ssdpLocation)   { free(ssdpLocation); ssdpLocation = NULL;       }
+  if(names.http)     { free(names.http); names.http = NULL;           }
   if(names.mdns)     { free(names.mdns); names.mdns = NULL;           }
   if(names.mdns_info){ free(names.mdns_info); names.mdns_info = NULL; }
   if(names.mdns_txt) { free(names.mdns_txt); names.mdns_txt = NULL;   }
-  if(names.resolved) { free(names.resolved); names.resolved = NULL;   }
   if(names.netbios)  { free(names.netbios); names.netbios = NULL;     }
+  if(names.resolved) { free(names.resolved); names.resolved = NULL;   }
+  if(names.server_name) { free(names.server_name); names.server_name = NULL;           }
   if(names.tls)      { free(names.tls); names.tls = NULL;             }
-  if(names.http)     { free(names.http); names.http = NULL;           }
 }
 
 /* *************************************** */

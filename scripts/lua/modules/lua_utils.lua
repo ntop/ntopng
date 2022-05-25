@@ -2161,11 +2161,11 @@ end
 
 -- Flow Utils --
 
-function flowinfo2hostname(flow_info, host_type, alerts_view)
+function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
    local name
    local orig_name
 
-   if alerts_view and not hasClickHouseSupport() then
+   if (alerts_view and not hasClickHouseSupport()) or (add_hostname ~= nil and add_hostname == false) then
       -- do not return resolved name as it will hide the IP address
       return(flow_info[host_type..".ip"])
    end
@@ -2386,33 +2386,16 @@ end
 -- ##############################################
 
 function flow2hostinfo(host_info, host_type)
-   local host_name
-
-   if host_type == "cli" then
-      if not host_info["cli.host"] then
-	 local res = interface.getHostMinInfo(host_info["cli.ip"])
-	 
-	 if((res == nil) or (res["name"] == nil)) then
-	    host_name = host_info["cli.ip"]
-	 else
-	    host_name = res["name"]
-	 end
-      end
-
-      return({host = host_info["cli.ip"], vlan = host_info["cli.vlan"], name = host_name})
-   elseif host_type == "srv" then
-      if not host_info["srv.host"] then
-	 local res = interface.getHostMinInfo(host_info["srv.ip"])
-	 
-	 if((res == nil) or (res["name"] == nil)) then
-	    host_name = host_info["srv.ip"]
-	 else
-	    host_name = res["name"]
-	 end
-      end
-      
-      return({host = host_info["srv.ip"], vlan = host_info["srv.vlan"], name = host_name})
-   end
+  local host_name
+  local res = interface.getHostMinInfo(host_info[host_type .. ".ip"])
+  
+  if((res == nil) or (res["name"] == nil)) then
+      host_name = host_info[host_type .. ".ip"]
+  else
+      host_name = res["name"]
+  end
+  
+  return({host = host_info[host_type .. ".ip"], vlan = host_info[host_type .. ".vlan"], name = host_name})
 end
 
 -- ##############################################

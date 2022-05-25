@@ -590,11 +590,11 @@ local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
     return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), {page = "historical", epoch_begin = historical_bounds[1], epoch_end = historical_bounds[2], detail_view = "flows", port = port}, port, port, true --[[ check href existance --]])
 end
 
-function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperlink_suffix, add_flag)
+function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperlink_suffix, add_flag, add_hostnames)
    if flow == nil then return "" end
 
-   local cli_name = flowinfo2hostname(flow, "cli")
-   local srv_name = flowinfo2hostname(flow, "srv")
+   local cli_name = flowinfo2hostname(flow, "cli", nil, add_hostnames)
+   local srv_name = flowinfo2hostname(flow, "srv", nil, add_hostnames)
    local cli_mac = flow["cli.mac"]
    local srv_mac = flow["srv.mac"]
    local cli_as  = nil

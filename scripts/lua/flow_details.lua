@@ -433,7 +433,7 @@ local flow_hash_id = _GET["flow_hash_id"]
 flow = interface.findFlowByKeyAndHashId(tonumber(flow_key), tonumber(flow_hash_id))
 
 local ifid = interface.name2id(ifname)
-local label = getFlowLabel(flow)
+local label = getFlowLabel(flow, nil, nil, nil, nil, nil, false)
 local title = i18n("flow")..": "..label
 local url = ntop.getHttpPrefix().."/lua/flow_details.lua"
 
