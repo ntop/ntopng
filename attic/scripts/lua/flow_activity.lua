@@ -11,7 +11,6 @@ local web_activity_defaults = {filter.Web}
 
 if(trace_hk) then print("Initialized script useractivity.lua\n") end
 
-tprint("ciao")
 -- ########################################################
 
 -- TODO expose and use nDPI types
