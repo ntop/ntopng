@@ -543,8 +543,9 @@ function flow_alert_store:format_record(value, no_html)
          shorten_descr = shorten_msg,
       }
    end
+   local proto = string.lower(interface.getnDPIProtoName(tonumber(value["l7_master_proto"])))
    
-   local info = format_info_field(value["info"], no_html)
+   local info = format_info_field(value["info"], no_html, proto)
    record[RNAME.INFO.name] = {
      descr = info
    }

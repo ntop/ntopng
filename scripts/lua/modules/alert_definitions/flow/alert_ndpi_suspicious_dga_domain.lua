@@ -58,7 +58,10 @@ function alert_ndpi_suspicious_dga_domain.format(ifid, alert, alert_type_params)
       url = url:gsub('https', '')
     end
 
-      href = i18n('external_link_url', { url = url, url_name = shortenString(url, 32)})
+    local proto = string.lower(interface.getnDPIProtoName(tonumber(alert["l7_master_proto"])))
+    proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
+
+    href = i18n('external_link_url', { url = url, url_name = shortenString(url, 32), proto = proto })
    end
 
    return i18n("alert_messages.suspicious_dga_domain", {

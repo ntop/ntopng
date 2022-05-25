@@ -5131,7 +5131,7 @@ function format_dns_query_info(dns_info)
   end
 
   if dns_info.last_query then
-    dns_info.last_query = i18n("external_link_url", { url = dns_info["last_query"], url_name = dns_info["last_query"] })
+    dns_info.last_query = i18n("external_link_url", { proto = 'https', url = dns_info["last_query"], url_name = dns_info["last_query"] })
   end
 
   return dns_info
@@ -5163,7 +5163,7 @@ function format_tls_info(tls_info)
   end
 
   if tls_info.client_requested_server_name then
-    tls_info["client_requested_server_name"] = i18n("external_link_url", { url = tls_info["client_requested_server_name"], url_name = tls_info["client_requested_server_name"]})
+    tls_info["client_requested_server_name"] = i18n("external_link_url", { proto = 'https', url = tls_info["client_requested_server_name"], url_name = tls_info["client_requested_server_name"]})
   end
 
   if tls_info["ja3.server_cipher"] then
@@ -5224,7 +5224,7 @@ function format_http_info(http_info)
     if string.find(http_info["last_url"], '^/') then
       url = (http_info["server_name"] or "") .. http_info["last_url"]
     end
-    http_info["last_url"] = i18n("external_link_url", { url = url, url_name = url})
+    http_info["last_url"] = i18n("external_link_url", { proto = 'http', url = url, url_name = url})
   end
 
   if http_info["server_name"] then
@@ -5279,11 +5279,13 @@ end
 --         no_html: A boolean, true if no_html is requested (e.g. Download in CSV format), 
 --                  false otherwise
 -- @return A string containing the info field formatted
-function format_info_field(info, no_html)
+function format_info_field(info, no_html, proto)
   local info_field = info
+  proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
+
   if no_html == false then
     if not isEmptyString(info) then
-      info_field = i18n("external_link_url", { url = info, url_name = info})
+      info_field = i18n("external_link_url", { proto = proto, url = info, url_name = info})
     end
   end
 
