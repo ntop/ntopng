@@ -11,7 +11,7 @@
 			"limit" : 10
 		}
 	}],
-    "show_in_page" : "overview",
+	"show_in_page" : "overview",
 	"visualization_type" : "table",
 	"select" : {
 		"items" : [

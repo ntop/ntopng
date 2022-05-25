@@ -5399,6 +5399,7 @@ local lang = {
     ["raw_flows_bytes"] = "Flows (Bytes Chart)",
     ["raw_flows_records"] = "Flows",
     ["raw_flows_score"] = "Flows (Score Chart)",
+    ["top_alerted_domains"] = "Top Alerted Domains",
     ["top_clients"] = "Top Clients",
     ["top_l7_contacts"] = "Top L7 Contacts",
   },
