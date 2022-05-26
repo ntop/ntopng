@@ -1497,7 +1497,7 @@ print [[
         const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
             method: 'post',
             csrf: "]] print(ntop.getRandomCSRFValue()) print[[",
-            endpoint: `${http_prefix}/lua/rest/v2/edit/check/filter.lua`,
+            endpoint: `${http_prefix}/lua/rest/v2/add/alert/exclusion.lua`,
             beforeSumbit: function (alert) {
                 const data = {
                     alert_key: alert.alert_id,

@@ -182,7 +182,7 @@ $table.on('click', `a[href='#alerts_filter_dialog']`, function (e) {
 const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
     method: 'post',
     csrf: pageCsrf,
-    endpoint: `${http_prefix}/lua/pro/rest/v2/edit/check/filter.lua`,
+    endpoint: `${http_prefix}/lua/pro/rest/v2/add/alert/exclusion.lua`,
     beforeSumbit: function (alert) {
         let data = {
             subdir: FAMILY,

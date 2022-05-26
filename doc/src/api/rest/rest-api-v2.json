@@ -6488,14 +6488,14 @@
 				}
 			}
 		},
-		"/lua/pro/rest/v2/edit/check/filter.lua": {
+		"/lua/pro/rest/v2/add/alert/exclusion.lua": {
 			"get": {
 				"tags": [
 					"Alerts"
 				],
-				"summary": "Edit a check filter",
-				"description": "Edit a check filter",
-				"operationId": "edit_check_filter",
+				"summary": "Add an alert exclusion",
+				"description": "Add an alert exclusion",
+				"operationId": "add_alert_exclusion",
 				"produces": [
 					"application/json"
 				],
