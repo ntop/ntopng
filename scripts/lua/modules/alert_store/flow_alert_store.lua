@@ -155,8 +155,11 @@ function flow_alert_store:insert(alert)
 
    -- Note: this is no longer called when ClickHouse is enabled
    -- as a view on the historical is used. See RecipientQueue::enqueue
+   if ntop.isClickHouseEnabled() then
+      return -- Safety check
+   end
 
-   if(ntop.isClickHouseEnabled()) then
+   if ntop.isClickHouseEnabled() then
       extra_columns = "rowid, "
       extra_values = "generateUUIDv4(), "
    else
