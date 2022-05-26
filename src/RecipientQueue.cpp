@@ -71,25 +71,25 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification, AlertEntit
      )
     return true; /* Nothing to enqueue */
 
-  if (recipient_id == 0) {
+  if(recipient_id == 0) {
     /* Default recipient (SQLite / ClickHouse DB) - do not filter alerts by host */
-    if (alert_entity == alert_entity_flow &&
+    if(alert_entity == alert_entity_flow &&
         ntop->getPrefs()->useClickHouse()) {
       return true; /* Do not store flow alert - a view on historical flows is used */
     }
   } else { 
     /* Other recipients (notifications) */
-    if (alert_entity == alert_entity_flow) {
-      if (!enabled_host_pools.isSetBit(notification->pools.flow.cli_host_pool) &&
+    if(alert_entity == alert_entity_flow) {
+      if(!enabled_host_pools.isSetBit(notification->pools.flow.cli_host_pool) &&
           !enabled_host_pools.isSetBit(notification->pools.flow.srv_host_pool))
         return true;
-    } else if (alert_entity == alert_entity_host) {
-      if (!enabled_host_pools.isSetBit(notification->pools.host.host_pool))
+    } else if(alert_entity == alert_entity_host) {
+      if(!enabled_host_pools.isSetBit(notification->pools.host.host_pool))
         return true;
     }
   }
 
-  if ((!queue &&
+  if((!queue &&
        !(queue = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
     /* Queue not available */
     drops++;
