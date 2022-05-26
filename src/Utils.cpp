@@ -5163,3 +5163,11 @@ void Utils::splitAddressAndVlan(char *addr, VLANid *vlan_id) {
 }
 
 /* ******************************************* */
+
+bool Utils::endsWith(const char* base, const char* str) {
+  int blen = strlen(base);
+  int slen = strlen(str);
+  return (blen >= slen) && (0 == strcmp(base + blen - slen, str));
+}
+
+/* ******************************************* */

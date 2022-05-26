@@ -267,6 +267,7 @@ public:
   static void buildSqliteAllowedNetworksFilters(lua_State *vm);
   static void make_session_key(char *buf, u_int buf_len);
   static const char* get_state_label(ThreadedActivityState ta_state);
+  static bool endsWith(const char* base, const char* str);
 };
 
 #endif /* _UTILS_H_ */

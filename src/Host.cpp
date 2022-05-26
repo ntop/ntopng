@@ -1487,6 +1487,17 @@ void Host::offlineSetHTTPName(const char * http_n) {
 /* *************************************** */
 
 void Host::setServerName(const char * server_n) {
+  /* Discard invalid strings */
+  u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
+
+  /* Make sure we do not use invalid names as strings */
+  if(Utils::endsWith(server_n, ".ip6.arpa")
+     || Utils::endsWith(server_n, "._udp.local")
+     || (sscanf(server_n, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4) /* IPv4 address */
+     || (strchr(server_n, ':') != NULL)
+     )
+    return;
+
   if(!names.server_name && server_n && (names.server_name = Utils::toLowerResolvedNames(server_n)))
     ;
 }
@@ -2016,14 +2027,14 @@ u_int16_t Host::get_country_code() {
 void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
   char buf[64], key[96], *label =  get_visual_name(buf, sizeof(buf));
   u_int64_t tot;
-  
+
   if(get_vlan_id() == 0)
     snprintf(key, sizeof(key), "%s", printMask(buf, sizeof(buf)));
   else
     snprintf(key, sizeof(key), "%s@%u", printMask(buf, sizeof(buf)), get_vlan_id());
 
   if(label[0] == '\0') label = key;
-  
+
   switch(mode) {
   case ALL_FLOWS:
     v->push_back(ActiveHostWalkerInfo(key,label,
@@ -2031,7 +2042,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 				      getNumOutgoingFlows(),
 				      getNumBytesSent()+getNumBytesRcvd()));
     break;
-    
+
   case UNREACHABLE_FLOWS:
     v->push_back(ActiveHostWalkerInfo(key,label,
 				      getTotalNumUnreachableIncomingFlows(),
@@ -2048,11 +2059,11 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 					getTotalNumAlertedOutgoingFlows(),
 					tot));
     break;
-    
+
   case DNS_QUERIES:
     {
       DnsStats *dns = getDNSstats();
-    
+
       if(dns) {
 	tot = dns->getRcvdNumRepliesOk() + dns->getSentNumQueries();
 
@@ -2064,7 +2075,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
       }
     }
     break;
-    
+
   case SYN_DISTRIBUTION:
     {
       HostStats *stats = getStats();
@@ -2080,7 +2091,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
       }
     }
     break;
-    
+
   case SYN_VS_RST:
     {
       HostStats *stats = getStats();
@@ -2136,7 +2147,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
   case TCP_BYTES_SENT_VS_RCVD:
     {
       HostStats *stats = getStats();
-      
+
       if(stats) {
 	L4Stats *l4 = stats->getL4Stats();
 
@@ -2167,7 +2178,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
       float pkts_ratio = ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd())*100.;
 
       tot = getNumBytesSent()+getNumBytesRcvd();
-      
+
       if(tot > 0)
 	v->push_back(ActiveHostWalkerInfo(key, label,
 					  bytes_ratio, pkts_ratio,
