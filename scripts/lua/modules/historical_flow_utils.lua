@@ -1878,7 +1878,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
    end
 
    if info.cli_country and not isEmptyString(info.cli_country.value) then
-    label = label .. ' <img src="' + ntop.getHttpPrefix() + '/dist/images/blank.gif" class="flag flag-' + string.lower(info.cli_country.value) + '">'
+    label = label .. ' <img src="' .. ntop.getHttpPrefix() .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.cli_country.value) .. '">'
    end
 
    if add_hyperlinks and info.cli_location and not isEmptyString(info.cli_location.label) then
