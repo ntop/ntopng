@@ -1494,7 +1494,10 @@ void Host::setServerName(const char * server_n) {
   if(Utils::endsWith(server_n, ".ip6.arpa")
      || Utils::endsWith(server_n, "._udp.local")
      || (sscanf(server_n, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4) /* IPv4 address */
+     /* Invlid chars */
      || (strchr(server_n, ':') != NULL)
+     || (strchr(server_n, '*') != NULL)
+     || (strchr(server_n, ',') != NULL)
      )
     return;
 
