@@ -414,11 +414,209 @@ The system sends an alert in case it has detected a possible XSS attack on the w
 
 
 
+**Unsafe protocol**
+~~~~~~~~~~~~~~~~~~~
+
+The check identifies an insecure/unencrypted protocols.
+
+Credential information submitted through telnet is not encrypted and is vulnerable to identity theft for this reason is not recommended.Users should instead use ssh https://it.wikipedia.org/wiki/Secure_Shell
+Also,unecrypted ftp should not be used. Users wishing to transfer files between computers should instead use utilities sftp.
+
+The alert is sent when important data is transmitted without any encryption .
+
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
 
 
 
+**HTTP Suspicious Content**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check controls for unclear content in HTTP (HyperText Transfer Protocol )
+
+Suspicious headers with special characters with not a readable content.A Clickjacking https://it.wikipedia.org/wiki/Clickjacking attack can be performed from the attacker by giving to the browser some instructions directly via HTTP header.
+
+The alert is sent when the system identifies an attempt to hide behind Mime type a malicious code.
+
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+**TLS flow will not be used to transport HTTP content**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check identifies that HTTP content isn't transmitted in TLS protocol.
+
+The main limitation of HTTP is that it is completely insecure. All traffic carried over HTTP is readable to the intruders. As the web carries more and more sensitive information due to ecommerce, online health records, social media,etc.more and more this places users’ sensitive data are at risk.
+HTTPS uses the Transport Layer Security (TLS) protocol – to add security to HTTP. With SSL/TLS, HTTPS encrypts all traffic flowing between the client and the server.
+
+Alert is sent when HTTP traffic is not encrypted.
+
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+**TLS Certificate Issues**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check if TLS Certiicate works properly.
+
+The name mismatch error indicates that the domain name in the SSL certificate (SSL certificate enables an encrypted connection) doesn't match the address that is in the address bar of the browser. 
+if the domain name is associated with an old IP address that has not been changed and a different certificate is referring to the same IP address, then you may see a Common Name Mismatch Error. The problem can be solved by changing DNS record.
+
+Alert is sent when a mismatch error in TLS Certificate is seen.
+
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+**SMB insecure**
+~~~~~~~~~~~~~~~~
+
+Checks for SMB
+ 
+Notably, SMB https://it.wikipedia.org/wiki/Server_Message_Block was used as an attack channel for both the WannaCry and NotPetya huge ransomware attacks in 2017. SMBv1 is so insecure that most security experts now recommend that administrators disable it entirely via a group policy update or find other solutions to protect the infrastructure against other Server Message Block (SMB) exploits.
+
+Alert is sent when Server message block is detected.
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+**Blacklisted Country**
+~~~~~~~~~~~~~~~~~~~~~~
+
+
+Check verififes a Blacklisted Country.
+
+The check verifies whether blacklisted country has been contacted ,or viceversa, somebody from blacklisted country had tried to contact the host.
+
+Often the country is blacklisted due to many cyberattacks that are launched from that geographical area.There are countries with most ransomware https://it.wikipedia.org/wiki/Ransomware attacks.
+
+The alert appears when a blacklisted country is detected.
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
 
 
 
+**Large DNS Packet (512+ bytes)**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check for correct size of DNS packets.
+
+DNS packets over UDP should be limited to 512 bytes.This size guarantees the datagram won't be fragmented  because losing just one fragment leads to losing the entire datagram.When DNS packets overcome this threshold indicate a potential security risk or a misconfiguration.
+
+The alert is sent in case the size overcomes 512 bytes.
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
 
 
+
+**HTTP Numeric IP Host**
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Check is able to see a numeric IP Host.
+
+DNS keeps the record of all domain names and the associated IP addresses. When you type in a URL in your browser, DNS resolves the domain name into an IP address. In other words, DNS is a service that maps domain names to corresponding IP addresses.
+
+Notifies in case of numeric IP Host.
+
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+**WEb Mining**
+~~~~~~~~~~~~~
+
+Check generated traffic from/to hosts known to perform cryptocurrencies mining.
+
+Cryptocurrency mining is a computationally intensive task which requires powerful resources like specialized hardware and processors,as significant electricity costs and investments in hardware. 
+To avoid the costs of all these tools - expensive hardware, cybercriminals infect systems in order to consume the victims’ CPU or GPU power and existing resources for crypto mining. Putting in place different attack vectors, such as spam campaigns and Exploit Kits, they are able to turn the infected machines into army of cryptocurrency miners.
+
+The Alert is received when traffic from/to hosts known to perform cryptocurrencies mining is discovered.
+
+Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+
+**Unexpected DNS Server**
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check for not allowed DNS servers.
+
+DNS blocking is a filter method used to prevent Internet users visiting malicious websites. It works by comparing IP addresses against those assigned to websites known to be harmful or potentially threatning –  those websites where malware and ransomware can be caught – dns blocking is implemented in order to prevent devices connecting with them when a match is found.
+
+The Alert is sent when not allowed DNS server is detected.
+
+
+Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+
+**Unexpected NTP Server**
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check for not allowed NTP server.
+
+NTP is one of the internet's oldest protocols and is not secure by default, leaving it susceptible to distributed denial-of-service (DDoS) and man-in-the-middle (MitM) attacks.
+
+
+The Alert is sent when not allowed NTP server is seen.
+
+Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+
+**Remote to Local Insecure Protocol**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check for remote to local insecure protocol.
+
+Remote Desktop Protocol (RDP) is a Microsoft proprietary protocol that enables remote connections to other computers, typically over TCP port 3389.
+RDP itself is not a secure protocol so firewalls should restrict access to remote desktop listening ports.Using RDP Gateway is highly recommended for restricting RDP access to desktops and servers.
+
+The alert is sent to notify the insecure protocol.
+
+
+Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+
+**Elephant flow**
+~~~~~~~~~~~~~~~~
+
+Checks a flow.
+
+Elephant flows are data sessions that take up significant amounts of network capacity relative to other types of data sessions. For example, a three-minute YouTube stream accounts for 20,000 times more bandwidth than three minutes consuming Twitter. Visible effect of Elephant Flows can be seen in high cpu usage.
+
+Notifies when elephant flow is detected.
+ 
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+ 
+ 
