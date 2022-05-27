@@ -5312,16 +5312,16 @@ end
 --                  false otherwise
 -- @return A string containing the info field formatted
 function format_external_link(url, name, no_html, proto)
-  local info_field = info
+  local external_field = url
   proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
 
   if no_html == false then
-    if not isEmptyString(info) then
-      info_field = i18n("external_link_url", { proto = proto, url = url, url_name = name})
+    if not isEmptyString(url) then
+      external_field = i18n("external_link_url", { proto = proto, url = url, url_name = name})
     end
   end
 
-  return info_field
+  return external_field
 end
 
 -- ##############################################
