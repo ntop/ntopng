@@ -249,3 +249,13 @@ misconfigured network device is attached to the network.
 
 Since DHCP responses are usually directed to a specific host, this setting is
 most effective when the interface monitors mirrored traffic.
+
+
+Mirror Traffic
+--------------
+
+The Alert notifies the user to enable mirroring when the system detects RX only.
+The toast is going to show only if the user has RX-only traffic (TX traffic is 0 and RX is greater then 0).
+It's still a dismissable toast (if you click dismiss, it's not going to pop-up again) and you can jump to the interface configuration by clicking the link in the toast.
+
+
