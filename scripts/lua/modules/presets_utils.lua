@@ -117,7 +117,7 @@ function presets_utils.init()
    addProtocolByName('multimedia', 'client', 'SoundCloud',  presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'Spotify',     presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'Skype_Teams', presets_utils.ALLOW)
-   addProtocolByName('multimedia', 'client', 'SkypeCall',   presets_utils.ALLOW)
+   addProtocolByName('multimedia', 'client', 'Skype_TeamsCall', presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'SSDP',        presets_utils.ALLOW)
 
    addPresetFrom('tv', 'multimedia')
