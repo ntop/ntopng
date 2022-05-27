@@ -359,6 +359,13 @@ end
 
 -- ##############################################
 
+--@brief Add domain (info) filter
+function flow_alert_store:add_domain_filter(domain)
+  self:add_filter_condition('info', 'in', domain);
+end
+
+-- ##############################################
+
 --@brief Add filters according to what is specified inside the REST API
 function flow_alert_store:_add_additional_request_filters()
    local ip_version = _GET["ip_version"]
