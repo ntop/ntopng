@@ -193,15 +193,15 @@ end
 -- ##############################################
 
 --@brief Enables or disables alerts for a domain
-local function _toggle_alert_exclusion_by_domain(domain_name, add_exclusion)
-  return _toggle_alert_exclusion(domain_name, "domain", -1, add_exclusion, true)
+local function _toggle_alert_exclusion_by_domain(domain_name, alert_key, add_exclusion)
+  return _toggle_alert_exclusion(domain_name, "domain", alert_key, add_exclusion, true)
 end
 
 -- ##############################################
 
 --@brief Enables or disables alerts for a domain
-local function _toggle_alert_exclusion_by_certificate(certificate, add_exclusion)
-  return _toggle_alert_exclusion(certificate, "certificate", -1, add_exclusion, true)
+local function _toggle_alert_exclusion_by_certificate(certificate, alert_key, add_exclusion)
+  return _toggle_alert_exclusion(certificate, "certificate", alert_key, add_exclusion, true)
 end
 
 -- ##############################################
@@ -310,10 +310,42 @@ end
 
 -- ##############################################
 
+--@brief Marks a flow alert as disabled for a given domain name
+--@return True, if alert is disabled with success, false otherwise
+function alert_exclusions.disable_flow_alert_by_domain(domain_name, alert_key)
+   return _toggle_alert_exclusion_by_domain(domain_name, alert_key, true --[[ disable --]])
+end
+
+-- ##############################################
+
+--@brief Marks a flow alert as disabled for a given certificate
+--@return True, if alert is disabled with success, false otherwise
+function alert_exclusions.disable_flow_alert_by_certificate(certificate, alert_key)
+   return _toggle_alert_exclusion_by_certificate(certificate, alert_key, true --[[ disable --]])
+end
+
+-- ##############################################
+
 --@brief Marks a flow alert as enabled for a given `host_ip`, considered either as client or server
 --@return True, if alert is enabled with success, false otherwise
 function alert_exclusions.enable_flow_alert_by_host(host_ip, vlan_id, alert_key)
    return _toggle_alert_exclusion_by_host(true --[[ flow --]], host_ip, vlan_id, alert_key, false --[[ enable --]])
+end
+
+-- ##############################################
+
+--@brief Marks a flow alert as enabled for a given domain name
+--@return True, if alert is enabled with success, false otherwise
+function alert_exclusions.enable_flow_alert_by_domain(domain_name, alert_key)
+   return _toggle_alert_exclusion_by_domain(domain_name, alert_key, false --[[ enable --]])
+end
+
+-- ##############################################
+
+--@brief Marks a flow alert as enabled for a given certificate
+--@return True, if alert is enabled with success, false otherwise
+function alert_exclusions.enable_flow_alert_by_certificate(certificate, alert_key)
+   return _toggle_alert_exclusion_by_certificate(certificate, alert_key, false --[[ enable --]])
 end
 
 -- ##############################################
