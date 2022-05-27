@@ -5310,6 +5310,22 @@ end
 
 -- ##############################################
 
+-- @brief  This function, given an alert and "cli" or "srv" string is going to return the formatted hostname
+-- @params alert:   A table with the alert infos
+--         cli_srv: A string "cli" or "srv" used to get the required info
+-- @return A string hostname@vlan
+function format_alert_hostname(alert, cli_srv)
+  local host = alert[cli_srv .. "_name"]
+  
+  if(isEmptyString(host)) then
+    host = alert[cli_srv .. "_ip"]
+  end
+
+  return format_ip_vlan(shortenString(host, 26), alert["vlan"])
+end
+
+-- ##############################################
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

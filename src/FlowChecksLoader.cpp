@@ -107,6 +107,7 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new WebMining()))                                   registerCheck(fcb);
 
 #ifdef NTOPNG_PRO
+  if((fcb = new ConnectionFailed()))                            registerCheck(fcb);
   if((fcb = new DataExfiltration()))                            registerCheck(fcb);
   if((fcb = new DNSDataExfiltration()))                         registerCheck(fcb);
   if((fcb = new ElephantFlow()))                                registerCheck(fcb);

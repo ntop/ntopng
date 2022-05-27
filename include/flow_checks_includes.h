@@ -70,6 +70,7 @@
 #include "flow_checks/WebMining.h"
 
 #ifdef NTOPNG_PRO
+#include "flow_checks/ConnectionFailed.h"
 #include "flow_checks/DataExfiltration.h"
 #include "flow_checks/DNSDataExfiltration.h"
 #include "flow_checks/ElephantFlow.h"
