@@ -5274,26 +5274,6 @@ end
 
 -- ##############################################
 
--- @brief  This function format the info field used in tables
--- @params info: A string containing the info field
---         no_html: A boolean, true if no_html is requested (e.g. Download in CSV format), 
---                  false otherwise
--- @return A string containing the info field formatted
-function format_info_field(info, no_html, proto)
-  local info_field = info
-  proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
-
-  if no_html == false then
-    if not isEmptyString(info) then
-      info_field = i18n("external_link_url", { proto = proto, url = info, url_name = info})
-    end
-  end
-
-  return info_field
-end
-
--- ##############################################
-
 -- @brief  This function, given an IP and a vlan return the concat of host@vlan
 -- @params host_ip: A string containing the IP
 --         vlan:    A string or a number containing the vlan id
@@ -5322,6 +5302,26 @@ function format_alert_hostname(alert, cli_srv)
   end
 
   return format_ip_vlan(shortenString(host, 26), alert["vlan"])
+end
+
+-- ##############################################
+
+-- @brief  This function format the info field used in tables
+-- @params info: A string containing the info field
+--         no_html: A boolean, true if no_html is requested (e.g. Download in CSV format), 
+--                  false otherwise
+-- @return A string containing the info field formatted
+function format_external_link(url, name, no_html, proto)
+  local info_field = info
+  proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
+
+  if no_html == false then
+    if not isEmptyString(info) then
+      info_field = i18n("external_link_url", { proto = proto, url = url, url_name = name})
+    end
+  end
+
+  return info_field
 end
 
 -- ##############################################

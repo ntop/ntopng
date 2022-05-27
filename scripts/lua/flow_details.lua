@@ -191,13 +191,11 @@ local function ja3url(what, safety, label)
    if(what == nil) then
       print("&nbsp;")
    else
-      print('<A class="ntopng-external-link" href="https://sslbl.abuse.ch/ja3-fingerprints/'..what..'/">'..what..' <i class="fas fa-external-link-alt"></i></A>')
+      print(format_external_link("sslbl.abuse.ch/ja3-fingerprints/".. what .."/", what, false, "https"))
 
       if((safety ~= nil) and (safety ~= "safe")) then
 	 print(' [ <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> <A HREF=https://en.wikipedia.org/wiki/Cipher_suite>'..capitalize(safety)..' Cipher</A> ]')
       end
-
-      print_copy_button(label, what)
    end
 end
 
@@ -841,7 +839,8 @@ else
    if(flow["protos.tls.client_requested_server_name"] ~= nil) then
       print("<tr><th width=30%><i class='fas fa-lock'></i> "..i18n("flow_details.tls_certificate").."</th><td>")
       print(i18n("flow_details.client_requested")..":<br>")
-      print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(flow["protos.tls.client_requested_server_name"]).."\">"..page_utils.safe_html(flow["protos.tls.client_requested_server_name"]).." <i class=\"fas fa-external-link-alt\"></i></A>")
+      -- TLS, so use https
+      print(format_external_link(page_utils.safe_html(flow["protos.tls.client_requested_server_name"]), page_utils.safe_html(flow["protos.tls.client_requested_server_name"]), false, "https"))
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.tls.client_requested_server_name"], flow["category"])) end
       historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.tls.client_requested_server_name"] or ''), flow["vlan"])
       printAddCustomHostRule(flow["protos.tls.client_requested_server_name"])
@@ -860,7 +859,8 @@ else
 	    if starts(server, '*') then
 	       print(server)
 	    else
-	       print("<A class='ntopng-external-link' href=\"http://"..server.."\">"..server.." <i class=\"fas fa-external-link-alt\"></i></A> ")
+        -- TLS, so use https
+        print(format_external_link(server, server, false, "https"))
 	    end
 	 end
       end
@@ -1228,7 +1228,7 @@ else
       if(string.ends(flow["protos.dns.last_query"], "arpa")) then
 	 print(shortHostName(flow["protos.dns.last_query"]))
       else
-	 print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(flow["protos.dns.last_query"]).."\">"..page_utils.safe_html(shortHostName(flow["protos.dns.last_query"])).." <i class='fas fa-external-link-alt'></i></A>")
+	 print(format_external_link(page_utils.safe_html(flow["protos.dns.last_query"]), page_utils.safe_html(shortHostName(flow["protos.dns.last_query"])), false, "dns"))
       end
 
       historicalProtoHostHref(ifid, flow["cli.ip"], flow["proto.l4"], flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.dns.last_query"] or ''))
@@ -1280,7 +1280,7 @@ else
 	 s = flow["host_server_name"]
       end
 
-      print("<A class='ntopng-external-link' href=\"http://"..page_utils.safe_html(s).."\">"..page_utils.safe_html(s).." <i class=\"fas fa-external-link-alt\"></i></A>")
+      print(format_external_link(page_utils.safe_html(s), page_utils.safe_html(s), false, "http"))
 
       if(flow["category"] ~= nil) then
          print(" "..getCategoryIcon(flow["host_server_name"], flow["category"]))
@@ -1300,41 +1300,37 @@ else
 
       local last_url = page_utils.safe_html(flow["protos.http.last_url"])
       local last_url_short = shortenString(last_url, 64)
-
+      local proto = "https"
+      
       if(starts(last_url, "http:") == false) then
-	 -- Now we need to check if nttp or https is needed
-	 if(string.contains(last_url, ":443")) then
-	    print("https://")
-	 else
-	    print("http://")
-	 end
+        -- Now we need to check if nttp or https is needed
+        if(not string.contains(last_url, ":443")) then
+          proto = "http"
+        end
       end
 
-      print(last_url.."\">"..last_url_short.." <i class=\"fas fa-external-link-alt\"></i></A>")
-      print_copy_button('url', last_url)
+      print(format_external_link(last_url, last_url_short, false, proto))
       print("</td></tr>\n")
 
       if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then
-	 if(flow["protos.http.last_return_code"] < 400) then
-	    color = "badge bg-success"
-	 else
-	    color = "badge bg-warning"
-	 end
+        if(flow["protos.http.last_return_code"] < 400) then
+            color = "badge bg-success"
+        else
+            color = "badge bg-warning"
+        end
         print("<tr><th>"..i18n("flow_details.response_code").."</th><td colspan=2><span class='"..color.."'>"..(flow["protos.http.last_return_code"] or '').."</span></td></tr>\n")
       end
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
-	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A class='ntopng-external-link' href=\"")
-	 if(starts(flow["proto.ndpi"], "TLS")) then
-	    print("https")
-	 else
-	    print("http")
+	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2>")
+   local proto = "http"
+   if(starts(flow["proto.ndpi"], "TLS")) then
+	    proto = "https"
 	 end
-	 print("://"..page_utils.safe_html(flow["host_server_name"]).."\">"..page_utils.safe_html(flow["host_server_name"]).." <i class=\"fas fa-external-link-alt\"></i></A>")
+   print(format_external_link(page_utils.safe_html(flow["host_server_name"]), page_utils.safe_html(flow["host_server_name"]), false, proto))
 	 if not isEmptyString(flow["protos.http.server_name"]) then
 	    printAddCustomHostRule(flow["protos.http.server_name"])
 	 end
-	 print_copy_button('tls_server_name', flow["host_server_name"])
 	 print("</td></tr>\n")
       end
    end
