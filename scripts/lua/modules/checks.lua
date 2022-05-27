@@ -1191,7 +1191,7 @@ function checks.updateScriptConfig(script_key, subdir, new_config, additional_fi
    -- Updating the filters
    if script.alert_id and additional_filters and (subdir == "host" or subdir == "flow") then
       if subdir == "host" then
-	 local current_filters = alert_exclusions.host_alerts_get_excluded_hosts(script.alert_id)
+	 local current_filters = alert_exclusions.host_alerts_get_exclusions(script.alert_id)
 
 	 -- Add new filters
 	 for _, new_filter in pairs(additional_filters["new_filters"] or {}) do
@@ -1212,7 +1212,7 @@ function checks.updateScriptConfig(script_key, subdir, new_config, additional_fi
 	    alert_exclusions.enable_host_alert_by_host(current_ip, 0, script.alert_id)
 	 end
       elseif subdir == "flow" then
-	 local current_filters = alert_exclusions.flow_alerts_get_excluded_hosts(script.alert_id)
+	 local current_filters = alert_exclusions.flow_alerts_get_exclusions(script.alert_id)
 
 	 -- Add new filters (see above for hosts)
 	 for _, new_filter in pairs(additional_filters["new_filters"] or {}) do

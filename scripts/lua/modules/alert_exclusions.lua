@@ -270,30 +270,37 @@ end
 
 -- ##############################################
 
--- @brief Returns all excluded hosts for the given `alert_key` or nil if no excluded host exists
-local function _get_excluded_hosts(is_flow_exclusion, alert_key)
+-- @brief Returns all excluded subjects (e.g. hosts, domains, certificates) for the given `alert_key` or nil if no exclusion exists
+local function _get_exclusions(is_flow_exclusion, alert_key, subject_type)
   local exclusions = _get_configured_alert_exclusions()
   local id = tonumber(alert_key)
   local ret = {}
 
-  for host,v in pairs(exclusions) do
-    local t
+  for subject_key, v in pairs(exclusions) do
 
-    if(is_flow_exclusion) then
-      t = v.flow_alerts
-    else
-      t = v.host_alerts
+    if not v.type then
+       v.type = "host"
     end
 
-    if not t then
-      traceError(TRACE_INFO,TRACE_CONSOLE, "Failure checking exclusions for host")
-    else
-      for i=0,table.len(t) do
-        if(t[i] == id) then
-          ret[host] = true
-          break
-        end
-      end     
+    if v.type == subject_type then
+      local t
+
+      if(is_flow_exclusion) then
+        t = v.flow_alerts
+      else
+        t = v.host_alerts
+      end
+
+      if not t then
+        traceError(TRACE_INFO,TRACE_CONSOLE, "Failure checking exclusions")
+      else
+        for i=0,table.len(t) do
+          if t[i] == id then
+            ret[subject_key] = true
+            break
+          end
+        end     
+      end
     end
   end
   
@@ -392,15 +399,15 @@ end
 -- ##############################################
 
 -- @brief Returns all the excluded hosts for the host alert identified with `alert_key`
-function alert_exclusions.host_alerts_get_excluded_hosts(alert_key)
-   return _get_excluded_hosts(false --[[ host --]], alert_key) or {}
+function alert_exclusions.host_alerts_get_exclusions(alert_key, subject_type)
+   return _get_exclusions(false --[[ host --]], alert_key, subject_type or "host") or {}
 end
 
 -- ##############################################
 
 -- @brief Returns all the excluded hosts for the flowt alert identified with `alert_key`
-function alert_exclusions.flow_alerts_get_excluded_hosts(alert_key)
-   return _get_excluded_hosts(true --[[ flow --]], alert_key) or {}
+function alert_exclusions.flow_alerts_get_exclusions(alert_key, subject_type)
+   return _get_exclusions(true --[[ flow --]], alert_key, subject_type or "host") or {}
 end
 
 -- ##############################################

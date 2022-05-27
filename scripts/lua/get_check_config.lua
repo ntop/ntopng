@@ -78,9 +78,9 @@ if script.alert_id and (subdir == "flow" or subdir == "host") then
    result.filters = { current_filters = {}}
    local current_filters
    if subdir == "flow" then
-      current_filters = alert_exclusions.flow_alerts_get_excluded_hosts(script.alert_id)
+      current_filters = alert_exclusions.flow_alerts_get_exclusions(script.alert_id)
    else
-      current_filters = alert_exclusions.host_alerts_get_excluded_hosts(script.alert_id)
+      current_filters = alert_exclusions.host_alerts_get_exclusions(script.alert_id)
    end
 
    for current_ip, _ in pairs(current_filters or {}) do
