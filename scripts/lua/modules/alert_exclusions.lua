@@ -100,7 +100,7 @@ end
 -- ##############################################
 
 --@brief Enables or disables an alert for an `host`, supports VLANs
-local function _toggle_alert(is_flow_exclusion, host_ip, vlan_id, alert_key, enable_exclusion)
+local function _toggle_alert_exclusion_by_host(is_flow_exclusion, host_ip, vlan_id, alert_key, remove_exclusion)
   local ret = false
   
   if not _check_host_ip_vlan_id_alert_key(host_ip, vlan_id, alert_key) then
@@ -121,33 +121,8 @@ local function _toggle_alert(is_flow_exclusion, host_ip, vlan_id, alert_key, ena
     local id = tonumber(alert_key)
     local exclusions = _get_configured_alert_exclusions()
 
-    if(not enable_exclusion) then
-      -- disable alert --
-      -- ip@vlan
-      if exclusions[host] then
-        local r = {}
-        local t = {}
-        
-        if(is_flow_exclusion) then
-          t = exclusions[host].flow_alerts
-        else
-	        t = exclusions[host].host_alerts
-	      end
-
-	      for i=0,table.len(t) do
-	        if(t[i] ~= id) then
-		        table.insert(r, t[i])
-	        end
-	      end
-	    
-	      if(is_flow_exclusion) then
-	        exclusions[host].flow_alerts = r
-	      else
-	        exclusions[host].host_alerts = r
-	      end
-	    end
-    else
-	    -- enable alert --
+    if remove_exclusion then
+      -- Re-enable alert
       -- Add an entry for the current alert entity, if currently exising exclusions don't already have it
       if(exclusions[host] == nil) then
         exclusions[host] = { flow_alerts = {}, host_alerts = {} }
@@ -157,6 +132,32 @@ local function _toggle_alert(is_flow_exclusion, host_ip, vlan_id, alert_key, ena
         table.insert(exclusions[host].flow_alerts, id)
       else
         table.insert(exclusions[host].host_alerts, id)
+      end
+
+    else
+      -- Disable alert --
+      -- ip@vlan
+      if exclusions[host] then
+        local r = {}
+        local t = {}
+        
+        if(is_flow_exclusion) then
+          t = exclusions[host].flow_alerts
+        else
+          t = exclusions[host].host_alerts
+        end
+
+        for i=0,table.len(t) do
+          if(t[i] ~= id) then
+            table.insert(r, t[i])
+          end
+        end
+	    
+        if(is_flow_exclusion) then
+          exclusions[host].flow_alerts = r
+        else
+          exclusions[host].host_alerts = r
+        end
       end
     end
       
@@ -270,7 +271,7 @@ end
 --@brief Marks a flow alert as disabled for a given `host_ip`, considered either as client or server
 --@return True, if alert is disabled with success, false otherwise
 function alert_exclusions.disable_flow_alert(host_ip, vlan_id, alert_key)
-   return _toggle_alert(true --[[ flow --]], host_ip, vlan_id, alert_key, true --[[ disable --]])
+   return _toggle_alert_exclusion_by_host(true --[[ flow --]], host_ip, vlan_id, alert_key, true --[[ disable --]])
 end
 
 -- ##############################################
@@ -278,7 +279,7 @@ end
 --@brief Marks a flow alert as enabled for a given `host_ip`, considered either as client or server
 --@return True, if alert is enabled with success, false otherwise
 function alert_exclusions.enable_flow_alert(host_ip, vlan_id, alert_key)
-   return _toggle_alert(true --[[ flow --]], host_ip, vlan_id, alert_key, false --[[ enable --]])
+   return _toggle_alert_exclusion_by_host(true --[[ flow --]], host_ip, vlan_id, alert_key, false --[[ enable --]])
 end
 
 -- ##############################################
@@ -302,7 +303,7 @@ end
 --@brief Marks a host alert as disabled for a given `host_ip`
 --@return True, if alert is disabled with success, false otherwise
 function alert_exclusions.disable_host_alert(host_ip, vlan_id, alert_key)
-   return _toggle_alert(false --[[ host --]], host_ip, vlan_id, alert_key, true --[[ disable --]])
+   return _toggle_alert_exclusion_by_host(false --[[ host --]], host_ip, vlan_id, alert_key, true --[[ disable --]])
 end
 
 -- ##############################################
@@ -310,7 +311,7 @@ end
 --@brief Marks a host alert as enabled for a given `host_ip`
 --@return True, if alert is enabled with success, false otherwise
 function alert_exclusions.enable_host_alert(host_ip, vlan_id, alert_key)
-   return _toggle_alert(false --[[ host --]], host_ip, vlan_id, alert_key, false --[[ enable --]])
+   return _toggle_alert_exclusion_by_host(false --[[ host --]], host_ip, vlan_id, alert_key, false --[[ enable --]])
 end
 
 -- ##############################################
