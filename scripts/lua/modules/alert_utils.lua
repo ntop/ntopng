@@ -58,7 +58,7 @@ end
 
 --@brief Deletes all stored alerts matching an host and an IP
 -- @return nil
-function alert_utils.deleteFlowAlertsMatching(host_ip, vlan_id, alert_id)
+function alert_utils.deleteFlowAlertsMatchingHost(host_ip, vlan_id, alert_id)
   local flow_alert_store = require("flow_alert_store").new()
 
   if not isEmptyString(host_ip) then
@@ -73,6 +73,35 @@ function alert_utils.deleteFlowAlertsMatching(host_ip, vlan_id, alert_id)
 
   -- Perform the actual deletion
   flow_alert_store:delete()
+end
+
+-- #################################
+
+--@brief Deletes all stored alerts matching a domain
+-- @return nil
+function alert_utils.deleteFlowAlertsMatchingDomain(domain_name, alert_id)
+  local flow_alert_store = require("flow_alert_store").new()
+
+  if not isEmptyString(domain_name) then
+    flow_alert_store:add_domain_filter(domain_name)
+  end
+
+  if alert_id then
+    flow_alert_store:add_alert_id_filter(alert_id)
+  end
+
+  -- Perform the actual deletion
+  flow_alert_store:delete()
+end
+
+-- #################################
+
+--@brief Deletes all stored alerts matching a certificate
+-- @return nil
+function alert_utils.deleteFlowAlertsMatchingCertificate(certificate, alert_id)
+
+  -- TODO
+
 end
 
 -- #################################

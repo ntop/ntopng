@@ -285,7 +285,7 @@ local function _get_exclusions(is_flow_exclusion, alert_key, subject_type)
     if v.type == subject_type then
       local t
 
-      if(is_flow_exclusion) then
+      if is_flow_exclusion then
         t = v.flow_alerts
       else
         t = v.host_alerts
