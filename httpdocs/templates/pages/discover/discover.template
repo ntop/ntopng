@@ -34,7 +34,9 @@
           <i class="fas fa-exclamation-triangle fa-lg"></i>
           {* messages.discover_message *}
         </div>
-      {% elseif discover_check.OK then %}
+      {% end %}
+
+      {% if not discover_check.DISCOVERY_REQUESTED  then %}
         <table id='discovery-table' class='table table-striped table-bordered w-100'>
           <thead>
             <tr>
@@ -49,7 +51,7 @@
           </thead>
         </table>
       {% end %}
-
+      
         <div class='notes border bg-light'>
           <b>{* messages.notes *}</b>
           <ul>
@@ -137,8 +139,9 @@
       columns: columns,
       lengthMenu: [10, 50, 100, 250],
     });
-    
+        
     const $table = $('#discovery-table').DataTable(config);
+    NtopUtils.hideOverlays();
   })
 </script>
 

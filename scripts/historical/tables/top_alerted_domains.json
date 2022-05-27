@@ -1,0 +1,53 @@
+{
+	"name" : "Top Alerted Domains",
+	"i18n_name" : "top_alerted_domains",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"select" : {
+		"items" : [
+			{
+				"name" : "INFO"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "STATUS",
+				"op": "neq",
+				"value": 0,
+				"value_type": "number",
+				"input": "fixed"
+			},
+			{
+				"name": "INFO",
+				"op": "neq",
+				"value": "",
+				"value_type": "string",
+				"input": "fixed"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "INFO"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}

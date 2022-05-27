@@ -1861,7 +1861,7 @@ end
 
 -- #####################################
 
-function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks)
+function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, add_hostnames, add_country_flags)
    local label = ""
 
    local info = historical_flow_utils.format_clickhouse_record(record)
@@ -1870,7 +1870,16 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks)
       return label
    end
 
-   label = label ..historical_flow_utils.get_historical_url(info.cli_ip.label, ternary(info.cli_ip.label ~= info.cli_ip.ip, "cli_name", "cli_ip"), info.cli_ip.label, add_hyperlinks, ternary(info.cli_ip.label ~= info.cli_ip.ip, info.cli_ip.ip, nil))
+   -- add_hostnames ~= nil, added to be compatible with older calls to this function
+   if (add_hostnames == nil) or (add_hostnames == true)  then
+      label = label ..historical_flow_utils.get_historical_url(info.cli_ip.label, ternary(info.cli_ip.label ~= info.cli_ip.ip, "cli_name", "cli_ip"), info.cli_ip.label, add_hyperlinks, ternary(info.cli_ip.label ~= info.cli_ip.ip, info.cli_ip.ip, nil))
+   else
+      label = label ..historical_flow_utils.get_historical_url(info.cli_ip.ip, "cli_ip", info.cli_ip.ip, add_hyperlinks, nil)  
+   end
+
+   if info.cli_country and not isEmptyString(info.cli_country.value) then
+    label = label .. ' <img src="' .. ntop.getHttpPrefix() .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.cli_country.value) .. '">'
+   end
 
    if add_hyperlinks and info.cli_location and not isEmptyString(info.cli_location.label) then
       label = label .. " " .. info.cli_location.label
@@ -1902,7 +1911,15 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks)
    
    label = label .. "&nbsp; <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> &nbsp;"
 
-   label = label ..historical_flow_utils.get_historical_url(info.srv_ip.label, ternary(info.srv_ip.label ~= info.srv_ip.ip, "srv_name", "srv_ip"), info.srv_ip.label,add_hyperlinks,  ternary(info.srv_ip.label ~= info.srv_ip.ip, info.srv_ip.ip, nil))
+   if (add_hostnames == nil) or (add_hostnames == true)  then
+    label = label ..historical_flow_utils.get_historical_url(info.srv_ip.label, ternary(info.srv_ip.label ~= info.srv_ip.ip, "srv_name", "srv_ip"), info.srv_ip.label, add_hyperlinks, ternary(info.srv_ip.label ~= info.srv_ip.ip, info.srv_ip.ip, nil))
+   else
+    label = label ..historical_flow_utils.get_historical_url(info.srv_ip.ip, "srv_ip", info.srv_ip.ip, add_hyperlinks, nil)  
+   end
+
+   if info.srv_country and not isEmptyString(info.srv_country.value) then
+    label = label .. ' <img src="' .. ntop.getHttpPrefix() .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.srv_country.value) .. '">'
+   end
 
    if add_hyperlinks and info.srv_location and not isEmptyString(info.srv_location.label) then
       label = label .. " " .. info.srv_location.label

@@ -863,7 +863,7 @@ static int ntop_get_host_check_info(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_reload_hosts_control(lua_State* vm) {
+static int ntop_reload_alert_exclusions(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   ntop->reloadAlertExclusions();
@@ -6556,7 +6556,7 @@ static luaL_Reg _ntop_reg[] = {
   { "getMac64",              ntop_get_mac_64              },
   { "reloadFlowChecks",      ntop_reload_flow_checks      },
   { "reloadHostChecks",      ntop_reload_host_checks      },
-  { "reloadAlertExclusions", ntop_reload_hosts_control    },
+  { "reloadAlertExclusions", ntop_reload_alert_exclusions },
   { "getFlowAlertScore",     ntop_get_flow_alert_score    },
   { "getFlowAlertRisk",      ntop_get_flow_alert_risk     },
   { "getFlowRiskAlerts",     ntop_get_flow_risk_alerts    },

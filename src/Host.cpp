@@ -860,6 +860,10 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   if(name_buf[0] && !Utils::isIPAddress(name_buf))
     goto out;
 
+  getServerName(name_buf, sizeof(name_buf));
+  if(name_buf[0] && !Utils::isIPAddress(name_buf))
+    goto out;
+
   /* Most relevant names goes first */
   if(isBroadcastDomainHost()) {
     Mac *cur_mac = getMac(); /* Cache it as it can change */
@@ -951,6 +955,18 @@ char * Host::getMDNSName(char * const buf, ssize_t buf_len) {
   if(buf && buf_len) {
     m.lock(__FILE__, __LINE__);
     snprintf(buf, buf_len, "%s", names.mdns ? names.mdns : "");
+    m.unlock(__FILE__, __LINE__);
+  }
+
+  return Utils::stringtolower(buf);
+}
+
+/* ***************************************** */
+
+char * Host::getServerName(char * const buf, ssize_t buf_len) {
+  if(buf && buf_len) {
+    m.lock(__FILE__, __LINE__);
+    snprintf(buf, buf_len, "%s", names.server_name ? names.server_name : "");
     m.unlock(__FILE__, __LINE__);
   }
 
@@ -1470,6 +1486,27 @@ void Host::offlineSetHTTPName(const char * http_n) {
 
 /* *************************************** */
 
+void Host::setServerName(const char * server_n) {
+  /* Discard invalid strings */
+  u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
+
+  /* Make sure we do not use invalid names as strings */
+  if(Utils::endsWith(server_n, ".ip6.arpa")
+     || Utils::endsWith(server_n, "._udp.local")
+     || (sscanf(server_n, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4) /* IPv4 address */
+     /* Invlid chars */
+     || (strchr(server_n, ':') != NULL)
+     || (strchr(server_n, '*') != NULL)
+     || (strchr(server_n, ',') != NULL)
+     )
+    return;
+
+  if(!names.server_name && server_n && (names.server_name = Utils::toLowerResolvedNames(server_n)))
+    ;
+}
+
+/* *************************************** */
+
 void Host::setResolvedName(const char * resolved_name) {
   /* Multiple threads can set this so we must lock */
   if(resolved_name && resolved_name[0] != '\0') {
@@ -1642,13 +1679,14 @@ void Host::checkBroadcastDomain() {
 
 void Host::freeHostNames() {
   if(ssdpLocation)   { free(ssdpLocation); ssdpLocation = NULL;       }
+  if(names.http)     { free(names.http); names.http = NULL;           }
   if(names.mdns)     { free(names.mdns); names.mdns = NULL;           }
   if(names.mdns_info){ free(names.mdns_info); names.mdns_info = NULL; }
   if(names.mdns_txt) { free(names.mdns_txt); names.mdns_txt = NULL;   }
-  if(names.resolved) { free(names.resolved); names.resolved = NULL;   }
   if(names.netbios)  { free(names.netbios); names.netbios = NULL;     }
+  if(names.resolved) { free(names.resolved); names.resolved = NULL;   }
+  if(names.server_name) { free(names.server_name); names.server_name = NULL;           }
   if(names.tls)      { free(names.tls); names.tls = NULL;             }
-  if(names.http)     { free(names.http); names.http = NULL;           }
 }
 
 /* *************************************** */
@@ -1992,14 +2030,14 @@ u_int16_t Host::get_country_code() {
 void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
   char buf[64], key[96], *label =  get_visual_name(buf, sizeof(buf));
   u_int64_t tot;
-  
+
   if(get_vlan_id() == 0)
     snprintf(key, sizeof(key), "%s", printMask(buf, sizeof(buf)));
   else
     snprintf(key, sizeof(key), "%s@%u", printMask(buf, sizeof(buf)), get_vlan_id());
 
   if(label[0] == '\0') label = key;
-  
+
   switch(mode) {
   case ALL_FLOWS:
     v->push_back(ActiveHostWalkerInfo(key,label,
@@ -2007,7 +2045,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 				      getNumOutgoingFlows(),
 				      getNumBytesSent()+getNumBytesRcvd()));
     break;
-    
+
   case UNREACHABLE_FLOWS:
     v->push_back(ActiveHostWalkerInfo(key,label,
 				      getTotalNumUnreachableIncomingFlows(),
@@ -2024,11 +2062,11 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
 					getTotalNumAlertedOutgoingFlows(),
 					tot));
     break;
-    
+
   case DNS_QUERIES:
     {
       DnsStats *dns = getDNSstats();
-    
+
       if(dns) {
 	tot = dns->getRcvdNumRepliesOk() + dns->getSentNumQueries();
 
@@ -2040,7 +2078,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
       }
     }
     break;
-    
+
   case SYN_DISTRIBUTION:
     {
       HostStats *stats = getStats();
@@ -2056,7 +2094,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
       }
     }
     break;
-    
+
   case SYN_VS_RST:
     {
       HostStats *stats = getStats();
@@ -2112,7 +2150,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
   case TCP_BYTES_SENT_VS_RCVD:
     {
       HostStats *stats = getStats();
-      
+
       if(stats) {
 	L4Stats *l4 = stats->getL4Stats();
 
@@ -2143,7 +2181,7 @@ void Host::visit(std::vector<ActiveHostWalkerInfo> *v, HostWalkMode mode) {
       float pkts_ratio = ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd())*100.;
 
       tot = getNumBytesSent()+getNumBytesRcvd();
-      
+
       if(tot > 0)
 	v->push_back(ActiveHostWalkerInfo(key, label,
 					  bytes_ratio, pkts_ratio,

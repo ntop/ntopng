@@ -47,13 +47,13 @@ end
 function alert_binary_application_transfer.format(ifid, alert, alert_type_params)
    local res = i18n("alerts_dashboard.binary_application_transfer")
 
-   if alert_type_params and alert_type_params["protos.http.last_url"] then
-      local url = alert_type_params["protos.http.last_url"]
-      local href = '<a class="ntopng-external-link fa-sm" href= http://' .. url .. ' ><i  class="fas fa-external-link-alt fa-lg"></i></a>'
+   if (alert_type_params) and (alert_type_params.proto) and (alert_type_params.proto.http) and (alert_type_params.proto.http.last_url) then
+      local url = alert_type_params.proto.http.last_url
+      local href = format_external_link(url, url, false, interface.getnDPIProtoName(tonumber(alert["l7_master_proto"])))
       local type_icon = ''
       local info = ''
 
-      local extn = alert_type_params["protos.http.last_url"]:sub(-4):lower()
+      local extn = alert_type_params.proto.http.last_url:sub(-4):lower()
 
       if extn == ".php" or extn == ".js" or extn == ".html" or extn == ".xml" or extn == ".cgi" then
 	 type_icon = '<i class="fas fa-fw fa-file-code"></i>'
@@ -62,13 +62,11 @@ function alert_binary_application_transfer.format(ifid, alert, alert_type_params
       end
 
       if string.len(url) > 64 then
-         url = shortenString(alert_type_params["protos.http.last_url"], 64)
-         info = '<i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="'..alert_type_params["protos.http.last_url"]..'"></i>'
+         url = shortenString(alert_type_params.proto.http.last_url, 64)
+         info = '<i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="'..alert_type_params.proto.http.last_url..'"></i>'
       end
       res = i18n("alerts_dashboard.binary_application_transfer_url", { 
-         url = url,
          type_icon = type_icon,
-         info = info,
          href = href,
       })
    end

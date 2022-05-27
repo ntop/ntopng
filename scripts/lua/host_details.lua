@@ -589,7 +589,7 @@ else
 	       n = getIpUrl(host["ip"])
 	    end
 
-	    print("<td colspan=2><A class='ntopng-external-link' href=\"http://" .. n .. "\"> <span id=name>")
+	    print("<td colspan=2><A class='ntopng-external-link' href=\"https://" .. n .. "\"> <span id=name>")
          else
 	    print("<td colspan=2>")
          end
@@ -1603,7 +1603,7 @@ elseif(page == "http") then
 	    print("<tr><th rowspan="..(num+1).." width=20%>"..i18n("http_page.virtual_hosts").."</th><th>Name</th><th>"..i18n("http_page.traffic_sent").."</th><th>"..i18n("http_page.traffic_received").."</th><th>"..i18n("http_page.requests_served").."</th></tr>\n")
 	    for k,v in pairsByKeys(vh, asc) do
 	       local j = string.gsub(k, "%.", "___")
-	       print("<tr><td><A class='ntopng-external-link' href='http://"..k.."'>"..k.." <i class='fas fa-external-link-alt'></i></A>")
+	       print("<tr><td>" .. format_external_link(k, k, false, "https") .. "")
 	       historicalProtoHostHref(ifId, host, nil, nil, k, host_vlan)
 	       print("</td>")
 	       print("<td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")

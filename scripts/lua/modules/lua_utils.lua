@@ -2161,11 +2161,11 @@ end
 
 -- Flow Utils --
 
-function flowinfo2hostname(flow_info, host_type, alerts_view)
+function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
    local name
    local orig_name
 
-   if alerts_view and not hasClickHouseSupport() then
+   if (alerts_view and not hasClickHouseSupport()) or (add_hostname ~= nil and add_hostname == false) then
       -- do not return resolved name as it will hide the IP address
       return(flow_info[host_type..".ip"])
    end
@@ -2386,33 +2386,16 @@ end
 -- ##############################################
 
 function flow2hostinfo(host_info, host_type)
-   local host_name
-
-   if host_type == "cli" then
-      if not host_info["cli.host"] then
-	 local res = interface.getHostMinInfo(host_info["cli.ip"])
-	 
-	 if((res == nil) or (res["name"] == nil)) then
-	    host_name = host_info["cli.ip"]
-	 else
-	    host_name = res["name"]
-	 end
-      end
-
-      return({host = host_info["cli.ip"], vlan = host_info["cli.vlan"], name = host_name})
-   elseif host_type == "srv" then
-      if not host_info["srv.host"] then
-	 local res = interface.getHostMinInfo(host_info["srv.ip"])
-	 
-	 if((res == nil) or (res["name"] == nil)) then
-	    host_name = host_info["srv.ip"]
-	 else
-	    host_name = res["name"]
-	 end
-      end
-      
-      return({host = host_info["srv.ip"], vlan = host_info["srv.vlan"], name = host_name})
-   end
+  local host_name
+  local res = interface.getHostMinInfo(host_info[host_type .. ".ip"])
+  
+  if((res == nil) or (res["name"] == nil)) then
+      host_name = host_info[host_type .. ".ip"]
+  else
+      host_name = res["name"]
+  end
+  
+  return({host = host_info[host_type .. ".ip"], vlan = host_info[host_type .. ".vlan"], name = host_name})
 end
 
 -- ##############################################
@@ -5148,7 +5131,7 @@ function format_dns_query_info(dns_info)
   end
 
   if dns_info.last_query then
-    dns_info.last_query = i18n("external_link_url", { url = dns_info["last_query"], url_name = dns_info["last_query"] })
+    dns_info.last_query = i18n("external_link_url", { proto = 'https', url = dns_info["last_query"], url_name = dns_info["last_query"] })
   end
 
   return dns_info
@@ -5180,7 +5163,7 @@ function format_tls_info(tls_info)
   end
 
   if tls_info.client_requested_server_name then
-    tls_info["client_requested_server_name"] = i18n("external_link_url", { url = tls_info["client_requested_server_name"], url_name = tls_info["client_requested_server_name"]})
+    tls_info["client_requested_server_name"] = i18n("external_link_url", { proto = 'https', url = tls_info["client_requested_server_name"], url_name = tls_info["client_requested_server_name"]})
   end
 
   if tls_info["ja3.server_cipher"] then
@@ -5241,7 +5224,7 @@ function format_http_info(http_info)
     if string.find(http_info["last_url"], '^/') then
       url = (http_info["server_name"] or "") .. http_info["last_url"]
     end
-    http_info["last_url"] = i18n("external_link_url", { url = url, url_name = url})
+    http_info["last_url"] = i18n("external_link_url", { proto = 'http', url = url, url_name = url})
   end
 
   if http_info["server_name"] then
@@ -5291,24 +5274,6 @@ end
 
 -- ##############################################
 
--- @brief  This function format the info field used in tables
--- @params info: A string containing the info field
---         no_html: A boolean, true if no_html is requested (e.g. Download in CSV format), 
---                  false otherwise
--- @return A string containing the info field formatted
-function format_info_field(info, no_html)
-  local info_field = info
-  if no_html == false then
-    if not isEmptyString(info) then
-      info_field = i18n("external_link_url", { url = info, url_name = info})
-    end
-  end
-
-  return info_field
-end
-
--- ##############################################
-
 -- @brief  This function, given an IP and a vlan return the concat of host@vlan
 -- @params host_ip: A string containing the IP
 --         vlan:    A string or a number containing the vlan id
@@ -5321,6 +5286,42 @@ function format_ip_vlan(ip, vlan)
   end
 
   return host
+end
+
+-- ##############################################
+
+-- @brief  This function, given an alert and "cli" or "srv" string is going to return the formatted hostname
+-- @params alert:   A table with the alert infos
+--         cli_srv: A string "cli" or "srv" used to get the required info
+-- @return A string hostname@vlan
+function format_alert_hostname(alert, cli_srv)
+  local host = alert[cli_srv .. "_name"]
+  
+  if(isEmptyString(host)) then
+    host = alert[cli_srv .. "_ip"]
+  end
+
+  return format_ip_vlan(shortenString(host, 26), alert["vlan"])
+end
+
+-- ##############################################
+
+-- @brief  This function format the info field used in tables
+-- @params info: A string containing the info field
+--         no_html: A boolean, true if no_html is requested (e.g. Download in CSV format), 
+--                  false otherwise
+-- @return A string containing the info field formatted
+function format_external_link(url, name, no_html, proto)
+  local external_field = url
+  proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
+
+  if no_html == false then
+    if not isEmptyString(url) then
+      external_field = i18n("external_link_url", { proto = proto, url = url, url_name = name})
+    end
+  end
+
+  return external_field
 end
 
 -- ##############################################

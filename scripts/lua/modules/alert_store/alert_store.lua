@@ -484,11 +484,11 @@ function alert_store:eval_alert_cond(alert, cond)
       if not isEmptyString(host["host"]) then
          if not host["vlan"] or host["vlan"] == 0 then
             if cond.field == 'name' and self._alert_entity == alert_entities.flow then
-               return tag_utils.eval_op(alert['cli_name'], cond.op, host["host"]) or
-                      tag_utils.eval_op(alert['srv_name'], cond.op, host["host"]) or
+               return (tag_utils.eval_op(alert['cli_name'], cond.op, host["host"]) or
+                       tag_utils.eval_op(alert['srv_name'], cond.op, host["host"])) and
                       tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
             else
-               return tag_utils.eval_op(alert[cond.field], cond.op, host["host"]) or
+               return tag_utils.eval_op(alert[cond.field], cond.op, host["host"]) and
                       tag_utils.eval_op(alert['vlan_id'], cond.op, host["vlan"])
             end
          else

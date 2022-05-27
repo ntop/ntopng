@@ -92,7 +92,16 @@ function recipients.initialize()
 
    -- Register all existing recipients in C to make sure ntopng can start with all the
    -- existing recipients properly loaded and ready for notification enqueues/dequeues
-   for _, recipient in pairs(recipients.get_all_recipients()) do
+
+   local alert_store_db_recipient = recipients.get_recipient_by_name("builtin_recipient_alert_store_db")
+   
+   if(alert_store_db_recipient.recipient_id ~= 0) then
+      print("WARNING ntopng found some inconsistencies in your recipient configuration\n")
+      print("WARNING Please factory reset the recipient and endpoint configuration\n")
+      alert_store_db_recipient.recipient_id = 0 -- setting it to the default value
+   end
+   
+   for _, recipient in pairs(recipients.get_all_recipients()) do     
       ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, 
          table.concat(recipient.check_categories, ','),
          table.concat(recipient.host_pools, ',')

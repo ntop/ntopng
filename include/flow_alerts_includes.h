@@ -70,6 +70,7 @@
 #include "flow_alerts/IECUnexpectedTypeIdAlert.h"
 
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */
+#include "flow_alerts/ConnectionFailedAlert.h"
 #include "flow_alerts/FlowRiskTLSUnsafeCiphersAlert.h"
 #include "flow_alerts/FlowRiskTLSCertificateExpiredAlert.h"
 #include "flow_alerts/FlowRiskTLSCertificateMismatchAlert.h"

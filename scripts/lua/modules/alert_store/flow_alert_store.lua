@@ -155,8 +155,11 @@ function flow_alert_store:insert(alert)
 
    -- Note: this is no longer called when ClickHouse is enabled
    -- as a view on the historical is used. See RecipientQueue::enqueue
+   if ntop.isClickHouseEnabled() then
+      return -- Safety check
+   end
 
-   if(ntop.isClickHouseEnabled()) then
+   if ntop.isClickHouseEnabled() then
       extra_columns = "rowid, "
       extra_values = "generateUUIDv4(), "
    else
@@ -543,8 +546,9 @@ function flow_alert_store:format_record(value, no_html)
          shorten_descr = shorten_msg,
       }
    end
+   local proto = string.lower(interface.getnDPIProtoName(tonumber(value["l7_master_proto"])))
    
-   local info = format_info_field(value["info"], no_html)
+   local info = format_external_link(value["info"], value["info"], no_html, proto)
    record[RNAME.INFO.name] = {
      descr = info
    }

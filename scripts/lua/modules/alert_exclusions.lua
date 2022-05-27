@@ -58,19 +58,25 @@ end
 
 -- ##############################################
 
-local function _check_host_ip_vlan_id_alert_key(host_ip, vlan_id, alert_key)
+local function _check_host_ip_vlan_id(host_ip, vlan_id)
   if not isIPv4(host_ip) and not isIPv6(host_ip) and not isIPv4Network(host_ip) then
     -- Invalid host submitted
     return false
   end
 
-  if not alert_consts.getAlertType(tonumber(alert_key)) then
-    -- Invalid alert key submitted
+  if (vlan_id) and (not tonumber(vlan_id)) then
+    -- Invalid vlan_id
     return false
   end
 
-  if (vlan_id) and (not tonumber(vlan_id)) then
-    -- Invalid vlan_id
+  return true
+end
+
+-- ##############################################
+
+local function _check_alert_key(alert_key)
+  if not alert_consts.getAlertType(tonumber(alert_key)) then
+    -- Invalid alert key submitted
     return false
   end
 
@@ -99,20 +105,13 @@ end
 
 -- ##############################################
 
---@brief Enables or disables an alert for an `host`, supports VLANs
-local function _toggle_alert(is_flow_exclusion, host_ip, vlan_id, alert_key, enable_exclusion)
+--@brief Enables or disables an alert
+local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add_exclusion, is_flow_exclusion)
   local ret = false
   
-  if not _check_host_ip_vlan_id_alert_key(host_ip, vlan_id, alert_key) then
+  if not _check_alert_key(alert_key) then
     -- Invalid params submitted
     return false
-  end
-  
-  local host = host_ip
-
-  -- Adding vlan_id to the host
-  if (vlan_id) and (tonumber(vlan_id) ~= 0) then
-    host = format_ip_vlan(host_ip, vlan_id)
   end
 
   local locked = _lock()
@@ -121,42 +120,45 @@ local function _toggle_alert(is_flow_exclusion, host_ip, vlan_id, alert_key, ena
     local id = tonumber(alert_key)
     local exclusions = _get_configured_alert_exclusions()
 
-    if(not enable_exclusion) then
-      -- disable alert --
+    if add_exclusion then
+      -- Add an entry for the current alert entity, if currently exising exclusions don't already have it
+      if(exclusions[subject_key] == nil) then
+        exclusions[subject_key] = { 
+          type = subject_type,
+          flow_alerts = {}, 
+          host_alerts = {} 
+        }
+      end
+	 
+      if(is_flow_exclusion) then
+        table.insert(exclusions[subject_key].flow_alerts, id)
+      else
+        table.insert(exclusions[subject_key].host_alerts, id)
+      end
+
+    else
       -- ip@vlan
-      if exclusions[host] then
+      if exclusions[subject_key] then
         local r = {}
         local t = {}
         
         if(is_flow_exclusion) then
-          t = exclusions[host].flow_alerts
+          t = exclusions[subject_key].flow_alerts
         else
-	        t = exclusions[host].host_alerts
-	      end
+          t = exclusions[subject_key].host_alerts
+        end
 
-	      for i=0,table.len(t) do
-	        if(t[i] ~= id) then
-		        table.insert(r, t[i])
-	        end
-	      end
+        for i=0,table.len(t) do
+          if(t[i] ~= id) then
+            table.insert(r, t[i])
+          end
+        end
 	    
-	      if(is_flow_exclusion) then
-	        exclusions[host].flow_alerts = r
-	      else
-	        exclusions[host].host_alerts = r
-	      end
-	    end
-    else
-	    -- enable alert --
-      -- Add an entry for the current alert entity, if currently exising exclusions don't already have it
-      if(exclusions[host] == nil) then
-        exclusions[host] = { flow_alerts = {}, host_alerts = {} }
-      end
-	 
-      if(is_flow_exclusion) then
-        table.insert(exclusions[host].flow_alerts, id)
-      else
-        table.insert(exclusions[host].host_alerts, id)
+        if(is_flow_exclusion) then
+          exclusions[subject_key].flow_alerts = r
+        else
+          exclusions[subject_key].host_alerts = r
+        end
       end
     end
       
@@ -171,8 +173,41 @@ end
 
 -- ##############################################
 
+--@brief Enables or disables an alert for an `host`, supports VLANs
+local function _toggle_alert_exclusion_by_host(is_flow_exclusion, host_ip, vlan_id, alert_key, add_exclusion)
+  if not _check_host_ip_vlan_id(host_ip, vlan_id) then
+    -- Invalid params submitted
+    return false
+  end
+
+  local host = host_ip
+
+  -- Adding vlan_id to the host
+  if (vlan_id) and (tonumber(vlan_id) ~= 0) then
+    host = format_ip_vlan(host_ip, vlan_id)
+  end
+
+  return _toggle_alert_exclusion(host, "host", alert_key, add_exclusion, is_flow_exclusion)
+end
+
+-- ##############################################
+
+--@brief Enables or disables alerts for a domain
+local function _toggle_alert_exclusion_by_domain(domain_name, alert_key, add_exclusion)
+  return _toggle_alert_exclusion(domain_name, "domain", alert_key, add_exclusion, true)
+end
+
+-- ##############################################
+
+--@brief Enables or disables alerts for a domain
+local function _toggle_alert_exclusion_by_certificate(certificate, alert_key, add_exclusion)
+  return _toggle_alert_exclusion(certificate, "certificate", alert_key, add_exclusion, true)
+end
+
+-- ##############################################
+
 --@brief Removes all exclusions for a given entity
-local function _enable_all_alerts(host_ip, vlan_id)
+local function _enable_all_alerts_by_host(host_ip, vlan_id)
   local ret = false
   
   local locked = _lock()
@@ -200,7 +235,7 @@ end
 -- ##############################################
 
 -- @brief Returns true if `host_ip` has the alert identified with `alert_key` disabled
-local function _has_disabled_alert(is_flow_exclusion, host_ip, vlan_id, alert_key)
+local function _has_disabled_alert_by_host(is_flow_exclusion, host_ip, vlan_id, alert_key)
   local exclusions = _get_configured_alert_exclusions()
   local id = tonumber(alert_key)
   local host = format_ip_vlan(host_ip, vlan_id)
@@ -235,30 +270,37 @@ end
 
 -- ##############################################
 
--- @brief Returns all excluded hosts for the given `alert_key` or nil if no excluded host exists
-local function _get_excluded_hosts(is_flow_exclusion, alert_key)
+-- @brief Returns all excluded subjects (e.g. hosts, domains, certificates) for the given `alert_key` or nil if no exclusion exists
+local function _get_exclusions(is_flow_exclusion, alert_key, subject_type)
   local exclusions = _get_configured_alert_exclusions()
   local id = tonumber(alert_key)
   local ret = {}
 
-  for host,v in pairs(exclusions) do
-    local t
+  for subject_key, v in pairs(exclusions) do
 
-    if(is_flow_exclusion) then
-      t = v.flow_alerts
-    else
-      t = v.host_alerts
+    if not v.type then
+       v.type = "host"
     end
 
-    if not t then
-      traceError(TRACE_INFO,TRACE_CONSOLE, "Failure checking exclusions for host")
-    else
-      for i=0,table.len(t) do
-        if(t[i] == id) then
-          ret[host] = true
-          break
-        end
-      end     
+    if v.type == subject_type then
+      local t
+
+      if(is_flow_exclusion) then
+        t = v.flow_alerts
+      else
+        t = v.host_alerts
+      end
+
+      if not t then
+        traceError(TRACE_INFO,TRACE_CONSOLE, "Failure checking exclusions")
+      else
+        for i=0,table.len(t) do
+          if t[i] == id then
+            ret[subject_key] = true
+            break
+          end
+        end     
+      end
     end
   end
   
@@ -269,16 +311,48 @@ end
 
 --@brief Marks a flow alert as disabled for a given `host_ip`, considered either as client or server
 --@return True, if alert is disabled with success, false otherwise
-function alert_exclusions.disable_flow_alert(host_ip, vlan_id, alert_key)
-   return _toggle_alert(true --[[ flow --]], host_ip, vlan_id, alert_key, true --[[ disable --]])
+function alert_exclusions.disable_flow_alert_by_host(host_ip, vlan_id, alert_key)
+   return _toggle_alert_exclusion_by_host(true --[[ flow --]], host_ip, vlan_id, alert_key, true --[[ disable --]])
+end
+
+-- ##############################################
+
+--@brief Marks a flow alert as disabled for a given domain name
+--@return True, if alert is disabled with success, false otherwise
+function alert_exclusions.disable_flow_alert_by_domain(domain_name, alert_key)
+   return _toggle_alert_exclusion_by_domain(domain_name, alert_key, true --[[ disable --]])
+end
+
+-- ##############################################
+
+--@brief Marks a flow alert as disabled for a given certificate
+--@return True, if alert is disabled with success, false otherwise
+function alert_exclusions.disable_flow_alert_by_certificate(certificate, alert_key)
+   return _toggle_alert_exclusion_by_certificate(certificate, alert_key, true --[[ disable --]])
 end
 
 -- ##############################################
 
 --@brief Marks a flow alert as enabled for a given `host_ip`, considered either as client or server
 --@return True, if alert is enabled with success, false otherwise
-function alert_exclusions.enable_flow_alert(host_ip, vlan_id, alert_key)
-   return _toggle_alert(true --[[ flow --]], host_ip, vlan_id, alert_key, false --[[ enable --]])
+function alert_exclusions.enable_flow_alert_by_host(host_ip, vlan_id, alert_key)
+   return _toggle_alert_exclusion_by_host(true --[[ flow --]], host_ip, vlan_id, alert_key, false --[[ enable --]])
+end
+
+-- ##############################################
+
+--@brief Marks a flow alert as enabled for a given domain name
+--@return True, if alert is enabled with success, false otherwise
+function alert_exclusions.enable_flow_alert_by_domain(domain_name, alert_key)
+   return _toggle_alert_exclusion_by_domain(domain_name, alert_key, false --[[ enable --]])
+end
+
+-- ##############################################
+
+--@brief Marks a flow alert as enabled for a given certificate
+--@return True, if alert is enabled with success, false otherwise
+function alert_exclusions.enable_flow_alert_by_certificate(certificate, alert_key)
+   return _toggle_alert_exclusion_by_certificate(certificate, alert_key, false --[[ enable --]])
 end
 
 -- ##############################################
@@ -286,31 +360,31 @@ end
 --@brief Enables all flow alerts possibly disabled
 --@param host If a valid ip address is specified, then all alerts will be enabled only for `host`, otherwise all alerts will be enabled
 --@return True, if enabled with success, false otherwise
-function alert_exclusions.enable_all_flow_alerts(host_ip, vlan_id)
-   return _enable_all_alerts(host_ip, vlan_id)
+function alert_exclusions.enable_all_flow_alerts_by_host(host_ip, vlan_id)
+   return _enable_all_alerts_by_host(host_ip, vlan_id)
 end
 
 -- ##############################################
 
 -- @brief Returns true if `host_ip` has the flow alert identified with `alert_key` disabled
-function alert_exclusions.has_disabled_flow_alert(host_ip, alert_key)
-   return _has_disabled_alert(true --[[ flow --]], host_ip, 0, alert_key)
+function alert_exclusions.has_disabled_flow_alert_by_host(host_ip, alert_key)
+   return _has_disabled_alert_by_host(true --[[ flow --]], host_ip, 0, alert_key)
 end
  
 -- ##############################################
 
 --@brief Marks a host alert as disabled for a given `host_ip`
 --@return True, if alert is disabled with success, false otherwise
-function alert_exclusions.disable_host_alert(host_ip, vlan_id, alert_key)
-   return _toggle_alert(false --[[ host --]], host_ip, vlan_id, alert_key, true --[[ disable --]])
+function alert_exclusions.disable_host_alert_by_host(host_ip, vlan_id, alert_key)
+   return _toggle_alert_exclusion_by_host(false --[[ host --]], host_ip, vlan_id, alert_key, true --[[ disable --]])
 end
 
 -- ##############################################
 
 --@brief Marks a host alert as enabled for a given `host_ip`
 --@return True, if alert is enabled with success, false otherwise
-function alert_exclusions.enable_host_alert(host_ip, vlan_id, alert_key)
-   return _toggle_alert(false --[[ host --]], host_ip, vlan_id, alert_key, false --[[ enable --]])
+function alert_exclusions.enable_host_alert_by_host(host_ip, vlan_id, alert_key)
+   return _toggle_alert_exclusion_by_host(false --[[ host --]], host_ip, vlan_id, alert_key, false --[[ enable --]])
 end
 
 -- ##############################################
@@ -318,29 +392,29 @@ end
 --@brief Enables all host alerts possibly disabled
 --@param host If a valid ip address is specified, then all alerts will be enabled only for `host`, otherwise all alerts will be enabled
 --@return True, if enabled with success, false otherwise
-function alert_exclusions.enable_all_host_alerts(host_ip, vlan_id)
-   return _enable_all_alerts(host_ip, vlan_id)
+function alert_exclusions.enable_all_host_alerts_by_host(host_ip, vlan_id)
+   return _enable_all_alerts_by_host(host_ip, vlan_id)
 end
 
 -- ##############################################
 
 -- @brief Returns all the excluded hosts for the host alert identified with `alert_key`
-function alert_exclusions.host_alerts_get_excluded_hosts(alert_key)
-   return _get_excluded_hosts(false --[[ host --]], alert_key) or {}
+function alert_exclusions.host_alerts_get_exclusions(alert_key, subject_type)
+   return _get_exclusions(false --[[ host --]], alert_key, subject_type or "host") or {}
 end
 
 -- ##############################################
 
 -- @brief Returns all the excluded hosts for the flowt alert identified with `alert_key`
-function alert_exclusions.flow_alerts_get_excluded_hosts(alert_key)
-   return _get_excluded_hosts(true --[[ flow --]], alert_key) or {}
+function alert_exclusions.flow_alerts_get_exclusions(alert_key, subject_type)
+   return _get_exclusions(true --[[ flow --]], alert_key, subject_type or "host") or {}
 end
 
 -- ##############################################
 
 -- @brief Returns true if `host_ip` has the host alert identified with `alert_key` disabled
-function alert_exclusions.has_disabled_host_alert(host_ip, alert_key)
-   return _has_disabled_alert(false --[[ host --]], host_ip, 0, alert_key)
+function alert_exclusions.has_disabled_host_alert_by_host(host_ip, alert_key)
+   return _has_disabled_alert_by_host(false --[[ host --]], host_ip, 0, alert_key)
 end
 
 -- ##############################################

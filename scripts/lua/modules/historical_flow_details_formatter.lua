@@ -252,39 +252,46 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
     flow_details[#flow_details + 1] = format_historical_total_traffic(flow)
     flow_details[#flow_details + 1] = format_historical_client_server_bytes(flow)
     flow_details[#flow_details + 1] = format_historical_bytes_progress_bar(flow, info)
-    flow_details[#flow_details + 1] = format_historical_tos(flow)
+    
+    if (info['dst2src_dscp']) and (info['dst2src_dscp']['value'] ~= 0) and (info['src2dst_dscp']['value'] ~= 0) then
+      flow_details[#flow_details + 1] = format_historical_tos(flow)
+    end
 
-    if info["l4proto"] and info["l4proto"]["label"] == 'TCP' then
+    if (info["l4proto"]) and (info["l4proto"]["label"] == 'TCP') then
       flow_details[#flow_details + 1] = format_historical_tcp_flags(flow, info)
     end
 
-    if (info["cli_host_pool_id"]["label"] ~= nil) and (info["srv_host_pool_id"]["label"] ~= nil) then
+    if (info["cli_host_pool_id"]) and (info["cli_host_pool_id"]["value"] ~= '0') and (info["srv_host_pool_id"]["value"] ~= '0') then
       flow_details[#flow_details + 1] = format_historical_host_pool(flow, info)
     end
 
-    flow_details[#flow_details + 1] = format_historical_score(flow)
-    flow_details[#flow_details + 1] = format_historical_issue_description(flow)
+    if (info["score"]) and (info["score"]["value"] ~= 0) then
+      flow_details[#flow_details + 1] = format_historical_score(flow)
+      flow_details[#flow_details + 1] = format_historical_issue_description(flow)
 
-    -- Formatting other issues, this is the only feasible way
-    local other_issues = format_historical_other_issues(flow)
-    if table.len(other_issues) > 0 then
-      flow_details[#flow_details + 1] = {
-        label = i18n("db_explorer.other_issues"),
-        content = other_issues[1]
-      }
-
-      table.remove(other_issues, 1) -- Remove the first element
-      for _, issues in pairs(other_issues or {}) do
+      -- Formatting other issues, this is the only feasible way
+      local other_issues = format_historical_other_issues(flow)
+      if table.len(other_issues) > 0 then
         flow_details[#flow_details + 1] = {
-          label = '',   -- Empty label
-          content = issues
+          label = i18n("db_explorer.other_issues"),
+          content = other_issues[1]
         }
+  
+        table.remove(other_issues, 1) -- Remove the first element
+        for _, issues in pairs(other_issues or {}) do
+          flow_details[#flow_details + 1] = {
+            label = '',   -- Empty label
+            content = issues
+          }
+        end
       end
     end
 
-    flow_details[#flow_details + 1] = format_historical_community_id(flow)
-    
-    if not isEmptyString(flow["INFO"]) then
+    if (info['COMMUNITY_ID']) and (not isEmptyString(info['COMMUNITY_ID'])) then
+      flow_details[#flow_details + 1] = format_historical_community_id(flow)
+    end
+
+    if (info['info']) and (not isEmptyString(info['info']["title"])) then
       flow_details[#flow_details + 1] = format_historical_info(flow)
     end
     

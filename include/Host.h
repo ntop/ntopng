@@ -56,6 +56,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     char *netbios; /* The NetBIOS name */
     char *tls; /* The TLS SNI or the name as dissected from other TLS-transported protocols */
     char *http; /* The HTTP Host: name */
+    char *server_name; /* TLS/HTTP or other protocols requesting the host with a specific server name */
   } names;
 
   char *ssdpLocation;
@@ -261,6 +262,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline Mac* getMac() const                   { return(mac);              }
   inline DeviceType getDeviceType()      const { Mac *m = mac; return(isBroadcastDomainHost() && m ? m->getDeviceType() : device_unknown); }
   char * getResolvedName(char * const buf, ssize_t buf_len);
+  char * getServerName(char * const buf, ssize_t buf_len);
   char * getMDNSName(char * const buf, ssize_t buf_len);
   char * getMDNSTXTName(char * const buf, ssize_t buf_len);
   char * getMDNSInfo(char * const buf, ssize_t buf_len);
@@ -472,6 +474,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void offlineSetMDNSInfo(char * const s);
   void offlineSetMDNSName(const char * n);
   void offlineSetMDNSTXTName(const char * n);
+  void setServerName(const char * n);
   void setResolvedName(const char * resolved_name);
   inline Fingerprint* getJA3Fingerprint()   { return(&fingerprints.ja3);   }
   inline Fingerprint* getHASSHFingerprint() { return(&fingerprints.hassh); }
