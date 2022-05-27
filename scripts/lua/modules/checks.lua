@@ -1199,7 +1199,7 @@ function checks.updateScriptConfig(script_key, subdir, new_config, additional_fi
 
 	    if not current_filters[new_ip] then
 	       -- Not an already-added filter
-	       alert_exclusions.disable_host_alert(new_ip, 0, script.alert_id)
+	       alert_exclusions.disable_host_alert_by_host(new_ip, 0, script.alert_id)
 	    else
 	       -- Filter was already added, nothing to do
 	       current_filters[new_ip] = nil
@@ -1209,7 +1209,7 @@ function checks.updateScriptConfig(script_key, subdir, new_config, additional_fi
 	 -- Here we have leftovers, that is, previously added filters that should
 	 -- be removed as they don't appear in the new filters
 	 for current_ip, _ in pairs(current_filters or {}) do
-	    alert_exclusions.enable_host_alert(current_ip, 0, script.alert_id)
+	    alert_exclusions.enable_host_alert_by_host(current_ip, 0, script.alert_id)
 	 end
       elseif subdir == "flow" then
 	 local current_filters = alert_exclusions.flow_alerts_get_excluded_hosts(script.alert_id)
@@ -1220,7 +1220,7 @@ function checks.updateScriptConfig(script_key, subdir, new_config, additional_fi
 
 	    if not current_filters[new_ip] then
 	       -- Not an already-added filter
-	       alert_exclusions.disable_flow_alert(new_ip, 0, script.alert_id)
+	       alert_exclusions.disable_flow_alert_by_host(new_ip, 0, script.alert_id)
 	    else
 	       -- Filter was already added, nothing to do
 	       current_filters[new_ip] = nil
@@ -1229,7 +1229,7 @@ function checks.updateScriptConfig(script_key, subdir, new_config, additional_fi
 
 	 -- See above for flows
 	 for current_ip, _ in pairs(current_filters or {}) do
-	    alert_exclusions.enable_flow_alert(current_ip, 0, script.alert_id)
+	    alert_exclusions.enable_flow_alert_by_host(current_ip, 0, script.alert_id)
 	 end
       end
    elseif additional_filters then
