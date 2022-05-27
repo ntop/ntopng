@@ -127,18 +127,14 @@
         method: 'get',
         url: url,
         dataSrc: 'rsp',
-        beforeSend: function() {
-          NtopUtils.showOverlays();
-        },
-        complete: function() {
-          NtopUtils.hideOverlays();
-        }
       },
       columns: columns,
       lengthMenu: [10, 50, 100, 250],
     });
     
     const $table = $('#discovery-table').DataTable(config);
+
+    NtopUtils.hideOverlays();
   })
 </script>
 
