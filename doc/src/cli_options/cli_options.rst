@@ -58,6 +58,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | Examples:
                                        | -m "192.168.1.0/24,172.16.0.0/16"
                                        | -m "192.168.1.0/24=LAN_1,192.168.2.0/24=LAN_2,10.0.0.0/8"
+				       | -m /path/to/local_networks_file
    [--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file
                                        | (eg. protos.txt)
    [--redis|-r] <fmt>                  | Redis connection. <fmt> is specified as
