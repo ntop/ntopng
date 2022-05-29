@@ -50,7 +50,7 @@ AddressResolution::~AddressResolution() {
 
   free(resolveThreadLoop);
   Trace *log = ntop->getTrace(); 
-  if (log != NULL) {
+  if(log != NULL) {
     log->traceEvent(TRACE_NORMAL, "Address resolution stats [%u resolved][%u failures]",
 			       num_resolved_addresses, num_resolved_fails);
   }
@@ -62,7 +62,7 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
   char rsp[128], query[64], *at, *numeric_ip;
   u_int numeric_ip_len;
  
-  if (_numeric_ip == NULL) {
+  if(_numeric_ip == NULL) {
      throw std::invalid_argument("invalid null arguments");
   }
   
@@ -73,14 +73,16 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
 
   if((symbolic != NULL) && (symbolic_len > 0)) symbolic[0] = '\0';
   if(numeric_ip[0] == '\0') return;
+
   // in this case we don't crash when redis is not up.
   // but we don't cache
   Redis* redisInstance = ntop->getRedis();
   // TODO: to be replaced with uniform initialization
   int cachedResult = -1;
-  if (redisInstance != NULL) {
-    cachedResult = redisInstance->getAddress(numeric_ip, rsp, sizeof(rsp), false);
-  }
+
+  if(redisInstance != NULL)
+    cachedResult = redisInstance->getAddress(numeric_ip, rsp, sizeof(rsp), false);  
+
   if(cachedResult < 0) {
     char hostname[NI_MAXHOST];
     struct sockaddr *sa;
@@ -95,14 +97,19 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
     if(!isxdigit(numeric_ip[numeric_ip_len]) && (numeric_ip[numeric_ip_len] != ':')) {
       /* This is a symbolic IP -> numeric IP */
       struct hostent *h;
+      
       m.lock(__FILE__, __LINE__);
+
       h = gethostbyname((const char*)numeric_ip); /* Non reentrant call */
 
-      if(symbolic && h) snprintf(symbolic, symbolic_len, "%s",  h->h_name);
-      if (redisInstance!=NULL) {
+      if(symbolic && h)
+	snprintf(symbolic, symbolic_len, "%s",  h->h_name);
+     
+      if(redisInstance != NULL)
         redisInstance->setResolvedAddress(numeric_ip, h ? h->h_name : (char*)"");
-      }
+      
       num_resolved_addresses++;
+      
       m.unlock(__FILE__, __LINE__);
       return;
     }
@@ -140,8 +147,10 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
       m.unlock(__FILE__, __LINE__);
     } else {
       m.lock(__FILE__, __LINE__);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "ADDRESS RESOLUTION FAILED %s", numeric_ip); /* TODO */
       num_resolved_fails++;
       m.unlock(__FILE__, __LINE__);
+      
       ntop->getTrace()->traceEvent(TRACE_INFO, "Error resolution failure for %s [%d/%s/%s]",
 				   numeric_ip, rc, gai_strerror(rc), strerror(errno));
       ntop->getRedis()->setResolvedAddress(numeric_ip, numeric_ip); /* So we avoid to continuously resolver the same address */
@@ -156,9 +165,11 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
 bool AddressResolution::resolveHost(const char *host, char *rsp, u_int rsp_len, bool v4) {
   struct addrinfo hints, *servinfo, *rp;
   const char *dst = NULL;
-  if (host == NULL) {
+
+  if(host == NULL) {
       throw std::invalid_argument("invalid host parameters");
   }
+  
   memset(&hints, 0, sizeof(hints));
 
   hints.ai_family = v4 ? AF_INET : AF_INET6;

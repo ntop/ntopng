@@ -98,7 +98,7 @@ bool OtherAlertableEntity::triggerAlert(lua_State* vm, std::string key,
 /* ****************************************** */
 
 bool OtherAlertableEntity::releaseAlert(lua_State* vm,
-				   std::string key, ScriptPeriodicity p, time_t now) {
+					std::string key, ScriptPeriodicity p, time_t now) {
   std::map<std::string, Alert>::iterator it;
   bool rv = false;
 

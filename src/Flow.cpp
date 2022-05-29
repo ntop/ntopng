@@ -4522,140 +4522,140 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 #endif
 
     if(src2dst_direction) {
-    char *space;
-    dissect_next_http_packet = 1;
+      char *space;
+      dissect_next_http_packet = 1;
 
-    /* use memchr to prevent possibly non-NULL terminated HTTP requests */
-    if(payload && ((space = (char*)memchr(payload, ' ', payload_len - 1)) != NULL)) {
-      u_int l = space - payload;
-      bool go_deeper = true;
+      /* use memchr to prevent possibly non-NULL terminated HTTP requests */
+      if(payload && ((space = (char*)memchr(payload, ' ', payload_len - 1)) != NULL)) {
+	u_int l = space - payload;
+	bool go_deeper = true;
 
-      if(payload_len >= 2) {
-	switch(payload[0]) {
-	case 'P':
-	  switch(payload[1]) {
-	  case 'O': stats.incHTTPReqPOST();  break;
-	  case 'U': stats.incHTTPReqPUT();   break;
+	if(payload_len >= 2) {
+	  switch(payload[0]) {
+	  case 'P':
+	    switch(payload[1]) {
+	    case 'O': stats.incHTTPReqPOST();  break;
+	    case 'U': stats.incHTTPReqPUT();   break;
+	    default:  stats.incHTTPReqOhter(); go_deeper = false; break;
+	    }
+	    break;
+	  case 'G': stats.incHTTPReqGET();   break;
+	  case 'H': stats.incHTTPReqHEAD();  break;
 	  default:  stats.incHTTPReqOhter(); go_deeper = false; break;
 	  }
-	  break;
-	case 'G': stats.incHTTPReqGET();   break;
-	case 'H': stats.incHTTPReqHEAD();  break;
-	default:  stats.incHTTPReqOhter(); go_deeper = false; break;
-	}
-      } else
-	go_deeper = false;
+	} else
+	  go_deeper = false;
 
-      if(go_deeper) {
-	char *ua;
+	if(go_deeper) {
+	  char *ua;
 
-        setHTTPMethod(payload, l);
+	  setHTTPMethod(payload, l);
 
-	payload_len -= (l + 1);
-	payload = &space[1];
-	if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
-	  l = min_val(space - payload, 512); /* Avoid jumbo URLs */
+	  payload_len -= (l + 1);
+	  payload = &space[1];
+	  if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
+	    l = min_val(space - payload, 512); /* Avoid jumbo URLs */
 
-	  /* Stop at the first non-printable char of the HTTP URL */
-	  for(u_int i = 0; i < l; i++) {
-	    if(!isprint(payload[i])) {
-	      l = i;
-	      break;
+	    /* Stop at the first non-printable char of the HTTP URL */
+	    for(u_int i = 0; i < l; i++) {
+	      if(!isprint(payload[i])) {
+		l = i;
+		break;
+	      }
+	    }
+
+	    if(!protos.http.last_url
+	       && (protos.http.last_url = (char*)malloc(host_server_name_len + l + 1)) != NULL) {
+	      protos.http.last_url[0] = '\0';
+
+	      if(host_server_name_len > 0) {
+		strncat(protos.http.last_url, host_server_name, host_server_name_len);
+	      }
+
+	      strncat(protos.http.last_url, payload, l);
 	    }
 	  }
 
-	  if(!protos.http.last_url
-	     && (protos.http.last_url = (char*)malloc(host_server_name_len + l + 1)) != NULL) {
-	    protos.http.last_url[0] = '\0';
+	  if((ua = ndpi_strnstr(payload, "User-Agent:", payload_len)) != NULL) {
+	    char buf[128];
+	    u_int i;
 
-	    if(host_server_name_len > 0) {
-	      strncat(protos.http.last_url, host_server_name, host_server_name_len);
-	    }
+	    ua = &ua[11];
+	    while(ua[0] == ' ') ua++;
 
-	    strncat(protos.http.last_url, payload, l);
-	  }
-	}
+	    for(i=0; (i < payload_len) && (i < (sizeof(buf)-1) && (ua[i] != '\r')); i++)
+	      buf[i] = ua[i];
 
-	if((ua = ndpi_strnstr(payload, "User-Agent:", payload_len)) != NULL) {
-	  char buf[128];
-	  u_int i;
-
-	  ua = &ua[11];
-	  while(ua[0] == ' ') ua++;
-
-	  for(i=0; (i < payload_len) && (i < (sizeof(buf)-1) && (ua[i] != '\r')); i++)
-	    buf[i] = ua[i];
-
-	  buf[i] = '\0';
+	    buf[i] = '\0';
 
 #ifdef DEBUG_UA
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[UA] %s", buf);
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[UA] %s", buf);
 #endif
 
-	  /*
-	    https://en.wikipedia.org/wiki/User_agent
+	    /*
+	      https://en.wikipedia.org/wiki/User_agent
 
-	    Most Web browsers use a User-Agent string value as follows:
-	    Mozilla/[version] ([system and browser information]) [platform] ([platform details]) [extensions]
-	  */
+	      Most Web browsers use a User-Agent string value as follows:
+	      Mozilla/[version] ([system and browser information]) [platform] ([platform details]) [extensions]
+	    */
 
-	  if((ua = strchr(buf, '(')) != NULL) {
-	    char *end = strchr(buf, ')');
+	    if((ua = strchr(buf, '(')) != NULL) {
+	      char *end = strchr(buf, ')');
 
-	    if(end) {
-	      /* TODO: move into nDPI */
-	      end[0] = '\0';
-	      ua++;
+	      if(end) {
+		/* TODO: move into nDPI */
+		end[0] = '\0';
+		ua++;
 
-	      if(strstr(ua, "iPad") || strstr(ua, "iPod") || strstr(ua, "iPhone"))
-		operating_system = os_ios;
-	      else if(strstr(ua, "Android"))
-		operating_system = os_android;
-	      else if(strstr(ua, "Airport"))
-		operating_system = os_apple_airport;
-	      else if(strstr(ua, "Macintosh") || strstr(ua, "OS X"))
-		operating_system = os_macos;
-	      else if(strstr(ua, "Windows"))
-		operating_system = os_windows;
-	      else if(strcasestr(ua, "Linux") || strstr(ua, "Debian") || strstr(ua, "Ubuntu"))
-		operating_system = os_linux;
+		if(strstr(ua, "iPad") || strstr(ua, "iPod") || strstr(ua, "iPhone"))
+		  operating_system = os_ios;
+		else if(strstr(ua, "Android"))
+		  operating_system = os_android;
+		else if(strstr(ua, "Airport"))
+		  operating_system = os_apple_airport;
+		else if(strstr(ua, "Macintosh") || strstr(ua, "OS X"))
+		  operating_system = os_macos;
+		else if(strstr(ua, "Windows"))
+		  operating_system = os_windows;
+		else if(strcasestr(ua, "Linux") || strstr(ua, "Debian") || strstr(ua, "Ubuntu"))
+		  operating_system = os_linux;
+	      }
 	    }
 	  }
 	}
       }
-    }
-  } else {
-    if(dissect_next_http_packet) {
-      char *space;
+    } else {
+      if(dissect_next_http_packet) {
+	char *space;
 
-      // payload[10]=0; ntop->getTrace()->traceEvent(TRACE_WARNING, "[len: %u][%s]", payload_len, payload);
-      dissect_next_http_packet = 0;
-
-      if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
-	u_int l = space - payload;
-
-	payload_len -= (l + 1);
-	payload = &space[1];
-
-	switch(payload[0]) {
-	case '1': stats.incHTTPResp1xx(); break;
-	case '2': stats.incHTTPResp2xx(); break;
-	case '3': stats.incHTTPResp3xx(); break;
-	case '4': stats.incHTTPResp4xx(); break;
-	case '5': stats.incHTTPResp5xx(); break;
-	}
+	// payload[10]=0; ntop->getTrace()->traceEvent(TRACE_WARNING, "[len: %u][%s]", payload_len, payload);
+	dissect_next_http_packet = 0;
 
 	if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
-	  char tmp[32];
-	  l = min_val(space - payload, (int)(sizeof(tmp) - 1));
+	  u_int l = space - payload;
 
-	  strncpy(tmp, payload, l);
-	  tmp[l] = 0;
-	  protos.http.last_return_code = atoi(tmp);
+	  payload_len -= (l + 1);
+	  payload = &space[1];
+
+	  switch(payload[0]) {
+	  case '1': stats.incHTTPResp1xx(); break;
+	  case '2': stats.incHTTPResp2xx(); break;
+	  case '3': stats.incHTTPResp3xx(); break;
+	  case '4': stats.incHTTPResp4xx(); break;
+	  case '5': stats.incHTTPResp5xx(); break;
+	  }
+
+	  if((space = (char*)memchr(payload, ' ', payload_len)) != NULL) {
+	    char tmp[32];
+	    l = min_val(space - payload, (int)(sizeof(tmp) - 1));
+
+	    strncpy(tmp, payload, l);
+	    tmp[l] = 0;
+	    protos.http.last_return_code = atoi(tmp);
+	  }
 	}
       }
     }
-  }
 }
 
 /* *************************************** */

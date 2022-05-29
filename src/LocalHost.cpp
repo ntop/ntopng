@@ -119,9 +119,17 @@ void LocalHost::initialize() {
   char *strIP = ip.print(buf, sizeof(buf));
   snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
 
-  if(ntop->getPrefs()->is_dns_resolution_enabled())
-    ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true);
-
+  if(ntop->getPrefs()->is_dns_resolution_enabled()) {
+    if(isBroadcastHost() || isMulticastHost()
+       || (isIPv6()
+	   && ((strncmp(strIP, "ff0", 3) == 0)
+	       || (strncmp(strIP, "fe80", 4) == 0)))
+       )
+      ;
+    else
+      ntop->getRedis()->getAddress(strIP, rsp, sizeof(rsp), true);
+  }
+  
   PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
   updateHostTrafficPolicy(host);
   PROFILING_SUB_SECTION_EXIT(iface, 18);
