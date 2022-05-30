@@ -47,7 +47,7 @@ end
 
 -- Get the 'real' field name (used by flow alerts where the flow table is a view
 -- and we write to the real table which has different column names)
-function alert_store:get_column_name(field, is_write, value)
+function flow_alert_store:get_column_name(field, is_write, value)
    local col = field
    if is_write and self._write_table_name then
       -- This is using the flow table, in write mode we have to remap columns
@@ -79,17 +79,13 @@ end
 -- ##############################################
 
 --@brief Labels alerts according to specified filters
-function alert_store:acknowledge(label)
+function flow_alert_store:acknowledge(label)
+   local table_name = self:get_write_table_name()
    local where_clause = self:build_where_clause(true)
 
    -- Prepare the final query
    local q
    if ntop.isClickHouseEnabled() then
-      local table_name = self._table_name
-      if self._write_table_name then
-         table_name = self._write_table_name
-      end
-
       -- This is using the historical 'flows' table
       q = string.format("ALTER TABLE `%s` UPDATE `%s` = %u, `%s` = '%s', `%s` = %u WHERE %s", 
          table_name,
@@ -101,7 +97,7 @@ function alert_store:acknowledge(label)
          os.time(), 
          where_clause)
    else
-      q = string.format("UPDATE `%s` SET `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
+      q = string.format("UPDATE `%s` SET `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
    end
 
    local res = interface.alert_store_query(q)
@@ -111,15 +107,14 @@ end
 -- ##############################################
 
 --@brief Deletes data according to specified filters
-function alert_store:delete()
+function flow_alert_store:delete()
+   local table_name = self:get_write_table_name()
    local where_clause = self:build_where_clause(true)
 
    -- Prepare the final query
    local q
    if ntop.isClickHouseEnabled() then
-      local table_name = self._table_name
       if self._write_table_name then
-         table_name = self._write_table_name
 
          -- Fix column type conversion
          where_clause = historical_flow_utils.fixWhereTypes(where_clause)
@@ -129,7 +124,7 @@ function alert_store:delete()
          q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", table_name, where_clause)
       end
    else
-      q = string.format("DELETE FROM `%s` WHERE %s ", self._table_name, where_clause)
+      q = string.format("DELETE FROM `%s` WHERE %s ", table_name, where_clause)
    end
 
    local res = interface.alert_store_query(q)
@@ -138,7 +133,7 @@ end
 
 -- ##############################################
 
-function alert_store:_get_tstamp_column_name()
+function flow_alert_store:_get_tstamp_column_name()
    if ntop.isClickHouseEnabled() then
       return "first_seen"
    else
@@ -182,7 +177,7 @@ function flow_alert_store:insert(alert)
       "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, json, info) "..
       "VALUES (%s%u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
       "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', '%s'); ",
-      self._table_name,
+      self:get_write_table_name(),
       extra_columns,
       extra_values,
       alert.alert_id,
@@ -241,7 +236,7 @@ function flow_alert_store:top_l7_proto_historical()
    local where_clause = self:build_where_clause()
 
    local q = string.format("SELECT l7_proto, count(*) count FROM %s WHERE %s GROUP BY l7_proto ORDER BY count DESC LIMIT %u",
-         self._table_name, where_clause, self._top_limit)
+         self:get_table_name(), where_clause, self._top_limit)
    local q_res = interface.alert_store_query(q) or {}
 
    return q_res
@@ -258,10 +253,10 @@ function flow_alert_store:top_cli_ip_historical()
    local q
    if ntop.isClickHouseEnabled() then
       q = string.format("SELECT cli_ip, vlan_id, cli_name, count(*) count FROM %s WHERE %s GROUP BY cli_ip, vlan_id, cli_name ORDER BY count DESC LIMIT %u",
-         self._table_name, where_clause, self._top_limit)
+         self:get_table_name(), where_clause, self._top_limit)
    else
       q = string.format("SELECT cli_ip, vlan_id, cli_name, count(*) count FROM %s WHERE %s GROUP BY cli_ip ORDER BY count DESC LIMIT %u",
-         self._table_name, where_clause, self._top_limit)
+         self:get_table_name(), where_clause, self._top_limit)
    end
 
    local q_res = interface.alert_store_query(q) or {}
@@ -279,10 +274,10 @@ function flow_alert_store:top_srv_ip_historical()
    local q
    if ntop.isClickHouseEnabled() then
       q = string.format("SELECT srv_ip, vlan_id, srv_name, count(*) count FROM %s WHERE %s GROUP BY srv_ip, vlan_id, srv_name ORDER BY count DESC LIMIT %u",
-         self._table_name, where_clause, self._top_limit)
+         self:get_table_name(), where_clause, self._top_limit)
    else
       q = string.format("SELECT srv_ip, vlan_id, srv_name, count(*) count FROM %s WHERE %s GROUP BY srv_ip ORDER BY count DESC LIMIT %u",
-         self._table_name, where_clause, self._top_limit)
+         self:get_table_name(), where_clause, self._top_limit)
    end
 
    local q_res = interface.alert_store_query(q) or {}

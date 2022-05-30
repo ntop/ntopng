@@ -74,6 +74,25 @@ end
 
 -- ##############################################
 
+-- Get the table name
+function alert_store:get_table_name()
+  return self._table_name
+end
+
+-- ##############################################
+
+-- Get the table name for write operations (this may differ from the 
+-- tabel name (e.g. flows on clickhouse)
+function alert_store:get_write_table_name()
+  if self._write_table_name then
+    return self._write_table_name
+  else
+    return self._table_name
+  end
+end
+
+-- ##############################################
+
 function alert_store:_escape(str)
    if not str then
       return ""
@@ -766,14 +785,15 @@ end
 
 --@brief Deletes data according to specified filters
 function alert_store:delete()
-   local where_clause = self:build_where_clause()
+   local table_name = self:get_write_table_name()
+   local where_clause = self:build_where_clause(true)
 
    -- Prepare the final query
    local q
    if ntop.isClickHouseEnabled() then
-      q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", self._table_name, where_clause)
+      q = string.format("ALTER TABLE `%s` DELETE WHERE %s ", table_name, where_clause)
    else
-      q = string.format("DELETE FROM `%s` WHERE %s ", self._table_name, where_clause)
+      q = string.format("DELETE FROM `%s` WHERE %s ", table_name, where_clause)
    end
 
    local res = interface.alert_store_query(q)
@@ -784,14 +804,15 @@ end
 
 --@brief Labels alerts according to specified filters
 function alert_store:acknowledge(label)
-   local where_clause = self:build_where_clause()
+   local table_name = self:get_write_table_name()
+   local where_clause = self:build_where_clause(true)
 
    -- Prepare the final query
    local q
    if ntop.isClickHouseEnabled() then
-      q = string.format("ALTER TABLE `%s` UPDATE `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
+      q = string.format("ALTER TABLE `%s` UPDATE `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
    else
-      q = string.format("UPDATE `%s` SET `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", self._table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
+      q = string.format("UPDATE `%s` SET `alert_status` = %u, `user_label` = '%s', `user_label_tstamp` = %u WHERE %s", table_name, alert_consts.alert_status.acknowledged.alert_status_id, self:_escape(label), os.time(), where_clause)
    end
 
    local res = interface.alert_store_query(q)
@@ -802,6 +823,7 @@ end
 
 -- NOTE parameter 'filter' is ignored
 function alert_store:select_historical(filter, fields)
+   local table_name = self:get_table_name()
    local res = {}
    local where_clause = ''
    local group_by_clause = ''
@@ -852,10 +874,10 @@ function alert_store:select_historical(filter, fields)
    local q
    if ntop.isClickHouseEnabled() then
       q = string.format(" SELECT %u entity_id, (toUnixTimestamp(tstamp_end) - toUnixTimestamp(tstamp)) duration, toUnixTimestamp(tstamp) as tstamp_epoch, toUnixTimestamp(tstamp_end) as tstamp_end_epoch, %s FROM `%s` WHERE %s %s %s %s %s",
-         self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
+         self._alert_entity.entity_id, fields, table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
    else
       q = string.format(" SELECT %u entity_id, (tstamp_end - tstamp) duration, %s FROM `%s` WHERE %s %s %s %s %s",
-         self._alert_entity.entity_id, fields, self._table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
+         self._alert_entity.entity_id, fields, table_name, where_clause, group_by_clause, order_by_clause, limit_clause, offset_clause)
    end
 
    res = interface.alert_store_query(q)
@@ -880,7 +902,7 @@ function alert_store:select_historical(filter, fields)
    -- count records
    local count_res = 0
    if isEmptyString(group_by_clause) then
-      local count_q = string.format("SELECT COUNT(*) AS totalRows FROM `%s` WHERE %s", self._table_name, where_clause)
+      local count_q = string.format("SELECT COUNT(*) AS totalRows FROM `%s` WHERE %s", table_name, where_clause)
       local count_r = interface.alert_store_query(count_q)
       if table.len(count_r) > 0 then
          count_res = tonumber(count_r[1]["totalRows"])
@@ -970,12 +992,13 @@ end
 
 --@brief Performs a query and counts the number of records
 function alert_store:count()
+   local table_name = self:get_table_name()
    local where_clause = ''
 
    where_clause = self:build_where_clause()
 
    local q = string.format(" SELECT count(*) as count FROM `%s` WHERE %s",
-      self._table_name, where_clause)
+      table_name, where_clause)
 
    local count_query = interface.alert_store_query(q)
 
@@ -991,6 +1014,7 @@ end
 
 --@brief Checks whether there are alerts, wither engaged or historical
 function alert_store:has_alerts()
+   local table_name = self:get_table_name()
    -- First, check for engaged alerts (fastest)
    local _, num_alerts = self:select_engaged()
    local ifid = tonumber(self:get_ifid())
@@ -1006,12 +1030,12 @@ function alert_store:has_alerts()
    local q, res, has_historical_alerts
 
    if(ntop.isClickHouseEnabled()) then
-      q = string.format(" SELECT COUNT(*) as num_alerts FROM `%s` WHERE interface_id = %d", self._table_name, ifid)
+      q = string.format(" SELECT COUNT(*) as num_alerts FROM `%s` WHERE interface_id = %d", table_name, ifid)
       res = interface.alert_store_query(q)
 
       has_historical_alerts = res and res[1] and (tonumber(res[1].num_alerts) > 0) or false
    else
-      q = string.format(" SELECT EXISTS (SELECT 1 FROM `%s` WHERE interface_id = %d) has_historical_alerts", self._table_name, ifid)
+      q = string.format(" SELECT EXISTS (SELECT 1 FROM `%s` WHERE interface_id = %d) has_historical_alerts", table_name, ifid)
       res = interface.alert_store_query(q)
       has_historical_alerts = res and res[1] and res[1]["has_historical_alerts"] == "1" or false
    end
@@ -1145,6 +1169,7 @@ end
 
 --@brief Performs a query and counts the number of records in multiple time slots
 function alert_store:count_by_severity_and_time_historical()
+   local table_name = self:get_table_name()
    -- Preserve all the filters currently set
    local min_slot, max_slot, time_slot_width = self:_count_by_time_get_bounds()
    local where_clause = self:build_where_clause()
@@ -1153,10 +1178,10 @@ function alert_store:count_by_severity_and_time_historical()
    -- Group by according to the timeslot, that is, the alert timestamp MODULO the slot width
    if(ntop.isClickHouseEnabled()) then
       q = string.format("SELECT severity, (toUnixTimestamp(tstamp) - toUnixTimestamp(tstamp) %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY severity, slot ORDER BY severity, slot ASC",
-         time_slot_width, self._table_name, where_clause)
+         time_slot_width, table_name, where_clause)
    else
       q = string.format("SELECT severity, (tstamp - tstamp %% %u) as slot, count(*) count FROM %s WHERE %s GROUP BY severity, slot ORDER BY severity, slot ASC",
-         time_slot_width, self._table_name, where_clause)
+         time_slot_width, table_name, where_clause)
    end
 
    local q_res = interface.alert_store_query(q) or {}
@@ -1185,6 +1210,7 @@ end
 
 --@brief Performs a query and counts the number of records in multiple time slots using the old response format (CheckMK integration)
 function alert_store:count_by_24h_historical()
+   local table_name = self:get_table_name()
    local group_by = "hour"
    local time_slot_width = "3600"
    local where_clause = self:build_where_clause()
@@ -1193,10 +1219,10 @@ function alert_store:count_by_24h_historical()
    local q   
    if ntop.isClickHouseEnabled() then
       q = string.format("SELECT (toUnixTimestamp(tstamp) - toUnixTimestamp(tstamp) %% %u) as hour, count(*) count FROM %s WHERE %s GROUP BY hour",
-         time_slot_width, self._table_name, where_clause)
+         time_slot_width, table_name, where_clause)
    else
       q = string.format("SELECT (tstamp - tstamp %% %u) as hour, count(*) count FROM %s WHERE %s GROUP BY hour",
-         time_slot_width, self._table_name, where_clause)
+         time_slot_width, table_name, where_clause)
    end
 
    local q_res = interface.alert_store_query(q) or {}
@@ -1269,12 +1295,13 @@ end
 
 --@brief Performs a query for the top alerts by alert count
 function alert_store:top_alert_id_historical()
+   local table_name = self:get_table_name()
    -- Preserve all the filters currently set
    local where_clause = self:build_where_clause()
    local limit = 10
    
    local q = string.format("SELECT alert_id, count(*) count FROM %s WHERE %s GROUP BY alert_id ORDER BY count DESC LIMIT %u",
-			   self._table_name, where_clause, limit)
+			   table_name, where_clause, limit)
 
    local q_res = interface.alert_store_query(q) or {}
 
@@ -1412,9 +1439,10 @@ end
 -- ##############################################
 
 function alert_store:get_earliest_available_epoch(status)   
+   local table_name = self:get_table_name()
    -- Add filters (only needed for the status, must ignore all other filters)
    self:add_status_filter(status)
-   local cached_epoch_key = string.format(EARLIEST_AVAILABLE_EPOCH_CACHE_KEY, self:get_ifid(), self._table_name, self._status)
+   local cached_epoch_key = string.format(EARLIEST_AVAILABLE_EPOCH_CACHE_KEY, self:get_ifid(), table_name, self._status)
    local earliest = 0
 
    -- Check if epoch has already been cached
@@ -1435,10 +1463,10 @@ function alert_store:get_earliest_available_epoch(status)
       local q
       if ntop.isClickHouseEnabled() then
 	 q = string.format(" SELECT toUnixTimestamp(tstamp) earliest_epoch FROM `%s` WHERE interface_id = %d AND alert_status = %d ORDER BY tstamp ASC LIMIT 1",
-			   self._table_name, interface.getId(), self._status)
+			   table_name, interface.getId(), self._status)
       else
 	 q = string.format(" SELECT tstamp earliest_epoch FROM `%s` WHERE interface_id = %d AND alert_status = %d ORDER BY tstamp ASC LIMIT 1",
-			   self._table_name, interface.getId(), self._status)
+			   table_name, interface.getId(), self._status)
       end
 
       local res = interface.alert_store_query(q)
@@ -1750,6 +1778,7 @@ end
 
 --@brief Deletes old data according to the configuration or up to a safe limit
 function alert_store:housekeeping(ifid)
+   local table_name = self:get_write_table_name()
    local prefs = ntop.getPrefs()
 
    -- By Number of records
@@ -1760,10 +1789,10 @@ function alert_store:housekeeping(ifid)
    local q
    if ntop.isClickHouseEnabled() then
       q = string.format("ALTER TABLE `%s` DELETE WHERE interface_id = %d AND rowid <= (SELECT rowid FROM `%s` WHERE interface_id = %u ORDER BY rowid DESC LIMIT 1 OFFSET %u)",
-			self._table_name, ifid, self._table_name, ifid, limit)
+			table_name, ifid, table_name, ifid, limit)
    else
       q = string.format("DELETE FROM `%s` WHERE rowid <= (SELECT rowid FROM `%s` ORDER BY rowid DESC LIMIT 1 OFFSET %u)",
-			self._table_name, self._table_name, limit)
+			table_name, table_name, limit)
    end
 
    local deleted = interface.alert_store_query(q)
@@ -1775,9 +1804,9 @@ function alert_store:housekeeping(ifid)
    local expiration_epoch = now - max_time_sec
 
    if ntop.isClickHouseEnabled() then
-      q = string.format("ALTER TABLE `%s` DELETE WHERE interface_id = %d AND tstamp < %u", self._table_name, ifid, expiration_epoch)
+      q = string.format("ALTER TABLE `%s` DELETE WHERE interface_id = %d AND tstamp < %u", table_name, ifid, expiration_epoch)
    else
-      q = string.format("DELETE FROM `%s` WHERE tstamp < %u", self._table_name, expiration_epoch)
+      q = string.format("DELETE FROM `%s` WHERE tstamp < %u", table_name, expiration_epoch)
    end
 
    deleted = interface.alert_store_query(q)
