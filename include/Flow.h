@@ -66,8 +66,9 @@ class Flow : public GenericHashEntry {
              is_cli_victim:1,
              is_srv_attacker:1,
              is_srv_victim:1;
-    char *json = NULL;
   } predominant_alert_info;
+
+  char *json_protocol_info = NULL;
 
   struct {
     struct ndpi_analyze_struct *c2s, *s2c;
@@ -336,7 +337,10 @@ class Flow : public GenericHashEntry {
   inline u_int8_t isClientVictim() { return predominant_alert_info.is_cli_victim; };
   inline u_int8_t isServerAttacker() { return predominant_alert_info.is_srv_attacker; };
   inline u_int8_t isServerVictim() { return predominant_alert_info.is_srv_victim; };
-  inline char *getPredominantAlertJSON() { return predominant_alert_info.json; };
+  inline char *getProtocolInfo() { return json_protocol_info; };
+
+  void setProtocolJSONInfo();
+  void getProtocolJSONInfo(ndpi_serializer *serializer);
  
   inline char* getJa3CliHash() { return(protos.tls.ja3.client_hash); }
   

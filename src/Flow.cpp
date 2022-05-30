@@ -53,7 +53,7 @@ Flow::Flow(NetworkInterface *_iface,
   predominant_alert_info.is_cli_victim = 0;
   predominant_alert_info.is_srv_attacker = 0;
   predominant_alert_info.is_srv_victim = 0;
-  predominant_alert_info.json = NULL;
+  json_protocol_info = NULL;
   ndpi_flow_risk_bitmap = 0;
   NDPI_SET_BIT(ndpi_flow_risk_bitmap, NDPI_NO_RISK);
   detection_completed = 0;
@@ -386,7 +386,7 @@ Flow::~Flow() {
 
   freeDPIMemory();
   if(icmp_info) delete(icmp_info);
-  if(predominant_alert_info.json) free(predominant_alert_info.json);
+  if(json_protocol_info) free(json_protocol_info);
   if(external_alert.json) json_object_put(external_alert.json);
   if(external_alert.source) free(external_alert.source);
 }
@@ -1352,6 +1352,8 @@ bool Flow::dump(time_t t, bool last_dump_before_free) {
       return(rc); /* Don't call too often periodic flow dump */
     }
   }
+
+  setProtocolJSONInfo();
 
   getInterface()->dumpFlow(get_last_seen(), this);
 
@@ -6006,6 +6008,106 @@ void Flow::setNormalToAlertedCounters() {
 
 /* ***************************************************** */
 
+void Flow::setProtocolJSONInfo() {
+   if(!json_protocol_info) {
+      ndpi_serializer *json_serializer = NULL;
+      char *json = NULL;
+      u_int32_t json_len = 0;
+
+      json_serializer = (ndpi_serializer *) malloc(sizeof(ndpi_serializer));
+
+      if(json_serializer == NULL)
+         return ;
+
+      if(ndpi_init_serializer(json_serializer, ndpi_serialization_format_json) == -1) {
+         free(json_serializer);
+         return ;
+      }
+
+      /* Serialize alert JSON */
+      getProtocolJSONInfo(json_serializer);
+
+      if(json_serializer)
+         json = ndpi_serializer_get_buffer(json_serializer, &json_len);
+
+      json_protocol_info = strdup(json ? json : "");
+
+      if(json_serializer) {
+         ndpi_term_serializer(json_serializer);
+         free(json_serializer);
+      }
+   }
+}
+
+/* ***************************************************** */
+
+void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
+   /* Check JSON info != NULL to not override info */
+   if(serializer) {
+      u_int16_t l7proto = getLowerProtocol();
+
+      ndpi_serialize_start_of_block(serializer, "proto"); /* proto block */
+  
+      /* Adding protocol info; switch the lower application protocol */
+      switch(l7proto) {
+         case NDPI_PROTOCOL_DNS:
+            ndpi_serialize_start_of_block(serializer, "dns");
+            getDNSInfo(serializer);
+            ndpi_serialize_end_of_block(serializer);
+            break;
+      
+         case NDPI_PROTOCOL_HTTP:
+         case NDPI_PROTOCOL_HTTP_PROXY:
+            ndpi_serialize_start_of_block(serializer, "http");
+            getHTTPInfo(serializer);
+            ndpi_serialize_end_of_block(serializer);
+            break;
+      
+         case NDPI_PROTOCOL_TLS:
+         case NDPI_PROTOCOL_MAIL_IMAPS:
+         case NDPI_PROTOCOL_MAIL_SMTPS:
+         case NDPI_PROTOCOL_MAIL_POPS:
+         case NDPI_PROTOCOL_QUIC:
+            ndpi_serialize_start_of_block(serializer, "tls");
+            getTLSInfo(serializer);
+            ndpi_serialize_end_of_block(serializer);
+            break; 
+
+         case NDPI_PROTOCOL_IP_ICMP:
+         case NDPI_PROTOCOL_IP_ICMPV6:
+            ndpi_serialize_start_of_block(serializer, "icmp");
+            getICMPInfo(serializer);
+            ndpi_serialize_end_of_block(serializer);
+            break;
+
+         case NDPI_PROTOCOL_MDNS:
+            ndpi_serialize_start_of_block(serializer, "mdns");
+            getMDNSInfo(serializer);
+            ndpi_serialize_end_of_block(serializer);
+            break;
+         
+         case NDPI_PROTOCOL_NETBIOS:
+            ndpi_serialize_start_of_block(serializer, "netbios");
+            getNetBiosInfo(serializer);
+            ndpi_serialize_end_of_block(serializer);
+            break;
+         
+         case NDPI_PROTOCOL_SSH:
+            ndpi_serialize_start_of_block(serializer, "ssh");
+            getSSHInfo(serializer);
+            ndpi_serialize_end_of_block(serializer);
+            break;
+      }
+
+      if(getErrorCode() != 0)
+         ndpi_serialize_string_uint32(serializer, "l7_error_code", getErrorCode());
+
+      ndpi_serialize_end_of_block(serializer); /* proto block */
+   }
+}
+
+/* ***************************************************** */
+
 void Flow::setPredominantAlertInfo(FlowAlert *alert) {
   ndpi_serializer *alert_json_serializer = NULL;
   char *alert_json = NULL;
@@ -6024,8 +6126,8 @@ void Flow::setPredominantAlertInfo(FlowAlert *alert) {
   if(alert_json_serializer)
     alert_json = ndpi_serializer_get_buffer(alert_json_serializer, &alert_json_len);
 
-  if (predominant_alert_info.json != NULL) free(predominant_alert_info.json);
-  predominant_alert_info.json = strdup(alert_json ? alert_json : "");
+  if (json_protocol_info != NULL) free(json_protocol_info);
+  json_protocol_info = strdup(alert_json ? alert_json : "");
 
   if(alert_json_serializer) {
     ndpi_term_serializer(alert_json_serializer);

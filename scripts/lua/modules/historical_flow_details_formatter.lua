@@ -245,7 +245,10 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
     local info = historical_flow_utils.format_clickhouse_record(flow)
 
     -- Format main flow information
-    flow_details[#flow_details + 1] = format_historical_main_issue(flow)
+    if (info['alert_id']) and (info['alert_id']['value'] ~= 0) then
+      flow_details[#flow_details + 1] = format_historical_main_issue(flow)
+    end
+
     flow_details[#flow_details + 1] = format_historical_flow_label(flow)
     flow_details[#flow_details + 1] = format_historical_protocol_label(flow)
     flow_details[#flow_details + 1] = format_historical_last_first_seen(flow, info)

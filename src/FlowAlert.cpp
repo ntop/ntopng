@@ -62,71 +62,7 @@ ndpi_serializer* FlowAlert::getSerializedAlert() {
   ndpi_serialize_string_string(serializer, "subdir", "flow");
   ndpi_serialize_end_of_block(serializer);
 
-  /* Flow info */
-  char buf[64];
-  char *info = flow->getFlowInfo(buf, sizeof(buf), false);
-  u_int16_t l7proto = flow->getLowerProtocol();
-
-  ndpi_serialize_string_string(serializer, "info", info ? info : "");
-  
-  ndpi_serialize_start_of_block(serializer, "proto"); /* proto block */
-  
-  /* Adding protocol info; switch the lower application protocol */
-  switch(l7proto) {
-    case NDPI_PROTOCOL_DNS:
-      ndpi_serialize_start_of_block(serializer, "dns");
-      flow->getDNSInfo(serializer);
-      ndpi_serialize_end_of_block(serializer);
-      break;
-  
-    case NDPI_PROTOCOL_HTTP:
-    case NDPI_PROTOCOL_HTTP_PROXY:
-      ndpi_serialize_start_of_block(serializer, "http");
-      flow->getHTTPInfo(serializer);
-      ndpi_serialize_end_of_block(serializer);
-      break;
-  
-    case NDPI_PROTOCOL_TLS:
-    case NDPI_PROTOCOL_MAIL_IMAPS:
-    case NDPI_PROTOCOL_MAIL_SMTPS:
-    case NDPI_PROTOCOL_MAIL_POPS:
-    case NDPI_PROTOCOL_QUIC:
-      ndpi_serialize_start_of_block(serializer, "tls");
-      flow->getTLSInfo(serializer);
-      ndpi_serialize_end_of_block(serializer);
-      break; 
-
-    case NDPI_PROTOCOL_IP_ICMP:
-    case NDPI_PROTOCOL_IP_ICMPV6:
-      ndpi_serialize_start_of_block(serializer, "icmp");
-      flow->getICMPInfo(serializer);
-      ndpi_serialize_end_of_block(serializer);
-      break;
-
-    case NDPI_PROTOCOL_MDNS:
-      ndpi_serialize_start_of_block(serializer, "mdns");
-      flow->getMDNSInfo(serializer);
-      ndpi_serialize_end_of_block(serializer);
-      break;
-    
-    case NDPI_PROTOCOL_NETBIOS:
-      ndpi_serialize_start_of_block(serializer, "netbios");
-      flow->getNetBiosInfo(serializer);
-      ndpi_serialize_end_of_block(serializer);
-      break;
-    
-    case NDPI_PROTOCOL_SSH:
-      ndpi_serialize_start_of_block(serializer, "ssh");
-      flow->getSSHInfo(serializer);
-      ndpi_serialize_end_of_block(serializer);
-      break;
-  }
-
-  if(flow->getErrorCode() != 0)
-    ndpi_serialize_string_uint32(serializer, "l7_error_code", flow->getErrorCode());
-
-  ndpi_serialize_end_of_block(serializer); /* proto block */
-
+  flow->getProtocolJSONInfo(serializer);
   /* This call adds check-specific information to the serializer */
   getAlertJSON(serializer);
 
