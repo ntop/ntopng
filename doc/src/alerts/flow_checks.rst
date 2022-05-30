@@ -602,5 +602,113 @@ Notifies when elephant flow is detected.
 
 *Enabled by Default*
 
+
+**Possible exploit**
+~~~~~~~~~~~~~~~~~~~~
+
+Checks for an exploit.
+
+An exploit is a code that takes advantage of a software vulnerability or security flaw.Exploits allow an intruder to remotely access a network and gain elevated privileges, or move deeper into the network.
+In some cases, an exploit can be used as part of a multi-component attack. Instead of using a malicious file, the exploit may instead drop another malware, which can include backdoor Trojans and spyware that can steal user information from the infected systems. 
+
+The system sends an alert when a possible exploit is detected.
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+
+**Binary Application Transfer**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cheks for Binary Application Transfer.
+
+Binary is a name for an executable file format and is intended for end-users.There are several variants of .exe, .msi and .zip files. The binary application can be downloaded/uploaded. These applications include Windows binaries, Linux executables, Unix scripts and Android apps.
+A binary can be potentially harmful, and therefore can generate malicious behavior.
+
+The alert is sent to notify an executable file.
+
+*Category: Cybersecurity*
+
+*Enabled by Default*
+
+
+**Error code**
+~~~~~~~~~~~~~~
+
+Checks for error code.
+
+
+HTTP response status codes indicate whether a specific HTTP request has been successfully completed or failed. Responses are grouped in five classes: 
+
+
+informational responses
+successful responses
+re-directs
+client errors
+server errors
+
+
+Alert is sent when an error code is seen
+
+
+Category: *Network*
+
+*Enabled by Default*
+
+
+**Lateral Movement Detection**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for unusual traffic behaviour
+
+
+
+**No Data Exchanged**
+~~~~~~~~~~~~~~~~~~~~~
+
+Checks for data exchange
+
+
+**TCP Retransmission Issues**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for TCP retransmissions and packet lost issues.
+
+The most common cause of Network Packet Loss are:
+
+    • Layer two errors
+    • or network congestion
+
+
+The TCP retransmission means resending the packets over the network that have been lost or damaged previously.
+
+The alert is sent when tcp retrasmission or packet loss are seen.
+
+Category: *Network*
+
+*Enabled by Default
+
+
+**Zero TCP Window**
+~~~~~~~~~~~~~~~~~~~
+
+Checks for zero TCP window
+
+When the receiver has a full buffer, the window size is reduced to zero. In this state, the window is shown to be 'Frozen' and the sender cannot send any more bytes until it receives a datagram from the receiver with a window size greater than zero.
+
+The alert is sent when zero TCP window is  detected.
+
+Category: *Network*
+
+*Enabled by Default*
+
+
+
+
+
+
+
  
  
