@@ -258,4 +258,7 @@ The Alert notifies the user to enable mirroring when the system detects RX only.
 The toast is going to show only if the user has RX-only traffic (TX traffic is 0 and RX is greater then 0).
 It's still a dismissable toast (if you click dismiss, it's not going to pop-up again) and you can jump to the interface configuration by clicking the link in the toast.
 
+.. figure:: ../img/mirrored_traffic_toast.png
+  :align: center
+  :alt: Mirrore Traffic Alert
 
