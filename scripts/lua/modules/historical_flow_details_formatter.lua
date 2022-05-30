@@ -313,6 +313,9 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
     local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
     if table.len(alert_json["proto"]) > 0 then
       flow_details[#flow_details + 1] = format_historical_proto_info(alert_json["proto"])
+      if table.len(flow_details[#flow_details]['content']) == 0 then
+        table.remove(flow_details, #flow_details)
+      end
     end
   end
 
