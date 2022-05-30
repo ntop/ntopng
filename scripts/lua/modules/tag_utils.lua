@@ -316,6 +316,11 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.role_cli_srv'),
       operators = {'eq'},
    },
+   l7_error_id = {
+      value_type = 'l7_error_id',
+      i18n_label = i18n('db_search.tags.error_code'),
+      operators = {'eq', 'neq'},
+   },
 }
 
 -- #####################################

@@ -1603,6 +1603,7 @@ local lang = {
       ["dscp_id"] = "DSCP ID",
       ["dst2src_dscp"] = "Server DSCP",
       ["dst2src_tcp_flags"] = "Srv TCP Flags",
+      ["error_code"] = "Error Code",
       ["flow_risk"] = "Flow Risk",
       ["host_pool_id"] = "Host Pool",
       ["info"] = "Info",

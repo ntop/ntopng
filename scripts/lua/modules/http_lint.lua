@@ -1649,6 +1649,7 @@ local known_parameters = {
    ["by_24h"]                  = validateBool,                  -- Used to know if the new or the old timeseries format is requested
    ["role"]                    = validateListOfTypeInline(validateFilters(validateSingleWord)), -- attacker/victim
    ["role_cli_srv"]            = validateListOfTypeInline(validateFilters(validateSingleWord)), -- client/server
+   ["l7_error_id"]             = validateListOfTypeInline(validateFilters(validateNumber)), -- client/server
    ["acknowledged"]            = validateListOfTypeInline(validateFilters(validateSingleWord)), -- acknowledged
    ["asn"]                     = validateNumber,                -- An ASN number
    ["module"]                  = validateTopModule,             -- A top script module

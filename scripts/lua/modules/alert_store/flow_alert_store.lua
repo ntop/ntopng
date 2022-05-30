@@ -381,7 +381,9 @@ function flow_alert_store:_add_additional_request_filters()
    local srv_host_pool_id = _GET["srv_host_pool_id"]
    local cli_network = _GET["cli_network"]
    local srv_network = _GET["srv_network"]
-
+   
+   local error_code = _GET["l7_error_id"]
+   
    -- Filter out flows with no alert
    self:add_filter_condition_list('alert_id', "0"..tag_utils.SEPARATOR.."neq", 'number')
 
@@ -403,6 +405,8 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('srv_host_pool_id', srv_host_pool_id, 'number')
    self:add_filter_condition_list('cli_network', cli_network, 'number')
    self:add_filter_condition_list('srv_network', srv_network, 'number')
+
+   self:add_filter_condition_list('JSON_VALUE(json, \'$.proto.l7_error_code\')', error_code, 'string')
 
 end
 
@@ -430,6 +434,8 @@ function flow_alert_store:_get_additional_available_filters()
       srv_host_pool_id       = tag_utils.defined_tags.srv_host_pool_id,
       cli_network       = tag_utils.defined_tags.cli_network,
       srv_network       = tag_utils.defined_tags.srv_network,
+
+      l7_error_id     = tag_utils.defined_tags.l7_error_id,
    }
 
    return filters

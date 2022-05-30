@@ -123,6 +123,7 @@ local l7_proto = _GET["l7_proto"]
 local network_name = _GET["network_name"]
 local role = _GET["role"]
 local role_cli_srv = _GET["role_cli_srv"]
+local l7_error_id = _GET["l7_error_id"]
 local subtype = _GET["subtype"]
 local vlan_id = _GET["vlan_id"]
 
@@ -422,6 +423,7 @@ local operators_by_filter = {
    l7_proto  = {'eq','neq'},
    role = {'eq'},
    role_cli_srv = {'eq'},
+   l7_error_id = {'eq','neq'},
    text = {'eq','neq'},
    hostname = {'eq','neq', 'in', 'nin'},
 }
@@ -464,6 +466,7 @@ local defined_tags = {
       cli_port = operators_by_filter.port,
       srv_port = operators_by_filter.port,
       role = operators_by_filter.role,
+      l7_error_id = operators_by_filter.l7_error_id
    },
    ["system"] = {
       alert_id = operators_by_filter.alert_id,
@@ -619,6 +622,7 @@ local datasource_data = {
    network_name = network_name,
    role = role,
    role_cli_srv = role_cli_srv,
+   l7_error_id = l7_error_id,
    subtype = subtype,
    page = page,
 }
@@ -720,6 +724,7 @@ local context = {
                subtype = i18n("alerts_dashboard.element"),
                role = i18n("db_search.tags.role"),
                role_cli_srv = i18n("db_search.tags.role_cli_srv"),
+               l7_error_id = i18n("db_search.tags.error_code"),
            }
        },
        presets = {

@@ -307,3 +307,23 @@
     </div>
 </template>
 
+<template id="l7_error_id-filter-template">
+    <div class="form-group row">
+        <label class="col-form-label col-sm-3"><b>{{i18n("db_search.tags.error_code")}}</b></label>
+        <div class="col-sm-5">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <select required name="operator" class="form-select">
+                        {% local first_item = true %}
+                        {% for _, operator in ipairs(operators_by_filter.l7_error_id) do %}
+                            <option {{ (first_item and "selected" or "") }} value="{{operator}}">{{tag_operators[operator]}}</option>
+                            {% first_item = false %}
+                        {% end %}
+                    </select>
+                </div>
+                <input data-validation-message="{{i18n("invalid_value")}}" name="value" type="number" class="form-control">
+            </div>
+        </div>
+    </div>
+</template>
+
