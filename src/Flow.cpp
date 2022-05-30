@@ -53,7 +53,7 @@ Flow::Flow(NetworkInterface *_iface,
   predominant_alert_info.is_cli_victim = 0;
   predominant_alert_info.is_srv_attacker = 0;
   predominant_alert_info.is_srv_victim = 0;
-  json_protocol_info = NULL;
+  json_protocol_info = NULL, riskInfo = NULL;  
   ndpi_flow_risk_bitmap = 0;
   NDPI_SET_BIT(ndpi_flow_risk_bitmap, NDPI_NO_RISK);
   detection_completed = 0;
@@ -277,7 +277,18 @@ void Flow::allocDPIMemory() {
 /* *************************************** */
 
 void Flow::freeDPIMemory() {
-  if(ndpiFlow)  { ndpi_free_flow(ndpiFlow); ndpiFlow = NULL;  }
+  if(ndpiFlow)  {
+    /* Save riskInfo */
+    char *out, buf[512];
+
+    out = ndpi_get_flow_risk_info(get_ndpi_flow(), buf, sizeof(buf), 1 /* JSON */);
+
+    if(out != NULL)
+      riskInfo = strdup(out);
+      
+    ndpi_free_flow(ndpiFlow);
+    ndpiFlow = NULL;
+  }
 }
 
 /* *************************************** */
@@ -328,6 +339,7 @@ Flow::~Flow() {
     Finish deleting other flow data structures
    */
 
+  if(riskInfo)                      free(riskInfo);
   if(viewFlowStats)                 delete(viewFlowStats);
   if(periodic_stats_update_partial) delete(periodic_stats_update_partial);
   if(last_db_dump.partial)          delete(last_db_dump.partial);
@@ -2139,8 +2151,6 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   lua_get_bytes(vm);
 
   if(details_level >= details_high) {
-    char risk_buf[512];
-      
     lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
     lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
 
@@ -2345,7 +2355,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_get_risk_info(vm);
     lua_entropy(vm);
 
-    lua_push_str_table_entry(vm, "riskInfo", getJSONRiskInfo(risk_buf, sizeof(risk_buf)));
+    if(getJSONRiskInfo())
+      lua_push_str_table_entry(vm, "riskInfo", getJSONRiskInfo());
   }
 
   lua_get_status(vm);
@@ -6338,8 +6349,3 @@ void Flow::check_swap() {
     swap_requested = 1;
 }
 
-/* *************************************** */
-
-char* Flow::getJSONRiskInfo(char *out, u_int out_len) {
-  return(ndpi_get_flow_risk_info(get_ndpi_flow(), out, out_len, 1 /* JSON */));
-}

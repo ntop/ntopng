@@ -68,7 +68,7 @@ class Flow : public GenericHashEntry {
              is_srv_victim:1;
   } predominant_alert_info;
 
-  char *json_protocol_info = NULL;
+  char *json_protocol_info, *riskInfo;
 
   struct {
     struct ndpi_analyze_struct *c2s, *s2c;
@@ -892,7 +892,7 @@ class Flow : public GenericHashEntry {
   }
 
   u_char* getCommunityId(u_char *community_id, u_int community_id_len);
-  char*   getJSONRiskInfo(char *out, u_int out_len);
+  inline char*   getJSONRiskInfo()              { return(riskInfo); }
   
   inline FlowTrafficStats* getTrafficStats()    { return(&stats); };
   inline char* get_custom_category_file() const { return((char*)ndpiDetectedProtocol.custom_category_userdata); }
