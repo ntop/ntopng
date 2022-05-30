@@ -109,7 +109,9 @@ end
 local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add_exclusion, is_flow_exclusion)
   local ret = false
   
-  if not _check_alert_key(alert_key) then
+  alert_key = tonumber(alert_key)
+  
+  if not _check_alert_key(alert_key) and alert_key ~= 0 then
     -- Invalid params submitted
     return false
   end
@@ -117,7 +119,6 @@ local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add
   local locked = _lock()
 
   if locked then
-    local id = tonumber(alert_key)
     local exclusions = _get_configured_alert_exclusions()
 
     if add_exclusion then
@@ -129,11 +130,11 @@ local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add
           host_alerts = {} 
         }
       end
-	 
+ 
       if(is_flow_exclusion) then
-        table.insert(exclusions[subject_key].flow_alerts, id)
+        table.insert(exclusions[subject_key].flow_alerts, alert_key)
       else
-        table.insert(exclusions[subject_key].host_alerts, id)
+        table.insert(exclusions[subject_key].host_alerts, alert_key)
       end
 
     else
@@ -149,7 +150,7 @@ local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add
         end
 
         for i=0,table.len(t) do
-          if(t[i] ~= id) then
+          if(t[i] ~= alert_key) then
             table.insert(r, t[i])
           end
         end
@@ -273,8 +274,9 @@ end
 -- @brief Returns all excluded subjects (e.g. hosts, domains, certificates) for the given `alert_key` or nil if no exclusion exists
 local function _get_exclusions(is_flow_exclusion, alert_key, subject_type)
   local exclusions = _get_configured_alert_exclusions()
-  local id = tonumber(alert_key)
   local ret = {}
+
+  alert_key = tonumber(alert_key)
 
   for subject_key, v in pairs(exclusions) do
 
@@ -295,7 +297,7 @@ local function _get_exclusions(is_flow_exclusion, alert_key, subject_type)
         traceError(TRACE_INFO,TRACE_CONSOLE, "Failure checking exclusions")
       else
         for i=0,table.len(t) do
-          if t[i] == id then
+          if t[i] == alert_key then
             ret[subject_key] = true
             break
           end
