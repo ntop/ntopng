@@ -1,3 +1,5 @@
+.. _Syslog target:
+
 Syslog Log Ingestion
 ====================
 
