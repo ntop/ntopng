@@ -802,8 +802,16 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     */
     get_name(buf, sizeof(buf), false);
     if(strlen(buf) == 0 || strcmp(buf, ipaddr) == 0) {
-      /* We resolve immediately the IP address by queueing on the top of address queue */
-      ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
+      if(isBroadcastHost() || isMulticastHost()
+	 || (isIPv6()
+	     && ((strncmp(ipaddr, "ff0", 3) == 0)
+		 || (strncmp(ipaddr, "fe80", 4) == 0)))
+	 )
+	; /* Nothing to do */
+      else {
+	/* We resolve immediately the IP address by queueing on the top of address queue */
+	ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
+      }
     }
 
     luaStrTableEntryLocked(vm, "ssdp", ssdpLocation); /* locked to protect against data-reset changes */

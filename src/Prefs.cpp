@@ -21,6 +21,7 @@
 
 #include "ntop_includes.h"
 
+#include <algorithm> /* For trimming strings (Prefs::parseLocalNetworks) */
 #ifndef FORCE_VALID_LICENSE
 #ifdef NTOPNG_PRO
 extern "C" {
@@ -64,7 +65,7 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_informative_captive_portal = false,
     override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false;
     hostMask = no_host_mask;
-  enable_asn_behaviour_analysis = enable_network_behaviour_analysis = enable_iface_l7_behaviour_analysis = false; 
+  enable_asn_behaviour_analysis = enable_network_behaviour_analysis = enable_iface_l7_behaviour_analysis = false;
   enable_broadcast_domain_too_large = false;
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
@@ -650,8 +651,8 @@ void Prefs::reloadPrefsFromRedis() {
 							       CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED),
 
     max_entity_alerts = getDefaultPrefsValue(CONST_MAX_ENTITY_ALERTS, ALERTS_MANAGER_MAX_ENTITY_ALERTS),
-    max_num_secs_before_delete_alert = getDefaultPrefsValue(CONST_MAX_NUM_SECS_ALERTS_BEFORE_DEL, ALERTS_MAX_SECS_BEFORE_PURGE), 
-    alert_page_refresh_rate = getDefaultPrefsValue(CONST_ALERT_PAGE_REFRESH_RATE, ALERTS_PAGE_REFRESH_RATE), 
+    max_num_secs_before_delete_alert = getDefaultPrefsValue(CONST_MAX_NUM_SECS_ALERTS_BEFORE_DEL, ALERTS_MAX_SECS_BEFORE_PURGE),
+    alert_page_refresh_rate = getDefaultPrefsValue(CONST_ALERT_PAGE_REFRESH_RATE, ALERTS_PAGE_REFRESH_RATE),
 
     enable_observation_points_rrd_creation = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_OBSERVATION_POINTS_RRD_CREATION, false),
     enable_flow_device_port_rrd_creation = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION, false),
@@ -668,7 +669,7 @@ void Prefs::reloadPrefsFromRedis() {
     max_num_bytes_per_tiny_flow   = getDefaultPrefsValue(CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
 							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
     max_extracted_pcap_bytes = getDefaultPrefsValue(CONST_MAX_EXTR_PCAP_BYTES,
-                                                     CONST_DEFAULT_MAX_EXTR_PCAP_BYTES); 
+                                                     CONST_DEFAULT_MAX_EXTR_PCAP_BYTES);
 
     ewma_alpha_percent = getDefaultPrefsValue(CONST_EWMA_ALPHA_PERCENT, CONST_DEFAULT_EWMA_ALPHA_PERCENT);
 
@@ -725,7 +726,7 @@ void Prefs::reloadPrefsFromRedis() {
   refreshDeviceProtocolsPolicyPref();
   refreshDbDumpPrefs();
   refreshBehaviourAnalysis();
-  
+
 #ifdef PREFS_RELOAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updated IPs "
 			       "[global_primary_dns_ip: %u]"
@@ -899,12 +900,14 @@ void Prefs::parseHTTPPort(char *arg) {
 
 /* ******************************************* */
 
-char *Prefs::parseLocalNetworks(char *arg) {
+char* Prefs::parseLocalNetworks(char *arg) {
   struct stat buf;
-  if(stat(arg, &buf) == 0 && S_ISREG(buf.st_mode)) {
+
+  if((stat(arg, &buf) == 0) && S_ISREG(buf.st_mode)) {
     string res;
     string line;
     ifstream fl(arg);
+    char to_trim[] = { '\t', ' ', '\n', '\r', '"', '\'', '\0' };
 
     if(fl.is_open()){
       /*
@@ -916,7 +919,17 @@ char *Prefs::parseLocalNetworks(char *arg) {
 	9.9.9.9/32
 	10.0.0.0/8
        */
-      while(getline(fl, line)){
+      while(getline(fl, line)) {
+	const char *l = line.c_str();
+
+	if((l[0] == '\0') || (l[0] == '#'))
+	  continue;
+
+	for(u_int i=0; to_trim[i] != '\0'; i++)
+	  line.erase(std::remove(line.begin(), line.end(), to_trim[i]), line.end());
+
+	l = line.c_str(); /* Update line */
+
 	/* Append the comma if local networks are specified across multiple file lines */
 	if(res.size() > 0)
 	  res += ",";
@@ -1095,9 +1108,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 	local_networks = cur_nets;
 	local_networks_set = true;
       }
-
-    break;
     }
+    break;
 
 #ifndef HAVE_NEDGE
   case 'n':
@@ -1401,7 +1413,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid --mysql/--clickhouse format: ignored");
       } else {
 	bool all_good = true;
-	
+
 	dump_flows_on_clickhouse = (optarg[0] == 'c') ? true : false;
 
 	if(dump_flows_on_clickhouse) {
@@ -1415,7 +1427,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	      clickhouse_client = CLICKHOUSE_ALT_CLIENT;
 	  } else
 	    clickhouse_client = CLICKHOUSE_CLIENT;
-	  
+
 	  if(!client_found) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "-F clickhouse is not available (ClickHouse client not found)");
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Expected %sor %s", CLICKHOUSE_CLIENT, CLICKHOUSE_ALT_CLIENT);
@@ -1425,13 +1437,13 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 	if(all_good) {
 	  u_int num_semicolumns = 0;
-	  
+
 	  dump_flows_on_mysql = true;
 
-	  /* 
-	     Old Format: mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw> 
-	     New Format: mysql;<host[@[port,]port]|unix socket>;<dbname>;<user>;<pw> 
-	     
+	  /*
+	     Old Format: mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw>
+	     New Format: mysql;<host[@[port,]port]|unix socket>;<dbname>;<user>;<pw>
+
 	  */
 
 	  for(u_int i=0; optarg[i] != '\0'; i++)
@@ -1445,26 +1457,26 @@ int Prefs::setOption(int optkey, char *optarg) {
 	  } else {
 	    optarg = Utils::tokenizer(sep + 1, ';', &mysql_host);
 	    optarg = Utils::tokenizer(optarg, ';',  &mysql_dbname);
-	    
+
 	    if(num_semicolumns == 5) {
 	      char *mysql_tablename = NULL;
 	      optarg = Utils::tokenizer(optarg, ';',  &mysql_tablename); /* Skip it */
               if (mysql_tablename) free(mysql_tablename);
 	    }
-	    
+
 	    optarg = Utils::tokenizer(optarg, ';',  &mysql_user);
 	    mysql_pw = strdup(optarg ? optarg : "");
 	  }
-	  
+
 	  if(mysql_host && mysql_user) {
 	    if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))
 	      mysql_dbname  = strdup("ntopng");
-	      
+
 	    if(mysql_pw == NULL) mysql_pw = strdup("");
 
 	    /* Check for non-default SQL port on -F line */
 	    char *mysql_port_str;
-	
+
             /* Default ports */
             mysql_port = CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT;
             clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
@@ -1527,7 +1539,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       dump_flows_on_syslog = true;
       if(strchr(optarg, ';') != NULL) {
 	int syslog_facility_value;
-	
+
         optarg = Utils::tokenizer(strchr(optarg, ';') + 1, ';', &flows_syslog_facility_text);
 	syslog_facility_value = Utils::mapSyslogFacilityTextToValue(flows_syslog_facility_text);
 
@@ -1742,7 +1754,7 @@ int Prefs::checkOptions() {
     ntop->getTrace()->set_trace_level((u_int8_t)0);
     ntop->registerPrefs(this, true);
     ntop->getPro()->init_license();
-    
+
     printf("Edition:\t%s\n",      ntop->getPro()->get_edition());
     printf("License Type:\t%s\n", ntop->getPro()->get_license_type(buf, sizeof(buf)));
 
@@ -1774,7 +1786,7 @@ int Prefs::checkOptions() {
 #if defined(NTOPNG_PRO) && (!defined(FORCE_VALID_LICENSE))
     time_t license_until = (time_t)-1, maintenance_until = (time_t)-1;
     char outbuf[256], edition[64];
-    
+
     snprintf(edition, sizeof(edition), "%s%s",
 #ifndef HAVE_NEDGE
 #ifdef NTOPNG_PRO
@@ -1797,12 +1809,12 @@ int Prefs::checkOptions() {
     ntop->getTrace()->set_trace_level((u_int8_t)0);
     ntop->registerPrefs(this, true);
     ntop->getPro()->init_license();
-    
+
     if((license_until = ntop->getPro()->demo_ends_at()) == 0)
       license_until = (time_t)-1;
-    
+
     maintenance_until = ntop->getPro()->maintenance_ends_at();
-    
+
     printf("%s\n",
 	   getLicenseJSON((char*)PACKAGE_VERSION,
 			  (char*)PACKAGE_OS,
@@ -1822,7 +1834,7 @@ int Prefs::checkOptions() {
   free(data_dir);
   data_dir = strdup(ntop->get_install_dir());
 
-  if(!pcap_dir) 
+  if(!pcap_dir)
     pcap_dir = strdup(ntop->get_working_dir());
 
   docs_dir      = ntop->getValidPath(docs_dir);
@@ -1925,7 +1937,7 @@ int Prefs::loadFromFile(const char *path) {
 	       || key[opt_name_len] == '=')) {
 	  if(line_len > opt_name_len)	  key[opt_name_len] = '\0';
 	  if(line_len > opt_name_len + 1) value = Utils::trim(&key[opt_name_len + 1]);
-	  
+
 	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "key: %s value: %s", key, value);
 	  setOption(opt->val, value);
 
@@ -2011,7 +2023,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled_for_all_hosts", resolve_all_host_ip);
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
   lua_push_bool_table_entry(vm, "is_autologout_enabled", enable_auto_logout);
-  lua_push_bool_table_entry(vm, "is_interface_name_only", enable_interface_name_only);  
+  lua_push_bool_table_entry(vm, "is_interface_name_only", enable_interface_name_only);
   lua_push_uint64_table_entry(vm, "http_port", http_port);
 
   lua_push_uint64_table_entry(vm, "max_num_hosts", max_num_hosts);
@@ -2176,7 +2188,7 @@ void Prefs::resetDeferredInterfacesToRegister() {
       if (strstr(deferred_interfaces_to_register[i], "syslog://") ||
           strstr(deferred_interfaces_to_register[i], "tcp://"))
         deferred_interfaces_to_register[num++] = deferred_interfaces_to_register[i];
-      else    
+      else
         free(deferred_interfaces_to_register[i]);
     }
   }
@@ -2318,7 +2330,7 @@ const char * Prefs::getCaptivePortalUrl() {
 
 void Prefs::setIEC104AllowedTypeIDs(const char * protos) {
   char *p, *buf, *tmp;
-  
+
   if(!protos) return;
 
   if((strcmp(protos, "-1") == 0))
@@ -2329,14 +2341,14 @@ void Prefs::setIEC104AllowedTypeIDs(const char * protos) {
     p = strtok_r(buf, ",", &tmp);
     while(p != NULL) {
       int type_id = atoi(p);
-      
+
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "-> %d", type_id);
-      
+
       if(type_id < 64)
 	iec104_allowed_typeids[0] |= ((u_int64_t)1 << type_id);
       else if(type_id < 128)
 	iec104_allowed_typeids[1] |= ((u_int64_t)1 << (type_id-64));
-      
+
       p = strtok_r(NULL, ",", &tmp);
     }
 
