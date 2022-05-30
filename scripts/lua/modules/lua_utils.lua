@@ -5312,18 +5312,35 @@ end
 --                  false otherwise
 -- @return A string containing the info field formatted
 function format_external_link(url, name, no_html, proto)
-  local external_field = url
-  proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
-
-  if no_html == false then
-    if not isEmptyString(url) then
-      external_field = i18n("external_link_url", { proto = proto, url = url, url_name = name})
-    end
-  end
-
-  return external_field
+   local external_field = url
+   proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
+ 
+   if no_html == false then
+     if not isEmptyString(url) then
+       external_field = i18n("external_link_url", { proto = proto, url = url, url_name = name})
+     end
+   end
+ 
+   return external_field
 end
 
+ -- ##############################################
+
+-- @brief  This function format the info field used in tables
+-- @params info: A string containing the info field
+--         no_html: A boolean, true if no_html is requested (e.g. Download in CSV format), 
+--                  false otherwise
+-- @return A string containing the info field formatted
+function format_query_json_value(alert_or_flow, nested_field)
+   local field_to_search = "ALERT_JSON"
+
+   if alert_or_flow == 'alert' then
+      field_to_search = "json"
+   end
+ 
+   return string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, nested_field)
+end
+  
 -- ##############################################
 
 --
