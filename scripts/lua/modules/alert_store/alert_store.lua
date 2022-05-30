@@ -1779,6 +1779,7 @@ end
 --@brief Deletes old data according to the configuration or up to a safe limit
 function alert_store:housekeeping(ifid)
    local table_name = self:get_write_table_name()
+   local select_table_name = self:get_table_name()
    local prefs = ntop.getPrefs()
 
    -- By Number of records
@@ -1788,8 +1789,17 @@ function alert_store:housekeeping(ifid)
 
    local q
    if ntop.isClickHouseEnabled() then
-      q = string.format("ALTER TABLE `%s` DELETE WHERE interface_id = %d AND rowid <= (SELECT rowid FROM `%s` WHERE interface_id = %u ORDER BY rowid DESC LIMIT 1 OFFSET %u)",
-			table_name, ifid, table_name, ifid, limit)
+      q = string.format("ALTER TABLE `%s` DELETE WHERE %s = %d AND %s <= (SELECT %s FROM `%s` WHERE %s = %u ORDER BY %s DESC LIMIT 1 OFFSET %u)",
+			table_name, 
+                        self:get_column_name('interface_id', true),
+                        ifid, 
+                        self:get_column_name('rowid', true),
+                        self:get_column_name('rowid'),
+                        table_name, 
+                        self:get_column_name('interface_id'),
+                        ifid, 
+                        self:get_column_name('rowid'),
+                        limit)
    else
       q = string.format("DELETE FROM `%s` WHERE rowid <= (SELECT rowid FROM `%s` ORDER BY rowid DESC LIMIT 1 OFFSET %u)",
 			table_name, table_name, limit)
@@ -1804,7 +1814,12 @@ function alert_store:housekeeping(ifid)
    local expiration_epoch = now - max_time_sec
 
    if ntop.isClickHouseEnabled() then
-      q = string.format("ALTER TABLE `%s` DELETE WHERE interface_id = %d AND tstamp < %u", table_name, ifid, expiration_epoch)
+      q = string.format("ALTER TABLE `%s` DELETE WHERE %s = %d AND tstamp < %u", 
+         table_name,
+         self:get_column_name('interface_id', true),
+         ifid,
+         self:get_column_name(self:_get_tstamp_column_name(), true),
+         expiration_epoch)
    else
       q = string.format("DELETE FROM `%s` WHERE tstamp < %u", table_name, expiration_epoch)
    end
