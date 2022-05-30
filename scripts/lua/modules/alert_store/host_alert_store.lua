@@ -87,7 +87,7 @@ function host_alert_store:insert(alert)
       alert.score,
       alert.granularity,
       alert.host_pool_id or 0,
-      alert.network or "",
+      alert.network or 0,
       self:_escape(alert.json or ""))
 
    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_stmt)
