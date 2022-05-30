@@ -1240,7 +1240,6 @@ else
 
       printAddCustomHostRule(flow["protos.dns.last_query"])
 
-      print_copy_button('last_query', flow["protos.dns.last_query"])
       print("</td></tr>\n")
    end
 
@@ -1287,7 +1286,6 @@ else
       end
       -- Adding + with custom host rules next to the server name
       printAddCustomHostRule(s)
-      print_copy_button('server_name', s)
       print("</td></tr>\n")
 
       if(not isEmptyString(flow["protos.http.last_user_agent"])) then
@@ -1295,7 +1293,6 @@ else
       end
 
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
-      print("<A class='ntopng-external-link' href=\"")
       -- if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
 
       local last_url = page_utils.safe_html(flow["protos.http.last_url"])
