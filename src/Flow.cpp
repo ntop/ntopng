@@ -2139,6 +2139,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   lua_get_bytes(vm);
 
   if(details_level >= details_high) {
+    char risk_buf[512];
+      
     lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
     lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
 
@@ -2342,6 +2344,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_get_risk_info(vm);
     lua_entropy(vm);
+
+    lua_push_str_table_entry(vm, "riskInfo", getJSONRiskInfo(risk_buf, sizeof(risk_buf)));
   }
 
   lua_get_status(vm);
@@ -6335,3 +6339,7 @@ void Flow::check_swap() {
 }
 
 /* *************************************** */
+
+char* Flow::getJSONRiskInfo(char *out, u_int out_len) {
+  return(ndpi_get_flow_risk_info(get_ndpi_flow(), out, out_len, 1 /* JSON */));
+}

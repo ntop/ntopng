@@ -892,7 +892,8 @@ class Flow : public GenericHashEntry {
   }
 
   u_char* getCommunityId(u_char *community_id, u_int community_id_len);
-
+  char*   getJSONRiskInfo(char *out, u_int out_len);
+  
   inline FlowTrafficStats* getTrafficStats()    { return(&stats); };
   inline char* get_custom_category_file() const { return((char*)ndpiDetectedProtocol.custom_category_userdata); }
   
