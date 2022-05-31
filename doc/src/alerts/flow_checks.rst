@@ -705,10 +705,53 @@ Category: *Network*
 *Enabled by Default*
 
 
-
-
-
-
-
+**Numeric IP Address**
+~~~~~~~~~~~~~~~~~~~~~~~~
  
+Checks for numeric IP address
+
+When contacting the website using an IP address instead of it’s domain name (1.2.3.4 instead of www.bbc.com)
+When a Host Header is a numeric IP Address there could be an error log. An error message can appear when the website is accessed through the IP address.
+
+The alert is sent when numeric IP is detected
+
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+**Detects anomalies in active flows numbers**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for anomalies in active Flows.
+
+Is a machine learning based check ,which is calculated by a specific algorithm that determines behavioural flow anomalies. The algorithm knows the average presence of active flows during a certain time during the day and in case of rapid growth or rapid diminishing of them – the alert is triggered.
+
+Alert is sent when the anomaly in active flow is detected.
+
+
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+
+**Suspicious Entropy**
+~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for suspicious entropy.
+
+In case of files analysis whether they contain embedded files or scripts, and the entropy scores.
+
+The file entropy score, which measure the randomness of data and is used to find encrypted malware, and the entropy distribution also clearly show that a portion/size of the file is not what it should be. Further analysis proves that this file contains a new form of malware that passed undetected by existing security measures and was responsible for the infected systems.
+
+Alert is sent when suspicious entropy is seen.
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+
  
