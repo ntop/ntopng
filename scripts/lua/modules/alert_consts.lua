@@ -24,6 +24,8 @@ alert_consts.MAX_NUM_QUEUED_ALERTS_PER_MODULE = 1024 -- should match ALERTS_MANA
 
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT = 4096
 
+alert_consts.ALL_ALERT_KEY = 0 -- Special ID to select 'all' alerts
+
 -- ##############################################
 
 -- Groups for alert severities to obtain coarser-grained groups of finer-grained alert severities.

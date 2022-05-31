@@ -111,7 +111,7 @@ local function _toggle_alert_exclusion(subject_key, subject_type, alert_key, add
   
   alert_key = tonumber(alert_key)
   
-  if not _check_alert_key(alert_key) and alert_key ~= 0 then
+  if not _check_alert_key(alert_key) and alert_key ~= alert_consts.ALL_ALERT_KEY then
     -- Invalid params submitted
     return false
   end

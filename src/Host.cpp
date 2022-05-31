@@ -1804,11 +1804,11 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
 
 void Host::refreshDisabledAlerts() {
 #ifdef NTOPNG_PRO
-  AlertExclusions *alert_exclusions = ntop->getAlertExclusions();
+  AlertExclusions *alert_excl = ntop->getAlertExclusions();
 
-  if(alert_exclusions && alert_exclusions->checkChange(&disabled_alerts_tstamp)) {
+  if(alert_excl && alert_excl->checkChange(&disabled_alerts_tstamp)) {
     /* Set alert exclusion into the host */
-    alert_exclusions->setDisabledHostAlertsBitmaps(this);
+    alert_excl->setDisabledHostAlertsBitmaps(this);
   }
 #endif
 }
