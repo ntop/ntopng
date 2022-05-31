@@ -283,7 +283,6 @@ void Flow::freeDPIMemory() {
 
     out = ndpi_get_flow_risk_info(get_ndpi_flow(), buf, sizeof(buf), 1 /* JSON */);
     
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[Flow Risk Info: %s]", out ? out : "NULL");
     if(out != NULL)
       setJSONRiskInfo(out);
       
