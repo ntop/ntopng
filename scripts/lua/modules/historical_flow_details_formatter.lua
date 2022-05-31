@@ -153,7 +153,6 @@ local function format_historical_issue_description(flow)
   local alert_store_instances = alert_store_utils.all_instances_factory()
   local alert_utils = require "alert_utils"
   local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
-  
   local details, alert 
   
   local alert_store_instance = alert_store_instances[alert_entities["flow"].alert_store_name]
@@ -176,8 +175,8 @@ end
 
 local function format_historical_other_issues(flow)
   local alert_utils = require "alert_utils"
-  local _, additional_alerts = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'])
   local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
+  local _, additional_alerts = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json)
     
   return additional_alerts
 end

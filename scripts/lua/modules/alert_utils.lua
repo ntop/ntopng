@@ -447,7 +447,7 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json)
   elseif(type(description) == "function") then
      msg = description(ifid, alert, msg)
   end
-
+  
   if(type(msg) == "table") then
      return("")
   end
@@ -461,6 +461,20 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json)
   end
 
   return(msg or "")
+end
+
+-- #################################
+
+function alert_utils.get_flow_risk_info(alert_risk, alert_json)
+  if (alert_json) and (alert_json.alert_generation) and (alert_json.alert_generation.flow_risk_info) then
+    local flow_risk_info = json.decode(alert_json.alert_generation.flow_risk_info)
+
+    if flow_risk_info[tostring(alert_risk)] then
+      return string.format("[nDPI info: %s]", flow_risk_info[tostring(alert_risk)])
+    end
+  end
+
+  return ""
 end
 
 -- #################################
@@ -493,6 +507,7 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json)
    -- Add the link to the documentation
    if alert_risk > 0 then
       msg = string.format("%s %s", msg, flow_risk_utils.get_documentation_link(alert_risk))
+      msg = string.format("%s %s", msg, alert_utils.get_flow_risk_info(alert_risk, alert_json))
    end
 
    return msg or ""
@@ -997,7 +1012,7 @@ end
 -- ##############################################
 
 
-function alert_utils.format_other_alerts(alert_bitmap, predominant_alert)
+function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_json)
   -- Unpack all flow alerts, iterating the alerts_map. The alerts_map is stored as an HEX.
   local other_alerts_by_score = {} -- Table used to keep messages ordered by score
   local additional_alerts = {}
@@ -1025,6 +1040,7 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert)
             local alert_risk = ntop.getFlowAlertRisk(alert_id)
             if alert_risk > 0 then
                 message = string.format("%s %s", message, flow_risk_utils.get_documentation_link(alert_risk))
+                message = string.format("%s %s", message, alert_utils.get_flow_risk_info(alert_risk, alert_json))
             end
 
             if not other_alerts_by_score[alert_score] then

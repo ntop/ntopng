@@ -60,6 +60,7 @@ ndpi_serializer* FlowAlert::getSerializedAlert() {
   ndpi_serialize_start_of_block(serializer, "alert_generation");
   ndpi_serialize_string_string(serializer, "script_key", getCheckName().c_str());
   ndpi_serialize_string_string(serializer, "subdir", "flow");
+  flow->getJSONRiskInfo(serializer);
   ndpi_serialize_end_of_block(serializer);
 
   flow->getProtocolJSONInfo(serializer);
