@@ -241,6 +241,7 @@
 #define HASSHS_HASH           NTOP_BASE_ID+526
 #define FLOW_VERDICT          NTOP_BASE_ID+522
 #define L7_ERROR_CODE         NTOP_BASE_ID+554
+#define L7_RISK_INFO          NTOP_BASE_ID+555
 
 /* SIP */
 #define SIP_CALL_ID NTOP_BASE_ID+130

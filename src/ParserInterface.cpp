@@ -457,7 +457,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if(zflow->next_adjacent_as) flow->setNextAdjacentAS(zflow->next_adjacent_as);
 
   if(zflow->ja3c_hash) flow->updateJA3C(zflow->ja3c_hash);
-  if(zflow->ja3s_hash) flow->updateJA3S(zflow->ja3s_hash);  
+  if(zflow->ja3s_hash) flow->updateJA3S(zflow->ja3s_hash);
+
+  if(zflow->flow_risk_info) flow->setJSONRiskInfo(zflow->flow_risk_info);
   
 #ifdef NTOPNG_PRO
   if(zflow->custom_app.pen) {

@@ -32,7 +32,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   dns_query = tls_server_name = NULL;
   ja3c_hash = ja3s_hash = NULL;
   external_alert = NULL;
-  
+  flow_risk_info = NULL;
   tls_cipher = tls_unsafe_cipher = http_ret_code = 0;
   dns_query_type = dns_ret_code = 0;
   ndpi_flow_risk_bitmap = 0;
@@ -67,6 +67,7 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
   if(pf.ja3c_hash) ja3c_hash = strdup(pf.ja3c_hash); else ja3c_hash = NULL;
   if(pf.ja3s_hash) ja3s_hash = strdup(pf.ja3s_hash); else ja3s_hash = NULL;
   if(pf.external_alert) external_alert = strdup(pf.external_alert); else external_alert = NULL;
+  if(pf.flow_risk_info) flow_risk_info = strdup(pf.flow_risk_info); else flow_risk_info = NULL;
 
   tls_cipher = pf.tls_cipher;
   tls_unsafe_cipher = pf.tls_unsafe_cipher;
@@ -123,6 +124,9 @@ void ParsedFlow::fromLua(lua_State *L, int index) {
 	} else if(!strcmp(key, "external_alert")) {
 	  if(external_alert) free(external_alert);
 	  external_alert = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "flow_risk_info")) {
+	  if(flow_risk_info) free(flow_risk_info);
+	  flow_risk_info = strdup(lua_tostring(L, -1));
 	} else if(!strcmp(key, "first_switched_iso8601")) {
 	  first_switched = Utils::str2epoch(lua_tostring(L, -1));
 	} else if(!strcmp(key, "last_switched_iso8601")) {
@@ -211,6 +215,7 @@ ParsedFlow::~ParsedFlow() {
   if(ja3c_hash) free(ja3c_hash);
   if(ja3s_hash) free(ja3s_hash);
   if(external_alert) free(external_alert);
+  if(flow_risk_info) free(flow_risk_info);
 }
 
 /* *************************************** */

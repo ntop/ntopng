@@ -126,6 +126,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("SERVER_NW_LATENCY_MS", SERVER_NW_LATENCY_MS, NTOP_PEN);
   addMapping("L7_PROTO_RISK", L7_PROTO_RISK, NTOP_PEN);
   addMapping("FLOW_VERDICT", FLOW_VERDICT, NTOP_PEN);
+  addMapping("L7_RISK_INFO", L7_RISK_INFO, NTOP_PEN);
 }
 
 /* **************************************************** */
@@ -816,6 +817,13 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
 
   case FLOW_VERDICT:
     flow->flow_verdict = value->int_num;
+    break;
+
+  case L7_RISK_INFO:
+    if(value->string && value->string[0]) {
+      if(flow->flow_risk_info) free(flow->flow_risk_info);
+      flow->flow_risk_info = strdup(value->string);
+    }
     break;
 
   case BITTORRENT_HASH:

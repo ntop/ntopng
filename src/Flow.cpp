@@ -284,7 +284,7 @@ void Flow::freeDPIMemory() {
     out = ndpi_get_flow_risk_info(get_ndpi_flow(), buf, sizeof(buf), 1 /* JSON */);
 
     if(out != NULL)
-      riskInfo = strdup(out);
+      setJSONRiskInfo(out);
       
     ndpi_free_flow(ndpiFlow);
     ndpiFlow = NULL;
@@ -6349,3 +6349,14 @@ void Flow::check_swap() {
     swap_requested = 1;
 }
 
+/* *************************************** */
+
+void Flow::setJSONRiskInfo(char *r) {
+  if(!r)
+    return;
+
+  if(riskInfo)
+    free(riskInfo);
+
+  riskInfo = strdup(r);
+}
