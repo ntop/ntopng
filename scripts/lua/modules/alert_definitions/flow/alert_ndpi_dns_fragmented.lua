@@ -12,13 +12,13 @@ local alert = require "alert"
 
 -- ##############################################
 
-local alert_ndpi_dns_large_packet = classes.class(alert)
+local alert_ndpi_dns_fragmented = classes.class(alert)
 
 -- ##############################################
 
-alert_ndpi_dns_large_packet.meta = {
-   alert_key  = flow_alert_keys.flow_alert_ndpi_dns_large_packet,
-   i18n_title = "flow_risk.ndpi_dns_large_packet",
+alert_ndpi_dns_fragmented.meta = {
+   alert_key  = flow_alert_keys.flow_alert_ndpi_dns_fragmented,
+   i18n_title = "flow_risk.ndpi_dns_fragmented",
    icon = "fas fa-fw fa-exclamation",
 }
 
@@ -26,17 +26,17 @@ alert_ndpi_dns_large_packet.meta = {
 
 -- @brief Prepare an alert table used to generate the alert
 -- @return A table with the alert built
-function alert_ndpi_dns_large_packet:init()
+function alert_ndpi_dns_fragmented:init()
    -- Call the parent constructor
    self.super:init()
 end
 
 -- #######################################################
 
-function alert_ndpi_dns_large_packet.format(ifid, alert, alert_type_params)
+function alert_ndpi_dns_fragmented.format(ifid, alert, alert_type_params)
    return ""
 end
 
 -- #######################################################
 
-return alert_ndpi_dns_large_packet
+return alert_ndpi_dns_fragmented

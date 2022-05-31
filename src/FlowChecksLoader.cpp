@@ -84,6 +84,7 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new FlowRiskSuspiciousDGADomain()))                 registerCheck(fcb);
   if((fcb = new FlowRiskSuspiciousEntropy()))                   registerCheck(fcb);
   if((fcb = new FlowRiskDNSLargePacket()))                      registerCheck(fcb);
+  if((fcb = new FlowRiskDNSFragmented()))                       registerCheck(fcb);
   if((fcb = new FlowRiskClearTextCredentials()))                registerCheck(fcb);
   if((fcb = new FlowRiskTLSMissingSNI()))                       registerCheck(fcb);
   if((fcb = new FlowRiskTLSNotCarryingHTTPS()))                 registerCheck(fcb);

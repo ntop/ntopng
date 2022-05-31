@@ -12,7 +12,7 @@ local script = {
    category = checks.check_categories.security, 
 
    -- This script is only for alerts generation
-   alert_id = flow_alert_keys.flow_alert_binary_application_transfer,
+   alert_id = flow_alert_keys.flow_alert_ndpi_dns_fragmented,
 
    default_enabled = true,
 
@@ -21,8 +21,8 @@ local script = {
 
 
    gui = {
-      i18n_title = "flow_risk.ndpi_binary_application_transfer",
-      i18n_description = "flow_risk.ndpi_binary_application_transfer_descr",
+      i18n_title = "flow_risk.ndpi_dns_fragmented",
+      i18n_description = "flow_risk.ndpi_dns_fragmented_descr",
    }
 }
 
