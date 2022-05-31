@@ -57,6 +57,8 @@
 #include "flow_alerts/FlowRiskSSHObsoleteClientAlert.h"
 #include "flow_alerts/FlowRiskSuspiciousDGADomainAlert.h"
 #include "flow_alerts/FlowRiskSuspiciousEntropyAlert.h"
+#include "flow_alerts/FlowRiskClearTextCredentialsAlert.h"
+#include "flow_alerts/FlowRiskDNSLargePacketAlert.h"
 #include "flow_alerts/FlowRiskTLSCertValidityTooLongAlert.h"
 #include "flow_alerts/FlowRiskTLSMissingSNIAlert.h"
 #include "flow_alerts/FlowRiskTLSNotCarryingHTTPSAlert.h"
