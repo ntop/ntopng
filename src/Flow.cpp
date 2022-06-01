@@ -278,14 +278,6 @@ void Flow::allocDPIMemory() {
 
 void Flow::freeDPIMemory() {
   if(ndpiFlow)  {
-    /* Save riskInfo */
-    char *out, buf[512];
-
-    out = ndpi_get_flow_risk_info(get_ndpi_flow(), buf, sizeof(buf), 1 /* JSON */);
-    
-    if(out != NULL)
-      setJSONRiskInfo(out);
-      
     ndpi_free_flow(ndpiFlow);
     ndpiFlow = NULL;
   }
@@ -726,6 +718,16 @@ void Flow::processExtraDissectedInformation() {
   getInterface()->updateFlowPeriodicity(this);
   getInterface()->updateServiceMap(this);
 #endif
+
+  if(get_ndpi_flow()) {
+    /* Save riskInfo */
+    char *out, buf[512];
+    
+    out = ndpi_get_flow_risk_info(get_ndpi_flow(), buf, sizeof(buf), 1 /* JSON */);
+    
+    if(out != NULL)
+      setJSONRiskInfo(out);
+  }
 
   /* Free the nDPI memory */
   if(free_ndpi_memory)
@@ -6369,5 +6371,13 @@ void Flow::setJSONRiskInfo(char *r) {
   if(riskInfo)
     free(riskInfo);
 
+  // ntop->getTrace()->traceEvent(TRACE_INFO, "[%s]", r);
+  
   riskInfo = strdup(r);
+}
+
+/* *************************************** */
+
+char* Flow::getJSONRiskInfo() {
+  return(riskInfo);
 }
