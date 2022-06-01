@@ -470,7 +470,7 @@ function alert_utils.get_flow_risk_info(alert_risk, alert_json)
     local flow_risk_info = json.decode(alert_json.alert_generation.flow_risk_info)
 
     if (flow_risk_info) and (flow_risk_info[tostring(alert_risk)]) then
-      return string.format("[nDPI info: %s]", flow_risk_info[tostring(alert_risk)])
+      return string.format("[%s]", flow_risk_info[tostring(alert_risk)])
     end
   end
 
