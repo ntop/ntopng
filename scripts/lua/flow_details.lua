@@ -1109,9 +1109,9 @@ else
       
       local msg = string.format('<td>%s %s %s %s</td>',
 				score_alert.message,
+				riskLabel,
 				(score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk)) or '',
-				status_icon or '',
-				riskLabel)
+				status_icon or '')
       print(msg)
       
       if score_alert.alert_id then
