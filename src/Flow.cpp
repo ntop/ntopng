@@ -2515,8 +2515,10 @@ bool Flow::is_hash_entry_state_idle_transition_ready() {
     return(isNetfilterIdleFlow());
 #endif
 
-  if(iface->getIfType() == interface_type_ZMQ) {
+  if(iface->getIfType() == interface_type_ZMQ ||
+     iface->getIfType() == interface_type_SYSLOG) {
     ret = is_active_entry_now_idle(iface->getFlowMaxIdle());
+
   } else {
     if(protocol == IPPROTO_TCP) {
       u_int8_t tcp_flags = src2dst_tcp_flags | dst2src_tcp_flags;
@@ -3621,6 +3623,7 @@ bool Flow::isTLS() const {
 /* *************************************** */
 
 void Flow::callFlowUpdate(time_t t) {
+
   if(get_state() != hash_entry_state_active)
     return;
 

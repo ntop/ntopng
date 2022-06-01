@@ -40,6 +40,8 @@ typedef struct {
   int sock;
 } syslog_socket;
 
+#define USE_RECVLINE
+
 class SyslogCollectorInterface : public SyslogParserInterface {
  private:
   char *endpoint;
@@ -55,7 +57,9 @@ class SyslogCollectorInterface : public SyslogParserInterface {
   void closeSocket(syslog_socket *ss, int protocol);
   int  initFDSetsSocket(syslog_socket *ss, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds, int protocol);
   int  initFDSets(fd_set *read_fds, fd_set *write_fds, fd_set *except_fds);
+#ifdef USE_RECVLINE
   int  recvLine(int socket, char *buffer, size_t n);
+#endif
 
  public:
   SyslogCollectorInterface(const char *_endpoint);

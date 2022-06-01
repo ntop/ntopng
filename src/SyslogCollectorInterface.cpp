@@ -270,6 +270,7 @@ void SyslogCollectorInterface::closeConnection(syslog_client *client) {
 
 /* **************************************************** */
 
+#ifdef USE_RECVLINE
 int SyslogCollectorInterface::recvLine(int socket, char *buffer, size_t n) {
   ssize_t num_read;
   size_t tot_read = 0;
@@ -298,6 +299,7 @@ int SyslogCollectorInterface::recvLine(int socket, char *buffer, size_t n) {
 
   return tot_read;
 }
+#endif
 
 /* **************************************************** */
 
@@ -310,7 +312,9 @@ int SyslogCollectorInterface::receive(int socket, char *client_ip, bool use_recv
   socklen_t client_addr_len = sizeof(client_addr);
   char ip_str[INET_ADDRSTRLEN];
 
-  do {
+  // Note: do not loop to handle other clients in round robin
+  // and also handle purgeIdle
+  //do {
 
     if (use_recvfrom)
       len = recvfrom(socket,
@@ -325,7 +329,7 @@ int SyslogCollectorInterface::receive(int socket, char *client_ip, bool use_recv
 #endif
         , (struct sockaddr *) &client_addr, &client_addr_len);
     else
-#if 1
+#ifdef USE_RECVLINE
       /* Read single line to avoid splitting lines across chunks */
       len = recvLine(socket, (char *) buffer, buffer_size);
 #else
@@ -340,8 +344,8 @@ int SyslogCollectorInterface::receive(int socket, char *client_ip, bool use_recv
 
     if(len < 0) {
       if(errno == EAGAIN || errno == EWOULDBLOCK) {
-        ntop->getTrace()->traceEvent(TRACE_INFO, "Client is not ready");
-        break;
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Client is not ready (%d)", errno);
+        goto done;
       } else {
         ntop->getTrace()->traceEvent(TRACE_ERROR, "Client error");
         return -1;
@@ -365,8 +369,10 @@ int SyslogCollectorInterface::receive(int socket, char *client_ip, bool use_recv
       }
     }
 
-  } while (len > 0);
+  //} while (len > 0);
   
+ done:
+
   ntop->getTrace()->traceEvent(TRACE_INFO, "Total received bytes: %u", received_total);
 
   return 0;
@@ -429,9 +435,10 @@ void SyslogCollectorInterface::collect_events() {
       }
 
       if (tcp_socket.enable) {
-        if (FD_ISSET(tcp_socket.sock, &read_fds))
+        if (FD_ISSET(tcp_socket.sock, &read_fds)) {
           handleNewConnection();
-      
+        }
+
         if(FD_ISSET(tcp_socket.sock, &except_fds))
           ntop->getTrace()->traceEvent(TRACE_ERROR, "Exception on listen TCP socket fd");
       
