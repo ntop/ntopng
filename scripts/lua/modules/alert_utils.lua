@@ -466,11 +466,13 @@ end
 -- #################################
 
 function alert_utils.get_flow_risk_info(alert_risk, alert_json)
+  local msg = ""
+
   if (alert_json) and (alert_json.alert_generation) and (alert_json.alert_generation.flow_risk_info) then
     local flow_risk_info = json.decode(alert_json.alert_generation.flow_risk_info)
 
     if (flow_risk_info) and (flow_risk_info[tostring(alert_risk)]) then
-      return string.format("[%s]", flow_risk_info[tostring(alert_risk)])
+      msg = string.format("%s[%s]", msg, flow_risk_info[tostring(alert_risk)])
     end
   end
 
@@ -479,6 +481,16 @@ end
 
 -- #################################
 
+function alert_utils.format_score(msg, alert_score)
+  if (alert_score) and (tonumber(alert_score)) and (tonumber(alert_score) > 0) then
+    msg = string.format("%s [Score: %d] ", msg, tonumber(alert_score))
+  end
+  
+  return msg
+end
+
+-- #################################
+  
 function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json)
    local msg
    local alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
@@ -503,7 +515,10 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json)
    if not isEmptyString(alert["user_label"]) then
       msg = string.format('%s <small><span class="text-muted">%s</span></small>', msg, alert["user_label"])
    end
-
+   
+   local alert_score = ntop.getFlowAlertScore(tonumber(alert.alert_id))
+   msg = alert_utils.format_score(msg, alert_score)
+   
    -- Add the link to the documentation
    if alert_risk > 0 then
       msg = string.format("%s %s", msg, flow_risk_utils.get_documentation_link(alert_risk))
@@ -1036,6 +1051,7 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
             local message = alert_consts.alertTypeLabel(alert_id, true, alert_entities.flow.entity_id)
 
             local alert_score = ntop.getFlowAlertScore(alert_id)
+            message = alert_utils.format_score(message, alert_score)
 
             local alert_risk = ntop.getFlowAlertRisk(alert_id)
             if alert_risk > 0 then
