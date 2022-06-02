@@ -650,7 +650,7 @@ client errors
 server errors
 
 
-Alert is sent when an error code is seen
+Alert is sent when an error code is seen.
 
 
 Category: *Network*
@@ -668,7 +668,11 @@ Checks for unusual traffic behaviour
 **No Data Exchanged**
 ~~~~~~~~~~~~~~~~~~~~~
 
-Checks for data exchange
+Checks for no data exchange.
+
+When the sending TCP wants to establish connections, it sends a segment called a SYN to the peer TCP protocol running on the receiving host. The receiving TCP returns a segment called an ACK to acknowledge the successful receipt of the segment. The sending TCP sends another ACK segment, then proceeds to send the data.
+
+The alert is sent when flow ends with no data exchanged.
 
 
 **TCP Retransmission Issues**
@@ -694,7 +698,7 @@ Category: *Network*
 **Zero TCP Window**
 ~~~~~~~~~~~~~~~~~~~
 
-Checks for zero TCP window
+Checks for zero TCP window.
 
 When the receiver has a full buffer, the window size is reduced to zero. In this state, the window is shown to be 'Frozen' and the sender cannot send any more bytes until it receives a datagram from the receiver with a window size greater than zero.
 
@@ -711,9 +715,11 @@ Category: *Network*
 Checks for numeric IP address
 
 When contacting the website using an IP address instead of it’s domain name (1.2.3.4 instead of www.bbc.com)
-When a Host Header is a numeric IP Address there could be an error log. An error message can appear when the website is accessed through the IP address.
 
-The alert is sent when numeric IP is detected
+(hppt/dsn troubles )
+
+
+The alert is sent when numeric IP is detected.
 
 
 *Category:Cybersecurity*
@@ -725,7 +731,7 @@ The alert is sent when numeric IP is detected
 
 Checks for anomalies in active Flows.
 
-Is a machine learning based check ,which is calculated by a specific algorithm that determines behavioural flow anomalies. The algorithm knows the average presence of active flows during a certain time during the day and in case of rapid growth or rapid diminishing of them – the alert is triggered.
+This is a machine learning check.Based on a specific algorithm that forecasts behavioural flow anomalies.The algorithm is able to predict the average of active flows in certain period of time ,lower or upper boundaries are not established but calculated by the algorithm.
 
 Alert is sent when the anomaly in active flow is detected.
 
@@ -753,5 +759,36 @@ Alert is sent when suspicious entropy is seen.
 *Enabled by Default*
 
 
-
+**Long Lived**
+~~~~~~~~~~~~~~~
  
+Checks for long lived flows.
+ 
+The TCP source will keep sending as much data as it can for the transmission link and once congestion is occuring TCP congestion mechanism will come into play,TCP always initiate the congestion avoidance mechanism and slow-start if buffers get over-filled or output capacity of a router in the chain is smaller that the sum of its inputs.
+ 
+An alert is sent when a flow lasts more than the configured duration.
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+**Not Purged**
+~~~~~~~~~~~~~~
+
+Checks for bugs in the flow pure logic.
+ 
+Purging is the process of freeing up space in the database or of deleting obsolete data that is not required by the system. The purge process can be based on the age of the data or the type of data.
+Data purging is a mechanism that permanently deletes inactive or obsolete records from the database. 
+
+Sends the alert in case of bugs in the flow pure logic.
+
+
+*Category:Cybersecurity*
+
+*Enabled by Default*
+
+
+
+
+
