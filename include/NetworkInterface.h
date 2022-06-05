@@ -106,6 +106,9 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   HostChecksExecutor *host_checks_executor, *prev_host_checks_executor;
 
 #if defined(NTOPNG_PRO)
+  /* Logic for detecting packet protocol storms */
+  u_int32_t dhcp_last_sec_pkts, last_sec_epoch;
+
   time_t nextMinPeriodicUpdate;
   /* Behavioural analysis regarding the interface */
   BehaviorAnalysis *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
@@ -369,6 +372,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   u_int16_t guessEthType(const u_char *p, u_int len, u_int8_t *is_ethernet);
   void loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str);
 
+#ifdef NTOPNG_PRO
+  void checkDHCPStorm(time_t when, u_int32_t num_pkts);
+#endif
+  
  public:
   /**
   * @brief A Constructor
@@ -530,6 +537,12 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     l4Stats.incStats(when, l4proto,
 		     ingressPacket ? num_pkts : 0, ingressPacket ? pkt_len : 0,
 		     !ingressPacket ? num_pkts : 0, !ingressPacket ? pkt_len : 0);
+#endif
+
+#ifdef NTOPNG_PRO
+    /* Added DHCP storm detection */
+    if(ndpi_proto == NDPI_PROTOCOL_DHCP)
+      checkDHCPStorm(when, num_pkts);
 #endif
   };
 

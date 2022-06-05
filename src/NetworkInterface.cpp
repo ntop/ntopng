@@ -335,6 +335,7 @@ void NetworkInterface::init() {
   sub_interfaces = NULL;
 #endif
 #endif
+  dhcp_last_sec_pkts = 0, last_sec_epoch = 0;
 
   dhcp_ranges = dhcp_ranges_shadow = NULL;
 
@@ -4167,7 +4168,7 @@ struct flowHostRetriever {
   FlowStats *stats;
 
   /* Paginator */
-  Paginator *pag; 
+  Paginator *pag;
 };
 
 /* **************************************************** */
@@ -5160,7 +5161,7 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data, bool *matche
     retriever->totBytesSent += f->get_bytes_cli2srv();
     retriever->totBytesRcvd += f->get_bytes_srv2cli();
     retriever->totThpt      += f->get_bytes_thpt();
-    
+
     if(!retriever->only_traffic_stats)
       f->sumStats(ndpi_stats, stats);
 
@@ -7351,7 +7352,7 @@ void NetworkInterface::allocateStructures() {
 #endif
 #endif
       }
-    }  
+    }
 
     if(!isViewed()) {
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
@@ -9860,3 +9861,30 @@ int NetworkInterface::walkActiveHosts(lua_State* vm,
     return(m.info.size());
   }
 }
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+void NetworkInterface::checkDHCPStorm(time_t when, u_int32_t num_pkts) {
+  if(last_sec_epoch == when)
+    dhcp_last_sec_pkts += num_pkts;
+  else {
+    if(dhcp_last_sec_pkts > DHCP_STORM_PPS_THSHOLD) {
+      char value[32], key[32];
+
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "DHCP [iface: %d][when: %u][total: %u]",
+				   get_id(), last_sec_epoch, dhcp_last_sec_pkts);
+#endif
+
+      /* Queue alert for the DHCP storm plugin */
+      snprintf(key, sizeof(key), DHCP_STORM_QUEUE_NAME, get_id());
+
+      snprintf(value, sizeof(value), "%u;%u", last_sec_epoch, dhcp_last_sec_pkts);
+      ntop->getRedis()->rpush(DHCP_STORM_QUEUE_NAME, value, 32 /* trim size */);
+    }
+
+    last_sec_epoch = when, dhcp_last_sec_pkts = num_pkts; /* Reset counter */
+  }
+}
+#endif
