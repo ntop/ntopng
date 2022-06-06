@@ -165,14 +165,14 @@ void ParsedeBPF::getJSONObject(json_object *my_object, bool client) const {
     json_object_object_add(proc_object, "GID", json_object_new_int64(proc->gid));
     json_object_object_add(proc_object, "ACTUAL_MEMORY", json_object_new_int64(proc->actual_memory));
     json_object_object_add(proc_object, "PEAK_MEMORY", json_object_new_int64(proc->peak_memory));
-    json_object_object_add(proc_object, "USER_NAME", json_object_new_string(proc->uid_name));
+    json_object_object_add(proc_object, "USER_NAME", json_object_new_string(proc->uid_name ? proc->uid_name : ""));
 
     if(proc->father_pid > 0) {
       json_object_object_add(proc_object, "FATHER_PID", json_object_new_int64(proc->father_pid));
       json_object_object_add(proc_object, "FATHER_NAME", json_object_new_string(proc->father_process_name));
       json_object_object_add(proc_object, "FATHER_UID", json_object_new_int64(proc->father_uid));
       json_object_object_add(proc_object, "FATHER_GID", json_object_new_int64(proc->father_gid));
-      json_object_object_add(proc_object, "FATHER_USER_NAME", json_object_new_string(proc->father_uid_name));
+      json_object_object_add(proc_object, "FATHER_USER_NAME", json_object_new_string(proc->father_uid_name ? proc->father_uid_name : ""));
     }
 
     json_object_object_add(my_object, client ? "CLIENT_PROCESS" : "SERVER_PROCESS", proc_object);
@@ -216,14 +216,14 @@ void ParsedeBPF::lua(lua_State *vm, bool client) const{
     lua_push_uint64_table_entry(vm, "gid", proc->gid);
     lua_push_uint64_table_entry(vm, "actual_memory", proc->actual_memory);
     lua_push_uint64_table_entry(vm, "peak_memory", proc->peak_memory);
-    lua_push_str_table_entry(vm, "user_name", proc->uid_name);
+    lua_push_str_table_entry(vm, "user_name", proc->uid_name ? proc->uid_name : "");
 
     if(proc->father_pid > 0) {
       lua_push_uint64_table_entry(vm, "father_pid", proc->father_pid);
       lua_push_uint64_table_entry(vm, "father_uid", proc->father_uid);
       lua_push_uint64_table_entry(vm, "father_gid", proc->father_gid);
       lua_push_str_table_entry(vm, "father_name", proc->father_process_name);
-      lua_push_str_table_entry(vm, "father_user_name", proc->father_uid_name);
+      lua_push_str_table_entry(vm, "father_user_name", proc->father_uid_name ? proc->father_uid_name : "");
     }
 
     lua_pushstring(vm, client ? "client_process" : "server_process");
