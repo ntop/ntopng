@@ -9881,7 +9881,7 @@ void NetworkInterface::checkDHCPStorm(time_t when, u_int32_t num_pkts) {
       snprintf(key, sizeof(key), DHCP_STORM_QUEUE_NAME, get_id());
 
       snprintf(value, sizeof(value), "%u;%u", last_sec_epoch, dhcp_last_sec_pkts);
-      ntop->getRedis()->rpush(DHCP_STORM_QUEUE_NAME, value, 32 /* trim size */);
+      ntop->getRedis()->rpush(key, value, 32 /* trim size */);
     }
 
     last_sec_epoch = when, dhcp_last_sec_pkts = num_pkts; /* Reset counter */

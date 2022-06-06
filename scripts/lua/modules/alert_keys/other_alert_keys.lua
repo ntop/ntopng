@@ -89,6 +89,7 @@ local other_alert_keys = {
    alert_port_mac_appeared              =  OTHER_BASE_KEY + 76,
    alert_port_mac_disappeared           =  OTHER_BASE_KEY + 77,
    alert_network_score_per_host         =  OTHER_BASE_KEY + 78,
+   alert_dhcp_storm                     =  OTHER_BASE_KEY + 79,
 }
 
 -- ##############################################
