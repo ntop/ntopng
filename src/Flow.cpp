@@ -540,9 +540,6 @@ void Flow::processDetectedProtocolData() {
       Host server name equals the Host: HTTP header field.
     */
     host_server_name = strdup((char*)ndpiFlow->host_server_name);
-    
-    if(srv_h)
-      srv_h->setServerName(host_server_name);
   }
 
   switch(l7proto) {
@@ -564,10 +561,12 @@ void Flow::processDetectedProtocolData() {
 	cli_h->incrVisitedWebSite(ndpiFlow->host_server_name);
 
       if(cli_h) cli_h->incContactedService(ndpiFlow->host_server_name);
+      if(srv_h) srv_h->setServerName(host_server_name);
     }
     break;
 
   case NDPI_PROTOCOL_HTTP:
+    if(srv_h && ndpiFlow->host_server_name[0] != '\0') srv_h->setServerName(host_server_name);
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(ndpiFlow->http.url) {
       if(!protos.http.last_url) protos.http.last_url = strdup(ndpiFlow->http.url);
