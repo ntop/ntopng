@@ -5282,7 +5282,7 @@ function format_ip_vlan(ip, vlan)
   local host = ip
   
   if (vlan) and (tonumber(vlan) ~= 0) then
-    host = host .. '@' .. tonumber(vlan)
+    host = host .. '@' .. (tonumber(vlan) or vlan)
   end
 
   return host
