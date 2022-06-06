@@ -72,6 +72,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("L7_PROTO", L7_PROTO, NTOP_PEN);
   addMapping("L7_PROTO_NAME", L7_PROTO_NAME, NTOP_PEN);
   addMapping("L7_INFO", L7_INFO, NTOP_PEN);
+  addMapping("L7_CONFIDENCE", L7_CONFIDENCE, NTOP_PEN);
   addMapping("L7_ERROR_CODE", L7_ERROR_CODE, NTOP_PEN);
   addMapping("IN_BYTES", IN_BYTES);
   addMapping("IN_PKTS", IN_PKTS);
@@ -664,6 +665,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
       if(flow->l7_info) free(flow->l7_info);
       flow->l7_info = strdup(value->string);
     }
+    break;
+    
+  case L7_CONFIDENCE:
+    flow->confidence = (ndpi_confidence_t)((value->int_num < NDPI_CONFIDENCE_MAX) ? value->int_num : NDPI_CONFIDENCE_UNKNOWN);
     break;
     
   case L7_ERROR_CODE:

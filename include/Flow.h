@@ -905,6 +905,9 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getErrorCode()        { return(protocolErrorCode); }
   inline void setErrorCode(u_int32_t rc) { protocolErrorCode = rc;    }
   
+  inline ndpi_confidence_t getConfidence()        { return(confidence); }
+  inline void setConfidence(ndpi_confidence_t rc) { confidence = rc;    }
+  
   /* Placeholder */
   inline char* getCliProcessName()     { return((char*)""); }
   inline char* getSrvProcessName()     { return((char*)""); }

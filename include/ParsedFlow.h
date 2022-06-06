@@ -44,6 +44,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   u_int16_t dns_query_type, dns_ret_code;
   u_int32_t l7_error_code;
   custom_app_t custom_app;
+  ndpi_confidence_t confidence;
   ndpi_risk ndpi_flow_risk_bitmap;
   
   ParsedFlow();
