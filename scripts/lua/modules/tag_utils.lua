@@ -339,8 +339,8 @@ tag_utils.ip_location = {
 -- #####################################
 
 tag_utils.confidence = {
-   { label = "DPI", id = "DPI" },
-   { label = "Guessed",  id = "Guessed" },
+   { label = "Guessed",  id = 0 },
+   { label = "DPI", id = 1 },
 }
 
 -- #####################################

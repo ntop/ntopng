@@ -6136,12 +6136,12 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
         switch(getConfidence()) {
         case NDPI_CONFIDENCE_MATCH_BY_PORT:
         case NDPI_CONFIDENCE_MATCH_BY_IP:
-          ndpi_serialize_string_string(serializer, "confidence", "Guessed");
+          ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_guessed);
           break;
 
         case NDPI_CONFIDENCE_DPI_CACHE:
         case NDPI_CONFIDENCE_DPI:
-          ndpi_serialize_string_string(serializer, "confidence", "DPI");
+          ndpi_serialize_string_uint32(serializer, "confidence", (ndpiConfidence) confidence_dpi);
           break;
 
         default:

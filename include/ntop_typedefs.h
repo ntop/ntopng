@@ -1131,4 +1131,10 @@ typedef struct {
   u_int8_t l4_proto;
 } PeriodicityStatsKey;
 
+/* This enum is used to dump the confidences types to the db */
+typedef enum {
+  confidence_guessed = 0,
+  confidence_dpi = 1
+} ndpiConfidence;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

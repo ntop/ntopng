@@ -5253,12 +5253,10 @@ end
 -- ##############################################
 
 function format_proto_info(proto_info)
-  if proto_info.l7_error_code then
-    proto_info.l7_error_code = nil
-  end
-
-  if proto_info.confidence then
-    proto_info.confidence = nil
+  for key, value in pairs(proto_info) do
+    if type(value) ~= "table" then
+      proto_info[key] = nil
+    end
   end
 
   for proto, info in pairs(proto_info) do
@@ -5345,8 +5343,45 @@ function format_query_json_value(alert_or_flow, nested_field)
   return string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, nested_field)
 end
  
- -- ##############################################
+-- ##############################################
+ 
+function get_confidence(confidence_id)
+  local tag_utils = require "tag_utils"
+  local confidence_name = nil
+  tprint(confidence_id)
 
+  if confidence_id and tonumber(confidence_id) then
+    confidence_id = tonumber(confidence_id)
+
+    for _, confidence in pairs(tag_utils.confidence or {}) do
+      if confidence.id == confidence_id then
+        confidence_name = confidence.label
+        break
+      end
+    end
+  end
+
+  return confidence_name
+end
+
+-- ##############################################
+
+
+function format_confidence_from_json(record)
+  local json = require "dkjson"
+  local alert_json = {}
+  local confidence = nil
+    
+  if record["ALERT_JSON"] then
+    alert_json = json.decode(record["ALERT_JSON"])
+  end
+
+  if (alert_json.proto) and (alert_json.proto.confidence) and (not isEmptyString(alert_json.proto.confidence)) then
+    confidence = get_confidence(alert_json.proto.confidence)
+  end
+
+  return confidence
+end
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

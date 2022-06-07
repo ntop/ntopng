@@ -327,24 +327,14 @@ end
 local function dt_format_l7_proto(l7_proto, record)
   
    if not isEmptyString(l7_proto) then
-    local json = require "dkjson"
     local title = interface.getnDPIProtoName(tonumber(l7_proto))
-    local confidence = nil
-    local alert_json = {}
-    
-    if record["ALERT_JSON"] then
-      alert_json = json.decode(record["ALERT_JSON"])
-    end
-
-    if (alert_json.proto) and (alert_json.proto.confidence) and (not isEmptyString(alert_json.proto.confidence)) then
-      confidence = alert_json.proto.confidence
-    end
+    local confidence = format_confidence_from_json(record)
 
     l7_proto = {
       confidence = confidence,
       title = title,
-        label = shortenString(title, 12),
-        value = tonumber(l7_proto),
+      label = shortenString(title, 12),
+      value = tonumber(l7_proto),
     } 
   end
    
