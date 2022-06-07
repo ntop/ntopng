@@ -52,6 +52,7 @@ class ZMQParserInterface : public ParserInterface {
   bool matchPENZeroField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
   bool matchPENNtopField(ParsedFlow * const flow, u_int32_t field, ParsedValue *value) const;
   static bool parseContainerInfo(json_object *jo, ContainerInfo * const container_info);
+  static void freeContainerInfo(ContainerInfo * const container_info);
   bool parseNProbeAgentField(ParsedFlow * const flow, const char * key, ParsedValue *value, json_object * const jvalue) const;
   int parseSingleJSONFlow(json_object *o, u_int8_t source_id);
   int parseSingleTLVFlow(ndpi_deserializer *deserializer, u_int8_t source_id);

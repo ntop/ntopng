@@ -128,6 +128,16 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("L7_PROTO_RISK", L7_PROTO_RISK, NTOP_PEN);
   addMapping("FLOW_VERDICT", FLOW_VERDICT, NTOP_PEN);
   addMapping("L7_RISK_INFO", L7_RISK_INFO, NTOP_PEN);
+
+  /* eBPF / Process */
+  addMapping("SRC_PROC_NAME", SRC_PROC_NAME, NTOP_PEN); 
+  addMapping("SRC_PROC_PID", SRC_PROC_PID, NTOP_PEN); 
+  addMapping("SRC_PROC_CMDLINE", SRC_PROC_CMDLINE, NTOP_PEN); 
+  addMapping("SRC_PROC_CONTAINER_ID", SRC_PROC_CONTAINER_ID, NTOP_PEN); 
+  addMapping("DST_PROC_NAME", DST_PROC_NAME, NTOP_PEN); 
+  addMapping("DST_PROC_PID", DST_PROC_PID, NTOP_PEN); 
+  addMapping("DST_PROC_CMDLINE", DST_PROC_CMDLINE, NTOP_PEN); 
+  addMapping("DST_PROC_CONTAINER_ID", DST_PROC_CONTAINER_ID, NTOP_PEN); 
 }
 
 /* **************************************************** */
@@ -852,6 +862,41 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     flow->out_fragments = value->int_num;
     break;
 
+  case SRC_PROC_NAME:
+    if(value->string && value->string[0]) {
+      if(!flow->process_info_set) flow->process_info_set = true;
+      flow->process_info.process_name = strdup(value->string);
+    }
+    break;
+
+  case SRC_PROC_PID:
+    flow->process_info.pid = value->int_num;
+    break;
+
+  case SRC_PROC_CMDLINE:
+    //TODO   
+    break;
+
+  case SRC_PROC_CONTAINER_ID:
+    //TODO   
+    break;
+
+  case DST_PROC_NAME:
+    //TODO   
+    break;
+
+  case DST_PROC_PID:
+    //TODO   
+    break;
+
+  case DST_PROC_CMDLINE:
+    //TODO   
+    break;
+
+  case DST_PROC_CONTAINER_ID:
+    //TODO   
+    break;
+
   default:
     return false;
   }
@@ -1141,11 +1186,11 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const ch
   } else if(strlen(key) >= 14 && !strncmp(&key[strlen(key) - 14], "FATHER_PROCESS", 14)) {
     if(json_object_object_get_ex(jvalue, "PID", &obj))          flow->process_info.father_pid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "UID", &obj))          flow->process_info.father_uid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "UID_NAME", &obj))     flow->process_info.father_uid_name = (char*)json_object_get_string(obj);
+    if(json_object_object_get_ex(jvalue, "UID_NAME", &obj))     flow->process_info.father_uid_name = strdup((char*)json_object_get_string(obj));
     if(json_object_object_get_ex(jvalue, "GID", &obj))          flow->process_info.father_gid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))      flow->process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))      flow->process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->process_info.father_process_name = (char*)json_object_get_string(obj);
+    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->process_info.father_process_name = strdup((char*)json_object_get_string(obj));
     if(!flow->process_info_set) flow->process_info_set = true;
     ret = true;
 
@@ -1156,11 +1201,11 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const ch
   } else if(strlen(key) >= 7 && !strncmp(&key[strlen(key) - 7], "PROCESS", 7)) {
     if(json_object_object_get_ex(jvalue, "PID", &obj))          flow->process_info.pid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "UID", &obj))          flow->process_info.uid = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "UID_NAME", &obj))     flow->process_info.uid_name = (char*)json_object_get_string(obj);
+    if(json_object_object_get_ex(jvalue, "UID_NAME", &obj))     flow->process_info.uid_name = strdup((char*)json_object_get_string(obj));
     if(json_object_object_get_ex(jvalue, "GID", &obj))          flow->process_info.gid = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "VM_SIZE", &obj))      flow->process_info.actual_memory = (u_int32_t)json_object_get_int64(obj);
     if(json_object_object_get_ex(jvalue, "VM_PEAK", &obj))      flow->process_info.peak_memory = (u_int32_t)json_object_get_int64(obj);
-    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->process_info.process_name = (char*)json_object_get_string(obj);
+    if(json_object_object_get_ex(jvalue, "PROCESS_PATH", &obj)) flow->process_info.process_name = strdup((char*)json_object_get_string(obj));
     if(!flow->process_info_set) flow->process_info_set = true;
     ret = true;
 
@@ -1801,11 +1846,13 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char * payload, int payload_size
 bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * const container_info) {
   json_object *obj, *obj2;
 
-  if(json_object_object_get_ex(jo, "ID", &obj)) container_info->id = (char*)json_object_get_string(obj);
+  /* Keep in sync with ZMQParserInterface::freeContainerInfo and ParsedeBPF::~ParsedeBPF */
+
+  if(json_object_object_get_ex(jo, "ID", &obj)) container_info->id = strdup((char*)json_object_get_string(obj));
 
   if(json_object_object_get_ex(jo, "K8S", &obj)) {
-    if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->data.k8s.pod  = (char*)json_object_get_string(obj2);
-    if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->data.k8s.ns   = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "POD", &obj2))  container_info->data.k8s.pod  = strdup((char*)json_object_get_string(obj2));
+    if(json_object_object_get_ex(obj, "NS", &obj2))   container_info->data.k8s.ns   = strdup((char*)json_object_get_string(obj2));
     container_info->data_type = container_info_data_type_k8s;
   } else if(json_object_object_get_ex(jo, "DOCKER", &obj)) {
     container_info->data_type = container_info_data_type_k8s;
@@ -1813,18 +1860,19 @@ bool ZMQParserInterface::parseContainerInfo(json_object *jo, ContainerInfo * con
     container_info->data_type = container_info_data_type_unknown;
 
   if(obj) {
-    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->name = (char*)json_object_get_string(obj2);
+    if(json_object_object_get_ex(obj, "NAME", &obj2)) container_info->name = strdup((char*)json_object_get_string(obj2));
   }
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Container [id: %s] [%s] [k8s.name: %s][k8s.pod: %s][k8s.ns: %s][docker.name: %s]",
-  // 			       container_info->id ? container_info->id : "",
-  // 			       container_info->data_type == container_info_data_type_k8s ? "K8S" : container_info->data_type == container_info_data_type_docker ? "DOCKER" : "UNKNOWN",
-  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.name ? container_info->data.k8s.name : "",
-  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.pod ? container_info->data.k8s.pod : "",
-  // 			       container_info->data_type == container_info_data_type_k8s && container_info->data.k8s.ns ? container_info->data.k8s.ns : "",
-  // 			       container_info->data_type == container_info_data_type_docker && container_info->data.docker.name ? container_info->data.docker.name : "");
-
   return true;
+}
+
+/* **************************************************** */
+
+void ZMQParserInterface::freeContainerInfo(ContainerInfo * const container_info) {
+  if(container_info->id) free(container_info->id);
+  if(container_info->name) free(container_info->name);
+  if(container_info->data.k8s.pod) free(container_info->data.k8s.pod);
+  if(container_info->data.k8s.ns) free(container_info->data.k8s.ns);
 }
 
 /* **************************************************** */
@@ -1882,6 +1930,7 @@ u_int8_t ZMQParserInterface::parseCounter(const char * payload, int payload_size
     /* Process Flow */
     processInterfaceStats(&stats);
 
+    freeContainerInfo(&stats.container_info);
     json_object_put(o);
   } else {
     // if o != NULL

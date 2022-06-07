@@ -27,7 +27,6 @@
 class ParsedeBPF {
  private:
   bool server_info;
-  bool free_memory;
 
  public:
   ProcessInfo process_info;
