@@ -1460,6 +1460,8 @@ void Host::offlineSetSSDPLocation(const char * url) {
 /* *************************************** */
 
 void Host::offlineSetMDNSName(const char * mdns_n) {
+  if(!isValidHostName(mdns_n))  return;
+  
   if(!names.mdns && mdns_n && (names.mdns = Utils::toLowerResolvedNames(mdns_n)))
     ;
 }
@@ -1474,6 +1476,7 @@ void Host::offlineSetMDNSTXTName(const char * mdns_n_txt) {
 /* *************************************** */
 
 void Host::offlineSetNetbiosName(const char * netbios_n) {
+  if(!isValidHostName(netbios_n))  return;
   if(!names.netbios && netbios_n && (names.netbios = Utils::toLowerResolvedNames(netbios_n)))
     ;
 }
@@ -1481,6 +1484,8 @@ void Host::offlineSetNetbiosName(const char * netbios_n) {
 /* *************************************** */
 
 void Host::offlineSetTLSName(const char * tls_n) {
+  if(!isValidHostName(tls_n))  return;
+  
   if(!names.tls && tls_n && (names.tls = Utils::toLowerResolvedNames(tls_n)))
     ;
 }
@@ -1488,27 +1493,39 @@ void Host::offlineSetTLSName(const char * tls_n) {
 /* *************************************** */
 
 void Host::offlineSetHTTPName(const char * http_n) {
+  if(!isValidHostName(http_n))  return;
+  
   if(!names.http && http_n && (names.http = Utils::toLowerResolvedNames(http_n)))
     ;
 }
 
 /* *************************************** */
 
+bool Host::isValidHostName(const char *name) {
+  /* Make sure we do not use invalid names as strings */
+  u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
+  
+  if(Utils::endsWith(name, ".ip6.arpa")
+     || Utils::endsWith(name, "._udp.local")
+     || (sscanf(name, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4) /* IPv4 address */
+     /* Invlid chars */
+     || (strchr(name, ':') != NULL)
+     || (strchr(name, '*') != NULL)
+     || (strchr(name, ',') != NULL)
+     )
+    return(false);
+
+  return(true);
+}
+
+/* *************************************** */
+
 void Host::setServerName(const char * server_n) {
   /* Discard invalid strings */
-  u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
-
-  /* Make sure we do not use invalid names as strings */
-  if(Utils::endsWith(server_n, ".ip6.arpa")
-     || Utils::endsWith(server_n, "._udp.local")
-     || (sscanf(server_n, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4) /* IPv4 address */
-     /* Invlid chars */
-     || (strchr(server_n, ':') != NULL)
-     || (strchr(server_n, '*') != NULL)
-     || (strchr(server_n, ',') != NULL)
-     )
+  
+  if(!isValidHostName(server_n))
     return;
-
+  
   if(!names.server_name && server_n && (names.server_name = Utils::toLowerResolvedNames(server_n)))
     ;
 }

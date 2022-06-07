@@ -1722,7 +1722,10 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     break;
   }
 
-  if(srv_host && isTLS() && !hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH) && !Utils::isIPAddress(protos.tls.client_requested_server_name))
+  if(srv_host
+     && isTLS()
+     && !hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH)
+     && !Utils::isIPAddress(protos.tls.client_requested_server_name))
     srv_host->offlineSetTLSName(protos.tls.client_requested_server_name);
 }
 

@@ -138,7 +138,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void resetHostNames();
   virtual void deleteHostData();
   char* get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize);
-
+  bool isValidHostName(const char *name);
+  
  public:
   Host(NetworkInterface *_iface, char *ipAddress, VLANid _vlanId, u_int16_t observation_point_id);
   Host(NetworkInterface *_iface, Mac *_mac, VLANid _vlanId, u_int16_t observation_point_id, IpAddress *_ip);
