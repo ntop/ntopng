@@ -2560,6 +2560,26 @@ void lua_push_uint64_table_entry(lua_State *L, const char *key, u_int64_t value)
 
 /* ****************************************** */
 
+void lua_push_int64_table_entry(lua_State *L, const char *key, int64_t value) {
+  if(L) {
+    lua_pushstring(L, key);
+    /* NOTE since LUA 5.3 integers are 64 bits */
+
+#if defined(__i686__)
+    if(value > 0x7FFFFFFF)
+#else
+    if(value > 0xFFFFFFFF)
+#endif
+      lua_pushnumber(L, (lua_Number)value);
+    else
+      lua_pushinteger(L, (lua_Integer)value);
+
+    lua_settable(L, -3);
+  }
+}
+
+/* ****************************************** */
+
 void lua_push_uint32_table_entry(lua_State *L, const char *key, u_int32_t value) {
   if(L) {
     lua_pushstring(L, key);
