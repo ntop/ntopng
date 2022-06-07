@@ -329,7 +329,7 @@ local function dt_format_l7_proto(l7_proto, record)
    if not isEmptyString(l7_proto) then
     local json = require "dkjson"
     local title = interface.getnDPIProtoName(tonumber(l7_proto))
-    local confidence = ""
+    local confidence = nil
     local alert_json = {}
     
     if record["ALERT_JSON"] then
@@ -337,11 +337,7 @@ local function dt_format_l7_proto(l7_proto, record)
     end
 
     if (alert_json.proto) and (alert_json.proto.confidence) and (not isEmptyString(alert_json.proto.confidence)) then
-      if string.starts(alert_json.proto.confidence, "DPI") then
-        confidence = i18n("confidence_dpi")
-      else
-        confidence = i18n("confidence_guessed")  
-      end
+      confidence = alert_json.proto.confidence
     end
 
     l7_proto = {
@@ -1124,6 +1120,7 @@ function historical_flow_utils.get_tags()
    flow_defined_tags["snmp_interface"] = tag_utils.defined_tags["snmp_interface"]
    flow_defined_tags["country"] = tag_utils.defined_tags["country"]
    flow_defined_tags["l7_error_id"] = tag_utils.defined_tags["l7_error_id"]
+   flow_defined_tags["confidence"] = tag_utils.defined_tags["confidence"]
 
    return flow_defined_tags
 end

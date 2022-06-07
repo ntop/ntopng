@@ -321,6 +321,11 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.error_code'),
       operators = {'eq', 'neq'},
    },
+   confidence = {
+      value_type = 'confidence',
+      i18n_label = i18n('db_search.tags.confidence'),
+      operators = {'eq', 'neq'},
+   },
 }
 
 -- #####################################
@@ -329,6 +334,13 @@ tag_utils.ip_location = {
    { label = "Remote", id = 0 },
    { label = "Local",  id = 1 },
    { label = "Multicast", id = 2},
+}
+
+-- #####################################
+
+tag_utils.confidence = {
+   { label = "DPI", id = "DPI" },
+   { label = "Guessed",  id = "Guessed" },
 }
 
 -- #####################################
@@ -506,12 +518,19 @@ function tag_utils.get_tag_info(id, entity)
          filter.options[#filter.options+1] = { value = pool_id, label = label }
       end
 
-   elseif tag.value_type == "location" then
-      filter.value_type = 'array'
-      filter.options = {}
-      for  _, v in pairsByField(tag_utils.ip_location, 'label', asc) do
-         filter.options[#filter.options+1] = { value = v.id, label = v.label }
-      end
+    elseif tag.value_type == "location" then
+       filter.value_type = 'array'
+       filter.options = {}
+       for  _, v in pairsByField(tag_utils.ip_location, 'label', asc) do
+          filter.options[#filter.options+1] = { value = v.id, label = v.label }
+       end
+
+    elseif tag.value_type == "confidence" then
+        filter.value_type = 'array'
+        filter.options = {}
+        for  _, v in pairsByField(tag_utils.confidence, 'label', asc) do
+          filter.options[#filter.options+1] = { value = v.id, label = v.label }
+        end
 
    elseif tag.value_type == "l4_proto" then
       filter.value_type = 'array'
