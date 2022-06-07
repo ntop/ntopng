@@ -5348,7 +5348,6 @@ end
 function get_confidence(confidence_id)
   local tag_utils = require "tag_utils"
   local confidence_name = nil
-  tprint(confidence_id)
 
   if confidence_id and tonumber(confidence_id) then
     confidence_id = tonumber(confidence_id)

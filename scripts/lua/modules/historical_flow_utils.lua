@@ -1997,7 +1997,7 @@ function historical_flow_utils.getHistoricalProtocolLabel(record, add_hyperlinks
   end
 
   if (alert_json.proto) and (alert_json.proto.confidence) and (not isEmptyString(alert_json.proto.confidence)) then
-    label = label .. " [" .. i18n("confidence") .. ": " .. alert_json.proto.confidence .. "]"
+    label = label .. " [" .. i18n("confidence") .. ": " .. get_confidence(alert_json.proto.confidence) .. "]"
   end
 
   return label
