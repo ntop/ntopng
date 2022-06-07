@@ -670,8 +670,10 @@ static void redirect_to_login(struct mg_connection *conn,
 	      "HTTP/1.1 302 Found\r\n"
 	      "Server: ntopng %s (%s)\r\n"
 	      "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
+#if 0
 	      "Set-Cookie: user=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"
 	      "Set-Cookie: password=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"
+#endif
 	      "Location: %s%s%s%s%s%s%s%s\r\n\r\n",
 	      PACKAGE_VERSION, PACKAGE_MACHINE,
 	      session_id,
