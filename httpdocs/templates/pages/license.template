@@ -56,12 +56,18 @@
             <tr>
                 <th>{{i18n("about.maintenance")}}</th>
                 <td>
+                    {% if info["pro.license_days_left"] and info["pro.license_days_left"] > 0 then %}
                     {*
                         i18n("about.maintenance_left", {
                             _until = format_utils.formatEpoch(info["pro.license_ends_at"]),
                             days_left = info["pro.license_days_left"]
                         })
                     *}
+                    {% else %}
+                    {*
+                        i18n("about.maintenance_expired_no_days_left")
+                    *}
+                    {% end %}
                 </td>
             </tr>
             {% end %}

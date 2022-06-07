@@ -3155,7 +3155,7 @@ static int ntop_get_info(lua_State* vm) {
     int days_left;
     if(ntop->getPro()->get_maintenance_expiration_time(&until_then, &days_left)) {
       lua_push_uint64_table_entry(vm, "pro.license_ends_at", (u_int64_t)until_then);
-      lua_push_uint64_table_entry(vm, "pro.license_days_left", days_left);
+      lua_push_int64_table_entry(vm, "pro.license_days_left", days_left);
     }
 #endif
     lua_push_str_table_entry(vm, "pro.license", ntop->getPro()->get_license());

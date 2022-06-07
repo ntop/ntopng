@@ -34,46 +34,46 @@ local external_link = ternary(info["pro.release"], "https://www.ntop.org/support
 local version = split(info["version"], " ")
 local edition
 
-if(ntop.isnEdge()) then
-    if(info["version.nedge_enterprise_edition"] == true) then
-        if(info["version.embedded_edition"] == true) then
-           edition = ("nedge_embedded_ent")
-        else
-            edition = ("nedge_enterprise")
-        end
-    else
-        if(info["version.embedded_edition"] == true) then
-            edition = ("nedge_embedded_pro")
-        else
-            edition = ("nedge_pro")
-        end
+if ntop.isnEdge() then
+   if(info["version.nedge_enterprise_edition"] == true) then
+      if(info["version.embedded_edition"] == true) then
+         edition = ("nedge_embedded_ent")
+      else
+         edition = ("nedge_enterprise")
+      end
+   else
+      if(info["version.embedded_edition"] == true) then
+         edition = ("nedge_embedded_pro")
+      else
+         edition = ("nedge_pro")
+      end
     end
  else
-    if(info["version.embedded_edition"] == true) then
-        edition = ("embedded")
-    elseif(info["version.enterprise_edition"] == true) then
-        edition = ("enterprise")
-    else
-        edition = ("pro")
-    end
- end
+   if(info["version.embedded_edition"] == true) then
+      edition = ("embedded")
+   elseif(info["version.enterprise_edition"] == true) then
+      edition = ("enterprise")
+   else
+      edition = ("pro")
+   end
+end
 
 local systemIdHref = string.format("https://shop.ntop.org/mkntopng?systemid=%s&version=%s&edition=%s", info["pro.systemid"], version[1], edition)
 local context = {
-    info = info,
-    format_utils = format_utils,
-    ui_utils = ui_utils,
-    license = {
-        external_link = external_link,
-        version = version,
-        systemIdHref = systemIdHref,
-        is_admin = isAdministrator()
-    }
+   info = info,
+   format_utils = format_utils,
+   ui_utils = ui_utils,
+   license = {
+      external_link = external_link,
+      version = version,
+      systemIdHref = systemIdHref,
+      is_admin = isAdministrator()
+   }
 }
 
 -- print .html template
 if info["pro.systemid"] and (info["pro.systemid"] ~= "") then
-    print(template.gen("pages/license.template", context))
+   print(template.gen("pages/license.template", context))
 end
 
 -- append the menu below the page
