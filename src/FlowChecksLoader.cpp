@@ -110,7 +110,6 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new WebMining()))                                   registerCheck(fcb);
 
 #ifdef NTOPNG_PRO
-  if((fcb = new ConnectionFailed()))                            registerCheck(fcb);
   if((fcb = new DataExfiltration()))                            registerCheck(fcb);
   if((fcb = new DNSDataExfiltration()))                         registerCheck(fcb);
   if((fcb = new ElephantFlow()))                                registerCheck(fcb);
@@ -121,6 +120,7 @@ void FlowChecksLoader::registerChecks() {
   if((fcb = new PeriodicityChanged()))                          registerCheck(fcb);
 #endif
   if((fcb = new LongLivedFlow()))                               registerCheck(fcb);
+  if((fcb = new TCPConnectionFailed()))                         registerCheck(fcb);
   if((fcb = new TCPConnectionRefused()))                        registerCheck(fcb);
   if((fcb = new FlowRiskTLSCertValidityTooLong()))              registerCheck(fcb);
   if((fcb = new FlowRiskTLSCertificateExpired()))               registerCheck(fcb);

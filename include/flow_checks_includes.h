@@ -73,7 +73,6 @@
 #include "flow_checks/WebMining.h"
 
 #ifdef NTOPNG_PRO
-#include "flow_checks/ConnectionFailed.h"
 #include "flow_checks/DataExfiltration.h"
 #include "flow_checks/DNSDataExfiltration.h"
 #include "flow_checks/ElephantFlow.h"
@@ -82,6 +81,7 @@
 #include "flow_checks/LateralMovement.h"
 #include "flow_checks/PeriodicityChanged.h"
 #include "flow_checks/LongLivedFlow.h"
+#include "flow_checks/TCPConnectionNoAnswer.h"
 #include "flow_checks/TCPConnectionRefused.h"
 #include "flow_checks/FlowRiskTLSCertValidityTooLong.h"
 #include "flow_checks/FlowRiskTLSCertificateExpired.h"

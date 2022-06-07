@@ -12,22 +12,22 @@ local alert = require "alert"
 
 -- ##############################################
 
-local alert_connection_failed = classes.class(alert)
+local alert_tcp_connection_no_answer = classes.class(alert)
 
 -- ##############################################
 
-alert_connection_failed.meta = {
-   alert_key = flow_alert_keys.flow_alert_connection_failed,
-   i18n_title = "flow_checks_config.connection_failed_title",
+alert_tcp_connection_no_answer.meta = {
+   alert_key = flow_alert_keys.flow_alert_tcp_connection_no_answer,
+   i18n_title = "flow_checks_config.tcp_connection_no_answer_title",
    icon = "fas fa-fw fa-exclamation",
 }
 
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param connection_failed_threshold Threshold, in seconds, for a flow to be considered connection_failed
+-- @param connection_no_answer_threshold Threshold, in seconds, for a flow to be considered connection_failed
 -- @return A table with the alert built
-function alert_connection_failed:init()
+function alert_tcp_connection_no_answer:init()
   -- Call the parent constructor
   self.super:init()
 end
@@ -39,13 +39,13 @@ end
 -- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
-function alert_connection_failed.format(ifid, alert, alert_type_params)
+function alert_tcp_connection_no_answer.format(ifid, alert, alert_type_params)
   local cli = format_alert_hostname(alert, "cli")
   local srv = format_alert_hostname(alert, "srv")
   
-  return i18n("flow_details.connection_failed_descr", { cli = cli, srv = srv })   
+  return i18n("flow_details.tcp_connection_no_answer_descr", { cli = cli, srv = srv })   
 end
 
 -- #######################################################
 
-return alert_connection_failed
+return alert_tcp_connection_no_answer

@@ -73,7 +73,6 @@
 #include "flow_alerts/IECUnexpectedTypeIdAlert.h"
 
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */
-#include "flow_alerts/ConnectionFailedAlert.h"
 #include "flow_alerts/FlowRiskTLSUnsafeCiphersAlert.h"
 #include "flow_alerts/FlowRiskTLSCertificateExpiredAlert.h"
 #include "flow_alerts/FlowRiskTLSCertificateMismatchAlert.h"
@@ -86,6 +85,7 @@
 #include "flow_alerts/PeriodicityChangedAlert.h"
 #include "flow_alerts/LongLivedFlowAlert.h"
 #include "flow_alerts/DNSDataExfiltrationAlert.h"
+#include "flow_alerts/TCPConnectionNoAnswerAlert.h"
 #include "flow_alerts/TCPConnectionRefusedAlert.h"
 #include "flow_alerts/NedgeBlockedFlowAlert.h"
 #include "flow_alerts/InvalidDNSQueryAlert.h"

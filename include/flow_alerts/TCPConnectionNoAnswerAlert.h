@@ -19,22 +19,22 @@
  *
  */
 
-#ifndef _CONNECTION_FAILED_ALERT_H_
-#define _CONNECTION_FAILED_ALERT_H_
+#ifndef _TCP_CONNECTION_NO_ANSWER_ALERT_H_
+#define _TCP_CONNECTION_NO_ANSWER_ALERT_H_
 
 #include "ntop_includes.h"
 
-class ConnectionFailedAlert : public FlowAlert {
+class TCPConnectionNoAnswerAlert : public FlowAlert {
  private:
 
  public:
   static FlowAlertType getClassType() { return { flow_alert_connection_failed, alert_category_network }; }
   static u_int8_t      getDefaultScore() { return SCORE_LEVEL_WARNING; };
 
-  ConnectionFailedAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) {};
-  ~ConnectionFailedAlert() {};
+  TCPConnectionNoAnswerAlert(FlowCheck *c, Flow *f) : FlowAlert(c, f) {};
+  ~TCPConnectionNoAnswerAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }
 };
 
-#endif /* _CONNECTION_FAILED_ALERT_H_ */
+#endif /* _TCP_CONNECTION_NO_ANSWER_ALERT_H_ */

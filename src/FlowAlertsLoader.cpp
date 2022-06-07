@@ -47,7 +47,6 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(BlacklistedCountryAlert::getClassType(),         BlacklistedCountryAlert::getDefaultScore());
   registerAlert(BlacklistedFlowAlert::getClassType(),            BlacklistedFlowAlert::getDefaultScore());
   registerAlert(BroadcastNonUDPTrafficAlert::getClassType(),     BroadcastNonUDPTrafficAlert::getDefaultScore());
-  registerAlert(ConnectionFailedAlert::getClassType(),           ConnectionFailedAlert::getDefaultScore());
   registerAlert(DNSDataExfiltrationAlert::getClassType(),        DNSDataExfiltrationAlert::getDefaultScore());
   registerAlert(DataExfiltrationAlert::getClassType(),           DataExfiltrationAlert::getDefaultScore());
   registerAlert(DeviceProtocolNotAllowedAlert::getClassType(),   DeviceProtocolNotAllowedAlert::getDefaultScore());
@@ -68,6 +67,7 @@ FlowAlertsLoader::FlowAlertsLoader() {
   registerAlert(RemoteAccessAlert::getClassType(),               RemoteAccessAlert::getDefaultScore());
   registerAlert(RemoteToLocalInsecureProtoAlert::getClassType(), RemoteToLocalInsecureProtoAlert::getDefaultScore());
   registerAlert(RemoteToRemoteAlert::getClassType(),             RemoteToRemoteAlert::getDefaultScore());
+  registerAlert(TCPConnectionNoAnswerAlert::getClassType(),      TCPConnectionNoAnswerAlert::getDefaultScore());
   registerAlert(TCPConnectionRefusedAlert::getClassType(),       TCPConnectionRefusedAlert::getDefaultScore());
   registerAlert(TCPNoDataExchangedAlert::getClassType(),         TCPNoDataExchangedAlert::getDefaultScore());
   registerAlert(TCPZeroWindowAlert::getClassType(),              TCPZeroWindowAlert::getDefaultScore());
