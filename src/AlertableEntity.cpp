@@ -32,11 +32,13 @@ AlertableEntity::AlertableEntity(NetworkInterface *iface, AlertEntity entity) {
 /* ****************************************** */
 
 AlertableEntity::~AlertableEntity() {
-  /*
-    Cannot destroy an alertable entity with currently engaged alerts
-  */
-  if(getNumEngagedAlerts() > 0)
+#if 0
+  if(getNumEngagedAlerts() > 0) {
+    /* Cannot destroy an alertable entity with currently engaged alerts,
+     * however this can happen for some alertable during shutdown */
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Destroying an alertable with engaged alerts.");
+  }
+#endif
 }
 
 /* ****************************************** */
