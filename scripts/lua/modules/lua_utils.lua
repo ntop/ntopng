@@ -5257,6 +5257,10 @@ function format_proto_info(proto_info)
     proto_info.l7_error_code = nil
   end
 
+  if proto_info.confidence then
+    proto_info.confidence = nil
+  end
+
   for proto, info in pairs(proto_info) do
     if proto == "tls" then
       info = format_tls_info(info)
@@ -5332,16 +5336,16 @@ end
 --                  false otherwise
 -- @return A string containing the info field formatted
 function format_query_json_value(alert_or_flow, nested_field)
-   local field_to_search = "ALERT_JSON"
+  local field_to_search = "ALERT_JSON"
 
-   if alert_or_flow == 'alert' then
-      field_to_search = "json"
-   end
- 
-   return string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, nested_field)
+  if alert_or_flow == 'alert' then
+     field_to_search = "json"
+  end
+
+  return string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, nested_field)
 end
-  
--- ##############################################
+ 
+ -- ##############################################
 
 --
 -- IMPORTANT

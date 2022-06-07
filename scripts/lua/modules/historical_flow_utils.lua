@@ -324,16 +324,33 @@ end
 
 -- #####################################
 
-local function dt_format_l7_proto(l7_proto)
+local function dt_format_l7_proto(l7_proto, record)
+  
    if not isEmptyString(l7_proto) then
-      local title = interface.getnDPIProtoName(tonumber(l7_proto))
+    local json = require "dkjson"
+    local title = interface.getnDPIProtoName(tonumber(l7_proto))
+    local confidence = ""
+    local alert_json = {}
+    
+    if record["ALERT_JSON"] then
+      alert_json = json.decode(record["ALERT_JSON"])
+    end
 
-      l7_proto = {
-         title = title,
-         label = shortenString(title, 12),
-         value = tonumber(l7_proto),
-      } 
-   end
+    if (alert_json.proto) and (alert_json.proto.confidence) and (not isEmptyString(alert_json.proto.confidence)) then
+      if string.starts(alert_json.proto.confidence, "DPI") then
+        confidence = i18n("confidence_dpi")
+      else
+        confidence = i18n("confidence_guessed")  
+      end
+    end
+
+    l7_proto = {
+      confidence = confidence,
+      title = title,
+        label = shortenString(title, 12),
+        value = tonumber(l7_proto),
+    } 
+  end
    
    return l7_proto
 end
@@ -985,6 +1002,7 @@ historical_flow_utils.min_db_columns = {
 
 historical_flow_utils.extra_db_columns = {
    ["throughput"] = "ABS(LAST_SEEN - FIRST_SEEN) as TIME_DELTA, (TOTAL_BYTES / (TIME_DELTA + 1)) * 8 as THROUGHPUT",
+   ["alert_json"] = "ALERT_JSON"
 }
 
 historical_flow_utils.ordering_special_columns = {
@@ -1619,7 +1637,12 @@ local all_datatable_js_columns_by_tag = {
       {name: 'l7proto', responsivePriority: 2, data: 'l7proto', className: 'no-wrap', render: (proto, type, row) => {
         if (type !== 'display') return proto;
         if (proto !== undefined) {
-           return `<a class='tag-filter' data-tag-value='${proto.value}' title='${proto.title}' href='#'>${proto.label}</a>`;
+          let confidence = ""
+          if (proto.confidence !== undefined) {
+            (proto.confidence == "DPI") ? confidence = `<span class="badge bg-success">${proto.confidence}</span>` : confidence = `<span class="badge bg-warning">${proto.confidence}</span>` 
+          }
+
+           return `<a class='tag-filter' data-tag-value='${proto.value}' title='${proto.title}' href='#'>${proto.label} ${confidence}</a>`;
         }
       }}]] },
    ['score'] = {
@@ -1966,25 +1989,31 @@ end
 -- #####################################
 
 function historical_flow_utils.getHistoricalProtocolLabel(record, add_hyperlinks)
-   local label = ""
+  local json = require "dkjson"
+  local label = ""
 
-   local info = historical_flow_utils.format_clickhouse_record(record)
+  local info = historical_flow_utils.format_clickhouse_record(record)
+  local alert_json = json.decode(info["ALERT_JSON"] or '') or {}
+  
+  if info.l4proto then
+    label = label ..historical_flow_utils.get_historical_url(info.l4proto.label, "l4proto", info.l4proto.value, add_hyperlinks)
+  end
 
-   if info.l4proto then
-      label = label ..historical_flow_utils.get_historical_url(info.l4proto.label, "l4proto", info.l4proto.value, add_hyperlinks)
-   end
+  label = label .. " / "
 
-   label = label .. " / "
+  if info.l7proto then
+    label = label ..historical_flow_utils.get_historical_url(info.l7proto.label, "l7proto", info.l7proto.value, add_hyperlinks)
+  end
 
-   if info.l7proto then
-      label = label ..historical_flow_utils.get_historical_url(info.l7proto.label, "l7proto", info.l7proto.value, add_hyperlinks)
-   end
+  if info.l7cat then
+    label = label .. " (" ..historical_flow_utils.get_historical_url(info.l7cat.label, "l7cat", info.l7cat.value, add_hyperlinks) .. ")"
+  end
 
-   if info.l7cat then
-      label = label .. " (" ..historical_flow_utils.get_historical_url(info.l7cat.label, "l7cat", info.l7cat.value, add_hyperlinks) .. ")"
-   end
+  if (alert_json.proto) and (alert_json.proto.confidence) and (not isEmptyString(alert_json.proto.confidence)) then
+    label = label .. " [" .. i18n("confidence") .. ": " .. alert_json.proto.confidence .. "]"
+  end
 
-   return label
+  return label
 end
 
 -- #####################################

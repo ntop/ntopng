@@ -6129,6 +6129,9 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
       if(getErrorCode() != 0)
          ndpi_serialize_string_uint32(serializer, "l7_error_code", getErrorCode());
 
+      if(getConfidence() != NDPI_CONFIDENCE_UNKNOWN)
+         ndpi_serialize_string_string(serializer, "confidence", ndpi_confidence_get_name(getConfidence()));
+
       ndpi_serialize_end_of_block(serializer); /* proto block */
    }
 }
