@@ -538,6 +538,7 @@ local lang = {
     ["licence_status"] = "License",
     ["maintenance"] = "Maintenance",
     ["maintenance_expired"] = "%{product} maintenance expired",
+    ["maintenance_expired_no_days_left"] = "Maintenance expired (no days left)",
     ["maintenance_left"] = "Until %{_until} [%{days_left} days left]",
     ["maxmind"] = "Includes support for <a class='ntopng-external-link' href=\"%{maxmind_url}\">MaxMind <i class=\"fas fa-external-link-alt\"></i></a> and <a class='ntopng-external-link' href='https://db-ip.com'>DB-IP <i class=\"fas fa-external-link-alt\"></i></a> Geolocation databases.",
     ["network_callbacks_directory"] = "Network",
