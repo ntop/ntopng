@@ -4,9 +4,13 @@
     /* Score */
     {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', render: DataTableRenders.formatValueLabel},
     /* Application */
-    {responsivePriority: 3, name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center', render: (proto, type, row) => {
+    {responsivePriority: 3, name: 'l7_proto', data: 'l7_proto', orderable: false, className: 'text-center text-nowrap', render: (proto, type, row) => {
         if (type !== "display") return proto.value;
-	return DataTableRenders.filterize('l7proto', proto.value, proto.label);
+        let confidence = ""
+        if (proto.confidence !== undefined) {
+          (proto.confidence == "DPI") ? confidence = `<span class="badge bg-success">${proto.confidence}</span>` : confidence = `<span class="badge bg-warning">${proto.confidence}</span>` 
+        }
+	return DataTableRenders.filterize('l7proto', proto.value, proto.label) + " " + `${confidence}`;
     }},
     /* Alert */
     {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },

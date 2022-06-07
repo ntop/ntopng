@@ -5373,9 +5373,14 @@ function format_confidence_from_json(record)
     
   if record["ALERT_JSON"] then
     alert_json = json.decode(record["ALERT_JSON"])
+  elseif record["json"] then
+    alert_json = json.decode(record["json"])
   end
 
-  if (alert_json.proto) and (alert_json.proto.confidence) and (not isEmptyString(alert_json.proto.confidence)) then
+  if (alert_json) and 
+     (alert_json.proto) and 
+     (alert_json.proto.confidence) and 
+     (not isEmptyString(alert_json.proto.confidence)) then
     confidence = get_confidence(alert_json.proto.confidence)
   end
 

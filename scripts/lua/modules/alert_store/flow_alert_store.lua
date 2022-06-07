@@ -383,6 +383,7 @@ function flow_alert_store:_add_additional_request_filters()
    local srv_network = _GET["srv_network"]
    
    local error_code = _GET["l7_error_id"]
+   local confidence = _GET["confidence"]
    
    -- Filter out flows with no alert
    self:add_filter_condition_list('alert_id', "0"..tag_utils.SEPARATOR.."neq", 'number')
@@ -407,6 +408,7 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('srv_network', srv_network, 'number')
 
    self:add_filter_condition_list(format_query_json_value('alert', 'proto.l7_error_code'), error_code, 'string')
+   self:add_filter_condition_list(format_query_json_value('alert', 'proto.confidence'), confidence, 'string')
 
 end
 
@@ -436,7 +438,8 @@ function flow_alert_store:_get_additional_available_filters()
       srv_network       = tag_utils.defined_tags.srv_network,
 
       l7_error_id     = tag_utils.defined_tags.l7_error_id,
-   }
+      confidence      = tag_utils.defined_tags.confidence,
+  }
 
    return filters
 end 
@@ -731,6 +734,7 @@ function flow_alert_store:format_record(value, no_html)
       l4_label = l4_protocol,
       l7_label = l7_protocol,
       label = l4_protocol..":"..l7_protocol,
+      confidence = format_confidence_from_json(value)
    }
 
    -- Add link to historical flow
