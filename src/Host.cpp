@@ -1505,7 +1505,8 @@ bool Host::isValidHostName(const char *name) {
   /* Make sure we do not use invalid names as strings */
   u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
   
-  if(Utils::endsWith(name, ".ip6.arpa")
+  if((name == NULL)
+     || Utils::endsWith(name, ".ip6.arpa")
      || Utils::endsWith(name, "._udp.local")
      || (sscanf(name, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) == 4) /* IPv4 address */
      /* Invlid chars */
