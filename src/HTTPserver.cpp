@@ -633,7 +633,10 @@ static char* make_referer(struct mg_connection *conn, char *buf, int bufsize) {
 static void redirect_to_login(struct mg_connection *conn,
                               const struct mg_request_info *request_info,
 			      const char * referer, const char * reason) {
-  char session_id[NTOP_SESSION_ID_LENGTH], buf[128], session_key[32];
+  char session_id[NTOP_SESSION_ID_LENGTH], session_key[32];
+#if 0
+  char buf[128];
+#endif
   char *referer_enc = NULL, *reason_enc = NULL;
 
   if(isCaptiveConnection(conn)) {
@@ -680,7 +683,9 @@ static void redirect_to_login(struct mg_connection *conn,
 	      get_secure_cookie_attributes(request_info),
 	      get_secure_cookie_attributes(request_info),
 	      get_secure_cookie_attributes(request_info),
+#if 0
 	      ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)),
+#endif
 	      (referer || reason) ? "?" : "",
 	      referer ? (char*)"referer=" : "", referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"",
 	      (referer && reason) ? "&" : "",
