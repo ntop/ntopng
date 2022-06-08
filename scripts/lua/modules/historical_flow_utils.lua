@@ -1110,6 +1110,7 @@ function historical_flow_utils.get_tags()
    flow_defined_tags["snmp_interface"] = tag_utils.defined_tags["snmp_interface"]
    flow_defined_tags["country"] = tag_utils.defined_tags["country"]
    flow_defined_tags["l7_error_id"] = tag_utils.defined_tags["l7_error_id"]
+   flow_defined_tags["traffic_direction"] = tag_utils.defined_tags["traffic_direction"]
    flow_defined_tags["confidence"] = tag_utils.defined_tags["confidence"]
 
    return flow_defined_tags

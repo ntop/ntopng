@@ -90,20 +90,15 @@ tag_utils.defined_tags = {
       operators = {'eq', 'neq'},
       bpf_key = 'ip host',
    },
-   cli_location = {
-      value_type = 'location',
-      i18n_label = i18n('db_search.tags.cli_location'),
-      operators = {'eq', 'neq'}
-   },
    srv_ip = {
       value_type = 'ip',
       i18n_label = i18n('db_search.tags.srv_ip'),
       operators = {'eq', 'neq'},
       bpf_key = 'ip host',
    },
-   srv_location = {
-      value_type = 'location',
-      i18n_label = i18n('db_search.tags.srv_location'),
+   traffic_direction = {
+      value_type = 'traffic_direction',
+      i18n_label = i18n('db_search.tags.traffic_direction'),
       operators = {'eq', 'neq'}
    },
    name = {
@@ -330,10 +325,11 @@ tag_utils.defined_tags = {
 
 -- #####################################
 
-tag_utils.ip_location = {
-   { label = "Remote", id = 0 },
-   { label = "Local",  id = 1 },
-   { label = "Multicast", id = 2},
+tag_utils.traffic_direction = {
+   { label = i18n("flows_page.remote_only"), id = 0 },
+   { label = i18n("flows_page.local_only"),  id = 1 },
+   { label = i18n("flows_page.local_srv_remote_cli"), id = 2},
+   { label = i18n("flows_page.local_cli_remote_srv"), id = 3},
 }
 
 -- #####################################
@@ -518,10 +514,10 @@ function tag_utils.get_tag_info(id, entity)
          filter.options[#filter.options+1] = { value = pool_id, label = label }
       end
 
-    elseif tag.value_type == "location" then
+    elseif tag.value_type == "traffic_direction" then
        filter.value_type = 'array'
        filter.options = {}
-       for  _, v in pairsByField(tag_utils.ip_location, 'label', asc) do
+       for  _, v in pairsByField(tag_utils.traffic_direction, 'label', asc) do
           filter.options[#filter.options+1] = { value = v.id, label = v.label }
        end
 

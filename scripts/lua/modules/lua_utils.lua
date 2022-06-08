@@ -5379,6 +5379,28 @@ end
 
 -- ##############################################
 
+function format_query_direction(op, val)
+  local historical_flow_utils = require "historical_flow_utils"
+  local direction_where = ""
+  if val == "0" then
+    direction_where = "(" .. historical_flow_utils.get_flow_column_by_tag("cli_location") .. " "  .. op .. " '0' AND " .. 
+                             historical_flow_utils.get_flow_column_by_tag("srv_location") .. " "  .. op .. " '0')"
+  elseif val == "1" then
+    direction_where = "(" .. historical_flow_utils.get_flow_column_by_tag("cli_location") .. " "  .. op .. " '1' AND " .. 
+                             historical_flow_utils.get_flow_column_by_tag("srv_location") .. " "  .. op .. " '1')"
+  elseif val == "2" then
+    direction_where = "(" .. historical_flow_utils.get_flow_column_by_tag("cli_location") .. " "  .. op .. " '0' AND " .. 
+                             historical_flow_utils.get_flow_column_by_tag("srv_location") .. " "  .. op .. " '1')"
+  elseif val == "3" then
+    direction_where = "(" .. historical_flow_utils.get_flow_column_by_tag("cli_location") .. " "  .. op .. " '1' AND " .. 
+                             historical_flow_utils.get_flow_column_by_tag("srv_location") .. " "  .. op .. " '0')"
+  end
+
+  return direction_where
+end
+
+-- ##############################################
+
 function format_confidence_from_json(record)
   local json = require "dkjson"
   local alert_json = {}
