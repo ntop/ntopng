@@ -74,7 +74,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
   ndpiFlow = NULL, confidence = NDPI_CONFIDENCE_UNKNOWN;
-  cli_ebpf = srv_ebpf = NULL;
+  ebpf = NULL;
   json_info = NULL, tlv_info = NULL, twh_over = twh_ok = 0,
     dissect_next_http_packet = 0, host_server_name = NULL;
   bt_hash = NULL;
@@ -345,8 +345,7 @@ Flow::~Flow() {
   if(iec104)                        delete iec104;
   if(suspicious_dga_domain)         free(suspicious_dga_domain);
 
-  if(cli_ebpf) delete cli_ebpf;
-  if(srv_ebpf) delete srv_ebpf;
+  if(ebpf) delete ebpf;
 
   if(cli2srvPktTime) delete cli2srvPktTime;
   if(srv2cliPktTime) delete srv2cliPktTime;
@@ -2335,8 +2334,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(!has_json_info)
       lua_push_str_table_entry(vm, "moreinfo.json", "{}");
 
-    if(cli_ebpf) cli_ebpf->lua(vm, true);
-    if(srv_ebpf) srv_ebpf->lua(vm, false);
+    if(ebpf) ebpf->lua(vm);
 
     lua_get_throughput(vm);
 
@@ -3098,8 +3096,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
   if(!passVerdict) json_object_object_add(my_object, "verdict.pass", json_object_new_boolean((json_bool)0));
 #endif
 
-  if(cli_ebpf) cli_ebpf->getJSONObject(my_object, true);
-  if(srv_ebpf) srv_ebpf->getJSONObject(my_object, false);
+  if(ebpf) ebpf->getJSONObject(my_object);
 
   if(ntop->getPrefs()->do_dump_extended_json()) {
     const char *info;
@@ -4283,11 +4280,11 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 /* *************************************** */
 
 u_int32_t Flow::getPid(bool client) {
-  if(client && cli_ebpf && cli_ebpf->process_info_set)
-    return cli_ebpf->process_info.pid;
+  if(client && ebpf && ebpf->process_info_set)
+    return ebpf->src_process_info.pid;
 
-  if(!client && srv_ebpf && srv_ebpf->process_info_set)
-    return srv_ebpf->process_info.pid;
+  if(!client && ebpf && ebpf->process_info_set)
+    return ebpf->dst_process_info.pid;
 
   return NO_PID;
 };
@@ -4295,11 +4292,11 @@ u_int32_t Flow::getPid(bool client) {
 /* *************************************** */
 
 u_int32_t Flow::getFatherPid(bool client) {
-  if(client && cli_ebpf && cli_ebpf->process_info_set)
-    return cli_ebpf->process_info.father_pid;
+  if(client && ebpf && ebpf->process_info_set)
+    return ebpf->src_process_info.father_pid;
 
-  if(!client && srv_ebpf && srv_ebpf->process_info_set)
-    return srv_ebpf->process_info.father_pid;
+  if(!client && ebpf && ebpf->process_info_set)
+    return ebpf->dst_process_info.father_pid;
 
   return NO_PID;
 };
@@ -4310,11 +4307,11 @@ u_int32_t Flow::get_uid(bool client) const {
 #ifdef WIN32
   return NO_UID;
 #else
-  if(client && cli_ebpf && cli_ebpf->process_info_set)
-    return cli_ebpf->process_info.uid;
+  if(client && ebpf && ebpf->process_info_set)
+    return ebpf->src_process_info.uid;
 
-  if(!client && srv_ebpf && srv_ebpf->process_info_set)
-    return srv_ebpf->process_info.uid;
+  if(!client && ebpf && ebpf->process_info_set)
+    return ebpf->dst_process_info.uid;
 
   return NO_UID;
 #endif
@@ -4323,11 +4320,11 @@ u_int32_t Flow::get_uid(bool client) const {
 /* *************************************** */
 
 char* Flow::get_proc_name(bool client) {
-  if(client && cli_ebpf && cli_ebpf->process_info_set)
-    return cli_ebpf->process_info.process_name;
+  if(client && ebpf && ebpf->process_info_set)
+    return ebpf->src_process_info.process_name;
 
-  if(!client && srv_ebpf && srv_ebpf->process_info_set)
-    return srv_ebpf->process_info.process_name;
+  if(!client && ebpf && ebpf->process_info_set)
+    return ebpf->dst_process_info.process_name;
 
   return NULL;
 };
@@ -4335,11 +4332,11 @@ char* Flow::get_proc_name(bool client) {
 /* *************************************** */
 
 char* Flow::get_user_name(bool client) {
-  if(client && cli_ebpf && cli_ebpf->process_info_set)
-    return cli_ebpf->process_info.uid_name;
+  if(client && ebpf && ebpf->process_info_set)
+    return ebpf->src_process_info.uid_name;
 
-  if(!client && srv_ebpf && srv_ebpf->process_info_set)
-    return srv_ebpf->process_info.uid_name;
+  if(!client && ebpf && ebpf->process_info_set)
+    return ebpf->dst_process_info.uid_name;
 
   return NULL;
 }
@@ -5182,34 +5179,20 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 
 /* ***************************************************** */
 
-void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction) {
-  bool client_process = true;
+void Flow::setParsedeBPFInfo(const ParsedeBPF * const _ebpf) {
   ParsedeBPF *cur = NULL;
   bool update_ok = true;
 
-  if(!ebpf)
+  if(!_ebpf)
     return;
 
   if(!iface->hasSeenEBPFEvents())
     iface->setSeenEBPFEvents();
 
-  if(ebpf->isServerInfo())
-    client_process = false;
-
-  if(!src2dst_direction)
-    client_process = !client_process;
-
-  if(client_process) {
-    if(!cli_ebpf)
-      cur = cli_ebpf = new (std::nothrow) ParsedeBPF(*ebpf);
-    else
-      update_ok = cli_ebpf->update(ebpf);
-  } else { /* server_process */
-    if(!srv_ebpf)
-      cur = srv_ebpf = new (std::nothrow) ParsedeBPF(*ebpf);
-    else
-      update_ok = srv_ebpf->update(ebpf);
-  }
+  if(!ebpf)
+    cur = ebpf = new (std::nothrow) ParsedeBPF(*_ebpf);
+  else
+    update_ok = ebpf->update(_ebpf);
 
   if(!update_ok) {
     static bool warning_shown = false;
@@ -5229,9 +5212,9 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
     if(!iface->hasSeenContainers())
       iface->setSeenContainers();
 
-    if(cur->container_info.data_type == container_info_data_type_k8s
-       && !iface->hasSeenPods()
-       && cur->container_info.data.k8s.pod)
+    if(!iface->hasSeenPods() && (
+       (cur->src_container_info.data_type == container_info_data_type_k8s && cur->src_container_info.data.k8s.pod) ||
+       (cur->dst_container_info.data_type == container_info_data_type_k8s && cur->dst_container_info.data.k8s.pod)))
       iface->setSeenPods();
   }
 
@@ -5246,7 +5229,7 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
 void Flow::updateCliJA3() {
   if(cli_host && isTLS() && protos.tls.ja3.client_hash) {
     cli_host->getJA3Fingerprint()->update(protos.tls.ja3.client_hash,
-					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL,
+					  ebpf ? ebpf->src_process_info.process_name : NULL,
 					  has_malicious_cli_signature);
   }
 }
@@ -5256,7 +5239,7 @@ void Flow::updateCliJA3() {
 void Flow::updateSrvJA3() {
   if(srv_host && isTLS() && protos.tls.ja3.server_hash) {
     srv_host->getJA3Fingerprint()->update(protos.tls.ja3.server_hash,
-					  srv_ebpf ? srv_ebpf->process_info.process_name : NULL, false);
+					  ebpf ? ebpf->dst_process_info.process_name : NULL, false);
   }
 }
 
@@ -5268,11 +5251,14 @@ void Flow::updateHASSH(bool as_client) {
 
   Host *h = as_client ? get_cli_host() : get_srv_host();
   const char *hassh = as_client ? protos.ssh.hassh.client_hash : protos.ssh.hassh.server_hash;
-  ParsedeBPF *pebpf = as_client ? cli_ebpf : srv_ebpf;
+  ProcessInfo *pinfo = NULL;
   Fingerprint *fp;
 
+  if(ebpf)
+    pinfo = as_client ? &ebpf->src_process_info : &ebpf->dst_process_info;
+
   if(h && hassh && hassh[0] != '\0' && (fp = h->getHASSHFingerprint()))
-    fp->update(hassh, pebpf ? pebpf->process_info.process_name : NULL, false /* We track client JA3 */);
+    fp->update(hassh, pinfo ? pinfo->process_name : NULL, false /* We track client JA3 */);
 }
 
 /* ***************************************************** */

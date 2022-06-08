@@ -73,6 +73,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline void setParsedeBPF()       { has_parsed_ebpf = true; };
 
   inline void setParsedProcessInfo() { process_info_set = true; setParsedeBPF(); }
+  inline void setParsedContainerInfo() { container_info_set = true; setParsedeBPF(); }
 
   virtual ~ParsedFlow();
   void swap();

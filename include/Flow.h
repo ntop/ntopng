@@ -185,7 +185,7 @@ class Flow : public GenericHashEntry {
   } flow_device;
 
   /* eBPF Information */
-  ParsedeBPF *cli_ebpf, *srv_ebpf;
+  ParsedeBPF *ebpf;
 
   /* Stats */
   FlowTrafficStats stats;
@@ -838,24 +838,24 @@ class Flow : public GenericHashEntry {
   inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
   void housekeep(time_t t);
-  void setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction);
+  void setParsedeBPFInfo(const ParsedeBPF * const _ebpf);
   inline const ContainerInfo* getClientContainerInfo() const {
-    return cli_ebpf && cli_ebpf->container_info_set ? &cli_ebpf->container_info : NULL;
+    return ebpf && ebpf->container_info_set ? &ebpf->src_container_info : NULL;
   }
   inline const ContainerInfo* getServerContainerInfo() const {
-    return srv_ebpf && srv_ebpf->container_info_set ? &srv_ebpf->container_info : NULL;
+    return ebpf && ebpf->container_info_set ? &ebpf->dst_container_info : NULL;
   }
   inline const ProcessInfo * getClientProcessInfo() const {
-    return cli_ebpf && cli_ebpf->process_info_set ? &cli_ebpf->process_info : NULL;
+    return ebpf && ebpf->process_info_set ? &ebpf->src_process_info : NULL;
   }
   inline const ProcessInfo* getServerProcessInfo() const {
-    return srv_ebpf && srv_ebpf->process_info_set ? &srv_ebpf->process_info : NULL;
+    return ebpf && ebpf->process_info_set ? &ebpf->dst_process_info : NULL;
   }
   inline const TcpInfo* getClientTcpInfo() const {
-    return cli_ebpf && cli_ebpf->tcp_info_set ? &cli_ebpf->tcp_info : NULL;
+    return ebpf && ebpf->tcp_info_set ? &ebpf->src_tcp_info : NULL;
   }
   inline const TcpInfo* getServerTcpInfo() const {
-    return srv_ebpf && srv_ebpf->tcp_info_set ? &srv_ebpf->tcp_info : NULL;
+    return ebpf && ebpf->tcp_info_set ? &ebpf->dst_tcp_info : NULL;
   }
 
   inline bool isNotPurged() {

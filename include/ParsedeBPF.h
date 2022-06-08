@@ -29,9 +29,9 @@ class ParsedeBPF {
   bool server_info;
 
  public:
-  ProcessInfo process_info;
-  ContainerInfo container_info;
-  TcpInfo tcp_info;
+  ProcessInfo src_process_info, dst_process_info;
+  ContainerInfo src_container_info, dst_container_info;
+  TcpInfo src_tcp_info, dst_tcp_info;
   eBPFEventType event_type;
   char *ifname;
   bool process_info_set, container_info_set, tcp_info_set;
@@ -45,8 +45,14 @@ class ParsedeBPF {
   bool update(const ParsedeBPF * const pe);
   bool isServerInfo() const;
   void print();
-  void getJSONObject(json_object *my_object, bool client) const;
-  void lua(lua_State *vm, bool client) const;
+
+  void getJSONObject(json_object *my_object) const;
+  void getProcessInfoJSONObject(const ProcessInfo *proc, json_object *proc_object) const;
+  void getContainerInfoJSONObject(const ContainerInfo *cont, json_object *proc_object) const;
+  void getTCPInfoJSONObject(const TcpInfo *tcp, json_object *proc_object) const;
+
+  void lua(lua_State *vm) const;
+  void processInfoLua(lua_State *vm, const ProcessInfo *proc) const;
 };
 
 #endif /* _PARSED_EBPF_H_ */

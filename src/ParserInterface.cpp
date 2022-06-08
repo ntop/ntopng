@@ -249,8 +249,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   /* Update process and container info */
   if(zflow->hasParsedeBPF()) {
-    flow->setParsedeBPFInfo(zflow,
-			    src2dst_direction /* FIX: direction also depends on the type of event. */);
+    flow->setParsedeBPFInfo(zflow);
     /* Now refresh the flow last seen so it will stay active as long as we keep receiving updates */
     flow->updateSeen();
   }
