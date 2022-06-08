@@ -5365,6 +5365,19 @@ end
 
 -- ##############################################
 
+function format_confidence_badge(confidence)
+  local badge = ""
+
+  if confidence == 0 then
+    badge = "<span class=\"badge bg-success\">" .. get_confidence(confidence) .. "</span>"
+  elseif confidence then
+    badge = "<span class=\"badge bg-warning\">" .. get_confidence(confidence) .. "</span>"
+  end
+
+  return badge
+end
+
+-- ##############################################
 
 function format_confidence_from_json(record)
   local json = require "dkjson"

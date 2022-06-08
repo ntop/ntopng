@@ -489,7 +489,7 @@ else
 	 print(" @ " ..flow["proto.ndpi_cat_file"])
       end
       print(") ".. formatBreed(flow["proto.ndpi_breed"], flow["proto.is_encrypted"]))
-      print(" ["..i18n("ndpi_confidence")..": "..flow.confidence.."]")
+      print(" ["..i18n("ndpi_confidence")..": "..format_confidence_badge(flow.confidence).."]")
    end
 
    if(flow["verdict.pass"] == false) then print("</strike>") end

@@ -272,7 +272,7 @@ class Flow : public GenericHashEntry {
   const char* cipher_weakness2str(ndpi_cipher_weakness w) const;
   bool get_partial_traffic_stats(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *delta, bool *first_partial) const;
   void lua_tos(lua_State* vm);
-
+  void lua_confidence(lua_State* vm);
   void updateEntropy(struct ndpi_analyze_struct *e, u_int8_t *payload, u_int payload_len);
   void lua_entropy(lua_State* vm);
   void luaScore(lua_State* vm);

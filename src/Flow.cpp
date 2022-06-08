@@ -2353,9 +2353,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	lua_get_geoloc(vm, false /* Server */, false /* Coordinates */, true /* Country and City */);
       }
     }
-
-    lua_push_str_table_entry(vm, "confidence", ndpi_confidence_get_name(confidence));
-
+    lua_confidence(vm);
     lua_get_risk_info(vm);
     lua_entropy(vm);
 
@@ -2368,6 +2366,24 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   // this is used to dynamicall update entries in the GUI
   lua_push_uint64_table_entry(vm, "ntopng.key", key()); // Key
   lua_push_uint64_table_entry(vm, "hash_entry_id", get_hash_entry_id());
+}
+/* *************************************** */
+
+void Flow::lua_confidence(lua_State* vm) {
+  switch(getConfidence()) {
+  case NDPI_CONFIDENCE_MATCH_BY_PORT:
+  case NDPI_CONFIDENCE_MATCH_BY_IP:
+    lua_push_uint32_table_entry(vm, "confidence", (ndpiConfidence) confidence_guessed);
+    break;
+
+  case NDPI_CONFIDENCE_DPI_CACHE:
+  case NDPI_CONFIDENCE_DPI:
+    lua_push_uint32_table_entry(vm, "confidence", (ndpiConfidence) confidence_dpi);
+    break;
+
+  default:
+    break;
+  }
 }
 
 /* *************************************** */
