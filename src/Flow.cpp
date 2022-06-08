@@ -2365,6 +2365,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   lua_push_uint64_table_entry(vm, "ntopng.key", key()); // Key
   lua_push_uint64_table_entry(vm, "hash_entry_id", get_hash_entry_id());
 }
+
 /* *************************************** */
 
 void Flow::lua_confidence(lua_State* vm) {
@@ -2660,6 +2661,7 @@ void Flow::formatECSInterface(json_object *my_object) {
 
 void Flow::formatECSExtraInfo(json_object *my_object) {
   json_object *interface_object;
+  
   if((interface_object = json_object_new_object()) != NULL) {
     if(ntop->getPrefs()->do_dump_extended_json()) {
       json_object_object_add(my_object, "flow_time", json_object_new_int(last_seen));
@@ -2727,7 +2729,9 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
 
     json_object_object_add(network_object, Utils::jsonLabel(FIRST_SWITCHED, "first_seen", jsonbuf, sizeof(jsonbuf)), json_object_new_int((u_int32_t)get_partial_first_seen()));
     json_object_object_add(network_object, Utils::jsonLabel(LAST_SWITCHED, "last_seen", jsonbuf, sizeof(jsonbuf)), json_object_new_int((u_int32_t)get_partial_last_seen()));
+
     json_object_object_add(my_object, "community_id", json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
+    json_object_object_add(my_object, "flow_score", json_object_new_int(getScore()));
 
   #ifdef NTOPNG_PRO
   #ifndef HAVE_NEDGE
@@ -2811,7 +2815,7 @@ void Flow::formatECSHost(json_object *my_object, bool is_client, const IpAddress
     json_object_object_add(host_object, Utils::jsonLabel(is_client ? SRC_TOS : DST_TOS, "tos", jsonbuf, sizeof(jsonbuf)), json_object_new_int(getTOS(true)));
     json_object_object_add(host_object, Utils::jsonLabel(is_client ? L4_SRC_PORT : L4_DST_PORT, "port", jsonbuf, sizeof(jsonbuf)), json_object_new_int(is_client ? get_cli_port() : get_srv_port()));
     json_object_object_add(host_object, Utils::jsonLabel(is_client ? IN_PKTS : OUT_PKTS, "packets", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? get_partial_packets_cli2srv() : get_partial_packets_srv2cli()));
-    json_object_object_add(host_object, Utils::jsonLabel(is_client ? IN_BYTES : OUT_BYTES, "bytes", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? get_partial_packets_cli2srv() : get_partial_bytes_srv2cli()));
+    json_object_object_add(host_object, Utils::jsonLabel(is_client ? IN_BYTES : OUT_BYTES, "bytes", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? get_partial_bytes_cli2srv() : get_partial_bytes_srv2cli()));
     json_object_object_add(host_object, Utils::jsonLabel(TCP_FLAGS, "packtes_retrasmissions", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? stats.get_cli2srv_tcp_retr() : stats.get_srv2cli_tcp_retr()));
     json_object_object_add(host_object, Utils::jsonLabel(TCP_FLAGS, "packtes_out_of_order", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? stats.get_cli2srv_tcp_ooo() : stats.get_srv2cli_tcp_ooo()));
     json_object_object_add(host_object, Utils::jsonLabel(TCP_FLAGS, "packtes_lost", jsonbuf, sizeof(jsonbuf)), json_object_new_int64(is_client ? stats.get_cli2srv_tcp_lost() : stats.get_srv2cli_tcp_lost()));
