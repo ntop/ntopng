@@ -864,7 +864,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
 
   case SRC_PROC_NAME:
     if(value->string && value->string[0]) {
-      if(!flow->process_info_set) flow->process_info_set = true;
+      flow->setParsedProcessInfo();
       flow->process_info.process_name = strdup(value->string);
     }
     break;

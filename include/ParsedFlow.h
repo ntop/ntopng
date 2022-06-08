@@ -71,6 +71,9 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   };
   inline bool hasParsedeBPF() const { return has_parsed_ebpf; };
   inline void setParsedeBPF()       { has_parsed_ebpf = true; };
+
+  inline void setParsedProcessInfo() { process_info_set = true; setParsedeBPF(); }
+
   virtual ~ParsedFlow();
   void swap();
   void fromLua(lua_State *L, int index);
