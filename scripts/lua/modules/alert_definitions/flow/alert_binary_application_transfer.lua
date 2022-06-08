@@ -49,6 +49,7 @@ function alert_binary_application_transfer.format(ifid, alert, alert_type_params
 
    if (alert_type_params) and (alert_type_params.proto) and (alert_type_params.proto.http) and (alert_type_params.proto.http.last_url) then
       local url = alert_type_params.proto.http.last_url
+      url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
       local href = format_external_link(url, url, false, interface.getnDPIProtoName(tonumber(alert["l7_master_proto"])))
       local type_icon = ''
       local info = ''

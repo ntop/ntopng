@@ -5131,7 +5131,9 @@ function format_dns_query_info(dns_info)
   end
 
   if dns_info.last_query then
-    dns_info.last_query = i18n("external_link_url", { proto = 'https', url = dns_info["last_query"], url_name = dns_info["last_query"] })
+    local url = dns_info["last_query"] 
+    url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
+    dns_info.last_query = i18n("external_link_url", { proto = 'https', url = url, url_name = dns_info["last_query"] })
   end
 
   return dns_info
@@ -5163,7 +5165,9 @@ function format_tls_info(tls_info)
   end
 
   if tls_info.client_requested_server_name then
-    tls_info["client_requested_server_name"] = i18n("external_link_url", { proto = 'https', url = tls_info["client_requested_server_name"], url_name = tls_info["client_requested_server_name"]})
+    local url = tls_info["client_requested_server_name"] 
+    url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
+    tls_info["client_requested_server_name"] = i18n("external_link_url", { proto = 'https', url = url, url_name = url})
   end
 
   if tls_info["ja3.server_cipher"] then
@@ -5224,6 +5228,7 @@ function format_http_info(http_info)
     if string.find(http_info["last_url"], '^/') then
       url = (http_info["server_name"] or "") .. http_info["last_url"]
     end
+    url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
     http_info["last_url"] = i18n("external_link_url", { proto = 'http', url = url, url_name = url})
   end
 
@@ -5319,7 +5324,8 @@ function format_external_link(url, name, no_html, proto)
  
    if no_html == false then
      if not isEmptyString(url) then
-       external_field = i18n("external_link_url", { proto = proto, url = url, url_name = name})
+        url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
+            external_field = i18n("external_link_url", { proto = proto, url = url, url_name = name})
      end
    end
  

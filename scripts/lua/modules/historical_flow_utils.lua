@@ -140,6 +140,7 @@ end
 
 local function dt_format_info(info)
    if not isEmptyString(profile) then
+      info = string.gsub(info, " ", "")
       info = formatTrafficProfile(profile) .. info
    end
 
@@ -246,6 +247,30 @@ end
 
 -- #####################################
 
+local function dt_format_location(location)
+   local location_tag = {
+      label = '',
+   }
+
+   if not location then
+      return location_tag
+   end
+
+   if(location == "0") then -- Remote 
+      location_tag["label"] = i18n("details.label_short_remote")
+   elseif(location == "1") then -- Local
+      location_tag["label"] = i18n("details.label_short_local_host")
+   elseif(location == "2") then -- Multicast
+      location_tag["label"] = i18n("short_multicast")
+   end
+
+   location_tag["value"] = location
+
+   return location_tag
+end
+
+-- #####################################
+
 local function dt_format_ip(ip, name, location, prefix, record)
    local vlan_id = tonumber(record["VLAN_ID"] or "0")
 
@@ -259,7 +284,6 @@ local function dt_format_ip(ip, name, location, prefix, record)
       ip        = ip, -- IP address
       name      = "", -- Symbolic hostname (leave empty if IP only)
       reference = hostinfo2detailshref({ip = ip, vlan = vlan_id}, nil, "<i class='fas fa-laptop'></i>", "", true, nil, false),
-      location = location,
    }
 
    if not isEmptyString(name) and name ~= ip then
@@ -552,32 +576,6 @@ end
 
 -- #####################################
 
-local function dt_format_location(location)
-   local location_tag = {
-      label = '',
-   }
-
-   if not location then
-      return location_tag
-   end
- 
-   location = tonumber(location or 0)
-
-   if(location == 0) then -- Remote 
-      location_tag["label"] = '<span class="badge bg-secondary">'..i18n("details.label_short_remote")..'</span>'
-   elseif(location == 1) then -- Local
-      location_tag["label"] = '<span class="badge bg-success">'..i18n("details.label_short_local_host")..'</span>'
-   elseif(location == 2) then -- Multicast
-      location_tag["label"] = "<span class='badge bg-primary'>" ..i18n("short_multicast").. "</span>"
-   end
-
-   location_tag["value"] = location
-
-   return location_tag
-end
-
--- #####################################
-
 local function dt_format_pool_id(id)
    local name = getPoolName(tonumber(id)) or id
    local pool_tag = {
@@ -761,7 +759,9 @@ local function dt_format_flow(processed_record, record)
       cli_ip["name"]       = cli["name"]  -- Host name
       cli_ip["label"]      = cli["label"] -- Label - This can be shortened if required
       cli_ip["label_long"] = cli["title"] -- Label - This is not shortened
-      cli_ip["reference"]  = cli["reference"] 
+      cli_ip["reference"]  = cli["reference"]
+      cli_ip["location"]   = dt_format_location(record["CLIENT_LOCATION"])
+
       if processed_record["cli_country"] then
          cli_ip["country"] = processed_record["cli_country"]["value"]
       end 
@@ -771,6 +771,8 @@ local function dt_format_flow(processed_record, record)
       srv_ip["label"]      = srv["label"]
       srv_ip["label_long"] = srv["title"]
       srv_ip["reference"]  = srv["reference"]
+      srv_ip["location"]   = dt_format_location(record["SERVER_LOCATION"])
+
       if processed_record["srv_country"] then
          srv_ip["country"] = processed_record["srv_country"]["value"]
       end 
@@ -1110,6 +1112,8 @@ function historical_flow_utils.get_tags()
    flow_defined_tags["snmp_interface"] = tag_utils.defined_tags["snmp_interface"]
    flow_defined_tags["country"] = tag_utils.defined_tags["country"]
    flow_defined_tags["l7_error_id"] = tag_utils.defined_tags["l7_error_id"]
+   flow_defined_tags["cli_location"] = tag_utils.defined_tags["cli_location"]
+   flow_defined_tags["srv_location"] = tag_utils.defined_tags["srv_location"]
    flow_defined_tags["traffic_direction"] = tag_utils.defined_tags["traffic_direction"]
    flow_defined_tags["confidence"] = tag_utils.defined_tags["confidence"]
 
@@ -1347,6 +1351,7 @@ local function build_datatable_js_column_ip(name, data_name, label, order, hide)
       {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
         let html_ref = '';
         let location = '';
+        debugger;
         if (type !== 'display') return ]] .. name .. [[;
         if (]] .. name .. [[ !== undefined) {
             if (]] .. name .. [[.reference !== undefined)

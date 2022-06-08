@@ -125,6 +125,7 @@ local role = _GET["role"]
 local role_cli_srv = _GET["role_cli_srv"]
 local l7_error_id = _GET["l7_error_id"]
 local confidence = _GET["confidence"]
+local traffic_direction = _GET["traffic_direction"]
 local subtype = _GET["subtype"]
 local vlan_id = _GET["vlan_id"]
 
@@ -426,6 +427,7 @@ local operators_by_filter = {
    role_cli_srv = {'eq'},
    l7_error_id = {'eq','neq'},
    confidence = {'eq','neq'},
+   traffic_direction = {'eq','neq'},
    text = {'eq','neq'},
    hostname = {'eq','neq', 'in', 'nin'},
 }
@@ -469,6 +471,7 @@ local defined_tags = {
       srv_port = operators_by_filter.port,
       role = operators_by_filter.role,
       l7_error_id = operators_by_filter.l7_error_id,
+      traffic_direction = operators_by_filter.traffic_direction,
       confidence = operators_by_filter.confidence,
    },
    ["system"] = {
@@ -583,7 +586,8 @@ local filters_context = {
    l7_protocols = interface.getnDPIProtocols(),
    operators_by_filter = operators_by_filter,
    tag_operators = tag_utils.tag_operators,
-   confidence_list = tag_utils.confidence
+   confidence_list = tag_utils.confidence,
+   traffic_direction_list = tag_utils.traffic_direction
 }
 
 template_utils.render("pages/modals/alerts/filters/add.template", filters_context)
@@ -628,6 +632,7 @@ local datasource_data = {
    role_cli_srv = role_cli_srv,
    l7_error_id = l7_error_id,
    confidence = confidence,
+   traffic_direction = traffic_direction,
    subtype = subtype,
    page = page,
 }
@@ -731,6 +736,7 @@ local context = {
                role_cli_srv = i18n("db_search.tags.role_cli_srv"),
                l7_error_id = i18n("db_search.tags.error_code"),
                confidence = i18n("db_search.tags.confidence"),
+               traffic_direction = i18n("db_search.tags.traffic_direction"),
           }
        },
        presets = {
