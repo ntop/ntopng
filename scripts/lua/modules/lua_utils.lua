@@ -5351,7 +5351,7 @@ end
  
 -- ##############################################
  
-function get_confidence(confidence_id)
+function get_confidence(confidence_id, shorten_string)
   local tag_utils = require "tag_utils"
   local confidence_name = nil
 
@@ -5361,6 +5361,11 @@ function get_confidence(confidence_id)
     for _, confidence in pairs(tag_utils.confidence or {}) do
       if confidence.id == confidence_id then
         confidence_name = confidence.label
+
+        if shorten_string then
+          confidence_name = shortenString(confidence_name, 5)
+        end
+
         break
       end
     end
@@ -5371,13 +5376,13 @@ end
 
 -- ##############################################
 
-function format_confidence_badge(confidence)
+function format_confidence_badge(confidence, shorten_string)
   local badge = ""
 
   if confidence == 0 then
-    badge = "<span class=\"badge bg-success\">" .. get_confidence(confidence) .. "</span>"
+    badge = "<span class=\"badge bg-success\" title=\"" .. get_confidence(confidence) .. "\">" .. get_confidence(confidence, shorten_string) .. "</span>"
   elseif confidence then
-    badge = "<span class=\"badge bg-warning\">" .. get_confidence(confidence) .. "</span>"
+    badge = "<span class=\"badge bg-warning\" title=\"" .. get_confidence(confidence) .. "\">" .. get_confidence(confidence, shorten_string) .. "</span>"
   end
 
   return badge
