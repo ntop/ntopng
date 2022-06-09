@@ -854,12 +854,16 @@ local function editProtoDetails(proto_info)
   for proto, info in pairs(proto_info) do
     if proto == "tls" then
       info = format_tls_info(info)
+      break;
     elseif proto == "dns" then
       info = format_dns_query_info(info)
+      break;
     elseif proto == "http" then
       info = format_http_info(info)
+      break;
     elseif proto == "icmp" then
       info = format_icmp_info(info)
+      break;
     end
   end
 

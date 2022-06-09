@@ -5258,6 +5258,8 @@ end
 -- ##############################################
 
 function format_proto_info(proto_info)
+  local proto_details = {}
+
   for key, value in pairs(proto_info) do
     if type(value) ~= "table" then
       proto_info[key] = nil
@@ -5266,17 +5268,19 @@ function format_proto_info(proto_info)
 
   for proto, info in pairs(proto_info) do
     if proto == "tls" then
-      info = format_tls_info(info)
+      proto_details[proto] = format_tls_info(info)
     elseif proto == "dns" then
-      info = format_dns_query_info(info)
+      proto_details[proto] = format_dns_query_info(info)
     elseif proto == "http" then
-      info = format_http_info(info)
+      proto_details[proto] = format_http_info(info)
     elseif proto == "icmp" then
-      info = format_icmp_info(info)
+      proto_details[proto] = format_icmp_info(info)
     end
+
+    break
   end
 
-  return proto_info
+  return proto_details
 end
 
 -- ##############################################
@@ -5353,7 +5357,7 @@ end
  
 function get_confidence(confidence_id, shorten_string)
   local tag_utils = require "tag_utils"
-  local confidence_name = nil
+  local confidence_name = confidence_id
 
   if confidence_id and tonumber(confidence_id) then
     confidence_id = tonumber(confidence_id)
