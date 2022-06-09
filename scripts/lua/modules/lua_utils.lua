@@ -5384,9 +5384,9 @@ function format_confidence_badge(confidence, shorten_string)
   local badge = ""
 
   if confidence == 0 then
-    badge = "<span class=\"badge bg-success\" title=\"" .. get_confidence(confidence) .. "\">" .. get_confidence(confidence, shorten_string) .. "</span>"
-  elseif confidence then
     badge = "<span class=\"badge bg-warning\" title=\"" .. get_confidence(confidence) .. "\">" .. get_confidence(confidence, shorten_string) .. "</span>"
+  elseif confidence then
+    badge = "<span class=\"badge bg-success\" title=\"" .. get_confidence(confidence) .. "\">" .. get_confidence(confidence, shorten_string) .. "</span>"
   end
 
   return badge
