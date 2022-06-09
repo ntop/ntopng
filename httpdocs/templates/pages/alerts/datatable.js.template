@@ -321,7 +321,6 @@ function formatFilteredParams() {
   const currentUrl = new URLSearchParams(window.location.search);
   let datasourceParams = ntopng_status_manager.get_status();
   let params = {}    
-  debugger;
 
   /* Cycling the filters */
   for (const tag of datasourceParams.filters) {
