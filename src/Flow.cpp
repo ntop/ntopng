@@ -3259,6 +3259,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_string(s, "cli_ip", get_cli_ip_addr()->print(buf, sizeof(buf)));
   ndpi_serialize_string_boolean(s, "cli_blacklisted", isBlacklistedClient());
   ndpi_serialize_string_int32(s, "cli_port", get_cli_port());
+  ndpi_serialize_string_int32(s, "cli_location", getCliLocation());
 
   if(cli_host) {
     cli_host->serialize_geocoordinates(s, "cli_");
@@ -3274,6 +3275,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_string(s, "srv_ip", get_srv_ip_addr()->print(buf, sizeof(buf)));
   ndpi_serialize_string_boolean(s, "srv_blacklisted", isBlacklistedServer());
   ndpi_serialize_string_int32(s, "srv_port", get_srv_port());
+  ndpi_serialize_string_int32(s, "srv_location", getSrvLocation());
 
   if(srv_host) {
     srv_host->serialize_geocoordinates(s, "srv_");

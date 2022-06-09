@@ -907,6 +907,17 @@ class Flow : public GenericHashEntry {
   
   inline ndpi_confidence_t getConfidence()        { return(confidence); }
   inline void setConfidence(ndpi_confidence_t rc) { confidence = rc;    }
+
+  inline u_int8_t getCliLocation() {
+    if(cli_host && cli_host->isMulticastHost())  return 2; // Multicast host
+    else if(cli_host && cli_host->isLocalHost()) return 1; // Local host
+    else return 0; // Remote host
+  }
+  inline u_int8_t getSrvLocation() {
+    if(srv_host && srv_host->isMulticastHost())  return 2; // Multicast host
+    else if(srv_host && srv_host->isLocalHost()) return 1; // Local host
+    else return 0; // Remote host
+  }
   
   /* Placeholder */
   inline char* getCliProcessName()     { return((char*)""); }

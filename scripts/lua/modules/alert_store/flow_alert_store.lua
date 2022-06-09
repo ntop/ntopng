@@ -172,11 +172,11 @@ function flow_alert_store:insert(alert)
    local insert_stmt = string.format("INSERT INTO %s "..
       "(%salert_id, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, "..
       "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, "..
-      "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, "..
+      "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, cli_location, srv_location, "..
       "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, "..
       "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, json, info) "..
       "VALUES (%s%u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', "..
-      "'%s', %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', '%s'); ",
+      "'%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', '%s'); ",
       self:get_write_table_name(),
       extra_columns,
       extra_values,
@@ -205,6 +205,8 @@ function flow_alert_store:insert(alert)
       alert.srv_country_name,
       ternary(alert.cli_blacklisted, 1, 0),
       ternary(alert.srv_blacklisted, 1, 0),
+      alert.cli_location or 0,
+      alert.srv_location or 0,
       alert.cli2srv_bytes,
       alert.srv2cli_bytes,
       alert.cli2srv_packets,
