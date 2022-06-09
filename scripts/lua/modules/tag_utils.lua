@@ -62,11 +62,6 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.flow_risk'),
       operators = {'eq', 'neq', 'in', 'nin'}
    },
-   alert_id = {
-      value_type = 'alert_type',
-      i18n_label = i18n('db_search.tags.alert_id'),
-      operators = {'eq', 'neq'}
-   },
    l4proto = {
       value_type = 'l4_proto',
       i18n_label = i18n('db_search.tags.l4proto'),
