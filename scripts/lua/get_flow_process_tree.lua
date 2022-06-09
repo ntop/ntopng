@@ -20,23 +20,28 @@ local function format_proc(name, pid)
 end
 
 local function proc_branch(host, proc)
-   local proc_link = ntop.getHttpPrefix().."/lua/process_details.lua?pid="..proc.pid.."&pid_name="..proc.name.."&host=".. host .."&page=flows"
-   local proc_leaf = {name = format_proc(proc.name, proc.pid), link = proc_link, type = "proc", children = {}}
+   local proc_leaf = {name = i18n('unknown'), type = "proc", children = {}}
+   
+   if proc then
 
-   if (proc.pid ~= 1) and (proc.father_pid ~= nil) then
-      local father_leaf = {name = format_proc(proc.father_name, proc.father_pid), type = "proc", children = {}}
+      proc_leaf.name = format_proc(proc.name, proc.pid)
+      proc_leaf.link = ntop.getHttpPrefix().."/lua/process_details.lua?pid="..proc.pid.."&pid_name="..proc.name.."&host=".. host .."&page=flows"
 
-      father_leaf["children"] = {proc_leaf}
-      proc_leaf = father_leaf
+      if (proc.pid ~= 1) and (proc.father_pid ~= nil) then
+         local father_leaf = {name = format_proc(proc.father_name, proc.father_pid), type = "proc", children = {}}
 
-      -- TODO: rather than simply adding the system, it would be desirable to
-      -- go up into the tree recursively and get all the processes
-      -- if proc.father_pid ~= 1 then
-      --	 local systemd_leaf = {name = format_proc("systemd", 1), type="proc", children = {}}
+         father_leaf["children"] = {proc_leaf}
+         proc_leaf = father_leaf
 
-      --	 systemd_leaf["children"] = {proc_leaf}
-      --	 proc_leaf = systemd_leaf
-      -- end
+         -- TODO: rather than simply adding the system, it would be desirable to
+         -- go up into the tree recursively and get all the processes
+         -- if proc.father_pid ~= 1 then
+         --	 local systemd_leaf = {name = format_proc("systemd", 1), type="proc", children = {}}
+
+         --	 systemd_leaf["children"] = {proc_leaf}
+         --	 proc_leaf = systemd_leaf
+         -- end
+      end
    end
 
    return proc_leaf
@@ -65,7 +70,9 @@ end
 
 
 if flow then
-   if flow.client_process and flow.server_process then
+   local always_show_all_tree = true
+
+   if always_show_all_tree or (flow.client_process and flow.server_process) then
       if flow["cli.ip"] ~= flow["srv.ip"] then
 	 tree = {name = "", type = "root",
 		 children = {
