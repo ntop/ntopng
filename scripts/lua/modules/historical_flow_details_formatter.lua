@@ -247,26 +247,25 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
     if (info['alert_id']) and (info['alert_id']['value'] ~= 0) then
       flow_details[#flow_details + 1] = format_historical_main_issue(flow)
     end
-
     flow_details[#flow_details + 1] = format_historical_flow_label(flow)
     flow_details[#flow_details + 1] = format_historical_protocol_label(flow)
     flow_details[#flow_details + 1] = format_historical_last_first_seen(flow, info)
     flow_details[#flow_details + 1] = format_historical_total_traffic(flow)
     flow_details[#flow_details + 1] = format_historical_client_server_bytes(flow)
     flow_details[#flow_details + 1] = format_historical_bytes_progress_bar(flow, info)
-    
+        
     if (info['dst2src_dscp']) and (info['dst2src_dscp']['value'] ~= 0) and (info['src2dst_dscp']['value'] ~= 0) then
       flow_details[#flow_details + 1] = format_historical_tos(flow)
     end
-
+    
     if (info["l4proto"]) and (info["l4proto"]["label"] == 'TCP') then
       flow_details[#flow_details + 1] = format_historical_tcp_flags(flow, info)
     end
-
+    
     if (info["cli_host_pool_id"]) and (info["cli_host_pool_id"]["value"] ~= '0') and (info["srv_host_pool_id"]["value"] ~= '0') then
       flow_details[#flow_details + 1] = format_historical_host_pool(flow, info)
     end
-
+    
     if (info["score"]) and (info["score"]["value"] ~= 0) then
       flow_details[#flow_details + 1] = format_historical_score(flow)
       flow_details[#flow_details + 1] = format_historical_issue_description(flow)
@@ -288,31 +287,33 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
         end
       end
     end
-
+    
     if (info['COMMUNITY_ID']) and (not isEmptyString(info['COMMUNITY_ID'])) then
       flow_details[#flow_details + 1] = format_historical_community_id(flow)
     end
-
+    
     if (info['info']) and (not isEmptyString(info['info']["title"])) then
       flow_details[#flow_details + 1] = format_historical_info(flow)
     end
-    
+        
     if tonumber(flow["CLIENT_NW_LATENCY_US"]) ~= 0 then
       flow_details[#flow_details + 1] = format_historical_latency(flow, "CLIENT_NW_LATENCY_US", "cli")
     end
-
+    
     if tonumber(flow["SERVER_NW_LATENCY_US"]) ~= 0 then
       flow_details[#flow_details + 1] = format_historical_latency(flow, "SERVER_NW_LATENCY_US", "srv")
     end
-
+    
     if tonumber(flow["OBSERVATION_POINT_ID"]) ~= 0 then
       flow_details[#flow_details + 1] = format_historical_obs_point(flow)
     end
 
     local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
     if table.len(alert_json["proto"]) > 0 then
+
       flow_details[#flow_details + 1] = format_historical_proto_info(alert_json["proto"])
-      if table.len(flow_details[#flow_details]['content']) == 0 then
+      if (type(flow_details[#flow_details]['content']) == 'table') and 
+         (table.len(flow_details[#flow_details]['content']) == 0) then
         table.remove(flow_details, #flow_details)
       end
     end

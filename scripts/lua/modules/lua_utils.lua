@@ -5266,7 +5266,7 @@ function format_proto_info(proto_info)
     end
   end
 
-  for proto, info in pairs(proto_info) do
+  for proto, info in pairs(proto_info or {}) do
     if proto == "tls" then
       proto_details[proto] = format_tls_info(info)
     elseif proto == "dns" then
