@@ -476,7 +476,7 @@ function alert_utils.get_flow_risk_info(alert_risk, alert_json)
     end
   end
 
-  return ""
+  return msg
 end
 
 -- #################################

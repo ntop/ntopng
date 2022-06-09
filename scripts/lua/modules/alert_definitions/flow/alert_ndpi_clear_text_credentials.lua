@@ -18,7 +18,7 @@ local alert_clear_text_credentials = classes.class(alert)
 
 alert_clear_text_credentials.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_clear_text_credentials,
-   i18n_title = "flow_risk.ndpi_clear_text_credentials_descr",
+   i18n_title = "flow_risk.ndpi_clear_text_credentials",
    icon = "fas fa-fw fa-exclamation",
 
    has_victim = true,
