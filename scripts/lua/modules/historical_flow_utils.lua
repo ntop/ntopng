@@ -378,11 +378,8 @@ end
 -- #####################################
 
 local function dt_format_time(time)
-   local time = time
-
-   if not isEmptyString(time) then
-      time = os.date("%x %X", tonumber(time))
-      time = convertDate(time)
+   if (time) and (tonumber(time)) then
+      time = format_utils.formatPastEpochShort(time)
    end
 
    return time
