@@ -45,11 +45,6 @@ function alert_ndpi_suspicious_dga_domain.format(ifid, alert, alert_type_params)
    local href = ''
    local info = ''
 
-   if domain and string.len(domain) > 64 then
-      domain = shortenString(alert_type_params.dga_domain, 64)
-      info = '<i class="fas fa-question-circle" data-bs-toggle="tooltip" data-bs-placement="bottom" title="'..alert_type_params.dga_domain..'"></i>'
-   end
-
    if not isEmptyString(domain) then
     -- URL check
     local url = alert_type_params.dga_domain
@@ -60,8 +55,7 @@ function alert_ndpi_suspicious_dga_domain.format(ifid, alert, alert_type_params)
 
     local proto = string.lower(interface.getnDPIProtoName(tonumber(alert["l7_master_proto"])))
     proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
-
-    href = i18n('external_link_url', { url = url, url_name = shortenString(url, 32), proto = proto })
+    href = format_external_link(url, url, false, proto)
    end
 
    return i18n("alert_messages.suspicious_dga_domain", {
