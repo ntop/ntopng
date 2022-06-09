@@ -321,6 +321,16 @@ tag_utils.defined_tags = {
       i18n_label = i18n('db_search.tags.confidence'),
       operators = {'eq', 'neq'},
    },
+   cli_location = {
+      value_type = 'location',
+      i18n_label = i18n('db_search.tags.cli_location'),
+      operators = {'eq', 'neq'},
+   },
+   srv_location = {
+      value_type = 'location',
+      i18n_label = i18n('db_search.tags.srv_location'),
+      operators = {'eq', 'neq'},
+   },
 }
 
 -- #####################################
@@ -337,6 +347,14 @@ tag_utils.traffic_direction = {
 tag_utils.confidence = {
    { label = "Guessed",  id = 0 },
    { label = "DPI", id = 1 },
+}
+
+-- #####################################
+
+tag_utils.location = {
+   { label = i18n("details.label_short_remote"),  id = 0 },
+   { label = i18n("details.label_short_local_host"), id = 1 },
+   { label = i18n("short_multicast"), id = 2 },
 }
 
 -- #####################################
@@ -525,6 +543,13 @@ function tag_utils.get_tag_info(id, entity)
         filter.value_type = 'array'
         filter.options = {}
         for  _, v in pairsByField(tag_utils.confidence, 'label', asc) do
+          filter.options[#filter.options+1] = { value = v.id, label = v.label }
+        end
+
+    elseif tag.value_type == "location" then
+        filter.value_type = 'array'
+        filter.options = {}
+        for  _, v in pairsByField(tag_utils.location, 'label', asc) do
           filter.options[#filter.options+1] = { value = v.id, label = v.label }
         end
 

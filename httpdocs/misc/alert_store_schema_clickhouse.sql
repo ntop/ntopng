@@ -163,6 +163,8 @@ IS_SRV_ATTACKER AS is_srv_attacker,
 IS_SRV_VICTIM AS is_srv_victim,
 IS_CLI_BLACKLISTED AS cli_blacklisted,
 IS_SRV_BLACKLISTED AS srv_blacklisted,
+CLIENT_LOCATION AS cli_location,
+SERVER_LOCATION AS srv_location,
 ALERTS_MAP AS alerts_map,
 INFO AS info
 FROM `flows`
@@ -245,6 +247,10 @@ ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS cli_network UInt16;
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS srv_network UInt16;
 @
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS info String;
+@
+ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS cli_location UInt8;
+@
+ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS srv_location UInt8;
 
 @
 
