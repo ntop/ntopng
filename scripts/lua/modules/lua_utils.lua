@@ -5366,10 +5366,6 @@ function get_confidence(confidence_id, shorten_string)
       if confidence.id == confidence_id then
         confidence_name = confidence.label
 
-        if shorten_string then
-          confidence_name = shortenString(confidence_name, 5)
-        end
-
         break
       end
     end
