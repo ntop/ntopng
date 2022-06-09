@@ -491,7 +491,7 @@ end
 
 -- #################################
   
-function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json)
+function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score)
    local msg
    local alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
 
@@ -517,8 +517,11 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json)
    end
    
    local alert_score = ntop.getFlowAlertScore(tonumber(alert.alert_id))
-   msg = alert_utils.format_score(msg, alert_score)
    
+   if add_score then
+    msg = alert_utils.format_score(msg, alert_score)
+   end
+
    -- Add the link to the documentation
    if alert_risk > 0 then
       msg = string.format("%s %s", msg, flow_risk_utils.get_documentation_link(alert_risk))
@@ -1027,7 +1030,7 @@ end
 -- ##############################################
 
 
-function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_json)
+function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_json, add_score)
   -- Unpack all flow alerts, iterating the alerts_map. The alerts_map is stored as an HEX.
   local other_alerts_by_score = {} -- Table used to keep messages ordered by score
   local additional_alerts = {}
@@ -1051,7 +1054,10 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
             local message = alert_consts.alertTypeLabel(alert_id, true, alert_entities.flow.entity_id)
 
             local alert_score = ntop.getFlowAlertScore(alert_id)
-            message = alert_utils.format_score(message, alert_score)
+            
+            if add_score then
+              message = alert_utils.format_score(message, alert_score)
+            end
 
             local alert_risk = ntop.getFlowAlertRisk(alert_id)
             if alert_risk > 0 then

@@ -161,7 +161,7 @@ local function format_historical_issue_description(flow)
     local alerts, _ = alert_store_instance:select_request(nil, "*")
     if #alerts >= 1 then
       alert = alerts[1]
-      details = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_json)
+      details = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_json, true)
     end
   end
  
@@ -176,7 +176,7 @@ end
 local function format_historical_other_issues(flow)
   local alert_utils = require "alert_utils"
   local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
-  local _, additional_alerts = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json)
+  local _, additional_alerts = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json, true)
     
   return additional_alerts
 end
