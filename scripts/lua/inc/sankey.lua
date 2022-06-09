@@ -514,7 +514,6 @@ print(url.."hosts=".._GET["hosts"])
 
   link.append("title")
     .text(function(d) { return d.source.name + " - " + d.target.name + "\n" + NtopUtils.bytesToVolume(d.value)+ "\n Double click to show more information about this flows." ; });
-debugger;
   var node = svg_sankey.append("g").selectAll(".node")
     .data(hosts.nodes)
     .enter().append("g")

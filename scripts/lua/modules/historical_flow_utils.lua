@@ -1351,7 +1351,6 @@ local function build_datatable_js_column_ip(name, data_name, label, order, hide)
       {name: ']] .. name .. [[', responsivePriority: 2, data: ']] .. data_name .. [[', className: 'no-wrap', render: (]] .. name .. [[, type) => {
         let html_ref = '';
         let location = '';
-        debugger;
         if (type !== 'display') return ]] .. name .. [[;
         if (]] .. name .. [[ !== undefined) {
             if (]] .. name .. [[.reference !== undefined)
