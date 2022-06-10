@@ -1075,87 +1075,89 @@ else
       
       local flow_checks = checks.load(ifId, checks.script_types.flow, "flow")
       for flow_check_name, flow_check in pairs(flow_checks.modules) do
-	 if flow_check.alert_id then
-	    alert_id_to_flow_check[flow_check.alert_id] = flow_check_name
-	 end
+        if flow_check.alert_id then
+          alert_id_to_flow_check[flow_check.alert_id] = flow_check_name
+        end
       end
 
       if(flow.riskInfo ~= nil) then
-	 riskInfo = json.decode(flow.riskInfo, 1, nil)
-      end
-      
-      for _, score_alerts in pairsByKeys(alerts_by_score, rev) do
-	 for _, score_alert in pairsByField(score_alerts, "message", asc) do
-	    if first then
-	       print("<tr><th width=30% rowspan="..(num_statuses+1)..">"..i18n("flow_details.flow_issues").."</th><th>"..i18n("description").."</th><th>"..i18n("actions").."</th></tr>")
-	       first = false
-	    end
-
-      local status_icon = ""
-
-      local riskLabel = riskInfo[tostring(score_alert.alert_risk)]
-
-      if(riskLabel ~= nil) then
-	 riskLabel = "[" .. shortenString(riskLabel,64) .. "]"
-      else
-	 riskLabel = ""
-      end
-      
-      if score_alert.alert_id then 
-        alert_consts.alertTypeIcon(score_alert.alert_id, ntop.mapScoreToSeverity(score_alert.alert_id), 'fa-lg')
+	      riskInfo = json.decode({flow.riskInfo}, 1, nil)
       end
 
-      print(string.format('<tr>'))
+      if (riskInfo ~= nil) then
+        for _, score_alerts in pairsByKeys(alerts_by_score, rev) do
+          for _, score_alert in pairsByField(score_alerts, "message", asc) do
+            if first then
+              print("<tr><th width=30% rowspan="..(num_statuses+1)..">"..i18n("flow_details.flow_issues").."</th><th>"..i18n("description").."</th><th>"..i18n("actions").."</th></tr>")
+              first = false
+            end
+
+            local status_icon = ""
+
+            local riskLabel = riskInfo[tostring(score_alert.alert_risk)]
+
+            if(riskLabel ~= nil) then
+              riskLabel = "[" .. shortenString(riskLabel,64) .. "]"
+            else
+              riskLabel = ""
+            end
       
-      local msg = string.format('<td>%s %s %s %s</td>',
-				score_alert.message,
-				riskLabel,
-				(score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk)) or '',
-				status_icon or '')
-      print(msg)
+            if score_alert.alert_id then 
+              alert_consts.alertTypeIcon(score_alert.alert_id, ntop.mapScoreToSeverity(score_alert.alert_id), 'fa-lg')
+            end
+
+            print(string.format('<tr>'))
+            
+            local msg = string.format('<td>%s %s %s %s</td>',
+              score_alert.message,
+              riskLabel,
+              (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk)) or '',
+              status_icon or '')
+            print(msg)
       
-      if score_alert.alert_id then
-	 print('<td>')
+            if score_alert.alert_id then
+              print('<td>')
+              
+              -- Add rules to disable the check
+              print(string.format('<a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a>', score_alert.alert_id, score_alert.alert_label))
+              
+              -- If available, add a cog to configure the check
+              if alert_id_to_flow_check[score_alert.alert_id] then
+                  print(string.format('&nbsp;<a href="%s" class="btn btn-sm btn-info" role="button"><i class="fas fa-cog"></i></a>', alert_utils.getConfigsetURL(alert_id_to_flow_check[score_alert.alert_id], "flow")))
+              end
 	 
-	 -- Add rules to disable the check
-	 print(string.format('<a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a>', score_alert.alert_id, score_alert.alert_label))
+              -- For the predominant alert, add an anchor to the historical alert
+              if not ifstats.isViewed and score_alert.is_predominant then
+                  -- Prepare bounds for the historical alert search.
+                  local epoch_begin = flow["seen.first"]
+                  -- As this is the page of active flows, it is meaningful to use the current time for the epoch end.
+                  -- This will also enable multiple flows with the same tuple to be shown.
+                  local epoch_end = os.time()
+                  local l7_proto = flow["proto.ndpi_id"] .. tag_utils.SEPARATOR .. "eq"
+                  local cli_ip = flow["cli.ip"]  .. tag_utils.SEPARATOR .. "eq"
+                  local srv_ip = flow["srv.ip"]  .. tag_utils.SEPARATOR .. "eq"
+                  local cli_port = flow["cli.port"]  .. tag_utils.SEPARATOR .. "eq"
+                  local srv_port = flow["srv.port"]  .. tag_utils.SEPARATOR .. "eq"
+                  
+                  print(string.format('&nbsp;<a href="%s/lua/alert_stats.lua?status=historical&page=flow&epoch_begin=%u&epoch_end=%u&l7_proto=%s&cli_ip=%s&cli_port=%s&srv_ip=%s&srv_port=%s" class="btn btn-sm btn-info" role="button"><i class="fas fa-exclamation-triangle"></i></a>',
+                    ntop.getHttpPrefix(),
+                    epoch_begin,
+                    epoch_end,
+                    l7_proto,
+                    cli_ip, cli_port,
+                    srv_ip, srv_port))
+              end
 	 
-	 -- If available, add a cog to configure the check
-	 if alert_id_to_flow_check[score_alert.alert_id] then
-	    print(string.format('&nbsp;<a href="%s" class="btn btn-sm btn-info" role="button"><i class="fas fa-cog"></i></a>', alert_utils.getConfigsetURL(alert_id_to_flow_check[score_alert.alert_id], "flow")))
-	 end
-	 
-	 -- For the predominant alert, add an anchor to the historical alert
-	 if not ifstats.isViewed and score_alert.is_predominant then
-	    -- Prepare bounds for the historical alert search.
-	    local epoch_begin = flow["seen.first"]
-	    -- As this is the page of active flows, it is meaningful to use the current time for the epoch end.
-	    -- This will also enable multiple flows with the same tuple to be shown.
-	    local epoch_end = os.time()
-	    local l7_proto = flow["proto.ndpi_id"] .. tag_utils.SEPARATOR .. "eq"
-	    local cli_ip = flow["cli.ip"]  .. tag_utils.SEPARATOR .. "eq"
-	    local srv_ip = flow["srv.ip"]  .. tag_utils.SEPARATOR .. "eq"
-	    local cli_port = flow["cli.port"]  .. tag_utils.SEPARATOR .. "eq"
-	    local srv_port = flow["srv.port"]  .. tag_utils.SEPARATOR .. "eq"
-	    
-	    print(string.format('&nbsp;<a href="%s/lua/alert_stats.lua?status=historical&page=flow&epoch_begin=%u&epoch_end=%u&l7_proto=%s&cli_ip=%s&cli_port=%s&srv_ip=%s&srv_port=%s" class="btn btn-sm btn-info" role="button"><i class="fas fa-exclamation-triangle"></i></a>',
-				ntop.getHttpPrefix(),
-				epoch_begin,
-				epoch_end,
-				l7_proto,
-				cli_ip, cli_port,
-				srv_ip, srv_port))
-	 end
-	 
-	 print('</td>')
-      else -- These are unhandled alerts, e.g., flow risks for which a check doesn't exist
-	 print(string.format('<td></td>'))
+              print('</td>')
+            else -- These are unhandled alerts, e.g., flow risks for which a check doesn't exist
+              print(string.format('<td></td>'))
+            end
+      
+            print('</tr>')
+	        end
+        end
       end
-      
-      print('</tr>')
-	 end
-      end
-   end
+    end
 
    -- ######################################
 
