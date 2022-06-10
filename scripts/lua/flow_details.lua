@@ -1081,7 +1081,7 @@ else
       end
 
       if(flow.riskInfo ~= nil) then
-	      riskInfo = json.decode({flow.riskInfo}, 1, nil)
+        riskInfo = json.decode(flow.riskInfo, 1, nil)
       end
 
       if (riskInfo ~= nil) then
