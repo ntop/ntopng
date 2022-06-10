@@ -72,6 +72,7 @@
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
+    "@babel/core": "^7.18.2",
     "@googlemaps/markerclusterer": "^1.0.24",
     "@popperjs/core": "^2.11.2",
     "apexcharts": "^3.33.1",
