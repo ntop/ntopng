@@ -43,7 +43,10 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_iec_invalid_transition.format(ifid, alert, alert_type_params)
-   local rsp = "[TypeId: ".. iec104_typeids2str(alert_type_params.from) .. " -> ".. iec104_typeids2str(alert_type_params.to) .. "]"
+   local from = iec104_typeids2str(alert_type_params.from) or alert_type_params.from or i18n('unknown')
+   local to = iec104_typeids2str(alert_type_params.to) or alert_type_params.to or i18n('unknown')
+
+   local rsp = "[TypeId: ".. from .. " -> ".. to .. "]"
 
    -- tprint(rsp)
    

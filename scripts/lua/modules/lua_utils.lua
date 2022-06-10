@@ -4988,8 +4988,8 @@ local iec104_typeids = {
 function iec104_typeids2str(c)
    if(c == nil) then return end
 
-   for s,v in pairs(iec104_typeids) do
-      if(v == c) then
+   for s, v in pairs(iec104_typeids) do
+      if(v == tonumber(c)) then
 	 return(s.." (".. v ..")")
       end
    end
