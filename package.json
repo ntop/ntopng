@@ -30,7 +30,6 @@
     "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@squoosh/lib": "^0.4.0",
-    "@vue/compiler-sfc": "3.0.11",
     "autoprefixer": "^10.4.2",
     "babel-loader": "^8.2.3",
     "clean-webpack-plugin": "^4.0.0",
@@ -53,7 +52,6 @@
     "mini-css-extract-plugin": "^2.5.3",
     "minimist": "^1.2.6",
     "node-sass": "^7.0.1",
-    "npm": "^8.10.0",
     "onchange": "^7.1.0",
     "postcss": "^8.4.6",
     "postcss-cli": "^9.1.0",
@@ -106,6 +104,6 @@
     "popper.js": "^1.16.1",
     "select2": "^4.1.0-rc.0",
     "vis-network": "^9  .1.0",
-    "vue": "3.0.11"
+    "vue": "3.2.37"
   }
 }
