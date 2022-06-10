@@ -42,7 +42,7 @@
     </form>
   </template>
   <template v-slot:footer>
-    <button type="btn btn-primary" @click="apply" class="btn btn-primary">{{i18n('apply')}}</button>
+    <button type="button" @click="apply" class="btn btn-primary">{{i18n('apply')}}</button>
   </template>  
 </modal>  
 </template>

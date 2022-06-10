@@ -51,7 +51,7 @@
     </form>
   </template>
   <template v-slot:footer>
-    <button type="btn btn-primary" :disabled="check_disable_apply()" @click="apply" class="btn btn-primary">{{i18n('apply')}}</button>
+    <button type="button" :disabled="check_disable_apply()" @click="apply" class="btn btn-primary">{{i18n('apply')}}</button>
   </template>
 </modal>
 </template>
